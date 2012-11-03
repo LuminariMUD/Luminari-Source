@@ -1,0 +1,14 @@
+asciipasswd.o: asciipasswd.c ../conf.h ../sysdep.h ../structs.h \
+ ../protocol.h ../lists.h ../utils.h
+autowiz.o: autowiz.c ../conf.h ../sysdep.h ../structs.h ../protocol.h \
+ ../lists.h ../utils.h ../db.h
+plrtoascii.o: plrtoascii.c ../conf.h ../sysdep.h ../structs.h \
+ ../protocol.h ../lists.h ../utils.h ../db.h ../pfdefaults.h
+rebuildAsciiIndex.o: rebuildAsciiIndex.c
+rebuildMailIndex.o: rebuildMailIndex.c
+shopconv.o: shopconv.c ../conf.h ../sysdep.h ../structs.h ../protocol.h \
+ ../lists.h ../utils.h ../db.h ../shop.h
+sign.o: sign.c ../conf.h ../sysdep.h
+split.o: split.c ../conf.h ../sysdep.h
+webster.o: webster.c ../conf.h ../sysdep.h
+wld2html.o: wld2html.c ../conf.h ../sysdep.h
