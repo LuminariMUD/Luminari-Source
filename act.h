@@ -1,4 +1,5 @@
-/**
+/***
+**
 * @file act.h
 * Header file for the core act* c files.
 *
