@@ -918,12 +918,16 @@ ACMD(do_drink)
     act("$n tries to drink but misses $s mouth!", TRUE, ch, 0, 0, TO_ROOM);
     return;
   }
-  if ((GET_COND(ch, HUNGER) > 20) && (GET_COND(ch, THIRST) > 0)) {
+  if ((GET_COND(ch, HUNGER) > 22) && (GET_COND(ch, THIRST) > 4)) {
     send_to_char(ch, "Your stomach can't contain anymore!\r\n");
     return;
   }
   if ((GET_OBJ_VAL(temp, 1) == 0) || (!GET_OBJ_VAL(temp, 0) == 1)) {
     send_to_char(ch, "It is empty.\r\n");
+    return;
+  }
+  if (GET_COND(ch, THIRST) > 20) {
+    send_to_char(ch, "You are not thirsty.\r\n");
     return;
   }
 
