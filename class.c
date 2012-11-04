@@ -1071,19 +1071,7 @@ int level_exp(struct char_data *ch, int level)
      return EXP_MAX - ((LVL_IMPL - level) * 1000);
    }
 
-  /* this is the xp factor to help increase the curve of the charts */
-  if (level <= 5)
-    factor = 2000;
-  else if (level <= 10)
-    factor = 2500;
-  else if (level <= 15)
-    factor = 3500;
-  else if (level <= 20)
-    factor = 5000;
-  else if (level <= 25)
-    factor = 7000;
-  else
-    factor = 9500;
+  factor = 2000 + (level-2) * 500;
 
   /* Exp required for normal mortals is below */
   switch (chclass) {
@@ -1097,50 +1085,6 @@ int level_exp(struct char_data *ch, int level)
       if (level < 0)
         level = 0;
       exp += (level * level * factor);
-/*
-    switch (level) {
-      case  0: exp+=	0;		break;
-      case  1: exp+=	1;		break;
-      case  2: exp+=	2500;		break;
-      case  3: exp+=	5000;		break;
-      case  4: exp+=	10000;		break;
-      case  5: exp+=	20000;		break;
-      case  6: exp+=	40000;		break;
-      case  7: exp+=	60000;		break;
-      case  8: exp+=	90000;		break;
-      case  9: exp+=	135000;		break;
-      case 10: exp+=	250000;		break;
-      case 11: exp+=	375000;		break;
-      case 12: exp+=	750000;		break;
-      case 13: exp+=	1125000;	break;
-      case 14: exp+=	1500000;	break;
-      case 15: exp+=	1875000;	break;
-      case 16: exp+=	2250000;	break;
-      case 17: exp+=	2625000;	break;
-      case 18: exp+=	3000000;	break;
-      case 19: exp+=	3375000;	break;
-      case 20: exp+=	3750000;	break;
-      case 21: exp+=	4000000;	break;
-      case 22: exp+=	4300000;	break;
-      case 23: exp+=	4600000;	break;
-      case 24: exp+=	4900000;	break;
-      case 25: exp+=	5200000;	break;
-      case 26: exp+=	5500000;	break;
-      case 27: exp+=	5950000;	break;
-      case 28: exp+=	6400000;	break;
-      case 29: exp+=	6850000;	break;
-      case 30: exp+=	7400000;	break;
-      case 31: exp+=	7850000;	break;
-      case 32: exp+=	8300000;	break;
-      case 33: exp+=	8750000;	break;
-      case 34: exp+=	9200000;	break;
-
-      default:
-        log("SYSERR: Reached invalid level in class.c!");
-        return 123456;
-    }
-*/
-
     break;
 
     default:
