@@ -596,7 +596,7 @@ ACMD(do_steal)
   char vict_name[MAX_INPUT_LENGTH], obj_name[MAX_INPUT_LENGTH];
   int percent, gold, eq_pos, pcsteal = 0, ohoh = 0;
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_STEAL)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_STEAL)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
@@ -616,7 +616,7 @@ ACMD(do_steal)
   }
 
   /* 101% is a complete failure */
-  percent = rand_number(1, 101) - GET_DEX_BONUS(ch);
+  percent = rand_number(1, 35);
 
   if (GET_POS(vict) < POS_SLEEPING)
     percent = -1;		/* ALWAYS SUCCESS, unless heavy object. */
@@ -625,11 +625,11 @@ ACMD(do_steal)
     pcsteal = 1;
 
   if (!AWAKE(vict))	/* Easier to steal from sleeping people. */
-    percent -= 50;
+    percent -= 17;
 
   /* No stealing if not allowed. If it is no stealing from Imm's or Shopkeepers. */
   if (GET_LEVEL(vict) >= LVL_IMMORT || pcsteal || GET_MOB_SPEC(vict) == shop_keeper)
-    percent = 101;		/* Failure */
+    percent = 35;		/* Failure */
 
   if (str_cmp(obj_name, "coins") && str_cmp(obj_name, "gold")) {
 
@@ -664,7 +664,7 @@ ACMD(do_steal)
 
       percent += GET_OBJ_WEIGHT(obj);	/* Make heavy harder */
 
-      if (percent > GET_SKILL(ch, SKILL_STEAL)) {
+      if (percent > GET_ABILITY(ch, ABILITY_STEAL)) {
 	ohoh = TRUE;
 	send_to_char(ch, "Oops..\r\n");
 	act("$n tried to steal something from you!", FALSE, ch, 0, vict, TO_VICT);
@@ -686,7 +686,7 @@ ACMD(do_steal)
       }
     }
   } else {			/* Steal some coins */
-    if (AWAKE(vict) && (percent > GET_SKILL(ch, SKILL_STEAL))) {
+    if (AWAKE(vict) && (percent > GET_ABILITY(ch, ABILITY_STEAL))) {
       ohoh = TRUE;
       send_to_char(ch, "Oops..\r\n");
       act("You discover that $n has $s hands in your wallet.", FALSE, ch, 0, vict, TO_VICT);

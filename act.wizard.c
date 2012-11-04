@@ -781,7 +781,7 @@ static void do_affstat_character(struct char_data *ch, struct char_data *k)
   send_to_char(ch,
 "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
 
-  send_to_char(ch, "\tCCooldowns:\tn\r\n");
+  send_to_char(ch, "\tCCooldowns (positive and negative):\tn\r\n");
   if (char_has_mud_event(k, eTAUNT))
     send_to_char(ch, "Taunt\r\n");
   if (char_has_mud_event(k, eLAYONHANDS))
@@ -802,6 +802,10 @@ static void do_affstat_character(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Epic Spell:  Epic Warding\r\n");
   if (char_has_mud_event(k, eTAUNTED))
     send_to_char(ch, "Taunted!\r\n");
+  if (char_has_mud_event(k, eSTUNNED))
+    send_to_char(ch, "Stunned!\r\n");
+  if (char_has_mud_event(k, eSTUNNINGFIST))
+    send_to_char(ch, "Stunning Fist\r\n");
 
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\tCDamType Resist / Vulner\tn\r\n");

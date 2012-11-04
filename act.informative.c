@@ -954,10 +954,14 @@ ACMD(do_affects)
     send_to_char(ch, "Epic Spell:  Epic Mage Armor\r\n");
   if (char_has_mud_event(ch, eEPICWARDING))
     send_to_char(ch, "Epic Spell:  Epic Warding\r\n");
+  if (char_has_mud_event(ch, eSTUNNINGFIST))
+    send_to_char(ch, "Stunning Fist\r\n");
   send_to_char(ch, 
 	"\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
   if (char_has_mud_event(ch, eTAUNTED))
     send_to_char(ch, "Taunted!\r\n");
+  if (char_has_mud_event(ch, eSTUNNED))
+    send_to_char(ch, "Stunned!\r\n");
 
   //location of our DAM_x  damtypes
   send_to_char(ch, 

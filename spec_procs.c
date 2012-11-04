@@ -188,9 +188,6 @@ case SKILL_IMPROVED_TRIP:
 case SKILL_BACKSTAB:
 	if (CLASS_LEVEL(ch, CLASS_THIEF))
 		return TRUE;	else return FALSE;
-case SKILL_PICK_LOCK:
-	if (GET_CLASS(ch) != CLASS_THIEF)
-		return FALSE;	else return TRUE;
 case SKILL_BASH:
 	if (ch->real_abils.str >= 13)
 		return TRUE;	else return FALSE;
@@ -206,9 +203,6 @@ case SKILL_IMPROVED_WHIRL:
 case SKILL_RESCUE:
 	if (CLASS_LEVEL(ch, CLASS_WARRIOR))
 		return TRUE;	else return FALSE;
-case SKILL_STEAL:
-	if (GET_CLASS(ch) != CLASS_THIEF)
-		return FALSE;	else return TRUE;
 case SKILL_DIRTY_FIGHTING:
 	if (GET_LEVEL(ch) >= 3 && ch->real_abils.dex >= 15)
 		return TRUE;	else return FALSE;
@@ -251,8 +245,13 @@ case SKILL_EPIC_CRIT:
 case SKILL_QUICK_CHANT:
 	if (CASTER_LEVEL(ch))
 		return TRUE;	else return FALSE;
+     
+   /* not available */
+    case SKILL_STUNNING_FIST:
+    case SKILL_RAGE:
+      return FALSE;
 
-    /*** no reqs ***/
+  /*** no reqs ***/
     case SKILL_TOUGHNESS:
     case SKILL_KICK:
     case SKILL_TRACK:
@@ -407,6 +406,12 @@ int compute_ability(struct char_data *ch, int abilityNum)
 		return value; 
 	case ABILITY_TAME:
 		value += GET_INT_BONUS(ch);
+		return value; 
+	case ABILITY_PICK_LOCK:
+		value += GET_DEX_BONUS(ch);
+		return value; 
+	case ABILITY_STEAL:
+		value += GET_DEX_BONUS(ch);
 		return value; 
     default:  return -1;
   }

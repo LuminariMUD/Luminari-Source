@@ -37,6 +37,8 @@ struct mud_event_list mud_event_index[] = {
   { "Epic mage armor"	, event_countdown,	EVENT_CHAR	}, // eEPICMAGEARMOR
   { "Epic warding"	, event_countdown,	EVENT_CHAR	}, // eEPICWARDING
   { "Memorizing"  	 , event_memorizing, 	EVENT_CHAR  }, //eMEMORIZING 
+  { "Memorizing"  	 , event_countdown, 	EVENT_CHAR  }, //eSTUNNED
+  { "Memorizing"  	 , event_countdown, 	EVENT_CHAR  }, //eSTUNNINGFIST 
 };
 
 
@@ -98,6 +100,13 @@ EVENTFUNC(event_countdown)
       break;
     case eTREATINJURY:
       send_to_char(ch, "You are now able to treat injuries again.\r\n");
+      break;
+    case eSTUNNED:
+      send_to_char(ch, "You are now free from the stunning affect.\r\n");
+      break;
+    case eSTUNNINGFIST:
+      send_to_char(ch, "You are now able to strike with your stunning"
+                       " fist again.\r\n");
       break;
     default:
     break;

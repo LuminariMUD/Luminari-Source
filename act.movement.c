@@ -908,13 +908,13 @@ static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scm
   if (scmd != SCMD_PICK)
     return (1);
 
-  percent = rand_number(1, 101);
-  skill_lvl = GET_SKILL(ch, SKILL_PICK_LOCK) + GET_DEX_BONUS(ch);
+  percent = rand_number(1, 35);
+  skill_lvl = GET_ABILITY(ch, ABILITY_PICK_LOCK);
 
   if (keynum == NOTHING)
     send_to_char(ch, "Odd - you can't seem to find a keyhole.\r\n");
   else if (pickproof)
-    send_to_char(ch, "It resists your attempts to pick it.\r\n");
+    send_to_char(ch, "It resists your attempts to pick it. (pickproof)\r\n");
   else if (percent > skill_lvl)
     send_to_char(ch, "You failed to pick the lock.\r\n");
   else
