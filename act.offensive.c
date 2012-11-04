@@ -1131,6 +1131,62 @@ ACMD(do_whirlwind)
   WAIT_STATE(ch, PULSE_VIOLENCE * 3);
 }
 
+
+ACMD(do_stunningfist)
+{
+  char arg[MAX_INPUT_LENGTH];
+  struct char_data *vict;
+  int percent, prob;
+
+  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_STUNNING_FIST)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg);
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+      vict = FIGHTING(ch);
+    } else {
+      send_to_char(ch, "Use your stunning fist on who?\r\n");
+      return;
+    }
+  }
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+  if (char_has_mud_event(ch, eSTUNNED)) {
+    send_to_char(ch, "Your target is already stunned...\r\n");
+    return;
+  }
+  if (char_has_mud_event(ch, eSTUNNINGFIST)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    send_to_char(ch, "OOC:  The cooldown is approximately 5 minutes.\r\n");
+    return;
+  }
+  
+  /* 101% is a complete failure */
+  percent = rand_number(1, 101);
+  prob = GET_SKILL(ch, SKILL_STUNNING_FIST);
+
+  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
+    percent += compute_ability(vict, ABILITY_DISCIPLINE);
+
+  if (percent > prob) {
+    damage(ch, vict, 0, SKILL_STUNNING_FIST, DAM_FORCE, FALSE);
+  } else {
+    damage(ch, vict, (dice(1,8)+GET_DAMROLL(ch)), SKILL_STUNNING_FIST,
+           DAM_FORCE, FALSE);
+    attach_mud_event(new_mud_event(eSTUNNED, vict, NULL), 4 * PASSES_PER_SEC);
+  }
+  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), 300 * PASSES_PER_SEC);
+
+  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
+}
+
+
 ACMD(do_kick)
 {
   char arg[MAX_INPUT_LENGTH];

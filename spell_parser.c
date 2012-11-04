@@ -1535,11 +1535,11 @@ void mag_assign_spells(void)
   skillo(SKILL_BASH, "bash");
   skillo(SKILL_MUMMY_DUST, "es mummy dust");
   skillo(SKILL_KICK, "kick");
-  skillo(SKILL_PICK_LOCK, "pick lock");				//135
+/*  skillo(SKILL_FREE1, "UNUSED");				135*/
   skillo(SKILL_WHIRLWIND, "whirlwind");
   skillo(SKILL_RESCUE, "rescue");
   skillo(SKILL_DRAGON_KNIGHT, "es dragon knight");
-  skillo(SKILL_STEAL, "steal");
+/*  skillo(SKILL_FREE2, "UNUSED"); */
   skillo(SKILL_TRACK, "track");					//140
   skillo(SKILL_QUICK_CHANT, "quick chant");
   skillo(SKILL_AMBIDEXTERITY, "ambidexterity");
@@ -1600,4 +1600,5 @@ void mag_assign_spells(void)
   skillo(SKILL_MURMUR, "murmur");
   skillo(SKILL_PROPAGANDA, "propaganda");
   skillo(SKILL_LOBBY, "lobby");                             //469
+  skillo(SKILL_STUNNING_FIST, "stunning fist");             //470
 }

@@ -280,6 +280,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch)
   }
   if (char_has_mud_event(ch, eTAUNTED))
     armorclass -= 6;
+  if (char_has_mud_event(ch, eSTUNNED))
+    armorclass -= 2;
 
   return (MIN(MAX_AC, armorclass));
 }
@@ -2211,6 +2213,11 @@ void perform_violence(void)
     if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
       send_to_char(ch, "You are paralyzed and unable to react!\r\n");
       act("$n seems to be paralyzed and unable to react!", TRUE, ch, 0, 0, TO_ROOM);
+      continue;
+    }
+    if (char_has_mud_event(ch, eSTUNNED)) {
+      send_to_char(ch, "You are stunned and unable to react!\r\n");
+      act("$n seems to be stunned and unable to react!", TRUE, ch, 0, 0, TO_ROOM);
       continue;
     }
 

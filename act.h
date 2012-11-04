@@ -201,6 +201,7 @@ ACMD(do_tailsweep);
 ACMD(do_backstab);
 ACMD(do_expertise);
 ACMD(do_flee);
+ACMD(do_stunningfist);
 ACMD(do_kick);
 ACMD(do_kill);
 ACMD(do_layonhands);

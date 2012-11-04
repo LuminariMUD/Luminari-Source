@@ -31,13 +31,16 @@ typedef enum {
     eTREATINJURY,	//  treat injury
     eTAUNT,		//  taunt
     eTAUNTED,		//  taunted
-    eMUMMYDUST,		//  mummy dust
+    eMUMMYDUST,	//  mummy dust
     eDRAGONKNIGHT,	//  dragon knight
     eGREATERRUIN,	//  greater ruin
     eHELLBALL,		//  hellball
     eEPICMAGEARMOR,	//  epic mage armor
     eEPICWARDING,	//  epic warding
     eMEMORIZING,	//  memorization
+    eSTUNNED,	     //  stunning fist stun
+    eSTUNNINGFIST,	//  stunner's cooldown for stunning fist
+
 } event_id;
 
 struct mud_event_list {
@@ -76,5 +79,7 @@ EVENTFUNC(event_layonhands);
 EVENTFUNC(event_taunt);
 EVENTFUNC(event_taunted);
 EVENTFUNC(event_memorizing);
+EVENTFUNC(event_stunned);
+EVENTFUNC(event_stunningfist);
 
 #endif /* _MUD_EVENT_H_ */

@@ -22,6 +22,7 @@
 #include "graph.h"
 #include "fight.h"
 #include "spec_procs.h"
+#include "mud_event.h" /* for eSTUNNED */
 
 /* local file scope only function prototypes */
 static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data *master, struct char_data *attack);
@@ -522,7 +523,8 @@ void mobile_activity(void)
     if (!IS_MOB(ch))
       continue;
 
-    if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED)) {
+    if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
+            char_has_mud_event(ch, eSTUNNED)) {
       send_to_char(ch, "You are unable to move!\r\n");
       continue;
     }

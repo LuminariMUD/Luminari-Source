@@ -337,6 +337,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "stand"    , "st"      , POS_RESTING , do_stand    , 0, 0 },
   { "stat"     , "stat"    , POS_DEAD    , do_stat     , LVL_IMMORT, 0 },
   { "steal"    , "ste"     , POS_STANDING, do_steal    , 1, 0 },
+  { "stunningfist"     , "stunningfist"      , POS_FIGHTING, do_stunningfist, 1, 0 },
   { "switch"   , "switch"  , POS_DEAD    , do_switch   , LVL_GOD, 0 },
   { "shapechange"     , "shapechange"     , POS_FIGHTING, do_shapechange     , 1, 0 },
 
@@ -593,7 +594,8 @@ void command_interpreter(struct char_data *ch, char *argument)
       }
     }
   }
-  else if (!IS_NPC(ch) && (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED)))
+  else if (!IS_NPC(ch) && (AFF_FLAGGED(ch, AFF_STUN) || 
+          AFF_FLAGGED(ch, AFF_PARALYZED) || char_has_mud_event(ch, eSTUNNED)))
     send_to_char(ch, "You try, but you are unable to move!\r\n");
   else if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_FROZEN) && GET_LEVEL(ch) < LVL_IMPL)
     send_to_char(ch, "You try, but the mind-numbing cold prevents you...\r\n");

@@ -158,11 +158,11 @@
 #define SKILL_BASH			402
 #define SKILL_MUMMY_DUST		403
 #define SKILL_KICK			404
-#define SKILL_PICK_LOCK			405
+#define SKILL_FREE1			405
 #define SKILL_WHIRLWIND			406
 #define SKILL_RESCUE			407
 #define SKILL_DRAGON_KNIGHT		408
-#define SKILL_STEAL			409
+#define SKILL_FREE2			409
 #define SKILL_TRACK			410
 #define SKILL_QUICK_CHANT		411
 #define SKILL_AMBIDEXTERITY		412
@@ -223,8 +223,9 @@
 #define SKILL_MURMUR                    467 /* Murmur     diplomacy skill */
 #define SKILL_PROPAGANDA                468 /* Propaganda diplomacy skill */
 #define SKILL_LOBBY                     469 /* Lobby      diplomacy skill */
+#define SKILL_STUNNING_FIST             470 
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      470
+#define NUM_SKILLS                      471
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the
@@ -282,8 +283,10 @@
 #define ABILITY_MOUNT			14
 #define ABILITY_RIDING			15 //mounts
 #define ABILITY_TAME			16 //mounts
+#define ABILITY_PICK_LOCK		17 //mounts
+#define ABILITY_STEAL			18 //mounts
 
-#define NUM_ABILITIES			17 /* Number of defined abilities */
+#define NUM_ABILITIES			19 /* Number of defined abilities */
 /*	MAX_ABILITIES = 200 */ 
 /*-------------------------------------------------------------------------*/
 

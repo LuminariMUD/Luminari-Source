@@ -180,6 +180,8 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
   { CA,	CA, CA,	CA, CA,	CA },	//14 mount
   { CA,	CA, CA,	CA, CA,	CA },	//15 riding
   { CA,	CA, CA,	CA, CA,	CA },	//16 tame
+  { NA,	NA, CA,	NA, NA,	NA },	//17 pick locks
+  { NA,	NA, CA,	NA, NA,	NA },	//18 steal
 };
 #undef NA
 #undef CC
@@ -321,6 +323,19 @@ void newbieEquipment(struct char_data *ch)
   }
 }
 
+
+void monk_skills(struct char_data *ch, int level) {
+  switch (level) {
+    case 2:
+      SET_SKILL(ch, SKILL_STUNNING_FIST, 75);
+      send_to_char(ch, "\tMYou have learned 'Stunning Fist'\tn\r\n");
+      break;
+
+    default:
+      break;
+  }
+  return;  
+}
 
 void init_class(struct char_data *ch, int class, int level)
 {
@@ -494,9 +509,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SKILL_PROF_DRUID_W, 75);
     SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
 
-    SET_SKILL(ch, SKILL_STEAL, 75);
     SET_SKILL(ch, SKILL_BACKSTAB, 75);
-    SET_SKILL(ch, SKILL_PICK_LOCK, 75);
     SET_SKILL(ch, SKILL_TRACK, 75);
     SET_SKILL(ch, SKILL_MURMUR, 75);
     SET_SKILL(ch, SKILL_PROPAGANDA, 75);
@@ -712,6 +725,7 @@ void advance_level(struct char_data *ch, int class)
 
     break;
   case CLASS_MONK:
+    monk_skills(ch, CLASS_LEVEL(ch, CLASS_MONK));
     add_hp += rand_number(4, 8);
     add_mana = 0;
     add_move = rand_number(2, 4);
