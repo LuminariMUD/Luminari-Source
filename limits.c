@@ -220,6 +220,8 @@ void run_autowiz(void)
 }
 
 
+#define NEWBIE_LEVEL	5   /* max level for newbie bonus */
+#define NEWBIE_EXP      100 /* bonus in percent */
 void gain_exp(struct char_data *ch, int gain)
 {
   if (!IS_NPC(ch) && ((GET_LEVEL(ch) < 1 || GET_LEVEL(ch) >= LVL_IMMORT)))
@@ -231,9 +233,14 @@ void gain_exp(struct char_data *ch, int gain)
   }
 
   if (gain > 0) {
+    /* happy hour bonus */
     if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
       gain += (int)((float)gain * ((float)HAPPY_EXP / (float)(100)));
 
+    /* newbie bonus */
+    if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
+      gain += (int)((float)gain * ((float)NEWBIE_EXP / (float)(100)));
+    
     gain = MIN(CONFIG_MAX_EXP_GAIN, gain);	/* put a cap on the max gain per kill */
     GET_EXP(ch) += gain;
 

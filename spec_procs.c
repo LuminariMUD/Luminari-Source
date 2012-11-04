@@ -153,7 +153,7 @@ case SKILL_EPIC_PROWESS:
 	if (GET_LEVEL(ch) >= 20 && GET_SKILL(ch, SKILL_PROWESS))
 		return TRUE;	else return FALSE;
 case SKILL_SPELLPENETRATE:
-	if (GET_LEVEL(ch) >= 5 && CASTER_LEVEL(ch))
+	if (GET_LEVEL(ch) >= 5 && IS_CASTER(ch))
 		return TRUE;	else return FALSE;
 case SKILL_SPELLPENETRATE_2:
 	if (GET_LEVEL(ch) >= 9 && GET_SKILL(ch, SKILL_SPELLPENETRATE))
