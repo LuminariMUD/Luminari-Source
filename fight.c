@@ -83,6 +83,14 @@ void perform_flee(struct char_data *ch)
   int i, found = 0, fleeOptions[DIR_COUNT];
   struct char_data *was_fighting; 
     
+  /* disqualifications? */
+  if (AFF_FLAGGED(ch, AFF_STUN) ||
+          AFF_FLAGGED(ch, AFF_PARALYZED) || char_has_mud_event(ch, eSTUNNED)) {
+    send_to_char(ch, "You try to flee, but you are unable to move!\r\n");  
+    act("$n attemps to flee, but is unable to move!", TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
     //first find which directions are fleeable
   for (i = 0; i < DIR_COUNT; i++) {
     if (CAN_GO(ch, i)) {

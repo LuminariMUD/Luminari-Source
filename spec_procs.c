@@ -245,12 +245,10 @@ case SKILL_EPIC_CRIT:
 case SKILL_QUICK_CHANT:
 	if (CASTER_LEVEL(ch))
 		return TRUE;	else return FALSE;
+case SKILL_STUNNING_FIST:
+        if (CLASS_LEVEL(ch, CLASS_MONK) >= 2)
+                return TRUE;	else return FALSE;
      
-   /* not available */
-    case SKILL_STUNNING_FIST:
-    case SKILL_RAGE:
-      return FALSE;
-
   /*** no reqs ***/
     case SKILL_TOUGHNESS:
     case SKILL_KICK:
@@ -260,7 +258,10 @@ case SKILL_QUICK_CHANT:
     case SKILL_PROF_SIMPLE_W:
     case SKILL_PROF_SHIELDS:
     case SKILL_PROF_LIGHT_A:
-    default: return TRUE;
+      return TRUE;
+      
+    case SKILL_RAGE:
+    default: return FALSE;
   }
   return FALSE;
 }
