@@ -57,6 +57,8 @@ config.o: config.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h config.h asciimap.h
 constants.o: constants.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h interpreter.h spells.h
+craft.o: craft.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
+ race.h comm.h spells.h interpreter.h constants.h handler.h db.h
 db.o: db.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  db.h comm.h handler.h spells.h mail.h interpreter.h house.h constants.h \
  oasis.h dg_scripts.h dg_event.h act.h ban.h spec_procs.h genzon.h \
@@ -161,7 +163,7 @@ memorize.o: memorize.c conf.h sysdep.h structs.h protocol.h lists.h \
  constants.h act.h
 mobact.o: mobact.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h interpreter.h handler.h spells.h constants.h act.h \
- graph.h fight.h spec_procs.h
+ graph.h fight.h spec_procs.h mud_event.h dg_event.h
 modify.o: modify.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h handler.h db.h comm.h spells.h mail.h boards.h \
  improved-edit.h oasis.h class.h dg_scripts.h modify.h quest.h ibt.h \

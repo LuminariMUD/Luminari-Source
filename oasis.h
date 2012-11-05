@@ -200,6 +200,7 @@ extern const char *nrm, *grn, *cyn, *yel;
 #define OEDIT_WEAPON_SPELL_INCOMBAT     33
 #define OEDIT_SIZE		     34
 #define OEDIT_PROF		     35	//proficiency
+#define OEDIT_MATERIAL		     36
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 		1

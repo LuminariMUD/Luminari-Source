@@ -42,6 +42,7 @@ static void oedit_disp_val2_menu(struct descriptor_data *d);
 static void oedit_disp_val3_menu(struct descriptor_data *d);
 static void oedit_disp_val4_menu(struct descriptor_data *d);
 static void oedit_disp_prof_menu(struct descriptor_data *d);
+static void oedit_disp_mats_menu(struct descriptor_data *d);
 static void oedit_disp_type_menu(struct descriptor_data *d);
 static void oedit_disp_extra_menu(struct descriptor_data *d);
 static void oedit_disp_wear_menu(struct descriptor_data *d);
@@ -192,6 +193,7 @@ static void oedit_setup_new(struct descriptor_data *d)
   SET_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE);
   OLC_VAL(d) = 0;
   OLC_ITEM_TYPE(d) = OBJ_TRIGGER;
+  GET_OBJ_MATERIAL(OLC_OBJ(d)) = 0;
   GET_OBJ_PROF(OLC_OBJ(d)) = 0;
   GET_OBJ_SIZE(OLC_OBJ(d)) = SIZE_MEDIUM;
   SCRIPT(OLC_OBJ(d)) = NULL;
@@ -601,6 +603,21 @@ static void oedit_disp_prof_menu(struct descriptor_data *d)
   write_to_output(d, "\r\nEnter object proficiency : ");
 }
 
+// item material
+static void oedit_disp_mats_menu(struct descriptor_data *d)
+{
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 0; counter < NUM_MATERIALS; counter++) {
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm,
+		material_name[counter], !(++columns % 2) ? "\r\n" : "");
+  }
+  write_to_output(d, "\r\nEnter object material : ");
+}
+
 /* Object extra flags. */
 static void oedit_disp_extra_menu(struct descriptor_data *d)
 {
@@ -710,7 +727,8 @@ static void oedit_disp_menu(struct descriptor_data *d)
 
   write_to_output(d,
 	  "%s7%s) Wear flags  : %s%s\r\n"
-	  "%s8%s) Weight      : %s%d\r\n"
+       "%sH%s) Material    : %s%s\r\n"
+       "%s8%s) Weight      : %s%d\r\n"
 	  "%sI%s) Size        : %s%s\r\n"
 	  "%s9%s) Cost        : %s%d\r\n"
 	  "%sA%s) Cost/Day    : %s%d\r\n"
@@ -728,6 +746,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
 	  "Enter choice : ",
 
 	  grn, nrm, cyn, buf1,
+       grn, nrm, cyn, material_name[GET_OBJ_MATERIAL(obj)],
 	  grn, nrm, cyn, GET_OBJ_WEIGHT(obj),
 	  grn, nrm, cyn, size_names[GET_OBJ_SIZE(obj)],
 	  grn, nrm, cyn, GET_OBJ_COST(obj),
@@ -830,6 +849,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case 'G':
       oedit_disp_prof_menu(d);
       OLC_MODE(d) = OEDIT_PROF;
+      break;
+    case 'h':
+    case 'H':
+      oedit_disp_mats_menu(d);
+      OLC_MODE(d) = OEDIT_MATERIAL;
       break;
     case '6':
       oedit_disp_extra_menu(d);
@@ -969,6 +993,15 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       return;
     } else
       GET_OBJ_PROF(OLC_OBJ(d)) = number;
+    break;
+
+  case OEDIT_MATERIAL:
+    number = atoi(arg);
+    if ((number < 1) || (number >= NUM_MATERIALS)) {
+      write_to_output(d, "Invalid choice, try again : ");
+      return;
+    } else
+      GET_OBJ_MATERIAL(OLC_OBJ(d)) = number;
     break;
 
   case OEDIT_EXTRAS:

@@ -66,7 +66,6 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate)
   }
 
   if (obj->action_description) {
-
     strcpy(buf1, obj->action_description);
     strip_cr(buf1);
   } else
@@ -111,6 +110,8 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate)
     fprintf(fp, "Type: %d\n", GET_OBJ_TYPE(obj));
   if (TEST_OBJN(prof_flag))
     fprintf(fp, "Prof: %d\n", GET_OBJ_PROF(obj));
+  if (TEST_OBJN(material))
+    fprintf(fp, "Mats: %d\n", GET_OBJ_MATERIAL(obj));
   if (TEST_OBJN(weight))
     fprintf(fp, "Wght: %d\n", GET_OBJ_WEIGHT(obj));
   if (TEST_OBJN(cost))
@@ -161,7 +162,6 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate)
 
   return 1;
 }
-
 #undef TEST_OBJS
 #undef TEST_OBJN
 
@@ -1145,6 +1145,10 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     case 'L':
       if(!strcmp(tag, "Loc "))
         current->locate = num;
+      break;
+    case 'M':
+      if (!strcmp(tag, "Mats"))
+        GET_OBJ_MATERIAL(temp) = num;
       break;
     case 'N':
       if (!strcmp(tag, "Name"))

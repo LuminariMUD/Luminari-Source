@@ -38,6 +38,7 @@
 
 /* Public functions made available from utils.c. Documentation for all functions
  * are made available with the function definition. */
+int convert_material_vnum(int obj_vnum);
 void basic_mud_log(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 void basic_mud_vlog(const char *format, va_list args);
 int touch(const char *path);
@@ -1071,6 +1072,61 @@ do                                                              \
 /** Return short description of obj. */
 #define GET_OBJ_SHORT(obj)      ((obj)->short_description)
 
+/** object ->  crafting */
+#define IS_CLOTH(mat)      (mat == MATERIAL_COTTON || mat == MATERIAL_SILK || \
+                            mat == MATERIAL_SATIN || mat == MATERIAL_VELVET || \
+                            mat == MATERIAL_WOOL || mat == MATERIAL_HEMP)
+#define IS_LEATHER(mat)    (mat == MATERIAL_LEATHER || mat == MATERIAL_BURLAP || \
+                            mat == MATERIAL_DRAGONHIDE)
+#define IS_WOOD(mat)       (mat == MATERIAL_WOOD || mat == MATERIAL_DARKWOOD)
+#define IS_HARD_METAL(mat) (mat == MATERIAL_STEEL || \
+                            mat == MATERIAL_ALCHEMAL_SILVER || \
+                            mat == MATERIAL_COLD_IRON || \
+                            mat == MATERIAL_MITHRIL || \
+                            mat == MATERIAL_ADAMANTINE)
+#define IS_PRECIOUS_METAL(mat) (mat == MATERIAL_SILVER || \
+                                mat == MATERIAL_GOLD || \
+                                mat == MATERIAL_COPPER || \
+                                mat == MATERIAL_PLATINUM)
+#define SCMD_CRAFT_UNDF   0
+#define SCMD_BREW         1
+#define SCMD_CRAFT        2 // SCMD_CREATE
+#define SCMD_FLETCH       3
+#define SCMD_KNIT         4
+#define SCMD_MINE         5
+#define SCMD_DISENCHANT   6
+#define SCMD_SYNTHESIZE   7
+#define SCMD_HUNT         8
+#define SCMD_FOREST       9
+#define SCMD_DIVIDE       10
+#define SCMD_RESIZE       11
+#define SCMD_AUGMENT      12
+#define SCMD_SUPPLYORDER  13
+#define SCMD_CONVERT      14
+#define SCMD_RESTRING     15
+#define SCMD_WAND_MAKING  16
+#define SCMD_STAFF_MAKING 17
+ /***/
+#define NUM_CRAFT         18
+ /***/
+extern int assembly_skills[NUM_CRAFT];
+/****************/
+#define GET_OBJ_MATERIAL(obj)  ((obj)->obj_flags.material)
+/* autocraft */
+#define GET_AUTOCQUEST_VNUM(ch)      ((ch)->char_specials.autocquest_vnum)
+#define GET_AUTOCQUEST_MAKENUM(ch)   ((ch)->char_specials.autocquest_makenum)
+#define GET_AUTOCQUEST_QP(ch)        ((ch)->char_specials.autocquest_qp)
+#define GET_AUTOCQUEST_EXP(ch)       ((ch)->char_specials.autocquest_exp)
+#define GET_AUTOCQUEST_GOLD(ch)      ((ch)->char_specials.autocquest_gold)
+#define GET_AUTOCQUEST_DESC(ch)      ((ch)->char_specials.autocquest_desc)
+#define GET_AUTOCQUEST_MATERIAL(ch)  ((ch)->char_specials.autocquest_material)
+/* crafting */
+#define GET_CRAFTING_TYPE(ch)        ((ch)->char_specials.crafting_type)
+#define GET_CRAFTING_TICKS(ch)       ((ch)->char_specials.crafting_ticks)
+#define GET_CRAFTING_OBJ(ch)         ((ch)->char_specials.crafting_object)
+#define GET_CRAFTING_REPEAT(ch)      ((ch)->char_specials.crafting_repeat)
+#define GET_CRAFTING_BONUS(ch)       ((ch)->char_specials.crafting_bonus)
+/*****end crafting******************/
 
 
 /* Compound utilities and other macros. */

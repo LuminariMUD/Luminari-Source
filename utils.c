@@ -1609,3 +1609,13 @@ char * convert_from_tabs(char * string)
   parse_tab(buf);
   return(buf);
 }
+
+int convert_material_vnum(int obj_vnum)
+{
+  switch(obj_vnum) {
+    default:
+      break;
+  }
+  
+  return 0;
+}

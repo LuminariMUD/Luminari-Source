@@ -183,13 +183,13 @@
 
 
 /* PC classes */
-#define CLASS_UNDEFINED	  (-1) /**< PC Class undefined */
+#define CLASS_UNDEFINED	 (-1) /**< PC Class undefined */
 #define CLASS_MAGIC_USER  0    /**< PC Class Magic User */
 #define CLASS_CLERIC      1    /**< PC Class Cleric */
 #define CLASS_THIEF       2    /**< PC Class Thief */
 #define CLASS_WARRIOR     3    /**< PC Class Warrior */
-#define CLASS_MONK	  4    /**< PC Class monk */
-#define CLASS_DRUID	  5	//druids
+#define CLASS_MONK	      4    /**< PC Class monk */
+#define CLASS_DRUID	      5	//druids
 /** Total number of available PC Classes */
 #define NUM_CLASSES	  6
 
@@ -205,9 +205,9 @@
 
 
 // spec_abil corresponds to the various abilities that reset daily
-#define RAGES			0
+#define RAGES                 0
 #define SHAPECHANGES		1
-#define SONGS			2
+#define SONGS                 2
 #define CALLCOMPANION		3
 #define CALLFAMILIAR		4
 	/* max = MAX_CLASSES right now */
@@ -230,7 +230,7 @@
 #define NPCRACE_UND_GHOUL	2	// und = undead
 #define NPCRACE_ANM_BADGER	3	// anm = animal
 #define NPCRACE_DRG_RED		4	// drg = dragon
-#define NPCRACE_GNT_HILL	5	// gnt = giant
+#define NPCRACE_GNT_HILL	     5	// gnt = giant
 //total
 #define NUM_NPC_RACES		6
 
@@ -480,8 +480,11 @@
 #define ITEM_BOAT      22		/**< Item is a boat		*/
 #define ITEM_FOUNTAIN  23		/**< Item is a fountain		*/
 #define ITEM_CLANARMOR 24		/**< Item is clan armor		*/
+#define ITEM_CRYSTAL     25  //crafting
+#define ITEM_ESSENCE     26  //crafting
+#define ITEM_MATERIAL    27  //crafting / general
 /** Total number of item types.*/
-#define NUM_ITEM_TYPES    25
+#define NUM_ITEM_TYPES    28
 
 /* Item profs: used by obj_data.obj_flags.prof_flag constants.c = item_profs */
 #define ITEM_PROF_NONE		0	// no proficiency required
@@ -497,6 +500,57 @@
 #define ITEM_PROF_T_SHIELDS	10	// tower shield prof
 /** Total number of item profs.*/
 #define NUM_ITEM_PROFS    11
+
+/* Item profs: used by obj_data.obj_flags.material 
+ * constants.c = material_name 
+ */
+#define MATERIAL_UNDEFINED      0 
+#define MATERIAL_COTTON         1 
+#define MATERIAL_LEATHER        2
+#define MATERIAL_GLASS          3
+#define MATERIAL_GOLD           4
+#define MATERIAL_ORGANIC        5
+#define MATERIAL_PAPER          6
+#define MATERIAL_STEEL          7
+#define MATERIAL_WOOD           8
+#define MATERIAL_BONE           9
+#define MATERIAL_CRYSTAL        10
+#define MATERIAL_ETHER          11
+#define MATERIAL_ADAMANTINE     12
+#define MATERIAL_MITHRIL        13
+#define MATERIAL_IRON           14
+#define MATERIAL_COPPER         15
+#define MATERIAL_CERAMIC        16
+#define MATERIAL_SATIN          17
+#define MATERIAL_SILK           18
+#define MATERIAL_DRAGONHIDE     19
+#define MATERIAL_BURLAP         20
+#define MATERIAL_VELVET         21
+#define MATERIAL_PLATINUM       22
+#define MATERIAL_OBSIDIAN       23
+#define MATERIAL_WOOL           24
+#define MATERIAL_ONYX           25
+#define MATERIAL_IVORY          26
+#define MATERIAL_BRASS          27
+#define MATERIAL_MARBLE         28
+#define MATERIAL_BRONZE         29
+#define MATERIAL_PEWTER         30
+#define MATERIAL_RUBY           31
+#define MATERIAL_SAPPHIRE       32
+#define MATERIAL_EMERALD        33
+#define MATERIAL_GEMSTONE       34
+#define MATERIAL_GRANITE        35
+#define MATERIAL_STONE          36
+#define MATERIAL_ENERGY         37
+#define MATERIAL_HEMP           38
+#define MATERIAL_DIAMOND        39
+#define MATERIAL_EARTH          40  
+#define MATERIAL_SILVER         41
+#define MATERIAL_ALCHEMAL_SILVER 42
+#define MATERIAL_COLD_IRON      43
+#define MATERIAL_DARKWOOD       44  
+/** Total number of item mats.*/
+#define NUM_MATERIALS    45
 
 /* Take/Wear flags: used by obj_data.obj_flags.wear_flags */
 #define ITEM_WEAR_TAKE      0   /**< Item can be taken */
@@ -542,8 +596,9 @@
 #define ITEM_ANTI_TROLL       21   /* Not usable by Troll */
 #define ITEM_ANTI_MONK		22   /**< Not usable by monks */
 #define ITEM_ANTI_DRUID		23   // not usable by druid
+#define ITEM_MOLD             24
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS    24
+#define NUM_ITEM_FLAGS    25
 
 
 /* Modifier constants used with obj affects ('A' fields) */
@@ -829,6 +884,7 @@ struct obj_flag_data
   int cost_per_day;                 /**< Rent cost per real day */
   int timer;                        /**< Timer for object             */
   int bitvector[AF_ARRAY_MAX];      /**< Affects characters           */
+  byte material;
 };
 
 /** Used in obj_file_elem. DO NOT CHANGE if you are using binary object files
@@ -1114,6 +1170,23 @@ struct char_special_data
   int parryAttempts;		// how many parry attempts left in the round
   int prayin[NUM_CASTERS];		//memorization
 
+  /** crafting **/
+  /* auto crafting quest */
+  unsigned int autocquest_vnum;
+  char *autocquest_desc;
+  ubyte autocquest_material;
+  ubyte autocquest_makenum;
+  ubyte autocquest_qp;
+  unsigned int autocquest_exp;
+  unsigned int autocquest_gold;
+  /* end auto crafting, begin crafting */
+  ubyte crafting_type; //like SCMD_x
+  ubyte crafting_ticks;
+  struct obj_data *crafting_object;
+  ubyte crafting_repeat; // multiple objects created in one session
+  int crafting_bonus;  // bonus for crafting the item
+  /**************/
+  
   struct char_special_data_saved saved; /**< Constants saved for PCs. */
 };
 

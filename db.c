@@ -2042,6 +2042,20 @@ char *parse_object(FILE *obj_f, int nr)
       }
       GET_OBJ_PROF(obj_proto + i) = t[0];
       break;
+    case 'H':
+      if (!get_line(obj_f, line)) {
+        log("SYSERR: Format error in 'H' field, %s\n"
+            "...expecting numeric constant but file ended!", buf2);
+        exit(1);
+      }
+      if (sscanf(line, "%d", t) != 1) {
+        log("SYSERR: Format error in 'H' field, %s\n"
+            "...expecting numeric argument\n"
+            "...offending line: '%s'", buf2, line);
+        exit(1);
+      }
+      GET_OBJ_MATERIAL(obj_proto + i) = t[0];
+      break;
     case 'E':
       CREATE(new_descr, struct extra_descr_data, 1);
       new_descr->keyword = fread_string(obj_f, buf2);
