@@ -293,6 +293,9 @@ int save_objects(zone_rnum zone_num)
 
       // object proficiency
       fprintf(fp, "G\n" "%d\n", GET_OBJ_PROF(obj));
+
+      // object material
+      fprintf(fp, "H\n" "%d\n", GET_OBJ_MATERIAL(obj));
     }
   }
 

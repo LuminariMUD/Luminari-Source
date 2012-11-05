@@ -223,9 +223,28 @@
 #define SKILL_MURMUR                    467 /* Murmur     diplomacy skill */
 #define SKILL_PROPAGANDA                468 /* Propaganda diplomacy skill */
 #define SKILL_LOBBY                     469 /* Lobby      diplomacy skill */
-#define SKILL_STUNNING_FIST             470 
+#define SKILL_STUNNING_FIST             470
+/* initial crafting skills */
+#define SKILL_MINING                    471
+#define SKILL_HUNTING                   472
+#define SKILL_FORESTING                 473
+#define SKILL_KNITTING                  474
+#define SKILL_CHEMISTRY                 475
+#define SKILL_ARMOR_SMITHING            476
+#define SKILL_WEAPON_SMITHING           477
+#define SKILL_JEWELRY_MAKING            478
+#define SKILL_LEATHER_WORKING           479
+#define SKILL_FAST_CRAFTER              480
+#define SKILL_BONE_ARMOR                481
+#define SKILL_ELVEN_CRAFTING             482
+#define SKILL_MASTERWORK_CRAFTING        483
+#define SKILL_DRACONIC_CRAFTING          484
+#define SKILL_DWARVEN_CRAFTING          485
+
+/* end first batch of crafting skills */
+
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      471
+#define NUM_SKILLS                      486
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the
