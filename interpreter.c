@@ -1233,8 +1233,17 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d)
     if (k == d)
       continue;
 
+    /* these 3 checks added by zusuk to try and find dupe bug */
+    if (!k)
+      continue;
+    if (!k->character)
+      continue;
+    if (!GET_PC_NAME(k->character))
+      continue;
+    /*****/
+
     /* Do the player names match? */
-    if (!strcmp(GET_NAME(k->character), GET_NAME(d->character))) {
+    if (!strcmp(GET_PC_NAME(k->character), GET_PC_NAME(d->character))) {
       /* Check the other character is still in creation? */
       if ((STATE(k) > CON_PLAYING) && (STATE(k) < CON_QCLASS)) {
         /* Boot the older one */
