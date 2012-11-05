@@ -585,6 +585,9 @@ void do_start(struct char_data *ch)
   for (i=1; i<=NUM_ABILITIES; i++)
     SET_ABILITY(ch, i, 0);
   init_spell_slots(ch);
+  /* hunger and thirst are off */
+  GET_COND(ch, HUNGER) = -1;
+  GET_COND(ch, THIRST) = -1;
 
   //racial inits
   switch(GET_RACE(ch)) {
@@ -651,8 +654,6 @@ void do_start(struct char_data *ch)
   GET_HIT(ch) = GET_MAX_HIT(ch);
   GET_MANA(ch) = GET_MAX_MANA(ch);
   GET_MOVE(ch) = GET_MAX_MOVE(ch);
-  GET_COND(ch, THIRST) = 24;
-  GET_COND(ch, HUNGER) = 24;
   GET_COND(ch, DRUNK) = 0;
   if (CONFIG_SITEOK_ALL)
     SET_BIT_AR(PLR_FLAGS(ch), PLR_SITEOK);
