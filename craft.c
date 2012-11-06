@@ -27,6 +27,7 @@
 #include "handler.h"
 #include "db.h"
 #include "spells.h"
+#include "mud_event.h"
 
 
 // External Functions
@@ -249,7 +250,7 @@ int augment(struct obj_data *station, struct char_data *ch)
    
   /* zusuk - temporary */
   obj_to_char(crystal_one, ch);
-  reset_craft(ch);
+  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   return 1;
 }
@@ -350,7 +351,7 @@ int convert(struct obj_data *station, struct char_data *ch)
 
   /* zusuk - temporary */
   obj_to_char(new_mat, ch);
-  reset_craft(ch);
+  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
   
   return 1;
 } 
@@ -420,7 +421,7 @@ int restring(char *argument, struct obj_data *station, struct char_data *ch) {
 
   /* zusuk - temporary */
   obj_to_char(obj, ch);
-  reset_craft(ch);
+  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
   
   return 1;
 }
@@ -516,7 +517,7 @@ int supplyorder(struct obj_data *station, struct char_data *ch) {
 
   /* zusuk - temporary */
   obj_to_char(obj, ch);
-  reset_craft(ch);
+  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   return 1;
 }
@@ -621,6 +622,7 @@ int resize(char *argument, struct obj_data *station, struct char_data *ch) {
   
   obj_to_char(obj, ch);
   reset_craft(ch);
+//  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
     
   return 1;
 }
@@ -963,7 +965,7 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
   
     /* zusuk - temporary */
     obj_to_char(mold, ch);
-    reset_craft(ch);
+    NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   } 
     
@@ -1182,221 +1184,185 @@ SPECIAL(crafting_quest) {
   return 1;
 }
 
-
-/*
-void crafting_update(void)
-{
-  struct char_data *ch, *next_char;
-  char buf[100];
-  char buf2[100];
-  int exp = 0, bonus = 0;
-  int skill = -1;
-  int buff;
-  int roll = 0;
+EVENTFUNC(event_crafting) {
+  struct char_data *ch;
+  struct mud_event_data *pMudEvent;
   struct obj_data *obj2 = NULL;
+  char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  int exp = 0, skill = -1;
 
-  // cycle through all the players
-  for (ch = character_list; ch; ch = next_char) {
-    next_char = ch->next;
+  //initialize everything and dummy checks
+  if (event_obj == NULL) return 0;
+  pMudEvent = (struct mud_event_data *) event_obj;
+  ch = (struct char_data *) pMudEvent->pStruct;
+  if (!IS_NPC(ch) && !IS_PLAYING(ch->desc))
+    return 0;
 
-    if (IS_NPC(ch) || !ch->desc)
-      continue;
+  if (GET_CRAFTING_OBJ(ch) == NULL || // something is off, so ensure reset
+          GET_CRAFTING_TYPE(ch) == -1)
+    return 0;
 
-    if (GET_CRAFTING_OBJ(ch) == NULL || // something is off, so ensure reset
-        GET_CRAFTING_TYPE(ch) == -1)
-      continue;
-    
-    if (GET_CRAFTING_TICKS(ch) == 0) {  // the item is done
 
-      switch(GET_CRAFTING_TYPE(ch)) {
-        case SCMD_RESIZE:
-          sprintf(buf, "You resize $p.  Success!!!");
+  if (GET_CRAFTING_TICKS(ch)) {
+    // the crafting tick is still going!
+    if (GET_LEVEL(ch) >= LVL_IMMORT)
+      GET_CRAFTING_TICKS(ch) = 1;
+    switch (GET_CRAFTING_TYPE(ch)) {
+      case SCMD_DISENCHANT:
+        break;
+      case SCMD_SYNTHESIZE:
+        break;
+      case SCMD_DIVIDE:
+        break;
+      case SCMD_RESIZE:
+        break;
+      case SCMD_MINE:
+      case SCMD_FOREST:
+      case SCMD_HUNT:
+      default:
+        skill = 1;
+        break;
+    }
+    if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) != GET_AUTOCQUEST_VNUM(ch))
+      send_to_char(ch, "You continue to %s %s.\r\n",
+            craft_type[GET_CRAFTING_TYPE(ch)],
+            GET_CRAFTING_OBJ(ch)->short_description);
+    else
+      send_to_char(ch, "You continue your supply order.\r\n");
+    if (skill == 1) {
+      exp = 30 + (GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * MAX(1,
+              GET_CRAFTING_BONUS(ch))) *
+              (GET_SKILL(ch, SKILL_ELVEN_CRAFTING) ? 2 : 1) *
+              (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) == MATERIAL_MITHRIL ? 2
+              : 1);
+    }
+    send_to_char(ch, "You have approximately %d minutes and %d seconds "
+            "left to go.\r\n", GET_CRAFTING_TICKS(ch) / 6,
+            (GET_CRAFTING_TICKS(ch) % 6) * 10);
+    GET_CRAFTING_TICKS(ch) -= 1;
+    return 1;
+  } else { /* need to complete */
+
+    switch (GET_CRAFTING_TYPE(ch)) {
+      case SCMD_RESIZE:
+        sprintf(buf, "You resize $p.  Success!!!");
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+        sprintf(buf, "$n resizes $p.");
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+        break;
+      case SCMD_DIVIDE:
+        sprintf(buf, "You create $p (x%d).  Success!!!",
+                GET_CRAFTING_REPEAT(ch));
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+        sprintf(buf, "$n creates $p (x%d).", GET_CRAFTING_REPEAT(ch));
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+        int i = 0;
+        for (i = 1; i < GET_CRAFTING_REPEAT(ch); i++) {
+          obj2 = read_object(GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)), VIRTUAL);
+          obj_to_char(obj2, ch);
+        }
+        break;
+      case SCMD_MINE:
+        skill = SKILL_MINING;
+        sprintf(buf, "You mine $p.  Success!!!");
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+        sprintf(buf, "$n mines $p.");
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+        break;
+      case SCMD_HUNT:
+        skill = SKILL_FORESTING;
+        sprintf(buf, "You find $p from your hunting.  Success!!!");
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+        sprintf(buf, "$n finds $p from $s hunting.");
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+        break;
+      case SCMD_FOREST:
+        skill = SKILL_FORESTING;
+        sprintf(buf, "You forest $p.  Success!!!");
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+        sprintf(buf, "$n forests $p.");
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+        break;
+      case SCMD_DISENCHANT:
+        // disenchant here
+        break;
+      case SCMD_SYNTHESIZE:
+        // synthesizing here
+        break;
+      default:
+        // crafting
+        if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) != GET_AUTOCQUEST_VNUM(ch)) {
+          if (GET_CRAFTING_REPEAT(ch)) {
+            sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
+            for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++) {
+              obj2 = GET_CRAFTING_OBJ(ch);
+              obj_to_char(obj2, ch);
+            }
+            GET_CRAFTING_REPEAT(ch) = 0;
+          } else
+            sprintf(buf2, "@n");
+          sprintf(buf, "You create $p%s.  Success!!!", buf2);
           act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-          sprintf(buf, "$n resizes $p.");
+          sprintf(buf, "$n creates $p%s.", buf2);
           act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-          break;
-        case SCMD_DIVIDE:
-          sprintf(buf, "You create $p (x%d).  Success!!!",
-                  GET_CRAFTING_REPEAT(ch));
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-          sprintf(buf, "$n creates $p (x%d).", GET_CRAFTING_REPEAT(ch));
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-          int i = 0;
-          for (i = 1; i < GET_CRAFTING_REPEAT(ch); i++) {
-            obj2 = read_object(GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)), VIRTUAL);
-            obj_to_char(obj2, ch);
+          if (GET_GOLD(ch) < (GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4)) {
+            GET_BANK_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
+          } else {
+            GET_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
           }
-          break;
-        case SCMD_MINE:
-          skill = SKILL_MINING;
-          sprintf(buf, "You mine $p.  Success!!!");
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-          sprintf(buf, "$n mines $p.");
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-          break;
-        case SCMD_HUNT:
-          skill = SKILL_FORESTING;
-          sprintf(buf, "You find $p from your hunting.  Success!!!");
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-          sprintf(buf, "$n finds $p from $s hunting.");
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-          break;
-        case SCMD_FOREST:
-          skill = SKILL_FORESTING;
-          sprintf(buf, "You forest $p.  Success!!!");
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-          sprintf(buf, "$n forests $p.");
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-          break;
-        case SCMD_FARM:
-          skill = SKILL_FARMING;
-          sprintf(buf, "You farm $p.  Success!!!");
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-          sprintf(buf, "$n farms $p.");
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-          break;
-        case SCMD_DISENCHANT:
-          // disenchant here
-          break;
-        case SCMD_SYNTHESIZE:
-          // synthesizing here
-          break;
-        default:
-          // crafting
-          if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) != GET_AUTOCQUEST_VNUM(ch)) {
-            if (ch->craft_times > 0) {
-              sprintf(buf2, " (x%d)", ch->craft_times + 1);
-              for (i = 0; i < MAX(0, ch->craft_times); i++) {
-                obj2 = read_object(ch->craft_vnum, VIRTUAL);
-                obj_to_char(obj2, ch);
-              }
-              ch->craft_vnum = 0;
-              ch->craft_times = 0;              
-            } else
-              sprintf(buf2, "@n");
-            sprintf(buf, "You create $p%s.  Success!!!", buf2);
-            act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-            sprintf(buf, "$n creates $p%s.", buf2);
-            act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-            if (GET_GOLD(ch) < (GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4)) {
-              GET_BANK_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
-            } else {
-              GET_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
-            }
 
-            // artisan/xp gain
-            exp = 30 + (GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * MAX(1,
-                    ch->player_specials->crafting_exp_mult)) *
-                    (HAS_FEAT(ch, FEAT_ELVEN_CRAFTING) ? 2 : 1) * 2 *
-                    (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) == MATERIAL_MITHRIL ?
-                    2 : 1);
-            buff = 0;  // init buff for each player
-            if (affected_by_spell(ch, SPELL_LEARNING))
-              buff = 10;
-            if (affected_by_spell(ch, SPELL_IMPROVED_LEARNING))
-              buff = 20;
-            if (affected_by_spell(ch, SPELL_GREATER_LEARNING))
-              buff = 33;
-            if (affected_by_spell(ch, SPELL_EPIC_LEARNING))
-              buff = 50;
-            bonus = exp * (GET_RP_ART_EXP_BONUS(ch) + (buff * 100));
-            bonus /= 10000;
-            //gain_exp(ch, MAX(1, level_exp( GET_CLASS_LEVEL(ch), GET_REAL_RACE(ch)) / (500 + (GET_LEVEL(ch) * 20))));
-            gain_artisan_exp(ch, exp);
-          } else if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) == 
-                     GET_AUTOCQUEST_VNUM(ch)){  //auto quest crafting
-            GET_AUTOCQUEST_MAKENUM(ch)--;
-            if (GET_AUTOCQUEST_MAKENUM(ch) == 0) {
-              send_to_char(ch, "You have completed your supply order! Go turn"
-                               " it in for more exp, quest points and "
-                               "gold!.\r\n");
-            } else {
-              send_to_char(ch, "You have completed another item in your supply "
-                               "order and have %d more to make.\r\n",
-                           GET_AUTOCQUEST_MAKENUM(ch));
-            }
-            exp = 30 + (GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * MAX(1, 
-                  ch->player_specials->crafting_exp_mult)) *
-                  (HAS_FEAT(ch, FEAT_ELVEN_CRAFTING) ? 2 : 1) * 
+          // artisan/xp gain
+          exp = 30 + (GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * MAX(1,
+                  GET_CRAFTING_BONUS(ch))) *
+                  (GET_SKILL(ch, SKILL_ELVEN_CRAFTING) ? 2 : 1) * 2 *
+                  (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) == MATERIAL_MITHRIL ?
+                  2 : 1);
+        } else if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) ==
+                GET_AUTOCQUEST_VNUM(ch)) { //auto quest crafting
+          GET_AUTOCQUEST_MAKENUM(ch)--;
+          if (GET_AUTOCQUEST_MAKENUM(ch) == 0) {
+            send_to_char(ch, "You have completed your supply order! Go turn"
+                    " it in for more exp, quest points and "
+                    "gold!.\r\n");
+          } else {
+            send_to_char(ch, "You have completed another item in your supply "
+                    "order and have %d more to make.\r\n",
+                    GET_AUTOCQUEST_MAKENUM(ch));
+          }
+          exp = 30 + (GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * MAX(1,
+                  GET_CRAFTING_BONUS(ch)) *
+                  GET_SKILL(ch, SKILL_ELVEN_CRAFTING) ? 2 : 1) *
                   (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) == MATERIAL_MITHRIL
                   ? 2 : 1);
-            bonus = exp * (GET_RP_ART_EXP_BONUS(ch) + (buff * 100));
-            bonus /= 10000;
-            gain_artisan_exp(ch, exp);
-          }
-          break;
-      }
-
-      // give crafted object to char
-      if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) != GET_AUTOCQUEST_VNUM(ch))
-        obj_to_char(GET_CRAFTING_OBJ(ch), ch);
-
-      if (skill != -1) { // artisan gain, bonus goodies
-        exp = 30 + (get_skill_value(ch, skill) * MAX(1, 
-              ch->player_specials->crafting_exp_mult)) *
-              (HAS_FEAT(ch, FEAT_ELVEN_CRAFTING) ? 2 : 1) * 10 *
-              (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) == 
-              MATERIAL_MITHRIL ? 2 : 1);
-        gain_artisan_exp(ch, exp);
-
-        roll = dice(1, 100);
-        if (roll <= 3) {
-          if (dice(1, 20) <= 15)
-            get_random_essence(ch, GET_CLASS_RANKS(ch, CLASS_ARTISAN));
-          else
-            get_random_crystal(ch, GET_CLASS_RANKS(ch, CLASS_ARTISAN));
         }
-      }
-      reset_craft(ch);
-    } else {
-    // the crafting tick is still going!
-      if (GET_ADMLEVEL(ch) > 0)
-        GET_CRAFTING_TICKS(ch) = 1;
-      switch (GET_CRAFTING_TYPE(ch)) {
-        case SCMD_DISENCHANT:
-          break;
-        case SCMD_SYNTHESIZE:
-          break;
-        case SCMD_DIVIDE:
-          break;
-        case SCMD_RESIZE:
-          break;
-        case SCMD_MINE:
-        case SCMD_FARM:
-        case SCMD_FOREST:
-        case SCMD_HUNT:
-        default:
-          skill = 1;
-          break;
-      }
-      if (!PRF_FLAGGED(ch, PRF_CRAFTING_BRIEF)) {
-        if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) != GET_AUTOCQUEST_VNUM(ch))
-          send_to_char(ch, "You continue to %s %s.\r\n",
-                       AssemblyTypes[GET_CRAFTING_TYPE(ch)],
-                       GET_CRAFTING_OBJ(ch)->short_description);
-        else
-          send_to_char(ch, "You continue your supply order.\r\n");
-      }
-      if (skill == 1) {
-        exp = 30 + (GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * MAX(1, 
-              ch->player_specials->crafting_exp_mult)) *
-              (HAS_FEAT(ch, FEAT_ELVEN_CRAFTING) ? 2 : 1) *
-              (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) == MATERIAL_MITHRIL ? 2 
-              : 1);
-        bonus = exp * (GET_RP_ART_EXP_BONUS(ch) + (buff * 100));
-        bonus /= 10000;
-        gain_artisan_exp(ch, exp);
-      }
-      send_to_char(ch, "You have approximately %d minutes and %d seconds "
-                       "left to go.\r\n", GET_CRAFTING_TICKS(ch) / 6,
-                       (GET_CRAFTING_TICKS(ch) % 6) * 10);
-      GET_CRAFTING_TICKS(ch) -= 1;
+        break;
     }
+
+    // give crafted object to char
+    if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) != GET_AUTOCQUEST_VNUM(ch))
+      obj_to_char(GET_CRAFTING_OBJ(ch), ch);
+
+    if (skill != -1) { // artisan gain, bonus goodies
+      exp = 30 + (GET_SKILL(ch, skill) * MAX(1,
+              GET_CRAFTING_BONUS(ch))) *
+              (GET_SKILL(ch, SKILL_ELVEN_CRAFTING) ? 2 : 1) * 10 *
+              (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) ==
+              MATERIAL_MITHRIL ? 2 : 1);
+
+      /*        roll = dice(1, 100);
+              if (roll <= 3) {
+                if (dice(1, 20) <= 15)
+                  get_random_essence(ch, GET_CLASS_RANKS(ch, CLASS_ARTISAN));
+                else
+                  get_random_crystal(ch, GET_CLASS_RANKS(ch, CLASS_ARTISAN));
+              }
+       */
+    }
+    reset_craft(ch);
+    return 0;
   }
+  return 0;  //shouldn't get here
 }
-*/
-
-
 
 #undef PATTERN_UPPER
 #undef PATTERN_LOWER
