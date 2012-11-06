@@ -174,8 +174,8 @@ int augment(struct obj_data *station, struct char_data *ch)
     send_to_char(ch, "You need two crystals to augment.\r\n");
     return 1;
   }
-  if (apply_types[GET_OBJ_VAL(crystal_one, 0)] !=
-      apply_types[GET_OBJ_VAL(crystal_two, 0)]) {
+  if (apply_types[crystal_one->affected[0].location] !=
+      apply_types[crystal_two->affected[0].location]) {
     send_to_char(ch, "The crystal 'apply type' needs to be the same to"
                      " augment.\r\n");
     return 1;
@@ -212,11 +212,11 @@ int augment(struct obj_data *station, struct char_data *ch)
   // exp bonus for crafting ticks
   GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(crystal_one));
   // new name
-  sprintf(buf, "@wa crystal of@y %s@n max level@y %d@n",
-          apply_types[GET_OBJ_VAL(crystal_one, 0)], GET_OBJ_LEVEL(crystal_one));
+  sprintf(buf, "\twa crystal of\ty %s\tn max level\ty %d\tn",
+          apply_types[crystal_one->affected[0].location], GET_OBJ_LEVEL(crystal_one));
   crystal_one->name = strdup(buf);
   crystal_one->short_description = strdup(buf);
-  sprintf(buf, "@wA crystal of@y %s@n max level@y %d@n lies here.",
+  sprintf(buf, "\twA crystal of\ty %s\tn max level\ty %d\tn lies here.",
           apply_types[GET_OBJ_VAL(crystal_one, 0)], GET_OBJ_LEVEL(crystal_one));
   crystal_one->description = strdup(buf);
    
@@ -562,11 +562,13 @@ int resize(char *argument, struct obj_data *station, struct char_data *ch) {
       send_to_char(ch, "ERROR:  Report to Staff Error: Weapon Dam Adjustment\r\n");
     else if (sz > 0)
       for (lvl = 0; lvl < sz; lvl++)
-        scaleup_dam(&ndice, &diesize);
+        send_to_char(ch, "scaleup_dam ");
+//        scaleup_dam(&ndice, &diesize);
     else {
       sz *= -1;
       for (lvl = 0; lvl < sz; lvl++)
-        scaledown_dam(&ndice, &diesize);
+        send_to_char(ch, "scaledown_dam ");
+//        scaledown_dam(&ndice, &diesize);
     }
     
     send_to_char(ch, "Old weapond dice: %dd%d, New weapons dice: %dd%d.\r\n",
@@ -718,9 +720,6 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
              !IS_PRECIOUS_METAL(GET_OBJ_MATERIAL(material))) {
     send_to_char(ch, "You need precious metal for this mold pattern.\r\n");
     return 1;   
-  } else {
-    send_to_char(ch, "This material is not currently replicatable.\r\n");
-    return 1;
   }
   /* we should be OK at this point with material validity, */ 
   /* although more error checking might be good */
@@ -756,7 +755,7 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
   
   /*** valid crystal usage ***/
   if (crystal) {
-    crystal_value = GET_OBJ_VAL(crystal, 0);
+    crystal_value = crystal->affected[0].location;
       
     if (crystal_value == APPLY_HITROLL &&
         !CAN_WEAR(mold, ITEM_WEAR_HANDS)) {
@@ -929,10 +928,12 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
     obj_from_room(station);
     extract_obj(station);
     station = read_object(station_obj_vnum, VIRTUAL);
-    obj_to_room(station, IN_ROOM(ch));
+
+    obj_to_char(station, ch);
+
   
     /* zusuk - temporary */
-    obj_to_char(obj, ch);
+    obj_to_char(mold, ch);
 
   } 
     
@@ -960,13 +961,6 @@ SPECIAL(crafting_kit)
     return 1;
   }
       
-  extern int circle_copyover;
-  if (circle_copyover) {
-    send_to_char(ch, "A hot reboot is scheduled, thus you cannot begin any "
-                     "crafting actions.\r\n");
-    return 1;
-  }
-    
   struct obj_data *station = (struct obj_data *) me;
     
   skip_spaces(&argument);

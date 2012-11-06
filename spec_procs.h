@@ -52,5 +52,6 @@ SPECIAL(janitor);
 SPECIAL(cityguard);
 SPECIAL(pet_shops);
 SPECIAL(bank);
+SPECIAL(crafting_kit);
 
 #endif /* _SPEC_PROCS_H_ */
