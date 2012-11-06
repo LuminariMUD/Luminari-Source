@@ -12,6 +12,7 @@
 #ifndef _CONSTANTS_H_
 #define _CONSTANTS_H_
 
+extern const char *craft_type[NUM_CRAFT+1];
 extern const char *admin_level_names[]; // for imp prefix
 extern const char *item_profs[];
 extern const char *material_name[];

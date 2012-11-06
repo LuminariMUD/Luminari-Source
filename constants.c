@@ -39,6 +39,28 @@ const char *admin_level_names[] = {
   "\n",
 };
 
+const char *craft_type[NUM_CRAFT+1] = {
+  "RESERVED",
+  "brew",
+  "craft",
+  "fletch",
+  "knit",
+  "mine",
+  "disenchant",
+  "synthesize",
+  "hunt",
+  "forest",
+  "divide",
+  "resize",
+  "augment",
+  "work on a supplyorder for",
+  "convert",
+  "restring",
+  "wand-craft",
+  "staff-craft",
+  "\n"
+};
+  
 const char *material_name[NUM_MATERIALS+1] = {
   "RESERVED",
   "cotton",
