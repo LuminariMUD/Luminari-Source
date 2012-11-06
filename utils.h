@@ -593,9 +593,12 @@ do                                                              \
 // level
 #define GET_LEVEL(ch)   ((ch)->player.level)
 #define CLASS_LEVEL(ch, class)	(ch->player_specials->saved.class_level[class])
-#define DIVINE_LEVEL(ch)	(CLASS_LEVEL(ch, CLASS_CLERIC) + CLASS_LEVEL(ch, CLASS_DRUID))
-#define MAGIC_LEVEL(ch)		(CLASS_LEVEL(ch, CLASS_MAGIC_USER) + 0)
-#define CASTER_LEVEL(ch)	(DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch))
+#define DIVINE_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
+                                 CLASS_LEVEL(ch, CLASS_CLERIC) + CLASS_LEVEL(ch, CLASS_DRUID))
+#define MAGIC_LEVEL(ch)		(IS_NPC(ch) ? GET_LEVEL(ch) : \
+                                 CLASS_LEVEL(ch, CLASS_MAGIC_USER) + 0)
+#define CASTER_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
+                                 DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch))
 
 
 
