@@ -346,6 +346,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "stunningfist"     , "stunningfist"      , POS_FIGHTING, do_stunningfist, 1, 0 },
   { "switch"   , "switch"  , POS_DEAD    , do_switch   , LVL_GOD, 0 },
   { "shapechange"     , "shapechange"     , POS_FIGHTING, do_shapechange     , 1, 0 },
+  { "supplyorder"  , "supplyorder"     , POS_STANDING, do_not_here , 1, 0 },
 
   { "tell"     , "t"       , POS_DEAD    , do_tell     , 0, 0 },
   { "take"     , "ta"      , POS_RESTING , do_get      , 0, 0 },

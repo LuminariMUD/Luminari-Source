@@ -463,6 +463,10 @@ bool hasSpell(struct char_data *ch, int spellnum)
 // returns the characters highest circle access in a given class
 int getCircle(struct char_data *ch, int class)
 {
+  if (IS_NPC(ch)) {
+    return (MIN(9, (GET_LEVEL(ch) + 1) / 2));
+  }
+
   if (!CLASS_LEVEL(ch, class)) {
     return 0;
   }

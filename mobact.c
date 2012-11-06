@@ -348,10 +348,14 @@ void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
 void npc_mage_behave(struct char_data *ch, struct char_data *vict,
 	int circle, int engaged)
 {
+  int num = -1;
+
+
   if (circle < 3)
     return;
+  num = rand_number(3, circle);
 
-  switch(rand_number(3, circle)) {
+  switch(num) {
     case 3:  // level 1-4 mobs won't cast
       switch (rand_number(1,2)) {
         case 1:
@@ -458,6 +462,7 @@ void npc_mage_behave(struct char_data *ch, struct char_data *vict,
       log("ERR:  Reached invalid circle in npc_mage_behave.");
       break;
   }
+
 }
 
 

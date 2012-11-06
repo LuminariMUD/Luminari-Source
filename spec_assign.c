@@ -148,13 +148,15 @@ void assign_objects(void)
   ASSIGNOBJ(10751, bank);
   ASSIGNOBJ(25758, bank);
 
-  ASSIGNOBJ(1220, crafting_kit);
+  ASSIGNOBJ(3118, crafting_kit);
 }
 
 /* assign special procedures to rooms */
 void assign_rooms(void)
 {
   room_rnum i;
+
+  ASSIGNROOM(1208, crafting_quest);
 
   ASSIGNROOM(3031, pet_shops);
   ASSIGNROOM(10738, pet_shops);

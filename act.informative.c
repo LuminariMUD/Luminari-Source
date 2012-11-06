@@ -892,6 +892,7 @@ ACMD(do_affects)
   int i = 0;
   char buf[MAX_STRING_LENGTH];
   struct affected_type *aff;
+  struct mud_event_data *pMudEvent;
 
   send_to_char(ch, 
 	"\tC---------------------------------------------------------\tn\r\n");
@@ -938,6 +939,9 @@ ACMD(do_affects)
 	"\tC-------------- \tWCool Downs\tC -------------------------------\tn\r\n");
   if (char_has_mud_event(ch, eTAUNT))
     send_to_char(ch, "Taunt\r\n");
+  if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
+    send_to_char(ch, "Taunt: Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+
   if (char_has_mud_event(ch, eLAYONHANDS))
     send_to_char(ch, "Lay on Hands\r\n");
   if (char_has_mud_event(ch, eTREATINJURY))

@@ -615,7 +615,10 @@ EVENTFUNC(event_casting)
     else {
 	// concentration challenge
       failure += spell_info[spellnum].min_level[CASTING_CLASS(ch)] * 2;
-      failure -= (GET_ABILITY(ch, ABILITY_CONCENTRATION) - 3) * 2;
+      if (!IS_NPC(ch))
+        failure -= (GET_ABILITY(ch, ABILITY_CONCENTRATION) - 3) * 2;
+      else
+        failure -= (GET_LEVEL(ch) - 3) * 2;
         //chance of failure calculated here, so far:  taunt, grappled
       if (char_has_mud_event(ch, eTAUNTED))
         failure += 10;
@@ -734,7 +737,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     clevel = IS_DRUID(ch);
   }
 
-  if (!isEpicSpell(spellnum)) {
+  if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
     class = forgetSpell(ch, spellnum, -1);
     if (class == -1) {
       send_to_char(ch, "ERR:  Report BUG98237 to an IMM!\r\n");

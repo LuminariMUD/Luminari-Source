@@ -63,6 +63,18 @@ int art_level_exp(int level);
 
 /* crafting local utility functions*/
 
+int convert_material(int material)
+{
+  switch(material) {
+    case MATERIAL_STEEL:
+      return MATERIAL_MITHRIL;
+    default:
+      return 0;
+  }
+ 
+  return 0;
+}
+
 /* simple function to reset craft data */
 void reset_craft(struct char_data *ch) {
   /* initialize values */
@@ -186,7 +198,7 @@ int augment(struct obj_data *station, struct char_data *ch)
     return 1;
   }
   // new level of crystal, with cap
-  bonus_one = (bonus_one + bonus_two) * 3 / 4;
+  bonus_one = (bonus_one + bonus_two / 2);
   if (bonus_one >= (LVL_IMMORT - 1))
     bonus_one = LVL_IMMORT - 2;
   // high enough skill?
@@ -237,6 +249,7 @@ int augment(struct obj_data *station, struct char_data *ch)
    
   /* zusuk - temporary */
   obj_to_char(crystal_one, ch);
+  reset_craft(ch);
 
   return 1;
 }
@@ -264,9 +277,10 @@ int convert(struct obj_data *station, struct char_data *ch)
                        obj->short_description);
           return 1;
         }
-        if (material == -1) /* first item */
+        if (material == -1) {  /* first item */
+          new_mat = obj;
           material = GET_OBJ_MATERIAL(obj);
-        else if (GET_OBJ_MATERIAL(obj) != material) {
+        } else if (GET_OBJ_MATERIAL(obj) != material) {
           send_to_char(ch, "You have mixed materials inside the station, "
                            "put only the exact same materials for "
                            "conversion.\r\n");
@@ -289,8 +303,9 @@ int convert(struct obj_data *station, struct char_data *ch)
     return 1;
   }
   
-  if (convert_material_vnum(obj_vnum))
-    new_mat = read_object(convert_material_vnum(obj_vnum), VIRTUAL);
+  if ((num_mats = convert_material(material)))
+    send_to_char(ch, "You are converting the material to:  %s\r\n",
+                  material_name[num_mats]);
   else {
     send_to_char(ch, "You do not have a valid material in the crafting "
                      "station.\r\n");
@@ -305,9 +320,15 @@ int convert(struct obj_data *station, struct char_data *ch)
   send_to_char(ch, "It cost you %d credits in supplies to convert this "
                    "item.\r\n", cost);
   GET_GOLD(ch) -= cost;
-        
-  send_to_char(ch, "You begin to convert your materials into %s.\r\n",
-               new_mat->short_description);
+  // new name
+  char buf[MAX_INPUT_LENGTH];
+  sprintf(buf, "\tca portion of %s material\tn",
+          material_name[num_mats]);
+  new_mat->name = strdup(buf);
+  new_mat->short_description = strdup(buf);
+  sprintf(buf, "\tcA portion of %s material lies here.\tn",
+          material_name[num_mats]);
+  new_mat->description = strdup(buf);        
   act("$n begins a conversion of materials into $p.", FALSE, ch,
       new_mat, 0, TO_ROOM);
                        
@@ -318,14 +339,18 @@ int convert(struct obj_data *station, struct char_data *ch)
   GET_CRAFTING_OBJ(ch) = new_mat;
   GET_CRAFTING_REPEAT(ch) = MAX(0, (num_mats / 10) + 1);
                            
+  obj_from_obj(new_mat);
+
   obj_vnum = GET_OBJ_VNUM(station);
-  obj_from_room(station);
+  obj_from_char(station);
   extract_obj(station);
   station = read_object(obj_vnum, VIRTUAL);
-  obj_to_room(station, IN_ROOM(ch));
+
+  obj_to_char(station, ch);
 
   /* zusuk - temporary */
   obj_to_char(new_mat, ch);
+  reset_craft(ch);
   
   return 1;
 } 
@@ -395,6 +420,7 @@ int restring(char *argument, struct obj_data *station, struct char_data *ch) {
 
   /* zusuk - temporary */
   obj_to_char(obj, ch);
+  reset_craft(ch);
   
   return 1;
 }
@@ -457,7 +483,7 @@ int supplyorder(struct obj_data *station, struct char_data *ch) {
     return 1;
   }
     
-  obj = read_object(30084, VIRTUAL);
+  obj = create_obj();
   obj->name = strdup(GET_AUTOCQUEST_DESC(ch));
   obj->description = strdup(GET_AUTOCQUEST_DESC(ch));
   obj->short_description = strdup(GET_AUTOCQUEST_DESC(ch));
@@ -490,6 +516,7 @@ int supplyorder(struct obj_data *station, struct char_data *ch) {
 
   /* zusuk - temporary */
   obj_to_char(obj, ch);
+  reset_craft(ch);
 
   return 1;
 }
@@ -593,6 +620,7 @@ int resize(char *argument, struct obj_data *station, struct char_data *ch) {
     GET_OBJ_WEIGHT(obj) = GET_OBJ_WEIGHT(obj) * 2 / 3;
   
   obj_to_char(obj, ch);
+  reset_craft(ch);
     
   return 1;
 }
@@ -634,8 +662,10 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
         }
       }
     
-      if (found) /* we didn't have a mold and found one, interate main loop */
+      if (found) {  /* we didn't have a mold and found one, interate main loop */
+        found = 0;
         continue;
+      }
   
       /* find a crystal? */
       if (GET_OBJ_TYPE(obj) == ITEM_CRYSTAL) {
@@ -930,10 +960,10 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
     station = read_object(station_obj_vnum, VIRTUAL);
 
     obj_to_char(station, ch);
-
   
     /* zusuk - temporary */
     obj_to_char(mold, ch);
+    reset_craft(ch);
 
   } 
     
