@@ -147,6 +147,8 @@ void assign_objects(void)
   ASSIGNOBJ(10640, bank);
   ASSIGNOBJ(10751, bank);
   ASSIGNOBJ(25758, bank);
+
+  ASSIGNOBJ(1220, crafting_kit);
 }
 
 /* assign special procedures to rooms */

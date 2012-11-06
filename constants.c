@@ -416,6 +416,7 @@ const char *affected_bits[] =
   "Ultravision",
   "Grappled",
   "Tamed",
+  "Climb",
   "\n"
 };
 
@@ -513,6 +514,8 @@ const char *equipment_types[] = {
   "Held",
   "Wielded offhand",
   "Held offhand",
+  "Wielded twohands",
+  "Held twohands",
   "\n"
 };
 
@@ -563,6 +566,9 @@ const char *item_types[] = {
   "Boat",
   "Fountain",
   "Clan-Armor",
+  "Crystal",
+  "Essence",
+  "Crafting Material",
   "\n"
 };
 
@@ -616,6 +622,7 @@ const char *extra_bits[] = {
   "Anti-Troll",
   "Anti-Monk",
   "Anti-Druid",
+  "Mold",
   "\n"
 };
 
@@ -648,6 +655,7 @@ const char *apply_types[] = {
   "Save-Will",
   "Save-Poison",
   "Save-Death",
+  "Spell-Resist",
   "\n"
 };
 

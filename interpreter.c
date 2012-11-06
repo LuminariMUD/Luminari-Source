@@ -98,6 +98,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "attach"   , "attach"  , POS_DEAD    , do_attach   , LVL_BUILDER, 0 },
   { "attacks"    , "attacks"      , POS_DEAD    , do_attacks    , 0, 0 },
   { "auction"  , "auc"     , POS_SLEEPING, do_gen_comm , 0, SCMD_AUCTION },
+  { "augment"  , "augment"     , POS_STANDING, do_not_here , 1, 0 },
   { "autoexits" , "autoex"  , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOEXIT },
   { "autoassist","autoass" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOASSIST },
   { "autodoor" , "autodoor", POS_DEAD    , do_gen_tog , 0, SCMD_AUTODOOR },
@@ -140,6 +141,9 @@ cpp_extern const struct command_info cmd_info[] = {
   { "copyover" , "copyover", POS_DEAD    , do_copyover , LVL_GRGOD, 0 },
   { "credits"  , "cred"    , POS_DEAD    , do_gen_ps   , 0, SCMD_CREDITS },
   { "ct"       , "ct"      , POS_DEAD    , do_clantalk , 1, 0 },
+  { "create"  , "create"     , POS_STANDING, do_not_here , 1, 0 },
+  { "checkcraft"  , "checkcraft"     , POS_STANDING, do_not_here , 1, 0 },
+  { "convert"  , "covert"     , POS_STANDING, do_not_here , 1, 0 },
   
   { "date"     , "da"      , POS_DEAD    , do_date     , 1, SCMD_DATE },
   { "dc"       , "dc"      , POS_DEAD    , do_dc       , LVL_GOD, 0 },
@@ -305,6 +309,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "roomflags", "roomflags", POS_DEAD   , do_gen_tog  , LVL_IMMORT, SCMD_SHOWVNUMS },
   { "respec"  , "respec"    , POS_STANDING, do_respec , 1, 0 },
   { "recharge"  , "recharge"    , POS_STANDING, do_recharge , 1, 0 },
+  { "resize"  , "resize"     , POS_STANDING, do_not_here , 1, 0 },
+  { "restring"  , "restring"     , POS_STANDING, do_not_here , 1, 0 },
 
   { "sacrifice", "sac"     , POS_RESTING , do_sac      , 0, 0 },
   { "say"      , "s"       , POS_RESTING , do_say      , 0, 0 },
