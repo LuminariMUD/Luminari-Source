@@ -612,6 +612,8 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You can't use immortal commands while switched.\r\n");
   else if (IS_CASTING(ch) && !is_abbrev(complete_cmd_info[cmd].command, "abort"))
     send_to_char(ch, "You are too busy casting [you can 'abort' the spell]...\r\n");
+  else if (char_has_mud_event(ch, eCRAFTING) && !is_abbrev(complete_cmd_info[cmd].command, "gossip"))
+    send_to_char(ch, "You are too busy crafting [you can 'gossip' to chat]...\r\n");
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
     switch (GET_POS(ch)) {
     case POS_DEAD:

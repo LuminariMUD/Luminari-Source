@@ -937,35 +937,32 @@ ACMD(do_affects)
   }
   send_to_char(ch, 
 	"\tC-------------- \tWCool Downs\tC -------------------------------\tn\r\n");
-  if (char_has_mud_event(ch, eTAUNT))
-    send_to_char(ch, "Taunt\r\n");
   if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
-    send_to_char(ch, "Taunt: Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-
-  if (char_has_mud_event(ch, eLAYONHANDS))
-    send_to_char(ch, "Lay on Hands\r\n");
-  if (char_has_mud_event(ch, eTREATINJURY))
-    send_to_char(ch, "Treat Injuries\r\n");
-  if (char_has_mud_event(ch, eMUMMYDUST))
-    send_to_char(ch, "Epic Spell:  Mummy Dust\r\n");
-  if (char_has_mud_event(ch, eDRAGONKNIGHT))
-    send_to_char(ch, "Epic Spell:  Dragon Knight\r\n");
-  if (char_has_mud_event(ch, eGREATERRUIN))
-    send_to_char(ch, "Epic Spell:  Greater Ruin\r\n");
-  if (char_has_mud_event(ch, eHELLBALL))
-    send_to_char(ch, "Epic Spell:  Hellball\r\n");
-  if (char_has_mud_event(ch, eEPICMAGEARMOR))
-    send_to_char(ch, "Epic Spell:  Epic Mage Armor\r\n");
-  if (char_has_mud_event(ch, eEPICWARDING))
-    send_to_char(ch, "Epic Spell:  Epic Warding\r\n");
-  if (char_has_mud_event(ch, eSTUNNINGFIST))
-    send_to_char(ch, "Stunning Fist\r\n");
+    send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
+    send_to_char(ch, "Lay on Hands - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
+    send_to_char(ch, "Treat Injuries - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eMUMMYDUST)))
+    send_to_char(ch, "Epic Spell:  Mummy Dust - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eDRAGONKNIGHT)))
+    send_to_char(ch, "Epic Spell:  Dragon Knight - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eGREATERRUIN)))
+    send_to_char(ch, "Epic Spell:  Greater Ruin - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eHELLBALL)))
+    send_to_char(ch, "Epic Spell:  Hellball - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eEPICMAGEARMOR)))
+    send_to_char(ch, "Epic Spell:  Epic Mage Armor - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
+    send_to_char(ch, "Epic Spell:  Epic Warding - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eSTUNNINGFIST)))
+    send_to_char(ch, "Stunning Fist - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   send_to_char(ch, 
 	"\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
-  if (char_has_mud_event(ch, eTAUNTED))
-    send_to_char(ch, "Taunted!\r\n");
-  if (char_has_mud_event(ch, eSTUNNED))
-    send_to_char(ch, "Stunned!\r\n");
+  if ((pMudEvent = char_has_mud_event(ch, eTAUNTED)))
+    send_to_char(ch, "\tRTaunted!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eSTUNNED)))
+    send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
 
   //location of our DAM_x  damtypes
   send_to_char(ch, 
@@ -1125,8 +1122,8 @@ ACMD(do_score)
                      GET_QUEST(ch) == NOTHING ? -1 : GET_QUEST(ch));
 
   if (GET_AUTOCQUEST_VNUM(ch))
-    send_to_char(ch, "\tCOn Crafting Job:  %s, using: %s.", 
-            GET_AUTOCQUEST_DESC(ch),
+    send_to_char(ch, "\tCOn Crafting Job:  (%d)%s, using: %s.\r\n", 
+            GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
             material_name[GET_AUTOCQUEST_MATERIAL(ch)]);  
   
   send_to_char(ch, "\tYGold:\tn %d            \tYGold in Bank:\tn %d\r\n",    

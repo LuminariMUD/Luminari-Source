@@ -161,27 +161,30 @@ int crystal_bonus(struct obj_data *crystal, int mod)
 int augment(struct obj_data *station, struct char_data *ch)
 {
   struct obj_data *obj = NULL, *crystal_one = NULL, *crystal_two = NULL;
-  int num_objs = 0, cost = 0, bonus_one = 0, bonus_two = 0;
+  int num_objs = 0, cost = 0, bonus = 0;
   int skill_type = SKILL_CHEMISTRY; // change this to change the skill used
   char buf[MAX_INPUT_LENGTH];
   
   // Cycle through contents and categorize
   for (obj = station->contains; obj != NULL; obj = obj->next_content) {
-    num_objs++;
-    if (obj && num_objs > 2) {
-      send_to_char(ch, "Make sure only two items are in the station.\r\n");
-      return 1;
-    }
-    if (obj && GET_OBJ_TYPE(obj) == ITEM_CRYSTAL && !crystal_one) {
-      crystal_one = obj;
-      bonus_one = GET_OBJ_LEVEL(crystal_one);
-    } else if (obj && GET_OBJ_TYPE(obj) == ITEM_CRYSTAL && !crystal_two) {
-      crystal_two = obj;
-      bonus_two = GET_OBJ_LEVEL(crystal_two);
-      break; // found everything we need
+    if (obj) {
+      num_objs++;
+      if (num_objs > 2) {
+        send_to_char(ch, "Make sure only two items are in the station.\r\n");
+        return 1;
+      }
+      if (GET_OBJ_TYPE(obj) == ITEM_CRYSTAL && !crystal_one) {
+        crystal_one = obj;
+      } else if (GET_OBJ_TYPE(obj) == ITEM_CRYSTAL && !crystal_two) {
+        crystal_two = obj;
+      }
     }
   }
       
+  if (num_objs > 2) {
+    send_to_char(ch, "Make sure only two items are in the station.\r\n");
+    return 1;
+  }
   if (!crystal_one || !crystal_two) {
     send_to_char(ch, "You need two crystals to augment.\r\n");
     return 1;
@@ -197,20 +200,23 @@ int augment(struct obj_data *station, struct char_data *ch)
     send_to_char(ch, "These crystals are too weak to augment together.\r\n");
     return 1;
   }
+
   // new level of crystal, with cap
-  bonus_one = (bonus_one + bonus_two / 2);
-  if (bonus_one >= (LVL_IMMORT - 1))
-    bonus_one = LVL_IMMORT - 2;
-  // high enough skill?
-  if (bonus_one > GET_SKILL(ch, skill_type)) {
+  bonus = (GET_OBJ_LEVEL(crystal_one) + GET_OBJ_LEVEL(crystal_two)) * 3 / 4;
+  if (bonus <= GET_OBJ_LEVEL(crystal_one) || bonus <= GET_OBJ_LEVEL(crystal_two))
+    bonus++;  //gaurantee improvement
+  if (bonus > (LVL_IMMORT - 1))
+    bonus = LVL_IMMORT - 1;  //cap
+
+  if (bonus > GET_SKILL(ch, skill_type)) {    // high enough skill?
     send_to_char(ch, "The crystal level is %d but your %s skill is "
                      "only %d.\r\n",
-                 bonus_one, spell_info[skill_type].name,
+                 bonus, spell_info[skill_type].name,
                  GET_SKILL(ch, skill_type));
     return 1;
   }
-  // expense for augmenting
-  cost = GET_OBJ_LEVEL(crystal_one) * GET_OBJ_LEVEL(crystal_two) * 100 / 3;
+
+  cost = bonus * bonus * 1000 / 3;   // expense for augmenting
   if (GET_GOLD(ch) < cost) {
     send_to_char(ch, "You need %d coins on hand for supplies to augment this "
                      "crystal.\r\n", cost);
@@ -218,18 +224,20 @@ int augment(struct obj_data *station, struct char_data *ch)
   }
   
   // crystal_one is converted to the new crystal
-  GET_OBJ_LEVEL(crystal_one) = bonus_one;
-  GET_OBJ_COST(crystal_one) = GET_OBJ_COST(crystal_one) + 
+  GET_OBJ_LEVEL(crystal_one) = bonus;
+  GET_OBJ_COST(crystal_one) = GET_OBJ_COST(crystal_one) +
                               GET_OBJ_COST(crystal_two);
+
   // exp bonus for crafting ticks
   GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(crystal_one));
+
   // new name
-  sprintf(buf, "\twa crystal of\ty %s\tn max level\ty %d\tn",
+  sprintf(buf, "\twa crystal of\ty %s\tw max level\ty %d\tn",
           apply_types[crystal_one->affected[0].location], GET_OBJ_LEVEL(crystal_one));
   crystal_one->name = strdup(buf);
   crystal_one->short_description = strdup(buf);
-  sprintf(buf, "\twA crystal of\ty %s\tn max level\ty %d\tn lies here.",
-          apply_types[GET_OBJ_VAL(crystal_one, 0)], GET_OBJ_LEVEL(crystal_one));
+  sprintf(buf, "\twA crystal of\ty %s\tw max level\ty %d\tw lies here.\tn",
+          apply_types[crystal_one->affected[0].location], GET_OBJ_LEVEL(crystal_one));
   crystal_one->description = strdup(buf);
    
   send_to_char(ch, "It cost you %d coins in supplies to augment this crytsal.\r\n",
@@ -262,7 +270,6 @@ int convert(struct obj_data *station, struct char_data *ch)
   int num_mats = 0, material = -1, obj_vnum = 0;  
   struct obj_data *new_mat = NULL, *obj = NULL;
    
-  /* Cycle through contents and categorize */
   /* Cycle through contents and categorize */
   for (obj = station->contains; obj != NULL; obj = obj->next_content) {
     if (obj) {
@@ -1209,25 +1216,27 @@ EVENTFUNC(event_crafting) {
 
   if (GET_CRAFTING_TICKS(ch)) {
     // the crafting tick is still going!
-    if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) != GET_AUTOCQUEST_VNUM(ch))
+    if (GET_CRAFTING_OBJ(ch)) {
       send_to_char(ch, "You continue to %s %s.\r\n",
             craft_type[GET_CRAFTING_TYPE(ch)],
             GET_CRAFTING_OBJ(ch)->short_description);
-    else
-      send_to_char(ch, "You continue your supply order.\r\n");
-
-    exp = 30 + (GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * MAX(1,
-              GET_CRAFTING_BONUS(ch))) *
-              (GET_SKILL(ch, SKILL_ELVEN_CRAFTING) ? 2 : 1) *
-              (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) == MATERIAL_MITHRIL ? 2
-              : 1);
+      exp = GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * GET_LEVEL(ch) + GET_LEVEL(ch);
+    } else {
+      send_to_char(ch, "You continue your supply order for %s.\r\n",
+                   GET_AUTOCQUEST_DESC(ch));
+      exp = GET_LEVEL(ch) * 2;
+    }
     gain_exp(ch, exp);
     send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
 
     send_to_char(ch, "You have approximately %d seconds "
             "left to go.\r\n", GET_CRAFTING_TICKS(ch) * 6);
     GET_CRAFTING_TICKS(ch)--;
-    return 1;  // come back in 1 second to the event
+    if (GET_LEVEL(ch) >= LVL_IMMORT)
+      return 1;
+    else
+      return (6 * PASSES_PER_SEC);  // come back in x time to the event
+
   } else { /* should be completed */
 
     switch (GET_CRAFTING_TYPE(ch)) {
@@ -1286,7 +1295,7 @@ EVENTFUNC(event_crafting) {
           }
           GET_CRAFTING_REPEAT(ch) = 0;
         } else
-          sprintf(buf2, "@n");
+          sprintf(buf2, "\tn");
         sprintf(buf, "You create $p%s.  Success!!!", buf2);
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n creates $p%s.", buf2);
@@ -1323,7 +1332,7 @@ EVENTFUNC(event_crafting) {
     if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) != GET_AUTOCQUEST_VNUM(ch))
       obj_to_char(GET_CRAFTING_OBJ(ch), ch);
     */
- 
+/* 
     exp = 30 + (GET_SKILL(ch, skill) * MAX(1,
               GET_CRAFTING_BONUS(ch))) *
               (GET_SKILL(ch, SKILL_ELVEN_CRAFTING) ? 2 : 1) * 10 *
@@ -1331,7 +1340,7 @@ EVENTFUNC(event_crafting) {
               MATERIAL_MITHRIL ? 2 : 1);    
     gain_exp(ch, exp);
     send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
-    
+  */  
     reset_craft(ch);
     return 0;  //done with the event
   }
