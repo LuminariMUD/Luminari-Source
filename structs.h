@@ -1219,10 +1219,11 @@ struct player_special_data_saved
   ubyte screen_width;     /**< How wide the display page is */
   int olc_zone;           /**< Current olc permissions */
 
-  int questpoints;			//quest points earned
   int clanpoints;         /**< Clan points may be spent in a clanhall */
   clan_vnum clan;         /**< The clan number to which the player belongs     */
   int       clanrank;     /**< The player's rank within their clan (1=highest) */
+
+  int questpoints;			//quest points earned
   qst_vnum *completed_quests;   /**< Quests completed              */
   int    num_completed_quests;  /**< Number completed              */
   int    current_quest;         /**< vnum of current quest         */
