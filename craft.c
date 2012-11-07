@@ -79,8 +79,8 @@ int convert_material(int material)
 /* simple function to reset craft data */
 void reset_craft(struct char_data *ch) {
   /* initialize values */
-  GET_CRAFTING_TYPE(ch) = -1; // SCMD_ of craft
-  GET_CRAFTING_TICKS(ch)= -1;
+  GET_CRAFTING_TYPE(ch) = 0; // SCMD_ of craft
+  GET_CRAFTING_TICKS(ch)= 0;
   GET_CRAFTING_OBJ(ch) = NULL;
   GET_CRAFTING_REPEAT(ch) = 0;
 }
@@ -1199,7 +1199,7 @@ EVENTFUNC(event_crafting) {
     return 0;
 
   if (GET_CRAFTING_OBJ(ch) == NULL || // something is off, so ensure reset
-          GET_CRAFTING_TYPE(ch) == -1)
+          GET_CRAFTING_TYPE(ch) == 0)
     return 0;
 
 
@@ -1241,7 +1241,7 @@ EVENTFUNC(event_crafting) {
             (GET_CRAFTING_TICKS(ch) % 6) * 10);
     GET_CRAFTING_TICKS(ch) -= 1;
     return 1;
-  } else { /* need to complete */
+  } else { /* should be completed */
 
     switch (GET_CRAFTING_TYPE(ch)) {
       case SCMD_RESIZE:
