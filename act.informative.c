@@ -1124,6 +1124,11 @@ ACMD(do_score)
     send_to_char(ch, " %d\r\n",
                      GET_QUEST(ch) == NOTHING ? -1 : GET_QUEST(ch));
 
+  if (GET_AUTOCQUEST_VNUM(ch))
+    send_to_char(ch, "\tCOn Crafting Job:  %s, using: %s.", 
+            GET_AUTOCQUEST_DESC(ch),
+            material_name[GET_AUTOCQUEST_MATERIAL(ch)]);  
+  
   send_to_char(ch, "\tYGold:\tn %d            \tYGold in Bank:\tn %d\r\n",    
 		GET_GOLD(ch), GET_BANK_GOLD(ch));
 

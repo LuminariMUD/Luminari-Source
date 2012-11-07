@@ -98,7 +98,6 @@ void reset_acraft(struct char_data *ch) {
   GET_AUTOCQUEST_DESC(ch) = strdup("nothing");  
 }
 
-
 void cquest_report(struct char_data *ch) {
   if (GET_AUTOCQUEST_VNUM(ch)) {
     if (GET_AUTOCQUEST_MAKENUM(ch) <= 0)
@@ -433,7 +432,8 @@ int supplyorder(struct obj_data *station, struct char_data *ch) {
   struct obj_data *obj = NULL;
   
   if (!GET_AUTOCQUEST_MATERIAL(ch)) {
-    send_to_char(ch, "You do not have a supply order active right now.\r\n");   
+    send_to_char(ch, "You do not have a supply order active right now. "
+                     "(supplyorder new)\r\n");   
     return 1;  
   }  
   if (!GET_AUTOCQUEST_MAKENUM(ch)) {
@@ -483,15 +483,15 @@ int supplyorder(struct obj_data *station, struct char_data *ch) {
                  num_mats, SUPPLYORDER_MATS - num_mats);
     return 1;
   }
-    
+  
+  /*
   obj = create_obj();
   obj->name = strdup(GET_AUTOCQUEST_DESC(ch));
   obj->description = strdup(GET_AUTOCQUEST_DESC(ch));
   obj->short_description = strdup(GET_AUTOCQUEST_DESC(ch));
    
-  GET_AUTOCQUEST_GOLD(ch) += GET_LEVEL(ch) * GET_LEVEL(ch);
   
-  /*     this is where we determine level of object
+       this is where we determine level of object
   if (GET_ARTISAN_TYPE(ch) == ARTISAN_TYPE_TINKERING)
     GET_OBJ_LEVEL(obj) = get_skill_value(ch, SKILL_TINKERING);
   else if (GET_ARTISAN_TYPE(ch) == ARTISAN_TYPE_WEAPONTECH)
@@ -500,23 +500,21 @@ int supplyorder(struct obj_data *station, struct char_data *ch) {
     GET_OBJ_LEVEL(obj) = get_skill_value(ch, SKILL_ARMORTECH);
   else
 */
-    GET_OBJ_LEVEL(obj) = 1;
           
-  GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
+  GET_CRAFTING_TYPE(ch) = SCMD_SUPPLYORDER;
   GET_CRAFTING_TICKS(ch) = 5;
-  GET_CRAFTING_OBJ(ch) = obj;
+  GET_AUTOCQUEST_GOLD(ch) += GET_LEVEL(ch) * GET_LEVEL(ch);
   send_to_char(ch, "You begin a supply order for %s.\r\n",
-    obj->short_description);
-  act("$n begins a supply order for $p.", FALSE, ch, obj, 0, TO_ROOM);
+               GET_AUTOCQUEST_DESC(ch));
+  act("$n begins a supply order.", FALSE, ch, NULL, 0, TO_ROOM);
           
   obj_vnum = GET_OBJ_VNUM(station);
-  obj_from_room(station);
+  obj_from_char(station);
   extract_obj(station);
   station = read_object(obj_vnum, VIRTUAL);
-  obj_to_room(station, IN_ROOM(ch));
+  obj_to_char(station, ch);
 
   /* zusuk - temporary */
-  obj_to_char(obj, ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   return 1;
@@ -1165,6 +1163,7 @@ SPECIAL(crafting_quest) {
                        GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
       GET_QUESTPOINTS(ch) += GET_AUTOCQUEST_QP(ch);
       GET_GOLD(ch) += GET_AUTOCQUEST_GOLD(ch);
+      GET_EXP(ch) += GET_AUTOCQUEST_EXP(ch);
 
       reset_acraft(ch);
 
@@ -1198,49 +1197,37 @@ EVENTFUNC(event_crafting) {
   if (!IS_NPC(ch) && !IS_PLAYING(ch->desc))
     return 0;
 
-  if (GET_CRAFTING_OBJ(ch) == NULL || // something is off, so ensure reset
-          GET_CRAFTING_TYPE(ch) == 0)
+  // something is off, so ensure reset
+  if (!GET_AUTOCQUEST_VNUM(ch) && GET_CRAFTING_OBJ(ch) == NULL) {
+    log("SYSERR: crafting - null object");
     return 0;
-
+  }
+  if (GET_CRAFTING_TYPE(ch) == 0) {
+    log("SYSERR: crafting - invalid type");
+    return 0;
+  }
 
   if (GET_CRAFTING_TICKS(ch)) {
     // the crafting tick is still going!
-    if (GET_LEVEL(ch) >= LVL_IMMORT)
-      GET_CRAFTING_TICKS(ch) = 1;
-    switch (GET_CRAFTING_TYPE(ch)) {
-      case SCMD_DISENCHANT:
-        break;
-      case SCMD_SYNTHESIZE:
-        break;
-      case SCMD_DIVIDE:
-        break;
-      case SCMD_RESIZE:
-        break;
-      case SCMD_MINE:
-      case SCMD_FOREST:
-      case SCMD_HUNT:
-      default:
-        skill = 1;
-        break;
-    }
     if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) != GET_AUTOCQUEST_VNUM(ch))
       send_to_char(ch, "You continue to %s %s.\r\n",
             craft_type[GET_CRAFTING_TYPE(ch)],
             GET_CRAFTING_OBJ(ch)->short_description);
     else
       send_to_char(ch, "You continue your supply order.\r\n");
-    if (skill == 1) {
-      exp = 30 + (GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * MAX(1,
+
+    exp = 30 + (GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * MAX(1,
               GET_CRAFTING_BONUS(ch))) *
               (GET_SKILL(ch, SKILL_ELVEN_CRAFTING) ? 2 : 1) *
               (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) == MATERIAL_MITHRIL ? 2
               : 1);
-    }
-    send_to_char(ch, "You have approximately %d minutes and %d seconds "
-            "left to go.\r\n", GET_CRAFTING_TICKS(ch) / 6,
-            (GET_CRAFTING_TICKS(ch) % 6) * 10);
-    GET_CRAFTING_TICKS(ch) -= 1;
-    return 1;
+    gain_exp(ch, exp);
+    send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
+
+    send_to_char(ch, "You have approximately %d seconds "
+            "left to go.\r\n", GET_CRAFTING_TICKS(ch) * 6);
+    GET_CRAFTING_TICKS(ch)--;
+    return 1;  // come back in 1 second to the event
   } else { /* should be completed */
 
     switch (GET_CRAFTING_TYPE(ch)) {
@@ -1289,79 +1276,67 @@ EVENTFUNC(event_crafting) {
       case SCMD_SYNTHESIZE:
         // synthesizing here
         break;
-      default:
+      case SCMD_CRAFT:
         // crafting
-        if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) != GET_AUTOCQUEST_VNUM(ch)) {
-          if (GET_CRAFTING_REPEAT(ch)) {
-            sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
-            for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++) {
-              obj2 = GET_CRAFTING_OBJ(ch);
-              obj_to_char(obj2, ch);
-            }
-            GET_CRAFTING_REPEAT(ch) = 0;
-          } else
-            sprintf(buf2, "@n");
-          sprintf(buf, "You create $p%s.  Success!!!", buf2);
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-          sprintf(buf, "$n creates $p%s.", buf2);
-          act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-          if (GET_GOLD(ch) < (GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4)) {
-            GET_BANK_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
-          } else {
-            GET_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
+        if (GET_CRAFTING_REPEAT(ch)) {
+          sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
+          for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++) {
+            obj2 = GET_CRAFTING_OBJ(ch);
+            obj_to_char(obj2, ch);
           }
-
-          // artisan/xp gain
-          exp = 30 + (GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * MAX(1,
-                  GET_CRAFTING_BONUS(ch))) *
-                  (GET_SKILL(ch, SKILL_ELVEN_CRAFTING) ? 2 : 1) * 2 *
-                  (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) == MATERIAL_MITHRIL ?
-                  2 : 1);
-        } else if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) ==
-                GET_AUTOCQUEST_VNUM(ch)) { //auto quest crafting
-          GET_AUTOCQUEST_MAKENUM(ch)--;
-          if (GET_AUTOCQUEST_MAKENUM(ch) == 0) {
-            send_to_char(ch, "You have completed your supply order! Go turn"
-                    " it in for more exp, quest points and "
-                    "gold!.\r\n");
-          } else {
-            send_to_char(ch, "You have completed another item in your supply "
-                    "order and have %d more to make.\r\n",
-                    GET_AUTOCQUEST_MAKENUM(ch));
-          }
-          exp = 30 + (GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * MAX(1,
-                  GET_CRAFTING_BONUS(ch)) *
-                  GET_SKILL(ch, SKILL_ELVEN_CRAFTING) ? 2 : 1) *
-                  (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) == MATERIAL_MITHRIL
-                  ? 2 : 1);
+          GET_CRAFTING_REPEAT(ch) = 0;
+        } else
+          sprintf(buf2, "@n");
+        sprintf(buf, "You create $p%s.  Success!!!", buf2);
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+        sprintf(buf, "$n creates $p%s.", buf2);
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+        if (GET_GOLD(ch) < (GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4)) {
+          GET_BANK_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
+        } else {
+          GET_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
         }
         break;
+      case SCMD_SUPPLYORDER:
+        GET_AUTOCQUEST_MAKENUM(ch)--;
+        if (GET_AUTOCQUEST_MAKENUM(ch) == 0) {
+          sprintf(buf, "$n completes an item for a supply order.");
+          act(buf, false, ch, NULL, 0, TO_ROOM);
+          send_to_char(ch, "You have completed your supply order! Go turn"
+                  " it in for more exp, quest points and "
+                  "gold!.\r\n");
+        } else {
+          sprintf(buf, "$n completes a supply order.");
+          act(buf, false, ch, NULL, 0, TO_ROOM);
+          send_to_char(ch, "You have completed another item in your supply "
+                  "order and have %d more to make.\r\n",
+                  GET_AUTOCQUEST_MAKENUM(ch));
+        }
+        break;
+      default:
+        log("SYSERR: crafting - unsupported SCMD_");
+        return 0;
     }
 
+    /*
     // give crafted object to char
     if (GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)) != GET_AUTOCQUEST_VNUM(ch))
       obj_to_char(GET_CRAFTING_OBJ(ch), ch);
-
-    if (skill != -1) { // artisan gain, bonus goodies
-      exp = 30 + (GET_SKILL(ch, skill) * MAX(1,
+    */
+ 
+    exp = 30 + (GET_SKILL(ch, skill) * MAX(1,
               GET_CRAFTING_BONUS(ch))) *
               (GET_SKILL(ch, SKILL_ELVEN_CRAFTING) ? 2 : 1) * 10 *
               (GET_OBJ_MATERIAL(GET_CRAFTING_OBJ(ch)) ==
-              MATERIAL_MITHRIL ? 2 : 1);
-
-      /*        roll = dice(1, 100);
-              if (roll <= 3) {
-                if (dice(1, 20) <= 15)
-                  get_random_essence(ch, GET_CLASS_RANKS(ch, CLASS_ARTISAN));
-                else
-                  get_random_crystal(ch, GET_CLASS_RANKS(ch, CLASS_ARTISAN));
-              }
-       */
-    }
+              MATERIAL_MITHRIL ? 2 : 1);    
+    gain_exp(ch, exp);
+    send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
+    
     reset_craft(ch);
-    return 0;
+    return 0;  //done with the event
   }
-  return 0;  //shouldn't get here
+  log("SYSERR: crafting, crafting_event end");
+  return 0;
 }
 
 #undef PATTERN_UPPER

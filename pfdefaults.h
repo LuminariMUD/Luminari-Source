@@ -71,4 +71,12 @@
 #define PFDEF_CLANRANK          0
 #define PFDEF_CLANPOINTS        0
 #define PFDEF_DIPTIMER          0
+#define PFDEF_AUTOCQUEST_VNUM      0
+#define PFDEF_AUTOCQUEST_MAKENUM   0
+#define PFDEF_AUTOCQUEST_QP        0
+#define PFDEF_AUTOCQUEST_EXP       0
+#define PFDEF_AUTOCQUEST_GOLD      0
+#define PFDEF_AUTOCQUEST_DESC      NULL
+#define PFDEF_AUTOCQUEST_MATERIAL  0
+    
 #endif /* _PFDEFAULTS_H_ */

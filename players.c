@@ -348,7 +348,14 @@ int load_char(const char *name, struct char_data *ch)
     GET_LAST_MOTD(ch) = PFDEF_LASTMOTD;
     GET_LAST_NEWS(ch) = PFDEF_LASTNEWS;
     GET_RACE(ch) = PFDEF_RACE;
-
+    GET_AUTOCQUEST_VNUM(ch) = PFDEF_AUTOCQUEST_VNUM;
+    GET_AUTOCQUEST_MAKENUM(ch) = PFDEF_AUTOCQUEST_MAKENUM;
+    GET_AUTOCQUEST_QP(ch) = PFDEF_AUTOCQUEST_QP;
+    GET_AUTOCQUEST_EXP(ch) = PFDEF_AUTOCQUEST_EXP;
+    GET_AUTOCQUEST_GOLD(ch) = PFDEF_AUTOCQUEST_GOLD;
+    GET_AUTOCQUEST_DESC(ch) = PFDEF_AUTOCQUEST_DESC;
+    GET_AUTOCQUEST_MATERIAL(ch) = PFDEF_AUTOCQUEST_MATERIAL;
+    
     GET_DIPTIMER(ch)   = PFDEF_DIPTIMER;
     GET_CLAN(ch)       = PFDEF_CLAN;
     GET_CLANRANK(ch)   = PFDEF_CLANRANK;
@@ -365,183 +372,191 @@ int load_char(const char *name, struct char_data *ch)
       tag_argument(line, tag);
 
       switch (*tag) {
-      case 'A':
-	if (!strcmp(tag, "Ablt"))	load_abilities(fl, ch);
-        else if (!strcmp(tag, "Ac  "))	GET_AC(ch)		= atoi(line);
-	else if (!strcmp(tag, "Act ")) {
-         if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4) {
-          PLR_FLAGS(ch)[0] = asciiflag_conv(f1);
-          PLR_FLAGS(ch)[1] = asciiflag_conv(f2);
-          PLR_FLAGS(ch)[2] = asciiflag_conv(f3);
-          PLR_FLAGS(ch)[3] = asciiflag_conv(f4);
-        } else
-          PLR_FLAGS(ch)[0] = asciiflag_conv(line);
-      } else if (!strcmp(tag, "Aff ")) {
-        if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4) {
-          AFF_FLAGS(ch)[0] = asciiflag_conv(f1);
-          AFF_FLAGS(ch)[1] = asciiflag_conv(f2);
-          AFF_FLAGS(ch)[2] = asciiflag_conv(f3);
-          AFF_FLAGS(ch)[3] = asciiflag_conv(f4);
-        } else
-          AFF_FLAGS(ch)[0] = asciiflag_conv(line);
-	}
-	if (!strcmp(tag, "Affs")) 	load_affects(fl, ch);
-        else if (!strcmp(tag, "Alin"))	GET_ALIGNMENT(ch)	= atoi(line);
-	else if (!strcmp(tag, "Alis"))	read_aliases_ascii(fl, ch, atoi(line));
-	break;
-
-      case 'B':
-	     if (!strcmp(tag, "Badp"))	GET_BAD_PWS(ch)		= atoi(line);
-        else if (!strcmp(tag, "Bost"))	GET_BOOSTS(ch)		= atoi(line);
-	else if (!strcmp(tag, "Bank"))	GET_BANK_GOLD(ch)	= atoi(line);
-	else if (!strcmp(tag, "Brth"))	ch->player.time.birth	= atol(line);
-	break;
-
-      case 'C':
-	     if (!strcmp(tag, "Cha "))	ch->real_abils.cha	= atoi(line);
-	else if (!strcmp(tag, "Clas"))	GET_CLASS(ch)		= atoi(line);
-	else if (!strcmp(tag, "Con "))	ch->real_abils.con	= atoi(line);
-	else if (!strcmp(tag, "CLvl"))	load_class_level(fl, ch);
-        else if (!strcmp(tag, "Cln "))	GET_CLAN(ch)		= atoi(line);
-        else if (!strcmp(tag, "Clrk"))	GET_CLANRANK(ch)	= atoi(line);
-        else if (!strcmp(tag, "CPts"))	GET_CLANPOINTS(ch)	= atoi(line);
-	break;
-
-      case 'D':
-	     if (!strcmp(tag, "Desc"))	ch->player.description	= fread_string(fl, buf2);
-	else if (!strcmp(tag, "Dex "))	ch->real_abils.dex	= atoi(line);
-	else if (!strcmp(tag, "Drnk"))	GET_COND(ch, DRUNK)	= atoi(line);
-	else if (!strcmp(tag, "Drol"))	GET_DAMROLL(ch)		= atoi(line);
-        else if (!strcmp(tag, "DipT"))  GET_DIPTIMER(ch)        = atoi(line);
-	break;
-
-      case 'E':
-	     if (!strcmp(tag, "Exp "))	GET_EXP(ch)		= atoi(line);
-	break;
-
-      case 'F':
-	     if (!strcmp(tag, "Frez"))	GET_FREEZE_LEV(ch)	= atoi(line);
-	break;
-
-      case 'G':
-	     if (!strcmp(tag, "Gold"))	GET_GOLD(ch)		= atoi(line);
-	break;
-
-      case 'H':
-	     if (!strcmp(tag, "Hit "))	load_HMVS(ch, line, LOAD_HIT);
-	else if (!strcmp(tag, "Hite"))	GET_HEIGHT(ch)		= atoi(line);
-        else if (!strcmp(tag, "Host")) {
-          if (GET_HOST(ch))
-            free(GET_HOST(ch));
-          GET_HOST(ch) = strdup(line);
-        }
-        else if (!strcmp(tag, "Hrol"))	GET_HITROLL(ch)		= atoi(line);
-	else if (!strcmp(tag, "Hung"))	GET_COND(ch, HUNGER)	= atoi(line);
-	break;
-
-      case 'I':
-	     if (!strcmp(tag, "Id  "))	GET_IDNUM(ch)		= atol(line);
-	else if (!strcmp(tag, "Int "))	ch->real_abils.intel	= atoi(line);
-	else if (!strcmp(tag, "Invs"))	GET_INVIS_LEV(ch)	= atoi(line);
-	break;
-
-      case 'L':
-	     if (!strcmp(tag, "Last"))	ch->player.time.logon	= atol(line);
-        else if (!strcmp(tag, "Lern"))	GET_PRACTICES(ch)	= atoi(line);
-	else if (!strcmp(tag, "Levl"))	GET_LEVEL(ch)		= atoi(line);
-        else if (!strcmp(tag, "Lmot"))   GET_LAST_MOTD(ch)   = atoi(line);
-        else if (!strcmp(tag, "Lnew"))   GET_LAST_NEWS(ch)   = atoi(line);
-	break;
-
-      case 'M':
-	     if (!strcmp(tag, "Mana"))	load_HMVS(ch, line, LOAD_MANA);
-	else if (!strcmp(tag, "Move"))	load_HMVS(ch, line, LOAD_MOVE);
-	else if (!strcmp(tag, "Mrph"))	IS_MORPHED(ch)		= atol(line);
-	break;
-
-      case 'N':
-	     if (!strcmp(tag, "Name"))	GET_PC_NAME(ch)	= strdup(line);
-	break;
-
-      case 'O':
-       if (!strcmp(tag, "Olc "))  GET_OLC_ZONE(ch) = atoi(line);
-  break;
-
-      case 'P':
-       if (!strcmp(tag, "Page"))  GET_PAGE_LENGTH(ch) = atoi(line);
-	else if (!strcmp(tag, "Pass"))	strcpy(GET_PASSWD(ch), line);
-	else if (!strcmp(tag, "Plyd"))	ch->player.time.played	= atoi(line);
-	else if (!strcmp(tag, "Pryg"))	load_praying(fl, ch);
-	else if (!strcmp(tag, "Pryd"))	load_prayed(fl, ch);
-	else if (!strcmp(tag, "Pryt"))	load_praytimes(fl, ch);
-	else if (!strcmp(tag, "PfIn"))	POOFIN(ch)		= strdup(line);
-	else if (!strcmp(tag, "PfOt"))	POOFOUT(ch)		= strdup(line);
-        else if (!strcmp(tag, "Pref")) {
-          if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4) {
-            PRF_FLAGS(ch)[0] = asciiflag_conv(f1);
-            PRF_FLAGS(ch)[1] = asciiflag_conv(f2);
-            PRF_FLAGS(ch)[2] = asciiflag_conv(f3);
-            PRF_FLAGS(ch)[3] = asciiflag_conv(f4);
-          } else
-	    PRF_FLAGS(ch)[0] = asciiflag_conv(f1);
-	  }
-        break;
-
-      case 'Q':
-	     if (!strcmp(tag, "Qstp"))  GET_QUESTPOINTS(ch)     = atoi(line);
-       else if (!strcmp(tag, "Qpnt")) GET_QUESTPOINTS(ch) = atoi(line); /* Backward compatibility */
-       else if (!strcmp(tag, "Qcur")) GET_QUEST(ch) = atoi(line);
-       else if (!strcmp(tag, "Qcnt")) GET_QUEST_COUNTER(ch) = atoi(line);
-       else if (!strcmp(tag, "Qest")) load_quests(fl, ch);
-        break;
-
-      case 'R':
-	if(!strcmp(tag, "Race")) GET_RACE(ch)   = atoi(line);
-	else if (!strcmp(tag, "Room"))	GET_LOADROOM(ch)	= atoi(line);
-	break;
-
-      case 'S':
-	     if (!strcmp(tag, "Sex "))	GET_SEX(ch)		= atoi(line);
-  else if (!strcmp(tag, "ScrW"))  GET_SCREEN_WIDTH(ch) = atoi(line);
-	else if (!strcmp(tag, "Skil"))	load_skills(fl, ch);
-	else if (!strcmp(tag, "SpAb"))	load_spec_abil(fl, ch);
-	else if (!strcmp(tag, "SpRs"))	GET_SPELL_RES(ch)	= atoi(line);
-	else if (!strcmp(tag, "Size"))	GET_SIZE(ch)		= atoi(line);
-	else if (!strcmp(tag, "Str "))	load_HMVS(ch, line, LOAD_STRENGTH);
-	break;
-
-      case 'T':
-	     if (!strcmp(tag, "Thir"))	GET_COND(ch, THIRST)	= atoi(line);
-	else if (!strcmp(tag, "Thr1"))	GET_SAVE(ch, 0)		= atoi(line);
-	else if (!strcmp(tag, "Thr2"))	GET_SAVE(ch, 1)		= atoi(line);
-	else if (!strcmp(tag, "Thr3"))	GET_SAVE(ch, 2)		= atoi(line);
-	else if (!strcmp(tag, "Thr4"))	GET_SAVE(ch, 3)		= atoi(line);
-	else if (!strcmp(tag, "Thr5"))	GET_SAVE(ch, 4)		= atoi(line);
-	else if (!strcmp(tag, "Titl"))	GET_TITLE(ch)		= strdup(line);
-        else if (!strcmp(tag, "Trig") && CONFIG_SCRIPT_PLAYERS) {
-          if ((t_rnum = real_trigger(atoi(line))) != NOTHING) {
-            t = read_trigger(t_rnum);
-            if (!SCRIPT(ch))
-              CREATE(SCRIPT(ch), struct script_data, 1);
-            add_trigger(SCRIPT(ch), t, -1);
+        case 'A':
+          if (!strcmp(tag, "Ablt")) load_abilities(fl, ch);
+          else if (!strcmp(tag, "Ac  ")) GET_AC(ch) = atoi(line);
+          else if (!strcmp(tag, "Act ")) {
+            if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4) {
+              PLR_FLAGS(ch)[0] = asciiflag_conv(f1);
+              PLR_FLAGS(ch)[1] = asciiflag_conv(f2);
+              PLR_FLAGS(ch)[2] = asciiflag_conv(f3);
+              PLR_FLAGS(ch)[3] = asciiflag_conv(f4);
+            } else
+              PLR_FLAGS(ch)[0] = asciiflag_conv(line);
+          } else if (!strcmp(tag, "Aff ")) {
+            if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4) {
+              AFF_FLAGS(ch)[0] = asciiflag_conv(f1);
+              AFF_FLAGS(ch)[1] = asciiflag_conv(f2);
+              AFF_FLAGS(ch)[2] = asciiflag_conv(f3);
+              AFF_FLAGS(ch)[3] = asciiflag_conv(f4);
+            } else
+              AFF_FLAGS(ch)[0] = asciiflag_conv(line);
           }
-        }
-        else if (!strcmp(tag, "Trns"))	GET_TRAINS(ch)		= atoi(line);
-	break;
+          if (!strcmp(tag, "Affs")) load_affects(fl, ch);
+          else if (!strcmp(tag, "Alin")) GET_ALIGNMENT(ch) = atoi(line);
+          else if (!strcmp(tag, "Alis")) read_aliases_ascii(fl, ch, atoi(line));
+          break;
 
-      case 'V':
-	     if (!strcmp(tag, "Vars"))	read_saved_vars_ascii(fl, ch, atoi(line));
-      break;
+        case 'B':
+          if (!strcmp(tag, "Badp")) GET_BAD_PWS(ch) = atoi(line);
+          else if (!strcmp(tag, "Bost")) GET_BOOSTS(ch) = atoi(line);
+          else if (!strcmp(tag, "Bank")) GET_BANK_GOLD(ch) = atoi(line);
+          else if (!strcmp(tag, "Brth")) ch->player.time.birth = atol(line);
+          break;
 
-      case 'W':
-	     if (!strcmp(tag, "Wate"))	GET_WEIGHT(ch)		= atoi(line);
-	else if (!strcmp(tag, "Wimp"))	GET_WIMP_LEV(ch)	= atoi(line);
-	else if (!strcmp(tag, "Ward"))	load_warding(fl, ch);
-	else if (!strcmp(tag, "Wis "))	ch->real_abils.wis	= atoi(line);
-	break;
+        case 'C':
+          if (!strcmp(tag, "Cha ")) ch->real_abils.cha = atoi(line);
+          else if (!strcmp(tag, "Clas")) GET_CLASS(ch) = atoi(line);
+          else if (!strcmp(tag, "Con ")) ch->real_abils.con = atoi(line);
+          else if (!strcmp(tag, "CLvl")) load_class_level(fl, ch);
+          else if (!strcmp(tag, "Cln ")) GET_CLAN(ch) = atoi(line);
+          else if (!strcmp(tag, "Clrk")) GET_CLANRANK(ch) = atoi(line);
+          else if (!strcmp(tag, "CPts")) GET_CLANPOINTS(ch) = atoi(line);
+          else if (!strcmp(tag, "Cvnm")) GET_AUTOCQUEST_VNUM(ch) = atoi(line);
+          else if (!strcmp(tag, "Cmnm")) 
+            GET_AUTOCQUEST_MAKENUM(ch) = atoi(line);
+          else if (!strcmp(tag, "Cqps")) GET_AUTOCQUEST_QP(ch) = atoi(line);
+          else if (!strcmp(tag, "Cexp")) GET_AUTOCQUEST_EXP(ch) = atoi(line);
+          else if (!strcmp(tag, "Cgld")) GET_AUTOCQUEST_GOLD(ch) = atoi(line);
+          else if (!strcmp(tag, "Cdsc")) GET_AUTOCQUEST_DESC(ch) = strdup(line);
+          else if (!strcmp(tag, "Cmat"))
+            GET_AUTOCQUEST_MATERIAL(ch) = atoi(line);
 
-      default:
-	sprintf(buf, "SYSERR: Unknown tag %s in pfile %s", tag, name);
+          break;
+
+        case 'D':
+          if (!strcmp(tag, "Desc")) ch->player.description = fread_string(fl, buf2);
+          else if (!strcmp(tag, "Dex ")) ch->real_abils.dex = atoi(line);
+          else if (!strcmp(tag, "Drnk")) GET_COND(ch, DRUNK) = atoi(line);
+          else if (!strcmp(tag, "Drol")) GET_DAMROLL(ch) = atoi(line);
+          else if (!strcmp(tag, "DipT")) GET_DIPTIMER(ch) = atoi(line);
+          break;
+
+        case 'E':
+          if (!strcmp(tag, "Exp ")) GET_EXP(ch) = atoi(line);
+          break;
+
+        case 'F':
+          if (!strcmp(tag, "Frez")) GET_FREEZE_LEV(ch) = atoi(line);
+          break;
+
+        case 'G':
+          if (!strcmp(tag, "Gold")) GET_GOLD(ch) = atoi(line);
+          break;
+
+        case 'H':
+          if (!strcmp(tag, "Hit ")) load_HMVS(ch, line, LOAD_HIT);
+          else if (!strcmp(tag, "Hite")) GET_HEIGHT(ch) = atoi(line);
+          else if (!strcmp(tag, "Host")) {
+            if (GET_HOST(ch))
+              free(GET_HOST(ch));
+            GET_HOST(ch) = strdup(line);
+          } else if (!strcmp(tag, "Hrol")) GET_HITROLL(ch) = atoi(line);
+          else if (!strcmp(tag, "Hung")) GET_COND(ch, HUNGER) = atoi(line);
+          break;
+
+        case 'I':
+          if (!strcmp(tag, "Id  ")) GET_IDNUM(ch) = atol(line);
+          else if (!strcmp(tag, "Int ")) ch->real_abils.intel = atoi(line);
+          else if (!strcmp(tag, "Invs")) GET_INVIS_LEV(ch) = atoi(line);
+          break;
+
+        case 'L':
+          if (!strcmp(tag, "Last")) ch->player.time.logon = atol(line);
+          else if (!strcmp(tag, "Lern")) GET_PRACTICES(ch) = atoi(line);
+          else if (!strcmp(tag, "Levl")) GET_LEVEL(ch) = atoi(line);
+          else if (!strcmp(tag, "Lmot")) GET_LAST_MOTD(ch) = atoi(line);
+          else if (!strcmp(tag, "Lnew")) GET_LAST_NEWS(ch) = atoi(line);
+          break;
+
+        case 'M':
+          if (!strcmp(tag, "Mana")) load_HMVS(ch, line, LOAD_MANA);
+          else if (!strcmp(tag, "Move")) load_HMVS(ch, line, LOAD_MOVE);
+          else if (!strcmp(tag, "Mrph")) IS_MORPHED(ch) = atol(line);
+          break;
+
+        case 'N':
+          if (!strcmp(tag, "Name")) GET_PC_NAME(ch) = strdup(line);
+          break;
+
+        case 'O':
+          if (!strcmp(tag, "Olc ")) GET_OLC_ZONE(ch) = atoi(line);
+          break;
+
+        case 'P':
+          if (!strcmp(tag, "Page")) GET_PAGE_LENGTH(ch) = atoi(line);
+          else if (!strcmp(tag, "Pass")) strcpy(GET_PASSWD(ch), line);
+          else if (!strcmp(tag, "Plyd")) ch->player.time.played = atoi(line);
+          else if (!strcmp(tag, "Pryg")) load_praying(fl, ch);
+          else if (!strcmp(tag, "Pryd")) load_prayed(fl, ch);
+          else if (!strcmp(tag, "Pryt")) load_praytimes(fl, ch);
+          else if (!strcmp(tag, "PfIn")) POOFIN(ch) = strdup(line);
+          else if (!strcmp(tag, "PfOt")) POOFOUT(ch) = strdup(line);
+          else if (!strcmp(tag, "Pref")) {
+            if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4) {
+              PRF_FLAGS(ch)[0] = asciiflag_conv(f1);
+              PRF_FLAGS(ch)[1] = asciiflag_conv(f2);
+              PRF_FLAGS(ch)[2] = asciiflag_conv(f3);
+              PRF_FLAGS(ch)[3] = asciiflag_conv(f4);
+            } else
+              PRF_FLAGS(ch)[0] = asciiflag_conv(f1);
+          }
+          break;
+
+        case 'Q':
+          if (!strcmp(tag, "Qstp")) GET_QUESTPOINTS(ch) = atoi(line);
+          else if (!strcmp(tag, "Qpnt")) GET_QUESTPOINTS(ch) = atoi(line); /* Backward compatibility */
+          else if (!strcmp(tag, "Qcur")) GET_QUEST(ch) = atoi(line);
+          else if (!strcmp(tag, "Qcnt")) GET_QUEST_COUNTER(ch) = atoi(line);
+          else if (!strcmp(tag, "Qest")) load_quests(fl, ch);
+          break;
+
+        case 'R':
+          if (!strcmp(tag, "Race")) GET_RACE(ch) = atoi(line);
+          else if (!strcmp(tag, "Room")) GET_LOADROOM(ch) = atoi(line);
+          break;
+
+        case 'S':
+          if (!strcmp(tag, "Sex ")) GET_SEX(ch) = atoi(line);
+          else if (!strcmp(tag, "ScrW")) GET_SCREEN_WIDTH(ch) = atoi(line);
+          else if (!strcmp(tag, "Skil")) load_skills(fl, ch);
+          else if (!strcmp(tag, "SpAb")) load_spec_abil(fl, ch);
+          else if (!strcmp(tag, "SpRs")) GET_SPELL_RES(ch) = atoi(line);
+          else if (!strcmp(tag, "Size")) GET_SIZE(ch) = atoi(line);
+          else if (!strcmp(tag, "Str ")) load_HMVS(ch, line, LOAD_STRENGTH);
+          break;
+
+        case 'T':
+          if (!strcmp(tag, "Thir")) GET_COND(ch, THIRST) = atoi(line);
+          else if (!strcmp(tag, "Thr1")) GET_SAVE(ch, 0) = atoi(line);
+          else if (!strcmp(tag, "Thr2")) GET_SAVE(ch, 1) = atoi(line);
+          else if (!strcmp(tag, "Thr3")) GET_SAVE(ch, 2) = atoi(line);
+          else if (!strcmp(tag, "Thr4")) GET_SAVE(ch, 3) = atoi(line);
+          else if (!strcmp(tag, "Thr5")) GET_SAVE(ch, 4) = atoi(line);
+          else if (!strcmp(tag, "Titl")) GET_TITLE(ch) = strdup(line);
+          else if (!strcmp(tag, "Trig") && CONFIG_SCRIPT_PLAYERS) {
+            if ((t_rnum = real_trigger(atoi(line))) != NOTHING) {
+              t = read_trigger(t_rnum);
+              if (!SCRIPT(ch))
+                CREATE(SCRIPT(ch), struct script_data, 1);
+              add_trigger(SCRIPT(ch), t, -1);
+            }
+          } else if (!strcmp(tag, "Trns")) GET_TRAINS(ch) = atoi(line);
+          break;
+
+        case 'V':
+          if (!strcmp(tag, "Vars")) read_saved_vars_ascii(fl, ch, atoi(line));
+          break;
+
+        case 'W':
+          if (!strcmp(tag, "Wate")) GET_WEIGHT(ch) = atoi(line);
+          else if (!strcmp(tag, "Wimp")) GET_WIMP_LEV(ch) = atoi(line);
+          else if (!strcmp(tag, "Ward")) load_warding(fl, ch);
+          else if (!strcmp(tag, "Wis ")) ch->real_abils.wis = atoi(line);
+          break;
+
+        default:
+          sprintf(buf, "SYSERR: Unknown tag %s in pfile %s", tag, name);
       }
     }
   }
@@ -732,6 +747,21 @@ void save_char(struct char_data * ch)
   if (GET_SPELL_RES(ch)	   != PFDEF_SPELL_RES)	fprintf(fl, "SpRs: %d\n", GET_SPELL_RES(ch));
   if (IS_MORPHED(ch)	   != PFDEF_MORPHED)	fprintf(fl, "Mrph: %d\n", IS_MORPHED(ch));
 
+  if (GET_AUTOCQUEST_VNUM(ch)  != PFDEF_AUTOCQUEST_VNUM)
+          fprintf(fl, "Cvnm: %d\n", GET_AUTOCQUEST_VNUM(ch));
+  if (GET_AUTOCQUEST_MAKENUM(ch)  != PFDEF_AUTOCQUEST_MAKENUM)
+          fprintf(fl, "Cmnm: %d\n", GET_AUTOCQUEST_MAKENUM(ch));
+  if (GET_AUTOCQUEST_QP(ch)  != PFDEF_AUTOCQUEST_QP)
+          fprintf(fl, "Cqps: %d\n", GET_AUTOCQUEST_QP(ch));
+  if (GET_AUTOCQUEST_EXP(ch)  != PFDEF_AUTOCQUEST_EXP)
+          fprintf(fl, "Cexp: %d\n", GET_AUTOCQUEST_EXP(ch));
+  if (GET_AUTOCQUEST_GOLD(ch)  != PFDEF_AUTOCQUEST_GOLD)
+          fprintf(fl, "Cgld: %d\n", GET_AUTOCQUEST_GOLD(ch));
+  if (GET_AUTOCQUEST_DESC(ch)  != PFDEF_AUTOCQUEST_DESC)
+          fprintf(fl, "Cdsc: %s\n", GET_AUTOCQUEST_DESC(ch));
+  if (GET_AUTOCQUEST_MATERIAL(ch)  != PFDEF_AUTOCQUEST_MATERIAL)
+          fprintf(fl, "Cmat: %d\n", GET_AUTOCQUEST_MATERIAL(ch));
+  
   if (GET_OLC_ZONE(ch)     != PFDEF_OLC)        fprintf(fl, "Olc : %d\n", GET_OLC_ZONE(ch));
   if (GET_PAGE_LENGTH(ch)  != PFDEF_PAGELENGTH) fprintf(fl, "Page: %d\n", GET_PAGE_LENGTH(ch));
   if (GET_SCREEN_WIDTH(ch) != PFDEF_SCREENWIDTH) fprintf(fl, "ScrW: %d\n", GET_SCREEN_WIDTH(ch));

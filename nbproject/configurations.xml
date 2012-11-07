@@ -45,6 +45,7 @@
       <in>config.h</in>
       <in>constants.c</in>
       <in>constants.h</in>
+      <in>craft.c</in>
       <in>db.c</in>
       <in>db.h</in>
       <in>dg_comm.c</in>
