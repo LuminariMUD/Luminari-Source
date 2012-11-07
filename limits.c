@@ -233,6 +233,7 @@ void gain_exp(struct char_data *ch, int gain)
   }
 
   if (gain > 0) {
+    
     /* happy hour bonus */
     if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
       gain += (int)((float)gain * ((float)HAPPY_EXP / (float)(100)));
@@ -241,14 +242,18 @@ void gain_exp(struct char_data *ch, int gain)
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
       gain += (int)((float)gain * ((float)NEWBIE_EXP / (float)(100)));
     
-    gain = MIN(CONFIG_MAX_EXP_GAIN, gain);	/* put a cap on the max gain per kill */
+    /* put an absolute cap on the max gain per kill */
+    gain = MIN(CONFIG_MAX_EXP_GAIN, gain);
+
     GET_EXP(ch) += gain;
 
   } else if (gain < 0) {
+    
     gain = MAX(-CONFIG_MAX_EXP_LOSS, gain);	/* Cap max exp lost per death */
     GET_EXP(ch) += gain;
     if (GET_EXP(ch) < 0)
       GET_EXP(ch) = 0;
+
   }
   if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
     run_autowiz();

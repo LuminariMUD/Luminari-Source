@@ -1171,15 +1171,6 @@ struct char_special_data
   int prayin[NUM_CASTERS];		//memorization
 
   /** crafting **/
-  /* auto crafting quest */
-  unsigned int autocquest_vnum;
-  char *autocquest_desc;
-  ubyte autocquest_material;
-  ubyte autocquest_makenum;
-  ubyte autocquest_qp;
-  unsigned int autocquest_exp;
-  unsigned int autocquest_gold;
-  /* end auto crafting, begin crafting */
   ubyte crafting_type; //like SCMD_x
   ubyte crafting_ticks;
   struct obj_data *crafting_object;
@@ -1229,6 +1220,15 @@ struct player_special_data_saved
   int    current_quest;         /**< vnum of current quest         */
   int    quest_time;            /**< time left on current quest    */
   int    quest_counter;         /**< Count of targets left to get  */
+
+  /* auto crafting quest */
+  unsigned int autocquest_vnum;
+  char *autocquest_desc;
+  ubyte autocquest_material;
+  ubyte autocquest_makenum;
+  ubyte autocquest_qp;
+  unsigned int autocquest_exp;
+  unsigned int autocquest_gold;
 
   time_t   lastmotd;            /**< Last time player read motd */
   time_t   lastnews;            /**< Last time player read news */

@@ -997,6 +997,16 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
       send_to_char(ch, "\tCCurrent Quest: [\tn%5d\tC] Time Left: [\tn%5d\tC]\tn\r\n",
       GET_QUEST(k), GET_QUEST_TIME(k));
     }
+
+    send_to_char(ch, "\tCACraft Info:\tn Vnum: %d, Make#: %d, QP: %d, Exp: %d, "
+                     "Gold: %d, Desc: %s, Mat: %s.\r\n",
+                 GET_AUTOCQUEST_VNUM(ch),
+                 GET_AUTOCQUEST_MAKENUM(ch),
+                 GET_AUTOCQUEST_QP(ch),
+                 GET_AUTOCQUEST_EXP(ch),
+                 GET_AUTOCQUEST_GOLD(ch),
+                 GET_AUTOCQUEST_DESC(ch),
+                 material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
   }
 
   if (IS_MOB(k))
@@ -3043,7 +3053,7 @@ ACMD(do_show)
    { "warrior",	 	LVL_GOD, 	PC, 	NUMBER }, /* 65 */
    { "monk",	 	LVL_GOD, 	PC, 	NUMBER }, /* 66 */
    { "druid",	 	LVL_GOD, 	PC, 	NUMBER }, /* 67 */
-   { "boost",	 	LVL_GOD, 	PC, 	NUMBER }, /* 68 */
+   { "boost",	 	LVL_GOD, 	PC, 	NUMBER }, /* 68 */   
    { "\n", 0, BOTH, MISC }
   };
 

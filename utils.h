@@ -1116,13 +1116,20 @@ extern int assembly_skills[NUM_CRAFT];
 /****************/
 #define GET_OBJ_MATERIAL(obj)  ((obj)->obj_flags.material)
 /* autocraft */
-#define GET_AUTOCQUEST_VNUM(ch)      ((ch)->char_specials.autocquest_vnum)
-#define GET_AUTOCQUEST_MAKENUM(ch)   ((ch)->char_specials.autocquest_makenum)
-#define GET_AUTOCQUEST_QP(ch)        ((ch)->char_specials.autocquest_qp)
-#define GET_AUTOCQUEST_EXP(ch)       ((ch)->char_specials.autocquest_exp)
-#define GET_AUTOCQUEST_GOLD(ch)      ((ch)->char_specials.autocquest_gold)
-#define GET_AUTOCQUEST_DESC(ch)      ((ch)->char_specials.autocquest_desc)
-#define GET_AUTOCQUEST_MATERIAL(ch)  ((ch)->char_specials.autocquest_material)
+#define GET_AUTOCQUEST_VNUM(ch)     CHECK_PLAYER_SPECIAL((ch), \
+                         ((ch)->player_specials->saved.autocquest_vnum))
+#define GET_AUTOCQUEST_MAKENUM(ch)     CHECK_PLAYER_SPECIAL((ch), \
+                         ((ch)->player_specials->saved.autocquest_makenum))
+#define GET_AUTOCQUEST_QP(ch)     CHECK_PLAYER_SPECIAL((ch), \
+                         ((ch)->player_specials->saved.autocquest_qp))
+#define GET_AUTOCQUEST_EXP(ch)     CHECK_PLAYER_SPECIAL((ch), \
+                         ((ch)->player_specials->saved.autocquest_exp))
+#define GET_AUTOCQUEST_GOLD(ch)     CHECK_PLAYER_SPECIAL((ch), \
+                         ((ch)->player_specials->saved.autocquest_gold))
+#define GET_AUTOCQUEST_DESC(ch)         CHECK_PLAYER_SPECIAL((ch), \
+                         ((ch)->player_specials->saved.autocquest_desc))
+#define GET_AUTOCQUEST_MATERIAL(ch)     CHECK_PLAYER_SPECIAL((ch), \
+                         ((ch)->player_specials->saved.autocquest_material))
 /* crafting */
 #define GET_CRAFTING_TYPE(ch)        ((ch)->char_specials.crafting_type)
 #define GET_CRAFTING_TICKS(ch)       ((ch)->char_specials.crafting_ticks)
