@@ -114,6 +114,8 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate)
     fprintf(fp, "Mats: %d\n", GET_OBJ_MATERIAL(obj));
   if (TEST_OBJN(weight))
     fprintf(fp, "Wght: %d\n", GET_OBJ_WEIGHT(obj));
+  if (TEST_OBJN(level))
+    fprintf(fp, "Levl: %d\n", GET_OBJ_LEVEL(obj));
   if (TEST_OBJN(cost))
     fprintf(fp, "Cost: %d\n", GET_OBJ_COST(obj));
   if (TEST_OBJN(cost_per_day))
@@ -1145,6 +1147,8 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     case 'L':
       if(!strcmp(tag, "Loc "))
         current->locate = num;
+      else if (!strcmp(tag, "Levl"))
+        GET_OBJ_LEVEL(temp) = num;
       break;
     case 'M':
       if (!strcmp(tag, "Mats"))
