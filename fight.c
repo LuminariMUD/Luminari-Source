@@ -754,16 +754,17 @@ static void perform_group_gain(struct char_data *ch, int base,
     share = MIN(CONFIG_MAX_EXP_GAIN, MAX(1, hap_share));
   }
   if (share > 1)
-    send_to_char(ch, "You receive your share of experience -- %d points.\r\n", share);
-  else
+    send_to_char(ch, "You receive your share of experience -- %d points.\r\n", gain_exp(ch, share));
+  else {
     send_to_char(ch, "You receive your share of experience -- one measly little point!\r\n");
+    gain_exp(ch, share);
+  }
 
   if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
       GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     send_to_char(ch,
 	"\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
   
-  gain_exp(ch, share);
   change_alignment(ch, victim);
 }
 
@@ -817,17 +818,18 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   }
 
   if (exp > 1)
-    send_to_char(ch, "You receive %d experience points.\r\n", exp);
-  else
+    send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp));
+  else {
     send_to_char(ch, "You receive one lousy experience point.\r\n");
+    gain_exp(ch, exp);
+  }
 
-  gain_exp(ch, exp);
   change_alignment(ch, victim);
 
   if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
       GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     send_to_char(ch,
-	"\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
+	"\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");  
 }
 
 static char *replace_string(const char *str, const char *weapon_singular, const char *weapon_plural)
