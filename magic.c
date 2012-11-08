@@ -70,9 +70,8 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
     challenge += 2;
   if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SPELLPENETRATE_2))
     challenge += 2;
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_EPIC_PENETRATE))
+  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SPELLPENETRATE_3))
     challenge += 4;
-
 
   //success?
   if (resist > challenge) {

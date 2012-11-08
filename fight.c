@@ -758,6 +758,11 @@ static void perform_group_gain(struct char_data *ch, int base,
   else
     send_to_char(ch, "You receive your share of experience -- one measly little point!\r\n");
 
+  if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
+      GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
+    send_to_char(ch,
+	"\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
+  
   gain_exp(ch, share);
   change_alignment(ch, victim);
 }
@@ -802,6 +807,10 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
 
   exp = MAX(exp, 1);
 
+  /* if mob isn't within 3 levels, don't give xp -zusuk */
+  if ((GET_LEVEL(victim) + 3) < GET_LEVEL(ch))
+    exp = 1;
+  
   if (IS_HAPPYHOUR && IS_HAPPYEXP) {
     happy_exp = exp + (int)((float)exp * ((float)HAPPY_EXP / (float)(100)));
     exp = MAX(happy_exp, 1);

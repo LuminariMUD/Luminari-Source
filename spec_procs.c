@@ -158,9 +158,9 @@ case SKILL_SPELLPENETRATE:
 case SKILL_SPELLPENETRATE_2:
 	if (GET_LEVEL(ch) >= 9 && GET_SKILL(ch, SKILL_SPELLPENETRATE))
 		return TRUE;	else return FALSE;
-case SKILL_EPIC_PENETRATE:
+case SKILL_SPELLPENETRATE_3:
 	if (GET_LEVEL(ch) >= 20 && GET_SKILL(ch, SKILL_SPELLPENETRATE_2))
-		return TRUE;	else return TRUE;
+		return TRUE;	else return FALSE;
 case SKILL_SPELL_RESIST_1:
 	if (GET_LEVEL(ch) >= 5)
 		return TRUE;	else return FALSE;

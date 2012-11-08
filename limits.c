@@ -221,7 +221,10 @@ void run_autowiz(void)
 
 
 #define NEWBIE_LEVEL	5   /* max level for newbie bonus */
-#define NEWBIE_EXP      100 /* bonus in percent */
+#define NEWBIE_EXP       150 /* bonus in percent */
+#define NUM_MOBS_10      50
+#define NUM_MOBS_20      100
+#define NUM_MOBS_25      200
 void gain_exp(struct char_data *ch, int gain)
 {
   if (!IS_NPC(ch) && ((GET_LEVEL(ch) < 1 || GET_LEVEL(ch) >= LVL_IMMORT)))
@@ -244,6 +247,17 @@ void gain_exp(struct char_data *ch, int gain)
     
     /* put an absolute cap on the max gain per kill */
     gain = MIN(CONFIG_MAX_EXP_GAIN, gain);
+    
+    /* new gain xp cap -zusuk */
+    if (GET_LEVEL(ch) >= 25)
+      gain = MIN(gain, ((level_exp(ch, GET_LEVEL(ch)) + 1) -
+              level_exp(ch, GET_LEVEL(ch))) / NUM_MOBS_25);
+    else if (GET_LEVEL(ch) >= 20)
+      gain = MIN(gain, ((level_exp(ch, GET_LEVEL(ch)) + 1) -
+              level_exp(ch, GET_LEVEL(ch))) / NUM_MOBS_20);
+    else if (GET_LEVEL(ch) >= 10)
+      gain = MIN(gain, ((level_exp(ch, GET_LEVEL(ch)) + 1) -
+              level_exp(ch, GET_LEVEL(ch))) / NUM_MOBS_10);
 
     GET_EXP(ch) += gain;
 
