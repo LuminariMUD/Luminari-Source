@@ -11,7 +11,6 @@
 */
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
-
 #include "protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
@@ -67,10 +66,10 @@
 #define WEST           3    /**< The direction west */
 #define UP             4    /**< The direction up */
 #define DOWN           5    /**< The direction down */
-#define NORTHWEST      6 /**< The direction north-west */
-#define NORTHEAST      7 /**< The direction north-east */
-#define SOUTHEAST      8 /**< The direction south-east */
-#define SOUTHWEST      9 /**< The direction south-west */
+#define NORTHWEST      6    /**< The direction north-west */
+#define NORTHEAST      7    /**< The direction north-east */
+#define SOUTHEAST      8    /**< The direction south-east */
+#define SOUTHWEST      9    /**< The direction south-west */
 /** Total number of directions available to move in. BEFORE CHANGING THIS, make
 * sure you change every other direction and movement based item that this will
 * impact. */
@@ -885,6 +884,7 @@ struct obj_flag_data
   int timer;                        /**< Timer for object             */
   int bitvector[AF_ARRAY_MAX];      /**< Affects characters           */
   byte material;
+  int size;
 };
 
 /** Used in obj_file_elem. DO NOT CHANGE if you are using binary object files
@@ -937,7 +937,6 @@ struct obj_data
   bool   has_spells;
   struct weapon_spells wpn_spells[MAX_WEAPON_SPELLS];
 
-  int size;
 };
 
 /** Instance info for an object that gets saved to disk.

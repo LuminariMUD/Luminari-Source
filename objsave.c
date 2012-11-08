@@ -112,6 +112,8 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate)
     fprintf(fp, "Prof: %d\n", GET_OBJ_PROF(obj));
   if (TEST_OBJN(material))
     fprintf(fp, "Mats: %d\n", GET_OBJ_MATERIAL(obj));
+  if (TEST_OBJN(size))
+    fprintf(fp, "Size: %d\n", GET_OBJ_SIZE(obj));
   if (TEST_OBJN(weight))
     fprintf(fp, "Wght: %d\n", GET_OBJ_WEIGHT(obj));
   if (TEST_OBJN(level))
@@ -1124,8 +1126,9 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         snprintf(error, sizeof(error)-1, "rent(Edes): %s", temp->name);
         if (temp) {
           if (temp->item_number != NOTHING && /* Regular object */
-              temp->ex_description &&   /* with ex_desc == prototype */
-              (temp->ex_description == obj_proto[real_object(temp->item_number)].ex_description))
+               temp->ex_description &&   /* with ex_desc == prototype */
+               (temp->ex_description == 
+               obj_proto[real_object(temp->item_number)].ex_description))
             temp->ex_description = NULL;
         }
         CREATE(new_desc, struct extra_descr_data, 1);
@@ -1177,6 +1180,8 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     case 'S':
       if (!strcmp(tag, "Shrt"))
         temp->short_description = strdup(line);
+      else if (!strcmp(tag, "Size"))
+        GET_OBJ_SIZE(temp) = num;
       break;
     case 'T':
       if (!strcmp(tag, "Type"))

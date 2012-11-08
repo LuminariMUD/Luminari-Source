@@ -2012,113 +2012,113 @@ char *parse_object(FILE *obj_f, int nr)
       exit(1);
     }
     switch (*line) {
-    case 'I':
-      if (!get_line(obj_f, line)) {
-        log("SYSERR: Format error in 'I' field, %s\n"
-            "...expecting numeric constant but file ended!", buf2);
-        exit(1);
-      }
-      if (sscanf(line, "%d", t) != 1) {
-        log("SYSERR: Format error in 'I' field, %s\n"
-            "...expecting numeric argument\n"
-            "...offending line: '%s'", buf2, line);
-        exit(1);
-      }
-      GET_OBJ_SIZE(obj_proto + i) = t[0];
-      if (GET_OBJ_SIZE(obj_proto + i) == 0)  // cheesy conversion -zusuk
-        GET_OBJ_SIZE(obj_proto + i) = SIZE_MEDIUM;
-      break;
-    case 'G':
-      if (!get_line(obj_f, line)) {
-        log("SYSERR: Format error in 'G' field, %s\n"
-            "...expecting numeric constant but file ended!", buf2);
-        exit(1);
-      }
-      if (sscanf(line, "%d", t) != 1) {
-        log("SYSERR: Format error in 'G' field, %s\n"
-            "...expecting numeric argument\n"
-            "...offending line: '%s'", buf2, line);
-        exit(1);
-      }
-      GET_OBJ_PROF(obj_proto + i) = t[0];
-      break;
-    case 'H':
-      if (!get_line(obj_f, line)) {
-        log("SYSERR: Format error in 'H' field, %s\n"
-            "...expecting numeric constant but file ended!", buf2);
-        exit(1);
-      }
-      if (sscanf(line, "%d", t) != 1) {
-        log("SYSERR: Format error in 'H' field, %s\n"
-            "...expecting numeric argument\n"
-            "...offending line: '%s'", buf2, line);
-        exit(1);
-      }
-      GET_OBJ_MATERIAL(obj_proto + i) = t[0];
-      break;
-    case 'E':
-      CREATE(new_descr, struct extra_descr_data, 1);
-      new_descr->keyword = fread_string(obj_f, buf2);
-      new_descr->description = fread_string(obj_f, buf2);
-      new_descr->next = obj_proto[i].ex_description;
-      obj_proto[i].ex_description = new_descr;
-      break;
-    case 'A':
-      if (j >= MAX_OBJ_AFFECT) {
-	log("SYSERR: Too many A fields (%d max), %s", MAX_OBJ_AFFECT, buf2);
-	exit(1);
-      }
-      if (!get_line(obj_f, line)) {
-	log("SYSERR: Format error in 'A' field, %s\n"
-	    "...expecting 2 numeric constants but file ended!", buf2);
-	exit(1);
-      }
+      case 'I':
+        if (!get_line(obj_f, line)) {
+          log("SYSERR: Format error in 'I' field, %s\n"
+                  "...expecting numeric constant but file ended!", buf2);
+          exit(1);
+        }
+        if (sscanf(line, "%d", t) != 1) {
+          log("SYSERR: Format error in 'I' field, %s\n"
+                  "...expecting numeric argument\n"
+                  "...offending line: '%s'", buf2, line);
+          exit(1);
+        }
+        GET_OBJ_SIZE(obj_proto + i) = t[0];
+        if (GET_OBJ_SIZE(obj_proto + i) == 0) // cheesy conversion -zusuk
+          GET_OBJ_SIZE(obj_proto + i) = SIZE_MEDIUM;
+        break;
+      case 'G':
+        if (!get_line(obj_f, line)) {
+          log("SYSERR: Format error in 'G' field, %s\n"
+                  "...expecting numeric constant but file ended!", buf2);
+          exit(1);
+        }
+        if (sscanf(line, "%d", t) != 1) {
+          log("SYSERR: Format error in 'G' field, %s\n"
+                  "...expecting numeric argument\n"
+                  "...offending line: '%s'", buf2, line);
+          exit(1);
+        }
+        GET_OBJ_PROF(obj_proto + i) = t[0];
+        break;
+      case 'H':
+        if (!get_line(obj_f, line)) {
+          log("SYSERR: Format error in 'H' field, %s\n"
+                  "...expecting numeric constant but file ended!", buf2);
+          exit(1);
+        }
+        if (sscanf(line, "%d", t) != 1) {
+          log("SYSERR: Format error in 'H' field, %s\n"
+                  "...expecting numeric argument\n"
+                  "...offending line: '%s'", buf2, line);
+          exit(1);
+        }
+        GET_OBJ_MATERIAL(obj_proto + i) = t[0];
+        break;
+      case 'E':
+        CREATE(new_descr, struct extra_descr_data, 1);
+        new_descr->keyword = fread_string(obj_f, buf2);
+        new_descr->description = fread_string(obj_f, buf2);
+        new_descr->next = obj_proto[i].ex_description;
+        obj_proto[i].ex_description = new_descr;
+        break;
+      case 'A':
+        if (j >= MAX_OBJ_AFFECT) {
+          log("SYSERR: Too many A fields (%d max), %s", MAX_OBJ_AFFECT, buf2);
+          exit(1);
+        }
+        if (!get_line(obj_f, line)) {
+          log("SYSERR: Format error in 'A' field, %s\n"
+                  "...expecting 2 numeric constants but file ended!", buf2);
+          exit(1);
+        }
 
-      if ((retval = sscanf(line, " %d %d ", t, t + 1)) != 2) {
-	log("SYSERR: Format error in 'A' field, %s\n"
-	    "...expecting 2 numeric arguments, got %d\n"
-	    "...offending line: '%s'", buf2, retval, line);
-	exit(1);
-      }
-      obj_proto[i].affected[j].location = t[0];
-      obj_proto[i].affected[j].modifier = t[1];
-      j++;
-      break;
-    case 'S':  // weapon spells
-/*
-      if (wsplnum >= MAX_WEAPON_SPELLS) {
-        log("SYSERR: Too many A fields (%d max), %s", MAX_WEAPON_SPELLS, buf2);
+        if ((retval = sscanf(line, " %d %d ", t, t + 1)) != 2) {
+          log("SYSERR: Format error in 'A' field, %s\n"
+                  "...expecting 2 numeric arguments, got %d\n"
+                  "...offending line: '%s'", buf2, retval, line);
+          exit(1);
+        }
+        obj_proto[i].affected[j].location = t[0];
+        obj_proto[i].affected[j].modifier = t[1];
+        j++;
+        break;
+      case 'S': // weapon spells
+        /*
+              if (wsplnum >= MAX_WEAPON_SPELLS) {
+                log("SYSERR: Too many A fields (%d max), %s", MAX_WEAPON_SPELLS, buf2);
+                exit(1);
+              }
+         */
+        if (!get_line(obj_f, line)) {
+          log("SYSERR: Format error in 'S' field, %s.  Expecting numeric constants, but file ended!", buf2);
+          exit(1);
+        }
+        if ((retval = sscanf(line, " %d %d %d %d ", t, t + 1, t + 2, t + 3)) != 4) {
+          log("SYSERR: Format error in 'S' field, %s  expecting 4 numeric args, got %d.  line: '%s'",
+                  buf2, retval, line);
+          exit(1);
+        }
+        obj_proto[i].has_spells = TRUE;
+        obj_proto[i].wpn_spells[wsplnum].spellnum = t[0];
+        obj_proto[i].wpn_spells[wsplnum].level = t[1];
+        obj_proto[i].wpn_spells[wsplnum].percent = t[2];
+        obj_proto[i].wpn_spells[wsplnum].inCombat = t[3];
+        wsplnum++;
+        break;
+      case 'T': /* DG triggers */
+        dg_obj_trigger(line, &obj_proto[i]);
+        break;
+      case '$':
+      case '#':
+        top_of_objt = i;
+        check_object(obj_proto + i);
+        i++;
+        return (line);
+      default:
+        log("SYSERR: Format error in (%c): %s", *line, buf2);
         exit(1);
-      }
-*/
-      if(!get_line(obj_f, line)) {
-	log("SYSERR: Format error in 'S' field, %s.  Expecting numeric constants, but file ended!",buf2);
-	exit(1);
-      }
-      if((retval=sscanf(line, " %d %d %d %d ", t, t+1, t+2, t+3)) != 4) {
-	log("SYSERR: Format error in 'S' field, %s  expecting 4 numeric args, got %d.  line: '%s'",
-		buf2, retval, line);
-	exit(1);
-      }
-      obj_proto[i].has_spells = TRUE;
-      obj_proto[i].wpn_spells[wsplnum].spellnum=t[0];
-      obj_proto[i].wpn_spells[wsplnum].level=t[1];
-      obj_proto[i].wpn_spells[wsplnum].percent=t[2];
-      obj_proto[i].wpn_spells[wsplnum].inCombat=t[3];
-      wsplnum++;
-      break;
-    case 'T':  /* DG triggers */
-      dg_obj_trigger(line, &obj_proto[i]);
-      break;
-    case '$':
-    case '#':
-      top_of_objt = i;
-      check_object(obj_proto + i);
-      i++;
-      return (line);
-    default:
-      log("SYSERR: Format error in (%c): %s", *line, buf2);
-      exit(1);
     }
   }
 }
@@ -3019,20 +3019,17 @@ int fread_number(FILE *fp)
   bool sign;
   char c;
 
-  do
-  {
-    if( feof( fp ) )
-    {
+  do {
+    if ( feof( fp ) ) {
       log( "%s", "fread_number: EOF encountered on read." );
       return 0;
     }
     c = getc( fp );
-  }
-  while( isspace( c ) );
+  } while( isspace( c ) );
 
   number = 0;
-
   sign = FALSE;
+
   if( c == '+' )
     c = getc( fp );
   else if( c == '-' ) {
@@ -3344,15 +3341,15 @@ void free_char(struct char_data *ch)
   if (SCRIPT(ch))
     extract_script(ch, MOB_TRIGGER);
 
-    /* Mud Events */
+  /* Mud Events */
   if (ch->events != NULL) {
-	  if (ch->events->iSize > 0) {
-		struct event * pEvent;
+    if (ch->events->iSize > 0) {
+      struct event * pEvent;
 
-		while ((pEvent = simple_list(ch->events)) != NULL)
-		  event_cancel(pEvent);
-	  }
-	  free_list(ch->events);
+      while ((pEvent = simple_list(ch->events)) != NULL)
+        event_cancel(pEvent);
+    }
+    free_list(ch->events);
   }
 
   /* new version of free_followers take the followers pointer as arg */

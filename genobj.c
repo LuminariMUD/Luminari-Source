@@ -176,12 +176,14 @@ obj_rnum index_object(struct obj_data *obj, obj_vnum ovnum, obj_rnum ornum)
   return ornum;
 }
 
-int save_objects(zone_rnum zone_num)
-{
+int save_objects(zone_rnum zone_num) {
   char filename[128], buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
-  char ebuf1[MAX_STRING_LENGTH], ebuf2[MAX_STRING_LENGTH], ebuf3[MAX_STRING_LENGTH], ebuf4[MAX_STRING_LENGTH];
-  char wbuf1[MAX_STRING_LENGTH], wbuf2[MAX_STRING_LENGTH], wbuf3[MAX_STRING_LENGTH], wbuf4[MAX_STRING_LENGTH];
-  char pbuf1[MAX_STRING_LENGTH], pbuf2[MAX_STRING_LENGTH], pbuf3[MAX_STRING_LENGTH], pbuf4[MAX_STRING_LENGTH];
+  char ebuf1[MAX_STRING_LENGTH], ebuf2[MAX_STRING_LENGTH],
+          ebuf3[MAX_STRING_LENGTH], ebuf4[MAX_STRING_LENGTH];
+  char wbuf1[MAX_STRING_LENGTH], wbuf2[MAX_STRING_LENGTH],
+          wbuf3[MAX_STRING_LENGTH], wbuf4[MAX_STRING_LENGTH];
+  char pbuf1[MAX_STRING_LENGTH], pbuf2[MAX_STRING_LENGTH],
+          pbuf3[MAX_STRING_LENGTH], pbuf4[MAX_STRING_LENGTH];
   int counter, counter2, realcounter;
   FILE *fp;
   struct obj_data *obj;
@@ -192,37 +194,43 @@ int save_objects(zone_rnum zone_num)
 #else
   if (zone_num < 0 || zone_num > top_of_zone_table) {
 #endif
-    log("SYSERR: GenOLC: save_objects: Invalid real zone number %d. (0-%d)", zone_num, top_of_zone_table);
+    log("SYSERR: GenOLC: save_objects: Invalid real zone number %d. (0-%d)",
+            zone_num, top_of_zone_table);
     return FALSE;
   }
 
-  snprintf(filename, sizeof(filename), "%s/%d.new", OBJ_PREFIX, zone_table[zone_num].number);
+  snprintf(filename, sizeof (filename), "%s/%d.new", OBJ_PREFIX,
+          zone_table[zone_num].number);
   if (!(fp = fopen(filename, "w+"))) {
-    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: OLC: Cannot open objects file %s!", filename);
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: OLC: Cannot open objects file %s!",
+            filename);
     return FALSE;
   }
   /* Start running through all objects in this zone. */
-  for (counter = genolc_zone_bottom(zone_num); counter <= zone_table[zone_num].top; counter++) {
+  for (counter = genolc_zone_bottom(zone_num);
+          counter <= zone_table[zone_num].top; counter++) {
     if ((realcounter = real_object(counter)) != NOTHING) {
       if ((obj = &obj_proto[realcounter])->action_description) {
-	strncpy(buf, obj->action_description, sizeof(buf) - 1);
-	strip_cr(buf);
+        strncpy(buf, obj->action_description, sizeof (buf) - 1);
+        strip_cr(buf);
       } else
-	*buf = '\0';
+        *buf = '\0';
 
       sprintf(buf2,
-	      "#%d\n"
-	      "%s~\n"
-	      "%s~\n"
-	      "%s~\n"
-	      "%s~\n",
+              "#%d\n"
+              "%s~\n"
+              "%s~\n"
+              "%s~\n"
+              "%s~\n",
 
-	      GET_OBJ_VNUM(obj),
-	      (obj->name && *obj->name) ? obj->name : "undefined",
-	      (obj->short_description && *obj->short_description) ? obj->short_description : "undefined",
-	      (obj->description && *obj->description) ?	obj->description : "undefined",
-	      buf);
-        
+              GET_OBJ_VNUM(obj),
+              (obj->name && *obj->name) ? obj->name : "undefined",
+              (obj->short_description && *obj->short_description) ?
+                obj->short_description : "undefined",
+              (obj->description && *obj->description) ?
+                obj->description : "undefined",
+              buf);
+
       fprintf(fp, convert_from_tabs(buf2), 0);
 
       sprintascii(ebuf1, GET_OBJ_EXTRA(obj)[0]);
@@ -239,57 +247,59 @@ int save_objects(zone_rnum zone_num)
       sprintascii(pbuf4, GET_OBJ_PERM(obj)[3]);
 
       fprintf(fp, "%d %s %s %s %s %s %s %s %s %s %s %s %s\n"
-          "%d %d %d %d\n"
-          "%d %d %d %d %d\n",
+              "%d %d %d %d\n"
+              "%d %d %d %d %d\n",
 
-	  GET_OBJ_TYPE(obj),
-          ebuf1, ebuf2, ebuf3, ebuf4,
-          wbuf1, wbuf2, wbuf3, wbuf4,
-          pbuf1, pbuf2, pbuf3, pbuf4,
-          GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1),
-          GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3),
-          GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj),
-          GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj), GET_OBJ_TIMER(obj)
-      );
+              GET_OBJ_TYPE(obj),
+              ebuf1, ebuf2, ebuf3, ebuf4,
+              wbuf1, wbuf2, wbuf3, wbuf4,
+              pbuf1, pbuf2, pbuf3, pbuf4,
+              GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1),
+              GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3),
+              GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj),
+              GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj), GET_OBJ_TIMER(obj)
+              );
 
       /* Do we have script(s) attached? */
       script_save_to_disk(fp, obj, OBJ_TRIGGER);
 
       /* Do we have extra descriptions? */
-      if (obj->ex_description) {	/* Yes, save them too. */
-	for (ex_desc = obj->ex_description; ex_desc; ex_desc = ex_desc->next) {
-	  /* Sanity check to prevent nasty protection faults. */
-	  if (!ex_desc->keyword || !ex_desc->description || !*ex_desc->keyword || !*ex_desc->description) {
-	    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: OLC: oedit_save_to_disk: Corrupt ex_desc!");
-	    continue;
-	  }
-	  strncpy(buf, ex_desc->description, sizeof(buf) - 1);
-	  strip_cr(buf);
-	  fprintf(fp, "E\n"
-		  "%s~\n"
-		  "%s~\n", ex_desc->keyword, buf);
-	}
+      if (obj->ex_description) { /* Yes, save them too. */
+        for (ex_desc = obj->ex_description; ex_desc; ex_desc = ex_desc->next) {
+          /* Sanity check to prevent nasty protection faults. */
+          if (!ex_desc->keyword || !ex_desc->description || !*ex_desc->keyword
+                  || !*ex_desc->description) {
+            mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: OLC: oedit_save_to_disk: "
+                    "Corrupt ex_desc!");
+            continue;
+          }
+          strncpy(buf, ex_desc->description, sizeof (buf) - 1);
+          strip_cr(buf);
+          fprintf(fp, "E\n"
+                  "%s~\n"
+                  "%s~\n", ex_desc->keyword, buf);
+        }
       }
       /* Do we have affects? */
       for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
-	if (obj->affected[counter2].modifier)
-	  fprintf(fp, "A\n"
-		  "%d %d\n", obj->affected[counter2].location,
-		  obj->affected[counter2].modifier);
+        if (obj->affected[counter2].modifier)
+          fprintf(fp, "A\n"
+                "%d %d\n", obj->affected[counter2].location,
+                obj->affected[counter2].modifier);
 
 
       // weapon spells
-      for(counter2 = 0;counter2 < MAX_WEAPON_SPELLS; counter2++)
-	if(obj->wpn_spells[counter2].spellnum)
-	  fprintf(fp,"S\n"
-		  "%d %d %d %d\n",
-		  obj->wpn_spells[counter2].spellnum,
-		  obj->wpn_spells[counter2].level,
-		  obj->wpn_spells[counter2].percent,
-		  obj->wpn_spells[counter2].inCombat);
+      for (counter2 = 0; counter2 < MAX_WEAPON_SPELLS; counter2++)
+        if (obj->wpn_spells[counter2].spellnum)
+          fprintf(fp, "S\n"
+                "%d %d %d %d\n",
+                obj->wpn_spells[counter2].spellnum,
+                obj->wpn_spells[counter2].level,
+                obj->wpn_spells[counter2].percent,
+                obj->wpn_spells[counter2].inCombat);
 
       // object size
-      fprintf(fp, "I\n" "%d\n", obj->size);
+      fprintf(fp, "I\n" "%d\n", GET_OBJ_SIZE(obj));
 
       // object proficiency
       fprintf(fp, "G\n" "%d\n", GET_OBJ_PROF(obj));
@@ -302,7 +312,8 @@ int save_objects(zone_rnum zone_num)
   /* Write the final line, close the file. */
   fprintf(fp, "$~\n");
   fclose(fp);
-  snprintf(buf, sizeof(buf), "%s/%d.obj", OBJ_PREFIX, zone_table[zone_num].number);
+  snprintf(buf, sizeof (buf), "%s/%d.obj", OBJ_PREFIX,
+          zone_table[zone_num].number);
   remove(buf);
   rename(filename, buf);
 
@@ -335,16 +346,20 @@ void free_object_strings_proto(struct obj_data *obj)
     free(obj->name);
   if (obj->description && obj->description != obj_proto[robj_num].description)
     free(obj->description);
-  if (obj->short_description && obj->short_description != obj_proto[robj_num].short_description)
+  if (obj->short_description && obj->short_description !=
+          obj_proto[robj_num].short_description)
     free(obj->short_description);
-  if (obj->action_description && obj->action_description != obj_proto[robj_num].action_description)
+  if (obj->action_description && obj->action_description !=
+          obj_proto[robj_num].action_description)
     free(obj->action_description);
   if (obj->ex_description) {
     struct extra_descr_data *thised, *plist, *next_one; /* O(horrible) */
     int ok_key, ok_desc, ok_item;
     for (thised = obj->ex_description; thised; thised = next_one) {
       next_one = thised->next;
-      for (ok_item = ok_key = ok_desc = 1, plist = obj_proto[robj_num].ex_description; plist; plist = plist->next) {
+      for (ok_item = ok_key = ok_desc = 1, 
+              plist = obj_proto[robj_num].ex_description;
+              plist; plist = plist->next) {
         if (plist->keyword == thised->keyword)
           ok_key = 0;
         if (plist->description == thised->description)
@@ -366,8 +381,10 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
 {
   to->name = from->name ? strdup(from->name) : NULL;
   to->description = from->description ? strdup(from->description) : NULL;
-  to->short_description = from->short_description ? strdup(from->short_description) : NULL;
-  to->action_description = from->action_description ? strdup(from->action_description) : NULL;
+  to->short_description = from->short_description ?
+    strdup(from->short_description) : NULL;
+  to->action_description = from->action_description ?
+    strdup(from->action_description) : NULL;
 
   if (from->ex_description)
     copy_ex_descriptions(&to->ex_description, from->ex_description);
@@ -386,7 +403,8 @@ int copy_object_preserve(struct obj_data *to, struct obj_data *from)
   return copy_object_main(to, from, FALSE);
 }
 
-int copy_object_main(struct obj_data *to, struct obj_data *from, int free_object)
+int copy_object_main(struct obj_data *to,
+        struct obj_data *from, int free_object)
 {
   *to = *from;
   copy_object_strings(to, from);
@@ -408,7 +426,8 @@ int delete_object(obj_rnum rnum)
   zrnum = real_zone_by_thing(GET_OBJ_VNUM(obj));
 
   /* This is something you might want to read about in the logs. */
-  log("GenOLC: delete_object: Deleting object #%d (%s).", GET_OBJ_VNUM(obj), obj->short_description);
+  log("GenOLC: delete_object: Deleting object #%d (%s).", GET_OBJ_VNUM(obj),
+          obj->short_description);
 
   for (tmp = object_list; tmp; tmp = next_obj) {
 	next_obj = tmp->next;
@@ -418,7 +437,8 @@ int delete_object(obj_rnum rnum)
     /* extract_obj() will just axe contents. */
     if (tmp->contains) {
       struct obj_data *this_content, *next_content;
-      for (this_content = tmp->contains; this_content; this_content = next_content) {
+      for (this_content = tmp->contains; this_content;
+              this_content = next_content) {
         next_content = this_content->next_content;
         if (IN_ROOM(tmp)) {
           /* Transfer stuff from object to room. */

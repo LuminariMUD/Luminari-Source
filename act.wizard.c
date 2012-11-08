@@ -361,7 +361,7 @@ ACMD(do_vnum)
     if (!vnum_mobile(buf2, ch))
       send_to_char(ch, "No mobiles by that name.\r\n");
 
-  if (is_abbrev(buf, "obj") && (good_arg =1 ))
+  if (is_abbrev(buf, "obj") && (good_arg = 1 ))
     if (!vnum_object(buf2, ch))
       send_to_char(ch, "No objects by that name.\r\n");
 
@@ -734,7 +734,9 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j)
   if (!found)
     send_to_char(ch, " None");
 
-  send_to_char(ch, "\r\nObject size:  %s\r\n", size_names[GET_OBJ_SIZE(j)]);
+  send_to_char(ch, "\r\nSize: %s, Material: %s\r\n", 
+          size_names[GET_OBJ_SIZE(j)],
+          material_name[GET_OBJ_MATERIAL(j)]);
 
   send_to_char(ch, "\r\n");
 
@@ -3548,7 +3550,8 @@ void show_set_help(struct char_data *ch)
   char buf[MAX_STRING_LENGTH];
   int i, len=0, add_len=0;
 
-  len = snprintf(buf, sizeof(buf), "%sCommand             Lvl    Who?  Type%s\r\n", CCCYN(ch, C_NRM), CCNRM(ch, C_NRM));
+  len = snprintf(buf, sizeof(buf), "%sCommand             Lvl    Who?  "
+          "Type%s\r\n", CCCYN(ch, C_NRM), CCNRM(ch, C_NRM));
   for (i = 0; *(set_fields[i].cmd) != '\n'; i++) {
 	if (set_fields[i].level <= GET_LEVEL(ch)) {
             add_len = snprintf(buf+len, sizeof(buf)-len, "%-20s%-5s  %-4s  %-6s\r\n", set_fields[i].cmd,
@@ -3587,7 +3590,8 @@ ACMD(do_set)
 
   if (!*name || !*field) {
     send_to_char(ch, "Usage: set <victim> <field> <value>\r\n");
-    send_to_char(ch, "       %sset help%s will display valid fields\r\n", CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "       %sset help%s will display valid fields\r\n",
+            CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
     return;
   }
 

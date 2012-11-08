@@ -58,7 +58,8 @@ config.o: config.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 constants.o: constants.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h interpreter.h spells.h
 craft.o: craft.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
- race.h comm.h spells.h interpreter.h constants.h handler.h db.h
+ race.h comm.h spells.h interpreter.h constants.h handler.h db.h \
+ mud_event.h dg_event.h
 db.o: db.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  db.h comm.h handler.h spells.h mail.h interpreter.h house.h constants.h \
  oasis.h dg_scripts.h dg_event.h act.h ban.h spec_procs.h genzon.h \
