@@ -1573,7 +1573,7 @@ void mag_assign_spells(void)
   skillo(SKILL_PROWESS, "prowess");
   skillo(SKILL_EPIC_PROWESS, "epic prowess");
   skillo(SKILL_EPIC_2_WEAPON, "epic two weapon fighting");
-  skillo(SKILL_EPIC_PENETRATE, "epic spell penetrate");		//170
+  skillo(SKILL_SPELLPENETRATE_3, "epic spell penetrate");		//170
   skillo(SKILL_SPELL_RESIST_1, "spell resistance");
   skillo(SKILL_SPELL_RESIST_2, "improved spell resist");
   skillo(SKILL_SPELL_RESIST_3, "greater spell resist");

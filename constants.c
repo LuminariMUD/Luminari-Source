@@ -170,12 +170,12 @@ const char *dirs[] =
 
 const char *autoexits[] =
 {
-  "n",
-  "e",
-  "s",
-  "w",
-  "u",
-  "d",
+  "N",
+  "E",
+  "S",
+  "W",
+  "U",
+  "D",
   "nw",
   "ne",
   "se",
