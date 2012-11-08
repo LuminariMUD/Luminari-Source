@@ -346,38 +346,38 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   }
 
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
-    if (mag_damage(level, caster, cvict, spellnum, savetype) == -1)
+    if (mag_damage(level, caster, cvict, ovict, spellnum, savetype) == -1)
       return (-1);	/* Successful and target died, don't cast again. */
 
   if (IS_SET(SINFO.routines, MAG_AFFECTS))
-    mag_affects(level, caster, cvict, spellnum, savetype);
+    mag_affects(level, caster, cvict, ovict, spellnum, savetype);
 
   if (IS_SET(SINFO.routines, MAG_UNAFFECTS))
-    mag_unaffects(level, caster, cvict, spellnum, savetype);
+    mag_unaffects(level, caster, cvict, ovict, spellnum, savetype);
 
   if (IS_SET(SINFO.routines, MAG_POINTS))
-    mag_points(level, caster, cvict, spellnum, savetype);
+    mag_points(level, caster, cvict, ovict, spellnum, savetype);
 
   if (IS_SET(SINFO.routines, MAG_ALTER_OBJS))
     mag_alter_objs(level, caster, ovict, spellnum, savetype);
 
   if (IS_SET(SINFO.routines, MAG_GROUPS))
-    mag_groups(level, caster, spellnum, savetype);
+    mag_groups(level, caster, ovict, spellnum, savetype);
 
   if (IS_SET(SINFO.routines, MAG_MASSES))
-    mag_masses(level, caster, spellnum, savetype);
+    mag_masses(level, caster, ovict, spellnum, savetype);
 
   if (IS_SET(SINFO.routines, MAG_AREAS))
-    mag_areas(level, caster, spellnum, savetype);
+    mag_areas(level, caster, ovict, spellnum, savetype);
 
   if (IS_SET(SINFO.routines, MAG_SUMMONS))
     mag_summons(level, caster, ovict, spellnum, savetype);
 
   if (IS_SET(SINFO.routines, MAG_CREATIONS))
-    mag_creations(level, caster, spellnum);
+    mag_creations(level, caster, ovict, spellnum);
 
   if (IS_SET(SINFO.routines, MAG_ROOM))
-    mag_room(level, caster, spellnum);
+    mag_room(level, caster, ovict, spellnum);
 
   if (IS_SET(SINFO.routines, MAG_MANUAL))
     switch (spellnum) {

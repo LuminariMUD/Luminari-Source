@@ -904,9 +904,6 @@ do                                                              \
 #define GET_WEAPON_SPELL_AGG(obj, i)	((obj)->wpn_spells[i].inCombat)
 
 
-#define GET_OBJ_SIZE(obj)			((obj)->size)
-
-
 /** If ch is a mob, return the special function, else return NULL. */
 #define GET_MOB_SPEC(ch)	(IS_MOB(ch) ? mob_index[(ch)->nr].func : NULL)
 
@@ -1045,6 +1042,9 @@ do                                                              \
 
 /** Return value val for obj. */
 #define GET_OBJ_VAL(obj, val)	((obj)->obj_flags.value[(val)])
+
+/** Object size */
+#define GET_OBJ_SIZE(obj)			((obj)->obj_flags.size)
 
 /** Weight of obj. */
 #define GET_OBJ_WEIGHT(obj)	((obj)->obj_flags.weight)

@@ -450,22 +450,27 @@ ASPELL(spell_detect_poison);
 int find_skill_num(char *name);
 int find_ability_num(char *name);
 int mag_damage(int level, struct char_data *ch, struct char_data *victim,
-  int spellnum, int savetype);
+  struct obj_data *obj, int spellnum, int savetype);
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
-  int spellnum, int savetype);
-void mag_groups(int level, struct char_data *ch, int spellnum, int savetype);
-void mag_masses(int level, struct char_data *ch, int spellnum, int savetype);
-void mag_areas(int level, struct char_data *ch, int spellnum, int savetype);
+  struct obj_data *obj, int spellnum, int savetype);
+void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
+        int spellnum, int savetype);
+void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
+        int spellnum, int savetype);
+void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
+        int spellnum, int savetype);
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
  int spellnum, int savetype);
 void mag_points(int level, struct char_data *ch, struct char_data *victim,
- int spellnum, int savetype);
+        struct obj_data *obj, int spellnum, int savetype);
 void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
-  int spellnum, int type);
+  struct obj_data *obj, int spellnum, int type);
 void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
   int spellnum, int type);
-void mag_creations(int level, struct char_data *ch, int spellnum);
-void mag_room(int level, struct char_data *ch, int spellnum);
+void mag_creations(int level, struct char_data *ch, struct obj_data *obj,
+        int spellnum);
+void mag_room(int level, struct char_data *ch, struct obj_data *obj,
+        int spellnum);
 int	call_magic(struct char_data *caster, struct char_data *cvict,
   struct obj_data *ovict, int spellnum, int level, int casttype);
 void	mag_objectmagic(struct char_data *ch, struct obj_data *obj,

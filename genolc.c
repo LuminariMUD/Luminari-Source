@@ -809,8 +809,13 @@ static int export_save_objects(zone_rnum zrnum)
 	        GET_OBJ_VAL(obj, 3));
 
       fprintf(obj_file,
-	      "%d %d %d %d\n",
-	      GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj), GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj));
+              "%d %d %d %d\n",
+              GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj), GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj));
+      
+      /* dunno what the point of this is unless they have our file format - zusuk*/
+      fprintf(obj_file,
+	      "%d %d\n",
+	      GET_OBJ_SIZE(obj), GET_OBJ_MATERIAL(obj));
 
       /* Do we have script(s) attached? */
       export_script_save_to_disk(obj_file, obj, OBJ_TRIGGER);

@@ -55,7 +55,7 @@ int art_level_exp(int level);
 /* Max level of a crystal in determining bonus */
 #define CRYSTAL_CAP       (LVL_IMMORT-1)
 /* Crystal bonus division factor, ex. level 30 = +6 bonus (factor of 5) */
-#define BONUS_FACTOR      5
+#define BONUS_FACTOR      6
 /* Maximum crit rolls you can get on crafting */
 #define MAX_CRAFT_CRIT    3
 #define AUTOCQUEST_VNUM     30084  /* set your autoquest object here */
@@ -111,16 +111,16 @@ void cquest_report(struct char_data *ch) {
     send_to_char(ch, "Once completed/turned-in you will receive the"
                      " following:\r\n"
                      "You will receive %d reputation points.\r\n"
-                     "%d credits will be deposited into your bank account.\r\n"
-                     "You will receive %d experience points.\r\n", 
+                     "%d gold will be awarded to you.\r\n"
+                     "You will receive %d experience points.\r\n"
+                     "(type 'supplyorder complete' at the supply office)\r\n", 
                  GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch), 
                  GET_AUTOCQUEST_EXP(ch));
   } else
     send_to_char(ch, "Type 'supplyorder new' for a new supply order, "
                      "'supplyorder complete' to finish your supply "
-                     "order and\r\n"
-                     "receive your reward or 'supplyorder quit' to quit your "
-                     "supply order.\r\n");
+                     "order and receive your reward or 'supplyorder quit' "
+                     "to quit your current supply order.\r\n");
 }
 
 
@@ -151,14 +151,12 @@ int crystal_bonus(struct obj_data *crystal, int mod)
   return bonus;
 }
 
-
 /************************/
 /* start primary engine */
 /************************/
 
-
 // combine crystals to make them stronger
-int augment(struct obj_data *station, struct char_data *ch)
+int augment(struct obj_data *kit, struct char_data *ch)
 {
   struct obj_data *obj = NULL, *crystal_one = NULL, *crystal_two = NULL;
   int num_objs = 0, cost = 0, bonus = 0;
@@ -166,11 +164,11 @@ int augment(struct obj_data *station, struct char_data *ch)
   char buf[MAX_INPUT_LENGTH];
   
   // Cycle through contents and categorize
-  for (obj = station->contains; obj != NULL; obj = obj->next_content) {
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
     if (obj) {
       num_objs++;
       if (num_objs > 2) {
-        send_to_char(ch, "Make sure only two items are in the station.\r\n");
+        send_to_char(ch, "Make sure only two items are in the kit.\r\n");
         return 1;
       }
       if (GET_OBJ_TYPE(obj) == ITEM_CRYSTAL && !crystal_one) {
@@ -182,7 +180,7 @@ int augment(struct obj_data *station, struct char_data *ch)
   }
       
   if (num_objs > 2) {
-    send_to_char(ch, "Make sure only two items are in the station.\r\n");
+    send_to_char(ch, "Make sure only two items are in the kit.\r\n");
     return 1;
   }
   if (!crystal_one || !crystal_two) {
@@ -203,7 +201,8 @@ int augment(struct obj_data *station, struct char_data *ch)
 
   // new level of crystal, with cap
   bonus = (GET_OBJ_LEVEL(crystal_one) + GET_OBJ_LEVEL(crystal_two)) * 3 / 4;
-  if (bonus <= GET_OBJ_LEVEL(crystal_one) || bonus <= GET_OBJ_LEVEL(crystal_two))
+  if (bonus <= GET_OBJ_LEVEL(crystal_one) || 
+          bonus <= GET_OBJ_LEVEL(crystal_two))
     bonus++;  //gaurantee improvement
   if (bonus > (LVL_IMMORT - 1))
     bonus = LVL_IMMORT - 1;  //cap
@@ -233,15 +232,17 @@ int augment(struct obj_data *station, struct char_data *ch)
 
   // new name
   sprintf(buf, "\twa crystal of\ty %s\tw max level\ty %d\tn",
-          apply_types[crystal_one->affected[0].location], GET_OBJ_LEVEL(crystal_one));
+          apply_types[crystal_one->affected[0].location],
+          GET_OBJ_LEVEL(crystal_one));
   crystal_one->name = strdup(buf);
   crystal_one->short_description = strdup(buf);
   sprintf(buf, "\twA crystal of\ty %s\tw max level\ty %d\tw lies here.\tn",
-          apply_types[crystal_one->affected[0].location], GET_OBJ_LEVEL(crystal_one));
+          apply_types[crystal_one->affected[0].location],
+          GET_OBJ_LEVEL(crystal_one));
   crystal_one->description = strdup(buf);
    
-  send_to_char(ch, "It cost you %d coins in supplies to augment this crytsal.\r\n",
-               cost);
+  send_to_char(ch, "It cost you %d coins in supplies to "
+          "augment this crytsal.\r\n", cost);
   GET_GOLD(ch) -= cost;
     
   GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
@@ -251,7 +252,7 @@ int augment(struct obj_data *station, struct char_data *ch)
                crystal_one->short_description);
   act("$n begins to augment $p.", FALSE, ch, crystal_one, 0, TO_ROOM);
   
-  // get rid of the items in the station
+  // get rid of the items in the kit
   obj_from_obj(crystal_one);
   extract_obj(crystal_two);
    
@@ -261,20 +262,21 @@ int augment(struct obj_data *station, struct char_data *ch)
 
   return 1;
 }
-  
+
+
 // convert one material into another
 // requires multiples of exactly 10 of same mat to do the converstion
-int convert(struct obj_data *station, struct char_data *ch)
+int convert(struct obj_data *kit, struct char_data *ch)
 {
   int cost = 500;  /* flat cost */
   int num_mats = 0, material = -1, obj_vnum = 0;  
   struct obj_data *new_mat = NULL, *obj = NULL;
    
   /* Cycle through contents and categorize */
-  for (obj = station->contains; obj != NULL; obj = obj->next_content) {
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
     if (obj) {
       if (GET_OBJ_TYPE(obj) != ITEM_MATERIAL) {
-        send_to_char(ch, "Only materials should be inside the station in"
+        send_to_char(ch, "Only materials should be inside the kit in"
                          " order to convert.\r\n");
         return 1;
       } else if (GET_OBJ_TYPE(obj) == ITEM_MATERIAL) {
@@ -288,7 +290,7 @@ int convert(struct obj_data *station, struct char_data *ch)
           new_mat = obj;
           material = GET_OBJ_MATERIAL(obj);
         } else if (GET_OBJ_MATERIAL(obj) != material) {
-          send_to_char(ch, "You have mixed materials inside the station, "
+          send_to_char(ch, "You have mixed materials inside the kit, "
                            "put only the exact same materials for "
                            "conversion.\r\n");
           return 1;
@@ -306,7 +308,7 @@ int convert(struct obj_data *station, struct char_data *ch)
       return 1;
     }
   } else {
-    send_to_char(ch, "There is no material in the station.\r\n");
+    send_to_char(ch, "There is no material in the kit.\r\n");
     return 1;
   }
   
@@ -315,16 +317,16 @@ int convert(struct obj_data *station, struct char_data *ch)
                   material_name[num_mats]);
   else {
     send_to_char(ch, "You do not have a valid material in the crafting "
-                     "station.\r\n");
+                     "kit.\r\n");
     return 1;
   }
   
   if (GET_GOLD(ch) < cost) {
-    send_to_char(ch, "You need %d credits on hand for supplies to covert these "
+    send_to_char(ch, "You need %d gold on hand for supplies to covert these "
                      "materials.\r\n", cost);
     return 1;
   }
-  send_to_char(ch, "It cost you %d credits in supplies to convert this "
+  send_to_char(ch, "It cost you %d gold in supplies to convert this "
                    "item.\r\n", cost);
   GET_GOLD(ch) -= cost;
   // new name
@@ -348,12 +350,12 @@ int convert(struct obj_data *station, struct char_data *ch)
                            
   obj_from_obj(new_mat);
 
-  obj_vnum = GET_OBJ_VNUM(station);
-  obj_from_char(station);
-  extract_obj(station);
-  station = read_object(obj_vnum, VIRTUAL);
+  obj_vnum = GET_OBJ_VNUM(kit);
+  obj_from_char(kit);
+  extract_obj(kit);
+  kit = read_object(obj_vnum, VIRTUAL);
 
-  obj_to_char(station, ch);
+  obj_to_char(kit, ch);
 
   /* zusuk - temporary */
   obj_to_char(new_mat, ch);
@@ -361,22 +363,23 @@ int convert(struct obj_data *station, struct char_data *ch)
   
   return 1;
 } 
-  
+
+
 /* rename an object */  
-int restring(char *argument, struct obj_data *station, struct char_data *ch) {
+int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
   char buf[MAX_INPUT_LENGTH];
   
   /* Cycle through contents */
-  /* restring requires just one item be inside the station */
-  for (obj = station->contains; obj != NULL; obj = obj->next_content) {
+  /* restring requires just one item be inside the kit */
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
     num_objs++;
     break;
   }
   
   if (num_objs > 1) {
-    send_to_char(ch, "Only one item should be inside the station.\r\n");
+    send_to_char(ch, "Only one item should be inside the kit.\r\n");
     return 1;
   }
   
@@ -403,7 +406,7 @@ int restring(char *argument, struct obj_data *station, struct char_data *ch) {
   
   cost = GET_OBJ_COST(obj) + GET_OBJ_LEVEL(obj);
   if (GET_GOLD(ch) < cost) {
-    send_to_char(ch, "You need %d credits on hand for supplies to restring"
+    send_to_char(ch, "You need %d gold on hand for supplies to restring"
                      " this item.\r\n", cost);
     return 1;
   }
@@ -417,10 +420,10 @@ int restring(char *argument, struct obj_data *station, struct char_data *ch) {
   GET_CRAFTING_TICKS(ch) = 5; // here you'd add tick calculator
   GET_CRAFTING_OBJ(ch) = obj;
   
-  send_to_char(ch, "It cost you %d credits in supplies to create this item.\r\n",
+  send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n",
                cost);
   GET_GOLD(ch) -= cost;
-  send_to_char(ch, "You put the item into the crafting station and wait for it "
+  send_to_char(ch, "You put the item into the crafting kit and wait for it "
                     "to transform into %s.\r\n", obj->short_description);
    
   obj_from_obj(obj);
@@ -434,7 +437,7 @@ int restring(char *argument, struct obj_data *station, struct char_data *ch) {
 
 
 /* supplyorder - crafting quest command */   
-int supplyorder(struct obj_data *station, struct char_data *ch) {
+int supplyorder(struct obj_data *kit, struct char_data *ch) {
   int material, obj_vnum, num_mats = 0, material_level = 1;
   struct obj_data *obj = NULL;
   
@@ -444,17 +447,18 @@ int supplyorder(struct obj_data *station, struct char_data *ch) {
     return 1;  
   }  
   if (!GET_AUTOCQUEST_MAKENUM(ch)) {
-    send_to_char(ch, "You have completed your supply order, go turn it in.\r\n");
+    send_to_char(ch, "You have completed your supply order, "
+            "go turn it in.\r\n");
     return 1;
   }
                      
   material = GET_AUTOCQUEST_MATERIAL(ch);
     
   /* Cycle through contents and categorize */
-  for (obj = station->contains; obj != NULL; obj = obj->next_content) {
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
     if (obj) {
       if (GET_OBJ_TYPE(obj) != ITEM_MATERIAL) {
-        send_to_char(ch, "Only materials should be inside the station in"  
+        send_to_char(ch, "Only materials should be inside the kit in"  
                          " order to complete a supplyorder.\r\n");
         return 1;
       } else if (GET_OBJ_TYPE(obj) == ITEM_MATERIAL) {
@@ -469,12 +473,13 @@ int supplyorder(struct obj_data *station, struct char_data *ch) {
                        material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
           return 1;
         }
-        material_level = GET_OBJ_LEVEL(obj); /* material level affects bonus gold */
+        material_level = GET_OBJ_LEVEL(obj); // material level affects gold
         obj_vnum = GET_OBJ_VNUM(obj);
         num_mats++; /* we found matching material */
         if (num_mats > SUPPLYORDER_MATS) {
-          send_to_char(ch, "You have too much materials in the station, put "   
-                           "exactly %d for the supplyorder.\r\n", SUPPLYORDER_MATS);
+          send_to_char(ch, "You have too much materials in the kit, put "   
+                           "exactly %d for the supplyorder.\r\n",
+                       SUPPLYORDER_MATS);
           return 1;
         }
       } else { /* must be an essence */
@@ -485,7 +490,7 @@ int supplyorder(struct obj_data *station, struct char_data *ch) {
   }
 
   if (num_mats < SUPPLYORDER_MATS) {
-    send_to_char(ch, "You have %d material units in the station, you will need "
+    send_to_char(ch, "You have %d material units in the kit, you will need "
                      "%d more units to complete the supplyorder.\r\n",
                  num_mats, SUPPLYORDER_MATS - num_mats);
     return 1;
@@ -515,31 +520,31 @@ int supplyorder(struct obj_data *station, struct char_data *ch) {
                GET_AUTOCQUEST_DESC(ch));
   act("$n begins a supply order.", FALSE, ch, NULL, 0, TO_ROOM);
           
-  obj_vnum = GET_OBJ_VNUM(station);
-  obj_from_char(station);
-  extract_obj(station);
-  station = read_object(obj_vnum, VIRTUAL);
-  obj_to_char(station, ch);
+  obj_vnum = GET_OBJ_VNUM(kit);
+  obj_from_char(kit);
+  extract_obj(kit);
+  kit = read_object(obj_vnum, VIRTUAL);
+  obj_to_char(kit, ch);
 
-  /* zusuk - temporary */
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   return 1;
 }
-         
-int resize(char *argument, struct obj_data *station, struct char_data *ch) {
+
+
+int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
   int num_objs = 0, newsize, cost, i;
   struct obj_data *obj = NULL;
        
   /* Cycle through contents */
-  /* resize requires just one item be inside the station */
-  for (obj = station->contains; obj != NULL; obj = obj->next_content) {
+  /* resize requires just one item be inside the kit */
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
     num_objs++;
     break;
   }
                  
   if (num_objs > 1) {
-    send_to_char(ch, "Only one item should be inside the station.\r\n");
+    send_to_char(ch, "Only one item should be inside the kit.\r\n");
     return 1;
   }
   
@@ -567,7 +572,7 @@ int resize(char *argument, struct obj_data *station, struct char_data *ch) {
     return 1;
   }
           
-  if (newsize == obj->size) {
+  if (newsize == GET_OBJ_SIZE(obj)) {
     send_to_char(ch, "The object is already the size you desire.\r\n");
     return 1;
   }
@@ -590,9 +595,10 @@ int resize(char *argument, struct obj_data *station, struct char_data *ch) {
     ndice = GET_OBJ_VAL(obj, 1);
     diesize = GET_OBJ_VAL(obj, 2);
     
-    sz = newsize - obj->size;
+    sz = newsize - GET_OBJ_SIZE(obj);
     if (!sz) /* should never pass this test */
-      send_to_char(ch, "ERROR:  Report to Staff Error: Weapon Dam Adjustment\r\n");
+      send_to_char(ch, "ERROR:  Report to Staff Error: "
+              "Weapon Dam Adjustment\r\n");
     else if (sz > 0)
       for (lvl = 0; lvl < sz; lvl++)
         send_to_char(ch, "scaleup_dam ");
@@ -612,17 +618,17 @@ int resize(char *argument, struct obj_data *station, struct char_data *ch) {
   }
   
   send_to_char(ch, "You resize %s from %s to %s.\r\n",
-               obj->short_description, size_names[obj->size],
+               obj->short_description, size_names[GET_OBJ_SIZE(obj)],
                size_names[newsize]);
   act("$n resizes $p.", FALSE, ch, obj, 0, TO_ROOM);
   obj_from_obj(obj);
    
-  /* resize object after taking out of station, otherwise issues */
+  /* resize object after taking out of kit, otherwise issues */
   /* weight adjustment of object */
-  obj->size = newsize;
-  for (i = 0; i < newsize - obj->size; i++)
+  GET_OBJ_SIZE(obj) = newsize;
+  for (i = 0; i < newsize - GET_OBJ_SIZE(obj); i++)
     GET_OBJ_WEIGHT(obj) = GET_OBJ_WEIGHT(obj) * 3 / 2;
-  for (i = 0; i < obj->size - newsize; i++)
+  for (i = 0; i < GET_OBJ_SIZE(obj) - newsize; i++)
     GET_OBJ_WEIGHT(obj) = GET_OBJ_WEIGHT(obj) * 2 / 3;
   
   obj_to_char(obj, ch);
@@ -631,8 +637,6 @@ int resize(char *argument, struct obj_data *station, struct char_data *ch) {
     
   return 1;
 }
-   
-    
 
 /* our create command and craftcheck, mode determines which we're using */
 /* mode = 1; create     */ 
@@ -648,14 +652,15 @@ int resize(char *argument, struct obj_data *station, struct char_data *ch) {
 /*
  * create is for wearable gear at this stage
  */
-int create(char *argument, struct obj_data *station, struct char_data *ch, int mode) {
+int create(char *argument, struct obj_data *kit,
+        struct char_data *ch, int mode) {
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
                   *material = NULL, *essence = NULL;
   int num_mats = 0, obj_level = 1, skill = -1, crystal_value = -1,
       mats_needed = 12345, found = 0, i = 0, bonus = 0;
 
-  /* sort through our station and check if we got everything we need */
-  for (obj = station->contains; obj != NULL; obj = obj->next_content) {
+  /* sort through our kit and check if we got everything we need */
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
     if (obj) {
       /* find a mold? */
       if (OBJ_FLAGGED(obj, ITEM_MOLD)) {
@@ -663,13 +668,13 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
           mold = obj;
           found++;
         } else {
-          send_to_char(ch, "You have more than one mold inside the station, "
+          send_to_char(ch, "You have more than one mold inside the kit, "
                                "please only put one inside.\r\n");
           return 1;
         }
       }
     
-      if (found) {  /* we didn't have a mold and found one, interate main loop */
+      if (found) {  // we didn't have a mold and found one, interate main loop
         found = 0;
         continue;
       }
@@ -679,7 +684,7 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
         if (!crystal) {
           crystal = obj;
         } else {
-          send_to_char(ch, "You have more than one crystal inside the station, "
+          send_to_char(ch, "You have more than one crystal inside the kit, "
                            "please only put one inside.\r\n");
           return 1;
         }
@@ -687,8 +692,8 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
       /* find a material? */
       } else if (GET_OBJ_TYPE(obj) == ITEM_MATERIAL) {
         if (GET_OBJ_VAL(obj, 0) >= 2) {
-          send_to_char(ch, "%s is a bundled item, which must first be unbundled "
-                           "before you can use it to craft.\r\n",
+          send_to_char(ch, "%s is a bundled item, which must first be"
+                           " unbundled before you can use it to craft.\r\n",
                        obj->short_description);
           return 1;
         }
@@ -696,7 +701,7 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
           material = obj;
           num_mats++;
         } else if (GET_OBJ_MATERIAL(obj) != GET_OBJ_MATERIAL(material)) {
-          send_to_char(ch, "You have mixed materials in the station, please "
+          send_to_char(ch, "You have mixed materials in the kit, please "
                            "make sure to use only the required materials.\r\n");
           return 1;
         } else { /* this should be good */
@@ -708,13 +713,13 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
         if (!essence) {
           essence = obj;
         } else {
-          send_to_char(ch, "You have more than one essence inside the station, "
+          send_to_char(ch, "You have more than one essence inside the kit, "
                            "please only put one inside.\r\n");
           return 1;   
         }
               
       } else { /* didn't find anything we need */
-        send_to_char(ch, "There is an unnecessary item in the station, please "
+        send_to_char(ch, "There is an unnecessary item in the kit, please "
                          "remove it.\r\n");
         return 1;
       }  
@@ -728,7 +733,7 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
   }
   obj_level = GET_OBJ_LEVEL(mold);
   if (!material) {
-    send_to_char(ch, "You need to put materials into the station.\r\n");
+    send_to_char(ch, "You need to put materials into the kit.\r\n");
     return 1;
   }
          
@@ -775,7 +780,7 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
                  mats_needed - num_mats);
     return 1; 
   } else if (num_mats > mats_needed) {
-    send_to_char(ch, "You put too much material in the station, please "
+    send_to_char(ch, "You put too much material in the kit, please "
                      "take out %d units.\r\n", num_mats - mats_needed);
     return 1;
   }
@@ -785,7 +790,8 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
   if (mode == 1 && !strstr(argument, 
       material_name[GET_OBJ_MATERIAL(material)])) {
     send_to_char(ch, "You must include the material name, '%s', in the object "
-                     "description somewhere.\r\n", material_name[GET_OBJ_MATERIAL(material)]);
+                     "description somewhere.\r\n",
+                 material_name[GET_OBJ_MATERIAL(material)]);
              
     return 1;
   }
@@ -912,7 +918,7 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
                      "of %d.\r\n",
                  spell_info[skill].name, GET_SKILL(ch, skill));
     send_to_char(ch, "This crafting session will take 60 seconds.\r\n");
-    send_to_char(ch, "You need %d credits on hand to make this item.\r\n", cost);
+    send_to_char(ch, "You need %d gold on hand to make this item.\r\n", cost);
     return 1;
   } else if (GET_GOLD(ch) < cost) {
     send_to_char(ch, "You need %d coins on hand for supplies to make"
@@ -933,7 +939,7 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
                          GET_OBJ_COST(mold);
     GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(mold));
     
-    send_to_char(ch, "It cost you %d credits in supplies to create this item.\r\n",
+    send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n",
                cost);
     GET_GOLD(ch) -= cost;
   
@@ -961,26 +967,23 @@ int create(char *argument, struct obj_data *station, struct char_data *ch, int m
     obj_from_obj(mold); /* extracting this causes issues, solution? */
     GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
     GET_CRAFTING_TICKS(ch) = 5;
-    int station_obj_vnum = GET_OBJ_VNUM(station);
-    obj_from_room(station);
-    extract_obj(station);
-    station = read_object(station_obj_vnum, VIRTUAL);
+    int kit_obj_vnum = GET_OBJ_VNUM(kit);
+    obj_from_room(kit);
+    extract_obj(kit);
+    kit = read_object(kit_obj_vnum, VIRTUAL);
 
-    obj_to_char(station, ch);
+    obj_to_char(kit, ch);
   
     /* zusuk - temporary */
     obj_to_char(mold, ch);
     NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-
-  } 
-    
+  }     
   return 1;
 }
                          
                          
 SPECIAL(crafting_kit)
-{   
-    
+{       
   if (!CMD_IS("resize") && !CMD_IS("create") && !CMD_IS("checkcraft") &&
       !CMD_IS("restring") && !CMD_IS("augment") && !CMD_IS("convert") &&
       !CMD_IS("supplyorder"))
@@ -992,75 +995,78 @@ SPECIAL(crafting_kit)
     return 1;
   }
   
-  if (GET_CRAFTING_OBJ(ch)) {
+  if (GET_CRAFTING_OBJ(ch) || char_has_mud_event(ch, eCRAFTING)) {
     send_to_char(ch, "You are already doing something.  Please wait until "
                      "your current task ends.\r\n");
     return 1;
   }
       
-  struct obj_data *station = (struct obj_data *) me;
-    
+  struct obj_data *kit = (struct obj_data *) me;
   skip_spaces(&argument);
     
   /* Some of the commands require argument */
   if (!*argument && !CMD_IS("checkcraft") && !CMD_IS("augment") &&
       !CMD_IS("supplyorder") && !CMD_IS("convert")) {
     if (CMD_IS("create") || CMD_IS("restring"))
-      send_to_char(ch, "Please provide an item description containing the material and item "
-                       "name in the string.\r\n");
+      send_to_char(ch, "Please provide an item description containing the "
+                       "material and item name in the string.\r\n");
     else if (CMD_IS("resize"))
-      send_to_char(ch, "What would you like the new size to be? (fine|diminutive|tiny|small|"
+      send_to_char(ch, "What would you like the new size to be?"
+                       " (fine|diminutive|tiny|small|"
                        "medium|large|huge|gargantuan|colossal)\r\n");
     return 1;
   }
 
-  if (!station->contains) {
+  if (!kit->contains) {
     if (CMD_IS("augment"))
-      send_to_char(ch, "You must place at least two crystals of the same type into the "
-                       "station in order to augment.\r\n");
+      send_to_char(ch, "You must place at least two crystals of the same "
+                       "type into the kit in order to augment.\r\n");
     else if (CMD_IS("supplyorder")) {
       if (GET_AUTOCQUEST_MATERIAL(ch))
-        send_to_char(ch, "You must place %d units of %s or a similar type of material "
-                         "(all the same type) into the station to continue.\r\n",
+        send_to_char(ch, "You must place %d units of %s or a similar type of "
+                "material (all the same type) into the kit to continue.\r\n",
                      SUPPLYORDER_MATS,
                      material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
       else
-        send_to_char(ch, "You do not have a supply order active right now.\r\n");
+        send_to_char(ch, "You do not have a supply order active "
+                "right now.\r\n");
     } else if (CMD_IS("create"))
-      send_to_char(ch, "You must place an item to use as the mold pattern, a crystal and your "
-                       "crafting resource materials\r\nin the station and then type 'create "
-                       "<optional item description>'\r\n");
+      send_to_char(ch, "You must place an item to use as the mold pattern, "
+                       "a crystal and your crafting resource materials in the "
+                       "kit and then type 'create <optional item "
+                       "description>'\r\n");
     else if (CMD_IS("restring"))
-      send_to_char(ch, "You must place the item to restring and in the crafting station.\r\n");
+      send_to_char(ch, "You must place the item to restring and in the "
+                       "crafting kit.\r\n");
     else if (CMD_IS("resize"))
-      send_to_char(ch, "You must place the original item plus enough material in the station "
-                       "to resize it.\r\n");
+      send_to_char(ch, "You must place the original item plus enough material "
+              "in the kit to resize it.\r\n");
     else if (CMD_IS("checkcraft"))
-      send_to_char(ch, "You must place an item to use as the mold pattern, a crystal and "
-                       "your crafting resource materials\r\nin the station and then type "
-                       "'checkcraft'\r\n");
+      send_to_char(ch, "You must place an item to use as the mold pattern, a "
+              "crystal and your crafting resource materials in the kit and "
+              "then type checkcraft'\r\n");
     else if (CMD_IS("convert"))
-      send_to_char(ch, "You must place exact multiples of 10, of a material to being "
-                       "the conversion process.\r\n");
+      send_to_char(ch, "You must place exact multiples of 10, of a material "
+              "to being the conversion process.\r\n");
     else
-      send_to_char(ch, "Unrecognized crafting-station command!\r\n");
+      send_to_char(ch, "Unrecognized crafting-kit command!\r\n");
     return 1;
   }
     
   if (CMD_IS("resize"))
-    return resize(argument, station, ch);
+    return resize(argument, kit, ch);
   else if (CMD_IS("restring"))
-    return restring(argument, station, ch);
+    return restring(argument, kit, ch);
   else if (CMD_IS("augment"))
-    return augment(station, ch);
+    return augment(kit, ch);
   else if (CMD_IS("convert"))
-    return convert(station, ch);
+    return convert(kit, ch);
   else if (CMD_IS("supplyorder"))
-    return supplyorder(station, ch);
+    return supplyorder(kit, ch);
   else if (CMD_IS("create"))  
-    return create(argument, station, ch, 1);
+    return create(argument, kit, ch, 1);
   else if (CMD_IS("checkcraft"))
-    return create(NULL, station, ch, 2);
+    return create(NULL, kit, ch, 2);
   else {
     send_to_char(ch, "Invalid command.\r\n");
     return 0;
@@ -1070,7 +1076,6 @@ SPECIAL(crafting_kit)
 
 
 SPECIAL(crafting_quest) {
-
   if (!CMD_IS("supplyorder")) {
     return 0;
   }
@@ -1081,16 +1086,14 @@ SPECIAL(crafting_quest) {
   if (!*arg)
     cquest_report(ch);
   else if (!strcmp(arg, "new")) {
-
     if (GET_AUTOCQUEST_VNUM(ch) && GET_AUTOCQUEST_MAKENUM(ch) <= 0) {
-      send_to_char(ch, "You can't take a new supply order until you've handed in "
-                       "the one you've completed.\r\n");
+      send_to_char(ch, "You can't take a new supply order until you've "
+              "handed in the one you've completed.\r\n");
       return 1;
     }
     
     char desc[MAX_INPUT_LENGTH];
     int roll = 0;
-
     /* initialize values */
     reset_acraft(ch);
     GET_AUTOCQUEST_VNUM(ch) = AUTOCQUEST_VNUM;
@@ -1112,8 +1115,8 @@ SPECIAL(crafting_quest) {
           sprintf(desc, "a bracer"); 
           GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
         } else if (roll == 3) {
-          sprintf(desc, "a stim injection");  
-          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
+          sprintf(desc, "a cloak");  
+          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_WOOL;
         } else if (roll == 4) {
           sprintf(desc, "a cape");  
           GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_HEMP;
@@ -1130,10 +1133,10 @@ SPECIAL(crafting_quest) {
         break;
       case 4:
         if ((roll = dice(1, 2)) == 1) {
-          sprintf(desc, "a hover droid"); 
+          sprintf(desc, "a suit of ringmail"); 
           GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
         } else {
-          sprintf(desc, "an implant");  
+          sprintf(desc, "a cloth robe");  
           GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
         }
         break;
@@ -1149,22 +1152,20 @@ SPECIAL(crafting_quest) {
     GET_AUTOCQUEST_EXP(ch) = GET_LEVEL(ch) * GET_LEVEL(ch);
     GET_AUTOCQUEST_GOLD(ch) = GET_LEVEL(ch) * 100;
 
-    send_to_char(ch, "You have been commissioned for a supply order to make %s.  "
-                     "We expect you to make %d before you can collect your reward."
-                     "  Good luck.\r\nOnce completed you will receive the "
-                     "following:\r\n"
-                     "You will receive %d reputation points.\r\n"
-                     "%d credits will be deposited into your bank account.\r\n"
-                     "You will receive %d artisan experience points.\r\n", 
+    send_to_char(ch, "You have been commissioned for a supply order to "
+            "make %s.  We expect you to make %d before you can collect your "
+            "reward.  Good luck!  Once completed you will receive the "
+            "following:  You will receive %d reputation points."
+            "  %d gold will be given to you.  You will receive %d artisan "
+            "experience points.\r\n", 
                  desc, GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_QP(ch),
                  GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
-
   } else if (!strcmp(arg, "complete")) {
-
     if (GET_AUTOCQUEST_VNUM(ch) && GET_AUTOCQUEST_MAKENUM(ch) <= 0) {
-      send_to_char(ch, "You have completed your supply order contract for %s.\r\n"
+      send_to_char(ch, "You have completed your supply order contract"
+                       " for %s.\r\n"
                        "You receive %d reputation points.\r\n"
-                       "%d credits have been deposited into your bank account.\r\n"
+                       "%d gold has been given to you.\r\n"
                        "You receive %d experience points.\r\n", 
                        GET_AUTOCQUEST_DESC(ch), GET_AUTOCQUEST_QP(ch), 
                        GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
@@ -1173,17 +1174,12 @@ SPECIAL(crafting_quest) {
       GET_EXP(ch) += GET_AUTOCQUEST_EXP(ch);
 
       reset_acraft(ch);
-
     } else
       cquest_report(ch);
-      
   } else if (!strcmp(arg, "quit")) {
-
     send_to_char(ch, "You abandon your supply order to make %d %s.\r\n", 
                  GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch));
-
     reset_acraft(ch);
-
   } else
     cquest_report(ch);
 
@@ -1313,7 +1309,7 @@ EVENTFUNC(event_crafting) {
           act(buf, false, ch, NULL, 0, TO_ROOM);
           send_to_char(ch, "You have completed your supply order! Go turn"
                   " it in for more exp, quest points and "
-                  "gold!.\r\n");
+                  "gold!\r\n");
         } else {
           sprintf(buf, "$n completes a supply order.");
           act(buf, false, ch, NULL, 0, TO_ROOM);

@@ -1786,28 +1786,27 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
 #undef STONESKIN_ABSORB
 #undef EPIC_WARDING_ABSORB
 
-
-void weapon_spells(struct char_data *ch, struct char_data *vict, struct obj_data *wpn)
-{
+void weapon_spells(struct char_data *ch, struct char_data *vict, struct obj_data *wpn) {
   int i = 0, random;
 
-  if(wpn && HAS_SPELLS(wpn)) {
+  if (wpn && HAS_SPELLS(wpn)) {
 
     for (i = 0; i < MAX_WEAPON_SPELLS; i++) {
       if (GET_WEAPON_SPELL(wpn, i) && GET_WEAPON_SPELL_AGG(wpn, i)) {
         if (ch->in_room != vict->in_room) {
-	  if (FIGHTING(ch) && FIGHTING(ch) == vict)
-	    stop_fighting(ch);
-	  return;
+          if (FIGHTING(ch) && FIGHTING(ch) == vict)
+            stop_fighting(ch);
+          return;
         }
-        random = rand_number(1,100);
-        if(GET_WEAPON_SPELL_PCT(wpn, i) >= random) {
-	  act("$p leaps to action with an attack of its own.",
-		TRUE, ch, wpn, 0, TO_CHAR);
-	  act("$p leaps to action with an attack of its own.",
-		TRUE, ch, wpn, 0, TO_ROOM);
-          if(call_magic(ch, vict, NULL, GET_WEAPON_SPELL(wpn,i), GET_WEAPON_SPELL_LVL(wpn, i),
-		CAST_WAND) < 0) return;
+        random = rand_number(1, 100);
+        if (GET_WEAPON_SPELL_PCT(wpn, i) >= random) {
+          act("$p leaps to action with an attack of its own.",
+                  TRUE, ch, wpn, 0, TO_CHAR);
+          act("$p leaps to action with an attack of its own.",
+                  TRUE, ch, wpn, 0, TO_ROOM);
+          if (call_magic(ch, vict, wpn, GET_WEAPON_SPELL(wpn, i),
+                  GET_WEAPON_SPELL_LVL(wpn, i), CAST_WAND) < 0)
+            return;
         }
       }
     }

@@ -24,8 +24,11 @@
 
 
 /* local file scope function prototypes */
-static int mag_materials(struct char_data *ch, IDXTYPE item0, IDXTYPE item1, IDXTYPE item2, int extract, int verbose);
-static void perform_mag_groups(int level, struct char_data *ch, struct char_data *tch, int spellnum, int savetype);
+static int mag_materials(struct char_data *ch, IDXTYPE item0, IDXTYPE item1,
+        IDXTYPE item2, int extract, int verbose);
+static void perform_mag_groups(int level, struct char_data *ch, 
+        struct char_data *tch, struct obj_data *obj, int spellnum,
+        int savetype);
 
 //external
 extern struct raff_node *raff_list;
@@ -305,22 +308,28 @@ static int mag_materials(struct char_data *ch, IDXTYPE item0,
 // default    ->  magic resistance
 // returns damage, -1 if dead
 int mag_damage(int level, struct char_data *ch, struct char_data *victim,
-		     int spellnum, int savetype)
+		     struct obj_data *wpn, int spellnum, int savetype)
 {
-  int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0, bonus = 0;
+  int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0, 
+          bonus = 0, magic_level = 0, divine_level = 0;
 
   if (victim == NULL || ch == NULL)
     return (0);
-
+  
+  magic_level = MAGIC_LEVEL(ch);
+  divine_level = DIVINE_LEVEL(ch);
+  if (wpn)
+    if (HAS_SPELLS(wpn))
+      magic_level = divine_level = level;
+  
   switch (spellnum) {
-
     // magical
   case SPELL_MAGIC_MISSILE:
     if (affected_by_spell(victim, SPELL_SHIELD)) {
       send_to_char(ch, "Your target is shielded by magic!\r\n");
     } else {
       save = -1;
-      num_dice = MIN(8, (MAX(1, MAGIC_LEVEL(ch) / 2)));
+      num_dice = MIN(8, (MAX(1, magic_level / 2)));
       size_dice = 6;
       bonus = num_dice;
     }
@@ -335,7 +344,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
   case SPELL_ICE_DAGGER:
     save = SAVING_REFL;
-    num_dice = MIN(7, MAGIC_LEVEL(ch));
+    num_dice = MIN(7, magic_level);
     size_dice = 8;
     bonus = 0;
     element = DAM_COLD;
@@ -351,35 +360,35 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_HORIZIKAULS_BOOM:
     // *note also has an effect
     save = SAVING_FORT;
-    num_dice = MIN(8, MAGIC_LEVEL(ch));
+    num_dice = MIN(8, magic_level);
     size_dice = 4;
     bonus = num_dice;
     element = DAM_SOUND;
     break;
   case SPELL_BURNING_HANDS:
     save = SAVING_REFL;
-    num_dice = MIN(8, MAGIC_LEVEL(ch));
+    num_dice = MIN(8, magic_level);
     size_dice = 6;
     bonus = 0;
     element = DAM_FIRE;
     break;
   case SPELL_SHOCKING_GRASP:
     save = SAVING_REFL;
-    num_dice = MIN(10, MAGIC_LEVEL(ch));
+    num_dice = MIN(10, magic_level);
     size_dice = 8;
     bonus = 0;
     element = DAM_ELECTRIC;
     break;
   case SPELL_LIGHTNING_BOLT:
     save = SAVING_REFL;
-    num_dice = MIN(15, MAGIC_LEVEL(ch));
+    num_dice = MIN(15, magic_level);
     size_dice = 10;
     bonus = 0;
     element = DAM_ELECTRIC;
     break;
   case SPELL_FIREBALL:
     save = SAVING_REFL;
-    num_dice = MIN(15, MAGIC_LEVEL(ch));
+    num_dice = MIN(15, magic_level);
     size_dice = 10;
     bonus = 0;
     element = DAM_FIRE;
@@ -398,56 +407,56 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_ICE_STORM:
     //AoE
     save = -1;
-    num_dice = MIN(15, MAGIC_LEVEL(ch));
+    num_dice = MIN(15, magic_level);
     size_dice = 8;
     bonus = 0;
     element = DAM_COLD;
     break;
   case SPELL_BALL_OF_LIGHTNING:
     save = SAVING_REFL;
-    num_dice = MIN(22, MAGIC_LEVEL(ch));
+    num_dice = MIN(22, magic_level);
     size_dice = 10;
     bonus = 0;
     element = DAM_ELECTRIC;
     break;
   case SPELL_MISSILE_STORM:
     save = SAVING_FORT;
-    num_dice = MIN(26, MAGIC_LEVEL(ch));
+    num_dice = MIN(26, magic_level);
     size_dice = 10;
-    bonus = MAGIC_LEVEL(ch);
+    bonus = magic_level;
     element = DAM_FORCE;
     break;
   case SPELL_CHAIN_LIGHTNING:
     //AoE
     save = SAVING_REFL;
-    num_dice = MIN(28, MAGIC_LEVEL(ch));
+    num_dice = MIN(28, magic_level);
     size_dice = 9;
-    bonus = MAGIC_LEVEL(ch);
+    bonus = magic_level;
     element = DAM_ELECTRIC;
     break;
   case SPELL_METEOR_SWARM:
     //AoE
     save = SAVING_REFL;
-    num_dice = MAGIC_LEVEL(ch) + 4;
+    num_dice = magic_level + 4;
     size_dice = 12;
-    bonus = MAGIC_LEVEL(ch) + 8;
+    bonus = magic_level + 8;
 
     element = DAM_FIRE;
     break;
   case SPELL_GREATER_RUIN:
     save = SAVING_WILL;
-    num_dice = MAGIC_LEVEL(ch) + 6;
+    num_dice = magic_level + 6;
     size_dice = 12;
-    bonus = MAGIC_LEVEL(ch) + 35;
+    bonus = magic_level + 35;
 
     element = DAM_PUNCTURE;
     break;
   case SPELL_HELLBALL:
     //AoE
     save = SAVING_FORT;
-    num_dice = MAGIC_LEVEL(ch) + 8;
+    num_dice = magic_level + 8;
     size_dice = 12;
-    bonus = MAGIC_LEVEL(ch) + 50;
+    bonus = magic_level + 50;
 
     element = DAM_ENERGY;
     break;
@@ -458,7 +467,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = SAVING_WILL; 
     num_dice = 1;
     size_dice = 12;
-    bonus = MIN(7, DIVINE_LEVEL(ch));
+    bonus = MIN(7, divine_level);
 
     element = DAM_HOLY;
     break;
@@ -466,7 +475,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = SAVING_WILL; 
     num_dice = 2;
     size_dice = 12;
-    bonus = MIN(15, DIVINE_LEVEL(ch));
+    bonus = MIN(15, divine_level);
 
     element = DAM_HOLY;
     break;
@@ -474,7 +483,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = SAVING_WILL; 
     num_dice = 3;
     size_dice = 12;
-    bonus = MIN(22, DIVINE_LEVEL(ch));
+    bonus = MIN(22, divine_level);
 
     element = DAM_HOLY;
     break;
@@ -482,13 +491,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = SAVING_WILL; 
     num_dice = 4;
     size_dice = 12;
-    bonus = MIN(30, DIVINE_LEVEL(ch));
+    bonus = MIN(30, divine_level);
 
     element = DAM_HOLY;
     break;
   case SPELL_FLAME_STRIKE:
     save = SAVING_REFL;
-    num_dice = MIN(20, DIVINE_LEVEL(ch));
+    num_dice = MIN(20, divine_level);
     size_dice = 8;
     bonus = 0;  
 
@@ -496,9 +505,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
   case SPELL_DISPEL_EVIL:
     save = SAVING_WILL;
-    num_dice = DIVINE_LEVEL(ch);
+    num_dice = divine_level;
     size_dice = 9;
-    bonus = DIVINE_LEVEL(ch);
+    bonus = divine_level;
 
     if (IS_EVIL(ch)) {
       victim = ch;
@@ -510,9 +519,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
   case SPELL_DISPEL_GOOD:
     save = SAVING_WILL;
-    num_dice = DIVINE_LEVEL(ch);
+    num_dice = divine_level;
     size_dice = 9;
-    bonus = DIVINE_LEVEL(ch);
+    bonus = divine_level;
     if (IS_GOOD(ch)) {
       victim = ch;
     } else if (IS_EVIL(victim)) {
@@ -523,7 +532,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
   case SPELL_HARM:
     save = SAVING_FORT;
-    num_dice = MIN(22, DIVINE_LEVEL(ch));
+    num_dice = MIN(22, divine_level);
     size_dice = 8;
     bonus = num_dice;
 
@@ -531,7 +540,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
   case SPELL_CALL_LIGHTNING:
     save = SAVING_REFL;
-    num_dice = MIN(24, DIVINE_LEVEL(ch));
+    num_dice = MIN(24, divine_level);
     size_dice = 8;
     bonus = num_dice + 10;
 
@@ -539,7 +548,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
   case SPELL_DESTRUCTION:
     save = SAVING_FORT;
-    num_dice = MIN(26, DIVINE_LEVEL(ch));
+    num_dice = MIN(26, divine_level);
     size_dice = 8;
     bonus = num_dice + 20;
 
@@ -560,7 +569,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_EARTHQUAKE:
     //AoE
     save = SAVING_REFL;
-    num_dice = DIVINE_LEVEL(ch);
+    num_dice = divine_level;
     size_dice = 8;
     bonus = num_dice + 30;
 
@@ -608,12 +617,12 @@ int isMagicArmored(struct char_data *victim)
 // old tick = 75 seconds, or 1.25 minutes or 25 rounds
 #define MAX_SPELL_AFFECTS 9	/* change if more needed */
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
-		      int spellnum, int savetype)
+		      struct obj_data *wpn, int spellnum, int savetype)
 {
   struct affected_type af[MAX_SPELL_AFFECTS];
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
-  int i, j;
+  int i, j, magic_level = 0, divine_level = 0;
 
 
   if (victim == NULL || ch == NULL)
@@ -623,6 +632,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     new_affect(&(af[i]));
     af[i].spell = spellnum;
   }
+
+  magic_level = MAGIC_LEVEL(ch);
+  divine_level = DIVINE_LEVEL(ch);
+  if (wpn)
+    if (HAS_SPELLS(wpn))
+      magic_level = divine_level = level;
 
   switch (spellnum) {
 
@@ -680,7 +695,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
 
     af[0].location = APPLY_STR;
-    af[0].duration = 4 + MAGIC_LEVEL(ch);
+    af[0].duration = 4 + magic_level;
     af[0].modifier = -2;
     accum_duration = TRUE;
     to_room = "$n's strength is withered!";
@@ -719,16 +734,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     af[0].location = APPLY_MOVE;
-    af[0].modifier = -20 - MAGIC_LEVEL(ch);
-    af[0].duration = MAGIC_LEVEL(ch) * 2;
+    af[0].modifier = -20 - magic_level;
+    af[0].duration = magic_level * 2;
     to_vict = "Your feet are all greased up!";
     to_room = "$n now has greasy feet!";
     break;
 
   case SPELL_EXPEDITIOUS_RETREAT:
     af[0].location = APPLY_MOVE;
-    af[0].modifier = 20 + MAGIC_LEVEL(ch);
-    af[0].duration = MAGIC_LEVEL(ch) * 2;
+    af[0].modifier = 20 + magic_level;
+    af[0].duration = magic_level * 2;
     to_vict = "You feel expeditious.";
     to_room = "$n is now expeditious!";
     break;
@@ -827,7 +842,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     }
 
-    af[0].duration = 7 * MAGIC_LEVEL(ch);
+    af[0].duration = 7 * magic_level;
     SET_BIT_AR(af[0].bitvector, AFF_GRAPPLED);
 
     to_room = "$n is covered in a sticky magical web!";
@@ -893,7 +908,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_DETECT_INVIS:
-    af[0].duration = 300 + MAGIC_LEVEL(ch) * 25;
+    af[0].duration = 300 + magic_level * 25;
     SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
     accum_duration = TRUE;
     to_vict = "Your eyes tingle, now sensitive to invisibility.";
@@ -924,7 +939,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_TRUE_STRIKE:
     af[0].location = APPLY_HITROLL;
-    af[0].duration = (MAGIC_LEVEL(ch) * 12) + 100;
+    af[0].duration = (magic_level * 12) + 100;
     af[0].modifier = 20;
     accum_duration = TRUE;
     to_vict = "You feel able to strike true!";
@@ -988,7 +1003,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (!victim)
       victim = ch;
 
-    af[0].duration = 300 + (MAGIC_LEVEL(ch) * 6);
+    af[0].duration = 300 + (magic_level * 6);
     af[0].modifier = -40;
     af[0].location = APPLY_AC;
     SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
@@ -1003,7 +1018,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = 600;
     to_room = "$n grins as multiple images pop up and smile!";
     to_vict = "You watch as multiple images pop up and smile at you!";
-    GET_IMAGES(victim) = 5 + MIN(5, (int) (MAGIC_LEVEL(ch) / 3));
+    GET_IMAGES(victim) = 5 + MIN(5, (int) (magic_level / 3));
     break;
 
   case SPELL_POISON:
@@ -1062,7 +1077,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     }
 
-    af[0].duration = 100 + (MAGIC_LEVEL(ch) * 6);
+    af[0].duration = 100 + (magic_level * 6);
     SET_BIT_AR(af[0].bitvector, AFF_SLEEP);
 
     if (GET_POS(victim) > POS_SLEEPING) {
@@ -1086,7 +1101,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = 1200;
     to_room = "$n's skin becomes hard as rock!";
     to_vict = "Your skin becomes hard as stone.";
-    GET_STONESKIN(victim) = MIN(225, MAGIC_LEVEL(ch) * 15);
+    GET_STONESKIN(victim) = MIN(225, magic_level * 15);
     break;
 
   case SPELL_STRENGTH:
@@ -1110,7 +1125,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_SENSE_LIFE:
     to_vict = "Your feel your awareness improve.";
     to_room = "$n's eyes become aware of life forms!";
-    af[0].duration = DIVINE_LEVEL(ch) * 25;
+    af[0].duration = divine_level * 25;
     SET_BIT_AR(af[0].bitvector, AFF_SENSE_LIFE);
     accum_duration = TRUE;
     break;
@@ -1160,14 +1175,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 /* This function is used to provide services to mag_groups.  This function is
  * the one you should change to add new group spells. */
 static void perform_mag_groups(int level, struct char_data *ch,
-			struct char_data *tch, int spellnum, int savetype)
+			struct char_data *tch, struct obj_data *obj, int spellnum,
+               int savetype)
 {
   switch (spellnum) {
     case SPELL_GROUP_HEAL:
-    mag_points(level, ch, tch, SPELL_HEAL, savetype);
+    mag_points(level, ch, tch, obj, SPELL_HEAL, savetype);
     break;
   case SPELL_GROUP_ARMOR:
-    mag_affects(level, ch, tch, SPELL_ARMOR, savetype);
+    mag_affects(level, ch, tch, obj, SPELL_ARMOR, savetype);
     break;
   case SPELL_GROUP_RECALL:
     spell_recall(level, ch, tch, NULL);
@@ -1180,7 +1196,8 @@ static void perform_mag_groups(int level, struct char_data *ch,
  * affect everyone grouped with the caster who is in the room, caster last. To
  * add new group spells, you shouldn't have to change anything in mag_groups.
  * Just add a new case to perform_mag_groups. */
-void mag_groups(int level, struct char_data *ch, int spellnum, int savetype)
+void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
+        int spellnum, int savetype)
 {
   struct char_data *tch;
 
@@ -1193,14 +1210,15 @@ void mag_groups(int level, struct char_data *ch, int spellnum, int savetype)
   while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
-    perform_mag_groups(level, ch, tch, spellnum, savetype);
+    perform_mag_groups(level, ch, tch, obj, spellnum, savetype);
   }
 }
 
 
 /* Mass spells affect every creature in the room except the caster. No spells
  * of this class currently implemented. */
-void mag_masses(int level, struct char_data *ch, int spellnum, int savetype)
+void mag_masses(int level, struct char_data *ch, struct obj_data *obj, 
+        int spellnum, int savetype)
 {
   struct char_data *tch, *tch_next;
 
@@ -1306,7 +1324,8 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
  * generally offensive spells.  This calls mag_damage to do the actual damage.
  * All spells listed here must also have a case in mag_damage() in order for
  * them to work. Area spells have limited targets within the room. */
-void mag_areas(int level, struct char_data *ch, int spellnum, int savetype)
+void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
+        int spellnum, int savetype)
 {
   struct char_data *tch, *next_tch;
   const char *to_char = NULL, *to_room = NULL;
@@ -1349,7 +1368,7 @@ void mag_areas(int level, struct char_data *ch, int spellnum, int savetype)
     next_tch = tch->next_in_room;
 
     if (aoeOK(ch, tch, spellnum))
-      mag_damage(level, ch, tch, spellnum, 1);
+      mag_damage(level, ch, tch, obj, spellnum, 1);
   }
 }
 
@@ -1574,7 +1593,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
 
 void mag_points(int level, struct char_data *ch, struct char_data *victim,
-		     int spellnum, int savetype)
+		     struct obj_data *obj, int spellnum, int savetype)
 {
   int healing = 0, move = 0;
 
@@ -1601,7 +1620,7 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
 }
 
 void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
-		        int spellnum, int type)
+		        struct obj_data *obj, int spellnum, int type)
 {
   int spell = 0, msg_not_affected = TRUE;
   const char *to_vict = NULL, *to_room = NULL;
@@ -1714,7 +1733,8 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
     act(to_char, TRUE, ch, obj, 0, TO_ROOM);
 }
 
-void mag_creations(int level, struct char_data *ch, int spellnum)
+void mag_creations(int level, struct char_data *ch, struct obj_data *obj,
+        int spellnum)
 {
   struct obj_data *tobj;
   obj_vnum z;
@@ -1745,7 +1765,8 @@ void mag_creations(int level, struct char_data *ch, int spellnum)
 }
 
 
-void mag_room(int level, struct char_data * ch, int spellnum)
+void mag_room(int level, struct char_data * ch, struct obj_data *obj,
+        int spellnum)
 {
   long aff; /* what affection */
   int rounds; /* how many rounds this spell lasts */

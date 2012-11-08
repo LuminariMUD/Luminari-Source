@@ -372,6 +372,10 @@ ASPELL(spell_identify)
     sprintbitarray(GET_OBJ_EXTRA(obj), extra_bits, EF_ARRAY_MAX, bitbuf);
     send_to_char(ch, "Item is: %s\r\n", bitbuf);
 
+    send_to_char(ch, "Size: %s, Material: %s.",
+            size_names[GET_OBJ_SIZE(obj)],
+            material_name[GET_OBJ_MATERIAL(obj)]);
+    
     send_to_char(ch, "Weight: %d, Value: %d, Rent: %d, Min. level: %d\r\n",
                      GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj), GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj));
 
