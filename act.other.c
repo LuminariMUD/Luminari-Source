@@ -1232,65 +1232,75 @@ ACMD(do_gen_tog)
   char arg[MAX_INPUT_LENGTH];
 
   const char *tog_messages[][2] = {
-    {"You are now safe from summoning by other players.\r\n",
+/*0*/    {"You are now safe from summoning by other players.\r\n",
     "You may now be summoned by other players.\r\n"},
-    {"Nohassle disabled.\r\n",
+/*1*/    {"Nohassle disabled.\r\n",
     "Nohassle enabled.\r\n"},
-    {"Brief mode off.\r\n",
+/*2*/    {"Brief mode off.\r\n",
     "Brief mode on.\r\n"},
-    {"Compact mode off.\r\n",
+/*3*/    {"Compact mode off.\r\n",
     "Compact mode on.\r\n"},
-    {"You can now hear tells.\r\n",
+/*4*/    {"You can now hear tells.\r\n",
     "You are now deaf to tells.\r\n"},
-    {"You can now hear auctions.\r\n",
+/*5*/    {"You can now hear auctions.\r\n",
     "You are now deaf to auctions.\r\n"},
-    {"You can now hear shouts.\r\n",
+/*6*/    {"You can now hear shouts.\r\n",
     "You are now deaf to shouts.\r\n"},
-    {"You can now hear gossip.\r\n",
+/*7*/    {"You can now hear gossip.\r\n",
     "You are now deaf to gossip.\r\n"},
-    {"You can now hear the congratulation messages.\r\n",
+/*8*/    {"You can now hear the congratulation messages.\r\n",
     "You are now deaf to the congratulation messages.\r\n"},
-    {"You can now hear the Wiz-channel.\r\n",
+/*9*/    {"You can now hear the Wiz-channel.\r\n",
     "You are now deaf to the Wiz-channel.\r\n"},
-    {"You are no longer part of the Quest.\r\n",
+/*10*/    {"You are no longer part of the Quest.\r\n",
     "Okay, you are part of the Quest!\r\n"},
-    {"You will no longer see the room flags.\r\n",
+/*11*/    {"You will no longer see the room flags.\r\n",
     "You will now see the room flags.\r\n"},
-    {"You will now have your communication repeated.\r\n",
+/*12*/    {"You will now have your communication repeated.\r\n",
     "You will no longer have your communication repeated.\r\n"},
-    {"HolyLight mode off.\r\n",
+/*13*/    {"HolyLight mode off.\r\n",
     "HolyLight mode on.\r\n"},
-    {"Nameserver_is_slow changed to NO; IP addresses will now be resolved.\r\n",
+/*14*/    {"Nameserver_is_slow changed to NO; IP addresses will now be resolved.\r\n",
     "Nameserver_is_slow changed to YES; sitenames will no longer be resolved.\r\n"},
-    {"Autoexits disabled.\r\n",
+/*15*/    {"Autoexits disabled.\r\n",
     "Autoexits enabled.\r\n"},
-    {"Will no longer track through doors.\r\n",
+/*16*/    {"Will no longer track through doors.\r\n",
     "Will now track through doors.\r\n"},
-    {"Will no longer clear screen in OLC.\r\n",
+/*17*/    {"Will no longer clear screen in OLC.\r\n",
     "Will now clear screen in OLC.\r\n"},
-    {"Buildwalk Off.\r\n",
+/*18*/    {"Buildwalk Off.\r\n",
     "Buildwalk On.\r\n"},
-    {"AFK flag is now off.\r\n",
+/*19*/    {"AFK flag is now off.\r\n",
     "AFK flag is now on.\r\n"},
-    {"Autoloot disabled.\r\n",
+/*20*/    {"Autoloot disabled.\r\n",
     "Autoloot enabled.\r\n"},
-    {"Autogold disabled.\r\n",
+/*21*/    {"Autogold disabled.\r\n",
     "Autogold enabled.\r\n"},
-    {"Autosplit disabled.\r\n",
+/*22*/    {"Autosplit disabled.\r\n",
     "Autosplit enabled.\r\n"},
-    {"Autosacrifice disabled.\r\n",
+/*23*/    {"Autosacrifice disabled.\r\n",
     "Autosacrifice enabled.\r\n"},
-    {"Autoassist disabled.\r\n",
+/*24*/    {"Autoassist disabled.\r\n",
     "Autoassist enabled.\r\n"},
-    {"Automap disabled.\r\n",
+/*25*/    {"Automap disabled.\r\n",
     "Automap enabled.\r\n"},
-    {"Autokey disabled.\r\n",
+/*26*/    {"Autokey disabled.\r\n",
     "Autokey enabled.\r\n"},
-    {"Autodoor disabled.\r\n",
+/*27*/    {"Autodoor disabled.\r\n",
     "Autodoor enabled.\r\n"},
-    {"You are now able to see all clantalk.\r\n",
+/*28*/    {"You are now able to see all clantalk.\r\n",
      "Clantalk channels disabled.\r\n"},
-    {"Autoscan disabled.\r\n",
+/*29*/    {"COLOR DISABLE\r\n",
+     "COLOR ENABLE\r\n"},
+/*30*/    {"SYSLOG DISABLE\r\n",
+     "SYSLOG ENABLE\r\n"},
+/*31*/    {"WIMPY DISABLE\r\n",
+     "WIMPY ENABLE\r\n"},
+/*32*/    {"PAGELENGTH DISABLE\r\n",
+     "PAGELENGTH ENABLE\r\n"},
+/*33*/    {"SCREENWIDTH DISABLE\r\n",
+     "SCREENWIDTH DISABLE\r\n"},
+/*34*/    {"Autoscan disabled.\r\n",
      "Autoscan enabled.\r\n"}
   };
 
@@ -1390,9 +1400,6 @@ ACMD(do_gen_tog)
   case SCMD_AUTOSAC:
     result = PRF_TOG_CHK(ch, PRF_AUTOSAC);
     break;
-  case SCMD_AUTOSCAN:
-    result = PRF_TOG_CHK(ch, PRF_AUTOSCAN);
-    break;
   case SCMD_AUTOASSIST:
     result = PRF_TOG_CHK(ch, PRF_AUTOASSIST);
     break;
@@ -1407,6 +1414,9 @@ ACMD(do_gen_tog)
     break;
   case SCMD_NOCLANTALK:
     result = PRF_TOG_CHK(ch, PRF_NOCLANTALK);
+    break;
+  case SCMD_AUTOSCAN:
+    result = PRF_TOG_CHK(ch, PRF_AUTOSCAN);
     break;
   default:
     log("SYSERR: Unknown subcmd %d in do_gen_toggle.", subcmd);
