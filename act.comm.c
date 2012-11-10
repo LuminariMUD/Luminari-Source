@@ -418,7 +418,7 @@ ACMD(do_gen_comm)
       KYEL},
 
     {"You cannot gossip!!\r\n",
-      "gossip",
+      "chat",
       "You aren't even on the channel!\r\n",
       KYEL},
 

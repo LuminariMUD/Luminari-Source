@@ -1182,13 +1182,61 @@ const char *title_male(int chclass, int level)
       case 16: return "the Chaplain";
       case 17: return "the Expositor";
       case 18: return "the Bishop";
-      case 19: return "the Arch Bishop";
+      case 19: return "the High Bishop";
       case 20: return "the Patriarch";
-      /* no one ever thought up these titles 21-30 */
+      case 21: return "the Chancellor";
+      case 22: return "the Arch Bishop";
+      case 23: return "the Arch Priest";
+      case 24: return "the Cardinal";
+      case 25: return "the Sage";
+      case 26: return "the Saint";
+      case 27: return "the Apostle";
+      case 28: return "the Father";
+      case 29: return "the Elder";
+      case 30: return "the Venerable Father";
       case LVL_IMMORT: return "the Immortal Cardinal";
       case LVL_GOD: return "the Inquisitor";
       case LVL_GRGOD: return "the God of Good and Evil";
       default: return "the Cleric";
+    }
+    break;
+
+    case CLASS_MONK:
+    switch (level) {
+      case 1: return "the Initiate";
+      case 2: return "the Novice";
+      case 3: return "the Acolyte";
+      case 4: return "the Sexton";
+      case 5: return "the Beadle";
+      case 6: return "the Scribe";
+      case 7: return "the Monk";
+      case 8: return "the Pilgrim";
+      case 9: return "the Friar";
+      case 10: return "the Hermit";
+      case 11: return "the Chaplain";
+      case 12: return "the Deacon";
+      case 13: return "the Curate";
+      case 14: return "the Priest";
+      case 15: return "the Vicar";
+      case 16: return "the Parson";
+      case 17: return "the Prior";
+      case 18: return "the Monsignor";
+      case 19: return "the Abbot";
+      case 20: return "the Canon";
+      case 21: return "the Chancellor";
+      case 22: return "the Bishop";
+      case 23: return "the Archbishop";
+      case 24: return "the Cardinal";
+      case 25: return "the Sage";
+      case 26: return "the Saint";
+      case 27: return "the Apostle";
+      case 28: return "the Father";
+      case 29: return "the Elder";
+      case 30: return "the Venerable Father";
+      case LVL_IMMORT: return "the Immortal Monk";
+      case LVL_GOD: return "the Inquisitor Monk";
+      case LVL_GRGOD: return "the God of the Fist";
+      default: return "the Monk";
     }
     break;
 
@@ -1333,6 +1381,45 @@ const char *title_female(int chclass, int level)
       case LVL_GOD: return "the Inquisitress";
       case LVL_GRGOD: return "the Goddess of Good and Evil";
       default: return "the Cleric";
+    }
+    break;
+
+    case CLASS_MONK:
+    switch (level) {
+      case 1: return "the Initiate";
+      case 2: return "the Novice";
+      case 3: return "the Acolyte";
+      case 4: return "the Sexton";
+      case 5: return "the Beadle";
+      case 6: return "the Scribe";
+      case 7: return "the Monk";
+      case 8: return "the Pilgrim";
+      case 9: return "the Friar";
+      case 10: return "the Hermit";
+      case 11: return "the Chaplain";
+      case 12: return "the Deacon";
+      case 13: return "the Curate";
+      case 14: return "the Priest";
+      case 15: return "the Vicar";
+      case 16: return "the Parson";
+      case 17: return "the Prior";
+      case 18: return "the Monsignor";
+      case 19: return "the Imam";
+      case 20: return "the Canon";
+      case 21: return "the Chancellor";
+      case 22: return "the Bishop";
+      case 23: return "the Archbishop";
+      case 24: return "the Cardinal";
+      case 25: return "the Sage";
+      case 26: return "the Saint";
+      case 27: return "the Apostle";
+      case 28: return "the Mother";
+      case 29: return "the Elder";
+      case 30: return "the Venerable Mother";
+      case LVL_IMMORT: return "the Immortal Monk";
+      case LVL_GOD: return "the Inquisitor Monk";
+      case LVL_GRGOD: return "the God of the Fist";
+      default: return "the Monk";
     }
     break;
 
