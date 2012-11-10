@@ -2212,6 +2212,9 @@ ACMD(do_toggle)
     {"wimpy", 0, 0, "\n", "\n"},
     {"pagelength", 0, 0, "\n", "\n"},
     {"screenwidth", 0, 0, "\n", "\n"},
+    {"autoscan", PRF_AUTOSCAN, 0,
+    "Autoscan disabled.\r\n",
+    "Autoscan enabled.\r\n"},
     {"\n", 0, -1, "\n", "\n"} /* must be last */
   };
 
@@ -2293,8 +2296,10 @@ ACMD(do_toggle)
 
     "        Autokey: %-3s    "
     "       Autodoor: %-3s    "
-    "          Color: %s     \r\n ",
+    "          Color: %s     \r\n "
 
+    "       Autoscan: %-3s    \r\n",
+          
     ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
     ONOFF(PRF_FLAGGED(ch, PRF_BRIEF)),
     ONOFF(PRF_FLAGGED(ch, PRF_SUMMONABLE)),
@@ -2329,7 +2334,9 @@ ACMD(do_toggle)
 
     ONOFF(PRF_FLAGGED(ch, PRF_AUTOKEY)),
     ONOFF(PRF_FLAGGED(ch, PRF_AUTODOOR)),
-    types[COLOR_LEV(ch)]);
+    types[COLOR_LEV(ch)],
+    ONOFF(PRF_FLAGGED(ch, PRF_AUTOSCAN))          
+          );
     return;
   }
 
