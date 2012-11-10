@@ -165,7 +165,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "enter"    , "ent"     , POS_STANDING, do_enter    , 0, 0 },
   { "equipment", "eq"      , POS_SLEEPING, do_equipment, 0, 0 },
   { "exits"    , "ex"      , POS_RESTING , do_exits    , 0, 0 },
-  { "examine"  , "exa"     , POS_SITTING , do_examine  , 0, 0 },
+  { "examine"  , "exa"     , POS_RESTING , do_examine  , 0, 0 },
   { "expertise"     , "expertise"     , POS_FIGHTING, do_expertise     , 1, 0 },
   { "export"   , "export"  , POS_DEAD    , do_export_zone, LVL_IMPL, 0 },
 
