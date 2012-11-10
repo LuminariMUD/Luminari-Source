@@ -599,8 +599,11 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
 
   /* ... and the room description to the character. */
-  if (ch->desc != NULL)
+  if (ch->desc != NULL) {
     look_at_room(ch, 0);
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSCAN))
+      do_scan(ch,0,0,0);
+  }
 
   /* ... and Kill the player if the room is a death trap. */
 /*

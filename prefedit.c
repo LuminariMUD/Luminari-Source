@@ -204,7 +204,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                              "%s3%s) Autogold     %s[%s%3s%s]      %sC%s) Tell     %s[%s%3s%s]\r\n"
                              "%s4%s) Autosac      %s[%s%3s%s]      %sD%s) Auction  %s[%s%3s%s]\r\n"
                              "%s5%s) Autoassist   %s[%s%3s%s]      %sE%s) Gratz    %s[%s%3s%s]\r\n"
-                             "%s6%s) Autosplit    %s[%s%3s%s]\r\n",
+                             "%s6%s) Autosplit    %s[%s%3s%s]      %sF%s) AutoScan %s[%s%3s%s]\r\n",
 /* Line 1 - autoexits and gossip */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOEXIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOEXIT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
@@ -225,9 +225,17 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOASSIST) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOASSIST)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
              PREFEDIT_FLAGGED(PRF_NOGRATZ) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), ONOFF(!PREFEDIT_FLAGGED(PRF_NOGRATZ)), CCCYN(d->character, C_NRM),
-/* Line 6 - autosplit */
-             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOSPLIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-             ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSPLIT)), CCCYN(d->character, C_NRM)
+/* Line 6 - autosplit and autoscan */
+             CBYEL(d->character, C_NRM), 
+             CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), 
+             PREFEDIT_FLAGGED(PRF_AUTOSPLIT) ? 
+               CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+             ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSPLIT)), 
+             CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), 
+             CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+             PREFEDIT_FLAGGED(PRF_AUTOSCAN) ? 
+               CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), 
+             ONOFF(!PREFEDIT_FLAGGED(PRF_AUTOSCAN)), CCCYN(d->character, C_NRM)
              );
 
   send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]\r\n"
@@ -711,6 +719,10 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
   /* PRF_NOSHOUT       - Off */
   if (PREFEDIT_FLAGGED(PRF_NOSHOUT))
      REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NOSHOUT);
+
+  /* PRF_AUTOSCAN       - Off */
+  if (PREFEDIT_FLAGGED(PRF_AUTOSCAN))
+     REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOSCAN);
 
   /* PRF_NOTELL     - Off */
   if (PREFEDIT_FLAGGED(PRF_NOTELL))

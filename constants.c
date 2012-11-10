@@ -394,6 +394,7 @@ const char *preference_bits[] = {
   "AUTOKEY",
   "AUTODOOR",
   "NO_CT",
+  "AUTOSCAN",
   "\n"
 };
 

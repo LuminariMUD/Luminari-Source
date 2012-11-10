@@ -107,6 +107,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "autoloot" , "autoloot", POS_DEAD    , do_gen_tog , 0, SCMD_AUTOLOOT },
   { "automap"  , "automap" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOMAP },
   { "autosac"  , "autosac" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOSAC },
+  { "autoscan"  , "autoscan" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOSCAN },
   { "autosplit", "autospl" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOSPLIT },
   { "abilityset" , "abilityset", POS_SLEEPING, do_abilityset , LVL_GRGOD, 0 },
 

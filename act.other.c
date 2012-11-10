@@ -1289,7 +1289,9 @@ ACMD(do_gen_tog)
     {"Autodoor disabled.\r\n",
     "Autodoor enabled.\r\n"},
     {"You are now able to see all clantalk.\r\n",
-     "Clantalk channels disabled.\r\n"}
+     "Clantalk channels disabled.\r\n"},
+    {"Autoscan disabled.\r\n",
+     "Autoscan enabled.\r\n"}
   };
 
   if (IS_NPC(ch))
@@ -1387,6 +1389,9 @@ ACMD(do_gen_tog)
     break;
   case SCMD_AUTOSAC:
     result = PRF_TOG_CHK(ch, PRF_AUTOSAC);
+    break;
+  case SCMD_AUTOSCAN:
+    result = PRF_TOG_CHK(ch, PRF_AUTOSCAN);
     break;
   case SCMD_AUTOASSIST:
     result = PRF_TOG_CHK(ch, PRF_AUTOASSIST);
