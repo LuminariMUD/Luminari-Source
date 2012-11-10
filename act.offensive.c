@@ -690,6 +690,14 @@ ACMD(do_bash)
     send_to_char(ch, "This mob is protected.\r\n");
     return;
   }
+  if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2) {
+    send_to_char(ch, "Your target is too small!\r\n");
+    return;
+  }
+  if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
+    send_to_char(ch, "Your target is too big!\r\n");
+    return;
+  }  
 
   percent = rand_number(1, 101);	/* 101% is a complete failure */
   prob = GET_SKILL(ch, SKILL_BASH);
@@ -759,6 +767,18 @@ ACMD(do_trip)
   }
   if (GET_POS(vict) == POS_SITTING) {
     send_to_char(ch, "Your target is already prone!\r\n");
+    return;
+  }
+  if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2) {
+    send_to_char(ch, "Your target is too small!\r\n");
+    return;
+  }
+  if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
+    send_to_char(ch, "Your target is too big!\r\n");
+    return;
+  }
+  if (AFF_FLAGGED(vict, AFF_FLYING)) {
+    send_to_char(ch, "Impossible, your target is flying!\r\n");
     return;
   }
 
