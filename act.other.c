@@ -220,13 +220,29 @@ ACMD(do_tame) {
 }
 
 // if you meet the class pre-reqs, return 1, otherwise 0
+// class = class attempting to level in
 int meet_class_reqs(struct char_data *ch, int class)
 {
+  int i;
+
+  // this is to make sure an epic race doesn't multiclass
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (CLASS_LEVEL(ch, i))  /* found char current class */
+      break;
+  switch (GET_RACE(ch)) {
+    case RACE_CRYSTAL_DWARF:
+      if (class == i)  /* char class selection and current class match? */
+        return 1;
+      else
+        return 0;
+    default:
+      break;
+  }
+ 
   switch (class) {
     case CLASS_MAGIC_USER:
       if (ch->real_abils.intel >= 11)
         return 1;
-      
       break;
     case CLASS_CLERIC:
       if (ch->real_abils.wis >= 11)

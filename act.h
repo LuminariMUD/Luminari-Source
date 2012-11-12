@@ -213,6 +213,8 @@ ACMD(do_taunt);
 ACMD(do_treatinjury);
 ACMD(do_trip);
 ACMD(do_whirlwind);
+ACMD(do_crystalfist);
+ACMD(do_crystalbody);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c

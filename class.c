@@ -607,8 +607,28 @@ void do_start(struct char_data *ch)
       ch->real_abils.con += 2;
       ch->real_abils.cha -= 2;
       break;
-    case RACE_TROLL:
+    case RACE_HALFLING:
+      GET_SIZE(ch) = SIZE_SMALL;
+      ch->real_abils.dex += 2;
+      ch->real_abils.str -= 2;
+      break;
+    case RACE_H_ELF:
       GET_SIZE(ch) = SIZE_MEDIUM;
+      SET_SKILL(ch, SKILL_PROF_ELF_W, 75);
+      break;
+    case RACE_H_ORC:
+      GET_SIZE(ch) = SIZE_MEDIUM;
+      ch->real_abils.str += 2;
+      ch->real_abils.cha -= 2;
+      ch->real_abils.intel -= 2;
+      break;
+    case RACE_GNOME:
+      GET_SIZE(ch) = SIZE_SMALL;
+      ch->real_abils.con += 2;
+      ch->real_abils.str -= 2;
+      break;
+    case RACE_TROLL:
+      GET_SIZE(ch) = SIZE_LARGE;
       ch->real_abils.str += 2;
       ch->real_abils.con += 2;
       ch->real_abils.dex += 2;
@@ -616,6 +636,14 @@ void do_start(struct char_data *ch)
       ch->real_abils.wis -= 4;
       ch->real_abils.cha -= 4;
       break;
+    case RACE_CRYSTAL_DWARF:
+      GET_SIZE(ch) = SIZE_MEDIUM;
+      ch->real_abils.str += 2;
+      ch->real_abils.con += 8;
+      ch->real_abils.wis += 2;
+      ch->real_abils.cha += 2;
+      GET_MAX_HIT(ch) += 10;
+      break;    
     default:
       GET_SIZE(ch) = SIZE_MEDIUM;
       break;
@@ -763,8 +791,16 @@ void advance_level(struct char_data *ch, int class)
     break;
   }
   //Human Racial Bonus
-  if (GET_RACE(ch) == RACE_HUMAN)
-    trains++;
+  switch (GET_RACE(ch)) {
+    case RACE_HUMAN:
+      trains++;
+      break;
+    case RACE_CRYSTAL_DWARF:
+      add_hp += 4;
+      break;
+    default:
+      break;
+  }
   //base practice improvement
   if (!(GET_LEVEL(ch) % 3))
     practices++;
@@ -796,9 +832,6 @@ void advance_level(struct char_data *ch, int class)
       GET_COND(ch, k) = (char) -1;
     SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
   }
-
-
-
 
   /**** reaffect ****/
   for (i = 0; i < NUM_WEARS; i++) {
@@ -1106,8 +1139,19 @@ int level_exp(struct char_data *ch, int level)
       log("SYSERR: Reached invalid class in class.c level()!");
       return 123456;      
   }
-
+  
   //can add other exp penalty/bonuses here
+  switch (GET_RACE(ch)) {
+    case RACE_TROLL:
+      exp *= 2;
+      break;
+    case RACE_CRYSTAL_DWARF:
+      exp *= 1000;
+      break;
+    default:
+      break;
+  }
+
 
   return exp;
 }

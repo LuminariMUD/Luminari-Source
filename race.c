@@ -62,6 +62,11 @@ const char *race_abbrevs[] = {
         "\tYElf\tn",
         "\tgDwrf\tn",
         "\trTrol\tn",
+        "\tCC\tgDwf\tn",
+        "\tcHflg\tn",
+        "\twH\tYElf\tn",
+        "\twH\tROrc\tn",
+        "\tmGnme\tn",
         "\n"
 };
 const char *pc_race_types[] = {
@@ -69,6 +74,11 @@ const char *pc_race_types[] = {
         "Elf",
         "Dwarf",
         "Troll",
+        "Crystal Dwarf",
+        "Halfling",
+        "Half Elf",
+        "Half Orc"
+        "Gnome"
         "\n"
 };
 const char *race_menu = 
@@ -78,7 +88,12 @@ const char *race_menu =
 "  a)  \tBHuman\tn\r\n"
 "  b)  \tYElf\tn\r\n"
 "  c)  \tgDwarf\tn\r\n"
-"  d)  \trTroll\tn\r\n";
+"  d)  \trTroll\tn\r\n"
+"  f)  \tcHalfling\tn"
+"  g)  \twHalf \tYElf\tn"
+"  h)  \twHalf \tROrc\tn"
+"  i)  \tMGnome\tn";
+
 // interpret race for interpreter.c and act.wizard.c etc
 int parse_race(char arg)
 {
@@ -89,6 +104,10 @@ int parse_race(char arg)
   case 'b': return RACE_ELF;
   case 'c': return RACE_DWARF;
   case 'd': return RACE_TROLL;
+  case 'f': return RACE_HALFLING;
+  case 'g': return RACE_H_ELF;  
+  case 'h': return RACE_H_ORC;
+  case 'i': return RACE_GNOME;
   default:  return RACE_UNDEFINED;
   }
 }
@@ -110,6 +129,11 @@ int invalid_race(struct char_data *ch, struct obj_data *obj) {
   if ((OBJ_FLAGGED(obj, ITEM_ANTI_HUMAN) && IS_HUMAN(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_ELF)   && IS_ELF(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_TROLL)   && IS_TROLL(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_HALFLING)   && IS_HALFLING(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_H_ELF)   && IS_H_ELF(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_H_ORC)   && IS_H_ORC(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_GNOME)   && IS_GNOME(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_CRYSTAL_DWARF)   && IS_CRYSTAL_DWARF(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_DWARF) && IS_DWARF(ch)))
         return 1;
   else

@@ -930,7 +930,8 @@ static char *list_object(struct obj_data *obj, int cnt, int aindex, int shop_nr,
 
   snprintf(result, sizeof(result), " %2d)  %9s   %-*s %6d%s\r\n",
       aindex, quantity, count_color_chars(itemname)+48, itemname,
-      buy_price(obj, shop_nr, keeper, ch), OBJ_FLAGGED(obj, ITEM_QUEST) ? " qp" : "");
+      buy_price(obj, shop_nr, keeper, ch), OBJ_FLAGGED(obj, ITEM_QUEST) ?
+        " qp" : "");
 
   return (result);
 }
@@ -952,6 +953,9 @@ static void shopping_list(char *arg, struct char_data *ch, struct char_data *kee
 
   one_argument(arg, name);
 
+  send_to_char(ch, "\tDYou can type 'identify <item name>' to view the stats"
+          "of an item in my inventory!\tn\r\n");
+  
   len = strlcpy(buf,   " ##   Available   Item                                               Cost\r\n"
       "----------------------------------------------------------------------------\r\n", sizeof(buf));
   if (keeper->carrying)

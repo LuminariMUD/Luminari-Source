@@ -875,13 +875,6 @@ ACMD(do_innates)
     else
       race = GET_RACE(ch);
     switch (race) {
-      case NPCRACE_UNDEFINED:
-      case NPCRACE_UNKNOWN:
-      case NPCRACE_HMN_HUMAN:
-      case NPCRACE_UND_GHOUL:
-      case NPCRACE_GNT_HILL:
-        send_to_char(ch, "None (yet)\r\n");
-        break;
       case NPCRACE_DRG_RED:
         send_to_char(ch, "tailsweep\r\n");
         send_to_char(ch, "breathe\r\n");
@@ -890,8 +883,103 @@ ACMD(do_innates)
       case NPCRACE_ANM_BADGER:
         send_to_char(ch, "rage\r\n");
         break;
+      case NPCRACE_UNDEFINED:
+      case NPCRACE_UNKNOWN:
+      case NPCRACE_HMN_HUMAN:
+      case NPCRACE_UND_GHOUL:
+      case NPCRACE_GNT_HILL:
+      default:
+        send_to_char(ch, "None (yet)\r\n");
+        break;
     }    
-  } else {  // PC's
+  } else {  // PC
+    switch (GET_RACE(ch)) {
+      case RACE_ELF:
+        send_to_char(ch, "elven dexterity (+2 dex)\r\n");
+        send_to_char(ch, "\tRelven constitution (-2 con)\tn\r\n");
+        send_to_char(ch, "elven weapon proficiency (free skill)\r\n");
+        send_to_char(ch, "sleep enchantment immunity\r\n");
+        send_to_char(ch, "infravision\r\n");
+        send_to_char(ch, "keen senses (+2 listen/spot ability)");
+        send_to_char(ch, "resistance to enchantments (+2 save bonus)\r\n");
+        break;
+      case RACE_DWARF:
+        send_to_char(ch, "dwarven constitution (+2 con)\r\n");
+        send_to_char(ch, "\tRdwarven charisma (-2 cha)\tn\r\n");
+        send_to_char(ch, "infravision\r\n");
+        send_to_char(ch, "poison resist (+2 poison save)\r\n");
+        send_to_char(ch, "stability (+4 resist bash/trip)\r\n");
+        send_to_char(ch, "spell hardiness (+2 spell save vs. "
+                "damaging spells)\r\n");
+        send_to_char(ch, "combat training versus giants "
+                "(+1 size bonus vs. larger opponents)\r\n");        
+        break;
+      case RACE_H_ELF:
+        send_to_char(ch, "elven weapon proficiency (free skill)\r\n");
+        send_to_char(ch, "infravision\r\n");
+        send_to_char(ch, "resistance to enchantments (+2 save bpmis)\r\n");
+        break;
+      case RACE_H_ORC:
+        send_to_char(ch, "half orc strength (+2 str)\r\n");
+        send_to_char(ch, "\tRhalf orc charisma (-2 cha)\tn\r\n");
+        send_to_char(ch, "\tRhalf orc intelligence (-2 int)\tn\r\n");
+        send_to_char(ch, "ultravision\r\n");
+        break;
+      case RACE_HALFLING:
+        send_to_char(ch, "halfling dexterity (+2 dex)\r\n");
+        send_to_char(ch, "\thalfling strength (-2 cha)\tn\r\n");
+        send_to_char(ch, "infravision\r\n");
+        send_to_char(ch, "combat training versus giants "
+                "(+1 size bonus vs. larger opponents)\r\n");        
+        break;
+      case RACE_GNOME:
+        send_to_char(ch, "gnomish constitution (+2 con)\r\n");
+        send_to_char(ch, "\tRgnomish strength (-2 str)\tn\r\n");
+        send_to_char(ch, "illusion resist (+2 save bonus)\r\n");
+        send_to_char(ch, "infravision\r\n");
+        send_to_char(ch, "combat training versus giants "
+                "(+1 size bonus vs. larger opponents)\r\n");        
+        break;
+      case RACE_HUMAN:
+        send_to_char(ch, "diverse (+3 training sessions, 1st level)\r\n");
+        send_to_char(ch, "quick learner (+1 training per level)\r\n");
+        send_to_char(ch, "well trained (+1 practice session, 1st level)\r\n");
+        break;
+      case RACE_CRYSTAL_DWARF:
+        send_to_char(ch, "vital (start with +10 hps bonus)\r\n");
+        send_to_char(ch, "hardy (+4 hps bonus per level)\r\n");
+        send_to_char(ch, "resist acid (10%%)\r\n");
+        send_to_char(ch, "resist puncture (10%%)\r\n");
+        send_to_char(ch, "resist poison (10%%)\r\n");
+        send_to_char(ch, "resist disease (10%%)\r\n");
+        send_to_char(ch, "crystal dwarf constitution (+8 con)\r\n");
+        send_to_char(ch, "crystal dwarf strength (+2 str)\r\n");
+        send_to_char(ch, "crystal dwarf wisdom (+2 wis)\r\n");
+        send_to_char(ch, "crystal dwarf charisma (+2 cha)\r\n");
+        send_to_char(ch, "infravision\r\n");
+        send_to_char(ch, "poison resist (+2 poison save)\r\n");
+        send_to_char(ch, "stability (+4 resist bash/trip)\r\n");        
+        send_to_char(ch, "spell hardiness (+2 spell save)\r\n");
+        send_to_char(ch, "combat training versus giants "
+                "(+1 size bonus vs. larger opponents)\r\n");        
+        break;        
+      case RACE_TROLL:
+        send_to_char(ch, "regeneration\r\n");
+        send_to_char(ch, "infravision\r\n");
+        send_to_char(ch, "\tRweakness to fire (50%%)\tn\r\n");
+        send_to_char(ch, "troll constitution (+2 con)\r\n");
+        send_to_char(ch, "troll strength (+2 str)\r\n");
+        send_to_char(ch, "troll dexterity (+2 dex)\r\n");
+        send_to_char(ch, "\tRtroll charisma (-4 cha)\tn\r\n");
+        send_to_char(ch, "\tRtroll intelligence (-4 cha)\tn\r\n");
+        send_to_char(ch, "\tRtroll wisdom (-4 cha)\tn\r\n");
+        send_to_char(ch, "ultravision\r\n");
+        break;
+      default:
+        send_to_char(ch, "None (yet)\r\n");
+        break;
+    }    
+    
   }
 }
 
@@ -948,7 +1036,11 @@ ACMD(do_affects)
 	"\tC-------------- \tWCool Downs\tC -------------------------------\tn\r\n");
   if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
+  if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
+    send_to_char(ch, "Crystal Fist - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
+    send_to_char(ch, "Crystal Body - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
     send_to_char(ch, "Lay on Hands - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
     send_to_char(ch, "Treat Injuries - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
@@ -1037,14 +1129,14 @@ ACMD(do_score)
   else
     send_to_char(ch, " %s", CLASS_ABBR(ch));
 
-  send_to_char(ch, "\r\n\tCLevel:\tn %d    \tCRace:\tn %s    \tCSex:\tn ",
+  send_to_char(ch, "\r\n\tCLevel:\tn %d  \tCRace:\tn %s "
+          "(\tDType 'innates'\tn)  \tCSex:\tn ",
                 GET_LEVEL(ch), RACE_ABBR(ch));
   switch (GET_SEX(ch)) {
     case SEX_MALE: send_to_char(ch, "Male\r\n"); break;
     case SEX_FEMALE: send_to_char(ch, "Female\r\n"); break;
     default: strcat(buf, "Neutral\r\n"); break;
   }
-
 
   send_to_char(ch, "\tCPlaying time:\tn %d \tCdays /\tn %d \tChours\tn\r\n",
 		playing_time.day, playing_time.hours);
@@ -1061,7 +1153,7 @@ ACMD(do_score)
   */
   send_to_char(ch, "\tCAge:\tn %d \tCyrs\tn / %d \tCmths\tn",
           age(ch)->year, age(ch)->month);
-  send_to_char(ch, "  \tCCharacter Size Category:\tn  %s\r\n",
+  send_to_char(ch, "    \tCCharacter Size Category:\tn  %s\r\n",
         size_names[GET_SIZE(ch)]);
 
   send_to_char(ch,
@@ -1091,14 +1183,25 @@ ACMD(do_score)
 
   send_to_char(ch,
 	"\tCSaving Throws:  Fortitude[\tn%d\tC] Reflex[\tn%d\tC] Will[\tn%d\tC]\tn\r\n",
-	compute_mag_saves(ch, ch, SAVING_FORT, 0),
-	compute_mag_saves(ch, ch, SAVING_REFL, 0),
-	compute_mag_saves(ch, ch, SAVING_WILL, 0));
+	compute_mag_saves(ch, SAVING_FORT, 0),
+	compute_mag_saves(ch, SAVING_REFL, 0),
+	compute_mag_saves(ch, SAVING_WILL, 0));
 
   send_to_char(ch,
 "\tC---------------------------------------------------------\tn\r\n");
 
-  send_to_char(ch, "\tCWimpy:\tn %d        ", GET_WIMP_LEV(ch));
+  send_to_char(ch, "\tCWimpy:\tn %d  \tCDivLvl:\tn %d  \tCMgcLvl:\tn %d"
+          "  \tCCstrLvl:\tn %d\r\n",
+          GET_WIMP_LEV(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch),
+          CASTER_LEVEL(ch));
+
+  send_to_char(ch, "\tCExp:\tn %d   \tCExpTNL:\tn: ", GET_EXP(ch));
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    send_to_char(ch, "N/A   ");
+  else
+    send_to_char(ch, "%d   ", 
+	level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
+
   send_to_char(ch, "\tCStatus:\tn ");
   switch (GET_POS(ch)) {
     case POS_DEAD: send_to_char(ch, "Dead\r\n"); break;
@@ -1120,13 +1223,6 @@ ACMD(do_score)
     default: send_to_char(ch, "Floating\r\n"); break;
   }
 
-  send_to_char(ch, "\tCExp:\tn %d     \tCExpTNL:\tn: ", GET_EXP(ch));
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
-    send_to_char(ch, "N/A\r\n");
-  else
-    send_to_char(ch, "%d\r\n", 
-	level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
-
   send_to_char(ch, "\tCQuests completed:\tn %d   \tCQuestPoints:\tn %d   \tCOn Quest:\tn",
        GET_NUM_QUESTS(ch), GET_QUESTPOINTS(ch));
   if (GET_QUEST(ch) == NOTHING)
@@ -1136,7 +1232,7 @@ ACMD(do_score)
                      GET_QUEST(ch) == NOTHING ? -1 : GET_QUEST(ch));
 
   if (GET_AUTOCQUEST_VNUM(ch))
-    send_to_char(ch, "\tCOn Crafting Job:  (%d)%s, using: %s.\r\n", 
+    send_to_char(ch, "\tCOn Crafting Job: (%d) %s, using: %s.\r\n", 
             GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
             material_name[GET_AUTOCQUEST_MATERIAL(ch)]);  
   
@@ -2716,7 +2812,8 @@ ACMD(do_whois)
   sprinttype (victim->player.chclass, pc_class_types, buf, sizeof(buf));
   send_to_char(ch, "Class: %s\r\n", buf);
 
-  send_to_char(ch, "Race : %s\r\n", pc_race_types[(int)GET_RACE(victim)]);
+  send_to_char(ch, "Race : %s (\tDtype 'innates' for more info\tn)\r\n",
+          pc_race_types[(int)GET_RACE(victim)]);
 
   send_to_char(ch, "Level: %d\r\n", GET_LEVEL(victim));
 

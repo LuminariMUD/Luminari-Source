@@ -1153,7 +1153,6 @@ void mag_assign_spells(void)
 	NULL, 14, 1,
 	NOSCHOOL);
 
-
   // magical
 
 /* = =  1st circle  = = */
@@ -1307,11 +1306,11 @@ void mag_assign_spells(void)
 	"The detect magic wears off.", 1, 6, DIVINATION);
   spello(SPELL_DARKNESS, "darkness", 50, 25, 5, POS_STANDING,
 	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_ROOM, 
-	"The cloak of darkness in the area dissolves.", 5, 6, ILLUSION);
+	"The cloak of darkness in the area dissolves.", 5, 6, DIVINATION);
 			/* abjuration */
   spello(SPELL_RESIST_ENERGY, "resist energy", 30, 15, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"Your energy resistance dissapates.", 2, 6,
+	"Your energy resistance dissipates.", 2, 6,
 	ABJURATION);  // mage 1, cleric 1
   spello(SPELL_ENERGY_SPHERE, "energy sphere", 37, 22, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,

@@ -486,7 +486,7 @@ const char *skill_name(int num);
 
 
 /* From magic.c */
-int compute_mag_saves(struct char_data *ch, struct char_data *vict,
+int compute_mag_saves(struct char_data *vict,
 	int type, int modifier);
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
 	int type, int modifier);

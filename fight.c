@@ -161,74 +161,24 @@ void appear(struct char_data *ch)
 
 }
 
-
-// A attacking B
+// computing size bonuses in AC/damage
+//  A attacking B 
+// defense, the defender should get this 'bonus'
+// offense, the attack should get this 'bonus'
 int compute_size_bonus(int sizeA, int sizeB)
 {
-  int bonus = 0;
 
-  // attacker
-  switch (sizeA) {
-    case SIZE_FINE:
-      bonus += 8;
-      break;
-    case SIZE_DIMINUTIVE:
-      bonus += 4;
-      break;
-    case SIZE_TINY:
-      bonus += 2;
-      break;
-    case SIZE_SMALL:
-      bonus += 1;
-      break;
-    case SIZE_LARGE:
-      bonus -= 1;
-      break;
-    case SIZE_HUGE:
-      bonus -= 2;
-      break;
-    case SIZE_GARGANTUAN:
-      bonus -= 4;
-      break;
-    case SIZE_COLOSSAL:
-      bonus -= 8;
-      break;
-    default:
-      //medium
-      break;
-  }
-  // defender
-  switch (sizeB) {
-    case SIZE_FINE:
-      bonus -= 8;
-      break;
-    case SIZE_DIMINUTIVE:
-      bonus -= 4;
-      break;
-    case SIZE_TINY:
-      bonus -= 2;
-      break;
-    case SIZE_SMALL:
-      bonus -= 1;
-      break;
-    case SIZE_LARGE:
-      bonus += 1;
-      break;
-    case SIZE_HUGE:
-      bonus += 2;
-      break;
-    case SIZE_GARGANTUAN:
-      bonus += 4;
-      break;
-    case SIZE_COLOSSAL:
-      bonus += 8;
-      break;
-    default:
-      //medium
-      break;
-  }
-
-  return bonus;
+  // necessary and dummy checks
+  if (sizeB < SIZE_FINE)
+    sizeB = SIZE_FINE;
+  if (sizeB > SIZE_COLOSSAL)
+    sizeB = SIZE_COLOSSAL;
+  if (sizeA < SIZE_FINE)
+    sizeA = SIZE_FINE;
+  if (sizeA > SIZE_COLOSSAL)
+    sizeA = SIZE_COLOSSAL;
+  
+  return ((sizeB - sizeA) * 2);
 }
 
 
@@ -242,8 +192,16 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch)
   if (AWAKE(ch))
     armorclass += GET_DEX_BONUS(ch);
 
-  if (attacker)
-    armorclass += compute_size_bonus(GET_SIZE(attacker), GET_SIZE(ch));
+  if (attacker) {  /* dwarf dwarven bonus vs. larger opponents */
+    if ((GET_RACE(ch) == RACE_DWARF ||
+            GET_RACE(ch) == RACE_CRYSTAL_DWARF ||
+            GET_RACE(ch) == RACE_GNOME ||
+            GET_RACE(ch) == RACE_HALFLING
+            ) && GET_SIZE(attacker) > GET_SIZE(ch))
+      armorclass += compute_size_bonus(GET_SIZE(attacker), (GET_SIZE(ch)-1));
+    else
+      armorclass += compute_size_bonus(GET_SIZE(attacker), GET_SIZE(ch));      
+  }
 
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_TUMBLE)) //caps at 5
     armorclass += MIN(5, (int)(compute_ability(ch, ABILITY_TUMBLE)/5));
@@ -754,7 +712,8 @@ static void perform_group_gain(struct char_data *ch, int base,
     share = MIN(CONFIG_MAX_EXP_GAIN, MAX(1, hap_share));
   }
   if (share > 1)
-    send_to_char(ch, "You receive your share of experience -- %d points.\r\n", gain_exp(ch, share));
+    send_to_char(ch, "You receive your share of experience -- %d points.\r\n",
+            gain_exp(ch, share));
   else {
     send_to_char(ch, "You receive your share of experience -- one measly little point!\r\n");
     gain_exp(ch, share);
@@ -800,12 +759,14 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
 
   exp = MIN(CONFIG_MAX_EXP_GAIN, GET_EXP(victim) / 3);
 
-  /* Calculate level-difference bonus */
-  if (IS_NPC(ch))
-    exp += MAX(0, (exp * MIN(4, (GET_LEVEL(victim) - GET_LEVEL(ch)))) / 8);
-  else
-    exp += MAX(0, (exp * MIN(8, (GET_LEVEL(victim) - GET_LEVEL(ch)))) / 8);
-
+          /* Calculate level-difference bonus */
+  if (GET_LEVEL(victim) < GET_LEVEL(ch)) {
+    if (IS_NPC(ch))
+      exp += MAX(0, (exp * MIN(4, (GET_LEVEL(victim) - GET_LEVEL(ch)))) / 8);
+    else
+      exp += MAX(0, (exp * MIN(8, (GET_LEVEL(victim) - GET_LEVEL(ch)))) / 8);
+    }
+  
   exp = MAX(exp, 1);
 
   /* if mob isn't within 3 levels, don't give xp -zusuk */
@@ -1135,6 +1096,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += 10;
       break;
     case DAM_ACID:
+      if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+        damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
@@ -1149,14 +1112,20 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
     case DAM_SLICE:
       break;
     case DAM_PUNCTURE:
+      if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+        damtype_reduction += 10;
       break;
     case DAM_FORCE:
       break;
     case DAM_SOUND:
       break;
     case DAM_POISON:
+      if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+        damtype_reduction += 10;
       break;
     case DAM_DISEASE:
+      if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+        damtype_reduction += 10;
       break;
     case DAM_NEGATIVE:
       break;
@@ -1187,7 +1156,9 @@ int compute_damage_reduction(struct char_data *ch)
     damage_reduction += 3;
   if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DAMAGE_REDUC_3))
     damage_reduction += 3;
-
+  if (char_has_mud_event(ch, eCRYSTALBODY))
+    damage_reduction += 3;
+  
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
 }
@@ -1555,13 +1526,19 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   else
     dambonus += GET_STR_BONUS(ch);
   
+  //size
+  dambonus += compute_size_bonus(GET_SIZE(ch), GET_SIZE(vict));  
+  
   //damroll (should be mostly just gear)
   dambonus += GET_DAMROLL(ch);
 
   // other bonuses
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
     dambonus += 5;
-
+  if (char_has_mud_event(ch, eCRYSTALFIST))
+    dambonus += 3;
+  
+  /**** display, keep mods above this *****/
   if (mode == 2 || mode ==3) {
     send_to_char(ch, "Dam Bonus:  %d, ", dambonus);
   }
@@ -1682,7 +1659,7 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
 //mode = 0	Normal damage calculating in hit()
 //mode = 2	Display damage info primary
 //mode = 3	Display damage info offhand
-int calculate_hit_damage(struct char_data *ch, struct char_data *victim,
+int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 	struct obj_data *wielded, int w_type, int diceroll, int mode)
 {
   int dam = 0;
@@ -1974,7 +1951,7 @@ void hit(struct char_data *ch, struct char_data *victim,
     }
 
     //calculate damage
-    dam = calculate_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
+    dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
     if ((dam = handle_warding(ch, victim, dam)) == -1)
       return;
 
@@ -2025,11 +2002,11 @@ int perform_attacks(struct char_data *ch, int mode)
 	penalty * 2, TRUE);
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
-	compute_bab(ch, ch, 0) + penalty);
-      calculate_hit_damage(ch, ch, NULL, 0, 0, 2);
+	 compute_bab(ch, ch, 0) + penalty);
+      compute_hit_damage(ch, ch, NULL, 0, 0, 2);
       send_to_char(ch, "Offhand, Attack Bonus:  %d; ",
-	compute_bab(ch, ch, 0) + penalty * 2);
-      calculate_hit_damage(ch, ch, NULL, 0, 0, 3);
+	 compute_bab(ch, ch, 0) + penalty * 2);
+      compute_hit_damage(ch, ch, NULL, 0, 0, 3);
     }
   } else {
     //default of one attack for everyone
@@ -2038,8 +2015,8 @@ int perform_attacks(struct char_data *ch, int mode)
       hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
-	compute_bab(ch, ch, 0) + penalty);
-      calculate_hit_damage(ch, ch, NULL, 0, 0, 2);
+	 compute_bab(ch, ch, 0) + penalty);
+      compute_hit_damage(ch, ch, NULL, 0, 0, 2);
     }
   }
   if (AFF_FLAGGED(ch, AFF_HASTE) ||
@@ -2049,8 +2026,8 @@ int perform_attacks(struct char_data *ch, int mode)
       hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand (Haste), Attack Bonus:  %d; ",
-	compute_bab(ch, ch, 0) + penalty);
-      calculate_hit_damage(ch, ch, NULL, 0, 0, 2);
+	 compute_bab(ch, ch, 0) + penalty);
+      compute_hit_damage(ch, ch, NULL, 0, 0, 2);
     }
   }
 
@@ -2080,13 +2057,13 @@ int perform_attacks(struct char_data *ch, int mode)
     if (FIGHTING(ch) && mode == 0) {
       update_pos(FIGHTING(ch));
       if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
-	IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch)) {
+	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch)) {
         hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
       }
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand Bonus %d, Attack Bonus:  %d; ",
-	i + 1, compute_bab(ch, ch, 0) + penalty);
-      calculate_hit_damage(ch, ch, NULL, 0, 0, 2);
+	   i + 1, compute_bab(ch, ch, 0) + penalty);
+      compute_hit_damage(ch, ch, NULL, 0, 0, 2);
     }
   }
 
@@ -2098,8 +2075,8 @@ int perform_attacks(struct char_data *ch, int mode)
         hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY, TRUE);
       } else if (mode == 2) {
         send_to_char(ch, "Offhand (2 Weapon Fighting), Attack Bonus:  %d; ",
-		compute_bab(ch, ch, 0) + TWO_WPN_PNLTY);
-        calculate_hit_damage(ch, ch, NULL, 0, 0, 3);
+	   compute_bab(ch, ch, 0) + TWO_WPN_PNLTY);
+        compute_hit_damage(ch, ch, NULL, 0, 0, 3);
       }
     }
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_EPIC_2_WEAPON)) {
@@ -2108,8 +2085,8 @@ int perform_attacks(struct char_data *ch, int mode)
         hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLY, TRUE);
       } else if (mode == 2) {
         send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",
-		compute_bab(ch, ch, 0) + EPIC_TWO_PNLY);
-        calculate_hit_damage(ch, ch, NULL, 0, 0, 3);
+	   compute_bab(ch, ch, 0) + EPIC_TWO_PNLY);
+        compute_hit_damage(ch, ch, NULL, 0, 0, 3);
       }
     }
   }

@@ -862,6 +862,16 @@ bool char_has_infra(struct char_data *ch)
 
   if (GET_RACE(ch) == RACE_ELF)
     return TRUE;
+  if (GET_RACE(ch) == RACE_DWARF)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_H_ELF)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_HALFLING)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_GNOME)
+    return TRUE;
 
   return FALSE;
 }
@@ -873,6 +883,8 @@ bool char_has_ultra(struct char_data *ch)
     return TRUE;
 
   if (GET_RACE(ch) == RACE_TROLL)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_H_ORC)
     return TRUE;
 
   return FALSE;

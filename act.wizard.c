@@ -749,6 +749,7 @@ static void do_affstat_character(struct char_data *ch, struct char_data *k)
 {
   char buf[MAX_STRING_LENGTH];
   struct affected_type *aff;
+  struct mud_event_data *pMudEvent;  
   int i;
 
   send_to_char(ch,
@@ -784,30 +785,50 @@ static void do_affstat_character(struct char_data *ch, struct char_data *k)
 "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
 
   send_to_char(ch, "\tCCooldowns (positive and negative):\tn\r\n");
-  if (char_has_mud_event(k, eTAUNT))
-    send_to_char(ch, "Taunt\r\n");
-  if (char_has_mud_event(k, eLAYONHANDS))
-    send_to_char(ch, "Lay on Hands\r\n");
-  if (char_has_mud_event(k, eTREATINJURY))
-    send_to_char(ch, "Treat Injuries\r\n");
-  if (char_has_mud_event(k, eMUMMYDUST))
-    send_to_char(ch, "Epic Spell:  Mummy Dust\r\n");
-  if (char_has_mud_event(k, eDRAGONKNIGHT))
-    send_to_char(ch, "Epic Spell:  Dragon Knight\r\n");
-  if (char_has_mud_event(k, eGREATERRUIN))
-    send_to_char(ch, "Epic Spell:  Greater Ruin\r\n");
-  if (char_has_mud_event(k, eHELLBALL))
-    send_to_char(ch, "Epic Spell:  Hellball\r\n");
-  if (char_has_mud_event(k, eEPICMAGEARMOR))
-    send_to_char(ch, "Epic Spell:  Epic Mage Armor\r\n");
-  if (char_has_mud_event(k, eEPICWARDING))
-    send_to_char(ch, "Epic Spell:  Epic Warding\r\n");
-  if (char_has_mud_event(k, eTAUNTED))
-    send_to_char(ch, "Taunted!\r\n");
-  if (char_has_mud_event(k, eSTUNNED))
-    send_to_char(ch, "Stunned!\r\n");
-  if (char_has_mud_event(k, eSTUNNINGFIST))
-    send_to_char(ch, "Stunning Fist\r\n");
+  if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
+    send_to_char(ch, "Taunt - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
+    send_to_char(ch, "Crystal Fist - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
+    send_to_char(ch, "Crystal Body - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
+    send_to_char(ch, "Lay on Hands - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
+    send_to_char(ch, "Treat Injuries - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eMUMMYDUST)))
+    send_to_char(ch, "Epic Spell:  Mummy Dust - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eDRAGONKNIGHT)))
+    send_to_char(ch, "Epic Spell:  Dragon Knight - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eGREATERRUIN)))
+    send_to_char(ch, "Epic Spell:  Greater Ruin - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eHELLBALL)))
+    send_to_char(ch, "Epic Spell:  Hellball - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eEPICMAGEARMOR)))
+    send_to_char(ch, "Epic Spell:  Epic Mage Armor - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
+    send_to_char(ch, "Epic Spell:  Epic Warding - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eSTUNNINGFIST)))
+    send_to_char(ch, "Stunning Fist - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  send_to_char(ch, 
+"\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
+  if ((pMudEvent = char_has_mud_event(ch, eTAUNTED)))
+    send_to_char(ch, "\tRTaunted!\tn - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eSTUNNED)))
+    send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));
 
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\tCDamType Resist / Vulner\tn\r\n");
@@ -1040,6 +1061,11 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
 
   send_to_char(ch, "\tCMemming? \tn%d\tC, Praying? \tn%d\tC, Communing? \tn%d\r\n", 
 	PRAYIN(k, 2), PRAYIN(k, 0), PRAYIN(k, 1));
+  
+  send_to_char(ch, "\tCWimpy:\tn %d  \tCDivLvl:\tn %d  \tCMgcLvl:\tn %d"
+          "  \tCCstrLvl:\tn %d\r\n",
+          GET_WIMP_LEV(k), DIVINE_LEVEL(k), MAGIC_LEVEL(k),
+          CASTER_LEVEL(k));  
 
   send_to_char(ch,
 "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");

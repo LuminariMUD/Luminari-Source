@@ -371,9 +371,13 @@ int compute_ability(struct char_data *ch, int abilityNum)
 		return value; 
 	case ABILITY_SPOT:
 		value += GET_WIS_BONUS(ch);
+          if (GET_RACE(ch) == RACE_ELF)
+            value += 2;
 		return value; 
 	case ABILITY_LISTEN:
 		value += GET_WIS_BONUS(ch);
+          if (GET_RACE(ch) == RACE_ELF)
+            value += 2;
 		return value; 
 	case ABILITY_TREAT_INJURY:
 		value += GET_WIS_BONUS(ch);
