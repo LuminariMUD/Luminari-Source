@@ -1146,7 +1146,7 @@ int level_exp(struct char_data *ch, int level)
       exp *= 2;
       break;
     case RACE_CRYSTAL_DWARF:
-      exp *= 1000;
+      exp *= 75;
       break;
     default:
       break;

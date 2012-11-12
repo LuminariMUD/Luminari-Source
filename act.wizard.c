@@ -788,13 +788,13 @@ static void do_affstat_character(struct char_data *ch, struct char_data *k)
   if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n",
             (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
+  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
     send_to_char(ch, "Crystal Fist - Duration: %d seconds\r\n",
             (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
+  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
     send_to_char(ch, "Crystal Body - Duration: %d seconds\r\n",
             (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
+  if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
     send_to_char(ch, "Lay on Hands - Duration: %d seconds\r\n",
             (int)(event_time(pMudEvent->pEvent)/10));
   if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
@@ -888,15 +888,15 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
 
   if (IS_NPC(k)) {
     if (GET_RACE(k) >= 0)
-      send_to_char(ch, "\tCMobile Race:\tn %s.  ", npc_race_types[GET_RACE(k)]);
+      send_to_char(ch, "\tCMobile Race:\tn %s  ", npc_race_types[GET_RACE(k)]);
     else
-      send_to_char(ch, "\tCMobile Race undefined.\tn  ");
+      send_to_char(ch, "\tCRace Undefined\tn  ");
   } else if (IS_MORPHED(ch)) {
-    send_to_char(ch, "\tCMorphed Race:\tn %s.  ", npc_race_types[IS_MORPHED(k)]);
+    send_to_char(ch, "\tCMorphRace:\tn %s  ", npc_race_types[IS_MORPHED(k)]);
   } else {
-    send_to_char(ch, "\tCRace:\tn %s.  ", pc_race_types[GET_RACE(k)]);
+    send_to_char(ch, "\tCRace:\tn %s  ", RACE_ABBR(k));
   }
-  send_to_char(ch, "\tCCurrent Class:\tn %s.  ", pc_class_types[GET_CLASS(k)]);
+  send_to_char(ch, "\tCCrntClass:\tn %s  ", pc_class_types[GET_CLASS(k)]);
   send_to_char(ch, "\tCLvl: [\tn%d\tC]  XP: [\tn%d\tC]  Algn: [\tn%d\tC]\tn\r\n",
 	GET_LEVEL(k), GET_EXP(k), GET_ALIGNMENT(k));
 
@@ -973,8 +973,9 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
 	  GET_GOLD(k), GET_BANK_GOLD(k), GET_GOLD(k) + GET_BANK_GOLD(k));
 
   if (!IS_NPC(k))
-    send_to_char(ch, "\tCScreen [\tn%d\tCx\tn%d\tC]\tn\r\n",
+    send_to_char(ch, "\tCScreen [\tn%d\tCx\tn%d\tC]\tn",
       GET_SCREEN_WIDTH(k), GET_PAGE_LENGTH(k));
+  send_to_char(ch, "\r\n");
 
   send_to_char(ch, "\tCAC: [\tn%d\tC/\tn%d\tC], Hitroll: [\tn%d\tC/\tn%d\tC], Damroll: [\tn%d\tC/\tn%d\tC],\tn "
     "\tCSaving throws: [\tn%d\tC/\tn%d\tC/\tn%d\tC/\tn%d\tC/\tn%d\tC]\tn\r\n",
@@ -1021,8 +1022,8 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
       GET_QUEST(k), GET_QUEST_TIME(k));
     }
 
-    send_to_char(ch, "\tCACraft Info:\tn Vnum: %d, Make#: %d, QP: %d, Exp: %d, "
-                     "Gold: %d, Desc: %s, Mat: %s.\r\n",
+    send_to_char(ch, "\tCacVnum:\tn %d \tC#:\tn %d\tC QP:\tn %d\tC xp:\tn %d\tC "
+                     "G:\tn %d\tC Dsc:\tn %s\tC, Mat:\tn %s\r\n",
                  GET_AUTOCQUEST_VNUM(ch),
                  GET_AUTOCQUEST_MAKENUM(ch),
                  GET_AUTOCQUEST_QP(ch),
