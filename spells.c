@@ -286,18 +286,24 @@ ASPELL(spell_locate_object)
   }
 }
 
-ASPELL(spell_charm)
+ASPELL(spell_charm)  // enchantment
 {
   struct affected_type af;
-
+  int elf_bonus = 0;
+  
   if (victim == NULL || ch == NULL)
     return;
 
+  if (GET_RACE(victim) == RACE_ELF ||  //elven enchantment resistance
+          GET_RACE(victim) == RACE_H_ELF)
+    elf_bonus += 2;
+  
   if (victim == ch)
     send_to_char(ch, "You like yourself even better!\r\n");
 
   else if (MOB_FLAGGED(victim, MOB_NOCHARM)) {
-    send_to_char(ch, "Your victim doesn't seem vulnerable to charm enchantments!\r\n");
+    send_to_char(ch, "Your victim doesn't seem vulnerable to charm "
+            "enchantments!\r\n");
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
@@ -324,7 +330,7 @@ ASPELL(spell_charm)
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
 
-  else if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+  else if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
     send_to_char(ch, "Your victim resists!\r\n");
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -347,10 +353,11 @@ ASPELL(spell_charm)
 //    if (IS_NPC(victim))
 //      REMOVE_BIT_AR(MOB_FLAGS(victim), MOB_SPEC);
   }
+  // should never get here
 }
 
 
-ASPELL(spell_identify)
+ASPELL(spell_identify)  // divination
 {
   int i, found;
   size_t len;
@@ -456,7 +463,7 @@ ASPELL(spell_identify)
 
 /* Cannot use this spell on an equipped object or it will mess up the wielding
  * character's hit/dam totals. */
-ASPELL(spell_enchant_weapon)
+ASPELL(spell_enchant_weapon)  // enchantment
 {
   int i;
 

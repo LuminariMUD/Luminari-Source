@@ -1330,7 +1330,7 @@ extern int assembly_skills[NUM_CRAFT];
 #define IS_THIEF(ch)		(CLASS_LEVEL(ch, CLASS_THIEF))
 #define IS_WARRIOR(ch)		(CLASS_LEVEL(ch, CLASS_WARRIOR))
 #define IS_MONK(ch)		(CLASS_LEVEL(ch, CLASS_MONK))
-#define	IS_CASTER(ch)	(IS_CLERIC(ch) || IS_MAGIC_USER(ch) || IS_DRUID(ch))
+#define IS_CASTER(ch)	(IS_CLERIC(ch) || IS_MAGIC_USER(ch) || IS_DRUID(ch))
 
 
 #define RACE_ABBR(ch)	( IS_NPC(ch) ?  \
@@ -1348,6 +1348,16 @@ extern int assembly_skills[NUM_CRAFT];
         (GET_RACE(ch) == RACE_DWARF))
 #define IS_TROLL(ch)            (!IS_NPC(ch) && \
         (GET_RACE(ch) == RACE_TROLL))
+#define IS_CRYSTAL_DWARF(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_CRYSTAL_DWARF))
+#define IS_HALFLING(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_HALFLING))
+#define IS_H_ELF(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_H_ELF))
+#define IS_H_ORC(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_H_ORC))
+#define IS_GNOME(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_GNOME))
 
 
 // IS_race for various morph/shapechange equivalent of npc races

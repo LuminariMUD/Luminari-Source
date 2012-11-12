@@ -213,13 +213,18 @@
 
 
 // Races
-#define RACE_UNDEFINED  (-1) /*Race Undefined*/
-#define RACE_HUMAN      0 /* Race Human */
-#define RACE_ELF        1 /* Race Elf   */
-#define RACE_DWARF      2 /* Race Dwarf */
-#define RACE_TROLL      3 /* Race Troll */
+#define RACE_UNDEFINED     (-1) /*Race Undefined*/
+#define RACE_HUMAN         0 /* Race Human */
+#define RACE_ELF           1 /* Race Elf   */
+#define RACE_DWARF         2 /* Race Dwarf */
+#define RACE_TROLL         3 /* Race Troll */
+#define RACE_CRYSTAL_DWARF 4  /* crystal dwarf (epic) */
+#define RACE_HALFLING      5  // halfling
+#define RACE_H_ELF         6  // half elf
+#define RACE_H_ORC         7  // half orc
+#define RACE_GNOME         8  // gnome
 /* Total Number of available PC Races*/
-#define NUM_RACES       4
+#define NUM_RACES          9
 
 
 // NPC races, sub-race abbreviations described in comments in first instance
@@ -572,33 +577,38 @@
 #define NUM_ITEM_WEARS    15
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
-#define ITEM_GLOW              0   /**< Item is glowing */
-#define ITEM_HUM               1   /**< Item is humming */
-#define ITEM_NORENT            2   /**< Item cannot be rented */
-#define ITEM_NODONATE          3   /**< Item cannot be donated */
-#define ITEM_NOINVIS           4   /**< Item cannot be made invis	*/
-#define ITEM_INVISIBLE         5   /**< Item is invisible */
-#define ITEM_MAGIC             6   /**< Item is magical */
-#define ITEM_NODROP            7   /**< Item is cursed: can't drop */
-#define ITEM_BLESS             8   /**< Item is blessed */
-#define ITEM_ANTI_GOOD         9   /**< Not usable by good people	*/
-#define ITEM_ANTI_EVIL        10   /**< Not usable by evil people	*/
-#define ITEM_ANTI_NEUTRAL     11   /**< Not usable by neutral people */
-#define ITEM_ANTI_MAGIC_USER  12   /**< Not usable by mages */
-#define ITEM_ANTI_CLERIC      13   /**< Not usable by clerics */
-#define ITEM_ANTI_THIEF	      14   /**< Not usable by thieves */
-#define ITEM_ANTI_WARRIOR     15   /**< Not usable by warriors */
-#define ITEM_NOSELL           16   /**< Shopkeepers won't touch it */
-#define ITEM_QUEST            17   /**< Item is a quest item         */
-#define ITEM_ANTI_HUMAN       18   /* Not usable by Humans*/
-#define ITEM_ANTI_ELF         19   /* Not usable by Elfs */
-#define ITEM_ANTI_DWARF       20   /* Not usable by Dwarf*/
-#define ITEM_ANTI_TROLL       21   /* Not usable by Troll */
-#define ITEM_ANTI_MONK		22   /**< Not usable by monks */
-#define ITEM_ANTI_DRUID		23   // not usable by druid
-#define ITEM_MOLD             24
+#define ITEM_GLOW                 0   /**< Item is glowing */
+#define ITEM_HUM                  1   /**< Item is humming */
+#define ITEM_NORENT               2   /**< Item cannot be rented */
+#define ITEM_NODONATE             3   /**< Item cannot be donated */
+#define ITEM_NOINVIS              4   /**< Item cannot be made invis	*/
+#define ITEM_INVISIBLE            5   /**< Item is invisible */
+#define ITEM_MAGIC                6   /**< Item is magical */
+#define ITEM_NODROP               7   /**< Item is cursed: can't drop */
+#define ITEM_BLESS                8   /**< Item is blessed */
+#define ITEM_ANTI_GOOD            9   /**< Not usable by good people	*/
+#define ITEM_ANTI_EVIL            10   /**< Not usable by evil people	*/
+#define ITEM_ANTI_NEUTRAL         11   /**< Not usable by neutral people */
+#define ITEM_ANTI_MAGIC_USER      12   /**< Not usable by mages */
+#define ITEM_ANTI_CLERIC          13   /**< Not usable by clerics */
+#define ITEM_ANTI_THIEF	         14   /**< Not usable by thieves */
+#define ITEM_ANTI_WARRIOR         15   /**< Not usable by warriors */
+#define ITEM_NOSELL               16   /**< Shopkeepers won't touch it */
+#define ITEM_QUEST                17   /**< Item is a quest item         */
+#define ITEM_ANTI_HUMAN           18   /* Not usable by Humans*/
+#define ITEM_ANTI_ELF             19   /* Not usable by Elfs */
+#define ITEM_ANTI_DWARF           20   /* Not usable by Dwarf*/
+#define ITEM_ANTI_TROLL           21   /* Not usable by Troll */
+#define ITEM_ANTI_MONK		    22   /**< Not usable by monks */
+#define ITEM_ANTI_DRUID		    23   // not usable by druid
+#define ITEM_MOLD                 24
+#define ITEM_ANTI_CRYSTAL_DWARF   25   /* Not usable by C Dwarf*/
+#define ITEM_ANTI_HALFLING        26   /* Not usable by halfling*/
+#define ITEM_ANTI_H_ELF           27   /* Not usable by half elf*/
+#define ITEM_ANTI_H_ORC           28   /* Not usable by half orc*/
+#define ITEM_ANTI_GNOME           29   /* Not usable by gnome */
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS    25
+#define NUM_ITEM_FLAGS            30
 
 
 /* Modifier constants used with obj affects ('A' fields) */

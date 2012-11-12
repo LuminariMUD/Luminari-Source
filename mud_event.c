@@ -21,25 +21,27 @@ struct list_data * world_events = NULL;
 /* The mud_event_index[] is merely a tool for organizing events, and giving
  * them a "const char *" name to help in potential debugging */
 struct mud_event_list mud_event_index[] = {
-  { "Null"        	 , NULL           , 	-1          }, /* eNULL */
-  { "Protocol"    	 , get_protocols  , 	EVENT_DESC  }, /* ePROTOCOLS */
-  { "Whirlwind"   	 , event_whirlwind, 	EVENT_CHAR  }, /* eWHIRLWIND */
-  { "Regen"   		 , event_regen, 	EVENT_CHAR  }, /* eREGEN */
-  { "Casting"  		 , event_casting, 	EVENT_CHAR  },  /* eCASTING */
-  { "Lay on hands"	, event_countdown,	EVENT_CHAR	}, // eLAYONHANDS
-  { "Treat injury"	, event_countdown,	EVENT_CHAR	}, // eTREATINJURY
-  { "Taunt"	,	 event_countdown,	EVENT_CHAR	}, // eTAUNT
-  { "Taunted"	, event_countdown,	EVENT_CHAR	}, // eTAUNTED
-  { "Mummy dust"	, event_countdown,	EVENT_CHAR	}, // eMUMMYDUST
-  { "Dragon knight"	, event_countdown,	EVENT_CHAR	}, //  eDRAGONKNIGHT
-  { "Greater ruin"	, event_countdown,	EVENT_CHAR	}, // eGREATERRUIN
-  { "Hellball"	, event_countdown,	EVENT_CHAR	}, // eHELLBALL
-  { "Epic mage armor"	, event_countdown,	EVENT_CHAR	}, // eEPICMAGEARMOR
-  { "Epic warding"	, event_countdown,	EVENT_CHAR	}, // eEPICWARDING
-  { "Memorizing"  	 , event_memorizing, 	EVENT_CHAR  }, //eMEMORIZING 
-  { "Stunned"  	 , event_countdown, 	EVENT_CHAR  }, //eSTUNNED
-  { "Stunning fist"  	 , event_countdown, 	EVENT_CHAR  }, //eSTUNNINGFIST 
-  { "Crafting"  		 , event_crafting, 	EVENT_CHAR  },  //eCRAFTING
+  { "Null"        	     , NULL           , 	-1          }, /* eNULL */
+  { "Protocol"    	     , get_protocols  , 	EVENT_DESC  }, /* ePROTOCOLS */
+  { "Whirlwind"   	     , event_whirlwind, 	EVENT_CHAR  }, /* eWHIRLWIND */
+  { "Regen"   		     , event_regen, 	EVENT_CHAR  }, /* eREGEN */
+  { "Casting"            , event_casting, 	EVENT_CHAR  },  /* eCASTING */
+  { "Lay on hands"       , event_countdown,	EVENT_CHAR  }, // eLAYONHANDS
+  { "Treat injury"	     , event_countdown,	EVENT_CHAR  }, // eTREATINJURY
+  { "Taunt"	          , event_countdown,	EVENT_CHAR  }, // eTAUNT
+  { "Taunted"	          , event_countdown,	EVENT_CHAR  }, // eTAUNTED
+  { "Mummy dust"	     , event_countdown,	EVENT_CHAR  }, // eMUMMYDUST
+  { "Dragon knight"	     , event_countdown,	EVENT_CHAR  }, //  eDRAGONKNIGHT
+  { "Greater ruin"	     , event_countdown,	EVENT_CHAR  }, // eGREATERRUIN
+  { "Hellball"	          , event_countdown,	EVENT_CHAR  }, // eHELLBALL
+  { "Epic mage armor"	, event_countdown,	EVENT_CHAR  }, // eEPICMAGEARMOR
+  { "Epic warding"	     , event_countdown,	EVENT_CHAR  }, // eEPICWARDING
+  { "Memorizing"  	     , event_memorizing, EVENT_CHAR  }, //eMEMORIZING 
+  { "Stunned"  	     , event_countdown, 	EVENT_CHAR  }, //eSTUNNED
+  { "Stunning fist"  	, event_countdown, 	EVENT_CHAR  }, //eSTUNNINGFIST 
+  { "Crafting"  		, event_crafting, 	EVENT_CHAR  },  //eCRAFTING
+  { "Crystal fist"       , event_countdown, 	EVENT_CHAR  },  //eCRYSTALFIST
+  { "Crystal body"       , event_countdown, 	EVENT_CHAR  },  //eCRYRSTALBODY
 
 };
 
@@ -109,6 +111,14 @@ EVENTFUNC(event_countdown)
     case eSTUNNINGFIST:
       send_to_char(ch, "You are now able to strike with your stunning"
                        " fist again.\r\n");
+      break;
+    case eCRYSTALFIST:
+      send_to_char(ch, "You are now able to use crystal"
+                       " fist again.\r\n");
+      break;
+    case eCRYSTALBODY:
+      send_to_char(ch, "You are now able to use crystal"
+                       " body again.\r\n");
       break;
     default:
     break;

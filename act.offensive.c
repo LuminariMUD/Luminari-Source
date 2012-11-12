@@ -716,6 +716,10 @@ ACMD(do_bash)
   
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     percent += compute_ability(vict, ABILITY_DISCIPLINE);
+  
+  if (GET_RACE(ch) == RACE_DWARF ||
+          GET_RACE(ch) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
+    percent += 4;
 
   if (percent > prob) {
     GET_POS(ch) = POS_SITTING;
@@ -795,7 +799,10 @@ ACMD(do_trip)
 
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     percent += compute_ability(vict, ABILITY_DISCIPLINE);
-
+  if (GET_RACE(ch) == RACE_DWARF ||
+          GET_RACE(ch) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
+    percent += 4;
+  
   if (percent > prob) {
     GET_POS(ch) = POS_SITTING;
     damage(ch, vict, 0, SKILL_TRIP, DAM_FORCE, FALSE);
@@ -843,6 +850,49 @@ ACMD(do_layonhands)
 }
 
 
+ACMD(do_crystalfist)
+{
+  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
+    send_to_char(ch, "How do you plan on doing that?\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eCRYSTALFIST)) {
+    send_to_char(ch, "You must wait longer before you can use "
+            "this ability again.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "\tCYour hands and harms grow LARGE crystals!\tn\r\n");
+  act("\tCYou watch as $n's arms and hands grow LARGE crystals!\tn",
+          FALSE, ch, 0, 0, TO_NOTVICT);
+  attach_mud_event(new_mud_event(eCRYSTALFIST, ch, NULL),
+          (8 * SECS_PER_MUD_HOUR));
+}
+
+
+ACMD(do_crystalbody)
+{
+  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
+    send_to_char(ch, "How do you plan on doing that?\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eCRYSTALBODY)) {
+    send_to_char(ch, "You must wait longer before you can use "
+            "this ability again.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "\tCYour crystla-like body becomes harder!\tn\r\n");
+  act("\tCYou watch as $n's crystal-like body becomes harder!\tn",
+          FALSE, ch, 0, 0, TO_NOTVICT);
+  attach_mud_event(new_mud_event(eCRYSTALFIST, ch, NULL),
+          (8 * SECS_PER_MUD_HOUR));
+}
+
+
+
 ACMD(do_treatinjury)
 {
   char arg[MAX_INPUT_LENGTH];
@@ -860,14 +910,16 @@ ACMD(do_treatinjury)
   }
 
   if (char_has_mud_event(ch, eTREATINJURY)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    send_to_char(ch, "You must wait longer before you can use this "
+            "ability again.\r\n");
     return;
   }
 
   send_to_char(ch, "You skillfully dress the wounds...\r\n");
   act("Your injuries are \tWtreated\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
   act("$n \tWtreats\tn $N's injuries!", FALSE, ch, 0, vict, TO_NOTVICT);
-  attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL), 4 * SECS_PER_MUD_HOUR);
+  attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL),
+          (6 * SECS_PER_MUD_HOUR));
   GET_HIT(vict) += 10 + (compute_ability(ch, ABILITY_TREAT_INJURY) * 2);
   GET_MANA(vict) += 10 + (compute_ability(ch, ABILITY_TREAT_INJURY) * 2);
   update_pos(vict);
@@ -1016,6 +1068,7 @@ EVENTFUNC(event_regen)
 //      if (AFF_FLAGGED(ch, AFF_REGEN))
 //        hp *= 2;
 
+  // troll racial innate regeneration
   if (GET_RACE(ch) == RACE_TROLL) {
     hp *= 2;
     if (FIGHTING(ch))
