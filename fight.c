@@ -1527,7 +1527,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += GET_STR_BONUS(ch);
   
   //size
-  dambonus += compute_size_bonus(GET_SIZE(ch), GET_SIZE(vict));  
+  if (vict)
+    dambonus += compute_size_bonus(GET_SIZE(ch), GET_SIZE(vict));  
   
   //damroll (should be mostly just gear)
   dambonus += GET_DAMROLL(ch);
@@ -2015,7 +2016,7 @@ int perform_attacks(struct char_data *ch, int mode)
       hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
-	 compute_bab(ch, ch, 0) + penalty);
+      compute_bab(ch, ch, 0) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
     }
   }

@@ -440,7 +440,7 @@ void sprintbitarray(int bitvector[], const char *names[], int maxar, char *resul
             strcat(result, names[(teller*32)+nr]);
             strcat(result, " ");
             count++;
-            if (count >= 5) {
+            if (count >= 8) {
               strcat(result, "\r\n");
               count = 0;
             }

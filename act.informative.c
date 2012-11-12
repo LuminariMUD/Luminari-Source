@@ -1036,11 +1036,11 @@ ACMD(do_affects)
 	"\tC-------------- \tWCool Downs\tC -------------------------------\tn\r\n");
   if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
-    send_to_char(ch, "Crystal Fist - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
-    send_to_char(ch, "Crystal Body - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+    send_to_char(ch, "Crystal Fist - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
+    send_to_char(ch, "Crystal Body - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
     send_to_char(ch, "Lay on Hands - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
     send_to_char(ch, "Treat Injuries - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
@@ -3112,7 +3112,7 @@ ACMD(do_scan)
     scanned_room = IN_ROOM(ch);
   }                      // end of directions
   if (!found) {
-    send_to_char(ch, "You don't see aanything nearby!\r\n");
+    send_to_char(ch, "You don't see anything nearby.\r\n");
   }
 } // end of do_scan
 

@@ -887,7 +887,7 @@ ACMD(do_crystalbody)
   send_to_char(ch, "\tCYour crystla-like body becomes harder!\tn\r\n");
   act("\tCYou watch as $n's crystal-like body becomes harder!\tn",
           FALSE, ch, 0, 0, TO_NOTVICT);
-  attach_mud_event(new_mud_event(eCRYSTALFIST, ch, NULL),
+  attach_mud_event(new_mud_event(eCRYSTALBODY, ch, NULL),
           (8 * SECS_PER_MUD_HOUR));
 }
 
