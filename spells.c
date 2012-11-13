@@ -428,7 +428,7 @@ ASPELL(spell_identify)  // divination
     case ITEM_WEAPON:
       send_to_char(ch, "Damage Dice is '%dD%d' for an average per-round damage of %.1f.\r\n",
 		GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), ((GET_OBJ_VAL(obj, 2) + 1) / 2.0) * GET_OBJ_VAL(obj, 1));
-      send_to_char(ch, "Weapon Type: %s\r\n", GET_OBJ_VAL(obj, 4));
+      send_to_char(ch, "Weapon Type: %d\r\n", GET_OBJ_VAL(obj, 3));
       break;
     case ITEM_ARMOR:
       send_to_char(ch, "AC-apply is %d\r\n", GET_OBJ_VAL(obj, 0));
