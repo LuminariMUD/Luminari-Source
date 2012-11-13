@@ -781,7 +781,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_AC;
     af[0].modifier = -20;
     af[0].duration = 600;
-    accum_duration = TRUE;
+    accum_duration = FALSE;
     to_vict = "You feel someone protecting you.";
     to_room = "$n is surrounded by magical armor!";
     break;

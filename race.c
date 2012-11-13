@@ -89,10 +89,10 @@ const char *race_menu =
 "  b)  \tYElf\tn\r\n"
 "  c)  \tgDwarf\tn\r\n"
 "  d)  \trTroll\tn\r\n"
-"  f)  \tcHalfling\tn"
-"  g)  \twHalf \tYElf\tn"
-"  h)  \twHalf \tROrc\tn"
-"  i)  \tMGnome\tn";
+"  f)  \tcHalfling\tn\r\n"
+"  g)  \twHalf \tYElf\tn\r\n"
+"  h)  \twHalf \tROrc\tn\r\n"
+"  i)  \tMGnome\tn\r\n";
 
 // interpret race for interpreter.c and act.wizard.c etc
 int parse_race(char arg)

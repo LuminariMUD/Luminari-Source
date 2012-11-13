@@ -1102,7 +1102,7 @@ void init_spell_levels(void)
 
 // level_exp ran with level+1 will give xp to next level
 // level_exp+1 - level_exp = exp to next level
-#define EXP_MAX  1500000000
+#define EXP_MAX  2100000000
 int level_exp(struct char_data *ch, int level)
 {
   int chclass = GET_CLASS(ch);
@@ -1146,7 +1146,7 @@ int level_exp(struct char_data *ch, int level)
       exp *= 2;
       break;
     case RACE_CRYSTAL_DWARF:
-      exp *= 75;
+      exp *= 90;
       break;
     default:
       break;

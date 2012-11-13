@@ -1054,7 +1054,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
 	GET_COND(k, THIRST), GET_COND(k, DRUNK));
 
   send_to_char(ch, "  \tCDR:\tn %d\tC, CM%%:\tn %d\tC.\tn\r\n",
-                compute_damage_reduction(k),
+                compute_damage_reduction(k, -1),
                 compute_concealment(k));
 
   send_to_char(ch, "\tCStoneskin: \tn%d\tC, Mirror Images: \tn%d\tC, Spell Resist: \tn%d\r\n", 
@@ -1063,9 +1063,11 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
   send_to_char(ch, "\tCMemming? \tn%d\tC, Praying? \tn%d\tC, Communing? \tn%d\r\n", 
 	PRAYIN(k, 2), PRAYIN(k, 0), PRAYIN(k, 1));
   
-  send_to_char(ch, "\tCWimpy:\tn %d  \tCDivLvl:\tn %d  \tCMgcLvl:\tn %d"
+  if (!IS_NPC(k))
+    send_to_char(ch, "\tCWimpy:\tn %d  ", GET_WIMP_LEV(k));
+  send_to_char(ch, "\tCDivLvl:\tn %d  \tCMgcLvl:\tn %d"
           "  \tCCstrLvl:\tn %d\r\n",
-          GET_WIMP_LEV(k), DIVINE_LEVEL(k), MAGIC_LEVEL(k),
+          DIVINE_LEVEL(k), MAGIC_LEVEL(k),
           CASTER_LEVEL(k));  
 
   send_to_char(ch,

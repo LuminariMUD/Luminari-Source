@@ -32,10 +32,10 @@ cpp_extern const char *tbamud_version = "tbaMUD 3.63";
 
 /* structure for immortal prefix */
 const char *admin_level_names[] = {
-  "\tB[  \tC Admin   \tB ]\tn", // LVL_IMMORTAL
-  "\tB[  \tC Staff   \tB ]\tn", // LVL_GOD
-  "\tB[\tCSenior Staff\tB]\tn", // LVL_GRGOD
-  "\tB[\tCWorld Forger\tB]\tn", // LVL_IMPL
+  "\tB[  \tC Staff   \tB ]\tn", // LVL_IMMORTAL
+  "\tB[\tCSenior Staff\tB]\tn", // LVL_GOD
+  "\tB[\tCWorld Forger\tB]\tn", // LVL_GRGOD
+  "\tB[   \tCForger\tB   ]\tn", // LVL_IMPL
   "\n",
 };
 

@@ -2455,12 +2455,12 @@ void send_to_clan(clan_vnum c_id, const char *messg, ...)
 void send_to_outdoor(const char *messg, ...)
 {
   struct descriptor_data *i;
+  va_list args;
 
   if (!messg || !*messg)
     return;
 
   for (i = descriptor_list; i; i = i->next) {
-    va_list args;
     room_rnum rm;
     zone_rnum zn;
 

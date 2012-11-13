@@ -447,6 +447,8 @@ void medit_parse(struct descriptor_data *d, char *arg);
 void medit_string_cleanup(struct descriptor_data *d, int terminator);
 ACMD(do_oasis_medit);
 void medit_autoroll_stats(struct descriptor_data *d);
+void medit_random_race(struct descriptor_data *d);
+void medit_random_class(struct descriptor_data *d);
 
 /* public functions from oedit.c */
 void oedit_setup_existing(struct descriptor_data *d, int rnum);

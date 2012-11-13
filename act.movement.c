@@ -495,12 +495,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
   if (!AFF_FLAGGED(ch, AFF_SNEAK)) {
     if (need_specials_check == 3) {
-      snprintf(leave_message, sizeof(leave_message), "$n flees %s!", dirs[dir]);
+      snprintf(leave_message, sizeof(leave_message), "$n \tnflees %s!", dirs[dir]);
       act(leave_message, TRUE, ch, 0, 0, TO_ROOM);
       snprintf(leave_message, sizeof(leave_message), "You flee %s!\r\n", dirs[dir]);
       send_to_char(ch, leave_message);
     } else {
-      snprintf(leave_message, sizeof(leave_message), "$n leaves %s.", dirs[dir]);
+      snprintf(leave_message, sizeof(leave_message), "$n \tnleaves %s.", dirs[dir]);
       act(leave_message, TRUE, ch, 0, 0, TO_ROOM);
     }
   } else {  //listen vs sneak
@@ -511,7 +511,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         if (!IS_NPC(tch)) {
           if (dice(1, 20) + compute_ability(ch, ABILITY_SNEAK) <
 		dice(1,20) + compute_ability(tch, ABILITY_LISTEN)) {
-            snprintf(leave_message, sizeof(leave_message), "$n leaves %s.", dirs[dir]);
+            snprintf(leave_message, sizeof(leave_message), "$n \tnleaves %s.", dirs[dir]);
             act(leave_message, TRUE, ch, 0, tch, TO_VICT);
           }
         }
@@ -521,7 +521,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         if (!IS_NPC(tch)) {
           if (dice(1, 20) + 14 <
 		compute_ability(tch, ABILITY_LISTEN) + dice(1, 20)) {
-            snprintf(leave_message, sizeof(leave_message), "$n leaves %s.", dirs[dir]);
+            snprintf(leave_message, sizeof(leave_message), "$n \tnleaves %s.", dirs[dir]);
             act(leave_message, TRUE, ch, 0, tch, TO_VICT);
           }
         }
