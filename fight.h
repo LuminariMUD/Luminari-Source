@@ -29,7 +29,7 @@ void appear(struct char_data *ch);
 void check_killer(struct char_data *ch, struct char_data *vict);
 int perform_attacks(struct char_data *ch, int mode);
 int compute_armor_class(struct char_data *attacker, struct char_data *ch);
-int compute_damage_reduction(struct char_data *ch);
+int compute_damage_reduction(struct char_data *ch, int dam_type);
 int compute_concealment(struct char_data *ch);
 int compute_bab(struct char_data *ch, struct char_data *victim, int attktype);
 int compute_damage_bonus(struct char_data *ch, struct char_data *victim,

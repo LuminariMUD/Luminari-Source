@@ -332,6 +332,7 @@ void medit_disp_race(struct descriptor_data *d)
    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
      npc_race_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
+  write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%sEnter race number : ", nrm);
 }
 
@@ -346,6 +347,7 @@ void medit_disp_class(struct descriptor_data *d)
    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
      pc_class_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
+  write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%sEnter class number : ", nrm);
 }
 
@@ -1132,11 +1134,17 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_RACE:
-    GET_RACE(OLC_MOB(d)) = LIMIT(i, 0, NUM_NPC_RACES - 1);
+    if (i == 99)
+      GET_RACE(OLC_MOB(d)) = rand_number(1, NUM_NPC_RACES - 1);
+    else
+      GET_RACE(OLC_MOB(d)) = LIMIT(i, 1, NUM_NPC_RACES - 1);
     break;
 
   case MEDIT_CLASS:
-    GET_CLASS(OLC_MOB(d)) = LIMIT(i, 0, NUM_CLASSES - 1);
+    if (i == 99)
+      GET_CLASS(OLC_MOB(d)) = rand_number(0, NUM_CLASSES - 1);
+    else
+      GET_CLASS(OLC_MOB(d)) = LIMIT(i, 0, NUM_CLASSES - 1);
     break;
 
   case MEDIT_SIZE:
@@ -1193,6 +1201,17 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator)
   }
 }
 
+
+void medit_random_race(struct descriptor_data *d)
+{
+}
+
+
+void medit_random_class(struct descriptor_data *d)
+{
+}
+
+
 void medit_autoroll_stats(struct descriptor_data *d)
 {
   int mob_lev;
@@ -1201,17 +1220,53 @@ void medit_autoroll_stats(struct descriptor_data *d)
   mob_lev = GET_LEVEL(OLC_MOB(d)) = LIMIT(mob_lev, 1, LVL_IMPL);
 
   GET_MOVE(OLC_MOB(d))    = mob_lev*10;          /* hit point bonus (mobs don't use movement points */
+  if (mob_lev >= 10)
+    GET_MOVE(OLC_MOB(d)) += mob_lev;
+  if (mob_lev >= 15)
+    GET_MOVE(OLC_MOB(d)) += mob_lev * 2;
+  if (mob_lev >= 20)
+    GET_MOVE(OLC_MOB(d)) += mob_lev * 3;
+  if (mob_lev >= 25)
+    GET_MOVE(OLC_MOB(d)) += (mob_lev * 4 + 50);
+  if (mob_lev > 30)
+    GET_MOVE(OLC_MOB(d)) += (mob_lev * 5 + 100);
+  if (mob_lev == LVL_IMPL)
+    GET_MOVE(OLC_MOB(d)) += (mob_lev * 6 + 150);
   GET_HIT(OLC_MOB(d))     = mob_lev/5;           /* number of hitpoint dice */
   GET_MANA(OLC_MOB(d))    = mob_lev/5;           /* size of hitpoint dice   */
 
   GET_NDD(OLC_MOB(d))     = MAX(1, mob_lev/6);   /* number damage dice 1-5  */
   GET_SDD(OLC_MOB(d))     = MAX(2, mob_lev/6);   /* size of damage dice 2-5 */
   GET_DAMROLL(OLC_MOB(d)) = mob_lev/6;           /* damroll (dam bonus) 0-5 */
+  if (mob_lev >= 20)
+    GET_DAMROLL(OLC_MOB(d))++;
+  if (mob_lev >= 25)
+    GET_DAMROLL(OLC_MOB(d))++;
+  if (mob_lev > 30)
+    GET_DAMROLL(OLC_MOB(d))++;
+  if (mob_lev == LVL_IMPL)
+    GET_DAMROLL(OLC_MOB(d))++;
 
   GET_HITROLL(OLC_MOB(d)) = mob_lev/3;           /* hitroll 0-10            */
-  GET_EXP(OLC_MOB(d))     = (mob_lev*mob_lev*100);
+  if (mob_lev >= 20)
+    GET_HITROLL(OLC_MOB(d))++;
+  if (mob_lev >= 25)
+    GET_HITROLL(OLC_MOB(d))++;
+  if (mob_lev > 30)
+    GET_HITROLL(OLC_MOB(d))++;
+  if (mob_lev == LVL_IMPL)
+    GET_HITROLL(OLC_MOB(d))++;
+  GET_EXP(OLC_MOB(d))     = (mob_lev*mob_lev*75);
   GET_GOLD(OLC_MOB(d))    = (mob_lev*10);
   GET_AC(OLC_MOB(d))      = (100-(mob_lev*6));   /* AC 94 to -80            */
+  if (mob_lev >= 20)
+    GET_AC(OLC_MOB(d)) -= 10;
+  if (mob_lev >= 25)
+    GET_AC(OLC_MOB(d)) -= 10;
+  if (mob_lev > 30)
+    GET_AC(OLC_MOB(d)) -= 10;
+  if (mob_lev == LVL_IMPL)
+    GET_AC(OLC_MOB(d)) -= 10;
 
   /* 'Advanced' stats are only rolled if advanced options are enabled */
   if (CONFIG_MEDIT_ADVANCED) {

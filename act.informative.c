@@ -247,7 +247,7 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
     if (percent >= diagnosis[ar_index].percent)
       break;
 
-  send_to_char(ch, "%c%s [%s %s] %s\r\n", UPPER(*pers), pers + 1, size_names[GET_SIZE(i)],
+  send_to_char(ch, "%c%s \tn[%s %s\tn] %s\r\n", UPPER(*pers), pers + 1, size_names[GET_SIZE(i)],
 	RACE_ABBR(i), diagnosis[ar_index].text);
 }
 
@@ -927,7 +927,7 @@ ACMD(do_innates)
         break;
       case RACE_HALFLING:
         send_to_char(ch, "halfling dexterity (+2 dex)\r\n");
-        send_to_char(ch, "\thalfling strength (-2 cha)\tn\r\n");
+        send_to_char(ch, "\tRhalfling strength (-2 cha)\tn\r\n");
         send_to_char(ch, "infravision\r\n");
         send_to_char(ch, "combat training versus giants "
                 "(+1 size bonus vs. larger opponents)\r\n");        
@@ -960,6 +960,8 @@ ACMD(do_innates)
         send_to_char(ch, "poison resist (+2 poison save)\r\n");
         send_to_char(ch, "stability (+4 resist bash/trip)\r\n");        
         send_to_char(ch, "spell hardiness (+2 spell save)\r\n");
+        send_to_char(ch, "crystalbody (help CRYSTALBODY)\r\n");
+        send_to_char(ch, "crystalfist (help CRYSTALFIST)\r\n");
         send_to_char(ch, "combat training versus giants "
                 "(+1 size bonus vs. larger opponents)\r\n");        
         break;        
@@ -1175,7 +1177,7 @@ ACMD(do_score)
 		perform_attacks(ch, 1));
 
   send_to_char(ch, "\tCDamage Reduction:\tn %d      \tCConcealment:\tn %d\r\n",
-		compute_damage_reduction(ch),
+		compute_damage_reduction(ch, -1),
 		compute_concealment(ch));
 
   send_to_char(ch, "\tCAlignment:\tn %d", GET_ALIGNMENT(ch));

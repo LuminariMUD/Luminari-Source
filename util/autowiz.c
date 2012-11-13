@@ -39,10 +39,10 @@ struct level_rec {
 
 struct control_rec level_params[] =
 {
-  {LVL_IMMORT, "Immortals"},
-  {LVL_GOD, "Gods"},
-  {LVL_GRGOD, "Greater Gods"},
-  {LVL_IMPL, "Implementors"},
+  {LVL_IMMORT, "Staff"},
+  {LVL_GOD, "Senior Staff"},
+  {LVL_GRGOD, "Building Lead"},
+  {LVL_IMPL, "Coders"},
   {0, ""}
 };
 

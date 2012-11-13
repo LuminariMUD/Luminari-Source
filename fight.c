@@ -526,9 +526,14 @@ static void make_corpse(struct char_data *ch)
 /* When ch kills victim */
 static void change_alignment(struct char_data *ch, struct char_data *victim)
 {
+  if (GET_ALIGNMENT(victim) < GET_ALIGNMENT(ch))
+    GET_ALIGNMENT(ch)++;
+  else if (GET_ALIGNMENT(victim) > GET_ALIGNMENT(ch))
+    GET_ALIGNMENT(ch)--;
+
   /* new alignment change algorithm: if you kill a monster with alignment A,
    * you move 1/16th of the way to having alignment -A.  Simple and fast. */
-  GET_ALIGNMENT(ch) += (-GET_ALIGNMENT(victim) - GET_ALIGNMENT(ch)) / 16;
+//  GET_ALIGNMENT(ch) += (-GET_ALIGNMENT(victim) - GET_ALIGNMENT(ch)) / 16;
 }
 
 void death_cry(struct char_data *ch)
@@ -558,10 +563,10 @@ void death_message(struct char_data *ch)
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\tD'||''|.   '||''''|      |     |''||''| '||'  '||' \r\n");
-  send_to_char(ch, " ||   ||   ||  .       |||       ||     ||    ||  \r\n");
-  send_to_char(ch, " ||    ||  ||''|      |  ||      ||     ||''''||  \r\n");
-  send_to_char(ch, " ||    ||  ||        .''''|.     ||     ||    ||  \r\n");
-  send_to_char(ch, ".||...|'  .||.....| .|.  .||.   .||.   .||.  .||. \r\n\tn");
+  send_to_char(ch,    " ||   ||   ||  .       |||       ||     ||    ||  \r\n");
+  send_to_char(ch,    " ||    ||  ||''|      |  ||      ||     ||''''||  \r\n");
+  send_to_char(ch,    " ||    ||  ||        .''''|.     ||     ||    ||  \r\n");
+  send_to_char(ch,    ".||...|'  .||.....| .|.  .||.   .||.   .||.  .||. \r\n\tn");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
@@ -1146,7 +1151,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
 }
 
 
-int compute_damage_reduction(struct char_data *ch)
+int compute_damage_reduction(struct char_data *ch, int dam_type)
 {
   int damage_reduction = 0;
 
@@ -1224,8 +1229,8 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
     int damage_reduction = compute_energy_absorb(ch, dam_type);
     dam -= compute_energy_absorb(ch, dam_type);
-    if (dam <= 0) {
-      send_to_char(victim, "\tWYou absorbe all the damage!\tn\r\n");
+    if (dam <= 0 && (ch != victim)) {
+      send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");
       send_to_char(ch, "\tRYou fail to cause %s any harm!\tn\r\n",
 	GET_NAME(victim));
       act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
@@ -1239,8 +1244,8 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     float damtype_reduction = (float)compute_damtype_reduction(victim, dam_type);
     damtype_reduction = (((float)(damtype_reduction/100)) * dam);
     dam -= damtype_reduction;
-    if (dam <= 0) {
-      send_to_char(victim, "\tWYou absorbe all the damage!\tn\r\n");
+    if (dam <= 0 && (ch != victim)) {
+      send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");
       send_to_char(ch, "\tRYou fail to cause %s any harm!\tn\r\n",
 	GET_NAME(victim));
       act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
@@ -1254,10 +1259,10 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "\tR<oTR:%d>\tn", (int)damtype_reduction);
     }
 
-    damage_reduction = compute_damage_reduction(victim);
+    damage_reduction = compute_damage_reduction(victim, dam_type);
     dam -= MIN(dam, damage_reduction);
-    if (!dam) {
-      send_to_char(victim, "\tWYou absorbe all the damage!\tn\r\n");
+    if (!dam && (ch != victim)) {
+      send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");
       send_to_char(ch, "\tRYou fail to cause %s any harm!\tn\r\n",
 	GET_NAME(victim));
       act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
@@ -1992,7 +1997,7 @@ int perform_attacks(struct char_data *ch, int mode)
   //default of one offhand attack for everyone
   if (dual) {
     numAttacks += 2;
-    if (GET_SKILL(ch, SKILL_AMBIDEXTERITY))
+    if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_AMBIDEXTERITY))
       penalty = -1;
     else
       penalty = -4;
