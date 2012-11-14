@@ -2121,7 +2121,7 @@ void autoDiagnose(struct char_data *ch)
     if ((tank = char_fighting->char_specials.fighting) &&
 	(ch->in_room == tank->in_room)) {
 
-      if (!PRF_FLAGGED(ch, PRF_COMPACT))
+      if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_COMPACT))
         send_to_char(ch, "\r\n");
       
       send_to_char(ch, "%s|T:%s%s",
@@ -2199,9 +2199,9 @@ void autoDiagnose(struct char_data *ch)
       send_to_char(ch, "bleeding, close to death");
       send_to_char(ch, CCNRM(ch, C_NRM));
     }
-    send_to_char(ch, "\tn|");
-    if (!PRF_FLAGGED(ch, PRF_COMPACT))
-      send_to_char(ch, "\r\n\r\n");
+    send_to_char(ch, "\tn|\r\n");
+    if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_COMPACT))
+      send_to_char(ch, "\r\n");
   }
 }
 
