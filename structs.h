@@ -758,7 +758,7 @@
 /** Controls when mobile (NPC) actions and updates will occur. */
 #define PULSE_MOBILE    (4 RL_SEC)
 /** Controls the time between turns of combat. */
-#define PULSE_VIOLENCE  ( 6 RL_SEC)
+#define PULSE_VIOLENCE  ( 5 RL_SEC)
 
 // controls some new luminari calls from comm.c
 #define PULSE_LUMINARI  ( 4 RL_SEC)
