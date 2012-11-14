@@ -1458,7 +1458,7 @@ const char *wtrig_types[] = {
 const char *history_types[] = {
   "all",
   "say",
-  "gossip",
+  "gossip/chat",
   "wiznet",
   "tell",
   "shout",
