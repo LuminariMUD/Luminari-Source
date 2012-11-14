@@ -32,7 +32,7 @@ ACMD(do_say)
     char buf[MAX_INPUT_LENGTH + 14], *msg;
     struct char_data *vict;
 
-    snprintf(buf, sizeof(buf), "\tG$n\tn says, '%s'\tn", argument);
+    snprintf(buf, sizeof(buf), "\tG$n says, '%s'\tn", argument);
     msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
 
     for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
