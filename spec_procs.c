@@ -185,9 +185,6 @@ case SKILL_IMPROVED_BASH:
 case SKILL_IMPROVED_TRIP:
 	if (GET_SKILL(ch, SKILL_TRIP))
 		return TRUE;	else return FALSE;
-case SKILL_BACKSTAB:
-	if (CLASS_LEVEL(ch, CLASS_THIEF))
-		return TRUE;	else return FALSE;
 case SKILL_BASH:
 	if (ch->real_abils.str >= 13)
 		return TRUE;	else return FALSE;
@@ -203,9 +200,6 @@ case SKILL_IMPROVED_WHIRL:
 case SKILL_RESCUE:
 	if (CLASS_LEVEL(ch, CLASS_WARRIOR))
 		return TRUE;	else return FALSE;
-case SKILL_DIRTY_FIGHTING:
-	if (GET_LEVEL(ch) >= 3 && ch->real_abils.dex >= 15)
-		return TRUE;	else return FALSE;
 case SKILL_DODGE:
 	if (ch->real_abils.dex >= 13)
 		return TRUE;	else return FALSE;
@@ -219,13 +213,13 @@ case SKILL_ARMOR_SKIN:
 	if (GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
 case SKILL_DAMAGE_REDUC_1:
-	if (ch->real_abils.str >= 15)
+	if (ch->real_abils.con >= 15)
 		return TRUE;	else return FALSE;
 case SKILL_DAMAGE_REDUC_2:
-	if (ch->real_abils.str >= 17 && GET_SKILL(ch, SKILL_DAMAGE_REDUC_1))
+	if (ch->real_abils.con >= 17 && GET_SKILL(ch, SKILL_DAMAGE_REDUC_1))
 		return TRUE;	else return FALSE;
 case SKILL_DAMAGE_REDUC_3:
-	if (ch->real_abils.str >= 21 && GET_SKILL(ch, SKILL_DAMAGE_REDUC_2))
+	if (ch->real_abils.con >= 19 && GET_SKILL(ch, SKILL_DAMAGE_REDUC_2))
 		return TRUE;	else return FALSE;
 case SKILL_SELF_CONCEAL_1:
 	if (ch->real_abils.dex >= 15)
@@ -275,7 +269,12 @@ case SKILL_EPIC_WILL:
     case SKILL_LIGHTNING_REFLEXES:
       return TRUE;
       
-      /** not implemented yet **/
+      /**
+       *  not implemented yet or
+       * unattainable
+       *  **/
+    case SKILL_BACKSTAB:
+    case SKILL_DIRTY_FIGHTING:
     case SKILL_RAGE:
     case SKILL_MURMUR:
     case SKILL_PROPAGANDA:
