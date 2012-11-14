@@ -2120,8 +2120,11 @@ void autoDiagnose(struct char_data *ch)
                 
     if ((tank = char_fighting->char_specials.fighting) &&
 	(ch->in_room == tank->in_room)) {
-       
-      send_to_char(ch, "\r\n%s|T:%s%s",
+
+      if (!PRF_FLAGGED(ch, PRF_COMPACT))
+        send_to_char(ch, "\r\n");
+      
+      send_to_char(ch, "%s|T:%s%s",
                 CCCYN(ch,C_NRM), CCNRM(ch,C_NRM),
                 (CAN_SEE(ch, tank)) ? GET_NAME(tank) : "someone");
       send_to_char(ch, "%s-TC:",
@@ -2196,7 +2199,9 @@ void autoDiagnose(struct char_data *ch)
       send_to_char(ch, "bleeding, close to death");
       send_to_char(ch, CCNRM(ch, C_NRM));
     }
-    send_to_char(ch, "\tn|\r\n\r\n");
+    send_to_char(ch, "\tn|");
+    if (!PRF_FLAGGED(ch, PRF_COMPACT))
+      send_to_char(ch, "\r\n\r\n");
   }
 }
 

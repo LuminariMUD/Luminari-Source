@@ -452,6 +452,7 @@ ASPELL(spell_identify)  // divination
       send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n",
 	      GET_NAME(victim), age(victim)->year, age(victim)->month,
 	      age(victim)->day, age(victim)->hours);
+    send_to_char(ch, "Alignment: %d.\r\n", GET_ALIGNMENT(victim));
     send_to_char(ch, "Height %d cm, Weight %d pounds\r\n", GET_HEIGHT(victim), GET_WEIGHT(victim));
     send_to_char(ch, "Level: %d, Hits: %d, Mana: %d\r\n", GET_LEVEL(victim), GET_HIT(victim), GET_MANA(victim));
     send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n", compute_armor_class(NULL, victim), GET_HITROLL(victim), GET_DAMROLL(victim));

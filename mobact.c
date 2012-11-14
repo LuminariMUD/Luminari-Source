@@ -41,6 +41,8 @@ int canContinue(struct char_data *ch)
     return 0;
   if (IS_CASTING(ch))
     return 0;
+  if (GET_HIT(ch) <= 1)
+    return 0;
 
   // this combined with PULSE_MOBILE will control how often they proc
 //  if (!rand_number(0,3))
