@@ -323,7 +323,36 @@ void newbieEquipment(struct char_data *ch)
   }
 }
 
+/* init spells for a class as they level up
+ * i.e free skills
+ */
+void thief_skills(struct char_data *ch, int level) {
+  switch (level) {
+    case 2:
+      SET_SKILL(ch, SKILL_MOBILITY, 75);
+      send_to_char(ch, "\tMYou have learned 'Mobility'\tn\r\n");
+      break;
+    case 3:
+      SET_SKILL(ch, SKILL_DIRTY_FIGHTING, 75);
+      send_to_char(ch, "\tMYou have learned 'Dirty Fighting'\tn\r\n");
+      break;
+    case 6:
+      SET_SKILL(ch, SKILL_SPRING_ATTACK, 75);
+      send_to_char(ch, "\tMYou have learned 'Spring Attack'\tn\r\n");
+      break;
+    case 10:
+    case 13:
+    case 16:
+    case 19:
+    default:
+      break;
+  }
+  return;  
+}
 
+/* init spells for a class as they level up
+ * i.e free skills
+ */
 void monk_skills(struct char_data *ch, int level) {
   switch (level) {
     case 2:
@@ -511,9 +540,6 @@ void init_class(struct char_data *ch, int class, int level)
 
     SET_SKILL(ch, SKILL_BACKSTAB, 75);
     SET_SKILL(ch, SKILL_TRACK, 75);
-    SET_SKILL(ch, SKILL_MURMUR, 75);
-    SET_SKILL(ch, SKILL_PROPAGANDA, 75);
-    SET_SKILL(ch, SKILL_LOBBY, 75);
     send_to_char(ch, "Thief Done.\tn\r\n");
   break;
 
@@ -535,6 +561,7 @@ void init_class(struct char_data *ch, int class, int level)
 
   case CLASS_MONK:
     SET_SKILL(ch, SKILL_PROF_SIMPLE_W, 75);
+    send_to_char(ch, "Monk Done.\tn\r\n");    
   break;
 
   default:
@@ -742,6 +769,7 @@ void advance_level(struct char_data *ch, int class)
 
     break;
   case CLASS_THIEF:
+    thief_skills(ch, CLASS_LEVEL(ch, CLASS_THIEF));
     add_hp += rand_number(3, 6);
     add_mana = 0;
     add_move = rand_number(2, 4);

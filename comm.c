@@ -1236,10 +1236,13 @@ static char *make_prompt(struct descriptor_data *d)
          len += count;
      }
 
-    if (len < sizeof(prompt) && d->character && !IS_NPC(d->character) &&
-        !PRF_FLAGGED(d->character, PRF_COMPACT))
+    if ((len < sizeof(prompt)) && !IS_NPC(d->character) &&
+          !PRF_FLAGGED(d->character, PRF_COMPACT))
       sprintf(prompt + strlen(prompt), "%s> %s\r\n",
-	CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
+	         CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
+    else if (len < sizeof(prompt))
+      sprintf(prompt + strlen(prompt), "%s> %s",
+	         CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
     else if (len < sizeof(prompt))
       sprintf(prompt + strlen(prompt), "%s> %s",
 	CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
