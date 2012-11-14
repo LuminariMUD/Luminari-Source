@@ -1,0 +1,56 @@
+# tbaMUD Makefile.in - Makefile template used by 'configure'
+# Clean-up provided by seqwith.
+
+# C compiler to use
+CC = @CC@
+
+# Any special flags you want to pass to the compiler
+MYFLAGS = @MYFLAGS@
+
+#flags for profiling (see hacker.doc for more information)
+PROFILE = 
+
+##############################################################################
+# Do Not Modify Anything Below This Line (unless you know what you're doing) #
+##############################################################################
+
+BINDIR = ../bin
+
+CFLAGS = @CFLAGS@ $(MYFLAGS) $(PROFILE)
+
+LIBS = @LIBS@ @CRYPTLIB@ @NETLIB@
+
+SRCFILES := $(wildcard *.c)
+OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))  
+
+default: all
+
+all: .accepted
+	$(MAKE) $(BINDIR)/circle
+	$(MAKE) utils
+
+.accepted:
+	@./licheck @MORE@
+
+utils: .accepted
+	(cd util; $(MAKE) all)
+
+circle:
+	$(MAKE) $(BINDIR)/circle
+
+$(BINDIR)/circle : $(OBJFILES)
+	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
+
+$%.o: %.c
+	$(CC) $< $(CFLAGS) -c -o $@ 
+
+clean:
+	rm -f *.o depend
+
+# Dependencies for the object files (automagically generated with
+# gcc -MM)
+
+depend:
+	$(CC) -MM *.c > depend
+
+-include depend

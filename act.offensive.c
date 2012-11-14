@@ -214,7 +214,10 @@ ACMD(do_kill)
       act("You chop $M to pieces!  Ah!  The blood!", FALSE, ch, 0, vict, TO_CHAR);
       act("$N chops you to pieces!", FALSE, vict, 0, ch, TO_CHAR);
       act("$n brutally slays $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-      raw_kill(vict, ch);
+      if (!IS_NPC(vict))
+        raw_kill(vict, ch);
+      else
+        raw_kill_old(vict, ch);
     }
   }
 }

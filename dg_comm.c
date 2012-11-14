@@ -180,10 +180,14 @@ void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
   if (IS_SET(targets, TO_CHAR) && SENDOK(ch))
     sub_write_to_char(ch, tokens, otokens, type);
 
-  if (IS_SET(targets, TO_ROOM))
-    for (to = world[IN_ROOM(ch)].people; to; to = to->next_in_room)
-      if (to != ch && SENDOK(to))
-        sub_write_to_char(to, tokens, otokens, type);
+  /* unknown issue with teleporter, sloppy attempt to fix - zusuk */
+  if (ch)
+    if (IN_ROOM(ch))
+        if (world[IN_ROOM(ch)].people)
+          if (IS_SET(targets, TO_ROOM))
+            for (to = world[IN_ROOM(ch)].people; to; to = to->next_in_room)
+              if (to != ch && SENDOK(to))
+                sub_write_to_char(to, tokens, otokens, type);
 }
 
 void send_to_zone(char *messg, zone_rnum zone)

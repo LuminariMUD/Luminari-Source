@@ -158,11 +158,11 @@
 #define SKILL_BASH			402
 #define SKILL_MUMMY_DUST		403
 #define SKILL_KICK			404
-#define SKILL_FREE1			405
+#define SKILL_WEAPON_SPECIALIST         405
 #define SKILL_WHIRLWIND			406
 #define SKILL_RESCUE			407
 #define SKILL_DRAGON_KNIGHT		408
-#define SKILL_FREE2			409
+#define SKILL_LUCK_OF_HEROES            409
 #define SKILL_TRACK			410
 #define SKILL_QUICK_CHANT		411
 #define SKILL_AMBIDEXTERITY		412
@@ -240,11 +240,16 @@
 #define SKILL_MASTERWORK_CRAFTING        483
 #define SKILL_DRACONIC_CRAFTING          484
 #define SKILL_DWARVEN_CRAFTING          485
-
-/* end first batch of crafting skills */
-
+/* finish batch crafting skills */
+#define SKILL_LIGHTNING_REFLEXES        486
+#define SKILL_GREAT_FORTITUDE           487
+#define SKILL_IRON_WILL                 488
+#define SKILL_EPIC_REFLEXES             489
+#define SKILL_EPIC_FORTITUDE            490
+#define SKILL_EPIC_WILL                 491
+#define SKILL_SHIELD_SPECIALIST         492
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      486
+#define NUM_SKILLS                      493
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the
