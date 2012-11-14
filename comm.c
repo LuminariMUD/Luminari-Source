@@ -1243,9 +1243,6 @@ static char *make_prompt(struct descriptor_data *d)
     else if (len < sizeof(prompt))
       sprintf(prompt + strlen(prompt), "%s> %s",
 	         CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
-    else if (len < sizeof(prompt))
-      sprintf(prompt + strlen(prompt), "%s> %s",
-	CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
 
   } else if (STATE(d) == CON_PLAYING && IS_NPC(d->character))
     snprintf(prompt, sizeof(prompt), "%s> \r\n", GET_NAME(d->character));
