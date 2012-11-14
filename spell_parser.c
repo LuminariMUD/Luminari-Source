@@ -1533,61 +1533,61 @@ void mag_assign_spells(void)
   /* Declaration of skills - this actually doesn't do anything except set it up
    * so that immortals can use these skills by default.  The min level to use
    * the skill for other classes is set up in class.c. */
-  skillo(SKILL_BACKSTAB, "backstab");				//131
+  skillo(SKILL_BACKSTAB, "backstab");				//401
   skillo(SKILL_BASH, "bash");
   skillo(SKILL_MUMMY_DUST, "es mummy dust");
   skillo(SKILL_KICK, "kick");
-/*  skillo(SKILL_FREE1, "UNUSED");				135*/
+  skillo(SKILL_WEAPON_SPECIALIST, "weapon specialist");	//405
   skillo(SKILL_WHIRLWIND, "whirlwind");
   skillo(SKILL_RESCUE, "rescue");
   skillo(SKILL_DRAGON_KNIGHT, "es dragon knight");
-/*  skillo(SKILL_FREE2, "UNUSED"); */
-  skillo(SKILL_TRACK, "track");					//140
+  skillo(SKILL_LUCK_OF_HEROES, "luck of heroes");
+  skillo(SKILL_TRACK, "track");					//410
   skillo(SKILL_QUICK_CHANT, "quick chant");
   skillo(SKILL_AMBIDEXTERITY, "ambidexterity");
   skillo(SKILL_DIRTY_FIGHTING, "dirty fighting");
   skillo(SKILL_DODGE, "dodge");
-  skillo(SKILL_IMPROVED_CRITICAL, "improved critical");		//145
+  skillo(SKILL_IMPROVED_CRITICAL, "improved critical");		//415
   skillo(SKILL_MOBILITY, "mobility");
   skillo(SKILL_SPRING_ATTACK, "spring attack");
   skillo(SKILL_TOUGHNESS, "toughness");
   skillo(SKILL_TWO_WEAPON_FIGHT, "two weapon fighting");
-  skillo(SKILL_FINESSE, "finesse");				//150
+  skillo(SKILL_FINESSE, "finesse");				//420
   skillo(SKILL_ARMOR_SKIN, "armor skin");
   skillo(SKILL_BLINDING_SPEED, "blinding speed");
   skillo(SKILL_DAMAGE_REDUC_1, "damage reduction");
   skillo(SKILL_DAMAGE_REDUC_2, "greater damage reduction");
-  skillo(SKILL_DAMAGE_REDUC_3, "epic damage reduction");	//155
+  skillo(SKILL_DAMAGE_REDUC_3, "epic damage reduction");	//425
   skillo(SKILL_EPIC_TOUGHNESS, "epic toughness");
   skillo(SKILL_OVERWHELMING_CRIT, "overwhelming critical");
   skillo(SKILL_SELF_CONCEAL_1, "self concealment");
   skillo(SKILL_SELF_CONCEAL_2, "greater concealment");
-  skillo(SKILL_SELF_CONCEAL_3, "epic concealment");		//160
+  skillo(SKILL_SELF_CONCEAL_3, "epic concealment");		//430
   skillo(SKILL_TRIP, "trip");
   skillo(SKILL_IMPROVED_WHIRL, "improved whirlwind");
-  skillo(SKILL_CLEAVE, "_cleave_");
-  skillo(SKILL_GREAT_CLEAVE, "_great_cleave_");
-  skillo(SKILL_SPELLPENETRATE, "spell penetration");		//165
+  skillo(SKILL_CLEAVE, "cleave (incomplete)");
+  skillo(SKILL_GREAT_CLEAVE, "great_cleave (incomplete)");
+  skillo(SKILL_SPELLPENETRATE, "spell penetration");		//435
   skillo(SKILL_SPELLPENETRATE_2, "greater spell penetrate");
   skillo(SKILL_PROWESS, "prowess");
   skillo(SKILL_EPIC_PROWESS, "epic prowess");
   skillo(SKILL_EPIC_2_WEAPON, "epic two weapon fighting");
-  skillo(SKILL_SPELLPENETRATE_3, "epic spell penetrate");		//170
+  skillo(SKILL_SPELLPENETRATE_3, "epic spell penetrate");		//440
   skillo(SKILL_SPELL_RESIST_1, "spell resistance");
   skillo(SKILL_SPELL_RESIST_2, "improved spell resist");
   skillo(SKILL_SPELL_RESIST_3, "greater spell resist");
   skillo(SKILL_SPELL_RESIST_4, "epic spell resist");
-  skillo(SKILL_SPELL_RESIST_5, "supreme spell resist");		//175
+  skillo(SKILL_SPELL_RESIST_5, "supreme spell resist");		//445
   skillo(SKILL_INITIATIVE, "initiative");
   skillo(SKILL_EPIC_CRIT, "epic critical");
   skillo(SKILL_IMPROVED_BASH, "improved bash");
   skillo(SKILL_IMPROVED_TRIP, "improved trip");
-  skillo(SKILL_POWER_ATTACK, "power attack");			//180
+  skillo(SKILL_POWER_ATTACK, "power attack");			//450
   skillo(SKILL_EXPERTISE, "combat expertise");
   skillo(SKILL_GREATER_RUIN, "es greater ruin");
   skillo(SKILL_HELLBALL, "es hellball");
   skillo(SKILL_EPIC_MAGE_ARMOR, "es epic mage armor");
-  skillo(SKILL_EPIC_WARDING, "es epic warding");			//185
+  skillo(SKILL_EPIC_WARDING, "es epic warding");			//455
   skillo(SKILL_RAGE, "rage");			//185
   skillo(SKILL_PROF_SIMPLE_W, "simple weapon prof");             //457
   skillo(SKILL_PROF_ELF_W, "elf weapon prof");                //458
@@ -1599,8 +1599,32 @@ void mag_assign_spells(void)
   skillo(SKILL_PROF_HEAVY_A, "heavy armor prof");              //464
   skillo(SKILL_PROF_SHIELDS, "shield prof");              //465
   skillo(SKILL_PROF_T_SHIELDS, "tower shield prof");            //466
-  skillo(SKILL_MURMUR, "murmur");
-  skillo(SKILL_PROPAGANDA, "propaganda");
-  skillo(SKILL_LOBBY, "lobby");                             //469
+  skillo(SKILL_MURMUR, "murmur (incomplete)");
+  skillo(SKILL_PROPAGANDA, "propaganda (incomplete)");
+  skillo(SKILL_LOBBY, "lobby (incomplete)");                  //469
   skillo(SKILL_STUNNING_FIST, "stunning fist");             //470
+  skillo(SKILL_MINING, "mining (incomplete)");             //471
+  skillo(SKILL_HUNTING, "hunting (incomplete)");             //472
+  skillo(SKILL_FORESTING, "foresting (incomplete)");             //473
+  skillo(SKILL_KNITTING, "knitting (incomplete)");             //474
+  skillo(SKILL_CHEMISTRY, "chemistry (incomplete)");             //475
+  skillo(SKILL_ARMOR_SMITHING, "armor smithing (incomplete)");             //476
+  skillo(SKILL_WEAPON_SMITHING, "weapon smithing (incomplete)");             //477
+  skillo(SKILL_JEWELRY_MAKING, "jewelry making (incomplete)");             //478
+  skillo(SKILL_LEATHER_WORKING, "leather working (incomplete)");             //479
+  skillo(SKILL_FAST_CRAFTER, "fast crafter (incomplete)");             //480
+  skillo(SKILL_BONE_ARMOR, "bone armor (incomplete)");             //481
+  skillo(SKILL_ELVEN_CRAFTING, "elvent crafting (incomplete)");             //482
+  skillo(SKILL_MASTERWORK_CRAFTING, "masterwork crafting (incomplete)");             //483
+  skillo(SKILL_DRACONIC_CRAFTING, "draconic crafting (incomplete)");             //484
+  skillo(SKILL_DWARVEN_CRAFTING, "dwarven crafting (incomplete)");             //485
+  skillo(SKILL_LIGHTNING_REFLEXES, "lightning reflexes");             //486
+  skillo(SKILL_GREAT_FORTITUDE, "great fortitude");             //487
+  skillo(SKILL_IRON_WILL, "iron will");             //488
+  skillo(SKILL_EPIC_REFLEXES, "epic reflexes");             //489
+  skillo(SKILL_EPIC_FORTITUDE, "epic fortitude");             //490
+  skillo(SKILL_EPIC_WILL, "epic will");             //491
+  skillo(SKILL_SHIELD_SPECIALIST, "shield specialist");             //492
+  /****note weapon specialist and luck of heroes inserted in free slots ***/
+
 }

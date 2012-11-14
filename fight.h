@@ -44,6 +44,7 @@ void hit(struct char_data *ch, struct char_data *victim,
 void load_messages(void);
 void perform_violence(void);
 void raw_kill(struct char_data * ch, struct char_data * killer);
+void raw_kill_old(struct char_data * ch, struct char_data * killer);
 void  set_fighting(struct char_data *ch, struct char_data *victim);
 int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           int attacktype, int dualwield);

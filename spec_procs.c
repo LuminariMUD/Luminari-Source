@@ -248,8 +248,20 @@ case SKILL_QUICK_CHANT:
 case SKILL_STUNNING_FIST:
         if (CLASS_LEVEL(ch, CLASS_MONK) >= 2)
                 return TRUE;	else return FALSE;
-     
+case SKILL_WEAPON_SPECIALIST:
+        if (CLASS_LEVEL(ch, CLASS_WARRIOR) >= 4)
+                return TRUE;	else return FALSE;
+case SKILL_SHIELD_SPECIALIST:
+        if (CLASS_LEVEL(ch, CLASS_WARRIOR) >= 6)
+                return TRUE;	else return FALSE;
+case SKILL_EPIC_REFLEXES:
+case SKILL_EPIC_FORTITUDE:
+case SKILL_EPIC_WILL:
+        if (GET_LEVEL(ch) >= 15)
+                return TRUE;  else return FALSE;
+        
   /*** no reqs ***/
+    case SKILL_LUCK_OF_HEROES:
     case SKILL_TOUGHNESS:
     case SKILL_KICK:
     case SKILL_TRACK:
@@ -258,9 +270,31 @@ case SKILL_STUNNING_FIST:
     case SKILL_PROF_SIMPLE_W:
     case SKILL_PROF_SHIELDS:
     case SKILL_PROF_LIGHT_A:
+    case SKILL_IRON_WILL:
+    case SKILL_GREAT_FORTITUDE:
+    case SKILL_LIGHTNING_REFLEXES:
       return TRUE;
       
+      /** not implemented yet **/
     case SKILL_RAGE:
+    case SKILL_MURMUR:
+    case SKILL_PROPAGANDA:
+    case SKILL_LOBBY:
+    case SKILL_MINING:
+    case SKILL_HUNTING:
+    case SKILL_FORESTING:
+    case SKILL_KNITTING:
+    case SKILL_CHEMISTRY:
+    case SKILL_ARMOR_SMITHING:
+    case SKILL_WEAPON_SMITHING:
+    case SKILL_JEWELRY_MAKING:
+    case SKILL_LEATHER_WORKING:
+    case SKILL_FAST_CRAFTER:
+    case SKILL_BONE_ARMOR:
+    case SKILL_ELVEN_CRAFTING:
+    case SKILL_MASTERWORK_CRAFTING:
+    case SKILL_DRACONIC_CRAFTING:
+    case SKILL_DWARVEN_CRAFTING:    
     default: return FALSE;
   }
   return FALSE;

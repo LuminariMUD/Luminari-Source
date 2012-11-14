@@ -379,7 +379,7 @@ ASPELL(spell_identify)  // divination
     sprintbitarray(GET_OBJ_EXTRA(obj), extra_bits, EF_ARRAY_MAX, bitbuf);
     send_to_char(ch, "Item is: %s\r\n", bitbuf);
 
-    send_to_char(ch, "Size: %s, Material: %s.",
+    send_to_char(ch, "Size: %s, Material: %s.\r\n",
             size_names[GET_OBJ_SIZE(obj)],
             material_name[GET_OBJ_MATERIAL(obj)]);
     

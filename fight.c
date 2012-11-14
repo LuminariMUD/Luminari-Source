@@ -184,15 +184,28 @@ int compute_size_bonus(int sizeA, int sizeB)
 
 int compute_armor_class(struct char_data *attacker, struct char_data *ch)
 {
-  int armorclass = GET_AC(ch) / (-10);
-
   //hack to translate old D&D to 3.5 Edition
+  int armorclass = GET_AC(ch) / (-10);
   armorclass += 20;
 
   if (AWAKE(ch))
     armorclass += GET_DEX_BONUS(ch);
-
-  if (attacker) {  /* dwarf dwarven bonus vs. larger opponents */
+  if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_TUMBLE)) //caps at 5
+    armorclass += MIN(5, (int)(compute_ability(ch, ABILITY_TUMBLE)/5));
+  if (AFF_FLAGGED(ch, AFF_EXPERTISE))
+    armorclass += 5;
+  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DODGE))
+    armorclass += 1;
+  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_ARMOR_SKIN))
+    armorclass += 2;
+  if (!IS_NPC(ch) && GET_EQ(ch, WEAR_SHIELD) &&
+          GET_SKILL(ch, SKILL_SHIELD_SPECIALIST))
+    armorclass += 2;
+  if (char_has_mud_event(ch, eTAUNTED))
+    armorclass -= 6;
+  if (char_has_mud_event(ch, eSTUNNED))
+    armorclass -= 2;
+  if (attacker) {  /* racial bonus vs. larger opponents */
     if ((GET_RACE(ch) == RACE_DWARF ||
             GET_RACE(ch) == RACE_CRYSTAL_DWARF ||
             GET_RACE(ch) == RACE_GNOME ||
@@ -202,18 +215,6 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch)
     else
       armorclass += compute_size_bonus(GET_SIZE(attacker), GET_SIZE(ch));      
   }
-
-  if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_TUMBLE)) //caps at 5
-    armorclass += MIN(5, (int)(compute_ability(ch, ABILITY_TUMBLE)/5));
-
-  if (AFF_FLAGGED(ch, AFF_EXPERTISE))
-    armorclass += 5;
-
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DODGE))
-    armorclass += 1;
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_ARMOR_SKIN))
-    armorclass += 2;
-
   if (CLASS_LEVEL(ch, CLASS_MONK)) {
     armorclass += GET_WIS_BONUS(ch);
     if (CLASS_LEVEL(ch, CLASS_MONK) >= 5)
@@ -229,25 +230,22 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch)
     if (CLASS_LEVEL(ch, CLASS_MONK) >= 30)
       armorclass++;
   }
-
   switch (GET_POS(ch)) {  //position penalty
     case POS_SITTING:
     case POS_RESTING:
     case POS_SLEEPING:
     case POS_STUNNED:
+      armorclass -= 2;
+      break;
     case POS_INCAP:
     case POS_MORTALLYW:
     case POS_DEAD:
-      armorclass -= 2;
+      armorclass -= 8;
       break;
     case POS_FIGHTING:
     case POS_STANDING:
     default:  break;
   }
-  if (char_has_mud_event(ch, eTAUNTED))
-    armorclass -= 6;
-  if (char_has_mud_event(ch, eSTUNNED))
-    armorclass -= 2;
 
   return (MIN(MAX_AC, armorclass));
 }
@@ -1534,13 +1532,19 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   //size
   if (vict)
     dambonus += compute_size_bonus(GET_SIZE(ch), GET_SIZE(vict));  
+
+  // weapon specialist
+  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_WEAPON_SPECIALIST))
+    dambonus += 2;
   
   //damroll (should be mostly just gear)
   dambonus += GET_DAMROLL(ch);
 
-  // other bonuses
+  // power attack
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
     dambonus += 5;
+
+  // crystal fist
   if (char_has_mud_event(ch, eCRYSTALFIST))
     dambonus += 3;
   

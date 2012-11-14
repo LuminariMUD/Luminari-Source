@@ -93,12 +93,30 @@ int compute_mag_saves(struct char_data *vict,
   switch (type) {
     case SAVING_FORT:
       saves += GET_CON_BONUS(vict);
+      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
+        saves++;
+      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_GREAT_FORTITUDE))
+        saves += 2;
+      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_FORTITUDE))
+        saves += 3;
       break;
     case SAVING_REFL:
       saves += GET_DEX_BONUS(vict);
+      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
+        saves++;
+      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LIGHTNING_REFLEXES))
+        saves += 2;
+      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_REFLEXES))
+        saves += 3;
       break;
     case SAVING_WILL:
       saves += GET_WIS_BONUS(vict);
+      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
+        saves++;
+      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_IRON_WILL))
+        saves += 2;
+      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_WILL))
+        saves += 3;
       break;
   }
 
