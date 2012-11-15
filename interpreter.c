@@ -235,13 +235,13 @@ cpp_extern const struct command_info cmd_info[] = {
   { "load"     , "load"     , POS_DEAD    , do_load     , LVL_BUILDER, 0 },
   { "lore"     , "lore"      , POS_FIGHTING, do_lore     , 1, 0 },
 
-  { "motd"     , "motd"    , POS_DEAD    , do_gen_ps   , 0, SCMD_MOTD },
+  { "memorize" , "memorize", POS_RESTING , do_gen_memorize , 0, SCMD_MEMORIZE },
   { "mail"     , "mail"    , POS_STANDING, do_not_here , 1, 0 },
   { "map"      , "map"     , POS_STANDING, do_map      , 1, 0 },
   { "medit"    , "med"     , POS_DEAD    , do_oasis_medit, LVL_BUILDER, 0 },
-  { "memorize" , "memorize", POS_RESTING , do_gen_memorize , 0, SCMD_MEMORIZE },
   { "mlist"    , "mlist"   , POS_DEAD    , do_oasis_list, LVL_BUILDER, SCMD_OASIS_MLIST },
   { "mcopy"    , "mcopy"   , POS_DEAD    , do_oasis_copy, LVL_GOD, CON_MEDIT },
+  { "motd"     , "motd"    , POS_DEAD    , do_gen_ps   , 0, SCMD_MOTD },
   { "mute"     , "mute"    , POS_DEAD    , do_wizutil  , LVL_GOD, SCMD_MUTE },
   { "mount" , "mount", POS_FIGHTING , do_mount , 0, 0 },
 
