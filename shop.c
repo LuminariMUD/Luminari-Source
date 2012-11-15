@@ -1673,15 +1673,18 @@ bool shopping_identify(char *arg, struct char_data *ch, struct char_data *keeper
             send_to_char(ch, "Damage Dice is '%dD%d' for an average per-round damage of %.1f.\r\n",
                         GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2),
                         ((GET_OBJ_VAL(obj, 2) + 1) / 2.0) * GET_OBJ_VAL(obj, 1));
+            send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
             break;
         case ITEM_ARMOR:
           if(GET_OBJ_VAL(obj,1) == 0)
           {
             send_to_char(ch, "AC-apply: [%d]\r\n", GET_OBJ_VAL(obj, 0));
+            send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
           }
           else
           {
             send_to_char(ch, "AC-apply: [%d] - This item has magical affects.\r\n", GET_OBJ_VAL(obj, 0));
+            send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
           }
           break;
         case ITEM_CONTAINER:
