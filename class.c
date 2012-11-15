@@ -825,7 +825,7 @@ void advance_level(struct char_data *ch, int class)
 
     break;
   case CLASS_BERSERKER:
-    berserker_skills(ch, CLASS_LEVEL(ch, CLASS_MONK));
+    berserker_skills(ch, CLASS_LEVEL(ch, CLASS_BERSERKER));
     add_hp += rand_number(6, 12);
     add_mana = 0;
     add_move = rand_number(4, 8);
