@@ -1321,6 +1321,8 @@ extern int assembly_skills[NUM_CRAFT];
 #define CLASS_LEVEL_ABBR(ch, class)	(IS_NPC(ch) ? CLASS_ABBR(ch) : \
 		class_abbrevs[class])
 
+// quick macro to see if someone is an immortal or not - Bakarus
+#define IS_IMMORTAL(ch)         (GET_LEVEL(ch) > LVL_IMMORT)
 
 // these have changed since multi-class, you are classified as CLASS_x if you got
 // any levels in it - zusuk
