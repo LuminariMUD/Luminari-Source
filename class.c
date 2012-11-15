@@ -331,7 +331,7 @@ void newbieEquipment(struct char_data *ch)
 }
 
 /* init spells for a class as they level up
- * i.e free skills
+ * i.e free skills  ;  make sure to set in spec_procs too
  */
 void berserker_skills(struct char_data *ch, int level) {
   switch (level) {
@@ -346,7 +346,7 @@ void berserker_skills(struct char_data *ch, int level) {
 }
 
 /* init spells for a class as they level up
- * i.e free skills
+ * i.e free skills  ;  make sure to set in spec_procs too
  */
 void thief_skills(struct char_data *ch, int level) {
   switch (level) {
@@ -373,7 +373,7 @@ void thief_skills(struct char_data *ch, int level) {
 }
 
 /* init spells for a class as they level up
- * i.e free skills
+ * i.e free skills  ;  make sure to set in spec_procs too
  */
 void monk_skills(struct char_data *ch, int level) {
   switch (level) {

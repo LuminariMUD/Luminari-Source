@@ -203,12 +203,6 @@ case SKILL_RESCUE:
 case SKILL_DODGE:
 	if (ch->real_abils.dex >= 13)
 		return TRUE;	else return FALSE;
-case SKILL_MOBILITY:
-	if (GET_SKILL(ch, SKILL_DODGE))
-		return TRUE;	else return FALSE;
-case SKILL_SPRING_ATTACK:
-	if (GET_SKILL(ch, SKILL_MOBILITY))
-		return TRUE;	else return FALSE;
 case SKILL_ARMOR_SKIN:
 	if (GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
@@ -239,9 +233,6 @@ case SKILL_EPIC_CRIT:
 case SKILL_QUICK_CHANT:
 	if (CASTER_LEVEL(ch))
 		return TRUE;	else return FALSE;
-case SKILL_STUNNING_FIST:
-        if (CLASS_LEVEL(ch, CLASS_MONK) >= 2)
-                return TRUE;	else return FALSE;
 case SKILL_WEAPON_SPECIALIST:
         if (CLASS_LEVEL(ch, CLASS_WARRIOR) >= 4)
                 return TRUE;	else return FALSE;
@@ -253,6 +244,28 @@ case SKILL_EPIC_FORTITUDE:
 case SKILL_EPIC_WILL:
         if (GET_LEVEL(ch) >= 15)
                 return TRUE;  else return FALSE;
+/* monk */
+ case SKILL_STUNNING_FIST:
+        if (CLASS_LEVEL(ch, CLASS_MONK) >= 2)
+                return TRUE;	else return FALSE;
+/* thief */        
+ case SKILL_BACKSTAB:
+        if (CLASS_LEVEL(ch, CLASS_THIEF))
+                return TRUE; else return FALSE;
+ case SKILL_DIRTY_FIGHTING:
+        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 3)
+                return TRUE; else return FALSE;
+case SKILL_MOBILITY:  /* shared */
+	if (GET_SKILL(ch, SKILL_DODGE) || (CLASS_LEVEL(ch, CLASS_THIEF) >= 2))
+		return TRUE;	else return FALSE;
+case SKILL_SPRING_ATTACK:  /* shared */
+	if (GET_SKILL(ch, SKILL_MOBILITY) || (CLASS_LEVEL(ch, CLASS_THIEF) >= 6))
+		return TRUE;	else return FALSE;
+/* berserker */
+ case SKILL_RAGE:
+        if (CLASS_LEVEL(ch, CLASS_BERSERKER) >= 2)
+                return TRUE;  else return FALSE;
+        
         
   /*** no reqs ***/
     case SKILL_LUCK_OF_HEROES:
@@ -273,9 +286,6 @@ case SKILL_EPIC_WILL:
        *  not implemented yet or
        * unattainable
        *  **/
-    case SKILL_BACKSTAB:
-    case SKILL_DIRTY_FIGHTING:
-    case SKILL_RAGE:
     case SKILL_MURMUR:
     case SKILL_PROPAGANDA:
     case SKILL_LOBBY:
