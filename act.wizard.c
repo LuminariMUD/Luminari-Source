@@ -3088,7 +3088,7 @@ ACMD(do_show)
    { "monk",	 	LVL_GOD, 	PC, 	NUMBER }, /* 66 */
    { "druid",	 	LVL_GOD, 	PC, 	NUMBER }, /* 67 */
    { "boost",	 	LVL_GOD, 	PC, 	NUMBER }, /* 68 */   
-   { "monk",	 	LVL_GOD, 	PC, 	NUMBER }, /* 69 */
+   { "berserker", 	LVL_GOD, 	PC, 	NUMBER }, /* 69 */
    { "\n", 0, BOTH, MISC }
   };
 
