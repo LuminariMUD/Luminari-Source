@@ -37,7 +37,7 @@ const char *class_abbrevs[] = {
   "\tRWar\tn",
   "\tgMnk\tn",
   "\tGD\tgr\tGu\tn",
-  "\rB\tRz\trk\tn",
+  "\trB\tRz\trk\tn",
   "\n"
 };
 
