@@ -429,9 +429,11 @@ ASPELL(spell_identify)  // divination
       send_to_char(ch, "Damage Dice is '%dD%d' for an average per-round damage of %.1f.\r\n",
 		GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), ((GET_OBJ_VAL(obj, 2) + 1) / 2.0) * GET_OBJ_VAL(obj, 1));
       send_to_char(ch, "Weapon Type: %s\r\n", attack_hit_text[GET_OBJ_VAL(obj, 3)].singular);
+      send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
       break;
     case ITEM_ARMOR:
       send_to_char(ch, "AC-apply is %d\r\n", GET_OBJ_VAL(obj, 0));
+      send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
       break;
     }
     found = FALSE;
