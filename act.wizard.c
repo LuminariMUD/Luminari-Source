@@ -785,6 +785,9 @@ static void do_affstat_character(struct char_data *ch, struct char_data *k)
 "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
 
   send_to_char(ch, "\tCCooldowns (positive and negative):\tn\r\n");
+  if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
+    send_to_char(ch, "Rage - Duration: %d seconds\r\n",
+            (int)(event_time(pMudEvent->pEvent)/10));  
   if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n",
             (int)(event_time(pMudEvent->pEvent)/10));
@@ -3085,6 +3088,7 @@ ACMD(do_show)
    { "monk",	 	LVL_GOD, 	PC, 	NUMBER }, /* 66 */
    { "druid",	 	LVL_GOD, 	PC, 	NUMBER }, /* 67 */
    { "boost",	 	LVL_GOD, 	PC, 	NUMBER }, /* 68 */   
+   { "monk",	 	LVL_GOD, 	PC, 	NUMBER }, /* 69 */
    { "\n", 0, BOTH, MISC }
   };
 
@@ -3095,6 +3099,7 @@ CLASS_THIEF
 CLASS_WARRIOR
 CLASS_MONK
 CLASS_DRUID
+CLASS_BERSERKER
 */
 
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg)
@@ -3555,6 +3560,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 70:  /* boosts */
       GET_BOOSTS(vict) = RANGE(0, 20);
+      break;
+    case 71:  // zerker level
+      CLASS_LEVEL(vict, CLASS_BERSERKER) = RANGE(0, LVL_IMMORT-1);
+      affect_total(vict);
       break;
     default:
       send_to_char(ch, "Can't set that!\r\n");

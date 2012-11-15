@@ -164,6 +164,23 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
   return (FALSE);
 }
 
+/* added this function to add wear off messages for skills -zusuk */
+void alt_wear_off_msg(struct char_data *ch, int skillnum)
+{
+  if (skillnum < (MAX_SPELLS + 1)) 
+    return;
+  if (skillnum >= MAX_SKILLS)
+    return;
+  
+  switch (skillnum) {
+    case SKILL_RAGE:
+      send_to_char(ch, "Your rage has calmed...\r\n");
+      break;
+    default:
+      break;
+  }
+          
+}
 
 /* affect_update: called from comm.c (causes spells to wear off) */
 void affect_update(void)
@@ -171,21 +188,26 @@ void affect_update(void)
   struct affected_type *af, *next;
   struct char_data *i;
   struct raff_node *raff, *next_raff, *temp;
+  int has_message = 0;
 
   for (i = character_list; i; i = i->next)
     for (af = i->affected; af; af = next) {
       next = af->next;
       if (af->duration >= 1)
-	af->duration--;
-      else if (af->duration == -1)	/* No action */
-	;
+        af->duration--;
+      else if (af->duration == -1) /* No action */
+        ;
       else {
-	if ((af->spell > 0) && (af->spell <= MAX_SPELLS))
-	  if (!af->next || (af->next->spell != af->spell) ||
-	      (af->next->duration > 0))
-	    if (spell_info[af->spell].wear_off_msg)
-	      send_to_char(i, "%s\r\n", spell_info[af->spell].wear_off_msg);
-	affect_remove(i, af);
+        if ((af->spell > 0) && (af->spell <= MAX_SPELLS))
+          if (!af->next || (af->next->spell != af->spell) ||
+                  (af->next->duration > 0))
+            if (spell_info[af->spell].wear_off_msg) {
+              send_to_char(i, "%s\r\n", spell_info[af->spell].wear_off_msg);
+              has_message = 1;
+            }
+        if (!has_message)
+          alt_wear_off_msg(i, af->spell);
+        affect_remove(i, af);
       }
     }
 
@@ -327,7 +349,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 		     struct obj_data *wpn, int spellnum, int savetype)
 {
   int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0, 
-          bonus = 0, magic_level = 0, divine_level = 0;
+          bonus = 0, magic_level = 0, divine_level = 0, mag_resist = TRUE;
 
   if (victim == NULL || ch == NULL)
     return (0);
@@ -338,13 +360,21 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     if (HAS_SPELLS(wpn))
       magic_level = divine_level = level;
   
+  /* need to include:
+   * 1)  save = SAVING_x   -1 means no saving throw
+   * 2)  mag_resist = TRUE/FALSE (TRUE - default, resistable or FALSE - not)
+   * 3)  element = DAM_x
+   */
+  
   switch (spellnum) {
     // magical
   case SPELL_MAGIC_MISSILE:  //evocation
     if (affected_by_spell(victim, SPELL_SHIELD)) {
       send_to_char(ch, "Your target is shielded by magic!\r\n");
     } else {
+      mag_resist = TRUE;
       save = -1;
+      
       num_dice = MIN(8, (MAX(1, magic_level / 2)));
       size_dice = 6;
       bonus = num_dice;
@@ -353,54 +383,68 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
   case SPELL_NEGATIVE_ENERGY_RAY:  //necromancy
     save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_NEGATIVE;
+    
     num_dice = 2;
     size_dice = 6;
     bonus = 3;
-    element = DAM_NEGATIVE;
     break;
   case SPELL_ICE_DAGGER:  //conjurations
     save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_COLD;
+    
     num_dice = MIN(7, magic_level);
     size_dice = 8;
     bonus = 0;
-    element = DAM_COLD;
     break;
   case SPELL_CHILL_TOUCH:  //necromancy
     // *note chill touch also has an effect, only save on effect
     save = -1;
+    mag_resist = TRUE;
+    element = DAM_COLD;
+    
     num_dice = 1;
     size_dice = 10;
     bonus = 0;
-    element = DAM_COLD;
     break;
   case SPELL_HORIZIKAULS_BOOM:  //evocation
     // *note also has an effect
     save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_SOUND;
+    
     num_dice = MIN(8, magic_level);
     size_dice = 4;
     bonus = num_dice;
-    element = DAM_SOUND;
     break;
   case SPELL_BURNING_HANDS:  //evocation
     save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;
+    
     num_dice = MIN(8, magic_level);
     size_dice = 6;
     bonus = 0;
-    element = DAM_FIRE;
     break;
   case SPELL_SHOCKING_GRASP:  //evocation
     save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_ELECTRIC;
+    
     num_dice = MIN(10, magic_level);
     size_dice = 8;
     bonus = 0;
-    element = DAM_ELECTRIC;
     break;
   case SPELL_SCORCHING_RAY:  //evocation
     save = -1;
+    mag_resist = TRUE;
+    element = DAM_FIRE;
+    
     num_dice = MIN(22, magic_level*2);
     size_dice = 6;
     bonus = 0;
-    element = DAM_FIRE;
     break;
   case SPELL_ACID_ARROW:  //conjuration
     break;
@@ -408,25 +452,31 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
   case SPELL_LIGHTNING_BOLT:
     save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_ELECTRIC;
+    
     num_dice = MIN(15, magic_level);
     size_dice = 10;
     bonus = 0;
-    element = DAM_ELECTRIC;
     break;
   case SPELL_FIREBALL:
     save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;
+    
     num_dice = MIN(15, magic_level);
     size_dice = 10;
     bonus = 0;
-    element = DAM_FIRE;
     break;
   case SPELL_COLOR_SPRAY:  //illusion
     //  has effect too
     save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_ILLUSION;
+    
     num_dice = 1;
     size_dice = 4;
     bonus = 0;
-    element = DAM_ILLUSION;
     break;
 
 /* cone of cold */
@@ -434,173 +484,197 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_ICE_STORM:
     //AoE
     save = -1;
+    mag_resist = TRUE;
+    element = DAM_COLD;
+    
     num_dice = MIN(15, magic_level);
     size_dice = 8;
     bonus = 0;
-    element = DAM_COLD;
     break;
   case SPELL_BALL_OF_LIGHTNING:
     save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_ELECTRIC;
+    
     num_dice = MIN(22, magic_level);
     size_dice = 10;
     bonus = 0;
-    element = DAM_ELECTRIC;
     break;
   case SPELL_MISSILE_STORM:
     save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_FORCE;
+    
     num_dice = MIN(26, magic_level);
     size_dice = 10;
     bonus = magic_level;
-    element = DAM_FORCE;
     break;
   case SPELL_CHAIN_LIGHTNING:
     //AoE
     save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_ELECTRIC;
+    
     num_dice = MIN(28, magic_level);
     size_dice = 9;
     bonus = magic_level;
-    element = DAM_ELECTRIC;
     break;
   case SPELL_METEOR_SWARM:
     //AoE
     save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;
+    
     num_dice = magic_level + 4;
     size_dice = 12;
     bonus = magic_level + 8;
-
-    element = DAM_FIRE;
     break;
   case SPELL_GREATER_RUIN:
     save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_PUNCTURE;
+    
     num_dice = magic_level + 6;
     size_dice = 12;
     bonus = magic_level + 35;
-
-    element = DAM_PUNCTURE;
     break;
   case SPELL_HELLBALL:
     //AoE
     save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_ENERGY;
+    
     num_dice = magic_level + 8;
     size_dice = 12;
     bonus = magic_level + 50;
-
-    element = DAM_ENERGY;
     break;
 
 
     // divine
   case SPELL_CAUSE_LIGHT_WOUNDS:
     save = SAVING_WILL; 
+    mag_resist = TRUE;
+    element = DAM_HOLY;
+    
     num_dice = 1;
     size_dice = 12;
     bonus = MIN(7, divine_level);
-
-    element = DAM_HOLY;
     break;
   case SPELL_CAUSE_MODERATE_WOUNDS:
     save = SAVING_WILL; 
+    mag_resist = TRUE;
+    element = DAM_HOLY;
+    
     num_dice = 2;
     size_dice = 12;
     bonus = MIN(15, divine_level);
-
-    element = DAM_HOLY;
     break;
   case SPELL_CAUSE_SERIOUS_WOUNDS:
     save = SAVING_WILL; 
+    mag_resist = TRUE;
+    element = DAM_HOLY;
+    
     num_dice = 3;
     size_dice = 12;
     bonus = MIN(22, divine_level);
-
-    element = DAM_HOLY;
     break;
   case SPELL_CAUSE_CRITICAL_WOUNDS:
     save = SAVING_WILL; 
+    mag_resist = TRUE;
+    element = DAM_HOLY;
+    
     num_dice = 4;
     size_dice = 12;
     bonus = MIN(30, divine_level);
-
-    element = DAM_HOLY;
     break;
   case SPELL_FLAME_STRIKE:
     save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;
+    
     num_dice = MIN(20, divine_level);
     size_dice = 8;
-    bonus = 0;  
-
-    element = DAM_FIRE;
+    bonus = 0;
     break;
   case SPELL_DISPEL_EVIL:
-    save = SAVING_WILL;
-    num_dice = divine_level;
-    size_dice = 9;
-    bonus = divine_level;
-
     if (IS_EVIL(ch)) {
       victim = ch;
     } else if (IS_GOOD(victim)) {
       act("The gods protect $N.", FALSE, ch, 0, victim, TO_CHAR);
       return (0);
     }
-    element = DAM_HOLY;
-    break;
-  case SPELL_DISPEL_GOOD:
     save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_HOLY;
+    
     num_dice = divine_level;
     size_dice = 9;
     bonus = divine_level;
+    break;
+  case SPELL_DISPEL_GOOD:
     if (IS_GOOD(ch)) {
       victim = ch;
     } else if (IS_EVIL(victim)) {
       act("The gods protect $N.", FALSE, ch, 0, victim, TO_CHAR);
       return (0);
     }
+    save = SAVING_WILL;
+    mag_resist = TRUE;
     element = DAM_UNHOLY;
+    
+    num_dice = divine_level;
+    size_dice = 9;
+    bonus = divine_level;
     break;
   case SPELL_HARM:
     save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_HOLY;
+    
     num_dice = MIN(22, divine_level);
     size_dice = 8;
     bonus = num_dice;
-
-    element = DAM_HOLY;
     break;
   case SPELL_CALL_LIGHTNING:
     save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_ELECTRIC;
+    
     num_dice = MIN(24, divine_level);
     size_dice = 8;
     bonus = num_dice + 10;
-
-    element = DAM_ELECTRIC;
     break;
   case SPELL_DESTRUCTION:
     save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_NEGATIVE;
+    
     num_dice = MIN(26, divine_level);
     size_dice = 8;
     bonus = num_dice + 20;
-
-    element = DAM_NEGATIVE;
     break;
   case SPELL_ENERGY_DRAIN:
     //** Magic AND Divine
     save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_NEGATIVE;
+    
     if (GET_LEVEL(victim) < CASTER_LEVEL(ch))
       num_dice = 2;
     else
       num_dice = 1;
     size_dice = 200;
     bonus = 0;
-
-    element = DAM_NEGATIVE;
     break;
   case SPELL_EARTHQUAKE:
     //AoE
     save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_EARTH;
+    
     num_dice = divine_level;
     size_dice = 8;
     bonus = num_dice + 30;
-
-    element = DAM_EARTH;
     break;
 
   } /* switch(spellnum) */
@@ -608,17 +682,17 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   dam = dice(num_dice, size_dice) + bonus;
 
   //resistances to magic
-  if (mag_resistance(ch, victim, 0))
-    return 0;
+  if (dam && mag_resist)
+    if (mag_resistance(ch, victim, 0))
+      return 0;
 
-  int dwarf_bonus = 0;
+  int dwarf_bonus = 0;  //dwarven racial bonus to magic
   if (GET_RACE(victim) == RACE_DWARF)
     dwarf_bonus += 2;
   
-  if (dam)
-    if (save != -1)
-      if (mag_savingthrow(ch, victim, save, dwarf_bonus))
-        dam /= 2;
+  if (dam && (save != -1))  //saving throw for half damage if applies
+    if (mag_savingthrow(ch, victim, save, dwarf_bonus))
+      dam /= 2;
 
   if (!element)  //want to make sure all spells have some sort of damage category
     log("SYSERR: %d is lacking DAM_", spellnum);    
@@ -627,6 +701,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 }
 
 
+/* make sure you don't stack armor spells for silly high AC */
 int isMagicArmored(struct char_data *victim)
 {
   if (  affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||

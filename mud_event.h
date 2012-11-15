@@ -42,7 +42,8 @@ typedef enum {
     eSTUNNINGFIST,	//  stunner's cooldown for stunning fist
     eCRAFTING,
     eCRYSTALFIST,
-    eCRYSTALBODY,            
+    eCRYSTALBODY,
+    eRAGE,
 } event_id;
 
 struct mud_event_list {
@@ -86,5 +87,5 @@ EVENTFUNC(event_stunningfist);
 EVENTFUNC(event_crafting);
 EVENTFUNC(event_crystalfist);
 EVENTFUNC(event_crystalbody);
-
+EVENTFUNC(event_rage);
 #endif /* _MUD_EVENT_H_ */

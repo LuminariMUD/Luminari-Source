@@ -267,7 +267,11 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
     }
   if (PLR_FLAGGED(d->character, PLR_IDEA)) {
     if (action == STRINGADD_SAVE && *d->str){
-      write_to_output(d, "Idea saved!\r\n");
+      write_to_output(d, "Idea saved!  Changes are implemented in this order:"
+              "  1) bug fixes, 2) ideas parallel to short term development"
+              " goals, 3) simple to implement ideas, 4) hard to implement"
+              " ideas..  If the idea is rejected, a polite game-mail will be"
+              " sent giving the reason why.  Thanks for your input!\r\n");
       save_ibt_file(SCMD_IDEA);
     } else {
       write_to_output(d, "Idea aborted!\r\n");
@@ -275,7 +279,11 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
   }
   if (PLR_FLAGGED(d->character, PLR_BUG)) {
     if (action == STRINGADD_SAVE && *d->str){
-      write_to_output(d, "Bug saved!\r\n");
+      write_to_output(d, "Bug saved!  Changes are implemented in this order:"
+              "  1) bug fixes, 2) ideas parallel to short term development"
+              " goals, 3) simple to implement ideas, 4) hard to implement"
+              " ideas..  If the idea is rejected, a polite game-mail will be"
+              " sent giving the reason why.  Thanks for your input!\r\n");
       save_ibt_file(SCMD_BUG);
     } else {
       write_to_output(d, "Bug aborted!\r\n");

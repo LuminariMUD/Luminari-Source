@@ -24,22 +24,32 @@
 #include "spec_procs.h"
 
 
-
-
 ACMD(do_rage)
 {
   struct affected_type af, aftwo, afthree, affour;
-
+  int bonus = 0, duration = 0;
+  
   if (affected_by_spell(ch, SKILL_RAGE)) {
     send_to_char(ch, "You are already raging!\r\n");
     return;
   }
-
-  if (!IS_BADGER(ch)) {
+  if (!IS_BADGER(ch) && !GET_SKILL(ch, SKILL_RAGE)) {
     send_to_char(ch, "You don't know how to rage.\r\n");
     return;
   }
+  if (char_has_mud_event(ch, eRAGE)) {
+    send_to_char(ch, "You must wait longer before you can use this ability "
+                     "again.\r\n");
+    return;
+  }
 
+  if (IS_NPC(ch) || IS_MORPHED(ch)) {
+    bonus = (GET_LEVEL(ch) / 3) + 3;
+  } else {
+    bonus = (CLASS_LEVEL(ch, CLASS_BERSERKER) / 3) + 3;
+  }
+  duration = 6 + GET_CON_BONUS(ch) * 2;
+  
   send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
   act("$n goes into a \tRR\trA\tRG\trE\tn!", FALSE, ch, 0, 0, TO_ROOM);
 
@@ -49,31 +59,32 @@ ACMD(do_rage)
   new_affect(&affour);
 
   af.spell = SKILL_RAGE;
-  af.duration = 6 + GET_CON_BONUS(ch) * 2;
+  af.duration = duration;
   af.location = APPLY_STR;
-  af.modifier = 4;
+  af.modifier = bonus;
 
   aftwo.spell = SKILL_RAGE;
-  aftwo.duration = 6 + GET_CON_BONUS(ch) * 2;
+  aftwo.duration = duration;
   aftwo.location = APPLY_CON;
-  aftwo.modifier = 4;
-  GET_HIT(ch) += GET_LEVEL(ch) * 2 + 10;
+  aftwo.modifier = bonus;
+  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2;  //little boost in current hps
 
   afthree.spell = SKILL_RAGE;
-  afthree.duration = 6 + GET_CON_BONUS(ch) * 2;
+  afthree.duration = duration;
   afthree.location = APPLY_SAVING_WILL;
-  afthree.modifier = 2;
+  afthree.modifier = bonus;
 
+  //this is a penalty
   affour.spell = SKILL_RAGE;
-  affour.duration = 6 + GET_CON_BONUS(ch) * 2;
+  affour.duration = duration;
   affour.location = APPLY_AC;
-  affour.modifier = 20;
+  affour.modifier = bonus * 5;
 
   affect_to_char(ch, &af);
   affect_to_char(ch, &aftwo);
   affect_to_char(ch, &afthree);
   affect_to_char(ch, &affour);
-  
+  attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));  
 }
 
 
@@ -593,7 +604,12 @@ ACMD(do_breathe)
 
     if (aoeOK(ch, vict, SPELL_FIRE_BREATHE)) {  
       WAIT_STATE(vict, PULSE_VIOLENCE * 1);
-      damage(ch, vict, dice(GET_LEVEL(ch), 14), SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
+      if (GET_LEVEL(ch) <= 15)
+        damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_FIRE_BREATHE, DAM_FIRE,
+                FALSE);
+      else
+        damage(ch, vict, dice(GET_LEVEL(ch), 14), SPELL_FIRE_BREATHE, DAM_FIRE,
+                FALSE);
     }
   }
 
