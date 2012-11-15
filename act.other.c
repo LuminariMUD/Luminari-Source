@@ -60,7 +60,7 @@ ACMD(do_recharge) {
   }
 
   if (GET_GOLD(ch) < 5000) {
-    send_to_char(ch, "You don't have enough gold!\r\n");
+    send_to_char(ch, "You don't have enough gold on hand!\r\n");
     return;
   }
 
@@ -75,7 +75,7 @@ ACMD(do_recharge) {
   if (mincharge < maxcharge) {
     chargeval = maxcharge - mincharge;
     GET_OBJ_VAL(obj, 2) += chargeval;
-    GET_GOLD(ch) -= 10000;
+    GET_GOLD(ch) -= 5000;
     send_to_char(ch, "Shazzzaaaam!\r\n");
     sprintf(buf, "The item now has %d charges remaining.\r\n", maxcharge);
     send_to_char(ch, buf);
@@ -219,6 +219,7 @@ ACMD(do_tame) {
   act("$n tames $N.", FALSE, ch, 0, vict, TO_NOTVICT);
 }
 
+
 // if you meet the class pre-reqs, return 1, otherwise 0
 // class = class attempting to level in
 int meet_class_reqs(struct char_data *ch, int class)
@@ -260,6 +261,10 @@ int meet_class_reqs(struct char_data *ch, int class)
       if (ch->real_abils.str >= 11)
         return 1;
       break;
+    case CLASS_BERSERKER:
+      if (ch->real_abils.con >= 11)
+        return 1;
+      break;
     case CLASS_MONK:
       if (ch->real_abils.dex >= 11 && ch->real_abils.wis >= 11)
         return 1;
@@ -267,6 +272,7 @@ int meet_class_reqs(struct char_data *ch, int class)
   }
   return 0;
 }
+
 
 
 void list_valid_classes(struct char_data *ch)
@@ -291,7 +297,6 @@ ACMD(do_respec)
     return;
 
   one_argument(argument, arg);
-
 
   if (!*arg) {
     send_to_char(ch, "You need to select a starting class to respec to,"
@@ -1541,7 +1546,7 @@ ACMD(do_gen_tog)
 struct diplomacy_data diplomacy_types[] = {
   { SCMD_MURMUR,     SKILL_MURMUR,     0.75, 1},  /**< Murmur skill, 0.75% increase, 1 tick wait  */
   { SCMD_PROPAGANDA, SKILL_PROPAGANDA, 2.32, 3},  /**< Propaganda skill, 2.32% increase, 3 tick wait */
-  { SCMD_LOBBY,      SKILL_LOBBY,      10.0, 8},  /**< Lobby skill, 10% increase, 8 tick wait     */
+  { SCMD_LOBBY,      SKILL_LOBBY,      6.0, 8},  /**< Lobby skill, 10% increase, 8 tick wait     */
 
   { 0, 0, 0.0, 0 }                                /**< This must be the last line */
 };

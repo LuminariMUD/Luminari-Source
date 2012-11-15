@@ -647,6 +647,11 @@ const char *extra_bits[] = {
   "Anti-Druid",
   "Mold",
   "Anti-Crystal-Dwarf",
+  "Anti-Halfling",
+  "Anti-Half-Elf",
+  "Anti-Half-Orc",
+  "Anti-Gnome",
+  "Anti-Berserker",
   "\n"
 };
 

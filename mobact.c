@@ -508,7 +508,9 @@ void npc_class_behave(struct char_data *ch)
       npc_cleric_behave(ch, vict, getCircle(ch, CLASS_CLERIC), engaged);
       break;
     case CLASS_MONK:
-      npc_monk_behave(ch, vict, GET_LEVEL(ch), engaged);
+      npc_monk_behave(ch, vict, GET_LEVEL(ch), engaged);      
+      break;
+    case CLASS_BERSERKER:      
       break;
     default:
       log("ERR:  Reached invalid class in npc_class_behave.");

@@ -189,8 +189,9 @@
 #define CLASS_WARRIOR     3    /**< PC Class Warrior */
 #define CLASS_MONK	      4    /**< PC Class monk */
 #define CLASS_DRUID	      5	//druids
+#define CLASS_BERSERKER	 6	//berserker
 /** Total number of available PC Classes */
-#define NUM_CLASSES	  6
+#define NUM_CLASSES	  7
 
 // related to pc (classes, etc)
 #define MAX_CLASSES	30	// total number of maximum pc classes
@@ -607,8 +608,9 @@
 #define ITEM_ANTI_H_ELF           27   /* Not usable by half elf*/
 #define ITEM_ANTI_H_ORC           28   /* Not usable by half orc*/
 #define ITEM_ANTI_GNOME           29   /* Not usable by gnome */
+#define ITEM_ANTI_BERSERKER       30   /* Not usable by gnome */
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            30
+#define NUM_ITEM_FLAGS            31
 
 
 /* Modifier constants used with obj affects ('A' fields) */

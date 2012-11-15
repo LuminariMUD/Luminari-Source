@@ -897,7 +897,7 @@ ACMD(do_innates)
       case RACE_ELF:
         send_to_char(ch, "elven dexterity (+2 dex)\r\n");
         send_to_char(ch, "\tRelven constitution (-2 con)\tn\r\n");
-        send_to_char(ch, "elven weapon proficiency (free skill)\r\n");
+        send_to_char(ch, "basic weapon proficiency (free skill)\r\n");
         send_to_char(ch, "sleep enchantment immunity\r\n");
         send_to_char(ch, "infravision\r\n");
         send_to_char(ch, "keen senses (+2 listen/spot ability)");
@@ -915,7 +915,7 @@ ACMD(do_innates)
                 "(+1 size bonus vs. larger opponents)\r\n");        
         break;
       case RACE_H_ELF:
-        send_to_char(ch, "elven weapon proficiency (free skill)\r\n");
+        send_to_char(ch, "basic weapon proficiency (free skill)\r\n");
         send_to_char(ch, "infravision\r\n");
         send_to_char(ch, "resistance to enchantments (+2 save bpmis)\r\n");
         break;
@@ -978,10 +978,12 @@ ACMD(do_innates)
         send_to_char(ch, "ultravision\r\n");
         break;
       default:
-        send_to_char(ch, "None (yet)\r\n");
+        send_to_char(ch, "No Racial (yet)\r\n");
         break;
-    }    
-    
+    }
+    /* other innates */
+    if (CLASS_LEVEL(ch, CLASS_BERSERKER) >= 4)
+      send_to_char(ch, "barbarian shrug (level / 4 damage reduction)\r\n");    
   }
 }
 
@@ -1038,6 +1040,8 @@ ACMD(do_affects)
 	"\tC-------------- \tWCool Downs\tC -------------------------------\tn\r\n");
   if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
+    send_to_char(ch, "Rage - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
     send_to_char(ch, "Crystal Fist - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))

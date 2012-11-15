@@ -1330,6 +1330,7 @@ extern int assembly_skills[NUM_CRAFT];
 #define IS_THIEF(ch)		(CLASS_LEVEL(ch, CLASS_THIEF))
 #define IS_WARRIOR(ch)		(CLASS_LEVEL(ch, CLASS_WARRIOR))
 #define IS_MONK(ch)		(CLASS_LEVEL(ch, CLASS_MONK))
+#define IS_BERSERKER(ch)		(CLASS_LEVEL(ch, CLASS_BERSERKER))
 #define IS_CASTER(ch)	(IS_CLERIC(ch) || IS_MAGIC_USER(ch) || IS_DRUID(ch))
 
 

@@ -42,7 +42,7 @@ struct mud_event_list mud_event_index[] = {
   { "Crafting"  		, event_crafting, 	EVENT_CHAR  },  //eCRAFTING
   { "Crystal fist"       , event_countdown, 	EVENT_CHAR  },  //eCRYSTALFIST
   { "Crystal body"       , event_countdown, 	EVENT_CHAR  },  //eCRYRSTALBODY
-
+  { "Rage"               , event_countdown, 	EVENT_CHAR  },  //eRAGE
 };
 
 
@@ -95,6 +95,9 @@ EVENTFUNC(event_countdown)
       break;
     case eTAUNT:
       send_to_char(ch, "You are now able to taunt again.\r\n");
+      break;
+    case eRAGE:
+      send_to_char(ch, "You are now able to Rage again.\r\n");
       break;
     case eTAUNTED:
       send_to_char(ch, "You feel the effects of the taunt wear off.\r\n");

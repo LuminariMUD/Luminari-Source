@@ -394,8 +394,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     }
 
     if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
-	spellnum != SPELL_CHARM)
-      hit(cvict, caster, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+	   spellnum != SPELL_CHARM)
+      if (cvict != caster)  // funny results from potions/scrolls
+        hit(cvict, caster, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
     return (1);
 }
@@ -1589,10 +1590,10 @@ void mag_assign_spells(void)
   skillo(SKILL_EPIC_MAGE_ARMOR, "es epic mage armor");
   skillo(SKILL_EPIC_WARDING, "es epic warding");			//455
   skillo(SKILL_RAGE, "rage");			//185
-  skillo(SKILL_PROF_SIMPLE_W, "simple weapon prof");             //457
-  skillo(SKILL_PROF_ELF_W, "elf weapon prof");                //458
-  skillo(SKILL_PROF_DRUID_W, "druid weapon prof");              //459
-  skillo(SKILL_PROF_MARTIAL_W, "martial weapon prof");            //460
+  skillo(SKILL_PROF_SIMPLE_W, "minimal weapon prof");             //457
+  skillo(SKILL_PROF_ELF_W, "basic weapon prof");                //458
+  skillo(SKILL_PROF_DRUID_W, "advanced weapon prof");              //459
+  skillo(SKILL_PROF_MARTIAL_W, "master weapon prof");            //460
   skillo(SKILL_PROF_EXOTIC_W, "exotic weapon prof");             //461
   skillo(SKILL_PROF_LIGHT_A, "light armor prof");              //462
   skillo(SKILL_PROF_MEDIUM_A, "medium armor prof");             //463

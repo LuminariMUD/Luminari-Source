@@ -1161,6 +1161,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
     damage_reduction += 3;
   if (char_has_mud_event(ch, eCRYSTALBODY))
     damage_reduction += 3;
+  if (CLASS_LEVEL(ch, CLASS_BERSERKER))
+    damage_reduction += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4;
   
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
