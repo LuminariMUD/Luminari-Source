@@ -1246,12 +1246,18 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d)
     if (k == d)
       continue;
 
-    /* these 3 checks added by zusuk to try and find dupe bug */
+    /* these 6 checks added by zusuk to try and find dupe bug */
     if (!k)
       continue;
     if (!k->character)
       continue;
     if (!GET_PC_NAME(k->character))
+      continue;
+    if (!d)
+      continue;
+    if (!d->character)
+      continue;
+    if (!GET_PC_NAME(d->character))
       continue;
     /*****/
 
