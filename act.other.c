@@ -652,6 +652,20 @@ int i, found;
       }
     }
   }
+  else if (tch) {		/* victim */
+    send_to_char(ch, "Name: %s\r\n", GET_NAME(tch));
+    if (!IS_NPC(tch))
+      send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n",
+	      GET_NAME(tch), age(tch)->year, age(tch)->month,
+	      age(tch)->day, age(tch)->hours);
+    send_to_char(ch, "Alignment: %d.\r\n", GET_ALIGNMENT(tch));
+    send_to_char(ch, "Height %d cm, Weight %d pounds\r\n", GET_HEIGHT(tch), GET_WEIGHT(tch));
+    send_to_char(ch, "Level: %d, Hits: %d, Mana: %d\r\n", GET_LEVEL(tch), GET_HIT(tch), GET_MANA(tch));
+    send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n", compute_armor_class(NULL, tch), GET_HITROLL(tch), GET_DAMROLL(tch));
+    send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n",
+	GET_STR(tch), GET_ADD(tch), GET_INT(tch),
+	GET_WIS(tch), GET_DEX(tch), GET_CON(tch), GET_CHA(tch));
+  }
 }
 ACMD(do_sneak)
 {
