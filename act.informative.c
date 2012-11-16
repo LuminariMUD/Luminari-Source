@@ -1009,8 +1009,8 @@ ACMD(do_affects)
       }
     }
 
- // if (IS_NPC(vict))
-  //   return;
+ if (IS_IMMORTAL(vict))
+     return;
   // after this is same affects code, uses vict instead of ch now
   if (ch != vict)
       send_to_char(ch, "%s is affected by:", GET_NAME(vict));
@@ -1093,6 +1093,8 @@ ACMD(do_affects)
     send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
 
   //location of our DAM_x  damtypes
+  if (!IS_IMMORTAL(ch))
+      return;
   send_to_char(ch, 
 	"\tC-------- \tWDamage Type Resistance / Vulnerability\tC ---------\tn\r\n");
   for (i = 0; i < NUM_DAM_TYPES-1; i++) {
