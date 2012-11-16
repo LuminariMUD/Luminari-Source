@@ -994,6 +994,27 @@ ACMD(do_affects)
   char buf[MAX_STRING_LENGTH];
   struct affected_type *aff;
   struct mud_event_data *pMudEvent;
+  struct char_data *vict;
+  char arg[MAX_INPUT_LENGTH];
+ 
+
+  vict = ch;  /* Default is 'self' */
+
+  /* Admins can type score <player> to see someone elses score */
+    one_argument(argument, arg);
+    if ((arg != NULL) && *arg) {
+      if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD))) {
+        send_to_char(ch, "%s", CONFIG_NOPERSON);
+        return;
+      }
+    }
+
+  if (IS_NPC(vict))
+     return;
+ 
+  if (ch != vict)
+      send_to_char(ch, "%s is affected by:", GET_NAME(vict));
+  
 
   send_to_char(ch, 
 	"\tC---------------------------------------------------------\tn\r\n");
@@ -1001,16 +1022,16 @@ ACMD(do_affects)
 	"\tC-------------- \tWAffected By\tC ------------------------------\tn\r\n");
 
   /* Showing the bitvector */
-  sprintbitarray(AFF_FLAGS(ch), affected_bits, AF_ARRAY_MAX, buf);
-  send_to_char(ch, "%s%s%s\r\n", CCYEL(ch, C_NRM),
-	buf, CCNRM(ch, C_NRM));
+  sprintbitarray(AFF_FLAGS(vict), affected_bits, AF_ARRAY_MAX, buf);
+  send_to_char(ch, "%s%s%s\r\n", CCYEL(vict, C_NRM),
+	buf, CCNRM(vict, C_NRM));
 
   send_to_char(ch, 
 	"\tC-------------- \tWSpell-Like Affects\tC -----------------------\tn\r\n");
   
   /* Routine to show what spells a char is affected by */
-  if (ch->affected) {
-    for (aff = ch->affected; aff; aff = aff->next) {
+  if (vict->affected) {
+    for (aff = vict->affected; aff; aff = aff->next) {
       if (aff->duration + 1 >= 1200) // hours
         send_to_char(ch, "[%2d hour(s)  ] ", (int)((aff->duration + 1) / 1200));
       else if (aff->duration + 1 >= 20)  // minutes
@@ -1018,7 +1039,7 @@ ACMD(do_affects)
       else // rounds
         send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
       send_to_char(ch, "%s%-19s%s ",
-        CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
+        CCCYN(vict, C_NRM), skill_name(aff->spell), CCNRM(vict, C_NRM));
       
       if (aff->modifier)
         send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
@@ -1040,35 +1061,35 @@ ACMD(do_affects)
 	"\tC-------------- \tWCool Downs\tC -------------------------------\tn\r\n");
   if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
+  if ((pMudEvent = char_has_mud_event(vict, eRAGE)))
     send_to_char(ch, "Rage - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
+  if ((pMudEvent = char_has_mud_event(vict, eCRYSTALFIST)))
     send_to_char(ch, "Crystal Fist - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
+  if ((pMudEvent = char_has_mud_event(vict, eCRYSTALBODY)))
     send_to_char(ch, "Crystal Body - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
+  if ((pMudEvent = char_has_mud_event(vict, eLAYONHANDS)))
     send_to_char(ch, "Lay on Hands - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
+  if ((pMudEvent = char_has_mud_event(vict, eTREATINJURY)))
     send_to_char(ch, "Treat Injuries - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eMUMMYDUST)))
+  if ((pMudEvent = char_has_mud_event(vict, eMUMMYDUST)))
     send_to_char(ch, "Epic Spell:  Mummy Dust - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eDRAGONKNIGHT)))
+  if ((pMudEvent = char_has_mud_event(vict, eDRAGONKNIGHT)))
     send_to_char(ch, "Epic Spell:  Dragon Knight - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eGREATERRUIN)))
+  if ((pMudEvent = char_has_mud_event(vict, eGREATERRUIN)))
     send_to_char(ch, "Epic Spell:  Greater Ruin - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eHELLBALL)))
+  if ((pMudEvent = char_has_mud_event(vict, eHELLBALL)))
     send_to_char(ch, "Epic Spell:  Hellball - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eEPICMAGEARMOR)))
+  if ((pMudEvent = char_has_mud_event(vict, eEPICMAGEARMOR)))
     send_to_char(ch, "Epic Spell:  Epic Mage Armor - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
+  if ((pMudEvent = char_has_mud_event(vict, eEPICWARDING)))
     send_to_char(ch, "Epic Spell:  Epic Warding - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eSTUNNINGFIST)))
+  if ((pMudEvent = char_has_mud_event(vict, eSTUNNINGFIST)))
     send_to_char(ch, "Stunning Fist - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   send_to_char(ch, 
 	"\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
-  if ((pMudEvent = char_has_mud_event(ch, eTAUNTED)))
+  if ((pMudEvent = char_has_mud_event(vict, eTAUNTED)))
     send_to_char(ch, "\tRTaunted!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eSTUNNED)))
+  if ((pMudEvent = char_has_mud_event(vict, eSTUNNED)))
     send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
 
   //location of our DAM_x  damtypes
@@ -1076,7 +1097,7 @@ ACMD(do_affects)
 	"\tC-------- \tWDamage Type Resistance / Vulnerability\tC ---------\tn\r\n");
   for (i = 0; i < NUM_DAM_TYPES-1; i++) {
     send_to_char(ch, "%-15s: %-4d%% (%-2d)   ", damtype_display[i+1],
-		compute_damtype_reduction(ch, i+1), compute_energy_absorb(ch, i+1));
+		compute_damtype_reduction(vict, i+1), compute_energy_absorb(vict, i+1));
     if (i % 2)
       send_to_char(ch, "\r\n");
   }

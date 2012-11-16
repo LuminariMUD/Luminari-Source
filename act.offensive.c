@@ -339,7 +339,7 @@ ACMD(do_order)
   else if (!(vict = get_char_vis(ch, name, NULL, FIND_CHAR_ROOM)) && !is_abbrev(name, "followers"))
     send_to_char(ch, "That person isn't here.\r\n");
   else if (ch == vict)
-    send_to_char(ch, "You obviously suffer from skitzofrenia.\r\n");
+    send_to_char(ch, "You obviously suffer from schizophrenia.\r\n");
   else {
     if (AFF_FLAGGED(ch, AFF_CHARM)) {
       send_to_char(ch, "Your superior would not aprove of you giving orders.\r\n");
