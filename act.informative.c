@@ -994,13 +994,13 @@ ACMD(do_affects)
   char buf[MAX_STRING_LENGTH];
   struct affected_type *aff;
   struct mud_event_data *pMudEvent;
+  // added vict/arg for affect <target> - bakarus
   struct char_data *vict;
   char arg[MAX_INPUT_LENGTH];
  
-
   vict = ch;  /* Default is 'self' */
 
-  /* Admins can type score <player> to see someone elses score */
+  /* allow players to type affect <target> to see targets affects - Bakarus */
     one_argument(argument, arg);
     if ((arg != NULL) && *arg) {
       if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD))) {
@@ -1009,9 +1009,9 @@ ACMD(do_affects)
       }
     }
 
-  if (IS_NPC(vict))
-     return;
- 
+ // if (IS_NPC(vict))
+  //   return;
+  // after this is same affects code, uses vict instead of ch now
   if (ch != vict)
       send_to_char(ch, "%s is affected by:", GET_NAME(vict));
   
