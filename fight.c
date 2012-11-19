@@ -571,7 +571,7 @@ void death_message(struct char_data *ch)
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
-  send_to_char(ch, "You start awake...  you realize someone has resurrected you...\r\n");
+  send_to_char(ch, "You awaken... you realize someone has resurrected you...\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
 }
@@ -689,7 +689,13 @@ void raw_kill_old(struct char_data * ch, struct char_data * killer)
 
 void die(struct char_data * ch, struct char_data * killer)
 {
-  gain_exp(ch, -(GET_EXP(ch) / 2));
+    if (GET_LEVEL(ch) < 15)
+    {// no xp loss for newbs - Bakarus
+    }
+    else
+    {// if not a newbie then bang that xp! - Bakarus
+        gain_exp(ch, -(GET_EXP(ch) / 2));
+    }
   if (!IS_NPC(ch)) {
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_KILLER);
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_THIEF);
