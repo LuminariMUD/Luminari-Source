@@ -1014,8 +1014,8 @@ ACMD(do_affects)
       send_to_char(ch, "%s is affected by:", GET_NAME(vict));
   
 
-  send_to_char(ch, 
-	"\tC---------------------------------------------------------\tn\r\n");
+  //send_to_char(ch, 
+	//"\tC---------------------------------------------------------\tn\r\n");
   send_to_char(ch, 
 	"\tC-------------- \tWAffected By\tC ------------------------------\tn\r\n");
 
