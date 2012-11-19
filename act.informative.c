@@ -1009,7 +1009,7 @@ ACMD(do_affects)
       }
     }
 
- if (IS_IMMORTAL(vict))
+ if (GET_LEVEL(ch) > LVL_IMMORT && IS_IMMORTAL(vict))
      return;
   // after this is same affects code, uses vict instead of ch now
   if (ch != vict)
