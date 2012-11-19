@@ -1011,7 +1011,7 @@ ACMD(do_affects)
 
      // after this is same affects code, uses vict instead of ch now
   if (ch != vict)
-      send_to_char(ch, "%s is affected by:", GET_NAME(vict));
+      send_to_char(ch, "%s is affected by:\r\n", GET_NAME(vict));
   
 
   //send_to_char(ch, 
