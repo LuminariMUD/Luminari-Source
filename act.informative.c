@@ -1010,6 +1010,7 @@ ACMD(do_affects)
     }
 
  if (GET_LEVEL(ch) > LVL_IMMORT && IS_IMMORTAL(vict))
+     send_to_char(ch, "You cannot see an Immortals affects!")
      return;
   // after this is same affects code, uses vict instead of ch now
   if (ch != vict)
