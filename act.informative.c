@@ -553,13 +553,13 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   }
 
   // staff can see the vnums
-  send_to_char(ch, "%s", CCCYN(ch, C_NRM));
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
     char buf[MAX_STRING_LENGTH];
 
     sprintbitarray(ROOM_FLAGS(IN_ROOM(ch)), room_bits, RF_ARRAY_MAX, buf);
-    send_to_char(ch, "[%5d] ", GET_ROOM_VNUM(IN_ROOM(ch)));
-    send_to_char(ch, "%s [ %s] ", world[IN_ROOM(ch)].name, buf);
+    send_to_char(ch, "%s", CCCYN(ch, C_NRM));
+    send_to_char(ch, "[%5d]%s ", GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
+    send_to_char(ch, "%s %s[ %s] ", world[IN_ROOM(ch)].name, CCCYN(ch, C_NRM), buf);
 
     if (SCRIPT(rm)) {
       send_to_char(ch, "[T");

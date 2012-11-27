@@ -426,8 +426,8 @@ static void redit_disp_menu(struct descriptor_data *d)
       "%s4%s) Sector type : %s%s\r\n",
       cyn, OLC_NUM(d), nrm,
       cyn, zone_table[OLC_ZNUM(d)].number, nrm,
-      grn, nrm, yel, room->name,
-      grn, nrm, yel, room->description,
+      grn, nrm, nrm, room->name,
+      grn, nrm, nrm, room->description,
       grn, nrm, cyn, buf1,
       grn, nrm, cyn, buf2);
 
