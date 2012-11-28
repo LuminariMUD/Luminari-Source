@@ -84,17 +84,17 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
     return TRUE;
 
   switch(skillnum) {
-case SKILL_PROF_ELF_W:
-	if (GET_SKILL(ch, SKILL_PROF_SIMPLE_W))
+case SKILL_PROF_BASIC:
+	if (GET_SKILL(ch, SKILL_PROF_MINIMAL))
 		return TRUE;	else return FALSE;
-case SKILL_PROF_DRUID_W:
-	if (GET_SKILL(ch, SKILL_PROF_SIMPLE_W))
+case SKILL_PROF_ADVANCED:
+	if (GET_SKILL(ch, SKILL_PROF_BASIC))
 		return TRUE;	else return FALSE;
-case SKILL_PROF_MARTIAL_W:
-	if (GET_SKILL(ch, SKILL_PROF_DRUID_W) || GET_SKILL(ch, SKILL_PROF_ELF_W))
+case SKILL_PROF_MASTER:
+	if (GET_SKILL(ch, SKILL_PROF_ADVANCED))
 		return TRUE;	else return FALSE;
-case SKILL_PROF_EXOTIC_W:
-	if (GET_SKILL(ch, SKILL_PROF_MARTIAL_W))
+case SKILL_PROF_EXOTIC:
+	if (GET_SKILL(ch, SKILL_PROF_MASTER))
 		return TRUE;	else return FALSE;
 case SKILL_PROF_MEDIUM_A:
 	if (GET_SKILL(ch, SKILL_PROF_LIGHT_A))
@@ -245,28 +245,27 @@ case SKILL_EPIC_WILL:
         if (GET_LEVEL(ch) >= 15)
                 return TRUE;  else return FALSE;
 /* monk */
- case SKILL_STUNNING_FIST:
+case SKILL_STUNNING_FIST:
         if (CLASS_LEVEL(ch, CLASS_MONK) >= 2)
-                return TRUE;	else return FALSE;
+                return TRUE;  else return FALSE;
 /* thief */        
- case SKILL_BACKSTAB:
+case SKILL_BACKSTAB:
         if (CLASS_LEVEL(ch, CLASS_THIEF))
-                return TRUE; else return FALSE;
- case SKILL_DIRTY_FIGHTING:
+                return TRUE;  else return FALSE;
+case SKILL_DIRTY_FIGHTING:
         if (CLASS_LEVEL(ch, CLASS_THIEF) >= 3)
-                return TRUE; else return FALSE;
+                return TRUE;  else return FALSE;
 case SKILL_MOBILITY:  /* shared */
-	if (GET_SKILL(ch, SKILL_DODGE) || (CLASS_LEVEL(ch, CLASS_THIEF) >= 2))
-		return TRUE;	else return FALSE;
+        if (GET_SKILL(ch, SKILL_DODGE) || (CLASS_LEVEL(ch, CLASS_THIEF) >= 2))
+                return TRUE;  else return FALSE;
 case SKILL_SPRING_ATTACK:  /* shared */
-	if (GET_SKILL(ch, SKILL_MOBILITY) || (CLASS_LEVEL(ch, CLASS_THIEF) >= 6))
-		return TRUE;	else return FALSE;
+        if (GET_SKILL(ch, SKILL_MOBILITY) || (CLASS_LEVEL(ch, CLASS_THIEF) >= 6))
+		      return TRUE;  else return FALSE;
 /* berserker */
- case SKILL_RAGE:
+case SKILL_RAGE:
         if (CLASS_LEVEL(ch, CLASS_BERSERKER) >= 2)
                 return TRUE;  else return FALSE;
-        
-        
+                
   /*** no reqs ***/
     case SKILL_LUCK_OF_HEROES:
     case SKILL_TOUGHNESS:
@@ -274,7 +273,7 @@ case SKILL_SPRING_ATTACK:  /* shared */
     case SKILL_TRACK:
     case SKILL_IMPROVED_CRITICAL:
     case SKILL_PROWESS:
-    case SKILL_PROF_SIMPLE_W:
+    case SKILL_PROF_MINIMAL:
     case SKILL_PROF_SHIELDS:
     case SKILL_PROF_LIGHT_A:
     case SKILL_IRON_WILL:
