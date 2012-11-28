@@ -40,7 +40,7 @@ const char *npc_race_types[] = {
 const char *npc_race_abbrevs[] = {
    "Unknown",
    "\tWHuman\tn",
-   "\tGhoul\tn",
+   "\tGGhoul\tn",
    "\tgBadger\tn",
    "\tRRed Dragon\tn",
    "\tYHill Giant\tn"

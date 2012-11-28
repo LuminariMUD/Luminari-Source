@@ -498,25 +498,25 @@ int invalid_prof(struct char_data *ch, struct obj_data *obj)
   switch (GET_OBJ_PROF(obj)) {
     case ITEM_PROF_NONE:
       return FALSE;
-    case ITEM_PROF_SIMPLE_W:
+    case ITEM_PROF_MINIMAL:
       return FALSE;
-    case ITEM_PROF_ELF_W:
-      if (GET_SKILL(ch, SKILL_PROF_ELF_W))
+    case ITEM_PROF_BASIC:
+      if (GET_SKILL(ch, SKILL_PROF_BASIC))
         return FALSE;
       else
         return TRUE;
-    case ITEM_PROF_DRUID_W:
-      if (GET_SKILL(ch, SKILL_PROF_DRUID_W))
+    case ITEM_PROF_ADVANCED:
+      if (GET_SKILL(ch, SKILL_PROF_ADVANCED))
         return FALSE;
       else
         return TRUE;
-    case ITEM_PROF_MARTIAL_W:
-      if (GET_SKILL(ch, SKILL_PROF_MARTIAL_W))
+    case ITEM_PROF_MASTER:
+      if (GET_SKILL(ch, SKILL_PROF_MASTER))
         return FALSE;
       else
         return TRUE;
-    case ITEM_PROF_EXOTIC_W:
-      if (GET_SKILL(ch, SKILL_PROF_EXOTIC_W))
+    case ITEM_PROF_EXOTIC:
+      if (GET_SKILL(ch, SKILL_PROF_EXOTIC))
         return FALSE;
       else
         return TRUE;

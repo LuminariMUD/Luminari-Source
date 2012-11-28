@@ -494,11 +494,11 @@
 
 /* Item profs: used by obj_data.obj_flags.prof_flag constants.c = item_profs */
 #define ITEM_PROF_NONE		0	// no proficiency required
-#define ITEM_PROF_SIMPLE_W	1	// simple weapon proficiency
-#define ITEM_PROF_ELF_W		2	// elf weapon proficiency
-#define ITEM_PROF_DRUID_W	3	// druid weapon proficiency
-#define ITEM_PROF_MARTIAL_W	4	// martial weapons
-#define ITEM_PROF_EXOTIC_W	5	// exotic weapons
+#define ITEM_PROF_MINIMAL	1	//  "Minimal Weapon Proficiency"
+#define ITEM_PROF_BASIC		2	//  "Basic Weapon Proficiency"
+#define ITEM_PROF_ADVANCED	3	//  "Advanced Weapon Proficiency"
+#define ITEM_PROF_MASTER 	4	//  "Master Weapon Proficiency"
+#define ITEM_PROF_EXOTIC 	5	//  "Exotic Weapon Proficiency"
 #define ITEM_PROF_LIGHT_A	6	// light armor prof
 #define ITEM_PROF_MEDIUM_A	7	// medium armor prof
 #define ITEM_PROF_HEAVY_A	8	// heavy armor prof

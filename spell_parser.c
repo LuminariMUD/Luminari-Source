@@ -1096,8 +1096,9 @@ void unused_spell(int spl)
  * only need a spello() call to define a new spell; to decide who gets to use
  * a spell or skill, look in class.c.  -JE */
 
+ /* leave these here for my usage -zusuk */
 			/* evocation */
-                        /* conjuration */
+               /* conjuration */
 			/* necromancy */
 			/* enchantment */
 			/* illusion */
@@ -1130,7 +1131,7 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_OBJ_INV, TRUE,
 	MAG_AFFECTS | MAG_ALTER_OBJS,
 	"You feel less sick.", 5, 11,
-	ENCHANTMENT);  // mage 9, cleric 5
+	ENCHANTMENT);  // mage 4, cleric 5
   spello(SPELL_ENERGY_DRAIN, "energy drain", 79, 64, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_MANUAL,
 	NULL, 9, 14,
@@ -1329,72 +1330,134 @@ void mag_assign_spells(void)
 	"You feel less dextrous.", 2, 6, TRANSMUTATION);
 
 
-
   // 3rd cricle
-  spello(SPELL_WALL_OF_FOG, "wall of fog", 50, 25, 5, POS_STANDING,
-	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_ROOM, 
-	"The wall of fog blows away.", 5, 6, ILLUSION);
-  spello(SPELL_FLY, "fly", 37, 22, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"You drift slowly to the ground.", 3, 6, ENCHANTMENT);
+			/* evocation */
   spello(SPELL_LIGHTNING_BOLT, "lightning bolt", 44, 29, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 3, 7, EVOCATION);
   spello(SPELL_FIREBALL, "fireball", 44, 29, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 2, 7, EVOCATION);
+               /* conjuration */
+			/* necromancy */
+			/* enchantment */
+  spello(SPELL_FLY, "fly", 37, 22, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"You drift slowly to the ground.", 3, 6, ENCHANTMENT);
+			/* illusion */
+  spello(SPELL_WALL_OF_FOG, "wall of fog", 50, 25, 5, POS_STANDING,
+	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_ROOM, 
+	"The wall of fog blows away.", 5, 6, ILLUSION);
+			/* divination */
+			/* abjuration */
+			/* transmutation */
 
+  
   // 4th circle
+			/* evocation */
+               /* conjuration */
+			/* necromancy */
+			/* enchantment */
+			/* illusion */
+			/* divination */
+			/* abjuration */
   spello(SPELL_STONESKIN, "stone skin", 51, 36, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"Your skin returns to its normal texture.", 3, 8, ABJURATION);
+			/* transmutation */
 
+  
   // 5th circle
-  spello(SPELL_LOCATE_OBJECT, "locate object", 58, 43, 1, POS_FIGHTING,
-	TAR_OBJ_WORLD, FALSE, MAG_MANUAL,
-	NULL, 9, 9, DIVINATION);
+			/* evocation */
   spello(SPELL_ICE_STORM, "ice storm", 58, 43, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 5, 9, EVOCATION);
+               /* conjuration */
+			/* necromancy */
+			/* enchantment */
+			/* illusion */
+			/* divination */
+  spello(SPELL_LOCATE_OBJECT, "locate object", 58, 43, 1, POS_FIGHTING,
+	TAR_OBJ_WORLD, FALSE, MAG_MANUAL,
+	NULL, 9, 9, DIVINATION);
+			/* abjuration */
+			/* transmutation */
+  
 
   // 6th circle
-  spello(SPELL_CLONE, "clone", 65, 50, 1, POS_FIGHTING,
-	TAR_IGNORE, FALSE, MAG_SUMMONS,
-	NULL, 9, 10, TRANSMUTATION);
+			/* evocation */
   spello(SPELL_BALL_OF_LIGHTNING, "ball of lightning", 65, 50, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 5, 10, EVOCATION);
+               /* conjuration */
+			/* necromancy */
+			/* enchantment */
+			/* illusion */
+			/* divination */
+			/* abjuration */
+			/* transmutation */
+  spello(SPELL_CLONE, "clone", 65, 50, 1, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_SUMMONS,
+	NULL, 9, 10, TRANSMUTATION);
 
+  
   // 7th circle
-  spello(SPELL_ANIMATE_DEAD, "animate dead", 72, 57, 1, POS_FIGHTING,
-	TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
-	NULL, 10, 11, NECROMANCY);
-  spello(SPELL_TELEPORT, "teleport", 72, 57, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
-	NULL, 1, 11, TRANSMUTATION);
+			/* evocation */
   spello(SPELL_MISSILE_STORM, "missile storm", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 6, 11, EVOCATION);
+               /* conjuration */
+			/* necromancy */
+  spello(SPELL_ANIMATE_DEAD, "animate dead", 72, 57, 1, POS_FIGHTING,
+	TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
+	NULL, 10, 11, NECROMANCY);
+			/* enchantment */
+			/* illusion */
+			/* divination */
+			/* abjuration */
+			/* transmutation */  
+  spello(SPELL_TELEPORT, "teleport", 72, 57, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+	NULL, 1, 11, TRANSMUTATION);
 
+  
   // 8th circle
-  spello(SPELL_CURSE, "curse", 80, 50, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_OBJ_INV, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS,
-	"You feel more optimistic.", 7, 12, NECROMANCY);
-  spello(SPELL_WATERWALK, "waterwalk", 79, 64, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"Your feet seem less buoyant.", 7, 12, TRANSMUTATION);
+			/* evocation */
   spello(SPELL_CHAIN_LIGHTNING, "chain lightning", 79, 64, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 8, 12, EVOCATION);
+               /* conjuration */
+			/* necromancy */
+  spello(SPELL_CURSE, "curse", 80, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_OBJ_INV, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS,
+	"You feel more optimistic.", 7, 12, NECROMANCY);
+			/* enchantment */
+			/* illusion */
+			/* divination */
+			/* abjuration */
+			/* transmutation */  
+  spello(SPELL_WATERWALK, "waterwalk", 79, 64, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"Your feet seem less buoyant.", 7, 12, TRANSMUTATION);
 
+  
   // 9th circle
+			/* evocation */
   spello(SPELL_METEOR_SWARM, "meteor swarm", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 9, 13, EVOCATION);
+               /* conjuration */
+			/* necromancy */
+			/* enchantment */
+			/* illusion */
+			/* divination */
+			/* abjuration */
+			/* transmutation */  
   spello(SPELL_POLYMORPH, "polymorph self", 58, 43, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_MANUAL,
 	NULL, 9, 9, TRANSMUTATION);
 
+  
   // epic magical
   spello(SPELL_EPIC_MAGE_ARMOR, "epic mage armor", 95, 80, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -1590,11 +1653,11 @@ void mag_assign_spells(void)
   skillo(SKILL_EPIC_MAGE_ARMOR, "es epic mage armor");
   skillo(SKILL_EPIC_WARDING, "es epic warding");			//455
   skillo(SKILL_RAGE, "rage");			//185
-  skillo(SKILL_PROF_SIMPLE_W, "minimal weapon prof");             //457
-  skillo(SKILL_PROF_ELF_W, "basic weapon prof");                //458
-  skillo(SKILL_PROF_DRUID_W, "advanced weapon prof");              //459
-  skillo(SKILL_PROF_MARTIAL_W, "master weapon prof");            //460
-  skillo(SKILL_PROF_EXOTIC_W, "exotic weapon prof");             //461
+  skillo(SKILL_PROF_MINIMAL, "minimal weapon prof");             //457
+  skillo(SKILL_PROF_BASIC, "basic weapon prof");                //458
+  skillo(SKILL_PROF_ADVANCED, "advanced weapon prof");              //459
+  skillo(SKILL_PROF_MASTER, "master weapon prof");            //460
+  skillo(SKILL_PROF_EXOTIC, "exotic weapon prof");             //461
   skillo(SKILL_PROF_LIGHT_A, "light armor prof");              //462
   skillo(SKILL_PROF_MEDIUM_A, "medium armor prof");             //463
   skillo(SKILL_PROF_HEAVY_A, "heavy armor prof");              //464
