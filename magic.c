@@ -447,10 +447,24 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
   case SPELL_ACID_ARROW:  //conjuration
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_ACID;
+    
+    num_dice = 4;
+    size_dice = 6;
+    bonus = 0;
     break;
   case SPELL_ENERGY_SPHERE:  //abjuration
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_ENERGY;
+    
+    num_dice = MIN(10, magic_level);
+    size_dice = 8;
+    bonus = 0;
     break;
-  case SPELL_LIGHTNING_BOLT:
+  case SPELL_LIGHTNING_BOLT:  //evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_ELECTRIC;
@@ -459,7 +473,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 10;
     bonus = 0;
     break;
-  case SPELL_FIREBALL:
+  case SPELL_FIREBALL:  //evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_FIRE;
