@@ -609,14 +609,9 @@ static void look_in_direction(struct char_data *ch, int dir)
       send_to_char(ch, "The %s is closed.\r\n", fname(EXIT(ch, dir)->keyword));
     else if (EXIT_FLAGGED(EXIT(ch, dir), EX_ISDOOR) && EXIT(ch, dir)->keyword)
       send_to_char(ch, "The %s is open.\r\n", fname(EXIT(ch, dir)->keyword));
-    
-    /* added for vaprak -zusuk */
-    if (GET_LEVEL(ch) >= LVL_IMMORT)
-      look_at_room(ch, FALSE);
-    
+        
   } else
-    send_to_char(ch, "Nothing special there...(there does not seem"
-            " to be an exit in that direction)\r\n");
+    send_to_char(ch, "Nothing special there...\r\n");
 }
 
 static void look_in_obj(struct char_data *ch, char *arg)
@@ -3115,6 +3110,7 @@ ACMD(do_scan)
   }
 
   for (door = 0; door < DIR_COUNT; door++) {
+    look_in_direction(ch, door);
     for (range = 1; range<= maxrange; range++) {
       if (world[scanned_room].dir_option[door] && world[scanned_room].dir_option[door]->to_room != NOWHERE &&
        !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_CLOSED) &&
