@@ -74,7 +74,7 @@ ACMD(do_oasis_zedit)
         send_to_char(ch, "Save which zone?\r\n");
         return;
       }
-    } else if (GET_LEVEL(ch) >= LVL_IMPL) {
+    } else if (GET_LEVEL(ch) >= (LVL_IMPL-1)) {
       if (str_cmp("new", buf1) || !stop || !*stop)
         send_to_char(ch, "Format: zedit new <zone number> <bottom-room> "
            "<upper-room>\r\n");
