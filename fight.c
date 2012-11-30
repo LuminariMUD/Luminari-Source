@@ -2241,21 +2241,21 @@ void perform_violence(void)
 
     if (IS_NPC(ch)) {
       if (GET_MOB_WAIT(ch) > 0) {
-	GET_MOB_WAIT(ch) -= PULSE_VIOLENCE;
+        GET_MOB_WAIT(ch) -= PULSE_VIOLENCE;
       } else {
         GET_MOB_WAIT(ch) = 0;
         if (GET_POS(ch) < POS_FIGHTING) {
           GET_POS(ch) = POS_FIGHTING;
           send_to_char(ch, "You scramble to your feet!\r\n");
-	  act("$n scrambles to $s feet!", TRUE, ch, 0, 0, TO_ROOM);
+	     act("$n scrambles to $s feet!", TRUE, ch, 0, 0, TO_ROOM);
         }
       }
     }
 
     /* Positions
-	POS_DEAD	0
+	POS_DEAD       0
 	POS_MORTALLYW	1
-	POS_INCAP	2
+	POS_INCAP      2
 	POS_STUNNED	3
 	POS_SLEEPING	4
 	POS_RESTING	5
