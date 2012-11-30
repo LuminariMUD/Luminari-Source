@@ -22,10 +22,25 @@
 #include "act.h"
 #include "fight.h"
 
-
-
-
 /* Special spells appear below. */
+
+#define FLAMEOBJ 222
+ASPELL(spell_continual_flame)
+{        
+  struct obj_data *new_obj = NULL;
+  
+  if (real_object(FLAMEOBJ) != NOTHING) {
+    if ((new_obj = read_object(FLAMEOBJ, VIRTUAL)) != NULL) {
+      obj_to_char(new_obj, ch);
+      send_to_char(ch, "As you complete your spells %s appears"
+                       " in your inventory.\r\n",
+                   GET_OBJ_SHORT(new_obj));
+      act("$n creates a magical flame...", TRUE, ch, 0, 0, TO_ROOM);
+    }
+  }
+}
+  
+  
 ASPELL(spell_create_water)
 {
   int water;
