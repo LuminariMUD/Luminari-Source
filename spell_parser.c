@@ -1251,7 +1251,7 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 2, 6, EVOCATION);
   spello(SPELL_CONTINUAL_FLAME, "continual flame", 58, 43, 1, POS_FIGHTING,
-	TAR_IGNORE, FALSE, MAG_MANUAL,
+	TAR_IGNORE, FALSE, MAG_CREATIONS,
 	NULL, 5, 6, EVOCATION);
                         /* conjuration */
   spello(SPELL_SUMMON_CREATURE_2, "summon creature ii", 95, 80, 1, POS_FIGHTING,
