@@ -821,6 +821,32 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are stunned by the colors!";
     break;
 
+  case SPELL_DAZE_MONSTER:  //enchantment
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      return;
+    }
+
+    SET_BIT_AR(af[0].bitvector, AFF_STUN);
+    af[0].duration = dice(2, 4);
+    to_room = "$n is dazed by the spell!";
+    to_vict = "You are dazed by the spell!";
+    break;
+
+  case SPELL_HIDEOUS_LAUGHTER:  //enchantment
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      return;
+    }
+
+    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+    af[0].duration = dice(1, 4);
+    to_room = "$n is overcome by a fit of hideous laughter!";
+    to_vict = "You are overcome by a fit of hideous luaghter!";
+    break;
+
   case SPELL_CHILL_TOUCH:  //necromancy
     if (mag_resistance(ch, victim, 0))
       return;
@@ -973,40 +999,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You have been deafened!";
     break;
 
-  case SPELL_DAZE_MONSTER:  //enchantment
-    if (mag_resistance(ch, victim, 0))
-      return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, elf_bonus)) {
-      send_to_char(ch, "You fail.\r\n");
-      return;
-    }
 
-    af[0].duration = 50;
-    SET_BIT_AR(af[0].bitvector, AFF_STUN);
-
-    to_room = "$n seems to be dazed!";
-    to_vict = "You have been dazed!";
-    break;
-
-  case SPELL_TOUCH_OF_IDIOCY:  //enchantment
-    break;
-    
-  case SPELL_HIDEOUS_LAUGHTER:  //enchantment
-    if (mag_resistance(ch, victim, 0))
-      return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, elf_bonus)) {
-      send_to_char(ch, "You fail.\r\n");
-      return;
-    }
-
-    af[0].duration = 5;
-    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-
-    to_room = "$n bursts into a terrible uncontrollable laughter!";
-    to_vict = "You burst into a terrible uncontrollable laughter!";
-    break;
-
-    case SPELL_WEB:  //conjuration
+  case SPELL_WEB:  //conjuration
     /*
     if (MOB_FLAGGED(victim, MOB_NOGRAPPLE)) {
       send_to_char(ch, "Your opponent doesn't seem webbable.\r\n");
