@@ -1219,7 +1219,7 @@ static char *make_prompt(struct descriptor_data *d)
       }
       /* autoprompt display exits */
       if (PRF_FLAGGED(d->character, PRF_DISPEXITS) && len < sizeof(prompt)) {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX: ",
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
 		               CCYEL(d->character,C_NRM));
         if (count >= 0)
           len += count;
@@ -1241,13 +1241,13 @@ static char *make_prompt(struct descriptor_data *d)
             count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s%s",
                     CCWHT(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
           else
-            count = snprintf(prompt + len, sizeof(prompt) - len, "\t(%s\t)",
+            count = snprintf(prompt + len, sizeof(prompt) - len, "%s",
                     autoexits[door]);
           slen++;
           if (count >= 0)
             len += count;
         }
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%s]%s ",
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
                 slen ? "" : "None! ", CCNRM(ch, C_NRM));
         if (count >= 0)
           len += count;
