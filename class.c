@@ -1227,7 +1227,7 @@ int level_exp(struct char_data *ch, int level)
   int chclass = GET_CLASS(ch);
   int exp = 0, factor = 0;
 
-  if (level > LVL_IMPL || level < 0) {
+  if (level > (LVL_IMPL+1) || level < 0) {
     log("SYSERR: Requesting exp for invalid level %d!", level);
     return 0;
   }

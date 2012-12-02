@@ -309,7 +309,12 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
                              "%s1%s) Toggle HP\r\n"
                              "%s2%s) Toggle Mana\r\n"
                              "%s3%s) Toggle Moves\r\n"
-                             "%s4%s) Toggle auto flag\r\n\r\n"
+                             "%s4%s) Toggle auto flag\r\n"
+                             "5) Toggle XP\r\n"
+                             "6) Toggle Exits\r\n"
+                             "7) Toggle Rooms\r\n"
+                             "8) Toggle Memtimes\r\n"
+                             "\r\n"
                              "%sCurrent Prompt: %s%s%s\r\n\r\n"
                              "%s0%s) Quit (to main menu)\r\n",
                              CBWHT(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
