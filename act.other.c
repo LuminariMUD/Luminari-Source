@@ -1304,7 +1304,8 @@ ACMD(do_display)
   skip_spaces(&argument);
 
   if (!*argument) {
-    send_to_char(ch, "Usage: prompt { { H | M | V } | all | auto | none }\r\n");
+    send_to_char(ch, "Usage: prompt { { H | M | V | X | T | R | E } | all |"
+                     " auto | none }\r\n");
     return;
   }
 
@@ -1318,29 +1319,54 @@ ACMD(do_display)
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXP);
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
   } else if (!str_cmp(argument, "off") || !str_cmp(argument, "none")) {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXP);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);    
   } else {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXP);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);    
 
     for (i = 0; i < strlen(argument); i++) {
       switch (LOWER(argument[i])) {
       case 'h':
         SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
-	break;
+        break;
       case 'm':
         SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
-	break;
+        break;
       case 'v':
         SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
-	break;
+        break;
+      case 'x':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXP);
+        break;
+      case 't':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
+        break;
+      case 'r':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
+        break;
+      case 'e':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
+        break;
       default:
-	send_to_char(ch, "Usage: prompt { { H | M | V } | all | auto | none }\r\n");
-	return;
+        send_to_char(ch, "Usage: prompt { { H | M | V | X | T | R | E } | all"
+                      " | auto | none }\r\n");
+      return;
       }
     }
   }

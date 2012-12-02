@@ -103,8 +103,15 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
   /* Set up the required variables and strings */
   vict = PREFEDIT_GET_CHAR;
 
-  sprintf(prompt_string, "%s%s%s", PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",   PREFEDIT_FLAGGED(PRF_DISPMANA) ? "M" : "",
-                                   PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "" );
+  sprintf(prompt_string, "%s%s%s%s%s%s%s",
+          PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
+          PREFEDIT_FLAGGED(PRF_DISPMANA) ? "M" : "",
+          PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
+          PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
+          PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
+          PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
+          PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : ""
+          );
 
   sprintf(color_string, "%s", multi_types[(PREFEDIT_FLAGGED(PRF_COLOR_1) ? 1 : 0) + (PREFEDIT_FLAGGED(PRF_COLOR_2) ? 2 : 0)]);
 
@@ -117,7 +124,7 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
   /* The mortal preferences section of the actual menu */
   send_to_char(d->character, "\r\n"
                              "%sPreferences\r\n"
-                             "%sP%s) Prompt : %s[%s%-3s%s]         %sL%s) Pagelength : %s[%s%-3d%s]\r\n"
+                             "%sP%s) Prompt : %s[%s%-15s%s]         %sL%s) Pagelength : %s[%s%-3d%s]\r\n"
                              "%sC%s) Color  : %s[%s%-8s%s]    %sS%s) Screenwidth: %s[%s%-3d%s]\r\n"
                              "%sW%s) Wimpy  : %s[%s%-4d%s]%s\r\n",
              CCWHT(d->character, C_NRM),
@@ -288,9 +295,16 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
   if (PREFEDIT_FLAGGED(PRF_DISPAUTO))
     sprintf(prompt_string, "<Auto>");
   else
-    sprintf(prompt_string, "%s%s%s", PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",   PREFEDIT_FLAGGED(PRF_DISPMANA) ? "M" : "",
-                                     PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "");
-
+    sprintf(prompt_string, "%s%s%s%s%s%s%s",
+          PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
+          PREFEDIT_FLAGGED(PRF_DISPMANA) ? "M" : "",
+          PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
+          PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
+          PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
+          PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
+          PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : ""
+          );
+  
   send_to_char(d->character, "%sPrompt Settings\r\n"
                              "%s1%s) Toggle HP\r\n"
                              "%s2%s) Toggle Mana\r\n"
@@ -664,42 +678,54 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
   /* Sub-menu's and flag toggle menu's */
   case PREFEDIT_PROMPT:
     number = atoi(arg);
-    if ((number < 0) || (number > 7)) {
+    if ((number < 0) || (number > 11)) {
       send_to_char(d->character, "%sThat's not a valid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       prefedit_disp_prompt_menu(d);
     } else {
       if (number == 0)
         break;
-      else
-      {
+      else {
         /* toggle bits */
-        if (number == 1)
-        {
+        if (number == 1) {
           if (PREFEDIT_FLAGGED(PRF_DISPHP))
             REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPHP);
           else
             SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPHP);
-        }
-        else if (number == 2)
-        {
+        } else if (number == 2) {
           if (PREFEDIT_FLAGGED(PRF_DISPMANA))
             REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMANA);
           else
             SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMANA);
-        }
-        else if (number == 3)
-        {
+        } else if (number == 3) {
           if (PREFEDIT_FLAGGED(PRF_DISPMOVE))
             REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMOVE);
           else
             SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMOVE);
-        }
-        else if (number == 4)
-        {
+        } else if (number == 4) {
           if (PREFEDIT_FLAGGED(PRF_DISPAUTO))
             REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPAUTO);
           else
             SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPAUTO);
+        } else if (number == 5) {
+          if (PREFEDIT_FLAGGED(PRF_DISPEXP))
+            REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPEXP);
+          else
+            SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPEXP);
+        } else if (number == 6) {
+          if (PREFEDIT_FLAGGED(PRF_DISPEXITS))
+            REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPEXITS);
+          else
+            SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPEXITS);
+        } else if (number == 7) {
+          if (PREFEDIT_FLAGGED(PRF_DISPROOM))
+            REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPROOM);
+          else
+            SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPROOM);
+        } else if (number == 8) {
+          if (PREFEDIT_FLAGGED(PRF_DISPMEMTIME))
+            REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMEMTIME);
+          else
+            SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMEMTIME);
         }
         prefedit_disp_prompt_menu(d);
       }
@@ -750,6 +776,22 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
   /* PRF_DISPMOVE   - On */
   if (!PREFEDIT_FLAGGED(PRF_DISPMOVE))
      SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMOVE);
+
+  /* PRF_DISPEXP   - On */
+  if (!PREFEDIT_FLAGGED(PRF_DISPEXP))
+     SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPEXP);
+
+  /* PRF_DISPEXITS   - On */
+  if (!PREFEDIT_FLAGGED(PRF_DISPEXITS))
+     SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPEXITS);
+
+  /* PRF_DISPROOM   - On */
+  if (!PREFEDIT_FLAGGED(PRF_DISPROOM))
+     SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPROOM);
+
+  /* PRF_DISPMEMTIME   - On */
+  if (!PREFEDIT_FLAGGED(PRF_DISPMEMTIME))
+     SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMEMTIME);
 
   /* PRF_AUTOEXIT   - On */
   if (!PREFEDIT_FLAGGED(PRF_AUTOEXIT))

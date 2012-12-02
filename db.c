@@ -3644,6 +3644,9 @@ void init_char(struct char_data *ch)
   SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
   SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
 
+  // automap toggled on -zusuk
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOMAP);
+  
   resetCastingData(ch);
 }
 
