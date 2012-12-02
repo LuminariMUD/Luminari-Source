@@ -84,6 +84,7 @@
 #include "ibt.h" /* for free_ibt_lists */
 #include "mud_event.h"
 #include "clan.h"
+#include "class.h" /* needed for level_exp for prompt */
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -1138,6 +1139,8 @@ void echo_on(struct descriptor_data *d)
 static char *make_prompt(struct descriptor_data *d)
 {
   static char prompt[MAX_PROMPT_LENGTH];
+  int door, slen = 0;
+  struct char_data *ch = d->character;
 
   /* Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h) */
 
@@ -1191,7 +1194,6 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
-
       if (PRF_FLAGGED(d->character, PRF_DISPMANA) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sM%s ",
 		GET_MANA(d->character),GET_MAX_MANA(d->character),
@@ -1199,7 +1201,6 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
-
       if (PRF_FLAGGED(d->character, PRF_DISPMOVE) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sV%s ",
 		GET_MOVE(d->character),GET_MAX_MOVE(d->character),
@@ -1207,6 +1208,71 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
+      /* autoprompt display exp to next level */
+      if (PRF_FLAGGED(d->character, PRF_DISPEXP) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%sXP:%s%d ",
+		CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM),
+                level_exp(d->character, GET_LEVEL(d->character) + 1) - 
+                GET_EXP(d->character));
+        if (count >= 0)
+          len += count;
+      }
+      /* autoprompt display exits */
+      if (PRF_FLAGGED(d->character, PRF_DISPEXITS) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX: ",
+		               CCYEL(d->character,C_NRM));
+        if (count >= 0)
+          len += count;
+        for (door = 0; door < DIR_COUNT; door++) {
+          if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
+            continue;
+          if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) &&
+                  !CONFIG_DISP_CLOSED_DOORS)
+            continue;
+          if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) &&
+              !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+            continue;
+          if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
+            count = snprintf(prompt + len, sizeof(prompt) - len, "%s(%s)%s",
+                    EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? 
+                    CCWHT(ch, C_NRM) : CCRED(ch, C_NRM), 
+                    autoexits[door], CCCYN(ch, C_NRM));
+          else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
+            count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s%s",
+                    CCWHT(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
+          else
+            count = snprintf(prompt + len, sizeof(prompt) - len, "\t(%s\t)",
+                    autoexits[door]);
+          slen++;
+          if (count >= 0)
+            len += count;
+        }
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%s]%s ",
+                slen ? "" : "None! ", CCNRM(ch, C_NRM));
+        if (count >= 0)
+          len += count;
+      }
+
+      /* autoprompt display rooms */
+      if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
+		world[IN_ROOM(ch)].name, CCNRM(d->character,C_NRM));
+        if (count >= 0)
+          len += count;
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
+          count = snprintf(prompt + len, sizeof(prompt) - len, "[%5d]%s ",
+                           GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
+          if (count >= 0)
+            len += count;
+        }
+      }
+      /* autoprompt display memtime */
+      if (PRF_FLAGGED(d->character, PRF_DISPMEMTIME) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "MEM: %d/%d/%d ",
+		PRAYTIME(ch, 0, 0),PRAYTIME(ch, 0, 1),PRAYTIME(ch, 0, 2));
+        if (count >= 0)
+          len += count;
+      }      
     }
 
 

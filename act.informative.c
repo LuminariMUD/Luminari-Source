@@ -449,28 +449,28 @@ static void list_char_to_char(struct char_data *list, struct char_data *ch)
 static void do_auto_exits(struct char_data *ch) {
   int door, slen = 0;
 
-  send_to_char(ch, "%s[ Exits: ", CCCYN(ch, C_NRM));
+    send_to_char(ch, "%s[ Exits: ", CCCYN(ch, C_NRM));
 
-  for (door = 0; door < DIR_COUNT; door++) {
-    if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
-      continue;
-    if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) && !CONFIG_DISP_CLOSED_DOORS)
-      continue;
-    if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) &&
+    for (door = 0; door < DIR_COUNT; door++) {
+      if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
+        continue;
+      if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) && !CONFIG_DISP_CLOSED_DOORS)
+        continue;
+      if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) &&
             !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
-      continue;
-    if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
-      send_to_char(ch, "%s(%s)%s ", EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ?
-        CCWHT(ch, C_NRM) : CCRED(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
-    else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
-      send_to_char(ch, "%s%s%s ", CCWHT(ch, C_NRM), autoexits[door],
-              CCCYN(ch, C_NRM));
-    else
-      send_to_char(ch, "\t(%s\t) ", autoexits[door]);
-    slen++;
-  }
+        continue;
+      if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
+        send_to_char(ch, "%s(%s)%s ", EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ?
+                     CCWHT(ch, C_NRM) : CCRED(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
+      else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
+        send_to_char(ch, "%s%s%s ", CCWHT(ch, C_NRM), autoexits[door],
+                     CCCYN(ch, C_NRM));
+      else
+        send_to_char(ch, "\t(%s\t) ", autoexits[door]);
+      slen++;
+    }
 
-  send_to_char(ch, "%s]%s\r\n", slen ? "" : "None!", CCNRM(ch, C_NRM));
+    send_to_char(ch, "%s]%s\r\n", slen ? "" : "None!", CCNRM(ch, C_NRM));    
 }
 
 ACMD(do_exits)
@@ -2420,9 +2420,15 @@ ACMD(do_toggle)
 
     "        Autokey: %-3s    "
     "       Autodoor: %-3s    "
-    "          Color: %s     \r\n"
+    "          Color: %s\r\n"
 
-    "       Autoscan: %-3s    \r\n",
+    "       Autoscan: %-3s    "
+    "    EXP Display: %-3s    "
+    "  Exits Display: %-3s\r\n"
+
+    "   Room Display: %-3s    "
+    "Memtime Display: %-3s\r\n",
+          
           
     ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
     ONOFF(PRF_FLAGGED(ch, PRF_BRIEF)),
@@ -2459,8 +2465,14 @@ ACMD(do_toggle)
     ONOFF(PRF_FLAGGED(ch, PRF_AUTOKEY)),
     ONOFF(PRF_FLAGGED(ch, PRF_AUTODOOR)),
     types[COLOR_LEV(ch)],
-    ONOFF(PRF_FLAGGED(ch, PRF_AUTOSCAN))          
-          );
+          
+    ONOFF(PRF_FLAGGED(ch, PRF_AUTOSCAN)),
+    ONOFF(PRF_FLAGGED(ch, PRF_DISPEXP)),
+    ONOFF(PRF_FLAGGED(ch, PRF_DISPEXITS)),
+          
+    ONOFF(PRF_FLAGGED(ch, PRF_DISPROOM)),
+    ONOFF(PRF_FLAGGED(ch, PRF_DISPMEMTIME))
+    /*end*/      );
     return;
   }
 

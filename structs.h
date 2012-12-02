@@ -343,9 +343,13 @@
 #define PRF_AUTOKEY      32   /**< Automatically unlock locked doors when opening */
 #define PRF_AUTODOOR     33   /**< Use the next available door */
 #define PRF_NOCLANTALK    34   /**< Don't show ALL clantalk channels (Imm-only) */
-#define PRF_AUTOSCAN     35
+#define PRF_AUTOSCAN     35  // automatically scan each step?
+#define PRF_DISPEXP      36  // autoprompt xp display
+#define PRF_DISPEXITS    37  // autoprompt exits display
+#define PRF_DISPROOM     38  // display room name and/or #
+#define PRF_DISPMEMTIME  39  // display memtimes
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS    36
+#define NUM_PRF_FLAGS    40
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */

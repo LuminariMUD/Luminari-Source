@@ -278,7 +278,7 @@ void roll_real_abils(struct char_data *ch)
 //   give newbie's some eq to start with
 void newbieEquipment(struct char_data *ch)
 {  
-  int objNums[] = { 858, 858, 804, 804, 804, 804, 803, 857, -1 };
+  int objNums[] = { 82, 858, 858, 804, 804, 804, 804, 803, 857, -1 };
   int x;
  
   send_to_char(ch, "\tMYou are given a set of starting equipment...\tn\r\n");
