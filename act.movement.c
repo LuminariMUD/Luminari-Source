@@ -321,6 +321,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     return (0);
   }
 
+  /* a silly zusuk dummy check */
   update_pos(ch);
   if (GET_POS(ch) <= POS_STUNNED) {
     send_to_char(ch, "You are in no condition to move!\r\n");
@@ -338,8 +339,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 	GET_POS(ch) > POS_DEAD && FIGHTING(ch) &&
 	IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)) && cantFlee >= 0) {
 
-    // attack of opportunity vs tumble DC 15
-    if (!IS_NPC(ch)) { //player
+    //able to flee away with tumble check?
+    if (!IS_NPC(ch)) {     //player
       if ((GET_SKILL(ch, SKILL_MOBILITY) ||
 		dice(1, 20) + compute_ability(ch, ABILITY_TUMBLE) > 15) &&
 		cantFlee <= 0) {
