@@ -3647,7 +3647,11 @@ void init_char(struct char_data *ch)
   // automap toggled on -zusuk
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOMAP);
   
+  // fresh start on casting data
   resetCastingData(ch);
+
+  // fresh start on auto-crafting data
+  reset_acraft(ch);
 }
 
 /* returns the real number of the room with given virtual number */
