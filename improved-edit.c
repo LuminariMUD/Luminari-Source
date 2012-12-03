@@ -486,153 +486,158 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
   }
 }
 
+
 /* Re-formats message type formatted char *. (for strings edited with d->str) 
  * (mostly olc and mail). */
-int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned int maxlen, int low, int high)
-{
-  int line_chars, cap_next = TRUE, cap_next_next = FALSE, color_chars = 0, i, pass_line = 0;
-  char *flow, *start = NULL, temp;
-  char formatted[MAX_STRING_LENGTH] = "";
-  char str[MAX_STRING_LENGTH];
-
+ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned int maxlen, int low, int high)
+ {
+   int line_chars, cap_next = TRUE, cap_next_next = FALSE, color_chars = 0, i, pass_line = 0;
+   char *flow, *start = NULL, temp;
+   char formatted[MAX_STRING_LENGTH] = "";
+   char str[MAX_STRING_LENGTH];
+ 
   /* Fix memory overrun. */
-  if (d->max_str > MAX_STRING_LENGTH) {
-    log("SYSERR: format_text: max_str is greater than buffer size.");
-    return 0;
-  }
-
+   if (d->max_str > MAX_STRING_LENGTH) {
+     log("SYSERR: format_text: max_str is greater than buffer size.");
+     return 0;
+   }
+ 
   /* XXX: Want to make sure the string doesn't grow either... */
-  if ((flow = *ptr_string) == NULL)
-    return 0;
-
+   if ((flow = *ptr_string) == NULL)
+     return 0;
+ 
   strcpy(str, flow);
-
+ 
   for (i = 0; i < low - 1; i++) {
-    start = strtok(str, "\n");
-    if (!start) {
-      write_to_output(d, "There aren't that many lines!\r\n");
-      return 0;
-    }
-    strcat(formatted, strcat(start, "\n"));
-    flow = strstr(flow, "\n");
-    strcpy(str, ++flow);
-  }
-
+     start = strtok(str, "\n");
+     if (!start) {
+       write_to_output(d, "There aren't that many lines!\r\n");
+       return 0;
+     }
+     strcat(formatted, strcat(start, "\n"));
+     flow = strstr(flow, "\n");
+     strcpy(str, ++flow);
+   }
+ 
   if (IS_SET(mode, FORMAT_INDENT)) {
-    strcat(formatted, "   ");
-    line_chars = 3;
-  } else {
-    line_chars = 0;
-  }
-
+     strcat(formatted, "   ");
+     line_chars = 3;
+   } else {
+     line_chars = 0;
+   }
+ 
   while (*flow && i < high) {
-    while (*flow && strchr("\n\r\f\t\v ", *flow)) {
-      if (*flow == '\n' && !pass_line)
-        if (i++ >= high) {
-          pass_line = 1;
-          break;
-        }
-      flow++;
-    }
-
+     while (*flow && strchr("\n\r\f\v ", *flow)) {
+       if (*flow == '\n' && !pass_line)
+         if (i++ >= high) {
+           pass_line = 1;
+           break;
+         }
+       flow++;
+     }
+ 
     if (*flow) {
-      start = flow;
-      while (*flow && !strchr("\n\r\f\v .?!", *flow)) {
-        if (*flow == '\t') {
-          if (*(flow + 1) == '\t')
-            color_chars++;
-          else
-            color_chars += 2;
-          flow++;
-        }
-        flow++;
-      }
-
+       start = flow;
+       while (*flow && !strchr("\n\r\f\v .?!", *flow)) {
+         if (*flow == '\t') {
+           if (*(flow + 1) == '\t')
+             color_chars++;
+           else if (*(flow + 1) == '[')
+             color_chars += 7;
+           else
+             color_chars += 2;
+           flow++;
+         }
+         flow++;
+       }
+ 
       if (cap_next_next) {
-        cap_next_next = FALSE;
-        cap_next = TRUE;
-      }
-
+         cap_next_next = FALSE;
+         cap_next = TRUE;
+       }
+ 
       /* This is so that if we stopped on a sentence, we move off the sentence 
        * delimiter. */
-      while (strchr(".!?", *flow)) {
-        cap_next_next = TRUE;
-        flow++;
-      }
-
+       while (strchr(".!?", *flow)) {
+         cap_next_next = TRUE;
+         flow++;
+       }
+ 
       /* Special case: if we're at the end of the last line, and the last
-       * character is a delimiter, the flow++ above will have *flow pointing
-       * to the \r (or \n) character after the delimiter. Thus *flow will be 
+        * character is a delimiter, the flow++ above will have *flow pointing
+        * to the \r (or \n) character after the delimiter. Thus *flow will be 
        * non-null, and an extra (blank) line might be added erroneously. We 
        * fix it by skipping the newline characters in between. - Welcor */
-      if (strchr("\n\r", *flow)) {
-        *flow = '\0';  /* terminate 'start' string */
-        flow++;        /* we know this is safe     */
-        if (*flow == '\n' && i++ >= high)
-          pass_line = 1;
-
+       if (strchr("\n\r", *flow)) {
+         *flow = '\0';  /* terminate 'start' string */
+         flow++;        /* we know this is safe     */
+         if (*flow == '\n' && i++ >= high)
+           pass_line = 1;
+ 
         while (*flow && strchr("\n\r", *flow) && !pass_line) {
-          flow++;      /* skip to next non-delimiter */
-          if (*flow == '\n' && i++ >= high)
-            pass_line = 1;
-        }
-        temp = *flow;  /* save this char             */
-     } else {
-        temp = *flow;
-        *flow = '\0';
-      }
-
+           flow++;      /* skip to next non-delimiter */
+           if (*flow == '\n' && i++ >= high)
+             pass_line = 1;
+         }
+         temp = *flow;  /* save this char             */
+      } else {
+         temp = *flow;
+         *flow = '\0';
+       }
+ 
       if (line_chars + strlen(start) + 1 - color_chars > PAGE_WIDTH) {
-        strcat(formatted, "\r\n");
-        line_chars = 0;
-        color_chars = count_color_chars(start);
-      }
-
+         strcat(formatted, "\r\n");
+         line_chars = 0;
+         color_chars = count_color_chars(start);
+       }
+ 
       if (!cap_next) {
-        if (line_chars > 0) {
-          strcat(formatted, " ");
-          line_chars++;
-        }
-      } else {
-        cap_next = FALSE;
-        CAP(start);
-      }
-
+         if (line_chars > 0) {
+           strcat(formatted, " ");
+           line_chars++;
+         }
+       } else {
+         cap_next = FALSE;
+         CAP(start);
+       }
+ 
       line_chars += strlen(start);
-      strcat(formatted, start);
-
+       strcat(formatted, start);
+ 
       *flow = temp;
-    }
-
+     }
+ 
     if (cap_next_next && *flow) {
-      if (line_chars + 3 - color_chars > PAGE_WIDTH) {
-        strcat(formatted, "\r\n");
-        line_chars = 0;
-        color_chars = count_color_chars(start);
-      } else if (*flow == '\"' || *flow == '\'') {
-        char buf[MAX_STRING_LENGTH];
-        sprintf(buf, "%c  ", *flow);
-        strcat(formatted, buf);
-        flow++;
-        line_chars++;
-      } else {
-        strcat(formatted, "  ");
-        line_chars += 2;
-      }
-    }
-  }
-  if (*flow)
-    strcat(formatted, "\r\n");
-  strcat(formatted, flow);
-  if (!*flow)
-    strcat(formatted, "\r\n");
-
+       if (line_chars + 3 - color_chars > PAGE_WIDTH) {
+         strcat(formatted, "\r\n");
+         line_chars = 0;
+         color_chars = count_color_chars(start);
+       } else if (*flow == '\"' || *flow == '\'') {
+         char buf[MAX_STRING_LENGTH];
+         sprintf(buf, "%c  ", *flow);
+         strcat(formatted, buf);
+         flow++;
+         line_chars++;
+       } else {
+         strcat(formatted, "  ");
+         line_chars += 2;
+       }
+     }
+   }
+   if (*flow)
+     strcat(formatted, "\r\n");
+   strcat(formatted, flow);
+   if (!*flow)
+     strcat(formatted, "\r\n");
+ 
   if (strlen(formatted) + 1 > maxlen)
-    formatted[maxlen - 1] = '\0';
-  RECREATE(*ptr_string, char, MIN(maxlen, strlen(formatted) + 1));
-  strcpy(*ptr_string, formatted);
-  return 1;
-}
+     formatted[maxlen - 1] = '\0';
+   RECREATE(*ptr_string, char, MIN(maxlen, strlen(formatted) + 1));
+   strcpy(*ptr_string, formatted);
+   return 1;
+ }
+ 
+
 
 int replace_str(char **string, char *pattern, char *replacement, int rep_all, unsigned int max_size)
 {
