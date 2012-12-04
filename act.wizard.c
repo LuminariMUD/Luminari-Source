@@ -1027,13 +1027,13 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
 
     send_to_char(ch, "\tCacVnum:\tn %d \tC#:\tn %d\tC QP:\tn %d\tC xp:\tn %d\tC "
                      "G:\tn %d\tC Dsc:\tn %s\tC, Mat:\tn %s\r\n",
-                 GET_AUTOCQUEST_VNUM(ch),
-                 GET_AUTOCQUEST_MAKENUM(ch),
-                 GET_AUTOCQUEST_QP(ch),
-                 GET_AUTOCQUEST_EXP(ch),
-                 GET_AUTOCQUEST_GOLD(ch),
-                 GET_AUTOCQUEST_DESC(ch),
-                 material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
+                 GET_AUTOCQUEST_VNUM(k),
+                 GET_AUTOCQUEST_MAKENUM(k),
+                 GET_AUTOCQUEST_QP(k),
+                 GET_AUTOCQUEST_EXP(k),
+                 GET_AUTOCQUEST_GOLD(k),
+                 GET_AUTOCQUEST_DESC(k),
+                 material_name[GET_AUTOCQUEST_MATERIAL(k)]);
   }
 
   if (IS_MOB(k))

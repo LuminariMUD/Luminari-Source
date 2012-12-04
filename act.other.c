@@ -119,7 +119,7 @@ ACMD(do_mount) {
     send_to_char(ch, "The mount is too small for you!\r\n");
     return;
   } else if (GET_SIZE(vict) > (GET_SIZE(ch)+2)) {
-    send_to_char(ch, "The mount is too small for you!\r\n");
+    send_to_char(ch, "The mount is too large for you!\r\n");
     return;
   } else if (GET_ABILITY(ch, ABILITY_MOUNT) <= rand_number(1, GET_LEVEL(vict))) {
     act("You try to mount $N, but slip and fall off.", FALSE, ch, 0, vict, TO_CHAR);
