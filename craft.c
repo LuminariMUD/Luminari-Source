@@ -1136,7 +1136,7 @@ SPECIAL(crafting_quest) {
       case 4:
         if ((roll = dice(1, 2)) == 1) {
           sprintf(desc, "a suit of ringmail"); 
-          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
+          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_IRON;
         } else {
           sprintf(desc, "a cloth robe");  
           GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_SATIN;
@@ -1144,14 +1144,14 @@ SPECIAL(crafting_quest) {
         break;
       default:
           sprintf(desc, "some war supplies"); 
-          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_COPPER;
+          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_BRONZE;
         break;
     }
 
     GET_AUTOCQUEST_DESC(ch) = strdup(desc);
     GET_AUTOCQUEST_MAKENUM(ch) = AUTOCQUEST_MAKENUM;
     GET_AUTOCQUEST_QP(ch) = 1;
-    GET_AUTOCQUEST_EXP(ch) = GET_LEVEL(ch) * GET_LEVEL(ch);
+    GET_AUTOCQUEST_EXP(ch) = (GET_LEVEL(ch) * GET_LEVEL(ch)) * 10;
     GET_AUTOCQUEST_GOLD(ch) = GET_LEVEL(ch) * 100;
 
     send_to_char(ch, "You have been commissioned for a supply order to "
