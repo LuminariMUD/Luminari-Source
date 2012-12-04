@@ -953,9 +953,6 @@ static void shopping_list(char *arg, struct char_data *ch, struct char_data *kee
 
   one_argument(arg, name);
 
-  send_to_char(ch, "\tDYou can type 'identify <item name>' to view the stats"
-          "of an item in my inventory!\tn\r\n");
-  
   len = strlcpy(buf,   " ##   Available   Item                                               Cost\r\n"
       "----------------------------------------------------------------------------\r\n", sizeof(buf));
   if (keeper->carrying)
@@ -994,6 +991,8 @@ static void shopping_list(char *arg, struct char_data *ch, struct char_data *kee
     if (has_quest)
       send_to_char(ch, "Items flagged \"qp\" require quest points to purchase.\r\n");
   }
+  send_to_char(ch, "\r\n\tDYou can type 'identify <item name>' to view the stats"
+          " of an item in my inventory!\tn\r\n"); 
 }
 
 static int ok_shop_room(int shop_nr, room_vnum room)

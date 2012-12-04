@@ -67,8 +67,10 @@ int art_level_exp(int level);
 int convert_material(int material)
 {
   switch(material) {
-    case MATERIAL_STEEL:
-      return MATERIAL_MITHRIL;
+    case MATERIAL_IRON:
+      return MATERIAL_COLD_IRON;
+    case MATERIAL_SILVER:
+      return MATERIAL_ALCHEMAL_SILVER;
     default:
       return 0;
   }
@@ -448,7 +450,7 @@ int supplyorder(struct obj_data *kit, struct char_data *ch) {
   }  
   if (!GET_AUTOCQUEST_MAKENUM(ch)) {
     send_to_char(ch, "You have completed your supply order, "
-            "go turn it in.\r\n");
+            "go turn it in (type 'supplyorder complete' in a supplyorder office).\r\n");
     return 1;
   }
                      
@@ -1088,7 +1090,7 @@ SPECIAL(crafting_quest) {
   else if (!strcmp(arg, "new")) {
     if (GET_AUTOCQUEST_VNUM(ch) && GET_AUTOCQUEST_MAKENUM(ch) <= 0) {
       send_to_char(ch, "You can't take a new supply order until you've "
-              "handed in the one you've completed.\r\n");
+              "handed in the one you've completed (supplyorder complete).\r\n");
       return 1;
     }
     
@@ -1101,7 +1103,7 @@ SPECIAL(crafting_quest) {
     switch (dice(1,5)) {
       case 1:
         sprintf(desc, "a shield"); 
-        GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
+        GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_WOOD;
         break;
       case 2:
         sprintf(desc, "a sword"); 
@@ -1113,7 +1115,7 @@ SPECIAL(crafting_quest) {
           GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_COPPER;
         } else if (roll == 2) {
           sprintf(desc, "a bracer"); 
-          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
+          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_COPPER;
         } else if (roll == 3) {
           sprintf(desc, "a cloak");  
           GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_WOOL;
@@ -1122,10 +1124,10 @@ SPECIAL(crafting_quest) {
           GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_HEMP;
         } else if (roll == 5) {
           sprintf(desc, "a belt");  
-          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_LEATHER;
+          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_BURLAP;
         } else if (roll == 6) {
           sprintf(desc, "a pair of gloves");  
-          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_HEMP;
+          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_COTTON;
         } else {
           sprintf(desc, "a pair of boots");  
           GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_LEATHER;
@@ -1137,12 +1139,12 @@ SPECIAL(crafting_quest) {
           GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
         } else {
           sprintf(desc, "a cloth robe");  
-          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
+          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_SATIN;
         }
         break;
       default:
           sprintf(desc, "some war supplies"); 
-          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
+          GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_COPPER;
         break;
     }
 

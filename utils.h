@@ -1083,6 +1083,8 @@ do                                                              \
                             mat == MATERIAL_DRAGONHIDE)
 #define IS_WOOD(mat)       (mat == MATERIAL_WOOD || mat == MATERIAL_DARKWOOD)
 #define IS_HARD_METAL(mat) (mat == MATERIAL_STEEL || \
+                            mat == MATERIAL_BRONZE || \
+                            mat == MATERIAL_IRON || \
                             mat == MATERIAL_ALCHEMAL_SILVER || \
                             mat == MATERIAL_COLD_IRON || \
                             mat == MATERIAL_MITHRIL || \

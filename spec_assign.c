@@ -157,7 +157,7 @@ void assign_rooms(void)
 {
   room_rnum i;
 
-  ASSIGNROOM(1208, crafting_quest);
+  ASSIGNROOM(370, crafting_quest);
 
   ASSIGNROOM(3031, pet_shops);
   ASSIGNROOM(10738, pet_shops);
