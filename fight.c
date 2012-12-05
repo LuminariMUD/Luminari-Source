@@ -632,10 +632,9 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   }
 
   char_from_room(ch);
-
+  char_to_room(ch, r_mortal_start_room);
   death_message(ch);
 
-  char_to_room(ch, r_mortal_start_room);
   act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
   look_at_room(ch, 0);
   entry_memory_mtrigger(ch);
@@ -689,13 +688,13 @@ void raw_kill_old(struct char_data * ch, struct char_data * killer)
 
 void die(struct char_data * ch, struct char_data * killer)
 {
-    if (GET_LEVEL(ch) < 15)
-    {// no xp loss for newbs - Bakarus
-    }
-    else
-    {// if not a newbie then bang that xp! - Bakarus
-        gain_exp(ch, -(GET_EXP(ch) / 2));
-    }
+  if (GET_LEVEL(ch) < 6) {
+  // no xp loss for newbs - Bakarus
+  } else {
+  // if not a newbie then bang that xp! - Bakarus
+    gain_exp(ch, -(GET_EXP(ch) / 2));
+  }
+
   if (!IS_NPC(ch)) {
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_KILLER);
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_THIEF);
@@ -774,7 +773,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
       exp += MAX(0, (exp * MIN(4, (GET_LEVEL(victim) - GET_LEVEL(ch)))) / 8);
     else
       exp += MAX(0, (exp * MIN(8, (GET_LEVEL(victim) - GET_LEVEL(ch)))) / 8);
-    }
+  }
   
   exp = MAX(exp, 1);
 
