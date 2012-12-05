@@ -31,6 +31,7 @@ int classArray(int class) {
     case CLASS_MAGIC_USER:
       return 2;
   }
+  log("Invalid class passed to memorize.c's classArray()!");
   return 0;
 }
 
