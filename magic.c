@@ -1053,6 +1053,32 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel very uncomfortable.";
     break;
 
+  case SPELL_TOUCH_OF_IDIOCY:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+      send_to_char(ch, "%s", CONFIG_NOEFFECT);
+      return;
+    }
+
+    af[0].location = APPLY_INT;
+    af[0].duration = 25 + (CASTER_LEVEL(ch) * 12);
+    af[0].modifier = -(dice(1,6));
+
+    af[1].location = APPLY_WIS;
+    af[1].duration = 25 + (CASTER_LEVEL(ch) * 12);
+    af[1].modifier = -(dice(1,6));
+
+    af[2].location = APPLY_CHA;
+    af[2].duration = 25 + (CASTER_LEVEL(ch) * 12);
+    af[2].modifier = -(dice(1,6));
+    
+    accum_duration = TRUE;
+    accum_affect = TRUE;
+    to_room = "A look of idiocy crosses $n's face!";
+    to_vict = "You feel very idiotic.";
+    break;
+
   case SPELL_RAY_OF_ENFEEBLEMENT:  //necromancy
     if (mag_resistance(ch, victim, 0))
       return;
