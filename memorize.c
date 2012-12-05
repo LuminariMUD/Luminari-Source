@@ -19,15 +19,20 @@
 char buf[MAX_INPUT_LENGTH];
 #define	TERMINATE	0
 
-// NOT the same as IS_CLERIC / IS_MAGIC_USER
-#define ISCLERIC	(class == CLASS_CLERIC)
-#define ISDRUID		(class == CLASS_DRUID)
-#define ISMAGE		(class == CLASS_MAGIC_USER)
-
-// pray array
-#define CL	0 //cleric
-#define DR	1 //druid
-#define MG	2 //mage
+/* since the spell array position for classes doesn't correspond 
+ * with the class values, we need a little conversion -zusuk
+ */
+int classArray(int class) {
+  switch (class) {
+    case CLASS_CLERIC:
+      return 0;
+    case CLASS_DRUID:
+      return 1;
+    case CLASS_MAGIC_USER:
+      return 2;
+  }
+  return 0;
+}
 
 //   the number of spells received per level for caster types
 int mageSlots[LVL_IMPL + 1][10] = {
@@ -229,29 +234,11 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class)
 {
   int slot;
 
-  if (ISMAGE) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYING(ch, slot, MG) == TERMINATE) {
-        PRAYING(ch, slot, MG) = spellnum;
-        PRAYTIME(ch, slot, MG) = time;
-        break;
-      }
-    }
-  } else if (ISCLERIC) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYING(ch, slot, CL) == TERMINATE) {
-        PRAYING(ch, slot, CL) = spellnum;
-        PRAYTIME(ch, slot, CL) = time;
-        break;
-      }
-    }
-  } else if (ISDRUID) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYING(ch, slot, DR) == TERMINATE) {
-        PRAYING(ch, slot, DR) = spellnum;
-        PRAYTIME(ch, slot, DR) = time;
-        break;
-      }
+  for (slot = 0; slot < MAX_MEM; slot++) {
+    if (PRAYING(ch, slot, classArray(class)) == TERMINATE) {
+      PRAYING(ch, slot, classArray(class)) = spellnum;
+      PRAYTIME(ch, slot, classArray(class)) = time;
+      break;
     }
   }
 }
@@ -262,24 +249,11 @@ void resetMemtimes(struct char_data *ch, int class)
 {
   int slot;
 
-  if (ISMAGE) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYING(ch, slot, MG) == TERMINATE)
-        break;
-      PRAYTIME(ch, slot, MG) = spell_info[PRAYING(ch, slot, MG)].memtime;
-    }
-  } else if (ISCLERIC) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYING(ch, slot, CL) == TERMINATE)
-        break;
-      PRAYTIME(ch, slot, CL) = spell_info[PRAYING(ch, slot, CL)].memtime;
-    }
-  } else if (ISDRUID) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYING(ch, slot, DR) == TERMINATE)
-        break;
-      PRAYTIME(ch, slot, DR) = spell_info[PRAYING(ch, slot, DR)].memtime;
-    }
+  for (slot = 0; slot < MAX_MEM; slot++) {
+    if (PRAYING(ch, slot, classArray(class)) == TERMINATE)
+      break;
+    PRAYTIME(ch, slot, classArray(class)) = 
+            spell_info[PRAYING(ch, slot, classArray(class))].memtime;
   }
 }
 
@@ -290,26 +264,10 @@ void addSpellMemmed(struct char_data *ch, int spellnum, int class)
 {
   int slot;
 
-  if (ISMAGE) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYED(ch, slot, MG) == 0) {
-        PRAYED(ch, slot, MG) = spellnum;
-        return;
-      }
-    }
-  } else if (ISCLERIC) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYED(ch, slot, CL) == 0) {
-        PRAYED(ch, slot, CL) = spellnum;
-        return;
-      }
-    }
-  } else if (ISDRUID) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYED(ch, slot, DR) == 0) {
-        PRAYED(ch, slot, DR) = spellnum;
-        return;
-      }
+  for (slot = 0; slot < MAX_MEM; slot++) {
+    if (PRAYED(ch, slot, classArray(class)) == 0) {
+      PRAYED(ch, slot, classArray(class)) = spellnum;
+      return;
     }
   }
 }
@@ -321,59 +279,23 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class)
 {
   int slot, nextSlot;
 
-  if (ISMAGE) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYING(ch, slot, MG) == spellnum) { //found the spell
-        if (PRAYING(ch, slot + 1, MG) != TERMINATE) { //more in list of memming?
-          for (nextSlot = slot; nextSlot < MAX_MEM - 1; nextSlot++) { 
-            //go through rest of list
-            PRAYING(ch, nextSlot, MG) = PRAYING(ch, nextSlot + 1, MG);
-            PRAYTIME(ch, nextSlot, MG) = PRAYTIME(ch, nextSlot + 1, MG);  //shift everything
-          }
-          PRAYING(ch, nextSlot, MG) = TERMINATE;  //end of list tagged with terminate
-          PRAYTIME(ch, nextSlot, MG) = TERMINATE;
-        } else {
-          PRAYING(ch, slot, MG) = TERMINATE;  //the spell found was last in list
-          PRAYTIME(ch, slot, MG) = TERMINATE;
+  for (slot = 0; slot < MAX_MEM; slot++) {
+    if (PRAYING(ch, slot, classArray(class)) == spellnum) { //found the spell
+      if (PRAYING(ch, slot + 1, classArray(class)) != TERMINATE) { //more in list of memming?
+        for (nextSlot = slot; nextSlot < MAX_MEM - 1; nextSlot++) { 
+          //go through rest of list
+          PRAYING(ch, nextSlot, classArray(class)) =
+                  PRAYING(ch, nextSlot + 1, classArray(class));
+          PRAYTIME(ch, nextSlot, classArray(class)) =
+                  PRAYTIME(ch, nextSlot + 1, classArray(class));  //shift everything
         }
-        return;
+        PRAYING(ch, nextSlot, classArray(class)) = TERMINATE;  //end of list tagged with terminate
+        PRAYTIME(ch, nextSlot, classArray(class)) = TERMINATE;
+      } else {
+        PRAYING(ch, slot, classArray(class)) = TERMINATE;  //the spell found was last in list
+        PRAYTIME(ch, slot, classArray(class)) = TERMINATE;
       }
-    }
-  } else if (ISCLERIC) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYING(ch, slot, CL) == spellnum) { //found the spell
-        if (PRAYING(ch, slot + 1, CL) != TERMINATE) { //more in list of memming?
-          for (nextSlot = slot; nextSlot < MAX_MEM - 1; nextSlot++) { 
-            //go through rest of list
-            PRAYING(ch, nextSlot, CL) = PRAYING(ch, nextSlot + 1, CL);
-            PRAYTIME(ch, nextSlot, CL) = PRAYTIME(ch, nextSlot + 1, CL);  //shift everything
-          }
-          PRAYING(ch, nextSlot, CL) = TERMINATE;  //end of list tagged with terminate
-          PRAYTIME(ch, nextSlot, CL) = TERMINATE;
-        } else {
-          PRAYING(ch, slot, CL) = TERMINATE;  //the spell found was last in list
-          PRAYTIME(ch, slot, CL) = TERMINATE;
-        }
-        return;
-      }
-    }
-  } else if (ISDRUID) {
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYING(ch, slot, DR) == spellnum) { //found the spell
-        if (PRAYING(ch, slot + 1, DR) != TERMINATE) { //more in list of memming?
-          for (nextSlot = slot; nextSlot < MAX_MEM - 1; nextSlot++) { 
-            //go through rest of list
-            PRAYING(ch, nextSlot, DR) = PRAYING(ch, nextSlot + 1, DR);
-            PRAYTIME(ch, nextSlot, DR) = PRAYTIME(ch, nextSlot + 1, DR);  //shift everything
-          }
-          PRAYING(ch, nextSlot, DR) = TERMINATE;  //end of list tagged with terminate
-          PRAYTIME(ch, nextSlot, DR) = TERMINATE;
-        } else {
-          PRAYING(ch, slot, DR) = TERMINATE;  //the spell found was last in list
-          PRAYTIME(ch, slot, DR) = TERMINATE;
-        }
-        return;
-      }
+      return;
     }
   }
 }
@@ -386,59 +308,60 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class)
 // *returns class
 int forgetSpell(struct char_data *ch, int spellnum, int class)
 {
-  int slot, nextSlot;
+  int slot, nextSlot, found = 0, x = 0;
 
-  if (class == -1 &&
-	!PRAYED(ch, 0, MG) && !PRAYED(ch, 0, CL) && !PRAYED(ch, 0, DR)) {
-    return -1;
-  }
-
-  if ((ISMAGE || class == -1) && PRAYED(ch, 0, MG)) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYED(ch, slot, MG) == spellnum) {
-        if (PRAYED(ch, slot + 1, MG) != 0) {
-          for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
-            PRAYED(ch, nextSlot, MG) = PRAYED(ch, nextSlot + 1, MG);
-          }
-          PRAYED(ch, nextSlot, MG) = 0;
-        } else {
-          PRAYED(ch, slot, MG) = 0;
-        }
-        return CLASS_MAGIC_USER;
-      }
+  /* dummy check */
+  if (class == -1) {
+    for (slot = 0; slot < NUM_CASTERS; slot++) {
+      if (PRAYED(ch, 0, slot))
+        found++;
     }
-  }
-  if ((ISCLERIC || class == -1) && PRAYED(ch, 0, CL)) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYED(ch, slot, CL) == spellnum) {
-        if (PRAYED(ch, slot + 1, CL) != 0) {
-          for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
-            PRAYED(ch, nextSlot, CL) = PRAYED(ch, nextSlot + 1, CL);
-          }
-          PRAYED(ch, nextSlot, CL) = 0;
-        } else {
-          PRAYED(ch, slot, CL) = 0;
-        }
-        return CLASS_CLERIC;
-      }
-    }
-  }
-  if ((ISDRUID || class == -1) && PRAYED(ch, 0, DR)) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYED(ch, slot, DR) == spellnum) {
-        if (PRAYED(ch, slot + 1, DR) != 0) {
-          for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
-            PRAYED(ch, nextSlot, DR) = PRAYED(ch, nextSlot + 1, DR);
-          }
-          PRAYED(ch, nextSlot, DR) = 0;
-        } else {
-          PRAYED(ch, slot, DR) = 0;
-        }
-        return CLASS_DRUID;
-      }
+    if (!found) {
+      return -1;
     }
   }
 
+  /* we know the class */
+  if (class != -1) {  
+    if (PRAYED(ch, 0, classArray(class))) {
+      for (slot = 0; slot < (MAX_MEM); slot++) {
+        if (PRAYED(ch, slot, classArray(class)) == spellnum) {
+          if (PRAYED(ch, slot + 1, classArray(class)) != 0) {
+            for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
+              PRAYED(ch, nextSlot, classArray(class)) =
+                    PRAYED(ch, nextSlot + 1, classArray(class));
+            }
+            PRAYED(ch, nextSlot, classArray(class)) = 0;
+          } else {
+            PRAYED(ch, slot, classArray(class)) = 0;
+          }
+          return class;
+        }
+      }
+    }
+  } else { /* class == -1 */
+    /* we don't know the class, so search all the arrays */
+    for (x = 0; x < NUM_CASTERS; x++) {
+      if (PRAYED(ch, 0, classArray(x))) {
+        for (slot = 0; slot < (MAX_MEM); slot++) {
+          if (PRAYED(ch, slot, classArray(x)) == spellnum) {
+            if (PRAYED(ch, slot + 1, classArray(x)) != 0) {
+              for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
+                PRAYED(ch, nextSlot, classArray(x)) =
+                    PRAYED(ch, nextSlot + 1, classArray(x));
+              }
+              PRAYED(ch, nextSlot, classArray(x)) = 0;
+            } else {
+              PRAYED(ch, slot, classArray(x)) = 0;
+            }
+            return x;
+          }
+        }
+      }    
+    }
+  }
+
+  /* failed to find anything */
   return -1;
 }
 
@@ -502,27 +425,11 @@ int numSpells(struct char_data *ch, int circle, int class)
 {
   int num = 0, slot;
 
-  if (ISMAGE) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (spellCircle(class, PRAYED(ch, slot, MG)) == circle)
-        num++;
-      if (spellCircle(class, PRAYING(ch, slot, MG)) == circle)
-        num++;
-    }
-  } else if (ISCLERIC) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (spellCircle(class, PRAYED(ch, slot, CL)) == circle)
-        num++;
-      if (spellCircle(class, PRAYING(ch, slot, CL)) == circle)
-        num++;
-    }
-  } else if (ISDRUID) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (spellCircle(class, PRAYED(ch, slot, DR)) == circle)
-        num++;
-      if (spellCircle(class, PRAYING(ch, slot, DR)) == circle)
-        num++;
-    }
+  for (slot = 0; slot < (MAX_MEM); slot++) {
+    if (spellCircle(class, PRAYED(ch, slot, classArray(class))) == circle)
+      num++;
+    if (spellCircle(class, PRAYING(ch, slot, classArray(class))) == circle)
+      num++;
   }
 
   return (num);
@@ -544,95 +451,80 @@ void updateMemming(struct char_data *ch, int class)
     bonus = MAX(1, GET_ABILITY(ch, ABILITY_CONCENTRATION) / 2 - 3);
   }
 
-  if (GET_POS(ch) != POS_RESTING && ISMAGE) {
-    send_to_char(ch, "You abort your studies.\r\n");
-    act("$n aborts $s studies.", FALSE, ch, 0, 0, TO_ROOM);
+  //if you aren't resting, can't mem
+  if (GET_POS(ch) != POS_RESTING) {
+    switch (class) {
+      case CLASS_MAGIC_USER:
+        send_to_char(ch, "You abort your studies.\r\n");
+        act("$n aborts $s studies.", FALSE, ch, 0, 0, TO_ROOM);
+        break;
+      case CLASS_CLERIC:
+        send_to_char(ch, "You abort your prayers.\r\n");
+        act("$n aborts $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
+        break;
+      case CLASS_DRUID:
+        send_to_char(ch, "You abort your communing.\r\n");
+        act("$n aborts $s communing.", FALSE, ch, 0, 0, TO_ROOM);
+        break;
+    }
     resetMemtimes(ch, class);
-    PRAYIN(ch, MG) = FALSE;
-    return;
-  } else if (GET_POS(ch) != POS_RESTING && ISCLERIC) {
-    send_to_char(ch, "You abort your prayers.\r\n");
-    act("$n aborts $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
-    resetMemtimes(ch, class);
-    PRAYIN(ch, CL) = FALSE;
-    return;
-  } else if (GET_POS(ch) != POS_RESTING && ISDRUID) {
-    send_to_char(ch, "You abort your communing.\r\n");
-    act("$n aborts $s communing.", FALSE, ch, 0, 0, TO_ROOM);
-    resetMemtimes(ch, class);
-    PRAYIN(ch, DR) = FALSE;
+    PRAYIN(ch, classArray(class)) = FALSE;
     return;
   }
 
-  if (ISMAGE) {
-    if (PRAYING(ch, 0, MG) == TERMINATE) {
-      PRAYIN(ch, MG) = FALSE;
-      return;
-    } else {
-      PRAYTIME(ch, 0, MG) -= bonus;
-      if (PRAYTIME(ch, 0, MG) <= 0) {
-        sprintf(buf, "You finish memorizing %s.\r\n",
-		spell_info[PRAYING(ch, 0, MG)].name);
-        send_to_char(ch, buf);
-        addSpellMemmed(ch, PRAYING(ch, 0, MG), class);
-        removeSpellMemming(ch, PRAYING(ch, 0, MG), class);
-        if (PRAYING(ch, 0, MG) == TERMINATE) {
-          send_to_char(ch, "Your studies are complete.\r\n");
-          act("$n completes $s studies.", FALSE, ch, 0, 0, TO_ROOM);
-          PRAYIN(ch, MG) = FALSE;
-          return;
-        }
-      }
-      NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
-    }
-  } else if (ISCLERIC) {
-    if (PRAYING(ch, 0, CL) == TERMINATE) {
-      PRAYIN(ch, CL) = FALSE;
-      return;
-    } else {
-      PRAYTIME(ch, 0, CL) -= bonus;
-      if (PRAYTIME(ch, 0, CL) <= 0) {
+  // no mem list
+  if (PRAYING(ch, 0, classArray(class)) == TERMINATE) {
+    PRAYIN(ch, classArray(class)) = FALSE;
+    return;
+  }
+
+  // continue memorizing
+  PRAYTIME(ch, 0, classArray(class)) -= bonus;
+  if (PRAYTIME(ch, 0, classArray(class)) <= 0) {
+    switch (class) {
+      case CLASS_CLERIC:
         sprintf(buf, "You finish praying for %s.\r\n",
-		spell_info[PRAYING(ch, 0, CL)].name);
-        send_to_char(ch, buf);
-        addSpellMemmed(ch, PRAYING(ch, 0, CL), class);
-        removeSpellMemming(ch, PRAYING(ch, 0, CL), class);
-        if (PRAYING(ch, 0, CL) == TERMINATE) {
+                spell_info[PRAYING(ch, 0, classArray(class))].name);
+        break;
+      case CLASS_DRUID:
+        sprintf(buf, "You finish communing for %s.\r\n",
+                spell_info[PRAYING(ch, 0, classArray(class))].name);
+        break;
+      default: // magic user
+        sprintf(buf, "You finish memorizing %s.\r\n",
+                spell_info[PRAYING(ch, 0, classArray(class))].name);
+        break;        
+    }
+    send_to_char(ch, buf);
+    addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
+    removeSpellMemming(ch, PRAYING(ch, 0, classArray(class)), class);
+    if (PRAYING(ch, 0, classArray(class)) == TERMINATE) {
+      switch (class) {
+        case CLASS_CLERIC:
           send_to_char(ch, "Your prayers are complete.\r\n");
           act("$n completes $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
-          PRAYIN(ch, CL) = FALSE;
-          return;
-        }
-      }
-      NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
-    }
-  } else if (ISDRUID) {
-    if (PRAYING(ch, 0, DR) == TERMINATE) {
-      PRAYIN(ch, DR) = FALSE;
-      return;
-    } else {
-      PRAYTIME(ch, 0, DR) -= bonus;
-      if (PRAYTIME(ch, 0, DR) <= 0) {
-        sprintf(buf, "You finish communing for %s.\r\n",
-		spell_info[PRAYING(ch, 0, DR)].name);
-        send_to_char(ch, buf);
-        addSpellMemmed(ch, PRAYING(ch, 0, DR), class);
-        removeSpellMemming(ch, PRAYING(ch, 0, DR), class);
-        if (PRAYING(ch, 0, DR) == TERMINATE) {
+          break;
+        case CLASS_DRUID:
           send_to_char(ch, "Your communing is complete.\r\n");
           act("$n completes $s communing.", FALSE, ch, 0, 0, TO_ROOM);
-          PRAYIN(ch, DR) = FALSE;
-          return;
-        }
+          break;
+        default: // magic user
+          send_to_char(ch, "Your studies are complete.\r\n");
+          act("$n completes $s studies.", FALSE, ch, 0, 0, TO_ROOM);
+          break;        
       }
-      NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
+      PRAYIN(ch, classArray(class)) = FALSE;
+      return;
     }
   }
+  NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
+
 }
 
 
 EVENTFUNC(event_memorizing)
 {
+  int x = 0;
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
   
@@ -641,12 +533,12 @@ EVENTFUNC(event_memorizing)
   pMudEvent = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) pMudEvent->pStruct;
 
-  if (PRAYIN(ch, MG))
-    updateMemming(ch, CLASS_MAGIC_USER);
-  else if (PRAYIN(ch, CL))
-    updateMemming(ch, CLASS_CLERIC);
-  else if (PRAYIN(ch, DR))
-    updateMemming(ch, CLASS_DRUID);
+  for (x = 0; x < NUM_CASTERS; x++) {
+    if (PRAYIN(ch, classArray(x))) {
+      updateMemming(ch, x);
+      return 0;
+    }
+  }
 
   return 0;
 }
@@ -666,118 +558,52 @@ void display_memmed(struct char_data*ch, int class)
   for (slot = 0; slot < MAX_SPELLS; slot++)
     num[slot] = 0;
 
-
   //increment the respective spellnum slot in array
   //according to # of spells memmed
-  if (ISMAGE) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYED(ch, slot, MG) == TERMINATE)
-        break;
-      else
-        num[PRAYED(ch, slot, MG)]++;
-    }
-  } else if (ISCLERIC) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYED(ch, slot, CL) == TERMINATE)
-        break;
-      else
-        num[PRAYED(ch, slot, CL)]++;
-    }
-  } else if (ISDRUID) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYED(ch, slot, DR) == TERMINATE)
-        break;
-      else
-        num[PRAYED(ch, slot, DR)]++;
-    }
+  for (slot = 0; slot < (MAX_MEM); slot++) {
+    if (PRAYED(ch, slot, classArray(class)) == TERMINATE)
+      break;
+    else
+      num[PRAYED(ch, slot, classArray(class))]++;
   }
 
-
   /***  display memorized spells ***/
-  if (ISMAGE) {
-
-    if (PRAYED(ch, 0, MG) != 0) {
-      send_to_char(ch, "\r\n\tGYou have memorized the following spells:\r\n\r\n");
-      for (slot = getCircle(ch, class); slot > 0; slot--) {
-        printed = FALSE;
-        for (memSlot = 0; memSlot < (MAX_MEM); memSlot++) {
-          if (PRAYED(ch, memSlot, MG) != 0 &&
-		spellCircle(class, PRAYED(ch, memSlot, MG)) == slot) {
-            if (num[PRAYED(ch, memSlot, MG)] != 0) {
-              if (!printed) {
-                send_to_char(ch, "[Circle: %d]          %2d - %s\r\n",
-			slot, num[PRAYED(ch, memSlot, MG)],
-			spell_info[PRAYED(ch, memSlot, MG)].name);
-                printed = TRUE;
-                num[PRAYED(ch, memSlot, MG)] = 0;
-              } else {
-                send_to_char(ch, "                     %2d - %s\r\n",
-			num[PRAYED(ch, memSlot, MG)],
-			spell_info[PRAYED(ch, memSlot, MG)].name);
-                num[PRAYED(ch, memSlot, MG)] = 0;
-              }
+  if (PRAYED(ch, 0, classArray(class)) != 0) {
+    switch (class) {
+      case CLASS_DRUID:
+        send_to_char(ch, "\r\n\tGYou have communed for the following spells:\r\n\r\n");
+        break;
+      case CLASS_CLERIC:
+        send_to_char(ch, "\r\n\tGYou have prayed for the following spells:\r\n\r\n");
+        break;
+      default:  /* magic user */
+        send_to_char(ch, "\r\n\tGYou have memorized the following spells:\r\n\r\n");
+        break;
+    }
+    for (slot = getCircle(ch, class); slot > 0; slot--) {
+      printed = FALSE;
+      for (memSlot = 0; memSlot < (MAX_MEM); memSlot++) {
+        if (PRAYED(ch, memSlot, classArray(class)) != 0 &&
+            spellCircle(class, PRAYED(ch, memSlot, classArray(class))) == slot) {
+          if (num[PRAYED(ch, memSlot, classArray(class))] != 0) {
+            if (!printed) {
+              send_to_char(ch, "[Circle: %d]          %2d - %s\r\n",
+			            slot, num[PRAYED(ch, memSlot, classArray(class))],
+			            spell_info[PRAYED(ch, memSlot, 
+                                      classArray(class))].name);
+              printed = TRUE;
+              num[PRAYED(ch, memSlot, classArray(class))] = 0;
+            } else {
+              send_to_char(ch, "                     %2d - %s\r\n",
+			            num[PRAYED(ch, memSlot, classArray(class))],
+			            spell_info[PRAYED(ch, memSlot, 
+                                      classArray(class))].name);
+              num[PRAYED(ch, memSlot, classArray(class))] = 0;
             }
           }
         }
       }
     }
-
-  } else if (ISCLERIC) {
-
-    if (PRAYED(ch, 0, CL) != 0) {
-      send_to_char(ch, "\r\n\tGYou have prayed for the following spells:\r\n\r\n");
-      for (slot = getCircle(ch, class); slot > 0; slot--) {
-        printed = FALSE;
-        for (memSlot = 0; memSlot < (MAX_MEM); memSlot++) {
-          if (PRAYED(ch, memSlot, CL) != 0 &&
-		spellCircle(class, PRAYED(ch, memSlot, CL)) == slot) {
-            if (num[PRAYED(ch, memSlot, CL)] != 0) {
-              if (!printed) {
-                send_to_char(ch, "[Circle: %d]          %2d - %s\r\n",
-			slot, num[PRAYED(ch, memSlot, CL)],
-			spell_info[PRAYED(ch, memSlot, CL)].name);
-                printed = TRUE;
-                num[PRAYED(ch, memSlot, CL)] = 0;
-              } else {
-                send_to_char(ch, "                     %2d - %s\r\n",
-			num[PRAYED(ch, memSlot, CL)],
-			spell_info[PRAYED(ch, memSlot, CL)].name);
-                num[PRAYED(ch, memSlot, CL)] = 0;
-              }
-            }
-          }
-        }
-      }
-    }
-
-  } else if (ISDRUID) {
-
-    if (PRAYED(ch, 0, DR) != 0) {
-      send_to_char(ch, "\r\n\tGYou have communed for the following spells:\r\n\r\n");
-      for (slot = getCircle(ch, class); slot > 0; slot--) {
-        printed = FALSE;
-        for (memSlot = 0; memSlot < (MAX_MEM); memSlot++) {
-          if (PRAYED(ch, memSlot, DR) != 0 &&
-		spellCircle(class, PRAYED(ch, memSlot, DR)) == slot) {
-            if (num[PRAYED(ch, memSlot, DR)] != 0) {
-              if (!printed) {
-                send_to_char(ch, "[Circle: %d]         %2d - %s\r\n",
-			slot, num[PRAYED(ch, memSlot, DR)],
-			spell_info[PRAYED(ch, memSlot, DR)].name);
-                printed = TRUE;
-                num[PRAYED(ch, memSlot, DR)] = 0;
-              } else {
-                send_to_char(ch, "                    %2d - %s\r\n",
-			num[PRAYED(ch, memSlot, DR)],
-			spell_info[PRAYED(ch, memSlot, DR)].name);
-                num[PRAYED(ch, memSlot, DR)] = 0;
-              }
-            }
-          }
-        }
-      }
-    }
-
   }
 
   send_to_char(ch, "\tn");
@@ -791,49 +617,43 @@ void display_memming(struct char_data *ch, int class)
   int spellLevel = 0;
 
   /*** Display memorizing spells ***/
-  if (ISMAGE && PRAYING(ch, 0, MG) != 0) {
-    if (PRAYIN(ch, MG))
-      send_to_char(ch, "\r\n\tCYou are currently memorizing:\r\n");
-    else
-      send_to_char(ch, "\r\n\tCYou are ready to memorize: (type 'rest' "
+  if (PRAYING(ch, 0, classArray(class)) != 0) {
+    if (PRAYIN(ch, classArray(class))) {
+      switch (class) {
+        case CLASS_DRUID:
+          send_to_char(ch, "\r\n\tCYou are currently communing for:\r\n");
+          break;
+        case CLASS_CLERIC:
+          send_to_char(ch, "\r\n\tCYou are currently praying for:\r\n");
+          break;
+        default:  /* magic user */
+          send_to_char(ch, "\r\n\tCYou are currently memorizing:\r\n");
+          break;
+      }
+    } else {
+      switch (class) {
+        case CLASS_DRUID:
+          send_to_char(ch, "\r\n\tCYou are ready to commune for: (type 'rest' "
+                       "then 'commune' to continue)\r\n");
+          break;
+        case CLASS_CLERIC:
+          send_to_char(ch, "\r\n\tCYou are ready to pray for: (type 'rest' "
+                       "then 'pray' to continue)\r\n");
+          break;
+        default:  /* magic user */
+          send_to_char(ch, "\r\n\tCYou are ready to memorize: (type 'rest' "
                        "then 'memorize' to continue)\r\n");
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYING(ch, slot, MG) != 0) {
-        spellLevel = spellCircle(class, PRAYING(ch, slot, MG));
-        send_to_char(ch, "  %s [%d%s] with %d seconds remaining.\r\n",
-                spell_info[PRAYING(ch, slot, MG)].name, spellLevel,
-                spellLevel == 1 ? "st" : spellLevel == 2 ? "nd" : spellLevel == 3 ?
-                "rd" : "th", PRAYTIME(ch, slot, MG));
+          break;
       }
     }
-  } else if (ISCLERIC && PRAYING(ch, 0, CL) != 0) {
-    if (PRAYIN(ch, CL))
-      send_to_char(ch, "\r\n\tCYou are currently praying for:\r\n");
-    else
-      send_to_char(ch, "\r\n\tCYou are ready to pray for:"
-                       "  (type 'rest' then 'pray' to continue)\r\n");
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYING(ch, slot, CL) != 0) {
-        spellLevel = spellCircle(class, PRAYING(ch, slot, CL));
+      if (PRAYING(ch, slot, classArray(class)) != 0) {
+        spellLevel = spellCircle(class, PRAYING(ch, slot, classArray(class)));
         send_to_char(ch, "  %s [%d%s] with %d seconds remaining.\r\n",
-                spell_info[PRAYING(ch, slot, CL)].name, spellLevel,
-                spellLevel == 1 ? "st" : spellLevel == 2 ? "nd" : spellLevel == 3 ?
-                "rd" : "th", PRAYTIME(ch, slot, CL));
-      }
-    }
-  } else if (ISDRUID && PRAYING(ch, 0, DR) != 0) {
-    if (PRAYIN(ch, CL))
-      send_to_char(ch, "\r\n\tCYou are currently communing for:\r\n");
-    else
-      send_to_char(ch, "\r\n\tCYou are ready to commune for:"
-                       "  (type 'rest' then 'commune' to continue)\r\n");
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYING(ch, slot, DR) != 0) {
-        spellLevel = spellCircle(class, PRAYING(ch, slot, DR));
-        send_to_char(ch, "  %s [%d%s] with %d seconds remaining.\r\n",
-                spell_info[PRAYING(ch, slot, DR)].name, spellLevel,
-                spellLevel == 1 ? "st" : spellLevel == 2 ? "nd" : spellLevel == 3 ?
-                "rd" : "th", PRAYTIME(ch, slot, DR));
+                     spell_info[PRAYING(ch, slot, classArray(class))].name,
+                     spellLevel, spellLevel == 1 ? "st" : spellLevel == 2 ?
+                     "nd" : spellLevel == 3 ? "rd" : "th",
+                     PRAYTIME(ch, slot, classArray(class)));
       }
     }
   }
@@ -858,7 +678,7 @@ void display_slots(struct char_data *ch, int class)
 
     if ((empty[slot] = comp_slots(ch, slot + 1, class) -
 		numSpells(ch, slot + 1, class)) > 0)
-    spells = TRUE;
+      spells = TRUE;
 
     if (spells) {
       last = slot;	// how do we punctuate the end
@@ -867,12 +687,17 @@ void display_slots(struct char_data *ch, int class)
   }
 
   // display info
-  if (ISMAGE)
-    send_to_char(ch, "\r\nYou can memorize");
-  else if (ISCLERIC)
-    send_to_char(ch, "\r\nYou can pray");
-  else if (ISDRUID)
-    send_to_char(ch, "\r\nYou can commune");
+  switch (class) {
+    case CLASS_DRUID:
+      send_to_char(ch, "\r\nYou can commune");
+      break;
+    case CLASS_CLERIC:
+      send_to_char(ch, "\r\nYou can pray");
+      break;
+    default:  /* magic user */
+      send_to_char(ch, "\r\nYou can memorize");
+      break;
+  }
   for (slot = 0; slot < getCircle(ch, class); slot++) {
     if (empty[slot] > 0) {
       printed = TRUE;
@@ -900,17 +725,20 @@ void printMemory(struct char_data *ch, int class)
   display_memmed(ch, class);
   display_memming(ch, class);
   display_slots(ch, class);
-  if (ISMAGE)
-    send_to_char(ch, "\tDCommands: memorize <spellname>, forget <spellname>, "
-                     "spells magic user\tn\r\n");
-  if (ISCLERIC)
-    send_to_char(ch, "\tDCommands: prayer <spellname>, blank <spellname>, "
-                     "spells cleric\tn\r\n");
-  if (ISDRUID)
-    send_to_char(ch, "\tDCommands: commune <spellname>, uncommune <spellname>, "
+  switch (class) {
+    case CLASS_DRUID:
+      send_to_char(ch, "\tDCommands: commune <spellname>, uncommune <spellname>, "
                      "spells druid\tn\r\n");
-
-
+      break;
+    case CLASS_CLERIC:
+      send_to_char(ch, "\tDCommands: prayer <spellname>, blank <spellname>, "
+                     "spells cleric\tn\r\n");
+      break;
+    default:  /* magic user */
+      send_to_char(ch, "\tDCommands: memorize <spellname>, forget <spellname>, "
+                     "spells magic user\tn\r\n");
+      break;
+  }
 }
 /************  end display functions **************/
 
@@ -948,134 +776,118 @@ ACMD(do_gen_forget)
   }
 
   if (!strcmp(arg, "all")) {
-    if (ISMAGE) {
-      if (PRAYING(ch, 0, MG)) {
-        for (slot = 0; slot < (MAX_MEM); slot++) {
-          PRAYING(ch, slot, MG) = 0;
-        }
-        send_to_char(ch, "You forget everything you were attempting to memorize.\r\n");
-        PRAYIN(ch, MG) = FALSE;
-        return;
-      } else if (PRAYED(ch, 0, MG)) {
-        for (slot = 0; slot < (MAX_MEM); slot++) {
-          PRAYED(ch, slot, MG) = 0;
-        }
-        send_to_char(ch, "You forget everything you had memorized.\r\n");
-        PRAYIN(ch, MG) = FALSE;
-        return;
-      } else {
-        send_to_char(ch, "You do not have anything memorizing/memorized!\r\n");
-        return;
+    if (PRAYING(ch, 0, classArray(class))) {
+      for (slot = 0; slot < (MAX_MEM); slot++) {
+        PRAYING(ch, slot, classArray(class)) = 0;
       }
-    } else if (ISCLERIC) {
-      if (PRAYING(ch, 0, CL)) {
-        for (slot = 0; slot < (MAX_MEM); slot++) {
-          PRAYING(ch, slot, CL) = 0;
-        }
-        send_to_char(ch, "You purge everything you were attempting to pray for.\r\n");
-        PRAYIN(ch, CL) = FALSE;
-        return;
-      } else if (PRAYED(ch, 0, CL)) {
-        for (slot = 0; slot < (MAX_MEM); slot++) {
-          PRAYED(ch, slot, CL) = 0;
-        }
-        send_to_char(ch, "You forget everything you had prayed for.\r\n");
-        PRAYIN(ch, CL) = FALSE;
-        return;
-      } else {
-        send_to_char(ch, "You have nothing prayed, and nothing praying for!\r\n");
-        return;
+      switch (class) {
+        case CLASS_DRUID:
+          send_to_char(ch, "You forget everything you were attempting to "
+                           "commune for.\r\n");
+          break;
+        case CLASS_CLERIC:
+          send_to_char(ch, "You forget everything you were attempting to "
+                           "pray for.\r\n");
+          break;
+        default:  /* magic user */
+          send_to_char(ch, "You forget everything you were attempting to "
+                           "memorize.\r\n");
+          break;
       }
-    } else if (ISDRUID) {
-      if (PRAYING(ch, 0, DR)) {
-        for (slot = 0; slot < (MAX_MEM); slot++) {
-          PRAYING(ch, slot, DR) = 0;
-        }
-        send_to_char(ch, "You purge everything you were attempting to commune for.\r\n");
-        PRAYIN(ch, DR) = FALSE;
-        return;
-      } else if (PRAYED(ch, 0, DR)) {
-        for (slot = 0; slot < (MAX_MEM); slot++) {
-          PRAYED(ch, slot, DR) = 0;
-        }
-        send_to_char(ch, "You forget everything you had communed for.\r\n");
-        PRAYIN(ch, DR) = FALSE;
-        return;
-      } else {
-        send_to_char(ch, "You have nothing communed, and nothing communing for!\r\n");
-        return;
+      PRAYIN(ch, classArray(class)) = FALSE;
+      return;
+    } else if (PRAYED(ch, 0, classArray(class))) {
+      for (slot = 0; slot < (MAX_MEM); slot++) {
+        PRAYED(ch, slot, classArray(class)) = 0;
       }
+      switch (class) {
+        case CLASS_DRUID:
+          send_to_char(ch, "You forget everything you had communed for.\r\n");
+          break;
+        case CLASS_CLERIC:
+          send_to_char(ch, "You forget everything you had prayed for.\r\n");
+          break;
+        default:  /* magic user */
+          send_to_char(ch, "You forget everything you had memorized.\r\n");
+          break;
+      }
+      PRAYIN(ch, classArray(class)) = FALSE;
+      return;
+    } else {
+      switch (class) {
+        case CLASS_DRUID:
+          send_to_char(ch, "You do not have anything communed for!\r\n");
+          break;
+        case CLASS_CLERIC:
+          send_to_char(ch, "You do not have anything prayed for!\r\n");
+          break;
+        default:  /* magic user */
+          send_to_char(ch, "You do not have anything memorizing/memorized!\r\n");
+          break;
+      }
+      return;
     }
   }
-
+  
   if (spellnum < 1 || spellnum > MAX_SPELLS) {
     send_to_char(ch, "You never knew that to begin with.\r\n");
     return;
   }
 
   // are we memorizing it?
-  if (ISMAGE) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYING(ch, slot, MG) == spellnum) {
-        removeSpellMemming(ch, spellnum, class);
-        send_to_char(ch, "You stop memorizing %s.\r\n", spell_info[spellnum].name);
-        return;
+  for (slot = 0; slot < (MAX_MEM); slot++) {
+    if (PRAYING(ch, slot, classArray(class)) == spellnum) {
+      removeSpellMemming(ch, spellnum, class);
+      switch (class) {
+        case CLASS_DRUID:
+          send_to_char(ch, "You stop communing for %s.\r\n", spell_info[spellnum].name);
+          break;
+        case CLASS_CLERIC:
+          send_to_char(ch, "You stop praying for %s.\r\n", spell_info[spellnum].name);
+          break;
+        default:  /* magic user */
+          send_to_char(ch, "You stop memorizing %s.\r\n", spell_info[spellnum].name);
+          break;
       }
-    }
-  } else if (ISCLERIC) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYING(ch, slot, CL) == spellnum) {
-        removeSpellMemming(ch, spellnum, class);
-        send_to_char(ch, "You stop praying for %s.\r\n", spell_info[spellnum].name);
-        return;
-      }
-    }
-  } else if (ISDRUID) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYING(ch, slot, DR) == spellnum) {
-        removeSpellMemming(ch, spellnum, class);
-        send_to_char(ch, "You stop communing for %s.\r\n", spell_info[spellnum].name);
-        return;
-      }
+      return;
     }
   }
 
   // is it memmed?
-  if (ISMAGE) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYED(ch, slot, MG) == spellnum) {
-        forgetSpell(ch, spellnum, class);
-        send_to_char(ch, "You purge %s from your memory.\r\n", spell_info[spellnum].name);
-        return;
+  for (slot = 0; slot < (MAX_MEM); slot++) {
+    if (PRAYED(ch, slot, classArray(class)) == spellnum) {
+      forgetSpell(ch, spellnum, class);
+      switch (class) {
+        case CLASS_DRUID:
+          send_to_char(ch, "You purge %s from your communion.\r\n",
+                       spell_info[spellnum].name);
+          break;
+        case CLASS_CLERIC:
+          send_to_char(ch, "You purge %s from your prayers.\r\n",
+                       spell_info[spellnum].name);
+          break;
+        default:  /* magic user */
+          send_to_char(ch, "You purge %s from your memory.\r\n",
+                       spell_info[spellnum].name);
+          break;
       }
-    }
-  } else if (ISCLERIC) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYED(ch, slot, CL) == spellnum) {
-        forgetSpell(ch, spellnum, class);
-        send_to_char(ch, "You purge %s from your prayers.\r\n", spell_info[spellnum].name);
-        return;
-      }
-    }
-  } else if (ISDRUID) {
-    for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYED(ch, slot, DR) == spellnum) {
-        forgetSpell(ch, spellnum, class);
-        send_to_char(ch, "You purge %s from your commune.\r\n", spell_info[spellnum].name);
-        return;
-      }
+      return;
     }
   }
 
-  if (ISMAGE) {
-    send_to_char(ch, "You aren't memorizing and don't have memorized %s!\r\n",
-	spell_info[spellnum].name);
-  } else if (ISCLERIC) {
-    send_to_char(ch, "You aren't praying for and don't have prayed %s!\r\n",
-	spell_info[spellnum].name);
-  } else if (ISDRUID) {
-    send_to_char(ch, "You aren't communing for and don't have communed %s!\r\n",
-	spell_info[spellnum].name);
+  switch (class) {
+    case CLASS_DRUID:
+      send_to_char(ch, "You aren't communing for and don't have communed %s!\r\n",
+                   spell_info[spellnum].name);
+      break;
+    case CLASS_CLERIC:
+      send_to_char(ch, "You aren't praying for and don't have prayed %s!\r\n",
+                   spell_info[spellnum].name);
+      break;
+    default:  /* magic user */
+      send_to_char(ch, "You aren't memorizing and don't have memorized %s!\r\n",
+                   spell_info[spellnum].name);
+      break;
   }
 }
 
@@ -1103,24 +915,25 @@ ACMD(do_gen_memorize)
 
   if (!*argument) {
     printMemory(ch, class);
-
     if (GET_POS(ch) == POS_RESTING) {
-      if (ISMAGE && !isOccupied(ch) && PRAYING(ch, 0, MG) != 0) {
-        send_to_char(ch, "You continue your studies.\r\n");
-        act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
-        PRAYIN(ch, MG) = TRUE;
+      if (!isOccupied(ch) && PRAYING(ch, 0, classArray(class)) != 0) {        
+        switch (class) {
+          case CLASS_DRUID:
+            send_to_char(ch, "You continue your communion.\r\n");
+            act("$n continues $s communion.", FALSE, ch, 0, 0, TO_ROOM);
+            break;
+          case CLASS_CLERIC:
+            send_to_char(ch, "You continue your prayers.\r\n");
+            act("$n continues $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
+            break;
+          default:  /* magic user */
+            send_to_char(ch, "You continue your studies.\r\n");
+            act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
+            break;
+        }
+        PRAYIN(ch, classArray(class)) = TRUE;
         NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
-      } else if (ISCLERIC && !isOccupied(ch) && PRAYING(ch, 0, CL) != 0) {
-        send_to_char(ch, "You continue your prayers.\r\n");
-        act("$n continues $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
-        PRAYIN(ch, CL) = TRUE;
-        NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
-      } else if (ISDRUID && !isOccupied(ch) && PRAYING(ch, 0, DR) != 0) {
-        send_to_char(ch, "You continue your communion.\r\n");
-        act("$n continues $s communion.", FALSE, ch, 0, 0, TO_ROOM);
-        PRAYIN(ch, DR) = TRUE;
-        NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
-      }
+      }      
     }
     return;
   } else {
@@ -1149,50 +962,41 @@ ACMD(do_gen_memorize)
   num_spells = numSpells(ch, minLevel, class);
 
   if (compSlots != -1) {
-    if (ISMAGE) {
-      if ((compSlots - num_spells) > 0) {
-        send_to_char(ch, "You start to memorize %s.\r\n", spell_info[spellnum].name);
-        addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
-        if (!isOccupied(ch)) {
-          PRAYIN(ch, MG) = TRUE;
-          NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
-          send_to_char(ch, "You continue your studies.\r\n");
-          act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
-        }
-        return;
-      } else {
-        send_to_char(ch, "You can't retain more spells of that level!\r\n");
+    if ((compSlots - num_spells) > 0) {
+      switch (class) {
+        case CLASS_DRUID:
+          send_to_char(ch, "You start to commune for %s.\r\n", spell_info[spellnum].name);
+          break;
+        case CLASS_CLERIC:
+          send_to_char(ch, "You start to pray for %s.\r\n", spell_info[spellnum].name);
+          break;
+        default:  /* magic user */
+          send_to_char(ch, "You start to memorize %s.\r\n", spell_info[spellnum].name);
+          break;
       }
-    } else if (ISCLERIC) {
-      if ((compSlots - num_spells) > 0) {
-        send_to_char(ch, "You start to pray for %s.\r\n", spell_info[spellnum].name);
-        addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
-        if (!isOccupied(ch)) {
-          PRAYIN(ch, CL) = TRUE;
-          NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
-          send_to_char(ch, "You continue your prayers.\r\n");
-          act("$n continues $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
+      addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
+      if (!isOccupied(ch)) {
+        PRAYIN(ch, classArray(class)) = TRUE;
+        NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
+        switch (class) {
+          case CLASS_DRUID:
+            send_to_char(ch, "You continue your communing.\r\n");
+            act("$n continues $s communing.", FALSE, ch, 0, 0, TO_ROOM);
+            break;
+          case CLASS_CLERIC:
+            send_to_char(ch, "You continue your prayers.\r\n");
+            act("$n continues $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
+            break;
+          default:  /* magic user */
+            send_to_char(ch, "You continue your studies.\r\n");
+            act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
+            break;
         }
-        return;
-      } else {
-        send_to_char(ch, "You can't retain more prayers of that level!\r\n");
       }
-    } else if (ISDRUID) {
-      if ((compSlots - num_spells) > 0) {
-        send_to_char(ch, "You start to commune for %s.\r\n", spell_info[spellnum].name);
-        addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
-        if (!isOccupied(ch)) {
-          PRAYIN(ch, DR) = TRUE;
-          NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
-          send_to_char(ch, "You continue your communing.\r\n");
-          act("$n continues $s communing.", FALSE, ch, 0, 0, TO_ROOM);
-        }
-        return;
-      } else {
-        send_to_char(ch, "You can't retain more spells of that level!\r\n");
-      }
+      return;
+    } else {
+      send_to_char(ch, "You can't retain more spells of that level!\r\n");
     }
-
   } else
     log("ERR:  Reached end of do_gen_memorize.");
 

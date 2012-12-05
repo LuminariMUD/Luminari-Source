@@ -195,7 +195,15 @@
 
 // related to pc (classes, etc)
 #define MAX_CLASSES	30	// total number of maximum pc classes
-#define NUM_CASTERS	5	//direct reference to pray array
+#define NUM_CASTERS	7	//direct reference to pray array
+/*  magic user
+ *  sorcerer
+ *  cleric
+ *  druid
+ *  bard
+ *  paladin
+ *  ranger
+ */
 /**************************/
 
 // warding spells that need to be saved
