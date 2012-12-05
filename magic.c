@@ -1773,6 +1773,7 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
 		     struct obj_data *obj, int spellnum, int savetype)
 {
   int healing = 0, move = 0;
+  const char *to_room = NULL;
 
   if (victim == NULL)
     return;
@@ -1780,17 +1781,27 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   switch (spellnum) {
   case SPELL_CURE_LIGHT:
     healing = dice(1, 8) + 1 + (level / 4);
-    send_to_char(victim, "You feel better.\r\n");
+
+    to_room = "$n is \twcured\tn of light wounds.";
+    send_to_char(victim, "You feel \twbetter\tn.\r\n");
     break;
   case SPELL_CURE_CRITIC:
     healing = dice(3, 8) + 3 + (level / 4);
-    send_to_char(victim, "You feel a lot better!\r\n");
+
+    to_room = "$n is \twcured\tn of critical wounds.";
+    send_to_char(victim, "You feel a \twlot better\tn!\r\n");
     break;
   case SPELL_HEAL:
     healing = 100 + dice(3, 8);
-    send_to_char(victim, "A warm feeling floods your body.\r\n");
+
+    to_room = "$n's wounds are \tWhealed\tn.";
+    send_to_char(victim, "A \tWwarm feeling\tn floods your body.\r\n");
     break;
   }
+
+  if (to_room != NULL)
+    act(to_room, TRUE, victim, 0, ch, TO_ROOM);
+
   GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + healing);
   GET_MOVE(victim) = MIN(GET_MAX_MOVE(victim), GET_MOVE(victim) + move);
   update_pos(victim);

@@ -1290,6 +1290,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 }
 
 
+/* victim died at the hands of ch */
 int dam_killed_vict(struct char_data *ch, struct char_data *victim,
 	int dam, int attacktype, int dam_type)
 {
@@ -1311,6 +1312,8 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim,
     mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s at %s", GET_NAME(victim), GET_NAME(ch), world[IN_ROOM(victim)].name);
     if (MOB_FLAGGED(ch, MOB_MEMORY))
       forget(ch, victim);
+    if (HUNTING(ch) == victim)
+      HUNTING(ch) = NULL;
   }
 
   if (IS_NPC(victim)) {  // determine gold before corpse created

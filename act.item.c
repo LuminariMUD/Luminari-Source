@@ -1384,6 +1384,23 @@ static void perform_wear(struct char_data *ch,
     act("You can't wear $p there.", FALSE, ch, obj, 0, TO_CHAR);
     return;
   }
+
+  // size for gear, not in-hands
+  if (  where != WEAR_WIELD_1 && where != WEAR_WIELD_2 &&
+	where != WEAR_HOLD_1 && where != WEAR_HOLD_2 &&
+	where != WEAR_SHIELD && where != WEAR_WIELD_2H &&
+	where != WEAR_HOLD_2H
+	) {
+    if (GET_OBJ_SIZE(obj) < GET_SIZE(ch)) {
+      send_to_char(ch, "This item is too small for you (HELP RESIZE).\r\n");
+      return;
+    }
+    if (GET_OBJ_SIZE(obj) > GET_SIZE(ch)) {
+      send_to_char(ch, "This item is too large for you (HELP RESIZE).\r\n");
+      return;
+    }
+  }
+
   // code for gear with 2 possible slots, and next to each other in array
   if ((where == WEAR_FINGER_R) || (where == WEAR_NECK_1) || (where == WEAR_WRIST_R))
     if (GET_EQ(ch, where))
