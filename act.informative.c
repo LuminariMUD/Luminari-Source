@@ -1471,6 +1471,7 @@ ACMD(do_help)
     return;
   }
   page_string(ch->desc, help_table[mid].entry, 0);
+  send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
 }
 
 #define WHO_FORMAT \
