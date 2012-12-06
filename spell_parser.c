@@ -391,6 +391,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_SUMMON:		MANUAL_SPELL(spell_summon); break;
     case SPELL_WORD_OF_RECALL:  MANUAL_SPELL(spell_recall); break;
     case SPELL_TELEPORT:	MANUAL_SPELL(spell_teleport); break;
+    case SPELL_ACID_ARROW:	MANUAL_SPELL(spell_acid_arrow); break;
     }
 
     if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
@@ -1262,7 +1263,7 @@ void mag_assign_spells(void)
 	"You feel the sticky strands of the magical web dissolve.", 2, 6,
 	CONJURATION);
   spello(SPELL_ACID_ARROW, "acid arrow", 37, 22, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,
 	NULL, 2, 6, EVOCATION);
 			/* necromancy */
   spello(SPELL_BLINDNESS, "blindness", 65, 50, 1, POS_FIGHTING,

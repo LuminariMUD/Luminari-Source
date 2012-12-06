@@ -43,6 +43,7 @@ struct mud_event_list mud_event_index[] = {
   { "Crystal fist"       , event_countdown, 	EVENT_CHAR  },  //eCRYSTALFIST
   { "Crystal body"       , event_countdown, 	EVENT_CHAR  },  //eCRYRSTALBODY
   { "Rage"               , event_countdown, 	EVENT_CHAR  },  //eRAGE
+  { "Acid arrow"         , event_acid_arrow, EVENT_CHAR  },  //eACIDARROW
 };
 
 
