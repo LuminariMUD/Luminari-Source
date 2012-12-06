@@ -449,6 +449,7 @@ ASPELL(spell_information);
 ASPELL(spell_identify);
 ASPELL(spell_enchant_weapon);
 ASPELL(spell_detect_poison);
+ASPELL(spell_acid_arrow);
 
 
 /* basic magic calling functions */

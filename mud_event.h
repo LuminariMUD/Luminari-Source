@@ -44,6 +44,7 @@ typedef enum {
     eCRYSTALFIST,
     eCRYSTALBODY,
     eRAGE,
+    eACIDARROW,
 } event_id;
 
 struct mud_event_list {
@@ -88,4 +89,5 @@ EVENTFUNC(event_crafting);
 EVENTFUNC(event_crystalfist);
 EVENTFUNC(event_crystalbody);
 EVENTFUNC(event_rage);
+EVENTFUNC(event_acid_arrow);
 #endif /* _MUD_EVENT_H_ */

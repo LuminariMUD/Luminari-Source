@@ -342,7 +342,7 @@ ACMD(do_order)
     send_to_char(ch, "You obviously suffer from schizophrenia.\r\n");
   else {
     if (AFF_FLAGGED(ch, AFF_CHARM)) {
-      send_to_char(ch, "Your superior would not aprove of you giving orders.\r\n");
+      send_to_char(ch, "Your superior would not approve of you giving orders.\r\n");
       return;
     }
     if (vict) {

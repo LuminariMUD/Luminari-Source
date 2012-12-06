@@ -1053,7 +1053,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel very uncomfortable.";
     break;
 
-  case SPELL_TOUCH_OF_IDIOCY:
+  case SPELL_TOUCH_OF_IDIOCY:  //enchantment
     if (mag_resistance(ch, victim, 0))
       return;
     if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
@@ -1074,7 +1074,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[2].modifier = -(dice(1,6));
     
     accum_duration = TRUE;
-    accum_affect = TRUE;
+    accum_affect = FALSE;
     to_room = "A look of idiocy crosses $n's face!";
     to_vict = "You feel very idiotic.";
     break;
@@ -1211,7 +1211,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_MIRROR_IMAGE:  //illusion
     af[0].location = APPLY_AC;
     af[0].modifier = -1;
-    af[0].duration = 600;
+    af[0].duration = 300;
     to_room = "$n grins as multiple images pop up and smile!";
     to_vict = "You watch as multiple images pop up and smile at you!";
     GET_IMAGES(victim) = 5 + MIN(5, (int) (magic_level / 3));
@@ -2004,14 +2004,14 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       to_char = "You create a fog out of nowhere.";
       to_room = "$n creates a fog out of nowhere.";
       aff = RAFF_FOG;
-      rounds = 4;
+      rounds = 15;
       break;
 
     case SPELL_DARKNESS:  //divination
       to_char = "You create a blanket of pitch black.";
       to_room = "$n creates a blanket of pitch black.";
       aff = RAFF_DARKNESS;
-      rounds = 12;
+      rounds = 15;
       break;
 
     /* add more room spells here */
@@ -2021,7 +2021,6 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       log(buf);
       break;
   }
-
 
   /* create, initialize, and link a room-affection node */
   CREATE(raff, struct raff_node, 1);

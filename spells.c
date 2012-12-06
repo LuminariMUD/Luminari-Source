@@ -21,11 +21,63 @@
 #include "dg_scripts.h"
 #include "act.h"
 #include "fight.h"
+#include "mud_event.h"
 
 /* Special spells appear below. */
 
+  /* The "return" of the event function is the time until the event is called
+   * again. If we return 0, then the event is freed and removed from the list, but
+   * any other numerical response will be the delay until the next call */
+EVENTFUNC(event_acid_arrow)
+{
+  struct char_data *ch, *victim = NULL;
+  struct mud_event_data *pMudEvent;
+  	
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+	  
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */  
+  pMudEvent = (struct mud_event_data *) event_obj;
+  ch = (struct char_data *) pMudEvent->pStruct;    
+  if (ch && FIGHTING(ch))  //assign victim, if none escape
+    victim = FIGHTING(ch);
+  else
+    return 0;
+
+  if (ch == NULL || victim == NULL)
+    return 0;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return 0;
+  }
+
+  damage(ch, victim, dice(3, 6), SPELL_ACID_ARROW, DAM_ACID,
+                FALSE);
   
+  update_pos(ch);  
+  return 0;
+}
+
   
+ASPELL(spell_acid_arrow)
+{
+  int x = 0;
+  
+  if (ch == NULL || victim == NULL)
+    return;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+  
+  for (x = 0; x < (GET_LEVEL(ch)/3); x++) {
+    NEW_EVENT(eACIDARROW, ch, NULL, ((x*6) * PASSES_PER_SEC));  
+  }
+}
+
+
 ASPELL(spell_create_water)
 {
   int water;
