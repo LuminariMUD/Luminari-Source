@@ -60,7 +60,8 @@ struct attack_hit_type attack_hit_text[] =
 static struct char_data *next_combat_list = NULL;
 
 /* local file scope utility functions */
-static void perform_group_gain(struct char_data *ch, int base, struct char_data *victim);
+static void perform_group_gain(struct char_data *ch, int base,
+        struct char_data *victim);
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
 	int w_type, int offhand);
 static void free_messages_type(struct msg_type *msg);
@@ -69,7 +70,8 @@ static void change_alignment(struct char_data *ch, struct char_data *victim);
 static void group_gain(struct char_data *ch, struct char_data *victim);
 static void solo_gain(struct char_data *ch, struct char_data *victim);
 /** @todo refactor this function name */
-static char *replace_string(const char *str, const char *weapon_singular, const char *weapon_plural);
+static char *replace_string(const char *str, const char *weapon_singular,
+        const char *weapon_plural);
 
 #define IS_WEAPON(type) (((type) >= TYPE_HIT) && ((type) < TYPE_SUFFERING))
 
@@ -285,7 +287,8 @@ void load_messages(void)
   char chk[128], *buf;
 
   if (!(fl = fopen(MESS_FILE, "r"))) {
-    log("SYSERR: Error reading combat message file %s: %s", MESS_FILE, strerror(errno));
+    log("SYSERR: Error reading combat message file %s: %s", MESS_FILE,
+            strerror(errno));
     exit(1);
   }
 
@@ -306,7 +309,8 @@ void load_messages(void)
       for (i = 0; (i < MAX_MESSAGES) && (fight_messages[i].a_type != type) &&
          (fight_messages[i].a_type); i++);
       if (i >= MAX_MESSAGES) {
-        log("SYSERR: Too many combat messages.  Increase MAX_MESSAGES and recompile.");
+        log("SYSERR: Too many combat messages.  "
+                "Increase MAX_MESSAGES and recompile.");
         exit(1);
       }
       CREATE(messages, struct message_type, 1);
@@ -392,21 +396,25 @@ void check_killer(struct char_data *ch, struct char_data *vict)
   if (PLR_FLAGGED(ch, PLR_KILLER) || IS_NPC(ch) || IS_NPC(vict) || ch == vict)
     return;
   if (ROOM_FLAGGED(IN_ROOM(vict), ROOM_PEACEFUL)) {
-    send_to_char(ch, "You will not be flagged as a killer for attempting to attack in a peaceful room...\r\n");
+    send_to_char(ch, "You will not be flagged as a killer for "
+            "attempting to attack in a peaceful room...\r\n");
     return;
   }
   if (GET_LEVEL(ch) > LVL_IMMORT) {
-    send_to_char(ch, "Normally you would've been flagged a PKILLER for this action...\r\n");
+    send_to_char(ch, "Normally you would've been flagged a "
+            "PKILLER for this action...\r\n");
     return;
   }
   if (GET_LEVEL(vict) > LVL_IMMORT && !IS_NPC(vict)) {
-    send_to_char(ch, "You will not be flagged as a killer for attacking an Immortal...\r\n");
+    send_to_char(ch, "You will not be flagged as a killer for "
+            "attacking an Immortal...\r\n");
     return;
   }
 
   SET_BIT_AR(PLR_FLAGS(ch), PLR_KILLER);
   send_to_char(ch, "If you want to be a PLAYER KILLER, so be it...\r\n");
-  mudlog(BRF, LVL_IMMORT, TRUE, "PC Killer bit set on %s for initiating attack on %s at %s.",
+  mudlog(BRF, LVL_IMMORT, TRUE, "PC Killer bit set on %s for "
+         "initiating attack on %s at %s.",
 	    GET_NAME(ch), GET_NAME(vict), world[IN_ROOM(vict)].name);
 }
 
@@ -538,11 +546,13 @@ void death_cry(struct char_data *ch)
 {
   int door;
 
-  act("Your blood freezes as you hear $n's death cry.", FALSE, ch, 0, 0, TO_ROOM);
+  act("Your blood freezes as you hear $n's death cry.",
+      FALSE, ch, 0, 0, TO_ROOM);
 
   for (door = 0; door < DIR_COUNT; door++)
     if (CAN_GO(ch, door))
-      send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room, "Your blood freezes as you hear someone's death cry.\r\n");
+      send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room,
+              "Your blood freezes as you hear someone's death cry.\r\n");
 }
 
 
@@ -723,7 +733,8 @@ static void perform_group_gain(struct char_data *ch, int base,
     send_to_char(ch, "You receive your share of experience -- %d points.\r\n",
             gain_exp(ch, share));
   else {
-    send_to_char(ch, "You receive your share of experience -- one measly little point!\r\n");
+    send_to_char(ch, "You receive your share of experience -- "
+            "one measly little point!\r\n");
     gain_exp(ch, share);
   }
 
@@ -801,7 +812,8 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
 	"\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");  
 }
 
-static char *replace_string(const char *str, const char *weapon_singular, const char *weapon_plural)
+static char *replace_string(const char *str, const char *weapon_singular,
+        const char *weapon_plural)
 {
   static char buf[256];
   char *cp = buf;
@@ -1214,20 +1226,23 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       if (GET_IMAGES(victim) > 0) {
         if (rand_number(0, GET_IMAGES(victim))) {
           send_to_char(victim, "\tWOne of your images is destroyed!\tn\r\n");
-          send_to_char(ch, "\tRYou have struck an illusionary image of %s!\tn\r\n",
+          send_to_char(ch, "\tRYou have struck an illusionary "
+                  "image of %s!\tn\r\n",
 		GET_NAME(victim));
           act("$n struck an illusionary image of $N!", FALSE, ch, 0, victim,
                 TO_NOTVICT);
           GET_IMAGES(victim)--;
           if (GET_IMAGES(victim) <= 0) {
-            send_to_char(victim, "\t2All of your illusionary images are gone!\tn\r\n");
+            send_to_char(victim, "\t2All of your illusionary "
+                    "images are gone!\tn\r\n");
             affect_from_char(victim, SPELL_MIRROR_IMAGE);
           }
           return -1;
         } 
       } else {
         //dummy check
-        send_to_char(victim, "\t2All of your illusionary images are gone!\tn\r\n");
+        send_to_char(victim, "\t2All of your illusionary "
+                "images are gone!\tn\r\n");
         affect_from_char(victim, SPELL_MIRROR_IMAGE);
       }
     }
@@ -1308,7 +1323,8 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim,
   resetCastingData(victim);  //stop casting
 
   if (!IS_NPC(victim)) {  //forget victim, log
-    mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s at %s", GET_NAME(victim), GET_NAME(ch), world[IN_ROOM(victim)].name);
+    mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s at %s", GET_NAME(victim),
+            GET_NAME(ch), world[IN_ROOM(victim)].name);
     if (MOB_FLAGGED(ch, MOB_MEMORY))
       forget(ch, victim);
     if (HUNTING(ch) == victim)
@@ -1351,7 +1367,8 @@ int damage(struct char_data *ch, struct char_data *victim,
 {
 
   if (GET_POS(victim) <= POS_DEAD) {  //delayed extraction
-    if (PLR_FLAGGED(victim, PLR_NOTDEADYET) || MOB_FLAGGED(victim, MOB_NOTDEADYET))
+    if (PLR_FLAGGED(victim, PLR_NOTDEADYET) ||
+            MOB_FLAGGED(victim, MOB_NOTDEADYET))
       return (-1);
     log("SYSERR: Attempt to damage corpse '%s' in room #%d by '%s'.",
 		GET_NAME(victim), GET_ROOM_VNUM(IN_ROOM(victim)), GET_NAME(ch));
@@ -1367,12 +1384,14 @@ int damage(struct char_data *ch, struct char_data *victim,
     send_to_char(ch, "This mob is protected.\r\n");
     return (0);
   }
-  if (!IS_NPC(victim) && ((GET_LEVEL(victim) >= LVL_IMMORT) && PRF_FLAGGED(victim, PRF_NOHASSLE)))
+  if (!IS_NPC(victim) && ((GET_LEVEL(victim) >= LVL_IMMORT) &&
+          PRF_FLAGGED(victim, PRF_NOHASSLE)))
     dam = 0;  // immort protection
   if (victim != ch) {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))  // ch -> vict
       set_fighting(ch, victim);
-    if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL)) {  // vict -> ch
+    // vict -> ch
+    if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL)) {
       set_fighting(victim, ch);
       if (MOB_FLAGGED(victim, MOB_MEMORY) && !IS_NPC(ch))
 	remember(victim, ch);
@@ -1380,7 +1399,8 @@ int damage(struct char_data *ch, struct char_data *victim,
   }
   if (victim->master == ch)  // pet leaves you
     stop_follower(victim);
-  if (AFF_FLAGGED(ch, AFF_INVISIBLE) || AFF_FLAGGED(ch, AFF_HIDE)) // lose hide/invis
+  // lose hide/invis
+  if (AFF_FLAGGED(ch, AFF_INVISIBLE) || AFF_FLAGGED(ch, AFF_HIDE))
     appear(ch);
   if (!CONFIG_PK_ALLOWED) {  // PK check
     check_killer(ch, victim);
@@ -1412,9 +1432,11 @@ int damage(struct char_data *ch, struct char_data *victim,
     if (!IS_WEAPON(attacktype))  //non weapons use skill_message
       skill_message(dam, ch, victim, attacktype, offhand);
     else {
-      if (GET_POS(victim) == POS_DEAD || dam == 0) {  //miss and death = skill_message
+      //miss and death = skill_message
+      if (GET_POS(victim) == POS_DEAD || dam == 0) {
         if (!skill_message(dam, ch, victim, attacktype, offhand))
-          dam_message(dam, ch, victim, attacktype, offhand);  //default if no skill_message
+          //default if no skill_message
+          dam_message(dam, ch, victim, attacktype, offhand);
       } else {
         dam_message(dam, ch, victim, attacktype, offhand); //default landed-hit
       }
@@ -1425,15 +1447,20 @@ int damage(struct char_data *ch, struct char_data *victim,
   case POS_MORTALLYW:
     act("$n is mortally wounded, and will die soon, if not aided.",
 	TRUE, victim, 0, 0, TO_ROOM);
-    send_to_char(victim, "You are mortally wounded, and will die soon, if not aided.\r\n");
+    send_to_char(victim, "You are mortally wounded, and will die "
+            "soon, if not aided.\r\n");
     break;
   case POS_INCAP:
-    act("$n is incapacitated and will slowly die, if not aided.", TRUE, victim, 0, 0, TO_ROOM);
-    send_to_char(victim, "You are incapacitated and will slowly die, if not aided.\r\n");
+    act("$n is incapacitated and will slowly die, if not aided.",
+            TRUE, victim, 0, 0, TO_ROOM);
+    send_to_char(victim, "You are incapacitated and will slowly "
+            "die, if not aided.\r\n");
     break;
   case POS_STUNNED:
-    act("$n is stunned, but will probably regain consciousness again.", TRUE, victim, 0, 0, TO_ROOM);
-    send_to_char(victim, "You're stunned, but will probably regain consciousness again.\r\n");
+    act("$n is stunned, but will probably regain consciousness again.",
+            TRUE, victim, 0, 0, TO_ROOM);
+    send_to_char(victim, "You're stunned, but will probably regain "
+            "consciousness again.\r\n");
     break;
   case POS_DEAD:
     act("$n is dead!  R.I.P.", FALSE, victim, 0, 0, TO_ROOM);
@@ -1443,7 +1470,8 @@ int damage(struct char_data *ch, struct char_data *victim,
     if (dam > (GET_MAX_HIT(victim) / 4))
       send_to_char(victim, "That really did HURT!\r\n");
     if (GET_HIT(victim) < (GET_MAX_HIT(victim) / 4)) {
-      send_to_char(victim, "%sYou wish that your wounds would stop BLEEDING so much!%s\r\n",
+      send_to_char(victim, "%sYou wish that your wounds would stop "
+              "BLEEDING so much!%s\r\n",
 		CCRED(victim, C_SPR), CCNRM(victim, C_SPR));
 
       if (ch != victim && MOB_FLAGGED(victim, MOB_WIMPY))  //wimpy mobs
@@ -1461,7 +1489,8 @@ int damage(struct char_data *ch, struct char_data *victim,
     break;
   }  //end SWITCH
 
-  if (!IS_NPC(victim) && !(victim->desc) && GET_POS(victim) > POS_STUNNED) { //linkless
+  //linkless
+  if (!IS_NPC(victim) && !(victim->desc) && GET_POS(victim) > POS_STUNNED) {
     perform_flee(victim);
     if (!FIGHTING(victim)) {
       act("$n is rescued by divine forces.", FALSE, victim, 0, 0, TO_ROOM);
@@ -1471,7 +1500,8 @@ int damage(struct char_data *ch, struct char_data *victim,
     }
   }
 
-  if (GET_POS(victim) <= POS_STUNNED && FIGHTING(victim) != NULL) //too hurt to continue
+  //too hurt to continue
+  if (GET_POS(victim) <= POS_STUNNED && FIGHTING(victim) != NULL)
     stop_fighting(victim);
 
   if (GET_POS(victim) == POS_DEAD)  // victim died
@@ -1625,8 +1655,8 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 int isCriticalHit(struct char_data *ch, int diceroll)
 {
   if ((!IS_NPC(ch) && GET_SKILL(ch, SKILL_EPIC_CRIT) && diceroll >= 18) ||
-	(!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_CRITICAL) && diceroll >= 19) ||
-	diceroll == 20)
+	(!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_CRITICAL) && diceroll >= 19) 
+     || diceroll == 20)
     return 1;
   return 0;
 }
@@ -1651,7 +1681,8 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
     if (isCriticalHit(ch, diceroll)) {
 
       //overwhelming crit addes 3d2 damage before doubling for normal crit
-      if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_OVERWHELMING_CRIT) && !IS_NPC(ch)) {
+      if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_OVERWHELMING_CRIT) &&
+              !IS_NPC(ch)) {
         send_to_char(ch, "\tW[OW]\tn");
         send_to_char(victim, "\tR[oOW]\tn");      
         dam += dice(3, 2); 
@@ -1747,9 +1778,10 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
     if (dam <= 0) {
       send_to_char(victim, "\tWYour skin of stone absorbs the attack!\tn\r\n");
       send_to_char(ch,
-	"\tRYou have failed to penetrate the stony skin of %s!\tn\r\n",GET_NAME(victim));
+	"\tRYou have failed to penetrate the stony skin of %s!\tn\r\n",
+              GET_NAME(victim));
       act("$n fails to penetrate the stony skin of $N!", FALSE, ch, 0, victim,
-	TO_NOTVICT);        
+	     TO_NOTVICT);        
       return -1;
     } else {
       send_to_char(victim, "\tW<stone:%d>\tn", warding);
@@ -1794,7 +1826,8 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
 #undef STONESKIN_ABSORB
 #undef EPIC_WARDING_ABSORB
 
-void weapon_spells(struct char_data *ch, struct char_data *vict, struct obj_data *wpn) {
+void weapon_spells(struct char_data *ch, struct char_data *vict,
+        struct obj_data *wpn) {
   int i = 0, random;
 
   if (wpn && HAS_SPELLS(wpn)) {
@@ -1835,7 +1868,8 @@ void idle_weapon_spells(struct char_data *ch)
 
       if (wielded && HAS_SPELLS(wielded)) {
         for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
-          if (!GET_WEAPON_SPELL_AGG(wielded, j) && GET_WEAPON_SPELL(wielded, j)) {
+          if (!GET_WEAPON_SPELL_AGG(wielded, j) &&
+                  GET_WEAPON_SPELL(wielded, j)) {
             random = rand_number(1,100);
             if(GET_WEAPON_SPELL_PCT(wielded, j) >= random) {
               act("$p leaps to action.",
@@ -1851,7 +1885,8 @@ void idle_weapon_spells(struct char_data *ch)
 
       if (offWield && HAS_SPELLS(offWield)) {
         for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
-          if (!GET_WEAPON_SPELL_AGG(offWield, j) && GET_WEAPON_SPELL(offWield, j)) {
+          if (!GET_WEAPON_SPELL_AGG(offWield, j) &&
+                  GET_WEAPON_SPELL(offWield, j)) {
             random = rand_number(1,100);
             if(GET_WEAPON_SPELL_PCT(offWield, j) >= random) {
               act("$p leaps to action.",
@@ -1896,7 +1931,8 @@ void hit(struct char_data *ch, struct char_data *victim,
   if (victim != ch) {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))  // ch -> vict
       set_fighting(ch, victim);
-    if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL)) {  // vict -> ch
+    // vict -> ch
+    if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL)) {
       set_fighting(victim, ch);
       if (MOB_FLAGGED(victim, MOB_MEMORY) && !IS_NPC(ch))
         remember(victim, ch);
@@ -1953,7 +1989,8 @@ void hit(struct char_data *ch, struct char_data *victim,
       PARRY_LEFT(victim)--;
       return;
     } else {
-      send_to_char(victim, "You \tcparry\tn the attack from %s!\r\n", GET_NAME(ch));
+      send_to_char(victim, "You \tcparry\tn the attack from %s!\r\n",
+              GET_NAME(ch));
       send_to_char(ch, "%s \tCparries\tn your attack!\r\n", GET_NAME(victim));
       act("$N \tDparries\tn an attack from $n!", FALSE, ch, 0, victim,
                 TO_NOTVICT);
@@ -1963,7 +2000,8 @@ void hit(struct char_data *ch, struct char_data *victim,
   }
 
   if (!dam)  //miss
-    damage(ch, victim, 0, type == SKILL_BACKSTAB ? SKILL_BACKSTAB : w_type, dam_type, offhand);
+    damage(ch, victim, 0, type == SKILL_BACKSTAB ? SKILL_BACKSTAB : w_type,
+            dam_type, offhand);
   else {
     if (affected_by_spell(ch, SPELL_TRUE_STRIKE)) {
       send_to_char(ch, "\tWTRUE-STRIKE\tn  ");
@@ -2092,7 +2130,8 @@ int perform_attacks(struct char_data *ch, int mode)
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT)) {
       numAttacks++;
       if (mode == 0) {
-        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY, TRUE);
+        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+                TWO_WPN_PNLTY, TRUE);
       } else if (mode == 2) {
         send_to_char(ch, "Offhand (2 Weapon Fighting), Attack Bonus:  %d; ",
 	   compute_bab(ch, ch, 0) + TWO_WPN_PNLTY);
@@ -2102,7 +2141,8 @@ int perform_attacks(struct char_data *ch, int mode)
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_EPIC_2_WEAPON)) {
       numAttacks++;
       if (mode == 0) {
-        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLY, TRUE);
+        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+                EPIC_TWO_PNLY, TRUE);
       } else if (mode == 2) {
         send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",
 	   compute_bab(ch, ch, 0) + EPIC_TWO_PNLY);
@@ -2232,12 +2272,14 @@ void perform_violence(void)
 
     if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
       send_to_char(ch, "You are paralyzed and unable to react!\r\n");
-      act("$n seems to be paralyzed and unable to react!", TRUE, ch, 0, 0, TO_ROOM);
+      act("$n seems to be paralyzed and unable to react!",
+              TRUE, ch, 0, 0, TO_ROOM);
       continue;
     }
     if (char_has_mud_event(ch, eSTUNNED)) {
       send_to_char(ch, "You are stunned and unable to react!\r\n");
-      act("$n seems to be stunned and unable to react!", TRUE, ch, 0, 0, TO_ROOM);
+      act("$n seems to be stunned and unable to react!",
+              TRUE, ch, 0, 0, TO_ROOM);
       continue;
     }
 
@@ -2270,7 +2312,8 @@ void perform_violence(void)
     }
 
     if (GROUP(ch)) {
-      while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
+      while ((tch = (struct char_data *) simple_list(GROUP(ch)->members))
+              != NULL) {
         if (tch == ch)
           continue;
         if (!IS_NPC(tch) && !PRF_FLAGGED(tch, PRF_AUTOASSIST))
@@ -2289,8 +2332,10 @@ void perform_violence(void)
     }
 
     //your charmee, even if not groupped, should assist
-    for (charmee = world[IN_ROOM(ch)].people; charmee; charmee = charmee->next_in_room)
-      if (AFF_FLAGGED(charmee, AFF_CHARM) && charmee->master == ch && !FIGHTING(charmee) &&
+    for (charmee = world[IN_ROOM(ch)].people; charmee;
+            charmee = charmee->next_in_room)
+      if (AFF_FLAGGED(charmee, AFF_CHARM) && charmee->master == ch &&
+          !FIGHTING(charmee) &&
 		GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch))
         do_assist(charmee, GET_NAME(ch), 0, 0);
 
@@ -2302,7 +2347,8 @@ void perform_violence(void)
 
     autoDiagnose(ch);
 
-    if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) && !MOB_FLAGGED(ch, MOB_NOTDEADYET)) {
+    if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) &&
+            !MOB_FLAGGED(ch, MOB_NOTDEADYET)) {
       char actbuf[MAX_INPUT_LENGTH] = "";
       (GET_MOB_SPEC(ch)) (ch, ch, 0, actbuf);
     }
