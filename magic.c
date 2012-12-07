@@ -1022,7 +1022,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_BLUR:  //illusion
     af[0].location = APPLY_AC;
     af[0].modifier = -1;
-    af[0].duration = 1200;
+    af[0].duration = 300;
     to_room = "$n's images becomes blurry!.";
     to_vict = "You observe as your image becomes blurry.";
     SET_BIT_AR(af[0].bitvector, AFF_BLUR);

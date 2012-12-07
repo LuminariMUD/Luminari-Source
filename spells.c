@@ -75,7 +75,7 @@ ASPELL(spell_acid_arrow)
   send_to_char(ch, "You send out an arrow of acid whizzing towards your opponent!\r\n");
   act("$n sends out an arrow of acid whizzing!", FALSE, ch, 0, 0, TO_ROOM);
   
-  for (x = 0; x < (GET_LEVEL(ch)/3); x++) {
+  for (x = 0; x < (MAGIC_LEVEL(ch)/3); x++) {
     NEW_EVENT(eACIDARROW, ch, NULL, ((x*6) * PASSES_PER_SEC));  
   }
 }
