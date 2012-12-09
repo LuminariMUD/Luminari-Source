@@ -304,6 +304,11 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
   }
+  if (ROOM_FLAGGED(IN_ROOM(cvict), ROOM_NOMAGIC)) {
+    send_to_char(caster, "Your magic fizzles out and dies.\r\n");
+    act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
+    return (0);
+  }  
   if (ROOM_FLAGGED(IN_ROOM(caster), ROOM_PEACEFUL) &&
       (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
     send_to_char(caster, "A flash of white light fills the room, dispelling your violent magic!\r\n");
