@@ -304,7 +304,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
   }
-  if (ROOM_FLAGGED(IN_ROOM(cvict), ROOM_NOMAGIC)) {
+  if (cvict && ROOM_FLAGGED(IN_ROOM(cvict), ROOM_NOMAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies.\r\n");
     act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
@@ -401,8 +401,10 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
 
     if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
 	   spellnum != SPELL_CHARM)
-      if (cvict != caster)  // funny results from potions/scrolls
-        hit(cvict, caster, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      if (cvict != caster) {  // funny results from potions/scrolls
+        if (IN_ROOM(cvict) == IN_ROOM(caster))
+          hit(cvict, caster, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
 
     return (1);
 }
