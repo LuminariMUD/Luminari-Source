@@ -142,7 +142,8 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
     call_magic(caster, tch, tobj, spellnum, DG_SPELL_LEVEL, CAST_SPELL);
     extract_char(caster);
   } else
-    call_magic(caster, tch, tobj, spellnum, GET_LEVEL(caster), CAST_SPELL);
+    cast_spell(caster, tch, tobj, spellnum);
+//    call_magic(caster, tch, tobj, spellnum, GET_LEVEL(caster), CAST_SPELL);
 }
 
 /* Modify an affection on the target. affections can be of the AFF_x variety

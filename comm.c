@@ -972,12 +972,12 @@ void heartbeat(int heart_pulse)
   struct char_data *i;
   static int mins_since_crashsave = 0;
 
+  event_process(); 
 
   if (!(heart_pulse % PULSE_DG_SCRIPT))
     script_trigger_check();
 
   if (!(heart_pulse % PASSES_PER_SEC)) {    /* EVERY second */
-    event_process(); 
     msdp_update();
     next_tick--;
   }
