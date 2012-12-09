@@ -939,8 +939,8 @@ ACMD(do_treatinjury)
   act("$n \tWtreats\tn $N's injuries!", FALSE, ch, 0, vict, TO_NOTVICT);
   attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL),
           (6 * SECS_PER_MUD_HOUR));
-  GET_HIT(vict) += 10 + (compute_ability(ch, ABILITY_TREAT_INJURY) * 2);
-  GET_MANA(vict) += 10 + (compute_ability(ch, ABILITY_TREAT_INJURY) * 2);
+  GET_HIT(vict) += MIN((GET_MAX_HIT(vict)-GET_HIT(vict)),
+                   (10 + (compute_ability(ch, ABILITY_TREAT_INJURY) * 2)));
   update_pos(vict);
 }
 
