@@ -593,41 +593,15 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
 {
   struct char_data *k, *temp;
 
+  //stop relevant fighting
   if (FIGHTING(ch))
     stop_fighting(ch);
- 
-  while (ch->affected)
-    affect_remove(ch, ch->affected);
-  
-  GET_POS(ch) = POS_STANDING;  // ordinary commands work in scripts -welcor
-
-  if (killer) {
-    if (death_mtrigger(ch, killer))
-      death_cry(ch);
-  } else
-    death_cry(ch);
-  
-  if (killer)
-    autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
- 
-  if (GROUP(ch)) {
-    send_to_group(ch, GROUP(ch), "%s has died.\r\n", GET_NAME(ch));
-    leave_group(ch);
-  }
-
-  update_pos(ch);
-
-  //this replaces extraction
-  if (ch->followers || ch->master)
-    die_follower(ch);
-
   for (k = combat_list; k; k = temp) {
     temp = k->next_fighting;
     if (FIGHTING(k) == ch)
       stop_fighting(k);
   }  
-
-  /* Whipe character from the memory of hunters and other intelligent NPCs... */
+  /* Wipe character from the memory of hunters and other intelligent NPCs... */
   for (temp = character_list; temp; temp = temp->next) {
     /* PCs can't use MEMORY, and don't use HUNTING() */
     if (!IS_NPC(temp))
@@ -640,11 +614,38 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     if (!IS_NPC(ch) && MEMORY(temp))
       forget(temp, ch); /* forget() is safe to use without a check. */
   }
+  if (ch->followers || ch->master)  // handle followers
+    die_follower(ch);
+ 
+   if (GROUP(ch)) {
+    send_to_group(ch, GROUP(ch), "%s has died.\r\n", GET_NAME(ch));
+    leave_group(ch);
+  }
+  
+  while (ch->affected)  //remove affects
+    affect_remove(ch, ch->affected);
+  
+  // ordinary commands work in scripts -welcor
+  GET_POS(ch) = POS_STANDING;
+  if (killer) {
+    if (death_mtrigger(ch, killer))
+      death_cry(ch);
+  } else
+    death_cry(ch);
+  if (killer)
+    autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
+ 
+  update_pos(ch);
 
+  //this replaces extraction
   char_from_room(ch);
-  char_to_room(ch, r_mortal_start_room);
   death_message(ch);
+  WAIT_STATE(ch, PULSE_VIOLENCE * 4);
+  GET_HIT(ch) = 1;
+  update_pos(ch);
 
+  /* move char to starting room */
+  char_to_room(ch, r_mortal_start_room);
   act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
   look_at_room(ch, 0);
   entry_memory_mtrigger(ch);
@@ -659,9 +660,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     autoquest_trigger_check(killer, NULL, NULL, AQ_ROOM_CLEAR);
   }
 
-  WAIT_STATE(ch, PULSE_VIOLENCE * 4);
-  GET_HIT(ch) = 1;
-  update_pos(ch);
 }
 
 
