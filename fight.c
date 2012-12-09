@@ -593,41 +593,15 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
 {
   struct char_data *k, *temp;
 
+  //stop all combat
   if (FIGHTING(ch))
     stop_fighting(ch);
- 
-  while (ch->affected)
-    affect_remove(ch, ch->affected);
-  
-  GET_POS(ch) = POS_STANDING;  // ordinary commands work in scripts -welcor
-
-  if (killer) {
-    if (death_mtrigger(ch, killer))
-      death_cry(ch);
-  } else
-    death_cry(ch);
-  
-  if (killer)
-    autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
- 
-  if (GROUP(ch)) {
-    send_to_group(ch, GROUP(ch), "%s has died.\r\n", GET_NAME(ch));
-    leave_group(ch);
-  }
-
-  update_pos(ch);
-
-  //this replaces extraction
-  if (ch->followers || ch->master)
-    die_follower(ch);
-
   for (k = combat_list; k; k = temp) {
     temp = k->next_fighting;
     if (FIGHTING(k) == ch)
       stop_fighting(k);
   }  
-
-  /* Whipe character from the memory of hunters and other intelligent NPCs... */
+  /* Wipe character from the memory of hunters and other intelligent NPCs... */
   for (temp = character_list; temp; temp = temp->next) {
     /* PCs can't use MEMORY, and don't use HUNTING() */
     if (!IS_NPC(temp))
@@ -640,28 +614,49 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     if (!IS_NPC(ch) && MEMORY(temp))
       forget(temp, ch); /* forget() is safe to use without a check. */
   }
+  // clear followers
+  if (ch->followers || ch->master)
+    die_follower(ch);
+ 
+  //remove all affects
+  while (ch->affected)
+    affect_remove(ch, ch->affected);
+  
+  GET_POS(ch) = POS_STANDING;  // ordinary commands work in scripts -welcor
+  if (killer) {
+    if (death_mtrigger(ch, killer))
+      death_cry(ch);
+  } else
+    death_cry(ch);
+    if (killer)
+    autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
+ 
+  if (GROUP(ch)) {
+    send_to_group(ch, GROUP(ch), "%s has died.\r\n", GET_NAME(ch));
+    leave_group(ch);
+  }
+
+  update_pos(ch);
 
   char_from_room(ch);
   char_to_room(ch, r_mortal_start_room);
   death_message(ch);
-
   act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
   look_at_room(ch, 0);
+  WAIT_STATE(ch, PULSE_VIOLENCE * 4);
+  GET_HIT(ch) = 1;
+  update_pos(ch);
+
   entry_memory_mtrigger(ch);
   greet_mtrigger(ch, -1);
   greet_memory_mtrigger(ch);
   save_char(ch); 
   Crash_delete_crashfile(ch);
-  //end extraction replacement 
 
   if (killer) {
     autoquest_trigger_check(killer, NULL, NULL, AQ_MOB_SAVE);
     autoquest_trigger_check(killer, NULL, NULL, AQ_ROOM_CLEAR);
   }
-
-  WAIT_STATE(ch, PULSE_VIOLENCE * 4);
-  GET_HIT(ch) = 1;
-  update_pos(ch);
 }
 
 
@@ -1360,11 +1355,24 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim,
   return (-1);
 }
 
-
-// death < 0, no dam = 0, damage done > 0
-int damage(struct char_data *ch, struct char_data *victim,
-	int dam, int attacktype, int dam_type, int offhand)
+// < 0, death and problem, 0 no damage and problem, > 0 no problems
+int combat_dummy_checks(struct char_data *ch, struct char_data *victim)
 {
+  if (!ch)
+    return (0);
+
+  if (!victim)
+    return (0);
+  
+  if (FIGHTING(ch) == NULL) {
+    stop_fighting(ch);
+    return (0);
+  }
+
+  if (IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))) {
+    stop_fighting(ch);
+    return (0);    
+  }
 
   if (GET_POS(victim) <= POS_DEAD) {  //delayed extraction
     if (PLR_FLAGGED(victim, PLR_NOTDEADYET) ||
@@ -1372,18 +1380,39 @@ int damage(struct char_data *ch, struct char_data *victim,
       return (-1);
     log("SYSERR: Attempt to damage corpse '%s' in room #%d by '%s'.",
 		GET_NAME(victim), GET_ROOM_VNUM(IN_ROOM(victim)), GET_NAME(ch));
+    stop_fighting(ch);
     die(victim, ch);
     return (-1);
   }
+
   if (ch->nr != real_mobile(DG_CASTER_PROXY) &&
       ch != victim && ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    stop_fighting(ch);
     return (0);
   }
+
   if (!ok_damage_shopkeeper(ch, victim) || MOB_FLAGGED(victim, MOB_NOKILL)) {
     send_to_char(ch, "This mob is protected.\r\n");
+    stop_fighting(ch);
     return (0);
   }
+  
+  // should be good to go
+  return 1;
+}
+
+// death < 0, no dam = 0, damage done > 0
+int damage(struct char_data *ch, struct char_data *victim,
+	int dam, int attacktype, int dam_type, int offhand)
+{
+  int dummy_check = 1;
+  
+  if ((dummy_check = combat_dummy_checks(ch, victim)) == -1)
+    return -1;
+  else if (!dummy_check)
+    return 0;
+    
   if (!IS_NPC(victim) && ((GET_LEVEL(victim) >= LVL_IMMORT) &&
           PRF_FLAGGED(victim, PRF_NOHASSLE)))
     dam = 0;  // immort protection
@@ -1908,26 +1937,15 @@ void hit(struct char_data *ch, struct char_data *victim,
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   int w_type, victim_ac, calc_bab, dam, diceroll;
 
+  if (combat_dummy_checks(ch, FIGHTING(ch)) <= 0)
+    return;
+  
   // primary hand setting
   if (GET_EQ(ch, WEAR_WIELD_2H))
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
-  if (!ch || !victim) return;  //ch and victim exist?
-  if (IN_ROOM(ch) != IN_ROOM(victim)) {  //same room?
-    if (FIGHTING(ch) && FIGHTING(ch) == victim)
-      stop_fighting(ch);
-    return;  }
-  update_pos(ch);update_pos(victim);  //valid positions?
-  if (GET_POS(ch) <= POS_DEAD || GET_POS(victim) <= POS_DEAD)    return;
   fight_mtrigger(ch);  //fight trig?
 
-  // added these two checks in case parry is successful on opening attack -zusuk
-  if (ch->nr != real_mobile(DG_CASTER_PROXY) &&
-      ch != victim && ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    stop_fighting(ch);
-    return;
-  }
   if (victim != ch) {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))  // ch -> vict
       set_fighting(ch, victim);
@@ -2033,6 +2051,7 @@ void hit(struct char_data *ch, struct char_data *victim,
 // mode = 0	normal attack routine
 // mode = 1	return # of attacks, nothing else
 // mode = 2	display attack routine potential
+// return -1 for problems
 
 #define ATTACK_CAP	4
 #define MONK_CAP	ATTACK_CAP + 2
@@ -2054,10 +2073,12 @@ int perform_attacks(struct char_data *ch, int mode)
     else
       penalty = -4;
     if (mode == 0) {
-      hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
-	penalty, FALSE);
-      hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
-	penalty * 2, TRUE);
+      if (combat_dummy_checks(ch, FIGHTING(ch)))
+        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+           penalty, FALSE);
+      if (combat_dummy_checks(ch, FIGHTING(ch)))
+        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+            penalty * 2, TRUE);
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
 	 compute_bab(ch, ch, 0) + penalty);
@@ -2070,7 +2091,9 @@ int perform_attacks(struct char_data *ch, int mode)
     //default of one attack for everyone
     numAttacks++;
     if (mode == 0) {
-      hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
+      if (combat_dummy_checks(ch, FIGHTING(ch)))
+        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty,
+            FALSE);
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
       compute_bab(ch, ch, 0) + penalty);
@@ -2081,7 +2104,9 @@ int perform_attacks(struct char_data *ch, int mode)
 	(!IS_NPC(ch) && GET_SKILL(ch, SKILL_BLINDING_SPEED))) {
     numAttacks++;
     if (mode == 0) {
-      hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
+      if (combat_dummy_checks(ch, FIGHTING(ch)))
+        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty,
+                FALSE);
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand (Haste), Attack Bonus:  %d; ",
 	 compute_bab(ch, ch, 0) + penalty);
@@ -2114,10 +2139,9 @@ int perform_attacks(struct char_data *ch, int mode)
     numAttacks++;
     if (FIGHTING(ch) && mode == 0) {
       update_pos(FIGHTING(ch));
-      if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
-	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch)) {
-        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
-      }
+      if (combat_dummy_checks(ch, FIGHTING(ch)))
+        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty,
+                FALSE);
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand Bonus %d, Attack Bonus:  %d; ",
 	   i + 1, compute_bab(ch, ch, 0) + penalty);
@@ -2130,7 +2154,8 @@ int perform_attacks(struct char_data *ch, int mode)
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT)) {
       numAttacks++;
       if (mode == 0) {
-        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+        if (combat_dummy_checks(ch, FIGHTING(ch)))
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 TWO_WPN_PNLTY, TRUE);
       } else if (mode == 2) {
         send_to_char(ch, "Offhand (2 Weapon Fighting), Attack Bonus:  %d; ",
@@ -2141,7 +2166,8 @@ int perform_attacks(struct char_data *ch, int mode)
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_EPIC_2_WEAPON)) {
       numAttacks++;
       if (mode == 0) {
-        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+        if (combat_dummy_checks(ch, FIGHTING(ch)))
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 EPIC_TWO_PNLY, TRUE);
       } else if (mode == 2) {
         send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",
@@ -2265,10 +2291,8 @@ void perform_violence(void)
     next_combat_list = ch->next_fighting;
     PARRY_LEFT(ch) = perform_attacks(ch, 1);
 
-    if (FIGHTING(ch) == NULL || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))) {
-      stop_fighting(ch);
+    if (combat_dummy_checks(ch, FIGHTING(ch)) <= 0)
       continue;
-    }
 
     if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
       send_to_char(ch, "You are paralyzed and unable to react!\r\n");
