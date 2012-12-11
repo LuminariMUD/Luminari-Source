@@ -444,7 +444,6 @@ do                                                              \
 #define ROOM_AFFECTED(loc, aff) (IS_SET(ROOM_AFFECTIONS(loc), (aff)))
 
 
-
 /** Zone flags.
  * @param rnum The real zone number. */
 #define ZONE_FLAGS(rnum)       (zone_table[(rnum)].zone_flags)

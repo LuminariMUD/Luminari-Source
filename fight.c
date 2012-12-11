@@ -192,6 +192,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch)
 
   if (AWAKE(ch))
     armorclass += GET_DEX_BONUS(ch);
+  if (AFF_FLAGGED(ch, AFF_PROTECT_GOOD) && IS_GOOD(attacker))  
+    armorclass += 2;
+  if (AFF_FLAGGED(ch, AFF_PROTECT_EVIL) && IS_EVIL(attacker))  
+    armorclass += 2;
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_TUMBLE)) //caps at 5
     armorclass += MIN(5, (int)(compute_ability(ch, ABILITY_TUMBLE)/5));
   if (AFF_FLAGGED(ch, AFF_EXPERTISE))
@@ -2283,6 +2287,12 @@ void perform_violence(void)
     if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
       send_to_char(ch, "You are paralyzed and unable to react!\r\n");
       act("$n seems to be paralyzed and unable to react!",
+              TRUE, ch, 0, 0, TO_ROOM);
+      continue;
+    }
+    if (AFF_FLAGGED(ch, AFF_NAUSEATED)) {
+      send_to_char(ch, "You are too nauseated to fight!\r\n");
+      act("$n seems to be too nauseated to fight!",
               TRUE, ch, 0, 0, TO_ROOM);
       continue;
     }

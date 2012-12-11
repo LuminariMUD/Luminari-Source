@@ -969,8 +969,10 @@ void game_loop(socket_t local_mother_desc)
 
 void heartbeat(int heart_pulse)
 {
-  struct char_data *i;
+  struct char_data *i, *caster = NULL;
   static int mins_since_crashsave = 0;
+  struct raff_node *raff, *next_raff;
+  struct room_data *caster_room = NULL;  
 
   event_process(); 
 
@@ -997,7 +999,25 @@ void heartbeat(int heart_pulse)
   }
 
   if (!(pulse % PULSE_LUMINARI)) {
-    // room-affections calls will be right here
+    // room-affections, loop through the world
+    for (raff = raff_list; raff; raff = next_raff) {
+      next_raff = raff->next;
+      
+      if (raff->spell == SPELL_STINKING_CLOUD) {
+        caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);      
+        if (!caster) {
+          script_log("comm.c: Cannot load the caster mob!");
+          return;
+        }
+        /* set the caster's name to that of the object, or the gods.... */
+        caster->player.short_descr = strdup("The gods");
+        caster->next_in_room = caster_room->people;
+        caster_room->people = caster;
+        caster->in_room = real_room(caster_room->number);
+        call_magic(caster, NULL, NULL, SPELL_STENCH, DG_SPELL_LEVEL, CAST_SPELL);
+        extract_char(caster);
+      }
+    }
 
     for (i = character_list; i; i = i->next) {
       // weapon spells call (in fight.c currently)

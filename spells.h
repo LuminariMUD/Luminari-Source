@@ -146,9 +146,30 @@
 #define SPELL_GRACE			104
 #define SPELL_RESIST_ENERGY		105
 #define SPELL_ENERGY_SPHERE		106
-
+#define SPELL_WATER_BREATHE        107
+#define SPELL_PHANTOM_STEED        108
+#define SPELL_STINKING_CLOUD       109
+#define SPELL_SUMMON_CREATURE_3    110
+#define SPELL_HALT_UNDEAD          111
+#define SPELL_HEROISM              112
+#define SPELL_VAMPIRIC_TOUCH       113
+#define SPELL_HOLD_PERSON          114
+#define SPELL_DEEP_SLUMBER         115
+#define SPELL_INVISIBILITY_SPHERE  116
+#define SPELL_DAYLIGHT             117
+#define SPELL_CLAIRVOYANCE         118
+#define SPELL_NON_DETECTION        119
+#define SPELL_HASTE                120
+#define SPELL_SLOW                 121
+#define SPELL_DISPEL_MAGIC         122
+#define SPELL_CIRCLE_A_EVIL        123
+#define SPELL_CIRCLE_A_GOOD        124
+#define SPELL_CUNNING              125
+#define SPELL_WISDOM               126
+#define SPELL_CHARISMA             127
+#define SPELL_STENCH               128
 /** Total Number of defined spells */
-#define NUM_SPELLS    107
+#define NUM_SPELLS    129
 
 /* Insert new spells here, up to MAX_SPELLS */
 #define MAX_SPELLS		    400
