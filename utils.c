@@ -907,6 +907,9 @@ int room_is_dark(room_rnum room)
   if (ROOM_AFFECTED(room, RAFF_DARKNESS))
     return (TRUE);
 
+  if (ROOM_AFFECTED(room, RAFF_LIGHT))
+    return (FALSE);
+
   if (world[room].light)
     return (FALSE);
 

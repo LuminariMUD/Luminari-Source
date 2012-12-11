@@ -101,6 +101,9 @@
 // Room affects
 #define RAFF_FOG	(1 << 0)
 #define RAFF_DARKNESS	(1 << 1)
+#define RAFF_LIGHT	(1 << 2)
+#define RAFF_STINK	(1 << 3)
+#define NUM_RAFF    4
 
 /* Zone info: Used in zone_data.zone_flags */
 #define ZONE_CLOSED       0  /**< Zone is closed - players cannot enter */
@@ -398,9 +401,10 @@
 #define AFF_GRAPPLED		34   // grappled
 #define AFF_TAMED		35   // tamed
 #define AFF_CLIMB		36   // affect that allows you to climb
+#define AFF_NAUSEATED	37   // nauseated
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS   37
+#define NUM_AFF_FLAGS   38
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/
@@ -1028,8 +1032,9 @@ struct raff_node {
   int      timer;       /* how many rounds this affection lasts */
   long     affection;   /* which affection does this room have */
   int      spell;       /* the spell number */
-
-  struct raff_node *next; /* link to the next node */
+  struct   char_data *ch;  // caster of this affection
+  
+  struct   raff_node *next; /* link to the next node */
 };
 
 /** The Room Structure. */

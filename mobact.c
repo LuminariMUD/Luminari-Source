@@ -533,7 +533,7 @@ void mobile_activity(void)
       continue;
 
     if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
-            char_has_mud_event(ch, eSTUNNED)) {
+        char_has_mud_event(ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED)) {
       send_to_char(ch, "You are unable to move!\r\n");
       continue;
     }

@@ -212,6 +212,8 @@ const char *room_bits[] = {
 const char *room_affections[] = {
   "Fogged",  
   "Darkened",
+  "Lighted",
+  "Stench",
   "\n"
 };
 
@@ -440,6 +442,7 @@ const char *affected_bits[] =
   "Grappled",
   "Tamed",
   "Climb",
+  "Nauseated",
   "\n"
 };
 
