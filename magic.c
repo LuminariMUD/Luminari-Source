@@ -34,7 +34,6 @@ static void perform_mag_groups(int level, struct char_data *ch,
 extern struct raff_node *raff_list;
 
 
-
 // Magic Resistance, ch is challenger, vict is resistor, modifier applys to vict
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier){
   int resist = GET_SPELL_RES(vict);
@@ -785,6 +784,20 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   switch (spellnum) {
 
+  case SPELL_STENCH:
+    if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
+      return;
+    }
+    if (GET_LEVEL(victim) >= 9) {
+      return;
+    }
+
+    SET_BIT_AR(af[0].bitvector, AFF_NAUSEATED);
+    af[0].duration = 3;
+    to_room = "$n becomes nauseated from the stinky fumes!";
+    to_vict = "You become nauseated from the stinky fumes!";
+    break;
+    
   case SPELL_SCARE:  //illusion
     if (mag_resistance(ch, victim, 0))
       return;
@@ -1492,7 +1505,8 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   if (!GROUP(ch))
     return;
 
-  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
+  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
+          NULL) {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
     perform_mag_groups(level, ch, tch, obj, spellnum, savetype);
@@ -1506,14 +1520,20 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum, int savetype)
 {
   struct char_data *tch, *tch_next;
-
+  int isEffect = FALSE;
+  
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch_next) {
     tch_next = tch->next_in_room;
     if (tch == ch)
       continue;
 
     switch (spellnum) {
+      case SPELL_STENCH:
+        isEffect = TRUE;
+        break;
     }
+    if (isEffect)
+      mag_affects(level, ch, tch, obj, spellnum, savetype);
   }
 }
 
@@ -2015,8 +2035,8 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
       if (((GET_OBJ_TYPE(obj) == ITEM_DRINKCON) ||
          (GET_OBJ_TYPE(obj) == ITEM_FOUNTAIN) ||
          (GET_OBJ_TYPE(obj) == ITEM_FOOD)) && !GET_OBJ_VAL(obj, 3)) {
-      GET_OBJ_VAL(obj, 3) = 1;
-      to_char = "$p steams briefly.";
+        GET_OBJ_VAL(obj, 3) = 1;
+        to_char = "$p steams briefly.";
       }
       break;
     case SPELL_REMOVE_CURSE:
@@ -2126,7 +2146,7 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       to_char = "Clouds of billowing stinking fumes fill the area.";
       to_room = "$n creates clouds of billowing stinking fumes that fill the area.";
       aff = RAFF_STINK;
-      rounds = 8;
+      rounds = 12;
       break;
       
     default:
