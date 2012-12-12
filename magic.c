@@ -2101,7 +2101,7 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
   level = MAX(MIN(level, LVL_IMPL), 1);
 
   switch (spellnum) {
-    case SPELL_WALL_OF_FOG:
+    case SPELL_WALL_OF_FOG: //illusion
       to_char = "You create a fog out of nowhere.";
       to_room = "$n creates a fog out of nowhere.";
       aff = RAFF_FOG;
@@ -2121,7 +2121,13 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       aff = RAFF_LIGHT;
       rounds = 15;
       break;
-    /* add more room spells here */
+
+    case SPELL_STINKING_CLOUD:  //conjuration
+      to_char = "Clouds of billowing stinking fumes fill the area.";
+      to_room = "$n creates clouds of billowing stinking fumes that fill the area.";
+      aff = RAFF_STINK;
+      rounds = 8;
+      break;
       
     default:
       sprintf(buf, "SYSERR: unknown spellnum %d passed to mag_unaffects", spellnum);
