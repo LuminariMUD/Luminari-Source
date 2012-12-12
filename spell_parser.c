@@ -1371,7 +1371,7 @@ void mag_assign_spells(void)
 	TAR_IGNORE, FALSE, MAG_SUMMONS,
 	NULL, 7, 7, CONJURATION);
   spello(SPELL_STINKING_CLOUD, "stinking cloud", 65, 50, 1, POS_FIGHTING,
-	TAR_IGNORE, TRUE, MAG_AFFECTS,
+	TAR_IGNORE, FALSE, MAG_ROOM,
 	"You watch as the noxious gasses fade away.", 4, 7,
 	CONJURATION);  
 			/* necromancy */

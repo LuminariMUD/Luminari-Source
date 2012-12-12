@@ -999,18 +999,20 @@ void heartbeat(int heart_pulse)
   }
 
   if (!(pulse % PULSE_LUMINARI)) {
-    // room-affections, loop through the world
+    // room-affections, loop through them
     for (raff = raff_list; raff; raff = next_raff) {
       next_raff = raff->next;
       
+      //stinking cloud
       if (raff->spell == SPELL_STINKING_CLOUD) {
         caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);      
+        caster_room = &world[raff->room];
         if (!caster) {
           script_log("comm.c: Cannot load the caster mob!");
           return;
         }
-        /* set the caster's name to that of the object, or the gods.... */
-        caster->player.short_descr = strdup("The gods");
+        /* set the caster's name */
+        caster->player.short_descr = strdup("The room");
         caster->next_in_room = caster_room->people;
         caster_room->people = caster;
         caster->in_room = real_room(caster_room->number);
