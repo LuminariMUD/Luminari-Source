@@ -1181,6 +1181,14 @@ void mag_assign_spells(void)
 
   // magical
 
+/* = =  cantrips  = = */
+  spello(SPELL_ACID_SPLASH, "acid splash", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+	NULL, 0, 1, EVOCATION);
+  spello(SPELL_RAY_OF_FROST, "ray of frost", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+	NULL, 0, 1, EVOCATION);
+  
 /* = =  1st circle  = = */
 			/* evocation */
   spello(SPELL_MAGIC_MISSILE, "magic missile", 30, 15, 1, POS_FIGHTING,

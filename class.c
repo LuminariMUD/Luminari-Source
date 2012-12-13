@@ -1104,6 +1104,10 @@ void init_spell_levels(void)
     }
   }
 
+  // magic user innate cantrips
+  spell_level(SPELL_ACID_SPLASH, CLASS_MAGIC_USER, 1);
+  spell_level(SPELL_RAY_OF_FROST, CLASS_MAGIC_USER, 1);
+  
   // magic user, increment spells by spell-level
   //1st circle
   spell_level(SPELL_MAGIC_MISSILE, CLASS_MAGIC_USER, 1);
