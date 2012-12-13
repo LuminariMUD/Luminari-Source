@@ -978,7 +978,12 @@ ACMD(do_innates)
     }
     /* other innates */
     if (CLASS_LEVEL(ch, CLASS_BERSERKER) >= 4)
-      send_to_char(ch, "barbarian shrug (level / 4 damage reduction)\r\n");    
+      send_to_char(ch, "barbarian shrug (level / 4 damage reduction)\r\n");
+    if (CLASS_LEVEL(ch, CLASS_MAGIC_USER)) {
+        send_to_char(ch, "Magic user innates:\r\n");
+        send_to_char(ch, "\tAcid Splash\r\n");
+        send_to_char(ch, "\tRay of Frost\r\n");
+    }
   }
 }
 
@@ -1008,7 +1013,7 @@ ACMD(do_affects)
   if (ch != vict)
       send_to_char(ch, "%s is affected by:\r\n", GET_NAME(vict));
   
-
+   // commmented this out, because it was being pushed off the line - Bakarus
   //send_to_char(ch, 
 	//"\tC---------------------------------------------------------\tn\r\n");
   send_to_char(ch, 
