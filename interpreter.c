@@ -587,25 +587,22 @@ void command_interpreter(struct char_data *ch, char *argument)
     int found = 0;
     send_to_char(ch, "Huh!?!\r\n");
 
-    for (cmd = 0; *cmd_info[cmd].command != '\n'; cmd++)
-    {
+    for (cmd = 0; *cmd_info[cmd].command != '\n'; cmd++) {
       if (*arg != *cmd_info[cmd].command || cmd_info[cmd].minimum_level > GET_LEVEL(ch))
         continue;
 
       /* Only apply levenshtein counts if the command is not a trigger command. */
       if ( (levenshtein_distance(arg, cmd_info[cmd].command) <= 2) &&
-           (cmd_info[cmd].minimum_level >= 0) )
-      {
-        if (!found)
-        {
+           (cmd_info[cmd].minimum_level >= 0) ) {
+        if (!found) {
           send_to_char(ch, "\r\nDid you mean:\r\n");
           found = 1;
         }
         send_to_char(ch, "  %s\r\n", cmd_info[cmd].command);
+        send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");        
       }
     }
-  }
-  else if (!IS_NPC(ch) && (AFF_FLAGGED(ch, AFF_STUN) || 
+  } else if (!IS_NPC(ch) && (AFF_FLAGGED(ch, AFF_STUN) || 
           AFF_FLAGGED(ch, AFF_PARALYZED) || char_has_mud_event(ch, eSTUNNED)))
     send_to_char(ch, "You try, but you are unable to move!\r\n");
   else if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_FROZEN) && GET_LEVEL(ch) < LVL_IMPL)
