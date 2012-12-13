@@ -868,7 +868,8 @@ ACMD(do_cast)
     return;
   }
 
-  if (!hasSpell(ch, spellnum) && !isEpicSpell(spellnum)) {
+  if (!hasSpell(ch, spellnum) && !isEpicSpell(spellnum)
+          && spellnum != SPELL_ACID_SPLASH && spellnum != SPELL_RAY_OF_FROST) {
     send_to_char(ch, "You do not seem to have that spell prepared... (help memorization)\r\n");
     return;
   }
