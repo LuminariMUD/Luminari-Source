@@ -375,7 +375,7 @@ ASPELL(spell_locate_object)
 }
 
 
-ASPELL(spell_dispel_magic)  // enchantment
+ASPELL(spell_dispel_magic)  // divination
 {
   int i, attempt = 0, challenge = 0;
 
