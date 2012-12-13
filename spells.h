@@ -168,8 +168,10 @@
 #define SPELL_WISDOM               126
 #define SPELL_CHARISMA             127
 #define SPELL_STENCH               128
+#define SPELL_ACID_SPLASH          129
+#define SPELL_RAY_OF_FROST         130
 /** Total Number of defined spells */
-#define NUM_SPELLS    129
+#define NUM_SPELLS    131
 
 /* Insert new spells here, up to MAX_SPELLS */
 #define MAX_SPELLS		    400
