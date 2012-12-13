@@ -354,6 +354,7 @@ const char *action_bits[] = {
   "Sentient",
   "!DEAD!",    /* You should never see this. */
   "Mountable",
+  "Immune-Deaf",
   "\n"
 };
 
@@ -443,6 +444,8 @@ const char *affected_bits[] =
   "Tamed",
   "Climb",
   "Nauseated",
+  "Non-Detection",
+  "Slowed",
   "\n"
 };
 

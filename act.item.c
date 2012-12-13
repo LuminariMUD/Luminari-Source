@@ -1326,8 +1326,6 @@ static int hands_needed(struct char_data *ch, struct obj_data *obj)
   //size check
   if (size == 1)  // two handed
     return 2;
-  if (size <= -2)  // two categories size too big or small not valid
-    return -1;
   if (size >= 2)
     return -1;
 

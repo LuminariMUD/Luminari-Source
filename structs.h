@@ -315,8 +315,9 @@
 #define MOB_SENTIENT       19
 #define MOB_NOTDEADYET     20   /**< (R) Mob being extracted */
 #define MOB_MOUNTABLE      21
-
-#define NUM_MOB_FLAGS      22
+#define MOB_NODEAF         22
+/**********************/
+#define NUM_MOB_FLAGS      23
 
 /* Preference flags: used by char_data.player_specials.pref */
 #define PRF_BRIEF         0   /**< Room descs won't normally be shown */
@@ -402,9 +403,11 @@
 #define AFF_TAMED		35   // tamed
 #define AFF_CLIMB		36   // affect that allows you to climb
 #define AFF_NAUSEATED	37   // nauseated
+#define AFF_NON_DETECTION	38
+#define AFF_SLOW		39
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS   38
+#define NUM_AFF_FLAGS   40
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/
@@ -779,7 +782,7 @@
 #define PULSE_VIOLENCE  ( 4 RL_SEC)
 
 // controls some new luminari calls from comm.c
-#define PULSE_LUMINARI  ( 4 RL_SEC)
+#define PULSE_LUMINARI  ( 5 RL_SEC)
 
 /** Controls when characters and houses (if implemented) will be autosaved.
  * @see CONFIG_AUTO_SAVE
@@ -807,7 +810,7 @@
 #define MAX_STRING_LENGTH     49152  /**< Max length of string, as defined */
 #define MAX_INPUT_LENGTH      512    /**< Max length per *line* of input */
 #define MAX_RAW_INPUT_LENGTH  (12 * 1024) /**< Max size of *raw* input */
-#define MAX_MESSAGES          60     /**< Max Different attack message types */
+#define MAX_MESSAGES          120     /**< Max Different attack message types */
 #define MAX_NAME_LENGTH       20     /**< Max PC/NPC name length */
 #define MAX_PWD_LENGTH        30     /**< Max PC password length */
 #define MAX_TITLE_LENGTH      80     /**< Max PC title length */
@@ -1300,6 +1303,7 @@ struct affected_type
   sh_int modifier;  /**< Added/subtracted to/from apropriate ability     */
   byte location;   /**< Tells which ability to change(APPLY_XXX). */
   int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
+  struct char_data *affector;
 
   struct affected_type *next; /**< The next affect in the list of affects. */
 };

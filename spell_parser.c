@@ -397,6 +397,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_WORD_OF_RECALL:  MANUAL_SPELL(spell_recall); break;
     case SPELL_TELEPORT:	MANUAL_SPELL(spell_teleport); break;
     case SPELL_ACID_ARROW:	MANUAL_SPELL(spell_acid_arrow); break;
+    case SPELL_CLAIRVOYANCE:	MANUAL_SPELL(spell_clairvoyance); break;
+    case SPELL_DISPEL_MAGIC:	MANUAL_SPELL(spell_dispel_magic); break;
     }
 
     if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
@@ -608,7 +610,7 @@ EVENTFUNC(event_casting)
 {
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
-  int x, failure = 0;
+  int x, failure = -1;
   char buf[MAX_INPUT_LENGTH];
 
   //initialize everything and dummy checks
@@ -632,16 +634,16 @@ EVENTFUNC(event_casting)
 	// concentration challenge
       failure += spell_info[spellnum].min_level[CASTING_CLASS(ch)] * 2;
       if (!IS_NPC(ch))
-        failure -= (GET_ABILITY(ch, ABILITY_CONCENTRATION) - 3) * 2;
+        failure -= CASTER_LEVEL(ch) + ((GET_ABILITY(ch, ABILITY_CONCENTRATION) - 3) * 2);
       else
-        failure -= (GET_LEVEL(ch) - 3) * 2;
+        failure -= (GET_LEVEL(ch)) * 2;
         //chance of failure calculated here, so far:  taunt, grappled
       if (char_has_mud_event(ch, eTAUNTED))
         failure += 10;
       if (AFF_FLAGGED(ch, AFF_GRAPPLED))
         failure += 10;
 
-      if (dice(1,100) < failure) {
+      if (dice(1,101) < failure) {
         send_to_char(ch, "You lost your concentration!\r\n");
         resetCastingData(ch);
         return 0;
@@ -982,7 +984,7 @@ ACMD(do_cast)
     }
   }
 
-  if (target && (tch == ch) && SINFO.violent) {
+  if (target && (tch == ch) && SINFO.violent && (spellnum != SPELL_DISPEL_MAGIC)) {
     send_to_char(ch, "You shouldn't cast that on yourself -- could be bad for your health!\r\n");
     return;
   }
@@ -1374,13 +1376,17 @@ void mag_assign_spells(void)
 	TAR_IGNORE, FALSE, MAG_ROOM,
 	"You watch as the noxious gasses fade away.", 4, 7,
 	CONJURATION);  
+  spello(SPELL_STENCH, "stench", 65, 50, 1, POS_DEAD,
+	TAR_IGNORE, FALSE, MAG_MASSES,
+	"Your nausea from the noxious gas passes.", 4, 7,
+	CONJURATION);  
 			/* necromancy */
   spello(SPELL_HALT_UNDEAD, "halt undead", 65, 50, 1, POS_FIGHTING,
-	TAR_IGNORE, TRUE, MAG_AFFECTS,
+	TAR_IGNORE, TRUE, MAG_AREAS,
 	"You feel the necromantic halt spell fade away.", 5, 7,
 	NECROMANCY);
   spello(SPELL_VAMPIRIC_TOUCH, "vampiric touch", 44, 29, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_POINTS,
 	NULL, 3, 7, NECROMANCY);
   spello(SPELL_HEROISM, "deathly heroism", 30, 15, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -1409,10 +1415,10 @@ void mag_assign_spells(void)
 	"The artificial daylight fades away.", 6, 7, ILLUSION);
 			/* divination */
   spello(SPELL_CLAIRVOYANCE, "clairvoyance", 65, 50, 1, POS_FIGHTING,
-	TAR_CHAR_WORLD | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
+	TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
 	NULL, 5, 7,
 	DIVINATION);
-  spello(SPELL_NON_DETECTION, "non detection", 37, 22, 1, POS_FIGHTING,
+  spello(SPELL_NON_DETECTION, "nondetection", 37, 22, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"Your non-detection spell wore off.", 6, 7, DIVINATION);
   spello(SPELL_DISPEL_MAGIC, "dispel magic", 65, 50, 1, POS_FIGHTING,

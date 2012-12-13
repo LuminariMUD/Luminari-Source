@@ -278,51 +278,123 @@ void roll_real_abils(struct char_data *ch)
 //   give newbie's some eq to start with
 void newbieEquipment(struct char_data *ch)
 {  
-  int objNums[] = { 82, 858, 858, 804, 804, 804, 804, 803, 857, -1 };
+  int objNums[] = { 82, 858, 858, 804, 804, 804, 804, 803, 857, 3118, -1 };
   int x;
+  struct obj_data *obj = NULL;
  
   send_to_char(ch, "\tMYou are given a set of starting equipment...\tn\r\n");
 
   // give everyone torch, rations, skin, backpack
-  for (x = 0; objNums[x] != -1; x++)
-    obj_to_char(read_object(objNums[x], VIRTUAL), ch);
+  for (x = 0; objNums[x] != -1; x++) {
+    obj = read_object(objNums[x], VIRTUAL);
+    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+    obj_to_char(obj, ch);
+  }
   
   switch (GET_CLASS(ch))
   {
     case CLASS_CLERIC:
       // holy symbol
-      obj_to_char(read_object(854, VIRTUAL), ch);       // leather sleeves
-      obj_to_char(read_object(855, VIRTUAL), ch);       // leather pants
-      obj_to_char(read_object(861, VIRTUAL), ch);       // heavy mace
-      obj_to_char(read_object(863, VIRTUAL), ch);       // small shield   
-      obj_to_char(read_object(807, VIRTUAL), ch);       // scale mail   
+
+      obj = read_object(854, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // leather sleeves
+
+      obj = read_object(855, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // leather leggings
+
+      obj = read_object(861, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // slender iron mace
+
+      obj = read_object(863, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // shield
+
+      obj = read_object(807, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // scale mail
+
       break;
+
     case CLASS_BERSERKER:
     case CLASS_WARRIOR:
-      obj_to_char(read_object(854, VIRTUAL), ch);       // leather sleeves
-      obj_to_char(read_object(855, VIRTUAL), ch);       // leather pants
-      if (GET_RACE(ch) == RACE_DWARF)
-        obj_to_char(read_object(806, VIRTUAL), ch);     // waraxe
-      else
-        obj_to_char(read_object(808, VIRTUAL), ch);     // bastard sword  
-      obj_to_char(read_object(863, VIRTUAL), ch);       // small shield 
-      obj_to_char(read_object(807, VIRTUAL), ch);       // scale mail
+
+      obj = read_object(854, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // leather sleeves
+
+      obj = read_object(855, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // leather pants
+
+      if (GET_RACE(ch) == RACE_DWARF) {
+        obj = read_object(806, VIRTUAL);
+        GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+        obj_to_char(obj, ch);       // dwarven waraxe
+      } else {
+        obj = read_object(808, VIRTUAL);
+        GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+        obj_to_char(obj, ch);       // bastard sword
+      }
+      obj = read_object(863, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // shield
+
+      obj = read_object(807, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // scale mail
+
       break;
+
     case CLASS_MONK:
-      obj_to_char(read_object(809, VIRTUAL), ch);       // cloth robes
+      obj = read_object(809, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // cloth robes
+
       break;
+
     case CLASS_THIEF:
-      obj_to_char(read_object(854, VIRTUAL), ch);       // leather sleeves
-      obj_to_char(read_object(855, VIRTUAL), ch);       // leather pants
-      obj_to_char(read_object(851, VIRTUAL), ch);       // studded leather
-      obj_to_char(read_object(852, VIRTUAL), ch);       // dagger
-      obj_to_char(read_object(852, VIRTUAL), ch);       // dagger
+      obj = read_object(854, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // leather sleeves
+
+      obj = read_object(855, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // leather pants
+
+      obj = read_object(851, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // studded leather
+
+      obj = read_object(852, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // dagger
+
+      obj = read_object(852, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // dagger
+
       break;
+
     case CLASS_MAGIC_USER:
-      obj_to_char(read_object(854, VIRTUAL), ch);       // leather sleeves
-      obj_to_char(read_object(855, VIRTUAL), ch);       // leather pants  
-      obj_to_char(read_object(852, VIRTUAL), ch);       // dagger
-      obj_to_char(read_object(809, VIRTUAL), ch);       // cloth robes
+      obj = read_object(854, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // leather sleeves
+
+      obj = read_object(855, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // leather pants
+
+      obj = read_object(852, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // dagger
+
+      obj = read_object(809, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);       // cloth robes
+
       break;
     default:
       log("Invalid class sent to newbieEquipment!");
