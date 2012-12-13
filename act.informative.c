@@ -1469,6 +1469,7 @@ ACMD(do_help)
         send_to_char(ch, "  %s\r\n", help_table[i].keywords);
       }
     }
+    send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");    
     return;
   }
   page_string(ch->desc, help_table[mid].entry, 0);

@@ -1018,7 +1018,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel righteous.";
     break;
 
-  case SPELL_HEROISM:
+  case SPELL_HEROISM:  //necromancy
     af[0].location = APPLY_HITROLL;
     af[0].modifier = 2;
     af[0].duration = 300;
@@ -1131,13 +1131,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel protection from scrying.";
     break;
 
-  case SPELL_HASTE:
-    if (affected_by_spell(victim, SPELL_HASTE)) {
-      affect_from_char(victim, SPELL_HASTE);
+  case SPELL_HASTE:  //abjuration
+    if (affected_by_spell(victim, SPELL_SLOW)) {
+      affect_from_char(victim, SPELL_SLOW);
+      send_to_char(ch, "You dispel the slow spell!\r\n");
+      send_to_char(victim, "Your slow spell is dispelled!\r\n");      
       return;
     }
 
-    af[0].duration = (CASTER_LEVEL(ch) * 12);
+    af[0].duration = (MAGIC_LEVEL(ch) * 12);
     SET_BIT_AR(af[0].bitvector, AFF_HASTE);
     to_room = "$n begins to speed up!";
     to_vict = "You begin to speed up!";
@@ -1321,8 +1323,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You fly above the ground.";
     break;
 
-  case SPELL_INFRAVISION:
-    af[0].duration = 300 + GET_LEVEL(ch) * 25;
+  case SPELL_INFRAVISION:  //divination
+    af[0].duration = 300 + CASTER_LEVEL(ch) * 25;
     SET_BIT_AR(af[0].bitvector, AFF_INFRAVISION);
     accum_duration = TRUE;
     to_vict = "Your eyes glow red.";
@@ -2255,7 +2257,7 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       to_char = "You create a fog out of nowhere.";
       to_room = "$n creates a fog out of nowhere.";
       aff = RAFF_FOG;
-      rounds = 15;
+      rounds = 8 + CASTER_LEVEL(ch);
       break;
 
     case SPELL_DARKNESS:  //divination
