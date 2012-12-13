@@ -121,7 +121,7 @@ ACMD(do_mount) {
   } else if (GET_SIZE(vict) > (GET_SIZE(ch)+2)) {
     send_to_char(ch, "The mount is too large for you!\r\n");
     return;
-  } else if (GET_ABILITY(ch, ABILITY_MOUNT) <= rand_number(1, GET_LEVEL(vict))) {
+  } else if ((GET_ABILITY(ch, ABILITY_MOUNT)+1) <= rand_number(1, GET_LEVEL(vict))) {
     act("You try to mount $N, but slip and fall off.", FALSE, ch, 0, vict, TO_CHAR);
     act("$n tries to mount you, but slips and falls off.", FALSE, ch, 0, vict, TO_VICT);
     act("$n tries to mount $N, but slips and falls off.", TRUE, ch, 0, vict, TO_NOTVICT);
@@ -872,6 +872,7 @@ ACMD(do_spells)
 
   send_to_char(ch, "\tDType 'practice' to see your skills\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
+  send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   send_to_char(ch, "\tDType 'spelllist <classname>' to see all your class spells\tn\r\n");
 }
 
@@ -904,6 +905,7 @@ ACMD(do_spelllist)
 
   send_to_char(ch, "\tDType 'practice' to see your skills\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
+  send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   send_to_char(ch, "\tDType 'spells <classname>' to see your currently known spells\tn\r\n");
 }
 
@@ -931,6 +933,11 @@ ACMD(do_boosts)
         "\tC*Reminder that you can only boost your stats in your guild.\tn\r\n"
         "\r\n",
 	GET_BOOSTS(ch));
+
+  send_to_char(ch, "\tDType 'practice' to see your skills\tn\r\n");
+  send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
+  send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
+  send_to_char(ch, "\tDType 'spells <classname>' to see your currently known spells\tn\r\n");
 }
 
 
@@ -949,6 +956,7 @@ ACMD(do_practice)
     list_skills(ch);
 
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
+  send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   if (IS_CASTER(ch)) {
     send_to_char(ch, "\tDType 'spells' to see your spells\tn\r\n");
   }
@@ -971,6 +979,7 @@ ACMD(do_train)
     list_abilities(ch);
 
   send_to_char(ch, "\tDType 'practice' to see your skills\tn\r\n");
+  send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   if (IS_CASTER(ch)) {
     send_to_char(ch, "\tDType 'spells' to see your spells\tn\r\n");
   }

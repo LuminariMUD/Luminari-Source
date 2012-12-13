@@ -483,6 +483,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 10;
     bonus = 0;
     break;
+  case SPELL_VAMPIRIC_TOUCH:  //necromancy
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_UNHOLY;
+    
+    num_dice = MIN(15, magic_level);
+    size_dice = 5;
+    bonus = 0;
+
+    break;
   case SPELL_FIREBALL:  //evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
@@ -881,7 +891,24 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_HOLD_PERSON:  //enchantment
     if (GET_LEVEL(victim) > 11) {
-      send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
+      send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
+      return;
+    }
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      return;
+    }
+
+    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+    af[0].duration = dice(3, 3);
+    to_room = "$n is overcome by a powerful hold spell!";
+    to_vict = "You are overcome by a powerful hold spell!";
+    break;
+
+  case SPELL_HALT_UNDEAD:  //necromancy
+    if (GET_LEVEL(victim) > 11) {
+      send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
       return;
     }
     if (mag_resistance(ch, victim, 0))
@@ -991,6 +1018,27 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel righteous.";
     break;
 
+  case SPELL_HEROISM:
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 2;
+    af[0].duration = 300;
+
+    af[1].location = APPLY_SAVING_WILL;
+    af[1].modifier = 2;
+    af[1].duration = 300;
+
+    af[2].location = APPLY_SAVING_FORT;
+    af[2].modifier = 2;
+    af[2].duration = 300;
+
+    af[3].location = APPLY_SAVING_REFL;
+    af[3].modifier = 2;
+    af[3].duration = 300;
+
+    to_room = "$n is now heroic!";
+    to_vict = "You feel heroic.";
+    break;
+
   case SPELL_FALSE_LIFE:  //necromancy
     af[1].location = APPLY_HIT;
     af[1].modifier = 30;
@@ -1028,12 +1076,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_DEAFNESS:  //necromancy
-    /*
     if (MOB_FLAGGED(victim, MOB_NODEAF)) {
       send_to_char(ch, "Your opponent doesn't seem deafable.\r\n");
       return;
     }
-    */
     if (mag_resistance(ch, victim, 0))
       return;
     if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
@@ -1042,7 +1088,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     af[0].duration = 50;
-    SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+    SET_BIT_AR(af[0].bitvector, AFF_DEAF);
 
     to_room = "$n seems to be deafened!";
     to_vict = "You have been deafened!";
@@ -1076,6 +1122,45 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You observe as your image becomes blurry.";
     SET_BIT_AR(af[0].bitvector, AFF_BLUR);
     accum_duration = FALSE;
+    break;
+
+  case SPELL_NON_DETECTION:
+    af[0].duration = 25 + (CASTER_LEVEL(ch) * 12);
+    SET_BIT_AR(af[0].bitvector, AFF_NON_DETECTION);
+    to_room = "$n briefly glows green!";
+    to_vict = "You feel protection from scrying.";
+    break;
+
+  case SPELL_HASTE:
+    if (affected_by_spell(victim, SPELL_HASTE)) {
+      affect_from_char(victim, SPELL_HASTE);
+      return;
+    }
+
+    af[0].duration = (CASTER_LEVEL(ch) * 12);
+    SET_BIT_AR(af[0].bitvector, AFF_HASTE);
+    to_room = "$n begins to speed up!";
+    to_vict = "You begin to speed up!";
+    break;
+
+  case SPELL_SLOW:
+    if (affected_by_spell(victim, SPELL_HASTE)) {
+      affect_from_char(victim, SPELL_HASTE);
+      send_to_char(ch, "You dispel the haste spell!\r\n");
+      send_to_char(victim, "Your haste spell is dispelled!\r\n");
+      return;
+    }
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_REFL, 0)) {
+      send_to_char(ch, "%s", CONFIG_NOEFFECT);
+      return;
+    }
+
+    af[0].duration = (CASTER_LEVEL(ch) * 12);
+    SET_BIT_AR(af[0].bitvector, AFF_SLOW);
+    to_room = "$n begins to slow down!";
+    to_vict = "You feel yourself slow down!";
     break;
 
   case SPELL_CURSE:
@@ -1394,6 +1479,33 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n's muscles begin to bulge!";
     break;
 
+  case SPELL_CHARISMA:  //transmutation
+    af[0].location = APPLY_CHA;
+    af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+    af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+    accum_duration = TRUE;
+    to_vict = "You feel more charismatic!";
+    to_room = "$n's charisma increases!";
+    break;
+
+  case SPELL_CUNNING:  //transmutation
+    af[0].location = APPLY_INT;
+    af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+    af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+    accum_duration = TRUE;
+    to_vict = "You feel more intelligent!";
+    to_room = "$n's intelligence increases!";
+    break;
+
+  case SPELL_WISDOM:  //transmutation
+    af[0].location = APPLY_WIS;
+    af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+    af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+    accum_duration = TRUE;
+    to_vict = "You feel more wise!";
+    to_room = "$n's wisdom increases!";
+    break;
+
   case SPELL_GRACE:  //transmutation
     af[0].location = APPLY_DEX;
     af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
@@ -1637,6 +1749,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 {
   struct char_data *tch, *next_tch;
   const char *to_char = NULL, *to_room = NULL;
+  int isEffect = FALSE;
 
   if (ch == NULL)
     return;
@@ -1662,7 +1775,12 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     break;
   case SPELL_HELLBALL:
     to_char = "\tMYou invoke a HELLBALL!\tn";
-    to_room ="\tM$n invokes a HELLBALL!\tn";
+    to_room ="$n\tM invokes a HELLBALL!\tn";
+    break;
+  case SPELL_HALT_UNDEAD:
+    isEffect = TRUE;
+    to_char = "\tDYou invoke a powerful halt spell!\tn";
+    to_room ="$n\tD invokes a powerful halt spell!\tn";
     break;
   }
 
@@ -1675,8 +1793,12 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
     next_tch = tch->next_in_room;
 
-    if (aoeOK(ch, tch, spellnum))
-      mag_damage(level, ch, tch, obj, spellnum, 1);
+    if (aoeOK(ch, tch, spellnum)) {
+      if (isEffect)
+        mag_affects(level, ch, tch, obj, spellnum, savetype);
+      else
+        mag_damage(level, ch, tch, obj, spellnum, 1);
+    }
   }
 }
 
@@ -1943,6 +2065,14 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
 
     to_room = "$n's wounds are \tWhealed\tn.";
     send_to_char(victim, "A \tWwarm feeling\tn floods your body.\r\n");
+    break;
+  case SPELL_VAMPIRIC_TOUCH:
+    victim = ch;
+    healing = dice(MIN(15, level), 4);
+
+    to_room = "$n's wounds are \tWhealed\tn by \tRvampiric\tD magic\tn.";
+    send_to_char(victim, "A \tWwarm feeling\tn floods your body as \tRvampiric "
+                         "\tDmagic\tn takes over.\r\n");
     break;
   }
 

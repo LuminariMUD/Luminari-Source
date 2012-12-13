@@ -192,10 +192,12 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch)
 
   if (AWAKE(ch))
     armorclass += GET_DEX_BONUS(ch);
-  if (AFF_FLAGGED(ch, AFF_PROTECT_GOOD) && IS_GOOD(attacker))  
-    armorclass += 2;
-  if (AFF_FLAGGED(ch, AFF_PROTECT_EVIL) && IS_EVIL(attacker))  
-    armorclass += 2;
+  if (attacker) {
+    if (AFF_FLAGGED(ch, AFF_PROTECT_GOOD) && IS_GOOD(attacker))  
+      armorclass += 2;
+    if (AFF_FLAGGED(ch, AFF_PROTECT_EVIL) && IS_EVIL(attacker))  
+      armorclass += 2;
+  }
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_TUMBLE)) //caps at 5
     armorclass += MIN(5, (int)(compute_ability(ch, ABILITY_TUMBLE)/5));
   if (AFF_FLAGGED(ch, AFF_EXPERTISE))
@@ -2188,10 +2190,10 @@ void autoDiagnose(struct char_data *ch)
       if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_COMPACT))
         send_to_char(ch, "\r\n");
       
-      send_to_char(ch, "%s|T:%s%s",
+      send_to_char(ch, "%sT-%s%s",
                 CCCYN(ch,C_NRM), CCNRM(ch,C_NRM),
                 (CAN_SEE(ch, tank)) ? GET_NAME(tank) : "someone");
-      send_to_char(ch, "%s-TC:",
+      send_to_char(ch, "%s: ",
                 CCCYN(ch,C_NRM));
         
       if (GET_MAX_HIT(tank) > 0)
@@ -2226,11 +2228,11 @@ void autoDiagnose(struct char_data *ch)
       }
     } // end tank
           
-    send_to_char(ch, "%s|E:%s%s",
+    send_to_char(ch, "%s     E-%s%s",
         CBCYN(ch,C_NRM), CCNRM(ch,C_NRM),
         (CAN_SEE(ch, char_fighting)) ? GET_NAME(char_fighting) : "someone");
         
-    send_to_char(ch, "%s-EC:",
+    send_to_char(ch, "%s: ",
         CBCYN(ch,C_NRM));
         
     if (GET_MAX_HIT(char_fighting) > 0)
@@ -2263,7 +2265,7 @@ void autoDiagnose(struct char_data *ch)
       send_to_char(ch, "bleeding, close to death");
       send_to_char(ch, CCNRM(ch, C_NRM));
     }
-    send_to_char(ch, "\tn|\r\n");
+    send_to_char(ch, "\tn\r\n");
     if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_COMPACT))
       send_to_char(ch, "\r\n");
   }

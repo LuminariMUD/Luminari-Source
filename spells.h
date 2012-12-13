@@ -468,6 +468,8 @@ ASPELL(spell_polymorph);
 ASPELL(spell_charm);
 ASPELL(spell_information);
 ASPELL(spell_identify);
+ASPELL(spell_dispel_magic);
+ASPELL(spell_clairvoyance);
 ASPELL(spell_enchant_weapon);
 ASPELL(spell_detect_poison);
 ASPELL(spell_acid_arrow);

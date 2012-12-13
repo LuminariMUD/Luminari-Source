@@ -397,6 +397,10 @@ int compute_ability(struct char_data *ch, int abilityNum)
 
   value = GET_ABILITY(ch, abilityNum);
 
+  //bonuses
+  if (affected_by_spell(ch, SPELL_HEROISM))
+    value += 2;
+
   switch (abilityNum) {
 	case ABILITY_TUMBLE:
 		value += GET_DEX_BONUS(ch);
@@ -715,6 +719,10 @@ SPECIAL(guild)
         "\r\n",
         GET_BOOSTS(ch));
     affect_total(ch);
+    send_to_char(ch, "\tDType 'practice' to see your skills\tn\r\n");
+    send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
+    send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
+    send_to_char(ch, "\tDType 'spells <classname>' to see your currently known spells\tn\r\n");
     return (TRUE); 
   }
 
@@ -827,7 +835,7 @@ SPECIAL(mayor)
     break;
 
   case 'E':
-    act("$n says 'I hereby declare Midgaard closed!'", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n says 'I hereby declare Midgen closed!'", FALSE, ch, 0, 0, TO_ROOM);
     break;
 
   case 'O':

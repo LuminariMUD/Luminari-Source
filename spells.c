@@ -25,6 +25,8 @@
 
 /* Special spells appear below. */
 
+
+
   /* The "return" of the event function is the time until the event is called
    * again. If we return 0, then the event is freed and removed from the list, but
    * any other numerical response will be the delay until the next call */
@@ -56,7 +58,7 @@ EVENTFUNC(event_acid_arrow)
   damage(ch, victim, dice(3, 6), SPELL_ACID_ARROW, DAM_ACID,
                 FALSE);
   
-  update_pos(ch);  
+  update_pos(victim);  
   return 0;
 }
 
@@ -87,7 +89,6 @@ ASPELL(spell_create_water)
 
   if (ch == NULL || obj == NULL)
     return;
-  /* level = MAX(MIN(level, LVL_IMPL), 1);	 - not used */
 
   if (GET_OBJ_TYPE(obj) == ITEM_DRINKCON) {
     if ((GET_OBJ_VAL(obj, 2) != LIQ_WATER) && (GET_OBJ_VAL(obj, 1) != 0)) {
@@ -109,6 +110,7 @@ ASPELL(spell_create_water)
   }
 }
 
+
 ASPELL(spell_recall)
 {
   if (victim == NULL || IS_NPC(victim))
@@ -128,6 +130,7 @@ ASPELL(spell_recall)
   greet_mtrigger(victim, -1);
   greet_memory_mtrigger(victim);
 }
+
 
 ASPELL(spell_teleport)
 {
@@ -158,6 +161,36 @@ ASPELL(spell_teleport)
   greet_memory_mtrigger(victim);
 }
 
+
+ASPELL(spell_clairvoyance)
+{
+  room_rnum location, original_loc;
+
+  if (ch == NULL || victim == NULL)
+    return;
+
+  if (AFF_FLAGGED(victim, AFF_NON_DETECTION)) {
+    send_to_char(ch, "Your victim is affected by non-detection.\r\n");
+    return;
+  }
+
+  if ((location = find_target_room(ch, GET_NAME(victim))) == NOWHERE) {
+    send_to_char(ch, "Your spell fails.\r\n");
+    return;
+  }
+
+  /* a location has been found. */
+  original_loc = IN_ROOM(ch);
+  char_from_room(ch); 
+  char_to_room(ch, location);
+  look_at_room(ch, 0);
+ 
+  /* check if the char is still there */
+  if (IN_ROOM(ch) == location) {
+    char_from_room(ch);
+    char_to_room(ch, original_loc);
+  }
+}
 
 #define SUMMON_FAIL "You failed.\r\n"
 ASPELL(spell_summon)
@@ -340,6 +373,47 @@ ASPELL(spell_locate_object)
     j--;
   }
 }
+
+
+ASPELL(spell_dispel_magic)  // enchantment
+{
+  int i, attempt = 0, challenge = 0;
+
+  if (ch == NULL)
+    return;
+  if (victim == NULL)
+    victim = ch;
+
+  if (victim == ch) {
+    send_to_char(ch, "You dispel all your own magic!\r\n");
+    act("$n dispels all $s magic!", FALSE, ch, 0, 0, TO_ROOM);
+    if (ch->affected || AFF_FLAGS(ch)) {
+      while (ch->affected) {
+        if (spell_info[ch->affected->spell].wear_off_msg)
+          send_to_char(ch, "%s\r\n",
+                       spell_info[ch->affected->spell].wear_off_msg);
+        affect_remove(ch, ch->affected);
+      }
+      for(i = 0; i < AF_ARRAY_MAX; i++)
+        AFF_FLAGS(ch)[i] = 0;
+    }
+    return;
+  } else {
+    attempt = dice(1, 20) + CASTER_LEVEL(ch);
+    challenge = dice(1, 20) + CASTER_LEVEL(victim);
+
+    if (attempt >= challenge) {  //successful
+      send_to_char(ch, "You successfuly dispel some magic!\r\n");
+      act("$n dispels some of $N's magic!", FALSE, ch, 0, 0, TO_ROOM);
+      if (ch->affected)
+        affect_remove(ch, ch->affected);
+    } else {  //failed
+      send_to_char(ch, "You fail your dispel magic attempt!\r\n");
+      act("$n fails to dispel some of $N's magic!", FALSE, ch, 0, 0, TO_ROOM);
+    }
+  }
+}
+
 
 ASPELL(spell_charm)  // enchantment
 {
