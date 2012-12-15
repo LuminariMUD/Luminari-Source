@@ -1785,7 +1785,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "Arcing bolts of lightning fly from the fingers of $n!";
     break;
   case SPELL_METEOR_SWARM:
-    to_char = "You call down meteors from the sky to pummel your foes!"
+    to_char = "You call down meteors from the sky to pummel your foes!";
     to_room ="$n invokes a swarm of meteors to rain from the sky!";
     break;
   case SPELL_HELLBALL:
