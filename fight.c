@@ -1923,7 +1923,6 @@ void hit(struct char_data *ch, struct char_data *victim,
     return;  }
   update_pos(ch);update_pos(victim);  //valid positions?
   if (GET_POS(ch) <= POS_DEAD || GET_POS(victim) <= POS_DEAD)    return;
-  fight_mtrigger(ch);  //fight trig?
 
   // added these two checks in case parry is successful on opening attack -zusuk
   if (ch->nr != real_mobile(DG_CASTER_PROXY) &&
@@ -1932,6 +1931,24 @@ void hit(struct char_data *ch, struct char_data *victim,
     stop_fighting(ch);
     return;
   }
+  fight_mtrigger(ch);  //fight trig
+
+  /***** redoing all checks, debug for script issues -zusuk ****/
+  if (!ch || !victim) return;  //ch and victim exist?
+  if (IN_ROOM(ch) != IN_ROOM(victim)) {  //same room?
+    if (FIGHTING(ch) && FIGHTING(ch) == victim)
+      stop_fighting(ch);
+    return;  }
+  update_pos(ch);update_pos(victim);  //valid positions?
+  if (GET_POS(ch) <= POS_DEAD || GET_POS(victim) <= POS_DEAD)    return;
+  if (ch->nr != real_mobile(DG_CASTER_PROXY) &&
+      ch != victim && ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    stop_fighting(ch);
+    return;
+  }
+  /***** end redoing all checks, debug for script issues -zusuk ****/
+
   if (victim != ch) {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))  // ch -> vict
       set_fighting(ch, victim);
