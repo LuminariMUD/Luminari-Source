@@ -1777,20 +1777,20 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_room ="$n gracefully gestures and the earth begins to shake violently!";
     break;
   case SPELL_ICE_STORM:
-    to_char = "You conjure a storm of ice!";
-    to_room ="$n conjures a storm of ice!";
+    to_char = "You conjure a storm of ice that blankets the area!";
+    to_room ="$n conjures a storm of ice, blanketing the area!";
     break;
   case SPELL_CHAIN_LIGHTNING:
-    to_char = "Bolts of lightning steams from your body!";
-    to_room = "Bolts of lightning stream from $n!";
+    to_char = "Arcing bolts of lightning flare from your fingertips!";
+    to_room = "Arcing bolts of lightning fly from the fingers of $n!";
     break;
   case SPELL_METEOR_SWARM:
-    to_char = "You invoke a swarm of meteors to fall from the sky!";
-    to_room ="$n invokes a swarm of meteors to fall from the sky!";
+    to_char = "You call down meteors from the sky to pummel your foes!"
+    to_room ="$n invokes a swarm of meteors to rain from the sky!";
     break;
   case SPELL_HELLBALL:
-    to_char = "\tMYou invoke a HELLBALL!\tn";
-    to_room ="$n\tM invokes a HELLBALL!\tn";
+    to_char = "\tMYou conjures a pure ball of Hellfire!\tn";
+    to_room ="$n\tM conjures a pure ball of Hellfire!\tn";
     break;
   case SPELL_HALT_UNDEAD:
     isEffect = TRUE;
