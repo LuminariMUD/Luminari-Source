@@ -599,9 +599,9 @@ void command_interpreter(struct char_data *ch, char *argument)
           found = 1;
         }
         send_to_char(ch, "  %s\r\n", cmd_info[cmd].command);
-        send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");        
       }
     }
+    send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");        
   } else if (!IS_NPC(ch) && (AFF_FLAGGED(ch, AFF_STUN) || 
           AFF_FLAGGED(ch, AFF_PARALYZED) || char_has_mud_event(ch, eSTUNNED)))
     send_to_char(ch, "You try, but you are unable to move!\r\n");
