@@ -2079,10 +2079,11 @@ int perform_attacks(struct char_data *ch, int mode)
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
         hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
             penalty, FALSE);
-      if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
+      if (FIGHTING(ch))
+        if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
-            penalty * 2, TRUE);
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+              penalty * 2, TRUE);
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
 	 compute_bab(ch, ch, 0) + penalty);
