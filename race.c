@@ -67,6 +67,7 @@ const char *race_abbrevs[] = {
         "\twH\tYElf\tn",
         "\twH\tROrc\tn",
         "\tmGnme\tn",
+        "\tGTr\tYlx\tn",
         "\n"
 };
 const char *pc_race_types[] = {
@@ -79,6 +80,7 @@ const char *pc_race_types[] = {
         "Half Elf",
         "Half Orc"
         "Gnome"
+        "Trelux"
         "\n"
 };
 const char *race_menu = 
@@ -134,6 +136,7 @@ int invalid_race(struct char_data *ch, struct obj_data *obj) {
       (OBJ_FLAGGED(obj, ITEM_ANTI_H_ORC)   && IS_H_ORC(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_GNOME)   && IS_GNOME(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_CRYSTAL_DWARF)   && IS_CRYSTAL_DWARF(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_TRELUX)   && IS_TRELUX(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_DWARF) && IS_DWARF(ch)))
         return 1;
   else

@@ -255,7 +255,9 @@ ACMD(do_backstab)
     return;
   }
 
-  if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2) && !GET_EQ(ch, WEAR_WIELD_2H)) {
+  if (GET_RACE(ch) == RACE_TRELUX)
+    ;
+  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2) && !GET_EQ(ch, WEAR_WIELD_2H)) {
     send_to_char(ch, "You need to wield a weapon to make it a success.\r\n");
     return;
   }
@@ -279,8 +281,8 @@ ACMD(do_backstab)
 
   int successful = 0;
 
-  if (GET_EQ(ch, WEAR_WIELD_1) &&
-	(GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_1), 3) == TYPE_PIERCE - TYPE_HIT)) {
+  if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_1) &&
+	(GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_1), 3) == TYPE_PIERCE - TYPE_HIT))) {
     if (AWAKE(vict) && (percent > prob)) {
       damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, FALSE);
     } else {

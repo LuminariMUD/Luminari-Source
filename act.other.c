@@ -242,6 +242,11 @@ int meet_class_reqs(struct char_data *ch, int class)
         return 1;
       else
         return 0;
+    case RACE_TRELUX:
+      if (class == i)  /* char class selection and current class match? */
+        return 1;
+      else
+        return 0;
     default:
       break;
   }
@@ -566,9 +571,9 @@ ACMD(do_lore)
 
   //level ch tch tobj
   // this is weak, we need to make this a real skill instead of calling spell_identify
- // call_magic(ch, tch, tobj, SPELL_IDENTIFY, GET_LEVEL(ch), CAST_SPELL);
+  // call_magic(ch, tch, tobj, SPELL_IDENTIFY, GET_LEVEL(ch), CAST_SPELL);
 
-int i, found;
+  int i, found;
   size_t len;
 
   if (tobj) {
@@ -673,6 +678,31 @@ int i, found;
 	GET_WIS(tch), GET_DEX(tch), GET_CON(tch), GET_CHA(tch));
   }
 }
+
+
+ACMD(do_land)
+{
+  if (affected_by_spell(ch, SPELL_FLY)) {
+    affect_from_char(ch, SPELL_FLY);
+    send_to_char(ch, "You land on the ground.\r\n");
+    act("$n lands on the ground.", TRUE, ch, 0, NULL, TO_ROOM);
+  } else {
+    send_to_char(ch, "You are not flying.\r\n");  
+  }
+}
+
+
+ACMD(do_fly)
+{
+  if (GET_RACE(ch) != RACE_TRELUX) {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+
+  call_magic(ch, ch, NULL, SPELL_FLY, GET_LEVEL(ch), CAST_SPELL);
+}
+
+
 ACMD(do_sneak)
 {
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {

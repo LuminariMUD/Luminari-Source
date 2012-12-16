@@ -195,6 +195,8 @@ ACMD(do_hit);
 ACMD(do_assist);
 ACMD(do_rage);
 ACMD(do_bash);
+ACMD(do_fly);
+ACMD(do_land);
 ACMD(do_frightful);
 ACMD(do_breathe);
 ACMD(do_tailsweep);

@@ -467,6 +467,10 @@ void init_class(struct char_data *ch, int class, int level)
   case CLASS_MAGIC_USER:
     SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
 
+  // magic user innate cantrips
+    SET_SKILL(ch, SPELL_ACID_SPLASH, 99);
+    SET_SKILL(ch, SPELL_RAY_OF_FROST, 99);
+
     //1st circle
     SET_SKILL(ch, SPELL_HORIZIKAULS_BOOM, 99);
     SET_SKILL(ch, SPELL_MAGIC_MISSILE, 99);
@@ -548,6 +552,7 @@ void init_class(struct char_data *ch, int class, int level)
     //4th circle
     SET_SKILL(ch, SPELL_INFRAVISION, 99); //shared
     SET_SKILL(ch, SPELL_STONESKIN, 99);
+    SET_SKILL(ch, SPELL_WIZARD_EYE, 99);
     SET_SKILL(ch, SPELL_POISON, 99);
 
     //5th circle
@@ -823,6 +828,13 @@ void do_start(struct char_data *ch)
       ch->real_abils.cha += 2;
       GET_MAX_HIT(ch) += 10;
       break;    
+    case RACE_TRELUX:
+      GET_SIZE(ch) = SIZE_SMALL;
+      ch->real_abils.str += 2;
+      ch->real_abils.dex += 8;
+      ch->real_abils.con += 4;
+      GET_MAX_HIT(ch) += 10;
+      break;    
     default:
       GET_SIZE(ch) = SIZE_MEDIUM;
       break;
@@ -990,6 +1002,9 @@ void advance_level(struct char_data *ch, int class)
     case RACE_CRYSTAL_DWARF:
       add_hp += 4;
       break;
+    case RACE_TRELUX:
+      add_hp += 4;
+      break;
     default:
       break;
   }
@@ -1105,8 +1120,8 @@ void init_spell_levels(void)
   }
 
   // magic user innate cantrips
-  spell_level(SPELL_ACID_SPLASH, CLASS_MAGIC_USER, 0);
-  spell_level(SPELL_RAY_OF_FROST, CLASS_MAGIC_USER, 0);
+  spell_level(SPELL_ACID_SPLASH, CLASS_MAGIC_USER, 1);
+  spell_level(SPELL_RAY_OF_FROST, CLASS_MAGIC_USER, 1);
   
   // magic user, increment spells by spell-level
   //1st circle
@@ -1189,9 +1204,10 @@ void init_spell_levels(void)
   spell_level(SPELL_CHARISMA, CLASS_MAGIC_USER, 5);
 
   //4th circle
+  spell_level(SPELL_WIZARD_EYE, CLASS_MAGIC_USER, 7);
   spell_level(SPELL_STONESKIN, CLASS_MAGIC_USER, 7);
   spell_level(SPELL_POISON, CLASS_MAGIC_USER, 7);  //shared
-  spell_level(SPELL_INFRAVISION, CLASS_MAGIC_USER, 5);  //shared
+  spell_level(SPELL_INFRAVISION, CLASS_MAGIC_USER, 7);  //shared
   
   //5th circle
   spell_level(SPELL_LOCATE_OBJECT, CLASS_MAGIC_USER, 9);
@@ -1385,7 +1401,10 @@ int level_exp(struct char_data *ch, int level)
       exp *= 2;
       break;
     case RACE_CRYSTAL_DWARF:
-      exp *= 90;
+      exp *= 50;
+      break;
+    case RACE_TRELUX:
+      exp *= 50;
       break;
     default:
       break;

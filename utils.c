@@ -886,6 +886,8 @@ bool char_has_ultra(struct char_data *ch)
     return TRUE;
   if (GET_RACE(ch) == RACE_H_ORC)
     return TRUE;
+  if (GET_RACE(ch) == RACE_TRELUX)
+    return TRUE;
 
   return FALSE;
 }
