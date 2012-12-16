@@ -1002,7 +1002,7 @@ ACMD(do_innates)
     }
     if (CLASS_LEVEL(ch, CLASS_MAGIC_USER)) {
       send_to_char(ch, "Magic-User Innates:\r\n");
-      send_to_char(ch, "\tbAcid Splash\tn\r\n");
+      send_to_char(ch, "\tGAcid Splash\tn\r\n");
       send_to_char(ch, "\tBRay of Frost\tn\r\n");
     }
   }
