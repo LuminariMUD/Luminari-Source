@@ -1125,7 +1125,7 @@ void unused_spell(int spl)
 
  /* leave these here for my usage -zusuk */
 			/* evocation */
-               /* conjuration */
+                        /* conjuration */
 			/* necromancy */
 			/* enchantment */
 			/* illusion */
@@ -1185,10 +1185,10 @@ void mag_assign_spells(void)
   // magical
 
 /* = =  cantrips  = = */
-  spello(SPELL_ACID_SPLASH, "acid splash", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_ACID_SPLASH, "acid splash", 0, 0, 0, POS_SITTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 0, 1, EVOCATION);
-  spello(SPELL_RAY_OF_FROST, "ray of frost", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_RAY_OF_FROST, "ray of frost", 0, 0, 0, POS_SITTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 0, 1, EVOCATION);
   
