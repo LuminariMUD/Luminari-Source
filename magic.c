@@ -585,17 +585,17 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_ACID_SPLASH:
     save = SAVING_REFL;
-    num_dice = 1;
+    num_dice = 2;
     size_dice = 3;
     element = DAM_ACID;
     break;
   
-      case SPELL_RAY_OF_FROST:
-          save = SAVING_REFL;
-          num_dice = 1;
-          size_dice = 3;
-          element = DAM_COLD;
-          break;
+  case SPELL_RAY_OF_FROST:
+     save = SAVING_REFL;
+     num_dice = 2;
+     size_dice = 3;
+     element = DAM_COLD;
+     break;
         
     // divine
   case SPELL_CAUSE_LIGHT_WOUNDS:
