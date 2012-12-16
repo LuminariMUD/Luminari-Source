@@ -1355,6 +1355,8 @@ void reset_acraft(struct char_data *ch);
         (GET_RACE(ch) == RACE_TROLL))
 #define IS_CRYSTAL_DWARF(ch)            (!IS_NPC(ch) && \
         (GET_RACE(ch) == RACE_CRYSTAL_DWARF))
+#define IS_TRELUX(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_TRELUX))
 #define IS_HALFLING(ch)            (!IS_NPC(ch) && \
         (GET_RACE(ch) == RACE_HALFLING))
 #define IS_H_ELF(ch)            (!IS_NPC(ch) && \

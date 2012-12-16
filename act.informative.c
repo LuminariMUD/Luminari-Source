@@ -863,7 +863,8 @@ ACMD(do_innates)
 {
   int race = -1;
 
-  send_to_char(ch, "\tmAbility\tn Innates:\r\n");
+  send_to_char(ch, "\tmAbility\tn Innates:\r\n\r\n");
+  send_to_char(ch, "\tMRacial:\tn\r\n");
   if (IS_NPC(ch) || IS_MORPHED(ch)) {
     if (IS_MORPHED(ch))
       race = IS_MORPHED(ch);
@@ -895,7 +896,7 @@ ACMD(do_innates)
         send_to_char(ch, "basic weapon proficiency (free skill)\r\n");
         send_to_char(ch, "sleep enchantment immunity\r\n");
         send_to_char(ch, "infravision\r\n");
-        send_to_char(ch, "keen senses (+2 listen/spot ability)");
+        send_to_char(ch, "keen senses (+2 listen/spot ability)\r\n");
         send_to_char(ch, "resistance to enchantments (+2 save bonus)\r\n");
         break;
       case RACE_DWARF:
@@ -940,6 +941,22 @@ ACMD(do_innates)
         send_to_char(ch, "quick learner (+1 training per level)\r\n");
         send_to_char(ch, "well trained (+1 practice session, 1st level)\r\n");
         break;
+      case RACE_TRELUX:
+        send_to_char(ch, "vital (start with +10 hps bonus)\r\n");
+        send_to_char(ch, "hardy (+4 hps bonus per level)\r\n");
+        send_to_char(ch, "trelux constitution (+4 con)\r\n");
+        send_to_char(ch, "trelux strength (+2 str)\r\n");
+        send_to_char(ch, "trelux dexterity (+8 dex)\r\n");
+        send_to_char(ch, "trelux small size\r\n");
+        send_to_char(ch, "ultravision\r\n");
+        send_to_char(ch, "\tRvulnerable cold (20%%)\tn\r\n");
+        send_to_char(ch, "resist everything else (20%%)\r\n");
+        send_to_char(ch, "leap (help LEAP)\r\n");
+        send_to_char(ch, "fly (help TRELUX-FLY)\r\n");
+        send_to_char(ch, "\tRtrelux eq (help TRELUX-EQ)\tn\r\n");
+        send_to_char(ch, "trelux exoskeleton (help TRELUX-EXOSKELETON)\r\n");
+        send_to_char(ch, "trelux pincers (help TRELUX-PINCERS)\r\n");
+        break;
       case RACE_CRYSTAL_DWARF:
         send_to_char(ch, "vital (start with +10 hps bonus)\r\n");
         send_to_char(ch, "hardy (+4 hps bonus per level)\r\n");
@@ -976,13 +993,17 @@ ACMD(do_innates)
         send_to_char(ch, "No Racial (yet)\r\n");
         break;
     }
+
     /* other innates */
-    if (CLASS_LEVEL(ch, CLASS_BERSERKER) >= 4)
+    send_to_char(ch, "\r\n");
+    if (CLASS_LEVEL(ch, CLASS_BERSERKER) >= 4) {
+      send_to_char(ch, "Berserker Innates:\r\n");
       send_to_char(ch, "barbarian shrug (level / 4 damage reduction)\r\n");
+    }
     if (CLASS_LEVEL(ch, CLASS_MAGIC_USER)) {
-        send_to_char(ch, "Magic user innates:\r\n");
-        send_to_char(ch, "\tBAcid Splash\r\n");
-        send_to_char(ch, "\tBRay of Frost\r\n");
+      send_to_char(ch, "Magic-User Innates:\r\n");
+      send_to_char(ch, "\tbAcid Splash\tn\r\n");
+      send_to_char(ch, "\tBRay of Frost\tn\r\n");
     }
   }
 }
@@ -1091,8 +1112,6 @@ ACMD(do_affects)
     send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
 
   //location of our DAM_x  damtypes
-  if (!IS_IMMORTAL(ch))
-      return;
   send_to_char(ch, 
 	"\tC-------- \tWDamage Type Resistance / Vulnerability\tC ---------\tn\r\n");
   for (i = 0; i < NUM_DAM_TYPES-1; i++) {

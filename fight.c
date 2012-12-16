@@ -238,6 +238,20 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch)
     if (CLASS_LEVEL(ch, CLASS_MONK) >= 30)
       armorclass++;
   }
+  if (GET_RACE(ch) == RACE_TRELUX) {
+    if (GET_LEVEL(ch) >= 5)
+      armorclass++;
+    if (GET_LEVEL(ch) >= 10)
+      armorclass++;
+    if (GET_LEVEL(ch) >= 15)
+      armorclass++;
+    if (GET_LEVEL(ch) >= 20)
+      armorclass++;
+    if (GET_LEVEL(ch) >= 25)
+      armorclass++;
+    if (GET_LEVEL(ch) >= 30)
+      armorclass++;
+  }
   switch (GET_POS(ch)) {  //position penalty
     case POS_SITTING:
     case POS_RESTING:
@@ -956,6 +970,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
 
 /*  message for doing damage with a spell or skill. Also used for weapon
  *  damage on miss and death blows. */
+#define TRELUX_CLAWS 800
 int skill_message(int dam, struct char_data *ch, struct char_data *vict,
 		      int attacktype, int dualing)
 {
@@ -968,6 +983,8 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
     weap = GET_EQ(ch, WEAR_WIELD_2H);
   else if (dualing)
     weap = GET_EQ(ch, WEAR_WIELD_2);
+  else if (GET_RACE(ch) == RACE_TRELUX)
+    weap = read_object(TRELUX_CLAWS, VIRTUAL);
 
   for (i = 0; i < MAX_MESSAGES; i++) {
     if (fight_messages[i].a_type == attacktype) {
@@ -1102,64 +1119,102 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
 
   switch (dam_type) {
     case DAM_FIRE:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       if (GET_RACE(ch) == RACE_TROLL)
         damtype_reduction += -50;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
     case DAM_COLD:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += -20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
     case DAM_AIR:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
     case DAM_EARTH:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
     case DAM_ACID:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
     case DAM_HOLY:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       break;
     case DAM_ELECTRIC:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
     case DAM_UNHOLY:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       break;
     case DAM_SLICE:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       break;
     case DAM_PUNCTURE:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
       break;
     case DAM_FORCE:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       break;
     case DAM_SOUND:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       break;
     case DAM_POISON:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
       break;
     case DAM_DISEASE:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
       break;
     case DAM_NEGATIVE:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       break;
     case DAM_ILLUSION:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       break;
     case DAM_MENTAL:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       break;
     case DAM_LIGHT:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       break;
     case DAM_ENERGY:
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
@@ -1219,10 +1274,19 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 	attacktype != SKILL_BASH && attacktype != SKILL_TRIP) {
  
     int concealment = compute_concealment(victim);
-        if (dice(1, 100) <= compute_concealment(victim)) {
+    if (dice(1, 100) <= compute_concealment(victim)) {
       send_to_char(victim, "\tW<conceal:%d>\tn", concealment);
       send_to_char(ch, "\tR<oconceal:%d>\tn", concealment);
       return 0;
+    }
+
+    if (GET_RACE(victim) == RACE_TRELUX && !rand_number(0, 4)) {
+      send_to_char(victim, "\tWYou leap way avoiding the attack!\tn\r\n");
+      send_to_char(ch, "\tRYou fail to cause %s any harm as he leaps away!\tn\r\n",
+	GET_NAME(victim));
+      act("$n fails to harm $N as $S leaps away!", FALSE, ch, 0, victim,
+	TO_NOTVICT);
+      return -1;
     }
 
     /* mirror image gives (1 / (# of image + 1)) chance of hitting */
@@ -1634,17 +1698,24 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 		!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_HOLD_2) &&
 		!GET_EQ(ch, WEAR_WIELD_2) && !GET_EQ(ch, WEAR_SHIELD) &&
 		!GET_EQ(ch, WEAR_WIELD_2H)
-	) {
-        if (monkLevel < 4) {	diceOne = 1;	diceTwo = 6;	}
-        else if (monkLevel < 8) {	diceOne = 1;	diceTwo = 8;	}
+      ) {
+        if (monkLevel < 4)       {	diceOne = 1;	diceTwo = 6;	}
+        else if (monkLevel < 8)  {	diceOne = 1;	diceTwo = 8;	}
         else if (monkLevel < 12) {	diceOne = 1;	diceTwo = 10;	}
         else if (monkLevel < 16) {	diceOne = 2;	diceTwo = 6;	}
         else if (monkLevel < 20) {	diceOne = 2;	diceTwo = 8;	}
         else if (monkLevel < 25) {	diceOne = 4;	diceTwo = 5;	}
-        else {				diceOne = 6;	diceTwo = 4;	}
+        else                     {	diceOne = 6;	diceTwo = 4;	}
+        if (GET_RACE(ch) == RACE_TRELUX)
+          diceOne++;
       } else { // non-monk bare-hand damage
-        diceOne = 1;
-        diceTwo = 2;
+        if (GET_RACE(ch) == RACE_TRELUX) {
+          diceOne = 2;
+          diceTwo = 6;
+        } else {
+          diceOne = 1;
+          diceTwo = 2;
+        }
       }
     }
   }
@@ -1855,54 +1926,52 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
         }
       }
     }
-
   }
-
 }
 
 
 void idle_weapon_spells(struct char_data *ch)
 {
-      int random = 0, j = 0;
-      struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
-      struct obj_data *offWield = GET_EQ(ch, WEAR_WIELD_2);
+  int random = 0, j = 0;
+  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
+  struct obj_data *offWield = GET_EQ(ch, WEAR_WIELD_2);
                         
-      if (GET_EQ(ch, WEAR_WIELD_2H))
-        wielded = GET_EQ(ch, WEAR_WIELD_2H);
+  if (GET_EQ(ch, WEAR_WIELD_2H))
+    wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
-      if (wielded && HAS_SPELLS(wielded)) {
-        for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
-          if (!GET_WEAPON_SPELL_AGG(wielded, j) &&
+  if (wielded && HAS_SPELLS(wielded)) {
+    for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
+      if (!GET_WEAPON_SPELL_AGG(wielded, j) &&
                   GET_WEAPON_SPELL(wielded, j)) {
-            random = rand_number(1,100);
-            if(GET_WEAPON_SPELL_PCT(wielded, j) >= random) {
-              act("$p leaps to action.",
+        random = rand_number(1,100);
+        if(GET_WEAPON_SPELL_PCT(wielded, j) >= random) {
+          act("$p leaps to action.",
                         TRUE, ch, wielded, 0, TO_CHAR);
-              act("$p leaps to action.",
+          act("$p leaps to action.",
                         TRUE, ch, wielded, 0, TO_ROOM);
-              call_magic(ch, ch, NULL, GET_WEAPON_SPELL(wielded, j),
+          call_magic(ch, ch, NULL, GET_WEAPON_SPELL(wielded, j),
                         GET_WEAPON_SPELL_LVL(wielded, j), CAST_WAND);
-            }
-          }
         }
       }
+    }
+  }
 
-      if (offWield && HAS_SPELLS(offWield)) {
-        for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
-          if (!GET_WEAPON_SPELL_AGG(offWield, j) &&
+  if (offWield && HAS_SPELLS(offWield)) {
+    for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
+      if (!GET_WEAPON_SPELL_AGG(offWield, j) &&
                   GET_WEAPON_SPELL(offWield, j)) {
-            random = rand_number(1,100);
-            if(GET_WEAPON_SPELL_PCT(offWield, j) >= random) {
-              act("$p leaps to action.",
+        random = rand_number(1,100);
+        if(GET_WEAPON_SPELL_PCT(offWield, j) >= random) {
+          act("$p leaps to action.",
                         TRUE, ch, offWield, 0, TO_CHAR);
-              act("$p leaps to action.",
+          act("$p leaps to action.",
                         TRUE, ch, offWield, 0, TO_ROOM);
-              call_magic(ch, ch, NULL, GET_WEAPON_SPELL(offWield, j),
+          call_magic(ch, ch, NULL, GET_WEAPON_SPELL(offWield, j),
                         GET_WEAPON_SPELL_LVL(offWield, j), CAST_WAND);
-            }
-          }
         }
       }
+    }
+  }
 }
 
 
@@ -2037,12 +2106,18 @@ void hit(struct char_data *ch, struct char_data *victim,
     if (type == SKILL_BACKSTAB)
       damage(ch, victim, dam * backstab_mult(GET_LEVEL(ch)),
 		SKILL_BACKSTAB, dam_type, offhand);
+    else if (GET_RACE(ch) == RACE_TRELUX)
+      damage(ch, victim, dam, TYPE_CLAW, dam_type, offhand);
     else
       damage(ch, victim, dam, w_type, dam_type, offhand);
 
     if (ch && victim)
       weapon_spells(ch, victim, wielded);
 
+    if (GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
+         && !rand_number(0,5)) {
+      call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_SPELL);
+    }
   }
 
   hitprcnt_mtrigger(victim);  //hitprcnt trigger

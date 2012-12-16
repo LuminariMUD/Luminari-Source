@@ -391,6 +391,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_DETECT_POISON:	MANUAL_SPELL(spell_detect_poison); break;
     case SPELL_ENCHANT_WEAPON:  MANUAL_SPELL(spell_enchant_weapon); break;
     case SPELL_IDENTIFY:	MANUAL_SPELL(spell_identify); break;
+    case SPELL_WIZARD_EYE:	MANUAL_SPELL(spell_wizard_eye); break;
     case SPELL_LOCATE_OBJECT:   MANUAL_SPELL(spell_locate_object); break;
     case SPELL_POLYMORPH:	MANUAL_SPELL(spell_polymorph); break;
     case SPELL_SUMMON:		MANUAL_SPELL(spell_summon); break;
@@ -762,7 +763,8 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     clevel = IS_DRUID(ch);
   }
 
-  if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
+  if (!isEpicSpell(spellnum) && !IS_NPC(ch) &&
+      spellnum != SPELL_ACID_SPLASH && spellnum != SPELL_RAY_OF_FROST) {
     class = forgetSpell(ch, spellnum, -1);
     if (class == -1) {
       send_to_char(ch, "ERR:  Report BUG98237 to an IMM!\r\n");
@@ -1463,8 +1465,11 @@ void mag_assign_spells(void)
 
   
   // 4th circle
+  spello(SPELL_WIZARD_EYE, "wizard eye", 65, 50, 1, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_MANUAL,
+	NULL, 6, 8, NOSCHOOL);
 			/* evocation */
-               /* conjuration */
+                        /* conjuration */
 			/* necromancy */
 			/* enchantment */
 			/* illusion */

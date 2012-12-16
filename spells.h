@@ -170,8 +170,9 @@
 #define SPELL_STENCH               128
 #define SPELL_ACID_SPLASH          129
 #define SPELL_RAY_OF_FROST         130
+#define SPELL_WIZARD_EYE           131
 /** Total Number of defined spells */
-#define NUM_SPELLS    131
+#define NUM_SPELLS    132
 
 /* Insert new spells here, up to MAX_SPELLS */
 #define MAX_SPELLS		    400
@@ -470,6 +471,7 @@ ASPELL(spell_polymorph);
 ASPELL(spell_charm);
 ASPELL(spell_information);
 ASPELL(spell_identify);
+ASPELL(spell_wizard_eye);
 ASPELL(spell_dispel_magic);
 ASPELL(spell_clairvoyance);
 ASPELL(spell_enchant_weapon);

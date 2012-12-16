@@ -235,8 +235,9 @@
 #define RACE_H_ELF         6  // half elf
 #define RACE_H_ORC         7  // half orc
 #define RACE_GNOME         8  // gnome
+#define RACE_TRELUX        9  // trelux (epic)
 /* Total Number of available PC Races*/
-#define NUM_RACES          9
+#define NUM_RACES          10
 
 
 // NPC races, sub-race abbreviations described in comments in first instance
@@ -627,9 +628,10 @@
 #define ITEM_ANTI_H_ELF           27   /* Not usable by half elf*/
 #define ITEM_ANTI_H_ORC           28   /* Not usable by half orc*/
 #define ITEM_ANTI_GNOME           29   /* Not usable by gnome */
-#define ITEM_ANTI_BERSERKER       30   /* Not usable by gnome */
+#define ITEM_ANTI_BERSERKER       30   /* Not usable by berserker */
+#define ITEM_ANTI_TRELUX          31   /* Not usable by trelux */
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            31
+#define NUM_ITEM_FLAGS            32
 
 
 /* Modifier constants used with obj affects ('A' fields) */

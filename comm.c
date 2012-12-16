@@ -1160,9 +1160,11 @@ static char *make_prompt(struct descriptor_data *d)
   static char prompt[MAX_PROMPT_LENGTH];
   int door, slen = 0;
   struct char_data *ch = d->character;
+  int count;
+  size_t len = 0;
+  *prompt = '\0';
 
   /* Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h) */
-
   if (d->showstr_count)
     snprintf(prompt, sizeof(prompt),
       "[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (%d/%d) ]",
@@ -1170,10 +1172,6 @@ static char *make_prompt(struct descriptor_data *d)
   else if (d->str)
     strcpy(prompt, "] ");	/* strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3') */
   else if (STATE(d) == CON_PLAYING && !IS_NPC(d->character)) {
-    int count;
-    size_t len = 0;
-
-    *prompt = '\0';
 
     if (GET_INVIS_LEV(d->character) && len < sizeof(prompt)) {
       count = snprintf(prompt + len, sizeof(prompt) - len, "i%d ", GET_INVIS_LEV(d->character));
@@ -1294,7 +1292,6 @@ static char *make_prompt(struct descriptor_data *d)
       }      
     }
 
-
     if (PRF_FLAGGED(d->character, PRF_BUILDWALK) && len < sizeof(prompt)) {
       count = snprintf(prompt + len, sizeof(prompt) - len, "BUILDWALKING ");
       if (count >= 0)
@@ -1307,19 +1304,17 @@ static char *make_prompt(struct descriptor_data *d)
         len += count;
     }
 
-     if (GET_LAST_NEWS(d->character) < newsmod)
-     {
-       count = snprintf(prompt + len, sizeof(prompt) - len, "(news) ");
-       if (count >= 0)
-         len += count;
-     }
+    if (GET_LAST_NEWS(d->character) < newsmod) {
+      count = snprintf(prompt + len, sizeof(prompt) - len, "(news) ");
+      if (count >= 0)
+        len += count;
+    }
 
-     if (GET_LAST_MOTD(d->character) < motdmod)
-     {
-       count = snprintf(prompt + len, sizeof(prompt) - len, "(motd) ");
-       if (count >= 0)
-         len += count;
-     }
+    if (GET_LAST_MOTD(d->character) < motdmod) {
+      count = snprintf(prompt + len, sizeof(prompt) - len, "(motd) ");
+      if (count >= 0)
+        len += count;
+    }
 
     if ((len < sizeof(prompt)) && !IS_NPC(d->character) &&
           !PRF_FLAGGED(d->character, PRF_COMPACT))
@@ -1329,9 +1324,40 @@ static char *make_prompt(struct descriptor_data *d)
       sprintf(prompt + strlen(prompt), "%s> %s",
 	         CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
 
-  } else if (STATE(d) == CON_PLAYING && IS_NPC(d->character))
-    snprintf(prompt, sizeof(prompt), "%s> \r\n", GET_NAME(d->character));
-  else
+  } else if (STATE(d) == CON_PLAYING && IS_NPC(d->character)) {
+    count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
+	               CCYEL(d->character,C_NRM));
+    if (count >= 0)
+      len += count;
+    for (door = 0; door < DIR_COUNT; door++) {
+      if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
+        continue;
+      if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) &&
+                  !CONFIG_DISP_CLOSED_DOORS)
+        continue;
+      if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) &&
+              !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+        continue;
+      if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%s(%s)%s",
+                    EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? 
+                    CCWHT(ch, C_NRM) : CCRED(ch, C_NRM), 
+                    autoexits[door], CCCYN(ch, C_NRM));
+      else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s%s",
+                    CCWHT(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
+      else
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%s",
+                    autoexits[door]);
+      slen++;
+      if (count >= 0)
+        len += count;
+    }
+    count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s >> ",
+                slen ? ">> " : "None! >> ", CCNRM(ch, C_NRM));
+    if (count >= 0)
+      len += count;
+  } else
     *prompt = '\0';
 
   return (prompt);

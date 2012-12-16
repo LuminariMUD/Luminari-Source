@@ -1383,11 +1383,18 @@ static void perform_wear(struct char_data *ch,
     return;
   }
 
+  if (GET_RACE(ch) == RACE_TRELUX && (where == WEAR_FINGER_R ||
+      where == WEAR_FINGER_L || where == WEAR_HEAD ||
+      where == WEAR_LEGS || where == WEAR_FEET || where == WEAR_HANDS)) {
+    send_to_char(ch, "Your anatomy does not allow you to wear that...\r\n");
+    return;
+  }
+
   // size for gear, not in-hands
   if (  where != WEAR_WIELD_1 && where != WEAR_WIELD_2 &&
 	where != WEAR_HOLD_1 && where != WEAR_HOLD_2 &&
 	where != WEAR_SHIELD && where != WEAR_WIELD_2H &&
-	where != WEAR_HOLD_2H
+	where != WEAR_HOLD_2H && where != WEAR_LIGHT
 	) {
     if (GET_OBJ_SIZE(obj) < GET_SIZE(ch)) {
       send_to_char(ch, "This item is too small for you (HELP RESIZE).\r\n");
@@ -1410,6 +1417,10 @@ static void perform_wear(struct char_data *ch,
 	where == WEAR_SHIELD || where == WEAR_WIELD_2H ||
 	where == WEAR_HOLD_2H
 	) {
+    if (GET_RACE(ch) == RACE_TRELUX) {
+      send_to_char(ch, "You have no hands!\r\n");
+      return;
+    }
 
     if (handsNeeded == 2 && where == WEAR_WIELD_1)
       where = WEAR_WIELD_2H;

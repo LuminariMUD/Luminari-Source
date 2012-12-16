@@ -486,6 +486,28 @@ ASPELL(spell_charm)  // enchantment
 }
 
 
+#define WIZARD_EYE 	45
+ASPELL(spell_wizard_eye)
+{
+  struct char_data *eye = read_mobile(WIZARD_EYE, VIRTUAL);
+
+  //first load the eye
+  char_to_room(eye, IN_ROOM(ch));
+  IS_CARRYING_W(eye) = 0;
+  IS_CARRYING_N(eye) = 0;
+  load_mtrigger(eye);
+
+  //now take control
+  send_to_char(ch, "You summon a wizard eye! (\tDType 'return' to return" 
+                   " to your body\tn)\r\n");
+  ch->desc->character = eye;
+  ch->desc->original = ch;
+  eye->desc = ch->desc;
+  ch->desc = NULL;
+}
+#undef WIZARD_EYE
+
+
 ASPELL(spell_identify)  // divination
 {
   int i, found;

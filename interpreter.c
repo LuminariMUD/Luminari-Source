@@ -180,6 +180,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "forget"   , "forget"	, POS_RESTING , do_gen_forget   , 0, SCMD_FORGET },
   { "freeze"   , "freeze"  , POS_DEAD    , do_wizutil  , LVL_GRGOD, SCMD_FREEZE },
   { "frightful"     , "frightful"     , POS_FIGHTING, do_frightful     , 1, 0 },
+  { "fly"     , "fly"      , POS_FIGHTING, do_fly     , 1, 0 },
 
   { "get"      , "g"       , POS_RESTING , do_get      , 0, 0 },
   { "gecho"    , "gecho"   , POS_DEAD    , do_gecho    , LVL_GOD, 0 },
@@ -234,6 +235,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "lock"     , "loc"     , POS_SITTING , do_gen_door , 0, SCMD_LOCK },
   { "load"     , "load"     , POS_DEAD    , do_load     , LVL_BUILDER, 0 },
   { "lore"     , "lore"      , POS_FIGHTING, do_lore     , 1, 0 },
+  { "land"     , "land"    , POS_FIGHTING, do_land     , 1, 0 },
 
   { "memorize" , "memorize", POS_RESTING , do_gen_memorize , 0, SCMD_MEMORIZE },
   { "mail"     , "mail"    , POS_STANDING, do_not_here , 1, 0 },
