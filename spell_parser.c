@@ -1146,23 +1146,27 @@ void mag_assign_spells(void)
   // in each category -zusuk
 
   //shared
-  spello(SPELL_INFRAVISION, "infravision", 44, 29, 1, POS_FIGHTING,
+  spello(SPELL_INFRAVISION, "infravision", 44, 29, 1, POS_FIGHTING,  //enchant
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"Your night vision seems to fade.", 4, 10,
-	DIVINATION);  // mage 4, cleric 4
+	"Your night vision seems to fade.", 4, 8,
+	ENCHANTMENT);  // mage 4, cleric 4
   spello(SPELL_DETECT_POISON, "detect poison", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
 	"The detect poison wears off.", 4, 8,
 	DIVINATION); // mage 7, cleric 2
-  spello(SPELL_POISON, "poison", 85, 70, 1, POS_FIGHTING,
+  spello(SPELL_POISON, "poison", 85, 70, 1, POS_FIGHTING,  //enchantment
 	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_OBJ_INV, TRUE,
 	MAG_AFFECTS | MAG_ALTER_OBJS,
-	"You feel less sick.", 5, 11,
+	"You feel less sick.", 5, 8,
 	ENCHANTMENT);  // mage 4, cleric 5
   spello(SPELL_ENERGY_DRAIN, "energy drain", 79, 64, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_MANUAL,
 	NULL, 9, 14,
 	NECROMANCY);  // mage 8, cleric 9
+  spello(SPELL_REMOVE_CURSE, "remove curse", 79, 64, 1, POS_FIGHTING,  //abjur
+	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
+	MAG_UNAFFECTS | MAG_ALTER_OBJS,
+	NULL, 4, 8, ABJURATION);  // mage 4
 
   //shared epic
   spello(SPELL_DRAGON_KNIGHT, "dragon knight", 95, 80, 1, POS_FIGHTING,
@@ -1375,7 +1379,7 @@ void mag_assign_spells(void)
 	NULL, 3, 7, EVOCATION);
   spello(SPELL_WATER_BREATHE, "water breathe", 79, 64, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"Your magical gears fade away.", 7, 12, EVOCATION);
+	"Your magical gears fade away.", 7, 7, EVOCATION);
                /* conjuration */
   spello(SPELL_SUMMON_CREATURE_3, "summon creature iii", 95, 80, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_SUMMONS,
@@ -1465,15 +1469,24 @@ void mag_assign_spells(void)
 
   
   // 4th circle
-  spello(SPELL_WIZARD_EYE, "wizard eye", 65, 50, 1, POS_FIGHTING,
-	TAR_IGNORE, FALSE, MAG_MANUAL,
-	NULL, 6, 8, NOSCHOOL);
 			/* evocation */
-                        /* conjuration */
+  spello(SPELL_ICE_STORM, "ice storm", 58, 43, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS,
+	NULL, 5, 8, EVOCATION);
+               /* conjuration */
 			/* necromancy */
+  spello(SPELL_ANIMATE_DEAD, "animate dead", 72, 57, 1, POS_FIGHTING,
+	TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
+	NULL, 10, 8, NECROMANCY);
+  spello(SPELL_CURSE, "curse", 80, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_OBJ_INV, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS,
+	"You feel more optimistic.", 7, 8, NECROMANCY);
 			/* enchantment */
 			/* illusion */
 			/* divination */
+  spello(SPELL_WIZARD_EYE, "wizard eye", 65, 50, 1, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_MANUAL,
+	NULL, 6, 8, DIVINATION);
 			/* abjuration */
   spello(SPELL_STONESKIN, "stone skin", 51, 36, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -1483,9 +1496,6 @@ void mag_assign_spells(void)
   
   // 5th circle
 			/* evocation */
-  spello(SPELL_ICE_STORM, "ice storm", 58, 43, 1, POS_FIGHTING,
-	TAR_IGNORE, TRUE, MAG_AREAS,
-	NULL, 5, 9, EVOCATION);
                /* conjuration */
 			/* necromancy */
 			/* enchantment */
@@ -1522,9 +1532,6 @@ void mag_assign_spells(void)
 	NULL, 6, 11, EVOCATION);
                /* conjuration */
 			/* necromancy */
-  spello(SPELL_ANIMATE_DEAD, "animate dead", 72, 57, 1, POS_FIGHTING,
-	TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
-	NULL, 10, 11, NECROMANCY);
 			/* enchantment */
 			/* illusion */
 			/* divination */
@@ -1542,9 +1549,6 @@ void mag_assign_spells(void)
 	NULL, 8, 12, EVOCATION);
                /* conjuration */
 			/* necromancy */
-  spello(SPELL_CURSE, "curse", 80, 50, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_OBJ_INV, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS,
-	"You feel more optimistic.", 7, 12, NECROMANCY);
 			/* enchantment */
 			/* illusion */
 			/* divination */
@@ -1620,10 +1624,6 @@ void mag_assign_spells(void)
 	NULL, 4, 9, NOSCHOOL);
 
   // 4th circle
-  spello(SPELL_REMOVE_CURSE, "remove curse", 79, 64, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
-	MAG_UNAFFECTS | MAG_ALTER_OBJS,
-	NULL, 4, 10, NOSCHOOL);
   spello(SPELL_CAUSE_CRITICAL_WOUNDS, "cause critical wounds", 51, 36, 1, 
 	POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 5, 10, NOSCHOOL);
@@ -1697,6 +1697,7 @@ void mag_assign_spells(void)
   // epic divine
   // end divine
 
+  
 
   /* NON-castable spells should appear below here. */
   spello(SPELL_IDENTIFY, "identify", 0, 0, 0, 0,

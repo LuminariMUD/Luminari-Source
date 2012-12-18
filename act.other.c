@@ -681,11 +681,15 @@ ACMD(do_lore)
 
 
 ACMD(do_land)
-{
+{  
   if (affected_by_spell(ch, SPELL_FLY)) {
     affect_from_char(ch, SPELL_FLY);
     send_to_char(ch, "You land on the ground.\r\n");
     act("$n lands on the ground.", TRUE, ch, 0, NULL, TO_ROOM);
+  } else if AFF_FLAGGED(ch, AFF_FLYING) {    
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    send_to_char(ch, "You land on the ground.\r\n");
+    act("$n lands on the ground.", TRUE, ch, 0, NULL, TO_ROOM);    
   } else {
     send_to_char(ch, "You are not flying.\r\n");  
   }
