@@ -553,11 +553,14 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_INFRAVISION, 99); //shared
     SET_SKILL(ch, SPELL_STONESKIN, 99);
     SET_SKILL(ch, SPELL_WIZARD_EYE, 99);
-    SET_SKILL(ch, SPELL_POISON, 99);
+    SET_SKILL(ch, SPELL_POISON, 99);  //shared
+    SET_SKILL(ch, SPELL_ICE_STORM, 99);
+    SET_SKILL(ch, SPELL_ANIMATE_DEAD, 99);
+    SET_SKILL(ch, SPELL_CURSE, 99);
+    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);  //shared
 
     //5th circle
     SET_SKILL(ch, SPELL_LOCATE_OBJECT, 99);
-    SET_SKILL(ch, SPELL_ICE_STORM, 99);
 
     //6th circle
     SET_SKILL(ch, SPELL_BALL_OF_LIGHTNING, 99);
@@ -566,10 +569,8 @@ void init_class(struct char_data *ch, int class, int level)
     //7th circle
     SET_SKILL(ch, SPELL_MISSILE_STORM, 99);
     SET_SKILL(ch, SPELL_TELEPORT, 99);
-    SET_SKILL(ch, SPELL_ANIMATE_DEAD, 99);
 
     //8th circle
-    SET_SKILL(ch, SPELL_CURSE, 99);
     SET_SKILL(ch, SPELL_WATERWALK, 99);
     SET_SKILL(ch, SPELL_CHAIN_LIGHTNING, 99);
 
@@ -1208,10 +1209,13 @@ void init_spell_levels(void)
   spell_level(SPELL_STONESKIN, CLASS_MAGIC_USER, 7);
   spell_level(SPELL_POISON, CLASS_MAGIC_USER, 7);  //shared
   spell_level(SPELL_INFRAVISION, CLASS_MAGIC_USER, 7);  //shared
+  spell_level(SPELL_ICE_STORM, CLASS_MAGIC_USER, 7);
+  spell_level(SPELL_ANIMATE_DEAD, CLASS_MAGIC_USER, 7);  //shared
+  spell_level(SPELL_CURSE, CLASS_MAGIC_USER, 7);  //shared
+  spell_level(SPELL_REMOVE_CURSE, CLASS_MAGIC_USER, 7);  //shared
   
   //5th circle
   spell_level(SPELL_LOCATE_OBJECT, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_ICE_STORM, CLASS_MAGIC_USER, 9);
 
   //6th circle
   spell_level(SPELL_CLONE, CLASS_MAGIC_USER, 11);
@@ -1219,13 +1223,11 @@ void init_spell_levels(void)
 
   //7th circle
   spell_level(SPELL_DETECT_POISON, CLASS_MAGIC_USER, 13);  //shared
-  spell_level(SPELL_ANIMATE_DEAD, CLASS_MAGIC_USER, 13);
   spell_level(SPELL_TELEPORT, CLASS_MAGIC_USER, 13);
   spell_level(SPELL_MISSILE_STORM, CLASS_MAGIC_USER, 13);
 
   //8th circle
   spell_level(SPELL_ENERGY_DRAIN, CLASS_MAGIC_USER, 15);  //shared
-  spell_level(SPELL_CURSE, CLASS_MAGIC_USER, 15);
   spell_level(SPELL_WATERWALK, CLASS_MAGIC_USER, 15);
   spell_level(SPELL_CHAIN_LIGHTNING, CLASS_MAGIC_USER, 15);
 
