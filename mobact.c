@@ -80,7 +80,7 @@ void npc_racial_behave(struct char_data *ch)
     case NPCRACE_UNKNOWN:
       switch (GET_LEVEL(ch)) {
         default:
-          do_say(ch, strcpy(actbuf, "I'm an uknown race."), 0, 0);
+          do_say(ch, strcpy(actbuf, "I'm an unknown race."), 0, 0);
           break;
       }
       break;
