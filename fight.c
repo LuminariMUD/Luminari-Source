@@ -2150,9 +2150,10 @@ int perform_attacks(struct char_data *ch, int mode)
     else
       penalty = -4;
     if (mode == 0) {
-      if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
+      if (FIGHTING(ch))
+        if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
             penalty, FALSE);
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
@@ -2171,9 +2172,10 @@ int perform_attacks(struct char_data *ch, int mode)
     //default of one attack for everyone
     numAttacks++;
     if (mode == 0) {
-      if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
+      if (FIGHTING(ch))
+        if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
       compute_bab(ch, ch, 0) + penalty);
@@ -2184,9 +2186,10 @@ int perform_attacks(struct char_data *ch, int mode)
 	(!IS_NPC(ch) && GET_SKILL(ch, SKILL_BLINDING_SPEED))) {
     numAttacks++;
     if (mode == 0) {
-      if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
+      if (FIGHTING(ch))
+        if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
     } else if (mode == 2) {
       send_to_char(ch, "Mainhand (Haste), Attack Bonus:  %d; ",
 	 compute_bab(ch, ch, 0) + penalty);
@@ -2235,9 +2238,10 @@ int perform_attacks(struct char_data *ch, int mode)
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT)) {
       numAttacks++;
       if (mode == 0) {
-        if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
+        if (FIGHTING(ch))
+          if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+            hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 TWO_WPN_PNLTY, TRUE);
       } else if (mode == 2) {
         send_to_char(ch, "Offhand (2 Weapon Fighting), Attack Bonus:  %d; ",
@@ -2248,9 +2252,10 @@ int perform_attacks(struct char_data *ch, int mode)
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_EPIC_2_WEAPON)) {
       numAttacks++;
       if (mode == 0) {
-        if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
+        if (FIGHTING(ch))
+          if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+            hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 EPIC_TWO_PNLY, TRUE);
       } else if (mode == 2) {
         send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",
