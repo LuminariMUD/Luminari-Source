@@ -1355,6 +1355,8 @@ ACMD(do_display)
   if (!*argument) {
     send_to_char(ch, "Usage: prompt { { H | M | V | X | T | R | E } | all |"
                      " auto | none }\r\n");
+    send_to_char(ch, "Notice this command is deprecated, we recommend using "
+                     " PREFEDIT instead.\r\n");
     return;
   }
 

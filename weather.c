@@ -163,12 +163,6 @@ static void weather_change(void)
 
   switch (change) {
   case 0:
-    if (rand_number(0,1)) {
-      if (rand_number(0,1))
-        send_to_outdoor("\twThe temperature \tBdrops\tw a little.\tn\r\n");
-      else
-        send_to_outdoor("\twThe temperature \tRrises\tw a little.\tn\r\n");
-    }
     break;
   case 1:
     send_to_outdoor("\tcThe sky starts to get cloudy.\tn\r\n");

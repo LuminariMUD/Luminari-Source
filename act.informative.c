@@ -363,7 +363,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   if (IS_NPC(i))
     send_to_char(ch, "%c%s", UPPER(*i->player.short_descr), i->player.short_descr + 1);
   else
-    send_to_char(ch, "\tn%s [%s]%s%s", i->player.name, RACE_ABBR(i),
+    send_to_char(ch, "\tn[%s] %s%s%s", RACE_ABBR(i), i->player.name,
 	*GET_TITLE(i) ? " " : "", GET_TITLE(i));
 
   if (AFF_FLAGGED(i, AFF_INVISIBLE))
@@ -603,7 +603,7 @@ static void look_in_direction(struct char_data *ch, int dir)
     if (EXIT(ch, dir)->general_description)
       send_to_char(ch, "%s", EXIT(ch, dir)->general_description);
     else
-      send_to_char(ch, "You see nothing special.\r\n");
+      send_to_char(ch, "You do not see anything in that direction.\r\n");
 
     if (EXIT_FLAGGED(EXIT(ch, dir), EX_CLOSED) && EXIT(ch, dir)->keyword)
       send_to_char(ch, "The %s is closed.\r\n", fname(EXIT(ch, dir)->keyword));
@@ -611,7 +611,7 @@ static void look_in_direction(struct char_data *ch, int dir)
       send_to_char(ch, "The %s is open.\r\n", fname(EXIT(ch, dir)->keyword));
         
   } else
-    send_to_char(ch, "Nothing special there...\r\n");
+    send_to_char(ch, "You do not see anything special in that direction...\r\n");
 }
 
 static void look_in_obj(struct char_data *ch, char *arg)
@@ -3149,11 +3149,12 @@ ACMD(do_scan)
   }
 
   for (door = 0; door < DIR_COUNT; door++) {
+    send_to_char(ch, "Looking %s: ", dirs[door]);
     look_in_direction(ch, door);
     for (range = 1; range<= maxrange; range++) {
       if (world[scanned_room].dir_option[door] && world[scanned_room].dir_option[door]->to_room != NOWHERE &&
-       !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_CLOSED) &&
-       !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN)) {
+          !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_CLOSED) &&
+          !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN)) {
         scanned_room = world[scanned_room].dir_option[door]->to_room;
         if (IS_DARK(scanned_room) && !CAN_SEE_IN_DARK(ch)) {
           if (world[scanned_room].people)
@@ -3167,14 +3168,13 @@ ACMD(do_scan)
             found=TRUE;
           }
         }
-      }                  // end of if
-      else
+      } else
         break;
     }                    // end of range
     scanned_room = IN_ROOM(ch);
   }                      // end of directions
   if (!found) {
-    send_to_char(ch, "You don't see anything nearby.\r\n");
+    send_to_char(ch, "\tcYou don't see anybody nearby.\tn\r\n");
   }
 } // end of do_scan
 
