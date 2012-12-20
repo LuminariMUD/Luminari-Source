@@ -406,9 +406,14 @@
 #define AFF_NAUSEATED	37   // nauseated
 #define AFF_NON_DETECTION	38
 #define AFF_SLOW		39
+#define AFF_FSHIELD      40
+#define AFF_CSHIELD      41
+#define AFF_MINOR_GLOBE  42
+#define AFF_ASHIELD      43
+#define AFF_SIZECHANGED  44
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS   40
+#define NUM_AFF_FLAGS   45
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/

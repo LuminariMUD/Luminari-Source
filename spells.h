@@ -171,8 +171,18 @@
 #define SPELL_ACID_SPLASH          129
 #define SPELL_RAY_OF_FROST         130
 #define SPELL_WIZARD_EYE           131
+#define SPELL_FIRE_SHIELD          132
+#define SPELL_COLD_SHIELD          133
+#define SPELL_BILLOWING_CLOUD      134
+#define SPELL_SUMMON_CREATURE_4    135
+#define SPELL_GREATER_INVIS        136
+#define SPELL_RAINBOW_PATTERN      137
+#define SPELL_LOCATE_CREATURE      138
+#define SPELL_MINOR_GLOBE          139
+#define SPELL_ENLARGE_PERSON       140
+#define SPELL_SHRINK_PERSON        141
 /** Total Number of defined spells */
-#define NUM_SPELLS    132
+#define NUM_SPELLS    142
 
 /* Insert new spells here, up to MAX_SPELLS */
 #define MAX_SPELLS		    400
@@ -308,6 +318,9 @@
 #define NUM_ATTACK_TYPES  15
 
 /* other attack types */
+#define TYPE_CSHIELD          796
+#define TYPE_FSHIELD          797
+#define TYPE_ASHIELD          798
 #define TYPE_SUFFERING		799
 /* new attack types can be added here - up to TYPE_SUFFERING */
 #define MAX_TYPES		800

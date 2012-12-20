@@ -446,6 +446,11 @@ const char *affected_bits[] =
   "Nauseated",
   "Non-Detection",
   "Slowed",
+  "Fire-Shielded",
+  "Cold-Shielded",
+  "Minor-Globed",
+  "Acid-Shielded",
+  "Size-Changed",
   "\n"
 };
 

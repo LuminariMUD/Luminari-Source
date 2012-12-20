@@ -24,8 +24,7 @@ int parse_class(char arg);
 void roll_real_abils(struct char_data *ch);
 byte saving_throws(struct char_data *, int type);
 int BAB(struct char_data *ch);
-const char *title_female(int chclass, int level);
-const char *title_male(int chclass, int level);
+const char *titles(int chclass, int level);
 
 /* Global variables */
 

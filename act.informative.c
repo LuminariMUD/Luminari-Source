@@ -2169,13 +2169,15 @@ ACMD(do_levels)
       break;
     len += nlen;
 
+    //why are we checking sex for titles?  titles use to be sex
+    //dependent...  -zusuk
     switch (GET_SEX(ch)) {
     case SEX_MALE:
     case SEX_NEUTRAL:
-      nlen = snprintf(buf + len, sizeof(buf) - len, "%s\r\n", title_male(GET_CLASS(ch), i));
+      nlen = snprintf(buf + len, sizeof(buf) - len, "%s\r\n", titles(GET_CLASS(ch), i));
       break;
     case SEX_FEMALE:
-      nlen = snprintf(buf + len, sizeof(buf) - len, "%s\r\n", title_female(GET_CLASS(ch), i));
+      nlen = snprintf(buf + len, sizeof(buf) - len, "%s\r\n", titles(GET_CLASS(ch), i));
       break;
     default:
       nlen = snprintf(buf + len, sizeof(buf) - len, "Oh dear.  You seem to be sexless.\r\n");
