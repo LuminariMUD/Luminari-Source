@@ -968,8 +968,15 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   send_to_char(victim, CCNRM(victim, C_CMP));
 }
 
+
 /*  message for doing damage with a spell or skill. Also used for weapon
  *  damage on miss and death blows. */
+
+/* took out attacking-staff-messages -zusuk*/
+//      if (!IS_NPC(vict) && (GET_LEVEL(vict) >= LVL_IMPL)) {
+//	act(msg->god_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
+//	act(msg->god_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT);
+//	act(msg->god_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);} else
 #define TRELUX_CLAWS 800
 int skill_message(int dam, struct char_data *ch, struct char_data *vict,
 		      int attacktype, int dualing)
@@ -981,69 +988,59 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
 
   if (GET_EQ(ch, WEAR_WIELD_2H))
     weap = GET_EQ(ch, WEAR_WIELD_2H);
-  else if (dualing)
-    weap = GET_EQ(ch, WEAR_WIELD_2);
   else if (GET_RACE(ch) == RACE_TRELUX)
     weap = read_object(TRELUX_CLAWS, VIRTUAL);
+  else if (dualing)
+    weap = GET_EQ(ch, WEAR_WIELD_2);
 
   for (i = 0; i < MAX_MESSAGES; i++) {
     if (fight_messages[i].a_type == attacktype) {
       nr = dice(1, fight_messages[i].number_of_attacks);
       for (j = 1, msg = fight_messages[i].msg; (j < nr) && msg; j++)
-	msg = msg->next;
-
-//      if (!IS_NPC(vict) && (GET_LEVEL(vict) >= LVL_IMPL)) {
-//	act(msg->god_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
-//	act(msg->god_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT);
-//	act(msg->god_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);} else
+	   msg = msg->next;
+      
+      /* old locatino of staff-messages */
       if (dam != 0) {
-        /*
-         * Don't send redundant color codes for TYPE_SUFFERING & other types
-         * of damage without attacker_msg.
-         */
-	if (GET_POS(vict) == POS_DEAD) {
+        if (GET_POS(vict) == POS_DEAD) {  // death messages
+          /* Don't send redundant color codes for TYPE_SUFFERING & other types
+           * of damage without attacker_msg. */
           if (msg->die_msg.attacker_msg) {
             send_to_char(ch, CCYEL(ch, C_CMP));
             act(msg->die_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
             send_to_char(ch, CCNRM(ch, C_CMP));
           }
-
-	  send_to_char(vict, CCRED(vict, C_CMP));
-	  act(msg->die_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-	  send_to_char(vict, CCNRM(vict, C_CMP));
-
-	  act(msg->die_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
-	} else {
+          send_to_char(vict, CCRED(vict, C_CMP));
+          act(msg->die_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
+          send_to_char(vict, CCNRM(vict, C_CMP));
+          act(msg->die_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
+        } else {  // not dead
           if (msg->hit_msg.attacker_msg) {
-	    send_to_char(ch, CCYEL(ch, C_CMP));
-	    act(msg->hit_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
-	    send_to_char(ch, CCNRM(ch, C_CMP));
+            send_to_char(ch, CCYEL(ch, C_CMP));
+            act(msg->hit_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
+            send_to_char(ch, CCNRM(ch, C_CMP));
           }
-
-	  send_to_char(vict, CCRED(vict, C_CMP));
-	  act(msg->hit_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-	  send_to_char(vict, CCNRM(vict, C_CMP));
-
-	  act(msg->hit_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
-	}
+          send_to_char(vict, CCRED(vict, C_CMP));
+          act(msg->hit_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
+          send_to_char(vict, CCNRM(vict, C_CMP));
+          act(msg->hit_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
+        }
       } else if (ch != vict) {	/* Dam == 0 */
         if (msg->miss_msg.attacker_msg) {
-	  send_to_char(ch, CCYEL(ch, C_CMP));
-	  act(msg->miss_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
-	  send_to_char(ch, CCNRM(ch, C_CMP));
+          send_to_char(ch, CCYEL(ch, C_CMP));
+          act(msg->miss_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
+          send_to_char(ch, CCNRM(ch, C_CMP));
         }
-
-	send_to_char(vict, CCRED(vict, C_CMP));
-	act(msg->miss_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-	send_to_char(vict, CCNRM(vict, C_CMP));
-
-	act(msg->miss_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
+        send_to_char(vict, CCRED(vict, C_CMP));
+        act(msg->miss_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
+        send_to_char(vict, CCNRM(vict, C_CMP));
+        act(msg->miss_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
       }
       return (1);
     }
   }
   return (0);
 }
+#undef TRELUX_CLAWS
 
 
 // this is just like damage reduction, except applies to certain type
@@ -1496,7 +1493,7 @@ int damage(struct char_data *ch, struct char_data *victim,
     send_to_char(victim, "\tR[%d]\tn ", dam);  
   }
 
-  if (attacktype != -1) {	//added for mount
+  if (attacktype != -1) {	//added for mount, etc
     if (!IS_WEAPON(attacktype))  //non weapons use skill_message
       skill_message(dam, ch, victim, attacktype, offhand);
     else {
@@ -2117,6 +2114,19 @@ void hit(struct char_data *ch, struct char_data *victim,
     if (GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
          && !rand_number(0,5)) {
       call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_SPELL);
+    }
+    
+    if (dam && victim && GET_HIT(victim) >= -1 &&
+            IS_AFFECTED(victim, AFF_CSHIELD)) {  // cold shield
+      damage(victim, ch, dice(1,4), TYPE_CSHIELD, DAM_COLD, offhand);
+    }
+    if (dam && victim && GET_HIT(victim) >= -1 &&
+            IS_AFFECTED(victim, AFF_FSHIELD)) {  // fire shield
+      damage(victim, ch, dice(1,4), TYPE_FSHIELD, DAM_FIRE, offhand);
+    }
+    if (dam && victim && GET_HIT(victim) >= -1 &&
+            IS_AFFECTED(victim, AFF_ASHIELD)) {  // acid shield
+      damage(victim, ch, dice(2,4), TYPE_ASHIELD, DAM_ACID, offhand);
     }
   }
 

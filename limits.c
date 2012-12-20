@@ -180,10 +180,12 @@ void set_title(struct char_data *ch, char *title)
   if (GET_TITLE(ch) != NULL)
     free(GET_TITLE(ch));
 
+  //why are we checking sex?  old title system -zusuk
+  //OK to remove sex check!
   if (title == NULL) {
     GET_TITLE(ch) = strdup(GET_SEX(ch) == SEX_FEMALE ?
-      title_female(GET_CLASS(ch), GET_LEVEL(ch)) :
-      title_male(GET_CLASS(ch), GET_LEVEL(ch)));
+      titles(GET_CLASS(ch), GET_LEVEL(ch)) :
+      titles(GET_CLASS(ch), GET_LEVEL(ch)));
   } else {
     if (strlen(title) > MAX_TITLE_LENGTH)
       title[MAX_TITLE_LENGTH] = '\0';
