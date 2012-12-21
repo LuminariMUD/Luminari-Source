@@ -1399,14 +1399,16 @@ int level_exp(struct char_data *ch, int level)
   
   //can add other exp penalty/bonuses here
   switch (GET_RACE(ch)) {
+    //advanced races
     case RACE_TROLL:
       exp *= 2;
       break;
+    //epic races
     case RACE_CRYSTAL_DWARF:
-      exp *= 50;
+      exp *= 30;
       break;
     case RACE_TRELUX:
-      exp *= 50;
+      exp *= 30;
       break;
     default:
       break;
