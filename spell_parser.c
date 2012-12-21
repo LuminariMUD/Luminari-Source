@@ -1189,6 +1189,7 @@ void mag_assign_spells(void)
   // magical
 
 /* = =  cantrips  = = */
+			/* evocation */
   spello(SPELL_ACID_SPLASH, "acid splash", 0, 0, 0, POS_SITTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 0, 1, EVOCATION);
@@ -1473,7 +1474,19 @@ void mag_assign_spells(void)
   spello(SPELL_ICE_STORM, "ice storm", 58, 43, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 5, 8, EVOCATION);
+  spello(SPELL_FIRE_SHIELD, "fire shield", 37, 22, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+	"You watch your fire shield fade away.", 5, 8, EVOCATION);
+  spello(SPELL_COLD_SHIELD, "cold shield", 37, 22, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+	"You watch your cold shield fade away.", 5, 8, EVOCATION);
                /* conjuration */
+  spello(SPELL_BILLOWING_CLOUD, "billowing cloud", 65, 50, 1, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_ROOM,
+	"You watch as the thick billowing cloud dissipates.", 7, 8,
+	CONJURATION);  
+  spello(SPELL_SUMMON_CREATURE_4, "summon creature iv", 95, 80, 1,
+     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 8, 8, CONJURATION);
 			/* necromancy */
   spello(SPELL_ANIMATE_DEAD, "animate dead", 72, 57, 1, POS_FIGHTING,
 	TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
