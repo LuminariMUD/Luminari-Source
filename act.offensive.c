@@ -84,7 +84,10 @@ ACMD(do_rage)
   affect_to_char(ch, &aftwo);
   affect_to_char(ch, &afthree);
   affect_to_char(ch, &affour);
-  attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));  
+  attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
+  
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_RAGE);  
 }
 
 
@@ -321,7 +324,8 @@ ACMD(do_backstab)
   }
 
   if (successful) {
-    increase_skill(ch, SKILL_BACKSTAB);
+    if (!IS_NPC(ch))
+      increase_skill(ch, SKILL_BACKSTAB);
     WAIT_STATE(ch, 2 * PULSE_VIOLENCE);
   } else
     send_to_char(ch, "You have no piercing weapon equipped.\r\n");
@@ -732,8 +736,10 @@ ACMD(do_bash)
     percent += 75;
   }
    
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_BASH))
+  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_BASH)) {
+    increase_skill(ch, SKILL_IMPROVED_BASH);
     prob += GET_SKILL(ch, SKILL_IMPROVED_BASH) / 5;
+  }
   
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     percent += compute_ability(vict, ABILITY_DISCIPLINE);
@@ -755,6 +761,9 @@ ACMD(do_bash)
   }
 
   WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_BASH);
+  
 }
 
 
@@ -815,8 +824,10 @@ ACMD(do_trip)
     percent = 101;
   }
 
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_TRIP))
+  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_TRIP)) {
+    increase_skill(ch, SKILL_IMPROVED_TRIP);
     prob += GET_SKILL(ch, SKILL_IMPROVED_TRIP) / 5;
+  }
 
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     percent += compute_ability(vict, ABILITY_DISCIPLINE);
@@ -837,6 +848,8 @@ ACMD(do_trip)
   }
 
   WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_TRIP);
 }
 
 
@@ -1009,6 +1022,8 @@ ACMD(do_rescue)
   set_fighting(tmp_ch, ch);
 
   WAIT_STATE(vict, 2 * PULSE_VIOLENCE);
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_RESCUE);  
 }
 
 
@@ -1165,6 +1180,11 @@ EVENTFUNC(event_whirlwind)
   if (GET_HIT(ch) < 1)
     return 0;
 
+  if (!IS_NPC(ch)) {
+    increase_skill(ch, SKILL_WHIRLWIND);
+    if (GET_SKILL(ch, SKILL_IMPROVED_WHIRL))
+      increase_skill(ch, SKILL_IMPROVED_WHIRL);
+  }
   /* We spit out some ugly colour, making use of the new colour options,
    * to let the player know they are performing their whirlwind strike */
   send_to_char(ch, "\t[f313]You deliver a vicious \t[f014]\t[b451]WHIRLWIND!!!\tn\r\n");
@@ -1277,6 +1297,8 @@ ACMD(do_stunningfist)
   }
   attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), 300 * PASSES_PER_SEC);
 
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_STUNNING_FIST);
   WAIT_STATE(ch, PULSE_VIOLENCE * 3);
 }
 
@@ -1318,5 +1340,7 @@ ACMD(do_kick)
   } else
     damage(ch, vict, GET_LEVEL(ch) * 2, SKILL_KICK, DAM_FORCE, FALSE);
 
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_KICK);
   WAIT_STATE(ch, PULSE_VIOLENCE * 3);
 }
