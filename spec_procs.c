@@ -376,6 +376,14 @@ void list_skills(struct char_data *ch)
           send_to_char(ch, "  \tYUnlearned\tn ");
         else if (GET_SKILL(ch, i) >= 99)
           send_to_char(ch, "  \tWMastered \tn ");
+        else if (GET_SKILL(ch, i) >= 95)
+          send_to_char(ch, "  \twSuperb \tn ");
+        else if (GET_SKILL(ch, i) >= 90)
+          send_to_char(ch, "  \tMExcellent \tn ");
+        else if (GET_SKILL(ch, i) >= 85)
+          send_to_char(ch, "  \tmAdvanced \tn ");
+        else if (GET_SKILL(ch, i) >= 80)
+          send_to_char(ch, "  \tBSkilled \tn ");
         else
           send_to_char(ch, "  \tGLearned  \tn ");
         printed++;

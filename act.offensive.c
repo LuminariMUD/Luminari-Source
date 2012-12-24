@@ -321,9 +321,10 @@ ACMD(do_backstab)
     }
   }
 
-  if (successful)
+  if (successful) {
+    increase_skill(ch, SKILL_BACKSTAB);
     WAIT_STATE(ch, 2 * PULSE_VIOLENCE);
-  else
+  } else
     send_to_char(ch, "You have no piercing weapon equipped.\r\n");
 }
 
