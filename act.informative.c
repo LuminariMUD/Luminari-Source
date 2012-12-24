@@ -339,15 +339,16 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 	CCNRM(ch, C_NRM));
   }
 
-  if (IS_NPC(i) && i->player.long_descr && GET_POS(i) == GET_DEFAULT_POS(i)) {
+  if (IS_NPC(i) && i->player.long_descr && GET_POS(i) == GET_DEFAULT_POS(i) &&
+      !FIGHTING(i)) {
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
 
     if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN)) {
       if (IS_EVIL(i))
-	send_to_char(ch, "(Red Aura) ");
+	send_to_char(ch, "\tR(Red Aura)\tn ");
       else if (IS_GOOD(i))
-	send_to_char(ch, "(Blue Aura) ");
+	send_to_char(ch, "\tB(Blue Aura)\tn ");
     }
 
     send_to_char(ch, "%s", i->player.long_descr);
