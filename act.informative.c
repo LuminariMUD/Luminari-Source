@@ -386,7 +386,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     else
       send_to_char(ch, "%s", PERS(RIDING(i), ch));
     send_to_char(ch, ".");
-  } else if (GET_POS(i) != POS_FIGHTING) {
+  } else if (!FIGHTING(i)) {
     if (!SITTING(i))
       send_to_char(ch, "%s", positions[(int) GET_POS(i)]);
     else {

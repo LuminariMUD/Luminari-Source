@@ -2151,7 +2151,7 @@ void hit(struct char_data *ch, struct char_data *victim,
 // mode = 1	return # of attacks, nothing else
 // mode = 2	display attack routine potential
 
-#define ATTACK_CAP	4
+#define ATTACK_CAP	3  // # of BONUS attacks
 #define MONK_CAP	ATTACK_CAP + 2
 #define TWO_WPN_PNLTY	-5
 #define EPIC_TWO_PNLY	-7
@@ -2485,6 +2485,100 @@ void perform_violence(void)
 
     if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_PARRY))
       perform_attacks(ch, 0);
+    
+    //skill improvement
+    if (!IS_NPC(ch)) {
+      if (GET_SKILL(ch, SKILL_WEAPON_SPECIALIST))
+        increase_skill(ch, SKILL_WEAPON_SPECIALIST);        
+      if (GET_SKILL(ch, SKILL_LUCK_OF_HEROES))
+        increase_skill(ch, SKILL_LUCK_OF_HEROES);        
+      if (GET_SKILL(ch, SKILL_AMBIDEXTERITY))
+        increase_skill(ch, SKILL_AMBIDEXTERITY);        
+      if (GET_SKILL(ch, SKILL_DIRTY_FIGHTING))
+        increase_skill(ch, SKILL_DIRTY_FIGHTING);        
+      if (GET_SKILL(ch, SKILL_DODGE))
+        increase_skill(ch, SKILL_DODGE);        
+      if (GET_SKILL(ch, SKILL_IMPROVED_CRITICAL))
+        increase_skill(ch, SKILL_IMPROVED_CRITICAL);        
+      if (GET_SKILL(ch, SKILL_TOUGHNESS))
+        increase_skill(ch, SKILL_TOUGHNESS);        
+      if (GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT))
+        increase_skill(ch, SKILL_TWO_WEAPON_FIGHT);
+      if (GET_SKILL(ch, SKILL_FINESSE))
+        increase_skill(ch, SKILL_FINESSE);
+      if (GET_SKILL(ch, SKILL_ARMOR_SKIN))
+        increase_skill(ch, SKILL_ARMOR_SKIN);
+      if (GET_SKILL(ch, SKILL_BLINDING_SPEED))
+        increase_skill(ch, SKILL_BLINDING_SPEED);
+      if (GET_SKILL(ch, SKILL_DAMAGE_REDUC_1))
+        increase_skill(ch, SKILL_DAMAGE_REDUC_1);
+      if (GET_SKILL(ch, SKILL_DAMAGE_REDUC_2))
+        increase_skill(ch, SKILL_DAMAGE_REDUC_2);
+      if (GET_SKILL(ch, SKILL_DAMAGE_REDUC_3))
+        increase_skill(ch, SKILL_DAMAGE_REDUC_3);
+      if (GET_SKILL(ch, SKILL_EPIC_TOUGHNESS))
+        increase_skill(ch, SKILL_EPIC_TOUGHNESS);
+      if (GET_SKILL(ch, SKILL_OVERWHELMING_CRIT))
+        increase_skill(ch, SKILL_OVERWHELMING_CRIT);
+      if (GET_SKILL(ch, SKILL_SELF_CONCEAL_1))
+        increase_skill(ch, SKILL_SELF_CONCEAL_1);
+      if (GET_SKILL(ch, SKILL_SELF_CONCEAL_2))
+        increase_skill(ch, SKILL_SELF_CONCEAL_2);
+      if (GET_SKILL(ch, SKILL_SELF_CONCEAL_3))
+        increase_skill(ch, SKILL_SELF_CONCEAL_3);
+      if (GET_SKILL(ch, SKILL_PROWESS))
+        increase_skill(ch, SKILL_PROWESS);
+      if (GET_SKILL(ch, SKILL_EPIC_PROWESS))
+        increase_skill(ch, SKILL_EPIC_PROWESS);
+      if (GET_SKILL(ch, SKILL_EPIC_2_WEAPON))
+        increase_skill(ch, SKILL_EPIC_2_WEAPON);
+      if (GET_SKILL(ch, SKILL_SPELL_RESIST_1))
+        increase_skill(ch, SKILL_SPELL_RESIST_1);
+      if (GET_SKILL(ch, SKILL_SPELL_RESIST_2))
+        increase_skill(ch, SKILL_SPELL_RESIST_2);
+      if (GET_SKILL(ch, SKILL_SPELL_RESIST_3))
+        increase_skill(ch, SKILL_SPELL_RESIST_3);
+      if (GET_SKILL(ch, SKILL_SPELL_RESIST_4))
+        increase_skill(ch, SKILL_SPELL_RESIST_4);
+      if (GET_SKILL(ch, SKILL_SPELL_RESIST_5))
+        increase_skill(ch, SKILL_SPELL_RESIST_5);
+      if (GET_SKILL(ch, SKILL_EPIC_CRIT))
+        increase_skill(ch, SKILL_EPIC_CRIT);
+      if (GET_SKILL(ch, SKILL_PROF_MINIMAL))
+        increase_skill(ch, SKILL_PROF_MINIMAL);
+      if (GET_SKILL(ch, SKILL_PROF_BASIC))
+        increase_skill(ch, SKILL_PROF_BASIC);
+      if (GET_SKILL(ch, SKILL_PROF_ADVANCED))
+        increase_skill(ch, SKILL_PROF_ADVANCED);
+      if (GET_SKILL(ch, SKILL_PROF_MASTER))
+        increase_skill(ch, SKILL_PROF_MASTER);
+      if (GET_SKILL(ch, SKILL_PROF_EXOTIC))
+        increase_skill(ch, SKILL_PROF_EXOTIC);
+      if (GET_SKILL(ch, SKILL_PROF_LIGHT_A))
+        increase_skill(ch, SKILL_PROF_LIGHT_A);
+      if (GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
+        increase_skill(ch, SKILL_PROF_MEDIUM_A);
+      if (GET_SKILL(ch, SKILL_PROF_HEAVY_A))
+        increase_skill(ch, SKILL_PROF_HEAVY_A);
+      if (GET_SKILL(ch, SKILL_PROF_SHIELDS))
+        increase_skill(ch, SKILL_PROF_SHIELDS);
+      if (GET_SKILL(ch, SKILL_PROF_T_SHIELDS))
+        increase_skill(ch, SKILL_PROF_T_SHIELDS);
+      if (GET_SKILL(ch, SKILL_LIGHTNING_REFLEXES))
+        increase_skill(ch, SKILL_LIGHTNING_REFLEXES);
+      if (GET_SKILL(ch, SKILL_GREAT_FORTITUDE))
+        increase_skill(ch, SKILL_GREAT_FORTITUDE);
+      if (GET_SKILL(ch, SKILL_IRON_WILL))
+        increase_skill(ch, SKILL_IRON_WILL);
+      if (GET_SKILL(ch, SKILL_EPIC_WILL))
+        increase_skill(ch, SKILL_EPIC_WILL);
+      if (GET_SKILL(ch, SKILL_EPIC_FORTITUDE))
+        increase_skill(ch, SKILL_EPIC_FORTITUDE);
+      if (GET_SKILL(ch, SKILL_EPIC_REFLEXES))
+        increase_skill(ch, SKILL_EPIC_REFLEXES);
+      if (GET_SKILL(ch, SKILL_SHIELD_SPECIALIST))
+        increase_skill(ch, SKILL_SHIELD_SPECIALIST);
+    }
 
     autoDiagnose(ch);
 

@@ -188,76 +188,76 @@
 #define MAX_SPELLS		    400
 
 /* PLAYER SKILLS - Numbered from MAX_SPELLS+1 to MAX_SKILLS */
-#define SKILL_BACKSTAB			401
-#define SKILL_BASH			402
-#define SKILL_MUMMY_DUST		403
-#define SKILL_KICK			404
-#define SKILL_WEAPON_SPECIALIST         405
-#define SKILL_WHIRLWIND			406
-#define SKILL_RESCUE			407
-#define SKILL_DRAGON_KNIGHT		408
-#define SKILL_LUCK_OF_HEROES            409
-#define SKILL_TRACK			410
-#define SKILL_QUICK_CHANT		411
-#define SKILL_AMBIDEXTERITY		412
-#define SKILL_DIRTY_FIGHTING		413
-#define SKILL_DODGE			414
-#define SKILL_IMPROVED_CRITICAL		415
-#define SKILL_MOBILITY			416
-#define SKILL_SPRING_ATTACK		417
-#define SKILL_TOUGHNESS			418
-#define SKILL_TWO_WEAPON_FIGHT		419
-#define SKILL_FINESSE			420
-#define SKILL_ARMOR_SKIN                421
-#define SKILL_BLINDING_SPEED            422
-#define SKILL_DAMAGE_REDUC_1            423
-#define SKILL_DAMAGE_REDUC_2            424
-#define SKILL_DAMAGE_REDUC_3            425
-#define SKILL_EPIC_TOUGHNESS            426
-#define SKILL_OVERWHELMING_CRIT         427
-#define SKILL_SELF_CONCEAL_1            428
-#define SKILL_SELF_CONCEAL_2            429
-#define SKILL_SELF_CONCEAL_3            430
-#define SKILL_TRIP			431
-#define SKILL_IMPROVED_WHIRL		432
-#define SKILL_CLEAVE			433
-#define SKILL_GREAT_CLEAVE		434
-#define SKILL_SPELLPENETRATE		435
+#define SKILL_BACKSTAB                  401  // implemented
+#define SKILL_BASH                 	402  //implemented
+#define SKILL_MUMMY_DUST                403  //implemented
+#define SKILL_KICK                      404  //implemented
+#define SKILL_WEAPON_SPECIALIST         405  //implemented
+#define SKILL_WHIRLWIND                 406  //implemented
+#define SKILL_RESCUE                    407  //implemented
+#define SKILL_DRAGON_KNIGHT             408  //implemented
+#define SKILL_LUCK_OF_HEROES            409  //implemented
+#define SKILL_TRACK                     410
+#define SKILL_QUICK_CHANT               411
+#define SKILL_AMBIDEXTERITY             412  //implemented
+#define SKILL_DIRTY_FIGHTING            413  //implemented
+#define SKILL_DODGE                     414  //implemented
+#define SKILL_IMPROVED_CRITICAL		415  //implemented
+#define SKILL_MOBILITY                  416
+#define SKILL_SPRING_ATTACK             417
+#define SKILL_TOUGHNESS                 418  //implemented
+#define SKILL_TWO_WEAPON_FIGHT		419  //implemented
+#define SKILL_FINESSE                   420  //implemented
+#define SKILL_ARMOR_SKIN                421  //implemented
+#define SKILL_BLINDING_SPEED            422  //implemented
+#define SKILL_DAMAGE_REDUC_1            423  //implemented
+#define SKILL_DAMAGE_REDUC_2            424  //implemented
+#define SKILL_DAMAGE_REDUC_3            425  //implemented
+#define SKILL_EPIC_TOUGHNESS            426  //implemented
+#define SKILL_OVERWHELMING_CRIT         427  //implemented
+#define SKILL_SELF_CONCEAL_1            428  //implemented
+#define SKILL_SELF_CONCEAL_2            429  //implemented
+#define SKILL_SELF_CONCEAL_3            430  //implemented
+#define SKILL_TRIP                      431  //implemented
+#define SKILL_IMPROVED_WHIRL            432  //implemented
+#define SKILL_CLEAVE                    433
+#define SKILL_GREAT_CLEAVE              434
+#define SKILL_SPELLPENETRATE            435
 #define SKILL_SPELLPENETRATE_2		436
-#define SKILL_PROWESS			437
-#define SKILL_EPIC_PROWESS		438
-#define SKILL_EPIC_2_WEAPON		439
+#define SKILL_PROWESS                   437  //implemented
+#define SKILL_EPIC_PROWESS              438  //implemented
+#define SKILL_EPIC_2_WEAPON             439  //implemented
 #define SKILL_SPELLPENETRATE_3		440
-#define SKILL_SPELL_RESIST_1		441
-#define SKILL_SPELL_RESIST_2		442
-#define SKILL_SPELL_RESIST_3		443
-#define SKILL_SPELL_RESIST_4		444
-#define SKILL_SPELL_RESIST_5		445
-#define SKILL_INITIATIVE		446
-#define SKILL_EPIC_CRIT			447
-#define SKILL_IMPROVED_BASH		448
-#define SKILL_IMPROVED_TRIP		449
-#define SKILL_POWER_ATTACK		450
-#define SKILL_EXPERTISE			451
-#define SKILL_GREATER_RUIN		452
-#define SKILL_HELLBALL			453
-#define SKILL_EPIC_MAGE_ARMOR		454
-#define SKILL_EPIC_WARDING		455
-#define SKILL_RAGE			456
-#define SKILL_PROF_MINIMAL		457
-#define SKILL_PROF_BASIC		458
-#define SKILL_PROF_ADVANCED		459
-#define SKILL_PROF_MASTER		460
-#define SKILL_PROF_EXOTIC		461
-#define SKILL_PROF_LIGHT_A		462
-#define SKILL_PROF_MEDIUM_A		463
-#define SKILL_PROF_HEAVY_A		464
-#define SKILL_PROF_SHIELDS		465
-#define SKILL_PROF_T_SHIELDS		466
+#define SKILL_SPELL_RESIST_1            441  //implemented
+#define SKILL_SPELL_RESIST_2            442  //implemented
+#define SKILL_SPELL_RESIST_3            443  //implemented
+#define SKILL_SPELL_RESIST_4            444  //implemented
+#define SKILL_SPELL_RESIST_5       	445  //implemented
+#define SKILL_INITIATIVE                446
+#define SKILL_EPIC_CRIT                 447  //implemented
+#define SKILL_IMPROVED_BASH             448  //implemented
+#define SKILL_IMPROVED_TRIP             449  //implemented
+#define SKILL_POWER_ATTACK              450
+#define SKILL_EXPERTISE                 451
+#define SKILL_GREATER_RUIN              452  //implemented
+#define SKILL_HELLBALL                  453  //implemented
+#define SKILL_EPIC_MAGE_ARMOR           454  //implemented
+#define SKILL_EPIC_WARDING              455  //implemented
+#define SKILL_RAGE            		456  //implemented
+#define SKILL_PROF_MINIMAL         	457  //implemented
+#define SKILL_PROF_BASIC                458  //implemented
+#define SKILL_PROF_ADVANCED             459  //implemented
+#define SKILL_PROF_MASTER               460  //implemented
+#define SKILL_PROF_EXOTIC               461  //implemented
+#define SKILL_PROF_LIGHT_A              462  //implemented
+#define SKILL_PROF_MEDIUM_A             463  //implemented
+#define SKILL_PROF_HEAVY_A              464  //implemented
+#define SKILL_PROF_SHIELDS              465  //implemented
+#define SKILL_PROF_T_SHIELDS            466  //implemented
 #define SKILL_MURMUR                    467 /* Murmur     diplomacy skill */
 #define SKILL_PROPAGANDA                468 /* Propaganda diplomacy skill */
 #define SKILL_LOBBY                     469 /* Lobby      diplomacy skill */
-#define SKILL_STUNNING_FIST             470
+#define SKILL_STUNNING_FIST             470  //implemented
 /* initial crafting skills */
 #define SKILL_MINING                    471
 #define SKILL_HUNTING                   472
@@ -270,12 +270,12 @@
 #define SKILL_LEATHER_WORKING           479
 #define SKILL_FAST_CRAFTER              480
 #define SKILL_BONE_ARMOR                481
-#define SKILL_ELVEN_CRAFTING             482
-#define SKILL_MASTERWORK_CRAFTING        483
-#define SKILL_DRACONIC_CRAFTING          484
+#define SKILL_ELVEN_CRAFTING            482
+#define SKILL_MASTERWORK_CRAFTING       483
+#define SKILL_DRACONIC_CRAFTING         484
 #define SKILL_DWARVEN_CRAFTING          485
 /* finish batch crafting skills */
-#define SKILL_LIGHTNING_REFLEXES        486
+#define SKILL_LIGHTNING_REFLEXES        486  //implemented
 #define SKILL_GREAT_FORTITUDE           487
 #define SKILL_IRON_WILL                 488
 #define SKILL_EPIC_REFLEXES             489
