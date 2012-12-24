@@ -4528,8 +4528,10 @@ ACMD(do_peace)
   send_to_room(IN_ROOM(ch), "Everything is quite peaceful now.\r\n");
   for(vict=world[IN_ROOM(ch)].people; vict; vict=next_v) {
     next_v = vict->next_in_room;
-    if (FIGHTING(vict))
+    if (FIGHTING(vict)) {
       stop_fighting(vict);
+      resetCastingData(vict);
+    }
     if (IS_NPC(vict))
       clearMemory(vict);
   }
