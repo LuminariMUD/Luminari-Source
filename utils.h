@@ -38,6 +38,7 @@
 
 /* Public functions made available from utils.c. Documentation for all functions
  * are made available with the function definition. */
+void increase_skill(struct char_data *ch, int skillnum);
 int convert_material_vnum(int obj_vnum);
 void basic_mud_log(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 void basic_mud_vlog(const char *format, va_list args);

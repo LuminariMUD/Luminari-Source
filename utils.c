@@ -24,6 +24,595 @@
 #include "class.h"
 #include "race.h"
 
+
+
+/* simple function to increase skills
+   takes character structure and skillnum, based on chance, can
+   increase skill permanently up to cap */
+/* some easy configure values, this is percent chance of a used
+   skill, such as bash increasing per use:  !rand_number(0, this)*/
+#define USE 4
+/* some easy configure values, this is percent chance of a skill
+   that is passive, such as dodge increasing per use:
+   !rand_number(0, this)*/
+#define PASS 2000
+void increase_skill(struct char_data *ch, int skillnum)
+{
+  int notched = FALSE;
+  
+  //if the skill isn't learned or is mastered, don't adjust
+  if (GET_SKILL(ch, skillnum) < 75 || GET_SKILL(ch, skillnum >= 99))
+    return;
+
+  int use = rand_number(0, USE);
+  int pass = rand_number(0, PASS);
+
+  switch(skillnum) {
+    case SKILL_BACKSTAB:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_BASH:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_MUMMY_DUST:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_KICK:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_WEAPON_SPECIALIST:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_WHIRLWIND:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_RESCUE:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DRAGON_KNIGHT:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_LUCK_OF_HEROES:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_TRACK:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_QUICK_CHANT:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_AMBIDEXTERITY:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DIRTY_FIGHTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DODGE:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_IMPROVED_CRITICAL:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_MOBILITY:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SPRING_ATTACK:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_TOUGHNESS:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_TWO_WEAPON_FIGHT:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_FINESSE:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_ARMOR_SKIN:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_BLINDING_SPEED:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DAMAGE_REDUC_1:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DAMAGE_REDUC_2:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DAMAGE_REDUC_3:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_EPIC_TOUGHNESS:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_OVERWHELMING_CRIT:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SELF_CONCEAL_1:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SELF_CONCEAL_2:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SELF_CONCEAL_3:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_TRIP:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_IMPROVED_WHIRL:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_CLEAVE:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_GREAT_CLEAVE:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SPELLPENETRATE:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SPELLPENETRATE_2:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROWESS:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_EPIC_PROWESS:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_EPIC_2_WEAPON:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SPELLPENETRATE_3:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SPELL_RESIST_1:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SPELL_RESIST_2:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SPELL_RESIST_3:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SPELL_RESIST_4:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SPELL_RESIST_5:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_INITIATIVE:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_EPIC_CRIT:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_IMPROVED_BASH:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_IMPROVED_TRIP:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_POWER_ATTACK:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_EXPERTISE:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_GREATER_RUIN:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_HELLBALL:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_EPIC_MAGE_ARMOR:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_EPIC_WARDING:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_RAGE:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROF_MINIMAL:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROF_BASIC:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROF_ADVANCED:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROF_MASTER:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROF_EXOTIC:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROF_LIGHT_A:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROF_MEDIUM_A:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROF_HEAVY_A:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROF_SHIELDS:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROF_T_SHIELDS:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_MURMUR:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_PROPAGANDA:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_LOBBY:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_STUNNING_FIST:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_MINING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_HUNTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_FORESTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_KNITTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_CHEMISTRY:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_ARMOR_SMITHING:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_WEAPON_SMITHING:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_JEWELRY_MAKING:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_LEATHER_WORKING:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_FAST_CRAFTER:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_BONE_ARMOR:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_ELVEN_CRAFTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_MASTERWORK_CRAFTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DRACONIC_CRAFTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DWARVEN_CRAFTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_LIGHTNING_REFLEXES:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_GREAT_FORTITUDE:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_IRON_WILL:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_EPIC_REFLEXES:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_EPIC_FORTITUDE:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_EPIC_WILL:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SHIELD_SPECIALIST:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    default:
+      return;;
+  }
+  
+  if (notched)
+    send_to_char(ch, "You feel your skill in %s improve!\r\n",
+            spell_info[skillnum].name);
+  return;
+}
+#undef USE
+#undef PASS
+
+
 /** Aportable random number function.
  * @param from The lower bounds of the random number.
  * @param to The upper bounds of the random number.
