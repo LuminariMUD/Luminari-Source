@@ -94,6 +94,8 @@ int compute_mag_saves(struct char_data *vict,
       saves += GET_CON_BONUS(vict);
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
         saves++;
+      if (GET_RACE(vict) == RACE_HALFLING)
+        saves++;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_GREAT_FORTITUDE))
         saves += 2;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_FORTITUDE))
@@ -103,6 +105,8 @@ int compute_mag_saves(struct char_data *vict,
       saves += GET_DEX_BONUS(vict);
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
         saves++;
+      if (GET_RACE(vict) == RACE_HALFLING)
+        saves++;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LIGHTNING_REFLEXES))
         saves += 2;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_REFLEXES))
@@ -111,6 +115,8 @@ int compute_mag_saves(struct char_data *vict,
     case SAVING_WILL:
       saves += GET_WIS_BONUS(vict);
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
+        saves++;
+      if (GET_RACE(vict) == RACE_HALFLING)
         saves++;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_IRON_WILL))
         saves += 2;
@@ -786,7 +792,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[i].spell = spellnum;
   }
 
-  /* racial resistance */
+  /* racial ch bonus/penalty */
+  switch (GET_RACE(ch)) {
+    case RACE_GNOME:  // illusions
+      gnome_bonus -= 2;
+      break;
+    default:
+      break;
+  }
+  /* racial victim resistance */
   switch (GET_RACE(victim)) {
     case RACE_H_ELF:
     case RACE_ELF:  //enchantments

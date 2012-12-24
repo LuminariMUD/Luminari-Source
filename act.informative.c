@@ -913,7 +913,8 @@ ACMD(do_innates)
       case RACE_H_ELF:
         send_to_char(ch, "basic weapon proficiency (free skill)\r\n");
         send_to_char(ch, "infravision\r\n");
-        send_to_char(ch, "resistance to enchantments (+2 save bpmis)\r\n");
+        send_to_char(ch, "resistance to enchantments (+2 save bbnus)\r\n");
+        send_to_char(ch, "half-blood (+2 discipline/lore)");
         break;
       case RACE_H_ORC:
         send_to_char(ch, "half orc strength (+2 str)\r\n");
@@ -923,15 +924,20 @@ ACMD(do_innates)
         break;
       case RACE_HALFLING:
         send_to_char(ch, "halfling dexterity (+2 dex)\r\n");
-        send_to_char(ch, "\tRhalfling strength (-2 cha)\tn\r\n");
+        send_to_char(ch, "\tRhalfling strength (-2 str)\tn\r\n");
+        send_to_char(ch, "infravision\r\n");
+        send_to_char(ch, "shadow hopper (+2 sneak/hide)\r\n");
+        send_to_char(ch, "lucky (+1 all saves)\r\n");
         send_to_char(ch, "infravision\r\n");
         send_to_char(ch, "combat training versus giants "
-                "(+1 size bonus vs. larger opponents)\r\n");        
+                "(+1 size bonus vs. larger opponents)\r\n");
         break;
       case RACE_GNOME:
         send_to_char(ch, "gnomish constitution (+2 con)\r\n");
         send_to_char(ch, "\tRgnomish strength (-2 str)\tn\r\n");
         send_to_char(ch, "illusion resist (+2 save bonus)\r\n");
+        send_to_char(ch, "illusion affinity (+2 DC on illusions)\r\n");
+        send_to_char(ch, "tinker focus (+2 concentration/listen)\r\n");
         send_to_char(ch, "infravision\r\n");
         send_to_char(ch, "combat training versus giants "
                 "(+1 size bonus vs. larger opponents)\r\n");        
@@ -979,8 +985,10 @@ ACMD(do_innates)
         break;        
       case RACE_TROLL:
         send_to_char(ch, "regeneration\r\n");
-        send_to_char(ch, "infravision\r\n");
+        send_to_char(ch, "\tRweakness to acid (25%%)\tn\r\n");
         send_to_char(ch, "\tRweakness to fire (50%%)\tn\r\n");
+        send_to_char(ch, "resist poison (25%%)\r\n");
+        send_to_char(ch, "resist disease (50%%)\r\n");
         send_to_char(ch, "troll constitution (+2 con)\r\n");
         send_to_char(ch, "troll strength (+2 str)\r\n");
         send_to_char(ch, "troll dexterity (+2 dex)\r\n");

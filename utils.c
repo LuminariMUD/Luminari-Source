@@ -31,7 +31,7 @@
    increase skill permanently up to cap */
 /* some easy configure values, this is percent chance of a used
    skill, such as bash increasing per use:  !rand_number(0, this)*/
-#define USE 4
+#define USE 150
 /* some easy configure values, this is percent chance of a skill
    that is passive, such as dodge increasing per use:
    !rand_number(0, this)*/
@@ -605,7 +605,7 @@ void increase_skill(struct char_data *ch, int skillnum)
   }
   
   if (notched)
-    send_to_char(ch, "You feel your skill in %s improve!\r\n",
+    send_to_char(ch, "\tMYou feel your skill in \tC%s\tM improve!\tn\r\n",
             spell_info[skillnum].name);
   return;
 }
