@@ -418,7 +418,7 @@ const char *affected_bits[] =
   "Groupped",
   "Cursed",
   "Infravision",
-  "Ppoison",
+  "Poison",
   "Protect-Evil",
   "Protect-Good",
   "Sleep",

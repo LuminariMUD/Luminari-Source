@@ -1285,7 +1285,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     if (GET_RACE(victim) == RACE_TRELUX && !rand_number(0, 4)) {
-      send_to_char(victim, "\tWYou leap way avoiding the attack!\tn\r\n");
+      send_to_char(victim, "\tWYou leap away avoiding the attack!\tn\r\n");
       send_to_char(ch, "\tRYou fail to cause %s any harm as he leaps away!\tn\r\n",
 	GET_NAME(victim));
       act("$n fails to harm $N as $S leaps away!", FALSE, ch, 0, victim,
@@ -2157,7 +2157,7 @@ int perform_attacks(struct char_data *ch, int mode)
   bool dual = FALSE;
 
   //now lets determine base attack(s) and resulting possible penalty
-  if (GET_EQ(ch, WEAR_WIELD_2))
+  if (GET_EQ(ch, WEAR_WIELD_2) || GET_RACE(ch) == RACE_TRELUX)
     dual = TRUE;
   //default of one offhand attack for everyone
   if (dual) {
@@ -2166,7 +2166,7 @@ int perform_attacks(struct char_data *ch, int mode)
       penalty = -1;
     else
       penalty = -4;
-    if (mode == 0) {
+    if (mode == 0) {  //normal attack routine
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
@@ -2177,7 +2177,7 @@ int perform_attacks(struct char_data *ch, int mode)
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
               penalty * 2, TRUE);
-    } else if (mode == 2) {
+    } else if (mode == 2) {  //display attack routine
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
 	 compute_bab(ch, ch, 0) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
@@ -2188,12 +2188,12 @@ int perform_attacks(struct char_data *ch, int mode)
   } else {
     //default of one attack for everyone
     numAttacks++;
-    if (mode == 0) {
+    if (mode == 0) {  //normal attack routine
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
-    } else if (mode == 2) {
+    } else if (mode == 2) {  //display attack routine
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
       compute_bab(ch, ch, 0) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
@@ -2202,12 +2202,12 @@ int perform_attacks(struct char_data *ch, int mode)
   if (AFF_FLAGGED(ch, AFF_HASTE) ||
 	(!IS_NPC(ch) && GET_SKILL(ch, SKILL_BLINDING_SPEED))) {
     numAttacks++;
-    if (mode == 0) {
+    if (mode == 0) {  //normal attack routine
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
-    } else if (mode == 2) {
+    } else if (mode == 2) {  //display attack routine
       send_to_char(ch, "Mainhand (Haste), Attack Bonus:  %d; ",
 	 compute_bab(ch, ch, 0) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
@@ -2237,13 +2237,13 @@ int perform_attacks(struct char_data *ch, int mode)
     else
       penalty -= 5;
     numAttacks++;
-    if (FIGHTING(ch) && mode == 0) {
+    if (FIGHTING(ch) && mode == 0) {  //normal attack routine
       update_pos(FIGHTING(ch));
       if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch)) {
         hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
       }
-    } else if (mode == 2) {
+    } else if (mode == 2) {  //display attack routine
       send_to_char(ch, "Mainhand Bonus %d, Attack Bonus:  %d; ",
 	   i + 1, compute_bab(ch, ch, 0) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
@@ -2254,13 +2254,13 @@ int perform_attacks(struct char_data *ch, int mode)
   if (dual) {
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT)) {
       numAttacks++;
-      if (mode == 0) {
+      if (mode == 0) {  //normal attack routine
         if (FIGHTING(ch))
           if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 TWO_WPN_PNLTY, TRUE);
-      } else if (mode == 2) {
+      } else if (mode == 2) {  //display attack routine
         send_to_char(ch, "Offhand (2 Weapon Fighting), Attack Bonus:  %d; ",
 	   compute_bab(ch, ch, 0) + TWO_WPN_PNLTY);
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
@@ -2268,13 +2268,13 @@ int perform_attacks(struct char_data *ch, int mode)
     }
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_EPIC_2_WEAPON)) {
       numAttacks++;
-      if (mode == 0) {
+      if (mode == 0) {  //normal attack routine
         if (FIGHTING(ch))
           if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
 	     IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 EPIC_TWO_PNLY, TRUE);
-      } else if (mode == 2) {
+      } else if (mode == 2) {  //display attack routine
         send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",
 	   compute_bab(ch, ch, 0) + EPIC_TWO_PNLY);
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
