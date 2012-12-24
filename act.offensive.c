@@ -157,7 +157,8 @@ ACMD(do_hit)
   else {
     if (!CONFIG_PK_ALLOWED && !IS_NPC(vict) && !IS_NPC(ch)) 
 	check_killer(ch, vict);
-    if (GET_POS(ch) == POS_STANDING) {
+    /* already fighting */
+    if (!FIGHTING(ch)) {  
       if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_INITIATIVE))
         chInitiative += 8;
       chInitiative += GET_DEX(ch);
@@ -179,6 +180,7 @@ ACMD(do_hit)
         }
       }
       WAIT_STATE(ch, PULSE_VIOLENCE + 2);
+    /* not fighting, so switch opponents */
     } else {
       stop_fighting(ch);
       send_to_char(ch, "You switch opponents!\r\n");
