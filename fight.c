@@ -1144,6 +1144,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
     case DAM_ACID:
       if (GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
+      if (GET_RACE(ch) == RACE_TROLL)
+        damtype_reduction += -25;
       if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
@@ -1186,12 +1188,16 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += 20;
       if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
+      if (GET_RACE(ch) == RACE_TROLL)
+        damtype_reduction += 25;
       break;
     case DAM_DISEASE:
       if (GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
+      if (GET_RACE(ch) == RACE_TROLL)
+        damtype_reduction += 50;
       break;
     case DAM_NEGATIVE:
       if (GET_RACE(ch) == RACE_TRELUX)
@@ -1268,7 +1274,8 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 {
 
   if (dam > 0 && attacktype != TYPE_SUFFERING &&
-	attacktype != SKILL_BASH && attacktype != SKILL_TRIP) {
+	attacktype != SKILL_BASH && attacktype != SKILL_TRIP &&
+     attacktype != SPELL_POISON) {
  
     int concealment = compute_concealment(victim);
     if (dice(1, 100) <= compute_concealment(victim)) {

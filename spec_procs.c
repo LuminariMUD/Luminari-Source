@@ -417,11 +417,15 @@ int compute_ability(struct char_data *ch, int abilityNum)
 		value += GET_DEX_BONUS(ch);
 		if (CLASS_LEVEL(ch, CLASS_THIEF))
                   value += 4;
+          if (GET_RACE(ch) == RACE_HALFLING)
+            value += 2;
 		return value; 
 	case ABILITY_SNEAK:
 		value += GET_DEX_BONUS(ch);
 		if (CLASS_LEVEL(ch, CLASS_THIEF))
                   value += 4;
+          if (GET_RACE(ch) == RACE_HALFLING)
+            value += 2;
 		return value; 
 	case ABILITY_SPOT:
 		value += GET_WIS_BONUS(ch);
@@ -430,6 +434,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
 		return value; 
 	case ABILITY_LISTEN:
 		value += GET_WIS_BONUS(ch);
+          if (GET_RACE(ch) == RACE_GNOME)
+            value += 2;
           if (GET_RACE(ch) == RACE_ELF)
             value += 2;
 		return value; 
@@ -440,6 +446,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
 		value += GET_CHA_BONUS(ch);
 		return value; 
 	case ABILITY_CONCENTRATION:
+          if (GET_RACE(ch) == RACE_GNOME)
+            value += 2;
 		value += GET_CON_BONUS(ch);
 		return value; 
 	case ABILITY_SPELLCRAFT:
@@ -449,12 +457,16 @@ int compute_ability(struct char_data *ch, int abilityNum)
 		value += GET_INT_BONUS(ch);
 		return value; 
 	case ABILITY_DISCIPLINE:
+          if (GET_RACE(ch) == RACE_H_ELF)
+            value += 2;
 		value += GET_STR_BONUS(ch);
 		return value; 
 	case ABILITY_PARRY:
 		value += GET_DEX_BONUS(ch);
 		return value; 
 	case ABILITY_LORE:
+          if (GET_RACE(ch) == RACE_H_ELF)
+            value += 2;
 		value += GET_INT_BONUS(ch);
 		return value; 
 	case ABILITY_MOUNT:
