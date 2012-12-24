@@ -293,10 +293,9 @@ ACMD(do_backstab)
 
   update_pos(vict);
 
-  if (vict) {
-    if (GET_EQ(ch, WEAR_WIELD_2) &&
-	GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2), 3) == TYPE_PIERCE - TYPE_HIT &&
- 	GET_POS(vict) >= POS_DEAD) {
+  if (vict && GET_POS(vict) >= POS_DEAD) {
+    if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_2) &&
+	GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2), 3) == (TYPE_PIERCE - TYPE_HIT))) {
       if (AWAKE(vict) && (percent2 > prob)) {
         damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
       } else {
