@@ -160,6 +160,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "drink"    , "dri"     , POS_RESTING , do_drink    , 0, SCMD_DRINK },
   { "drop"     , "dro"     , POS_RESTING , do_drop     , 0, SCMD_DROP },
   { "dismount" , "dismount"    , POS_FIGHTING , do_dismount , 0, 0 },
+  { "dismiss" , "dismiss"    , POS_FIGHTING , do_dismiss , 0, 0 },
 
   { "eat"      , "ea"      , POS_RESTING , do_eat      , 0, SCMD_EAT },
   { "echo"     , "ec"      , POS_SLEEPING, do_echo     , LVL_IMMORT, SCMD_ECHO },

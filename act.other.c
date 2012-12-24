@@ -41,7 +41,24 @@ static void display_group_list(struct char_data * ch);
 
 
 
-ACMD(do_recharge) {
+ACMD(do_dismiss)
+{
+  struct follow_type *k;
+  char buf[MAX_STRING_LENGTH];   
+
+  send_to_char(ch, "You dismiss your non-present followers.\r\n");   
+  snprintf(buf, sizeof(buf), "$n dismisses $s non present followers.");
+  act(buf, FALSE, ch, 0, 0, TO_ROOM);
+  
+  for (k = ch->followers; k; k = k->next)
+    if (IN_ROOM(ch) != IN_ROOM(k->follower))
+      if (AFF_FLAGGED(k->follower, AFF_CHARM))
+        extract_char(k->follower);
+}
+
+
+ACMD(do_recharge)
+{
   char buf[MAX_INPUT_LENGTH];
   struct obj_data *obj;
   int maxcharge, mincharge, chargeval;

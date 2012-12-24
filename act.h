@@ -284,6 +284,7 @@ ACMD(do_recharge);
 ACMD(do_buck);
 ACMD(do_dismount);
 ACMD(do_mount);
+ACMD(do_dismiss);
 ACMD(do_tame);
 ACMD(do_boosts);
 ACMD(do_respec);
