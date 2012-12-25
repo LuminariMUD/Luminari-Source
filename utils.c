@@ -23,7 +23,38 @@
 #include "interpreter.h"
 #include "class.h"
 #include "race.h"
+#include "spec_procs.h"  // for compute_ability
 
+
+
+/* function for hide-check
+ * ch = spotter (challenge), vict = hider (DC)
+ */
+bool can_see_hidden(struct char_data *ch, const struct char_data *vict)
+{
+  /* free passes */
+  if (!AFF_FLAGGED(vict, AFF_HIDE) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
+    return TRUE;
+  
+        /* do spot check here */
+  bool can_see = FALSE, challenge = dice(1,20), dc = (dice(1,20) + 10);
+  
+  //challenger bonuses/penalty (ch)
+  if (!IS_NPC(ch))
+    challenge += compute_ability(ch, ABILITY_SPOT);
+  else
+    challenge += GET_LEVEL(ch);
+  if (AFF_FLAGGED(ch, AFF_SPOT))
+    challenge += 10;
+  
+  //hider bonus/penalties (vict)
+  dc += compute_ability((struct char_data *)vict, ABILITY_HIDE);
+  
+  if (challenge > dc)
+    can_see = TRUE;
+  
+  return (can_see);
+}
 
 
 /* simple function to increase skills

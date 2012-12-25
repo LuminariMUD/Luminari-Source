@@ -373,7 +373,11 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* move points needed is avg. move loss for src and destination sect type */
   need_movement = (movement_loss[SECT(was_in)] +
 		   movement_loss[SECT(going_to)]) / 2;
-
+  
+  /* if in "spot-mode" double cost of movement */
+  if (AFF_FLAGGED(ch, AFF_SPOT))
+    need_movement *= 2;
+  
   /* Move Point Requirement Check */
   if (riding) {
     if (GET_MOVE(RIDING(ch)) < need_movement) {
@@ -391,7 +395,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     }
   }
    
-  if (riding && GET_ABILITY(ch, ABILITY_RIDING) <
+  if (riding && compute_ability(ch, ABILITY_RIDING) <
 	rand_number(1, GET_LEVEL(RIDING(ch)))-rand_number(-4,need_movement)) {
     act("$N rears backwards, throwing you to the ground.", FALSE, ch, 0, RIDING(ch), TO_CHAR);
     act("You rear backwards, throwing $n to the ground.", FALSE, ch, 0, RIDING(ch), TO_VICT);
@@ -914,7 +918,7 @@ static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scm
     return (1);
 
   percent = rand_number(1, 35);
-  skill_lvl = GET_ABILITY(ch, ABILITY_PICK_LOCK);
+  skill_lvl = compute_ability(ch, ABILITY_PICK_LOCK);
 
   if (keynum == NOTHING)
     send_to_char(ch, "Odd - you can't seem to find a keyhole.\r\n");

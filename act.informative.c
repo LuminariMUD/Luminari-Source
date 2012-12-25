@@ -441,8 +441,11 @@ static void list_char_to_char(struct char_data *list, struct char_data *ch)
       else if (CAN_INFRA(ch, i))
         send_to_char(ch, "\tnYou see the \trred\tn outline of someone or something.\r\n");
       else if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch) &&
-	       AFF_FLAGGED(i, AFF_INFRAVISION))
+	       AFF_FLAGGED(i, AFF_INFRAVISION) && INVIS_OK(ch, i))
         send_to_char(ch, "You see a pair of glowing red eyes looking your way.\r\n");
+      else if ((!IS_DARK(IN_ROOM(ch)) || CAN_SEE_IN_DARK(ch)) &&
+               AFF_FLAGGED(ch, AFF_SENSE_LIFE))
+        send_to_char(ch, "You sense a life-form.\r\n");
       send_to_char(ch, "%s", CCNRM(ch, C_NRM));
     }
 }

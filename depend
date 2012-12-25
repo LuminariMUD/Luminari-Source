@@ -52,7 +52,7 @@ class.o: class.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 comm.o: comm.c conf.h sysdep.h screen.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h house.h oasis.h \
  genolc.h dg_scripts.h dg_event.h constants.h boards.h act.h ban.h \
- fight.h spells.h modify.h quest.h ibt.h mud_event.h clan.h
+ fight.h spells.h modify.h quest.h ibt.h mud_event.h clan.h class.h
 config.o: config.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h config.h asciimap.h
 constants.o: constants.c conf.h sysdep.h structs.h protocol.h lists.h \
@@ -161,7 +161,7 @@ medit.o: medit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  dg_scripts.h screen.h fight.h class.h modify.h
 memorize.o: memorize.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h interpreter.h spells.h db.h comm.h mud_event.h dg_event.h \
- constants.h act.h
+ constants.h act.h spec_procs.h
 mobact.o: mobact.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h interpreter.h handler.h spells.h constants.h act.h \
  graph.h fight.h spec_procs.h mud_event.h dg_event.h
@@ -230,13 +230,13 @@ spell_parser.o: spell_parser.c conf.h sysdep.h structs.h protocol.h \
  dg_scripts.h fight.h constants.h mud_event.h dg_event.h spec_procs.h
 spells.o: spells.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h handler.h db.h constants.h interpreter.h \
- dg_scripts.h act.h fight.h
+ dg_scripts.h act.h fight.h mud_event.h dg_event.h
 tedit.o: tedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h comm.h db.h genolc.h oasis.h improved-edit.h \
  modify.h
 utils.o: utils.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h modify.h screen.h spells.h handler.h interpreter.h \
- class.h
+ class.h spec_procs.h
 weather.o: weather.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h
 zedit.o: zedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \

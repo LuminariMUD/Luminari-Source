@@ -583,7 +583,7 @@ ACMD(do_frightful)
       perform_flee(vict);
       perform_flee(vict);
       perform_flee(vict);
-      WAIT_STATE(vict, PULSE_VIOLENCE * 4);
+      WAIT_STATE(vict, PULSE_VIOLENCE * 3);
     }
   }
 

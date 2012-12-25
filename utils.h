@@ -38,6 +38,7 @@
 
 /* Public functions made available from utils.c. Documentation for all functions
  * are made available with the function definition. */
+bool can_see_hidden(struct char_data *ch, const struct char_data *vict);
 void increase_skill(struct char_data *ch, int skillnum);
 int convert_material_vnum(int obj_vnum);
 void basic_mud_log(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
@@ -1191,10 +1192,13 @@ void reset_acraft(struct char_data *ch);
    GET_LEVEL(sub) >= LVL_IMMORT))
 
 
-/** Defines if sub character can see the invisible obj character. */
+/** Defines if sub character can see the invisible obj character.
+ *  returns FALSE if sub cannot see obj 
+ *  returns TRUE if sub can see obj
+ */
 #define INVIS_OK(sub, obj) \
- ((!AFF_FLAGGED((obj),AFF_INVISIBLE) || AFF_FLAGGED(sub,AFF_DETECT_INVIS)) && \
- (!AFF_FLAGGED((obj), AFF_HIDE) || AFF_FLAGGED(sub, AFF_SENSE_LIFE)))
+ ((!AFF_FLAGGED((obj),AFF_INVISIBLE) || (AFF_FLAGGED(sub,AFF_DETECT_INVIS) || \
+               AFF_FLAGGED(sub,AFF_TRUE_SIGHT))) && (can_see_hidden(sub, obj)))
 
 
 /** Defines if sub character can see obj character, assuming mortal only

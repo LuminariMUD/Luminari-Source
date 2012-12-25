@@ -138,7 +138,7 @@ ACMD(do_mount) {
   } else if (GET_SIZE(vict) > (GET_SIZE(ch)+2)) {
     send_to_char(ch, "The mount is too large for you!\r\n");
     return;
-  } else if ((GET_ABILITY(ch, ABILITY_MOUNT)+1) <= rand_number(1, GET_LEVEL(vict))) {
+  } else if ((compute_ability(ch, ABILITY_MOUNT)+1) <= rand_number(1, GET_LEVEL(vict))) {
     act("You try to mount $N, but slip and fall off.", FALSE, ch, 0, vict, TO_CHAR);
     act("$n tries to mount you, but slips and falls off.", FALSE, ch, 0, vict, TO_VICT);
     act("$n tries to mount $N, but slips and falls off.", TRUE, ch, 0, vict, TO_NOTVICT);
@@ -152,7 +152,7 @@ ACMD(do_mount) {
   mount_char(ch, vict);
   
   if (IS_NPC(vict) && !AFF_FLAGGED(vict, AFF_TAMED) &&
-	GET_ABILITY(ch, ABILITY_MOUNT) <= rand_number(1, GET_LEVEL(vict))) {
+	compute_ability(ch, ABILITY_MOUNT) <= rand_number(1, GET_LEVEL(vict))) {
     act("$N suddenly bucks upwards, throwing you violently to the ground!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n is thrown to the ground as $N violently bucks!", TRUE, ch, 0, vict, TO_NOTVICT);
     act("You buck violently and throw $n to the ground.", FALSE, ch, 0, vict, TO_VICT);
@@ -233,7 +233,7 @@ ACMD(do_tame) {
   }
 
   new_affect(&af);  
-  af.duration = 50 + GET_ABILITY(ch, ABILITY_TAME) * 4;
+  af.duration = 50 + compute_ability(ch, ABILITY_TAME) * 4;
   SET_BIT_AR(af.bitvector, AFF_TAMED);
   affect_to_char(vict, &af);
   
@@ -767,9 +767,32 @@ ACMD(do_hide)
   }
 
   send_to_char(ch, "You attempt to hide yourself.\r\n");
-
   SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
 }
+
+
+ACMD(do_spot)
+{
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
+    send_to_char(ch, "You are unable to move to make your attempt!\r\n");
+    return;
+  }
+
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_SPOT)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_SPOT)) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPOT);
+    send_to_char(ch, "You stop trying to spot...\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You enter spot mode... (movement cost is doubled)\r\n");
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_SPOT);
+}
+
 
 ACMD(do_steal)
 {
@@ -846,7 +869,7 @@ ACMD(do_steal)
 
       percent += GET_OBJ_WEIGHT(obj);	/* Make heavy harder */
 
-      if (percent > GET_ABILITY(ch, ABILITY_STEAL)) {
+      if (percent > compute_ability(ch, ABILITY_STEAL)) {
 	ohoh = TRUE;
 	send_to_char(ch, "Oops..\r\n");
 	act("$n tried to steal something from you!", FALSE, ch, 0, vict, TO_VICT);
@@ -868,7 +891,7 @@ ACMD(do_steal)
       }
     }
   } else {			/* Steal some coins */
-    if (AWAKE(vict) && (percent > GET_ABILITY(ch, ABILITY_STEAL))) {
+    if (AWAKE(vict) && (percent > compute_ability(ch, ABILITY_STEAL))) {
       ohoh = TRUE;
       send_to_char(ch, "Oops..\r\n");
       act("You discover that $n has $s hands in your wallet.", FALSE, ch, 0, vict, TO_VICT);
