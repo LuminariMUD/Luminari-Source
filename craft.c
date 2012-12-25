@@ -438,8 +438,8 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
 }
 
 
-/* supplyorder - crafting quest command */   
-int supplyorder(struct obj_data *kit, struct char_data *ch) {
+/* autocraft - crafting quest command */   
+int autocraft(struct obj_data *kit, struct char_data *ch) {
   int material, obj_vnum, num_mats = 0, material_level = 1;
   struct obj_data *obj = NULL;
   
@@ -988,7 +988,7 @@ SPECIAL(crafting_kit)
 {       
   if (!CMD_IS("resize") && !CMD_IS("create") && !CMD_IS("checkcraft") &&
       !CMD_IS("restring") && !CMD_IS("augment") && !CMD_IS("convert") &&
-      !CMD_IS("supplyorder"))
+      !CMD_IS("autocraft"))
     return 0;
     
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
@@ -1008,7 +1008,7 @@ SPECIAL(crafting_kit)
     
   /* Some of the commands require argument */
   if (!*argument && !CMD_IS("checkcraft") && !CMD_IS("augment") &&
-      !CMD_IS("supplyorder") && !CMD_IS("convert")) {
+      !CMD_IS("autocraft") && !CMD_IS("convert")) {
     if (CMD_IS("create") || CMD_IS("restring"))
       send_to_char(ch, "Please provide an item description containing the "
                        "material and item name in the string.\r\n");
@@ -1023,7 +1023,7 @@ SPECIAL(crafting_kit)
     if (CMD_IS("augment"))
       send_to_char(ch, "You must place at least two crystals of the same "
                        "type into the kit in order to augment.\r\n");
-    else if (CMD_IS("supplyorder")) {
+    else if (CMD_IS("autocraft")) {
       if (GET_AUTOCQUEST_MATERIAL(ch))
         send_to_char(ch, "You must place %d units of %s or a similar type of "
                 "material (all the same type) into the kit to continue.\r\n",
@@ -1063,8 +1063,8 @@ SPECIAL(crafting_kit)
     return augment(kit, ch);
   else if (CMD_IS("convert"))
     return convert(kit, ch);
-  else if (CMD_IS("supplyorder"))
-    return supplyorder(kit, ch);
+  else if (CMD_IS("autocraft"))
+    return autocraft(kit, ch);
   else if (CMD_IS("create"))  
     return create(argument, kit, ch, 1);
   else if (CMD_IS("checkcraft"))
