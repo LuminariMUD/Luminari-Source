@@ -110,6 +110,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "autoscan"  , "autoscan" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOSCAN },
   { "autosplit", "autospl" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOSPLIT },
   { "abilityset" , "abilityset", POS_SLEEPING, do_abilityset , LVL_GRGOD, 0 },
+  { "autocraft"  , "autocraft"     , POS_STANDING, do_not_here , 1, 0 },
 
   { "backstab" , "ba"      , POS_STANDING, do_backstab , 1, 0 },
   { "ban"      , "ban"     , POS_DEAD    , do_ban      , LVL_GRGOD, 0 },

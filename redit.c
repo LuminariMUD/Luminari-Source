@@ -311,6 +311,8 @@ static void redit_disp_extradesc_menu(struct descriptor_data *d)
 
   clear_screen(d);
   write_to_output(d,
+          "(To delete an extra description, clear the description "
+          "with the '/c' then '/s' and quit.)\r\n"
 	  "%s1%s) Keywords: %s%s\r\n"
 	  "%s2%s) Description:\r\n%s%s\r\n"
 	  "%s3%s) Goto next description: ",

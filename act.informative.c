@@ -1007,7 +1007,7 @@ ACMD(do_innates)
     send_to_char(ch, "\r\n");
     if (CLASS_LEVEL(ch, CLASS_BERSERKER) >= 4) {
       send_to_char(ch, "Berserker Innates:\r\n");
-      send_to_char(ch, "barbarian shrug (level / 4 damage reduction)\r\n");
+      send_to_char(ch, "berserker shrug (level / 4 damage reduction)\r\n");
     }
     if (CLASS_LEVEL(ch, CLASS_MAGIC_USER)) {
       send_to_char(ch, "Magic-User Innates:\r\n");
