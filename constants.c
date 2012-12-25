@@ -451,6 +451,8 @@ const char *affected_bits[] =
   "Minor-Globed",
   "Acid-Shielded",
   "Size-Changed",
+  "True-Sight",
+  "Spot-Mode",
   "\n"
 };
 
@@ -663,6 +665,7 @@ const char *extra_bits[] = {
   "Anti-Half-Orc",
   "Anti-Gnome",
   "Anti-Berserker",
+  "Anti-Trelux",
   "\n"
 };
 

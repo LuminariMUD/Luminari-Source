@@ -655,7 +655,7 @@ EVENTFUNC(event_casting)
 	// concentration challenge
       failure += spell_info[spellnum].min_level[CASTING_CLASS(ch)] * 2;
       if (!IS_NPC(ch))
-        failure -= CASTER_LEVEL(ch) + ((GET_ABILITY(ch, ABILITY_CONCENTRATION) - 3) * 2);
+        failure -= CASTER_LEVEL(ch) + ((compute_ability(ch, ABILITY_CONCENTRATION) - 3) * 2);
       else
         failure -= (GET_LEVEL(ch)) * 2;
         //chance of failure calculated here, so far:  taunt, grappled

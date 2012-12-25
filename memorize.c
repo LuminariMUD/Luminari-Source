@@ -15,6 +15,7 @@
 #include "mud_event.h"
 #include "constants.h"
 #include "act.h"
+#include "spec_procs.h"  // for compute_ability
 
 char buf[MAX_INPUT_LENGTH];
 #define	TERMINATE	0
@@ -449,7 +450,7 @@ void updateMemming(struct char_data *ch, int class)
 
   //calaculate memtime bonus based on concentration
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_CONCENTRATION)) {
-    bonus = MAX(1, GET_ABILITY(ch, ABILITY_CONCENTRATION) / 2 - 3);
+    bonus = MAX(1, compute_ability(ch, ABILITY_CONCENTRATION) / 2 - 3);
   }
 
   //if you aren't resting, can't mem

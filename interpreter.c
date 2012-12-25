@@ -348,6 +348,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "spelllist"	, "spelllist" , POS_RESTING , do_spelllist	 , 1, 0 },
   { "spells"	, "spells" , POS_RESTING , do_spells	 , 1, 0 },
   { "split"    , "split"   , POS_SITTING , do_split    , 1, 0 },
+  { "spot"     , "spot"    , POS_STANDING, do_spot     , 1, 0 },
   { "stand"    , "st"      , POS_RESTING , do_stand    , 0, 0 },
   { "stat"     , "stat"    , POS_DEAD    , do_stat     , LVL_IMMORT, 0 },
   { "steal"    , "ste"     , POS_STANDING, do_steal    , 1, 0 },
