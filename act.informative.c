@@ -3160,7 +3160,7 @@ ACMD(do_scan)
   }
 
   for (door = 0; door < DIR_COUNT; door++) {
-    send_to_char(ch, "Looking %s: ", dirs[door]);
+    send_to_char(ch, "Scanning %s:\r\n", dirs[door]);
     look_in_direction(ch, door);
     for (range = 1; range<= maxrange; range++) {
       if (world[scanned_room].dir_option[door] && world[scanned_room].dir_option[door]->to_room != NOWHERE &&
