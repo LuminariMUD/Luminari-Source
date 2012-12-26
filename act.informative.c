@@ -1266,6 +1266,8 @@ ACMD(do_score)
 	level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
 
   send_to_char(ch, "\tCStatus:\tn ");
+  if (FIGHTING(ch))
+    send_to_char(ch, "(Fighting) - ");
   switch (GET_POS(ch)) {
     case POS_DEAD: send_to_char(ch, "Dead\r\n"); break;
     case POS_MORTALLYW: send_to_char(ch, "Mortally wounded\r\n"); break;

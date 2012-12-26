@@ -489,7 +489,7 @@ ACMD(do_quit)
 
   if (subcmd != SCMD_QUIT && GET_LEVEL(ch) < LVL_IMMORT)
     send_to_char(ch, "You have to type quit--no less, to quit!\r\n");
-  else if (GET_POS(ch) == POS_FIGHTING)
+  else if (FIGHTING(ch))
     send_to_char(ch, "No way!  You're fighting for your life!\r\n");
   else if (GET_POS(ch) < POS_STUNNED) {
     send_to_char(ch, "You die before your time...\r\n");

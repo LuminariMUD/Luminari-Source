@@ -245,7 +245,7 @@ static int banzaii(struct char_data *ch)
 {
   struct char_data *chOpponent;
 
-  if (!AWAKE(ch) || GET_POS(ch) == POS_FIGHTING || !(chOpponent = get_victim(ch)))
+  if (!AWAKE(ch) || FIGHTING(ch) || !(chOpponent = get_victim(ch)))
     return (FALSE);
 
   act("$n roars: 'Protect the Kingdom of Great King Welmar!  BANZAIIII!!!'",
@@ -400,7 +400,7 @@ SPECIAL(king_welmar)
       (GET_POS(ch) == POS_SLEEPING && !move))
     return (FALSE);
 
-  if (GET_POS(ch) == POS_FIGHTING) {
+  if (FIGHTING(ch)) {
     fry_victim(ch);
     return (FALSE);
   } else if (banzaii(ch))
@@ -483,7 +483,7 @@ SPECIAL(training_master)
 {
   struct char_data *pupil1, *pupil2 = NULL, *tch;
 
-  if (!AWAKE(ch) || (GET_POS(ch) == POS_FIGHTING))
+  if (!AWAKE(ch) || FIGHTING(ch))
     return (FALSE);
 
   if (cmd)
@@ -598,7 +598,7 @@ static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum
     if (FIGHTING(twin) && 2 * GET_HIT(twin) < GET_HIT(ch))
       do_npc_rescue(ch, twin);
 
-  if (GET_POS(ch) != POS_FIGHTING)
+  if (!FIGHTING(ch))
     banzaii(ch);
 
   return (FALSE);
@@ -617,7 +617,7 @@ static int castle_cleaner(struct char_data *ch, int cmd, int gripe)
 {
   struct obj_data *i;
 
-  if (cmd || !AWAKE(ch) || GET_POS(ch) == POS_FIGHTING)
+  if (cmd || !AWAKE(ch) || FIGHTING(ch))
     return (FALSE);
 
   for (i = world[IN_ROOM(ch)].contents; i; i = i->next_content) {
@@ -646,7 +646,7 @@ SPECIAL(cleaning)
 /* CastleGuard. Standard routine for ordinary castle guards. */
 SPECIAL(CastleGuard)
 {
-  if (cmd || !AWAKE(ch) || (GET_POS(ch) == POS_FIGHTING))
+  if (cmd || !AWAKE(ch) || FIGHTING(ch))
     return (FALSE);
 
   return (banzaii(ch));
@@ -658,7 +658,7 @@ SPECIAL(DicknDavid)
   if (!AWAKE(ch))
     return (FALSE);
 
-  if (!cmd && GET_POS(ch) != POS_FIGHTING)
+  if (!cmd && !FIGHTING(ch))
     banzaii(ch);
 
   return (block_way(ch, cmd, argument, castle_virtual(36), 1));
@@ -669,7 +669,7 @@ SPECIAL(peter)
 {
   struct char_data *ch_guard = NULL;
 
-  if (cmd || !AWAKE(ch) || GET_POS(ch) == POS_FIGHTING)
+  if (cmd || !AWAKE(ch) || !FIGHTING(ch))
     return (FALSE);
 
   if (banzaii(ch))
@@ -733,7 +733,7 @@ SPECIAL(jerry)
 {
   struct char_data *gambler1, *gambler2 = NULL, *tch;
 
-  if (!AWAKE(ch) || (GET_POS(ch) == POS_FIGHTING))
+  if (!AWAKE(ch) || FIGHTING(ch))
     return (FALSE);
 
   if (cmd)
