@@ -403,11 +403,15 @@ int compute_ability(struct char_data *ch, int abilityNum)
   if (abilityNum < 1 || abilityNum > NUM_ABILITIES)
     return -1;
 
-  value = GET_ABILITY(ch, abilityNum);
-
-  //bonuses
+  //universal bonuses
   if (affected_by_spell(ch, SPELL_HEROISM))
     value += 2;
+
+  // try to avoid sending NPC's here, but just in case:
+  if (IS_NPC(ch))
+    value += GET_LEVEL(ch);
+  else
+    value += GET_ABILITY(ch, abilityNum);
 
   switch (abilityNum) {
 	case ABILITY_TUMBLE:

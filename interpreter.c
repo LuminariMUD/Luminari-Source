@@ -615,7 +615,10 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You are too busy casting [you can 'abort' the spell]...\r\n");
   else if (AFF_FLAGGED(ch, AFF_HIDE) && AFF_FLAGGED(ch, AFF_SNEAK) &&
            !is_abbrev(complete_cmd_info[cmd].command, "look") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "trip") && 
            !is_abbrev(complete_cmd_info[cmd].command, "north") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "up") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "down") && 
            !is_abbrev(complete_cmd_info[cmd].command, "east") && 
            !is_abbrev(complete_cmd_info[cmd].command, "west") && 
            !is_abbrev(complete_cmd_info[cmd].command, "south") && 

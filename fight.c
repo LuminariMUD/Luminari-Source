@@ -1471,9 +1471,6 @@ int damage(struct char_data *ch, struct char_data *victim,
   }
   if (victim->master == ch)  // pet leaves you
     stop_follower(victim);
-  // lose hide/invis
-  if (AFF_FLAGGED(ch, AFF_INVISIBLE) || AFF_FLAGGED(ch, AFF_HIDE))
-    appear(ch);
   if (!CONFIG_PK_ALLOWED) {  // PK check
     check_killer(ch, victim);
     if (PLR_FLAGGED(ch, PLR_KILLER) && (ch != victim))
@@ -1575,6 +1572,10 @@ int damage(struct char_data *ch, struct char_data *victim,
   //too hurt to continue
   if (GET_POS(victim) <= POS_STUNNED && FIGHTING(victim) != NULL)
     stop_fighting(victim);
+
+  // lose hide/invis
+  if (AFF_FLAGGED(ch, AFF_INVISIBLE) || AFF_FLAGGED(ch, AFF_HIDE))
+    appear(ch);
 
   if (GET_POS(victim) == POS_DEAD)  // victim died
     return (dam_killed_vict(ch, victim, dam, attacktype, dam_type));

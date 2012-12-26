@@ -48,8 +48,12 @@ bool can_see_hidden(struct char_data *ch, const struct char_data *vict)
     challenge += 10;
   
   //hider bonus/penalties (vict)
-  dc += compute_ability((struct char_data *)vict, ABILITY_HIDE);
-  
+  if (!IS_NPC(ch))
+    dc += compute_ability((struct char_data *)vict, ABILITY_HIDE);
+  else
+    dc += GET_LEVEL(vict);
+  dc += (GET_SIZE(ch) - GET_SIZE(vict)) * 2;  //size bonus
+
   if (challenge > dc)
     can_see = TRUE;
   
