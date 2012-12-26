@@ -537,11 +537,6 @@ void command_interpreter(struct char_data *ch, char *argument)
   char *line;
   char arg[MAX_INPUT_LENGTH];
 
-  if (AFF_FLAGGED(ch, AFF_HIDE)) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
-    send_to_char(ch, "You step out of the shadows...\r\n");
-  }
-
   /* just drop to next line for hitting CR */
   skip_spaces(&argument);
   if (!*argument)
@@ -618,7 +613,29 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You can't use immortal commands while switched.\r\n");
   else if (IS_CASTING(ch) && !is_abbrev(complete_cmd_info[cmd].command, "abort"))
     send_to_char(ch, "You are too busy casting [you can 'abort' the spell]...\r\n");
-  else if (char_has_mud_event(ch, eCRAFTING) && !is_abbrev(complete_cmd_info[cmd].command, "gossip")
+  else if (AFF_FLAGGED(ch, AFF_HIDE) && AFF_FLAGGED(ch, AFF_SNEAK) &&
+           !is_abbrev(complete_cmd_info[cmd].command, "look") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "north") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "east") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "west") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "south") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "get") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "take") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "group") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "gtell") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "gsay") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "consider") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "backstab") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "steal") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "hit") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "kill") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "sit") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "stand") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "scan")
+           ) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
+    send_to_char(ch, "You step out of the shadows...\r\n");
+  } else if (char_has_mud_event(ch, eCRAFTING) && !is_abbrev(complete_cmd_info[cmd].command, "gossip")
             && !is_abbrev(complete_cmd_info[cmd].command, "chat"))
     send_to_char(ch, "You are too busy crafting [you can 'gossip' or 'chat']...\r\n");
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
