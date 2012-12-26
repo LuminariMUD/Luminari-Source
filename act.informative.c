@@ -423,6 +423,11 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
 }
 
+
+/*  The CAN_SEE and CAN_INFRA macros are both going to do a hide-check
+ *  so we added a rule that infra won't work for hidden targets
+ *    -zusuk
+ */
 static void list_char_to_char(struct char_data *list, struct char_data *ch)
 {
   struct char_data *i;
@@ -438,7 +443,7 @@ static void list_char_to_char(struct char_data *list, struct char_data *ch)
         continue; 
       if (CAN_SEE(ch, i))
         list_one_char(i, ch);
-      else if (CAN_INFRA(ch, i))
+      else if (CAN_INFRA(ch, i) && !AFF_FLAGGED(i, AFF_HIDE))
         send_to_char(ch, "\tnYou see the \trred\tn outline of someone or something.\r\n");
       else if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch) &&
 	       AFF_FLAGGED(i, AFF_INFRAVISION) && INVIS_OK(ch, i))
