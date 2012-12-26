@@ -283,6 +283,10 @@ ACMD(do_backstab)
   percent = rand_number(1, 101);	/* 101% is a complete failure */
   percent2 = rand_number(1, 101);	/* 101% is a complete failure */
   prob = GET_SKILL(ch, SKILL_BACKSTAB);
+  if (AFF_FLAGGED(ch, AFF_HIDE))
+    prob += 4;  //minor bonus for being hidden
+  if (AFF_FLAGGED(ch, AFF_SNEAK))
+    prob += 4;  //minor bonus for being sneaky
 
   int successful = 0;
 
