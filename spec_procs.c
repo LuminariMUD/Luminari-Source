@@ -813,8 +813,7 @@ SPECIAL(mayor)
       path_index = 0;
     }
   }
-  if (cmd || !move || (GET_POS(ch) < POS_SLEEPING) ||
-      (GET_POS(ch) == POS_FIGHTING))
+  if (cmd || !move || (GET_POS(ch) < POS_SLEEPING) || FIGHTING(ch))
     return (FALSE);
 
   switch (path[path_index]) {
@@ -911,7 +910,7 @@ static void npc_steal(struct char_data *ch, struct char_data *victim)
 /* Quite lethal to low-level characters. */
 SPECIAL(snake)
 {
-  if (cmd || GET_POS(ch) != POS_FIGHTING || !FIGHTING(ch))
+  if (cmd || !FIGHTING(ch))
     return (FALSE);
 
   if (IN_ROOM(FIGHTING(ch)) != IN_ROOM(ch) || rand_number(0, GET_LEVEL(ch)) != 0)
@@ -943,7 +942,7 @@ SPECIAL(magic_user)
 {
   struct char_data *vict;
 
-  if (cmd || GET_POS(ch) != POS_FIGHTING)
+  if (cmd || !FIGHTING(ch))
     return (FALSE);
 
   /* pseudo-randomly choose someone in the room who is fighting me */
@@ -1330,7 +1329,7 @@ SPECIAL(clan_cleric)
       return TRUE;
     }
 
-    if (GET_POS(ch) == POS_FIGHTING) {
+    if (FIGHTING(ch)) {
       send_to_char(ch, "You can't do that while fighting!\r\n");
       return TRUE;
     }
