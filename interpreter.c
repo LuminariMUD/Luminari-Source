@@ -613,7 +613,10 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You can't use immortal commands while switched.\r\n");
   else if (IS_CASTING(ch) && !is_abbrev(complete_cmd_info[cmd].command, "abort"))
     send_to_char(ch, "You are too busy casting [you can 'abort' the spell]...\r\n");
-  else if (AFF_FLAGGED(ch, AFF_HIDE) && AFF_FLAGGED(ch, AFF_SNEAK) &&
+  else if (AFF_FLAGGED(ch, AFF_HIDE) && !AFF_FLAGGED(ch, AFF_SNEAK)) { 
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
+    send_to_char(ch, "You step out of the shadows...\r\n");
+  } else if (AFF_FLAGGED(ch, AFF_HIDE) && AFF_FLAGGED(ch, AFF_SNEAK) &&
            !is_abbrev(complete_cmd_info[cmd].command, "look") && 
            !is_abbrev(complete_cmd_info[cmd].command, "trip") && 
            !is_abbrev(complete_cmd_info[cmd].command, "north") && 
@@ -625,6 +628,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "get") && 
            !is_abbrev(complete_cmd_info[cmd].command, "take") && 
            !is_abbrev(complete_cmd_info[cmd].command, "group") && 
+           !is_abbrev(complete_cmd_info[cmd].command, "affects") && 
            !is_abbrev(complete_cmd_info[cmd].command, "gtell") && 
            !is_abbrev(complete_cmd_info[cmd].command, "gsay") && 
            !is_abbrev(complete_cmd_info[cmd].command, "consider") && 
