@@ -185,6 +185,7 @@
 #define NUM_SPELLS    142
 
 /* Insert new spells here, up to MAX_SPELLS */
+/* make sure this matches up with structs.h spellbook define */
 #define MAX_SPELLS		    400
 
 /* PLAYER SKILLS - Numbered from MAX_SPELLS+1 to MAX_SKILLS */

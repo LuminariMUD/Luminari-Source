@@ -544,21 +544,22 @@ ASPELL(spell_identify)  // divination
       int hasVal = 0;
 
       if (GET_OBJ_VAL(obj, 1) >= 1) {
-	i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(obj, 1)));
+        i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s",
+                skill_name(GET_OBJ_VAL(obj, 1)));
         if (i >= 0)
           len += i;
         hasVal++;
       }
 
       if (GET_OBJ_VAL(obj, 2) >= 1 && len < sizeof(bitbuf)) {
-	i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(obj, 2)));
+        i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(obj, 2)));
         if (i >= 0)
           len += i;
         hasVal++;
       }
 
       if (GET_OBJ_VAL(obj, 3) >= 1 && len < sizeof(bitbuf)) {
-	i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(obj, 3)));
+        i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(obj, 3)));
         if (i >= 0)
           len += i;
         hasVal++;

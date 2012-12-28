@@ -2012,21 +2012,61 @@ char *parse_object(FILE *obj_f, int nr)
       exit(1);
     }
     switch (*line) {
-      case 'I':
+      case 'A':
+        if (j >= MAX_OBJ_AFFECT) {
+          log("SYSERR: Too many A fields (%d max), %s", MAX_OBJ_AFFECT, buf2);
+          exit(1);
+        }
         if (!get_line(obj_f, line)) {
-          log("SYSERR: Format error in 'I' field, %s\n"
-                  "...expecting numeric constant but file ended!", buf2);
+          log("SYSERR: Format error in 'A' field, %s\n"
+                  "...expecting 2 numeric constants but file ended!", buf2);
           exit(1);
         }
-        if (sscanf(line, "%d", t) != 1) {
-          log("SYSERR: Format error in 'I' field, %s\n"
-                  "...expecting numeric argument\n"
-                  "...offending line: '%s'", buf2, line);
+
+        if ((retval = sscanf(line, " %d %d ", t, t + 1)) != 2) {
+          log("SYSERR: Format error in 'A' field, %s\n"
+                  "...expecting 2 numeric arguments, got %d\n"
+                  "...offending line: '%s'", buf2, retval, line);
           exit(1);
         }
-        GET_OBJ_SIZE(obj_proto + i) = t[0];
-        if (GET_OBJ_SIZE(obj_proto + i) == 0) // cheesy conversion -zusuk
-          GET_OBJ_SIZE(obj_proto + i) = SIZE_MEDIUM;
+        obj_proto[i].affected[j].location = t[0];
+        obj_proto[i].affected[j].modifier = t[1];
+        j++;
+        break;
+      case 'B':
+        if (j >= SPELLBOOK_SIZE) {
+          log("SYSERR: Unknown spellbook slot in S field, %s", buf2);
+          exit(1);
+        }
+        
+        if (!get_line(obj_f, line)) {
+          log("SYSERR: Format error in 'S' field, %s\n"
+              "...expecting 2 numeric constants but file ended!", buf2);
+          exit(1);
+        }
+
+        if ((retval = sscanf(line, " %d %d ", t, t + 1)) != 2) {
+          log("SYSERR: Format error in 'S' field, %s\n"
+              "...expecting 2 numeric arguments, got %d\n"
+              "...offending line: '%s'", buf2, retval, line);
+          exit(1);
+        }
+        
+        if (!obj_proto[i].sbinfo) {
+          CREATE(obj_proto[i].sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+          memset((char *) obj_proto[i].sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
+        }
+        
+        obj_proto[i].sbinfo[j].spellname = t[0];
+        obj_proto[i].sbinfo[j].pages = t[1];
+        j++;
+        break;
+      case 'E':
+        CREATE(new_descr, struct extra_descr_data, 1);
+        new_descr->keyword = fread_string(obj_f, buf2);
+        new_descr->description = fread_string(obj_f, buf2);
+        new_descr->next = obj_proto[i].ex_description;
+        obj_proto[i].ex_description = new_descr;
         break;
       case 'G':
         if (!get_line(obj_f, line)) {
@@ -2056,33 +2096,21 @@ char *parse_object(FILE *obj_f, int nr)
         }
         GET_OBJ_MATERIAL(obj_proto + i) = t[0];
         break;
-      case 'E':
-        CREATE(new_descr, struct extra_descr_data, 1);
-        new_descr->keyword = fread_string(obj_f, buf2);
-        new_descr->description = fread_string(obj_f, buf2);
-        new_descr->next = obj_proto[i].ex_description;
-        obj_proto[i].ex_description = new_descr;
-        break;
-      case 'A':
-        if (j >= MAX_OBJ_AFFECT) {
-          log("SYSERR: Too many A fields (%d max), %s", MAX_OBJ_AFFECT, buf2);
-          exit(1);
-        }
+      case 'I':
         if (!get_line(obj_f, line)) {
-          log("SYSERR: Format error in 'A' field, %s\n"
-                  "...expecting 2 numeric constants but file ended!", buf2);
+          log("SYSERR: Format error in 'I' field, %s\n"
+                  "...expecting numeric constant but file ended!", buf2);
           exit(1);
         }
-
-        if ((retval = sscanf(line, " %d %d ", t, t + 1)) != 2) {
-          log("SYSERR: Format error in 'A' field, %s\n"
-                  "...expecting 2 numeric arguments, got %d\n"
-                  "...offending line: '%s'", buf2, retval, line);
+        if (sscanf(line, "%d", t) != 1) {
+          log("SYSERR: Format error in 'I' field, %s\n"
+                  "...expecting numeric argument\n"
+                  "...offending line: '%s'", buf2, line);
           exit(1);
         }
-        obj_proto[i].affected[j].location = t[0];
-        obj_proto[i].affected[j].modifier = t[1];
-        j++;
+        GET_OBJ_SIZE(obj_proto + i) = t[0];
+        if (GET_OBJ_SIZE(obj_proto + i) == 0) // cheesy conversion -zusuk
+          GET_OBJ_SIZE(obj_proto + i) = SIZE_MEDIUM;
         break;
       case 'S': // weapon spells
         /*
@@ -2552,6 +2580,7 @@ struct obj_data *create_obj(void)
 struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
 {
   struct obj_data *obj;
+  int j;
   obj_rnum i = type == VIRTUAL ? real_object(nr) : nr;
 
   if (i == NOTHING || i > top_of_objt) {
@@ -2570,6 +2599,14 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   GET_ID(obj) = max_obj_id++;
   /* find_obj helper */
   add_to_lookup_table(GET_ID(obj), (void *)obj);
+
+  if (obj_proto[i].sbinfo) {
+    CREATE(obj->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+    for (j = 0; j < SPELLBOOK_SIZE; j++) {
+      obj->sbinfo[j].spellname = obj_proto[i].sbinfo[j].spellname;
+      obj->sbinfo[j].pages = obj_proto[i].sbinfo[j].pages;
+    }
+  }
 
   copy_proto_script(&obj_proto[i], obj, OBJ_TRIGGER);
   assign_triggers(obj, OBJ_TRIGGER);

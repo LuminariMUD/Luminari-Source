@@ -39,7 +39,7 @@
 /* YES / NO; TRUE / FALSE are all defined in utils.h */
 
 /* Can Scripts be attached to players? */
-int script_players = NO;
+int script_players = YES;
 
 /* pk_allowed sets the tone of the entire game.  If pk_allowed is set to NO,
  * then players will not be allowed to kill, summon, charm, or sleep other
@@ -63,21 +63,21 @@ int tunnel_size = 2;
 
 /* Exp change limits. */
 int max_exp_gain = 100000;	/* max gainable per kill */
-int max_exp_loss = 500000;	/* max losable per death */
+int max_exp_loss = 200000;	/* max losable per death */
 
 /* Number of tics (usually 75 seconds) before PC/NPC corpses decompose. */
 int max_npc_corpse_time = 5;
 int max_pc_corpse_time = 10;
 
 /* How many ticks before a player is sent to the void or idle-rented. */
-int idle_void = 8;
-int idle_rent_time = 48;
+int idle_void = 99;
+int idle_rent_time = 199;
 
 /* This level and up is immune to idling, LVL_IMPL+1 will disable it. */
 int idle_max_level = LVL_GOD;
 
 /* Should items in death traps automatically be junked? */
-int dts_are_dumps = YES;
+int dts_are_dumps = NO;
 
 /* Whether you want items that immortals load to appear on the ground or not.
  * It is most likely best to set this to 'YES' so that something else doesn't
@@ -111,7 +111,7 @@ int diagonal_dirs = NO;
 int free_rent = YES;
 
 /* Maximum number of items players are allowed to rent. */
-int max_obj_save = 30;
+int max_obj_save = 999;
 
 /* Receptionist's surcharge on top of item costs. */
 int min_rent_cost = 100;
@@ -125,13 +125,13 @@ int auto_save = YES;
 /* if auto_save (above) is yes, how often (in minutes) should the MUD Crash-save
  * people's objects?   Also, this number indicates how often the MUD will Crash-
  * save players' houses. */
-int autosave_time = 5;
+int autosave_time = 10;
 
 /* Lifetime of crashfiles and forced-rent (idlesave) files in days. */
-int crash_file_timeout = 10;
+int crash_file_timeout = 50;
 
 /* Lifetime of normal rent files in days. */
-int rent_file_timeout = 30;
+int rent_file_timeout = 999;
 
 /* Do you want to automatically wipe players who've been gone too long? */
 int auto_pwipe = NO;
@@ -200,7 +200,7 @@ int bitsavetodisk = TRUE;
  * the command-line.  NOTE WELL: If you're using the 'autorun' script, the port
  * number there will override this setting. Change the PORT= line in autorun
  * instead of (or in addition to) changing this. */
-ush_int DFLT_PORT = 4101;
+ush_int DFLT_PORT = 4100;
 
 /* IP address to which the MUD should bind.  This is only useful if you're
  * running Circle on a host that host more than one IP interface, and you only
