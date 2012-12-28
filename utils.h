@@ -1047,6 +1047,11 @@ do                                                              \
 /** Object size */
 #define GET_OBJ_SIZE(obj)			((obj)->obj_flags.size)
 
+/** Object (spellbook) # of pages */
+#define GET_OBJ_PAGES(obj)			((obj)->obj_flags.spellbook_pages)
+/** Object (spellbook) spellnum at given location */
+#define GET_OBJ_SB_NUM(obj, loc)  ((obj)->obj_flags.spellbook_spellnum[loc])
+
 /** Weight of obj. */
 #define GET_OBJ_WEIGHT(obj)	((obj)->obj_flags.weight)
 

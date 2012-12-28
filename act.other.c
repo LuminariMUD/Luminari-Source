@@ -624,21 +624,21 @@ ACMD(do_lore)
       int hasVal = 0;
 
       if (GET_OBJ_VAL(tobj, 1) >= 1) {
-	i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(tobj, 1)));
+        i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(tobj, 1)));
         if (i >= 0)
           len += i;
         hasVal++;
       }
 
       if (GET_OBJ_VAL(tobj, 2) >= 1 && len < sizeof(bitbuf)) {
-	i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(tobj, 2)));
+        i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(tobj, 2)));
         if (i >= 0)
           len += i;
         hasVal++;
       }
 
       if (GET_OBJ_VAL(tobj, 3) >= 1 && len < sizeof(bitbuf)) {
-	i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(tobj, 3)));
+        i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(tobj, 3)));
         if (i >= 0)
           len += i;
         hasVal++;
@@ -661,6 +661,9 @@ ACMD(do_lore)
 		GET_OBJ_VAL(tobj, 1), GET_OBJ_VAL(tobj, 2), ((GET_OBJ_VAL(tobj, 2) + 1) / 2.0) * GET_OBJ_VAL(tobj, 1));
       send_to_char(ch, "Weapon Type: %s\r\n", attack_hit_text[GET_OBJ_VAL(tobj, 3)].singular);
       send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(tobj)]);
+      break;
+    case ITEM_SPELLBOOK:
+      send_to_char(ch, "Number of pages:  %d", GET_OBJ_VAL(tobj, 1));
       break;
     case ITEM_ARMOR:
       send_to_char(ch, "AC-apply is %d\r\n", GET_OBJ_VAL(tobj, 0));

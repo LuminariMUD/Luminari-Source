@@ -1,8 +1,11 @@
-/*
-   Realms of Luminari
-   File: memorize.c
-   Usage: spell memorization functions
-*/
+/*******************************************
+ *  Realms of Luminari
+ *  File: memorize.c
+ *  Usage: spell memorization functions
+ *         spellbook-related functions are here too
+ *  Authors:  Nashak and Zusuk
+ *            Spellbook functions taken from CWG project, adapted by Zusuk
+ ***********************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -15,10 +18,154 @@
 #include "mud_event.h"
 #include "constants.h"
 #include "act.h"
+#include "handler.h"  // for obj_from_char()
 #include "spec_procs.h"  // for compute_ability
 
 char buf[MAX_INPUT_LENGTH];
 #define	TERMINATE	0
+
+/* =============================================== */
+/* ==================Spellbooks================= */
+/* =============================================== */
+
+
+/* this function displays the contents of a scroll */
+void display_scroll(struct char_data *ch, struct obj_data *obj)
+{
+  if (GET_OBJ_TYPE(obj) != ITEM_SCROLL)
+    return;
+  
+  send_to_char(ch, "The scroll contains the following spell(s):\r\n");
+  send_to_char(ch, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
+  if (GET_OBJ_VAL(obj, 1) >= 1)
+    send_to_char(ch, "%-20s\r\n", skill_name(GET_OBJ_VAL(obj, 1)));
+  if (GET_OBJ_VAL(obj, 2) >= 1)
+    send_to_char(ch, "%-20s\r\n", skill_name(GET_OBJ_VAL(obj, 2)));
+  if (GET_OBJ_VAL(obj, 3) >= 1)
+    send_to_char(ch, "%-20s\r\n", skill_name(GET_OBJ_VAL(obj, 3)));
+  
+  return;
+}
+
+
+/* This function displays the contents of ch's given spellbook */
+void display_spells(struct char_data *ch, struct obj_data *obj)
+{
+  if (GET_OBJ_TYPE(obj) != ITEM_SPELLBOOK)
+    return;
+
+  int i, j;
+  int titleDone = FALSE;
+
+  send_to_char(ch, "The spellbook contains the following spell(s):\r\n");
+  send_to_char(ch, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
+  if (!obj->sbinfo)
+    return;
+  for (j = 0; j <= 9; j++) {
+    titleDone = FALSE;
+    for (i=0; i < SPELLBOOK_SIZE; i++) {
+      if (obj->sbinfo[i].spellname != 0 &&
+          spell_info[i].min_level[CLASS_MAGIC_USER] == j) {
+        if (!titleDone) {
+          send_to_char(ch, "\r\n@WSpell Level %d:@n\r\n", j);
+          titleDone = TRUE;
+        }
+        send_to_char(ch, "%-20s		[%2d]\r\n",
+                     obj->sbinfo[i].spellname <= MAX_SPELLS ?
+                     spell_info[obj->sbinfo[i].spellname].name :
+                     "Spellbook Error: Contact Admin",
+                     obj->sbinfo[i].pages ? obj->sbinfo[i].pages : 0);
+      }
+    }
+  }
+  return;
+}
+
+
+/* this function checks whether the spellbook a ch has
+ * given spellnum
+ * Input:  obj (spellbook), spellnum of spell we're looking for
+ * Output:  returns TRUE if spell found in book, otherwise FALSE
+ */
+bool spell_in_book(struct obj_data *obj, int spellnum)
+{
+  int i;
+
+  if (!obj->sbinfo)
+    return FALSE;
+
+  for (i = 0; i < SPELLBOOK_SIZE; i++)
+    if (obj->sbinfo[i].spellname == spellnum)
+      return TRUE;
+
+  return FALSE;
+}
+
+
+/* this function checks whether the scroll a ch has
+ * given spellnum
+ * Input:  obj (scroll), spellnum of spell we're looking for
+ * Output:  returns TRUE if spell found in the scroll, otherwise FALSE
+ */
+int spell_in_scroll(struct obj_data *obj, int spellnum)
+{
+  if (GET_OBJ_VAL(obj, 1) == spellnum)
+    return true;
+
+  return false;
+}
+
+
+/* this function is the function to check to see if the ch:
+ * 1)  has a spellbook
+ * 2)  then calls another function to see if the spell is in the book
+ * 3)  it will also check if the spell happens to be in a scroll
+ * Input:  ch, spellnum, class of ch related to gen_mem command
+ * Output:  returns TRUE if found, FALSE if not found
+ */
+bool spellbook_ok(struct char_data *ch, int spellnum, int class)
+{
+  struct obj_data *obj;
+  bool found = FALSE;
+  if (class == CLASS_MAGIC_USER) {
+
+    for (obj = ch->carrying; obj && !found; obj = obj->next_content) {
+      if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
+        if (spell_in_book(obj, spellnum)) {
+          found = TRUE;
+          break;
+        }
+        continue;
+      }
+      if (GET_OBJ_TYPE(obj) == ITEM_SCROLL) {
+        if (spell_in_scroll(obj, spellnum) && CLASS_LEVEL(ch, class) >=
+              spell_info[spellnum].min_level[class]) {
+          found = TRUE;
+          send_to_char(ch, "The @gmagical energy@n of the scroll leaves the "
+                "paper and enters your @rmind@n!\r\n");
+          send_to_char(ch, "With the @gmagical energy@n transfered from the "
+                "scroll, the scroll withers to dust!\r\n");
+          obj_from_char(obj);
+          break;
+        }
+        continue;
+      }
+    }
+
+    if (!found) {
+      send_to_char(ch, "You don't seem to have %s in your spellbook.\r\n", spell_info[spellnum].name);
+      return FALSE;
+    }
+  } else
+    return FALSE;
+  return TRUE;
+}
+  
+
+
+/* =============================================== */
+/* ==================Memorization================= */
+/* =============================================== */
 
 /* since the spell array position for classes doesn't correspond 
  * with the class values, we need a little conversion -zusuk
@@ -36,7 +183,7 @@ int classArray(int class) {
   return 0;
 }
 
-//   the number of spells received per level for caster types
+// the number of spells received per level for caster types
 int mageSlots[LVL_IMPL + 1][10] = {
 // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
   {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 0
@@ -953,6 +1100,8 @@ ACMD(do_gen_memorize)
     return;
   }
 
+  //spellbooks
+  
   if (CLASS_LEVEL(ch, class) < spell_info[spellnum].min_level[class]) {
     send_to_char(ch, "You do not know that spell.\r\n");
     return;

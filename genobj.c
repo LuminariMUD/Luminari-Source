@@ -260,10 +260,26 @@ int save_objects(zone_rnum zone_num) {
               GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj), GET_OBJ_TIMER(obj)
               );
 
-      /* Do we have script(s) attached? */
-      script_save_to_disk(fp, obj, OBJ_TRIGGER);
+      /* A:  Do we have affects? */
+      for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
+        if (obj->affected[counter2].modifier)
+          fprintf(fp, "A\n"
+                "%d %d\n", obj->affected[counter2].location,
+                obj->affected[counter2].modifier);
 
-      /* Do we have extra descriptions? */
+      /* B:  Do we have spells? */
+      if (obj->sbinfo) {        /*. Yep, save them too . */
+        for (counter2 = 0; counter2 < SPELLBOOK_SIZE; counter2++) {
+          if (obj->sbinfo[counter2].spellname == 0) {
+            break;
+          }
+          fprintf(fp, "S\n" "%d %d\n", obj->sbinfo[counter2].spellname,
+                                       obj->sbinfo[counter2].pages);
+          continue;
+        }
+      }
+
+      /* E:  Do we have extra descriptions? */
       if (obj->ex_description) { /* Yes, save them too. */
         for (ex_desc = obj->ex_description; ex_desc; ex_desc = ex_desc->next) {
           /* Sanity check to prevent nasty protection faults. */
@@ -280,15 +296,17 @@ int save_objects(zone_rnum zone_num) {
                   "%s~\n", ex_desc->keyword, buf);
         }
       }
-      /* Do we have affects? */
-      for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
-        if (obj->affected[counter2].modifier)
-          fprintf(fp, "A\n"
-                "%d %d\n", obj->affected[counter2].location,
-                obj->affected[counter2].modifier);
 
+      // G:  object proficiency
+      fprintf(fp, "G\n" "%d\n", GET_OBJ_PROF(obj));
 
-      // weapon spells
+      // H:  object material
+      fprintf(fp, "H\n" "%d\n", GET_OBJ_MATERIAL(obj));
+
+      // I:  object size
+      fprintf(fp, "I\n" "%d\n", GET_OBJ_SIZE(obj));
+      
+      // S:  weapon spells
       for (counter2 = 0; counter2 < MAX_WEAPON_SPELLS; counter2++)
         if (obj->wpn_spells[counter2].spellnum)
           fprintf(fp, "S\n"
@@ -298,14 +316,8 @@ int save_objects(zone_rnum zone_num) {
                 obj->wpn_spells[counter2].percent,
                 obj->wpn_spells[counter2].inCombat);
 
-      // object size
-      fprintf(fp, "I\n" "%d\n", GET_OBJ_SIZE(obj));
-
-      // object proficiency
-      fprintf(fp, "G\n" "%d\n", GET_OBJ_PROF(obj));
-
-      // object material
-      fprintf(fp, "H\n" "%d\n", GET_OBJ_MATERIAL(obj));
+      /* T:  Do we have script(s) attached? */
+      script_save_to_disk(fp, obj, OBJ_TRIGGER);
     }
   }
 
