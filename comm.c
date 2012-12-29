@@ -1721,7 +1721,7 @@ static int process_output(struct descriptor_data *t)
   strcpy(osb, t->output);	/* strcpy: OK (t->output:LARGE_BUFSIZE < osb:MAX_SOCK_BUF-2) */
 
   // color code fix attempt -zusuk
-  parse_at(osb);
+  // parse_at(osb);
 
   /* if we're in the overflow state, notify the user */
   if (t->bufspace == 0)
