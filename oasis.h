@@ -294,7 +294,6 @@ extern const char *nrm, *grn, *cyn, *yel;
 #define MEDIT_RACE			40
 #define MEDIT_CLASS			41
 #define MEDIT_SIZE			42
-#define MEDIT_SUB_RACE			43
 
 /* Submodes of SEDIT connectedness. */
 #define SEDIT_MAIN_MENU              	0
@@ -387,7 +386,6 @@ extern const char *nrm, *grn, *cyn, *yel;
 #define CEDIT_MAP_SIZE     55
 #define CEDIT_MINIMAP_SIZE   56
 #define CEDIT_POPULARITY     57
-#define CEDIT_DEBUG_MODE     58
 
 /* Hedit Submodes of connectedness. */
 #define HEDIT_CONFIRM_SAVESTRING        0
@@ -451,7 +449,6 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator);
 ACMD(do_oasis_medit);
 void medit_autoroll_stats(struct descriptor_data *d);
 void medit_random_race(struct descriptor_data *d);
-void medit_random_sub_race(struct descriptor_data *d);
 void medit_random_class(struct descriptor_data *d);
 
 /* public functions from oedit.c */

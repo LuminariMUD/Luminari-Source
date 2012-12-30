@@ -955,27 +955,33 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           break;
         case 'q':
           if (!IS_NPC(c) && (!str_cmp(field, "questpoints") ||
-              !str_cmp(field, "qp") || !str_cmp(field, "qpnts"))) {
+              !str_cmp(field, "qp") || !str_cmp(field, "qpnts")))
+          {
             if (subfield && *subfield) {
               int addition = atoi(subfield);
               GET_QUESTPOINTS(c) += addition;
             }
             snprintf(str, slen, "%d", GET_QUESTPOINTS(c));
-          } else if (!str_cmp(field, "quest")) {
-             if (!IS_NPC(c) && (GET_QUEST(c) != NOTHING) && (real_quest(GET_QUEST(c)) != NOTHING))
-               snprintf(str, slen, "%d", GET_QUEST(c));
-             else
-               strcpy(str, "0");
-          } else if (!str_cmp(field, "questdone")) {
-             if (!IS_NPC(c) && subfield && *subfield) {
-               int q_num = atoi(subfield);
-               if (is_complete(c, q_num))
-                 strcpy(str, "1");
+          }
+           else if (!str_cmp(field, "quest"))
+           {
+               if (!IS_NPC(c) && (GET_QUEST(c) != NOTHING) && (real_quest(GET_QUEST(c)) != NOTHING))
+                 snprintf(str, slen, "%d", GET_QUEST(c));
                else
                  strcpy(str, "0");
-             } else
-               strcpy(str, "0");
-          }
+             }
+           else if (!str_cmp(field, "questdone"))
+           {
+               if (!IS_NPC(c) && subfield && *subfield) {
+                 int q_num = atoi(subfield);
+                 if (is_complete(c, q_num))
+                   strcpy(str, "1");
+                 else
+                   strcpy(str, "0");
+               }
+               else
+                 strcpy(str, "0");
+             }
           break;
         case 'r':
           if (!str_cmp(field, "race")) {

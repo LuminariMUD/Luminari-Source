@@ -612,14 +612,7 @@ int castingCheckOk(struct char_data *ch)
             TRUE, ch, 0, 0, TO_ROOM);
     resetCastingData(ch);
     return (0);
-  }
-  if (char_has_mud_event(ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_STUN)) {
-    send_to_char(ch, "You are stunned and can't continue casting!\r\n");
-    act("$n seems to be stunned and can't continue casting!",
-            TRUE, ch, 0, 0, TO_ROOM);
-    resetCastingData(ch);
-    return (0);
-  }
+  }  
   return 1;
 }
 

@@ -316,10 +316,3 @@ int ibt_autosave = YES;
 
 /* Use the protocol negotiation system */
 int protocol_negotiation = YES;
- 
-/* Use the special character in communication channels */
-int special_in_comm = YES;
-
-/* Current Debug Mode */
-int debug_mode = OFF;
-

@@ -209,7 +209,6 @@
  */
 /**************************/
 
-
 // warding spells that need to be saved
 #define MIRROR			0
 #define STONESKIN		1
@@ -241,54 +240,16 @@
 #define NUM_RACES          10
 
 
-// NPC races
+// NPC races, sub-race abbreviations described in comments in first instance
 #define NPCRACE_UNDEFINED	(-1)	/*Race Undefined*/
 #define NPCRACE_UNKNOWN		0	/**< NPC race Other */
-#define NPCRACE_HUMANOID	     1
-#define NPCRACE_UNDEAD   	2
-#define NPCRACE_ANIMAL   	3
-#define NPCRACE_DRAGON		4
-#define NPCRACE_GIANT	     5
-#define NPCRACE_ABERRATION	6
-#define NPCRACE_CONSTRUCT	7
-#define NPCRACE_ELEMENTAL	8
-#define NPCRACE_FEY	          9
-#define NPCRACE_MAG_BEAST	10 // magical beast
-#define NPCRACE_MONSTER_HMN	11 // monsterous humanoid
-#define NPCRACE_OOZE	     12
-#define NPCRACE_OUTSIDER	     13
-#define NPCRACE_PLANT	     14
-#define NPCRACE_VERMIN	     15
+#define NPCRACE_HMN_HUMAN	1	// hmn = humanoid
+#define NPCRACE_UND_GHOUL	2	// und = undead
+#define NPCRACE_ANM_BADGER	3	// anm = animal
+#define NPCRACE_DRG_RED		4	// drg = dragon
+#define NPCRACE_GNT_HILL	     5	// gnt = giant
 //total
-#define NUM_NPC_RACES		16
-
-
-// NPC sub-races
-#define SUBTYPE_UNDEFINED      (-1)
-#define SUBTYPE_UNKNOWN        0
-#define SUBTYPE_AIR            1
-#define SUBTYPE_ANGEL          2
-#define SUBTYPE_AQUATIC        3
-#define SUBTYPE_ARCHON         4
-#define SUBTYPE_AUGMENTED      5
-#define SUBTYPE_CHAOTIC        6
-#define SUBTYPE_COLD           7
-#define SUBTYPE_EARTH          8
-#define SUBTYPE_EVIL           9
-#define SUBTYPE_EXTRAPLANAR   10
-#define SUBTYPE_FIRE          11
-#define SUBTYPE_GOBLINOID     12
-#define SUBTYPE_GOOD          13
-#define SUBTYPE_INCORPOREAL   14
-#define SUBTYPE_LAWFUL        15
-#define SUBTYPE_NATIVE        16
-#define SUBTYPE_REPTILIAN     17
-#define SUBTYPE_SHAPECHANGER  18
-#define SUBTYPE_SWARM         19
-#define SUBTYPE_WATER         20
-//total
-#define NUM_SUB_RACES		21
-
+#define NUM_NPC_RACES		6
 
 /* Sex */
 #define SEX_NEUTRAL   0   /**< Neutral Sex (Hermaphrodite) */
@@ -1188,7 +1149,7 @@ struct char_player_data
   ubyte weight;                  /**< PC / NPC weight */
   ubyte height;                  /**< PC / NPC height */
   byte race;			// Race
-  byte sub_race;			// NPC Sub-Race
+
   int size;	// size
 };
 
@@ -1740,8 +1701,6 @@ struct game_operation
   int medit_advanced; /**< Does the medit OLC show the advanced stats menu ? */
   int ibt_autosave; /**< Does "bug resolve" autosave ? */
   int protocol_negotiation; /**< Enable the protocol negotiation system ? */
-  int special_in_comm; /**< Enable use of a special character in communication channels ? */
-  int debug_mode; /**< Current Debug Mode */
 };
 
 /** The Autowizard options. */
