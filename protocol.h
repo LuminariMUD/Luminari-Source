@@ -126,6 +126,7 @@ typedef enum
    eMSDP_WIS_PERM, 
    eMSDP_DEX_PERM, 
    eMSDP_CON_PERM, 
+   eMSDP_SUB_RACE, 
 
    /* Combat */
    eMSDP_OPPONENT_HEALTH, 

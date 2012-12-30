@@ -628,6 +628,9 @@ do                                                              \
 /** Race of ch. */
 #define GET_RACE(ch)   ((ch)->player.race)
 
+/** Sub Race of NPC ch. */
+#define SUB_RACE(ch)   ((ch)->player.sub_race)
+
 /** Height of ch. */
 #define GET_HEIGHT(ch)	((ch)->player.height)
 
