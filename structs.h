@@ -209,6 +209,7 @@
  */
 /**************************/
 
+
 // warding spells that need to be saved
 #define MIRROR			0
 #define STONESKIN		1
@@ -260,6 +261,34 @@
 #define NPCRACE_VERMIN	     15
 //total
 #define NUM_NPC_RACES		16
+
+
+// NPC sub-races
+#define SUBTYPE_UNDEFINED      (-1)
+#define SUBTYPE_UNKNOWN        0
+#define SUBTYPE_AIR            1
+#define SUBTYPE_ANGEL          2
+#define SUBTYPE_AQUATIC        3
+#define SUBTYPE_ARCHON         4
+#define SUBTYPE_AUGMENTED      5
+#define SUBTYPE_CHAOTIC        6
+#define SUBTYPE_COLD           7
+#define SUBTYPE_EARTH          8
+#define SUBTYPE_EVIL           9
+#define SUBTYPE_EXTRAPLANAR   10
+#define SUBTYPE_FIRE          11
+#define SUBTYPE_GOBLINOID     12
+#define SUBTYPE_GOOD          13
+#define SUBTYPE_INCORPOREAL   14
+#define SUBTYPE_LAWFUL        15
+#define SUBTYPE_NATIVE        16
+#define SUBTYPE_REPTILIAN     17
+#define SUBTYPE_SHAPECHANGER  18
+#define SUBTYPE_SWARM         19
+#define SUBTYPE_WATER         20
+//total
+#define NUM_SUB_RACES		21
+
 
 /* Sex */
 #define SEX_NEUTRAL   0   /**< Neutral Sex (Hermaphrodite) */
@@ -1159,7 +1188,7 @@ struct char_player_data
   ubyte weight;                  /**< PC / NPC weight */
   ubyte height;                  /**< PC / NPC height */
   byte race;			// Race
-
+  byte sub_race;			// NPC Sub-Race
   int size;	// size
 };
 

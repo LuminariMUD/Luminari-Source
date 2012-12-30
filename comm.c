@@ -85,6 +85,7 @@
 #include "mud_event.h"
 #include "clan.h"
 #include "class.h" /* needed for level_exp for prompt */
+#include "mail.h"  /* has_mail for prompt */
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -1315,7 +1316,13 @@ static char *make_prompt(struct descriptor_data *d)
       if (count >= 0)
         len += count;
     }
-
+    
+    if (has_mail(GET_IDNUM(d->character))) {
+      count = snprintf(prompt + len, sizeof(prompt) - len, "(mail) ");
+      if (count >= 0)
+        len += count;      
+    }
+        
     if ((len < sizeof(prompt)) && !IS_NPC(d->character) &&
           !PRF_FLAGGED(d->character, PRF_COMPACT))
       sprintf(prompt + strlen(prompt), "%s> %s\r\n",

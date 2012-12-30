@@ -29,6 +29,52 @@
 #include "race.h"
 
 // npc races
+const char *npc_sub_race_types[] = {
+  "Unknown",
+  "Air",
+  "Angel",
+  "Aquatic",
+  "Archon",
+  "Augmented",
+  "Chaotic",
+  "Cold",
+  "Earth",
+  "Evil",
+  "Extraplanar",
+  "Fire",
+  "Goblinoid",
+  "Good",
+  "Incorporeal",
+  "Lawful",
+  "Native",
+  "Reptilian",
+  "Shapechanger",
+  "Swarm",
+  "Water"  
+};
+const char *npc_sub_race_abbrevs[] = {
+  "Unknown",
+  "\tCAir\tn",
+  "\tWAngel\tn",
+  "\tBAquatic\tn",
+  "\tmArchon\tn",
+  "\tcAugmented\tn",
+  "\tDChaotic\tn",
+  "\tbCold\tn",
+  "\tGEarth\tn",
+  "\trEvil\tn",
+  "\tDExtra\twplanar\tn",
+  "\tFFire\tn",
+  "\tgGoblinoid\tn",
+  "\tWGood\tn",
+  "\tDIncorporeal\tn",
+  "\tWLawful\tn",
+  "\tYNative\tn",
+  "\tYReptilian\tn",
+  "\tMShapechanger\tn",
+  "\twSwarm\tn",
+  "\tBWater\tn"
+};
 const char *npc_race_types[] = {
    "Unknown",
    "Humanoid",
