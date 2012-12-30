@@ -28,6 +28,11 @@
 #include "act.h"
 #include "modify.h"
 
+/* Globals */
+const char * RGBone = "F022";
+const char * RGBtwo = "F055";
+const char * RGBthree = "F555";
+
 static void Write( descriptor_t *apDescriptor, const char *apData )
 {
    if ( apDescriptor != NULL)
@@ -334,7 +339,7 @@ void ProtocolDestroy( protocol_t *apProtocol )
 
    for ( i = eMSDP_NONE+1; i < eMSDP_MAX; ++i )
    {
-	  if (apProtocol->pVariables[i]->pValueString)
+      if (apProtocol->pVariables[i]->pValueString)
         free(apProtocol->pVariables[i]->pValueString);
       free(apProtocol->pVariables[i]);
    }
@@ -565,13 +570,13 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
             /* 1,2,3 to be used a MUD's base colour palette. Just to maintain
              * some sort of common colouring scheme amongst coders/builders */
             case '1':
-               pCopyFrom = ColourRGB(apDescriptor, "F022");
+               pCopyFrom = ColourRGB(apDescriptor, RGBone);
                break;
             case '2':
-               pCopyFrom = ColourRGB(apDescriptor, "F055");
+               pCopyFrom = ColourRGB(apDescriptor, RGBtwo);
                break;
             case '3':
-               pCopyFrom = ColourRGB(apDescriptor, "F555");
+               pCopyFrom = ColourRGB(apDescriptor, RGBthree);
                break;
             case 'n':
                pCopyFrom = s_Clean;
@@ -1402,7 +1407,7 @@ const char *ColourRGB( descriptor_t *apDescriptor, const char *apRGB )
    bool charHasColor = TRUE;
    
    if (apDescriptor->character && !clr(apDescriptor->character, C_CMP))
-		charHasColor = FALSE;
+     charHasColor = FALSE;
 
    if ( pProtocol && pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt && charHasColor )
    {
@@ -1499,6 +1504,15 @@ static void Negotiate( descriptor_t *apDescriptor )
 
       /* Check for other protocols. */
       Write(apDescriptor, DoNAWS);
+      /* Gnome-mud seems to have an issue with negotiating DoCHARSET under
+       * certain conditions cause it to crash. This is a GNOME-MUD issue
+       * and not an issue on our end. Never-the-less, if you discover you
+       * are having this issue you can either a) disable protocol negotiation
+       * in cedit, or b) disable detection of CHARSET by deleting/commenting
+       * the following line.
+       * 
+       * For more information on gnome-mud's bug see:
+       * https://bugs.launchpad.net/ubuntu/+source/gnome-mud/+bug/398340 */
       Write(apDescriptor, DoCHARSET);
       Write(apDescriptor, WillMSDP);
       Write(apDescriptor, WillMSSP);
@@ -2261,7 +2275,7 @@ static void SendMSSP( descriptor_t *apDescriptor )
       { "FAMILY",             "DikuMUD" },
       { "GENRE",              "Fantasy" },
       { "GAMEPLAY",           "Hack and Slash" },
-      { "STATUS",             "Alpha" },
+      { "STATUS",             "Beta" },
       { "GAMESYSTEM",         "D&D" },
       { "INTERMUD",           "" },
       { "SUBGENRE",           "None" },
@@ -2272,10 +2286,10 @@ static void SendMSSP( descriptor_t *apDescriptor )
       { "MOBILES",            "8330" },
       { "OBJECTS",            "8591" },
       { "ROOMS",              "13952" },
-      { "CLASSES",            "6" },
-      { "LEVELS",             "30" },
-      { "RACES",              "4" },
-      { "SKILLS",             "70" },
+      { "CLASSES",            "9" },
+      { "LEVELS",             "34" },
+      { "RACES",              "9" },
+      { "SKILLS",             "90" },
 
       /* Protocols */
       { "ANSI",               "1" },
@@ -2305,37 +2319,33 @@ static void SendMSSP( descriptor_t *apDescriptor )
       /* Extended variables */
 
       /* World */
-/*
       { "DBSIZE",             "0" },
       { "EXITS",              "0" },
       { "EXTRA DESCRIPTIONS", "0" },
-      { "MUDPROGS",           "0" },
-      { "MUDTRIGS",           "0" },
+      { "MUDPROGS",           "1476" },
+      { "MUDTRIGS",           "1476" },
       { "RESETS",             "0" },
-*/
+
       /* Game */
-/*
       { "ADULT MATERIAL",     "0" },
-      { "MULTICLASSING",      "0" },
-      { "NEWBIE FRIENDLY",    "0" },
+      { "MULTICLASSING",      "1" },
+      { "NEWBIE FRIENDLY",    "1" },
       { "PLAYER CITIES",      "0" },
-      { "PLAYER CLANS",       "0" },
-      { "PLAYER CRAFTING",    "0" },
-      { "PLAYER GUILDS",      "0" },
-      { "EQUIPMENT SYSTEM",   "" },
-      { "MULTIPLAYING",       "" },
-      { "PLAYERKILLING",      "" },
-      { "QUEST SYSTEM",       "" },
-      { "ROLEPLAYING",        "" },
-      { "TRAINING SYSTEM",    "" },
-      { "WORLD ORIGINALITY",  "" },
-*/
+      { "PLAYER CLANS",       "1" },
+      { "PLAYER CRAFTING",    "1" },
+      { "PLAYER GUILDS",      "1" },
+      { "EQUIPMENT SYSTEM",   "1" },
+      { "MULTIPLAYING",       "1" },
+      { "PLAYERKILLING",      "1" },
+      { "QUEST SYSTEM",       "1" },
+      { "ROLEPLAYING",        "1" },
+      { "TRAINING SYSTEM",    "1" },
+      { "WORLD ORIGINALITY",  "1" },
+
       /* Protocols */
-/*
       { "ATCP",               "1" },
       { "SSL",                "0" },
       { "ZMP",                "0" },
-*/
       { NULL, NULL } /* This must always be last. */
    };
 

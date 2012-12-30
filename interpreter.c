@@ -1377,41 +1377,43 @@ int enter_player_game (struct descriptor_data *d)
   return load_result;
 }
 
+
 EVENTFUNC(get_protocols)
 {
-	struct descriptor_data *d;
-	struct mud_event_data *pMudEvent;
-	char buf[MAX_STRING_LENGTH];
-	int len;
-	
-	if (event_obj == NULL)
-	  return 0;
-	  
-	pMudEvent = (struct mud_event_data *) event_obj;
-	d = (struct descriptor_data *) pMudEvent->pStruct;  
-	
-	/* Clear extra white space from the "protocol scroll" */
-	write_to_output(d, "[H[J");
+  struct descriptor_data *d;
+  struct mud_event_data *pMudEvent;
+  char buf[MAX_STRING_LENGTH];
+  int len;
 
-	len = snprintf(buf, MAX_STRING_LENGTH,   "\tO[\toClient\tO] \tw%s\tn | ", d->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
-	
-	if (d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt)
-	  len += snprintf(buf + len, MAX_STRING_LENGTH - len, "\tO[\toColors\tO] \tw256\tn | ");
-	else if (d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt)
+  if (event_obj == NULL)
+    return 0;
+
+  pMudEvent = (struct mud_event_data *) event_obj;
+  d = (struct descriptor_data *) pMudEvent->pStruct;
+
+  /* Clear extra white space from the "protocol scroll" */
+  write_to_output(d, "^[[H^[[J");
+
+  len = snprintf(buf, MAX_STRING_LENGTH,   "\tO[\toClient\tO] \tw%s\tn | ", d->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
+
+  if (d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt)
+    len += snprintf(buf + len, MAX_STRING_LENGTH - len, "\tO[\toColors\tO] \tw256\tn | ");
+  else if (d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt)
       len += snprintf(buf + len, MAX_STRING_LENGTH - len, "\tO[\toColors\tO] \twAnsi\tn | ");
-	else
+  else
       len += snprintf(buf + len, MAX_STRING_LENGTH - len, "[Colors] No Color | ");
- 
-	len += snprintf(buf + len, MAX_STRING_LENGTH - len,   "\tO[\toMXP\tO] \tw%s\tn | ", d->pProtocol->bMXP ? "Yes" : "No");
-	len += snprintf(buf + len, MAX_STRING_LENGTH - len,   "\tO[\toMSDP\tO] \tw%s\tn | ", d->pProtocol->bMSDP ? "Yes" : "No");	  
-	len += snprintf(buf + len, MAX_STRING_LENGTH - len,   "\tO[\toATCP\tO] \tw%s\tn\r\n\r\n", d->pProtocol->bATCP ? "Yes" : "No");
-		 
-	write_to_output(d, buf, 0);	 
-		  
-	write_to_output(d, GREETINGS, 0); 
-	STATE(d) = CON_GET_NAME;
-	return 0;
+
+  len += snprintf(buf + len, MAX_STRING_LENGTH - len,   "\tO[\toMXP\tO] \tw%s\tn | ", d->pProtocol->bMXP ? "Yes" : "No");
+  len += snprintf(buf + len, MAX_STRING_LENGTH - len,   "\tO[\toMSDP\tO] \tw%s\tn | ", d->pProtocol->bMSDP ? "Yes" : "No");
+  len += snprintf(buf + len, MAX_STRING_LENGTH - len,   "\tO[\toATCP\tO] \tw%s\tn\r\n\r\n", d->pProtocol->bATCP ? "Yes" : "No");
+
+  write_to_output(d, buf, 0);
+
+  write_to_output(d, GREETINGS, 0);
+  STATE(d) = CON_GET_NAME;
+  return 0;
 }
+
 
 /* deal with newcomers and other non-playing sockets */
 void nanny(struct descriptor_data *d, char *arg)
@@ -1452,9 +1454,8 @@ void nanny(struct descriptor_data *d, char *arg)
   /* Not in OLC. */
   switch (STATE(d)) {
   case CON_GET_PROTOCOL:
-		write_to_output(d, "Collecting Protocol Information... Please Wait.\r\n"); 
-		return;
-  break;		
+    write_to_output(d, "Collecting Protocol Information... Please Wait.\r\n"); 
+    return;
   case CON_GET_NAME:		/* wait for input of name */
     if (d->character == NULL) {
       CREATE(d->character, struct char_data, 1);

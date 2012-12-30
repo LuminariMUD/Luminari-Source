@@ -3967,6 +3967,10 @@ static void load_default_config( void )
   CONFIG_MINIMAP_SIZE           = default_minimap_size;
   CONFIG_SCRIPT_PLAYERS         = script_players;
   CONFIG_MIN_POP_TO_CLAIM       = min_pop_to_claim;
+  CONFIG_SCRIPT_PLAYERS         = script_players;
+  CONFIG_SPECIAL_IN_COMM        = special_in_comm;
+  CONFIG_DEBUG_MODE             = debug_mode;
+
   /* Rent / crashsave options. */
   CONFIG_FREE_RENT              = free_rent;
   CONFIG_MAX_OBJ_SAVE           = max_obj_save;
@@ -4056,7 +4060,9 @@ void load_config( void )
         break;
 
       case 'd':
-        if (!str_cmp(tag, "display_closed_doors"))
+        if (!str_cmp(tag, "debug_mode"))
+          CONFIG_DEBUG_MODE = num;
+        else if (!str_cmp(tag, "display_closed_doors"))
           CONFIG_DISP_CLOSED_DOORS = num;
         else if (!str_cmp(tag, "diagonal_dirs"))
           CONFIG_DIAGONAL_DIRS = num;
@@ -4225,6 +4231,8 @@ void load_config( void )
           CONFIG_SITEOK_ALL = num;
         else if (!str_cmp(tag, "script_players"))
           CONFIG_SCRIPT_PLAYERS = num;
+        else if (!str_cmp(tag, "special_in_comm"))
+          CONFIG_SPECIAL_IN_COMM = num;
         else if (!str_cmp(tag, "start_messg")) {
           strncpy(buf, "Reading start message in load_config()", sizeof(buf));
           if (CONFIG_START_MESSG)

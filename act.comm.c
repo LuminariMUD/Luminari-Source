@@ -22,6 +22,27 @@
 #include "act.h"
 #include "modify.h"
 
+/* local functions */
+static bool legal_communication(char * arg);
+
+
+
+/* Begin Functions */
+
+static bool legal_communication(char * arg)
+{
+  while (*arg) {
+    if (*arg == '@') {
+      arg++;
+      if (*arg == '(' || *arg == ')' || *arg == '<' || *arg == '>')
+        return FALSE;
+    }
+    arg++;
+  }
+  return TRUE;
+}
+
+
 ACMD(do_say)
 {
   skip_spaces(&argument);
@@ -31,6 +52,9 @@ ACMD(do_say)
   else {
     char buf[MAX_INPUT_LENGTH + 14], *msg;
     struct char_data *vict;
+
+    if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
+      parse_at(argument);
 
     snprintf(buf, sizeof(buf), "\tG$n says, '%s'\tn", argument);
     msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
@@ -66,7 +90,8 @@ ACMD(do_gsay)
     send_to_char(ch, "Yes, but WHAT do you want to group-say?\r\n");
   else {
 
-    parse_at(argument);		
+    if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
+      parse_at(argument);
 		
     send_to_group(ch, ch->group, "%s%s%s says, '%s'%s\r\n", CCGRN(ch, C_NRM), CCGRN(ch, C_NRM),
 	GET_NAME(ch), argument, CCNRM(ch, C_NRM));
@@ -173,8 +198,11 @@ ACMD(do_tell)
     send_to_char(ch, "%s", CONFIG_NOPERSON);
   else if (GET_LEVEL(ch) >= LVL_IMMORT && !(vict = get_char_vis(ch, buf, NULL, FIND_CHAR_WORLD)))
     send_to_char(ch, "%s", CONFIG_NOPERSON);
-  else if (is_tell_ok(ch, vict))
+  else if (is_tell_ok(ch, vict)) {
+    if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
+      parse_at(buf2);
     perform_tell(ch, vict, buf2);
+  }
 }
 
 ACMD(do_reply)
@@ -202,8 +230,11 @@ ACMD(do_reply)
 
     if (!tch)
       send_to_char(ch, "They are no longer playing.\r\n");
-    else if (is_tell_ok(ch, tch))
+    else if (is_tell_ok(ch, tch)) {
+      if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
+        parse_at(argument);
       perform_tell(ch, tch, argument);
+    }
   }
 }
 
@@ -245,6 +276,9 @@ ACMD(do_spec_comm)
     send_to_char(ch, "Your target seems to be deaf!\r\n");
   else {
     char buf1[MAX_STRING_LENGTH];
+
+    if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))  
+      parse_at(buf2);
 
     snprintf(buf1, sizeof(buf1), "$n %s you, '%s'", action_plur, buf2);
     act(buf1, FALSE, ch, 0, vict, TO_VICT);
@@ -489,6 +523,9 @@ ACMD(do_gen_comm)
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT))
     send_to_char(ch, "%s", CONFIG_OK);
   else {
+    if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
+      parse_at(argument);
+
     snprintf(buf1, sizeof(buf1), "%sYou %s, '%s%s'%s", COLOR_LEV(ch) >= C_CMP ? color_on : "",
         com_msgs[subcmd][1], argument, COLOR_LEV(ch) >= C_CMP ? color_on : "", CCNRM(ch, C_CMP));
     
@@ -534,6 +571,9 @@ ACMD(do_qcomm)
   else {
     char buf[MAX_STRING_LENGTH];
     struct descriptor_data *i;
+
+    if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
+      parse_at(argument);
 
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT))
       send_to_char(ch, "%s", CONFIG_OK);
