@@ -310,10 +310,10 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
                              "%s2%s) Toggle Mana\r\n"
                              "%s3%s) Toggle Moves\r\n"
                              "%s4%s) Toggle auto flag\r\n"
-                             "5) Toggle XP\r\n"
-                             "6) Toggle Exits\r\n"
-                             "7) Toggle Rooms\r\n"
-                             "8) Toggle Memtimes\r\n"
+                             "%s5%s) Toggle XP\r\n"
+                             "%s6%s) Toggle Exits\r\n"
+                             "%s7%s) Toggle Rooms\r\n"
+                             "%s8%s) Toggle Memtimes\r\n"
                              "\r\n"
                              "%sCurrent Prompt: %s%s%s\r\n\r\n"
                              "%s0%s) Quit (to main menu)\r\n",
@@ -321,8 +321,13 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
                              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+                             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+                             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+                             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+                             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                              CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), prompt_string, CCNRM(d->character, C_NRM),
-                             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM) );
+                             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM)
+ );
 
   send_to_char(d->character, "Enter Choice :");
   OLC_MODE(d) = PREFEDIT_PROMPT;
