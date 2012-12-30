@@ -29,107 +29,32 @@
 #include "race.h"
 
 // npc races
-const char *npc_sub_race_types[] = {
-  "Unknown",
-  "Air",
-  "Angel",
-  "Aquatic",
-  "Archon",
-  "Augmented",
-  "Chaotic",
-  "Cold",
-  "Earth",
-  "Evil",
-  "Extraplanar",
-  "Fire",
-  "Goblinoid",
-  "Good",
-  "Incorporeal",
-  "Lawful",
-  "Native",
-  "Reptilian",
-  "Shapechanger",
-  "Swarm",
-  "Water"  
-};
-const char *npc_sub_race_abbrevs[] = {
-  "Unknown",
-  "\tCAir\tn",
-  "\tWAngel\tn",
-  "\tBAquatic\tn",
-  "\tmArchon\tn",
-  "\tcAugmented\tn",
-  "\tDChaotic\tn",
-  "\tbCold\tn",
-  "\tGEarth\tn",
-  "\trEvil\tn",
-  "\tDExtra\twplanar\tn",
-  "\tFFire\tn",
-  "\tgGoblinoid\tn",
-  "\tWGood\tn",
-  "\tDIncorporeal\tn",
-  "\tWLawful\tn",
-  "\tYNative\tn",
-  "\tYReptilian\tn",
-  "\tMShapechanger\tn",
-  "\twSwarm\tn",
-  "\tBWater\tn"
-};
 const char *npc_race_types[] = {
    "Unknown",
-   "Humanoid",
-   "Undead",
-   "Animal",
-   "Dragon",
-   "Giant",
-   "Aberration",
-   "Construct",
-   "Elemental",
-   "Fey",
-   "Magical Beast",
-   "Monstrous Humanoid",
-   "Ooze",
-   "Outsider",
-   "Plant",
-   "Vermin"
+   "Human",
+   "Ghoul",
+   "Badger",
+   "Red Dragon",
+   "Hill Giant"
 };
 const char *npc_race_abbrevs[] = {
    "Unknown",
-   "\tWHumanoid\tn",
-   "\tDUndead\tn",
-   "\tgAnimal\tn",
-   "\tRDragon\tn",
-   "\tYGiant\tn",
-   "\tMAberration\tn",
-   "\twConstruct\tn",
-   "\tCElem\tYental\tn",
-   "\tmFey\tn",
-   "\tcMagical Beast\tn",
-   "\tGMonstrous \tWHumanoid\tn",
-   "\trOoze\tn",
-   "\tDOut\tnsider\tn",
-   "\tGPlant\tn",
-   "\tyVermin\tn"
+   "\tWHuman\tn",
+   "\tGGhoul\tn",
+   "\tgBadger\tn",
+   "\tRRed Dragon\tn",
+   "\tYHill Giant\tn"
 };
 const char *npc_race_menu = 
-   "\r\n"
-   "  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | npc race selection\r\n"
-   "---------------------+\r\n"
-   "1)  \tWHumanoid\tn\r\n"
-   "2)  \tDUndead\tn\r\n"
-   "3)  \tgAnimal\tn\r\n"
-   "4)  \tRDragon\tn\r\n"
-   "5)  \tYGiant\tn\r\n"
-   "6)  \tMAberration\tn\r\n"
-   "7)  \twConstruct\tn\r\n"
-   "8)  \tCElem\tYental\tn\r\n"
-   "9)  \tmFey\tn\r\n"
-   "10) \tcMagical Beast\tn\r\n"
-   "11) \tGMonstrous \tWHumanoid\tn\r\n"
-   "12) \trOoze\tn\r\n"
-   "13) \tDOut\tnsider\tn\r\n"
-   "14) \tGPlant\tn\r\n"
-   "15) \tyVermin\tn\r\n";
+"\r\n"
+"  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | npc race selection\r\n"
+"---------------------+\r\n"
+"1)  \tWHuman\tn\r\n"
+"2)  \tDGhoul\tn\r\n"
+"3)  \tgBadger\tn\r\n"
+"4)  \tRRed Dragon\tn\r\n"
+"5)  \tYHill Giant\tn\r\n";
+
 
 // pc races
 const char *race_abbrevs[] = {

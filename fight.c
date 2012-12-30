@@ -1454,10 +1454,6 @@ int damage(struct char_data *ch, struct char_data *victim,
   }
   if (!ok_damage_shopkeeper(ch, victim) || MOB_FLAGGED(victim, MOB_NOKILL)) {
     send_to_char(ch, "This mob is protected.\r\n");
-    if (FIGHTING(ch) && FIGHTING(ch) == victim)
-      stop_fighting(ch);
-    if (FIGHTING(victim) && FIGHTING(victim) == ch)
-      stop_fighting(victim);
     return (0);
   }
   if (!IS_NPC(victim) && ((GET_LEVEL(victim) >= LVL_IMMORT) &&

@@ -78,6 +78,5 @@
 #define PFDEF_AUTOCQUEST_GOLD      0
 #define PFDEF_AUTOCQUEST_DESC      NULL
 #define PFDEF_AUTOCQUEST_MATERIAL  0
-#define PFDEF_SUB_RACE		0
     
 #endif /* _PFDEFAULTS_H_ */

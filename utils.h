@@ -80,7 +80,6 @@ void new_affect(struct affected_type *af);
 int get_class_by_name(char *classname);
 int get_race_by_name(char *racename);
 char * convert_from_tabs(char * string);
-int count_non_protocol_chars(char * str);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
@@ -628,9 +627,6 @@ do                                                              \
 
 /** Race of ch. */
 #define GET_RACE(ch)   ((ch)->player.race)
-
-/** Sub Race of NPC ch. */
-#define SUB_RACE(ch)   ((ch)->player.sub_race)
 
 /** Height of ch. */
 #define GET_HEIGHT(ch)	((ch)->player.height)
@@ -1382,10 +1378,10 @@ void reset_acraft(struct char_data *ch);
 
 
 // IS_race for various morph/shapechange equivalent of npc races
-#define IS_RED_DRAGON(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_DRAGON) || \
-				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_DRAGON) )
-#define IS_BADGER(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ANIMAL) || \
-				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ANIMAL) )
+#define IS_RED_DRAGON(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_DRG_RED) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_DRG_RED) )
+#define IS_BADGER(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ANM_BADGER) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ANM_BADGER) )
 
 
 /** Defines if ch is outdoors or not. */
@@ -1587,10 +1583,6 @@ void reset_acraft(struct char_data *ch);
 #define CONFIG_IBT_AUTOSAVE config_info.operation.ibt_autosave
 /** Use the protocol negotiation system? */
 #define CONFIG_PROTOCOL_NEGOTIATION config_info.operation.protocol_negotiation
-/** Use the special character in comm channels? */
-#define CONFIG_SPECIAL_IN_COMM config_info.operation.special_in_comm
-/** Activate debug mode? */
-#define CONFIG_DEBUG_MODE config_info.operation.debug_mode
 
 /* Autowiz */
 /** Use autowiz or not? */

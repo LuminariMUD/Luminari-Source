@@ -247,11 +247,7 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
     if (percent >= diagnosis[ar_index].percent)
       break;
 
-  if (IS_NPC(ch))
-    send_to_char(ch, "%c%s \tn[%s %s %s\tn] %s\r\n", UPPER(*pers), pers + 1, size_names[GET_SIZE(i)],
-	npc_sub_race_abbrevs[SUB_RACE(i)], RACE_ABBR(i), diagnosis[ar_index].text);
-  else
-    send_to_char(ch, "%c%s \tn[%s %s\tn] %s\r\n", UPPER(*pers), pers + 1, size_names[GET_SIZE(i)],
+  send_to_char(ch, "%c%s \tn[%s %s\tn] %s\r\n", UPPER(*pers), pers + 1, size_names[GET_SIZE(i)],
 	RACE_ABBR(i), diagnosis[ar_index].text);
 }
 
@@ -884,14 +880,19 @@ ACMD(do_innates)
     else
       race = GET_RACE(ch);
     switch (race) {
-      case NPCRACE_DRAGON:
+      case NPCRACE_DRG_RED:
         send_to_char(ch, "tailsweep\r\n");
         send_to_char(ch, "breathe\r\n");
         send_to_char(ch, "frightful\r\n");
         break;
-      case NPCRACE_ANIMAL:
+      case NPCRACE_ANM_BADGER:
         send_to_char(ch, "rage\r\n");
         break;
+      case NPCRACE_UNDEFINED:
+      case NPCRACE_UNKNOWN:
+      case NPCRACE_HMN_HUMAN:
+      case NPCRACE_UND_GHOUL:
+      case NPCRACE_GNT_HILL:
       default:
         send_to_char(ch, "None (yet)\r\n");
         break;
@@ -2842,7 +2843,7 @@ void add_history(struct char_data *ch, char *str, int type)
 ACMD(do_whois)
 {
   struct char_data *victim = 0;
-  int hours, i, counter = 0;
+  int hours;
   int got_from_file = 0, c_r;
   char buf[MAX_STRING_LENGTH];
   clan_rnum c_n;
@@ -2854,25 +2855,26 @@ ACMD(do_whois)
     return;
   }
 
-  if (!(victim=get_player_vis(ch, buf, NULL, FIND_CHAR_WORLD))) {
-    CREATE(victim, struct char_data, 1);
-    clear_char(victim);
+  if (!(victim=get_player_vis(ch, buf, NULL, FIND_CHAR_WORLD)))
+  {
+     CREATE(victim, struct char_data, 1);
+     clear_char(victim);
      
-    /* Allocate mobile event list */
-    victim->events = create_list();
+     /* Allocate mobile event list */
+     victim->events = create_list();
      
-    CREATE(victim->player_specials, struct player_special_data, 1);
+     CREATE(victim->player_specials, struct player_special_data, 1);
 
-    if (load_char(buf, victim) > -1)
-      got_from_file = 1;
-    else {
-      send_to_char (ch, "There is no such player.\r\n");
-      free_char (victim);
-      return;
-    }
+     if (load_char(buf, victim) > -1)
+       got_from_file = 1;
+     else {
+        send_to_char (ch, "There is no such player.\r\n");
+        free_char (victim);
+        return;
+     }
   }
 
-  if (IS_IN_CLAN(victim)) {
+    if (IS_IN_CLAN(victim)) {
     c_n = real_clan(GET_CLAN(victim));
     send_to_char(ch,"[Clan Data]\r\n");
     if ((c_r = GET_CLANRANK(victim)) == NO_CLANRANK) {
@@ -2890,46 +2892,44 @@ ACMD(do_whois)
                    (victim->player.title ? victim->player.title : ""), buf);
 
   sprinttype (victim->player.chclass, pc_class_types, buf, sizeof(buf));
-  send_to_char(ch, "Current Class: %s\r\n", buf);
+  send_to_char(ch, "Class: %s\r\n", buf);
 
-  send_to_char(ch, "\tCClass(es):\tn ");
-  for (i = 0; i < MAX_CLASSES; i++) {
-    if (CLASS_LEVEL(ch, i)) {
-      if (counter)
-        send_to_char(ch, " / ");
-      send_to_char(ch, "%d %s", CLASS_LEVEL(ch, i), class_abbrevs[i]);
-      counter++;
-    }  
-  }
-  
   send_to_char(ch, "Race : %s (\tDtype 'innates' for more info\tn)\r\n",
           pc_race_types[(int)GET_RACE(victim)]);
 
   send_to_char(ch, "Level: %d\r\n", GET_LEVEL(victim));
 
-  if (!(GET_LEVEL(victim) < LVL_IMMORT) ||
-          (GET_LEVEL(ch) >= GET_LEVEL(victim))) {
+  if (!(GET_LEVEL(victim) < LVL_IMMORT) || (GET_LEVEL(ch) >= GET_LEVEL(victim)))
+  {
     strcpy (buf, (char *) asctime(localtime(&(victim->player.time.logon))));
     buf[10] = '\0';
 
     hours = (time(0) - victim->player.time.logon) / 3600;
 
-    if (!got_from_file) {
+    if (!got_from_file)
+    {
       send_to_char(ch, "Last Logon: They're playing now!  (Idle %d Minutes)",
            victim->char_specials.timer * SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
 
-      if (!victim->desc) {
+      if (!victim->desc)
+      {
         send_to_char(ch, "  (Linkless)\r\n");
-      } else {
+      }
+      else
+      {
         send_to_char(ch, "\r\n");
       }
-      if (PRF_FLAGGED(victim, PRF_AFK)) {
+      if (PRF_FLAGGED(victim, PRF_AFK))
+      {
         send_to_char(ch, "%s%s is afk right now, so %s may not respond to communication.%s\r\n", CBGRN(ch, C_NRM), GET_NAME(victim), GET_SEX(victim) == SEX_NEUTRAL ? "it" : (GET_SEX(victim) == SEX_MALE ? "he" : "she"), CCNRM(ch, C_NRM));
       }
     }
-    else if (hours > 0) {
+    else if (hours > 0)
+    {
       send_to_char(ch, "Last Logon: %s (%d days & %d hours ago.)\r\n", buf, hours/24, hours%24);
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Last Logon: %s (0 hours & %d minutes ago.)\r\n",
                    buf, (int)(time(0) - victim->player.time.logon)/60);
     }
