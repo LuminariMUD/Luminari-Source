@@ -1511,11 +1511,13 @@ void nanny(struct descriptor_data *d, char *arg)
           CREATE(d->character->player.name, char, strlen(tmp_name) + 1);
           strcpy(d->character->player.name, CAP(tmp_name));	/* strcpy: OK (size checked above) */
           GET_PFILEPOS(d->character) = player_i;
+/*
           if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] || 
                d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS])) {
             SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_1);
             SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_2);
           }
+*/
           write_to_output(d, "Did I get that right, %s (\t(Y\t)/\t(N\t))? ", tmp_name);
           STATE(d) = CON_NAME_CNFRM;
         } else {
@@ -1540,12 +1542,13 @@ void nanny(struct descriptor_data *d, char *arg)
         CREATE(d->character->player.name, char, strlen(tmp_name) + 1);
         strcpy(d->character->player.name, CAP(tmp_name));	/* strcpy: OK (size checked above) */
 
+/*
         if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] || 
              d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS])) {
           SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_1);
           SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_2);
         }
-
+*/
         write_to_output(d, "Did I get that right, %s (\t(Y\t)/\t(N\t))? ", tmp_name);
         STATE(d) = CON_NAME_CNFRM;
       }
