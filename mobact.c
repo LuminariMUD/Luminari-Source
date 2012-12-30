@@ -54,7 +54,6 @@ int canContinue(struct char_data *ch)
 void npc_racial_behave(struct char_data *ch)
 {
   struct char_data *AoE, *vict = NULL;
-  char actbuf[MAX_INPUT_LENGTH];
   int engaged = 0;
 
   if (!canContinue(ch))
@@ -77,28 +76,7 @@ void npc_racial_behave(struct char_data *ch)
 
   //first figure out which race we are dealing with
   switch(GET_RACE(ch)) {
-    case NPCRACE_UNKNOWN:
-      switch (GET_LEVEL(ch)) {
-        default:
-          do_say(ch, strcpy(actbuf, "I'm an unknown race."), 0, 0);
-          break;
-      }
-      break;
-    case NPCRACE_HMN_HUMAN:
-      switch (GET_LEVEL(ch)) {
-        default:
-          do_say(ch, strcpy(actbuf, "I'm a Human race."), 0, 0);
-          break;
-      }
-      break;
-    case NPCRACE_UND_GHOUL:
-      switch (GET_LEVEL(ch)) {
-        default:
-          do_say(ch, strcpy(actbuf, "I'm a Ghoul race."), 0, 0);
-          break;
-      }
-      break;
-    case NPCRACE_ANM_BADGER:
+    case NPCRACE_ANIMAL:
       switch (rand_number(1, 2)) {
         case 1:
           do_rage(ch, 0, 0, 0);
@@ -106,7 +84,7 @@ void npc_racial_behave(struct char_data *ch)
           break;
       }
       break;
-    case NPCRACE_DRG_RED:
+    case NPCRACE_DRAGON:
       if (!HUNTING(ch))
         HUNTING(ch) = vict;
 
@@ -124,17 +102,9 @@ void npc_racial_behave(struct char_data *ch)
           break;
       }
       break;
-    case NPCRACE_GNT_HILL:
-      switch (GET_LEVEL(ch)) {
-        default:
-          do_say(ch, strcpy(actbuf, "I'm a Hill Giant race."), 0, 0);
-          break;
-      }
-      break;
     default:
       switch (GET_LEVEL(ch)) {
         default:
-          do_say(ch, strcpy(actbuf, "I'm a UNDEFINED race."), 0, 0);
           break;
       }
       break;

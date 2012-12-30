@@ -1378,10 +1378,10 @@ void reset_acraft(struct char_data *ch);
 
 
 // IS_race for various morph/shapechange equivalent of npc races
-#define IS_RED_DRAGON(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_DRG_RED) || \
-				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_DRG_RED) )
-#define IS_BADGER(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ANM_BADGER) || \
-				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ANM_BADGER) )
+#define IS_RED_DRAGON(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_DRAGON) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_DRAGON) )
+#define IS_BADGER(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ANIMAL) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ANIMAL) )
 
 
 /** Defines if ch is outdoors or not. */
