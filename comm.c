@@ -1159,11 +1159,9 @@ void echo_on(struct descriptor_data *d)
 static char *make_prompt(struct descriptor_data *d)
 {
   static char prompt[MAX_PROMPT_LENGTH];
-  int door, slen = 0;
-  struct char_data *ch = d->character;
-  int count;
+  int door, slen = 0, count = 0;
   size_t len = 0;
-  *prompt = '\0';
+  struct char_data *ch = d->character;
 
   /* Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h) */
   if (d->showstr_count)
@@ -1172,7 +1170,10 @@ static char *make_prompt(struct descriptor_data *d)
       d->showstr_page, d->showstr_count);
   else if (d->str)
     strcpy(prompt, "] ");	/* strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3') */
+
+  /* PC code */
   else if (STATE(d) == CON_PLAYING && !IS_NPC(d->character)) {
+    *prompt = '\0';
 
     if (GET_INVIS_LEV(d->character) && len < sizeof(prompt)) {
       count = snprintf(prompt + len, sizeof(prompt) - len, "i%d ", GET_INVIS_LEV(d->character));
@@ -1181,7 +1182,6 @@ static char *make_prompt(struct descriptor_data *d)
     }
     /* show only when below 25% */
     if (PRF_FLAGGED(d->character, PRF_DISPAUTO) && len < sizeof(prompt)) {
-      struct char_data *ch = d->character;
       if (GET_HIT(ch) << 2 < GET_MAX_HIT(ch) ) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sH%s ",
 		GET_HIT(ch),
@@ -1293,6 +1293,8 @@ static char *make_prompt(struct descriptor_data *d)
       }      
     }
 
+    /* various other extensions to the prompt */
+
     if (PRF_FLAGGED(d->character, PRF_BUILDWALK) && len < sizeof(prompt)) {
       count = snprintf(prompt + len, sizeof(prompt) - len, "BUILDWALKING ");
       if (count >= 0)
@@ -1305,33 +1307,39 @@ static char *make_prompt(struct descriptor_data *d)
         len += count;
     }
 
-    if (GET_LAST_NEWS(d->character) < newsmod) {
+    if (has_mail(GET_IDNUM(d->character)) && len < sizeof(prompt)) {
+      count = snprintf(prompt + len, sizeof(prompt) - len, "(mail) ");
+      if (count >= 0)
+        len += count;      
+    }        
+
+    if (GET_LAST_NEWS(d->character) < newsmod && len < sizeof(prompt)) {
       count = snprintf(prompt + len, sizeof(prompt) - len, "(news) ");
       if (count >= 0)
         len += count;
     }
 
-    if (GET_LAST_MOTD(d->character) < motdmod) {
+    if (GET_LAST_MOTD(d->character) < motdmod && len < sizeof(prompt)) {
       count = snprintf(prompt + len, sizeof(prompt) - len, "(motd) ");
       if (count >= 0)
         len += count;
     }
     
-    if (has_mail(GET_IDNUM(d->character))) {
-      count = snprintf(prompt + len, sizeof(prompt) - len, "(mail) ");
-      if (count >= 0)
-        len += count;      
-    }
-        
+    /* compact mode */
     if ((len < sizeof(prompt)) && !IS_NPC(d->character) &&
           !PRF_FLAGGED(d->character, PRF_COMPACT))
       sprintf(prompt + strlen(prompt), "%s> %s\r\n",
 	         CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
+    /* not compact mode */
     else if (len < sizeof(prompt))
       sprintf(prompt + strlen(prompt), "%s> %s",
 	         CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
 
+  /* NPC code */
   } else if (STATE(d) == CON_PLAYING && IS_NPC(d->character)) {
+
+    /*** switched mobiles can see exits ***/
+    slen = 0;
     count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
 	               CCYEL(d->character,C_NRM));
     if (count >= 0)
@@ -1360,6 +1368,8 @@ static char *make_prompt(struct descriptor_data *d)
       if (count >= 0)
         len += count;
     }
+    /*** end exit code switched mobiles can see exits ***/
+
     count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s >> ",
                 slen ? ">> " : "None! >> ", CCNRM(ch, C_NRM));
     if (count >= 0)
@@ -1400,9 +1410,6 @@ static int get_from_q(struct txt_q *queue, char *dest, int *aliased)
     return (0);
 
   strcpy(dest, queue->head->text);	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
-
-  // parse input replacing @ \t    -zusuk
-  parse_at(dest);
 
   *aliased = queue->head->aliased;
 
@@ -1726,9 +1733,6 @@ static int process_output(struct descriptor_data *t)
 
   /* now, append the 'real' output */
   strcpy(osb, t->output);	/* strcpy: OK (t->output:LARGE_BUFSIZE < osb:MAX_SOCK_BUF-2) */
-
-  // color code fix attempt -zusuk
-  // parse_at(osb);
 
   /* if we're in the overflow state, notify the user */
   if (t->bufspace == 0)
