@@ -1410,6 +1410,8 @@ ACMD(do_display)
   }
 
   if (!str_cmp(argument, "on") || !str_cmp(argument, "all")) {
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
+
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
@@ -1418,6 +1420,8 @@ ACMD(do_display)
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
   } else if (!str_cmp(argument, "off") || !str_cmp(argument, "none")) {
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
+
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
@@ -1426,6 +1430,8 @@ ACMD(do_display)
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);    
   } else {
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
+
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
@@ -1460,7 +1466,9 @@ ACMD(do_display)
       default:
         send_to_char(ch, "Usage: prompt { { H | M | V | X | T | R | E } | all"
                       " | auto | none }\r\n");
-      return;
+        send_to_char(ch, "Notice this command is deprecated, we recommend using "
+                      " PREFEDIT instead.\r\n");
+        return;
       }
     }
   }
