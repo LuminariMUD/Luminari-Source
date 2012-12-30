@@ -880,19 +880,14 @@ ACMD(do_innates)
     else
       race = GET_RACE(ch);
     switch (race) {
-      case NPCRACE_DRG_RED:
+      case NPCRACE_DRAGON:
         send_to_char(ch, "tailsweep\r\n");
         send_to_char(ch, "breathe\r\n");
         send_to_char(ch, "frightful\r\n");
         break;
-      case NPCRACE_ANM_BADGER:
+      case NPCRACE_ANIMAL:
         send_to_char(ch, "rage\r\n");
         break;
-      case NPCRACE_UNDEFINED:
-      case NPCRACE_UNKNOWN:
-      case NPCRACE_HMN_HUMAN:
-      case NPCRACE_UND_GHOUL:
-      case NPCRACE_GNT_HILL:
       default:
         send_to_char(ch, "None (yet)\r\n");
         break;

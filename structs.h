@@ -240,16 +240,26 @@
 #define NUM_RACES          10
 
 
-// NPC races, sub-race abbreviations described in comments in first instance
+// NPC races
 #define NPCRACE_UNDEFINED	(-1)	/*Race Undefined*/
 #define NPCRACE_UNKNOWN		0	/**< NPC race Other */
-#define NPCRACE_HMN_HUMAN	1	// hmn = humanoid
-#define NPCRACE_UND_GHOUL	2	// und = undead
-#define NPCRACE_ANM_BADGER	3	// anm = animal
-#define NPCRACE_DRG_RED		4	// drg = dragon
-#define NPCRACE_GNT_HILL	     5	// gnt = giant
+#define NPCRACE_HUMANOID	     1
+#define NPCRACE_UNDEAD   	2
+#define NPCRACE_ANIMAL   	3
+#define NPCRACE_DRAGON		4
+#define NPCRACE_GIANT	     5
+#define NPCRACE_ABERRATION	6
+#define NPCRACE_CONSTRUCT	7
+#define NPCRACE_ELEMENTAL	8
+#define NPCRACE_FEY	          9
+#define NPCRACE_MAG_BEAST	10 // magical beast
+#define NPCRACE_MONSTER_HMN	11 // monsterous humanoid
+#define NPCRACE_OOZE	     12
+#define NPCRACE_OUTSIDER	     13
+#define NPCRACE_PLANT	     14
+#define NPCRACE_VERMIN	     15
 //total
-#define NUM_NPC_RACES		6
+#define NUM_NPC_RACES		16
 
 /* Sex */
 #define SEX_NEUTRAL   0   /**< Neutral Sex (Hermaphrodite) */
