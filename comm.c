@@ -85,7 +85,7 @@
 #include "mud_event.h"
 #include "clan.h"
 #include "class.h" /* needed for level_exp for prompt */
-
+#include "mail.h" /* has_mail() */
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
 #endif
@@ -1304,14 +1304,20 @@ static char *make_prompt(struct descriptor_data *d)
         len += count;
     }
 
-    if (GET_LAST_NEWS(d->character) < newsmod) {
+    if (GET_LAST_NEWS(d->character) < newsmod && len < sizeof(prompt)) {
       count = snprintf(prompt + len, sizeof(prompt) - len, "(news) ");
       if (count >= 0)
         len += count;
     }
 
-    if (GET_LAST_MOTD(d->character) < motdmod) {
+    if (GET_LAST_MOTD(d->character) < motdmod && len < sizeof(prompt)) {
       count = snprintf(prompt + len, sizeof(prompt) - len, "(motd) ");
+      if (count >= 0)
+        len += count;
+    }
+
+    if (has_mail(GET_IDNUM(d->character)) && len < sizeof(prompt)) {
+      count = snprintf(prompt + len, sizeof(prompt) - len, "(mail) ");
       if (count >= 0)
         len += count;
     }

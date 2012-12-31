@@ -247,8 +247,12 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
     if (percent >= diagnosis[ar_index].percent)
       break;
 
-  send_to_char(ch, "%c%s \tn[%s %s\tn] %s\r\n", UPPER(*pers), pers + 1, size_names[GET_SIZE(i)],
-	RACE_ABBR(i), diagnosis[ar_index].text);
+  if (!IS_NPC(i))
+    send_to_char(ch, "%c%s \tn[%s %s\tn] %s\r\n", UPPER(*pers), pers + 1, size_names[GET_SIZE(i)],
+                 RACE_ABBR(i), diagnosis[ar_index].text);
+  else
+    send_to_char(ch, "%c%s %s\r\n", UPPER(*pers), pers + 1,
+                 diagnosis[ar_index].text);
 }
 
 static void look_at_char(struct char_data *i, struct char_data *ch)
@@ -2892,10 +2896,27 @@ ACMD(do_whois)
                    (victim->player.title ? victim->player.title : ""), buf);
 
   sprinttype (victim->player.chclass, pc_class_types, buf, sizeof(buf));
-  send_to_char(ch, "Class: %s\r\n", buf);
+  send_to_char(ch, "Current Class: %s\r\n", buf);
 
-  send_to_char(ch, "Race : %s (\tDtype 'innates' for more info\tn)\r\n",
-          pc_race_types[(int)GET_RACE(victim)]);
+  send_to_char(ch, "\tCClass(es):\tn ");
+
+  int i, counter = 0;
+  for (i = 0; i < MAX_CLASSES; i++) {
+    if (CLASS_LEVEL(victim, i)) {
+      if (counter)
+        send_to_char(ch, " / ");
+      send_to_char(ch, "%d %s", CLASS_LEVEL(victim, i), class_abbrevs[i]);
+      counter++;
+    }
+  }
+  send_to_char(ch, "\r\n");
+
+  if (IS_MORPHED(victim))
+    send_to_char(ch, "Race : %s\r\n",
+          npc_race_types[IS_MORPHED(victim)]);
+  else
+    send_to_char(ch, "Race : %s\r\n",
+          pc_race_types[GET_RACE(victim)]);
 
   send_to_char(ch, "Level: %d\r\n", GET_LEVEL(victim));
 

@@ -613,6 +613,14 @@ int castingCheckOk(struct char_data *ch)
     resetCastingData(ch);
     return (0);
   }  
+  if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
+      char_has_mud_event(ch, eSTUNNED)) {
+    send_to_char(ch, "You are unable to continue casting!\r\n");
+    act("$n seems to be unable to continue casting!",
+            TRUE, ch, 0, 0, TO_ROOM);
+    resetCastingData(ch);
+    return (0);
+  }
   return 1;
 }
 
