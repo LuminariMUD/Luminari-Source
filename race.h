@@ -24,8 +24,10 @@ int invalid_race(struct char_data *ch, struct obj_data *obj);
 #ifndef __RACE_C__
 
 extern const char *npc_race_abbrevs[];
-extern const char *npc_race_menu;
 extern const char *race_abbrevs[];
+extern const char *npc_subrace_abbrevs[];
+extern const char *npc_subrace_types[];
+extern const char *npc_race_menu;
 extern const char *pc_race_types[];
 extern const char *npc_race_types[];
 extern const char *race_menu;

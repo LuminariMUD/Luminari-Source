@@ -1081,6 +1081,39 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
               }
               snprintf(str, slen, "%d", GET_ADD(c));
             }
+          } else if (!str_cmp(field, "subrace1")) {
+            if (subfield && *subfield) {
+              int ra = get_subrace_by_name(subfield);
+              if (ra != -1) {
+                GET_SUBRACE(c, 0) = ra;
+                snprintf(str, slen, "1");
+              } else {
+                snprintf(str, slen, "0");
+              }
+            } else
+            sprinttype(GET_RACE(c), pc_race_types, str, slen);
+          } else if (!str_cmp(field, "subrace2")) {
+            if (subfield && *subfield) {
+              int ra = get_subrace_by_name(subfield);
+              if (ra != -1) {
+                GET_SUBRACE(c, 1) = ra;
+                snprintf(str, slen, "1");
+              } else {
+                snprintf(str, slen, "0");
+              }
+            } else
+            sprinttype(GET_RACE(c), pc_race_types, str, slen);
+          } else if (!str_cmp(field, "subrace3")) {
+            if (subfield && *subfield) {
+              int ra = get_subrace_by_name(subfield);
+              if (ra != -1) {
+                GET_SUBRACE(c, 2) = ra;
+                snprintf(str, slen, "1");
+              } else {
+                snprintf(str, slen, "0");
+              }
+            } else
+            sprinttype(GET_RACE(c), pc_race_types, str, slen);
           }
           break;
         case 't':

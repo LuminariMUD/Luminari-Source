@@ -79,6 +79,7 @@ char* add_commas(long X);
 void new_affect(struct affected_type *af);
 int get_class_by_name(char *classname);
 int get_race_by_name(char *racename);
+int get_subrace_by_name(char *racename);
 char * convert_from_tabs(char * string);
 
 /* Public functions made available form weather.c */
@@ -916,15 +917,26 @@ do                                                              \
 				 mob_index[GET_MOB_RNUM(mob)].vnum : NOBODY)
 
 
-
 /** Return the default position of ch. */
 #define GET_DEFAULT_POS(ch)	((ch)->mob_specials.default_pos)
-
 /** Return the memory of ch. */
 #define MEMORY(ch)		((ch)->mob_specials.memory)
-
 /** Return the anger/frustration level of ch */
 #define GET_ANGER(ch)     ((ch)->mob_specials.frustration_level)
+/** Subrace Types of MOB **/
+#define GET_SUBRACE(ch, i)     ((ch)->mob_specials.subrace[i])
+/** MOB number of damage dice for attacks **/
+#define GET_DAMNODICE(ch)     ((ch)->mob_specials.damnodice)
+/** MOB size of damage dice for attacks **/
+#define GET_DAMSIZEDICE(ch)     ((ch)->mob_specials.damsizedice)
+/** MOB attack type (slash, bite, etc) **/
+#define GET_ATTACK_TYPE(ch)     ((ch)->mob_specials.attack_type)
+/**/
+/** Has Subrace will check the (3) arrays if subrace is there **/
+#define HAS_SUBRACE(ch, i)      (GET_SUBRACE(ch, 0) == i || \
+                                 GET_SUBRACE(ch, 1) == i || \
+                                 GET_SUBRACE(ch, 2) == i)
+
 
 /** Return the equivalent strength of ch if ch has level 18 strength. */
 #define STRENGTH_APPLY_INDEX(ch) \
@@ -1378,10 +1390,10 @@ void reset_acraft(struct char_data *ch);
 
 
 // IS_race for various morph/shapechange equivalent of npc races
-#define IS_RED_DRAGON(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_DRG_RED) || \
-				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_DRG_RED) )
-#define IS_BADGER(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ANM_BADGER) || \
-				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ANM_BADGER) )
+#define IS_RED_DRAGON(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_DRAGON) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_DRAGON) )
+#define IS_BADGER(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ANIMAL) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ANIMAL) )
 
 
 /** Defines if ch is outdoors or not. */

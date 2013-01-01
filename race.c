@@ -28,35 +28,128 @@
 #include "comm.h"
 #include "race.h"
 
+
+
+
 // npc races
 const char *npc_race_types[] = {
    "Unknown",
    "Human",
-   "Ghoul",
-   "Badger",
-   "Red Dragon",
-   "Hill Giant"
+   "Undead",
+   "Animal",
+   "Dragon",
+   "Giant",
+   "Aberration",
+   "Construct",
+   "Elemental",
+   "Fey",
+   "Magical Beast",
+   "Monstrous Humanoid",
+   "Ooze",
+   "Outsider",
+   "Plant",
+   "Vermin"
 };
+
+
+// colored npc race abbreviations
+// for now full name for effect
 const char *npc_race_abbrevs[] = {
    "Unknown",
    "\tWHuman\tn",
-   "\tGGhoul\tn",
-   "\tgBadger\tn",
-   "\tRRed Dragon\tn",
-   "\tYHill Giant\tn"
+   "\tDUndead\tn",
+   "\tgAnimal\tn",
+   "\trDragon\tn",
+   "\tYGiant\tn",
+   "\tRAberration\tn",
+   "\tcConstruct\tn",
+   "\tRElemental\tn",
+   "\tCFey\tn",
+   "\tmMagical \tgBeast\tn",
+   "\tBMonstrous \tWHumanoid\tn",
+   "\tMOoze\tn",
+   "\tDOut\twsider\tn",
+   "\tGPlant\tn",
+   "\tyVermin\tn"
 };
+
+
+// npc subrace
+const char *npc_subrace_types[] = {
+   "Unknown",
+   "Air",
+   "Angelic",
+   "Aquatic",
+   "Archon",
+   "Augmented",
+   "Chaotic",
+   "Cold",
+   "Earth",
+   "Evil",
+   "Extraplanar",
+   "Fire",
+   "Goblinoid",
+   "Good",
+   "Incorporeal",
+   "Lawful",
+   "Native",
+   "Reptilian",
+   "Shapechanger",
+   "Swarm",
+   "Water"
+};
+
+
+// colored npc subrace abbreviations
+// for now full name for effect
+const char *npc_subrace_abbrevs[] = {
+   "Unknown",
+   "\tCAir\tn",
+   "\tWAngelic\tn",
+   "\tBAquatic\tn",
+   "\trArch\tRon\tn",
+   "\tYAugmented\tn",
+   "\tDChaotic\tn",
+   "\tbCold\tn",
+   "\tGEarth\tn",
+   "\trEvil\tn",
+   "\tmExtraplanar\tn",
+   "\tRFire\tn",
+   "\tgGoblinoid\tn",
+   "\tWGood\tn",
+   "\tGIncorporeal\tn",
+   "\twLawful\tn",
+   "\tyNative\tn",
+   "\tyReptilian\tn",
+   "\tMShapechanger\tn",
+   "\tySwarm\tn",
+   "\tBWater\tn"
+};
+
+
+// made this for shapechange, a tad tacky -zusuk
 const char *npc_race_menu = 
 "\r\n"
 "  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | npc race selection\r\n"
 "---------------------+\r\n"
-"1)  \tWHuman\tn\r\n"
-"2)  \tDGhoul\tn\r\n"
-"3)  \tgBadger\tn\r\n"
-"4)  \tRRed Dragon\tn\r\n"
-"5)  \tYHill Giant\tn\r\n";
+   "1)  \tWHuman\tn"
+   "2)  \tDUndead\tn"
+   "3)  \tgAnimal\tn"
+   "4)  \trDragon\tn"
+   "5)  \tYGiant\tn"
+   "6)  \tRAberration\tn"
+   "7)  \tcConstruct\tn"
+   "8)  \tRElemental\tn"
+   "9)  \tCFey\tn"
+   "10) \tmMagical \tgBeast\tn"
+   "11) \tBMonstrous \tWHumanoid\tn"
+   "12) \tMOoze\tn"
+   "13) \tDOut\twsider\tn"
+   "14) \tGPlant\tn"
+   "15) \tyVermin\tn";
 
 
-// pc races
+// pc race abbreviations, with color
 const char *race_abbrevs[] = {
         "\tBHumn\tn",
         "\tYElf\tn",
@@ -70,6 +163,9 @@ const char *race_abbrevs[] = {
         "\tGTr\tYlx\tn",
         "\n"
 };
+
+
+// pc race types, full name no color
 const char *pc_race_types[] = {
         "Human",
         "Elf",
@@ -83,6 +179,10 @@ const char *pc_race_types[] = {
         "Trelux"
         "\n"
 };
+
+
+// pc character creation menu
+// notice, epic races are not manually or in-game settable at this stage
 const char *race_menu = 
 "\r\n"
 "  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | race selection\r\n"
@@ -96,7 +196,9 @@ const char *race_menu =
 "  h)  \twHalf \tROrc\tn\r\n"
 "  i)  \tMGnome\tn\r\n";
 
+
 // interpret race for interpreter.c and act.wizard.c etc
+// notice, epic races are not manually or in-game settable at this stage
 int parse_race(char arg)
 {
   arg = LOWER(arg);
@@ -115,6 +217,7 @@ int parse_race(char arg)
 }
 
 
+// returns the proper integer for the race, given a character
 bitvector_t find_race_bitvector(const char *arg)
 {
   size_t rpos, ret = 0;
@@ -142,4 +245,3 @@ int invalid_race(struct char_data *ch, struct obj_data *obj) {
   else
         return 0;
 }
-
