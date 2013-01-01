@@ -245,3 +245,4 @@ int invalid_race(struct char_data *ch, struct obj_data *obj) {
   else
         return 0;
 }
+

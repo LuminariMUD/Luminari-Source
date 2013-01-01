@@ -259,7 +259,7 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
     send_to_char(ch, "%c%s \tn[%s %s\tn] %s\r\n", UPPER(*pers), pers + 1,
             size_names[GET_SIZE(i)], RACE_ABBR(i), diagnosis[ar_index].text);
   else
-    send_to_char(ch, "%c%s \tn[%s %s %s %s %s\tn] %s\r\n", UPPER(*pers), pers + 1,
+    send_to_char(ch, "%c%s \tn[%s %s/%s/%s %s\tn] %s\r\n", UPPER(*pers), pers + 1,
             size_names[GET_SIZE(i)], npc_subrace_abbrevs[GET_SUBRACE(i, 0)],
             npc_subrace_abbrevs[GET_SUBRACE(i, 1)],
             npc_subrace_abbrevs[GET_SUBRACE(i, 2)],
