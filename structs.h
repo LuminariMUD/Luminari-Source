@@ -261,6 +261,8 @@
 //total
 #define NUM_NPC_RACES		16
 /* how many subrace-types can a mobile have? */
+/* note, if this is changed, a lot of other places have
+ * to be changed as well -zusuk */
 #define MAX_SUBRACES          3
 
 // npc sub-race types
