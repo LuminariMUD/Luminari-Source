@@ -36,6 +36,9 @@ static void medit_save_to_disk(zone_vnum zone_num);
 static void medit_disp_positions(struct descriptor_data *d);
 static void medit_disp_sex(struct descriptor_data *d);
 static void medit_disp_race(struct descriptor_data *d);
+static void medit_disp_subrace1(struct descriptor_data *d);
+static void medit_disp_subrace2(struct descriptor_data *d);
+static void medit_disp_subrace3(struct descriptor_data *d);
 static void medit_disp_class(struct descriptor_data *d);
 static void medit_disp_size(struct descriptor_data *d);
 static void medit_disp_attack_types(struct descriptor_data *d);
@@ -336,6 +339,51 @@ void medit_disp_race(struct descriptor_data *d)
   write_to_output(d, "\r\n%sEnter race number : ", nrm);
 }
 
+void medit_disp_subrace1(struct descriptor_data *d)
+{
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 0; counter < NUM_SUB_RACES; counter++) {
+   write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+     npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
+  }
+  write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
+  write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
+}
+
+void medit_disp_subrace2(struct descriptor_data *d)
+{
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 0; counter < NUM_SUB_RACES; counter++) {
+   write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+     npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
+  }
+  write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
+  write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
+}
+
+void medit_disp_subrace3(struct descriptor_data *d)
+{
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 0; counter < NUM_SUB_RACES; counter++) {
+   write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+     npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
+  }
+  write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
+  write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
+}
+
 void medit_disp_class(struct descriptor_data *d)
 {
   int counter, columns = 0;
@@ -483,6 +531,9 @@ static void medit_disp_menu(struct descriptor_data *d)
 	  "%s8%s) Attack    : %s%s\r\n"
       "%s9%s) Stats Menu...\r\n"
 	"%sR%s) Race      : %s%s\r\n"
+	"%sD%s) SubRace   : %s%s\r\n"
+	"%sE%s) SubRace   : %s%s\r\n"
+	"%sF%s) SubRace   : %s%s\r\n"
 	"%sC%s) Class     : %s%s\r\n"
 	"%sI%s) Size      : %s%s\r\n"
 	  "%sA%s) NPC Flags : %s%s\r\n"
@@ -498,6 +549,9 @@ static void medit_disp_menu(struct descriptor_data *d)
 	  grn, nrm, yel, attack_hit_text[(int)GET_ATTACK(mob)].singular,
 	  grn, nrm,
           grn, nrm, yel, npc_race_types[GET_RACE(mob)],
+          grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 0)],
+          grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 1)],
+          grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 2)],
           grn, nrm, yel, pc_class_types[GET_CLASS(mob)],
           grn, nrm, yel, size_names[GET_SIZE(mob)],
 	  grn, nrm, cyn, flags,
@@ -683,6 +737,21 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'R':
        OLC_MODE(d) = MEDIT_RACE;
        medit_disp_race(d);
+       return;
+    case 'd':
+    case 'D':
+       OLC_MODE(d) = MEDIT_SUB_RACE_1;
+       medit_disp_subrace1(d);
+       return;
+    case 'e':
+    case 'E':
+       OLC_MODE(d) = MEDIT_SUB_RACE_2;
+       medit_disp_subrace2(d);
+       return;
+    case 'f':
+    case 'F':
+       OLC_MODE(d) = MEDIT_SUB_RACE_3;
+       medit_disp_subrace3(d);
        return;
     case 'c':
     case 'C':
@@ -1138,6 +1207,27 @@ void medit_parse(struct descriptor_data *d, char *arg)
       GET_RACE(OLC_MOB(d)) = rand_number(1, NUM_NPC_RACES - 1);
     else
       GET_RACE(OLC_MOB(d)) = LIMIT(i, 0, NUM_NPC_RACES - 1);
+    break;
+
+  case MEDIT_SUB_RACE_1:
+    if (i == 99)
+      GET_SUBRACE(OLC_MOB(d), 0) = rand_number(1, NUM_SUB_RACES - 1);
+    else
+      GET_SUBRACE(OLC_MOB(d), 0) = LIMIT(i, 0, NUM_SUB_RACES - 1);
+    break;
+
+  case MEDIT_SUB_RACE_2:
+    if (i == 99)
+      GET_SUBRACE(OLC_MOB(d), 1) = rand_number(1, NUM_SUB_RACES - 1);
+    else
+      GET_SUBRACE(OLC_MOB(d), 1) = LIMIT(i, 0, NUM_SUB_RACES - 1);
+    break;
+    
+  case MEDIT_SUB_RACE_3:
+    if (i == 99)
+      GET_SUBRACE(OLC_MOB(d), 2) = rand_number(1, NUM_SUB_RACES - 1);
+    else
+      GET_SUBRACE(OLC_MOB(d), 2) = LIMIT(i, 0, NUM_SUB_RACES - 1);
     break;
 
   case MEDIT_CLASS:

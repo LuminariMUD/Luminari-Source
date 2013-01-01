@@ -899,6 +899,20 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
   } else {
     send_to_char(ch, "\tCRace:\tn %s  ", RACE_ABBR(k));
   }
+  
+  if (IS_NPC(k)) {
+    if (GET_SUBRACE(k, 0))
+      send_to_char(ch, "\tCSub-Race:\tn %s / ",
+              npc_subrace_types[GET_SUBRACE(k, 0)]);
+    if (GET_SUBRACE(k, 1))
+      send_to_char(ch, "%s / ",
+              npc_subrace_types[GET_SUBRACE(k, 1)]);
+    if (GET_SUBRACE(k, 2))
+      send_to_char(ch, "%s  ",
+              npc_subrace_types[GET_SUBRACE(k, 2)]);
+    send_to_char(ch, "\r\n");
+  }
+  
   send_to_char(ch, "\tCCrntClass:\tn %s  ", pc_class_types[GET_CLASS(k)]);
   send_to_char(ch, "\tCLvl: [\tn%d\tC]  XP: [\tn%d\tC]  Algn: [\tn%d\tC]\tn\r\n",
 	GET_LEVEL(k), GET_EXP(k), GET_ALIGNMENT(k));

@@ -1467,6 +1467,9 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
   mob_proto[i].real_abils.cha = 11;
 
   //npc race / class
+  GET_SUBRACE(mob_proto + i, 0) = -1;
+  GET_SUBRACE(mob_proto + i, 1) = -1;
+  GET_SUBRACE(mob_proto + i, 2) = -1;
   GET_RACE(mob_proto + i) = -1;
   GET_CLASS(mob_proto + i) = -1;
   GET_SIZE(mob_proto + i) = -1;
@@ -1533,6 +1536,9 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
   GET_DEFAULT_POS(mob_proto + i) = t[1];
   GET_SEX(mob_proto + i) = t[2];
 
+  GET_SUBRACE(mob_proto + i, 0) = 0;
+  GET_SUBRACE(mob_proto + i, 1) = 0;
+  GET_SUBRACE(mob_proto + i, 2) = 0;
   GET_RACE(mob_proto + i) = 0;
   GET_CLASS(mob_proto + i) = 0;
   GET_SIZE(mob_proto + i) = SIZE_MEDIUM;
@@ -1655,6 +1661,21 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("Race") {
     RANGE(0, NUM_NPC_RACES);
     GET_RACE(mob_proto + i) = num_arg;
+  }
+
+  CASE("SubRace 1") {
+    RANGE(0, NUM_SUB_RACES);
+    GET_SUBRACE(mob_proto + i, 0) = num_arg;
+  }
+
+  CASE("SubRace 2") {
+    RANGE(0, NUM_SUB_RACES);
+    GET_SUBRACE(mob_proto + i, 1) = num_arg;
+  }
+
+  CASE("SubRace 3") {
+    RANGE(0, NUM_SUB_RACES);
+    GET_SUBRACE(mob_proto + i, 2) = num_arg;
   }
 
   CASE("Class") {

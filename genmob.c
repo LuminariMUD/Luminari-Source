@@ -353,6 +353,12 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     fprintf(fd, "SavingPoison: %d\n", GET_SAVE(mob, SAVING_POISON));
   if (GET_SAVE(mob, SAVING_DEATH) != 0)
     fprintf(fd, "SavingDeath: %d\n", GET_SAVE(mob, SAVING_DEATH));
+  if (GET_SUBRACE(mob, 0) != -1)
+    fprintf(fd, "SubRace 1: %d\n", GET_SUBRACE(mob, 0));
+  if (GET_SUBRACE(mob, 1) != -1)
+    fprintf(fd, "SubRace 2: %d\n", GET_SUBRACE(mob, 1));
+  if (GET_SUBRACE(mob, 2) != -1)
+    fprintf(fd, "SubRace 3: %d\n", GET_SUBRACE(mob, 2));
   if (GET_RACE(mob) != -1)
     fprintf(fd, "Race: %d\n", GET_RACE(mob));
   if (GET_CLASS(mob) != -1) 

@@ -2227,22 +2227,39 @@ void new_affect(struct affected_type *af)
 int get_class_by_name(char *classname)
 {
     int i;
-    for (i=0; i<NUM_CLASSES; i++)
-      if (is_abbrev(classname, pc_class_types[i])) return(i);
+    
+    for (i = 0; i < NUM_CLASSES; i++)
+      if (is_abbrev(classname, pc_class_types[i]))
+        return(i);
 
     return (-1);
 }
 
+/* Handy function to get race ID number by name (abbreviations allowed) */
 int get_race_by_name(char *racename)
 {
     int i;
-    for (i=0; i<NUM_RACES; i++)
-      if (is_abbrev(racename, pc_race_types[i])) return(i);
+    
+    for (i = 0; i < NUM_RACES; i++)
+      if (is_abbrev(racename, pc_race_types[i]))
+        return(i);
 
     return (-1);
 }
 
-char * convert_from_tabs(char * string)
+/* Handy function to get subrace ID number by name (abbreviations allowed) */
+int get_subrace_by_name(char *racename)
+{
+    int i;
+    
+    for (i = 0; i < NUM_SUB_RACES; i++)
+      if (is_abbrev(racename, npc_subrace_types[i]))
+        return(i);
+
+    return (-1);
+}
+
+char *convert_from_tabs(char * string)
 {
   static char buf[MAX_STRING_LENGTH * 8];
   

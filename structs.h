@@ -240,16 +240,55 @@
 #define NUM_RACES          10
 
 
-// NPC races, sub-race abbreviations described in comments in first instance
+// NPC races
 #define NPCRACE_UNDEFINED	(-1)	/*Race Undefined*/
-#define NPCRACE_UNKNOWN		0	/**< NPC race Other */
-#define NPCRACE_HMN_HUMAN	1	// hmn = humanoid
-#define NPCRACE_UND_GHOUL	2	// und = undead
-#define NPCRACE_ANM_BADGER	3	// anm = animal
-#define NPCRACE_DRG_RED		4	// drg = dragon
-#define NPCRACE_GNT_HILL	     5	// gnt = giant
+#define NPCRACE_UNKNOWN       0
+#define NPCRACE_HUMAN         1
+#define NPCRACE_UNEAD         2
+#define NPCRACE_ANIMAL        3
+#define NPCRACE_DRAGON		4
+#define NPCRACE_GIANT	     5
+#define NPCRACE_ABERRATION    6
+#define NPCRACE_CONSTRUCT     7
+#define NPCRACE_ELEMENTAL     8
+#define NPCRACE_FEY           9
+#define NPCRACE_MAG_BEAST     10 // magical beast
+#define NPCRACE_MONSTER_HMN	11 // monsterous humanoid
+#define NPCRACE_OOZE          12
+#define NPCRACE_OUTSIDER      13
+#define NPCRACE_PLANT         14
+#define NPCRACE_VERMIN        15
 //total
-#define NUM_NPC_RACES		6
+#define NUM_NPC_RACES		16
+/* how many subrace-types can a mobile have? */
+#define MAX_SUBRACES          3
+
+// npc sub-race types
+#define SUBRACE_UNDEFINED	  (-1)	/*Race Undefined*/
+#define SUBRACE_UNKNOWN          0
+#define SUBRACE_AIR              1
+#define SUBRACE_ANGEL            2
+#define SUBRACE_AQUATIC          3
+#define SUBRACE_ARCHON		   4
+#define SUBRACE_AUGMENTED	   5
+#define SUBRACE_CHAOTIC          6
+#define SUBRACE_COLD             7
+#define SUBRACE_EARTH            8
+#define SUBRACE_EVIL             9
+#define SUBRACE_EXTRAPLANAR      10
+#define SUBRACE_FIRE	        11
+#define SUBRACE_GOBLINOID        12
+#define SUBRACE_GOOD             13
+#define SUBRACE_INCORPOREAL      14
+#define SUBRACE_LAWFUL           15
+#define SUBRACE_NATIVE           16
+#define SUBRACE_REPTILIAN        17
+#define SUBRACE_SHAPECHANGER     18
+#define SUBRACE_SWARM            19
+#define SUBRACE_WATER            20
+//total
+#define NUM_SUB_RACES		   21
+
 
 /* Sex */
 #define SEX_NEUTRAL   0   /**< Neutral Sex (Hermaphrodite) */
@@ -257,6 +296,7 @@
 #define SEX_FEMALE    2   /**< Female Sex (XX Chromosome) */
 /** Total number of Genders */
 #define NUM_GENDERS   3
+
 
 /* Positions */
 #define POS_DEAD       0	/**< Position = dead */
@@ -1318,6 +1358,7 @@ struct mob_special_data
   byte damnodice;     /**< The number of dice to roll for damage */
   byte damsizedice;   /**< The size of each die rolled for damage. */
   float frustration_level; /**< The anger/frustration level of the mob */
+  byte subrace[MAX_SUBRACES];			// SubRace
 };
 
 /** An affect structure. */
