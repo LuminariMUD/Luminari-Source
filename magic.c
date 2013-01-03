@@ -1852,12 +1852,13 @@ static const char *mag_summon_msgs[] = {
   "$n magically divides!",
   "$n animates a corpse!",
   "$N breaks through the ground and bows before $n.",
-  "With a roar $N soars to the ground next to $n.",  //13
-  "$N pops into existence next to $n.",  //14
-  "$N skimpers into the area, then quickly moves next to $n.",  //15
-  "$N charges into the area, looks left, then right... then quickly moves next to $n.",  //16
-  "$N moves into the area, sniffing cautiously.",  //17
-  "$N neighs and walks up to $n.",  //18
+  "With a roar $N soars to the ground next to $n.",  //12
+  "$N pops into existence next to $n.",  //13
+  "$N skimpers into the area, then quickly moves next to $n.",  //14
+  "$N charges into the area, looks left, then right... then quickly moves next to $n.",  //15
+  "$N moves into the area, sniffing cautiously.",  //16
+  "$N neighs and walks up to $n.",  //17
+  "$N skitters into the area and moves next to $n.",  //18
 };
 
 /* Keep the \r\n because these use send_to_char. */
@@ -1886,6 +1887,8 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_DIRE_BOAR		42
 #define MOB_DIRE_WOLF		43
 #define MOB_PHANTOM_STEED	44
+//45 - wizard eye
+#define MOB_DIRE_SPIDER		46
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 		      int spellnum, int savetype)
 {
@@ -1999,6 +2002,16 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     pfail = 0;
     break;
 
+  case SPELL_SUMMON_CREATURE_4:  //conjuration
+    handle_corpse = FALSE;
+    msg = 18;
+    fmsg = rand_number(2, 6);	/* Random fail message. */
+
+    mob_num = MOB_DIRE_SPIDER;
+
+    pfail = 0;
+    break;
+
   case SPELL_PHANTOM_STEED:  //conjuration
     handle_corpse = FALSE;
     msg = 18;
@@ -2060,6 +2073,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 #undef MOB_SHELGARNS_BLADE
 #undef MOB_DIRE_BADGER
 #undef MOB_DIRE_BOAR
+#undef MOB_DIRE_SPIDER
 
 
 /*----------------------------------------------------------------------------*/
