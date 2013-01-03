@@ -1496,7 +1496,6 @@ void mag_assign_spells(void)
 	"Your magical charisma has faded away.", 3, 7,
 	TRANSMUTATION);  // mage 2, cleric 2
 
-  
   // 4th circle
 			/* evocation */
   spello(SPELL_ICE_STORM, "ice storm", 58, 43, 1, POS_FIGHTING,
@@ -1523,16 +1522,40 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM | TAR_OBJ_INV, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS,
 	"You feel more optimistic.", 7, 8, NECROMANCY);
 			/* enchantment */
+  //infra
+  //poison
 			/* illusion */
+  spello(SPELL_GREATER_INVIS, "greater invisibility", 58, 43, 1,
+     POS_FIGHTING, TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE,
+     MAG_AFFECTS | MAG_ALTER_OBJS, "You feel yourself exposed.", 8, 8,
+     ILLUSION);
+  spello(SPELL_RAINBOW_PATTERN, "rainbow pattern", 65, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+	"You no longer feel dazed.", 5, 6,
+	ILLUSION);
 			/* divination */
   spello(SPELL_WIZARD_EYE, "wizard eye", 65, 50, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_MANUAL,
 	NULL, 6, 8, DIVINATION);
+  spello(SPELL_LOCATE_CREATURE, "locate creature", 58, 43, 1, POS_FIGHTING,
+	TAR_CHAR_WORLD, FALSE, MAG_MANUAL,
+	NULL, 12, 8, DIVINATION);
 			/* abjuration */
   spello(SPELL_STONESKIN, "stone skin", 51, 36, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"Your skin returns to its normal texture.", 3, 8, ABJURATION);
+  spello(SPELL_MINOR_GLOBE, "minor globe", 30, 15, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"Your minor globe has faded away.", 8, 8,
+	ABJURATION);
+  //remove curse
 			/* transmutation */
+  spello(SPELL_ENLARGE_PERSON, "enlarge person", 37, 22, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"You feel your enlargement spell wear off.", 8, 8, TRANSMUTATION);
+  spello(SPELL_SHRINK_PERSON, "shrink person", 37, 22, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"You feel your shrink spell wear off.", 8, 8, TRANSMUTATION);
 
   
   // 5th circle
