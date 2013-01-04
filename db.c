@@ -40,6 +40,7 @@
 #include "mud_event.h"
 #include "class.h"
 #include "clan.h"
+#include "msgedit.h"
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */

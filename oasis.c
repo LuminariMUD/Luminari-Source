@@ -26,6 +26,7 @@
 #include "handler.h" /* for is_name */
 #include "quest.h"
 #include "ibt.h"
+#include "msgedit.h"
 
 /* Internal Data Structures */
 /** @deprecated olc_scmd_info appears to be deprecated. Commented out for now.
