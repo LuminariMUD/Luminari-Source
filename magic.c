@@ -1414,6 +1414,24 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel invulnerable to good!";
     break;
 
+  case SPELL_FIRE_SHIELD:
+    af[0].duration = 50;
+    SET_BIT_AR(af[0].bitvector, AFF_FSHIELD);
+
+    accum_duration = FALSE;
+    to_vict = "A shield of flames surrounds you.";
+    to_room = "$n is surrounded by shield of flames.";
+    break;
+
+  case SPELL_COLD_SHIELD:
+    af[0].duration = 50;
+    SET_BIT_AR(af[0].bitvector, AFF_CSHIELD);
+
+    accum_duration = FALSE;
+    to_vict = "A shield of ice surrounds you.";
+    to_room = "$n is surrounded by shield of ice.";
+    break;
+
   case SPELL_SANCTUARY:
     af[0].duration = 100;
     SET_BIT_AR(af[0].bitvector, AFF_SANCTUARY);

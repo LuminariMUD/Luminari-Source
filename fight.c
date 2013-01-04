@@ -64,7 +64,7 @@ static void perform_group_gain(struct char_data *ch, int base,
         struct char_data *victim);
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
 	int w_type, int offhand);
-static void free_messages_type(struct msg_type *msg);
+//static void free_messages_type(struct msg_type *msg); -zusuk
 static void make_corpse(struct char_data *ch);
 static void change_alignment(struct char_data *ch, struct char_data *victim);
 static void group_gain(struct char_data *ch, struct char_data *victim);
@@ -272,7 +272,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch)
   return (MIN(MAX_AC, armorclass));
 }
 
-
+/*
 static void free_messages_type(struct msg_type *msg)
 {
   if (msg->attacker_msg)	free(msg->attacker_msg);
@@ -358,7 +358,7 @@ void load_messages(void)
   }
   fclose(fl);
 }
-
+*/
 
 // the whole update_pos system probably needs to be rethought -zusuk
 void update_pos_dam(struct char_data *victim)
@@ -2132,17 +2132,16 @@ void hit(struct char_data *ch, struct char_data *victim,
       call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_SPELL);
     }
     
+    // damage inflicting shields, like fire shield
     if (dam && victim && GET_HIT(victim) >= -1 &&
             IS_AFFECTED(victim, AFF_CSHIELD)) {  // cold shield
-      damage(victim, ch, dice(1,4), TYPE_CSHIELD, DAM_COLD, offhand);
-    }
-    if (dam && victim && GET_HIT(victim) >= -1 &&
+      damage(victim, ch, dice(1,4), SPELL_CSHIELD_DAM, DAM_COLD, offhand);
+    } else if (dam && victim && GET_HIT(victim) >= -1 &&
             IS_AFFECTED(victim, AFF_FSHIELD)) {  // fire shield
-      damage(victim, ch, dice(1,4), TYPE_FSHIELD, DAM_FIRE, offhand);
-    }
-    if (dam && victim && GET_HIT(victim) >= -1 &&
+      damage(victim, ch, dice(1,4), SPELL_FSHIELD_DAM, DAM_FIRE, offhand);
+    } else if (dam && victim && GET_HIT(victim) >= -1 &&
             IS_AFFECTED(victim, AFF_ASHIELD)) {  // acid shield
-      damage(victim, ch, dice(2,4), TYPE_ASHIELD, DAM_ACID, offhand);
+      damage(victim, ch, dice(2,4), SPELL_ASHIELD_DAM, DAM_ACID, offhand);
     }
   }
 

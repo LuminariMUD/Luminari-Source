@@ -98,6 +98,8 @@ struct oasis_olc_data {
   struct prefs_data *prefs;      /* used for 'prefedit'      */
   struct ibt_data *ibt;          /* used for 'ibtedit'       */
   struct clan_data *clan;        /* used for 'clanedit'      */
+  struct message_list *msg;
+  struct message_type *m_type;
   int script_mode;
   int trigger_position;
   int item_type;
@@ -125,6 +127,7 @@ extern const char *nrm, *grn, *cyn, *yel;
 #define OLC_CONFIG(d)  (OLC(d)->config)   /**< Config structure.	*/
 #define OLC_TRIG(d)    (OLC(d)->trig)     /**< Trigger structure.   */
 #define OLC_QUEST(d)   (OLC(d)->quest)    /**< Quest structure      */
+#define OLC_MSG_LIST(d) (OLC(d)->msg)      /**< Message structure    */
 
 #define OLC_ACTION(d)  (OLC(d)->action)   /**< Action structure     */
 #define OLC_HELP(d)    (OLC(d)->help)     /**< Hedit structure      */
@@ -133,6 +136,7 @@ extern const char *nrm, *grn, *cyn, *yel;
 #define OLC_CLAN(d)    (OLC(d)->clan)     /**< Clan structure       */
 /* Other macros. */
 #define OLC_EXIT(d)		(OLC_ROOM(d)->dir_option[OLC_VAL(d)])
+#define OLC_MSG(d)     (OLC(d)->m_type)
 
 /* Cleanup types. */
 #define CLEANUP_ALL		1	/* Free the whole lot.			*/
@@ -507,6 +511,10 @@ ACMD(do_tedit);
 
 /* public functions from qedit.c */
 ACMD(do_oasis_qedit);
+
+/* public functions from msgedit.c */
+ACMD(do_msgedit);
+void msgedit_parse(struct descriptor_data *d, char *arg);
 
 /* public functions from oasis_copy.c */
 int buildwalk(struct char_data *ch, int dir);

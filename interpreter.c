@@ -246,6 +246,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "mlist"    , "mlist"   , POS_DEAD    , do_oasis_list, LVL_BUILDER, SCMD_OASIS_MLIST },
   { "mcopy"    , "mcopy"   , POS_DEAD    , do_oasis_copy, LVL_GOD, CON_MEDIT },
   { "motd"     , "motd"    , POS_DEAD    , do_gen_ps   , 0, SCMD_MOTD },
+  { "msgedit"  , "msgedit" , POS_DEAD    , do_msgedit,   LVL_GOD, 0 },
   { "mute"     , "mute"    , POS_DEAD    , do_wizutil  , LVL_GOD, SCMD_MUTE },
   { "mount" , "mount", POS_FIGHTING , do_mount , 0, 0 },
 
@@ -296,9 +297,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "quit"     , "quit"    , POS_DEAD    , do_quit     , 0, SCMD_QUIT },
   { "qsay"     , "qsay"    , POS_RESTING , do_qcomm    , 0, SCMD_QSAY },
 
-  { "rage"     , "rage"     , POS_FIGHTING, do_rage     , 1, 0 },
-  { "reply"    , "r"       , POS_SLEEPING, do_reply    , 0, 0 },
   { "rest"     , "res"     , POS_RESTING , do_rest     , 0, 0 },
+  { "reply"    , "r"       , POS_SLEEPING, do_reply    , 0, 0 },
   { "read"     , "rea"     , POS_RESTING , do_look     , 0, SCMD_READ },
   { "reload"   , "reload"  , POS_DEAD    , do_reboot   , LVL_IMPL, 0 },
   { "recite"   , "reci"    , POS_RESTING , do_use      , 0, SCMD_RECITE },
@@ -319,6 +319,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "recharge"  , "recharge"    , POS_STANDING, do_recharge , 1, 0 },
   { "resize"  , "resize"     , POS_STANDING, do_not_here , 1, 0 },
   { "restring"  , "restring"     , POS_STANDING, do_not_here , 1, 0 },
+  { "rage"     , "rage"     , POS_FIGHTING, do_rage     , 1, 0 },
 
   { "sacrifice", "sac"     , POS_RESTING , do_sac      , 0, 0 },
   { "say"      , "s"       , POS_RESTING , do_say      , 0, 0 },
@@ -1437,6 +1438,7 @@ void nanny(struct descriptor_data *d, char *arg)
     { CON_PREFEDIT, prefedit_parse },
     { CON_IBTEDIT, ibtedit_parse },
     { CON_CLANEDIT, clanedit_parse },
+    { CON_MSGEDIT, msgedit_parse },
     { -1, NULL }
   };
 

@@ -86,6 +86,8 @@
 #include "clan.h"
 #include "class.h" /* needed for level_exp for prompt */
 #include "mail.h" /* has_mail() */
+#include "msgedit.h"
+
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
 #endif

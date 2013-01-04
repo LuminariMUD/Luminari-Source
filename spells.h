@@ -181,8 +181,11 @@
 #define SPELL_MINOR_GLOBE          139
 #define SPELL_ENLARGE_PERSON       140
 #define SPELL_SHRINK_PERSON        141
+#define SPELL_FSHIELD_DAM          142
+#define SPELL_CSHIELD_DAM          143
+#define SPELL_ASHIELD_DAM          144
 /** Total Number of defined spells */
-#define NUM_SPELLS    142
+#define NUM_SPELLS    145
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
