@@ -2766,9 +2766,10 @@ void check_diplomacy(void)
 
   /* Reduce all diplomacy timers where necessary */
   for (d=descriptor_list; d; d=d->next)
-    if (IS_PLAYING(d) && !IS_NPC(d->character))
-      if (GET_DIPTIMER(d->character))
-        GET_DIPTIMER(d->character)--;
+    if (d && IS_PLAYING(d))
+      if (d->character && !IS_NPC(d->character))
+        if (GET_DIPTIMER(d->character))
+          GET_DIPTIMER(d->character)--;
 }
 
 /**************************************************************************************************
