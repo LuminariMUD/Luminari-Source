@@ -1202,13 +1202,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     af[0].location = APPLY_HITROLL;
     af[0].duration = 25 + (CASTER_LEVEL(ch) * 12);
-    af[0].modifier = -1;
+    af[0].modifier = -2;
     SET_BIT_AR(af[0].bitvector, AFF_CURSE);
 
     af[1].location = APPLY_DAMROLL;
     af[1].duration = 25 + (CASTER_LEVEL(ch) * 12);
-    af[1].modifier = -1;
+    af[1].modifier = -2;
     SET_BIT_AR(af[1].bitvector, AFF_CURSE);
+
+    af[2].location = APPLY_SAVING_WILL;
+    af[2].duration = 25 + (CASTER_LEVEL(ch) * 12);
+    af[2].modifier = -2;
+    SET_BIT_AR(af[2].bitvector, AFF_CURSE);
 
     accum_duration = TRUE;
     accum_affect = TRUE;
@@ -1380,7 +1385,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     GET_IMAGES(victim) = 5 + MIN(5, (int) (magic_level / 3));
     break;
 
-  case SPELL_POISON:
+  case SPELL_POISON:  //enchantment
     if (mag_resistance(ch, victim, 0))
       return;
     int bonus = 0;
@@ -1892,21 +1897,23 @@ static const char *mag_summon_fail_msgs[] = {
 };
 
 /* Defines for Mag_Summons */
-#define MOB_CLONE            10   /**< vnum for the clone mob. */
-#define OBJ_CLONE            161  /**< vnum for clone material. */
-#define MOB_ZOMBIE           11   /**< vnum for the zombie mob. */
-#define MOB_GHOUL		35
-#define MOB_GIANT_SKELETON	36
-#define MOB_MUMMY		37
-#define MOB_MUMMY_LORD		38
-#define MOB_RED_DRAGON		39
+  // objects
+#define OBJ_CLONE               161  /**< vnum for clone material. */
+  // mobiles
+#define MOB_CLONE               10   /**< vnum for the clone mob. */
+#define MOB_ZOMBIE              11   /* animate dead levels 1-7 */
+#define MOB_GHOUL		35   // " " level 11+
+#define MOB_GIANT_SKELETON	36   // " " level 21+
+#define MOB_MUMMY		37   // " " level 30
+#define MOB_MUMMY_LORD		38   // epic spell mummy dust
+#define MOB_RED_DRAGON		39   // epic spell dragon knight
 #define MOB_SHELGARNS_BLADE	40
-#define MOB_DIRE_BADGER		41
-#define MOB_DIRE_BOAR		42
-#define MOB_DIRE_WOLF		43
+#define MOB_DIRE_BADGER		41   // summon creature i
+#define MOB_DIRE_BOAR		42   // " " ii
+#define MOB_DIRE_WOLF		43   // " " iii
 #define MOB_PHANTOM_STEED	44
-//45 - wizard eye
-#define MOB_DIRE_SPIDER		46
+                              //45     - wizard eye
+#define MOB_DIRE_SPIDER		46   // " " iv
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 		      int spellnum, int savetype)
 {
@@ -1927,16 +1934,16 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     /*
      * We have designated the clone spell as the example for how to use the
      * mag_materials function.
-     * In stock tbaMUD it checks to see if the character has item with
+     * In stock LuminariMUD it checks to see if the character has item with
      * vnum 161 which is a set of sacrificial entrails. If we have the entrails
      * the spell will succeed,  and if not, the spell will fail 102% of the time
      * (prevents random success... see below).
      * The object is extracted and the generic cast messages are displayed.
      */
     if( !mag_materials(ch, OBJ_CLONE, NOTHING, NOTHING, TRUE, TRUE) )
-      pfail = 102; /* No materials, spell fails. */
+      pfail = 102;  /* No materials, spell fails. */
     else
-      pfail = 0;	/* We have the entrails, spell is successfully cast. */
+      pfail = 0;    /* We have the entrails, spell is successfully cast. */
     break;
 
   case SPELL_ANIMATE_DEAD:
@@ -1947,7 +1954,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     handle_corpse = TRUE;
     msg = 11;
     fmsg = rand_number(2, 6);	/* Random fail message. */
-
     if (CASTER_LEVEL(ch) >= 30)
       mob_num = MOB_MUMMY;
     else if (CASTER_LEVEL(ch) >= 20)
@@ -1956,7 +1962,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       mob_num = MOB_GHOUL;
     else
       mob_num = MOB_ZOMBIE;
-
     pfail = 10;	/* 10% failure, should vary in the future. */
     break;
 
@@ -1964,9 +1969,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     handle_corpse = FALSE;
     msg = 12;
     fmsg = rand_number(2, 6);	/* Random fail message. */
-
     mob_num = MOB_MUMMY_LORD;
-
     pfail = 0;
     break;
 
@@ -1974,9 +1977,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     handle_corpse = FALSE;
     msg = 13;
     fmsg = rand_number(2, 6);	/* Random fail message. */
-
     mob_num = MOB_RED_DRAGON;
-
     pfail = 0;
     break;
 
@@ -1984,9 +1985,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     handle_corpse = FALSE;
     msg = 14;
     fmsg = rand_number(2, 6);	/* Random fail message. */
-
     mob_num = MOB_SHELGARNS_BLADE;
-
     pfail = 0;
     break;
 
@@ -1994,9 +1993,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     handle_corpse = FALSE;
     msg = 15;
     fmsg = rand_number(2, 6);	/* Random fail message. */
-
     mob_num = MOB_DIRE_BADGER;
-
     pfail = 0;
     break;
 
@@ -2004,9 +2001,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     handle_corpse = FALSE;
     msg = 16;
     fmsg = rand_number(2, 6);	/* Random fail message. */
-
     mob_num = MOB_DIRE_BOAR;
-
     pfail = 0;
     break;
 
@@ -2014,9 +2009,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     handle_corpse = FALSE;
     msg = 17;
     fmsg = rand_number(2, 6);	/* Random fail message. */
-
     mob_num = MOB_DIRE_WOLF;
-
     pfail = 0;
     break;
 
@@ -2024,9 +2017,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     handle_corpse = FALSE;
     msg = 18;
     fmsg = rand_number(2, 6);	/* Random fail message. */
-
     mob_num = MOB_DIRE_SPIDER;
-
     pfail = 0;
     break;
 
@@ -2034,9 +2025,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     handle_corpse = FALSE;
     msg = 18;
     fmsg = rand_number(2, 6);	/* Random fail message. */
-
     mob_num = MOB_PHANTOM_STEED;
-
     pfail = 0;
     break;
 
@@ -2081,8 +2070,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     extract_obj(obj);
   }
 }
-#undef MOB_CLONE
 #undef OBJ_CLONE
+#undef MOB_CLONE
 #undef MOB_ZOMBIE
 #undef MOB_GHOUL		
 #undef MOB_GIANT_SKELETON	

@@ -1058,7 +1058,7 @@ EVENTFUNC(event_regen)
     if (FIGHTING(ch) || dice(1, 2) == 2) {
       for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
         if (!IS_NPC(tch) && FIGHTING(tch) == ch) {
-          damage(tch, ch, 1, SPELL_POISON, DAM_POISON, FALSE);
+          damage(tch, ch, dice(1, 4), SPELL_POISON, DAM_POISON, FALSE);
           found = 1;
           break;
         }

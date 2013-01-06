@@ -311,52 +311,69 @@ case SKILL_RAGE:
 
 void list_spells(struct char_data *ch, int mode, int class)
 {
-  int i, slot, sinfo, printed = 0;
+  int i, slot, sinfo;
+  size_t len = 0, nlen;
+  char buf2[MAX_STRING_LENGTH];
+  const char *overflow = "\r\n**OVERFLOW**\r\n";
+
+  //default class case
+  if (class == -1) {
+    class = GET_CLASS(ch);
+    if (!CLASS_LEVEL(ch, class))
+      send_to_char(ch, "You don't have any levels in your current class.\r\n");
+  }
 
   if (mode == 0) {
-    send_to_char(ch, "\tCKnown Spell List\tn\r\n");
+    len = snprintf(buf2, sizeof(buf2), "\tCKnown Spell List\tn\r\n");
 
     for (slot = getCircle(ch, class); slot > 0; slot--) {
-      if (printed % 2)
-        send_to_char(ch, "\r\n");
-      send_to_char(ch, "\r\n\tCSpell Circle Level %d\tn\r\n", slot);
+      nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+                "\r\n\tCSpell Circle Level %d\tn\r\n", slot);
+      if (len + nlen >= sizeof(buf2) || nlen < 0)
+        break;
+      len += nlen;
 
       for (i = 1; i < NUM_SPELLS; i++) {
         sinfo = spell_info[i].min_level[class];
 
         if (CLASS_LEVEL(ch, class) >= sinfo && spellCircle(class,i) == slot &&
 		GET_SKILL(ch, i)) {
-          printed++;
-          send_to_char(ch, "%-20s \tWMastered\tn  ", spell_info[i].name);
-          if (!(printed % 2))
-            send_to_char(ch, "\r\n");
+          nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+                    "%-20s \tWMastered\tn\r\n", spell_info[i].name);
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+            break;
+          len += nlen;
         }
       }
     }
   
   } else {
-
-    send_to_char(ch, "\tCFull Spell Listing\tn\r\n");
+    len = snprintf(buf2, sizeof(buf2), "\tCFull Spell List\tn\r\n");
 
     for (slot = 9; slot > 0; slot--) {
-      if (printed % 2)
-        send_to_char(ch, "\r\n");
-      send_to_char(ch, "\r\n\tCSpell Circle Level %d\tn\r\n", slot);
+      nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+               "\r\n\tCSpell Circle Level %d\tn\r\n", slot);
+      if (len + nlen >= sizeof(buf2) || nlen < 0)
+        break;
+      len += nlen;
 
       for (i = 1; i < NUM_SPELLS; i++) {
         sinfo = spell_info[i].min_level[class];
 
-        if ((LVL_IMMORT-1) >= sinfo && spellCircle(class,i) == slot) {
-          printed++;
-          send_to_char(ch, "%-20s  ", spell_info[i].name);
-          if (!(printed % 2))
-            send_to_char(ch, "\r\n");
+        if (spellCircle(class, i) == slot) {
+          nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+                     "%-20s\r\n", spell_info[i].name);
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+            break;
+          len += nlen;
         }
       }
-    }
-  
+    }  
   }
-  send_to_char(ch, "\r\n");
+  if (len >= sizeof(buf2))
+    strcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow); /* strcpy: OK */
+  
+  page_string(ch->desc, buf2, TRUE);
 }
 
 
