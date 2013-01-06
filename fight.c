@@ -1122,12 +1122,16 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += -50;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
+      if (affected_by_spell(ch, SPELL_COLD_SHIELD))
+        damtype_reduction += 50;
       break;
     case DAM_COLD:
       if (GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += -20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
+      if (affected_by_spell(ch, SPELL_FIRE_SHIELD))
+        damtype_reduction += 50;
       break;
     case DAM_AIR:
       if (GET_RACE(ch) == RACE_TRELUX)
@@ -2135,13 +2139,13 @@ void hit(struct char_data *ch, struct char_data *victim,
     // damage inflicting shields, like fire shield
     if (dam && victim && GET_HIT(victim) >= -1 &&
             IS_AFFECTED(victim, AFF_CSHIELD)) {  // cold shield
-      damage(victim, ch, dice(1,4), SPELL_CSHIELD_DAM, DAM_COLD, offhand);
+      damage(victim, ch, dice(1, 6), SPELL_CSHIELD_DAM, DAM_COLD, offhand);
     } else if (dam && victim && GET_HIT(victim) >= -1 &&
             IS_AFFECTED(victim, AFF_FSHIELD)) {  // fire shield
-      damage(victim, ch, dice(1,4), SPELL_FSHIELD_DAM, DAM_FIRE, offhand);
+      damage(victim, ch, dice(1, 6), SPELL_FSHIELD_DAM, DAM_FIRE, offhand);
     } else if (dam && victim && GET_HIT(victim) >= -1 &&
             IS_AFFECTED(victim, AFF_ASHIELD)) {  // acid shield
-      damage(victim, ch, dice(2,4), SPELL_ASHIELD_DAM, DAM_ACID, offhand);
+      damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, offhand);
     }
   }
 

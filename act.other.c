@@ -932,8 +932,8 @@ ACMD(do_spells)
   one_argument(argument, arg);
 
   if (!*arg) {
-    send_to_char(ch, "The spells command requires a class name as an argument.\r\n");
-    return;
+    send_to_char(ch, "The spells command can use the class name as an argument.\r\n");
+    list_spells(ch, 0, class);
   } else {
     class = get_class_by_name(arg);
     if (class < 0 || class >= NUM_CLASSES) {
@@ -965,8 +965,8 @@ ACMD(do_spelllist)
   one_argument(argument, arg);
 
   if (!*arg) {
-    send_to_char(ch, "Usage:  spelllist <class name>\r\n");
-    return; 
+    send_to_char(ch, "Spelllist also can be utilized - Usage:  spelllist <class name>\r\n");
+    list_spells(ch, 1, class);
   } else {
     class = get_class_by_name(arg);
     if (class < 0 || class >= NUM_CLASSES) {
