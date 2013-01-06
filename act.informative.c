@@ -1709,7 +1709,7 @@ ACMD(do_who)
         continue;
  
       if (short_list) {
-        send_to_char(ch, "[%2d %s] %-12.12s%s%s",
+        send_to_char(ch, "[%2d %8s] %-12.12s%s%s",
           GET_LEVEL(tch), RACE_ABBR(tch), GET_NAME(tch),
           CCNRM(ch, C_SPR), ((!(++num_can_see % 4)) ? "\r\n" : ""));
       } else {
@@ -1717,7 +1717,7 @@ ACMD(do_who)
         if (GET_LEVEL(tch) >= LVL_IMMORT) {
           send_to_char(ch, "%13s", admin_level_names[(GET_LEVEL(tch) - LVL_IMMORT)]);
         } else {
-          send_to_char(ch, "[%2d %s ",
+          send_to_char(ch, "[%2d %8s ",
             GET_LEVEL(tch), RACE_ABBR(tch));
         }
 
