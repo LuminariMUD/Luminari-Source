@@ -637,6 +637,11 @@ do                                                              \
 
 // size
 #define GET_SIZE(ch)	((ch)->player.size)
+/*
+#define GET_SIZE(ch)	(affected_by_spell(ch, SPELL_SHRINK_PERSON) ? \
+MAX(SIZE_FINE, (ch->player.size - 1)) : affected_by_spell(ch, SPELL_ENLARGE_PERSON) ? \
+MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
+*/
 
 /** Sex of ch. */
 #define GET_SEX(ch)	((ch)->player.sex)
@@ -1390,10 +1395,12 @@ void reset_acraft(struct char_data *ch);
 
 
 // IS_race for various morph/shapechange equivalent of npc races
-#define IS_RED_DRAGON(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_DRAGON) || \
+#define IS_DRAGON(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_DRAGON) || \
 				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_DRAGON) )
-#define IS_BADGER(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ANIMAL) || \
+#define IS_ANIMAL(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ANIMAL) || \
 				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ANIMAL) )
+#define IS_UNDEAD(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_UNDEAD) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_UNDEAD) )
 
 
 /** Defines if ch is outdoors or not. */

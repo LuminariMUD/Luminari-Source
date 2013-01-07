@@ -103,7 +103,8 @@
 #define RAFF_DARKNESS	(1 << 1)
 #define RAFF_LIGHT	(1 << 2)
 #define RAFF_STINK	(1 << 3)
-#define NUM_RAFF    4
+#define RAFF_BILLOWING	(1 << 4)
+#define NUM_RAFF    5
 
 /* Zone info: Used in zone_data.zone_flags */
 #define ZONE_CLOSED       0  /**< Zone is closed - players cannot enter */
@@ -244,7 +245,7 @@
 #define NPCRACE_UNDEFINED	(-1)	/*Race Undefined*/
 #define NPCRACE_UNKNOWN       0
 #define NPCRACE_HUMAN         1
-#define NPCRACE_UNEAD         2
+#define NPCRACE_UNDEAD         2
 #define NPCRACE_ANIMAL        3
 #define NPCRACE_DRAGON		4
 #define NPCRACE_GIANT	     5
@@ -712,8 +713,9 @@
 #define APPLY_SAVING_POISON	23	// save poison
 #define APPLY_SAVING_DEATH	24	// save death
 #define APPLY_SPELL_RES		25	// spell resistance
+#define APPLY_SIZE		26	// char size
 /** Total number of applies */
-#define NUM_APPLIES   26
+#define NUM_APPLIES   27
 
 /* Equals the total number of SAVING_* defines in spells.h */
 #define NUM_OF_SAVING_THROWS  5

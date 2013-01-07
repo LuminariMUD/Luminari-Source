@@ -109,33 +109,30 @@ int isname(const char *str, const char *namelist)
 void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg, bool add)
 {
   switch (loc) {
-  case APPLY_NONE:
-    break;
 
   case APPLY_STR:
     GET_STR(ch) += mod;
     break;
+
   case APPLY_DEX:
     GET_DEX(ch) += mod;
     break;
+
   case APPLY_INT:
     GET_INT(ch) += mod;
     break;
+
   case APPLY_WIS:
     GET_WIS(ch) += mod;
     break;
+
   case APPLY_CON:
     GET_CON(ch) += mod;
     GET_MAX_HIT(ch) += (mod / 2) * GET_LEVEL(ch);
     break;
+
   case APPLY_CHA:
     GET_CHA(ch) += mod;
-    break;
-
-  /* Do Not Use. */
-  case APPLY_CLASS:
-    break;
-  case APPLY_LEVEL:
     break;
 
   case APPLY_AGE:
@@ -160,12 +157,6 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg, bool
 
   case APPLY_MOVE:
     GET_MAX_MOVE(ch) += mod;
-    break;
-
-  case APPLY_GOLD:
-    break;
-
-  case APPLY_EXP:
     break;
 
   case APPLY_AC:
@@ -203,6 +194,23 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg, bool
   case APPLY_SAVING_DEATH:
     GET_SAVE(ch, SAVING_DEATH) += mod;
     break;
+
+  case APPLY_SIZE:
+    GET_SIZE(ch) += mod;
+    break;
+
+  /* Do Not Use. */
+  case APPLY_CLASS:
+    break;
+  case APPLY_LEVEL:
+    break;
+  case APPLY_GOLD:
+    break;
+  case APPLY_EXP:
+    break;
+  case APPLY_NONE:
+    break;
+  /* end Do Not Use */
 
   default:
     log("SYSERR: Unknown apply adjust %d attempt (%s, affect_modify).", loc, __FILE__);
@@ -264,7 +272,6 @@ void affect_total(struct char_data *ch)
 
   /* Make certain values are between 1..50, not < 1 and not > 50! */
   i = 50;
-
   GET_DEX(ch) = MAX(0, MIN(GET_DEX(ch), i));
   GET_INT(ch) = MAX(0, MIN(GET_INT(ch), i));
   GET_WIS(ch) = MAX(0, MIN(GET_WIS(ch), i));
@@ -272,6 +279,8 @@ void affect_total(struct char_data *ch)
   GET_CHA(ch) = MAX(0, MIN(GET_CHA(ch), i));
   GET_STR(ch) = MAX(0, MIN(GET_STR(ch), i));
 
+  /* make sure size is between valid values */
+  GET_SIZE(ch) = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
 }
 
 /* Insert an affect_type in a char_data structure. Automatically sets
@@ -1504,6 +1513,8 @@ void leave_group(struct char_data *ch)
   if ((group = ch->group) == NULL)
     return;
 
+  if (group->members->iSize == 0)
+
   send_to_group(NULL, group, "%s has left the group.\r\n", GET_NAME(ch));
 
   remove_from_list(ch, group->members);
@@ -1511,11 +1522,10 @@ void leave_group(struct char_data *ch)
   
   if (group->members->iSize) {
     for (tch = (struct char_data *) merge_iterator(&Iterator, group->members);
-      tch; 
- 	 tch = next_in_list(&Iterator))
-          if (!IS_NPC(tch)) found_pc = TRUE;
-          
-  remove_iterator(&Iterator);  
+           tch; tch = next_in_list(&Iterator))
+      if (!IS_NPC(tch))
+        found_pc = TRUE;
+    remove_iterator(&Iterator);  
   }
 
   if (!found_pc)

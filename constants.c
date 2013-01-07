@@ -214,6 +214,7 @@ const char *room_affections[] = {
   "Darkened",
   "Lighted",
   "Stench",
+  "Billowing",
   "\n"
 };
 
@@ -700,6 +701,7 @@ const char *apply_types[] = {
   "Save-Poison",
   "Save-Death",
   "Spell-Resist",
+  "Size",
   "\n"
 };
 

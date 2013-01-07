@@ -166,9 +166,9 @@ void remove_iterator(struct iterator_data * pIterator)
 {
   if (pIterator->pList == NULL) {
     mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Attempting to remove iterator from NULL list.");
-	  return;
+    return;
   }
-	
+
   pIterator->pList->iIterators--;
   pIterator->pList = NULL;
   pIterator->pItem = NULL;
