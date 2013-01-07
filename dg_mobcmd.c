@@ -904,10 +904,12 @@ ACMD(do_mtransform)
       return;
     }
 
+/*  added by Zusuk because of scare, turns out this whole command is whack
     if (this_vnum == GET_MOB_VNUM(m)) {
       mob_log(ch, "mtransform: duplicate vnum");
       return;    
     }
+*/
 
     /* move new obj info over to old object and delete new obj */
     for (pos = 0; pos < NUM_WEARS; pos++) {
