@@ -160,7 +160,7 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
   if (diceroll != 1 && (savethrow > challenge || diceroll == 20)) {
     send_to_char(vict, "\tW*(%s:%d<%d)saved*\tn", save_names[type],
 		savethrow, challenge);
-    if (ch)
+    if (ch && vict && vict != ch)
       send_to_char(ch, "\tR*(%s:%d>%d)opp saved*\tn", save_names[type],
 		challenge, savethrow);
     return (TRUE);
@@ -168,7 +168,7 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
 
   send_to_char(vict, "\tR*(%s:%d>%d)failed save*\tn", save_names[type],
 		savethrow, challenge);
-  if (ch)
+  if (ch && vict && vict != ch)
     send_to_char(ch, "\tW*(%s:%d<%d)opp failed saved*\tn", save_names[type],
 		challenge, savethrow);
   return (FALSE);
@@ -383,137 +383,137 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
    */
   
   switch (spellnum) {
-    // magical
+
+  // magical spells
+
   case SPELL_MAGIC_MISSILE:  //evocation
     if (affected_by_spell(victim, SPELL_SHIELD)) {
       send_to_char(ch, "Your target is shielded by magic!\r\n");
     } else {
       mag_resist = TRUE;
       save = -1;
-      
       num_dice = MIN(8, (MAX(1, magic_level / 2)));
       size_dice = 6;
       bonus = num_dice;
     }
     element = DAM_FORCE;
     break;
+
   case SPELL_NEGATIVE_ENERGY_RAY:  //necromancy
     save = SAVING_WILL;
     mag_resist = TRUE;
     element = DAM_NEGATIVE;
-    
     num_dice = 2;
     size_dice = 6;
     bonus = 3;
     break;
+
   case SPELL_ICE_DAGGER:  //conjurations
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_COLD;
-    
     num_dice = MIN(7, magic_level);
     size_dice = 8;
     bonus = 0;
     break;
+
   case SPELL_CHILL_TOUCH:  //necromancy
     // *note chill touch also has an effect, only save on effect
     save = -1;
     mag_resist = TRUE;
     element = DAM_COLD;
-    
     num_dice = 1;
     size_dice = 10;
     bonus = 0;
     break;
+
   case SPELL_HORIZIKAULS_BOOM:  //evocation
     // *note also has an effect
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = DAM_SOUND;
-    
     num_dice = MIN(8, magic_level);
     size_dice = 4;
     bonus = num_dice;
     break;
+
   case SPELL_BURNING_HANDS:  //evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_FIRE;
-    
     num_dice = MIN(8, magic_level);
     size_dice = 6;
     bonus = 0;
     break;
+
   case SPELL_SHOCKING_GRASP:  //evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_ELECTRIC;
-    
     num_dice = MIN(10, magic_level);
     size_dice = 8;
     bonus = 0;
     break;
+
   case SPELL_SCORCHING_RAY:  //evocation
     save = -1;
     mag_resist = TRUE;
     element = DAM_FIRE;
-    
     num_dice = MIN(22, magic_level*2);
     size_dice = 6;
     bonus = 0;
     break;
+
   case SPELL_ACID_ARROW:  //conjuration
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_ACID;
-    
     num_dice = 4;
     size_dice = 6;
     bonus = 0;
     break;
+
   case SPELL_ENERGY_SPHERE:  //abjuration
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = DAM_ENERGY;
-    
     num_dice = MIN(10, magic_level);
     size_dice = 8;
     bonus = 0;
     break;
+
   case SPELL_LIGHTNING_BOLT:  //evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
-    element = DAM_ELECTRIC;
-    
+    element = DAM_ELECTRIC;    
     num_dice = MIN(15, magic_level);
     size_dice = 10;
     bonus = 0;
     break;
+
   case SPELL_VAMPIRIC_TOUCH:  //necromancy
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = DAM_UNHOLY;
-    
     num_dice = MIN(15, magic_level);
     size_dice = 5;
     bonus = 0;
-
     break;
+
   case SPELL_FIREBALL:  //evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
-    element = DAM_FIRE;
-    
+    element = DAM_FIRE;    
     num_dice = MIN(15, magic_level);
     size_dice = 10;
     bonus = 0;
     break;
+
   case SPELL_COLOR_SPRAY:  //illusion
     //  has effect too
     save = SAVING_WILL;
     mag_resist = TRUE;
-    element = DAM_ILLUSION;
-    
+    element = DAM_ILLUSION;    
     num_dice = 1;
     size_dice = 4;
     bonus = 0;
@@ -521,25 +521,25 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
 /* cone of cold */
 
-  case SPELL_ICE_STORM:
+  case SPELL_ICE_STORM:  //evocation
     //AoE
     save = -1;
     mag_resist = TRUE;
-    element = DAM_COLD;
-    
+    element = DAM_COLD;    
     num_dice = MIN(15, magic_level);
     size_dice = 8;
     bonus = 0;
     break;
+
   case SPELL_BALL_OF_LIGHTNING:
     save = SAVING_REFL;
     mag_resist = TRUE;
-    element = DAM_ELECTRIC;
-    
+    element = DAM_ELECTRIC;    
     num_dice = MIN(22, magic_level);
     size_dice = 10;
     bonus = 0;
     break;
+
   case SPELL_MISSILE_STORM:
     save = SAVING_FORT;
     mag_resist = TRUE;
@@ -597,58 +597,59 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
   
   case SPELL_RAY_OF_FROST:
-     save = SAVING_REFL;
-     num_dice = 2;
-     size_dice = 3;
-     element = DAM_COLD;
-     break;
+    save = SAVING_REFL;
+    num_dice = 2;
+    size_dice = 3;
+    element = DAM_COLD;
+    break;
         
-    // divine
+  // divine spells
+
   case SPELL_CAUSE_LIGHT_WOUNDS:
     save = SAVING_WILL; 
     mag_resist = TRUE;
     element = DAM_HOLY;
-    
     num_dice = 1;
     size_dice = 12;
     bonus = MIN(7, divine_level);
     break;
+
   case SPELL_CAUSE_MODERATE_WOUNDS:
     save = SAVING_WILL; 
     mag_resist = TRUE;
     element = DAM_HOLY;
-    
     num_dice = 2;
     size_dice = 12;
     bonus = MIN(15, divine_level);
     break;
+
   case SPELL_CAUSE_SERIOUS_WOUNDS:
     save = SAVING_WILL; 
     mag_resist = TRUE;
     element = DAM_HOLY;
-    
     num_dice = 3;
     size_dice = 12;
     bonus = MIN(22, divine_level);
     break;
+
   case SPELL_CAUSE_CRITICAL_WOUNDS:
     save = SAVING_WILL; 
     mag_resist = TRUE;
     element = DAM_HOLY;
-    
     num_dice = 4;
     size_dice = 12;
     bonus = MIN(30, divine_level);
     break;
+
   case SPELL_FLAME_STRIKE:
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_FIRE;
-    
     num_dice = MIN(20, divine_level);
     size_dice = 8;
     bonus = 0;
     break;
+
   case SPELL_DISPEL_EVIL:
     if (IS_EVIL(ch)) {
       victim = ch;
@@ -659,11 +660,11 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = SAVING_WILL;
     mag_resist = TRUE;
     element = DAM_HOLY;
-    
     num_dice = divine_level;
     size_dice = 9;
     bonus = divine_level;
     break;
+
   case SPELL_DISPEL_GOOD:
     if (IS_GOOD(ch)) {
       victim = ch;
@@ -674,44 +675,43 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = SAVING_WILL;
     mag_resist = TRUE;
     element = DAM_UNHOLY;
-    
     num_dice = divine_level;
     size_dice = 9;
     bonus = divine_level;
     break;
+
   case SPELL_HARM:
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = DAM_HOLY;
-    
     num_dice = MIN(22, divine_level);
     size_dice = 8;
     bonus = num_dice;
     break;
+
   case SPELL_CALL_LIGHTNING:
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_ELECTRIC;
-    
     num_dice = MIN(24, divine_level);
     size_dice = 8;
     bonus = num_dice + 10;
     break;
+
   case SPELL_DESTRUCTION:
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = DAM_NEGATIVE;
-    
     num_dice = MIN(26, divine_level);
     size_dice = 8;
     bonus = num_dice + 20;
     break;
+
   case SPELL_ENERGY_DRAIN:
     //** Magic AND Divine
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = DAM_NEGATIVE;
-    
     if (GET_LEVEL(victim) < CASTER_LEVEL(ch))
       num_dice = 2;
     else
@@ -719,12 +719,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 200;
     bonus = 0;
     break;
+
   case SPELL_EARTHQUAKE:
     //AoE
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_EARTH;
-    
     num_dice = divine_level;
     size_dice = 8;
     bonus = num_dice + 30;
@@ -822,10 +822,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   switch (spellnum) {
 
   case SPELL_STENCH:
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
+    if (GET_LEVEL(victim) >= 9) {
       return;
     }
-    if (GET_LEVEL(victim) >= 9) {
+    if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
       return;
     }
 
@@ -899,6 +899,23 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are dazed by the spell!";
     break;
 
+  case SPELL_RAINBOW_PATTERN:  //illusion
+    if (GET_LEVEL(victim) > 13) {
+      send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
+      return;
+    }
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
+      return;
+    }
+
+    SET_BIT_AR(af[0].bitvector, AFF_STUN);
+    af[0].duration = dice(3, 4);
+    to_room = "$n is stunned by the pattern of bright colors!";
+    to_vict = "You are dazed by the pattern of bright colors!";
+    break;
+
   case SPELL_HIDEOUS_LAUGHTER:  //enchantment
     if (GET_LEVEL(victim) > 8) {
       send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
@@ -934,13 +951,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_HALT_UNDEAD:  //necromancy
+    if (!IS_UNDEAD(victim)) {
+      send_to_char(ch, "Your target is not undead.\r\n");
+      return;
+    }
     if (GET_LEVEL(victim) > 11) {
       send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
       return;
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
       return;
     }
 
@@ -1172,7 +1193,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You begin to speed up!";
     break;
 
-  case SPELL_SLOW:
+  case SPELL_SLOW:  //abjuration
     if (affected_by_spell(victim, SPELL_HASTE)) {
       affect_from_char(victim, SPELL_HASTE);
       send_to_char(ch, "You dispel the haste spell!\r\n");
@@ -1192,7 +1213,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel yourself slow down!";
     break;
 
-  case SPELL_CURSE:
+  case SPELL_CURSE:  //necromancy
     if (mag_resistance(ch, victim, 0))
       return;
     if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
@@ -1224,7 +1245,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_TOUCH_OF_IDIOCY:  //enchantment
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+    if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
     }
@@ -1376,6 +1397,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n slowly fades out of existence.";
     break;
 
+  case SPELL_GREATER_INVIS:  //illusion
+    if (!victim)
+      victim = ch;
+
+    af[0].duration = 10 + (magic_level * 6);
+    af[0].modifier = -40;
+    af[0].location = APPLY_AC;
+    SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
+    accum_duration = TRUE;
+    to_vict = "You vanish.";
+    to_room = "$n slowly fades out of existence.";
+    break;
+
   case SPELL_MIRROR_IMAGE:  //illusion
     af[0].location = APPLY_AC;
     af[0].modifier = -1;
@@ -1419,7 +1453,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel invulnerable to good!";
     break;
 
-  case SPELL_FIRE_SHIELD:
+  case SPELL_FIRE_SHIELD:  //evocation
     af[0].duration = 50;
     SET_BIT_AR(af[0].bitvector, AFF_FSHIELD);
 
@@ -1428,7 +1462,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n is surrounded by shield of flames.";
     break;
 
-  case SPELL_COLD_SHIELD:
+  case SPELL_COLD_SHIELD:  //evocation
     af[0].duration = 50;
     SET_BIT_AR(af[0].bitvector, AFF_CSHIELD);
 
@@ -1444,6 +1478,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     accum_duration = TRUE;
     to_vict = "A white aura momentarily surrounds you.";
     to_room = "$n is surrounded by a white aura.";
+    break;
+
+  case SPELL_MINOR_GLOBE:  //abjuration
+    af[0].duration = 50;
+    SET_BIT_AR(af[0].bitvector, AFF_MINOR_GLOBE);
+
+    accum_duration = FALSE;
+    to_vict = "A minor globe of invulnerability surrounds you.";
+    to_room = "$n is surrounded by a minor globe of invulernability.";
     break;
 
   case SPELL_SLEEP:  //enchantment
@@ -1520,6 +1563,22 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n's skin becomes hard as rock!";
     to_vict = "Your skin becomes hard as stone.";
     GET_STONESKIN(victim) = MIN(225, magic_level * 15);
+    break;
+
+  case SPELL_ENLARGE_PERSON:  //transmutation
+    af[0].location = APPLY_SIZE;
+    af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+    af[0].modifier = 1;
+    to_vict = "You feel yourself growing!";
+    to_room = "$n's begins to grow much larger!";
+    break;
+
+  case SPELL_SHRINK_PERSON:  //transmutation
+    af[0].location = APPLY_SIZE;
+    af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+    af[0].modifier = -1;
+    to_vict = "You feel yourself shrinking!";
+    to_room = "$n's begins to shrink to being much smaller!";
     break;
 
   case SPELL_STRENGTH:  //transmutation
@@ -1770,7 +1829,7 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
 
   // PK MUD settings
   if (CONFIG_PK_ALLOWED) {
-  // !PK settings
+    // PK settings
   } else {
 
     // if pc cast, !pk mud, skip pc
@@ -2327,6 +2386,13 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       to_room = "$n creates clouds of billowing stinking fumes that fill the area.";
       aff = RAFF_STINK;
       rounds = 12;
+      break;
+      
+    case SPELL_BILLOWING_CLOUD:  //conjuration
+      to_char = "Clouds of billowing thickness fill the area.";
+      to_room = "$n creates clouds of billowing thickness that fill the area.";
+      aff = RAFF_BILLOWING;
+      rounds = 15;
       break;
       
     default:

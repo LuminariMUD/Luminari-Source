@@ -22,6 +22,7 @@
 #include "act.h"
 #include "fight.h"
 #include "mud_event.h"
+#include "screen.h" /* for QNRM, etc */
 
 /* Special spells appear below. */
 
@@ -334,6 +335,33 @@ ASPELL(spell_polymorph)
     send_to_char(ch, "\tDType 'innates' to see your abilities.\tn\r\n");
     act("$n shapechanges!", TRUE, ch, 0, 0, TO_ROOM);
   }
+}
+
+
+ASPELL(spell_locate_creature)
+{
+  struct char_data *i;
+  int found = 0, num = 0;
+
+  if (ch == NULL)
+    return;
+  if (victim == NULL)
+    return;
+  if (victim == ch)
+    return;
+
+  send_to_char(ch, "%s\r\n", QNRM);
+  for (i = character_list; i; i = i->next) {
+    if (is_abbrev(GET_NAME(victim), GET_NAME(i)) && CAN_SEE(ch, i) && IN_ROOM(i) != NOWHERE) {
+      found = 1;   
+      send_to_char(ch, "%3d. %-25s%s - %-25s%s", ++num, GET_NAME(i), QNRM,
+               world[IN_ROOM(i)].name, QNRM);
+      send_to_char(ch, "%s\r\n", QNRM);
+    }
+  }
+
+  if (!found)
+    send_to_char(ch, "Couldn't find any such creature.\r\n");
 }
 
 

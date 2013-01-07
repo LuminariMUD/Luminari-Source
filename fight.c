@@ -150,11 +150,17 @@ void appear(struct char_data *ch)
     send_to_char(ch, "You stop sneaking...\r\n");
     act("$n stops moving silently...", FALSE, ch, 0, 0, TO_ROOM);
   }
+
   if (AFF_FLAGGED(ch, AFF_HIDE)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...\r\n");
     act("$n steps out of the shadows...", FALSE, ch, 0, 0, TO_ROOM);
   }
+
+  //this is a hack, so order in this function is important
+  if (affected_by_spell(ch, SPELL_GREATER_INVIS))
+    return;
+
   if (AFF_FLAGGED(ch, AFF_INVISIBLE)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_INVISIBLE);
     send_to_char(ch, "You snap into visibility...\r\n");

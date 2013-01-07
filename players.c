@@ -611,6 +611,7 @@ void save_char(struct char_data * ch)
     }
   }
 
+  /* any problems with file handling? */
   if (!get_filename(filename, sizeof(filename), PLR_FILE, GET_NAME(ch)))
     return;
   if (!(fl = fopen(filename, "w"))) {
@@ -653,6 +654,10 @@ void save_char(struct char_data * ch)
     log("SYSERR: WARNING: OUT OF STORE ROOM FOR AFFECTED TYPES!!!");
 
   ch->aff_abils = ch->real_abils;
+
+  /* Make sure size doesn't go over/under caps */
+
+
   /* end char_to_store code */
 
   if (GET_NAME(ch))				fprintf(fl, "Name: %s\n", GET_NAME(ch));

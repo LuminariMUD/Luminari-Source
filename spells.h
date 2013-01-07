@@ -494,6 +494,7 @@ ASPELL(spell_clairvoyance);
 ASPELL(spell_enchant_weapon);
 ASPELL(spell_detect_poison);
 ASPELL(spell_acid_arrow);
+ASPELL(spell_locate_creature);
 
 
 /* basic magic calling functions */

@@ -33,7 +33,7 @@ ACMD(do_rage)
     send_to_char(ch, "You are already raging!\r\n");
     return;
   }
-  if (!IS_BADGER(ch) && !GET_SKILL(ch, SKILL_RAGE)) {
+  if (!IS_ANIMAL(ch) && !GET_SKILL(ch, SKILL_RAGE)) {
     send_to_char(ch, "You don't know how to rage.\r\n");
     return;
   }
@@ -562,7 +562,7 @@ ACMD(do_frightful)
 {
   struct char_data *vict, *next_vict;
 
-  if (!IS_RED_DRAGON(ch)) {
+  if (!IS_DRAGON(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -599,7 +599,7 @@ ACMD(do_breathe)
 {
   struct char_data *vict, *next_vict;
 
-  if (!IS_RED_DRAGON(ch)) {
+  if (!IS_DRAGON(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -634,7 +634,7 @@ ACMD(do_tailsweep)
   struct char_data *vict, *next_vict;
   int percent = 0, prob = 0;
 
-  if (!IS_RED_DRAGON(ch)) {
+  if (!IS_DRAGON(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }

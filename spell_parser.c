@@ -320,6 +320,24 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     return (0);
   }
 
+  /* globe of invulernability spell(s) */
+  if (cvict) {
+    int i, lvl = SINFO.min_level[0];
+    for (i = 1; i < NUM_CLASSES; i++)
+      if (lvl >= SINFO.min_level[i])
+        lvl = SINFO.min_level[i];
+    if (AFF_FLAGGED(cvict, AFF_MINOR_GLOBE) && lvl <= 3 &&
+        (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
+      send_to_char(caster, "A minor globe from your victim repels your spell!\r\n");
+      act("$n's magic is repelled by $N's minor globe spell!", FALSE, caster, 0, 0, TO_ROOM);
+      if (!FIGHTING(caster))
+        set_fighting(caster, cvict);
+      if (!FIGHTING(cvict))
+        set_fighting(cvict, caster);
+      return (0);
+    }
+  }
+
   //attach event for epic spells, increase skill
   switch(spellnum) {
     case SPELL_MUMMY_DUST:
@@ -420,6 +438,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_ACID_ARROW:	MANUAL_SPELL(spell_acid_arrow); break;
     case SPELL_CLAIRVOYANCE:	MANUAL_SPELL(spell_clairvoyance); break;
     case SPELL_DISPEL_MAGIC:	MANUAL_SPELL(spell_dispel_magic); break;
+    case SPELL_LOCATE_CREATURE:	MANUAL_SPELL(spell_locate_creature); break;
     }
 
     if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
@@ -1526,7 +1545,7 @@ void mag_assign_spells(void)
   //poison
 			/* illusion */
   spello(SPELL_GREATER_INVIS, "greater invisibility", 58, 43, 1,
-     POS_FIGHTING, TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE,
+     POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE,
      MAG_AFFECTS | MAG_ALTER_OBJS, "You feel yourself exposed.", 8, 8,
      ILLUSION);
   spello(SPELL_RAINBOW_PATTERN, "rainbow pattern", 65, 50, 1, POS_FIGHTING,

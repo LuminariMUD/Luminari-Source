@@ -543,6 +543,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   room_vnum target_room;
   int isDark = 0, canSee = 0, canInfra = 0, worldmapOn = 0;
   zone_rnum zn;
+  char buf[MAX_STRING_LENGTH];
 
   if (!ch->desc)
     return;
@@ -578,8 +579,6 @@ void look_at_room(struct char_data *ch, int ignore_brief)
 
   // staff can see the vnums
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
-    char buf[MAX_STRING_LENGTH];
-
     sprintbitarray(ROOM_FLAGS(IN_ROOM(ch)), room_bits, RF_ARRAY_MAX, buf);
     send_to_char(ch, "%s", CCCYN(ch, C_NRM));
     send_to_char(ch, "[%5d]%s ", GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
@@ -593,8 +592,13 @@ void look_at_room(struct char_data *ch, int ignore_brief)
     }
   } else
     send_to_char(ch, "%s", world[IN_ROOM(ch)].name);
-  send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM));
 
+  // room affections
+  sprintbit((long) rm->room_affections, room_affections, buf, sizeof(buf));
+  send_to_char(ch, " ( %s)", buf);
+
+  // carrier return
+  send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM));
 
   // !infra && worldmap, force seeing worldmap no descrip
   // !brief/infra && !worldmap display str_and_map or descrip
