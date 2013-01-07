@@ -869,6 +869,7 @@ ACMD(do_mtransform)
   char_data *m, tmpmob;
   obj_data *obj[NUM_WEARS];
   mob_rnum this_rnum = GET_MOB_RNUM(ch);
+  mob_vnum this_vnum = GET_MOB_VNUM(ch);
   int keep_hp = 1; /* new mob keeps the old mob's hp/max hp/exp */
   int pos;
 
@@ -901,6 +902,11 @@ ACMD(do_mtransform)
     if (m==NULL) {
       mob_log(ch, "mtransform: bad mobile vnum");
       return;
+    }
+
+    if (this_vnum == GET_MOB_VNUM(m)) {
+      mob_log(ch, "mtransform: duplicate vnum");
+      return;    
     }
 
     /* move new obj info over to old object and delete new obj */
