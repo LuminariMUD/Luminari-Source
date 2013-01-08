@@ -129,6 +129,8 @@ void assign_mobiles(void)
   ASSIGNMOB(27730, receptionist);
   
   ASSIGNMOB(47, wall);
+
+  ASSIGNMOB(49, hound);
 }
 
 /* assign special procedures to objects */
@@ -201,7 +203,8 @@ struct spec_func_data spec_func_list[] = {
   {"Guild Guard",    guild_guard }, 
   {"Questmaster",    questmaster }, 
   {"Shopkeeper",     shop_keeper }, 
-  {"Magical Wall",     wall }, 
+  {"Magical Wall",   wall }, 
+  {"Faithful Hound", hound }, 
   {"\n", NULL} 
 }; 
 

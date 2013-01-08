@@ -483,19 +483,12 @@ ASPELL(spell_dispel_magic)  // divination
 }
 
 
-ASPELL(spell_dominate_person)  // enchantment
-{
-}
-
-
-ASPELL(spell_charm)  // enchantment
-{
+/* the main engine of charm spell, and similar */
+void effect_charm(struct char_data *ch, struct char_data *victim, 
+        int spellnum) {
   struct affected_type af;
   int elf_bonus = 0;
   
-  if (victim == NULL || ch == NULL)
-    return;
-
   if (GET_RACE(victim) == RACE_ELF ||  //elven enchantment resistance
           GET_RACE(victim) == RACE_H_ELF)
     elf_bonus += 2;
@@ -504,7 +497,7 @@ ASPELL(spell_charm)  // enchantment
     send_to_char(ch, "You like yourself even better!\r\n");
 
   else if (MOB_FLAGGED(victim, MOB_NOCHARM)) {
-    send_to_char(ch, "Your victim doesn't seem vulnerable to charm "
+    send_to_char(ch, "Your victim doesn't seem vulnerable to this "
             "enchantments!\r\n");
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -516,7 +509,12 @@ ASPELL(spell_charm)  // enchantment
   else if (AFF_FLAGGED(victim, AFF_CHARM))
     send_to_char(ch, "Your victim is already charmed.\r\n");
 
-  else if (CASTER_LEVEL(ch) <= GET_LEVEL(victim))
+  else if (spellnum == SPELL_CHARM && (CASTER_LEVEL(ch) < GET_LEVEL(victim) ||
+          GET_LEVEL(victim) >= 8))
+    send_to_char(ch, "Your victim is too powerful.\r\n");
+
+  else if (spellnum == SPELL_DOMINATE_PERSON && 
+          CASTER_LEVEL(ch) < GET_LEVEL(victim))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
   /* player charming another player - no legal reason for this */
@@ -556,6 +554,25 @@ ASPELL(spell_charm)  // enchantment
 //      REMOVE_BIT_AR(MOB_FLAGS(victim), MOB_SPEC);
   }
   // should never get here
+}
+
+
+ASPELL(spell_dominate_person)  // enchantment
+{
+  if (victim == NULL || ch == NULL)
+    return;
+
+  effect_charm(ch, victim, SPELL_DOMINATE_PERSON);
+}
+
+
+ASPELL(spell_charm)  // enchantment
+{
+  
+  if (victim == NULL || ch == NULL)
+    return;
+
+  effect_charm(ch, victim, SPELL_CHARM);
 }
 
 

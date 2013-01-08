@@ -939,6 +939,35 @@ SPECIAL(snake)
   return (TRUE);
 }
 
+
+SPECIAL(hound)
+{
+  struct char_data *vict;
+  int door;
+  room_rnum room;
+
+  if (cmd || GET_POS(ch) != POS_STANDING || FIGHTING(ch))
+    return (FALSE);
+
+  /* first go through all the directions */
+  for (door = 0; door < DIR_COUNT; door++) {
+    room = world[IN_ROOM(ch)].dir_option[door]->to_room;
+    if (room) {
+      /* ok found a neighboring room, now cycle through the peeps */
+      for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room) {
+        /* is this guy a hostile? */
+        if (vict && IS_NPC(vict) && MOB_FLAGGED(vict, MOB_AGGRESSIVE)) {
+          act("$n howls a warning!", FALSE, ch, 0, 0, TO_ROOM);
+          return (TRUE);
+        }
+      } // end peeps cycle
+    }
+  } // end room cycle
+
+  return (FALSE);
+}
+
+
 SPECIAL(thief)
 {
   struct char_data *cons;
@@ -954,6 +983,7 @@ SPECIAL(thief)
 
   return (FALSE);
 }
+
 
 SPECIAL(magic_user)
 {

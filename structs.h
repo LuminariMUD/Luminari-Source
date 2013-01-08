@@ -95,8 +95,9 @@
 #define ROOM_OLC           14   /**< (R) Modifyable/!compress */
 #define ROOM_BFS_MARK      15   /**< (R) breath-first srch mrk */
 #define ROOM_WORLDMAP      16   /**< World-map style maps here */
+#define ROOM_REGEN         17
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS    17
+#define NUM_ROOM_FLAGS    18
 
 // Room affects
 #define RAFF_FOG	(1 << 0)
@@ -457,9 +458,11 @@
 #define AFF_SIZECHANGED  44
 #define AFF_TRUE_SIGHT   45
 #define AFF_SPOT         46
+#define AFF_FATIGUED         47
+#define AFF_REGEN         48
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS   47
+#define NUM_AFF_FLAGS   49
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/
