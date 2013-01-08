@@ -1240,12 +1240,14 @@ void mag_assign_spells(void)
 
 /* = =  cantrips  = = */
 			/* evocation */
+/*
   spello(SPELL_ACID_SPLASH, "acid splash", 0, 0, 0, POS_SITTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 0, 1, EVOCATION);
   spello(SPELL_RAY_OF_FROST, "ray of frost", 0, 0, 0, POS_SITTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 0, 1, EVOCATION);
+*/
   
 /* = =  1st circle  = = */
 			/* evocation */

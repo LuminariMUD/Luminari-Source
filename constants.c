@@ -356,6 +356,7 @@ const char *action_bits[] = {
   "!DEAD!",    /* You should never see this. */
   "Mountable",
   "Immune-Deaf",
+  "Does-Not-Fight",
   "\n"
 };
 
