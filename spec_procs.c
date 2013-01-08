@@ -1029,34 +1029,15 @@ SPECIAL(magic_user)
 /* Special procedures for mobiles. */
 SPECIAL(wall) 
 { 
-  int direction; 
-  const char *buf = "You can't get by the magical wall!\r\n"; 
-  const char *buf2 = "$n fails to get past the magical wall!"; 
-
   if (!IS_MOVE(cmd))    
     return (FALSE); 
      
-/*  teehee -zusuk
-  if (GET_LEVEL(ch) >= LVL_IMMORT) 
-    return (FALSE); 
-*/
-  
-  /* find out what direction they are trying to go */ 
-  for (direction = 0; direction < NUM_OF_DIRS; direction++)
-    if (!strcmp(cmd_info[cmd].command, dirs[direction]))
-      for (direction = 0; direction < DIR_COUNT; direction++)
-		if (!strcmp(cmd_info[cmd].command, dirs[direction]) ||
-			!strcmp(cmd_info[cmd].command, autoexits[direction]))
-	      break; 
-
   /* acceptable ways to avoid the wall */ 
-  if (direction == UP) 
-    return (FALSE);   
-  if (direction == DOWN) 
-    return (FALSE);   
+  /* */
 
-  send_to_char(ch, "%s", buf); 
-  act(buf2, FALSE, ch, 0, 0, TO_ROOM); 
+  /* failed to get past wall */
+  send_to_char(ch, "You can't get by the magical wall!\r\n");
+  act( "$n fails to get past the magical wall!", FALSE, ch, 0, 0, TO_ROOM); 
   return (TRUE); 
 }
 
