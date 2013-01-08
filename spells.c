@@ -84,10 +84,29 @@ ASPELL(spell_acid_arrow)
 }
 
 
+#define WALL_OF_FORCE    47
 ASPELL(spell_wall_of_force)
 {
+  struct char_data *mob;
   
-}
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+    return;
+  
+  if (!(mob = read_mobile(WALL_OF_FORCE, VIRTUAL))) {
+    send_to_char(ch, "You don't quite remember how to create that.\r\n");
+    return;
+  }
+  
+  char_to_room(mob, IN_ROOM(ch));
+  IS_CARRYING_W(mob) = 0;
+  IS_CARRYING_N(mob) = 0;
+  
+  act("$n conjures $N!", FALSE, ch, 0, mob, TO_ROOM);
+  send_to_char(ch, "You conjure a wall of force!\r\n");
+
+  load_mtrigger(mob);
+}  
+#undef WALL_OF_FORCE
 
 
 ASPELL(spell_dismissal)

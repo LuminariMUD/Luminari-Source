@@ -468,8 +468,10 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
 
   // magic user innate cantrips
+/*
     SET_SKILL(ch, SPELL_ACID_SPLASH, 99);
     SET_SKILL(ch, SPELL_RAY_OF_FROST, 99);
+*/
 
     //1st circle
     SET_SKILL(ch, SPELL_HORIZIKAULS_BOOM, 99);
@@ -1136,18 +1138,20 @@ int invalid_class(struct char_data *ch, struct obj_data *obj)
 // vital min level info!
 void init_spell_levels(void)
 {
-  int i=0, j=0;
+  int i = 0, j = 0;
 
   // simple loop to init all the SKILL_x to all classes
-  for (i=MAX_SPELLS+1; i<NUM_SKILLS; i++) {
-    for (j=0; j<NUM_CLASSES; j++) {
+  for (i = (MAX_SPELLS + 1); i < NUM_SKILLS; i++) {
+    for (j = 0; j < NUM_CLASSES; j++) {
       spell_level(i, j, 1);
     }
   }
 
   // magic user innate cantrips
+/*
   spell_level(SPELL_ACID_SPLASH, CLASS_MAGIC_USER, 1);
   spell_level(SPELL_RAY_OF_FROST, CLASS_MAGIC_USER, 1);
+*/
   
   // magic user, increment spells by spell-level
   //1st circle

@@ -360,8 +360,9 @@
 #define MOB_NOTDEADYET     20   /**< (R) Mob being extracted */
 #define MOB_MOUNTABLE      21
 #define MOB_NODEAF         22
+#define MOB_NOFIGHT         23
 /**********************/
-#define NUM_MOB_FLAGS      23
+#define NUM_MOB_FLAGS      24
 
 /* Preference flags: used by char_data.player_specials.pref */
 #define PRF_BRIEF         0   /**< Room descs won't normally be shown */

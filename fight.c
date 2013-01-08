@@ -1150,6 +1150,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
+      if (affected_by_spell(ch, SPELL_ACID_SHEATH))
+        damtype_reduction += 50;
       break;
     case DAM_ACID:
       if (GET_RACE(ch) == RACE_TRELUX)
@@ -2414,6 +2416,9 @@ void perform_violence(void)
     next_combat_list = ch->next_fighting;
     PARRY_LEFT(ch) = perform_attacks(ch, 1);
 
+    if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT))
+      continue;
+    
     if (FIGHTING(ch) == NULL || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))) {
       stop_fighting(ch);
       continue;
@@ -2594,13 +2599,14 @@ void perform_violence(void)
         increase_skill(ch, SKILL_SHIELD_SPECIALIST);
     }
 
-    autoDiagnose(ch);
-
     if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) &&
             !MOB_FLAGGED(ch, MOB_NOTDEADYET)) {
       char actbuf[MAX_INPUT_LENGTH] = "";
       (GET_MOB_SPEC(ch)) (ch, ch, 0, actbuf);
     }
+
+    autoDiagnose(ch);
+
 
     if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0,2)) {
       send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");

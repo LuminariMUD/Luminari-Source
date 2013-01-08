@@ -1242,6 +1242,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel very uncomfortable.";
     break;
 
+  case SPELL_INTERPOSING_HAND:  //evocation
+    if (mag_resistance(ch, victim, 0))
+      return;
+    // no save
+
+    af[0].location = APPLY_HITROLL;
+    af[0].duration = 4 + CASTER_LEVEL(ch);
+    af[0].modifier = -4;
+
+    to_room = "A disembodied hand moves in front of $n!";
+    to_vict = "A disembodied hand moves in front of you!";
+    break;
+
   case SPELL_TOUCH_OF_IDIOCY:  //enchantment
     if (mag_resistance(ch, victim, 0))
       return;
@@ -1453,7 +1466,26 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel invulnerable to good!";
     break;
 
+  case SPELL_ACID_SHEATH:  //divination
+    if (affected_by_spell(victim, SPELL_FIRE_SHIELD) ||
+            affected_by_spell(victim, SPELL_COLD_SHIELD)) {
+      send_to_char(ch, "You are already affected by an elemental shield!\r\n");
+      return;
+    }
+    af[0].duration = 50;
+    SET_BIT_AR(af[0].bitvector, AFF_ASHIELD);
+
+    accum_duration = FALSE;
+    to_vict = "A shield of acid surrounds you.";
+    to_room = "$n is surrounded by shield of acid.";
+    break;
+
   case SPELL_FIRE_SHIELD:  //evocation
+    if (affected_by_spell(victim, SPELL_ACID_SHEATH) ||
+            affected_by_spell(victim, SPELL_COLD_SHIELD)) {
+      send_to_char(ch, "You are already affected by an elemental shield!\r\n");
+      return;
+    }
     af[0].duration = 50;
     SET_BIT_AR(af[0].bitvector, AFF_FSHIELD);
 
@@ -1463,6 +1495,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_COLD_SHIELD:  //evocation
+    if (affected_by_spell(victim, SPELL_ACID_SHEATH) ||
+            affected_by_spell(victim, SPELL_FIRE_SHIELD)) {
+      send_to_char(ch, "You are already affected by an elemental shield!\r\n");
+      return;
+    }
     af[0].duration = 50;
     SET_BIT_AR(af[0].bitvector, AFF_CSHIELD);
 
@@ -1971,8 +2008,9 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_DIRE_BOAR		42   // " " ii
 #define MOB_DIRE_WOLF		43   // " " iii
 #define MOB_PHANTOM_STEED	44
-                              //45     - wizard eye
+                              //45    wizard eye
 #define MOB_DIRE_SPIDER		46   // " " iv
+                              //47    wall of force
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 		      int spellnum, int savetype)
 {
