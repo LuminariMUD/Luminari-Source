@@ -109,6 +109,15 @@ ASPELL(spell_wall_of_force)
 #undef WALL_OF_FORCE
 
 
+ASPELL(spell_cloudkill)
+{
+  send_to_char(ch, "You summon forth a cloud of death!\r\n");
+  act("$n summons forth a cloud of death!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  CLOUDKILL(ch) = MAGIC_LEVEL(ch) / 4;
+}
+
+
 ASPELL(spell_dismissal)
 {
   

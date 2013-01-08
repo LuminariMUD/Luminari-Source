@@ -764,6 +764,8 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 
 #define PRAYIN(ch, cc)		((ch)->char_specials.prayin[cc])
 
+// how many bursts of cloudkill left
+#define CLOUDKILL(ch)    ((ch)->char_specials.cloudkill)
 
 //  spells / skills
 #define GET_WARDING(ch, slot)		(ch->player_specials->saved.warding[slot])

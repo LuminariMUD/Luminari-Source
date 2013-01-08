@@ -200,8 +200,9 @@
 #define SPELL_CONE_OF_COLD         158
 #define SPELL_TELEKINESIS          159
 #define SPELL_FIREBRAND            160
+#define SPELL_DEATHCLOUD           161
 /** Total Number of defined spells */
-#define NUM_SPELLS    161
+#define NUM_SPELLS    162
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
@@ -514,6 +515,7 @@ ASPELL(spell_locate_creature);
 ASPELL(spell_wall_of_force);
 ASPELL(spell_dominate_person);
 ASPELL(spell_dismissal);
+ASPELL(spell_cloudkill);
 
 
 /* basic magic calling functions */

@@ -1251,18 +1251,24 @@ struct char_special_data
 {
   struct char_data *fighting;  /**< Target of fight; else NULL */
   struct char_data *hunting;   /**< Target of NPC hunt; else NULL */
+
+  /* furniture */
   struct obj_data *furniture;  /**< Object being sat on/in; else NULL */
   struct char_data *next_in_furniture; /**< Next person sitting, else NULL */
 
+  /* mounts */
   struct char_data *riding;	/* Who are they riding? */
   struct char_data *ridden_by; /* Who is riding them? */
 
   byte position; /**< Standing, fighting, sleeping, etc. */
 
+  /* carrying */
   int carry_weight; /**< Carried weight */
   byte carry_items; /**< Number of items carried */
+
   int timer;        /**< Timer for update */
 
+  /** casting **/
   bool isCasting;		// casting or not
   int castingTime;		// casting time
   int castingSpellnum;		// spell casting
@@ -1279,7 +1285,8 @@ struct char_special_data
   struct obj_data *crafting_object;
   ubyte crafting_repeat; // multiple objects created in one session
   int crafting_bonus;  // bonus for crafting the item
-  /**************/
+
+  ubyte cloudkill;  //how many more burts of cloudkill left
   
   struct char_special_data_saved saved; /**< Constants saved for PCs. */
 };

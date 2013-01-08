@@ -3711,6 +3711,9 @@ void init_char(struct char_data *ch)
 
   // fresh start on auto-crafting data
   reset_acraft(ch);
+  
+  // make sure no cloudkills
+  CLOUDKILL(ch) = 0;
 }
 
 /* returns the real number of the room with given virtual number */
