@@ -869,7 +869,7 @@ ACMD(do_mtransform)
   char_data *m, tmpmob;
   obj_data *obj[NUM_WEARS];
   mob_rnum this_rnum = GET_MOB_RNUM(ch);
-  mob_vnum this_vnum = GET_MOB_VNUM(ch);
+//  mob_vnum this_vnum = GET_MOB_VNUM(ch);
   int keep_hp = 1; /* new mob keeps the old mob's hp/max hp/exp */
   int pos;
 
