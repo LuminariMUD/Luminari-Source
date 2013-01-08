@@ -120,7 +120,29 @@ ASPELL(spell_cloudkill)
 
 ASPELL(spell_dismissal)
 {
-  
+  struct follow_type *k;
+
+  if (!ch || !victim)
+    return;
+
+  /* go through target's list of followers */
+  for (k = victim->followers; k; k = k->next) {
+    /* follower in same room? */
+    if (IN_ROOM(victim) == IN_ROOM(k->follower)) {
+      /* actually a follower? */
+	 if (AFF_FLAGGED(k->follower, AFF_CHARM)) {
+        /* has proper subrace to be dismissed? */
+        if (IS_NPC(k->follower) && 
+                HAS_SUBRACE(k->follower, SUBRACE_EXTRAPLANAR)) {
+          /* great, attempt to dismiss and exit, just one victim */
+          act("$n dismisses $N!", FALSE, ch, 0, k->follower, TO_ROOM);
+          send_to_char(ch, "You dismiss %s!", GET_NAME(k->follower));
+          extract_char(k->follower);
+          return;
+        }
+	 }
+    }
+  }
 }
 
 
