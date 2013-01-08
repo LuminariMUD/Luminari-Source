@@ -942,7 +942,7 @@ SPECIAL(snake)
 
 SPECIAL(hound)
 {
-  struct char_data *vict;
+  struct char_data *i;
   int door;
   room_rnum room;
 
@@ -951,17 +951,18 @@ SPECIAL(hound)
 
   /* first go through all the directions */
   for (door = 0; door < DIR_COUNT; door++) {
-    room = world[IN_ROOM(ch)].dir_option[door]->to_room;
-    if (room) {
+    if (CAN_GO(ch, door)) {
+      room = world[IN_ROOM(ch)].dir_option[door]->to_room;
+
       /* ok found a neighboring room, now cycle through the peeps */
-      for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room) {
+      for (i = world[room].people; i; i = i->next_in_room) {
         /* is this guy a hostile? */
-        if (vict && IS_NPC(vict) && MOB_FLAGGED(vict, MOB_AGGRESSIVE)) {
+        if (i && IS_NPC(i) && MOB_FLAGGED(i, MOB_AGGRESSIVE)) {
           act("$n howls a warning!", FALSE, ch, 0, 0, TO_ROOM);
           return (TRUE);
         }
       } // end peeps cycle
-    }
+    } // can_go
   } // end room cycle
 
   return (FALSE);
