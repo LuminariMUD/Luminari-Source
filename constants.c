@@ -187,23 +187,24 @@ const char *autoexits[] =
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *room_bits[] = {
-  "DARK",
-  "DEATH",
-  "NO_MOB",
-  "INDOORS",
-  "PEACEFUL",
-  "SOUNDPROOF",
-  "NO_TRACK",
-  "NO_MAGIC",
-  "TUNNEL",
-  "PRIVATE",
-  "GODROOM",
-  "HOUSE",
-  "HCRSH",
-  "ATRIUM",
+  "Dark",
+  "Death-Trap",
+  "No-Mob",
+  "Indoors",
+  "Peaceful",
+  "Soundproof",
+  "No-Track",
+  "No-Magic",
+  "Tunnel",
+  "Private",
+  "Staff-Room",
+  "House",
+  "House-Crash",
+  "Atrium",
   "OLC",
   "*",				/* The BFS Mark. */
-  "WORLDMAP",
+  "Worldmap",
+  "Regenerating",
   "\n"
 };
 
@@ -455,6 +456,8 @@ const char *affected_bits[] =
   "Size-Changed",
   "True-Sight",
   "Spot-Mode",
+  "Fatigued",
+  "Regenning",
   "\n"
 };
 

@@ -219,6 +219,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch)
     armorclass -= 6;
   if (char_has_mud_event(ch, eSTUNNED))
     armorclass -= 2;
+  if (AFF_FLAGGED(ch, AFF_FATIGUED))
+    armorclass -= 2;
   if (attacker) {  /* racial bonus vs. larger opponents */
     if ((GET_RACE(ch) == RACE_DWARF ||
             GET_RACE(ch) == RACE_CRYSTAL_DWARF ||
@@ -1640,6 +1642,9 @@ int compute_bab(struct char_data *ch, struct char_data *victim, int type)
     calc_bab -= 5;
   if (AFF_FLAGGED(ch, AFF_EXPERTISE))
     calc_bab -= 5;
+  //fatigued
+  if (AFF_FLAGGED(ch, AFF_FATIGUED))
+    calc_bab -= 2;
 
   return (MIN(MAX_BAB, calc_bab));
 }
@@ -1659,6 +1664,10 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   else
     dambonus += GET_STR_BONUS(ch);
   
+  //fatigued
+  if (AFF_FLAGGED(ch, AFF_FATIGUED))
+    dambonus -= 2;
+
   //size
   if (vict)
     dambonus += compute_size_bonus(GET_SIZE(ch), GET_SIZE(vict));  

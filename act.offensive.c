@@ -1105,10 +1105,10 @@ EVENTFUNC(event_regen)
   if (GET_POS(ch) == POS_SLEEPING)
     hp += dice(3, 2);
 
-//      if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
-//        hp *= 2;
-//      if (AFF_FLAGGED(ch, AFF_REGEN))
-//        hp *= 2;
+  if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
+    hp *= 2;
+  if (AFF_FLAGGED(ch, AFF_REGEN))
+    hp *= 2;
 
   // troll racial innate regeneration
   if (GET_RACE(ch) == RACE_TROLL) {
@@ -1131,13 +1131,13 @@ EVENTFUNC(event_regen)
   }
   if (GET_MOVE(ch) > GET_MAX_MOVE(ch)) {
     GET_MOVE(ch)--;
-  } else {
-    GET_MOVE(ch) = MIN(GET_MOVE(ch) + (hp*3), GET_MAX_MOVE(ch));
+  } else if (!AFF_FLAGGED(ch, AFF_FATIGUED)) {
+    GET_MOVE(ch) = MIN(GET_MOVE(ch) + (hp * 3), GET_MAX_MOVE(ch));
   }
   if (GET_MANA(ch) > GET_MAX_MANA(ch)) {
     GET_MANA(ch)--;
   } else {
-    GET_MANA(ch) = MIN(GET_MANA(ch) + (hp*2), GET_MAX_MANA(ch));
+    GET_MANA(ch) = MIN(GET_MANA(ch) + (hp * 2), GET_MAX_MANA(ch));
   }
 
   update_pos(ch);  

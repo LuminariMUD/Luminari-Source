@@ -55,5 +55,6 @@ SPECIAL(bank);
 SPECIAL(crafting_kit);
 SPECIAL(crafting_quest);
 SPECIAL(wall);
+SPECIAL(hound);
 
 #endif /* _SPEC_PROCS_H_ */
