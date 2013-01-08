@@ -1074,8 +1074,9 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
                 compute_damage_reduction(k, -1),
                 compute_concealment(k));
 
-  send_to_char(ch, "\tCStoneskin: \tn%d\tC, Mirror Images: \tn%d\tC, Spell Resist: \tn%d\r\n", 
-	GET_STONESKIN(k), GET_IMAGES(k), GET_SPELL_RES(k));
+  send_to_char(ch, "\tCStoneskin: \tn%d\tC, Mirror Images: \tn%d\tC, Cloudkill:"
+                   " \tn%d\tC, Spell Resist: \tn%d\r\n", 
+	GET_STONESKIN(k), GET_IMAGES(k), CLOUDKILL(k), GET_SPELL_RES(k));
 
   send_to_char(ch, "\tCMemming? \tn%d\tC, Praying? \tn%d\tC, Communing? \tn%d\r\n", 
 	PRAYIN(k, 2), PRAYIN(k, 0), PRAYIN(k, 1));
