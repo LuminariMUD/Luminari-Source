@@ -84,6 +84,18 @@ ASPELL(spell_acid_arrow)
 }
 
 
+ASPELL(spell_wall_of_force)
+{
+  
+}
+
+
+ASPELL(spell_dismissal)
+{
+  
+}
+
+
 ASPELL(spell_create_water)
 {
   int water;
@@ -440,6 +452,11 @@ ASPELL(spell_dispel_magic)  // divination
       act("$n fails to dispel some of $N's magic!", FALSE, ch, 0, 0, TO_ROOM);
     }
   }
+}
+
+
+ASPELL(spell_dominate_person)  // enchantment
+{
 }
 
 

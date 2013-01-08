@@ -439,6 +439,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_CLAIRVOYANCE:	MANUAL_SPELL(spell_clairvoyance); break;
     case SPELL_DISPEL_MAGIC:	MANUAL_SPELL(spell_dispel_magic); break;
     case SPELL_LOCATE_CREATURE:	MANUAL_SPELL(spell_locate_creature); break;
+    case SPELL_WALL_OF_FORCE:	MANUAL_SPELL(spell_wall_of_force); break;
+    case SPELL_DOMINATE_PERSON:	MANUAL_SPELL(spell_dominate_person); break;
+    case SPELL_DISMISSAL:	MANUAL_SPELL(spell_dismissal); break;
     }
 
     if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
@@ -1538,8 +1541,8 @@ void mag_assign_spells(void)
 	TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
 	NULL, 10, 8, NECROMANCY);
   spello(SPELL_CURSE, "curse", 80, 50, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_OBJ_INV, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS,
-	"You feel more optimistic.", 7, 8, NECROMANCY);
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_OBJ_INV, TRUE, MAG_AFFECTS |
+     MAG_ALTER_OBJS, "You feel more optimistic.", 7, 8, NECROMANCY);
 			/* enchantment */
   //infra
   //poison
@@ -1550,7 +1553,7 @@ void mag_assign_spells(void)
      ILLUSION);
   spello(SPELL_RAINBOW_PATTERN, "rainbow pattern", 65, 50, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-	"You no longer feel dazed.", 5, 6,
+	"You no longer feel dazed.", 5, 8,
 	ILLUSION);
 			/* divination */
   spello(SPELL_WIZARD_EYE, "wizard eye", 65, 50, 1, POS_FIGHTING,
@@ -1579,6 +1582,61 @@ void mag_assign_spells(void)
   
   // 5th circle
 			/* evocation */
+  spello(SPELL_INTERPOSING_HAND, "interposing hand", 80, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+     "You feel more optimistic.", 7, 9, EVOCATION);
+  spello(SPELL_WALL_OF_FORCE, "wall of force", 65, 50, 1, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 6, 9, EVOCATION);
+  spello(SPELL_BALL_OF_LIGHTNING, "ball of lightning", 65, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 5, 9, EVOCATION);
+               /* conjuration */
+  spello(SPELL_CLOUDKILL, "cloudkill", 65, 50, 1, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 9, CONJURATION);
+  spello(SPELL_SUMMON_CREATURE_5, "summon creature v", 95, 80, 1,
+     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 9, CONJURATION);
+			/* necromancy */
+  spello(SPELL_WAVES_OF_FATIGUE, "waves of fatigue", 65, 50, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical fatigue fade away.", 7,
+     9, NECROMANCY);
+  spello(SPELL_SYMBOL_OF_PAIN, "symbol of pain", 58, 43, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 9, NECROMANCY);
+			/* enchantment */
+  spello(SPELL_DOMINATE_PERSON, "dominate person", 51, 36, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+	"You feel the domination effects wear off.", 10, 9, ENCHANTMENT);
+  spello(SPELL_FEEBLEMIND, "feeblemind", 80, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+     "Your enfeebled mind returns to normal.", 7, 9, ENCHANTMENT);
+			/* illusion */
+  spello(SPELL_NIGHTMARE, "nightmare", 30, 15, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+	"You are able to shake the horrid nightmare.", 7, 9, ILLUSION);  
+  spello(SPELL_MIND_FOG, "mind fog", 80, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+     "Your fogged mind returns to normal.", 7, 9, ILLUSION);
+			/* divination */
+  spello(SPELL_FAITHFUL_HOUND, "faithful hound", 95, 80, 1,
+     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 9, DIVINATION);
+  spello(SPELL_ACID_SHEATH, "acid sheath", 37, 22, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+	"You watch your acid sheath fade away.", 6, 9, DIVINATION);  
+			/* abjuration */
+  spello(SPELL_DISMISSAL, "dismissal", 51, 36, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL, NULL, 7, 9,
+     ABJURATION);
+  spello(SPELL_CONE_OF_COLD, "cone of cold", 65, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 9, 9, ABJURATION);
+			/* transmutation */
+  spello(SPELL_TELEKINESIS, "telekinesis", 65, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 9, 9,
+     TRANSMUTATION);
+  spello(SPELL_FIREBRAND, "firebrand", 65, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 9, 9,
+     TRANSMUTATION);
+  
+
+  // 6th circle
+			/* evocation */
                /* conjuration */
 			/* necromancy */
 			/* enchantment */
@@ -1586,26 +1644,15 @@ void mag_assign_spells(void)
 			/* divination */
   spello(SPELL_LOCATE_OBJECT, "locate object", 58, 43, 1, POS_FIGHTING,
 	TAR_OBJ_WORLD, FALSE, MAG_MANUAL,
-	NULL, 9, 9, DIVINATION);
-			/* abjuration */
-			/* transmutation */
-  
-
-  // 6th circle
-			/* evocation */
-  spello(SPELL_BALL_OF_LIGHTNING, "ball of lightning", 65, 50, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-	NULL, 5, 10, EVOCATION);
-               /* conjuration */
-			/* necromancy */
-			/* enchantment */
-			/* illusion */
-			/* divination */
+	NULL, 10, 10, DIVINATION);
 			/* abjuration */
 			/* transmutation */
   spello(SPELL_CLONE, "clone", 65, 50, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_SUMMONS,
 	NULL, 9, 10, TRANSMUTATION);
+  spello(SPELL_WATERWALK, "waterwalk", 79, 64, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"Your feet seem less buoyant.", 7, 10, TRANSMUTATION);
 
   
   // 7th circle
@@ -1637,9 +1684,6 @@ void mag_assign_spells(void)
 			/* divination */
 			/* abjuration */
 			/* transmutation */  
-  spello(SPELL_WATERWALK, "waterwalk", 79, 64, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"Your feet seem less buoyant.", 7, 12, TRANSMUTATION);
 
   
   // 9th circle
