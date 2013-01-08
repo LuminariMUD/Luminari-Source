@@ -1030,13 +1030,13 @@ void pulse_luminari() {
             GET_MOVE(i) == GET_MAX_MOVE(i) &&
             GET_MANA(i) == GET_MAX_MANA(i) &&
             !AFF_FLAGGED(i, AFF_POISON))
-      continue;
+      ;
     else
       NEW_EVENT(eREGEN, i, NULL, 4 * PASSES_PER_SEC);
     
     /* cloudkill */
     if (CLOUDKILL(i)) {
-      cast_spell(i, 0, 0, SPELL_DEATHCLOUD);      
+      call_magic(i, NULL, NULL, SPELL_DEATHCLOUD, MAGIC_LEVEL(i), CAST_SPELL);
       CLOUDKILL(i)--;
       if (!CLOUDKILL(i)) {
         send_to_char(i, "Your cloud of death dissipates!\r\n");
