@@ -540,55 +540,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
 
-  case SPELL_MISSILE_STORM:
-    save = SAVING_FORT;
-    mag_resist = TRUE;
-    element = DAM_FORCE;
-    
-    num_dice = MIN(26, magic_level);
-    size_dice = 10;
-    bonus = magic_level;
-    break;
-  case SPELL_CHAIN_LIGHTNING:
-    //AoE
-    save = SAVING_REFL;
-    mag_resist = TRUE;
-    element = DAM_ELECTRIC;
-    
-    num_dice = MIN(28, magic_level);
-    size_dice = 9;
-    bonus = magic_level;
-    break;
-  case SPELL_METEOR_SWARM:
-    //AoE
-    save = SAVING_REFL;
-    mag_resist = TRUE;
-    element = DAM_FIRE;
-    
-    num_dice = magic_level + 4;
-    size_dice = 12;
-    bonus = magic_level + 8;
-    break;
-  case SPELL_GREATER_RUIN:
-    save = SAVING_WILL;
-    mag_resist = TRUE;
-    element = DAM_PUNCTURE;
-    
-    num_dice = magic_level + 6;
-    size_dice = 12;
-    bonus = magic_level + 35;
-    break;
-  case SPELL_HELLBALL:
-    //AoE
-    save = SAVING_FORT;
-    mag_resist = TRUE;
-    element = DAM_ENERGY;
-    
-    num_dice = magic_level + 8;
-    size_dice = 12;
-    bonus = magic_level + 50;
-    break;
-
   case SPELL_ACID_SPLASH:
     save = SAVING_REFL;
     num_dice = 2;
@@ -603,6 +554,66 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_COLD;
     break;
         
+  case SPELL_MISSILE_STORM:
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_FORCE;    
+    num_dice = MIN(26, magic_level);
+    size_dice = 10;
+    bonus = magic_level;
+    break;
+    
+  /* trying to keep the AOE together */  
+  case SPELL_CHAIN_LIGHTNING:
+    //AoE
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_ELECTRIC;
+    num_dice = MIN(28, magic_level);
+    size_dice = 9;
+    bonus = magic_level;
+    break;
+    
+  case SPELL_DEATHCLOUD:
+    //AoE
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_POISON;    
+    num_dice = magic_level;
+    size_dice = 4;
+    bonus = 0;
+    break;
+    
+  case SPELL_METEOR_SWARM:
+    //AoE
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;    
+    num_dice = magic_level + 4;
+    size_dice = 12;
+    bonus = magic_level + 8;
+    break;
+    
+  case SPELL_GREATER_RUIN:
+    save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_PUNCTURE;    
+    num_dice = magic_level + 6;
+    size_dice = 12;
+    bonus = magic_level + 35;
+    break;
+    
+  case SPELL_HELLBALL:
+    //AoE
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_ENERGY;    
+    num_dice = magic_level + 8;
+    size_dice = 12;
+    bonus = magic_level + 50;
+    break;
+
+  /***************/  
   // divine spells
 
   case SPELL_CAUSE_LIGHT_WOUNDS:
@@ -1916,6 +1927,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_CHAIN_LIGHTNING:
     to_char = "Arcing bolts of lightning flare from your fingertips!";
     to_room = "Arcing bolts of lightning fly from the fingers of $n!";
+    break;
+  case SPELL_DEATHCLOUD:
     break;
   case SPELL_METEOR_SWARM:
     to_char = "You call down meteors from the sky to pummel your foes!";

@@ -1405,7 +1405,8 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim,
   }
 
   resetCastingData(victim);  //stop casting
-
+  CLOUDKILL(victim) = 0;     //stop any cloudkill bursts
+  
   if (!IS_NPC(victim)) {  //forget victim, log
     mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s at %s", GET_NAME(victim),
             GET_NAME(ch), world[IN_ROOM(victim)].name);

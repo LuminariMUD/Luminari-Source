@@ -969,6 +969,86 @@ void game_loop(socket_t local_mother_desc)
   }
 }
 
+
+  /*  Pulse_Luminari was built to throw in customized Luminari
+   *  procedures that we want called in a similar manner as the
+   *  other pulses.  The whole concept was created before I had
+   *  a full grasp on the event system, otherwise it would have
+   *  been implemented differently.  -Zusuk
+   */
+void pulse_luminari() {
+  struct char_data *i, *caster = NULL, *tch;
+  struct raff_node *raff, *next_raff;
+  struct room_data *caster_room = NULL;
+
+  // room-affections, loop through em
+  for (raff = raff_list; raff; raff = next_raff) {
+    next_raff = raff->next;
+
+    //stinking cloud
+    if (raff->spell == SPELL_STINKING_CLOUD) {
+      caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+      caster_room = &world[raff->room];
+      if (!caster) {
+        script_log("comm.c: Cannot load the caster mob!");
+        return;
+      }
+      
+      /* set the caster's name */
+      caster->player.short_descr = strdup("The room");
+      caster->next_in_room = caster_room->people;
+      caster_room->people = caster;
+      caster->in_room = real_room(caster_room->number);
+      call_magic(caster, NULL, NULL, SPELL_STENCH, DG_SPELL_LEVEL, CAST_SPELL);
+      extract_char(caster);
+    }
+
+    //billowing cloud
+    if (raff->spell == SPELL_BILLOWING_CLOUD) {
+      for (tch = world[raff->room].people; tch; tch = tch->next_in_room) {
+        if (tch && GET_LEVEL(tch) < 13) {
+          if (!mag_savingthrow(tch, tch, SAVING_FORT, 0)) {
+            send_to_char(tch, "You are bogged down by the billowing cloud!\r\n");
+            act("$n is bogged down by the billowing cloud.", TRUE, tch, 0, NULL, TO_ROOM);
+            WAIT_STATE(tch, PULSE_VIOLENCE);
+          }
+        }
+      }
+    } /* end billowing cloud */
+    
+  }
+
+  // looping through char list, what needs to be done?
+  for (i = character_list; i; i = i->next) {
+
+    /* weapon spells */
+    // weapon spells call (in fight.c currently)
+    idle_weapon_spells(i);
+
+    /* vitals regeneration */
+    if (GET_HIT(i) == GET_MAX_HIT(i) &&
+            GET_MOVE(i) == GET_MAX_MOVE(i) &&
+            GET_MANA(i) == GET_MAX_MANA(i) &&
+            !AFF_FLAGGED(i, AFF_POISON))
+      continue;
+    else
+      NEW_EVENT(eREGEN, i, NULL, 4 * PASSES_PER_SEC);
+    
+    /* cloudkill */
+    if (CLOUDKILL(i)) {
+      cast_spell(i, 0, 0, SPELL_DEATHCLOUD);      
+      CLOUDKILL(i)--;
+      if (!CLOUDKILL(i)) {
+        send_to_char(i, "Your cloud of death dissipates!\r\n");
+        act("The cloud of death following $n dissipates!", TRUE, i, 0, NULL,
+                TO_ROOM);
+      }
+    } //end cloudkill
+    
+  }  // end char list loop
+}
+
+
 void heartbeat(int heart_pulse)
 {
   static int mins_since_crashsave = 0;
@@ -1004,63 +1084,8 @@ void heartbeat(int heart_pulse)
    *  been implemented differently.  -Zusuk
    */
   if (!(pulse % PULSE_LUMINARI)) {
-    struct char_data *i, *caster = NULL, *tch;
-    struct raff_node *raff, *next_raff;
-    struct room_data *caster_room = NULL;  
-
-    // room-affections, loop through them
-    for (raff = raff_list; raff; raff = next_raff) {
-      next_raff = raff->next;
-      
-      //stinking cloud
-      if (raff->spell == SPELL_STINKING_CLOUD) {
-        caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);      
-        caster_room = &world[raff->room];
-        if (!caster) {
-          script_log("comm.c: Cannot load the caster mob!");
-          return;
-        }
-        /* set the caster's name */
-        caster->player.short_descr = strdup("The room");
-        caster->next_in_room = caster_room->people;
-        caster_room->people = caster;
-        caster->in_room = real_room(caster_room->number);
-        call_magic(caster, NULL, NULL, SPELL_STENCH, DG_SPELL_LEVEL, CAST_SPELL);
-        extract_char(caster);
-      }
-
-      //billowing cloud
-      if (raff->spell == SPELL_BILLOWING_CLOUD) {
-        for (tch = world[raff->room].people; tch; tch = tch->next_in_room) {
-          if (tch && GET_LEVEL(tch) < 13) {
-            if (!mag_savingthrow(tch, tch, SAVING_FORT, 0)) {
-              send_to_char(tch, "You are bogged down by the billowing cloud!\r\n");
-              act("$n is bogged down by the billowing cloud.", TRUE, tch, 0, NULL, TO_ROOM);
-              WAIT_STATE(tch, PULSE_VIOLENCE);
-            }
-          }
-        }
-      }  /* end billowing cloud */
-    }
-
-    // looping through char list
-    for (i = character_list; i; i = i->next) {
-
-      // weapon spells call (in fight.c currently)
-      idle_weapon_spells(i);
-
-      // general regeneration call
-      if (GET_HIT(i) == GET_MAX_HIT(i) &&
-          GET_MOVE(i) == GET_MAX_MOVE(i) &&
-          GET_MANA(i) == GET_MAX_MANA(i) &&
-          !AFF_FLAGGED(i, AFF_POISON))
-        continue;
-      else
-        NEW_EVENT(eREGEN, i, NULL, 4 * PASSES_PER_SEC);
-    }
+    pulse_luminari();
   }
-  /** END PULSE_LUMINARI **/
-  /************************/
 
   if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC))) {  /* Tick ! */
     next_tick = SECS_PER_MUD_HOUR;  /* Reset tick coundown */

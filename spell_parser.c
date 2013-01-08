@@ -442,6 +442,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_WALL_OF_FORCE:	MANUAL_SPELL(spell_wall_of_force); break;
     case SPELL_DOMINATE_PERSON:	MANUAL_SPELL(spell_dominate_person); break;
     case SPELL_DISMISSAL:	MANUAL_SPELL(spell_dismissal); break;
+    case SPELL_CLOUDKILL:	MANUAL_SPELL(spell_cloudkill); break;
     }
 
     if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
@@ -1594,6 +1595,9 @@ void mag_assign_spells(void)
                /* conjuration */
   spello(SPELL_CLOUDKILL, "cloudkill", 65, 50, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 9, CONJURATION);
+  spello(SPELL_DEATHCLOUD, "deathcloud", 85, 70, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS,
+	NULL, 8, 9, CONJURATION);
   spello(SPELL_SUMMON_CREATURE_5, "summon creature v", 95, 80, 1,
      POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 9, CONJURATION);
 			/* necromancy */
