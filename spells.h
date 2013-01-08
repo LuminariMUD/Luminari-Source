@@ -184,8 +184,24 @@
 #define SPELL_FSHIELD_DAM          142
 #define SPELL_CSHIELD_DAM          143
 #define SPELL_ASHIELD_DAM          144
+#define SPELL_ACID_SHEATH          145
+#define SPELL_INTERPOSING_HAND     146
+#define SPELL_WALL_OF_FORCE        147
+#define SPELL_CLOUDKILL            148
+#define SPELL_SUMMON_CREATURE_5    149
+#define SPELL_WAVES_OF_FATIGUE     150
+#define SPELL_SYMBOL_OF_PAIN       151
+#define SPELL_DOMINATE_PERSON      152
+#define SPELL_FEEBLEMIND           153
+#define SPELL_NIGHTMARE            154
+#define SPELL_MIND_FOG             155
+#define SPELL_FAITHFUL_HOUND       156
+#define SPELL_DISMISSAL            157
+#define SPELL_CONE_OF_COLD         158
+#define SPELL_TELEKINESIS          159
+#define SPELL_FIREBRAND            160
 /** Total Number of defined spells */
-#define NUM_SPELLS    145
+#define NUM_SPELLS    161
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
@@ -495,6 +511,9 @@ ASPELL(spell_enchant_weapon);
 ASPELL(spell_detect_poison);
 ASPELL(spell_acid_arrow);
 ASPELL(spell_locate_creature);
+ASPELL(spell_wall_of_force);
+ASPELL(spell_dominate_person);
+ASPELL(spell_dismissal);
 
 
 /* basic magic calling functions */
