@@ -568,7 +568,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(victim,
               "The force of the telekinetic slam knocks you over!\r\n");
       act("A wave of telekinetic energy originating "
-             "from $n knocks $N to the ground!", TRUE, ch, victim, 0, TO_ROOM);
+             "from $n knocks $N to the ground!", TRUE, ch, 0, victim, TO_ROOM);
       GET_POS(victim) = POS_SITTING;
       WAIT_STATE(victim, PULSE_VIOLENCE);
     }
