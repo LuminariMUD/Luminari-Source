@@ -362,8 +362,9 @@
 #define MOB_MOUNTABLE      21
 #define MOB_NODEAF         22
 #define MOB_NOFIGHT         23
+#define MOB_NOCLASS         24
 /**********************/
-#define NUM_MOB_FLAGS      24
+#define NUM_MOB_FLAGS      25
 
 /* Preference flags: used by char_data.player_specials.pref */
 #define PRF_BRIEF         0   /**< Room descs won't normally be shown */
