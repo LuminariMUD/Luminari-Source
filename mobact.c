@@ -443,6 +443,8 @@ void npc_class_behave(struct char_data *ch)
   struct char_data *AoE, *vict = NULL;
   int engaged = 0;
 
+  if (MOB_FLAGGED(ch, MOB_NOCLASS))
+    return;
   if (!canContinue(ch))
     return;
   if (GET_LEVEL(ch) < 5)
