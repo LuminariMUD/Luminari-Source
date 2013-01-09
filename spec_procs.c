@@ -382,6 +382,9 @@ void list_skills(struct char_data *ch)
 {
   int i, printed = 0;
 
+  if (IS_NPC(ch))
+    return;
+
   send_to_char(ch, "\tCPractice Session(s): %d, Available/Known Skills:\tn\r\n\r\n",
     GET_PRACTICES(ch));
 
@@ -519,6 +522,9 @@ const char *cross_names[] = {
 void list_abilities(struct char_data *ch)
 {
   int i;
+
+  if (IS_NPC(ch))
+    return;
 
   send_to_char(ch, "\tCYou have %d training session%s remaining.\r\n"
 	"You know of the following abilities:\tn\r\n", GET_TRAINS(ch),

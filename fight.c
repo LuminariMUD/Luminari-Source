@@ -1412,9 +1412,9 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim,
   if (!IS_NPC(victim)) {  //forget victim, log
     mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s at %s", GET_NAME(victim),
             GET_NAME(ch), world[IN_ROOM(victim)].name);
-    if (MOB_FLAGGED(ch, MOB_MEMORY))
+    if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_MEMORY))
       forget(ch, victim);
-    if (HUNTING(ch) == victim)
+    if (IS_NPC(ch) && HUNTING(ch) == victim)
       HUNTING(ch) = NULL;
   }
 
@@ -1431,7 +1431,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim,
   die(victim, ch);
 
   //handle dead mob and PRF_
-  if (GROUP(ch) && (local_gold > 0) && PRF_FLAGGED(ch, PRF_AUTOSPLIT) ) {
+  if (!IS_NPC(ch) && GROUP(ch) && (local_gold > 0) && PRF_FLAGGED(ch, PRF_AUTOSPLIT) ) {
     generic_find("corpse", FIND_OBJ_ROOM, ch, &tmp_char, &corpse_obj);
     if (corpse_obj) {
       do_get(ch, "all.coin corpse", 0, 0);
