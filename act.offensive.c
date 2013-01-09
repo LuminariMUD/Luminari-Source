@@ -33,9 +33,11 @@ ACMD(do_rage)
     send_to_char(ch, "You are already raging!\r\n");
     return;
   }
-  if (!IS_ANIMAL(ch) && !GET_SKILL(ch, SKILL_RAGE)) {
-    send_to_char(ch, "You don't know how to rage.\r\n");
-    return;
+  if (!IS_ANIMAL(ch)) {
+    if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_RAGE)) {
+      send_to_char(ch, "You don't know how to rage.\r\n");
+      return;
+    }
   }
   if (char_has_mud_event(ch, eRAGE)) {
     send_to_char(ch, "You must wait longer before you can use this ability "
@@ -1262,6 +1264,10 @@ ACMD(do_stunningfist)
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
 
   one_argument(argument, arg);
 
@@ -1317,6 +1323,10 @@ ACMD(do_kick)
 
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_KICK)) {
     send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
 

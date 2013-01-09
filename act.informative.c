@@ -1267,10 +1267,11 @@ ACMD(do_score)
   send_to_char(ch,
 "\tC---------------------------------------------------------\tn\r\n");
 
-  send_to_char(ch, "\tCWimpy:\tn %d  \tCDivLvl:\tn %d  \tCMgcLvl:\tn %d"
+  if (!IS_NPC(ch))
+    send_to_char(ch, "\tCWimpy:\tn %d  ", GET_WIMP_LEV(ch));
+  send_to_char(ch, "\tCDivLvl:\tn %d  \tCMgcLvl:\tn %d"
           "  \tCCstrLvl:\tn %d\r\n",
-          GET_WIMP_LEV(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch),
-          CASTER_LEVEL(ch));
+          DIVINE_LEVEL(ch), MAGIC_LEVEL(ch), CASTER_LEVEL(ch));
 
   send_to_char(ch, "\tCExp:\tn %d   \tCExpTNL:\tn: ", GET_EXP(ch));
   if (GET_LEVEL(ch) >= LVL_IMMORT)
@@ -1302,18 +1303,20 @@ ACMD(do_score)
     default: send_to_char(ch, "Floating\r\n"); break;
   }
 
-  send_to_char(ch, "\tCQuests completed:\tn %d   \tCQuestPoints:\tn %d   \tCOn Quest:\tn",
-       GET_NUM_QUESTS(ch), GET_QUESTPOINTS(ch));
-  if (GET_QUEST(ch) == NOTHING)
-    send_to_char(ch, " None\r\n");
-  else
-    send_to_char(ch, " %d\r\n",
+  if (!IS_NPC(ch)) {
+    send_to_char(ch, "\tCQuests completed:\tn %d   \tCQuestPoints:\tn %d   \tCOn Quest:\tn",
+         GET_NUM_QUESTS(ch), GET_QUESTPOINTS(ch));
+    if (GET_QUEST(ch) == NOTHING)
+      send_to_char(ch, " None\r\n");
+    else
+      send_to_char(ch, " %d\r\n",
                      GET_QUEST(ch) == NOTHING ? -1 : GET_QUEST(ch));
 
-  if (GET_AUTOCQUEST_VNUM(ch))
-    send_to_char(ch, "\tCOn Crafting Job: (%d) %s, using: %s.\r\n", 
-            GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
-            material_name[GET_AUTOCQUEST_MATERIAL(ch)]);  
+    if (GET_AUTOCQUEST_VNUM(ch))
+      send_to_char(ch, "\tCOn Crafting Job: (%d) %s, using: %s.\r\n", 
+              GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
+              material_name[GET_AUTOCQUEST_MATERIAL(ch)]);  
+  }
   
   send_to_char(ch, "\tYGold:\tn %d            \tYGold in Bank:\tn %d\r\n",    
 		GET_GOLD(ch), GET_BANK_GOLD(ch));
@@ -1338,14 +1341,16 @@ ACMD(do_score)
     send_to_char(ch, "\tDType 'prayer' to see your prayer interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_DRUID))
     send_to_char(ch, "\tDType 'commune' to see your commune interface\tn\r\n");
-  if (GET_COND(ch, DRUNK) > 10)
-    send_to_char(ch, "You are intoxicated.\r\n");
-  if (GET_COND(ch, HUNGER) == 0)
-    send_to_char(ch, "You are hungry.\r\n");
-  if (GET_COND(ch, THIRST) == 0)
-    send_to_char(ch, "You are thirsty.\r\n");
-  if (PRF_FLAGGED(ch, PRF_SUMMONABLE))
-    send_to_char(ch, "\r\nYou are summonable by other players.\r\n");
+  if (!IS_NPC(ch)) {
+    if (GET_COND(ch, DRUNK) > 10)
+      send_to_char(ch, "You are intoxicated.\r\n");
+    if (GET_COND(ch, HUNGER) == 0)
+      send_to_char(ch, "You are hungry.\r\n");
+    if (GET_COND(ch, THIRST) == 0)
+      send_to_char(ch, "You are thirsty.\r\n");
+    if (PRF_FLAGGED(ch, PRF_SUMMONABLE))
+      send_to_char(ch, "\r\nYou are summonable by other players.\r\n");
+  }
   send_to_char(ch,
 "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
 
