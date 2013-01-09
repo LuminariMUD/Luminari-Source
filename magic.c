@@ -1358,17 +1358,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     af[0].location = APPLY_INT;
     af[0].duration = magic_level;
-    af[0].modifier = -(victim->real_abils.intel);
+    af[0].modifier = -((victim->real_abils.intel) - 3);
 
     af[1].location = APPLY_WIS;
     af[1].duration = magic_level;
-    af[1].modifier = -(victim->real_abils.wis);
+    af[1].modifier = -((victim->real_abils.wis) - 3);
 
     to_room = "$n grasps $s head in pain as feeblemind takes effect!";
     to_vict = "You graps your head in pain as a feeblemind spell takes effect!";
     break;
 
-    case SPELL_TOUCH_OF_IDIOCY:  //enchantment
+  case SPELL_TOUCH_OF_IDIOCY:  //enchantment
     if (mag_resistance(ch, victim, 0))
       return;
     if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
@@ -1392,6 +1392,20 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     accum_affect = FALSE;
     to_room = "A look of idiocy crosses $n's face!";
     to_vict = "You feel very idiotic.";
+    break;
+
+  case SPELL_MIND_FOG:  //illusion
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
+      send_to_char(ch, "%s", CONFIG_NOEFFECT);
+      return;
+    }
+    af[0].location = APPLY_SAVING_WILL;
+    af[0].duration = 10 + magic_level;
+    af[0].modifier = -10;
+    to_room = "$n reels in confusion as a mind fog strikes $e!";
+    to_vict = "You reel in confusion as a mind fog spell strikes you!";
     break;
 
   case SPELL_RAY_OF_ENFEEBLEMENT:  //necromancy
