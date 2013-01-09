@@ -539,7 +539,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_CONE_OF_COLD:  //abjuration
-    save = SAVING_WILL;
+    save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_COLD;    
     num_dice = MIN(22, magic_level);
@@ -548,7 +548,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_FIREBRAND:  //transmutation
-    save = SAVING_FORT;
+    save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_FIRE;    
     num_dice = MIN(22, magic_level);
@@ -565,10 +565,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     //60% chance of knockdown, target can't be more than 2 size classes bigger
     if (dice(1,100) < 60 && (GET_SIZE(ch) + 2) >= GET_SIZE(victim)) {
-      send_to_char(victim,
-              "The force of the telekinetic slam knocks you over!\r\n");
-      act("A wave of telekinetic energy originating "
-             "from $n knocks $N to the ground!", TRUE, ch, 0, victim, TO_ROOM);
+      act("Your telekinetic wave knocks $N over!",
+              FALSE, ch, 0, victim, TO_CHAR);      
+      act("The force of the telekinetic slam from $n knocks you over!\r\n",
+              FALSE, ch, 0, victim, TO_VICT | TO_SLEEP);
+      act("A wave of telekinetic energy originating from $n knocks $N to "
+              "the ground!", FALSE, ch, 0, victim, TO_NOTVICT);
       GET_POS(victim) = POS_SITTING;
       WAIT_STATE(victim, PULSE_VIOLENCE);
     }
