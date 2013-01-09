@@ -583,6 +583,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_FEEBLEMIND, 99);
     SET_SKILL(ch, SPELL_NIGHTMARE, 99);
     SET_SKILL(ch, SPELL_MIND_FOG, 99);
+    SET_SKILL(ch, SPELL_ACID_SHEATH, 99);
     SET_SKILL(ch, SPELL_FAITHFUL_HOUND, 99);
     SET_SKILL(ch, SPELL_DISMISSAL, 99);
     SET_SKILL(ch, SPELL_CONE_OF_COLD, 99);
@@ -1265,6 +1266,7 @@ void init_spell_levels(void)
   spell_level(SPELL_FEEBLEMIND, CLASS_MAGIC_USER, 9);  
   spell_level(SPELL_NIGHTMARE, CLASS_MAGIC_USER, 9);
   spell_level(SPELL_MIND_FOG, CLASS_MAGIC_USER, 9);
+  spell_level(SPELL_ACID_SHEATH, CLASS_MAGIC_USER, 9);
   spell_level(SPELL_FAITHFUL_HOUND, CLASS_MAGIC_USER, 9);
   spell_level(SPELL_DISMISSAL, CLASS_MAGIC_USER, 9);
   spell_level(SPELL_CONE_OF_COLD, CLASS_MAGIC_USER, 9);

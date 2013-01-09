@@ -1364,8 +1364,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[1].duration = magic_level;
     af[1].modifier = -((victim->real_abils.wis) - 3);
 
-    to_room = "$n grasps $s head in pain as feeblemind takes effect!";
-    to_vict = "You graps your head in pain as a feeblemind spell takes effect!";
+    to_room = "$n grasps $s head in pain, $s eyes glazing over!";
+    to_vict = "Your head starts to throb and a wave of confusion washes over you.";
     break;
 
   case SPELL_TOUCH_OF_IDIOCY:  //enchantment
