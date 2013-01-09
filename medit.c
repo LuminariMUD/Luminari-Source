@@ -396,6 +396,7 @@ void medit_disp_class(struct descriptor_data *d)
      pc_class_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
+  write_to_output(d, "\r\n%s(You can choose 98 to turn off the class)", nrm);
   write_to_output(d, "\r\n%sEnter class number : ", nrm);
 }
 
@@ -1233,6 +1234,8 @@ void medit_parse(struct descriptor_data *d, char *arg)
   case MEDIT_CLASS:
     if (i == 99)
       GET_CLASS(OLC_MOB(d)) = rand_number(0, NUM_CLASSES - 1);
+    else if (i == 99)
+      GET_CLASS(OLC_MOB(d)) = -1;
     else
       GET_CLASS(OLC_MOB(d)) = LIMIT(i, 0, NUM_CLASSES - 1);
     break;
