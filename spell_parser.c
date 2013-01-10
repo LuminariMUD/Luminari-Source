@@ -1170,13 +1170,14 @@ void unused_spell(int spl)
  *  if the spell uses spell templates.  Also joined with bitwise OR ('|').
  * time:  casting time of the spell 
  * memtime:  memtime of the spell 
+ * schoolOfMagic:  if magical spell, which school does it belong?
  * See the documentation for a more detailed description of these fields. You
  * only need a spello() call to define a new spell; to decide who gets to use
  * a spell or skill, look in class.c.  -JE */
 
- /* leave these here for my usage -zusuk */
+ /* please leave these here for my usage -zusuk */
 			/* evocation */
-                        /* conjuration */
+               /* conjuration */
 			/* necromancy */
 			/* enchantment */
 			/* illusion */

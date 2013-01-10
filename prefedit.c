@@ -124,7 +124,7 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
   /* The mortal preferences section of the actual menu */
   send_to_char(d->character, "\r\n"
                              "%sPreferences\r\n"
-                             "%sP%s) Prompt : %s[%s%-15s%s]         %sL%s) Pagelength : %s[%s%-3d%s]\r\n"
+                             "%sP%s) Prompt : %s[%s%-15s%s]   %sL%s) Pagelength : %s[%s%-3d%s]\r\n"
                              "%sC%s) Color  : %s[%s%-8s%s]    %sS%s) Screenwidth: %s[%s%-3d%s]\r\n"
                              "%sW%s) Wimpy  : %s[%s%-4d%s]%s\r\n",
              CCWHT(d->character, C_NRM),
@@ -151,9 +151,10 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
 
     send_to_char(d->character, "\r\n"
                                "%sImmortal Preferences\r\n"
-                               "%s1%s) Syslog Level %s[%s%8s%s]   %s5%s) ClsOLC    %s[%s%3s%s]\r\n"
+                               "%s1%s) Syslog Level %s[%s%8s%s]        %s5%s) ClsOLC    %s[%s%3s%s]\r\n"
                                "%s2%s) Show Flags   %s[%s%3s%s]        %s6%s) No WizNet %s[%s%3s%s]\r\n"
-                               "%s3%s) No Hassle    %s[%s%3s%s]        %s7%s) Holylight %s[%s%3s%s]\r\n",	
+                               "%s3%s) No Hassle    %s[%s%3s%s]        %s7%s) Holylight %s[%s%3s%s]\r\n"
+                               "%s4%s) No Clantalk  %s[%s%3s%s]\r\n",
              CBWHT(d->character, C_NRM),
 /* Line 1 - syslog and clsolc */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
@@ -166,9 +167,7 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
 /* Line 3 - nohassle and holylight */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_NOHASSLE)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-             CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_HOLYLIGHT)), CCCYN(d->character, C_NRM)
-             );
-    send_to_char(d->character, "%s4%s) No Clantalk  %s[%s%3s%s]\r\n",
+             CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_HOLYLIGHT)), CCCYN(d->character, C_NRM),
 /* Line 4 - noclantalk */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_NOCLANTALK)), CCCYN(d->character, C_NRM));
@@ -211,7 +210,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                              "%s3%s) Autogold     %s[%s%3s%s]      %sC%s) Tell     %s[%s%3s%s]\r\n"
                              "%s4%s) Autosac      %s[%s%3s%s]      %sD%s) Auction  %s[%s%3s%s]\r\n"
                              "%s5%s) Autoassist   %s[%s%3s%s]      %sE%s) Gratz    %s[%s%3s%s]\r\n"
-                             "%s6%s) Autosplit    %s[%s%3s%s]      %sJ%s) AutoScan %s[%s%3s%s]\r\n",
+                             "%s6%s) Autosplit    %s[%s%3s%s]      %sS%s) AutoScan %s[%s%3s%s]\r\n",
 /* Line 1 - autoexits and gossip */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOEXIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOEXIT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
@@ -281,6 +280,33 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
              CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_COMPACT)), CCCYN(d->character, C_NRM)
              );
 
+  /* The bottom section of the toggles menu */
+  send_to_char(d->character, "\r\n"
+                             "%sProtocol Settings:\r\n"
+                             "%sJ%s) Xterm 256    %s[%s%3s%s]      %sM%s) MXP      %s[%s%3s%s]\r\n"
+                             "%sK%s) ANSI         %s[%s%3s%s]      %sN%s) MSDP     %s[%s%3s%s]\r\n"
+                             "%sL%s) Charset      %s[%s%3s%s]      %sO%s) ATCP     %s[%s%3s%s]\r\n"
+                             "%sP%s) UTF-8        %s[%s%3s%s]      %sR%s) MSP      %s[%s%3s%s]\r\n"
+                             "\r\n",
+             CBWHT(d->character, C_NRM),
+/* Line 12 - 256 and mxp */
+             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+             ONOFF(d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+             CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->pVariables[eMSDP_MXP]->ValueInt), CCCYN(d->character, C_NRM),
+/* Line 13 - ansi and msdp */
+             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+             ONOFF(d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+             CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bMSDP), CCCYN(d->character, C_NRM),
+/* Line 14 - charset and atcp */
+             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+             ONOFF(d->pProtocol->bCHARSET), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+             CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bATCP), CCCYN(d->character, C_NRM),
+/* Line 15 - utf-8 and msp */
+             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+             ONOFF(d->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+             CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bMSP), CCCYN(d->character, C_NRM)
+             );  
+  
 /* Finishing Off */
   send_to_char(d->character, "%sQ%s) Quit toggle preferences...\r\n",
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM) );
@@ -654,10 +680,50 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
         TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_COMPACT);
         break;
 
-      case 'j':
-      case 'J':
+      case 's':
+      case 'S':
         TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOSCAN);
         break;
+        
+      case 'j':
+      case 'J':
+        TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt);
+        break;
+        
+      case 'k':
+      case 'K':
+        TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt);
+        break;        
+
+      case 'l':
+      case 'L':
+        TOGGLE_VAR(d->pProtocol->bCHARSET);
+        break;        
+        
+      case 'm':
+      case 'M':
+        TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_MXP]->ValueInt);
+        break;
+
+      case 'n':
+      case 'N':
+        TOGGLE_VAR(d->pProtocol->bMSDP);
+        break;
+        
+      case 'o':
+      case 'O':
+        TOGGLE_VAR(d->pProtocol->bATCP);
+        break;      
+
+      case 'p':
+      case 'P':
+        TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
+        break;
+
+      case 'r':
+      case 'R':
+        TOGGLE_VAR(d->pProtocol->bMSP);
+        break;   
 
       default  : send_to_char(d->character, "Invalid Choice, try again (Q to Quit to main menu): ");
                  return;

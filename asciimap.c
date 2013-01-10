@@ -64,6 +64,7 @@
 #define MAP_NORMAL  0
 #define MAP_COMPACT 1
 
+
 struct map_info_type
 {
   int  sector_type;

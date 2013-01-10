@@ -441,7 +441,7 @@ static int export_info_file(zone_rnum zrnum)
   }
 
   fprintf(info_file, "\nAdditional zone information is available in the zone description room QQ00.\n");
-  fprintf(info_file, "The Builder's Academy is maintaining and improving these zones.\n");
+  fprintf(info_file, "Luminari MUD is maintaining and improving these zones.\n");
 
   fclose(info_file);
   return TRUE;

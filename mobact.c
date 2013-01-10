@@ -624,21 +624,21 @@ void mobile_activity(void)
     }
 
     /* Helper Mobs */
-    if (MOB_FLAGGED(ch, MOB_HELPER) && (!AFF_FLAGGED(ch, AFF_BLIND) || !AFF_FLAGGED(ch, AFF_CHARM))) 
-    {
+    if (MOB_FLAGGED(ch, MOB_HELPER) && (!AFF_FLAGGED(ch, AFF_BLIND) ||
+            !AFF_FLAGGED(ch, AFF_CHARM))) {
       found = FALSE;
-      for (vict = world[IN_ROOM(ch)].people; vict && !found; vict = vict->next_in_room) 
-      {
-	if (ch == vict || !IS_NPC(vict) || !FIGHTING(vict))
+      for (vict = world[IN_ROOM(ch)].people; vict && !found;
+              vict = vict->next_in_room) {
+        if (ch == vict || !IS_NPC(vict) || !FIGHTING(vict))
           continue; 
         if (GROUP(vict) && GROUP(vict) == GROUP(ch))
           continue;
-	if (IS_NPC(FIGHTING(vict)) || ch == FIGHTING(vict))
+        if (IS_NPC(FIGHTING(vict)) || ch == FIGHTING(vict))
           continue;
 
-	      act("$n jumps to the aid of $N!", FALSE, ch, 0, vict, TO_ROOM);
-	      hit(ch, FIGHTING(vict), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-	      found = TRUE;
+        act("$n jumps to the aid of $N!", FALSE, ch, 0, vict, TO_ROOM);
+        hit(ch, FIGHTING(vict), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+        found = TRUE;
       }
     }
 

@@ -160,8 +160,9 @@
 #define HIST_GRATS     6 /**< Index to history of all 'grats' */
 #define HIST_HOLLER    7 /**< Index to history of all 'holler' */
 #define HIST_AUCTION   8 /**< Index to history of all 'auction' */
-#define HIST_CLANTALK  10 /**< Index to history of all 'clantalk' */
-#define NUM_HIST       11 /**< Total number of history indexes */
+#define HIST_CLANTALK  9 /**< Index to history of all 'clantalk' */
+/**/
+#define NUM_HIST       10 /**< Total number of history indexes */
 #define HISTORY_SIZE   5 /**< Number of last commands kept in each history */
 
 /* Group Defines */
@@ -1199,7 +1200,6 @@ struct char_player_data
   ubyte weight;                  /**< PC / NPC weight */
   ubyte height;                  /**< PC / NPC height */
   byte race;			// Race
-
   int size;	// size
 };
 
@@ -1759,6 +1759,8 @@ struct game_operation
   int medit_advanced; /**< Does the medit OLC show the advanced stats menu ? */
   int ibt_autosave; /**< Does "bug resolve" autosave ? */
   int protocol_negotiation; /**< Enable the protocol negotiation system ? */
+  int special_in_comm; /**< Enable use of a special character in communication channels ? */
+  int debug_mode; /**< Current Debug Mode */
 };
 
 /** The Autowizard options. */

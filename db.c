@@ -160,7 +160,8 @@ char *fread_action(FILE *fl, int nr)
 {
   char buf[MAX_STRING_LENGTH];
   char *buf1;
-
+  int i;
+  
   buf1 = fgets(buf, MAX_STRING_LENGTH, fl);
   if (feof(fl)) {
     log("SYSERR: fread_action: unexpected EOF near action #%d", nr);
@@ -173,7 +174,15 @@ char *fread_action(FILE *fl, int nr)
     return (NULL);
 
   parse_at(buf);
-  buf[strlen(buf) - 1] = '\0';
+
+  /* Some clients interpret '\r' the same as { '\r' '\n' }, so the original way of just
+     replacing '\n' with '\0' would appear as 2 new lines following the action */
+  for (i = 0; buf[i] != '\0'; i++)
+    if (buf[i] == '\r' || buf[i] == '\n') {
+      buf[i] = '\0';
+      break;
+    }
+  
   return (strdup(buf));
 }
 
@@ -2500,9 +2509,10 @@ struct char_data *create_char(void)
 
   CREATE(ch, struct char_data, 1);
   clear_char(ch);
-  
+
+  new_mobile_data(ch);  
   /* Allocate mobile event list */
-  ch->events = create_list();  
+  //ch->events = create_list();  
   
   ch->next = character_list;
   character_list = ch;
@@ -2513,6 +2523,13 @@ struct char_data *create_char(void)
 
   return (ch);
 }
+
+
+void new_mobile_data(struct char_data *ch)
+{
+	ch->events   = create_list();
+}
+
 
 /* create a new mobile from a prototype */
 struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
@@ -2534,9 +2551,10 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   *mob = mob_proto[i];
   mob->next = character_list;
   character_list = mob;
-  
+
+  new_mobile_data(mob);   
   /* Allocate mobile event list */
-  mob->events = create_list();   
+  //mob->events = create_list();   
   
   if (!mob->points.max_hit) {
     mob->points.max_hit = dice(mob->points.hit, mob->points.mana) +
@@ -3986,12 +4004,15 @@ static void load_default_config( void )
   CONFIG_NO_MORT_TO_IMMORT	    = no_mort_to_immort;
   CONFIG_DISP_CLOSED_DOORS      = display_closed_doors;
   CONFIG_PROTOCOL_NEGOTIATION   = protocol_negotiation;
+  CONFIG_SPECIAL_IN_COMM        = special_in_comm;
   CONFIG_DIAGONAL_DIRS          = diagonal_dirs;
   CONFIG_MAP                    = map_option;
   CONFIG_MAP_SIZE               = default_map_size;
   CONFIG_MINIMAP_SIZE           = default_minimap_size;
   CONFIG_SCRIPT_PLAYERS         = script_players;
   CONFIG_MIN_POP_TO_CLAIM       = min_pop_to_claim;
+  CONFIG_DEBUG_MODE             = debug_mode;
+  
   /* Rent / crashsave options. */
   CONFIG_FREE_RENT              = free_rent;
   CONFIG_MAX_OBJ_SAVE           = max_obj_save;
@@ -4081,7 +4102,9 @@ void load_config( void )
         break;
 
       case 'd':
-        if (!str_cmp(tag, "display_closed_doors"))
+        if (!str_cmp(tag, "debug_mode"))
+          CONFIG_DEBUG_MODE = num;        
+        else if (!str_cmp(tag, "display_closed_doors"))
           CONFIG_DISP_CLOSED_DOORS = num;
         else if (!str_cmp(tag, "diagonal_dirs"))
           CONFIG_DIAGONAL_DIRS = num;
@@ -4250,6 +4273,8 @@ void load_config( void )
           CONFIG_SITEOK_ALL = num;
         else if (!str_cmp(tag, "script_players"))
           CONFIG_SCRIPT_PLAYERS = num;
+        else if (!str_cmp(tag, "special_in_comm"))
+          CONFIG_SPECIAL_IN_COMM = num;
         else if (!str_cmp(tag, "start_messg")) {
           strncpy(buf, "Reading start message in load_config()", sizeof(buf));
           if (CONFIG_START_MESSG)

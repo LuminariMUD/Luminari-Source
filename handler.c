@@ -1000,7 +1000,7 @@ void extract_char_final(struct char_data *ch)
       stop_fighting(k);
   }
 
-  /* Whipe character from the memory of hunters and other intelligent NPCs... */
+  /* Wipe character from the memory of hunters and other intelligent NPCs... */
   for (temp = character_list; temp; temp = temp->next) {
     /* PCs can't use MEMORY, and don't use HUNTING() */
     if (!IS_NPC(temp))
@@ -1010,7 +1010,7 @@ void extract_char_final(struct char_data *ch)
       HUNTING(temp) = NULL;
     /* If "temp" has allocated memory data and our ch is a PC, forget the 
      * extracted character (if he/she is remembered) */  
-    if (!IS_NPC(ch) && MEMORY(temp))
+    if (!IS_NPC(ch) && GET_POS(ch) == POS_DEAD && MEMORY(temp))
       forget(temp, ch); /* forget() is safe to use without a check. */
   }
 
@@ -1045,8 +1045,7 @@ void extract_char_final(struct char_data *ch)
 void extract_char(struct char_data *ch)
 {
   char_from_furniture(ch);
-  if (!IS_NPC(ch))
-    clear_char_event_list(ch);
+  clear_char_event_list(ch);
 
   if (IS_NPC(ch))
     SET_BIT_AR(MOB_FLAGS(ch), MOB_NOTDEADYET);

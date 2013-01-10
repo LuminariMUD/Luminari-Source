@@ -1046,7 +1046,7 @@ SPECIAL(crafting_kit)
     else if (CMD_IS("checkcraft"))
       send_to_char(ch, "You must place an item to use as the mold pattern, a "
               "crystal and your crafting resource materials in the kit and "
-              "then type checkcraft'\r\n");
+              "then type 'checkcraft'\r\n");
     else if (CMD_IS("convert"))
       send_to_char(ch, "You must place exact multiples of 10, of a material "
               "to being the conversion process.\r\n");

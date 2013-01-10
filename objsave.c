@@ -1033,7 +1033,8 @@ obj_save_data *objsave_parse_objects(FILE *fl)
 	  while (tempsave) {
             if (tempsave->next == current)
               tempsave->next = NULL;
-            tempsave = tempsave->next;          }
+            tempsave = tempsave->next;
+       }
           free(current);
         }
       }
@@ -1067,8 +1068,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
        	  current->locate = 0;
           temp = NULL;
         }
-      }
-      else
+      } else
       	continue;
       /* we have the number, check it, load obj. */
       if (nr == NOTHING) {   /* then it is unique */

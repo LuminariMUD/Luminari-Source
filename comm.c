@@ -455,8 +455,9 @@ void copyover_recover()
     clear_char(d->character);
     CREATE(d->character->player_specials, struct player_special_data, 1);
     
+    new_mobile_data(d->character);
     /* Allocate mobile event list */
-    d->character->events = create_list();
+    //d->character->events = create_list();
     
     d->character->desc = d;
 
@@ -1451,7 +1452,7 @@ static int get_from_q(struct txt_q *queue, char *dest, int *aliased)
   strcpy(dest, queue->head->text);	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
 
   // parse input replacing @ \t    -zusuk
-  parse_at(dest);
+  //parse_at(dest);
 
   *aliased = queue->head->aliased;
 
@@ -1777,7 +1778,7 @@ static int process_output(struct descriptor_data *t)
   strcpy(osb, t->output);	/* strcpy: OK (t->output:LARGE_BUFSIZE < osb:MAX_SOCK_BUF-2) */
 
   // color code fix attempt -zusuk
-  parse_at(osb);
+  //parse_at(osb);
 
   /* if we're in the overflow state, notify the user */
   if (t->bufspace == 0)
@@ -2340,6 +2341,7 @@ void close_socket(struct descriptor_data *d)
     case CON_AEDIT:
     case CON_HEDIT:
     case CON_QEDIT:
+    case CON_MSGEDIT:      
       cleanup_olc(d, CLEANUP_ALL);
       break;
     default:

@@ -1474,9 +1474,14 @@ int search_help(const char *argument, int level)
       while (level < help_table[mid].min_level && mid < (bot + top) / 2)
         mid++;
 
-//      if (strn_cmp(argument, help_table[mid].keywords, minlen) || level < help_table[mid].min_level)
-      if (strn_cmp(argument, help_table[mid].keywords, minlen))
-	      break;
+  /* The following line was commented out at some point, by someone, for some reason...
+   * as I am unaware of that reason, and without a level check all help files, including
+   * the ones we may not want a player to see, are available. So I'm reversing this now.
+   * -Vat */
+      if (strn_cmp(argument, help_table[mid].keywords, minlen) ||
+              level < help_table[mid].min_level)
+    /*if (strn_cmp(argument, help_table[mid].keywords, minlen))*/
+        break;
 
       return mid;
     }
@@ -1823,7 +1828,7 @@ ACMD(do_who)
     send_to_char(ch, "%d characters displayed.\r\n", num_can_see);
 
   if (IS_HAPPYHOUR > 0){
-    send_to_char(ch, "It's a Happy Hour! Type \tRhappyhour\tW to see the current bonuses.\tn\r\n");
+    send_to_char(ch, "\tWIt's a Happy Hour! Type \tRhappyhour\tW to see the current bonuses.\tn\r\n");
   }
 }
 
