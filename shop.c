@@ -40,11 +40,17 @@ const char *trade_letters[] = {
         "Cleric",
         "Thief",
         "Warrior",
-        "Human",
+        "Monk",
+        "Berserker",
+        "Druid",
+        "Human",                /* then the race based ones */
         "Elf",
         "Dwarf",
         "Troll",
-        "Monk",
+        "Halfling",
+        "Half Elf",
+        "Half Orc",
+        "Gnome",
         "\n"
 };
 
@@ -139,6 +145,7 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
       (IS_CLERIC(ch) && NOTRADE_CLERIC(shop_nr)) ||
       (IS_THIEF(ch) && NOTRADE_THIEF(shop_nr)) ||
       (IS_MONK(ch) && NOTRADE_MONK(shop_nr)) ||
+      (IS_BERSERKER(ch) && NOTRADE_BERSERKER(shop_nr)) ||
       (IS_WARRIOR(ch) && NOTRADE_WARRIOR(shop_nr))) {
     snprintf(buf, sizeof(buf), "%s %s", GET_NAME(ch), MSG_NO_SELL_CLASS);
     do_tell(keeper, buf, cmd_tell, 0);
@@ -149,6 +156,10 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
   if ((IS_HUMAN(ch) && NOTRADE_HUMAN(shop_nr)) ||
        (IS_ELF(ch) && NOTRADE_ELF(shop_nr)) ||
        (IS_TROLL(ch) && NOTRADE_TROLL(shop_nr)) ||
+       (IS_HALFLING(ch) && NOTRADE_HALFLING(shop_nr)) ||
+       (IS_H_ELF(ch) && NOTRADE_H_ELF(shop_nr)) ||
+       (IS_H_ORC(ch) && NOTRADE_H_ORC(shop_nr)) ||
+       (IS_GNOME(ch) && NOTRADE_GNOME(shop_nr)) ||
        (IS_DWARF(ch) && NOTRADE_DWARF(shop_nr))) {
     snprintf(buf, sizeof(buf), "%s %s", GET_NAME(ch), MSG_NO_SELL_RACE);
     do_tell(keeper, buf, cmd_tell, 0);

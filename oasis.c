@@ -179,6 +179,12 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
 	 OLC_IBT(d) = NULL;
    }
 
+   if (OLC_MSG_LIST(d)) {
+     free_message_list(OLC_MSG_LIST(d));
+     OLC_MSG_LIST(d) = NULL;  
+     OLC_MSG(d) = NULL;
+   }  
+  
   /* Free storage if allocated (tedit, aedit, and trigedit). This is the command
    * list - it's been copied to disk already, so just free it -Welcor. */
    if (OLC_STORAGE(d)) {

@@ -1279,18 +1279,18 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d)
       continue;
     if (!k->character)
       continue;
-    if (!GET_PC_NAME(k->character))
+    if (!GET_NAME(k->character))
       continue;
     if (!d)
       continue;
     if (!d->character)
       continue;
-    if (!GET_PC_NAME(d->character))
+    if (!GET_NAME(d->character))
       continue;
     /*****/
 
     /* Do the player names match? */
-    if (!strcmp(GET_PC_NAME(k->character), GET_PC_NAME(d->character))) {
+    if (!strcmp(GET_NAME(k->character), GET_NAME(d->character))) {
       /* Check the other character is still in creation? */
       if ((STATE(k) > CON_PLAYING) && (STATE(k) < CON_QCLASS)) {
         /* Boot the older one */
@@ -1369,6 +1369,8 @@ int enter_player_game (struct descriptor_data *d)
   character_list = d->character;
   char_to_room(d->character, load_room);
   load_result = Crash_load(d->character);
+  
+  /* Save the character and their object file */  
   save_char(d->character);
   Crash_crashsave(d->character);
 
@@ -1463,8 +1465,9 @@ void nanny(struct descriptor_data *d, char *arg)
       clear_char(d->character);
       CREATE(d->character->player_specials, struct player_special_data, 1);
       
+      new_mobile_data(d->character);
       /* Allocate mobile event list */
-      d->character->events = create_list();
+      //d->character->events = create_list();
       
       GET_HOST(d->character) = strdup(d->host);
       d->character->desc = d;
@@ -1501,8 +1504,9 @@ void nanny(struct descriptor_data *d, char *arg)
           clear_char(d->character);
           CREATE(d->character->player_specials, struct player_special_data, 1);
 
+          new_mobile_data(d->character);          
           /* Allocate mobile event list */
-          d->character->events = create_list();
+          //d->character->events = create_list();
 
           if (GET_HOST(d->character))
             free(GET_HOST(d->character));
@@ -1816,6 +1820,8 @@ void nanny(struct descriptor_data *d, char *arg)
       d->has_prompt = 0;
       /* We've updated to 3.1 - some bits might be set wrongly: */
       REMOVE_BIT_AR(PRF_FLAGS(d->character), PRF_BUILDWALK);
+
+      /* being extra careful, init memming status */
       int x;
       for (x = 0; x < NUM_CASTERS; x++)
         PRAYIN(d->character, x) = FALSE;

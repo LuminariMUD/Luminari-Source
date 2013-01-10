@@ -81,6 +81,7 @@ int get_class_by_name(char *classname);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
 char * convert_from_tabs(char * string);
+int count_non_protocol_chars(char * str);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
@@ -1604,6 +1605,10 @@ void reset_acraft(struct char_data *ch);
 #define CONFIG_IBT_AUTOSAVE config_info.operation.ibt_autosave
 /** Use the protocol negotiation system? */
 #define CONFIG_PROTOCOL_NEGOTIATION config_info.operation.protocol_negotiation
+/** Use the special character in comm channels? */
+#define CONFIG_SPECIAL_IN_COMM config_info.operation.special_in_comm
+/** Activate debug mode? */
+#define CONFIG_DEBUG_MODE config_info.operation.debug_mode
 
 /* Autowiz */
 /** Use autowiz or not? */

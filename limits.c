@@ -252,7 +252,6 @@ int gain_exp(struct char_data *ch, int gain)
     gain = MIN(CONFIG_MAX_EXP_GAIN, gain);
     
     /* new gain xp cap -zusuk */
-
     GET_EXP(ch) += gain;
 
   } else if (gain < 0) {
@@ -393,6 +392,8 @@ void point_update(void)
     gain_condition(i, DRUNK, -1);
     gain_condition(i, THIRST, -1);
 
+    /* old tick regen code use to be here -zusuk */
+    
     if (!IS_NPC(i)) {
       update_char_objects(i);
       (i->char_specials.timer)++;

@@ -28,12 +28,15 @@
    to adjust these numbers if you ever add more. Note: Most of the NUM_ and
    MAX_ limits have been moved to more appropriate locations. */
 
+#define TOGGLE_VAR(var)	if (var == YES) { var = NO; } else { var = YES; }
+#define CHECK_VAR(var)  ((var == YES) ? "Yes" : "No")
+
 #define MAX_PEOPLE 10 /* Max # of people you want to sit in furniture. */
 
 /* Limit information. */
-#define MAX_ROOM_NAME	75
-#define MAX_MOB_NAME	50
-#define MAX_OBJ_NAME	50
+#define MAX_ROOM_NAME	150
+#define MAX_MOB_NAME	100
+#define MAX_OBJ_NAME	100
 #define MAX_ROOM_DESC	2048
 #define MAX_EXIT_DESC	256
 #define MAX_EXTRA_DESC  512
@@ -393,6 +396,7 @@ extern const char *nrm, *grn, *cyn, *yel;
 #define CEDIT_MAP_SIZE     55
 #define CEDIT_MINIMAP_SIZE   56
 #define CEDIT_POPULARITY     57
+#define CEDIT_DEBUG_MODE     58
 
 /* Hedit Submodes of connectedness. */
 #define HEDIT_CONFIRM_SAVESTRING        0

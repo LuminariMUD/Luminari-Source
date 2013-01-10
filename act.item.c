@@ -178,6 +178,12 @@ ACMD(do_put)
 
 static int can_take_obj(struct char_data *ch, struct obj_data *obj)
 {
+
+  if (!(CAN_WEAR(obj, ITEM_WEAR_TAKE))) {
+    act("$p: you can't take that!", FALSE, ch, obj, 0, TO_CHAR);
+    return (0);
+  }   
+  
   if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
 	  if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
 		act("$p: you can't carry that many items.", FALSE, ch, obj, 0, TO_CHAR);
@@ -185,10 +191,7 @@ static int can_take_obj(struct char_data *ch, struct obj_data *obj)
 	  } else if ((IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj)) > CAN_CARRY_W(ch)) {
 		act("$p: you can't carry that much weight.", FALSE, ch, obj, 0, TO_CHAR);
 		return (0);
-	  } else if (!(CAN_WEAR(obj, ITEM_WEAR_TAKE))) {
-		act("$p: you can't take that!", FALSE, ch, obj, 0, TO_CHAR);
-		return (0);
-	  } 
+	  }
   }
   
   if (OBJ_SAT_IN_BY(obj)){
@@ -1029,7 +1032,7 @@ ACMD(do_eat)
     send_to_char(ch, "You are too full to eat more!\r\n");
     return;
   }
-
+  
   if (!consume_otrigger(food, ch, OCMD_EAT)) /* check trigger */
     return;
 

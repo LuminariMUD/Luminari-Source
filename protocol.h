@@ -244,6 +244,11 @@ void ProtocolDestroy( protocol_t *apProtocol );
  */
 void ProtocolNegotiate( descriptor_t *apDescriptor );
 
+/* MUD Primary Colours */
+extern const char * RGBone;
+extern const char * RGBtwo;
+extern const char * RGBthree; 
+
 /* Function: ProtocolInput
  *
  * Extracts any negotiation sequences from the input buffer, and passes back 
