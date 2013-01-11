@@ -161,6 +161,8 @@ static void weather_change(void)
     break;
   }
 
+  send_weather(change); 
+
   switch (change) {
   case 0:
     break;
@@ -390,3 +392,4 @@ void send_weather(int weather_change)
     } 
   } 
 }
+
