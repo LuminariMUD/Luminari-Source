@@ -165,31 +165,228 @@ static void weather_change(void)
   case 0:
     break;
   case 1:
-    send_to_outdoor("\tcThe sky starts to get cloudy.\tn\r\n");
+//    send_to_outdoor("\tcThe sky starts to get cloudy.\tn\r\n");
     weather_info.sky = SKY_CLOUDY;
     break;
   case 2:
-    send_to_outdoor("It starts to \tbrain\tn.\r\n");
+//    send_to_outdoor("It starts to \tbrain\tn.\r\n");
     weather_info.sky = SKY_RAINING;
     break;
   case 3:
-    send_to_outdoor("\tCThe clouds disappear.\tn\r\n");
+//    send_to_outdoor("\tCThe clouds disappear.\tn\r\n");
     weather_info.sky = SKY_CLOUDLESS;
     break;
   case 4:
-    send_to_outdoor("\tBLightning\tn starts to show in the sky.\r\n");
+//    send_to_outdoor("\tBLightning\tn starts to show in the sky.\r\n");
     weather_info.sky = SKY_LIGHTNING;
     break;
   case 5:
-    send_to_outdoor("The \tbrain\tn stops.\r\n");
+//    send_to_outdoor("The \tbrain\tn stops.\r\n");
     weather_info.sky = SKY_CLOUDY;
     break;
   case 6:
-    send_to_outdoor("The \tBlightning\tn stops.\r\n");
+//    send_to_outdoor("The \tBlightning\tn stops.\r\n");
     weather_info.sky = SKY_RAINING;
     break;
   default:
-    send_to_outdoor("\twThe weather remains unchanging.\tn\r\n");
+//    send_to_outdoor("\twThe weather remains unchanging.\tn\r\n");
     break;
   }
+}
+
+
+/* sector-type weather messages by Jamdog and Guilem */
+ bool sect_no_weather(struct char_data *ch) 
+ { 
+   int s_type; 
+ 
+   s_type = world[IN_ROOM(ch)].sector_type; 
+ 
+        if (s_type == SECT_INSIDE)      return TRUE; 
+   else if (s_type == SECT_UNDERWATER)  return TRUE; 
+   else if (s_type == SECT_CITY)  return TRUE; 
+//   else if (s_type == SECT_UNDERGROUND) return TRUE; 
+ 
+   return FALSE; 
+ } 
+ 
+
+struct weather_msg { 
+  int sector_type; 
+  char msg[6][100]; 
+} weather_messages[] = { 
+/*
+ {SECT_SNOW, 
+  {"A cool wind passes through the icy landscape, whipping up snow.", 
+   "The wind settles down and the sun shines through the heavy cloud cover.", 
+   "The icy wind grows stronger and snow begins to fall, whipping your body mercilessly.", 
+   "The wind becomes less fierce and it stops snowing.", 
+   "A blizzard rolls in, strong winds and biting cold beating at you.", 
+   "The blizzard has passed, but icy winds continue to whip at you."}}, 
+*/
+ {SECT_DESERT, 
+  {"A searing wind starts to blow, sand billowing on the dunes.", 
+   "The sun starts to bake at you through a cloudless sky.", 
+   "Hot grains of sand stings your face as the searing wind blows hard.", 
+   "The searing hot wind calms itself slightly, but that doesn't make it any less hot.", 
+   "A mighty sandstorm rolls in, blistering sand beating at you mercilessly.", 
+   "The sandstorm moves on, all tracks covered and new dunes formed by the unrelenting wind."}}, 
+ {SECT_WATER_SWIM,
+  {"Soft fluffy clouds begin to drift in over the watery expanse.", 
+   "The soft fluffy clouds dissipate and the sun shines through.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy raincover remains."}}, 
+ {SECT_WATER_NOSWIM,
+  {"Soft fluffy clouds begin to drift in over the watery expanse.", 
+   "The soft fluffy clouds dissipate and the sun shines through.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy raincover remains."}}, 
+ {SECT_OCEAN,
+  {"Soft fluffy clouds begin to drift in over the watery expanse.", 
+   "The soft fluffy clouds dissipate and the sun shines through.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy raincover remains."}}, 
+ {SECT_MARSHLAND, 
+  {"The sun becomes obscured between the openings in the canopy above as heavy clouds roll in.", 
+   "The mucky ground below you becomes spotty with sun beams as it shines through the canopy above.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker, darkening the swamp.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy rain cover remains."}}, 
+/*
+ {SECT_BEACH, 
+  {"Soft fluffy clouds begin to drift in over the beach.", 
+   "The soft fluffy clouds dissipate and the sun shines through.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy raincover remains."}},
+*/
+ {SECT_FOREST, 
+  {"Soft fluffy clouds begin to drift in over the forested landscape.", 
+   "The soft fluffy clouds dissipate and the sun shines through the canopy above.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy raincover remains."}}, 
+/*
+ {SECT_RAINFOREST, 
+  {"Great fluffy clouds roll over the rainforest.", 
+   "The clouds dissipate and sun shines through the canopy overhead.", 
+   "Huge heavy drops of water starts to fall, making your clothing soggy.", 
+   "It stops raining but the heavy cloudcover overhead remains.", 
+   "Thunder and lightening arches across the sky as a monsoon rolls over the rainforest.", 
+   "The rolling thunder quiets down and the rain becomes a little less intense."}}, 
+*/
+ {SECT_HILLS, 
+  {"An icy wind starts to blow, whipping you and stirring up the clouds above.", 
+   "The cloudcover dissipates and the whipping wind calms itself.", 
+   "Cold, heavy drops announces the arrival of a mountain rain.", 
+   "The rain stops, but the cool wind continues to whip at you.", 
+   "Earsplitting booms echo through the mountains as it starts to thunder.", 
+   "The thunder stops but the cold rain and heavy winds keeps whipping at you."}}, 
+ {SECT_MOUNTAIN, 
+  {"An icy wind starts to blow, whipping you and stirring up the clouds above.", 
+   "The cloudcover dissipates and the whipping wind calms itself.", 
+   "Cold, heavy drops announces the arrival of a mountain rain.", 
+   "The rain stops, but the cool wind continues to whip at you.", 
+   "Earsplitting booms echo through the mountains as it starts to thunder.", 
+   "The thunder stops but the cold rain and heavy winds keeps whipping at you."}}, 
+ {SECT_HIGH_MOUNTAIN, 
+  {"An icy wind starts to blow, whipping you and stirring up the clouds above.", 
+   "The cloudcover dissipates and the whipping wind calms itself.", 
+   "Cold, heavy drops announces the arrival of a mountain rain.", 
+   "The rain stops, but the cool wind continues to whip at you.", 
+   "Earsplitting booms echo through the mountains as it starts to thunder.", 
+   "The thunder stops but the cold rain and heavy winds keeps whipping at you."}}, 
+ {SECT_FLYING,
+  {"Soft fluffy clouds begin to drift in over the landscape.", 
+   "The soft fluffy clouds dissipate and the sun shines through.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy rain cover remains."}},
+ {SECT_FIELD,
+  {"Soft fluffy clouds begin to drift in over the landscape.", 
+   "The soft fluffy clouds dissipate and the sun shines through.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy rain cover remains."}},
+ {SECT_ZONE_START,
+  {"Soft fluffy clouds begin to drift in over the landscape.", 
+   "The soft fluffy clouds dissipate and the sun shines through.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy rain cover remains."}},
+ {SECT_ROAD_NS,
+  {"Soft fluffy clouds begin to drift in over the landscape.", 
+   "The soft fluffy clouds dissipate and the sun shines through.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy rain cover remains."}},
+ {SECT_ROAD_EW,
+  {"Soft fluffy clouds begin to drift in over the landscape.", 
+   "The soft fluffy clouds dissipate and the sun shines through.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy rain cover remains."}},
+ {SECT_ROAD_INT,
+  {"Soft fluffy clouds begin to drift in over the landscape.", 
+   "The soft fluffy clouds dissipate and the sun shines through.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy rain cover remains."}},
+ {SECT_INSIDE,   /* Always last - inside doesn't show weather, so default messages below */ 
+  {"Soft fluffy clouds begin to drift in over the landscape.", 
+   "The soft fluffy clouds dissipate and the sun shines through.", 
+   "Heavy droplets begin to fall, the clouds above growing thicker.", 
+   "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
+   "Loud booms announces the arrival of a fierce thunderstorm.", 
+   "The rolling thunder stops, but the heavy rain cover remains."}} 
+ }; 
+ 
+
+void send_weather(int weather_change)
+{ 
+  bool found = FALSE; 
+  struct descriptor_data *i; 
+  int j; 
+ 
+  if ((weather_change < 1) || (weather_change > 6)) 
+    return; 
+ 
+  for (i = descriptor_list; i; i = i->next) { 
+    if (STATE(i) != CON_PLAYING || i->character == NULL) 
+      continue; 
+ 
+    if (!AWAKE(i->character) || !OUTSIDE(i->character)) 
+      continue; 
+ 
+    if (sect_no_weather(i->character)) 
+      continue; 
+ 
+    for (j=0; weather_messages[j].sector_type != SECT_INSIDE; j++) { 
+      if (weather_messages[j].sector_type ==
+              world[IN_ROOM(i->character)].sector_type) { 
+        send_to_char(i->character, "%s\r\n", weather_messages[j].msg[(weather_change-1)]); 
+        found = TRUE; 
+      } 
+    } 
+    
+    /* Use default, which j is now pointing to */    
+    if (!found) { 
+      send_to_char(i->character, "%s\r\n", weather_messages[j].msg[(weather_change-1)]); 
+    } 
+  } 
 }
