@@ -19,6 +19,7 @@
 
 static void another_hour(int mode);
 static void weather_change(void);
+void send_weather(int weather_change);
 
 /** Call this function every mud hour to increment the gametime (by one hour)
  * and the weather patterns.
