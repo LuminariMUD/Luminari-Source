@@ -871,16 +871,16 @@ void display_sorc(struct char_data *ch)
 
   send_to_char(ch, "\tCTotal Slots:\r\n");
   for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
-    send_to_char(ch, "\tM%d:\tm %d  ", slot, numSpells(ch, slot, CLASS_SORCERER));
+    send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER));
   }
   send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
   for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
-    send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER));
+    send_to_char(ch, "\tM%d:\tm %d  ", slot, numSpells(ch, slot, CLASS_SORCERER));
   }
   send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
   for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
-    send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER) - 
-              numSpells(ch, slot, CLASS_SORCERER));
+    send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER) -
+        numSpells(ch, slot, CLASS_SORCERER));
   }
   send_to_char(ch, "\tn\r\n\r\n");
   if (PRAYING(ch, 0, classArray(CLASS_SORCERER)))

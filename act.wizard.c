@@ -3107,6 +3107,7 @@ ACMD(do_show)
    { "druid",	 	LVL_GOD, 	PC, 	NUMBER }, /* 67 */
    { "boost",	 	LVL_GOD, 	PC, 	NUMBER }, /* 68 */   
    { "berserker", 	LVL_GOD, 	PC, 	NUMBER }, /* 69 */
+   { "sorcerer", 	LVL_GOD, 	PC, 	NUMBER }, /* 70 */
    { "\n", 0, BOTH, MISC }
   };
 
@@ -3118,6 +3119,7 @@ CLASS_WARRIOR
 CLASS_MONK
 CLASS_DRUID
 CLASS_BERSERKER
+CLASS_SORCERER
 */
 
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg)
@@ -3581,6 +3583,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 71:  // zerker level
       CLASS_LEVEL(vict, CLASS_BERSERKER) = RANGE(0, LVL_IMMORT-1);
+      affect_total(vict);
+      break;
+    case 72:  // sorc level
+      CLASS_LEVEL(vict, CLASS_SORCERER) = RANGE(0, LVL_IMMORT-1);
       affect_total(vict);
       break;
     default:
