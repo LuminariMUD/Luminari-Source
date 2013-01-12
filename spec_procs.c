@@ -119,11 +119,13 @@ case SKILL_HELLBALL:
 		return TRUE;	else return FALSE;
 case SKILL_EPIC_MAGE_ARMOR:
 	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 31 && GET_LEVEL(ch) >= 20
-		&& CLASS_LEVEL(ch, CLASS_MAGIC_USER) > 13)
+		&& (CLASS_LEVEL(ch, CLASS_MAGIC_USER) > 13 ||
+              CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
 		return TRUE;	else return FALSE;
 case SKILL_EPIC_WARDING:
 	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 33 && GET_LEVEL(ch) >= 20
-		&& CLASS_LEVEL(ch, CLASS_MAGIC_USER) > 15)
+		&& (CLASS_LEVEL(ch, CLASS_MAGIC_USER) > 15 ||
+              CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
 		return TRUE;	else return FALSE;
 case SKILL_BLINDING_SPEED:
 	if (ch->real_abils.dex >= 21 && GET_LEVEL(ch) >= 20)

@@ -466,6 +466,7 @@ void npc_class_behave(struct char_data *ch)
     return;
 
   switch(GET_CLASS(ch)) {
+    case CLASS_SORCERER:
     case CLASS_MAGIC_USER:
       npc_mage_behave(ch, vict, getCircle(ch, CLASS_MAGIC_USER), engaged);
       break;

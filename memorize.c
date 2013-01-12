@@ -1,11 +1,11 @@
-/*******************************************
+/****************************************************************************
  *  Realms of Luminari
  *  File: memorize.c
- *  Usage: spell memorization functions
+ *  Usage: spell memorization functions, two types:  mage-type and sorc-type
  *         spellbook-related functions are here too
  *  Authors:  Nashak and Zusuk
  *            Spellbook functions taken from CWG project, adapted by Zusuk
- ***********************/
+ ****************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -25,7 +25,7 @@ char buf[MAX_INPUT_LENGTH];
 #define	TERMINATE	0
 
 /* =============================================== */
-/* ==================Spellbooks================= */
+/* ==================Spellbooks=================== */
 /* =============================================== */
 
 
@@ -153,7 +153,8 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class)
     }
 
     if (!found) {
-      send_to_char(ch, "You don't seem to have %s in your spellbook.\r\n", spell_info[spellnum].name);
+      send_to_char(ch, "You don't seem to have %s in your spellbook.\r\n",
+              spell_info[spellnum].name);
       return FALSE;
     }
   } else
@@ -178,6 +179,8 @@ int classArray(int class) {
       return 1;
     case CLASS_MAGIC_USER:
       return 2;
+    case CLASS_SORCERER:
+      return 3;
   }
   log("Invalid class passed to memorize.c's classArray()!");
   return 0;
@@ -221,6 +224,84 @@ int mageSlots[LVL_IMPL + 1][10] = {
   {  4,  4,  4,  4,  4,  4,  4,  4,  4,  0 },//32
   {  4,  4,  4,  4,  4,  4,  4,  4,  4,  0 },//33
   {  4,  4,  4,  4,  4,  4,  4,  4,  4,  0 }//34
+};
+
+int sorcererSlots[LVL_IMPL + 1][10] = {
+// 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 0
+  {  3,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  4,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  5,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  6,  3,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  6,  4,  0,  0,  0,  0,  0,  0,  0,  0 },	// 5
+  {  6,  5,  3,  0,  0,  0,  0,  0,  0,  0 },
+  {  6,  6,  4,  0,  0,  0,  0,  0,  0,  0 },//7
+  {  6,  6,  5,  3,  0,  0,  0,  0,  0,  0 },
+  {  6,  6,  6,  4,  0,  0,  0,  0,  0,  0 },//9
+  {  6,  6,  6,  5,  3,  0,  0,  0,  0,  0 },
+  {  6,  6,  6,  6,  4,  0,  0,  0,  0,  0 },//11
+  {  6,  6,  6,  6,  5,  3,  0,  0,  0,  0 },
+  {  6,  6,  6,  6,  6,  4,  0,  0,  0,  0 },//13
+  {  6,  6,  6,  6,  6,  5,  3,  0,  0,  0 },
+  {  6,  6,  6,  6,  6,  6,  4,  0,  0,  0 },//15
+  {  6,  6,  6,  6,  6,  6,  5,  3,  0,  0 },
+  {  6,  6,  6,  6,  6,  6,  6,  4,  0,  0 },//17
+  {  6,  6,  6,  6,  6,  6,  6,  5,  3,  0 },
+  {  6,  6,  6,  6,  6,  6,  6,  6,  4,  0 },
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//20
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//21
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//22
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//23
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//24
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//25
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//26
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//27
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//28
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//29
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//30
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//31
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//32
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 },//33
+  {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 }//34
+};
+
+int sorcererKnown[LVL_IMPL + 1][10] = {
+// 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 0
+  {  2,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  2,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  3,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  3,  1,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  4,  2,  0,  0,  0,  0,  0,  0,  0,  0 },	// 5
+  {  4,  2,  1,  0,  0,  0,  0,  0,  0,  0 },
+  {  5,  3,  2,  0,  0,  0,  0,  0,  0,  0 },//7
+  {  5,  3,  2,  1,  0,  0,  0,  0,  0,  0 },
+  {  5,  4,  3,  2,  0,  0,  0,  0,  0,  0 },//9
+  {  5,  4,  3,  2,  1,  0,  0,  0,  0,  0 },
+  {  5,  5,  4,  3,  2,  0,  0,  0,  0,  0 },//11
+  {  5,  5,  4,  3,  2,  1,  0,  0,  0,  0 },
+  {  5,  5,  4,  4,  3,  2,  0,  0,  0,  0 },//13
+  {  5,  5,  4,  4,  3,  2,  1,  0,  0,  0 },
+  {  5,  5,  4,  4,  4,  3,  2,  0,  0,  0 },//15
+  {  5,  5,  4,  4,  4,  3,  2,  1,  0,  0 },
+  {  5,  5,  4,  4,  4,  3,  3,  2,  0,  0 },//17
+  {  5,  5,  4,  4,  4,  3,  3,  2,  1,  0 },
+  {  5,  5,  4,  4,  4,  3,  3,  3,  2,  0 },
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//20
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//21
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//22
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//23
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//24
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//25
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//26
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//27
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//28
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//29
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//30
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//31
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//32
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//33
+  {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 }//34
 };
 
 int clericSlots[LVL_IMPL + 1][10] = {
@@ -305,6 +386,7 @@ int druidSlots[LVL_IMPL + 1][10] = {
 
 /*** Utility Functions needed for memorization ***/
 
+// is character currently occupied with memming of some sort?
 int isOccupied(struct char_data *ch) {
   int i;
 
@@ -346,11 +428,11 @@ int spellCircle(int class, int spellnum)
 
 // returns # of total slots based on level, class and stat bonus
 // of given circle
-// *note remember in both constant arrays, value 0 is circle 1
 int comp_slots(struct char_data *ch, int circle, int class)
 {
   int spellSlots = 0;
 
+  // *note remember in both constant arrays, value 0 is circle 1
   circle--;
 
   switch(class) {
@@ -366,6 +448,10 @@ int comp_slots(struct char_data *ch, int circle, int class)
       spellSlots += spell_bonus[GET_INT(ch)][circle];
       spellSlots += mageSlots[CLASS_LEVEL(ch, class)][circle];
       break;
+    case CLASS_SORCERER:
+      spellSlots += spell_bonus[GET_CHA(ch)][circle];
+      spellSlots += sorcererSlots[CLASS_LEVEL(ch, class)][circle];
+      break;
     default:
       if (GET_LEVEL(ch) < LVL_IMMORT) {
         log("Invalid class passed to comp_slots.");
@@ -377,12 +463,31 @@ int comp_slots(struct char_data *ch, int circle, int class)
 }
 
 
-// adds <spellnum> to the characters memorizing list, and
+// SORCERER types:   this will add circle-slot to the mem list
+// and the corresponding memtime in memtime list
+// MAGIC-USER types:  adds <spellnum> to the characters memorizing list, and
 // places the corresponding memtime in memtime list
+#define SORC_TIME_FACTOR  8
 void addSpellMemming(struct char_data *ch, int spellnum, int time, int class)
 {
   int slot;
 
+  /* sorcerer type system */
+  if (class == CLASS_SORCERER) {
+    /* replace spellnum with its circle */
+    spellnum = spellCircle(class, spellnum);
+    time = SORC_TIME_FACTOR * spellnum;
+    for (slot = 0; slot < MAX_MEM; slot++) {
+      if (PRAYING(ch, slot, classArray(class)) == TERMINATE) {
+        PRAYING(ch, slot, classArray(class)) = spellnum;
+        PRAYTIME(ch, slot, classArray(class)) = time;
+        break;
+      }
+    }
+    return;
+  }
+
+  /* magic-user type system */
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PRAYING(ch, slot, classArray(class)) == TERMINATE) {
       PRAYING(ch, slot, classArray(class)) = spellnum;
@@ -401,7 +506,11 @@ void resetMemtimes(struct char_data *ch, int class)
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PRAYING(ch, slot, classArray(class)) == TERMINATE)
       break;
-    PRAYTIME(ch, slot, classArray(class)) = 
+    if (class == CLASS_SORCERER)
+      PRAYTIME(ch, slot, classArray(class)) =
+            PRAYING(ch, slot, classArray(class)) * SORC_TIME_FACTOR;
+    else
+      PRAYTIME(ch, slot, classArray(class)) = 
             spell_info[PRAYING(ch, slot, classArray(class))].memtime;
   }
 }
@@ -421,27 +530,46 @@ void addSpellMemmed(struct char_data *ch, int spellnum, int class)
   }
 }
 
-
-// finds the first instance of <spellnum> in the characters
+// SORCERER types:  just clears top of PRAYING() list
+// MAGIC-USER types:  finds the first instance of <spellnum> in the characters
 // memorizing spells, forgets it, then updates the memorizing list
 void removeSpellMemming(struct char_data *ch, int spellnum, int class)
 {
   int slot, nextSlot;
 
+  /* sorcerer-types */
+  if (class == CLASS_SORCERER) {
+    // iterate until we find 0 (terminate) or end of array
+    for (slot = 0;
+            (PRAYING(ch, slot, classArray(class)) || slot < (MAX_MEM - 1));
+            slot++) {
+      // shift everything over
+      PRAYING(ch, slot, classArray(class)) =
+                  PRAYING(ch, slot + 1, classArray(class));
+      PRAYTIME(ch, slot, classArray(class)) =
+                  PRAYTIME(ch, slot + 1, classArray(class));
+    }
+    return;
+  }
+  
+  /* mage-types */
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PRAYING(ch, slot, classArray(class)) == spellnum) { //found the spell
-      if (PRAYING(ch, slot + 1, classArray(class)) != TERMINATE) { //more in list of memming?
+      /* is there more in the memming list? */
+      if (PRAYING(ch, slot + 1, classArray(class)) != TERMINATE) {
         for (nextSlot = slot; nextSlot < MAX_MEM - 1; nextSlot++) { 
-          //go through rest of list
+          //go through rest of list and shift everything
           PRAYING(ch, nextSlot, classArray(class)) =
                   PRAYING(ch, nextSlot + 1, classArray(class));
           PRAYTIME(ch, nextSlot, classArray(class)) =
-                  PRAYTIME(ch, nextSlot + 1, classArray(class));  //shift everything
+                  PRAYTIME(ch, nextSlot + 1, classArray(class));
         }
-        PRAYING(ch, nextSlot, classArray(class)) = TERMINATE;  //end of list tagged with terminate
+        // tag end of list with 'terminate'
+        PRAYING(ch, nextSlot, classArray(class)) = TERMINATE;
         PRAYTIME(ch, nextSlot, classArray(class)) = TERMINATE;
       } else {
-        PRAYING(ch, slot, classArray(class)) = TERMINATE;  //the spell found was last in list
+        // must be the spell found was last in list
+        PRAYING(ch, slot, classArray(class)) = TERMINATE;
         PRAYTIME(ch, slot, classArray(class)) = TERMINATE;
       }
       return;
@@ -453,22 +581,11 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class)
 // finds the first instance of <spellnum> in the characters
 // memorized spells, forgets it, then updates the memorized list
 // *for now it has to do - will extract a mage spell first
-// if you can't find it in mage, then take it out of cleric
+// if you can't find it in mage, then take it out of cleric, etc
 // *returns class
 int forgetSpell(struct char_data *ch, int spellnum, int class)
 {
-  int slot, nextSlot, found = 0, x = 0;
-
-  /* dummy check */
-  if (class == -1) {
-    for (slot = 0; slot < NUM_CASTERS; slot++) {
-      if (PRAYED(ch, 0, slot))
-        found++;
-    }
-    if (!found) {
-      return -1;
-    }
-  }
+  int slot, nextSlot, x = 0;
 
   /* we know the class */
   if (class != -1) {  
@@ -515,7 +632,53 @@ int forgetSpell(struct char_data *ch, int spellnum, int class)
 }
 
 
-// returns TRUE if the character has the spell memorized
+// mage-types:  returns total spells in both MEMORIZED and MEMORIZING of a
+// given circle
+// sorc-types:  returns total spell slots used in a given circle
+int numSpells(struct char_data *ch, int circle, int class)
+{
+  int num = 0, slot;
+
+  /* sorc types */
+  if (class == CLASS_SORCERER) {
+    for (slot = 0; slot < (MAX_MEM); slot++) {
+      if (PRAYING(ch, slot, classArray(class)) == circle)
+        num++;
+    }
+  } else {
+    /* mage-types */
+    for (slot = 0; slot < (MAX_MEM); slot++) {
+      if (spellCircle(class, PRAYED(ch, slot, classArray(class))) == circle)
+        num++;
+      if (spellCircle(class, PRAYING(ch, slot, classArray(class))) == circle)
+        num++;
+    }
+  }
+
+  return (num);
+}
+
+
+/* For Sorc-types:  Checks if they know the spell or not */
+bool sorcKnown(struct char_data *ch, int spellnum)
+{
+  int slot;
+  
+  // for zusuk testing
+  if (GET_LEVEL(ch) == LVL_IMPL)
+    return TRUE;
+  
+  for (slot = 0; slot < MAX_MEM; slot++) {
+    if (PRAYED(ch, slot, classArray(CLASS_SORCERER)) == spellnum)
+      return TRUE;
+  }
+  return FALSE;
+}
+
+
+// for SORCERER types:  returns TRUE if they know the spell AND if they
+//   got free slots
+// for MAGIC-USER types:  returns TRUE if the character has the spell memorized
 // returns FALSE if the character doesn't
 bool hasSpell(struct char_data *ch, int spellnum)
 {
@@ -528,6 +691,19 @@ bool hasSpell(struct char_data *ch, int spellnum)
       if (PRAYED(ch, slot, x) == spellnum)
         return TRUE;
 
+  /* check our sorc-type system */
+  if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
+    // is this one of the "known" spells?
+    if (sorcKnown(ch, spellnum)) {
+      int circle = spellCircle(CLASS_SORCERER, spellnum);
+      // do we have any slots left?
+      // take total slots for the correct circle and subtract from used
+      if ((comp_slots(ch, circle, CLASS_SORCERER) - 
+              numSpells(ch, circle, CLASS_SORCERER)) > 0)
+        return TRUE;
+    }
+  }
+
   return FALSE;
 }
 
@@ -535,59 +711,36 @@ bool hasSpell(struct char_data *ch, int spellnum)
 // returns the characters highest circle access in a given class
 int getCircle(struct char_data *ch, int class)
 {
+  // npc's default to best chart
   if (IS_NPC(ch)) {
-    return (MIN(9, (GET_LEVEL(ch) + 1) / 2));
+    return (MAX(1, MIN(9, (GET_LEVEL(ch) + 1) / 2)));
+  }
+
+  // if pc has no caster classes, he/she has no business here
+  if (!IS_CASTER(ch)) {
+    return (-1);
   }
 
   if (!CLASS_LEVEL(ch, class)) {
     return 0;
   }
-  if (!IS_CASTER(ch)) {
-    return (-1);
-  }
 
-  if (CLASS_LEVEL(ch, class) < 3)
-    return 1;
-  else if (CLASS_LEVEL(ch, class) < 5)
-    return 2;
-  else if (CLASS_LEVEL(ch, class) < 7)
-    return 3;
-  else if (CLASS_LEVEL(ch, class) < 9)
-    return 4;
-  else if (CLASS_LEVEL(ch, class) < 11)
-    return 5;
-  else if (CLASS_LEVEL(ch, class) < 13)
-    return 6;
-  else if (CLASS_LEVEL(ch, class) < 15)
-    return 7;
-  else if (CLASS_LEVEL(ch, class) < 17)
-    return 8;
-  else
-    return 9;
+  switch (class) {
+    case CLASS_SORCERER:
+      return (MAX(1, (MIN(9, CLASS_LEVEL(ch, class) / 2))));
+    /* mage, druid, cleric */
+    default:
+      return (MAX(1, MIN(9, CLASS_LEVEL(ch, class) + 1 / 2)));
+  }
 
 }
 
-
-// returns total spells in both MEMORIZED and MEMORIZING of a given
-// circle
-int numSpells(struct char_data *ch, int circle, int class)
-{
-  int num = 0, slot;
-
-  for (slot = 0; slot < (MAX_MEM); slot++) {
-    if (spellCircle(class, PRAYED(ch, slot, classArray(class))) == circle)
-      num++;
-    if (spellCircle(class, PRAYING(ch, slot, classArray(class))) == circle)
-      num++;
-  }
-
-  return (num);
-}
 
 /********** end utility ***************/
 
 
 /*********** Event Engine ************/
+
 
 // updates the characters memorizing list/memtime, and
 // memorizes the spell upon completion
@@ -600,9 +753,13 @@ void updateMemming(struct char_data *ch, int class)
     bonus = MAX(1, compute_ability(ch, ABILITY_CONCENTRATION) / 2 - 3);
   }
 
-  //if you aren't resting, can't mem
-  if (GET_POS(ch) != POS_RESTING) {
+  //if you aren't resting, can't mem; same with fighting
+  if (GET_POS(ch) != POS_RESTING || FIGHTING(ch)) {
     switch (class) {
+      case CLASS_SORCERER:
+        send_to_char(ch, "Your meditation is interrupted.\r\n");
+        act("$n aborts $s meditation.", FALSE, ch, 0, 0, TO_ROOM);
+        break;
       case CLASS_MAGIC_USER:
         send_to_char(ch, "You abort your studies.\r\n");
         act("$n aborts $s studies.", FALSE, ch, 0, 0, TO_ROOM);
@@ -634,21 +791,31 @@ void updateMemming(struct char_data *ch, int class)
       case CLASS_CLERIC:
         sprintf(buf, "You finish praying for %s.\r\n",
                 spell_info[PRAYING(ch, 0, classArray(class))].name);
+        addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
         break;
       case CLASS_DRUID:
         sprintf(buf, "You finish communing for %s.\r\n",
                 spell_info[PRAYING(ch, 0, classArray(class))].name);
+        addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
+        break;
+      case CLASS_SORCERER:
+        sprintf(buf, "You have recovered a spell slot: %d.\r\n",
+                PRAYING(ch, 0, classArray(class)));
         break;
       default: // magic user
         sprintf(buf, "You finish memorizing %s.\r\n",
                 spell_info[PRAYING(ch, 0, classArray(class))].name);
+        addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
         break;        
     }
     send_to_char(ch, buf);
-    addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
     removeSpellMemming(ch, PRAYING(ch, 0, classArray(class)), class);
     if (PRAYING(ch, 0, classArray(class)) == TERMINATE) {
       switch (class) {
+        case CLASS_SORCERER:
+          send_to_char(ch, "Your meditations are complete.\r\n");
+          act("$n completes $s meditation.", FALSE, ch, 0, 0, TO_ROOM);
+          break;
         case CLASS_CLERIC:
           send_to_char(ch, "Your prayers are complete.\r\n");
           act("$n completes $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
@@ -696,6 +863,32 @@ EVENTFUNC(event_memorizing)
 
 
 /************ display functions ***************/
+
+// display sorc interface
+void display_sorc(struct char_data *ch)
+{
+  int slot;
+
+  send_to_char(ch, "\tCTotal Slots:\r\n");
+  for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
+    send_to_char(ch, "\tM%d:\tm %d  ", slot, numSpells(ch, slot, CLASS_SORCERER));
+  }
+  send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
+  for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
+    send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER));
+  }
+  send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
+  for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
+    send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER) - 
+              numSpells(ch, slot, CLASS_SORCERER));
+  }
+  send_to_char(ch, "\tn\r\n\r\n");
+  if (PRAYING(ch, 0, classArray(CLASS_SORCERER)))
+    send_to_char(ch, "\tCTime left for next slot to recover:"
+            "  \tn%d\tC seconds.\tn\r\n",
+            PRAYING(ch, 0, classArray(CLASS_SORCERER)));  
+}
+
 
 // display memmed or prayed list
 void display_memmed(struct char_data*ch, int class)
@@ -871,9 +1064,15 @@ void display_slots(struct char_data *ch, int class)
 void printMemory(struct char_data *ch, int class)
 {
 
-  display_memmed(ch, class);
-  display_memming(ch, class);
-  display_slots(ch, class);
+  //sorc types, just seperated their interface
+  if (class == CLASS_SORCERER)
+    display_sorc(ch);
+  else {
+    display_memmed(ch, class);
+    display_memming(ch, class);
+    display_slots(ch, class);
+  }
+  
   switch (class) {
     case CLASS_DRUID:
       send_to_char(ch, "\tDCommands: commune <spellname>, uncommune <spellname>, "
@@ -883,9 +1082,11 @@ void printMemory(struct char_data *ch, int class)
       send_to_char(ch, "\tDCommands: prayer <spellname>, blank <spellname>, "
                      "spells cleric\tn\r\n");
       break;
-    default:  /* magic user */
+    case CLASS_MAGIC_USER:
       send_to_char(ch, "\tDCommands: memorize <spellname>, forget <spellname>, "
                      "spells magic user\tn\r\n");
+      break;
+    default:
       break;
   }
 }
@@ -1052,6 +1253,8 @@ ACMD(do_gen_memorize)
     class = CLASS_MAGIC_USER;
   else if (subcmd == SCMD_COMMUNE)
     class = CLASS_DRUID;
+  else if (subcmd == SCMD_SORC)
+    class = CLASS_SORCERER;
   else {
     send_to_char(ch, "Invalid command!\r\n");
     return;
@@ -1064,7 +1267,7 @@ ACMD(do_gen_memorize)
 
   if (!*argument) {
     printMemory(ch, class);
-    if (GET_POS(ch) == POS_RESTING) {
+    if (GET_POS(ch) == POS_RESTING && !FIGHTING(ch)) {
       if (!isOccupied(ch) && PRAYING(ch, 0, classArray(class)) != 0) {        
         switch (class) {
           case CLASS_DRUID:
@@ -1074,6 +1277,10 @@ ACMD(do_gen_memorize)
           case CLASS_CLERIC:
             send_to_char(ch, "You continue your prayers.\r\n");
             act("$n continues $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
+            break;
+          case CLASS_SORCERER:
+            send_to_char(ch, "You continue your meditation.\r\n");
+            act("$n continues $s meditation.", FALSE, ch, 0, 0, TO_ROOM);
             break;
           default:  /* magic user */
             send_to_char(ch, "You continue your studies.\r\n");
@@ -1086,6 +1293,9 @@ ACMD(do_gen_memorize)
     }
     return;
   } else {
+    // sorcerer-types are done now
+    if (class == CLASS_SORCERER)
+      return;
     skip_spaces(&argument);
     spellnum = find_skill_num(argument);
   }

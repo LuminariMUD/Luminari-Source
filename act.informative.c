@@ -1031,11 +1031,13 @@ ACMD(do_innates)
       send_to_char(ch, "Berserker Innates:\r\n");
       send_to_char(ch, "berserker shrug (level / 4 damage reduction)\r\n");
     }
+    /*
     if (CLASS_LEVEL(ch, CLASS_MAGIC_USER)) {
       send_to_char(ch, "Magic-User Innates:\r\n");
       send_to_char(ch, "\tGAcid Splash\tn\r\n");
       send_to_char(ch, "\tBRay of Frost\tn\r\n");
     }
+    */
   }
 }
 
@@ -1318,6 +1320,8 @@ ACMD(do_score)
   send_to_char(ch, "\tDType 'affects' to see what you are affected by\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_MAGIC_USER))
     send_to_char(ch, "\tDType 'memorize' to see your spell interface\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_SORCERER))
+    send_to_char(ch, "\tDType 'sorc' to see your spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_CLERIC))
     send_to_char(ch, "\tDType 'prayer' to see your prayer interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_DRUID))
