@@ -1124,9 +1124,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
 
   switch (dam_type) {
     case DAM_FIRE:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
-      if (GET_RACE(ch) == RACE_TROLL)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TROLL)
         damtype_reduction += -50;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
@@ -1134,7 +1134,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += 50;
       break;
     case DAM_COLD:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += -20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
@@ -1142,13 +1142,13 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += 50;
       break;
     case DAM_AIR:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
     case DAM_EARTH:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
@@ -1156,81 +1156,81 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += 50;
       break;
     case DAM_ACID:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
-      if (GET_RACE(ch) == RACE_TROLL)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TROLL)
         damtype_reduction += -25;
-      if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
     case DAM_HOLY:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       break;
     case DAM_ELECTRIC:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
     case DAM_UNHOLY:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       break;
     case DAM_SLICE:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       break;
     case DAM_PUNCTURE:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
-      if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
       break;
     case DAM_FORCE:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       break;
     case DAM_SOUND:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       break;
     case DAM_POISON:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
-      if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
-      if (GET_RACE(ch) == RACE_TROLL)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TROLL)
         damtype_reduction += 25;
       break;
     case DAM_DISEASE:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
-      if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
-      if (GET_RACE(ch) == RACE_TROLL)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TROLL)
         damtype_reduction += 50;
       break;
     case DAM_NEGATIVE:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       break;
     case DAM_ILLUSION:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       break;
     case DAM_MENTAL:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       break;
     case DAM_LIGHT:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       break;
     case DAM_ENERGY:
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
