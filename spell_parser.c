@@ -809,6 +809,10 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     class = CLASS_CLERIC;
     clevel = IS_CLERIC(ch);
   }
+  if (IS_SORCERER(ch) > clevel) {
+    class = CLASS_SORCERER;
+    clevel = IS_SORCERER(ch);
+  }
   if (IS_DRUID(ch) > clevel) {
     class = CLASS_DRUID;
     clevel = IS_DRUID(ch);
@@ -910,7 +914,8 @@ ACMD(do_cast)
 
   if (CLASS_LEVEL(ch, CLASS_MAGIC_USER) < SINFO.min_level[CLASS_MAGIC_USER] &&
 	CLASS_LEVEL(ch, CLASS_CLERIC) < SINFO.min_level[CLASS_CLERIC] &&
-	CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID]
+	CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
+     CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER]
   ) {
     send_to_char(ch, "You do not know that spell!\r\n");
     return;
@@ -921,13 +926,17 @@ ACMD(do_cast)
     return;
   }
 
-  if (!hasSpell(ch, spellnum) && !isEpicSpell(spellnum)
-          && spellnum != SPELL_ACID_SPLASH && spellnum != SPELL_RAY_OF_FROST) {
+  if (!hasSpell(ch, spellnum) && !isEpicSpell(spellnum)) {
+//       && spellnum != SPELL_ACID_SPLASH && spellnum != SPELL_RAY_OF_FROST) {
     send_to_char(ch, "You do not seem to have that spell prepared... (help memorization)\r\n");
     return;
   }
 
   if (CLASS_LEVEL(ch, CLASS_MAGIC_USER) && GET_INT(ch) < 10) {
+    send_to_char(ch, "You are not smart enough to cast spells...\r\n");
+    return;
+  }
+  if (CLASS_LEVEL(ch, CLASS_SORCERER) && GET_CHA(ch) < 10) {
     send_to_char(ch, "You are not smart enough to cast spells...\r\n");
     return;
   }
