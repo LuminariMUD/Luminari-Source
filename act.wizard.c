@@ -894,7 +894,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
       send_to_char(ch, "\tCMobile Race:\tn %s  ", npc_race_types[GET_RACE(k)]);
     else
       send_to_char(ch, "\tCRace Undefined\tn  ");
-  } else if (IS_MORPHED(ch)) {
+  } else if (IS_MORPHED(k)) {
     send_to_char(ch, "\tCMorphRace:\tn %s  ", npc_race_types[IS_MORPHED(k)]);
   } else {
     send_to_char(ch, "\tCRace:\tn %s  ", RACE_ABBR(k));
