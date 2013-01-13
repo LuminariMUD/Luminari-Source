@@ -806,6 +806,7 @@ void do_start(struct char_data *ch)
   for (i=1; i<=NUM_ABILITIES; i++)
     SET_ABILITY(ch, i, 0);
   init_spell_slots(ch);
+  IS_SORC_LEARNED(ch) = 0;
   /* hunger and thirst are off */
   GET_COND(ch, HUNGER) = -1;
   GET_COND(ch, THIRST) = -1;
