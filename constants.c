@@ -501,6 +501,8 @@ const char *connected_types[] = {
   "Protocol Detection",
   "Select Race",
   "Clan edit",
+  "Message Edit",
+  "Spells Known Edit",
   "\n"
 };
 

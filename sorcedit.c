@@ -47,11 +47,17 @@ ACMD(do_sorcedit)
   } else if (is_abbrev(argument, " sorcerer")) {
     if (IS_SORC_LEARNED(ch)) {
       send_to_char(ch, "You already adjusted your sorcerer "
-            "spells this level\r\n");
+            "spells this level.\r\n");
       return;
     }
   } else {
     send_to_char(ch, "This command is not available to you!\r\n");
+    return;
+  }
+
+  if (IS_SORC_LEARNED(ch)) {
+    send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
+                     "(You can also RESPEC to reset your character)\r\n");
     return;
   }
 
@@ -170,6 +176,8 @@ void sorcedit_parse(struct descriptor_data *d, char *arg)
         case 'q':
         case 'Q':
           write_to_output(d, "Your choices have been finalized!\r\n\r\n");
+          IS_SORC_LEARNED(d->character) = 1;
+          save_char(d->character);
           cleanup_olc(d, CLEANUP_ALL);
           return;
         case '1':
