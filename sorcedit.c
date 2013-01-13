@@ -147,7 +147,9 @@ void sorcedit_menu(struct descriptor_data *d, int circle)
     }
   }
   write_to_output(d, "\r\n%sEnter spell choice, to add or remove "
-          "(-1 for none) : ", nrm);
+          "(Q to exit to main menu) : ", nrm);
+  
+  OLC_MODE(d) = SORCEDIT_SPELLS;
 }
 
 
@@ -162,7 +164,6 @@ void sorcedit_parse(struct descriptor_data *d, char *arg)
   int counter;    
 
   switch (OLC_MODE(d)) {
-    /*-------------------------------------------------------------------*/
 
     case SORCEDIT_MAIN_MENU:
       switch (*arg) {
@@ -183,49 +184,51 @@ void sorcedit_parse(struct descriptor_data *d, char *arg)
           OLC_MODE(d) = SORCEDIT_SPELLS;
           break;
         default:
-          /*. We should never get here . */
-          cleanup_olc(d, CLEANUP_ALL);
-          mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: sorcedit_parse(): "
-               "Reached default case!");
-          write_to_output(d, "Oops...\r\n");
+          write_to_output(d, "That is an invalid choice!\r\n");
+          sorcedit_disp_menu(d);
           break;
       }
+      break;
+      
     case SORCEDIT_SPELLS:
-      number = atoi(arg);
-      if (number == -1) { /* exit to main menu */
-        sorcedit_disp_menu(d);
-        OLC_MODE(d) = SORCEDIT_MAIN_MENU;
-        break;
-      }
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          sorcedit_disp_menu(d);
+          return;
+
+        default:
+          number = atoi(arg);
       
-      for (counter = 1; counter < NUM_SPELLS; counter++) {
-        if (counter == number) {
-          if (spellCircle(CLASS_SORCERER, counter) == global_circle) {
-            if (sorcKnown(d->character, counter))
-              sorc_extract_known(d->character, counter);
-            else if (!sorc_add_known(d->character, counter))
-              write_to_output(d, "You are all FULL for spells!\r\n");
+          for (counter = 1; counter < NUM_SPELLS; counter++) {
+            if (counter == number) {
+              if (spellCircle(CLASS_SORCERER, counter) == global_circle) {
+                if (sorcKnown(d->character, counter))
+                  sorc_extract_known(d->character, counter);
+                else if (!sorc_add_known(d->character, counter))
+                  write_to_output(d, "You are all FULL for spells!\r\n");
+              }
+            }
           }
+          OLC_MODE(d) = SORCEDIT_MAIN_MENU;
+          sorcedit_menu(d, global_circle);
+          break;
         }
-      }
-      OLC_MODE(d) = SORCEDIT_MAIN_MENU;
-      sorcedit_menu(d, global_circle);
       break;
-      
+
+    /* We should never get here, but just in case... */      
     default:
-      /*. We should never get here . */
-      cleanup_olc(d, CLEANUP_ALL);
-      mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: sorcedit_parse(): "
-        "Reached default case!");
+      cleanup_olc(d, CLEANUP_CONFIG);
+      mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: cedit_parse(): Reached default case!");
       write_to_output(d, "Oops...\r\n");
-      break;
+      break;      
   }
   /*-------------------------------------------------------------------*/
   /*. END OF CASE
   If we get here, we have probably changed something, and now want to
   return to main menu.  Use OLC_VAL as a 'has changed' flag . */
 
-  OLC_VAL(d) = 1;
-  sorcedit_disp_menu(d);
+//  OLC_VAL(d) = 1;
+//  sorcedit_disp_menu(d);
 }
 
