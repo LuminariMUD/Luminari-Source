@@ -1325,7 +1325,7 @@ static char *make_prompt(struct descriptor_data *d)
       /* autoprompt display rooms */
       char room_buf[MAX_PROMPT_LENGTH];
       strcpy(room_buf, world[IN_ROOM(ch)].name);
-      strip_colors(room_buf);
+      parse_tab(room_buf);
 
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
