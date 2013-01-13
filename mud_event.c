@@ -185,6 +185,9 @@ void free_mud_event(struct mud_event_data *pMudEvent)
   struct descriptor_data * d;
   struct char_data * ch;
 
+  if (!pMudEvent)
+    return;
+
   switch (mud_event_index[pMudEvent->iId].iEvent_Type) {
     case EVENT_WORLD:
       remove_from_list(pMudEvent->pEvent, world_events);
