@@ -1488,13 +1488,13 @@ void free_group(struct group_data * group)
   struct char_data *tch;
 	struct iterator_data Iterator;
 	
-  if (group->members->iSize)
+  if (group->members->iSize) {
 		for (tch = (struct char_data *) merge_iterator(&Iterator, group->members);
 		  tch; 
 		    tch = next_in_list(&Iterator))
           leave_group(tch);
-          
-  remove_iterator(&Iterator);
+    remove_iterator(&Iterator);
+  }
   
   free_list(group->members);
   remove_from_list(group, group_list);
