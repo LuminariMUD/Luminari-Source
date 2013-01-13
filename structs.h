@@ -225,6 +225,7 @@
 #define SONGS                 2
 #define CALLCOMPANION		3
 #define CALLFAMILIAR		4
+#define SORC_KNOWN            5
 	/* max = MAX_CLASSES right now */
 
 
@@ -503,10 +504,11 @@
 #define CON_QRACE        32 /* Choose character race*/
 #define CON_CLANEDIT     33 /** OLC mode - clan edit */
 #define CON_MSGEDIT      34 /**< OLC mode - message editor */
+#define CON_SORCEDIT     35 /**< OLC mode - sorc-spells-known editor */
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT     /**< The first CON_ state that is an OLC */
-#define LAST_OLC_STATE  CON_MSGEDIT   /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES	35
+#define LAST_OLC_STATE  CON_SORCEDIT   /**< The last CON_ state that is an OLC  */
+#define NUM_CON_STATES	36
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors

@@ -1,8 +1,9 @@
 /****************************************************************************
  *  Realms of Luminari
- *  File: memorize.c
- *  Usage: spell memorization functions, two types:  mage-type and sorc-type
- *         spellbook-related functions are here too
+ *  File:     memorize.c
+ *  Usage:    spell memorization functions, two types:  mage-type and sorc-type
+ *            spellbook-related functions are here too
+ *  Header:   Header Info is in spells.h
  *  Authors:  Nashak and Zusuk
  *            Spellbook functions taken from CWG project, adapted by Zusuk
  ****************************************************************************/
@@ -547,6 +548,9 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class)
 {
   int slot, nextSlot;
 
+  if (classArray(class) == -1)
+    return;
+  
   /* sorcerer-types */
   if (class == CLASS_SORCERER) {
     // iterate until we find 0 (terminate) or end of array
@@ -682,19 +686,87 @@ int numSpells(struct char_data *ch, int circle, int class)
 }
 
 
-/* For Sorc-types:  Checks if they know the spell or not */
+/* for sorc-types:  counts how many spells you have of a given circle */
+int count_sorc_known(struct char_data *ch, int circle)
+{
+  int num = 0, slot;
+  
+  for (slot = 0; slot < MAX_MEM; slot++) {
+    if (spellCircle(CLASS_SORCERER,
+            PRAYED(ch, slot, classArray(CLASS_SORCERER))) == circle)
+      num++;
+  }
+  return num;
+}
+
+
+/* For Sorc-types:  Checks if they know the given spell or not */
 bool sorcKnown(struct char_data *ch, int spellnum)
 {
   int slot;
   
   // for zusuk testing
+  /*
   if (GET_LEVEL(ch) == LVL_IMPL)
     return TRUE;
+  */
   
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PRAYED(ch, slot, classArray(CLASS_SORCERER)) == spellnum)
       return TRUE;
   }
+  return FALSE;
+}
+
+
+/* For Sorc-types:  finds spellnum in their known list and extracts it */
+void sorc_extract_known(struct char_data *ch, int spellnum)
+{
+  int slot, nextSlot, class = CLASS_SORCERER;
+    
+  for (slot = 0; slot < MAX_MEM; slot++) {
+    if (PRAYED(ch, slot, classArray(class)) == spellnum) { //found the spell
+      /* is there more in the list? */
+      if (PRAYED(ch, slot + 1, classArray(class)) != TERMINATE) {
+        for (nextSlot = slot; nextSlot < MAX_MEM - 1; nextSlot++) { 
+          //go through rest of list and shift everything
+          PRAYED(ch, nextSlot, classArray(class)) =
+                  PRAYED(ch, nextSlot + 1, classArray(class));
+        }
+        // tag end of list with 'terminate'
+        PRAYED(ch, nextSlot, classArray(class)) = TERMINATE;
+      } else {
+        // must be the spell found was last in list
+        PRAYED(ch, slot, classArray(class)) = TERMINATE;
+      }
+      return;
+    }
+  }
+  
+  return;
+}
+
+
+/* For Sorc-types:  adds spellnum to their known list */
+/* returns 0 failure, returns 1 success*/
+int sorc_add_known(struct char_data *ch, int spellnum)
+{
+  int slot, class = CLASS_SORCERER, circle;
+  
+  circle = spellCircle(CLASS_SORCERER, spellnum);
+  
+  if ((sorcererKnown[CLASS_LEVEL(ch, CLASS_SORCERER)][circle] -
+          count_sorc_known(ch, circle)) <= 0)
+    return FALSE;
+  
+  for (slot = 0; slot < MAX_MEM; slot++) {
+    if (PRAYED(ch, slot, classArray(class)) == TERMINATE) {
+      /* found an empty slot! */
+      PRAYED(ch, slot, classArray(class)) = spellnum;
+      return TRUE;
+    }
+  }
+  
   return FALSE;
 }
 
@@ -774,6 +846,9 @@ void updateMemming(struct char_data *ch, int class)
 {
   int bonus = 1;
 
+  if (classArray(class) == -1)
+    return;
+  
   //calaculate memtime bonus based on concentration
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_CONCENTRATION)) {
     bonus = MAX(1, compute_ability(ch, ABILITY_CONCENTRATION) / 2 - 3);
@@ -923,6 +998,9 @@ void display_memmed(struct char_data*ch, int class)
 {
   int slot, memSlot, num[MAX_SPELLS];
   bool printed;
+  
+  if (classArray(class) == -1)
+    return;
 
   //initialize an array size of MAX_SPELLS
   for (slot = 0; slot < MAX_SPELLS; slot++)
@@ -985,6 +1063,9 @@ void display_memming(struct char_data *ch, int class)
 {
   int slot = 0;
   int spellLevel = 0;
+  
+  if (classArray(class) == -1)
+    return;
 
   /*** Display memorizing spells ***/
   if (PRAYING(ch, 0, classArray(class)) != 0) {

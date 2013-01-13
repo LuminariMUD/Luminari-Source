@@ -622,13 +622,33 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int mod);
 int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);
 
 
-// memorize.c
-int forgetSpell(struct char_data *ch, int spellnum, int mode);
-void addSpellMemming(struct char_data *ch, int spellnum, int time, int mode);
-bool hasSpell(struct char_data *ch, int spellnum);
-int spellCircle(int class, int spellnum);
-int getCircle(struct char_data *ch, int class);
+/**************/
+/* memorize.c */
+/* spellbook functions */
+void display_scroll(struct char_data *ch, struct obj_data *obj);
+void display_spells(struct char_data *ch, struct obj_data *obj);
+bool spell_in_book(struct obj_data *obj, int spellnum);
+int spell_in_scroll(struct obj_data *obj, int spellnum);
+bool spellbook_ok(struct char_data *ch, int spellnum, int class);
+/* memorize related functions */
 void init_spell_slots(struct char_data *ch);
+int spellCircle(int class, int spellnum);
+int comp_slots(struct char_data *ch, int circle, int class);
+void addSpellMemming(struct char_data *ch, int spellnum, int time, int mode);
+void resetMemtimes(struct char_data *ch, int class);
+void addSpellMemmed(struct char_data *ch, int spellnum, int class);
+void removeSpellMemming(struct char_data *ch, int spellnum, int class);
+int forgetSpell(struct char_data *ch, int spellnum, int mode);
+int numSpells(struct char_data *ch, int circle, int class);
+bool sorcKnown(struct char_data *ch, int spellnum);
+bool hasSpell(struct char_data *ch, int spellnum);
+int getCircle(struct char_data *ch, int class);
+int sorcererKnown[LVL_IMPL + 1][10];
+int count_sorc_known(struct char_data *ch, int circle);
+void sorc_extract_known(struct char_data *ch, int spellnum);
+int sorc_add_known(struct char_data *ch, int spellnum);
+
+
 
 
 /* from spell_parser.c */

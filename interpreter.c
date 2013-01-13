@@ -347,6 +347,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "snoop"    , "snoop"   , POS_DEAD    , do_snoop    , LVL_GOD, 0 },
   { "socials"  , "socials" , POS_DEAD    , do_commands , 0, SCMD_SOCIALS },
   { "sorc"     , "sorc"    , POS_RESTING , do_gen_memorize , 0, SCMD_SORC },
+  { "sorcedit" , "sorcedit", POS_DEAD    , do_sorcedit, 1, 0 },
   { "spelllist"	, "spelllist" , POS_RESTING , do_spelllist	 , 1, 0 },
   { "spells"	, "spells" , POS_RESTING , do_spells	 , 1, 0 },
   { "split"    , "split"   , POS_SITTING , do_split    , 1, 0 },
@@ -1442,6 +1443,7 @@ void nanny(struct descriptor_data *d, char *arg)
     { CON_IBTEDIT, ibtedit_parse },
     { CON_CLANEDIT, clanedit_parse },
     { CON_MSGEDIT, msgedit_parse },
+    { CON_SORCEDIT, sorcedit_parse },
     { -1, NULL }
   };
 

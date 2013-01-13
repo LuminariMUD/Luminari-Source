@@ -1778,6 +1778,8 @@ ACMD(do_who)
           send_to_char(ch, " (Help edit)");
         if (d->connected == CON_QEDIT)
           send_to_char(ch, " (Quest Edit)");
+        if (d->connected == CON_SORCEDIT)
+          send_to_char(ch, " (Spells Known Editor)");
         if (PRF_FLAGGED(tch, PRF_BUILDWALK))
           send_to_char(ch, " (Buildwalking)");
         if (PRF_FLAGGED(tch, PRF_AFK))

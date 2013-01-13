@@ -71,6 +71,7 @@ void get_char_colors(struct char_data *ch)
   grn = CCGRN(ch, C_NRM);
   cyn = CCCYN(ch, C_NRM);
   yel = CCYEL(ch, C_NRM);
+  mgn = CCMAG(ch, C_NRM);
 }
 
 /* This procedure frees up the strings and/or the structures attatched to a
