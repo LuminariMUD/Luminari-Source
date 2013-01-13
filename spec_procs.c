@@ -338,8 +338,16 @@ void list_spells(struct char_data *ch, int mode, int class)
       for (i = 1; i < NUM_SPELLS; i++) {
         sinfo = spell_info[i].min_level[class];
 
-        if (CLASS_LEVEL(ch, class) >= sinfo && spellCircle(class,i) == slot &&
-		GET_SKILL(ch, i)) {
+        if (class == CLASS_SORCERER && sorcKnown(ch, i) &&
+              spellCircle(CLASS_SORCERER, i) == slot) {
+          nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+                    "%-20s \tWMastered\tn\r\n", spell_info[i].name);
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+            break;
+          len += nlen;
+        } else if (class != CLASS_SORCERER &&
+             CLASS_LEVEL(ch, class) >= sinfo && spellCircle(class,i) == slot &&
+             GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,
                     "%-20s \tWMastered\tn\r\n", spell_info[i].name);
           if (len + nlen >= sizeof(buf2) || nlen < 0)

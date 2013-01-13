@@ -755,7 +755,7 @@ int sorc_add_known(struct char_data *ch, int spellnum)
   
   circle = spellCircle(CLASS_SORCERER, spellnum);
   
-  if ((sorcererKnown[CLASS_LEVEL(ch, CLASS_SORCERER)][circle] -
+  if ((sorcererKnown[CLASS_LEVEL(ch, CLASS_SORCERER)][circle-1] -
           count_sorc_known(ch, circle)) <= 0)
     return FALSE;
   
