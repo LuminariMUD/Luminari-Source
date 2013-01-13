@@ -21,6 +21,7 @@
 #include "handler.h"  // for obj_from_char()
 #include "spec_procs.h"  // for compute_ability
 
+/* local variables, defines */
 char buf[MAX_INPUT_LENGTH];
 #define	TERMINATE	0
 
@@ -607,7 +608,19 @@ int forgetSpell(struct char_data *ch, int spellnum, int class)
     }
   } else { /* class == -1 */
     /* we don't know the class, so search all the arrays */
+
+    /* start by checking sorc-type array */
+    if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
+      /* got a free slot? */
+      if (hasSpell(ch, spellnum)) {
+        addSpellMemming(ch, spellnum, 0, CLASS_SORCERER);
+        return CLASS_SORCERER;
+      }
+    }
+    /* nothing?  ok check everything else */
     for (x = 0; x < NUM_CASTERS; x++) {
+      if (x == CLASS_SORCERER) /* already checked this */
+        continue;
       if (PRAYED(ch, 0, classArray(x))) {
         for (slot = 0; slot < (MAX_MEM); slot++) {
           if (PRAYED(ch, slot, classArray(x)) == spellnum) {
@@ -1364,5 +1377,6 @@ ACMD(do_gen_memorize)
 }
 
 /***  end command functions ***/
+#undef	TERMINATE
 
 

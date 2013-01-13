@@ -826,7 +826,9 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       return 0;
     }
 
-    addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
+    /* sorcerer's call is made already in forgetSpell() */
+    if (class != CLASS_SORCERER)
+      addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
   }
 
   if (SINFO.time <= 0) {
