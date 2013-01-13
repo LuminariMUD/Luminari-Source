@@ -111,7 +111,7 @@ struct oasis_olc_data {
 };
 
 /* Exported globals. */
-extern const char *nrm, *grn, *cyn, *yel;
+extern const char *nrm, *grn, *cyn, *yel, *mgn;
 
 /* Descriptor access macros. */
 #define OLC(d)         ((d)->olc)
@@ -445,6 +445,11 @@ extern const char *nrm, *grn, *cyn, *yel;
 #define CLANEDIT_RANK_NAME             33   /**< Edit Ranks: Edit one of the rank names             */
 
 
+/* sorcedit Submodes of connectedness. */
+#define SORCEDIT_MAIN_MENU         0
+#define SORCEDIT_SPELLS            1
+
+
 int  save_config( IDXTYPE nowhere );
 
 /* Prototypes to keep. */
@@ -515,6 +520,10 @@ ACMD(do_tedit);
 
 /* public functions from qedit.c */
 ACMD(do_oasis_qedit);
+
+/* public functions from sorcedit.c */
+ACMD(do_sorcedit);
+void sorcedit_parse(struct descriptor_data *d, char *arg);
 
 /* public functions from msgedit.c */
 ACMD(do_msgedit);
