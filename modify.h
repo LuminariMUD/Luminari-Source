@@ -22,6 +22,7 @@
 /* Public functions */
 void show_string(struct descriptor_data *d, char *input);
 void smash_tilde(char *str);
+void strip_colors(char *str);
 void parse_at(char *str);
 void parse_tab(char *str);
 void paginate_string(char *str, struct descriptor_data *d);
