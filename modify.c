@@ -76,6 +76,33 @@ void smash_tilde(char *str)
       *p=' ';
 }
 
+
+/* so it turns out that write_to_descriptor can't handle protocol info
+ * so i made this simple function to strip color codes -zusuk
+ */
+void strip_colors(char *str)
+{
+  char *p = str;
+
+  for (; *p; p++) {
+    if (*p == '@') {
+      if (*(p+1) != '@') {
+        *p = ' ';
+        *(p + 1) = ' ';
+      } else
+        p++;
+    }
+    if (*p == '\t') {
+      if (*(p+1) != '\t') {
+        *p = ' ';
+        *(p + 1) = ' ';
+     }  else
+        p++;
+    }
+  }
+}
+
+
 /* Parse out the @ character and replace it with the '\t' to work with
  * KaVir's protocol snippet */
 void parse_at(char *str)

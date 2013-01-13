@@ -1213,6 +1213,7 @@ static char *make_prompt(struct descriptor_data *d)
   struct char_data *ch = d->character;
   int count;
   size_t len = 0;
+
   *prompt = '\0';
 
   /* Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h) */
@@ -1322,9 +1323,13 @@ static char *make_prompt(struct descriptor_data *d)
       }
 
       /* autoprompt display rooms */
+      char room_buf[MAX_PROMPT_LENGTH];
+      strcpy(room_buf, world[IN_ROOM(ch)].name);
+      strip_colors(room_buf);
+
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
-		world[IN_ROOM(ch)].name, CCNRM(d->character,C_NRM));
+		room_buf, CCNRM(d->character,C_NRM));
         if (count >= 0)
           len += count;
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
