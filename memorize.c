@@ -169,8 +169,19 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class)
 /* ==================Memorization================= */
 /* =============================================== */
 
+/* It can get confusing the terrible way I set everything up
+ *   so here are some notes to help keep self-sanity
+ * NUM_CASTERS is an easy way to iterate PRAY*() macros
+ * if you are checking all the classes, it'll be NUM_CLASSES
+ *   and make sure to use classArray() function to access the
+ *   correct value of the PRAY*() macros
+ * To make it even more confusing, a lot of the functions
+ *   have a double role, for mage-types and sorc-types
+ */
+
+
 /* since the spell array position for classes doesn't correspond 
- * with the class values, we need a little conversion -zusuk
+ * with the class values, we need a little conversion
  */
 int classArray(int class) {
   switch (class) {
@@ -183,9 +194,9 @@ int classArray(int class) {
     case CLASS_SORCERER:
       return 3;
   }
-  log("Invalid class passed to memorize.c's classArray()!");
-  return 0;
+  return -1;
 }
+
 
 // the number of spells received per level for caster types
 int mageSlots[LVL_IMPL + 1][10] = {
@@ -384,8 +395,8 @@ int druidSlots[LVL_IMPL + 1][10] = {
 };
 
 
-
 /*** Utility Functions needed for memorization ***/
+
 
 // is character currently occupied with memming of some sort?
 int isOccupied(struct char_data *ch) {
@@ -465,10 +476,10 @@ int comp_slots(struct char_data *ch, int circle, int class)
 
 
 // SORCERER types:   this will add circle-slot to the mem list
-// and the corresponding memtime in memtime list
+//   and the corresponding memtime in memtime list
 // MAGIC-USER types:  adds <spellnum> to the characters memorizing list, and
-// places the corresponding memtime in memtime list
-#define SORC_TIME_FACTOR  8
+//   places the corresponding memtime in memtime list
+#define SORC_TIME_FACTOR  12
 void addSpellMemming(struct char_data *ch, int spellnum, int time, int class)
 {
   int slot;
@@ -477,15 +488,8 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class)
   if (class == CLASS_SORCERER) {
     /* replace spellnum with its circle */
     spellnum = spellCircle(class, spellnum);
+    /* replace time with slot-mem-time */
     time = SORC_TIME_FACTOR * spellnum;
-    for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYING(ch, slot, classArray(class)) == TERMINATE) {
-        PRAYING(ch, slot, classArray(class)) = spellnum;
-        PRAYTIME(ch, slot, classArray(class)) = time;
-        break;
-      }
-    }
-    return;
   }
 
   /* magic-user type system */
@@ -507,6 +511,11 @@ void resetMemtimes(struct char_data *ch, int class)
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PRAYING(ch, slot, classArray(class)) == TERMINATE)
       break;
+
+    /* the formula for metime for sorcs is just factor*circle
+     * which is conveniently equal to the corresponding PRAYING()
+     * slot
+     */
     if (class == CLASS_SORCERER)
       PRAYTIME(ch, slot, classArray(class)) =
             PRAYING(ch, slot, classArray(class)) * SORC_TIME_FACTOR;
@@ -533,7 +542,7 @@ void addSpellMemmed(struct char_data *ch, int spellnum, int class)
 
 // SORCERER types:  just clears top of PRAYING() list
 // MAGIC-USER types:  finds the first instance of <spellnum> in the characters
-// memorizing spells, forgets it, then updates the memorizing list
+//   memorizing spells, forgets it, then updates the memorizing list
 void removeSpellMemming(struct char_data *ch, int spellnum, int class)
 {
   int slot, nextSlot;
@@ -580,9 +589,9 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class)
 
 
 // finds the first instance of <spellnum> in the characters
-// memorized spells, forgets it, then updates the memorized list
+//   memorized spells, forgets it, then updates the memorized list
 // *for now it has to do - will extract a mage spell first
-// if you can't find it in mage, then take it out of cleric, etc
+//   if you can't find it in mage, then take it out of cleric, etc
 // *returns class
 int forgetSpell(struct char_data *ch, int spellnum, int class)
 {
@@ -609,17 +618,10 @@ int forgetSpell(struct char_data *ch, int spellnum, int class)
   } else { /* class == -1 */
     /* we don't know the class, so search all the arrays */
 
-    /* start by checking sorc-type array */
-    if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
-      /* got a free slot? */
-      if (hasSpell(ch, spellnum)) {
-        addSpellMemming(ch, spellnum, 0, CLASS_SORCERER);
-        return CLASS_SORCERER;
-      }
-    }
-    /* nothing?  ok check everything else */
-    for (x = 0; x < NUM_CASTERS; x++) {
-      if (x == CLASS_SORCERER) /* already checked this */
+    for (x = 0; x < NUM_CLASSES; x++) {
+      if (x == CLASS_SORCERER) /* checking this separately */
+        continue;
+      if (classArray(x) == -1) /* not caster */
         continue;
       if (PRAYED(ch, 0, classArray(x))) {
         for (slot = 0; slot < (MAX_MEM); slot++) {
@@ -637,6 +639,14 @@ int forgetSpell(struct char_data *ch, int spellnum, int class)
           }
         }
       }    
+    } /* we found nothing so far*/
+    /* check sorc-type array */
+    if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
+      /* got a free slot? */
+      if (hasSpell(ch, spellnum)) {
+        addSpellMemming(ch, spellnum, 0, CLASS_SORCERER);
+        return CLASS_SORCERER;
+      }
     }
   }
 
@@ -646,7 +656,7 @@ int forgetSpell(struct char_data *ch, int spellnum, int class)
 
 
 // mage-types:  returns total spells in both MEMORIZED and MEMORIZING of a
-// given circle
+//   given circle
 // sorc-types:  returns total spell slots used in a given circle
 int numSpells(struct char_data *ch, int circle, int class)
 {
@@ -692,7 +702,7 @@ bool sorcKnown(struct char_data *ch, int spellnum)
 // for SORCERER types:  returns TRUE if they know the spell AND if they
 //   got free slots
 // for MAGIC-USER types:  returns TRUE if the character has the spell memorized
-// returns FALSE if the character doesn't
+//   returns FALSE if the character doesn't
 bool hasSpell(struct char_data *ch, int spellnum)
 {
   int slot, x;
@@ -700,9 +710,12 @@ bool hasSpell(struct char_data *ch, int spellnum)
   // could check to see what classes ch has to speed up this search
 
   for (slot = 0; slot < MAX_MEM; slot++)
-    for (x = 0; x < NUM_CASTERS; x++)
-      if (PRAYED(ch, slot, x) == spellnum)
+    for (x = 0; x < NUM_CASTERS; x++) {
+      if (classArray(x) == -1)
+        continue;
+      if (PRAYED(ch, slot, classArray(x)) == spellnum)
         return TRUE;
+    }
 
   /* check our sorc-type system */
   if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
@@ -862,7 +875,9 @@ EVENTFUNC(event_memorizing)
   pMudEvent = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) pMudEvent->pStruct;
 
-  for (x = 0; x < NUM_CASTERS; x++) {
+  for (x = 0; x < NUM_CLASSES; x++) {
+    if (classArray(x) == -1)
+      continue;
     if (PRAYIN(ch, classArray(x))) {
       updateMemming(ch, x);
       return 0;
@@ -1278,7 +1293,7 @@ ACMD(do_gen_memorize)
     return;
   }
 
-  if (!*argument) {
+  if (class == CLASS_SORCERER || !*argument) {
     printMemory(ch, class);
     if (GET_POS(ch) == POS_RESTING && !FIGHTING(ch)) {
       if (!isOccupied(ch) && PRAYING(ch, 0, classArray(class)) != 0) {        
@@ -1306,9 +1321,6 @@ ACMD(do_gen_memorize)
     }
     return;
   } else {
-    // sorcerer-types are done now
-    if (class == CLASS_SORCERER)
-      return;
     skip_spaces(&argument);
     spellnum = find_skill_num(argument);
   }

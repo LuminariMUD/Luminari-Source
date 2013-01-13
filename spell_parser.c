@@ -818,8 +818,8 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     clevel = IS_DRUID(ch);
   }
 
-  if (!isEpicSpell(spellnum) && !IS_NPC(ch) &&
-      spellnum != SPELL_ACID_SPLASH && spellnum != SPELL_RAY_OF_FROST) {
+  if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
+//      && spellnum != SPELL_ACID_SPLASH && spellnum != SPELL_RAY_OF_FROST) {
     class = forgetSpell(ch, spellnum, -1);
     if (class == -1) {
       send_to_char(ch, "ERR:  Report BUG98237 to an IMM!\r\n");
