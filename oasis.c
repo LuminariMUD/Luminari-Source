@@ -49,7 +49,7 @@ static struct olc_scmd_info_t {
 */
 
 /* Global variables defined here, used elsewhere */
-const char *nrm, *grn, *cyn, *yel;
+const char *nrm, *grn, *cyn, *yel, *mgn;
 
 /* Internal Function prototypes  */
 static void free_config(struct config_data *data);

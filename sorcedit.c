@@ -44,7 +44,7 @@ ACMD(do_sorcedit)
   if (!argument) {
     send_to_char(ch, "Specify a class to edit known spells.\r\n");
     return;
-  } else if (is_abbrev(argument, "sorcerer")) {
+  } else if (is_abbrev(argument, " sorcerer")) {
     if (IS_SORC_LEARNED(ch)) {
       send_to_char(ch, "You already adjusted your sorcerer "
             "spells this level\r\n");
@@ -62,6 +62,8 @@ ACMD(do_sorcedit)
       "SYSERR: do_sorcedit: Player already had olc structure.");
     free(d->olc);
   }
+
+  CREATE(d->olc, struct oasis_olc_data, 1);
 
   STATE(d) = CON_SORCEDIT;
 
@@ -98,23 +100,23 @@ static void sorcedit_disp_menu(struct descriptor_data *d)
     "\tg Q\tn) Quit\r\n"
     "***Note***  When you quit it finalizes all changes!\r\n"
     "Enter Choice : ",
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][1] -
+    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][0] -
           count_sorc_known(d->character, 1),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][2] -
+    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][1] -
           count_sorc_known(d->character, 2),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][3] -
+    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][2] -
           count_sorc_known(d->character, 3),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][4] -
+    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][3] -
           count_sorc_known(d->character, 4),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][5] -
+    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][4] -
           count_sorc_known(d->character, 5),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][6] -
+    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][5] -
           count_sorc_known(d->character, 6),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][7] -
+    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][6] -
           count_sorc_known(d->character, 7),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
+    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][7] -
           count_sorc_known(d->character, 8),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][9] -
+    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
           count_sorc_known(d->character, 9)
           );
   
@@ -177,8 +179,8 @@ void sorcedit_parse(struct descriptor_data *d, char *arg)
         case '7':
         case '8':
         case '9':
+          sorcedit_menu(d, atoi(arg));
           OLC_MODE(d) = SORCEDIT_SPELLS;
-          sorcedit_menu(d, *arg);
           break;
         default:
           /*. We should never get here . */
@@ -191,8 +193,8 @@ void sorcedit_parse(struct descriptor_data *d, char *arg)
     case SORCEDIT_SPELLS:
       number = atoi(arg);
       if (number == -1) { /* exit to main menu */
-        OLC_MODE(d) = SORCEDIT_MAIN_MENU;
         sorcedit_disp_menu(d);
+        OLC_MODE(d) = SORCEDIT_MAIN_MENU;
         break;
       }
       
@@ -224,5 +226,6 @@ void sorcedit_parse(struct descriptor_data *d, char *arg)
   return to main menu.  Use OLC_VAL as a 'has changed' flag . */
 
   OLC_VAL(d) = 1;
-  //sorcedit_disp_menu(d);
+  sorcedit_disp_menu(d);
 }
+
