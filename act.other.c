@@ -293,6 +293,10 @@ int meet_class_reqs(struct char_data *ch, int class)
       if (ch->real_abils.con >= 11)
         return 1;
       break;
+    case CLASS_SORCERER:
+      if (ch->real_abils.cha >= 11)
+        return 1;
+      break;
     case CLASS_MONK:
       if (ch->real_abils.dex >= 11 && ch->real_abils.wis >= 11)
         return 1;

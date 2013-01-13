@@ -142,7 +142,7 @@ void sorcedit_menu(struct descriptor_data *d, int circle)
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
             spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
-        write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
+        write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
             spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
     }
   }
@@ -169,6 +169,7 @@ void sorcedit_parse(struct descriptor_data *d, char *arg)
       switch (*arg) {
         case 'q':
         case 'Q':
+          write_to_output(d, "Your choices have been finalized!\r\n\r\n");
           cleanup_olc(d, CLEANUP_ALL);
           return;
         case '1':
