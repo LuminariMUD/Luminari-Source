@@ -732,6 +732,9 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 /** Returns contents of id field from x. */
 #define GET_ID(x)         ((x)->id)
 
+/** Timer  */
+#define TIMER(ch) ((ch)->char_specials.timer)
+
 /** Weight carried by ch. */
 #define IS_CARRYING_W(ch) ((ch)->char_specials.carry_weight)
 

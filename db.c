@@ -3669,6 +3669,7 @@ void init_char(struct char_data *ch)
     GET_HEIGHT(ch) = rand_number(150, 180); /* 5'0" - 6'0" */
   }
   GET_SIZE(ch) = SIZE_MEDIUM;
+  GET_RACE(ch) = RACE_UNDEFINED;
 
   if ((i = get_ptable_by_name(GET_NAME(ch))) != -1)
     player_table[i].id = GET_IDNUM(ch) = ++top_idnum;
@@ -3730,8 +3731,30 @@ void init_char(struct char_data *ch)
   // fresh start on auto-crafting data
   reset_acraft(ch);
   
+  // fresh start on mem data
+  init_spell_slots(ch);
+
   // make sure no cloudkills
   CLOUDKILL(ch) = 0;
+
+  /* more inits */
+  FIGHTING(ch) = NULL;
+  SITTING(ch) = NULL;
+  NEXT_SITTING(ch) = NULL;
+  RIDING(ch) = NULL;
+  RIDDEN_BY(ch) = NULL;
+  POOFIN(ch) = NULL;
+  POOFOUT(ch) = NULL;
+  IS_CARRYING_W(ch) = 0;
+  IS_CARRYING_N(ch) = 0;
+  TIMER(ch) = 0;
+  PARRY_LEFT(ch) = 0;
+  GET_WIMP_LEV(ch) = 0;
+  GET_FREEZE_LEV(ch) = 0;
+  GET_INVIS_LEV(ch) = 0;
+  GET_BAD_PWS(ch) = 0;
+  for (i = 0; i < MAX_CLASSES; i++)
+    GET_SPEC_ABIL(ch, i) = 0;
 }
 
 /* returns the real number of the room with given virtual number */
