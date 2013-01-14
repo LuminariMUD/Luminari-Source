@@ -427,6 +427,19 @@ void berserker_skills(struct char_data *ch, int level) {
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
  */
+void sorc_skills(struct char_data *ch, int level) {
+  IS_SORC_LEARNED(ch) = 0;
+  send_to_char(ch, "\tnType \tDsorcedit sorc\tn to adjust your known spells.\r\n");
+  switch (level) {
+    default:
+      break;
+  }
+  return;  
+}
+
+/* init spells for a class as they level up
+ * i.e free skills  ;  make sure to set in spec_procs too
+ */
 void thief_skills(struct char_data *ch, int level) {
   switch (level) {
     case 2:
@@ -938,13 +951,29 @@ void advance_level(struct char_data *ch, int class)
   ch->aff_abils = ch->real_abils;
   /******  end unaffect ******/
 
-
-  send_to_char(ch, "\tMInititializing class:  ");
-  init_class(ch, class, CLASS_LEVEL(ch, class));
+  if (CLASS_LEVEL(ch, class) == 1) {
+    send_to_char(ch, "\tMInititializing class:  ");
+    init_class(ch, class, CLASS_LEVEL(ch, class));
+    send_to_char(ch, "\r\n");
+  }
 
   send_to_char(ch, "\tMGAINS:\tn\r\n");
   switch (class) {
   case CLASS_SORCERER:
+    sorc_skills(ch, CLASS_LEVEL(ch, CLASS_SORCERER));
+    add_hp += rand_number(2, 4);
+    add_mana = 0;
+    add_move = rand_number(0, 2);
+
+    trains += MAX(1, (2 + (int)(GET_INT_BONUS(ch))));
+
+    if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) < 20)
+      practices++;
+    //epic
+    if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
+      practices++;
+
+    break;
   case CLASS_MAGIC_USER:
     add_hp += rand_number(2, 4);
     add_mana = 0;
