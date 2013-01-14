@@ -103,6 +103,7 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
     }
   }
 
+  
   /* Check for an existing object in the OLC.  The strings aren't part of the
    * prototype any longer.  They get added with strdup(). */
   if (OLC_OBJ(d)) {
@@ -150,8 +151,8 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
   if (OLC_ACTION(d))  {
     switch(cleanup_type)  {
       case CLEANUP_ALL:
- 	free_action(OLC_ACTION(d));
- 	break;
+        free_action(OLC_ACTION(d));
+        break;
       case CLEANUP_STRUCTS:
         free(OLC_ACTION(d));
         break;
@@ -165,8 +166,8 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
   if (OLC_HELP(d))  {
     switch(cleanup_type)  {
       case CLEANUP_ALL:
- 	free_help(OLC_HELP(d));
- 	break;
+        free_help(OLC_HELP(d));
+        break;
       case CLEANUP_STRUCTS:
         free(OLC_HELP(d));
         break;
@@ -228,7 +229,7 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
 
     STATE(d) = CON_PLAYING;
   }
-
+  
   free(d->olc);
   d->olc = NULL;
 }

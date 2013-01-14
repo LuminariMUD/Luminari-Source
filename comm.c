@@ -1323,13 +1323,9 @@ static char *make_prompt(struct descriptor_data *d)
       }
 
       /* autoprompt display rooms */
-      char room_buf[MAX_PROMPT_LENGTH];
-      strcpy(room_buf, world[IN_ROOM(ch)].name);
-      parse_tab(room_buf);
-
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
-		room_buf, CCNRM(d->character,C_NRM));
+		world[IN_ROOM(ch)].name, CCNRM(d->character,C_NRM));
         if (count >= 0)
           len += count;
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
@@ -1422,6 +1418,7 @@ static char *make_prompt(struct descriptor_data *d)
   } else
     *prompt = '\0';
 
+  parse_tab(prompt);
   return (prompt);
 }
 
