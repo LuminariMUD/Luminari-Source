@@ -2358,6 +2358,8 @@ static void get_one_line(FILE *fl, char *buf)
 
 void free_help(struct help_index_element *hentry)
 {
+  if (hentry->index)
+    free(hentry->index);
   if (hentry->keywords)
     free(hentry->keywords);
   if (hentry->entry && !hentry->duplicate)
@@ -2371,6 +2373,8 @@ void free_help_table(void)
   if (help_table) {
     int hp;
     for (hp = 0; hp < top_of_helpt; hp++) {
+      if (help_table[hp].index)
+        free(help_table[hp].index);
       if (help_table[hp].keywords)
         free(help_table[hp].keywords);
       if (help_table[hp].entry && !help_table[hp].duplicate)
