@@ -42,7 +42,7 @@ ACMD(do_sorcedit)
     send_to_char(ch, "Specify a class to edit known spells.\r\n");
     return;
   } else if (is_abbrev(argument, " sorcerer")) {
-    if (IS_SORC_LEARNED(ch)) {
+    if (IS_SORC_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
       send_to_char(ch, "You already adjusted your sorcerer "
             "spells this level.\r\n");
       return;
@@ -52,7 +52,7 @@ ACMD(do_sorcedit)
     return;
   }
 
-  if (IS_SORC_LEARNED(ch)) {
+  if (IS_SORC_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
     send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
                      "(You can also RESPEC to reset your character)\r\n");
     return;

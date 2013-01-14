@@ -3368,6 +3368,8 @@ void free_char(struct char_data *ch)
       free(ch->player_specials->poofout);
     if (ch->player_specials->saved.completed_quests)
       free(ch->player_specials->saved.completed_quests);
+    if (ch->player_specials->saved.autocquest_desc)
+      free(ch->player_specials->saved.autocquest_desc);
     if (GET_HOST(ch))
       free(GET_HOST(ch));
     if (IS_NPC(ch))
@@ -3572,11 +3574,24 @@ void reset_char(struct char_data *ch)
   ch->next_fighting = NULL;
   ch->next_in_room = NULL;
   FIGHTING(ch) = NULL;
+  HUNTING(ch) = NULL;
   char_from_furniture(ch);
+  resetCastingData(ch);
   ch->char_specials.position = POS_STANDING;
   ch->mob_specials.default_pos = POS_STANDING;
   ch->char_specials.carry_weight = 0;
   ch->char_specials.carry_items = 0;
+  ch->char_specials.parryAttempts = 0;
+  ch->char_specials.riding = NULL;
+  ch->char_specials.ridden_by = NULL;
+  for (i = 0; i < NUM_CASTERS; i++)
+    ch->char_specials.prayin[i] = 0;
+  ch->char_specials.crafting_type = 0;
+  ch->char_specials.crafting_ticks = 0;
+  ch->char_specials.crafting_object = NULL;
+  ch->char_specials.crafting_repeat = 0;
+  ch->char_specials.crafting_bonus = 0;
+  ch->char_specials.cloudkill = 0;
 
   if (GET_HIT(ch) <= 0)
     GET_HIT(ch) = 1;
