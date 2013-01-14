@@ -1479,6 +1479,26 @@ int search_help(const char *argument, int level)
   return NOWHERE;
 }
 
+
+/* this is used for char creation help */
+/* make sure arg doesn't have spaces */
+void perform_help(struct descriptor_data *d, char *argument)
+{
+  int mid = 0;
+
+  if (!help_table)
+    return;
+
+  if (!*argument)
+    return;
+
+  if ((mid = search_help(argument, LVL_IMPL)) == NOWHERE)
+    return;
+
+  page_string(d,help_table[mid].entry, 0);
+}
+
+
 ACMD(do_help)
 {
   int mid = 0;
@@ -1528,6 +1548,7 @@ ACMD(do_help)
   page_string(ch->desc, help_table[mid].entry, 0);
   send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
 }
+
 
 #define WHO_FORMAT \
 "Usage: who [minlev[-maxlev]] [-n name] [-c classlist] [-t racelist] [-k] [-l] [-n] [-q] [-r] [-s] [-z]\r\n"

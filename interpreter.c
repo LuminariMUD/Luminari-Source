@@ -26,7 +26,7 @@
 #include "improved-edit.h"
 #include "dg_scripts.h"
 #include "constants.h"
-#include "act.h" /* ACMDs located within the act*.c files */
+#include "act.h" /* ACMDs located within the act*.c files, char-creation help */
 #include "ban.h"
 #include "class.h"
 #include "graph.h"
@@ -1747,18 +1747,67 @@ void nanny(struct descriptor_data *d, char *arg)
     } else
       GET_CLASS(d->character) = load_result;
 
-      if (d->olc) {
-        free(d->olc);
-        d->olc = NULL;
-      }
-      if (GET_PFILEPOS(d->character) < 0)
-      GET_PFILEPOS(d->character) = create_entry(GET_PC_NAME(d->character));
+    switch (load_result) {
+      case CLASS_MAGIC_USER:
+        perform_help(d, "class-mage");
+        break;
+      case CLASS_CLERIC:
+        perform_help(d, "class-cleric");
+        break;
+      case CLASS_THIEF:
+        perform_help(d, "class-thief");
+        break;
+      case CLASS_WARRIOR:
+        perform_help(d, "class-warrior");
+        break;
+      case CLASS_MONK:
+        perform_help(d, "class-monk");
+        break;
+      case CLASS_DRUID:
+        perform_help(d, "class-druid");
+        break;
+      case CLASS_BERSERKER:
+        perform_help(d, "class-berserker");
+        break;
+      case CLASS_SORCERER:
+        perform_help(d, "class-sorcerer");
+        break;
+      default:
+        write_to_output(d, "\r\nCommand not understood.\r\n");
+        return;
+    }
+
+    STATE(d) = CON_QCLASS_HELP;
+    break;
+
+  case CON_QCLASS_HELP:
+
+    if (UPPER(*arg) == 'Y')
+      write_to_output(d, "\r\nClass Confirmed!\r\n");
+    else {
+      write_to_output(d,"%s\r\nClass: ", class_menu);
+      STATE(d) = CON_QCLASS;
+      return;
+    }
+
+    /******************************/
+    /* ok begin processing player */
+    if (d->olc) {
+      free(d->olc);
+      d->olc = NULL;
+    }
+
+    if (GET_PFILEPOS(d->character) < 0)
+    GET_PFILEPOS(d->character) = create_entry(GET_PC_NAME(d->character));
+
     /* Now GET_NAME() will work properly. */
     init_char(d->character);
     save_char(d->character);
     save_player_index();
+
     write_to_output(d, "%s\r\n*** PRESS RETURN: ", motd);
     STATE(d) = CON_RMOTD;
+
     /* make sure the last log is updated correctly. */
     GET_PREF(d->character)= rand_number(1, 128000);
     GET_HOST(d->character)= strdup(d->host);
@@ -1766,10 +1815,11 @@ void nanny(struct descriptor_data *d, char *arg)
     mudlog(NRM, LVL_GOD, TRUE, "%s [%s] new player.", GET_NAME(d->character), d->host);
 
     /* Add to the list of 'recent' players (since last reboot) */
-    if (AddRecentPlayer(GET_NAME(d->character), d->host, TRUE, FALSE) == FALSE)
-    {
-      mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "Failure to AddRecentPlayer (returned FALSE).");
+    if (AddRecentPlayer(GET_NAME(d->character), d->host, TRUE, FALSE) == FALSE) {
+      mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE,
+                "Failure to AddRecentPlayer (returned FALSE).");
     }
+
     break;
 
   case CON_RMOTD:		/* read CR after printing motd   */

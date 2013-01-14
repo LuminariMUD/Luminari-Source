@@ -453,6 +453,7 @@ const char *connected_types[] = {
   "Clan edit",
   "Message Edit",
   "Spells Known Edit",	//35
+  "Class Help",	//36
   "\n"  /* make sure this matches NUM_CON_STATES:  36 */
 };
 

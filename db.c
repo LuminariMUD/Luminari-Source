@@ -3683,8 +3683,11 @@ void init_char(struct char_data *ch)
     GET_WEIGHT(ch) = rand_number(100, 160);
     GET_HEIGHT(ch) = rand_number(150, 180); /* 5'0" - 6'0" */
   }
+
   GET_SIZE(ch) = SIZE_MEDIUM;
-  GET_RACE(ch) = RACE_UNDEFINED;
+
+  if (GET_RACE(ch) < -1 || GET_RACE(ch) >= NUM_RACES)
+    GET_RACE(ch) = RACE_UNDEFINED;
 
   if ((i = get_ptable_by_name(GET_NAME(ch))) != -1)
     player_table[i].id = GET_IDNUM(ch) = ++top_idnum;

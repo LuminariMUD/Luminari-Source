@@ -2270,8 +2270,8 @@ void close_socket(struct descriptor_data *d)
   }
 
   if (d->character) {
-    if (GET_HOST(d->character))
-      free(GET_HOST(d->character));
+//    if (GET_HOST(d->character))
+//      free(GET_HOST(d->character));
 
     /* If we're switched, this resets the mobile taken. */
     d->character->desc = NULL;
@@ -2486,7 +2486,7 @@ static RETSIGTYPE checkpointing(int sig)
 /* Dying anyway... */
 static RETSIGTYPE hupsig(int sig)
 {
-  log("SYSERR: Received SIGHUP, SIGINT, or SIGTERM.  Shutting down...");
+  log("SYSERR: Received SIGHUP, SIGINT, or SIGTERM [%d].  Shutting down...", sig);
   exit(1); /* perhaps something more elegant should substituted */
 }
 
@@ -3128,3 +3128,5 @@ static void msdp_update( void )
     MSSPSetPlayers( PlayerCount );
   }
 }
+
+
