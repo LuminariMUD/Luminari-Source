@@ -216,6 +216,8 @@
 // warding spells that need to be saved
 #define MIRROR			0
 #define STONESKIN		1
+/*---------*/
+#define NUM_WARDING		2
 #define MAX_WARDING		10	// "warding" type spells such as stoneskin that save
 
 
@@ -226,6 +228,9 @@
 #define CALLCOMPANION		3
 #define CALLFAMILIAR		4
 #define SORC_KNOWN            5
+/*---------------*/
+#define NUM_SPEC_ABIL		6
+#define MAX_SPEC_ABIL	MAX_CLASSES
 	/* max = MAX_CLASSES right now */
 
 
@@ -339,6 +344,9 @@
 #define PLR_BUG          17   /**< Player is writing a bug */
 #define PLR_IDEA         18   /**< Player is writing an idea */
 #define PLR_TYPO         19   /**< Player is writing a typo */
+/***************/
+#define NUM_PLR_BITS	20
+
 
 /* Mobile flags: used by char_data.char_specials.act */
 #define MOB_SPEC            0   /**< Mob has a callable spec-proc */
