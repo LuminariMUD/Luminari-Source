@@ -61,55 +61,6 @@ const char *craft_type[NUM_CRAFT+1] = {
   "\n"
 };
   
-const char *material_name[NUM_MATERIALS+1] = {
-  "RESERVED",
-  "cotton",
-  "leather",
-  "glass",
-  "gold",
-  "organic",
-  "paper",
-  "steel",
-  "wood",
-  "bone",
-  "crystal",
-  "ether",
-  "adamantine",
-  "mithril",
-  "iron",
-  "copper",
-  "ceramic",
-  "satin",
-  "silk",
-  "dragonhide",
-  "burlap",
-  "velvet",
-  "platinum",
-  "obsidian",
-  "wool",
-  "onyx",
-  "ivory",
-  "brass",
-  "marble",
-  "bronze",
-  "pewter",
-  "ruby",
-  "sapphire",
-  "emerald",
-  "gemstone",
-  "granite",
-  "stone",
-  "energy",
-  "hemp",
-  "diamond",
-  "earth",
-  "silver",
-  "alchemal silver",
-  "cold iron",
-  "darkwood",
-  "\n"
-};
-
 const char *size_names[NUM_SIZES+1] = {
   "RESERVED",
   "Fine",
@@ -302,31 +253,26 @@ const char *position_types[] = {
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *player_bits[] = {
-  "KILLER",
+  "KILLER",		//0
   "THIEF",
   "FROZEN",
   "DONTSET",
   "WRITING",
-  "MAILING",
+  "MAILING",		//5
   "CSH",
   "SITEOK",
   "NOSHOUT",
   "NOTITLE",
-  "DELETED",
+  "DELETED",		//10
   "LOADRM",
   "NO_WIZL",
   "NO_DEL",
   "INVST",
-  "CRYO",
+  "CRYO",		//15
   "DEAD",    /* You should never see this flag on a character in game. */
   "IBT_BUG",
   "IBT_IDEA",
   "IBT_TYPO",
-  "UNUSED1",
-  "UNUSED2",
-  "UNUSED3",
-  "UNUSED4",
-  "UNUSED5",
   "\n"
 };
 
@@ -402,6 +348,10 @@ const char *preference_bits[] = {
   "AUTODOOR",
   "NO_CT",
   "AUTOSCAN",
+  "Display-Exp",
+  "Display-Exits",
+  "Display-Room",
+  "Display-Memtime",
   "\n"
 };
 
@@ -467,43 +417,43 @@ const char *affected_bits[] =
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *connected_types[] = {
-  "Playing",
+  "Playing",		//0
   "Disconnecting",
   "Get name",
   "Confirm name",
   "Get password",
-  "Get new PW",
+  "Get new PW",		//5
   "Confirm new PW",
   "Select sex",
   "Select class",
   "Reading MOTD",
-  "Main Menu",
+  "Main Menu",		//10
   "Get descript.",
   "Changing PW 1",
   "Changing PW 2",
   "Changing PW 3",
-  "Self-Delete 1",
+  "Self-Delete 1",	//15
   "Self-Delete 2",
   "Disconnecting",
   "Object edit",
   "Room edit",
-  "Zone edit",
+  "Zone edit",		//20
   "Mobile edit",
   "Shop edit",
   "Text edit",
   "Config edit",
-  "Social edit",
+  "Social edit",	//25
   "Trigger edit",
   "Help edit",
   "Quest edit",
   "Preference edit",
-  "IBT edit",
+  "IBT edit",		//30
   "Protocol Detection",
   "Select Race",
   "Clan edit",
   "Message Edit",
-  "Spells Known Edit",
-  "\n"
+  "Spells Known Edit",	//35
+  "\n"  /* make sure this matches NUM_CON_STATES:  36 */
 };
 
 /** Describes the position in the equipment listing.
@@ -577,6 +527,55 @@ const char *item_profs[] = {
   "Heavy Armor Proficiency",
   "Shield Proficiency",
   "Tower Shield Proficiency",
+  "\n"
+};
+
+const char *material_name[NUM_MATERIALS+1] = {
+  "RESERVED",
+  "cotton",
+  "leather",
+  "glass",
+  "gold",
+  "organic",
+  "paper",
+  "steel",
+  "wood",
+  "bone",
+  "crystal",
+  "ether",
+  "adamantine",
+  "mithril",
+  "iron",
+  "copper",
+  "ceramic",
+  "satin",
+  "silk",
+  "dragonhide",
+  "burlap",
+  "velvet",
+  "platinum",
+  "obsidian",
+  "wool",
+  "onyx",
+  "ivory",
+  "brass",
+  "marble",
+  "bronze",
+  "pewter",
+  "ruby",
+  "sapphire",
+  "emerald",
+  "gemstone",
+  "granite",
+  "stone",
+  "energy",
+  "hemp",
+  "diamond",
+  "earth",
+  "silver",
+  "alchemal silver",
+  "cold iron",
+  "darkwood",
   "\n"
 };
 
@@ -675,6 +674,7 @@ const char *extra_bits[] = {
   "Anti-Gnome",
   "Anti-Berserker",
   "Anti-Trelux",
+  "Anti-Sorcerer",
   "\n"
 };
 
@@ -1331,7 +1331,27 @@ int lore_app[] = {
 	4000000,	//47
 	4000000,	//48
 	4000000,	//49
-	4000000		//50
+	4000000,	//50
+	4000000,	//51
+	4000000,	//52
+	4000000,	//53
+	4000000,	//54
+	4000000,	//55
+	4000000,	//56
+	4000000,	//57
+	4000000,	//58
+	4000000,	//59
+	4000000,	//60
+	4000000,	//61
+	4000000,	//62
+	4000000,	//63
+	4000000,	//64
+	4000000,	//65
+	4000000,	//66
+	4000000,	//67
+	4000000,	//68
+	4000000,	//69
+	4000000		//70
 };
 
 
@@ -1352,6 +1372,7 @@ int rev_dir[] =
 };
 
 /** How much movement is lost moving through a particular sector type. */
+/* make sure it matches SECT_ */
 int movement_loss[] =
 {
   1,	/* Inside     */
