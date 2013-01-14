@@ -989,7 +989,7 @@ void display_sorc(struct char_data *ch)
   if (PRAYING(ch, 0, classArray(CLASS_SORCERER)))
     send_to_char(ch, "\tCTime left for next slot to recover:"
             "  \tn%d\tC seconds.\tn\r\n",
-            PRAYING(ch, 0, classArray(CLASS_SORCERER)));  
+            PRAYTIME(ch, 0, classArray(CLASS_SORCERER)));  
 }
 
 
@@ -1183,6 +1183,10 @@ void printMemory(struct char_data *ch, int class)
   }
   
   switch (class) {
+    case CLASS_SORCERER:
+      send_to_char(ch, "\tDCommands: '\tYsorcedit sorcerer\tD' to adjust known spells.\tn\r\n"
+                       "\tDRest, then type '\tYsorc\tD' to recover spell slots.\tn\r\n");
+      break;
     case CLASS_DRUID:
       send_to_char(ch, "\tDCommands: commune <spellname>, uncommune <spellname>, "
                      "spells druid\tn\r\n");

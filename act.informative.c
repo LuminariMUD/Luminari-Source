@@ -1211,6 +1211,7 @@ ACMD(do_score)
                 (int)(height / 12.0),
                ((int)(height) % 12), GET_WEIGHT(ch));
   */
+
   send_to_char(ch, "\tCAge:\tn %d \tCyrs\tn / %d \tCmths\tn",
           age(ch)->year, age(ch)->month);
   send_to_char(ch, "    \tCCharacter Size Category:\tn  %s\r\n",
