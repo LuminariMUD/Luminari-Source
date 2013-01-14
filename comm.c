@@ -2270,6 +2270,9 @@ void close_socket(struct descriptor_data *d)
   }
 
   if (d->character) {
+    if (GET_HOST(d->character))
+      free(GET_HOST(d->character));
+
     /* If we're switched, this resets the mobile taken. */
     d->character->desc = NULL;
 
@@ -2350,6 +2353,9 @@ void close_socket(struct descriptor_data *d)
     default:
       break;
   }
+
+//  if (d->host)
+//    free(d->host);
 
   free(d);
 }
