@@ -513,10 +513,11 @@
 #define CON_CLANEDIT     33 /** OLC mode - clan edit */
 #define CON_MSGEDIT      34 /**< OLC mode - message editor */
 #define CON_SORCEDIT     35 /**< OLC mode - sorc-spells-known editor */
+#define CON_QCLASS_HELP  36 /* help info during char creation */
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT     /**< The first CON_ state that is an OLC */
 #define LAST_OLC_STATE  CON_SORCEDIT   /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES	36
+#define NUM_CON_STATES	37
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors

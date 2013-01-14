@@ -53,6 +53,9 @@ ACMD(do_write);
  ****************************************************************************/
 /* Utility Functions */
 
+// char creation help files
+void perform_help(struct descriptor_data *d, char *argument);
+
 // displaying more info -zusuk
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode);
 #define SHOW_OBJ_SHORT	1
