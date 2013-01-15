@@ -64,7 +64,6 @@ static void perform_group_gain(struct char_data *ch, int base,
         struct char_data *victim);
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
 	int w_type, int offhand);
-//static void free_messages_type(struct msg_type *msg); -zusuk
 static void make_corpse(struct char_data *ch);
 static void change_alignment(struct char_data *ch, struct char_data *victim);
 static void group_gain(struct char_data *ch, struct char_data *victim);
@@ -280,93 +279,6 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch)
   return (MIN(MAX_AC, armorclass));
 }
 
-/*
-static void free_messages_type(struct msg_type *msg)
-{
-  if (msg->attacker_msg)	free(msg->attacker_msg);
-  if (msg->victim_msg)		free(msg->victim_msg);
-  if (msg->room_msg)		free(msg->room_msg);
-}
-
-
-void free_messages(void)
-{
-  int i;
-
-  for (i = 0; i < MAX_MESSAGES; i++)
-    while (fight_messages[i].msg) {
-      struct message_type *former = fight_messages[i].msg;
-
-      free_messages_type(&former->die_msg);
-      free_messages_type(&former->miss_msg);
-      free_messages_type(&former->hit_msg);
-      free_messages_type(&former->god_msg);
-
-      fight_messages[i].msg = fight_messages[i].msg->next;
-      free(former);
-    }
-}
-
-void load_messages(void)
-{
-  FILE *fl;
-  int i, type;
-  struct message_type *messages;
-  char chk[128], *buf;
-
-  if (!(fl = fopen(MESS_FILE, "r"))) {
-    log("SYSERR: Error reading combat message file %s: %s", MESS_FILE,
-            strerror(errno));
-    exit(1);
-  }
-
-  for (i = 0; i < MAX_MESSAGES; i++) {
-    fight_messages[i].a_type = 0;
-    fight_messages[i].number_of_attacks = 0;
-    fight_messages[i].msg = NULL;
-  }
-
-  while (!feof(fl)) {
-    buf = fgets(chk, 128, fl);
-    while (!feof(fl) && (*chk == '\n' || *chk == '*'))
-      buf = fgets(chk, 128, fl);
-
-    while (*chk == 'M') {
-      buf = fgets(chk, 128, fl);
-      sscanf(chk, " %d\n", &type);
-      for (i = 0; (i < MAX_MESSAGES) && (fight_messages[i].a_type != type) &&
-         (fight_messages[i].a_type); i++);
-      if (i >= MAX_MESSAGES) {
-        log("SYSERR: Too many combat messages.  "
-                "Increase MAX_MESSAGES and recompile.");
-        exit(1);
-      }
-      CREATE(messages, struct message_type, 1);
-      fight_messages[i].number_of_attacks++;
-      fight_messages[i].a_type = type;
-      messages->next = fight_messages[i].msg;
-      fight_messages[i].msg = messages;
-
-      messages->die_msg.attacker_msg = fread_action(fl, i);
-      messages->die_msg.victim_msg = fread_action(fl, i);
-      messages->die_msg.room_msg = fread_action(fl, i);
-      messages->miss_msg.attacker_msg = fread_action(fl, i);
-      messages->miss_msg.victim_msg = fread_action(fl, i);
-      messages->miss_msg.room_msg = fread_action(fl, i);
-      messages->hit_msg.attacker_msg = fread_action(fl, i);
-      messages->hit_msg.victim_msg = fread_action(fl, i);
-      messages->hit_msg.room_msg = fread_action(fl, i);
-      messages->god_msg.attacker_msg = fread_action(fl, i);
-      messages->god_msg.victim_msg = fread_action(fl, i);
-      messages->god_msg.room_msg = fread_action(fl, i);
-      buf  = fgets(chk, 128, fl);
-      while (!feof(fl) && (*chk == '\n' || *chk == '*'))
-        buf  = fgets(chk, 128, fl);
-    }
-  }
-  fclose(fl);
-}
-*/
 
 // the whole update_pos system probably needs to be rethought -zusuk
 void update_pos_dam(struct char_data *victim)
@@ -1462,11 +1374,13 @@ int damage(struct char_data *ch, struct char_data *victim,
     die(victim, ch);
     return (-1);
   }
+  
   if (ch->nr != real_mobile(DG_CASTER_PROXY) &&
       ch != victim && ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return (0);
   }
+  
   if (!ok_damage_shopkeeper(ch, victim) || MOB_FLAGGED(victim, MOB_NOKILL)) {
     send_to_char(ch, "This mob is protected.\r\n");
     if (FIGHTING(ch) && FIGHTING(ch) == victim)
@@ -1478,9 +1392,11 @@ int damage(struct char_data *ch, struct char_data *victim,
   if (!IS_NPC(victim) && ((GET_LEVEL(victim) >= LVL_IMMORT) &&
           PRF_FLAGGED(victim, PRF_NOHASSLE)))
     dam = 0;  // immort protection
+  
   if (victim != ch) {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))  // ch -> vict
       set_fighting(ch, victim);
+    
     // vict -> ch
     if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL)) {
       set_fighting(victim, ch);
@@ -1490,6 +1406,7 @@ int damage(struct char_data *ch, struct char_data *victim,
   }
   if (victim->master == ch)  // pet leaves you
     stop_follower(victim);
+  
   if (!CONFIG_PK_ALLOWED) {  // PK check
     check_killer(ch, victim);
     if (PLR_FLAGGED(ch, PLR_KILLER) && (ch != victim))
@@ -1556,7 +1473,7 @@ int damage(struct char_data *ch, struct char_data *victim,
     break;
   default:
     if (dam > (GET_MAX_HIT(victim) / 4))
-      send_to_char(victim, "That really did HURT!\r\n");
+      send_to_char(victim, "\tYThat really did \tRHURT\tY!\tn\r\n");
     if (GET_HIT(victim) < (GET_MAX_HIT(victim) / 4)) {
       send_to_char(victim, "%sYou wish that your wounds would stop "
               "BLEEDING so much!%s\r\n",
@@ -2021,10 +1938,15 @@ void hit(struct char_data *ch, struct char_data *victim,
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
   if (!ch || !victim) return;  //ch and victim exist?
+  
+  fight_mtrigger(ch);  //fight trig
+
   if (IN_ROOM(ch) != IN_ROOM(victim)) {  //same room?
     if (FIGHTING(ch) && FIGHTING(ch) == victim)
       stop_fighting(ch);
-    return;  }
+    return;
+  }
+  
   update_pos(ch);update_pos(victim);  //valid positions?
   if (GET_POS(ch) <= POS_DEAD || GET_POS(victim) <= POS_DEAD)    return;
 
@@ -2035,23 +1957,6 @@ void hit(struct char_data *ch, struct char_data *victim,
     stop_fighting(ch);
     return;
   }
-  fight_mtrigger(ch);  //fight trig
-
-  /***** redoing all checks, debug for script issues -zusuk ****/
-  if (!ch || !victim) return;  //ch and victim exist?
-  if (IN_ROOM(ch) != IN_ROOM(victim)) {  //same room?
-    if (FIGHTING(ch) && FIGHTING(ch) == victim)
-      stop_fighting(ch);
-    return;  }
-  update_pos(ch);update_pos(victim);  //valid positions?
-  if (GET_POS(ch) <= POS_DEAD || GET_POS(victim) <= POS_DEAD)    return;
-  if (ch->nr != real_mobile(DG_CASTER_PROXY) &&
-      ch != victim && ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    stop_fighting(ch);
-    return;
-  }
-  /***** end redoing all checks, debug for script issues -zusuk ****/
 
   if (victim != ch) {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))  // ch -> vict
@@ -2424,15 +2329,16 @@ void perform_violence(void)
 
   for (ch = combat_list; ch; ch = next_combat_list) {
     next_combat_list = ch->next_fighting;
-    PARRY_LEFT(ch) = perform_attacks(ch, 1);
-
-    if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT))
-      continue;
     
     if (FIGHTING(ch) == NULL || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))) {
       stop_fighting(ch);
       continue;
     }
+    
+    PARRY_LEFT(ch) = perform_attacks(ch, 1);    
+
+    if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT))
+      continue;
 
     if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
       send_to_char(ch, "You are paralyzed and unable to react!\r\n");

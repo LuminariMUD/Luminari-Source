@@ -216,7 +216,7 @@ void affect_update(void)
   struct raff_node *raff, *next_raff;
   int has_message = 0;
 
-  for (i = character_list; i; i = i->next)
+  for (i = character_list; i; i = i->next) {
     for (af = i->affected; af; af = next) {
       next = af->next;
       if (af->duration >= 1)
@@ -224,18 +224,21 @@ void affect_update(void)
       else if (af->duration == -1) /* No action */
         ;
       else {
-        if ((af->spell > 0) && (af->spell <= MAX_SPELLS))
+        if ((af->spell > 0) && (af->spell <= MAX_SPELLS)) {
           if (!af->next || (af->next->spell != af->spell) ||
-                  (af->next->duration > 0))
+                  (af->next->duration > 0)) {
             if (spell_info[af->spell].wear_off_msg) {
               send_to_char(i, "%s\r\n", spell_info[af->spell].wear_off_msg);
               has_message = 1;
             }
+          }
+        }
         if (!has_message)
           alt_wear_off_msg(i, af->spell);
         affect_remove(i, af);
       }
     }
+  }
 
 /* update the room affections */
   for (raff = raff_list; raff; raff = next_raff) {
@@ -845,7 +848,7 @@ int isMagicArmored(struct char_data *victim)
 // 20 rounds = 1 real minute
 // 1200 rounds = 1 real hour
 // old tick = 75 seconds, or 1.25 minutes or 25 rounds
-#define MAX_SPELL_AFFECTS 9	/* change if more needed */
+#define MAX_SPELL_AFFECTS 5	/* change if more needed */
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 		      struct obj_data *wpn, int spellnum, int savetype)
 {

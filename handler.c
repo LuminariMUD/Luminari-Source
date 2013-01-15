@@ -106,7 +106,7 @@ int isname(const char *str, const char *namelist)
   return 0;
 }
 
-void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg, bool add)
+void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg)
 {
   switch (loc) {
 
@@ -219,7 +219,8 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg, bool
   } /* switch */
 }
 
-void affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[], bool add)
+void affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[],
+        bool add)
 {
   int i , j;
 
@@ -236,7 +237,7 @@ void affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[], bo
     mod = -mod;
   }
 
-  aff_apply_modify(ch, loc, mod, "affect_modify_ar", add);
+  aff_apply_modify(ch, loc, mod, "affect_modify_ar");
 }
 
 /* This updates a character by subtracting everything he is affected by
@@ -972,6 +973,8 @@ void extract_char_final(struct char_data *ch)
   /* On with the character's assets... */
   if (ch->followers || ch->master)
     die_follower(ch);
+  
+  /* clear riding */
   if (RIDING(ch) || RIDDEN_BY(ch))
     dismount_char(ch);
 
@@ -1555,6 +1558,9 @@ void join_group(struct char_data *ch, struct group_data *group)
   else
     send_to_group(NULL, group, "%s joins the group.\r\n", GET_NAME(ch));		
 }
+
+
+/* mount related stuff */
 
 
 void dismount_char(struct char_data *ch) 

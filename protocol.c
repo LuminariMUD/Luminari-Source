@@ -39,10 +39,9 @@ const char * RGBthree = "F555";
 
 static void Write( descriptor_t *apDescriptor, const char *apData )
 {
-   if ( apDescriptor != NULL)
+   if ( apDescriptor != NULL )
    {
-      if ( apDescriptor->pProtocol->WriteOOB > 0)
-      {
+       if ( apDescriptor->pProtocol->WriteOOB > 0 ) {
          apDescriptor->pProtocol->WriteOOB = 2;
       }
    }
@@ -209,30 +208,32 @@ static time_t s_Uptime  = 0;
  Local function prototypes.
  ******************************************************************************/
 
-static void Negotiate            ( descriptor_t *apDescriptor );
-static void PerformHandshake     ( descriptor_t *apDescriptor, char aCmd, char aProtocol );
-static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *apData, int aSize );
+static void Negotiate               ( descriptor_t *apDescriptor );
+static void PerformHandshake        ( descriptor_t *apDescriptor, char aCmd, char aProtocol );
+static void PerformSubnegotiation   ( descriptor_t *apDescriptor, char aCmd, char *apData, int aSize );
+static void SendNegotiationSequence ( descriptor_t *apDescriptor, char aCmd, char aProtocol );
+static bool_t ConfirmNegotiation    ( descriptor_t *apDescriptor, negotiated_t aProtocol, bool_t abWillDo, bool_t abSendReply );
 
-static void ParseMSDP            ( descriptor_t *apDescriptor, const char *apData );
-static void ExecuteMSDPPair      ( descriptor_t *apDescriptor, const char *apVariable, const char *apValue );
+static void ParseMSDP               ( descriptor_t *apDescriptor, const char *apData );
+static void ExecuteMSDPPair         ( descriptor_t *apDescriptor, const char *apVariable, const char *apValue );
 
-static void ParseATCP            ( descriptor_t *apDescriptor, const char *apData );
+static void ParseATCP               ( descriptor_t *apDescriptor, const char *apData );
 #ifdef MUDLET_PACKAGE
-static void SendATCP             ( descriptor_t *apDescriptor, const char *apVariable, const char *apValue );
+static void SendATCP                ( descriptor_t *apDescriptor, const char *apVariable, const char *apValue );
 #endif /* MUDLET_PACKAGE */
 
-static void SendMSSP             ( descriptor_t *apDescriptor );
+static void SendMSSP                ( descriptor_t *apDescriptor );
 
-static char *GetMxpTag           ( const char *apTag, const char *apText );
+static char *GetMxpTag              ( const char *apTag, const char *apText );
 
-static const char *GetAnsiColour ( bool_t abBackground, int aRed, int aGreen, int aBlue );
-static const char *GetRGBColour  ( bool_t abBackground, int aRed, int aGreen, int aBlue );
-static bool_t IsValidColour      ( const char *apArgument );
+static const char *GetAnsiColour    ( bool_t abBackground, int aRed, int aGreen, int aBlue );
+static const char *GetRGBColour     ( bool_t abBackground, int aRed, int aGreen, int aBlue );
+static bool_t IsValidColour         ( const char *apArgument );
 
-static bool_t MatchString        ( const char *apFirst, const char *apSecond );
-static bool_t PrefixString       ( const char *apPart, const char *apWhole );
-static bool_t IsNumber           ( const char *apString );
-static char  *AllocString        ( const char *apString );
+static bool_t MatchString           ( const char *apFirst, const char *apSecond );
+static bool_t PrefixString          ( const char *apPart, const char *apWhole );
+static bool_t IsNumber              ( const char *apString );
+static char  *AllocString           ( const char *apString );
 
 /******************************************************************************
  ANSI colour codes.
@@ -293,13 +294,19 @@ protocol_t *ProtocolCreate( void )
 
    pProtocol = (protocol_t *) malloc(sizeof(protocol_t));
    pProtocol->WriteOOB = 0;
+   for ( i = eNEGOTIATED_TTYPE; i < eNEGOTIATED_MAX; ++i )
+      pProtocol->Negotiated[i] = false;   
    pProtocol->bIACMode = false;
    pProtocol->bNegotiated = false;
+   pProtocol->bRenegotiate = false;
+   pProtocol->bNeedMXPVersion = false;   
    pProtocol->bBlockMXP = false;
    pProtocol->bTTYPE = false;
+   pProtocol->bECHO = false;   
    pProtocol->bNAWS = false;
    pProtocol->bCHARSET = false;
    pProtocol->bMSDP = false;
+   pProtocol->bMSSP = false;   
    pProtocol->bATCP = false;
    pProtocol->bMSP = false;
    pProtocol->bMXP = false;
@@ -343,7 +350,7 @@ void ProtocolDestroy( protocol_t *apProtocol )
 
    for ( i = eMSDP_NONE+1; i < eMSDP_MAX; ++i )
    {
-	  if (apProtocol->pVariables[i]->pValueString)
+     if (apProtocol->pVariables[i]->pValueString)
         free(apProtocol->pVariables[i]->pValueString);
       free(apProtocol->pVariables[i]);
    }
@@ -469,15 +476,13 @@ ssize_t ProtocolInput( descriptor_t *apDescriptor, char *apData, int aSize, char
             pProtocol->pMXPVersion = AllocString(pMXPTag);
          }
  
-         /* No longer necessary
-          * 
          if ( strcmp(pProtocol->pMXPVersion, "Unknown") )
          {
             Write( apDescriptor, "\n" );
             sprintf( MXPBuffer, "MXP version %s detected and enabled.\r\n", 
                pProtocol->pMXPVersion );
             InfoMessage( apDescriptor, MXPBuffer );
-         } */
+         }
       }
       else /* In-band command */
       {
@@ -532,6 +537,9 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
    const char LinkStart[] = "\033[1z<send>\033[7z";
    const char LinkStop[] = "\033[1z</send>\033[7z";
    bool_t bTerminate = false, bUseMXP = false, bUseMSP = false;
+#ifdef COLOUR_CHAR
+   bool_t bColourOn = COLOUR_ON_BY_DEFAULT;
+#endif /* COLOUR_CHAR */
    int i = 0, j = 0; /* Index values */
 
    protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
@@ -553,6 +561,16 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
          {
             case '\t': /* Two tabs in a row will display an actual tab */
                pCopyFrom = Tab;
+               break;
+            case 'n':
+               pCopyFrom = s_Clean;
+               break;
+/* trying to save confusion by putting unique codes from stock here */               
+            case 'd': /* dark grey / black */
+               pCopyFrom = ColourRGB(apDescriptor, "F000");
+               break;
+            case 'D': /* light grey */
+               pCopyFrom = ColourRGB(apDescriptor, "F111");
                break;
             case '_':
                pCopyFrom = "\x1B[4m"; /* Underline... if supported */
@@ -581,22 +599,8 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
                break;
             case '3':
                pCopyFrom = ColourRGB(apDescriptor, RGBthree);
-               break;
-            case 'n':
-               pCopyFrom = s_Clean;
-               break;
-            case 'd': /* dark grey / black */
-               pCopyFrom = ColourRGB(apDescriptor, "F000");
-               break;
-            case 'D': /* light grey */
-               pCopyFrom = ColourRGB(apDescriptor, "F111");
-               break;
-            case 'a': /* dark azure */
-               pCopyFrom = ColourRGB(apDescriptor, "F021");
-               break;
-            case 'A': /* light Azure */
-               pCopyFrom = ColourRGB(apDescriptor, "F053");
-               break;
+               break;               
+/***************/               
             case 'r': /* dark red */
                pCopyFrom = ColourRGB(apDescriptor, "F200");
                break;
@@ -610,16 +614,16 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
                pCopyFrom = ColourRGB(apDescriptor, "F050");
                break;
             case 'y': /* dark yellow */
-               pCopyFrom = ColourRGB(apDescriptor, "F330");
+               pCopyFrom = ColourRGB(apDescriptor, "F220");
                break;
             case 'Y': /* light yellow */
                pCopyFrom = ColourRGB(apDescriptor, "F550");
                break;
             case 'b': /* dark blue */
-               pCopyFrom = ColourRGB(apDescriptor, "F012");
+               pCopyFrom = ColourRGB(apDescriptor, "F002");
                break;
             case 'B': /* light blue */
-               pCopyFrom = ColourRGB(apDescriptor, "F025");
+               pCopyFrom = ColourRGB(apDescriptor, "F005");
                break;
             case 'm': /* dark magenta */
                pCopyFrom = ColourRGB(apDescriptor, "F202");
@@ -634,12 +638,30 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
                pCopyFrom = ColourRGB(apDescriptor, "F055");
                break;
             case 'w': /* dark white */
-               pCopyFrom = ColourRGB(apDescriptor, "F333");
+               pCopyFrom = ColourRGB(apDescriptor, "F222");
                break;
             case 'W': /* light white */
                pCopyFrom = ColourRGB(apDescriptor, "F555");
                break;
-            case 'o': /* dark orange */
+            case 'a': /* dark azure */
+               pCopyFrom = ColourRGB(apDescriptor, "F014");
+               break;
+            case 'A': /* light azure */
+               pCopyFrom = ColourRGB(apDescriptor, "F025");
+               break;
+            case 'j': /* dark jade */
+               pCopyFrom = ColourRGB(apDescriptor, "F031");
+               break;
+            case 'J': /* light jade */
+               pCopyFrom = ColourRGB(apDescriptor, "F052");
+               break;               
+            case 'l': /* dark lime */
+               pCopyFrom = ColourRGB(apDescriptor, "F140");
+               break;
+            case 'L': /* light lime */
+               pCopyFrom = ColourRGB(apDescriptor, "F250");
+               break;
+           case 'o': /* dark orange */
                pCopyFrom = ColourRGB(apDescriptor, "F520");
                break;
             case 'O': /* light orange */
@@ -649,7 +671,19 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
                pCopyFrom = ColourRGB(apDescriptor, "F301");
                break;
             case 'P': /* light pink */
-               pCopyFrom = ColourRGB(apDescriptor, "F501");
+               pCopyFrom = ColourRGB(apDescriptor, "F502");
+               break;
+            case 't': /* dark tan */
+               pCopyFrom = ColourRGB(apDescriptor, "F210");
+               break;
+            case 'T': /* light tan */
+               pCopyFrom = ColourRGB(apDescriptor, "F321");
+               break;
+            case 'v': /* dark violet */
+               pCopyFrom = ColourRGB(apDescriptor, "F104");
+               break;
+            case 'V': /* light violet */
+               pCopyFrom = ColourRGB(apDescriptor, "F205");
                break;
             case '(': /* MXP link */
                if ( !pProtocol->bBlockMXP && pProtocol->pVariables[eMSDP_MXP]->ValueInt )
@@ -744,7 +778,7 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
                         bValid = false;
                   }
 
-                  if ( !bDone || !bValid)
+                  if ( !bDone || !bValid )
                   {
                      sprintf( BugString, "BUG: RGB %sground colour '%s' wasn't terminated with ']'.\n", 
                         (tolower(Buffer[0]) == 'f') ? "fore" : "back", &Buffer[1] );
@@ -810,6 +844,14 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
             case '!': /* Used for in-band MSP sound triggers */
                pCopyFrom = MSP;
                break;
+#ifdef COLOUR_CHAR
+            case '+':
+               bColourOn = true;
+               break;
+            case '-':
+               bColourOn = false;
+               break;
+#endif /* COLOUR_CHAR */               
             case '\0':
                bTerminate = true;
                break;
@@ -824,6 +866,149 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
                Result[i++] = *pCopyFrom++;
          }
       }
+#ifdef COLOUR_CHAR
+      else if ( bColourOn && apData[j] == COLOUR_CHAR )
+      {
+         const char ColourChar[] = { COLOUR_CHAR, '\0' };
+         const char *pCopyFrom = NULL;
+
+         switch ( apData[++j] )
+         {
+            case COLOUR_CHAR: /* Two in a row display the actual character */
+               pCopyFrom = ColourChar;
+               break;
+            case 'n':
+               pCopyFrom = s_Clean;
+               break;
+            case 'r': /* dark red */
+               pCopyFrom = ColourRGB(apDescriptor, "F200");
+               break;
+            case 'R': /* light red */
+               pCopyFrom = ColourRGB(apDescriptor, "F500");
+               break;
+            case 'g': /* dark green */
+               pCopyFrom = ColourRGB(apDescriptor, "F020");
+               break;
+            case 'G': /* light green */
+               pCopyFrom = ColourRGB(apDescriptor, "F050");
+               break;
+            case 'y': /* dark yellow */
+               pCopyFrom = ColourRGB(apDescriptor, "F220");
+               break;
+            case 'Y': /* light yellow */
+               pCopyFrom = ColourRGB(apDescriptor, "F550");
+               break;
+            case 'b': /* dark blue */
+               pCopyFrom = ColourRGB(apDescriptor, "F002");
+               break;
+            case 'B': /* light blue */
+               pCopyFrom = ColourRGB(apDescriptor, "F005");
+               break;
+            case 'm': /* dark magenta */
+               pCopyFrom = ColourRGB(apDescriptor, "F202");
+               break;
+            case 'M': /* light magenta */
+               pCopyFrom = ColourRGB(apDescriptor, "F505");
+               break;
+            case 'c': /* dark cyan */
+               pCopyFrom = ColourRGB(apDescriptor, "F022");
+               break;
+            case 'C': /* light cyan */
+               pCopyFrom = ColourRGB(apDescriptor, "F055");
+               break;
+            case 'w': /* dark white */
+               pCopyFrom = ColourRGB(apDescriptor, "F222");
+               break;
+            case 'W': /* light white */
+               pCopyFrom = ColourRGB(apDescriptor, "F555");
+               break;
+            case 'a': /* dark azure */
+               pCopyFrom = ColourRGB(apDescriptor, "F014");
+               break;
+            case 'A': /* light azure */
+               pCopyFrom = ColourRGB(apDescriptor, "F025");
+               break;
+            case 'j': /* dark jade */
+               pCopyFrom = ColourRGB(apDescriptor, "F031");
+               break;
+            case 'J': /* light jade */
+               pCopyFrom = ColourRGB(apDescriptor, "F052");
+               break;
+            case 'l': /* dark lime */
+               pCopyFrom = ColourRGB(apDescriptor, "F140");
+               break;
+            case 'L': /* light lime */
+               pCopyFrom = ColourRGB(apDescriptor, "F250");
+               break;
+            case 'o': /* dark orange */
+               pCopyFrom = ColourRGB(apDescriptor, "F520");
+               break;
+            case 'O': /* light orange */
+               pCopyFrom = ColourRGB(apDescriptor, "F530");
+               break;
+            case 'p': /* dark pink */
+               pCopyFrom = ColourRGB(apDescriptor, "F301");
+               break;
+            case 'P': /* light pink */
+               pCopyFrom = ColourRGB(apDescriptor, "F502");
+               break;
+            case 't': /* dark tan */
+               pCopyFrom = ColourRGB(apDescriptor, "F210");
+               break;
+            case 'T': /* light tan */
+               pCopyFrom = ColourRGB(apDescriptor, "F321");
+               break;
+            case 'v': /* dark violet */
+               pCopyFrom = ColourRGB(apDescriptor, "F104");
+               break;
+            case 'V': /* light violet */
+               pCopyFrom = ColourRGB(apDescriptor, "F205");
+               break;
+            case '\0':
+               bTerminate = true;
+               break;
+#ifdef EXTENDED_COLOUR
+            case '[':
+               if ( tolower(apData[++j]) == 'f' || tolower(apData[j]) == 'b' )
+               {
+                  char Buffer[8] = {'\0'};
+                  int Index = 0;
+                  bool_t bDone = false, bValid = true;
+
+                  /* Copy the 'f' (foreground) or 'b' (background) */
+                  Buffer[Index++] = apData[j++];
+
+                  while ( apData[j] != '\0' && !bDone && bValid )
+                  {
+                     if ( apData[j] == ']' )
+                        bDone = true;
+                     else if ( Index < 4 )
+                        Buffer[Index++] = apData[j++];
+                     else /* It's too long, so drop out - the colour code may still be valid */
+                        bValid = false;
+                  }
+
+                  if ( bDone && bValid && IsValidColour(Buffer) )
+                     pCopyFrom = ColourRGB(apDescriptor, Buffer);
+               }
+               break;
+#endif /* EXTENDED_COLOUR */
+            default:
+#ifdef DISPLAY_INVALID_COLOUR_CODES
+               Result[i++] = COLOUR_CHAR;
+               Result[i++] = apData[j];
+#endif /* DISPLAY_INVALID_COLOUR_CODES */
+               break;
+         }
+
+         /* Copy the colour code, if any. */
+         if ( pCopyFrom != NULL )
+         {
+            while ( *pCopyFrom != '\0' && i < MAX_OUTPUT_BUFFER )
+               Result[i++] = *pCopyFrom++;
+         }
+      }
+#endif /* COLOUR_CHAR */      
       else if ( bUseMXP && apData[j] == '>' )
       {
          const char *pCopyFrom = MXPStop;
@@ -869,8 +1054,21 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
  */
 void ProtocolNegotiate( descriptor_t *apDescriptor )
 {
+   ConfirmNegotiation(apDescriptor, eNEGOTIATED_TTYPE, true, true);
+}
+
+/*
+void ProtocolNegotiate( descriptor_t *apDescriptor )
+{
    static const char DoTTYPE [] = { (char)IAC, (char)DO, TELOPT_TTYPE, '\0' };
    Write(apDescriptor, DoTTYPE);
+}
+*/
+
+/* Tells the client to switch echo on or off. */
+void ProtocolNoEcho( descriptor_t *apDescriptor, bool_t abOn )
+{
+   ConfirmNegotiation(apDescriptor, eNEGOTIATED_ECHO, abOn, true);
 }
 
 /******************************************************************************
@@ -999,13 +1197,19 @@ void CopyoverSet( descriptor_t *apDescriptor, const char *apData )
        */
       if ( pProtocol->bMSDP )
       {
+         ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSDP, true, true);
+/*
          char WillMSDP [] = { (char)IAC, (char)WILL, TELOPT_MSDP, '\0' };
          Write(apDescriptor, WillMSDP);
+*/
       }
       else if ( pProtocol->bATCP )
       {
+         ConfirmNegotiation(apDescriptor, eNEGOTIATED_ATCP, true, true);        
+/*
          char DoATCP [] = { (char)IAC, (char)DO, (char)TELOPT_ATCP, '\0' };
          Write(apDescriptor, DoATCP);
+*/
       }
 
       /* Ask the client to send its MXP version again */
@@ -1362,6 +1566,41 @@ void MXPSendTag( descriptor_t *apDescriptor, const char *apTag )
 {
    protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
+   if ( pProtocol != NULL && apTag != NULL && strlen(apTag) < 1000 )
+   {
+      if ( pProtocol->pVariables[eMSDP_MXP]->ValueInt )
+      {
+         char MXPBuffer [1024];
+         sprintf(MXPBuffer, "\033[1z%s\033[7z\r\n", apTag );
+         Write(apDescriptor, MXPBuffer);
+      }
+      else if ( pProtocol->bRenegotiate )
+      {
+         /* Tijer pointed out that when MUSHclient autoconnects, it fails 
+          * to complete the negotiation.  This workaround will attempt to 
+          * renegotiate after the character has connected.
+          */
+
+         int i; /* Renegotiate everything except TTYPE */
+         for ( i = eNEGOTIATED_TTYPE+1; i < eNEGOTIATED_MAX; ++i )
+         {
+            pProtocol->Negotiated[i] = false;
+            ConfirmNegotiation(apDescriptor, (negotiated_t)i, true, true);
+         }
+
+         pProtocol->bRenegotiate = false;
+         pProtocol->bNeedMXPVersion = true;
+         Negotiate(apDescriptor);
+      }
+   }
+}
+
+
+/*
+void MXPSendTag( descriptor_t *apDescriptor, const char *apTag )
+{
+   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
+
    if ( pProtocol != NULL && pProtocol->pVariables[eMSDP_MXP]->ValueInt && 
       strlen(apTag) < 1000 )
    {
@@ -1370,6 +1609,7 @@ void MXPSendTag( descriptor_t *apDescriptor, const char *apTag )
       Write(apDescriptor, MXPBuffer);
    }
 }
+*/
 
 /******************************************************************************
  Sound global functions.
@@ -1408,12 +1648,8 @@ void SoundSend( descriptor_t *apDescriptor, const char *apTrigger )
 const char *ColourRGB( descriptor_t *apDescriptor, const char *apRGB )
 {
    protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
-   bool charHasColor = TRUE;
-   
-   if (apDescriptor->character && !clr(apDescriptor->character, C_CMP))
-		charHasColor = FALSE;
 
-   if ( pProtocol && pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt && charHasColor )
+   if ( pProtocol && pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt )
    {
       if ( IsValidColour(apRGB) )
       {
@@ -1437,6 +1673,41 @@ const char *ColourRGB( descriptor_t *apDescriptor, const char *apRGB )
       return "";
    }
 }
+
+/*
+const char *ColourRGB( descriptor_t *apDescriptor, const char *apRGB )
+{
+   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
+   bool charHasColor = TRUE;
+   
+   if (apDescriptor->character && !clr(apDescriptor->character, C_CMP))
+		charHasColor = FALSE;
+
+   if ( pProtocol && pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt && charHasColor )
+   {
+      if ( IsValidColour(apRGB) )
+      {
+         bool_t bBackground = (tolower(apRGB[0]) == 'b');
+         int Red = apRGB[1] - '0';
+         int Green = apRGB[2] - '0';
+         int Blue = apRGB[3] - '0';
+
+         if ( pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt )
+            return GetRGBColour( bBackground, Red, Green, Blue );
+         else // Use regular ANSI colour
+            return GetAnsiColour( bBackground, Red, Green, Blue );
+      }
+      else // Invalid colour - use this to clear any existing colour.
+      {
+         return s_Clean;
+      }
+   }
+   else // Don't send any colour, not even clear
+   {
+      return "";
+   }
+}
+*/
 
 /******************************************************************************
  UTF-8 global functions.
@@ -1490,6 +1761,41 @@ static void Negotiate( descriptor_t *apDescriptor )
    if ( pProtocol->bNegotiated )
    {
       const char RequestTTYPE   [] = { (char)IAC, (char)SB,   TELOPT_TTYPE, SEND, (char)IAC, (char)SE, '\0' };
+
+      /* Request the client type if TTYPE is supported. */
+      if ( pProtocol->bTTYPE )
+         Write(apDescriptor, RequestTTYPE);
+
+      /* Check for other protocols. */
+      ConfirmNegotiation(apDescriptor, eNEGOTIATED_NAWS, true, true);
+      ConfirmNegotiation(apDescriptor, eNEGOTIATED_CHARSET, true, true);
+      ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSDP, true, true);
+      ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSSP, true, true);
+      ConfirmNegotiation(apDescriptor, eNEGOTIATED_ATCP, true, true);
+      ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSP, true, true);
+      ConfirmNegotiation(apDescriptor, eNEGOTIATED_MXP, true, true);
+      ConfirmNegotiation(apDescriptor, eNEGOTIATED_MCCP, true, true);
+   }
+}
+
+     /* Gnome-mud seems to have an issue with negotiating DoCHARSET under
+       * certain conditions cause it to crash. This is a GNOME-MUD issue
+       * and not an issue on our end. Never-the-less, if you discover you
+       * are having this issue you can either a) disable protocol negotiation
+       * in cedit, or b) disable detection of CHARSET by deleting/commenting
+       * the following line.
+       * 
+       * For more information on gnome-mud's bug see:
+       * https://bugs.launchpad.net/ubuntu/+source/gnome-mud/+bug/398340 */      
+
+/*
+static void Negotiate( descriptor_t *apDescriptor )
+{
+   protocol_t *pProtocol = apDescriptor->pProtocol;
+
+   if ( pProtocol->bNegotiated )
+   {
+      const char RequestTTYPE   [] = { (char)IAC, (char)SB,   TELOPT_TTYPE, SEND, (char)IAC, (char)SE, '\0' };
       const char DoNAWS         [] = { (char)IAC, (char)DO,   TELOPT_NAWS,      '\0' };
       const char DoCHARSET      [] = { (char)IAC, (char)DO,   TELOPT_CHARSET,   '\0' };
       const char WillMSDP       [] = { (char)IAC, (char)WILL, TELOPT_MSDP,      '\0' };
@@ -1502,21 +1808,12 @@ static void Negotiate( descriptor_t *apDescriptor )
       const char WillMCCP       [] = { (char)IAC, (char)WILL, TELOPT_MCCP,      '\0' };
 #endif // USING_MCCP
 
-      /* Request the client type if TTYPE is supported. */
+      // Request the client type if TTYPE is supported.
       if ( pProtocol->bTTYPE )
          Write(apDescriptor, RequestTTYPE);
 
-      /* Check for other protocols. */
+      // Check for other protocols
       Write(apDescriptor, DoNAWS);
-     /* Gnome-mud seems to have an issue with negotiating DoCHARSET under
-       * certain conditions cause it to crash. This is a GNOME-MUD issue
-       * and not an issue on our end. Never-the-less, if you discover you
-       * are having this issue you can either a) disable protocol negotiation
-       * in cedit, or b) disable detection of CHARSET by deleting/commenting
-       * the following line.
-       * 
-       * For more information on gnome-mud's bug see:
-       * https://bugs.launchpad.net/ubuntu/+source/gnome-mud/+bug/398340 */      
       Write(apDescriptor, DoCHARSET);
       Write(apDescriptor, WillMSDP);
       Write(apDescriptor, WillMSSP);
@@ -1529,7 +1826,315 @@ static void Negotiate( descriptor_t *apDescriptor )
 #endif // USING_MCCP
    }
 }
+*/
 
+static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProtocol )
+{
+   protocol_t *pProtocol = apDescriptor->pProtocol;
+
+   switch ( aProtocol )
+   {
+      case (char)TELOPT_TTYPE:
+         if ( aCmd == (char)WILL )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_TTYPE, true, true);
+            pProtocol->bTTYPE = true;
+
+            if ( !pProtocol->bNegotiated )
+            {
+               /* Negotiate for the remaining protocols. */
+               pProtocol->bNegotiated = true;
+               Negotiate(apDescriptor);
+
+               /* We may need to renegotiate if they don't reply */            
+               pProtocol->bRenegotiate = true;
+            }
+         }
+         else if ( aCmd == (char)WONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_TTYPE, false, pProtocol->bTTYPE);
+            pProtocol->bTTYPE = false;
+
+            if ( !pProtocol->bNegotiated )
+            {
+               /* Still negotiate, as this client obviously knows how to 
+                * correctly respond to negotiation attempts - but we don't 
+                * ask for TTYPE, as it doesn't support it.
+                */
+               pProtocol->bNegotiated = true;
+               Negotiate(apDescriptor);
+
+               /* We may need to renegotiate if they don't reply */            
+               pProtocol->bRenegotiate = true;
+            }
+         }
+         else if ( aCmd == (char)DO )
+         {
+            /* Invalid negotiation, send a rejection */
+            SendNegotiationSequence( apDescriptor, (char)WONT, (char)aProtocol );
+         }
+         break;
+
+      case (char)TELOPT_ECHO:
+         if ( aCmd == (char)DO )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_ECHO, true, true);
+            pProtocol->bECHO = true;
+         }
+         else if ( aCmd == (char)DONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_ECHO, false, pProtocol->bECHO);
+            pProtocol->bECHO = false;
+         }
+         else if ( aCmd == (char)WILL )
+         {
+            /* Invalid negotiation, send a rejection */
+            SendNegotiationSequence( apDescriptor, (char)DONT, (char)aProtocol );
+         }
+         break;
+
+      case (char)TELOPT_NAWS:
+         if ( aCmd == (char)WILL )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_NAWS, true, true);
+            pProtocol->bNAWS = true;
+
+            /* Renegotiation workaround won't be necessary. */
+            pProtocol->bRenegotiate = false;
+         }
+         else if ( aCmd == (char)WONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_NAWS, false, pProtocol->bNAWS);
+            pProtocol->bNAWS = false;
+
+            /* Renegotiation workaround won't be necessary. */
+            pProtocol->bRenegotiate = false;
+         }
+         else if ( aCmd == (char)DO )
+         {
+            /* Invalid negotiation, send a rejection */
+            SendNegotiationSequence( apDescriptor, (char)WONT, (char)aProtocol );
+         }
+         break;
+
+      case (char)TELOPT_CHARSET:
+         if ( aCmd == (char)WILL )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_CHARSET, true, true);
+            if ( !pProtocol->bCHARSET )
+            {
+               const char charset_utf8 [] = { (char)IAC, (char)SB, TELOPT_CHARSET, 1, ' ', 'U', 'T', 'F', '-', '8', (char)IAC, (char)SE, '\0' };
+               Write(apDescriptor, charset_utf8);
+               pProtocol->bCHARSET = true;
+            }
+         }
+         else if ( aCmd == (char)WONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_CHARSET, false, pProtocol->bCHARSET);
+            pProtocol->bCHARSET = false;
+         }
+         else if ( aCmd == (char)DO )
+         {
+            /* Invalid negotiation, send a rejection */
+            SendNegotiationSequence( apDescriptor, (char)WONT, (char)aProtocol );
+         }
+         break;
+
+      case (char)TELOPT_MSDP:
+         if ( aCmd == (char)DO )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSDP, true, true);
+
+            if ( !pProtocol->bMSDP )
+            {
+               pProtocol->bMSDP = true;
+
+               /* Identify the mud to the client. */
+               MSDPSendPair( apDescriptor, "SERVER_ID", MUD_NAME );
+            }
+         }
+         else if ( aCmd == (char)DONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSDP, false, pProtocol->bMSDP);
+            pProtocol->bMSDP = false;
+         }
+         else if ( aCmd == (char)WILL )
+         {
+            /* Invalid negotiation, send a rejection */
+            SendNegotiationSequence( apDescriptor, (char)DONT, (char)aProtocol );
+         }
+         break;
+
+      case (char)TELOPT_MSSP:
+         if ( aCmd == (char)DO )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSSP, true, true);
+
+            if ( !pProtocol->bMSSP )
+            {
+               SendMSSP( apDescriptor );
+               pProtocol->bMSSP = true;
+            }
+         }
+         else if ( aCmd == (char)DONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSSP, false, pProtocol->bMSSP);
+            pProtocol->bMSSP = false;
+         }
+         else if ( aCmd == (char)WILL )
+         {
+            /* Invalid negotiation, send a rejection */
+            SendNegotiationSequence( apDescriptor, (char)DONT, (char)aProtocol );
+         }
+         break;
+
+      case (char)TELOPT_MCCP:
+         if ( aCmd == (char)DO )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_MCCP, true, true);
+
+            if ( !pProtocol->bMCCP )
+            {
+               pProtocol->bMCCP = true;
+               CompressStart( apDescriptor );
+            }
+         }
+         else if ( aCmd == (char)DONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_MCCP, false, pProtocol->bMCCP);
+
+            if ( pProtocol->bMCCP )
+            {
+               pProtocol->bMCCP = false;
+               CompressEnd( apDescriptor );
+            }
+         }
+         else if ( aCmd == (char)WILL )
+         {
+            /* Invalid negotiation, send a rejection */
+            SendNegotiationSequence( apDescriptor, (char)DONT, (char)aProtocol );
+         }
+         break;
+
+      case (char)TELOPT_MSP:
+         if ( aCmd == (char)DO )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSP, true, true);
+            pProtocol->bMSP = true;
+         }
+         else if ( aCmd == (char)DONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSP, false, pProtocol->bMSP);
+            pProtocol->bMSP = false;
+         }
+         else if ( aCmd == (char)WILL )
+         {
+            /* Invalid negotiation, send a rejection */
+            SendNegotiationSequence( apDescriptor, (char)DONT, (char)aProtocol );
+         }
+         break;
+
+      case (char)TELOPT_MXP:
+         if ( aCmd == (char)WILL || aCmd == (char)DO )
+         {
+            if ( aCmd == (char)WILL )
+               ConfirmNegotiation(apDescriptor, eNEGOTIATED_MXP, true, true);
+            else /* aCmd == (char)DO */
+               ConfirmNegotiation(apDescriptor, eNEGOTIATED_MXP2, true, true);
+
+            if ( !pProtocol->bMXP )
+            {
+               /* Enable MXP. */
+               const char EnableMXP[] = { (char)IAC, (char)SB, TELOPT_MXP, (char)IAC, (char)SE, '\0' };
+               Write(apDescriptor, EnableMXP);
+
+               /* Create a secure channel, and note that MXP is active. */
+               Write(apDescriptor, "\033[7z");
+               pProtocol->bMXP = true;
+               pProtocol->pVariables[eMSDP_MXP]->ValueInt = 1;
+
+               if ( pProtocol->bNeedMXPVersion )
+                  MXPSendTag( apDescriptor, "<VERSION>" );
+            }
+         }
+         else if ( aCmd == (char)WONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_MXP, false, pProtocol->bMXP);
+
+            if ( !pProtocol->bMXP )
+            {
+               /* The MXP standard doesn't actually specify whether you should 
+                * negotiate with IAC DO MXP or IAC WILL MXP.  As a result, some 
+                * clients support one, some the other, and some support both.
+                * 
+                * Therefore we first try IAC DO MXP, and if the client replies 
+                * with WONT, we try again (here) with IAC WILL MXP.
+                */
+               ConfirmNegotiation(apDescriptor, eNEGOTIATED_MXP2, true, true);
+            }
+            else /* The client is actually asking us to switch MXP off. */
+            {
+               pProtocol->bMXP = false;
+            }
+         }
+         else if ( aCmd == (char)DONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_MXP2, false, pProtocol->bMXP);
+            pProtocol->bMXP = false;
+         }
+         break;
+
+      case (char)TELOPT_ATCP:
+         if ( aCmd == (char)WILL )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_ATCP, true, true);
+
+            /* If we don't support MSDP, fake it with ATCP */
+            if ( !pProtocol->bMSDP && !pProtocol->bATCP )
+            {
+               pProtocol->bATCP = true;
+
+#ifdef MUDLET_PACKAGE
+               /* Send the Mudlet GUI package to the user. */
+               if ( MatchString( "Mudlet",
+                  pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString ) )
+               {
+                  SendATCP( apDescriptor, "Client.GUI", MUDLET_PACKAGE );
+               }
+#endif /* MUDLET_PACKAGE */
+
+               /* Identify the mud to the client. */
+               MSDPSendPair( apDescriptor, "SERVER_ID", MUD_NAME );
+            }
+         }
+         else if ( aCmd == (char)WONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_ATCP, false, pProtocol->bATCP);
+            pProtocol->bATCP = false;
+         }
+         else if ( aCmd == (char)DO )
+         {
+            /* Invalid negotiation, send a rejection */
+            SendNegotiationSequence( apDescriptor, (char)WONT, (char)aProtocol );
+         }
+         break;
+
+      default:
+         if ( aCmd == (char)WILL )
+         {
+            /* Invalid negotiation, send a rejection */
+            SendNegotiationSequence( apDescriptor, (char)DONT, (char)aProtocol );
+         }
+         else if ( aCmd == (char)DO )
+         {
+            /* Invalid negotiation, send a rejection */
+            SendNegotiationSequence( apDescriptor, (char)WONT, (char)aProtocol );
+         }
+         break;
+   }
+}
+
+/*
 static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProtocol )
 {
    bool_t bResult = true;
@@ -1542,7 +2147,7 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
          {
             if ( !pProtocol->bNegotiated )
             {
-               /* Negotiate for the remaining protocols. */
+               // Negotiate for the remaining protocols.
                pProtocol->bNegotiated = true;
                pProtocol->bTTYPE = true;
                Negotiate(apDescriptor);
@@ -1552,16 +2157,15 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
          {
             if ( !pProtocol->bNegotiated )
             {
-               /* Still negotiate, as this client obviously knows how to 
-                * correctly respond to negotiation attempts - but we don't 
-                * ask for TTYPE, as it doesn't support it.
-                */
+               // Still negotiate, as this client obviously knows how to 
+               // correctly respond to negotiation attempts - but we don't 
+               // ask for TTYPE, as it doesn't support it.               
                pProtocol->bNegotiated = true;
                pProtocol->bTTYPE = false;
                Negotiate(apDescriptor);
             }
          }
-         else /* Anything else is invalid. */
+         else // Anything else is invalid.
             bResult = false;
          break;
 
@@ -1570,7 +2174,7 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
             pProtocol->bNAWS = true;
          else if ( aCmd == (char)WONT )
             pProtocol->bNAWS = false;
-         else /* Anything else is invalid. */
+         else // Anything else is invalid.
             bResult = false;
          break;
 
@@ -1583,7 +2187,7 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
          }
          else if ( aCmd == (char)WONT )
             pProtocol->bCHARSET = false;
-         else /* Anything else is invalid. */
+         else // Anything else is invalid.
             bResult = false;
          break;
 
@@ -1592,12 +2196,12 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
          {
             pProtocol->bMSDP = true;
 
-            /* Identify the mud to the client. */
+            // Identify the mud to the client.
             MSDPSendPair( apDescriptor, "SERVER_ID", MUD_NAME );
          }
          else if ( aCmd == (char)DONT )
             pProtocol->bMSDP = false;
-         else /* Anything else is invalid. */
+         else // Anything else is invalid.
             bResult = false;
          break;
 
@@ -1605,8 +2209,8 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
          if ( aCmd == (char)DO )
             SendMSSP( apDescriptor );
          else if ( aCmd == (char)DONT )
-            ; /* Do nothing. */
-         else /* Anything else is invalid. */
+            ; // Do nothing
+         else // Anything else is invalid.
             bResult = false;
          break;
 
@@ -1630,18 +2234,18 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
             pProtocol->bMSP = true;
          else if ( aCmd == (char)DONT )
             pProtocol->bMSP = false;
-         else /* Anything else is invalid. */
+         else // Anything else is invalid.
             bResult = false;
          break;
 
       case (char)TELOPT_MXP:
          if ( aCmd == (char)WILL || aCmd == (char)DO )
          {
-            /* Enable MXP. */
+            // Enable MXP.
             const char EnableMXP[] = { (char)IAC, (char)SB, TELOPT_MXP, (char)IAC, (char)SE, '\0' };
             Write(apDescriptor, EnableMXP);
 
-            /* Create a secure channel, and note that MXP is active. */
+            // Create a secure channel, and note that MXP is active.
             Write(apDescriptor, "\033[7z");
             pProtocol->bMXP = true;
             pProtocol->pVariables[eMSDP_MXP]->ValueInt = 1;
@@ -1650,13 +2254,13 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
          {
             if ( !pProtocol->bMXP )
             {
-               /* The MXP standard doesn't actually specify whether you should 
-                * negotiate with IAC DO MXP or IAC WILL MXP.  As a result, some 
-                * clients support one, some the other, and some support both.
-                * 
-                * Therefore we first try IAC DO MXP, and if the client replies 
-                * with WONT, we try again (here) with IAC WILL MXP.
-                */
+               // The MXP standard doesn't actually specify whether you should 
+               // negotiate with IAC DO MXP or IAC WILL MXP.  As a result, some 
+               // clients support one, some the other, and some support both.
+                
+               // Therefore we first try IAC DO MXP, and if the client replies 
+               // with WONT, we try again (here) with IAC WILL MXP.
+                
                const char WillMXP[] = { (char)IAC, (char)WILL, TELOPT_MXP, '\0' };
                Write(apDescriptor, WillMXP);
             }
@@ -1667,34 +2271,34 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
          }
          else if ( aCmd == (char)DONT )
             pProtocol->bMXP = false;
-         else /* Anything else is invalid. */
+         else // Anything else is invalid.
             bResult = false;
          break;
 
       case (char)TELOPT_ATCP:
          if ( aCmd == (char)WILL )
          {
-            /* If we don't support MSDP, fake it with ATCP */
+            // If we don't support MSDP, fake it with ATCP
             if ( !pProtocol->bMSDP )
             {
                pProtocol->bATCP = true;
 
 #ifdef MUDLET_PACKAGE
-               /* Send the Mudlet GUI package to the user. */
+               // Send the Mudlet GUI package to the user.
                if ( MatchString( "Mudlet",
                   pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString ) )
                {
                   SendATCP( apDescriptor, "Client.GUI", MUDLET_PACKAGE );
                }
-#endif /* MUDLET_PACKAGE */
+#endif // MUDLET_PACKAGE
 
-               /* Identify the mud to the client. */
+               // Identify the mud to the client.
                MSDPSendPair( apDescriptor, "SERVER_ID", MUD_NAME );
             }
          }
          else if ( aCmd == (char)WONT )
             pProtocol->bATCP = false;
-         else /* Anything else is invalid. */
+         else // Anything else is invalid.
             bResult = false;
          break;
 
@@ -1702,6 +2306,7 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
          bResult = false;
    }
 }
+*/
 
 static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *apData, int aSize )
 {
@@ -1770,7 +2375,8 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
                pProtocol->pLastTTYPE = AllocString(pClientName);
 
                /* Look for 256 colour support */
-               if ( (pStartPos != NULL && MatchString(pStartPos, "-256color")) || MatchString(pClientName, "xterm") )
+               if ( (pStartPos != NULL && MatchString(pStartPos, "-256color")) ||
+                       MatchString(pClientName, "xterm") )
                {
                   /* This is currently the only way to detect support for 256 
                    * colours in TinTin++, WinTin++ and BlowTorch.
@@ -1877,16 +2483,98 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
          break;
 
       case (char)TELOPT_MSDP:
-         ParseMSDP( apDescriptor, apData );
+         if ( pProtocol->bMSDP )
+         {
+            ParseMSDP( apDescriptor, apData );
+         }
          break;
-
+         
       case (char)TELOPT_ATCP:
-         ParseATCP( apDescriptor, apData );
+         if ( pProtocol->bATCP )
+         {
+            ParseATCP( apDescriptor, apData );
+         }
          break;
 
       default: /* Unknown subnegotiation, so we simply ignore it. */
          break;
    }
+}
+
+static void SendNegotiationSequence( descriptor_t *apDescriptor, char aCmd, char aProtocol )
+{
+   char NegotiateSequence[4];
+
+   NegotiateSequence[0] = (char)IAC;
+   NegotiateSequence[1] = aCmd;
+   NegotiateSequence[2] = aProtocol;
+   NegotiateSequence[3] = '\0';
+
+   Write(apDescriptor, NegotiateSequence);
+}
+
+static bool_t ConfirmNegotiation( descriptor_t *apDescriptor, negotiated_t aProtocol, bool_t abWillDo, bool_t abSendReply )
+{
+   bool_t bResult = false;
+
+   if ( aProtocol >= eNEGOTIATED_TTYPE && aProtocol < eNEGOTIATED_MAX )
+   {
+      /* Only negotiate if the state has changed. */
+      if ( apDescriptor->pProtocol->Negotiated[aProtocol] != abWillDo )
+      {
+         /* Store the new state. */
+         apDescriptor->pProtocol->Negotiated[aProtocol] = abWillDo;
+
+         bResult = true;
+
+         if ( abSendReply )
+         {
+            switch ( aProtocol )
+            {
+               case eNEGOTIATED_TTYPE:
+                  SendNegotiationSequence( apDescriptor, abWillDo ? DO : DONT, TELOPT_TTYPE );
+                  break;
+               case eNEGOTIATED_ECHO:
+                  SendNegotiationSequence( apDescriptor, abWillDo ? WILL : WONT, TELOPT_ECHO );
+                  break;
+               case eNEGOTIATED_NAWS:
+                  SendNegotiationSequence( apDescriptor, abWillDo ? DO : DONT, TELOPT_NAWS );
+                  break;
+               case eNEGOTIATED_CHARSET:
+                  SendNegotiationSequence( apDescriptor, abWillDo ? DO : DONT, TELOPT_CHARSET );
+                  break;
+               case eNEGOTIATED_MSDP:
+                  SendNegotiationSequence( apDescriptor, abWillDo ? WILL : WONT, TELOPT_MSDP );
+                  break;
+               case eNEGOTIATED_MSSP:
+                  SendNegotiationSequence( apDescriptor, abWillDo ? WILL : WONT, TELOPT_MSSP );
+                  break;
+               case eNEGOTIATED_ATCP:
+                  SendNegotiationSequence( apDescriptor, abWillDo ? DO : DONT, (char)TELOPT_ATCP );
+                  break;
+               case eNEGOTIATED_MSP:
+                  SendNegotiationSequence( apDescriptor, abWillDo ? WILL : WONT, TELOPT_MSP );
+                  break;
+               case eNEGOTIATED_MXP:
+                  SendNegotiationSequence( apDescriptor, abWillDo ? DO : DONT, TELOPT_MXP );
+                  break;
+               case eNEGOTIATED_MXP2:
+                  SendNegotiationSequence( apDescriptor, abWillDo ? WILL : WONT, TELOPT_MXP );
+                  break;
+               case eNEGOTIATED_MCCP:
+#ifdef USING_MCCP
+                  SendNegotiationSequence( apDescriptor, abWillDo ? WILL : WONT, TELOPT_MCCP );
+#endif /* USING_MCCP */
+                  break;
+               default:
+                  bResult = false;
+                  break;
+            }
+         }
+      }
+   }
+
+   return bResult;
 }
 
 /******************************************************************************
@@ -2440,9 +3128,9 @@ static const char *GetAnsiColour( bool_t abBackground, int aRed, int aGreen, int
    else if ( aRed == aGreen && aRed == aBlue )
       return abBackground ? s_BackWhite : aRed >= 4 ? s_BoldWhite : s_DarkWhite;
    else if ( aRed > aGreen && aRed > aBlue )
-      return abBackground ? s_BackRed : aRed > 3 ? s_BoldRed : s_DarkRed;
+      return abBackground ? s_BackRed : aRed >= 3 ? s_BoldRed : s_DarkRed;
    else if ( aRed == aGreen && aRed > aBlue )
-      return abBackground ? s_BackYellow : aRed > 3 ? s_BoldYellow : s_DarkYellow;
+      return abBackground ? s_BackYellow : aRed >= 3 ? s_BoldYellow : s_DarkYellow;
    else if ( aRed == aBlue && aRed > aGreen )
       return abBackground ? s_BackMagenta : aRed >= 3 ? s_BoldMagenta : s_DarkMagenta;
    else if ( aGreen > aBlue )

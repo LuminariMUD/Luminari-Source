@@ -1539,7 +1539,8 @@ ACMD(do_help)
           send_to_char(ch, "\r\nDid you mean:\r\n");
           found = 1;
         }
-        send_to_char(ch, "  %s\r\n", help_table[i].keywords);
+        send_to_char(ch, "  \t<send link=\"Help %s\">%s\t</send>\r\n",
+                help_table[i].keywords, help_table[i].keywords);
       }
     }
     send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");    
@@ -1908,7 +1909,7 @@ ACMD(do_users)
     }
   }				/* end while (parser) */
   send_to_char(ch,
-	 "Num Class   Name         State          Idl   Login@@   Site\r\n"
+	 "Num Class   Name         State          Idl   Login\t*   Site\r\n"
 	 "--- ------- ------------ -------------- ----- -------- ------------------------\r\n");
 
   one_argument(argument, arg);
@@ -2893,8 +2894,9 @@ ACMD(do_whois)
      CREATE(victim, struct char_data, 1);
      clear_char(victim);
      
+     new_mobile_data(victim);
      /* Allocate mobile event list */
-     victim->events = create_list();
+     //victim->events = create_list();
      
      CREATE(victim->player_specials, struct player_special_data, 1);
 
@@ -2949,41 +2951,31 @@ ACMD(do_whois)
 
   send_to_char(ch, "Level: %d\r\n", GET_LEVEL(victim));
 
-  if (!(GET_LEVEL(victim) < LVL_IMMORT) || (GET_LEVEL(ch) >= GET_LEVEL(victim)))
-  {
+  if (!(GET_LEVEL(victim) < LVL_IMMORT) ||
+          (GET_LEVEL(ch) >= GET_LEVEL(victim))) {
     strcpy (buf, (char *) asctime(localtime(&(victim->player.time.logon))));
     buf[10] = '\0';
 
     hours = (time(0) - victim->player.time.logon) / 3600;
 
-    if (!got_from_file)
-    {
+    if (!got_from_file) {
       send_to_char(ch, "Last Logon: They're playing now!  (Idle %d Minutes)",
            victim->char_specials.timer * SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
 
       if (!victim->desc)
-      {
         send_to_char(ch, "  (Linkless)\r\n");
-      }
       else
-      {
         send_to_char(ch, "\r\n");
-      }
+      
       if (PRF_FLAGGED(victim, PRF_AFK))
-      {
         send_to_char(ch, "%s%s is afk right now, so %s may not respond to communication.%s\r\n", CBGRN(ch, C_NRM), GET_NAME(victim), GET_SEX(victim) == SEX_NEUTRAL ? "it" : (GET_SEX(victim) == SEX_MALE ? "he" : "she"), CCNRM(ch, C_NRM));
-      }
     }
     else if (hours > 0)
-    {
       send_to_char(ch, "Last Logon: %s (%d days & %d hours ago.)\r\n", buf, hours/24, hours%24);
-    }
     else
-    {
       send_to_char(ch, "Last Logon: %s (0 hours & %d minutes ago.)\r\n",
                    buf, (int)(time(0) - victim->player.time.logon)/60);
     }
-  }
 
   if (has_mail(GET_IDNUM(victim)))
      send_to_char (ch, "They have mail waiting.\r\n");
@@ -2995,7 +2987,10 @@ ACMD(do_whois)
 
   if (!got_from_file && victim->desc != NULL && GET_LEVEL(ch) >= LVL_GOD) {
     protocol_t * prot = victim->desc->pProtocol;
-    send_to_char(ch, "Client:  %s\r\n", prot->pVariables[eMSDP_CLIENT_ID]->pValueString);
+    send_to_char(ch, "Client:  %s [%s]\r\n",
+            prot->pVariables[eMSDP_CLIENT_ID]->pValueString,
+            prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString ?
+            prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString : "Unknown");
     send_to_char(ch, "Color:   %s\r\n", prot->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt ? "Xterm" : (prot->pVariables[eMSDP_ANSI_COLORS]->ValueInt ? "Ansi" : "None"));
     send_to_char(ch, "MXP:     %s\r\n", prot->bMXP ? "Yes" : "No");
     send_to_char(ch, "Charset: %s\r\n", prot->bCHARSET ? "Yes" : "No");

@@ -66,6 +66,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate)
   }
 
   if (obj->action_description) {
+    
     strcpy(buf1, obj->action_description);
     strip_cr(buf1);
   } else
@@ -166,6 +167,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate)
 
   return 1;
 }
+
 #undef TEST_OBJS
 #undef TEST_OBJN
 
@@ -1023,7 +1025,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
 
     /* if the file is done, wrap it all up */
     if(get_line(fl, line) == FALSE || (*line == '$' && line[1] == '~')) {
-      if (temp == NULL && current->obj == NULL)	{
+      if (temp == NULL && current->obj == NULL) {
         /* Remove current from list. */
         tempsave = head;
         if (tempsave == current) {
@@ -1054,22 +1056,22 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     if (*line == '#') {
       /* check for false alarm. */
       if (sscanf(line, "#%d", &nr) == 1) {
-        /* if object or area is deleted */
+        /* Do not save an object if it has been deleted */
         if (real_object(nr) == NOTHING) {
             log("SYSERR: Protection: deleting object %d.", nr);
             continue;
-        }
-
-      	if (temp) {
-      	  current->obj = temp;
-    	  CREATE(current->next, obj_save_data, 1);
+        }        
+        if (temp) {
+          current->obj = temp;
+          CREATE(current->next, obj_save_data, 1);
           current=current->next;
 
-       	  current->locate = 0;
+          current->locate = 0;
           temp = NULL;
         }
       } else
       	continue;
+      
       /* we have the number, check it, load obj. */
       if (nr == NOTHING) {   /* then it is unique */
         temp = create_obj();
@@ -1087,6 +1089,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       /* go read next line - nothing more to see here. */
       continue;
     }
+    
     /* Should never get here, but since we did in the past, I'll put 
     * a safety check in. */
     if (temp == NULL) {
@@ -1124,13 +1127,11 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         struct extra_descr_data *new_desc;
         char error[40];
         snprintf(error, sizeof(error)-1, "rent(Edes): %s", temp->name);
-        if (temp) {
           if (temp->item_number != NOTHING && /* Regular object */
                temp->ex_description &&   /* with ex_desc == prototype */
                (temp->ex_description == 
                obj_proto[real_object(temp->item_number)].ex_description))
             temp->ex_description = NULL;
-        }
         CREATE(new_desc, struct extra_descr_data, 1);
         new_desc->keyword = fread_string(fl, error);
         new_desc->description = fread_string(fl, error);

@@ -1294,17 +1294,6 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator)
   }
 }
 
-
-void medit_random_race(struct descriptor_data *d)
-{
-}
-
-
-void medit_random_class(struct descriptor_data *d)
-{
-}
-
-
 void medit_autoroll_stats(struct descriptor_data *d)
 {
   int mob_lev;

@@ -330,7 +330,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "'"        , "'"       , POS_RESTING , do_say      , 0, 0 },
   { "save"     , "sav"     , POS_SLEEPING, do_save     , 0, 0 },
   { "saveall"  , "saveall" , POS_DEAD    , do_saveall  , LVL_BUILDER, 0},
-  { "savemobs"  , "savemobs" , POS_DEAD    , do_savemobs  , LVL_IMPL, 0},
+//  { "savemobs"  , "savemobs" , POS_DEAD    , do_savemobs  , LVL_IMPL, 0},
   { "sell"     , "sell"    , POS_STANDING, do_not_here , 0, 0 },
   { "sedit"    , "sedit"   , POS_DEAD    , do_oasis_sedit, LVL_BUILDER, 0 },
   { "send"     , "send"    , POS_SLEEPING, do_send     , LVL_GOD, 0 },
@@ -1519,11 +1519,15 @@ void nanny(struct descriptor_data *d, char *arg)
           CREATE(d->character->player.name, char, strlen(tmp_name) + 1);
           strcpy(d->character->player.name, CAP(tmp_name));	/* strcpy: OK (size checked above) */
           GET_PFILEPOS(d->character) = player_i;
+          
+          /*
           if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] || 
                d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS])) {
             SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_1);
             SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_2);
           }
+          */
+
           write_to_output(d, "Did I get that right, %s (\t(Y\t)/\t(N\t))? ", tmp_name);
           STATE(d) = CON_NAME_CNFRM;
         } else {
@@ -1548,11 +1552,13 @@ void nanny(struct descriptor_data *d, char *arg)
         CREATE(d->character->player.name, char, strlen(tmp_name) + 1);
         strcpy(d->character->player.name, CAP(tmp_name));	/* strcpy: OK (size checked above) */
 
+        /*
         if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] || 
              d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS])) {
           SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_1);
           SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_2);
         }
+        */
 
         write_to_output(d, "Did I get that right, %s (\t(Y\t)/\t(N\t))? ", tmp_name);
         STATE(d) = CON_NAME_CNFRM;
@@ -1859,15 +1865,15 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_PLAYING;
       MXPSendTag( d, "<VERSION>" );
       if (GET_LEVEL(d->character) == 0) {
-	do_start(d->character);
+        do_start(d->character);
         newbieEquipment(d->character);
-	send_to_char(d->character, "%s", CONFIG_START_MESSG);
+        send_to_char(d->character, "%s", CONFIG_START_MESSG);
       }
       look_at_room(d->character, 0);
       if (has_mail(GET_IDNUM(d->character)))
-	send_to_char(d->character, "You have mail waiting.\r\n");
+        send_to_char(d->character, "You have mail waiting.\r\n");
       if (load_result == 2) {	/* rented items lost */
-	send_to_char(d->character, "\r\n\007You could not afford your rent!\r\n"
+        send_to_char(d->character, "\r\n\007You could not afford your rent!\r\n"
 		"Your possesions have been donated to the Salvation Army!\r\n");
       }
       d->has_prompt = 0;
