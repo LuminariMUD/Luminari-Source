@@ -1398,21 +1398,25 @@ static char *make_prompt(struct descriptor_data *d)
               !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
         continue;
       if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%s(%s)%s",
+        if (len < sizeof(prompt))
+          count = snprintf(prompt + len, sizeof(prompt) - len, "%s(%s)%s",
                     EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? 
                     CCWHT(ch, C_NRM) : CCRED(ch, C_NRM), 
                     autoexits[door], CCCYN(ch, C_NRM));
       else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s%s",
+        if (len < sizeof(prompt))
+          count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s%s",
                     CCWHT(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
       else
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%s",
+        if (len < sizeof(prompt))
+          count = snprintf(prompt + len, sizeof(prompt) - len, "%s",
                     autoexits[door]);
       slen++;
       if (count >= 0)
         len += count;
     }
-    count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s >> ",
+    if (len < sizeof(prompt))
+      count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s >> ",
                 slen ? ">> " : "None! >> ", CCNRM(ch, C_NRM));
     if (count >= 0)
       len += count;

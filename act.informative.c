@@ -1539,7 +1539,7 @@ ACMD(do_help)
           send_to_char(ch, "\r\nDid you mean:\r\n");
           found = 1;
         }
-        send_to_char(ch, "  \t<send link=\"Help %s\">%s\t</send>\r\n",
+        send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
                 help_table[i].keywords, help_table[i].keywords);
       }
     }
