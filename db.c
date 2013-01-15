@@ -3367,8 +3367,8 @@ void free_char(struct char_data *ch)
       free(ch->player_specials->poofout);
     if (ch->player_specials->saved.completed_quests)
       free(ch->player_specials->saved.completed_quests);
-    if (ch->player_specials->saved.autocquest_desc)
-      free(ch->player_specials->saved.autocquest_desc);
+//    if (ch->player_specials->saved.autocquest_desc)
+//      free(ch->player_specials->saved.autocquest_desc);
     if (GET_HOST(ch))
       free(GET_HOST(ch));
     if (IS_NPC(ch))
