@@ -153,7 +153,6 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
     do_tell(keeper, buf, cmd_tell, 0);
     return (FALSE);
   }
-  return (TRUE);
 
   if ((IS_HUMAN(ch) && NOTRADE_HUMAN(shop_nr)) ||
        (IS_ELF(ch) && NOTRADE_ELF(shop_nr)) ||
@@ -167,6 +166,8 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
     do_tell(keeper, buf, cmd_tell, 0);
     return (FALSE);
   }
+  
+  
   return (TRUE);
 
 }
@@ -1005,7 +1006,7 @@ static void shopping_list(char *arg, struct char_data *ch, struct char_data *kee
       send_to_char(ch, "Items flagged \"qp\" require quest points to purchase.\r\n");
   }
   send_to_char(ch, "\r\n\tDYou can type 'identify <item name>' to view the stats"
-          " of an item in my inventory!\tn\r\n"); 
+          " of an item in inventory.\tn\r\n"); 
 }
 
 static int ok_shop_room(int shop_nr, room_vnum room)

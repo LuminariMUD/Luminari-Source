@@ -1236,11 +1236,13 @@ SPECIAL(cityguard)
     }
   }
 
+  /*
   if (evil && GET_ALIGNMENT(FIGHTING(evil)) >= 0) {
     act("$n screams 'PROTECT THE INNOCENT!  BANZAI!  CHARGE!  ARARARAGGGHH!'", FALSE, ch, 0, 0, TO_ROOM);
     hit(ch, evil, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
     return (TRUE);
   }
+  */
 
   /* Reward the socially inept. */
   if (spittle && !rand_number(0, 9)) {
