@@ -770,6 +770,7 @@
 // Memorization
 #define NUM_SLOTS	20  //theoretical max num slots per circle
 #define NUM_CIRCLES	10  //max num circles
+/* how much space to reserve in the mem arrays */
 #define MAX_MEM		NUM_SLOTS * NUM_CIRCLES
 
 
@@ -852,7 +853,7 @@
 /** Controls when a zone update will occur. */
 #define PULSE_ZONE      (10 RL_SEC)
 /** Controls when mobile (NPC) actions and updates will occur. */
-#define PULSE_MOBILE    (4 RL_SEC)
+#define PULSE_MOBILE    (6 RL_SEC)
 /** Controls the time between turns of combat. */
 #define PULSE_VIOLENCE  ( 4 RL_SEC)
 
@@ -876,7 +877,7 @@
 #define PULSE_TIMESAVE	(30 * 60 RL_SEC)
 /* Variables for the output buffering system */
 #define MAX_SOCK_BUF       (24 * 1024) /**< Size of kernel's sock buf   */
-#define MAX_PROMPT_LENGTH  96          /**< Max length of prompt        */
+#define MAX_PROMPT_LENGTH  300          /**< Max length of prompt        */
 #define GARBAGE_SPACE      32          /**< Space for **OVERFLOW** etc  */
 #define SMALL_BUFSIZE      1024        /**< Static output buffer size   */
 /** Max amount of output that can be buffered */
@@ -1399,7 +1400,6 @@ struct affected_type
   sh_int modifier;  /**< Added/subtracted to/from apropriate ability     */
   byte location;   /**< Tells which ability to change(APPLY_XXX). */
   int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
-  struct char_data *affector;
 
   struct affected_type *next; /**< The next affect in the list of affects. */
 };

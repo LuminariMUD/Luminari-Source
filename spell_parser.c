@@ -218,7 +218,7 @@ const char *skill_name(int num)
   if (num > 0 && num <= TOP_SPELL_DEFINE)
     return (spell_info[num].name);
   else if (num == -1)
-    return ("UNUSED");
+    return ("Not-Used");
   else
     return ("Non-Spell-Effect");
 }
@@ -748,55 +748,64 @@ EVENTFUNC(event_casting)
 int cast_spell(struct char_data *ch, struct char_data *tch,
 	           struct obj_data *tobj, int spellnum)
 {
+  int position = GET_POS(ch);
+  
   if (spellnum < 0 || spellnum > TOP_SPELL_DEFINE) {
     log("SYSERR: cast_spell trying to call spellnum %d/%d.", spellnum,
 	TOP_SPELL_DEFINE);
     return (0);
   }
 
-  if (GET_POS(ch) < SINFO.min_position) {
-    switch (GET_POS(ch)) {
+  if (FIGHTING(ch) && GET_POS(ch) > POS_STUNNED)
+    position = POS_FIGHTING;
+  
+  if (position < SINFO.min_position) {
+    switch (position) {
       case POS_SLEEPING:
-      send_to_char(ch, "You dream about great magical powers.\r\n");
-      break;
-    case POS_RESTING:
-      send_to_char(ch, "You cannot concentrate while resting.\r\n");
-      break;
-    case POS_SITTING:
-      send_to_char(ch, "You can't do this sitting!\r\n");
-      break;
-    case POS_FIGHTING:
-      send_to_char(ch, "Impossible!  You can't concentrate enough!\r\n");
-      break;
-    default:
-      send_to_char(ch, "You can't do much of anything like this!\r\n");
-      break;
+        send_to_char(ch, "You dream about great magical powers.\r\n");
+        break;
+      case POS_RESTING:
+        send_to_char(ch, "You cannot concentrate while resting.\r\n");
+        break;
+      case POS_SITTING:
+        send_to_char(ch, "You can't do this sitting!\r\n");
+        break;
+      case POS_FIGHTING:
+        send_to_char(ch, "Impossible!  You can't concentrate enough!\r\n");
+        break;
+      default:
+        send_to_char(ch, "You can't do much of anything like this!\r\n");
+        break;
     }
     return (0);
   }
+  
   if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == tch)) {
     send_to_char(ch, "You are afraid you might hurt your master!\r\n");
     return (0);
   }
+  
   if ((tch != ch) && IS_SET(SINFO.targets, TAR_SELF_ONLY)) {
     send_to_char(ch, "You can only cast this spell upon yourself!\r\n");
     return (0);
   }
+  
   if ((tch == ch) && IS_SET(SINFO.targets, TAR_NOT_SELF)) {
     send_to_char(ch, "You cannot cast this spell upon yourself!\r\n");
     return (0);
   }
+  
   if (IS_SET(SINFO.routines, MAG_GROUPS) && !GROUP(ch)) {
     send_to_char(ch, "You can't cast this spell if you're not in a group!\r\n");
     return (0);
   }
+  
   if (AFF_FLAGGED(ch, AFF_NAUSEATED)) {
     send_to_char(ch, "You are too nauseated to cast!\r\n");
     act("$n seems to be too nauseated to cast!",
             TRUE, ch, 0, 0, TO_ROOM);
     return (0);
   }
-  
 
   //default casting class will be the highest level casting class
   int class = -1, clevel = -1;
@@ -1070,6 +1079,7 @@ ACMD(do_cast)
     act("$n's magic fizzles out and dies.", FALSE, ch, 0, 0, TO_ROOM);
     return;
   }
+  
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL) &&
       (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
     send_to_char(ch, "A flash of white light fills the room, dispelling your violent magic!\r\n");
