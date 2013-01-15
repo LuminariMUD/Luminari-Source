@@ -58,6 +58,11 @@ ACMD(do_sorcedit)
     return;
   }
 
+  if (!CLASS_LEVEL(ch, CLASS_SORCERER)) {
+    send_to_char(ch, "How?  You are not a sorcerer!\r\n");
+    return;
+  }
+
   d = ch->desc;
 
   if (d->olc) {
