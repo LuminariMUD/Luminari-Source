@@ -876,7 +876,7 @@
 #define PULSE_TIMESAVE	(30 * 60 RL_SEC)
 /* Variables for the output buffering system */
 #define MAX_SOCK_BUF       (24 * 1024) /**< Size of kernel's sock buf   */
-#define MAX_PROMPT_LENGTH  512          /**< Max length of prompt        */
+#define MAX_PROMPT_LENGTH  96          /**< Max length of prompt        */
 #define GARBAGE_SPACE      32          /**< Space for **OVERFLOW** etc  */
 #define SMALL_BUFSIZE      1024        /**< Static output buffer size   */
 /** Max amount of output that can be buffered */

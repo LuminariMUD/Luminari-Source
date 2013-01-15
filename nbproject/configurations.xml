@@ -131,6 +131,7 @@
       <in>sedit.c</in>
       <in>shop.c</in>
       <in>shop.h</in>
+      <in>sorcedit.c</in>
       <in>spec_assign.c</in>
       <in>spec_procs.c</in>
       <in>spec_procs.h</in>
@@ -193,95 +194,7 @@
           </cTool>
         </makeTool>
       </makefileType>
-      <item path="act.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="asciimap.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="ban.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="boards.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="bsd-snprintf.h" ex="true" tool="3" flavor="0">
-      </item>
-      <item path="clan.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="class.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="comm.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="conf.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="config.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="constants.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="db.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="dg_event.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="dg_olc.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="dg_scripts.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="fight.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="genmob.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="genobj.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="genolc.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="genshp.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="genwld.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="genzon.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="graph.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="handler.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="hedit.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="house.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="ibt.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="improved-edit.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="interpreter.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="lists.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="mail.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="modify.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="mud_event.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="oasis.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="pfdefaults.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="prefedit.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="protocol.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="quest.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="race.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="screen.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="shop.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="spec_procs.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="spells.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="structs.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="sysdep.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="telnet.h" ex="true" tool="3" flavor="0">
       </item>
@@ -304,8 +217,6 @@
       <item path="util/webster.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="util/wld2html.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="utils.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="zmalloc.h" ex="true" tool="3" flavor="0">
       </item>

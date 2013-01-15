@@ -12,7 +12,6 @@
 
 #include "conf.h"
 #include "sysdep.h"
-#include "screen.h"
 
 /* Begin conf.h dependent includes */
 
@@ -87,6 +86,8 @@
 #include "class.h" /* needed for level_exp for prompt */
 #include "mail.h" /* has_mail() */
 #include "msgedit.h"
+#include "screen.h"
+
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -1209,14 +1210,9 @@ void echo_on(struct descriptor_data *d)
 static char *make_prompt(struct descriptor_data *d)
 {
   static char prompt[MAX_PROMPT_LENGTH];
-  int door, slen = 0;
-  struct char_data *ch = d->character;
-  int count;
-  size_t len = 0;
-
-  *prompt = '\0';
 
   /* Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h) */
+
   if (d->showstr_count)
     snprintf(prompt, sizeof(prompt),
       "[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (%d/%d) ]",
@@ -1224,6 +1220,10 @@ static char *make_prompt(struct descriptor_data *d)
   else if (d->str)
     strcpy(prompt, "] ");	/* strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3') */
   else if (STATE(d) == CON_PLAYING && !IS_NPC(d->character)) {
+    int count;
+    size_t len = 0;
+
+    *prompt = '\0';
 
     if (GET_INVIS_LEV(d->character) && len < sizeof(prompt)) {
       count = snprintf(prompt + len, sizeof(prompt) - len, "i%d ", GET_INVIS_LEV(d->character));
@@ -1231,6 +1231,105 @@ static char *make_prompt(struct descriptor_data *d)
         len += count;
     }
     /* show only when below 25% */
+    if (PRF_FLAGGED(d->character, PRF_DISPAUTO) && len < sizeof(prompt)) {
+      struct char_data *ch = d->character;
+      if (GET_HIT(ch) << 2 < GET_MAX_HIT(ch) ) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%dH ", GET_HIT(ch));
+        if (count >= 0)
+          len += count;
+      }
+      if (GET_MANA(ch) << 2 < GET_MAX_MANA(ch) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%dM ", GET_MANA(ch));
+        if (count >= 0)
+          len += count;
+      }
+      if (GET_MOVE(ch) << 2 < GET_MAX_MOVE(ch) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%dV ", GET_MOVE(ch));
+        if (count >= 0)
+          len += count;
+      }
+    } else { /* not auto prompt */
+      if (PRF_FLAGGED(d->character, PRF_DISPHP) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%dH ", GET_HIT(d->character));
+        if (count >= 0)
+          len += count;
+      }
+
+      if (PRF_FLAGGED(d->character, PRF_DISPMANA) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%dM ", GET_MANA(d->character));
+        if (count >= 0)
+          len += count;
+      }
+
+      if (PRF_FLAGGED(d->character, PRF_DISPMOVE) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%dV ", GET_MOVE(d->character));
+        if (count >= 0)
+          len += count;
+      }
+    }
+
+    if (PRF_FLAGGED(d->character, PRF_BUILDWALK) && len < sizeof(prompt)) {
+      count = snprintf(prompt + len, sizeof(prompt) - len, "BUILDWALKING ");
+      if (count >= 0)
+        len += count;
+    }
+
+    if (PRF_FLAGGED(d->character, PRF_AFK) && len < sizeof(prompt)) {
+      count = snprintf(prompt + len, sizeof(prompt) - len, "AFK ");
+      if (count >= 0)
+        len += count;
+    }
+
+     if (GET_LAST_NEWS(d->character) < newsmod)
+     {
+       count = snprintf(prompt + len, sizeof(prompt) - len, "(news) ");
+       if (count >= 0)
+         len += count;
+     }
+
+     if (GET_LAST_MOTD(d->character) < motdmod)
+     {
+       count = snprintf(prompt + len, sizeof(prompt) - len, "(motd) ");
+       if (count >= 0)
+         len += count;
+     }
+
+    if (len < sizeof(prompt))
+      strncat(prompt, "> ", sizeof(prompt) - len - 1);	/* strncat: OK */
+  } else if (STATE(d) == CON_PLAYING && IS_NPC(d->character))
+    snprintf(prompt, sizeof(prompt), "%s> ", GET_NAME(d->character));
+  else
+    *prompt = '\0';
+
+  return (prompt);
+}
+
+/*
+static char *make_prompt(struct descriptor_data *d)
+{
+  static char prompt[MAX_PROMPT_LENGTH];
+  int door, slen = 0;
+  struct char_data *ch = d->character;
+  int count;
+  size_t len = 0;
+
+  *prompt = '\0';
+
+  // Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h)
+  if (d->showstr_count)
+    snprintf(prompt, sizeof(prompt),
+      "[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (%d/%d) ]",
+      d->showstr_page, d->showstr_count);
+  else if (d->str)
+    strcpy(prompt, "] ");	// strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3')
+  else if (STATE(d) == CON_PLAYING && !IS_NPC(d->character)) {
+
+    if (GET_INVIS_LEV(d->character) && len < sizeof(prompt)) {
+      count = snprintf(prompt + len, sizeof(prompt) - len, "i%d ", GET_INVIS_LEV(d->character));
+      if (count >= 0)
+        len += count;
+    }
+    // show only when below 25%
     if (PRF_FLAGGED(d->character, PRF_DISPAUTO) && len < sizeof(prompt)) {
       struct char_data *ch = d->character;
       if (GET_HIT(ch) << 2 < GET_MAX_HIT(ch) ) {
@@ -1255,7 +1354,7 @@ static char *make_prompt(struct descriptor_data *d)
           len += count;
       }
     } else {
-    /* not auto prompt */
+    // not auto prompt
       if (PRF_FLAGGED(d->character, PRF_DISPHP) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sH%s ",
 		GET_HIT(d->character),GET_MAX_HIT(d->character),
@@ -1277,7 +1376,7 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
-      /* autoprompt display exp to next level */
+      // autoprompt display exp to next level
       if (PRF_FLAGGED(d->character, PRF_DISPEXP) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sXP:%s%d ",
 		CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM),
@@ -1286,7 +1385,7 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
-      /* autoprompt display exits */
+      // autoprompt display exits
       if (PRF_FLAGGED(d->character, PRF_DISPEXITS) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
 		               CCYEL(d->character,C_NRM));
@@ -1322,7 +1421,7 @@ static char *make_prompt(struct descriptor_data *d)
           len += count;
       }
 
-      /* autoprompt display rooms */
+      // autoprompt display rooms
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
 		world[IN_ROOM(ch)].name, CCNRM(d->character,C_NRM));
@@ -1335,7 +1434,7 @@ static char *make_prompt(struct descriptor_data *d)
             len += count;
         }
       }
-      /* autoprompt display memtime */
+      // autoprompt display memtime
       if (PRF_FLAGGED(d->character, PRF_DISPMEMTIME) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "MEM: %d/%d/%d ",
 		PRAYTIME(ch, 0, 0),PRAYTIME(ch, 0, 1),PRAYTIME(ch, 0, 2));
@@ -1418,9 +1517,10 @@ static char *make_prompt(struct descriptor_data *d)
   } else
     *prompt = '\0';
 
-  parse_tab(prompt);
+ // parse_tab(prompt);
   return (prompt);
 }
+*/
 
 /* NOTE: 'txt' must be at most MAX_INPUT_LENGTH big. */
 void write_to_q(const char *txt, struct txt_q *queue, int aliased)
@@ -1787,8 +1887,7 @@ static int process_output(struct descriptor_data *t)
     strcat(osb, "**OVERFLOW**\r\n");	/* strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space) */
 
   /* add the extra CRLF if the person isn't in compact mode */
-  if (STATE(t) == CON_PLAYING && t->character && !IS_NPC(t->character) &&
-          !PRF_FLAGGED(t->character, PRF_COMPACT))
+  if (STATE(t) == CON_PLAYING && t->character && !IS_NPC(t->character) && !PRF_FLAGGED(t->character, PRF_COMPACT))
     strcat(osb, "\r\n");	/* strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space) */
 
   if (!t->pProtocol->WriteOOB) /* add a prompt */
