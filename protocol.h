@@ -14,6 +14,28 @@
 typedef struct descriptor_data descriptor_t;
 
 /******************************************************************************
+ If you wish to support traditional mud colour codes, uncomment COLOUR_CHAR.
+ ******************************************************************************/
+
+/* You may replace the '^' with another character if you wish, eg '&' or '@'. */
+/*
+#define COLOUR_CHAR '^'
+*/
+
+/* Change this to 'false' if colour codes are off by default (see README.TXT) */
+#define COLOUR_ON_BY_DEFAULT true
+
+/* Uncomment this if players can also use RGB colour codes such as "^[F135]" */
+/*
+#define EXTENDED_COLOUR
+*/
+
+/* Uncomment this if invalid colours are displayed rather than being eaten. */
+/*
+#define DISPLAY_INVALID_COLOUR_CODES
+*/
+
+/******************************************************************************
  If your mud supports MCCP (compression), uncomment the next line.
  ******************************************************************************/
 
@@ -33,7 +55,7 @@ typedef struct descriptor_data descriptor_t;
  Symbolic constants.
  ******************************************************************************/
 
-#define SNIPPET_VERSION                6 /* Helpful for debugging */
+#define SNIPPET_VERSION                8 /* Helpful for debugging */
 
 #define MAX_PROTOCOL_BUFFER            MAX_RAW_INPUT_LENGTH
 #define MAX_VARIABLE_LENGTH            4096
@@ -79,6 +101,23 @@ typedef enum
 
 typedef enum
 {
+   eNEGOTIATED_TTYPE, 
+   eNEGOTIATED_ECHO, 
+   eNEGOTIATED_NAWS, 
+   eNEGOTIATED_CHARSET, 
+   eNEGOTIATED_MSDP, 
+   eNEGOTIATED_MSSP, 
+   eNEGOTIATED_ATCP, 
+   eNEGOTIATED_MSP, 
+   eNEGOTIATED_MXP, 
+   eNEGOTIATED_MXP2, 
+   eNEGOTIATED_MCCP, 
+
+   eNEGOTIATED_MAX             /* This must always be last */
+} negotiated_t;
+
+typedef enum
+{  
    eUNKNOWN, 
    eNO, 
    eSOMETIMES, 
@@ -197,13 +236,18 @@ typedef struct
 typedef struct
 {
    int       WriteOOB;         /* Used internally to indicate OOB data */
+   bool_t    Negotiated[eNEGOTIATED_MAX];   
    bool_t    bIACMode;         /* Current mode - deals with broken packets */
    bool_t    bNegotiated;      /* Indicates client successfully negotiated */
+   bool_t    bRenegotiate;     /* Workaround for clients that autoconnect */
+   bool_t    bNeedMXPVersion;  /* Workaround for clients that autoconnect */
    bool_t    bBlockMXP;        /* Used internally based on MXP version */
    bool_t    bTTYPE;           /* The client supports TTYPE */
+   bool_t    bECHO;            /* Toggles ECHO on/off */
    bool_t    bNAWS;            /* The client supports NAWS */
    bool_t    bCHARSET;         /* The client supports CHARSET */
    bool_t    bMSDP;            /* The client supports MSDP */
+   bool_t    bMSSP;            /* The client supports MSSP */
    bool_t    bATCP;            /* The client supports ATCP */
    bool_t    bMSP;             /* The client supports MSP */
    bool_t    bMXP;             /* The client supports MXP */
@@ -249,12 +293,19 @@ extern const char * RGBone;
 extern const char * RGBtwo;
 extern const char * RGBthree; 
 
+/* Function: ProtocolNoEcho
+ * 
+ * Tells the client to switch echo on or off.
+ */
+void ProtocolNoEcho( descriptor_t *apDescriptor, bool_t abOn );
+
 /* Function: ProtocolInput
  *
  * Extracts any negotiation sequences from the input buffer, and passes back 
  * whatever is left for the mud to parse normally.  Call this after data has 
  * been read into the input buffer, before it is used for anything else.
  */
+//void ProtocolInput( descriptor_t *apDescriptor, char *apData, int aSize, char *apOut );
 ssize_t ProtocolInput( descriptor_t *apDescriptor, char *apData, int aSize, char *apOut );
 
 /* Function: ProtocolOutput
@@ -271,14 +322,29 @@ ssize_t ProtocolInput( descriptor_t *apDescriptor, char *apData, int aSize, char
  * The predefined colours are:
  * 
  *   n: no colour (switches colour off)
- *   r: dark red                        R: bright red
- *   g: dark green                      G: bright green
- *   b: dark blue                       B: bright blue
- *   y: dark yellow                     Y: bright yellow
- *   m: dark magenta                    M: bright magenta
- *   c: dark cyan                       C: bright cyan
- *   w: dark white                      W: bright white
+ * 
+ *   r: dark red                        R: light red
+ *   g: dark green                      G: light green
+ *   b: dark blue                       B: light blue
+ *   y: dark yellow                     Y: light yellow
+ *   m: dark magenta                    M: light magenta
+ *   c: dark cyan                       C: light cyan
+ *   w: dark white                      W: light white
+ * 
+ *   a: dark azure                      A: light azure
+ *   j: dark jade                       J: light jade
+ *   l: dark lime                       L: light lime
  *   o: dark orange                     O: bright orange
+ *   p: dark pink                       P: light pink
+ *   t: dark tan                        T: light tan
+ *   v: dark violet                     V: light violet
+ *   d: dark grey/black                 D: light grey
+ *   _: underlined (if supported)       +: bold (if supported)
+ *   -: blinking (if supported)         =: reverse (if supported)
+ *   *: at-sign
+ * 
+ *   1: base palette 1                  2: base palette 2
+ *   3: base palette 3
  * 
  * So for example "This is \tOorange\tn." will colour the word "orange".  You 
  * can add more colours yourself just by updating the switch statement.

@@ -1285,17 +1285,17 @@ ACMD(do_follow)
   } else {			/* Not Charmed follow person */
     if (leader == ch) {
       if (!ch->master) {
-	send_to_char(ch, "You are already following yourself.\r\n");
-	return;
+        send_to_char(ch, "You are already following yourself.\r\n");
+        return;
       }
       stop_follower(ch);
     } else {
       if (circle_follow(ch, leader)) {
-	send_to_char(ch, "Sorry, but following in loops is not allowed.\r\n");
-	return;
+        send_to_char(ch, "Sorry, but following in loops is not allowed.\r\n");
+        return;
       }
       if (ch->master)
-	stop_follower(ch);
+        stop_follower(ch);
 
       add_follower(ch, leader);
     }

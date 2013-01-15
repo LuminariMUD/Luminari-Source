@@ -226,8 +226,10 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
   bool is_corpse = FALSE, is_clan = FALSE;
   int ct = 0;
 
-  if (!strncmp(cont->name, "corpse ", 7)) is_corpse = TRUE;
-  if (GET_CLAN(ch) != NO_CLAN && GET_CLANRANK(ch) != NO_CLANRANK) is_clan = TRUE;
+  if (!strncmp(cont->name, "corpse ", 7))
+    is_corpse = TRUE;
+  if (GET_CLAN(ch) != NO_CLAN && GET_CLANRANK(ch) != NO_CLANRANK)
+    is_clan = TRUE;
 
   if (mode == FIND_OBJ_INV || can_take_obj(ch, obj)) {
     if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
@@ -1452,6 +1454,7 @@ static void perform_wear(struct char_data *ch,
   /* See if a trigger disallows it */
   if (!wear_otrigger(obj, ch, where) || (obj->carried_by != ch))
     return;
+  
   wear_message(ch, obj, where);
   obj_from_char(obj);
   equip_char(ch, obj, where);

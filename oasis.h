@@ -138,7 +138,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define OLC_IBT(d)     (OLC(d)->ibt)      /**< IBT (idea/bug/typo) structure */
 #define OLC_CLAN(d)    (OLC(d)->clan)     /**< Clan structure       */
 /* Other macros. */
-#define OLC_EXIT(d)		(OLC_ROOM(d)->dir_option[OLC_VAL(d)])
+#define OLC_EXIT(d)	   (OLC_ROOM(d)->dir_option[OLC_VAL(d)])
 #define OLC_MSG(d)     (OLC(d)->m_type)
 
 /* Cleanup types. */
@@ -173,7 +173,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 
 /* Submodes of OEDIT connectedness. */
 #define OEDIT_MAIN_MENU              	1
-#define OEDIT_KEYWORD            	2
+#define OEDIT_KEYWORD                   2
 #define OEDIT_SHORTDESC              	3
 #define OEDIT_LONGDESC               	4
 #define OEDIT_ACTDESC                	5
@@ -197,7 +197,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define OEDIT_EXTRADESC_DESCRIPTION 	23
 #define OEDIT_EXTRADESC_MENU        	24
 #define OEDIT_LEVEL                 	25
-#define OEDIT_PERM			26
+#define OEDIT_PERM                      26
 #define OEDIT_DELETE                    27
 #define OEDIT_COPY                      28
 #define OEDIT_WEAPON_SPELL_MENU         29
@@ -205,10 +205,10 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define OEDIT_WEAPON_SPELL_PERCENT      31
 #define OEDIT_WEAPON_SPELL_LEVEL        32
 #define OEDIT_WEAPON_SPELL_INCOMBAT     33
-#define OEDIT_SIZE		     34
-#define OEDIT_PROF		     35	//proficiency
-#define OEDIT_MATERIAL		     36
-#define OEDIT_SPELLBOOK		     37
+#define OEDIT_SIZE 	                    34
+#define OEDIT_PROF                      35	//proficiency
+#define OEDIT_MATERIAL                  36
+#define OEDIT_SPELLBOOK                 37
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 		1
@@ -464,8 +464,6 @@ void medit_parse(struct descriptor_data *d, char *arg);
 void medit_string_cleanup(struct descriptor_data *d, int terminator);
 ACMD(do_oasis_medit);
 void medit_autoroll_stats(struct descriptor_data *d);
-void medit_random_race(struct descriptor_data *d);
-void medit_random_class(struct descriptor_data *d);
 
 /* public functions from oedit.c */
 void oedit_setup_existing(struct descriptor_data *d, int rnum);

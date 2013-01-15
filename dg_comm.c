@@ -101,7 +101,7 @@ static void sub_write_to_char(char_data *ch, char *tokens[], void *otokens[], ch
         else
           strcat(sb,HMHR((char_data *) otokens[i]));
       break;
-
+      
       case '?':
         if (!otokens[i])
           strcat(sb,"something");

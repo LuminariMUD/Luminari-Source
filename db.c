@@ -1476,14 +1476,6 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
   mob_proto[i].real_abils.con = 11;
   mob_proto[i].real_abils.cha = 11;
 
-  //npc race / class
-  GET_SUBRACE(mob_proto + i, 0) = -1;
-  GET_SUBRACE(mob_proto + i, 1) = -1;
-  GET_SUBRACE(mob_proto + i, 2) = -1;
-  GET_RACE(mob_proto + i) = -1;
-  GET_CLASS(mob_proto + i) = -1;
-  GET_SIZE(mob_proto + i) = -1;
-
   if (!get_line(mob_f, line)) {
     log("SYSERR: Format error in mob #%d, file ended after S flag!", nr);
     exit(1);
@@ -2358,8 +2350,8 @@ static void get_one_line(FILE *fl, char *buf)
 
 void free_help(struct help_index_element *hentry)
 {
-  if (hentry->index)
-    free(hentry->index);
+//  if (hentry->index)
+//    free(hentry->index);
   if (hentry->keywords)
     free(hentry->keywords);
   if (hentry->entry && !hentry->duplicate)
@@ -2373,8 +2365,8 @@ void free_help_table(void)
   if (help_table) {
     int hp;
     for (hp = 0; hp < top_of_helpt; hp++) {
-      if (help_table[hp].index)
-        free(help_table[hp].index);
+//      if (help_table[hp].index)
+//        free(help_table[hp].index);
       if (help_table[hp].keywords)
         free(help_table[hp].keywords);
       if (help_table[hp].entry && !help_table[hp].duplicate)
@@ -3100,17 +3092,20 @@ int fread_number(FILE *fp)
   bool sign;
   char c;
 
-  do {
-    if ( feof( fp ) ) {
+  do
+  {
+    if( feof( fp ) )
+    {
       log( "%s", "fread_number: EOF encountered on read." );
       return 0;
     }
     c = getc( fp );
-  } while( isspace( c ) );
+  }
+  while( isspace( c ) );
 
   number = 0;
-  sign = FALSE;
 
+  sign = FALSE;
   if( c == '+' )
     c = getc( fp );
   else if( c == '-' ) {
@@ -3741,7 +3736,6 @@ void init_char(struct char_data *ch)
       SET_BIT_AR(PRF_FLAGS(ch), PRF_COLOR_2);
     } 
   SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);  
-  SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
   SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
 
   // automap toggled on -zusuk

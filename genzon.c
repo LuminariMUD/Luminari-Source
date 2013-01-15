@@ -346,7 +346,7 @@ int save_zone(zone_rnum zone_num)
   for (i=0; i<ZN_ARRAY_MAX; i++)
     flag_tot += zone_table[zone_num].zone_flags[(i)];
 
-  /* If zone flags or levels aren't set, there is no reason to save them! 
+  /* If zone flags or levels aren't set, there is no reason to save them! */
   if (flag_tot == 0 && zone_table[zone_num].min_level == -1 && zone_table[zone_num].max_level == -1)
   {
     // Print zone header to file.
@@ -364,7 +364,7 @@ int save_zone(zone_rnum zone_num)
           zone_table[zone_num].lifespan,
           zone_table[zone_num].reset_mode
           );
-  } else { */
+  } else {
     sprintascii(zbuf1, zone_table[zone_num].zone_flags[0]);
     sprintascii(zbuf2, zone_table[zone_num].zone_flags[1]);
     sprintascii(zbuf3, zone_table[zone_num].zone_flags[2]);
@@ -389,7 +389,7 @@ int save_zone(zone_rnum zone_num)
           zone_table[zone_num].max_level,
           zone_table[zone_num].show_weather
           );
-  //}
+  }
 
 	/* Handy Quick Reference Chart for Zone Values.
 	 *

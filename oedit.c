@@ -442,7 +442,7 @@ static void oedit_disp_val1_menu(struct descriptor_data *d)
     break;
   case ITEM_WEAPON:
     /* This doesn't seem to be used if I remember right. */
-    write_to_output(d, "Modifier to Hitroll <Do Not Use> : ");
+    write_to_output(d, "Modifier to Hitroll <Do Not Use, Select 0> : ");
     break;
   case ITEM_ARMOR:
   case ITEM_CLANARMOR:
@@ -1376,7 +1376,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     }
     OLC_OBJ(d)->wpn_spells[OLC_VAL(d)].percent=number;
     OLC_OBJ(d)->has_spells = TRUE;
-    send_to_char(d->character, "1 for offensive, 2 for defensive spell: ");
+    send_to_char(d->character, "1 for offensive, 0 for defensive spell: ");
     OLC_MODE(d)=OEDIT_WEAPON_SPELL_INCOMBAT;
     return;
 

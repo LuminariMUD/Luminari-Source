@@ -605,7 +605,7 @@ void mobile_activity(void)
             continue;
 
           found = TRUE;
-          act("'Hey!  You're the fiend that attacked me!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
+          act("'!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
           hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         }
       }
@@ -718,6 +718,9 @@ static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data 
   static int snarl_cmd, sneer_cmd;
   int dieroll;
 
+  if (!slave)
+    return FALSE;
+  
   if (!master || !AFF_FLAGGED(slave, AFF_CHARM))
     return (FALSE);
 
@@ -728,8 +731,8 @@ static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data 
 
   /* Sit. Down boy! HEEEEeeeel! */
   dieroll = rand_number(1, 20);
-  if (dieroll != 1 &&
-	dieroll > 10 - GET_CHA(master) + GET_WIS(slave) ) {
+  if (dieroll != 1 && (dieroll == 20 || dieroll > 10 -
+         GET_CHA_BONUS(master) + GET_WIS_BONUS(slave))) {
     if (snarl_cmd > 0 && attack && !rand_number(0, 3)) {
       char victbuf[MAX_NAME_LENGTH + 1];
 
@@ -743,7 +746,8 @@ static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data 
     return (TRUE);
   }
 
-  if (snarl_cmd) {
+  /* indicator that he/she isn't happy! */
+  if (snarl_cmd > 0 && attack) {
     char victbuf[MAX_NAME_LENGTH + 1];
       
     strncpy(victbuf, GET_NAME(attack), sizeof(victbuf));      /* strncpy: OK */

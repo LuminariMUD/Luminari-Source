@@ -669,7 +669,7 @@ SPECIAL(peter)
 {
   struct char_data *ch_guard = NULL;
 
-  if (cmd || !AWAKE(ch) || !FIGHTING(ch))
+  if (cmd || !AWAKE(ch) || FIGHTING(ch))
     return (FALSE);
 
   if (banzaii(ch))

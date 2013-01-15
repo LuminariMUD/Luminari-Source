@@ -273,7 +273,7 @@ int save_objects(zone_rnum zone_num) {
           if (obj->sbinfo[counter2].spellname == 0) {
             break;
           }
-          fprintf(fp, "S\n" "%d %d\n", obj->sbinfo[counter2].spellname,
+          fprintf(fp, "B\n" "%d %d\n", obj->sbinfo[counter2].spellname,
                                        obj->sbinfo[counter2].pages);
           continue;
         }
