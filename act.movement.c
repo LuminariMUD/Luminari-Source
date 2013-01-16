@@ -165,7 +165,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /*---------------------------------------------------------------------*/
   /* Used in our special proc check. By default, we pass a NULL argument
    * when checking for specials */
-  char spec_proc_args[MAX_INPUT_LENGTH] = "";
+  char spec_proc_args[MAX_INPUT_LENGTH] = { '\0' };
   /* The room the character is currently in and will move from... */
   room_rnum was_in = IN_ROOM(ch);
   /* ... and the room the character will move into. */
@@ -174,11 +174,11 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
    * We redefine this later when we need it. */
   int need_movement = 0;
   /* Contains the "leave" message to display to the was_in room. */
-  char leave_message[SMALL_BUFSIZE];
+  char leave_message[SMALL_BUFSIZE] = { '\0' };
 
   // for mount code
   int same_room = 0, riding = 0, ridden_by = 0;
-  char buf2[MAX_STRING_LENGTH];
+  char buf2[MAX_STRING_LENGTH] = { '\0' };
 
   /*---------------------------------------------------------------------*/
   /* End Local variable definitions */
@@ -331,6 +331,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
   //tumble check
   int cantFlee = 0;
+
   if (affected_by_spell(ch, SPELL_EXPEDITIOUS_RETREAT))
     cantFlee--;
   if (affected_by_spell(ch, SPELL_GREASE))
@@ -641,15 +642,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* Fire memory and greet triggers, check and see if the greet trigger
    * prevents movement, and if so, move the player back to the previous room. */
   entry_memory_mtrigger(ch);
-  if (!greet_mtrigger(ch, dir))
-  {
+
+  if (!greet_mtrigger(ch, dir)) {
     char_from_room(ch);
     char_to_room(ch, was_in);
     look_at_room(ch, 0);
+
     /* Failed move, return a failure */
     return (0);
-  }
-  else
+  } else
     greet_memory_mtrigger(ch);
   /*---------------------------------------------------------------------*/
   /* End: Post-move operations. */

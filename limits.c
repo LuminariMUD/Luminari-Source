@@ -481,8 +481,8 @@ static void check_idling(struct char_data *ch)
 /* Update PCs, NPCs, and objects */
 void point_update(void)
 {
-  struct char_data *i, *next_char;
-  struct obj_data *j, *next_thing, *jj, *next_thing2;
+  struct char_data *i = NULL, *next_char = NULL;
+  struct obj_data *j = NULL, *next_thing, *jj = NULL, *next_thing2 = NULL;
 
   /* characters */
   for (i = character_list; i; i = next_char) {
@@ -540,29 +540,32 @@ void point_update(void)
     }
     /* If the timer is set, count it down and at 0, try the trigger
      * note to .rej hand-patchers: make this last in your point-update() */
-    else if (GET_OBJ_TIMER(j)>0) {
+    else if (GET_OBJ_TIMER(j) > 0) {
       GET_OBJ_TIMER(j)--;
-      if (!GET_OBJ_TIMER(j))
+      if (GET_OBJ_TIMER(j) <= 0)
         timer_otrigger(j);
     }
   }
 
   /* Take 1 from the happy-hour tick counter, and end happy-hour if zero */
-       if (HAPPY_TIME > 1)  HAPPY_TIME--;
-  else if (HAPPY_TIME == 1)   /* Last tick - set everything back to zero */
-  {
+  if (HAPPY_TIME > 1)
+    HAPPY_TIME--;
+
+  /* Last tick - set everything back to zero */
+  else if (HAPPY_TIME == 1) {
     HAPPY_QP = 0;
     HAPPY_EXP = 0;
     HAPPY_GOLD = 0;
     HAPPY_TIME = 0;
-   game_info("Happy hour has ended!");
+    game_info("Happy hour has ended!");
   }
 }
+
 
 /* Note: amt may be negative */
 int increase_gold(struct char_data *ch, int amt)
 {
-  int curr_gold;
+  int curr_gold = 0;
 
   curr_gold = GET_GOLD(ch);
 

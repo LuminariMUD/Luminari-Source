@@ -198,10 +198,10 @@ void greet_memory_mtrigger(char_data *actor)
 
 int greet_mtrigger(char_data *actor, int dir)
 {
-  trig_data *t;
-  char_data *ch;
-  char buf[MAX_INPUT_LENGTH];
-  int intermediate, final=TRUE;
+  trig_data *t = NULL;
+  char_data *ch = NULL;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  int intermediate = 0, final = TRUE;
 
   if (!valid_dg_target(actor, DG_ALLOW_GODS))
     return TRUE;
@@ -232,10 +232,10 @@ int greet_mtrigger(char_data *actor, int dir)
 
 void entry_memory_mtrigger(char_data *ch)
 {
-  trig_data *t;
-  char_data *actor;
-  struct script_memory *mem;
-  char buf[MAX_INPUT_LENGTH];
+  trig_data *t = NULL;
+  char_data *actor = NULL;
+  struct script_memory *mem = NULL;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
 
   if (!SCRIPT_MEM(ch) || AFF_FLAGGED(ch, AFF_CHARM))
     return;
@@ -648,7 +648,10 @@ void random_otrigger(obj_data *obj)
 
 void timer_otrigger(struct obj_data *obj)
 {
-  trig_data *t;
+  trig_data *t = NULL;
+
+  if (obj == NULL)
+    return;
 
   if (!SCRIPT_CHECK(obj, OTRIG_TIMER))
     return;
@@ -750,9 +753,9 @@ int command_otrigger(char_data *actor, char *cmd, char *argument)
 
 int wear_otrigger(obj_data *obj, char_data *actor, int where)
 {
-  trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
-  int ret_val;
+  trig_data *t = NULL;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  int ret_val = 0;
 
   if (!SCRIPT_CHECK(obj, OTRIG_WEAR))
     return 1;

@@ -1361,8 +1361,8 @@ static int is_num(char *arg)
 static void eval_op(char *op, char *lhs, char *rhs, char *result, void *go,
              struct script_data *sc, trig_data *trig)
 {
-  unsigned char *p;
-  int n;
+  unsigned char *p = NULL;
+  int n = 0;
 
   /* strip off extra spaces at begin and end */
   while (*lhs && isspace(*lhs))
@@ -1516,9 +1516,12 @@ static void eval_expr(char *line, char *result, void *go, struct script_data *sc
 static int eval_lhs_op_rhs(char *expr, char *result, void *go, struct script_data *sc,
                     trig_data *trig, int type)
 {
-  char *p, *tokens[MAX_INPUT_LENGTH];
-  char line[MAX_INPUT_LENGTH], lhr[MAX_INPUT_LENGTH], rhr[MAX_INPUT_LENGTH];
-  int i, j;
+  char *p = NULL;
+  char *tokens[MAX_INPUT_LENGTH] = { NULL };
+  char line[MAX_INPUT_LENGTH] = { '\0' };
+  char lhr[MAX_INPUT_LENGTH] = { '\0' };
+  char rhr[MAX_INPUT_LENGTH] = { '\0' };
+  int i = 0, j = 0;
 
   /*
    * valid operands, in order of priority
@@ -1579,7 +1582,7 @@ static int eval_lhs_op_rhs(char *expr, char *result, void *go, struct script_dat
 static int process_if(char *cond, void *go, struct script_data *sc,
                trig_data *trig, int type)
 {
-  char result[MAX_INPUT_LENGTH], *p;
+  char result[MAX_INPUT_LENGTH] = { '\0' }, *p = NULL;
 
   eval_expr(cond, result, go, sc, trig, type);
 
@@ -1854,12 +1857,12 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig,
 static void process_detach(void *go, struct script_data *sc, trig_data *trig,
     int type, char *cmd)
 {
-  char arg[MAX_INPUT_LENGTH], trignum_s[MAX_INPUT_LENGTH];
-  char result[MAX_INPUT_LENGTH], *id_p;
-  char_data *c=NULL;
-  obj_data *o=NULL;
-  room_data *r=NULL;
-  long id;
+  char arg[MAX_INPUT_LENGTH] = { '\0' }, trignum_s[MAX_INPUT_LENGTH] = { '\0' };
+  char result[MAX_INPUT_LENGTH] = { '\0' }, *id_p = NULL;
+  char_data *c = NULL;
+  obj_data *o = NULL;
+  room_data *r = NULL;
+  long id = 0;
 
   id_p = two_arguments(cmd, arg, trignum_s);
   skip_spaces(&id_p);
@@ -2469,10 +2472,10 @@ int script_driver(void *go_adress, trig_data *trig, int type, int mode)
 {
   static int depth = 0;
   int ret_val = 1;
-  struct cmdlist_element *cl;
-  char cmd[MAX_INPUT_LENGTH], *p;
-  struct script_data *sc = 0;
-  struct cmdlist_element *temp;
+  struct cmdlist_element *cl = NULL;
+  char cmd[MAX_INPUT_LENGTH] = { '\0' }, *p = NULL;
+  struct script_data *sc = NULL;
+  struct cmdlist_element *temp = NULL;
   unsigned long loops = 0;
   void *go = NULL;
 

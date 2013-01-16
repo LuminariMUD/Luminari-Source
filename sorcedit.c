@@ -48,7 +48,7 @@ ACMD(do_sorcedit)
       return;
     }
   } else {
-    send_to_char(ch, "This command is not available to you!\r\n");
+    send_to_char(ch, "Usage:  sorcedidt <class name>\r\n");
     return;
   }
 
@@ -95,37 +95,46 @@ static void sorcedit_disp_menu(struct descriptor_data *d)
   clear_screen(d);
   
   write_to_output(d,
-    "\r\n-- \tCSpells Known Menu\r\n"
-    "\tg 1\tn) 1st Circle     : \ty%d\r\n"
-    "\tg 2\tn) 2nd Circle     : \ty%d\r\n"
-    "\tg 3\tn) 3rd Circle     : \ty%d\r\n"
-    "\tg 4\tn) 4th Circle     : \ty%d\r\n"
-    "\tg 5\tn) 5th Circle     : \ty%d\r\n"
-    "\tg 6\tn) 6th Circle     : \ty%d\r\n"
-    "\tg 7\tn) 7th Circle     : \ty%d\r\n"
-    "\tg 8\tn) 8th Circle     : \ty%d\r\n"         
-    "\tg 9\tn) 9th Circle     : \ty%d\r\n"
-    "\tg Q\tn) Quit\r\n"
-    "***Note***  When you quit it finalizes all changes!\r\n"
+    "\r\n-- %sSpells Known Menu\r\n"
+    "\r\n"
+    "%s 1%s) 1st Circle     : %s%d\r\n"
+    "%s 2%s) 2nd Circle     : %s%d\r\n"
+    "%s 3%s) 3rd Circle     : %s%d\r\n"
+    "%s 4%s) 4th Circle     : %s%d\r\n"
+    "%s 5%s) 5th Circle     : %s%d\r\n"
+    "%s 6%s) 6th Circle     : %s%d\r\n"
+    "%s 7%s) 7th Circle     : %s%d\r\n"
+    "%s 8%s) 8th Circle     : %s%d\r\n"         
+    "%s 9%s) 9th Circle     : %s%d\r\n"
+    "%s Q%s) Quit\r\n"
+    "\r\n"
+    "%sWhen you quit it finalizes all changes%s\r\n"
+    "%sYour 'known spells' can only be modified once per level%s\r\n"
+    "\r\n"
     "Enter Choice : ",
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][0] -
+
+    mgn,
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][0] -
           count_sorc_known(d->character, 1),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][1] -
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][1] -
           count_sorc_known(d->character, 2),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][2] -
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][2] -
           count_sorc_known(d->character, 3),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][3] -
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][3] -
           count_sorc_known(d->character, 4),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][4] -
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][4] -
           count_sorc_known(d->character, 5),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][5] -
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][5] -
           count_sorc_known(d->character, 6),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][6] -
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][6] -
           count_sorc_known(d->character, 7),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][7] -
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][7] -
           count_sorc_known(d->character, 8),
-    sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
-          count_sorc_known(d->character, 9)
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
+          count_sorc_known(d->character, 9),
+    grn, nrm,
+    mgn, nrm,
+    mgn, nrm
           );
   
   OLC_MODE(d) = SORCEDIT_MAIN_MENU;
