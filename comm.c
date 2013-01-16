@@ -974,11 +974,14 @@ void game_loop(socket_t local_mother_desc)
 }
 
 
-  /*  Pulse_Luminari was built to throw in customized Luminari
+  /*  pulse_luminari was built to throw in customized Luminari
    *  procedures that we want called in a similar manner as the
    *  other pulses.  The whole concept was created before I had
    *  a full grasp on the event system, otherwise it would have
    *  been implemented differently.  -Zusuk
+   * 
+   *  Also should be noted, its nice to keep this off-beat with
+   *  PULSE_VIOLENCE, it has a little nicer feel to it
    */
 void pulse_luminari() {
   struct char_data *i, *caster = NULL, *tch;
@@ -1025,10 +1028,6 @@ void pulse_luminari() {
   // looping through char list, what needs to be done?
   for (i = character_list; i; i = i->next) {
 
-    /* weapon spells */
-    // weapon spells call (in fight.c currently)
-    idle_weapon_spells(i);
-
     /* vitals regeneration */
     if (GET_HIT(i) == GET_MAX_HIT(i) &&
             GET_MOVE(i) == GET_MAX_MOVE(i) &&
@@ -1036,13 +1035,17 @@ void pulse_luminari() {
             !AFF_FLAGGED(i, AFF_POISON))
       ;
     else
-      NEW_EVENT(eREGEN, i, NULL, 4 * PASSES_PER_SEC);
+      regen_update(i);
     
+    /* weapon spells */
+    // weapon spells call (in fight.c currently)
+    idle_weapon_spells(i);
+
     /* cloudkill */
     if (CLOUDKILL(i)) {
       call_magic(i, NULL, NULL, SPELL_DEATHCLOUD, MAGIC_LEVEL(i), CAST_SPELL);
       CLOUDKILL(i)--;
-      if (!CLOUDKILL(i)) {
+      if (CLOUDKILL(i) <= 0) {
         send_to_char(i, "Your cloud of death dissipates!\r\n");
         act("The cloud of death following $n dissipates!", TRUE, i, 0, NULL,
                 TO_ROOM);

@@ -25,7 +25,6 @@ typedef enum {
     eNULL,
     ePROTOCOLS,		/* The Protocol Detection Event */
     eWHIRLWIND,		/* The Whirlwind Attack */
-    eREGEN,		//  regeneration 
     eCASTING,		//  casting time 
     eLAYONHANDS,	//  lay on hands
     eTREATINJURY,	//  treat injury
@@ -76,7 +75,6 @@ void clear_char_event_list(struct char_data * ch);
 EVENTFUNC(event_countdown);
 EVENTFUNC(get_protocols);
 EVENTFUNC(event_whirlwind);
-EVENTFUNC(event_regen);
 EVENTFUNC(event_casting);
 EVENTFUNC(event_treatinjury);
 EVENTFUNC(event_layonhands);

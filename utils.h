@@ -143,6 +143,7 @@ int	gain_exp(struct char_data *ch, int gain);
 void	gain_exp_regardless(struct char_data *ch, int gain);
 void	gain_condition(struct char_data *ch, int condition, int value);
 void	point_update(void);
+void regen_update(struct char_data *ch);
 void	update_pos(struct char_data *victim);
 void run_autowiz(void);
 

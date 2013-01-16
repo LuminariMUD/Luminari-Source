@@ -51,6 +51,106 @@ static int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int
     return (p6);					/* >= 80 */
 }
 
+
+void regen_update(struct char_data *ch)
+{
+  struct char_data *tch = NULL;
+  int hp = 1, found = 0;
+
+  // poisoned, and dying people should suffer their damage from anyone they are
+  // fighting in order that xp goes to the killer (who doesn't strike the last blow)
+  // -zusuk
+  if (AFF_FLAGGED(ch, AFF_POISON)) {
+    if (FIGHTING(ch) || dice(1, 2) == 2) {
+      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
+        if (!IS_NPC(tch) && FIGHTING(tch) == ch) {
+          damage(tch, ch, dice(1, 4), SPELL_POISON, DAM_POISON, FALSE);
+          found = 1;
+          break;
+        }
+      }
+      if (!found)
+        damage(ch, ch, 1, SPELL_POISON, DAM_POISON, FALSE);
+      update_pos(ch);
+      return;
+    }
+  }
+  found = 0; tch = NULL;
+  if (GET_POS(ch) == POS_MORTALLYW) {
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
+      if (!IS_NPC(tch) && FIGHTING(tch) == ch) {
+        damage(tch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
+        found = 1;
+        break;
+      }
+    }
+    if (!found)
+      damage(ch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
+    update_pos(ch);
+    return;
+  }
+  //50% chance you'll continue dying when incapacitated
+  found = 0; tch = NULL;
+  if (GET_POS(ch) == POS_INCAP && dice(1,2) == 2) {
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
+      if (!IS_NPC(tch) && FIGHTING(tch) == ch) {
+        damage(tch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
+        found = 1;
+        break;
+      }
+    }
+    if (!found)
+      damage(ch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
+    update_pos(ch);
+    return;
+  }
+
+  //position, other bonuses
+  if (GET_POS(ch) == POS_RESTING)
+    hp += dice(1, 2);
+  if (GET_POS(ch) == POS_SLEEPING)
+    hp += dice(3, 2);
+
+  if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
+    hp *= 2;
+  if (AFF_FLAGGED(ch, AFF_REGEN))
+    hp *= 2;
+
+  // troll racial innate regeneration
+  if (GET_RACE(ch) == RACE_TROLL) {
+    hp *= 2;
+    if (FIGHTING(ch))
+      hp *= 2;
+  }
+
+  if (rand_number(0, 3) && GET_LEVEL(ch) <= LVL_IMMORT && !IS_NPC(ch) &&
+	(GET_COND(ch, THIRST) == 0 || GET_COND(ch, HUNGER) == 0))
+    hp = 0;
+
+  if (IS_NPC(ch) && GET_LEVEL(ch) <= 5)
+    hp = 0;
+
+  if (GET_HIT(ch) > GET_MAX_HIT(ch)) {
+    GET_HIT(ch)--;
+  } else {
+    GET_HIT(ch) = MIN(GET_HIT(ch) + hp, GET_MAX_HIT(ch));
+  }
+  if (GET_MOVE(ch) > GET_MAX_MOVE(ch)) {
+    GET_MOVE(ch)--;
+  } else if (!AFF_FLAGGED(ch, AFF_FATIGUED)) {
+    GET_MOVE(ch) = MIN(GET_MOVE(ch) + (hp * 3), GET_MAX_MOVE(ch));
+  }
+  if (GET_MANA(ch) > GET_MAX_MANA(ch)) {
+    GET_MANA(ch)--;
+  } else {
+    GET_MANA(ch) = MIN(GET_MANA(ch) + (hp * 2), GET_MAX_MANA(ch));
+  }
+
+  update_pos(ch);  
+  return;
+}
+
+
 /* The hit_limit, mana_limit, and move_limit functions are gone.  They added an
  * unnecessary level of complexity to the internal structure, weren't
  * particularly useful, and led to some annoying bugs.  From the players' point
