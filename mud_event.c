@@ -24,7 +24,6 @@ struct mud_event_list mud_event_index[] = {
   { "Null"        	     , NULL           , 	-1          }, /* eNULL */
   { "Protocol"    	     , get_protocols  , 	EVENT_DESC  }, /* ePROTOCOLS */
   { "Whirlwind"   	     , event_whirlwind, 	EVENT_CHAR  }, /* eWHIRLWIND */
-  { "Regen"   		     , event_regen, 	EVENT_CHAR  }, /* eREGEN */
   { "Casting"            , event_casting, 	EVENT_CHAR  },  /* eCASTING */
   { "Lay on hands"       , event_countdown,	EVENT_CHAR  }, // eLAYONHANDS
   { "Treat injury"	     , event_countdown,	EVENT_CHAR  }, // eTREATINJURY
