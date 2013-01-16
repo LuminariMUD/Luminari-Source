@@ -78,7 +78,7 @@ void event_cancel(struct event *event)
   if (!event) {
     log("SYSERR:  Attempted to cancel a NULL event");
     return;
-    }
+  }
 
   if (!event->q_el) {
     log("SYSERR:  Attempted to cancel a non-NULL unqueued event, freeing anyway");
@@ -103,6 +103,7 @@ void cleanup_event_obj(struct event *event)
     free(event->event_obj);
 }
 
+
 /** Process any events whose time has come. Should be called from, and at, every
  * pulse of heartbeat. Re-enqueues multi-use events.
  */
@@ -112,6 +113,7 @@ void event_process(void)
   long new_time = 0;
 
   while ((long) pulse >= queue_key(event_q)) {
+
     if (!(the_event = (struct event *) queue_head(event_q))) {
       log("SYSERR: Attempt to get a NULL event");
       return;
@@ -128,6 +130,8 @@ void event_process(void)
     else {
       if (the_event->isMudEvent && the_event->event_obj != NULL)
         free_mud_event((struct mud_event_data *) the_event->event_obj);
+
+      
       /* It is assumed that the_event will already have freed ->event_obj. */
       free(the_event);
     }

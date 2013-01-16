@@ -429,7 +429,7 @@ void berserker_skills(struct char_data *ch, int level) {
  */
 void sorc_skills(struct char_data *ch, int level) {
   IS_SORC_LEARNED(ch) = 0;
-  send_to_char(ch, "\tnType \tDsorcedit sorc\tn to adjust your known spells.\r\n");
+  send_to_char(ch, "\tnType \tDstudy sorcerer\tn to adjust your known spells.\r\n");
   switch (level) {
     default:
       break;
