@@ -25,7 +25,8 @@
 #include "race.h"
 #include "spec_procs.h"  // for compute_ability
 
-
+/* kavir's protocol */
+#define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
 /* function for hide-check
  * ch = spotter (challenge), vict = hider (DC)
@@ -2024,8 +2025,6 @@ IDXTYPE atoidx( const char *str_to_conv )
     return (IDXTYPE) result;
 }
 
-#define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
-
 /*
    strfrmt (String Format) function
    Used by automap/map system
@@ -2036,14 +2035,14 @@ IDXTYPE atoidx( const char *str_to_conv )
 */
 char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad)
 {
-  static char ret[MAX_STRING_LENGTH];
-  char line[MAX_INPUT_LENGTH];
+  static char ret[MAX_STRING_LENGTH] = { '\0' };
+  char line[MAX_INPUT_LENGTH] = { '\0' };
   char *sp = str;
   char *lp = line;
   char *rp = ret;
-  char *wp;
+  char *wp = NULL;
   int wlen = 0, llen = 0, lcount = 0;
-  char last_color='n';
+  char last_color = 'n';
   bool new_line_started = FALSE;
 
   memset(line, '\0', MAX_INPUT_LENGTH);
@@ -2078,17 +2077,16 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad)
         if (sp[1] && (sp[1]==*sp))
           wlen++; /* One printable char here */
         sp += 2; /* Eat the whole code regardless */
-      } else if (*sp=='\t'&&sp[1]) {
-        char MXPcode = sp[1]=='[' ? ']' : sp[1]=='<' ? '>' : '\0';
+      } else if (*sp == '\t' && sp[1]) {
+        char MXPcode = (sp[1] == '[' ? ']' : sp[1]=='<' ? '>' : '\0');
 	
-  if (!MXPcode)
-	   last_color = sp[1];
+        if (!MXPcode)
+	     last_color = sp[1];
  
         sp += 2; /* Eat the code */
-        if (MXPcode)
-        {
-           while (*sp!='\0'&&*sp!=MXPcode)
-             ++sp; /* Eat the rest of the code */
+        if (MXPcode) {
+          while (*sp != '\0' && *sp != MXPcode)
+            ++sp; /* Eat the rest of the code */
         } 
       } else {
         wlen++;

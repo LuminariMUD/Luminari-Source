@@ -1379,6 +1379,8 @@ int enter_player_game (struct descriptor_data *d)
   /* Check for a login trigger in the players' start room */
   login_wtrigger(&world[IN_ROOM(d->character)], d->character);
 
+  MXPSendTag( d, "<VERSION>" );
+  
   return load_result;
 }
 
@@ -1537,7 +1539,8 @@ void nanny(struct descriptor_data *d, char *arg)
           REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_CRYO);
           d->character->player.time.logon = time(0);
           write_to_output(d, "Password: ");
-          echo_off(d);
+          //echo_off(d);
+          ProtocolNoEcho( d, true );
           d->idle_tics = 0;
           STATE(d) = CON_PASSWORD;
         }
@@ -1582,7 +1585,8 @@ void nanny(struct descriptor_data *d, char *arg)
       }
       perform_new_char_dupe_check(d);
       write_to_output(d, "New character.\r\nGive me a password for %s: ", GET_PC_NAME(d->character));
-      echo_off(d);
+      //echo_off(d);
+      ProtocolNoEcho( d, true );
       STATE(d) = CON_NEWPASSWD;
     } else if (*arg == 'n' || *arg == 'N') {
       write_to_output(d, "Okay, what IS it, then? ");
@@ -1602,7 +1606,8 @@ void nanny(struct descriptor_data *d, char *arg)
      * entering a password, and (2) re-add the code to cut off duplicates when a
      * player quits.  JE 6 Feb 96 */
 
-    echo_on(d);    /* turn echo back on */
+    //echo_on(d);
+    ProtocolNoEcho( d, false ); /* turn echo back on */
 
     /* New echo_on() eats the return on telnet. Extra space better than none. */
     write_to_output(d, "\r\n");
@@ -1619,7 +1624,8 @@ void nanny(struct descriptor_data *d, char *arg)
 	  STATE(d) = CON_CLOSE;
 	} else {
 	  write_to_output(d, "Wrong password.\r\nPassword: ");
-	  echo_off(d);
+	  //echo_off(d);
+       ProtocolNoEcho( d, true );
 	}
 	return;
       }
@@ -1702,7 +1708,8 @@ void nanny(struct descriptor_data *d, char *arg)
 	STATE(d) = CON_CHPWD_GETNEW;
       return;
     }
-    echo_on(d);
+    //echo_on(d);
+    ProtocolNoEcho( d, false );
 
     if (STATE(d) == CON_CNFPASSWD) {
       write_to_output(d, "\r\nWhat is your sex (\t(M\t)/\t(F\t))? ");
@@ -1907,13 +1914,15 @@ void nanny(struct descriptor_data *d, char *arg)
 
     case '4':
       write_to_output(d, "\r\nEnter your old password: ");
-      echo_off(d);
+      //echo_off(d);
+      ProtocolNoEcho( d, true );
       STATE(d) = CON_CHPWD_GETOLD;
       break;
 
     case '5':
       write_to_output(d, "\r\nEnter your password for verification: ");
-      echo_off(d);
+      //echo_off(d);
+      ProtocolNoEcho( d, true );
       STATE(d) = CON_DELCNF1;
       break;
 
@@ -1926,7 +1935,8 @@ void nanny(struct descriptor_data *d, char *arg)
 
   case CON_CHPWD_GETOLD:
     if (strncmp(CRYPT(arg, GET_PASSWD(d->character)), GET_PASSWD(d->character), MAX_PWD_LENGTH)) {
-      echo_on(d);
+      //echo_on(d);
+      ProtocolNoEcho( d, false );
       write_to_output(d, "\r\nIncorrect password.\r\n%s", CONFIG_MENU);
       STATE(d) = CON_MENU;
     } else {
@@ -1936,7 +1946,8 @@ void nanny(struct descriptor_data *d, char *arg)
     return;
 
   case CON_DELCNF1:
-    echo_on(d);
+    //echo_on(d);
+    ProtocolNoEcho( d, false );
     if (strncmp(CRYPT(arg, GET_PASSWD(d->character)), GET_PASSWD(d->character), MAX_PWD_LENGTH)) {
       write_to_output(d, "\r\nIncorrect password.\r\n%s", CONFIG_MENU);
       STATE(d) = CON_MENU;

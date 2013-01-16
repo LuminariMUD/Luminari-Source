@@ -39,24 +39,28 @@ const char * RGBthree = "F555";
 
 static void Write( descriptor_t *apDescriptor, const char *apData )
 {
-   if ( apDescriptor != NULL )
+   if ( apDescriptor != NULL && apDescriptor->has_prompt )
    {
-       if ( apDescriptor->pProtocol->WriteOOB > 0 ) {
+      if ( apDescriptor->pProtocol->WriteOOB > 0 || 
+         *(apDescriptor->output) == '\0' )
+      {
          apDescriptor->pProtocol->WriteOOB = 2;
       }
    }
-   write_to_output( apDescriptor, apData, 0 );
+
+   write_to_output( apDescriptor, apData );
 }
 
 static void ReportBug( const char *apText )
 {
-   log( "%s", apText);
+   log( apText );
 }
 
 static void InfoMessage( descriptor_t *apDescriptor, const char *apData )
 {
    Write( apDescriptor, "\t[F210][\toINFO\t[F210]]\tn " );
    Write( apDescriptor, apData );
+   apDescriptor->pProtocol->WriteOOB = 0;
 }
 
 static void CompressStart( descriptor_t *apDescriptor )
@@ -346,10 +350,9 @@ protocol_t *ProtocolCreate( void )
 
 void ProtocolDestroy( protocol_t *apProtocol )
 {
-   int i; /* Loop counter */
-
-   for ( i = eMSDP_NONE+1; i < eMSDP_MAX; ++i )
-   {
+   int i = 0; /* Loop counter */
+   
+   for ( i = eMSDP_NONE+1; i < eMSDP_MAX; ++i ) {
      if (apProtocol->pVariables[i]->pValueString)
         free(apProtocol->pVariables[i]->pValueString);
       free(apProtocol->pVariables[i]);
