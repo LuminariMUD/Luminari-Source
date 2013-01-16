@@ -208,7 +208,7 @@ void string_add(struct descriptor_data *d, char *str)
         case CON_TRIGEDIT:
         case CON_HEDIT:
         case CON_QEDIT:
-        case CON_SORCEDIT:
+        case CON_STUDY:
         case CON_IBTEDIT:
 	     free(*d->str);
           *d->str    = d->backstr;

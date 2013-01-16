@@ -446,7 +446,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     }
 
     if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
-	   spellnum != SPELL_CHARM && spellnum != SPELL_DOMINATE_PERSON)
+           !FIGHTING(cvict) && spellnum != SPELL_CHARM &&
+           spellnum != SPELL_DOMINATE_PERSON)
       if (cvict != caster) {  // funny results from potions/scrolls
         if (IN_ROOM(cvict) == IN_ROOM(caster))
           hit(cvict, caster, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
