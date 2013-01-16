@@ -112,10 +112,10 @@ void extract_trigger(struct trig_data *trig)
 void extract_script(void *thing, int type)
 {
   struct script_data *sc = NULL;
-  struct trig_data *trig, *next_trig;
-  char_data *mob;
-  obj_data *obj;
-  room_data *room;
+  struct trig_data *trig = NULL, *next_trig = NULL;
+  char_data *mob = NULL;
+  obj_data *obj = NULL;
+  room_data *room = NULL;
 
   switch (type) {
     case MOB_TRIGGER:
@@ -139,7 +139,7 @@ void extract_script(void *thing, int type)
   {
     struct char_data *i = character_list;
     struct obj_data *j = object_list;
-    room_rnum k;
+    room_rnum k = 0;
     if (sc) {
       for ( ; i ; i = i->next)
         assert(sc != SCRIPT(i));

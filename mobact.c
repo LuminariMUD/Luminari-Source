@@ -494,10 +494,10 @@ void npc_class_behave(struct char_data *ch)
 
 void mobile_activity(void)
 {
-  struct char_data *ch, *next_ch, *vict;
-  struct obj_data *obj, *best_obj;
-  int door, found, max;
-  memory_rec *names;
+  struct char_data *ch = NULL, *next_ch = NULL, *vict = NULL;
+  struct obj_data *obj = NULL, *best_obj = NULL;
+  int door = 0, found = 0, max = 0;
+  memory_rec *names = NULL;
 
   for (ch = character_list; ch; ch = next_ch) {
     next_ch = ch->next;

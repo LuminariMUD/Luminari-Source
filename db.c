@@ -158,7 +158,7 @@ static int hsort(const void *a, const void *b);
 /* routines for booting the system */
 char *fread_action(FILE *fl, int nr)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = { '\0' };
   char *buf1 = NULL;
   int i = 0;
 
@@ -647,7 +647,8 @@ void destroy_db(void)
 /* body of the booting system */
 void boot_db(void)
 {
-  zone_rnum i;
+  zone_rnum i = 0;
+
 
   log("Boot db -- BEGIN.");
 
@@ -913,8 +914,9 @@ void index_boot(int mode)
 {
   const char *index_filename, *prefix = NULL;	/* NULL or egcs 1.1 complains */
   FILE *db_index, *db_file;
-  int rec_count = 0, size[2], i;
-  char buf2[PATH_MAX], buf1[MAX_STRING_LENGTH];
+  int rec_count = 0, size[2] = { 0, 0 }, i = 0;
+  char buf2[PATH_MAX] = { '\0' };
+  char buf1[MAX_STRING_LENGTH] = { '\0' };
 
   switch (mode) {
   case DB_BOOT_WLD:
@@ -1069,8 +1071,8 @@ void index_boot(int mode)
 
 void discrete_load(FILE *fl, int mode, char *filename)
 {
-  int nr = -1, last;
-  char line[READ_SIZE];
+  int nr = -1, last = 0;
+  char line[READ_SIZE] = { '\0' };
 
   const char *modes[] = {"world", "mob", "obj", "ZON", "SHP", "HLP", "trg", "qst"};
   /* modes positions correspond to DB_BOOT_xxx in db.h */
@@ -1187,11 +1189,17 @@ static bitvector_t asciiflag_conv_aff(char *flag)
 void parse_room(FILE *fl, int virtual_nr)
 {
   static int room_nr = 0, zone = 0;
-  int t[10], i, retval;
-  char line[READ_SIZE], flags[128], flags2[128], flags3[128];
-  char flags4[128], buf2[MAX_STRING_LENGTH], buf[128];
-  struct extra_descr_data *new_descr;
-  char letter;
+  int t[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  int i = 0, retval = 0;
+  char line[READ_SIZE] = { '\0' };
+  char flags[128] = { '\0' };
+  char flags2[128] = { '\0' };
+  char flags3[128] = { '\0' };
+  char flags4[128] = { '\0' };
+  char buf[128] = { '\0' };
+  char buf2[MAX_STRING_LENGTH] = { '\0' };
+  struct extra_descr_data *new_descr = NULL;
+  char letter = '\0';
 
   /* This really had better fit or there are other problems. */
   snprintf(buf2, sizeof(buf2), "room #%d", virtual_nr);
@@ -2733,13 +2741,13 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
 /* execute the reset command table of a given zone */
 void reset_zone(zone_rnum zone)
 {
-  int cmd_no, last_cmd = 0;
+  int cmd_no = 0, last_cmd = 0;
   struct char_data *mob = NULL;
-  struct obj_data *obj, *obj_to;
-  room_vnum rvnum;
-  room_rnum rrnum;
-  struct char_data *tmob=NULL; /* for trigger assignment */
-  struct obj_data *tobj=NULL;  /* for trigger assignment */
+  struct obj_data *obj = NULL, *obj_to = NULL;
+  room_vnum rvnum = 0;
+  room_rnum rrnum = 0;
+  struct char_data *tmob = NULL; /* for trigger assignment */
+  struct obj_data *tobj = NULL;  /* for trigger assignment */
 
   for (cmd_no = 0; ZCMD.command != 'S'; cmd_no++) {
 
@@ -2990,12 +2998,9 @@ int is_empty(zone_rnum zone_nr)
 /* read and allocate space for a '~'-terminated string from a given file */
 char *fread_string(FILE *fl, const char *error)
 {
-  char buf[MAX_STRING_LENGTH], tmp[513];
+  char buf[MAX_STRING_LENGTH] = { '\0' }, tmp[513] = { '\0' };
   char *point = NULL;
   int done = 0, length = 0, templength = 0;
-
-  *buf = '\0';
-  *tmp = '\0';
 
   do {
     if (!fgets(tmp, 512, fl)) {
@@ -3004,10 +3009,14 @@ char *fread_string(FILE *fl, const char *error)
     }
     /* If there is a '~', end the string; else put an "\r\n" over the '\n'. */
     /* now only removes trailing ~'s -- Welcor */
+
     point = strchr(tmp, '\0');
-    for (point-- ; (*point=='\r' || *point=='\n'); point--);
-    if (*point=='~') {
-      *point='\0';
+
+    for (point-- ; (*point == '\r' || *point== '\n'); point--)
+      ;
+
+    if (*point == '~') {
+      *point= '\0';
       done = 1;
     } else {
       *(++point) = '\r';
@@ -3037,7 +3046,7 @@ char *fread_string(FILE *fl, const char *error)
 /* fread_clean_string is the same as fread_string, but skips preceding spaces */
 char *fread_clean_string(FILE *fl, const char *error)
 {
-  char buf[MAX_STRING_LENGTH], tmp[513];
+  char buf[MAX_STRING_LENGTH] = { '\0' }, tmp[513] = { '\0' };
   char *point = NULL, c = '\0';
   int done = 0, length = 0, templength = 0;
 
@@ -4111,11 +4120,11 @@ static void load_default_config( void )
 void load_config( void )
 {
   FILE *fl;
-  char line[MAX_STRING_LENGTH];
-  char tag[MAX_INPUT_LENGTH];
-  int  num;
-  float fl_num;
-  char buf[MAX_INPUT_LENGTH];
+  char line[MAX_STRING_LENGTH] = { '\0' };
+  char tag[MAX_INPUT_LENGTH] = { '\0' };
+  int  num = 0;
+  float fl_num = 0.0;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
 
   load_default_config();
 

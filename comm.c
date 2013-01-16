@@ -207,7 +207,7 @@ void gettimeofday(struct timeval *t, struct timezone *dummy)
 int main(int argc, char **argv)
 {
   int pos = 1;
-  const char *dir;
+  const char *dir = NULL;
 
 #ifdef MEMORY_DEBUG
   zmalloc_init();
@@ -738,9 +738,9 @@ void game_loop(socket_t local_mother_desc)
   fd_set input_set, output_set, exc_set, null_set;
   struct timeval last_time, opt_time, process_time, temp_time;
   struct timeval before_sleep, now, timeout;
-  char comm[MAX_INPUT_LENGTH];
+  char comm[MAX_INPUT_LENGTH] = { '\0' };
   struct descriptor_data *d = NULL, *next_d = NULL;
-  int missed_pulses, maxdesc, aliased;
+  int missed_pulses = 0, maxdesc = 0, aliased = 0;
 
   comm[0] = '\0';
 
