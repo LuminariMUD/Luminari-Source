@@ -51,16 +51,16 @@ room_rnum top_of_world = 0;	/* ref to top element of world	 */
 struct raff_node *raff_list = NULL;	// list of room affections
 
 struct char_data *character_list = NULL; /* global linked list of chars	*/
-struct index_data *mob_index;	/* index table for mobile file	 */
-struct char_data *mob_proto;	/* prototypes for mobs		 */
+struct index_data *mob_index = NULL;	/* index table for mobile file	 */
+struct char_data *mob_proto = NULL;	/* prototypes for mobs		 */
 mob_rnum top_of_mobt = 0;	/* top of mobile index table	 */
 
 struct obj_data *object_list = NULL;	/* global linked list of objs	*/
-struct index_data *obj_index;	/* index table for object file	 */
-struct obj_data *obj_proto;	/* prototypes for objs		 */
+struct index_data *obj_index = NULL;	/* index table for object file	 */
+struct obj_data *obj_proto = NULL;	/* prototypes for objs		 */
 obj_rnum top_of_objt = 0;	/* top of object index table	 */
 
-struct zone_data *zone_table; /* zone table      */
+struct zone_data *zone_table = NULL; /* zone table      */
 zone_rnum top_of_zone_table = 0;/* top element of zone tab   */
 
 /* begin previously located in players.c */
@@ -72,17 +72,17 @@ long top_idnum = 0;       /* highest idnum in use    */
 
 struct message_list fight_messages[MAX_MESSAGES];	/* fighting messages	 */
 
-struct index_data **trig_index; /* index table for triggers      */
+struct index_data **trig_index = NULL; /* index table for triggers      */
 struct trig_data *trigger_list = NULL;  /* all attached triggers */
 int top_of_trigt = 0;           /* top of trigger index table    */
 long max_mob_id = MOB_ID_BASE;  /* for unique mob id's           */
 long max_obj_id = OBJ_ID_BASE;  /* for unique obj id's           */
-int dg_owner_purged;            /* For control of scripts        */
+int dg_owner_purged = 0;            /* For control of scripts        */
 
-struct aq_data *aquest_table;   /* Autoquests table              */
+struct aq_data *aquest_table = NULL;   /* Autoquests table              */
 qst_rnum total_quests = 0;      /* top of autoquest table        */
 
-struct shop_data *shop_index;   /* index table for shops         */
+struct shop_data *shop_index = NULL;   /* index table for shops         */
 int top_shop = -1;              /* top of shop table             */
 
 int no_mail = 0;                /* mail disabled?		 */
@@ -90,9 +90,9 @@ int mini_mud = 0;               /* mini-mud mode?		 */
 int no_rent_check = 0;          /* skip rent check on boot?	 */
 time_t boot_time = 0;           /* time of mud boot		 */
 int circle_restrict = 0;        /* level of game restriction	 */
-room_rnum r_mortal_start_room;	/* rnum of mortal start room	 */
-room_rnum r_immort_start_room;	/* rnum of immort start room	 */
-room_rnum r_frozen_start_room;	/* rnum of frozen start room	 */
+room_rnum r_mortal_start_room = 0;	/* rnum of mortal start room	 */
+room_rnum r_immort_start_room = 0;	/* rnum of immort start room	 */
+room_rnum r_frozen_start_room = 0;	/* rnum of frozen start room	 */
 
 char *credits = NULL;		/* game credits			 */
 char *news = NULL;		/* mud news			 */
@@ -117,8 +117,8 @@ struct help_index_element *help_table = NULL;
 struct social_messg *soc_mess_list = NULL;      /* list of socials */
 int top_of_socialt = -1;                        /* number of socials */
 
- time_t newsmod; /* Time news file was last modified. */
- time_t motdmod; /* Time motd file was last modified. */
+time_t newsmod = 0; /* Time news file was last modified. */
+time_t motdmod = 0; /* Time motd file was last modified. */
 
 struct time_info_data time_info;  /* the infomation about the time    */
 struct weather_data weather_info;	/* the infomation about the weather */
@@ -159,8 +159,10 @@ static int hsort(const void *a, const void *b);
 char *fread_action(FILE *fl, int nr)
 {
   char buf[MAX_STRING_LENGTH];
-  char *buf1;
-  int i;
+  char *buf1 = NULL;
+  int i = 0;
+
+  *buf = '\0';
   
   buf1 = fgets(buf, MAX_STRING_LENGTH, fl);
   if (feof(fl)) {
@@ -2989,10 +2991,11 @@ int is_empty(zone_rnum zone_nr)
 char *fread_string(FILE *fl, const char *error)
 {
   char buf[MAX_STRING_LENGTH], tmp[513];
-  char *point;
-  int done = 0, length = 0, templength;
+  char *point = NULL;
+  int done = 0, length = 0, templength = 0;
 
   *buf = '\0';
+  *tmp = '\0';
 
   do {
     if (!fgets(tmp, 512, fl)) {
@@ -3025,18 +3028,21 @@ char *fread_string(FILE *fl, const char *error)
   } while (!done);
   
   parse_at(buf);
+
   /* allocate space for the new string and copy it */
   return (strlen(buf) ? strdup(buf) : NULL);
 }
+
 
 /* fread_clean_string is the same as fread_string, but skips preceding spaces */
 char *fread_clean_string(FILE *fl, const char *error)
 {
   char buf[MAX_STRING_LENGTH], tmp[513];
-  char *point, c;
-  int done = 0, length = 0, templength;
+  char *point = NULL, c = '\0';
+  int done = 0, length = 0, templength = 0;
 
   *buf = '\0';
+  *tmp = '\0';
 
   do
   {
@@ -3081,6 +3087,7 @@ char *fread_clean_string(FILE *fl, const char *error)
   } while (!done);
   
   parse_at(buf);
+
   /* allocate space for the new string and copy it */
   return (strlen(buf) ? strdup(buf) : NULL);
 }
@@ -3367,8 +3374,8 @@ void free_char(struct char_data *ch)
       free(ch->player_specials->poofout);
     if (ch->player_specials->saved.completed_quests)
       free(ch->player_specials->saved.completed_quests);
-//    if (ch->player_specials->saved.autocquest_desc)
-//      free(ch->player_specials->saved.autocquest_desc);
+    if (ch->player_specials->saved.autocquest_desc)
+      free(ch->player_specials->saved.autocquest_desc);
     if (GET_HOST(ch))
       free(GET_HOST(ch));
     if (IS_NPC(ch))

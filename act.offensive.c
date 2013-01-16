@@ -1149,10 +1149,10 @@ EVENTFUNC(event_regen)
 
 EVENTFUNC(event_whirlwind)
 {
-  struct char_data *ch, *tch;
-  struct mud_event_data *pMudEvent;
-  struct list_data *room_list;
-  int count;
+  struct char_data *ch = NULL, *tch = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+  struct list_data *room_list = NULL;
+  int count = 0;
 	
   /* This is just a dummy check, but we'll do it anyway */
   if (event_obj == NULL)
@@ -1173,6 +1173,7 @@ EVENTFUNC(event_whirlwind)
    * to our list */
   if (!IN_ROOM(ch))
     return 0;
+
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)  
     if (IS_NPC(tch))
       add_to_list(tch, room_list);
@@ -1193,6 +1194,7 @@ EVENTFUNC(event_whirlwind)
     if (GET_SKILL(ch, SKILL_IMPROVED_WHIRL))
       increase_skill(ch, SKILL_IMPROVED_WHIRL);
   }
+
   /* We spit out some ugly colour, making use of the new colour options,
    * to let the player know they are performing their whirlwind strike */
   send_to_char(ch, "\t[f313]You deliver a vicious \t[f014]\t[b451]WHIRLWIND!!!\tn\r\n");
@@ -1204,7 +1206,8 @@ EVENTFUNC(event_whirlwind)
   }
   
   /* Now that our attack is done, let's free out list */
-  free_list(room_list);
+  if (room_list)
+    free_list(room_list);
   
   /* The "return" of the event function is the time until the event is called
    * again. If we return 0, then the event is freed and removed from the list, but
