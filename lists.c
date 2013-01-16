@@ -267,12 +267,16 @@ void * simple_list(struct list_data * pList)
   static struct list_data *pLastList = NULL;
   void * pContent = NULL;
 	
-	/* Reset List */
-	if (pList == NULL) {
-		loop = FALSE;
-		pLastList = NULL;
-		return NULL;
-	}
+  /* Reset List */
+  if (pList == NULL) {
+    loop = FALSE;
+    pLastList = NULL;
+    return NULL;
+  }
+
+  /* Ripley suggested this */
+  if (pList->pFirstItem == NULL)
+    return NULL;
 	
   if (!loop || pLastList != pList) {
     if (loop && pLastList != pList)
