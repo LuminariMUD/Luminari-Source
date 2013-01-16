@@ -2755,7 +2755,7 @@ find_case(struct trig_data *trig, struct cmdlist_element *cl,
 {
   char result[MAX_INPUT_LENGTH];
   struct cmdlist_element *c;
-  char *p, *buf;
+  char *p, *buf = NULL;
 
   eval_expr(cond, result, go, sc, trig, type);
 
@@ -2768,13 +2768,15 @@ find_case(struct trig_data *trig, struct cmdlist_element *cl,
     if (!strn_cmp("while ", p, 6) || !strn_cmp("switch", p, 6))
       c = find_done(c);
     else if (!strn_cmp("case ", p, 5)) {
-      buf = (char*)malloc(MAX_STRING_LENGTH);
-      eval_op("==", result, p + 5, buf, go, sc, trig);
-      if (*buf && *buf!='0') {
+      buf = (char *) malloc(MAX_STRING_LENGTH);
+      if (buf != NULL) {
+        eval_op("==", result, p + 5, buf, go, sc, trig);
+        if (*buf && *buf!='0') {
+          free(buf);
+          return c;
+        }
         free(buf);
-        return c;
       }
-      free(buf);
     } else if (!strn_cmp("default", p, 7))
       return c;
     else if (!strn_cmp("done", p, 3))

@@ -739,8 +739,10 @@ void game_loop(socket_t local_mother_desc)
   struct timeval last_time, opt_time, process_time, temp_time;
   struct timeval before_sleep, now, timeout;
   char comm[MAX_INPUT_LENGTH];
-  struct descriptor_data *d, *next_d;
+  struct descriptor_data *d = NULL, *next_d = NULL;
   int missed_pulses, maxdesc, aliased;
+
+  comm[0] = '\0';
 
   /* initialize various time values */
   null_time.tv_sec = 0;
@@ -1451,7 +1453,7 @@ void write_to_q(const char *txt, struct txt_q *queue, int aliased)
 /* NOTE: 'dest' must be at least MAX_INPUT_LENGTH big. */
 static int get_from_q(struct txt_q *queue, char *dest, int *aliased)
 {
-  struct txt_block *tmp;
+  struct txt_block *tmp = NULL;
 
   /* queue empty? */
   if (!queue->head)
