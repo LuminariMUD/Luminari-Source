@@ -31,7 +31,7 @@ static struct mail_t *read_mail_record(FILE *mail_file);
 
 static int mail_recip_ok(const char *name)
 {
-  int player_i, ret = FALSE;
+  int player_i = 0, ret = FALSE;
 
   if ((player_i = get_ptable_by_name(name)) >= 0) {
     if (!IS_SET(player_table[player_i].flags, PINDEX_DELETED))
@@ -50,9 +50,11 @@ static void free_mail_record(struct mail_t *record)
 static struct mail_t *read_mail_record(FILE *mail_file)
 {
   char line[READ_SIZE];
-  long sender, recipient;
-  time_t sent_time;
-  struct mail_t *record;
+  long sender = 0, recipient = 0;
+  time_t sent_time = 0;
+  struct mail_t *record = NULL;
+
+  *line = '\0';
 
   if (!get_line(mail_file, line))
   	return NULL;
@@ -92,7 +94,7 @@ int scan_file(void)
 {
   FILE *mail_file;
   int count = 0;
-  struct mail_t *record;
+  struct mail_t *record = NULL;
 
   if (!(mail_file = fopen(MAIL_FILE, "r"))) {
     log("   Mail file non-existant... creating new file.");
@@ -121,7 +123,7 @@ int scan_file(void)
 int has_mail(long recipient)
 {
   FILE *mail_file;
-  struct mail_t *record;
+  struct mail_t *record = NULL;
 
   if (!(mail_file = fopen(MAIL_FILE, "r"))) {
     perror("read_delete: Mail file not accessible.");
@@ -154,7 +156,7 @@ int has_mail(long recipient)
 void store_mail(long to, long from, char *message_pointer)
 {
   FILE *mail_file;
-  struct mail_t *record;
+  struct mail_t *record = NULL;
 
   if (!(mail_file = fopen(MAIL_FILE, "a"))) {
     perror("store_mail: Mail file not accessible.");
@@ -181,8 +183,10 @@ void store_mail(long to, long from, char *message_pointer)
 char *read_delete(long recipient)
 {
   FILE *mail_file, *new_file;
-  struct mail_t *record, *record_to_keep = NULL;
+  struct mail_t *record = NULL, *record_to_keep = NULL;
   char buf[MAX_STRING_LENGTH];
+
+  *buf = '\0';
 
   if (!(mail_file = fopen(MAIL_FILE, "r"))) {
     perror("read_delete: Mail file not accessible.");
@@ -273,8 +277,10 @@ SPECIAL(postmaster)
 static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman,
 			  int cmd, char *arg)
 {
-  long recipient;
-  char buf[MAX_INPUT_LENGTH], **mailwrite;
+  long recipient = 0;
+  char buf[MAX_INPUT_LENGTH], **mailwrite = NULL;
+
+  *buf = '\0';
 
   if (GET_LEVEL(ch) < MIN_MAIL_LEVEL) {
     snprintf(buf, sizeof(buf), "$n tells you, 'Sorry, you have to be level %d to send mail!'", MIN_MAIL_LEVEL);
@@ -330,8 +336,10 @@ static void postmaster_receive_mail(struct char_data *ch, struct char_data *mail
 			  int cmd, char *arg)
 {
   char buf[256];
-  struct obj_data *obj;
-  int y;
+  struct obj_data *obj = NULL;
+  int y = 0;
+
+  *buf = '\0';
 
   if (!has_mail(GET_IDNUM(ch))) {
     snprintf(buf, sizeof(buf), "$n tells you, 'Sorry, you don't have any mail waiting.'");
@@ -367,7 +375,7 @@ static void postmaster_receive_mail(struct char_data *ch, struct char_data *mail
 
 void notify_if_playing(struct char_data *from, int recipient_id) 
 { 
-  struct descriptor_data *d; 
+  struct descriptor_data *d = NULL; 
 
   for (d = descriptor_list; d; d = d->next) 
     if ((IS_PLAYING(d)) && (GET_IDNUM(d->character) == recipient_id) && (has_mail(GET_IDNUM(d->character)))) 

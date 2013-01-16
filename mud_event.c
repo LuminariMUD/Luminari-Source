@@ -62,7 +62,7 @@ void init_events(void)
  */
 EVENTFUNC(event_countdown)
 {
-  struct mud_event_data * pMudEvent;
+  struct mud_event_data * pMudEvent = NULL;
   struct char_data * ch = NULL;
 	
   pMudEvent = (struct mud_event_data * ) event_obj;
@@ -139,9 +139,9 @@ EVENTFUNC(event_countdown)
  * library was, and should be available in a future release. - Vat */
 void attach_mud_event(struct mud_event_data *pMudEvent, long time)
 {
-  struct event * pEvent;
-  struct descriptor_data * d;
-  struct char_data * ch;
+  struct event * pEvent = NULL;
+  struct descriptor_data * d = NULL;
+  struct char_data * ch = NULL;
    
   pEvent = event_create(mud_event_index[pMudEvent->iId].func, pMudEvent, time);
   pEvent->isMudEvent = TRUE;	
@@ -165,8 +165,8 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
 
 struct mud_event_data *new_mud_event(event_id iId, void *pStruct, char *sVariables)
 {
-  struct mud_event_data *pMudEvent;
-  char *varString;
+  struct mud_event_data *pMudEvent = NULL;
+  char *varString = NULL;
 		
   CREATE(pMudEvent, struct mud_event_data, 1);
   varString = (sVariables != NULL) ? strdup(sVariables) : NULL;	
@@ -182,8 +182,8 @@ struct mud_event_data *new_mud_event(event_id iId, void *pStruct, char *sVariabl
 
 void free_mud_event(struct mud_event_data *pMudEvent)
 {
-  struct descriptor_data * d;
-  struct char_data * ch;
+  struct descriptor_data * d = NULL;
+  struct char_data * ch = NULL;
 
   switch (mud_event_index[pMudEvent->iId].iEvent_Type) {
     case EVENT_WORLD:
@@ -209,8 +209,8 @@ void free_mud_event(struct mud_event_data *pMudEvent)
 
 struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId)
 {
-  struct event * pEvent;
-  struct mud_event_data * pMudEvent;
+  struct event * pEvent = NULL;
+  struct mud_event_data * pMudEvent = NULL;
   bool found = FALSE;
 
   if (ch->events->iSize == 0)
@@ -239,7 +239,7 @@ struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId)
 
 void clear_char_event_list(struct char_data * ch)
 {
-  struct event * pEvent;
+  struct event * pEvent = NULL;
     
   if (ch->events == NULL)
     return;

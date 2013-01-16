@@ -31,7 +31,7 @@
  **************************************************************************/
 /* file scope variables */
 /** The mud specific queue of events. */
-static struct dg_queue *event_q;
+static struct dg_queue *event_q = NULL;
 
 
 /** Initializes the main event queue event_q.
@@ -56,7 +56,7 @@ void event_init(void)
  * */
 struct event *event_create(EVENTFUNC(*func), void *event_obj, long when)
 {
-  struct event *new_event;
+  struct event *new_event = NULL;
 
   if (when < 1) /* make sure its in the future */
     when = 1;
@@ -94,7 +94,7 @@ void event_cancel(struct event *event)
 /* The memory freeing routine tied into the mud event system */
 void cleanup_event_obj(struct event *event)
 {
-  struct mud_event_data * mud_event;
+  struct mud_event_data * mud_event = NULL;
 
   if (event->isMudEvent) {  
     mud_event = (struct mud_event_data *) event->event_obj;
@@ -108,8 +108,8 @@ void cleanup_event_obj(struct event *event)
  */
 void event_process(void)
 {
-  struct event *the_event;
-  long new_time;
+  struct event *the_event = NULL;
+  long new_time = 0;
 
   while ((long) pulse >= queue_key(event_q)) {
     if (!(the_event = (struct event *) queue_head(event_q))) {
@@ -129,7 +129,6 @@ void event_process(void)
       if (the_event->isMudEvent && the_event->event_obj != NULL)
         free_mud_event((struct mud_event_data *) the_event->event_obj);
       /* It is assumed that the_event will already have freed ->event_obj. */
-//      event_cancel(the_event);
       free(the_event);
     }
       
@@ -141,7 +140,7 @@ void event_process(void)
  * @retval long Number of pulses before this event will fire. */
 long event_time(struct event *event)
 {
-  long when;
+  long when = 0;
 
   when = queue_elmt_key(event->q_el);
 
@@ -176,7 +175,7 @@ int event_is_queued(struct event *event)
  * @retval dg_queue * Pointer to the newly created queue structure. */
 struct dg_queue *queue_init(void)
 {
-  struct dg_queue *q;
+  struct dg_queue *q = NULL;
 
   CREATE(q, struct dg_queue, 1);
 
@@ -195,8 +194,8 @@ struct dg_queue *queue_init(void)
  * the data. */
 struct q_element *queue_enq(struct dg_queue *q, void *data, long key)
 {
-  struct q_element *qe, *i;
-  int bucket;
+  struct q_element *qe = NULL, *i = NULL;
+  int bucket = 0;
 
   CREATE(qe, struct q_element, 1);
   qe->data = data;
@@ -244,7 +243,7 @@ struct q_element *queue_enq(struct dg_queue *q, void *data, long key)
  */
 void queue_deq(struct dg_queue *q, struct q_element *qe)
 {
-  int i;
+  int i = 0;
 
   assert(qe);
 
@@ -272,8 +271,8 @@ void queue_deq(struct dg_queue *q, struct q_element *qe)
  * to any data object associated with the queue element. */
 void *queue_head(struct dg_queue *q)
 {
-  void *dg_data;
-  int i;
+  void *dg_data = NULL;
+  int i = 0;
 
   i = pulse % NUM_EVENT_QUEUES;
 
@@ -293,7 +292,7 @@ void *queue_head(struct dg_queue *q)
  * q_element is available, return LONG_MAX. */
 long queue_key(struct dg_queue *q)
 {
-  int i;
+  int i = 0;
 
   i = pulse % NUM_EVENT_QUEUES;
 
@@ -318,9 +317,9 @@ long queue_elmt_key(struct q_element *qe)
  */
 void queue_free(struct dg_queue *q)
 {
-  int i;
-  struct q_element *qe, *next_qe;
-  struct event *event;
+  int i = 0;
+  struct q_element *qe = NULL, *next_qe = NULL;
+  struct event *event = NULL;
 
   for (i = 0; i < NUM_EVENT_QUEUES; i++)
   {

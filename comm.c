@@ -114,7 +114,7 @@ int next_tick = SECS_PER_MUD_HOUR;  /* Tick countdown */
 long last_webster_teller = -1L;
 
 /* static local global variable declarations (current file scope only) */
-static struct txt_block *bufpool = 0;  /* pool of large output buffers */
+static struct txt_block *bufpool = NULL;  /* pool of large output buffers */
 static int max_players = 0;   /* max descriptors available */
 static int tics_passed = 0;     /* for extern checkpointing */
 static struct timeval null_time; /* zero-valued time structure */
@@ -1212,11 +1212,12 @@ void echo_on(struct descriptor_data *d)
 static char *make_prompt(struct descriptor_data *d)
 {
   static char prompt[MAX_PROMPT_LENGTH];
-  int door, slen = 0;
-  struct char_data *ch = d->character;
-  int count;
+  int door = 0, slen = 0;
+  struct char_data *ch = NULL;
+  int count = 0;
   size_t len = 0;
 
+  ch = d->character;
   *prompt = '\0';
 
   // Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h)
@@ -1338,6 +1339,7 @@ static char *make_prompt(struct descriptor_data *d)
             len += count;
         }
       }
+
       // autoprompt display memtime
       if (PRF_FLAGGED(d->character, PRF_DISPMEMTIME) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "MEM: %d/%d/%d ",
@@ -1572,7 +1574,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
 
 static void free_bufpool(void)
 {
-  struct txt_block *tmp;
+  struct txt_block *tmp = NULL;
 
   while (bufpool) {
     tmp = bufpool->next;
