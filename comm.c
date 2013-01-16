@@ -1505,12 +1505,13 @@ size_t write_to_output(struct descriptor_data *t, const char *txt, ...)
 }
 
 /* Add a new string to a player's output queue. */
-size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list args)
+size_t vwrite_to_output(struct descriptor_data *t, const char *format,
+        va_list args)
 {
   const char *text_overflow = "\r\nOVERFLOW\r\n";
-  static char txt[MAX_STRING_LENGTH];
-  size_t wantsize;
-  int size;
+  static char txt[MAX_STRING_LENGTH] = { '\0' };
+  size_t wantsize = 0;
+  int size = 0;
 
   /* if we're in the overflow state already, ignore this new output */
   if (t->bufspace == 0)
@@ -1518,10 +1519,11 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
 
   wantsize = size = vsnprintf(txt, sizeof(txt), format, args);
 
-  strcpy(txt, ProtocolOutput( t, txt, (int*)&wantsize )); /* <--- Add this line */
-  size = wantsize;                    /* <--- Add this line */
-  if ( t->pProtocol->WriteOOB > 0 )   /* <--- Add this line */
-    --t->pProtocol->WriteOOB;         /* <--- Add this line */
+  /* this block is Kavir's protocol */
+  strcpy(txt, ProtocolOutput( t, txt, (int*)&wantsize ));
+  size = wantsize;
+  if ( t->pProtocol->WriteOOB > 0 )
+    --t->pProtocol->WriteOOB;
 
   /* If exceeding the size of the buffer, truncate it for the overflow message */
   if (size < 0 || wantsize >= sizeof(txt)) {
@@ -1797,15 +1799,18 @@ static int process_output(struct descriptor_data *t)
     strcat(osb, "**OVERFLOW**\r\n");	/* strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space) */
 
   /* add the extra CRLF if the person isn't in compact mode */
-  if (STATE(t) == CON_PLAYING && t->character && !IS_NPC(t->character) && !PRF_FLAGGED(t->character, PRF_COMPACT))
-    strcat(osb, "\r\n");	/* strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space) */
+  if (STATE(t) == CON_PLAYING && t->character && !IS_NPC(t->character) &&
+          !PRF_FLAGGED(t->character, PRF_COMPACT)) {
+    if ( !t->pProtocol->WriteOOB )     
+      strcat(osb, "\r\n"); /* strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space) */
+  }
 
   if (!t->pProtocol->WriteOOB) /* add a prompt */
     strcat(i, make_prompt(t));	/* strcpy: OK (i:MAX_SOCK_BUF reserves space) */
 
   /* now, send the output.  If this is an 'interruption', use the prepended
    * CRLF, otherwise send the straight output sans CRLF. */
-  if (t->has_prompt) {
+  if (t->has_prompt && !t->pProtocol->WriteOOB) {
     t->has_prompt = FALSE;
     result = write_to_descriptor(t->descriptor, i);
     if (result >= 2)
@@ -2050,11 +2055,12 @@ static ssize_t perform_socket_read(socket_t desc, char *read_point, size_t space
  * need 256 characters on a line?) -gg 1/21/2000 */
 static int process_input(struct descriptor_data *t)
 {
-  int buf_length, failed_subst;
-  ssize_t bytes_read;
-  size_t space_left;
-  char *ptr, *read_point, *write_point, *nl_pos = NULL;
-  char tmp[MAX_INPUT_LENGTH];
+  int buf_length = 0, failed_subst = 0;
+  ssize_t bytes_read = 0;
+  size_t space_left = 0;
+  char *ptr = NULL, *read_point = NULL,
+          *write_point = NULL, *nl_pos = NULL;
+  char tmp[MAX_INPUT_LENGTH] = { '\0' };
   static char read_buf[MAX_PROTOCOL_BUFFER] = { '\0' }; /* KaVir's plugin */
   
   /* first, find the point where we left off reading data */
@@ -2068,13 +2074,14 @@ static int process_input(struct descriptor_data *t)
       return (-1);
     }
 
-    /* Read # of "bytes_read" from socket, and if we have something, mark the sizeof data
-     * in the read_buf array as NULL */
-    if ((bytes_read = perform_socket_read(t->descriptor, read_buf, space_left)) > 0)
+    /* Read # of "bytes_read" from socket, and if we have something, mark the
+     * sizeof data in the read_buf array as NULL */
+    if ((bytes_read =
+            perform_socket_read(t->descriptor, read_buf, space_left)) > 0)
       read_buf[bytes_read] = '\0';
 
-    /* Since we have recieved atleast 1 byte of data from the socket, lets run it through
-     * ProtocolInput() and rip out anything that is Out Of Band */ 
+    /* Since we have recieved atleast 1 byte of data from the socket, lets run
+     * it through ProtocolInput() and rip out anything that is Out Of Band */ 
     if ( bytes_read > 0 )
       bytes_read = ProtocolInput( t, read_buf, bytes_read, t->inbuf );
 
@@ -2381,7 +2388,8 @@ static void check_idle_passwords(void)
       d->idle_tics++;
       continue;
     } else {
-      echo_on(d);
+      //echo_on(d);
+      ProtocolNoEcho( d, false );
       write_to_output(d, "\r\nTimed out... goodbye.\r\n");
       STATE(d) = CON_CLOSE;
     }
