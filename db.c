@@ -488,9 +488,9 @@ static void free_extra_descriptions(struct extra_descr_data *edesc)
 /* Free the world, in a memory allocation sense. */
 void destroy_db(void)
 {
-  ssize_t cnt, itr;
-  struct char_data *chtmp;
-  struct obj_data *objtmp;
+  ssize_t cnt = 0, itr = 0;
+  struct char_data *chtmp = NULL;
+  struct obj_data *objtmp = NULL;
 
   /* Active Mobiles & Players */
   while (character_list) {
@@ -3369,8 +3369,8 @@ static void free_followers(struct follow_type *k)
 /* release memory allocated for a char struct */
 void free_char(struct char_data *ch)
 {
-  int i;
-  struct alias_data *a;
+  int i = 0;
+  struct alias_data *a = NULL;
 
   if (ch->player_specials != NULL && ch->player_specials != &dummy_mob) {
     while ((a = GET_ALIASES(ch)) != NULL) {
