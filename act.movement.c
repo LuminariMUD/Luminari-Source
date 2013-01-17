@@ -1005,38 +1005,228 @@ ACMD(do_gen_door)
   return;
 }
 
-ACMD(do_enter)
-{
-  char buf[MAX_INPUT_LENGTH];
-  int door;
+ACMD(do_enter) 
+{ 
+  char buf[MAX_INPUT_LENGTH] = { '\0' }; 
+  int door = 0, portal_type = 0, count = 0, diff = 0; 
+  //int iPlayerClan = 0;
+  room_vnum portal_dest = NOWHERE;
+  //room_vnum vClanhall = NOWHERE; 
+  room_rnum was_in = 0;
+  //room_rnum rClanhall = 0;
+  struct follow_type *k = NULL; 
+  struct obj_data *portal = NULL; 
 
-  one_argument(argument, buf);
+  was_in = IN_ROOM(ch); 
 
-  if (*buf) {			/* an argument was supplied, search for door
-				 * keyword */
-    for (door = 0; door < DIR_COUNT; door++)
-      if (EXIT(ch, door))
-	if (EXIT(ch, door)->keyword)
-	  if (!str_cmp(EXIT(ch, door)->keyword, buf)) {
-	    perform_move(ch, door, 1);
-	    return;
-	  }
-    send_to_char(ch, "There is no %s here.\r\n", buf);
-  } else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS))
-    send_to_char(ch, "You are already indoors.\r\n");
-  else {
-    /* try to locate an entrance */
-    for (door = 0; door < DIR_COUNT; door++)
-      if (EXIT(ch, door))
-	if (EXIT(ch, door)->to_room != NOWHERE)
-	  if (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) &&
-	      ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_INDOORS)) {
-	    perform_move(ch, door, 1);
-	    return;
-	  }
-    send_to_char(ch, "You can't seem to find anything to enter.\r\n");
-  }
-}
+  one_argument(argument, buf); 
+
+  /* an argument was supplied, search for door keyword */
+  if (*buf) {
+    /* Portals first */ 
+    portal = get_obj_in_list_vis(ch, buf, NULL, world[IN_ROOM(ch)].contents); 
+    if ((portal) && (GET_OBJ_TYPE(portal) == ITEM_PORTAL)) { 
+      portal_type = portal->obj_flags.value[0]; 
+
+      /* Perform checks and get destination */ 
+      switch (portal_type) { 
+        case PORTAL_NORMAL: 
+          portal_dest = portal->obj_flags.value[1]; 
+          break; 
+
+        case PORTAL_CHECKFLAGS: 
+          if ( ((GET_CLASS(ch) == CLASS_MAGIC_USER) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_MAGIC_USER))) || 
+                  
+               ((GET_CLASS(ch) == CLASS_CLERIC) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_CLERIC))) ||
+                  
+               ((GET_CLASS(ch) == CLASS_THIEF) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_THIEF))) ||
+                  
+               ((GET_CLASS(ch) == CLASS_MONK) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_MONK))) ||
+                  
+               ((GET_CLASS(ch) == CLASS_DRUID) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_DRUID))) ||
+                  
+               ((GET_CLASS(ch) == CLASS_BERSERKER) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_BERSERKER))) ||
+                  
+               ((GET_CLASS(ch) == CLASS_SORCERER) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_SORCERER))) ||
+                  
+               ((GET_CLASS(ch) == CLASS_WARRIOR) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_WARRIOR)))
+          ) { 
+            act("You try to enter $p, but a mysterious power "
+                      "forces you back!", FALSE, ch, portal, 0, TO_CHAR); 
+            act("\tRA booming voice in your head shouts '\tWNot "
+                      "for your class!\tR'\tn", FALSE, ch, portal, 0, TO_CHAR); 
+            act("$n tries to enter $p, but a mysterious power "
+                      "forces $m back!", FALSE, ch, portal, 0, TO_ROOM); 
+            return; 
+          }
+          
+          if (IS_EVIL(ch) && OBJ_FLAGGED(portal, ITEM_ANTI_EVIL)) { 
+            act("You try to enter $p, but a mysterious power "
+                      "forces you back!", FALSE, ch, portal, 0, TO_CHAR); 
+            act("\tRA booming voice in your head shouts '\tWBEGONE "
+                      "EVIL-DOER!\tR'\tn", FALSE, ch, portal, 0, TO_CHAR); 
+            act("$n tries to enter $p, but a mysterious power "
+                      "forces $m back!", FALSE, ch, portal, 0, TO_ROOM); 
+            return; 
+          }
+          
+          if (IS_GOOD(ch) && OBJ_FLAGGED(portal, ITEM_ANTI_GOOD)) { 
+            act("You try to enter $p, but a mysterious power "
+                      "forces you back!", FALSE, ch, portal, 0, TO_CHAR); 
+            act("\tRA booming voice in your head shouts '\tWBEGONE "
+                      "DO-GOODER!\tR'\tn", FALSE, ch, portal, 0, TO_CHAR); 
+            act("$n tries to enter $p, but a mysterious power "
+                      "forces $m back!", FALSE, ch, portal, 0, TO_ROOM); 
+            return; 
+          } 
+          
+          if (((!IS_EVIL(ch)) && !(IS_GOOD(ch))) &&
+                  OBJ_FLAGGED(portal, ITEM_ANTI_NEUTRAL)) { 
+            act("You try to enter $p, but a mysterious power "
+                      "forces you back!", FALSE, ch, portal, 0, TO_CHAR); 
+            act("\tRA booming voice in your head shouts '\tWBEGONE!"
+                      "\tR'\tn", FALSE, ch, portal, 0, TO_CHAR); 
+            act("$n tries to enter $p, but a mysterious power "
+                      "forces $m back!", FALSE, ch, portal, 0, TO_ROOM); 
+            return; 
+          } 
+
+          portal_dest = portal->obj_flags.value[1]; 
+          break; 
+
+/*
+        case PORTAL_CLANHALL: 
+          iPlayerClan = GET_CLAN(ch); 
+
+          if (iPlayerClan <= 0) { 
+            send_to_char(ch, "You try to enter the portal, but it returns you back to the same room!\n\r"); 
+            return; 
+          } 
+
+          if (GET_CLANHALL_ZONE(ch) == NOWHERE) { 
+            send_to_char(ch, "Your clan does not have a clanhall!\n\r"); 
+            log("[PORTAL] Clan Portal - No clanhall (Player: %s, Clan ID: %d)", GET_NAME(ch), iPlayerClan); 
+            return; 
+          } 
+
+          vClanhall = (GET_CLANHALL_ZONE(ch) * 100) + 1; 
+          rClanhall = real_room(vClanhall); 
+
+          if (rClanhall == NOWHERE ) { 
+            send_to_char(ch, "Your clanhall is currently broken - contact an Imm!\n\r"); 
+            log("[PORTAL] Clan Portal failed (Player: %s, Clan ID: %d)", GET_NAME(ch), iPlayerClan); 
+            return; 
+          } 
+          
+          portal_dest = vClanhall; 
+          break; 
+*/
+          
+        case PORTAL_RANDOM: 
+          if (real_room(portal->obj_flags.value[1]) == NOWHERE) { 
+            send_to_char(ch, "The portal leads nowhere\n\r"); 
+            return; 
+          } 
+
+          if (real_room(portal->obj_flags.value[2]) == NOWHERE) { 
+            send_to_char(ch, "The portal leads nowhere\n\r"); 
+            return; 
+          } 
+
+          count=0; 
+          if (portal->obj_flags.value[1] > portal->obj_flags.value[2]) { 
+            diff = portal->obj_flags.value[1] - portal->obj_flags.value[2]; 
+            do { 
+                 portal_dest =
+                         (portal->obj_flags.value[2]) + rand_number(0, diff); 
+            } while ((real_room(portal_dest) == NOWHERE) && (++count < 20)); 
+          } else { 
+            diff = portal->obj_flags.value[2] - portal->obj_flags.value[1]; 
+            do { 
+              portal_dest = (portal->obj_flags.value[1]) + rand_number(0, diff); 
+            } while ((real_room(portal_dest) == NOWHERE) && (++count < 20)); 
+          } 
+
+          log("Random Portal: Sending %s to vnum %d", GET_NAME(ch), portal_dest); 
+          break; 
+
+        default: 
+          mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Invalid portal type (%d) in room %d", portal->obj_flags.value[0], world[IN_ROOM(ch)].number); 
+          send_to_char(ch, "This portal is broken, please tell an Imm.\n\r"); 
+          return; 
+          break; 
+      } 
+
+      /* All checks passed, except checking the destination, so let's do that now */ 
+      if (real_room(portal_dest) == NOWHERE) { 
+        send_to_char(ch, "The portal dumps you back into the same room!\r\n"); 
+        return; 
+      } 
+
+      if (!House_can_enter(ch, portal_dest)) { 
+        send_to_char(ch, "That's private property -- no trespassing!\r\n"); 
+        return; 
+      } 
+
+      act("$n enters $p, and vanishes!", FALSE, ch, portal, 0, TO_ROOM); 
+      act("You enter $p, and you are transported elsewhere", FALSE, ch, portal, 0, TO_CHAR); 
+      char_from_room(ch);  
+      char_to_room(ch, real_room(portal_dest)); 
+      look_at_room(ch,0); 
+      act("$n appears from thin air!", FALSE, ch, 0, 0, TO_ROOM); 
+
+      /* Then, any followers should auto-follow (Jamdog 19th June 2006) */ 
+      for (k = ch->followers; k; k = k->next) { 
+        if ((IN_ROOM(k->follower) == was_in) &&
+                (GET_POS(k->follower) >= POS_STANDING)) { 
+          act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR); 
+          act("$n enters $p, and vanishes!", FALSE, k->follower, portal, 0, TO_ROOM); 
+          char_from_room(k->follower); 
+          char_to_room(k->follower, real_room(portal_dest)); 
+          look_at_room(k->follower,0); 
+          act("$n appears from thin air!", FALSE, k->follower, 0, 0, TO_ROOM); 
+        } 
+      } 
+      return;
+    /* Must be a door */       
+    } else { 
+      for (door = 0; door < NUM_OF_DIRS; door++) { 
+        if (EXIT(ch, door) && (EXIT(ch, door)->keyword)) { 
+          if (!str_cmp(EXIT(ch, door)->keyword, buf)) { 
+            perform_move(ch, door, 1); 
+            return; 
+          } 
+        } 
+      } 
+      send_to_char(ch, "There is no %s here.\r\n", buf); 
+    } 
+  } else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS)) { 
+    send_to_char(ch, "You are already indoors.\r\n"); 
+  } else { 
+    /* try to locate an entrance */ 
+    for (door = 0; door < NUM_OF_DIRS; door++) { 
+      if (EXIT(ch, door)) { 
+        if (EXIT(ch, door)->to_room != NOWHERE) { 
+          if (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) &&
+                  ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_INDOORS)) { 
+            perform_move(ch, door, 1); 
+            return; 
+          } 
+        } 
+      } 
+    } 
+    send_to_char(ch, "You can't seem to find anything to enter.\r\n"); 
+  } 
+} 
+
 
 ACMD(do_leave)
 {

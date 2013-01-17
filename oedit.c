@@ -410,6 +410,21 @@ static void oedit_disp_weapon_menu(struct descriptor_data *d)
   write_to_output(d, "\r\nEnter weapon type : ");
 }
 
+static void oedit_disp_portaltypes_menu(struct descriptor_data *d) 
+{ 
+  int counter, columns = 0; 
+
+  get_char_colors(d->character); 
+  clear_screen(d); 
+ 
+  for (counter = 0; counter < NUM_PORTAL_TYPES; counter++) { 
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, 
+                    portal_types[counter], !(++columns % 2) ? "\r\n" : "");
+  } 
+  write_to_output(d, "\r\nEnter portal type : "); 
+} 
+ 
+
 /* Spell type. */
 static void oedit_disp_spells_menu(struct descriptor_data *d)
 {
@@ -461,6 +476,9 @@ static void oedit_disp_val1_menu(struct descriptor_data *d)
   case ITEM_MONEY:
     write_to_output(d, "Number of gold coins : ");
     break;
+  case ITEM_PORTAL: 
+    oedit_disp_portaltypes_menu(d); 
+    break;     
   case ITEM_FURNITURE:
     write_to_output(d, "Number of people it can hold : ");
     break;
@@ -513,6 +531,24 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
   case ITEM_CLANARMOR:
     write_to_output(d, "Clan ID Number: ");
     break;
+  case ITEM_PORTAL: 
+    switch(GET_OBJ_VAL(OLC_OBJ(d), 0)) { 
+    case PORTAL_NORMAL: 
+    case PORTAL_CHECKFLAGS: 
+      write_to_output(d, "Room VNUM portal points to : "); 
+      break; 
+       
+    case PORTAL_RANDOM: 
+      write_to_output(d, "Lowest room VNUM in range : "); 
+      break; 
+ 
+    /* Always sends player to their own clanhall - no room required */ 
+    case PORTAL_CLANHALL:
+      oedit_disp_menu(d); 
+      break; 
+   } 
+   break;     
+    
   default:
     oedit_disp_menu(d);
   }
@@ -544,6 +580,19 @@ static void oedit_disp_val3_menu(struct descriptor_data *d)
   case ITEM_FOUNTAIN:
     oedit_liquid_type(d);
     break;
+  case ITEM_PORTAL: 
+    switch(GET_OBJ_VAL(OLC_OBJ(d), 0)) { 
+      case PORTAL_NORMAL: 
+      case PORTAL_CHECKFLAGS: 
+        oedit_disp_menu(d);  /* We are done for these portal types */ 
+        break; 
+ 
+      case PORTAL_RANDOM: 
+        write_to_output(d, "Highest room VNUM in range : "); 
+        break; 
+    } 
+    break; 
+
   default:
     oedit_disp_menu(d);
   }

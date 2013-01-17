@@ -1,6 +1,5 @@
 /* clan.c                               *
- * Created by Jamdog - 26th March 2009  *
- * Exclusive to TrigunMUD               */
+ * Created by Jamdog - 26th March 2009  */
 
 #ifndef  __CLAN_C__
 #define  __CLAN_C__
@@ -259,7 +258,7 @@ bool add_clan(struct clan_data *this_clan)
 /* Totally remove a clan from the clan list - does NOT disband the clan first */
 bool remove_clan(clan_vnum c_v)
 {
-  struct clan_data *temp_list=NULL;
+  struct clan_data *temp_list = NULL;
   clan_rnum c_n;
   int i=0;
   bool found=FALSE;

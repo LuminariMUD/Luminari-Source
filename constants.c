@@ -614,6 +614,7 @@ const char *item_types[] = {
   "Essence",
   "Crafting Material",
   "Spellbook",
+  "Portal",
   "\n"
 };
 
@@ -818,6 +819,7 @@ const char *color_liquid[] =
   "\n"
 };
 
+
 /** Used to describe the level of fullness of a drink container. Not used in
  * sprinttype() so no \n. */
 const char *fullness[] =
@@ -827,6 +829,17 @@ const char *fullness[] =
   "more than half ",
   ""
 };
+
+
+const char *portal_types[] = 
+{ 
+   "Normal", 
+   "Random", 
+   "CheckFlags", 
+   "Clanhall", 
+   "\n" 
+}; 
+
 
 int spell_bonus[51][10] = {
   // 1     2    3    4    5    6    7    8    9    10

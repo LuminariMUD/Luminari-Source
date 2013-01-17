@@ -12,11 +12,12 @@
 #ifndef _CONSTANTS_H_
 #define _CONSTANTS_H_
 
-extern const char *craft_type[NUM_CRAFT+1];
+extern const char *portal_types[];
+extern const char *craft_type[];
 extern const char *admin_level_names[]; // for imp prefix
 extern const char *item_profs[];
 extern const char *material_name[];
-extern const char *size_names[NUM_SIZES+1];
+extern const char *size_names[];
 extern const char *room_affections[];
 extern const char *tbamud_version;
 extern const char *damtype_display[];
