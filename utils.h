@@ -1100,6 +1100,9 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define IS_CORPSE(obj)		(GET_OBJ_TYPE(obj) == ITEM_CONTAINER && \
 					GET_OBJ_VAL((obj), 3) == 1)
 
+/** Defines if an obj is a corpse. */
+#define IS_DECAYING_PORTAL(obj)  (GET_OBJ_TYPE(obj) == ITEM_PORTAL && \
+					OBJ_FLAGGED(obj, ITEM_DECAY))
 
 /** Can the obj be worn on body part? */
 #define CAN_WEAR(obj, part)	OBJWEAR_FLAGGED((obj), (part))

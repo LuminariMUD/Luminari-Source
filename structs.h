@@ -712,8 +712,9 @@
 #define ITEM_ANTI_BERSERKER       30   /* Not usable by berserker */
 #define ITEM_ANTI_TRELUX          31   /* Not usable by trelux */
 #define ITEM_ANTI_SORCERER        32
+#define ITEM_DECAY                33
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            33
+#define NUM_ITEM_FLAGS            34
 
 
 /* Modifier constants used with obj affects ('A' fields) */
