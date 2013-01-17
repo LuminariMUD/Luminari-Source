@@ -677,6 +677,7 @@ const char *extra_bits[] = {
   "Anti-Berserker",
   "Anti-Trelux",
   "Anti-Sorcerer",
+  "Decaying",
   "\n"
 };
 

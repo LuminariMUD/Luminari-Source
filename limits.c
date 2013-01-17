@@ -484,7 +484,22 @@ void point_update(void)
   struct char_data *i = NULL, *next_char = NULL;
   struct obj_data *j = NULL, *next_thing, *jj = NULL, *next_thing2 = NULL;
 
-  /* characters */
+  /** general **/
+  /* Take 1 from the happy-hour tick counter, and end happy-hour if zero */
+  if (HAPPY_TIME > 1)
+    HAPPY_TIME--;
+
+  /* Last tick - set everything back to zero */
+  else if (HAPPY_TIME == 1) {
+    HAPPY_QP = 0;
+    HAPPY_EXP = 0;
+    HAPPY_GOLD = 0;
+    HAPPY_TIME = 0;
+    game_info("Happy hour has ended!");
+  }
+  
+  
+  /** characters **/
   for (i = character_list; i; i = next_char) {
     next_char = i->next;
 
@@ -498,67 +513,79 @@ void point_update(void)
       update_char_objects(i);
       (i->char_specials.timer)++;
       if (GET_LEVEL(i) < CONFIG_IDLE_MAX_LEVEL)
-	check_idling(i);
+        check_idling(i);
     }
   }
 
-  /* objects */
+  
+  /** objects **/
+  /* Make sure there is only one way to decrement each object timer */
   for (j = object_list; j; j = next_thing) {
     next_thing = j->next;	/* Next in object list */
 
-    /* If this is a corpse */
-    if (IS_CORPSE(j)) {
+    /** portals that fade **/
+    if (IS_DECAYING_PORTAL(j)) {
       /* timer count down */
       if (GET_OBJ_TIMER(j) > 0)
-	GET_OBJ_TIMER(j)--;
+        GET_OBJ_TIMER(j)--;
+      
+      /* the portal fades */
+      if (GET_OBJ_TIMER(j) <= 0) {
+        /* send message if it makes sense */
+        if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people)) {
+          act("\tnYou watch as $p \tCs\tMh\tCi\tMm\tCm\tMe\tCr\tMs\tn then "
+                  "fades, then disappears.", TRUE, world[IN_ROOM(j)].people,
+                  j, 0, TO_ROOM);
+          act("\tnYou watch as $p \tCs\tMh\tCi\tMm\tCm\tMe\tCr\tMs\tn then "
+                  "fades, then disappears.", TRUE, world[IN_ROOM(j)].people,
+                  j, 0, TO_CHAR);
+	   }
+        extract_obj(j);
+        
+      } /* end portal fade */
 
-      if (!GET_OBJ_TIMER(j)) {
+    /** If this is a corpse **/
+    }  else if (IS_CORPSE(j)) {
+      /* timer count down */
+      if (GET_OBJ_TIMER(j) > 0)
+        GET_OBJ_TIMER(j)--;
 
-	if (j->carried_by)
-	  act("$p decays in your hands.", FALSE, j->carried_by, j, 0, TO_CHAR);
-	else if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people)) {
-	  act("A quivering horde of maggots consumes $p.",
-	      TRUE, world[IN_ROOM(j)].people, j, 0, TO_ROOM);
-	  act("A quivering horde of maggots consumes $p.",
-	      TRUE, world[IN_ROOM(j)].people, j, 0, TO_CHAR);
-	}
-	for (jj = j->contains; jj; jj = next_thing2) {
-	  next_thing2 = jj->next_content;	/* Next in inventory */
-	  obj_from_obj(jj);
+      /* corpse decayed */
+      if (GET_OBJ_TIMER(j) <= 0) {
+        if (j->carried_by)
+          act("$p decays in your hands.", FALSE, j->carried_by, j, 0, TO_CHAR);
+        else if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people)) {
+          act("A quivering horde of maggots consumes $p.",
+                TRUE, world[IN_ROOM(j)].people, j, 0, TO_ROOM);
+          act("A quivering horde of maggots consumes $p.",
+                TRUE, world[IN_ROOM(j)].people, j, 0, TO_CHAR);
+	   }
+      
+        for (jj = j->contains; jj; jj = next_thing2) {
+          next_thing2 = jj->next_content;	/* Next in inventory */
+          obj_from_obj(jj);
 
-	  if (j->in_obj)
-	    obj_to_obj(jj, j->in_obj);
-	  else if (j->carried_by)
-	    obj_to_room(jj, IN_ROOM(j->carried_by));
-	  else if (IN_ROOM(j) != NOWHERE)
-	    obj_to_room(jj, IN_ROOM(j));
-	  else
-	    core_dump();
-	}
-	extract_obj(j);
+          if (j->in_obj)
+            obj_to_obj(jj, j->in_obj);
+          else if (j->carried_by)
+            obj_to_room(jj, IN_ROOM(j->carried_by));
+          else if (IN_ROOM(j) != NOWHERE)
+            obj_to_room(jj, IN_ROOM(j));
+          else
+            core_dump();
+        }
+        extract_obj(j);
       }
-    }
-    /* If the timer is set, count it down and at 0, try the trigger
-     * note to .rej hand-patchers: make this last in your point-update() */
-    else if (GET_OBJ_TIMER(j) > 0) {
+    /** for timed object triggers **/
+    } else if (GET_OBJ_TIMER(j) > 0) {
+      /* If the timer is set, count it down and at 0, try the trigger
+       * this should be last in point-update() */
       GET_OBJ_TIMER(j)--;
       if (GET_OBJ_TIMER(j) <= 0)
         timer_otrigger(j);
     }
   }
 
-  /* Take 1 from the happy-hour tick counter, and end happy-hour if zero */
-  if (HAPPY_TIME > 1)
-    HAPPY_TIME--;
-
-  /* Last tick - set everything back to zero */
-  else if (HAPPY_TIME == 1) {
-    HAPPY_QP = 0;
-    HAPPY_EXP = 0;
-    HAPPY_GOLD = 0;
-    HAPPY_TIME = 0;
-    game_info("Happy hour has ended!");
-  }
 }
 
 
