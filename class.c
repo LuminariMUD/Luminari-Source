@@ -622,6 +622,7 @@ void init_class(struct char_data *ch, int class, int level)
 
     //8th circle
     SET_SKILL(ch, SPELL_CHAIN_LIGHTNING, 99);
+    SET_SKILL(ch, SPELL_PORTAL, 99);
 
     //9th circle
     SET_SKILL(ch, SPELL_ENERGY_DRAIN, 99);
@@ -1329,6 +1330,7 @@ void init_spell_levels(void)
   //8th circle
   spell_level(SPELL_ENERGY_DRAIN, CLASS_MAGIC_USER, 15);  //shared
   spell_level(SPELL_CHAIN_LIGHTNING, CLASS_MAGIC_USER, 15);
+  spell_level(SPELL_PORTAL, CLASS_MAGIC_USER, 15);
 
   //9th circle
   spell_level(SPELL_METEOR_SWARM, CLASS_MAGIC_USER, 17);
@@ -1475,6 +1477,7 @@ void init_spell_levels(void)
   //8th circle
   spell_level(SPELL_ENERGY_DRAIN, CLASS_SORCERER, 16);  //shared
   spell_level(SPELL_CHAIN_LIGHTNING, CLASS_SORCERER, 16);
+  spell_level(SPELL_PORTAL, CLASS_SORCERER, 16);
 
   //9th circle
   spell_level(SPELL_METEOR_SWARM, CLASS_SORCERER, 18);

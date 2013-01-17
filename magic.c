@@ -2506,37 +2506,82 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
     act(to_char, TRUE, ch, obj, 0, TO_ROOM);
 }
 
-void mag_creations(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum)
+void mag_creations(int level, struct char_data *ch, struct char_data *vict,
+        struct obj_data *obj,int spellnum)
 {
-  struct obj_data *tobj;
-  obj_vnum z;
+  struct obj_data *tobj = NULL;
+  obj_vnum object_vnum = 0;
+  const char *to_char = NULL, *to_room = NULL;
+  bool obj_to_floor = FALSE;
+  bool portal_process = FALSE;
 
   if (ch == NULL)
     return;
-  /* level = MAX(MIN(level, LVL_IMPL), 1); - Hm, not used. */
 
   switch (spellnum) {
   case SPELL_CREATE_FOOD:
-    z = 10;
+    to_char = "You create $p.";
+    to_room = "$n creates $p.";
+    object_vnum = 10;
     break;
   case SPELL_CONTINUAL_FLAME:
-    z = 222;
+    to_char = "You create $p.";
+    to_room = "$n creates $p.";
+    object_vnum = 222;
+    break;
+  case SPELL_PORTAL:
+    if (vict == NULL) {
+      send_to_char(ch, "Spell failed!  You have no target!\r\n");
+      return;
+    }
+    to_char = "You create $p.";
+    to_room = "$n creates $p.";
+    obj_to_floor = TRUE;
+    object_vnum = 801;
+    /* a little more work with portals */
+    portal_process = TRUE;
     break;
   default:
     send_to_char(ch, "Spell unimplemented, it would seem.\r\n");
     return;
   }
 
-  if (!(tobj = read_object(z, VIRTUAL))) {
+  if (!(tobj = read_object(object_vnum, VIRTUAL))) {
     send_to_char(ch, "I seem to have goofed.\r\n");
     log("SYSERR: spell_creations, spell %d, obj %d: obj not found",
-	    spellnum, z);
+	    spellnum, object_vnum);
     return;
   }
-  obj_to_char(tobj, ch);
-  act("$n creates $p.", FALSE, ch, tobj, 0, TO_ROOM);
-  act("You create $p.", FALSE, ch, tobj, 0, TO_CHAR);
+
+  /* a little more work for portal object */
+  /* the obj (801) should already bet set right, but just in case */
+  if (portal_process) {
+    /* make sure its a portal **/
+    GET_OBJ_TYPE(tobj) = ITEM_PORTAL;
+    /* set it to a tick duration */                             
+    GET_OBJ_TIMER(tobj) = 1;
+    /* set it to a normal portal */
+    tobj->obj_flags.value[0] = PORTAL_NORMAL;    
+    /* set destination to vict */
+    tobj->obj_flags.value[1] = real_room(IN_ROOM(vict));
+    /* make sure it decays */
+    if (!OBJ_FLAGGED(obj, ITEM_DECAY))
+      TOGGLE_BIT_AR(GET_OBJ_EXTRA(tobj), ITEM_DECAY);
+    /* make sure the portal is two-sided */
+    obj_to_room(tobj, IN_ROOM(vict));
+    /* make sure the victim room sees the message */
+    act("With a flash, $p appears in the room.",
+            FALSE, vict, tobj, 0, TO_CHAR);
+    act("With a flash, $p appears in the room.",
+            FALSE, vict, tobj, 0, TO_ROOM);
+  }
+  
+  if (obj_to_floor)
+    obj_to_room(tobj, IN_ROOM(ch));
+  else
+    obj_to_char(tobj, ch);
+  act(to_char, FALSE, ch, tobj, 0, TO_CHAR);
+  act(to_room, FALSE, ch, tobj, 0, TO_ROOM);
   load_otrigger(tobj);
 }
 

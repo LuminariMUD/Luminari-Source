@@ -255,8 +255,9 @@
 #define SPELL_TIMESTOP             213
 #define SPELL_GREATER_SPELL_MANTLE 214
 #define SPELL_MASS_ENHANCE         215
+#define SPELL_PORTAL               216
 /** Total Number of defined spells */
-#define NUM_SPELLS    216
+#define NUM_SPELLS    217
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
@@ -593,8 +594,8 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   struct obj_data *obj, int spellnum, int type);
 void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
   int spellnum, int type);
-void mag_creations(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum);
+void mag_creations(int level, struct char_data *ch, struct char_data *vict,
+        struct obj_data *obj, int spellnum);
 void mag_room(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum);
 int	call_magic(struct char_data *caster, struct char_data *cvict,
