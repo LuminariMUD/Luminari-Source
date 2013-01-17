@@ -287,7 +287,7 @@ int find_ability_num(char *name)
 int call_magic(struct char_data *caster, struct char_data *cvict,
 	     struct obj_data *ovict, int spellnum, int level, int casttype)
 {
-  int savetype;
+  int savetype = 0;
 
   if (spellnum < 1 || spellnum > TOP_SPELL_DEFINE)
     return (0);
@@ -417,7 +417,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     mag_summons(level, caster, ovict, spellnum, savetype);
 
   if (IS_SET(SINFO.routines, MAG_CREATIONS))
-    mag_creations(level, caster, ovict, spellnum);
+    mag_creations(level, caster, cvict, ovict, spellnum);
 
   if (IS_SET(SINFO.routines, MAG_ROOM))
     mag_room(level, caster, ovict, spellnum);
@@ -888,8 +888,8 @@ ACMD(do_cast)
 {
   struct char_data *tch = NULL;
   struct obj_data *tobj = NULL;
-  char *s, *t;
-  int number, spellnum, i, target = 0;
+  char *s = NULL, *t = NULL;
+  int number = 0, spellnum = 0, i = 0, target = 0;
   // int mana;
 
   if (IS_NPC(ch))
@@ -1713,6 +1713,8 @@ void mag_assign_spells(void)
 			/* divination */
 			/* abjuration */
 			/* transmutation */  
+  spello(SPELL_PORTAL, "portal", 37, 22, 1, POS_FIGHTING, TAR_CHAR_WORLD |
+          TAR_NOT_SELF, FALSE, MAG_CREATIONS, NULL, 8, 12, TRANSMUTATION);
 
   
   // 9th circle

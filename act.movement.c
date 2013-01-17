@@ -1180,7 +1180,7 @@ ACMD(do_enter)
       act("You enter $p, and you are transported elsewhere", FALSE, ch, portal, 0, TO_CHAR); 
       char_from_room(ch);  
       char_to_room(ch, real_room(portal_dest)); 
-      look_at_room(ch,0); 
+      look_at_room(ch, 0); 
       act("$n appears from thin air!", FALSE, ch, 0, 0, TO_ROOM); 
 
       /* Then, any followers should auto-follow (Jamdog 19th June 2006) */ 
