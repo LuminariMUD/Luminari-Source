@@ -1035,28 +1035,28 @@ ACMD(do_enter)
           break; 
 
         case PORTAL_CHECKFLAGS: 
-          if ( ((GET_CLASS(ch) == CLASS_MAGIC_USER) &&
+          if ( ((IS_MAGIC_USER(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_MAGIC_USER))) || 
                   
-               ((GET_CLASS(ch) == CLASS_CLERIC) &&
+               ((IS_CLERIC(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_CLERIC))) ||
                   
-               ((GET_CLASS(ch) == CLASS_THIEF) &&
+               ((IS_THIEF(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_THIEF))) ||
                   
-               ((GET_CLASS(ch) == CLASS_MONK) &&
+               ((IS_MONK(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_MONK))) ||
                   
-               ((GET_CLASS(ch) == CLASS_DRUID) &&
+               ((IS_DRUID(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_DRUID))) ||
                   
-               ((GET_CLASS(ch) == CLASS_BERSERKER) &&
+               ((IS_BERSERKER(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_BERSERKER))) ||
                   
-               ((GET_CLASS(ch) == CLASS_SORCERER) &&
+               ((IS_SORCERER(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_SORCERER))) ||
                   
-               ((GET_CLASS(ch) == CLASS_WARRIOR) &&
+               ((IS_WARRIOR(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_WARRIOR)))
           ) { 
             act("You try to enter $p, but a mysterious power "

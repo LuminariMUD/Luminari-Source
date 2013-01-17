@@ -1199,7 +1199,7 @@ bool circle_follow(struct char_data *ch, struct char_data *victim)
  * */
 void stop_follower(struct char_data *ch)
 {
-  struct follow_type *j, *k;
+  struct follow_type *j = NULL, *k = NULL;
 
   /* Makes sure this function is not called when it shouldn't be called. */
   if (ch->master == NULL) {

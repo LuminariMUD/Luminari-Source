@@ -2889,8 +2889,8 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
 char *act(const char *str, int hide_invisible, struct char_data *ch,
 	 struct obj_data *obj, void *vict_obj, int type)
 {
-  struct char_data *to;
-  int to_sleeping;
+  struct char_data *to = NULL;
+  int to_sleeping = 0;
 
   if (!str || !*str)
     return NULL;
