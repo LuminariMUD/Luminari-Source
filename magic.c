@@ -2534,8 +2534,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Spell failed!  You have no target!\r\n");
       return;
     }
-    to_char = "You create $p.";
-    to_room = "$n creates $p.";
+    to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
+    to_room = "$n \tnfolds \tMtime\tn and \tDspace\tn, and creates $p\tn.";
     obj_to_floor = TRUE;
     object_vnum = 801;
     /* a little more work with portals */
@@ -2585,9 +2585,9 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     obj_to_room(portal, IN_ROOM(vict));
 
     /* make sure the victim room sees the message */
-    act("With a flash, $p appears in the room.",
+    act("With a \tBflash\tn, $p appears in the room.",
             FALSE, vict, portal, 0, TO_CHAR);
-    act("With a flash, $p appears in the room.",
+    act("With a \tBflash\tn, $p appears in the room.",
             FALSE, vict, portal, 0, TO_ROOM);
   }
   
