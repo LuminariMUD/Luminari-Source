@@ -693,6 +693,16 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j)
   case ITEM_MONEY:
     send_to_char(ch, "Coins: %d\r\n", GET_OBJ_VAL(j, 0));
     break;
+  case ITEM_PORTAL: 
+    if (GET_OBJ_VAL(j, 0) == PORTAL_NORMAL) 
+      send_to_char(ch,"Type: Normal Portal to %d\r\n", GET_OBJ_VAL(j, 1)); 
+    else if (GET_OBJ_VAL(j, 0) == PORTAL_RANDOM) 
+      send_to_char(ch,"Type: Random Portal to range %d-%d\r\n", GET_OBJ_VAL(j, 1), GET_OBJ_VAL(j, 2) ); 
+    else if (GET_OBJ_VAL(j, 0) == PORTAL_CLANHALL) 
+      send_to_char(ch,"Type: Clanportal (destination depends on player)\r\n"); 
+    else if (GET_OBJ_VAL(j, 0) == PORTAL_CHECKFLAGS) 
+      send_to_char(ch,"Type: Checkflags Portal to %d\r\n", GET_OBJ_VAL(j, 1)); 
+    break;     
   case ITEM_FURNITURE:
     send_to_char(ch, "Can hold: [%d] Num. of People in: [%d]\r\n", GET_OBJ_VAL(j, 0), GET_OBJ_VAL(j, 1));
     send_to_char(ch, "Holding : ");

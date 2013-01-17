@@ -131,7 +131,6 @@
       <in>sedit.c</in>
       <in>shop.c</in>
       <in>shop.h</in>
-      <in>sorcedit.c</in>
       <in>spec_assign.c</in>
       <in>spec_procs.c</in>
       <in>spec_procs.h</in>
@@ -139,6 +138,7 @@
       <in>spells.c</in>
       <in>spells.h</in>
       <in>structs.h</in>
+      <in>study.c</in>
       <in>sysdep.h</in>
       <in>tedit.c</in>
       <in>telnet.h</in>

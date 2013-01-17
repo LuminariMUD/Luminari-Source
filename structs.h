@@ -575,11 +575,11 @@
 #define ITEM_BOAT      22		/**< Item is a boat		*/
 #define ITEM_FOUNTAIN  23		/**< Item is a fountain		*/
 #define ITEM_CLANARMOR 24		/**< Item is clan armor		*/
-#define ITEM_CRYSTAL     25  //crafting
-#define ITEM_ESSENCE     26  //crafting
-#define ITEM_MATERIAL    27  //crafting / general
-#define ITEM_SPELLBOOK   28
-#define ITEM_PORTAL   29
+#define ITEM_CRYSTAL   25  //crafting
+#define ITEM_ESSENCE   26  //crafting
+#define ITEM_MATERIAL  27  //crafting / general
+#define ITEM_SPELLBOOK 28
+#define ITEM_PORTAL    29
 /** Total number of item types.*/
 #define NUM_ITEM_TYPES    29
 
@@ -648,6 +648,16 @@
 #define MATERIAL_DARKWOOD       44  
 /** Total number of item mats.*/
 #define NUM_MATERIALS    45
+
+
+/* Portal types for the portal object */ 
+#define PORTAL_NORMAL     0 
+#define PORTAL_RANDOM     1 
+#define PORTAL_CHECKFLAGS 2 
+#define PORTAL_CLANHALL   3 
+/****/
+#define NUM_PORTAL_TYPES  4 
+
 
 /* Take/Wear flags: used by obj_data.obj_flags.wear_flags */
 #define ITEM_WEAR_TAKE      0   /**< Item can be taken */
@@ -1305,7 +1315,7 @@ struct char_special_data
   ubyte crafting_repeat; // multiple objects created in one session
   int crafting_bonus;  // bonus for crafting the item
 
-  ubyte cloudkill;  //how many more burts of cloudkill left
+  ubyte cloudkill;  //how many more bursts of cloudkill left
   
   struct char_special_data_saved saved; /**< Constants saved for PCs. */
 };
@@ -1341,14 +1351,14 @@ struct player_special_data_saved
 
   int clanpoints;         /**< Clan points may be spent in a clanhall */
   clan_vnum clan;         /**< The clan number to which the player belongs     */
-  int       clanrank;     /**< The player's rank within their clan (1=highest) */
+  int clanrank;     /**< The player's rank within their clan (1=highest) */
 
   int questpoints;			//quest points earned
   qst_vnum *completed_quests;   /**< Quests completed              */
-  int    num_completed_quests;  /**< Number completed              */
-  int    current_quest;         /**< vnum of current quest         */
-  int    quest_time;            /**< time left on current quest    */
-  int    quest_counter;         /**< Count of targets left to get  */
+  int num_completed_quests;  /**< Number completed              */
+  int current_quest;         /**< vnum of current quest         */
+  int quest_time;            /**< time left on current quest    */
+  int quest_counter;         /**< Count of targets left to get  */
 
   /* auto crafting quest */
   unsigned int autocquest_vnum;
@@ -1359,8 +1369,8 @@ struct player_special_data_saved
   unsigned int autocquest_exp;
   unsigned int autocquest_gold;
 
-  time_t   lastmotd;            /**< Last time player read motd */
-  time_t   lastnews;            /**< Last time player read news */
+  time_t lastmotd;            /**< Last time player read motd */
+  time_t lastnews;            /**< Last time player read news */
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

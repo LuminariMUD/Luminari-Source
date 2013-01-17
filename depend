@@ -224,9 +224,6 @@ sedit.o: sedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 shop.o: shop.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h db.h interpreter.h shop.h genshp.h constants.h \
  act.h modify.h spells.h screen.h spec_procs.h
-sorcedit.o: sorcedit.c conf.h sysdep.h structs.h protocol.h lists.h \
- utils.h race.h comm.h db.h oasis.h screen.h interpreter.h modify.h \
- spells.h
 spec_assign.o: spec_assign.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h db.h interpreter.h spec_procs.h ban.h boards.h mail.h
 spec_procs.o: spec_procs.c conf.h sysdep.h structs.h protocol.h lists.h \
@@ -238,6 +235,8 @@ spell_parser.o: spell_parser.c conf.h sysdep.h structs.h protocol.h \
 spells.o: spells.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h handler.h db.h constants.h interpreter.h \
  dg_scripts.h act.h fight.h mud_event.h dg_event.h screen.h
+study.o: study.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
+ race.h comm.h db.h oasis.h screen.h interpreter.h modify.h spells.h
 tedit.o: tedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h comm.h db.h genolc.h oasis.h improved-edit.h \
  modify.h
