@@ -579,6 +579,7 @@
 #define ITEM_ESSENCE     26  //crafting
 #define ITEM_MATERIAL    27  //crafting / general
 #define ITEM_SPELLBOOK   28
+#define ITEM_PORTAL   29
 /** Total number of item types.*/
 #define NUM_ITEM_TYPES    29
 
