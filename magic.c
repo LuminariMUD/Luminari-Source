@@ -2507,9 +2507,9 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
 }
 
 void mag_creations(int level, struct char_data *ch, struct char_data *vict,
-        struct obj_data *obj,int spellnum)
+        struct obj_data *obj, int spellnum)
 {
-  struct obj_data *tobj = NULL;
+  struct obj_data *tobj = NULL, *portal = NULL;
   obj_vnum object_vnum = 0;
   const char *to_char = NULL, *to_room = NULL;
   bool obj_to_floor = FALSE;
@@ -2556,24 +2556,39 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   /* a little more work for portal object */
   /* the obj (801) should already bet set right, but just in case */
   if (portal_process) {
+    if (!(portal = read_object(object_vnum, VIRTUAL))) {
+      send_to_char(ch, "I seem to have goofed.\r\n");
+      log("SYSERR: spell_creations, spell %d, obj %d: obj not found",
+          spellnum, object_vnum);
+      return;
+    }
+
     /* make sure its a portal **/
     GET_OBJ_TYPE(tobj) = ITEM_PORTAL;
+    GET_OBJ_TYPE(portal) = ITEM_PORTAL;
     /* set it to a tick duration */                             
     GET_OBJ_TIMER(tobj) = 1;
+    GET_OBJ_TIMER(portal) = 1;
     /* set it to a normal portal */
     tobj->obj_flags.value[0] = PORTAL_NORMAL;    
+    portal->obj_flags.value[0] = PORTAL_NORMAL;    
     /* set destination to vict */
-    tobj->obj_flags.value[1] = real_room(IN_ROOM(vict));
+    tobj->obj_flags.value[1] = GET_ROOM_VNUM(IN_ROOM(vict));
+    portal->obj_flags.value[1] = GET_ROOM_VNUM(IN_ROOM(ch));
     /* make sure it decays */
-    if (!OBJ_FLAGGED(obj, ITEM_DECAY))
+    if (!OBJ_FLAGGED(tobj, ITEM_DECAY))
       TOGGLE_BIT_AR(GET_OBJ_EXTRA(tobj), ITEM_DECAY);
+    if (!OBJ_FLAGGED(portal, ITEM_DECAY))
+      TOGGLE_BIT_AR(GET_OBJ_EXTRA(portal), ITEM_DECAY);
+
     /* make sure the portal is two-sided */
-    obj_to_room(tobj, IN_ROOM(vict));
+    obj_to_room(portal, IN_ROOM(vict));
+
     /* make sure the victim room sees the message */
     act("With a flash, $p appears in the room.",
-            FALSE, vict, tobj, 0, TO_CHAR);
+            FALSE, vict, portal, 0, TO_CHAR);
     act("With a flash, $p appears in the room.",
-            FALSE, vict, tobj, 0, TO_ROOM);
+            FALSE, vict, portal, 0, TO_ROOM);
   }
   
   if (obj_to_floor)
