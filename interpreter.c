@@ -536,9 +536,9 @@ void sort_commands(void)
  * then calls the appropriate function. */
 void command_interpreter(struct char_data *ch, char *argument)
 {
-  int cmd, length;
-  char *line;
-  char arg[MAX_INPUT_LENGTH];
+  int cmd = 0, length = 0;
+  char *line = NULL;
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
 
   /* just drop to next line for hitting CR */
   skip_spaces(&argument);

@@ -401,10 +401,10 @@ void stop_fighting(struct char_data *ch)
 
 static void make_corpse(struct char_data *ch)
 {
-  char buf2[MAX_NAME_LENGTH + 64];
-  struct obj_data *corpse, *o;
-  struct obj_data *money;
-  int i, x, y;
+  char buf2[MAX_NAME_LENGTH + 64] = { '\0' };
+  struct obj_data *corpse = NULL, *o = NULL;
+  struct obj_data *money = NULL;
+  int i = 0, x = 0, y = 0;
 
   corpse = create_obj();
 

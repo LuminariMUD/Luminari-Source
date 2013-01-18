@@ -842,8 +842,8 @@ void object_list_new_owner(struct obj_data *list, struct char_data *ch)
 /* Extract an object from the world */
 void extract_obj(struct obj_data *obj)
 {
-  struct char_data *ch, *next = NULL;
-  struct obj_data *temp;
+  struct char_data *ch = NULL, *next = NULL;
+  struct obj_data *temp = NULL;
 
   if (obj->worn_by != NULL)
     if (unequip_char(obj->worn_by, obj->worn_on) != obj)
@@ -1326,10 +1326,10 @@ const char *money_desc(int amount)
 
 struct obj_data *create_money(int amount)
 {
-  struct obj_data *obj;
-  struct extra_descr_data *new_descr;
-  char buf[200];
-  int y;
+  struct obj_data *obj = NULL;
+  struct extra_descr_data *new_descr = NULL;
+  char buf[200] = { '\0' };
+  int y = 0;
 
   if (amount <= 0) {
     log("SYSERR: Try to create negative or 0 money. (%d)", amount);
