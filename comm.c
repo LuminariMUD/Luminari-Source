@@ -742,8 +742,6 @@ void game_loop(socket_t local_mother_desc)
   struct descriptor_data *d = NULL, *next_d = NULL;
   int missed_pulses = 0, maxdesc = 0, aliased = 0;
 
-  comm[0] = '\0';
-
   /* initialize various time values */
   null_time.tv_sec = 0;
   null_time.tv_usec = 0;
@@ -1466,9 +1464,6 @@ static int get_from_q(struct txt_q *queue, char *dest, int *aliased)
     return (0);
 
   strcpy(dest, queue->head->text);	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
-
-  // parse input replacing @ \t    -zusuk
-  //parse_at(dest);
 
   *aliased = queue->head->aliased;
 

@@ -2419,11 +2419,10 @@ ACMD(do_force)
 
 ACMD(do_wiznet)
 {
-  char buf1[MAX_INPUT_LENGTH + MAX_NAME_LENGTH + 32],
-       buf2[MAX_INPUT_LENGTH + MAX_NAME_LENGTH + 32], *msg;
-  struct descriptor_data *d;
-  char emote = FALSE;
-  char any = FALSE;
+  char buf1[MAX_INPUT_LENGTH] = { '\0' },
+       buf2[MAX_INPUT_LENGTH] = { '\0' }, *msg = NULL;
+  struct descriptor_data *d = NULL;
+  bool emote = FALSE;
   int level = LVL_IMMORT;
 
   skip_spaces(&argument);
@@ -2433,9 +2432,11 @@ ACMD(do_wiznet)
     send_to_char(ch, "Usage: wiznet [ #<level> ] [<text> | *<emotetext> | @ ]\r\n");
     return;
   }
+
   switch (*argument) {
   case '*':
     emote = TRUE;
+
   case '#':
     one_argument(argument + 1, buf1);
     if (is_number(buf1)) {
@@ -2451,7 +2452,7 @@ ACMD(do_wiznet)
 
   case '@':
     send_to_char(ch, "God channel status:\r\n");
-    for (any = 0, d = descriptor_list; d; d = d->next) {
+    for (d = descriptor_list; d; d = d->next) {
       if (STATE(d) != CON_PLAYING || GET_LEVEL(d->character) < LVL_IMMORT)
         continue;
       if (!CAN_SEE(ch, d->character))
@@ -2467,19 +2468,23 @@ ACMD(do_wiznet)
   case '\\':
     ++argument;
     break;
+
   default:
     break;
   }
+
   if (PRF_FLAGGED(ch, PRF_NOWIZ)) {
     send_to_char(ch, "You are offline!\r\n");
     return;
   }
+
   skip_spaces(&argument);
 
   if (!*argument) {
     send_to_char(ch, "Don't bother the gods like that!\r\n");
     return;
   }
+
   if (level > LVL_IMMORT) {
     snprintf(buf1, sizeof(buf1), "\tc[wiznet] %s: <%d> %s%s\tn",
 	GET_NAME(ch), level, emote ? "<--- " : "", argument);
@@ -2493,15 +2498,19 @@ ACMD(do_wiznet)
   }
 
   for (d = descriptor_list; d; d = d->next) {
-    if (IS_PLAYING(d) && (GET_LEVEL(d->character) >= level) &&
-	(!PRF_FLAGGED(d->character, PRF_NOWIZ))
-	&& (d != ch->desc || !(PRF_FLAGGED(d->character, PRF_NOREPEAT)))) {
-      if (CAN_SEE(d->character, ch)) 
-        msg = act(buf1, FALSE, d->character, 0, 0, TO_CHAR | DG_NO_TRIG);
-      else 
-        msg = act(buf2, FALSE, d->character, 0, 0, TO_CHAR | DG_NO_TRIG);
+    if (d && ch) {
+      if (d->character && ch->desc) {
+        if (IS_PLAYING(d) && (GET_LEVEL(d->character) >= level) &&
+            (!PRF_FLAGGED(d->character, PRF_NOWIZ))
+            && (d != ch->desc || !(PRF_FLAGGED(d->character, PRF_NOREPEAT)))) {
+          if (CAN_SEE(d->character, ch)) 
+            msg = act(buf1, FALSE, d->character, 0, 0, TO_CHAR | DG_NO_TRIG);
+          else 
+            msg = act(buf2, FALSE, d->character, 0, 0, TO_CHAR | DG_NO_TRIG);
       
-      add_history(d->character, msg, HIST_WIZNET);
+          add_history(d->character, msg, HIST_WIZNET);
+        }
+      }
     }
   }
 
