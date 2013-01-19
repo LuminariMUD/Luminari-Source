@@ -9,7 +9,6 @@
 #include "conf.h"
 #include "sysdep.h"
 
-#include "clan.h"
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
@@ -20,6 +19,7 @@
 #include "comm.h" /* descriptor_list etc */
 #include "interpreter.h" /* one_argument() etc */
 #include "modify.h" /* string_write etc */
+#include "clan.h"
 
 /* Static internal (only used in clan_edit.c) functions */
 static void clanedit_setup(struct descriptor_data *d);
