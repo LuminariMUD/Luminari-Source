@@ -364,7 +364,7 @@ static void fry_victim(struct char_data *ch)
 /* King_welmar. Control the actions and movements of the King. */
 SPECIAL(king_welmar)
 {
-  char actbuf[MAX_INPUT_LENGTH];
+  char actbuf[MAX_INPUT_LENGTH] = { '\0' };
 
   const char *monolog[] = {
     "$n proclaims 'Primus in regnis Geticis coronam'.",
@@ -377,8 +377,8 @@ SPECIAL(king_welmar)
   const char throne_path[] = "W3o3cG52211rg.";
   const char monolog_path[] = "ABCDPPPP.";
 
-  static const char *path;
-  static int path_index;
+  static const char *path = NULL;
+  static int path_index = 0;
   static bool move = FALSE;
 
   if (!move) {

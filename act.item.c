@@ -105,13 +105,13 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
    into container must be in inventory. */
 ACMD(do_put)
 {
-  char arg1[MAX_INPUT_LENGTH];
-  char arg2[MAX_INPUT_LENGTH];
-  char arg3[MAX_INPUT_LENGTH];
-  struct obj_data *obj, *next_obj, *cont;
-  struct char_data *tmp_char;
-  int obj_dotmode, cont_dotmode, found = 0, howmany = 1;
-  char *theobj, *thecont;
+  char arg1[MAX_INPUT_LENGTH] = { '\0' };
+  char arg2[MAX_INPUT_LENGTH] = { '\0' };
+  char arg3[MAX_INPUT_LENGTH] = { '\0' };
+  struct obj_data *obj = NULL, *next_obj = NULL, *cont = NULL;
+  struct char_data *tmp_char = NULL;
+  int obj_dotmode = 0, cont_dotmode = 0, found = 0, howmany = 1;
+  char *theobj = NULL, *thecont = NULL;
 
   one_argument(two_arguments(argument, arg1, arg2), arg3);	/* three_arguments */
 
@@ -267,8 +267,8 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
 void get_from_container(struct char_data *ch, struct obj_data *cont,
 			     char *arg, int mode, int howmany)
 {
-  struct obj_data *obj, *next_obj;
-  int obj_dotmode, found = 0;
+  struct obj_data *obj = NULL, *next_obj = NULL;
+  int obj_dotmode = 0, found = 0;
 
   obj_dotmode = find_all_dots(arg);
 
@@ -369,13 +369,13 @@ static void get_from_room(struct char_data *ch, char *arg, int howmany)
 
 ACMD(do_get)
 {
-  char arg1[MAX_INPUT_LENGTH];
-  char arg2[MAX_INPUT_LENGTH];
-  char arg3[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = { '\0' };
+  char arg2[MAX_INPUT_LENGTH] = { '\0' };
+  char arg3[MAX_INPUT_LENGTH] = { '\0' };
 
-  int cont_dotmode, found = 0, mode;
-  struct obj_data *cont;
-  struct char_data *tmp_char;
+  int cont_dotmode = 0, found = 0, mode = 0;
+  struct obj_data *cont = NULL;
+  struct char_data *tmp_char = NULL;
 
   one_argument(two_arguments(argument, arg1, arg2), arg3);	/* three_arguments */
 
@@ -537,12 +537,12 @@ static int perform_drop(struct char_data *ch, struct obj_data *obj,
 
 ACMD(do_drop)
 {
-  char arg[MAX_INPUT_LENGTH];
-  struct obj_data *obj, *next_obj;
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+  struct obj_data *obj = NULL, *next_obj = NULL;
   room_rnum RDR = 0;
   byte mode = SCMD_DROP;
-  int dotmode, amount = 0, multi, num_don_rooms;
-  const char *sname;
+  int dotmode = 0, amount = 0, multi = 0, num_don_rooms = 0;
+  const char *sname = NULL;
 
   switch (subcmd) {
   case SCMD_JUNK:
@@ -725,10 +725,10 @@ static void perform_give_gold(struct char_data *ch, struct char_data *vict,
 
 ACMD(do_give)
 {
-  char arg[MAX_STRING_LENGTH];
-  int amount, dotmode;
-  struct char_data *vict;
-  struct obj_data *obj, *next_obj;
+  char arg[MAX_STRING_LENGTH] = { '\0' };
+  int amount = 0, dotmode = 0;
+  struct char_data *vict = NULL;
+  struct obj_data *obj = NULL, *next_obj = NULL;
 
   argument = one_argument(argument, arg);
 
@@ -1507,10 +1507,10 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
 
 ACMD(do_wear)
 {
-  char arg1[MAX_INPUT_LENGTH];
-  char arg2[MAX_INPUT_LENGTH];
-  struct obj_data *obj, *next_obj;
-  int where, dotmode, items_worn = 0;
+  char arg1[MAX_INPUT_LENGTH] = { '\0' };
+  char arg2[MAX_INPUT_LENGTH] = { '\0' };
+  struct obj_data *obj = NULL, *next_obj = NULL;
+  int where = 0, dotmode = 0, items_worn = 0;
 
   two_arguments(argument, arg1, arg2);
 
@@ -1660,8 +1660,8 @@ void perform_remove(struct char_data *ch, int pos, bool forced)
 
 ACMD(do_remove)
 {
-  char arg[MAX_INPUT_LENGTH];
-  int i, dotmode, found;
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+  int i = 0, dotmode = 0, found = 0;
 
   one_argument(argument, arg);
 

@@ -114,6 +114,11 @@ struct clan_data {
   char      *abrev;                    /**< Abbreviation for the clan      */
 };
 
+/* globals */
+struct clan_data *clan_list;
+struct claim_data *claim_list;
+int num_of_clans;
+
 clan_rnum real_clan(clan_vnum c);
 clan_rnum get_clan_by_name(const char *c_n);
 int count_clan_members(clan_rnum c);
@@ -130,6 +135,8 @@ bool is_a_clan_leader(struct char_data *ch);
 void clear_clan_vals(struct clan_data *cl);
 void load_clans(void);
 void save_clans(void);
+bool can_edit_clan(struct char_data *ch, clan_vnum c);
+void duplicate_clan_data(struct clan_data *to_clan, struct clan_data *from_clan);
 ACMD(do_clan);
 ACMD(do_clanapply);
 ACMD(do_clanaward);
@@ -193,4 +200,5 @@ void clanedit_string_cleanup(struct descriptor_data *d, int terminator);
 extern struct clan_data *clan_list;
 extern int num_of_clans;
 #endif
+
 
