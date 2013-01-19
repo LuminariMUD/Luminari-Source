@@ -27,17 +27,24 @@
 
 #define NUM_CLAN_PRIVS 21
 
-#define NO_CLAN ((IDXTYPE)~0)    /**< Sets to ush_int_MAX, or 65,535 */
-#define NO_CLANRANK        0     /**< A non-ranking value            */
-#define RANK_LEADERONLY    0     /**< For clan privs, 0 is higher than top rank */
+#define NO_CLAN ((IDXTYPE)~0) /**< Sets to ush_int_MAX, or 65,535 */
+#define NO_CLANRANK        0  /**< A non-ranking value            */
+#define RANK_LEADERONLY    0  /**< For clan privs, 0 is higher than top rank */
 
-#define MAX_CLANS      25       /**< The maximum number of clans allowed (do not exceed 26)  */
-#define MAX_CLANRANKS  15       /**< The maximum number of ranks per clan (do not exceed 16) */
-#define MAX_CLANSPELLS  5       /**< The maximum number of clan spells per clan (do not exceed 5) */
-#define MAX_CLAN_NAME  60       /**< The maximum string length for clan names */
-#define MAX_POPULARITY (100.0)  /**< The maximum popularity value             */
-#define MAX_CLAN_DESC  2048     /**< The maximum length of a clan description */
-#define MAX_CLAN_ABREV 5        //letters of abreviation
+       /**< The maximum number of clans allowed (do not exceed 26)  */
+#define MAX_CLANS      25
+       /**< The maximum number of ranks per clan (do not exceed 16) */
+#define MAX_CLANRANKS  15
+       /**< The maximum number of clan spells per clan (do not exceed 5) */
+#define MAX_CLANSPELLS  5
+       /**< The maximum string length for clan names */
+#define MAX_CLAN_NAME  60
+       /**< The maximum popularity value             */
+#define MAX_POPULARITY (100.0)
+       /**< The maximum length of a clan description */
+#define MAX_CLAN_DESC  2048
+       //letters of abreviation
+#define MAX_CLAN_ABREV 5
 
 #define CLAN_NAME(c)   (clan_list[c].clan_name)
 #define CLAN_LEADER(c) (clan_list[c].leader)
@@ -65,19 +72,28 @@
 
 /** Diplomacy data is used for the do_diplomacy general command (act.other.c) */
 struct diplomacy_data {
-  int subcmd;                  /**< The subcommand number, defined in interpreter.h */
-  int skill;                   /**< The skill number, defined in spells.h           */
-  float increase;              /**< The popularity increase this skill causes       */
-  int wait;                    /**< The number of ticks that must pass between uses */
+                  /**< The subcommand number, defined in interpreter.h */
+  int subcmd;
+                  /**< The skill number, defined in spells.h           */  
+  int skill;
+                  /**< The popularity increase this skill causes       */  
+  float increase;
+                  /**< The number of ticks that must pass between uses */
+  int wait;
 };
 
 /** Claim data holds information regarding zone claims */
 struct claim_data {
-  zone_vnum zn;                /**< The VNUM of the zone that this data is for     */
-  long claimant;               /**< The ID of the player who last claimed the zone */
-  clan_vnum clan;              /**< The VNUM of the current controlling clan       */
-  float popularity[MAX_CLANS]; /**< Popularity Values for the zone for each clan   */
-  struct claim_data *next;     /**< Linked list pointer to the next claim_data     */
+              /**< The VNUM of the zone that this data is for     */  
+  zone_vnum zn;
+              /**< The ID of the player who last claimed the zone */  
+  long claimant;
+              /**< The VNUM of the current controlling clan       */  
+  clan_vnum clan;
+              /**< Popularity Values for the zone for each clan   */  
+  float popularity[MAX_CLANS];
+              /**< Linked list pointer to the next claim_data     */  
+  struct claim_data *next;
 };
 
 /** Clan command structure - data entered at the top of clan.c */
@@ -106,11 +122,11 @@ struct clan_data {
   zone_vnum hall;                      /**< The zone for the clan's hall   */
   clan_vnum at_war;                    /**< vnum of enemy clan             */
   clan_vnum allied;                    /**< vnum of allied clan            */
-  int       spells[MAX_CLANSPELLS];    /**< Five skills known by all clanmembers */
+  int       spells[MAX_CLANSPELLS];    /**< Five skills known by all members */
   long      treasure;                  /**< The clan's bank account        */
   int       pk_win;                    /**< How many PK's have been won    */
   int       pk_lose;                   /**< How many PK's have been lost   */
-  int       raided;                    /**< How many times the clanhall has been raided */
+  int       raided;                    /**< How many times been raided */
   char      *abrev;                    /**< Abbreviation for the clan      */
 };
 
@@ -136,7 +152,8 @@ void clear_clan_vals(struct clan_data *cl);
 void load_clans(void);
 void save_clans(void);
 bool can_edit_clan(struct char_data *ch, clan_vnum c);
-void duplicate_clan_data(struct clan_data *to_clan, struct clan_data *from_clan);
+void duplicate_clan_data(struct clan_data *to_clan,
+        struct clan_data *from_clan);
 ACMD(do_clan);
 ACMD(do_clanapply);
 ACMD(do_clanaward);
@@ -186,7 +203,8 @@ void load_claims(void);
 /* Popularity handling functions */
 float get_popularity(zone_vnum zn, clan_vnum cn);
 void increase_popularity(zone_vnum zn, clan_vnum cn, float amt);
-void show_zone_popularities(struct char_data *ch, struct claim_data *this_claim);
+void show_zone_popularities(struct char_data *ch,
+        struct claim_data *this_claim);
 void show_clan_popularities(struct char_data *ch, clan_vnum c_v);
 void show_popularity(struct char_data *ch, char *arg);
 void check_diplomacy(void);

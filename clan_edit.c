@@ -64,17 +64,28 @@ void save_clans(void)
     /* Save the ID of the current clan leader */
     fprintf(fl, "Lder: %ld\n", clan_list[i].leader);
 
-    if (clan_list[i].applev    != 0)       fprintf(fl, "AppL: %d\n", clan_list[i].applev);
-    if (clan_list[i].appfee    != 0)       fprintf(fl, "AppF: %d\n", clan_list[i].appfee);
-    if (clan_list[i].taxrate   != 0)       fprintf(fl, "Tax : %d\n", clan_list[i].taxrate);
-    if (clan_list[i].hall      != 0)       fprintf(fl, "Hall: %d\n", clan_list[i].hall);
-    if (clan_list[i].treasure  != 0)       fprintf(fl, "Bank: %ld\n", clan_list[i].treasure);
-    if (clan_list[i].allied    != NO_CLAN) fprintf(fl, "Ally: %d\n", clan_list[i].allied);
-    if (clan_list[i].at_war    != NO_CLAN) fprintf(fl, "War : %d\n", clan_list[i].at_war);
-    if (clan_list[i].war_timer != 0)       fprintf(fl, "WarT: %d\n", clan_list[i].war_timer);
-    if (clan_list[i].pk_win    != 0)       fprintf(fl, "PWin: %d\n", clan_list[i].pk_win);
-    if (clan_list[i].pk_lose   != 0)       fprintf(fl, "PLos: %d\n", clan_list[i].pk_lose);
-    if (clan_list[i].raided    != 0)       fprintf(fl, "Raid: %d\n", clan_list[i].raided);
+    if (clan_list[i].applev    != 0)
+      fprintf(fl, "AppL: %d\n", clan_list[i].applev);
+    if (clan_list[i].appfee    != 0)
+      fprintf(fl, "AppF: %d\n", clan_list[i].appfee);
+    if (clan_list[i].taxrate   != 0)
+      fprintf(fl, "Tax : %d\n", clan_list[i].taxrate);
+    if (clan_list[i].hall      != 0)
+      fprintf(fl, "Hall: %d\n", clan_list[i].hall);
+    if (clan_list[i].treasure  != 0)
+      fprintf(fl, "Bank: %ld\n", clan_list[i].treasure);
+    if (clan_list[i].allied    != NO_CLAN)
+      fprintf(fl, "Ally: %d\n", clan_list[i].allied);
+    if (clan_list[i].at_war    != NO_CLAN)
+      fprintf(fl, "War : %d\n", clan_list[i].at_war);
+    if (clan_list[i].war_timer != 0)
+      fprintf(fl, "WarT: %d\n", clan_list[i].war_timer);
+    if (clan_list[i].pk_win    != 0)
+      fprintf(fl, "PWin: %d\n", clan_list[i].pk_win);
+    if (clan_list[i].pk_lose   != 0)
+      fprintf(fl, "PLos: %d\n", clan_list[i].pk_lose);
+    if (clan_list[i].raided    != 0)
+      fprintf(fl, "Raid: %d\n", clan_list[i].raided);
 
     /* Save the rank names */
     if (clan_list[i].ranks > 0) {
@@ -121,7 +132,8 @@ void load_clans(void)
           clear_clan_vals(&c);
         }
         if (num_of_clans >= MAX_CLANS) {
-          log("SYSERR: Too many clans found in clans file (Max: %d)", MAX_CLANS);
+          log("SYSERR: Too many clans found in clans file (Max: %d)",
+                  MAX_CLANS);
           return;
         }
         c.vnum = atoi(line+1);
@@ -192,11 +204,13 @@ void load_clans(void)
               get_line(fl, line);
               while (*line != '~') {
                 if (j >= NUM_CLAN_PRIVS) {
-                  log("SYSERR: Too many privs in clan file (clan ID: %d, rank line %d)", c.vnum, j+1);
+                  log("SYSERR: Too many privs in clan file (clan ID: %d, "
+                          "rank line %d)", c.vnum, j+1);
                 } else {
                   sscanf(line, "%d %d", &priv, &lev);
                   if (priv >= 21 || priv < 0) {
-                    log("SYSERR: Invalid priv in clan file (clan ID: %d, rank line %d, val=%d)", c.vnum, j+1, priv);
+                    log("SYSERR: Invalid priv in clan file (clan ID: %d, "
+                            "rank line %d, val=%d)", c.vnum, j+1, priv);
                   } else {
                     c.privilege[priv] = lev;
                   }
@@ -215,7 +229,8 @@ void load_clans(void)
               get_line(fl, line);
               while (*line != '~') {
                 if (j >= 20) {
-                  log("SYSERR: Too many ranks in clan file (clan ID: %d, rank line %d)", c.vnum, j+1);
+                  log("SYSERR: Too many ranks in clan file (clan ID: %d,"
+                          " rank line %d)", c.vnum, j+1);
                 } else {
                   if (c.rank_name[j]) free(c.rank_name[j]);
                   c.rank_name[j] = strdup(line);
@@ -266,8 +281,10 @@ bool save_claims(void)
   for( this_claim = claim_list; this_claim; this_claim = this_claim->next) {
     fprintf(fl, "#%d\n", this_claim->zn);
 
-    if (this_claim->clan     != NO_CLAN)  fprintf(fl, "Clan: %d\n", this_claim->clan);
-    if (this_claim->claimant != 0)        fprintf(fl, "Clmt: %ld\n", this_claim->claimant);
+    if (this_claim->clan     != NO_CLAN)
+      fprintf(fl, "Clan: %d\n", this_claim->clan);
+    if (this_claim->claimant != 0)
+      fprintf(fl, "Clmt: %ld\n", this_claim->claimant);
 
     fprintf(fl, "Popu:\n");
     for (i=0; i<MAX_CLANS; i++) {
@@ -323,20 +340,25 @@ void load_claims(void)
           case 'C':
                  if (!strcmp(tag, "Clan"))  c.clan = atoi(line);
             else if (!strcmp(tag, "Clmt"))  c.claimant = atol(line);
-            else log("SYSERR: Unknown tag %s in claims file %s", tag, CLAIMS_FILE);
+            else
+              log("SYSERR: Unknown tag %s in claims file %s",
+                      tag, CLAIMS_FILE);
           break;
 
           case 'P':
-                 if (!strcmp(tag, "Popu"))  {
+            if (!strcmp(tag, "Popu"))  {
               j=0;
               get_line(fl, line);
               while (*line != '~') {
                 if (j >= MAX_CLANS) {
-                  log("SYSERR: Too many popularity values in claims file (zone ID: %d, popularity line %d)", c.zn, j+1);
+                  log("SYSERR: Too many popularity values in claims file "
+                          "(zone ID: %d, popularity line %d)", c.zn, j+1);
                 } else {
                   sscanf(line, "%d %f", &cn, &pop);
                   if (pop >= 100.0 || pop < 0.0) {
-                    log("SYSERR: Invalid popularity value in claims file (zone ID: %d, popularity line %d, clan=%d, val=%f)", c.zn, j+1, cn, pop);
+                    log("SYSERR: Invalid popularity value in claims file "
+                            "(zone ID: %d, popularity line %d, clan=%d, "
+                            "val=%f)", c.zn, j+1, cn, pop);
                   } else {
                     c.popularity[cn] = pop;
                   }
@@ -345,7 +367,8 @@ void load_claims(void)
                 j++;
               }
             }
-            else log("SYSERR: Unknown tag %s in claims file %s", tag, CLAIMS_FILE);
+            else log("SYSERR: Unknown tag %s in claims file %s", tag,
+                    CLAIMS_FILE);
           break;
 
           default:
@@ -383,9 +406,9 @@ ACMD(do_clanedit)
 
   one_argument(argument, arg);
 
-  /****************************************************************************/
-  /** Work out which clan is being edited.                                   **/
-  /****************************************************************************/
+  /***************************************************************************/
+  /** Work out which clan is being edited.                                  **/
+  /***************************************************************************/
   if ((!IS_IN_CLAN(ch)) || GET_CLANRANK(ch) == NO_CLANRANK) {
     /* No clan set, only Imps can edit, and they MUST specify a clan ID */
     if (GET_LEVEL(ch) < LVL_IMPL) {
@@ -419,9 +442,9 @@ ACMD(do_clanedit)
     return;
   }
 
-  /****************************************************************************/
-  /** Check that the clan isn't already being edited.                        **/
-  /****************************************************************************/
+  /***************************************************************************/
+  /** Check that the clan isn't already being edited.                       **/
+  /***************************************************************************/
   for (d = descriptor_list; d; d = d->next) {
     if (STATE(d) == CON_CLANEDIT) {
       if (d->olc && OLC_NUM(d) == c_id) {
@@ -432,14 +455,14 @@ ACMD(do_clanedit)
     }
   }
 
-  /****************************************************************************/
-  /** Point d to the editor's descriptor.                                    **/
-  /****************************************************************************/
+  /***************************************************************************/
+  /** Point d to the editor's descriptor.                                   **/
+  /***************************************************************************/
   d = ch->desc;
 
-  /****************************************************************************/
-  /** Give the descriptor an OLC structure.                                  **/
-  /****************************************************************************/
+  /***************************************************************************/
+  /** Give the descriptor an OLC structure.                                 **/
+  /***************************************************************************/
   if (d->olc) {
     mudlog(BRF, LVL_IMMORT, TRUE,
       "SYSERR: do_clanedit: Player already had olc structure.");
@@ -448,15 +471,15 @@ ACMD(do_clanedit)
 
   CREATE(d->olc, struct oasis_olc_data, 1);
 
-  /****************************************************************************/
-  /** Check player has edit permissions for this clan, or is an IMPL         **/
-  /****************************************************************************/
+  /***************************************************************************/
+  /** Check player has edit permissions for this clan, or is an IMPL        **/
+  /***************************************************************************/
   if (!can_edit_clan(ch, c_id)) {
     send_to_char(ch, "You do not have permission to edit this clan.\r\n");
 
-    /**************************************************************************/
-    /** Free the OLC structure.                                              **/
-    /**************************************************************************/
+    /*************************************************************************/
+    /** Free the OLC structure.                                             **/
+    /*************************************************************************/
     free(d->olc);
     d->olc = NULL;
     return;
@@ -478,9 +501,9 @@ ACMD(do_clanedit)
 }
         
 
-/**************************************************************************************************
+/****************************************************************************
  End of Claim Popularity code - Start of Clan Edit OLC code
- **************************************************************************************************/
+ ***************************************************************************/
 static void clanedit_setup(struct descriptor_data *d)
 {
   struct clan_data *nw_cln;
@@ -506,7 +529,8 @@ static void clanedit_save(struct descriptor_data *d)
   clan_rnum cr;
 
   if ((cr = real_clan(OLC_CLAN(d)->vnum)) == NO_CLAN) {
-    log("SYSERR: clanedit_save: Invalid clan vnum (%d) in OLC struct", OLC_CLAN(d)->vnum);
+    log("SYSERR: clanedit_save: Invalid clan vnum (%d) in OLC struct",
+            OLC_CLAN(d)->vnum);
     return;
   }
 
@@ -518,8 +542,10 @@ static void clanedit_save(struct descriptor_data *d)
 
 static void get_priv_string(struct descriptor_data *d, char *t, int p)
 {
-  if (OLC_CLAN(d)->privilege[p] > 0)  sprintf(t, "%d", OLC_CLAN(d)->privilege[p]);
-  else                                sprintf(t, "Leader Only");
+  if (OLC_CLAN(d)->privilege[p] > 0)
+    sprintf(t, "%d", OLC_CLAN(d)->privilege[p]);
+  else
+    sprintf(t, "Leader Only");
 }
 
 /*-------------------------------------------------------------------*/
@@ -545,7 +571,8 @@ static void clanedit_disp_menu(struct descriptor_data *d)
 
   if (CHK_CP(CP_DESC)) {
     write_to_output(d, "%s3%s) Description : \r\n%s%s\r\n",
-                         cyn, nrm, yel, OLC_CLAN(d)->description ? OLC_CLAN(d)->description : "<Not Set!>");
+            cyn, nrm, yel, OLC_CLAN(d)->description ?
+            OLC_CLAN(d)->description : "<Not Set!>");
   }
 
   if (CHK_CP(CP_APPLEV)) {
@@ -564,23 +591,25 @@ static void clanedit_disp_menu(struct descriptor_data *d)
   }
 
   if (CHK_CP(CP_ATWAR)) {
-    if (OLC_CLAN(d)->at_war == NO_CLAN || real_clan(OLC_CLAN(d)->at_war) == NO_CLAN)
+    if (OLC_CLAN(d)->at_war == NO_CLAN ||
+            real_clan(OLC_CLAN(d)->at_war) == NO_CLAN)
       write_to_output(d, "%s7%s) At War With : %sNone!\r\n",
                            cyn, nrm, cyn);
     else
-      write_to_output(d, "%s7%s) At War With : %s%s (Clan ID %d)\r\n",
-                           cyn, nrm, clan_list[(real_clan(OLC_CLAN(d)->at_war))].clan_name,
-                           nrm, OLC_CLAN(d)->at_war);
+      write_to_output(d, "%s7%s) At War With : %s%s (Clan ID %d)\r\n", cyn,
+              nrm, clan_list[(real_clan(OLC_CLAN(d)->at_war))].clan_name,
+              nrm, OLC_CLAN(d)->at_war);
   }
 
   if (CHK_CP(CP_ALLIED)) {
-    if (OLC_CLAN(d)->allied == NO_CLAN || real_clan(OLC_CLAN(d)->allied) == NO_CLAN)
+    if (OLC_CLAN(d)->allied == NO_CLAN ||
+            real_clan(OLC_CLAN(d)->allied) == NO_CLAN)
       write_to_output(d, "%s8%s) Allied With : %sNone!\r\n",
                            cyn, nrm, cyn);
     else
       write_to_output(d, "%s8%s) Allied With : %s%s (Clan ID %d)\r\n",
-                           cyn, nrm, clan_list[(real_clan(OLC_CLAN(d)->allied))].clan_name,
-                           nrm, OLC_CLAN(d)->allied);
+              cyn, nrm, clan_list[(real_clan(OLC_CLAN(d)->allied))].clan_name,
+              nrm, OLC_CLAN(d)->allied);
   }
 
   if (CHK_CP(CP_RANKS)) {
@@ -620,7 +649,8 @@ static void clanedit_ranks_menu(struct descriptor_data *d)
   for (i=0; i<OLC_CLAN(d)->ranks; i++) {
     write_to_output(d, "%s%c%s) Rank %-2d : %s%s\r\n",
                          cyn, 'A' + i, nrm, (i+1), yel,
-                         (OLC_CLAN(d)->rank_name[i]) ? OLC_CLAN(d)->rank_name[i] : "<Not Set!>");
+                         (OLC_CLAN(d)->rank_name[i]) ?
+                           OLC_CLAN(d)->rank_name[i] : "<Not Set!>");
   }
 
   write_to_output(d, "%sQ%s) Quit\r\n",
@@ -649,57 +679,66 @@ static void clanedit_priv_menu(struct descriptor_data *d)
   get_priv_string(d, buf1, CP_WHERE);
   get_priv_string(d, buf2, CP_TITLE);
 
-  write_to_output(d, "%s1%s) Where   : %s[%s%11s%s]      A%s) Set Title    : %s[%s%11s%s]\r\n",
-                       cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
+  write_to_output(d, "%s1%s) Where   : %s[%s%11s%s]      "
+          "A%s) Set Title    : %s[%s%11s%s]\r\n",
+                      cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
   get_priv_string(d, buf1, CP_CLAIM);
   get_priv_string(d, buf1, CP_BALANCE);
   get_priv_string(d, buf2, CP_DESC);
 
-  write_to_output(d, "%s2%s) Claim   : %s[%s%11s%s]      B%s) Set Desc     : %s[%s%11s%s]\r\n",
-                       cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
+  write_to_output(d, "%s2%s) Claim   : %s[%s%11s%s]      "
+          "B%s) Set Desc     : %s[%s%11s%s]\r\n",
+                      cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
   get_priv_string(d, buf1, CP_ENROL);
   get_priv_string(d, buf2, CP_APPFEE);
 
-  write_to_output(d, "%s3%s) Enrol   : %s[%s%11s%s]      C%s) Set App Fee  : %s[%s%11s%s]\r\n",
-                       cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
+  write_to_output(d, "%s3%s) Enrol   : %s[%s%11s%s]      "
+          "C%s) Set App Fee  : %s[%s%11s%s]\r\n",
+                      cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
   get_priv_string(d, buf1, CP_PROMOTE);
   get_priv_string(d, buf2, CP_APPLEV);
 
-  write_to_output(d, "%s4%s) Promote : %s[%s%11s%s]      D%s) Set App Level: %s[%s%11s%s]\r\n",
-                       cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
+  write_to_output(d, "%s4%s) Promote : %s[%s%11s%s]      "
+          "D%s) Set App Level: %s[%s%11s%s]\r\n",
+                      cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
   get_priv_string(d, buf1, CP_DEMOTE);
   get_priv_string(d, buf2, CP_TAXRATE);
 
-  write_to_output(d, "%s5%s) Demote  : %s[%s%11s%s]      E%s) Set Tax Rate : %s[%s%11s%s]\r\n",
-                       cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
+  write_to_output(d, "%s5%s) Demote  : %s[%s%11s%s]      "
+          "E%s) Set Tax Rate : %s[%s%11s%s]\r\n",
+                      cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
   get_priv_string(d, buf1, CP_EXPEL);
   get_priv_string(d, buf2, CP_ALLIED);
 
-  write_to_output(d, "%s6%s) Expel   : %s[%s%11s%s]      F%s) Set Ally     : %s[%s%11s%s]\r\n",
-                       cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
+  write_to_output(d, "%s6%s) Expel   : %s[%s%11s%s]      "
+          "F%s) Set Ally     : %s[%s%11s%s]\r\n",
+                      cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
   get_priv_string(d, buf1, CP_DEPOSIT);
   get_priv_string(d, buf2, CP_ATWAR);
 
-  write_to_output(d, "%s7%s) Deposit : %s[%s%11s%s]      G%s) Set Enemy    : %s[%s%11s%s]\r\n",
-                       cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
+  write_to_output(d, "%s7%s) Deposit : %s[%s%11s%s]      "
+          "G%s) Set Enemy    : %s[%s%11s%s]\r\n",
+                      cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
   get_priv_string(d, buf1, CP_WITHDRAW);
   get_priv_string(d, buf2, CP_RANKS);
 
-  write_to_output(d, "%s8%s) Withdraw: %s[%s%11s%s]      H%s) Set Ranks    : %s[%s%11s%s]\r\n",
-                       cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
+  write_to_output(d, "%s8%s) Withdraw: %s[%s%11s%s]      "
+          "H%s) Set Ranks    : %s[%s%11s%s]\r\n",
+                      cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
   get_priv_string(d, buf1, CP_OWNER);
   get_priv_string(d, buf2, CP_SETPRIVS);
 
-  write_to_output(d, "%s9%s) Owner   : %s[%s%11s%s]      I%s) Set Privs    : %s[%s%11s%s]\r\n",
-                       cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
+  write_to_output(d, "%s9%s) Owner   : %s[%s%11s%s]      "
+          "I%s) Set Privs    : %s[%s%11s%s]\r\n",
+                      cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
   get_priv_string(d, buf1, CP_CLANEDIT);
 
@@ -783,7 +822,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Enter new clan name : ");
         OLC_MODE(d) = CLANEDIT_NAME;
       } else {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
       break;
 
@@ -792,7 +832,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Enter new clan name abbreviation : ");
         OLC_MODE(d) = CLANEDIT_ABBREV;
       } else {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
       break;
 
@@ -811,7 +852,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "DEBUG 1\r\n");
         OLC_VAL(d) = 1;
       } else {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
         write_to_output(d, "DEBUG 2\r\n");
       break;
@@ -819,10 +861,12 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
 
     case '4':
       if (CHK_CP(CP_APPLEV)) {
-        write_to_output(d, "Enter minimum level for applicants (0-%d) : ", LVL_IMMORT-1);
+        write_to_output(d, "Enter minimum level for applicants (0-%d) : ",
+                LVL_IMMORT-1);
         OLC_MODE(d) = CLANEDIT_APPLEV;
       } else {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
       break;
 
@@ -831,16 +875,19 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Enter fee paid by applicants : ");
         OLC_MODE(d) = CLANEDIT_APPFEE;
       } else {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
       break;
 
     case '6':
       if (CHK_CP(CP_TAXRATE)) {
-        write_to_output(d, "Enter tax percentage paid by non-clan members (0-40) : ");
+        write_to_output(d, "Enter tax percentage paid by non-clan members"
+                " (0-40) : ");
         OLC_MODE(d) = CLANEDIT_TAXRATE;
       } else {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
       break;
 
@@ -850,7 +897,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Enter Enemy Clan Choice (z=Nobody), (0=Abort) : ");
         OLC_MODE(d) = CLANEDIT_ATWAR;
       } else {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
       break;
 
@@ -860,7 +908,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Enter Ally Clan Choice, (z=Nobody), (0=Abort) : ");
         OLC_MODE(d) = CLANEDIT_ALLIED;
       } else {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
       break;
 
@@ -868,7 +917,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       if (CHK_CP(CP_RANKS)) {
         clanedit_ranks_menu(d);
       } else {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
       break;
 
@@ -877,7 +927,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       if (CHK_CP(CP_SETPRIVS)) {
         clanedit_priv_menu(d);
       } else {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
       break;
 
@@ -897,191 +948,251 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
 
     case '1':
       if (CHK_CP(CP_WHERE)) {
-        write_to_output(d, "Enter the min. rank that can use clan where (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the min. rank that can use clan where "
+                "(0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_WHERE;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case '2':
       if (CHK_CP(CP_CLAIM)) {
-        write_to_output(d, "Enter the min. rank that can use clan claim (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the min. rank that can use clan claim "
+                "(0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_CLAIM;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case '3':
       if (CHK_CP(CP_BALANCE)) {
-        write_to_output(d, "Enter the min. rank that can use clan balance (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the min. rank that can use clan balance "
+                "(0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_BALANCE;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case '4':
       if (CHK_CP(CP_ENROL)) {
-        write_to_output(d, "Enter the min. rank that can use clan enrol (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the min. rank that can use clan enrol "
+                "(0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_ENROL;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case '5':
       if (CHK_CP(CP_PROMOTE)) {
-        write_to_output(d, "Enter the min. rank that can use clan promote (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the min. rank that can use clan promote "
+                "(0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_PROMOTE;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM), 
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case '6':
       if (CHK_CP(CP_DEMOTE)) {
-        write_to_output(d, "Enter the min. rank that can use clan demote (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the min. rank that can use clan demote "
+                "(0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_DEMOTE;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM), 
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case '7':
       if (CHK_CP(CP_EXPEL)) {
-        write_to_output(d, "Enter the min. rank that can use clan expel (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the min. rank that can use clan expel "
+                "(0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_EXPEL;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case '8':
       if (CHK_CP(CP_DEPOSIT)) {
-        write_to_output(d, "Enter the min. rank that can use clan deposit (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the min. rank that can use clan deposit "
+                "(0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_DEPOSIT;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case '9':
       if (CHK_CP(CP_WITHDRAW)) {
-        write_to_output(d, "Enter the min. rank that can use clan withdraw (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the min. rank that can use clan withdraw "
+                "(0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_WITHDRAW;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case 'j':
     case 'J':
       if (CHK_CP(CP_OWNER)) {
-        write_to_output(d, "Enter the min. rank that can use clan owner (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the min. rank that can use clan owner "
+                "(0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_OWNER;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case '0':
       if (CHK_CP(CP_CLANEDIT)) {
-        write_to_output(d, "Enter the min. rank that can use clan where (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the min. rank that can use clan where "
+                "(0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_CLANEDIT;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case 'a':
     case 'A':
       if (CHK_CP(CP_TITLE)) {
-        write_to_output(d, "Enter the mimimum rank that can set the clan name (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the mimimum rank that can set the clan "
+                "name (0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_TITLE;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM), 
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case 'b':
     case 'B':
       if (CHK_CP(CP_DESC)) {
-        write_to_output(d, "Enter the mimimum rank that can set the clan description (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the mimimum rank that can set the clan "
+                "description (0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_TITLE;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case 'c':
     case 'C':
       if (CHK_CP(CP_APPLEV)) {
-        write_to_output(d, "Enter the mimimum rank that can set the clan application level (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the mimimum rank that can set the clan "
+                "application level (0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_APPLEV;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case 'd':
     case 'D':
       if (CHK_CP(CP_APPFEE)) {
-        write_to_output(d, "Enter the mimimum rank that can set the clan application fee (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the mimimum rank that can set the clan "
+                "application fee (0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_APPFEE;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case 'e':
     case 'E':
       if (CHK_CP(CP_TAXRATE)) {
-        write_to_output(d, "Enter the mimimum rank that can set the tax rate (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the mimimum rank that can set the tax "
+                "rate (0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_TAXRATE;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case 'f':
     case 'F':
       if (CHK_CP(CP_ALLIED)) {
-        write_to_output(d, "Enter the mimimum rank that can set the clan's ally (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the mimimum rank that can set the clan's "
+                "ally (0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_ALLIED;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case 'g':
     case 'G':
       if (CHK_CP(CP_ATWAR)) {
-        write_to_output(d, "Enter the mimimum rank that can set the clan's enemy (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the mimimum rank that can set the clan's "
+                "enemy (0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_ATWAR;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case 'h':
     case 'H':
       if (CHK_CP(CP_RANKS)) {
-        write_to_output(d, "Enter the mimimum rank that can set ranks and titles (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the mimimum rank that can set ranks and "
+                "titles (0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_RANKS;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
     case 'i':
     case 'I':
       if (CHK_CP(CP_SETPRIVS)) {
-        write_to_output(d, "Enter the mimimum rank that can edit privilege levels (0-%d) : ", OLC_CLAN(d)->ranks);
+        write_to_output(d, "Enter the mimimum rank that can edit privilege "
+                "levels (0-%d) : ", OLC_CLAN(d)->ranks);
         OLC_MODE(d) = CLANEDIT_CP_SETPRIVS;
       } else {
-        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sYou don't have sufficient clan access.%s\r\n"
+                "Enter Choice : ", CBRED(d->character, C_NRM),
+                CCNRM(d->character, C_NRM));
       }
       return;
 
@@ -1107,12 +1218,14 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
            if (*arg >= 'a' && *arg <= 'z') number = *arg - 'a';
       else if (*arg >= 'A' && *arg <= 'Z') number = *arg - 'A';
       else {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
         return;
       }
       /* Check it's in the valid rank range */
       if (number < 0 || number >= OLC_CLAN(d)->ranks) {
-        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
+                CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
         return;
       }
       /* Zone number isn't used in clanedit, so we'll use it as a placeholder */
@@ -1151,8 +1264,9 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     /*
      * We should never get here.
      */
-//    cleanup_olc(d, CLEANUP_ALL);
-//    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: clanedit_parse(): Reached CLANEDIT_DESC case!");
+    cleanup_olc(d, CLEANUP_ALL);
+    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: clanedit_parse(): Reached"
+            "CLANEDIT_DESC case!");
     write_to_output(d, "Oops (still some work to do here -Zusuk)...\r\n");
 
     OLC_VAL(d) = 1;
@@ -1195,22 +1309,26 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
          if (*arg >= 'a' && *arg <= 'z') number = *arg - 'a';
     else if (*arg >= 'A' && *arg <= 'Z') number = *arg - 'A';
     else {
-      write_to_output(d, "%sInvalid Choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Choice!%s\r\n", 
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_disp_menu(d);
       return;
     }
     if (number < 0 || number >= num_of_clans) {
-      write_to_output(d, "%sInvalid Choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Choice!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_disp_menu(d);
       return;
 	}
     if (clan_list[number].vnum == OLC_NUM(d)) {
-      write_to_output(d, "%sDon't be ridiculous!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sDon't be ridiculous!%s\r\n", 
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_disp_menu(d);
       return;
 	}
     if (clan_list[number].vnum == OLC_CLAN(d)->allied) {
-      write_to_output(d, "%sThe clan can't be at war with an ally!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sThe clan can't be at war with an ally!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_disp_menu(d);
       return;
 	}
@@ -1235,22 +1353,26 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
          if (*arg >= 'a' && *arg <= 'z') number = *arg - 'a';
     else if (*arg >= 'A' && *arg <= 'Z') number = *arg - 'A';
     else {
-      write_to_output(d, "%sInvalid Choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Choice!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_disp_menu(d);
       return;
     }
     if (number < 0 || number >= num_of_clans) {
-      write_to_output(d, "%sInvalid Choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Choice!%s\r\n", 
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_disp_menu(d);
       return;
 	}
     if (clan_list[number].vnum == OLC_NUM(d)) {
-      write_to_output(d, "%sDon't be ridiculous!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sDon't be ridiculous!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_disp_menu(d);
       return;
 	}
     if (clan_list[number].vnum == OLC_CLAN(d)->at_war) {
-      write_to_output(d, "%sThe clan can't be allied with an enemy!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sThe clan can't be allied with an enemy!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_disp_menu(d);
       return;
 	}
@@ -1262,7 +1384,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_CLAIM:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1273,7 +1396,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_BALANCE:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n", 
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
         }
@@ -1284,7 +1408,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_DEMOTE:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1295,7 +1420,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_DEPOSIT:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1306,7 +1432,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_CLANEDIT:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1317,7 +1444,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_ENROL:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1328,7 +1456,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_EXPEL:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1339,7 +1468,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_OWNER:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1350,7 +1480,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_PROMOTE:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1361,7 +1492,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_WHERE:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1372,7 +1504,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_WITHDRAW:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1383,7 +1516,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_ALLIED:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1394,7 +1528,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_APPFEE:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1405,7 +1540,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_APPLEV:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1416,7 +1552,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_DESC:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1427,7 +1564,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_TAXRATE:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1438,7 +1576,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_RANKS:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1449,7 +1588,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_TITLE:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1460,7 +1600,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_ATWAR:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1471,7 +1612,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_SETPRIVS:
     if (number < 0 || number > OLC_CLAN(d)->ranks) {
-      write_to_output(d, "%sInvalid Rank!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "%sInvalid Rank!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_priv_menu(d);
       return;
 	}
@@ -1482,8 +1624,10 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   case CLANEDIT_NUM_RANKS:
     if (number < 1 || number > MAX_CLANRANKS) {
-      write_to_output(d, "%sInvalid number of ranks!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
-      write_to_output(d, "Enter number of ranks! (1-%d) : ", MAX_CLANRANKS);
+      write_to_output(d, "%sInvalid number of ranks!%s\r\n",
+              CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      write_to_output(d, "Enter number of ranks! (1-%d) : ",
+              MAX_CLANRANKS);
       return;
 	}
     OLC_CLAN(d)->ranks = number;
@@ -1498,7 +1642,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     break;
   /*-------------------------------------------------------------------*/
   case CLANEDIT_RANK_NAME:
-    /* We use the OLC_ZNUM as a placeholder for the rank number - get it back */
+    /* We use the OLC_ZNUM as a placeholder for the rank number -get it back */
     number = OLC_ZNUM(d);
 
     /* Free the old rank name */
@@ -1514,7 +1658,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     break;
   /*-------------------------------------------------------------------*/
   default:
-    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: Reached default case in clanedit_parse()!");
+    mudlog(BRF, LVL_BUILDER, TRUE,
+            "SYSERR: OLC: Reached default case in clanedit_parse()!");
     write_to_output(d, "Oops...\r\n");
     clanedit_disp_menu(d);
     break;
@@ -1532,8 +1677,10 @@ void clanedit_string_cleanup(struct descriptor_data *d, int terminator)
   }
 }
 
-/* Copies a clan's information.  NOTE; Allocates memory for DUPLICATED strings */
-void duplicate_clan_data(struct clan_data *to_clan, struct clan_data *from_clan)
+/* Copies a clan's information.  
+ * NOTE: Allocates memory for DUPLICATED strings */
+void duplicate_clan_data(struct clan_data *to_clan,
+        struct clan_data *from_clan)
 {
   int i;
 
