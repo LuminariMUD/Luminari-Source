@@ -1224,7 +1224,8 @@ void stop_follower(struct char_data *ch)
     ch->master->followers = k->next;
     free(k);
   } else {			/* locate follower who is not head of list */
-    for (k = ch->master->followers; k->next->follower != ch; k = k->next);
+    for (k = ch->master->followers; k->next->follower != ch; k = k->next)
+      ;
 
     j = k->next;
     k->next = j->next;

@@ -53,7 +53,7 @@ int canContinue(struct char_data *ch)
 
 void npc_racial_behave(struct char_data *ch)
 {
-  struct char_data *AoE, *vict = NULL;
+  struct char_data *AoE = NULL, *vict = NULL;
   int engaged = 0;
 
   if (!canContinue(ch))
@@ -322,7 +322,6 @@ void npc_mage_behave(struct char_data *ch, struct char_data *vict,
 {
   int num = -1;
 
-
   if (circle < 3)
     return;
   num = rand_number(3, circle);
@@ -440,7 +439,7 @@ void npc_mage_behave(struct char_data *ch, struct char_data *vict,
 
 void npc_class_behave(struct char_data *ch)
 {
-  struct char_data *AoE, *vict = NULL;
+  struct char_data *AoE = NULL, *vict = NULL;
   int engaged = 0;
 
   if (MOB_FLAGGED(ch, MOB_NOCLASS))
@@ -514,13 +513,13 @@ void mobile_activity(void)
     /* Examine call for special procedure */
     if (MOB_FLAGGED(ch, MOB_SPEC) && !no_specials) {
       if (mob_index[GET_MOB_RNUM(ch)].func == NULL) {
-	log("SYSERR: %s (#%d): Attempting to call non-existing mob function.",
-		GET_NAME(ch), GET_MOB_VNUM(ch));
-	REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_SPEC);
+        log("SYSERR: %s (#%d): Attempting to call non-existing mob function.",
+            GET_NAME(ch), GET_MOB_VNUM(ch));
+        REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_SPEC);
       } else {
         char actbuf[MAX_INPUT_LENGTH] = "";
-	if ((mob_index[GET_MOB_RNUM(ch)].func) (ch, ch, 0, actbuf))
-	  continue;		/* go to next char */
+        if ((mob_index[GET_MOB_RNUM(ch)].func) (ch, ch, 0, actbuf))
+          continue;		/* go to next char */
       }
     }
 
@@ -652,7 +651,7 @@ void mobile_activity(void)
 /* make ch remember victim */
 void remember(struct char_data *ch, struct char_data *victim)
 {
-  memory_rec *tmp;
+  memory_rec *tmp = NULL;
   bool present = FALSE;
 
   if (!IS_NPC(ch) || IS_NPC(victim) || PRF_FLAGGED(victim, PRF_NOHASSLE))
@@ -673,7 +672,7 @@ void remember(struct char_data *ch, struct char_data *victim)
 /* make ch forget victim */
 void forget(struct char_data *ch, struct char_data *victim)
 {
-  memory_rec *curr, *prev = NULL;
+  memory_rec *curr = NULL, *prev = NULL;
 
   if (!(curr = MEMORY(ch)))
     return;
@@ -697,7 +696,7 @@ void forget(struct char_data *ch, struct char_data *victim)
 /* erase ch's memory */
 void clearMemory(struct char_data *ch)
 {
-  memory_rec *curr, *next;
+  memory_rec *curr = NULL, *next = NULL;
 
   curr = MEMORY(ch);
 
@@ -715,8 +714,8 @@ void clearMemory(struct char_data *ch)
  * of it, eye them down, or otherwise intimidate the slave. */
 static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data *master, struct char_data *attack)
 {
-  static int snarl_cmd, sneer_cmd;
-  int dieroll;
+  static int snarl_cmd = 0, sneer_cmd = 0;
+  int dieroll = 0;
 
   if (!slave)
     return FALSE;

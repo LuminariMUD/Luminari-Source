@@ -2757,7 +2757,7 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
     void *vict_obj, struct char_data *to)
 {
   const char *i = NULL;
-  char lbuf[MAX_STRING_LENGTH], *buf, *j;
+  char lbuf[MAX_STRING_LENGTH] = { '\0' }, *buf = NULL, *j = NULL;
   bool uppercasenext = FALSE;
   struct char_data *dg_victim = NULL;
   struct obj_data *dg_target = NULL;
