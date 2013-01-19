@@ -12,7 +12,6 @@
 #include "conf.h"
 #include "sysdep.h"
 
-#include "clan.h"
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
@@ -22,6 +21,7 @@
 #include "screen.h"
 #include "improved-edit.h"
 #include "spells.h" /* find skill, etc */
+#include "clan.h"
 
 /* Global Variables used by clans */
 struct clan_data *clan_list = NULL;
