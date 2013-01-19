@@ -1423,8 +1423,8 @@ EVENTFUNC(get_protocols)
 /* deal with newcomers and other non-playing sockets */
 void nanny(struct descriptor_data *d, char *arg)
 {
-  int load_result;	/* Overloaded variable */
-  int player_i;
+  int load_result = 0;	/* Overloaded variable */
+  int player_i = 0;
 
   /* OasisOLC states */
   struct {

@@ -585,11 +585,14 @@ int load_char(const char *name, struct char_data *ch)
 void save_char(struct char_data * ch)
 {
   FILE *fl;
-  char filename[40], buf[MAX_STRING_LENGTH], bits[127], bits2[127], bits3[127], bits4[127];
-  int i, j, id, save_index = FALSE;
-  struct affected_type *aff, tmp_aff[MAX_AFFECT];
-  struct obj_data *char_eq[NUM_WEARS];
-  trig_data *t;
+  char filename[40] = { '\0'}, buf[MAX_STRING_LENGTH] = { '\0' },
+       bits[127] = { '\0' }, bits2[127] = { '\0' },
+       bits3[127] = { '\0' }, bits4[127] = { '\0' };
+  int i = 0, j = 0, id = 0, save_index = FALSE;
+  struct affected_type *aff = NULL;
+  struct affected_type tmp_aff[MAX_AFFECT] = { {0} };
+  struct obj_data *char_eq[NUM_WEARS] = { NULL };
+  trig_data *t = NULL;
 
   if (IS_NPC(ch) || GET_PFILEPOS(ch) < 0)
     return;
