@@ -217,20 +217,39 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
   if (d->character) {
     REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
     if (STATE(d) == CON_STUDY)
-      act("$n stops $s study session.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      act("$n stops $s study session.",
+              TRUE, d->character, NULL, NULL, TO_ROOM);
     else
       act("$n stops using OLC.", TRUE, d->character, NULL, NULL, TO_ROOM);
 
     if (cleanup_type == CLEANUP_CONFIG)
-      mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s stops editing the game configuration", GET_NAME(d->character));
+      mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s stops editing the game "
+              "configuration", GET_NAME(d->character));
     else if (STATE(d) == CON_TEDIT)
-      mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s stops editing text files.", GET_NAME(d->character));
+      mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s stops editing text files.",
+              GET_NAME(d->character));
     else if (STATE(d) == CON_IBTEDIT)
-      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing IBT files.", GET_NAME(d->character));
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing IBT files.", 
+              GET_NAME(d->character));
     else if (STATE(d) == CON_HEDIT)
-      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing help files.", GET_NAME(d->character));
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing help files.",
+              GET_NAME(d->character));
+    else if (STATE(d) == CON_AEDIT)
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing social files.",
+              GET_NAME(d->character));
+    else if (STATE(d) == CON_CLANEDIT)
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing clan files.",
+              GET_NAME(d->character));
+    else if (STATE(d) == CON_MSGEDIT)
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing damage message "
+              "files.", GET_NAME(d->character));
+    else if (STATE(d) == CON_STUDY)
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing known spells.",
+              GET_NAME(d->character));
     else
-      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing zone %d allowed zone %d", GET_NAME(d->character), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(d->character));
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing zone %d allowed"
+              " zone %d", GET_NAME(d->character),
+              zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(d->character));
 
     STATE(d) = CON_PLAYING;
   }

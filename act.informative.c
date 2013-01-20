@@ -374,7 +374,30 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
 
     return;
-  }
+    
+    /* for non fighting mobiles */
+  } else if (IS_NPC(i) && i->player.long_descr &&
+          MOB_FLAGGED(i, MOB_NOFIGHT)) {
+
+    if (AFF_FLAGGED(i, AFF_INVISIBLE))
+      send_to_char(ch, "*");
+
+    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN)) {
+      if (IS_EVIL(i))
+	send_to_char(ch, "\tR(Red Aura)\tn ");
+      else if (IS_GOOD(i))
+	send_to_char(ch, "\tB(Blue Aura)\tn ");
+    }
+
+    send_to_char(ch, "%s", i->player.long_descr);
+
+    if (AFF_FLAGGED(i, AFF_SANCTUARY))
+      act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
+    if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
+      act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
+
+    return;
+  }  
 
   if (IS_NPC(i))
     send_to_char(ch, "%c%s", UPPER(*i->player.short_descr), i->player.short_descr + 1);
@@ -415,12 +438,12 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (FIGHTING(i)) {
       send_to_char(ch, " is here, fighting ");
       if (FIGHTING(i) == ch)
-	send_to_char(ch, "YOU!");
+        send_to_char(ch, "YOU!");
       else {
-	if (IN_ROOM(i) == IN_ROOM(FIGHTING(i)))
-	  send_to_char(ch, "%s!", PERS(FIGHTING(i), ch));
-	else
-	  send_to_char(ch,  "someone who has already left!");
+        if (IN_ROOM(i) == IN_ROOM(FIGHTING(i)))
+          send_to_char(ch, "%s!", PERS(FIGHTING(i), ch));
+	   else
+	     send_to_char(ch,  "someone who has already left!");
       }
     } else			/* NIL fighting pointer */
       send_to_char(ch, " is here struggling with thin air.");
