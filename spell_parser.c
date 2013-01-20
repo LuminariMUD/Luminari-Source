@@ -1264,14 +1264,12 @@ void mag_assign_spells(void)
 
 /* = =  cantrips  = = */
 			/* evocation */
-/*
   spello(SPELL_ACID_SPLASH, "acid splash", 0, 0, 0, POS_SITTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 0, 1, EVOCATION);
   spello(SPELL_RAY_OF_FROST, "ray of frost", 0, 0, 0, POS_SITTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 0, 1, EVOCATION);
-*/
   
 /* = =  1st circle  = = */
 			/* evocation */
@@ -1618,9 +1616,6 @@ void mag_assign_spells(void)
                /* conjuration */
   spello(SPELL_CLOUDKILL, "cloudkill", 65, 50, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 9, CONJURATION);
-  spello(SPELL_DEATHCLOUD, "deathcloud", 85, 70, 1, POS_FIGHTING,
-	TAR_IGNORE, TRUE, MAG_AREAS,
-	NULL, 8, 9, CONJURATION);
   spello(SPELL_SUMMON_CREATURE_5, "summon creature v", 95, 80, 1,
      POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 9, CONJURATION);
 			/* necromancy */
@@ -1861,12 +1856,28 @@ void mag_assign_spells(void)
   spello(SPELL_IDENTIFY, "identify", 0, 0, 0, 0,
 	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
 	NULL, 0, 0, NOSCHOOL);
-
-  /* you might want to name this one something more fitting to your theme -Welcor*/
+  
+  spello(SPELL_DEATHCLOUD, "deathcloud", 0, 0, 0, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS,
+	NULL, 0, 0, NOSCHOOL);
+    spello(SPELL_FIRE_BREATHE, "fire breathe", 0, 0, 0, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS,
+	NULL, 0, 0, NOSCHOOL);
+  spello(SPELL_FSHIELD_DAM, "fire shield dam", 0, 0, 0, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AFFECTS,
+	NULL, 0, 0, NOSCHOOL);
+  spello(SPELL_CSHIELD_DAM, "cold shield dam", 0, 0, 0, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AFFECTS,
+	NULL, 0, 0, NOSCHOOL);
+  spello(SPELL_ASHIELD_DAM, "acid sheath dam", 0, 0, 0, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AFFECTS,
+	NULL, 0, 0, NOSCHOOL);
+  
   spello(SPELL_DG_AFFECT, "Afflicted", 0, 0, 0, POS_SITTING,
 	TAR_IGNORE, TRUE, 0,
 	NULL, 0, 0, NOSCHOOL);
 
+  
   /* Declaration of skills - this actually doesn't do anything except set it up
    * so that immortals can use these skills by default.  The min level to use
    * the skill for other classes is set up in class.c. */
@@ -1902,8 +1913,8 @@ void mag_assign_spells(void)
   skillo(SKILL_SELF_CONCEAL_3, "epic concealment");		//430
   skillo(SKILL_TRIP, "trip");
   skillo(SKILL_IMPROVED_WHIRL, "improved whirlwind");
-  skillo(SKILL_CLEAVE, "cleave (incomplete)");
-  skillo(SKILL_GREAT_CLEAVE, "great_cleave (incomplete)");
+  skillo(SKILL_CLEAVE, "cleave (inc)");
+  skillo(SKILL_GREAT_CLEAVE, "great_cleave (inc)");
   skillo(SKILL_SPELLPENETRATE, "spell penetration");		//435
   skillo(SKILL_SPELLPENETRATE_2, "greater spell penetrate");
   skillo(SKILL_PROWESS, "prowess");
@@ -1936,25 +1947,25 @@ void mag_assign_spells(void)
   skillo(SKILL_PROF_HEAVY_A, "heavy armor prof");              //464
   skillo(SKILL_PROF_SHIELDS, "shield prof");              //465
   skillo(SKILL_PROF_T_SHIELDS, "tower shield prof");            //466
-  skillo(SKILL_MURMUR, "murmur (incomplete)");
-  skillo(SKILL_PROPAGANDA, "propaganda (incomplete)");
-  skillo(SKILL_LOBBY, "lobby (incomplete)");                  //469
+  skillo(SKILL_MURMUR, "murmur (inc)");
+  skillo(SKILL_PROPAGANDA, "propaganda (inc)");
+  skillo(SKILL_LOBBY, "lobby (inc)");                  //469
   skillo(SKILL_STUNNING_FIST, "stunning fist");             //470
-  skillo(SKILL_MINING, "mining (incomplete)");             //471
-  skillo(SKILL_HUNTING, "hunting (incomplete)");             //472
-  skillo(SKILL_FORESTING, "foresting (incomplete)");             //473
-  skillo(SKILL_KNITTING, "knitting (incomplete)");             //474
-  skillo(SKILL_CHEMISTRY, "chemistry (incomplete)");             //475
-  skillo(SKILL_ARMOR_SMITHING, "armor smithing (incomplete)");             //476
-  skillo(SKILL_WEAPON_SMITHING, "weapon smithing (incomplete)");             //477
-  skillo(SKILL_JEWELRY_MAKING, "jewelry making (incomplete)");             //478
-  skillo(SKILL_LEATHER_WORKING, "leather working (incomplete)");             //479
-  skillo(SKILL_FAST_CRAFTER, "fast crafter (incomplete)");             //480
-  skillo(SKILL_BONE_ARMOR, "bone armor (incomplete)");             //481
-  skillo(SKILL_ELVEN_CRAFTING, "elvent crafting (incomplete)");             //482
-  skillo(SKILL_MASTERWORK_CRAFTING, "masterwork crafting (incomplete)");             //483
-  skillo(SKILL_DRACONIC_CRAFTING, "draconic crafting (incomplete)");             //484
-  skillo(SKILL_DWARVEN_CRAFTING, "dwarven crafting (incomplete)");             //485
+  skillo(SKILL_MINING, "mining (inc)");             //471
+  skillo(SKILL_HUNTING, "hunting (inc)");             //472
+  skillo(SKILL_FORESTING, "foresting (inc)");             //473
+  skillo(SKILL_KNITTING, "knitting (inc)");             //474
+  skillo(SKILL_CHEMISTRY, "chemistry (inc)");             //475
+  skillo(SKILL_ARMOR_SMITHING, "armor smithing (inc)");             //476
+  skillo(SKILL_WEAPON_SMITHING, "weapon smithing (inc)");             //477
+  skillo(SKILL_JEWELRY_MAKING, "jewelry making (inc)");             //478
+  skillo(SKILL_LEATHER_WORKING, "leather working (inc)");             //479
+  skillo(SKILL_FAST_CRAFTER, "fast crafter (inc)");             //480
+  skillo(SKILL_BONE_ARMOR, "bone armor (inc)");             //481
+  skillo(SKILL_ELVEN_CRAFTING, "elvent crafting (inc)");             //482
+  skillo(SKILL_MASTERWORK_CRAFTING, "masterwork crafting (inc)");             //483
+  skillo(SKILL_DRACONIC_CRAFTING, "draconic crafting (inc)");             //484
+  skillo(SKILL_DWARVEN_CRAFTING, "dwarven crafting (inc)");             //485
   skillo(SKILL_LIGHTNING_REFLEXES, "lightning reflexes");             //486
   skillo(SKILL_GREAT_FORTITUDE, "great fortitude");             //487
   skillo(SKILL_IRON_WILL, "iron will");             //488
@@ -1962,6 +1973,13 @@ void mag_assign_spells(void)
   skillo(SKILL_EPIC_FORTITUDE, "epic fortitude");             //490
   skillo(SKILL_EPIC_WILL, "epic will");             //491
   skillo(SKILL_SHIELD_SPECIALIST, "shield specialist");             //492
+  skillo(SKILL_USE_MAGIC, "use magic");             //493
+  skillo(SKILL_USE_MAGIC, "evasion");             //493
+  skillo(SKILL_USE_MAGIC, "improved evasion");             //493
+  skillo(SKILL_USE_MAGIC, "crippling strike");             //493
+  skillo(SKILL_USE_MAGIC, "slippery mind");             //493
+  skillo(SKILL_USE_MAGIC, "defensive roll");             //493
+
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 
 }

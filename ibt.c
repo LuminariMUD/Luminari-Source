@@ -665,7 +665,8 @@ ACMD(do_ibt)
        case SCMD_TYPO: LINK( ibtData, first_typo, last_typo, next, prev );
                        break;
     }
-    mudlog(NRM,LVL_IMMORT, FALSE, "%s has posted %s %s!", GET_NAME(ch), TANA(CMD_NAME), CMD_NAME);
+    mudlog(NRM,LVL_IMMORT, FALSE, "%s has begun posting %s %s!", GET_NAME(ch),
+            TANA(CMD_NAME), CMD_NAME);
     return;
   }
   else if (is_abbrev(arg,"resolve"))
@@ -798,7 +799,8 @@ ACMD(do_oasis_ibtedit)
 
   /* Give descriptor an OLC structure. */
   if (d->olc) {
-    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_oasis_ibtedit: Player already had olc structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_oasis_ibtedit: Player already"
+            " had olc structure.");
     free(d->olc);
   }
 
@@ -989,7 +991,9 @@ void ibtedit_parse(struct descriptor_data *d, char *arg)
       case 'Y':
         /* Save the IBT in memory and to disk. */
         ibtedit_save(d);
-        mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits %s %d", GET_NAME(d->character), IBT_TYPE, OLC_NUM(d));
+        mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
+                "OLC: %s edits %s %d", GET_NAME(d->character),
+                IBT_TYPE, OLC_NUM(d));
         cleanup_olc(d, CLEANUP_ALL);
         return;
       case 'n':

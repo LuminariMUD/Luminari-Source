@@ -84,6 +84,18 @@ void increase_skill(struct char_data *ch, int skillnum)
   int pass = rand_number(0, PASS);
 
   switch(skillnum) {
+    case SKILL_EVASION:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_IMP_EVASION:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
     case SKILL_BACKSTAB:
       if (!use) {
         notched = TRUE;
@@ -109,6 +121,12 @@ void increase_skill(struct char_data *ch, int skillnum)
       }
       break;
     case SKILL_WEAPON_SPECIALIST:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_USE_MAGIC:
       if (!pass) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;

@@ -412,10 +412,12 @@ static void make_corpse(struct char_data *ch)
   IN_ROOM(corpse) = NOWHERE;
   corpse->name = strdup("corpse");
 
-  snprintf(buf2, sizeof(buf2), "The corpse of %s is lying here.", GET_NAME(ch));
+  snprintf(buf2, sizeof(buf2), "%sThe corpse of %s%s is lying here.",
+           CCNRM(ch, C_NRM), GET_NAME(ch), CCNRM(ch, C_NRM));
   corpse->description = strdup(buf2);
 
-  snprintf(buf2, sizeof(buf2), "the corpse of %s", GET_NAME(ch));
+  snprintf(buf2, sizeof(buf2), "%sthe corpse of %s%s", CCNRM(ch, C_NRM),
+           GET_NAME(ch), CCNRM(ch, C_NRM));
   corpse->short_description = strdup(buf2);
 
   GET_OBJ_TYPE(corpse) = ITEM_CONTAINER;
@@ -636,7 +638,7 @@ void raw_kill_old(struct char_data * ch, struct char_data * killer)
 
 void die(struct char_data * ch, struct char_data * killer)
 {
-  if (GET_LEVEL(ch) < 6) {
+  if (GET_LEVEL(ch) <= 6) {
   // no xp loss for newbs - Bakarus
   } else {
   // if not a newbie then bang that xp! - Bakarus

@@ -147,7 +147,7 @@ static int is_tell_ok(struct char_data *ch, struct char_data *vict)
 ACMD(do_tell)
 {
   struct char_data *vict = NULL;
-  char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = { '\0' }, buf2[MAX_INPUT_LENGTH] = { '\0' };
 
   half_chop(argument, buf, buf2);
 

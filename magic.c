@@ -817,10 +817,21 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (GET_RACE(victim) == RACE_GNOME && element == DAM_ILLUSION)
     race_bonus += 2;
   
-  if (dam && (save != -1))  //saving throw for half damage if applies
-    if (mag_savingthrow(ch, victim, save, race_bonus))
+  //saving throw for half damage if applies  
+  if (dam && (save != -1)) {
+    if (mag_savingthrow(ch, victim, save, race_bonus)) {
+      if (GET_SKILL(ch, SKILL_EVASION) || GET_SKILL(ch, SKILL_IMP_EVASION))
+        dam /= 2;
       dam /= 2;
-
+    } else if (GET_SKILL(ch, SKILL_IMP_EVASION))
+      dam /= 2;
+    
+    if (GET_SKILL(ch, SKILL_EVASION))
+      increase_skill(ch, SKILL_EVASION);
+    if (GET_SKILL(ch, SKILL_IMP_EVASION))
+      increase_skill(ch, SKILL_IMP_EVASION);
+  }
+  
   if (!element)  //want to make sure all spells have some sort of damage cat
     log("SYSERR: %d is lacking DAM_", spellnum);    
 
