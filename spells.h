@@ -1,4 +1,4 @@
-/**
+/**************************************************************************
 * @file spells.h
 * Constants and function prototypes for the spell system.
 *
@@ -8,7 +8,7 @@
 * All rights reserved.  See license for complete information.
 * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
 * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
-*/
+**************************************************************************/
 #ifndef _SPELLS_H_
 #define _SPELLS_H_
 
@@ -40,18 +40,18 @@
 #define SPELL_RESERVED_DBC            0  /* SKILL NUMBER ZERO -- RESERVED */
 
 /* PLAYER SPELLS -- Numbered from 1 to MAX_SPELLS */
-#define SPELL_ARMOR                   1 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_TELEPORT                2 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_BLESS                   3 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_BLINDNESS               4 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_BURNING_HANDS           5 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_CALL_LIGHTNING          6 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_CHARM                   7 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_CHILL_TOUCH             8 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_CLONE                   9 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_COLOR_SPRAY            10 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_CONTROL_WEATHER        11 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_CREATE_FOOD            12 /* Reserved Skill[] DO NOT CHANGE */
+#define SPELL_ARMOR                   1
+#define SPELL_TELEPORT                2
+#define SPELL_BLESS                   3
+#define SPELL_BLINDNESS               4
+#define SPELL_BURNING_HANDS           5
+#define SPELL_CALL_LIGHTNING          6
+#define SPELL_CHARM                   7
+#define SPELL_CHILL_TOUCH             8
+#define SPELL_CLONE                   9
+#define SPELL_COLOR_SPRAY            10
+#define SPELL_CONTROL_WEATHER        11
+#define SPELL_CREATE_FOOD            12
 #define SPELL_CREATE_WATER           13 /* Reserved Skill[] DO NOT CHANGE */
 #define SPELL_CURE_BLIND             14 /* Reserved Skill[] DO NOT CHANGE */
 #define SPELL_CURE_CRITIC            15 /* Reserved Skill[] DO NOT CHANGE */
@@ -257,11 +257,11 @@
 #define SPELL_MASS_ENHANCE         215
 #define SPELL_PORTAL               216
 /** Total Number of defined spells */
-#define NUM_SPELLS    217
+#define NUM_SPELLS                 217
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
-#define MAX_SPELLS		    400
+#define MAX_SPELLS		          400
 
 /* PLAYER SKILLS - Numbered from MAX_SPELLS+1 to MAX_SKILLS */
 #define SKILL_BACKSTAB                  401  // implemented
@@ -273,14 +273,14 @@
 #define SKILL_RESCUE                    407  //implemented
 #define SKILL_DRAGON_KNIGHT             408  //implemented
 #define SKILL_LUCK_OF_HEROES            409  //implemented
-#define SKILL_TRACK                     410
-#define SKILL_QUICK_CHANT               411
+#define SKILL_TRACK                     410  //implemented
+#define SKILL_QUICK_CHANT               411  //implemented
 #define SKILL_AMBIDEXTERITY             412  //implemented
 #define SKILL_DIRTY_FIGHTING            413  //implemented
 #define SKILL_DODGE                     414  //implemented
 #define SKILL_IMPROVED_CRITICAL		415  //implemented
-#define SKILL_MOBILITY                  416
-#define SKILL_SPRING_ATTACK             417
+#define SKILL_MOBILITY                  416  //implemented
+#define SKILL_SPRING_ATTACK             417  //implemented
 #define SKILL_TOUGHNESS                 418  //implemented
 #define SKILL_TWO_WEAPON_FIGHT		419  //implemented
 #define SKILL_FINESSE                   420  //implemented
@@ -298,23 +298,23 @@
 #define SKILL_IMPROVED_WHIRL            432  //implemented
 #define SKILL_CLEAVE                    433
 #define SKILL_GREAT_CLEAVE              434
-#define SKILL_SPELLPENETRATE            435
-#define SKILL_SPELLPENETRATE_2		436
+#define SKILL_SPELLPENETRATE            435  //implemented
+#define SKILL_SPELLPENETRATE_2		436  //implemented
 #define SKILL_PROWESS                   437  //implemented
 #define SKILL_EPIC_PROWESS              438  //implemented
 #define SKILL_EPIC_2_WEAPON             439  //implemented
-#define SKILL_SPELLPENETRATE_3		440
+#define SKILL_SPELLPENETRATE_3		440  //implemented
 #define SKILL_SPELL_RESIST_1            441  //implemented
 #define SKILL_SPELL_RESIST_2            442  //implemented
 #define SKILL_SPELL_RESIST_3            443  //implemented
 #define SKILL_SPELL_RESIST_4            444  //implemented
 #define SKILL_SPELL_RESIST_5       	445  //implemented
-#define SKILL_INITIATIVE                446
+#define SKILL_INITIATIVE                446  //implemented
 #define SKILL_EPIC_CRIT                 447  //implemented
 #define SKILL_IMPROVED_BASH             448  //implemented
 #define SKILL_IMPROVED_TRIP             449  //implemented
-#define SKILL_POWER_ATTACK              450
-#define SKILL_EXPERTISE                 451
+#define SKILL_POWER_ATTACK              450  //implemented
+#define SKILL_EXPERTISE                 451  //implemented
 #define SKILL_GREATER_RUIN              452  //implemented
 #define SKILL_HELLBALL                  453  //implemented
 #define SKILL_EPIC_MAGE_ARMOR           454  //implemented
@@ -330,9 +330,9 @@
 #define SKILL_PROF_HEAVY_A              464  //implemented
 #define SKILL_PROF_SHIELDS              465  //implemented
 #define SKILL_PROF_T_SHIELDS            466  //implemented
-#define SKILL_MURMUR                    467 /* Murmur     diplomacy skill */
-#define SKILL_PROPAGANDA                468 /* Propaganda diplomacy skill */
-#define SKILL_LOBBY                     469 /* Lobby      diplomacy skill */
+#define SKILL_MURMUR                    467
+#define SKILL_PROPAGANDA                468
+#define SKILL_LOBBY                     469
 #define SKILL_STUNNING_FIST             470  //implemented
 /* initial crafting skills */
 #define SKILL_MINING                    471
@@ -352,12 +352,12 @@
 #define SKILL_DWARVEN_CRAFTING          485
 /* finish batch crafting skills */
 #define SKILL_LIGHTNING_REFLEXES        486  //implemented
-#define SKILL_GREAT_FORTITUDE           487
-#define SKILL_IRON_WILL                 488
-#define SKILL_EPIC_REFLEXES             489
-#define SKILL_EPIC_FORTITUDE            490
-#define SKILL_EPIC_WILL                 491
-#define SKILL_SHIELD_SPECIALIST         492
+#define SKILL_GREAT_FORTITUDE           487  //implemented
+#define SKILL_IRON_WILL                 488  //implemented
+#define SKILL_EPIC_REFLEXES             489  //implemented
+#define SKILL_EPIC_FORTITUDE            490  //implemented
+#define SKILL_EPIC_WILL                 491  //implemented
+#define SKILL_SHIELD_SPECIALIST         492  //implemented
 #define SKILL_USE_MAGIC                 493
 #define SKILL_EVASION                   494
 #define SKILL_IMP_EVASION               495
@@ -377,7 +377,7 @@
  * define it with a 'spellname'. */
 #define SPELL_DG_AFFECT              698
 
-#define TOP_SPELL_DEFINE	     699
+#define TOP_SPELL_DEFINE	            699
 /* NEW NPC/OBJECT SPELLS can be inserted here up to 699 */
 
 /* WEAPON ATTACK TYPES */
@@ -393,9 +393,9 @@
 #define TYPE_MAUL       709
 #define TYPE_THRASH     710
 #define TYPE_PIERCE     711
-#define TYPE_BLAST		  712
-#define TYPE_PUNCH		  713
-#define TYPE_STAB		    714
+#define TYPE_BLAST      712
+#define TYPE_PUNCH      713
+#define TYPE_STAB       714
 /** The total number of attack types */
 #define NUM_ATTACK_TYPES  15
 
@@ -419,7 +419,7 @@
 #define ABILITY_TAUNT			7 // taunt
 #define ABILITY_CONCENTRATION		8 // concentration
 #define ABILITY_SPELLCRAFT		9 // spellcraft
-#define ABILITY_APPRAISE		10 // appraise
+#define ABILITY_APPRAISE	          10 // appraise
 #define ABILITY_DISCIPLINE		11 // discipline
 #define ABILITY_PARRY			12 // parry
 #define ABILITY_LORE			13 // lore
@@ -438,42 +438,42 @@
 #define DAM_RESERVED_DBC	0	//reserve
 #define DAM_FIRE		1
 #define DAM_COLD		2
-#define DAM_AIR			3
+#define DAM_AIR		3
 #define DAM_EARTH		4
 #define DAM_ACID		5
 #define DAM_HOLY		6
-#define DAM_ELECTRIC		7
+#define DAM_ELECTRIC	7
 #define DAM_UNHOLY		8
 #define DAM_SLICE		9
-#define DAM_PUNCTURE		10
+#define DAM_PUNCTURE	10
 #define DAM_FORCE		11
 #define DAM_SOUND		12
 #define DAM_POISON		13
 #define DAM_DISEASE		14
-#define DAM_NEGATIVE		15
-#define DAM_ILLUSION		16
+#define DAM_NEGATIVE	15
+#define DAM_ILLUSION	16
 #define DAM_MENTAL		17
 #define DAM_LIGHT		18
 #define DAM_ENERGY		19
 /* ------------------------------*/
-#define NUM_DAM_TYPES		20
+#define NUM_DAM_TYPES    20
 /* =============================*/
 
 
 /*********************************/
 /******** Schools of Magic *******/
 /*********************************/
-#define NOSCHOOL	0	// non magical spells
-#define ABJURATION	1
-#define CONJURATION	2
-#define DIVINATION	3
-#define ENCHANTMENT	4
-#define EVOCATION	5
-#define ILLUSION	6
-#define NECROMANCY	7
-#define TRANSMUTATION	8
+#define NOSCHOOL       0	// non magical spells
+#define ABJURATION     1
+#define CONJURATION    2
+#define DIVINATION     3
+#define ENCHANTMENT    4
+#define EVOCATION      5
+#define ILLUSION       6
+#define NECROMANCY     7
+#define TRANSMUTATION  8
 
-#define NUM_SCHOOLS	9
+#define NUM_SCHOOLS    9
 /*--------------------------------*/
 
 
@@ -508,11 +508,11 @@
 #define TAR_FIGHT_SELF  (1 << 3)
 #define TAR_FIGHT_VICT  (1 << 4)
 #define TAR_SELF_ONLY   (1 << 5) /* Only a check, use with i.e. TAR_CHAR_ROOM */
-#define TAR_NOT_SELF   	(1 << 6) /* Only a check, use with i.e. TAR_CHAR_ROOM */
+#define TAR_NOT_SELF    (1 << 6) /* Only a check, use with i.e. TAR_CHAR_ROOM */
 #define TAR_OBJ_INV     (1 << 7)
 #define TAR_OBJ_ROOM    (1 << 8)
 #define TAR_OBJ_WORLD   (1 << 9)
-#define TAR_OBJ_EQUIP	  (1 << 10)
+#define TAR_OBJ_EQUIP   (1 << 10)
 
 
 struct spell_info_type {

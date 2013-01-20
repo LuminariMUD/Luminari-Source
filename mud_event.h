@@ -44,6 +44,7 @@ typedef enum {
     eCRYSTALBODY,
     eRAGE,
     eACIDARROW,
+    eD_ROLL,
 } event_id;
 
 struct mud_event_list {

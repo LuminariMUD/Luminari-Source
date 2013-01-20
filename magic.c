@@ -186,6 +186,9 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum)
     case SKILL_RAGE:
       send_to_char(ch, "Your rage has calmed...\r\n");
       break;
+    case SKILL_CRIP_STRIKE:
+      send_to_char(ch, "You have recovered from the crippling strike...\r\n");
+      break;
     default:
       break;
   }
@@ -279,20 +282,14 @@ static int mag_materials(struct char_data *ch, IDXTYPE item0,
   /* Begin success checks. Checks must pass to signal a success. */
   /*------------------------------------------------------------------------*/
   /* Check for the objects in the players inventory. */
-  for (tobj = ch->carrying; tobj; tobj = tobj->next_content)
-  {
-    if ((item0 != NOTHING) && (GET_OBJ_VNUM(tobj) == item0))
-    {
+  for (tobj = ch->carrying; tobj; tobj = tobj->next_content) {
+    if ((item0 != NOTHING) && (GET_OBJ_VNUM(tobj) == item0)) {
       obj0 = tobj;
       item0 = NOTHING;
-    }
-    else if ((item1 != NOTHING) && (GET_OBJ_VNUM(tobj) == item1))
-    {
+    } else if ((item1 != NOTHING) && (GET_OBJ_VNUM(tobj) == item1)) {
       obj1 = tobj;
       item1 = NOTHING;
-    }
-    else if ((item2 != NOTHING) && (GET_OBJ_VNUM(tobj) == item2))
-    {
+    } else if ((item2 != NOTHING) && (GET_OBJ_VNUM(tobj) == item2)) {
       obj2 = tobj;
       item2 = NOTHING;
     }
@@ -300,13 +297,10 @@ static int mag_materials(struct char_data *ch, IDXTYPE item0,
 
   /* If we needed items, but didn't find all of them, then the spell is a
    * failure. */
-  if ((item0 != NOTHING) || (item1 != NOTHING) || (item2 != NOTHING))
-  {
+  if ((item0 != NOTHING) || (item1 != NOTHING) || (item2 != NOTHING)) {
     /* Generic spell failure messages. */
-    if (verbose)
-    {
-      switch (rand_number(0, 2))
-      {
+    if (verbose) {
+      switch (rand_number(0, 2)) {
       case 0:
         send_to_char(ch, "A wart sprouts on your nose.\r\n");
         break;
@@ -330,8 +324,7 @@ static int mag_materials(struct char_data *ch, IDXTYPE item0,
   /* Begin Material Processing. */
   /*------------------------------------------------------------------------*/
   /* Extract (destroy) the materials, if so called for. */
-  if (extract)
-  {
+  if (extract) {
     if (obj0 != NULL)
       extract_obj(obj0);
     if (obj1 != NULL)
@@ -339,16 +332,14 @@ static int mag_materials(struct char_data *ch, IDXTYPE item0,
     if (obj2 != NULL)
       extract_obj(obj2);
     /* Generic success messages that signals extracted objects. */
-    if (verbose)
-    {
+    if (verbose) {
       send_to_char(ch, "A puff of smoke rises from your pack.\r\n");
       act("A puff of smoke rises from $n's pack.", TRUE, ch, NULL, NULL, TO_ROOM);
     }
   }
 
   /* Don't extract the objects, but signal materials successfully found. */
-  if(!extract && verbose)
-  {
+  if(!extract && verbose) {
     send_to_char(ch, "Your pack rumbles.\r\n");
     act("Something rumbles in $n's pack.", TRUE, ch, NULL, NULL, TO_ROOM);
   }
@@ -820,10 +811,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   //saving throw for half damage if applies  
   if (dam && (save != -1)) {
     if (mag_savingthrow(ch, victim, save, race_bonus)) {
-      if (GET_SKILL(ch, SKILL_EVASION) || GET_SKILL(ch, SKILL_IMP_EVASION))
+      if ((!IS_NPC(ch)) && (GET_SKILL(ch, SKILL_EVASION) || GET_SKILL(ch, SKILL_IMP_EVASION)))
         dam /= 2;
       dam /= 2;
-    } else if (GET_SKILL(ch, SKILL_IMP_EVASION))
+    } else if ((!IS_NPC(ch)) && (GET_SKILL(ch, SKILL_IMP_EVASION)))
       dam /= 2;
     
     if (GET_SKILL(ch, SKILL_EVASION))
@@ -868,7 +859,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   const char *to_vict = NULL, *to_room = NULL;
   int i, j, magic_level = 0, divine_level = 0;
   int elf_bonus = 0, gnome_bonus = 0;
-
+  bool is_mind_affect = FALSE;
+  
   if (victim == NULL || ch == NULL)
     return;
 
@@ -926,6 +918,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
       return;
     }
+    is_mind_affect = TRUE;
+    
     if (GET_LEVEL(victim) >= 7) {
       send_to_char(ch, "The victim is too powerful for this illusion!\r\n");
       return;
@@ -977,7 +971,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
       return;
     }
-
+    is_mind_affect = TRUE;
+    
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     af[0].duration = dice(2, 4);
     to_room = "$n is dazed by the spell!";
@@ -994,6 +989,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
       return;
     }
+    is_mind_affect = TRUE;    
 
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     af[0].duration = dice(3, 4);
@@ -1011,6 +1007,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
       return;
     }
+    is_mind_affect = TRUE;    
 
     SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
     af[0].duration = dice(1, 4);
@@ -1088,6 +1085,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (mag_savingthrow(ch, victim, SAVING_FORT, gnome_bonus))
       return;
+    is_mind_affect = TRUE;    
+    
     SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
     GET_MOVE(victim) -= magic_level;
     af[0].duration = magic_level;
@@ -1254,12 +1253,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
 
   case SPELL_WEB:  //conjuration
-    /*
     if (MOB_FLAGGED(victim, MOB_NOGRAPPLE)) {
       send_to_char(ch, "Your opponent doesn't seem webbable.\r\n");
       return;
     }
-    */
     if (mag_savingthrow(ch, victim, SAVING_REFL, 0)) {
       send_to_char(ch, "You fail.\r\n");
       return;
@@ -1371,6 +1368,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
       return;
     }
+    is_mind_affect = TRUE;    
 
     af[0].location = APPLY_INT;
     af[0].duration = magic_level;
@@ -1391,6 +1389,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
     }
+    is_mind_affect = TRUE;    
 
     af[0].location = APPLY_INT;
     af[0].duration = 25 + (magic_level * 12);
@@ -1417,6 +1416,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
     }
+    is_mind_affect = TRUE;
+    
     af[0].location = APPLY_SAVING_WILL;
     af[0].duration = 10 + magic_level;
     af[0].modifier = -10;
@@ -1436,7 +1437,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = 25 + (magic_level * 12);
     af[0].modifier = -dice(2,4);
     accum_duration = TRUE;
-    to_room = "$n is hit by a ray of enfeeblement!";
+    to_room = "$n is struck by enfeeblement!";
     to_vict = "You feel enfeebled!";
     break;
 
@@ -1831,6 +1832,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
   }
 
+  /* slippery mind */
+  if (is_mind_affect && !IS_NPC(victim) &&
+          GET_SKILL(victim, SKILL_SLIPPERY_MIND)) {
+    increase_skill(victim, SKILL_SLIPPERY_MIND);
+    send_to_char(victim, "\tW*Slippery Mind*\tn  ");
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+      return;
+    }    
+  }
+  
   /* If this is a mob that has this affect set in its mob file, do not perform
    * the affect.  This prevents people from un-sancting mobs by sancting them
    * and waiting for it to fade, for example. */
