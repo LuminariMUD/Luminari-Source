@@ -1,4 +1,3 @@
-
 /**************************************************************************
 *  File: act.comm.c                                        Part of tbaMUD *
 *  Usage: Player-level communication commands.                            *
