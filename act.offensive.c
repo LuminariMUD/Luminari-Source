@@ -128,7 +128,9 @@ ACMD(do_assist)
          /* prevent accidental pkill */
     else if (!CONFIG_PK_ALLOWED && !IS_NPC(opponent))
       send_to_char(ch, "You cannot kill other players.\r\n");
-    else {
+    else if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
+      send_to_char(ch, "You can't fight!\r\n");
+    } else {
       send_to_char(ch, "You join the fight!\r\n");
       act("$N assists you!", 0, helpee, 0, ch, TO_CHAR);
       act("$n assists $N.", FALSE, ch, 0, helpee, TO_NOTVICT);
@@ -139,12 +141,17 @@ ACMD(do_assist)
 
 ACMD(do_hit)
 {
-  char arg[MAX_INPUT_LENGTH];
-  struct char_data *vict;
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+  struct char_data *vict = NULL;
   int chInitiative = dice(1,20), victInitiative = dice(1,20);
 
-  one_argument(argument, arg);
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }
 
+  one_argument(argument, arg);
+  
   if (!*arg)
     send_to_char(ch, "Hit who?\r\n");
   else if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))

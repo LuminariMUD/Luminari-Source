@@ -1933,8 +1933,9 @@ void hit(struct char_data *ch, struct char_data *victim,
 	int type, int dam_type, int penalty, int offhand)
 {
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
-  int w_type, victim_ac, calc_bab, dam, diceroll;
+  int w_type = 0, victim_ac = 0, calc_bab = 0, dam = 0, diceroll = 0;
 
+  
   // primary hand setting
   if (GET_EQ(ch, WEAR_WIELD_2H))
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
@@ -1942,6 +1943,11 @@ void hit(struct char_data *ch, struct char_data *victim,
   if (!ch || !victim) return;  //ch and victim exist?
   
   fight_mtrigger(ch);  //fight trig
+
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {  // can't hit!
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   if (IN_ROOM(ch) != IN_ROOM(victim)) {  //same room?
     if (FIGHTING(ch) && FIGHTING(ch) == victim)

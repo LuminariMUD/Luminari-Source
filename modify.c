@@ -306,13 +306,13 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
               " goals, 3) simple to implement ideas, 4) hard to implement"
               " ideas..  If the idea is rejected, a polite game-mail will be"
               " sent giving the reason why.  Thanks for your input!\r\n");
-      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      act("$n finishes giving an idea.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.",
               GET_NAME(d->character));
       save_ibt_file(SCMD_IDEA);
       
     } else {
-      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      act("$n finishes giving an idea.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.",
               GET_NAME(d->character));
       write_to_output(d, "Idea aborted!\r\n");
@@ -326,12 +326,12 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
               " goals, 3) simple to implement ideas, 4) hard to implement"
               " ideas..  If the idea is rejected, a polite game-mail will be"
               " sent giving the reason why.  Thanks for your input!\r\n");
-      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      act("$n finishes submitting a bug.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a bug.",
               GET_NAME(d->character));
       save_ibt_file(SCMD_BUG);
     } else {
-      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      act("$n finishes submitting a bug.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a bug.",
               GET_NAME(d->character));
       write_to_output(d, "Bug aborted!\r\n");
@@ -341,12 +341,12 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
   if (PLR_FLAGGED(d->character, PLR_TYPO)) {
     if (action == STRINGADD_SAVE && *d->str){
       write_to_output(d, "Typo saved!\r\n");
-      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      act("$n finishes submitting a typo.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.",
               GET_NAME(d->character));
       save_ibt_file(SCMD_TYPO);
     } else {
-      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      act("$n finishes submitting a typo.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.",
               GET_NAME(d->character));
       write_to_output(d, "Typo aborted!\r\n");
