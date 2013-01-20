@@ -216,12 +216,17 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
   /* Restore descriptor playing status. */
   if (d->character) {
     REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
-    act("$n stops using OLC.", TRUE, d->character, NULL, NULL, TO_ROOM);
+    if (STATE(d) == CON_STUDY)
+      act("$n stops $s study session.", TRUE, d->character, NULL, NULL, TO_ROOM);
+    else
+      act("$n stops using OLC.", TRUE, d->character, NULL, NULL, TO_ROOM);
 
     if (cleanup_type == CLEANUP_CONFIG)
       mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s stops editing the game configuration", GET_NAME(d->character));
     else if (STATE(d) == CON_TEDIT)
       mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s stops editing text files.", GET_NAME(d->character));
+    else if (STATE(d) == CON_IBTEDIT)
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing IBT files.", GET_NAME(d->character));
     else if (STATE(d) == CON_HEDIT)
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing help files.", GET_NAME(d->character));
     else

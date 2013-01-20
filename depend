@@ -48,8 +48,8 @@ clan.o: clan.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h interpreter.h handler.h screen.h improved-edit.h \
  spells.h clan.h
 clan_edit.o: clan_edit.c conf.h sysdep.h structs.h protocol.h lists.h \
- utils.h race.h db.h screen.h genolc.h oasis.h improved-edit.h clan.h \
- comm.h interpreter.h modify.h
+ utils.h race.h db.h screen.h genolc.h oasis.h improved-edit.h comm.h \
+ interpreter.h modify.h clan.h
 class.o: class.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h spells.h interpreter.h constants.h act.h handler.h comm.h
 comm.o: comm.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \

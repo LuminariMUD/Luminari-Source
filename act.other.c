@@ -1334,10 +1334,12 @@ ACMD(do_split)
 
 ACMD(do_use)
 {
-  char buf[MAX_INPUT_LENGTH], arg[MAX_INPUT_LENGTH];
-  struct obj_data *mag_item;
+  char buf[MAX_INPUT_LENGTH] = { '\0' }, arg[MAX_INPUT_LENGTH] = { '\0' };
+  struct obj_data *mag_item = NULL;
 
   half_chop(argument, arg, buf);
+  
+  
   if (!*arg) {
     send_to_char(ch, "What do you want to %s?\r\n", CMD_NAME);
     return;
@@ -1349,12 +1351,13 @@ ACMD(do_use)
     case SCMD_RECITE:
     case SCMD_QUAFF:
       if (!(mag_item = get_obj_in_list_vis(ch, arg, NULL, ch->carrying))) {
-	send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
-	return;
+        send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
+        return;
       }
       break;
     case SCMD_USE:
-      send_to_char(ch, "You don't seem to be holding %s %s.\r\n", AN(arg), arg);
+      send_to_char(ch, "You don't seem to be holding %s %s.\r\n",
+              AN(arg), arg);
       return;
     default:
       log("SYSERR: Unknown subcmd %d passed to do_use.", subcmd);
@@ -1363,6 +1366,7 @@ ACMD(do_use)
       return;
     }
   }
+
   switch (subcmd) {
   case SCMD_QUAFF:
     if (GET_OBJ_TYPE(mag_item) != ITEM_POTION) {
@@ -1384,6 +1388,17 @@ ACMD(do_use)
     }
     break;
   }
+
+  /* has some ability to even use magical items? */
+  if (subcmd == SCMD_USE) {
+    if (!GET_SKILL(ch, SKILL_USE_MAGIC)) {
+      send_to_char(ch, "You have no idea how to use magical items!\r\n");
+      return;
+    }
+  }
+  
+  if (GET_SKILL(ch, SKILL_USE_MAGIC))
+    increase_skill(ch, SKILL_USE_MAGIC);
 
   mag_objectmagic(ch, mag_item, buf);
 }

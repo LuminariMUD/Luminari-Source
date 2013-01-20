@@ -199,9 +199,6 @@ case SKILL_WHIRLWIND:
 case SKILL_IMPROVED_WHIRL:
 	if (GET_SKILL(ch, SKILL_WHIRLWIND))
 		return TRUE;	else return FALSE;
-case SKILL_RESCUE:
-	if (CLASS_LEVEL(ch, CLASS_WARRIOR))
-		return TRUE;	else return FALSE;
 case SKILL_DODGE:
 	if (ch->real_abils.dex >= 13)
 		return TRUE;	else return FALSE;
@@ -235,34 +232,62 @@ case SKILL_EPIC_CRIT:
 case SKILL_QUICK_CHANT:
 	if (CASTER_LEVEL(ch))
 		return TRUE;	else return FALSE;
+case SKILL_EPIC_REFLEXES:
+case SKILL_EPIC_FORTITUDE:
+case SKILL_EPIC_WILL:
+        if (GET_LEVEL(ch) >= 15)
+                return TRUE;  else return FALSE;
+        
+/* warrior */
+case SKILL_RESCUE:
+	if (CLASS_LEVEL(ch, CLASS_WARRIOR))
+		return TRUE;	else return FALSE;     
 case SKILL_WEAPON_SPECIALIST:
         if (CLASS_LEVEL(ch, CLASS_WARRIOR) >= 4)
                 return TRUE;	else return FALSE;
 case SKILL_SHIELD_SPECIALIST:
         if (CLASS_LEVEL(ch, CLASS_WARRIOR) >= 6)
                 return TRUE;	else return FALSE;
-case SKILL_EPIC_REFLEXES:
-case SKILL_EPIC_FORTITUDE:
-case SKILL_EPIC_WILL:
-        if (GET_LEVEL(ch) >= 15)
-                return TRUE;  else return FALSE;
+        
 /* monk */
 case SKILL_STUNNING_FIST:
         if (CLASS_LEVEL(ch, CLASS_MONK) >= 2)
                 return TRUE;  else return FALSE;
+        
 /* thief */        
 case SKILL_BACKSTAB:
         if (CLASS_LEVEL(ch, CLASS_THIEF))
                 return TRUE;  else return FALSE;
 case SKILL_DIRTY_FIGHTING:
-        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 3)
+        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 4)
                 return TRUE;  else return FALSE;
 case SKILL_MOBILITY:  /* shared */
         if (GET_SKILL(ch, SKILL_DODGE) || (CLASS_LEVEL(ch, CLASS_THIEF) >= 2))
                 return TRUE;  else return FALSE;
 case SKILL_SPRING_ATTACK:  /* shared */
-        if (GET_SKILL(ch, SKILL_MOBILITY) || (CLASS_LEVEL(ch, CLASS_THIEF) >= 6))
-		      return TRUE;  else return FALSE;
+        if (GET_SKILL(ch, SKILL_MOBILITY) ||
+                (CLASS_LEVEL(ch, CLASS_THIEF) >= 6))
+          return TRUE;  else return FALSE;
+case SKILL_EVASION:
+        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 8)
+                return TRUE;  else return FALSE;
+case SKILL_USE_MAGIC:  /* shared - with casters */
+        if ((CLASS_LEVEL(ch, CLASS_THIEF) >= 9) ||
+            (IS_CASTER(ch) && GET_LEVEL(ch) >= 2))
+          return TRUE;  else return FALSE;
+case SKILL_CRIP_STRIKE:
+        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 12)
+                return TRUE;  else return FALSE;
+case SKILL_SLIPPERY_MIND:
+        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 15)
+                return TRUE;  else return FALSE;
+case SKILL_DEFENSE_ROLL:
+        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 18)
+                return TRUE;  else return FALSE;
+case SKILL_IMP_EVASION:
+        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 21)
+                return TRUE;  else return FALSE;
+        
 /* berserker */
 case SKILL_RAGE:
         if (CLASS_LEVEL(ch, CLASS_BERSERKER) >= 2)
@@ -313,9 +338,9 @@ case SKILL_RAGE:
 
 void list_spells(struct char_data *ch, int mode, int class)
 {
-  int i, slot, sinfo;
-  size_t len = 0, nlen;
-  char buf2[MAX_STRING_LENGTH];
+  int i = 0, slot = 0, sinfo = 0;
+  size_t len = 0, nlen = 0;
+  char buf2[MAX_STRING_LENGTH] = { '\0' };
   const char *overflow = "\r\n**OVERFLOW**\r\n";
 
   //default class case

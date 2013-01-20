@@ -209,7 +209,7 @@ int preferred_save[5][NUM_CLASSES] = {
 /*psn  */  { L, L, L, L, L, L, L, L },
 /*death*/  { L, L, L, L, L, L, L, L },
 };
-// fortitude / reflex / will ( poison / death )
+// fortitude / reflex / will / ( poison / death )
 byte saving_throws(struct char_data *ch, int type)
 {
   int i, save = 1;
@@ -415,7 +415,8 @@ void newbieEquipment(struct char_data *ch)
 void berserker_skills(struct char_data *ch, int level) {
   switch (level) {
     case 2:
-      SET_SKILL(ch, SKILL_RAGE, 75);
+      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
+        SET_SKILL(ch, SKILL_RAGE, 75);
       send_to_char(ch, "\tMYou have learned 'Rage'\tn\r\n");
       break;
     default:
@@ -431,6 +432,70 @@ void sorc_skills(struct char_data *ch, int level) {
   IS_SORC_LEARNED(ch) = 0;
   send_to_char(ch, "\tnType \tDstudy sorcerer\tn to adjust your known spells.\r\n");
   switch (level) {
+    case 2:
+      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
+        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
+      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
+      break;
+    default:
+      break;
+  }
+  return;  
+}
+
+/* init spells for a class as they level up
+ * i.e free skills  ;  make sure to set in spec_procs too
+ */
+void mage_skills(struct char_data *ch, int level) {
+  switch (level) {
+    case 2:
+      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
+        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
+      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
+      break;
+    default:
+      break;
+  }
+  return;  
+}
+
+/* init spells for a class as they level up
+ * i.e free skills  ;  make sure to set in spec_procs too
+ */
+void cleric_skills(struct char_data *ch, int level) {
+  switch (level) {
+    case 2:
+      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
+        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
+      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
+      break;
+    default:
+      break;
+  }
+  return;  
+}
+
+/* init spells for a class as they level up
+ * i.e free skills  ;  make sure to set in spec_procs too
+ */
+void warrior_skills(struct char_data *ch, int level) {
+  switch (level) {
+    default:
+      break;
+  }
+  return;  
+}
+
+/* init spells for a class as they level up
+ * i.e free skills  ;  make sure to set in spec_procs too
+ */
+void druid_skills(struct char_data *ch, int level) {
+  switch (level) {
+    case 2:
+      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
+        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
+      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
+      break;
     default:
       break;
   }
@@ -443,21 +508,50 @@ void sorc_skills(struct char_data *ch, int level) {
 void thief_skills(struct char_data *ch, int level) {
   switch (level) {
     case 2:
-      SET_SKILL(ch, SKILL_MOBILITY, 75);
+      if (!GET_SKILL(ch, SKILL_MOBILITY))
+        SET_SKILL(ch, SKILL_MOBILITY, 75);
       send_to_char(ch, "\tMYou have learned 'Mobility'\tn\r\n");
       break;
-    case 3:
-      SET_SKILL(ch, SKILL_DIRTY_FIGHTING, 75);
+    case 4:
+      if (!GET_SKILL(ch, SKILL_DIRTY_FIGHTING))
+        SET_SKILL(ch, SKILL_DIRTY_FIGHTING, 75);
       send_to_char(ch, "\tMYou have learned 'Dirty Fighting'\tn\r\n");
       break;
     case 6:
-      SET_SKILL(ch, SKILL_SPRING_ATTACK, 75);
+      if (!GET_SKILL(ch, SKILL_SPRING_ATTACK))
+        SET_SKILL(ch, SKILL_SPRING_ATTACK, 75);
       send_to_char(ch, "\tMYou have learned 'Spring Attack'\tn\r\n");
       break;
-    case 10:
-    case 13:
-    case 16:
-    case 19:
+    case 8:
+      if (!GET_SKILL(ch, SKILL_EVASION))
+        SET_SKILL(ch, SKILL_EVASION, 75);
+      send_to_char(ch, "\tMYou have learned 'Evasion'\tn\r\n");
+      break;
+    case 9:
+      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
+        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
+      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
+      break;
+    case 12:
+      if (!GET_SKILL(ch, SKILL_CRIP_STRIKE))
+        SET_SKILL(ch, SKILL_CRIP_STRIKE, 75);
+      send_to_char(ch, "\tMYou have learned 'Crippling Strike'\tn\r\n");
+      break;
+    case 15:
+      if (!GET_SKILL(ch, SKILL_SLIPPERY_MIND))
+        SET_SKILL(ch, SKILL_SLIPPERY_MIND, 75);
+      send_to_char(ch, "\tMYou have learned 'Slippery Mind'\tn\r\n");
+      break;
+    case 18:
+      if (!GET_SKILL(ch, SKILL_DEFENSE_ROLL))
+        SET_SKILL(ch, SKILL_DEFENSE_ROLL, 75);
+      send_to_char(ch, "\tMYou have learned 'Defensive Roll'\tn\r\n");
+      break;
+    case 21:
+      if (!GET_SKILL(ch, SKILL_IMP_EVASION))
+        SET_SKILL(ch, SKILL_IMP_EVASION, 75);
+      send_to_char(ch, "\tMYou have learned 'Improved Evasion'\tn\r\n");
+      break;
     default:
       break;
   }
@@ -470,7 +564,8 @@ void thief_skills(struct char_data *ch, int level) {
 void monk_skills(struct char_data *ch, int level) {
   switch (level) {
     case 2:
-      SET_SKILL(ch, SKILL_STUNNING_FIST, 75);
+      if (!GET_SKILL(ch, SKILL_STUNNING_FIST))
+        SET_SKILL(ch, SKILL_STUNNING_FIST, 75);
       send_to_char(ch, "\tMYou have learned 'Stunning Fist'\tn\r\n");
       break;
 
@@ -976,6 +1071,7 @@ void advance_level(struct char_data *ch, int class)
 
     break;
   case CLASS_MAGIC_USER:
+    mage_skills(ch, CLASS_LEVEL(ch, CLASS_MAGIC_USER));
     add_hp += rand_number(2, 4);
     add_mana = 0;
     add_move = rand_number(0, 2);
@@ -990,6 +1086,7 @@ void advance_level(struct char_data *ch, int class)
 
     break;
   case CLASS_CLERIC:
+    cleric_skills(ch, CLASS_LEVEL(ch, CLASS_CLERIC));
     add_hp += rand_number(4, 8);
     add_mana = 0;
     add_move = rand_number(0, 2);
@@ -1041,6 +1138,7 @@ void advance_level(struct char_data *ch, int class)
 
     break;
   case CLASS_DRUID:
+    druid_skills(ch, CLASS_LEVEL(ch, CLASS_SORCERER));    
     add_hp += rand_number(4, 8);
     add_mana = 0;
     add_move = rand_number(4, 8);
@@ -1053,6 +1151,7 @@ void advance_level(struct char_data *ch, int class)
 
     break;
   case CLASS_WARRIOR:
+    warrior_skills(ch, CLASS_LEVEL(ch, CLASS_WARRIOR));
     add_hp += rand_number(5, 10);
     add_mana = 0;
     add_move = rand_number(1, 3);

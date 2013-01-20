@@ -140,7 +140,11 @@ static void show_messages(struct char_data *ch)
   for (i = 0; i < MAX_MESSAGES / 2; i++, half++)
     if (fight_messages[i].msg != NULL && len < sizeof(buf)) {
       count += fight_messages[i].number_of_attacks;
-      len += snprintf(buf + len, sizeof(buf) - len, "%-2d) [%-3d] %d, %-18s%s", i, fight_messages[i].a_type, fight_messages[i].number_of_attacks, fight_messages[i].a_type < TOP_SPELL_DEFINE ? spell_info[fight_messages[i].a_type].name : "Unknown", half < MAX_MESSAGES && fight_messages[half].msg ? "   " : "\r\n");
+      len += snprintf(buf + len, sizeof(buf) - len, "%-2d) [%-3d] %d, %-18s%s",
+              i, fight_messages[i].a_type, fight_messages[i].number_of_attacks,
+              fight_messages[i].a_type < TOP_SPELL_DEFINE ?
+              spell_info[fight_messages[i].a_type].name : "Unknown",
+              half < MAX_MESSAGES && fight_messages[half].msg ? "   " : "\r\n");
       if (half < MAX_MESSAGES && fight_messages[half].msg)
         len += snprintf(buf + len, sizeof(buf) - len, "%-2d) [%-3d] %d, %-18s\r\n", half, fight_messages[half].a_type, fight_messages[half].number_of_attacks, fight_messages[half].a_type < TOP_SPELL_DEFINE ? spell_info[fight_messages[half].a_type].name : "Unknown");
     }
