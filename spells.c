@@ -24,9 +24,139 @@
 #include "mud_event.h"
 #include "screen.h" /* for QNRM, etc */
 
-/* Special spells appear below. */
 
+/************************************************************/
+/*  Functions, Events, etc needed to perform manual spells  */
+/************************************************************/
 
+/* Used by the locate object spell to check the alias list on objects */
+int isname_obj(char *search, char *list)
+{
+  char *found_in_list; /* But could be something like 'ring' in 'shimmering.' */
+  char searchname[128];
+  char namelist[MAX_STRING_LENGTH];
+  int found_pos = -1;
+  int found_name=0; /* found the name we're looking for */
+  int match = 1;
+  int i;
+
+  /* Force to lowercase for string comparisons */
+  sprintf(searchname, "%s", search);
+  for (i = 0; searchname[i]; i++)
+    searchname[i] = LOWER(searchname[i]);
+
+  sprintf(namelist, "%s", list);
+  for (i = 0; namelist[i]; i++)
+    namelist[i] = LOWER(namelist[i]);
+
+  /* see if searchname exists any place within namelist */
+  found_in_list = strstr(namelist, searchname);
+  if (!found_in_list) {
+    return 0;
+  }
+
+  /* Found the name in the list, now see if it's a valid hit. The following
+   * avoids substrings (like ring in shimmering) is it at beginning of
+   * namelist? */
+  for (i = 0; searchname[i]; i++)
+    if (searchname[i] != namelist[i])
+      match = 0;
+
+  if (match) /* It was found at the start of the namelist string. */
+    found_name = 1;
+  else { /* It is embedded inside namelist. Is it preceded by a space? */
+    found_pos = found_in_list - namelist;
+    if (namelist[found_pos-1] == ' ')
+      found_name = 1;
+  }
+
+  if (found_name)
+    return 1;
+  else
+    return 0;
+}
+
+/* the main engine of charm spell, and similar */
+void effect_charm(struct char_data *ch, struct char_data *victim, 
+        int spellnum) {
+  struct affected_type af;
+  int elf_bonus = 0;
+  
+  if (GET_RACE(victim) == RACE_ELF ||  //elven enchantment resistance
+          GET_RACE(victim) == RACE_H_ELF)
+    elf_bonus += 2;
+  
+  if (victim == ch)
+    send_to_char(ch, "You like yourself even better!\r\n");
+
+  else if (MOB_FLAGGED(victim, MOB_NOCHARM)) {
+    send_to_char(ch, "Your victim doesn't seem vulnerable to this "
+            "enchantments!\r\n");
+    if (IS_NPC(victim))
+      hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }
+
+  else if (AFF_FLAGGED(ch, AFF_CHARM))
+    send_to_char(ch, "You can't have any followers of your own!\r\n");
+
+  else if (AFF_FLAGGED(victim, AFF_CHARM))
+    send_to_char(ch, "Your victim is already charmed.\r\n");
+
+  else if (spellnum == SPELL_CHARM && (CASTER_LEVEL(ch) < GET_LEVEL(victim) ||
+          GET_LEVEL(victim) >= 8))
+    send_to_char(ch, "Your victim is too powerful.\r\n");
+
+  else if (spellnum == SPELL_DOMINATE_PERSON && 
+          CASTER_LEVEL(ch) < GET_LEVEL(victim))
+    send_to_char(ch, "Your victim is too powerful.\r\n");
+
+  /* player charming another player - no legal reason for this */
+  else if (!CONFIG_PK_ALLOWED && !IS_NPC(victim))
+    send_to_char(ch, "You fail - shouldn't be doing it anyway.\r\n");
+
+  else if (circle_follow(victim, ch))
+    send_to_char(ch, "Sorry, following in circles is not allowed.\r\n");
+
+  else if (mag_resistance(ch, victim, 0)) {
+    send_to_char(ch, "You failed to penetrate the spell resistance!");
+    if (IS_NPC(victim))
+      hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }
+
+  else if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+    send_to_char(ch, "Your victim resists!\r\n");
+    if (IS_NPC(victim))
+      hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+
+  } else {
+    /* slippery mind gives a second save */
+    if (!IS_NPC(victim) && GET_SKILL(victim, SKILL_SLIPPERY_MIND)) {
+      increase_skill(victim, SKILL_SLIPPERY_MIND);
+      send_to_char(victim, "\tW*Slippery Mind*\tn  ");
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+        return;
+      }    
+    }    
+    
+    if (victim->master)
+      stop_follower(victim);
+
+    add_follower(victim, ch);
+
+    new_affect(&af);
+    af.spell = SPELL_CHARM;
+    af.duration = 100;
+    if (GET_CHA_BONUS(ch))
+      af.duration *= GET_CHA_BONUS(ch) * 25;
+    SET_BIT_AR(af.bitvector, AFF_CHARM);
+    affect_to_char(victim, &af);
+
+    act("Isn't $n just such a nice fellow?", FALSE, ch, 0, victim, TO_VICT);
+//    if (IS_NPC(victim))
+//      REMOVE_BIT_AR(MOB_FLAGS(victim), MOB_SPEC);
+  }
+  // should never get here
+}
 
   /* The "return" of the event function is the time until the event is called
    * again. If we return 0, then the event is freed and removed from the list, but
@@ -62,6 +192,10 @@ EVENTFUNC(event_acid_arrow)
   update_pos(victim);  
   return 0;
 }
+
+/************************************************************/
+/*  ASPELL defines                                          */
+/************************************************************/
 
   
 ASPELL(spell_acid_arrow)
@@ -318,52 +452,6 @@ ASPELL(spell_summon)
   greet_memory_mtrigger(victim);
 }
 
-/* Used by the locate object spell to check the alias list on objects */
-int isname_obj(char *search, char *list)
-{
-  char *found_in_list; /* But could be something like 'ring' in 'shimmering.' */
-  char searchname[128];
-  char namelist[MAX_STRING_LENGTH];
-  int found_pos = -1;
-  int found_name=0; /* found the name we're looking for */
-  int match = 1;
-  int i;
-
-  /* Force to lowercase for string comparisons */
-  sprintf(searchname, "%s", search);
-  for (i = 0; searchname[i]; i++)
-    searchname[i] = LOWER(searchname[i]);
-
-  sprintf(namelist, "%s", list);
-  for (i = 0; namelist[i]; i++)
-    namelist[i] = LOWER(namelist[i]);
-
-  /* see if searchname exists any place within namelist */
-  found_in_list = strstr(namelist, searchname);
-  if (!found_in_list) {
-    return 0;
-  }
-
-  /* Found the name in the list, now see if it's a valid hit. The following
-   * avoids substrings (like ring in shimmering) is it at beginning of
-   * namelist? */
-  for (i = 0; searchname[i]; i++)
-    if (searchname[i] != namelist[i])
-      match = 0;
-
-  if (match) /* It was found at the start of the namelist string. */
-    found_name = 1;
-  else { /* It is embedded inside namelist. Is it preceded by a space? */
-    found_pos = found_in_list - namelist;
-    if (namelist[found_pos-1] == ' ')
-      found_name = 1;
-  }
-
-  if (found_name)
-    return 1;
-  else
-    return 0;
-}
 
 
 ASPELL(spell_polymorph)
@@ -502,80 +590,6 @@ ASPELL(spell_dispel_magic)  // divination
       act("$n fails to dispel some of $N's magic!", FALSE, ch, 0, 0, TO_ROOM);
     }
   }
-}
-
-
-/* the main engine of charm spell, and similar */
-void effect_charm(struct char_data *ch, struct char_data *victim, 
-        int spellnum) {
-  struct affected_type af;
-  int elf_bonus = 0;
-  
-  if (GET_RACE(victim) == RACE_ELF ||  //elven enchantment resistance
-          GET_RACE(victim) == RACE_H_ELF)
-    elf_bonus += 2;
-  
-  if (victim == ch)
-    send_to_char(ch, "You like yourself even better!\r\n");
-
-  else if (MOB_FLAGGED(victim, MOB_NOCHARM)) {
-    send_to_char(ch, "Your victim doesn't seem vulnerable to this "
-            "enchantments!\r\n");
-    if (IS_NPC(victim))
-      hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  }
-
-  else if (AFF_FLAGGED(ch, AFF_CHARM))
-    send_to_char(ch, "You can't have any followers of your own!\r\n");
-
-  else if (AFF_FLAGGED(victim, AFF_CHARM))
-    send_to_char(ch, "Your victim is already charmed.\r\n");
-
-  else if (spellnum == SPELL_CHARM && (CASTER_LEVEL(ch) < GET_LEVEL(victim) ||
-          GET_LEVEL(victim) >= 8))
-    send_to_char(ch, "Your victim is too powerful.\r\n");
-
-  else if (spellnum == SPELL_DOMINATE_PERSON && 
-          CASTER_LEVEL(ch) < GET_LEVEL(victim))
-    send_to_char(ch, "Your victim is too powerful.\r\n");
-
-  /* player charming another player - no legal reason for this */
-  else if (!CONFIG_PK_ALLOWED && !IS_NPC(victim))
-    send_to_char(ch, "You fail - shouldn't be doing it anyway.\r\n");
-
-  else if (circle_follow(victim, ch))
-    send_to_char(ch, "Sorry, following in circles is not allowed.\r\n");
-
-  else if (mag_resistance(ch, victim, 0)) {
-    send_to_char(ch, "You failed to penetrate the spell resistance!");
-    if (IS_NPC(victim))
-      hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  }
-
-  else if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
-    send_to_char(ch, "Your victim resists!\r\n");
-    if (IS_NPC(victim))
-      hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-
-  } else {
-    if (victim->master)
-      stop_follower(victim);
-
-    add_follower(victim, ch);
-
-    new_affect(&af);
-    af.spell = SPELL_CHARM;
-    af.duration = 100;
-    if (GET_CHA_BONUS(ch))
-      af.duration *= GET_CHA_BONUS(ch) * 25;
-    SET_BIT_AR(af.bitvector, AFF_CHARM);
-    affect_to_char(victim, &af);
-
-    act("Isn't $n just such a nice fellow?", FALSE, ch, 0, victim, TO_VICT);
-//    if (IS_NPC(victim))
-//      REMOVE_BIT_AR(MOB_FLAGS(victim), MOB_SPEC);
-  }
-  // should never get here
 }
 
 

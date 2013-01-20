@@ -43,6 +43,7 @@ struct mud_event_list mud_event_index[] = {
   { "Crystal body"       , event_countdown, 	EVENT_CHAR  },  //eCRYRSTALBODY
   { "Rage"               , event_countdown, 	EVENT_CHAR  },  //eRAGE
   { "Acid arrow"         , event_acid_arrow, EVENT_CHAR  },  //eACIDARROW
+  { "Defensive Roll"     , event_countdown,	EVENT_CHAR  }, // eD_ROLL
 };
 
 
@@ -102,8 +103,12 @@ EVENTFUNC(event_countdown)
     case eTAUNTED:
       send_to_char(ch, "You feel the effects of the taunt wear off.\r\n");
       break;
-    case eLAYONHANDS:
+    case eD_ROLL:
       send_to_char(ch, "You are now able to lay on hands again.\r\n");
+      break;
+    case eLAYONHANDS:
+      send_to_char(ch, "You are now able to perform a defensive roll "
+              "again.\r\n");
       break;
     case eTREATINJURY:
       send_to_char(ch, "You are now able to treat injuries again.\r\n");

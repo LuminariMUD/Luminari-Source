@@ -305,6 +305,7 @@ const char *action_bits[] = {
   "Immune-Deaf",
   "Does-Not-Fight",
   "Classless",
+  "Ungrappleable",
   "\n"
 };
 

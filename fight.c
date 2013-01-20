@@ -1435,6 +1435,24 @@ int damage(struct char_data *ch, struct char_data *victim,
     send_to_char(victim, "\tR[%d]\tn ", dam);  
   }
 
+  /* defensive roll, avoids a lethal blow once every X minutes
+   * X = about 7 minutes with current settings
+   */
+  if (!IS_NPC(victim) && ((GET_HIT(victim) - dam) <= 0) &&
+          GET_SKILL(victim, SKILL_DEFENSE_ROLL) &&
+          !char_has_mud_event(victim, eD_ROLL)) {
+    act("\tWYou time a defensive roll perfectly and avoid the attack from"
+            " \tn$N\tW!\tn", FALSE, victim, NULL, ch, TO_CHAR);
+    act("$n \tRtimes a defensive roll perfectly and avoids your attack!\tn",
+                FALSE, victim, NULL, ch, TO_VICT | TO_SLEEP);
+    act("$n times a \tWdefensive roll\tn perfectly and avoids an attack "
+            "from $N!\tn", FALSE, victim, NULL, ch, TO_NOTVICT);    
+    attach_mud_event(new_mud_event(eD_ROLL, victim, NULL),
+            (2 * SECS_PER_MUD_DAY));
+    increase_skill(victim, SKILL_DEFENSE_ROLL);    
+    return 0;    
+  }
+  
   if (attacktype != -1) {	//added for mount, etc
     if (!IS_WEAPON(attacktype))  //non weapons use skill_message
       skill_message(dam, ch, victim, attacktype, offhand);
@@ -1934,7 +1952,7 @@ void hit(struct char_data *ch, struct char_data *victim,
 {
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   int w_type = 0, victim_ac = 0, calc_bab = 0, dam = 0, diceroll = 0;
-
+  struct affected_type af; /* for crippling strike */
   
   // primary hand setting
   if (GET_EQ(ch, WEAR_WIELD_2H))
@@ -2051,10 +2069,30 @@ void hit(struct char_data *ch, struct char_data *victim,
     if ((dam = handle_warding(ch, victim, dam)) == -1)
       return;
 
-    if (type == SKILL_BACKSTAB)
+    if (type == SKILL_BACKSTAB) {
       damage(ch, victim, dam * backstab_mult(GET_LEVEL(ch)),
 		SKILL_BACKSTAB, dam_type, offhand);
-    else if (GET_RACE(ch) == RACE_TRELUX)
+      /* crippling strike */
+      if (dam && !affected_by_spell(ch, SKILL_CRIP_STRIKE)) {
+        new_affect(&af);
+        
+        af.spell = SKILL_CRIP_STRIKE;
+        af.duration = 10;
+        af.location = APPLY_STR;
+        af.modifier = -(dice(2, 4));
+        
+        affect_to_char(victim, &af);
+        act("Your well placed attack \tTcripples\tn $N!",
+                FALSE, ch, wielded, victim, TO_CHAR);
+        act("A well placed attack from $n \tTcripples\tn you!",
+                FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
+        act("A well placed attack from $n \tTcripples\tn $N!",
+                FALSE, ch, wielded, victim, TO_NOTVICT);
+        
+        if (!IS_NPC(ch))
+          increase_skill(ch, SKILL_CRIP_STRIKE);
+      }        
+    } else if (GET_RACE(ch) == RACE_TRELUX)
       damage(ch, victim, dam, TYPE_CLAW, dam_type, offhand);
     else
       damage(ch, victim, dam, w_type, dam_type, offhand);
