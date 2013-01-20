@@ -1419,22 +1419,6 @@ int damage(struct char_data *ch, struct char_data *victim,
   if (dam == -1)  // make sure message handling has been done!
     return 0;
 
-  dam = MAX(MIN(dam, 999), 0);  //damage cap
-  GET_HIT(victim) -= dam;
-
-  if (ch != victim)  //xp gain
-    gain_exp(ch, GET_LEVEL(victim) * dam);
-
-  if (!dam)
-    update_pos(victim);
-  else
-    update_pos_dam(victim);
-
-  if (dam) {  //display damage done
-    send_to_char(ch, "\tW[%d]\tn ", dam);
-    send_to_char(victim, "\tR[%d]\tn ", dam);  
-  }
-
   /* defensive roll, avoids a lethal blow once every X minutes
    * X = about 7 minutes with current settings
    */
@@ -1452,6 +1436,23 @@ int damage(struct char_data *ch, struct char_data *victim,
     increase_skill(victim, SKILL_DEFENSE_ROLL);    
     return 0;    
   }
+
+  dam = MAX(MIN(dam, 999), 0);  //damage cap
+  GET_HIT(victim) -= dam;
+
+  if (ch != victim)  //xp gain
+    gain_exp(ch, GET_LEVEL(victim) * dam);
+
+  if (!dam)
+    update_pos(victim);
+  else
+    update_pos_dam(victim);
+
+  if (dam) {  //display damage done
+    send_to_char(ch, "\tW[%d]\tn ", dam);
+    send_to_char(victim, "\tR[%d]\tn ", dam);  
+  }
+
   
   if (attacktype != -1) {	//added for mount, etc
     if (!IS_WEAPON(attacktype))  //non weapons use skill_message
@@ -2073,7 +2074,7 @@ void hit(struct char_data *ch, struct char_data *victim,
       damage(ch, victim, dam * backstab_mult(GET_LEVEL(ch)),
 		SKILL_BACKSTAB, dam_type, offhand);
       /* crippling strike */
-      if (dam && !affected_by_spell(ch, SKILL_CRIP_STRIKE)) {
+      if (dam && !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
         new_affect(&af);
         
         af.spell = SKILL_CRIP_STRIKE;
