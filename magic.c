@@ -811,16 +811,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   //saving throw for half damage if applies  
   if (dam && (save != -1)) {
     if (mag_savingthrow(ch, victim, save, race_bonus)) {
-      if ((!IS_NPC(ch)) && (GET_SKILL(ch, SKILL_EVASION) || GET_SKILL(ch, SKILL_IMP_EVASION)))
+      if ((!IS_NPC(victim)) && save == SAVING_REFL &&  // evasion
+              (GET_SKILL(victim, SKILL_EVASION) ||
+              GET_SKILL(victim, SKILL_IMP_EVASION)))
         dam /= 2;
       dam /= 2;
-    } else if ((!IS_NPC(ch)) && (GET_SKILL(ch, SKILL_IMP_EVASION)))
+    } else if ((!IS_NPC(victim)) && save == SAVING_REFL &&  // evasion
+            (GET_SKILL(victim, SKILL_IMP_EVASION)))
       dam /= 2;
     
-    if (GET_SKILL(ch, SKILL_EVASION))
-      increase_skill(ch, SKILL_EVASION);
-    if (GET_SKILL(ch, SKILL_IMP_EVASION))
-      increase_skill(ch, SKILL_IMP_EVASION);
+    if (GET_SKILL(victim, SKILL_EVASION))
+      increase_skill(victim, SKILL_EVASION);
+    if (GET_SKILL(victim, SKILL_IMP_EVASION))
+      increase_skill(victim, SKILL_IMP_EVASION);
   }
   
   if (!element)  //want to make sure all spells have some sort of damage cat
