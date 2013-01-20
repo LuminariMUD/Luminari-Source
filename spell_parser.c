@@ -1974,11 +1974,11 @@ void mag_assign_spells(void)
   skillo(SKILL_EPIC_WILL, "epic will");             //491
   skillo(SKILL_SHIELD_SPECIALIST, "shield specialist");             //492
   skillo(SKILL_USE_MAGIC, "use magic");             //493
-  skillo(SKILL_USE_MAGIC, "evasion");             //493
-  skillo(SKILL_USE_MAGIC, "improved evasion");             //493
-  skillo(SKILL_USE_MAGIC, "crippling strike");             //493
-  skillo(SKILL_USE_MAGIC, "slippery mind");             //493
-  skillo(SKILL_USE_MAGIC, "defensive roll");             //493
+  skillo(SKILL_EVASION, "evasion");             //494
+  skillo(SKILL_IMP_EVASION, "improved evasion");             //495
+  skillo(SKILL_CRIP_STRIKE, "crippling strike");             //496
+  skillo(SKILL_SLIPPERY_MIND, "slippery mind");             //497
+  skillo(SKILL_DEFENSE_ROLL, "defensive roll");             //498
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 
