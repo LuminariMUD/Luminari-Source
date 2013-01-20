@@ -282,17 +282,23 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
       notify_if_playing(d->character, d->mail_to);
     } else
       write_to_output(d, "Mail aborted.\r\n");
-      free(*d->str);
-      free(d->str);
-    }
+    
+    act("$n stops writing mail.", TRUE, d->character, NULL, NULL, TO_ROOM);
+    free(*d->str);
+    free(d->str);
+  }
 
   /* We have no way of knowing which slot the post was sent to so we can only
    * give the message.   */
-    if (d->mail_to >= BOARD_MAGIC) {
-      board_save_board(d->mail_to - BOARD_MAGIC);
-      if (action == STRINGADD_ABORT)
-        write_to_output(d, "Post not aborted, use REMOVE <post #>.\r\n");
+  if (d->mail_to >= BOARD_MAGIC) {
+    board_save_board(d->mail_to - BOARD_MAGIC);
+    if (action == STRINGADD_ABORT) {
+      act("$n stops writing to the board.", TRUE, d->character, NULL,
+              NULL, TO_ROOM);
+      write_to_output(d, "Post not aborted, use REMOVE <post #>.\r\n");
     }
+  }
+  
   if (PLR_FLAGGED(d->character, PLR_IDEA)) {
     if (action == STRINGADD_SAVE && *d->str){
       write_to_output(d, "Idea saved!  Changes are implemented in this order:"
@@ -300,11 +306,19 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
               " goals, 3) simple to implement ideas, 4) hard to implement"
               " ideas..  If the idea is rejected, a polite game-mail will be"
               " sent giving the reason why.  Thanks for your input!\r\n");
+      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.",
+              GET_NAME(d->character));
       save_ibt_file(SCMD_IDEA);
+      
     } else {
+      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.",
+              GET_NAME(d->character));
       write_to_output(d, "Idea aborted!\r\n");
     }
   }
+  
   if (PLR_FLAGGED(d->character, PLR_BUG)) {
     if (action == STRINGADD_SAVE && *d->str){
       write_to_output(d, "Bug saved!  Changes are implemented in this order:"
@@ -312,16 +326,29 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
               " goals, 3) simple to implement ideas, 4) hard to implement"
               " ideas..  If the idea is rejected, a polite game-mail will be"
               " sent giving the reason why.  Thanks for your input!\r\n");
+      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a bug.",
+              GET_NAME(d->character));
       save_ibt_file(SCMD_BUG);
     } else {
+      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a bug.",
+              GET_NAME(d->character));
       write_to_output(d, "Bug aborted!\r\n");
     }
   }
+  
   if (PLR_FLAGGED(d->character, PLR_TYPO)) {
     if (action == STRINGADD_SAVE && *d->str){
       write_to_output(d, "Typo saved!\r\n");
+      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.",
+              GET_NAME(d->character));
       save_ibt_file(SCMD_TYPO);
     } else {
+      act("$n stops using IBT-edit.", TRUE, d->character, NULL, NULL, TO_ROOM);
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.",
+              GET_NAME(d->character));
       write_to_output(d, "Typo aborted!\r\n");
     }
   }
