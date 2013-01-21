@@ -527,7 +527,7 @@ int comp_slots(struct char_data *ch, int circle, int class)
   switch(class) {
     case CLASS_PALADIN:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += clericSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += paladinSlots[CLASS_LEVEL(ch, class)][circle];
       break;
     case CLASS_CLERIC:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
