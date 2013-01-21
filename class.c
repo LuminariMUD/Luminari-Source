@@ -415,7 +415,7 @@ void newbieEquipment(struct char_data *ch)
 void berserker_skills(struct char_data *ch, int level) {
   switch (level) {
     case 2:
-      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
+      if (!GET_SKILL(ch, SKILL_RAGE))
         SET_SKILL(ch, SKILL_RAGE, 75);
       send_to_char(ch, "\tMYou have learned 'Rage'\tn\r\n");
       break;

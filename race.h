@@ -23,6 +23,8 @@ int invalid_race(struct char_data *ch, struct obj_data *obj);
 
 #ifndef __RACE_C__
 
+extern const char *morph_to_char[];
+extern const char *morph_to_room[];
 extern const char *npc_race_abbrevs[];
 extern const char *race_abbrevs[];
 extern const char *npc_subrace_abbrevs[];

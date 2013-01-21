@@ -34,7 +34,7 @@
 // npc races
 const char *npc_race_types[] = {
    "Unknown",
-   "Human",
+   "Humanoid",
    "Undead",
    "Animal",
    "Dragon",
@@ -56,7 +56,7 @@ const char *npc_race_types[] = {
 // for now full name for effect
 const char *npc_race_abbrevs[] = {
    "Unknown",
-   "\tWHuman\tn",
+   "\tWHumanoid\tn",
    "\tDUndead\tn",
    "\tgAnimal\tn",
    "\trDragon\tn",
@@ -132,7 +132,7 @@ const char *npc_race_menu =
 "\r\n"
 "  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | npc race selection\r\n"
 "---------------------+\r\n"
-   "1)  \tWHuman\tn\r\n"
+   "1)  \tWHumanoid\tn\r\n"
    "2)  \tDUndead\tn\r\n"
    "3)  \tgAnimal\tn\r\n"
    "4)  \trDragon\tn\r\n"
@@ -148,6 +148,82 @@ const char *npc_race_menu =
    "14) \tGPlant\tn\r\n"
    "15) \tyVermin\tn\r\n";
 
+
+// shapechange morph messages to_room
+const char *morph_to_room[] = {
+  /* unknown */
+" ",
+  /* Humanoid */
+" ",
+  /* Undead */
+" ",
+  /* Animal */
+" ",
+  /* Dragon */
+"$n's features lengthen, $s skin peeling back to reveal a thick, "
+"scaly hide.  Leathery wings sprout from $s shoulders and $s "
+"fingers become long, razor sharp talons.",
+  /* Giant */
+" ",
+  /* Aberration */
+" ",
+  /* Construct */
+" ",
+  /* Elemental */
+" ",
+  /* Fey */
+" ",
+  /* Magical Beast */
+" ",
+  /* Monstrous Humanoid */
+" ",
+  /* Ooze */
+" ",
+  /* Outsider */
+" ",
+  /* Plant */
+" ",
+  /* Vermin */ 
+" "
+};
+
+// shapechange morph messages to_char
+const char *morph_to_char[] = {
+  /* unknown */
+" ",
+  /* Humanoid */
+" ",
+  /* Undead */
+" ",
+  /* Animal */
+" ",
+  /* Dragon */
+"Your features lengthen, your skin peeling back to reveal a thick, "
+"scaly hide.  Leathery wings sprout from your shoulders and your "
+"fingers become long, razor sharp talons.",
+  /* Giant */
+" ",
+  /* Aberration */
+" ",
+  /* Construct */
+" ",
+  /* Elemental */
+" ",
+  /* Fey */
+" ",
+  /* Magical Beast */
+" ",
+  /* Monstrous Humanoid */
+" ",
+  /* Ooze */
+" ",
+  /* Outsider */
+" ",
+  /* Plant */
+" ",
+  /* Vermin */ 
+" "
+};
 
 // pc race abbreviations, with color
 const char *race_abbrevs[] = {
