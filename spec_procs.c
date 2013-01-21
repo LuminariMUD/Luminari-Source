@@ -385,7 +385,12 @@ void list_spells(struct char_data *ch, int mode, int class)
   } else {
     len = snprintf(buf2, sizeof(buf2), "\tCFull Spell List\tn\r\n");
 
-    for (slot = 9; slot > 0; slot--) {
+    if (class == CLASS_PALADIN)
+      slot = 4;
+    else
+      slot = 9;
+
+    for (; slot > 0; slot--) {
       nlen = snprintf(buf2 + len, sizeof(buf2) - len,
                "\r\n\tCSpell Circle Level %d\tn\r\n", slot);
       if (len + nlen >= sizeof(buf2) || nlen < 0)
