@@ -196,7 +196,7 @@ int classArray(int class) {
     case CLASS_SORCERER:
       return 3;
     case CLASS_PALADIN:
-      return 3;
+      return 4;
   }
   return -1;
 }
