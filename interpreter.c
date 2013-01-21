@@ -243,6 +243,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "mail"     , "mail"    , POS_STANDING, do_not_here , 1, 0 },
   { "map"      , "map"     , POS_STANDING, do_map      , 1, 0 },
   { "medit"    , "med"     , POS_DEAD    , do_oasis_medit, LVL_BUILDER, 0 },
+  { "meditate" , "meditate", POS_RESTING , do_gen_memorize , 0, SCMD_MEDITATE },
   { "mlist"    , "mlist"   , POS_DEAD    , do_oasis_list, LVL_BUILDER, SCMD_OASIS_MLIST },
   { "mcopy"    , "mcopy"   , POS_DEAD    , do_oasis_copy, LVL_GOD, CON_MEDIT },
   { "motd"     , "motd"    , POS_DEAD    , do_gen_ps   , 0, SCMD_MOTD },
@@ -271,6 +272,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "oedit"    , "oedit"   , POS_DEAD    , do_oasis_oedit, LVL_BUILDER, 0 },
   { "oset"     , "oset"    , POS_DEAD    , do_oset,        LVL_BUILDER, 0 },  
   { "ocopy"    , "ocopy"   , POS_DEAD    , do_oasis_copy, LVL_GOD, CON_OEDIT },
+  { "omit"     , "omit"    , POS_RESTING , do_gen_forget   , 0, SCMD_OMIT },
 
   { "put"      , "p"       , POS_RESTING , do_put      , 0, 0 },
   { "parry"     , "parry", POS_FIGHTING, do_parry , 1, 0 },
@@ -287,6 +289,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "prefedit" , "pre"     , POS_DEAD    , do_oasis_prefedit , 0, 0 },
   { "purge"    , "purge"   , POS_DEAD    , do_purge    , LVL_BUILDER, 0 },
   { "prayer" , "prayer", POS_RESTING , do_gen_memorize , 0, SCMD_PRAY },
+  { "petition" , "petition", POS_RESTING , do_gen_memorize , 0, SCMD_PETITION },
 
   { "qedit"    , "qedit"   , POS_DEAD    , do_oasis_qedit, LVL_BUILDER, 0 },
   { "qlist"    , "qlist"   , POS_DEAD    , do_oasis_list, LVL_BUILDER, SCMD_OASIS_QLIST },
@@ -346,7 +349,6 @@ cpp_extern const struct command_info cmd_info[] = {
   { "sneak"    , "sneak"   , POS_STANDING, do_sneak    , 1, 0 },
   { "snoop"    , "snoop"   , POS_DEAD    , do_snoop    , LVL_GOD, 0 },
   { "socials"  , "socials" , POS_DEAD    , do_commands , 0, SCMD_SOCIALS },
-  { "sorc"     , "sorc"    , POS_RESTING , do_gen_memorize , 0, SCMD_SORC },
   { "spelllist"	, "spelllist" , POS_RESTING , do_spelllist	 , 1, 0 },
   { "spells"	, "spells" , POS_RESTING , do_spells	 , 1, 0 },
   { "split"    , "split"   , POS_SITTING , do_split    , 1, 0 },
@@ -1772,6 +1774,9 @@ void nanny(struct descriptor_data *d, char *arg)
         break;
       case CLASS_WARRIOR:
         perform_help(d, "class-warrior");
+        break;
+      case CLASS_PALADIN:
+        perform_help(d, "class-paladin");
         break;
       case CLASS_MONK:
         perform_help(d, "class-monk");

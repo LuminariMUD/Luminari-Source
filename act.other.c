@@ -277,6 +277,10 @@ int meet_class_reqs(struct char_data *ch, int class)
       if (ch->real_abils.wis >= 11)
         return 1;
       break;
+    case CLASS_PALADIN:
+      if (ch->real_abils.cha >= 11)
+        return 1;
+      break;
     case CLASS_DRUID:
       if (ch->real_abils.wis >= 11)
         return 1;

@@ -33,12 +33,13 @@
 const char *class_abbrevs[] = {
   "\tYMag\tn",
   "\tBCle\tn",
-  "\tWThi\tn",
+  "\twThi\tn",
   "\tRWar\tn",
   "\tgMnk\tn",
   "\tGD\tgr\tGu\tn",
   "\trB\tRz\trk\tn",
   "\tMSrc\tn",
+  "\tWPld\tn",
   "\n"
 };
 
@@ -51,6 +52,7 @@ const char *pc_class_types[] = {
   "Druid",
   "Berserker",
   "Sorcerer",
+  "Paladin",
   "\n"
 };
 
@@ -66,6 +68,7 @@ const char *class_menu =
 "  d)  \tGD\tgr\tGu\tgi\tGd\tn\r\n"
 "  m)  \tYMagic User\tn\r\n"
 "  b)  \trBer\tRser\trker\tn\r\n"
+"  p)  \tWPaladin\tn\r\n"
 "  s)  \tMSorcerer\tn\r\n";
 
 
@@ -84,6 +87,7 @@ int parse_class(char arg)
   case 'd': return CLASS_DRUID;
   case 'b': return CLASS_BERSERKER;
   case 's': return CLASS_SORCERER;
+  case 'p': return CLASS_PALADIN;
   default:  return CLASS_UNDEFINED;
   }
 }
@@ -129,11 +133,11 @@ bitvector_t find_class_bitvector(const char *arg)
 /* #define PRAC_TYPE		3  should it say 'spell' or 'skill'?	*/
 
 int prac_params[4][NUM_CLASSES] = {
- /* MG  CL  TH	 WR  MN  DR  BK  SR*/
-  { 75, 75, 75, 75, 75, 75, 75, 75 },	/* learned level */
-  { 75, 75, 75, 75, 75, 75, 75, 75 },	/* max per practice */
-  { 75, 75, 75, 75, 75, 75, 75, 75 },	/* min per practice */
-  { SP, SP, SK, SK, SK, SP, SK, SP },	/* prac name */
+ /* MG  CL  TH	 WR  MN  DR  BK  SR  PL */
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* learned level */
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* max per practice */
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* min per practice */
+  { SP, SP, SK, SK, SK, SP, SK, SP, SK },	/* prac name */
 };
 #undef SP
 #undef SK
@@ -154,6 +158,7 @@ struct guild_info_type guild_info[] = {
   { CLASS_MONK,	   3004,	NORTH },
   { CLASS_THIEF,	   3027,	EAST  },
   { CLASS_WARRIOR,	   3021,	EAST  },
+  { CLASS_PALADIN,	   3021,	EAST  },
   { CLASS_BERSERKER,   3021,	EAST  },
   { CLASS_SORCERER,    3017,	SOUTH },
 
@@ -171,27 +176,27 @@ struct guild_info_type guild_info[] = {
 #define		CC	1	//cross class
 #define		CA	2	//class ability
 int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
-//  MU  CL  TH  WA  MO  DR  BZ  SR
-  { -1, -1, -1, -1, -1, -1, -1, -1 }, //0 - reserved
+//  MU  CL  TH  WA  MO  DR  BZ  SR  PL
+  { -1, -1, -1, -1, -1, -1, -1, -1, -1 }, //0 - reserved
 
-  { CC, CC, CA, CC, CA, CC, CC, CC },	//1 - Tumble 
-  { CC, CC, CA, CC, CA, CC, CC, CC },	//2 - hide
-  { CC, CC, CA, CC, CA, CC, CC, CC },	//3 sneak
-  { CC, CC, CA, CC, CA, CC, CC, CC },	//4 spot
-  { CC, CC, CA, CC, CA, CC, CA, CC },	//5 listen
-  { CA, CA, CA, CA, CA, CA, CA, CA },	//6 treat injury
-  { CC, CC, CC, CC, CC, CC, CA, CC },	//7 taunt
-  { CA, CA, CC, CA, CA, CA, CC, CA },	//8 concentration
-  { CA, CA, CC, CC, CC, CA, CC, CA },	//9 spellcraft
-  { CC, CC, CA, CC, CC, CC, CC, CC },	//10 appraise
-  { CC, CC, CC, CA, CC, CC, CA, CC },	//11 discipline
-  { CC, CA, CA, CA, CA, CA, CA, CC },	//12 parry
-  { CA, CA, CA, CA, CA, CA, CA, CA },	//13 lore
-  { CA, CA, CA, CA, CA, CA, CA, CA },	//14 mount
-  { CA, CA, CA, CA, CA, CA, CA, CA },	//15 riding
-  { CA, CA, CA, CA, CA, CA, CA, CA },	//16 tame
-  { NA, NA, CA, NA, NA, NA, NA, NA },	//17 pick locks
-  { NA, NA, CA, NA, NA, NA, NA, NA },	//18 steal
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC },	//1 - Tumble 
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC },	//2 - hide
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC },	//3 sneak
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC },	//4 spot
+  { CC, CC, CA, CC, CA, CC, CA, CC, CC },	//5 listen
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA },	//6 treat injury
+  { CC, CC, CC, CC, CC, CC, CA, CC, CA },	//7 taunt
+  { CA, CA, CC, CA, CA, CA, CC, CA, CA },	//8 concentration
+  { CA, CA, CC, CC, CC, CA, CC, CA, CC },	//9 spellcraft
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC },	//10 appraise
+  { CC, CC, CC, CA, CC, CC, CA, CC, CA },	//11 discipline
+  { CC, CA, CA, CA, CA, CA, CA, CC, CA },	//12 parry
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA },	//13 lore
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA },	//14 mount
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA },	//15 riding
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA },	//16 tame
+  { NA, NA, CA, NA, NA, NA, NA, NA, NA },	//17 pick locks
+  { NA, NA, CA, NA, NA, NA, NA, NA, NA },	//18 steal
 };
 #undef NA
 #undef CC
@@ -202,12 +207,12 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
 #define		H	1	//high
 #define		L	0	//low
 int preferred_save[5][NUM_CLASSES] = {
-//           MU CL TH WA MO DR BK SR
-/*fort */  { L, H, L, H, H, H, H, L },
-/*refl */  { L, L, H, L, H, L, L, L },
-/*will */  { H, H, L, L, H, H, L, H },
-/*psn  */  { L, L, L, L, L, L, L, L },
-/*death*/  { L, L, L, L, L, L, L, L },
+//           MU CL TH WA MO DR BK SR PL
+/*fort */  { L, H, L, H, H, H, H, L, H },
+/*refl */  { L, L, H, L, H, L, L, L, L },
+/*will */  { H, H, L, L, H, H, L, H, L },
+/*psn  */  { L, L, L, L, L, L, L, L, L },
+/*death*/  { L, L, L, L, L, L, L, L, L },
 };
 // fortitude / reflex / will / ( poison / death )
 byte saving_throws(struct char_data *ch, int type)
@@ -252,6 +257,7 @@ int BAB(struct char_data *ch)
           bab += level * 3 / 4;
           break;
         case CLASS_WARRIOR:
+        case CLASS_PALADIN:
         case CLASS_BERSERKER:
           bab += level;
           break;
@@ -265,7 +271,7 @@ int BAB(struct char_data *ch)
 }
 
 
-// old random roll system abandoned for base statas + point distribution
+// old random roll system abandoned for base stats + point distribution
 void roll_real_abils(struct char_data *ch)
 {
 
@@ -299,6 +305,7 @@ void newbieEquipment(struct char_data *ch)
   
   switch (GET_CLASS(ch))
   {
+    case CLASS_PALADIN:
     case CLASS_CLERIC:
       // holy symbol
 
@@ -419,6 +426,22 @@ void berserker_skills(struct char_data *ch, int level) {
         SET_SKILL(ch, SKILL_RAGE, 75);
       send_to_char(ch, "\tMYou have learned 'Rage'\tn\r\n");
       break;
+    default:
+      break;
+  }
+  return;  
+}
+
+/* init spells for a class as they level up
+ * i.e free skills  ;  make sure to set in spec_procs too
+ */
+void paladin_skills(struct char_data *ch, int level) {
+  switch (level) {
+    case 6:
+      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
+        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
+      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
+      break;    
     default:
       break;
   }
@@ -581,14 +604,7 @@ void init_class(struct char_data *ch, int class, int level)
 
   case CLASS_SORCERER:
   case CLASS_MAGIC_USER:
-    SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-
-  // magic user innate cantrips
-/*
-    SET_SKILL(ch, SPELL_ACID_SPLASH, 99);
-    SET_SKILL(ch, SPELL_RAY_OF_FROST, 99);
-*/
-
+    //spell init
     //1st circle
     SET_SKILL(ch, SPELL_HORIZIKAULS_BOOM, 99);
     SET_SKILL(ch, SPELL_MAGIC_MISSILE, 99);
@@ -723,147 +739,260 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_ENERGY_DRAIN, 99);
     SET_SKILL(ch, SPELL_METEOR_SWARM, 99);
     SET_SKILL(ch, SPELL_POLYMORPH, 99);
+    
+    // skill init    
+    if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
+      SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
+
+     // magic user innate cantrips
+    /*
+    SET_SKILL(ch, SPELL_ACID_SPLASH, 99);
+    SET_SKILL(ch, SPELL_RAY_OF_FROST, 99);
+    */
+
     send_to_char(ch, "Magic-User / Sorcerer Done.\tn\r\n");
   break;
 
 
   case CLASS_CLERIC:
-    SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-    SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-    SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
-    SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
-    SET_SKILL(ch, SKILL_PROF_HEAVY_A, 75);
-    SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
-
+    //spell init
+    //1st circle
     SET_SKILL(ch, SPELL_ENDURANCE, 99);
     SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
     SET_SKILL(ch, SPELL_ARMOR, 99);
+    SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99);
+    //2nd circle
     SET_SKILL(ch, SPELL_CREATE_FOOD, 99);
     SET_SKILL(ch, SPELL_CREATE_WATER, 99);
     SET_SKILL(ch, SPELL_DETECT_POISON, 99);
+    SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99);
+    //3rd circle
     SET_SKILL(ch, SPELL_DETECT_ALIGN, 99);
     SET_SKILL(ch, SPELL_CURE_BLIND, 99);
     SET_SKILL(ch, SPELL_BLESS, 99);
-    SET_SKILL(ch, SPELL_DETECT_INVIS, 99);
-    SET_SKILL(ch, SPELL_BLINDNESS, 99);
+    SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99);    
+    //4th circle
     SET_SKILL(ch, SPELL_INFRAVISION, 99);
+    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
+    SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
+    SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
+    //5th circle
+    SET_SKILL(ch, SPELL_BLINDNESS, 99);
     SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99);
     SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99);
     SET_SKILL(ch, SPELL_POISON, 99);
     SET_SKILL(ch, SPELL_GROUP_ARMOR, 99);
-    SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
-    SET_SKILL(ch, SPELL_SUMMON, 99);
-    SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
-    SET_SKILL(ch, SPELL_IDENTIFY, 99);
-    SET_SKILL(ch, SPELL_WORD_OF_RECALL, 99);
-    SET_SKILL(ch, SPELL_EARTHQUAKE, 99);
+    SET_SKILL(ch, SPELL_FLAME_STRIKE, 99);
+    //6th circle
     SET_SKILL(ch, SPELL_DISPEL_EVIL, 99);
     SET_SKILL(ch, SPELL_DISPEL_GOOD, 99);
-    SET_SKILL(ch, SPELL_SANCTUARY, 99);
-    SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
-    SET_SKILL(ch, SPELL_HEAL, 99);
-    SET_SKILL(ch, SPELL_CONTROL_WEATHER, 99);
-    SET_SKILL(ch, SPELL_SENSE_LIFE, 99);
+    SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
     SET_SKILL(ch, SPELL_HARM, 99);
-    SET_SKILL(ch, SPELL_GROUP_HEAL, 99);
-    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
-    SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99);
-    SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99);
-    SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99);
-    SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
-    SET_SKILL(ch, SPELL_FLAME_STRIKE, 99);
+    SET_SKILL(ch, SPELL_HEAL, 99);
+    //7th circle
+    SET_SKILL(ch, SPELL_CONTROL_WEATHER, 99);
+    SET_SKILL(ch, SPELL_SUMMON, 99);
+    SET_SKILL(ch, SPELL_WORD_OF_RECALL, 99);
+    SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
+    //8th circle
+    SET_SKILL(ch, SPELL_SENSE_LIFE, 99);
+    SET_SKILL(ch, SPELL_SANCTUARY, 99);
     SET_SKILL(ch, SPELL_DESTRUCTION, 99);
+    //9th circle
+    SET_SKILL(ch, SPELL_EARTHQUAKE, 99);
+    SET_SKILL(ch, SPELL_GROUP_HEAL, 99);
+    SET_SKILL(ch, SPELL_ENERGY_DRAIN, 99);
+    
+    // skill init
+    if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
+      SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_BASIC))
+      SET_SKILL(ch, SKILL_PROF_BASIC, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
+      SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
+      SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_HEAVY_A))
+      SET_SKILL(ch, SKILL_PROF_HEAVY_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
+      SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
+
+            
     send_to_char(ch, "Cleric Done.\tn\r\n");
   break;
 
 
   case CLASS_DRUID:
-    SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-    SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-    SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);    
-    SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
-    SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
-    SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
-
+    //spell init
+    //1st circle
     SET_SKILL(ch, SPELL_ENDURANCE, 99);
     SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
     SET_SKILL(ch, SPELL_ARMOR, 99);
+    SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99);
+    //2nd circle
     SET_SKILL(ch, SPELL_CREATE_FOOD, 99);
     SET_SKILL(ch, SPELL_CREATE_WATER, 99);
     SET_SKILL(ch, SPELL_DETECT_POISON, 99);
+    SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99);
+    //3rd circle
     SET_SKILL(ch, SPELL_DETECT_ALIGN, 99);
     SET_SKILL(ch, SPELL_CURE_BLIND, 99);
     SET_SKILL(ch, SPELL_BLESS, 99);
-    SET_SKILL(ch, SPELL_DETECT_INVIS, 99);
-    SET_SKILL(ch, SPELL_BLINDNESS, 99);
+    SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99);    
+    //4th circle
     SET_SKILL(ch, SPELL_INFRAVISION, 99);
+    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
+    SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
+    SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
+    //5th circle
+    SET_SKILL(ch, SPELL_BLINDNESS, 99);
     SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99);
+    SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99);
     SET_SKILL(ch, SPELL_POISON, 99);
     SET_SKILL(ch, SPELL_GROUP_ARMOR, 99);
-    SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
-    SET_SKILL(ch, SPELL_SUMMON, 99);
-    SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
-    SET_SKILL(ch, SPELL_IDENTIFY, 99);
-    SET_SKILL(ch, SPELL_WORD_OF_RECALL, 99);
-    SET_SKILL(ch, SPELL_EARTHQUAKE, 99);
+    SET_SKILL(ch, SPELL_FLAME_STRIKE, 99);
+    //6th circle
     SET_SKILL(ch, SPELL_DISPEL_EVIL, 99);
     SET_SKILL(ch, SPELL_DISPEL_GOOD, 99);
-    SET_SKILL(ch, SPELL_SANCTUARY, 99);
-    SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
-    SET_SKILL(ch, SPELL_HEAL, 99);
-    SET_SKILL(ch, SPELL_CONTROL_WEATHER, 99);
-    SET_SKILL(ch, SPELL_SENSE_LIFE, 99);
+    SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
     SET_SKILL(ch, SPELL_HARM, 99);
-    SET_SKILL(ch, SPELL_GROUP_HEAL, 99);
-    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
-    SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99);
-    SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99);
-    SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99);
-    SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
-    SET_SKILL(ch, SPELL_FLAME_STRIKE, 99);
+    SET_SKILL(ch, SPELL_HEAL, 99);
+    //7th circle
+    SET_SKILL(ch, SPELL_CONTROL_WEATHER, 99);
+    SET_SKILL(ch, SPELL_SUMMON, 99);
+    SET_SKILL(ch, SPELL_WORD_OF_RECALL, 99);
+    SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
+    //8th circle
+    SET_SKILL(ch, SPELL_SENSE_LIFE, 99);
+    SET_SKILL(ch, SPELL_SANCTUARY, 99);
     SET_SKILL(ch, SPELL_DESTRUCTION, 99);
+    //9th circle
+    SET_SKILL(ch, SPELL_EARTHQUAKE, 99);
+    SET_SKILL(ch, SPELL_GROUP_HEAL, 99);
+    SET_SKILL(ch, SPELL_ENERGY_DRAIN, 99);
+    
+    // skill init
+    if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
+      SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_BASIC))
+      SET_SKILL(ch, SKILL_PROF_BASIC, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
+      SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
+      SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
+      SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
+      SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
+
     send_to_char(ch, "Druid Done.\tn\r\n");
   break;
 
+  case CLASS_PALADIN:
+    //spell init
+    //1st circle
+    SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
+    SET_SKILL(ch, SPELL_ENDURANCE, 99);
+    SET_SKILL(ch, SPELL_ARMOR, 99);
+    SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99);
+    //2nd circle
+    SET_SKILL(ch, SPELL_CREATE_FOOD, 99);
+    SET_SKILL(ch, SPELL_CREATE_WATER, 99);
+    SET_SKILL(ch, SPELL_DETECT_POISON, 99);
+    SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99);
+    //3rd circle
+    SET_SKILL(ch, SPELL_DETECT_ALIGN, 99);
+    SET_SKILL(ch, SPELL_CURE_BLIND, 99);
+    SET_SKILL(ch, SPELL_BLESS, 99);
+    SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99);
+    //4th circle
+    SET_SKILL(ch, SPELL_INFRAVISION, 99);
+    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
+    SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
+    SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
+    
+    // skill init
+    if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
+      SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_BASIC))
+      SET_SKILL(ch, SKILL_PROF_BASIC, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
+      SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MASTER))
+      SET_SKILL(ch, SKILL_PROF_MASTER, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
+      SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
+      SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_HEAVY_A))
+      SET_SKILL(ch, SKILL_PROF_HEAVY_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
+      SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
+    send_to_char(ch, "Paladin Done.\tn\r\n");
+  break;
 
   case CLASS_THIEF:
-    SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-    SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-    SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
-    SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
+      SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_BASIC))
+      SET_SKILL(ch, SKILL_PROF_BASIC, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
+      SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
+      SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
 
-    SET_SKILL(ch, SKILL_BACKSTAB, 75);
-    SET_SKILL(ch, SKILL_TRACK, 75);
+    if (!GET_SKILL(ch, SKILL_BACKSTAB))
+      SET_SKILL(ch, SKILL_BACKSTAB, 75);
+    if (!GET_SKILL(ch, SKILL_TRACK))
+      SET_SKILL(ch, SKILL_TRACK, 75);
+    
     send_to_char(ch, "Thief Done.\tn\r\n");
   break;
 
 
   case CLASS_WARRIOR:
-    SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-    SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-    SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
-    SET_SKILL(ch, SKILL_PROF_MASTER, 75);
-    SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
-    SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
-    SET_SKILL(ch, SKILL_PROF_HEAVY_A, 75);
-    SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
-    SET_SKILL(ch, SKILL_PROF_T_SHIELDS, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
+      SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_BASIC))
+      SET_SKILL(ch, SKILL_PROF_BASIC, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
+      SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MASTER))
+      SET_SKILL(ch, SKILL_PROF_MASTER, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
+      SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
+      SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_HEAVY_A))
+      SET_SKILL(ch, SKILL_PROF_HEAVY_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
+      SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_T_SHIELDS))
+      SET_SKILL(ch, SKILL_PROF_T_SHIELDS, 75);
     send_to_char(ch, "Warrior Done.\tn\r\n");
   break;
 
   case CLASS_BERSERKER:
-    SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-    SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-    SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
-    SET_SKILL(ch, SKILL_PROF_MASTER, 75);
-    SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
-    SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
-    SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
+      SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_BASIC))
+      SET_SKILL(ch, SKILL_PROF_BASIC, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
+      SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MASTER))
+      SET_SKILL(ch, SKILL_PROF_MASTER, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
+      SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
+      SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
+      SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
     send_to_char(ch, "Berserker Done.\tn\r\n");
   break;
 
   case CLASS_MONK:
-    SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
+      SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
     send_to_char(ch, "Monk Done.\tn\r\n");    
   break;
 
@@ -873,32 +1002,43 @@ void init_class(struct char_data *ch, int class, int level)
   }
 }
 
-
-/* Some initializations for characters, including initial skills */
-void do_start(struct char_data *ch)
+/* not to be confused with init_char, this is exclusive right now for do_start */
+void init_start_char(struct char_data *ch)
 {
   int trains = 0, practices = 0, i = 0;
-
-  //init the character
+  
+  /* clear gear for clean start */
   for (i = 0; i < NUM_WEARS; i++)
     if (GET_EQ(ch, i))
       perform_remove(ch, i, TRUE);
+
+  /* clear affects for clean start */
   if (ch->affected || AFF_FLAGS(ch)) {  
     while (ch->affected)
       affect_remove(ch, ch->affected);
     for(i=0; i < AF_ARRAY_MAX; i++)
       AFF_FLAGS(ch)[i] = 0;
   }
+
+  /* initialize all levels and spec_abil array */
   for (i = 0; i < MAX_CLASSES; i++) {
     CLASS_LEVEL(ch, i) = 0;
     GET_SPEC_ABIL(ch, i) = 0;
   }
+  
+  /* a bit silly, but go ahead make sure no stone-skin like spells */
   for (i = 0; i < MAX_WARDING; i++)
     GET_WARDING(ch, i) = 0;
+
+  /* start at level 1 */
   GET_LEVEL(ch) = 1;
   CLASS_LEVEL(ch, GET_CLASS(ch)) = 1;
   GET_EXP(ch) = 1;
+
+  /* reset title */
   set_title(ch, NULL);
+  
+  /* reset stats */
   roll_real_abils(ch);
   GET_AC(ch) = 100;
   GET_HITROLL(ch) = 0;
@@ -908,14 +1048,19 @@ void do_start(struct char_data *ch)
   GET_MAX_MOVE(ch) = 82;
   GET_PRACTICES(ch) = 0;
   GET_TRAINS(ch) = 0;
-  GET_BOOSTS(ch) = 4;
+  GET_BOOSTS(ch) = 4;  //freebies
   GET_SPELL_RES(ch) = 0;
+
+  /* reset skills/abilities */
   for (i=1; i<=NUM_SKILLS; i++)
     SET_SKILL(ch, i, 0);
   for (i=1; i<=NUM_ABILITIES; i++)
     SET_ABILITY(ch, i, 0);
+
+  /* initialize mem data, allow adjustment of spells known */
   init_spell_slots(ch);
   IS_SORC_LEARNED(ch) = 0;
+
   /* hunger and thirst are off */
   GET_COND(ch, HUNGER) = -1;
   GET_COND(ch, THIRST) = -1;
@@ -991,8 +1136,6 @@ void do_start(struct char_data *ch)
   switch (GET_CLASS(ch)) {
   case CLASS_SORCERER:
   case CLASS_MAGIC_USER:
-    trains += MAX(1, (2 + (int)(GET_INT_BONUS(ch))) * 3);
-    break;
   case CLASS_CLERIC:
     trains += MAX(1, (2 + (int)(GET_INT_BONUS(ch))) * 3);
     break;
@@ -1005,15 +1148,23 @@ void do_start(struct char_data *ch)
     trains += MAX(1, (8 + (int)(GET_INT_BONUS(ch))) * 3);
     break;
   case CLASS_WARRIOR:
-    practices++;
+    practices++;  // bonus skill
     trains += MAX(1, (2 + (int)(GET_INT_BONUS(ch))) * 3);
     break;
   }
+
+  /* finalize */
   practices++;
   GET_PRACTICES(ch) += practices;
   send_to_char(ch, "%d \tMPractice sessions gained.\tn\r\n", practices);
   GET_TRAINS(ch) += trains;
   send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
+}
+
+/* Some initializations for characters, including initial skills */
+void do_start(struct char_data *ch)
+{
+  init_start_char(ch);
 
   //from level 0 -> level 1
   advance_level(ch, GET_CLASS(ch));
@@ -1030,7 +1181,7 @@ void advance_level(struct char_data *ch, int class)
 {
   int add_hp = GET_CON_BONUS(ch),
 	add_mana = 0, add_move = 0, k, trains = 0, i, j, practices = 0;
-  struct affected_type *af;
+  struct affected_type *af = NULL;
 
   //**because con items / spells are affecting based on level, we have to unaffect
   //**before we level up -zusuk
@@ -1047,13 +1198,17 @@ void advance_level(struct char_data *ch, int class)
   ch->aff_abils = ch->real_abils;
   /******  end unaffect ******/
 
+  /* first level in a class?  might have some inits to do! */
   if (CLASS_LEVEL(ch, class) == 1) {
     send_to_char(ch, "\tMInititializing class:  ");
     init_class(ch, class, CLASS_LEVEL(ch, class));
     send_to_char(ch, "\r\n");
   }
 
+  /* start our primary advancement block */
   send_to_char(ch, "\tMGAINS:\tn\r\n");
+  
+  /* class bonuses */
   switch (class) {
   case CLASS_SORCERER:
     sorc_skills(ch, CLASS_LEVEL(ch, CLASS_SORCERER));
@@ -1150,6 +1305,19 @@ void advance_level(struct char_data *ch, int class)
       practices++;
 
     break;
+  case CLASS_PALADIN:
+    paladin_skills(ch, CLASS_LEVEL(ch, CLASS_PALADIN));
+    add_hp += rand_number(5, 10);
+    add_mana = 0;
+    add_move = 1;
+
+    trains += MAX(1, (2 + (int)(GET_INT_BONUS(ch))));
+
+    //epic
+    if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
+      practices++;
+
+    break;
   case CLASS_WARRIOR:
     warrior_skills(ch, CLASS_LEVEL(ch, CLASS_WARRIOR));
     add_hp += rand_number(5, 10);
@@ -1163,6 +1331,7 @@ void advance_level(struct char_data *ch, int class)
 
     break;
   }
+  
   //Racial Bonuses
   switch (GET_RACE(ch)) {
     case RACE_HUMAN:
@@ -1177,7 +1346,8 @@ void advance_level(struct char_data *ch, int class)
     default:
       break;
   }
-  //base practice improvement
+  
+  //base practice / boost improvement
   if (!(GET_LEVEL(ch) % 3))
     practices++;
   if (!(GET_LEVEL(ch) % 4)) {
@@ -1185,11 +1355,16 @@ void advance_level(struct char_data *ch, int class)
     send_to_char(ch, "\tMYou gain a boost (to stats) point!\tn\r\n");
   }
 
-  //remember, GET_CON(ch) is adjusted con, ch->real_abils.con is natural con -zusuk
+  //remember, GET_CON(ch) is adjusted con,
+  //ch->real_abils.con is natural con -zusuk
+
+  /* miscellaneous level-based bonuses */
   if (GET_SKILL(ch, SKILL_TOUGHNESS))
     add_hp++;
   if (GET_SKILL(ch, SKILL_EPIC_TOUGHNESS))
     add_hp++;
+
+  /* adjust final and report changes! */
   ch->points.max_hit += MAX(1, add_hp);
   send_to_char(ch, "\tMTotal HP:\tn %d\r\n", MAX(1, add_hp));
   ch->points.max_move += MAX(1, add_move);
@@ -1202,12 +1377,9 @@ void advance_level(struct char_data *ch, int class)
   send_to_char(ch, "%d \tMPractice sessions gained.\tn\r\n", practices);
   GET_TRAINS(ch) += trains;
   send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
-
-  if (GET_LEVEL(ch) >= LVL_IMMORT) {
-    for (k = 0; k < 3; k++)
-      GET_COND(ch, k) = (char) -1;
-    SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
-  }
+  /*******/
+  /* end advancement block */
+  /*******/
 
   /**** reaffect ****/
   for (i = 0; i < NUM_WEARS; i++) {
@@ -1228,6 +1400,14 @@ void advance_level(struct char_data *ch, int class)
   GET_STR(ch) = MAX(0, MIN(GET_STR(ch), i));
   /*******  end reaffect  *****/
 
+  /* give immorts some goodies */
+  if (GET_LEVEL(ch) >= LVL_IMMORT) {
+    for (k = 0; k < 3; k++)
+      GET_COND(ch, k) = (char) -1;
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+  }
+
+  /* make sure you aren't snooping someone you shouldn't with new level */
   snoop_check(ch);
   save_char(ch);
 }
@@ -1258,6 +1438,9 @@ int invalid_class(struct char_data *ch, struct obj_data *obj)
     return TRUE;
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_CLERIC) && IS_CLERIC(ch))
+    return TRUE;
+
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_PALADIN) && IS_PALADIN(ch))
     return TRUE;
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_WARRIOR) && IS_WARRIOR(ch))
@@ -1292,10 +1475,10 @@ void init_spell_levels(void)
   }
 
   // magic user innate cantrips
-/*
+  /*
   spell_level(SPELL_ACID_SPLASH, CLASS_MAGIC_USER, 1);
   spell_level(SPELL_RAY_OF_FROST, CLASS_MAGIC_USER, 1);
-*/
+  */
   
   // magic user, increment spells by spell-level
   //1st circle
@@ -1444,6 +1627,7 @@ void init_spell_levels(void)
   spell_level(SPELL_EPIC_WARDING, CLASS_MAGIC_USER, 20);
   //end magic-user spells
 
+  
   // sorcerer, increment spells by spell-level
   //1st circle
   spell_level(SPELL_MAGIC_MISSILE, CLASS_SORCERER, 1);
@@ -1591,16 +1775,40 @@ void init_spell_levels(void)
   spell_level(SPELL_EPIC_WARDING, CLASS_SORCERER, 20);
   //end sorcerer spells
 
+  
+  // paladins
+  //1st circle
+  spell_level(SPELL_CURE_LIGHT, CLASS_PALADIN, 6);
+  spell_level(SPELL_ENDURANCE, CLASS_PALADIN, 6);  //shared
+  spell_level(SPELL_ARMOR, CLASS_PALADIN, 6);
+  spell_level(SPELL_CAUSE_LIGHT_WOUNDS, CLASS_PALADIN, 6);
+  //2nd circle
+  spell_level(SPELL_CREATE_FOOD, CLASS_PALADIN, 10);
+  spell_level(SPELL_CREATE_WATER, CLASS_PALADIN, 10);
+  spell_level(SPELL_DETECT_POISON, CLASS_PALADIN, 10);  //shared
+  spell_level(SPELL_CAUSE_MODERATE_WOUNDS, CLASS_PALADIN, 10);
+  //3rd circle
+  spell_level(SPELL_DETECT_ALIGN, CLASS_PALADIN, 12);
+  spell_level(SPELL_CURE_BLIND, CLASS_PALADIN, 12);
+  spell_level(SPELL_BLESS, CLASS_PALADIN, 12);
+  spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_PALADIN, 12);
+  //4th circle
+  spell_level(SPELL_INFRAVISION, CLASS_PALADIN, 15);  //shared
+  spell_level(SPELL_REMOVE_CURSE, CLASS_PALADIN, 15);  //shared
+  spell_level(SPELL_CAUSE_CRITICAL_WOUNDS, CLASS_PALADIN, 15);
+  spell_level(SPELL_CURE_CRITIC, CLASS_PALADIN, 15);
+  
+  
   // clerics
   //1st circle
   spell_level(SPELL_CURE_LIGHT, CLASS_CLERIC, 1);
-  spell_level(SPELL_ENDURANCE, CLASS_CLERIC, 1);
+  spell_level(SPELL_ENDURANCE, CLASS_CLERIC, 1);  //shared
   spell_level(SPELL_ARMOR, CLASS_CLERIC, 1);
   spell_level(SPELL_CAUSE_LIGHT_WOUNDS, CLASS_CLERIC, 1);
   //2nd circle
   spell_level(SPELL_CREATE_FOOD, CLASS_CLERIC, 3);
   spell_level(SPELL_CREATE_WATER, CLASS_CLERIC, 3);
-  spell_level(SPELL_DETECT_POISON, CLASS_CLERIC, 3);
+  spell_level(SPELL_DETECT_POISON, CLASS_CLERIC, 3);  //shared
   spell_level(SPELL_CAUSE_MODERATE_WOUNDS, CLASS_CLERIC, 3);
   //3rd circle
   spell_level(SPELL_DETECT_ALIGN, CLASS_CLERIC, 5);
@@ -1608,15 +1816,15 @@ void init_spell_levels(void)
   spell_level(SPELL_BLESS, CLASS_CLERIC, 5);
   spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_CLERIC, 5);
   //4th circle
-  spell_level(SPELL_INFRAVISION, CLASS_CLERIC, 7);
-  spell_level(SPELL_REMOVE_CURSE, CLASS_CLERIC, 7);
+  spell_level(SPELL_INFRAVISION, CLASS_CLERIC, 7);  //shared
+  spell_level(SPELL_REMOVE_CURSE, CLASS_CLERIC, 7);  //shared
   spell_level(SPELL_CAUSE_CRITICAL_WOUNDS, CLASS_CLERIC, 7);
   spell_level(SPELL_CURE_CRITIC, CLASS_CLERIC, 7);
   //5th circle
   spell_level(SPELL_BLINDNESS, CLASS_CLERIC, 9);
   spell_level(SPELL_PROT_FROM_EVIL, CLASS_CLERIC, 9);
   spell_level(SPELL_PROT_FROM_GOOD, CLASS_CLERIC, 9);
-  spell_level(SPELL_POISON, CLASS_CLERIC, 9);
+  spell_level(SPELL_POISON, CLASS_CLERIC, 9);  //shared
   spell_level(SPELL_GROUP_ARMOR, CLASS_CLERIC, 9);
   spell_level(SPELL_FLAME_STRIKE, CLASS_CLERIC, 9);
   //6th circle
@@ -1637,7 +1845,7 @@ void init_spell_levels(void)
   //9th circle
   spell_level(SPELL_EARTHQUAKE, CLASS_CLERIC, 17);
   spell_level(SPELL_GROUP_HEAL, CLASS_CLERIC, 17);
-  spell_level(SPELL_ENERGY_DRAIN, CLASS_CLERIC, 17);
+  spell_level(SPELL_ENERGY_DRAIN, CLASS_CLERIC, 17);  //shared
   //epic spells
   spell_level(SPELL_MUMMY_DUST, CLASS_CLERIC, 20);
   spell_level(SPELL_DRAGON_KNIGHT, CLASS_CLERIC, 20);
@@ -1645,6 +1853,7 @@ void init_spell_levels(void)
   spell_level(SPELL_HELLBALL, CLASS_CLERIC, 20);
   //end cleric spells
 
+  
   // druid
   //1st circle
   spell_level(SPELL_MAGIC_MISSILE, CLASS_DRUID, 1);
@@ -1728,6 +1937,7 @@ int level_exp(struct char_data *ch, int level)
   switch (chclass) {
     case CLASS_MAGIC_USER:
     case CLASS_SORCERER:
+    case CLASS_PALADIN:
     case CLASS_MONK:
     case CLASS_DRUID:
     case CLASS_WARRIOR:
@@ -1817,6 +2027,7 @@ const char *titles(int chclass, int level)
     }
     break;
 
+    case CLASS_PALADIN:
     case CLASS_CLERIC:
     switch (level) {
       case  1:
