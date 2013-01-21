@@ -446,12 +446,13 @@ void list_forms(struct char_data *ch)
 }
 
 
+/* a trivial shapechange code for druids */
 ACMD(do_shapechange)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
   int form = -1;
 
-  if (IS_NPC(ch) || !ch->desc)
+  if (!ch->desc || IS_NPC(ch))
     return;
 
   if (CLASS_LEVEL(ch, CLASS_DRUID) < 5) {
@@ -479,8 +480,10 @@ ACMD(do_shapechange)
     }
     IS_MORPHED(ch) = form;
     send_to_char(ch, "You transform into a %s!\r\n", RACE_ABBR(ch));
+    act(morph_to_char[IS_MORPHED(ch)], TRUE, ch, 0, 0, TO_CHAR);    
     send_to_char(ch, "\tDType 'innates' to see your abilities.\tn\r\n"); 
     act("$n shapechanges!", TRUE, ch, 0, 0, TO_ROOM);    
+    act(morph_to_room[IS_MORPHED(ch)], TRUE, ch, 0, 0, TO_ROOM);    
   }
 
 }
