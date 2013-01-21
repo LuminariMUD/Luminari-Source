@@ -44,6 +44,7 @@ const char *trade_letters[] = {
         "Berserker",
         "Druid",
         "Sorcerer",
+        "Paladin",
         "Human",                /* then the race based ones */
         "Elf",
         "Dwarf",
@@ -146,6 +147,7 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
       (IS_CLERIC(ch) && NOTRADE_CLERIC(shop_nr)) ||
       (IS_THIEF(ch) && NOTRADE_THIEF(shop_nr)) ||
       (IS_MONK(ch) && NOTRADE_MONK(shop_nr)) ||
+      (IS_PALADIN(ch) && NOTRADE_PALADIN(shop_nr)) ||
       (IS_SORCERER(ch) && NOTRADE_SORCERER(shop_nr)) ||
       (IS_BERSERKER(ch) && NOTRADE_BERSERKER(shop_nr)) ||
       (IS_WARRIOR(ch) && NOTRADE_WARRIOR(shop_nr))) {

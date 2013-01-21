@@ -29,7 +29,7 @@
 
 /* Global Variables definitions, used elsewhere */
 struct spell_info_type spell_info[TOP_SPELL_DEFINE + 1];
-char cast_arg2[MAX_INPUT_LENGTH];
+char cast_arg2[MAX_INPUT_LENGTH] = { '\0' };
 const char *unused_spellname = "!UNUSED!"; /* So we can get &unused_spellname */
 const char *unused_wearoff = "!UNUSED WEAROFF!"; /* So we can get &unused_wearoff */
 
@@ -827,10 +827,17 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     class = CLASS_DRUID;
     clevel = IS_DRUID(ch);
   }
+  /* paladins cast at half their level strength */
+  if ((IS_PALADIN(ch)/2) > clevel) {
+    class = CLASS_PALADIN;
+    clevel = (IS_PALADIN(ch) / 2);
+  }
 
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
 //      && spellnum != SPELL_ACID_SPLASH && spellnum != SPELL_RAY_OF_FROST) {
+
     class = forgetSpell(ch, spellnum, -1);
+    
     if (class == -1) {
       send_to_char(ch, "ERR:  Report BUG98237 to an IMM!\r\n");
       return 0;
@@ -927,6 +934,7 @@ ACMD(do_cast)
   if (CLASS_LEVEL(ch, CLASS_MAGIC_USER) < SINFO.min_level[CLASS_MAGIC_USER] &&
 	CLASS_LEVEL(ch, CLASS_CLERIC) < SINFO.min_level[CLASS_CLERIC] &&
 	CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
+	CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
      CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER]
   ) {
     send_to_char(ch, "You do not know that spell!\r\n");
@@ -944,6 +952,7 @@ ACMD(do_cast)
     return;
   }
 
+  /* further restrictions, this needs fixing! -zusuk */
   if (CLASS_LEVEL(ch, CLASS_MAGIC_USER) && GET_INT(ch) < 10) {
     send_to_char(ch, "You are not smart enough to cast spells...\r\n");
     return;
@@ -953,6 +962,10 @@ ACMD(do_cast)
     return;
   }
   if (CLASS_LEVEL(ch, CLASS_CLERIC) && GET_WIS(ch) < 10) {
+    send_to_char(ch, "You are not wise enough to cast spells...\r\n");
+    return;
+  }
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) && GET_WIS(ch) < 10) {
     send_to_char(ch, "You are not wise enough to cast spells...\r\n");
     return;
   }
@@ -1240,8 +1253,13 @@ void mag_assign_spells(void)
   spello(SPELL_REMOVE_CURSE, "remove curse", 79, 64, 1, POS_FIGHTING,  //abjur
 	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
 	MAG_UNAFFECTS | MAG_ALTER_OBJS,
-	NULL, 4, 8, ABJURATION);  // mage 4
+	NULL, 4, 8, ABJURATION);  // mage 4, cleric 4
+  spello(SPELL_ENDURANCE, "endurance", 30, 15, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"Your magical endurance has faded away.", 2, 6,
+	TRANSMUTATION);  // mage 1, cleric 1
 
+  
   //shared epic
   spello(SPELL_DRAGON_KNIGHT, "dragon knight", 95, 80, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_SUMMONS,
@@ -1260,6 +1278,7 @@ void mag_assign_spells(void)
 	NULL, 14, 1,
 	NOSCHOOL);
 
+  
   // magical
 
 /* = =  cantrips  = = */
@@ -1432,10 +1451,7 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 2, 6, ABJURATION);
 			/* transmutation */
-  spello(SPELL_ENDURANCE, "endurance", 30, 15, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"Your magical endurance has faded away.", 2, 6,
-	TRANSMUTATION);  // mage 1, cleric 1
+    //endurance - shared
   spello(SPELL_STRENGTH, "strength", 65, 50, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"You feel weaker.", 2, 6, TRANSMUTATION);
@@ -1738,6 +1754,7 @@ void mag_assign_spells(void)
 	"Your massive magical ward dissipates.", 4, 14, ABJURATION);
   // end magical
 
+  
   // divine spells
   // 1st circle
   spello(SPELL_CURE_LIGHT, "cure light", 30, 15, 1, POS_FIGHTING,
@@ -1750,6 +1767,7 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"You feel less protected.", 4, 6,
 	CONJURATION);
+    //endurance - shared
 
   // 2nd circle
   spello(SPELL_CREATE_FOOD, "create food", 37, 22, 1, POS_FIGHTING,
@@ -1761,6 +1779,7 @@ void mag_assign_spells(void)
   spello(SPELL_CAUSE_MODERATE_WOUNDS, "cause moderate wounds", 37, 22, 1, 
 	POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 3, 7, NOSCHOOL);
+    //detect poison - shared
 
   // 3rd circle
   spello(SPELL_DETECT_ALIGN, "detect alignment", 44, 29, 1, POS_FIGHTING,
@@ -1783,6 +1802,9 @@ void mag_assign_spells(void)
   spello(SPELL_CURE_CRITIC, "cure critic", 51, 36, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_POINTS,
 	NULL, 3, 10, NOSCHOOL);
+    //remove curse - shared
+    //infravision - shared
+  
 
   // 5th circle
   spello(SPELL_PROT_FROM_EVIL, "protection from evil", 58, 43, 1, POS_FIGHTING,
@@ -1794,6 +1816,7 @@ void mag_assign_spells(void)
   spello(SPELL_GROUP_ARMOR, "group armor", 58, 43, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 5, 11, NOSCHOOL);
+    //poison - shared
   spello(SPELL_FLAME_STRIKE, "flame strike", 58, 43, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 6, 11, NOSCHOOL);
@@ -1844,6 +1867,7 @@ void mag_assign_spells(void)
   spello(SPELL_EARTHQUAKE, "earthquake", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 10, 15, NOSCHOOL);
+    //energy drain - shared
   spello(SPELL_GROUP_HEAL, "group heal", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 5, 15, NOSCHOOL);

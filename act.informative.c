@@ -1345,7 +1345,7 @@ ACMD(do_score)
   if (CLASS_LEVEL(ch, CLASS_MAGIC_USER))
     send_to_char(ch, "\tDType 'memorize' to see your spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_SORCERER))
-    send_to_char(ch, "\tDType 'sorc' to see your spell interface\tn\r\n");
+    send_to_char(ch, "\tDType 'meditate' to see your spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_CLERIC))
     send_to_char(ch, "\tDType 'prayer' to see your prayer interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_DRUID))

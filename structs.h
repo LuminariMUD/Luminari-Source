@@ -197,18 +197,19 @@
 #define CLASS_DRUID	      5	//druids
 #define CLASS_BERSERKER	 6	//berserker
 #define CLASS_SORCERER    7
+#define CLASS_PALADIN     8
 /** Total number of available PC Classes */
-#define NUM_CLASSES	  8
+#define NUM_CLASSES	  9
 
 // related to pc (classes, etc)
 #define MAX_CLASSES	30	// total number of maximum pc classes
 #define NUM_CASTERS	7	//direct reference to pray array
-/*  magic user
- *  sorcerer
- *  cleric
- *  druid
+/*  x magic user
+ *  x sorcerer
+ *  x cleric
+ *  x druid
  *  bard
- *  paladin
+ *  x paladin
  *  ranger
  */
 /**************************/
@@ -713,9 +714,10 @@
 #define ITEM_ANTI_BERSERKER       30   /* Not usable by berserker */
 #define ITEM_ANTI_TRELUX          31   /* Not usable by trelux */
 #define ITEM_ANTI_SORCERER        32
-#define ITEM_DECAY                33
+#define ITEM_DECAY                33  /* portal decay */
+#define ITEM_ANTI_PALADIN         34
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            34
+#define NUM_ITEM_FLAGS            35
 
 
 /* Modifier constants used with obj affects ('A' fields) */

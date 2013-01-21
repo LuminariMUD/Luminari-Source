@@ -598,8 +598,9 @@ do                                                              \
 #define GET_LEVEL(ch)   ((ch)->player.level)
 #define CLASS_LEVEL(ch, class)	(ch->player_specials->saved.class_level[class])
 #define DIVINE_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
-                                 (CLASS_LEVEL(ch, CLASS_CLERIC) + \
-                                 CLASS_LEVEL(ch, CLASS_DRUID)))
+                                 ( CLASS_LEVEL(ch, CLASS_CLERIC) + \
+                                   CLASS_LEVEL(ch, CLASS_DRUID) + \
+                                  (CLASS_LEVEL(ch, CLASS_PALADIN)/2) ) )
 #define MAGIC_LEVEL(ch)		(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  (CLASS_LEVEL(ch, CLASS_MAGIC_USER) + \
                                  CLASS_LEVEL(ch, CLASS_SORCERER)))
@@ -1375,8 +1376,9 @@ void reset_acraft(struct char_data *ch);
 #define IS_WARRIOR(ch)		(CLASS_LEVEL(ch, CLASS_WARRIOR))
 #define IS_MONK(ch)	          (CLASS_LEVEL(ch, CLASS_MONK))
 #define IS_BERSERKER(ch)		(CLASS_LEVEL(ch, CLASS_BERSERKER))
+#define IS_PALADIN(ch)		(CLASS_LEVEL(ch, CLASS_PALADIN))
 #define IS_CASTER(ch)	(IS_CLERIC(ch) || IS_MAGIC_USER(ch) || IS_DRUID(ch) \
-                          || IS_SORCERER(ch))
+                          || IS_SORCERER(ch) || IS_PALADIN(ch))
 
 
 #define RACE_ABBR(ch)	( IS_NPC(ch) ?  \

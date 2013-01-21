@@ -334,16 +334,18 @@ ACMD(do_gmote);
 *******************/
 ACMD(do_gen_forget);
 
-#define SCMD_FORGET	1
-#define SCMD_BLANK	2
-#define SCMD_UNCOMMUNE	3
+#define SCMD_FORGET      1
+#define SCMD_BLANK       2
+#define SCMD_UNCOMMUNE   3
+#define SCMD_OMIT        4
 
 ACMD(do_gen_memorize);
 
 #define SCMD_MEMORIZE   1
 #define SCMD_PRAY       2
 #define SCMD_COMMUNE    3
-#define SCMD_SORC       4
+#define SCMD_MEDITATE   4
+#define SCMD_PETITION   5
 
 
 /*****************************************************************************

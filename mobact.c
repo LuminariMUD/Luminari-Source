@@ -123,7 +123,6 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
     case 5:  // level 1-4 mobs won't act
       break;
     default:
-      log("ERR:  Reached invalid level in npc_monk_behave.");
       break;
   }
 }
@@ -138,7 +137,6 @@ void npc_thief_behave(struct char_data *ch, struct char_data *vict,
     case 5:  // level 1-4 mobs won't act
       break;
     default:
-      log("ERR:  Reached invalid level in npc_thief_behave.");
       break;
   }
 }
@@ -153,6 +151,7 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
     if (FIGHTING(ch->master)) {
       do_npc_rescue(ch, ch->master);
+      return;
     }
   }
 
@@ -160,7 +159,30 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
     case 5:  // level 1-4 mobs won't act
       break;
     default:
-      log("ERR:  Reached invalid level in npc_warrior_behave.");
+      break;
+  }
+}
+
+
+
+
+// paladin behaviour, behave based on circle
+void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
+	int level, int engaged)
+{
+
+  // going to prioritize rescuing master (if he has one)
+  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
+    if (FIGHTING(ch->master)) {
+      do_npc_rescue(ch, ch->master);
+      return;
+    }
+  }
+
+  switch(rand_number(5, level)) {
+    case 5:  // level 1-4 mobs won't act
+      break;
+    default:
       break;
   }
 }
@@ -472,6 +494,9 @@ void npc_class_behave(struct char_data *ch)
     case CLASS_WARRIOR:
       npc_warrior_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
+    case CLASS_PALADIN:
+      npc_paladin_behave(ch, vict, GET_LEVEL(ch), engaged);
+      break;
     case CLASS_THIEF:
       npc_thief_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
@@ -511,6 +536,7 @@ void mobile_activity(void)
     }
 
     /* Examine call for special procedure */
+    /* not the AWAKE() type of checks are inside the spec_procs */
     if (MOB_FLAGGED(ch, MOB_SPEC) && !no_specials) {
       if (mob_index[GET_MOB_RNUM(ch)].func == NULL) {
         log("SYSERR: %s (#%d): Attempting to call non-existing mob function.",
@@ -523,10 +549,12 @@ void mobile_activity(void)
       }
     }
 
-    /* If the mob has no specproc, do the default actions */
+    /* can't do any of the following if not at least AWAKE() */
     if (!AWAKE(ch))
       continue;
-
+    
+    /* If the mob has no specproc, do the default actions */
+    
     // entry point for npc race and class behaviour in combat -zusuk
     if (FIGHTING(ch)) {
       // 50% chance will react off of class, 50% chance will react off of race
@@ -543,18 +571,18 @@ void mobile_activity(void)
     /* Scavenger (picking up objects) */
     if (MOB_FLAGGED(ch, MOB_SCAVENGER))
       if (world[IN_ROOM(ch)].contents && !rand_number(0, 10)) {
-	max = 1;
-	best_obj = NULL;
-	for (obj = world[IN_ROOM(ch)].contents; obj; obj = obj->next_content)
-	  if (CAN_GET_OBJ(ch, obj) && GET_OBJ_COST(obj) > max) {
-	    best_obj = obj;
-	    max = GET_OBJ_COST(obj);
-	  }
-	if (best_obj != NULL) {
-	  obj_from_room(best_obj);
-	  obj_to_char(best_obj, ch);
-	  act("$n gets $p.", FALSE, ch, best_obj, 0, TO_ROOM);
-	}
+        max = 1;
+        best_obj = NULL;
+        for (obj = world[IN_ROOM(ch)].contents; obj; obj = obj->next_content)
+          if (CAN_GET_OBJ(ch, obj) && GET_OBJ_COST(obj) > max) {
+            best_obj = obj;
+            max = GET_OBJ_COST(obj);
+          }
+        if (best_obj != NULL) {
+          obj_from_room(best_obj);
+          obj_to_char(best_obj, ch);
+          act("$n gets $p.", FALSE, ch, best_obj, 0, TO_ROOM);
+        }
       }
 
     /* Mob Movement */
@@ -575,20 +603,20 @@ void mobile_activity(void)
      if (!MOB_FLAGGED(ch, MOB_HELPER) && (!AFF_FLAGGED(ch, AFF_BLIND) || !AFF_FLAGGED(ch, AFF_CHARM))) {
       found = FALSE;
       for (vict = world[IN_ROOM(ch)].people; vict && !found; vict = vict->next_in_room) {
-	if (IS_NPC(vict) || !CAN_SEE(ch, vict) || PRF_FLAGGED(vict, PRF_NOHASSLE))
-	  continue;
 
-	if (MOB_FLAGGED(ch, MOB_WIMPY) && AWAKE(vict))
-	  continue;
+        if (IS_NPC(vict) || !CAN_SEE(ch, vict) || PRF_FLAGGED(vict, PRF_NOHASSLE))
+          continue;
 
-	if (MOB_FLAGGED(ch, MOB_AGGRESSIVE  ) ||
-	   (MOB_FLAGGED(ch, MOB_AGGR_EVIL   ) && IS_EVIL(vict)) ||
-	   (MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(vict)) ||
-	   (MOB_FLAGGED(ch, MOB_AGGR_GOOD   ) && IS_GOOD(vict))) {
+        if (MOB_FLAGGED(ch, MOB_WIMPY) && AWAKE(vict))
+          continue;
 
-	  hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-	  found = TRUE;
-	}
+        if (MOB_FLAGGED(ch, MOB_AGGRESSIVE  ) ||
+            (MOB_FLAGGED(ch, MOB_AGGR_EVIL   ) && IS_EVIL(vict)) ||
+            (MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(vict)) ||
+            (MOB_FLAGGED(ch, MOB_AGGR_GOOD   ) && IS_GOOD(vict))) {
+          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+          found = TRUE;
+        }
       }
     }
 
@@ -596,11 +624,11 @@ void mobile_activity(void)
     if (MOB_FLAGGED(ch, MOB_MEMORY) && MEMORY(ch)) {
       found = FALSE;
       for (vict = world[IN_ROOM(ch)].people; vict && !found; vict = vict->next_in_room) {
-	if (IS_NPC(vict) || !CAN_SEE(ch, vict) || PRF_FLAGGED(vict, PRF_NOHASSLE))
-	  continue;
+        if (IS_NPC(vict) || !CAN_SEE(ch, vict) || PRF_FLAGGED(vict, PRF_NOHASSLE))
+          continue;
 
-	for (names = MEMORY(ch); names && !found; names = names->next) {
-	  if (names->id != GET_IDNUM(vict))
+        for (names = MEMORY(ch); names && !found; names = names->next) {
+          if (names->id != GET_IDNUM(vict))
             continue;
 
           found = TRUE;
@@ -615,7 +643,7 @@ void mobile_activity(void)
      * mobiles have a chance based on the charisma of their leader.
      * 1-4 = 0, 5-7 = 1, 8-10 = 2, 11-13 = 3, 14-16 = 4, 17-19 = 5, etc. */
     if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master &&
-	num_followers_charmed(ch->master) > MAX(1, GET_CHA_BONUS(ch->master))) {
+           num_followers_charmed(ch->master) > MAX(1, GET_CHA_BONUS(ch->master))) {
       if (!aggressive_mob_on_a_leash(ch, ch->master, ch->master)) {
         if (CAN_SEE(ch, ch->master) && !PRF_FLAGGED(ch->master, PRF_NOHASSLE))
           hit(ch, ch->master, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);

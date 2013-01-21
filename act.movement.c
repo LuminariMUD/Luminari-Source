@@ -1041,6 +1041,9 @@ ACMD(do_enter)
                ((IS_CLERIC(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_CLERIC))) ||
                   
+               ((IS_PALADIN(ch)) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_PALADIN))) ||
+                  
                ((IS_THIEF(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_THIEF))) ||
                   
