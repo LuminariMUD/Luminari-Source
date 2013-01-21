@@ -227,6 +227,7 @@ ACMD(do_crystalbody);
  ****************************************************************************/
 /* Functions with subcommands */
 void list_forms(struct char_data *ch);
+void perform_shapechange(struct char_data *ch, char *arg);
 /* do_gen_tog */
 ACMD(do_gen_tog);
 #define SCMD_NOSUMMON    0
