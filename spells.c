@@ -456,35 +456,14 @@ ASPELL(spell_summon)
 
 ASPELL(spell_polymorph)
 {
-  char arg[MAX_INPUT_LENGTH];
-  int form = -1;
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
         
   if (IS_NPC(ch) || !ch->desc)
     return;
         
   one_argument(cast_arg2, arg);
         
-  if (!*arg) {
-    if (!IS_MORPHED(ch)) {
-      send_to_char(ch, "You are already in your natural form!\r\n");
-    } else {
-      send_to_char(ch, "You shift back into your natural form...\r\n");
-      act("$n shifts back to his natural form.", TRUE, ch, 0, 0, TO_ROOM);
-      IS_MORPHED(ch) = 0;
-    }
-    list_forms(ch);
-  } else {
-    form = atoi(arg);
-    if (form < 1 || form > NUM_NPC_RACES - 1) {
-      send_to_char(ch, "That is not a valid race!\r\n");
-      list_forms(ch);
-      return;
-    }
-    IS_MORPHED(ch) = form;
-    send_to_char(ch, "You transform into a %s!\r\n", RACE_ABBR(ch));
-    send_to_char(ch, "\tDType 'innates' to see your abilities.\tn\r\n");
-    act("$n shapechanges!", TRUE, ch, 0, 0, TO_ROOM);
-  }
+  perform_shapechange(ch, arg);
 }
 
 

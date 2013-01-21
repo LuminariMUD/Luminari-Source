@@ -439,28 +439,18 @@ ACMD(do_gain)
 }
 #undef MULTICAP
 
-
+/* shapechange function */
+/* header file:  act.h */
 void list_forms(struct char_data *ch)
 {
   send_to_char(ch, "%s\r\n", npc_race_menu);
 }
 
-
-/* a trivial shapechange code for druids */
-ACMD(do_shapechange)
+/* shapechange function */
+/* header file:  act.h */
+void perform_shapechange(struct char_data *ch, char *arg)
 {
-  char arg[MAX_INPUT_LENGTH] = { '\0' };
   int form = -1;
-
-  if (!ch->desc || IS_NPC(ch))
-    return;
-
-  if (CLASS_LEVEL(ch, CLASS_DRUID) < 5) {
-    send_to_char(ch, "You are not a high enough level druid to do this...\r\n");
-    return;
-  }
-
-  one_argument(argument, arg);
 
   if (!*arg) {
     if (!IS_MORPHED(ch)) {
@@ -485,7 +475,25 @@ ACMD(do_shapechange)
     act("$n shapechanges!", TRUE, ch, 0, 0, TO_ROOM);    
     act(morph_to_room[IS_MORPHED(ch)], TRUE, ch, 0, 0, TO_ROOM);    
   }
+  
+}
 
+/* a trivial shapechange code for druids */
+ACMD(do_shapechange)
+{
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+ 
+  if (!ch->desc || IS_NPC(ch))
+    return;
+
+  if (CLASS_LEVEL(ch, CLASS_DRUID) < 5) {
+    send_to_char(ch, "You are not a high enough level druid to do this...\r\n");
+    return;
+  }
+
+  one_argument(argument, arg);
+
+  perform_shapechange(ch, arg);
 }
 
 
