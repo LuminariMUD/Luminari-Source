@@ -904,6 +904,17 @@ int getCircle(struct char_data *ch, int class)
   }
 
   switch (class) {
+    case CLASS_PALADIN:
+      if (CLASS_LEVEL(ch, CLASS_PALADIN) < 6)
+        return 0;
+      else if (CLASS_LEVEL(ch, CLASS_PALADIN) < 10)
+        return 1;
+      else if (CLASS_LEVEL(ch, CLASS_PALADIN) < 12)
+        return 2;
+      else if (CLASS_LEVEL(ch, CLASS_PALADIN) < 15)
+        return 3;
+      else
+        return 4;
     case CLASS_SORCERER:
       return (MAX(1, (MIN(9, CLASS_LEVEL(ch, class) / 2))));
     /* mage, druid, cleric */
