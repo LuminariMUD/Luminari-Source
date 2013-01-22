@@ -1241,6 +1241,7 @@ static char *make_prompt(struct descriptor_data *d)
   int door = 0, slen = 0;
   struct char_data *ch = NULL;
   int count = 0;
+  int room_size = 0;
   size_t len = 0;
 
   ch = d->character;
@@ -1352,10 +1353,11 @@ static char *make_prompt(struct descriptor_data *d)
       }
 
       // autoprompt display rooms
+      room_size = strlen(world[IN_ROOM(ch)].name);
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
                 ProtocolOutput(d, world[IN_ROOM(ch)].name,
-                (int *)sizeof(world[IN_ROOM(ch)].name)), CCNRM(d->character,C_NRM));
+                &room_size), CCNRM(d->character,C_NRM));
         if (count >= 0)
           len += count;
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
