@@ -481,10 +481,13 @@ static void make_corpse(struct char_data *ch)
 /* When ch kills victim */
 static void change_alignment(struct char_data *ch, struct char_data *victim)
 {
-  if (GET_ALIGNMENT(victim) < GET_ALIGNMENT(ch))
-    GET_ALIGNMENT(ch)++;
-  else if (GET_ALIGNMENT(victim) > GET_ALIGNMENT(ch))
-    GET_ALIGNMENT(ch)--;
+  if (GET_ALIGNMENT(victim) < GET_ALIGNMENT(ch) && !rand_number(0, 3)) {
+    if (GET_ALIGNMENT(ch) < 1000)
+      GET_ALIGNMENT(ch)++;
+  } else if (GET_ALIGNMENT(victim) > GET_ALIGNMENT(ch) && !rand_number(0, 3)) {
+    if (GET_ALIGNMENT(ch) > -1000)
+      GET_ALIGNMENT(ch)--;
+  }
 
   /* new alignment change algorithm: if you kill a monster with alignment A,
    * you move 1/16th of the way to having alignment -A.  Simple and fast. */

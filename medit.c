@@ -499,6 +499,22 @@ static void medit_disp_aff_flags(struct descriptor_data *d)
                           cyn, flags, nrm);
 }
 
+/* Display alignment choices */
+static void disp_align_menu(struct descriptor_data *d)
+{
+  write_to_output(d, "\r\n"
+          "1) Lawful Good\r\n" 
+          "2) Neutral Good\r\n" 
+          "3) Chaotic Good\r\n" 
+          "4) Lawful Neutral\r\n" 
+          "5) True Neutral\r\n" 
+          "6) Chaotic Neutral\r\n" 
+          "7) Lawful Evil\r\n" 
+          "8) Neutral Evil\r\n" 
+          "9) Chaotic Evil\r\n\r\n" 
+          );
+}
+
 /* Display main menu. */
 static void medit_disp_menu(struct descriptor_data *d)
 {
@@ -866,6 +882,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'e':
     case 'E':
       OLC_MODE(d) = MEDIT_ALIGNMENT;
+      disp_align_menu(d);
       i++;
       break;
     case 'f':
@@ -1197,8 +1214,50 @@ void medit_parse(struct descriptor_data *d, char *arg)
     medit_disp_stats_menu(d);
     return;
 
+    /*
+          "1) Lawful Good\r\n" 
+          "2) Neutral Good\r\n" 
+          "3) Chaotic Good\r\n" 
+          "4) Lawful Neutral\r\n" 
+          "5) True Neutral\r\n" 
+          "6) Chaotic Neutral\r\n" 
+          "7) Lawful Evil\r\n" 
+          "8) Neutral Evil\r\n" 
+          "9) Chaotic Evil\r\n\r\n"*/ 
   case MEDIT_ALIGNMENT:
-    GET_ALIGNMENT(OLC_MOB(d)) = LIMIT(i, -1000, 1000);
+    if (i < 1 || i > 9) {
+      write_to_output(d, "\r\nInvalid choice!\r\n");
+      return;
+    }
+    switch (i) {
+      case 1:
+        GET_ALIGNMENT(OLC_MOB(d)) = 900;
+        break;
+      case 2:
+        GET_ALIGNMENT(OLC_MOB(d)) = 690;
+        break;
+      case 3:
+        GET_ALIGNMENT(OLC_MOB(d)) = 460;
+        break;
+      case 4:
+        GET_ALIGNMENT(OLC_MOB(d)) = 235;
+        break;
+      case 5:
+        GET_ALIGNMENT(OLC_MOB(d)) = 0;
+        break;
+      case 6:
+        GET_ALIGNMENT(OLC_MOB(d)) = -235;
+        break;
+      case 7:
+        GET_ALIGNMENT(OLC_MOB(d)) = -460;
+        break;
+      case 8:
+        GET_ALIGNMENT(OLC_MOB(d)) = -690;
+        break;
+      case 9:
+        GET_ALIGNMENT(OLC_MOB(d)) = -900;
+        break;
+    }
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
