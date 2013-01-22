@@ -1065,6 +1065,16 @@ void pulse_luminari() {
       }
     }
     
+    if (AFF_FLAGGED(i, AFF_FEAR) && !IS_NPC(i) &&
+            GET_SKILL(i, SKILL_COURAGE)) {
+      REMOVE_BIT_AR(AFF_FLAGS(i), AFF_FEAR);
+      send_to_char(i, "Your divine courage overcomes the fear!\r\n");
+      act("$n \tWovercomes the \tDfear\tW with courage!\tn\tn",
+		TRUE, i, 0, 0, TO_ROOM);
+      increase_skill(i, SKILL_COURAGE);
+      return;
+    }      
+    
   }  // end char list loop
 }
 
