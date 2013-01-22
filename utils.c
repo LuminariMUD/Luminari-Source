@@ -2363,6 +2363,29 @@ char *convert_from_tabs(char * string)
   return(buf);
 }
 
+char *get_align_by_num_cnd(int align)
+{
+  if (align >= 800)
+    return "\tWLG";
+  if (align >= 575 && align < 800)
+    return "\tWNG";
+  if (align >= 350 && align < 575)
+    return "\tWCG";
+  if (align >= 125 && align < 350)
+    return "\tcLN";
+  if (align < 125 && align > -125)
+    return "\tcTN";
+  if (align <= -125 && align > -350)
+    return "\tcCN";
+  if (align <= -350 && align > -575)
+    return "\tDLE";
+  if (align <= -575 && align > -800)
+    return "\tDNE";
+  if (align <= -800)
+    return "\tDCE";
+
+  return "??";
+}
 
 char *get_align_by_num(int align)
 {

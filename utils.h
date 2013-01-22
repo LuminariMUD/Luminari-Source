@@ -38,6 +38,7 @@
 
 /* Public functions made available from utils.c. Documentation for all functions
  * are made available with the function definition. */
+char *get_align_by_num_cnd(int align);
 char *get_align_by_num(int align);
 bool can_see_hidden(struct char_data *ch, const struct char_data *vict);
 void increase_skill(struct char_data *ch, int skillnum);
