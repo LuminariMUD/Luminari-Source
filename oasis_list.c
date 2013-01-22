@@ -627,8 +627,8 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
   }
 
   len = strlcpy(buf,
-"Index| VNum  | Lvl | T | Mobile Name                                 \r\n"
-"-----  -----   ---   -   ------------------------------------------- \r\n",
+"Indx|VNum |Lvl|T|Mobile Name                                 \r\n"
+"---- ----- --- - ------------------------------------------- \r\n",
   sizeof(buf));
   if (!top_of_mobt)
     return;
@@ -648,7 +648,7 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
                    mob_proto[i].proto_script ? " [TRIG]" : ""
                    );*/
       len += snprintf(buf + len, sizeof(buf) - len, 
-           "%s%4d%s | %s%-5d%s | %s%3d%s | %s | %s%-*s %s\r\n",
+           "%s%3d%s | %s%-5d%s | %s%3d%s | %s | %s%-*s %s\r\n",
               QGRN, counter, QNRM,
               QGRN, mob_index[i].vnum, QNRM,
               QYEL, mob_proto[i].player.level, QNRM,
