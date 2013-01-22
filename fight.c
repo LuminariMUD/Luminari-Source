@@ -2377,7 +2377,7 @@ void autoDiagnose(struct char_data *ch)
 }
 
 
-/* control the fights going on.  Called every 2 seconds from comm.c. */
+/* control the fights going on.  Called every PULSE_VIOLENCE seconds from comm.c. */
 void perform_violence(void)
 {
   struct char_data *ch, *tch, *charmee;
@@ -2385,6 +2385,16 @@ void perform_violence(void)
   for (ch = combat_list; ch; ch = next_combat_list) {
     next_combat_list = ch->next_fighting;
     
+    if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
+            GET_SKILL(ch, SKILL_COURAGE)) {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+      send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
+      act("$n \tWovercomes the \tDfear\tW with courage!\tn\tn",
+		TRUE, ch, 0, 0, TO_ROOM);
+      increase_skill(ch, SKILL_COURAGE);
+      return;
+    }    
+
     if (FIGHTING(ch) == NULL || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))) {
       stop_fighting(ch);
       continue;
@@ -2577,16 +2587,6 @@ void perform_violence(void)
     }
 
     autoDiagnose(ch);
-
-    if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
-            GET_SKILL(ch, SKILL_COURAGE)) {
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
-      send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
-      act("$n \tWovercomes the \tDfear\tW with courage!\tn\tn",
-		TRUE, ch, 0, 0, TO_ROOM);
-      increase_skill(ch, SKILL_COURAGE);
-      return;
-    }    
 
     if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0,2)) {
       send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");

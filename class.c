@@ -937,6 +937,9 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
     
     // skill init
+    if (!GET_SKILL(ch, SKILL_LAY_ON_HANDS))
+      SET_SKILL(ch, SKILL_LAY_ON_HANDS, 75);
+
     if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
       SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
     if (!GET_SKILL(ch, SKILL_PROF_BASIC))
