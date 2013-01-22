@@ -84,6 +84,48 @@ void increase_skill(struct char_data *ch, int skillnum)
   int pass = rand_number(0, PASS);
 
   switch(skillnum) {
+    case SKILL_RECHARGE:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_GRACE:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DIVINE_HEALTH:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_LAY_ON_HANDS:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_COURAGE:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SMITE:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_REMOVE_DISEASE:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
     case SKILL_EVASION:
       if (!use) {
         notched = TRUE;

@@ -25,7 +25,7 @@ void idle_weapon_spells(struct char_data *ch);
 int compute_damtype_reduction(struct char_data *ch, int dam_type);
 int compute_energy_absorb(struct char_data *ch, int dam_type);
 void perform_flee(struct char_data *ch);
-void appear(struct char_data *ch);
+void appear(struct char_data *ch, bool forced);
 void check_killer(struct char_data *ch, struct char_data *vict);
 int perform_attacks(struct char_data *ch, int mode);
 int compute_armor_class(struct char_data *attacker, struct char_data *ch);

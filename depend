@@ -17,7 +17,7 @@ act.offensive.o: act.offensive.c conf.h sysdep.h structs.h protocol.h \
 act.other.o: act.other.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h screen.h \
  house.h constants.h dg_scripts.h act.h spec_procs.h class.h fight.h \
- mail.h shop.h quest.h modify.h clan.h
+ mail.h shop.h quest.h modify.h clan.h mud_event.h dg_event.h
 act.social.o: act.social.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h screen.h spells.h \
  act.h

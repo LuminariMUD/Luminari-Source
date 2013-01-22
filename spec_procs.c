@@ -83,7 +83,9 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
   if (skillnum < NUM_SPELLS && skillnum > 0)
     return TRUE;
 
+  /* i'm -trying- to keep this organized */
   switch(skillnum) {
+    /* proficiencies */
 case SKILL_PROF_BASIC:
 	if (GET_SKILL(ch, SKILL_PROF_MINIMAL))
 		return TRUE;	else return FALSE;
@@ -105,6 +107,8 @@ case SKILL_PROF_HEAVY_A:
 case SKILL_PROF_T_SHIELDS:
 	if (GET_SKILL(ch, SKILL_PROF_SHIELDS))
 		return TRUE;	else return FALSE;
+
+     /* epic spells */
 case SKILL_MUMMY_DUST:
 	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 23 && GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
@@ -127,23 +131,62 @@ case SKILL_EPIC_WARDING:
 		&& (CLASS_LEVEL(ch, CLASS_MAGIC_USER) > 15 ||
               CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
 		return TRUE;	else return FALSE;
+     
+     /* 'epic' skills */
 case SKILL_BLINDING_SPEED:
 	if (ch->real_abils.dex >= 21 && GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
+case SKILL_EPIC_TOUGHNESS:
+        if (GET_LEVEL(ch) >= 20)
+		return TRUE;	else return FALSE;
+case SKILL_EPIC_PROWESS:
+	if (GET_LEVEL(ch) >= 20 && GET_SKILL(ch, SKILL_PROWESS))
+		return TRUE;	else return FALSE;
+case SKILL_SPELLPENETRATE_3:
+	if (GET_LEVEL(ch) >= 20 && GET_SKILL(ch, SKILL_SPELLPENETRATE_2))
+		return TRUE;	else return FALSE;
+case SKILL_SPELL_RESIST_4:
+	if (GET_LEVEL(ch) >= 20 && GET_SKILL(ch, SKILL_SPELL_RESIST_3))
+		return TRUE;	else return FALSE;
+case SKILL_SPELL_RESIST_5:
+	if (GET_LEVEL(ch) >= 25 && GET_SKILL(ch, SKILL_SPELL_RESIST_4))
+		return TRUE;	else return FALSE;
+case SKILL_IMPROVED_BASH:
+	if (GET_SKILL(ch, SKILL_BASH) && GET_LEVEL(ch) >= 20)
+		return TRUE;	else return FALSE;
+case SKILL_IMPROVED_WHIRL:
+	if (GET_SKILL(ch, SKILL_WHIRLWIND) && GET_LEVEL(ch) >= 20)
+		return TRUE;	else return FALSE;
+case SKILL_ARMOR_SKIN:
+	if (GET_LEVEL(ch) >= 20)
+		return TRUE;	else return FALSE;
+case SKILL_SELF_CONCEAL_3:
+	if (ch->real_abils.dex >= 21 && GET_SKILL(ch, SKILL_SELF_CONCEAL_2))
+		return TRUE;	else return FALSE;
+case SKILL_OVERWHELMING_CRIT:
+	if (GET_LEVEL(ch) >= 20)
+		return TRUE;	else return FALSE;
+case SKILL_DAMAGE_REDUC_3:
+	if (ch->real_abils.con >= 19 && GET_SKILL(ch, SKILL_DAMAGE_REDUC_2))
+		return TRUE;	else return FALSE;
+case SKILL_EPIC_REFLEXES:
+case SKILL_EPIC_FORTITUDE:
+case SKILL_EPIC_WILL:
+        if (GET_LEVEL(ch) >= 20)
+                return TRUE;  else return FALSE;
+case SKILL_EPIC_2_WEAPON:
+	if (ch->real_abils.dex >= 21 && GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT))
+		return TRUE;	else return FALSE;
+     
+/* the rest */
 case SKILL_AMBIDEXTERITY:
 	if (ch->real_abils.dex >= 13)
 		return TRUE;	else return FALSE;
 case SKILL_TWO_WEAPON_FIGHT:
 	if (ch->real_abils.dex >= 17 && GET_SKILL(ch, SKILL_AMBIDEXTERITY))
 		return TRUE;	else return FALSE;
-case SKILL_EPIC_2_WEAPON:
-	if (ch->real_abils.dex >= 21 && GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT))
-		return TRUE;	else return FALSE;
 case SKILL_FINESSE:
 	if (ch->real_abils.dex >= 13)
-		return TRUE;	else return FALSE;
-case SKILL_EPIC_TOUGHNESS:
-        if (GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
 case SKILL_POWER_ATTACK:
 	if (ch->real_abils.str >= 13)
@@ -151,17 +194,11 @@ case SKILL_POWER_ATTACK:
 case SKILL_EXPERTISE:
 	if (ch->real_abils.intel >= 13)
 		return TRUE;	else return FALSE;
-case SKILL_EPIC_PROWESS:
-	if (GET_LEVEL(ch) >= 20 && GET_SKILL(ch, SKILL_PROWESS))
-		return TRUE;	else return FALSE;
 case SKILL_SPELLPENETRATE:
 	if (GET_LEVEL(ch) >= 5 && IS_CASTER(ch))
 		return TRUE;	else return FALSE;
 case SKILL_SPELLPENETRATE_2:
 	if (GET_LEVEL(ch) >= 9 && GET_SKILL(ch, SKILL_SPELLPENETRATE))
-		return TRUE;	else return FALSE;
-case SKILL_SPELLPENETRATE_3:
-	if (GET_LEVEL(ch) >= 20 && GET_SKILL(ch, SKILL_SPELLPENETRATE_2))
 		return TRUE;	else return FALSE;
 case SKILL_SPELL_RESIST_1:
 	if (GET_LEVEL(ch) >= 5)
@@ -172,17 +209,8 @@ case SKILL_SPELL_RESIST_2:
 case SKILL_SPELL_RESIST_3:
 	if (GET_LEVEL(ch) >= 15 && GET_SKILL(ch, SKILL_SPELL_RESIST_2))
 		return TRUE;	else return FALSE;
-case SKILL_SPELL_RESIST_4:
-	if (GET_LEVEL(ch) >= 20 && GET_SKILL(ch, SKILL_SPELL_RESIST_3))
-		return TRUE;	else return FALSE;
-case SKILL_SPELL_RESIST_5:
-	if (GET_LEVEL(ch) >= 25 && GET_SKILL(ch, SKILL_SPELL_RESIST_4))
-		return TRUE;	else return FALSE;
 case SKILL_INITIATIVE:
 	if (ch->real_abils.dex >= 13)
-		return TRUE;	else return FALSE;
-case SKILL_IMPROVED_BASH:
-	if (GET_SKILL(ch, SKILL_BASH))
 		return TRUE;	else return FALSE;
 case SKILL_IMPROVED_TRIP:
 	if (GET_SKILL(ch, SKILL_TRIP))
@@ -196,14 +224,8 @@ case SKILL_TRIP:
 case SKILL_WHIRLWIND:
 	if (GET_SKILL(ch, SKILL_SPRING_ATTACK))
 		return TRUE;	else return FALSE;
-case SKILL_IMPROVED_WHIRL:
-	if (GET_SKILL(ch, SKILL_WHIRLWIND))
-		return TRUE;	else return FALSE;
 case SKILL_DODGE:
 	if (ch->real_abils.dex >= 13)
-		return TRUE;	else return FALSE;
-case SKILL_ARMOR_SKIN:
-	if (GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
 case SKILL_DAMAGE_REDUC_1:
 	if (ch->real_abils.con >= 15)
@@ -211,20 +233,11 @@ case SKILL_DAMAGE_REDUC_1:
 case SKILL_DAMAGE_REDUC_2:
 	if (ch->real_abils.con >= 17 && GET_SKILL(ch, SKILL_DAMAGE_REDUC_1))
 		return TRUE;	else return FALSE;
-case SKILL_DAMAGE_REDUC_3:
-	if (ch->real_abils.con >= 19 && GET_SKILL(ch, SKILL_DAMAGE_REDUC_2))
-		return TRUE;	else return FALSE;
 case SKILL_SELF_CONCEAL_1:
 	if (ch->real_abils.dex >= 15)
 		return TRUE;	else return FALSE;
 case SKILL_SELF_CONCEAL_2:
 	if (ch->real_abils.dex >= 17 && GET_SKILL(ch, SKILL_SELF_CONCEAL_1))
-		return TRUE;	else return FALSE;
-case SKILL_SELF_CONCEAL_3:
-	if (ch->real_abils.dex >= 21 && GET_SKILL(ch, SKILL_SELF_CONCEAL_2))
-		return TRUE;	else return FALSE;
-case SKILL_OVERWHELMING_CRIT:
-	if (GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
 case SKILL_EPIC_CRIT:
 	if (GET_LEVEL(ch) >= 10 && GET_SKILL(ch, SKILL_IMPROVED_CRITICAL))
@@ -232,16 +245,17 @@ case SKILL_EPIC_CRIT:
 case SKILL_QUICK_CHANT:
 	if (CASTER_LEVEL(ch))
 		return TRUE;	else return FALSE;
-case SKILL_EPIC_REFLEXES:
-case SKILL_EPIC_FORTITUDE:
-case SKILL_EPIC_WILL:
-        if (GET_LEVEL(ch) >= 15)
-                return TRUE;  else return FALSE;
+
+/* special restrictions */
+case SKILL_USE_MAGIC:  /* shared - with casters */
+        if ((CLASS_LEVEL(ch, CLASS_THIEF) >= 9) ||
+            (IS_CASTER(ch) && GET_LEVEL(ch) >= 2))
+          return TRUE;  else return FALSE;
+case SKILL_RECHARGE:
+	if (CASTER_LEVEL(ch) >= 14)
+		return TRUE;	else return FALSE;     
         
 /* warrior */
-case SKILL_RESCUE:
-	if (CLASS_LEVEL(ch, CLASS_WARRIOR))
-		return TRUE;	else return FALSE;     
 case SKILL_WEAPON_SPECIALIST:
         if (CLASS_LEVEL(ch, CLASS_WARRIOR) >= 4)
                 return TRUE;	else return FALSE;
@@ -254,7 +268,28 @@ case SKILL_STUNNING_FIST:
         if (CLASS_LEVEL(ch, CLASS_MONK) >= 2)
                 return TRUE;  else return FALSE;
         
+/* paladin */        
+case SKILL_LAY_ON_HANDS:
+        if (CLASS_LEVEL(ch, CLASS_PALADIN))
+                return TRUE;  else return FALSE;
+case SKILL_GRACE:
+        if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 2)
+                return TRUE;  else return FALSE;
+case SKILL_DIVINE_HEALTH:
+        if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 3)
+                return TRUE;  else return FALSE;
+case SKILL_COURAGE:
+        if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 4)
+                return TRUE;  else return FALSE;
+case SKILL_SMITE:
+        if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 5)
+                return TRUE;  else return FALSE;
+case SKILL_REMOVE_DISEASE:
+        if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 7)
+                return TRUE;  else return FALSE;
+
 /* thief */        
+case SKILL_TRACK:
 case SKILL_BACKSTAB:
         if (CLASS_LEVEL(ch, CLASS_THIEF))
                 return TRUE;  else return FALSE;
@@ -271,10 +306,6 @@ case SKILL_SPRING_ATTACK:  /* shared */
 case SKILL_EVASION:
         if (CLASS_LEVEL(ch, CLASS_THIEF) >= 8)
                 return TRUE;  else return FALSE;
-case SKILL_USE_MAGIC:  /* shared - with casters */
-        if ((CLASS_LEVEL(ch, CLASS_THIEF) >= 9) ||
-            (IS_CASTER(ch) && GET_LEVEL(ch) >= 2))
-          return TRUE;  else return FALSE;
 case SKILL_CRIP_STRIKE:
         if (CLASS_LEVEL(ch, CLASS_THIEF) >= 12)
                 return TRUE;  else return FALSE;
@@ -294,10 +325,10 @@ case SKILL_RAGE:
                 return TRUE;  else return FALSE;
                 
   /*** no reqs ***/
+    case SKILL_RESCUE:
     case SKILL_LUCK_OF_HEROES:
     case SKILL_TOUGHNESS:
     case SKILL_KICK:
-    case SKILL_TRACK:
     case SKILL_IMPROVED_CRITICAL:
     case SKILL_PROWESS:
     case SKILL_PROF_MINIMAL:

@@ -44,6 +44,7 @@ struct mud_event_list mud_event_index[] = {
   { "Rage"               , event_countdown, 	EVENT_CHAR  },  //eRAGE
   { "Acid arrow"         , event_acid_arrow, EVENT_CHAR  },  //eACIDARROW
   { "Defensive Roll"     , event_countdown,	EVENT_CHAR  }, // eD_ROLL
+  { "Purify"             , event_countdown,	EVENT_CHAR  }, // ePURIFY
 };
 
 
@@ -104,7 +105,7 @@ EVENTFUNC(event_countdown)
       send_to_char(ch, "You feel the effects of the taunt wear off.\r\n");
       break;
     case eD_ROLL:
-      send_to_char(ch, "You are now able to lay on hands again.\r\n");
+      send_to_char(ch, "You are now able to 'defensive roll' again.\r\n");
       break;
     case eLAYONHANDS:
       send_to_char(ch, "You are now able to perform a defensive roll "
@@ -127,6 +128,9 @@ EVENTFUNC(event_countdown)
     case eCRYSTALBODY:
       send_to_char(ch, "You are now able to use crystal"
                        " body again.\r\n");
+      break;
+    case ePURIFY:
+      send_to_char(ch, "You are now able to 'purify' again.\r\n");
       break;
     default:
     break;

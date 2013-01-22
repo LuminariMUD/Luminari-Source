@@ -358,14 +358,21 @@
 #define SKILL_EPIC_FORTITUDE            490  //implemented
 #define SKILL_EPIC_WILL                 491  //implemented
 #define SKILL_SHIELD_SPECIALIST         492  //implemented
-#define SKILL_USE_MAGIC                 493
-#define SKILL_EVASION                   494
-#define SKILL_IMP_EVASION               495
-#define SKILL_CRIP_STRIKE               496
-#define SKILL_SLIPPERY_MIND             497
-#define SKILL_DEFENSE_ROLL              498
+#define SKILL_USE_MAGIC                 493  //implemented
+#define SKILL_EVASION                   494  //implemented
+#define SKILL_IMP_EVASION               495  //implemented
+#define SKILL_CRIP_STRIKE               496  //implemented
+#define SKILL_SLIPPERY_MIND             497  //implemented
+#define SKILL_DEFENSE_ROLL              498  //implemented
+#define SKILL_GRACE                     499
+#define SKILL_DIVINE_HEALTH             500
+#define SKILL_LAY_ON_HANDS              501
+#define SKILL_COURAGE                   502
+#define SKILL_SMITE                     503
+#define SKILL_REMOVE_DISEASE            504
+#define SKILL_RECHARGE                  505
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      499
+#define NUM_SKILLS                      506
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the

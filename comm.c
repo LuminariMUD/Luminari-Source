@@ -982,8 +982,8 @@ void game_loop(socket_t local_mother_desc)
    *  PULSE_VIOLENCE, it has a little nicer feel to it
    */
 void pulse_luminari() {
-  struct char_data *i, *caster = NULL, *tch;
-  struct raff_node *raff, *next_raff;
+  struct char_data *i = NULL, *caster = NULL, *tch = NULL;
+  struct raff_node *raff = NULL, *next_raff = NULL;
   struct room_data *caster_room = NULL;
 
   // room-affections, loop through em
@@ -1049,6 +1049,21 @@ void pulse_luminari() {
                 TO_ROOM);
       }
     } //end cloudkill
+    
+    /* disease */
+    if (IS_AFFECTED(i, AFF_DISEASE)) {
+      if (!IS_NPC(i) && GET_SKILL(i, SKILL_DIVINE_HEALTH)) {
+        send_to_char(i, "The \tYdisease\tn you have fades away!\r\n");
+        act("$n glows bright \tWwhite\tn and the \tYdisease\tn $s had "
+                "fades away!", TRUE, i, 0, NULL, TO_ROOM);
+        increase_skill(i, SKILL_DIVINE_HEALTH);
+      } else if (GET_HIT(i) > (GET_MAX_HIT(i)*3/5)) {
+        send_to_char(i, "The \tYdisease\tn you have causes you to suffer!\r\n");
+        act("$n suffers from a \tYdisease\tn!", TRUE, i, 0, NULL,
+                  TO_ROOM);
+        GET_HIT(i) = GET_MAX_HIT(i) * 3 / 5;
+      }
+    }
     
   }  // end char list loop
 }
