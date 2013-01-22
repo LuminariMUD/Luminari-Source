@@ -52,6 +52,26 @@ const char *npc_race_types[] = {
 };
 
 
+// npc races, short form
+const char *npc_race_short[] = {
+   "???",
+   "Hmn",
+   "Und",
+   "Anm",
+   "Drg",
+   "Gnt",
+   "Abr",
+   "Con",
+   "Ele",
+   "Fey",
+   "Bst",
+   "MoH",
+   "Oze",
+   "Out",
+   "Plt",
+   "Ver"
+};
+
 // colored npc race abbreviations
 // for now full name for effect
 const char *npc_race_abbrevs[] = {
