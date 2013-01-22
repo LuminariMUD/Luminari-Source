@@ -654,7 +654,7 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
               QGRN, counter, QNRM,
               QGRN, mob_index[i].vnum, QNRM,
               QYEL, mob_proto[i].player.level, QNRM,
-              mob_proto[i].proto_script ? "Y" : "N",
+              mob_proto[i].proto_script ? "\tRY\tn" : "N",
               get_align_by_num_cnd(mob_proto[i].char_specials.saved.alignment),
               npc_race_short[mob_proto[i].player.race],
               QCYN, count_color_chars(mob_proto[i].player.short_descr)+44,
