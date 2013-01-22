@@ -2366,23 +2366,23 @@ char *convert_from_tabs(char * string)
 char *get_align_by_num_cnd(int align)
 {
   if (align >= 800)
-    return "\tWLG";
+    return "\tWLG\tn";
   if (align >= 575 && align < 800)
-    return "\tWNG";
+    return "\tWNG\tn";
   if (align >= 350 && align < 575)
-    return "\tWCG";
+    return "\tWCG\tn";
   if (align >= 125 && align < 350)
-    return "\tcLN";
+    return "\tcLN\tn";
   if (align < 125 && align > -125)
-    return "\tcTN";
+    return "\tcTN\tn";
   if (align <= -125 && align > -350)
-    return "\tcCN";
+    return "\tcCN\tn";
   if (align <= -350 && align > -575)
-    return "\tDLE";
+    return "\tDLE\tn";
   if (align <= -575 && align > -800)
-    return "\tDNE";
+    return "\tDNE\tn";
   if (align <= -800)
-    return "\tDCE";
+    return "\tDCE\tn";
 
   return "??";
 }

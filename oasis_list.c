@@ -24,6 +24,8 @@
 #include "quest.h"
 #include "modify.h"
 #include "spells.h"
+#include "race.h"
+
  
 #define MAX_OBJ_LIST 100
  
@@ -627,8 +629,8 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
   }
 
   len = strlcpy(buf,
-"Ind|VNum |Lvl|T|Al|Mobile Name                                 \r\n"
-"--- ----- --- - -- ------------------------------------------- \r\n",
+"Ind|VNum |Lv|T|Al|Rac|Mobile Name                                 \r\n"
+"--- ----- -- - -- --- ------------------------------------------- \r\n",
   sizeof(buf));
   if (!top_of_mobt)
     return;
@@ -648,12 +650,13 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
                    mob_proto[i].proto_script ? " [TRIG]" : ""
                    );*/
       len += snprintf(buf + len, sizeof(buf) - len, 
-           "%s%3d%s|%s%-5d%s|%s%3d%s|%s|%s|%s%-*s %s\r\n",
+           "%s%3d%s|%s%-5d%s|%s%2d%s|%s|%s|%s|%s%-*s %s\r\n",
               QGRN, counter, QNRM,
               QGRN, mob_index[i].vnum, QNRM,
               QYEL, mob_proto[i].player.level, QNRM,
               mob_proto[i].proto_script ? "Y" : "N",
               get_align_by_num_cnd(mob_proto[i].char_specials.saved.alignment),
+              npc_race_short[mob_proto[i].player.race],
               QCYN, count_color_chars(mob_proto[i].player.short_descr)+44,
               mob_proto[i].player.short_descr, QNRM        
               );
