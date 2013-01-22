@@ -364,13 +364,13 @@
 #define SKILL_CRIP_STRIKE               496  //implemented
 #define SKILL_SLIPPERY_MIND             497  //implemented
 #define SKILL_DEFENSE_ROLL              498  //implemented
-#define SKILL_GRACE                     499
-#define SKILL_DIVINE_HEALTH             500
-#define SKILL_LAY_ON_HANDS              501
-#define SKILL_COURAGE                   502
-#define SKILL_SMITE                     503
-#define SKILL_REMOVE_DISEASE            504
-#define SKILL_RECHARGE                  505
+#define SKILL_GRACE                     499  //implemented
+#define SKILL_DIVINE_HEALTH             500  //implemented
+#define SKILL_LAY_ON_HANDS              501  //implemented
+#define SKILL_COURAGE                   502  //implemented
+#define SKILL_SMITE                     503  //implemented
+#define SKILL_REMOVE_DISEASE            504  //implemented
+#define SKILL_RECHARGE                  505  //implemented
 /* New skills may be added here up to MAX_SKILLS (600) */
 #define NUM_SKILLS                      506
 

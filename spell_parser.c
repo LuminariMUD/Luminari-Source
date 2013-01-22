@@ -2003,12 +2003,12 @@ void mag_assign_spells(void)
   skillo(SKILL_CRIP_STRIKE,         "crippling strike");           //496
   skillo(SKILL_SLIPPERY_MIND,       "slippery mind");              //497
   skillo(SKILL_DEFENSE_ROLL,        "defensive roll");             //498
-  skillo(SKILL_GRACE,               "grace");                      //499
+  skillo(SKILL_GRACE,               "divine grace");               //499
   skillo(SKILL_DIVINE_HEALTH,       "divine health");              //500
   skillo(SKILL_LAY_ON_HANDS,        "lay on hands");               //501
   skillo(SKILL_COURAGE,             "courage");                    //502
   skillo(SKILL_SMITE,               "smite");                      //503
-  skillo(SKILL_REMOVE_DISEASE,      "remove disease");             //504
+  skillo(SKILL_REMOVE_DISEASE,      "purify");             //504
   skillo(SKILL_RECHARGE,            "recharge");                   //505
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
