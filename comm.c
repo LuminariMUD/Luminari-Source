@@ -1237,14 +1237,13 @@ void echo_on(struct descriptor_data *d)
 
 static char *make_prompt(struct descriptor_data *d)
 {
-  static char prompt[MAX_PROMPT_LENGTH];
+  static char prompt[MAX_PROMPT_LENGTH] = { '\0' };
   int door = 0, slen = 0;
   struct char_data *ch = NULL;
   int count = 0;
   size_t len = 0;
 
   ch = d->character;
-  *prompt = '\0';
 
   // Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h)
   if (d->showstr_count)
@@ -1355,7 +1354,8 @@ static char *make_prompt(struct descriptor_data *d)
       // autoprompt display rooms
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
-		world[IN_ROOM(ch)].name, CCNRM(d->character,C_NRM));
+                ProtocolOutput(d, world[IN_ROOM(ch)].name,
+                (int *)sizeof(world[IN_ROOM(ch)].name)), CCNRM(d->character,C_NRM));
         if (count >= 0)
           len += count;
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
