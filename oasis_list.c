@@ -648,7 +648,7 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
                    mob_proto[i].proto_script ? " [TRIG]" : ""
                    );*/
       len += snprintf(buf + len, sizeof(buf) - len, 
-           "%s%3d%s | %s%-5d%s | %s%3d%s | %s | %s%-*s %s\r\n",
+           "%s%3d%s|%s%-5d%s|%s%3d%s|%s|%s%-*s %s\r\n",
               QGRN, counter, QNRM,
               QGRN, mob_index[i].vnum, QNRM,
               QYEL, mob_proto[i].player.level, QNRM,
