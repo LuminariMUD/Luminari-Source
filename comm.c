@@ -1291,13 +1291,16 @@ static char *make_prompt(struct descriptor_data *d)
             (float)GET_MAX_HIT(d->character) * 100.0;        
       
       if (PRF_FLAGGED(d->character, PRF_DISPHP) && len < sizeof(prompt)) {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%d%s/%d%sH%s ",
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%d%s/%s%d%sH%s ",
 		hit_percent >= 100 ? CCWHT(ch, C_CMP) : hit_percent >= 90 ?
                   CBGRN(ch, C_CMP) : hit_percent >= 65 ? CCCYN(ch, C_CMP) :
                   hit_percent >= 25 ? CBYEL(ch, C_CMP) : CBRED(ch, C_CMP),
           GET_HIT(d->character), CCNRM(d->character,C_NRM), 
+		hit_percent >= 100 ? CCWHT(ch, C_CMP) : hit_percent >= 90 ?
+                  CBGRN(ch, C_CMP) : hit_percent >= 65 ? CCCYN(ch, C_CMP) :
+                  hit_percent >= 25 ? CBYEL(ch, C_CMP) : CBRED(ch, C_CMP),
           GET_MAX_HIT(d->character), CCYEL(d->character,C_NRM),
-                CCNRM(d->character,C_NRM));
+          CCNRM(d->character,C_NRM));
         if (count >= 0)
           len += count;
       }
