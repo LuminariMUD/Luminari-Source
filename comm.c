@@ -1316,6 +1316,32 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
+
+      // autoprompt display rooms
+      room_size = strlen(world[IN_ROOM(ch)].name);
+      if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
+                ProtocolOutput(d, world[IN_ROOM(ch)].name,
+                &room_size), CCNRM(d->character,C_NRM));
+        if (count >= 0)
+          len += count;
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
+          count = snprintf(prompt + len, sizeof(prompt) - len, "[%5d]%s ",
+                           GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
+          if (count >= 0)
+            len += count;
+        }
+      }
+
+      // autoprompt display memtime
+      if (PRF_FLAGGED(d->character, PRF_DISPMEMTIME) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "MEM: %d/%d/%d/%d ",
+		PRAYTIME(ch, 0, 0), PRAYTIME(ch, 0, 1),
+                PRAYTIME(ch, 0, 2), PRAYTIME(ch, 0, 3));
+        if (count >= 0)
+          len += count;
+      }      
+
       // autoprompt display exits
       if (PRF_FLAGGED(d->character, PRF_DISPEXITS) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
@@ -1351,32 +1377,7 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
-
-      // autoprompt display rooms
-      room_size = strlen(world[IN_ROOM(ch)].name);
-      if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
-                ProtocolOutput(d, world[IN_ROOM(ch)].name,
-                &room_size), CCNRM(d->character,C_NRM));
-        if (count >= 0)
-          len += count;
-        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
-          count = snprintf(prompt + len, sizeof(prompt) - len, "[%5d]%s ",
-                           GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
-          if (count >= 0)
-            len += count;
-        }
-      }
-
-      // autoprompt display memtime
-      if (PRF_FLAGGED(d->character, PRF_DISPMEMTIME) && len < sizeof(prompt)) {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "MEM: %d/%d/%d/%d ",
-		PRAYTIME(ch, 0, 0), PRAYTIME(ch, 0, 1),
-                PRAYTIME(ch, 0, 2), PRAYTIME(ch, 0, 3));
-        if (count >= 0)
-          len += count;
-      }      
-    }
+    } /* end prompt itself */
 
     if (PRF_FLAGGED(d->character, PRF_BUILDWALK) && len < sizeof(prompt)) {
       count = snprintf(prompt + len, sizeof(prompt) - len, "BUILDWALKING ");
