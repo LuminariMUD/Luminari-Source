@@ -1240,8 +1240,7 @@ static char *make_prompt(struct descriptor_data *d)
   static char prompt[MAX_PROMPT_LENGTH] = { '\0' };
   int door = 0, slen = 0;
   struct char_data *ch = NULL;
-  int count = 0;
-  int room_size = 0;
+  int count = 0, room_size = 0;
   size_t len = 0;
 
   ch = d->character;
@@ -1285,14 +1284,25 @@ static char *make_prompt(struct descriptor_data *d)
           len += count;
       }
     } else {
-    // not auto prompt
+      // not auto prompt
+
+      /* display hit points */
+      float hit_percent = (float)GET_HIT(d->character) /
+            (float)GET_MAX_HIT(d->character) * 100.0;        
+      
       if (PRF_FLAGGED(d->character, PRF_DISPHP) && len < sizeof(prompt)) {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sH%s ",
-		GET_HIT(d->character),GET_MAX_HIT(d->character),
-		CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%d%s/%d%sH%s ",
+		hit_percent >= 100 ? CCWHT(ch, C_CMP) : hit_percent >= 90 ?
+                  CBGRN(ch, C_CMP) : hit_percent >= 65 ? CCCYN(ch, C_CMP) :
+                  hit_percent >= 25 ? CBYEL(ch, C_CMP) : CBRED(ch, C_CMP),
+          GET_HIT(d->character), CCNRM(d->character,C_NRM), 
+          GET_MAX_HIT(d->character), CCYEL(d->character,C_NRM),
+                CCNRM(d->character,C_NRM));
         if (count >= 0)
           len += count;
       }
+
+      /* display mana points */
       if (PRF_FLAGGED(d->character, PRF_DISPMANA) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sM%s ",
 		GET_MANA(d->character),GET_MAX_MANA(d->character),
@@ -1300,6 +1310,8 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
+      
+      /* display move points */      
       if (PRF_FLAGGED(d->character, PRF_DISPMOVE) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sV%s ",
 		GET_MOVE(d->character),GET_MAX_MOVE(d->character),
@@ -1307,6 +1319,7 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
+      
       // autoprompt display exp to next level
       if (PRF_FLAGGED(d->character, PRF_DISPEXP) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sXP:%s%d ",
@@ -1316,9 +1329,10 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
-
+      
       // autoprompt display rooms
       room_size = strlen(world[IN_ROOM(ch)].name);
+      
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
                 ProtocolOutput(d, world[IN_ROOM(ch)].name,
@@ -1340,8 +1354,8 @@ static char *make_prompt(struct descriptor_data *d)
                 PRAYTIME(ch, 0, 2), PRAYTIME(ch, 0, 3));
         if (count >= 0)
           len += count;
-      }      
-
+      }
+      
       // autoprompt display exits
       if (PRF_FLAGGED(d->character, PRF_DISPEXITS) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
@@ -1376,8 +1390,8 @@ static char *make_prompt(struct descriptor_data *d)
                 slen ? "" : "None! ", CCNRM(ch, C_NRM));
         if (count >= 0)
           len += count;
-      }
-    } /* end prompt itself */
+      }      
+    } /* end prompt itself, start extra */
 
     if (PRF_FLAGGED(d->character, PRF_BUILDWALK) && len < sizeof(prompt)) {
       count = snprintf(prompt + len, sizeof(prompt) - len, "BUILDWALKING ");
