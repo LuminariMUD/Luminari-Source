@@ -34,17 +34,59 @@
 #include "modify.h"
 #include "race.h"
 #include "clan.h"
+#include "mud_event.h"
 /* Local defined utility functions */
 /* do_group utility functions */
 static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data * ch);
 
 
+ACMD(do_purify)
+{
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+  struct char_data *vict = NULL;
 
+  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_REMOVE_DISEASE)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+  
+  one_argument(argument, arg);
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    send_to_char(ch, "Whom do you want to purify?\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, ePURIFY)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    send_to_char(ch, "OOC:  The cooldown is approximately 6 minutes.\r\n");
+    return;
+  }
+
+  if (!IS_AFFECTED(vict, AFF_DISEASE)) {
+    send_to_char(ch, "Your target isn't diseased!\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
+  act("You are \tWhealed\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
+  act("$n \tWheals\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+  REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_DISEASE);
+
+  attach_mud_event(new_mud_event(ePURIFY, ch, NULL), 2 * SECS_PER_MUD_DAY);
+  update_pos(vict);
+  
+  increase_skill(ch, SKILL_REMOVE_DISEASE);
+}
+
+
+/* this is a temporary command, a simple cheesy way
+   to get rid of your followers in a bind */
 ACMD(do_dismiss)
 {
-  struct follow_type *k;
-  char buf[MAX_STRING_LENGTH];   
+  struct follow_type *k = NULL;
+  char buf[MAX_STRING_LENGTH] = { '\0' };   
 
   send_to_char(ch, "You dismiss your non-present followers.\r\n");   
   snprintf(buf, sizeof(buf), "$n dismisses $s non present followers.");
@@ -57,12 +99,21 @@ ACMD(do_dismiss)
 }
 
 
+/* recharge allows the refilling of charges for wands and staves
+   for a price */
 ACMD(do_recharge)
 {
-  char buf[MAX_INPUT_LENGTH];
-  struct obj_data *obj;
-  int maxcharge, mincharge, chargeval;
-
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  struct obj_data *obj = NULL;
+  int maxcharge = 0, mincharge = 0, chargeval = 0;
+  
+  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_RECHARGE))
+    ;
+  else {
+    send_to_char(ch, "You don't know how to do that!\r\n");
+    return;
+  }
+  
   argument = one_argument(argument, buf);
 
   if (!(obj = get_obj_in_list_vis(ch, buf, NULL, ch->carrying))) {
@@ -78,11 +129,6 @@ ACMD(do_recharge)
 
   if (GET_GOLD(ch) < 5000) {
     send_to_char(ch, "You don't have enough gold on hand!\r\n");
-    return;
-  }
-
-  if (CASTER_LEVEL(ch) < 15) {
-    send_to_char(ch, "You don't know enough about magicks!\r\n");
     return;
   }
 
@@ -310,23 +356,24 @@ int meet_class_reqs(struct char_data *ch, int class)
 }
 
 
-
+/* simple function to list classes with a "valid" check */
 void list_valid_classes(struct char_data *ch)
 {
   int i;
 
   for (i = 0; i < NUM_CLASSES; i++) {
     if (meet_class_reqs(ch, i)) {
-      send_to_char(ch, "%d) %s\r\n", i, pc_class_types[i]);
+      send_to_char(ch, "%s\r\n", pc_class_types[i]);
     }
   }
   send_to_char(ch, "\r\n");
 }
 
 
+/* reset character to level 1, but preserve xp */
 ACMD(do_respec)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
   int class = -1;
 
   if (IS_NPC(ch) || !ch->desc)
@@ -370,10 +417,11 @@ ACMD(do_respec)
 }
 
 
+/* level advancement, with multi-class support */
 #define MULTICAP	3
 ACMD(do_gain)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
   int is_altered = FALSE, num_levels = 0;
   int class = -1, i, classCount = 0;
 
@@ -443,12 +491,14 @@ ACMD(do_gain)
 }
 #undef MULTICAP
 
+
 /* shapechange function */
 /* header file:  act.h */
 void list_forms(struct char_data *ch)
 {
   send_to_char(ch, "%s\r\n", npc_race_menu);
 }
+
 
 /* shapechange function */
 /* header file:  act.h */
@@ -481,6 +531,7 @@ void perform_shapechange(struct char_data *ch, char *arg)
   }
   
 }
+
 
 /* a trivial shapechange code for druids */
 ACMD(do_shapechange)
@@ -542,6 +593,7 @@ ACMD(do_quit)
   }
 }
 
+
 ACMD(do_save)
 {
   if (IS_NPC(ch) || !ch->desc)
@@ -555,6 +607,7 @@ ACMD(do_save)
   GET_LOADROOM(ch) = GET_ROOM_VNUM(IN_ROOM(ch));
 }
 
+
 /* Generic function for commands which are normally overridden by special
  * procedures - i.e., shop commands, mail commands, etc. */
 ACMD(do_not_here)
@@ -563,12 +616,13 @@ ACMD(do_not_here)
 }
 
 
+/* ability lore, functions like identify */
 ACMD(do_lore)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
   struct char_data *tch = NULL;
   struct obj_data *tobj = NULL;
-  int target;
+  int target = 0;
 
   if (IS_NPC(ch))
     return;
@@ -719,6 +773,7 @@ ACMD(do_lore)
 }
 
 
+/* a generic command to get rid of a fly flag */
 ACMD(do_land)
 {  
   if (affected_by_spell(ch, SPELL_FLY)) {
@@ -735,6 +790,7 @@ ACMD(do_land)
 }
 
 
+/* race trelux innate ability */
 ACMD(do_fly)
 {
   if (GET_RACE(ch) != RACE_TRELUX) {
@@ -746,6 +802,7 @@ ACMD(do_fly)
 }
 
 
+/* entry point for sneak, the command just flips the flag */
 ACMD(do_sneak)
 {
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
@@ -770,6 +827,7 @@ ACMD(do_sneak)
 }
 
 
+/* entry point for hide, the command just flips the flag */
 ACMD(do_hide)
 {
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
@@ -793,6 +851,7 @@ ACMD(do_hide)
 }
 
 
+/* spot-mode, similar to search - try to find hidden/sneaking targets */
 ACMD(do_spot)
 {
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
@@ -816,6 +875,7 @@ ACMD(do_spot)
 }
 
 
+/* fairly stock steal command */
 ACMD(do_steal)
 {
   struct char_data *vict;
@@ -940,6 +1000,8 @@ ACMD(do_steal)
 }
 
 
+/* entry point for listing spells, the rest of the code is in spec_procs.c */
+/* this only lists spells castable for a given class */
 ACMD(do_spells)
 {
   char arg[MAX_INPUT_LENGTH];
@@ -973,6 +1035,8 @@ ACMD(do_spells)
 }
 
 
+/* entry point for listing spells, the rest of the code is in spec_procs.c */
+/* this lists all spells attainable for given class */
 ACMD(do_spelllist)
 {
   char arg[MAX_INPUT_LENGTH];
@@ -1006,6 +1070,8 @@ ACMD(do_spelllist)
 }
 
 
+/* entry point for boost (stat training), the rest of code is in
+   the guild code in spec_procs */
 ACMD(do_boosts)
 {
   char arg[MAX_INPUT_LENGTH];
@@ -1037,6 +1103,8 @@ ACMD(do_boosts)
 }
 
 
+/* skill practice entry point, the rest of the
+ * code is in spec_procs.c guild code */
 ACMD(do_practice)
 {
   char arg[MAX_INPUT_LENGTH];
@@ -1060,6 +1128,8 @@ ACMD(do_practice)
 }
 
 
+/* ability training entry point, the rest of the
+ * code is in spec_procs.c guild code */
 ACMD(do_train)
 {
   char arg[MAX_INPUT_LENGTH];
@@ -1082,6 +1152,7 @@ ACMD(do_train)
 }
 
 
+/* general command to drop any invisibility affects */
 ACMD(do_visible)
 {
   if (GET_LEVEL(ch) >= LVL_IMMORT) {
@@ -1090,7 +1161,7 @@ ACMD(do_visible)
   }
 
   if AFF_FLAGGED(ch, AFF_INVISIBLE) {
-    appear(ch);
+    appear(ch, TRUE);  //forced for greater invis
     send_to_char(ch, "You break the spell of invisibility.\r\n");
   } else
     send_to_char(ch, "You are already visible.\r\n");
@@ -1264,7 +1335,9 @@ ACMD(do_group)
 
 }
 
-ACMD(do_report)
+
+/* the actual group report command */
+ACMD(do_greport)
 {
   struct group_data *group;
 
@@ -1274,6 +1347,18 @@ ACMD(do_report)
   }
 
   send_to_group(NULL, group, "%s reports: %d/%dH, %d/%dM, %d/%dV\r\n",
+	  GET_NAME(ch),	GET_HIT(ch), GET_MAX_HIT(ch),
+	  GET_MANA(ch), GET_MAX_MANA(ch),
+	  GET_MOVE(ch), GET_MAX_MOVE(ch));
+}
+
+
+/* this use to be group report, switched it to general */
+ACMD(do_report)
+{
+
+  /* generalized output due to send_to_room */
+  send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
 	  GET_NAME(ch),	GET_HIT(ch), GET_MAX_HIT(ch),
 	  GET_MANA(ch), GET_MAX_MANA(ch),
 	  GET_MOVE(ch), GET_MAX_MOVE(ch));

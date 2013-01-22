@@ -39,7 +39,7 @@ const char *class_abbrevs[] = {
   "\tGD\tgr\tGu\tn",
   "\trB\tRz\trk\tn",
   "\tMSrc\tn",
-  "\tWPld\tn",
+  "\tWPal\tn",
   "\n"
 };
 
@@ -437,11 +437,36 @@ void berserker_skills(struct char_data *ch, int level) {
  */
 void paladin_skills(struct char_data *ch, int level) {
   switch (level) {
+    case 2:
+      if (!GET_SKILL(ch, SKILL_GRACE))
+        SET_SKILL(ch, SKILL_GRACE, 75);
+      send_to_char(ch, "\tMYou have learned 'Divine Grace'\tn\r\n");
+      break;
+    case 3:
+      if (!GET_SKILL(ch, SKILL_DIVINE_HEALTH))
+        SET_SKILL(ch, SKILL_DIVINE_HEALTH, 75);
+      send_to_char(ch, "\tMYou have learned 'Divine Health'\tn\r\n");
+      break;
+    case 4:
+      if (!GET_SKILL(ch, SKILL_COURAGE))
+        SET_SKILL(ch, SKILL_COURAGE, 75);
+      send_to_char(ch, "\tMYou have learned 'Paladin's Courage'\tn\r\n");
+      break;
+    case 5:
+      if (!GET_SKILL(ch, SKILL_SMITE))
+        SET_SKILL(ch, SKILL_SMITE, 75);
+      send_to_char(ch, "\tMYou have learned 'Smite Evil'\tn\r\n");
+      break;
     case 6:
       if (!GET_SKILL(ch, SKILL_USE_MAGIC))
         SET_SKILL(ch, SKILL_USE_MAGIC, 75);
       send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
       break;    
+    case 7:
+      if (!GET_SKILL(ch, SKILL_REMOVE_DISEASE))
+        SET_SKILL(ch, SKILL_REMOVE_DISEASE, 75);
+      send_to_char(ch, "\tMYou have learned 'Purify'\tn\r\n");
+      break;
     default:
       break;
   }

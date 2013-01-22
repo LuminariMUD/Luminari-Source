@@ -410,6 +410,7 @@ const char *affected_bits[] =
   "Spot-Mode",
   "Fatigued",
   "Regenning",
+  "Diseased",
   "\n"
 };
 

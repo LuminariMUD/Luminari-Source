@@ -88,14 +88,11 @@ int compute_mag_saves(struct char_data *vict,
 	int type, int modifier){
 
   int saves = 0;
-  
+
+  /* specific saves and related bonuses/penalties */
   switch (type) {
     case SAVING_FORT:
       saves += GET_CON_BONUS(vict);
-      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
-        saves++;
-      if (GET_RACE(vict) == RACE_HALFLING)
-        saves++;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_GREAT_FORTITUDE))
         saves += 2;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_FORTITUDE))
@@ -103,10 +100,6 @@ int compute_mag_saves(struct char_data *vict,
       break;
     case SAVING_REFL:
       saves += GET_DEX_BONUS(vict);
-      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
-        saves++;
-      if (GET_RACE(vict) == RACE_HALFLING)
-        saves++;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LIGHTNING_REFLEXES))
         saves += 2;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_REFLEXES))
@@ -114,10 +107,6 @@ int compute_mag_saves(struct char_data *vict,
       break;
     case SAVING_WILL:
       saves += GET_WIS_BONUS(vict);
-      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
-        saves++;
-      if (GET_RACE(vict) == RACE_HALFLING)
-        saves++;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_IRON_WILL))
         saves += 2;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_WILL))
@@ -125,6 +114,19 @@ int compute_mag_saves(struct char_data *vict,
       break;
   }
 
+  /* universal bonuses/penalties */
+  if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
+    saves++;
+  if (!IS_NPC(vict) && GET_RACE(vict) == RACE_HALFLING)
+    saves++;
+  if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_GRACE)) {
+    increase_skill(vict, SKILL_GRACE);
+    /* i decided to cap this, a little too powerful otherwise */
+    saves += MIN(CLASS_LEVEL(vict, CLASS_PALADIN) + 2,
+                 GET_CHA_BONUS(vict));
+  }
+  
+  /* determine base, add/minus bonus/penalty and return */
   if (IS_NPC(vict))
     saves += (GET_LEVEL(vict) / 3) + 1;
   else
@@ -134,6 +136,8 @@ int compute_mag_saves(struct char_data *vict,
 
   return MIN(50, MAX(saves, 0));
 }
+
+
 const char *save_names[] = { "Fort", "Refl", "Will", "", "" };
 // TRUE = resisted
 // FALSE = Failed to resist

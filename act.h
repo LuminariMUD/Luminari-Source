@@ -55,6 +55,7 @@ ACMD(do_write);
 
 // char creation help files
 void perform_help(struct descriptor_data *d, char *argument);
+void perform_affects(struct char_data *ch, struct char_data *k);
 
 // displaying more info -zusuk
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode);
@@ -209,6 +210,7 @@ ACMD(do_expertise);
 ACMD(do_flee);
 ACMD(do_stunningfist);
 ACMD(do_kick);
+ACMD(do_smite);
 ACMD(do_kill);
 ACMD(do_layonhands);
 ACMD(do_order);
@@ -297,6 +299,8 @@ ACMD(do_gain);
 ACMD(do_display);
 ACMD(do_shapechange);
 ACMD(do_group);
+ACMD(do_greport);
+ACMD(do_purify);
 ACMD(do_happyhour);
 ACMD(do_hide);
 ACMD(do_lore);

@@ -45,6 +45,7 @@ typedef enum {
     eRAGE,
     eACIDARROW,
     eD_ROLL,
+    ePURIFY,
 } event_id;
 
 struct mud_event_list {
@@ -77,16 +78,7 @@ EVENTFUNC(event_countdown);
 EVENTFUNC(get_protocols);
 EVENTFUNC(event_whirlwind);
 EVENTFUNC(event_casting);
-EVENTFUNC(event_treatinjury);
-EVENTFUNC(event_layonhands);
-EVENTFUNC(event_taunt);
-EVENTFUNC(event_taunted);
 EVENTFUNC(event_memorizing);
-EVENTFUNC(event_stunned);
-EVENTFUNC(event_stunningfist);
 EVENTFUNC(event_crafting);
-EVENTFUNC(event_crystalfist);
-EVENTFUNC(event_crystalbody);
-EVENTFUNC(event_rage);
 EVENTFUNC(event_acid_arrow);
 #endif /* _MUD_EVENT_H_ */

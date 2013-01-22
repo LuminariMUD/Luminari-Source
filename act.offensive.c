@@ -794,10 +794,12 @@ ACMD(do_trip)
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
+  
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
+  
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
       vict = FIGHTING(ch);
@@ -806,26 +808,32 @@ ACMD(do_trip)
       return;
     }
   }
+  
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
+  
   if (MOB_FLAGGED(vict, MOB_NOKILL)) {
     send_to_char(ch, "This mob is protected.\r\n");
     return;
   }
+  
   if (GET_POS(vict) == POS_SITTING) {
     send_to_char(ch, "Your target is already prone!\r\n");
     return;
   }
+  
   if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2) {
     send_to_char(ch, "Your target is too small!\r\n");
     return;
   }
+  
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
     send_to_char(ch, "Your target is too big!\r\n");
     return;
   }
+  
   if (AFF_FLAGGED(vict, AFF_FLYING)) {
     send_to_char(ch, "Impossible, your target is flying!\r\n");
     return;
@@ -846,6 +854,7 @@ ACMD(do_trip)
 
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     percent += compute_ability(vict, ABILITY_DISCIPLINE);
+  
   if (GET_RACE(ch) == RACE_DWARF ||
           GET_RACE(ch) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
     percent += 4;
@@ -863,6 +872,7 @@ ACMD(do_trip)
   }
 
   WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_TRIP);
 }
@@ -870,13 +880,14 @@ ACMD(do_trip)
 
 ACMD(do_layonhands)
 {
-  char arg[MAX_INPUT_LENGTH];
-  struct char_data *vict;
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+  struct char_data *vict = NULL;
 
-  if (IS_NPC(ch) || GET_LEVEL(ch) < LVL_IMMORT) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
+  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_LAY_ON_HANDS)) {
+    send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
+  
   one_argument(argument, arg);
 
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
@@ -893,9 +904,14 @@ ACMD(do_layonhands)
   send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
   act("You are \tWhealed\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
   act("$n \tWheals\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+
   attach_mud_event(new_mud_event(eLAYONHANDS, ch, NULL), 2 * SECS_PER_MUD_DAY);
-  GET_HIT(vict) = GET_MAX_HIT(vict);
+  GET_HIT(vict) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch),
+          20 + GET_LEVEL(ch) + 
+          (GET_CHA_BONUS(ch) * CLASS_LEVEL(ch, CLASS_PALADIN)));
   update_pos(vict);
+  
+  increase_skill(ch, SKILL_LAY_ON_HANDS);
 }
 
 
@@ -1213,11 +1229,58 @@ ACMD(do_stunningfist)
 }
 
 
+ACMD(do_smite)
+{
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+  struct char_data *vict = NULL;
+  int percent = 0, prob = 0;
+
+  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_SMITE)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  one_argument(argument, arg);
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+      vict = FIGHTING(ch);
+    } else {
+      send_to_char(ch, "Smite who?\r\n");
+      return;
+    }
+  }
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+  /* 101% is a complete failure */
+  percent = rand_number(1, 101);
+  prob = GET_SKILL(ch, SKILL_SMITE);
+
+  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
+    percent += compute_ability(vict, ABILITY_DISCIPLINE);
+
+  if (percent > prob) {
+    damage(ch, vict, 0, SKILL_SMITE, DAM_FORCE, FALSE);
+  } else
+    damage(ch, vict, GET_LEVEL(ch) * 2, SKILL_SMITE, DAM_FORCE, FALSE);
+
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_SMITE);
+  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
+}
+
+
 ACMD(do_kick)
 {
-  char arg[MAX_INPUT_LENGTH];
-  struct char_data *vict;
-  int percent, prob;
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+  struct char_data *vict = NULL;
+  int percent = 0, prob = 0;
 
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_KICK)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -1258,3 +1321,4 @@ ACMD(do_kick)
     increase_skill(ch, SKILL_KICK);
   WAIT_STATE(ch, PULSE_VIOLENCE * 3);
 }
+

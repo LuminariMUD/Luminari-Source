@@ -757,104 +757,9 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j)
 
 static void do_affstat_character(struct char_data *ch, struct char_data *k)
 {
-  char buf[MAX_STRING_LENGTH];
-  struct affected_type *aff;
-  struct mud_event_data *pMudEvent;  
-  int i;
-
-  send_to_char(ch,
-"\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
-
-  /* Showing the bitvector */
-  sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
-  send_to_char(ch, "\tCAFF: \tn%s\r\n", buf);
-
-  /* Routine to show what spells a char is affected by */
-  if (k->affected) {
-    for (aff = k->affected; aff; aff = aff->next) {
-      send_to_char(ch, "\tCSPL: (\tn%3d\tC rounds) %-21s ",
-        aff->duration + 1, skill_name(aff->spell));
-
-      if (aff->modifier)
-	send_to_char(ch, "%+d \tCto\tn %s", aff->modifier, apply_types[(int) aff->location]);
-
-      if (aff->bitvector[0] || aff->bitvector[1] || aff->bitvector[2] || aff->bitvector[3]) {
-        if (aff->modifier)
-          send_to_char(ch, ", ");
-        for (i=0; i<NUM_AFF_FLAGS; i++) {
-          if (IS_SET_AR(aff->bitvector, i)) {
-            send_to_char(ch, "\tCsets\tn %s, ", affected_bits[i]);
-          }
-        }
-      }
-      send_to_char(ch, "\r\n");
-    }
-  }
-
-  send_to_char(ch,
-"\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
-
-  send_to_char(ch, "\tCCooldowns (positive and negative):\tn\r\n");
-  if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
-    send_to_char(ch, "Rage - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));  
-  if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
-    send_to_char(ch, "Taunt - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
-    send_to_char(ch, "Crystal Fist - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
-    send_to_char(ch, "Crystal Body - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
-    send_to_char(ch, "Lay on Hands - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
-    send_to_char(ch, "Treat Injuries - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eMUMMYDUST)))
-    send_to_char(ch, "Epic Spell:  Mummy Dust - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eDRAGONKNIGHT)))
-    send_to_char(ch, "Epic Spell:  Dragon Knight - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eGREATERRUIN)))
-    send_to_char(ch, "Epic Spell:  Greater Ruin - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eHELLBALL)))
-    send_to_char(ch, "Epic Spell:  Hellball - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eEPICMAGEARMOR)))
-    send_to_char(ch, "Epic Spell:  Epic Mage Armor - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
-    send_to_char(ch, "Epic Spell:  Epic Warding - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eSTUNNINGFIST)))
-    send_to_char(ch, "Stunning Fist - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  send_to_char(ch, 
-"\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
-  if ((pMudEvent = char_has_mud_event(ch, eTAUNTED)))
-    send_to_char(ch, "\tRTaunted!\tn - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-  if ((pMudEvent = char_has_mud_event(ch, eSTUNNED)))
-    send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n",
-            (int)(event_time(pMudEvent->pEvent)/10));
-
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\tCDamType Resist / Vulner\tn\r\n");
-  for (i = 0; i < NUM_DAM_TYPES-1; i++) {
-    send_to_char(ch, "%-15s: %-4d%% (%-2d)   ", damtype_display[i+1],
-                compute_damtype_reduction(k, i+1), compute_energy_absorb(k, i+1));
-    if (i % 2)
-      send_to_char(ch, "\r\n");
-  }
-  send_to_char(ch, "\r\n");
-
-  send_to_char(ch,
-"\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
+  
+  perform_affects(ch, k);
+  
 }
 
 
@@ -1880,7 +1785,7 @@ void perform_immort_vis(struct char_data *ch)
   }
 
   GET_INVIS_LEV(ch) = 0;
-  appear(ch);
+  appear(ch, FALSE);
   send_to_char(ch, "You are now fully visible.\r\n");
 }
 

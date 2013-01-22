@@ -138,7 +138,7 @@ void perform_flee(struct char_data *ch)
 
 }
 
-void appear(struct char_data *ch)
+void appear(struct char_data *ch, bool forced)
 {
 
   if (affected_by_spell(ch, SPELL_INVISIBLE))
@@ -157,9 +157,16 @@ void appear(struct char_data *ch)
   }
 
   //this is a hack, so order in this function is important
-  if (affected_by_spell(ch, SPELL_GREATER_INVIS))
-    return;
+  if (affected_by_spell(ch, SPELL_GREATER_INVIS)) {
+    if (forced) {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_INVISIBLE);
+      send_to_char(ch, "You snap into visibility...\r\n");
+      act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
+    } else
+      return;      
+  }
 
+  /* this has to come after greater_invis */
   if (AFF_FLAGGED(ch, AFF_INVISIBLE)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_INVISIBLE);
     send_to_char(ch, "You snap into visibility...\r\n");
@@ -1532,7 +1539,7 @@ int damage(struct char_data *ch, struct char_data *victim,
 
   // lose hide/invis
   if (AFF_FLAGGED(ch, AFF_INVISIBLE) || AFF_FLAGGED(ch, AFF_HIDE))
-    appear(ch);
+    appear(ch, FALSE);
 
   if (GET_POS(victim) == POS_DEAD)  // victim died
     return (dam_killed_vict(ch, victim, dam, attacktype, dam_type));
@@ -2074,7 +2081,8 @@ void hit(struct char_data *ch, struct char_data *victim,
       damage(ch, victim, dam * backstab_mult(GET_LEVEL(ch)),
 		SKILL_BACKSTAB, dam_type, offhand);
       /* crippling strike */
-      if (dam && !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
+      if (dam && GET_SKILL(ch, SKILL_CRIP_STRIKE) &&
+              !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
         new_affect(&af);
         
         af.spell = SKILL_CRIP_STRIKE;
@@ -2570,6 +2578,15 @@ void perform_violence(void)
 
     autoDiagnose(ch);
 
+    if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
+            GET_SKILL(ch, SKILL_COURAGE)) {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+      send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
+      act("$n \tWovercomes the \tDfear\tW with courage!\tn\tn",
+		TRUE, ch, 0, 0, TO_ROOM);
+      increase_skill(ch, SKILL_COURAGE);
+      return;
+    }    
 
     if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0,2)) {
       send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");
