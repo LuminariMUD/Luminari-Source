@@ -824,9 +824,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
             (GET_SKILL(victim, SKILL_IMP_EVASION)))
       dam /= 2;
     
-    if (GET_SKILL(victim, SKILL_EVASION))
+    if (!IS_NPC(victim) && GET_SKILL(victim, SKILL_EVASION))
       increase_skill(victim, SKILL_EVASION);
-    if (GET_SKILL(victim, SKILL_IMP_EVASION))
+    if (!IS_NPC(victim) && GET_SKILL(victim, SKILL_IMP_EVASION))
       increase_skill(victim, SKILL_IMP_EVASION);
   }
   
