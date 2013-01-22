@@ -1572,6 +1572,7 @@ int count_non_protocol_chars(char * str)
   return count;
 }
 
+/* simple test to check if the given ch has infravision */
 bool char_has_infra(struct char_data *ch)
 {
   if (AFF_FLAGGED(ch, AFF_INFRAVISION))
@@ -1594,6 +1595,7 @@ bool char_has_infra(struct char_data *ch)
 }
 
 
+/* simple test to check if the given ch has ultra (perfect dark vision) */
 bool char_has_ultra(struct char_data *ch)
 {
   if (AFF_FLAGGED(ch, AFF_ULTRAVISION))
@@ -2265,6 +2267,7 @@ char *strpaste(char *str1, char *str2, char *joiner)
   return ret;
 }
 
+/* with given name, returns character structure if found */
 struct char_data *is_playing(char *vict_name)
 {
   extern struct descriptor_data *descriptor_list;
@@ -2282,6 +2285,7 @@ struct char_data *is_playing(char *vict_name)
   return NULL;
 }
 
+/* for displaying large numbers with commas */
 char *add_commas(long num)
 {
   int i, j = 0, len;
@@ -2349,6 +2353,7 @@ int get_subrace_by_name(char *racename)
     return (-1);
 }
 
+/* parse tabs function */
 char *convert_from_tabs(char * string)
 {
   static char buf[MAX_STRING_LENGTH * 8];
@@ -2357,4 +2362,30 @@ char *convert_from_tabs(char * string)
   parse_tab(buf);
   return(buf);
 }
+
+
+char *get_align_by_num(int align)
+{
+  if (align >= 800)
+    return "\tYLawful \tWGood\tn";
+  if (align >= 575 && align < 800)
+    return "\tcNeutral \tWGood\tn";
+  if (align >= 350 && align < 575)
+    return "\tRChaotic \tWGood\tn";
+  if (align >= 125 && align < 350)
+    return "\tYLawful \tcNeutral\tn";
+  if (align < 125 && align > -125)
+    return "\tcTrue Neutral\tn";
+  if (align <= -125 && align > -350)
+    return "\tRChaotic \tcNeutral\tn";
+  if (align <= -350 && align > -575)
+    return "\tYLawful \tDEvil\tn";
+  if (align <= -575 && align > -800)
+    return "\tcNeutral \tDEvil\tn";
+  if (align <= -800)
+    return "\tRChaotic \tDEvil\tn";
+
+  return "Unknown";
+}
+
 

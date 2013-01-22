@@ -38,6 +38,7 @@
 
 /* Public functions made available from utils.c. Documentation for all functions
  * are made available with the function definition. */
+char *get_align_by_num(int align);
 bool can_see_hidden(struct char_data *ch, const struct char_data *vict);
 void increase_skill(struct char_data *ch, int skillnum);
 int convert_material_vnum(int obj_vnum);
@@ -988,7 +989,16 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 /** Defines if ch is neither good nor evil. */
 #define IS_NEUTRAL(ch) (!IS_GOOD(ch) && !IS_EVIL(ch))
 
-
+/* dnd type of alignments */
+#define IS_LG(ch)      (GET_ALIGNMENT(ch) >= 800)
+#define IS_NG(ch)      (GET_ALIGNMENT(ch) >= 575 && GET_ALIGNMENT(ch) < 800)
+#define IS_CG(ch)      (GET_ALIGNMENT(ch) >= 350 && GET_ALIGNMENT(ch) < 575)
+#define IS_LN(ch)      (GET_ALIGNMENT(ch) >= 125 && GET_ALIGNMENT(ch) < 350)
+#define IS_NN(ch)      (GET_ALIGNMENT(ch) < 125 && GET_ALIGNMENT(ch) > -125)
+#define IS_CN(ch)      (GET_ALIGNMENT(ch) <= -125 && GET_ALIGNMENT(ch) > -350)
+#define IS_LE(ch)      (GET_ALIGNMENT(ch) <= -350 && GET_ALIGNMENT(ch) > -575)
+#define IS_NE(ch)      (GET_ALIGNMENT(ch) <= -575 && GET_ALIGNMENT(ch) > -800)
+#define IS_CE(ch)      (GET_ALIGNMENT(ch) <= -800)
 
 
 /** Old wait state function.
