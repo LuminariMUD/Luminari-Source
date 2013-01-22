@@ -829,8 +829,8 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
   }
   
   send_to_char(ch, "\tCCrntClass:\tn %s  ", pc_class_types[GET_CLASS(k)]);
-  send_to_char(ch, "\tCLvl: [\tn%d\tC]  XP: [\tn%d\tC]  Algn: [\tn%d\tC]\tn\r\n",
-	GET_LEVEL(k), GET_EXP(k), GET_ALIGNMENT(k));
+  send_to_char(ch, "\tCLvl: [\tn%d\tC]  XP: [\tn%d\tC]  Algn: [\tn%s%d\tC]\tn\r\n",
+	GET_LEVEL(k), GET_EXP(k), get_align_by_num(GET_ALIGNMENT(k)), GET_ALIGNMENT(k) );
 
   if (!IS_NPC(k)) {
     send_to_char(ch, "\tCClass Array:\tn  ");
