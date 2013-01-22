@@ -627,8 +627,8 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
   }
 
   len = strlcpy(buf,
-"Indx|VNum |Lvl|T|Mobile Name                                 \r\n"
-"---- ----- --- - ------------------------------------------- \r\n",
+"Ind|VNum |Lvl|T|Mobile Name                                 \r\n"
+"--- ----- --- - ------------------------------------------- \r\n",
   sizeof(buf));
   if (!top_of_mobt)
     return;
