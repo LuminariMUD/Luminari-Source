@@ -411,6 +411,8 @@ const char *affected_bits[] =
   "Fatigued",
   "Regenning",
   "Diseased",
+  "T-Transform",
+  "Globe of Invulnerability",
   "\n"
 };
 
