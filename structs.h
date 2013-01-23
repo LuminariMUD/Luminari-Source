@@ -100,12 +100,13 @@
 #define NUM_ROOM_FLAGS    18
 
 // Room affects
-#define RAFF_FOG	(1 << 0)
-#define RAFF_DARKNESS	(1 << 1)
-#define RAFF_LIGHT	(1 << 2)
-#define RAFF_STINK	(1 << 3)
-#define RAFF_BILLOWING	(1 << 4)
-#define NUM_RAFF    5
+#define RAFF_FOG         (1 << 0)
+#define RAFF_DARKNESS    (1 << 1)
+#define RAFF_LIGHT       (1 << 2)
+#define RAFF_STINK       (1 << 3)
+#define RAFF_BILLOWING   (1 << 4)
+#define RAFF_ANTI_MAGIC  (1 << 5)
+#define NUM_RAFF    6
 
 /* Zone info: Used in zone_data.zone_flags */
 #define ZONE_CLOSED       0  /**< Zone is closed - players cannot enter */
@@ -475,9 +476,12 @@
 #define AFF_FATIGUED     47
 #define AFF_REGEN        48
 #define AFF_DISEASE      49
+#define AFF_TFORM        50  //tenser's transformation
+#define AFF_GLOBE_OF_INVULN        51
+
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS   50
+#define NUM_AFF_FLAGS   52
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/

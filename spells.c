@@ -158,6 +158,68 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
   // should never get here
 }
 
+
+/* for dispel magic and greater dispelling */
+/* a hack job so far, gets rid of the first x affections */
+void perform_dispel(struct char_data *ch, struct char_data *vict, int spellnum)
+{
+  int i = 0, attempt = 0, challenge = 0, num_dispels = 0, msg = FALSE;
+
+  if (vict == ch) {
+    send_to_char(ch, "You dispel all your own magic!\r\n");
+    act("$n dispels all $s magic!", FALSE, ch, 0, 0, TO_ROOM);
+    if (ch->affected || AFF_FLAGS(ch)) {
+      while (ch->affected) {
+        if (spell_info[ch->affected->spell].wear_off_msg)
+          send_to_char(ch, "%s\r\n",
+                       spell_info[ch->affected->spell].wear_off_msg);
+        affect_remove(ch, ch->affected);
+      }
+      for(i = 0; i < AF_ARRAY_MAX; i++)
+        AFF_FLAGS(ch)[i] = 0;
+    }
+    return;
+  } else {
+    attempt = dice(1, 20) + CASTER_LEVEL(ch);
+    challenge = dice(1, 20) + CASTER_LEVEL(vict);
+    
+    if (spellnum == SPELL_GREATER_DISPELLING) {
+      num_dispels = dice(2, 2);
+      for (i = 0; i < num_dispels; i++) {
+        if (attempt >= challenge) {  //successful
+          if (vict->affected) {
+            msg = TRUE;
+            affect_remove(vict, vict->affected);          
+          }
+        }
+        attempt = dice(1, 20) + CASTER_LEVEL(ch);
+        challenge = dice(1, 20) + CASTER_LEVEL(vict);
+      }
+      if (msg) {
+        send_to_char(ch, "You successfully dispel some magic!\r\n");
+        act("$n dispels some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);
+      } else {
+        send_to_char(ch, "You fail your dispel magic attempt!\r\n");
+        act("$n fails to dispel some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);        
+      }
+      return;
+    }
+    
+    if (spellnum == SPELL_DISPEL_MAGIC) {
+      if (attempt >= challenge) {  //successful
+        send_to_char(ch, "You successfuly dispel some magic!\r\n");
+        act("$n dispels some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);
+          if (vict->affected)
+            affect_remove(vict, vict->affected);
+      } else {  //failed
+        send_to_char(ch, "You fail your dispel magic attempt!\r\n");
+        act("$n fails to dispel some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);
+      }
+    }
+  }  
+}
+
+
   /* The "return" of the event function is the time until the event is called
    * again. If we return 0, then the event is freed and removed from the list, but
    * any other numerical response will be the delay until the next call */
@@ -532,43 +594,27 @@ ASPELL(spell_locate_object)
 }
 
 
-ASPELL(spell_dispel_magic)  // divination
+ASPELL(spell_greater_dispelling)  // abjuration
 {
-  int i, attempt = 0, challenge = 0;
-
+  
   if (ch == NULL)
     return;
   if (victim == NULL)
     victim = ch;
 
-  if (victim == ch) {
-    send_to_char(ch, "You dispel all your own magic!\r\n");
-    act("$n dispels all $s magic!", FALSE, ch, 0, 0, TO_ROOM);
-    if (ch->affected || AFF_FLAGS(ch)) {
-      while (ch->affected) {
-        if (spell_info[ch->affected->spell].wear_off_msg)
-          send_to_char(ch, "%s\r\n",
-                       spell_info[ch->affected->spell].wear_off_msg);
-        affect_remove(ch, ch->affected);
-      }
-      for(i = 0; i < AF_ARRAY_MAX; i++)
-        AFF_FLAGS(ch)[i] = 0;
-    }
-    return;
-  } else {
-    attempt = dice(1, 20) + CASTER_LEVEL(ch);
-    challenge = dice(1, 20) + CASTER_LEVEL(victim);
+  perform_dispel(ch, victim, SPELL_GREATER_DISPELLING);
+}
 
-    if (attempt >= challenge) {  //successful
-      send_to_char(ch, "You successfuly dispel some magic!\r\n");
-      act("$n dispels some of $N's magic!", FALSE, ch, 0, 0, TO_ROOM);
-      if (ch->affected)
-        affect_remove(ch, ch->affected);
-    } else {  //failed
-      send_to_char(ch, "You fail your dispel magic attempt!\r\n");
-      act("$n fails to dispel some of $N's magic!", FALSE, ch, 0, 0, TO_ROOM);
-    }
-  }
+
+ASPELL(spell_dispel_magic)  // divination
+{
+  
+  if (ch == NULL)
+    return;
+  if (victim == NULL)
+    victim = ch;
+
+  perform_dispel(ch, victim, SPELL_DISPEL_MAGIC);
 }
 
 

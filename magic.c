@@ -1201,7 +1201,36 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel righteous.";
     break;
 
+  case SPELL_GREATER_HEROISM:  //enchantment
+    if (affected_by_spell(victim, SPELL_HEROISM)) {
+      send_to_char(ch, "The target is already heroic!\r\n");
+      return;
+    }    
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 4;
+    af[0].duration = 300;
+
+    af[1].location = APPLY_SAVING_WILL;
+    af[1].modifier = 4;
+    af[1].duration = 300;
+
+    af[2].location = APPLY_SAVING_FORT;
+    af[2].modifier = 4;
+    af[2].duration = 300;
+
+    af[3].location = APPLY_SAVING_REFL;
+    af[3].modifier = 4;
+    af[3].duration = 300;
+
+    to_room = "$n is now very heroic!";
+    to_vict = "You feel very heroic.";
+    break;
+    
   case SPELL_HEROISM:  //necromancy
+    if (affected_by_spell(victim, SPELL_GREATER_HEROISM)) {
+      send_to_char(ch, "The target is already heroic!\r\n");
+      return;
+    }    
     af[0].location = APPLY_HITROLL;
     af[0].modifier = 2;
     af[0].duration = 300;
@@ -1483,6 +1512,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n's eyes become sensitive to invisibility!";
     break;
 
+  case SPELL_TRUE_SEEING:  //divination
+    af[0].duration = 20 + magic_level;
+    SET_BIT_AR(af[0].bitvector, AFF_TRUE_SIGHT);
+    to_vict = "Your eyes tingle, now with true-sight.";
+    to_room = "$n's eyes become enhanced with true-sight!";
+    break;
+
   case SPELL_DETECT_MAGIC:  //divination
     af[0].duration = 300 + CASTER_LEVEL(ch) * 25;
     SET_BIT_AR(af[0].bitvector, AFF_DETECT_MAGIC);
@@ -1593,15 +1629,49 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n slowly fades out of existence.";
     break;
 
-  case SPELL_MIRROR_IMAGE:  //illusion
+  case SPELL_GREATER_MIRROR_IMAGE:  //illusion
+    if (affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
+            affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) {
+      send_to_char(ch, "You already have mirror images!\r\n");
+      return;
+    }    
     af[0].location = APPLY_AC;
     af[0].modifier = -1;
     af[0].duration = 300;
     to_room = "$n grins as multiple images pop up and smile!";
     to_vict = "You watch as multiple images pop up and smile at you!";
-    GET_IMAGES(victim) = 5 + MIN(5, (int) (magic_level / 3));
+    GET_IMAGES(victim) = 6 + (magic_level / 3);
+    break;
+    
+  case SPELL_MIRROR_IMAGE:  //illusion
+    if (affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
+            affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) {
+      send_to_char(ch, "You already have mirror images!\r\n");
+      return;
+    }    
+    af[0].location = APPLY_AC;
+    af[0].modifier = -1;
+    af[0].duration = 300;
+    to_room = "$n grins as multiple images pop up and smile!";
+    to_vict = "You watch as multiple images pop up and smile at you!";
+    GET_IMAGES(victim) = 4 + MIN(5, (int) (magic_level / 3));
     break;
 
+  case SPELL_EYEBITE:  //necromancy
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
+      send_to_char(ch, "%s", CONFIG_NOEFFECT);
+      return;
+    }
+
+    af[0].duration = CASTER_LEVEL(ch) * 1000;
+    SET_BIT_AR(af[0].bitvector, AFF_DISEASE);
+    to_vict = "You feel a powerful necromantic disease overcome you.";
+    to_room =
+       "$n suffers visibly as a powerful necromantic disease strikes $m!";
+    break;
+    
   case SPELL_POISON:  //enchantment, shared
     if (mag_resistance(ch, victim, 0))
       return;
@@ -1682,20 +1752,46 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = 100;
     SET_BIT_AR(af[0].bitvector, AFF_SANCTUARY);
 
-    accum_duration = TRUE;
+    accum_duration = FALSE;
     to_vict = "A white aura momentarily surrounds you.";
     to_room = "$n is surrounded by a white aura.";
     break;
 
+  case SPELL_TRANSFORMATION:
+    af[0].duration = 50;
+    SET_BIT_AR(af[0].bitvector, AFF_TFORM);
+
+    accum_duration = FALSE;
+    to_vict = "You feel your combat skill increase!";
+    to_room = "The combat skill of $n increases!";
+    break;
+    
   case SPELL_MINOR_GLOBE:  //abjuration
+    if (affected_by_spell(victim, SPELL_GLOBE_OF_INVULN)) {
+      send_to_char(ch, "You are already affected by a globe spell!\r\n");
+      return;
+    }
     af[0].duration = 50;
     SET_BIT_AR(af[0].bitvector, AFF_MINOR_GLOBE);
 
     accum_duration = FALSE;
     to_vict = "A minor globe of invulnerability surrounds you.";
-    to_room = "$n is surrounded by a minor globe of invulernability.";
+    to_room = "$n is surrounded by a minor globe of invulnerability.";
     break;
+    
+  case SPELL_GLOBE_OF_INVULN:  //abjuration
+    if (affected_by_spell(victim, SPELL_MINOR_GLOBE)) {
+      send_to_char(ch, "You are already affected by a globe spell!\r\n");
+      return;
+    }
+    af[0].duration = 50;
+    SET_BIT_AR(af[0].bitvector, AFF_GLOBE_OF_INVULN);
 
+    accum_duration = FALSE;
+    to_vict = "A globe of invulnerability surrounds you.";
+    to_room = "$n is surrounded by a globe of invulnerability.";
+    break;
+    
   case SPELL_SLEEP:  //enchantment
     if (GET_LEVEL(victim) >= 7 || (!IS_NPC(victim) && GET_RACE(victim) == RACE_ELF)) {
       send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
@@ -1913,6 +2009,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
     break;
   case SPELL_GROUP_ARMOR:
     mag_affects(level, ch, tch, obj, SPELL_ARMOR, savetype);
+    break;
+  case SPELL_MASS_HASTE:
+    mag_affects(level, ch, tch, obj, SPELL_HASTE, savetype);
     break;
   case SPELL_CIRCLE_A_EVIL:
     mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_EVIL, savetype);
@@ -2170,7 +2269,33 @@ static const char *mag_summon_msgs[] = {
   "$N manifests with an ancient howl, then moves towards $n.",  //22 hound
   "$N stalks into the area, roars loudly, then moves towards $n.", //23 d tiger
 };
-
+static const char *mag_summon_to_msgs[] = {
+  "\r\n",  //0
+  "You make the magical gesture; you feel a strong breeze!",  //1
+  "You animate a corpse!",  //2
+  "You conjure $N from a cloud of thick blue smoke!",  //3
+  "You conjure $N from a cloud of thick green smoke!",  //4
+  "You conjure $N from a cloud of thick red smoke!",  //5
+  "You make $N disappears in a thick black cloud!",  //6
+  "You make a magical gesture, you feel a strong breeze.", //7
+  "You make a magical gesture, you feel a searing heat.",  //8
+  "You make a magical gesture, you feel a sudden chill.",  //9
+  "You make a magical gesture, you feel the dust swirl.",  //10
+  "You magically divide!", //11 clone
+  "You animate a corpse!", //12 animate dead
+  "$N breaks through the ground and bows before you.", //13 mummy lord
+  "With a roar $N soars to the ground next to you.",  //14 young red dragon
+  "$N pops into existence next to you.",  //15 shelgarn's dragger
+  "$N skimpers into the area, then quickly moves next to you.", //16 dire badger
+  "$N charges into the area, looks left, then right... "
+          "then quickly moves next to you.",  //17 dire boar
+  "$N moves into the area, sniffing cautiously.",  //18 dire wolf
+  "$N neighs and walks up to you.",  //19 phantom steed
+  "$N skitters into the area and moves next to you.",  //20 dire spider
+  "$N lumbers into the area and moves next to you.",  //21 dire bear
+  "$N manifests with an ancient howl, then moves towards you.",  //22 hound
+  "$N stalks into the area, roars loudly, then moves towards you.", //23 d tiger
+};
 /* Keep the \r\n because these use send_to_char. */
 static const char *mag_summon_fail_msgs[] = {
   "\r\n",
@@ -2371,6 +2496,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       mob->player.short_descr = strdup(GET_NAME(ch));
     }
     act(mag_summon_msgs[msg], FALSE, ch, 0, mob, TO_ROOM);
+    act(mag_summon_to_msgs[msg], FALSE, ch, 0, mob, TO_CHAR);
     load_mtrigger(mob);
     add_follower(mob, ch);
     if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
@@ -2684,6 +2810,13 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       to_room = "$n creates a fog out of nowhere.";
       aff = RAFF_FOG;
       rounds = 8 + CASTER_LEVEL(ch);
+      break;
+      
+    case SPELL_ANTI_MAGIC_FIELD:  //illusion
+      to_char = "You create an anti-magic field!";
+      to_room = "$n creates an anti-magic field!";
+      aff = RAFF_ANTI_MAGIC;
+      rounds = 15;
       break;
 
     case SPELL_DARKNESS:  //divination

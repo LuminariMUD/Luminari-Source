@@ -576,6 +576,7 @@ ASPELL(spell_information);
 ASPELL(spell_identify);
 ASPELL(spell_wizard_eye);
 ASPELL(spell_dispel_magic);
+ASPELL(spell_greater_dispelling);
 ASPELL(spell_clairvoyance);
 ASPELL(spell_enchant_weapon);
 ASPELL(spell_detect_poison);

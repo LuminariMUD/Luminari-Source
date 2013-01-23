@@ -299,6 +299,18 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   if (!cast_mtrigger(caster, cvict, spellnum))
     return 0;
 
+  if (ROOM_AFFECTED(caster->in_room, RAFF_ANTI_MAGIC)) {
+    send_to_char(caster, "Your magic fizzles out and dies!\r\n");
+    act("$n's magic fizzles out and dies...", FALSE, caster, 0, 0, TO_ROOM);
+    return (0);
+  }  
+
+  if (cvict && ROOM_AFFECTED(cvict->in_room, RAFF_ANTI_MAGIC)) {
+    send_to_char(caster, "Your magic fizzles out and dies!\r\n");
+    act("$n's magic fizzles out and dies...", FALSE, caster, 0, 0, TO_ROOM);
+    return (0);
+  }  
+  
   if (ROOM_FLAGGED(IN_ROOM(caster), ROOM_NOMAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies.\r\n");
     act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
@@ -335,6 +347,16 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       if (!FIGHTING(cvict))
         set_fighting(cvict, caster);
       return (0);
+    } else if (AFF_FLAGGED(cvict, AFF_GLOBE_OF_INVULN) && lvl <= 4 &&
+        (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
+      send_to_char(caster, "A globe from your victim repels your spell!\r\n");
+      act("$n's magic is repelled by $N's globe spell!", FALSE, caster, 0, 0, TO_ROOM);
+      if (!FIGHTING(caster))
+        set_fighting(caster, cvict);
+      if (!FIGHTING(cvict))
+        set_fighting(cvict, caster);
+      return (0);
+      
     }
   }
 
@@ -438,6 +460,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_ACID_ARROW:	MANUAL_SPELL(spell_acid_arrow); break;
     case SPELL_CLAIRVOYANCE:	MANUAL_SPELL(spell_clairvoyance); break;
     case SPELL_DISPEL_MAGIC:	MANUAL_SPELL(spell_dispel_magic); break;
+    case SPELL_GREATER_DISPELLING:
+      MANUAL_SPELL(spell_greater_dispelling); break;
     case SPELL_LOCATE_CREATURE:	MANUAL_SPELL(spell_locate_creature); break;
     case SPELL_WALL_OF_FORCE:	MANUAL_SPELL(spell_wall_of_force); break;
     case SPELL_DOMINATE_PERSON:	MANUAL_SPELL(spell_dominate_person); break;
@@ -926,6 +950,12 @@ ACMD(do_cast)
     return;
   }
 
+  if (IS_AFFECTED(ch, AFF_TFORM)) {
+    send_to_char(ch, "Cast?  Why when you can SMASH!!\r\n");
+    return;
+  }
+  
+  
   if (!IS_CASTER(ch)) {
     send_to_char(ch, "You are not even a caster!\r\n");
     return;
@@ -1051,13 +1081,13 @@ ACMD(do_cast)
   } else {			/* if target string is empty */
     if (!target && IS_SET(SINFO.targets, TAR_FIGHT_SELF))
       if (FIGHTING(ch) != NULL) {
-	tch = ch;
-	target = TRUE;
+        tch = ch;
+        target = TRUE;
       }
     if (!target && IS_SET(SINFO.targets, TAR_FIGHT_VICT))
       if (FIGHTING(ch) != NULL) {
-	tch = FIGHTING(ch);
-	target = TRUE;
+        tch = FIGHTING(ch);
+        target = TRUE;
       }
     /* if no target specified, and the spell isn't violent, default to self */
     if (!target && IS_SET(SINFO.targets, TAR_CHAR_ROOM) &&
@@ -1076,6 +1106,7 @@ ACMD(do_cast)
     send_to_char(ch, "You shouldn't cast that on yourself -- could be bad for your health!\r\n");
     return;
   }
+  
   if (!target) {
     send_to_char(ch, "Cannot find the target of your spell!\r\n");
     return;
@@ -1087,7 +1118,13 @@ ACMD(do_cast)
 //    send_to_char(ch, "You haven't the energy to cast that spell!\r\n");
 //    return;
 //  }
-
+  
+  if (ROOM_AFFECTED(ch->in_room, RAFF_ANTI_MAGIC)) {
+    send_to_char(ch, "Your magic fizzles out and dies!\r\n");
+    act("$n's magic fizzles out and dies...", FALSE, ch, 0, 0, TO_ROOM);
+    return;
+  }  
+  
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOMAGIC)) {
     send_to_char(ch, "Your magic fizzles out and dies.\r\n");
     act("$n's magic fizzles out and dies.", FALSE, ch, 0, 0, TO_ROOM);
@@ -1712,7 +1749,7 @@ void mag_assign_spells(void)
 	TAR_OBJ_WORLD, FALSE, MAG_MANUAL,
 	NULL, 10, 10, DIVINATION);
   spello(SPELL_TRUE_SEEING, "true seeing", 0, 0, 0, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "Your eyes stop seeing true.", 5, 10,
+	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "Your eyes stop seeing true.", 5, 10,
      DIVINATION);  
 			/* abjuration */
   spello(SPELL_GLOBE_OF_INVULN, "globe of invulnerability", 0, 0, 0,

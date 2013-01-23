@@ -239,9 +239,13 @@ int BAB(struct char_data *ch)
 {
   int i, bab = 0, level;
 
+  /* gnarly huh? */
+  if (IS_AFFECTED(ch, AFF_TFORM))
+    return (GET_LEVEL(ch));
+
   if (IS_NPC(ch))  //npc's default to medium attack rolls
     return ( (int) (GET_LEVEL(ch) * 3 / 4) );
-
+  
   for (i = 0; i < MAX_CLASSES; i++) {
     level = CLASS_LEVEL(ch, i);
     if (level) {
