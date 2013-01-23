@@ -535,7 +535,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 10;
     bonus = 0;
     break;
-
+    
+  case SPELL_FREEZING_SPHERE:  //evocation
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_COLD;    
+    num_dice = MIN(24, magic_level);
+    size_dice = 10;
+    bonus = magic_level / 2;
+    break;
+    
   case SPELL_CONE_OF_COLD:  //abjuration
     save = SAVING_REFL;
     mag_resist = TRUE;
@@ -588,7 +597,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_COLD;
     break;
         
-  case SPELL_MISSILE_STORM:
+  case SPELL_MISSILE_STORM:  //evocation
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = DAM_FORCE;    
@@ -597,7 +606,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = magic_level;
     break;
     
-  case SPELL_GREATER_RUIN:
+  case SPELL_GREATER_RUIN:  //epic spell
     save = SAVING_WILL;
     mag_resist = TRUE;
     element = DAM_PUNCTURE;    
@@ -627,7 +636,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
 
-  case SPELL_CHAIN_LIGHTNING:
+  case SPELL_CHAIN_LIGHTNING:  //evocation
     //AoE
     save = SAVING_REFL;
     mag_resist = TRUE;
@@ -637,7 +646,17 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = magic_level;
     break;
     
-  case SPELL_DEATHCLOUD:
+  case SPELL_ACID:  //acid fog (conjuration)
+    //AoE
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_ACID;    
+    num_dice = magic_level;
+    size_dice = 2;
+    bonus = 10;
+    break;
+    
+  case SPELL_DEATHCLOUD:  //cloudkill (conjuration)
     //AoE
     save = SAVING_FORT;
     mag_resist = TRUE;
@@ -2125,29 +2144,31 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 /* Every spell which summons/gates/conjours a mob comes through here. */
 /* These use act(), don't put the \r\n. */
 static const char *mag_summon_msgs[] = {
-  "\r\n",
-  "$n makes a strange magical gesture; you feel a strong breeze!",
-  "$n animates a corpse!",
-  "$N appears from a cloud of thick blue smoke!",
-  "$N appears from a cloud of thick green smoke!",
-  "$N appears from a cloud of thick red smoke!",
-  "$N disappears in a thick black cloud!"
-  "As $n makes a strange magical gesture, you feel a strong breeze.",
-  "As $n makes a strange magical gesture, you feel a searing heat.",
-  "As $n makes a strange magical gesture, you feel a sudden chill.",
-  "As $n makes a strange magical gesture, you feel the dust swirl.",
-  "$n magically divides!",
-  "$n animates a corpse!",
-  "$N breaks through the ground and bows before $n.",
-  "With a roar $N soars to the ground next to $n.",  //12
-  "$N pops into existence next to $n.",  //13
-  "$N skimpers into the area, then quickly moves next to $n.",  //14
-  "$N charges into the area, looks left, then right... then quickly moves next to $n.",  //15
-  "$N moves into the area, sniffing cautiously.",  //16
-  "$N neighs and walks up to $n.",  //17
-  "$N skitters into the area and moves next to $n.",  //18
-  "$N lumbers into the area and moves next to $n.",  //19
-  "$N manifests with an ancient howl, then moves towards $n.",  //20
+  "\r\n",  //0
+  "$n makes a strange magical gesture; you feel a strong breeze!",  //1
+  "$n animates a corpse!",  //2
+  "$N appears from a cloud of thick blue smoke!",  //3
+  "$N appears from a cloud of thick green smoke!",  //4
+  "$N appears from a cloud of thick red smoke!",  //5
+  "$N disappears in a thick black cloud!",  //6
+  "As $n makes a strange magical gesture, you feel a strong breeze.", //7
+  "As $n makes a strange magical gesture, you feel a searing heat.",  //8
+  "As $n makes a strange magical gesture, you feel a sudden chill.",  //9
+  "As $n makes a strange magical gesture, you feel the dust swirl.",  //10
+  "$n magically divides!", //11 clone
+  "$n animates a corpse!", //12 animate dead
+  "$N breaks through the ground and bows before $n.", //13 mummy lord
+  "With a roar $N soars to the ground next to $n.",  //14 young red dragon
+  "$N pops into existence next to $n.",  //15 shelgarn's dragger
+  "$N skimpers into the area, then quickly moves next to $n.", //16 dire badger
+  "$N charges into the area, looks left, then right... "
+          "then quickly moves next to $n.",  //17 dire boar
+  "$N moves into the area, sniffing cautiously.",  //18 dire wolf
+  "$N neighs and walks up to $n.",  //19 phantom steed
+  "$N skitters into the area and moves next to $n.",  //20 dire spider
+  "$N lumbers into the area and moves next to $n.",  //21 dire bear
+  "$N manifests with an ancient howl, then moves towards $n.",  //22 hound
+  "$N stalks into the area, roars loudly, then moves towards $n.", //23 d tiger
 };
 
 /* Keep the \r\n because these use send_to_char. */
@@ -2164,13 +2185,13 @@ static const char *mag_summon_fail_msgs[] = {
 
 /* Defines for Mag_Summons */
   // objects
-#define OBJ_CLONE               161  /**< vnum for clone material. */
+#define OBJ_CLONE             161  /**< vnum for clone material. */
   // mobiles
-#define MOB_CLONE               10   /**< vnum for the clone mob. */
-#define MOB_ZOMBIE              11   /* animate dead levels 1-7 */
-#define MOB_GHOUL		35   // " " level 11+
-#define MOB_GIANT_SKELETON	36   // " " level 21+
-#define MOB_MUMMY		37   // " " level 30
+#define MOB_CLONE             10   /**< vnum for the clone mob. */
+#define MOB_ZOMBIE            11   /* animate dead levels 1-7 */
+#define MOB_GHOUL             35   // " " level 11+
+#define MOB_GIANT_SKELETON    36   // " " level 21+
+#define MOB_MUMMY             37   // " " level 30
 #define MOB_MUMMY_LORD		38   // epic spell mummy dust
 #define MOB_RED_DRAGON		39   // epic spell dragon knight
 #define MOB_SHELGARNS_BLADE	40
@@ -2183,6 +2204,7 @@ static const char *mag_summon_fail_msgs[] = {
                               //47    wall of force
 #define MOB_DIRE_BEAR		48   // summon creature v
 #define MOB_HOUND             49
+#define MOB_DIRE_TIGER		50   // summon creature vi
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 		      int spellnum, int savetype)
 {
@@ -2197,7 +2219,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   switch (spellnum) {
 
   case SPELL_CLONE:
-    msg = 10;
+    msg = 11;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     mob_num = MOB_CLONE;
     /*
@@ -2221,7 +2243,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       return;
     }
     handle_corpse = TRUE;
-    msg = 11;
+    msg = 12;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     if (CASTER_LEVEL(ch) >= 30)
       mob_num = MOB_MUMMY;
@@ -2236,7 +2258,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   case SPELL_MUMMY_DUST:  //epic
     handle_corpse = FALSE;
-    msg = 12;
+    msg = 13;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     mob_num = MOB_MUMMY_LORD;
     pfail = 0;
@@ -2244,7 +2266,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   case SPELL_DRAGON_KNIGHT:  //epic
     handle_corpse = FALSE;
-    msg = 13;
+    msg = 14;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     mob_num = MOB_RED_DRAGON;
     pfail = 0;
@@ -2252,7 +2274,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   case SPELL_SHELGARNS_BLADE:  //divination
     handle_corpse = FALSE;
-    msg = 14;
+    msg = 15;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     mob_num = MOB_SHELGARNS_BLADE;
     pfail = 0;
@@ -2260,7 +2282,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   case SPELL_FAITHFUL_HOUND:  //divination
     handle_corpse = FALSE;
-    msg = 20;
+    msg = 22;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     mob_num = MOB_HOUND;
     pfail = 0;
@@ -2268,7 +2290,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   case SPELL_PHANTOM_STEED:  //conjuration
     handle_corpse = FALSE;
-    msg = 18;
+    msg = 19;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     mob_num = MOB_PHANTOM_STEED;
     pfail = 0;
@@ -2276,7 +2298,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   case SPELL_SUMMON_CREATURE_1: //conjuration
     handle_corpse = FALSE;
-    msg = 15;
+    msg = 16;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     mob_num = MOB_DIRE_BADGER;
     pfail = 0;
@@ -2284,7 +2306,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   case SPELL_SUMMON_CREATURE_2:  //conjuration
     handle_corpse = FALSE;
-    msg = 16;
+    msg = 17;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     mob_num = MOB_DIRE_BOAR;
     pfail = 0;
@@ -2292,7 +2314,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   case SPELL_SUMMON_CREATURE_3:  //conjuration
     handle_corpse = FALSE;
-    msg = 17;
+    msg = 18;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     mob_num = MOB_DIRE_WOLF;
     pfail = 0;
@@ -2300,7 +2322,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   case SPELL_SUMMON_CREATURE_4:  //conjuration
     handle_corpse = FALSE;
-    msg = 18;
+    msg = 20;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     mob_num = MOB_DIRE_SPIDER;
     pfail = 0;
@@ -2308,12 +2330,20 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   case SPELL_SUMMON_CREATURE_5:  //conjuration
     handle_corpse = FALSE;
-    msg = 19;
+    msg = 21;
     fmsg = rand_number(2, 6);	/* Random fail message. */
     mob_num = MOB_DIRE_BEAR;
     pfail = 0;
     break;
 
+  case SPELL_SUMMON_CREATURE_6:  //conjuration
+    handle_corpse = FALSE;
+    msg = 23;
+    fmsg = rand_number(2, 6);	/* Random fail message. */
+    mob_num = MOB_DIRE_TIGER;
+    pfail = 0;
+    break;
+    
   default:
     return;
   }
@@ -2368,6 +2398,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 #undef MOB_DIRE_SPIDER
 #undef MOB_DIRE_BEAR
 #undef MOB_HOUND
+#undef MOB_DIRE_TIGER
 
 
 /*----------------------------------------------------------------------------*/

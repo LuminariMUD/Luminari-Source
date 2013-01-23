@@ -127,6 +127,9 @@ int can_climb(struct char_data *ch)
   if (GET_LEVEL(ch) > LVL_IMMORT)
     return (1);
 
+  if (has_flight(ch))
+    return 1;
+  
   if (AFF_FLAGGED(ch, AFF_CLIMB))
     return (1);
 

@@ -1351,16 +1351,6 @@ ACMD(do_score)
     send_to_char(ch, "\tyYour current zone:\tn %s%d%s\r\n", CCCYN(ch, C_NRM), GET_OLC_ZONE(ch), CCNRM(ch, C_NRM));
   }
 
-  send_to_char(ch, "\tDType 'attacks' to see your attack rotation\tn\r\n");
-  send_to_char(ch, "\tDType 'affects' to see what you are affected by\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_MAGIC_USER))
-    send_to_char(ch, "\tDType 'memorize' to see your spell interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_SORCERER))
-    send_to_char(ch, "\tDType 'meditate' to see your spell interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_CLERIC))
-    send_to_char(ch, "\tDType 'prayer' to see your prayer interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_DRUID))
-    send_to_char(ch, "\tDType 'commune' to see your commune interface\tn\r\n");
   if (!IS_NPC(ch)) {
     if (GET_COND(ch, DRUNK) > 10)
       send_to_char(ch, "You are intoxicated.\r\n");
@@ -1373,7 +1363,18 @@ ACMD(do_score)
   }
   send_to_char(ch,
 "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
-
+  send_to_char(ch, "\tDType 'attacks' to see your attack rotation\tn\r\n");
+  send_to_char(ch, "\tDType 'affects' to see what you are affected by\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_MAGIC_USER))
+    send_to_char(ch, "\tDType 'memorize' to see your spell interface\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_SORCERER))
+    send_to_char(ch, "\tDType 'meditate' to see your spell interface\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_CLERIC))
+    send_to_char(ch, "\tDType 'prayer' to see your spell interface\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_DRUID))
+    send_to_char(ch, "\tDType 'commune' to see your spell interface\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_PALADIN))
+    send_to_char(ch, "\tDType 'petition' to see your spell interface\tn\r\n");
 }
 
 

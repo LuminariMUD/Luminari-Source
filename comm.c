@@ -1021,6 +1021,24 @@ void pulse_luminari() {
       }
     } /* end billowing cloud */
     
+    //acid fog
+    if (raff->spell == SPELL_ACID_FOG) {
+      caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+      caster_room = &world[raff->room];
+      if (!caster) {
+        script_log("comm.c: Cannot load the caster mob!");
+        return;
+      }
+      
+      /* set the caster's name */
+      caster->player.short_descr = strdup("The room");
+      caster->next_in_room = caster_room->people;
+      caster_room->people = caster;
+      caster->in_room = real_room(caster_room->number);
+      call_magic(caster, NULL, NULL, SPELL_ACID, DG_SPELL_LEVEL, CAST_SPELL);
+      extract_char(caster);
+    } /* end acid fog */
+    
   }
 
   // looping through char list, what needs to be done?
@@ -1235,6 +1253,9 @@ void echo_on(struct descriptor_data *d)
   write_to_output(d, "%s", on_string);
 }
 
+/* the mighty prompt string! */
+/* if you want to add strings that have color codes to it, you
+   have to use protocolOutput function to parse it */
 static char *make_prompt(struct descriptor_data *d)
 {
   static char prompt[MAX_PROMPT_LENGTH] = { '\0' };
@@ -1254,12 +1275,15 @@ static char *make_prompt(struct descriptor_data *d)
     strcpy(prompt, "] ");	// strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3')
   else if (STATE(d) == CON_PLAYING && !IS_NPC(d->character)) {
 
+    /* show invis level if applicable */
     if (GET_INVIS_LEV(d->character) && len < sizeof(prompt)) {
-      count = snprintf(prompt + len, sizeof(prompt) - len, "i%d ", GET_INVIS_LEV(d->character));
+      count = snprintf(prompt + len, sizeof(prompt) - len, "i%d ",
+              GET_INVIS_LEV(d->character));
       if (count >= 0)
         len += count;
     }
-    // show only when below 25%
+    
+    // show only when below 25% (autoprompt)
     if (PRF_FLAGGED(d->character, PRF_DISPAUTO) && len < sizeof(prompt)) {
       struct char_data *ch = d->character;
       if (GET_HIT(ch) << 2 < GET_MAX_HIT(ch) ) {
@@ -1434,6 +1458,7 @@ static char *make_prompt(struct descriptor_data *d)
       sprintf(prompt + strlen(prompt), "%s> %s",
 	         CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
 
+    /* here we have our NPC prompt */
   } else if (STATE(d) == CON_PLAYING && IS_NPC(d->character)) {
     count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
 	               CCYEL(d->character,C_NRM));
@@ -1472,6 +1497,8 @@ static char *make_prompt(struct descriptor_data *d)
                 slen ? ">> " : "None! >> ", CCNRM(ch, C_NRM));
     if (count >= 0)
       len += count;
+
+    /* how did we get here again? */
   } else
     *prompt = '\0';
 

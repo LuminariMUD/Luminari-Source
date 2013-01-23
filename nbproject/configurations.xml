@@ -36,6 +36,7 @@
       <in>cedit.c</in>
       <in>clan.c</in>
       <in>clan.h</in>
+      <in>clan_edit.c</in>
       <in>class.c</in>
       <in>class.h</in>
       <in>comm.c</in>
