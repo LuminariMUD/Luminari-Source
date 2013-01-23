@@ -357,7 +357,8 @@ ACMD(do_order)
 
   if (!*name || !*message)
     send_to_char(ch, "Order who to do what?\r\n");
-  else if (!(vict = get_char_vis(ch, name, NULL, FIND_CHAR_ROOM)) && !is_abbrev(name, "followers"))
+  else if (!(vict = get_char_vis(ch, name, NULL, FIND_CHAR_ROOM)) &&
+          !is_abbrev(name, "followers"))
     send_to_char(ch, "That person isn't here.\r\n");
   else if (ch == vict)
     send_to_char(ch, "You obviously suffer from schizophrenia.\r\n");
@@ -374,10 +375,10 @@ ACMD(do_order)
       act("$n gives $N an order.", FALSE, ch, 0, vict, TO_ROOM);
 
       if ((vict->master != ch) || !AFF_FLAGGED(vict, AFF_CHARM))
-	act("$n has an indifferent look.", FALSE, vict, 0, 0, TO_ROOM);
+        act("$n has an indifferent look.", FALSE, vict, 0, 0, TO_ROOM);
       else {
-	send_to_char(ch, "%s", CONFIG_OK);
-	command_interpreter(vict, message);
+        send_to_char(ch, "%s", CONFIG_OK);
+        command_interpreter(vict, message);
       }
     } else {			/* This is order "followers" */
       char buf[MAX_STRING_LENGTH];
@@ -393,9 +394,9 @@ ACMD(do_order)
 	  }
       }
       if (found)
-	send_to_char(ch, "%s", CONFIG_OK);
+        send_to_char(ch, "%s", CONFIG_OK);
       else
-	send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
+        send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
     }
   }
 }

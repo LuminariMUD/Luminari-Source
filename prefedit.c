@@ -316,7 +316,8 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
 
 static void prefedit_disp_prompt_menu(struct descriptor_data *d)
 {
-  char prompt_string[7];
+  /* make sure to adjust this if you add more prompt togs */
+  char prompt_string[16] = { '\0' };
 
   if (PREFEDIT_FLAGGED(PRF_DISPAUTO))
     sprintf(prompt_string, "<Auto>");

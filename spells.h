@@ -40,168 +40,168 @@
 #define SPELL_RESERVED_DBC            0  /* SKILL NUMBER ZERO -- RESERVED */
 
 /* PLAYER SPELLS -- Numbered from 1 to MAX_SPELLS */
-#define SPELL_ARMOR                   1
+#define SPELL_ARMOR                   1  //done
 #define SPELL_TELEPORT                2
-#define SPELL_BLESS                   3
-#define SPELL_BLINDNESS               4
-#define SPELL_BURNING_HANDS           5
+#define SPELL_BLESS                   3  //done
+#define SPELL_BLINDNESS               4  //done
+#define SPELL_BURNING_HANDS           5  //done
 #define SPELL_CALL_LIGHTNING          6
-#define SPELL_CHARM                   7
-#define SPELL_CHILL_TOUCH             8
+#define SPELL_CHARM                   7  //done
+#define SPELL_CHILL_TOUCH             8  //done
 #define SPELL_CLONE                   9
-#define SPELL_COLOR_SPRAY            10
+#define SPELL_COLOR_SPRAY            10  //done
 #define SPELL_CONTROL_WEATHER        11
-#define SPELL_CREATE_FOOD            12
-#define SPELL_CREATE_WATER           13 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_CURE_BLIND             14 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_CURE_CRITIC            15 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_CURE_LIGHT             16 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_CURSE                  17 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_DETECT_ALIGN           18 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_DETECT_INVIS           19 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_DETECT_MAGIC           20 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_DETECT_POISON          21 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_DISPEL_EVIL            22 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_EARTHQUAKE             23 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_ENCHANT_WEAPON         24 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_ENERGY_DRAIN           25 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_FIREBALL               26 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_HARM                   27 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_HEAL                   28 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_INVISIBLE              29 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_LIGHTNING_BOLT         30 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_LOCATE_OBJECT          31 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_MAGIC_MISSILE          32 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_POISON                 33 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_PROT_FROM_EVIL         34 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_REMOVE_CURSE           35 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_SANCTUARY              36 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_SHOCKING_GRASP         37 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_SLEEP                  38 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_STRENGTH               39 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_SUMMON                 40 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_VENTRILOQUATE          41 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_WORD_OF_RECALL         42 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_REMOVE_POISON          43 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_SENSE_LIFE             44 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_ANIMATE_DEAD           45 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_DISPEL_GOOD            46 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_GROUP_ARMOR            47 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_GROUP_HEAL             48 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_GROUP_RECALL           49 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_INFRAVISION            50 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_WATERWALK              51 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_IDENTIFY               52 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_FLY                    53 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_BLUR                   54 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_MIRROR_IMAGE           55 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_STONESKIN              56 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_ENDURANCE              57 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_MUMMY_DUST             58 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_DRAGON_KNIGHT          59 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_GREATER_RUIN           60 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_HELLBALL               61 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_EPIC_MAGE_ARMOR        62 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_EPIC_WARDING           63 /* Reserved Skill[] DO NOT CHANGE */
-#define SPELL_CAUSE_LIGHT_WOUNDS	64
-#define SPELL_CAUSE_MODERATE_WOUNDS	65
-#define SPELL_CAUSE_SERIOUS_WOUNDS	66
-#define SPELL_CAUSE_CRITICAL_WOUNDS	67
-#define SPELL_FLAME_STRIKE		68
-#define SPELL_DESTRUCTION		69
-#define SPELL_ICE_STORM			70
-#define SPELL_BALL_OF_LIGHTNING		71
-#define SPELL_MISSILE_STORM		72
-#define SPELL_CHAIN_LIGHTNING		73
-#define SPELL_METEOR_SWARM		74
-#define SPELL_PROT_FROM_GOOD		75
-#define SPELL_FIRE_BREATHE		76
-#define SPELL_POLYMORPH			77
-#define SPELL_ENDURE_ELEMENTS		78
-#define SPELL_EXPEDITIOUS_RETREAT	79
-#define SPELL_GREASE			80
-#define SPELL_HORIZIKAULS_BOOM		81
-#define SPELL_ICE_DAGGER		82
-#define SPELL_IRON_GUTS			83
-#define SPELL_MAGE_ARMOR		84
-#define SPELL_NEGATIVE_ENERGY_RAY	85
-#define SPELL_RAY_OF_ENFEEBLEMENT	86
-#define SPELL_SCARE			87
-#define SPELL_SHELGARNS_BLADE		88
-#define SPELL_SHIELD			89
-#define SPELL_SUMMON_CREATURE_1		90
-#define SPELL_TRUE_STRIKE		91
-#define SPELL_WALL_OF_FOG		92
-#define SPELL_DARKNESS			93
-#define SPELL_SUMMON_CREATURE_2		94
-#define SPELL_WEB			95
-#define SPELL_ACID_ARROW		96
-#define SPELL_DAZE_MONSTER		97
-#define SPELL_HIDEOUS_LAUGHTER		98
-#define SPELL_TOUCH_OF_IDIOCY		99
-#define SPELL_CONTINUAL_FLAME		100
-#define SPELL_SCORCHING_RAY		101
-#define SPELL_DEAFNESS			102
-#define SPELL_FALSE_LIFE		103
-#define SPELL_GRACE			104
-#define SPELL_RESIST_ENERGY		105
-#define SPELL_ENERGY_SPHERE		106
-#define SPELL_WATER_BREATHE        107
-#define SPELL_PHANTOM_STEED        108
-#define SPELL_STINKING_CLOUD       109
-#define SPELL_SUMMON_CREATURE_3    110
-#define SPELL_HALT_UNDEAD          111
-#define SPELL_HEROISM              112
-#define SPELL_VAMPIRIC_TOUCH       113
-#define SPELL_HOLD_PERSON          114
-#define SPELL_DEEP_SLUMBER         115
-#define SPELL_INVISIBILITY_SPHERE  116
-#define SPELL_DAYLIGHT             117
-#define SPELL_CLAIRVOYANCE         118
-#define SPELL_NON_DETECTION        119
-#define SPELL_HASTE                120
-#define SPELL_SLOW                 121
-#define SPELL_DISPEL_MAGIC         122
-#define SPELL_CIRCLE_A_EVIL        123
-#define SPELL_CIRCLE_A_GOOD        124
-#define SPELL_CUNNING              125
-#define SPELL_WISDOM               126
-#define SPELL_CHARISMA             127
-#define SPELL_STENCH               128
-#define SPELL_ACID_SPLASH          129
-#define SPELL_RAY_OF_FROST         130
-#define SPELL_WIZARD_EYE           131
-#define SPELL_FIRE_SHIELD          132
-#define SPELL_COLD_SHIELD          133
-#define SPELL_BILLOWING_CLOUD      134
-#define SPELL_SUMMON_CREATURE_4    135
-#define SPELL_GREATER_INVIS        136
-#define SPELL_RAINBOW_PATTERN      137
-#define SPELL_LOCATE_CREATURE      138
-#define SPELL_MINOR_GLOBE          139
-#define SPELL_ENLARGE_PERSON       140
-#define SPELL_SHRINK_PERSON        141
-#define SPELL_FSHIELD_DAM          142
-#define SPELL_CSHIELD_DAM          143
-#define SPELL_ASHIELD_DAM          144
-#define SPELL_ACID_SHEATH          145
-#define SPELL_INTERPOSING_HAND     146
-#define SPELL_WALL_OF_FORCE        147
-#define SPELL_CLOUDKILL            148
-#define SPELL_SUMMON_CREATURE_5    149
-#define SPELL_WAVES_OF_FATIGUE     150
-#define SPELL_SYMBOL_OF_PAIN       151
-#define SPELL_DOMINATE_PERSON      152
-#define SPELL_FEEBLEMIND           153
-#define SPELL_NIGHTMARE            154
-#define SPELL_MIND_FOG             155
-#define SPELL_FAITHFUL_HOUND       156
-#define SPELL_DISMISSAL            157
-#define SPELL_CONE_OF_COLD         158
-#define SPELL_TELEKINESIS          159
-#define SPELL_FIREBRAND            160
-#define SPELL_DEATHCLOUD           161
-#define SPELL_FREEZING_SPHERE      162
+#define SPELL_CREATE_FOOD            12  //done
+#define SPELL_CREATE_WATER           13  //done
+#define SPELL_CURE_BLIND             14  //done
+#define SPELL_CURE_CRITIC            15  //done 
+#define SPELL_CURE_LIGHT             16  //done
+#define SPELL_CURSE                  17  //done
+#define SPELL_DETECT_ALIGN           18  //done
+#define SPELL_DETECT_INVIS           19  //done
+#define SPELL_DETECT_MAGIC           20  //done
+#define SPELL_DETECT_POISON          21  //done
+#define SPELL_DISPEL_EVIL            22  //done
+#define SPELL_EARTHQUAKE             23  //done
+#define SPELL_ENCHANT_WEAPON         24  //done
+#define SPELL_ENERGY_DRAIN           25  //done
+#define SPELL_FIREBALL               26  //done
+#define SPELL_HARM                   27  //done
+#define SPELL_HEAL                   28  //done
+#define SPELL_INVISIBLE              29  //done
+#define SPELL_LIGHTNING_BOLT         30  //done
+#define SPELL_LOCATE_OBJECT          31  //done
+#define SPELL_MAGIC_MISSILE          32  //done
+#define SPELL_POISON                 33  //done
+#define SPELL_PROT_FROM_EVIL         34  //done
+#define SPELL_REMOVE_CURSE           35  //done
+#define SPELL_SANCTUARY              36  //done
+#define SPELL_SHOCKING_GRASP         37  //done
+#define SPELL_SLEEP                  38  //done
+#define SPELL_STRENGTH               39  //done
+#define SPELL_SUMMON                 40  //done
+#define SPELL_VENTRILOQUATE          41
+#define SPELL_WORD_OF_RECALL         42  //done
+#define SPELL_REMOVE_POISON          43  //done
+#define SPELL_SENSE_LIFE             44  //done
+#define SPELL_ANIMATE_DEAD           45  //done
+#define SPELL_DISPEL_GOOD            46  //done
+#define SPELL_GROUP_ARMOR            47  //done
+#define SPELL_GROUP_HEAL             48  //done
+#define SPELL_GROUP_RECALL           49  //done
+#define SPELL_INFRAVISION            50  //done
+#define SPELL_WATERWALK              51  //done
+#define SPELL_IDENTIFY               52  //done
+#define SPELL_FLY                    53  //done
+#define SPELL_BLUR                   54  //done
+#define SPELL_MIRROR_IMAGE           55  //done
+#define SPELL_STONESKIN              56  //done
+#define SPELL_ENDURANCE              57  //done
+#define SPELL_MUMMY_DUST             58  //done
+#define SPELL_DRAGON_KNIGHT          59  //done
+#define SPELL_GREATER_RUIN           60  //done
+#define SPELL_HELLBALL               61  //done
+#define SPELL_EPIC_MAGE_ARMOR        62  //done
+#define SPELL_EPIC_WARDING           63  //done
+#define SPELL_CAUSE_LIGHT_WOUNDS     64  //done
+#define SPELL_CAUSE_MODERATE_WOUNDS  65  //done
+#define SPELL_CAUSE_SERIOUS_WOUNDS   66  //done
+#define SPELL_CAUSE_CRITICAL_WOUNDS  67  //done
+#define SPELL_FLAME_STRIKE           68  //done
+#define SPELL_DESTRUCTION            69  //done
+#define SPELL_ICE_STORM              70  //done
+#define SPELL_BALL_OF_LIGHTNING      71  //done
+#define SPELL_MISSILE_STORM          72  //done
+#define SPELL_CHAIN_LIGHTNING        73  //done
+#define SPELL_METEOR_SWARM           74  //done
+#define SPELL_PROT_FROM_GOOD         75  //done
+#define SPELL_FIRE_BREATHE           76  //done
+#define SPELL_POLYMORPH              77  //done
+#define SPELL_ENDURE_ELEMENTS        78  //done
+#define SPELL_EXPEDITIOUS_RETREAT    79  //done
+#define SPELL_GREASE                 80  //done
+#define SPELL_HORIZIKAULS_BOOM       81  //done
+#define SPELL_ICE_DAGGER             82  //done
+#define SPELL_IRON_GUTS              83  //done
+#define SPELL_MAGE_ARMOR             84  //done
+#define SPELL_NEGATIVE_ENERGY_RAY    85  //done
+#define SPELL_RAY_OF_ENFEEBLEMENT    86  //done
+#define SPELL_SCARE                  87  //done
+#define SPELL_SHELGARNS_BLADE        88  //done
+#define SPELL_SHIELD                 89  //done
+#define SPELL_SUMMON_CREATURE_1      90  //done
+#define SPELL_TRUE_STRIKE            91  //done
+#define SPELL_WALL_OF_FOG            92  //done
+#define SPELL_DARKNESS               93  //done
+#define SPELL_SUMMON_CREATURE_2      94  //done
+#define SPELL_WEB                    95  //done
+#define SPELL_ACID_ARROW             96  //done
+#define SPELL_DAZE_MONSTER           97  //done
+#define SPELL_HIDEOUS_LAUGHTER       98  //done
+#define SPELL_TOUCH_OF_IDIOCY        99  //done
+#define SPELL_CONTINUAL_FLAME        100  //done
+#define SPELL_SCORCHING_RAY          101  //done
+#define SPELL_DEAFNESS               102  //done
+#define SPELL_FALSE_LIFE             103  //done
+#define SPELL_GRACE                  104  //done
+#define SPELL_RESIST_ENERGY		105  //done
+#define SPELL_ENERGY_SPHERE		106  //done
+#define SPELL_WATER_BREATHE        107  //done
+#define SPELL_PHANTOM_STEED        108  //done
+#define SPELL_STINKING_CLOUD       109  //done
+#define SPELL_SUMMON_CREATURE_3    110  //done
+#define SPELL_HALT_UNDEAD          111  //done
+#define SPELL_HEROISM              112  //done
+#define SPELL_VAMPIRIC_TOUCH       113  //done
+#define SPELL_HOLD_PERSON          114  //done
+#define SPELL_DEEP_SLUMBER         115  //done
+#define SPELL_INVISIBILITY_SPHERE  116  //done
+#define SPELL_DAYLIGHT             117  //done
+#define SPELL_CLAIRVOYANCE         118  //done
+#define SPELL_NON_DETECTION        119  //done
+#define SPELL_HASTE                120  //done
+#define SPELL_SLOW                 121  //done
+#define SPELL_DISPEL_MAGIC         122  //done
+#define SPELL_CIRCLE_A_EVIL        123  //done
+#define SPELL_CIRCLE_A_GOOD        124  //done
+#define SPELL_CUNNING              125  //done
+#define SPELL_WISDOM               126  //done
+#define SPELL_CHARISMA             127  //done
+#define SPELL_STENCH               128  //done - stinking cloud proc
+#define SPELL_ACID_SPLASH          129  //done
+#define SPELL_RAY_OF_FROST         130  //done
+#define SPELL_WIZARD_EYE           131  //done
+#define SPELL_FIRE_SHIELD          132  //done
+#define SPELL_COLD_SHIELD          133  //done
+#define SPELL_BILLOWING_CLOUD      134  //done
+#define SPELL_SUMMON_CREATURE_4    135  //done
+#define SPELL_GREATER_INVIS        136  //done
+#define SPELL_RAINBOW_PATTERN      137  //done
+#define SPELL_LOCATE_CREATURE      138  //done
+#define SPELL_MINOR_GLOBE          139  //done
+#define SPELL_ENLARGE_PERSON       140  //done
+#define SPELL_SHRINK_PERSON        141  //done
+#define SPELL_FSHIELD_DAM          142  //done
+#define SPELL_CSHIELD_DAM          143  //done
+#define SPELL_ASHIELD_DAM          144  //done
+#define SPELL_ACID_SHEATH          145  //done
+#define SPELL_INTERPOSING_HAND     146  //done
+#define SPELL_WALL_OF_FORCE        147  //done
+#define SPELL_CLOUDKILL            148  //done
+#define SPELL_SUMMON_CREATURE_5    149  //done
+#define SPELL_WAVES_OF_FATIGUE     150  //done
+#define SPELL_SYMBOL_OF_PAIN       151  //done
+#define SPELL_DOMINATE_PERSON      152  //done
+#define SPELL_FEEBLEMIND           153  //done
+#define SPELL_NIGHTMARE            154  //done
+#define SPELL_MIND_FOG             155  //done
+#define SPELL_FAITHFUL_HOUND       156  //done
+#define SPELL_DISMISSAL            157  //done
+#define SPELL_CONE_OF_COLD         158  //done
+#define SPELL_TELEKINESIS          159  //done
+#define SPELL_FIREBRAND            160  //done
+#define SPELL_DEATHCLOUD           161  //done - cloudkill proc
+#define SPELL_FREEZING_SPHERE      162  //x
 #define SPELL_ACID_FOG             163
 #define SPELL_SUMMON_CREATURE_6    164
 #define SPELL_TRANSFORMATION       165
@@ -213,31 +213,31 @@
 #define SPELL_TRUE_SEEING          171
 #define SPELL_GLOBE_OF_INVULN      172
 #define SPELL_GREATER_DISPELLING   173
-#define SPELL_GRASPING_HAND        174
+#define SPELL_GRASPING_HAND        174  //x
 #define SPELL_SUMMON_CREATURE_7    175
 #define SPELL_POWER_WORD_BLIND     176
 #define SPELL_WAVES_OF_EXHAUSTION  177
 #define SPELL_MASS_HOLD_PERSON     178
 #define SPELL_MASS_FLY             179
 #define SPELL_DISPLACEMENT         180
-#define SPELL_PRISMATIC_SPRAY      181
+#define SPELL_PRISMATIC_SPRAY      181  //x
 #define SPELL_POWER_WORD_STUN      182
 #define SPELL_PROTECT_FROM_SPELLS  183
-#define SPELL_THUNDERCLAP          184
+#define SPELL_THUNDERCLAP          184  //x
 #define SPELL_SPELL_MANTLE         185
 #define SPELL_MASS_WISDOM          186
 #define SPELL_MASS_CHARISMA        187
 #define SPELL_CLENCHED_FIST        188
 #define SPELL_INCENDIARY_CLOUD     189
 #define SPELL_SUMMON_CREATURE_8    190
-#define SPELL_HORRID_WILTING       191
+#define SPELL_HORRID_WILTING       191  //x
 #define SPELL_GREATER_ANIMATION    192
 #define SPELL_IRRESISTABLE_DANCE   193
 #define SPELL_MASS_DOMINATION      194
 #define SPELL_SCINT_PATTERN        195
 #define SPELL_REFUGE               196
 #define SPELL_BANISH               197
-#define SPELL_SUNBURST             198
+#define SPELL_SUNBURST             198  //x
 #define SPELL_SPELL_TURNING        199
 #define SPELL_MIND_BLANK           200
 #define SPELL_IRONSKIN             201
@@ -245,7 +245,7 @@
 #define SPELL_BLADE_OF_DISASTER    203
 #define SPELL_SUMMON_CREATURE_9    204
 #define SPELL_GATE                 205
-#define SPELL_WAIL_OF_THE_BANSHEE  206
+#define SPELL_WAIL_OF_THE_BANSHEE  206  //x
 #define SPELL_POWER_WORD_KILL      207
 #define SPELL_ENFEEBLEMENT         208
 #define SPELL_WEIRD                209
@@ -256,8 +256,9 @@
 #define SPELL_GREATER_SPELL_MANTLE 214
 #define SPELL_MASS_ENHANCE         215
 #define SPELL_PORTAL               216
+#define SPELL_ACID                 217  //acid fog proc
 /** Total Number of defined spells */
-#define NUM_SPELLS                 217
+#define NUM_SPELLS                 218
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
