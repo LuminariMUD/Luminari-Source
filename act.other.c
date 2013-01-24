@@ -64,7 +64,8 @@ ACMD(do_purify)
     return;
   }
 
-  if (!IS_AFFECTED(vict, AFF_DISEASE)) {
+  if (!IS_AFFECTED(vict, AFF_DISEASE) &&
+          !affected_by_spell(vict, SPELL_EYEBITE)) {
     send_to_char(ch, "Your target isn't diseased!\r\n");
     return;
   }
@@ -74,7 +75,8 @@ ACMD(do_purify)
   act("$n \tWheals\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   if (affected_by_spell(vict, SPELL_EYEBITE))
     affect_from_char(vict, SPELL_EYEBITE);
-  REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_DISEASE);
+  if (IS_AFFECTED(vict, AFF_DISEASE))
+    REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_DISEASE);
   
 
   attach_mud_event(new_mud_event(ePURIFY, ch, NULL), 2 * SECS_PER_MUD_DAY);

@@ -159,7 +159,9 @@ void appear(struct char_data *ch, bool forced)
   //this is a hack, so order in this function is important
   if (affected_by_spell(ch, SPELL_GREATER_INVIS)) {
     if (forced) {
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_INVISIBLE);
+      affect_from_char(ch, SPELL_INVISIBLE);
+      if (AFF_FLAGGED(ch, AFF_INVISIBLE))
+        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_INVISIBLE);
       send_to_char(ch, "You snap into visibility...\r\n");
       act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
     } else

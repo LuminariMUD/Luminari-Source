@@ -1984,17 +1984,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     send_to_char(ch, "%s", CONFIG_NOEFFECT);
     return;
   }
+  
+  if (to_vict != NULL)
+    act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
+  if (to_room != NULL)
+    act(to_room, TRUE, victim, 0, ch, TO_ROOM);  
 
   for (i = 0; i < MAX_SPELL_AFFECTS; i++)
     if (af[i].bitvector[0] || af[i].bitvector[1] ||
         af[i].bitvector[2] || af[i].bitvector[3] ||
         (af[i].location != APPLY_NONE))
       affect_join(victim, af+i, accum_duration, FALSE, accum_affect, FALSE);
-
-  if (to_vict != NULL)
-    act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
-  if (to_room != NULL)
-    act(to_room, TRUE, victim, 0, ch, TO_ROOM);
 }
 
 /* This function is used to provide services to mag_groups.  This function is
@@ -2198,6 +2198,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     break;
   case SPELL_DEATHCLOUD:
     break;
+  case SPELL_ACID:
+    break;
   case SPELL_METEOR_SWARM:
     to_char = "You call down meteors from the sky to pummel your foes!";
     to_room ="$n invokes a swarm of meteors to rain from the sky!";
@@ -2222,7 +2224,6 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     act(to_char, FALSE, ch, 0, 0, TO_CHAR);
   if (to_room != NULL)
     act(to_room, FALSE, ch, 0, 0, TO_ROOM);
-
 
   for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
     next_tch = tch->next_in_room;
