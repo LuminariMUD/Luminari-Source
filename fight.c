@@ -1979,6 +1979,7 @@ void hit(struct char_data *ch, struct char_data *victim,
 
   if (!ch || !victim) return;  //ch and victim exist?
   
+  /* added this to perform_violence for mobs flaged !fight */
   fight_mtrigger(ch);  //fight trig
 
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {  // can't hit!
@@ -2413,9 +2414,6 @@ void perform_violence(void)
     
     PARRY_LEFT(ch) = perform_attacks(ch, 1);    
 
-    if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT))
-      continue;
-
     if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
       send_to_char(ch, "You are paralyzed and unable to react!\r\n");
       act("$n seems to be paralyzed and unable to react!",
@@ -2432,6 +2430,13 @@ void perform_violence(void)
       send_to_char(ch, "You are stunned and unable to react!\r\n");
       act("$n seems to be stunned and unable to react!",
               TRUE, ch, 0, 0, TO_ROOM);
+      continue;
+    }
+
+    /* make sure this goes after attack-stopping affects like paralyze */
+    if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
+      /* this should be called in hit() but need a copy here for !fight flag */
+      fight_mtrigger(ch);  //fight trig
       continue;
     }
 
