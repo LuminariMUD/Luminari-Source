@@ -2721,6 +2721,10 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Spell failed!  You have no target!\r\n");
       return;
     }
+    if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOSUMMON)) {
+      send_to_char(ch, "The portal begins to open, then shuts suddenly!\r\n");
+      return;
+    }
     to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
     to_room = "$n \tnfolds \tMtime\tn and \tDspace\tn, and creates $p\tn.";
     obj_to_floor = TRUE;
