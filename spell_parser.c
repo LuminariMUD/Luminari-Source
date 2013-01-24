@@ -1754,7 +1754,7 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "Your eyes stop seeing true.", 5, 10,
      DIVINATION);  
 			/* abjuration */
-  spello(SPELL_GLOBE_OF_INVULN, "globe of invulnerability", 0, 0, 0,
+  spello(SPELL_GLOBE_OF_INVULN, "globe of invuln", 0, 0, 0,
      POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
      "Your globe of invulnerability has faded away.", 6, 10, ABJURATION);
   spello(SPELL_GREATER_DISPELLING, "greater dispelling", 0, 0, 0, POS_FIGHTING,
@@ -1954,21 +1954,24 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
 	NULL, 0, 0, NOSCHOOL);
   
-  spello(SPELL_DEATHCLOUD, "deathcloud", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_DEATHCLOUD, "_deathcloud_", 0, 0, 0, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 0, 0, NOSCHOOL);
-    spello(SPELL_FIRE_BREATHE, "fire breathe", 0, 0, 0, POS_FIGHTING,
+    spello(SPELL_FIRE_BREATHE, "_fire breathe_", 0, 0, 0, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 0, 0, NOSCHOOL);
-  spello(SPELL_FSHIELD_DAM, "fire shield dam", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_FSHIELD_DAM, "_fire shield dam_", 0, 0, 0, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AFFECTS,
 	NULL, 0, 0, NOSCHOOL);
-  spello(SPELL_CSHIELD_DAM, "cold shield dam", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_CSHIELD_DAM, "_cold shield dam_", 0, 0, 0, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AFFECTS,
 	NULL, 0, 0, NOSCHOOL);
-  spello(SPELL_ASHIELD_DAM, "acid sheath dam", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_ASHIELD_DAM, "_acid sheath dam_", 0, 0, 0, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AFFECTS,
 	NULL, 0, 0, NOSCHOOL);
+  spello(SPELL_ACID, "_acid_", 79, 64, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS,
+	NULL, 8, 12, EVOCATION);  
   
   spello(SPELL_DG_AFFECT, "Afflicted", 0, 0, 0, POS_SITTING,
 	TAR_IGNORE, TRUE, 0,

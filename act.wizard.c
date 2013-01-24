@@ -1779,6 +1779,8 @@ ACMD(do_restore)
 
 void perform_immort_vis(struct char_data *ch)
 {
+  struct char_data *tch = NULL;
+
   if ((GET_INVIS_LEV(ch) == 0) && (!AFF_FLAGGED(ch, AFF_HIDE) &&
           !AFF_FLAGGED(ch, AFF_INVISIBLE))) {
     send_to_char(ch, "You are already fully visible.\r\n");
@@ -1788,11 +1790,18 @@ void perform_immort_vis(struct char_data *ch)
   GET_INVIS_LEV(ch) = 0;
   appear(ch, TRUE);
   send_to_char(ch, "You are now fully visible.\r\n");
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
+    if (tch == ch || IS_NPC(tch))
+      continue;
+    act("You suddenly realize that $n is standing beside you.", FALSE, ch, 0,
+	  tch, TO_VICT);
+  }
+  
 }
 
 static void perform_immort_invis(struct char_data *ch, int level)
 {
-  struct char_data *tch;
+  struct char_data *tch = NULL;
 
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
     if (tch == ch || IS_NPC(tch))
