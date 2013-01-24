@@ -1146,7 +1146,7 @@ ACMD(do_enter)
             send_to_char(ch, "The portal leads nowhere\n\r"); 
             return; 
           } 
-
+          
           count=0; 
           if (portal->obj_flags.value[1] > portal->obj_flags.value[2]) { 
             diff = portal->obj_flags.value[1] - portal->obj_flags.value[2]; 
@@ -1180,8 +1180,35 @@ ACMD(do_enter)
       if (!House_can_enter(ch, portal_dest)) { 
         send_to_char(ch, "That's private property -- no trespassing!\r\n"); 
         return; 
-      } 
-
+      }
+      
+      if (ROOM_FLAGGED(portal_dest, ROOM_PRIVATE)) {
+        send_to_char(ch, "That is a private area!\r\n"); 
+        return;         
+      }
+      
+      if (ROOM_FLAGGED(portal_dest, ROOM_DEATH)) {
+        send_to_char(ch, "You turn back realizing it is a death trap!\r\n"); 
+        return;   
+      }
+      
+      if (ROOM_FLAGGED(portal_dest, ROOM_GODROOM)) {
+        send_to_char(ch, "Powerful divine forces push you back!\r\n"); 
+        return;         
+      }
+      
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(portal_dest), ZONE_CLOSED)) {
+        send_to_char(ch, "Zone Closed, sorry!\r\n"); 
+        return;         
+      }
+      
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(portal_dest), ZONE_NOASTRAL)) {
+        send_to_char(ch, "As you try to enter the portal, it flares "
+                "brightly, pushing you back!\r\n"); 
+        return;         
+      }
+      /* ok NOW we are good to go */
+      
       act("$n enters $p, and vanishes!", FALSE, ch, portal, 0, TO_ROOM); 
       act("You enter $p, and you are transported elsewhere", FALSE, ch, portal, 0, TO_CHAR); 
       char_from_room(ch);  

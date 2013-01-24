@@ -341,8 +341,10 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     /* we're translating level to circle, so 4 = 2nd circle */
     if (AFF_FLAGGED(cvict, AFF_MINOR_GLOBE) && lvl <= 4 &&
         (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
-      send_to_char(caster, "A minor globe from your victim repels your spell!\r\n");
-      act("$n's magic is repelled by $N's minor globe spell!", FALSE, caster, 0, 0, TO_ROOM);
+      send_to_char(caster,
+              "A minor globe from your victim repels your spell!\r\n");
+      act("$n's magic is repelled by $N's minor globe spell!", FALSE, caster,
+              0, cvict, TO_ROOM);
       if (!FIGHTING(caster))
         set_fighting(caster, cvict);
       if (!FIGHTING(cvict))
@@ -352,7 +354,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     } else if (AFF_FLAGGED(cvict, AFF_GLOBE_OF_INVULN) && lvl <= 8 &&
         (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
       send_to_char(caster, "A globe from your victim repels your spell!\r\n");
-      act("$n's magic is repelled by $N's globe spell!", FALSE, caster, 0, 0, TO_ROOM);
+      act("$n's magic is repelled by $N's globe spell!", FALSE, caster, 0,
+              cvict, TO_ROOM);
       if (!FIGHTING(caster))
         set_fighting(caster, cvict);
       if (!FIGHTING(cvict))
