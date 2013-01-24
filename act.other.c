@@ -72,7 +72,10 @@ ACMD(do_purify)
   send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
   act("You are \tWhealed\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
   act("$n \tWheals\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-  REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_DISEASE);
+  if (affected_by_spell(vict, SPELL_EYEBITE))
+    affect_from_char(vict, SPELL_EYEBITE);
+  REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_DISEASE);
+  
 
   attach_mud_event(new_mud_event(ePURIFY, ch, NULL), 2 * SECS_PER_MUD_DAY);
   update_pos(vict);

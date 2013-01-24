@@ -1051,6 +1051,16 @@ void init_start_char(struct char_data *ch)
 {
   int trains = 0, practices = 0, i = 0;
   
+  /* clear immortal flags */
+  if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+    i = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
+  if (PRF_FLAGGED(ch, PRF_NOHASSLE))
+    i = PRF_TOG_CHK(ch, PRF_NOHASSLE);
+  if (PRF_FLAGGED(ch, PRF_SHOWVNUMS))
+    i = PRF_TOG_CHK(ch, PRF_SHOWVNUMS);
+  if (PRF_FLAGGED(ch, PRF_BUILDWALK))
+    i = PRF_TOG_CHK(ch, PRF_BUILDWALK);
+    
   /* clear gear for clean start */
   for (i = 0; i < NUM_WEARS; i++)
     if (GET_EQ(ch, i))

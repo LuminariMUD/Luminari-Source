@@ -284,6 +284,7 @@ void affect_total(struct char_data *ch)
   GET_SIZE(ch) = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
 }
 
+
 /* Insert an affect_type in a char_data structure. Automatically sets
  * apropriate bits and apply's */
 void affect_to_char(struct char_data *ch, struct affected_type *af)
@@ -299,6 +300,7 @@ void affect_to_char(struct char_data *ch, struct affected_type *af)
   affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   affect_total(ch);
 }
+
 
 /* Remove an affected_type structure from a char (called when duration reaches
  * zero). Pointer *af must never be NIL!  Frees mem and calls
@@ -318,6 +320,7 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   affect_total(ch);
 }
 
+
 /* Call affect_remove with every affect from the spell "type" */
 void affect_from_char(struct char_data *ch, int type)
 {
@@ -329,6 +332,7 @@ void affect_from_char(struct char_data *ch, int type)
       affect_remove(ch, hjp);
   }
 }
+
 
 /* Return TRUE if a char is affected by a spell (SPELL_XXX), FALSE indicates
  * not affected. */
@@ -342,6 +346,7 @@ bool affected_by_spell(struct char_data *ch, int type)
 
   return (FALSE);
 }
+
 
 void affect_join(struct char_data *ch, struct affected_type *af,
 		      bool add_dur, bool avg_dur, bool add_mod, bool avg_mod)

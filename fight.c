@@ -1207,6 +1207,8 @@ int compute_concealment(struct char_data *ch)
 
 // returns modified damage, process elements/resistance/avoidance
 // -1 means we're gonna go ahead and exit damage()
+// anything that goes through here will affect ALL damage, whether
+// skill or spell, etc
 int damage_handling(struct char_data *ch, struct char_data *victim,
 	int dam, int attacktype, int dam_type)
 {
@@ -1232,7 +1234,8 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     /* mirror image gives (1 / (# of image + 1)) chance of hitting */
-    if (affected_by_spell(victim, SPELL_MIRROR_IMAGE) && dam > 0) {
+    if ((affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
+           affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) && dam > 0) {
       if (GET_IMAGES(victim) > 0) {
         if (rand_number(0, GET_IMAGES(victim))) {
           send_to_char(victim, "\tWOne of your images is destroyed!\tn\r\n");
@@ -1246,6 +1249,8 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
             send_to_char(victim, "\t2All of your illusionary "
                     "images are gone!\tn\r\n");
             affect_from_char(victim, SPELL_MIRROR_IMAGE);
+            affect_from_char(victim, SPELL_GREATER_MIRROR_IMAGE);
+
           }
           return -1;
         } 
@@ -1254,6 +1259,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
         send_to_char(victim, "\t2All of your illusionary "
                 "images are gone!\tn\r\n");
         affect_from_char(victim, SPELL_MIRROR_IMAGE);
+        affect_from_char(victim, SPELL_GREATER_MIRROR_IMAGE);
       }
     }
 
