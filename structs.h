@@ -106,7 +106,8 @@
 #define RAFF_STINK       (1 << 3)
 #define RAFF_BILLOWING   (1 << 4)
 #define RAFF_ANTI_MAGIC  (1 << 5)
-#define NUM_RAFF    6
+#define RAFF_ACID_FOG    (1 << 6)
+#define NUM_RAFF    7
 
 /* Zone info: Used in zone_data.zone_flags */
 #define ZONE_CLOSED       0  /**< Zone is closed - players cannot enter */

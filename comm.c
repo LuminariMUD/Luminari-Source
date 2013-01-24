@@ -1071,6 +1071,7 @@ void pulse_luminari() {
     /* disease */
     if (IS_AFFECTED(i, AFF_DISEASE)) {
       if (!IS_NPC(i) && GET_SKILL(i, SKILL_DIVINE_HEALTH)) {
+        REMOVE_BIT_AR(AFF_FLAGS(i), AFF_DISEASE);
         send_to_char(i, "The \tYdisease\tn you have fades away!\r\n");
         act("$n glows bright \tWwhite\tn and the \tYdisease\tn $s had "
                 "fades away!", TRUE, i, 0, NULL, TO_ROOM);

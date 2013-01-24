@@ -2819,6 +2819,13 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       rounds = 15;
       break;
 
+    case SPELL_ACID_FOG:  //illusion
+      to_char = "You create a thick bank of acid fog!";
+      to_room = "$n creates a thick bank of acid fog!";
+      aff = RAFF_ACID_FOG;
+      rounds = MAGIC_LEVEL(ch);
+      break;
+
     case SPELL_DARKNESS:  //divination
       to_char = "You create a blanket of pitch black.";
       to_room = "$n creates a blanket of pitch black.";

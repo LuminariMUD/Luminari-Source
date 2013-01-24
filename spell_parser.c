@@ -338,7 +338,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     for (i = 1; i < NUM_CLASSES; i++)
       if (lvl >= SINFO.min_level[i])
         lvl = SINFO.min_level[i];
-    if (AFF_FLAGGED(cvict, AFF_MINOR_GLOBE) && lvl <= 3 &&
+    /* we're translating level to circle, so 4 = 2nd circle */
+    if (AFF_FLAGGED(cvict, AFF_MINOR_GLOBE) && lvl <= 4 &&
         (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
       send_to_char(caster, "A minor globe from your victim repels your spell!\r\n");
       act("$n's magic is repelled by $N's minor globe spell!", FALSE, caster, 0, 0, TO_ROOM);
@@ -347,7 +348,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       if (!FIGHTING(cvict))
         set_fighting(cvict, caster);
       return (0);
-    } else if (AFF_FLAGGED(cvict, AFF_GLOBE_OF_INVULN) && lvl <= 4 &&
+    /* we're translating level to circle so 8 = 4th circle */
+    } else if (AFF_FLAGGED(cvict, AFF_GLOBE_OF_INVULN) && lvl <= 8 &&
         (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
       send_to_char(caster, "A globe from your victim repels your spell!\r\n");
       act("$n's magic is repelled by $N's globe spell!", FALSE, caster, 0, 0, TO_ROOM);
@@ -713,7 +715,7 @@ EVENTFUNC(event_casting)
       if (!IS_NPC(ch))
         failure -= CASTER_LEVEL(ch) + ((compute_ability(ch, ABILITY_CONCENTRATION) - 3) * 2);
       else
-        failure -= (GET_LEVEL(ch)) * 2;
+        failure -= (GET_LEVEL(ch)) * 3;
         //chance of failure calculated here, so far:  taunt, grappled
       if (char_has_mud_event(ch, eTAUNTED))
         failure += 10;

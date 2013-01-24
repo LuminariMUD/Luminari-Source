@@ -49,7 +49,7 @@ int has_boat(struct char_data *ch)
   struct obj_data *obj;
   int i;
 
-  if (GET_LEVEL(ch) > LVL_IMMORT)
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
     return (1);
 
   if (AFF_FLAGGED(ch, AFF_WATERWALK) || AFF_FLAGGED(ch, AFF_FLYING))
@@ -74,7 +74,7 @@ int has_flight(struct char_data *ch)
   struct obj_data *obj;
   int i;
 
-  if (GET_LEVEL(ch) > LVL_IMMORT)
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
     return (1);
 
   if (AFF_FLAGGED(ch, AFF_FLYING))
@@ -99,7 +99,7 @@ int has_scuba(struct char_data *ch)
   struct obj_data *obj;
   int i;
 
-  if (GET_LEVEL(ch) > LVL_IMMORT)
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
     return (1);
 
   if (AFF_FLAGGED(ch, AFF_SCUBA))
@@ -124,7 +124,7 @@ int can_climb(struct char_data *ch)
   struct obj_data *obj;
   int i;
 
-  if (GET_LEVEL(ch) > LVL_IMMORT)
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
     return (1);
 
   if (has_flight(ch))

@@ -167,6 +167,8 @@ const char *room_affections[] = {
   "Lighted",
   "Stench",
   "Billowing",
+  "Anti-Magic Field",
+  "Acid Fogged",
   "\n"
 };
 
