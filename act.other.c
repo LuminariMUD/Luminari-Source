@@ -781,14 +781,21 @@ ACMD(do_lore)
 /* a generic command to get rid of a fly flag */
 ACMD(do_land)
 {  
+  bool msg = FALSE;
+  
   if (affected_by_spell(ch, SPELL_FLY)) {
     affect_from_char(ch, SPELL_FLY);
-    send_to_char(ch, "You land on the ground.\r\n");
-    act("$n lands on the ground.", TRUE, ch, 0, NULL, TO_ROOM);
-  } else if AFF_FLAGGED(ch, AFF_FLYING) {    
+    msg = TRUE;
+  }
+  
+  if AFF_FLAGGED(ch, AFF_FLYING) {    
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    msg = TRUE;
+  }
+  
+  if (msg) { 
     send_to_char(ch, "You land on the ground.\r\n");
-    act("$n lands on the ground.", TRUE, ch, 0, NULL, TO_ROOM);    
+    act("$n lands on the ground.", TRUE, ch, 0, 0, TO_ROOM);
   } else {
     send_to_char(ch, "You are not flying.\r\n");  
   }
@@ -803,7 +810,16 @@ ACMD(do_fly)
     return;
   }
 
-  call_magic(ch, ch, NULL, SPELL_FLY, GET_LEVEL(ch), CAST_SPELL);
+  if AFF_FLAGGED(ch, AFF_FLYING) {
+    send_to_char(ch, "You are already flying!\r\n");
+    return;
+  } else {
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    act("$n begins to fly above the ground!", TRUE, ch, 0, 0, TO_ROOM);
+    send_to_char(ch, "You take off and begin to fly!\r\n");
+  }
+  // old version just called the spell, but not as nice methinks
+  //call_magic(ch, ch, NULL, SPELL_FLY, GET_LEVEL(ch), CAST_SPELL);
 }
 
 
