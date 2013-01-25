@@ -1757,7 +1757,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n is surrounded by a white aura.";
     break;
 
-  case SPELL_TRANSFORMATION:
+  case SPELL_TRANSFORMATION:  //necromancy
     af[0].duration = 50;
     SET_BIT_AR(af[0].bitvector, AFF_TFORM);
 
@@ -1937,7 +1937,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     accum_duration = TRUE;
     break;
 
-  case SPELL_WATERWALK:
+  case SPELL_WATERWALK:  //transmutation
     af[0].duration = 600;
     SET_BIT_AR(af[0].bitvector, AFF_WATERWALK);
     accum_duration = TRUE;
@@ -2070,9 +2070,14 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
       case SPELL_STENCH:
         isEffect = TRUE;
         break;
+      case SPELL_ACID:
+        break;
     }
+    
     if (isEffect)
       mag_affects(level, ch, tch, obj, spellnum, savetype);
+    else
+      mag_damage(level, ch, tch, obj, spellnum, 1);
   }
 }
 
@@ -2197,8 +2202,6 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "Arcing bolts of lightning fly from the fingers of $n!";
     break;
   case SPELL_DEATHCLOUD:
-    break;
-  case SPELL_ACID:
     break;
   case SPELL_METEOR_SWARM:
     to_char = "You call down meteors from the sky to pummel your foes!";
@@ -2824,7 +2827,7 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       rounds = 15;
       break;
 
-    case SPELL_ACID_FOG:  //illusion
+    case SPELL_ACID_FOG:  //conjuration
       to_char = "You create a thick bank of acid fog!";
       to_room = "$n creates a thick bank of acid fog!";
       aff = RAFF_ACID_FOG;

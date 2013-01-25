@@ -497,6 +497,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
   //universal bonuses
   if (affected_by_spell(ch, SPELL_HEROISM))
     value += 2;
+  else if (affected_by_spell(ch, SPELL_GREATER_HEROISM))
+    value += 4;  
 
   // try to avoid sending NPC's here, but just in case:
   if (IS_NPC(ch))
