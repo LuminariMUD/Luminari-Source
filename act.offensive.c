@@ -219,8 +219,8 @@ ACMD(do_hit)
 
 ACMD(do_kill)
 {
-  char arg[MAX_INPUT_LENGTH];
-  struct char_data *vict;
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+  struct char_data *vict = NULL;
 
   if (GET_LEVEL(ch) < LVL_IMMORT || IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
     do_hit(ch, argument, cmd, subcmd);
@@ -235,7 +235,9 @@ ACMD(do_kill)
       send_to_char(ch, "They aren't here.\r\n");
     else if (ch == vict)
       send_to_char(ch, "Your mother would be so sad.. :(\r\n");
-    else {
+    else if (GET_LEVEL(ch) <= GET_LEVEL(vict)) {
+      do_hit(ch, argument, cmd, subcmd);
+    } else {
       act("You chop $M to pieces!  Ah!  The blood!", FALSE, ch, 0, vict, TO_CHAR);
       act("$N chops you to pieces!", FALSE, vict, 0, ch, TO_CHAR);
       act("$n brutally slays $N!", FALSE, ch, 0, vict, TO_NOTVICT);
@@ -346,6 +348,7 @@ ACMD(do_backstab)
     send_to_char(ch, "You have no piercing weapon equipped.\r\n");
 }
 
+
 ACMD(do_order)
 {
   char name[MAX_INPUT_LENGTH], message[MAX_INPUT_LENGTH];
@@ -387,12 +390,13 @@ ACMD(do_order)
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
       for (k = ch->followers; k; k = k->next) {
-	if (IN_ROOM(ch) == IN_ROOM(k->follower))
-	  if (AFF_FLAGGED(k->follower, AFF_CHARM)) {
-	    found = TRUE;
-	    command_interpreter(k->follower, message);
-	  }
+        if (IN_ROOM(ch) == IN_ROOM(k->follower))
+          if (AFF_FLAGGED(k->follower, AFF_CHARM)) {
+            found = TRUE;
+            command_interpreter(k->follower, message);
+          }
       }
+      
       if (found)
         send_to_char(ch, "%s", CONFIG_OK);
       else
