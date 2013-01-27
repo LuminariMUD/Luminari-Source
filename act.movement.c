@@ -482,6 +482,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   else {
     // cycle through room 
     for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
+      if (tch == ch)  //skip self of course
+        continue;
       // sneak check, listener vs sneaker, mounted scenario 
       if (riding && can_hear_sneaking(tch, RIDING(ch))) {
         // i hear you!
