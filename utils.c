@@ -2363,6 +2363,45 @@ char *convert_from_tabs(char * string)
   return(buf);
 }
 
+
+void set_alignment(struct char_data *ch, int alignment)
+{
+  switch (alignment) {
+    case LAWFUL_GOOD:
+      GET_ALIGNMENT(ch) = 900;
+      break;
+    case NEUTRAL_GOOD:
+      GET_ALIGNMENT(ch) = 690;
+      break;
+    case CHAOTIC_GOOD:
+      GET_ALIGNMENT(ch) = 460;
+      break;
+    case LAWFUL_NEUTRAL:
+      GET_ALIGNMENT(ch) = 235;
+      break;
+    case TRUE_NEUTRAL:
+      GET_ALIGNMENT(ch) = 0;
+      break;
+    case CHAOTIC_NEUTRAL:
+      GET_ALIGNMENT(ch) = -235;
+      break;
+    case LAWFUL_EVIL:
+      GET_ALIGNMENT(ch) = -460;
+      break;
+    case NEUTRAL_EVIL:
+      GET_ALIGNMENT(ch) = -690;
+      break;
+    case CHAOTIC_EVIL:
+      GET_ALIGNMENT(ch) = -900;
+      break;
+    default:
+      break;
+  }          
+}
+    /* return colored two-letter string referring to alignment */
+/* also have in constants.c
+ * const char *alignment_names[] = {
+*/
 char *get_align_by_num_cnd(int align)
 {
   if (align >= 800)
@@ -2387,6 +2426,11 @@ char *get_align_by_num_cnd(int align)
   return "??";
 }
 
+
+    /* return colored full string referring to alignment */
+/* also have in constants.c
+ * const char *alignment_names[] = {
+*/
 char *get_align_by_num(int align)
 {
   if (align >= 800)

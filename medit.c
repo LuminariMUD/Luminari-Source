@@ -502,17 +502,16 @@ static void medit_disp_aff_flags(struct descriptor_data *d)
 /* Display alignment choices */
 static void disp_align_menu(struct descriptor_data *d)
 {
-  write_to_output(d, "\r\n"
-          "1) Lawful Good\r\n" 
-          "2) Neutral Good\r\n" 
-          "3) Chaotic Good\r\n" 
-          "4) Lawful Neutral\r\n" 
-          "5) True Neutral\r\n" 
-          "6) Chaotic Neutral\r\n" 
-          "7) Lawful Evil\r\n" 
-          "8) Neutral Evil\r\n" 
-          "9) Chaotic Evil\r\n\r\n" 
-          );
+  int i = 0;
+  
+  get_char_colors(d->character);
+  clear_screen(d);
+  
+  write_to_output(d, "\r\n");
+  for (; i < NUM_ALIGNMENTS; i++) {
+    write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
+  }
+  write_to_output(d, "\r\n");
 }
 
 /* Display main menu. */
@@ -1215,49 +1214,21 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
     /*
-          "1) Lawful Good\r\n" 
-          "2) Neutral Good\r\n" 
-          "3) Chaotic Good\r\n" 
-          "4) Lawful Neutral\r\n" 
-          "5) True Neutral\r\n" 
-          "6) Chaotic Neutral\r\n" 
-          "7) Lawful Evil\r\n" 
-          "8) Neutral Evil\r\n" 
-          "9) Chaotic Evil\r\n\r\n"*/ 
+          "0) Lawful Good\r\n" 
+          "1) Neutral Good\r\n" 
+          "2) Chaotic Good\r\n" 
+          "3) Lawful Neutral\r\n" 
+          "4) True Neutral\r\n" 
+          "5) Chaotic Neutral\r\n" 
+          "6) Lawful Evil\r\n" 
+          "7) Neutral Evil\r\n" 
+          "8) Chaotic Evil\r\n\r\n"*/ 
   case MEDIT_ALIGNMENT:
-    if (i < 1 || i > 9) {
+    if (i < 0 || i > (NUM_ALIGNMENTS-1)) {
       write_to_output(d, "\r\nInvalid choice!\r\n");
       return;
     }
-    switch (i) {
-      case 1:
-        GET_ALIGNMENT(OLC_MOB(d)) = 900;
-        break;
-      case 2:
-        GET_ALIGNMENT(OLC_MOB(d)) = 690;
-        break;
-      case 3:
-        GET_ALIGNMENT(OLC_MOB(d)) = 460;
-        break;
-      case 4:
-        GET_ALIGNMENT(OLC_MOB(d)) = 235;
-        break;
-      case 5:
-        GET_ALIGNMENT(OLC_MOB(d)) = 0;
-        break;
-      case 6:
-        GET_ALIGNMENT(OLC_MOB(d)) = -235;
-        break;
-      case 7:
-        GET_ALIGNMENT(OLC_MOB(d)) = -460;
-        break;
-      case 8:
-        GET_ALIGNMENT(OLC_MOB(d)) = -690;
-        break;
-      case 9:
-        GET_ALIGNMENT(OLC_MOB(d)) = -900;
-        break;
-    }
+    set_alignment(OLC_MOB(d), i);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;

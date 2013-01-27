@@ -25,10 +25,28 @@
  * @todo cpp_extern isn't needed here (or anywhere) as the extern reserved word
  * works correctly with C compilers (at least in my Experience)
  * Jeremy Osborne 1/28/2008 */
-cpp_extern const char *tbamud_version = "tbaMUD 3.63";
+cpp_extern const char *tbamud_version = "LuminariMUD 1.0 (tbaMUD 3.64)";
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 /* (Note: strings for class definitions in class.c instead of here) */
+
+/* note - in utils.c there are two functions for alignment as well 
+ * char *get_align_by_num(int align)
+ * char *get_align_by_num_cnd(int align)
+*/
+const char *alignment_names[] = {
+  "\tYLawful \tWGood\tn",
+  "\tcNeutral \tWGood\tn",
+  "\tRChaotic \tWGood\tn",
+  "\tYLawful \tcNeutral\tn",
+  "\tcTrue Neutral\tn",
+  "\tRChaotic \tcNeutral\tn",
+  "\tYLawful \tDEvil\tn",
+  "\tcNeutral \tDEvil\tn",
+  "\tRChaotic \tDEvil\tn",
+  "\n"
+};
+
 
 /* structure for immortal prefix */
 const char *admin_level_names[] = {
@@ -460,7 +478,8 @@ const char *connected_types[] = {
   "Message Edit",
   "Spells Known Edit",	//35
   "Class Help",	//36
-  "\n"  /* make sure this matches NUM_CON_STATES:  36 */
+  "Alignment Selection",	//37
+  "\n"  /* make sure this matches NUM_CON_STATES:  38 */
 };
 
 /** Describes the position in the equipment listing.

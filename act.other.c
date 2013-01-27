@@ -294,11 +294,65 @@ ACMD(do_tame) {
 }
 
 
+/* does the ch have a valid alignment for proposed class? */
+/* returns 1 for valid alignment */
+/* returns 0 for problem with alignment */
+int valid_align_by_class(struct char_data *ch, int class)
+{
+
+  switch (class) {
+
+    /* any lawful alignment */
+  case CLASS_MONK:
+    if (IS_LG(ch) || IS_LN(ch) || IS_LE(ch))
+      return 1;
+    else
+      return 0;
+    
+    /* any 'neutral' alignment */
+  case CLASS_DRUID:
+    if (IS_NG(ch) || IS_LN(ch) || IS_NN(ch) || IS_CN(ch) || IS_NE(ch))
+      return 1;
+    else
+      return 0;
+    
+    /* any 'non-lawful' alignment */
+  case CLASS_BERSERKER:
+    if (IS_LG(ch) || IS_LN(ch) || IS_LE(ch))  //just note switched return
+      return 0;
+    else  //just note, switched return
+      return 1;
+    
+    /* only lawful good */
+  case CLASS_PALADIN:
+    if (IS_LG(ch))
+      return 1;
+    else
+      return 0;
+    
+    /* default, no alignment restrictions */
+  case CLASS_WIZARD:
+  case CLASS_CLERIC:
+  case CLASS_ROGUE:
+  case CLASS_WARRIOR:
+  case CLASS_SORCERER:
+    return 1;
+  }
+  
+  /* shouldn't get here if we got all classes listed above */
+  return 1;
+}
+
+
 // if you meet the class pre-reqs, return 1, otherwise 0
 // class = class attempting to level in
 int meet_class_reqs(struct char_data *ch, int class)
 {
   int i;
+  
+  /* alignment restrictions */
+  if (!valid_align_by_class(ch, class))
+    return 0;
 
   // this is to make sure an epic race doesn't multiclass
   for (i = 0; i < NUM_CLASSES; i++)
@@ -319,6 +373,7 @@ int meet_class_reqs(struct char_data *ch, int class)
       break;
   }
  
+  /* stat, and other restrictions */
   switch (class) {
     case CLASS_WIZARD:
       if (ch->real_abils.intel >= 11)
@@ -483,8 +538,8 @@ ACMD(do_gain)
  
     if (is_altered) {
       mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE,
-	"%s advanced %d level%s to level %d.", GET_NAME(ch),
-	num_levels, num_levels == 1 ? "" : "s", GET_LEVEL(ch));
+             "%s advanced %d level%s to level %d.", GET_NAME(ch),
+             num_levels, num_levels == 1 ? "" : "s", GET_LEVEL(ch));
       if (num_levels == 1)
         send_to_char(ch, "You rise a level!\r\n");
       else
@@ -532,6 +587,8 @@ void perform_shapechange(struct char_data *ch, char *arg)
       return;
     }
     IS_MORPHED(ch) = form;
+    
+    /* the morph_to_x are in race.c */
     send_to_char(ch, "You transform into a %s!\r\n", RACE_ABBR(ch));
     act(morph_to_char[IS_MORPHED(ch)], TRUE, ch, 0, 0, TO_CHAR);    
     send_to_char(ch, "\tDType 'innates' to see your abilities.\tn\r\n"); 
