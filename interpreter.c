@@ -1829,6 +1829,12 @@ void nanny(struct descriptor_data *d, char *arg)
 
   case CON_QALIGN:
     
+    if (!isdigit(*arg)) {
+      write_to_output(d, "That is not a number!\r\n");
+      STATE(d) = CON_QALIGN;
+      return;
+    }
+    
     i = atoi(arg);
     if (i < 0 || i > (NUM_ALIGNMENTS-1) ||
             !valid_align_by_class(d->character, GET_CLASS(d->character))) {
