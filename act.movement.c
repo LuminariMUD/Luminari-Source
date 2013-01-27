@@ -1038,17 +1038,20 @@ ACMD(do_enter)
           break; 
 
         case PORTAL_CHECKFLAGS: 
-          if ( ((IS_MAGIC_USER(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_MAGIC_USER))) || 
+          if ( ((IS_WIZARD(ch)) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_WIZARD))) || 
                   
                ((IS_CLERIC(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_CLERIC))) ||
                   
+               ((IS_RANGER(ch)) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_RANGER))) ||
+                  
                ((IS_PALADIN(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_PALADIN))) ||
                   
-               ((IS_THIEF(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_THIEF))) ||
+               ((IS_ROGUE(ch)) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_ROGUE))) ||
                   
                ((IS_MONK(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_MONK))) ||

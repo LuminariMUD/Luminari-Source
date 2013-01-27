@@ -31,9 +31,9 @@
 
 /* Names first */
 const char *class_abbrevs[] = {
-  "\tYMag\tn",
+  "\tYWiz\tn",
   "\tBCle\tn",
-  "\twThi\tn",
+  "\twRog\tn",
   "\tRWar\tn",
   "\tgMnk\tn",
   "\tGD\tgr\tGu\tn",
@@ -44,9 +44,9 @@ const char *class_abbrevs[] = {
 };
 
 const char *pc_class_types[] = {
-  "Magic User",
+  "Wizard",
   "Cleric",
-  "Thief",
+  "Rogue",
   "Warrior",
   "Monk",
   "Druid",
@@ -62,11 +62,11 @@ const char *class_menu =
 "  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | class selection\r\n"
 "---------------------+\r\n"
 "  c)  \tBCleric\tn\r\n"
-"  t)  \tWThief\tn\r\n"
+"  t)  \tWRogue\tn\r\n"
 "  w)  \tRWarrior\tn\r\n"
 "  o)  \tgMonk\tn\r\n"
 "  d)  \tGD\tgr\tGu\tgi\tGd\tn\r\n"
-"  m)  \tYMagic User\tn\r\n"
+"  m)  \tYWizard\tn\r\n"
 "  b)  \trBer\tRser\trker\tn\r\n"
 "  p)  \tWPaladin\tn\r\n"
 "  s)  \tMSorcerer\tn\r\n";
@@ -79,10 +79,10 @@ int parse_class(char arg)
   arg = LOWER(arg);
 
   switch (arg) {
-  case 'm': return CLASS_MAGIC_USER;
+  case 'm': return CLASS_WIZARD;
   case 'c': return CLASS_CLERIC;
   case 'w': return CLASS_WARRIOR;
-  case 't': return CLASS_THIEF;
+  case 't': return CLASS_ROGUE;
   case 'o': return CLASS_MONK;
   case 'd': return CLASS_DRUID;
   case 'b': return CLASS_BERSERKER;
@@ -143,7 +143,7 @@ int prac_params[4][NUM_CLASSES] = {
 #undef SK
 /* The appropriate rooms for each guildmaster/guildguard; controls which types
  * of people the various guildguards let through.  i.e., the first line shows
- * that from room 3017, only MAGIC_USERS are allowed to go south. Don't forget
+ * that from room 3017, only WIZARDS are allowed to go south. Don't forget
  * to visit spec_assign.c if you create any new mobiles that should be a guild
  * master or guard so they can act appropriately. If you "recycle" the
  * existing mobs that are used in other guilds for your new guild, then you
@@ -152,11 +152,11 @@ int prac_params[4][NUM_CLASSES] = {
 struct guild_info_type guild_info[] = {
 
   /* Midgaard */
-  { CLASS_MAGIC_USER,  3017,	SOUTH },
+  { CLASS_WIZARD,  3017,	SOUTH },
   { CLASS_CLERIC,	   3004,	NORTH },
   { CLASS_DRUID,	   3004,	NORTH },
   { CLASS_MONK,	   3004,	NORTH },
-  { CLASS_THIEF,	   3027,	EAST  },
+  { CLASS_ROGUE,	   3027,	EAST  },
   { CLASS_WARRIOR,	   3021,	EAST  },
   { CLASS_PALADIN,	   3021,	EAST  },
   { CLASS_BERSERKER,   3021,	EAST  },
@@ -250,11 +250,11 @@ int BAB(struct char_data *ch)
     level = CLASS_LEVEL(ch, i);
     if (level) {
       switch (i) {
-        case CLASS_MAGIC_USER:
+        case CLASS_WIZARD:
         case CLASS_SORCERER:
           bab += level / 2;
           break;
-        case CLASS_THIEF:
+        case CLASS_ROGUE:
         case CLASS_CLERIC:
         case CLASS_DRUID:
         case CLASS_MONK:
@@ -372,7 +372,7 @@ void newbieEquipment(struct char_data *ch)
 
       break;
 
-    case CLASS_THIEF:
+    case CLASS_ROGUE:
       obj = read_object(854, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch);       // leather sleeves
@@ -396,7 +396,7 @@ void newbieEquipment(struct char_data *ch)
       break;
 
     case CLASS_SORCERER:
-    case CLASS_MAGIC_USER:
+    case CLASS_WIZARD:
       obj = read_object(854, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch);       // leather sleeves
@@ -498,7 +498,7 @@ void sorc_skills(struct char_data *ch, int level) {
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
  */
-void mage_skills(struct char_data *ch, int level) {
+void wizard_skills(struct char_data *ch, int level) {
   switch (level) {
     case 2:
       if (!GET_SKILL(ch, SKILL_USE_MAGIC))
@@ -557,7 +557,7 @@ void druid_skills(struct char_data *ch, int level) {
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
  */
-void thief_skills(struct char_data *ch, int level) {
+void rogue_skills(struct char_data *ch, int level) {
   switch (level) {
     case 2:
       if (!GET_SKILL(ch, SKILL_MOBILITY))
@@ -632,7 +632,7 @@ void init_class(struct char_data *ch, int class, int level)
   switch (class) {
 
   case CLASS_SORCERER:
-  case CLASS_MAGIC_USER:
+  case CLASS_WIZARD:
     //spell init
     //1st circle
     SET_SKILL(ch, SPELL_HORIZIKAULS_BOOM, 99);
@@ -785,7 +785,7 @@ void init_class(struct char_data *ch, int class, int level)
     if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
       SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
 
-     // magic user innate cantrips
+     // wizard innate cantrips
     /*
     SET_SKILL(ch, SPELL_ACID_SPLASH, 99);
     SET_SKILL(ch, SPELL_RAY_OF_FROST, 99);
@@ -975,7 +975,7 @@ void init_class(struct char_data *ch, int class, int level)
     send_to_char(ch, "Paladin Done.\tn\r\n");
   break;
 
-  case CLASS_THIEF:
+  case CLASS_ROGUE:
     if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
       SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
     if (!GET_SKILL(ch, SKILL_PROF_BASIC))
@@ -990,7 +990,7 @@ void init_class(struct char_data *ch, int class, int level)
     if (!GET_SKILL(ch, SKILL_TRACK))
       SET_SKILL(ch, SKILL_TRACK, 75);
     
-    send_to_char(ch, "Thief Done.\tn\r\n");
+    send_to_char(ch, "Rogue Done.\tn\r\n");
   break;
 
 
@@ -1189,7 +1189,7 @@ void init_start_char(struct char_data *ch)
   //class-related inits
   switch (GET_CLASS(ch)) {
   case CLASS_SORCERER:
-  case CLASS_MAGIC_USER:
+  case CLASS_WIZARD:
   case CLASS_CLERIC:
     trains += MAX(1, (2 + (int)(GET_INT_BONUS(ch))) * 3);
     break;
@@ -1198,7 +1198,7 @@ void init_start_char(struct char_data *ch)
   case CLASS_MONK:
     trains += MAX(1, (4 + (int)(GET_INT_BONUS(ch))) * 3);
     break;
-  case CLASS_THIEF:
+  case CLASS_ROGUE:
     trains += MAX(1, (8 + (int)(GET_INT_BONUS(ch))) * 3);
     break;
   case CLASS_WARRIOR:
@@ -1279,8 +1279,8 @@ void advance_level(struct char_data *ch, int class)
       practices++;
 
     break;
-  case CLASS_MAGIC_USER:
-    mage_skills(ch, CLASS_LEVEL(ch, CLASS_MAGIC_USER));
+  case CLASS_WIZARD:
+    wizard_skills(ch, CLASS_LEVEL(ch, CLASS_WIZARD));
     add_hp += rand_number(2, 4);
     add_mana = 0;
     add_move = rand_number(0, 2);
@@ -1307,8 +1307,8 @@ void advance_level(struct char_data *ch, int class)
       practices++;
 
     break;
-  case CLASS_THIEF:
-    thief_skills(ch, CLASS_LEVEL(ch, CLASS_THIEF));
+  case CLASS_ROGUE:
+    rogue_skills(ch, CLASS_LEVEL(ch, CLASS_ROGUE));
     add_hp += rand_number(3, 6);
     add_mana = 0;
     add_move = rand_number(2, 4);
@@ -1485,7 +1485,7 @@ int backstab_mult(int level)
 // used by handler.c
 int invalid_class(struct char_data *ch, struct obj_data *obj)
 {
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_MAGIC_USER) && IS_MAGIC_USER(ch))
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_WIZARD) && IS_WIZARD(ch))
     return TRUE;
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_SORCERER) && IS_SORCERER(ch))
@@ -1509,7 +1509,7 @@ int invalid_class(struct char_data *ch, struct obj_data *obj)
   if (OBJ_FLAGGED(obj, ITEM_ANTI_DRUID) && IS_DRUID(ch))
     return TRUE;
 
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_THIEF) && IS_THIEF(ch))
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_ROGUE) && IS_ROGUE(ch))
     return TRUE;
 
   return FALSE;
@@ -1528,168 +1528,168 @@ void init_spell_levels(void)
     }
   }
 
-  // magic user innate cantrips
+  // wizard innate cantrips
   /*
-  spell_level(SPELL_ACID_SPLASH, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_RAY_OF_FROST, CLASS_MAGIC_USER, 1);
+  spell_level(SPELL_ACID_SPLASH, CLASS_WIZARD, 1);
+  spell_level(SPELL_RAY_OF_FROST, CLASS_WIZARD, 1);
   */
   
-  // magic user, increment spells by spell-level
+  // wizard, increment spells by spell-level
   //1st circle
-  spell_level(SPELL_MAGIC_MISSILE, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_HORIZIKAULS_BOOM, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_BURNING_HANDS, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_ICE_DAGGER, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_MAGE_ARMOR, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_SUMMON_CREATURE_1, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_CHILL_TOUCH, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_NEGATIVE_ENERGY_RAY, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_RAY_OF_ENFEEBLEMENT, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_CHARM, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_ENCHANT_WEAPON, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_SLEEP, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_COLOR_SPRAY, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_SCARE, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_TRUE_STRIKE, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_IDENTIFY, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_SHELGARNS_BLADE, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_GREASE, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_ENDURE_ELEMENTS, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_PROT_FROM_EVIL, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_PROT_FROM_GOOD, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_EXPEDITIOUS_RETREAT, CLASS_MAGIC_USER, 1);
-  spell_level(SPELL_IRON_GUTS, CLASS_MAGIC_USER, 1);  
-  spell_level(SPELL_SHIELD, CLASS_MAGIC_USER, 1);
+  spell_level(SPELL_MAGIC_MISSILE, CLASS_WIZARD, 1);
+  spell_level(SPELL_HORIZIKAULS_BOOM, CLASS_WIZARD, 1);
+  spell_level(SPELL_BURNING_HANDS, CLASS_WIZARD, 1);
+  spell_level(SPELL_ICE_DAGGER, CLASS_WIZARD, 1);
+  spell_level(SPELL_MAGE_ARMOR, CLASS_WIZARD, 1);
+  spell_level(SPELL_SUMMON_CREATURE_1, CLASS_WIZARD, 1);
+  spell_level(SPELL_CHILL_TOUCH, CLASS_WIZARD, 1);
+  spell_level(SPELL_NEGATIVE_ENERGY_RAY, CLASS_WIZARD, 1);
+  spell_level(SPELL_RAY_OF_ENFEEBLEMENT, CLASS_WIZARD, 1);
+  spell_level(SPELL_CHARM, CLASS_WIZARD, 1);
+  spell_level(SPELL_ENCHANT_WEAPON, CLASS_WIZARD, 1);
+  spell_level(SPELL_SLEEP, CLASS_WIZARD, 1);
+  spell_level(SPELL_COLOR_SPRAY, CLASS_WIZARD, 1);
+  spell_level(SPELL_SCARE, CLASS_WIZARD, 1);
+  spell_level(SPELL_TRUE_STRIKE, CLASS_WIZARD, 1);
+  spell_level(SPELL_IDENTIFY, CLASS_WIZARD, 1);
+  spell_level(SPELL_SHELGARNS_BLADE, CLASS_WIZARD, 1);
+  spell_level(SPELL_GREASE, CLASS_WIZARD, 1);
+  spell_level(SPELL_ENDURE_ELEMENTS, CLASS_WIZARD, 1);
+  spell_level(SPELL_PROT_FROM_EVIL, CLASS_WIZARD, 1);
+  spell_level(SPELL_PROT_FROM_GOOD, CLASS_WIZARD, 1);
+  spell_level(SPELL_EXPEDITIOUS_RETREAT, CLASS_WIZARD, 1);
+  spell_level(SPELL_IRON_GUTS, CLASS_WIZARD, 1);  
+  spell_level(SPELL_SHIELD, CLASS_WIZARD, 1);
   
   //2nd circle
-  spell_level(SPELL_SHOCKING_GRASP, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_SCORCHING_RAY, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_CONTINUAL_FLAME, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_SUMMON_CREATURE_2, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_WEB, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_ACID_ARROW, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_BLINDNESS, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_DEAFNESS, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_FALSE_LIFE, CLASS_MAGIC_USER, 3);  
-  spell_level(SPELL_DAZE_MONSTER, CLASS_MAGIC_USER, 3);  
-  spell_level(SPELL_HIDEOUS_LAUGHTER, CLASS_MAGIC_USER, 3);  
-  spell_level(SPELL_TOUCH_OF_IDIOCY, CLASS_MAGIC_USER, 3);  
-  spell_level(SPELL_BLUR, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_INVISIBLE, CLASS_MAGIC_USER, 3);  
-  spell_level(SPELL_MIRROR_IMAGE, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_DETECT_INVIS, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_DETECT_MAGIC, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_DARKNESS, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_RESIST_ENERGY, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_ENERGY_SPHERE, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_ENDURANCE, CLASS_MAGIC_USER, 3);  //shared
-  spell_level(SPELL_STRENGTH, CLASS_MAGIC_USER, 3);
-  spell_level(SPELL_GRACE, CLASS_MAGIC_USER, 3);  
+  spell_level(SPELL_SHOCKING_GRASP, CLASS_WIZARD, 3);
+  spell_level(SPELL_SCORCHING_RAY, CLASS_WIZARD, 3);
+  spell_level(SPELL_CONTINUAL_FLAME, CLASS_WIZARD, 3);
+  spell_level(SPELL_SUMMON_CREATURE_2, CLASS_WIZARD, 3);
+  spell_level(SPELL_WEB, CLASS_WIZARD, 3);
+  spell_level(SPELL_ACID_ARROW, CLASS_WIZARD, 3);
+  spell_level(SPELL_BLINDNESS, CLASS_WIZARD, 3);
+  spell_level(SPELL_DEAFNESS, CLASS_WIZARD, 3);
+  spell_level(SPELL_FALSE_LIFE, CLASS_WIZARD, 3);  
+  spell_level(SPELL_DAZE_MONSTER, CLASS_WIZARD, 3);  
+  spell_level(SPELL_HIDEOUS_LAUGHTER, CLASS_WIZARD, 3);  
+  spell_level(SPELL_TOUCH_OF_IDIOCY, CLASS_WIZARD, 3);  
+  spell_level(SPELL_BLUR, CLASS_WIZARD, 3);
+  spell_level(SPELL_INVISIBLE, CLASS_WIZARD, 3);  
+  spell_level(SPELL_MIRROR_IMAGE, CLASS_WIZARD, 3);
+  spell_level(SPELL_DETECT_INVIS, CLASS_WIZARD, 3);
+  spell_level(SPELL_DETECT_MAGIC, CLASS_WIZARD, 3);
+  spell_level(SPELL_DARKNESS, CLASS_WIZARD, 3);
+  spell_level(SPELL_RESIST_ENERGY, CLASS_WIZARD, 3);
+  spell_level(SPELL_ENERGY_SPHERE, CLASS_WIZARD, 3);
+  spell_level(SPELL_ENDURANCE, CLASS_WIZARD, 3);  //shared
+  spell_level(SPELL_STRENGTH, CLASS_WIZARD, 3);
+  spell_level(SPELL_GRACE, CLASS_WIZARD, 3);  
 
   //3rd circle
-  spell_level(SPELL_LIGHTNING_BOLT, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_FIREBALL, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_WATER_BREATHE, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_NON_DETECTION, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_CLAIRVOYANCE, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_DAYLIGHT, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_INVISIBILITY_SPHERE, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_WALL_OF_FOG, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_DEEP_SLUMBER, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_HOLD_PERSON, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_FLY, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_HEROISM, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_VAMPIRIC_TOUCH, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_HALT_UNDEAD, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_STINKING_CLOUD, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_PHANTOM_STEED, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_SUMMON_CREATURE_3, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_DISPEL_MAGIC, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_HASTE, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_SLOW, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_CIRCLE_A_EVIL, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_CIRCLE_A_GOOD, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_CUNNING, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_WISDOM, CLASS_MAGIC_USER, 5);
-  spell_level(SPELL_CHARISMA, CLASS_MAGIC_USER, 5);
+  spell_level(SPELL_LIGHTNING_BOLT, CLASS_WIZARD, 5);
+  spell_level(SPELL_FIREBALL, CLASS_WIZARD, 5);
+  spell_level(SPELL_WATER_BREATHE, CLASS_WIZARD, 5);
+  spell_level(SPELL_NON_DETECTION, CLASS_WIZARD, 5);
+  spell_level(SPELL_CLAIRVOYANCE, CLASS_WIZARD, 5);
+  spell_level(SPELL_DAYLIGHT, CLASS_WIZARD, 5);
+  spell_level(SPELL_INVISIBILITY_SPHERE, CLASS_WIZARD, 5);
+  spell_level(SPELL_WALL_OF_FOG, CLASS_WIZARD, 5);
+  spell_level(SPELL_DEEP_SLUMBER, CLASS_WIZARD, 5);
+  spell_level(SPELL_HOLD_PERSON, CLASS_WIZARD, 5);
+  spell_level(SPELL_FLY, CLASS_WIZARD, 5);
+  spell_level(SPELL_HEROISM, CLASS_WIZARD, 5);
+  spell_level(SPELL_VAMPIRIC_TOUCH, CLASS_WIZARD, 5);
+  spell_level(SPELL_HALT_UNDEAD, CLASS_WIZARD, 5);
+  spell_level(SPELL_STINKING_CLOUD, CLASS_WIZARD, 5);
+  spell_level(SPELL_PHANTOM_STEED, CLASS_WIZARD, 5);
+  spell_level(SPELL_SUMMON_CREATURE_3, CLASS_WIZARD, 5);
+  spell_level(SPELL_DISPEL_MAGIC, CLASS_WIZARD, 5);
+  spell_level(SPELL_HASTE, CLASS_WIZARD, 5);
+  spell_level(SPELL_SLOW, CLASS_WIZARD, 5);
+  spell_level(SPELL_CIRCLE_A_EVIL, CLASS_WIZARD, 5);
+  spell_level(SPELL_CIRCLE_A_GOOD, CLASS_WIZARD, 5);
+  spell_level(SPELL_CUNNING, CLASS_WIZARD, 5);
+  spell_level(SPELL_WISDOM, CLASS_WIZARD, 5);
+  spell_level(SPELL_CHARISMA, CLASS_WIZARD, 5);
 
   //4th circle
-  spell_level(SPELL_FIRE_SHIELD, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_COLD_SHIELD, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_ICE_STORM, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_BILLOWING_CLOUD, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_SUMMON_CREATURE_4, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_ANIMATE_DEAD, CLASS_MAGIC_USER, 7);  //shared
-  spell_level(SPELL_CURSE, CLASS_MAGIC_USER, 7);  //shared
-  spell_level(SPELL_INFRAVISION, CLASS_MAGIC_USER, 7);  //shared
-  spell_level(SPELL_POISON, CLASS_MAGIC_USER, 7);  //shared
-  spell_level(SPELL_GREATER_INVIS, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_RAINBOW_PATTERN, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_WIZARD_EYE, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_LOCATE_CREATURE, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_MINOR_GLOBE, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_REMOVE_CURSE, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_STONESKIN, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_ENLARGE_PERSON, CLASS_MAGIC_USER, 7);
-  spell_level(SPELL_SHRINK_PERSON, CLASS_MAGIC_USER, 7);
+  spell_level(SPELL_FIRE_SHIELD, CLASS_WIZARD, 7);
+  spell_level(SPELL_COLD_SHIELD, CLASS_WIZARD, 7);
+  spell_level(SPELL_ICE_STORM, CLASS_WIZARD, 7);
+  spell_level(SPELL_BILLOWING_CLOUD, CLASS_WIZARD, 7);
+  spell_level(SPELL_SUMMON_CREATURE_4, CLASS_WIZARD, 7);
+  spell_level(SPELL_ANIMATE_DEAD, CLASS_WIZARD, 7);  //shared
+  spell_level(SPELL_CURSE, CLASS_WIZARD, 7);  //shared
+  spell_level(SPELL_INFRAVISION, CLASS_WIZARD, 7);  //shared
+  spell_level(SPELL_POISON, CLASS_WIZARD, 7);  //shared
+  spell_level(SPELL_GREATER_INVIS, CLASS_WIZARD, 7);
+  spell_level(SPELL_RAINBOW_PATTERN, CLASS_WIZARD, 7);
+  spell_level(SPELL_WIZARD_EYE, CLASS_WIZARD, 7);
+  spell_level(SPELL_LOCATE_CREATURE, CLASS_WIZARD, 7);
+  spell_level(SPELL_MINOR_GLOBE, CLASS_WIZARD, 7);
+  spell_level(SPELL_REMOVE_CURSE, CLASS_WIZARD, 7);
+  spell_level(SPELL_STONESKIN, CLASS_WIZARD, 7);
+  spell_level(SPELL_ENLARGE_PERSON, CLASS_WIZARD, 7);
+  spell_level(SPELL_SHRINK_PERSON, CLASS_WIZARD, 7);
 
   //5th circle
-  spell_level(SPELL_INTERPOSING_HAND, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_WALL_OF_FORCE, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_BALL_OF_LIGHTNING, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_CLOUDKILL, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_SUMMON_CREATURE_5, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_WAVES_OF_FATIGUE, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_SYMBOL_OF_PAIN, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_DOMINATE_PERSON, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_FEEBLEMIND, CLASS_MAGIC_USER, 9);  
-  spell_level(SPELL_NIGHTMARE, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_MIND_FOG, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_ACID_SHEATH, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_FAITHFUL_HOUND, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_DISMISSAL, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_CONE_OF_COLD, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_TELEKINESIS, CLASS_MAGIC_USER, 9);
-  spell_level(SPELL_FIREBRAND, CLASS_MAGIC_USER, 9);
+  spell_level(SPELL_INTERPOSING_HAND, CLASS_WIZARD, 9);
+  spell_level(SPELL_WALL_OF_FORCE, CLASS_WIZARD, 9);
+  spell_level(SPELL_BALL_OF_LIGHTNING, CLASS_WIZARD, 9);
+  spell_level(SPELL_CLOUDKILL, CLASS_WIZARD, 9);
+  spell_level(SPELL_SUMMON_CREATURE_5, CLASS_WIZARD, 9);
+  spell_level(SPELL_WAVES_OF_FATIGUE, CLASS_WIZARD, 9);
+  spell_level(SPELL_SYMBOL_OF_PAIN, CLASS_WIZARD, 9);
+  spell_level(SPELL_DOMINATE_PERSON, CLASS_WIZARD, 9);
+  spell_level(SPELL_FEEBLEMIND, CLASS_WIZARD, 9);  
+  spell_level(SPELL_NIGHTMARE, CLASS_WIZARD, 9);
+  spell_level(SPELL_MIND_FOG, CLASS_WIZARD, 9);
+  spell_level(SPELL_ACID_SHEATH, CLASS_WIZARD, 9);
+  spell_level(SPELL_FAITHFUL_HOUND, CLASS_WIZARD, 9);
+  spell_level(SPELL_DISMISSAL, CLASS_WIZARD, 9);
+  spell_level(SPELL_CONE_OF_COLD, CLASS_WIZARD, 9);
+  spell_level(SPELL_TELEKINESIS, CLASS_WIZARD, 9);
+  spell_level(SPELL_FIREBRAND, CLASS_WIZARD, 9);
 
   //6th circle
-  spell_level(SPELL_FREEZING_SPHERE, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_ACID_FOG, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_SUMMON_CREATURE_6, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_TRANSFORMATION, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_EYEBITE, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_MASS_HASTE, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_GREATER_HEROISM, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_ANTI_MAGIC_FIELD, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_GREATER_MIRROR_IMAGE, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_LOCATE_OBJECT, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_TRUE_SEEING, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_GLOBE_OF_INVULN, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_GREATER_DISPELLING, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_CLONE, CLASS_MAGIC_USER, 11);
-  spell_level(SPELL_WATERWALK, CLASS_MAGIC_USER, 11);
+  spell_level(SPELL_FREEZING_SPHERE, CLASS_WIZARD, 11);
+  spell_level(SPELL_ACID_FOG, CLASS_WIZARD, 11);
+  spell_level(SPELL_SUMMON_CREATURE_6, CLASS_WIZARD, 11);
+  spell_level(SPELL_TRANSFORMATION, CLASS_WIZARD, 11);
+  spell_level(SPELL_EYEBITE, CLASS_WIZARD, 11);
+  spell_level(SPELL_MASS_HASTE, CLASS_WIZARD, 11);
+  spell_level(SPELL_GREATER_HEROISM, CLASS_WIZARD, 11);
+  spell_level(SPELL_ANTI_MAGIC_FIELD, CLASS_WIZARD, 11);
+  spell_level(SPELL_GREATER_MIRROR_IMAGE, CLASS_WIZARD, 11);
+  spell_level(SPELL_LOCATE_OBJECT, CLASS_WIZARD, 11);
+  spell_level(SPELL_TRUE_SEEING, CLASS_WIZARD, 11);
+  spell_level(SPELL_GLOBE_OF_INVULN, CLASS_WIZARD, 11);
+  spell_level(SPELL_GREATER_DISPELLING, CLASS_WIZARD, 11);
+  spell_level(SPELL_CLONE, CLASS_WIZARD, 11);
+  spell_level(SPELL_WATERWALK, CLASS_WIZARD, 11);
 
   //7th circle
-  spell_level(SPELL_DETECT_POISON, CLASS_MAGIC_USER, 13);  //shared
-  spell_level(SPELL_TELEPORT, CLASS_MAGIC_USER, 13);
-  spell_level(SPELL_MISSILE_STORM, CLASS_MAGIC_USER, 13);
+  spell_level(SPELL_DETECT_POISON, CLASS_WIZARD, 13);  //shared
+  spell_level(SPELL_TELEPORT, CLASS_WIZARD, 13);
+  spell_level(SPELL_MISSILE_STORM, CLASS_WIZARD, 13);
 
   //8th circle
-  spell_level(SPELL_ENERGY_DRAIN, CLASS_MAGIC_USER, 15);  //shared
-  spell_level(SPELL_CHAIN_LIGHTNING, CLASS_MAGIC_USER, 15);
-  spell_level(SPELL_PORTAL, CLASS_MAGIC_USER, 15);
+  spell_level(SPELL_ENERGY_DRAIN, CLASS_WIZARD, 15);  //shared
+  spell_level(SPELL_CHAIN_LIGHTNING, CLASS_WIZARD, 15);
+  spell_level(SPELL_PORTAL, CLASS_WIZARD, 15);
 
   //9th circle
-  spell_level(SPELL_METEOR_SWARM, CLASS_MAGIC_USER, 17);
-  spell_level(SPELL_POLYMORPH, CLASS_MAGIC_USER, 17);
+  spell_level(SPELL_METEOR_SWARM, CLASS_WIZARD, 17);
+  spell_level(SPELL_POLYMORPH, CLASS_WIZARD, 17);
 
-  //epic mage
-  spell_level(SPELL_MUMMY_DUST, CLASS_MAGIC_USER, 20);  //shared
-  spell_level(SPELL_DRAGON_KNIGHT, CLASS_MAGIC_USER, 20);  //shared
-  spell_level(SPELL_GREATER_RUIN, CLASS_MAGIC_USER, 20);  //shared
-  spell_level(SPELL_HELLBALL, CLASS_MAGIC_USER, 20);  //shared
-  spell_level(SPELL_EPIC_MAGE_ARMOR, CLASS_MAGIC_USER, 20);
-  spell_level(SPELL_EPIC_WARDING, CLASS_MAGIC_USER, 20);
+  //epic wizard
+  spell_level(SPELL_MUMMY_DUST, CLASS_WIZARD, 20);  //shared
+  spell_level(SPELL_DRAGON_KNIGHT, CLASS_WIZARD, 20);  //shared
+  spell_level(SPELL_GREATER_RUIN, CLASS_WIZARD, 20);  //shared
+  spell_level(SPELL_HELLBALL, CLASS_WIZARD, 20);  //shared
+  spell_level(SPELL_EPIC_MAGE_ARMOR, CLASS_WIZARD, 20);
+  spell_level(SPELL_EPIC_WARDING, CLASS_WIZARD, 20);
   //end magic-user spells
 
   
@@ -1842,7 +1842,7 @@ void init_spell_levels(void)
   spell_level(SPELL_METEOR_SWARM, CLASS_SORCERER, 18);
   spell_level(SPELL_POLYMORPH, CLASS_SORCERER, 18);
 
-  //epic mage
+  //epic wizard
   spell_level(SPELL_MUMMY_DUST, CLASS_SORCERER, 20);  //shared
   spell_level(SPELL_DRAGON_KNIGHT, CLASS_SORCERER, 20);  //shared
   spell_level(SPELL_GREATER_RUIN, CLASS_SORCERER, 20);  //shared
@@ -2011,13 +2011,13 @@ int level_exp(struct char_data *ch, int level)
 
   /* Exp required for normal mortals is below */
   switch (chclass) {
-    case CLASS_MAGIC_USER:
+    case CLASS_WIZARD:
     case CLASS_SORCERER:
     case CLASS_PALADIN:
     case CLASS_MONK:
     case CLASS_DRUID:
     case CLASS_WARRIOR:
-    case CLASS_THIEF:
+    case CLASS_ROGUE:
     case CLASS_BERSERKER:
     case CLASS_CLERIC:
       level--;
@@ -2063,7 +2063,7 @@ const char *titles(int chclass, int level)
 
   switch (chclass) {
 
-    case CLASS_MAGIC_USER:
+    case CLASS_WIZARD:
     case CLASS_SORCERER:
     switch (level) {
       case  1:
@@ -2099,7 +2099,7 @@ const char *titles(int chclass, int level)
       case LVL_IMMORT: return "the Immortal Warlock";
       case LVL_GOD: return "the Avatar of Magic";
       case LVL_GRGOD: return "the God of Magic";
-      default: return "the Mage";
+      default: return "the Wizard";
     }
     break;
 
@@ -2182,7 +2182,7 @@ const char *titles(int chclass, int level)
     }
     break;
 
-    case CLASS_THIEF:
+    case CLASS_ROGUE:
     switch (level) {
       case  1:
       case  2:
@@ -2217,7 +2217,7 @@ const char *titles(int chclass, int level)
       case LVL_IMMORT: return "the Immortal Assassin";
       case LVL_GOD: return "the Demi God of Thieves";
       case LVL_GRGOD: return "the God of Thieves and Tradesmen";
-      default: return "the Thief";
+      default: return "the Rogue";
     }
     break;
 

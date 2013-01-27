@@ -602,9 +602,10 @@ do                                                              \
 #define DIVINE_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  ( CLASS_LEVEL(ch, CLASS_CLERIC) + \
                                    CLASS_LEVEL(ch, CLASS_DRUID) + \
-                                  (CLASS_LEVEL(ch, CLASS_PALADIN)/2) ) )
+                                  (CLASS_LEVEL(ch, CLASS_PALADIN)/2) + \
+                                  (CLASS_LEVEL(ch, CLASS_RANGER)/2) ) )
 #define MAGIC_LEVEL(ch)		(IS_NPC(ch) ? GET_LEVEL(ch) : \
-                                 (CLASS_LEVEL(ch, CLASS_MAGIC_USER) + \
+                                 (CLASS_LEVEL(ch, CLASS_WIZARD) + \
                                  CLASS_LEVEL(ch, CLASS_SORCERER)))
 #define CASTER_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch))
@@ -1379,17 +1380,18 @@ void reset_acraft(struct char_data *ch);
 
 // these have changed since multi-class, you are classified as CLASS_x if you
 // got any levels in it - zusuk
-#define IS_MAGIC_USER(ch)	(CLASS_LEVEL(ch, CLASS_MAGIC_USER))
+#define IS_WIZARD(ch)	     (CLASS_LEVEL(ch, CLASS_WIZARD))
 #define IS_SORCERER(ch)       (CLASS_LEVEL(ch, CLASS_SORCERER))
 #define IS_CLERIC(ch)		(CLASS_LEVEL(ch, CLASS_CLERIC))
 #define IS_DRUID(ch)		(CLASS_LEVEL(ch, CLASS_DRUID))
-#define IS_THIEF(ch)		(CLASS_LEVEL(ch, CLASS_THIEF))
+#define IS_ROGUE(ch)		(CLASS_LEVEL(ch, CLASS_ROGUE))
 #define IS_WARRIOR(ch)		(CLASS_LEVEL(ch, CLASS_WARRIOR))
 #define IS_MONK(ch)	          (CLASS_LEVEL(ch, CLASS_MONK))
 #define IS_BERSERKER(ch)		(CLASS_LEVEL(ch, CLASS_BERSERKER))
 #define IS_PALADIN(ch)		(CLASS_LEVEL(ch, CLASS_PALADIN))
-#define IS_CASTER(ch)	(IS_CLERIC(ch) || IS_MAGIC_USER(ch) || IS_DRUID(ch) \
-                          || IS_SORCERER(ch) || IS_PALADIN(ch))
+#define IS_RANGER(ch)		(CLASS_LEVEL(ch, CLASS_RANGER))
+#define IS_CASTER(ch)	(IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) \
+                         || IS_SORCERER(ch) || IS_PALADIN(ch) || IS_RANGER(ch))
 
 
 #define RACE_ABBR(ch)	( IS_NPC(ch) ?  \

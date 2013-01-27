@@ -840,9 +840,9 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   //default casting class will be the highest level casting class
   int class = -1, clevel = -1;
 
-  if (IS_MAGIC_USER(ch)) {
-    class = CLASS_MAGIC_USER;
-    clevel = IS_MAGIC_USER(ch);
+  if (IS_WIZARD(ch)) {
+    class = CLASS_WIZARD;
+    clevel = IS_WIZARD(ch);
   }
   if (IS_CLERIC(ch) > clevel) {
     class = CLASS_CLERIC;
@@ -966,7 +966,7 @@ ACMD(do_cast)
     return;
   }
 
-  if (CLASS_LEVEL(ch, CLASS_MAGIC_USER) < SINFO.min_level[CLASS_MAGIC_USER] &&
+  if (CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
 	CLASS_LEVEL(ch, CLASS_CLERIC) < SINFO.min_level[CLASS_CLERIC] &&
 	CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
 	CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
@@ -988,7 +988,7 @@ ACMD(do_cast)
   }
 
   /* further restrictions, this needs fixing! -zusuk */
-  if (CLASS_LEVEL(ch, CLASS_MAGIC_USER) && GET_INT(ch) < 10) {
+  if (CLASS_LEVEL(ch, CLASS_WIZARD) && GET_INT(ch) < 10) {
     send_to_char(ch, "You are not smart enough to cast spells...\r\n");
     return;
   }
@@ -1274,34 +1274,50 @@ void mag_assign_spells(void)
   /* Do not change the loop above. */
 
   // sorted the spells by shared / magical / divine, and by circle
-  // in each category -zusuk
+  // in each category (school) -zusuk
 
   //shared
   spello(SPELL_INFRAVISION, "infravision", 0, 0, 0, POS_FIGHTING,  //enchant
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"Your night vision seems to fade.", 4, 8,
-	ENCHANTMENT);  // mage 4, cleric 4
+	ENCHANTMENT);  // wizard 4, cleric 4
   spello(SPELL_DETECT_POISON, "detect poison", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
 	"The detect poison wears off.", 4, 8,
-	DIVINATION); // mage 7, cleric 2
+	DIVINATION); // wizard 7, cleric 2
   spello(SPELL_POISON, "poison", 0, 0, 0, POS_FIGHTING,  //enchantment
 	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_OBJ_INV, TRUE,
 	MAG_AFFECTS | MAG_ALTER_OBJS,
 	"You feel less sick.", 5, 8,
-	ENCHANTMENT);  // mage 4, cleric 5
+	ENCHANTMENT);  // wizard 4, cleric 5
   spello(SPELL_ENERGY_DRAIN, "energy drain", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_MANUAL,
 	NULL, 9, 14,
-	NECROMANCY);  // mage 8, cleric 9
+	NECROMANCY);  // wizard 8, cleric 9
   spello(SPELL_REMOVE_CURSE, "remove curse", 0, 0, 0, POS_FIGHTING,  //abjur
 	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
 	MAG_UNAFFECTS | MAG_ALTER_OBJS,
-	NULL, 4, 8, ABJURATION);  // mage 4, cleric 4
+	NULL, 4, 8, ABJURATION);  // wizard 4, cleric 4
   spello(SPELL_ENDURANCE, "endurance", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"Your magical endurance has faded away.", 2, 6,
-	TRANSMUTATION);  // mage 1, cleric 1
+	TRANSMUTATION);  // wizard 1, cleric 1
+  spello(SPELL_RESIST_ENERGY, "resist energy", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"Your energy resistance dissipates.", 2, 6,
+	ABJURATION);  // wizard 1, cleric 1
+  spello(SPELL_CUNNING, "cunning", 30, 15, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"Your magical cunning has faded away.", 3, 7,
+	TRANSMUTATION);  // wizard 2, cleric 2
+  spello(SPELL_WISDOM, "wisdom", 30, 15, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"Your magical wisdom has faded away.", 3, 7,
+	TRANSMUTATION);  // wizard 2, cleric 2
+  spello(SPELL_CHARISMA, "charisma", 30, 15, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"Your magical charisma has faded away.", 3, 7,
+	TRANSMUTATION);  // wizard 2, cleric 2  
 
   
   //shared epic
@@ -1486,10 +1502,7 @@ void mag_assign_spells(void)
 	TAR_IGNORE, FALSE, MAG_ROOM, 
 	"The cloak of darkness in the area dissolves.", 5, 6, DIVINATION);
 			/* abjuration */
-  spello(SPELL_RESIST_ENERGY, "resist energy", 0, 0, 0, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"Your energy resistance dissipates.", 2, 6,
-	ABJURATION);  // mage 1, cleric 1
+  //resist energy
   spello(SPELL_ENERGY_SPHERE, "energy sphere", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 2, 6, ABJURATION);
@@ -1588,18 +1601,9 @@ void mag_assign_spells(void)
      POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 7, 7, ABJURATION);
 			/* transmutation */
-  spello(SPELL_CUNNING, "cunning", 30, 15, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"Your magical cunning has faded away.", 3, 7,
-	TRANSMUTATION);  // mage 2, cleric 2
-  spello(SPELL_WISDOM, "wisdom", 30, 15, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"Your magical wisdom has faded away.", 3, 7,
-	TRANSMUTATION);  // mage 2, cleric 2
-  spello(SPELL_CHARISMA, "charisma", 30, 15, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"Your magical charisma has faded away.", 3, 7,
-	TRANSMUTATION);  // mage 2, cleric 2
+  //cunning - shared
+  //wisdom - shared
+  //charisma - shared
 
   // 4th circle
 			/* evocation */

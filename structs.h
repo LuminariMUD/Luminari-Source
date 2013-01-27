@@ -191,28 +191,31 @@
 
 /* PC classes */
 #define CLASS_UNDEFINED	 (-1) /**< PC Class undefined */
-#define CLASS_MAGIC_USER  0    /**< PC Class Magic User */
+#define CLASS_WIZARD      0    /**< PC Class wizard */
 #define CLASS_CLERIC      1    /**< PC Class Cleric */
-#define CLASS_THIEF       2    /**< PC Class Thief */
+#define CLASS_ROGUE       2    /**< PC Class Rogue (former Thief) */
 #define CLASS_WARRIOR     3    /**< PC Class Warrior */
 #define CLASS_MONK	      4    /**< PC Class monk */
 #define CLASS_DRUID	      5	//druids
 #define CLASS_BERSERKER	 6	//berserker
 #define CLASS_SORCERER    7
 #define CLASS_PALADIN     8
+#define CLASS_RANGER      9
 /** Total number of available PC Classes */
-#define NUM_CLASSES	  9
+#define NUM_CLASSES	  10
 
 // related to pc (classes, etc)
+/* note that max_classes was established to reign in some of the
+   pfile arrays associated with classes */
 #define MAX_CLASSES	30	// total number of maximum pc classes
 #define NUM_CASTERS	7	//direct reference to pray array
-/*  x magic user
+/*  x wizard
  *  x sorcerer
  *  x cleric
  *  x druid
  *  bard
  *  x paladin
- *  ranger
+ *  x ranger
  */
 /**************************/
 
@@ -699,9 +702,9 @@
 #define ITEM_ANTI_GOOD            9   /**< Not usable by good people	*/
 #define ITEM_ANTI_EVIL            10   /**< Not usable by evil people	*/
 #define ITEM_ANTI_NEUTRAL         11   /**< Not usable by neutral people */
-#define ITEM_ANTI_MAGIC_USER      12   /**< Not usable by mages */
+#define ITEM_ANTI_WIZARD          12   /**< Not usable by wizards */
 #define ITEM_ANTI_CLERIC          13   /**< Not usable by clerics */
-#define ITEM_ANTI_THIEF	         14   /**< Not usable by thieves */
+#define ITEM_ANTI_ROGUE	         14   /**< Not usable by rogues */
 #define ITEM_ANTI_WARRIOR         15   /**< Not usable by warriors */
 #define ITEM_NOSELL               16   /**< Shopkeepers won't touch it */
 #define ITEM_QUEST                17   /**< Item is a quest item         */
@@ -722,8 +725,9 @@
 #define ITEM_ANTI_SORCERER        32
 #define ITEM_DECAY                33  /* portal decay */
 #define ITEM_ANTI_PALADIN         34
+#define ITEM_ANTI_RANGER          35
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            35
+#define NUM_ITEM_FLAGS            36
 
 
 /* Modifier constants used with obj affects ('A' fields) */

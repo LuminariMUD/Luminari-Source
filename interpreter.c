@@ -1766,14 +1766,14 @@ void nanny(struct descriptor_data *d, char *arg)
       GET_CLASS(d->character) = load_result;
 
     switch (load_result) {
-      case CLASS_MAGIC_USER:
-        perform_help(d, "class-mage");
+      case CLASS_WIZARD:
+        perform_help(d, "class-wizard");
         break;
       case CLASS_CLERIC:
         perform_help(d, "class-cleric");
         break;
-      case CLASS_THIEF:
-        perform_help(d, "class-thief");
+      case CLASS_ROGUE:
+        perform_help(d, "class-rogue");
         break;
       case CLASS_WARRIOR:
         perform_help(d, "class-warrior");
@@ -1805,7 +1805,11 @@ void nanny(struct descriptor_data *d, char *arg)
 
     if (UPPER(*arg) == 'Y')
       write_to_output(d, "\r\nClass Confirmed!\r\n");
-    else {
+    else if (UPPER(*arg) != 'N') {
+      write_to_output(d, "\r\nY)es to confirm N)o to reselect.\r\n");      
+      STATE(d) = CON_QCLASS_HELP;
+      return;
+    } else {
       write_to_output(d,"%s\r\nClass: ", class_menu);
       STATE(d) = CON_QCLASS;
       return;

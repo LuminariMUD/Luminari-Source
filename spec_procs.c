@@ -123,12 +123,12 @@ case SKILL_HELLBALL:
 		return TRUE;	else return FALSE;
 case SKILL_EPIC_MAGE_ARMOR:
 	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 31 && GET_LEVEL(ch) >= 20
-		&& (CLASS_LEVEL(ch, CLASS_MAGIC_USER) > 13 ||
+		&& (CLASS_LEVEL(ch, CLASS_WIZARD) > 13 ||
               CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
 		return TRUE;	else return FALSE;
 case SKILL_EPIC_WARDING:
 	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 33 && GET_LEVEL(ch) >= 20
-		&& (CLASS_LEVEL(ch, CLASS_MAGIC_USER) > 15 ||
+		&& (CLASS_LEVEL(ch, CLASS_WIZARD) > 15 ||
               CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
 		return TRUE;	else return FALSE;
      
@@ -248,7 +248,7 @@ case SKILL_QUICK_CHANT:
 
 /* special restrictions */
 case SKILL_USE_MAGIC:  /* shared - with casters */
-        if ((CLASS_LEVEL(ch, CLASS_THIEF) >= 9) ||
+        if ((CLASS_LEVEL(ch, CLASS_ROGUE) >= 9) ||
             (IS_CASTER(ch) && GET_LEVEL(ch) >= 2))
           return TRUE;  else return FALSE;
 case SKILL_RECHARGE:
@@ -288,35 +288,35 @@ case SKILL_REMOVE_DISEASE:
         if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 7)
                 return TRUE;  else return FALSE;
 
-/* thief */        
+/* rogue */        
 case SKILL_TRACK:
 case SKILL_BACKSTAB:
-        if (CLASS_LEVEL(ch, CLASS_THIEF))
+        if (CLASS_LEVEL(ch, CLASS_ROGUE))
                 return TRUE;  else return FALSE;
 case SKILL_DIRTY_FIGHTING:
-        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 4)
+        if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 4)
                 return TRUE;  else return FALSE;
 case SKILL_MOBILITY:  /* shared */
-        if (GET_SKILL(ch, SKILL_DODGE) || (CLASS_LEVEL(ch, CLASS_THIEF) >= 2))
+        if (GET_SKILL(ch, SKILL_DODGE) || (CLASS_LEVEL(ch, CLASS_ROGUE) >= 2))
                 return TRUE;  else return FALSE;
 case SKILL_SPRING_ATTACK:  /* shared */
         if (GET_SKILL(ch, SKILL_MOBILITY) ||
-                (CLASS_LEVEL(ch, CLASS_THIEF) >= 6))
+                (CLASS_LEVEL(ch, CLASS_ROGUE) >= 6))
           return TRUE;  else return FALSE;
 case SKILL_EVASION:
-        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 8)
+        if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 8)
                 return TRUE;  else return FALSE;
 case SKILL_CRIP_STRIKE:
-        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 12)
+        if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 12)
                 return TRUE;  else return FALSE;
 case SKILL_SLIPPERY_MIND:
-        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 15)
+        if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 15)
                 return TRUE;  else return FALSE;
 case SKILL_DEFENSE_ROLL:
-        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 18)
+        if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 18)
                 return TRUE;  else return FALSE;
 case SKILL_IMP_EVASION:
-        if (CLASS_LEVEL(ch, CLASS_THIEF) >= 21)
+        if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 21)
                 return TRUE;  else return FALSE;
         
 /* berserker */
@@ -512,14 +512,14 @@ int compute_ability(struct char_data *ch, int abilityNum)
 		return value; 
 	case ABILITY_HIDE:
 		value += GET_DEX_BONUS(ch);
-		if (CLASS_LEVEL(ch, CLASS_THIEF))
+		if (CLASS_LEVEL(ch, CLASS_ROGUE))
                   value += 4;
           if (GET_RACE(ch) == RACE_HALFLING)
             value += 2;
 		return value; 
 	case ABILITY_SNEAK:
 		value += GET_DEX_BONUS(ch);
-		if (CLASS_LEVEL(ch, CLASS_THIEF))
+		if (CLASS_LEVEL(ch, CLASS_ROGUE))
                   value += 4;
           if (GET_RACE(ch) == RACE_HALFLING)
             value += 2;
@@ -1065,7 +1065,7 @@ SPECIAL(thief)
 }
 
 
-SPECIAL(magic_user)
+SPECIAL(wizard)
 {
   struct char_data *vict;
 
