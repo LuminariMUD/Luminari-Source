@@ -178,7 +178,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   int need_movement = 0;
   /* Contains the "leave" message to display to the was_in room. */
   char leave_message[SMALL_BUFSIZE] = { '\0' };
-
+  /* used for looping the room for sneak-checks */
+  struct char_data *tch = NULL;
+  
   // for mount code
   int same_room = 0, riding = 0, ridden_by = 0;
   char buf2[MAX_STRING_LENGTH] = { '\0' };
@@ -263,7 +265,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
   /* High Mountain (and any other climb rooms) */
   if ((SECT(was_in) == SECT_HIGH_MOUNTAIN) || (SECT(going_to) == SECT_HIGH_MOUNTAIN)) {
-    if (!can_climb(ch) && !IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
+    if ((riding && !can_climb(RIDING(ch))) || !can_climb(ch)) {
       send_to_char(ch, "You need to be able to climb to go there!\r\n");
       return (0);
     }
@@ -309,8 +311,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     return 0;
   }
   if (ROOM_FLAGGED(going_to, ROOM_TUNNEL) &&
-      num_pc_in_room(&(world[going_to])) >= CONFIG_TUNNEL_SIZE)
-  {
+      num_pc_in_room(&(world[going_to])) >= CONFIG_TUNNEL_SIZE) {
     if (CONFIG_TUNNEL_SIZE > 1)
       send_to_char(ch, "There isn't enough room for you to go there!\r\n");
     else
@@ -425,124 +426,93 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     GET_MOVE(RIDDEN_BY(ch)) -= need_movement;
 
   /* Generate the leave message and display to others in the was_in room. */
-  if (riding) {
+  /*  -  Need to determine whether riding or not
+   *  -  Need to determine whether sneak check passed or not
+   *  -  Need to determine whether fleeing or not
+   *     - Only see a message if sneak failed
+   *  */
+  
+  /* first eliminate the easy scenario:  non-sneak messages
+   *   riding and mount not sneaking
+   *   on foot, but not sneaking
+   *   fleeing */
+  
+  /* fleeing on mount OR not sneaking mount */
+  if ((riding && need_specials_check == 3) ||
+          !AFF_FLAGGED(RIDING(ch), AFF_SNEAK)){
+    snprintf(leave_message, sizeof(leave_message), "$n on $N leaves %s.",
+            dirs[dir]);
+    act(leave_message, TRUE, ch, 0, RIDING(ch), TO_ROOM);
+    snprintf(leave_message, sizeof(leave_message),
+            "You ride %s.\r\n", dirs[dir]);
+    send_to_char(ch, leave_message);
+  }
+  
+  /* fleeing while being mounted OR not sneaking (while being mounted) */
+  else if ((ridden_by && need_specials_check == 3) ||
+          !AFF_FLAGGED(ch, AFF_SNEAK)){
+    snprintf(leave_message, sizeof(leave_message), "$n on $N leaves %s.",
+            dirs[dir]);
+    act(leave_message, TRUE, RIDDEN_BY(ch), 0, ch, TO_ROOM);
+    snprintf(leave_message, sizeof(leave_message), "You leave %s.\r\n",
+            dirs[dir]);
+    send_to_char(ch, leave_message);
+  }
+  
+  /* fleeing while on foot (no mount at all) OR not sneaking */
+  else if ((need_specials_check == 3) ||           
+          !AFF_FLAGGED(ch, AFF_SNEAK)) {
+    snprintf(leave_message, sizeof(leave_message), "$n \tnleaves %s!",
+            dirs[dir]);
+    act(leave_message, TRUE, ch, 0, 0, TO_ROOM);
+    snprintf(leave_message, sizeof(leave_message), "You leave %s.\r\n",
+            dirs[dir]);
+    send_to_char(ch, leave_message);
+  }
 
-  if (!AFF_FLAGGED(RIDING(ch), AFF_SNEAK)) {
-    if (need_specials_check == 3) {
-      snprintf(leave_message, sizeof(leave_message), "$n flees on $N %s!", dirs[dir]);
-      act(leave_message, TRUE, ch, 0, RIDING(ch), TO_ROOM);
-      snprintf(leave_message, sizeof(leave_message), "You ride in retreat %s!\r\n", dirs[dir]);
-      send_to_char(ch, leave_message);
-    } else {
-      snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
-      act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
-    }
-  } else {  //listen vs sneak
-    struct char_data *tch;
-
-    if (!IS_NPC(ch)) {
-      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
-        if (!IS_NPC(tch)) {
-          if (dice(1, 20) + compute_ability(ch, ABILITY_SNEAK) <
-		dice(1,20) + compute_ability(tch, ABILITY_LISTEN)) {
-            snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
-            act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
-          }
-        }
-      }
-    } else if (IS_NPC(ch)) {
-      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
-        if (!IS_NPC(tch)) {
-          if (dice(1, 20) + 14 <
-		compute_ability(tch, ABILITY_LISTEN) + dice(1, 20)) {
-            snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
-            act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
-          }
-        }
+  /********/
+  /* we now know that we are not fleeing and the sneak flag is on */
+                                                          /********/
+  
+  /* now we cycle through the room and do our sneak check:
+     sneaker (either pc or mount) vs listener (chars in room) */
+  else {
+    /* cycle through room */
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
+      /* sneak check, listener vs sneaker, mounted scenario */
+      if (riding && can_hear_sneaking(tch, RIDING(ch))) {
+        /* i hear you! */
+        snprintf(leave_message, sizeof(leave_message), "$n leaves %s",
+                dirs[dir]);
+        act(leave_message, TRUE, RIDING(ch), 0, tch, TO_VICT);
+        snprintf(leave_message, sizeof(leave_message),
+                "You ride %s.\r\n", dirs[dir]);
+        send_to_char(ch, leave_message);
+      /* sneak check, listener vs sneaker, mounted-by or no mount scenario */
+      } else if (can_hear_sneaking(tch, ch)) {
+        /* i hear you! */
+        snprintf(leave_message, sizeof(leave_message), "$n leaves %s",
+                dirs[dir]);
+        act(leave_message, TRUE, ch, 0, tch, TO_VICT);
+        snprintf(leave_message, sizeof(leave_message),
+                "You leave %s.\r\n", dirs[dir]);
+        send_to_char(ch, leave_message);
+      /* sneak check passed */
+      } else {
+        snprintf(leave_message, sizeof(leave_message),
+                "You leave %s.\r\n", dirs[dir]);
+        send_to_char(ch, leave_message);        
       }
     }
   }
-
-  } else if (ridden_by) {
-
-  if (!AFF_FLAGGED(ch, AFF_SNEAK)) {
-    if (need_specials_check == 3) {
-      snprintf(leave_message, sizeof(leave_message), "$n flees on $N %s!", dirs[dir]);
-      act(leave_message, TRUE, RIDDEN_BY(ch), 0, ch, TO_ROOM);
-      snprintf(leave_message, sizeof(leave_message), "You retreat %s!\r\n", dirs[dir]);
-      send_to_char(ch, leave_message);
-    } else {
-      snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
-      act(buf2, TRUE, RIDDEN_BY(ch), 0, ch, TO_NOTVICT);
-    }
-  } else {  //listen vs sneak
-    struct char_data *tch;
-
-    if (!IS_NPC(ch)) {
-      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
-        if (!IS_NPC(tch)) {
-          if (dice(1, 20) + compute_ability(ch, ABILITY_SNEAK) <
-		dice(1,20) + compute_ability(tch, ABILITY_LISTEN)) {
-            snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
-            act(buf2, TRUE, RIDDEN_BY(ch), 0, ch, TO_NOTVICT);
-          }
-        }
-      }
-    } else if (IS_NPC(ch)) {
-      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
-        if (!IS_NPC(tch)) {
-          if (dice(1, 20) + 14 <
-		compute_ability(tch, ABILITY_LISTEN) + dice(1, 20)) {
-            snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
-            act(buf2, TRUE, RIDDEN_BY(ch), 0, ch, TO_NOTVICT);
-          }
-        }
-      }
-    }
-  }
-
-  } else {
-
-  if (!AFF_FLAGGED(ch, AFF_SNEAK)) {
-    if (need_specials_check == 3) {
-      snprintf(leave_message, sizeof(leave_message), "$n \tnflees %s!", dirs[dir]);
-      act(leave_message, TRUE, ch, 0, 0, TO_ROOM);
-      snprintf(leave_message, sizeof(leave_message), "You flee %s!\r\n", dirs[dir]);
-      send_to_char(ch, leave_message);
-    } else {
-      snprintf(leave_message, sizeof(leave_message), "$n \tnleaves %s.", dirs[dir]);
-      act(leave_message, TRUE, ch, 0, 0, TO_ROOM);
-    }
-  } else {  //listen vs sneak
-    struct char_data *tch;
-
-    if (!IS_NPC(ch)) {
-      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
-        if (!IS_NPC(tch)) {
-          if (dice(1, 20) + compute_ability(ch, ABILITY_SNEAK) <
-		dice(1,20) + compute_ability(tch, ABILITY_LISTEN)) {
-            snprintf(leave_message, sizeof(leave_message), "$n \tnleaves %s.", dirs[dir]);
-            act(leave_message, TRUE, ch, 0, tch, TO_VICT);
-          }
-        }
-      }
-    } else if (IS_NPC(ch)) {
-      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
-        if (!IS_NPC(tch)) {
-          if (dice(1, 20) + 14 <
-		compute_ability(tch, ABILITY_LISTEN) + dice(1, 20)) {
-            snprintf(leave_message, sizeof(leave_message), "$n \tnleaves %s.", dirs[dir]);
-            act(leave_message, TRUE, ch, 0, tch, TO_VICT);
-          }
-        }
-      }
-    }
-  }
-
-  }
-
+  /*****/
+  /*     End leave-room messages */
+                            /*****/
+  
   char_from_room(ch);
   char_to_room(ch, going_to);
+  
+  /* move the mount too */
   if (riding && same_room && RIDING(ch)->in_room != ch->in_room) {
     char_from_room(RIDING(ch));
     char_to_room(RIDING(ch), ch->in_room);

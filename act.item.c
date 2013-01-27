@@ -176,6 +176,7 @@ ACMD(do_put)
   }
 }
 
+
 static int can_take_obj(struct char_data *ch, struct obj_data *obj)
 {
 
@@ -204,6 +205,7 @@ static int can_take_obj(struct char_data *ch, struct obj_data *obj)
   return (1);
 }
 
+
 static void get_check_money(struct char_data *ch, struct obj_data *obj)
 {
   int value = GET_OBJ_VAL(obj, 0);
@@ -220,6 +222,7 @@ static void get_check_money(struct char_data *ch, struct obj_data *obj)
   else
     send_to_char(ch, "There were %d coins.\r\n", value);
 }
+
 
 static void perform_get_from_container(struct char_data *ch, struct obj_data *obj,
 				     struct obj_data *cont, int mode)
@@ -265,6 +268,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
     }
   }
 }
+
 
 void get_from_container(struct char_data *ch, struct obj_data *cont,
 			     char *arg, int mode, int howmany)
@@ -316,6 +320,7 @@ void get_from_container(struct char_data *ch, struct obj_data *cont,
   }
 }
 
+
 static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
 {
   if (can_take_obj(ch, obj) && get_otrigger(obj, ch)) {
@@ -328,6 +333,7 @@ static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
   }
   return (0);
 }
+
 
 static void get_from_room(struct char_data *ch, char *arg, int howmany)
 {
@@ -368,6 +374,7 @@ static void get_from_room(struct char_data *ch, char *arg, int howmany)
     }
   }
 }
+
 
 ACMD(do_get)
 {
@@ -442,6 +449,7 @@ ACMD(do_get)
   }
 }
 
+
 static void perform_drop_gold(struct char_data *ch, int amount, byte mode, room_rnum RDR)
 {
   struct obj_data *obj;
@@ -485,6 +493,7 @@ static void perform_drop_gold(struct char_data *ch, int amount, byte mode, room_
     decrease_gold(ch, amount);
   }
 }
+
 
 #define VANISH(mode) ((mode == SCMD_DONATE || mode == SCMD_JUNK) ? \
 		      "  It vanishes in a puff of smoke!" : "")

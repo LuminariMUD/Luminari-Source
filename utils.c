@@ -28,6 +28,48 @@
 /* kavir's protocol */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
+
+
+
+/* Functions of a general utility nature
+   Functions directly related to utils.h needs
+ */
+
+
+/* function for sneak-check
+ * ch = listener (challenge), vict = sneaker (DC)
+ */
+bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict)
+{
+  /* free passes */
+  if (!AFF_FLAGGED(vict, AFF_SNEAK))
+    return TRUE;
+  
+        /* do listen check here */
+  bool can_hear = FALSE, challenge = dice(1,20), dc = (dice(1,20) + 10);
+  
+  //challenger bonuses/penalty (ch)
+  if (!IS_NPC(ch))
+    challenge += compute_ability(ch, ABILITY_LISTEN);
+  else
+    challenge += GET_LEVEL(ch);
+  if (AFF_FLAGGED(ch, AFF_SPOT))
+    challenge += 10;
+  
+  //hider bonus/penalties (vict)
+  if (!IS_NPC(vict))
+    dc += compute_ability((struct char_data *)vict, ABILITY_SNEAK);
+  else
+    dc += GET_LEVEL(vict);
+  dc += (GET_SIZE(ch) - GET_SIZE(vict)) * 2;  //size bonus
+
+  if (challenge > dc)
+    can_hear = TRUE;
+  
+  return (can_hear);
+}
+
+
 /* function for hide-check
  * ch = spotter (challenge), vict = hider (DC)
  */
@@ -49,7 +91,7 @@ bool can_see_hidden(struct char_data *ch, const struct char_data *vict)
     challenge += 10;
   
   //hider bonus/penalties (vict)
-  if (!IS_NPC(ch))
+  if (!IS_NPC(vict))
     dc += compute_ability((struct char_data *)vict, ABILITY_HIDE);
   else
     dc += GET_LEVEL(vict);
