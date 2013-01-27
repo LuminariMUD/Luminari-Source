@@ -593,7 +593,8 @@ ACMD(do_frightful)
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict) {
     next_vict = vict->next_in_room;
   
-    if (aoeOK(ch, vict, -1)) {
+    if (aoeOK(ch, vict, -1) && 
+            (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_COURAGE))) {
       send_to_char(ch, "You roar at %s.\r\n", GET_NAME(vict));
       send_to_char(vict, "A mighty roar from %s is directed at you!\r\n", 
 		GET_NAME(ch));

@@ -162,18 +162,18 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     savethrow += 2;
 
   if (diceroll != 1 && (savethrow > challenge || diceroll == 20)) {
-    send_to_char(vict, "\tW*(%s:%d<%d)saved*\tn", save_names[type],
+    send_to_char(vict, "\tW*(%s:%d<%d)saved*\tn ", save_names[type],
 		savethrow, challenge);
     if (ch && vict && vict != ch)
-      send_to_char(ch, "\tR*(%s:%d>%d)opp saved*\tn", save_names[type],
+      send_to_char(ch, "\tR*(%s:%d>%d)opp saved*\tn ", save_names[type],
 		challenge, savethrow);
     return (TRUE);
   }
 
-  send_to_char(vict, "\tR*(%s:%d>%d)failed save*\tn", save_names[type],
+  send_to_char(vict, "\tR*(%s:%d>%d)failed save*\tn ", save_names[type],
 		savethrow, challenge);
   if (ch && vict && vict != ch)
-    send_to_char(ch, "\tW*(%s:%d<%d)opp failed saved*\tn", save_names[type],
+    send_to_char(ch, "\tW*(%s:%d<%d)opp failed saved*\tn ", save_names[type],
 		challenge, savethrow);
   return (FALSE);
 }
