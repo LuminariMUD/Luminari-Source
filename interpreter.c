@@ -194,10 +194,10 @@ cpp_extern const struct command_info cmd_info[] = {
   { "group"    , "gr"      , POS_RESTING , do_group    , 1, 0 },
   { "grab"     , "grab"    , POS_RESTING , do_grab     , 0, 0 },
   { "grats"    , "grat"    , POS_SLEEPING, do_gen_comm , 0, SCMD_GRATZ },
-  { "greport"  , "grepo"   , POS_RESTING , do_greport   , 0, 0 },
+  { "greport"  , "grepo"   , POS_RESTING , do_greport  , 0, 0 },
   { "gsay"     , "gsay"    , POS_SLEEPING, do_gsay     , 0, 0 },
   { "gtell"    , "gt"      , POS_SLEEPING, do_gsay     , 0, 0 },
-  { "gain"    , "gain"      , POS_STANDING, do_gain     , 1, 0 },
+  { "gain"     , "gain"    , POS_RESTING, do_gain      , 1, 0 },
 
   { "help"     , "h"       , POS_DEAD    , do_help     , 0, 0 },
   { "happyhour", "ha"      , POS_DEAD    , do_happyhour, 0, 0 },

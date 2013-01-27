@@ -2064,12 +2064,11 @@ const char *titles(int chclass, int level)
   switch (chclass) {
 
     case CLASS_WIZARD:
-    case CLASS_SORCERER:
     switch (level) {
       case  1:
       case  2:
       case  3:
-      case  4: return " ";
+      case  4: return "";
       case  5: 
       case  6: 
       case  7: 
@@ -2103,13 +2102,93 @@ const char *titles(int chclass, int level)
     }
     break;
 
-    case CLASS_PALADIN:
+
+    case CLASS_SORCERER:
+    switch (level) {
+      case  1:
+      case  2:
+      case  3:
+      case  4: return "";
+      case  5: 
+      case  6: 
+      case  7: 
+      case  8: 
+      case  9: return "the Awakened";
+      case 10:
+      case 11:
+      case 12:
+      case 13:
+      case 14: return "the Torch";
+      case 15:
+      case 16:
+      case 17:
+      case 18:
+      case 19: return "the Firebrand";
+      case 20:
+      case 21:
+      case 22:
+      case 23:
+      case 24: return "the Destroyer";
+      case 25:
+      case 26:
+      case 27:
+      case 28:
+      case 29: return "the Crux of Power";
+      case 30: return "the Near-Divine";
+      case LVL_IMMORT: return "the Immortal Magic Weaver";
+      case LVL_GOD: return "the Avatar of the Flow";
+      case LVL_GRGOD: return "the Hand of Mystical Might";
+      default: return "the Sorcerer";
+    }
+    break;
+
+    /*
+    case CLASS_BARD:
+    switch (level) {
+      case  1:
+      case  2:
+      case  3:
+      case  4: return "";
+      case  5: 
+      case  6: 
+      case  7: 
+      case  8: 
+      case  9: return "the Melodious";
+      case 10:
+      case 11:
+      case 12:
+      case 13:
+      case 14: return "the Hummer of Harmonies";
+      case 15:
+      case 16:
+      case 17:
+      case 18:
+      case 19: return "Weaver of Song";
+      case 20:
+      case 21:
+      case 22:
+      case 23:
+      case 24: return "Keeper of Chords";
+      case 25:
+      case 26:
+      case 27:
+      case 28:
+      case 29: return "the Composer";
+      case 30: return "the Maestro";
+      case LVL_IMMORT: return "the Immortal Songweaver";
+      case LVL_GOD: return "the Master of Sound";
+      case LVL_GRGOD: return "the Lord of Dance";
+      default: return "the Bard";
+    }
+    break;
+*/
+        
     case CLASS_CLERIC:
     switch (level) {
       case  1:
       case  2:
       case  3:
-      case  4: return " ";
+      case  4: return "";
       case  5: 
       case  6: 
       case  7: 
@@ -2143,12 +2222,51 @@ const char *titles(int chclass, int level)
     }
     break;
 
+    case CLASS_PALADIN:
+    switch (level) {
+      case  1:
+      case  2:
+      case  3:
+      case  4: return "";
+      case  5: 
+      case  6: 
+      case  7: 
+      case  8: 
+      case  9: return "the Initiated";
+      case 10:
+      case 11:
+      case 12:
+      case 13:
+      case 14: return "the Accepted";
+      case 15:
+      case 16:
+      case 17:
+      case 18:
+      case 19: return "the Hand of Mercy";
+      case 20:
+      case 21:
+      case 22:
+      case 23:
+      case 24: return "the Sword of Justice";
+      case 25:
+      case 26:
+      case 27:
+      case 28:
+      case 29: return "who Walks in the Light";
+      case 30: return "the Defender of the Faith";
+      case LVL_IMMORT: return "the Immortal Justicar";
+      case LVL_GOD: return "the Immortal Sword of Light";
+      case LVL_GRGOD: return "the Immortal Hammer of Justic";
+      default: return "the Paladin";
+    }
+    break;
+
     case CLASS_MONK:
     switch (level) {
       case  1:
       case  2:
       case  3:
-      case  4: return " ";
+      case  4: return "";
       case  5: 
       case  6: 
       case  7: 
@@ -2187,7 +2305,7 @@ const char *titles(int chclass, int level)
       case  1:
       case  2:
       case  3:
-      case  4: return " ";
+      case  4: return "";
       case  5: 
       case  6: 
       case  7: 
@@ -2226,7 +2344,7 @@ const char *titles(int chclass, int level)
       case  1:
       case  2:
       case  3:
-      case  4: return " ";
+      case  4: return "";
       case  5: 
       case  6: 
       case  7: 
@@ -2265,7 +2383,7 @@ const char *titles(int chclass, int level)
       case  1:
       case  2:
       case  3:
-      case  4: return " ";
+      case  4: return "";
       case  5: 
       case  6: 
       case  7: 

@@ -184,14 +184,16 @@ static int can_take_obj(struct char_data *ch, struct obj_data *obj)
     return (0);
   }   
   
-  if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
-	  if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
-		act("$p: you can't carry that many items.", FALSE, ch, obj, 0, TO_CHAR);
-		return (0);
-	  } else if ((IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj)) > CAN_CARRY_W(ch)) {
-		act("$p: you can't carry that much weight.", FALSE, ch, obj, 0, TO_CHAR);
-		return (0);
-	  }
+  if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE) &&
+          /* request that coins be ignored in this check */
+          GET_OBJ_TYPE(obj) != ITEM_MONEY) {
+    if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
+      act("$p: you can't carry that many items.", FALSE, ch, obj, 0, TO_CHAR);
+      return (0);
+    } else if ((IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj)) > CAN_CARRY_W(ch)) {
+      act("$p: you can't carry that much weight.", FALSE, ch, obj, 0, TO_CHAR);
+      return (0);
+    }
   }
   
   if (OBJ_SAT_IN_BY(obj)){
@@ -396,43 +398,45 @@ ACMD(do_get)
     if (cont_dotmode == FIND_INDIV) {
       mode = generic_find(arg2, FIND_OBJ_INV | FIND_OBJ_ROOM, ch, &tmp_char, &cont);
       if (!cont)
-	send_to_char(ch, "You don't have %s %s.\r\n", AN(arg2), arg2);
+        send_to_char(ch, "You don't have %s %s.\r\n", AN(arg2), arg2);
       else if (GET_OBJ_TYPE(cont) != ITEM_CONTAINER)
-	act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
+        act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
       else
-	get_from_container(ch, cont, arg1, mode, amount);
+        get_from_container(ch, cont, arg1, mode, amount);
     } else {
       if (cont_dotmode == FIND_ALLDOT && !*arg2) {
-	send_to_char(ch, "Get from all of what?\r\n");
-	return;
+        send_to_char(ch, "Get from all of what?\r\n");
+        return;
       }
       for (cont = ch->carrying; cont; cont = cont->next_content)
-	if (CAN_SEE_OBJ(ch, cont) &&
-	    (cont_dotmode == FIND_ALL || isname(arg2, cont->name))) {
-	  if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER) {
-	    found = 1;
-	    get_from_container(ch, cont, arg1, FIND_OBJ_INV, amount);
-	  } else if (cont_dotmode == FIND_ALLDOT) {
-	    found = 1;
-	    act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
-	  }
-	}
+        if (CAN_SEE_OBJ(ch, cont) &&
+            (cont_dotmode == FIND_ALL || isname(arg2, cont->name))) {
+          if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER) {
+            found = 1;
+            get_from_container(ch, cont, arg1, FIND_OBJ_INV, amount);
+          } else if (cont_dotmode == FIND_ALLDOT) {
+            found = 1;
+            act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
+          }
+        }
+      
       for (cont = world[IN_ROOM(ch)].contents; cont; cont = cont->next_content)
-	if (CAN_SEE_OBJ(ch, cont) &&
-	    (cont_dotmode == FIND_ALL || isname(arg2, cont->name))) {
-	  if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER) {
-	    get_from_container(ch, cont, arg1, FIND_OBJ_ROOM, amount);
-	    found = 1;
-	  } else if (cont_dotmode == FIND_ALLDOT) {
-	    act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
-	    found = 1;
-	  }
-	}
+        if (CAN_SEE_OBJ(ch, cont) &&
+              (cont_dotmode == FIND_ALL || isname(arg2, cont->name))) {
+          if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER) {
+            get_from_container(ch, cont, arg1, FIND_OBJ_ROOM, amount);
+            found = 1;
+          } else if (cont_dotmode == FIND_ALLDOT) {
+            act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
+            found = 1;
+          }
+        }
+      
       if (!found) {
-	if (cont_dotmode == FIND_ALL)
-	  send_to_char(ch, "You can't seem to find any containers.\r\n");
-	else
-	  send_to_char(ch, "You can't seem to find any %ss here.\r\n", arg2);
+        if (cont_dotmode == FIND_ALL)
+          send_to_char(ch, "You can't seem to find any containers.\r\n");
+        else
+          send_to_char(ch, "You can't seem to find any %ss here.\r\n", arg2);
       }
     }
   }
