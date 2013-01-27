@@ -179,8 +179,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* Contains the "leave" message to display to the was_in room. */
   char leave_message[SMALL_BUFSIZE] = { '\0' };
   /* used for looping the room for sneak-checks */
-  struct char_data *tch = NULL;
-  
+  struct char_data *tch = NULL;  
   // for mount code
   int same_room = 0, riding = 0, ridden_by = 0;
   char buf2[MAX_STRING_LENGTH] = { '\0' };
@@ -424,31 +423,80 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   else if (ridden_by)
     GET_MOVE(RIDDEN_BY(ch)) -= need_movement;
 
-  /* Generate the leave message and display to others in the was_in room. */
-  if (!riding) {
-      // cycle through room 
-    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
-      if (tch == ch)  //skip self of course
-        continue;
-      // sneak check, listener vs sneaker, mounted scenario 
-      if (can_hear_sneaking(tch, ch)) {
-        // i hear you!
-        snprintf(leave_message, sizeof(leave_message), "$n leaves %s",
-                dirs[dir]);
-        act(leave_message, TRUE, ch, 0, tch, TO_VICT);
+  /*****/
+  /* Generate the leave message(s) and display to others in the was_in room. */
+                                                                        /*****/
+  
+  /* scenario:  mounted char */
+  if (riding) {
+    
+    /* riding, mount is -not- attempting to sneak */
+    if (!IS_AFFECTED(RIDING(ch), AFF_SNEAK)) {
+      /* character is attempting to sneak (mount is not) */
+      if (IS_AFFECTED(ch, AFF_SNEAK)) {
+        /* we know the player is trying to sneak, we have to do the
+           sneak-check with all the observers in the room */
+        
+        /* message:  mount not sneaking, rider is sneaking */
+        snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
+        act(buf2, TRUE, RIDING(ch), 0, 0, TO_ROOM);        
+
+        
+      /* character is -not- attempting to sneak (mount not too) */
+      } else {
+        snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
+        act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
       }
     }
-    snprintf(leave_message, sizeof(leave_message),
-              "You leave %s.\r\n", dirs[dir]);
-    send_to_char(ch, leave_message);
-  } else {
-    snprintf(leave_message, sizeof(leave_message), "$n rides $N %s",
-                dirs[dir]);
-    act(leave_message, TRUE, ch, 0, RIDING(ch), TO_ROOM);    
-    snprintf(leave_message, sizeof(leave_message),
-              "You ride %s.\r\n", dirs[dir]);
-    send_to_char(ch, leave_message);
+    /* riding, mount -is- attempting to sneak */
+    else {
+      
+    }    
+    /* message to self */
+    send_to_char(ch, "You ride %s.", dirs[dir]);
   }
+  /* end:  mounted char */
+  
+  
+  /* scenario:  char is mount */
+  else if (ridden_by) {
+    
+    /* ridden, mount-char is -not- attempting to sneak */    
+    if (!IS_AFFECTED(ch, AFF_SNEAK)) {
+      /* char's rider is attempting to sneak (mount-char is not) */
+      if (IS_AFFECTED(RIDDEN_BY(ch), AFF_SNEAK)) {
+
+        /* message:  mount-char is -not- sneaking, rider -is- sneaking */
+        snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
+        act(buf2, TRUE, ch, 0, 0, TO_ROOM);
+
+      /* rider is -not- attempting to sneak (mount-char not too) */
+      } else {
+        snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
+        act(buf2, TRUE, RIDDEN_BY(ch), 0, ch, TO_NOTVICT);
+      }
+    }
+
+    /* ridden, mount-char -is- attempting to sneak */    
+    else {
+      
+    }
+    /* message to self */
+    send_to_char(ch, "You carry your load %s.", dirs[dir]);    
+  }
+  
+  
+  
+  
+  else if (!IS_AFFECTED(ch, AFF_SNEAK)) {
+    snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
+    act(buf2, TRUE, ch, 0, 0, TO_ROOM);
+    /* message to self */
+    send_to_char(ch, "You leave %s.", dirs[dir]);    
+  }
+  /*****/
+  /* end leave-room message code */
+                            /*****/
   
   /* the actual technical moving of the char */
   char_from_room(ch);
@@ -485,39 +533,28 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     return 0;
   }
 
-  // you should see which direction they came from ...
-  if (riding) {
-
-  if (!AFF_FLAGGED(RIDING(ch), AFF_SNEAK)) {
-    snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, riding $N.",
+  /*****/
+  /* Generate the enter message(s) and display to others in the arrive room. */
+                                                                        /*****/
+  
+  if (!IS_AFFECTED(ch, AFF_SNEAK)) {
+    if (riding && same_room && !IS_AFFECTED(RIDING(ch), AFF_SNEAK)) {
+      snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, riding $N.",
               ((dir == UP || dir == DOWN) ? "the " : ""),
               (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
-    act(buf2, TRUE, ch, 0, RIDING(ch), TO_ROOM);
-  }
-//  ELSE do listen check here
-
-  } else if (ridden_by) {
-
-  if (!AFF_FLAGGED(ch, AFF_SNEAK)) {
-    snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, ridden by $N.",
+      act(buf2, TRUE, ch, 0, RIDING(ch), TO_ROOM);
+    } else if (ridden_by && same_room && !IS_AFFECTED(RIDDEN_BY(ch), AFF_SNEAK)) {
+      snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, ridden by $N.",
       	      ((dir == UP || dir == DOWN) ? "the " : ""),
        	      (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
-    act(buf2, TRUE, ch, 0, RIDDEN_BY(ch), TO_ROOM);
-  }
-//  ELSE do listen check here
-
-  } else {
-
-  if (!AFF_FLAGGED(ch, AFF_SNEAK)) {
-    snprintf(buf2, sizeof(buf2), "$n arrives from %s%s.",
-          ((dir == UP || dir == DOWN) ? "" : "the "),
-          (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
-    act(buf2, TRUE, ch, 0, 0, TO_ROOM);
-  }
-//  ELSE do listen check here
-
-  }
-
+      act(buf2, TRUE, ch, 0, RIDDEN_BY(ch), TO_ROOM);
+    } else if (!riding || (riding && !same_room)) {
+      act("$n has arrived.", TRUE, ch, 0, 0, TO_ROOM);
+    }
+  } /* This changes stock behavior: it doesn't work with in/out/enter/exit as dirs */
+  /*****/
+  /* end enter-room message code */
+                            /*****/
 
   /* ... and the room description to the character. */
   if (ch->desc != NULL) {
@@ -1061,7 +1098,7 @@ ACMD(do_enter)
             return; 
           } 
           
-          count=0; 
+          count = 0; 
           if (portal->obj_flags.value[1] > portal->obj_flags.value[2]) { 
             diff = portal->obj_flags.value[1] - portal->obj_flags.value[2]; 
             do { 
@@ -1096,27 +1133,27 @@ ACMD(do_enter)
         return; 
       }
       
-      if (ROOM_FLAGGED(portal_dest, ROOM_PRIVATE)) {
+      if (ROOM_FLAGGED(real_room(portal_dest), ROOM_PRIVATE)) {
         send_to_char(ch, "That is a private area!\r\n"); 
         return;         
       }
       
-      if (ROOM_FLAGGED(portal_dest, ROOM_DEATH)) {
+      if (ROOM_FLAGGED(real_room(portal_dest), ROOM_DEATH)) {
         send_to_char(ch, "You turn back realizing it is a death trap!\r\n"); 
         return;   
       }
       
-      if (ROOM_FLAGGED(portal_dest, ROOM_GODROOM)) {
+      if (ROOM_FLAGGED(real_room(portal_dest), ROOM_GODROOM)) {
         send_to_char(ch, "Powerful divine forces push you back!\r\n"); 
         return;         
       }
       
-      if (ZONE_FLAGGED(GET_ROOM_ZONE(portal_dest), ZONE_CLOSED)) {
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(portal_dest)), ZONE_CLOSED)) {
         send_to_char(ch, "Zone Closed, sorry!\r\n"); 
         return;         
       }
       
-      if (ZONE_FLAGGED(GET_ROOM_ZONE(portal_dest), ZONE_NOASTRAL)) {
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(portal_dest)), ZONE_NOASTRAL)) {
         send_to_char(ch, "As you try to enter the portal, it flares "
                 "brightly, pushing you back!\r\n"); 
         return;         
