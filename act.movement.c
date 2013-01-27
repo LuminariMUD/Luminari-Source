@@ -418,7 +418,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
   if (GET_LEVEL(ch) < LVL_IMMORT && !IS_NPC(ch) && !(riding || ridden_by))
      GET_MOVE(ch) -= need_movement;
-  else if (riding)
+  /* artificial inflation of mount movement points */
+  else if (riding && !rand_number(0, 9))
     GET_MOVE(RIDING(ch)) -= need_movement;
   else if (ridden_by)
     GET_MOVE(RIDDEN_BY(ch)) -= need_movement;
