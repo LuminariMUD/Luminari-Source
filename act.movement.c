@@ -465,7 +465,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   // fleeing while on foot (no mount at all) OR not sneaking
   else if (need_specials_check == 3 ||           
           !AFF_FLAGGED(ch, AFF_SNEAK)) {
-    snprintf(leave_message, sizeof(leave_message), "$n \tnleaves %s!",
+    snprintf(leave_message, sizeof(leave_message), "$n \tnleaves %s.",
             dirs[dir]);
     act(leave_message, TRUE, ch, 0, 0, TO_ROOM);
     snprintf(leave_message, sizeof(leave_message), "You leave %s.\r\n",
@@ -488,25 +488,17 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         snprintf(leave_message, sizeof(leave_message), "$n leaves %s",
                 dirs[dir]);
         act(leave_message, TRUE, RIDING(ch), 0, tch, TO_VICT);
-        snprintf(leave_message, sizeof(leave_message),
-                "You ride %s.\r\n", dirs[dir]);
-        send_to_char(ch, leave_message);
       // sneak check, listener vs sneaker, mounted-by or no mount scenario
-      } else if (can_hear_sneaking(tch, ch)) {
+      } else if (!riding && can_hear_sneaking(tch, ch)) {
         // i hear you!
         snprintf(leave_message, sizeof(leave_message), "$n leaves %s",
                 dirs[dir]);
         act(leave_message, TRUE, ch, 0, tch, TO_VICT);
-        snprintf(leave_message, sizeof(leave_message),
-                "You leave %s.\r\n", dirs[dir]);
-        send_to_char(ch, leave_message);
-      // sneak check passed 
-      } else {
-        snprintf(leave_message, sizeof(leave_message),
-                "You leave %s.\r\n", dirs[dir]);
-        send_to_char(ch, leave_message);        
       }
     }
+    snprintf(leave_message, sizeof(leave_message),
+              "You leave %s.\r\n", dirs[dir]);
+    send_to_char(ch, leave_message);                
   }
   /*****/
   /*     End leave-room messages */
