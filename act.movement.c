@@ -425,73 +425,17 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     GET_MOVE(RIDDEN_BY(ch)) -= need_movement;
 
   /* Generate the leave message and display to others in the was_in room. */
-  /*  -  Need to determine whether riding or not
-   *  -  Need to determine whether sneak check passed or not
-   *  -  Need to determine whether fleeing or not
-   *     - Only see a message if sneak failed
-   *  */
-  
-  /* first eliminate the easy scenario:  non-sneak messages
-   *   riding and mount not sneaking
-   *   on foot, but not sneaking
-   *   fleeing */
-  
-  // fleeing on mount OR not sneaking mount 
-  if (riding) {
-    if (need_specials_check == 3 ||
-          !AFF_FLAGGED(RIDING(ch), AFF_SNEAK)){
-      snprintf(leave_message, sizeof(leave_message), "$n on $N leaves %s.",
-              dirs[dir]);
-      act(leave_message, TRUE, ch, 0, RIDING(ch), TO_ROOM);
-      snprintf(leave_message, sizeof(leave_message),
-              "You ride %s.\r\n", dirs[dir]);
-      send_to_char(ch, leave_message);
-    }
-  }
-  
-  // fleeing while being mounted OR not sneaking (while being mounted)
-  else if (ridden_by) {
-    if (need_specials_check == 3 ||
-          !AFF_FLAGGED(ch, AFF_SNEAK)){
-      snprintf(leave_message, sizeof(leave_message), "$n on $N leaves %s.",
-              dirs[dir]);
-      act(leave_message, TRUE, RIDDEN_BY(ch), 0, ch, TO_ROOM);
-      snprintf(leave_message, sizeof(leave_message), "You leave %s.\r\n",
-              dirs[dir]);
-      send_to_char(ch, leave_message);
-    }
-  }
-  
-  // fleeing while on foot (no mount at all) OR not sneaking
-  else if (need_specials_check == 3 ||           
-          !AFF_FLAGGED(ch, AFF_SNEAK)) {
-    snprintf(leave_message, sizeof(leave_message), "$n \tnleaves %s.",
-            dirs[dir]);
+  if (!AFF_FLAGGED(ch, AFF_SNEAK)) {
+    snprintf(leave_message, sizeof(leave_message), "$n leaves %s.", dirs[dir]);
     act(leave_message, TRUE, ch, 0, 0, TO_ROOM);
-    snprintf(leave_message, sizeof(leave_message), "You leave %s.\r\n",
-            dirs[dir]);
-    send_to_char(ch, leave_message);
   }
-
-  /********/
-  /* we now know that we are not fleeing and the sneak flag is on */
-                                                          /********/
-  
-  /* now we cycle through the room and do our sneak check:
-     sneaker (either pc or mount) vs listener (chars in room) */
-  else {
-    // cycle through room 
+  if (!riding) {
+      // cycle through room 
     for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
       if (tch == ch)  //skip self of course
         continue;
       // sneak check, listener vs sneaker, mounted scenario 
-      if (riding && can_hear_sneaking(tch, RIDING(ch))) {
-        // i hear you!
-        snprintf(leave_message, sizeof(leave_message), "$n leaves %s",
-                dirs[dir]);
-        act(leave_message, TRUE, RIDING(ch), 0, tch, TO_VICT);
-      // sneak check, listener vs sneaker, mounted-by or no mount scenario
-      } else if (!riding && can_hear_sneaking(tch, ch)) {
+      if (can_hear_sneaking(tch, ch)) {
         // i hear you!
         snprintf(leave_message, sizeof(leave_message), "$n leaves %s",
                 dirs[dir]);
@@ -500,11 +444,16 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     }
     snprintf(leave_message, sizeof(leave_message),
               "You leave %s.\r\n", dirs[dir]);
-    send_to_char(ch, leave_message);                
+    send_to_char(ch, leave_message);
+  } else {
+    snprintf(leave_message, sizeof(leave_message), "$n rides $N %s",
+                dirs[dir]);
+    act(leave_message, TRUE, ch, 0, RIDING(ch), TO_ROOM);    
+    snprintf(leave_message, sizeof(leave_message),
+              "You ride %s.\r\n", dirs[dir]);
+    send_to_char(ch, leave_message);
   }
-  /*****/
-  /*     End leave-room messages */
-                            /*****/
+  
   
   char_from_room(ch);
   char_to_room(ch, going_to);
