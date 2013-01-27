@@ -2593,7 +2593,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
     GET_RACE(mob) = 0;
 
   if (GET_CLASS(mob) < 0 || GET_CLASS(mob) >= NUM_CLASSES)
-    GET_CLASS(mob) = 0;  //that's right defaulting to a magic user
+    GET_CLASS(mob) = 0;  //that's right defaulting to a wizard
 
   if (GET_SIZE(mob) < 0 || GET_SIZE(mob) >= NUM_SIZES)
     GET_SIZE(mob) = SIZE_MEDIUM;

@@ -44,7 +44,7 @@ SPECIAL(dump);
 SPECIAL(mayor);
 SPECIAL(snake);
 SPECIAL(thief);
-SPECIAL(magic_user);
+SPECIAL(wizard);
 SPECIAL(guild_guard);
 SPECIAL(puff);
 SPECIAL(fido);

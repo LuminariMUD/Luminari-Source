@@ -3034,7 +3034,7 @@ ACMD(do_show)
    { "race", 		LVL_GOD, 	PC, 	NUMBER }, /* 59 */
    { "spellres", 	LVL_GOD, 	PC, 	NUMBER }, /* 60 */
    { "size",	 	LVL_GOD, 	PC, 	NUMBER }, /* 61 */
-   { "mage",	 	LVL_GOD, 	PC, 	NUMBER }, /* 62 */
+   { "wizard",	 	LVL_GOD, 	PC, 	NUMBER }, /* 62 */
    { "cleric",	 	LVL_GOD, 	PC, 	NUMBER }, /* 63 */
    { "rogue",	 	LVL_GOD, 	PC, 	NUMBER }, /* 64 */
    { "warrior",	 	LVL_GOD, 	PC, 	NUMBER }, /* 65 */
@@ -3048,9 +3048,9 @@ ACMD(do_show)
   };
 
 /*  adding this to remind me to add new classes to the perform_set list
-CLASS_MAGIC_USER
+CLASS_WIZARD
 CLASS_CLERIC
-CLASS_THIEF
+CLASS_ROGUE
 CLASS_WARRIOR
 CLASS_MONK
 CLASS_DRUID
@@ -3491,16 +3491,16 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       GET_SIZE(vict) = RANGE(0, NUM_SIZES-1);
       affect_total(vict);
       break;
-    case 64:  // mage level
-      CLASS_LEVEL(vict, CLASS_MAGIC_USER) = RANGE(0, LVL_IMMORT-1);
+    case 64:  // wizard level
+      CLASS_LEVEL(vict, CLASS_WIZARD) = RANGE(0, LVL_IMMORT-1);
       affect_total(vict);
       break;
     case 65:  // cleric level
       CLASS_LEVEL(vict, CLASS_CLERIC) = RANGE(0, LVL_IMMORT-1);
       affect_total(vict);
       break;
-    case 66:  // thief level, labeleld rogue because of "thief" flag
-      CLASS_LEVEL(vict, CLASS_THIEF) = RANGE(0, LVL_IMMORT-1);
+    case 66:  // rogue level
+      CLASS_LEVEL(vict, CLASS_ROGUE) = RANGE(0, LVL_IMMORT-1);
       affect_total(vict);
       break;
     case 67:  // warrior level

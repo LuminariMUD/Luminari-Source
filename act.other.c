@@ -320,7 +320,7 @@ int meet_class_reqs(struct char_data *ch, int class)
   }
  
   switch (class) {
-    case CLASS_MAGIC_USER:
+    case CLASS_WIZARD:
       if (ch->real_abils.intel >= 11)
         return 1;
       break;
@@ -336,7 +336,7 @@ int meet_class_reqs(struct char_data *ch, int class)
       if (ch->real_abils.wis >= 11)
         return 1;
       break;
-    case CLASS_THIEF:
+    case CLASS_ROGUE:
       if (ch->real_abils.dex >= 11)
         return 1;
       break;
@@ -350,6 +350,10 @@ int meet_class_reqs(struct char_data *ch, int class)
       break;
     case CLASS_SORCERER:
       if (ch->real_abils.cha >= 11)
+        return 1;
+      break;
+    case CLASS_RANGER:
+      if (ch->real_abils.dex >= 11 && ch->real_abils.wis >= 11)
         return 1;
       break;
     case CLASS_MONK:

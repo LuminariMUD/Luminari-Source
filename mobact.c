@@ -128,8 +128,8 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
 }
 
 
-// thief behaviour, behave based on level
-void npc_thief_behave(struct char_data *ch, struct char_data *vict,
+// rogue behaviour, behave based on level
+void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
 	int level, int engaged)
 {
 
@@ -338,8 +338,8 @@ void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
 }
 
 
-// magic user behaviour, behave based on circle
-void npc_mage_behave(struct char_data *ch, struct char_data *vict,
+// wizard behaviour, behave based on circle
+void npc_wizard_behave(struct char_data *ch, struct char_data *vict,
 	int circle, int engaged)
 {
   int num = -1;
@@ -452,7 +452,7 @@ void npc_mage_behave(struct char_data *ch, struct char_data *vict,
       }
       break;
     default:
-      log("ERR:  Reached invalid circle in npc_mage_behave.");
+      log("ERR:  Reached invalid circle in npc_wizard_behave.");
       break;
   }
 
@@ -488,8 +488,8 @@ void npc_class_behave(struct char_data *ch)
 
   switch(GET_CLASS(ch)) {
     case CLASS_SORCERER:
-    case CLASS_MAGIC_USER:
-      npc_mage_behave(ch, vict, getCircle(ch, CLASS_MAGIC_USER), engaged);
+    case CLASS_WIZARD:
+      npc_wizard_behave(ch, vict, getCircle(ch, CLASS_WIZARD), engaged);
       break;
     case CLASS_WARRIOR:
       npc_warrior_behave(ch, vict, GET_LEVEL(ch), engaged);
@@ -497,8 +497,8 @@ void npc_class_behave(struct char_data *ch)
     case CLASS_PALADIN:
       npc_paladin_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
-    case CLASS_THIEF:
-      npc_thief_behave(ch, vict, GET_LEVEL(ch), engaged);
+    case CLASS_ROGUE:
+      npc_rogue_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
     case CLASS_DRUID:
     case CLASS_CLERIC:

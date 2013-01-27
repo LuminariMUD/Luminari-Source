@@ -312,7 +312,7 @@ static void look_at_char(struct char_data *i, struct char_data *ch)
 	show_obj_to_char(GET_EQ(i, j), ch, SHOW_OBJ_SHORT);
       }
   }
-  if (ch != i && (IS_THIEF(ch) || GET_LEVEL(ch) >= LVL_IMMORT)) {
+  if (ch != i && (IS_ROGUE(ch) || GET_LEVEL(ch) >= LVL_IMMORT)) {
     act("\r\nYou attempt to peek at $s inventory:", FALSE, i, 0, ch, TO_VICT);
     list_obj_to_char(i->carrying, ch, SHOW_OBJ_SHORT, TRUE);
   }
@@ -1055,8 +1055,8 @@ ACMD(do_innates)
       send_to_char(ch, "berserker shrug (level / 4 damage reduction)\r\n");
     }
     /*
-    if (CLASS_LEVEL(ch, CLASS_MAGIC_USER)) {
-      send_to_char(ch, "Magic-User Innates:\r\n");
+    if (CLASS_LEVEL(ch, CLASS_WIZARD)) {
+      send_to_char(ch, "Wizard Innates:\r\n");
       send_to_char(ch, "\tGAcid Splash\tn\r\n");
       send_to_char(ch, "\tBRay of Frost\tn\r\n");
     }
@@ -1365,12 +1365,16 @@ ACMD(do_score)
 "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
   send_to_char(ch, "\tDType 'attacks' to see your attack rotation\tn\r\n");
   send_to_char(ch, "\tDType 'affects' to see what you are affected by\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_MAGIC_USER))
+  if (CLASS_LEVEL(ch, CLASS_WIZARD))
     send_to_char(ch, "\tDType 'memorize' to see your spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_SORCERER))
     send_to_char(ch, "\tDType 'meditate' to see your spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_CLERIC))
     send_to_char(ch, "\tDType 'prayer' to see your spell interface\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_RANGER))
+    send_to_char(ch, "\tDType 'adjure' to see your spell interface\tn\r\n");
+//  if (CLASS_LEVEL(ch, CLASS_BARD))
+//    send_to_char(ch, "\tDType 'compose' to see your spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_DRUID))
     send_to_char(ch, "\tDType 'commune' to see your spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_PALADIN))
@@ -1378,12 +1382,12 @@ ACMD(do_score)
 }
 
 
-
 ACMD(do_inventory)
 {
   send_to_char(ch, "You are carrying:\r\n");
   list_obj_to_char(ch->carrying, ch, SHOW_OBJ_SHORT, TRUE);
 }
+
 
 ACMD(do_equipment)
 {

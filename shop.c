@@ -36,15 +36,16 @@ const char *trade_letters[] = {
         "Good",                 /* First, the alignment based ones */
         "Evil",
         "Neutral",
-        "Magic User",           /* Then the class based ones */
+        "Wizard",           /* Then the class based ones */
         "Cleric",
-        "Thief",
+        "Rogue",
         "Warrior",
         "Monk",
         "Berserker",
         "Druid",
         "Sorcerer",
         "Paladin",
+        "Ranger",
         "Human",                /* then the race based ones */
         "Elf",
         "Dwarf",
@@ -143,9 +144,9 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
   if (IS_NPC(ch))
     return (TRUE);
 
-  if ((IS_MAGIC_USER(ch) && NOTRADE_MAGIC_USER(shop_nr)) ||
+  if ((IS_WIZARD(ch) && NOTRADE_WIZARD(shop_nr)) ||
       (IS_CLERIC(ch) && NOTRADE_CLERIC(shop_nr)) ||
-      (IS_THIEF(ch) && NOTRADE_THIEF(shop_nr)) ||
+      (IS_ROGUE(ch) && NOTRADE_ROGUE(shop_nr)) ||
       (IS_MONK(ch) && NOTRADE_MONK(shop_nr)) ||
       (IS_PALADIN(ch) && NOTRADE_PALADIN(shop_nr)) ||
       (IS_SORCERER(ch) && NOTRADE_SORCERER(shop_nr)) ||

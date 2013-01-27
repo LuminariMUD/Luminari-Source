@@ -1,7 +1,7 @@
 /****************************************************************************
  *  Realms of Luminari
  *  File:     memorize.c
- *  Usage:    spell memorization functions, two types:  mage-type and sorc-type
+ *  Usage:    spell memorization functions, two types:wizard-type and sorc-type
  *            spellbook-related functions are here too
  *  Header:   Header Info is in spells.h
  *  Authors:  Nashak and Zusuk
@@ -68,7 +68,7 @@ void display_spells(struct char_data *ch, struct obj_data *obj)
     titleDone = FALSE;
     for (i=0; i < SPELLBOOK_SIZE; i++) {
       if (obj->sbinfo[i].spellname != 0 &&
-          spell_info[i].min_level[CLASS_MAGIC_USER] == j) {
+          spell_info[i].min_level[CLASS_WIZARD] == j) {
         if (!titleDone) {
           send_to_char(ch, "\r\n@WSpell Level %d:@n\r\n", j);
           titleDone = TRUE;
@@ -130,7 +130,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class)
 {
   struct obj_data *obj;
   bool found = FALSE;
-  if (class == CLASS_MAGIC_USER) {
+  if (class == CLASS_WIZARD) {
 
     for (obj = ch->carrying; obj && !found; obj = obj->next_content) {
       if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
@@ -178,7 +178,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class)
  *   and make sure to use classArray() function to access the
  *   correct value of the PRAY*() macros
  * To make it even more confusing, a lot of the functions
- *   have a double role, for mage-types and sorc-types
+ *   have a double role, for wizard-types and sorc-types
  */
 
 
@@ -191,7 +191,7 @@ int classArray(int class) {
       return 0;
     case CLASS_DRUID:
       return 1;
-    case CLASS_MAGIC_USER:
+    case CLASS_WIZARD:
       return 2;
     case CLASS_SORCERER:
       return 3;
@@ -203,7 +203,7 @@ int classArray(int class) {
 
 
 // the number of spells received per level for caster types
-int mageSlots[LVL_IMPL + 1][10] = {
+int wizardSlots[LVL_IMPL + 1][10] = {
 // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
   {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 0
   {  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
@@ -508,7 +508,7 @@ int spellCircle(int class, int spellnum)
           return 99;
       }
       return 1;
-    /* mage, druid, cleric */      
+    /* wizard, druid, cleric */      
     default:
       return ((int)((spell_info[spellnum].min_level[class] + 1) / 2));
   }
@@ -537,9 +537,9 @@ int comp_slots(struct char_data *ch, int circle, int class)
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
       spellSlots += druidSlots[CLASS_LEVEL(ch, class)][circle];
       break;
-    case CLASS_MAGIC_USER:
+    case CLASS_WIZARD:
       spellSlots += spell_bonus[GET_INT(ch)][circle];
-      spellSlots += mageSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += wizardSlots[CLASS_LEVEL(ch, class)][circle];
       break;
     case CLASS_SORCERER:
       spellSlots += spell_bonus[GET_CHA(ch)][circle];
@@ -646,7 +646,7 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class)
     return;
   }
   
-  /* mage-types */
+  /* wizard-types */
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PRAYING(ch, slot, classArray(class)) == spellnum) { //found the spell
       /* is there more in the memming list? */
@@ -674,8 +674,8 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class)
 
 // finds the first instance of <spellnum> in the characters
 //   memorized spells, forgets it, then updates the memorized list
-// *for now it has to do - will extract a mage spell first
-//   if you can't find it in mage, then take it out of cleric, etc
+// *for now it has to do - will extract a wizard spell first
+//   if you can't find it in wizard, then take it out of cleric, etc
 // *returns class
 int forgetSpell(struct char_data *ch, int spellnum, int class)
 {
@@ -739,7 +739,7 @@ int forgetSpell(struct char_data *ch, int spellnum, int class)
 }
 
 
-// mage-types:  returns total spells in both MEMORIZED and MEMORIZING of a
+// wizard-types:  returns total spells in both MEMORIZED and MEMORIZING of a
 //   given circle
 // sorc-types:  returns total spell slots used in a given circle
 int numSpells(struct char_data *ch, int circle, int class)
@@ -753,7 +753,7 @@ int numSpells(struct char_data *ch, int circle, int class)
         num++;
     }
   } else {
-    /* mage-types */
+    /* wizard-types */
     for (slot = 0; slot < (MAX_MEM); slot++) {
       if (spellCircle(class, PRAYED(ch, slot, classArray(class))) == circle)
         num++;
@@ -917,7 +917,7 @@ int getCircle(struct char_data *ch, int class)
         return 4;
     case CLASS_SORCERER:
       return (MAX(1, (MIN(9, CLASS_LEVEL(ch, class) / 2))));
-    /* mage, druid, cleric */
+    /* wizard, druid, cleric */
     default:
       return (MAX(1, MIN(9, CLASS_LEVEL(ch, class) + 1 / 2)));
   }
@@ -952,7 +952,7 @@ void updateMemming(struct char_data *ch, int class)
         send_to_char(ch, "Your meditation is interrupted.\r\n");
         act("$n aborts $s meditation.", FALSE, ch, 0, 0, TO_ROOM);
         break;
-      case CLASS_MAGIC_USER:
+      case CLASS_WIZARD:
         send_to_char(ch, "You abort your studies.\r\n");
         act("$n aborts $s studies.", FALSE, ch, 0, 0, TO_ROOM);
         break;
@@ -1003,7 +1003,7 @@ void updateMemming(struct char_data *ch, int class)
         sprintf(buf, "You have recovered a spell slot: %d.\r\n",
                 PRAYING(ch, 0, classArray(class)));
         break;
-      default: // magic user
+      default: // wizard
         sprintf(buf, "You finish memorizing %s.\r\n",
                 spell_info[PRAYING(ch, 0, classArray(class))].name);
         addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
@@ -1029,7 +1029,7 @@ void updateMemming(struct char_data *ch, int class)
           send_to_char(ch, "Your communing is complete.\r\n");
           act("$n completes $s communing.", FALSE, ch, 0, 0, TO_ROOM);
           break;
-        default: // magic user
+        default: // wizard
           send_to_char(ch, "Your studies are complete.\r\n");
           act("$n completes $s studies.", FALSE, ch, 0, 0, TO_ROOM);
           break;        
@@ -1134,7 +1134,7 @@ void display_memmed(struct char_data*ch, int class)
         send_to_char(ch, "\r\n\tGYou have petitioned for the following"
                 " spells:\r\n\r\n");
         break;
-      default:  /* magic user */
+      default:  /* wizard */
         send_to_char(ch, "\r\n\tGYou have memorized the following"
                 " spells:\r\n\r\n");
         break;
@@ -1192,7 +1192,7 @@ void display_memming(struct char_data *ch, int class)
         case CLASS_PALADIN:
           send_to_char(ch, "\r\n\tCYou are currently petitioning for:\r\n");
           break;
-        default:  /* magic user */
+        default:  /* wizard */
           send_to_char(ch, "\r\n\tCYou are currently memorizing:\r\n");
           break;
       }
@@ -1210,7 +1210,7 @@ void display_memming(struct char_data *ch, int class)
           send_to_char(ch, "\r\n\tCYou are ready to petition for: (type 'rest'"
                        " then 'petition' to continue)\r\n");
           break;
-        default:  /* magic user */
+        default:  /* wizard */
           send_to_char(ch, "\r\n\tCYou are ready to memorize: (type 'rest' "
                        "then 'memorize' to continue)\r\n");
           break;
@@ -1267,7 +1267,7 @@ void display_slots(struct char_data *ch, int class)
     case CLASS_PALADIN:
       send_to_char(ch, "\r\nYou can petition");
       break;
-    default:  /* magic user */
+    default:  /* wizard */
       send_to_char(ch, "\r\nYou can memorize");
       break;
   }
@@ -1321,9 +1321,9 @@ void printMemory(struct char_data *ch, int class)
       send_to_char(ch, "\tDCommands: petition <spellname>, omit "
               "<spellname>, spells paladin\tn\r\n");
       break;
-    case CLASS_MAGIC_USER:
+    case CLASS_WIZARD:
       send_to_char(ch, "\tDCommands: memorize <spellname>, forget <spellname>, "
-                     "spells magic user\tn\r\n");
+                     "spells wizard\tn\r\n");
       break;
     default:
       break;
@@ -1343,7 +1343,7 @@ ACMD(do_gen_forget)
   if (subcmd == SCMD_BLANK)
     class = CLASS_CLERIC;
   else if (subcmd == SCMD_FORGET)
-    class = CLASS_MAGIC_USER;
+    class = CLASS_WIZARD;
   else if (subcmd == SCMD_OMIT)
     class = CLASS_PALADIN;
   else if (subcmd == SCMD_UNCOMMUNE)
@@ -1384,7 +1384,7 @@ ACMD(do_gen_forget)
           send_to_char(ch, "You forget everything you were attempting to "
                            "petition for.\r\n");
           break;
-        default:  /* magic user */
+        default:  /* wizard */
           send_to_char(ch, "You forget everything you were attempting to "
                            "memorize.\r\n");
           break;
@@ -1406,7 +1406,7 @@ ACMD(do_gen_forget)
           send_to_char(ch, "You forget everything you had petitioned "
                   "for.\r\n");
           break;
-        default:  /* magic user */
+        default:  /* wizard */
           send_to_char(ch, "You forget everything you had memorized.\r\n");
           break;
       }
@@ -1423,7 +1423,7 @@ ACMD(do_gen_forget)
         case CLASS_PALADIN:
           send_to_char(ch, "You do not have anything petitioned!\r\n");
           break;
-        default:  /* magic user */
+        default:  /* wizard */
           send_to_char(ch, "You do not have anything memorizing/memorized!\r\n");
           break;
       }
@@ -1450,7 +1450,7 @@ ACMD(do_gen_forget)
         case CLASS_PALADIN:
           send_to_char(ch, "You stop petitioning for %s.\r\n", spell_info[spellnum].name);
           break;
-        default:  /* magic user */
+        default:  /* wizard */
           send_to_char(ch, "You stop memorizing %s.\r\n", spell_info[spellnum].name);
           break;
       }
@@ -1475,7 +1475,7 @@ ACMD(do_gen_forget)
           send_to_char(ch, "You purge %s from your petition.\r\n",
                        spell_info[spellnum].name);
           break;
-        default:  /* magic user */
+        default:  /* wizard */
           send_to_char(ch, "You purge %s from your memory.\r\n",
                        spell_info[spellnum].name);
           break;
@@ -1497,7 +1497,7 @@ ACMD(do_gen_forget)
       send_to_char(ch, "You aren't petiioning for and don't have "
               "petitioned %s!\r\n", spell_info[spellnum].name);
       break;
-    default:  /* magic user */
+    default:  /* wizard */
       send_to_char(ch, "You aren't memorizing and don't have memorized %s!\r\n",
                    spell_info[spellnum].name);
       break;
@@ -1513,7 +1513,7 @@ ACMD(do_gen_memorize)
   if (subcmd == SCMD_PRAY)
     class = CLASS_CLERIC;
   else if (subcmd == SCMD_MEMORIZE)
-    class = CLASS_MAGIC_USER;
+    class = CLASS_WIZARD;
   else if (subcmd == SCMD_PETITION)
     class = CLASS_PALADIN;
   else if (subcmd == SCMD_COMMUNE)
@@ -1551,7 +1551,7 @@ ACMD(do_gen_memorize)
             send_to_char(ch, "You continue your meditation.\r\n");
             act("$n continues $s meditation.", FALSE, ch, 0, 0, TO_ROOM);
             break;
-          default:  /* magic user */
+          default:  /* wizard */
             send_to_char(ch, "You continue your studies.\r\n");
             act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
             break;
@@ -1600,7 +1600,7 @@ ACMD(do_gen_memorize)
         case CLASS_PALADIN:
           send_to_char(ch, "You start to petition for %s.\r\n", spell_info[spellnum].name);
           break;
-        default:  /* magic user */
+        default:  /* wizard */
           send_to_char(ch, "You start to memorize %s.\r\n", spell_info[spellnum].name);
           break;
       }
@@ -1621,7 +1621,7 @@ ACMD(do_gen_memorize)
             send_to_char(ch, "You continue your petition.\r\n");
             act("$n continues $s petition.", FALSE, ch, 0, 0, TO_ROOM);
             break;
-          default:  /* magic user */
+          default:  /* wizard */
             send_to_char(ch, "You continue your studies.\r\n");
             act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
             break;
