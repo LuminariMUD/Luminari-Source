@@ -38,6 +38,7 @@
 
 /* Public functions made available from utils.c. Documentation for all functions
  * are made available with the function definition. */
+void set_alignment(struct char_data *ch, int alignment);
 char *get_align_by_num_cnd(int align);
 char *get_align_by_num(int align);
 bool can_see_hidden(struct char_data *ch, const struct char_data *vict);
@@ -755,9 +756,23 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 /** Saving throw i for character ch. */
 #define GET_SAVE(ch, i)	  ((ch)->char_specials.saved.apply_saving_throw[i])
 
+
+/* we changed the alignment system on luminarimud, but built it on top
+   of the stock one */
+/*
+ * Lawful Good  0
+ * Neutral Good  1
+ * Chaotic Good  2
+ * Lawful Neutral  3
+ * True Neutral  4
+ * Chaotic Neutral  5
+ * Lawful Evil  6
+ * Neutral Evil  7
+ * Chaotic Evil  8
+ * #define NUM_ALIGNMENTS 9
+ */
 /** Alignment value for ch. */
 #define GET_ALIGNMENT(ch) ((ch)->char_specials.saved.alignment)
-
 
 
 /* Casting time */

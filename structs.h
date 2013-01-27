@@ -189,6 +189,23 @@
 #define NUM_SIZES         10
 
 
+/* this sytem is built on top of stock alignment
+ * which is a value between -1000 to 1000
+ * alignments */
+#define LAWFUL_GOOD         0
+#define NEUTRAL_GOOD        1
+#define CHAOTIC_GOOD        2
+#define LAWFUL_NEUTRAL      3
+#define TRUE_NEUTRAL        4
+#define CHAOTIC_NEUTRAL     5
+#define LAWFUL_EVIL         6
+#define NEUTRAL_EVIL        7
+#define CHAOTIC_EVIL        8
+/***/
+#define NUM_ALIGNMENTS      9
+/***/
+
+
 /* PC classes */
 #define CLASS_UNDEFINED	 (-1) /**< PC Class undefined */
 #define CLASS_WIZARD      0    /**< PC Class wizard */
@@ -239,13 +256,18 @@
 #define MAX_SPEC_ABIL	MAX_CLASSES
 	/* max = MAX_CLASSES right now */
 
+// Memorization
+#define NUM_SLOTS	20  //theoretical max num slots per circle
+#define NUM_CIRCLES	10  //max num circles
+/* how much space to reserve in the mem arrays */
+#define MAX_MEM		NUM_SLOTS * NUM_CIRCLES
 
 // Races
 #define RACE_UNDEFINED     (-1) /*Race Undefined*/
 #define RACE_HUMAN         0 /* Race Human */
 #define RACE_ELF           1 /* Race Elf   */
 #define RACE_DWARF         2 /* Race Dwarf */
-#define RACE_TROLL         3 /* Race Troll */
+#define RACE_TROLL         3 /* Race Troll (advanced) */
 #define RACE_CRYSTAL_DWARF 4  /* crystal dwarf (epic) */
 #define RACE_HALFLING      5  // halfling
 #define RACE_H_ELF         6  // half elf
@@ -525,10 +547,11 @@
 #define CON_MSGEDIT      34 /**< OLC mode - message editor */
 #define CON_STUDY        35 /**< OLC mode - sorc-spells-known editor */
 #define CON_QCLASS_HELP  36 /* help info during char creation */
+#define CON_QALIGN       37 /* alignment selection in char creation */
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT     /**< The first CON_ state that is an OLC */
 #define LAST_OLC_STATE  CON_STUDY    /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES	37
+#define NUM_CON_STATES	38
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
@@ -791,12 +814,7 @@
 /** Total number of liquid types */
 #define NUM_LIQ_TYPES     16
 
-/* other miscellaneous defines */
-// Memorization
-#define NUM_SLOTS	20  //theoretical max num slots per circle
-#define NUM_CIRCLES	10  //max num circles
-/* how much space to reserve in the mem arrays */
-#define MAX_MEM		NUM_SLOTS * NUM_CIRCLES
+
 
 
 /* Player conditions */

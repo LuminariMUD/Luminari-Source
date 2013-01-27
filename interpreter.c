@@ -1430,6 +1430,7 @@ void nanny(struct descriptor_data *d, char *arg)
 {
   int load_result = 0;	/* Overloaded variable */
   int player_i = 0;
+  int i = 0;  //incrementor
 
   /* OasisOLC states */
   struct {
@@ -1814,9 +1815,41 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_QCLASS;
       return;
     }
+    
+    /* start initial alignment selection code */
+    write_to_output(d, "\r\nSelect Alignment\r\n");
+    for (i = 0; i < NUM_ALIGNMENTS; i++) {
+      if (valid_align_by_class(d->character, i))
+        write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
+    }
+    write_to_output(d, "\r\n");
+
+    STATE(d) = CON_QALIGN;
+    break;
+
+  case CON_QALIGN:
+    
+    i = atoi(arg);
+    if (i < 0 || i > (NUM_ALIGNMENTS-1) ||
+            !valid_align_by_class(d->character, i)) {
+      set_alignment(d->character, i);
+      write_to_output(d, "\r\nAlignment Selected!\r\n");
+    } else {
+      write_to_output(d, "\r\nInvalid Choice!  Please Select Alignment\r\n");
+      for (i = 0; i < NUM_ALIGNMENTS; i++) {
+        if (valid_align_by_class(d->character, i))
+          write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
+      }
+      write_to_output(d, "\r\n");
+
+      STATE(d) = CON_QALIGN;
+      return;      
+    }
 
     /******************************/
     /* ok begin processing player */
+    
+    /* dummy check for olc state */
     if (d->olc) {
       free(d->olc);
       d->olc = NULL;
@@ -1830,6 +1863,7 @@ void nanny(struct descriptor_data *d, char *arg)
     save_char(d->character);
     save_player_index();
 
+    /* print message of the day to player */
     write_to_output(d, "%s\r\n*** PRESS RETURN: ", motd);
     STATE(d) = CON_RMOTD;
 

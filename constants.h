@@ -12,6 +12,7 @@
 #ifndef _CONSTANTS_H_
 #define _CONSTANTS_H_
 
+extern const char *alignment_names[];
 extern const char *portal_types[];
 extern const char *craft_type[];
 extern const char *admin_level_names[]; // for imp prefix
