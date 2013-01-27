@@ -179,7 +179,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* Contains the "leave" message to display to the was_in room. */
   char leave_message[SMALL_BUFSIZE] = { '\0' };
   /* used for looping the room for sneak-checks */
-  struct char_data *tch = NULL;  
+  struct char_data *tch = NULL, *next_tch = NULL;  
   // for mount code
   int same_room = 0, riding = 0, ridden_by = 0;
   char buf2[MAX_STRING_LENGTH] = { '\0' };
@@ -436,11 +436,24 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       if (IS_AFFECTED(ch, AFF_SNEAK)) {
         /* we know the player is trying to sneak, we have to do the
            sneak-check with all the observers in the room */
-        
-        /* message:  mount not sneaking, rider is sneaking */
-        snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
-        act(buf2, TRUE, RIDING(ch), 0, 0, TO_ROOM);        
-
+        for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
+          next_tch = tch->next_in_room;
+          
+          /* skip self and mount of course */
+          if (tch == ch || tch == RIDING(ch))
+            continue;
+          
+          /* sneak versus listen check */
+          if (!can_hear_sneaking(tch, ch)) {
+            /* message:  mount not sneaking, rider is sneaking */
+            snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
+            act(buf2, TRUE, RIDING(ch), 0, 0, TO_ROOM);
+          } else {
+            /* rider detected ! */
+            snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
+            act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
+          }
+        }
         
       /* character is -not- attempting to sneak (mount not too) */
       } else {
@@ -448,10 +461,57 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
       }
     }
-    /* riding, mount -is- attempting to sneak */
+    
+    /* riding, mount -is- attempting to sneak, if succesful, the whole
+     * "package" is sneaking, if not ch might be able to sneak still */
     else {
-      
-    }    
+      if (!IS_AFFECTED(ch, AFF_SNEAK)) {
+        /* we know the mount (and not ch) is trying to sneak, we have to do the
+           sneak-check with all the observers in the room */
+        for (tch = world[IN_ROOM(RIDING(ch))].people; tch; tch = next_tch) {
+          next_tch = tch->next_in_room;
+
+          /* skip self (mount) of course and ch */
+          if (tch == RIDING(ch) || tch == ch)
+            continue;
+        
+          /* sneak versus listen check */
+          if (can_hear_sneaking(tch, RIDING(ch))) {
+            /* mount detected! */
+            snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
+            act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
+          }  /* if we pass this check, the rider/mount are both sneaking */          
+        }
+      }
+      /* ch is still trying to sneak (mount too) */
+      else {
+        /* we know the mount (and ch) is trying to sneak, we have to do the
+           sneak-check with all the observers in the room, mount
+         * success in this case is free pass for sneak */
+        for (tch = world[IN_ROOM(RIDING(ch))].people; tch; tch = next_tch) {
+          next_tch = tch->next_in_room;
+
+          /* skip self (mount) of course, skipping ch too */
+          if (tch == RIDING(ch) || tch == ch)
+            continue;
+        
+          /* sneak versus listen check */
+          if (!can_hear_sneaking(tch, RIDING(ch))) {
+            /* mount success!  "package" is sneaking */
+          } else if (!can_hear_sneaking(tch, ch)) {
+            /* mount failed, player succeeded */
+            /* message:  mount not sneaking, rider is sneaking */
+            snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
+            act(buf2, TRUE, RIDING(ch), 0, 0, TO_ROOM);
+          } else {
+            /* mount failed, player failed */
+            snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
+            act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
+          }
+        }        
+      }
+    }
+    
     /* message to self */
     send_to_char(ch, "You ride %s.", dirs[dir]);
   }
