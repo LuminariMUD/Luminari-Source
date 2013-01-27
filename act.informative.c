@@ -157,19 +157,19 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode)
 static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch)
 {
   if (OBJ_FLAGGED(obj, ITEM_INVISIBLE))
-    send_to_char(ch, " (invisible)");
+    send_to_char(ch, " \tw(invisible)\tn");
 
   if (OBJ_FLAGGED(obj, ITEM_BLESS) && AFF_FLAGGED(ch, AFF_DETECT_ALIGN))
-    send_to_char(ch, " ..It glows blue!");
+    send_to_char(ch, " \tn..It glows \tBblue\tn!");
 
   if (OBJ_FLAGGED(obj, ITEM_MAGIC) && AFF_FLAGGED(ch, AFF_DETECT_MAGIC))
-    send_to_char(ch, " ..It glows yellow!");
+    send_to_char(ch, " \tn..It glows \tYyellow\tn!");
 
   if (OBJ_FLAGGED(obj, ITEM_GLOW))
-    send_to_char(ch, " ..It has a soft glowing aura!");
+    send_to_char(ch, " \tW..It has a soft glowing aura!\tn");
 
   if (OBJ_FLAGGED(obj, ITEM_HUM))
-    send_to_char(ch, " ..It emits a faint humming sound!");
+    send_to_char(ch, " \tn..It emits a faint \tChumming\tn sound!");
 }
 
 static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show)
@@ -359,11 +359,11 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
 
-    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN)) {
+    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || CLASS_LEVEL(ch, CLASS_PALADIN)) {
       if (IS_EVIL(i))
-	send_to_char(ch, "\tR(Red Aura)\tn ");
-      else if (IS_GOOD(i))
-	send_to_char(ch, "\tB(Blue Aura)\tn ");
+        send_to_char(ch, "\tR(Red Aura)\tn ");
+      else if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) && IS_GOOD(i))
+        send_to_char(ch, "\tB(Blue Aura)\tn ");
     }
 
     send_to_char(ch, "%s", i->player.long_descr);
@@ -382,11 +382,11 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
 
-    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN)) {
+    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || CLASS_LEVEL(ch, CLASS_PALADIN)) {
       if (IS_EVIL(i))
-	send_to_char(ch, "\tR(Red Aura)\tn ");
-      else if (IS_GOOD(i))
-	send_to_char(ch, "\tB(Blue Aura)\tn ");
+        send_to_char(ch, "\tR(Red Aura)\tn ");
+      else if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) && IS_GOOD(i))
+        send_to_char(ch, "\tB(Blue Aura)\tn ");
     }
 
     send_to_char(ch, "%s", i->player.long_descr);
@@ -449,11 +449,11 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
       send_to_char(ch, " is here struggling with thin air.");
   }
 
-  if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN)) {
+  if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || CLASS_LEVEL(ch, CLASS_PALADIN)) {
     if (IS_EVIL(i))
-      send_to_char(ch, " (Red Aura)");
-    else if (IS_GOOD(i))
-      send_to_char(ch, " (Blue Aura)");
+      send_to_char(ch, "\tR(Red Aura)\tn ");
+    else if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) && IS_GOOD(i))
+      send_to_char(ch, "\tB(Blue Aura)\tn ");
   }
   send_to_char(ch, "\r\n");
 

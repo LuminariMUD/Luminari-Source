@@ -483,10 +483,10 @@ static void make_corpse(struct char_data *ch)
 /* When ch kills victim */
 static void change_alignment(struct char_data *ch, struct char_data *victim)
 {
-  if (GET_ALIGNMENT(victim) < GET_ALIGNMENT(ch) && !rand_number(0, 3)) {
+  if (GET_ALIGNMENT(victim) < GET_ALIGNMENT(ch) && !rand_number(0, 19)) {
     if (GET_ALIGNMENT(ch) < 1000)
       GET_ALIGNMENT(ch)++;
-  } else if (GET_ALIGNMENT(victim) > GET_ALIGNMENT(ch) && !rand_number(0, 3)) {
+  } else if (GET_ALIGNMENT(victim) > GET_ALIGNMENT(ch) && !rand_number(0, 19)) {
     if (GET_ALIGNMENT(ch) > -1000)
       GET_ALIGNMENT(ch)--;
   }

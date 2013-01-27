@@ -1563,7 +1563,8 @@ ACMD(do_purge)
 
   one_argument(argument, buf);
 
-  if (GET_LEVEL(ch) < LVL_GRGOD && !can_edit_zone(ch, world[IN_ROOM(ch)].zone)) {
+  if (GET_LEVEL(ch) < LVL_GRGOD &&
+          !can_edit_zone(ch, world[IN_ROOM(ch)].zone)) {
 	send_to_char(ch, "Sorry, you can't purge anything here.\r\n");
 	return;
   }
@@ -1572,22 +1573,28 @@ ACMD(do_purge)
   if (*buf) {
     t = buf;
     number = get_number(&t);
-    if ((vict = get_char_vis(ch, buf, &number, FIND_CHAR_ROOM)) != NULL) {      if (!IS_NPC(vict) && (GET_LEVEL(ch) <= GET_LEVEL(vict))) {
+    if ((vict = get_char_vis(ch, buf, &number, FIND_CHAR_ROOM)) != NULL) {
+      if (!IS_NPC(vict) && (GET_LEVEL(ch) <= GET_LEVEL(vict))) {
         send_to_char(ch, "You can't purge %s!\r\n", HMHR(vict));
-	return;
+        return;
       }
+      
       act("$n disintegrates $N.", FALSE, ch, 0, vict, TO_NOTVICT);
 
       if (!IS_NPC(vict) && GET_LEVEL(ch) < LVL_GOD) {
-	mudlog(BRF, MAX(LVL_GOD, GET_INVIS_LEV(ch)), TRUE, "(GC) %s has purged %s.", GET_NAME(ch), GET_NAME(vict));
-	if (vict->desc) {
-	  STATE(vict->desc) = CON_CLOSE;
-	  vict->desc->character = NULL;
-	  vict->desc = NULL;
-	}
+        mudlog(BRF, MAX(LVL_GOD, GET_INVIS_LEV(ch)), TRUE,
+                "(GC) %s has purged %s.", GET_NAME(ch), GET_NAME(vict));
+        if (vict->desc) {
+          STATE(vict->desc) = CON_CLOSE;
+          vict->desc->character = NULL;
+          vict->desc = NULL;
+        }
       }
+      
       extract_char(vict);
-    } else if ((obj = get_obj_in_list_vis(ch, buf, &number, world[IN_ROOM(ch)].contents)) != NULL) {
+      
+    } else if ((obj = get_obj_in_list_vis(ch, buf, &number, 
+            world[IN_ROOM(ch)].contents)) != NULL) {
       act("$n destroys $p.", FALSE, ch, obj, 0, TO_ROOM);
       extract_obj(obj);
     } else {
@@ -1598,7 +1605,7 @@ ACMD(do_purge)
     send_to_char(ch, "%s", CONFIG_OK);
   } else {			/* no argument. clean out the room */
     act("$n gestures... You are surrounded by scorching flames!",
-	FALSE, ch, 0, 0, TO_ROOM);
+            FALSE, ch, 0, 0, TO_ROOM);
     send_to_room(IN_ROOM(ch), "The world seems a little cleaner.\r\n");
     purge_room(IN_ROOM(ch));
   }
