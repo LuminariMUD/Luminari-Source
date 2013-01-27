@@ -222,7 +222,8 @@ ACMD(do_kill)
   char arg[MAX_INPUT_LENGTH] = { '\0' };
   struct char_data *vict = NULL;
 
-  if (GET_LEVEL(ch) < LVL_IMMORT || IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
+  if (GET_LEVEL(ch) < LVL_IMMORT || IS_NPC(ch) ||
+          !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
     do_hit(ch, argument, cmd, subcmd);
     return;
   }
@@ -235,7 +236,8 @@ ACMD(do_kill)
       send_to_char(ch, "They aren't here.\r\n");
     else if (ch == vict)
       send_to_char(ch, "Your mother would be so sad.. :(\r\n");
-    else if (GET_LEVEL(ch) <= GET_LEVEL(vict)) {
+    else if (GET_LEVEL(ch) <= GET_LEVEL(vict) ||
+            PRF_FLAGGED(vict, PRF_NOHASSLE)) {
       do_hit(ch, argument, cmd, subcmd);
     } else {
       act("You chop $M to pieces!  Ah!  The blood!", FALSE, ch, 0, vict, TO_CHAR);
