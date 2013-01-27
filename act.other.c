@@ -297,35 +297,50 @@ ACMD(do_tame) {
 /* does the ch have a valid alignment for proposed class? */
 /* returns 1 for valid alignment */
 /* returns 0 for problem with alignment */
-int valid_align_by_class(struct char_data *ch, int class)
+int valid_align_by_class(int alignment, int class)
 {
 
   switch (class) {
 
     /* any lawful alignment */
   case CLASS_MONK:
-    if (IS_LG(ch) || IS_LN(ch) || IS_LE(ch))
-      return 1;
-    else
-      return 0;
+    switch (alignment) {
+      case LAWFUL_GOOD:
+      case LAWFUL_NEUTRAL:
+      case LAWFUL_EVIL:
+        return 1;
+      default:
+        return 0;
+    }    
     
     /* any 'neutral' alignment */
   case CLASS_DRUID:
-    if (IS_NG(ch) || IS_LN(ch) || IS_NN(ch) || IS_CN(ch) || IS_NE(ch))
-      return 1;
-    else
-      return 0;
+    switch (alignment) {
+      case NEUTRAL_GOOD:
+      case LAWFUL_NEUTRAL:
+      case TRUE_NEUTRAL:
+      case CHAOTIC_NEUTRAL:
+      case NEUTRAL_EVIL:
+        return 1;
+      default:
+        return 0;
+    }
     
     /* any 'non-lawful' alignment */
   case CLASS_BERSERKER:
-    if (IS_LG(ch) || IS_LN(ch) || IS_LE(ch))  //just note switched return
-      return 0;
-    else  //just note, switched return
-      return 1;
+    switch (alignment) {
+      /* we are checking for invalids */
+      case LAWFUL_GOOD:
+      case LAWFUL_NEUTRAL:
+      case LAWFUL_EVIL:
+        return 0;
+      default:
+        return 1;
+    }
     
     /* only lawful good */
   case CLASS_PALADIN:
-    if (IS_LG(ch))
+    if (alignment == LAWFUL_GOOD)
       return 1;
     else
       return 0;
@@ -351,7 +366,7 @@ int meet_class_reqs(struct char_data *ch, int class)
   int i;
   
   /* alignment restrictions */
-  if (!valid_align_by_class(ch, class))
+  if (!valid_align_by_class(convert_alignment(GET_ALIGNMENT(ch)), class))
     return 0;
 
   // this is to make sure an epic race doesn't multiclass

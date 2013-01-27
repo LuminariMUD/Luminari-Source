@@ -2364,6 +2364,33 @@ char *convert_from_tabs(char * string)
 }
 
 
+/* this function takes old-system alignment and converts it to new */
+int convert_alignment(int align)
+{
+  if (align >= 800)
+    return LAWFUL_GOOD;
+  if (align >= 575 && align < 800)
+    return NEUTRAL_GOOD;
+  if (align >= 350 && align < 575)
+    return CHAOTIC_GOOD;
+  if (align >= 125 && align < 350)
+    return LAWFUL_NEUTRAL;
+  if (align < 125 && align > -125)
+    return TRUE_NEUTRAL;
+  if (align <= -125 && align > -350)
+    return CHAOTIC_NEUTRAL;
+  if (align <= -350 && align > -575)
+    return LAWFUL_EVIL;
+  if (align <= -575 && align > -800)
+    return NEUTRAL_EVIL;
+  if (align <= -800)
+    return CHAOTIC_EVIL;
+  
+  /* shouldn't get here */
+  return TRUE_NEUTRAL;
+}
+
+
 void set_alignment(struct char_data *ch, int alignment)
 {
   switch (alignment) {
