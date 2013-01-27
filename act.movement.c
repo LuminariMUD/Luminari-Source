@@ -425,10 +425,6 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     GET_MOVE(RIDDEN_BY(ch)) -= need_movement;
 
   /* Generate the leave message and display to others in the was_in room. */
-  if (!AFF_FLAGGED(ch, AFF_SNEAK)) {
-    snprintf(leave_message, sizeof(leave_message), "$n leaves %s.", dirs[dir]);
-    act(leave_message, TRUE, ch, 0, 0, TO_ROOM);
-  }
   if (!riding) {
       // cycle through room 
     for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
