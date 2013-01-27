@@ -450,7 +450,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     send_to_char(ch, leave_message);
   }
   
-  
+  /* the actual technical moving of the char */
   char_from_room(ch);
   char_to_room(ch, going_to);
   
@@ -484,7 +484,6 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     }
     return 0;
   }
-
 
   // you should see which direction they came from ...
   if (riding) {
