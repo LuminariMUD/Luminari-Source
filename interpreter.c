@@ -1819,7 +1819,7 @@ void nanny(struct descriptor_data *d, char *arg)
     /* start initial alignment selection code */
     write_to_output(d, "\r\nSelect Alignment\r\n");
     for (i = 0; i < NUM_ALIGNMENTS; i++) {
-      if (valid_align_by_class(d->character, GET_CLASS(d->character)))
+      if (valid_align_by_class(i, GET_CLASS(d->character)))
         write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
     }
     write_to_output(d, "\r\n");
@@ -1837,10 +1837,10 @@ void nanny(struct descriptor_data *d, char *arg)
     
     i = atoi(arg);
     if (i < 0 || i > (NUM_ALIGNMENTS-1) ||
-            !valid_align_by_class(d->character, GET_CLASS(d->character))) {
+            !valid_align_by_class(i, GET_CLASS(d->character))) {
       write_to_output(d, "\r\nInvalid Choice!  Please Select Alignment\r\n");
       for (i = 0; i < NUM_ALIGNMENTS; i++) {
-        if (valid_align_by_class(d->character, GET_CLASS(d->character)))
+        if (valid_align_by_class(i, GET_CLASS(d->character)))
           write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
       }
       write_to_output(d, "\r\n");
