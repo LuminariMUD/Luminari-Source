@@ -1832,9 +1832,6 @@ void nanny(struct descriptor_data *d, char *arg)
     i = atoi(arg);
     if (i < 0 || i > (NUM_ALIGNMENTS-1) ||
             !valid_align_by_class(d->character, i)) {
-      set_alignment(d->character, i);
-      write_to_output(d, "\r\nAlignment Selected!\r\n");
-    } else {
       write_to_output(d, "\r\nInvalid Choice!  Please Select Alignment\r\n");
       for (i = 0; i < NUM_ALIGNMENTS; i++) {
         if (valid_align_by_class(d->character, i))
@@ -1844,6 +1841,9 @@ void nanny(struct descriptor_data *d, char *arg)
 
       STATE(d) = CON_QALIGN;
       return;      
+    } else {
+      set_alignment(d->character, i);
+      write_to_output(d, "\r\nAlignment Selected!\r\n");
     }
 
     /******************************/
