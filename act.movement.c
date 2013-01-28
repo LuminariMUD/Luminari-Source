@@ -733,21 +733,81 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* This changes stock behavior: it doesn't work                            *
    *          with in/out/enter/exit as dirs                                 */
                                                                         /*****/
-  if (!IS_AFFECTED(ch, AFF_SNEAK)) {
-    if (riding && same_room && !IS_AFFECTED(RIDING(ch), AFF_SNEAK)) {
-      snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, riding $N.",
+  if (!riding && !ridden_by) {
+    /* simplest case, not riding or being ridden-by */
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
+      next_tch = tch->next_in_room;
+
+      /* skip self */
+      if (tch == RIDDEN_BY(ch) || tch == ch)
+        continue;
+        
+      /* sneak versus listen check */
+      if (can_hear_sneaking(tch, ch)) {
+        /* failed sneak attempt (if valid) */
+        snprintf(buf2, sizeof(buf2), "$n arrives from %s%s.",
               ((dir == UP || dir == DOWN) ? "" : "the "),
               (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
-      act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
-    } else if (ridden_by && same_room && !IS_AFFECTED(RIDDEN_BY(ch), AFF_SNEAK)) {
-      snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, ridden by $N.",
-      	      ((dir == UP || dir == DOWN) ? "the " : ""),
-       	      (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
-      act(buf2, TRUE, ch, 0, RIDDEN_BY(ch), TO_NOTVICT);
-    } else if (!riding || (riding && !same_room)) {
-      act("$n has arrived.", TRUE, ch, 0, 0, TO_ROOM);
-    }
-  } 
+        act(buf2, TRUE, ch, 0, tch, TO_VICT);
+      }     
+    }  
+    
+  } else if (riding) {
+    for (tch = world[IN_ROOM(RIDING(ch))].people; tch; tch = next_tch) {
+      next_tch = tch->next_in_room;
+
+      /* skip rider of course, and mount */
+      if (tch == RIDING(ch) || tch == ch)
+        continue;
+        
+      /* sneak versus listen check */
+      if (!can_hear_sneaking(tch, RIDING(ch))) {
+        /* mount success!  "package" is sneaking */
+      } else if (!can_hear_sneaking(tch, ch)) {
+        /* mount failed, rider succeeded */
+        /* message:  mount not sneaking, rider is sneaking */
+        snprintf(buf2, sizeof(buf2), "$n arrives from %s%s.",
+            ((dir == UP || dir == DOWN) ? "" : "the "),
+            (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+        act(buf2, TRUE, RIDING(ch), 0, tch, TO_VICT);
+      } else {
+        /* mount failed, rider failed */
+        snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, riding %s.",
+            ((dir == UP || dir == DOWN) ? "" : "the "),
+            (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]),
+             GET_NAME(RIDING(ch)));
+        act(buf2, TRUE, ch, 0, tch, TO_VICT);
+      }
+    }     
+  } else if (ridden_by) {
+    for (tch = world[IN_ROOM(RIDDEN_BY(ch))].people; tch; tch = next_tch) {
+      next_tch = tch->next_in_room;
+
+      /* skip rider of course, and mount */
+      if (tch == RIDDEN_BY(ch) || tch == ch)
+        continue;
+        
+      /* sneak versus listen check, remember ch = mount right now  */
+      if (!can_hear_sneaking(tch, ch)) {
+        /* mount success!  "package" is sneaking */
+      } else if (!can_hear_sneaking(tch, RIDDEN_BY(ch))) {
+        /* mount failed, rider succeeded */
+        /* message:  mount not sneaking, rider is sneaking */
+        snprintf(buf2, sizeof(buf2), "$n arrives from %s%s.",
+            ((dir == UP || dir == DOWN) ? "" : "the "),
+            (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+        act(buf2, TRUE, ch, 0, tch, TO_VICT);
+      } else {
+        /* mount failed, rider failed */
+        snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, ridden by %s.",
+            ((dir == UP || dir == DOWN) ? "" : "the "),
+       	  (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]),
+            GET_NAME(RIDDEN_BY(ch)));
+        act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
+      }
+    }         
+  }
+
   /*****/
   /* end enter-room message code */
                             /*****/
