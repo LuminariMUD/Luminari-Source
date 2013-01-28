@@ -400,9 +400,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
    
   if (riding && compute_ability(ch, ABILITY_RIDING) <
 	rand_number(1, GET_LEVEL(RIDING(ch)))-rand_number(-4,need_movement)) {
-    act("$N rears backwards, throwing you to the ground.", FALSE, ch, 0, RIDING(ch), TO_CHAR);
-    act("You rear backwards, throwing $n to the ground.", FALSE, ch, 0, RIDING(ch), TO_VICT);
-    act("$N rears backwards, throwing $n to the ground.", FALSE, ch, 0, RIDING(ch), TO_NOTVICT);
+    act("$N rears backwards, throwing you to the ground.",
+            FALSE, ch, 0, RIDING(ch), TO_CHAR);
+    act("You rear backwards, throwing $n to the ground.",
+            FALSE, ch, 0, RIDING(ch), TO_VICT);
+    act("$N rears backwards, throwing $n to the ground.",
+            FALSE, ch, 0, RIDING(ch), TO_NOTVICT);
     dismount_char(ch);
     damage(ch, ch, dice(1,6), -1, -1, -1);
     return 0;
