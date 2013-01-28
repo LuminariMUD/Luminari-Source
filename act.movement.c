@@ -517,15 +517,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       }
     }    
     /* message to self */
-    send_to_char(ch, "You ride %s %s.\r\n", GET_NAME(RIDING(ch)), dirs[dir]);
-    /* message to mount */
-    send_to_char(RIDING(ch), "You carry %s %s.\r\n",
-            GET_NAME(ch), dirs[dir]);
-    if (RIDING(ch)->desc != NULL) {
-      look_at_room(RIDING(ch), 0);
-      if (!IS_NPC(RIDING(ch)) && PRF_FLAGGED(RIDING(ch), PRF_AUTOSCAN))
-        do_scan(RIDING(ch),0,0,0);
-    }    
+    send_to_char(ch, "You ride %s %s.\r\n", GET_NAME(RIDING(ch)), dirs[dir]);    
   }
   /* end:  mounted char */
   
@@ -625,14 +617,6 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     /* message to self */
     send_to_char(ch, "You carry %s %s.\r\n",
             GET_NAME(RIDDEN_BY(ch)), dirs[dir]);    
-    /* message to rider */
-    send_to_char(RIDDEN_BY(ch), "You are carried %s by %s.\r\n",
-            dirs[dir], GET_NAME(ch));
-    if (RIDDEN_BY(ch)->desc != NULL) {
-      look_at_room(RIDDEN_BY(ch), 0);
-      if (!IS_NPC(RIDDEN_BY(ch)) && PRF_FLAGGED(RIDDEN_BY(ch), PRF_AUTOSCAN))
-        do_scan(RIDDEN_BY(ch),0,0,0);
-    }
   }
   
   
@@ -712,7 +696,26 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSCAN))
       do_scan(ch,0,0,0);
   }
-
+  if (ridden_by) {
+    /* message to rider */
+    send_to_char(RIDDEN_BY(ch), "You are carried %s by %s.\r\n",
+            dirs[dir], GET_NAME(ch));
+    if (RIDDEN_BY(ch)->desc != NULL) {
+      look_at_room(RIDDEN_BY(ch), 0);
+      if (!IS_NPC(RIDDEN_BY(ch)) && PRF_FLAGGED(RIDDEN_BY(ch), PRF_AUTOSCAN))
+        do_scan(RIDDEN_BY(ch),0,0,0);
+    }  
+  }
+  if (riding) {
+    /* message to mount */
+    send_to_char(RIDING(ch), "You carry %s %s.\r\n",
+            GET_NAME(ch), dirs[dir]);
+    if (RIDING(ch)->desc != NULL) {
+      look_at_room(RIDING(ch), 0);
+      if (!IS_NPC(RIDING(ch)) && PRF_FLAGGED(RIDING(ch), PRF_AUTOSCAN))
+        do_scan(RIDING(ch),0,0,0);
+    }
+  }
   /* ... and Kill the player if the room is a death trap. */
 /*
   if (ROOM_FLAGGED(going_to, ROOM_DEATH)) {
