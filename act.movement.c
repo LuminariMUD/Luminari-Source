@@ -635,10 +635,30 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     send_to_char(RIDDEN_BY(ch), "You are carried %s by %s.\r\n",
             dirs[dir], GET_NAME(ch));    
   }
+  /* end char is mounted */
   
   
-  
-  
+  /* ch is on foot */
+  else if (IS_AFFECTED(ch, AFF_SNEAK)) {
+    /* sneak attempt vs the room content */
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
+      next_tch = tch->next_in_room;
+
+      /* skip self */
+      if (tch == ch)
+        continue;
+        
+      /* sneak versus listen check */
+      if (can_hear_sneaking(tch, ch)) {
+        /* detected! */
+        snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
+        act(buf2, TRUE, ch, 0, 0, TO_ROOM);
+      }  /* if we pass this check, we are sneaking */          
+    }
+    /* message to self */
+    send_to_char(ch, "You sneak %s.\r\n", dirs[dir]);    
+  }
+  /* not attempting to sneak */
   else if (!IS_AFFECTED(ch, AFF_SNEAK)) {
     snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
     act(buf2, TRUE, ch, 0, 0, TO_ROOM);
