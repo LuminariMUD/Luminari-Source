@@ -2343,7 +2343,7 @@ ACMD(do_force)
 ACMD(do_wiznet)
 {
   char buf1[MAX_INPUT_LENGTH] = { '\0' },
-       buf2[MAX_INPUT_LENGTH] = { '\0' }, *msg = NULL;
+       buf2[MAX_INPUT_LENGTH] = { '\0' }, *msg;
   struct descriptor_data *d = NULL;
   bool emote = FALSE;
   int level = LVL_IMMORT;
@@ -2366,8 +2366,8 @@ ACMD(do_wiznet)
       half_chop(argument+1, buf1, argument);
       level = MAX(atoi(buf1), LVL_IMMORT);
       if (level > GET_LEVEL(ch)) {
-	send_to_char(ch, "You can't wizline above your own level.\r\n");
-	return;
+        send_to_char(ch, "You can't wizline above your own level.\r\n");
+        return;
       }
     } else if (emote)
       argument++;
@@ -2432,7 +2432,8 @@ ACMD(do_wiznet)
           } else {
             msg = act(buf2, FALSE, d->character, 0, 0, TO_CHAR | DG_NO_TRIG);
             add_history(d->character, buf2, HIST_WIZNET);
-          }    
+          }
+          add_history(d->character, msg, HIST_WIZNET);
         }
       }
     }
