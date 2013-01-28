@@ -430,8 +430,10 @@ ACMD(do_mpurge)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  if (ch->desc && (GET_LEVEL(ch->desc->original) < LVL_IMPL))
-    return;
+  if (ch->desc)
+    if (ch->desc->original)
+      if (GET_LEVEL(ch->desc->original) < LVL_IMPL)
+        return;
 
   one_argument(argument, arg);
 
