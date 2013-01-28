@@ -451,11 +451,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
           if (!can_hear_sneaking(tch, ch)) {
             /* message:  mount not sneaking, rider is sneaking */
             snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
-            act(buf2, TRUE, RIDING(ch), 0, 0, TO_VICT);
+            act(buf2, TRUE, RIDING(ch), 0, tch, TO_VICT);
           } else {
             /* rider detected ! */
-            snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
-            act(buf2, TRUE, ch, 0, RIDING(ch), TO_VICT);
+            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
+                    GET_NAME(RIDING(ch)), dirs[dir]);
+            act(buf2, TRUE, ch, 0, tch, TO_VICT);
           }
         }
         
@@ -482,8 +483,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
           /* sneak versus listen check */
           if (can_hear_sneaking(tch, RIDING(ch))) {
             /* mount detected! */
-            snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
-            act(buf2, TRUE, ch, 0, RIDING(ch), TO_VICT);
+            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
+                    GET_NAME(RIDING(ch)), dirs[dir]);
+            act(buf2, TRUE, ch, 0, tch, TO_VICT);
           }  /* if we pass this check, the rider/mount are both sneaking */          
         }
       }
@@ -506,18 +508,19 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
             /* mount failed, player succeeded */
             /* message:  mount not sneaking, rider is sneaking */
             snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
-            act(buf2, TRUE, RIDING(ch), 0, 0, TO_VICT);
+            act(buf2, TRUE, RIDING(ch), 0, tch, TO_VICT);
           } else {
             /* mount failed, player failed */
-            snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
-            act(buf2, TRUE, ch, 0, RIDING(ch), TO_VICT);
+            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
+                    GET_NAME(RIDING(ch)), dirs[dir]);
+            act(buf2, TRUE, ch, 0, tch, TO_VICT);
           }
         }        
       }
     }
     
     /* message to self */
-    send_to_char(ch, "You ride %s.\r\n", dirs[dir]);
+    send_to_char(ch, "You ride %s %s.\r\n", GET_NAME(RIDING(ch)), dirs[dir]);
   }
   /* end:  mounted char */
   
