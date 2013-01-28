@@ -863,6 +863,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   return (1);
 }
 
+
 int perform_move(struct char_data *ch, int dir, int need_specials_check)
 {
   room_rnum was_in;
