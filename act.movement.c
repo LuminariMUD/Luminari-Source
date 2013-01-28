@@ -718,12 +718,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, riding $N.",
               ((dir == UP || dir == DOWN) ? "" : "the "),
               (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
-      act(buf2, TRUE, ch, 0, RIDING(ch), TO_ROOM);
+      act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
     } else if (ridden_by && same_room && !IS_AFFECTED(RIDDEN_BY(ch), AFF_SNEAK)) {
       snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, ridden by $N.",
       	      ((dir == UP || dir == DOWN) ? "the " : ""),
        	      (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
-      act(buf2, TRUE, ch, 0, RIDDEN_BY(ch), TO_ROOM);
+      act(buf2, TRUE, ch, 0, RIDDEN_BY(ch), TO_NOTVICT);
     } else if (!riding || (riding && !same_room)) {
       act("$n has arrived.", TRUE, ch, 0, 0, TO_ROOM);
     }
