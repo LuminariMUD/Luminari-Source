@@ -933,7 +933,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
       for (j = 1, msg = fight_messages[i].msg; (j < nr) && msg; j++)
 	   msg = msg->next;
       
-      /* old locatino of staff-messages */
+      /* old location of staff-messages */
       if (dam != 0) {
         if (GET_POS(vict) == POS_DEAD) {  // death messages
           /* Don't send redundant color codes for TYPE_SUFFERING & other types
