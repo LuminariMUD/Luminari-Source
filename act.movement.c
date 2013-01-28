@@ -652,7 +652,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       if (can_hear_sneaking(tch, ch)) {
         /* detected! */
         snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
-        act(buf2, TRUE, ch, 0, 0, TO_ROOM);
+        act(buf2, TRUE, ch, 0, tch, TO_VICT);
       }  /* if we pass this check, we are sneaking */          
     }
     /* message to self */
