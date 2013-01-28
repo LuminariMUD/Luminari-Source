@@ -411,6 +411,9 @@ void gain_condition(struct char_data *ch, int condition, int value)
 {
   bool intoxicated;
 
+  if (!ch)
+    return;
+  
   if (IS_NPC(ch) || GET_COND(ch, condition) == -1)	/* No change */
     return;
 
@@ -525,6 +528,9 @@ void point_update(void)
   for (j = object_list; j; j = next_thing) {
     next_thing = j->next;	/* Next in object list */
 
+    if (!j)
+      continue;
+    
     /** portals that fade **/
     if (IS_DECAYING_PORTAL(j)) {
       /* timer count down */

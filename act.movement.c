@@ -31,10 +31,13 @@
 /* do_simple_move utility functions */
 
 /* do_gen_door utility functions */
-static int find_door(struct char_data *ch, const char *type, char *dir, const char *cmdname);
+static int find_door(struct char_data *ch, const char *type, char *dir, 
+        const char *cmdname);
 static int has_key(struct char_data *ch, obj_vnum key);
-static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd);
-static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd);
+static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, 
+        int scmd);
+static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof,
+        int scmd);
 
 // external
 void dismount_char(struct char_data * ch);
@@ -198,11 +201,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     return 0;
 
   /* Leave Trigger Checks: Does a leave trigger block exit from the room? */
-  if (!leave_mtrigger(ch, dir) || IN_ROOM(ch) != was_in) /* prevent teleport crashes */
+  /* next 3 if blocks prevent teleport crashes */
+  if (!leave_mtrigger(ch, dir) || IN_ROOM(ch) != was_in)
     return 0;
-  if (!leave_wtrigger(&world[IN_ROOM(ch)], ch, dir) || IN_ROOM(ch) != was_in) /* prevent teleport crashes */
+  if (!leave_wtrigger(&world[IN_ROOM(ch)], ch, dir) || IN_ROOM(ch) != was_in)
     return 0;
-  if (!leave_otrigger(&world[IN_ROOM(ch)], ch, dir) || IN_ROOM(ch) != was_in) /* prevent teleport crashes */
+  if (!leave_otrigger(&world[IN_ROOM(ch)], ch, dir) || IN_ROOM(ch) != was_in)
     return 0;
 
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
@@ -228,7 +232,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   }
 
   /* Charm effect: Does it override the movement? */
-  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master && was_in == IN_ROOM(ch->master))
+  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master
+          && was_in == IN_ROOM(ch->master))
   {
     send_to_char(ch, "The thought of leaving your master makes you weep.\r\n");
     act("$n bursts into tears.", FALSE, ch, 0, 0, TO_ROOM);
@@ -253,15 +258,18 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   }
 
   /* Underwater Room: Does lack of underwater breathing prevent movement? */
-  if ((SECT(was_in) == SECT_UNDERWATER) || (SECT(going_to) == SECT_UNDERWATER)) {
+  if ((SECT(was_in) == SECT_UNDERWATER) ||
+          (SECT(going_to) == SECT_UNDERWATER)) {
     if (!has_scuba(ch) && !IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
-      send_to_char(ch, "You need to be able to breathe water to go there!\r\n");
+      send_to_char(ch,
+              "You need to be able to breathe water to go there!\r\n");
       return (0);
     }
   }
 
   /* High Mountain (and any other climb rooms) */
-  if ((SECT(was_in) == SECT_HIGH_MOUNTAIN) || (SECT(going_to) == SECT_HIGH_MOUNTAIN)) {
+  if ((SECT(was_in) == SECT_HIGH_MOUNTAIN) || 
+          (SECT(going_to) == SECT_HIGH_MOUNTAIN)) {
     if ((riding && !can_climb(RIDING(ch))) || !can_climb(ch)) {
       send_to_char(ch, "You need to be able to climb to go there!\r\n");
       return (0);
@@ -294,10 +302,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
   /* Check zone flag restrictions */
   if (ZONE_FLAGGED(GET_ROOM_ZONE(going_to), ZONE_CLOSED)) {
-    send_to_char(ch, "A mysterious barrier forces you back! That area is off-limits.\r\n");
+    send_to_char(ch, "A mysterious barrier forces you back! That area is "
+            "off-limits.\r\n");
     return (0);
   }
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(going_to), ZONE_NOIMMORT) && (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRGOD)) {
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(going_to), ZONE_NOIMMORT) &&
+          (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRGOD)) {
     send_to_char(ch, "A mysterious barrier forces you back! That area is off-limits.\r\n");
     return (0);
   }
@@ -312,7 +322,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     if (CONFIG_TUNNEL_SIZE > 1)
       send_to_char(ch, "There isn't enough room for you to go there!\r\n");
     else
-      send_to_char(ch, "There isn't enough room there for more than one person!\r\n");
+      send_to_char(ch, "There isn't enough room there for more than"
+              " one person!\r\n");
     return (0);
   }
 
@@ -666,36 +677,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     if (riding && same_room && RIDING(ch)->in_room != ch->in_room) {
       char_from_room(RIDING(ch));
       char_to_room(RIDING(ch), ch->in_room);
-    } else if (ridden_by && same_room && RIDDEN_BY(ch)->in_room != ch->in_room) {
+    } else if (ridden_by && same_room &&
+            RIDDEN_BY(ch)->in_room != ch->in_room) {
       char_from_room(RIDDEN_BY(ch));
       char_to_room(RIDDEN_BY(ch), ch->in_room);
     }
     return 0;
   }
 
-  /*****/
-  /* Generate the enter message(s) and display to others in the arrive room. */
-                                                                        /*****/
   
-  if (!IS_AFFECTED(ch, AFF_SNEAK)) {
-    if (riding && same_room && !IS_AFFECTED(RIDING(ch), AFF_SNEAK)) {
-      snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, riding $N.",
-              ((dir == UP || dir == DOWN) ? "the " : ""),
-              (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
-      act(buf2, TRUE, ch, 0, RIDING(ch), TO_ROOM);
-    } else if (ridden_by && same_room && !IS_AFFECTED(RIDDEN_BY(ch), AFF_SNEAK)) {
-      snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, ridden by $N.",
-      	      ((dir == UP || dir == DOWN) ? "the " : ""),
-       	      (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
-      act(buf2, TRUE, ch, 0, RIDDEN_BY(ch), TO_ROOM);
-    } else if (!riding || (riding && !same_room)) {
-      act("$n has arrived.", TRUE, ch, 0, 0, TO_ROOM);
-    }
-  } /* This changes stock behavior: it doesn't work with in/out/enter/exit as dirs */
-  /*****/
-  /* end enter-room message code */
-                            /*****/
-
   /* ... and the room description to the character. */
   if (ch->desc != NULL) {
     look_at_room(ch, 0);
@@ -716,6 +706,32 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         do_scan(RIDING(ch),0,0,0);
     }
   }
+
+  
+  /*****/
+  /* Generate the enter message(s) and display to others in the arrive room. */
+  /* This changes stock behavior: it doesn't work
+   * with in/out/enter/exit as dirs */                                                                        /*****/
+  if (!IS_AFFECTED(ch, AFF_SNEAK)) {
+    if (riding && same_room && !IS_AFFECTED(RIDING(ch), AFF_SNEAK)) {
+      snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, riding $N.",
+              ((dir == UP || dir == DOWN) ? "the " : ""),
+              (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+      act(buf2, TRUE, ch, 0, RIDING(ch), TO_ROOM);
+    } else if (ridden_by && same_room && !IS_AFFECTED(RIDDEN_BY(ch), AFF_SNEAK)) {
+      snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, ridden by $N.",
+      	      ((dir == UP || dir == DOWN) ? "the " : ""),
+       	      (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+      act(buf2, TRUE, ch, 0, RIDDEN_BY(ch), TO_ROOM);
+    } else if (!riding || (riding && !same_room)) {
+      act("$n has arrived.", TRUE, ch, 0, 0, TO_ROOM);
+    }
+  } 
+  /*****/
+  /* end enter-room message code */
+                            /*****/
+  
+  
   /* ... and Kill the player if the room is a death trap. */
 /*
   if (ROOM_FLAGGED(going_to, ROOM_DEATH)) {
