@@ -618,6 +618,14 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     /* message to self */
     send_to_char(ch, "You carry %s %s.\r\n",
             GET_NAME(RIDDEN_BY(ch)), dirs[dir]);    
+    /* message to rider */
+    send_to_char(RIDDEN_BY(ch), "You are carried %s by %s.\r\n",
+            dirs[dir], GET_NAME(ch));
+    if (RIDDEN_BY(ch)->desc != NULL) {
+      look_at_room(RIDDEN_BY(ch), 0);
+      if (!IS_NPC(RIDDEN_BY(ch)) && PRF_FLAGGED(RIDDEN_BY(ch), PRF_AUTOSCAN))
+        do_scan(RIDDEN_BY(ch),0,0,0);
+    }
   }
   
   
