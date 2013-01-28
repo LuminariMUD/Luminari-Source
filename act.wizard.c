@@ -2343,7 +2343,9 @@ ACMD(do_force)
 ACMD(do_wiznet)
 {
   char buf1[MAX_INPUT_LENGTH] = { '\0' },
-       buf2[MAX_INPUT_LENGTH] = { '\0' }, *msg;
+       buf2[MAX_INPUT_LENGTH] = { '\0' }, 
+       buf3[MAX_INPUT_LENGTH] = { '\0' }, 
+       buf4[MAX_INPUT_LENGTH] = { '\0' };
   struct descriptor_data *d = NULL;
   bool emote = FALSE;
   int level = LVL_IMMORT;
@@ -2411,12 +2413,22 @@ ACMD(do_wiznet)
   if (level > LVL_IMMORT) {
     snprintf(buf1, sizeof(buf1), "\tc[wiznet] %s: <%d> %s%s\tn",
 	GET_NAME(ch), level, emote ? "<--- " : "", argument);
+    snprintf(buf3, sizeof(buf1), "\tc[wiznet] %s: <%d> %s%s\tn\r\n",
+	GET_NAME(ch), level, emote ? "<--- " : "", argument);
+    
     snprintf(buf2, sizeof(buf1), "\tc[wiznet] Someone: <%d> %s%s\tn",
+	level, emote ? "<--- " : "", argument);
+    snprintf(buf4, sizeof(buf1), "\tc[wiznet] Someone: <%d> %s%s\tn\r\n",
 	level, emote ? "<--- " : "", argument);
   } else {
     snprintf(buf1, sizeof(buf1), "\tc[wiznet] %s: %s%s\tn",
 	GET_NAME(ch), emote ? "<--- " : "", argument);
+    snprintf(buf3, sizeof(buf1), "\tc[wiznet] %s: %s%s\tn\r\n",
+	GET_NAME(ch), emote ? "<--- " : "", argument);
+
     snprintf(buf2, sizeof(buf1), "\tc[wiznet] Someone: %s%s\tn",
+	emote ? "<--- " : "", argument);
+    snprintf(buf4, sizeof(buf1), "\tc[wiznet] Someone: %s%s\tn\r\n",
 	emote ? "<--- " : "", argument);
   }
 
@@ -2427,13 +2439,12 @@ ACMD(do_wiznet)
            (!PRF_FLAGGED(d->character, PRF_NOWIZ))
            && (d != ch->desc || !(PRF_FLAGGED(d->character, PRF_NOREPEAT)))) {
           if (CAN_SEE(d->character, ch)) {
-            msg = act(buf1, FALSE, d->character, 0, 0, TO_CHAR | DG_NO_TRIG);
-            add_history(d->character, buf1, HIST_WIZNET);
+            act(buf1, FALSE, d->character, 0, 0, TO_CHAR | DG_NO_TRIG);
+            add_history(d->character, buf3, HIST_WIZNET);
           } else {
-            msg = act(buf2, FALSE, d->character, 0, 0, TO_CHAR | DG_NO_TRIG);
-            add_history(d->character, buf2, HIST_WIZNET);
+            act(buf2, FALSE, d->character, 0, 0, TO_CHAR | DG_NO_TRIG);
+            add_history(d->character, buf4, HIST_WIZNET);
           }
-          add_history(d->character, msg, HIST_WIZNET);
         }
       }
     }
