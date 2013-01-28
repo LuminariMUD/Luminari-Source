@@ -710,12 +710,13 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   
   /*****/
   /* Generate the enter message(s) and display to others in the arrive room. */
-  /* This changes stock behavior: it doesn't work
-   * with in/out/enter/exit as dirs */                                                                        /*****/
+  /* This changes stock behavior: it doesn't work                            *
+   *          with in/out/enter/exit as dirs                                 */
+                                                                        /*****/
   if (!IS_AFFECTED(ch, AFF_SNEAK)) {
     if (riding && same_room && !IS_AFFECTED(RIDING(ch), AFF_SNEAK)) {
       snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, riding $N.",
-              ((dir == UP || dir == DOWN) ? "the " : ""),
+              ((dir == UP || dir == DOWN) ? "" : "the "),
               (dir == UP ? "below": dir == DOWN ? "above" : dirs[rev_dir[dir]]));
       act(buf2, TRUE, ch, 0, RIDING(ch), TO_ROOM);
     } else if (ridden_by && same_room && !IS_AFFECTED(RIDDEN_BY(ch), AFF_SNEAK)) {
@@ -732,11 +733,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
                             /*****/
   
   
-  /* ... and Kill the player if the room is a death trap. */
-/*
+  /************Death traps have been taken out*************/
+  /* ... and Kill the player if the room is a death trap.
   if (ROOM_FLAGGED(going_to, ROOM_DEATH)) {
     if (GET_LEVEL(ch) < LVL_IMMORT) {
-      mudlog(BRF, LVL_IMMORT, TRUE, "%s hit death trap #%d (%s)", GET_NAME(ch), GET_ROOM_VNUM(going_to), world[going_to].name);
+      mudlog(BRF, LVL_IMMORT, TRUE, "%s hit death trap #%d (%s)",
+ * GET_NAME(ch), GET_ROOM_VNUM(going_to), world[going_to].name);
       death_cry(ch);
       extract_char(ch);
     }
@@ -756,8 +758,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     }
     return (0);
   }
-*/
+************end death trap code**********/
 
+  
   /* At this point, the character is safe and in the room. */
   /* Fire memory and greet triggers, check and see if the greet trigger
    * prevents movement, and if so, move the player back to the previous room. */
