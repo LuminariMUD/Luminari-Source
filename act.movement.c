@@ -515,10 +515,17 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
           }
         }        
       }
-    }
-    
+    }    
     /* message to self */
     send_to_char(ch, "You ride %s %s.\r\n", GET_NAME(RIDING(ch)), dirs[dir]);
+    /* message to mount */
+    send_to_char(RIDING(ch), "You carry %s %s.\r\n",
+            GET_NAME(ch), dirs[dir]);
+    if (RIDING(ch)->desc != NULL) {
+      look_at_room(RIDING(ch), 0);
+      if (!IS_NPC(RIDING(ch)) && PRF_FLAGGED(RIDING(ch), PRF_AUTOSCAN))
+        do_scan(RIDING(ch),0,0,0);
+    }    
   }
   /* end:  mounted char */
   
