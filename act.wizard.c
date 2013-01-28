@@ -2423,6 +2423,7 @@ ACMD(do_wiznet)
   for (d = descriptor_list; d; d = d->next) {
     if (d && ch) {
       if (d->character && ch->desc) {
+          add_history(d->character, msg, HIST_WIZNET);
         if (IS_PLAYING(d) && (GET_LEVEL(d->character) >= level) &&
             (!PRF_FLAGGED(d->character, PRF_NOWIZ))
             && (d != ch->desc || !(PRF_FLAGGED(d->character, PRF_NOREPEAT)))) {
@@ -2431,7 +2432,7 @@ ACMD(do_wiznet)
           else 
             msg = act(buf2, FALSE, d->character, 0, 0, TO_CHAR | DG_NO_TRIG);
       
-          add_history(d->character, msg, HIST_WIZNET);
+//          add_history(d->character, msg, HIST_WIZNET);
         }
       }
     }
