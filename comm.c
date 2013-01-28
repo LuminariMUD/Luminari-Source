@@ -1043,7 +1043,28 @@ void pulse_luminari() {
 
   // looping through char list, what needs to be done?
   for (i = character_list; i; i = i->next) {
-
+    
+    /* mount clean-up */
+    if (RIDING(i)) {
+      if (RIDDEN_BY(RIDING(i)) != i) {
+        /* dismount both of these guys */
+        dismount_char(i);
+        dismount_char(RIDDEN_BY(RIDING(i)));
+      } else if (RIDING(i)->in_room != i->in_room) {
+        /* not in same room?  dismount 'em */
+        dismount_char(i);
+      }
+    } else if (RIDDEN_BY(i)) {
+      if (RIDING(RIDDEN_BY(i)) != i) {
+        /* dismount both of these guys */
+        dismount_char(i);
+        dismount_char(RIDING(RIDDEN_BY(i)));
+      } else if (RIDDEN_BY(i)->in_room != i->in_room) {
+        /* not in same room?  dismount 'em */
+        dismount_char(i);
+      }    
+    }
+    
     /* vitals regeneration */
     if (GET_HIT(i) == GET_MAX_HIT(i) &&
             GET_MOVE(i) == GET_MAX_MOVE(i) &&

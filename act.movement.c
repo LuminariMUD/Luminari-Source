@@ -176,8 +176,6 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* How many movement points are required to travel from was_in to going_to.
    * We redefine this later when we need it. */
   int need_movement = 0;
-  /* Contains the "leave" message to display to the was_in room. */
-  char leave_message[SMALL_BUFSIZE] = { '\0' };
   /* used for looping the room for sneak-checks */
   struct char_data *tch = NULL, *next_tch = NULL;  
   // for mount code
@@ -528,14 +526,34 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* scenario:  char is mount */
   else if (ridden_by) {
     
-    /* ridden, mount-char is -not- attempting to sneak */    
+    /* ridden and mount-char is -not- attempting to sneak
+       will either see whole 'package' move or just the mounted-char */    
     if (!IS_AFFECTED(ch, AFF_SNEAK)) {
-      /* char's rider is attempting to sneak (mount-char is not) */
+      
+      /* char's rider is attempting to sneak (mount-char is not)
+         either going to see mount or 'package' move */
       if (IS_AFFECTED(RIDDEN_BY(ch), AFF_SNEAK)) {
-
-        /* message:  mount-char is -not- sneaking, rider -is- sneaking */
-        snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
-        act(buf2, TRUE, ch, 0, 0, TO_ROOM);
+        /* we know the rider is trying to sneak, we have to do the
+           sneak-check with all the observers in the room */
+        for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
+          next_tch = tch->next_in_room;
+          
+          /* skip self and rider of course */
+          if (tch == ch || tch == RIDDEN_BY(ch))
+            continue;
+          
+          /* sneak versus listen check */
+          if (!can_hear_sneaking(tch, RIDDEN_BY(ch))) {
+            /* message:  mount not sneaking, rider is sneaking */
+            snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
+            act(buf2, TRUE, ch, 0, tch, TO_VICT);
+          } else {
+            /* rider detected ! */
+            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
+                    GET_NAME(ch), dirs[dir]);
+            act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
+          }
+        }
 
       /* rider is -not- attempting to sneak (mount-char not too) */
       } else {
@@ -544,12 +562,62 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       }
     }
 
-    /* ridden, mount-char -is- attempting to sneak */    
+    /* ridden and mount-char -is- attempting to sneak */    
     else {
+      
+      /* both are attempt to sneak */
+      if (IS_AFFECTED(RIDDEN_BY(ch), AFF_SNEAK)) {
+        /* we know the mount and rider is trying to sneak, we have to do the
+           sneak-check with all the observers in the room, mount (ch)
+         * success in this case is free pass for sneak */
+        for (tch = world[IN_ROOM(RIDDEN_BY(ch))].people; tch; tch = next_tch) {
+          next_tch = tch->next_in_room;
+
+          /* skip rider of course, skipping mount-ch too */
+          if (tch == RIDDEN_BY(ch) || tch == ch)
+            continue;
+        
+          /* sneak versus listen check */
+          if (!can_hear_sneaking(tch, ch)) {
+            /* mount success!  "package" is sneaking */
+          } else if (!can_hear_sneaking(tch, RIDDEN_BY(ch))) {
+            /* mount failed, rider succeeded */
+            /* message:  mount not sneaking, rider is sneaking */
+            snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
+            act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
+          } else {
+            /* mount failed, rider failed */
+            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
+                    GET_NAME(ch), dirs[dir]);
+            act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
+          }
+        } 
+        
+      /* ridden and mount-char -is- attempt to sneak, rider -not- */  
+      } else {
+        /* we know the mount (rider no) is trying to sneak, we have to do the
+           sneak-check with all the observers in the room */
+        for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
+          next_tch = tch->next_in_room;
+
+          /* skip self (mount) and rider */
+          if (tch == RIDDEN_BY(ch) || tch == ch)
+            continue;
+        
+          /* sneak versus listen check */
+          if (can_hear_sneaking(tch, ch)) {
+            /* mount detected! */
+            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
+                    GET_NAME(RIDING(ch)), dirs[dir]);
+            act(buf2, TRUE, ch, 0, tch, TO_VICT);
+          }  /* if we pass this check, the rider/mount are both sneaking */          
+        }        
+      }
       
     }
     /* message to self */
-    send_to_char(ch, "You carry your load %s.\r\n", dirs[dir]);    
+    send_to_char(ch, "You carry %s %s.\r\n",
+            GET_NAME(RIDDEN_BY(ch)), dirs[dir]);    
   }
   
   
