@@ -1309,30 +1309,35 @@ static void display_group_list(struct char_data * ch)
   int count = 0;
 	
   if (group_list->iSize) {
-    send_to_char(ch, "#   Group Leader     # of Members    In Zone\r\n"
-                     "---------------------------------------------------\r\n");
+    send_to_char(ch,
+    "#   Group Leader     # of Mem  Open?  In Zone\r\n"
+    "-------------------------------------------------------------------\r\n");
 		
     while ((group = (struct group_data *) simple_list(group_list)) != NULL) {
-			if (IS_SET(GROUP_FLAGS(group), GROUP_NPC))
-			  continue;
+      /* we don't display npc groups */
+      if (IS_SET(GROUP_FLAGS(group), GROUP_NPC))
+        continue;
       if (GROUP_LEADER(group) && !IS_SET(GROUP_FLAGS(group), GROUP_ANON))
-        send_to_char(ch, "%-2d) %s%-12s     %-2d              %s%s\r\n", 
-          ++count,
-          IS_SET(GROUP_FLAGS(group), GROUP_OPEN) ? CCGRN(ch, C_NRM) : CCRED(ch, C_NRM), 
-          GET_NAME(GROUP_LEADER(group)), group->members->iSize, 
-		zone_table[world[IN_ROOM(GROUP_LEADER(group))].zone].name,
-		CCNRM(ch, C_NRM));
+        send_to_char(ch, "%-2d) %s%-12s     %-2d      %-3s    %s%s\r\n", 
+          ++count, IS_SET(GROUP_FLAGS(group), GROUP_OPEN) ? CCGRN(ch, C_NRM) :
+            CCRED(ch, C_NRM), GET_NAME(GROUP_LEADER(group)),
+          group->members->iSize, IS_SET(GROUP_FLAGS(group), GROUP_OPEN) ?
+            "\tWYes\tn" : "\tRNo\tn",
+          zone_table[world[IN_ROOM(GROUP_LEADER(group))].zone].name,
+          CCNRM(ch, C_NRM));
       else
         send_to_char(ch, "%-2d) Hidden\r\n", ++count);
 				
-		}
+    }
   }
+  
   if (count)
-    send_to_char(ch, "\r\n"
+    send_to_char(ch, "\r\n");
+  /*
                      "%sSeeking Members%s\r\n"
                      "%sClosed%s\r\n", 
                      CCGRN(ch, C_NRM), CCNRM(ch, C_NRM),
-                     CCRED(ch, C_NRM), CCNRM(ch, C_NRM));
+                     CCRED(ch, C_NRM), CCNRM(ch, C_NRM));*/
   else
     send_to_char(ch, "\r\n"
                      "Currently no groups formed.\r\n");
