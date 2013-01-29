@@ -933,13 +933,14 @@ bool hasSpell(struct char_data *ch, int spellnum)
 
   // could check to see what classes ch has to speed up this search
 
-  for (slot = 0; slot < MAX_MEM; slot++)
-    for (x = 0; x < NUM_CASTERS; x++) {
-      if (classArray(x) == -1)
-        continue;
+  for (x = 0; x < NUM_CLASSES; x++) {
+    if (classArray(x) == -1)
+      continue;
+    for (slot = 0; slot < MAX_MEM; slot++) {
       if (PRAYED(ch, slot, classArray(x)) == spellnum)
         return TRUE;
     }
+  }
 
   /* check our sorc-type system */
   if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
