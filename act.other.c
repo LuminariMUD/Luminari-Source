@@ -348,6 +348,7 @@ int valid_align_by_class(int alignment, int class)
     /* default, no alignment restrictions */
   case CLASS_WIZARD:
   case CLASS_CLERIC:
+  case CLASS_RANGER:
   case CLASS_ROGUE:
   case CLASS_WARRIOR:
   case CLASS_SORCERER:

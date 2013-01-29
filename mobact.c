@@ -164,9 +164,29 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
 }
 
 
+// ranger behaviour, behave based on level
+void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
+	int level, int engaged)
+{
+
+  // going to prioritize rescuing master (if he has one)
+  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
+    if (FIGHTING(ch->master)) {
+      do_npc_rescue(ch, ch->master);
+      return;
+    }
+  }
+
+  switch(rand_number(5, level)) {
+    case 5:  // level 1-4 mobs won't act
+      break;
+    default:
+      break;
+  }
+}
 
 
-// paladin behaviour, behave based on circle
+// paladin behaviour, behave based on level
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
 	int level, int engaged)
 {
@@ -496,6 +516,9 @@ void npc_class_behave(struct char_data *ch)
       break;
     case CLASS_PALADIN:
       npc_paladin_behave(ch, vict, GET_LEVEL(ch), engaged);
+      break;
+    case CLASS_RANGER:
+      npc_ranger_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
     case CLASS_ROGUE:
       npc_rogue_behave(ch, vict, GET_LEVEL(ch), engaged);

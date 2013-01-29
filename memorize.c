@@ -197,6 +197,8 @@ int classArray(int class) {
       return 3;
     case CLASS_PALADIN:
       return 4;
+    case CLASS_RANGER:
+      return 5;
   }
   return -1;
 }
@@ -319,6 +321,45 @@ int sorcererKnown[LVL_IMPL + 1][10] = {
   {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//32
   {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//33
   {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 }//34
+};
+
+int rangerSlots[LVL_IMPL + 1][10] = {
+// 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 0
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 1
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 2
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 3
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 4
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 5
+  {  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 6
+  {  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 7
+  {  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 8
+  {  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 9
+  {  1,  1,  0,  0,  0,  0,  0,  0,  0,  0 },	// 10
+  {  1,  1,  0,  0,  0,  0,  0,  0,  0,  0 },	// 11
+  {  1,  1,  1,  0,  0,  0,  0,  0,  0,  0 },	// 12
+  {  1,  1,  1,  0,  0,  0,  0,  0,  0,  0 },	// 13
+  {  2,  1,  1,  0,  0,  0,  0,  0,  0,  0 },	// 14
+  {  2,  1,  1,  1,  0,  0,  0,  0,  0,  0 },	// 15
+  {  2,  2,  1,  1,  0,  0,  0,  0,  0,  0 },	// 16
+  {  2,  2,  2,  1,  0,  0,  0,  0,  0,  0 },	// 17
+  {  3,  2,  2,  1,  0,  0,  0,  0,  0,  0 },	// 18
+  {  3,  3,  3,  2,  0,  0,  0,  0,  0,  0 },	// 19
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 20
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 21
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 22
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 23
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 24
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 25
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 26
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 27
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 28
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 29
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 30
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 31
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 32
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 },	// 33
+  {  3,  3,  3,  3,  0,  0,  0,  0,  0,  0 }	// 34
 };
 
 int paladinSlots[LVL_IMPL + 1][10] = {
@@ -508,6 +549,33 @@ int spellCircle(int class, int spellnum)
           return 99;
       }
       return 1;
+    /* can get confusing, just check out class.c to see what level
+       they get their circles at in the spell_level function */
+    case CLASS_RANGER:
+      switch (spell_info[spellnum].min_level[class]) {
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+          return 1;
+        case 10:
+        case 11:
+          return 2;
+        case 12:
+        case 13:
+        case 14:
+          return 3;
+        case 15:
+        case 16:
+        case 17:
+        case 18:
+        case 19:
+        case 20:
+          return 4;
+        default:
+          return 99;
+      }
+      return 1;      
     /* wizard, druid, cleric */      
     default:
       return ((int)((spell_info[spellnum].min_level[class] + 1) / 2));
@@ -525,6 +593,10 @@ int comp_slots(struct char_data *ch, int circle, int class)
   circle--;
 
   switch(class) {
+    case CLASS_RANGER:
+      spellSlots += spell_bonus[GET_WIS(ch)][circle];
+      spellSlots += rangerSlots[CLASS_LEVEL(ch, class)][circle];
+      break;    
     case CLASS_PALADIN:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
       spellSlots += paladinSlots[CLASS_LEVEL(ch, class)][circle];
@@ -915,6 +987,17 @@ int getCircle(struct char_data *ch, int class)
         return 3;
       else
         return 4;
+    case CLASS_RANGER:
+      if (CLASS_LEVEL(ch, CLASS_RANGER) < 6)
+        return 0;
+      else if (CLASS_LEVEL(ch, CLASS_RANGER) < 10)
+        return 1;
+      else if (CLASS_LEVEL(ch, CLASS_RANGER) < 12)
+        return 2;
+      else if (CLASS_LEVEL(ch, CLASS_RANGER) < 15)
+        return 3;
+      else
+        return 4;      
     case CLASS_SORCERER:
       return (MAX(1, (MIN(9, CLASS_LEVEL(ch, class) / 2))));
     /* wizard, druid, cleric */
@@ -964,6 +1047,10 @@ void updateMemming(struct char_data *ch, int class)
         send_to_char(ch, "You abort your petition.\r\n");
         act("$n aborts $s petition.", FALSE, ch, 0, 0, TO_ROOM);
         break;
+      case CLASS_RANGER:
+        send_to_char(ch, "You abort your adjuration.\r\n");
+        act("$n aborts $s adjuration.", FALSE, ch, 0, 0, TO_ROOM);
+        break;
       case CLASS_DRUID:
         send_to_char(ch, "You abort your communing.\r\n");
         act("$n aborts $s communing.", FALSE, ch, 0, 0, TO_ROOM);
@@ -989,6 +1076,11 @@ void updateMemming(struct char_data *ch, int class)
                 spell_info[PRAYING(ch, 0, classArray(class))].name);
         addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
         break;
+      case CLASS_RANGER:
+        sprintf(buf, "You finish adjuring for %s.\r\n",
+                spell_info[PRAYING(ch, 0, classArray(class))].name);
+        addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
+        break;        
       case CLASS_PALADIN:
         sprintf(buf, "You finish petitioning for %s.\r\n",
                 spell_info[PRAYING(ch, 0, classArray(class))].name);
@@ -1021,6 +1113,10 @@ void updateMemming(struct char_data *ch, int class)
           send_to_char(ch, "Your prayers are complete.\r\n");
           act("$n completes $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
           break;
+        case CLASS_RANGER:
+          send_to_char(ch, "Your adjuring session is complete.\r\n");
+          act("$n completes $s adjuration.", FALSE, ch, 0, 0, TO_ROOM);
+          break;          
         case CLASS_PALADIN:
           send_to_char(ch, "Your petitioning is complete.\r\n");
           act("$n completes $s petition.", FALSE, ch, 0, 0, TO_ROOM);
@@ -1134,6 +1230,10 @@ void display_memmed(struct char_data*ch, int class)
         send_to_char(ch, "\r\n\tGYou have petitioned for the following"
                 " spells:\r\n\r\n");
         break;
+      case CLASS_RANGER:
+        send_to_char(ch, "\r\n\tGYou have adjured for the following"
+                " spells:\r\n\r\n");
+        break;
       default:  /* wizard */
         send_to_char(ch, "\r\n\tGYou have memorized the following"
                 " spells:\r\n\r\n");
@@ -1189,6 +1289,9 @@ void display_memming(struct char_data *ch, int class)
         case CLASS_CLERIC:
           send_to_char(ch, "\r\n\tCYou are currently praying for:\r\n");
           break;
+        case CLASS_RANGER:
+          send_to_char(ch, "\r\n\tCYou are currently adjuring for:\r\n");
+          break;
         case CLASS_PALADIN:
           send_to_char(ch, "\r\n\tCYou are currently petitioning for:\r\n");
           break;
@@ -1205,6 +1308,10 @@ void display_memming(struct char_data *ch, int class)
         case CLASS_CLERIC:
           send_to_char(ch, "\r\n\tCYou are ready to pray for: (type 'rest' "
                        "then 'pray' to continue)\r\n");
+          break;
+        case CLASS_RANGER:
+          send_to_char(ch, "\r\n\tCYou are ready to adjure for: (type 'rest'"
+                       " then 'adjure' to continue)\r\n");
           break;
         case CLASS_PALADIN:
           send_to_char(ch, "\r\n\tCYou are ready to petition for: (type 'rest'"
@@ -1264,6 +1371,9 @@ void display_slots(struct char_data *ch, int class)
     case CLASS_CLERIC:
       send_to_char(ch, "\r\nYou can pray");
       break;
+    case CLASS_RANGER:
+      send_to_char(ch, "\r\nYou can adjure");
+      break;
     case CLASS_PALADIN:
       send_to_char(ch, "\r\nYou can petition");
       break;
@@ -1317,6 +1427,10 @@ void printMemory(struct char_data *ch, int class)
       send_to_char(ch, "\tDCommands: prayer <spellname>, blank <spellname>, "
                      "spells cleric\tn\r\n");
       break;
+    case CLASS_RANGER:
+      send_to_char(ch, "\tDCommands: adjure <spellname>, unadjure "
+              "<spellname>, spells ranger\tn\r\n");
+      break;
     case CLASS_PALADIN:
       send_to_char(ch, "\tDCommands: petition <spellname>, omit "
               "<spellname>, spells paladin\tn\r\n");
@@ -1344,6 +1458,8 @@ ACMD(do_gen_forget)
     class = CLASS_CLERIC;
   else if (subcmd == SCMD_FORGET)
     class = CLASS_WIZARD;
+  else if (subcmd == SCMD_UNADJURE)
+    class = CLASS_RANGER;
   else if (subcmd == SCMD_OMIT)
     class = CLASS_PALADIN;
   else if (subcmd == SCMD_UNCOMMUNE)
@@ -1373,15 +1489,19 @@ ACMD(do_gen_forget)
       }
       switch (class) {
         case CLASS_DRUID:
-          send_to_char(ch, "You forget everything you were attempting to "
+          send_to_char(ch, "You purge everything you were attempting to "
                            "commune for.\r\n");
           break;
         case CLASS_CLERIC:
-          send_to_char(ch, "You forget everything you were attempting to "
+          send_to_char(ch, "You cancel everything you were attempting to "
                            "pray for.\r\n");
           break;
+        case CLASS_RANGER:
+          send_to_char(ch, "You purge everything you were attempting to "
+                           "adjure for.\r\n");
+          break;
         case CLASS_PALADIN:
-          send_to_char(ch, "You forget everything you were attempting to "
+          send_to_char(ch, "You purge everything you were attempting to "
                            "petition for.\r\n");
           break;
         default:  /* wizard */
@@ -1397,13 +1517,17 @@ ACMD(do_gen_forget)
       }
       switch (class) {
         case CLASS_DRUID:
-          send_to_char(ch, "You forget everything you had communed for.\r\n");
+          send_to_char(ch, "You purge everything you had communed for.\r\n");
           break;
         case CLASS_CLERIC:
-          send_to_char(ch, "You forget everything you had prayed for.\r\n");
+          send_to_char(ch, "You cancel everything you had prayed for.\r\n");
+          break;
+        case CLASS_RANGER:
+          send_to_char(ch, "You purge everything you had adjured "
+                  "for.\r\n");
           break;
         case CLASS_PALADIN:
-          send_to_char(ch, "You forget everything you had petitioned "
+          send_to_char(ch, "You purge everything you had petitioned "
                   "for.\r\n");
           break;
         default:  /* wizard */
@@ -1419,6 +1543,9 @@ ACMD(do_gen_forget)
           break;
         case CLASS_CLERIC:
           send_to_char(ch, "You do not have anything prayed for!\r\n");
+          break;
+        case CLASS_RANGER:
+          send_to_char(ch, "You do not have anything adjured for!\r\n");
           break;
         case CLASS_PALADIN:
           send_to_char(ch, "You do not have anything petitioned!\r\n");
@@ -1447,6 +1574,9 @@ ACMD(do_gen_forget)
         case CLASS_CLERIC:
           send_to_char(ch, "You stop praying for %s.\r\n", spell_info[spellnum].name);
           break;
+        case CLASS_RANGER:
+          send_to_char(ch, "You stop adjuring for %s.\r\n", spell_info[spellnum].name);
+          break;
         case CLASS_PALADIN:
           send_to_char(ch, "You stop petitioning for %s.\r\n", spell_info[spellnum].name);
           break;
@@ -1471,6 +1601,10 @@ ACMD(do_gen_forget)
           send_to_char(ch, "You purge %s from your prayers.\r\n",
                        spell_info[spellnum].name);
           break;
+        case CLASS_RANGER:
+          send_to_char(ch, "You purge %s from your adjuring session.\r\n",
+                       spell_info[spellnum].name);
+          break;
         case CLASS_PALADIN:
           send_to_char(ch, "You purge %s from your petition.\r\n",
                        spell_info[spellnum].name);
@@ -1493,6 +1627,10 @@ ACMD(do_gen_forget)
       send_to_char(ch, "You aren't praying for and don't have prayed %s!\r\n",
                    spell_info[spellnum].name);
       break;
+    case CLASS_RANGER:
+      send_to_char(ch, "You aren't adjuring for and don't have "
+              "adjured %s!\r\n", spell_info[spellnum].name);
+      break;
     case CLASS_PALADIN:
       send_to_char(ch, "You aren't petiioning for and don't have "
               "petitioned %s!\r\n", spell_info[spellnum].name);
@@ -1514,6 +1652,8 @@ ACMD(do_gen_memorize)
     class = CLASS_CLERIC;
   else if (subcmd == SCMD_MEMORIZE)
     class = CLASS_WIZARD;
+  else if (subcmd == SCMD_ADJURE)
+    class = CLASS_RANGER;
   else if (subcmd == SCMD_PETITION)
     class = CLASS_PALADIN;
   else if (subcmd == SCMD_COMMUNE)
@@ -1542,6 +1682,10 @@ ACMD(do_gen_memorize)
           case CLASS_CLERIC:
             send_to_char(ch, "You continue your prayers.\r\n");
             act("$n continues $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
+            break;
+          case CLASS_RANGER:
+            send_to_char(ch, "You continue your adjuration.\r\n");
+            act("$n continues $s adjuration.", FALSE, ch, 0, 0, TO_ROOM);
             break;
           case CLASS_PALADIN:
             send_to_char(ch, "You continue your petition.\r\n");
@@ -1597,6 +1741,9 @@ ACMD(do_gen_memorize)
         case CLASS_CLERIC:
           send_to_char(ch, "You start to pray for %s.\r\n", spell_info[spellnum].name);
           break;
+        case CLASS_RANGER:
+          send_to_char(ch, "You start to adjure for %s.\r\n", spell_info[spellnum].name);
+          break;
         case CLASS_PALADIN:
           send_to_char(ch, "You start to petition for %s.\r\n", spell_info[spellnum].name);
           break;
@@ -1616,6 +1763,10 @@ ACMD(do_gen_memorize)
           case CLASS_CLERIC:
             send_to_char(ch, "You continue your prayers.\r\n");
             act("$n continues $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
+            break;
+          case CLASS_RANGER:
+            send_to_char(ch, "You continue your adjuration.\r\n");
+            act("$n continues $s adjuration.", FALSE, ch, 0, 0, TO_ROOM);
             break;
           case CLASS_PALADIN:
             send_to_char(ch, "You continue your petition.\r\n");

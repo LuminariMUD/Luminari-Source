@@ -149,6 +149,7 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
       (IS_ROGUE(ch) && NOTRADE_ROGUE(shop_nr)) ||
       (IS_MONK(ch) && NOTRADE_MONK(shop_nr)) ||
       (IS_PALADIN(ch) && NOTRADE_PALADIN(shop_nr)) ||
+      (IS_RANGER(ch) && NOTRADE_RANGER(shop_nr)) ||
       (IS_SORCERER(ch) && NOTRADE_SORCERER(shop_nr)) ||
       (IS_BERSERKER(ch) && NOTRADE_BERSERKER(shop_nr)) ||
       (IS_WARRIOR(ch) && NOTRADE_WARRIOR(shop_nr))) {
