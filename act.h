@@ -343,6 +343,7 @@ ACMD(do_gen_forget);
 #define SCMD_BLANK       2
 #define SCMD_UNCOMMUNE   3
 #define SCMD_OMIT        4
+#define SCMD_UNADJURE        5
 
 ACMD(do_gen_memorize);
 
@@ -351,6 +352,7 @@ ACMD(do_gen_memorize);
 #define SCMD_COMMUNE    3
 #define SCMD_MEDITATE   4
 #define SCMD_PETITION   5
+#define SCMD_ADJURE     6
 
 
 /*****************************************************************************

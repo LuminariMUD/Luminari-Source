@@ -84,33 +84,34 @@ cpp_extern const struct command_info cmd_info[] = {
   { "sw"       , "sw"      , POS_STANDING, do_move     , 0, SCMD_SW },
   
   /* now, the main list */
-  { "abort"	, "abort"	, POS_FIGHTING,	do_abort	, 1, 0 },
+  { "abort"	, "abort"	  , POS_FIGHTING, do_abort	, 1, 0 },
   { "at"       , "at"      , POS_DEAD    , do_at       , LVL_IMMORT, 0 },
   { "advance"  , "adv"     , POS_DEAD    , do_advance  , LVL_GRGOD, 0 },
   { "aedit"    , "aed"     , POS_DEAD    , do_oasis_aedit, LVL_GOD, 0 },
   { "alias"    , "ali"     , POS_DEAD    , do_alias    , 0, 0 },
-  { "affects"	, "aff"		, POS_DEAD	, do_affects	, 0, 0 },
+  { "affects"	, "aff"     , POS_DEAD	 , do_affects	, 0, 0 },
   { "afk"      , "afk"     , POS_DEAD    , do_gen_tog  , 0, SCMD_AFK },
   { "areas"    , "are"     , POS_DEAD    , do_areas    , 0, 0 },
   { "assist"   , "as"      , POS_FIGHTING, do_assist   , 1, 0 },
   { "ask"      , "ask"     , POS_RESTING , do_spec_comm, 0, SCMD_ASK },
   { "astat"    , "ast"     , POS_DEAD    , do_astat    , 0, 0 },
   { "attach"   , "attach"  , POS_DEAD    , do_attach   , LVL_BUILDER, 0 },
-  { "attacks"    , "attacks"      , POS_DEAD    , do_attacks    , 0, 0 },
+  { "attacks"  , "attacks" , POS_DEAD    , do_attacks    , 0, 0 },
   { "auction"  , "auc"     , POS_SLEEPING, do_gen_comm , 0, SCMD_AUCTION },
-  { "augment"  , "augment"     , POS_STANDING, do_not_here , 1, 0 },
-  { "autoexits" , "autoex"  , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOEXIT },
-  { "autoassist","autoass" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOASSIST },
-  { "autodoor" , "autodoor", POS_DEAD    , do_gen_tog , 0, SCMD_AUTODOOR },
-  { "autogold" , "autogold", POS_DEAD    , do_gen_tog , 0, SCMD_AUTOGOLD },
-  { "autokey"  , "autokey" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOKEY },
-  { "autoloot" , "autoloot", POS_DEAD    , do_gen_tog , 0, SCMD_AUTOLOOT },
-  { "automap"  , "automap" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOMAP },
-  { "autosac"  , "autosac" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOSAC },
-  { "autoscan"  , "autoscan" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOSCAN },
-  { "autosplit", "autospl" , POS_DEAD    , do_gen_tog , 0, SCMD_AUTOSPLIT },
-  { "abilityset" , "abilityset", POS_SLEEPING, do_abilityset , LVL_GRGOD, 0 },
-  { "autocraft"  , "autocraft"     , POS_STANDING, do_not_here , 1, 0 },
+  { "augment"  , "augment" , POS_STANDING, do_not_here , 1, 0 },
+  { "autoexits", "autoex"  , POS_DEAD    , do_gen_tog  , 0, SCMD_AUTOEXIT },
+  { "autoassist","autoass" , POS_DEAD    , do_gen_tog  , 0, SCMD_AUTOASSIST },
+  { "autodoor" , "autodoor", POS_DEAD    , do_gen_tog  , 0, SCMD_AUTODOOR },
+  { "autogold" , "autogold", POS_DEAD    , do_gen_tog  , 0, SCMD_AUTOGOLD },
+  { "autokey"  , "autokey" , POS_DEAD    , do_gen_tog  , 0, SCMD_AUTOKEY },
+  { "autoloot" , "autoloot", POS_DEAD    , do_gen_tog  , 0, SCMD_AUTOLOOT },
+  { "automap"  , "automap" , POS_DEAD    , do_gen_tog  , 0, SCMD_AUTOMAP },
+  { "autosac"  , "autosac" , POS_DEAD    , do_gen_tog  , 0, SCMD_AUTOSAC },
+  { "autoscan" , "autoscan", POS_DEAD    , do_gen_tog  , 0, SCMD_AUTOSCAN },
+  { "autosplit", "autospl" , POS_DEAD    , do_gen_tog  , 0, SCMD_AUTOSPLIT },
+  { "abilityset", "abilityset",POS_SLEEPING,do_abilityset, LVL_GRGOD, 0 },
+  { "autocraft", "autocraft", POS_STANDING, do_not_here, 1, 0 },
+  { "adjure"   , "adjure"  , POS_RESTING , do_gen_memorize, 0, SCMD_ADJURE },
 
   { "backstab" , "ba"      , POS_STANDING, do_backstab , 1, 0 },
   { "ban"      , "ban"     , POS_DEAD    , do_ban      , LVL_GRGOD, 0 },
@@ -395,6 +396,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "uptime"   , "uptime"  , POS_DEAD    , do_date     , LVL_GOD, SCMD_UPTIME },
   { "use"      , "use"     , POS_SITTING , do_use      , 1, SCMD_USE },
   { "users"    , "users"   , POS_DEAD    , do_users    , LVL_GOD, 0 },
+  { "unadjure" , "unadjure", POS_RESTING , do_gen_forget   , 0, SCMD_UNADJURE },
 
   { "value"    , "val"     , POS_STANDING, do_not_here , 0, 0 },
   { "version"  , "ver"     , POS_DEAD    , do_gen_ps   , 0, SCMD_VERSION },
@@ -1784,6 +1786,9 @@ void nanny(struct descriptor_data *d, char *arg)
         break;
       case CLASS_MONK:
         perform_help(d, "class-monk");
+        break;
+      case CLASS_RANGER:
+        perform_help(d, "class-ranger");
         break;
       case CLASS_DRUID:
         perform_help(d, "class-druid");

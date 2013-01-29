@@ -861,6 +861,11 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     class = CLASS_PALADIN;
     clevel = (IS_PALADIN(ch) / 2);
   }
+  /* rangers cast at half their level strength */
+  if ((IS_RANGER(ch)/2) > clevel) {
+    class = CLASS_RANGER;
+    clevel = (IS_RANGER(ch) / 2);
+  }
 
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
 //      && spellnum != SPELL_ACID_SPLASH && spellnum != SPELL_RAY_OF_FROST) {
@@ -969,6 +974,7 @@ ACMD(do_cast)
   if (CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
 	CLASS_LEVEL(ch, CLASS_CLERIC) < SINFO.min_level[CLASS_CLERIC] &&
 	CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
+	CLASS_LEVEL(ch, CLASS_RANGER) < SINFO.min_level[CLASS_RANGER] &&
 	CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
      CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER]
   ) {
@@ -1000,6 +1006,10 @@ ACMD(do_cast)
     send_to_char(ch, "You are not wise enough to cast spells...\r\n");
     return;
   }
+  if (CLASS_LEVEL(ch, CLASS_RANGER) && GET_WIS(ch) < 10) {
+    send_to_char(ch, "You are not wise enough to cast spells...\r\n");
+    return;
+  }  
   if (CLASS_LEVEL(ch, CLASS_PALADIN) && GET_WIS(ch) < 10) {
     send_to_char(ch, "You are not wise enough to cast spells...\r\n");
     return;

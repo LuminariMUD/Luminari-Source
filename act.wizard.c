@@ -3065,6 +3065,7 @@ ACMD(do_show)
    { "berserker", 	LVL_GOD, 	PC, 	NUMBER }, /* 69 */
    { "sorcerer", 	LVL_GOD, 	PC, 	NUMBER }, /* 70 */
    { "paladin", 	LVL_GOD, 	PC, 	NUMBER }, /* 71 */
+   { "ranger", 	LVL_GOD, 	PC, 	NUMBER }, /* 72 */
    { "\n", 0, BOTH, MISC }
   };
 
@@ -3078,6 +3079,7 @@ CLASS_DRUID
 CLASS_BERSERKER
 CLASS_SORCERER
 CLASS_PALADIN
+CLASS_RANGER
 */
 
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg)
@@ -3547,10 +3549,14 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       CLASS_LEVEL(vict, CLASS_SORCERER) = RANGE(0, LVL_IMMORT-1);
       affect_total(vict);
       break;
-    case 73:  // sorc level
+    case 73:  // paladin level
       CLASS_LEVEL(vict, CLASS_PALADIN) = RANGE(0, LVL_IMMORT-1);
       affect_total(vict);
       break;
+    case 74:  // ranger level
+      CLASS_LEVEL(vict, CLASS_RANGER) = RANGE(0, LVL_IMMORT-1);
+      affect_total(vict);
+      break;      
     default:
       send_to_char(ch, "Can't set that!\r\n");
       return (0);

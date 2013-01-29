@@ -31,15 +31,16 @@
 
 /* Names first */
 const char *class_abbrevs[] = {
-  "\tYWiz\tn",
+  "\tmWiz\tn",
   "\tBCle\tn",
   "\twRog\tn",
   "\tRWar\tn",
-  "\tgMnk\tn",
+  "\tgMon\tn",
   "\tGD\tgr\tGu\tn",
-  "\trB\tRz\trk\tn",
-  "\tMSrc\tn",
+  "\trB\tRe\trs\tn",
+  "\tMSor\tn",
   "\tWPal\tn",
+  "\tYRan\tn",
   "\n"
 };
 
@@ -53,6 +54,7 @@ const char *pc_class_types[] = {
   "Berserker",
   "Sorcerer",
   "Paladin",
+  "Ranger",
   "\n"
 };
 
@@ -66,10 +68,11 @@ const char *class_menu =
 "  w)  \tRWarrior\tn\r\n"
 "  o)  \tgMonk\tn\r\n"
 "  d)  \tGD\tgr\tGu\tgi\tGd\tn\r\n"
-"  m)  \tYWizard\tn\r\n"
+"  m)  \tmWizard\tn\r\n"
 "  b)  \trBer\tRser\trker\tn\r\n"
 "  p)  \tWPaladin\tn\r\n"
-"  s)  \tMSorcerer\tn\r\n";
+"  s)  \tMSorcerer\tn\r\n"
+"  r)  \tYRanger\tn\r\n";
 
 
 /* The code to interpret a class letter -- used in interpreter.c when a new
@@ -88,6 +91,7 @@ int parse_class(char arg)
   case 'b': return CLASS_BERSERKER;
   case 's': return CLASS_SORCERER;
   case 'p': return CLASS_PALADIN;
+  case 'r': return CLASS_RANGER;
   default:  return CLASS_UNDEFINED;
   }
 }
@@ -133,11 +137,11 @@ bitvector_t find_class_bitvector(const char *arg)
 /* #define PRAC_TYPE		3  should it say 'spell' or 'skill'?	*/
 
 int prac_params[4][NUM_CLASSES] = {
- /* MG  CL  TH	 WR  MN  DR  BK  SR  PL */
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* learned level */
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* max per practice */
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* min per practice */
-  { SP, SP, SK, SK, SK, SP, SK, SP, SK },	/* prac name */
+ /* MG  CL  TH	 WR  MN  DR  BK  SR  PL  RA*/
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* learned level */
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* max per practice */
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* min per practice */
+  { SP, SP, SK, SK, SK, SP, SK, SP, SK, SK },	/* prac name */
 };
 #undef SP
 #undef SK
@@ -152,12 +156,13 @@ int prac_params[4][NUM_CLASSES] = {
 struct guild_info_type guild_info[] = {
 
   /* Midgaard */
-  { CLASS_WIZARD,  3017,	SOUTH },
+  { CLASS_WIZARD,      3017,	SOUTH },
   { CLASS_CLERIC,	   3004,	NORTH },
   { CLASS_DRUID,	   3004,	NORTH },
   { CLASS_MONK,	   3004,	NORTH },
   { CLASS_ROGUE,	   3027,	EAST  },
   { CLASS_WARRIOR,	   3021,	EAST  },
+  { CLASS_RANGER,	   3021,	EAST  },
   { CLASS_PALADIN,	   3021,	EAST  },
   { CLASS_BERSERKER,   3021,	EAST  },
   { CLASS_SORCERER,    3017,	SOUTH },
@@ -176,27 +181,27 @@ struct guild_info_type guild_info[] = {
 #define		CC	1	//cross class
 #define		CA	2	//class ability
 int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
-//  MU  CL  TH  WA  MO  DR  BZ  SR  PL
-  { -1, -1, -1, -1, -1, -1, -1, -1, -1 }, //0 - reserved
+//  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA
+  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }, //0 - reserved
 
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC },	//1 - Tumble 
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC },	//2 - hide
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC },	//3 sneak
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC },	//4 spot
-  { CC, CC, CA, CC, CA, CC, CA, CC, CC },	//5 listen
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA },	//6 treat injury
-  { CC, CC, CC, CC, CC, CC, CA, CC, CA },	//7 taunt
-  { CA, CA, CC, CA, CA, CA, CC, CA, CA },	//8 concentration
-  { CA, CA, CC, CC, CC, CA, CC, CA, CC },	//9 spellcraft
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC },	//10 appraise
-  { CC, CC, CC, CA, CC, CC, CA, CC, CA },	//11 discipline
-  { CC, CA, CA, CA, CA, CA, CA, CC, CA },	//12 parry
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA },	//13 lore
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA },	//14 mount
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA },	//15 riding
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA },	//16 tame
-  { NA, NA, CA, NA, NA, NA, NA, NA, NA },	//17 pick locks
-  { NA, NA, CA, NA, NA, NA, NA, NA, NA },	//18 steal
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC },	//1 - Tumble 
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA },	//2 - hide
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA },	//3 sneak
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA },	//4 spot
+  { CC, CC, CA, CC, CA, CC, CA, CC, CC, CA },	//5 listen
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//6 treat injury
+  { CC, CC, CC, CC, CC, CC, CA, CC, CA, CC },	//7 taunt
+  { CA, CA, CC, CA, CA, CA, CC, CA, CA, CA },	//8 concentration
+  { CA, CA, CC, CC, CC, CA, CC, CA, CC, CC },	//9 spellcraft
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC },	//10 appraise
+  { CC, CC, CC, CA, CC, CC, CA, CC, CA, CA },	//11 discipline
+  { CC, CA, CA, CA, CA, CA, CA, CC, CA, CA },	//12 parry
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//13 lore
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//14 mount
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//15 riding
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//16 tame
+  { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA },	//17 pick locks
+  { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA },	//18 steal
 };
 #undef NA
 #undef CC
@@ -207,12 +212,12 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
 #define		H	1	//high
 #define		L	0	//low
 int preferred_save[5][NUM_CLASSES] = {
-//           MU CL TH WA MO DR BK SR PL
-/*fort */  { L, H, L, H, H, H, H, L, H },
-/*refl */  { L, L, H, L, H, L, L, L, L },
-/*will */  { H, H, L, L, H, H, L, H, L },
-/*psn  */  { L, L, L, L, L, L, L, L, L },
-/*death*/  { L, L, L, L, L, L, L, L, L },
+//           MU CL TH WA MO DR BK SR PL RA
+/*fort */  { L, H, L, H, H, H, H, L, H, H },
+/*refl */  { L, L, H, L, H, L, L, L, L, L },
+/*will */  { H, H, L, L, H, H, L, H, L, L },
+/*psn  */  { L, L, L, L, L, L, L, L, L, L },
+/*death*/  { L, L, L, L, L, L, L, L, L, L },
 };
 // fortitude / reflex / will / ( poison / death )
 byte saving_throws(struct char_data *ch, int type)
@@ -337,6 +342,7 @@ void newbieEquipment(struct char_data *ch)
 
     case CLASS_BERSERKER:
     case CLASS_WARRIOR:
+    case CLASS_RANGER:
 
       obj = read_object(854, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
@@ -429,6 +435,19 @@ void berserker_skills(struct char_data *ch, int level) {
       if (!GET_SKILL(ch, SKILL_RAGE))
         SET_SKILL(ch, SKILL_RAGE, 75);
       send_to_char(ch, "\tMYou have learned 'Rage'\tn\r\n");
+      break;
+    default:
+      break;
+  }
+  return;  
+}
+
+/* init spells for a class as they level up
+ * i.e free skills  ;  make sure to set in spec_procs too
+ */
+void ranger_skills(struct char_data *ch, int level) {
+  switch (level) {
+    case 2:
       break;
     default:
       break;
@@ -1016,6 +1035,47 @@ void init_class(struct char_data *ch, int class, int level)
     send_to_char(ch, "Warrior Done.\tn\r\n");
   break;
 
+  case CLASS_RANGER:
+    //spell init
+    //1st circle
+    SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
+    SET_SKILL(ch, SPELL_ENDURANCE, 99);
+    SET_SKILL(ch, SPELL_ARMOR, 99);
+    SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99);
+    //2nd circle
+    SET_SKILL(ch, SPELL_CREATE_FOOD, 99);
+    SET_SKILL(ch, SPELL_CREATE_WATER, 99);
+    SET_SKILL(ch, SPELL_DETECT_POISON, 99);
+    SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99);
+    //3rd circle
+    SET_SKILL(ch, SPELL_DETECT_ALIGN, 99);
+    SET_SKILL(ch, SPELL_CURE_BLIND, 99);
+    SET_SKILL(ch, SPELL_BLESS, 99);
+    SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99);
+    //4th circle
+    SET_SKILL(ch, SPELL_INFRAVISION, 99);
+    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
+    SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
+    SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
+    
+    //skill init
+    if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
+      SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_BASIC))
+      SET_SKILL(ch, SKILL_PROF_BASIC, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
+      SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MASTER))
+      SET_SKILL(ch, SKILL_PROF_MASTER, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
+      SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
+      SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
+      SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
+    send_to_char(ch, "Ranger Done.\tn\r\n");
+  break;
+  
   case CLASS_BERSERKER:
     if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
       SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
@@ -1188,22 +1248,21 @@ void init_start_char(struct char_data *ch)
 
   //class-related inits
   switch (GET_CLASS(ch)) {
+  case CLASS_WARRIOR:
+    practices++;  // bonus skill
   case CLASS_SORCERER:
   case CLASS_WIZARD:
   case CLASS_CLERIC:
     trains += MAX(1, (2 + (int)(GET_INT_BONUS(ch))) * 3);
     break;
   case CLASS_DRUID:
+  case CLASS_RANGER:
   case CLASS_BERSERKER:
   case CLASS_MONK:
     trains += MAX(1, (4 + (int)(GET_INT_BONUS(ch))) * 3);
     break;
   case CLASS_ROGUE:
     trains += MAX(1, (8 + (int)(GET_INT_BONUS(ch))) * 3);
-    break;
-  case CLASS_WARRIOR:
-    practices++;  // bonus skill
-    trains += MAX(1, (2 + (int)(GET_INT_BONUS(ch))) * 3);
     break;
   }
 
@@ -1337,7 +1396,7 @@ void advance_level(struct char_data *ch, int class)
     berserker_skills(ch, CLASS_LEVEL(ch, CLASS_BERSERKER));
     add_hp += rand_number(6, 12);
     add_mana = 0;
-    add_move = rand_number(4, 8);
+    add_move = rand_number(2, 6);
 
     trains += MAX(1, (4 + (int)(GET_INT_BONUS(ch))));
 
@@ -1358,7 +1417,20 @@ void advance_level(struct char_data *ch, int class)
     if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20)
       practices++;
 
-    break;
+    break;    
+  case CLASS_RANGER:
+    ranger_skills(ch, CLASS_LEVEL(ch, CLASS_RANGER));
+    add_hp += rand_number(5, 10);
+    add_mana = 0;
+    add_move = rand_number(4, 8);
+
+    trains += MAX(1, (2 + (int)(GET_INT_BONUS(ch))));
+
+    //epic
+    if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
+      practices++;
+
+    break;    
   case CLASS_PALADIN:
     paladin_skills(ch, CLASS_LEVEL(ch, CLASS_PALADIN));
     add_hp += rand_number(5, 10);
@@ -1376,7 +1448,7 @@ void advance_level(struct char_data *ch, int class)
     warrior_skills(ch, CLASS_LEVEL(ch, CLASS_WARRIOR));
     add_hp += rand_number(5, 10);
     add_mana = 0;
-    add_move = rand_number(1, 3);
+    add_move = rand_number(1, 2);
 
     trains += MAX(1, (2 + (int)(GET_INT_BONUS(ch))));
 
@@ -1459,6 +1531,11 @@ void advance_level(struct char_data *ch, int class)
     for (k = 0; k < 3; k++)
       GET_COND(ch, k) = (char) -1;
     SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+    send_to_char(ch, "Setting \tRHOLYLIGHT\tn on.\r\n");
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_NOHASSLE);
+    send_to_char(ch, "Setting \tRNOHASSLE\tn on.\r\n");
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_SHOWVNUMS);
+    send_to_char(ch, "Setting \tRSHOWVNUMS\tn on.\r\n");
   }
 
   /* make sure you aren't snooping someone you shouldn't with new level */
@@ -1492,6 +1569,9 @@ int invalid_class(struct char_data *ch, struct obj_data *obj)
     return TRUE;
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_CLERIC) && IS_CLERIC(ch))
+    return TRUE;
+
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_RANGER) && IS_RANGER(ch))
     return TRUE;
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_PALADIN) && IS_PALADIN(ch))
@@ -1875,6 +1955,29 @@ void init_spell_levels(void)
   spell_level(SPELL_CURE_CRITIC, CLASS_PALADIN, 15);
   
   
+  // rangers
+  //1st circle
+  spell_level(SPELL_CURE_LIGHT, CLASS_RANGER, 6);
+  spell_level(SPELL_ENDURANCE, CLASS_RANGER, 6);  //shared
+  spell_level(SPELL_ARMOR, CLASS_RANGER, 6);
+  spell_level(SPELL_CAUSE_LIGHT_WOUNDS, CLASS_RANGER, 6);
+  //2nd circle
+  spell_level(SPELL_CREATE_FOOD, CLASS_RANGER, 10);
+  spell_level(SPELL_CREATE_WATER, CLASS_RANGER, 10);
+  spell_level(SPELL_DETECT_POISON, CLASS_RANGER, 10);  //shared
+  spell_level(SPELL_CAUSE_MODERATE_WOUNDS, CLASS_RANGER, 10);
+  //3rd circle
+  spell_level(SPELL_DETECT_ALIGN, CLASS_RANGER, 12);
+  spell_level(SPELL_CURE_BLIND, CLASS_RANGER, 12);
+  spell_level(SPELL_BLESS, CLASS_RANGER, 12);
+  spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_RANGER, 12);
+  //4th circle
+  spell_level(SPELL_INFRAVISION, CLASS_RANGER, 15);  //shared
+  spell_level(SPELL_REMOVE_CURSE, CLASS_RANGER, 15);  //shared
+  spell_level(SPELL_CAUSE_CRITICAL_WOUNDS, CLASS_RANGER, 15);
+  spell_level(SPELL_CURE_CRITIC, CLASS_RANGER, 15);
+  
+  
   // clerics
   //1st circle
   spell_level(SPELL_CURE_LIGHT, CLASS_CLERIC, 1);
@@ -2016,6 +2119,7 @@ int level_exp(struct char_data *ch, int level)
     case CLASS_PALADIN:
     case CLASS_MONK:
     case CLASS_DRUID:
+    case CLASS_RANGER:
     case CLASS_WARRIOR:
     case CLASS_ROGUE:
     case CLASS_BERSERKER:
@@ -2102,7 +2206,48 @@ const char *titles(int chclass, int level)
     }
     break;
 
+    
+    case CLASS_RANGER:
+    case CLASS_DRUID:
+    switch (level) {
+      case  1:
+      case  2:
+      case  3:
+      case  4: return "";
+      case  5: 
+      case  6: 
+      case  7: 
+      case  8: 
+      case  9: return "the Walker on Loam";
+      case 10:
+      case 11:
+      case 12:
+      case 13:
+      case 14: return "the Speaker for Beasts";
+      case 15:
+      case 16:
+      case 17:
+      case 18:
+      case 19: return "the Watcher from Shade";
+      case 20:
+      case 21:
+      case 22:
+      case 23:
+      case 24: return "the Whispering Winds";
+      case 25:
+      case 26:
+      case 27:
+      case 28:
+      case 29: return "the Balancer";
+      case 30: return "the Still Waters";
+      case LVL_IMMORT: return "the Avatar of Nature";
+      case LVL_GOD: return "the Wrath of Nature";
+      case LVL_GRGOD: return "the Storm of Earth's Voice";
+      default: return "the Druid";
+    }
+    break;
 
+    
     case CLASS_SORCERER:
     switch (level) {
       case  1:

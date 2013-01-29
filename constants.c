@@ -669,41 +669,42 @@ const char *wear_bits[] = {
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *extra_bits[] = {
-  "Glows",
+  "Glows",  //0
   "Hums",
   "Not-Rentable",
   "Not-Donateable",
   "Immune-Invis",
-  "Invisible",
+  "Invisible",  //5
   "Magical",
   "Not-Droppable",
   "Blessed",
   "Anti-Good",
-  "Anti-Evil",
+  "Anti-Evil",  //10
   "Anti-Neutral",
   "Anti-Wizard",
   "Anti-Cleric",
   "Anti-Rogue",
-  "Anti-Warrior",
+  "Anti-Warrior",  //15
   "Not-Sellable",
   "Quest-Item",
   "Anti-Human",
   "Anti-Elf",
-  "Anti-Dwarf",
+  "Anti-Dwarf",  //20
   "Anti-Troll",
   "Anti-Monk",
   "Anti-Druid",
   "Mold",
-  "Anti-Crystal-Dwarf",
+  "Anti-Crystal-Dwarf",  //25
   "Anti-Halfling",
   "Anti-Half-Elf",
   "Anti-Half-Orc",
   "Anti-Gnome",
-  "Anti-Berserker",
+  "Anti-Berserker",  //30
   "Anti-Trelux",
   "Anti-Sorcerer",
   "Decaying",
   "Anti-Paladin",
+  "Anti-Ranger",  //35
   "\n"
 };
 
