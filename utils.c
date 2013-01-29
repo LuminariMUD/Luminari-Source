@@ -55,8 +55,6 @@ bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict)
     challenge += GET_LEVEL(ch);
   if (AFF_FLAGGED(ch, AFF_SPOT))
     challenge += 10;
-  /* debug */
-  send_to_room(IN_ROOM(ch), "challenge:  %d\r\n", challenge);
   
   //hider bonus/penalties (vict)
   if (!IS_NPC(vict))
@@ -64,8 +62,6 @@ bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict)
   else
     dc += GET_LEVEL(vict);
   dc += (GET_SIZE(ch) - GET_SIZE(vict)) * 2;  //size bonus
-  /* debug */
-  send_to_room(IN_ROOM(ch), "dc:  %d\r\n", dc);
 
   if (challenge > dc)
     can_hear = TRUE;
