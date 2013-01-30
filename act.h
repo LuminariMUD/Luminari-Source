@@ -112,6 +112,7 @@ ACMD(do_levels);
 ACMD(do_scan);
 ACMD(do_score);
 ACMD(do_spot);
+ACMD(do_listen);
 ACMD(do_time);
 ACMD(do_toggle);
 ACMD(do_users);

@@ -448,6 +448,19 @@ void berserker_skills(struct char_data *ch, int level) {
 void ranger_skills(struct char_data *ch, int level) {
   switch (level) {
     case 2:
+      if (!GET_SKILL(ch, SKILL_DUAL_WEAPONS))
+        SET_SKILL(ch, SKILL_DUAL_WEAPONS, 75);
+      send_to_char(ch, "\tMYou have learned 'Dual Weapons'\tn\r\n");
+      break;
+    case 3:
+      if (!GET_SKILL(ch, SKILL_NATURE_STEP))
+        SET_SKILL(ch, SKILL_NATURE_STEP, 75);
+      send_to_char(ch, "\tMYou have learned 'Natures Step'\tn\r\n");
+      break;
+    case 4:
+      if (!GET_SKILL(ch, SKILL_ANIMAL_COMPANION))
+        SET_SKILL(ch, SKILL_ANIMAL_COMPANION, 75);
+      send_to_char(ch, "\tMYou have learned 'Animal Companion'\tn\r\n");
       break;
     default:
       break;
@@ -1062,6 +1075,9 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
     
     //skill init
+    if (!GET_SKILL(ch, SKILL_FAVORED_ENEMY))
+      SET_SKILL(ch, SKILL_FAVORED_ENEMY, 75);
+   
     if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
       SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
     if (!GET_SKILL(ch, SKILL_PROF_BASIC))

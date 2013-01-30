@@ -389,7 +389,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* if in "spot-mode" double cost of movement */
   if (AFF_FLAGGED(ch, AFF_SPOT))
     need_movement *= 2;
-  /* if in "spot-mode" double cost of movement */
+  /* if in "listen-mode" double cost of movement */
   if (AFF_FLAGGED(ch, AFF_LISTEN))
     need_movement *= 2;
   
@@ -409,7 +409,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       return (0);
     }
   }
-   
+  
+  /* chance of being thrown off mount */ 
   if (riding && compute_ability(ch, ABILITY_RIDING) <
 	rand_number(1, GET_LEVEL(RIDING(ch)))-rand_number(-4,need_movement)) {
     act("$N rears backwards, throwing you to the ground.",
