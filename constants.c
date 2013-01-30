@@ -433,6 +433,7 @@ const char *affected_bits[] =
   "Diseased",
   "T-Transform",
   "Globe of Invulnerability",
+  "Listen-Mode",
   "\n"
 };
 

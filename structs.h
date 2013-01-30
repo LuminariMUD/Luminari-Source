@@ -504,10 +504,10 @@
 #define AFF_DISEASE      49
 #define AFF_TFORM        50  //tenser's transformation
 #define AFF_GLOBE_OF_INVULN        51
-
+#define AFF_LISTEN       52
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS   52
+#define NUM_AFF_FLAGS   53
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/

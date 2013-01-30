@@ -1452,6 +1452,15 @@ void reset_acraft(struct char_data *ch);
 /** Defines if ch is outdoors or not. */
 #define OUTSIDE(ch) (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS))
 
+/** A little more specific macro than above **/
+#define IN_NATURE(ch)  (world[IN_ROOM(ch)].sector_type == SECT_FIELD || \
+                        world[IN_ROOM(ch)].sector_type == SECT_FOREST || \
+                        world[IN_ROOM(ch)].sector_type == SECT_HILLS || \
+                        world[IN_ROOM(ch)].sector_type == SECT_MOUNTAIN || \
+                        world[IN_ROOM(ch)].sector_type == SECT_WATER_SWIM || \
+                        world[IN_ROOM(ch)].sector_type == SECT_DESERT || \
+                        world[IN_ROOM(ch)].sector_type == SECT_MARSHLAND)
+
 
 /* Group related defines */
 #define GROUP(ch)            (ch->group)

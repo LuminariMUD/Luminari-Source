@@ -121,6 +121,7 @@ case SKILL_GREATER_RUIN:
 case SKILL_HELLBALL:
 	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 29 && GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
+     /* magical based epic spells (not accessable by divine) */
 case SKILL_EPIC_MAGE_ARMOR:
 	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 31 && GET_LEVEL(ch) >= 20
 		&& (CLASS_LEVEL(ch, CLASS_WIZARD) > 13 ||
@@ -247,14 +248,34 @@ case SKILL_QUICK_CHANT:
 		return TRUE;	else return FALSE;
 
 /* special restrictions */
-case SKILL_USE_MAGIC:  /* shared - with casters */
+case SKILL_USE_MAGIC:  /* shared - with casters and rogue */
         if ((CLASS_LEVEL(ch, CLASS_ROGUE) >= 9) ||
             (IS_CASTER(ch) && GET_LEVEL(ch) >= 2))
           return TRUE;  else return FALSE;
-case SKILL_RECHARGE:
+case SKILL_RECHARGE:  //casters only
 	if (CASTER_LEVEL(ch) >= 14)
 		return TRUE;	else return FALSE;     
-        
+
+/* ranger */
+case SKILL_FAVORED_ENEMY:
+        if (CLASS_LEVEL(ch, CLASS_RANGER))
+                return TRUE;	else return FALSE;
+case SKILL_DUAL_WEAPONS:
+        if (CLASS_LEVEL(ch, CLASS_RANGER) >= 2)
+                return TRUE;	else return FALSE;
+case SKILL_NATURE_STEP:  //shared with druid
+        if (CLASS_LEVEL(ch, CLASS_RANGER) >= 3 ||
+            CLASS_LEVEL(ch, CLASS_DRUID) >= 6)
+                return TRUE;	else return FALSE;
+case SKILL_ANIMAL_COMPANION:  //shared with druid
+        if (CLASS_LEVEL(ch, CLASS_RANGER) >= 4 ||
+            CLASS_LEVEL(ch, CLASS_DRUID))
+                return TRUE;	else return FALSE;
+
+/* druid */
+        // animal companion - level 1 (shared with ranger)
+        // nature step - level 6 (shared with ranger)
+
 /* warrior */
 case SKILL_WEAPON_SPECIALIST:
         if (CLASS_LEVEL(ch, CLASS_WARRIOR) >= 4)
@@ -337,6 +358,7 @@ case SKILL_RAGE:
     case SKILL_IRON_WILL:
     case SKILL_GREAT_FORTITUDE:
     case SKILL_LIGHTNING_REFLEXES:
+    case SKILL_STEALTHY:
       return TRUE;
       
       /**
@@ -512,15 +534,15 @@ int compute_ability(struct char_data *ch, int abilityNum)
 		return value; 
 	case ABILITY_HIDE:
 		value += GET_DEX_BONUS(ch);
-		if (CLASS_LEVEL(ch, CLASS_ROGUE))
-                  value += 4;
+		if (GET_SKILL(ch, SKILL_STEALTHY))
+            value += 2;
           if (GET_RACE(ch) == RACE_HALFLING)
             value += 2;
 		return value; 
 	case ABILITY_SNEAK:
 		value += GET_DEX_BONUS(ch);
-		if (CLASS_LEVEL(ch, CLASS_ROGUE))
-                  value += 4;
+		if (GET_SKILL(ch, SKILL_STEALTHY))
+            value += 2;
           if (GET_RACE(ch) == RACE_HALFLING)
             value += 2;
 		return value; 

@@ -372,8 +372,13 @@
 #define SKILL_SMITE                     503  //implemented
 #define SKILL_REMOVE_DISEASE            504  //implemented
 #define SKILL_RECHARGE                  505  //implemented
+#define SKILL_STEALTHY                  506  //implemented
+#define SKILL_NATURE_STEP               507
+#define SKILL_FAVORED_ENEMY             508
+#define SKILL_DUAL_WEAPONS              509
+#define SKILL_ANIMAL_COMPANION          510
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      506
+#define NUM_SKILLS                      511
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the
@@ -431,11 +436,11 @@
 #define ABILITY_DISCIPLINE		11 // discipline
 #define ABILITY_PARRY			12 // parry
 #define ABILITY_LORE			13 // lore
-#define ABILITY_MOUNT			14
+#define ABILITY_MOUNT			14 //mounts
 #define ABILITY_RIDING			15 //mounts
 #define ABILITY_TAME			16 //mounts
-#define ABILITY_PICK_LOCK		17 //mounts
-#define ABILITY_STEAL			18 //mounts
+#define ABILITY_PICK_LOCK		17 //open locks
+#define ABILITY_STEAL			18 //pick pockets
 
 #define NUM_ABILITIES			19 /* Number of defined abilities */
 /*	MAX_ABILITIES = 200 */ 

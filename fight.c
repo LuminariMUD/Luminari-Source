@@ -1560,6 +1560,10 @@ int damage(struct char_data *ch, struct char_data *victim,
 
 
 // old skool thaco replaced by bab (base attack bonus)
+/* this function will take ch who is attacking victim with a bonus
+   to ch += type
+   with this info it will calculate ch's modified BAB and return
+   it */
 int compute_bab(struct char_data *ch, struct char_data *victim, int type)
 {
   int calc_bab = BAB(ch);  //base attack bonus
@@ -1781,9 +1785,13 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 {
   int dam = 0;
 
+  /* calculate how much damage to do with a given hit() */
   if (mode == 0) {
+    /* determine weapon dice damage (or lack of weaopn) */
     dam = compute_dam_dice(ch, victim, wielded, mode);
+    /* add any modifers to melee damage */
     dam += compute_damage_bonus(ch, victim, w_type, 0, mode);
+    /* calculate bonus to damage based on target position */
     switch (GET_POS(victim)) {
       case POS_SITTING:
         dam += 4;
@@ -1808,10 +1816,17 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       case POS_FIGHTING:
       default: break;
     }
+    /* throw in melee bonus skills such as dirty fighting and critical */
     dam = hit_dam_bonus(ch, victim, dam, diceroll, mode);
+    
+    /* calculate damage with either mainhand (2) or offhand (3)
+       weapon for _display_ purposes */
   } else if (mode == 2 || mode == 3) {
+    /* calculate dice */
     dam = compute_dam_dice(ch, ch, NULL, mode);
+    /* modifiers to melee damage */
     dam += compute_damage_bonus(ch, ch, 0, 0, mode);
+    /* throw in melee bonus such as dirty-fighting and critical */
     hit_dam_bonus(ch, ch, dam, 0, mode);
   }
 
@@ -1819,6 +1834,10 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 }
 
 
+/* this function takes ch (attacker) against victim (defender) who has
+   inflicted dam damage and will reduce damage by X depending on the type
+   of 'ward' the defender has (such as stoneskin) 
+   this will return the modified damage */
 #define STONESKIN_ABSORB	16
 #define EPIC_WARDING_ABSORB	76
 int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
@@ -1892,6 +1911,9 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
 #undef STONESKIN_ABSORB
 #undef EPIC_WARDING_ABSORB
 
+/* this function will call the spell-casting ability of the
+   given weapon (wpn) attacker (ch) has when attacking vict 
+   these are always 'violent' spells */
 void weapon_spells(struct char_data *ch, struct char_data *vict,
         struct obj_data *wpn) {
   int i = 0, random;
@@ -1921,6 +1943,9 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
 }
 
 
+/* if (ch) has a weapon with weapon spells on it that is
+   considered non-offensive, the weapon will target (ch)
+   with this spell - does not require to be in combat */
 void idle_weapon_spells(struct char_data *ch)
 {
   int random = 0, j = 0;
@@ -1966,6 +1991,14 @@ void idle_weapon_spells(struct char_data *ch)
 }
 
 
+/* primary function for a single melee attack 
+   ch -> attacker
+   victim -> defender
+   type -> SKILL_  /  SPELL_  / TYPE_ / etc. (determined here)
+   dam_type -> DAM_FIRE / etc (not used here, passed to dam() function) 
+   penalty ->  (or bonus)  applied to hitroll, BAB multi-attack for example
+   offhand -> is this a dual wielding attack?
+ */
 void hit(struct char_data *ch, struct char_data *victim,
 	int type, int dam_type, int penalty, int offhand)
 {
@@ -2143,12 +2176,97 @@ void hit(struct char_data *ch, struct char_data *victim,
 }
 
 
+/* is given ch a ranger that is qualified for his/her dual-wield bonus? */
+/* mode comes from perform_attacks and is_skilled_dualer
+     1 - ambidexterity
+     2 - two weapon fighting
+     3 - epic two weapon fighting
+ */
+int is_dual_weapons(struct char_data *ch, int mode)
+{
+  int i = 0;
+  
+  // we already checked if this is a NPC coming in
+  if (CLASS_LEVEL(ch, CLASS_RANGER) < 2)
+    return 0;
+  
+  // wearing light enough armor?
+  for (i = 0; i < NUM_WEARS; i++) {
+    if (GET_EQ(ch, i)) {
+      if (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS ||
+                            i == WEAR_ARMS) {
+        if (GET_OBJ_PROF(GET_EQ(ch, i)) > ITEM_PROF_LIGHT_A) {
+          return 0;
+        }        
+      }      
+    }
+  }
+  
+  if (mode == 1) { // already qualifies for ambidexterity
+    increase_skill(ch, SKILL_DUAL_WEAPONS);
+    return 1;
+  } else if (mode == 2 && CLASS_LEVEL(ch, CLASS_RANGER) >= 6) {
+    increase_skill(ch, SKILL_DUAL_WEAPONS);
+    return 1;
+  } else if (mode == 3 && CLASS_LEVEL(ch, CLASS_RANGER) >= 15) {
+    increase_skill(ch, SKILL_DUAL_WEAPONS);
+    return 1;
+  }
+  
+  // doesn't qualify
+  return 0;  
+}
+
+
+/* there has gotta be a simpler way to do this, but for now
+   this is how i implemented this
+ * Parameters:
+ *   ch -> character who is attacking
+ *   mode -> can this character perform this 'dual-wield' attack
+ *     0 -> does he have two weapons equipped?
+ *     1 -> has ambidexterity equivalent?
+ *     2 -> has two-weapon fighting equivalent?
+ *     3 -> has epic-two-weapon fighting equivalent?
+ * Returns:
+ *   0 = False/No    1 = True/Yes
+ *   to above questions
+ *  */
+int is_skilled_dualer(struct char_data *ch, int mode)
+{
+  switch (mode) {
+    case 0:  // have off-hander equipped?
+      if (GET_EQ(ch, WEAR_WIELD_2) || GET_RACE(ch) == RACE_TRELUX)
+        return TRUE;
+      else
+        return FALSE;
+    case 1:
+      if (GET_SKILL(ch, SKILL_AMBIDEXTERITY) || is_dual_weapons(ch, mode))
+        return TRUE;
+      else
+        return FALSE;
+    case 2:
+      if (GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT) || is_dual_weapons(ch, mode))
+        return TRUE;
+      else
+        return FALSE;
+    case 3:
+      if (GET_SKILL(ch, SKILL_EPIC_2_WEAPON) || is_dual_weapons(ch, mode))
+        return TRUE;
+      else
+        return FALSE;      
+  }
+  log("ERR: is_skilled_dualer() reached end!");
+  return 0;
+}
+
 
 // now returns # of attacks and has mode functionality -zusuk
 // mode = 0	normal attack routine
 // mode = 1	return # of attacks, nothing else
 // mode = 2	display attack routine potential
-
+/* this function will perform a character melee attack routine
+   or in the case of modes 1 or 2, it will display what a char
+   can do */
 #define ATTACK_CAP	3  // # of BONUS attacks
 #define MONK_CAP	ATTACK_CAP + 2
 #define TWO_WPN_PNLTY	-5
@@ -2159,12 +2277,12 @@ int perform_attacks(struct char_data *ch, int mode)
   bool dual = FALSE;
 
   //now lets determine base attack(s) and resulting possible penalty
-  if (GET_EQ(ch, WEAR_WIELD_2) || GET_RACE(ch) == RACE_TRELUX)
-    dual = TRUE;
+  dual = is_skilled_dualer(ch, 0);  // trelux or has off-hander equipped
+  
   //default of one offhand attack for everyone
   if (dual) {
     numAttacks += 2;
-    if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_AMBIDEXTERITY))
+    if (!IS_NPC(ch) && is_skilled_dualer(ch, 1))
       penalty = -1;
     else
       penalty = -4;
@@ -2187,7 +2305,7 @@ int perform_attacks(struct char_data *ch, int mode)
 	 compute_bab(ch, ch, 0) + penalty * 2);
       compute_hit_damage(ch, ch, NULL, 0, 0, 3);
     }
-  } else {
+  } else {  // not dual wielding
     //default of one attack for everyone
     numAttacks++;
     if (mode == 0) {  //normal attack routine
@@ -2201,6 +2319,8 @@ int perform_attacks(struct char_data *ch, int mode)
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
     }
   }
+  
+  /* haste or equivalent? */
   if (AFF_FLAGGED(ch, AFF_HASTE) ||
 	(!IS_NPC(ch) && GET_SKILL(ch, SKILL_BLINDING_SPEED))) {
     numAttacks++;
@@ -2217,7 +2337,9 @@ int perform_attacks(struct char_data *ch, int mode)
   }
 
   //now level based bonus attacks
+  // note to self, do not forget to put armor restrictions! -zusuk
   int monkMode = FALSE;
+  // you get an attack for every 5 points of BAB unless you are a monk
   bonusAttacks = MIN((BAB(ch) - 1) / 5, ATTACK_CAP);
   if (CLASS_LEVEL(ch, CLASS_MONK)) {
     if(!GET_EQ(ch, WEAR_HOLD_1)
@@ -2225,17 +2347,20 @@ int perform_attacks(struct char_data *ch, int mode)
         && !GET_EQ(ch, WEAR_HOLD_2) 
         && !GET_EQ(ch, WEAR_WIELD_2)
         && !GET_EQ(ch, WEAR_SHIELD)
-	&& !GET_EQ(ch, WEAR_WIELD_2H)
+        && !GET_EQ(ch, WEAR_WIELD_2H)
 	) {
+      // monks get an attack for every 3 points of BAB
       bonusAttacks = MIN((BAB(ch) - 1) / 3, MONK_CAP);
       monkMode = TRUE;
     }
   }
 
-  //execute
+  //execute the calculated attacks from above
   for (i = 0; i < bonusAttacks; i++) {
+    // monks get accumulate -3 penalty per attack
     if (monkMode)
       penalty -= 3;
+    // everyone else get accumulate -5 penalty per attack
     else
       penalty -= 5;
     numAttacks++;
@@ -2254,7 +2379,7 @@ int perform_attacks(struct char_data *ch, int mode)
 
   //additional off-hand attacks
   if (dual) {
-    if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT)) {
+    if (!IS_NPC(ch) && is_skilled_dualer(ch, 2)) {      
       numAttacks++;
       if (mode == 0) {  //normal attack routine
         if (FIGHTING(ch))
@@ -2268,7 +2393,7 @@ int perform_attacks(struct char_data *ch, int mode)
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
       }
     }
-    if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_EPIC_2_WEAPON)) {
+    if (!IS_NPC(ch) && is_skilled_dualer(ch, 3)) {
       numAttacks++;
       if (mode == 0) {  //normal attack routine
         if (FIGHTING(ch))
@@ -2292,6 +2417,7 @@ int perform_attacks(struct char_data *ch, int mode)
 #undef EPIC_TWO_PNLY
 
 
+/* display condition of FIGHTING() target to ch */
 void autoDiagnose(struct char_data *ch)
 {
   struct char_data *char_fighting = NULL, *tank = NULL;
@@ -2389,7 +2515,8 @@ void autoDiagnose(struct char_data *ch)
 }
 
 
-/* control the fights going on.  Called every PULSE_VIOLENCE seconds from comm.c. */
+/* control the fights going on.
+ * Called every PULSE_VIOLENCE seconds from comm.c. */
 void perform_violence(void)
 {
   struct char_data *ch, *tch, *charmee;
@@ -2502,7 +2629,8 @@ void perform_violence(void)
     if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_PARRY))
       perform_attacks(ch, 0);
     
-    //skill improvement
+    //skill improvement, need to distribute these in more fitting
+    //places in the near future
     if (!IS_NPC(ch)) {
       if (GET_SKILL(ch, SKILL_WEAPON_SPECIALIST))
         increase_skill(ch, SKILL_WEAPON_SPECIALIST);        
