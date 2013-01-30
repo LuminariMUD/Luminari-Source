@@ -389,6 +389,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* if in "spot-mode" double cost of movement */
   if (AFF_FLAGGED(ch, AFF_SPOT))
     need_movement *= 2;
+  /* if in "spot-mode" double cost of movement */
+  if (AFF_FLAGGED(ch, AFF_LISTEN))
+    need_movement *= 2;
   
   /* Move Point Requirement Check */
   if (riding) {
