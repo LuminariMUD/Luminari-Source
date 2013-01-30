@@ -250,7 +250,7 @@ void affect_total(struct char_data *ch)
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i))
       for (j = 0; j < MAX_OBJ_AFFECT; j++)
-	affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
+        affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
 		      GET_EQ(ch, i)->affected[j].modifier,
 		      GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
   }

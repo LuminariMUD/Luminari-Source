@@ -582,6 +582,9 @@ void rogue_skills(struct char_data *ch, int level) {
       if (!GET_SKILL(ch, SKILL_MOBILITY))
         SET_SKILL(ch, SKILL_MOBILITY, 75);
       send_to_char(ch, "\tMYou have learned 'Mobility'\tn\r\n");
+      if (!GET_SKILL(ch, SKILL_STEALTHY))
+        SET_SKILL(ch, SKILL_STEALTHY, 75);
+      send_to_char(ch, "\tMYou have learned 'Stealthy'\tn\r\n");
       break;
     case 4:
       if (!GET_SKILL(ch, SKILL_DIRTY_FIGHTING))

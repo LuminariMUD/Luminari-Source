@@ -49,17 +49,21 @@ bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict)
   bool can_hear = FALSE, challenge = dice(1,20), dc = (dice(1,20) + 10);
   
   //challenger bonuses/penalty (ch)
-  if (!IS_NPC(ch))
+  if (!IS_NPC(ch)) {
     challenge += compute_ability(ch, ABILITY_LISTEN);
-  else
+  } else
     challenge += GET_LEVEL(ch);
-  if (AFF_FLAGGED(ch, AFF_SPOT))
+  if (AFF_FLAGGED(ch, AFF_LISTEN))
     challenge += 10;
   
   //hider bonus/penalties (vict)
-  if (!IS_NPC(vict))
+  if (!IS_NPC(vict)) {
     dc += compute_ability((struct char_data *)vict, ABILITY_SNEAK);
-  else
+    if (IN_NATURE(vict) && GET_SKILL(vict, SKILL_NATURE_STEP)) {
+      dc += 4;
+      increase_skill((struct char_data *)vict, SKILL_NATURE_STEP);      
+    }
+  } else
     dc += GET_LEVEL(vict);
   dc += (GET_SIZE(ch) - GET_SIZE(vict)) * 2;  //size bonus
 
@@ -91,9 +95,13 @@ bool can_see_hidden(struct char_data *ch, const struct char_data *vict)
     challenge += 10;
   
   //hider bonus/penalties (vict)
-  if (!IS_NPC(vict))
+  if (!IS_NPC(vict)) {
     dc += compute_ability((struct char_data *)vict, ABILITY_HIDE);
-  else
+    if (IN_NATURE(vict) && GET_SKILL(vict, SKILL_NATURE_STEP)) {
+      dc += 4;
+      increase_skill((struct char_data *)vict, SKILL_NATURE_STEP);      
+    }
+  } else
     dc += GET_LEVEL(vict);
   dc += (GET_SIZE(ch) - GET_SIZE(vict)) * 2;  //size bonus
 
@@ -126,6 +134,36 @@ void increase_skill(struct char_data *ch, int skillnum)
   int pass = rand_number(0, PASS);
 
   switch(skillnum) {
+    case SKILL_FAVORED_ENEMY:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DUAL_WEAPONS:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_ANIMAL_COMPANION:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_NATURE_STEP:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_STEALTHY:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
     case SKILL_RECHARGE:
       if (!use) {
         notched = TRUE;
@@ -739,7 +777,9 @@ void increase_skill(struct char_data *ch, int skillnum)
       }
       break;
     default:
-      return;;
+      log("SYSERR: increase_skill() missing skill call:  %s",
+              spell_info[skillnum].name);
+      return;
   }
   
   if (notched)

@@ -2103,6 +2103,11 @@ void mag_assign_spells(void)
   skillo(SKILL_SMITE,               "smite");                      //503
   skillo(SKILL_REMOVE_DISEASE,      "purify");                     //504
   skillo(SKILL_RECHARGE,            "recharge");                   //505
+  skillo(SKILL_STEALTHY,            "stealthy");                   //506
+  skillo(SKILL_NATURE_STEP,         "nature step");                //507
+  skillo(SKILL_FAVORED_ENEMY,       "favored enemy");              //508
+  skillo(SKILL_DUAL_WEAPONS,        "dual weapons");               //509
+  skillo(SKILL_ANIMAL_COMPANION,    "animal companion");           //510
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 

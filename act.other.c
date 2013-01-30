@@ -922,6 +922,7 @@ ACMD(do_sneak)
   send_to_char(ch, "Okay, you'll try to move silently for a while.\r\n");
 
   SET_BIT_AR(AFF_FLAGS(ch), AFF_SNEAK);
+  increase_skill(ch, SKILL_STEALTHY);
 }
 
 
@@ -945,7 +946,32 @@ ACMD(do_hide)
   }
 
   send_to_char(ch, "You attempt to hide yourself.\r\n");
-  SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);\
+  increase_skill(ch, SKILL_STEALTHY);  
+}
+
+
+/* listen-mode, similar to search - try to find hidden/sneaking targets */
+ACMD(do_listen)
+{
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
+    send_to_char(ch, "You are unable to move to make your attempt!\r\n");
+    return;
+  }
+
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_LISTEN)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_LISTEN)) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_LISTEN);
+    send_to_char(ch, "You stop trying to listen...\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You enter listen mode... (movement cost is doubled)\r\n");
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_LISTEN);
 }
 
 
