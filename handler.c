@@ -949,7 +949,7 @@ void extract_char_final(struct char_data *ch)
   if (!IS_NPC(ch) && !ch->desc) {
     for (d = descriptor_list; d; d = d->next)
       if (d->original == ch) {
-	do_return(d->character, NULL, 0, 0);
+        do_return(d->character, NULL, 0, 0);
         break;
       }
   }
@@ -1024,6 +1024,10 @@ void extract_char_final(struct char_data *ch)
     if (!IS_NPC(ch) && GET_POS(ch) == POS_DEAD && MEMORY(temp))
       forget(temp, ch); /* forget() is safe to use without a check. */
   }
+    if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
+      send_to_char(ch, "h:  Has event!\r\n");
+    else
+      send_to_char(ch, "h:  NO event!\r\n");
 
   char_from_room(ch);
 
