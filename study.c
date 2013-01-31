@@ -23,12 +23,16 @@
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
 
-static void study_disp_menu(struct descriptor_data *d);
-void study_menu(struct descriptor_data *d, int circle);
+static void sorc_disp_menu(struct descriptor_data *d);
+static void ranger_disp_menu(struct descriptor_data *d);
+static void sorc_study_menu(struct descriptor_data *d, int circle);
+static void favored_enemy_menu(struct descriptor_data *d);
+static void animal_companion_menu(struct descriptor_data *d);
 /*-------------------------------------------------------------------*/
 
 // global
-int global_circle;
+int global_circle = -1;  // keep track of circle as we navigate menus
+int global_class = -1;   // keep track of class as we navigate menus
 
 
 /*-------------------------------------------------------------------*\
@@ -37,30 +41,37 @@ int global_circle;
 
 ACMD(do_study)
 {
-  struct descriptor_data *d;
+  struct descriptor_data *d = NULL;
+  int class = -1;
 
   if (!argument) {
     send_to_char(ch, "Specify a class to edit known spells.\r\n");
     return;
   } else if (is_abbrev(argument, " sorcerer")) {
     if (IS_SORC_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
-      send_to_char(ch, "You already adjusted your sorcerer "
-            "spells this level.\r\n");
+      send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
+                       "(You can also RESPEC to reset your character)\r\n");
       return;
     }
+    if (!CLASS_LEVEL(ch, CLASS_SORCERER)) {
+      send_to_char(ch, "How?  You are not a sorcerer!\r\n");
+      return;
+    }
+    class = CLASS_SORCERER;
+  } else if (is_abbrev(argument, " ranger")) {
+    if (IS_RANG_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
+      send_to_char(ch, "You already adjusted your ranger "
+            "skills this level.\r\n");
+      return;
+    }
+    class = CLASS_RANGER;
   } else {
     send_to_char(ch, "Usage:  study <class name>\r\n");
     return;
   }
-
-  if (IS_SORC_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
-    send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
-                     "(You can also RESPEC to reset your character)\r\n");
-    return;
-  }
-
-  if (!CLASS_LEVEL(ch, CLASS_SORCERER)) {
-    send_to_char(ch, "How?  You are not a sorcerer!\r\n");
+  
+  if (class == -1) {
+    send_to_char(ch, "Invalid class!\r\n");
     return;
   }
 
@@ -76,10 +87,18 @@ ACMD(do_study)
 
   STATE(d) = CON_STUDY;
 
-  act("$n starts adjust $s spells known.", TRUE, d->character, 0, 0, TO_ROOM);
+  act("$n starts adjust studying $s skill-set.",
+          TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
   
-  study_disp_menu(d);
+  if (class == CLASS_SORCERER) {
+    global_class = CLASS_SORCERER;
+    sorc_disp_menu(d);    
+  } else if (class == CLASS_RANGER) {
+    global_class = CLASS_RANGER;
+    ranger_disp_menu(d);
+  }
+
 }
 
 /*-------------------------------------------------------------------*/
@@ -89,9 +108,9 @@ ACMD(do_study)
 **************************************************************************/
 
 /*-------------------------------------------------------------------*/
-/*. Display main menu . */
+/*. Display main menu, Sorcerer . */
 
-static void study_disp_menu(struct descriptor_data *d)
+static void sorc_disp_menu(struct descriptor_data *d)
 {
   get_char_colors(d->character);
   clear_screen(d);
@@ -139,14 +158,14 @@ static void study_disp_menu(struct descriptor_data *d)
     mgn, nrm
           );
   
-  OLC_MODE(d) = STUDY_MAIN_MENU;
+  OLC_MODE(d) = SORC_MAIN_MENU;
 }
 
 
-/* the menu for each circle */
+/* the menu for each circle, sorcerer */
 
 
-void study_menu(struct descriptor_data *d, int circle)
+void sorc_study_menu(struct descriptor_data *d, int circle)
 {
   int counter, columns = 0;
 
@@ -175,6 +194,50 @@ void study_menu(struct descriptor_data *d, int circle)
   OLC_MODE(d) = STUDY_SPELLS;
 }
 
+/***********************end sorcerer******************************************/
+
+/***************************/
+/* main menu for ranger */
+/***************************/
+static void ranger_disp_menu(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+  
+  write_to_output(d,
+    "\r\n-- %sRanger Skill Menu\r\n"
+    "\r\n"
+    "\r\n"
+    "%s 1%s) Favored Enemy Menu\r\n"
+    "\r\n"
+    "%s 2%s) Animal Companion Menu\r\n"
+    "\r\n"
+    "\r\n"
+    "%s Q%s) Quit\r\n"
+    "\r\n"
+    "%sWhen you quit it finalizes all changes%s\r\n"
+    "%sYour ranger skills can only be modified once per level%s\r\n"
+    "\r\n"
+    "Enter Choice : ",
+
+    mgn,
+          /* empty line */
+          /* empty line */
+    grn, nrm,
+    /* empty line */
+    grn, nrm,
+    /* empty line */
+    /* empty line */
+    grn, nrm,
+    mgn, nrm,
+    mgn, nrm
+    );
+  
+  OLC_MODE(d) = RANG_MAIN_MENU;
+}
+
+/*********************** end ranger ****************************************/
+
 
 /**************************************************************************
   The handler
@@ -187,13 +250,16 @@ void study_parse(struct descriptor_data *d, char *arg)
   int counter;    
 
   switch (OLC_MODE(d)) {
+    
+    /******* start sorcerer **********/
 
-    case STUDY_MAIN_MENU:
+    case SORC_MAIN_MENU:
       switch (*arg) {
         case 'q':
         case 'Q':
           write_to_output(d, "Your choices have been finalized!\r\n\r\n");
-          IS_SORC_LEARNED(d->character) = 1;
+          if (global_class == CLASS_SORCERER)
+            IS_SORC_LEARNED(d->character) = 1;
           save_char(d->character);
           cleanup_olc(d, CLEANUP_ALL);
           return;
@@ -206,12 +272,12 @@ void study_parse(struct descriptor_data *d, char *arg)
         case '7':
         case '8':
         case '9':
-          study_menu(d, atoi(arg));
+          sorc_study_menu(d, atoi(arg));
           OLC_MODE(d) = STUDY_SPELLS;
           break;
         default:
           write_to_output(d, "That is an invalid choice!\r\n");
-          study_disp_menu(d);
+          sorc_disp_menu(d);
           break;
       }
       break;
@@ -220,7 +286,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       switch (*arg) {
         case 'q':
         case 'Q':
-          study_disp_menu(d);
+          sorc_disp_menu(d);
           return;
 
         default:
@@ -236,12 +302,42 @@ void study_parse(struct descriptor_data *d, char *arg)
               }
             }
           }
-          OLC_MODE(d) = STUDY_MAIN_MENU;
-          study_menu(d, global_circle);
+          OLC_MODE(d) = SORC_MAIN_MENU;
+          sorc_study_menu(d, global_circle);
           break;
         }
       break;
+    /******* end sorcerer **********/
+      
+      
+    /******* start ranger **********/
 
+    case RANG_MAIN_MENU:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          write_to_output(d, "Your choices have been finalized!\r\n\r\n");
+          if (global_class == CLASS_RANGER)
+            IS_RANG_LEARNED(d->character) = 1;
+          save_char(d->character);
+          cleanup_olc(d, CLEANUP_ALL);
+          return;
+        case '1':  // favored enemy choice
+          favored_enemy_menu(d);
+          OLC_MODE(d) = FAVORED_ENEMY;
+          break;
+        case '2':  // animal companion choice
+          animal_companion_menu(d);
+          OLC_MODE(d) = ANIMAL_COMPANION;
+          break;
+        default:
+          write_to_output(d, "That is an invalid choice!\r\n");
+          sorc_disp_menu(d);
+          break;
+      }
+      break;
+    /******* end ranger **********/
+      
     /* We should never get here, but just in case... */      
     default:
       cleanup_olc(d, CLEANUP_CONFIG);

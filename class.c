@@ -446,6 +446,11 @@ void berserker_skills(struct char_data *ch, int level) {
  * i.e free skills  ;  make sure to set in spec_procs too
  */
 void ranger_skills(struct char_data *ch, int level) {
+  
+  /* you can adjust some aspects of being a ranger every level (study.c) */
+  IS_RANG_LEARNED(ch) = 0;
+  send_to_char(ch, "\tnType \tDstudy ranger\tn to adjust your skills.\r\n");
+  
   switch (level) {
     case 2:
       if (!GET_SKILL(ch, SKILL_DUAL_WEAPONS))
@@ -513,8 +518,12 @@ void paladin_skills(struct char_data *ch, int level) {
  * i.e free skills  ;  make sure to set in spec_procs too
  */
 void sorc_skills(struct char_data *ch, int level) {
+  
+  /* you can adjust your sorcerer spells every level (study.c) */  
   IS_SORC_LEARNED(ch) = 0;
-  send_to_char(ch, "\tnType \tDstudy sorcerer\tn to adjust your known spells.\r\n");
+  send_to_char(ch, "\tnType \tDstudy sorcerer\tn to adjust your known "
+          "spells.\r\n");
+  
   switch (level) {
     case 2:
       if (!GET_SKILL(ch, SKILL_USE_MAGIC))
@@ -1128,7 +1137,7 @@ void init_class(struct char_data *ch, int class, int level)
 /* not to be confused with init_char, this is exclusive right now for do_start */
 void init_start_char(struct char_data *ch)
 {
-  int trains = 0, practices = 0, i = 0;
+  int trains = 0, practices = 0, i = 0, j = 0;
   
   /* clear immortal flags */
   if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
@@ -1158,6 +1167,8 @@ void init_start_char(struct char_data *ch)
     CLASS_LEVEL(ch, i) = 0;
     GET_SPEC_ABIL(ch, i) = 0;
   }
+  for (j = 0; j < MAX_ENEMIES; j++)
+    GET_FAVORED_ENEMY(ch, j) = RACE_UNDEFINED;
   
   /* a bit silly, but go ahead make sure no stone-skin like spells */
   for (i = 0; i < MAX_WARDING; i++)
@@ -1193,6 +1204,7 @@ void init_start_char(struct char_data *ch)
   /* initialize mem data, allow adjustment of spells known */
   init_spell_slots(ch);
   IS_SORC_LEARNED(ch) = 0;
+  IS_RANG_LEARNED(ch) = 0;
 
   /* hunger and thirst are off */
   GET_COND(ch, HUNGER) = -1;
