@@ -934,9 +934,6 @@ void extract_char_final(struct char_data *ch)
   struct obj_data *obj;
   int i;
   
-  struct mud_event_data *pMudEvent = NULL;
-  
-
   if (IN_ROOM(ch) == NOWHERE) {
     log("SYSERR: NOWHERE extracting char %s. (%s, extract_char_final)",
         GET_NAME(ch), __FILE__);
@@ -1002,9 +999,9 @@ void extract_char_final(struct char_data *ch)
     if (GET_EQ(ch, i))
       obj_to_room(unequip_char(ch, i), IN_ROOM(ch));
 
+  /* stop any fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
-
   for (k = combat_list; k; k = temp) {
     temp = k->next_fighting;
     if (FIGHTING(k) == ch)
@@ -1024,10 +1021,6 @@ void extract_char_final(struct char_data *ch)
     if (!IS_NPC(ch) && GET_POS(ch) == POS_DEAD && MEMORY(temp))
       forget(temp, ch); /* forget() is safe to use without a check. */
   }
-    if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
-      send_to_char(ch, "h:  Has event!\r\n");
-    else
-      send_to_char(ch, "h:  NO event!\r\n");
 
   char_from_room(ch);
 
@@ -1041,20 +1034,11 @@ void extract_char_final(struct char_data *ch)
 
     if (SCRIPT_MEM(ch))
       extract_script_mem(SCRIPT_MEM(ch));
-  } else {
+  } else {  // !IS_NPC
     /* do NOT save events here, the value of 1 for the 2nd parameter of
        save_char was setup for this express goal */
-    if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
-      send_to_char(ch, "3:  Has event!\r\n");
-    else
-      send_to_char(ch, "3:  NO event!\r\n");
-        
-    save_char(ch, 1);
-    
-    if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
-      send_to_char(ch, "4:  Has event!\r\n");
-    else
-      send_to_char(ch, "4:  NO event!\r\n");
+    /* note - this is deprecated, switched value back to 0 */
+    save_char(ch, 0);
     
     Crash_delete_crashfile(ch);
   }
@@ -1072,8 +1056,6 @@ void extract_char_final(struct char_data *ch)
  * really confused otherwise. */
 void extract_char(struct char_data *ch)
 {
-  struct mud_event_data *pMudEvent = NULL;
-
   
   char_from_furniture(ch);
 
@@ -1082,18 +1064,16 @@ void extract_char(struct char_data *ch)
      extract_char_final() we DO NOT save events */
   save_char(ch, 0);
 
-  if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
-    send_to_char(ch, "1:  Has event!\r\n");
-  else
-    send_to_char(ch, "1:  NO event!\r\n");
-  
+  /* this is a solution to a whirlwind bug where while in the menu
+     after death while whirlwinding, the event would try to search
+     through the room to find targets, but you had no room
+     this is the recommended solution below by vatiken, i chanaged it
+     inside the event_whirlwind to just make sure the player is
+     IS_PLAYING() or the event will not continue ...  the positive
+     side effect of my solution is this:  saving events becomes a lot
+     easier task */
   //clear_char_event_list(ch);
 
-  if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
-    send_to_char(ch, "2:  Has event!\r\n");
-  else
-    send_to_char(ch, "2:  NO event!\r\n");
-  
   if (IS_NPC(ch))
     SET_BIT_AR(MOB_FLAGS(ch), MOB_NOTDEADYET);
   else
