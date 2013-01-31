@@ -325,7 +325,7 @@ bool set_clan(struct char_data *ch, clan_vnum c_v)
   if ((c_n = real_clan(c_v)) == NO_CLAN) return FALSE;
 
   GET_CLAN(ch)=clan_list[c_n].vnum;
-  save_char(ch);
+  save_char(ch, 0);
   if ((p_i = get_ptable_by_name(GET_NAME(ch))) < 0) {
     log("SYSERR: Unable to get player_table index for %s in set_clan",
             GET_NAME(ch));
@@ -491,7 +491,7 @@ bool auto_appoint_new_clan_leader(clan_rnum c_n)
           clan_list[c_n].clan_name);
 
   if (loaded) {
-    save_char(new_l);
+    save_char(new_l, 0);
     free_char(new_l);
   } else {
     send_to_char(new_l, "You have been promoted to Clan Leader!\r\n");
@@ -982,7 +982,7 @@ ACMD(do_clandemote)
           return;
 		}
         GET_CLANRANK(vict) = GET_CLANRANK(vict) + 1;
-        save_char(vict);
+        save_char(vict, 0);
         send_to_char(vict, "You have been demoted to %s within your clan!\r\n",
                 clan_list[c_n].rank_name[(GET_CLANRANK(vict)-1)]);
         send_to_char(ch, "%s has been demoted to %s!\r\n", GET_NAME(vict),
@@ -1039,7 +1039,7 @@ ACMD(do_clandemote)
 		}
         GET_CLANRANK(vict) = GET_CLANRANK(vict) + 1;
         GET_PFILEPOS(vict) = p_pos;
-        save_char(vict);
+        save_char(vict, 0);
 
         send_to_char(ch, "%s has been demoted to %s!\r\n", GET_NAME(vict), 
                 clan_list[c_n].rank_name[(GET_CLANRANK(vict)-1)]);
@@ -1165,7 +1165,7 @@ ACMD(do_clandeposit)
   clan_list[(c_n)].treasure += amt;
   decrease_gold(ch, amt);
 
-  save_char(ch);
+  save_char(ch, 0);
   save_clans();
 
   send_to_char(ch, "You have deposited %d coins into the clan bank.\r\n", amt);
@@ -1225,7 +1225,7 @@ ACMD(do_clandestroy)
       {
         GET_CLAN(vict)     = 0;
         GET_CLANRANK(vict) = 0;
-        save_char(vict);
+        save_char(vict, 0);
         if (vict != ch) {
           send_to_char(vict, "Your clan has been disbanded.  "
                   "You are no longer in a clan!\r\n");
@@ -1242,7 +1242,7 @@ ACMD(do_clandestroy)
         GET_CLAN(vict)     = 0;
         GET_CLANRANK(vict) = 0;
         GET_PFILEPOS(vict) = p_pos;
-        save_char(vict);
+        save_char(vict, 0);
 
         free_char(vict);
       }  /* End else (not playing) */
@@ -1427,7 +1427,7 @@ ACMD(do_clanexpel) /* Expel a member */
             GET_NAME(v), clan_list[(c_n)].clan_name, CCNRM(v, C_NRM));
     log("(CLAN) %s has expelled %s from %s!\r\n", GET_NAME(ch), GET_NAME(v),
             clan_list[(c_n)].clan_name);
-    save_char(v);
+    save_char(v, 0);
     save_player_index();
   } else {
     v = new_char();
@@ -1451,7 +1451,7 @@ ACMD(do_clanexpel) /* Expel a member */
     log("(CLAN) %s has expelled %s from %s!\r\n", GET_NAME(ch), GET_NAME(v), 
             clan_list[(c_n)].clan_name);
 
-    save_char(v);
+    save_char(v, 0);
     save_player_index();
 
     free_char(v);
@@ -1791,7 +1791,7 @@ ACMD(do_clanpromote)
           return;
 		}
         GET_CLANRANK(vict) = rk_num;
-        save_char(vict);
+        save_char(vict, 0);
         send_to_char(vict, "You have been promoted to %s within your"
                 " clan!\r\n",
                 clan_list[c_n].rank_name[(GET_CLANRANK(vict)-1)]);
@@ -1849,7 +1849,7 @@ ACMD(do_clanpromote)
 		}
         GET_CLANRANK(vict) = rk_num;
         GET_PFILEPOS(vict) = p_pos;
-        save_char(vict);
+        save_char(vict, 0);
 
         send_to_char(ch, "%s has been promoted to %s!\r\n", GET_NAME(vict), 
                 clan_list[c_n].rank_name[(GET_CLANRANK(vict)-1)]);
@@ -2025,7 +2025,7 @@ ACMD(do_clanwithdraw)
   clan_list[(c_n)].treasure -= amt;
   increase_gold(ch, amt);
 
-  save_char(ch);
+  save_char(ch, 0);
   save_clans();
 
   send_to_char(ch, "You have withdrawn %d coins from the clan bank.\r\n", amt);

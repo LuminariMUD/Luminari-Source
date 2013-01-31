@@ -1559,7 +1559,7 @@ void advance_level(struct char_data *ch, int class)
 
   /* make sure you aren't snooping someone you shouldn't with new level */
   snoop_check(ch);
-  save_char(ch);
+  save_char(ch, 0);
 }
 
 

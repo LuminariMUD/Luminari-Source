@@ -997,7 +997,7 @@ void Crash_save_all(void)
     if ((STATE(d) == CON_PLAYING) && !IS_NPC(d->character)) {
       if (PLR_FLAGGED(d->character, PLR_CRASH)) {
         Crash_crashsave(d->character);
-        save_char(d->character);
+        save_char(d->character, 0);
         REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_CRASH);
       }
     }
@@ -1271,7 +1271,7 @@ static int Crash_load_objs(struct char_data *ch) {
     } else {
       GET_BANK_GOLD(ch) -= MAX(cost - GET_GOLD(ch), 0);
       GET_GOLD(ch) = MAX(GET_GOLD(ch) - cost, 0);
-      save_char(ch);
+      save_char(ch, 0);
     }
   }
   switch (orig_rent_code = rentcode) {

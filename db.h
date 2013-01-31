@@ -288,7 +288,7 @@ SPECIAL(cryogenicist);
 /* Functions from players.c */
 void   tag_argument(char *argument, char *tag);
 int    load_char(const char *name, struct char_data *ch);
-void   save_char(struct char_data *ch);
+void   save_char(struct char_data *ch, int mode);
 void   init_char(struct char_data *ch);
 struct char_data* create_char(void);
 struct char_data *read_mobile(mob_vnum nr, int type);
