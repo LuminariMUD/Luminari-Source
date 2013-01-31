@@ -1381,7 +1381,9 @@ void do_cheat(struct char_data *ch)
   return;
   }
   send_to_char(ch, "Your level has been restored, for now!\r\n");
-  save_char(ch, 0);
+  /* just in case, this is called possibly in extract_char_final() 
+     this will keep from saving events */
+  save_char(ch, 1);
 }
 
 ACMD(do_return)
