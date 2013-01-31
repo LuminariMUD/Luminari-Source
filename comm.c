@@ -1480,7 +1480,7 @@ static char *make_prompt(struct descriptor_data *d)
     struct char_data *tank = NULL;
     int percent = 0;
     
-        sprintf(prompt + strlen(prompt), "&B >&n\r\n&B<");    
+        sprintf(prompt + strlen(prompt), "\tB >\tn\r\n\tB<");    
         /* the prompt elements only active while fighting */
         char_fighting = FIGHTING(d->character);
         if (char_fighting && (d->character->in_room == char_fighting->in_room)) {
@@ -1490,36 +1490,36 @@ static char *make_prompt(struct descriptor_data *d)
               (d->character->in_room == tank->in_room)) {
 
             /* tank name */
-              sprintf(prompt + strlen(prompt), " &CT:&n %s",
+              sprintf(prompt + strlen(prompt), " \tCT:\tn %s",
                     (CAN_SEE(d->character, tank)) ? GET_NAME(tank) : "someone");
 
               /* tank condition */
-              strcat(prompt, " &CTC:");
+              strcat(prompt, " \tCTC:");
               if (GET_MAX_HIT(tank) > 0)
                 percent = (100 * GET_HIT(tank)) / GET_MAX_HIT(tank);
               else
                 percent = -1;
 
               if (percent >= 100)
-                strcat(prompt, " &gexcellent");
+                strcat(prompt, " \tgexcellent");
               else if (percent >= 90)
-                strcat(prompt, " &yfew scratches");
+                strcat(prompt, " \tyfew scratches");
               else if (percent >= 75)
-                strcat(prompt, " &Ysmall wounds");
+                strcat(prompt, " \tYsmall wounds");
               else if (percent >= 50)
-                strcat(prompt, " &Mfew wounds");
+                strcat(prompt, " \tMfew wounds");
               else if (percent >= 30)
-                strcat(prompt, " &mnasty wounds");
+                strcat(prompt, " \tmnasty wounds");
               else if (percent >= 15)
-                strcat(prompt, " &Rpretty hurt");
+                strcat(prompt, " \tRpretty hurt");
               else if (percent >= 0)
-                strcat(prompt, " &rawful");
+                strcat(prompt, " \trawful");
               else
-                strcat(prompt, " &Rbleeding, close to death");
+                strcat(prompt, " \tRbleeding, close to death");
           }
           
           /* enemy name */
-            sprintf(prompt + strlen(prompt), " &RE:&n %s",
+            sprintf(prompt + strlen(prompt), " \tRE:\tn %s",
                    (CAN_SEE(d->character, char_fighting) ?
                    GET_NAME(char_fighting) : "someone"));
 
@@ -1529,23 +1529,23 @@ static char *make_prompt(struct descriptor_data *d)
             else
               percent = -1;
 
-            strcat(prompt, " &REC:");
+            strcat(prompt, " \tREC:");
             if (percent >= 100)
-              strcat(prompt, " &gexcellent");
+              strcat(prompt, " \tgexcellent");
             else if (percent >= 90)
-              strcat(prompt, " &yfew scratches");
+              strcat(prompt, " \tyfew scratches");
             else if (percent >= 75)
-              strcat(prompt, " &Ysmall wounds");
+              strcat(prompt, " \tYsmall wounds");
             else if (percent >= 50)
-              strcat(prompt, " &Mfew wounds");
+              strcat(prompt, " \tMfew wounds");
             else if (percent >= 30)
-              strcat(prompt, " &mnasty wounds");
+              strcat(prompt, " \tmnasty wounds");
             else if (percent >= 15)
-              strcat(prompt, " &Rpretty hurt");
+              strcat(prompt, " \tRpretty hurt");
             else if (percent >= 0)
-              strcat(prompt, " &rawful");
+              strcat(prompt, " \trawful");
             else
-              strcat(prompt, " &Rbleeding, close to death");
+              strcat(prompt, " \tRbleeding, close to death");
         } // end fighting
 /*********************************/
 
@@ -1601,8 +1601,9 @@ static char *make_prompt(struct descriptor_data *d)
   } else
     *prompt = '\0';
 
- // parse_tab(prompt);
-  return (prompt);
+  room_size = strlen(prompt);
+      
+  return ((char *)ProtocolOutput(d, prompt, &room_size));
 }
 
 /* NOTE: 'txt' must be at most MAX_INPUT_LENGTH big. */
