@@ -870,7 +870,6 @@ void save_char(struct char_data * ch, int mode)
   /* save_char(x, 1) will skip this block (i.e. not saving events)
      this is necessary due to clearing events that occurs immediately
      before extract_char_final() in extract_char() */
-  send_to_char(ch, "Mode:  %d\r\n", mode);
   if (mode != 1) {
     /* Save events */
     /* Not going to save every event */
