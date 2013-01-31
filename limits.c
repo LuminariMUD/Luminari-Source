@@ -455,7 +455,7 @@ static void check_idling(struct char_data *ch)
       }
       act("$n disappears into the void.", TRUE, ch, 0, 0, TO_ROOM);
       send_to_char(ch, "You have been idle, and are pulled into a void.\r\n");
-      save_char(ch);
+      save_char(ch, 0);
       Crash_crashsave(ch);
       char_from_room(ch);
       char_to_room(ch, 1);

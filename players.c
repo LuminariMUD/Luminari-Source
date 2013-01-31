@@ -585,7 +585,7 @@ int load_char(const char *name, struct char_data *ch)
 
 /* Write the vital data of a player to the player file. */
 /* This is the ASCII Player Files save routine. */
-void save_char(struct char_data * ch)
+void save_char(struct char_data * ch, int mode)
 {
   FILE *fl;
   char filename[40] = { '\0'}, buf[MAX_STRING_LENGTH] = { '\0' },
@@ -867,41 +867,46 @@ void save_char(struct char_data * ch)
   }
   fprintf(fl, "-1 -1\n");
 
-  /* Save events */
-  /* Not going to save every event */
-  fprintf(fl, "Evnt:\n");
-  /* Order:  Event-ID   Duration */
-  if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eMUMMYDUST)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eDRAGONKNIGHT)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eGREATERRUIN)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eHELLBALL)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eEPICMAGEARMOR)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eSTUNNINGFIST)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, eD_ROLL)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  if ((pMudEvent = char_has_mud_event(ch, ePURIFY)))
-    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  fprintf(fl, "-1 -1\n");  
+  /* save_char(x, 1) will skip this block (i.e. not saving events)
+     this is necessary due to clearing events that occurs immediately
+     before extract_char_final() in extract_char() */
+  if (!mode) {
+    /* Save events */
+    /* Not going to save every event */
+    fprintf(fl, "Evnt:\n");
+    /* Order:  Event-ID   Duration */
+    if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eMUMMYDUST)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eDRAGONKNIGHT)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eGREATERRUIN)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eHELLBALL)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eEPICMAGEARMOR)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eSTUNNINGFIST)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eD_ROLL)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, ePURIFY)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    fprintf(fl, "-1 -1\n");  
+  }
   
   /* Save affects */
   if (tmp_aff[0].spell > 0) {

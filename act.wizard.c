@@ -1381,7 +1381,7 @@ void do_cheat(struct char_data *ch)
   return;
   }
   send_to_char(ch, "Your level has been restored, for now!\r\n");
-  save_char(ch);
+  save_char(ch, 0);
 }
 
 ACMD(do_return)
@@ -1705,7 +1705,7 @@ ACMD(do_advance)
   }
 
   gain_exp_regardless(victim, level_exp(victim, newlevel) - GET_EXP(victim));
-  save_char(victim);
+  save_char(victim, 0);
 }
 
 ACMD(do_restore)
@@ -2590,7 +2590,7 @@ ACMD(do_wizutil)
        *  but this function handles 'reroll', 'pardon', 'freeze', etc. */
       break;
     }
-    save_char(vict);
+    save_char(vict, 0);
   }
 }
 
@@ -3674,10 +3674,10 @@ ACMD(do_set)
   /* save the character if a change was made */
   if (retval) {
     if (!is_file && !IS_NPC(vict))
-      save_char(vict);
+      save_char(vict, 0);
     if (is_file) {
       GET_PFILEPOS(cbuf) = player_i;
-      save_char(cbuf);
+      save_char(cbuf, 0);
       send_to_char(ch, "Saved in file.\r\n");
     }
   }
@@ -4485,7 +4485,7 @@ ACMD(do_copyover)
       /* save och */
       GET_LOADROOM(och) = GET_ROOM_VNUM(IN_ROOM(och));
       Crash_rentsave(och,0);
-      save_char(och);
+      save_char(och, 0);
       write_to_descriptor (d->descriptor, buf);
     }
   }

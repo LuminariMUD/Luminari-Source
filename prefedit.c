@@ -74,7 +74,7 @@ static void prefedit_save_to_char(struct descriptor_data *d)
     GET_PAGE_LENGTH(vict)  = OLC_PREFS(d)->page_length;
     GET_SCREEN_WIDTH(vict) = OLC_PREFS(d)->screen_width;
 
-    save_char(vict);
+    save_char(vict, 0);
   }
   else
   {

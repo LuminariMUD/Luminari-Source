@@ -756,7 +756,7 @@ ACMD(do_alias)
 	a->type = ALIAS_SIMPLE;
       a->next = GET_ALIASES(ch);
       GET_ALIASES(ch) = a;
-      save_char(ch);
+      save_char(ch, 0);
       send_to_char(ch, "Alias ready.\r\n");
     }
   }
@@ -1381,7 +1381,7 @@ int enter_player_game (struct descriptor_data *d)
   load_result = Crash_load(d->character);
   
   /* Save the character and their object file */  
-  save_char(d->character);
+  save_char(d->character, 0);
   Crash_crashsave(d->character);
 
   /* Check for a login trigger in the players' start room */
@@ -1627,7 +1627,7 @@ void nanny(struct descriptor_data *d, char *arg)
       if (strncmp(CRYPT(arg, GET_PASSWD(d->character)), GET_PASSWD(d->character), MAX_PWD_LENGTH)) {
 	mudlog(BRF, LVL_GOD, TRUE, "Bad PW: %s [%s]", GET_NAME(d->character), d->host);
 	GET_BAD_PWS(d->character)++;
-	save_char(d->character);
+	save_char(d->character, 0);
 	if (++(d->bad_pws) >= CONFIG_MAX_BAD_PWS) {	/* 3 strikes and you're out. */
 	  write_to_output(d, "Wrong password... disconnecting.\r\n");
 	  STATE(d) = CON_CLOSE;
@@ -1724,7 +1724,7 @@ void nanny(struct descriptor_data *d, char *arg)
       write_to_output(d, "\r\nWhat is your sex (\t(M\t)/\t(F\t))? ");
       STATE(d) = CON_QSEX;
     } else {
-      save_char(d->character);
+      save_char(d->character, 0);
       write_to_output(d, "\r\nDone.\r\n%s", CONFIG_MENU);
       STATE(d) = CON_MENU;
     }
@@ -1872,7 +1872,7 @@ void nanny(struct descriptor_data *d, char *arg)
 
     /* Now GET_NAME() will work properly. */
     init_char(d->character);
-    save_char(d->character);
+    save_char(d->character, 0);
     save_player_index();
 
     /* print message of the day to player */
@@ -1920,7 +1920,7 @@ void nanny(struct descriptor_data *d, char *arg)
       /* Clear their load room if it's not persistant. */
       if (!PLR_FLAGGED(d->character, PLR_LOADROOM))
         GET_LOADROOM(d->character) = NOWHERE;
-      save_char(d->character);
+      save_char(d->character, 0);
 
       greet_mtrigger(d->character, -1);
       greet_memory_mtrigger(d->character);
@@ -2027,7 +2027,7 @@ void nanny(struct descriptor_data *d, char *arg)
       }
       if (GET_LEVEL(d->character) < LVL_GRGOD)
 	SET_BIT_AR(PLR_FLAGS(d->character), PLR_DELETED);
-      save_char(d->character);
+      save_char(d->character, 0);
       Crash_delete_file(GET_NAME(d->character));
       /* If the selfdelete_fastwipe flag is set (in config.c), remove all the
        * player's immediately. */

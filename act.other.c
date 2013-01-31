@@ -682,7 +682,7 @@ ACMD(do_save)
     return;
 
   send_to_char(ch, "Saving %s.\r\n", GET_NAME(ch));
-  save_char(ch);
+  save_char(ch, 0);
   Crash_crashsave(ch);
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_HOUSE_CRASH))
     House_crashsave(GET_ROOM_VNUM(IN_ROOM(ch)));

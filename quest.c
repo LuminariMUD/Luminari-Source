@@ -362,7 +362,7 @@ void generic_complete_quest(struct char_data *ch)
           QST_INFO(rnum));
     }
   }
-  save_char(ch);
+  save_char(ch, 0);
 }
 
 void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
@@ -554,7 +554,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
  GET_NAME(ch));
   }
   do_tell(qm, buf, cmd_tell, 0);
-  save_char(ch);
+  save_char(ch, 0);
 }
 
 void quest_list(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH])
@@ -592,7 +592,7 @@ void quest_quit(struct char_data *ch)
   else if ((rnum = real_quest(GET_QUEST(ch))) == NOTHING) {
     clear_quest(ch);
     send_to_char(ch, "You are now no longer part of the quest.\r\n");
-    save_char(ch);
+    save_char(ch, 0);
   } else {
     clear_quest(ch);
     if (QST_QUIT(rnum) && (str_cmp(QST_QUIT(rnum), "undefined") != 0))
@@ -605,7 +605,7 @@ void quest_quit(struct char_data *ch)
         "You have lost %d quest points for your cowardice.\r\n",
         QST_PENALTY(rnum));
     }
-    save_char(ch);
+    save_char(ch, 0);
   }
 }
 

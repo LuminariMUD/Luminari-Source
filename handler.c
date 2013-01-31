@@ -1035,7 +1035,9 @@ void extract_char_final(struct char_data *ch)
     if (SCRIPT_MEM(ch))
       extract_script_mem(SCRIPT_MEM(ch));
   } else {
-    save_char(ch);
+    /* do NOT save events here, the value of 1 for the 2nd parameter of
+       save_char was setup for this express goal */
+    save_char(ch, 1);
     Crash_delete_crashfile(ch);
   }
 
@@ -1053,6 +1055,11 @@ void extract_char_final(struct char_data *ch)
 void extract_char(struct char_data *ch)
 {
   char_from_furniture(ch);
+
+  /* We want to save events, this will be last legitimate save including
+     events before extract_char_final(), we have to make sure in
+     extract_char_final() we DO NOT save events */
+  save_char(ch, 0);
   clear_char_event_list(ch);
 
   if (IS_NPC(ch))

@@ -194,7 +194,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         case 'Q':
           write_to_output(d, "Your choices have been finalized!\r\n\r\n");
           IS_SORC_LEARNED(d->character) = 1;
-          save_char(d->character);
+          save_char(d->character, 0);
           cleanup_olc(d, CLEANUP_ALL);
           return;
         case '1':
