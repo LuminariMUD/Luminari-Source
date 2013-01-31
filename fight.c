@@ -2766,7 +2766,7 @@ void perform_violence(void)
       (GET_MOB_SPEC(ch)) (ch, ch, 0, actbuf);
     }
 
-    autoDiagnose(ch);
+//    autoDiagnose(ch);
 
     if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0,2)) {
       send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");
