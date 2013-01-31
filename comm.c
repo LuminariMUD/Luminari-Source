@@ -1490,7 +1490,7 @@ static char *make_prompt(struct descriptor_data *d)
               (d->character->in_room == tank->in_room)) {
 
             /* tank name */
-              sprintf(prompt + strlen(prompt), " \tCT:\tn %s",
+              sprintf(prompt + strlen(prompt), "\tCT:\tn %s",
                     (CAN_SEE(d->character, tank)) ? GET_NAME(tank) : "someone");
 
               /* tank condition */
