@@ -3785,12 +3785,8 @@ void init_char(struct char_data *ch)
   GET_FREEZE_LEV(ch) = 0;
   GET_INVIS_LEV(ch) = 0;
   GET_BAD_PWS(ch) = 0;
-  for (i = 0; i < MAX_CLASSES; i++) {
+  for (i = 0; i < MAX_CLASSES; i++)
     GET_SPEC_ABIL(ch, i) = 0;
-  }
-  for (i = 0; i < MAX_ENEMIES; i++) {
-    GET_FAVORED_ENEMY(ch, i) = RACE_UNDEFINED;
-  }
 }
 
 /* returns the real number of the room with given virtual number */

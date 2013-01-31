@@ -804,9 +804,6 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 
 #define GET_SPEC_ABIL(ch, slot)		(ch->player_specials->saved.spec_abil[slot])
 #define IS_SORC_LEARNED(ch)  (ch->player_specials->saved.spec_abil[SORC_KNOWN])
-#define IS_RANG_LEARNED(ch)  (ch->player_specials->saved.spec_abil[RANG_KNOWN])
-
-#define GET_FAVORED_ENEMY(ch, slot)  (ch->player_specials->saved.favored_enemy[slot])
 
 
 

@@ -446,11 +446,8 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 
 
 /* study Submodes of connectedness. */
-#define SORC_MAIN_MENU         0
-#define STUDY_SPELLS           1
-#define RANG_MAIN_MENU         2
-#define FAVORED_ENEMY          3
-#define ANIMAL_COMPANION       4
+#define STUDY_MAIN_MENU         0
+#define STUDY_SPELLS            1
 
 
 int  save_config( IDXTYPE nowhere );
