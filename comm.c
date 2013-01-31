@@ -1480,10 +1480,10 @@ static char *make_prompt(struct descriptor_data *d)
     struct char_data *tank = NULL;
     int percent = 0;
     
-        sprintf(prompt + strlen(prompt), "\tB >\tn\r\n\tB<");    
         /* the prompt elements only active while fighting */
         char_fighting = FIGHTING(d->character);
         if (char_fighting && (d->character->in_room == char_fighting->in_room)) {
+          sprintf(prompt + strlen(prompt), ">\tn\r\n<");    
 
           /* TANK elements only active if... */
           if ((tank = char_fighting->char_specials.fighting) &&
@@ -1519,7 +1519,7 @@ static char *make_prompt(struct descriptor_data *d)
           }
           
           /* enemy name */
-            sprintf(prompt + strlen(prompt), " \tRE:\tn %s",
+            sprintf(prompt + strlen(prompt), "     \tRE:\tn %s",
                    (CAN_SEE(d->character, char_fighting) ?
                    GET_NAME(char_fighting) : "someone"));
 
