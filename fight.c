@@ -817,87 +817,87 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     /* use #w for singular (i.e. "slash") and #W for plural (i.e. "slashes") */
 
     {
-      "$n tries to #w $N, but misses.",	/* 0: 0     */
-      "You try to #w $N, but miss.",
-      "$n tries to #w you, but misses."
+      "\tn$n tries to #w \tn$N, but misses.\tn",	/* 0: 0     */
+      "You try to #w \tn$N, but miss.\tn",
+      "\tn$n tries to #w you, but misses.\tn"
     },
 
     {
-      "$n barely grazes $N as $e #W $M.",	/* 1: dam <= 2% */
-      "You barely graze $N as you #w $M.",
-      "$n barely grazes you as $e #W you."
+      "\tn$n \tYbarely grazes \tn$N \tYas $e #W $M.\tn",	/* 1: dam <= 2% */
+      "\tMYou barely graze \tn$N \tMas you #w $M.\tn",
+      "\tn$n \tRbarely grazes you as $e #W you.\tn"
     },
 
     {
-      "$n nicks $N as $e #W $M.",	/* 2: dam <= 4% */
-      "You nick $N as you #w $M.",
-      "$n nicks you as $e #W you."
+      "\tn$n \tYnicks \tn$N \tYas $e #W $M.",	/* 2: dam <= 4% */
+      "\tMYou nick \tn$N \tMas you #w $M.",
+      "\tn$n \tRnicks you as $e #W you.\tn"
     },
 
     {
-      "$n barely #W $N.",		/* 3: dam <= 6%  */
-      "You barely #w $N.",
-      "$n barely #W you."
+      "\tn$n \tYbarely #W \tn$N\tY.\tn",		/* 3: dam <= 6%  */
+      "\tMYou barely #w \tn$N\tM.\tn",
+      "\tn$n \tRbarely #W you.\tn"
     },
 
     {
-      "$n #W $N.",			/* 4: dam <= 8%  */
-      "You #w $N.",
-      "$n #W you."
+      "\tn$n \tY#W \tn$N\tY.\tn",			/* 4: dam <= 8%  */
+      "\tMYou #w \tn$N\tM.\tn",
+      "\tn$n \tR#W you.\tn"
     },
 
     {
-      "$n #W $N hard.",			/* 5: dam <= 11% */
-      "You #w $N hard.",
-      "$n #W you hard."
+      "\tn$n \tY#W \tn$N \tYhard.\tn",			/* 5: dam <= 11% */
+      "\tMYou #w \tn$N \tMhard.\tn",
+      "\tn$n \tR#W you hard.\tn"
     },
 
     {
-      "$n #W $N very hard.",		/* 6: dam <= 13%  */
-      "You #w $N very hard.",
-      "$n #W you very hard."
+      "\tn$n \tY#W \tn$N \tYvery hard.\tn",		/* 6: dam <= 14%  */
+      "\tMYou #w \tn$N \tMvery hard.\tn",
+      "\tn$n \tR#W you very hard.\tn"
     },
 
     {
-      "$n #W $N extremely hard.",	/* 7: dam <= 16%  */
-      "You #w $N extremely hard.",
-      "$n #W you extremely hard."
+      "\tn$n \tY#W \tn$N \tYextremely hard.\tn",	/* 7: dam <= 18%  */
+      "\tMYou #w \tn$N \tMextremely hard.\tn",
+      "\tn$n \tR#W you extremely hard.\tn"
     },
     
     {
-      "$n injures $N with $s #w.",	/* 8: dam <= 19%  */
-      "You injure $N with your #w.",
-      "$n injures you with $s #w."
+      "\tn$n \tYinjures \tn$N \tYwith $s #w.\tn",	/* 8: dam <= 22%  */
+      "\tMYou injure \tn$N \tMwith your #w.\tn",
+      "\tn$n \tRinjures you with $s #w.\tn"
     },
 
     {
-      "$n wounds $N with $s #w.",	/* 9: dam <= 22% */
-      "You wound $N with your #w.",
-      "$n wounds you with $s #w."
+      "\tn$n \tYwounds \tn$N \tYwith $s #w.\tn",	/* 9: dam <= 27% */
+      "\tMYou wound \tn$N \tMwith your #w.\tn",
+      "\tn$n \tRwounds you with $s #w.\tn"
     },
     
     {
-      "$n injures $N harshly with $s #w.",	/* 10: dam <= 26%  */
-      "You injure $N harshly with your #w.",
-      "$n injures you harshly with $s #w."
+      "\tn$n \tYinjures \tn$N \tYharshly with $s #w.\tn",	/* 10: dam <= 32%  */
+      "\tMYou injure \tn$N \tMharshly with your #w.\tn",
+      "\tn$n \tRinjures you harshly with $s #w.\tn"
     },
     
     {
-      "$n severely wounds $N with $s #w.",	/* 11: dam <= 26% */
-      "You severely wound $N with your #w.",
-      "$n severely wounds you with $s #w."
+      "\tn$n \tYseverely wounds \tn$N \tYwith $s #w.\tn",	/* 11: dam <= 40% */
+      "\tMYou severely wound \tn$N \tMwith your #w.\tn",
+      "\tn$n \tRseverely wounds you with $s #w.\tn"
     },
 
     {
-      "$n inflicts grave damage on $N with $s #w.",	/* 12: dam <= 26% */
-      "You inflict grave damage on $N with your #w.",
-      "$n inflicts grave damage on you with $s #w."
+      "\tn$n \tYinflicts grave damage on \tn$N\tY with $s #w.\tn",	/* 12: dam <= 50% */
+      "\tMYou inflict grave damage on \tn$N \tMwith your #w.\tn",
+      "\tn$n \tRinflicts grave damage on you with $s #w.\tn"
     },
     
     {
-      "$n nearly kills $N with $s deadly #w!!",	/* (13): > 26   */
-      "You nearly kill $N with your deadly #w!!",
-      "$n nearly kills you with $s deadly #w!!"
+      "\tn$n \tYnearly kills \tn$N\tY with $s deadly #w!!\tn",	/* (13): > 51   */
+      "\tMYou nearly kill \tn$N \tMwith your deadly #w!!\tn",
+      "\tn$n \tRnearly kills you with $s deadly #w!!\tn"
     }
   };
 

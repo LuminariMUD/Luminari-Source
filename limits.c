@@ -104,6 +104,11 @@ void regen_update(struct char_data *ch)
     update_pos(ch);
     return;
   }
+  
+  if (IS_NPC(ch) && GET_LEVEL(ch) <= 6) {
+    update_pos(ch);
+    return;  
+  }
 
   //position, other bonuses
   if (GET_POS(ch) == POS_RESTING)
@@ -125,9 +130,6 @@ void regen_update(struct char_data *ch)
 
   if (rand_number(0, 3) && GET_LEVEL(ch) <= LVL_IMMORT && !IS_NPC(ch) &&
 	(GET_COND(ch, THIRST) == 0 || GET_COND(ch, HUNGER) == 0))
-    hp = 0;
-
-  if (IS_NPC(ch) && GET_LEVEL(ch) <= 5)
     hp = 0;
 
   if (GET_HIT(ch) > GET_MAX_HIT(ch)) {
