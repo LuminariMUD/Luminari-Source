@@ -24,6 +24,7 @@
 #include "quest.h"
 #include "spells.h"
 #include "clan.h"
+#include "mud_event.h"
 
 #define LOAD_HIT	0
 #define LOAD_MANA	1
@@ -51,8 +52,10 @@ long top_idnum = 0;
 /* local functions */
 static void load_affects(FILE *fl, struct char_data *ch);
 static void load_skills(FILE *fl, struct char_data *ch);
+static void load_events(FILE *fl, struct char_data *ch);
 static void load_abilities(FILE *fl, struct char_data *ch);
 static void load_spec_abil(FILE *fl, struct char_data *ch);
+static void load_favored_enemy(FILE *fl, struct char_data *ch);
 static void load_warding(FILE *fl, struct char_data *ch);
 static void load_class_level(FILE *fl, struct char_data *ch);
 static void load_praying(FILE *fl, struct char_data *ch);
@@ -287,6 +290,9 @@ int load_char(const char *name, struct char_data *ch)
       CLASS_LEVEL(ch, i) = 0;
       GET_SPEC_ABIL(ch, i) = 0;
     }
+    for (i = 0; i < MAX_ENEMIES; i++) {
+      GET_FAVORED_ENEMY(ch, i) = RACE_UNDEFINED;
+    }    
     for (i = 0; i < MAX_WARDING; i++)
       GET_WARDING(ch, i) = 0;
     for (i = 1; i <= MAX_SKILLS; i++)
@@ -434,10 +440,12 @@ int load_char(const char *name, struct char_data *ch)
 
         case 'E':
           if (!strcmp(tag, "Exp ")) GET_EXP(ch) = atoi(line);
+          else if (!strcmp(tag, "Evnt")) load_events(fl, ch);
           break;
 
         case 'F':
           if (!strcmp(tag, "Frez")) GET_FREEZE_LEV(ch) = atoi(line);
+          else if (!strcmp(tag, "FaEn")) load_favored_enemy(fl, ch);          
           break;
 
         case 'G':
@@ -580,6 +588,7 @@ int load_char(const char *name, struct char_data *ch)
   return(id);
 }
 
+
 /* Write the vital data of a player to the player file. */
 /* This is the ASCII Player Files save routine. */
 void save_char(struct char_data * ch)
@@ -593,6 +602,8 @@ void save_char(struct char_data * ch)
   struct affected_type tmp_aff[MAX_AFFECT] = { {0} };
   struct obj_data *char_eq[NUM_WEARS] = { NULL };
   trig_data *t = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+  
 
   if (IS_NPC(ch) || GET_PFILEPOS(ch) < 0)
     return;
@@ -660,9 +671,11 @@ void save_char(struct char_data * ch)
   ch->aff_abils = ch->real_abils;
 
   /* Make sure size doesn't go over/under caps */
-
+  /*  todo */
 
   /* end char_to_store code */
+  
+  /* begin writing all the info to file */
 
   if (GET_NAME(ch))				fprintf(fl, "Name: %s\n", GET_NAME(ch));
   if (GET_PASSWD(ch))				fprintf(fl, "Pass: %s\n", GET_PASSWD(ch));
@@ -694,7 +707,6 @@ void save_char(struct char_data * ch)
   if (GET_HEIGHT(ch)	   != PFDEF_HEIGHT)	fprintf(fl, "Hite: %d\n", GET_HEIGHT(ch));
   if (GET_WEIGHT(ch)	   != PFDEF_WEIGHT)	fprintf(fl, "Wate: %d\n", GET_WEIGHT(ch));
   if (GET_ALIGNMENT(ch)  != PFDEF_ALIGNMENT)	fprintf(fl, "Alin: %d\n", GET_ALIGNMENT(ch));
-
 
   sprintascii(bits,  PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);
@@ -792,6 +804,42 @@ void save_char(struct char_data * ch)
     fprintf(fl, "Trig: %d\n",GET_TRIG_VNUM(t));
   }
 
+  /* Save events */
+  /* Not going to save every event */
+  fprintf(fl, "Evnt:\n");
+  /* Order:  Event-ID   Duration */
+  if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eMUMMYDUST)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eDRAGONKNIGHT)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eGREATERRUIN)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eHELLBALL)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eEPICMAGEARMOR)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eSTUNNINGFIST)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, eD_ROLL)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  if ((pMudEvent = char_has_mud_event(ch, ePURIFY)))
+    fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+  fprintf(fl, "0 0\n");
+
   /* Save skills */
   if (GET_LEVEL(ch) < LVL_IMMORT) {
     fprintf(fl, "Skil:\n");
@@ -856,10 +904,17 @@ void save_char(struct char_data * ch)
   }
   fprintf(fl, "-1 -1\n");
 
-  //class levels
+  //spec abilities
   fprintf(fl, "SpAb:\n");
   for (i = 0; i < MAX_CLASSES; i++) {
     fprintf(fl, "%d %d\n", i, GET_SPEC_ABIL(ch, i));
+  }
+  fprintf(fl, "-1 -1\n");
+
+  //ranger favored enemies
+  fprintf(fl, "FaEn:\n");
+  for (i = 0; i < MAX_ENEMIES; i++) {
+    fprintf(fl, "%d %d\n", i, GET_FAVORED_ENEMY(ch, i));
   }
   fprintf(fl, "-1 -1\n");
 
@@ -1044,6 +1099,19 @@ static void load_affects(FILE *fl, struct char_data *ch)
   } while (num != 0);
 }
 
+static void load_events(FILE *fl, struct char_data *ch)
+{
+  int num = 0;
+  long num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do {
+    get_line(fl, line);
+    sscanf(line, "%d %ld", &num, &num2);
+    if (num != 0 && !char_has_mud_event(ch, num))
+      attach_mud_event(new_mud_event(num, ch, NULL), num2);
+  } while (num != 0);
+}
 
 static void load_praytimes(FILE *fl, struct char_data *ch)
 {
@@ -1134,6 +1202,19 @@ static void load_spec_abil(FILE *fl, struct char_data *ch)
     sscanf(line, "%d %d", &num, &num2);
       if (num != -1)
 	GET_SPEC_ABIL(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_favored_enemy(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+      if (num != -1)
+	GET_FAVORED_ENEMY(ch, num) = num2;
   } while (num != -1);
 }
 

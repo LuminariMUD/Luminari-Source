@@ -225,15 +225,19 @@
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
 #define MAX_CLASSES	30	// total number of maximum pc classes
-#define NUM_CASTERS	7	//direct reference to pray array
-/*  x wizard
- *  x sorcerer
- *  x cleric
- *  x druid
- *  bard
- *  x paladin
- *  x ranger
+
+/* ClassArray (for casters) x = added to array
+ * 0)  Cleric    x
+ * 1)  Druid     x
+ * 2)  Wizard    x
+ * 3)  Sorcerer  x
+ * 4)  Paladin   x
+ * 5)  Ranger    x
+ * 6)  Bard
+ * 7)  ? Assassin
+ * 8)  ? Blackguard
  */
+#define NUM_CASTERS	9	//direct reference to pray array
 /**************************/
 
 // warding spells that need to be saved
@@ -241,23 +245,27 @@
 #define STONESKIN		1
 /*---------*/
 #define NUM_WARDING		2
-#define MAX_WARDING		10	// "warding" type spells such as stoneskin that save
+#define MAX_WARDING		10	// "warding" type spells such as stoneskin
 
 
 // spec_abil corresponds to the various abilities that reset daily
-#define RAGES                 0
-#define SHAPECHANGES		1
-#define SONGS                 2
-#define CALLCOMPANION		3
-#define CALLFAMILIAR		4
-#define SORC_KNOWN            5
+#define RAGES                 0  // this was rages per day
+#define SHAPECHANGES		1  // reserved for shapechanges, unused right now
+#define SONGS                 2  // reserved for bard so ng
+#define CALLCOMPANION		3  // reserved for animal companion
+#define CALLFAMILIAR		4  // reserved for call familiar
+#define SORC_KNOWN            5  // learned spells for the level? (sorcerer)
+#define RANG_KNOWN            6  // taken favored enemy / companion? (ranger)
 /*---------------*/
-#define NUM_SPEC_ABIL		6
+#define NUM_SPEC_ABIL		7
 #define MAX_SPEC_ABIL	MAX_CLASSES
-	/* max = MAX_CLASSES right now */
+	/* max = MAX_CLASSES right now, directly above this in the code (30)*/
+
+/* maximum number of enemies a ranger can have, reserve space in pfile */
+#define MAX_ENEMIES          10
 
 // Memorization
-#define NUM_SLOTS	20  //theoretical max num slots per circle
+#define NUM_SLOTS	12  //theoretical max num slots per circle
 #define NUM_CIRCLES	10  //max num circles
 /* how much space to reserve in the mem arrays */
 #define MAX_MEM		NUM_SLOTS * NUM_CIRCLES
@@ -1365,6 +1373,8 @@ struct player_special_data_saved
   ubyte boosts;				//stat boosts left
   ubyte spec_abil[MAX_CLASSES];		//spec abilities (ex. lay on hands)
 
+  int favored_enemy[MAX_ENEMIES];	// ranger favored enemy array  
+  
   int praying[MAX_MEM][NUM_CASTERS];	//memorization
   int prayed[MAX_MEM][NUM_CASTERS];	//memorization
   int praytimes[MAX_MEM][NUM_CASTERS];	//memorization
