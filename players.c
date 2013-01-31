@@ -602,7 +602,7 @@ void save_char(struct char_data * ch)
   struct affected_type tmp_aff[MAX_AFFECT] = { {0} };
   struct obj_data *char_eq[NUM_WEARS] = { NULL };
   trig_data *t = NULL;
-  struct mud_event_data *pMudEvent = NULL;
+//  struct mud_event_data *pMudEvent = NULL;
   
 
   if (IS_NPC(ch) || GET_PFILEPOS(ch) < 0)
@@ -882,10 +882,11 @@ void save_char(struct char_data * ch)
   }
   fprintf(fl, "-1 -1\n");
 
-  /* Save events */
-  /* Not going to save every event */
+  /*
+  // Save events 
+  // Not going to save every event
   fprintf(fl, "Evnt:\n");
-  /* Order:  Event-ID   Duration */
+  // Order:  Event-ID   Duration 
   if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
     fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
   if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
@@ -916,7 +917,8 @@ void save_char(struct char_data * ch)
     fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
   if ((pMudEvent = char_has_mud_event(ch, ePURIFY)))
     fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-  fprintf(fl, "-1 -1\n");  
+  fprintf(fl, "-1 -1\n");
+   */
   
   /* Save affects */
   if (tmp_aff[0].spell > 0) {
