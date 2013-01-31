@@ -1087,7 +1087,7 @@ void extract_char(struct char_data *ch)
   else
     send_to_char(ch, "1:  NO event!\r\n");
   
-  clear_char_event_list(ch);
+  //clear_char_event_list(ch);
 
   if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
     send_to_char(ch, "2:  Has event!\r\n");
