@@ -829,61 +829,73 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     },
 
     {
-      "$n barely #W $N.",		/* 2: dam <= 4%  */
+      "$n nicks $N as $e #W $M.",	/* 2: dam <= 4% */
+      "You nick $N as you #w $M.",
+      "$n nicks you as $e #W you."
+    },
+
+    {
+      "$n barely #W $N.",		/* 3: dam <= 6%  */
       "You barely #w $N.",
       "$n barely #W you."
     },
 
     {
-      "$n #W $N.",			/* 3: dam <= 6%  */
+      "$n #W $N.",			/* 4: dam <= 8%  */
       "You #w $N.",
       "$n #W you."
     },
 
     {
-      "$n #W $N hard.",			/* 4: dam <= 8% */
+      "$n #W $N hard.",			/* 5: dam <= 11% */
       "You #w $N hard.",
       "$n #W you hard."
     },
 
     {
-      "$n #W $N very hard.",		/* 5: dam <= 10%  */
+      "$n #W $N very hard.",		/* 6: dam <= 13%  */
       "You #w $N very hard.",
       "$n #W you very hard."
     },
 
     {
-      "$n #W $N extremely hard.",	/* 6: dam <= 13%  */
+      "$n #W $N extremely hard.",	/* 7: dam <= 16%  */
       "You #w $N extremely hard.",
       "$n #W you extremely hard."
     },
     
     {
-      "$n injures $N with $s #w.",	/* 7: dam <= 16%  */
+      "$n injures $N with $s #w.",	/* 8: dam <= 19%  */
       "You injure $N with your #w.",
       "$n injures you with $s #w."
     },
 
     {
-      "$n wounds $N with $s #w.",	/* 8: dam <= 19% */
+      "$n wounds $N with $s #w.",	/* 9: dam <= 22% */
       "You wound $N with your #w.",
       "$n wounds you with $s #w."
     },
     
     {
-      "$n injures $N harshly with $s #w.",	/* 9: dam <= 22%  */
+      "$n injures $N harshly with $s #w.",	/* 10: dam <= 26%  */
       "You injure $N harshly with your #w.",
       "$n injures you harshly with $s #w."
     },
     
     {
-      "$n severely wounds $N with $s #w.",	/* 10: dam <= 26% */
+      "$n severely wounds $N with $s #w.",	/* 11: dam <= 26% */
       "You severely wound $N with your #w.",
       "$n severely wounds you with $s #w."
     },
 
     {
-      "$n nearly kills $N with $s deadly #w!!",	/* (11): > 26   */
+      "$n inflicts grave damage on $N with $s #w.",	/* 12: dam <= 26% */
+      "You inflict grave damage on $N with your #w.",
+      "$n inflicts grave damage on you with $s #w."
+    },
+    
+    {
+      "$n nearly kills $N with $s deadly #w!!",	/* (13): > 26   */
       "You nearly kill $N with your deadly #w!!",
       "$n nearly kills you with $s deadly #w!!"
     }
@@ -896,13 +908,15 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   else if (pct <= 4)    msgnum = 2;
   else if (pct <= 6)    msgnum = 3;
   else if (pct <= 8)    msgnum = 4;
-  else if (pct <= 10)   msgnum = 5;
-  else if (pct <= 13)   msgnum = 6;
-  else if (pct <= 16)   msgnum = 7;
-  else if (pct <= 19)   msgnum = 8;
-  else if (pct <= 22)   msgnum = 9;
-  else if (pct <= 26)   msgnum = 10;
-  else                  msgnum = 11;
+  else if (pct <= 11)   msgnum = 5;
+  else if (pct <= 14)   msgnum = 6;
+  else if (pct <= 18)   msgnum = 7;
+  else if (pct <= 22)   msgnum = 8;
+  else if (pct <= 27)   msgnum = 9;
+  else if (pct <= 32)   msgnum = 10;
+  else if (pct <= 40)   msgnum = 11;
+  else if (pct <= 50)   msgnum = 12;
+  else                  msgnum = 13;
 
   /* damage message to onlookers */
   // note, we may have to add more info if we have some way to attack
