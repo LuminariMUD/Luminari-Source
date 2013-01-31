@@ -55,7 +55,7 @@ static void load_skills(FILE *fl, struct char_data *ch);
 //static void load_events(FILE *fl, struct char_data *ch);
 static void load_abilities(FILE *fl, struct char_data *ch);
 static void load_spec_abil(FILE *fl, struct char_data *ch);
-static void load_favored_enemy(FILE *fl, struct char_data *ch);
+//static void load_favored_enemy(FILE *fl, struct char_data *ch);
 static void load_warding(FILE *fl, struct char_data *ch);
 static void load_class_level(FILE *fl, struct char_data *ch);
 static void load_praying(FILE *fl, struct char_data *ch);
@@ -445,7 +445,7 @@ int load_char(const char *name, struct char_data *ch)
 
         case 'F':
           if (!strcmp(tag, "Frez")) GET_FREEZE_LEV(ch) = atoi(line);
-          else if (!strcmp(tag, "FaEn")) load_favored_enemy(fl, ch);          
+ //         else if (!strcmp(tag, "FaEn")) load_favored_enemy(fl, ch);          
           break;
 
         case 'G':
@@ -875,13 +875,15 @@ void save_char(struct char_data * ch)
   }
   fprintf(fl, "-1 -1\n");
 
+  /*
   //ranger favored enemies
   fprintf(fl, "FaEn:\n");
   for (i = 0; i < MAX_ENEMIES; i++) {
     fprintf(fl, "%d %d\n", i, GET_FAVORED_ENEMY(ch, i));
   }
   fprintf(fl, "-1 -1\n");
-
+  */
+  
   /*
   // Save events 
   // Not going to save every event
@@ -1193,6 +1195,7 @@ static void load_spec_abil(FILE *fl, struct char_data *ch)
   } while (num != -1);
 }
 
+/*
 static void load_favored_enemy(FILE *fl, struct char_data *ch)
 {
   int num = 0, num2 = 0;
@@ -1205,6 +1208,7 @@ static void load_favored_enemy(FILE *fl, struct char_data *ch)
 	GET_FAVORED_ENEMY(ch, num) = num2;
   } while (num != -1);
 }
+*/
 
 static void load_abilities(FILE *fl, struct char_data *ch)
 {
