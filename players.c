@@ -52,7 +52,7 @@ long top_idnum = 0;
 /* local functions */
 static void load_affects(FILE *fl, struct char_data *ch);
 static void load_skills(FILE *fl, struct char_data *ch);
-static void load_events(FILE *fl, struct char_data *ch);
+//static void load_events(FILE *fl, struct char_data *ch);
 static void load_abilities(FILE *fl, struct char_data *ch);
 static void load_spec_abil(FILE *fl, struct char_data *ch);
 static void load_favored_enemy(FILE *fl, struct char_data *ch);
@@ -440,7 +440,7 @@ int load_char(const char *name, struct char_data *ch)
 
         case 'E':
           if (!strcmp(tag, "Exp ")) GET_EXP(ch) = atoi(line);
-          else if (!strcmp(tag, "Evnt")) load_events(fl, ch);
+  //        else if (!strcmp(tag, "Evnt")) load_events(fl, ch);
           break;
 
         case 'F':
@@ -1272,6 +1272,7 @@ static void load_HMVS(struct char_data *ch, const char *line, int mode)
   }
 }
 
+/*
 static void load_events(FILE *fl, struct char_data *ch)
 {
   int num = 0;
@@ -1285,6 +1286,7 @@ static void load_events(FILE *fl, struct char_data *ch)
       attach_mud_event(new_mud_event(num, ch, NULL), num2);
   } while (num != -1);
 }
+*/ 
 
 static void write_aliases_ascii(FILE *file, struct char_data *ch)
 {
