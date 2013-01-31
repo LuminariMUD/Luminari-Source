@@ -1474,6 +1474,80 @@ static char *make_prompt(struct descriptor_data *d)
       if (count >= 0)
         len += count;
     }
+    
+/*********************************/
+    struct char_data *char_fighting = NULL;
+    struct char_data *tank = NULL;
+    int percent = 0;
+    
+        sprintf(prompt + strlen(prompt), "&B >&n\r\n&B<");    
+        /* the prompt elements only active while fighting */
+        char_fighting = FIGHTING(d->character);
+        if (char_fighting && (d->character->in_room == char_fighting->in_room)) {
+
+          /* TANK elements only active if... */
+          if ((tank = char_fighting->char_specials.fighting) &&
+              (d->character->in_room == tank->in_room)) {
+
+            /* tank name */
+              sprintf(prompt + strlen(prompt), " &CT:&n %s",
+                    (CAN_SEE(d->character, tank)) ? GET_NAME(tank) : "someone");
+
+              /* tank condition */
+              strcat(prompt, " &CTC:");
+              if (GET_MAX_HIT(tank) > 0)
+                percent = (100 * GET_HIT(tank)) / GET_MAX_HIT(tank);
+              else
+                percent = -1;
+
+              if (percent >= 100)
+                strcat(prompt, " &gexcellent");
+              else if (percent >= 90)
+                strcat(prompt, " &yfew scratches");
+              else if (percent >= 75)
+                strcat(prompt, " &Ysmall wounds");
+              else if (percent >= 50)
+                strcat(prompt, " &Mfew wounds");
+              else if (percent >= 30)
+                strcat(prompt, " &mnasty wounds");
+              else if (percent >= 15)
+                strcat(prompt, " &Rpretty hurt");
+              else if (percent >= 0)
+                strcat(prompt, " &rawful");
+              else
+                strcat(prompt, " &Rbleeding, close to death");
+          }
+          
+          /* enemy name */
+            sprintf(prompt + strlen(prompt), " &RE:&n %s",
+                   (CAN_SEE(d->character, char_fighting) ?
+                   GET_NAME(char_fighting) : "someone"));
+
+/* enemy condition */
+            if (GET_MAX_HIT(char_fighting) > 0)
+              percent = (100 * GET_HIT(char_fighting)) / GET_MAX_HIT(char_fighting);
+            else
+              percent = -1;
+
+            strcat(prompt, " &REC:");
+            if (percent >= 100)
+              strcat(prompt, " &gexcellent");
+            else if (percent >= 90)
+              strcat(prompt, " &yfew scratches");
+            else if (percent >= 75)
+              strcat(prompt, " &Ysmall wounds");
+            else if (percent >= 50)
+              strcat(prompt, " &Mfew wounds");
+            else if (percent >= 30)
+              strcat(prompt, " &mnasty wounds");
+            else if (percent >= 15)
+              strcat(prompt, " &Rpretty hurt");
+            else if (percent >= 0)
+              strcat(prompt, " &rawful");
+            else
+              strcat(prompt, " &Rbleeding, close to death");
+        } // end fighting
+/*********************************/
 
     if ((len < sizeof(prompt)) && !IS_NPC(d->character) &&
           !PRF_FLAGGED(d->character, PRF_COMPACT))
