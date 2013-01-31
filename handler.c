@@ -933,6 +933,9 @@ void extract_char_final(struct char_data *ch)
   struct descriptor_data *d;
   struct obj_data *obj;
   int i;
+  
+  struct mud_event_data *pMudEvent = NULL;
+  
 
   if (IN_ROOM(ch) == NOWHERE) {
     log("SYSERR: NOWHERE extracting char %s. (%s, extract_char_final)",
@@ -1037,7 +1040,18 @@ void extract_char_final(struct char_data *ch)
   } else {
     /* do NOT save events here, the value of 1 for the 2nd parameter of
        save_char was setup for this express goal */
+    if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
+      send_to_char(ch, "3:  Has event!\r\n");
+    else
+      send_to_char(ch, "3:  NO event!\r\n");
+        
     save_char(ch, 1);
+    
+    if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
+      send_to_char(ch, "4:  Has event!\r\n");
+    else
+      send_to_char(ch, "4:  NO event!\r\n");
+    
     Crash_delete_crashfile(ch);
   }
 
@@ -1054,14 +1068,28 @@ void extract_char_final(struct char_data *ch)
  * really confused otherwise. */
 void extract_char(struct char_data *ch)
 {
+  struct mud_event_data *pMudEvent = NULL;
+
+  
   char_from_furniture(ch);
 
   /* We want to save events, this will be last legitimate save including
      events before extract_char_final(), we have to make sure in
      extract_char_final() we DO NOT save events */
   save_char(ch, 0);
+
+  if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
+    send_to_char(ch, "1:  Has event!\r\n");
+  else
+    send_to_char(ch, "1:  NO event!\r\n");
+  
   clear_char_event_list(ch);
 
+  if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
+    send_to_char(ch, "2:  Has event!\r\n");
+  else
+    send_to_char(ch, "2:  NO event!\r\n");
+  
   if (IS_NPC(ch))
     SET_BIT_AR(MOB_FLAGS(ch), MOB_NOTDEADYET);
   else
