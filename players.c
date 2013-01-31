@@ -1281,7 +1281,7 @@ static void load_events(FILE *fl, struct char_data *ch)
   do {
     get_line(fl, line);
     sscanf(line, "%d %ld", &num, &num2);
-    if (num != 0 && !char_has_mud_event(ch, num))
+    if (num != -1)
       attach_mud_event(new_mud_event(num, ch, NULL), num2);
   } while (num != -1);
 }
