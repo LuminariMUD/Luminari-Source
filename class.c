@@ -462,6 +462,11 @@ void ranger_skills(struct char_data *ch, int level) {
         SET_SKILL(ch, SKILL_ANIMAL_COMPANION, 75);
       send_to_char(ch, "\tMYou have learned 'Animal Companion'\tn\r\n");
       break;
+    case 5:
+      if (!GET_SKILL(ch, SKILL_TRACK))
+        SET_SKILL(ch, SKILL_TRACK, 75);
+      send_to_char(ch, "\tMYou have learned 'Track'\tn\r\n");
+      break;
     default:
       break;
   }
