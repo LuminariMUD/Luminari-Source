@@ -1518,7 +1518,7 @@ static char *make_prompt(struct descriptor_data *d)
       }
 
       /* enemy name */
-      sprintf(prompt + strlen(prompt), "     \tRE:\tn %s",
+      sprintf(prompt + strlen(prompt), "> <\tRE:\tn %s",
               (CAN_SEE(d->character, char_fighting) ?
               GET_NAME(char_fighting) : "someone"));
 
