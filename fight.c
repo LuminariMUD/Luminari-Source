@@ -2112,13 +2112,13 @@ void hit(struct char_data *ch, struct char_data *victim,
     dam = FALSE;
   } else {
     sprintf(buf1, "[R: %2d]", diceroll);
-    sprintf(buf, "%8s", buf1);
+    sprintf(buf, "%7s", buf1);
     send_to_char(ch, buf);
+    dam = (calc_bab + diceroll >= victim_ac);
     /*
     send_to_char(ch, "\tc{T:%d+", calc_bab);
     send_to_char(ch, "D:%d>=", diceroll);
     send_to_char(ch, "AC:%d}\tn", victim_ac);
-    dam = (calc_bab + diceroll >= victim_ac);
      * */
   }
 
