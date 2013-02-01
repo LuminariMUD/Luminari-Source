@@ -1782,15 +1782,19 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
     //critical hit!  improved crit increases crit chance by 5%, epic 10%
     if (isCriticalHit(ch, diceroll)) {
 
+      /* overwhelming crit is going to be yellow to inflicter
+       * and dark red to the victim */
+      send_to_char(ch, "\tW");
+      send_to_char(victim, "\tR");
       //overwhelming crit addes 3d2 damage before doubling for normal crit
       if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_OVERWHELMING_CRIT) &&
               !IS_NPC(ch)) {
-        send_to_char(ch, "\tW[OW]\tn");
-        send_to_char(victim, "\tR[oOW]\tn");      
+        send_to_char(ch, "\tY");
+        send_to_char(victim, "\tr");      
         dam += dice(3, 2); 
       }
-      send_to_char(ch, "\tW[crit!]\tn");
-      send_to_char(victim, "\tR[crit!]\tn");      
+      send_to_char(ch, "[crit!]\tn");
+      send_to_char(victim, "[crit!]\tn");      
       dam *= 2;
     }
     
