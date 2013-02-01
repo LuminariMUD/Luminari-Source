@@ -1793,6 +1793,7 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
       send_to_char(victim, "\tR[crit!]\tn");      
       dam *= 2;
     }
+    
     //dirty fighting bonus damage
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DIRTY_FIGHTING) >= dice(1, 106)) {
       send_to_char(ch, "\tW[DF]\tn");
@@ -1800,6 +1801,7 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
       dam += dice(2, 3);
     }      
 
+    /* this is the display mode */
   } else if (mode == 2 || mode == 3) {
     send_to_char(ch, "Other Bonuses:  ");
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DIRTY_FIGHTING))
