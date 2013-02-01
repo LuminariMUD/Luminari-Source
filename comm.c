@@ -1280,13 +1280,14 @@ void echo_on(struct descriptor_data *d)
 
 /* the mighty prompt string! */
 /* if you want to add strings that have color codes to it, you
-   have to use protocolOutput function to parse it */
+   have to use protocolOutput function to parse it
+ * note - i just parse the whole string now, add all the color you want */
 static char *make_prompt(struct descriptor_data *d)
 {
   static char prompt[MAX_PROMPT_LENGTH] = { '\0' };
   int door = 0, slen = 0;
   struct char_data *ch = NULL;
-  int count = 0, room_size = 0;
+  int count = 0, prompt_size = 0;
   size_t len = 0;
 
   ch = d->character;
@@ -1383,11 +1384,8 @@ static char *make_prompt(struct descriptor_data *d)
       }
       
       // autoprompt display rooms
-//      room_size = strlen(world[IN_ROOM(ch)].name);
-      
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
-                //ProtocolOutput(d, world[IN_ROOM(ch)].name,&room_size), 
                 world[IN_ROOM(ch)].name,
                 CCNRM(d->character,C_NRM));
         if (count >= 0)
@@ -1502,21 +1500,21 @@ static char *make_prompt(struct descriptor_data *d)
           percent = -1;
 
         if (percent >= 100)
-          strcat(prompt, " \tgexcellent");
+          strcat(prompt, " \tgperfect");
         else if (percent >= 90)
-          strcat(prompt, " \tyfew scratches");
+          strcat(prompt, " \tyexcellent");
         else if (percent >= 75)
-          strcat(prompt, " \tYsmall wounds");
+          strcat(prompt, " \tYgood");
         else if (percent >= 50)
-          strcat(prompt, " \tMfew wounds");
+          strcat(prompt, " \tMfair");
         else if (percent >= 30)
-          strcat(prompt, " \tmnasty wounds");
+          strcat(prompt, " \tmpoor");
         else if (percent >= 15)
-          strcat(prompt, " \tRpretty hurt");
+          strcat(prompt, " \tRbad");
         else if (percent >= 0)
           strcat(prompt, " \trawful");
         else
-          strcat(prompt, " \tRbleeding, close to death");
+          strcat(prompt, " \tRunconscious");
       }
 
       /* enemy name */
@@ -1532,21 +1530,21 @@ static char *make_prompt(struct descriptor_data *d)
 
       strcat(prompt, " \tREC:");
       if (percent >= 100)
-        strcat(prompt, " \tgexcellent");
+        strcat(prompt, " \tgperfect");
       else if (percent >= 90)
-        strcat(prompt, " \tyfew scratches");
+        strcat(prompt, " \tyexcellent");
       else if (percent >= 75)
-        strcat(prompt, " \tYsmall wounds");
+        strcat(prompt, " \tYgood");
       else if (percent >= 50)
-        strcat(prompt, " \tMfew wounds");
+        strcat(prompt, " \tMfair");
       else if (percent >= 30)
-        strcat(prompt, " \tmnasty wounds");
+        strcat(prompt, " \tmpoor");
       else if (percent >= 15)
-        strcat(prompt, " \tRpretty hurt");
+        strcat(prompt, " \tRbad");
       else if (percent >= 0)
         strcat(prompt, " \trawful");
       else
-        strcat(prompt, " \tRbleeding, close to death");
+        strcat(prompt, " \tRunconscious");
     } // end fighting
     /*********************************/
 
@@ -1599,12 +1597,13 @@ static char *make_prompt(struct descriptor_data *d)
       len += count;
 
     /* how did we get here again? */
-  } else
+  } else {
     *prompt = '\0';
+  }
 
-  room_size = strlen(prompt);
+  prompt_size = strlen(prompt);
       
-  return ((char *)ProtocolOutput(d, prompt, &room_size));
+  return ((char *)ProtocolOutput(d, prompt, &prompt_size));
 }
 
 /* NOTE: 'txt' must be at most MAX_INPUT_LENGTH big. */

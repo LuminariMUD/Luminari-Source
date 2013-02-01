@@ -2041,6 +2041,8 @@ void hit(struct char_data *ch, struct char_data *victim,
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   int w_type = 0, victim_ac = 0, calc_bab = 0, dam = 0, diceroll = 0;
   struct affected_type af; /* for crippling strike */
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf1[MAX_INPUT_LENGTH] = { '\0' };
   
   // primary hand setting
   if (GET_EQ(ch, WEAR_WIELD_2H))
@@ -2109,10 +2111,15 @@ void hit(struct char_data *ch, struct char_data *victim,
     send_to_char(ch, "You stumble your attack...  ");
     dam = FALSE;
   } else {
+    sprintf(buf1, "[R: %2d]", diceroll);
+    sprintf(buf, "%8s", buf1);
+    send_to_char(ch, buf);
+    /*
     send_to_char(ch, "\tc{T:%d+", calc_bab);
     send_to_char(ch, "D:%d>=", diceroll);
     send_to_char(ch, "AC:%d}\tn", victim_ac);
     dam = (calc_bab + diceroll >= victim_ac);
+     * */
   }
 
   //check parry attempt
