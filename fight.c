@@ -1510,7 +1510,6 @@ int damage(struct char_data *ch, struct char_data *victim,
     send_to_char(ch, "\tW%s\tn ", buf);
     send_to_char(victim, "\tR%s\tn ", buf);  
   }
-
   
   if (attacktype != -1) {	//added for mount, etc
     if (!IS_WEAPON(attacktype))  //non weapons use skill_message
@@ -1780,13 +1779,6 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
 {
 
   if (mode == 0) {
-    //dirty fighting bonus damage
-    if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DIRTY_FIGHTING) >= dice(1, 106)) {
-      send_to_char(ch, "\tW[DF]\tn");
-      send_to_char(victim, "\tR[oDF]\tn");      
-      dam += dice(2, 3);
-    }      
-
     //critical hit!  improved crit increases crit chance by 5%, epic 10%
     if (isCriticalHit(ch, diceroll)) {
 
@@ -1797,10 +1789,17 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
         send_to_char(victim, "\tR[oOW]\tn");      
         dam += dice(3, 2); 
       }
-      send_to_char(ch, "\tW[crit]\tn");
-      send_to_char(victim, "\tR[oCrit]\tn");      
+      send_to_char(ch, "\tW[crit!]\tn");
+      send_to_char(victim, "\tR[crit!]\tn");      
       dam *= 2;
     }
+    //dirty fighting bonus damage
+    if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DIRTY_FIGHTING) >= dice(1, 106)) {
+      send_to_char(ch, "\tW[DF]\tn");
+      send_to_char(victim, "\tR[oDF]\tn");      
+      dam += dice(2, 3);
+    }      
+
   } else if (mode == 2 || mode == 3) {
     send_to_char(ch, "Other Bonuses:  ");
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DIRTY_FIGHTING))
