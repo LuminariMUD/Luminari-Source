@@ -1362,7 +1362,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 int dam_killed_vict(struct char_data *ch, struct char_data *victim,
 	int dam, int attacktype, int dam_type)
 {
-  char local_buf[256];
+  char local_buf[256] = { '\0' };
   long local_gold = 0, happy_gold = 0;
   struct char_data *tmp_char;
   struct obj_data *corpse_obj;
@@ -1420,6 +1420,8 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim,
 int damage(struct char_data *ch, struct char_data *victim,
 	int dam, int attacktype, int dam_type, int offhand)
 {
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf1[MAX_INPUT_LENGTH] = { '\0' };  
 
   if (GET_POS(victim) <= POS_DEAD) {  //delayed extraction
     if (PLR_FLAGGED(victim, PLR_NOTDEADYET) ||
@@ -1503,8 +1505,10 @@ int damage(struct char_data *ch, struct char_data *victim,
     update_pos_dam(victim);
 
   if (dam) {  //display damage done
-    send_to_char(ch, "\tW[%3d]\tn ", dam);
-    send_to_char(victim, "\tR[%3d]\tn ", dam);  
+    sprintf(buf1, "[%d]", dam);
+    sprintf(buf, "%5s", buf1);
+    send_to_char(ch, "\tW%s\tn ", buf);
+    send_to_char(victim, "\tR%s\tn ", buf);  
   }
 
   
