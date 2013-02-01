@@ -1503,8 +1503,8 @@ int damage(struct char_data *ch, struct char_data *victim,
     update_pos_dam(victim);
 
   if (dam) {  //display damage done
-    send_to_char(ch, "\tW[%d]\tn ", dam);
-    send_to_char(victim, "\tR[%d]\tn ", dam);  
+    send_to_char(ch, "\tW[%3d]\tn ", dam);
+    send_to_char(victim, "\tR[%3d]\tn ", dam);  
   }
 
   
