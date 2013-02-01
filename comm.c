@@ -1383,12 +1383,13 @@ static char *make_prompt(struct descriptor_data *d)
       }
       
       // autoprompt display rooms
-      room_size = strlen(world[IN_ROOM(ch)].name);
+//      room_size = strlen(world[IN_ROOM(ch)].name);
       
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
-                ProtocolOutput(d, world[IN_ROOM(ch)].name,
-                &room_size), CCNRM(d->character,C_NRM));
+                //ProtocolOutput(d, world[IN_ROOM(ch)].name,&room_size), 
+                world[IN_ROOM(ch)].name,
+                CCNRM(d->character,C_NRM));
         if (count >= 0)
           len += count;
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
@@ -1475,79 +1476,79 @@ static char *make_prompt(struct descriptor_data *d)
         len += count;
     }
     
-/*********************************/
+    /********* Auto Diagnose Code *************/
     struct char_data *char_fighting = NULL;
     struct char_data *tank = NULL;
     int percent = 0;
     
-        /* the prompt elements only active while fighting */
-        char_fighting = FIGHTING(d->character);
-        if (char_fighting && (d->character->in_room == char_fighting->in_room)) {
-          sprintf(prompt + strlen(prompt), ">\tn\r\n<");    
+    /* the prompt elements only active while fighting */
+    char_fighting = FIGHTING(d->character);
+    if (char_fighting && (d->character->in_room == char_fighting->in_room)) {
+      sprintf(prompt + strlen(prompt), ">\tn\r\n<");
 
-          /* TANK elements only active if... */
-          if ((tank = char_fighting->char_specials.fighting) &&
+      /* TANK elements only active if... */
+      if ((tank = char_fighting->char_specials.fighting) &&
               (d->character->in_room == tank->in_room)) {
 
-            /* tank name */
-              sprintf(prompt + strlen(prompt), "\tCT:\tn %s",
-                    (CAN_SEE(d->character, tank)) ? GET_NAME(tank) : "someone");
+        /* tank name */
+        sprintf(prompt + strlen(prompt), "\tCT:\tn %s",
+                (CAN_SEE(d->character, tank)) ? GET_NAME(tank) : "someone");
 
-              /* tank condition */
-              strcat(prompt, " \tCTC:");
-              if (GET_MAX_HIT(tank) > 0)
-                percent = (100 * GET_HIT(tank)) / GET_MAX_HIT(tank);
-              else
-                percent = -1;
+        /* tank condition */
+        strcat(prompt, " \tCTC:");
+        if (GET_MAX_HIT(tank) > 0)
+          percent = (100 * GET_HIT(tank)) / GET_MAX_HIT(tank);
+        else
+          percent = -1;
 
-              if (percent >= 100)
-                strcat(prompt, " \tgexcellent");
-              else if (percent >= 90)
-                strcat(prompt, " \tyfew scratches");
-              else if (percent >= 75)
-                strcat(prompt, " \tYsmall wounds");
-              else if (percent >= 50)
-                strcat(prompt, " \tMfew wounds");
-              else if (percent >= 30)
-                strcat(prompt, " \tmnasty wounds");
-              else if (percent >= 15)
-                strcat(prompt, " \tRpretty hurt");
-              else if (percent >= 0)
-                strcat(prompt, " \trawful");
-              else
-                strcat(prompt, " \tRbleeding, close to death");
-          }
-          
-          /* enemy name */
-            sprintf(prompt + strlen(prompt), "     \tRE:\tn %s",
-                   (CAN_SEE(d->character, char_fighting) ?
-                   GET_NAME(char_fighting) : "someone"));
+        if (percent >= 100)
+          strcat(prompt, " \tgexcellent");
+        else if (percent >= 90)
+          strcat(prompt, " \tyfew scratches");
+        else if (percent >= 75)
+          strcat(prompt, " \tYsmall wounds");
+        else if (percent >= 50)
+          strcat(prompt, " \tMfew wounds");
+        else if (percent >= 30)
+          strcat(prompt, " \tmnasty wounds");
+        else if (percent >= 15)
+          strcat(prompt, " \tRpretty hurt");
+        else if (percent >= 0)
+          strcat(prompt, " \trawful");
+        else
+          strcat(prompt, " \tRbleeding, close to death");
+      }
 
-/* enemy condition */
-            if (GET_MAX_HIT(char_fighting) > 0)
-              percent = (100 * GET_HIT(char_fighting)) / GET_MAX_HIT(char_fighting);
-            else
-              percent = -1;
+      /* enemy name */
+      sprintf(prompt + strlen(prompt), "     \tRE:\tn %s",
+              (CAN_SEE(d->character, char_fighting) ?
+              GET_NAME(char_fighting) : "someone"));
 
-            strcat(prompt, " \tREC:");
-            if (percent >= 100)
-              strcat(prompt, " \tgexcellent");
-            else if (percent >= 90)
-              strcat(prompt, " \tyfew scratches");
-            else if (percent >= 75)
-              strcat(prompt, " \tYsmall wounds");
-            else if (percent >= 50)
-              strcat(prompt, " \tMfew wounds");
-            else if (percent >= 30)
-              strcat(prompt, " \tmnasty wounds");
-            else if (percent >= 15)
-              strcat(prompt, " \tRpretty hurt");
-            else if (percent >= 0)
-              strcat(prompt, " \trawful");
-            else
-              strcat(prompt, " \tRbleeding, close to death");
-        } // end fighting
-/*********************************/
+      /* enemy condition */
+      if (GET_MAX_HIT(char_fighting) > 0)
+        percent = (100 * GET_HIT(char_fighting)) / GET_MAX_HIT(char_fighting);
+      else
+        percent = -1;
+
+      strcat(prompt, " \tREC:");
+      if (percent >= 100)
+        strcat(prompt, " \tgexcellent");
+      else if (percent >= 90)
+        strcat(prompt, " \tyfew scratches");
+      else if (percent >= 75)
+        strcat(prompt, " \tYsmall wounds");
+      else if (percent >= 50)
+        strcat(prompt, " \tMfew wounds");
+      else if (percent >= 30)
+        strcat(prompt, " \tmnasty wounds");
+      else if (percent >= 15)
+        strcat(prompt, " \tRpretty hurt");
+      else if (percent >= 0)
+        strcat(prompt, " \trawful");
+      else
+        strcat(prompt, " \tRbleeding, close to death");
+    } // end fighting
+    /*********************************/
 
     if ((len < sizeof(prompt)) && !IS_NPC(d->character) &&
           !PRF_FLAGGED(d->character, PRF_COMPACT))
