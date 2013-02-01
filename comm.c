@@ -1591,7 +1591,7 @@ static char *make_prompt(struct descriptor_data *d)
         len += count;
     }
     if (len < sizeof(prompt))
-      count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s >> ",
+      count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
                 slen ? ">> " : "None! >> ", CCNRM(ch, C_NRM));
     if (count >= 0)
       len += count;
