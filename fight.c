@@ -2115,20 +2115,22 @@ void hit(struct char_data *ch, struct char_data *victim,
   if (isCriticalHit(ch, diceroll)) {
     dam = TRUE;
   } else if (!AWAKE(victim)) {
-    send_to_char(ch, "[down!]");
+    send_to_char(ch, "\tW[down!]\tn");
+    send_to_char(victim, "\tR[down!]\tn");
     dam = TRUE;
   } else if (diceroll == 1) {
     send_to_char(ch, "[stum!]");
+    send_to_char(ch, "[stum!]");
     dam = FALSE;
   } else {
-    sprintf(buf1, "[R: %2d]", diceroll);
+    sprintf(buf1, "\tW[R: %2d]\tn", diceroll);
     sprintf(buf, "%7s", buf1);
     send_to_char(ch, buf);
     sprintf(buf1, "\tR[R: %2d]\tn", diceroll);
     sprintf(buf, "%7s", buf1);
     send_to_char(victim, buf);
     dam = (calc_bab + diceroll >= victim_ac);
-    /*
+    /*  leaving this around for debugging
     send_to_char(ch, "\tc{T:%d+", calc_bab);
     send_to_char(ch, "D:%d>=", diceroll);
     send_to_char(ch, "AC:%d}\tn", victim_ac);
