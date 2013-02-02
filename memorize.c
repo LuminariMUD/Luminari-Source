@@ -589,13 +589,13 @@ int comp_slots(struct char_data *ch, int circle, int class)
 {
   int spellSlots = 0;
   
-  // *note remember in both constant arrays, value 0 is circle 1
-  circle--;
-  
   /* they don't even have access to this circle */
   if (getCircle(ch, class) > circle)
     return 0;
 
+  // *note remember in both constant arrays, value 0 is circle 1
+  circle--;
+  
   switch(class) {
     case CLASS_RANGER:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
