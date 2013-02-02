@@ -2044,14 +2044,15 @@ void idle_weapon_spells(struct char_data *ch)
    penalty ->  (or bonus)  applied to hitroll, BAB multi-attack for example
    offhand -> is this a dual wielding attack?
  */
+#define DAM_MES_LENGTH  20
 void hit(struct char_data *ch, struct char_data *victim,
 	int type, int dam_type, int penalty, int offhand)
 {
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   int w_type = 0, victim_ac = 0, calc_bab = 0, dam = 0, diceroll = 0;
   struct affected_type af; /* for crippling strike */
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-  char buf1[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[DAM_MES_LENGTH] = { '\0' };
+  char buf1[DAM_MES_LENGTH] = { '\0' };
   
   // primary hand setting
   if (GET_EQ(ch, WEAR_WIELD_2H))
@@ -2114,15 +2115,18 @@ void hit(struct char_data *ch, struct char_data *victim,
   if (isCriticalHit(ch, diceroll)) {
     dam = TRUE;
   } else if (!AWAKE(victim)) {
-    send_to_char(ch, "Can't miss a downed target...  ");
+    send_to_char(ch, "[down!]");
     dam = TRUE;
   } else if (diceroll == 1) {
-    send_to_char(ch, "You stumble your attack...  ");
+    send_to_char(ch, "[stum!]");
     dam = FALSE;
   } else {
     sprintf(buf1, "[R: %2d]", diceroll);
     sprintf(buf, "%7s", buf1);
     send_to_char(ch, buf);
+    sprintf(buf1, "\tR[R: %2d]\tn", diceroll);
+    sprintf(buf, "%7s", buf1);
+    send_to_char(victim, buf);
     dam = (calc_bab + diceroll >= victim_ac);
     /*
     send_to_char(ch, "\tc{T:%d+", calc_bab);
