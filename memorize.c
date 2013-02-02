@@ -582,7 +582,8 @@ int spellCircle(int class, int spellnum)
   }
 }
 
-
+  // *note remember in both constant arrays, value 0 is circle 1
+  // and probably should eventually change that for uniformity
 // returns # of total slots based on level, class and stat bonus
 // of given circle
 int comp_slots(struct char_data *ch, int circle, int class)
@@ -590,36 +591,33 @@ int comp_slots(struct char_data *ch, int circle, int class)
   int spellSlots = 0;
   
   /* they don't even have access to this circle */
-  if (getCircle(ch, class) > circle)
+  if (getCircle(ch, class) < circle)
     return 0;
-
-  // *note remember in both constant arrays, value 0 is circle 1
-  circle--;
   
   switch(class) {
     case CLASS_RANGER:
-      spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += rangerSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += spell_bonus[GET_WIS(ch)][circle-1];
+      spellSlots += rangerSlots[CLASS_LEVEL(ch, class)][circle-1];
       break;    
     case CLASS_PALADIN:
-      spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += paladinSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += spell_bonus[GET_WIS(ch)][circle-1];
+      spellSlots += paladinSlots[CLASS_LEVEL(ch, class)][circle-1];
       break;
     case CLASS_CLERIC:
-      spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += clericSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += spell_bonus[GET_WIS(ch)][circle-1];
+      spellSlots += clericSlots[CLASS_LEVEL(ch, class)][circle-1];
       break;
     case CLASS_DRUID:
-      spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += druidSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += spell_bonus[GET_WIS(ch)][circle-1];
+      spellSlots += druidSlots[CLASS_LEVEL(ch, class)][circle-1];
       break;
     case CLASS_WIZARD:
-      spellSlots += spell_bonus[GET_INT(ch)][circle];
-      spellSlots += wizardSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += spell_bonus[GET_INT(ch)][circle-1];
+      spellSlots += wizardSlots[CLASS_LEVEL(ch, class)][circle-1];
       break;
     case CLASS_SORCERER:
-      spellSlots += spell_bonus[GET_CHA(ch)][circle];
-      spellSlots += sorcererSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += spell_bonus[GET_CHA(ch)][circle-1];
+      spellSlots += sorcererSlots[CLASS_LEVEL(ch, class)][circle-1];
       break;
     default:
       if (GET_LEVEL(ch) < LVL_IMMORT) {
