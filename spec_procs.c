@@ -406,6 +406,8 @@ void list_spells(struct char_data *ch, int mode, int class)
   if (mode == 0) {
     len = snprintf(buf2, sizeof(buf2), "\tCKnown Spell List\tn\r\n");
 
+    send_to_char(ch, "getCircle:  %d\r\n", getCircle(ch, class));
+    
     for (slot = getCircle(ch, class); slot > 0; slot--) {
       nlen = snprintf(buf2 + len, sizeof(buf2) - len,
                 "\r\n\tCSpell Circle Level %d\tn\r\n", slot);
@@ -438,7 +440,7 @@ void list_spells(struct char_data *ch, int mode, int class)
   } else {
     len = snprintf(buf2, sizeof(buf2), "\tCFull Spell List\tn\r\n");
 
-    if (class == CLASS_PALADIN)
+    if (class == CLASS_PALADIN || class == CLASS_RANGER)
       slot = 4;
     else
       slot = 9;
