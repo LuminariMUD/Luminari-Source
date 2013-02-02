@@ -1481,24 +1481,70 @@ static char *make_prompt(struct descriptor_data *d)
     
     /* the prompt elements only active while fighting */
     char_fighting = FIGHTING(d->character);
-    if (char_fighting && (d->character->in_room == char_fighting->in_room)) {
-      sprintf(prompt + strlen(prompt), ">\tn\r\n<");
+    if (char_fighting && (d->character->in_room == char_fighting->in_room)
+             && len < sizeof(prompt)) {
+      count = sprintf(prompt + strlen(prompt), ">\tn\r\n<");
+      if (count >= 0)
+        len += count;
 
       /* TANK elements only active if... */
       if ((tank = char_fighting->char_specials.fighting) &&
-              (d->character->in_room == tank->in_room)) {
+              (d->character->in_room == tank->in_room) && 
+              len < sizeof(prompt)) {
+        if (count >= 0)
+          len += count;
 
         /* tank name */
-        sprintf(prompt + strlen(prompt), "\tCT:\tn %s",
-                (CAN_SEE(d->character, tank)) ? GET_NAME(tank) : "someone");
+        if (len < sizeof(prompt))
+          count = sprintf(prompt + strlen(prompt), "\tCT:\tn %s",
+                  (CAN_SEE(d->character, tank)) ? GET_NAME(tank) : "someone");
+        if (count >= 0)
+          len += count;
 
-        /* tank condition */
-        strcat(prompt, " \tCTC:");
-        if (GET_MAX_HIT(tank) > 0)
-          percent = (100 * GET_HIT(tank)) / GET_MAX_HIT(tank);
-        else
-          percent = -1;
+        if (len < sizeof(prompt)) {
+          /* tank condition */
+          strcat(prompt, " \tCTC:");
+          if (GET_MAX_HIT(tank) > 0)
+            percent = (100 * GET_HIT(tank)) / GET_MAX_HIT(tank);
+          else
+            percent = -1;
 
+          if (percent >= 100)
+            strcat(prompt, " \tgperfect");
+          else if (percent >= 90)
+            strcat(prompt, " \tyexcellent");
+          else if (percent >= 75)
+            strcat(prompt, " \tYgood");
+          else if (percent >= 50)
+            strcat(prompt, " \tMfair");
+          else if (percent >= 30)
+            strcat(prompt, " \tmpoor");
+          else if (percent >= 15)
+            strcat(prompt, " \tRbad");
+          else if (percent >= 0)
+            strcat(prompt, " \trawful");
+          else
+            strcat(prompt, " \tRunconscious");
+        }
+        len += 22;  // just counting the strcat's above
+      }  /* end tank elements */
+      
+      /* enemy name */
+      if (len < sizeof(prompt))
+        count = sprintf(prompt + strlen(prompt), "> <\tRE:\tn %s",
+              (CAN_SEE(d->character, char_fighting) ?
+              GET_NAME(char_fighting) : "someone"));
+      if (count >= 0)
+        len += count;
+
+      /* enemy condition */
+      if (GET_MAX_HIT(char_fighting) > 0)
+        percent = (100 * GET_HIT(char_fighting)) / GET_MAX_HIT(char_fighting);
+      else
+        percent = -1;
+
+      if (len < sizeof(prompt)) {
+        strcat(prompt, " \tREC:");
         if (percent >= 100)
           strcat(prompt, " \tgperfect");
         else if (percent >= 90)
@@ -1515,36 +1561,8 @@ static char *make_prompt(struct descriptor_data *d)
           strcat(prompt, " \trawful");
         else
           strcat(prompt, " \tRunconscious");
+        len += 22;  // just counting the strcat's above
       }
-
-      /* enemy name */
-      sprintf(prompt + strlen(prompt), "> <\tRE:\tn %s",
-              (CAN_SEE(d->character, char_fighting) ?
-              GET_NAME(char_fighting) : "someone"));
-
-      /* enemy condition */
-      if (GET_MAX_HIT(char_fighting) > 0)
-        percent = (100 * GET_HIT(char_fighting)) / GET_MAX_HIT(char_fighting);
-      else
-        percent = -1;
-
-      strcat(prompt, " \tREC:");
-      if (percent >= 100)
-        strcat(prompt, " \tgperfect");
-      else if (percent >= 90)
-        strcat(prompt, " \tyexcellent");
-      else if (percent >= 75)
-        strcat(prompt, " \tYgood");
-      else if (percent >= 50)
-        strcat(prompt, " \tMfair");
-      else if (percent >= 30)
-        strcat(prompt, " \tmpoor");
-      else if (percent >= 15)
-        strcat(prompt, " \tRbad");
-      else if (percent >= 0)
-        strcat(prompt, " \trawful");
-      else
-        strcat(prompt, " \tRunconscious");
     } // end fighting
     /*********************************/
 
@@ -1601,7 +1619,8 @@ static char *make_prompt(struct descriptor_data *d)
     *prompt = '\0';
   }
 
-  prompt_size = strlen(prompt);
+  prompt_size = (int)len;
+  send_to_char(d->character, "%d", prompt_size);
       
   return ((char *)ProtocolOutput(d, prompt, &prompt_size));
 }
