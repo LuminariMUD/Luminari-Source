@@ -1003,9 +1003,14 @@ int getCircle(struct char_data *ch, int class)
         return 4;      
     case CLASS_SORCERER:
       return (MAX(1, (MIN(9, CLASS_LEVEL(ch, class) / 2))));
-    /* wizard, druid, cleric */
+    case CLASS_WIZARD:
+      return (MAX(1, MIN(9, (CLASS_LEVEL(ch, class) + 1) / 2)));
+    case CLASS_DRUID:
+      return (MAX(1, MIN(9, (CLASS_LEVEL(ch, class) + 1) / 2)));
+    case CLASS_CLERIC:
+      return (MAX(1, MIN(9, (CLASS_LEVEL(ch, class) + 1) / 2)));
     default:
-      return (MAX(1, MIN(9, CLASS_LEVEL(ch, class) + 1 / 2)));
+      return (MAX(1, MIN(9, (CLASS_LEVEL(ch, class) + 1) / 2)));
   }
 
 }
