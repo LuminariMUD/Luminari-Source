@@ -1620,7 +1620,12 @@ static char *make_prompt(struct descriptor_data *d)
   }
 
   prompt_size = (int)len;
-  send_to_char(d->character, "%d", prompt_size);
+  
+  /* handy debug for prompt size
+     our prompt has potential for some large numbers, with a little
+     experimentation I was able to approach 350 - 02/02/2013
+   */
+  //send_to_char(d->character, "%d", prompt_size);
       
   return ((char *)ProtocolOutput(d, prompt, &prompt_size));
 }
