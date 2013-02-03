@@ -251,10 +251,15 @@
 #define CALLCOMPANION		3
 #define CALLFAMILIAR		4
 #define SORC_KNOWN            5
+#define RANG_KNOWN            6
 /*---------------*/
-#define NUM_SPEC_ABIL		6
+#define NUM_SPEC_ABIL		7
 #define MAX_SPEC_ABIL	MAX_CLASSES
 	/* max = MAX_CLASSES right now */
+
+/* max enemies, reserved space for array of ranger's favored enemies */
+#define MAX_ENEMIES  10
+
 
 // Memorization
 #define NUM_SLOTS	20  //theoretical max num slots per circle
@@ -1364,6 +1369,7 @@ struct player_special_data_saved
   int abilities_to_learn;		//training sessiosn left
   ubyte boosts;				//stat boosts left
   ubyte spec_abil[MAX_CLASSES];		//spec abilities (ex. lay on hands)
+  ubyte favored_enemy[MAX_ENEMIES];  //list of ranger favored enemies
 
   int praying[MAX_MEM][NUM_CASTERS];	//memorization
   int prayed[MAX_MEM][NUM_CASTERS];	//memorization
