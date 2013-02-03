@@ -446,6 +446,9 @@ void berserker_skills(struct char_data *ch, int level) {
  * i.e free skills  ;  make sure to set in spec_procs too
  */
 void ranger_skills(struct char_data *ch, int level) {
+  IS_RANG_LEARNED(ch) = 0;
+  send_to_char(ch, "\tnType \tDstudy ranger\tn to adjust your skills.\r\n");
+  
   switch (level) {
     case 2:
       if (!GET_SKILL(ch, SKILL_DUAL_WEAPONS))
@@ -519,7 +522,9 @@ void paladin_skills(struct char_data *ch, int level) {
  */
 void sorc_skills(struct char_data *ch, int level) {
   IS_SORC_LEARNED(ch) = 0;
-  send_to_char(ch, "\tnType \tDstudy sorcerer\tn to adjust your known spells.\r\n");
+  send_to_char(ch,
+         "\tnType \tDstudy sorcerer\tn to adjust your known spells.\r\n");
+  
   switch (level) {
     case 2:
       if (!GET_SKILL(ch, SKILL_USE_MAGIC))
@@ -1163,6 +1168,8 @@ void init_start_char(struct char_data *ch)
     CLASS_LEVEL(ch, i) = 0;
     GET_SPEC_ABIL(ch, i) = 0;
   }
+  for (i = 0; i < MAX_ENEMIES; i++)
+    GET_FAVORED_ENEMY(ch, i) = 0;
   
   /* a bit silly, but go ahead make sure no stone-skin like spells */
   for (i = 0; i < MAX_WARDING; i++)
@@ -1198,6 +1205,7 @@ void init_start_char(struct char_data *ch)
   /* initialize mem data, allow adjustment of spells known */
   init_spell_slots(ch);
   IS_SORC_LEARNED(ch) = 0;
+  IS_RANG_LEARNED(ch) = 0;
 
   /* hunger and thirst are off */
   GET_COND(ch, HUNGER) = -1;

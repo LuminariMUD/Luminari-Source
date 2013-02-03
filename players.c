@@ -54,6 +54,7 @@ static void load_events(FILE *fl, struct char_data *ch);
 static void load_affects(FILE *fl, struct char_data *ch);
 static void load_skills(FILE *fl, struct char_data *ch);
 static void load_abilities(FILE *fl, struct char_data *ch);
+static void load_favored_enemy(FILE *fl, struct char_data *ch);
 static void load_spec_abil(FILE *fl, struct char_data *ch);
 static void load_warding(FILE *fl, struct char_data *ch);
 static void load_class_level(FILE *fl, struct char_data *ch);
@@ -289,6 +290,8 @@ int load_char(const char *name, struct char_data *ch)
       CLASS_LEVEL(ch, i) = 0;
       GET_SPEC_ABIL(ch, i) = 0;
     }
+    for (i = 0; i < MAX_ENEMIES; i++)
+      GET_FAVORED_ENEMY(ch, i) = 0;
     for (i = 0; i < MAX_WARDING; i++)
       GET_WARDING(ch, i) = 0;
     for (i = 1; i <= MAX_SKILLS; i++)
@@ -441,6 +444,7 @@ int load_char(const char *name, struct char_data *ch)
 
         case 'F':
           if (!strcmp(tag, "Frez")) GET_FREEZE_LEV(ch) = atoi(line);
+          else if (!strcmp(tag, "FaEn")) load_favored_enemy(fl, ch);
           break;
 
         case 'G':
@@ -867,6 +871,13 @@ void save_char(struct char_data * ch, int mode)
   }
   fprintf(fl, "-1 -1\n");
 
+  //favored enemies (rangers)
+  fprintf(fl, "FaEn:\n");
+  for (i = 0; i < MAX_ENEMIES; i++) {
+    fprintf(fl, "%d %d\n", i, GET_FAVORED_ENEMY(ch, i));
+  }
+  fprintf(fl, "-1 -1\n");
+
   /* save_char(x, 1) will skip this block (i.e. not saving events)
      this is necessary due to clearing events that occurs immediately
      before extract_char_final() in extract_char() */
@@ -1182,6 +1193,19 @@ static void load_spec_abil(FILE *fl, struct char_data *ch)
     sscanf(line, "%d %d", &num, &num2);
       if (num != -1)
 	GET_SPEC_ABIL(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_favored_enemy(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+      if (num != -1)
+	GET_FAVORED_ENEMY(ch, num) = num2;
   } while (num != -1);
 }
 
