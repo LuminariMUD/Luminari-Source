@@ -1,12 +1,12 @@
 /**************************************************************************
-*  File: players.c                                         Part of tbaMUD *
-*  Usage: Player loading/saving and utility routines.                     *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-**************************************************************************/
+ *  File: players.c                                         Part of tbaMUD *
+ *  Usage: Player loading/saving and utility routines.                     *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -47,7 +47,7 @@ struct player_index_element *player_table = NULL;
 int top_of_p_table = 0;
 int top_of_p_file = 0;
 long top_idnum = 0;
-*/
+ */
 
 /* local functions */
 static void load_events(FILE *fl, struct char_data *ch);
@@ -68,8 +68,7 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count);
 
 /* New version to build player index for ASCII Player Files. Generate index
  * table for the player file. */
-void build_player_index(void)
-{
+void build_player_index(void) {
   int rec_count = 0, i, nr;
   FILE *plr_index;
   char index_name[40], line[256], bits[64];
@@ -97,9 +96,9 @@ void build_player_index(void)
   for (i = 0; i < rec_count; i++) {
     get_line(plr_index, line);
     if ((nr = sscanf(line, "%ld %s %d %s %ld %d", &player_table[i].id, arg2,
-      &player_table[i].level, bits, (long *)&player_table[i].last, &player_table[i].clan)) != 6) {
+            &player_table[i].level, bits, (long *) &player_table[i].last, &player_table[i].clan)) != 6) {
       if ((nr = sscanf(line, "%ld %s %d %s %ld", &player_table[i].id, arg2,
-        &player_table[i].level, bits, (long *)&player_table[i].last)) != 5) {
+              &player_table[i].level, bits, (long *) &player_table[i].last)) != 5) {
         log("SYSERR: Invalid line in player index (%s)", line);
         continue;
       }
@@ -118,14 +117,13 @@ void build_player_index(void)
 /* Create a new entry in the in-memory index table for the player file. If the
  * name already exists, by overwriting a deleted character, then we re-use the
  * old position. */
-int create_entry(char *name)
-{
+int create_entry(char *name) {
   int i, pos;
 
-  if (top_of_p_table == -1) {	/* no table */
+  if (top_of_p_table == -1) { /* no table */
     pos = top_of_p_table = 0;
     CREATE(player_table, struct player_index_element, 1);
-  } else if ((pos = get_ptable_by_name(name)) == -1) {	/* new name */
+  } else if ((pos = get_ptable_by_name(name)) == -1) { /* new name */
     i = ++top_of_p_table + 1;
 
     RECREATE(player_table, struct player_index_element, i);
@@ -145,11 +143,9 @@ int create_entry(char *name)
   return (pos);
 }
 
-
 /* Remove an entry from the in-memory player index table.               *
  * Requires the 'pos' value returned by the get_ptable_by_name function */
-void remove_player_from_index(int pos)
-{
+void remove_player_from_index(int pos) {
   int i;
 
   if (pos < 0 || pos > top_of_p_table)
@@ -159,13 +155,13 @@ void remove_player_from_index(int pos)
   free(PT_PNAME(pos));
 
   /* Move every other item in the list down the index */
-  for (i = pos+1; i <= top_of_p_table; i++) {
-    PT_PNAME(i-1) = PT_PNAME(i);
-    PT_IDNUM(i-1) = PT_IDNUM(i);
-    PT_LEVEL(i-1) = PT_LEVEL(i);
-    PT_FLAGS(i-1) = PT_FLAGS(i);
-    PT_LLAST(i-1) = PT_LLAST(i);
-    PT_PCLAN(i-1) = PT_PCLAN(i);	
+  for (i = pos + 1; i <= top_of_p_table; i++) {
+    PT_PNAME(i - 1) = PT_PNAME(i);
+    PT_IDNUM(i - 1) = PT_IDNUM(i);
+    PT_LEVEL(i - 1) = PT_LEVEL(i);
+    PT_FLAGS(i - 1) = PT_FLAGS(i);
+    PT_LLAST(i - 1) = PT_LLAST(i);
+    PT_PCLAN(i - 1) = PT_PCLAN(i);
   }
   PT_PNAME(top_of_p_table) = NULL;
 
@@ -174,7 +170,7 @@ void remove_player_from_index(int pos)
 
   /* And reduce the size of the table */
   if (top_of_p_table >= 0)
-    RECREATE(player_table, struct player_index_element, (top_of_p_table+1));
+    RECREATE(player_table, struct player_index_element, (top_of_p_table + 1));
   else {
     free(player_table);
     player_table = NULL;
@@ -182,8 +178,7 @@ void remove_player_from_index(int pos)
 }
 
 /* This function necessary to save a seperate ASCII player index */
-void save_player_index(void)
-{
+void save_player_index(void) {
   int i;
   char index_name[50], bits[64];
   FILE *index_file;
@@ -200,11 +195,11 @@ void save_player_index(void)
       if (player_table[i].clan == NO_CLAN) {
         fprintf(index_file, "%ld %s %d %s %ld\n", player_table[i].id, player_table[i].name,
                 player_table[i].level, *bits ? bits : "0",
-                (long)player_table[i].last);
+                (long) player_table[i].last);
       } else {
-          fprintf(index_file, "%ld %s %d %s %ld %d\n", player_table[i].id,
-            player_table[i].name, player_table[i].level, *bits ? bits : "0",
-            (long)player_table[i].last, player_table[i].clan);
+        fprintf(index_file, "%ld %s %d %s %ld %d\n", player_table[i].id,
+                player_table[i].name, player_table[i].level, *bits ? bits : "0",
+                (long) player_table[i].last, player_table[i].clan);
       }
     }
   fprintf(index_file, "~\n");
@@ -212,8 +207,7 @@ void save_player_index(void)
   fclose(index_file);
 }
 
-void free_player_index(void)
-{
+void free_player_index(void) {
   int tp;
 
   if (!player_table)
@@ -228,8 +222,7 @@ void free_player_index(void)
   top_of_p_table = 0;
 }
 
-long get_ptable_by_name(const char *name)
-{
+long get_ptable_by_name(const char *name) {
   int i;
 
   for (i = 0; i <= top_of_p_table; i++)
@@ -239,8 +232,7 @@ long get_ptable_by_name(const char *name)
   return (-1);
 }
 
-long get_id_by_name(const char *name)
-{
+long get_id_by_name(const char *name) {
   int i;
 
   for (i = 0; i <= top_of_p_table; i++)
@@ -250,8 +242,7 @@ long get_id_by_name(const char *name)
   return (-1);
 }
 
-char *get_name_by_id(long id)
-{
+char *get_name_by_id(long id) {
   int i;
 
   for (i = 0; i <= top_of_p_table; i++)
@@ -262,10 +253,10 @@ char *get_name_by_id(long id)
 }
 
 /* Stuff related to the save/load player system. */
+
 /* New load_char reads ASCII Player Files. Load a char, TRUE if loaded, FALSE
  * if not. */
-int load_char(const char *name, struct char_data *ch)
-{
+int load_char(const char *name, struct char_data *ch) {
   int id, i;
   FILE *fl;
   char filename[40];
@@ -277,7 +268,7 @@ int load_char(const char *name, struct char_data *ch)
   if ((id = get_ptable_by_name(name)) < 0)
     return (-1);
   else {
-    if (!get_filename(filename, sizeof(filename), PLR_FILE, player_table[id].name))
+    if (!get_filename(filename, sizeof (filename), PLR_FILE, player_table[id].name))
       return (-1);
     if (!(fl = fopen(filename, "r"))) {
       mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Couldn't open player file %s", filename);
@@ -360,10 +351,10 @@ int load_char(const char *name, struct char_data *ch)
     GET_AUTOCQUEST_GOLD(ch) = PFDEF_AUTOCQUEST_GOLD;
     GET_AUTOCQUEST_DESC(ch) = NULL;
     GET_AUTOCQUEST_MATERIAL(ch) = PFDEF_AUTOCQUEST_MATERIAL;
-    
-    GET_DIPTIMER(ch)   = PFDEF_DIPTIMER;
-    GET_CLAN(ch)       = PFDEF_CLAN;
-    GET_CLANRANK(ch)   = PFDEF_CLANRANK;
+
+    GET_DIPTIMER(ch) = PFDEF_DIPTIMER;
+    GET_CLAN(ch) = PFDEF_CLAN;
+    GET_CLANRANK(ch) = PFDEF_CLANRANK;
     GET_CLANPOINTS(ch) = PFDEF_CLANPOINTS;
 
     for (i = 0; i < AF_ARRAY_MAX; i++)
@@ -418,7 +409,7 @@ int load_char(const char *name, struct char_data *ch)
           else if (!strcmp(tag, "Clrk")) GET_CLANRANK(ch) = atoi(line);
           else if (!strcmp(tag, "CPts")) GET_CLANPOINTS(ch) = atoi(line);
           else if (!strcmp(tag, "Cvnm")) GET_AUTOCQUEST_VNUM(ch) = atoi(line);
-          else if (!strcmp(tag, "Cmnm")) 
+          else if (!strcmp(tag, "Cmnm"))
             GET_AUTOCQUEST_MAKENUM(ch) = atoi(line);
           else if (!strcmp(tag, "Cqps")) GET_AUTOCQUEST_QP(ch) = atoi(line);
           else if (!strcmp(tag, "Cexp")) GET_AUTOCQUEST_EXP(ch) = atoi(line);
@@ -439,7 +430,7 @@ int load_char(const char *name, struct char_data *ch)
 
         case 'E':
           if (!strcmp(tag, "Exp ")) GET_EXP(ch) = atoi(line);
-          else if (!strcmp(tag, "Evnt")) load_events(fl, ch);        
+          else if (!strcmp(tag, "Evnt")) load_events(fl, ch);
           break;
 
         case 'F':
@@ -569,7 +560,7 @@ int load_char(const char *name, struct char_data *ch)
   }
 
   resetCastingData(ch);
-  CLOUDKILL(ch) = 0;  // make sure init cloudkill burst
+  CLOUDKILL(ch) = 0; // make sure init cloudkill burst
 
   affect_total(ch);
 
@@ -584,21 +575,23 @@ int load_char(const char *name, struct char_data *ch)
     GET_COND(ch, DRUNK) = -1;
   }
   fclose(fl);
-  return(id);
+  return (id);
 }
 
 /* Write the vital data of a player to the player file. */
+
 /* This is the ASCII Player Files save routine. */
-void save_char(struct char_data * ch, int mode)
-{
+void save_char(struct char_data * ch, int mode) {
   FILE *fl;
-  char filename[40] = { '\0'}, buf[MAX_STRING_LENGTH] = { '\0' },
-       bits[127] = { '\0' }, bits2[127] = { '\0' },
-       bits3[127] = { '\0' }, bits4[127] = { '\0' };
+  char filename[40] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'},
+  bits[127] = {'\0'}, bits2[127] = {'\0'},
+  bits3[127] = {'\0'}, bits4[127] = {'\0'};
   int i = 0, j = 0, id = 0, save_index = FALSE;
   struct affected_type *aff = NULL;
-  struct affected_type tmp_aff[MAX_AFFECT] = { {0} };
-  struct obj_data *char_eq[NUM_WEARS] = { NULL };
+  struct affected_type tmp_aff[MAX_AFFECT] = {
+    {0}
+  };
+  struct obj_data * char_eq[NUM_WEARS] = {NULL};
   trig_data *t = NULL;
   struct mud_event_data *pMudEvent = NULL;
 
@@ -624,7 +617,7 @@ void save_char(struct char_data * ch, int mode)
   }
 
   /* any problems with file handling? */
-  if (!get_filename(filename, sizeof(filename), PLR_FILE, GET_NAME(ch)))
+  if (!get_filename(filename, sizeof (filename), PLR_FILE, GET_NAME(ch)))
     return;
   if (!(fl = fopen(filename, "w"))) {
     mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Couldn't open player file %s for write", filename);
@@ -638,15 +631,14 @@ void save_char(struct char_data * ch, int mode)
 #ifndef NO_EXTRANEOUS_TRIGGERS
       remove_otrigger(char_eq[i], ch);
 #endif
-    }
-    else
+    } else
       char_eq[i] = NULL;
   }
 
   for (aff = ch->affected, i = 0; i < MAX_AFFECT; i++) {
     if (aff) {
       tmp_aff[i] = *aff;
-      for (j=0; j<AF_ARRAY_MAX; j++)
+      for (j = 0; j < AF_ARRAY_MAX; j++)
         tmp_aff[i].bitvector[j] = aff->bitvector[j];
       tmp_aff[i].next = 0;
       aff = aff->next;
@@ -672,140 +664,140 @@ void save_char(struct char_data * ch, int mode)
 
   /* end char_to_store code */
 
-  if (GET_NAME(ch))				fprintf(fl, "Name: %s\n", GET_NAME(ch));
-  if (GET_PASSWD(ch))				fprintf(fl, "Pass: %s\n", GET_PASSWD(ch));
-  if (GET_TITLE(ch))				fprintf(fl, "Titl: %s\n", GET_TITLE(ch));
+  if (GET_NAME(ch)) fprintf(fl, "Name: %s\n", GET_NAME(ch));
+  if (GET_PASSWD(ch)) fprintf(fl, "Pass: %s\n", GET_PASSWD(ch));
+  if (GET_TITLE(ch)) fprintf(fl, "Titl: %s\n", GET_TITLE(ch));
   if (ch->player.description && *ch->player.description) {
     strcpy(buf, ch->player.description);
     strip_cr(buf);
     fprintf(fl, "Desc:\n%s~\n", buf);
   }
-  if (POOFIN(ch))				fprintf(fl, "PfIn: %s\n", POOFIN(ch));
-  if (POOFOUT(ch))				fprintf(fl, "PfOt: %s\n", POOFOUT(ch));
-  if (GET_SEX(ch)	     != PFDEF_SEX)	fprintf(fl, "Sex : %d\n", GET_SEX(ch));
-  if (GET_CLASS(ch)	   != PFDEF_CLASS)	fprintf(fl, "Clas: %d\n", GET_CLASS(ch));
-  if (GET_RACE(ch)         != PFDEF_RACE)       fprintf(fl, "Race: %d\n", GET_RACE(ch));
-  if (GET_SIZE(ch)         != PFDEF_SIZE)       fprintf(fl, "Size: %d\n", GET_SIZE(ch));
-  if (GET_LEVEL(ch)	   != PFDEF_LEVEL)	fprintf(fl, "Levl: %d\n", GET_LEVEL(ch));
+  if (POOFIN(ch)) fprintf(fl, "PfIn: %s\n", POOFIN(ch));
+  if (POOFOUT(ch)) fprintf(fl, "PfOt: %s\n", POOFOUT(ch));
+  if (GET_SEX(ch) != PFDEF_SEX) fprintf(fl, "Sex : %d\n", GET_SEX(ch));
+  if (GET_CLASS(ch) != PFDEF_CLASS) fprintf(fl, "Clas: %d\n", GET_CLASS(ch));
+  if (GET_RACE(ch) != PFDEF_RACE) fprintf(fl, "Race: %d\n", GET_RACE(ch));
+  if (GET_SIZE(ch) != PFDEF_SIZE) fprintf(fl, "Size: %d\n", GET_SIZE(ch));
+  if (GET_LEVEL(ch) != PFDEF_LEVEL) fprintf(fl, "Levl: %d\n", GET_LEVEL(ch));
 
   fprintf(fl, "Id  : %ld\n", GET_IDNUM(ch));
-  fprintf(fl, "Brth: %ld\n", (long)ch->player.time.birth);
-  fprintf(fl, "Plyd: %d\n",  ch->player.time.played);
-  fprintf(fl, "Last: %ld\n", (long)ch->player.time.logon);
+  fprintf(fl, "Brth: %ld\n", (long) ch->player.time.birth);
+  fprintf(fl, "Plyd: %d\n", ch->player.time.played);
+  fprintf(fl, "Last: %ld\n", (long) ch->player.time.logon);
 
   if (GET_LAST_MOTD(ch) != PFDEF_LASTMOTD)
-    fprintf(fl, "Lmot: %d\n", (int)GET_LAST_MOTD(ch));
+    fprintf(fl, "Lmot: %d\n", (int) GET_LAST_MOTD(ch));
   if (GET_LAST_NEWS(ch) != PFDEF_LASTNEWS)
-    fprintf(fl, "Lnew: %d\n", (int)GET_LAST_NEWS(ch));
+    fprintf(fl, "Lnew: %d\n", (int) GET_LAST_NEWS(ch));
 
-  if (GET_HOST(ch))				fprintf(fl, "Host: %s\n", GET_HOST(ch));
-  if (GET_HEIGHT(ch)	   != PFDEF_HEIGHT)	fprintf(fl, "Hite: %d\n", GET_HEIGHT(ch));
-  if (GET_WEIGHT(ch)	   != PFDEF_WEIGHT)	fprintf(fl, "Wate: %d\n", GET_WEIGHT(ch));
-  if (GET_ALIGNMENT(ch)  != PFDEF_ALIGNMENT)	fprintf(fl, "Alin: %d\n", GET_ALIGNMENT(ch));
+  if (GET_HOST(ch)) fprintf(fl, "Host: %s\n", GET_HOST(ch));
+  if (GET_HEIGHT(ch) != PFDEF_HEIGHT) fprintf(fl, "Hite: %d\n", GET_HEIGHT(ch));
+  if (GET_WEIGHT(ch) != PFDEF_WEIGHT) fprintf(fl, "Wate: %d\n", GET_WEIGHT(ch));
+  if (GET_ALIGNMENT(ch) != PFDEF_ALIGNMENT) fprintf(fl, "Alin: %d\n", GET_ALIGNMENT(ch));
 
 
-  sprintascii(bits,  PLR_FLAGS(ch)[0]);
+  sprintascii(bits, PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);
   sprintascii(bits3, PLR_FLAGS(ch)[2]);
   sprintascii(bits4, PLR_FLAGS(ch)[3]);
   fprintf(fl, "Act : %s %s %s %s\n", bits, bits2, bits3, bits4);
 
-  sprintascii(bits,  AFF_FLAGS(ch)[0]);
+  sprintascii(bits, AFF_FLAGS(ch)[0]);
   sprintascii(bits2, AFF_FLAGS(ch)[1]);
   sprintascii(bits3, AFF_FLAGS(ch)[2]);
   sprintascii(bits4, AFF_FLAGS(ch)[3]);
   fprintf(fl, "Aff : %s %s %s %s\n", bits, bits2, bits3, bits4);
 
-  sprintascii(bits,  PRF_FLAGS(ch)[0]);
+  sprintascii(bits, PRF_FLAGS(ch)[0]);
   sprintascii(bits2, PRF_FLAGS(ch)[1]);
   sprintascii(bits3, PRF_FLAGS(ch)[2]);
   sprintascii(bits4, PRF_FLAGS(ch)[3]);
   fprintf(fl, "Pref: %s %s %s %s\n", bits, bits2, bits3, bits4);
 
- if (GET_SAVE(ch, 0)	   != PFDEF_SAVETHROW)	fprintf(fl, "Thr1: %d\n", GET_SAVE(ch, 0));
-  if (GET_SAVE(ch, 1)	   != PFDEF_SAVETHROW)	fprintf(fl, "Thr2: %d\n", GET_SAVE(ch, 1));
-  if (GET_SAVE(ch, 2)	   != PFDEF_SAVETHROW)	fprintf(fl, "Thr3: %d\n", GET_SAVE(ch, 2));
-  if (GET_SAVE(ch, 3)	   != PFDEF_SAVETHROW)	fprintf(fl, "Thr4: %d\n", GET_SAVE(ch, 3));
-  if (GET_SAVE(ch, 4)	   != PFDEF_SAVETHROW)	fprintf(fl, "Thr5: %d\n", GET_SAVE(ch, 4));
+  if (GET_SAVE(ch, 0) != PFDEF_SAVETHROW) fprintf(fl, "Thr1: %d\n", GET_SAVE(ch, 0));
+  if (GET_SAVE(ch, 1) != PFDEF_SAVETHROW) fprintf(fl, "Thr2: %d\n", GET_SAVE(ch, 1));
+  if (GET_SAVE(ch, 2) != PFDEF_SAVETHROW) fprintf(fl, "Thr3: %d\n", GET_SAVE(ch, 2));
+  if (GET_SAVE(ch, 3) != PFDEF_SAVETHROW) fprintf(fl, "Thr4: %d\n", GET_SAVE(ch, 3));
+  if (GET_SAVE(ch, 4) != PFDEF_SAVETHROW) fprintf(fl, "Thr5: %d\n", GET_SAVE(ch, 4));
 
-  if (GET_WIMP_LEV(ch)	   != PFDEF_WIMPLEV)	fprintf(fl, "Wimp: %d\n", GET_WIMP_LEV(ch));
-  if (GET_FREEZE_LEV(ch)   != PFDEF_FREEZELEV)	fprintf(fl, "Frez: %d\n", GET_FREEZE_LEV(ch));
-  if (GET_INVIS_LEV(ch)	   != PFDEF_INVISLEV)	fprintf(fl, "Invs: %d\n", GET_INVIS_LEV(ch));
-  if (GET_LOADROOM(ch)	   != PFDEF_LOADROOM)	fprintf(fl, "Room: %d\n", GET_LOADROOM(ch));
+  if (GET_WIMP_LEV(ch) != PFDEF_WIMPLEV) fprintf(fl, "Wimp: %d\n", GET_WIMP_LEV(ch));
+  if (GET_FREEZE_LEV(ch) != PFDEF_FREEZELEV) fprintf(fl, "Frez: %d\n", GET_FREEZE_LEV(ch));
+  if (GET_INVIS_LEV(ch) != PFDEF_INVISLEV) fprintf(fl, "Invs: %d\n", GET_INVIS_LEV(ch));
+  if (GET_LOADROOM(ch) != PFDEF_LOADROOM) fprintf(fl, "Room: %d\n", GET_LOADROOM(ch));
 
-  if (GET_BAD_PWS(ch)	   != PFDEF_BADPWS)	fprintf(fl, "Badp: %d\n", GET_BAD_PWS(ch));
-  if (GET_PRACTICES(ch)	   != PFDEF_PRACTICES)	fprintf(fl, "Lern: %d\n", GET_PRACTICES(ch));
-  if (GET_TRAINS(ch)	   != PFDEF_TRAINS)	fprintf(fl, "Trns: %d\n", GET_TRAINS(ch));
-  if (GET_BOOSTS(ch)	   != PFDEF_BOOSTS)	fprintf(fl, "Bost: %d\n", GET_BOOSTS(ch));
+  if (GET_BAD_PWS(ch) != PFDEF_BADPWS) fprintf(fl, "Badp: %d\n", GET_BAD_PWS(ch));
+  if (GET_PRACTICES(ch) != PFDEF_PRACTICES) fprintf(fl, "Lern: %d\n", GET_PRACTICES(ch));
+  if (GET_TRAINS(ch) != PFDEF_TRAINS) fprintf(fl, "Trns: %d\n", GET_TRAINS(ch));
+  if (GET_BOOSTS(ch) != PFDEF_BOOSTS) fprintf(fl, "Bost: %d\n", GET_BOOSTS(ch));
 
-  if (GET_COND(ch, HUNGER)   != PFDEF_HUNGER && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Hung: %d\n", GET_COND(ch, HUNGER));
+  if (GET_COND(ch, HUNGER) != PFDEF_HUNGER && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Hung: %d\n", GET_COND(ch, HUNGER));
   if (GET_COND(ch, THIRST) != PFDEF_THIRST && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Thir: %d\n", GET_COND(ch, THIRST));
-  if (GET_COND(ch, DRUNK)  != PFDEF_DRUNK  && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Drnk: %d\n", GET_COND(ch, DRUNK));
+  if (GET_COND(ch, DRUNK) != PFDEF_DRUNK && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Drnk: %d\n", GET_COND(ch, DRUNK));
 
-  if (GET_HIT(ch)	   != PFDEF_HIT  || GET_MAX_HIT(ch)  != PFDEF_MAXHIT)  fprintf(fl, "Hit : %d/%d\n", GET_HIT(ch),  GET_MAX_HIT(ch));
-  if (GET_MANA(ch)	   != PFDEF_MANA || GET_MAX_MANA(ch) != PFDEF_MAXMANA) fprintf(fl, "Mana: %d/%d\n", GET_MANA(ch), GET_MAX_MANA(ch));
-  if (GET_MOVE(ch)	   != PFDEF_MOVE || GET_MAX_MOVE(ch) != PFDEF_MAXMOVE) fprintf(fl, "Move: %d/%d\n", GET_MOVE(ch), GET_MAX_MOVE(ch));
+  if (GET_HIT(ch) != PFDEF_HIT || GET_MAX_HIT(ch) != PFDEF_MAXHIT) fprintf(fl, "Hit : %d/%d\n", GET_HIT(ch), GET_MAX_HIT(ch));
+  if (GET_MANA(ch) != PFDEF_MANA || GET_MAX_MANA(ch) != PFDEF_MAXMANA) fprintf(fl, "Mana: %d/%d\n", GET_MANA(ch), GET_MAX_MANA(ch));
+  if (GET_MOVE(ch) != PFDEF_MOVE || GET_MAX_MOVE(ch) != PFDEF_MAXMOVE) fprintf(fl, "Move: %d/%d\n", GET_MOVE(ch), GET_MAX_MOVE(ch));
 
-  if (GET_STR(ch)	   != PFDEF_STR  || GET_ADD(ch)      != PFDEF_STRADD)  fprintf(fl, "Str : %d/%d\n", GET_STR(ch),  GET_ADD(ch));
+  if (GET_STR(ch) != PFDEF_STR || GET_ADD(ch) != PFDEF_STRADD) fprintf(fl, "Str : %d/%d\n", GET_STR(ch), GET_ADD(ch));
 
 
-  if (GET_INT(ch)	   != PFDEF_INT)	fprintf(fl, "Int : %d\n", GET_INT(ch));
-  if (GET_WIS(ch)	   != PFDEF_WIS)	fprintf(fl, "Wis : %d\n", GET_WIS(ch));
-  if (GET_DEX(ch)	   != PFDEF_DEX)	fprintf(fl, "Dex : %d\n", GET_DEX(ch));
-  if (GET_CON(ch)	   != PFDEF_CON)	fprintf(fl, "Con : %d\n", GET_CON(ch));
-  if (GET_CHA(ch)	   != PFDEF_CHA)	fprintf(fl, "Cha : %d\n", GET_CHA(ch));
+  if (GET_INT(ch) != PFDEF_INT) fprintf(fl, "Int : %d\n", GET_INT(ch));
+  if (GET_WIS(ch) != PFDEF_WIS) fprintf(fl, "Wis : %d\n", GET_WIS(ch));
+  if (GET_DEX(ch) != PFDEF_DEX) fprintf(fl, "Dex : %d\n", GET_DEX(ch));
+  if (GET_CON(ch) != PFDEF_CON) fprintf(fl, "Con : %d\n", GET_CON(ch));
+  if (GET_CHA(ch) != PFDEF_CHA) fprintf(fl, "Cha : %d\n", GET_CHA(ch));
 
-  if (GET_AC(ch)	   != PFDEF_AC)		fprintf(fl, "Ac  : %d\n", GET_AC(ch));
-  if (GET_GOLD(ch)	   != PFDEF_GOLD)	fprintf(fl, "Gold: %d\n", GET_GOLD(ch));
-  if (GET_BANK_GOLD(ch)	   != PFDEF_BANK)	fprintf(fl, "Bank: %d\n", GET_BANK_GOLD(ch));
-  if (GET_EXP(ch)	   != PFDEF_EXP)	fprintf(fl, "Exp : %d\n", GET_EXP(ch));
-  if (GET_HITROLL(ch)	   != PFDEF_HITROLL)	fprintf(fl, "Hrol: %d\n", GET_HITROLL(ch));
-  if (GET_DAMROLL(ch)	   != PFDEF_DAMROLL)	fprintf(fl, "Drol: %d\n", GET_DAMROLL(ch));
-  if (GET_SPELL_RES(ch)	   != PFDEF_SPELL_RES)	fprintf(fl, "SpRs: %d\n", GET_SPELL_RES(ch));
-  if (IS_MORPHED(ch)	   != PFDEF_MORPHED)	fprintf(fl, "Mrph: %d\n", IS_MORPHED(ch));
+  if (GET_AC(ch) != PFDEF_AC) fprintf(fl, "Ac  : %d\n", GET_AC(ch));
+  if (GET_GOLD(ch) != PFDEF_GOLD) fprintf(fl, "Gold: %d\n", GET_GOLD(ch));
+  if (GET_BANK_GOLD(ch) != PFDEF_BANK) fprintf(fl, "Bank: %d\n", GET_BANK_GOLD(ch));
+  if (GET_EXP(ch) != PFDEF_EXP) fprintf(fl, "Exp : %d\n", GET_EXP(ch));
+  if (GET_HITROLL(ch) != PFDEF_HITROLL) fprintf(fl, "Hrol: %d\n", GET_HITROLL(ch));
+  if (GET_DAMROLL(ch) != PFDEF_DAMROLL) fprintf(fl, "Drol: %d\n", GET_DAMROLL(ch));
+  if (GET_SPELL_RES(ch) != PFDEF_SPELL_RES) fprintf(fl, "SpRs: %d\n", GET_SPELL_RES(ch));
+  if (IS_MORPHED(ch) != PFDEF_MORPHED) fprintf(fl, "Mrph: %d\n", IS_MORPHED(ch));
 
-  if (GET_AUTOCQUEST_VNUM(ch)  != PFDEF_AUTOCQUEST_VNUM)
-          fprintf(fl, "Cvnm: %d\n", GET_AUTOCQUEST_VNUM(ch));
-  if (GET_AUTOCQUEST_MAKENUM(ch)  != PFDEF_AUTOCQUEST_MAKENUM)
-          fprintf(fl, "Cmnm: %d\n", GET_AUTOCQUEST_MAKENUM(ch));
-  if (GET_AUTOCQUEST_QP(ch)  != PFDEF_AUTOCQUEST_QP)
-          fprintf(fl, "Cqps: %d\n", GET_AUTOCQUEST_QP(ch));
-  if (GET_AUTOCQUEST_EXP(ch)  != PFDEF_AUTOCQUEST_EXP)
-          fprintf(fl, "Cexp: %d\n", GET_AUTOCQUEST_EXP(ch));
-  if (GET_AUTOCQUEST_GOLD(ch)  != PFDEF_AUTOCQUEST_GOLD)
-          fprintf(fl, "Cgld: %d\n", GET_AUTOCQUEST_GOLD(ch));
-  if (GET_AUTOCQUEST_DESC(ch)  != PFDEF_AUTOCQUEST_DESC)
-          fprintf(fl, "Cdsc: %s\n", GET_AUTOCQUEST_DESC(ch));
-  if (GET_AUTOCQUEST_MATERIAL(ch)  != PFDEF_AUTOCQUEST_MATERIAL)
-          fprintf(fl, "Cmat: %d\n", GET_AUTOCQUEST_MATERIAL(ch));
-  
-  if (GET_OLC_ZONE(ch)     != PFDEF_OLC)        fprintf(fl, "Olc : %d\n", GET_OLC_ZONE(ch));
-  if (GET_PAGE_LENGTH(ch)  != PFDEF_PAGELENGTH) fprintf(fl, "Page: %d\n", GET_PAGE_LENGTH(ch));
+  if (GET_AUTOCQUEST_VNUM(ch) != PFDEF_AUTOCQUEST_VNUM)
+    fprintf(fl, "Cvnm: %d\n", GET_AUTOCQUEST_VNUM(ch));
+  if (GET_AUTOCQUEST_MAKENUM(ch) != PFDEF_AUTOCQUEST_MAKENUM)
+    fprintf(fl, "Cmnm: %d\n", GET_AUTOCQUEST_MAKENUM(ch));
+  if (GET_AUTOCQUEST_QP(ch) != PFDEF_AUTOCQUEST_QP)
+    fprintf(fl, "Cqps: %d\n", GET_AUTOCQUEST_QP(ch));
+  if (GET_AUTOCQUEST_EXP(ch) != PFDEF_AUTOCQUEST_EXP)
+    fprintf(fl, "Cexp: %d\n", GET_AUTOCQUEST_EXP(ch));
+  if (GET_AUTOCQUEST_GOLD(ch) != PFDEF_AUTOCQUEST_GOLD)
+    fprintf(fl, "Cgld: %d\n", GET_AUTOCQUEST_GOLD(ch));
+  if (GET_AUTOCQUEST_DESC(ch) != PFDEF_AUTOCQUEST_DESC)
+    fprintf(fl, "Cdsc: %s\n", GET_AUTOCQUEST_DESC(ch));
+  if (GET_AUTOCQUEST_MATERIAL(ch) != PFDEF_AUTOCQUEST_MATERIAL)
+    fprintf(fl, "Cmat: %d\n", GET_AUTOCQUEST_MATERIAL(ch));
+
+  if (GET_OLC_ZONE(ch) != PFDEF_OLC) fprintf(fl, "Olc : %d\n", GET_OLC_ZONE(ch));
+  if (GET_PAGE_LENGTH(ch) != PFDEF_PAGELENGTH) fprintf(fl, "Page: %d\n", GET_PAGE_LENGTH(ch));
   if (GET_SCREEN_WIDTH(ch) != PFDEF_SCREENWIDTH) fprintf(fl, "ScrW: %d\n", GET_SCREEN_WIDTH(ch));
-  if (GET_QUESTPOINTS(ch)  != PFDEF_QUESTPOINTS) fprintf(fl, "Qstp: %d\n", GET_QUESTPOINTS(ch));
-  if (GET_QUEST_COUNTER(ch)!= PFDEF_QUESTCOUNT)  fprintf(fl, "Qcnt: %d\n", GET_QUEST_COUNTER(ch));
-  if (GET_NUM_QUESTS(ch)   != PFDEF_COMPQUESTS) {
+  if (GET_QUESTPOINTS(ch) != PFDEF_QUESTPOINTS) fprintf(fl, "Qstp: %d\n", GET_QUESTPOINTS(ch));
+  if (GET_QUEST_COUNTER(ch) != PFDEF_QUESTCOUNT) fprintf(fl, "Qcnt: %d\n", GET_QUEST_COUNTER(ch));
+  if (GET_NUM_QUESTS(ch) != PFDEF_COMPQUESTS) {
     fprintf(fl, "Qest:\n");
     for (i = 0; i < GET_NUM_QUESTS(ch); i++)
       fprintf(fl, "%d\n", ch->player_specials->saved.completed_quests[i]);
     fprintf(fl, "%d\n", NOTHING);
   }
-  if (GET_QUEST(ch)        != PFDEF_CURRQUEST)  fprintf(fl, "Qcur: %d\n", GET_QUEST(ch));
-  if (GET_DIPTIMER(ch)	   != PFDEF_DIPTIMER)   fprintf(fl, "DipT: %d\n", GET_DIPTIMER(ch));
-  if (GET_CLAN(ch)         != PFDEF_CLAN)       fprintf(fl, "Cln : %d\n", GET_CLAN(ch));
-  if (GET_CLANRANK(ch)     != PFDEF_CLANRANK)   fprintf(fl, "Clrk: %d\n", GET_CLANRANK(ch));
-  if (GET_CLANPOINTS(ch)   != PFDEF_CLANPOINTS) fprintf(fl, "CPts: %d\n", GET_CLANPOINTS(ch));
+  if (GET_QUEST(ch) != PFDEF_CURRQUEST) fprintf(fl, "Qcur: %d\n", GET_QUEST(ch));
+  if (GET_DIPTIMER(ch) != PFDEF_DIPTIMER) fprintf(fl, "DipT: %d\n", GET_DIPTIMER(ch));
+  if (GET_CLAN(ch) != PFDEF_CLAN) fprintf(fl, "Cln : %d\n", GET_CLAN(ch));
+  if (GET_CLANRANK(ch) != PFDEF_CLANRANK) fprintf(fl, "Clrk: %d\n", GET_CLANRANK(ch));
+  if (GET_CLANPOINTS(ch) != PFDEF_CLANPOINTS) fprintf(fl, "CPts: %d\n", GET_CLANPOINTS(ch));
   if (SCRIPT(ch)) {
     for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next)
-    fprintf(fl, "Trig: %d\n",GET_TRIG_VNUM(t));
+      fprintf(fl, "Trig: %d\n", GET_TRIG_VNUM(t));
   }
 
   /* Save skills */
   if (GET_LEVEL(ch) < LVL_IMMORT) {
     fprintf(fl, "Skil:\n");
     for (i = 1; i <= MAX_SKILLS; i++) {
-     if (GET_SKILL(ch, i))
-	fprintf(fl, "%d %d\n", i, GET_SKILL(ch, i));
+      if (GET_SKILL(ch, i))
+        fprintf(fl, "%d %d\n", i, GET_SKILL(ch, i));
     }
     fprintf(fl, "0 0\n");
   }
@@ -814,8 +806,8 @@ void save_char(struct char_data * ch, int mode)
   if (GET_LEVEL(ch) < LVL_IMMORT) {
     fprintf(fl, "Ablt:\n");
     for (i = 1; i <= MAX_ABILITIES; i++) {
-     if (GET_ABILITY(ch, i))
-	fprintf(fl, "%d %d\n", i, GET_ABILITY(ch, i));
+      if (GET_ABILITY(ch, i))
+        fprintf(fl, "%d %d\n", i, GET_ABILITY(ch, i));
     }
     fprintf(fl, "0 0\n");
   }
@@ -916,17 +908,17 @@ void save_char(struct char_data * ch, int mode)
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, ePURIFY)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-    fprintf(fl, "-1 -1\n");  
+    fprintf(fl, "-1 -1\n");
   }
-  
+
   /* Save affects */
   if (tmp_aff[0].spell > 0) {
     fprintf(fl, "Affs:\n");
     for (i = 0; i < MAX_AFFECT; i++) {
       aff = &tmp_aff[i];
       if (aff->spell)
-		fprintf(fl, "%d %d %d %d %d %d %d %d\n", aff->spell, aff->duration,
-          aff->modifier, aff->location, aff->bitvector[0], aff->bitvector[1], aff->bitvector[2], aff->bitvector[3]);
+        fprintf(fl, "%d %d %d %d %d %d %d %d\n", aff->spell, aff->duration,
+              aff->modifier, aff->location, aff->bitvector[0], aff->bitvector[1], aff->bitvector[2], aff->bitvector[3]);
     }
     fprintf(fl, "0 0 0 0 0 0 0 0\n");
   }
@@ -945,17 +937,17 @@ void save_char(struct char_data * ch, int mode)
   for (i = 0; i < NUM_WEARS; i++) {
     if (char_eq[i])
 #ifndef NO_EXTRANEOUS_TRIGGERS
-        if (wear_otrigger(char_eq[i], ch, i))
+      if (wear_otrigger(char_eq[i], ch, i))
 #endif
-    equip_char(ch, char_eq[i], i);
+        equip_char(ch, char_eq[i], i);
 #ifndef NO_EXTRANEOUS_TRIGGERS
-          else
-          obj_to_char(char_eq[i], ch);
+      else
+        obj_to_char(char_eq[i], ch);
 #endif
   }
-  
+
   /* add affects back in */
-  
+
   /* end char_to_store code */
 
   if ((id = get_ptable_by_name(GET_NAME(ch))) < 0)
@@ -990,8 +982,7 @@ void save_char(struct char_data * ch, int mode)
 }
 
 /* Separate a 4-character id tag from the data it precedes */
-void tag_argument(char *argument, char *tag)
-{
+void tag_argument(char *argument, char *tag) {
   char *tmp = argument, *ttag = tag, *wrt = argument;
   int i;
 
@@ -1011,8 +1002,7 @@ void tag_argument(char *argument, char *tag)
 
 /* remove_player() removes all files associated with a player who is self-deleted,
  * deleted by an immortal, or deleted by the auto-wipe system (if enabled). */
-void remove_player(int pfilepos)
-{
+void remove_player(int pfilepos) {
   char filename[MAX_STRING_LENGTH];
   int i;
 
@@ -1021,13 +1011,13 @@ void remove_player(int pfilepos)
 
   /* Unlink all player-owned files */
   for (i = 0; i < MAX_FILES; i++) {
-    if (get_filename(filename, sizeof(filename), i, player_table[pfilepos].name))
+    if (get_filename(filename, sizeof (filename), i, player_table[pfilepos].name))
       unlink(filename);
   }
 
   log("PCLEAN: %s Lev: %d Last: %s",
-	player_table[pfilepos].name, player_table[pfilepos].level,
-	asctime(localtime(&player_table[pfilepos].last)));
+          player_table[pfilepos].name, player_table[pfilepos].level,
+          asctime(localtime(&player_table[pfilepos].last)));
   player_table[pfilepos].name[0] = '\0';
 
   /* Update index table. */
@@ -1036,31 +1026,30 @@ void remove_player(int pfilepos)
   save_player_index();
 }
 
-void clean_pfiles(void)
-{
+void clean_pfiles(void) {
   int i, ci;
 
   for (i = 0; i <= top_of_p_table; i++) {
     /* We only want to go further if the player isn't protected from deletion
      * and hasn't already been deleted. */
     if (!IS_SET(player_table[i].flags, PINDEX_NODELETE) &&
-        *player_table[i].name) {
+            *player_table[i].name) {
       /* If the player is already flagged for deletion, then go ahead and get
        * rid of him. */
       if (IS_SET(player_table[i].flags, PINDEX_DELETED)) {
-	remove_player(i);
+        remove_player(i);
       } else {
         /* Check to see if the player has overstayed his welcome based on level. */
-	for (ci = 0; pclean_criteria[ci].level > -1; ci++) {
-	  if (player_table[i].level <= pclean_criteria[ci].level &&
-	      ((time(0) - player_table[i].last) >
-	       (pclean_criteria[ci].days * SECS_PER_REAL_DAY))) {
-	    remove_player(i);
-	    break;
-	  }
-	}
+        for (ci = 0; pclean_criteria[ci].level > -1; ci++) {
+          if (player_table[i].level <= pclean_criteria[ci].level &&
+                  ((time(0) - player_table[i].last) >
+                  (pclean_criteria[ci].days * SECS_PER_REAL_DAY))) {
+            remove_player(i);
+            break;
+          }
+        }
         /* If we got this far and the players hasn't been kicked out, then he
-	 * can stay a little while longer. */
+         * can stay a little while longer. */
       }
     }
   }
@@ -1070,8 +1059,7 @@ void clean_pfiles(void)
 
 /* load_affects function now handles both 32-bit and
    128-bit affect bitvectors for backward compatibility */
-static void load_affects(FILE *fl, struct char_data *ch)
-{
+static void load_affects(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0, i, n_vars;
   char line[MAX_INPUT_LENGTH + 1];
   struct affected_type af;
@@ -1086,13 +1074,13 @@ static void load_affects(FILE *fl, struct char_data *ch)
       af.duration = num2;
       af.modifier = num3;
       af.location = num4;
-      if (n_vars == 8) {              /* New 128-bit version */
-          af.bitvector[0] =  num5;
-          af.bitvector[1] =  num6;
-          af.bitvector[2] =  num7;
-          af.bitvector[3] =  num8;
-      } else if (n_vars == 5) {       /* Old 32-bit conversion version */
-        if (num5 > 0 && num5 <= NUM_AFF_FLAGS)  /* Ignore invalid values */
+      if (n_vars == 8) { /* New 128-bit version */
+        af.bitvector[0] = num5;
+        af.bitvector[1] = num6;
+        af.bitvector[2] = num7;
+        af.bitvector[3] = num8;
+      } else if (n_vars == 5) { /* Old 32-bit conversion version */
+        if (num5 > 0 && num5 <= NUM_AFF_FLAGS) /* Ignore invalid values */
           SET_BIT_AR(af.bitvector, num5);
       } else {
         log("SYSERR: Invalid affects in pfile (%s), expecting 5 or 8 values", GET_NAME(ch));
@@ -1103,140 +1091,170 @@ static void load_affects(FILE *fl, struct char_data *ch)
   } while (num != 0);
 }
 
-
-static void load_praytimes(FILE *fl, struct char_data *ch)
-{
-  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0;
+/* praytimes loading isn't a loop, so has to be manually changed if you
+   change NUM_CASTERS! */
+static void load_praytimes(FILE *fl, struct char_data *ch) {
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
+          num7 = 0, num8 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
-    num2 = 0; num3 = 0; num4 = 0; num5 = 0;
+    num2 = 0;
+    num3 = 0;
+    num4 = 0;
+    num5 = 0;
+    num6 = 0;
+    num7 = 0;
+    num8 = 0;
     get_line(fl, line);
-    sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
-      if (num != -1) {
-	PRAYTIME(ch, num, 0) = num2;
-	PRAYTIME(ch, num, 1) = num3;
-	PRAYTIME(ch, num, 2) = num4;
-	PRAYTIME(ch, num, 3) = num5;
-      }
+
+    sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5,
+            &num6, &num7, &num8);
+    if (num != -1) {
+      PRAYTIME(ch, num, 0) = num2;
+      PRAYTIME(ch, num, 1) = num3;
+      PRAYTIME(ch, num, 2) = num4;
+      PRAYTIME(ch, num, 3) = num5;
+      PRAYTIME(ch, num, 4) = num6;
+      PRAYTIME(ch, num, 5) = num7;
+      PRAYTIME(ch, num, 6) = num8;
+    }
   } while (num != -1);
 }
-static void load_prayed(FILE *fl, struct char_data *ch)
-{
-  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0;
+
+/* prayed loading isn't a loop, so has to be manually changed if you
+   change NUM_CASTERS! */
+static void load_prayed(FILE *fl, struct char_data *ch) {
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
+          num7 = 0, num8 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
-    num2 = 0; num3 = 0; num4 = 0; num5 = 0;
+    num2 = 0;
+    num3 = 0;
+    num4 = 0;
+    num5 = 0;
+    num6 = 0;
+    num7 = 0;
+    num8 = 0;
     get_line(fl, line);
-    sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
-      if (num != -1) {
-	PRAYED(ch, num, 0) = num2;
-	PRAYED(ch, num, 1) = num3;
-	PRAYED(ch, num, 2) = num4;
-	PRAYED(ch, num, 3) = num5;
-      }
+    sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5,
+            &num6, &num7, &num8);
+    if (num != -1) {
+      PRAYED(ch, num, 0) = num2;
+      PRAYED(ch, num, 1) = num3;
+      PRAYED(ch, num, 2) = num4;
+      PRAYED(ch, num, 3) = num5;
+      PRAYED(ch, num, 4) = num6;
+      PRAYED(ch, num, 5) = num7;
+      PRAYED(ch, num, 6) = num8;
+    }
   } while (num != -1);
 }
-static void load_praying(FILE *fl, struct char_data *ch)
-{
-  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0;
+
+/* praying loading isn't a loop, so has to be manually changed if you
+   change NUM_CASTERS! */
+static void load_praying(FILE *fl, struct char_data *ch) {
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
+          num7 = 0, num8 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
-    num2 = 0; num3 = 0; num4 = 0; num5 = 0;
+    num2 = 0;
+    num3 = 0;
+    num4 = 0;
+    num5 = 0;
+    num6 = 0;
+    num7 = 0;
+    num8 = 0;
     get_line(fl, line);
-    sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
-      if (num != -1) {
-	PRAYING(ch, num, 0) = num2;
-	PRAYING(ch, num, 1) = num3;
-	PRAYING(ch, num, 2) = num4;
-	PRAYING(ch, num, 3) = num5;
-      }
+    sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5,
+            &num6, &num7, &num8);
+    if (num != -1) {
+      PRAYING(ch, num, 0) = num2;
+      PRAYING(ch, num, 1) = num3;
+      PRAYING(ch, num, 2) = num4;
+      PRAYING(ch, num, 3) = num5;
+      PRAYING(ch, num, 4) = num6;
+      PRAYING(ch, num, 5) = num7;
+      PRAYING(ch, num, 6) = num8;
+    }
   } while (num != -1);
 }
 
-
-static void load_class_level(FILE *fl, struct char_data *ch)
-{
+static void load_class_level(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-      if (num != -1)
-	CLASS_LEVEL(ch, num) = num2;
+    if (num != -1)
+      CLASS_LEVEL(ch, num) = num2;
   } while (num != -1);
 }
 
-static void load_warding(FILE *fl, struct char_data *ch)
-{
+static void load_warding(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-      if (num != -1)
-	GET_WARDING(ch, num) = num2;
+    if (num != -1)
+      GET_WARDING(ch, num) = num2;
   } while (num != -1);
 }
 
-static void load_spec_abil(FILE *fl, struct char_data *ch)
-{
+static void load_spec_abil(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-      if (num != -1)
-	GET_SPEC_ABIL(ch, num) = num2;
+    if (num != -1)
+      GET_SPEC_ABIL(ch, num) = num2;
   } while (num != -1);
 }
 
-static void load_favored_enemy(FILE *fl, struct char_data *ch)
-{
+static void load_favored_enemy(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-      if (num != -1)
-	GET_FAVORED_ENEMY(ch, num) = num2;
+    if (num != -1)
+      GET_FAVORED_ENEMY(ch, num) = num2;
   } while (num != -1);
 }
 
-static void load_abilities(FILE *fl, struct char_data *ch)
-{
+static void load_abilities(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-      if (num != 0)
-	GET_ABILITY(ch, num) = num2;
+    if (num != 0)
+      GET_ABILITY(ch, num) = num2;
   } while (num != 0);
 }
 
-static void load_skills(FILE *fl, struct char_data *ch)
-{
+static void load_skills(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-      if (num != 0)
-	GET_SKILL(ch, num) = num2;
+    if (num != 0)
+      GET_SKILL(ch, num) = num2;
   } while (num != 0);
 }
 
-void load_quests(FILE *fl, struct char_data *ch)
-{
+void load_quests(FILE *fl, struct char_data *ch) {
   int num = NOTHING;
   char line[MAX_INPUT_LENGTH + 1];
 
@@ -1248,37 +1266,35 @@ void load_quests(FILE *fl, struct char_data *ch)
   } while (num != NOTHING);
 }
 
-static void load_HMVS(struct char_data *ch, const char *line, int mode)
-{
+static void load_HMVS(struct char_data *ch, const char *line, int mode) {
   int num = 0, num2 = 0;
 
   sscanf(line, "%d/%d", &num, &num2);
 
   switch (mode) {
-  case LOAD_HIT:
-    GET_HIT(ch) = num;
-    GET_MAX_HIT(ch) = num2;
-    break;
+    case LOAD_HIT:
+      GET_HIT(ch) = num;
+      GET_MAX_HIT(ch) = num2;
+      break;
 
-  case LOAD_MANA:
-    GET_MANA(ch) = num;
-    GET_MAX_MANA(ch) = num2;
-    break;
+    case LOAD_MANA:
+      GET_MANA(ch) = num;
+      GET_MAX_MANA(ch) = num2;
+      break;
 
-  case LOAD_MOVE:
-    GET_MOVE(ch) = num;
-    GET_MAX_MOVE(ch) = num2;
-    break;
+    case LOAD_MOVE:
+      GET_MOVE(ch) = num;
+      GET_MAX_MOVE(ch) = num2;
+      break;
 
-  case LOAD_STRENGTH:
-    ch->real_abils.str = num;
-    ch->real_abils.str_add = num2;
-    break;
+    case LOAD_STRENGTH:
+      ch->real_abils.str = num;
+      ch->real_abils.str_add = num2;
+      break;
   }
 }
 
-static void load_events(FILE *fl, struct char_data *ch)
-{
+static void load_events(FILE *fl, struct char_data *ch) {
   int num = 0;
   long num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
@@ -1291,8 +1307,7 @@ static void load_events(FILE *fl, struct char_data *ch)
   } while (num != -1);
 }
 
-static void write_aliases_ascii(FILE *file, struct char_data *ch)
-{
+static void write_aliases_ascii(FILE *file, struct char_data *ch) {
   struct alias_data *temp;
   int count = 0;
 
@@ -1305,17 +1320,16 @@ static void write_aliases_ascii(FILE *file, struct char_data *ch)
   fprintf(file, "Alis: %d\n", count);
 
   for (temp = GET_ALIASES(ch); temp; temp = temp->next)
-    fprintf(file, " %s\n"   /* Alias: prepend a space in order to avoid issues with aliases beginning
+    fprintf(file, " %s\n" /* Alias: prepend a space in order to avoid issues with aliases beginning
                              * with * (get_line treats lines beginning with * as comments and ignores them */
-                  "%s\n"    /* Replacement: always prepended with a space in memory anyway */
-                  "%d\n",   /* Type */
-                  temp->alias,
-                  temp->replacement,
-                  temp->type);
+          "%s\n" /* Replacement: always prepended with a space in memory anyway */
+          "%d\n", /* Type */
+          temp->alias,
+          temp->replacement,
+          temp->type);
 }
 
-static void read_aliases_ascii(FILE *file, struct char_data *ch, int count)
-{
+static void read_aliases_ascii(FILE *file, struct char_data *ch, int count) {
   int i;
 
   if (count == 0) {
@@ -1327,7 +1341,7 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count)
    * first character on the line) and the new (where they are prepended by a space in order
    * to avoid the possibility of a * at the start of the line */
   for (i = 0; i < count; i++) {
-    char abuf[MAX_INPUT_LENGTH+1], rbuf[MAX_INPUT_LENGTH+1], tbuf[MAX_INPUT_LENGTH];
+    char abuf[MAX_INPUT_LENGTH + 1], rbuf[MAX_INPUT_LENGTH + 1], tbuf[MAX_INPUT_LENGTH];
 
     /* Read the aliased command. */
     get_line(file, abuf);
@@ -1335,7 +1349,7 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count)
     /* Read the replacement. This needs to have a space prepended before placing in
      * the in-memory struct. The space may be there already, but we can't be certain! */
     rbuf[0] = ' ';
-    get_line(file, rbuf+1);
+    get_line(file, rbuf + 1);
 
     /* read the type */
     get_line(file, tbuf);
@@ -1343,11 +1357,11 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count)
     if (abuf[0] && rbuf[1] && *tbuf) {
       struct alias_data *temp;
       CREATE(temp, struct alias_data, 1);
-      temp->alias       = strdup(abuf[0] == ' ' ? abuf+1 : abuf);
-      temp->replacement = strdup(rbuf[1] == ' ' ? rbuf+1 : rbuf);
-      temp->type        = atoi(tbuf);
-      temp->next        = GET_ALIASES(ch);
-      GET_ALIASES(ch)   = temp;
+      temp->alias = strdup(abuf[0] == ' ' ? abuf + 1 : abuf);
+      temp->replacement = strdup(rbuf[1] == ' ' ? rbuf + 1 : rbuf);
+      temp->type = atoi(tbuf);
+      temp->next = GET_ALIASES(ch);
+      GET_ALIASES(ch) = temp;
     }
   }
 }
