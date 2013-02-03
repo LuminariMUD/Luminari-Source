@@ -26,6 +26,7 @@
 static void sorc_disp_menu(struct descriptor_data *d);
 static void ranger_disp_menu(struct descriptor_data *d);
 static void sorc_study_menu(struct descriptor_data *d, int circle);
+static void favored_enemy_submenu(struct descriptor_data *d, int favored);
 static void favored_enemy_menu(struct descriptor_data *d);
 static void animal_companion_menu(struct descriptor_data *d);
 /*-------------------------------------------------------------------*/
@@ -33,7 +34,7 @@ static void animal_companion_menu(struct descriptor_data *d);
 // global
 int global_circle = -1;  // keep track of circle as we navigate menus
 int global_class = -1;   // keep track of class as we navigate menus
-
+int favored_slot = -1;
 
 /*-------------------------------------------------------------------*\
   utility functions
@@ -236,6 +237,34 @@ static void ranger_disp_menu(struct descriptor_data *d)
   OLC_MODE(d) = RANG_MAIN_MENU;
 }
 
+/* ranger study sub-sub-menu:  select list of favored enemies (sub) */
+static void favored_enemy_submenu(struct descriptor_data *d, int favored)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+  
+  write_to_output(d,
+    "\r\n-- %sRanger Favored Enemy Sub-Menu%s\r\n"
+          "Slot:  %d\r\n"
+    "\r\n"
+    "%s"
+    "\r\n"
+    "%s Q%s) Quit\r\n"
+    "\r\n"
+    "Enter Choice : ",
+
+    mgn, nrm,
+          favored,
+          /* empty line */
+          npc_race_menu,
+          /* empty line */
+    grn, nrm
+    /* empty line */
+    );
+  
+  OLC_MODE(d) = RANG_MAIN_MENU;  
+}
+
 /* ranger study sub-menu:  select list of favored enemies */
 static void favored_enemy_menu(struct descriptor_data *d)
 {
@@ -257,14 +286,11 @@ static void favored_enemy_menu(struct descriptor_data *d)
     "%s 8%s) Favored Enemy #9  (Min. Level xx):  %s%s\r\n"
     "%s 9%s) Favored Enemy #10 (Min. Level xx):  %s%s\r\n"
     "\r\n"
-    "\r\n"
     "%s Q%s) Quit\r\n"
-    "\r\n"
     "\r\n"
     "Enter Choice : ",
 
     mgn, nrm,
-          /* empty line */
           /* empty line */
     grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 0)], nrm,
     grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 1)], nrm,
@@ -277,9 +303,7 @@ static void favored_enemy_menu(struct descriptor_data *d)
     grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 8)], nrm,
     grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 9)], nrm,
     /* empty line */
-    /* empty line */
     grn, nrm
-    /* empty line */
     /* empty line */
     );
   
@@ -402,24 +426,118 @@ void study_parse(struct descriptor_data *d, char *arg)
           
         default:                
           number = atoi(arg);
+          int ranger_level = CLASS_LEVEL(d->character, CLASS_RANGER);
           
-          for (counter = 1; counter < NUM_SPELLS; counter++) {
-            if (counter == number) {
-              if (spellCircle(CLASS_SORCERER, counter) == global_circle) {
-                if (sorcKnown(d->character, counter))
-                  sorc_extract_known(d->character, counter);
-                else if (!sorc_add_known(d->character, counter))
-                  write_to_output(d, "You are all FULL for spells!\r\n");
+          switch (number) {
+            case 0:
+              if (ranger_level) {
+                favored_slot = number;
+                favored_enemy_submenu(d, number);
+                OLC_MODE(d) = FAVORED_ENEMY_SUB;
+                return;
               }
-            }
-          }          
+              break;                
+            case 1:
+              if (ranger_level >= 5) {
+                favored_slot = number;
+                favored_enemy_submenu(d, number);
+                OLC_MODE(d) = FAVORED_ENEMY_SUB;
+                return;
+              } else {
+                write_to_output(d, "You are not a high enough level ranger to"
+                        "modify this slot!\r\n");
+              }
+              break;                
+            case 2:
+              if (ranger_level >= 10) {
+                favored_slot = number;
+                favored_enemy_submenu(d, number);
+                OLC_MODE(d) = FAVORED_ENEMY_SUB;
+                return;
+              } else {
+                write_to_output(d, "You are not a high enough level ranger to"
+                        "modify this slot!\r\n");
+              }
+              break;                
+            case 3:
+              if (ranger_level >= 15) {
+                favored_slot = number;
+                favored_enemy_submenu(d, number);
+                OLC_MODE(d) = FAVORED_ENEMY_SUB;
+                return;
+              } else {
+                write_to_output(d, "You are not a high enough level ranger to"
+                        "modify this slot!\r\n");
+              }
+              break;                
+            case 4:
+              if (ranger_level >= 20) {
+                favored_slot = number;
+                favored_enemy_submenu(d, number);
+                OLC_MODE(d) = FAVORED_ENEMY_SUB;
+                return;
+              } else {
+                write_to_output(d, "You are not a high enough level ranger to"
+                        "modify this slot!\r\n");
+              }
+              break;                
+            case 5:
+              if (ranger_level >= 25) {
+                favored_slot = number;
+                favored_enemy_submenu(d, number);
+                OLC_MODE(d) = FAVORED_ENEMY_SUB;
+                return;
+              } else {
+                write_to_output(d, "You are not a high enough level ranger to"
+                        "modify this slot!\r\n");
+              }
+              break;                
+            case 6:
+              if (ranger_level >= 30) {
+                favored_slot = number;
+                favored_enemy_submenu(d, number);
+                OLC_MODE(d) = FAVORED_ENEMY_SUB;
+                return;
+              } else {
+                write_to_output(d, "You are not a high enough level ranger to"
+                        "modify this slot!\r\n");
+              }
+              break;                
+            case 7:
+            case 8:
+            case 9:
+              write_to_output(d, "This slot is not currently modifyable.\r\n");
+              break;
+              
+          }
           
           OLC_MODE(d) = FAVORED_ENEMY;
           favored_enemy_menu(d);
           break;          
       }      
+      break;
 
+    case FAVORED_ENEMY_SUB:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          favored_enemy_menu(d);
+          return;          
+          
+        default:    
+          number = atoi(arg);
+          
+          if (number < 0 || number >= NUM_NPC_RACES)
+            write_to_output(d, "Invalid race!\r\n");
+          else {
+            GET_FAVORED_ENEMY(d->character, favored_slot) =
+                    number;
+          }
 
+          OLC_MODE(d) = FAVORED_ENEMY_SUB;
+          favored_enemy_submenu(d, favored_slot);
+          break;                    
+      }
       break;
       
     case ANIMAL_COMPANION:

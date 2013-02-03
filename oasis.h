@@ -451,7 +451,8 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define RANG_MAIN_MENU         2
 #define FAVORED_ENEMY          3
 #define ANIMAL_COMPANION       4
-
+#define FAVORED_ENEMY_SUB      5
+#define ANIMAL_COMPANION_SUB   6
 
 int  save_config( IDXTYPE nowhere );
 
