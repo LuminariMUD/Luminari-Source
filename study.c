@@ -249,6 +249,8 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored)
     "\r\n"
     "%s"
     "\r\n"
+          "%s"
+    "\r\n"
     "%s Q%s) Quit\r\n"
     "\r\n"
     "Enter Choice : ",
@@ -258,11 +260,12 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored)
           /* empty line */
           npc_race_menu,
           /* empty line */
+          npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, favored)],
     grn, nrm
     /* empty line */
     );
   
-  OLC_MODE(d) = RANG_MAIN_MENU;  
+  OLC_MODE(d) = FAVORED_ENEMY_SUB;  
 }
 
 /* ranger study sub-menu:  select list of favored enemies */
@@ -307,7 +310,7 @@ static void favored_enemy_menu(struct descriptor_data *d)
     /* empty line */
     );
   
-  OLC_MODE(d) = RANG_MAIN_MENU;  
+  OLC_MODE(d) = FAVORED_ENEMY;  
 }
 
 /* ranger study sub-menu:  adjust animal companion */
@@ -422,6 +425,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         case 'q':
         case 'Q':
           ranger_disp_menu(d);
+          OLC_MODE(d) = RANG_MAIN_MENU;
           return;          
           
         default:                
@@ -515,6 +519,8 @@ void study_parse(struct descriptor_data *d, char *arg)
           favored_enemy_menu(d);
           break;          
       }      
+      OLC_MODE(d) = FAVORED_ENEMY;
+      favored_enemy_menu(d);      
       break;
 
     case FAVORED_ENEMY_SUB:
@@ -522,6 +528,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         case 'q':
         case 'Q':
           favored_enemy_menu(d);
+          OLC_MODE(d) = FAVORED_ENEMY;
           return;          
           
         default:    
@@ -532,6 +539,9 @@ void study_parse(struct descriptor_data *d, char *arg)
           else {
             GET_FAVORED_ENEMY(d->character, favored_slot) =
                     number;
+            favored_enemy_menu(d);
+            OLC_MODE(d) = FAVORED_ENEMY;
+            return;                      
           }
 
           OLC_MODE(d) = FAVORED_ENEMY_SUB;
