@@ -1411,6 +1411,24 @@ static char *make_prompt(struct descriptor_data *d)
       if (PRF_FLAGGED(d->character, PRF_DISPEXITS) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
 		               CCYEL(d->character,C_NRM));
+        
+        int isDark = 0, canSee = 0, canInfra = 0, seesExits = 1;
+        
+        if (IS_DARK(IN_ROOM(ch)))
+          isDark = 1;
+        if ((isDark && CAN_SEE_IN_DARK(ch)) || !isDark)
+          canSee = 1;
+        if (isDark && !canSee && CAN_INFRA_IN_DARK(ch))
+          canInfra = 1;
+        
+        if (isDark && !CAN_SEE_IN_DARK(ch) && !CAN_INFRA_IN_DARK(ch)) {
+          seesExits = 0;
+        } else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT) {
+          seesExits = 0;
+        } else if (ROOM_AFFECTED(ch->in_room, RAFF_FOG)) {
+          seesExits = 0;
+        }        
+        
         if (count >= 0)
           len += count;
         for (door = 0; door < DIR_COUNT; door++) {
@@ -1421,6 +1439,8 @@ static char *make_prompt(struct descriptor_data *d)
             continue;
           if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) &&
               !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+            continue;
+          if (!seesExits)
             continue;
           if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
             count = snprintf(prompt + len, sizeof(prompt) - len, "%s(%s)%s",

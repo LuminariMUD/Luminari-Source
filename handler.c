@@ -1061,9 +1061,10 @@ void extract_char(struct char_data *ch)
 
   /* We want to save events, this will be last legitimate save including
      events before extract_char_final(), we have to make sure in
-     extract_char_final() we DO NOT save events */
+     extract_char_final() we DO NOT save events 
   save_char(ch, 0);
-
+  */
+  
   /* this is a solution to a whirlwind bug where while in the menu
      after death while whirlwinding, the event would try to search
      through the room to find targets, but you had no room
