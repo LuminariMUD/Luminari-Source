@@ -1226,13 +1226,9 @@ void sprintbitarray(int bitvector[], const char *names[], int maxar, char *resul
 }
 
 /** Calculate the REAL time passed between two time invervals.
- * @todo Recommend making this function foresightedly useful by calculating
- * real months and years, too.
  * @param t2 The later time.
  * @param t1 The earlier time.
- * @retval time_info_data The real hours and days passed between t2 and t1. Only
- * the hours and days are returned, months and years are ignored and returned
- * as -1 values. */
+ * @retval time_info_data The real hours, days, months and years passed between t2 and t1. */
 struct time_info_data *real_time_passed(time_t t2, time_t t1)
 {
   long secs;
@@ -1243,14 +1239,18 @@ struct time_info_data *real_time_passed(time_t t2, time_t t1)
   now.hours = (secs / SECS_PER_REAL_HOUR) % 24;	/* 0..23 hours */
   secs -= SECS_PER_REAL_HOUR * now.hours;
 
-  now.day = (secs / SECS_PER_REAL_DAY);	/* 0..34 days  */
-  /* secs -= SECS_PER_REAL_DAY * now.day; - Not used. */
+  now.day = (secs / SECS_PER_REAL_DAY) % 35;	/* 0..34 days  */
+  secs -= SECS_PER_REAL_DAY * now.day;
 
-  now.month = -1;
-  now.year = -1;
+  now.month = (secs / (SECS_PER_REAL_YEAR / 12)) % 12;  /* 0..11 months */
+  secs -= (SECS_PER_REAL_YEAR / 12) * now.month;
 
+  now.year = (secs / SECS_PER_REAL_YEAR);
+  secs -= SECS_PER_REAL_YEAR * now.year;
+  
   return (&now);
 }
+
 
 /** Calculate the MUD time passed between two time invervals.
  * @param t2 The later time.

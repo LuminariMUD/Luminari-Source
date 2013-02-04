@@ -605,6 +605,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   entry_memory_mtrigger(ch);
   greet_mtrigger(ch, -1);
   greet_memory_mtrigger(ch);
+  clear_char_event_list(ch);  
   save_char(ch, 0); 
   Crash_delete_crashfile(ch);
   //end extraction replacement 
@@ -639,6 +640,7 @@ void raw_kill_old(struct char_data * ch, struct char_data * killer)
   update_pos(ch);
 
   make_corpse(ch);
+  clear_char_event_list(ch);
   extract_char(ch);
 
   if (killer) {
