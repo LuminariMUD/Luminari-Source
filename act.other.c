@@ -41,6 +41,7 @@ static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data * ch);
 
 
+#define MOB_PALADIN_MOUNT 70
 ACMD(do_call)
 {
   int call_type = -1, level = 0;
@@ -138,6 +139,9 @@ ACMD(do_call)
       
       break;
     case MOB_C_MOUNT:
+      /* for now just one selectino for paladins */
+      GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
+      
       /* do they even have a valid selection yet? */
       if (GET_MOUNT(ch) <= 0) {
         send_to_char(ch, "You have to select your companion via the 'study' "
@@ -201,6 +205,8 @@ ACMD(do_call)
   if (call_type == MOB_C_MOUNT)
     attach_mud_event(new_mud_event(eC_MOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
 }
+#undef MOB_PALADIN_MOUNT
+
 
 
 ACMD(do_purify)
