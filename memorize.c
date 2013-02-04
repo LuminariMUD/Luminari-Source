@@ -1052,8 +1052,8 @@ void updateMemming(struct char_data *ch, int class)
         act("$n aborts $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
         break;
       case CLASS_PALADIN:
-        send_to_char(ch, "You abort your petition.\r\n");
-        act("$n aborts $s petition.", FALSE, ch, 0, 0, TO_ROOM);
+        send_to_char(ch, "You abort your chant.\r\n");
+        act("$n aborts $s chant.", FALSE, ch, 0, 0, TO_ROOM);
         break;
       case CLASS_RANGER:
         send_to_char(ch, "You abort your adjuration.\r\n");
@@ -1090,7 +1090,7 @@ void updateMemming(struct char_data *ch, int class)
         addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
         break;        
       case CLASS_PALADIN:
-        sprintf(buf, "You finish petitioning for %s.\r\n",
+        sprintf(buf, "You finish chanting for %s.\r\n",
                 spell_info[PRAYING(ch, 0, classArray(class))].name);
         addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
         break;
@@ -1126,8 +1126,8 @@ void updateMemming(struct char_data *ch, int class)
           act("$n completes $s adjuration.", FALSE, ch, 0, 0, TO_ROOM);
           break;          
         case CLASS_PALADIN:
-          send_to_char(ch, "Your petitioning is complete.\r\n");
-          act("$n completes $s petition.", FALSE, ch, 0, 0, TO_ROOM);
+          send_to_char(ch, "Your chanting is complete.\r\n");
+          act("$n completes $s chant.", FALSE, ch, 0, 0, TO_ROOM);
           break;
         case CLASS_DRUID:
           send_to_char(ch, "Your communing is complete.\r\n");
@@ -1235,7 +1235,7 @@ void display_memmed(struct char_data*ch, int class)
                 " spells:\r\n\r\n");
         break;
       case CLASS_PALADIN:
-        send_to_char(ch, "\r\n\tGYou have petitioned for the following"
+        send_to_char(ch, "\r\n\tGYou have chanted for the following"
                 " spells:\r\n\r\n");
         break;
       case CLASS_RANGER:
@@ -1301,7 +1301,7 @@ void display_memming(struct char_data *ch, int class)
           send_to_char(ch, "\r\n\tCYou are currently adjuring for:\r\n");
           break;
         case CLASS_PALADIN:
-          send_to_char(ch, "\r\n\tCYou are currently petitioning for:\r\n");
+          send_to_char(ch, "\r\n\tCYou are currently chanting for:\r\n");
           break;
         default:  /* wizard */
           send_to_char(ch, "\r\n\tCYou are currently memorizing:\r\n");
@@ -1322,8 +1322,8 @@ void display_memming(struct char_data *ch, int class)
                        " then 'adjure' to continue)\r\n");
           break;
         case CLASS_PALADIN:
-          send_to_char(ch, "\r\n\tCYou are ready to petition for: (type 'rest'"
-                       " then 'petition' to continue)\r\n");
+          send_to_char(ch, "\r\n\tCYou are ready to chant for: (type 'rest'"
+                       " then 'chant' to continue)\r\n");
           break;
         default:  /* wizard */
           send_to_char(ch, "\r\n\tCYou are ready to memorize: (type 'rest' "
@@ -1383,7 +1383,7 @@ void display_slots(struct char_data *ch, int class)
       send_to_char(ch, "\r\nYou can adjure");
       break;
     case CLASS_PALADIN:
-      send_to_char(ch, "\r\nYou can petition");
+      send_to_char(ch, "\r\nYou can chant");
       break;
     default:  /* wizard */
       send_to_char(ch, "\r\nYou can memorize");
@@ -1440,7 +1440,7 @@ void printMemory(struct char_data *ch, int class)
               "<spellname>, spells ranger\tn\r\n");
       break;
     case CLASS_PALADIN:
-      send_to_char(ch, "\tDCommands: petition <spellname>, omit "
+      send_to_char(ch, "\tDCommands: chant <spellname>, omit "
               "<spellname>, spells paladin\tn\r\n");
       break;
     case CLASS_WIZARD:
@@ -1510,7 +1510,7 @@ ACMD(do_gen_forget)
           break;
         case CLASS_PALADIN:
           send_to_char(ch, "You purge everything you were attempting to "
-                           "petition for.\r\n");
+                           "chant for.\r\n");
           break;
         default:  /* wizard */
           send_to_char(ch, "You forget everything you were attempting to "
@@ -1535,7 +1535,7 @@ ACMD(do_gen_forget)
                   "for.\r\n");
           break;
         case CLASS_PALADIN:
-          send_to_char(ch, "You purge everything you had petitioned "
+          send_to_char(ch, "You purge everything you had chanted "
                   "for.\r\n");
           break;
         default:  /* wizard */
@@ -1556,7 +1556,7 @@ ACMD(do_gen_forget)
           send_to_char(ch, "You do not have anything adjured for!\r\n");
           break;
         case CLASS_PALADIN:
-          send_to_char(ch, "You do not have anything petitioned!\r\n");
+          send_to_char(ch, "You do not have anything chanted!\r\n");
           break;
         default:  /* wizard */
           send_to_char(ch, "You do not have anything memorizing/memorized!\r\n");
@@ -1586,7 +1586,7 @@ ACMD(do_gen_forget)
           send_to_char(ch, "You stop adjuring for %s.\r\n", spell_info[spellnum].name);
           break;
         case CLASS_PALADIN:
-          send_to_char(ch, "You stop petitioning for %s.\r\n", spell_info[spellnum].name);
+          send_to_char(ch, "You stop chanting for %s.\r\n", spell_info[spellnum].name);
           break;
         default:  /* wizard */
           send_to_char(ch, "You stop memorizing %s.\r\n", spell_info[spellnum].name);
@@ -1614,7 +1614,7 @@ ACMD(do_gen_forget)
                        spell_info[spellnum].name);
           break;
         case CLASS_PALADIN:
-          send_to_char(ch, "You purge %s from your petition.\r\n",
+          send_to_char(ch, "You purge %s from your chant.\r\n",
                        spell_info[spellnum].name);
           break;
         default:  /* wizard */
@@ -1641,7 +1641,7 @@ ACMD(do_gen_forget)
       break;
     case CLASS_PALADIN:
       send_to_char(ch, "You aren't petiioning for and don't have "
-              "petitioned %s!\r\n", spell_info[spellnum].name);
+              "chanted %s!\r\n", spell_info[spellnum].name);
       break;
     default:  /* wizard */
       send_to_char(ch, "You aren't memorizing and don't have memorized %s!\r\n",
@@ -1662,7 +1662,7 @@ ACMD(do_gen_memorize)
     class = CLASS_WIZARD;
   else if (subcmd == SCMD_ADJURE)
     class = CLASS_RANGER;
-  else if (subcmd == SCMD_PETITION)
+  else if (subcmd == SCMD_CHANT)
     class = CLASS_PALADIN;
   else if (subcmd == SCMD_COMMUNE)
     class = CLASS_DRUID;
@@ -1696,8 +1696,8 @@ ACMD(do_gen_memorize)
             act("$n continues $s adjuration.", FALSE, ch, 0, 0, TO_ROOM);
             break;
           case CLASS_PALADIN:
-            send_to_char(ch, "You continue your petition.\r\n");
-            act("$n continues $s petition.", FALSE, ch, 0, 0, TO_ROOM);
+            send_to_char(ch, "You continue your chant.\r\n");
+            act("$n continues $s chant.", FALSE, ch, 0, 0, TO_ROOM);
             break;
           case CLASS_SORCERER:
             send_to_char(ch, "You continue your meditation.\r\n");
@@ -1753,7 +1753,7 @@ ACMD(do_gen_memorize)
           send_to_char(ch, "You start to adjure for %s.\r\n", spell_info[spellnum].name);
           break;
         case CLASS_PALADIN:
-          send_to_char(ch, "You start to petition for %s.\r\n", spell_info[spellnum].name);
+          send_to_char(ch, "You start to chant for %s.\r\n", spell_info[spellnum].name);
           break;
         default:  /* wizard */
           send_to_char(ch, "You start to memorize %s.\r\n", spell_info[spellnum].name);
@@ -1777,8 +1777,8 @@ ACMD(do_gen_memorize)
             act("$n continues $s adjuration.", FALSE, ch, 0, 0, TO_ROOM);
             break;
           case CLASS_PALADIN:
-            send_to_char(ch, "You continue your petition.\r\n");
-            act("$n continues $s petition.", FALSE, ch, 0, 0, TO_ROOM);
+            send_to_char(ch, "You continue your chant.\r\n");
+            act("$n continues $s chant.", FALSE, ch, 0, 0, TO_ROOM);
             break;
           default:  /* wizard */
             send_to_char(ch, "You continue your studies.\r\n");

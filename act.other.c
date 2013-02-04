@@ -180,6 +180,10 @@ ACMD(do_call)
   GET_HIT(mob) = GET_MAX_HIT(mob);
   GET_HITROLL(mob) += level/4;
   GET_DAMROLL(mob) += level/4;
+  
+  /* make sure paladin mount is appropriate size to ride */
+  if (call_type == MOB_C_MOUNT)
+    GET_SIZE(mob) = GET_SIZE(ch) + 1;
     
   SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
   act("$n calls $N!", FALSE, ch, 0, mob, TO_ROOM);
