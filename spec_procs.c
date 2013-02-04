@@ -255,6 +255,11 @@ case SKILL_USE_MAGIC:  /* shared - with casters and rogue */
 case SKILL_RECHARGE:  //casters only
 	if (CASTER_LEVEL(ch) >= 14)
 		return TRUE;	else return FALSE;     
+case SKILL_TRACK:  // rogue / ranger / x-stats only
+        if (CLASS_LEVEL(ch, CLASS_ROGUE) || CLASS_LEVEL(ch, CLASS_RANGER) ||
+                (GET_WIS(ch) + GET_INT(ch) >= 28))
+                return TRUE;  else return FALSE;
+     
 
 /* ranger */
 case SKILL_FAVORED_ENEMY:
@@ -308,9 +313,11 @@ case SKILL_SMITE:
 case SKILL_REMOVE_DISEASE:
         if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 7)
                 return TRUE;  else return FALSE;
+case SKILL_PALADIN_MOUNT:
+        if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 8)
+                return TRUE;  else return FALSE;
 
-/* rogue */        
-case SKILL_TRACK:
+/* rogue */
 case SKILL_BACKSTAB:
         if (CLASS_LEVEL(ch, CLASS_ROGUE))
                 return TRUE;  else return FALSE;

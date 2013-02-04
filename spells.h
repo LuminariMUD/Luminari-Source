@@ -377,8 +377,9 @@
 #define SKILL_FAVORED_ENEMY             508
 #define SKILL_DUAL_WEAPONS              509
 #define SKILL_ANIMAL_COMPANION          510
+#define SKILL_PALADIN_MOUNT             511
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      511
+#define NUM_SKILLS                      512
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the

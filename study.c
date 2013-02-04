@@ -316,12 +316,12 @@ static void favored_enemy_menu(struct descriptor_data *d)
 
 
 /* list of possible animal companions, use in-game vnums for this */
-#define DIRE_BADGER    41
-#define DIRE_BOAR      42
-#define DIRE_WOLF      43
-#define DIRE_SPIDER    46
-#define DIRE_BEAR      48
-#define DIRE_TIGER     50
+#define DIRE_BADGER    60
+#define DIRE_BOAR      61
+#define DIRE_WOLF      62
+#define DIRE_SPIDER    63
+#define DIRE_BEAR      64
+#define DIRE_TIGER     65
 /* make a list of vnums corresponding in order */
 int animal_vnums[] = {
   0,
@@ -386,13 +386,6 @@ static void animal_companion_menu(struct descriptor_data *d)
   
   OLC_MODE(d) = ANIMAL_COMPANION;    
 }
-
-#undef DIRE_BADGER
-#undef DIRE_BOAR
-#undef DIRE_WOLF
-#undef DIRE_SPIDER
-#undef DIRE_BEAR
-#undef DIRE_TIGER
 
 /*********************** end ranger ****************************************/
 
@@ -595,7 +588,6 @@ void study_parse(struct descriptor_data *d, char *arg)
           break;          
       }      
       OLC_MODE(d) = FAVORED_ENEMY;
-      favored_enemy_menu(d);      
       break;
 
     case FAVORED_ENEMY_SUB:
@@ -624,7 +616,6 @@ void study_parse(struct descriptor_data *d, char *arg)
           break;                    
       }
       OLC_MODE(d) = FAVORED_ENEMY_SUB;
-      favored_enemy_submenu(d, favored_slot);
       break;
       
     case ANIMAL_COMPANION:
@@ -654,7 +645,6 @@ void study_parse(struct descriptor_data *d, char *arg)
           break;          
       }      
       OLC_MODE(d) = ANIMAL_COMPANION;
-      animal_companion_menu(d);
       break;
     /******* end ranger **********/
       
@@ -668,6 +658,14 @@ void study_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   /*. END OF CASE */
 }
+
+/* some undefines from animal companion */
+#undef DIRE_BADGER
+#undef DIRE_BOAR
+#undef DIRE_WOLF
+#undef DIRE_SPIDER
+#undef DIRE_BEAR
+#undef DIRE_TIGER
 #undef NUM_ANIMALS
 
 
