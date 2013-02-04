@@ -1350,9 +1350,10 @@ void stop_follower(struct char_data *ch)
   }
 
   if (AFF_FLAGGED(ch, AFF_CHARM)) {
-    act("You realize that $N is a jerk!", FALSE, ch, 0, ch->master, TO_CHAR);
-    act("$n realizes that $N is a jerk!", FALSE, ch, 0, ch->master, TO_NOTVICT);
-    act("$n hates your guts!", FALSE, ch, 0, ch->master, TO_VICT);
+    act("You realize that you do not need to serve $N anymore!",
+            FALSE, ch, 0, ch->master, TO_CHAR);
+//    act("$n realizes that $N is a jerk!", FALSE, ch, 0, ch->master, TO_NOTVICT);
+    act("$n is no longer serving you!", FALSE, ch, 0, ch->master, TO_VICT);
     if (affected_by_spell(ch, SPELL_CHARM))
       affect_from_char(ch, SPELL_CHARM);
   } else {

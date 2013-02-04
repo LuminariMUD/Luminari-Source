@@ -1384,7 +1384,7 @@ ACMD(do_score)
   if (CLASS_LEVEL(ch, CLASS_DRUID))
     send_to_char(ch, "\tDType 'commune' to see your spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_PALADIN))
-    send_to_char(ch, "\tDType 'petition' to see your spell interface\tn\r\n");
+    send_to_char(ch, "\tDType 'chant' to see your spell interface\tn\r\n");
 }
 
 

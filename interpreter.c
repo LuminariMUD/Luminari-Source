@@ -151,6 +151,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "crystalfist" , "crystalf"    , POS_FIGHTING , do_crystalfist , 0, 0 },
   { "crystalbody" , "crystalb"    , POS_FIGHTING , do_crystalbody , 0, 0 },
   { "call"     , "call"    , POS_FIGHTING, do_call     , 1, 0 },
+  { "chant"    , "chant"   , POS_RESTING , do_gen_memorize , 0, SCMD_CHANT },
   
   { "date"     , "da"      , POS_DEAD    , do_date     , 1, SCMD_DATE },
   { "dc"       , "dc"      , POS_DEAD    , do_dc       , LVL_GOD, 0 },
@@ -294,7 +295,6 @@ cpp_extern const struct command_info cmd_info[] = {
   { "purify"   , "purify"  , POS_FIGHTING, do_purify   , 1, 0 },  
   { "purge"    , "purge"   , POS_DEAD    , do_purge    , LVL_BUILDER, 0 },
   { "prayer"   , "prayer"  , POS_RESTING , do_gen_memorize , 0, SCMD_PRAY },
-  { "petition" , "peti", POS_RESTING , do_gen_memorize , 0, SCMD_PETITION },
 
   { "qedit"    , "qedit"   , POS_DEAD    , do_oasis_qedit, LVL_BUILDER, 0 },
   { "qlist"    , "qlist"   , POS_DEAD    , do_oasis_list, LVL_BUILDER, SCMD_OASIS_QLIST },

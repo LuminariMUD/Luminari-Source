@@ -322,6 +322,8 @@ static void favored_enemy_menu(struct descriptor_data *d)
 #define DIRE_SPIDER    63
 #define DIRE_BEAR      64
 #define DIRE_TIGER     65
+/*--------*/
+#define MOB_PALADIN_MOUNT 70
 /* make a list of vnums corresponding in order */
 int animal_vnums[] = {
   0,
@@ -667,6 +669,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 #undef DIRE_BEAR
 #undef DIRE_TIGER
 #undef NUM_ANIMALS
+#undef MOB_PALADIN_MOUNT
 
 
 

@@ -479,6 +479,7 @@ void ranger_skills(struct char_data *ch, int level) {
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
  */
+#define MOB_PALADIN_MOUNT 70
 void paladin_skills(struct char_data *ch, int level) {
   switch (level) {
     case 2:
@@ -515,12 +516,15 @@ void paladin_skills(struct char_data *ch, int level) {
       if (!GET_SKILL(ch, SKILL_PALADIN_MOUNT))
         SET_SKILL(ch, SKILL_PALADIN_MOUNT, 75);
       send_to_char(ch, "\tMYou have learned 'Paladin Mount'\tn\r\n");
+      GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
       break;
+
     default:
       break;
   }
   return;  
 }
+#undef MOB_PALADIN_MOUNT
 
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
