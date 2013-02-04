@@ -2108,6 +2108,7 @@ void mag_assign_spells(void)
   skillo(SKILL_FAVORED_ENEMY,       "favored enemy");              //508
   skillo(SKILL_DUAL_WEAPONS,        "dual weapons");               //509
   skillo(SKILL_ANIMAL_COMPANION,    "animal companion");           //510
+  skillo(SKILL_PALADIN_MOUNT,       "paladin mount");              //511
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 

@@ -849,15 +849,12 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
           oldtext = strdup(OLC_CLAN(d)->description);
         }
         string_write(d, &OLC_CLAN(d)->description, MAX_CLAN_DESC, 0, oldtext);
-        write_to_output(d, "DEBUG 1\r\n");
         OLC_VAL(d) = 1;
       } else {
         write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
                 CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
-        write_to_output(d, "DEBUG 2\r\n");
       break;
-        write_to_output(d, "DEBUG 3\r\n");
 
     case '4':
       if (CHK_CP(CP_APPLEV)) {
@@ -933,12 +930,10 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-        write_to_output(d, "DEBUG 4\r\n");
 
       clanedit_disp_menu(d);
       break;
     }
-        write_to_output(d, "DEBUG 4.5\r\n");
 
     return;
 
@@ -1260,7 +1255,6 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
 
   /*-------------------------------------------------------------------*/
   case CLANEDIT_DESC:
-        write_to_output(d, "DEBUG 5\r\n");
     /*
      * We should never get here.
      */

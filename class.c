@@ -511,6 +511,11 @@ void paladin_skills(struct char_data *ch, int level) {
         SET_SKILL(ch, SKILL_REMOVE_DISEASE, 75);
       send_to_char(ch, "\tMYou have learned 'Purify'\tn\r\n");
       break;
+    case 8:
+      if (!GET_SKILL(ch, SKILL_PALADIN_MOUNT))
+        SET_SKILL(ch, SKILL_PALADIN_MOUNT, 75);
+      send_to_char(ch, "\tMYou have learned 'Paladin Mount'\tn\r\n");
+      break;
     default:
       break;
   }
@@ -608,6 +613,11 @@ void rogue_skills(struct char_data *ch, int level) {
       if (!GET_SKILL(ch, SKILL_STEALTHY))
         SET_SKILL(ch, SKILL_STEALTHY, 75);
       send_to_char(ch, "\tMYou have learned 'Stealthy'\tn\r\n");
+      break;
+    case 3:
+      if (!GET_SKILL(ch, SKILL_TRACK))
+        SET_SKILL(ch, SKILL_TRACK, 75);
+      send_to_char(ch, "\tMYou have learned 'Track'\tn\r\n");
       break;
     case 4:
       if (!GET_SKILL(ch, SKILL_DIRTY_FIGHTING))
