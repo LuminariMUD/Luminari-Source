@@ -564,6 +564,7 @@ struct spell_info_type {
 #define SPELL_TYPE_SCROLL  4
 
 
+/* manual spell header info */
 #define ASPELL(spellname) \
 void	spellname(int level, struct char_data *ch, \
 		  struct char_data *victim, struct obj_data *obj)

@@ -45,6 +45,9 @@ struct mud_event_list mud_event_index[] = {
   { "Acid arrow"         , event_acid_arrow, EVENT_CHAR  },  //eACIDARROW
   { "Defensive Roll"     , event_countdown,	EVENT_CHAR  }, // eD_ROLL
   { "Purify"             , event_countdown,	EVENT_CHAR  }, // ePURIFY
+  { "Call Animal Companion",event_countdown,	EVENT_CHAR  }, // eC_ANIMAL
+  { "Call Familiar"      , event_countdown,	EVENT_CHAR  }, // eC_FAMILIAR
+  { "Call Mount"         , event_countdown,	EVENT_CHAR  }, // eC_MOUNT
 };
 
 
@@ -132,8 +135,18 @@ EVENTFUNC(event_countdown)
     case ePURIFY:
       send_to_char(ch, "You are now able to 'purify' again.\r\n");
       break;
+    case eC_ANIMAL:
+      send_to_char(ch, "You are now able to 'call animal companion' again.\r\n");
+      break;
+    case eC_FAMILIAR:
+      send_to_char(ch, "You are now able to 'call familiar' again.\r\n");
+      break;
+    case eC_MOUNT:
+      send_to_char(ch, "You are now able to 'call mount' again.\r\n");
+      break;
+      
     default:
-    break;
+      break;
   }
 
   return 0;

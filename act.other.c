@@ -41,6 +41,150 @@ static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data * ch);
 
 
+ACMD(do_call)
+{
+  int call_type = -1, level = 0;
+  struct follow_type *k = NULL;
+  struct char_data *mob = NULL;  
+  mob_vnum mob_num;  
+
+  /* call types
+     MOB_C_ANIMAL -> animal companion
+     MOB_C_FAMILIAR -> familiar
+     MOB_C_MOUNT -> paladin mount 
+   */
+  if (!argument) {
+    send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
+    return;
+  } else if (is_abbrev(argument, " companion")) {
+    level = CLASS_LEVEL(ch, CLASS_DRUID);
+    if (CLASS_LEVEL(ch, CLASS_RANGER) >= 4)
+      level += CLASS_LEVEL(ch, CLASS_RANGER) - 3;
+    
+    if (level <= 0) {
+      send_to_char(ch, "You are not a high enough level Druid or Ranger to "
+              "use this ability!\r\n");
+      return;
+    }
+    call_type = MOB_C_ANIMAL;
+  } else if (is_abbrev(argument, " familiar")) {
+    level = CLASS_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_WIZARD);
+    
+    if (level <= 0) {
+      send_to_char(ch, "You are not a high enough level Sorcerer or Wizard to "
+              "use this ability!\r\n");
+      return;
+    }
+    call_type = MOB_C_FAMILIAR;
+  } else if (is_abbrev(argument, " mount")) {
+    level = CLASS_LEVEL(ch, CLASS_PALADIN) - 4;
+    
+    if (level <= 0) {
+      send_to_char(ch, "You are not a high enough level Paladin to "
+              "use this ability!\r\n");
+      return;
+    }
+    call_type = MOB_C_MOUNT;
+  } else {
+    send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
+    return;
+  }  
+  
+  /* tests for whether you can actually call a companion */
+  
+  /* companion here already ? */
+  for (k = ch->followers; k; k = k->next) {
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
+            MOB_FLAGGED(k->follower, call_type)) {
+      send_to_char(ch, "Your companion has already been summoned!\r\n");
+      return;
+    }
+  }
+  
+  /* doing two disqualifying tests in this switch block */
+  switch (call_type) {
+    case MOB_C_ANIMAL:
+      /* do they even have a valid selection yet? */
+      if (GET_ANIMAL_COMPANION(ch) <= 0) {
+        send_to_char(ch, "You have to select your companion via the 'study' "
+                "command.\r\n");
+        return;
+      }
+      
+      /* is the ability on cooldown? */      
+      if (char_has_mud_event(ch, eC_ANIMAL)) {
+        send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+        return;
+      }
+
+      mob_num = GET_ANIMAL_COMPANION(ch);
+      
+      break;
+    case MOB_C_FAMILIAR:
+      /* do they even have a valid selection yet? */
+      if (GET_FAMILIAR(ch) <= 0) {
+        send_to_char(ch, "You have to select your companion via the 'study' "
+                "command.\r\n");
+        return;
+      }
+
+      /* is the ability on cooldown? */      
+      if (char_has_mud_event(ch, eC_FAMILIAR)) {
+        send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+        return;
+      }
+
+      mob_num = GET_FAMILIAR(ch);
+      
+      break;
+    case MOB_C_MOUNT:
+      /* do they even have a valid selection yet? */
+      if (GET_MOUNT(ch) <= 0) {
+        send_to_char(ch, "You have to select your companion via the 'study' "
+                "command.\r\n");
+        return;
+      }
+
+      /* is the ability on cooldown? */      
+      if (char_has_mud_event(ch, eC_MOUNT)) {
+        send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+        return;
+      }
+
+      mob_num = GET_MOUNT(ch);
+      
+      break;
+  }
+  
+  /* passed all the tests, bring on the companion! */
+  /* HAVE to make sure the mobiles for the lists of
+     companions / familiars / etc have the proper
+     MOB_C_x flag set via medit */
+    if (!(mob = read_mobile(mob_num, VIRTUAL))) {
+      send_to_char(ch, "You don't quite remember how to call that creature.\r\n");
+      return;
+    }
+    char_to_room(mob, IN_ROOM(ch));
+    IS_CARRYING_W(mob) = 0;
+    IS_CARRYING_N(mob) = 0;
+    
+    /* setting mob strength according to 'level' */
+    GET_LEVEL(mob) = level;
+    GET_MAX_HIT(mob) = level * dice(5, 10) + 10;
+    GET_HIT(mob) = GET_MAX_HIT(mob);
+    GET_HITROLL(mob) += level/4;
+    GET_DAMROLL(mob) += level/4;
+    
+    SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+    act("$n calls $N!", FALSE, ch, 0, mob, TO_ROOM);
+    act("You call forth $N!", FALSE, ch, 0, mob, TO_CHAR);
+    load_mtrigger(mob);
+    add_follower(mob, ch);
+    if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+      join_group(mob, GROUP(ch));  
+}
+
+
 ACMD(do_purify)
 {
   char arg[MAX_INPUT_LENGTH] = { '\0' };
