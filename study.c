@@ -245,11 +245,12 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored)
   
   write_to_output(d,
     "\r\n-- %sRanger Favored Enemy Sub-Menu%s\r\n"
-          "Slot:  %d\r\n"
+    "Slot:  %d\r\n"
     "\r\n"
     "%s"
     "\r\n"
-          "%s"
+    "Current Favored Enemy:  %s\r\n"
+    "You can select 0 (Zero) to deselect an enemy for this slot.\r\n"
     "\r\n"
     "%s Q%s) Quit\r\n"
     "\r\n"
@@ -313,17 +314,77 @@ static void favored_enemy_menu(struct descriptor_data *d)
   OLC_MODE(d) = FAVORED_ENEMY;  
 }
 
-/* list of possible animal companions */
+
+/* list of possible animal companions, use in-game vnums for this */
 #define DIRE_BADGER    41
 #define DIRE_BOAR      42
 #define DIRE_WOLF      43
 #define DIRE_SPIDER    46
 #define DIRE_BEAR      48
 #define DIRE_TIGER     50
+/* make a list of vnums corresponding in order */
+int animal_vnums[] = {
+  0,
+  DIRE_BADGER,   // 1
+  DIRE_BOAR,     // 2
+  DIRE_WOLF,     // 3
+  DIRE_SPIDER,   // 4
+  DIRE_BEAR,     // 5
+  DIRE_TIGER,    // 6
+  -1   /* end with this */
+};
+#define NUM_ANIMALS 7
+/* make a list of names in order */
+char *animal_names[] = {
+  "Unknown",
+  "Dire Badger",
+  "Dire Boar",
+  "Dire Wolf",
+  "Dire Spider",
+  "Dire Bear",
+  "Dire Tiger",
+  "\n"   /* end with this */
+  
+};
 /* ranger study sub-menu:  adjust animal companion */
 static void animal_companion_menu(struct descriptor_data *d)
 {
+  int i = 1, found = 0;
   
+  get_char_colors(d->character);
+  clear_screen(d);
+    
+  write_to_output(d,
+    "\r\n-- %sRanger Animal Companion Menu%s\r\n"
+    "\r\n", mgn, nrm);
+
+  for (i = 1; animal_vnums[i] != -1; i++) {
+    write_to_output(d, "%s\r\n", animal_names[i]);
+  }
+  
+  write_to_output(d, "\r\n");
+  /* find current animal */
+  for (i = 1; animal_vnums[i] != -1; i++) {
+    if (GET_ANIMAL_COMPANION(d->character) == animal_vnums[i]) {
+      write_to_output(d, "Current Companion:  %s\r\n", animal_names[i]);
+      found = 1;
+      break;
+    }
+  }
+  
+  if (!found)
+    write_to_output(d, "Current No Companion Selected\r\n");
+  
+  write_to_output(d, "You can select 0 (Zero) to deselect the current "
+          "companion.\r\n");
+  write_to_output(d, "\r\n"
+                     "%s Q%s) Quit\r\n"
+                     "\r\n"
+                     "Enter Choice : ",
+                     grn, nrm
+                     );
+  
+  OLC_MODE(d) = ANIMAL_COMPANION;    
 }
 
 #undef DIRE_BADGER
@@ -577,10 +638,23 @@ void study_parse(struct descriptor_data *d, char *arg)
         default:                
           number = atoi(arg);
           
+          if (!number) {
+            GET_ANIMAL_COMPANION(d->character) = number;
+            write_to_output(d, "Your companion has been set to OFF.\r\n");
+          } else if (number < 0 || number >= NUM_ANIMALS) {
+            write_to_output(d, "Not a valid choice!\r\n");            
+          } else {
+            GET_ANIMAL_COMPANION(d->character) = animal_vnums[number];
+            write_to_output(d, "You have selected %s.\r\n",
+                    animal_names[number]);
+          }
+          
           OLC_MODE(d) = ANIMAL_COMPANION;
           animal_companion_menu(d);
           break;          
       }      
+      OLC_MODE(d) = ANIMAL_COMPANION;
+      animal_companion_menu(d);
       break;
     /******* end ranger **********/
       
@@ -594,6 +668,7 @@ void study_parse(struct descriptor_data *d, char *arg)
   /*-------------------------------------------------------------------*/
   /*. END OF CASE */
 }
+#undef NUM_ANIMALS
 
 
 
