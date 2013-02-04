@@ -121,7 +121,7 @@ ACMD(do_call)
         return;
       } else {
         char_from_room(k->follower);
-        char_to_room(k->follower, real_room(IN_ROOM(ch)));        
+        char_to_room(k->follower, IN_ROOM(ch));        
         act("$n calls $N!", FALSE, ch, 0, k->follower, TO_ROOM);
         act("You call forth $N!", FALSE, ch, 0, k->follower, TO_CHAR);
         return;
