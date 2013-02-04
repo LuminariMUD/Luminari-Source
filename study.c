@@ -337,12 +337,12 @@ int animal_vnums[] = {
 /* make a list of names in order */
 char *animal_names[] = {
   "Unknown",
-  "Dire Badger",
-  "Dire Boar",
-  "Dire Wolf",
-  "Dire Spider",
-  "Dire Bear",
-  "Dire Tiger",
+  "1) Dire Badger",
+  "2) Dire Boar",
+  "3) Dire Wolf",
+  "4) Dire Spider",
+  "5) Dire Bear",
+  "6) Dire Tiger",
   "\n"   /* end with this */
   
 };
