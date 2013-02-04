@@ -302,10 +302,8 @@ ACMD(do_dismiss)
     return;
   }
   
-  /* loop through follower list */
-  for (k = ch->followers; k || found; k = k->next) {
     /* is this follower the target? */
-    if (k->follower == vict) {
+    if ((vict->master == ch)) {
       /* is this follower charmed? */
       if (AFF_FLAGGED(vict, AFF_CHARM)) {
         /* is this a special companion?
@@ -333,7 +331,6 @@ ACMD(do_dismiss)
         found = 1;
       }
     }
-  }
   
   if (!found) {
     send_to_char(ch, "Your target is not valid!\r\n");
