@@ -44,7 +44,7 @@ static void display_group_list(struct char_data * ch);
 #define MOB_PALADIN_MOUNT 70
 ACMD(do_call)
 {
-  int call_type = -1, level = 0;
+  int call_type = -1, level = 0, i = 0;
   struct follow_type *k = NULL;
   struct char_data *mob = NULL;  
   mob_vnum mob_num = 0;  
@@ -62,6 +62,12 @@ ACMD(do_call)
     if (CLASS_LEVEL(ch, CLASS_RANGER) >= 4)
       level += CLASS_LEVEL(ch, CLASS_RANGER) - 3;
     
+    if (!GET_SKILL(ch, SKILL_ANIMAL_COMPANION)) {
+      send_to_char(ch, "You are not a high enough level Paladin to "
+              "use this ability!\r\n");
+      return;
+    }
+    
     if (level <= 0) {
       send_to_char(ch, "You are not a high enough level Druid or Ranger to "
               "use this ability!\r\n");
@@ -71,6 +77,12 @@ ACMD(do_call)
   } else if (is_abbrev(argument, " familiar")) {
     level = CLASS_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_WIZARD);
     
+    if (!GET_SKILL(ch, SKILL_CALL_FAMILIAR)) {
+      send_to_char(ch, "You are not a high enough level Paladin to "
+              "use this ability!\r\n");
+      return;
+    }
+    
     if (level <= 0) {
       send_to_char(ch, "You are not a high enough level Sorcerer or Wizard to "
               "use this ability!\r\n");
@@ -78,7 +90,13 @@ ACMD(do_call)
     }
     call_type = MOB_C_FAMILIAR;
   } else if (is_abbrev(argument, " mount")) {
-    level = CLASS_LEVEL(ch, CLASS_PALADIN) - 4;
+    level = CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
+    
+    if (!GET_SKILL(ch, SKILL_PALADIN_MOUNT)) {
+      send_to_char(ch, "You are not a high enough level Paladin to "
+              "use this ability!\r\n");
+      return;
+    }
     
     if (level <= 0) {
       send_to_char(ch, "You are not a high enough level Paladin to "
@@ -180,7 +198,8 @@ ACMD(do_call)
     
   /* setting mob strength according to 'level' */
   GET_LEVEL(mob) = level;
-  GET_MAX_HIT(mob) = level * dice(5, 10) + 10;
+  for (i = 0; i < level; i++)
+    GET_MAX_HIT(mob) += dice(2, 4) + 1;
   GET_HIT(mob) = GET_MAX_HIT(mob);
   GET_HITROLL(mob) += level/4;
   GET_DAMROLL(mob) += level/4;
@@ -260,15 +279,74 @@ ACMD(do_dismiss)
 {
   struct follow_type *k = NULL;
   char buf[MAX_STRING_LENGTH] = { '\0' };   
-
-  send_to_char(ch, "You dismiss your non-present followers.\r\n");   
-  snprintf(buf, sizeof(buf), "$n dismisses $s non present followers.");
-  act(buf, FALSE, ch, 0, 0, TO_ROOM);
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+  struct char_data *vict = NULL;  
+  int found = 0;
+  struct mud_event_data *pMudEvent = NULL;  
   
-  for (k = ch->followers; k; k = k->next)
-    if (IN_ROOM(ch) != IN_ROOM(k->follower))
-      if (AFF_FLAGGED(k->follower, AFF_CHARM))
-        extract_char(k->follower);
+  one_argument(argument, arg);
+
+  if (!*arg) {
+    send_to_char(ch, "You dismiss your non-present followers.\r\n");   
+    snprintf(buf, sizeof(buf), "$n dismisses $s non present followers.");
+    act(buf, FALSE, ch, 0, 0, TO_ROOM);
+  
+    for (k = ch->followers; k; k = k->next)
+      if (IN_ROOM(ch) != IN_ROOM(k->follower))
+        if (AFF_FLAGGED(k->follower, AFF_CHARM))
+          extract_char(k->follower);
+  }
+  
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    send_to_char(ch, "Whom do you want to dismiss?\r\n");
+    return;
+  }
+  
+  /* loop through follower list */
+  for (k = ch->followers; k || found; k = k->next) {
+    /* is this follower the target? */
+    if (k->follower == vict) {
+      /* is this follower charmed? */
+      if (AFF_FLAGGED(vict, AFF_CHARM)) {
+        /* is this a special companion?
+         * if so, modify event cooldown (if it exits) */
+        if (MOB_FLAGGED(vict, MOB_C_ANIMAL)) {
+          if ((pMudEvent = char_has_mud_event(ch, eC_ANIMAL)) &&
+                  event_time(pMudEvent->pEvent) > (12 * SECS_PER_MUD_HOUR)) {
+            change_event_duration(ch, eC_ANIMAL, 12 * SECS_PER_MUD_HOUR);
+          }
+        }
+        if (MOB_FLAGGED(vict, MOB_C_FAMILIAR)) {
+          if ((pMudEvent = char_has_mud_event(ch, eC_FAMILIAR)) &&
+                  event_time(pMudEvent->pEvent) > (12 * SECS_PER_MUD_HOUR)) {
+            change_event_duration(ch, eC_FAMILIAR, 12 * SECS_PER_MUD_HOUR);
+          }
+        }
+        if (MOB_FLAGGED(vict, MOB_C_MOUNT)) {
+          if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)) &&
+                  event_time(pMudEvent->pEvent) > (12 * SECS_PER_MUD_HOUR)) {
+            change_event_duration(ch, eC_MOUNT, 12 * SECS_PER_MUD_HOUR);
+          }
+        }
+        
+        extract_char(vict);
+        found = 1;
+      }
+    }
+  }
+  
+  if (!found) {
+    send_to_char(ch, "Your target is not valid!\r\n");
+    return;
+  } else {
+    act("With a wave of your hand, you dismiss $N.",
+            FALSE, ch, 0, vict, TO_CHAR);
+    act("$n waves at you, indicating your dismissal.",
+            FALSE, ch, 0, vict, TO_VICT);
+    act("With a wave, $n dismisses $N.",
+            TRUE, ch, 0, vict, TO_NOTVICT);    
+  }
+    
 }
 
 
