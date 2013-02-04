@@ -115,8 +115,16 @@ ACMD(do_call)
   for (k = ch->followers; k; k = k->next) {
     if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
             MOB_FLAGGED(k->follower, call_type)) {
-      send_to_char(ch, "Your companion has already been summoned!\r\n");
-      return;
+      if (IN_ROOM(ch) == IN_ROOM(k->follower)) {
+        send_to_char(ch, "Your companion has already been summoned!\r\n");
+        return;
+      } else {
+        char_from_room(k->follower);
+        char_to_room(k->follower, real_room(IN_ROOM(ch)));        
+        act("$n calls $N!", FALSE, ch, 0, k->follower, TO_ROOM);
+        act("You call forth $N!", FALSE, ch, 0, k->follower, TO_CHAR);
+        return;
+      }
     }
   }
   
