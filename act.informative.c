@@ -1145,6 +1145,12 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Defensive Roll - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   if ((pMudEvent = char_has_mud_event(k, ePURIFY)))
     send_to_char(ch, "Purify - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(k, eC_ANIMAL)))
+    send_to_char(ch, "Call Companion - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(k, eC_FAMILIAR)))
+    send_to_char(ch, "Call Familiar - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(k, eC_MOUNT)))
+    send_to_char(ch, "Call Mount - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   send_to_char(ch, 
 	"\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
   if ((pMudEvent = char_has_mud_event(k, eTAUNTED)))
