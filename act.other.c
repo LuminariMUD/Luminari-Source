@@ -45,7 +45,7 @@ static void display_group_list(struct char_data * ch);
 ACMD(do_call)
 {
   int call_type = -1, level = 0, i = 0;
-  struct follow_type *k = NULL;
+  struct follow_type *k = NULL, *next = NULL;
   struct char_data *mob = NULL;  
   mob_vnum mob_num = 0;  
 
@@ -112,7 +112,8 @@ ACMD(do_call)
   /* tests for whether you can actually call a companion */
   
   /* companion here already ? */
-  for (k = ch->followers; k; k = k->next) {
+  for (k = ch->followers; k; k = next) {
+    next = k->next;
     if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
             MOB_FLAGGED(k->follower, call_type)) {
       if (IN_ROOM(ch) == IN_ROOM(k->follower)) {
