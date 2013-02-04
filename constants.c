@@ -305,27 +305,30 @@ const char *action_bits[] = {
   "Scavenger",
   "Mob",
   "Aware",
-  "Aggro",
+  "Aggro",  //5
   "Zone-Sentinel",
   "Wimpy",
   "Aggro-Evil",
   "Aggro-Good",
-  "Aggro-Neutral",
+  "Aggro-Neutral",  //10
   "Memory",
   "Helper",
   "Uncharmable",
   "Unsummonable",
-  "Immune-Sleep",
+  "Immune-Sleep",  //15
   "Unbashable",
   "Unblindable",
   "Unkillable",
   "Sentient",
-  "!DEAD!",    /* You should never see this. */
+  "!DEAD!",    /* You should never see this. (20)*/
   "Mountable",
   "Immune-Deaf",
   "Does-Not-Fight",
   "Classless",
-  "Ungrappleable",
+  "Ungrappleable",  //25
+  "Animal-Companion",
+  "Familiar",
+  "Paladin-Mount",
   "\n"
 };
 

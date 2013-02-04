@@ -150,6 +150,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "convert"  , "covert"     , POS_STANDING, do_not_here , 1, 0 },
   { "crystalfist" , "crystalf"    , POS_FIGHTING , do_crystalfist , 0, 0 },
   { "crystalbody" , "crystalb"    , POS_FIGHTING , do_crystalbody , 0, 0 },
+  { "call"     , "call"    , POS_FIGHTING, do_call     , 1, 0 },
   
   { "date"     , "da"      , POS_DEAD    , do_date     , 1, SCMD_DATE },
   { "dc"       , "dc"      , POS_DEAD    , do_dc       , LVL_GOD, 0 },

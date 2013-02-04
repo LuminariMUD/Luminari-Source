@@ -25,27 +25,30 @@ typedef enum {
     eNULL,
     ePROTOCOLS,		/* The Protocol Detection Event */
     eWHIRLWIND,		/* The Whirlwind Attack */
-    eCASTING,		//  casting time 
-    eLAYONHANDS,	//  lay on hands
-    eTREATINJURY,	//  treat injury
-    eTAUNT,		//  taunt
-    eTAUNTED,		//  taunted
-    eMUMMYDUST,	//  mummy dust
-    eDRAGONKNIGHT,	//  dragon knight
-    eGREATERRUIN,	//  greater ruin
-    eHELLBALL,		//  hellball
-    eEPICMAGEARMOR,	//  epic mage armor
-    eEPICWARDING,	//  epic warding
-    eMEMORIZING,	//  memorization
-    eSTUNNED,	     //  stunning fist stun
-    eSTUNNINGFIST,	//  stunner's cooldown for stunning fist
-    eCRAFTING,
-    eCRYSTALFIST,
-    eCRYSTALBODY,
-    eRAGE,
-    eACIDARROW,
-    eD_ROLL,
-    ePURIFY,
+    eCASTING,		     //  casting time 
+    eLAYONHANDS,	     //  lay on hands
+    eTREATINJURY,	     //  treat injury
+    eTAUNT,		     //  taunt
+    eTAUNTED,		     //  taunted
+    eMUMMYDUST,	     //  mummy dust
+    eDRAGONKNIGHT,	     //  dragon knight
+    eGREATERRUIN,	     //  greater ruin
+    eHELLBALL,		     //  hellball
+    eEPICMAGEARMOR,	     //  epic mage armor
+    eEPICWARDING,	     //  epic warding
+    eMEMORIZING,	     //  memorization
+    eSTUNNED,	          //  stunning fist stun
+    eSTUNNINGFIST,	     //  stunner's cooldown for stunning fist
+    eCRAFTING,           //  crafting event
+    eCRYSTALFIST,        //  crystal fist cooldown
+    eCRYSTALBODY,        //  crystal body cooldown
+    eRAGE,               //  rage skill cooldown
+    eACIDARROW,          //  acid arrow damage event
+    eD_ROLL,             //  rogue's defensive roll cooldown
+    ePURIFY,             //  paladin's disease removal skill cooldown
+    eC_ANIMAL,           //  animal companion cooldown
+    eC_FAMILIAR,         //  familiar cooldown
+    eC_MOUNT,            //  paladin's called mount cooldown
 } event_id;
 
 struct mud_event_list {

@@ -249,7 +249,7 @@
 #define RAGES                 0
 #define SHAPECHANGES		1
 #define SONGS                 2
-#define CALLCOMPANION		3
+#define CALLCOMPANION		3 //animal
 #define CALLFAMILIAR		4
 #define SORC_KNOWN            5
 #define RANG_KNOWN            6
@@ -407,11 +407,14 @@
 #define MOB_NOTDEADYET     20   /**< (R) Mob being extracted */
 #define MOB_MOUNTABLE      21
 #define MOB_NODEAF         22
-#define MOB_NOFIGHT         23
-#define MOB_NOCLASS         24
-#define MOB_NOGRAPPLE         25
+#define MOB_NOFIGHT        23
+#define MOB_NOCLASS        24
+#define MOB_NOGRAPPLE      25
+#define MOB_C_ANIMAL       26
+#define MOB_C_FAMILIAR     27
+#define MOB_C_MOUNT        28
 /**********************/
-#define NUM_MOB_FLAGS      26
+#define NUM_MOB_FLAGS      29
 
 /* Preference flags: used by char_data.player_specials.pref */
 #define PRF_BRIEF         0   /**< Room descs won't normally be shown */
