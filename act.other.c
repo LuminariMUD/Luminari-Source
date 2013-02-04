@@ -46,7 +46,7 @@ ACMD(do_call)
   int call_type = -1, level = 0;
   struct follow_type *k = NULL;
   struct char_data *mob = NULL;  
-  mob_vnum mob_num;  
+  mob_vnum mob_num = 0;  
 
   /* call types
      MOB_C_ANIMAL -> animal companion
@@ -156,32 +156,46 @@ ACMD(do_call)
       break;
   }
   
+  /* couple of dummy checks */
+  if (!mob_num)
+    return;
+  if (level >= LVL_IMMORT)
+    level = LVL_IMMORT - 1;
+  
   /* passed all the tests, bring on the companion! */
   /* HAVE to make sure the mobiles for the lists of
      companions / familiars / etc have the proper
      MOB_C_x flag set via medit */
-    if (!(mob = read_mobile(mob_num, VIRTUAL))) {
-      send_to_char(ch, "You don't quite remember how to call that creature.\r\n");
-      return;
-    }
-    char_to_room(mob, IN_ROOM(ch));
-    IS_CARRYING_W(mob) = 0;
-    IS_CARRYING_N(mob) = 0;
+  if (!(mob = read_mobile(mob_num, VIRTUAL))) {
+    send_to_char(ch, "You don't quite remember how to call that creature.\r\n");
+    return;
+  }
+  char_to_room(mob, IN_ROOM(ch));
+  IS_CARRYING_W(mob) = 0;
+  IS_CARRYING_N(mob) = 0;
     
-    /* setting mob strength according to 'level' */
-    GET_LEVEL(mob) = level;
-    GET_MAX_HIT(mob) = level * dice(5, 10) + 10;
-    GET_HIT(mob) = GET_MAX_HIT(mob);
-    GET_HITROLL(mob) += level/4;
-    GET_DAMROLL(mob) += level/4;
+  /* setting mob strength according to 'level' */
+  GET_LEVEL(mob) = level;
+  GET_MAX_HIT(mob) = level * dice(5, 10) + 10;
+  GET_HIT(mob) = GET_MAX_HIT(mob);
+  GET_HITROLL(mob) += level/4;
+  GET_DAMROLL(mob) += level/4;
     
-    SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
-    act("$n calls $N!", FALSE, ch, 0, mob, TO_ROOM);
-    act("You call forth $N!", FALSE, ch, 0, mob, TO_CHAR);
-    load_mtrigger(mob);
-    add_follower(mob, ch);
-    if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
-      join_group(mob, GROUP(ch));  
+  SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+  act("$n calls $N!", FALSE, ch, 0, mob, TO_ROOM);
+  act("You call forth $N!", FALSE, ch, 0, mob, TO_CHAR);
+  load_mtrigger(mob);
+  add_follower(mob, ch);
+  if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    join_group(mob, GROUP(ch));  
+  
+  /* finally attach cooldown, approximately 14 minutes right now */
+  if (call_type == MOB_C_ANIMAL)
+    attach_mud_event(new_mud_event(eC_ANIMAL, ch, NULL), 4 * SECS_PER_MUD_DAY);
+  if (call_type == MOB_C_FAMILIAR)
+    attach_mud_event(new_mud_event(eC_FAMILIAR, ch, NULL), 4 * SECS_PER_MUD_DAY);
+  if (call_type == MOB_C_MOUNT)
+    attach_mud_event(new_mud_event(eC_MOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
 }
 
 
