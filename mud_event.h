@@ -79,6 +79,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time);
 void free_mud_event(struct mud_event_data *pMudEvent);
 struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId);
 void clear_char_event_list(struct char_data * ch);
+void change_event_duration(struct char_data * ch, event_id iId, long time);
 
 /* Events */
 EVENTFUNC(event_countdown);
