@@ -295,6 +295,8 @@ ACMD(do_dismiss)
       if (IN_ROOM(ch) != IN_ROOM(k->follower))
         if (AFF_FLAGGED(k->follower, AFF_CHARM))
           extract_char(k->follower);
+      
+    return;
   }
   
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
