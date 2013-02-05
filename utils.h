@@ -810,6 +810,7 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 
 #define IS_SORC_LEARNED(ch)  (ch->player_specials->saved.spec_abil[SORC_KNOWN])
 #define IS_RANG_LEARNED(ch)  (ch->player_specials->saved.spec_abil[RANG_KNOWN])
+#define IS_WIZ_LEARNED(ch)  (ch->player_specials->saved.spec_abil[WIZ_KNOWN])
 
 
 

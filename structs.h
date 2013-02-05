@@ -254,8 +254,9 @@
 #define SORC_KNOWN            5
 #define RANG_KNOWN            6
 #define CALLMOUNT             7
+#define WIZ_KNOWN             8
 /*---------------*/
-#define NUM_SPEC_ABIL		8
+#define NUM_SPEC_ABIL		9
 #define MAX_SPEC_ABIL	MAX_CLASSES
 	/* max = MAX_CLASSES right now */
 

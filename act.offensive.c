@@ -905,7 +905,6 @@ ACMD(do_layonhands)
 
   if (char_has_mud_event(ch, eLAYONHANDS)) {
     send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 6 minutes.\r\n");
     return;
   }
 

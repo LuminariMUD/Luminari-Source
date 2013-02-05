@@ -166,7 +166,7 @@ ACMD(do_call)
       
       break;
     case MOB_C_MOUNT:
-      /* for now just one selectino for paladins */
+      /* for now just one selection for paladins */
       GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
       
       /* do they even have a valid selection yet? */
