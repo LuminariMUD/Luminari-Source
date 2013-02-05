@@ -550,6 +550,10 @@ void sorc_skills(struct char_data *ch, int level) {
  * i.e free skills  ;  make sure to set in spec_procs too
  */
 void wizard_skills(struct char_data *ch, int level) {
+  IS_WIZ_LEARNED(ch) = 0;
+  send_to_char(ch,
+         "\tnType \tDstudy wizard\tn to adjust your wizard skills.\r\n");
+  
   switch (level) {
     case 2:
       if (!GET_SKILL(ch, SKILL_USE_MAGIC))
@@ -1220,6 +1224,7 @@ void init_start_char(struct char_data *ch)
   init_spell_slots(ch);
   IS_SORC_LEARNED(ch) = 0;
   IS_RANG_LEARNED(ch) = 0;
+  IS_WIZ_LEARNED(ch) = 0;
 
   /* hunger and thirst are off */
   GET_COND(ch, HUNGER) = -1;

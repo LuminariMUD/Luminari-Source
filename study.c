@@ -24,17 +24,87 @@
 /*. Function prototypes . */
 
 static void sorc_disp_menu(struct descriptor_data *d);
+static void wizard_disp_menu(struct descriptor_data *d);
 static void ranger_disp_menu(struct descriptor_data *d);
 static void sorc_study_menu(struct descriptor_data *d, int circle);
 static void favored_enemy_submenu(struct descriptor_data *d, int favored);
 static void favored_enemy_menu(struct descriptor_data *d);
 static void animal_companion_menu(struct descriptor_data *d);
+static void familiar_menu(struct descriptor_data *d);
 /*-------------------------------------------------------------------*/
 
 // global
 int global_circle = -1;  // keep track of circle as we navigate menus
 int global_class = -1;   // keep track of class as we navigate menus
 int favored_slot = -1;
+
+/*-------------------------------------------------------------------*/
+
+/* list of possible animal companions, use in-game vnums for this */
+#define DIRE_BADGER    60
+#define DIRE_BOAR      61
+#define DIRE_WOLF      62
+#define DIRE_SPIDER    63
+#define DIRE_BEAR      64
+#define DIRE_TIGER     65
+/*--- paladin mount(s) -----*/
+#define MOB_PALADIN_MOUNT 70
+/*--- familiars -----*/
+#define F_DIRE_BADGER    80
+#define F_DIRE_BOAR      81
+#define F_DIRE_WOLF      82
+#define F_DIRE_SPIDER    83
+#define F_DIRE_BEAR      84
+#define F_DIRE_TIGER     85
+
+/* make a list of vnums corresponding in order, first animals  */
+int animal_vnums[] = {
+  0,
+  DIRE_BADGER,   // 1
+  DIRE_BOAR,     // 2
+  DIRE_WOLF,     // 3
+  DIRE_SPIDER,   // 4
+  DIRE_BEAR,     // 5
+  DIRE_TIGER,    // 6
+  -1   /* end with this */
+};
+#define NUM_ANIMALS 7
+/* now familiars */
+int familiar_vnums[] = {
+  0,
+  F_DIRE_BADGER,   // 1
+  F_DIRE_BOAR,     // 2
+  F_DIRE_WOLF,     // 3
+  F_DIRE_SPIDER,   // 4
+  F_DIRE_BEAR,     // 5
+  F_DIRE_TIGER,    // 6
+  -1   /* end with this */
+};
+#define NUM_FAMILIARS 7
+
+/* make a list of names in order, first animals */
+char *animal_names[] = {
+  "Unknown",
+  "1) Dire Badger",
+  "2) Dire Boar",
+  "3) Dire Wolf",
+  "4) Dire Spider",
+  "5) Dire Bear",
+  "6) Dire Tiger",
+  "\n"   /* end with this */  
+};
+/* ... now familiars */
+char *familiar_names[] = {
+  "Unknown",
+  "1) Dire Badger",
+  "2) Dire Boar",
+  "3) Dire Wolf",
+  "4) Dire Spider",
+  "5) Dire Bear",
+  "6) Dire Tiger",
+  "\n"   /* end with this */  
+};
+
 
 /*-------------------------------------------------------------------*\
   utility functions
@@ -66,6 +136,13 @@ ACMD(do_study)
       return;
     }
     class = CLASS_RANGER;
+  } else if (is_abbrev(argument, " wizard")) {
+    if (IS_WIZ_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
+      send_to_char(ch, "You already adjusted your wizard "
+            "skills this level.\r\n");
+      return;
+    }
+    class = CLASS_WIZARD;
   } else {
     send_to_char(ch, "Usage:  study <class name>\r\n");
     return;
@@ -98,6 +175,9 @@ ACMD(do_study)
   } else if (class == CLASS_RANGER) {
     global_class = CLASS_RANGER;
     ranger_disp_menu(d);
+  } else if (class == CLASS_WIZARD) {
+    global_class = CLASS_WIZARD;
+    wizard_disp_menu(d);
   }
 
 }
@@ -128,6 +208,9 @@ static void sorc_disp_menu(struct descriptor_data *d)
     "%s 7%s) 7th Circle     : %s%d\r\n"
     "%s 8%s) 8th Circle     : %s%d\r\n"         
     "%s 9%s) 9th Circle     : %s%d\r\n"
+          "\r\n"
+    "%s A%s) Familiar Selection\r\n"
+          "\r\n"
     "%s Q%s) Quit\r\n"
     "\r\n"
     "%sWhen you quit it finalizes all changes%s\r\n"
@@ -154,6 +237,7 @@ static void sorc_disp_menu(struct descriptor_data *d)
           count_sorc_known(d->character, 8),
     grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
           count_sorc_known(d->character, 9),
+    grn, nrm,
     grn, nrm,
     mgn, nrm,
     mgn, nrm
@@ -315,39 +399,6 @@ static void favored_enemy_menu(struct descriptor_data *d)
 }
 
 
-/* list of possible animal companions, use in-game vnums for this */
-#define DIRE_BADGER    60
-#define DIRE_BOAR      61
-#define DIRE_WOLF      62
-#define DIRE_SPIDER    63
-#define DIRE_BEAR      64
-#define DIRE_TIGER     65
-/*--------*/
-#define MOB_PALADIN_MOUNT 70
-/* make a list of vnums corresponding in order */
-int animal_vnums[] = {
-  0,
-  DIRE_BADGER,   // 1
-  DIRE_BOAR,     // 2
-  DIRE_WOLF,     // 3
-  DIRE_SPIDER,   // 4
-  DIRE_BEAR,     // 5
-  DIRE_TIGER,    // 6
-  -1   /* end with this */
-};
-#define NUM_ANIMALS 7
-/* make a list of names in order */
-char *animal_names[] = {
-  "Unknown",
-  "1) Dire Badger",
-  "2) Dire Boar",
-  "3) Dire Wolf",
-  "4) Dire Spider",
-  "5) Dire Bear",
-  "6) Dire Tiger",
-  "\n"   /* end with this */
-  
-};
 /* ranger study sub-menu:  adjust animal companion */
 static void animal_companion_menu(struct descriptor_data *d)
 {
@@ -391,6 +442,86 @@ static void animal_companion_menu(struct descriptor_data *d)
 
 /*********************** end ranger ****************************************/
 
+/*********************** wizard ******************************************/
+
+/***************************/
+/* main menu for wizard    */
+/***************************/
+static void wizard_disp_menu(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+  
+  write_to_output(d,
+    "\r\n-- %sWizard Skill Menu\r\n"
+    "\r\n"
+    "\r\n"
+    "%s 1%s) Familiar Menu\r\n"
+    "\r\n"
+    "\r\n"
+    "%s Q%s) Quit\r\n"
+    "\r\n"
+    "%sWhen you quit it finalizes all changes%s\r\n"
+    "%sYour wizard skills can only be modified once per level%s\r\n"
+    "\r\n"
+    "Enter Choice : ",
+
+    mgn,
+          /* empty line */
+          /* empty line */
+    grn, nrm,
+    /* empty line */
+    /* empty line */
+    grn, nrm,
+    mgn, nrm,
+    mgn, nrm
+    );
+  
+  OLC_MODE(d) = WIZ_MAIN_MENU;
+}
+
+/* wizard study sub-menu:  adjust familiar */
+static void familiar_menu(struct descriptor_data *d)
+{
+  int i = 1, found = 0;
+  
+  get_char_colors(d->character);
+  clear_screen(d);
+    
+  write_to_output(d,
+    "\r\n-- %sFamiliar Menu%s\r\n"
+    "\r\n", mgn, nrm);
+
+  for (i = 1; familiar_vnums[i] != -1; i++) {
+    write_to_output(d, "%s\r\n", familiar_names[i]);
+  }
+  
+  write_to_output(d, "\r\n");
+  /* find current familiar */
+  for (i = 1; familiar_vnums[i] != -1; i++) {
+    if (GET_FAMILIAR(d->character) == familiar_vnums[i]) {
+      write_to_output(d, "Current Familiar:  %s\r\n", familiar_names[i]);
+      found = 1;
+      break;
+    }
+  }
+  
+  if (!found)
+    write_to_output(d, "Currently No Familiar Selected\r\n");
+  
+  write_to_output(d, "You can select 0 (Zero) to deselect the current "
+          "familiar.\r\n");
+  write_to_output(d, "\r\n"
+                     "%s Q%s) Quit\r\n"
+                     "\r\n"
+                     "Enter Choice : ",
+                     grn, nrm
+                     );
+  
+  OLC_MODE(d) = FAMILIAR_MENU;    
+}
+
+
 
 /**************************************************************************
   The handler
@@ -406,6 +537,9 @@ void study_parse(struct descriptor_data *d, char *arg)
     
     /******* start sorcerer **********/
 
+    /* familiar menu is shared with wizard and can
+     * be found in 'wizard' section of choices  */    
+    
     case SORC_MAIN_MENU:
       switch (*arg) {
         case 'q':
@@ -416,6 +550,12 @@ void study_parse(struct descriptor_data *d, char *arg)
           save_char(d->character, 0);
           cleanup_olc(d, CLEANUP_ALL);
           return;
+        case 'a':  // familiar choices
+        case 'A':
+          familiar_menu(d);
+          OLC_MODE(d) = FAMILIAR_MENU;
+          break;
+        /* here are our spell levels for 'spells known' */
         case '1':
         case '2':
         case '3':
@@ -649,6 +789,68 @@ void study_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = ANIMAL_COMPANION;
       break;
     /******* end ranger **********/
+
+      /******* wizard **********/
+
+    case WIZ_MAIN_MENU:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          write_to_output(d, "Your choices have been finalized!\r\n\r\n");
+          if (global_class == CLASS_WIZARD)
+            IS_WIZ_LEARNED(d->character) = 1;
+          save_char(d->character, 0);
+          cleanup_olc(d, CLEANUP_ALL);
+          return;
+        case '1':  // familiar choice
+          familiar_menu(d);
+          OLC_MODE(d) = FAMILIAR_MENU;
+          break;
+        default:
+          write_to_output(d, "That is an invalid choice!\r\n");
+          wizard_disp_menu(d);
+          break;
+      }
+      break;
+      
+    /* shared with sorcerer */
+    case FAMILIAR_MENU:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          if (global_class == CLASS_WIZARD) {
+            wizard_disp_menu(d);
+            OLC_MODE(d) = WIZ_MAIN_MENU;            
+          }
+          if (global_class == CLASS_SORCERER) {
+            sorc_disp_menu(d);
+            OLC_MODE(d) = SORC_MAIN_MENU;            
+          }
+          return;          
+
+        default:                
+          number = atoi(arg);
+          
+          if (!number) {
+            GET_FAMILIAR(d->character) = number;
+            write_to_output(d, "Your familiar has been set to OFF.\r\n");
+          } else if (number < 0 || number >= NUM_FAMILIARS) {
+            write_to_output(d, "Not a valid choice!\r\n");            
+          } else {
+            GET_FAMILIAR(d->character) = familiar_vnums[number];
+            write_to_output(d, "You have selected %s.\r\n",
+                    familiar_names[number]);
+          }
+          
+          OLC_MODE(d) = FAMILIAR_MENU;
+          familiar_menu(d);
+          break;          
+      }      
+      OLC_MODE(d) = FAMILIAR_MENU;
+      break;      
+      
+      /**** end wizard ******/
+      
       
     /* We should never get here, but just in case... */      
     default:
@@ -661,14 +863,21 @@ void study_parse(struct descriptor_data *d, char *arg)
   /*. END OF CASE */
 }
 
-/* some undefines from animal companion */
+/* some undefines from top of file */
 #undef DIRE_BADGER
 #undef DIRE_BOAR
 #undef DIRE_WOLF
 #undef DIRE_SPIDER
 #undef DIRE_BEAR
 #undef DIRE_TIGER
+#undef F_DIRE_BADGER
+#undef F_DIRE_BOAR
+#undef F_DIRE_WOLF
+#undef F_DIRE_SPIDER
+#undef F_DIRE_BEAR
+#undef F_DIRE_TIGER
 #undef NUM_ANIMALS
+#undef NUM_FAMILIARS
 #undef MOB_PALADIN_MOUNT
 
 

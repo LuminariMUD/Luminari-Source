@@ -1,4 +1,4 @@
-/**
+     /**
 * @file oasis.h
 * Oasis online creation general defines.
 *
@@ -453,6 +453,8 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define ANIMAL_COMPANION       4
 #define FAVORED_ENEMY_SUB      5
 #define ANIMAL_COMPANION_SUB   6
+#define WIZ_MAIN_MENU          7
+#define FAMILIAR_MENU          8
 
 int  save_config( IDXTYPE nowhere );
 
