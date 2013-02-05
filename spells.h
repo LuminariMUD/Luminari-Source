@@ -48,7 +48,7 @@
 #define SPELL_CALL_LIGHTNING          6
 #define SPELL_CHARM                   7  //done
 #define SPELL_CHILL_TOUCH             8  //done
-#define SPELL_CLONE                   9
+#define SPELL_CLONE                   9  //done
 #define SPELL_COLOR_SPRAY            10  //done
 #define SPELL_CONTROL_WEATHER        11
 #define SPELL_CREATE_FOOD            12  //done
@@ -201,32 +201,32 @@
 #define SPELL_TELEKINESIS          159  //done
 #define SPELL_FIREBRAND            160  //done
 #define SPELL_DEATHCLOUD           161  //done - cloudkill proc
-#define SPELL_FREEZING_SPHERE      162  //x
-#define SPELL_ACID_FOG             163
-#define SPELL_SUMMON_CREATURE_6    164
-#define SPELL_TRANSFORMATION       165
-#define SPELL_EYEBITE              166
-#define SPELL_MASS_HASTE           167
-#define SPELL_GREATER_HEROISM      168
-#define SPELL_ANTI_MAGIC_FIELD     169
-#define SPELL_GREATER_MIRROR_IMAGE 170
-#define SPELL_TRUE_SEEING          171
-#define SPELL_GLOBE_OF_INVULN      172
-#define SPELL_GREATER_DISPELLING   173
-#define SPELL_GRASPING_HAND        174  //x
-#define SPELL_SUMMON_CREATURE_7    175
-#define SPELL_POWER_WORD_BLIND     176
-#define SPELL_WAVES_OF_EXHAUSTION  177
-#define SPELL_MASS_HOLD_PERSON     178
-#define SPELL_MASS_FLY             179
-#define SPELL_DISPLACEMENT         180
-#define SPELL_PRISMATIC_SPRAY      181  //x
-#define SPELL_POWER_WORD_STUN      182
-#define SPELL_PROTECT_FROM_SPELLS  183
-#define SPELL_THUNDERCLAP          184  //x
-#define SPELL_SPELL_MANTLE         185
-#define SPELL_MASS_WISDOM          186
-#define SPELL_MASS_CHARISMA        187
+#define SPELL_FREEZING_SPHERE      162  //done
+#define SPELL_ACID_FOG             163  //done
+#define SPELL_SUMMON_CREATURE_6    164  //done
+#define SPELL_TRANSFORMATION       165  //done
+#define SPELL_EYEBITE              166  //done
+#define SPELL_MASS_HASTE           167  //done
+#define SPELL_GREATER_HEROISM      168  //done
+#define SPELL_ANTI_MAGIC_FIELD     169  //done
+#define SPELL_GREATER_MIRROR_IMAGE 170  //done
+#define SPELL_TRUE_SEEING          171  //done
+#define SPELL_GLOBE_OF_INVULN      172  //done
+#define SPELL_GREATER_DISPELLING   173  //done
+#define SPELL_GRASPING_HAND        174  //in progress
+#define SPELL_SUMMON_CREATURE_7    175  //in progress
+#define SPELL_POWER_WORD_BLIND     176  //in progress
+#define SPELL_WAVES_OF_EXHAUSTION  177  //in progress
+#define SPELL_MASS_HOLD_PERSON     178  //in progress
+#define SPELL_MASS_FLY             179  //in progress
+#define SPELL_DISPLACEMENT         180  //in progress
+#define SPELL_PRISMATIC_SPRAY      181  //in progress
+#define SPELL_POWER_WORD_STUN      182  //in progress
+#define SPELL_PROTECT_FROM_SPELLS  183  //in progress
+#define SPELL_THUNDERCLAP          184  //in progress
+#define SPELL_SPELL_MANTLE         185  //in progress
+#define SPELL_MASS_WISDOM          186  //in progress
+#define SPELL_MASS_CHARISMA        187  //in progress
 #define SPELL_CLENCHED_FIST        188
 #define SPELL_INCENDIARY_CLOUD     189
 #define SPELL_SUMMON_CREATURE_8    190
@@ -241,7 +241,7 @@
 #define SPELL_SPELL_TURNING        199
 #define SPELL_MIND_BLANK           200
 #define SPELL_IRONSKIN             201
-#define SPELL_MASS_CUNNING         202
+#define SPELL_MASS_CUNNING         202  //in progress
 #define SPELL_BLADE_OF_DISASTER    203
 #define SPELL_SUMMON_CREATURE_9    204
 #define SPELL_GATE                 205
@@ -373,13 +373,12 @@
 #define SKILL_REMOVE_DISEASE            504  //implemented
 #define SKILL_RECHARGE                  505  //implemented
 #define SKILL_STEALTHY                  506  //implemented
-#define SKILL_NATURE_STEP               507
-#define SKILL_FAVORED_ENEMY             508
-#define SKILL_DUAL_WEAPONS              509
-#define SKILL_ANIMAL_COMPANION          510
-#define SKILL_PALADIN_MOUNT             511
-
-#define SKILL_CALL_FAMILIAR             512
+#define SKILL_NATURE_STEP               507  //implemented
+#define SKILL_FAVORED_ENEMY             508  //implemented
+#define SKILL_DUAL_WEAPONS              509  //implemented
+#define SKILL_ANIMAL_COMPANION          510  //implemented
+#define SKILL_PALADIN_MOUNT             511  //implemented
+#define SKILL_CALL_FAMILIAR             512  //implemented
 /* New skills may be added here up to MAX_SKILLS (600) */
 #define NUM_SKILLS                      513
 
@@ -634,6 +633,8 @@ int	cast_spell(struct char_data *ch, struct char_data *tch,
 void spell_level(int spell, int chclass, int level);
 void init_spell_levels(void);
 const char *skill_name(int num);
+int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest);
+
 
 
 /* From magic.c */

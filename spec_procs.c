@@ -252,6 +252,9 @@ case SKILL_USE_MAGIC:  /* shared - with casters and rogue */
         if ((CLASS_LEVEL(ch, CLASS_ROGUE) >= 9) ||
             (IS_CASTER(ch) && GET_LEVEL(ch) >= 2))
           return TRUE;  else return FALSE;
+case SKILL_CALL_FAMILIAR:  //sorc, wiz only
+	if (CLASS_LEVEL(ch, CLASS_SORCERER) || CLASS_LEVEL(ch, CLASS_WIZARD))
+		return TRUE;	else return FALSE;     
 case SKILL_RECHARGE:  //casters only
 	if (CASTER_LEVEL(ch) >= 14)
 		return TRUE;	else return FALSE;     

@@ -226,12 +226,18 @@ ACMD(do_call)
     join_group(mob, GROUP(ch));  
   
   /* finally attach cooldown, approximately 14 minutes right now */
-  if (call_type == MOB_C_ANIMAL)
+  if (call_type == MOB_C_ANIMAL) {
     attach_mud_event(new_mud_event(eC_ANIMAL, ch, NULL), 4 * SECS_PER_MUD_DAY);
-  if (call_type == MOB_C_FAMILIAR)
+    increase_skill(ch, SKILL_ANIMAL_COMPANION);
+  }
+  if (call_type == MOB_C_FAMILIAR) {
     attach_mud_event(new_mud_event(eC_FAMILIAR, ch, NULL), 4 * SECS_PER_MUD_DAY);
-  if (call_type == MOB_C_MOUNT)
+    increase_skill(ch, SKILL_CALL_FAMILIAR);    
+  }
+  if (call_type == MOB_C_MOUNT) {
     attach_mud_event(new_mud_event(eC_MOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
+    increase_skill(ch, SKILL_PALADIN_MOUNT);
+  }
 }
 #undef MOB_PALADIN_MOUNT
 

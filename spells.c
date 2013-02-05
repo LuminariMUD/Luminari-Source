@@ -22,12 +22,50 @@
 #include "act.h"
 #include "fight.h"
 #include "mud_event.h"
+#include "house.h"  /* for house_can_enter() */
 #include "screen.h" /* for QNRM, etc */
 
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
 /************************************************************/
+
+/* this function takes a real number for a room and returns:
+   FALSE - mortals shouldn't be able to teleport to this destination 
+   TRUE - mortals CAN teleport to this destination 
+ * accepts NULL ch data
+ */
+int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest)
+{
+  
+  if (dest == NOWHERE)
+    return FALSE;
+  
+  /* this function needs a vnum, not rnum */
+  if (ch && !House_can_enter(ch, GET_ROOM_VNUM(dest)))
+    return FALSE;
+  
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_NOASTRAL))
+    return FALSE;
+  
+  if (ROOM_FLAGGED(dest, ROOM_PRIVATE))
+    return FALSE;
+  
+  if (ROOM_FLAGGED(dest, ROOM_DEATH))
+    return FALSE;
+  
+  if (ROOM_FLAGGED(dest, ROOM_GODROOM))
+    return FALSE;
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_CLOSED))
+    return FALSE;
+  
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_NOASTRAL))
+    return FALSE;
+
+  //passed all tests!
+  return TRUE;
+}
 
 /* Used by the locate object spell to check the alias list on objects */
 int isname_obj(char *search, char *list)
@@ -393,22 +431,20 @@ ASPELL(spell_recall)
 
 ASPELL(spell_teleport)
 {
-  room_rnum to_room;
+  room_rnum to_room = NOWHERE;
 
   if (victim == NULL || IS_NPC(victim))
     return;
 
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(victim)), ZONE_NOASTRAL)) {
+  if (valid_mortal_tele_dest(victim, IN_ROOM(victim))) {
     send_to_char(ch, "A bright flash prevents your spell from working!");
     return;
   }
 
   do {
     to_room = rand_number(0, top_of_world);
-  } while (ROOM_FLAGGED(to_room, ROOM_PRIVATE) || ROOM_FLAGGED(to_room, ROOM_DEATH) ||
-           ROOM_FLAGGED(to_room, ROOM_GODROOM) || ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_CLOSED) ||
-           ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_NOASTRAL));
-
+  } while (!valid_mortal_tele_dest(victim, to_room));
+  
   act("$n slowly fades out of existence and is gone.",
       FALSE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
