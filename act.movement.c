@@ -467,8 +467,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
         snprintf(buf2, sizeof (buf2), "$n rides $N %s.", dirs[dir]);
         act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
       }
-    }
-      /* riding, mount -is- attempting to sneak, if succesful, the whole
+    }      /* riding, mount -is- attempting to sneak, if succesful, the whole
        * "package" is sneaking, if not ch might be able to sneak still */
     else {
       if (!IS_AFFECTED(ch, AFF_SNEAK)) {
@@ -489,7 +488,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
             act(buf2, TRUE, ch, 0, tch, TO_VICT);
           } /* if we pass this check, the rider/mount are both sneaking */
         }
-      }        /* ch is still trying to sneak (mount too) */
+      }/* ch is still trying to sneak (mount too) */
       else {
         /* we know the mount (and ch) is trying to sneak, we have to do the
            sneak-check with all the observers in the room, mount
@@ -523,7 +522,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     /* message to mount */
     send_to_char(RIDING(ch), "You carry %s %s.\r\n",
             GET_NAME(ch), dirs[dir]);
-  }    /* end:  mounted char */
+  }/* end:  mounted char */
 
 
     /* scenario:  char is mount */
@@ -563,8 +562,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
         snprintf(buf2, sizeof (buf2), "$n rides $N %s.", dirs[dir]);
         act(buf2, TRUE, RIDDEN_BY(ch), 0, ch, TO_NOTVICT);
       }
-    }
-      /* ridden and mount-char -is- attempting to sneak */
+    }      /* ridden and mount-char -is- attempting to sneak */
     else {
 
       /* both are attempt to sneak */
@@ -623,7 +621,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     /* message to rider */
     send_to_char(RIDDEN_BY(ch), "You are carried %s by %s.\r\n",
             dirs[dir], GET_NAME(ch));
-  }    /* end char is mounted */
+  }/* end char is mounted */
 
 
     /* ch is on foot */
@@ -645,7 +643,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     }
     /* message to self */
     send_to_char(ch, "You sneak %s.\r\n", dirs[dir]);
-  }    /* not attempting to sneak */
+  }/* not attempting to sneak */
   else if (!IS_AFFECTED(ch, AFF_SNEAK)) {
     snprintf(buf2, sizeof (buf2), "$n leaves %s.", dirs[dir]);
     act(buf2, TRUE, ch, 0, 0, TO_ROOM);
@@ -985,7 +983,7 @@ int has_key(struct char_data *ch, obj_vnum key) {
 #define NEED_LOCKED	(1 << 3)
 
 /* cmd_door is required external from act.movement.c */
-const char *cmd_door[] ={
+const char *cmd_door[] = {
   "open",
   "close",
   "unlock",
@@ -993,7 +991,7 @@ const char *cmd_door[] ={
   "pick"
 };
 
-static const int flags_door[] ={
+static const int flags_door[] = {
   NEED_CLOSED | NEED_UNLOCKED,
   NEED_OPEN,
   NEED_CLOSED | NEED_LOCKED,
@@ -1347,7 +1345,7 @@ ACMD(do_enter) {
                 "brightly, pushing you back!\r\n");
         return;
       }
-      
+
       /* ok NOW we are good to go */
 
       act("$n enters $p, and vanishes!", FALSE, ch, portal, 0, TO_ROOM);

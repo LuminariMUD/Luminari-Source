@@ -1811,8 +1811,8 @@ void mag_assign_spells(void)
 //*spell mantle
 			/* transmutation */  
   spello(SPELL_TELEPORT, "teleport", 72, 57, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
-	NULL, 1, 11, TRANSMUTATION);
+	TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
+	NULL, 2, 11, TRANSMUTATION);
 //*mass wisdom
 //*mass charisma
 //*mass cunning
@@ -1845,7 +1845,7 @@ void mag_assign_spells(void)
 			/* transmutation */  
 //*ironskin
   spello(SPELL_PORTAL, "portal", 37, 22, 1, POS_FIGHTING, TAR_CHAR_WORLD |
-          TAR_NOT_SELF, FALSE, MAG_CREATIONS, NULL, 8, 12, TRANSMUTATION);
+          TAR_NOT_SELF, FALSE, MAG_CREATIONS, NULL, 12, 12, TRANSMUTATION);
 
   
   // 9th circle
@@ -1875,7 +1875,7 @@ void mag_assign_spells(void)
 			/* transmutation */  
   spello(SPELL_POLYMORPH, "polymorph self", 58, 43, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_MANUAL,
-	NULL, 9, 9, TRANSMUTATION);
+	NULL, 9, 13, TRANSMUTATION);
 //*mass endurance
 //*mass strength
 //*mass dex
