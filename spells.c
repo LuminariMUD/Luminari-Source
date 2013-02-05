@@ -30,6 +30,7 @@
 /*  Functions, Events, etc needed to perform manual spells  */
 /************************************************************/
 
+
 /* this function takes a real number for a room and returns:
    FALSE - mortals shouldn't be able to teleport to this destination 
    TRUE - mortals CAN teleport to this destination 
@@ -433,27 +434,37 @@ ASPELL(spell_teleport)
 {
   room_rnum to_room = NOWHERE;
 
-  if (victim == NULL || IS_NPC(victim))
+  if (ch == NULL)
     return;
+  
+  if (!victim) {
+    send_to_char(ch, "Your target does not exist!\r\n");
+    return;
+  }
 
-  if (valid_mortal_tele_dest(victim, IN_ROOM(victim))) {
+  to_room = IN_ROOM(victim);
+  
+  if (!valid_mortal_tele_dest(ch, to_room)) {
     send_to_char(ch, "A bright flash prevents your spell from working!");
     return;
   }
 
-  do {
-    to_room = rand_number(0, top_of_world);
-  } while (!valid_mortal_tele_dest(victim, to_room));
+  if (!valid_mortal_tele_dest(ch, IN_ROOM(ch))) {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
   
+  send_to_char(ch, "You slowly fade out of existence...\r\n");
   act("$n slowly fades out of existence and is gone.",
-      FALSE, victim, 0, 0, TO_ROOM);
-  char_from_room(victim);
-  char_to_room(victim, to_room);
-  act("$n slowly fades into existence.", FALSE, victim, 0, 0, TO_ROOM);
-  look_at_room(victim, 0);
-  entry_memory_mtrigger(victim);
-  greet_mtrigger(victim, -1);
-  greet_memory_mtrigger(victim);
+      FALSE, ch, 0, 0, TO_ROOM);
+  char_from_room(ch);
+  char_to_room(ch, to_room);
+  act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "You slowly fade back into existence...\r\n");
+  look_at_room(ch, 0);
+  entry_memory_mtrigger(ch);
+  greet_mtrigger(ch, -1);
+  greet_memory_mtrigger(ch);
 }
 
 
