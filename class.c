@@ -847,6 +847,8 @@ void init_class(struct char_data *ch, int class, int level)
     // skill init    
     if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
       SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
+    if (!GET_SKILL(ch, SKILL_CALL_FAMILIAR))
+      SET_SKILL(ch, SKILL_CALL_FAMILIAR, 75);
 
      // wizard innate cantrips
     /*
