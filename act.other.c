@@ -78,7 +78,7 @@ ACMD(do_call)
     level = CLASS_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_WIZARD);
     
     if (!GET_SKILL(ch, SKILL_CALL_FAMILIAR)) {
-      send_to_char(ch, "You are not a high enough level Paladin to "
+      send_to_char(ch, "You are not a high enough level caster to "
               "use this ability!\r\n");
       return;
     }
