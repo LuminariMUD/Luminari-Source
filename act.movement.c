@@ -1342,41 +1342,12 @@ ACMD(do_enter) {
       }
 
       /* All checks passed, except checking the destination, so let's do that now */
-      if (real_room(portal_dest) == NOWHERE) {
-        send_to_char(ch, "The portal dumps you back into the same room!\r\n");
-        return;
-      }
-
-      if (!House_can_enter(ch, portal_dest)) {
-        send_to_char(ch, "That's private property -- no trespassing!\r\n");
-        return;
-      }
-
-      if (ROOM_FLAGGED(real_room(portal_dest), ROOM_PRIVATE)) {
-        send_to_char(ch, "That is a private area!\r\n");
-        return;
-      }
-
-      if (ROOM_FLAGGED(real_room(portal_dest), ROOM_DEATH)) {
-        send_to_char(ch, "You turn back realizing it is a death trap!\r\n");
-        return;
-      }
-
-      if (ROOM_FLAGGED(real_room(portal_dest), ROOM_GODROOM)) {
-        send_to_char(ch, "Powerful divine forces push you back!\r\n");
-        return;
-      }
-
-      if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(portal_dest)), ZONE_CLOSED)) {
-        send_to_char(ch, "Zone Closed, sorry!\r\n");
-        return;
-      }
-
-      if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(portal_dest)), ZONE_NOASTRAL)) {
+      if (!valid_mortal_tele_dest(ch, real_room(portal_dest))) {
         send_to_char(ch, "As you try to enter the portal, it flares "
                 "brightly, pushing you back!\r\n");
         return;
       }
+      
       /* ok NOW we are good to go */
 
       act("$n enters $p, and vanishes!", FALSE, ch, portal, 0, TO_ROOM);

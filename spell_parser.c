@@ -1790,30 +1790,60 @@ void mag_assign_spells(void)
   spello(SPELL_MISSILE_STORM, "missile storm", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 6, 11, EVOCATION);
+//*grasping hand, grapple
                /* conjuration */
+//*summon creature vii
+//control weather, enhances some spells
 			/* necromancy */
+//*power word blind
+//*waves of exhaustion, no save aoe fatigue
 			/* enchantment */
+//*mass hold person
+//*mass fly
 			/* illusion */
+//*displacement
+//*prismatic spray
 			/* divination */
+//*power word stun
+//*protection from spells
 			/* abjuration */
+//*thunderclap
+//*spell mantle
 			/* transmutation */  
   spello(SPELL_TELEPORT, "teleport", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
 	NULL, 1, 11, TRANSMUTATION);
+//*mass wisdom
+//*mass charisma
+//*mass cunning
 
-  
+    
   // 8th circle
 			/* evocation */
+//*clenched fist
   spello(SPELL_CHAIN_LIGHTNING, "chain lightning", 79, 64, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 8, 12, EVOCATION);
                /* conjuration */
+//*incendiary cloud
+//*summon monster viii
 			/* necromancy */
+//*horrid wilting
+//*greater animation
 			/* enchantment */
+//*irresistable dance
+//*mass domination
 			/* illusion */
+//*scintillating pattern
+//*refuge
 			/* divination */
+//*banish
+//*sunburst
 			/* abjuration */
+//*spell turning
+//*mind blank
 			/* transmutation */  
+//*ironskin
   spello(SPELL_PORTAL, "portal", 37, 22, 1, POS_FIGHTING, TAR_CHAR_WORLD |
           TAR_NOT_SELF, FALSE, MAG_CREATIONS, NULL, 8, 12, TRANSMUTATION);
 
@@ -1823,16 +1853,32 @@ void mag_assign_spells(void)
   spello(SPELL_METEOR_SWARM, "meteor swarm", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 9, 13, EVOCATION);
+//*blade of disaster
                /* conjuration */
+//*summon monster ix
+//*gate
 			/* necromancy */
+//*energy drain
+//*wail of the banshee
 			/* enchantment */
+//*power word kill
+//*enfeeblement
 			/* illusion */
+//*weird
+//*shadow shield
 			/* divination */
+//*prismatic sphere
+//*implode
 			/* abjuration */
+//*timestop
+//*greater spell mantle
 			/* transmutation */  
   spello(SPELL_POLYMORPH, "polymorph self", 58, 43, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_MANUAL,
 	NULL, 9, 9, TRANSMUTATION);
+//*mass endurance
+//*mass strength
+//*mass dex
 
   
   // epic magical
@@ -2109,6 +2155,7 @@ void mag_assign_spells(void)
   skillo(SKILL_DUAL_WEAPONS,        "dual weapons");               //509
   skillo(SKILL_ANIMAL_COMPANION,    "animal companion");           //510
   skillo(SKILL_PALADIN_MOUNT,       "paladin mount");              //511
+  skillo(SKILL_CALL_FAMILIAR,       "call familiar");              //512
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 

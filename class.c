@@ -141,7 +141,7 @@ int prac_params[4][NUM_CLASSES] = {
   { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* learned level */
   { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* max per practice */
   { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* min per practice */
-  { SP, SP, SK, SK, SK, SP, SK, SP, SK, SK },	/* prac name */
+  { SK, SK, SK, SK, SK, SK, SK, SK, SK, SK },	/* prac name */
 };
 #undef SP
 #undef SK
