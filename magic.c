@@ -2807,7 +2807,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 	    spellnum, object_vnum);
     return;
   }
-
+  
   /* a little more work for portal object */
   /* the obj (801) should already bet set right, but just in case */
   if (portal_process) {
@@ -2844,6 +2844,10 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
             FALSE, vict, portal, 0, TO_CHAR);
     act("With a \tBflash\tn, $p appears in the room.",
             FALSE, vict, portal, 0, TO_ROOM);
+  } else {
+  /* a little convenient idea, item should match char size */
+  GET_OBJ_SIZE(tobj) = GET_SIZE(ch);
+    
   }
   
   if (obj_to_floor)
