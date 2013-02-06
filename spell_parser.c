@@ -1328,6 +1328,9 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"Your magical charisma has faded away.", 3, 7,
 	TRANSMUTATION);  // wizard 2, cleric 2  
+  spello(SPELL_CONTROL_WEATHER, "control weather", 72, 57, 1, POS_STANDING,
+	TAR_IGNORE, FALSE, MAG_MANUAL,
+	NULL, 14, 11, CONJURATION); // wiz 7, cleric x
 
   
   //shared epic
@@ -1348,6 +1351,12 @@ void mag_assign_spells(void)
 	NULL, 14, 1,
 	NOSCHOOL);
 
+  
+  // paladin
+/* = =  4th circle  = = */
+  spello(SPELL_HOLY_SWORD, "holy sword", 37, 22, 1, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_CREATIONS,
+	NULL, 2, 7, NOSCHOOL);  
   
   // magical
 
@@ -1790,32 +1799,59 @@ void mag_assign_spells(void)
   spello(SPELL_MISSILE_STORM, "missile storm", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 6, 11, EVOCATION);
-//*grasping hand, grapple
+  spello(SPELL_GRASPING_HAND, "grasping hand", 72, 57, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+	NULL, 6, 11, EVOCATION);  //grapples opponent
                /* conjuration */
-//*summon creature vii
-//control weather, enhances some spells
+  spello(SPELL_SUMMON_CREATURE_7, "summon creature vii", 0, 0, 0, 
+     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 10, 11, CONJURATION);
+  //control weather, enhances some spells (shared)
 			/* necromancy */
-//*power word blind
-//*waves of exhaustion, no save aoe fatigue
+  spello(SPELL_POWER_WORD_BLIND, "power word blind", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+	"You feel a cloak of blindness dissolve.", 0, 11,
+	NECROMANCY);
+  spello(SPELL_WAVES_OF_EXHAUSTION, "waves of exhaustion", 65, 50, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical exhaustion fade away.", 8,
+     11, NECROMANCY);  //like waves of fatigue, but no save?
 			/* enchantment */
-//*mass hold person
-//*mass fly
+  spello(SPELL_MASS_HOLD_PERSON, "mass hold person", 65, 50, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical hold fade away.", 8,
+     11, ENCHANTMENT);  //like waves of fatigue, but no save?
+  spello(SPELL_MASS_FLY, "mass fly", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+     FALSE, MAG_GROUPS, "The fly spell fades away.", 7, 11, ENCHANTMENT);
 			/* illusion */
-//*displacement
-//*prismatic spray
+  spello(SPELL_DISPLACEMENT, "displacement", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"You feel your displacement spell wear off.", 6, 11, ILLUSION);
+  spello(SPELL_PRISMATIC_SPRAY, "prismatic spray", 79, 64, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS,
+	NULL, 7, 11, ILLUSION);
 			/* divination */
-//*power word stun
-//*protection from spells
+  spello(SPELL_POWER_WORD_STUN, "power word stun", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+	"You no longer feel stunned.", 0, 11,
+	DIVINATION);
+  spello(SPELL_PROTECT_FROM_SPELLS, "protection from spells", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"You feel your spell protection wear off.", 6, 11, DIVINATION);
 			/* abjuration */
-//*thunderclap
-//*spell mantle
+  spello(SPELL_THUNDERCLAP, "thunderclap", 79, 64, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS,
+	NULL, 7, 11, ABJURATION);  //aoe damage and affect
+  spello(SPELL_SPELL_MANTLE, "spell mantle", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"You feel your spell mantle wear off.", 6, 11, ABJURATION);
 			/* transmutation */  
   spello(SPELL_TELEPORT, "teleport", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
 	NULL, 2, 11, TRANSMUTATION);
-//*mass wisdom
-//*mass charisma
-//*mass cunning
+  spello(SPELL_MASS_WISDOM, "mass wisdom", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+     FALSE, MAG_GROUPS, "The wisdom spell fades away.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_CHARISMA, "mass charisma", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+     FALSE, MAG_GROUPS, "The charisma spell fades away.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_CUNNING, "mass cunning", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+     FALSE, MAG_GROUPS, "The cunning spell fades away.", 5, 11, TRANSMUTATION);
 
     
   // 8th circle
@@ -1977,9 +2013,6 @@ void mag_assign_spells(void)
   // 7th circle
   spello(SPELL_CALL_LIGHTNING, "call lightning", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-	NULL, 8, 13, NOSCHOOL);
-  spello(SPELL_CONTROL_WEATHER, "control weather", 72, 57, 1, POS_STANDING,
-	TAR_IGNORE, FALSE, MAG_MANUAL,
 	NULL, 8, 13, NOSCHOOL);
   spello(SPELL_SUMMON, "summon", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,

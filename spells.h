@@ -257,8 +257,9 @@
 #define SPELL_MASS_ENHANCE         215
 #define SPELL_PORTAL               216
 #define SPELL_ACID                 217  //acid fog proc
+#define SPELL_HOLY_SWORD           218  //paladin
 /** Total Number of defined spells */
-#define NUM_SPELLS                 218
+#define NUM_SPELLS                 219
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
@@ -470,8 +471,9 @@
 #define DAM_MENTAL		17
 #define DAM_LIGHT		18
 #define DAM_ENERGY		19
+#define DAM_WATER		20
 /* ------------------------------*/
-#define NUM_DAM_TYPES    20
+#define NUM_DAM_TYPES    21
 /* =============================*/
 
 

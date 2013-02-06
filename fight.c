@@ -1100,6 +1100,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_COLD_SHIELD))
         damtype_reduction += 50;
+      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+              HAS_SUBRACE(ch, SUBRACE_FIRE))
+        damtype_reduction += 100;
       break;
     case DAM_COLD:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
@@ -1108,12 +1111,18 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_FIRE_SHIELD))
         damtype_reduction += 50;
+      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+              HAS_SUBRACE(ch, SUBRACE_FIRE))
+        damtype_reduction -= 100;
       break;
     case DAM_AIR:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
+      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+              HAS_SUBRACE(ch, SUBRACE_AIR))
+        damtype_reduction += 100;
       break;
     case DAM_EARTH:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
@@ -1122,6 +1131,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_ACID_SHEATH))
         damtype_reduction += 50;
+      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+              HAS_SUBRACE(ch, SUBRACE_EARTH))
+        damtype_reduction += 100;
       break;
     case DAM_ACID:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
@@ -1132,6 +1144,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
+      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+              HAS_SUBRACE(ch, SUBRACE_EARTH))
+        damtype_reduction += 50;
       break;
     case DAM_HOLY:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
@@ -1142,6 +1157,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
         damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
+      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+              HAS_SUBRACE(ch, SUBRACE_WATER))
+        damtype_reduction -= 100;
       break;
     case DAM_UNHOLY:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
@@ -1203,6 +1221,16 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       break;
+    case DAM_WATER:
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
+        damtype_reduction += 20;
+      if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
+        damtype_reduction += 10;
+      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+              HAS_SUBRACE(ch, SUBRACE_WATER))
+        damtype_reduction += 100;     
+      break;
+
     default: break;
   }
 

@@ -597,6 +597,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_COLD;
     break;
         
+  case SPELL_GRASPING_HAND:  //evocation
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FORCE;    
+    num_dice = MIN(26, magic_level);
+    size_dice = 6;
+    bonus = magic_level;
+    break;
+    
   case SPELL_MISSILE_STORM:  //evocation
     save = SAVING_FORT;
     mag_resist = TRUE;
@@ -1092,6 +1101,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are overcome by overwhelming fatigue!!";
     break;
 
+  case SPELL_GRASPING_HAND:  //evocation (also does damage)
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_REFL, 0))
+      return;
+
+    SET_BIT_AR(af[0].bitvector, AFF_GRAPPLED);
+    af[0].duration = dice(2, 4) - 1;
+    accum_duration = FALSE;
+    to_room = "$n's is grasped by the spell!";
+    to_vict = "You are grasped by the magical hand!";
+    break;
+    
   case SPELL_CHILL_TOUCH:  //necromancy
     if (mag_resistance(ch, victim, 0))
       return;
@@ -2254,10 +2276,10 @@ static const char *mag_summon_msgs[] = {
   "$N appears from a cloud of thick green smoke!",  //4
   "$N appears from a cloud of thick red smoke!",  //5
   "$N disappears in a thick black cloud!",  //6
-  "As $n makes a strange magical gesture, you feel a strong breeze.", //7
-  "As $n makes a strange magical gesture, you feel a searing heat.",  //8
-  "As $n makes a strange magical gesture, you feel a sudden chill.",  //9
-  "As $n makes a strange magical gesture, you feel the dust swirl.",  //10
+  "\tCAs \tn$n\tC makes a strange magical gesture, you feel a strong breeze.\tn", //7
+  "\tRAs \tn$n\tR makes a strange magical gesture, you feel a searing heat.\tn",  //8
+  "\tYAs \tn$n\tY makes a strange magical gesture, you feel a sudden shift int he earth.\tn",  //9
+  "\tBAs \tn$n\tB makes a strange magical gesture, you feel the dust swirl.\tn",  //10
   "$n magically divides!", //11 clone
   "$n animates a corpse!", //12 animate dead
   "$N breaks through the ground and bows before $n.", //13 mummy lord
@@ -2281,10 +2303,10 @@ static const char *mag_summon_to_msgs[] = {
   "You conjure $N from a cloud of thick green smoke!",  //4
   "You conjure $N from a cloud of thick red smoke!",  //5
   "You make $N disappears in a thick black cloud!",  //6
-  "You make a magical gesture, you feel a strong breeze.", //7
-  "You make a magical gesture, you feel a searing heat.",  //8
-  "You make a magical gesture, you feel a sudden chill.",  //9
-  "You make a magical gesture, you feel the dust swirl.",  //10
+  "\tCYou make a magical gesture, you feel a strong breeze.\tn", //7
+  "\tRYou make a magical gesture, you feel a searing heat.\tn",  //8
+  "\tYYou make a magical gesture, you feel a sudden shift in the earth.\tn",  //9
+  "\tBYou make a magical gesture, you feel the dust swirl.\tn",  //10
   "You magically divide!", //11 clone
   "You animate a corpse!", //12 animate dead
   "$N breaks through the ground and bows before you.", //13 mummy lord
@@ -2300,6 +2322,8 @@ static const char *mag_summon_to_msgs[] = {
   "$N manifests with an ancient howl, then moves towards you.",  //22 hound
   "$N stalks into the area, roars loudly, then moves towards you.", //23 d tiger
 };
+
+
 /* Keep the \r\n because these use send_to_char. */
 static const char *mag_summon_fail_msgs[] = {
   "\r\n",
@@ -2334,13 +2358,17 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_DIRE_BEAR		48   // summon creature v
 #define MOB_HOUND             49
 #define MOB_DIRE_TIGER		50   // summon creature vi
+#define MOB_FIRE_ELEMENTAL    51
+#define MOB_EARTH_ELEMENTAL   52
+#define MOB_AIR_ELEMENTAL     53
+#define MOB_WATER_ELEMENTAL   54  // these elementals are for rest of s.c.
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 		      int spellnum, int savetype)
 {
   struct char_data *mob = NULL;
   struct obj_data *tobj, *next_obj;
   int pfail = 0, msg = 0, fmsg = 0, num = 1, handle_corpse = FALSE, i;
-  mob_vnum mob_num;
+  mob_vnum mob_num = 0;
 
   if (ch == NULL)
     return;
@@ -2473,6 +2501,30 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     pfail = 0;
     break;
     
+  case SPELL_SUMMON_CREATURE_7:  //conjuration
+    handle_corpse = FALSE;
+    fmsg = rand_number(2, 6);	/* Random fail message. */
+    switch (dice(1,4)) {
+      case 1:
+        mob_num = MOB_FIRE_ELEMENTAL;
+        msg = 8;
+        break;
+      case 2:
+        mob_num = MOB_EARTH_ELEMENTAL;
+        msg = 9;
+        break;
+      case 3:
+        mob_num = MOB_AIR_ELEMENTAL;
+        msg = 7;
+        break;
+      case 4:
+        mob_num = MOB_WATER_ELEMENTAL;
+        msg = 10;
+        break;
+    }
+    pfail = 0;
+    break;
+    
   default:
     return;
   }
@@ -2529,6 +2581,10 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 #undef MOB_DIRE_BEAR
 #undef MOB_HOUND
 #undef MOB_DIRE_TIGER
+#undef MOB_FIRE_ELEMENTAL
+#undef MOB_EARTH_ELEMENTAL
+#undef MOB_AIR_ELEMENTAL
+#undef MOB_WATER_ELEMENTAL      
 
 
 /*----------------------------------------------------------------------------*/
@@ -2713,6 +2769,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     to_char = "You create $p.";
     to_room = "$n creates $p.";
     object_vnum = 10;
+    break;
+  case SPELL_HOLY_SWORD:
+    to_char = "You summon $p.";
+    to_room = "$n summons $p.";
+    object_vnum = 810;
     break;
   case SPELL_CONTINUAL_FLAME:
     to_char = "You create $p.";
