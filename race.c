@@ -176,7 +176,8 @@ const char *morph_to_room[] = {
   /* Humanoid */
 " ",
   /* Undead */
-" ",
+"$n's flesh decays visibly, $s features becoming shallow and sunken as $e"
+        "turns to the \tDundead\tn.",
   /* Animal */
 " ",
   /* Dragon */
@@ -190,7 +191,8 @@ const char *morph_to_room[] = {
   /* Construct */
 " ",
   /* Elemental */
-" ",
+"$n bursts into flame, then becomes flame as $s form shifts to that of a "
+"\tRfire elemental\tn.",
   /* Fey */
 " ",
   /* Magical Beast */
@@ -198,14 +200,18 @@ const char *morph_to_room[] = {
   /* Monstrous Humanoid */
 " ",
   /* Ooze */
-" ",
+"$n's bones dissolve and $s flesh becomes translucent as $e changes form "
+"into an ooze!",
   /* Outsider */
 " ",
   /* Plant */
-" ",
+"Thin vines and shoots curl away from $n's body as $s skin changes to a "
+"\tGmottled green plant\tn.",
   /* Vermin */ 
 " "
 };
+//Zusuk's skin becomes translucent, his features drooping and finally flowing into the swirling form of a water elemental
+//zusuk's skin hardens and cracks, taking on a stony hue as he changes into the form of an earth elemental
 
 // shapechange morph messages to_char
 const char *morph_to_char[] = {
@@ -214,7 +220,8 @@ const char *morph_to_char[] = {
   /* Humanoid */
 " ",
   /* Undead */
-" ",
+"Your flesh decays visibly, and your features becoming shallow and sunken as"
+" you turn to the \tDundead\tn.",
   /* Animal */
 " ",
   /* Dragon */
@@ -228,7 +235,8 @@ const char *morph_to_char[] = {
   /* Construct */
 " ",
   /* Elemental */
-" ",
+"You burst into fire, then becomes living flame as your form shifts to that "
+"of a \tRfire elemental\tn.",
   /* Fey */
 " ",
   /* Magical Beast */
@@ -236,11 +244,13 @@ const char *morph_to_char[] = {
   /* Monstrous Humanoid */
 " ",
   /* Ooze */
-" ",
+"Your bones dissolve and your flesh becomes translucent as you changes form "
+"into an \tGooze\tn!",
   /* Outsider */
 " ",
   /* Plant */
-" ",
+"Thin vines and shoots curl away from your body as your skin changes to a "
+"\tGmottled green plant\tn.",
   /* Vermin */ 
 " "
 };

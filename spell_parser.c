@@ -1293,7 +1293,7 @@ void mag_assign_spells(void)
 	ENCHANTMENT);  // wizard 4, cleric 4
   spello(SPELL_DETECT_POISON, "detect poison", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
-	"The detect poison wears off.", 4, 8,
+	"The detect poison wears off.", 4, 11,
 	DIVINATION); // wizard 7, cleric 2
   spello(SPELL_POISON, "poison", 0, 0, 0, POS_FIGHTING,  //enchantment
 	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_OBJ_INV, TRUE,
@@ -1835,6 +1835,7 @@ void mag_assign_spells(void)
   spello(SPELL_PROTECT_FROM_SPELLS, "protection from spells", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"You feel your spell protection wear off.", 6, 11, DIVINATION);
+  //detect poison - shared
 			/* abjuration */
   spello(SPELL_THUNDERCLAP, "thunderclap", 79, 64, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
