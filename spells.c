@@ -441,6 +441,11 @@ ASPELL(spell_teleport)
     send_to_char(ch, "Your target does not exist!\r\n");
     return;
   }
+  
+  if (IS_NPC(victim) && MOB_FLAGGED(victim, MOB_NOSUMMON)) {
+    send_to_char(ch, "Your spell fails to target that victim!\r\n");
+    return;
+  }  
 
   to_room = IN_ROOM(victim);
   
@@ -509,8 +514,12 @@ ASPELL(spell_summon)
     return;
   }
 
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(victim)), ZONE_NOASTRAL) ||
-      ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_NOASTRAL)) {
+  if (!valid_mortal_tele_dest(victim, IN_ROOM(victim))) {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  if (!valid_mortal_tele_dest(ch, IN_ROOM(ch))) {
     send_to_char(ch, "A bright flash prevents your spell from working!");
     return;
   }

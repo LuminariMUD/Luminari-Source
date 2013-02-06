@@ -1016,6 +1016,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
     SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
     SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
+    SET_SKILL(ch, SPELL_HOLY_SWORD, 99);
     
     // skill init
     if (!GET_SKILL(ch, SKILL_LAY_ON_HANDS))
@@ -2006,6 +2007,7 @@ void init_spell_levels(void)
   spell_level(SPELL_REMOVE_CURSE, CLASS_PALADIN, 15);  //shared
   spell_level(SPELL_CAUSE_CRITICAL_WOUNDS, CLASS_PALADIN, 15);
   spell_level(SPELL_CURE_CRITIC, CLASS_PALADIN, 15);
+  spell_level(SPELL_HOLY_SWORD, CLASS_PALADIN, 15);  // unique to paladin
   
   
   // rangers
