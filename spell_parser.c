@@ -498,14 +498,18 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_CLOUDKILL:	MANUAL_SPELL(spell_cloudkill); break;
     }
 
+    /* NOTE:  this requires a victim, so AoE effects have another
+       similar methods */
     if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
            !FIGHTING(cvict) && spellnum != SPELL_CHARM &&
-           spellnum != SPELL_DOMINATE_PERSON)
+           spellnum != SPELL_DOMINATE_PERSON) {
       if (cvict != caster) {  // funny results from potions/scrolls
-        if (IN_ROOM(cvict) == IN_ROOM(caster))
+        if (IN_ROOM(cvict) == IN_ROOM(caster)) {
           hit(cvict, caster, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+        }
       }
-
+    }
+    
     return (1);
 }
 
