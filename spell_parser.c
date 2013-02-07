@@ -459,6 +459,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_WIZARD_EYE:	MANUAL_SPELL(spell_wizard_eye); break;
     case SPELL_LOCATE_OBJECT:   MANUAL_SPELL(spell_locate_object); break;
     case SPELL_POLYMORPH:	MANUAL_SPELL(spell_polymorph); break;
+    case SPELL_CONTROL_WEATHER:	MANUAL_SPELL(spell_control_weather); break;
     case SPELL_SUMMON:		MANUAL_SPELL(spell_summon); break;
     case SPELL_WORD_OF_RECALL:  MANUAL_SPELL(spell_recall); break;
     case SPELL_TELEPORT:	MANUAL_SPELL(spell_teleport); break;
@@ -721,9 +722,11 @@ EVENTFUNC(event_casting)
         failure -= (GET_LEVEL(ch)) * 3;
         //chance of failure calculated here, so far:  taunt, grappled
       if (char_has_mud_event(ch, eTAUNTED))
-        failure += 10;
+        failure += 15;
       if (AFF_FLAGGED(ch, AFF_GRAPPLED))
-        failure += 10;
+        failure += 15;
+      if (!FIGHTING(ch))
+        failure -= 50;
 
       if (dice(1,101) < failure) {
         send_to_char(ch, "You lost your concentration!\r\n");
@@ -1817,7 +1820,7 @@ void mag_assign_spells(void)
 			/* enchantment */
   spello(SPELL_MASS_HOLD_PERSON, "mass hold person", 65, 50, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical hold fade away.", 8,
-     11, ENCHANTMENT);  //like waves of fatigue, but no save?
+     11, ENCHANTMENT);
   spello(SPELL_MASS_FLY, "mass fly", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
      FALSE, MAG_GROUPS, "The fly spell fades away.", 7, 11, ENCHANTMENT);
 			/* illusion */

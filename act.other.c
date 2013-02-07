@@ -63,7 +63,7 @@ ACMD(do_call)
       level += CLASS_LEVEL(ch, CLASS_RANGER) - 3;
     
     if (!GET_SKILL(ch, SKILL_ANIMAL_COMPANION)) {
-      send_to_char(ch, "You are not a high enough level Paladin to "
+      send_to_char(ch, "You are not a high enough level Ranger/Druid to "
               "use this ability!\r\n");
       return;
     }

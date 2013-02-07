@@ -1,12 +1,12 @@
 /**************************************************************************
-*  File: spells.c                                          Part of tbaMUD *
-*  Usage: Implementation of "manual spells."                              *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-**************************************************************************/
+ *  File: spells.c                                          Part of tbaMUD *
+ *  Usage: Implementation of "manual spells."                              *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -30,37 +30,35 @@
 /*  Functions, Events, etc needed to perform manual spells  */
 /************************************************************/
 
-
 /* this function takes a real number for a room and returns:
    FALSE - mortals shouldn't be able to teleport to this destination 
    TRUE - mortals CAN teleport to this destination 
  * accepts NULL ch data
  */
-int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest)
-{
-  
+int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest) {
+
   if (dest == NOWHERE)
     return FALSE;
-  
+
   /* this function needs a vnum, not rnum */
   if (ch && !House_can_enter(ch, GET_ROOM_VNUM(dest)))
     return FALSE;
-  
+
   if (ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_NOASTRAL))
     return FALSE;
-  
+
   if (ROOM_FLAGGED(dest, ROOM_PRIVATE))
     return FALSE;
-  
+
   if (ROOM_FLAGGED(dest, ROOM_DEATH))
     return FALSE;
-  
+
   if (ROOM_FLAGGED(dest, ROOM_GODROOM))
     return FALSE;
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_CLOSED))
     return FALSE;
-  
+
   if (ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_NOASTRAL))
     return FALSE;
 
@@ -69,13 +67,12 @@ int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest)
 }
 
 /* Used by the locate object spell to check the alias list on objects */
-int isname_obj(char *search, char *list)
-{
+int isname_obj(char *search, char *list) {
   char *found_in_list; /* But could be something like 'ring' in 'shimmering.' */
   char searchname[128];
   char namelist[MAX_STRING_LENGTH];
   int found_pos = -1;
-  int found_name=0; /* found the name we're looking for */
+  int found_name = 0; /* found the name we're looking for */
   int match = 1;
   int i;
 
@@ -105,7 +102,7 @@ int isname_obj(char *search, char *list)
     found_name = 1;
   else { /* It is embedded inside namelist. Is it preceded by a space? */
     found_pos = found_in_list - namelist;
-    if (namelist[found_pos-1] == ' ')
+    if (namelist[found_pos - 1] == ' ')
       found_name = 1;
   }
 
@@ -116,15 +113,15 @@ int isname_obj(char *search, char *list)
 }
 
 /* the main engine of charm spell, and similar */
-void effect_charm(struct char_data *ch, struct char_data *victim, 
+void effect_charm(struct char_data *ch, struct char_data *victim,
         int spellnum) {
   struct affected_type af;
   int elf_bonus = 0;
-  
-  if (GET_RACE(victim) == RACE_ELF ||  //elven enchantment resistance
+
+  if (GET_RACE(victim) == RACE_ELF || //elven enchantment resistance
           GET_RACE(victim) == RACE_H_ELF)
     elf_bonus += 2;
-  
+
   if (victim == ch)
     send_to_char(ch, "You like yourself even better!\r\n");
 
@@ -134,7 +131,6 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-
   else if (AFF_FLAGGED(ch, AFF_CHARM))
     send_to_char(ch, "You can't have any followers of your own!\r\n");
 
@@ -145,11 +141,11 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
           GET_LEVEL(victim) >= 8))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
-  else if (spellnum == SPELL_DOMINATE_PERSON && 
+  else if (spellnum == SPELL_DOMINATE_PERSON &&
           CASTER_LEVEL(ch) < GET_LEVEL(victim))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
-  /* player charming another player - no legal reason for this */
+    /* player charming another player - no legal reason for this */
   else if (!CONFIG_PK_ALLOWED && !IS_NPC(victim))
     send_to_char(ch, "You fail - shouldn't be doing it anyway.\r\n");
 
@@ -161,7 +157,6 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-
   else if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
     send_to_char(ch, "Your victim resists!\r\n");
     if (IS_NPC(victim))
@@ -174,9 +169,9 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
       send_to_char(victim, "\tW*Slippery Mind*\tn  ");
       if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
         return;
-      }    
-    }    
-    
+      }
+    }
+
     if (victim->master)
       stop_follower(victim);
 
@@ -191,17 +186,17 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     affect_to_char(victim, &af);
 
     act("Isn't $n just such a nice fellow?", FALSE, ch, 0, victim, TO_VICT);
-//    if (IS_NPC(victim))
-//      REMOVE_BIT_AR(MOB_FLAGS(victim), MOB_SPEC);
+    //    if (IS_NPC(victim))
+    //      REMOVE_BIT_AR(MOB_FLAGS(victim), MOB_SPEC);
   }
   // should never get here
 }
 
 
 /* for dispel magic and greater dispelling */
+
 /* a hack job so far, gets rid of the first x affections */
-void perform_dispel(struct char_data *ch, struct char_data *vict, int spellnum)
-{
+void perform_dispel(struct char_data *ch, struct char_data *vict, int spellnum) {
   int i = 0, attempt = 0, challenge = 0, num_dispels = 0, msg = FALSE;
 
   if (vict == ch) {
@@ -211,24 +206,24 @@ void perform_dispel(struct char_data *ch, struct char_data *vict, int spellnum)
       while (ch->affected) {
         if (spell_info[ch->affected->spell].wear_off_msg)
           send_to_char(ch, "%s\r\n",
-                       spell_info[ch->affected->spell].wear_off_msg);
+                spell_info[ch->affected->spell].wear_off_msg);
         affect_remove(ch, ch->affected);
       }
-      for(i = 0; i < AF_ARRAY_MAX; i++)
+      for (i = 0; i < AF_ARRAY_MAX; i++)
         AFF_FLAGS(ch)[i] = 0;
     }
     return;
   } else {
     attempt = dice(1, 20) + CASTER_LEVEL(ch);
     challenge = dice(1, 20) + CASTER_LEVEL(vict);
-    
+
     if (spellnum == SPELL_GREATER_DISPELLING) {
       num_dispels = dice(2, 2);
       for (i = 0; i < num_dispels; i++) {
-        if (attempt >= challenge) {  //successful
+        if (attempt >= challenge) { //successful
           if (vict->affected) {
             msg = TRUE;
-            affect_remove(vict, vict->affected);          
+            affect_remove(vict, vict->affected);
           }
         }
         attempt = dice(1, 20) + CASTER_LEVEL(ch);
@@ -239,43 +234,41 @@ void perform_dispel(struct char_data *ch, struct char_data *vict, int spellnum)
         act("$n dispels some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);
       } else {
         send_to_char(ch, "You fail your dispel magic attempt!\r\n");
-        act("$n fails to dispel some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);        
+        act("$n fails to dispel some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);
       }
       return;
     }
-    
+
     if (spellnum == SPELL_DISPEL_MAGIC) {
-      if (attempt >= challenge) {  //successful
+      if (attempt >= challenge) { //successful
         send_to_char(ch, "You successfuly dispel some magic!\r\n");
         act("$n dispels some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);
-          if (vict->affected)
-            affect_remove(vict, vict->affected);
-      } else {  //failed
+        if (vict->affected)
+          affect_remove(vict, vict->affected);
+      } else { //failed
         send_to_char(ch, "You fail your dispel magic attempt!\r\n");
         act("$n fails to dispel some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);
       }
     }
-  }  
+  }
 }
 
-
-  /* The "return" of the event function is the time until the event is called
-   * again. If we return 0, then the event is freed and removed from the list, but
-   * any other numerical response will be the delay until the next call */
-EVENTFUNC(event_acid_arrow)
-{
+/* The "return" of the event function is the time until the event is called
+ * again. If we return 0, then the event is freed and removed from the list, but
+ * any other numerical response will be the delay until the next call */
+EVENTFUNC(event_acid_arrow) {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
-  	
+
   /* This is just a dummy check, but we'll do it anyway */
   if (event_obj == NULL)
     return 0;
-	  
+
   /* For the sake of simplicity, we will place the event data in easily
-   * referenced pointers */  
+   * referenced pointers */
   pMudEvent = (struct mud_event_data *) event_obj;
-  ch = (struct char_data *) pMudEvent->pStruct;    
-  if (ch && FIGHTING(ch))  //assign victim, if none escape
+  ch = (struct char_data *) pMudEvent->pStruct;
+  if (ch && FIGHTING(ch)) //assign victim, if none escape
     victim = FIGHTING(ch);
   else
     return 0;
@@ -288,21 +281,21 @@ EVENTFUNC(event_acid_arrow)
   }
 
   damage(ch, victim, dice(3, 6), SPELL_ACID_ARROW, DAM_ACID,
-                FALSE);
-  
-  update_pos(victim);  
+          FALSE);
+
+  update_pos(victim);
   return 0;
 }
 
 /************************************************************/
 /*  ASPELL defines                                          */
+
 /************************************************************/
 
-  
-ASPELL(spell_acid_arrow)
-{
+
+ASPELL(spell_acid_arrow) {
   int x = 0;
-  
+
   if (ch == NULL || victim == NULL)
     return;
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
@@ -312,49 +305,45 @@ ASPELL(spell_acid_arrow)
 
   send_to_char(ch, "You send out an arrow of acid whizzing towards your opponent!\r\n");
   act("$n sends out an arrow of acid whizzing!", FALSE, ch, 0, 0, TO_ROOM);
-  
-  for (x = 0; x < (MAGIC_LEVEL(ch)/3); x++) {
-    NEW_EVENT(eACIDARROW, ch, NULL, ((x*6) * PASSES_PER_SEC));  
+
+  for (x = 0; x < (MAGIC_LEVEL(ch) / 3); x++) {
+    NEW_EVENT(eACIDARROW, ch, NULL, ((x * 6) * PASSES_PER_SEC));
   }
 }
 
 
 #define WALL_OF_FORCE    47
-ASPELL(spell_wall_of_force)
-{
+
+ASPELL(spell_wall_of_force) {
   struct char_data *mob;
-  
+
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
-  
+
   if (!(mob = read_mobile(WALL_OF_FORCE, VIRTUAL))) {
     send_to_char(ch, "You don't quite remember how to create that.\r\n");
     return;
   }
-  
+
   char_to_room(mob, IN_ROOM(ch));
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
-  
+
   act("$n conjures $N!", FALSE, ch, 0, mob, TO_ROOM);
   send_to_char(ch, "You conjure a wall of force!\r\n");
 
   load_mtrigger(mob);
-}  
+}
 #undef WALL_OF_FORCE
 
-
-ASPELL(spell_cloudkill)
-{
+ASPELL(spell_cloudkill) {
   send_to_char(ch, "You summon forth a cloud of death!\r\n");
   act("$n summons forth a cloud of death!", FALSE, ch, 0, 0, TO_ROOM);
-  
+
   CLOUDKILL(ch) = MAGIC_LEVEL(ch) / 4;
 }
 
-
-ASPELL(spell_dismissal)
-{
+ASPELL(spell_dismissal) {
   struct follow_type *k;
 
   if (!ch || !victim)
@@ -367,7 +356,7 @@ ASPELL(spell_dismissal)
       /* actually a follower? */
       if (AFF_FLAGGED(k->follower, AFF_CHARM)) {
         /* has proper subrace to be dismissed? */
-        if (IS_NPC(k->follower) && 
+        if (IS_NPC(k->follower) &&
                 HAS_SUBRACE(k->follower, SUBRACE_EXTRAPLANAR)) {
           /* great, attempt to dismiss and exit, just one victim */
           act("$n dismisses $N!", FALSE, ch, 0, k->follower, TO_ROOM);
@@ -380,9 +369,7 @@ ASPELL(spell_dismissal)
   }
 }
 
-
-ASPELL(spell_create_water)
-{
+ASPELL(spell_create_water) {
   int water;
 
   if (ch == NULL || obj == NULL)
@@ -396,21 +383,19 @@ ASPELL(spell_create_water)
     } else {
       water = MAX(GET_OBJ_VAL(obj, 0) - GET_OBJ_VAL(obj, 1), 0);
       if (water > 0) {
-	if (GET_OBJ_VAL(obj, 1) >= 0)
-	  name_from_drinkcon(obj);
-	GET_OBJ_VAL(obj, 2) = LIQ_WATER;
-	GET_OBJ_VAL(obj, 1) += water;
-	name_to_drinkcon(obj, LIQ_WATER);
-	weight_change_object(obj, water);
-	act("$p is filled.", FALSE, ch, obj, 0, TO_CHAR);
+        if (GET_OBJ_VAL(obj, 1) >= 0)
+          name_from_drinkcon(obj);
+        GET_OBJ_VAL(obj, 2) = LIQ_WATER;
+        GET_OBJ_VAL(obj, 1) += water;
+        name_to_drinkcon(obj, LIQ_WATER);
+        weight_change_object(obj, water);
+        act("$p is filled.", FALSE, ch, obj, 0, TO_CHAR);
       }
     }
   }
 }
 
-
-ASPELL(spell_recall)
-{
+ASPELL(spell_recall) {
   if (victim == NULL || IS_NPC(victim))
     return;
 
@@ -429,26 +414,24 @@ ASPELL(spell_recall)
   greet_memory_mtrigger(victim);
 }
 
-
-ASPELL(spell_teleport)
-{
+ASPELL(spell_teleport) {
   room_rnum to_room = NOWHERE;
 
   if (ch == NULL)
     return;
-  
+
   if (!victim) {
     send_to_char(ch, "Your target does not exist!\r\n");
     return;
   }
-  
+
   if (IS_NPC(victim) && MOB_FLAGGED(victim, MOB_NOSUMMON)) {
     send_to_char(ch, "Your spell fails to target that victim!\r\n");
     return;
-  }  
+  }
 
   to_room = IN_ROOM(victim);
-  
+
   if (!valid_mortal_tele_dest(ch, to_room)) {
     send_to_char(ch, "A bright flash prevents your spell from working!");
     return;
@@ -458,10 +441,10 @@ ASPELL(spell_teleport)
     send_to_char(ch, "A bright flash prevents your spell from working!");
     return;
   }
-  
+
   send_to_char(ch, "You slowly fade out of existence...\r\n");
   act("$n slowly fades out of existence and is gone.",
-      FALSE, ch, 0, 0, TO_ROOM);
+          FALSE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
   char_to_room(ch, to_room);
   act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
@@ -472,9 +455,7 @@ ASPELL(spell_teleport)
   greet_memory_mtrigger(ch);
 }
 
-
-ASPELL(spell_clairvoyance)
-{
+ASPELL(spell_clairvoyance) {
   room_rnum location, original_loc;
 
   if (ch == NULL || victim == NULL)
@@ -492,10 +473,10 @@ ASPELL(spell_clairvoyance)
 
   /* a location has been found. */
   original_loc = IN_ROOM(ch);
-  char_from_room(ch); 
+  char_from_room(ch);
   char_to_room(ch, location);
   look_at_room(ch, 0);
- 
+
   /* check if the char is still there */
   if (IN_ROOM(ch) == location) {
     char_from_room(ch);
@@ -504,8 +485,8 @@ ASPELL(spell_clairvoyance)
 }
 
 #define SUMMON_FAIL "You failed.\r\n"
-ASPELL(spell_summon)
-{
+
+ASPELL(spell_summon) {
   if (ch == NULL || victim == NULL)
     return;
 
@@ -527,18 +508,18 @@ ASPELL(spell_summon)
   if (!CONFIG_PK_ALLOWED) {
     if (MOB_FLAGGED(victim, MOB_AGGRESSIVE)) {
       act("As the words escape your lips and $N travels\r\n"
-	  "through time and space towards you, you realize that $E is\r\n"
-	  "aggressive and might harm you, so you wisely send $M back.",
-	  FALSE, ch, 0, victim, TO_CHAR);
+              "through time and space towards you, you realize that $E is\r\n"
+              "aggressive and might harm you, so you wisely send $M back.",
+              FALSE, ch, 0, victim, TO_CHAR);
       return;
     }
     if (!IS_NPC(victim) && !PRF_FLAGGED(victim, PRF_SUMMONABLE) &&
-	!PLR_FLAGGED(victim, PLR_KILLER)) {
+            !PLR_FLAGGED(victim, PLR_KILLER)) {
       send_to_char(victim, "%s just tried to summon you to: %s.\r\n"
-	      "%s failed because you have summon protection on.\r\n"
-	      "Type NOSUMMON to allow other players to summon you.\r\n",
-	      GET_NAME(ch), world[IN_ROOM(ch)].name,
-	      (ch->player.sex == SEX_MALE) ? "He" : "She");
+              "%s failed because you have summon protection on.\r\n"
+              "Type NOSUMMON to allow other players to summon you.\r\n",
+              GET_NAME(ch), world[IN_ROOM(ch)].name,
+              (ch->player.sex == SEX_MALE) ? "He" : "She");
 
       send_to_char(ch, "You failed because %s has summon protection on.\r\n", GET_NAME(victim));
       mudlog(BRF, LVL_IMMORT, TRUE, "%s failed summoning %s to %s.", GET_NAME(ch), GET_NAME(victim), world[IN_ROOM(ch)].name);
@@ -570,23 +551,38 @@ ASPELL(spell_summon)
   greet_memory_mtrigger(victim);
 }
 
+ASPELL(spell_polymorph) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
-
-ASPELL(spell_polymorph)
-{
-  char arg[MAX_INPUT_LENGTH] = { '\0' };
-        
   if (IS_NPC(ch) || !ch->desc)
     return;
-        
+
   one_argument(cast_arg2, arg);
-        
+
   perform_shapechange(ch, arg);
 }
 
+/* i decided to wait for room events for this one */
+ASPELL(spell_control_weather) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
-ASPELL(spell_locate_creature)
-{
+  if (IS_NPC(ch) || !ch->desc)
+    return;
+
+  one_argument(cast_arg2, arg);
+
+  if (is_abbrev(arg, "worsen")) {
+
+  } else if (is_abbrev(arg, "improve")) {
+
+  } else {
+    send_to_char(ch, "You need to cast this spell with an argument of either, "
+            "'worsen' or 'improve' in order for it to be a success!\r\n");
+    return;
+  }
+}
+
+ASPELL(spell_locate_creature) {
   struct char_data *i;
   int found = 0, num = 0;
 
@@ -594,15 +590,17 @@ ASPELL(spell_locate_creature)
     return;
   if (victim == NULL)
     return;
-  if (victim == ch)
+  if (victim == ch) {
+    send_to_char(ch, "You were once lost, but now you are found!\r\n");
     return;
+  }
 
   send_to_char(ch, "%s\r\n", QNRM);
   for (i = character_list; i; i = i->next) {
     if (is_abbrev(GET_NAME(victim), GET_NAME(i)) && CAN_SEE(ch, i) && IN_ROOM(i) != NOWHERE) {
-      found = 1;   
+      found = 1;
       send_to_char(ch, "%3d. %-25s%s - %-25s%s", ++num, GET_NAME(i), QNRM,
-               world[IN_ROOM(i)].name, QNRM);
+              world[IN_ROOM(i)].name, QNRM);
       send_to_char(ch, "%s\r\n", QNRM);
     }
   }
@@ -611,9 +609,7 @@ ASPELL(spell_locate_creature)
     send_to_char(ch, "Couldn't find any such creature.\r\n");
 }
 
-
-ASPELL(spell_locate_object)
-{
+ASPELL(spell_locate_object) {
   struct obj_data *i;
   char name[MAX_INPUT_LENGTH];
   int j;
@@ -626,13 +622,13 @@ ASPELL(spell_locate_object)
   /*  added a global var to catch 2nd arg. */
   sprintf(name, "%s", cast_arg2);
 
-  j = CASTER_LEVEL(ch) / 2;  /* # items to show = twice char's level */
+  j = CASTER_LEVEL(ch) / 2; /* # items to show = twice char's level */
 
   for (i = object_list; i && (j > 0); i = i->next) {
     if (!isname_obj(name, i->name))
       continue;
 
-  send_to_char(ch, "%c%s", UPPER(*i->short_description), i->short_description + 1);
+    send_to_char(ch, "%c%s", UPPER(*i->short_description), i->short_description + 1);
 
     if (i->carried_by)
       send_to_char(ch, " is being carried by %s.\r\n", PERS(i->carried_by, ch));
@@ -649,10 +645,9 @@ ASPELL(spell_locate_object)
   }
 }
 
-
-ASPELL(spell_greater_dispelling)  // abjuration
+ASPELL(spell_greater_dispelling) // abjuration
 {
-  
+
   if (ch == NULL)
     return;
   if (victim == NULL)
@@ -661,10 +656,9 @@ ASPELL(spell_greater_dispelling)  // abjuration
   perform_dispel(ch, victim, SPELL_GREATER_DISPELLING);
 }
 
-
-ASPELL(spell_dispel_magic)  // divination
+ASPELL(spell_dispel_magic) // divination
 {
-  
+
   if (ch == NULL)
     return;
   if (victim == NULL)
@@ -673,8 +667,7 @@ ASPELL(spell_dispel_magic)  // divination
   perform_dispel(ch, victim, SPELL_DISPEL_MAGIC);
 }
 
-
-ASPELL(spell_dominate_person)  // enchantment
+ASPELL(spell_dominate_person) // enchantment
 {
   if (victim == NULL || ch == NULL)
     return;
@@ -682,10 +675,9 @@ ASPELL(spell_dominate_person)  // enchantment
   effect_charm(ch, victim, SPELL_DOMINATE_PERSON);
 }
 
-
-ASPELL(spell_charm)  // enchantment
+ASPELL(spell_charm) // enchantment
 {
-  
+
   if (victim == NULL || ch == NULL)
     return;
 
@@ -694,8 +686,7 @@ ASPELL(spell_charm)  // enchantment
 
 
 #define WIZARD_EYE 	45
-ASPELL(spell_wizard_eye)
-{
+ASPELL(spell_wizard_eye) {
   struct char_data *eye = read_mobile(WIZARD_EYE, VIRTUAL);
 
   //first load the eye
@@ -705,8 +696,8 @@ ASPELL(spell_wizard_eye)
   load_mtrigger(eye);
 
   //now take control
-  send_to_char(ch, "You summon a wizard eye! (\tDType 'return' to return" 
-                   " to your body\tn)\r\n");
+  send_to_char(ch, "You summon a wizard eye! (\tDType 'return' to return"
+          " to your body\tn)\r\n");
   ch->desc->character = eye;
   ch->desc->original = ch;
   eye->desc = ch->desc;
@@ -715,7 +706,7 @@ ASPELL(spell_wizard_eye)
 #undef WIZARD_EYE
 
 
-ASPELL(spell_identify)  // divination
+ASPELL(spell_identify) // divination
 {
   int i, found;
   size_t len;
@@ -723,7 +714,7 @@ ASPELL(spell_identify)  // divination
   if (obj) {
     char bitbuf[MAX_STRING_LENGTH];
 
-    sprinttype(GET_OBJ_TYPE(obj), item_types, bitbuf, sizeof(bitbuf));
+    sprinttype(GET_OBJ_TYPE(obj), item_types, bitbuf, sizeof (bitbuf));
     send_to_char(ch, "You feel informed:\r\nObject '%s', Item type: %s\r\n", obj->short_description, bitbuf);
 
     sprintbitarray(GET_OBJ_WEAR(obj), wear_bits, TW_ARRAY_MAX, bitbuf);
@@ -740,93 +731,92 @@ ASPELL(spell_identify)  // divination
     send_to_char(ch, "Size: %s, Material: %s.\r\n",
             size_names[GET_OBJ_SIZE(obj)],
             material_name[GET_OBJ_MATERIAL(obj)]);
-    
+
     send_to_char(ch, "Weight: %d, Value: %d, Rent: %d, Min. level: %d\r\n",
-                     GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj), GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj));
+            GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj), GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj));
 
     switch (GET_OBJ_TYPE(obj)) {
-    case ITEM_SCROLL:
-    case ITEM_POTION:
-      len = i = 0;
-      int hasVal = 0;
+      case ITEM_SCROLL:
+      case ITEM_POTION:
+        len = i = 0;
+        int hasVal = 0;
 
-      if (GET_OBJ_VAL(obj, 1) >= 1) {
-        i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s",
-                skill_name(GET_OBJ_VAL(obj, 1)));
-        if (i >= 0)
-          len += i;
-        hasVal++;
-      }
+        if (GET_OBJ_VAL(obj, 1) >= 1) {
+          i = snprintf(bitbuf + len, sizeof (bitbuf) - len, " %s",
+                  skill_name(GET_OBJ_VAL(obj, 1)));
+          if (i >= 0)
+            len += i;
+          hasVal++;
+        }
 
-      if (GET_OBJ_VAL(obj, 2) >= 1 && len < sizeof(bitbuf)) {
-        i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(obj, 2)));
-        if (i >= 0)
-          len += i;
-        hasVal++;
-      }
+        if (GET_OBJ_VAL(obj, 2) >= 1 && len < sizeof (bitbuf)) {
+          i = snprintf(bitbuf + len, sizeof (bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(obj, 2)));
+          if (i >= 0)
+            len += i;
+          hasVal++;
+        }
 
-      if (GET_OBJ_VAL(obj, 3) >= 1 && len < sizeof(bitbuf)) {
-        i = snprintf(bitbuf + len, sizeof(bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(obj, 3)));
-        if (i >= 0)
-          len += i;
-        hasVal++;
-      }
+        if (GET_OBJ_VAL(obj, 3) >= 1 && len < sizeof (bitbuf)) {
+          i = snprintf(bitbuf + len, sizeof (bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(obj, 3)));
+          if (i >= 0)
+            len += i;
+          hasVal++;
+        }
 
-      if (hasVal)
-        send_to_char(ch, "This %s casts: %s\r\n", item_types[(int) GET_OBJ_TYPE(obj)],
-		bitbuf);
-      else
-        send_to_char(ch, "This item has no spells imbued in it.\t\n");
-      break;
-    case ITEM_WAND:
-    case ITEM_STAFF:
-      send_to_char(ch, "This %s casts: %s\r\nIt has %d maximum charge%s and %d remaining.\r\n",
-		item_types[(int) GET_OBJ_TYPE(obj)], skill_name(GET_OBJ_VAL(obj, 3)),
-		GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 1) == 1 ? "" : "s", GET_OBJ_VAL(obj, 2));
-      break;
-    case ITEM_WEAPON:
-      send_to_char(ch, "Damage Dice is '%dD%d' for an average per-round damage of %.1f.\r\n",
-		GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), ((GET_OBJ_VAL(obj, 2) + 1) / 2.0) * GET_OBJ_VAL(obj, 1));
-      send_to_char(ch, "Weapon Type: %s\r\n", attack_hit_text[GET_OBJ_VAL(obj, 3)].singular);
-      send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
-      break;
-    case ITEM_ARMOR:
-      send_to_char(ch, "AC-apply is %d\r\n", GET_OBJ_VAL(obj, 0));
-      send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
-      break;
+        if (hasVal)
+          send_to_char(ch, "This %s casts: %s\r\n", item_types[(int) GET_OBJ_TYPE(obj)],
+                bitbuf);
+        else
+          send_to_char(ch, "This item has no spells imbued in it.\t\n");
+        break;
+      case ITEM_WAND:
+      case ITEM_STAFF:
+        send_to_char(ch, "This %s casts: %s\r\nIt has %d maximum charge%s and %d remaining.\r\n",
+                item_types[(int) GET_OBJ_TYPE(obj)], skill_name(GET_OBJ_VAL(obj, 3)),
+                GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 1) == 1 ? "" : "s", GET_OBJ_VAL(obj, 2));
+        break;
+      case ITEM_WEAPON:
+        send_to_char(ch, "Damage Dice is '%dD%d' for an average per-round damage of %.1f.\r\n",
+                GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), ((GET_OBJ_VAL(obj, 2) + 1) / 2.0) * GET_OBJ_VAL(obj, 1));
+        send_to_char(ch, "Weapon Type: %s\r\n", attack_hit_text[GET_OBJ_VAL(obj, 3)].singular);
+        send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
+        break;
+      case ITEM_ARMOR:
+        send_to_char(ch, "AC-apply is %d\r\n", GET_OBJ_VAL(obj, 0));
+        send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
+        break;
     }
     found = FALSE;
     for (i = 0; i < MAX_OBJ_AFFECT; i++) {
       if ((obj->affected[i].location != APPLY_NONE) &&
-	  (obj->affected[i].modifier != 0)) {
-	if (!found) {
-	  send_to_char(ch, "Can affect you as :\r\n");
-	  found = TRUE;
-	}
-	sprinttype(obj->affected[i].location, apply_types, bitbuf, sizeof(bitbuf));
-	send_to_char(ch, "   Affects: %s By %d\r\n", bitbuf, obj->affected[i].modifier);
+              (obj->affected[i].modifier != 0)) {
+        if (!found) {
+          send_to_char(ch, "Can affect you as :\r\n");
+          found = TRUE;
+        }
+        sprinttype(obj->affected[i].location, apply_types, bitbuf, sizeof (bitbuf));
+        send_to_char(ch, "   Affects: %s By %d\r\n", bitbuf, obj->affected[i].modifier);
       }
     }
-  } else if (victim) {		/* victim */
+  } else if (victim) { /* victim */
     send_to_char(ch, "Name: %s\r\n", GET_NAME(victim));
     if (!IS_NPC(victim))
       send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n",
-	      GET_NAME(victim), age(victim)->year, age(victim)->month,
-	      age(victim)->day, age(victim)->hours);
+            GET_NAME(victim), age(victim)->year, age(victim)->month,
+            age(victim)->day, age(victim)->hours);
     send_to_char(ch, "Alignment: %d.\r\n", GET_ALIGNMENT(victim));
     send_to_char(ch, "Height %d cm, Weight %d pounds\r\n", GET_HEIGHT(victim), GET_WEIGHT(victim));
     send_to_char(ch, "Level: %d, Hits: %d, Mana: %d\r\n", GET_LEVEL(victim), GET_HIT(victim), GET_MANA(victim));
     send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n", compute_armor_class(NULL, victim), GET_HITROLL(victim), GET_DAMROLL(victim));
     send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n",
-	GET_STR(victim), GET_ADD(victim), GET_INT(victim),
-	GET_WIS(victim), GET_DEX(victim), GET_CON(victim), GET_CHA(victim));
+            GET_STR(victim), GET_ADD(victim), GET_INT(victim),
+            GET_WIS(victim), GET_DEX(victim), GET_CON(victim), GET_CHA(victim));
   }
 }
 
-
 /* Cannot use this spell on an equipped object or it will mess up the wielding
  * character's hit/dam totals. */
-ASPELL(spell_enchant_weapon)  // enchantment
+ASPELL(spell_enchant_weapon) // enchantment
 {
   int i;
 
@@ -845,10 +835,10 @@ ASPELL(spell_enchant_weapon)  // enchantment
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
 
   obj->affected[0].location = APPLY_HITROLL;
-  obj->affected[0].modifier = MAX(1, (int)(MAGIC_LEVEL(ch) / 10));
+  obj->affected[0].modifier = MAX(1, (int) (MAGIC_LEVEL(ch) / 10));
 
   obj->affected[1].location = APPLY_DAMROLL;
-  obj->affected[1].modifier = MAX(1, (int)(MAGIC_LEVEL(ch) / 10));
+  obj->affected[1].modifier = MAX(1, (int) (MAGIC_LEVEL(ch) / 10));
 
   if (IS_GOOD(ch)) {
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_ANTI_EVIL);
@@ -860,9 +850,7 @@ ASPELL(spell_enchant_weapon)  // enchantment
     act("$p glows \tYyellow\tn.", FALSE, ch, obj, 0, TO_CHAR);
 }
 
-
-ASPELL(spell_detect_poison)
-{
+ASPELL(spell_detect_poison) {
   if (victim) {
     if (victim == ch) {
       if (AFF_FLAGGED(victim, AFF_POISON))
@@ -879,17 +867,17 @@ ASPELL(spell_detect_poison)
 
   if (obj) {
     switch (GET_OBJ_TYPE(obj)) {
-    case ITEM_DRINKCON:
-    case ITEM_FOUNTAIN:
-    case ITEM_FOOD:
-      if (GET_OBJ_VAL(obj, 3))
-	act("You sense that $p has been contaminated.",FALSE,ch,obj,0,TO_CHAR);
-      else
-	act("You sense that $p is safe for consumption.", FALSE, ch, obj, 0,
-	    TO_CHAR);
-      break;
-    default:
-      send_to_char(ch, "You sense that it should not be consumed.\r\n");
+      case ITEM_DRINKCON:
+      case ITEM_FOUNTAIN:
+      case ITEM_FOOD:
+        if (GET_OBJ_VAL(obj, 3))
+          act("You sense that $p has been contaminated.", FALSE, ch, obj, 0, TO_CHAR);
+        else
+          act("You sense that $p is safe for consumption.", FALSE, ch, obj, 0,
+                TO_CHAR);
+        break;
+      default:
+        send_to_char(ch, "You sense that it should not be consumed.\r\n");
     }
   }
 }

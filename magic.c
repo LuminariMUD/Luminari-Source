@@ -23,6 +23,9 @@
 #include "fight.h"
 
 
+//external
+extern struct raff_node *raff_list;
+
 /* local file scope function prototypes */
 static int mag_materials(struct char_data *ch, IDXTYPE item0, IDXTYPE item1,
         IDXTYPE item2, int extract, int verbose);
@@ -30,8 +33,7 @@ static void perform_mag_groups(int level, struct char_data *ch,
         struct char_data *tch, struct obj_data *obj, int spellnum,
         int savetype);
 
-//external
-extern struct raff_node *raff_list;
+
 
 
 // Magic Resistance, ch is challenger, vict is resistor, modifier applys to vict
@@ -51,9 +53,12 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
     resist += 2;
   if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_SPELL_RESIST_5))
     resist += 2;
+  if (affected_by_spell(vict, SPELL_PROTECT_FROM_SPELLS))
+    resist += 10;
 
   return MIN(99, MAX(0, resist));
 }
+
 // TRUE = reisted
 // FALSE = Failed to resist
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
@@ -62,7 +67,7 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
 	resist = compute_spell_res(ch, vict, modifier);
 
   // should be modified - zusuk
-  challenge += (DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch));
+  challenge += CASTER_LEVEL(ch);
 
   //insert challenge bonuses here (ch)
   if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SPELLPENETRATE))
@@ -527,6 +532,28 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
 
+  case SPELL_PRISMATIC_SPRAY:  //illusion
+    //  has effect too
+    save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_ILLUSION;    
+    num_dice = MIN(26, magic_level);
+    size_dice = 4;
+    bonus = 0;
+    break;
+    
+  case SPELL_THUNDERCLAP:  // abjuration
+    //  has effect too
+    // no save
+    save = -1;
+    // no resistance
+    mag_resist = FALSE;
+    element = DAM_SOUND;    
+    num_dice = 1;
+    size_dice = 10;
+    bonus = magic_level;
+    break;
+    
   case SPELL_BALL_OF_LIGHTNING:  //evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
@@ -893,7 +920,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
   int i, j, magic_level = 0, divine_level = 0;
-  int elf_bonus = 0, gnome_bonus = 0;
+  int elf_bonus = 0, gnome_bonus = 0, success = 0;
   bool is_mind_affect = FALSE;
   
   if (victim == NULL || ch == NULL)
@@ -996,6 +1023,102 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are stunned by the colors!";
     break;
 
+  case SPELL_POWER_WORD_STUN:  //divination
+    if (mag_resistance(ch, victim, 0))
+      return;
+    // no save
+    
+    SET_BIT_AR(af[0].bitvector, AFF_STUN);
+    af[0].duration = dice(1, 4);
+    to_room = "$n is stunned by a powerful magical word!";
+    to_vict = "You are stunned by a powerful magical word!";
+    break;
+    
+  case SPELL_THUNDERCLAP:  //abjuration
+    success = 0;
+
+    if (!MOB_FLAGGED(victim, MOB_NODEAF) &&
+            !mag_savingthrow(ch, victim, SAVING_FORT, 0) &&
+            !mag_resistance(ch, victim, 0)) {
+      af[0].duration = 10;
+      SET_BIT_AR(af[0].bitvector, AFF_DEAF);
+
+      act("You have been deafened!", FALSE, victim, 0, ch, TO_CHAR);
+      act("$n seems to be deafened!", TRUE, victim, 0, ch, TO_ROOM);  
+      success = 1;
+      break;
+    }
+    
+    if (!mag_savingthrow(ch, victim, SAVING_WILL, 0) &&
+            !mag_resistance(ch, victim, 0)) {
+      af[1].duration = 4;
+      SET_BIT_AR(af[1].bitvector, AFF_STUN);
+
+      act("You have been stunned!", FALSE, victim, 0, ch, TO_CHAR);
+      act("$n seems to be stunned!", TRUE, victim, 0, ch, TO_ROOM);  
+      success = 1;
+      break;
+    }
+    
+    if (!mag_savingthrow(ch, victim, SAVING_REFL, 0) &&
+            !mag_resistance(ch, victim, 0)) {
+      GET_POS(victim) = POS_SITTING;
+      WAIT_STATE(victim, PULSE_VIOLENCE * 1);
+
+      act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
+      act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);  
+      break;
+    }
+    
+    if (!success)
+      return;
+    break;
+
+  case SPELL_PRISMATIC_SPRAY:  //illusion
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
+      return;
+    }
+
+    switch (dice(1,4)) {
+      case 1:
+        SET_BIT_AR(af[0].bitvector, AFF_STUN);
+        af[0].duration = dice(2, 4);
+        to_room = "$n is stunned by the colors!";
+        to_vict = "You are stunned by the colors!";
+        break;
+      case 2:
+        SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+        af[0].duration = dice(2, 4);
+        to_room = "$n is paralyzed by the colors!";
+        to_vict = "You are paralyzed by the colors!";
+        break;
+      case 3:
+        af[0].location = APPLY_HITROLL;
+        af[0].modifier = -4;
+        af[0].duration = 50;
+        SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+
+        af[1].location = APPLY_AC;
+        af[1].modifier = 40;
+        af[1].duration = 50;
+        SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+
+        to_room = "$n seems to be blinded by the colors!";
+        to_vict = "You have been blinded by the colors!";
+        
+        break;
+      case 4:
+        af[0].duration = (magic_level * 12);
+        SET_BIT_AR(af[0].bitvector, AFF_SLOW);
+        to_room = "$n begins to slow down from the prismatic spray!";
+        to_vict = "You feel yourself slow down because of the prismatic spray!";
+        
+        break;
+    }
+    break;
+
   case SPELL_DAZE_MONSTER:  //enchantment
     if (GET_LEVEL(victim) > 8) {
       send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
@@ -1050,6 +1173,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are overcome by a fit of hideous luaghter!";
     break;
 
+  case SPELL_MASS_HOLD_PERSON:  //enchantment
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      return;
+    }
+
+    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+    af[0].duration = dice(3, 4);
+    to_room = "$n is overcome by a powerful hold spell!";
+    to_vict = "You are overcome by a powerful hold spell!";
+    break;
+
   case SPELL_HOLD_PERSON:  //enchantment
     if (GET_LEVEL(victim) > 11) {
       send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
@@ -1101,6 +1237,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are overcome by overwhelming fatigue!!";
     break;
 
+
+  case SPELL_WAVES_OF_EXHAUSTION:  //necromancy
+    if (mag_resistance(ch, victim, 0))
+      return;
+    // no save
+    
+    SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
+    GET_MOVE(victim) -= 20 + magic_level;
+    af[0].duration = magic_level + 10;
+    to_room = "$n is overcome by overwhelming exhaustion!!";
+    to_vict = "You are overcome by overwhelming exhaustion!!";
+    break;
+    
   case SPELL_GRASPING_HAND:  //evocation (also does damage)
     if (mag_resistance(ch, victim, 0))
       return;
@@ -1209,6 +1358,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel like your guts are tough as iron!";
     break;
 
+  case SPELL_PROTECT_FROM_SPELLS:
+    af[1].location = APPLY_SAVING_WILL;
+    af[1].modifier = 1;
+    af[1].duration = 100;
+
+    to_room = "$n is now protected from spells!";
+    to_vict = "You feel protected from spells!";
+    break;
+
   case SPELL_BLESS:
     af[0].location = APPLY_HITROLL;
     af[0].modifier = 2;
@@ -1308,7 +1466,33 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n seems to be blinded!";
     to_vict = "You have been blinded!";
     break;
+    
+  case SPELL_POWER_WORD_BLIND:  //necromancy
+    if (MOB_FLAGGED(victim, MOB_NOBLIND)) {
+      send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
+      return;
+    }
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_REFL, -4)) {
+      send_to_char(ch, "You fail.\r\n");
+      return;
+    }
 
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = -4;
+    af[0].duration = 200;
+    SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+
+    af[1].location = APPLY_AC;
+    af[1].modifier = 40;
+    af[1].duration = 200;
+    SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+
+    to_room = "$n seems to be blinded!";
+    to_vict = "You have been blinded!";
+    break;
+    
   case SPELL_DEAFNESS:  //necromancy
     if (MOB_FLAGGED(victim, MOB_NODEAF)) {
       send_to_char(ch, "Your opponent doesn't seem deafable.\r\n");
@@ -1353,6 +1537,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n's images becomes blurry!.";
     to_vict = "You observe as your image becomes blurry.";
     SET_BIT_AR(af[0].bitvector, AFF_BLUR);
+    accum_duration = FALSE;
+    break;
+
+  case SPELL_DISPLACEMENT:  //illusion
+    af[0].location = APPLY_AC;
+    af[0].modifier = -1;
+    af[0].duration = 100;
+    to_room = "$n's images becomes displaced!";
+    to_vict = "You observe as your image becomes displaced!";
+    SET_BIT_AR(af[0].bitvector, AFF_DISPLACE);
     accum_duration = FALSE;
     break;
 
@@ -2025,6 +2219,7 @@ static void perform_mag_groups(int level, struct char_data *ch,
 			struct char_data *tch, struct obj_data *obj, int spellnum,
                int savetype)
 {
+  
   switch (spellnum) {
     case SPELL_GROUP_HEAL:
     mag_points(level, ch, tch, obj, SPELL_HEAL, savetype);
@@ -2047,6 +2242,10 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_GROUP_RECALL:
     spell_recall(level, ch, tch, NULL);
     break;
+  case SPELL_MASS_FLY:
+    mag_affects(level, ch, tch, obj, SPELL_FLY, savetype);
+    break;
+    
   }
 }
 
@@ -2054,10 +2253,12 @@ static void perform_mag_groups(int level, struct char_data *ch,
  * contains the switch statement to send us to the right magic. Group spells
  * affect everyone grouped with the caster who is in the room, caster last. To
  * add new group spells, you shouldn't have to change anything in mag_groups.
- * Just add a new case to perform_mag_groups. */
+ * Just add a new case to perform_mag_groups.
+ * UPDATE:  added some to_char and to_room messages here for fun  */
 void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum, int savetype)
 {
+  char *to_char = NULL, *to_room = NULL;
   struct char_data *tch;
 
   if (ch == NULL)
@@ -2066,6 +2267,46 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   if (!GROUP(ch))
     return;
 
+  switch (spellnum) {
+    case SPELL_GROUP_HEAL:
+    to_char = "You summon massive beams of healing light!\tn";
+    to_room ="$n summons massive beams of healing light!\tn";
+    break;
+  case SPELL_GROUP_ARMOR:
+    to_char = "You manifest magical armoring for your companions!\tn";
+    to_room ="$n manifests magical armoring for $s companions!\tn";
+    break;
+  case SPELL_MASS_HASTE:
+    to_char = "You spin quickly with an agile magical flourish!\tn";
+    to_room ="$n spins quickly with an agile magical flourish!\tn";
+    break;
+  case SPELL_CIRCLE_A_EVIL:
+    to_char = "You draw a 6-point magical star in the air!\tn";
+    to_room ="$n draw a 6-point magical star in the air!\tn";
+    break;
+  case SPELL_CIRCLE_A_GOOD:
+    to_char = "You draw a 5-point magical star in the air!\tn";
+    to_room ="$n draw a 5-point magical star in the air!\tn";
+    break;
+  case SPELL_INVISIBILITY_SPHERE:
+    to_char = "Your magicks brings forth an invisibility sphere!\tn";
+    to_room ="$n brings forth an invisibility sphere!\tn";
+    break;
+  case SPELL_GROUP_RECALL:
+    to_char = "You create a huge ball of light that consumes the area!\tn";
+    to_room ="$n creates a huge ball of light that consumes the area!\tn";
+    break;
+  case SPELL_MASS_FLY:
+    to_char = "Your magicks brings strong magical winds to aid in flight!\tn";
+    to_room ="$n brings strong magical winds to aid in flight!\tn";
+    break;    
+  }
+  
+  if (to_char != NULL)
+    act(to_char, FALSE, ch, 0, 0, TO_CHAR);
+  if (to_room != NULL)
+    act(to_room, FALSE, ch, 0, 0, TO_ROOM);  
+  
   while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
           NULL) {
     if (IN_ROOM(tch) != IN_ROOM(ch))
@@ -2203,7 +2444,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 {
   struct char_data *tch, *next_tch;
   const char *to_char = NULL, *to_room = NULL;
-  int isEffect = FALSE;
+  int isEffect = FALSE, is_eff_and_dam = FALSE;
 
   if (ch == NULL)
     return;
@@ -2243,6 +2484,21 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "\tDYou muster the power of death creating waves of fatigue!\tn";
     to_room ="$n\tD musters the power of death creating waves of fatigue!\tn";
     break;
+  case SPELL_WAVES_OF_EXHAUSTION:
+    isEffect = TRUE;
+    to_char = "\tDYou muster the power of death creating waves of exhaustion!\tn";
+    to_room ="$n\tD musters the power of death creating waves of exhaustion!\tn";
+    break;
+  case SPELL_MASS_HOLD_PERSON:
+    isEffect = TRUE;
+    to_char = "You invoke a powerful hold person enchantment!\tn";
+    to_room ="$n invokes a powerful hold person enchantment!\tn";
+    break;
+  case SPELL_PRISMATIC_SPRAY:
+    is_eff_and_dam = TRUE;
+    to_char = "\tnYou fire from your hands a \tYr\tRa\tBi\tGn\tCb\tWo\tDw\tn of color!\tn";
+    to_room ="$n \tnfires from $s hands a \tYr\tRa\tBi\tGn\tCb\tWo\tDw\tn of color!\tn";
+    break;
   }
 
   if (to_char != NULL)
@@ -2254,7 +2510,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     next_tch = tch->next_in_room;
 
     if (aoeOK(ch, tch, spellnum)) {
-      if (isEffect)
+      if (is_eff_and_dam) {
+        mag_affects(level, ch, tch, obj, spellnum, savetype);
+        mag_damage(level, ch, tch, obj, spellnum, 1);
+      } else if (isEffect)
         mag_affects(level, ch, tch, obj, spellnum, savetype);
       else
         mag_damage(level, ch, tch, obj, spellnum, 1);

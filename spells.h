@@ -581,6 +581,7 @@ ASPELL(spell_teleport);
 ASPELL(spell_summon);
 ASPELL(spell_locate_object);
 ASPELL(spell_polymorph);
+ASPELL(spell_control_weather);
 ASPELL(spell_charm);
 ASPELL(spell_information);
 ASPELL(spell_identify);

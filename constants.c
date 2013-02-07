@@ -115,6 +115,7 @@ const char *damtype_display[] = {
   "Damage Mental",
   "Damage Light",
   "Damage Energy",
+  "Damage Water",
   "\n"
 };
 
@@ -437,6 +438,7 @@ const char *affected_bits[] =
   "T-Transform",
   "Globe of Invulnerability",
   "Listen-Mode",
+  "Displaced",
   "\n"
 };
 

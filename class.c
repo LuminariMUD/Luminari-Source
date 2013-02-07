@@ -251,6 +251,7 @@ int BAB(struct char_data *ch)
   if (IS_NPC(ch))  //npc's default to medium attack rolls
     return ( (int) (GET_LEVEL(ch) * 3 / 4) );
   
+  /* loop through all the possible classes the char could be */
   for (i = 0; i < MAX_CLASSES; i++) {
     level = CLASS_LEVEL(ch, i);
     if (level) {
@@ -266,6 +267,7 @@ int BAB(struct char_data *ch)
           bab += level * 3 / 4;
           break;
         case CLASS_WARRIOR:
+        case CLASS_RANGER:
         case CLASS_PALADIN:
         case CLASS_BERSERKER:
           bab += level;
