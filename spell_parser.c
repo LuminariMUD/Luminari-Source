@@ -332,39 +332,6 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     return (0);
   }
 
-  /* globe of invulernability spell(s) */
-  if (cvict) {
-    int i, lvl = SINFO.min_level[0];
-    for (i = 1; i < NUM_CLASSES; i++)
-      if (lvl >= SINFO.min_level[i])
-        lvl = SINFO.min_level[i];
-    /* we're translating level to circle, so 4 = 2nd circle */
-    if (AFF_FLAGGED(cvict, AFF_MINOR_GLOBE) && lvl <= 4 &&
-        (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
-      send_to_char(caster,
-              "A minor globe from your victim repels your spell!\r\n");
-      act("$n's magic is repelled by $N's minor globe spell!", FALSE, caster,
-              0, cvict, TO_ROOM);
-      if (!FIGHTING(caster))
-        set_fighting(caster, cvict);
-      if (!FIGHTING(cvict))
-        set_fighting(cvict, caster);
-      return (0);
-    /* we're translating level to circle so 8 = 4th circle */
-    } else if (AFF_FLAGGED(cvict, AFF_GLOBE_OF_INVULN) && lvl <= 8 &&
-        (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
-      send_to_char(caster, "A globe from your victim repels your spell!\r\n");
-      act("$n's magic is repelled by $N's globe spell!", FALSE, caster, 0,
-              cvict, TO_ROOM);
-      if (!FIGHTING(caster))
-        set_fighting(caster, cvict);
-      if (!FIGHTING(cvict))
-        set_fighting(cvict, caster);
-      return (0);
-      
-    }
-  }
-
   //attach event for epic spells, increase skill
   switch(spellnum) {
     case SPELL_MUMMY_DUST:
@@ -398,7 +365,63 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
         increase_skill(caster, SKILL_EPIC_WARDING);
       break;
   }
-          
+            
+  /* globe of invulernability spell(s)
+   * and spell mantles */
+  if (cvict) {
+    int i, lvl = SINFO.min_level[0];
+    for (i = 1; i < NUM_CLASSES; i++)
+      if (lvl >= SINFO.min_level[i])
+        lvl = SINFO.min_level[i];
+    
+    /* minor globe */
+    /* we're translating level to circle, so 4 = 2nd circle */
+    if (AFF_FLAGGED(cvict, AFF_MINOR_GLOBE) && lvl <= 4 &&
+        (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
+      send_to_char(caster,
+              "A minor globe from your victim repels your spell!\r\n");
+      act("$n's magic is repelled by $N's minor globe spell!", FALSE, caster,
+              0, cvict, TO_ROOM);
+      if (!FIGHTING(caster))
+        set_fighting(caster, cvict);
+      if (!FIGHTING(cvict))
+        set_fighting(cvict, caster);
+      return (0);
+      
+      /* major globe */
+    /* we're translating level to circle so 8 = 4th circle */
+    } else if (AFF_FLAGGED(cvict, AFF_GLOBE_OF_INVULN) && lvl <= 8 &&
+        (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
+      send_to_char(caster, "A globe from your victim repels your spell!\r\n");
+      act("$n's magic is repelled by $N's globe spell!", FALSE, caster, 0,
+              cvict, TO_ROOM);
+      if (!FIGHTING(caster))
+        set_fighting(caster, cvict);
+      if (!FIGHTING(cvict))
+        set_fighting(cvict, caster);
+      return (0);
+      
+      /* here is spell mantles */
+    } else if (AFF_FLAGGED(cvict, AFF_SPELL_MANTLE) &&
+            GET_SPELL_MANTLE(cvict) > 0 && (SINFO.violent ||
+            IS_SET(SINFO.routines, MAG_DAMAGE))) {
+      send_to_char(caster, "A spell mantle from your victim absorbs your spell!\r\n");
+      act("$n's magic is absorbed by $N's spell mantle!", FALSE, caster, 0,
+              cvict, TO_ROOM);
+      GET_SPELL_MANTLE(cvict)--;
+      if (GET_SPELL_MANTLE(cvict) <= 0) {
+        affect_from_char(cvict, SPELL_SPELL_MANTLE);
+        affect_from_char(cvict, SPELL_GREATER_SPELL_MANTLE);
+        send_to_char(cvict, "\tDYour spell mantle has fallen!\tn\r\n");        
+      }
+      if (!FIGHTING(caster))
+        set_fighting(caster, cvict);
+      if (!FIGHTING(cvict))
+        set_fighting(cvict, caster);
+      return (0);      
+    }
+  }
+  
   /* determine the type of saving throw */
   switch (casttype) {
   case CAST_STAFF:

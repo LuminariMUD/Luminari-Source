@@ -1803,6 +1803,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     GET_STONESKIN(victim) = MIN(700, CASTER_LEVEL(ch) * 60);
     break;
 
+  case SPELL_SPELL_MANTLE:
+    af[0].duration = magic_level * 3;
+    SET_BIT_AR(af[0].bitvector, AFF_SPELL_MANTLE);
+    accum_duration = FALSE;
+    to_room = "$n begins to shimmer from a magical mantle!";
+    to_vict = "You begin to shimmer from a magical mantle.";
+    break;
+
   case SPELL_FLY:
     af[0].duration = 600;
     SET_BIT_AR(af[0].bitvector, AFF_FLYING);
@@ -2112,6 +2120,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_CHARISMA:  //transmutation
     af[0].location = APPLY_CHA;
     af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+    af[0].modifier = 4;
+    accum_duration = TRUE;
+    to_vict = "You feel more charismatic!";
+    to_room = "$n's charisma increases!";
+    break;
+
+  case SPELL_MASS_CHARISMA:  //transmutation
+    af[0].location = APPLY_CHA;
+    af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
     af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
     accum_duration = TRUE;
     to_vict = "You feel more charismatic!";
@@ -2121,6 +2138,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_CUNNING:  //transmutation
     af[0].location = APPLY_INT;
     af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+    af[0].modifier = 4;
+    accum_duration = TRUE;
+    to_vict = "You feel more intelligent!";
+    to_room = "$n's intelligence increases!";
+    break;
+
+  case SPELL_MASS_CUNNING:  //transmutation
+    af[0].location = APPLY_INT;
+    af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
     af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
     accum_duration = TRUE;
     to_vict = "You feel more intelligent!";
@@ -2128,6 +2154,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_WISDOM:  //transmutation
+    af[0].location = APPLY_WIS;
+    af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+    af[0].modifier = 4;
+    accum_duration = TRUE;
+    to_vict = "You feel more wise!";
+    to_room = "$n's wisdom increases!";
+    break;
+
+  case SPELL_MASS_WISDOM:  //transmutation
     af[0].location = APPLY_WIS;
     af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
     af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
@@ -2242,8 +2277,17 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_GROUP_RECALL:
     spell_recall(level, ch, tch, NULL);
     break;
-  case SPELL_MASS_FLY:
+  case SPELL_MASS_FLY:    
     mag_affects(level, ch, tch, obj, SPELL_FLY, savetype);
+    break;
+  case SPELL_MASS_CUNNING:    
+    mag_affects(level, ch, tch, obj, SPELL_MASS_CUNNING, savetype);
+    break;
+  case SPELL_MASS_CHARISMA:    
+    mag_affects(level, ch, tch, obj, SPELL_MASS_CHARISMA, savetype);
+    break;
+  case SPELL_MASS_WISDOM:    
+    mag_affects(level, ch, tch, obj, SPELL_MASS_WISDOM, savetype);
     break;
     
   }

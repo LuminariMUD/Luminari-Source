@@ -439,6 +439,7 @@ const char *affected_bits[] =
   "Globe of Invulnerability",
   "Listen-Mode",
   "Displaced",
+  "Spell-Mantled",
   "\n"
 };
 

@@ -244,17 +244,20 @@
 #define NUM_WARDING		2
 #define MAX_WARDING		10	// "warding" type spells such as stoneskin that save
 
-
-// spec_abil corresponds to the various abilities that reset daily
-#define RAGES                 0
-#define SHAPECHANGES		1
-#define SONGS                 2
-#define CALLCOMPANION		3 //animal
-#define CALLFAMILIAR		4
-#define SORC_KNOWN            5
-#define RANG_KNOWN            6
-#define CALLMOUNT             7
-#define WIZ_KNOWN             8
+/* at the beginning, spec_abil was an array reserved for daily resets
+   considering we've converted most of our system to a cooldown system
+   we have abandoned that primary purpose and converted her to an array
+   of easy to use reserved values in the pfile that saves for special
+   ability info we need */
+#define SPELL_MANTLE          0 // spell mantle left
+#define SHAPECHANGES		1 // unused
+#define SONGS                 2 // unused
+#define CALLCOMPANION		3 // animal companion vnum
+#define CALLFAMILIAR		4 // familiars vnum
+#define SORC_KNOWN            5 // true/false if can 'study'
+#define RANG_KNOWN            6 // true/false if can 'study'
+#define CALLMOUNT             7 // paladin mount vnum
+#define WIZ_KNOWN             8 // true/false if can 'study'
 /*---------------*/
 #define NUM_SPEC_ABIL		9
 #define MAX_SPEC_ABIL	MAX_CLASSES
@@ -517,9 +520,10 @@
 #define AFF_GLOBE_OF_INVULN  51
 #define AFF_LISTEN           52
 #define AFF_DISPLACE         53
+#define AFF_SPELL_MANTLE         54
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS   54
+#define NUM_AFF_FLAGS   55
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/
