@@ -1046,7 +1046,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       act("You have been deafened!", FALSE, victim, 0, ch, TO_CHAR);
       act("$n seems to be deafened!", TRUE, victim, 0, ch, TO_ROOM);  
       success = 1;
-      break;
     }
     
     if (!mag_savingthrow(ch, victim, SAVING_WILL, 0) &&
@@ -1057,7 +1056,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       act("You have been stunned!", FALSE, victim, 0, ch, TO_CHAR);
       act("$n seems to be stunned!", TRUE, victim, 0, ch, TO_ROOM);  
       success = 1;
-      break;
     }
     
     if (!mag_savingthrow(ch, victim, SAVING_REFL, 0) &&
@@ -1067,7 +1065,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
       act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);  
-      break;
     }
     
     if (!success)
@@ -1806,6 +1803,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_SPELL_MANTLE:
     af[0].duration = magic_level * 3;
     SET_BIT_AR(af[0].bitvector, AFF_SPELL_MANTLE);
+    GET_SPELL_MANTLE(victim) = 2;
     accum_duration = FALSE;
     to_room = "$n begins to shimmer from a magical mantle!";
     to_vict = "You begin to shimmer from a magical mantle.";
@@ -2118,6 +2116,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_CHARISMA:  //transmutation
+    if (affected_by_spell(victim, SPELL_MASS_CHARISMA)) {
+      send_to_char(ch, "Your target already has a charisma spell in effect.\r\n");
+      return;
+    }
     af[0].location = APPLY_CHA;
     af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
     af[0].modifier = 4;
@@ -2127,6 +2129,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_MASS_CHARISMA:  //transmutation
+    if (affected_by_spell(victim, SPELL_CHARISMA)) {
+      send_to_char(ch, "Your target already has a charisma spell in effect.\r\n");
+      return;
+    }
     af[0].location = APPLY_CHA;
     af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
     af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
@@ -2136,6 +2142,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_CUNNING:  //transmutation
+    if (affected_by_spell(victim, SPELL_MASS_CUNNING)) {
+      send_to_char(ch, "Your target already has a cunning spell in effect.\r\n");
+      return;
+    }
     af[0].location = APPLY_INT;
     af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
     af[0].modifier = 4;
@@ -2145,6 +2155,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_MASS_CUNNING:  //transmutation
+    if (affected_by_spell(victim, SPELL_CUNNING)) {
+      send_to_char(ch, "Your target already has a cunning spell in effect.\r\n");
+      return;
+    }
+    
     af[0].location = APPLY_INT;
     af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
     af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
@@ -2543,6 +2558,11 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "\tnYou fire from your hands a \tYr\tRa\tBi\tGn\tCb\tWo\tDw\tn of color!\tn";
     to_room ="$n \tnfires from $s hands a \tYr\tRa\tBi\tGn\tCb\tWo\tDw\tn of color!\tn";
     break;
+  case SPELL_THUNDERCLAP:
+    is_eff_and_dam = TRUE;
+    to_char = "\tcA loud \twCRACK@c fills the air with deafening force!\tn";
+    to_room = "\tcA loud \twCRACK@c fills the air with deafening force!\tn";
+    break;
   }
 
   if (to_char != NULL)
@@ -2555,12 +2575,24 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 
     if (aoeOK(ch, tch, spellnum)) {
       if (is_eff_and_dam) {
-        mag_affects(level, ch, tch, obj, spellnum, savetype);
         mag_damage(level, ch, tch, obj, spellnum, 1);
+        mag_affects(level, ch, tch, obj, spellnum, savetype);
       } else if (isEffect)
         mag_affects(level, ch, tch, obj, spellnum, savetype);
       else
         mag_damage(level, ch, tch, obj, spellnum, 1);
+
+      /* we gotta start combat here */
+      if (isEffect && spell_info[spellnum].violent && tch && GET_POS(tch) == POS_STANDING &&
+             !FIGHTING(tch) && spellnum != SPELL_CHARM &&
+             spellnum != SPELL_DOMINATE_PERSON) {
+        if (tch != ch) {  // funny results from potions/scrolls
+          if (IN_ROOM(tch) == IN_ROOM(ch)) {
+            hit(tch, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+          }
+        }
+      }
+      
     }
   }
 }
