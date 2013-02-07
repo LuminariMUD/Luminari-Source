@@ -495,30 +495,31 @@
 #define AFF_DEAF		29	// deafened
 #define AFF_FEAR		30	// under affect of fear
 #define AFF_STUN		31	// stunned
-#define AFF_PARALYZED		32	// paralyzed
-#define AFF_ULTRAVISION 	33   /**< Char can see in dark */
-#define AFF_GRAPPLED		34   // grappled
-#define AFF_TAMED		35   // tamed
-#define AFF_CLIMB		36   // affect that allows you to climb
-#define AFF_NAUSEATED	37   // nauseated
-#define AFF_NON_DETECTION	38
-#define AFF_SLOW		39
-#define AFF_FSHIELD      40  //fire shield
-#define AFF_CSHIELD      41  //cold shield
-#define AFF_MINOR_GLOBE  42  //minor globe of invulernability
-#define AFF_ASHIELD      43  //acid shield
-#define AFF_SIZECHANGED  44
-#define AFF_TRUE_SIGHT   45
-#define AFF_SPOT         46
-#define AFF_FATIGUED     47
-#define AFF_REGEN        48
-#define AFF_DISEASE      49
-#define AFF_TFORM        50  //tenser's transformation
-#define AFF_GLOBE_OF_INVULN        51
-#define AFF_LISTEN       52
+#define AFF_PARALYZED        32	// paralyzed
+#define AFF_ULTRAVISION 	    33   /**< Char can see in dark */
+#define AFF_GRAPPLED         34   // grappled
+#define AFF_TAMED		    35   // tamed
+#define AFF_CLIMB		    36   // affect that allows you to climb
+#define AFF_NAUSEATED	    37   // nauseated
+#define AFF_NON_DETECTION    38
+#define AFF_SLOW		    39
+#define AFF_FSHIELD          40  //fire shield
+#define AFF_CSHIELD          41  //cold shield
+#define AFF_MINOR_GLOBE      42  //minor globe of invulernability
+#define AFF_ASHIELD          43  //acid shield
+#define AFF_SIZECHANGED      44
+#define AFF_TRUE_SIGHT       45
+#define AFF_SPOT             46
+#define AFF_FATIGUED         47
+#define AFF_REGEN            48
+#define AFF_DISEASE          49
+#define AFF_TFORM            50  //tenser's transformation
+#define AFF_GLOBE_OF_INVULN  51
+#define AFF_LISTEN           52
+#define AFF_DISPLACE         53
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS   53
+#define NUM_AFF_FLAGS   54
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/

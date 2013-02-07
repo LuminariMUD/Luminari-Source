@@ -1270,6 +1270,8 @@ int compute_concealment(struct char_data *ch)
     concealment += 10;
   if (AFF_FLAGGED(ch, AFF_BLUR))
     concealment += 20;
+  if (AFF_FLAGGED(ch, AFF_DISPLACE))
+    concealment += 50;
 
     // concealment cap is 50%
   return (MIN(MAX_CONCEAL, concealment));
