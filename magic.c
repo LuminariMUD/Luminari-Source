@@ -634,7 +634,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
     
   case SPELL_MISSILE_STORM:  //evocation
-    save = SAVING_FORT;
+    save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_FORCE;    
     num_dice = MIN(26, magic_level);
