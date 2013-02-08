@@ -835,7 +835,24 @@ void init_class(struct char_data *ch, int class, int level)
     
     //7th circle
     SET_SKILL(ch, SPELL_MISSILE_STORM, 99);
+    SET_SKILL(ch, SPELL_GRASPING_HAND, 99);
+    SET_SKILL(ch, SPELL_SUMMON_CREATURE_7, 99);
+    SET_SKILL(ch, SPELL_CONTROL_WEATHER, 99);
+    SET_SKILL(ch, SPELL_POWER_WORD_BLIND, 99);
+    SET_SKILL(ch, SPELL_WAVES_OF_EXHAUSTION, 99);
+    SET_SKILL(ch, SPELL_MASS_HOLD_PERSON, 99);
+    SET_SKILL(ch, SPELL_MASS_FLY, 99);
+    SET_SKILL(ch, SPELL_DISPLACEMENT, 99);
+    SET_SKILL(ch, SPELL_PRISMATIC_SPRAY, 99);
+    SET_SKILL(ch, SPELL_DETECT_POISON, 99);  //shared
+    SET_SKILL(ch, SPELL_POWER_WORD_STUN, 99);
+    SET_SKILL(ch, SPELL_PROTECT_FROM_SPELLS, 99);
+    SET_SKILL(ch, SPELL_THUNDERCLAP, 99);
+    SET_SKILL(ch, SPELL_SPELL_MANTLE, 99);
     SET_SKILL(ch, SPELL_TELEPORT, 99);
+    SET_SKILL(ch, SPELL_MASS_WISDOM, 99);  //shared
+    SET_SKILL(ch, SPELL_MASS_CHARISMA, 99);  //shared
+    SET_SKILL(ch, SPELL_MASS_CUNNING, 99);  //shared
 
     //8th circle
     SET_SKILL(ch, SPELL_CHAIN_LIGHTNING, 99);
@@ -852,7 +869,7 @@ void init_class(struct char_data *ch, int class, int level)
     if (!GET_SKILL(ch, SKILL_CALL_FAMILIAR))
       SET_SKILL(ch, SKILL_CALL_FAMILIAR, 75);
 
-     // wizard innate cantrips
+     // wizard/sorc innate cantrips
     /*
     SET_SKILL(ch, SPELL_ACID_SPLASH, 99);
     SET_SKILL(ch, SPELL_RAY_OF_FROST, 99);
