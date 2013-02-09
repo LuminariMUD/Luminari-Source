@@ -113,11 +113,11 @@ static struct map_info_type map_info[] =
   { SECT_INSIDE,       "\tc[\tn.\tc]\tn" }, /* 0 */
   { SECT_CITY,         "\tc[\twC\tc]\tn" },
   { SECT_FIELD,        "\tc[\tg,\tc]\tn" },
-  { SECT_FOREST,       "\tc[\t=\tGY\tc]\tn" },
+  { SECT_FOREST,       "\tc[\tG\t=Y\tn\tc]\tn" },
   { SECT_HILLS,        "\tc[\ty^\tc]\tn" },
   { SECT_MOUNTAIN,     "\tc[\trm\tc]\tn" }, /* 5 */
-  { SECT_WATER_SWIM,   "\tc[\t=\tc~\tc]\tn" },
-  { SECT_WATER_NOSWIM, "\tc[\t=\tb=\tc]\tn" },
+  { SECT_WATER_SWIM,   "\tc[\tc\t=~\tn\tc]\tn" },
+  { SECT_WATER_NOSWIM, "\tc[\tb\t==\tn\tc]\tn" },
   { SECT_FLYING,       "\tc[\tC^\tc]\tn" },
   { SECT_UNDERWATER,   "\tc[\tbU\tc]\tn" },
   { SECT_ZONE_START,	"\tc[\tRX\tc]\tn" }, /* 10 */
@@ -125,7 +125,7 @@ static struct map_info_type map_info[] =
   { SECT_ROAD_EW,	"\tc[\tD-\tc]\tn" }, /* 12 */
   { SECT_ROAD_INT,	"\tc[\tD+\tc]\tn" }, /* 13 */
   { SECT_DESERT,	"\tc[\tY.\tc]\tn" }, //14
-  { SECT_OCEAN,		"\tc[\t=\tBo\tc]\tn" }, //15
+  { SECT_OCEAN,		"\tc[\tB\t=o\tn\tc]\tn" }, //15
   { SECT_MARSHLAND,	"\tc[\tM,\tc]\tn" }, //16
   { SECT_HIGH_MOUNTAIN,	"\tc[\tRM\tc]\tn" }, //17
   { -1,                ""        },
