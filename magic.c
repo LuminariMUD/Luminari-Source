@@ -958,6 +958,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (HAS_SPELLS(wpn))
       magic_level = divine_level = level;
 
+  
   switch (spellnum) {
 
   case SPELL_STENCH:
@@ -1087,19 +1088,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         break;
       case 2:
         SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-        af[0].duration = dice(2, 4);
+        af[0].duration = dice(1, 6);
         to_room = "$n is paralyzed by the colors!";
         to_vict = "You are paralyzed by the colors!";
         break;
       case 3:
         af[0].location = APPLY_HITROLL;
         af[0].modifier = -4;
-        af[0].duration = 50;
+        af[0].duration = 25;
         SET_BIT_AR(af[0].bitvector, AFF_BLIND);
 
         af[1].location = APPLY_AC;
         af[1].modifier = 40;
-        af[1].duration = 50;
+        af[1].duration = 25;
         SET_BIT_AR(af[1].bitvector, AFF_BLIND);
 
         to_room = "$n seems to be blinded by the colors!";
@@ -1107,7 +1108,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         
         break;
       case 4:
-        af[0].duration = (magic_level * 12);
+        af[0].duration = magic_level;
         SET_BIT_AR(af[0].bitvector, AFF_SLOW);
         to_room = "$n begins to slow down from the prismatic spray!";
         to_vict = "You feel yourself slow down because of the prismatic spray!";
@@ -1355,7 +1356,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel like your guts are tough as iron!";
     break;
 
-  case SPELL_PROTECT_FROM_SPELLS:
+  case SPELL_PROTECT_FROM_SPELLS:  //divination
     af[1].location = APPLY_SAVING_WILL;
     af[1].modifier = 1;
     af[1].duration = 100;
@@ -1787,7 +1788,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n is surrounded by magical bands of armor!";
     break;
 
-  case SPELL_EPIC_WARDING:
+  case SPELL_EPIC_WARDING:  //no school
     if (affected_by_spell(victim, SPELL_STONESKIN)) {
       send_to_char(ch, "A magical ward is already in effect on target.\r\n");
       return;
@@ -1800,7 +1801,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     GET_STONESKIN(victim) = MIN(700, CASTER_LEVEL(ch) * 60);
     break;
 
-  case SPELL_SPELL_MANTLE:
+  case SPELL_SPELL_MANTLE:  //abjuration
     af[0].duration = magic_level * 3;
     SET_BIT_AR(af[0].bitvector, AFF_SPELL_MANTLE);
     GET_SPELL_MANTLE(victim) = 2;
