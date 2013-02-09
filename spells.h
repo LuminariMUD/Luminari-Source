@@ -213,17 +213,17 @@
 #define SPELL_TRUE_SEEING          171  //done
 #define SPELL_GLOBE_OF_INVULN      172  //done
 #define SPELL_GREATER_DISPELLING   173  //done
-#define SPELL_GRASPING_HAND        174  //in progress
-#define SPELL_SUMMON_CREATURE_7    175  //in progress
-#define SPELL_POWER_WORD_BLIND     176  //in progress
-#define SPELL_WAVES_OF_EXHAUSTION  177  //in progress
-#define SPELL_MASS_HOLD_PERSON     178  //in progress
-#define SPELL_MASS_FLY             179  //in progress
+#define SPELL_GRASPING_HAND        174  //done
+#define SPELL_SUMMON_CREATURE_7    175  //done
+#define SPELL_POWER_WORD_BLIND     176  //done
+#define SPELL_WAVES_OF_EXHAUSTION  177  //done
+#define SPELL_MASS_HOLD_PERSON     178  //done
+#define SPELL_MASS_FLY             179  //done
 #define SPELL_DISPLACEMENT         180  //in progress
-#define SPELL_PRISMATIC_SPRAY      181  //in progress
+#define SPELL_PRISMATIC_SPRAY      181  //in progress x
 #define SPELL_POWER_WORD_STUN      182  //in progress
 #define SPELL_PROTECT_FROM_SPELLS  183  //in progress
-#define SPELL_THUNDERCLAP          184  //in progress
+#define SPELL_THUNDERCLAP          184  //in progress x
 #define SPELL_SPELL_MANTLE         185  //in progress
 #define SPELL_MASS_WISDOM          186  //in progress
 #define SPELL_MASS_CHARISMA        187  //in progress
