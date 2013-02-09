@@ -597,7 +597,8 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   if (!canInfra && (ROOM_FLAGGED(target_room, ROOM_WORLDMAP) ||
           ZONE_FLAGGED(zn, ZONE_WORLDMAP))) {
     worldmapOn = 1;
-    send_to_char(ch, "\033[H\033[J");
+    /* if you want clear screen, uncomment this */
+//    send_to_char(ch, "\033[H\033[J");
   }
 
   // staff can see the vnums
