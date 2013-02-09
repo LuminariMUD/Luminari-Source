@@ -147,24 +147,24 @@ static struct map_info_type map_info[] =
 
 static struct map_info_type world_map_info[] =
 {
-  { SECT_INSIDE,       "\tn."  }, /* 0 */
-  { SECT_CITY,         "\twC"  },
-  { SECT_FIELD,        "\tg,"  },
-  { SECT_FOREST,       "\t=\tGY"  },
-  { SECT_HILLS,        "\ty^"  },
-  { SECT_MOUNTAIN,     "\trm"  }, /* 5 */
-  { SECT_WATER_SWIM,   "\t=\tc~"  },
-  { SECT_WATER_NOSWIM, "\t=\tb="  },
-  { SECT_FLYING,       "\tC^"  },
-  { SECT_UNDERWATER,   "\tbU"  },
-  { SECT_ZONE_START,	"\tRX"  }, /* 10 */
-  { SECT_ROAD_NS,	"\tD|" }, /* 11 */
-  { SECT_ROAD_EW,	"\tD-" }, /* 12 */
-  { SECT_ROAD_INT,	"\tD+" }, /* 13 */
-  { SECT_DESERT,	"\tY." }, /* 14 */
-  { SECT_OCEAN,		"\t=\tBo" }, /* 15 */
-  { SECT_MARSHLAND,	"\tM," }, /* 16 */
-  { SECT_HIGH_MOUNTAIN,	"\tRM" }, /* 17 */
+  { SECT_INSIDE,       "\tn.\tn"  }, /* 0 */
+  { SECT_CITY,         "\twC\tn"  },
+  { SECT_FIELD,        "\tg,\tn"  },
+  { SECT_FOREST,       "\tG\t=Y\tn"  },
+  { SECT_HILLS,        "\ty^\tn"  },
+  { SECT_MOUNTAIN,     "\trm\tn"  }, /* 5 */
+  { SECT_WATER_SWIM,   "\tc\t=~\tn"  },
+  { SECT_WATER_NOSWIM, "\tb\t==\tn"  },
+  { SECT_FLYING,       "\tC^\tn"  },
+  { SECT_UNDERWATER,   "\tbU\tn"  },
+  { SECT_ZONE_START,	"\tRX\tn"  }, /* 10 */
+  { SECT_ROAD_NS,	"\tD|\tn" }, /* 11 */
+  { SECT_ROAD_EW,	"\tD-\tn" }, /* 12 */
+  { SECT_ROAD_INT,	"\tD+\tn" }, /* 13 */
+  { SECT_DESERT,	"\tY.\tn" }, /* 14 */
+  { SECT_OCEAN,		"\tB\t=o\tn" }, /* 15 */
+  { SECT_MARSHLAND,	"\tM,\tn" }, /* 16 */
+  { SECT_HIGH_MOUNTAIN,	"\tRM\tn" }, /* 17 */
   { -1,                ""     },
   { -1,                ""     },
   { -1,                ""     }, /* 20 */
@@ -178,8 +178,8 @@ static struct map_info_type world_map_info[] =
   { -1,                ""     },
   { -1,                ""     },
   { SECT_EMPTY,        " "    }, /* 30 */
-  { SECT_STRANGE,      "\tR?"  },
-  { SECT_HERE,         "\tW&"  },
+  { SECT_STRANGE,      "\tR?\tn"  },
+  { SECT_HERE,         "\tW&\tn"  },
 };
 
 
