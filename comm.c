@@ -1088,6 +1088,16 @@ void pulse_luminari() {
                 TO_ROOM);
       }
     } //end cloudkill
+    /* incendiary cloud */
+    else if (INCENDIARY(i)) {
+      call_magic(i, NULL, NULL, SPELL_INCENDIARY, MAGIC_LEVEL(i), CAST_SPELL);
+      INCENDIARY(i)--;
+      if (INCENDIARY(i) <= 0) {
+        send_to_char(i, "Your incendiary cloud dissipates!\r\n");
+        act("The incendiary cloud following $n dissipates!", TRUE, i, 0, NULL,
+                TO_ROOM);
+      }
+    } //end incendiary cloud
     
     /* disease */
     if (IS_AFFECTED(i, AFF_DISEASE)) {

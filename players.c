@@ -561,6 +561,7 @@ int load_char(const char *name, struct char_data *ch) {
 
   resetCastingData(ch);
   CLOUDKILL(ch) = 0; // make sure init cloudkill burst
+  INCENDIARY(ch) = 0; // make sure init incendiary burst
 
   affect_total(ch);
 

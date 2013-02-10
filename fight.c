@@ -523,7 +523,8 @@ void death_message(struct char_data *ch) {
 
 // we're not extracting anybody anymore, just penalize them xp
 // and move them back to the starting room -zusuk
-
+/* we will consider changing this back to corpse creation and dump
+   but only on the condition of corpse-saving code */
 void raw_kill(struct char_data *ch, struct char_data *killer) {
   struct char_data *k, *temp;
 
@@ -578,6 +579,9 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   GET_HIT(ch) = 1;
   update_pos(ch);
 
+  /* spec-abil saves on exit, so make sure this does not save */
+  INCENDIARY(ch) = 0;  
+  
   /* move char to starting room */
   char_to_room(ch, r_mortal_start_room);
   act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
@@ -585,9 +589,11 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   entry_memory_mtrigger(ch);
   greet_mtrigger(ch, -1);
   greet_memory_mtrigger(ch);
+  
   /* this was commented out for some reason, undid that to make sure
      events clear on death */
   clear_char_event_list(ch);
+  
   save_char(ch, 0);
   Crash_delete_crashfile(ch);
   //end extraction replacement 
@@ -623,6 +629,11 @@ void raw_kill_old(struct char_data * ch, struct char_data * killer) {
   /* this was commented out for some reason, undid that to make sure
      events clear on death */
   clear_char_event_list(ch);
+
+  /* spec-abil saves on exit, so make sure this does not save */
+  INCENDIARY(ch) = 0;
+  
+  /* extraction!  *SLURRRRRRRRRRRRRP* */
   extract_char(ch);
 
   if (killer) {
@@ -1376,6 +1387,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim,
 
   resetCastingData(victim); //stop casting
   CLOUDKILL(victim) = 0; //stop any cloudkill bursts
+  INCENDIARY(victim) = 0; //stop any incendiary bursts
 
   if (!IS_NPC(victim)) { //forget victim, log
     mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s at %s", GET_NAME(victim),

@@ -487,15 +487,19 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_WORD_OF_RECALL:  MANUAL_SPELL(spell_recall); break;
     case SPELL_TELEPORT:	MANUAL_SPELL(spell_teleport); break;
     case SPELL_ACID_ARROW:	MANUAL_SPELL(spell_acid_arrow); break;
+    case SPELL_IMPLODE:	MANUAL_SPELL(spell_implode); break;
     case SPELL_CLAIRVOYANCE:	MANUAL_SPELL(spell_clairvoyance); break;
     case SPELL_DISPEL_MAGIC:	MANUAL_SPELL(spell_dispel_magic); break;
     case SPELL_GREATER_DISPELLING:
       MANUAL_SPELL(spell_greater_dispelling); break;
     case SPELL_LOCATE_CREATURE:	MANUAL_SPELL(spell_locate_creature); break;
     case SPELL_WALL_OF_FORCE:	MANUAL_SPELL(spell_wall_of_force); break;
+    case SPELL_PRISMATIC_SPHERE:	MANUAL_SPELL(spell_prismatic_sphere); break;
     case SPELL_DOMINATE_PERSON:	MANUAL_SPELL(spell_dominate_person); break;
     case SPELL_DISMISSAL:	MANUAL_SPELL(spell_dismissal); break;
+    case SPELL_BANISH:	MANUAL_SPELL(spell_banish); break;
     case SPELL_CLOUDKILL:	MANUAL_SPELL(spell_cloudkill); break;
+    case SPELL_INCENDIARY_CLOUD:	MANUAL_SPELL(spell_incendiary_cloud); break;
     }
 
     /* NOTE:  this requires a victim, so AoE effects have another
@@ -1333,7 +1337,7 @@ void mag_assign_spells(void)
   spello(SPELL_ENERGY_DRAIN, "energy drain", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_MANUAL,
 	NULL, 9, 14,
-	NECROMANCY);  // wizard 8, cleric 9
+	NECROMANCY);  // wizard 9, cleric 9
   spello(SPELL_REMOVE_CURSE, "remove curse", 0, 0, 0, POS_FIGHTING,  //abjur
 	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
 	MAG_UNAFFECTS | MAG_ALTER_OBJS,
@@ -1883,30 +1887,56 @@ void mag_assign_spells(void)
     
   // 8th circle
 			/* evocation */
-//*clenched fist
+  spello(SPELL_CLENCHED_FIST, "clenched fist", 72, 57, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+	NULL, 7, 12, EVOCATION);
   spello(SPELL_CHAIN_LIGHTNING, "chain lightning", 79, 64, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 8, 12, EVOCATION);
                /* conjuration */
-//*incendiary cloud
-//*summon monster viii
+  spello(SPELL_INCENDIARY_CLOUD, "incendiary cloud", 65, 50, 1, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 9, 12, CONJURATION);
+  spello(SPELL_SUMMON_CREATURE_8, "summon creature viii", 0, 0, 0, 
+     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 11, 12, CONJURATION);  
 			/* necromancy */
-//*horrid wilting
-//*greater animation
+  spello(SPELL_HORRID_WILTING, "horrid wilting", 79, 64, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS,
+	NULL, 9, 12, NECROMANCY);
+  spello(SPELL_GREATER_ANIMATION, "greater animation", 72, 57, 1, POS_FIGHTING,
+	TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
+	NULL, 11, 12, NECROMANCY);  
 			/* enchantment */
-//*irresistable dance
-//*mass domination
+  spello(SPELL_IRRESISTABLE_DANCE, "irresistable dance", 65, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+	"You no longer feel the urge to moonwalk.", 5, 12,
+	ENCHANTMENT);
+  spello(SPELL_MASS_DOMINATION, "mass domination", 0, 0, 0, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_MANUAL, NULL, 6, 12, ENCHANTMENT);  
 			/* illusion */
-//*scintillating pattern
-//*refuge
+  spello(SPELL_SCINT_PATTERN, "scint pattern", 65, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+	"The pattern no longer traps you.", 5, 12,
+	ILLUSION);
+  spello(SPELL_REFUGE, "refuge", 0, 0, 0, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 6, 12, ILLUSION);  
 			/* divination */
-//*banish
-//*sunburst
+  spello(SPELL_BANISH, "banish", 51, 36, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL, NULL, 8, 12,
+     DIVINATION);
+  spello(SPELL_SUNBURST, "sun burst", 72, 57, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS | MAG_ROOM,
+	NULL, 7, 12, DIVINATION);
 			/* abjuration */
-//*spell turning
-//*mind blank
+  spello(SPELL_SPELL_TURNING, "spell turning", 79, 64, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"Your spell-turning field fades away.", 8, 12, ABJURATION);
+  spello(SPELL_MIND_BLANK, "mind blank", 79, 64, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"Your mind-blank fades.", 8, 12, ABJURATION);
 			/* transmutation */  
-//*ironskin
+  spello(SPELL_IRONSKIN, "iron skin", 51, 36, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"Your skin loses its iron-like texture.", 4, 12, TRANSMUTATION);
   spello(SPELL_PORTAL, "portal", 37, 22, 1, POS_FIGHTING, TAR_CHAR_WORLD |
           TAR_NOT_SELF, FALSE, MAG_CREATIONS, NULL, 12, 12, TRANSMUTATION);
 
@@ -1916,33 +1946,55 @@ void mag_assign_spells(void)
   spello(SPELL_METEOR_SWARM, "meteor swarm", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 9, 13, EVOCATION);
-//*blade of disaster
+  spello(SPELL_BLADE_OF_DISASTER, "blade of disaster", 0, 0, 0, 
+     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 14, 13, EVOCATION);  
                /* conjuration */
-//*summon monster ix
-//*gate
+  spello(SPELL_SUMMON_CREATURE_9, "summon creature ix", 0, 0, 0, 
+     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 12, 13, CONJURATION);
+  spello(SPELL_GATE, "gate", 51, 36, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_MANUAL, NULL, 9, 13,
+     CONJURATION);
 			/* necromancy */
-//*energy drain
-//*wail of the banshee
+//*energy drain, shared
+  spello(SPELL_WAIL_OF_THE_BANSHEE, "wail of the banshee", 85, 70, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS,
+	NULL, 10, 13, NECROMANCY);
 			/* enchantment */
-//*power word kill
-//*enfeeblement
+  spello(SPELL_POWER_WORD_KILL, "power word kill", 72, 57, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+	NULL, 7, 13, EVOCATION);
+  spello(SPELL_ENFEEBLEMENT, "enfeeblement", 65, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+	"You no longer feel enfeebled.", 4, 13,
+	ENCHANTMENT);
 			/* illusion */
-//*weird
-//*shadow shield
+  spello(SPELL_WEIRD, "weird", 65, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+	"The phantasmal killer stop chasing you.", 4, 13,
+	ENCHANTMENT);
+  spello(SPELL_SHADOW_SHIELD, "shadow shield", 95, 80, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"You feel the shadow shield dissipate.", 5, 13, ILLUSION);
 			/* divination */
-//*prismatic sphere
-//*implode
+  spello(SPELL_PRISMATIC_SPHERE, "prismatic sphere", 65, 50, 1, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 13, DIVINATION);
+  spello(SPELL_IMPLODE, "implode", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,
+	NULL, 3, 13, DIVINATION);
 			/* abjuration */
-//*timestop
-//*greater spell mantle
+  spello(SPELL_TIMESTOP, "timestop", 95, 80, 1, POS_FIGHTING,
+	TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+	"Time begins to move again.", 0, 13, ABJURATION);
+  spello(SPELL_GREATER_SPELL_MANTLE, "greater spell mantle", 0, 0, 0, POS_FIGHTING,
+	TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+	"You feel your greater spell mantle wear off.", 8, 13, ABJURATION);
 			/* transmutation */  
   spello(SPELL_POLYMORPH, "polymorph self", 58, 43, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_MANUAL,
 	NULL, 9, 13, TRANSMUTATION);
-//*mass endurance
-//*mass strength
-//*mass dex
-
+  spello(SPELL_MASS_ENHANCE, "mass enhance", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+     FALSE, MAG_GROUPS, "The physical enhancement spell wears off.", 2, 13, TRANSMUTATION);
+  
   
   // epic magical
   spello(SPELL_EPIC_MAGE_ARMOR, "epic mage armor", 95, 80, 1, POS_FIGHTING,
@@ -1953,6 +2005,7 @@ void mag_assign_spells(void)
 	"Your massive magical ward dissipates.", 4, 14, ABJURATION);
   // end magical
 
+  
   
   // divine spells
   // 1st circle
@@ -2080,7 +2133,10 @@ void mag_assign_spells(void)
   spello(SPELL_DEATHCLOUD, "_deathcloud_", 0, 0, 0, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 0, 0, NOSCHOOL);
-    spello(SPELL_FIRE_BREATHE, "_fire breathe_", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_INCENDIARY, "_incendiary_", 0, 0, 0, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_AREAS,
+	NULL, 0, 0, NOSCHOOL);
+  spello(SPELL_FIRE_BREATHE, "_fire breathe_", 0, 0, 0, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 0, 0, NOSCHOOL);
   spello(SPELL_FSHIELD_DAM, "_fire shield dam_", 0, 0, 0, POS_FIGHTING,
