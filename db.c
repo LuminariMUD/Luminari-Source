@@ -3607,6 +3607,7 @@ void reset_char(struct char_data *ch)
   ch->char_specials.crafting_repeat = 0;
   ch->char_specials.crafting_bonus = 0;
   ch->char_specials.cloudkill = 0;
+  INCENDIARY(ch) = 0;
 
   if (GET_HIT(ch) <= 0)
     GET_HIT(ch) = 1;
@@ -3766,8 +3767,9 @@ void init_char(struct char_data *ch)
   // fresh start on mem data
   init_spell_slots(ch);
 
-  // make sure no cloudkills
+  // make sure no cloudkills, incendiary
   CLOUDKILL(ch) = 0;
+  INCENDIARY(ch) = 0;
 
   /* more inits */
   FIGHTING(ch) = NULL;

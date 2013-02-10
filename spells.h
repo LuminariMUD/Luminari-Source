@@ -219,29 +219,29 @@
 #define SPELL_WAVES_OF_EXHAUSTION  177  //done
 #define SPELL_MASS_HOLD_PERSON     178  //done
 #define SPELL_MASS_FLY             179  //done
-#define SPELL_DISPLACEMENT         180  //in progress
-#define SPELL_PRISMATIC_SPRAY      181  //in progress x
-#define SPELL_POWER_WORD_STUN      182  //in progress
-#define SPELL_PROTECT_FROM_SPELLS  183  //in progress
-#define SPELL_THUNDERCLAP          184  //in progress x
-#define SPELL_SPELL_MANTLE         185  //in progress
-#define SPELL_MASS_WISDOM          186  //in progress
-#define SPELL_MASS_CHARISMA        187  //in progress
-#define SPELL_CLENCHED_FIST        188
-#define SPELL_INCENDIARY_CLOUD     189
-#define SPELL_SUMMON_CREATURE_8    190
-#define SPELL_HORRID_WILTING       191  //x
-#define SPELL_GREATER_ANIMATION    192
-#define SPELL_IRRESISTABLE_DANCE   193
-#define SPELL_MASS_DOMINATION      194
-#define SPELL_SCINT_PATTERN        195
-#define SPELL_REFUGE               196
-#define SPELL_BANISH               197
-#define SPELL_SUNBURST             198  //x
-#define SPELL_SPELL_TURNING        199
-#define SPELL_MIND_BLANK           200
-#define SPELL_IRONSKIN             201
-#define SPELL_MASS_CUNNING         202  //in progress
+#define SPELL_DISPLACEMENT         180  //done
+#define SPELL_PRISMATIC_SPRAY      181  //done
+#define SPELL_POWER_WORD_STUN      182  //done
+#define SPELL_PROTECT_FROM_SPELLS  183  //done
+#define SPELL_THUNDERCLAP          184  //done
+#define SPELL_SPELL_MANTLE         185  //done
+#define SPELL_MASS_WISDOM          186  //done
+#define SPELL_MASS_CHARISMA        187  //done
+#define SPELL_CLENCHED_FIST        188  // not done
+#define SPELL_INCENDIARY_CLOUD     189  // not done
+#define SPELL_SUMMON_CREATURE_8    190  // not done
+#define SPELL_HORRID_WILTING       191  //x  // not done
+#define SPELL_GREATER_ANIMATION    192  // not done
+#define SPELL_IRRESISTABLE_DANCE   193  // not done
+#define SPELL_MASS_DOMINATION      194  // not done
+#define SPELL_SCINT_PATTERN        195  // not done
+#define SPELL_REFUGE               196  // not done
+#define SPELL_BANISH               197  // not done
+#define SPELL_SUNBURST             198  //x  // not done
+#define SPELL_SPELL_TURNING        199  // not done
+#define SPELL_MIND_BLANK           200  // not done
+#define SPELL_IRONSKIN             201  // not done
+#define SPELL_MASS_CUNNING         202  //done
 #define SPELL_BLADE_OF_DISASTER    203
 #define SPELL_SUMMON_CREATURE_9    204
 #define SPELL_GATE                 205
@@ -255,11 +255,12 @@
 #define SPELL_TIMESTOP             213
 #define SPELL_GREATER_SPELL_MANTLE 214
 #define SPELL_MASS_ENHANCE         215
-#define SPELL_PORTAL               216
+#define SPELL_PORTAL               216  // not done
 #define SPELL_ACID                 217  //acid fog proc
 #define SPELL_HOLY_SWORD           218  //paladin
+#define SPELL_INCENDIARY           219  // incendiary cloud
 /** Total Number of defined spells */
-#define NUM_SPELLS                 219
+#define NUM_SPELLS                 220
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
@@ -597,7 +598,10 @@ ASPELL(spell_wall_of_force);
 ASPELL(spell_dominate_person);
 ASPELL(spell_dismissal);
 ASPELL(spell_cloudkill);
-
+ASPELL(spell_implode);
+ASPELL(spell_prismatic_sphere);
+ASPELL(spell_banish);
+ASPELL(spell_incendiary_cloud);
 
 /* basic magic calling functions */
 int find_skill_num(char *name);

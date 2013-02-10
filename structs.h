@@ -250,7 +250,7 @@
    of easy to use reserved values in the pfile that saves for special
    ability info we need */
 #define SPELL_MANTLE          0 // spell mantle left
-#define SHAPECHANGES		1 // unused
+#define INCEND            1 // unused
 #define SONGS                 2 // unused
 #define CALLCOMPANION		3 // animal companion vnum
 #define CALLFAMILIAR		4 // familiars vnum
@@ -417,8 +417,9 @@
 #define MOB_C_ANIMAL       26
 #define MOB_C_FAMILIAR     27
 #define MOB_C_MOUNT        28
+#define MOB_ELEMENTAL      29
 /**********************/
-#define NUM_MOB_FLAGS      29
+#define NUM_MOB_FLAGS      30
 
 /* Preference flags: used by char_data.player_specials.pref */
 #define PRF_BRIEF         0   /**< Room descs won't normally be shown */

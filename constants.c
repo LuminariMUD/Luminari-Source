@@ -330,6 +330,7 @@ const char *action_bits[] = {
   "Animal-Companion",
   "Familiar",
   "Paladin-Mount",
+  "Summoned-Elemental",
   "\n"
 };
 

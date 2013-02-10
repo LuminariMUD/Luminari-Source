@@ -30,6 +30,7 @@
 /*  Functions, Events, etc needed to perform manual spells  */
 /************************************************************/
 
+
 /* this function takes a real number for a room and returns:
    FALSE - mortals shouldn't be able to teleport to this destination 
    TRUE - mortals CAN teleport to this destination 
@@ -196,6 +197,8 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
 /* for dispel magic and greater dispelling */
 
 /* a hack job so far, gets rid of the first x affections */
+/* TODO:  add strength/etc to affection struct, that'd help a lot especially
+   here */
 void perform_dispel(struct char_data *ch, struct char_data *vict, int spellnum) {
   int i = 0, attempt = 0, challenge = 0, num_dispels = 0, msg = FALSE;
 
@@ -293,6 +296,35 @@ EVENTFUNC(event_acid_arrow) {
 /************************************************************/
 
 
+ASPELL(spell_implode) {
+  
+}
+
+
+ASPELL(spell_prismatic_sphere) {
+  
+}
+
+
+ASPELL(spell_banish) {
+  
+}
+
+
+ASPELL(spell_incendiary_cloud) {
+  if (CLOUDKILL(ch)) {
+    send_to_char(ch, "You already have a cloud following you!\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "You summon forth an incendiary cloud!\r\n");
+  act("$n summons forth an incendiary cloud!", FALSE, ch, 0, 0, TO_ROOM);
+
+  INCENDIARY(ch) = MAGIC_LEVEL(ch) / 4;
+  
+}
+
+
 ASPELL(spell_acid_arrow) {
   int x = 0;
 
@@ -313,7 +345,6 @@ ASPELL(spell_acid_arrow) {
 
 
 #define WALL_OF_FORCE    47
-
 ASPELL(spell_wall_of_force) {
   struct char_data *mob;
 
@@ -336,12 +367,18 @@ ASPELL(spell_wall_of_force) {
 }
 #undef WALL_OF_FORCE
 
+
 ASPELL(spell_cloudkill) {
+  if (INCENDIARY(ch)) {
+    send_to_char(ch, "You already have a cloud following you!\r\n");
+    return;
+  }
   send_to_char(ch, "You summon forth a cloud of death!\r\n");
   act("$n summons forth a cloud of death!", FALSE, ch, 0, 0, TO_ROOM);
 
-  CLOUDKILL(ch) = MAGIC_LEVEL(ch) / 4;
+  CLOUDKILL(ch) = MAGIC_LEVEL(ch) / 5;
 }
+
 
 ASPELL(spell_dismissal) {
   struct follow_type *k;
@@ -369,6 +406,7 @@ ASPELL(spell_dismissal) {
   }
 }
 
+
 ASPELL(spell_create_water) {
   int water;
 
@@ -395,6 +433,7 @@ ASPELL(spell_create_water) {
   }
 }
 
+
 ASPELL(spell_recall) {
   if (victim == NULL || IS_NPC(victim))
     return;
@@ -413,6 +452,7 @@ ASPELL(spell_recall) {
   greet_mtrigger(victim, -1);
   greet_memory_mtrigger(victim);
 }
+
 
 ASPELL(spell_teleport) {
   room_rnum to_room = NOWHERE;
@@ -455,6 +495,7 @@ ASPELL(spell_teleport) {
   greet_memory_mtrigger(ch);
 }
 
+
 ASPELL(spell_clairvoyance) {
   room_rnum location, original_loc;
 
@@ -484,8 +525,8 @@ ASPELL(spell_clairvoyance) {
   }
 }
 
-#define SUMMON_FAIL "You failed.\r\n"
 
+#define SUMMON_FAIL "You failed.\r\n"
 ASPELL(spell_summon) {
   if (ch == NULL || victim == NULL)
     return;
@@ -551,6 +592,7 @@ ASPELL(spell_summon) {
   greet_memory_mtrigger(victim);
 }
 
+
 ASPELL(spell_polymorph) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
@@ -561,6 +603,7 @@ ASPELL(spell_polymorph) {
 
   perform_shapechange(ch, arg);
 }
+
 
 /* i decided to wait for room events for this one */
 ASPELL(spell_control_weather) {
@@ -581,6 +624,7 @@ ASPELL(spell_control_weather) {
     return;
   }
 }
+
 
 ASPELL(spell_locate_creature) {
   struct char_data *i;
@@ -608,6 +652,7 @@ ASPELL(spell_locate_creature) {
   if (!found)
     send_to_char(ch, "Couldn't find any such creature.\r\n");
 }
+
 
 ASPELL(spell_locate_object) {
   struct obj_data *i;
@@ -645,6 +690,7 @@ ASPELL(spell_locate_object) {
   }
 }
 
+
 ASPELL(spell_greater_dispelling) // abjuration
 {
 
@@ -655,6 +701,7 @@ ASPELL(spell_greater_dispelling) // abjuration
 
   perform_dispel(ch, victim, SPELL_GREATER_DISPELLING);
 }
+
 
 ASPELL(spell_dispel_magic) // divination
 {
@@ -667,6 +714,7 @@ ASPELL(spell_dispel_magic) // divination
   perform_dispel(ch, victim, SPELL_DISPEL_MAGIC);
 }
 
+
 ASPELL(spell_dominate_person) // enchantment
 {
   if (victim == NULL || ch == NULL)
@@ -674,6 +722,7 @@ ASPELL(spell_dominate_person) // enchantment
 
   effect_charm(ch, victim, SPELL_DOMINATE_PERSON);
 }
+
 
 ASPELL(spell_charm) // enchantment
 {
@@ -814,6 +863,7 @@ ASPELL(spell_identify) // divination
   }
 }
 
+
 /* Cannot use this spell on an equipped object or it will mess up the wielding
  * character's hit/dam totals. */
 ASPELL(spell_enchant_weapon) // enchantment
@@ -849,6 +899,7 @@ ASPELL(spell_enchant_weapon) // enchantment
   } else
     act("$p glows \tYyellow\tn.", FALSE, ch, obj, 0, TO_CHAR);
 }
+
 
 ASPELL(spell_detect_poison) {
   if (victim) {

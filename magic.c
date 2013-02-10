@@ -531,28 +531,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 4;
     bonus = 0;
     break;
-
-  case SPELL_PRISMATIC_SPRAY:  //illusion
-    //  has effect too
-    save = SAVING_WILL;
-    mag_resist = TRUE;
-    element = DAM_ILLUSION;    
-    num_dice = MIN(26, magic_level);
-    size_dice = 4;
-    bonus = 0;
-    break;
-    
-  case SPELL_THUNDERCLAP:  // abjuration
-    //  has effect too
-    // no save
-    save = -1;
-    // no resistance
-    mag_resist = FALSE;
-    element = DAM_SOUND;    
-    num_dice = 1;
-    size_dice = 10;
-    bonus = magic_level;
-    break;
     
   case SPELL_BALL_OF_LIGHTNING:  //evocation
     save = SAVING_REFL;
@@ -624,6 +602,21 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_COLD;
     break;
         
+  case SPELL_CLENCHED_FIST:  //evocation
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FORCE;    
+    num_dice = MIN(28, magic_level);
+    size_dice = 11;
+    bonus = magic_level + 5;
+    
+    // 33% chance of causing a wait-state to victim
+    if (!rand_number(0,2))
+      WAIT_STATE(victim, PULSE_VIOLENCE);
+
+    break;
+    
+    
   case SPELL_GRASPING_HAND:  //evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
@@ -651,77 +644,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = magic_level + 35;
     break;
     
-  /* trying to keep the AOE together */  
-  case SPELL_ICE_STORM:  //evocation
-    //AoE
-    save = -1;
-    mag_resist = TRUE;
-    element = DAM_COLD;    
-    num_dice = MIN(15, magic_level);
-    size_dice = 8;
-    bonus = 0;
-    break;
-
-  case SPELL_SYMBOL_OF_PAIN:  //necromancy
-    //AoE
-    save = SAVING_WILL;
-    mag_resist = TRUE;
-    element = DAM_UNHOLY;    
-    num_dice = MIN(17, magic_level);
-    size_dice = 6;
-    bonus = 0;
-    break;
-
-  case SPELL_CHAIN_LIGHTNING:  //evocation
-    //AoE
-    save = SAVING_REFL;
-    mag_resist = TRUE;
-    element = DAM_ELECTRIC;
-    num_dice = MIN(28, magic_level);
-    size_dice = 9;
-    bonus = magic_level;
-    break;
-    
-  case SPELL_ACID:  //acid fog (conjuration)
-    //AoE
-    save = SAVING_FORT;
-    mag_resist = TRUE;
-    element = DAM_ACID;    
-    num_dice = magic_level;
-    size_dice = 2;
-    bonus = 10;
-    break;
-    
-  case SPELL_DEATHCLOUD:  //cloudkill (conjuration)
-    //AoE
-    save = SAVING_FORT;
-    mag_resist = TRUE;
-    element = DAM_POISON;    
-    num_dice = magic_level;
-    size_dice = 4;
-    bonus = 0;
-    break;
-    
-  case SPELL_METEOR_SWARM:
-    //AoE
-    save = SAVING_REFL;
-    mag_resist = TRUE;
-    element = DAM_FIRE;    
-    num_dice = magic_level + 4;
-    size_dice = 12;
-    bonus = magic_level + 8;
-    break;
-    
-  case SPELL_HELLBALL:
-    //AoE
-    save = SAVING_FORT;
-    mag_resist = TRUE;
-    element = DAM_ENERGY;    
-    num_dice = magic_level + 8;
-    size_dice = 12;
-    bonus = magic_level + 50;
-    break;
-
   /***************/  
   // divine spells
   /***************/  
@@ -840,7 +762,123 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 200;
     bonus = 0;
     break;
+    
+  /* trying to keep the AOE together */  
+  /***************/  
+  // AoE spells
+  /***************/  
+    
+  /***************/  
+  // AoE magical spells
+  /***************/  
+    
 
+  case SPELL_PRISMATIC_SPRAY:  //illusion
+    //  has effect too
+    save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_ILLUSION;    
+    num_dice = MIN(26, magic_level);
+    size_dice = 4;
+    bonus = 0;
+    break;
+    
+  case SPELL_THUNDERCLAP:  // abjuration
+    //  has effect too
+    // no save
+    save = -1;
+    // no resistance
+    mag_resist = FALSE;
+    element = DAM_SOUND;    
+    num_dice = 1;
+    size_dice = 10;
+    bonus = magic_level;
+    break;        
+    
+  case SPELL_ICE_STORM:  //evocation
+    //AoE
+    save = -1;
+    mag_resist = TRUE;
+    element = DAM_COLD;    
+    num_dice = MIN(15, magic_level);
+    size_dice = 8;
+    bonus = 0;
+    break;
+
+  case SPELL_SYMBOL_OF_PAIN:  //necromancy
+    //AoE
+    save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_UNHOLY;    
+    num_dice = MIN(17, magic_level);
+    size_dice = 6;
+    bonus = 0;
+    break;
+
+  case SPELL_CHAIN_LIGHTNING:  //evocation
+    //AoE
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_ELECTRIC;
+    num_dice = MIN(28, magic_level);
+    size_dice = 9;
+    bonus = magic_level;
+    break;
+    
+  case SPELL_ACID:  //acid fog (conjuration)
+    //AoE
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_ACID;    
+    num_dice = magic_level;
+    size_dice = 2;
+    bonus = 10;
+    break;
+    
+  case SPELL_INCENDIARY:  //incendiary cloud (conjuration)
+    //AoE
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_POISON;    
+    num_dice = magic_level;
+    size_dice = 5;
+    bonus = magic_level;
+    break;
+    
+  case SPELL_DEATHCLOUD:  //cloudkill (conjuration)
+    //AoE
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_POISON;    
+    num_dice = magic_level;
+    size_dice = 4;
+    bonus = 0;
+    break;
+    
+  case SPELL_METEOR_SWARM:
+    //AoE
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;    
+    num_dice = magic_level + 4;
+    size_dice = 12;
+    bonus = magic_level + 8;
+    break;
+    
+  case SPELL_HELLBALL:
+    //AoE
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_ENERGY;    
+    num_dice = magic_level + 8;
+    size_dice = 12;
+    bonus = magic_level + 50;
+    break;
+    
+  /***************/  
+  // divine AoE spells
+  /***************/  
+    
   case SPELL_EARTHQUAKE:
     //AoE
     save = SAVING_REFL;
@@ -2524,7 +2562,9 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "Arcing bolts of lightning flare from your fingertips!";
     to_room = "Arcing bolts of lightning fly from the fingers of $n!";
     break;
-  case SPELL_DEATHCLOUD:
+  case SPELL_DEATHCLOUD:  //cloudkill
+    break;
+  case SPELL_INCENDIARY:  //incendiary cloud
     break;
   case SPELL_METEOR_SWARM:
     to_char = "You call down meteors from the sky to pummel your foes!";
@@ -2704,7 +2744,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   struct char_data *mob = NULL;
   struct obj_data *tobj, *next_obj;
   int pfail = 0, msg = 0, fmsg = 0, num = 1, handle_corpse = FALSE, i;
+  int hp_bonus = 0, dam_bonus = 0, hit_bonus = 0, level_bonus = 0;
   mob_vnum mob_num = 0;
+  struct follow_type *k = NULL, *next = NULL;  
 
   if (ch == NULL)
     return;
@@ -2837,6 +2879,14 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     pfail = 0;
     break;
     
+  case SPELL_SUMMON_CREATURE_9:  //conjuration
+    hp_bonus += level_bonus * 5;
+    dam_bonus += level_bonus;
+    hit_bonus += level_bonus;
+  case SPELL_SUMMON_CREATURE_8:  //conjuration
+    hp_bonus += level_bonus * 5;
+    dam_bonus += level_bonus;
+    hit_bonus += level_bonus;
   case SPELL_SUMMON_CREATURE_7:  //conjuration
     handle_corpse = FALSE;
     fmsg = rand_number(2, 6);	/* Random fail message. */
@@ -2858,6 +2908,10 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         msg = 10;
         break;
     }
+    level_bonus += CASTER_LEVEL(ch) - 11;
+    hp_bonus += level_bonus * 5;
+    dam_bonus += level_bonus;
+    hit_bonus += level_bonus;
     pfail = 0;
     break;
     
@@ -2865,6 +2919,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     return;
   }
 
+  /* start off with some possible fail conditions */
   if (AFF_FLAGGED(ch, AFF_CHARM)) {
     send_to_char(ch, "You are too giddy to have any followers!\r\n");
     return;
@@ -2873,6 +2928,19 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     send_to_char(ch, "%s", mag_summon_fail_msgs[fmsg]);
     return;
   }
+  /* new limit cap on certain mobiles */
+  for (k = ch->followers; k; k = next) {
+    next = k->next;
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
+            (MOB_FLAGGED(k->follower, MOB_ELEMENTAL))) {
+      if (IN_ROOM(ch) == IN_ROOM(k->follower)) {
+        send_to_char(ch, "You can't control more elementals!\r\n");
+        return;
+      }
+    }
+  }
+    
+  /* bring the mob into existence! */
   for (i = 0; i < num; i++) {
     if (!(mob = read_mobile(mob_num, VIRTUAL))) {
       send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
@@ -2882,11 +2950,25 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     IS_CARRYING_W(mob) = 0;
     IS_CARRYING_N(mob) = 0;
     SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
-    if (spellnum == SPELL_CLONE) {
-      /* Don't mess up the prototype; use new string copies. */
-      mob->player.name = strdup(GET_NAME(ch));
-      mob->player.short_descr = strdup(GET_NAME(ch));
+    
+    /* give the mobile some bonuses */
+    /* ALSO special handling for clone spell */
+    switch (spellnum) {
+      case SPELL_SUMMON_CREATURE_9:  //conjuration
+      case SPELL_SUMMON_CREATURE_8:  //conjuration
+      case SPELL_SUMMON_CREATURE_7:  //conjuration    
+        GET_LEVEL(mob) += MIN(level_bonus, LVL_IMPL - GET_LEVEL(mob));
+        GET_MAX_HIT(mob) += hp_bonus;
+        GET_DAMROLL(mob) += dam_bonus;
+        GET_HITROLL(mob) += hit_bonus;
+        break;
+      case SPELL_CLONE:
+        /* Don't mess up the prototype; use new string copies. */
+        mob->player.name = strdup(GET_NAME(ch));
+        mob->player.short_descr = strdup(GET_NAME(ch));
+        break;
     }
+    
     act(mag_summon_msgs[msg], FALSE, ch, 0, mob, TO_ROOM);
     act(mag_summon_to_msgs[msg], FALSE, ch, 0, mob, TO_CHAR);
     load_mtrigger(mob);
@@ -2894,6 +2976,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
   }
+  
+  /* raise dead type of spells */
   if (handle_corpse) {
     for (tobj = obj->contains; tobj; tobj = next_obj) {
       next_obj = tobj->next_content;
