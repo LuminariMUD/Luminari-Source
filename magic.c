@@ -2744,12 +2744,15 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   struct char_data *mob = NULL;
   struct obj_data *tobj, *next_obj;
   int pfail = 0, msg = 0, fmsg = 0, num = 1, handle_corpse = FALSE, i;
-  int hp_bonus = 0, dam_bonus = 0, hit_bonus = 0, level_bonus = 0;
+  int hp_bonus = 0, dam_bonus = 0, hit_bonus = 0;
+  int mob_level = 0;
   mob_vnum mob_num = 0;
   struct follow_type *k = NULL, *next = NULL;  
 
   if (ch == NULL)
     return;
+  
+  mob_level = CASTER_LEVEL(ch) - 11;
 
   switch (spellnum) {
 
@@ -2880,13 +2883,13 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     break;
     
   case SPELL_SUMMON_CREATURE_9:  //conjuration
-    hp_bonus += level_bonus * 5;
-    dam_bonus += level_bonus;
-    hit_bonus += level_bonus;
+    hp_bonus += mob_level * 5;
+    dam_bonus += mob_level;
+    hit_bonus += mob_level;
   case SPELL_SUMMON_CREATURE_8:  //conjuration
-    hp_bonus += level_bonus * 5;
-    dam_bonus += level_bonus;
-    hit_bonus += level_bonus;
+    hp_bonus += mob_level * 5;
+    dam_bonus += mob_level;
+    hit_bonus += mob_level;
   case SPELL_SUMMON_CREATURE_7:  //conjuration
     handle_corpse = FALSE;
     fmsg = rand_number(2, 6);	/* Random fail message. */
@@ -2908,10 +2911,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         msg = 10;
         break;
     }
-    level_bonus += CASTER_LEVEL(ch) - 11;
-    hp_bonus += level_bonus * 5;
-    dam_bonus += level_bonus;
-    hit_bonus += level_bonus;
+    hp_bonus += mob_level * 5;
+    dam_bonus += mob_level;
+    hit_bonus += mob_level;
     pfail = 0;
     break;
     
@@ -2929,15 +2931,19 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     return;
   }
   /* new limit cap on certain mobiles */
-  for (k = ch->followers; k; k = next) {
-    next = k->next;
-    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
-            (MOB_FLAGGED(k->follower, MOB_ELEMENTAL))) {
-      if (IN_ROOM(ch) == IN_ROOM(k->follower)) {
-        send_to_char(ch, "You can't control more elementals!\r\n");
-        return;
+  switch (spellnum) {
+    case SPELL_SUMMON_CREATURE_9:  //conjuration
+    case SPELL_SUMMON_CREATURE_8:  //conjuration
+    case SPELL_SUMMON_CREATURE_7:  //conjuration    
+      for (k = ch->followers; k; k = next) {
+        next = k->next;
+        if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
+                (MOB_FLAGGED(k->follower, MOB_ELEMENTAL)) ) {
+          send_to_char(ch, "You can't control more elementals!\r\n");
+          return;
+        }
       }
-    }
+      break;
   }
     
   /* bring the mob into existence! */
@@ -2957,7 +2963,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       case SPELL_SUMMON_CREATURE_9:  //conjuration
       case SPELL_SUMMON_CREATURE_8:  //conjuration
       case SPELL_SUMMON_CREATURE_7:  //conjuration    
-        GET_LEVEL(mob) += MIN(level_bonus, LVL_IMPL - GET_LEVEL(mob));
+        GET_LEVEL(mob) += MIN(mob_level, LVL_IMPL - GET_LEVEL(mob));
         GET_MAX_HIT(mob) += hp_bonus;
         GET_DAMROLL(mob) += dam_bonus;
         GET_HITROLL(mob) += hit_bonus;
