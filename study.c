@@ -41,67 +41,130 @@ int favored_slot = -1;
 /*-------------------------------------------------------------------*/
 
 /* list of possible animal companions, use in-game vnums for this */
-#define DIRE_BADGER    60
-#define DIRE_BOAR      61
-#define DIRE_WOLF      62
-#define DIRE_SPIDER    63
-#define DIRE_BEAR      64
-#define DIRE_TIGER     65
+#define C_BEAR    60
+#define C_BOAR      61
+#define C_LION      62
+#define C_CROCODILE    63
+#define C_HYENA      64
+#define C_SNOW_LEOPARD     65
+#define C_SKULL_SPIDER     66
+#define C_FIRE_BEETLE     67
+#define C_CAYHOUND        68
+#define C_DRACAVES        69
 /*--- paladin mount(s) -----*/
-#define MOB_PALADIN_MOUNT 70
+#define C_W_WARHORSE   70
+#define C_B_DESTRIER   71
+#define C_STALLION   72
+#define C_A_DESTRIER   73
+#define C_G_WARHORSE   74
+#define C_P_WARHORSE   75
+#define C_C_DESTRIER   76
+#define C_WARDOG   77
+#define C_WARPONY   78
+#define C_GRIFFON   79
 /*--- familiars -----*/
-#define F_DIRE_BADGER    80
-#define F_DIRE_BOAR      81
-#define F_DIRE_WOLF      82
-#define F_DIRE_SPIDER    83
-#define F_DIRE_BEAR      84
-#define F_DIRE_TIGER     85
+#define F_HUNTER    80
+#define F_PANTHER      81
+#define F_MOUSE      82
+#define F_EAGLE    83
+#define F_RAVEN      84
+#define F_IMP     85
+#define F_PIXIE     86
+#define F_FAERIE_DRAGON     87
+#define F_PSEUDO_DRAGON     88
+#define F_HELLHOUND     89
 
 /* make a list of vnums corresponding in order, first animals  */
 int animal_vnums[] = {
   0,
-  DIRE_BADGER,   // 1
-  DIRE_BOAR,     // 2
-  DIRE_WOLF,     // 3
-  DIRE_SPIDER,   // 4
-  DIRE_BEAR,     // 5
-  DIRE_TIGER,    // 6
+C_BEAR,   // 60, 1
+C_BOAR,     // 61, 2
+C_LION,     // 62, 3
+C_CROCODILE,   // 63, 4
+C_HYENA,     // 64, 5
+C_SNOW_LEOPARD,    // 65, 6
+C_SKULL_SPIDER,    // 66, 7
+C_FIRE_BEETLE,    // 67, 8
+C_CAYHOUND,       // 68, 9
+C_DRACAVES,       // 69, 10
   -1   /* end with this */
 };
-#define NUM_ANIMALS 7
+#define NUM_ANIMALS 10
+/* now paladin mounts */
+int mount_vnums[] = {
+  0,
+  C_W_WARHORSE,   //70, 1
+  C_B_DESTRIER,   //71, 2
+  C_STALLION,   //72, 3
+  C_A_DESTRIER,   //73, 4
+  C_G_WARHORSE,   //74, 5
+  C_P_WARHORSE,   //75, 6
+  C_C_DESTRIER,   //76, 7
+  C_WARDOG,   //77, 8
+  C_WARPONY,   //78, 9
+  C_GRIFFON,   //79, 10
+  -1   /* end with this */
+};
+#define NUM_MOUNTS 10
 /* now familiars */
 int familiar_vnums[] = {
   0,
-  F_DIRE_BADGER,   // 1
-  F_DIRE_BOAR,     // 2
-  F_DIRE_WOLF,     // 3
-  F_DIRE_SPIDER,   // 4
-  F_DIRE_BEAR,     // 5
-  F_DIRE_TIGER,    // 6
+   F_HUNTER,    //80, 1
+   F_PANTHER,     // 81, 2
+   F_MOUSE,      //82, 3
+   F_EAGLE,    //83, 4
+   F_RAVEN,      //84, 5
+   F_IMP,     //85, 6
+   F_PIXIE,    // 86, 7
+   F_FAERIE_DRAGON,     //87, 8
+   F_PSEUDO_DRAGON,     //88, 9
+   F_HELLHOUND,     //89, 10
   -1   /* end with this */
 };
-#define NUM_FAMILIARS 7
+#define NUM_FAMILIARS 10
+
+/* DEBUG:  just checking first 8 animals right now -zusuk */
+#define TOP_OF_C  8
+/****************/
 
 /* make a list of names in order, first animals */
 char *animal_names[] = {
   "Unknown",
-  "1) Dire Badger",
-  "2) Dire Boar",
-  "3) Dire Wolf",
-  "4) Dire Spider",
-  "5) Dire Bear",
-  "6) Dire Tiger",
+  "1) Black Bear",
+  "2) Boar",
+  "3) Lion",
+  "4) Crocodile",
+  "5) Hyena",
+  "6) Snow Leopard",
+  "7) Skull Spider",
+  "8) Fire Beetle",
+  "\n"   /* end with this */  
+};
+/* ... now mounts */
+char *mount_names[] = {
+  "Unknown",
+  "1) Heavy White Warhorse",
+  "2) Black Destrier",
+  "3) Stallion",
+  "4) Armored Destrier",
+  "5) Golden Warhorse",
+  "6) Painted Warhorse",
+  "7) Bright Destrier",
+  "8) Wardog",
+  "9) Warpony",
   "\n"   /* end with this */  
 };
 /* ... now familiars */
 char *familiar_names[] = {
   "Unknown",
-  "1) Dire Badger",
-  "2) Dire Boar",
-  "3) Dire Wolf",
-  "4) Dire Spider",
-  "5) Dire Bear",
-  "6) Dire Tiger",
+  "1) Night Hunter",
+  "2) Black Panther",
+  "3) Tiny Mouse",
+  "4) Eagle",
+  "5) Raven",
+  "6) Imp",
+  "7) Pixie",
+  "8) Faerie Dragon",
   "\n"   /* end with this */  
 };
 
@@ -135,11 +198,19 @@ ACMD(do_study)
             "skills this level.\r\n");
       return;
     }
+    if (!CLASS_LEVEL(ch, CLASS_RANGER)) {
+      send_to_char(ch, "How?  You are not a ranger!\r\n");
+      return;
+    }
     class = CLASS_RANGER;
   } else if (is_abbrev(argument, " wizard")) {
     if (IS_WIZ_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
       send_to_char(ch, "You already adjusted your wizard "
             "skills this level.\r\n");
+      return;
+    }
+    if (!CLASS_LEVEL(ch, CLASS_WIZARD)) {
+      send_to_char(ch, "How?  You are not a wizard!\r\n");
       return;
     }
     class = CLASS_WIZARD;
@@ -417,7 +488,7 @@ static void animal_companion_menu(struct descriptor_data *d)
   
   write_to_output(d, "\r\n");
   /* find current animal */
-  for (i = 1; animal_vnums[i] != -1; i++) {
+  for (i = 1; i <= TOP_OF_C; i++) {
     if (GET_ANIMAL_COMPANION(d->character) == animal_vnums[i]) {
       write_to_output(d, "Current Companion:  %s\r\n", animal_names[i]);
       found = 1;
@@ -426,7 +497,7 @@ static void animal_companion_menu(struct descriptor_data *d)
   }
   
   if (!found)
-    write_to_output(d, "Current No Companion Selected\r\n");
+    write_to_output(d, "Currently No Companion Selected\r\n");
   
   write_to_output(d, "You can select 0 (Zero) to deselect the current "
           "companion.\r\n");
@@ -498,7 +569,7 @@ static void familiar_menu(struct descriptor_data *d)
   
   write_to_output(d, "\r\n");
   /* find current familiar */
-  for (i = 1; familiar_vnums[i] != -1; i++) {
+  for (i = 1; i <= TOP_OF_C; i++) {
     if (GET_FAMILIAR(d->character) == familiar_vnums[i]) {
       write_to_output(d, "Current Familiar:  %s\r\n", familiar_names[i]);
       found = 1;
@@ -771,7 +842,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         default:                
           number = atoi(arg);
           
-          if (!number) {
+          if (number == 0) {
             GET_ANIMAL_COMPANION(d->character) = number;
             write_to_output(d, "Your companion has been set to OFF.\r\n");
           } else if (number < 0 || number >= NUM_ANIMALS) {
@@ -864,21 +935,38 @@ void study_parse(struct descriptor_data *d, char *arg)
 }
 
 /* some undefines from top of file */
-#undef DIRE_BADGER
-#undef DIRE_BOAR
-#undef DIRE_WOLF
-#undef DIRE_SPIDER
-#undef DIRE_BEAR
-#undef DIRE_TIGER
-#undef F_DIRE_BADGER
-#undef F_DIRE_BOAR
-#undef F_DIRE_WOLF
-#undef F_DIRE_SPIDER
-#undef F_DIRE_BEAR
-#undef F_DIRE_TIGER
-#undef NUM_ANIMALS
-#undef NUM_FAMILIARS
-#undef MOB_PALADIN_MOUNT
+#undef C_BEAR    
+#undef C_BOAR      
+#undef C_LION      
+#undef C_CROCODILE    
+#undef C_HYENA      
+#undef C_SNOW_LEOPARD     
+#undef C_SKULL_SPIDER     
+#undef C_FIRE_BEETLE     
+#undef C_CAYHOUND        
+#undef C_DRACAVES        
+/*--- paladin mount(s) -----*/
+#undef C_W_WARHORSE   
+#undef C_B_DESTRIER   
+#undef C_STALLION   
+#undef C_A_DESTRIER   
+#undef C_G_WARHORSE   
+#undef C_P_WARHORSE   
+#undef C_C_DESTRIER   
+#undef C_WARDOG   
+#undef C_WARPONY   
+#undef C_GRIFFON   
+/*--- familiars -----*/
+#undef F_HUNTER    
+#undef F_PANTHER      
+#undef F_MOUSE      
+#undef F_EAGLE    
+#undef F_RAVEN      
+#undef F_IMP     
+#undef F_PIXIE     
+#undef F_FAERIE_DRAGON     
+#undef F_PSEUDO_DRAGON     
+#undef F_HELLHOUND     
 
 
 

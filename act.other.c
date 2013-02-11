@@ -188,7 +188,7 @@ ACMD(do_call)
   }
   
   /* couple of dummy checks */
-  if (!mob_num)
+  if (mob_num <= 0 || mob_num > 99)  //zone 0 for mobiles
     return;
   if (level >= LVL_IMMORT)
     level = LVL_IMMORT - 1;
