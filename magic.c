@@ -2626,8 +2626,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     break;
   case SPELL_THUNDERCLAP:
     is_eff_and_dam = TRUE;
-    to_char = "\tcA loud \twCRACK@c fills the air with deafening force!\tn";
-    to_room = "\tcA loud \twCRACK@c fills the air with deafening force!\tn";
+    to_char = "\tcA loud \twCRACK\tc fills the air with deafening force!\tn";
+    to_room = "\tcA loud \twCRACK\tc fills the air with deafening force!\tn";
     break;
   }
 
