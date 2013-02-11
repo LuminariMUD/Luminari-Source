@@ -142,7 +142,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
           GET_LEVEL(victim) >= 8))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
-  else if (spellnum == SPELL_DOMINATE_PERSON &&
+  else if ((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION) &&
           CASTER_LEVEL(ch) < GET_LEVEL(victim))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
@@ -179,7 +179,12 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     add_follower(victim, ch);
 
     new_affect(&af);
-    af.spell = SPELL_CHARM;
+    if (spellnum == SPELL_CHARM)
+      af.spell = SPELL_CHARM;
+    else if (spellnum == SPELL_DOMINATE_PERSON)
+      af.spell = SPELL_DOMINATE_PERSON;
+    else if (spellnum == SPELL_MASS_DOMINATION)
+      af.spell = SPELL_MASS_DOMINATION;
     af.duration = 100;
     if (GET_CHA_BONUS(ch))
       af.duration *= GET_CHA_BONUS(ch) * 25;
@@ -726,7 +731,7 @@ ASPELL(spell_mass_domination) // enchantment
     next_tch = tch->next_in_room;
 
     if (aoeOK(ch, tch, SPELL_MASS_DOMINATION)) {
-      effect_charm(ch, tch, SPELL_DOMINATE_PERSON);      
+      effect_charm(ch, tch, SPELL_MASS_DOMINATION);      
     }
   }
   
