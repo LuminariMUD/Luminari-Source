@@ -601,6 +601,7 @@ ASPELL(spell_cloudkill);
 ASPELL(spell_implode);
 ASPELL(spell_prismatic_sphere);
 ASPELL(spell_banish);
+ASPELL(spell_mass_domination);
 ASPELL(spell_incendiary_cloud);
 
 /* basic magic calling functions */
