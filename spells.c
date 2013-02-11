@@ -187,7 +187,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
       af.spell = SPELL_MASS_DOMINATION;
     af.duration = 100;
     if (GET_CHA_BONUS(ch))
-      af.duration *= GET_CHA_BONUS(ch) * 25;
+      af.duration += GET_CHA_BONUS(ch) * 4;
     SET_BIT_AR(af.bitvector, AFF_CHARM);
     affect_to_char(victim, &af);
 
