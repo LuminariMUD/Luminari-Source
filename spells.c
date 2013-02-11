@@ -727,6 +727,8 @@ ASPELL(spell_mass_domination) // enchantment
   if (ch == NULL)
     return;
 
+  send_to_char(ch, "TEST");
+  
   for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
     next_tch = tch->next_in_room;
 
