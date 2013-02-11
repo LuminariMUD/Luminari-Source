@@ -2651,7 +2651,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
       /* we gotta start combat here */
       if (isEffect && spell_info[spellnum].violent && tch && GET_POS(tch) == POS_STANDING &&
              !FIGHTING(tch) && spellnum != SPELL_CHARM &&
-             spellnum != SPELL_DOMINATE_PERSON) {
+             spellnum != SPELL_DOMINATE_PERSON && spellnum != SPELL_MASS_DOMINATION) {
         if (tch != ch) {  // funny results from potions/scrolls
           if (IN_ROOM(tch) == IN_ROOM(ch)) {
             hit(tch, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);

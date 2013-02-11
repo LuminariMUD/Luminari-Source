@@ -496,6 +496,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_WALL_OF_FORCE:	MANUAL_SPELL(spell_wall_of_force); break;
     case SPELL_PRISMATIC_SPHERE:	MANUAL_SPELL(spell_prismatic_sphere); break;
     case SPELL_DOMINATE_PERSON:	MANUAL_SPELL(spell_dominate_person); break;
+    case SPELL_MASS_DOMINATION:	MANUAL_SPELL(spell_mass_domination); break;
     case SPELL_DISMISSAL:	MANUAL_SPELL(spell_dismissal); break;
     case SPELL_BANISH:	MANUAL_SPELL(spell_banish); break;
     case SPELL_CLOUDKILL:	MANUAL_SPELL(spell_cloudkill); break;
