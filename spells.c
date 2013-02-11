@@ -730,7 +730,7 @@ ASPELL(spell_mass_domination) // enchantment
   for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
     next_tch = tch->next_in_room;
 
-    if (aoeOK(ch, tch, SPELL_MASS_DOMINATION)) {
+    if (aoeOK(ch, tch, -1)) {
       effect_charm(ch, tch, SPELL_MASS_DOMINATION);      
     }
   }
