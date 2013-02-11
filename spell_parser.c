@@ -1906,7 +1906,7 @@ void mag_assign_spells(void)
 	TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
 	NULL, 11, 12, NECROMANCY);  
 			/* enchantment */
-  spello(SPELL_IRRESISTABLE_DANCE, "irresistable dance", 65, 50, 1, POS_FIGHTING,
+  spello(SPELL_IRRESISTIBLE_DANCE, "irresistible dance", 65, 50, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
 	"You no longer feel the urge to moonwalk.", 5, 12,
 	ENCHANTMENT);

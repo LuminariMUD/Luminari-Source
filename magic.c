@@ -825,6 +825,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = magic_level;
     break;
     
+  case SPELL_HORRID_WILTING:  //horrid wilting
+    //AoE
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_NEGATIVE;
+    num_dice = MIN(28, magic_level);
+    size_dice = 8;
+    bonus = magic_level / 2;
+    break;
+    
   case SPELL_ACID:  //acid fog (conjuration)
     //AoE
     save = SAVING_FORT;
@@ -1220,6 +1230,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = dice(3, 4);
     to_room = "$n is overcome by a powerful hold spell!";
     to_vict = "You are overcome by a powerful hold spell!";
+    break;
+
+  case SPELL_IRRESISTIBLE_DANCE:  //enchantment
+    if (mag_resistance(ch, victim, 0))
+      return;
+    // no save
+
+    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+    af[0].duration = dice(1, 4) + 1;
+    to_room = "$n begins to dance uncontrollably!";
+    to_vict = "You begin to dance uncontrollably!";
     break;
 
   case SPELL_HOLD_PERSON:  //enchantment
@@ -2562,6 +2583,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "Arcing bolts of lightning flare from your fingertips!";
     to_room = "Arcing bolts of lightning fly from the fingers of $n!";
     break;
+  case SPELL_HORRID_WILTING:
+    to_char = "Your wilting causes the moisture to leave the area!";
+    to_room = "$n's horrid wilting causes all the moisture to leave the area!";
+    break;
   case SPELL_DEATHCLOUD:  //cloudkill
     break;
   case SPELL_INCENDIARY:  //incendiary cloud
@@ -2738,6 +2763,10 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_EARTH_ELEMENTAL   52
 #define MOB_AIR_ELEMENTAL     53
 #define MOB_WATER_ELEMENTAL   54  // these elementals are for rest of s.c.
+#define MOB_GHOST   55  // great animation
+#define MOB_SPECTRE   56  // great animation
+#define MOB_BANSHEE   57  // great animation
+#define MOB_WIGHT   58  // great animation
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 		      int spellnum, int savetype)
 {
@@ -2792,6 +2821,30 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     else
       mob_num = MOB_ZOMBIE;
     pfail = 10;	/* 10% failure, should vary in the future. */
+    break;
+
+  case SPELL_GREATER_ANIMATION:  //necromancy
+    if (obj == NULL || !IS_CORPSE(obj)) {
+      act(mag_summon_fail_msgs[7], FALSE, ch, 0, 0, TO_CHAR);
+      return;
+    }
+    handle_corpse = TRUE;
+    msg = 12;
+    fmsg = rand_number(2, 6);	/* Random fail message. */
+    if (CASTER_LEVEL(ch) >= 30)
+      mob_num = MOB_WIGHT;
+    else if (CASTER_LEVEL(ch) >= 25)
+      mob_num = MOB_BANSHEE;
+    else if (CASTER_LEVEL(ch) >= 20)
+      mob_num = MOB_SPECTRE;
+    else
+      mob_num = MOB_GHOST;
+    pfail = 10;	/* 10% failure, should vary in the future. */
+    
+    hp_bonus += mob_level * 5;
+    dam_bonus += mob_level;
+    hit_bonus += mob_level;
+    
     break;
 
   case SPELL_MUMMY_DUST:  //epic
@@ -2884,12 +2937,12 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     
   case SPELL_SUMMON_CREATURE_9:  //conjuration
     hp_bonus += mob_level * 5;
-    dam_bonus += mob_level;
-    hit_bonus += mob_level;
+    dam_bonus += 4;
+    hit_bonus += 5;
   case SPELL_SUMMON_CREATURE_8:  //conjuration
     hp_bonus += mob_level * 5;
-    dam_bonus += mob_level;
-    hit_bonus += mob_level;
+    dam_bonus += 3;
+    hit_bonus += 4;
   case SPELL_SUMMON_CREATURE_7:  //conjuration
     handle_corpse = FALSE;
     fmsg = rand_number(2, 6);	/* Random fail message. */
@@ -2930,6 +2983,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     send_to_char(ch, "%s", mag_summon_fail_msgs[fmsg]);
     return;
   }
+  
   /* new limit cap on certain mobiles */
   switch (spellnum) {
     case SPELL_SUMMON_CREATURE_9:  //conjuration
@@ -2940,6 +2994,18 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
                 (MOB_FLAGGED(k->follower, MOB_ELEMENTAL)) ) {
           send_to_char(ch, "You can't control more elementals!\r\n");
+          return;
+        }
+      }
+      break;
+  }
+  switch (spellnum) {
+    case SPELL_GREATER_ANIMATION:
+      for (k = ch->followers; k; k = next) {
+        next = k->next;
+        if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
+                (MOB_FLAGGED(k->follower, MOB_ANIMATED_DEAD)) ) {
+          send_to_char(ch, "You can't control more power undead!\r\n");
           return;
         }
       }
@@ -2963,6 +3029,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       case SPELL_SUMMON_CREATURE_9:  //conjuration
       case SPELL_SUMMON_CREATURE_8:  //conjuration
       case SPELL_SUMMON_CREATURE_7:  //conjuration    
+      case SPELL_GREATER_ANIMATION:  //necromancy
         GET_LEVEL(mob) += MIN(mob_level, LVL_IMPL - GET_LEVEL(mob));
         GET_MAX_HIT(mob) += hp_bonus;
         GET_DAMROLL(mob) += dam_bonus;

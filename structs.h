@@ -418,8 +418,10 @@
 #define MOB_C_FAMILIAR     27
 #define MOB_C_MOUNT        28
 #define MOB_ELEMENTAL      29
+#define MOB_ANIMATED_DEAD  30
 /**********************/
-#define NUM_MOB_FLAGS      30
+#define NUM_MOB_FLAGS      31
+
 
 /* Preference flags: used by char_data.player_specials.pref */
 #define PRF_BRIEF         0   /**< Room descs won't normally be shown */
