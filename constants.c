@@ -331,6 +331,7 @@ const char *action_bits[] = {
   "Familiar",
   "Paladin-Mount",
   "Summoned-Elemental",
+  "Animated-Dead",  //30
   "\n"
 };
 

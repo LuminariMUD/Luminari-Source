@@ -715,6 +715,24 @@ ASPELL(spell_dispel_magic) // divination
 }
 
 
+ASPELL(spell_mass_domination) // enchantment
+{
+  struct char_data *tch, *next_tch;
+  
+  if (ch == NULL)
+    return;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
+    next_tch = tch->next_in_room;
+
+    if (aoeOK(ch, tch, SPELL_MASS_DOMINATION)) {
+      effect_charm(ch, tch, SPELL_DOMINATE_PERSON);      
+    }
+  }
+  
+}
+
+
 ASPELL(spell_dominate_person) // enchantment
 {
   if (victim == NULL || ch == NULL)

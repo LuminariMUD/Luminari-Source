@@ -232,7 +232,7 @@
 #define SPELL_SUMMON_CREATURE_8    190  // not done
 #define SPELL_HORRID_WILTING       191  //x  // not done
 #define SPELL_GREATER_ANIMATION    192  // not done
-#define SPELL_IRRESISTABLE_DANCE   193  // not done
+#define SPELL_IRRESISTIBLE_DANCE   193  // not done
 #define SPELL_MASS_DOMINATION      194  // not done
 #define SPELL_SCINT_PATTERN        195  // not done
 #define SPELL_REFUGE               196  // not done
