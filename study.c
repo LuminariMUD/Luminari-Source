@@ -482,7 +482,7 @@ static void animal_companion_menu(struct descriptor_data *d)
     "\r\n-- %sRanger Animal Companion Menu%s\r\n"
     "\r\n", mgn, nrm);
 
-  for (i = 1; animal_vnums[i] != -1; i++) {
+  for (i = 1; i <= TOP_OF_C; i++) {
     write_to_output(d, "%s\r\n", animal_names[i]);
   }
   
@@ -563,7 +563,7 @@ static void familiar_menu(struct descriptor_data *d)
     "\r\n-- %sFamiliar Menu%s\r\n"
     "\r\n", mgn, nrm);
 
-  for (i = 1; familiar_vnums[i] != -1; i++) {
+  for (i = 1; i <= TOP_OF_C; i++) {
     write_to_output(d, "%s\r\n", familiar_names[i]);
   }
   
