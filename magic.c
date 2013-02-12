@@ -2085,6 +2085,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n is surrounded by a white aura.";
     break;
 
+  case SPELL_SPELL_TURNING:
+    af[0].duration = 100;
+    SET_BIT_AR(af[0].bitvector, AFF_SPELL_TURNING);
+
+    accum_duration = FALSE;
+    to_vict = "A spell-turning shield surrounds you.";
+    to_room = "$n is surrounded by a spell turning shield.";
+    break;
+
   case SPELL_TRANSFORMATION:  //necromancy
     af[0].duration = 50;
     SET_BIT_AR(af[0].bitvector, AFF_TFORM);

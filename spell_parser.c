@@ -288,6 +288,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
 	     struct obj_data *ovict, int spellnum, int level, int casttype)
 {
   int savetype = 0;
+  struct char_data *tmp = NULL;
 
   if (spellnum < 1 || spellnum > TOP_SPELL_DEFINE)
     return (0);
@@ -436,6 +437,20 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   default:
     savetype = SAVING_WILL;
     break;
+  }
+  
+  /* spell turning */
+  if (cvict) {  
+    if (AFF_FLAGGED(cvict, AFF_SPELL_TURNING) && (SINFO.violent ||
+            IS_SET(SINFO.routines, MAG_DAMAGE))) {
+      send_to_char(caster, "Your spell has been turned!\r\n");
+      act("$n's magic is turned by $N!", FALSE, caster, 0,
+              cvict, TO_ROOM);
+      REMOVE_BIT_AR(AFF_FLAGS(cvict), AFF_SPELL_TURNING);      
+      tmp = cvict;
+      cvict = caster;
+      caster = tmp;
+    }
   }
 
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
