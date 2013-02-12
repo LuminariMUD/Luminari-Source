@@ -584,6 +584,7 @@ ASPELL(spell_locate_object);
 ASPELL(spell_polymorph);
 ASPELL(spell_control_weather);
 ASPELL(spell_charm);
+ASPELL(spell_refuge);
 ASPELL(spell_information);
 ASPELL(spell_identify);
 ASPELL(spell_wizard_eye);
