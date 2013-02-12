@@ -794,7 +794,7 @@ ASPELL(spell_refuge) // illusion
       af.spell = SPELL_REFUGE;
       af.duration = 3;
       SET_BIT_AR(af.bitvector, AFF_REFUGE);
-      affect_to_char(victim, &af);
+      affect_to_char(tch, &af);
       send_to_char(tch, "You are now refuged.\r\n");
       if (FIGHTING(tch))
         stop_fighting(tch);
