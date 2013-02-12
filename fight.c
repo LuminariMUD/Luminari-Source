@@ -1906,8 +1906,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
    of 'ward' the defender has (such as stoneskin) 
    this will return the modified damage */
 #define STONESKIN_ABSORB	16
+#define IRONSKIN_ABSORB	36
 #define EPIC_WARDING_ABSORB	76
-
 int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
   int warding = 0;
 
@@ -1940,7 +1940,38 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
       send_to_char(ch, "\tR<oStone:%d>\tn", warding);
     }
 
-  } else if (affected_by_spell(victim, SPELL_EPIC_WARDING)) {
+  }
+  else if (affected_by_spell(victim, SPELL_IRONSKIN)) {
+    if (GET_STONESKIN(victim) <= 0) {
+      send_to_char(victim, "\tDYour ironskin has faded!\tn\r\n");
+      affect_from_char(victim, SPELL_IRONSKIN);
+      GET_STONESKIN(victim) = 0;
+      return dam;
+    }
+    warding = MIN(IRONSKIN_ABSORB, GET_STONESKIN(victim));
+
+    GET_STONESKIN(victim) -= warding;
+    dam -= warding;
+    if (GET_STONESKIN(victim) <= 0) {
+      send_to_char(victim, "\tDYour ironskin has fallen!\tn\r\n");
+      affect_from_char(victim, SPELL_IRONSKIN);
+      GET_STONESKIN(victim) = 0;
+    }
+    if (dam <= 0) {
+      send_to_char(victim, "\tWYour ironskin absorbs the attack!\tn\r\n");
+      send_to_char(ch,
+              "\tRYou have failed to penetrate the ironskin of %s!\tn\r\n",
+              GET_NAME(victim));
+      act("$n fails to penetrate the ironskin of $N!", FALSE, ch, 0, victim,
+              TO_NOTVICT);
+      return -1;
+    } else {
+      send_to_char(victim, "\tW<ironskin:%d>\tn", warding);
+      send_to_char(ch, "\tR<oIronskin:%d>\tn", warding);
+    }
+
+  }
+  else if (affected_by_spell(victim, SPELL_EPIC_WARDING)) {
     if (GET_STONESKIN(victim) <= 0) {
       send_to_char(victim, "\tDYour ward has fallen!\tn\r\n");
       affect_from_char(victim, SPELL_EPIC_WARDING);
@@ -1969,7 +2000,8 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
       send_to_char(ch, "\tR<oWard:%d>\tn", warding);
     }
 
-  } else { // has no warding
+  }
+  else { // has no warding
     return dam;
   }
 
