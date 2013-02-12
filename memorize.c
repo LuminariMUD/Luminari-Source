@@ -949,9 +949,11 @@ bool hasSpell(struct char_data *ch, int spellnum)
     // is this one of the "known" spells?
     if (sorcKnown(ch, spellnum)) {
       int circle = spellCircle(CLASS_SORCERER, spellnum);
-      send_to_char(ch, "%d\r\n", circle);
+      send_to_char(ch, "circle:  %d\r\n", circle);
       // do we have any slots left?
       // take total slots for the correct circle and subtract from used
+      send_to_char(ch, "calculated slots:  %d\r\n", (comp_slots(ch, circle, CLASS_SORCERER) - 
+              numSpells(ch, circle, CLASS_SORCERER)));
       if ((comp_slots(ch, circle, CLASS_SORCERER) - 
               numSpells(ch, circle, CLASS_SORCERER)) > 0)
         return TRUE;
