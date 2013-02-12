@@ -548,6 +548,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
             value += 2;
           if (GET_RACE(ch) == RACE_HALFLING)
             value += 2;
+          if (AFF_FLAGGED(ch, AFF_REFUGE))
+            value += 15;
 		return value; 
 	case ABILITY_SNEAK:
 		value += GET_DEX_BONUS(ch);
@@ -555,6 +557,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
             value += 2;
           if (GET_RACE(ch) == RACE_HALFLING)
             value += 2;
+          if (AFF_FLAGGED(ch, AFF_REFUGE))
+            value += 15;
 		return value; 
 	case ABILITY_SPOT:
 		value += GET_WIS_BONUS(ch);
