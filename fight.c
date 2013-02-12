@@ -2677,6 +2677,9 @@ void perform_violence(void) {
 
       // 30% to do nothing
       if (rand_number(1, 100) <= 30) {
+        send_to_char(ch, "\tDConfusion\tc overcomes you and you stand dumbfounded!\tn  ");
+        act("$n \tcis overcome with \tDconfusion and stands dumbfounded\tc!\tn",
+              TRUE, ch, 0, 0, TO_ROOM);
         stop_fighting(ch);
         WAIT_STATE(ch, PULSE_VIOLENCE);
         continue;
@@ -2687,6 +2690,7 @@ void perform_violence(void) {
         send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");
         act("$n \tcis overcome with \tDfear\tc!\tn",
               TRUE, ch, 0, 0, TO_ROOM);
+        perform_flee(ch);        
         perform_flee(ch);        
         continue;
       }
@@ -2718,6 +2722,10 @@ void perform_violence(void) {
         if (tch) {
           stop_fighting(ch);
           hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+          send_to_char(ch, "\tDConfusion\tc overcomes you and you lash out!\tn  ");
+          act("$n \tcis overcome with \tDconfusion and lashes out\tc!\tn",
+              TRUE, ch, 0, 0, TO_ROOM);
+          
         }
         
         /* we're done, free the list */

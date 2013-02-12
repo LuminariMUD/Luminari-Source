@@ -757,6 +757,53 @@ ASPELL(spell_charm) // enchantment
 }
 
 
+ASPELL(spell_refuge) // illusion
+{
+  struct char_data *tch, *next_tch;
+  struct affected_type af;
+
+  if (ch == NULL)
+    return;
+
+  act("As $n makes a strange arcane gesture, a golden light descends\r\n"
+          "from the heavens!\r\n", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_room(IN_ROOM(ch), "The room is a refuge!\r\n");
+  
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
+    next_tch = tch->next_in_room;
+
+    /* this is to possible victims */
+    if (tch && aoeOK(ch, tch, -1)) {
+      if (FIGHTING(tch)) {
+        stop_fighting(tch);
+        resetCastingData(tch);
+      }
+      if (IS_NPC(tch))
+        clearMemory(tch);
+      
+    /* this should be allies */
+    } else if (tch) {
+      if (!AFF_FLAGGED(tch, AFF_SNEAK)) {
+        SET_BIT_AR(AFF_FLAGS(tch), AFF_SNEAK);
+      }
+      if (!AFF_FLAGGED(tch, AFF_HIDE)) {
+        SET_BIT_AR(AFF_FLAGS(tch), AFF_SNEAK);
+      }
+
+      new_affect(&af);
+      af.spell = SPELL_REFUGE;
+      af.duration = 3;
+      SET_BIT_AR(af.bitvector, AFF_REFUGE);
+      affect_to_char(victim, &af);
+      send_to_char(tch, "You are now refuged.\r\n");
+      if (FIGHTING(tch))
+        stop_fighting(tch);
+      
+    }
+  }
+}
+
+
 #define WIZARD_EYE 	45
 ASPELL(spell_wizard_eye) {
   struct char_data *eye = read_mobile(WIZARD_EYE, VIRTUAL);
