@@ -783,6 +783,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
     
+  case SPELL_SUNBURST:  //divination
+    //  has effect too
+    save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;    
+    num_dice = MIN(26, magic_level);
+    size_dice = 5;
+    bonus = magic_level;
+    break;
+    
   case SPELL_THUNDERCLAP:  // abjuration
     //  has effect too
     // no save
@@ -1518,6 +1528,31 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
       send_to_char(ch, "You fail.\r\n");
+      return;
+    }
+
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = -4;
+    af[0].duration = 50;
+    SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+
+    af[1].location = APPLY_AC;
+    af[1].modifier = 40;
+    af[1].duration = 50;
+    SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+
+    to_room = "$n seems to be blinded!";
+    to_vict = "You have been blinded!";
+    break;
+    
+  case SPELL_SUNBURST:  //divination, does damage and room affect
+    if (MOB_FLAGGED(victim, MOB_NOBLIND)) {
+      send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
+      return;
+    }
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
       return;
     }
 
@@ -2637,6 +2672,11 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "\tnYou fire from your hands a \tYr\tRa\tBi\tGn\tCb\tWo\tDw\tn of color!\tn";
     to_room ="$n \tnfires from $s hands a \tYr\tRa\tBi\tGn\tCb\tWo\tDw\tn of color!\tn";
     break;
+  case SPELL_SUNBURST:
+    is_eff_and_dam = TRUE;
+    to_char = "\tnYou bring forth a powerful sunburst!\tn";
+    to_room ="$n brings forth a powerful sunburst!\tn";
+    break;
   case SPELL_THUNDERCLAP:
     is_eff_and_dam = TRUE;
     to_char = "\tcA loud \twCRACK\tc fills the air with deafening force!\tn";
@@ -3412,6 +3452,7 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       rounds = 15;
       break;
 
+    case SPELL_SUNBURST:  //divination
     case SPELL_DAYLIGHT:  //illusion
       to_char = "You create a blanket of artificial daylight.";
       to_room = "$n creates a blanket of artificial daylight.";

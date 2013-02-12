@@ -105,7 +105,7 @@ void regen_update(struct char_data *ch)
     return;
   }
   
-  if (IS_NPC(ch) && GET_LEVEL(ch) <= 6) {
+  if (IS_NPC(ch) && GET_LEVEL(ch) <= 6 && !AFF_FLAGGED(ch, AFF_CHARM)) {
     update_pos(ch);
     return;  
   }
