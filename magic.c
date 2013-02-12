@@ -2521,6 +2521,8 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
     if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master == tch)
       return 0;
 
+  // don't hit your master's ungroupped charmies
+  
     // don't hit your charmee
   if (tch->master)
     if (AFF_FLAGGED(tch, AFF_CHARM) && tch->master == ch)

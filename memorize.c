@@ -521,7 +521,7 @@ int spellCircle(int class, int spellnum)
 {
   switch (class) {
     case CLASS_SORCERER:
-      return ((int)(MAX(1, (spell_info[spellnum].min_level[class]) / 2)));
+      return ((MAX(1, (spell_info[spellnum].min_level[class]) / 2)));
     /* can get confusing, just check out class.c to see what level
        they get their circles at in the spell_level function */
     case CLASS_PALADIN:
@@ -956,6 +956,7 @@ bool hasSpell(struct char_data *ch, int spellnum)
         return TRUE;
     }
   }
+  
 
   return FALSE;
 }
