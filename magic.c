@@ -1232,6 +1232,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are overcome by a powerful hold spell!";
     break;
 
+  case SPELL_SCINT_PATTERN:  //illusion
+    if (mag_resistance(ch, victim, 0))
+      return;
+    // no save
+
+    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+    af[0].duration = dice(2, 4) + 2;
+    to_room = "$n is confused by the scintillating pattern!";
+    to_vict = "You are confused by the scintillating pattern!";
+    break;
+
   case SPELL_IRRESISTIBLE_DANCE:  //enchantment
     if (mag_resistance(ch, victim, 0))
       return;

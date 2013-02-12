@@ -524,9 +524,10 @@
 #define AFF_LISTEN           52
 #define AFF_DISPLACE         53
 #define AFF_SPELL_MANTLE         54
+#define AFF_CONFUSED         55
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS   55
+#define NUM_AFF_FLAGS   56
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/
