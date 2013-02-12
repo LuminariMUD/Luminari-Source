@@ -128,7 +128,7 @@ int familiar_vnums[] = {
 /****************/
 
 /* make a list of names in order, first animals */
-char *animal_names[] = {
+const char *animal_names[] = {
   "Unknown",
   "1) Black Bear",
   "2) Boar",
@@ -141,7 +141,7 @@ char *animal_names[] = {
   "\n"   /* end with this */  
 };
 /* ... now mounts */
-char *mount_names[] = {
+const char *mount_names[] = {
   "Unknown",
   "1) Heavy White Warhorse",
   "2) Black Destrier",
@@ -155,7 +155,7 @@ char *mount_names[] = {
   "\n"   /* end with this */  
 };
 /* ... now familiars */
-char *familiar_names[] = {
+const char *familiar_names[] = {
   "Unknown",
   "1) Night Hunter",
   "2) Black Panther",
@@ -568,6 +568,7 @@ static void familiar_menu(struct descriptor_data *d)
   }
   
   write_to_output(d, "\r\n");
+  
   /* find current familiar */
   for (i = 1; i <= TOP_OF_C; i++) {
     if (GET_FAMILIAR(d->character) == familiar_vnums[i]) {
