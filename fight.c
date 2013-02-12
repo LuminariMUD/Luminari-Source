@@ -2594,6 +2594,8 @@ void autoDiagnose(struct char_data *ch) {
  * Called every PULSE_VIOLENCE seconds from comm.c. */
 void perform_violence(void) {
   struct char_data *ch, *tch, *charmee;
+  struct list_data *room_list = NULL;
+  
 
   for (ch = combat_list; ch; ch = next_combat_list) {
     next_combat_list = ch->next_fighting;
@@ -2668,7 +2670,62 @@ void perform_violence(void) {
       send_to_char(ch, "You are in no position to fight!!\r\n");
       continue;
     }
+    
+    // confusion code
+    // 20% chance to act normal
+    if (AFF_FLAGGED(ch, AFF_CONFUSED) && rand_number(0, 4)) {
 
+      // 30% to do nothing
+      if (rand_number(1, 100) <= 30) {
+        stop_fighting(ch);
+        WAIT_STATE(ch, PULSE_VIOLENCE);
+        continue;
+      }
+
+      // 20% to flee
+      else if (rand_number(1, 100) <= 20) {
+        send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");
+        act("$n \tcis overcome with \tDfear\tc!\tn",
+              TRUE, ch, 0, 0, TO_ROOM);
+        perform_flee(ch);        
+        continue;
+      }
+
+      // 30% to attack random
+      else {
+        /* allocate memory for list */
+        room_list = create_list();
+  
+        /* dummy check */
+        if (!IN_ROOM(ch))
+          continue;
+
+        /* build list */
+        for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)  
+          if (tch)
+            add_to_list(tch, room_list);
+      
+        /* If our list is empty or has "0" entries, we free it from memory
+         * and flee for the hills */
+        if (room_list->iSize == 0) {
+          free_list(room_list);
+          continue;
+        }
+        
+        /* ok we should have something in the list, pick randomly and switch
+           to our new target */
+        tch = random_from_list(room_list);
+        if (tch) {
+          stop_fighting(ch);
+          hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+        }
+        
+        /* we're done, free the list */
+        free_list(room_list);
+        continue;
+      }
+    }
+    
     if (GROUP(ch)) {
       while ((tch = (struct char_data *) simple_list(GROUP(ch)->members))
               != NULL) {
@@ -2805,7 +2862,8 @@ void perform_violence(void) {
     }
 
     //    autoDiagnose(ch);
-
+        
+    // the mighty awesome fear code
     if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0, 2)) {
       send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");
       act("$n \tcis overcome with \tDfear\tc!\tn",

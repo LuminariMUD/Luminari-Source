@@ -392,56 +392,57 @@ const char *affected_bits[] =
   "Invisible",
   "Detect-Alignment",
   "Detect-Invisible",
-  "Detect-Magic",
+  "Detect-Magic",  //5
   "Sense-Life",
   "Water-Walk",
   "Sanctuary",
   "Groupped",
-  "Cursed",
+  "Cursed",  //10
   "Infravision",
   "Poison",
   "Protect-Evil",
   "Protect-Good",
-  "Sleep",
+  "Sleep",  //15
   "Not-Trackable",
   "Flying",
   "Underwater-Breathing",
   "Sneaking",
-  "Hiding",
+  "Hiding",  //20
   "!UNUSED!",
   "Charmed",
   "Blurred",
   "Mode-PowerAttack",
-  "Mode-Expertise",
+  "Mode-Expertise",  //25
   "Hasted",
   "Mode-Parry",
   "Protect-Elements",
   "Deaf",
-  "Fear",
+  "Fear",  //30
   "Stunned",
   "Paralyzed",
   "Ultravision",
   "Grappled",
-  "Tamed",
+  "Tamed",  //35
   "Climb",
   "Nauseated",
   "Non-Detection",
   "Slowed",
-  "Fire-Shielded",
+  "Fire-Shielded",  //40
   "Cold-Shielded",
   "Minor-Globed",
   "Acid-Shielded",
   "Size-Changed",
-  "True-Sight",
+  "True-Sight",  //45
   "Spot-Mode",
   "Fatigued",
   "Regenning",
   "Diseased",
-  "T-Transform",
+  "T-Transform",  //50
   "Globe of Invulnerability",
   "Listen-Mode",
   "Displaced",
   "Spell-Mantled",
+  "Confused",  //55
   "\n"
 };
 
