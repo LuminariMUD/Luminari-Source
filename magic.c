@@ -1039,6 +1039,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
       return;
     }
+    if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!",
+              GET_NAME(ch));
+      return;
+    }
     is_mind_affect = TRUE;
     
     if (GET_LEVEL(victim) >= 7) {
@@ -1185,6 +1191,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
       return;
     }
+    if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!",
+              GET_NAME(ch));
+      return;
+    }
+    
     is_mind_affect = TRUE;
     
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
@@ -1203,6 +1216,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
       return;
     }
+    if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!",
+              GET_NAME(ch));
+      return;
+    }
+    
     is_mind_affect = TRUE;    
 
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
@@ -1221,6 +1241,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
       return;
     }
+    if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!",
+              GET_NAME(ch));
+      return;
+    }
+    
     is_mind_affect = TRUE;    
 
     SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
@@ -1360,6 +1387,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (mag_savingthrow(ch, victim, SAVING_FORT, gnome_bonus))
       return;
+    if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!",
+              GET_NAME(ch));
+      return;
+    }
+    
     is_mind_affect = TRUE;    
     
     SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
@@ -1742,6 +1776,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
       return;
     }
+    if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!",
+              GET_NAME(ch));
+      return;
+    }
+    
     is_mind_affect = TRUE;    
 
     af[0].location = APPLY_INT;
@@ -1763,6 +1804,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
     }
+    if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!",
+              GET_NAME(ch));
+      return;
+    }
+    
     is_mind_affect = TRUE;    
 
     af[0].location = APPLY_INT;
@@ -1790,6 +1838,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
     }
+    if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!",
+              GET_NAME(ch));
+      return;
+    }
+    
     is_mind_affect = TRUE;
     
     af[0].location = APPLY_SAVING_WILL;
@@ -1894,13 +1949,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_EPIC_WARDING:  //no school
-    if (affected_by_spell(victim, SPELL_STONESKIN)) {
+    if (affected_by_spell(victim, SPELL_STONESKIN) ||
+            affected_by_spell(victim, SPELL_IRONSKIN)) {
       send_to_char(ch, "A magical ward is already in effect on target.\r\n");
       return;
     }
     af[0].location = APPLY_AC;
     af[0].modifier = -1;
-    af[0].duration = 1200;
+    af[0].duration = 600;
     to_room = "$n becomes surrounded by a powerful magical ward!";
     to_vict = "You become surrounded by a powerful magical ward!";
     GET_STONESKIN(victim) = MIN(700, CASTER_LEVEL(ch) * 60);
@@ -2193,16 +2249,31 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_STONESKIN:
-    if (affected_by_spell(victim, SPELL_EPIC_WARDING)) {
+    if (affected_by_spell(victim, SPELL_EPIC_WARDING) ||
+            affected_by_spell(victim, SPELL_IRONSKIN)) {
       send_to_char(ch, "A magical ward is already in effect on target.\r\n");
       return;
     }
     af[0].location = APPLY_AC;
     af[0].modifier = -1;
-    af[0].duration = 1200;
+    af[0].duration = 600;
     to_room = "$n's skin becomes hard as rock!";
     to_vict = "Your skin becomes hard as stone.";
     GET_STONESKIN(victim) = MIN(225, magic_level * 15);
+    break;
+
+  case SPELL_IRONSKIN:  //transmutation
+    if (affected_by_spell(victim, SPELL_STONESKIN) ||
+            affected_by_spell(victim, SPELL_EPIC_WARDING)) {
+      send_to_char(ch, "A magical ward is already in effect on target.\r\n");
+      return;
+    }
+    af[0].location = APPLY_AC;
+    af[0].modifier = -1;
+    af[0].duration = 600;
+    to_room = "$n's skin takes on the texture of iron!";
+    to_vict = "Your skin takes on the texture of iron!";
+    GET_STONESKIN(victim) = MIN(450, CASTER_LEVEL(ch) * 35);
     break;
 
   case SPELL_ENLARGE_PERSON:  //transmutation

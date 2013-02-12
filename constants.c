@@ -445,6 +445,7 @@ const char *affected_bits[] =
   "Confused",  //55
   "Refuged",
   "Spell Turning",
+  "Mind-Blanked",
   "\n"
 };
 
