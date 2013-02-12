@@ -783,22 +783,22 @@ ASPELL(spell_refuge) // illusion
       
     /* this should be allies */
     } else if (tch) {
+      send_to_char(tch, "You are now refuged.\r\n");
+      if (FIGHTING(tch))
+        stop_fighting(tch);
+      
       if (!AFF_FLAGGED(tch, AFF_SNEAK)) {
         SET_BIT_AR(AFF_FLAGS(tch), AFF_SNEAK);
       }
       if (!AFF_FLAGGED(tch, AFF_HIDE)) {
-        SET_BIT_AR(AFF_FLAGS(tch), AFF_SNEAK);
+        SET_BIT_AR(AFF_FLAGS(tch), AFF_HIDE);
       }
 
       new_affect(&af);
       af.spell = SPELL_REFUGE;
       af.duration = 3;
       SET_BIT_AR(af.bitvector, AFF_REFUGE);
-      affect_to_char(tch, &af);
-      send_to_char(tch, "You are now refuged.\r\n");
-      if (FIGHTING(tch))
-        stop_fighting(tch);
-      
+      affect_to_char(tch, &af);      
     }
   }
 }
