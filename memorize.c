@@ -938,6 +938,8 @@ bool hasSpell(struct char_data *ch, int spellnum)
   for (x = 0; x < NUM_CLASSES; x++) {
     if (classArray(x) == -1)
       continue;
+    if (x == CLASS_SORCERER)
+      continue;
     for (slot = 0; slot < MAX_MEM; slot++) {
       if (PRAYED(ch, slot, classArray(x)) == spellnum)
         return TRUE;
