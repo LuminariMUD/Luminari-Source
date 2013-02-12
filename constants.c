@@ -443,6 +443,7 @@ const char *affected_bits[] =
   "Displaced",
   "Spell-Mantled",
   "Confused",  //55
+  "Refuged",
   "\n"
 };
 
