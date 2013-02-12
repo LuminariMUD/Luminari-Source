@@ -2828,6 +2828,7 @@ static const char *mag_summon_msgs[] = {
   "$N lumbers into the area and moves next to $n.",  //21 dire bear
   "$N manifests with an ancient howl, then moves towards $n.",  //22 hound
   "$N stalks into the area, roars loudly, then moves towards $n.", //23 d tiger
+  "$N pops into existence next to $n.",  //24 black blade of disaster
 };
 static const char *mag_summon_to_msgs[] = {
   "\r\n",  //0
@@ -2855,6 +2856,7 @@ static const char *mag_summon_to_msgs[] = {
   "$N lumbers into the area and moves next to you.",  //21 dire bear
   "$N manifests with an ancient howl, then moves towards you.",  //22 hound
   "$N stalks into the area, roars loudly, then moves towards you.", //23 d tiger
+  "$N pops into existence next to you.",  //24 black blade of disaster
 };
 
 
@@ -2900,6 +2902,7 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_SPECTRE   56  // great animation
 #define MOB_BANSHEE   57  // great animation
 #define MOB_WIGHT   58  // great animation
+#define MOB_BLADE_OF_DISASTER   59  // black blade of disaster
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 		      int spellnum, int savetype)
 {
@@ -3067,6 +3070,14 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     mob_num = MOB_DIRE_TIGER;
     pfail = 0;
     break;
+    
+  case SPELL_BLADE_OF_DISASTER:  //evocation
+    handle_corpse = FALSE;
+    msg = 24;
+    fmsg = rand_number(2, 6);	/* Random fail message. */
+    mob_num = MOB_BLADE_OF_DISASTER;
+    pfail = 0;
+    break;    
     
   case SPELL_SUMMON_CREATURE_9:  //conjuration
     hp_bonus += mob_level * 5;
@@ -3386,6 +3397,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   const char *to_char = NULL, *to_room = NULL;
   bool obj_to_floor = FALSE;
   bool portal_process = FALSE;
+  bool gate_process = FALSE;
+  
 
   if (ch == NULL)
     return;
@@ -3421,6 +3434,14 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     object_vnum = 801;
     /* a little more work with portals */
     portal_process = TRUE;
+    break;
+  case SPELL_GATE:
+    to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
+    to_room = "$n \tnfolds \tMtime\tn and \tDspace\tn, and creates $p\tn.";
+    obj_to_floor = TRUE;
+    object_vnum = 801;
+    /* a little more work with gates */
+    gate_process = TRUE;
     break;
   default:
     send_to_char(ch, "Spell unimplemented, it would seem.\r\n");
@@ -3470,7 +3491,43 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
             FALSE, vict, portal, 0, TO_CHAR);
     act("With a \tBflash\tn, $p appears in the room.",
             FALSE, vict, portal, 0, TO_ROOM);
-  } else {
+  } 
+  else if (gate_process) {
+    if (!(portal = read_object(object_vnum, VIRTUAL))) {
+      send_to_char(ch, "I seem to have goofed.\r\n");
+      log("SYSERR: spell_creations, spell %d, obj %d: obj not found",
+          spellnum, object_vnum);
+      return;
+    }
+
+    /* make sure its a portal **/
+    GET_OBJ_TYPE(tobj) = ITEM_PORTAL;
+    GET_OBJ_TYPE(portal) = ITEM_PORTAL;
+    /* set it to a tick duration */                             
+    GET_OBJ_TIMER(tobj) = 1;
+    GET_OBJ_TIMER(portal) = 1;
+    /* set it to a normal portal */
+    tobj->obj_flags.value[0] = PORTAL_NORMAL;    
+    portal->obj_flags.value[0] = PORTAL_NORMAL;    
+    /* set destination to plane */
+    tobj->obj_flags.value[1] = GET_ROOM_VNUM(IN_ROOM(vict));
+    portal->obj_flags.value[1] = GET_ROOM_VNUM(IN_ROOM(ch));
+    /* make sure it decays */
+    if (!OBJ_FLAGGED(tobj, ITEM_DECAY))
+      TOGGLE_BIT_AR(GET_OBJ_EXTRA(tobj), ITEM_DECAY);
+    if (!OBJ_FLAGGED(portal, ITEM_DECAY))
+      TOGGLE_BIT_AR(GET_OBJ_EXTRA(portal), ITEM_DECAY);
+
+    /* make sure the portal is two-sided */
+    obj_to_room(portal, IN_ROOM(vict));
+
+    /* make sure the victim room sees the message */
+    act("With a \tBflash\tn, $p appears in the room.",
+            FALSE, vict, portal, 0, TO_CHAR);
+    act("With a \tBflash\tn, $p appears in the room.",
+            FALSE, vict, portal, 0, TO_ROOM);
+  } 
+  else {
   /* a little convenient idea, item should match char size */
   GET_OBJ_SIZE(tobj) = GET_SIZE(ch);
     

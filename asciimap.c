@@ -128,7 +128,7 @@ static struct map_info_type map_info[] =
   { SECT_OCEAN,		"\tc[\tB\t=o\tn\tc]\tn" }, //15
   { SECT_MARSHLAND,	"\tc[\tM,\tc]\tn" }, //16
   { SECT_HIGH_MOUNTAIN,	"\tc[\tRM\tc]\tn" }, //17
-  { -1,                ""        },
+  { SECT_PLANES,	"\tc[\tM.\tc]\tn" }, //18
   { -1,                ""        },
   { -1,                ""        }, /* 20 */
   { -1,                ""        },
@@ -165,7 +165,7 @@ static struct map_info_type world_map_info[] =
   { SECT_OCEAN,		"\tB\t=o\tn" }, /* 15 */
   { SECT_MARSHLAND,	"\tM,\tn" }, /* 16 */
   { SECT_HIGH_MOUNTAIN,	"\tRM\tn" }, /* 17 */
-  { -1,                ""     },
+  { SECT_PLANES,	"\tM.\tn" }, /* 18 */
   { -1,                ""     },
   { -1,                ""     }, /* 20 */
   { -1,                ""     },
@@ -523,6 +523,7 @@ void perform_map( struct char_data *ch, char *argument, bool worldmap )
   count += sprintf(buf + count, "\tn%s Ocean\\\\", map_info[SECT_OCEAN].disp);
   count += sprintf(buf + count, "\tn%s Marsh\\\\", map_info[SECT_MARSHLAND].disp);
   count += sprintf(buf + count, "\tn%s High Mount\\\\", map_info[SECT_HIGH_MOUNTAIN].disp);
+  count += sprintf(buf + count, "\tn%s Planes\\\\", map_info[SECT_PLANES].disp);
 
   strcpy(buf, strfrmt(buf, LEGEND_WIDTH, CANVAS_HEIGHT + 2, FALSE, TRUE, TRUE));
 

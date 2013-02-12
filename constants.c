@@ -240,6 +240,7 @@ const char *sector_types[] = {
   "Ocean",
   "Marshland",
   "High Mountains",
+  "Outter Planes",
   "\n"
 };
 
@@ -1447,7 +1448,8 @@ int movement_loss[] =
   3,	// Desert
   1,	// Ocean
   5,	// Marshland
-  10	// High Mountain
+  10,	// High Mountain
+  6	// planes
 };
 
 /** The names of the days of the mud week. Not used in sprinttype(). */

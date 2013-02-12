@@ -147,8 +147,9 @@
 #define SECT_OCEAN		15
 #define SECT_MARSHLAND		16
 #define SECT_HIGH_MOUNTAIN	17
+#define SECT_PLANES           18
 /** The total number of room Sector Types */
-#define NUM_ROOM_SECTORS  18
+#define NUM_ROOM_SECTORS  19
 
 /* char and mob-related defines */
 
