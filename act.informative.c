@@ -349,7 +349,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
       send_to_char(ch, "(%s) ",
 	GROUP_LEADER(GROUP(i)) == i ? "leader" : "group");
     else
-      send_to_char(ch, "(%s%s)%s ", CBRED(ch, C_NRM),
+      send_to_char(ch, "%s(%s%s%s) ", CCNRM(ch, C_NRM), CBRED(ch, C_NRM),
         GROUP_LEADER(GROUP(i)) == i ? "leader" : "group",
 	CCNRM(ch, C_NRM));
   }

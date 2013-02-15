@@ -3398,7 +3398,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   bool obj_to_floor = FALSE;
   bool portal_process = FALSE;
   bool gate_process = FALSE;
-  
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int gate_dest;  
 
   if (ch == NULL)
     return;
@@ -3442,6 +3443,17 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     object_vnum = 801;
     /* a little more work with gates */
     gate_process = TRUE;
+    one_argument(cast_arg2, arg);
+    if (is_abbrev(arg, "astral")) {
+      gate_dest = 1;
+    } else if (is_abbrev(arg, "ethereal")) {
+      
+    } else if (is_abbrev(arg, "elemental")) {
+    } else if (is_abbrev(arg, "prime")) {
+    } else {
+      send_to_char(ch, "Not a valid target (astral, ethereal, elemental, prime)");
+      return;
+    }
     break;
   default:
     send_to_char(ch, "Spell unimplemented, it would seem.\r\n");

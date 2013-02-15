@@ -196,14 +196,17 @@ const char *room_affections[] = {
  * @pre Must be in the same order as the defines in structs.h.
  * Must end array with a single newline. */
 const char *zone_bits[] = {
-  "CLOSED",
-  "NO_IMMORT",
-  "QUEST",
-  "GRID",
-  "NOBUILD",
-  "!ASTRAL",
-  "WORLDMAP",
-  "!CLAIM",
+  "Closed",
+  "No-Immortal",
+  "Quest",
+  "Grid",
+  "No-Build",
+  "No-Teleport",
+  "Worldmap",
+  "Not-Claimable",
+  "Astral-Plane",
+  "Ethereal-Plane",
+  "Elemental-Plane",
   "\n"
 };
 

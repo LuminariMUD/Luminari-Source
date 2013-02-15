@@ -118,8 +118,11 @@
 #define ZONE_NOASTRAL     5  /**< No teleportation magic will work to or from this zone */
 #define ZONE_WORLDMAP     6 /**< Whole zone uses the WORLDMAP by default */
 #define ZONE_NOCLAIM      7 /**< Zone can't be claimed, or popularity changed */
+#define ZONE_ASTRAL_PLANE      8 /* astral plane */
+#define ZONE_ETH_PLANE      9 /* ethereal plane */
+#define ZONE_ELEMENTAL      10 /* elemental plane */
 /** The total number of Zone Flags */
-#define NUM_ZONE_FLAGS    8
+#define NUM_ZONE_FLAGS    11
 
 /* Exit info: used in room_data.dir_option.exit_info */
 #define EX_ISDOOR    (1 << 0) /**< Exit is a door */
