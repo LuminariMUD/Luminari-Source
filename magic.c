@@ -3440,7 +3440,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
     to_room = "$n \tnfolds \tMtime\tn and \tDspace\tn, and creates $p\tn.";
     obj_to_floor = TRUE;
-    object_vnum = 801;
+    object_vnum = 802;
     /* a little more work with gates */
     gate_process = TRUE;
     
@@ -3522,6 +3522,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
           spellnum, object_vnum);
       return;
     }
+    
+    if (gate_dest == NOWHERE) {
+      send_to_char(ch, "The spell failed!\r\n");
+      return;
+    }
 
     /* make sure its a portal **/
     GET_OBJ_TYPE(tobj) = ITEM_PORTAL;
@@ -3542,7 +3547,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       TOGGLE_BIT_AR(GET_OBJ_EXTRA(portal), ITEM_DECAY);
 
     /* make sure the portal is two-sided */
-    obj_to_room(portal, IN_ROOM(vict));
+    obj_to_room(portal, gate_dest);
 
     /* make sure the victim room sees the message */
     act("With a \tBflash\tn, $p appears in the room.",
