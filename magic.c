@@ -3455,19 +3455,22 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 
       do {
         gate_dest = rand_number(0, top_of_world);
-      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE));
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE) ||
+               !valid_mortal_tele_dest(ch, gate_dest));
    
     } else if (is_abbrev(arg, "ethereal")) {
       
       do {
         gate_dest = rand_number(0, top_of_world);
-      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ETH_PLANE));
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ETH_PLANE) ||
+               !valid_mortal_tele_dest(ch, gate_dest));
       
     } else if (is_abbrev(arg, "elemental")) {
 
       do {
         gate_dest = rand_number(0, top_of_world);
-      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ELEMENTAL));
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ELEMENTAL) ||
+               !valid_mortal_tele_dest(ch, gate_dest));
       
     } else if (is_abbrev(arg, "prime")) {
       
