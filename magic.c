@@ -3446,7 +3446,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     
     /* where is it going? */
     one_argument(cast_arg2, arg);
-    if (valid_mortal_tele_dest(ch, IN_ROOM(ch))) {
+    if (!valid_mortal_tele_dest(ch, IN_ROOM(ch))) {
       send_to_char(ch, "A bright flash prevents your spell from working!");
       return;
     }
