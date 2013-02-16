@@ -3399,7 +3399,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   bool portal_process = FALSE;
   bool gate_process = FALSE;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-  int gate_dest;  
+  room_rnum gate_dest = NOWHERE;  
 
   if (ch == NULL)
     return;
@@ -3443,9 +3443,20 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     object_vnum = 801;
     /* a little more work with gates */
     gate_process = TRUE;
+    
+    /* where is it going? */
     one_argument(cast_arg2, arg);
     if (is_abbrev(arg, "astral")) {
-      gate_dest = 1;
+
+      if (valid_mortal_tele_dest(ch, IN_ROOM(ch))) {
+        send_to_char(ch, "A bright flash prevents your spell from working!");
+        return;
+      }
+   
+      do {
+        gate_dest = rand_number(0, top_of_world);
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE));
+   
     } else if (is_abbrev(arg, "ethereal")) {
       
     } else if (is_abbrev(arg, "elemental")) {
@@ -3522,7 +3533,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     tobj->obj_flags.value[0] = PORTAL_NORMAL;    
     portal->obj_flags.value[0] = PORTAL_NORMAL;    
     /* set destination to plane */
-    tobj->obj_flags.value[1] = GET_ROOM_VNUM(IN_ROOM(vict));
+    tobj->obj_flags.value[1] = GET_ROOM_VNUM(gate_dest);
     portal->obj_flags.value[1] = GET_ROOM_VNUM(IN_ROOM(ch));
     /* make sure it decays */
     if (!OBJ_FLAGGED(tobj, ITEM_DECAY))
