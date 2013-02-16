@@ -3455,22 +3455,19 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 
       do {
         gate_dest = rand_number(0, top_of_world);
-      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE) ||
-               !valid_mortal_tele_dest(ch, gate_dest));
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE));
    
     } else if (is_abbrev(arg, "ethereal")) {
       
       do {
         gate_dest = rand_number(0, top_of_world);
-      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ETH_PLANE) ||
-               !valid_mortal_tele_dest(ch, gate_dest));
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ETH_PLANE));
       
     } else if (is_abbrev(arg, "elemental")) {
 
       do {
         gate_dest = rand_number(0, top_of_world);
-      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ELEMENTAL) ||
-               !valid_mortal_tele_dest(ch, gate_dest));
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ELEMENTAL));
       
     } else if (is_abbrev(arg, "prime")) {
       
@@ -3478,8 +3475,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
         gate_dest = rand_number(0, top_of_world);
       } while ( (ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ELEMENTAL) ||
                  ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ETH_PLANE) ||
-                 ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE) ) ||
-                !valid_mortal_tele_dest(ch, gate_dest)
+                 ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE) )
               );
       
     } else {
@@ -3547,6 +3543,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     if (gate_dest == NOWHERE) {
       send_to_char(ch, "The spell failed!\r\n");
       return;
+    }
+    
+    if (!valid_mortal_tele_dest(ch, gate_dest)) {
+      send_to_char(ch, "The spell fails!\r\n");
+      return;      
     }
 
     /* make sure its a portal **/
