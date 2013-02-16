@@ -3446,21 +3446,39 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     
     /* where is it going? */
     one_argument(cast_arg2, arg);
+    if (valid_mortal_tele_dest(ch, IN_ROOM(ch))) {
+      send_to_char(ch, "A bright flash prevents your spell from working!");
+      return;
+    }
+   
     if (is_abbrev(arg, "astral")) {
 
-      if (valid_mortal_tele_dest(ch, IN_ROOM(ch))) {
-        send_to_char(ch, "A bright flash prevents your spell from working!");
-        return;
-      }
-   
       do {
         gate_dest = rand_number(0, top_of_world);
       } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE));
    
     } else if (is_abbrev(arg, "ethereal")) {
       
+      do {
+        gate_dest = rand_number(0, top_of_world);
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ETH_PLANE));
+      
     } else if (is_abbrev(arg, "elemental")) {
+
+      do {
+        gate_dest = rand_number(0, top_of_world);
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ELEMENTAL));
+      
     } else if (is_abbrev(arg, "prime")) {
+      
+      do {
+        gate_dest = rand_number(0, top_of_world);
+      } while ( (ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ELEMENTAL) ||
+                 ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ETH_PLANE) ||
+                 ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE) ) ||
+                !valid_mortal_tele_dest(ch, gate_dest)
+              );
+      
     } else {
       send_to_char(ch, "Not a valid target (astral, ethereal, elemental, prime)");
       return;
@@ -3492,8 +3510,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     GET_OBJ_TYPE(tobj) = ITEM_PORTAL;
     GET_OBJ_TYPE(portal) = ITEM_PORTAL;
     /* set it to a tick duration */                             
-    GET_OBJ_TIMER(tobj) = 1;
-    GET_OBJ_TIMER(portal) = 1;
+    GET_OBJ_TIMER(tobj) = 2;
+    GET_OBJ_TIMER(portal) = 2;
     /* set it to a normal portal */
     tobj->obj_flags.value[0] = PORTAL_NORMAL;    
     portal->obj_flags.value[0] = PORTAL_NORMAL;    
@@ -3532,8 +3550,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     GET_OBJ_TYPE(tobj) = ITEM_PORTAL;
     GET_OBJ_TYPE(portal) = ITEM_PORTAL;
     /* set it to a tick duration */                             
-    GET_OBJ_TIMER(tobj) = 1;
-    GET_OBJ_TIMER(portal) = 1;
+    GET_OBJ_TIMER(tobj) = 2;
+    GET_OBJ_TIMER(portal) = 2;
     /* set it to a normal portal */
     tobj->obj_flags.value[0] = PORTAL_NORMAL;    
     portal->obj_flags.value[0] = PORTAL_NORMAL;    
