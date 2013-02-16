@@ -1961,21 +1961,18 @@ void mag_assign_spells(void)
   // 9th circle
 			/* evocation */
   spello(SPELL_METEOR_SWARM, "meteor swarm", 85, 70, 1, POS_FIGHTING,
-	TAR_IGNORE, TRUE, MAG_AREAS,
-	NULL, 9, 13, EVOCATION);
+	TAR_IGNORE, TRUE, MAG_AREAS, NULL, 9, 13, EVOCATION);
   spello(SPELL_BLADE_OF_DISASTER, "blade of disaster", 0, 0, 0, 
      POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 14, 13, EVOCATION);  
                /* conjuration */
   spello(SPELL_SUMMON_CREATURE_9, "summon creature ix", 0, 0, 0, 
      POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 12, 13, CONJURATION);
-  spello(SPELL_GATE, "gate", 51, 36, 1, POS_FIGHTING,
-	TAR_IGNORE, TRUE, MAG_MANUAL, NULL, 9, 13,
-     CONJURATION);
+  spello(SPELL_GATE, "gate", 51, 36, 1, POS_FIGHTING, TAR_IGNORE, TRUE,
+     MAG_MANUAL, NULL, 9, 13, CONJURATION);
 			/* necromancy */
 //*energy drain, shared
-  spello(SPELL_WAIL_OF_THE_BANSHEE, "wail of the banshee", 85, 70, 1, POS_FIGHTING,
-	TAR_IGNORE, TRUE, MAG_AREAS,
-	NULL, 10, 13, NECROMANCY);
+  spello(SPELL_WAIL_OF_THE_BANSHEE, "wail of the banshee", 85, 70, 1,
+     POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS, NULL, 10, 13, NECROMANCY);
 			/* enchantment */
   spello(SPELL_POWER_WORD_KILL, "power word kill", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
