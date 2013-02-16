@@ -3452,6 +3452,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     }
    
     if (is_abbrev(arg, "astral")) {
+      
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE)) {
+        send_to_char(ch, "You are already on the astral plane!\r\n");
+        return;
+      }
 
       do {
         gate_dest = rand_number(0, top_of_world);
@@ -3459,17 +3464,36 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
    
     } else if (is_abbrev(arg, "ethereal")) {
       
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE)) {
+        send_to_char(ch, "You are already on the ethereal plane!\r\n");
+        return;
+      }
+
       do {
         gate_dest = rand_number(0, top_of_world);
       } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ETH_PLANE));
       
     } else if (is_abbrev(arg, "elemental")) {
 
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL)) {
+        send_to_char(ch, "You are already on the elemental plane!\r\n");
+        return;
+      }
+      
       do {
         gate_dest = rand_number(0, top_of_world);
       } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ELEMENTAL));
       
     } else if (is_abbrev(arg, "prime")) {
+      
+      if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE) &&
+          !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) &&
+          !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL)
+              ) {
+        send_to_char(ch,
+                "You need to be off the prime plane to gate to it!\r\n");
+        return;
+      }
       
       do {
         gate_dest = rand_number(0, top_of_world);
