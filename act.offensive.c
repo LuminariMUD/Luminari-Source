@@ -430,7 +430,7 @@ ACMD(do_flee)
       send_to_char(ch, "You don't have the option to choose which way to flee!\r\n");
       return;
     }
-    //actualy direction?
+    //actually direction?
     if ((i = search_block(arg, dirs, FALSE)) >= 0) {
       if (CAN_GO(ch, i)) {
         if (do_simple_move(ch, i, 3)) {
@@ -450,6 +450,7 @@ ACMD(do_flee)
       return;
     }
   }
+  WAIT_STATE(ch, PULSE_VIOLENCE * 1);
 }
 
 
