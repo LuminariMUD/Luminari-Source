@@ -2851,7 +2851,10 @@ ACMD(do_history)
 
   one_argument(argument, arg);
 
+  if (is_abbrev(arg, "chat"))
+    strcpy(arg, "gossip");
   type = search_block(arg, history_types, FALSE);
+
   if (!*arg || type < 0) {
     int i;
 
