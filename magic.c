@@ -3254,6 +3254,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       fmsg = rand_number(2, 6); /* Random fail message. */
       mob_num = MOB_BLADE_OF_DISASTER;
       pfail = 0;
+      
+      hp_bonus += mob_level * 5;
+      dam_bonus += mob_level;
+      hit_bonus += mob_level;
+      
       break;
 
     case SPELL_SUMMON_CREATURE_9: //conjuration
