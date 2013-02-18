@@ -1982,7 +1982,7 @@ void mag_assign_spells(void)
 			/* enchantment */
   spello(SPELL_POWER_WORD_KILL, "power word kill", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-	NULL, 7, 13, EVOCATION);
+	NULL, 0, 13, EVOCATION);
   spello(SPELL_ENFEEBLEMENT, "enfeeblement", 65, 50, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS, "You no longer feel enfeebled.", 4, 13,
 	ENCHANTMENT);
