@@ -2002,7 +2002,7 @@ void mag_assign_spells(void)
 	NULL, 3, 13, DIVINATION);
 			/* abjuration */
   spello(SPELL_TIMESTOP, "timestop", 95, 80, 1, POS_FIGHTING,
-	TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
 	"Time begins to move again.", 0, 13, ABJURATION);
   spello(SPELL_GREATER_SPELL_MANTLE, "greater spell mantle", 0, 0, 0, POS_FIGHTING,
 	TAR_SELF_ONLY, FALSE, MAG_AFFECTS,

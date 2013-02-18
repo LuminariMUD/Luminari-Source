@@ -495,7 +495,7 @@ ASPELL(spell_banish) {
     if (IN_ROOM(victim) == IN_ROOM(k->follower)) {
       /* actually a follower? */
       if (AFF_FLAGGED(k->follower, AFF_CHARM)) {
-        /* has proper subrace to be dismissed? */
+        /* might have to downgrade this */
         if (IS_NPC(k->follower)) {
           /* great, attempt to banish */
           act("$n banishes $N!", FALSE, ch, 0, k->follower, TO_ROOM);
