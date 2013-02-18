@@ -1934,7 +1934,7 @@ void mag_assign_spells(void)
 	"You no longer feel the urge to moonwalk.", 5, 12,
 	ENCHANTMENT);
   spello(SPELL_MASS_DOMINATION, "mass domination", 0, 0, 0, POS_FIGHTING,
-	TAR_IGNORE, TRUE, MAG_MANUAL, NULL, 6, 12, ENCHANTMENT);  
+	TAR_IGNORE, TRUE, MAG_MANUAL, "You no longer feel dominated.", 6, 12, ENCHANTMENT);  
 			/* illusion */
   spello(SPELL_SCINT_PATTERN, "scint pattern", 65, 50, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
@@ -2009,10 +2009,10 @@ void mag_assign_spells(void)
 	"You feel your greater spell mantle wear off.", 8, 13, ABJURATION);
 			/* transmutation */  
   spello(SPELL_POLYMORPH, "polymorph self", 58, 43, 1, POS_FIGHTING,
-	TAR_IGNORE, FALSE, MAG_MANUAL,
-	NULL, 9, 13, TRANSMUTATION);
+	TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 9, 13, TRANSMUTATION);
   spello(SPELL_MASS_ENHANCE, "mass enhance", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-     FALSE, MAG_GROUPS, "The physical enhancement spell wears off.", 2, 13, TRANSMUTATION);
+     FALSE, MAG_GROUPS, "The physical enhancement spell wears off.", 2, 13,
+     TRANSMUTATION);
   
   
   // epic magical
