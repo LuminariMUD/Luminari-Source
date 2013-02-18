@@ -295,20 +295,44 @@ EVENTFUNC(event_acid_arrow) {
   return 0;
 }
 
+/* The "return" of the event function is the time until the event is called
+ * again. If we return 0, then the event is freed and removed from the list, but
+ * any other numerical response will be the delay until the next call */
+EVENTFUNC(event_implode) {
+  struct char_data *ch, *victim = NULL;
+  struct mud_event_data *pMudEvent;
+
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */
+  pMudEvent = (struct mud_event_data *) event_obj;
+  ch = (struct char_data *) pMudEvent->pStruct;
+  if (ch && FIGHTING(ch)) //assign victim, if none escape
+    victim = FIGHTING(ch);
+  else
+    return 0;
+
+  if (ch == NULL || victim == NULL)
+    return 0;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return 0;
+  }
+
+  damage(ch, victim, dice(GET_LEVEL(ch), 6), SPELL_IMPLODE, DAM_PUNCTURE,
+          FALSE);
+
+  update_pos(victim);
+  return 0;
+}
+
 /************************************************************/
 /*  ASPELL defines                                          */
 
 /************************************************************/
-
-
-ASPELL(spell_implode) {
-  
-}
-
-
-ASPELL(spell_prismatic_sphere) {
-  
-}
 
 
 ASPELL(spell_incendiary_cloud) {
@@ -335,11 +359,31 @@ ASPELL(spell_acid_arrow) {
     return;
   }
 
-  send_to_char(ch, "You send out an arrow of acid whizzing towards your opponent!\r\n");
-  act("$n sends out an arrow of acid whizzing!", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "You send out an arrow of acid towards your opponent!\r\n");
+  act("$n sends out an arrow of acid!", FALSE, ch, 0, 0, TO_ROOM);
 
   for (x = 0; x < (MAGIC_LEVEL(ch) / 3); x++) {
     NEW_EVENT(eACIDARROW, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+  }
+}
+
+
+ASPELL(spell_implode) {
+  int x = 0;
+
+  if (ch == NULL || victim == NULL)
+    return;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You cause %s to implode!\r\n", GET_NAME(victim));
+  act("$n causes $N to implode!", FALSE, ch, 0, victim, TO_NOTVICT);
+  act("$n causes you to implode!", FALSE, ch, 0, victim, TO_VICT);
+
+  for (x = 0; x < (CASTER_LEVEL(ch) / 3); x++) {
+    NEW_EVENT(eIMPLODE, ch, NULL, ((x * 6) * PASSES_PER_SEC));
   }
 }
 
@@ -366,6 +410,30 @@ ASPELL(spell_wall_of_force) {
   load_mtrigger(mob);
 }
 #undef WALL_OF_FORCE
+
+
+#define PRISMATIC_SPHERE    90
+ASPELL(spell_prismatic_sphere) {
+  struct char_data *mob;
+
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+    return;
+
+  if (!(mob = read_mobile(PRISMATIC_SPHERE, VIRTUAL))) {
+    send_to_char(ch, "You don't quite remember how to create that.\r\n");
+    return;
+  }
+
+  char_to_room(mob, IN_ROOM(ch));
+  IS_CARRYING_W(mob) = 0;
+  IS_CARRYING_N(mob) = 0;
+
+  act("$n conjures $N!", FALSE, ch, 0, mob, TO_ROOM);
+  send_to_char(ch, "You conjure a prismatic sphere!\r\n");
+
+  load_mtrigger(mob);
+}
+#undef PRISMATIC_SPHERE
 
 
 ASPELL(spell_cloudkill) {

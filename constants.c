@@ -450,6 +450,8 @@ const char *affected_bits[] =
   "Refuged",
   "Spell Turning",
   "Mind-Blanked",
+  "Shadow-Shielded",
+  "Time-Stopped",  //60
   "\n"
 };
 
