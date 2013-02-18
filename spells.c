@@ -132,6 +132,14 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
+  
+  else if (IS_AFFECTED(victim, AFF_MIND_BLANK)) {
+    send_to_char(ch, "Your victim is protected from this "
+            "enchantment!\r\n");
+    if (IS_NPC(victim))
+      hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }
+  
   else if (AFF_FLAGGED(ch, AFF_CHARM))
     send_to_char(ch, "You can't have any followers of your own!\r\n");
 
