@@ -129,6 +129,7 @@ void assign_mobiles(void)
   ASSIGNMOB(27730, receptionist);
   
   ASSIGNMOB(47, wall);
+  ASSIGNMOB(90, wall);
 
   ASSIGNMOB(49, hound);
 }
