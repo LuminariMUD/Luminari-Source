@@ -49,6 +49,7 @@ typedef enum {
     eC_ANIMAL,           //  animal companion cooldown
     eC_FAMILIAR,         //  familiar cooldown
     eC_MOUNT,            //  paladin's called mount cooldown
+    eIMPLODE,          //  implode damage event
 } event_id;
 /* probaly a smart place to mention to not forget to update:
    act.informative.c
@@ -89,4 +90,5 @@ EVENTFUNC(event_casting);
 EVENTFUNC(event_memorizing);
 EVENTFUNC(event_crafting);
 EVENTFUNC(event_acid_arrow);
+EVENTFUNC(event_implode);
 #endif /* _MUD_EVENT_H_ */

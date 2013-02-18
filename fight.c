@@ -1183,6 +1183,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
     case DAM_NEGATIVE:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
+      if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
+        damtype_reduction += 100;
       break;
     case DAM_ILLUSION:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
@@ -1231,6 +1233,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
     damage_reduction += 3;
   if (CLASS_LEVEL(ch, CLASS_BERSERKER))
     damage_reduction += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4;
+  if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
+    damage_reduction += 12;
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));

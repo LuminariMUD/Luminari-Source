@@ -48,6 +48,7 @@ struct mud_event_list mud_event_index[] = {
   { "Call Animal Companion",event_countdown,	EVENT_CHAR  }, // eC_ANIMAL
   { "Call Familiar"      , event_countdown,	EVENT_CHAR  }, // eC_FAMILIAR
   { "Call Mount"         , event_countdown,	EVENT_CHAR  }, // eC_MOUNT
+  { "Implode"            , event_implode,    EVENT_CHAR  },  //eIMPLODE
 };
 
 

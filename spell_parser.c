@@ -741,7 +741,7 @@ EVENTFUNC(event_casting)
 {
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
-  int x, failure = -1;
+  int x, failure = -1, time_stopped = FALSE;
   char buf[MAX_INPUT_LENGTH];
 
   //initialize everything and dummy checks
@@ -754,9 +754,15 @@ EVENTFUNC(event_casting)
   // is he casting?
   if (!IS_CASTING(ch))
     return 0;
+  
+  // this spell time-stoppable?
+  if (IS_AFFECTED(ch, AFF_TIME_STOPPED) &&
+      !SINFO.violent && !IS_SET(SINFO.routines, MAG_DAMAGE)) {
+    time_stopped = TRUE;
+  }
     
   // still some time left to cast
-  if (CASTING_TIME(ch) > 0) {
+  if ((CASTING_TIME(ch) > 0) && !time_stopped) {
 
     //checking positions, targets
     if (!castingCheckOk(ch))
@@ -1978,8 +1984,7 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 7, 13, EVOCATION);
   spello(SPELL_ENFEEBLEMENT, "enfeeblement", 65, 50, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-	"You no longer feel enfeebled.", 4, 13,
+	TAR_IGNORE, TRUE, MAG_AREAS, "You no longer feel enfeebled.", 4, 13,
 	ENCHANTMENT);
 			/* illusion */
   spello(SPELL_WEIRD, "weird", 65, 50, 1, POS_FIGHTING,
