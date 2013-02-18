@@ -2266,6 +2266,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n begins to move outside of time.";
       break;
 
+    case SPELL_MIND_BLANK:
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_MIND_BLANK);
+
+      accum_duration = FALSE;
+      to_vict = "Your mind becomes blank from harmful magicks.";
+      to_room = "$n's mind becomes blanked from harmful magicks.";
+      break;
+
     case SPELL_SANCTUARY:
       af[0].duration = 100;
       SET_BIT_AR(af[0].bitvector, AFF_SANCTUARY);
