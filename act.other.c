@@ -854,7 +854,8 @@ void perform_shapechange(struct char_data *ch, char *arg)
       act("$n shifts back to his natural form.", TRUE, ch, 0, 0, TO_ROOM);    
       IS_MORPHED(ch) = 0;
     }
-    list_forms(ch);
+    if (CLASS_LEVEL(ch, CLASS_DRUID) >= 6)
+      list_forms(ch);
   } else {
     form = atoi(arg);
     if (form < 1 || form > NUM_NPC_RACES - 1) {
