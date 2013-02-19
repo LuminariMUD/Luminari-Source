@@ -522,10 +522,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       save = -1;
       mag_resist = TRUE;
       element = DAM_MENTAL;
-      num_dice = 1;
-      size_dice = 4;
+      num_dice = 10;
+      size_dice = 2;
       if (GET_HIT(victim) <= 121)
-        bonus = GET_HIT(victim);
+        bonus = GET_HIT(victim) + 10;
       else
         bonus = 0;
       break;
@@ -1485,9 +1485,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       
       af[0].location = APPLY_AC;
       af[0].modifier = -50;
-      af[0].duration = 150;
+      af[0].duration = magic_level * 5;
 
-      af[1].duration = 150;
+      af[1].duration = magic_level * 5;
       SET_BIT_AR(af[1].bitvector, AFF_SHADOW_SHIELD);
       // this affect gives:  12 DR, 100% resist negative damage
 
