@@ -883,12 +883,12 @@ ACMD(do_shapechange)
   if (!ch->desc || IS_NPC(ch))
     return;
 
-  if (CLASS_LEVEL(ch, CLASS_DRUID) < 5) {
+  one_argument(argument, arg);
+
+  if (CLASS_LEVEL(ch, CLASS_DRUID) < 5 && *arg) {
     send_to_char(ch, "You are not a high enough level druid to do this...\r\n");
     return;
   }
-
-  one_argument(argument, arg);
 
   perform_shapechange(ch, arg);
 }
