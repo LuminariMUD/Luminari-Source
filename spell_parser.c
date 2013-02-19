@@ -2005,7 +2005,7 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
 	"Time begins to move again.", 0, 13, ABJURATION);
   spello(SPELL_GREATER_SPELL_MANTLE, "greater spell mantle", 0, 0, 0, POS_FIGHTING,
-	TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
 	"You feel your greater spell mantle wear off.", 8, 13, ABJURATION);
 			/* transmutation */  
   spello(SPELL_POLYMORPH, "polymorph self", 58, 43, 1, POS_FIGHTING,

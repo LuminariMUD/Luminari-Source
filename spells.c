@@ -296,7 +296,14 @@ EVENTFUNC(event_acid_arrow) {
     return 0;
   }
 
-  damage(ch, victim, dice(3, 6), SPELL_ACID_ARROW, DAM_ACID,
+  if (mag_resistance(ch, victim, 0))
+    return 0;  
+  
+  if (mag_savingthrow(ch, victim, SAVING_REFL, 0))
+    damage(ch, victim, (dice(3, 6)/2), SPELL_ACID_ARROW, DAM_ENERGY,
+          FALSE);
+  else
+    damage(ch, victim, dice(3, 6), SPELL_ACID_ARROW, DAM_ENERGY,
           FALSE);
 
   update_pos(victim);
@@ -330,7 +337,14 @@ EVENTFUNC(event_implode) {
     return 0;
   }
 
-  damage(ch, victim, dice(GET_LEVEL(ch), 6), SPELL_IMPLODE, DAM_PUNCTURE,
+  if (mag_resistance(ch, victim, 0))
+    return 0;  
+  
+  if (mag_savingthrow(ch, victim, SAVING_REFL, 0))
+    damage(ch, victim, (dice(CASTER_LEVEL(ch), 6)/2), SPELL_IMPLODE, DAM_PUNCTURE,
+          FALSE);
+  else
+    damage(ch, victim, dice(CASTER_LEVEL(ch), 6), SPELL_IMPLODE, DAM_PUNCTURE,
           FALSE);
 
   update_pos(victim);
