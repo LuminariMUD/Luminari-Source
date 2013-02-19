@@ -776,6 +776,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       else
         num_dice = 1;
       size_dice = 200;
+      gain_exp(ch, (dice(2, 200)*10));
+      gain_exp(victim, -(dice(2, 200)*10));      
       bonus = 0;
       break;
 
