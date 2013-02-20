@@ -408,7 +408,6 @@ static void bard_disp_menu(struct descriptor_data *d)
           count_sorc_known(d->character, 6, CLASS_BARD),
     grn, nrm,
     grn, nrm,
-    mgn, nrm,
     mgn, nrm
           );
   
