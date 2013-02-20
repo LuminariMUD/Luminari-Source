@@ -2247,7 +2247,10 @@ void hit(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "\tWTRUE-STRIKE\tn  ");
       affect_from_char(ch, SPELL_TRUE_STRIKE);
     }
-
+    if (affected_by_spell(ch, SKILL_SMITE)) {
+      if (IS_EVIL(victim))
+        send_to_char(ch, "[SMITE]  ");
+    }
     //calculate damage
     dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
     if ((dam = handle_warding(ch, victim, dam)) == -1)
