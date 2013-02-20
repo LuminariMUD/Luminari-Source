@@ -101,7 +101,7 @@ ACMD(do_perform)
     increase_skill(ch, SKILL_PERFORM);  
   
   if (!GROUP(ch)) {
-    if (affected_by_spell(tch, SKILL_PERFORM))
+    if (affected_by_spell(ch, SKILL_PERFORM))
       return;
     SONG_AFF_VAL(ch) = MAX(1, level / 5);
     for (i = 0; i < BARD_AFFECTS; i++)
