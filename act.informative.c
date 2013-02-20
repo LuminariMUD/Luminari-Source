@@ -1152,6 +1152,9 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Call Familiar - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   if ((pMudEvent = char_has_mud_event(k, eC_MOUNT)))
     send_to_char(ch, "Call Mount - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  if ((pMudEvent = char_has_mud_event(k, eSMITE)))
+    send_to_char(ch, "Smite Evil - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
+  
   send_to_char(ch, 
 	"\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
   if ((pMudEvent = char_has_mud_event(k, eTAUNTED)))
