@@ -95,7 +95,7 @@ ACMD(do_perform)
   act("You sing a rousing tune!", FALSE, ch, NULL, NULL, TO_CHAR);
   
   attach_mud_event(new_mud_event(ePERFORM, ch, NULL),
-          (long)((2 * SECS_PER_MUD_DAY)/(level/10)));
+          (long)((2 * SECS_PER_MUD_DAY)/MAX(1,(level/10))));
   
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_PERFORM);  
