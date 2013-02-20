@@ -87,14 +87,15 @@ struct shop_data {
 #define TRADE_NOSORCERER    (1 << 10)
 #define TRADE_NOPALADIN     (1 << 11)
 #define TRADE_NORANGER      (1 << 12)
-#define TRADE_NOHUMAN       (1 << 13)
-#define TRADE_NOELF         (1 << 14)
-#define TRADE_NODWARF       (1 << 15)
-#define TRADE_NOTROLL       (1 << 16)
-#define TRADE_NOHALFLING    (1 << 17)
-#define TRADE_NOH_ELF       (1 << 18)
-#define TRADE_NOH_ORC       (1 << 19)
-#define TRADE_NOGNOME       (1 << 20)
+#define TRADE_NOBARD        (1 << 13)
+#define TRADE_NOHUMAN       (1 << 14)
+#define TRADE_NOELF         (1 << 15)
+#define TRADE_NODWARF       (1 << 16)
+#define TRADE_NOTROLL       (1 << 17)
+#define TRADE_NOHALFLING    (1 << 18)
+#define TRADE_NOH_ELF       (1 << 19)
+#define TRADE_NOH_ORC       (1 << 20)
+#define TRADE_NOGNOME       (1 << 21)
 /** Total number of trade types */
 #define NUM_TRADERS     21
 
@@ -145,6 +146,7 @@ struct stack_data {
 #define NOTRADE_MONK(i)		(IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOMONK))
 #define NOTRADE_BERSERKER(i)		(IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOBERSERKER))
 #define NOTRADE_PALADIN(i)		(IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOPALADIN))
+#define NOTRADE_BARD(i)		(IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOBARD))
 
 #define NOTRADE_HUMAN(i)        (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOHUMAN))
 #define NOTRADE_ELF(i)          (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOELF))

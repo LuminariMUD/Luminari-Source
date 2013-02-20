@@ -3023,6 +3023,7 @@ struct set_struct {
   { "sorcerer", LVL_GOD, PC, NUMBER}, /* 70 */
   { "paladin", LVL_GOD, PC, NUMBER}, /* 71 */
   { "ranger", LVL_GOD, PC, NUMBER}, /* 72 */
+  { "bard", LVL_GOD, PC, NUMBER}, /* 73 */
   { "\n", 0, BOTH, MISC}
 };
 
@@ -3035,6 +3036,7 @@ CLASS_MONK
 CLASS_DRUID
 CLASS_BERSERKER
 CLASS_SORCERER
+CLASS_BARD
 CLASS_PALADIN
 CLASS_RANGER
  */
@@ -3510,6 +3512,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 74: // ranger level
       CLASS_LEVEL(vict, CLASS_RANGER) = RANGE(0, LVL_IMMORT - 1);
+      affect_total(vict);
+      break;
+    case 75: // bard level
+      CLASS_LEVEL(vict, CLASS_BARD) = RANGE(0, LVL_IMMORT - 1);
       affect_total(vict);
       break;
     default:

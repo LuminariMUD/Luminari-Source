@@ -46,6 +46,7 @@ const char *trade_letters[] = {
         "Sorcerer",
         "Paladin",
         "Ranger",
+        "Bard",
         "Human",                /* then the race based ones */
         "Elf",
         "Dwarf",

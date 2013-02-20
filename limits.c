@@ -187,7 +187,7 @@ int mana_gain(struct char_data *ch)
       break;
     }
 
-    if (IS_WIZARD(ch) || IS_CLERIC(ch) || IS_SORCERER(ch)
+    if (IS_WIZARD(ch) || IS_CLERIC(ch) || IS_SORCERER(ch) || IS_BARD(ch)
             || IS_DRUID(ch) || IS_PALADIN(ch) || IS_RANGER(ch))
       gain *= 2;
 

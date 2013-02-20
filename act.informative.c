@@ -1387,8 +1387,8 @@ ACMD(do_score)
     send_to_char(ch, "\tDType 'prayer' to see your spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_RANGER))
     send_to_char(ch, "\tDType 'adjure' to see your spell interface\tn\r\n");
-//  if (CLASS_LEVEL(ch, CLASS_BARD))
-//    send_to_char(ch, "\tDType 'compose' to see your spell interface\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_BARD))
+    send_to_char(ch, "\tDType 'compose' to see your spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_DRUID))
     send_to_char(ch, "\tDType 'commune' to see your spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_PALADIN))

@@ -1230,6 +1230,9 @@ ACMD(do_enter) {
                   ((IS_SORCERER(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_SORCERER))) ||
 
+                  ((IS_BARD(ch)) &&
+                  (OBJ_FLAGGED(portal, ITEM_ANTI_BARD))) ||
+                  
                   ((IS_WARRIOR(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_WARRIOR)))
                   ) {

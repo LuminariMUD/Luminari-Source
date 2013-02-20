@@ -222,8 +222,9 @@
 #define CLASS_SORCERER    7
 #define CLASS_PALADIN     8
 #define CLASS_RANGER      9
+#define CLASS_BARD        10
 /** Total number of available PC Classes */
-#define NUM_CLASSES	  10
+#define NUM_CLASSES	  11
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -234,7 +235,7 @@
  *  x sorcerer
  *  x cleric
  *  x druid
- *  bard
+ *  x bard
  *  x paladin
  *  x ranger
  * ****  load_prayX has to be changed in players.c manually for this ****
@@ -254,7 +255,7 @@
    of easy to use reserved values in the pfile that saves for special
    ability info we need */
 #define SPELL_MANTLE          0 // spell mantle left
-#define INCEND            1 // unused
+#define INCEND                1 // unused
 #define SONGS                 2 // unused
 #define CALLCOMPANION		3 // animal companion vnum
 #define CALLFAMILIAR		4 // familiars vnum
@@ -262,8 +263,9 @@
 #define RANG_KNOWN            6 // true/false if can 'study'
 #define CALLMOUNT             7 // paladin mount vnum
 #define WIZ_KNOWN             8 // true/false if can 'study'
+#define BARD_KNOWN            9 // true/false if can 'study'
 /*---------------*/
-#define NUM_SPEC_ABIL		9
+#define NUM_SPEC_ABIL		10
 #define MAX_SPEC_ABIL	MAX_CLASSES
 	/* max = MAX_CLASSES right now */
 
@@ -778,8 +780,9 @@
 #define ITEM_DECAY                33  /* portal decay */
 #define ITEM_ANTI_PALADIN         34
 #define ITEM_ANTI_RANGER          35
+#define ITEM_ANTI_BARD            36
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            36
+#define NUM_ITEM_FLAGS            37
 
 
 /* Modifier constants used with obj affects ('A' fields) */

@@ -355,6 +355,7 @@ ACMD(do_gen_memorize);
 #define SCMD_MEDITATE   4
 #define SCMD_CHANT      5
 #define SCMD_ADJURE     6
+#define SCMD_COMPOSE    7
 
 
 /*****************************************************************************

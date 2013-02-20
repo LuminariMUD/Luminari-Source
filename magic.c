@@ -863,7 +863,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = magic_level;
       break;
 
-    case SPELL_HORRID_WILTING: //horrid wilting
+    case SPELL_HORRID_WILTING: //horrid wilting, necromancy
       //AoE
       save = SAVING_FORT;
       mag_resist = TRUE;
@@ -885,9 +885,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_INCENDIARY: //incendiary cloud (conjuration)
       //AoE
-      save = SAVING_FORT;
+      save = SAVING_REFL;
       mag_resist = TRUE;
-      element = DAM_POISON;
+      element = DAM_FIRE;
       num_dice = magic_level;
       size_dice = 5;
       bonus = magic_level;
@@ -2259,7 +2259,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is surrounded by shield of ice.";
       break;
 
-    case SPELL_TIMESTOP:
+    case SPELL_TIMESTOP:  //abjuration
       af[0].duration = 7;
       SET_BIT_AR(af[0].bitvector, AFF_TIME_STOPPED);
 
@@ -2268,7 +2268,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n begins to move outside of time.";
       break;
 
-    case SPELL_MIND_BLANK:
+    case SPELL_MIND_BLANK:  //abjuration
       af[0].duration = 50;
       SET_BIT_AR(af[0].bitvector, AFF_MIND_BLANK);
 
@@ -2286,7 +2286,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is surrounded by a white aura.";
       break;
 
-    case SPELL_SPELL_TURNING:
+    case SPELL_SPELL_TURNING:  //abjuration
       af[0].duration = 100;
       SET_BIT_AR(af[0].bitvector, AFF_SPELL_TURNING);
 

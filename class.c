@@ -41,6 +41,7 @@ const char *class_abbrevs[] = {
   "\tMSor\tn",
   "\tWPal\tn",
   "\tYRan\tn",
+  "\tCBar\tn",
   "\n"
 };
 
@@ -55,6 +56,7 @@ const char *pc_class_types[] = {
   "Sorcerer",
   "Paladin",
   "Ranger",
+  "Bard",
   "\n"
 };
 
@@ -72,7 +74,8 @@ const char *class_menu =
 "  b)  \trBer\tRser\trker\tn\r\n"
 "  p)  \tWPaladin\tn\r\n"
 "  s)  \tMSorcerer\tn\r\n"
-"  r)  \tYRanger\tn\r\n";
+"  r)  \tYRanger\tn\r\n"
+"  a)  \tCBard\tn\r\n";
 
 
 /* The code to interpret a class letter -- used in interpreter.c when a new
@@ -92,6 +95,7 @@ int parse_class(char arg)
   case 's': return CLASS_SORCERER;
   case 'p': return CLASS_PALADIN;
   case 'r': return CLASS_RANGER;
+  case 'a': return CLASS_BARD;
   default:  return CLASS_UNDEFINED;
   }
 }
@@ -137,11 +141,11 @@ bitvector_t find_class_bitvector(const char *arg)
 /* #define PRAC_TYPE		3  should it say 'spell' or 'skill'?	*/
 
 int prac_params[4][NUM_CLASSES] = {
- /* MG  CL  TH	 WR  MN  DR  BK  SR  PL  RA*/
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* learned level */
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* max per practice */
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* min per practice */
-  { SK, SK, SK, SK, SK, SK, SK, SK, SK, SK },	/* prac name */
+ /* MG  CL  TH	 WR  MN  DR  BK  SR  PL  RA  BA*/
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* learned level */
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* max per practice */
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75 },	/* min per practice */
+  { SK, SK, SK, SK, SK, SK, SK, SK, SK, SK, SK },	/* prac name */
 };
 #undef SP
 #undef SK
@@ -161,6 +165,7 @@ struct guild_info_type guild_info[] = {
   { CLASS_DRUID,	   3004,	NORTH },
   { CLASS_MONK,	   3004,	NORTH },
   { CLASS_ROGUE,	   3027,	EAST  },
+  { CLASS_BARD,	   3027,	EAST  },
   { CLASS_WARRIOR,	   3021,	EAST  },
   { CLASS_RANGER,	   3021,	EAST  },
   { CLASS_PALADIN,	   3021,	EAST  },
@@ -181,27 +186,27 @@ struct guild_info_type guild_info[] = {
 #define		CC	1	//cross class
 #define		CA	2	//class ability
 int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
-//  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA
-  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }, //0 - reserved
+//  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA  BA
+  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }, //0 - reserved
 
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC },	//1 - Tumble 
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA },	//2 - hide
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA },	//3 sneak
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA },	//4 spot
-  { CC, CC, CA, CC, CA, CC, CA, CC, CC, CA },	//5 listen
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//6 treat injury
-  { CC, CC, CC, CC, CC, CC, CA, CC, CA, CC },	//7 taunt
-  { CA, CA, CC, CA, CA, CA, CC, CA, CA, CA },	//8 concentration
-  { CA, CA, CC, CC, CC, CA, CC, CA, CC, CC },	//9 spellcraft
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC },	//10 appraise
-  { CC, CC, CC, CA, CC, CC, CA, CC, CA, CA },	//11 discipline
-  { CC, CA, CA, CA, CA, CA, CA, CC, CA, CA },	//12 parry
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//13 lore
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//14 mount
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//15 riding
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//16 tame
-  { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA },	//17 pick locks
-  { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA },	//18 steal
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA },	//1 - Tumble 
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA },	//2 - hide
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA },	//3 sneak
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CC },	//4 spot
+  { CC, CC, CA, CC, CA, CC, CA, CC, CC, CA, CA },	//5 listen
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//6 treat injury
+  { CC, CC, CC, CC, CC, CC, CA, CC, CA, CC, CA },	//7 taunt
+  { CA, CA, CC, CA, CA, CA, CC, CA, CA, CA, CA },	//8 concentration
+  { CA, CA, CC, CC, CC, CA, CC, CA, CC, CC, CA },	//9 spellcraft
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA },	//10 appraise
+  { CC, CC, CC, CA, CC, CC, CA, CC, CA, CA, CA },	//11 discipline
+  { CC, CA, CA, CA, CA, CA, CA, CC, CA, CA, CA },	//12 parry
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//13 lore
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//14 mount
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//15 riding
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA },	//16 tame
+  { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA, CC },	//17 pick locks
+  { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA, CC },	//18 steal
 };
 #undef NA
 #undef CC
@@ -212,12 +217,12 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
 #define		H	1	//high
 #define		L	0	//low
 int preferred_save[5][NUM_CLASSES] = {
-//           MU CL TH WA MO DR BK SR PL RA
-/*fort */  { L, H, L, H, H, H, H, L, H, H },
-/*refl */  { L, L, H, L, H, L, L, L, L, L },
-/*will */  { H, H, L, L, H, H, L, H, L, L },
-/*psn  */  { L, L, L, L, L, L, L, L, L, L },
-/*death*/  { L, L, L, L, L, L, L, L, L, L },
+//           MU CL TH WA MO DR BK SR PL RA BA
+/*fort */  { L, H, L, H, H, H, H, L, H, H, L },
+/*refl */  { L, L, H, L, H, L, L, L, L, L, H },
+/*will */  { H, H, L, L, H, H, L, H, L, L, H },
+/*psn  */  { L, L, L, L, L, L, L, L, L, L, L },
+/*death*/  { L, L, L, L, L, L, L, L, L, L, L },
 };
 // fortitude / reflex / will / ( poison / death )
 byte saving_throws(struct char_data *ch, int type)
@@ -263,6 +268,7 @@ int BAB(struct char_data *ch)
         case CLASS_ROGUE:
         case CLASS_CLERIC:
         case CLASS_DRUID:
+        case CLASS_BARD:
         case CLASS_MONK:
           bab += level * 3 / 4;
           break;
@@ -380,6 +386,7 @@ void newbieEquipment(struct char_data *ch)
 
       break;
 
+    case CLASS_BARD:
     case CLASS_ROGUE:
       obj = read_object(854, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
@@ -437,6 +444,26 @@ void berserker_skills(struct char_data *ch, int level) {
       if (!GET_SKILL(ch, SKILL_RAGE))
         SET_SKILL(ch, SKILL_RAGE, 75);
       send_to_char(ch, "\tMYou have learned 'Rage'\tn\r\n");
+      break;
+    default:
+      break;
+  }
+  return;  
+}
+
+/* init spells for a class as they level up
+ * i.e free skills  ;  make sure to set in spec_procs too
+ */
+void bard_skills(struct char_data *ch, int level) {
+  IS_BARD_LEARNED(ch) = 0;
+  send_to_char(ch,
+         "\tnType \tDstudy bard\tn to adjust your known spells.\r\n");
+  
+  switch (level) {
+    case 2:
+      if (!GET_SKILL(ch, SKILL_PERFORM))
+        SET_SKILL(ch, SKILL_PERFORM, 75);
+      send_to_char(ch, "\tMYou have learned 'Perform'\tn\r\n");
       break;
     default:
       break;
@@ -905,6 +932,92 @@ void init_class(struct char_data *ch, int class, int level)
     send_to_char(ch, "Magic-User / Sorcerer Done.\tn\r\n");
   break;
 
+  case CLASS_BARD:
+    //spell init
+    //1st circle
+    SET_SKILL(ch, SPELL_HORIZIKAULS_BOOM, 99);
+    SET_SKILL(ch, SPELL_SHIELD, 99);
+    SET_SKILL(ch, SPELL_SUMMON_CREATURE_1, 99);
+    SET_SKILL(ch, SPELL_CHARM, 99);
+    SET_SKILL(ch, SPELL_ENDURE_ELEMENTS, 99);
+    SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99);
+    SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99);    
+    SET_SKILL(ch, SPELL_MAGIC_MISSILE, 99);
+    
+    SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
+
+    
+    //2nd circle
+    SET_SKILL(ch, SPELL_SUMMON_CREATURE_2, 99);
+    SET_SKILL(ch, SPELL_DEAFNESS, 99);
+    SET_SKILL(ch, SPELL_HIDEOUS_LAUGHTER, 99);
+    SET_SKILL(ch, SPELL_MIRROR_IMAGE, 99);
+    SET_SKILL(ch, SPELL_BLUR, 99);
+    SET_SKILL(ch, SPELL_DETECT_INVIS, 99);
+    SET_SKILL(ch, SPELL_DETECT_MAGIC, 99);    
+    SET_SKILL(ch, SPELL_INVISIBLE, 99);
+    SET_SKILL(ch, SPELL_ENDURANCE, 99);
+    SET_SKILL(ch, SPELL_STRENGTH, 99);
+    SET_SKILL(ch, SPELL_GRACE, 99);
+
+    
+    //3rd circle
+    SET_SKILL(ch, SPELL_SUMMON_CREATURE_3, 99);
+    SET_SKILL(ch, SPELL_LIGHTNING_BOLT, 99);
+    SET_SKILL(ch, SPELL_DEEP_SLUMBER, 99);
+    SET_SKILL(ch, SPELL_HASTE, 99);
+    SET_SKILL(ch, SPELL_CIRCLE_A_EVIL, 99);
+    SET_SKILL(ch, SPELL_CIRCLE_A_GOOD, 99);
+    SET_SKILL(ch, SPELL_CUNNING, 99);
+    SET_SKILL(ch, SPELL_WISDOM, 99);
+    SET_SKILL(ch, SPELL_CHARISMA, 99);
+    
+    
+    //4th circle
+    SET_SKILL(ch, SPELL_SUMMON_CREATURE_4, 99);
+    SET_SKILL(ch, SPELL_GREATER_INVIS, 99);
+    SET_SKILL(ch, SPELL_RAINBOW_PATTERN, 99);
+    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);  //shared
+    SET_SKILL(ch, SPELL_STONESKIN, 99);
+    SET_SKILL(ch, SPELL_ICE_STORM, 99);
+    
+    SET_SKILL(ch, SPELL_CURE_CRITIC, 99);    
+    
+    
+    //5th circle
+    SET_SKILL(ch, SPELL_SUMMON_CREATURE_5, 99);
+    SET_SKILL(ch, SPELL_ACID_SHEATH, 99);
+    SET_SKILL(ch, SPELL_CONE_OF_COLD, 99);
+    SET_SKILL(ch, SPELL_NIGHTMARE, 99);
+    SET_SKILL(ch, SPELL_MIND_FOG, 99);
+    
+    
+    //6th circle
+    SET_SKILL(ch, SPELL_SUMMON_CREATURE_7, 99);
+    SET_SKILL(ch, SPELL_FREEZING_SPHERE, 99);
+    SET_SKILL(ch, SPELL_TRUE_SEEING, 99);
+    SET_SKILL(ch, SPELL_GREATER_DISPELLING, 99);
+    SET_SKILL(ch, SPELL_GREATER_HEROISM, 99);
+
+    
+    // skill init    
+    if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
+      SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_BASIC))
+      SET_SKILL(ch, SKILL_PROF_BASIC, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
+      SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
+    if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
+      SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
+
+     // bard innate cantrips
+    /*
+    SET_SKILL(ch, SPELL_ACID_SPLASH, 99);
+    SET_SKILL(ch, SPELL_RAY_OF_FROST, 99);
+    */
+
+    send_to_char(ch, "Bard Done.\tn\r\n");
+  break;
 
   case CLASS_CLERIC:
     //spell init
@@ -1272,6 +1385,7 @@ void init_start_char(struct char_data *ch)
   /* initialize mem data, allow adjustment of spells known */
   init_spell_slots(ch);
   IS_SORC_LEARNED(ch) = 0;
+  IS_BARD_LEARNED(ch) = 0;
   IS_RANG_LEARNED(ch) = 0;
   IS_WIZ_LEARNED(ch) = 0;
 
@@ -1360,6 +1474,9 @@ void init_start_char(struct char_data *ch)
   case CLASS_BERSERKER:
   case CLASS_MONK:
     trains += MAX(1, (4 + (int)(GET_INT_BONUS(ch))) * 3);
+    break;
+  case CLASS_BARD:
+    trains += MAX(1, (6 + (int)(GET_INT_BONUS(ch))) * 3);
     break;
   case CLASS_ROGUE:
     trains += MAX(1, (8 + (int)(GET_INT_BONUS(ch))) * 3);
@@ -1476,6 +1593,19 @@ void advance_level(struct char_data *ch, int class)
 
     //epic
     if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20)
+      practices++;
+
+    break;
+  case CLASS_BARD:
+    rogue_skills(ch, CLASS_LEVEL(ch, CLASS_BARD));
+    add_hp += rand_number(3, 6);
+    add_mana = 0;
+    add_move = rand_number(2, 4);
+
+    trains += MAX(1, (6 + (int)(GET_INT_BONUS(ch))));
+
+    //epic
+    if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
       practices++;
 
     break;
@@ -1687,6 +1817,9 @@ int invalid_class(struct char_data *ch, struct obj_data *obj)
     return TRUE;
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_DRUID) && IS_DRUID(ch))
+    return TRUE;
+
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_BARD) && IS_BARD(ch))
     return TRUE;
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_ROGUE) && IS_ROGUE(ch))
@@ -2108,16 +2241,7 @@ void init_spell_levels(void)
   spell_level(SPELL_POLYMORPH, CLASS_SORCERER, 18);
   spell_level(SPELL_MASS_ENHANCE, CLASS_SORCERER, 18);
     
-  //8th circle
-  spell_level(SPELL_CHAIN_LIGHTNING, CLASS_SORCERER, 16);
-  spell_level(SPELL_PORTAL, CLASS_SORCERER, 16);
-
-  //9th circle
-  spell_level(SPELL_ENERGY_DRAIN, CLASS_SORCERER, 18);  //shared
-  spell_level(SPELL_METEOR_SWARM, CLASS_SORCERER, 18);
-  spell_level(SPELL_POLYMORPH, CLASS_SORCERER, 18);
-
-  //epic wizard
+  //epic sorcerer
   spell_level(SPELL_MUMMY_DUST, CLASS_SORCERER, 20);  //shared
   spell_level(SPELL_DRAGON_KNIGHT, CLASS_SORCERER, 20);  //shared
   spell_level(SPELL_GREATER_RUIN, CLASS_SORCERER, 20);  //shared
@@ -2126,6 +2250,79 @@ void init_spell_levels(void)
   spell_level(SPELL_EPIC_WARDING, CLASS_SORCERER, 20);
   //end sorcerer spells
 
+  
+  // bard, increment spells by spell-level
+  //1st circle
+  spell_level(SPELL_HORIZIKAULS_BOOM, CLASS_BARD, 3);
+  spell_level(SPELL_SHIELD, CLASS_BARD, 3);
+  spell_level(SPELL_SUMMON_CREATURE_1, CLASS_BARD, 3);
+  spell_level(SPELL_CHARM, CLASS_BARD, 3);
+  spell_level(SPELL_ENDURE_ELEMENTS, CLASS_BARD, 3);
+  spell_level(SPELL_PROT_FROM_EVIL, CLASS_BARD, 3);
+  spell_level(SPELL_PROT_FROM_GOOD, CLASS_BARD, 3);
+  spell_level(SPELL_MAGIC_MISSILE, CLASS_BARD, 3);
+  
+  spell_level(SPELL_CURE_LIGHT, CLASS_BARD, 3);
+
+  
+  //2nd circle
+  spell_level(SPELL_SUMMON_CREATURE_2, CLASS_BARD, 5);
+  spell_level(SPELL_DEAFNESS, CLASS_BARD, 5);
+  spell_level(SPELL_HIDEOUS_LAUGHTER, CLASS_BARD, 5);  
+  spell_level(SPELL_MIRROR_IMAGE, CLASS_BARD, 5);
+  spell_level(SPELL_BLUR, CLASS_BARD, 5);
+  spell_level(SPELL_DETECT_INVIS, CLASS_BARD, 5);
+  spell_level(SPELL_DETECT_MAGIC, CLASS_BARD, 5);
+  spell_level(SPELL_INVISIBLE, CLASS_BARD, 5);  
+  spell_level(SPELL_ENDURANCE, CLASS_BARD, 5);  //shared
+  spell_level(SPELL_STRENGTH, CLASS_BARD, 5);
+  spell_level(SPELL_GRACE, CLASS_BARD, 5);  
+  
+
+  //3rd circle
+  spell_level(SPELL_SUMMON_CREATURE_3, CLASS_BARD, 8);
+  spell_level(SPELL_LIGHTNING_BOLT, CLASS_BARD, 8);
+  spell_level(SPELL_DEEP_SLUMBER, CLASS_BARD, 8);
+  spell_level(SPELL_HASTE, CLASS_BARD, 8);
+  spell_level(SPELL_CIRCLE_A_EVIL, CLASS_BARD, 8);
+  spell_level(SPELL_CIRCLE_A_GOOD, CLASS_BARD, 8);
+  spell_level(SPELL_CUNNING, CLASS_BARD, 8);
+  spell_level(SPELL_WISDOM, CLASS_BARD, 8);
+  spell_level(SPELL_CHARISMA, CLASS_BARD, 8);
+  
+
+  //4th circle
+  spell_level(SPELL_SUMMON_CREATURE_4, CLASS_BARD, 11);
+  spell_level(SPELL_GREATER_INVIS, CLASS_BARD, 11);
+  spell_level(SPELL_RAINBOW_PATTERN, CLASS_BARD, 11);
+  spell_level(SPELL_REMOVE_CURSE, CLASS_BARD, 11);
+  spell_level(SPELL_STONESKIN, CLASS_BARD, 11);
+  spell_level(SPELL_ICE_STORM, CLASS_BARD, 11);
+  
+  spell_level(SPELL_CURE_CRITIC, CLASS_BARD, 11);
+
+  
+  //5th circle
+  spell_level(SPELL_SUMMON_CREATURE_5, CLASS_BARD, 14);
+  spell_level(SPELL_ACID_SHEATH, CLASS_BARD, 14);
+  spell_level(SPELL_CONE_OF_COLD, CLASS_BARD, 14);
+  spell_level(SPELL_NIGHTMARE, CLASS_BARD, 14);
+  spell_level(SPELL_MIND_FOG, CLASS_BARD, 14);
+
+  
+  //6th circle
+  spell_level(SPELL_SUMMON_CREATURE_7, CLASS_BARD, 17);
+  spell_level(SPELL_FREEZING_SPHERE, CLASS_BARD, 17);
+  spell_level(SPELL_TRUE_SEEING, CLASS_BARD, 17);
+  spell_level(SPELL_GREATER_DISPELLING, CLASS_BARD, 17);
+  spell_level(SPELL_GREATER_HEROISM, CLASS_BARD, 17);
+  
+
+  //epic bard
+  spell_level(SPELL_MUMMY_DUST, CLASS_BARD, 20);  //shared
+  spell_level(SPELL_GREATER_RUIN, CLASS_BARD, 20);  //shared
+  //end bard spells
+  
   
   // paladins
   //1st circle
@@ -2318,6 +2515,7 @@ int level_exp(struct char_data *ch, int level)
     case CLASS_RANGER:
     case CLASS_WARRIOR:
     case CLASS_ROGUE:
+    case CLASS_BARD:
     case CLASS_BERSERKER:
     case CLASS_CLERIC:
       level--;
@@ -2483,7 +2681,7 @@ const char *titles(int chclass, int level)
     }
     break;
 
-    /*
+    
     case CLASS_BARD:
     switch (level) {
       case  1:
@@ -2522,7 +2720,7 @@ const char *titles(int chclass, int level)
       default: return "the Bard";
     }
     break;
-*/
+
         
     case CLASS_CLERIC:
     switch (level) {

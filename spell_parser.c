@@ -913,6 +913,10 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     class = CLASS_DRUID;
     clevel = IS_DRUID(ch);
   }
+  if (IS_BARD(ch) > clevel) {
+    class = CLASS_BARD;
+    clevel = IS_BARD(ch);
+  }
   /* paladins cast at half their level strength */
   if ((IS_PALADIN(ch)/2) > clevel) {
     class = CLASS_PALADIN;
@@ -935,7 +939,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     }
 
     /* sorcerer's call is made already in forgetSpell() */
-    if (class != CLASS_SORCERER)
+    if (class != CLASS_SORCERER && class != CLASS_BARD)
       addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
   }
 
@@ -1033,6 +1037,7 @@ ACMD(do_cast)
 	CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
 	CLASS_LEVEL(ch, CLASS_RANGER) < SINFO.min_level[CLASS_RANGER] &&
 	CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
+	CLASS_LEVEL(ch, CLASS_BARD) < SINFO.min_level[CLASS_BARD] &&
      CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER]
   ) {
     send_to_char(ch, "You do not know that spell!\r\n");
@@ -1056,7 +1061,11 @@ ACMD(do_cast)
     return;
   }
   if (CLASS_LEVEL(ch, CLASS_SORCERER) && GET_CHA(ch) < 10) {
-    send_to_char(ch, "You are not smart enough to cast spells...\r\n");
+    send_to_char(ch, "You are not charismatic enough to cast spells...\r\n");
+    return;
+  }
+  if (CLASS_LEVEL(ch, CLASS_BARD) && GET_CHA(ch) < 10) {
+    send_to_char(ch, "You are not charismatic enough to cast spells...\r\n");
     return;
   }
   if (CLASS_LEVEL(ch, CLASS_CLERIC) && GET_WIS(ch) < 10) {
@@ -2296,6 +2305,7 @@ void mag_assign_spells(void)
   skillo(SKILL_ANIMAL_COMPANION,    "animal companion");           //510
   skillo(SKILL_PALADIN_MOUNT,       "paladin mount");              //511
   skillo(SKILL_CALL_FAMILIAR,       "call familiar");              //512
+  skillo(SKILL_PERFORM,             "perform");                    //513
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 
