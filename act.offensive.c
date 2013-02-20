@@ -1243,7 +1243,8 @@ ACMD(do_smite)
   struct char_data *vict = NULL;
   struct affected_type af;
   int percent = 0, prob = 0;
-
+  int cooldown = (3 * SECS_PER_MUD_DAY);
+  
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_SMITE)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
@@ -1253,32 +1254,27 @@ ACMD(do_smite)
     return;
   }
 
-  one_argument(argument, arg);
-
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
-      vict = FIGHTING(ch);
-    } else {
-      send_to_char(ch, "Smite who?\r\n");
-      return;
-    }
-  }
-  if (vict == ch) {
-    send_to_char(ch, "Aren't we funny today...\r\n");
-    return;
-  }
   if (char_has_mud_event(ch, eSMITE)) {
     send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
     return;
   }
 
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 20)
+    cooldown /= 5;
+  else if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 15)
+    cooldown /= 4;
+  else if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 10)
+    cooldown /= 3;
+  else if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 5)
+    cooldown /= 2;
+  
   new_affect(&af);
 
   af.spell = SKILL_SMITE;
   af.duration = 24;
 
   affect_to_char(ch, &af);
-  attach_mud_event(new_mud_event(eSMITE, ch, NULL), 3 * SECS_PER_MUD_DAY);
+  attach_mud_event(new_mud_event(eSMITE, ch, NULL), cooldown);
   send_to_char(ch, "You prepare to wreak vengeance upon your foe.\r\n");
   
   if (!IS_NPC(ch))
