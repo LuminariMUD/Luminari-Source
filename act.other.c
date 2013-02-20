@@ -47,6 +47,7 @@ ACMD(do_perform)
   struct affected_type af[BARD_AFFECTS];
   int level = 0, i = 0, duration = 0;
   struct char_data *tch = NULL;
+  long cooldown;
   
   if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_PERFORM)) {
     send_to_char(ch, "You don't know how to perform.\r\n");
@@ -94,8 +95,8 @@ ACMD(do_perform)
   act("$n sings a rousing tune!", FALSE, ch, NULL, NULL, TO_ROOM);
   act("You sing a rousing tune!", FALSE, ch, NULL, NULL, TO_CHAR);
   
-  attach_mud_event(new_mud_event(ePERFORM, ch, NULL),
-          (long)((2 * SECS_PER_MUD_DAY)/(float)((float)level/10.0)));
+  cooldown = (2 * SECS_PER_MUD_DAY) - (level*10);  
+  attach_mud_event(new_mud_event(ePERFORM, ch, NULL), cooldown);
   
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_PERFORM);  
