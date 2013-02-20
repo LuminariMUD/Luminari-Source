@@ -296,6 +296,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "purify"   , "purify"  , POS_FIGHTING, do_purify   , 1, 0 },  
   { "purge"    , "purge"   , POS_DEAD    , do_purge    , LVL_BUILDER, 0 },
   { "prayer"   , "prayer"  , POS_RESTING , do_gen_memorize , 0, SCMD_PRAY },
+  { "perform"  , "perform" , POS_FIGHTING, do_perform     , 1, 0 },
 
   { "qedit"    , "qedit"   , POS_DEAD    , do_oasis_qedit, LVL_BUILDER, 0 },
   { "qlist"    , "qlist"   , POS_DEAD    , do_oasis_list, LVL_BUILDER, SCMD_OASIS_QLIST },
