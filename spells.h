@@ -381,8 +381,9 @@
 #define SKILL_ANIMAL_COMPANION          510  //implemented
 #define SKILL_PALADIN_MOUNT             511  //implemented
 #define SKILL_CALL_FAMILIAR             512  //implemented
+#define SKILL_PERFORM                   513
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      513
+#define NUM_SKILLS                      514
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the
@@ -675,13 +676,14 @@ void addSpellMemmed(struct char_data *ch, int spellnum, int class);
 void removeSpellMemming(struct char_data *ch, int spellnum, int class);
 int forgetSpell(struct char_data *ch, int spellnum, int mode);
 int numSpells(struct char_data *ch, int circle, int class);
-bool sorcKnown(struct char_data *ch, int spellnum);
+bool sorcKnown(struct char_data *ch, int spellnum, int class);
 bool hasSpell(struct char_data *ch, int spellnum);
 int getCircle(struct char_data *ch, int class);
 int sorcererKnown[LVL_IMPL + 1][10];
-int count_sorc_known(struct char_data *ch, int circle);
-void sorc_extract_known(struct char_data *ch, int spellnum);
-int sorc_add_known(struct char_data *ch, int spellnum);
+int bardKnown[LVL_IMPL + 1][10];
+int count_sorc_known(struct char_data *ch, int circle, int class);
+void sorc_extract_known(struct char_data *ch, int spellnum, int class);
+int sorc_add_known(struct char_data *ch, int spellnum, int class);
 
 
 

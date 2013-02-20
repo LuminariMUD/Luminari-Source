@@ -511,6 +511,9 @@ void npc_class_behave(struct char_data *ch)
     case CLASS_WIZARD:
       npc_wizard_behave(ch, vict, getCircle(ch, CLASS_WIZARD), engaged);
       break;
+    case CLASS_BARD:
+      npc_wizard_behave(ch, vict, getCircle(ch, CLASS_BARD), engaged);
+      break;
     case CLASS_WARRIOR:
       npc_warrior_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;

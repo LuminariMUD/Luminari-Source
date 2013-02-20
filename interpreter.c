@@ -147,6 +147,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "ct"       , "ct"      , POS_DEAD    , do_clantalk , 1, 0 },
   { "create"  , "create"     , POS_STANDING, do_not_here , 1, 0 },
   { "checkcraft"  , "checkcraft"     , POS_STANDING, do_not_here , 1, 0 },
+  { "compose"  , "compose" , POS_RESTING , do_gen_memorize , 0, SCMD_COMPOSE },
   { "convert"  , "covert"     , POS_STANDING, do_not_here , 1, 0 },
   { "crystalfist" , "crystalf"    , POS_FIGHTING , do_crystalfist , 0, 0 },
   { "crystalbody" , "crystalb"    , POS_FIGHTING , do_crystalbody , 0, 0 },
@@ -1800,6 +1801,9 @@ void nanny(struct descriptor_data *d, char *arg)
         break;
       case CLASS_SORCERER:
         perform_help(d, "class-sorcerer");
+        break;
+      case CLASS_BARD:
+        perform_help(d, "class-bard");
         break;
       default:
         write_to_output(d, "\r\nCommand not understood.\r\n");

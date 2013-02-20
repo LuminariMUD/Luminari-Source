@@ -609,7 +609,8 @@ do                                                              \
                                   (CLASS_LEVEL(ch, CLASS_RANGER)/2) ) )
 #define MAGIC_LEVEL(ch)		(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  (CLASS_LEVEL(ch, CLASS_WIZARD) + \
-                                 CLASS_LEVEL(ch, CLASS_SORCERER)))
+                                 CLASS_LEVEL(ch, CLASS_SORCERER)+ \
+                                 CLASS_LEVEL(ch, CLASS_BARD)))
 #define CASTER_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch))
 
@@ -812,6 +813,7 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define GET_MOUNT(ch)  (ch->player_specials->saved.spec_abil[CALLMOUNT])
 #define GET_SPELL_MANTLE(ch)  (ch->player_specials->saved.spec_abil[SPELL_MANTLE])
 #define IS_SORC_LEARNED(ch)  (ch->player_specials->saved.spec_abil[SORC_KNOWN])
+#define IS_BARD_LEARNED(ch)  (ch->player_specials->saved.spec_abil[BARD_KNOWN])
 #define IS_RANG_LEARNED(ch)  (ch->player_specials->saved.spec_abil[RANG_KNOWN])
 #define IS_WIZ_LEARNED(ch)  (ch->player_specials->saved.spec_abil[WIZ_KNOWN])
 #define INCENDIARY(ch) (ch->player_specials->saved.spec_abil[INCEND])
@@ -1410,6 +1412,7 @@ void reset_acraft(struct char_data *ch);
 // got any levels in it - zusuk
 #define IS_WIZARD(ch)	     (CLASS_LEVEL(ch, CLASS_WIZARD))
 #define IS_SORCERER(ch)       (CLASS_LEVEL(ch, CLASS_SORCERER))
+#define IS_BARD(ch)       (CLASS_LEVEL(ch, CLASS_BARD))
 #define IS_CLERIC(ch)		(CLASS_LEVEL(ch, CLASS_CLERIC))
 #define IS_DRUID(ch)		(CLASS_LEVEL(ch, CLASS_DRUID))
 #define IS_ROGUE(ch)		(CLASS_LEVEL(ch, CLASS_ROGUE))
@@ -1419,7 +1422,8 @@ void reset_acraft(struct char_data *ch);
 #define IS_PALADIN(ch)		(CLASS_LEVEL(ch, CLASS_PALADIN))
 #define IS_RANGER(ch)		(CLASS_LEVEL(ch, CLASS_RANGER))
 #define IS_CASTER(ch)	(IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) \
-                         || IS_SORCERER(ch) || IS_PALADIN(ch) || IS_RANGER(ch))
+                         || IS_SORCERER(ch) || IS_PALADIN(ch) || \
+                         IS_RANGER(ch) || IS_BARD(ch))
 
 
 #define RACE_ABBR(ch)	( IS_NPC(ch) ?  \

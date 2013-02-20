@@ -199,6 +199,8 @@ int classArray(int class) {
       return 4;
     case CLASS_RANGER:
       return 5;
+    case CLASS_BARD:
+      return 6;
   }
   return -1;
 }
@@ -283,7 +285,47 @@ int sorcererSlots[LVL_IMPL + 1][10] = {
   {  6,  6,  6,  6,  6,  6,  6,  6,  6,  0 }//34
 };
 
-/** known spells for sorcs **/
+int bardSlots[LVL_IMPL + 1][10] = {
+// 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 0
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  2,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  3,  1,  0,  0,  0,  0,  0,  0,  0,  0 },	// 5
+  {  3,  2,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  3,  2,  0,  0,  0,  0,  0,  0,  0,  0 },//7
+  {  3,  3,  1,  0,  0,  0,  0,  0,  0,  0 },
+  {  3,  3,  2,  0,  0,  0,  0,  0,  0,  0 },//9
+  {  3,  3,  2,  0,  0,  0,  0,  0,  0,  0 },
+  {  3,  3,  3,  1,  0,  0,  0,  0,  0,  0 },//11
+  {  3,  3,  3,  2,  0,  0,  0,  0,  0,  0 },
+  {  3,  3,  3,  2,  0,  0,  0,  0,  0,  0 },//13
+  {  3,  3,  3,  3,  1,  0,  0,  0,  0,  0 },
+  {  4,  3,  3,  3,  2,  0,  0,  0,  0,  0 },//15
+  {  4,  4,  3,  3,  2,  0,  0,  0,  0,  0 },
+  {  4,  4,  4,  3,  3,  1,  0,  0,  0,  0 },//17
+  {  4,  4,  4,  4,  3,  2,  0,  0,  0,  0 },
+  {  4,  4,  4,  4,  4,  3,  0,  0,  0,  0 },
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//20
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//21
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//22
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//23
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//24
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//25
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//26
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//27
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//28
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//29
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//30
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//31
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//32
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 },//33
+  {  4,  4,  4,  4,  4,  4,  0,  0,  0,  0 }//34
+};
+  
+
+/** known spells for 1sorcs **/
 int sorcererKnown[LVL_IMPL + 1][10] = {
 // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
   {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 0
@@ -322,6 +364,47 @@ int sorcererKnown[LVL_IMPL + 1][10] = {
   {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 },//33
   {  5,  5,  4,  4,  4,  3,  3,  3,  3,  0 }//34
 };
+
+/** known spells for bards **/
+int bardKnown[LVL_IMPL + 1][10] = {
+// 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 0
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  2,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  3,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  3,  2,  0,  0,  0,  0,  0,  0,  0,  0 },	// 5
+  {  4,  3,  0,  0,  0,  0,  0,  0,  0,  0 },
+  {  4,  3,  0,  0,  0,  0,  0,  0,  0,  0 },//7
+  {  4,  4,  2,  0,  0,  0,  0,  0,  0,  0 },
+  {  4,  4,  3,  0,  0,  0,  0,  0,  0,  0 },//9
+  {  4,  4,  3,  0,  0,  0,  0,  0,  0,  0 },
+  {  4,  4,  4,  2,  0,  0,  0,  0,  0,  0 },//11
+  {  4,  4,  4,  3,  0,  0,  0,  0,  0,  0 },
+  {  4,  4,  4,  4,  2,  0,  0,  0,  0,  0 },//13
+  {  4,  4,  4,  4,  3,  0,  0,  0,  0,  0 },
+  {  4,  4,  4,  4,  3,  0,  0,  0,  0,  0 },//15
+  {  5,  4,  4,  4,  4,  2,  0,  0,  0,  0 },
+  {  5,  5,  4,  4,  4,  3,  0,  0,  0,  0 },//17
+  {  5,  5,  5,  4,  4,  3,  0,  0,  0,  0 },
+  {  5,  5,  5,  5,  4,  4,  0,  0,  0,  0 },
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//20
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//21
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//22
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//23
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//24
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//25
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//26
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//27
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//28
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//29
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//30
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//31
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//32
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 },//33
+  {  5,  5,  5,  5,  5,  4,  0,  0,  0,  0 }//34
+};  
+  
 
 int rangerSlots[LVL_IMPL + 1][10] = {
 // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
@@ -520,6 +603,36 @@ void init_spell_slots(struct char_data *ch)
 int spellCircle(int class, int spellnum)
 {
   switch (class) {
+    case CLASS_BARD:
+      switch (spell_info[spellnum].min_level[class]) {
+        case 3:
+        case 4:
+          return 1;
+        case 5:
+        case 6:
+        case 7:
+          return 2;
+        case 8:
+        case 9:
+        case 10:
+          return 3;
+        case 11:
+        case 12:
+        case 13:
+          return 4;
+        case 14:
+        case 15:
+        case 16:
+          return 5;
+        case 17:
+        case 18:
+        case 19:
+        case 20:
+          return 6;
+        default:
+          return 99;
+      }
+      return 1;      
     case CLASS_SORCERER:
       return ((MAX(1, (spell_info[spellnum].min_level[class]) / 2)));
     /* can get confusing, just check out class.c to see what level
@@ -619,6 +732,10 @@ int comp_slots(struct char_data *ch, int circle, int class)
       spellSlots += spell_bonus[GET_CHA(ch)][circle-1];
       spellSlots += sorcererSlots[CLASS_LEVEL(ch, class)][circle-1];
       break;
+    case CLASS_BARD:
+      spellSlots += spell_bonus[GET_CHA(ch)][circle-1];
+      spellSlots += bardSlots[CLASS_LEVEL(ch, class)][circle-1];
+      break;
     default:
       if (GET_LEVEL(ch) < LVL_IMMORT) {
         log("Invalid class passed to comp_slots.");
@@ -635,6 +752,7 @@ int comp_slots(struct char_data *ch, int circle, int class)
 // MAGIC-USER types:  adds <spellnum> to the characters memorizing list, and
 //   places the corresponding memtime in memtime list
 #define SORC_TIME_FACTOR  12
+#define BARD_TIME_FACTOR  14
 void addSpellMemming(struct char_data *ch, int spellnum, int time, int class)
 {
   int slot;
@@ -645,7 +763,14 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class)
     spellnum = spellCircle(class, spellnum);
     /* replace time with slot-mem-time */
     time = SORC_TIME_FACTOR * spellnum;
-  }
+  } 
+  else if (class == CLASS_BARD) {
+    /* replace spellnum with its circle */
+    spellnum = spellCircle(class, spellnum);
+    /* replace time with slot-mem-time */
+    time = BARD_TIME_FACTOR * spellnum;
+  } 
+
 
   /* magic-user type system */
   for (slot = 0; slot < MAX_MEM; slot++) {
@@ -674,6 +799,9 @@ void resetMemtimes(struct char_data *ch, int class)
     if (class == CLASS_SORCERER)
       PRAYTIME(ch, slot, classArray(class)) =
             PRAYING(ch, slot, classArray(class)) * SORC_TIME_FACTOR;
+    else if (class == CLASS_BARD)
+      PRAYTIME(ch, slot, classArray(class)) =
+            PRAYING(ch, slot, classArray(class)) * BARD_TIME_FACTOR;
     else
       PRAYTIME(ch, slot, classArray(class)) = 
             spell_info[PRAYING(ch, slot, classArray(class))].memtime;
@@ -707,6 +835,19 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class)
   
   /* sorcerer-types */
   if (class == CLASS_SORCERER) {
+    // iterate until we find 0 (terminate) or end of array
+    for (slot = 0;
+            (PRAYING(ch, slot, classArray(class)) || slot < (MAX_MEM - 1));
+            slot++) {
+      // shift everything over
+      PRAYING(ch, slot, classArray(class)) =
+                  PRAYING(ch, slot + 1, classArray(class));
+      PRAYTIME(ch, slot, classArray(class)) =
+                  PRAYTIME(ch, slot + 1, classArray(class));
+    }
+    return;
+  }
+  else if (class == CLASS_BARD) {
     // iterate until we find 0 (terminate) or end of array
     for (slot = 0;
             (PRAYING(ch, slot, classArray(class)) || slot < (MAX_MEM - 1));
@@ -779,6 +920,8 @@ int forgetSpell(struct char_data *ch, int spellnum, int class)
     for (x = 0; x < NUM_CLASSES; x++) {
       if (x == CLASS_SORCERER) /* checking this separately */
         continue;
+      if (x == CLASS_BARD) /* checking this separately */
+        continue;
       if (classArray(x) == -1) /* not caster */
         continue;
       if (PRAYED(ch, 0, classArray(x))) {
@@ -798,7 +941,7 @@ int forgetSpell(struct char_data *ch, int spellnum, int class)
         }
       }    
     } /* we found nothing so far*/
-    /* check sorc-type array */
+    /* check sorc-type arrays */
     if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
       /* got a free slot? */
       if (hasSpell(ch, spellnum)) {
@@ -806,6 +949,14 @@ int forgetSpell(struct char_data *ch, int spellnum, int class)
         return CLASS_SORCERER;
       }
     }
+    if (CLASS_LEVEL(ch, CLASS_BARD)) {
+      /* got a free slot? */
+      if (hasSpell(ch, spellnum)) {
+        addSpellMemming(ch, spellnum, 0, CLASS_BARD);
+        return CLASS_BARD;
+      }
+    }
+    
   }
 
   /* failed to find anything */
@@ -826,7 +977,14 @@ int numSpells(struct char_data *ch, int circle, int class)
       if (PRAYING(ch, slot, classArray(class)) == circle)
         num++;
     }
-  } else {
+  }
+  else if (class == CLASS_BARD) {
+    for (slot = 0; slot < (MAX_MEM); slot++) {
+      if (PRAYING(ch, slot, classArray(class)) == circle)
+        num++;
+    }
+  }
+  else {
     /* wizard-types */
     for (slot = 0; slot < (MAX_MEM); slot++) {
       if (spellCircle(class, PRAYED(ch, slot, classArray(class))) == circle)
@@ -841,21 +999,29 @@ int numSpells(struct char_data *ch, int circle, int class)
 
 
 /* for sorc-types:  counts how many spells you have of a given circle */
-int count_sorc_known(struct char_data *ch, int circle)
+int count_sorc_known(struct char_data *ch, int circle, int class)
 {
   int num = 0, slot;
   
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (spellCircle(CLASS_SORCERER,
+    if (class == CLASS_SORCERER) {
+      if (spellCircle(CLASS_SORCERER,
             PRAYED(ch, slot, classArray(CLASS_SORCERER))) == circle)
-      num++;
+        num++;
+    }
+    else if (class == CLASS_BARD) {
+      if (spellCircle(CLASS_BARD,
+            PRAYED(ch, slot, classArray(CLASS_BARD))) == circle)
+        num++;
+    }
+
   }
   return num;
 }
 
 
 /* For Sorc-types:  Checks if they know the given spell or not */
-bool sorcKnown(struct char_data *ch, int spellnum)
+bool sorcKnown(struct char_data *ch, int spellnum, int class)
 {
   int slot;
   
@@ -866,17 +1032,24 @@ bool sorcKnown(struct char_data *ch, int spellnum)
   */
   
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PRAYED(ch, slot, classArray(CLASS_SORCERER)) == spellnum)
-      return TRUE;
+    if (class == CLASS_SORCERER) {
+      if (PRAYED(ch, slot, classArray(CLASS_SORCERER)) == spellnum)
+        return TRUE;
+    }
+    else if (class == CLASS_BARD) {
+      if (PRAYED(ch, slot, classArray(CLASS_BARD)) == spellnum)
+        return TRUE;
+    }
+
   }
   return FALSE;
 }
 
 
 /* For Sorc-types:  finds spellnum in their known list and extracts it */
-void sorc_extract_known(struct char_data *ch, int spellnum)
+void sorc_extract_known(struct char_data *ch, int spellnum, int class)
 {
-  int slot, nextSlot, class = CLASS_SORCERER;
+  int slot, nextSlot;
     
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PRAYED(ch, slot, classArray(class)) == spellnum) { //found the spell
@@ -903,14 +1076,14 @@ void sorc_extract_known(struct char_data *ch, int spellnum)
 
 /* For Sorc-types:  adds spellnum to their known list */
 /* returns 0 failure, returns 1 success*/
-int sorc_add_known(struct char_data *ch, int spellnum)
+int sorc_add_known(struct char_data *ch, int spellnum, int class)
 {
-  int slot, class = CLASS_SORCERER, circle;
+  int slot, circle;
   
-  circle = spellCircle(CLASS_SORCERER, spellnum);
+  circle = spellCircle(class, spellnum);
   
-  if ((sorcererKnown[CLASS_LEVEL(ch, CLASS_SORCERER)][circle-1] -
-          count_sorc_known(ch, circle)) <= 0)
+  if ((sorcererKnown[CLASS_LEVEL(ch, class)][circle-1] -
+          count_sorc_known(ch, circle, class)) <= 0)
     return FALSE;
   
   for (slot = 0; slot < MAX_MEM; slot++) {
@@ -940,6 +1113,8 @@ bool hasSpell(struct char_data *ch, int spellnum)
       continue;
     if (x == CLASS_SORCERER)
       continue;
+    if (x == CLASS_BARD)
+      continue;
     for (slot = 0; slot < MAX_MEM; slot++) {
       if (PRAYED(ch, slot, classArray(x)) == spellnum)
         return TRUE;
@@ -949,7 +1124,7 @@ bool hasSpell(struct char_data *ch, int spellnum)
   /* check our sorc-type system */
   if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
     // is this one of the "known" spells?
-    if (sorcKnown(ch, spellnum)) {
+    if (sorcKnown(ch, spellnum, CLASS_SORCERER)) {
       int circle = spellCircle(CLASS_SORCERER, spellnum);
       // do we have any slots left?
       // take total slots for the correct circle and subtract from used
@@ -958,6 +1133,18 @@ bool hasSpell(struct char_data *ch, int spellnum)
         return TRUE;
     }
   }
+  else if (CLASS_LEVEL(ch, CLASS_BARD)) {
+    // is this one of the "known" spells?
+    if (sorcKnown(ch, spellnum, CLASS_BARD)) {
+      int circle = spellCircle(CLASS_BARD, spellnum);
+      // do we have any slots left?
+      // take total slots for the correct circle and subtract from used
+      if ((comp_slots(ch, circle, CLASS_BARD) - 
+              numSpells(ch, circle, CLASS_BARD)) > 0)
+        return TRUE;
+    }
+  }
+
   
   return FALSE;
 }
@@ -1003,6 +1190,21 @@ int getCircle(struct char_data *ch, int class)
         return 3;
       else
         return 4;      
+    case CLASS_BARD:
+      if (CLASS_LEVEL(ch, CLASS_BARD) < 3)
+        return 0;
+      else if (CLASS_LEVEL(ch, CLASS_BARD) < 5)
+        return 1;
+      else if (CLASS_LEVEL(ch, CLASS_BARD) < 8)
+        return 2;
+      else if (CLASS_LEVEL(ch, CLASS_BARD) < 11)
+        return 3;
+      else if (CLASS_LEVEL(ch, CLASS_BARD) < 14)
+        return 4;
+      else if (CLASS_LEVEL(ch, CLASS_BARD) < 17)
+        return 5;
+      else
+        return 6;      
     case CLASS_SORCERER:
       return (MAX(1, (MIN(9, CLASS_LEVEL(ch, class) / 2))));
     case CLASS_WIZARD:
@@ -1105,6 +1307,10 @@ void updateMemming(struct char_data *ch, int class)
         sprintf(buf, "You have recovered a spell slot: %d.\r\n",
                 PRAYING(ch, 0, classArray(class)));
         break;
+      case CLASS_BARD:
+        sprintf(buf, "You have recovered a compose slot: %d.\r\n",
+                PRAYING(ch, 0, classArray(class)));
+        break;
       default: // wizard
         sprintf(buf, "You finish memorizing %s.\r\n",
                 spell_info[PRAYING(ch, 0, classArray(class))].name);
@@ -1118,6 +1324,10 @@ void updateMemming(struct char_data *ch, int class)
         case CLASS_SORCERER:
           send_to_char(ch, "Your meditations are complete.\r\n");
           act("$n completes $s meditation.", FALSE, ch, 0, 0, TO_ROOM);
+          break;
+        case CLASS_BARD:
+          send_to_char(ch, "Your compositions are complete.\r\n");
+          act("$n completes $s compositions.", FALSE, ch, 0, 0, TO_ROOM);
           break;
         case CLASS_CLERIC:
           send_to_char(ch, "Your prayers are complete.\r\n");
@@ -1178,28 +1388,51 @@ EVENTFUNC(event_memorizing)
 /************ display functions ***************/
 
 // display sorc interface
-void display_sorc(struct char_data *ch)
+void display_sorc(struct char_data *ch, int class)
 {
   int slot;
 
   send_to_char(ch, "\tCTotal Slots:\r\n");
-  for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
-    send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER));
+  
+  if (class == CLASS_SORCERER) {
+    for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER));
+    }
+    send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
+    for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", slot, numSpells(ch, slot, CLASS_SORCERER));
+    }
+    send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
+    for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER) -
+          numSpells(ch, slot, CLASS_SORCERER));
+    }
+    send_to_char(ch, "\tn\r\n\r\n");
+    if (PRAYING(ch, 0, classArray(CLASS_SORCERER)))
+      send_to_char(ch, "\tCTime left for next slot to recover:"
+              "  \tn%d\tC seconds.\tn\r\n",
+              PRAYTIME(ch, 0, classArray(CLASS_SORCERER)));  
   }
-  send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
-  for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
-    send_to_char(ch, "\tM%d:\tm %d  ", slot, numSpells(ch, slot, CLASS_SORCERER));
+  else if (class == CLASS_BARD) {
+    for (slot = 1; slot <= getCircle(ch, CLASS_BARD); slot++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_BARD));
+    }
+    send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
+    for (slot = 1; slot <= getCircle(ch, CLASS_BARD); slot++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", slot, numSpells(ch, slot, CLASS_BARD));
+    }
+    send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
+    for (slot = 1; slot <= getCircle(ch, CLASS_BARD); slot++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_BARD) -
+          numSpells(ch, slot, CLASS_BARD));
+    }
+    send_to_char(ch, "\tn\r\n\r\n");
+    if (PRAYING(ch, 0, classArray(CLASS_BARD)))
+      send_to_char(ch, "\tCTime left for next slot to recover:"
+              "  \tn%d\tC seconds.\tn\r\n",
+              PRAYTIME(ch, 0, classArray(CLASS_BARD)));  
   }
-  send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
-  for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
-    send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER) -
-        numSpells(ch, slot, CLASS_SORCERER));
-  }
-  send_to_char(ch, "\tn\r\n\r\n");
-  if (PRAYING(ch, 0, classArray(CLASS_SORCERER)))
-    send_to_char(ch, "\tCTime left for next slot to recover:"
-            "  \tn%d\tC seconds.\tn\r\n",
-            PRAYTIME(ch, 0, classArray(CLASS_SORCERER)));  
+  
 }
 
 
@@ -1417,7 +1650,9 @@ void printMemory(struct char_data *ch, int class)
 
   //sorc types, just seperated their interface
   if (class == CLASS_SORCERER)
-    display_sorc(ch);
+    display_sorc(ch, CLASS_SORCERER);
+  else if (class == CLASS_BARD)
+    display_sorc(ch, CLASS_BARD);
   else {
     display_memmed(ch, class);
     display_memming(ch, class);
@@ -1428,6 +1663,10 @@ void printMemory(struct char_data *ch, int class)
     case CLASS_SORCERER:
       send_to_char(ch, "\tDCommands: '\tYstudy sorcerer\tD' to adjust known spells.\tn\r\n"
                        "\tDRest, then type '\tYmeditate\tD' to recover spell slots.\tn\r\n");
+      break;
+    case CLASS_BARD:
+      send_to_char(ch, "\tDCommands: '\tYstudy bard\tD' to adjust known spells.\tn\r\n"
+                       "\tDRest, then type '\tYcompose\tD' to recover spell slots.\tn\r\n");
       break;
     case CLASS_DRUID:
       send_to_char(ch, "\tDCommands: commune <spellname>, uncommune <spellname>, "
@@ -1670,6 +1909,8 @@ ACMD(do_gen_memorize)
     class = CLASS_DRUID;
   else if (subcmd == SCMD_MEDITATE)
     class = CLASS_SORCERER;
+  else if (subcmd == SCMD_COMPOSE)
+    class = CLASS_BARD;
   else {
     send_to_char(ch, "Invalid command!\r\n");
     return;
@@ -1680,7 +1921,7 @@ ACMD(do_gen_memorize)
     return;
   }
 
-  if (class == CLASS_SORCERER || !*argument) {
+  if (class == CLASS_SORCERER || class == CLASS_BARD || !*argument) {
     printMemory(ch, class);
     if (GET_POS(ch) == POS_RESTING && !FIGHTING(ch)) {
       if (!isOccupied(ch) && PRAYING(ch, 0, classArray(class)) != 0) {        
@@ -1704,6 +1945,10 @@ ACMD(do_gen_memorize)
           case CLASS_SORCERER:
             send_to_char(ch, "You continue your meditation.\r\n");
             act("$n continues $s meditation.", FALSE, ch, 0, 0, TO_ROOM);
+            break;
+          case CLASS_BARD:
+            send_to_char(ch, "You continue your composition.\r\n");
+            act("$n continues $s composition.", FALSE, ch, 0, 0, TO_ROOM);
             break;
           default:  /* wizard */
             send_to_char(ch, "You continue your studies.\r\n");

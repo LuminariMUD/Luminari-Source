@@ -588,6 +588,7 @@ int valid_align_by_class(int alignment, int class)
     
     /* any 'non-lawful' alignment */
   case CLASS_BERSERKER:
+  case CLASS_BARD:
     switch (alignment) {
       /* we are checking for invalids */
       case LAWFUL_GOOD:
@@ -680,6 +681,10 @@ int meet_class_reqs(struct char_data *ch, int class)
         return 1;
       break;
     case CLASS_SORCERER:
+      if (ch->real_abils.cha >= 11)
+        return 1;
+      break;
+    case CLASS_BARD:
       if (ch->real_abils.cha >= 11)
         return 1;
       break;

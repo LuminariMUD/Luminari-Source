@@ -134,6 +134,12 @@ void increase_skill(struct char_data *ch, int skillnum)
   int pass = rand_number(0, PASS);
 
   switch(skillnum) {
+    case SKILL_PERFORM:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
     case SKILL_PALADIN_MOUNT:
       if (!use) {
         notched = TRUE;

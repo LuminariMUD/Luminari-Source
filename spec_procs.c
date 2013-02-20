@@ -113,24 +113,30 @@ case SKILL_MUMMY_DUST:
 	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 23 && GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
 case SKILL_DRAGON_KNIGHT:
-	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 25 && GET_LEVEL(ch) >= 20)
+	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 25 && GET_LEVEL(ch) >= 20 &&
+             (CLASS_LEVEL(ch, CLASS_WIZARD) > 17 ||
+             CLASS_LEVEL(ch, CLASS_SORCERER) > 19)
+             )
 		return TRUE;	else return FALSE;
 case SKILL_GREATER_RUIN:
 	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 27 && GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
 case SKILL_HELLBALL:
-	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 29 && GET_LEVEL(ch) >= 20)
+	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 29 && GET_LEVEL(ch) >= 20 &&
+             (CLASS_LEVEL(ch, CLASS_WIZARD) > 16 ||
+             CLASS_LEVEL(ch, CLASS_SORCERER) > 18)
+             )
 		return TRUE;	else return FALSE;
      /* magical based epic spells (not accessable by divine) */
 case SKILL_EPIC_MAGE_ARMOR:
 	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 31 && GET_LEVEL(ch) >= 20
 		&& (CLASS_LEVEL(ch, CLASS_WIZARD) > 13 ||
-              CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
+              CLASS_LEVEL(ch, CLASS_SORCERER) > 13) )
 		return TRUE;	else return FALSE;
 case SKILL_EPIC_WARDING:
 	if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 33 && GET_LEVEL(ch) >= 20
 		&& (CLASS_LEVEL(ch, CLASS_WIZARD) > 15 ||
-              CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
+              CLASS_LEVEL(ch, CLASS_SORCERER) > 15))
 		return TRUE;	else return FALSE;
      
      /* 'epic' skills */
@@ -297,6 +303,11 @@ case SKILL_STUNNING_FIST:
         if (CLASS_LEVEL(ch, CLASS_MONK) >= 2)
                 return TRUE;  else return FALSE;
         
+/* bard */
+case SKILL_PERFORM:
+        if (CLASS_LEVEL(ch, CLASS_BARD) >= 2)
+                return TRUE;  else return FALSE;
+        
 /* paladin */        
 case SKILL_LAY_ON_HANDS:
         if (CLASS_LEVEL(ch, CLASS_PALADIN))
@@ -426,14 +437,23 @@ void list_spells(struct char_data *ch, int mode, int class)
       for (i = 1; i < NUM_SPELLS; i++) {
         sinfo = spell_info[i].min_level[class];
 
-        if (class == CLASS_SORCERER && sorcKnown(ch, i) &&
+        if (class == CLASS_SORCERER && sorcKnown(ch, i, CLASS_SORCERER) &&
               spellCircle(CLASS_SORCERER, i) == slot) {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,
                     "%-20s \tWMastered\tn\r\n", spell_info[i].name);
           if (len + nlen >= sizeof(buf2) || nlen < 0)
             break;
           len += nlen;
-        } else if (class != CLASS_SORCERER &&
+        }
+        else if (class == CLASS_BARD && sorcKnown(ch, i, CLASS_BARD) &&
+              spellCircle(CLASS_BARD, i) == slot) {
+          nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+                    "%-20s \tWMastered\tn\r\n", spell_info[i].name);
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+            break;
+          len += nlen;
+        }
+        else if (class != CLASS_SORCERER && class != CLASS_BARD &&
              CLASS_LEVEL(ch, class) >= sinfo && spellCircle(class,i) == slot &&
              GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,

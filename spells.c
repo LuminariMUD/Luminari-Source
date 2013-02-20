@@ -910,7 +910,7 @@ ASPELL(spell_refuge) // illusion
 
       new_affect(&af);
       af.spell = SPELL_REFUGE;
-      af.duration = 3;
+      af.duration = 6;
       SET_BIT_AR(af.bitvector, AFF_REFUGE);
       affect_to_char(tch, &af);      
     }

@@ -24,9 +24,11 @@
 /*. Function prototypes . */
 
 static void sorc_disp_menu(struct descriptor_data *d);
+static void bard_disp_menu(struct descriptor_data *d);
 static void wizard_disp_menu(struct descriptor_data *d);
 static void ranger_disp_menu(struct descriptor_data *d);
 static void sorc_study_menu(struct descriptor_data *d, int circle);
+static void bard_study_menu(struct descriptor_data *d, int circle);
 static void favored_enemy_submenu(struct descriptor_data *d, int favored);
 static void favored_enemy_menu(struct descriptor_data *d);
 static void animal_companion_menu(struct descriptor_data *d);
@@ -192,6 +194,17 @@ ACMD(do_study)
       return;
     }
     class = CLASS_SORCERER;
+  } else if (is_abbrev(argument, " bard")) {
+    if (IS_BARD_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
+      send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
+                       "(You can also RESPEC to reset your character)\r\n");
+      return;
+    }
+    if (!CLASS_LEVEL(ch, CLASS_SORCERER)) {
+      send_to_char(ch, "How?  You are not a sorcerer!\r\n");
+      return;
+    }
+    class = CLASS_SORCERER;
   } else if (is_abbrev(argument, " ranger")) {
     if (IS_RANG_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
       send_to_char(ch, "You already adjusted your ranger "
@@ -291,23 +304,23 @@ static void sorc_disp_menu(struct descriptor_data *d)
 
     mgn,
     grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][0] -
-          count_sorc_known(d->character, 1),
+          count_sorc_known(d->character, 1, CLASS_SORCERER),
     grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][1] -
-          count_sorc_known(d->character, 2),
+          count_sorc_known(d->character, 2, CLASS_SORCERER),
     grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][2] -
-          count_sorc_known(d->character, 3),
+          count_sorc_known(d->character, 3, CLASS_SORCERER),
     grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][3] -
-          count_sorc_known(d->character, 4),
+          count_sorc_known(d->character, 4, CLASS_SORCERER),
     grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][4] -
-          count_sorc_known(d->character, 5),
+          count_sorc_known(d->character, 5, CLASS_SORCERER),
     grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][5] -
-          count_sorc_known(d->character, 6),
+          count_sorc_known(d->character, 6, CLASS_SORCERER),
     grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][6] -
-          count_sorc_known(d->character, 7),
+          count_sorc_known(d->character, 7, CLASS_SORCERER),
     grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][7] -
-          count_sorc_known(d->character, 8),
+          count_sorc_known(d->character, 8, CLASS_SORCERER),
     grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
-          count_sorc_known(d->character, 9),
+          count_sorc_known(d->character, 9, CLASS_SORCERER),
     grn, nrm,
     grn, nrm,
     mgn, nrm,
@@ -332,7 +345,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
 
   for (counter = 1; counter < NUM_SPELLS; counter++) {
     if (spellCircle(CLASS_SORCERER, counter) == circle) {
-      if (sorcKnown(d->character, counter))
+      if (sorcKnown(d->character, counter, CLASS_SORCERER))
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
             spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
@@ -343,7 +356,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots availble:%s %d.\r\n", grn, nrm,
       sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][circle - 1] -
-      count_sorc_known(d->character, circle));
+      count_sorc_known(d->character, circle, CLASS_SORCERER));
   write_to_output(d, "%sEnter spell choice, to add or remove "
           "(Q to exit to main menu) : ", nrm);
   
@@ -660,9 +673,9 @@ void study_parse(struct descriptor_data *d, char *arg)
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
               if (spellCircle(CLASS_SORCERER, counter) == global_circle) {
-                if (sorcKnown(d->character, counter))
-                  sorc_extract_known(d->character, counter);
-                else if (!sorc_add_known(d->character, counter))
+                if (sorcKnown(d->character, counter, CLASS_SORCERER))
+                  sorc_extract_known(d->character, counter, CLASS_SORCERER);
+                else if (!sorc_add_known(d->character, counter, CLASS_SORCERER))
                   write_to_output(d, "You are all FULL for spells!\r\n");
               }
             }
