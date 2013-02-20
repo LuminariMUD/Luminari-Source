@@ -150,6 +150,9 @@ EVENTFUNC(event_countdown)
     case eSMITE:
       send_to_char(ch, "You are once again prepared to smite your foe.\r\n");
       break;
+    case ePERFORM:
+      send_to_char(ch, "You are once again prepared to perform.\r\n");
+      break;
       
     default:
       break;
