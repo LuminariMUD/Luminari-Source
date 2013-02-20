@@ -200,11 +200,11 @@ ACMD(do_study)
                        "(You can also RESPEC to reset your character)\r\n");
       return;
     }
-    if (!CLASS_LEVEL(ch, CLASS_SORCERER)) {
+    if (!CLASS_LEVEL(ch, CLASS_BARD)) {
       send_to_char(ch, "How?  You are not a sorcerer!\r\n");
       return;
     }
-    class = CLASS_SORCERER;
+    class = CLASS_BARD;
   } else if (is_abbrev(argument, " ranger")) {
     if (IS_RANG_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
       send_to_char(ch, "You already adjusted your ranger "
@@ -256,6 +256,9 @@ ACMD(do_study)
   if (class == CLASS_SORCERER) {
     global_class = CLASS_SORCERER;
     sorc_disp_menu(d);    
+  } else if (class == CLASS_BARD) {
+    global_class = CLASS_BARD;
+    bard_disp_menu(d);
   } else if (class == CLASS_RANGER) {
     global_class = CLASS_RANGER;
     ranger_disp_menu(d);
@@ -364,6 +367,88 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
 }
 
 /***********************end sorcerer******************************************/
+
+/*-------------------------------------------------------------------*/
+/*. Display main menu, Bard . */
+
+static void bard_disp_menu(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+  
+  write_to_output(d,
+    "\r\n-- %sSpells Known Menu\r\n"
+    "\r\n"
+    "%s 1%s) 1st Circle     : %s%d\r\n"
+    "%s 2%s) 2nd Circle     : %s%d\r\n"
+    "%s 3%s) 3rd Circle     : %s%d\r\n"
+    "%s 4%s) 4th Circle     : %s%d\r\n"
+    "%s 5%s) 5th Circle     : %s%d\r\n"
+    "%s 6%s) 6th Circle     : %s%d\r\n"
+          "\r\n"
+    "%s Q%s) Quit\r\n"
+    "\r\n"
+    "%sWhen you quit it finalizes all changes%s\r\n"
+    "%sYour 'known spells' can only be modified once per level%s\r\n"
+    "\r\n"
+    "Enter Choice : ",
+
+    mgn,
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_BARD)][0] -
+          count_sorc_known(d->character, 1, CLASS_BARD),
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_BARD)][1] -
+          count_sorc_known(d->character, 2, CLASS_BARD),
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_BARD)][2] -
+          count_sorc_known(d->character, 3, CLASS_BARD),
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_BARD)][3] -
+          count_sorc_known(d->character, 4, CLASS_BARD),
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_BARD)][4] -
+          count_sorc_known(d->character, 5, CLASS_BARD),
+    grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_BARD)][5] -
+          count_sorc_known(d->character, 6, CLASS_BARD),
+    grn, nrm,
+    grn, nrm,
+    mgn, nrm,
+    mgn, nrm
+          );
+  
+  OLC_MODE(d) = BARD_MAIN_MENU;
+}
+
+
+/* the menu for each circle, sorcerer */
+
+
+void bard_study_menu(struct descriptor_data *d, int circle)
+{
+  int counter, columns = 0;
+
+  global_circle = circle;
+  
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 1; counter < NUM_SPELLS; counter++) {
+    if (spellCircle(CLASS_BARD, counter) == circle) {
+      if (sorcKnown(d->character, counter, CLASS_BARD))
+        write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
+            spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+      else
+        write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+            spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+    }
+  }
+  write_to_output(d, "\r\n");
+  write_to_output(d, "%sNumber of slots availble:%s %d.\r\n", grn, nrm,
+      sorcererKnown[CLASS_LEVEL(d->character, CLASS_BARD)][circle - 1] -
+      count_sorc_known(d->character, circle, CLASS_BARD));
+  write_to_output(d, "%sEnter spell choice, to add or remove "
+          "(Q to exit to main menu) : ", nrm);
+  
+  OLC_MODE(d) = BARD_STUDY_SPELLS;
+}
+
+/***********************end bard******************************************/
 
 /***************************/
 /* main menu for ranger */
@@ -686,6 +771,63 @@ void study_parse(struct descriptor_data *d, char *arg)
         }
       break;
     /******* end sorcerer **********/
+      
+      
+    /******* start bard **********/
+
+    case BARD_MAIN_MENU:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          write_to_output(d, "Your choices have been finalized!\r\n\r\n");
+          if (global_class == CLASS_BARD)
+            IS_BARD_LEARNED(d->character) = 1;
+          save_char(d->character, 0);
+          cleanup_olc(d, CLEANUP_ALL);
+          return;
+        /* here are our spell levels for 'spells known' */
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+          bard_study_menu(d, atoi(arg));
+          OLC_MODE(d) = BARD_STUDY_SPELLS;
+          break;
+        default:
+          write_to_output(d, "That is an invalid choice!\r\n");
+          bard_disp_menu(d);
+          break;
+      }
+      break;
+      
+    case BARD_STUDY_SPELLS:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          bard_disp_menu(d);
+          return;
+
+        default:
+          number = atoi(arg);
+      
+          for (counter = 1; counter < NUM_SPELLS; counter++) {
+            if (counter == number) {
+              if (spellCircle(CLASS_BARD, counter) == global_circle) {
+                if (sorcKnown(d->character, counter, CLASS_BARD))
+                  sorc_extract_known(d->character, counter, CLASS_BARD);
+                else if (!sorc_add_known(d->character, counter, CLASS_BARD))
+                  write_to_output(d, "You are all FULL for spells!\r\n");
+              }
+            }
+          }
+          OLC_MODE(d) = BARD_MAIN_MENU;
+          bard_study_menu(d, global_circle);
+          break;
+        }
+      break;
+    /******* end bard **********/
       
       
     /******* start ranger **********/
