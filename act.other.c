@@ -95,7 +95,7 @@ ACMD(do_perform)
   act("$n sings a rousing tune!", FALSE, ch, NULL, NULL, TO_ROOM);
   act("You sing a rousing tune!", FALSE, ch, NULL, NULL, TO_CHAR);
   
-  cooldown = (2 * SECS_PER_MUD_DAY) - (level*10);  
+  cooldown = (2 * SECS_PER_MUD_DAY) - (level*100);  
   attach_mud_event(new_mud_event(ePERFORM, ch, NULL), cooldown);
   
   if (!IS_NPC(ch))
