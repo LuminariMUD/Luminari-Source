@@ -551,6 +551,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
     value += 2;
   else if (affected_by_spell(ch, SPELL_GREATER_HEROISM))
     value += 4;  
+  if (affected_by_spell(ch, SKILL_PERFORM))
+    value += SONG_AFF_VAL(ch);  
 
   // try to avoid sending NPC's here, but just in case:
   if (IS_NPC(ch))

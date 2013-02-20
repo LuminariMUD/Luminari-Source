@@ -1069,10 +1069,10 @@ ASPELL(spell_enchant_weapon) // enchantment
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
 
   obj->affected[0].location = APPLY_HITROLL;
-  obj->affected[0].modifier = MAX(1, (int) (MAGIC_LEVEL(ch) / 10));
+  obj->affected[0].modifier = MAX(1, (int) (MAGIC_LEVEL(ch) / 7));
 
   obj->affected[1].location = APPLY_DAMROLL;
-  obj->affected[1].modifier = MAX(1, (int) (MAGIC_LEVEL(ch) / 10));
+  obj->affected[1].modifier = MAX(1, (int) (MAGIC_LEVEL(ch) / 7));
 
   if (IS_GOOD(ch)) {
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_ANTI_EVIL);

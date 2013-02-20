@@ -41,6 +41,80 @@ static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data * ch);
 
 
+#define BARD_AFFECTS 7
+ACMD(do_perform)
+{
+  struct affected_type af[BARD_AFFECTS];
+  int level = 0, i = 0, duration = 0;
+  struct char_data *tch = NULL;
+  
+  if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_PERFORM)) {
+    send_to_char(ch, "You don't know how to perform.\r\n");
+    return;
+  }
+  
+  if (char_has_mud_event(ch, ePERFORM)) {
+    send_to_char(ch, "You must wait longer before you can use this ability "
+                     "again.\r\n");
+    return;
+  }
+
+  level = CLASS_LEVEL(ch, CLASS_BARD) + GET_CHA_BONUS(ch);
+  
+  duration = 14 + GET_CHA_BONUS(ch);
+    
+  /* init affect array */
+  for (i = 0; i < BARD_AFFECTS; i++) {
+    new_affect(&(af[i]));
+    af[i].spell = SKILL_PERFORM;
+    af[i].duration = duration;
+  }  
+  
+  af[0].location = APPLY_HITROLL;
+  af[0].modifier = MAX(1, level / 5);
+  
+  af[1].location = APPLY_DAMROLL;
+  af[1].modifier = MAX(1, level / 5);
+  
+  af[2].location = APPLY_SAVING_WILL;
+  af[2].modifier = MAX(1, level / 5);
+  
+  af[3].location = APPLY_SAVING_FORT;
+  af[3].modifier = MAX(1, level / 5);
+  
+  af[4].location = APPLY_SAVING_REFL;
+  af[4].modifier = MAX(1, level / 5);
+  
+  af[5].location = APPLY_AC;
+  af[5].modifier = 20 + level;
+  
+  af[6].location = APPLY_HIT;
+  af[6].modifier = 10 + level;
+  
+  act("$n sings a rousing tune!", FALSE, ch, NULL, NULL, TO_ROOM);
+  act("You sing a rousing tune!", FALSE, ch, NULL, NULL, TO_CHAR);
+  
+  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
+          NULL) {
+    if (IN_ROOM(tch) != IN_ROOM(ch))
+      continue;
+    if (affected_by_spell(tch, SKILL_PERFORM))
+      continue;
+    SONG_AFF_VAL(tch) = MAX(1, level / 5);
+    for (i = 0; i < BARD_AFFECTS; i++)
+      affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);      
+    act("A song from $n enhances you!", FALSE, ch, NULL, tch, TO_VICT);
+  }
+  
+  attach_mud_event(new_mud_event(ePERFORM, ch, NULL),
+          ((2 * SECS_PER_MUD_DAY)/level));
+  
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_PERFORM);  
+}
+#undef BARD_AFFECTS
+
+
 #define MOB_PALADIN_MOUNT 70
 ACMD(do_call)
 {

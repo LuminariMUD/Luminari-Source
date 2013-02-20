@@ -817,7 +817,7 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define IS_RANG_LEARNED(ch)  (ch->player_specials->saved.spec_abil[RANG_KNOWN])
 #define IS_WIZ_LEARNED(ch)  (ch->player_specials->saved.spec_abil[WIZ_KNOWN])
 #define INCENDIARY(ch) (ch->player_specials->saved.spec_abil[INCEND])
-
+#define SONG_AFF_VAL(ch)  (ch->player_specials->saved.spec_abil[SONG_AFF])
 
 
 /** Return condition i (DRUNK, HUNGER, THIRST) of ch. */

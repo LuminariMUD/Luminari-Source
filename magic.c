@@ -196,6 +196,10 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
     case SKILL_RAGE:
       send_to_char(ch, "Your rage has calmed...\r\n");
       break;
+    case SKILL_PERFORM:
+      send_to_char(ch, "Your bard-song morale has faded...\r\n");
+      SONG_AFF_VAL(ch) = 0;
+      break;
     case SKILL_CRIP_STRIKE:
       send_to_char(ch, "You have recovered from the crippling strike...\r\n");
       break;

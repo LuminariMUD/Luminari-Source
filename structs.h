@@ -256,7 +256,7 @@
    ability info we need */
 #define SPELL_MANTLE          0 // spell mantle left
 #define INCEND                1 // unused
-#define SONGS                 2 // unused
+#define SONG_AFF              2 // how much to modify skill with song-affects
 #define CALLCOMPANION		3 // animal companion vnum
 #define CALLFAMILIAR		4 // familiars vnum
 #define SORC_KNOWN            5 // true/false if can 'study'
