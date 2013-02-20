@@ -1241,6 +1241,7 @@ ACMD(do_smite)
 {
   char arg[MAX_INPUT_LENGTH] = { '\0' };
   struct char_data *vict = NULL;
+  struct affected_type af;
   int percent = 0, prob = 0;
 
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_SMITE)) {
@@ -1266,21 +1267,22 @@ ACMD(do_smite)
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
-  /* 101% is a complete failure */
-  percent = rand_number(1, 101);
-  prob = GET_SKILL(ch, SKILL_SMITE);
+  if (char_has_mud_event(ch, eSMITE)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    return;
+  }
 
-  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
-    percent += compute_ability(vict, ABILITY_DISCIPLINE);
+  new_affect(&af);
 
-  if (percent > prob) {
-    damage(ch, vict, 0, SKILL_SMITE, DAM_FORCE, FALSE);
-  } else
-    damage(ch, vict, GET_LEVEL(ch) * 2, SKILL_SMITE, DAM_FORCE, FALSE);
+  af.spell = SKILL_SMITE;
+  af.duration = 24;
 
+  affect_to_char(ch, &af);
+  attach_mud_event(new_mud_event(eSMITE, ch, NULL), 3 * SECS_PER_MUD_DAY);
+  send_to_char(ch, "You prepare to wreak vengeance upon your foe.\r\n");
+  
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_SMITE);
-  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
 }
 
 

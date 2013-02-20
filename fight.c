@@ -197,6 +197,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch) {
   int armorclass = GET_AC(ch) / (-10);
   armorclass += 20;
 
+  /* moving armor spell to here so it can legitimately be +2 armor */
+  //if (affected_by_spell(ch, SPELL_ARMOR))
+  //    armorclass += 2;
+
   if (AWAKE(ch))
     armorclass += GET_DEX_BONUS(ch);
   if (attacker) {
@@ -1628,6 +1632,10 @@ int compute_bab(struct char_data *ch, struct char_data *victim, int type) {
   else
     calc_bab += GET_STR_BONUS(ch);
 
+  // smite evil
+  if (affected_by_spell(ch, SKILL_SMITE)) {
+    calc_bab += GET_CHA_BONUS(ch);
+  }
   // position penalty
   switch (GET_POS(ch)) {
     case POS_SITTING:
@@ -1701,6 +1709,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   if (char_has_mud_event(ch, eCRYSTALFIST))
     dambonus += 3;
 
+  // smite evil (remove after one attack)
+  if (affected_by_spell(ch, SKILL_SMITE)) {
+    // only give damage bonus if opponent is evil
+    if (IS_EVIL(victim))
+      dambonus += CLASS_LEVEL(ch, CLASS_PALADIN);
+    affect_from_char(ch, SKILL_SMITE);
+  }
+    
   /**** display, keep mods above this *****/
   if (mode == 2 || mode == 3) {
     send_to_char(ch, "Dam Bonus:  %d, ", dambonus);
