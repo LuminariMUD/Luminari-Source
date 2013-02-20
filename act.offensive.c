@@ -1239,10 +1239,7 @@ ACMD(do_stunningfist)
 
 ACMD(do_smite)
 {
-  char arg[MAX_INPUT_LENGTH] = { '\0' };
-  struct char_data *vict = NULL;
   struct affected_type af;
-  int percent = 0, prob = 0;
   int cooldown = (3 * SECS_PER_MUD_DAY);
   
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_SMITE)) {
