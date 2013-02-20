@@ -1712,7 +1712,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   // smite evil (remove after one attack)
   if (affected_by_spell(ch, SKILL_SMITE)) {
     // only give damage bonus if opponent is evil
-    if (IS_EVIL(victim))
+    if (IS_EVIL(vict))
       dambonus += CLASS_LEVEL(ch, CLASS_PALADIN);
     affect_from_char(ch, SKILL_SMITE);
   }

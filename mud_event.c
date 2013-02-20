@@ -49,6 +49,7 @@ struct mud_event_list mud_event_index[] = {
   { "Call Familiar"      , event_countdown,	EVENT_CHAR  }, // eC_FAMILIAR
   { "Call Mount"         , event_countdown,	EVENT_CHAR  }, // eC_MOUNT
   { "Implode"            , event_implode,    EVENT_CHAR  },  //eIMPLODE
+  { "Smite Evil"         , event_countdown,     EVENT_CHAR  }, // eSMITE
 };
 
 
@@ -144,6 +145,9 @@ EVENTFUNC(event_countdown)
       break;
     case eC_MOUNT:
       send_to_char(ch, "You are now able to 'call mount' again.\r\n");
+      break;
+    case eSMITE:
+      send_to_char(ch, "You are once again prepared to smite your foe.\r\n");
       break;
       
     default:
