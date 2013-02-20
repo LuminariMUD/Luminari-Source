@@ -94,6 +94,21 @@ ACMD(do_perform)
   act("$n sings a rousing tune!", FALSE, ch, NULL, NULL, TO_ROOM);
   act("You sing a rousing tune!", FALSE, ch, NULL, NULL, TO_CHAR);
   
+  attach_mud_event(new_mud_event(ePERFORM, ch, NULL),
+          ((2 * SECS_PER_MUD_DAY)/level));
+  
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_PERFORM);  
+  
+  if (!GROUP(ch)) {
+    if (affected_by_spell(tch, SKILL_PERFORM))
+      return;
+    SONG_AFF_VAL(ch) = MAX(1, level / 5);
+    for (i = 0; i < BARD_AFFECTS; i++)
+      affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);      
+    return;
+  }
+  
   while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
           NULL) {
     if (IN_ROOM(tch) != IN_ROOM(ch))
@@ -106,11 +121,6 @@ ACMD(do_perform)
     act("A song from $n enhances you!", FALSE, ch, NULL, tch, TO_VICT);
   }
   
-  attach_mud_event(new_mud_event(ePERFORM, ch, NULL),
-          ((2 * SECS_PER_MUD_DAY)/level));
-  
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_PERFORM);  
 }
 #undef BARD_AFFECTS
 
