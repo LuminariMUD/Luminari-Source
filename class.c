@@ -1597,7 +1597,7 @@ void advance_level(struct char_data *ch, int class)
 
     break;
   case CLASS_BARD:
-    rogue_skills(ch, CLASS_LEVEL(ch, CLASS_BARD));
+    bard_skills(ch, CLASS_LEVEL(ch, CLASS_BARD));
     add_hp += rand_number(3, 6);
     add_mana = 0;
     add_move = rand_number(2, 4);
