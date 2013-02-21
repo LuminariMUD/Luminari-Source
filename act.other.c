@@ -1083,7 +1083,8 @@ ACMD(do_lore)
   send_to_char(ch, "You attempt to utilize your vast knowledge of lore...\r\n");
   WAIT_STATE(ch, PULSE_VIOLENCE);
 
-  if (tobj && GET_OBJ_COST(tobj) > lore_app[compute_ability(ch, ABILITY_LORE)]) {
+  if (tobj && GET_OBJ_COST(tobj) > lore_app[(compute_ability(ch, ABILITY_LORE)
+                                             + CLASS_LEVEL(ch, CLASS_BARD))]) {
     send_to_char(ch, "Your knowledge is not extensive enough to know about this object!\r\n");
     return;
   }

@@ -2600,8 +2600,47 @@ const char *titles(int chclass, int level)
     }
     break;
 
-    
+
     case CLASS_RANGER:
+    switch (level) {
+      case  1:
+      case  2:
+      case  3:
+      case  4: return "";
+      case  5: 
+      case  6: 
+      case  7: 
+      case  8: 
+      case  9: return "the Dirt-watcher";
+      case 10:
+      case 11:
+      case 12:
+      case 13:
+      case 14: return "the Hunter";
+      case 15:
+      case 16:
+      case 17:
+      case 18:
+      case 19: return "the Tracker";
+      case 20:
+      case 21:
+      case 22:
+      case 23:
+      case 24: return "the Finder of Prey";
+      case 25:
+      case 26:
+      case 27:
+      case 28:
+      case 29: return "the Hidden Stalker";
+      case 30: return "the Great Seeker";
+      case LVL_IMMORT: return "the Avatar of the Wild";
+      case LVL_GOD: return "the Wrath of the Wild";
+      case LVL_GRGOD: return "the Cyclone of Nature";
+      default: return "the Ranger";
+    }
+    break;
+
+    
     case CLASS_DRUID:
     switch (level) {
       case  1:
