@@ -627,8 +627,8 @@ int spellCircle(int class, int spellnum)
         case 17:
         case 18:
         case 19:
-        case 20:
           return 6;
+        // don't use 20, that is reserved for epic!  case 20:
         default:
           return 99;
       }
