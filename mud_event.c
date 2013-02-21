@@ -14,6 +14,7 @@
 #include "constants.h"
 #include "comm.h"  /* For access to the game pulse */
 #include "mud_event.h"
+#include "handler.h"
 
 /* Global List */
 struct list_data * world_events = NULL;
@@ -51,6 +52,7 @@ struct mud_event_list mud_event_index[] = {
   { "Implode"            , event_implode,    EVENT_CHAR  },  //eIMPLODE
   { "Smite Evil"         , event_countdown,  EVENT_CHAR  }, // eSMITE
   { "Perform"            , event_countdown,  EVENT_CHAR  }, // ePERFORM
+  { "Mob Purge"          , event_countdown,  EVENT_CHAR  }, // ePURGEMOB
 };
 
 
@@ -152,6 +154,12 @@ EVENTFUNC(event_countdown)
       break;
     case ePERFORM:
       send_to_char(ch, "You are once again prepared to perform.\r\n");
+      break;
+    case ePURGEMOB:
+      send_to_char(ch, "You must return to your home plane!\r\n");
+      act("With a sigh of relief $n fades out of this plane!",
+              FALSE, ch, NULL, NULL, TO_ROOM);
+      extract_char(ch);
       break;
       
     default:

@@ -50,8 +50,9 @@ typedef enum {
     eC_FAMILIAR,         //  familiar cooldown
     eC_MOUNT,            //  paladin's called mount cooldown
     eIMPLODE,            //  implode damage event
-    eSMITE,              // smite eeeevil cooldown
-    ePERFORM,            // Bard performance
+    eSMITE,              //  smite eeeevil cooldown
+    ePERFORM,            //  Bard performance
+    ePURGEMOB,            //  mob purge
 } event_id;
 /* probaly a smart place to mention to not forget to update:
    act.informative.c

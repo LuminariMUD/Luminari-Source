@@ -24,6 +24,7 @@
 #include "class.h"
 #include "race.h"
 #include "spec_procs.h"  // for compute_ability
+#include "mud_event.h"  // for purgemob event
 
 /* kavir's protocol */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
@@ -1398,7 +1399,7 @@ void stop_follower(struct char_data *ch)
   if (IS_NPC(ch) && (MOB_FLAGGED(ch, MOB_C_ANIMAL) || MOB_FLAGGED(ch, MOB_C_FAMILIAR) ||
           MOB_FLAGGED(ch, MOB_C_MOUNT) || MOB_FLAGGED(ch, MOB_ELEMENTAL) ||
           MOB_FLAGGED(ch, MOB_ANIMATED_DEAD)))
-    extract_char(ch);
+    attach_mud_event(new_mud_event(ePURGEMOB, ch, NULL), (6 * PASSES_PER_SEC));
 
 }
 
