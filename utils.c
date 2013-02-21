@@ -1395,6 +1395,11 @@ void stop_follower(struct char_data *ch)
 
   ch->master = NULL;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_CHARM);
+  if (IS_NPC(ch) && (MOB_FLAGGED(ch, MOB_C_ANIMAL) || MOB_FLAGGED(ch, MOB_C_FAMILIAR) ||
+          MOB_FLAGGED(ch, MOB_C_MOUNT) || MOB_FLAGGED(ch, MOB_ELEMENTAL) ||
+          MOB_FLAGGED(ch, MOB_ANIMATED_DEAD)))
+    extract_char(ch);
+
 }
 
 /** Finds the number of follows that are following, and charmed by, the
