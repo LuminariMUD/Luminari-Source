@@ -1399,7 +1399,7 @@ void stop_follower(struct char_data *ch)
   if (IS_NPC(ch) && (MOB_FLAGGED(ch, MOB_C_ANIMAL) || MOB_FLAGGED(ch, MOB_C_FAMILIAR) ||
           MOB_FLAGGED(ch, MOB_C_MOUNT) || MOB_FLAGGED(ch, MOB_ELEMENTAL) ||
           MOB_FLAGGED(ch, MOB_ANIMATED_DEAD)))
-    attach_mud_event(new_mud_event(ePURGEMOB, ch, NULL), (6 * PASSES_PER_SEC));
+    attach_mud_event(new_mud_event(ePURGEMOB, ch, NULL), (12 * PASSES_PER_SEC));
 
 }
 
