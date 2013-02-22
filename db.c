@@ -1704,6 +1704,14 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     GET_SIZE(mob_proto + i) = num_arg;
   }
 
+  CASE("Walkin") {
+    mob_proto[i].player.walkin = value;
+  }
+  
+  CASE("Walkout") {
+    mob_proto[i].player.walkout = value;
+  }
+  
   if (!matched) {
     log("SYSERR: Warning: unrecognized espec keyword %s in mob #%d",
 	    keyword, nr);
