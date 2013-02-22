@@ -215,7 +215,7 @@ int copy_mobile_strings(struct char_data *t, struct char_data *f)
   if (f->player.description)
     t->player.description = strdup(f->player.description);
   if (f->player.walkin)
-    t->player.walkin = strdup(f->player.description);
+    t->player.walkin = strdup(f->player.walkin);
   if (f->player.walkout)
     t->player.walkout = strdup(f->player.walkout);
   return TRUE;
