@@ -552,6 +552,8 @@ static void medit_disp_menu(struct descriptor_data *d)
 	"%sF%s) SubRace   : %s%s\r\n"
 	"%sC%s) Class     : %s%s\r\n"
 	"%sI%s) Size      : %s%s\r\n"
+          "%sJ%s) Walk-In   : %s%s\r\n"
+          "%sK%s) Walk-Out  : %s%s\r\n"
 	  "%sA%s) NPC Flags : %s%s\r\n"
 	  "%sB%s) AFF Flags : %s%s\r\n"
           "%sS%s) Script    : %s%s\r\n"
@@ -570,9 +572,11 @@ static void medit_disp_menu(struct descriptor_data *d)
           grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 2)],
           grn, nrm, yel, pc_class_types[GET_CLASS(mob)],
           grn, nrm, yel, size_names[GET_SIZE(mob)],
+          grn, nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.",
+          grn, nrm, yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.",
 	  grn, nrm, cyn, flags,
 	  grn, nrm, cyn, flag2,
-          grn, nrm, cyn, OLC_SCRIPT(d) ?"Set.":"Not Set.",
+          grn, nrm, cyn, OLC_SCRIPT(d) ?"Set." : "Not Set.",
           grn, nrm,
 	  grn, nrm,
 	  grn, nrm
@@ -779,6 +783,12 @@ void medit_parse(struct descriptor_data *d, char *arg)
        OLC_MODE(d) = MEDIT_SIZE;
        medit_disp_size(d);
        return;
+      case 'j':
+      case 'J': // walk-in
+        return;
+      case 'k':
+      case 'K': // walk-out
+        return;
     case 'a':
     case 'A':
       OLC_MODE(d) = MEDIT_NPC_FLAGS;
