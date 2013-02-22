@@ -566,7 +566,11 @@ void destroy_db(void)
       free(mob_proto[cnt].player.long_descr);
     if (mob_proto[cnt].player.description)
       free(mob_proto[cnt].player.description);
-
+    if (mob_proto[cnt].player.walkin)
+      free(mob_proto[cnt].player.walkin);
+    if (mob_proto[cnt].player.walkout)
+      free(mob_proto[cnt].player.walkout);
+    
     /* free script proto list */
     free_proto_script(&mob_proto[cnt], MOB_TRIGGER);
 
@@ -1748,7 +1752,8 @@ void parse_mobile(FILE *mob_f, int nr)
   int j, t[10], retval;
   char line[READ_SIZE], *tmpptr, letter;
   char f1[128], f2[128], f3[128], f4[128], f5[128], f6[128], f7[128], f8[128], buf2[128];
-
+  char *message;
+  
   mob_index[i].vnum = nr;
   mob_index[i].number = 0;
   mob_index[i].func = NULL;
@@ -1772,6 +1777,16 @@ void parse_mobile(FILE *mob_f, int nr)
   mob_proto[i].player.description = fread_string(mob_f, buf2);
   GET_TITLE(mob_proto + i) = NULL;
 
+  /* add an extra two strings for walk-in/walk-out (optional) */
+  if ((message = fread_string(mob_f, buf2)) != NULL) {
+    // walk-in
+    mob_proto[i].player.walkin = message;
+    if ((message = fread_string(mob_f, buf2)) != NULL) {
+      // walk-out
+      mob_proto[i].player.walkout = message;
+    }
+  }
+  
   /* Numeric data */
   if (!get_line(mob_f, line)) {
     log("SYSERR: Format error after string section of mob #%d\n"
@@ -3402,6 +3417,10 @@ void free_char(struct char_data *ch)
       free(ch->player.long_descr);
     if (ch->player.description)
       free(ch->player.description);
+    if (ch->player.walkin)
+      free(ch->player.walkin);
+    if (ch->player.walkout)
+      free(ch->player.walkout);
     for (i = 0; i < NUM_HIST; i++)
       if (GET_HISTORY(ch, i))
         free_history(ch, i);
@@ -3424,6 +3443,10 @@ void free_char(struct char_data *ch)
       free(ch->player.long_descr);
     if (ch->player.description && ch->player.description != mob_proto[i].player.description)
       free(ch->player.description);
+    if (ch->player.walkin && ch->player.walkin != mob_proto[i].player.walkin)
+      free(ch->player.walkin);
+    if (ch->player.walkout && ch->player.walkout != mob_proto[i].player.walkout)
+      free(ch->player.walkout);
     /* free script proto list if it's not the prototype */
     if (ch->proto_script && ch->proto_script != mob_proto[i].proto_script)
       free_proto_script(ch, MOB_TRIGGER);
@@ -3676,6 +3699,8 @@ void init_char(struct char_data *ch)
   ch->player.short_descr = NULL;
   ch->player.long_descr = NULL;
   ch->player.description = NULL;
+  ch->player.walkin = NULL;
+  ch->player.walkout = NULL;
 
   GET_NUM_QUESTS(ch) = 0;
   ch->player_specials->saved.completed_quests = NULL;

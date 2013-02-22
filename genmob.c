@@ -99,42 +99,49 @@ int copy_mobile(struct char_data *to, struct char_data *from)
   return TRUE;
 }
 
-static void extract_mobile_all(mob_vnum vnum)
-{
+static void extract_mobile_all(mob_vnum vnum) {
   struct char_data *next, *ch;
   int i;
 
   for (ch = character_list; ch; ch = next) {
     next = ch->next;
     if (GET_MOB_VNUM(ch) == vnum) {
-			if ((i = GET_MOB_RNUM(ch)) != NOBODY) {
-	    if (ch->player.name && ch->player.name != mob_proto[i].player.name)
+      if ((i = GET_MOB_RNUM(ch)) != NOBODY) {
+        if (ch->player.name && ch->player.name != mob_proto[i].player.name)
           free(ch->player.name);
-				ch->player.name = NULL;
-				
+        ch->player.name = NULL;
+
         if (ch->player.title && ch->player.title != mob_proto[i].player.title)
           free(ch->player.title);
-				ch->player.title = NULL;
-				
+        ch->player.title = NULL;
+
         if (ch->player.short_descr && ch->player.short_descr != mob_proto[i].player.short_descr)
           free(ch->player.short_descr);
-				ch->player.short_descr = NULL;
-				
+        ch->player.short_descr = NULL;
+
         if (ch->player.long_descr && ch->player.long_descr != mob_proto[i].player.long_descr)
           free(ch->player.long_descr);
-				ch->player.long_descr = NULL;
-				
+        ch->player.long_descr = NULL;
+
         if (ch->player.description && ch->player.description != mob_proto[i].player.description)
           free(ch->player.description);
-				ch->player.description = NULL;
-    
+        ch->player.description = NULL;
+
+        if (ch->player.walkin && ch->player.walkin != mob_proto[i].player.walkin)
+          free(ch->player.walkin);
+        ch->player.walkin = NULL;
+
+        if (ch->player.walkout && ch->player.walkout != mob_proto[i].player.walkout)
+          free(ch->player.walkout);
+        ch->player.walkout = NULL;
+
         /* free script proto list if it's not the prototype */
         if (ch->proto_script && ch->proto_script != mob_proto[i].proto_script)
-          free_proto_script(ch, MOB_TRIGGER);			
-				ch->proto_script = NULL;
-			}
+          free_proto_script(ch, MOB_TRIGGER);
+        ch->proto_script = NULL;
+      }
       extract_char(ch);
-		}
+    }
   }
 }
 
@@ -207,6 +214,10 @@ int copy_mobile_strings(struct char_data *t, struct char_data *f)
     t->player.long_descr = strdup(f->player.long_descr);
   if (f->player.description)
     t->player.description = strdup(f->player.description);
+  if (f->player.walkin)
+    t->player.walkin = strdup(f->player.description);
+  if (f->player.walkout)
+    t->player.walkout = strdup(f->player.walkout);
   return TRUE;
 }
 
@@ -222,6 +233,10 @@ int update_mobile_strings(struct char_data *t, struct char_data *f)
     t->player.long_descr = f->player.long_descr;
   if (f->player.description)
     t->player.description = f->player.description;
+  if (f->player.walkin)
+    t->player.walkin = f->player.walkin;
+  if (f->player.walkout)
+    t->player.walkout = f->player.walkout;
   return TRUE;
 }
 
@@ -237,6 +252,10 @@ int free_mobile_strings(struct char_data *mob)
     free(mob->player.long_descr);
   if (mob->player.description)
     free(mob->player.description);
+  if (mob->player.walkin)
+    free(mob->player.walkin);
+  if (mob->player.walkout)
+    free(mob->player.walkout);
   return TRUE;
 }
 
@@ -265,6 +284,10 @@ int free_mobile(struct char_data *mob)
       free(mob->player.long_descr);
     if (mob->player.description && mob->player.description != mob_proto[i].player.description)
       free(mob->player.description);
+    if (mob->player.walkin && mob->player.walkin != mob_proto[i].player.walkin)
+      free(mob->player.walkin);
+    if (mob->player.walkout && mob->player.walkout != mob_proto[i].player.walkout)
+      free(mob->player.walkout);
     /* free script proto list if it's not the prototype */
     if (mob->proto_script && mob->proto_script != mob_proto[i].proto_script)
       free_proto_script(mob, MOB_TRIGGER);
@@ -394,6 +417,13 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
 
   
   fprintf(fd, convert_from_tabs(buf), 0);
+  
+  if (GET_WALKIN(mob)) {
+    fprintf(fd, "%s%c\n", GET_WALKIN(mob), STRING_TERMINATOR);
+    if (GET_WALKOUT(mob)) {
+      fprintf(fd, "%s%c\n", GET_WALKOUT(mob), STRING_TERMINATOR);
+    }
+  }
 
   fprintf(fd, "%d %d %d %d %d %d %d %d %d E\n"
       "%d %d %d %dd%d+%d %dd%d+%d\n",
@@ -433,6 +463,8 @@ void check_mobile_strings(struct char_data *mob)
   check_mobile_string(mvnum, &GET_DDESC(mob), "detailed description");
   check_mobile_string(mvnum, &GET_ALIAS(mob), "alias list");
   check_mobile_string(mvnum, &GET_SDESC(mob), "short description");
+  //check_mobile_string(mvnum, &GET_WALKIN(mob), "walkin");
+  //check_mobile_string(mvnum, &GET_WALKOUT(mob), "walkout");
 }
 
 void check_mobile_string(mob_vnum i, char **string, const char *desc)

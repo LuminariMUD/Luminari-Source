@@ -637,8 +637,14 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
       /* sneak versus listen check */
       if (can_hear_sneaking(tch, ch)) {
         /* detected! */
-        snprintf(buf2, sizeof (buf2), "$n leaves %s.", dirs[dir]);
-        act(buf2, TRUE, ch, 0, tch, TO_VICT);
+        if (IS_NPC(ch) && (ch->player.walkout != NULL)) {
+          // if they have a walk-out message, display that instead of the boring default one
+          snprintf(buf2, sizeof(buf2), "%s %s.", ch->player.walkout, dirs[dir]);
+          act(buf2, TRUE, ch, 0, tch, TO_VICT);
+        } else {
+          snprintf(buf2, sizeof (buf2), "$n leaves %s.", dirs[dir]);
+          act(buf2, TRUE, ch, 0, tch, TO_VICT);
+        }
       } /* if we pass this check, we are sneaking */
     }
     /* message to self */
@@ -730,9 +736,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
       /* sneak versus listen check */
       if (can_hear_sneaking(tch, ch)) {
         /* failed sneak attempt (if valid) */
-        snprintf(buf2, sizeof (buf2), "$n arrives from %s%s.",
-                ((dir == UP || dir == DOWN) ? "" : "the "),
-                (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+        if (IS_NPC(ch) && ch->player.walkin) {
+          snprintf(buf2, sizeof(buf2), "%s %s%s.",
+                  ((dir == UP || dir == DOWN) ? "" : "the "),
+                  (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+        } else {
+          snprintf(buf2, sizeof (buf2), "$n arrives from %s%s.",
+                  ((dir == UP || dir == DOWN) ? "" : "the "),
+                  (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+        }
         act(buf2, TRUE, ch, 0, tch, TO_VICT);
       }
     }
