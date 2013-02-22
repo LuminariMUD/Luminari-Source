@@ -1752,6 +1752,7 @@ void parse_mobile(FILE *mob_f, int nr)
   int j, t[10], retval;
   char line[READ_SIZE], *tmpptr, letter;
   char f1[128], f2[128], f3[128], f4[128], f5[128], f6[128], f7[128], f8[128], buf2[128];
+  char walk[MAX_STRING_LENGTH];
   char *message;
   
   mob_index[i].vnum = nr;
@@ -1778,7 +1779,7 @@ void parse_mobile(FILE *mob_f, int nr)
   GET_TITLE(mob_proto + i) = NULL;
 
   /* add an extra two strings for walk-in/walk-out (optional) */
-  if ((retval = sscanf(line, "%s~", &message)) == 1) {
+  if ((retval = sscanf(line, "%s~", walk)) == 1) {
     if ((message = fread_string(mob_f, buf2)) != NULL) {
       // walk-in
       mob_proto[i].player.walkin = message;
