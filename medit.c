@@ -790,11 +790,13 @@ void medit_parse(struct descriptor_data *d, char *arg)
        return;
       case 'j':
       case 'J': // walk-in
-        medit_disp_menu(d);
+        OLC_MODE(d) = MEDIT_WALKIN;
+        i--;
         return;
       case 'k':
       case 'K': // walk-out
-        medit_disp_menu(d);
+        OLC_MODE(d) = MEDIT_WALKOUT;
+        i--;
         return;
     case 'a':
     case 'A':
@@ -1053,6 +1055,30 @@ void medit_parse(struct descriptor_data *d, char *arg)
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: medit_parse(): Reached D_DESC case!");
     write_to_output(d, "Oops...\r\n");
     break;
+    
+    case MEDIT_WALKIN:
+      smash_tilde(arg);
+      if (GET_WALKIN(OLC_MOB(d)))
+        free(GET_WALKIN(OLC_MOB(d)));
+      if (arg && *arg) {
+        char buf[MAX_INPUT_LENGTH];
+        snprintf(buf, sizeof(buf), "%s\r\n", arg);
+        GET_WALKIN(OLC_MOB(d)) = strdup(buf);        
+      } else
+        GET_WALKIN(OLC_MOB(d)) = NULL;
+      break;
+      
+    case MEDIT_WALKOUT:
+      smash_tilde(arg);
+      if (GET_WALKOUT(OLC_MOB(d)))
+        free(GET_WALKOUT(OLC_MOB(d)));
+      if (arg && *arg) {
+        char buf[MAX_INPUT_LENGTH];
+        snprintf(buf, sizeof(buf), "%s\r\n", arg);
+        GET_WALKOUT(OLC_MOB(d)) = strdup(buf);
+      } else
+        GET_WALKOUT(OLC_MOB(d)) = NULL;
+      break;
 
   case MEDIT_NPC_FLAGS:
     if ((i = atoi(arg)) <= 0)
