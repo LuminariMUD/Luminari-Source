@@ -1752,8 +1752,8 @@ void parse_mobile(FILE *mob_f, int nr)
   int j, t[10], retval;
   char line[READ_SIZE], *tmpptr, letter;
   char f1[128], f2[128], f3[128], f4[128], f5[128], f6[128], f7[128], f8[128], buf2[128];
-  char walk[MAX_STRING_LENGTH];
-  char *message;
+//  char walk[MAX_STRING_LENGTH];
+//  char *message;
   
   mob_index[i].vnum = nr;
   mob_index[i].number = 0;

@@ -259,6 +259,8 @@
 #define SPELL_ACID                 217  //acid fog proc
 #define SPELL_HOLY_SWORD           218  //paladin
 #define SPELL_INCENDIARY           219  // incendiary cloud
+//#define SPELL_CURE_MODERATE             16  //done
+//#define SPELL_CURE_SERIOUS             16  //done
 /** Total Number of defined spells */
 #define NUM_SPELLS                 220
 
