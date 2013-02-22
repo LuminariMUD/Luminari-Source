@@ -1292,6 +1292,8 @@ struct char_player_data
   ubyte height;                  /**< PC / NPC height */
   byte race;			// Race
   int size;	// size
+  char *walkin;                 // NPC (for now) walkin message
+  char *walkout;                // NPC (for now) walkout message
 };
 
 /** Character abilities. Different instances of this structure are used for
