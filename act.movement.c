@@ -737,7 +737,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
       if (can_hear_sneaking(tch, ch)) {
         /* failed sneak attempt (if valid) */
         if (IS_NPC(ch) && ch->player.walkin) {
-          snprintf(buf2, sizeof(buf2), "%s %s%s.",
+          snprintf(buf2, sizeof(buf2), "%s %s%s.", ch->player.walkin,
                   ((dir == UP || dir == DOWN) ? "" : "the "),
                   (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
         } else {
