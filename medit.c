@@ -194,6 +194,11 @@ static void medit_setup_new(struct descriptor_data *d)
   GET_SDESC(mob) = strdup("the unfinished mob");
   GET_LDESC(mob) = strdup("An unfinished mob stands here.\r\n");
   GET_DDESC(mob) = strdup("It looks unfinished.\r\n");
+  /* these don't need to be set up with defaults, because if we
+   * don't assign a value, they will use the stock messages
+  GET_WALKIN(mob) = strdup("$n enters from");
+  GET_WALKOUT(mob) = strdup("$n leaves");
+   */
   SCRIPT(mob) = NULL;
   mob->proto_script = OLC_SCRIPT(d) = NULL;
 
@@ -576,7 +581,7 @@ static void medit_disp_menu(struct descriptor_data *d)
           grn, nrm, yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.",
 	  grn, nrm, cyn, flags,
 	  grn, nrm, cyn, flag2,
-          grn, nrm, cyn, OLC_SCRIPT(d) ?"Set." : "Not Set.",
+          grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
           grn, nrm,
 	  grn, nrm,
 	  grn, nrm
@@ -785,9 +790,11 @@ void medit_parse(struct descriptor_data *d, char *arg)
        return;
       case 'j':
       case 'J': // walk-in
+        medit_disp_menu(d);
         return;
       case 'k':
       case 'K': // walk-out
+        medit_disp_menu(d);
         return;
     case 'a':
     case 'A':
