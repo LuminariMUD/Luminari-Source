@@ -388,6 +388,10 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     fprintf(fd, "Class: %d\n", GET_CLASS(mob));
   if (GET_SIZE(mob) != -1) 
     fprintf(fd, "Size: %d\n", GET_SIZE(mob));
+  if (GET_WALKIN(mob))
+    fprintf(fd, "Walkin: %s\n", GET_WALKIN(mob));
+  if (GET_WALKOUT(mob))
+    fprintf(fd, "Walkout: %s\n", GET_WALKOUT(mob));
   fputs("E\n", fd);
   return TRUE;
 }
@@ -418,13 +422,6 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   
   fprintf(fd, convert_from_tabs(buf), 0);
   
-  if (GET_WALKIN(mob)) {
-    fprintf(fd, "%s%c\n", GET_WALKIN(mob), STRING_TERMINATOR);
-    if (GET_WALKOUT(mob)) {
-      fprintf(fd, "%s%c\n", GET_WALKOUT(mob), STRING_TERMINATOR);
-    }
-  }
-
   fprintf(fd, "%d %d %d %d %d %d %d %d %d E\n"
       "%d %d %d %dd%d+%d %dd%d+%d\n",
       MOB_FLAGS(mob)[0], MOB_FLAGS(mob)[1],

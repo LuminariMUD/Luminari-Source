@@ -1062,7 +1062,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
         free(GET_WALKIN(OLC_MOB(d)));
       if (arg && *arg) {
         char buf[MAX_INPUT_LENGTH];
-        snprintf(buf, sizeof(buf), "%s\r\n", arg);
+        snprintf(buf, sizeof(buf), "%s", arg);
         GET_WALKIN(OLC_MOB(d)) = strdup(buf);        
       } else
         GET_WALKIN(OLC_MOB(d)) = NULL;
@@ -1074,7 +1074,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
         free(GET_WALKOUT(OLC_MOB(d)));
       if (arg && *arg) {
         char buf[MAX_INPUT_LENGTH];
-        snprintf(buf, sizeof(buf), "%s\r\n", arg);
+        snprintf(buf, sizeof(buf), "%s", arg);
         GET_WALKOUT(OLC_MOB(d)) = strdup(buf);
       } else
         GET_WALKOUT(OLC_MOB(d)) = NULL;
