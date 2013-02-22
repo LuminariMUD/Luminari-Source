@@ -1778,12 +1778,14 @@ void parse_mobile(FILE *mob_f, int nr)
   GET_TITLE(mob_proto + i) = NULL;
 
   /* add an extra two strings for walk-in/walk-out (optional) */
-  if ((message = fread_string(mob_f, buf2)) != NULL) {
-    // walk-in
-    mob_proto[i].player.walkin = message;
+  if ((retval = sscanf(line, "%s~", message)) == 1) {
     if ((message = fread_string(mob_f, buf2)) != NULL) {
-      // walk-out
-      mob_proto[i].player.walkout = message;
+      // walk-in
+      mob_proto[i].player.walkin = message;
+      if ((message = fread_string(mob_f, buf2)) != NULL) {
+        // walk-out
+        mob_proto[i].player.walkout = message;
+      }
     }
   }
   
