@@ -651,8 +651,14 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     send_to_char(ch, "You sneak %s.\r\n", dirs[dir]);
   }/* not attempting to sneak */
   else if (!IS_AFFECTED(ch, AFF_SNEAK)) {
-    snprintf(buf2, sizeof (buf2), "$n leaves %s.", dirs[dir]);
-    act(buf2, TRUE, ch, 0, 0, TO_ROOM);
+    if (IS_NPC(ch) && (ch->player.walkout != NULL)) {
+      // if they have a walk-out message, display that instead of the boring default one
+      snprintf(buf2, sizeof(buf2), "%s %s.", ch->player.walkout, dirs[dir]);
+      act(buf2, TRUE, ch, 0, tch, TO_VICT);
+    } else {
+      snprintf(buf2, sizeof (buf2), "$n leaves %s.", dirs[dir]);
+      act(buf2, TRUE, ch, 0, 0, TO_ROOM);
+    }
     /* message to self */
     send_to_char(ch, "You leave %s.\r\n", dirs[dir]);
   }
