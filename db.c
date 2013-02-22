@@ -1705,11 +1705,11 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   }
 
   CASE("Walkin") {
-    mob_proto[i].player.walkin = value;
+    mob_proto[i].player.walkin = strdup(value);
   }
   
   CASE("Walkout") {
-    mob_proto[i].player.walkout = value;
+    mob_proto[i].player.walkout = strdup(value);
   }
   
   if (!matched) {
@@ -1785,18 +1785,6 @@ void parse_mobile(FILE *mob_f, int nr)
   mob_proto[i].player.long_descr = fread_string(mob_f, buf2);
   mob_proto[i].player.description = fread_string(mob_f, buf2);
   GET_TITLE(mob_proto + i) = NULL;
-
-  /* add an extra two strings for walk-in/walk-out (optional) */
-  /*if ((retval = sscanf(line, "%s~", walk)) == 1) {
-    if ((message = fread_string(mob_f, buf2)) != NULL) {
-      // walk-in
-      mob_proto[i].player.walkin = message;
-      if ((message = fread_string(mob_f, buf2)) != NULL) {
-        // walk-out
-        mob_proto[i].player.walkout = message;
-      }
-    }
-  }*/
   
   /* Numeric data */
   if (!get_line(mob_f, line)) {
