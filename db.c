@@ -1779,7 +1779,7 @@ void parse_mobile(FILE *mob_f, int nr)
   GET_TITLE(mob_proto + i) = NULL;
 
   /* add an extra two strings for walk-in/walk-out (optional) */
-  if ((retval = sscanf(line, "%s~", walk)) == 1) {
+  /*if ((retval = sscanf(line, "%s~", walk)) == 1) {
     if ((message = fread_string(mob_f, buf2)) != NULL) {
       // walk-in
       mob_proto[i].player.walkin = message;
@@ -1788,7 +1788,7 @@ void parse_mobile(FILE *mob_f, int nr)
         mob_proto[i].player.walkout = message;
       }
     }
-  }
+  }*/
   
   /* Numeric data */
   if (!get_line(mob_f, line)) {
