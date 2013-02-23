@@ -369,7 +369,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
         send_to_char(ch, "\tB(Blue Aura)\tn ");
     }
 
-    send_to_char(ch, "%s", i->player.long_descr);
+    send_to_char(ch, "%s", CAP(i->player.long_descr));
 
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
