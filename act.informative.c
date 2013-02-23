@@ -237,7 +237,7 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
     {  -1, "is bleeding awfully from big wounds."	},
   };
   int percent, ar_index;
-  const char *pers = PERS(i, ch);
+  char *pers = PERS(i, ch);
 
   if (GET_MAX_HIT(i) > 0)
     percent = (100 * GET_HIT(i)) / GET_MAX_HIT(i);
@@ -249,18 +249,18 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
       break;
 
   if (!IS_NPC(i))
-    send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(*pers), size_names[GET_SIZE(i)],
+    send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers), size_names[GET_SIZE(i)],
                  RACE_ABBR(i), diagnosis[ar_index].text);
   else if (IS_NPC(i) && GET_RACE(i) <= NPCRACE_UNKNOWN)
-    send_to_char(ch, "%s %s\r\n", CAP(*pers),
+    send_to_char(ch, "%s %s\r\n", CAP(pers),
                  diagnosis[ar_index].text);
   else if (IS_NPC(i) && GET_SUBRACE(i, 0) <= SUBRACE_UNKNOWN
           && GET_SUBRACE(i, 1) <= SUBRACE_UNKNOWN
           && GET_SUBRACE(i, 2) <= SUBRACE_UNKNOWN)
-    send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(*pers), 
+    send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers), 
             size_names[GET_SIZE(i)], RACE_ABBR(i), diagnosis[ar_index].text);
   else
-    send_to_char(ch, "%s \tn[%s %s/%s/%s %s\tn] %s\r\n", CAP(*pers),
+    send_to_char(ch, "%s \tn[%s %s/%s/%s %s\tn] %s\r\n", CAP(pers),
             size_names[GET_SIZE(i)], npc_subrace_abbrevs[GET_SUBRACE(i, 0)],
             npc_subrace_abbrevs[GET_SUBRACE(i, 1)],
             npc_subrace_abbrevs[GET_SUBRACE(i, 2)],
