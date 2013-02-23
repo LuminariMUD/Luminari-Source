@@ -1226,18 +1226,21 @@ ACMD(do_score)
 
   send_to_char(ch, "\tCTitle:\tn %s\r\n", GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
 
-  send_to_char(ch, "\tCClass(es):\tn ");
   if (!IS_NPC(ch))
     for (i = 0; i < MAX_CLASSES; i++) {
       if (CLASS_LEVEL(ch, i)) {
         if (counter)
-          send_to_char(ch, " / ");
-        send_to_char(ch, "%d %s", CLASS_LEVEL(ch, i), class_abbrevs[i]);
+          strcat(buf, " / ");
+          //send_to_char(ch, " / ");
+        snprintf(buf, sizeof(buf), "%d %s", CLASS_LEVEL(ch, i), class_abbrevs[i]);
+        //send_to_char(ch, "%d %s", CLASS_LEVEL(ch, i), class_abbrevs[i]);
         counter++;
       }  
     }
   else
-    send_to_char(ch, " %s", CLASS_ABBR(ch));
+    snprintf(buf, sizeof(buf), " %s", CLASS_ABBR(ch));
+    //send_to_char(ch, " %s", CLASS_ABBR(ch));
+  send_to_char(ch, "\tCClass%s):\tn %s", (counter == 1 ? "" : "es"), buf);
 
   send_to_char(ch, "\r\n\tCLevel:\tn %d  \tCRace:\tn %s "
           "(\tDType 'innates'\tn)  \tCSex:\tn ",
@@ -1245,7 +1248,7 @@ ACMD(do_score)
   switch (GET_SEX(ch)) {
     case SEX_MALE: send_to_char(ch, "Male\r\n"); break;
     case SEX_FEMALE: send_to_char(ch, "Female\r\n"); break;
-    default: strcat(buf, "Neutral\r\n"); break;
+    default: send_to_char(ch, "Neutral\r\n"); break;
   }
 
   send_to_char(ch, "\tCPlaying time:\tn %d \tCdays /\tn %d \tChours\tn\r\n",
