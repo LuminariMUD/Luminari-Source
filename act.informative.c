@@ -266,7 +266,7 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
             npc_subrace_abbrevs[GET_SUBRACE(i, 2)],
             RACE_ABBR(i), diagnosis[ar_index].text);
   free(pers);
-  *pers = NULL;
+  pers = NULL;
 }
 
 static void look_at_char(struct char_data *i, struct char_data *ch)
