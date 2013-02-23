@@ -41,6 +41,7 @@ static void look_at_char(struct char_data *i, struct char_data *ch);
 static void look_at_target(struct char_data *ch, char *arg);
 static void look_in_direction(struct char_data *ch, int dir);
 static void look_in_obj(struct char_data *ch, char *arg);
+void strip_colors(char *str);
 /* do_look, do_inventory utility functions */
 static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show);
 /* do_look, do_equipment, do_examine, do_inventory */
@@ -248,18 +249,18 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
       break;
 
   if (!IS_NPC(i))
-    send_to_char(ch, "%c%s \tn[%s %s\tn] %s\r\n", UPPER(*pers), pers + 1, size_names[GET_SIZE(i)],
+    send_to_char(ch, "%c%s \tn[%s %s\tn] %s\r\n", CAP(*pers), pers + 1, size_names[GET_SIZE(i)],
                  RACE_ABBR(i), diagnosis[ar_index].text);
   else if (IS_NPC(i) && GET_RACE(i) <= NPCRACE_UNKNOWN)
-    send_to_char(ch, "%c%s %s\r\n", UPPER(*pers), pers + 1,
+    send_to_char(ch, "%c%s %s\r\n", CAP(*pers), pers + 1,
                  diagnosis[ar_index].text);
   else if (IS_NPC(i) && GET_SUBRACE(i, 0) <= SUBRACE_UNKNOWN
           && GET_SUBRACE(i, 1) <= SUBRACE_UNKNOWN
           && GET_SUBRACE(i, 2) <= SUBRACE_UNKNOWN)
-    send_to_char(ch, "%c%s \tn[%s %s\tn] %s\r\n", UPPER(*pers), pers + 1,
+    send_to_char(ch, "%c%s \tn[%s %s\tn] %s\r\n", CAP(*pers), pers + 1,
             size_names[GET_SIZE(i)], RACE_ABBR(i), diagnosis[ar_index].text);
   else
-    send_to_char(ch, "%c%s \tn[%s %s/%s/%s %s\tn] %s\r\n", UPPER(*pers), pers + 1,
+    send_to_char(ch, "%c%s \tn[%s %s/%s/%s %s\tn] %s\r\n", CAP(*pers), pers + 1,
             size_names[GET_SIZE(i)], npc_subrace_abbrevs[GET_SUBRACE(i, 0)],
             npc_subrace_abbrevs[GET_SUBRACE(i, 1)],
             npc_subrace_abbrevs[GET_SUBRACE(i, 2)],
