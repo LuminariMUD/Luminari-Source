@@ -324,6 +324,7 @@ static void look_at_char(struct char_data *i, struct char_data *ch)
 static void list_one_char(struct char_data *i, struct char_data *ch)
 {
   struct obj_data *furniture;
+  char *short_descr;
   const char *positions[] = {
     " is lying here, dead.",
     " is lying here, mortally wounded.",
@@ -369,7 +370,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
         send_to_char(ch, "\tB(Blue Aura)\tn ");
     }
 
-    send_to_char(ch, "%s", CAP(i->player.long_descr));
+    send_to_char(ch, "%s", i->player.long_descr);
 
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
@@ -402,9 +403,12 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     return;
   }  
 
-  if (IS_NPC(i))
-    send_to_char(ch, "%c%s", UPPER(*i->player.short_descr), i->player.short_descr + 1);
-  else
+  if (IS_NPC(i)) {
+    short_descr = strdup(i->player.short_descr);
+    send_to_char(ch, "%s", CAP(short_descr));
+    free(short_descr);
+    short_descr = NULL;
+  } else
     send_to_char(ch, "\tn[%s] %s%s%s", RACE_ABBR(i), i->player.name,
 	*GET_TITLE(i) ? " " : "", GET_TITLE(i));
 
