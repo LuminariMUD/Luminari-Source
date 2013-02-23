@@ -237,7 +237,7 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
     {  -1, "is bleeding awfully from big wounds."	},
   };
   int percent, ar_index;
-  char *pers = PERS(i, ch);
+  char *pers = strdup(PERS(i, ch));
 
   if (GET_MAX_HIT(i) > 0)
     percent = (100 * GET_HIT(i)) / GET_MAX_HIT(i);
@@ -265,6 +265,8 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
             npc_subrace_abbrevs[GET_SUBRACE(i, 1)],
             npc_subrace_abbrevs[GET_SUBRACE(i, 2)],
             RACE_ABBR(i), diagnosis[ar_index].text);
+  free(pers);
+  *pers = NULL;
 }
 
 static void look_at_char(struct char_data *i, struct char_data *ch)
