@@ -1232,15 +1232,15 @@ ACMD(do_score)
         if (counter)
           strcat(buf, " / ");
           //send_to_char(ch, " / ");
-        snprintf(buf, sizeof(buf), "%d %s", CLASS_LEVEL(ch, i), class_abbrevs[i]);
+        sprintf(buf, "%s%d %s", buf, CLASS_LEVEL(ch, i), class_abbrevs[i]);
         //send_to_char(ch, "%d %s", CLASS_LEVEL(ch, i), class_abbrevs[i]);
         counter++;
       }  
     }
   else
-    snprintf(buf, sizeof(buf), " %s", CLASS_ABBR(ch));
+    strcpy(buf, CLASS_ABBR(ch));
     //send_to_char(ch, " %s", CLASS_ABBR(ch));
-  send_to_char(ch, "\tCClass%s):\tn %s", (counter == 1 ? "" : "es"), buf);
+  send_to_char(ch, "\tCClass%s:\tn %s", (counter == 1 ? "" : "es"), buf);
 
   send_to_char(ch, "\r\n\tCLevel:\tn %d  \tCRace:\tn %s "
           "(\tDType 'innates'\tn)  \tCSex:\tn ",
