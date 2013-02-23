@@ -105,6 +105,7 @@ ACMD(do_perform)
     if (affected_by_spell(ch, SKILL_PERFORM))
       return;
     SONG_AFF_VAL(ch) = MAX(1, level / 5);
+    GET_HIT(ch) += 20 + level;
     for (i = 0; i < BARD_AFFECTS; i++)
       affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);      
     return;
@@ -117,6 +118,7 @@ ACMD(do_perform)
     if (affected_by_spell(tch, SKILL_PERFORM))
       continue;
     SONG_AFF_VAL(tch) = MAX(1, level / 5);
+    GET_HIT(tch) += 20 + level;
     for (i = 0; i < BARD_AFFECTS; i++)
       affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);      
     act("A song from $n enhances you!", FALSE, ch, NULL, tch, TO_VICT);
