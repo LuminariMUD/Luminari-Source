@@ -1760,10 +1760,60 @@ void nanny(struct descriptor_data *d, char *arg)
       return;
     } else
       GET_RACE(d->character) = load_result;
+
+    switch (load_result) {
+      case RACE_HUMAN:
+        perform_help(d, "race-human");
+        break;
+      case RACE_ELF:
+        perform_help(d, "race-elf");
+        break;
+      case RACE_DWARF:
+        perform_help(d, "race-dwarf");
+        break;
+      case RACE_TROLL:
+        perform_help(d, "race-troll");
+        break;
+      case RACE_HALFLING:
+        perform_help(d, "race-halfling");
+        break;
+      case RACE_H_ELF:
+        perform_help(d, "race-halfelf");
+        break;
+      case RACE_H_ORC:
+        perform_help(d, "race-halforc");
+        break;
+      case RACE_GNOME:
+        perform_help(d, "race-gnome");
+        break;
+      default:
+        write_to_output(d, "\r\nCommand not understood.\r\n");
+        return;
+    }
+    STATE(d) = CON_QRACE_HELP;
+    break;
+    
+
+  case CON_QRACE_HELP:
+
+    if (UPPER(*arg) == 'Y')
+      write_to_output(d, "\r\nClass Confirmed!\r\n");
+    else if (UPPER(*arg) != 'N') {
+      write_to_output(d, "\r\nY)es to confirm N)o to reselect.\r\n");      
+      STATE(d) = CON_QRACE_HELP;
+      return;
+    } else {
+      write_to_output(d,"%s\r\nRace: ", race_menu);
+      STATE(d) = CON_QRACE;
+      return;
+    }
+    
+    /* display class menu */
     write_to_output(d, "%s\r\nClass: ", class_menu);
     STATE(d) = CON_QCLASS;
     break;
-
+    
+    
   case CON_QCLASS:
     load_result = parse_class(*arg);
     if (load_result == CLASS_UNDEFINED) {
@@ -1772,6 +1822,7 @@ void nanny(struct descriptor_data *d, char *arg)
     } else
       GET_CLASS(d->character) = load_result;
 
+    /* display class help files */
     switch (load_result) {
       case CLASS_WIZARD:
         perform_help(d, "class-wizard");
@@ -1814,6 +1865,7 @@ void nanny(struct descriptor_data *d, char *arg)
     STATE(d) = CON_QCLASS_HELP;
     break;
 
+    
   case CON_QCLASS_HELP:
 
     if (UPPER(*arg) == 'Y')
