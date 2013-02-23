@@ -791,16 +791,16 @@ void medit_parse(struct descriptor_data *d, char *arg)
       case 'j':
       case 'J': // walk-in
         write_to_output(d, "Please enter a new walkin with proper format:\r\n"
-                "Example:  $n stomps\r\n"
-                "Result:   The monster stomps north.\r\n");
+                "Example:  $n stomps in from\r\n"
+                "Result:   The monster stomps in from the north.\r\n");
         OLC_MODE(d) = MEDIT_WALKIN;
         i--;
         return;
       case 'k':
       case 'K': // walk-out
         write_to_output(d, "Please enter a new walkout with proper format:\r\n"
-                "Example:  $n stomps in from\r\n"
-                "Result:   The monster stomps in from the north.\r\n");
+                "Example:  $n stomps\r\n"
+                "Result:   The monster stomps north.\r\n");
         OLC_MODE(d) = MEDIT_WALKOUT;
         i--;
         return;
