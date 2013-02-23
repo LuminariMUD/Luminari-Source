@@ -1226,7 +1226,8 @@ ACMD(do_score)
 
   send_to_char(ch, "\tCTitle:\tn %s\r\n", GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
 
-  if (!IS_NPC(ch))
+  *buf = '\0';
+  if (!IS_NPC(ch)) {
     for (i = 0; i < MAX_CLASSES; i++) {
       if (CLASS_LEVEL(ch, i)) {
         if (counter)
@@ -1237,7 +1238,7 @@ ACMD(do_score)
         counter++;
       }  
     }
-  else
+  } else
     strcpy(buf, CLASS_ABBR(ch));
     //send_to_char(ch, " %s", CLASS_ABBR(ch));
   send_to_char(ch, "\tCClass%s:\tn %s", (counter == 1 ? "" : "es"), buf);
