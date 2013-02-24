@@ -1556,7 +1556,7 @@ static char *make_prompt(struct descriptor_data *d)
           else
             strcat(prompt, " \tRunconscious");
         }
-        len += 22;  // just counting the strcat's above
+        len += 20;  // just counting the strcat's above
       }  /* end tank elements */
       
       /* enemy name */
@@ -1591,7 +1591,7 @@ static char *make_prompt(struct descriptor_data *d)
           strcat(prompt, " \trawful");
         else
           strcat(prompt, " \tRunconscious");
-        len += 22;  // just counting the strcat's above
+        len += 20;  // just counting the strcat's above
       }
     } // end fighting
     /*********************************/
