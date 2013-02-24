@@ -148,8 +148,10 @@ void sentence_case(char *str)
   }
   
   for (; *p; p++) {
-    if ((*p == ' ' || *p == '\t') && (*p+1 == ' ' || *p+1 == '\t'))
-      *p = *p+1; // temporary testing something
+    if ((*p == ' ' || *p == '\t') && (*p+1 == ' ' || *p+1 == '\t')) {
+      *p = *(p+1); // temporary testing something
+      p++;
+    }
     
     while (strchr(".!?", *p)) {
       cap_next = TRUE;
