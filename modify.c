@@ -153,7 +153,7 @@ void sentence_case(char *str)
       p++;
     }
     
-    if (*p == ' ' && *(p+1) == ' ')
+    while (*p == ' ' && *p+1 == ' ')
       p++;
     
     if (cap_next) {
