@@ -1540,23 +1540,23 @@ static char *make_prompt(struct descriptor_data *d)
             percent = -1;
 
           if (percent >= 100)
-            strcat(prompt, " \tgperfect");
+            strcat(prompt, " \tgperfect\tn");
           else if (percent >= 90)
-            strcat(prompt, " \tyexcellent");
+            strcat(prompt, " \tyexcellent\tn");
           else if (percent >= 75)
-            strcat(prompt, " \tYgood");
+            strcat(prompt, " \tYgood\tn");
           else if (percent >= 50)
-            strcat(prompt, " \tMfair");
+            strcat(prompt, " \tMfair\tn");
           else if (percent >= 30)
-            strcat(prompt, " \tmpoor");
+            strcat(prompt, " \tmpoor\tn");
           else if (percent >= 15)
-            strcat(prompt, " \tRbad");
+            strcat(prompt, " \tRbad\tn");
           else if (percent >= 0)
-            strcat(prompt, " \trawful");
+            strcat(prompt, " \trawful\tn");
           else
-            strcat(prompt, " \tRunconscious");
+            strcat(prompt, " \tRunconscious\tn");
         }
-        len += 20;  // just counting the strcat's above
+        len += 22;  // just counting the strcat's above
       }  /* end tank elements */
       
       /* enemy name */
@@ -1576,33 +1576,31 @@ static char *make_prompt(struct descriptor_data *d)
       if (len < sizeof(prompt)) {
         strcat(prompt, " \tREC:");
         if (percent >= 100)
-          strcat(prompt, " \tgperfect");
+          strcat(prompt, " \tgperfect\tn");
         else if (percent >= 90)
-          strcat(prompt, " \tyexcellent");
+          strcat(prompt, " \tyexcellent\tn");
         else if (percent >= 75)
-          strcat(prompt, " \tYgood");
+          strcat(prompt, " \tYgood\tn");
         else if (percent >= 50)
-          strcat(prompt, " \tMfair");
+          strcat(prompt, " \tMfair\tn");
         else if (percent >= 30)
-          strcat(prompt, " \tmpoor");
+          strcat(prompt, " \tmpoor\tn");
         else if (percent >= 15)
-          strcat(prompt, " \tRbad");
+          strcat(prompt, " \tRbad\tn");
         else if (percent >= 0)
-          strcat(prompt, " \trawful");
+          strcat(prompt, " \trawful\tn");
         else
-          strcat(prompt, " \tRunconscious");
-        len += 20;  // just counting the strcat's above
+          strcat(prompt, " \tRunconscious\tn");
+        len += 22;  // just counting the strcat's above
       }
     } // end fighting
     /*********************************/
 
     if ((len < sizeof(prompt)) && !IS_NPC(d->character) &&
           !PRF_FLAGGED(d->character, PRF_COMPACT))
-      sprintf(prompt + strlen(prompt), "%s> %s\r\n",
-	         CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
+      strcat(prompt, "> \r\n");
     else if (len < sizeof(prompt))
-      sprintf(prompt + strlen(prompt), "%s> %s",
-	         CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM));
+      strcat(prompt, "> ");
 
     /* here we have our NPC prompt */
   } else if (STATE(d) == CON_PLAYING && IS_NPC(d->character)) {
