@@ -498,7 +498,8 @@ const char *connected_types[] = {
   "Spells Known Edit",	//35
   "Class Help",	//36
   "Alignment Selection",	//37
-  "\n"  /* make sure this matches NUM_CON_STATES:  38 */
+  "Race Help", // 38
+  "\n"  /* make sure this matches NUM_CON_STATES:  39 */
 };
 
 /** Describes the position in the equipment listing.
