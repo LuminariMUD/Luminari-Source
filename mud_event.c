@@ -116,8 +116,7 @@ EVENTFUNC(event_countdown)
       send_to_char(ch, "You are now able to 'defensive roll' again.\r\n");
       break;
     case eLAYONHANDS:
-      send_to_char(ch, "You are now able to perform a defensive roll "
-              "again.\r\n");
+      send_to_char(ch, "You are now able to lay on hands again.\r\n");
       break;
     case eTREATINJURY:
       send_to_char(ch, "You are now able to treat injuries again.\r\n");
