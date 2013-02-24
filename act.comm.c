@@ -54,7 +54,8 @@ ACMD(do_say) {
      */
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
       parse_at(argument);
-
+    format_text(&argument, 0 /* no flags */, NULL /*d*/, MAX_STRING_LENGTH, 1, 999999);
+    
     if (argument[strlen(argument) - 1] == '?') {
       // the argument ends in a question mark, it's probably a question
       snprintf(buf, sizeof (buf), "\tG$n asks, '%s'\tn", argument);
