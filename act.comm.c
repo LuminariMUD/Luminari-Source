@@ -98,7 +98,7 @@ ACMD(do_say) {
              argument[strlen(argument) - 2] == '.' &&
              argument[strlen(argument) - 3] == '.') {
       // the argument ends with three or more periods, mutter
-      argument[strlen(argument) - 2] = '\0'; // remove the trailing periods
+      //argument[strlen(argument) - 2] = '\0'; // remove the trailing periods
       snprintf(buf, sizeof (buf), "\tG$n mutters, '%s'\tn", argument);
       msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
 
@@ -116,10 +116,11 @@ ACMD(do_say) {
       }      
     }
     else {
+      // the argument ends something else, normal tone
+      // append a period if it isn't already there
       if (argument[strlen(argument) - 1] != '.')
         strcat(argument, ".");
       
-      // the argument ends something else, normal tone
       snprintf(buf, sizeof (buf), "\tG$n says, '%s'\tn", argument);
       msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
 
@@ -155,9 +156,9 @@ ACMD(do_gsay)
   if (!*argument)
     send_to_char(ch, "Yes, but WHAT do you want to group-say?\r\n");
   else {
-
     parse_at(argument);		
-		
+    sentence_case(argument);
+    
     send_to_group(ch, ch->group, "%s%s%s says, '%s'%s\r\n", CCGRN(ch, C_NRM), CCGRN(ch, C_NRM),
 	GET_NAME(ch), argument, CCNRM(ch, C_NRM));
     
@@ -172,6 +173,7 @@ static void perform_tell(struct char_data *ch, struct char_data *vict, char *arg
 {
   char buf[MAX_STRING_LENGTH], *msg;
 
+  sentence_case(arg);
   snprintf(buf, sizeof(buf), "%s$n tells you, '%s'%s", CBCYN(vict, C_NRM), arg, CCNRM(vict, C_NRM));
   msg = act(buf, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
   add_history(vict, msg, HIST_TELL);
@@ -344,6 +346,7 @@ ACMD(do_spec_comm)
 
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
       parse_at(buf2);    
+    sentence_case(buf2);
     
     snprintf(buf1, sizeof(buf1), "$n %s you, '%s'", action_plur, buf2);
     act(buf1, FALSE, ch, 0, vict, TO_VICT);
