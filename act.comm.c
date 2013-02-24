@@ -116,6 +116,9 @@ ACMD(do_say) {
       }      
     }
     else {
+      if (argument[strlen(argument) - 1] != '.')
+        strcat(argument, ".");
+      
       // the argument ends something else, normal tone
       snprintf(buf, sizeof (buf), "\tG$n says, '%s'\tn", argument);
       msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
