@@ -133,18 +133,34 @@ void sentence_case(char *str)
 {
   char *p = str;
   bool cap_next = TRUE;
+  int len;
+  
+  // remove leading spaces  
+  while (*str == ' ' || *str == '\t' || *str == '\n')
+    str++;
+
+  len = strlen(str);
+  
+  // remove trailing spaces
+  while (len >= 0 && (str[len - 1] == ' ' || str[len - 1] == '\t' || *str == '\n')) {
+    *(str + len - 1) = '\0';
+    len--;
+  }
   
   for (; *p; p++) {
-    // loop through the string one character at a time
-    if (*p == '.' && *(p+1) != '.')
-      // we have a period, capitalize the next letter
+    while (strchr(".!?", *p)) {
       cap_next = TRUE;
+      p++;
+    }
     
     if (cap_next && (*p != ' ' && *p != '.')) {
       *p = UPPER(*p);
       cap_next = FALSE;
     }
   }
+  
+  // now we want to strip off any trailing spaces
+  
 }
 
 /* Basic API function to start writing somewhere. 'data' isn't used, but you
