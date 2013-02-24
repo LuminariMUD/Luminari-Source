@@ -1974,8 +1974,8 @@ ACMD(do_users)
     }
   }				/* end while (parser) */
   send_to_char(ch,
-	 "Num Class   Name         State          Idl   Login\t*   Site\r\n"
-	 "--- ------- ------------ -------------- ----- -------- ------------------------\r\n");
+	 "Num Class    t Name         State          Idl   Login\t*   Site\r\n"
+	 "--- -------- ------------ -------------- ----- -------- ------------------------\r\n");
 
   one_argument(argument, arg);
 
