@@ -359,9 +359,8 @@ ACMD(do_spec_comm)
       parse_at(buf2);    
     sentence_case(buf2);
     // append period if it's not already there
-    if (argument[strlen(argument) - 1] != '.' && argument[strlen(argument) - 1] != '!' && argument[strlen(argument) - 1] != '?')
-      strcat(argument, punctuation);
-
+    if (buf2[strlen(buf2) - 1] != '.' && buf2[strlen(buf2) - 1] != '!' && buf2[strlen(buf2) - 1] != '?')
+      strcat(buf2, punctuation);
     
     snprintf(buf1, sizeof(buf1), "$n %s you, '%s'", action_plur, buf2);
     act(buf1, FALSE, ch, 0, vict, TO_VICT);
