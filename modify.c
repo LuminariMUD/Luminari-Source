@@ -149,7 +149,7 @@ void sentence_case(char *str)
   
   for (; *p; p++) {
     while (*p == ' ' || *p == '\t')
-      p++;
+      *p = '\0'; // temporary testing something
     
     while (strchr(".!?", *p)) {
       cap_next = TRUE;
