@@ -136,25 +136,25 @@ void sentence_case(char *str)
   int len;
   
   // remove leading spaces  
-  while (*str == ' ' || *str == '\t' || *str == '\n')
-    str++;
+  while (*p == ' ' || *p == '\t' || *p == '\n')
+    p++;
 
-  len = strlen(str);
+  len = strlen(p);
   
   // remove trailing spaces
-  while (len >= 0 && (str[len - 1] == ' ' || str[len - 1] == '\t' || *str == '\n')) {
-    *(str + len - 1) = '\0';
+  while (len >= 0 && (p[len - 1] == ' ' || p[len - 1] == '\t' || *p == '\n')) {
+    *(p + len - 1) = '\0';
     len--;
   }
   
   for (; *p; p++) {
+    while (*p == ' ' || *p == '\t')
+      p++;
+    
     while (strchr(".!?", *p)) {
       cap_next = TRUE;
       p++;
     }
-    
-    while (*p == ' ')
-      p++;
     
     if (cap_next) {
       *p = UPPER(*p);
