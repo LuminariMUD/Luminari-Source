@@ -129,6 +129,24 @@ void parse_tab(char *str)
 	 }
 }
 
+void sentence_case(char *str)
+{
+  char *p = str;
+  bool cap_next = TRUE;
+  
+  for (; *p; p++) {
+    // loop through the string one character at a time
+    if (*p == '.' && *(p+1) != '.')
+      // we have a period, capitalize the next letter
+      cap_next = TRUE;
+    
+    if (cap_next && (*p != ' ' && *p != '.')) {
+      *p = UPPER(*p);
+      cap_next = FALSE;
+    }
+  }
+}
+
 /* Basic API function to start writing somewhere. 'data' isn't used, but you
  * can use it to pass whatever else you may want through it.  The improved
  * editor patch when updated could use it to pass the old text buffer, for
