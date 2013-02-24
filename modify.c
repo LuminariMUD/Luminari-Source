@@ -153,7 +153,10 @@ void sentence_case(char *str)
       p++;
     }
     
-    if (cap_next && (*p != ' ' && *p != '.')) {
+    if (*p == ' ' && *(p+1) == ' ')
+      p++;
+    
+    if (cap_next) {
       *p = UPPER(*p);
       cap_next = FALSE;
     }
