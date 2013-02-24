@@ -41,7 +41,6 @@ static void look_at_char(struct char_data *i, struct char_data *ch);
 static void look_at_target(struct char_data *ch, char *arg);
 static void look_in_direction(struct char_data *ch, int dir);
 static void look_in_obj(struct char_data *ch, char *arg);
-void strip_colors(char *str);
 /* do_look, do_inventory utility functions */
 static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show);
 /* do_look, do_equipment, do_examine, do_inventory */
