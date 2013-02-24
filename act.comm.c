@@ -158,6 +158,9 @@ ACMD(do_gsay)
   else {
     parse_at(argument);		
     sentence_case(argument);
+    // append period if it's not already there
+    if (argument[strlen(argument) - 1] != '.' && argument[strlen(argument) - 1] != '!' && argument[strlen(argument) - 1] != '?')
+      strcat(argument, ".");
     
     send_to_group(ch, ch->group, "%s%s%s says, '%s'%s\r\n", CCGRN(ch, C_NRM), CCGRN(ch, C_NRM),
 	GET_NAME(ch), argument, CCNRM(ch, C_NRM));
@@ -174,6 +177,10 @@ static void perform_tell(struct char_data *ch, struct char_data *vict, char *arg
   char buf[MAX_STRING_LENGTH], *msg;
 
   sentence_case(arg);
+  // append period if it's not already there
+  if (arg[strlen(arg) - 1] != '.' && arg[strlen(arg) - 1] != '!' && arg[strlen(arg) - 1] != '?')
+    strcat(arg, ".");
+
   snprintf(buf, sizeof(buf), "%s$n tells you, '%s'%s", CBCYN(vict, C_NRM), arg, CCNRM(vict, C_NRM));
   msg = act(buf, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
   add_history(vict, msg, HIST_TELL);
@@ -310,24 +317,28 @@ ACMD(do_spec_comm)
   char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
   struct char_data *vict;
   const char *action_sing, *action_plur, *action_others;
+  char punctuation[1];
 
   switch (subcmd) {
   case SCMD_WHISPER:
     action_sing = "whisper to";
     action_plur = "whispers to";
     action_others = "$n whispers something to $N.";
+    strcpy(punctuation, ".");
     break;
 
   case SCMD_ASK:
     action_sing = "ask";
     action_plur = "asks";
     action_others = "$n asks $N a question.";
+    strcpy(punctuation, "?");
     break;
 
   default:
     action_sing = "oops";
     action_plur = "oopses";
     action_others = "$n is tongue-tied trying to speak with $N.";
+    strcpy(punctuation, ".");
     break;
   }
 
@@ -347,6 +358,10 @@ ACMD(do_spec_comm)
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
       parse_at(buf2);    
     sentence_case(buf2);
+    // append period if it's not already there
+    if (argument[strlen(argument) - 1] != '.' && argument[strlen(argument) - 1] != '!' && argument[strlen(argument) - 1] != '?')
+      strcat(argument, punctuation);
+
     
     snprintf(buf1, sizeof(buf1), "$n %s you, '%s'", action_plur, buf2);
     act(buf1, FALSE, ch, 0, vict, TO_VICT);

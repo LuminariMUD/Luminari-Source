@@ -158,9 +158,6 @@ void sentence_case(char *str)
       cap_next = FALSE;
     }
   }
-  
-  // now we want to strip off any trailing spaces
-  
 }
 
 /* Basic API function to start writing somewhere. 'data' isn't used, but you
