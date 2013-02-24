@@ -47,10 +47,8 @@ ACMD(do_say) {
     struct char_data *vict;
 
     /* TODO (Nashak):
-     *   - Parse and remove any smiley faces?
-     *   - Based on smileys parsed, express emotion in message
-     *   - Append trailing period
-     *   - Capitalize first letter (format entire string??)
+     *   - Parse and remove any smiley faces? (not for now)
+     *   - Based on smileys parsed, express emotion in message?
      */
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
       parse_at(argument);
@@ -318,6 +316,7 @@ ACMD(do_spec_comm)
   struct char_data *vict;
   const char *action_sing, *action_plur, *action_others;
   char punctuation[1];
+  int len = 0;
 
   switch (subcmd) {
   case SCMD_WHISPER:
@@ -358,6 +357,15 @@ ACMD(do_spec_comm)
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
       parse_at(buf2);    
     sentence_case(buf2);
+    
+    if (subcmd == SCMD_ASK) {
+      len = strlen(buf2);
+      // remove trailing punctuation from ask
+      while (len >= 0 && (buf2[len - 1] == '.' || buf2[len - 1] == '!' || *buf2 == '\n')) {
+        *(buf2 + len - 1) = '\0';
+        len--;
+      }
+    }
     // append period if it's not already there
     if (buf2[strlen(buf2) - 1] != '.' && buf2[strlen(buf2) - 1] != '!' && buf2[strlen(buf2) - 1] != '?')
       strcat(buf2, punctuation);
