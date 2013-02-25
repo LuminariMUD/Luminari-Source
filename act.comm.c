@@ -39,6 +39,7 @@ static bool legal_communication(char * arg)
 
 ACMD(do_say) {
   skip_spaces(&argument);
+  char type[20];
 
   if (!*argument)
     send_to_char(ch, "Yes, but WHAT do you want to say?\r\n");
@@ -53,88 +54,39 @@ ACMD(do_say) {
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
       parse_at(argument);
     sentence_case(argument);
-    
+
     if (argument[strlen(argument) - 1] == '?') {
       // the argument ends in a question mark, it's probably a question
-      snprintf(buf, sizeof (buf), "\tG$n asks, '%s'\tn", argument);
-      msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
-
-      // add message to history for those who heard it
-      for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
-        if (vict != ch && GET_POS(vict) > POS_SLEEPING && !AFF_FLAGGED(vict, AFF_DEAF))
-          add_history(vict, msg, HIST_SAY);
-
-      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT))
-        send_to_char(ch, "%s", CONFIG_OK);
-      else {
-        sprintf(buf, "\tGYou ask, '%s'\tn", argument);
-        msg = act(buf, FALSE, ch, 0, 0, TO_CHAR | DG_NO_TRIG);
-        add_history(ch, msg, HIST_SAY);
-      }
-
-      sprintf(buf, "\tGYou ask, '%s'\tn", argument);
-    } // end question mark
-    else if (argument[strlen(argument) - 1] == '!') {
-      // the argument ends in an exclamation mark, it's probably an exclamation
-      snprintf(buf, sizeof (buf), "\tG$n exclaims, '%s'\tn", argument);
-      msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
-
-      // add message to history for those who heard it
-      for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
-        if (vict != ch && GET_POS(vict) > POS_SLEEPING && !AFF_FLAGGED(vict, AFF_DEAF))
-          add_history(vict, msg, HIST_SAY);
-
-      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT))
-        send_to_char(ch, "%s", CONFIG_OK);
-      else {
-        sprintf(buf, "\tGYou exclaim, '%s'\tn", argument);
-        msg = act(buf, FALSE, ch, 0, 0, TO_CHAR | DG_NO_TRIG);
-        add_history(ch, msg, HIST_SAY);
-      }
-    } // end exclamation mark
-    else if (argument[strlen(argument) - 1] == '.' &&
-             argument[strlen(argument) - 2] == '.' &&
-             argument[strlen(argument) - 3] == '.') {
-      // the argument ends with three or more periods, mutter
-      //argument[strlen(argument) - 2] = '\0'; // remove the trailing periods
-      snprintf(buf, sizeof (buf), "\tG$n mutters, '%s'\tn", argument);
-      msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
-
-      // add message to history for those who heard it
-      for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
-        if (vict != ch && GET_POS(vict) > POS_SLEEPING && !AFF_FLAGGED(vict, AFF_DEAF))
-          add_history(vict, msg, HIST_SAY);
-
-      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT))
-        send_to_char(ch, "%s", CONFIG_OK);
-      else {
-        sprintf(buf, "\tGYou mutter, '%s'\tn", argument);
-        msg = act(buf, FALSE, ch, 0, 0, TO_CHAR | DG_NO_TRIG);
-        add_history(ch, msg, HIST_SAY);
-      }      
-    }
-    else {
+      strcpy(type, "ask");
+    } else if (argument[strlen(argument) - 1] == '!') {
+      strcpy(type, "exclaim");
+    } else if (argument[strlen(argument) - 1] == '.' &&
+            argument[strlen(argument) - 2] == '.' &&
+            argument[strlen(argument) - 3] == '.') {
+      strcpy(type, "mutter");
+    } else {
       // the argument ends something else, normal tone
       // append a period if it isn't already there
       if (argument[strlen(argument) - 1] != '.')
         strcat(argument, ".");
-      
-      snprintf(buf, sizeof (buf), "\tG$n says, '%s'\tn", argument);
-      msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
 
-      // add message to history for those who heard it
-      for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
-        if (vict != ch && GET_POS(vict) > POS_SLEEPING && !AFF_FLAGGED(vict, AFF_DEAF))
-          add_history(vict, msg, HIST_SAY);
+      strcpy(type, "say");
+    }
+    snprintf(buf, sizeof (buf), "\tG$n %ss, '%s'\tn", type, argument);
+    msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
 
-      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT))
-        send_to_char(ch, "%s", CONFIG_OK);
-      else {
-        sprintf(buf, "\tGYou say, '%s'\tn", argument);
-        msg = act(buf, FALSE, ch, 0, 0, TO_CHAR | DG_NO_TRIG);
-        add_history(ch, msg, HIST_SAY);
-      }
-    } // end regular say
+    // add message to history for those who heard it
+    for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
+      if (vict != ch && GET_POS(vict) > POS_SLEEPING && !AFF_FLAGGED(vict, AFF_DEAF))
+        add_history(vict, msg, HIST_SAY);
+
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT))
+      send_to_char(ch, "%s", CONFIG_OK);
+    else {
+      sprintf(buf, "\tGYou %s, '%s'\tn", type, argument);
+      msg = act(buf, FALSE, ch, 0, 0, TO_CHAR | DG_NO_TRIG);
+      add_history(ch, msg, HIST_SAY);
+    }
   }
 
   /* Trigger check. */
