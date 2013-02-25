@@ -3453,35 +3453,50 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
       healing = dice(2, 4) + 5 + MIN(10, level);
 
       to_notvict = "$n \twcures light wounds\tn on $N.";
-      to_char = "You \twcure lights wounds\tn on $N.";
+      if (ch == victim)
+        to_char = "You \twcure lights wounds\tn on yourself.";
+      else
+        to_char = "You \twcure lights wounds\tn on $N.";
       to_vict = "$n \twcures light wounds\tn on you.";
       break;
     case SPELL_CURE_MODERATE:
       healing = dice(3, 4) + 10 + MIN(15, level);
 
       to_notvict = "$n \twcures moderate wounds\tn on $N.";
-      to_char = "You \twcure moderate wounds\tn on $N.";
+      if (ch == victim)
+        to_char = "You \twcure moderate wounds\tn on yourself.";
+      else
+        to_char = "You \twcure moderate wounds\tn on $N.";
       to_vict = "$n \twcures moderate wounds\tn on you.";
       break;
     case SPELL_CURE_SERIOUS:
       healing = dice(4, 4) + 15 + MIN(20, level);
 
       to_notvict = "$n \twcures serious wounds\tn on $N.";
-      to_char = "You \twcure serious wounds\tn on $N.";
+      if (ch == victim)
+        to_char = "You \twcure serious wounds\tn on yourself.";
+      else
+        to_char = "You \twcure serious wounds\tn on $N.";
       to_vict = "$n \twcures serious wounds\tn on you.";
       break;
     case SPELL_CURE_CRITIC:
       healing = dice(6, 4) + 20 + MIN(25, level);
 
       to_notvict = "$n \twcures critical wounds\tn on $N.";
-      to_char = "You \twcure critical wounds\tn on $N.";
+      if (ch == victim)
+        to_char = "You \twcure critical wounds\tn on yourself.";
+      else
+        to_char = "You \twcure critical wounds\tn on $N.";
       to_vict = "$n \twcures critical wounds\tn on you.";
       break;
     case SPELL_HEAL:
       healing = level * 10 + 20;
 
       to_notvict = "$n \tWheals\tn $N.";
-      to_char = "You \tWheal\tn $N.";
+      if (ch == victim)
+        to_char = "You \tWheal\tn yourself.";
+      else
+        to_char = "You \tWheal\tn $N.";
       to_vict = "$n \tWheals\tn you.";
       break;
     case SPELL_VAMPIRIC_TOUCH:
@@ -3495,11 +3510,12 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   }
 
   send_to_char(ch, "<%d> ", healing);
-  send_to_char(victim, "<%d> ", healing);
+  if (ch != victim)
+    send_to_char(victim, "<%d> ", healing);
   
   if (to_notvict != NULL)
     act(to_notvict, TRUE, ch, 0, victim, TO_NOTVICT);
-  if (to_vict != NULL)
+  if (to_vict != NULL && ch != victim)
     act(to_vict, TRUE, ch, 0, victim, TO_VICT | TO_SLEEP);
   if (to_char != NULL)
     act(to_char, TRUE, ch, 0, victim, TO_CHAR);
