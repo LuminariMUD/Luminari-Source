@@ -1443,8 +1443,24 @@ void mag_assign_spells(void)
   spello(SPELL_ANIMATE_DEAD, "animate dead", 72, 57, 1, POS_FIGHTING,
 	TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
 	NULL, 10, 8, NECROMANCY);  //wiz4, cle3
-  
-
+  spello(SPELL_SUMMON_CREATURE_4, "summon creature iv", 95, 80, 1,
+     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 8, 8, CONJURATION); //wiz4, cle4
+  spello(SPELL_BLINDNESS, "blindness", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+	"You feel a cloak of blindness dissolve.", 3, 6,
+	NECROMANCY); // wiz2, cle3
+  spello(SPELL_CIRCLE_A_EVIL, "circle against evil", 58, 43, 1,
+     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
+	NULL, 7, 7, ABJURATION); //wiz3 cle4
+  spello(SPELL_CIRCLE_A_GOOD, "circle against good", 58, 43, 1,
+     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
+	NULL, 7, 7, ABJURATION); //wiz3 cle4
+  spello(SPELL_CURSE, "curse", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_OBJ_INV, TRUE, MAG_AFFECTS |
+     MAG_ALTER_OBJS, "You feel more optimistic.", 7, 8, NECROMANCY);  //wiz4 cle4
+  spello(SPELL_DAYLIGHT, "daylight", 50, 25, 5, POS_STANDING,
+	TAR_IGNORE, FALSE, MAG_ROOM, 
+	"The artificial daylight fades away.", 6, 7, ILLUSION); //wiz3, cle4
 
   
   //shared epic
@@ -1576,10 +1592,7 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,
 	NULL, 2, 6, EVOCATION);
 			/* necromancy */
-  spello(SPELL_BLINDNESS, "blindness", 0, 0, 0, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-	"You feel a cloak of blindness dissolve.", 3, 6,
-	NECROMANCY); // cleric spell
+  //blindness - shared
   spello(SPELL_FALSE_LIFE, "false life", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"You feel your necromantic-life drain away.", 4, 6, ILLUSION);
@@ -1673,9 +1686,7 @@ void mag_assign_spells(void)
   spello(SPELL_INVISIBILITY_SPHERE, "invisibility sphere", 58, 43, 1,
      POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 7, 7, ILLUSION);
-  spello(SPELL_DAYLIGHT, "daylight", 50, 25, 5, POS_STANDING,
-	TAR_IGNORE, FALSE, MAG_ROOM, 
-	"The artificial daylight fades away.", 6, 7, ILLUSION);
+  //daylight - shared
 			/* divination */
   spello(SPELL_CLAIRVOYANCE, "clairvoyance", 65, 50, 1, POS_FIGHTING,
 	TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
@@ -1693,13 +1704,9 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
 	"You feel the slow spell wear off.", 4, 7,
 	ABJURATION);
-  spello(SPELL_CIRCLE_A_EVIL, "circle against evil", 58, 43, 1,
-     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
-	NULL, 7, 7, ABJURATION);
-  spello(SPELL_CIRCLE_A_GOOD, "circle against good", 58, 43, 1,
-     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
-	NULL, 7, 7, ABJURATION);
-			/* transmutation */
+  //circle against evil - shared
+  //circle against good - shared
+               /* transmutation */
   //cunning - shared
   //wisdom - shared
   //charisma - shared
@@ -1720,15 +1727,12 @@ void mag_assign_spells(void)
 	TAR_IGNORE, FALSE, MAG_ROOM,
 	"You watch as the thick billowing cloud dissipates.", 7, 8,
 	CONJURATION);  
-  spello(SPELL_SUMMON_CREATURE_4, "summon creature iv", 95, 80, 1,
-     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 8, 8, CONJURATION);
+  //summon creature 4 - shared
 			/* necromancy */
-  spello(SPELL_CURSE, "curse", 0, 0, 0, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_OBJ_INV, TRUE, MAG_AFFECTS |
-     MAG_ALTER_OBJS, "You feel more optimistic.", 7, 8, NECROMANCY);
+  //curse - shared
 			/* enchantment */
-  //infra
-  //poison
+  //infra - shared
+  //poison - shared
 			/* illusion */
   spello(SPELL_GREATER_INVIS, "greater invisibility", 58, 43, 1,
      POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE,
@@ -2127,8 +2131,13 @@ void mag_assign_spells(void)
   spello(SPELL_MASS_CURE_LIGHT, "mass cure light", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 5, 10, NOSCHOOL);  
-    //remove curse - shared
-    //infravision - shared
+  spello(SPELL_AID, "aid", 44, 29, 1, POS_FIGHTING, TAR_IGNORE, FALSE,
+     MAG_GROUPS, "You feel the aid spell fade away.", 5, 10, NOSCHOOL);
+  spello(SPELL_BRAVERY, "bravery", 44, 29, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS | MAG_AFFECTS,
+	"You feel your bravery spell wear off.", 8, 10, NOSCHOOL);
+  //remove curse - shared
+  //infravision - shared
   
 
   // 5th circle

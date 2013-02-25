@@ -2290,6 +2290,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is surrounded by a white aura.";
       break;
 
+    case SPELL_BRAVERY:
+      af[0].duration = 25 + divine_level;
+      SET_BIT_AR(af[0].bitvector, AFF_BRAVERY);
+
+      accum_duration = TRUE;
+      to_vict = "You suddenly feel very brave.";
+      to_room = "$n suddenly feels very brave.";
+      break;
+
     case SPELL_SPELL_TURNING:  //abjuration
       af[0].duration = 100;
       SET_BIT_AR(af[0].bitvector, AFF_SPELL_TURNING);
@@ -3565,6 +3574,14 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
       break;
       
     case SPELL_REMOVE_FEAR:
+      spell = SPELL_SCARE;
+      affect = AFF_FEAR;
+      to_char = "You remove the fear from $N.";
+      to_vict = "$n removes the fear upon you.";
+      to_notvict = "$N looks brave again.";
+      break;
+      
+    case SPELL_BRAVERY:
       spell = SPELL_SCARE;
       affect = AFF_CURSE;
       to_char = "You remove the fear from $N.";
