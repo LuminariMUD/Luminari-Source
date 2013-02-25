@@ -2640,6 +2640,18 @@ static void perform_mag_groups(int level, struct char_data *ch,
     case SPELL_MASS_HASTE:
       mag_affects(level, ch, tch, obj, SPELL_HASTE, savetype);
       break;
+    case SPELL_MASS_CURE_CRIT:
+      mag_affects(level, ch, tch, obj, SPELL_CURE_CRITIC, savetype);
+      break;
+    case SPELL_MASS_CURE_SERIOUS:
+      mag_affects(level, ch, tch, obj, SPELL_CURE_SERIOUS, savetype);
+      break;
+    case SPELL_MASS_CURE_MODERATE:
+      mag_affects(level, ch, tch, obj, SPELL_CURE_MODERATE, savetype);
+      break;
+    case SPELL_MASS_CURE_LIGHT:
+      mag_affects(level, ch, tch, obj, SPELL_CURE_LIGHT, savetype);
+      break;
     case SPELL_CIRCLE_A_EVIL:
       mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_EVIL, savetype);
       break;
@@ -2863,7 +2875,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum, int savetype) {
   struct char_data *tch, *next_tch;
   const char *to_char = NULL, *to_room = NULL;
-  int isEffect = FALSE, is_eff_and_dam = FALSE;
+  int isEffect = FALSE, is_eff_and_dam = FALSE, is_uneffect = FALSE;
 
   if (ch == NULL)
     return;
@@ -2944,6 +2956,11 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
       to_char = "You emit a terrible banshee wail!\tn";
       to_room = "$n emits a terrible banshee wail!\tn";
       break;
+    case SPELL_FAERIE_FOG:
+      is_uneffect = TRUE;
+      to_char = "You summon faerie fog!\tn";
+      to_room = "$n summons faerie fog!\tn";
+      break;
   }
 
   if (to_char != NULL)
@@ -2960,6 +2977,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
         mag_affects(level, ch, tch, obj, spellnum, savetype);
       } else if (isEffect)
         mag_affects(level, ch, tch, obj, spellnum, savetype);
+      else if (is_uneffect)
+        mag_unaffects(level, ch, tch, obj, spellnum, savetype);
       else
         mag_damage(level, ch, tch, obj, spellnum, 1);
 
@@ -3421,42 +3440,66 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 void mag_points(int level, struct char_data *ch, struct char_data *victim,
         struct obj_data *obj, int spellnum, int savetype) {
   int healing = 0, move = 0;
-  const char *to_room = NULL;
+  const char *to_notvict = NULL, *to_char = NULL, *to_vict = NULL;
 
   if (victim == NULL)
     return;
+  
+  /* bards also get some healing spells */
+  level = DIVINE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_BARD);
 
   switch (spellnum) {
     case SPELL_CURE_LIGHT:
-      healing = dice(1, 8) + 1 + (level / 4);
+      healing = dice(2, 4) + 5 + MIN(10, level);
 
-      to_room = "$n is \twcured\tn of light wounds.";
-      send_to_char(victim, "You feel \twbetter\tn.\r\n");
+      to_notvict = "$n \twcures light wounds\tn on $N.";
+      to_char = "You \twcure lights wounds\tn on $N.";
+      to_vict = "$n \twcures light wounds\tn on you.";
+      break;
+    case SPELL_CURE_MODERATE:
+      healing = dice(3, 4) + 10 + MIN(15, level);
+
+      to_notvict = "$n \twcures moderate wounds\tn on $N.";
+      to_char = "You \twcure moderate wounds\tn on $N.";
+      to_vict = "$n \twcures moderate wounds\tn on you.";
+      break;
+    case SPELL_CURE_SERIOUS:
+      healing = dice(4, 4) + 15 + MIN(20, level);
+
+      to_notvict = "$n \twcures serious wounds\tn on $N.";
+      to_char = "You \twcure serious wounds\tn on $N.";
+      to_vict = "$n \twcures serious wounds\tn on you.";
       break;
     case SPELL_CURE_CRITIC:
-      healing = dice(3, 8) + 3 + (level / 4);
+      healing = dice(6, 4) + 20 + MIN(25, level);
 
-      to_room = "$n is \twcured\tn of critical wounds.";
-      send_to_char(victim, "You feel a \twlot better\tn!\r\n");
+      to_notvict = "$n \twcures critical wounds\tn on $N.";
+      to_char = "You \twcure critical wounds\tn on $N.";
+      to_vict = "$n \twcures critical wounds\tn on you.";
       break;
     case SPELL_HEAL:
-      healing = 100 + dice(3, 8);
+      healing = level * 10 + 20;
 
-      to_room = "$n's wounds are \tWhealed\tn.";
-      send_to_char(victim, "A \tWwarm feeling\tn floods your body.\r\n");
+      to_notvict = "$n \tWheals\tn $N.";
+      to_char = "You \tWheal\tn $N.";
+      to_vict = "$n \tWheals\tn you.";
       break;
     case SPELL_VAMPIRIC_TOUCH:
       victim = ch;
-      healing = dice(MIN(15, level), 4);
+      healing = dice(MIN(15, CASTER_LEVEL(ch)), 4);
 
-      to_room = "$n's wounds are \tWhealed\tn by \tRvampiric\tD magic\tn.";
+      to_notvict = "$N's wounds are \tWhealed\tn by \tRvampiric\tD magic\tn.";
       send_to_char(victim, "A \tWwarm feeling\tn floods your body as \tRvampiric "
               "\tDmagic\tn takes over.\r\n");
       break;
   }
 
-  if (to_room != NULL)
-    act(to_room, TRUE, victim, 0, ch, TO_ROOM);
+  if (to_notvict != NULL)
+    act(to_notvict, TRUE, ch, 0, victim, TO_NOTVICT);
+  if (to_vict != NULL)
+    act(to_vict, TRUE, ch, 0, victim, TO_VICT | TO_SLEEP);
+  if (to_char != NULL)
+    act(to_char, TRUE, ch, 0, victim, TO_CHAR);
 
   GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + healing);
   GET_MOVE(victim) = MIN(GET_MAX_MOVE(victim), GET_MOVE(victim) + move);
@@ -3465,8 +3508,8 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
 
 void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
         struct obj_data *obj, int spellnum, int type) {
-  int spell = 0, msg_not_affected = TRUE;
-  const char *to_vict = NULL, *to_room = NULL;
+  int spell = 0, msg_not_affected = TRUE, affect = 0;
+  const char *to_vict = NULL, *to_char = NULL, *to_notvict = NULL;
 
   if (victim == NULL)
     return;
@@ -3478,35 +3521,80 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
       msg_not_affected = FALSE;
       /* fall-through */
     case SPELL_CURE_BLIND:
+      /* this has fall-through from above */
       spell = SPELL_BLINDNESS;
-      to_vict = "Your vision returns!";
-      to_room = "There's a momentary gleam in $n's eyes.";
+      affect = AFF_BLIND;
+      to_char = "You restore $N's vision.";
+      to_vict = "$n restores your vision!";
+      to_notvict = "There's a momentary gleam in $N's eyes.";
       break;
+      
     case SPELL_REMOVE_POISON:
       spell = SPELL_POISON;
-      to_vict = "A warm feeling runs through your body!";
-      to_room = "$n looks better.";
+      affect = AFF_POISON;
+      to_char = "You remove the poison from $N's body.";
+      to_vict = "A warm feeling originating from $n runs through your body!";
+      to_notvict = "$N looks better.";
       break;
+      
     case SPELL_REMOVE_CURSE:
       spell = SPELL_CURSE;
-      to_vict = "You don't feel so unlucky.";
+      affect = AFF_CURSE;
+      to_char = "You remove the curse from $N.";
+      to_vict = "$n removes the curse upon you.";
+      to_notvict = "$N briefly glows blue.";
       break;
+      
+    case SPELL_REMOVE_FEAR:
+      spell = SPELL_SCARE;
+      affect = AFF_CURSE;
+      to_char = "You remove the fear from $N.";
+      to_vict = "$n removes the fear upon you.";
+      to_notvict = "$N looks brave again.";
+      break;
+      
+    case SPELL_CURE_DEAFNESS:
+      spell = SPELL_DEAFNESS;
+      affect = AFF_DEAF;
+      to_char = "You remove the deafness from $N.";
+      to_vict = "$n removes the deafness from you.";
+      to_notvict = "$N looks like $E can hear again.";
+      break;
+      
+    case SPELL_FAERIE_FOG:
+      spell = SPELL_INVISIBLE;
+      affect = AFF_INVISIBLE;
+      /* a message isn't appropriate for failure here */
+      msg_not_affected = FALSE;
+      
+      to_char = "Your fog reveals $N.";
+      to_vict = "$n reveals you with faerie fog.";
+      to_notvict = "$N is revealed by $n's faerie fog.";
+      break;
+      
     default:
       log("SYSERR: unknown spellnum %d passed to mag_unaffects.", spellnum);
       return;
   }
 
-  if (!affected_by_spell(victim, spell)) {
+  if (!affected_by_spell(victim, spell) && !AFF_FLAGGED(victim, affect)) {
     if (msg_not_affected)
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
     return;
   }
 
+  /* first remove spell affect */
   affect_from_char(victim, spell);
+  /* then remove affect flag if it somehow is still around */
+  if (AFF_FLAGGED(victim, affect))
+    REMOVE_BIT_AR(AFF_FLAGS(victim), affect);    
+  
+  if (to_notvict != NULL)
+    act(to_notvict, TRUE, ch, 0, victim, TO_NOTVICT);
   if (to_vict != NULL)
-    act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
-  if (to_room != NULL)
-    act(to_room, TRUE, victim, 0, ch, TO_ROOM);
+    act(to_vict, TRUE, ch, 0, victim, TO_VICT | TO_SLEEP);
+  if (to_char != NULL)
+    act(to_char, TRUE, ch, 0, victim, TO_CHAR);
 }
 
 void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
@@ -3869,7 +3957,7 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       break;
 
     default:
-      sprintf(buf, "SYSERR: unknown spellnum %d passed to mag_unaffects", spellnum);
+      sprintf(buf, "SYSERR: unknown spellnum %d passed to mag_room", spellnum);
       log(buf);
       break;
   }

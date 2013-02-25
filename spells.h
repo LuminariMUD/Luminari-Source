@@ -242,27 +242,51 @@
 #define SPELL_MIND_BLANK           200  // not done
 #define SPELL_IRONSKIN             201  // not done
 #define SPELL_MASS_CUNNING         202  //done
-#define SPELL_BLADE_OF_DISASTER    203
-#define SPELL_SUMMON_CREATURE_9    204
-#define SPELL_GATE                 205
-#define SPELL_WAIL_OF_THE_BANSHEE  206  //x
-#define SPELL_POWER_WORD_KILL      207
-#define SPELL_ENFEEBLEMENT         208
-#define SPELL_WEIRD                209
-#define SPELL_SHADOW_SHIELD        210
-#define SPELL_PRISMATIC_SPHERE     211
-#define SPELL_IMPLODE              212
-#define SPELL_TIMESTOP             213
-#define SPELL_GREATER_SPELL_MANTLE 214
-#define SPELL_MASS_ENHANCE         215
-#define SPELL_PORTAL               216  // not done
+#define SPELL_BLADE_OF_DISASTER    203  //done
+#define SPELL_SUMMON_CREATURE_9    204  //done
+#define SPELL_GATE                 205  //done
+#define SPELL_WAIL_OF_THE_BANSHEE  206  //done
+#define SPELL_POWER_WORD_KILL      207  //done
+#define SPELL_ENFEEBLEMENT         208  //done
+#define SPELL_WEIRD                209  //done
+#define SPELL_SHADOW_SHIELD        210  //done
+#define SPELL_PRISMATIC_SPHERE     211  //done
+#define SPELL_IMPLODE              212  //done
+#define SPELL_TIMESTOP             213  //done
+#define SPELL_GREATER_SPELL_MANTLE 214  //done
+#define SPELL_MASS_ENHANCE         215  //done
+#define SPELL_PORTAL               216  //done
 #define SPELL_ACID                 217  //acid fog proc
 #define SPELL_HOLY_SWORD           218  //paladin
 #define SPELL_INCENDIARY           219  // incendiary cloud
-//#define SPELL_CURE_MODERATE             16  //done
-//#define SPELL_CURE_SERIOUS             16  //done
+#define SPELL_CURE_MODERATE        220  //
+#define SPELL_CURE_SERIOUS         221  //
+#define SPELL_REMOVE_FEAR          222  //
+#define SPELL_CURE_DEAFNESS        223  //
+#define SPELL_FAERIE_FOG           224
+#define SPELL_MASS_CURE_LIGHT      225  //
+#define SPELL_AID                  226
+#define SPELL_BRAVERY              227
+#define SPELL_MASS_CURE_MODERATE   228  //
+#define SPELL_REGENERATION         229
+#define SPELL_FREE_MOVEMENT        230
+#define SPELL_STRENGTHEN_BONE      231
+#define SPELL_MASS_CURE_SERIOUS    232  //
+#define SPELL_PRAYER               233
+#define SPELL_REMOVE_DISEASE       234
+#define SPELL_WORD_OF_FAITH        235
+#define SPELL_DIMENSIONAL_LOCK     236
+#define SPELL_SALVATION            237
+#define SPELL_SPRING_OF_LIFE       238
+#define SPELL_PLANE_SHIFT          239
+#define SPELL_STORM_OF_VENGEANCE   240
+#define SPELL_DEATH_SHIELD         241
+#define SPELL_COMMAND              242
+#define SPELL_AIR_WALKER           243
+#define SPELL_GROUP_SUMMON         244
+#define SPELL_MASS_CURE_CRIT       245  //
 /** Total Number of defined spells */
-#define NUM_SPELLS                 220
+#define NUM_SPELLS                 246
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */

@@ -2257,7 +2257,7 @@ void hit(struct char_data *ch, struct char_data *victim,
       return;
 
     if (type == SKILL_BACKSTAB) {
-      damage(ch, victim, dam * backstab_mult(GET_LEVEL(ch)),
+      damage(ch, victim, dam * backstab_mult(ch),
               SKILL_BACKSTAB, dam_type, offhand);
       /* crippling strike */
       if (dam && GET_SKILL(ch, SKILL_CRIP_STRIKE) &&

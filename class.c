@@ -959,6 +959,8 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_ENDURANCE, 99);
     SET_SKILL(ch, SPELL_STRENGTH, 99);
     SET_SKILL(ch, SPELL_GRACE, 99);
+    
+    SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
 
     
     //3rd circle
@@ -971,6 +973,8 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_CUNNING, 99);
     SET_SKILL(ch, SPELL_WISDOM, 99);
     SET_SKILL(ch, SPELL_CHARISMA, 99);
+    
+    SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
     
     
     //4th circle
@@ -991,6 +995,8 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_NIGHTMARE, 99);
     SET_SKILL(ch, SPELL_MIND_FOG, 99);
     
+    SET_SKILL(ch, SPELL_MASS_CURE_LIGHT, 99);    
+    
     
     //6th circle
     SET_SKILL(ch, SPELL_SUMMON_CREATURE_7, 99);
@@ -998,6 +1004,8 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_TRUE_SEEING, 99);
     SET_SKILL(ch, SPELL_GREATER_DISPELLING, 99);
     SET_SKILL(ch, SPELL_GREATER_HEROISM, 99);
+
+    SET_SKILL(ch, SPELL_MASS_CURE_MODERATE, 99);    
 
     
     // skill init    
@@ -1022,20 +1030,45 @@ void init_class(struct char_data *ch, int class, int level)
   case CLASS_CLERIC:
     //spell init
     //1st circle
-    SET_SKILL(ch, SPELL_ENDURANCE, 99);
-    SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
     SET_SKILL(ch, SPELL_ARMOR, 99);
+    SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
+    SET_SKILL(ch, SPELL_ENDURANCE, 99);
     SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99);
+    SET_SKILL(ch, SPELL_NEGATIVE_ENERGY_RAY, 99);
+    SET_SKILL(ch, SPELL_ENDURE_ELEMENTS, 99);
+    SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99);
+    SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99);
+    SET_SKILL(ch, SPELL_SUMMON_CREATURE_1, 99);
+    SET_SKILL(ch, SPELL_STRENGTH, 99);
+    SET_SKILL(ch, SPELL_GRACE, 99);
+    SET_SKILL(ch, SPELL_REMOVE_FEAR, 99);
     //2nd circle
     SET_SKILL(ch, SPELL_CREATE_FOOD, 99);
     SET_SKILL(ch, SPELL_CREATE_WATER, 99);
     SET_SKILL(ch, SPELL_DETECT_POISON, 99);
     SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99);
+    SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
+    SET_SKILL(ch, SPELL_SCARE, 99);
+    SET_SKILL(ch, SPELL_SUMMON_CREATURE_2, 99);
+    SET_SKILL(ch, SPELL_DETECT_MAGIC, 99);
+    SET_SKILL(ch, SPELL_DARKNESS, 99);
+    SET_SKILL(ch, SPELL_RESIST_ENERGY, 99);
+    SET_SKILL(ch, SPELL_WISDOM, 99);
+    SET_SKILL(ch, SPELL_CHARISMA, 99);
     //3rd circle
-    SET_SKILL(ch, SPELL_DETECT_ALIGN, 99);
-    SET_SKILL(ch, SPELL_CURE_BLIND, 99);
     SET_SKILL(ch, SPELL_BLESS, 99);
+    SET_SKILL(ch, SPELL_CURE_BLIND, 99);
+    SET_SKILL(ch, SPELL_DETECT_ALIGN, 99);
     SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99);    
+    SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);    
+    SET_SKILL(ch, SPELL_SUMMON_CREATURE_3, 99);    
+    SET_SKILL(ch, SPELL_BLINDNESS, 99);    
+    SET_SKILL(ch, SPELL_DEAFNESS, 99);    
+    SET_SKILL(ch, SPELL_CURE_DEAFNESS, 99);    
+    SET_SKILL(ch, SPELL_CUNNING, 99);    
+    SET_SKILL(ch, SPELL_DISPEL_MAGIC, 99);    
+    SET_SKILL(ch, SPELL_ANIMATE_DEAD, 99);    
+    SET_SKILL(ch, SPELL_FAERIE_FOG, 99);    
     //4th circle
     SET_SKILL(ch, SPELL_INFRAVISION, 99);
     SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
@@ -1774,8 +1807,10 @@ void advance_level(struct char_data *ch, int class)
 }
 
 
-int backstab_mult(int level)
+int backstab_mult(struct char_data *ch)
 {
+  int level = CLASS_LEVEL(ch, CLASS_ROGUE);
+  
   if (level <= 7)
     return 2;
   else if (level <= 13)
@@ -2278,6 +2313,8 @@ void init_spell_levels(void)
   spell_level(SPELL_STRENGTH, CLASS_BARD, 5);
   spell_level(SPELL_GRACE, CLASS_BARD, 5);  
   
+  spell_level(SPELL_CURE_MODERATE, CLASS_BARD, 5);
+  
 
   //3rd circle
   spell_level(SPELL_SUMMON_CREATURE_3, CLASS_BARD, 8);
@@ -2289,6 +2326,8 @@ void init_spell_levels(void)
   spell_level(SPELL_CUNNING, CLASS_BARD, 8);
   spell_level(SPELL_WISDOM, CLASS_BARD, 8);
   spell_level(SPELL_CHARISMA, CLASS_BARD, 8);
+  
+  spell_level(SPELL_CURE_SERIOUS, CLASS_BARD, 8);
   
 
   //4th circle
@@ -2309,6 +2348,8 @@ void init_spell_levels(void)
   spell_level(SPELL_NIGHTMARE, CLASS_BARD, 14);
   spell_level(SPELL_MIND_FOG, CLASS_BARD, 14);
 
+  spell_level(SPELL_MASS_CURE_LIGHT, CLASS_BARD, 14);
+  
   
   //6th circle
   spell_level(SPELL_SUMMON_CREATURE_7, CLASS_BARD, 17);
@@ -2316,6 +2357,8 @@ void init_spell_levels(void)
   spell_level(SPELL_TRUE_SEEING, CLASS_BARD, 17);
   spell_level(SPELL_GREATER_DISPELLING, CLASS_BARD, 17);
   spell_level(SPELL_GREATER_HEROISM, CLASS_BARD, 17);
+  
+  spell_level(SPELL_MASS_CURE_MODERATE, CLASS_BARD, 17);
   
 
   //epic bard
@@ -2373,20 +2416,45 @@ void init_spell_levels(void)
   
   // clerics
   //1st circle
+  spell_level(SPELL_ARMOR, CLASS_CLERIC, 1);
   spell_level(SPELL_CURE_LIGHT, CLASS_CLERIC, 1);
   spell_level(SPELL_ENDURANCE, CLASS_CLERIC, 1);  //shared
-  spell_level(SPELL_ARMOR, CLASS_CLERIC, 1);
   spell_level(SPELL_CAUSE_LIGHT_WOUNDS, CLASS_CLERIC, 1);
+  spell_level(SPELL_NEGATIVE_ENERGY_RAY, CLASS_CLERIC, 1);
+  spell_level(SPELL_ENDURE_ELEMENTS, CLASS_CLERIC, 1);
+  spell_level(SPELL_PROT_FROM_EVIL, CLASS_CLERIC, 1);
+  spell_level(SPELL_PROT_FROM_GOOD, CLASS_CLERIC, 1);
+  spell_level(SPELL_SUMMON_CREATURE_1, CLASS_CLERIC, 1);
+  spell_level(SPELL_STRENGTH, CLASS_CLERIC, 1);
+  spell_level(SPELL_GRACE, CLASS_CLERIC, 1);
+  spell_level(SPELL_REMOVE_FEAR, CLASS_CLERIC, 1);
   //2nd circle
   spell_level(SPELL_CREATE_FOOD, CLASS_CLERIC, 3);
   spell_level(SPELL_CREATE_WATER, CLASS_CLERIC, 3);
   spell_level(SPELL_DETECT_POISON, CLASS_CLERIC, 3);  //shared
   spell_level(SPELL_CAUSE_MODERATE_WOUNDS, CLASS_CLERIC, 3);
+  spell_level(SPELL_CURE_MODERATE, CLASS_CLERIC, 3);
+  spell_level(SPELL_SCARE, CLASS_CLERIC, 3);
+  spell_level(SPELL_SUMMON_CREATURE_2, CLASS_CLERIC, 3);
+  spell_level(SPELL_DETECT_MAGIC, CLASS_CLERIC, 3);
+  spell_level(SPELL_DARKNESS, CLASS_CLERIC, 3);
+  spell_level(SPELL_RESIST_ENERGY, CLASS_CLERIC, 3);
+  spell_level(SPELL_WISDOM, CLASS_CLERIC, 3);
+  spell_level(SPELL_CHARISMA, CLASS_CLERIC, 3);
   //3rd circle
-  spell_level(SPELL_DETECT_ALIGN, CLASS_CLERIC, 5);
-  spell_level(SPELL_CURE_BLIND, CLASS_CLERIC, 5);
   spell_level(SPELL_BLESS, CLASS_CLERIC, 5);
+  spell_level(SPELL_CURE_BLIND, CLASS_CLERIC, 5);
+  spell_level(SPELL_DETECT_ALIGN, CLASS_CLERIC, 5);
   spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_CLERIC, 5);
+  spell_level(SPELL_CURE_SERIOUS, CLASS_CLERIC, 5);
+  spell_level(SPELL_SUMMON_CREATURE_3, CLASS_CLERIC, 5);
+  spell_level(SPELL_BLINDNESS, CLASS_CLERIC, 5);
+  spell_level(SPELL_DEAFNESS, CLASS_CLERIC, 5);
+  spell_level(SPELL_CURE_DEAFNESS, CLASS_CLERIC, 5);
+  spell_level(SPELL_CUNNING, CLASS_CLERIC, 5);
+  spell_level(SPELL_DISPEL_MAGIC, CLASS_CLERIC, 5);
+  spell_level(SPELL_ANIMATE_DEAD, CLASS_CLERIC, 5);
+  spell_level(SPELL_FAERIE_FOG, CLASS_CLERIC, 5);
   //4th circle
   spell_level(SPELL_INFRAVISION, CLASS_CLERIC, 7);  //shared
   spell_level(SPELL_REMOVE_CURSE, CLASS_CLERIC, 7);  //shared
