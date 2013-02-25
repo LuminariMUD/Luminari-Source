@@ -14,7 +14,7 @@
 #define _CLASS_H_
 
 /* Functions available through class.c */
-int backstab_mult(int level);
+int backstab_mult(struct char_data *ch);
 void do_start(struct char_data *ch);
 void newbieEquipment(struct char_data *ch);
 bitvector_t find_class_bitvector(const char *arg);
