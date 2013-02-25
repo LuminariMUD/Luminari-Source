@@ -125,22 +125,19 @@ EVENTFUNC(event_countdown)
       send_to_char(ch, "You are now free from the stunning affect.\r\n");
       break;
     case eSTUNNINGFIST:
-      send_to_char(ch, "You are now able to strike with your stunning"
-                       " fist again.\r\n");
+      send_to_char(ch, "You are now able to strike with your stunning fist again.\r\n");
       break;
     case eCRYSTALFIST:
-      send_to_char(ch, "You are now able to use crystal"
-                       " fist again.\r\n");
+      send_to_char(ch, "You are now able to use crystal fist again.\r\n");
       break;
     case eCRYSTALBODY:
-      send_to_char(ch, "You are now able to use crystal"
-                       " body again.\r\n");
+      send_to_char(ch, "You are now able to use crystal body again.\r\n");
       break;
     case ePURIFY:
       send_to_char(ch, "You are now able to 'purify' again.\r\n");
       break;
     case eC_ANIMAL:
-      send_to_char(ch, "You are now able to 'call animal companion' again.\r\n");
+      send_to_char(ch, "You are now able to 'call companion' again.\r\n");
       break;
     case eC_FAMILIAR:
       send_to_char(ch, "You are now able to 'call familiar' again.\r\n");
