@@ -1811,6 +1811,9 @@ int backstab_mult(struct char_data *ch)
 {
   int level = CLASS_LEVEL(ch, CLASS_ROGUE);
   
+  if (!level)
+    return 1;
+  
   if (level <= 7)
     return 2;
   else if (level <= 13)

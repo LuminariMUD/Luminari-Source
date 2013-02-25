@@ -1118,8 +1118,9 @@ void pulse_luminari() {
       }
     }
     
-    if (AFF_FLAGGED(i, AFF_FEAR) && !IS_NPC(i) &&
-            GET_SKILL(i, SKILL_COURAGE)) {
+    /* fear -> skill-courage*/
+    if (AFF_FLAGGED(i, AFF_FEAR) && (!IS_NPC(i) &&
+            GET_SKILL(i, SKILL_COURAGE))) {
       REMOVE_BIT_AR(AFF_FLAGS(i), AFF_FEAR);
       send_to_char(i, "Your divine courage overcomes the fear!\r\n");
       act("$n \tWovercomes the \tDfear\tW with courage!\tn\tn",
@@ -1127,6 +1128,15 @@ void pulse_luminari() {
       increase_skill(i, SKILL_COURAGE);
       return;
     }      
+    
+    /* fear -> spell-bravery */
+    if (AFF_FLAGGED(i, AFF_FEAR) && AFF_FLAGGED(i, AFF_BRAVERY)) {
+      REMOVE_BIT_AR(AFF_FLAGS(i), AFF_FEAR);
+      send_to_char(i, "Your bravery overcomes the fear!\r\n");
+      act("$n \tWovercomes the \tDfear\tW with braveru!\tn\tn",
+		TRUE, i, 0, 0, TO_ROOM);
+      return;
+    }          
     
   }  // end char list loop
 }
@@ -1556,7 +1566,7 @@ static char *make_prompt(struct descriptor_data *d)
           else
             strcat(prompt, " \tRunconscious\tn");
         }
-        len += 22;  // just counting the strcat's above
+        len += 30;  // just counting the strcat's above
       }  /* end tank elements */
       
       /* enemy name */
@@ -1591,7 +1601,7 @@ static char *make_prompt(struct descriptor_data *d)
           strcat(prompt, " \trawful\tn");
         else
           strcat(prompt, " \tRunconscious\tn");
-        len += 22;  // just counting the strcat's above
+        len += 30;  // just counting the strcat's above
       }
     } // end fighting
     /*********************************/
