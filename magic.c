@@ -3494,6 +3494,9 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
       break;
   }
 
+  send_to_char(ch, "<%d> ", healing);
+  send_to_char(victim, "<%d> ", healing);
+  
   if (to_notvict != NULL)
     act(to_notvict, TRUE, ch, 0, victim, TO_NOTVICT);
   if (to_vict != NULL)
