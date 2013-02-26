@@ -1140,8 +1140,7 @@ void init_class(struct char_data *ch, int class, int level)
     // magic stone SET_SKILL(ch, SPELL_MAGIC_STONE, 99);
     // obscuring mist SET_SKILL(ch, SPELL_OBSCURING_MIST, 99);
     // produce flame SET_SKILL(ch, SPELL_PRODUCE_FLAME, 99);
-    // summon nature's ally i SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_1, 99);
-    SET_SKILL(ch, SPELL_ENDURANCE, 99); // no
+    SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_1, 99);
     SET_SKILL(ch, SPELL_ARMOR, 99); // no
     SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99); // no
     //2nd circle
@@ -2599,7 +2598,7 @@ void init_spell_levels(void)
   // magic stone
   // obscuring mist
   // produce flame
-  // summon nature's ally i
+  spell_level(SPELL_SUMMON_NATURES_ALLY_1, CLASS_DRUID, 1);
   spell_level(SPELL_MAGIC_MISSILE, CLASS_DRUID, 1); // no
   spell_level(SPELL_ENDURANCE, CLASS_DRUID, 1); // no
   spell_level(SPELL_ARMOR, CLASS_DRUID, 1); // no
