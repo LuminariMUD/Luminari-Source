@@ -2143,12 +2143,12 @@ void mag_assign_spells(void)
   //animate dead - shared
 
   // 4th circle
-  spello(SPELL_CAUSE_CRITICAL_WOUNDS, "cause critical wounds", 51, 36, 1, 
-	POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-	NULL, 5, 10, NOSCHOOL);
   spello(SPELL_CURE_CRITIC, "cure critic", 51, 36, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_POINTS,
 	NULL, 3, 10, NOSCHOOL);
+  spello(SPELL_CAUSE_CRITICAL_WOUNDS, "cause critical wounds", 51, 36, 1, 
+	POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+	NULL, 5, 10, NOSCHOOL);
   spello(SPELL_MASS_CURE_LIGHT, "mass cure light", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 5, 10, NOSCHOOL);  
@@ -2157,27 +2157,46 @@ void mag_assign_spells(void)
   spello(SPELL_BRAVERY, "bravery", 44, 29, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS | MAG_AFFECTS,
 	"You feel your bravery spell wear off.", 8, 10, NOSCHOOL);
+  //summon creature iv - shared
   //remove curse - shared
   //infravision - shared
-  
+  //circle against evil - shared
+  //circle against good - shared
+  //curse - shared
+  //daylight - shared
 
   // 5th circle
+  spello(SPELL_REMOVE_POISON, "remove poison", 65, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_UNAFFECTS | MAG_ALTER_OBJS,
+	NULL, 7, 12, NOSCHOOL);
   spello(SPELL_PROT_FROM_EVIL, "protection from evil", 58, 43, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"You feel less protected from evil.", 5, 11, NOSCHOOL);
-  spello(SPELL_PROT_FROM_GOOD, "protection from good", 58, 43, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"You feel less protected from good.", 5, 11, NOSCHOOL);
   spello(SPELL_GROUP_ARMOR, "group armor", 58, 43, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 5, 11, NOSCHOOL);
   spello(SPELL_FLAME_STRIKE, "flame strike", 58, 43, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 6, 11, NOSCHOOL);
+  spello(SPELL_PROT_FROM_GOOD, "protection from good", 58, 43, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"You feel less protected from good.", 5, 11, NOSCHOOL);
   spello(SPELL_MASS_CURE_MODERATE, "mass cure moderate", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 6, 11, NOSCHOOL);  
+  spello(SPELL_REGENERATION, "regeneration", 58, 43, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS | MAG_POINTS,
+	"You feel the regeneration spell wear off.", 5, 11, NOSCHOOL);
+  spello(SPELL_FREE_MOVEMENT, "free movement", 58, 43, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS | MAG_UNAFFECTS,
+	"You feel the free movement spell wear off.", 5, 11, NOSCHOOL);
+  spello(SPELL_STRENGTHEN_BONE, "strengthen bones", 58, 43, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"You feel your undead bones weaken again.", 5, 11, NOSCHOOL);
   //poison - shared
+  //summon creature 5 - shared
+  //waterbreath - shared
+  //waterwalk - shared
 
   // 6th circle
   spello(SPELL_DISPEL_EVIL, "dispel evil", 65, 50, 1, POS_FIGHTING,
@@ -2186,9 +2205,6 @@ void mag_assign_spells(void)
   spello(SPELL_DISPEL_GOOD, "dispel good", 65, 50, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 5, 12, NOSCHOOL);
-  spello(SPELL_REMOVE_POISON, "remove poison", 65, 50, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_UNAFFECTS | MAG_ALTER_OBJS,
-	NULL, 7, 12, NOSCHOOL);
   spello(SPELL_HARM, "harm", 65, 50, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 7, 12, NOSCHOOL);

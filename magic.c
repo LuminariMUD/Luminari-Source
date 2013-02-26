@@ -1001,7 +1001,7 @@ int isMagicArmored(struct char_data *victim) {
 // 20 rounds = 1 real minute
 // 1200 rounds = 1 real hour
 // old tick = 75 seconds, or 1.25 minutes or 25 rounds
-#define MAX_SPELL_AFFECTS 5	/* change if more needed */
+#define MAX_SPELL_AFFECTS 6	/* change if more needed */
 
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         struct obj_data *wpn, int spellnum, int savetype) {
@@ -1564,6 +1564,36 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel protected from spells!";
       break;
 
+    case SPELL_AID:
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = 3;
+      af[0].duration = 300;
+
+      af[1].location = APPLY_DAMROLL;
+      af[1].modifier = 3;
+      af[1].duration = 300;
+
+      af[2].location = APPLY_SAVING_WILL;
+      af[2].modifier = 2;
+      af[2].duration = 300;
+
+      af[3].location = APPLY_SAVING_FORT;
+      af[3].modifier = 2;
+      af[3].duration = 300;
+
+      af[4].location = APPLY_SAVING_REFL;
+      af[4].modifier = 2;
+      af[4].duration = 300;
+
+      af[5].location = APPLY_HIT;
+      af[5].modifier = dice(2, 6) + MAX(divine_level, 15);
+      af[5].duration = 300;
+
+      accum_duration = TRUE;
+      to_room = "$n is now divinely aided!";
+      to_vict = "You feel divinely aided.";
+      break;
+
     case SPELL_BLESS:
       af[0].location = APPLY_HITROLL;
       af[0].modifier = 2;
@@ -1901,10 +1931,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "A pale blue light begins to glow around $n.";
       to_vict = "You are suddenly surrounded by a pale blue light.";
       break;
-      
-    case SPELL_FREE_MOVEMENT: // abjuration (inc)
-      break;
-      
+            
     case SPELL_JUMP: // transmutation
       af[0].duration = CLASS_LEVEL(ch, CLASS_DRUID);
 
@@ -2344,6 +2371,24 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is surrounded by a white aura.";
       break;
 
+    case SPELL_REGENERATION:
+      af[0].duration = 100;
+      SET_BIT_AR(af[0].bitvector, AFF_REGEN);
+
+      accum_duration = FALSE;
+      to_vict = "You begin regenerating.";
+      to_room = "$n begins regenerating.";
+      break;
+
+    case SPELL_FREE_MOVEMENT:
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_FREE_MOVEMENT);
+
+      accum_duration = FALSE;
+      to_vict = "Your limbs feel looser as the free movement spell takes effect.";
+      to_room = "$n .";
+      break;
+
     case SPELL_BRAVERY:
       af[0].duration = 25 + divine_level;
       SET_BIT_AR(af[0].bitvector, AFF_BRAVERY);
@@ -2759,6 +2804,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
       break;
     case SPELL_MASS_ENHANCE:
       mag_affects(level, ch, tch, obj, SPELL_MASS_ENHANCE, savetype);
+      break;
+    case SPELL_AID:
+      mag_affects(level, ch, tch, obj, SPELL_AID, savetype);
       break;
     case SPELL_MASS_ENDURANCE:
       mag_affects(level, ch, tch, obj, SPELL_MASS_ENDURANCE, savetype);
@@ -3595,6 +3643,16 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
       to_notvict = "$N's wounds are \tWhealed\tn by \tRvampiric\tD magic\tn.";
       send_to_char(victim, "A \tWwarm feeling\tn floods your body as \tRvampiric "
               "\tDmagic\tn takes over.\r\n");
+      break;
+    case SPELL_REGENERATION:
+      healing = dice(4, 4) + 15 + MIN(20, level);
+
+      to_notvict = "$n \twcures some wounds\tn on $N.";
+      if (ch == victim)
+        to_char = "You \twcure some wounds\tn on yourself.";
+      else
+        to_char = "You \twcure some wounds\tn on $N.";
+      to_vict = "$n \twcures some wounds\tn on you.";
       break;
   }
 

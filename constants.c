@@ -402,7 +402,7 @@ const char *affected_bits[] =
   "Sanctuary",
   "Groupped",
   "Cursed",  //10
-  "Infravision",
+  "Infra-Vision",
   "Poison",
   "Protect-Evil",
   "Protect-Good",
@@ -424,7 +424,7 @@ const char *affected_bits[] =
   "Fear",  //30
   "Stunned",
   "Paralyzed",
-  "Ultravision",
+  "Ultra-Vision",
   "Grappled",
   "Tamed",  //35
   "Climb",
@@ -439,7 +439,7 @@ const char *affected_bits[] =
   "True-Sight",  //45
   "Spot-Mode",
   "Fatigued",
-  "Regenning",
+  "Regenerating",
   "Diseased",
   "T-Transform",  //50
   "Globe of Invulnerability",
@@ -453,6 +453,7 @@ const char *affected_bits[] =
   "Shadow-Shielded",
   "Time-Stopped",  //60
   "Bravery",
+  "Free-Movement",
   "Faerie Fire",
   "\n"
 };
