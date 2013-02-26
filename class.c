@@ -1162,7 +1162,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
     SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
     // contagion SET_SKILL(ch, SPELL_CONTAGION, 99);
-    // greater magic fang SET_SKILL(ch, SPELL_MAGIC_FANG, 99);
+    SET_SKILL(ch, SPELL_GREATER_MAGIC_FANG, 99);
     // neutralize poison SET_SKILL(ch, SPELL_NEUTRALIZE_POISON, 99);
     SET_SKILL(ch, SPELL_POISON, 99);
     SET_SKILL(ch, SPELL_REMOVE_DISEASE, 99);
@@ -2624,7 +2624,7 @@ void init_spell_levels(void)
   spell_level(SPELL_CALL_LIGHTNING, CLASS_DRUID, 5);
   spell_level(SPELL_CURE_MODERATE, CLASS_DRUID, 5);
   // contagion
-  // greater magic fang
+  spell_level(SPELL_GREATER_MAGIC_FANG, CLASS_DRUID, 5);
   // neutralize poison
   spell_level(SPELL_POISON, CLASS_DRUID, 5);
   // remove disease

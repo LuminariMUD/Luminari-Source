@@ -1728,6 +1728,9 @@ void mag_assign_spells(void)
   //circle against evil - shared
   //circle against good - shared
                /* transmutation */
+  spello(SPELL_GREATER_MAGIC_FANG, "greater magic fang", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+          "Your greater magic fang wears off.", 4, 7, TRANSMUTATION);
   //cunning - shared
   //wisdom - shared
   //charisma - shared
