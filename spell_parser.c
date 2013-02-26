@@ -1532,6 +1532,9 @@ void mag_assign_spells(void)
 	"You feel your strength return.", 1, 5, NECROMANCY);
   // negative energy ray - shared
 			/* enchantment */
+  spello(SPELL_CHARM_ANIMAL, "charm animal", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+          "You feel more self-confident.", 4, 5, ENCHANTMENT);
   spello(SPELL_CHARM, "charm person", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
 	"You feel more self-confident.", 4, 5, ENCHANTMENT);
