@@ -1703,7 +1703,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       accum_duration = TRUE;
       to_room = "$n is now affected by magic fang!";
       to_vict = "You are suddenly empowered by magic fang.";
-
+      break;
+      
     case SPELL_SUNBURST: //divination, does damage and room affect
       if (MOB_FLAGGED(victim, MOB_NOBLIND)) {
         send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
