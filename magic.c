@@ -1214,8 +1214,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
           af[0].duration = 25;
           SET_BIT_AR(af[0].bitvector, AFF_BLIND);
 
-          af[1].location = APPLY_AC;
-          af[1].modifier = 40;
+          af[1].location = APPLY_AC_NEW;
+          af[1].modifier = -4;
           af[1].duration = 25;
           SET_BIT_AR(af[1].bitvector, AFF_BLIND);
 
@@ -1477,8 +1477,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (isMagicArmored(victim))
         return;
 
-      af[0].location = APPLY_AC;
-      af[0].modifier = -20;
+      af[0].location = APPLY_AC_NEW;
+      af[0].modifier = 2;
       af[0].duration = 300;
       to_vict = "You feel someone protecting you.";
       to_room = "$n is surrounded by magical armor!";
@@ -1488,8 +1488,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (isMagicArmored(victim))
         return;
       
-      af[0].location = APPLY_AC;
-      af[0].modifier = -50;
+      af[0].location = APPLY_AC_NEW;
+      af[0].modifier = 5;
       af[0].duration = magic_level * 5;
 
       af[1].duration = magic_level * 5;
@@ -1504,8 +1504,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (isMagicArmored(victim))
         return;
 
-      af[0].location = APPLY_AC;
-      af[0].modifier = -20;
+      af[0].location = APPLY_AC_NEW;
+      af[0].modifier = 2;
       af[0].duration = 600;
       accum_duration = TRUE;
       to_vict = "You feel someone protecting you.";
@@ -1539,8 +1539,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (isMagicArmored(victim))
         return;
 
-      af[0].location = APPLY_AC;
-      af[0].modifier = -20;
+      af[0].location = APPLY_AC_NEW;
+      af[0].modifier = 2;
       af[0].duration = 600;
       accum_duration = FALSE;
       to_vict = "You feel someone protecting you.";
@@ -1686,8 +1686,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 50;
       SET_BIT_AR(af[0].bitvector, AFF_BLIND);
 
-      af[1].location = APPLY_AC;
-      af[1].modifier = 40;
+      af[1].location = APPLY_AC_NEW;
+      af[1].modifier = -4;
       af[1].duration = 50;
       SET_BIT_AR(af[1].bitvector, AFF_BLIND);
 
@@ -1720,8 +1720,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 50;
       SET_BIT_AR(af[0].bitvector, AFF_BLIND);
 
-      af[1].location = APPLY_AC;
-      af[1].modifier = 40;
+      af[1].location = APPLY_AC_NEW;
+      af[1].modifier = -4;
       af[1].duration = 50;
       SET_BIT_AR(af[1].bitvector, AFF_BLIND);
 
@@ -1746,8 +1746,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 200;
       SET_BIT_AR(af[0].bitvector, AFF_BLIND);
 
-      af[1].location = APPLY_AC;
-      af[1].modifier = 40;
+      af[1].location = APPLY_AC_NEW;
+      af[1].modifier = -4;
       af[1].duration = 200;
       SET_BIT_AR(af[1].bitvector, AFF_BLIND);
 
@@ -2140,8 +2140,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (isMagicArmored(victim))
         return;
 
-      af[0].location = APPLY_AC;
-      af[0].modifier = -125;
+      af[0].location = APPLY_AC_NEW;
+      af[0].modifier = 12;
       af[0].duration = 1200;
       af[1].location = APPLY_DEX;
       af[1].modifier = 7;
@@ -2214,8 +2214,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         victim = ch;
 
       af[0].duration = 300 + (magic_level * 6);
-      af[0].modifier = -40;
-      af[0].location = APPLY_AC;
+      af[0].modifier = 4;
+      af[0].location = APPLY_AC_NEW;
       SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
       accum_duration = TRUE;
       to_vict = "You vanish.";
@@ -2227,8 +2227,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         victim = ch;
 
       af[0].duration = 10 + (magic_level * 6);
-      af[0].modifier = -40;
-      af[0].location = APPLY_AC;
+      af[0].modifier = 4;
+      af[0].location = APPLY_AC_NEW;
       SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
       accum_duration = TRUE;
       to_vict = "You vanish.";

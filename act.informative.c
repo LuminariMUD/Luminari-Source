@@ -264,6 +264,13 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
             npc_subrace_abbrevs[GET_SUBRACE(i, 1)],
             npc_subrace_abbrevs[GET_SUBRACE(i, 2)],
             RACE_ABBR(i), diagnosis[ar_index].text);
+  
+  if (affected_by_spell(i, SPELL_BARKSKIN))
+    act("$s skin appears to be made of bark.", FALSE, i, 0, ch, TO_VICT);
+  if (affected_by_spell(i, SPELL_STONESKIN))
+    act("$s skin appears to be made of stone.", FALSE, i, 0, ch, TO_VICT);
+  if (affected_by_spell(i, SPELL_IRONSKIN))
+    act("$s skin appears to be made of iron.", FALSE, i, 0, ch, TO_VICT);
   free(pers);
   pers = NULL;
 }
