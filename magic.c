@@ -514,6 +514,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_FIREBALL: //evocation
+      // Nashak: make this dissipate obscuring mist when finished
       save = SAVING_REFL;
       mag_resist = TRUE;
       element = DAM_FIRE;
@@ -662,6 +663,18 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       num_dice = magic_level + 6;
       size_dice = 12;
       bonus = magic_level + 35;
+      break;
+      
+    case SPELL_PRODUCE_FLAME: // evocation
+      if (SECT(ch->in_room) == SECT_UNDERWATER) {
+        send_to_char(ch, "You are unable to produce a flame while underwater.");
+        return (0);
+      }
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = 1;
+      size_dice = 6;
+      bonus = MIN(magic_level, 5);
       break;
 
       /***************/
@@ -1379,6 +1392,23 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = dice(3, 3);
       to_room = "$n is overcome by a powerful hold spell!";
       to_vict = "You are overcome by a powerful hold spell!";
+      break;
+      
+    case SPELL_OBSCURING_MIST: // conjuration
+      /* so right now this spell is simply 20% concealment to 1 char, needs
+       * to be modified so that it actually creates an obscuring mist object in the room
+       * and sets a room flag, which the room flag will determine the effects of the spell.
+       * also, gust of wind, fireball, flamestrike, etc. will disperse the mist when cast,
+       * or even a strong wind in the weather...
+       */
+      if (SECT(ch->in_room) == SECT_UNDERWATER) {
+        send_to_char(ch, "The obscuring mist quickly disappears under the water.\r\n");
+        return;
+      }
+      
+      af[0].duration = magic_level;
+      to_room = "An obscuring mist suddenly fills the room!";
+      to_vict = "An obscruring mist suddenly surrounds you.";
       break;
 
     case SPELL_WAVES_OF_FATIGUE: //necromancy
@@ -3908,6 +3938,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       to_char = "You create $p.";
       to_room = "$n creates $p.";
       object_vnum = 9400;
+      break;
+    case SPELL_MAGIC_STONE:
+      to_char = "You create $p.";
+      to_room = "$n creates $p.";
+      object_vnum = 9401;
       break;
     case SPELL_HOLY_SWORD:
       to_char = "You summon $p.";

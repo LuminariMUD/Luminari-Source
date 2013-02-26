@@ -1137,12 +1137,12 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_GOODBERRY, 99);
     SET_SKILL(ch, SPELL_JUMP, 99);
     SET_SKILL(ch, SPELL_MAGIC_FANG, 99);
-    // magic stone SET_SKILL(ch, SPELL_MAGIC_STONE, 99);
-    // obscuring mist SET_SKILL(ch, SPELL_OBSCURING_MIST, 99);
-    // produce flame SET_SKILL(ch, SPELL_PRODUCE_FLAME, 99);
+    SET_SKILL(ch, SPELL_MAGIC_STONE, 99);
+    SET_SKILL(ch, SPELL_OBSCURING_MIST, 99);
+    SET_SKILL(ch, SPELL_PRODUCE_FLAME, 99);
     SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_1, 99);
-    SET_SKILL(ch, SPELL_ARMOR, 99); // no
-    SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99); // no
+    //SET_SKILL(ch, SPELL_ARMOR, 99); // no
+    //SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99); // no
     //2nd circle
     SET_SKILL(ch, SPELL_BARKSKIN, 99);
     SET_SKILL(ch, SPELL_ENDURANCE, 99);
@@ -2595,14 +2595,14 @@ void init_spell_levels(void)
   spell_level(SPELL_GOODBERRY, CLASS_DRUID, 1);
   spell_level(SPELL_JUMP, CLASS_DRUID, 1);
   spell_level(SPELL_MAGIC_FANG, CLASS_DRUID, 1);
-  // magic stone
-  // obscuring mist
-  // produce flame
+  spell_level(SPELL_MAGIC_STONE, CLASS_DRUID, 1);
+  spell_level(SPELL_OBSCURING_MIST, CLASS_DRUID, 1);
+  spell_level(SPELL_PRODUCE_FLAME, CLASS_DRUID, 1);
   spell_level(SPELL_SUMMON_NATURES_ALLY_1, CLASS_DRUID, 1);
-  spell_level(SPELL_MAGIC_MISSILE, CLASS_DRUID, 1); // no
-  spell_level(SPELL_ENDURANCE, CLASS_DRUID, 1); // no
-  spell_level(SPELL_ARMOR, CLASS_DRUID, 1); // no
-  spell_level(SPELL_CAUSE_LIGHT_WOUNDS, CLASS_DRUID, 1); // no
+//  spell_level(SPELL_MAGIC_MISSILE, CLASS_DRUID, 1); // no
+//  spell_level(SPELL_ENDURANCE, CLASS_DRUID, 1); // no
+//  spell_level(SPELL_ARMOR, CLASS_DRUID, 1); // no
+//  spell_level(SPELL_CAUSE_LIGHT_WOUNDS, CLASS_DRUID, 1); // no
   
   //2nd circle
   spell_level(SPELL_BARKSKIN, CLASS_DRUID, 3);

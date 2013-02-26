@@ -1514,6 +1514,9 @@ void mag_assign_spells(void)
   spello(SPELL_FAERIE_FIRE, "faerie fire", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
           NULL, 1, 5, EVOCATION);
+  spello(SPELL_PRODUCE_FLAME, "produce flame", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM, TRUE, MAG_DAMAGE,
+          NULL, 3, 5, EVOCATION);
 			/* conjuration */
   spello(SPELL_ICE_DAGGER, "ice dagger", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
@@ -1521,6 +1524,9 @@ void mag_assign_spells(void)
   spello(SPELL_MAGE_ARMOR, "mage armor", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel less protected.", 4, 5,
      CONJURATION);
+  spello(SPELL_OBSCURING_MIST, "obscuring mist", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+          "The obscuring mist begins to dissipate.", 3, 5, CONJURATION);
   spello(SPELL_SUMMON_NATURES_ALLY_1, "summon natures ally i", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 4, 5, CONJURATION);
   // summon creature 1 - shared
@@ -1584,9 +1590,12 @@ void mag_assign_spells(void)
   spello(SPELL_MAGIC_FANG, "magic fang", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "Your magic fang wears off.", 3, 5, TRANSMUTATION);
+  spello(SPELL_MAGIC_STONE, "magic stone", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_CREATIONS,
+          NULL, 3, 5, TRANSMUTATION);
   spello(SPELL_SHIELD, "shield", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-	"Your magical shield fades away.", 2, 5, TRANSMUTATION);
+	"Your magical shield fades away.", 3, 5, TRANSMUTATION);
 
 
 /* = =  2nd circle  = = */
