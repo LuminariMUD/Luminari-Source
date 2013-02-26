@@ -285,8 +285,68 @@
 #define SPELL_AIR_WALKER           243
 #define SPELL_GROUP_SUMMON         244
 #define SPELL_MASS_CURE_CRIT       245  //
+#define SPELL_CHARM_ANIMAL         246
+#define SPELL_FAERIE_FIRE               247
+#define SPELL_GOODBERRY                 248
+#define SPELL_JUMP                      249
+#define SPELL_MAGIC_FANG                250
+#define SPELL_MAGIC_STONE               251
+#define SPELL_OBSCURING_MIST            252
+#define SPELL_PRODUCE_FLAME             253
+#define SPELL_SUMMON_NATURES_ALLY_1     254
+#define SPELL_SUMMON_NATURES_ALLY_2     255
+#define SPELL_SUMMON_NATURES_ALLY_3     256
+#define SPELL_SUMMON_NATURES_ALLY_4     257
+#define SPELL_SUMMON_NATURES_ALLY_5     258
+#define SPELL_SUMMON_NATURES_ALLY_6     259
+#define SPELL_SUMMON_NATURES_ALLY_7     260
+#define SPELL_SUMMON_NATURES_ALLY_8     261
+#define SPELL_SUMMON_NATURES_ALLY_9     262
+#define SPELL_BARKSKIN                  263
+#define SPELL_BEARS_ENDURANCE           264
+#define SPELL_BULLS_STRENGTH            265
+#define SPELL_CATS_GRACE                266
+#define SPELL_FLAME_BLADE               267
+#define SPELL_FLAMING_SPHERE            268
+#define SPELL_HOLD_ANIMAL               269
+#define SPELL_OWLS_WISDOM               270
+#define SPELL_SUMMON_SWARM              271
+#define SPELL_CONTAGION                 272
+#define SPELL_GREATER_MAGIC_FANG        273
+#define SPELL_NEUTRALIZE_POISON         274
+#define SPELL_SPIKE_GROWTH              275
+#define SPELL_BLIGHT                    276
+#define SPELL_REINCARNATE               277
+#define SPELL_SCRYING                   278
+#define SPELL_SPIKE_STONES              279
+#define SPELL_BALEFUL_POLYMORPH         280
+#define SPELL_DEATH_WARD                281
+#define SPELL_HALLOW                    282
+#define SPELL_INSECT_PLAGUE             283
+#define SPELL_UNHALLOW                  284
+#define SPELL_WALL_OF_FIRE              285
+#define SPELL_WALL_OF_THORNS            286
+#define SPELL_FIRE_SEEDS                287
+#define SPELL_GREATER_DISPEL_MAGIC      288 // same as greater dispelling?
+#define SPELL_MASS_BEARS_ENDURANCE      289
+#define SPELL_MASS_BULLS_STRENGTH       290
+#define SPELL_MASS_CATS_GRACE           291
+#define SPELL_MASS_OWLS_WISDOM          292
+#define SPELL_SPELLSTAFF                293
+#define SPELL_TRANSPORT_VIA_PLANTS      294
+#define SPELL_CREEPING_DOOM             295
+#define SPELL_FIRE_STORM                296
+#define SPELL_GREATER_SCRYING           297
+#define SPELL_SUNBEAM                   298
+#define SPELL_ANIMAL_SHAPES             299
+#define SPELL_CONTROL_PLANTS            300
+#define SPELL_FINGER_OF_DEATH           301
+#define SPELL_ELEMENTAL_SWARM           302
+#define SPELL_REGENERATE                303 // maybe use regeneration
+#define SPELL_SHAMBLER                  304
+#define SPELL_SHAPECHANGE               305
 /** Total Number of defined spells */
-#define NUM_SPELLS                 246
+#define NUM_SPELLS                 305
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
