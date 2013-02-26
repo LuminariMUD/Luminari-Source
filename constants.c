@@ -753,7 +753,7 @@ const char *apply_types[] = {
   "Max-Move",
   "Gold",
   "Experience",
-  "Armor-Class",
+  "AC (obsolete)",
   "Hitroll",
   "Damroll",
   "Save-Fortitude",
