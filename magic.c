@@ -3176,7 +3176,7 @@ static const char *mag_summon_to_msgs[] = {
   "You conjure $N from a cloud of thick blue smoke!", //3
   "You conjure $N from a cloud of thick green smoke!", //4
   "You conjure $N from a cloud of thick red smoke!", //5
-  "You make $N disappears in a thick black cloud!", //6
+  "You make $N appear in a thick black cloud!", //6
   "\tCYou make a magical gesture, you feel a strong breeze.\tn", //7
   "\tRYou make a magical gesture, you feel a searing heat.\tn", //8
   "\tYYou make a magical gesture, you feel a sudden shift in the earth.\tn", //9
@@ -3242,6 +3242,7 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_BANSHEE   57  // great animation
 #define MOB_WIGHT   58  // great animation
 #define MOB_BLADE_OF_DISASTER   59  // black blade of disaster
+#define MOB_DIRE_RAT    9400 // summon natures ally i
 
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum, int savetype) {
@@ -3458,6 +3459,14 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       pfail = 0;
       break;
 
+    case SPELL_SUMMON_NATURES_ALLY_1: //conjuration
+      handle_corpse = FALSE;
+      msg = 20;
+      fmsg = rand_number(2, 6); /* Random fail message. */
+      mob_num = 9400 + rand_number(0, 7);
+      pfail = 0;
+      break;
+      
     default:
       return;
   }

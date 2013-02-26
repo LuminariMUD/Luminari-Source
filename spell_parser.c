@@ -1520,6 +1520,8 @@ void mag_assign_spells(void)
   spello(SPELL_MAGE_ARMOR, "mage armor", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel less protected.", 4, 5,
      CONJURATION);
+  spello(SPELL_SUMMON_NATURES_ALLY_1, "summon natures ally i", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 4, 5, CONJURATION);
   // summon creature 1 - shared
 			/* necromancy */
   spello(SPELL_CHILL_TOUCH, "chill touch", 0, 0, 0, POS_FIGHTING,
