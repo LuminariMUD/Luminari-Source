@@ -1709,6 +1709,29 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are suddenly empowered by magic fang.";
       break;
       
+    case SPELL_GREATER_MAGIC_FANG:
+            if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
+        send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
+        return;
+      }
+      af[0].location = APPLY_HITROLL;
+      if (CLASS_LEVEL(ch, CLASS_DRUID) >= 20)
+        af[0].modifier = 5;
+      else if (CLASS_LEVEL(ch, CLASS_DRUID) >= 16)
+        af[0].modifier = 4;
+      else if (CLASS_LEVEL(ch, CLASS_DRUID) >= 12)
+        af[0].modifier = 3;
+      else if (CLASS_LEVEL(ch, CLASS_DRUID) >= 8)
+        af[0].modifier = 2;
+      else
+        af[0].modifier = 1;
+      af[0].duration = 5 * magic_level;
+
+      accum_duration = TRUE;
+      to_room = "$n is now affected by magic fang!";
+      to_vict = "You are suddenly empowered by magic fang.";
+      break;
+      
     case SPELL_SUNBURST: //divination, does damage and room affect
       if (MOB_FLAGGED(victim, MOB_NOBLIND)) {
         send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
