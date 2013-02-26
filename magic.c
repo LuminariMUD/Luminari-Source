@@ -1813,6 +1813,26 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel yourself slow down!";
       break;
 
+    case SPELL_BARKSKIN: // transmutation
+      if (isMagicArmored(victim))
+        return;
+
+      af[0].location = APPLY_AC;
+      if (magic_level >= 12)
+        af[0].modifier = -50;
+      else if (magic_level >= 9)
+        af[0].modifier = -40;
+      else if (magic_level >= 6)
+        af[0].modifier = -30;
+      else
+        af[0].modifier = -20;
+      af[0].duration = (magic_level * 10); // should be 10 min. * magic_level
+      accum_affect = FALSE;
+      accum_duration = FALSE;
+      to_vict = "Your skin hardens to bark.";
+      to_room = "$n skin hardens to bark!";
+      break;
+     
     case SPELL_CURSE: //necromancy
       if (mag_resistance(ch, victim, 0))
         return;
@@ -1867,6 +1887,28 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       accum_affect = FALSE;
       to_room = "$n is terribly enfeebled!";
       to_vict = "You feel terribly enfeebled!";
+      break;
+
+    case SPELL_FAERIE_FIRE: // evocation
+      if (mag_resistance(ch, victim, 0))
+        return;
+      
+      // need to make this show an outline around concealed, blue, displaced, invisible people
+      SET_BIT_AR(af[0].bitvector, AFF_FAERIE_FIRE);
+      af[0].duration = magic_level;
+      accum_duration = FALSE;
+      accum_affect = FALSE;
+      to_room = "A pale blue light begins to glow around $n.";
+      to_vict = "You are suddenly surrounded by a pale blue light.";
+      break;
+      
+    case SPELL_JUMP: // transmutation
+      af[0].duration = CLASS_LEVEL(ch, CLASS_DRUID);
+
+      accum_affect = FALSE;
+      accum_duration = FALSE;
+      to_room = "$n feels much lighter on $s feet.";
+      to_vict = "You feel much lighter on your feet.";
       break;
 
     case SPELL_INTERPOSING_HAND: //evocation
@@ -2043,6 +2085,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       accum_duration = TRUE;
       to_vict = "You feel more hardy!";
       to_room = "$n begins to feel more hardy!";
+      break;
+
+    case SPELL_MASS_ENDURANCE: //transmutation
+      af[0].location = APPLY_CON;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel more hardy!";
+      to_room = "$n's begins to feel more hardy!";
       break;
 
     case SPELL_EPIC_MAGE_ARMOR: //epic
@@ -2458,6 +2509,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel stronger!";
       to_room = "$n's muscles begin to bulge!";
       break;
+      
+    case SPELL_MASS_STRENGTH: //transmutation
+      af[0].location = APPLY_STR;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel stronger!";
+      to_room = "$n's muscles begin to bulge!";
+      break;
 
     case SPELL_CHARISMA: //transmutation
       if (affected_by_spell(victim, SPELL_MASS_CHARISMA)) {
@@ -2557,6 +2617,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_GRACE: //transmutation
+      af[0].location = APPLY_DEX;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel more dextrous!";
+      to_room = "$n's appears to be more dextrous!";
+      break;
+      
+    case SPELL_MASS_GRACE: //transmutation
       af[0].location = APPLY_DEX;
       af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
@@ -2688,7 +2757,18 @@ static void perform_mag_groups(int level, struct char_data *ch,
     case SPELL_MASS_ENHANCE:
       mag_affects(level, ch, tch, obj, SPELL_MASS_ENHANCE, savetype);
       break;
-
+    case SPELL_MASS_ENDURANCE:
+      mag_affects(level, ch, tch, obj, SPELL_MASS_ENDURANCE, savetype);
+      break;
+    case SPELL_MASS_GRACE:
+      mag_affects(level, ch, tch, obj, SPELL_MASS_GRACE, savetype);
+      break;
+    case SPELL_MASS_STRENGTH:
+      mag_affects(level, ch, tch, obj, SPELL_STRENGTH, savetype);
+      break;
+    case SPELL_MASS_WISDOM:
+      mag_affects(level, ch, tch, obj, SPELL_WISDOM, savetype);
+      break;
   }
 }
 

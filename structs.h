@@ -537,6 +537,7 @@
 #define AFF_SHADOW_SHIELD    59
 #define AFF_TIME_STOPPED     60
 #define AFF_BRAVERY          61
+#define AFF_FAERIE_FIRE         62
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
 #define NUM_AFF_FLAGS        62

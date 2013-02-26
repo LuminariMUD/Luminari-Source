@@ -1,4 +1,4 @@
-/**************************************************************************
+ma/**************************************************************************
 *  File: spell_parser.c                                    Part of tbaMUD *
 *  Usage: Top-level magic routines; outside points of entry to magic sys. *
 *                                                                         *
@@ -1352,6 +1352,20 @@ void mag_assign_spells(void)
   // sorted the spells by shared / magical / divine, and by circle
   // in each category (school) -zusuk
 
+  // new druid spells: to be sorted
+  spello(SPELL_JUMP, "jump", 0, 0, 0, POS_FIGHTING, // jump (druid/ranger 1st circle, sorcerer/wizard 1st circle)
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+        "Your enhanced jumping ability fades away.", 4, 8,
+        TRANSMUTATION);
+  spello(SPELL_BARKSKIN, "barkskin", 0, 0, 0, POS_FIGHTING, // barkskin (druid/ranger/plant 2nd circle)
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+        "You feel your barkskin returning to normal.", 4, 10,
+        TRANSMUTATION);
+  spello(SPELL_FAERIE_FIRE, "faerie fire", 0, 0, 0, POS_FIGHTING, // faerie fire (druid 1st circle)
+        TAR_CHAR_ROOM, TRUE, MAG_AFFECTS,
+        "The glowing light around you begins to fade.", 4, 8,
+        EVOCATION);
+  
   //shared
   spello(SPELL_INFRAVISION, "infravision", 0, 0, 0, POS_FIGHTING,  //enchant
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -1934,6 +1948,12 @@ void mag_assign_spells(void)
      FALSE, MAG_GROUPS, "The charisma spell fades away.", 5, 11, TRANSMUTATION);
   spello(SPELL_MASS_CUNNING, "mass cunning", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
      FALSE, MAG_GROUPS, "The cunning spell fades away.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_ENDURANCE, "mass endurance", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+     FALSE, MAG_GROUPS, "Your magical endurance has faded away.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_GRACE, "mass grace", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+     FALSE, MAG_GROUPS, "You feel less dextrous.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_STRENGTH, "mass strength", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+     FALSE, MAG_GROUPS, "You feel weaker.", 5, 11, TRANSMUTATION);
 
     
   // 8th circle

@@ -453,6 +453,7 @@ const char *affected_bits[] =
   "Shadow-Shielded",
   "Time-Stopped",  //60
   "Bravery",
+  "Faerie Fire",
   "\n"
 };
 

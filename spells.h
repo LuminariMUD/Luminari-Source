@@ -303,50 +303,47 @@
 #define SPELL_SUMMON_NATURES_ALLY_8     261
 #define SPELL_SUMMON_NATURES_ALLY_9     262
 #define SPELL_BARKSKIN                  263
-#define SPELL_BEARS_ENDURANCE           264
-#define SPELL_BULLS_STRENGTH            265
-#define SPELL_CATS_GRACE                266
-#define SPELL_FLAME_BLADE               267
-#define SPELL_FLAMING_SPHERE            268
-#define SPELL_HOLD_ANIMAL               269
-#define SPELL_OWLS_WISDOM               270
-#define SPELL_SUMMON_SWARM              271
-#define SPELL_CONTAGION                 272
-#define SPELL_GREATER_MAGIC_FANG        273
-#define SPELL_NEUTRALIZE_POISON         274
-#define SPELL_SPIKE_GROWTH              275
-#define SPELL_BLIGHT                    276
-#define SPELL_REINCARNATE               277
-#define SPELL_SCRYING                   278
-#define SPELL_SPIKE_STONES              279
-#define SPELL_BALEFUL_POLYMORPH         280
-#define SPELL_DEATH_WARD                281
-#define SPELL_HALLOW                    282
-#define SPELL_INSECT_PLAGUE             283
-#define SPELL_UNHALLOW                  284
-#define SPELL_WALL_OF_FIRE              285
-#define SPELL_WALL_OF_THORNS            286
-#define SPELL_FIRE_SEEDS                287
-#define SPELL_GREATER_DISPEL_MAGIC      288 // same as greater dispelling?
-#define SPELL_MASS_BEARS_ENDURANCE      289
-#define SPELL_MASS_BULLS_STRENGTH       290
-#define SPELL_MASS_CATS_GRACE           291
-#define SPELL_MASS_OWLS_WISDOM          292
-#define SPELL_SPELLSTAFF                293
-#define SPELL_TRANSPORT_VIA_PLANTS      294
-#define SPELL_CREEPING_DOOM             295
-#define SPELL_FIRE_STORM                296
-#define SPELL_GREATER_SCRYING           297
-#define SPELL_SUNBEAM                   298
-#define SPELL_ANIMAL_SHAPES             299
-#define SPELL_CONTROL_PLANTS            300
-#define SPELL_FINGER_OF_DEATH           301
-#define SPELL_ELEMENTAL_SWARM           302
-#define SPELL_REGENERATE                303 // maybe use regeneration
-#define SPELL_SHAMBLER                  304
-#define SPELL_SHAPECHANGE               305
+#define SPELL_FLAME_BLADE               264
+#define SPELL_FLAMING_SPHERE            265
+#define SPELL_HOLD_ANIMAL               266
+#define SPELL_CALL_LIGHTNING_STORM      267
+#define SPELL_SUMMON_SWARM              268
+#define SPELL_CONTAGION                 269
+#define SPELL_GREATER_MAGIC_FANG        270
+#define SPELL_NEUTRALIZE_POISON         271
+#define SPELL_SPIKE_GROWTH              272
+#define SPELL_BLIGHT                    273
+#define SPELL_REINCARNATE               274
+#define SPELL_SCRYING                   275
+#define SPELL_SPIKE_STONES              276
+#define SPELL_BALEFUL_POLYMORPH         277
+#define SPELL_DEATH_WARD                278
+#define SPELL_HALLOW                    279
+#define SPELL_INSECT_PLAGUE             280
+#define SPELL_UNHALLOW                  281
+#define SPELL_WALL_OF_FIRE              282
+#define SPELL_WALL_OF_THORNS            283
+#define SPELL_FIRE_SEEDS                284
+#define SPELL_GREATER_DISPEL_MAGIC      285 // same as greater dispelling?
+#define SPELL_MASS_ENDURANCE            286
+#define SPELL_MASS_STRENGTH             287
+#define SPELL_MASS_GRACE                288
+#define SPELL_UNUSED289                 289
+#define SPELL_SPELLSTAFF                290
+#define SPELL_TRANSPORT_VIA_PLANTS      291
+#define SPELL_CREEPING_DOOM             292
+#define SPELL_FIRE_STORM                293
+#define SPELL_GREATER_SCRYING           294
+#define SPELL_SUNBEAM                   295
+#define SPELL_ANIMAL_SHAPES             296
+#define SPELL_CONTROL_PLANTS            297
+#define SPELL_FINGER_OF_DEATH           298
+#define SPELL_ELEMENTAL_SWARM           299
+#define SPELL_REGENERATE                300 // maybe use regeneration
+#define SPELL_SHAMBLER                  301
+#define SPELL_SHAPECHANGE               302
 /** Total Number of defined spells */
-#define NUM_SPELLS                 305
+#define NUM_SPELLS                 302
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */

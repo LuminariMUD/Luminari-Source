@@ -1125,9 +1125,9 @@ void init_class(struct char_data *ch, int class, int level)
     //1st circle
     // charm animal SET_SKILL(ch, SPELL_CHARM_ANIMAL, 99);
     SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
-    // faerie fire SET_SKILL(ch, SPELL_FAERIE_FIRE, 99);
+    SET_SKILL(ch, SPELL_FAERIE_FIRE, 99);
     // goodberry SET_SKILL(ch, SPELL_GOODBERRY, 99);
-    // jump SET_SKILL(ch, SPELL_JUMP, 99);
+    SET_SKILL(ch, SPELL_JUMP, 99);
     // magic fang SET_SKILL(ch, SPELL_MAGIC_FANG, 99);
     // magic stone SET_SKILL(ch, SPELL_MAGIC_STONE, 99);
     // obscuring mist SET_SKILL(ch, SPELL_OBSCURING_MIST, 99);
@@ -1137,16 +1137,16 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_ARMOR, 99); // no
     SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99); // no
     //2nd circle
-    // barkskin SET_SKILL(ch, SPELL_BARKSKIN, 99);
-    // bear's endurance SET_SKILL(ch, SPELL_BEARS_ENDURANCE, 99);
-    // bull's strength SET_SKILL(ch, SPELL_BULLS_STRENGTH, 99);
-    // cat's grace SET_SKILL(ch, SPELL_CATS_GRACE, 99);
+    SET_SKILL(ch, SPELL_BARKSKIN, 99);
+    SET_SKILL(ch, SPELL_ENDURANCE, 99);
+    SET_SKILL(ch, SPELL_STRENGTH, 99);
+    SET_SKILL(ch, SPELL_GRACE, 99);
     // flame blade SET_SKILL(ch, SPELL_FLAME_BLADE, 99);
     // flaming sphere SET_SKILL(ch, SPELL_FLAMING_SPHERE, 99);
     // hold animal SET_SKILL(ch, SPELL_HOLD_ANIMAL, 99);
-    // owl's wisdom SET_SKILL(ch, SPELL_OWLS_WISDOM, 99);
     // summon nature's ally ii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_2, 99);
     // summon swarm SET_SKILL(ch, SPELL_SUMMON_SWARM, 99);
+    SET_SKILL(ch, SPELL_WISDOM, 99);
     SET_SKILL(ch, SPELL_CREATE_FOOD, 99); // no
     SET_SKILL(ch, SPELL_CREATE_WATER, 99); // no
     SET_SKILL(ch, SPELL_DETECT_POISON, 99); // no
@@ -1181,7 +1181,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99); // no
     //5th circle
     // baleful polymorph SET_SKILL(ch, SPELL_BALEFUL_POLYMORPH, 99);
-    SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
+    SET_SKILL(ch, SPELL_CALL_LIGHTNING_STORM, 99);
     SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
     // death ward SET_SKILL(ch, SPELL_DEATH_WARD, 99);
     // hallow SET_SKILL(ch, SPELL_HALLOW, 99);
@@ -2574,52 +2574,127 @@ void init_spell_levels(void)
   
   // druid
   //1st circle
-  spell_level(SPELL_MAGIC_MISSILE, CLASS_DRUID, 1);
+  // charm animal
   spell_level(SPELL_CURE_LIGHT, CLASS_DRUID, 1);
-  spell_level(SPELL_ENDURANCE, CLASS_DRUID, 1);
-  spell_level(SPELL_ARMOR, CLASS_DRUID, 1);
-  spell_level(SPELL_CAUSE_LIGHT_WOUNDS, CLASS_DRUID, 1);
+  spell_level(SPELL_FAERIE_FIRE, CLASS_DRUID, 1);
+  // goodberry
+  spell_level(SPELL_JUMP, CLASS_DRUID, 1);
+  // magic fang
+  // magic stone
+  // obscuring mist
+  // produce flame
+  // summon nature's ally i
+  spell_level(SPELL_MAGIC_MISSILE, CLASS_DRUID, 1); // no
+  spell_level(SPELL_ENDURANCE, CLASS_DRUID, 1); // no
+  spell_level(SPELL_ARMOR, CLASS_DRUID, 1); // no
+  spell_level(SPELL_CAUSE_LIGHT_WOUNDS, CLASS_DRUID, 1); // no
   //2nd circle
-  spell_level(SPELL_CREATE_FOOD, CLASS_DRUID, 3);
-  spell_level(SPELL_CREATE_WATER, CLASS_DRUID, 3);
-  spell_level(SPELL_DETECT_POISON, CLASS_DRUID, 3);
-  spell_level(SPELL_CAUSE_MODERATE_WOUNDS, CLASS_DRUID, 3);
+  spell_level(SPELL_BARKSKIN, CLASS_DRUID, 3);
+  spell_level(SPELL_ENDURANCE, CLASS_DRUID, 3);
+  spell_level(SPELL_STRENGTH, CLASS_DRUID, 3);
+  spell_level(SPELL_GRACE, CLASS_DRUID, 3);
+  // flame blade
+  // flaming sphere
+  // hold animal
+  // owl's wisdom
+  // summon nature's ally ii
+  // summon swarm
+  spell_level(SPELL_CREATE_FOOD, CLASS_DRUID, 3); // no
+  spell_level(SPELL_CREATE_WATER, CLASS_DRUID, 3); // no
+  spell_level(SPELL_DETECT_POISON, CLASS_DRUID, 3); // no
+  spell_level(SPELL_CAUSE_MODERATE_WOUNDS, CLASS_DRUID, 3); // no
   //3rd circle
-  spell_level(SPELL_DETECT_ALIGN, CLASS_DRUID, 5);
-  spell_level(SPELL_CURE_BLIND, CLASS_DRUID, 5);
-  spell_level(SPELL_BLESS, CLASS_DRUID, 5);
-  spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_DRUID, 5);
+  spell_level(SPELL_CALL_LIGHTNING, CLASS_DRUID, 5);
+  spell_level(SPELL_CURE_MODERATE, CLASS_DRUID, 5);
+  // contagion
+  // greater magic fang
+  // neutralize poison
+  spell_level(SPELL_POISON, CLASS_DRUID, 5);
+  // remove disease
+  // spike growth
+  // summon nature's ally iii
+  spell_level(SPELL_DETECT_ALIGN, CLASS_DRUID, 5); // no
+  spell_level(SPELL_CURE_BLIND, CLASS_DRUID, 5); // no
+  spell_level(SPELL_BLESS, CLASS_DRUID, 5); // no
+  spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_DRUID, 5); // no
   //4th circle
-  spell_level(SPELL_INFRAVISION, CLASS_DRUID, 7);
-  spell_level(SPELL_REMOVE_CURSE, CLASS_DRUID, 7);
-  spell_level(SPELL_CAUSE_CRITICAL_WOUNDS, CLASS_DRUID, 7);
-  spell_level(SPELL_CURE_CRITIC, CLASS_DRUID, 7);
+  // blight
+  spell_level(SPELL_CURE_SERIOUS, CLASS_DRUID, 7);
+  spell_level(SPELL_DISPEL_MAGIC, CLASS_DRUID, 7);
+  spell_level(SPELL_FLAME_STRIKE, CLASS_DRUID, 7);
+  spell_level(SPELL_FREE_MOVEMENT, CLASS_DRUID, 7);
+  spell_level(SPELL_ICE_STORM, CLASS_DRUID, 7);
+  // reincarnate
+  // scrying
+  // spike stones
+  // summon nature's ally iv
+  spell_level(SPELL_INFRAVISION, CLASS_DRUID, 7); // no
+  spell_level(SPELL_REMOVE_CURSE, CLASS_DRUID, 7); // no
+  spell_level(SPELL_CAUSE_CRITICAL_WOUNDS, CLASS_DRUID, 7); // no
   //5th circle
-  spell_level(SPELL_BLINDNESS, CLASS_DRUID, 9);
-  spell_level(SPELL_PROT_FROM_EVIL, CLASS_DRUID, 9);
-  spell_level(SPELL_PROT_FROM_GOOD, CLASS_DRUID, 9);
-  spell_level(SPELL_POISON, CLASS_DRUID, 9);
-  spell_level(SPELL_GROUP_ARMOR, CLASS_DRUID, 9);
-  spell_level(SPELL_FLAME_STRIKE, CLASS_DRUID, 9);
+  // baleful polymorph
+  spell_level(SPELL_CALL_LIGHTNING_STORM, CLASS_DRUID, 9);
+  spell_level(SPELL_CURE_CRITIC, CLASS_DRUID, 9);
+  // death ward
+  // hallow
+  // insect plague
+  spell_level(SPELL_STONESKIN, CLASS_DRUID, 9);
+  // summon nature's ally v
+  // unhallow
+  // wall of fire
+  // wall of thorns
+  spell_level(SPELL_BLINDNESS, CLASS_DRUID, 9); // no
+  spell_level(SPELL_PROT_FROM_EVIL, CLASS_DRUID, 9); // no
+  spell_level(SPELL_PROT_FROM_GOOD, CLASS_DRUID, 9); // no
+  spell_level(SPELL_GROUP_ARMOR, CLASS_DRUID, 9); // no
   //6th circle
-  spell_level(SPELL_DISPEL_EVIL, CLASS_DRUID, 11);
-  spell_level(SPELL_DISPEL_GOOD, CLASS_DRUID, 11);
-  spell_level(SPELL_REMOVE_POISON, CLASS_DRUID, 11);
-  spell_level(SPELL_HARM, CLASS_DRUID, 11);
-  spell_level(SPELL_HEAL, CLASS_DRUID, 11);
+  // fire seeds
+  // greater dispel magic
+  spell_level(SPELL_MASS_CURE_LIGHT, CLASS_DRUID, 11);
+  spell_level(SPELL_MASS_ENDURANCE, CLASS_DRUID, 11);
+  spell_level(SPELL_MASS_STRENGTH, CLASS_DRUID, 11);
+  spell_level(SPELL_MASS_GRACE, CLASS_DRUID, 11);
+  spell_level(SPELL_MASS_WISDOM, CLASS_DRUID, 11);
+  // spellstaff
+  // summon nature's ally vi
+  // transport via plants
+  spell_level(SPELL_DISPEL_EVIL, CLASS_DRUID, 11); // no
+  spell_level(SPELL_DISPEL_GOOD, CLASS_DRUID, 11); // no
+  spell_level(SPELL_REMOVE_POISON, CLASS_DRUID, 11); // no
+  spell_level(SPELL_HARM, CLASS_DRUID, 11); // no
   //7th circle
   spell_level(SPELL_CONTROL_WEATHER, CLASS_DRUID, 13);
-  spell_level(SPELL_SUMMON, CLASS_DRUID, 13);
-  spell_level(SPELL_WORD_OF_RECALL, CLASS_DRUID, 13);
-  spell_level(SPELL_CALL_LIGHTNING, CLASS_DRUID, 13);
+  // creeping doom
+  // fire storm
+  // greater scrying
+  spell_level(SPELL_HEAL, CLASS_DRUID, 13);
+  spell_level(SPELL_MASS_CURE_MODERATE, CLASS_DRUID, 13);
+  // summon nature's ally vii
+  spell_level(SPELL_SUNBEAM, CLASS_DRUID, 13);
+  spell_level(SPELL_SUMMON, CLASS_DRUID, 13);// no
   //8th circle
-  spell_level(SPELL_SENSE_LIFE, CLASS_DRUID, 15);
-  spell_level(SPELL_SANCTUARY, CLASS_DRUID, 15);
-  spell_level(SPELL_DESTRUCTION, CLASS_DRUID, 15);
+  // animal shapes
+  // control plant
+  spell_level(SPELL_EARTHQUAKE, CLASS_DRUID, 15);
+  // finger of death
+  spell_level(SPELL_MASS_CURE_SERIOUS, CLASS_DRUID, 15);
+  // summon nature's ally viii
+  // sunburst
+  // whirlwind/cyclone
+  spell_level(SPELL_WORD_OF_RECALL, CLASS_DRUID, 15);
+  spell_level(SPELL_SENSE_LIFE, CLASS_DRUID, 15); // no
+  spell_level(SPELL_SANCTUARY, CLASS_DRUID, 15); // no
+  spell_level(SPELL_DESTRUCTION, CLASS_DRUID, 15); // no
   //9th circle
-  spell_level(SPELL_EARTHQUAKE, CLASS_DRUID, 17);
-  spell_level(SPELL_GROUP_HEAL, CLASS_DRUID, 17);
-  spell_level(SPELL_ENERGY_DRAIN, CLASS_DRUID, 17);
+  // elemental swarm
+  // regenerate
+  spell_level(SPELL_MASS_CURE_CRIT, CLASS_DRUID, 17);
+  // shambler
+  // shapechange
+  // storm of vengeance
+  // summon nature's ally ix
+  spell_level(SPELL_GROUP_HEAL, CLASS_DRUID, 17); // no
+  spell_level(SPELL_ENERGY_DRAIN, CLASS_DRUID, 17); // no
   //epic spells
   spell_level(SPELL_MUMMY_DUST, CLASS_DRUID, 20);
   spell_level(SPELL_DRAGON_KNIGHT, CLASS_DRUID, 20);
