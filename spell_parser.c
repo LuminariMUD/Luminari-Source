@@ -1759,6 +1759,9 @@ void mag_assign_spells(void)
 	TAR_CHAR_WORLD, FALSE, MAG_MANUAL,
 	NULL, 12, 8, DIVINATION);
 			/* abjuration */
+  spello(SPELL_FREE_MOVEMENT, "freedom of movement(inc)", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+          "You are no longer able to move freely.", 3, 8, ABJURATION);
   spello(SPELL_STONESKIN, "stone skin", 51, 36, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"Your skin returns to its normal texture.", 3, 8, ABJURATION);
@@ -1777,6 +1780,8 @@ void mag_assign_spells(void)
   
   // 5th circle
 			/* evocation */
+  spello(SPELL_CALL_LIGHTNING_STORM, "call lightning storm(inc)", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 9, EVOCATION);
   spello(SPELL_INTERPOSING_HAND, "interposing hand", 80, 50, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
      "You feel more optimistic.", 7, 9, EVOCATION);
@@ -1895,6 +1900,9 @@ void mag_assign_spells(void)
                /* conjuration */
   spello(SPELL_SUMMON_CREATURE_7, "summon creature vii", 0, 0, 0, 
      POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 10, 11, CONJURATION);
+  spello(SPELL_SUNBEAM, "sunbeam (inc)", 0, 0, 0,
+          POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+          "You feel a cloak of blindness dissolve.", 6, 11, EVOCATION);
   //control weather, enhances some spells (shared)
 			/* necromancy */
   spello(SPELL_POWER_WORD_BLIND, "power word blind", 0, 0, 0, POS_FIGHTING,
