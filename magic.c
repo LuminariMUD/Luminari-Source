@@ -1696,8 +1696,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
       
     case SPELL_MAGIC_FANG:
+      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
+        send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
+        return;
+      }
       af[0].location = APPLY_HITROLL;
-      af[0].modifier = 2;
+      af[0].modifier = 1;
       af[0].duration = magic_level;
 
       accum_duration = TRUE;
@@ -3132,7 +3136,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 
       /* we gotta start combat here */
       if (isEffect && spell_info[spellnum].violent && tch && GET_POS(tch) == POS_STANDING &&
-              !FIGHTING(tch) && spellnum != SPELL_CHARM &&
+              !FIGHTING(tch) && spellnum != SPELL_CHARM && spellnum != SPELL_CHARM_ANIMAL &&
               spellnum != SPELL_DOMINATE_PERSON && spellnum != SPELL_MASS_DOMINATION) {
         if (tch != ch) { // funny results from potions/scrolls
           if (IN_ROOM(tch) == IN_ROOM(ch)) {

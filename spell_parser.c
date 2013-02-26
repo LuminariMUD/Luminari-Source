@@ -490,6 +490,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   if (IS_SET(SINFO.routines, MAG_MANUAL))
     switch (spellnum) {
     case SPELL_CHARM:		MANUAL_SPELL(spell_charm); break;
+      case SPELL_CHARM_ANIMAL:  MANUAL_SPELL(spell_charm_animal); break;
     case SPELL_REFUGE:		MANUAL_SPELL(spell_refuge); break;
     case SPELL_CREATE_WATER:	MANUAL_SPELL(spell_create_water); break;
     case SPELL_DETECT_POISON:	MANUAL_SPELL(spell_detect_poison); break;
@@ -522,7 +523,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     /* NOTE:  this requires a victim, so AoE effects have another
        similar methods */
     if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
-           !FIGHTING(cvict) && spellnum != SPELL_CHARM &&
+           !FIGHTING(cvict) && spellnum != SPELL_CHARM && spellnum != SPELL_CHARM_ANIMAL &&
            spellnum != SPELL_DOMINATE_PERSON) {
       if (cvict != caster) {  // funny results from potions/scrolls
         if (IN_ROOM(cvict) == IN_ROOM(caster)) {
