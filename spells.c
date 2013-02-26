@@ -877,8 +877,11 @@ ASPELL(spell_charm_animal) // enchantment
   if (victim == NULL || ch == NULL)
     return;
   
-  if (IS_NPC(victim) && GET_RACE(victim) == NPCRACE_ANIMAL)
+  if (IS_NPC(victim) && GET_RACE(victim) == NPCRACE_ANIMAL) {
     effect_charm(ch, victim, SPELL_CHARM_ANIMAL);
+  } else {
+    send_to_char(ch, "This spell can only be used on animals.");
+  }
 }
 
 

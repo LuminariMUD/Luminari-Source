@@ -987,7 +987,8 @@ int isMagicArmored(struct char_data *victim) {
           affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
           affected_by_spell(victim, SPELL_SHIELD) ||
           affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
-          affected_by_spell(victim, SPELL_ARMOR)) {
+          affected_by_spell(victim, SPELL_ARMOR) ||
+          affected_by_spell(victim, SPELL_BARKSKIN)) {
 
     send_to_char(victim, "Your target already has magical armoring!\r\n");
     return TRUE;
@@ -1693,6 +1694,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n seems to be blinded!";
       to_vict = "You have been blinded!";
       break;
+      
+    case SPELL_MAGIC_FANG:
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = 2;
+      af[0].duration = magic_level;
+
+      accum_duration = TRUE;
+      to_room = "$n is now affected by magic fang!";
+      to_vict = "You are suddenly empowered by magic fang.";
 
     case SPELL_SUNBURST: //divination, does damage and room affect
       if (MOB_FLAGGED(victim, MOB_NOBLIND)) {
@@ -1847,15 +1857,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (isMagicArmored(victim))
         return;
 
-      af[0].location = APPLY_AC;
+      af[0].location = APPLY_AC_NEW;
       if (magic_level >= 12)
-        af[0].modifier = -50;
+        af[0].modifier = 5;
       else if (magic_level >= 9)
-        af[0].modifier = -40;
+        af[0].modifier = 4;
       else if (magic_level >= 6)
-        af[0].modifier = -30;
+        af[0].modifier = 3;
       else
-        af[0].modifier = -20;
+        af[0].modifier = 2;
       af[0].duration = (magic_level * 10); // should be 10 min. * magic_level
       accum_affect = FALSE;
       accum_duration = FALSE;

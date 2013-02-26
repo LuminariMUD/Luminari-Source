@@ -763,6 +763,7 @@ const char *apply_types[] = {
   "Save-Death",
   "Spell-Resist",
   "Size",
+  "AC (converted)",
   "\n"
 };
 
