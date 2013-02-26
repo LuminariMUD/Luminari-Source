@@ -1902,6 +1902,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are suddenly surrounded by a pale blue light.";
       break;
       
+    case SPELL_FREE_MOVEMENT: // abjuration (inc)
+      break;
+      
     case SPELL_JUMP: // transmutation
       af[0].duration = CLASS_LEVEL(ch, CLASS_DRUID);
 
