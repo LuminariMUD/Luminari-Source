@@ -3866,6 +3866,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       to_room = "$n creates $p.";
       object_vnum = 10;
       break;
+    case SPELL_GOODBERRY:
+      to_char = "You create $p.";
+      to_room = "$n creates $p.";
+      object_vnum = 9400;
+      break;
     case SPELL_HOLY_SWORD:
       to_char = "You summon $p.";
       to_room = "$n summons $p.";

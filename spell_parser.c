@@ -1568,6 +1568,9 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"You feel less expeditious.", 0, 5,
 	TRANSMUTATION);
+  spello(SPELL_GOODBERRY, "goodberry", 0, 0, 0, POS_STANDING,
+          TAR_IGNORE, FALSE, MAG_CREATIONS,
+          NULL, 3, 5, TRANSMUTATION);
   spello(SPELL_IRON_GUTS, "iron guts", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"Your guts feel less resillient.", 3, 5, TRANSMUTATION);

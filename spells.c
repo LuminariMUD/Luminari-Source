@@ -119,8 +119,8 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
   struct affected_type af;
   int elf_bonus = 0;
 
-  if (GET_RACE(victim) == RACE_ELF || //elven enchantment resistance
-          GET_RACE(victim) == RACE_H_ELF)
+  if (!IS_NPC(victim) && (GET_RACE(victim) == RACE_ELF || //elven enchantment resistance
+          GET_RACE(victim) == RACE_H_ELF)) // added check for IS_NPC because NPCRACE_HUMAN == RACE_ELF and NPCRACE_ABERRATION == RACE_H_ELF
     elf_bonus += 2;
 
   if (victim == ch)
@@ -189,6 +189,8 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     new_affect(&af);
     if (spellnum == SPELL_CHARM)
       af.spell = SPELL_CHARM;
+    if (spellnum == SPELL_CHARM_ANIMAL)
+      af.spell = SPELL_CHARM_ANIMAL;
     else if (spellnum == SPELL_DOMINATE_PERSON)
       af.spell = SPELL_DOMINATE_PERSON;
     else if (spellnum == SPELL_MASS_DOMINATION)
@@ -868,6 +870,15 @@ ASPELL(spell_charm) // enchantment
     return;
 
   effect_charm(ch, victim, SPELL_CHARM);
+}
+
+ASPELL(spell_charm_animal) // enchantment
+{
+  if (victim == NULL || ch == NULL)
+    return;
+  
+  if (IS_NPC(victim) && GET_RACE(victim) == NPCRACE_ANIMAL)
+    effect_charm(ch, victim, SPELL_CHARM_ANIMAL);
 }
 
 

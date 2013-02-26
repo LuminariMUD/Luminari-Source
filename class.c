@@ -1131,10 +1131,10 @@ void init_class(struct char_data *ch, int class, int level)
   case CLASS_DRUID:
     //spell init
     //1st circle
-    // charm animal SET_SKILL(ch, SPELL_CHARM_ANIMAL, 99);
+    SET_SKILL(ch, SPELL_CHARM_ANIMAL, 99);
     SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
     SET_SKILL(ch, SPELL_FAERIE_FIRE, 99);
-    // goodberry SET_SKILL(ch, SPELL_GOODBERRY, 99);
+    SET_SKILL(ch, SPELL_GOODBERRY, 99);
     SET_SKILL(ch, SPELL_JUMP, 99);
     // magic fang SET_SKILL(ch, SPELL_MAGIC_FANG, 99);
     // magic stone SET_SKILL(ch, SPELL_MAGIC_STONE, 99);
@@ -2589,10 +2589,10 @@ void init_spell_levels(void)
   
   // druid
   //1st circle
-  // charm animal
+  spell_level(SPELL_CHARM_ANIMAL, CLASS_DRUID, 1);
   spell_level(SPELL_CURE_LIGHT, CLASS_DRUID, 1);
   spell_level(SPELL_FAERIE_FIRE, CLASS_DRUID, 1);
-  // goodberry
+  spell_level(SPELL_GOODBERRY, CLASS_DRUID, 1);
   spell_level(SPELL_JUMP, CLASS_DRUID, 1);
   // magic fang
   // magic stone
