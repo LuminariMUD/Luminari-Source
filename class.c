@@ -1070,10 +1070,18 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_ANIMATE_DEAD, 99);    
     SET_SKILL(ch, SPELL_FAERIE_FOG, 99);    
     //4th circle
-    SET_SKILL(ch, SPELL_INFRAVISION, 99);
-    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
-    SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
     SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
+    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
+    SET_SKILL(ch, SPELL_INFRAVISION, 99);
+    SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
+    SET_SKILL(ch, SPELL_SUMMON_CREATURE_4, 99);
+    SET_SKILL(ch, SPELL_CIRCLE_A_EVIL, 99);
+    SET_SKILL(ch, SPELL_CIRCLE_A_GOOD, 99);
+    SET_SKILL(ch, SPELL_CURSE, 99);
+    SET_SKILL(ch, SPELL_DAYLIGHT, 99);
+    SET_SKILL(ch, SPELL_MASS_CURE_LIGHT, 99);
+    SET_SKILL(ch, SPELL_AID, 99);
+    SET_SKILL(ch, SPELL_BRAVERY, 99);
     //5th circle
     SET_SKILL(ch, SPELL_BLINDNESS, 99);
     SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99);
@@ -2534,10 +2542,18 @@ void init_spell_levels(void)
   spell_level(SPELL_ANIMATE_DEAD, CLASS_CLERIC, 5);
   spell_level(SPELL_FAERIE_FOG, CLASS_CLERIC, 5);
   //4th circle
-  spell_level(SPELL_INFRAVISION, CLASS_CLERIC, 7);  //shared
-  spell_level(SPELL_REMOVE_CURSE, CLASS_CLERIC, 7);  //shared
-  spell_level(SPELL_CAUSE_CRITICAL_WOUNDS, CLASS_CLERIC, 7);
   spell_level(SPELL_CURE_CRITIC, CLASS_CLERIC, 7);
+  spell_level(SPELL_REMOVE_CURSE, CLASS_CLERIC, 7);  //shared
+  spell_level(SPELL_INFRAVISION, CLASS_CLERIC, 7);  //shared
+  spell_level(SPELL_CAUSE_CRITICAL_WOUNDS, CLASS_CLERIC, 7);
+  spell_level(SPELL_SUMMON_CREATURE_4, CLASS_CLERIC, 7);
+  spell_level(SPELL_CIRCLE_A_EVIL, CLASS_CLERIC, 7);
+  spell_level(SPELL_CIRCLE_A_GOOD, CLASS_CLERIC, 7);
+  spell_level(SPELL_CURSE, CLASS_CLERIC, 7);
+  spell_level(SPELL_DAYLIGHT, CLASS_CLERIC, 7);
+  spell_level(SPELL_MASS_CURE_LIGHT, CLASS_CLERIC, 7);
+  spell_level(SPELL_AID, CLASS_CLERIC, 7);
+  spell_level(SPELL_BRAVERY, CLASS_CLERIC, 7);
   //5th circle
   spell_level(SPELL_BLINDNESS, CLASS_CLERIC, 9);
   spell_level(SPELL_PROT_FROM_EVIL, CLASS_CLERIC, 9);
@@ -2588,6 +2604,7 @@ void init_spell_levels(void)
   spell_level(SPELL_ENDURANCE, CLASS_DRUID, 1); // no
   spell_level(SPELL_ARMOR, CLASS_DRUID, 1); // no
   spell_level(SPELL_CAUSE_LIGHT_WOUNDS, CLASS_DRUID, 1); // no
+  
   //2nd circle
   spell_level(SPELL_BARKSKIN, CLASS_DRUID, 3);
   spell_level(SPELL_ENDURANCE, CLASS_DRUID, 3);
@@ -2603,6 +2620,7 @@ void init_spell_levels(void)
   spell_level(SPELL_CREATE_WATER, CLASS_DRUID, 3); // no
   spell_level(SPELL_DETECT_POISON, CLASS_DRUID, 3); // no
   spell_level(SPELL_CAUSE_MODERATE_WOUNDS, CLASS_DRUID, 3); // no
+  
   //3rd circle
   spell_level(SPELL_CALL_LIGHTNING, CLASS_DRUID, 5);
   spell_level(SPELL_CURE_MODERATE, CLASS_DRUID, 5);
@@ -2617,6 +2635,7 @@ void init_spell_levels(void)
   spell_level(SPELL_CURE_BLIND, CLASS_DRUID, 5); // no
   spell_level(SPELL_BLESS, CLASS_DRUID, 5); // no
   spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_DRUID, 5); // no
+
   //4th circle
   // blight
   spell_level(SPELL_CURE_SERIOUS, CLASS_DRUID, 7);
@@ -2695,6 +2714,7 @@ void init_spell_levels(void)
   // summon nature's ally ix
   spell_level(SPELL_GROUP_HEAL, CLASS_DRUID, 17); // no
   spell_level(SPELL_ENERGY_DRAIN, CLASS_DRUID, 17); // no
+  
   //epic spells
   spell_level(SPELL_MUMMY_DUST, CLASS_DRUID, 20);
   spell_level(SPELL_DRAGON_KNIGHT, CLASS_DRUID, 20);
