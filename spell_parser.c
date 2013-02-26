@@ -1510,6 +1510,9 @@ void mag_assign_spells(void)
   spello(SPELL_BURNING_HANDS, "burning hands", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 1, 5, EVOCATION);
+  spello(SPELL_FAERIE_FIRE, "faerie fire", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+          NULL, 1, 5, EVOCATION);
 			/* conjuration */
   spello(SPELL_ICE_DAGGER, "ice dagger", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
@@ -1566,6 +1569,9 @@ void mag_assign_spells(void)
   spello(SPELL_IRON_GUTS, "iron guts", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"Your guts feel less resillient.", 3, 5, TRANSMUTATION);
+  spello(SPELL_JUMP, "jump", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+          "You feel your jumping ability return to normal.", 3, 5, TRANSMUTATION);
   spello(SPELL_SHIELD, "shield", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"Your magical shield fades away.", 2, 5, TRANSMUTATION);
@@ -1631,6 +1637,9 @@ void mag_assign_spells(void)
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 2, 6, ABJURATION);
 			/* transmutation */
+  spello(SPELL_BARKSKIN, "barkskin", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+          "You feel your barkskin wear off.", 3, 6, TRANSMUTATION);
     //endurance - shared
   //strengrth - shared
   //grace - shared
@@ -1929,13 +1938,17 @@ void mag_assign_spells(void)
 	TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
 	NULL, 2, 11, TRANSMUTATION);
   spello(SPELL_MASS_WISDOM, "mass wisdom", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-     FALSE, MAG_GROUPS, "The wisdom spell fades away.", 5, 11, TRANSMUTATION);
+          FALSE, MAG_GROUPS, "The wisdom spell fades away.", 5, 11, TRANSMUTATION);
   spello(SPELL_MASS_CHARISMA, "mass charisma", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-     FALSE, MAG_GROUPS, "The charisma spell fades away.", 5, 11, TRANSMUTATION);
+          FALSE, MAG_GROUPS, "The charisma spell fades away.", 5, 11, TRANSMUTATION);
   spello(SPELL_MASS_CUNNING, "mass cunning", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-     FALSE, MAG_GROUPS, "The cunning spell fades away.", 5, 11, TRANSMUTATION);
-
-    
+          FALSE, MAG_GROUPS, "The cunning spell fades away.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_STRENGTH, "mass strength", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+          FALSE, MAG_GROUPS, "You feel weaker.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_GRACE, "mass grace", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+          FALSE, MAG_GROUPS, "You feel less dextrous.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_ENDURANCE, "mass endurance", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+          FALSE, MAG_GROUPS, "Your magical endurance has faded away.", 5, 11, TRANSMUTATION);
   // 8th circle
 			/* evocation */
   spello(SPELL_CLENCHED_FIST, "clenched fist", 72, 57, 1, POS_FIGHTING,

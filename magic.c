@@ -2764,7 +2764,7 @@ static void perform_mag_groups(int level, struct char_data *ch,
       mag_affects(level, ch, tch, obj, SPELL_MASS_GRACE, savetype);
       break;
     case SPELL_MASS_STRENGTH:
-      mag_affects(level, ch, tch, obj, SPELL_STRENGTH, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_STRENGTH, savetype);
       break;
   }
 }
