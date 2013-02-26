@@ -817,8 +817,9 @@
 #define APPLY_SAVING_DEATH	24	// save death
 #define APPLY_SPELL_RES		25	// spell resistance
 #define APPLY_SIZE		26	// char size
+#define APPLY_AC_NEW            27      // apply to armor class (post conversion)
 /** Total number of applies */
-#define NUM_APPLIES   27
+#define NUM_APPLIES   28
 
 /* Equals the total number of SAVING_* defines in spells.h */
 #define NUM_OF_SAVING_THROWS  5

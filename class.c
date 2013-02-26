@@ -1136,7 +1136,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_FAERIE_FIRE, 99);
     SET_SKILL(ch, SPELL_GOODBERRY, 99);
     SET_SKILL(ch, SPELL_JUMP, 99);
-    // magic fang SET_SKILL(ch, SPELL_MAGIC_FANG, 99);
+    SET_SKILL(ch, SPELL_MAGIC_FANG, 99);
     // magic stone SET_SKILL(ch, SPELL_MAGIC_STONE, 99);
     // obscuring mist SET_SKILL(ch, SPELL_OBSCURING_MIST, 99);
     // produce flame SET_SKILL(ch, SPELL_PRODUCE_FLAME, 99);
@@ -2594,7 +2594,7 @@ void init_spell_levels(void)
   spell_level(SPELL_FAERIE_FIRE, CLASS_DRUID, 1);
   spell_level(SPELL_GOODBERRY, CLASS_DRUID, 1);
   spell_level(SPELL_JUMP, CLASS_DRUID, 1);
-  // magic fang
+  spell_level(SPELL_MAGIC_FANG, CLASS_DRUID, 1);
   // magic stone
   // obscuring mist
   // produce flame

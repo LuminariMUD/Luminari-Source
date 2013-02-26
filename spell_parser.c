@@ -1580,6 +1580,9 @@ void mag_assign_spells(void)
   spello(SPELL_JUMP, "jump", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "You feel your jumping ability return to normal.", 3, 5, TRANSMUTATION);
+  spello(SPELL_MAGIC_FANG, "magic fang", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+          "Your magic fang wears off.", 3, 5, TRANSMUTATION);
   spello(SPELL_SHIELD, "shield", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"Your magical shield fades away.", 2, 5, TRANSMUTATION);
