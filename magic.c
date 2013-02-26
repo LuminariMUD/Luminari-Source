@@ -2766,9 +2766,6 @@ static void perform_mag_groups(int level, struct char_data *ch,
     case SPELL_MASS_STRENGTH:
       mag_affects(level, ch, tch, obj, SPELL_STRENGTH, savetype);
       break;
-    case SPELL_MASS_WISDOM:
-      mag_affects(level, ch, tch, obj, SPELL_WISDOM, savetype);
-      break;
   }
 }
 
