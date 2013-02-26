@@ -375,6 +375,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
+    if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
+      act("...$e is surrounded by a pale blue light!", FALSE, i, 0, ch, TO_VICT);
 
     return;
     
@@ -398,6 +400,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
+    if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
+      act("...$e is surrounded by a pale blue light!", FALSE, i, 0, ch, TO_VICT);
 
     return;
   }  
@@ -465,6 +469,10 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
   if (AFF_FLAGGED(i, AFF_SANCTUARY))
     act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
+  if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
+    act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
+  if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
+    act("...$e is surrounded by a pale blue light!", FALSE, i, 0, ch, TO_VICT);
 }
 
 
