@@ -2673,24 +2673,50 @@ void perform_violence(void) {
     PARRY_LEFT(ch) = perform_attacks(ch, 1);
 
     if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
-      send_to_char(ch, "You are paralyzed and unable to react!\r\n");
-      act("$n seems to be paralyzed and unable to react!",
-              TRUE, ch, 0, 0, TO_ROOM);
-      continue;
+      if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {
+        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_PARALYZED);
+        send_to_char(ch, "Your free movement breaks the paralysis!\r\n");
+        act("$n's free movement breaks the paralysis!",
+                 TRUE, ch, 0, 0, TO_ROOM);        
+      } else {
+        send_to_char(ch, "You are paralyzed and unable to react!\r\n");
+        act("$n seems to be paralyzed and unable to react!",
+                 TRUE, ch, 0, 0, TO_ROOM);
+        continue;
+      }
     }
+    
     if (AFF_FLAGGED(ch, AFF_NAUSEATED)) {
       send_to_char(ch, "You are too nauseated to fight!\r\n");
       act("$n seems to be too nauseated to fight!",
               TRUE, ch, 0, 0, TO_ROOM);
       continue;
     }
+    
     if (char_has_mud_event(ch, eSTUNNED)) {
-      send_to_char(ch, "You are stunned and unable to react!\r\n");
-      act("$n seems to be stunned and unable to react!",
-              TRUE, ch, 0, 0, TO_ROOM);
-      continue;
+      if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {
+        change_event_duration(ch, eSTUNNED, 0);
+        send_to_char(ch, "Your free movement breaks the stun!\r\n");
+        act("$n's free movement breaks the stun!",
+                 TRUE, ch, 0, 0, TO_ROOM);        
+      } else {
+        send_to_char(ch, "You are stunned and unable to react!\r\n");
+        act("$n seems to be stunned and unable to react!",
+                TRUE, ch, 0, 0, TO_ROOM);
+        continue;
+      }
     }
 
+    /* we'll break stun here if under free-movement affect */
+    if (AFF_FLAGGED(ch, AFF_STUN)) {
+      if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {
+        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_STUN);
+        send_to_char(ch, "Your free movement breaks the stun!\r\n");
+        act("$n's free movement breaks the stun!",
+                 TRUE, ch, 0, 0, TO_ROOM);        
+      }
+    }
+        
     /* make sure this goes after attack-stopping affects like paralyze */
     if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
       /* this should be called in hit() but need a copy here for !fight flag */
@@ -2779,8 +2805,7 @@ void perform_violence(void) {
           hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
           send_to_char(ch, "\tDConfusion\tc overcomes you and you lash out!\tn  ");
           act("$n \tcis overcome with \tDconfusion and lashes out\tc!\tn",
-              TRUE, ch, 0, 0, TO_ROOM);
-          
+              TRUE, ch, 0, 0, TO_ROOM);          
         }
         
         /* we're done, free the list */
