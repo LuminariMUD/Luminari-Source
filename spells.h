@@ -343,7 +343,7 @@
 #define SPELL_SHAMBLER                  301
 #define SPELL_SHAPECHANGE               302
 /** Total Number of defined spells */
-#define NUM_SPELLS                 302
+#define NUM_SPELLS                 303
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
