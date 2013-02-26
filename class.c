@@ -1123,51 +1123,126 @@ void init_class(struct char_data *ch, int class, int level)
   case CLASS_DRUID:
     //spell init
     //1st circle
-    SET_SKILL(ch, SPELL_ENDURANCE, 99);
+    // charm animal SET_SKILL(ch, SPELL_CHARM_ANIMAL, 99);
     SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
-    SET_SKILL(ch, SPELL_ARMOR, 99);
-    SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99);
+    // faerie fire SET_SKILL(ch, SPELL_FAERIE_FIRE, 99);
+    // goodberry SET_SKILL(ch, SPELL_GOODBERRY, 99);
+    // jump SET_SKILL(ch, SPELL_JUMP, 99);
+    // magic fang SET_SKILL(ch, SPELL_MAGIC_FANG, 99);
+    // magic stone SET_SKILL(ch, SPELL_MAGIC_STONE, 99);
+    // obscuring mist SET_SKILL(ch, SPELL_OBSCURING_MIST, 99);
+    // produce flame SET_SKILL(ch, SPELL_PRODUCE_FLAME, 99);
+    // summon nature's ally i SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_1, 99);
+    SET_SKILL(ch, SPELL_ENDURANCE, 99); // no
+    SET_SKILL(ch, SPELL_ARMOR, 99); // no
+    SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99); // no
     //2nd circle
-    SET_SKILL(ch, SPELL_CREATE_FOOD, 99);
-    SET_SKILL(ch, SPELL_CREATE_WATER, 99);
-    SET_SKILL(ch, SPELL_DETECT_POISON, 99);
-    SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99);
+    // barkskin SET_SKILL(ch, SPELL_BARKSKIN, 99);
+    // bear's endurance SET_SKILL(ch, SPELL_BEARS_ENDURANCE, 99);
+    // bull's strength SET_SKILL(ch, SPELL_BULLS_STRENGTH, 99);
+    // cat's grace SET_SKILL(ch, SPELL_CATS_GRACE, 99);
+    // flame blade SET_SKILL(ch, SPELL_FLAME_BLADE, 99);
+    // flaming sphere SET_SKILL(ch, SPELL_FLAMING_SPHERE, 99);
+    // hold animal SET_SKILL(ch, SPELL_HOLD_ANIMAL, 99);
+    // owl's wisdom SET_SKILL(ch, SPELL_OWLS_WISDOM, 99);
+    // summon nature's ally ii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_2, 99);
+    // summon swarm SET_SKILL(ch, SPELL_SUMMON_SWARM, 99);
+    SET_SKILL(ch, SPELL_CREATE_FOOD, 99); // no
+    SET_SKILL(ch, SPELL_CREATE_WATER, 99); // no
+    SET_SKILL(ch, SPELL_DETECT_POISON, 99); // no
+    SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99); // no
     //3rd circle
-    SET_SKILL(ch, SPELL_DETECT_ALIGN, 99);
-    SET_SKILL(ch, SPELL_CURE_BLIND, 99);
-    SET_SKILL(ch, SPELL_BLESS, 99);
-    SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99);    
-    //4th circle
-    SET_SKILL(ch, SPELL_INFRAVISION, 99);
-    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
-    SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
-    SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
-    //5th circle
-    SET_SKILL(ch, SPELL_BLINDNESS, 99);
-    SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99);
-    SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99);
+    SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
+    SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
+    // contagion SET_SKILL(ch, SPELL_CONTAGION, 99);
+    // greater magic fang SET_SKILL(ch, SPELL_MAGIC_FANG, 99);
+    // neutralize poison SET_SKILL(ch, SPELL_NEUTRALIZE_POISON, 99);
     SET_SKILL(ch, SPELL_POISON, 99);
-    SET_SKILL(ch, SPELL_GROUP_ARMOR, 99);
+    SET_SKILL(ch, SPELL_REMOVE_DISEASE, 99);
+    // spike growth SET_SKILL(ch, SPELL_SPIKE_GROWTH, 99);
+    // summon nature's ally iii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_3, 99);
+    SET_SKILL(ch, SPELL_DETECT_ALIGN, 99); // no
+    SET_SKILL(ch, SPELL_CURE_BLIND, 99); // no
+    SET_SKILL(ch, SPELL_BLESS, 99); // no
+    SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99); // no
+    //4th circle
+    // blight SET_SKILL(ch, SPELL_BLIGHT, 99);
+    SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
+    SET_SKILL(ch, SPELL_DISPEL_MAGIC, 99);
     SET_SKILL(ch, SPELL_FLAME_STRIKE, 99);
+    SET_SKILL(ch, SPELL_FREE_MOVEMENT, 99);
+    SET_SKILL(ch, SPELL_ICE_STORM, 99);
+    // reincarnate? SET_SKILL(ch, SPELL_REINCARNATE, 99);
+    // scrying SET_SKILL(ch, SPELL_SCRYING, 99);
+    // spike stones SET_SKILL(ch, SPELL_SPIKE_STONES, 99);
+    // summon nature's ally iv SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_4, 99);
+    SET_SKILL(ch, SPELL_INFRAVISION, 99); // no
+    SET_SKILL(ch, SPELL_REMOVE_CURSE, 99); // no
+    SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99); // no
+    //5th circle
+    // baleful polymorph SET_SKILL(ch, SPELL_BALEFUL_POLYMORPH, 99);
+    SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
+    SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
+    // death ward SET_SKILL(ch, SPELL_DEATH_WARD, 99);
+    // hallow SET_SKILL(ch, SPELL_HALLOW, 99);
+    // insect plague SET_SKILL(ch, SPELL_INSECT_PLAGUE, 99);
+    SET_SKILL(ch, SPELL_STONESKIN, 99);
+    // summon nature's ally v SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_5, 99);
+    // unhallow SET_SKILL(ch, SPELL_UNHALLOW, 99);
+    // wall of fire SET_SKILL(ch, SPELL_WALL_OF_FIRE, 99);
+    // wall of thorns SET_SKILL(ch, SPELL_WALL_OF_THORNS, 99);
+    SET_SKILL(ch, SPELL_BLINDNESS, 99); // no
+    SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99); // no
+    SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99); // no
+    SET_SKILL(ch, SPELL_POISON, 99); // no
+    SET_SKILL(ch, SPELL_GROUP_ARMOR, 99); // no
     //6th circle
-    SET_SKILL(ch, SPELL_DISPEL_EVIL, 99);
-    SET_SKILL(ch, SPELL_DISPEL_GOOD, 99);
-    SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
-    SET_SKILL(ch, SPELL_HARM, 99);
-    SET_SKILL(ch, SPELL_HEAL, 99);
+    // fire seeds SET_SKILL(ch, SPELL_FIRE_SEEDS, 99);
+    SET_SKILL(ch, SPELL_GREATER_DISPELLING, 99);
+    // mass bear's endurance SET_SKILL(ch, SPELL_MASS_BEARS_ENDURANCE, 99);
+    // mass bull's strength SET_SKILL(ch, SPELL_MASS_BULLS_STRENGTH, 99);
+    // mass cat's grace SET_SKILL(ch, SPELL_MASS_CATS_GRACE, 99);
+    // mass owl's wisdom SET_SKILL(ch, SPELL_MASS_OWLS_WISDOM, 99);
+    // spellstaff SET_SKILL(ch, SPELL_SPELLSTAFF, 99);
+    // summon nature's ally vi SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_6, 99);
+    // transport via plants SET_SKILL(ch, SPELL_TRANSPORT_VIA_PLANTS, 99);
+    SET_SKILL(ch, SPELL_DISPEL_EVIL, 99); // no
+    SET_SKILL(ch, SPELL_DISPEL_GOOD, 99); // no
+    SET_SKILL(ch, SPELL_REMOVE_POISON, 99); // no
+    SET_SKILL(ch, SPELL_HARM, 99); // no
     //7th circle
     SET_SKILL(ch, SPELL_CONTROL_WEATHER, 99);
-    SET_SKILL(ch, SPELL_SUMMON, 99);
-    SET_SKILL(ch, SPELL_WORD_OF_RECALL, 99);
-    SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
+    // creeping doom SET_SKILL(ch, SPELL_CREEPING_DOOM, 99);
+    // fire storm SET_SKILL(ch, SPELL_FIRE_STORM, 99);
+    // greater scrying SET_SKILL(ch, SPELL_GREATER_SCRYING, 99);
+    SET_SKILL(ch, SPELL_HEAL, 99);
+    SET_SKILL(ch, SPELL_MASS_CURE_MODERATE, 99);
+    // summon nature's ally vii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_7, 99);
+    // sunbeam SET_SKILL(ch, SPELL_SUNBEAM, 99);
+    SET_SKILL(ch, SPELL_SUMMON, 99); // no
     //8th circle
-    SET_SKILL(ch, SPELL_SENSE_LIFE, 99);
-    SET_SKILL(ch, SPELL_SANCTUARY, 99);
-    SET_SKILL(ch, SPELL_DESTRUCTION, 99);
-    //9th circle
+    // animal shapes SET_SKILL(ch, SPELL_ANIMAL_SHAPES, 99);
+    // control plants SET_SKILL(ch, SPELL_CONTROL_PLANTS, 99);
     SET_SKILL(ch, SPELL_EARTHQUAKE, 99);
-    SET_SKILL(ch, SPELL_GROUP_HEAL, 99);
-    SET_SKILL(ch, SPELL_ENERGY_DRAIN, 99);
+    // finger of death SET_SKILL(ch, SPELL_FINGER_OF_DEATH, 99);
+    SET_SKILL(ch, SPELL_MASS_CURE_SERIOUS, 99);
+    // summon nature's ally viii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_8, 99);
+    SET_SKILL(ch, SPELL_SUNBURST, 99);
+    // whirlwind/cyclone SET_SKILL(ch, SPELL_WHIRLWIND, 99);
+    SET_SKILL(ch, SPELL_WORD_OF_RECALL, 99);
+    SET_SKILL(ch, SPELL_SENSE_LIFE, 99); // no
+    SET_SKILL(ch, SPELL_SANCTUARY, 99); // no
+    SET_SKILL(ch, SPELL_DESTRUCTION, 99); // no
+    //9th circle
+    // elemental swarm SET_SKILL(ch, SPELL_ELEMENTAL_SWARM, 99);
+    // regenerate SET_SKILL(ch, SPELL_REGENERATE, 99);
+    SET_SKILL(ch, SPELL_MASS_CURE_CRIT, 99);
+    // shambler SET_SKILL(ch, SPELL_SHAMBLER, 99);
+    // shapechange SET_SKILL(ch, SPELL_SHAPECHANGE, 99);
+    SET_SKILL(ch, SPELL_STORM_OF_VENGEANCE, 99);
+    // summon nature's ally ix SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_9, 99);
+    SET_SKILL(ch, SPELL_GROUP_HEAL, 99); // no
+    SET_SKILL(ch, SPELL_ENERGY_DRAIN, 99); // no
     
     // skill init
     if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
