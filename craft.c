@@ -28,6 +28,7 @@
 #include "db.h"
 #include "spells.h"
 #include "mud_event.h"
+#include "modify.h" // for parse_at()
 
 
 // External Functions
@@ -418,10 +419,12 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
   /* need address of arg-size to modify length of string (protocol) */
   arg_size = strlen(argument);
   
+  parse_at(argument);
+  
   /* success!! */
-  obj->name = strdup(ProtocolOutput(ch->desc, argument, &arg_size));
-  obj->short_description = strdup(ProtocolOutput(ch->desc, argument, &arg_size));
-  sprintf(buf, "%s lies here.", CAP((char *)ProtocolOutput(ch->desc, argument, &arg_size)));
+  obj->name = strdup(argument);
+  obj->short_description = strdup(argument);
+  sprintf(buf, "%s lies here.", CAP(argument));
   obj->description = strdup(buf);
   GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
   GET_CRAFTING_TICKS(ch) = 5; // here you'd add tick calculator
