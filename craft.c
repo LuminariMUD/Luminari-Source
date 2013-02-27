@@ -369,7 +369,7 @@ int convert(struct obj_data *kit, struct char_data *ch)
 
 /* rename an object */  
 int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
-  int num_objs = 0, cost;
+  int num_objs = 0, cost, arg_size = 0;
   struct obj_data *obj = NULL;
   char buf[MAX_INPUT_LENGTH];
   
@@ -399,11 +399,13 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
     }
   }
   
-  if (!strstr(argument, material_name[GET_OBJ_MATERIAL(obj)])) {
-    send_to_char(ch, "You must include the material name, '%s', in the object "
+  if (GET_OBJ_MATERIAL(obj)) {
+    if (!strstr(argument, material_name[GET_OBJ_MATERIAL(obj)])) {
+      send_to_char(ch, "You must include the material name, '%s', in the object "
                      "description somewhere.\r\n",
-                 material_name[GET_OBJ_MATERIAL(obj)]);
-    return 1;
+                   material_name[GET_OBJ_MATERIAL(obj)]);
+      return 1;
+    }
   }
   
   cost = GET_OBJ_COST(obj) + GET_OBJ_LEVEL(obj);
@@ -412,11 +414,14 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
                      " this item.\r\n", cost);
     return 1;
   }
+
+  /* need address of arg-size to modify length of string (protocol) */
+  arg_size = strlen(argument);
   
   /* success!! */
-  obj->name = strdup(argument);
-  obj->short_description = strdup(argument);
-  sprintf(buf, "%s lies here.", CAP(argument));
+  obj->name = strdup(ProtocolOutput(ch->desc, argument, &arg_size));
+  obj->short_description = strdup(ProtocolOutput(ch->desc, argument, &arg_size));
+  sprintf(buf, "%s lies here.", CAP((char *)ProtocolOutput(ch->desc, argument, &arg_size)));
   obj->description = strdup(buf);
   GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
   GET_CRAFTING_TICKS(ch) = 5; // here you'd add tick calculator
