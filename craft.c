@@ -422,7 +422,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
   /* success!! */
   obj->name = strdup(argument);
   obj->short_description = strdup(argument);
-  sprintf(buf, "%s lies here.", CAP(argument));
+  sprintf(buf, "%s lies here.", CAP(argument));  
   obj->description = strdup(buf);
   GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
   GET_CRAFTING_TICKS(ch) = 5; // here you'd add tick calculator

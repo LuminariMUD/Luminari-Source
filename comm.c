@@ -1007,6 +1007,7 @@ void pulse_luminari() {
       call_magic(caster, NULL, NULL, SPELL_STENCH, DG_SPELL_LEVEL, CAST_SPELL);
       extract_char(caster);
     }
+    /* end stinking cloud */
 
     //billowing cloud
     if (raff->spell == SPELL_BILLOWING_CLOUD) {
@@ -1019,14 +1020,15 @@ void pulse_luminari() {
           }
         }
       }
-    } /* end billowing cloud */
+    }
+    /* end billowing cloud */
     
     //acid fog
     if (raff->spell == SPELL_ACID_FOG) {
       caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
       caster_room = &world[raff->room];
       if (!caster) {
-        script_log("comm.c: Cannot load the caster mob!");
+        script_log("comm.c: Cannot load the caster mob (acid fog)!");
         return;
       }
       
@@ -1038,6 +1040,25 @@ void pulse_luminari() {
       call_magic(caster, NULL, NULL, SPELL_ACID, DG_SPELL_LEVEL, CAST_SPELL);
       extract_char(caster);
     } /* end acid fog */
+    
+    //blade barrier
+    if (raff->spell == SPELL_BLADE_BARRIER) {
+      caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+      caster_room = &world[raff->room];
+      if (!caster) {
+        script_log("comm.c: Cannot load the caster mob (blade barrier)!");
+        return;
+      }
+      
+      /* set the caster's name */
+      caster->player.short_descr = strdup("The room");
+      caster->next_in_room = caster_room->people;
+      caster_room->people = caster;
+      caster->in_room = real_room(caster_room->number);
+      call_magic(caster, NULL, NULL, SPELL_BLADES, DG_SPELL_LEVEL, CAST_SPELL);
+      extract_char(caster);
+    }
+    /* end blade barrier */
     
   }
 
@@ -1087,7 +1108,9 @@ void pulse_luminari() {
         act("The cloud of death following $n dissipates!", TRUE, i, 0, NULL,
                 TO_ROOM);
       }
-    } //end cloudkill
+    } 
+    //end cloudkill
+    
     /* incendiary cloud */
     else if (INCENDIARY(i)) {
       call_magic(i, NULL, NULL, SPELL_INCENDIARY, MAGIC_LEVEL(i), CAST_SPELL);
@@ -1097,7 +1120,8 @@ void pulse_luminari() {
         act("The incendiary cloud following $n dissipates!", TRUE, i, 0, NULL,
                 TO_ROOM);
       }
-    } //end incendiary cloud
+    }
+    //end incendiary cloud
     
     /* disease */
     if (IS_AFFECTED(i, AFF_DISEASE)) {

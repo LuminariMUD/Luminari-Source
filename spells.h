@@ -41,7 +41,7 @@
 
 /* PLAYER SPELLS -- Numbered from 1 to MAX_SPELLS */
 #define SPELL_ARMOR                   1  //done
-#define SPELL_TELEPORT                2
+#define SPELL_TELEPORT                2  //done (no longer stock)
 #define SPELL_BLESS                   3  //done
 #define SPELL_BLINDNESS               4  //done
 #define SPELL_BURNING_HANDS           5  //done
@@ -227,20 +227,20 @@
 #define SPELL_SPELL_MANTLE         185  //done
 #define SPELL_MASS_WISDOM          186  //done
 #define SPELL_MASS_CHARISMA        187  //done
-#define SPELL_CLENCHED_FIST        188  // not done
-#define SPELL_INCENDIARY_CLOUD     189  // not done
-#define SPELL_SUMMON_CREATURE_8    190  // not done
-#define SPELL_HORRID_WILTING       191  //x  // not done
-#define SPELL_GREATER_ANIMATION    192  // not done
-#define SPELL_IRRESISTIBLE_DANCE   193  // not done
-#define SPELL_MASS_DOMINATION      194  // not done
-#define SPELL_SCINT_PATTERN        195  // not done
-#define SPELL_REFUGE               196  // not done
-#define SPELL_BANISH               197  // not done
-#define SPELL_SUNBURST             198  //x  // not done
-#define SPELL_SPELL_TURNING        199  // not done
-#define SPELL_MIND_BLANK           200  // not done
-#define SPELL_IRONSKIN             201  // not done
+#define SPELL_CLENCHED_FIST        188  // done
+#define SPELL_INCENDIARY_CLOUD     189  // done
+#define SPELL_SUMMON_CREATURE_8    190  // done
+#define SPELL_HORRID_WILTING       191  // done
+#define SPELL_GREATER_ANIMATION    192  // done
+#define SPELL_IRRESISTIBLE_DANCE   193  // done
+#define SPELL_MASS_DOMINATION      194  // done
+#define SPELL_SCINT_PATTERN        195  // done
+#define SPELL_REFUGE               196  // done
+#define SPELL_BANISH               197  // done
+#define SPELL_SUNBURST             198  // done
+#define SPELL_SPELL_TURNING        199  // done
+#define SPELL_MIND_BLANK           200  // done
+#define SPELL_IRONSKIN             201  // done
 #define SPELL_MASS_CUNNING         202  //done
 #define SPELL_BLADE_OF_DISASTER    203  //done
 #define SPELL_SUMMON_CREATURE_9    204  //done
@@ -259,21 +259,21 @@
 #define SPELL_ACID                 217  //acid fog proc
 #define SPELL_HOLY_SWORD           218  //paladin
 #define SPELL_INCENDIARY           219  // incendiary cloud
-#define SPELL_CURE_MODERATE        220  //
-#define SPELL_CURE_SERIOUS         221  //
-#define SPELL_REMOVE_FEAR          222  //
-#define SPELL_CURE_DEAFNESS        223  //
-#define SPELL_FAERIE_FOG           224
-#define SPELL_MASS_CURE_LIGHT      225  //
-#define SPELL_AID                  226
-#define SPELL_BRAVERY              227
-#define SPELL_MASS_CURE_MODERATE   228  //
-#define SPELL_REGENERATION         229
-#define SPELL_FREE_MOVEMENT        230
-#define SPELL_STRENGTHEN_BONE      231
-#define SPELL_MASS_CURE_SERIOUS    232  //
-#define SPELL_PRAYER               233
-#define SPELL_REMOVE_DISEASE       234
+#define SPELL_CURE_MODERATE        220  //almost done
+#define SPELL_CURE_SERIOUS         221  //almost done
+#define SPELL_REMOVE_FEAR          222  //almost done
+#define SPELL_CURE_DEAFNESS        223  //almost done
+#define SPELL_FAERIE_FOG           224  //almost done
+#define SPELL_MASS_CURE_LIGHT      225  //almost done
+#define SPELL_AID                  226  //almost done
+#define SPELL_BRAVERY              227  //almost done
+#define SPELL_MASS_CURE_MODERATE   228  //almost done
+#define SPELL_REGENERATION         229  //almost done
+#define SPELL_FREE_MOVEMENT        230  //almost done
+#define SPELL_STRENGTHEN_BONE      231  //almost done
+#define SPELL_MASS_CURE_SERIOUS    232  //almost done
+#define SPELL_PRAYER               233  //almost done
+#define SPELL_REMOVE_DISEASE       234  //almost done
 #define SPELL_WORD_OF_FAITH        235
 #define SPELL_DIMENSIONAL_LOCK     236
 #define SPELL_SALVATION            237
@@ -284,7 +284,8 @@
 #define SPELL_COMMAND              242
 #define SPELL_AIR_WALKER           243
 #define SPELL_GROUP_SUMMON         244
-#define SPELL_MASS_CURE_CRIT       245  //
+#define SPELL_MASS_CURE_CRIT       245  //almost done
+/* some druid spells */
 #define SPELL_CHARM_ANIMAL         246
 #define SPELL_FAERIE_FIRE               247
 #define SPELL_GOODBERRY                 248
@@ -306,17 +307,17 @@
 #define SPELL_FLAME_BLADE               264
 #define SPELL_FLAMING_SPHERE            265
 #define SPELL_HOLD_ANIMAL               266
-#define SPELL_CALL_LIGHTNING_STORM      267
+#define SPELL_CALL_LIGHTNING_STORM      267 // hey b, maybe use call lightning
 #define SPELL_SUMMON_SWARM              268
 #define SPELL_CONTAGION                 269
 #define SPELL_GREATER_MAGIC_FANG        270
-#define SPELL_NEUTRALIZE_POISON         271
+#define SPELL_NEUTRALIZE_POISON         271 // hey b, maybe use remove poison
 #define SPELL_SPIKE_GROWTH              272
 #define SPELL_BLIGHT                    273
 #define SPELL_REINCARNATE               274
-#define SPELL_SCRYING                   275
+#define SPELL_SCRYING                   275 // hey b, maybe use locate creature
 #define SPELL_SPIKE_STONES              276
-#define SPELL_BALEFUL_POLYMORPH         277
+#define SPELL_BALEFUL_POLYMORPH         277 // hey b, maybe use polymorph
 #define SPELL_DEATH_WARD                278
 #define SPELL_HALLOW                    279
 #define SPELL_INSECT_PLAGUE             280
@@ -325,25 +326,29 @@
 #define SPELL_WALL_OF_THORNS            283
 #define SPELL_FIRE_SEEDS                284
 #define SPELL_GREATER_DISPEL_MAGIC      285 // same as greater dispelling?
-#define SPELL_MASS_ENDURANCE            286
-#define SPELL_MASS_STRENGTH             287
-#define SPELL_MASS_GRACE                288
-#define SPELL_UNUSED289                 289
+#define SPELL_MASS_ENDURANCE            286 // *note mass enhance combines these 3
+#define SPELL_MASS_STRENGTH             287 // *note mass enhance combines these 3
+#define SPELL_MASS_GRACE                288 // *note mass enhance combines these 3
+#define SPELL_SPELL_RESISTANCE          289 // hey b, i'm using this, please modify code if you don't like how i implement it (its cleric too)
 #define SPELL_SPELLSTAFF                290
 #define SPELL_TRANSPORT_VIA_PLANTS      291
 #define SPELL_CREEPING_DOOM             292
 #define SPELL_FIRE_STORM                293
 #define SPELL_GREATER_SCRYING           294
-#define SPELL_SUNBEAM                   295
+#define SPELL_SUNBEAM                   295 // hey b, maybe use sunburst
 #define SPELL_ANIMAL_SHAPES             296
 #define SPELL_CONTROL_PLANTS            297
 #define SPELL_FINGER_OF_DEATH           298
 #define SPELL_ELEMENTAL_SWARM           299
 #define SPELL_REGENERATE                300 // maybe use regeneration
 #define SPELL_SHAMBLER                  301
-#define SPELL_SHAPECHANGE               302
-/** Total Number of defined spells */
-#define NUM_SPELLS                 303
+#define SPELL_SHAPECHANGE               302 // hey b, maybe use polymorph
+/* some more cleric spells */
+#define SPELL_BLADE_BARRIER             303
+#define SPELL_BLADES                    304  //blades (for blade barrier)
+#define SPELL_BATTLETIDE                305
+/** Total Number of defined spells (last spell define + 1) */
+#define NUM_SPELLS                 306
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
@@ -689,6 +694,7 @@ ASPELL(spell_prismatic_sphere);
 ASPELL(spell_banish);
 ASPELL(spell_mass_domination);
 ASPELL(spell_incendiary_cloud);
+ASPELL(spell_salvation);
 
 /* basic magic calling functions */
 int find_skill_num(char *name);

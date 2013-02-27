@@ -56,6 +56,8 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
     resist += 2;
   if (affected_by_spell(vict, SPELL_PROTECT_FROM_SPELLS))
     resist += 10;
+  if (IS_AFFECTED(vict, AFF_SPELL_RESISTANT))
+    resist += 12 + GET_LEVEL(vict);
 
   return MIN(99, MAX(0, resist));
 }
@@ -910,6 +912,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       num_dice = magic_level;
       size_dice = 2;
       bonus = 10;
+      break;
+
+    case SPELL_BLADES: //blade barrier damage (divine spell)
+      //AoE
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_SLICE;
+      num_dice = divine_level;
+      size_dice = 6;
+      bonus = 2;
       break;
 
     case SPELL_INCENDIARY: //incendiary cloud (conjuration)
@@ -2549,6 +2561,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is surrounded by a white aura.";
       break;
 
+    case SPELL_SPELL_RESISTANCE:
+      af[0].duration = 50 + divine_level;
+      SET_BIT_AR(af[0].bitvector, AFF_SPELL_RESISTANT);
+
+      accum_duration = FALSE;
+      to_vict = "You feel your spell resistance increase.";
+      to_room = "$n's spell resistance increases.";
+      break;
+
     case SPELL_REGENERATION:
       af[0].duration = 100;
       SET_BIT_AR(af[0].bitvector, AFF_REGEN);
@@ -2592,6 +2613,26 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       accum_duration = FALSE;
       to_vict = "You feel your combat skill increase!";
       to_room = "The combat skill of $n increases!";
+      break;
+
+    case SPELL_BATTLETIDE: //divine
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_BATTLETIDE);
+
+      af[1].duration = 50;
+      SET_BIT_AR(af[1].bitvector, AFF_HASTE);
+
+      af[2].location = APPLY_HITROLL;
+      af[2].modifier = 3;
+      af[2].duration = 50;
+
+      af[3].location = APPLY_DAMROLL;
+      af[3].modifier = 3;
+      af[3].duration = 50;
+
+      accum_duration = FALSE;
+      to_vict = "You feel the tide of battle turn in your favor!";
+      to_room = "The tide of battle turns in $n's favor!";
       break;
 
     case SPELL_MINOR_GLOBE: //abjuration
@@ -4327,6 +4368,13 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       to_room = "$n creates a thick bank of acid fog!";
       aff = RAFF_ACID_FOG;
       rounds = MAGIC_LEVEL(ch);
+      break;
+
+    case SPELL_BLADE_BARRIER: //divine spell
+      to_char = "You create a barrier of spinning blades!";
+      to_room = "$n creates a barrier of spinning blades!";
+      aff = RAFF_BLADE_BARRIER;
+      rounds = DIVINE_LEVEL(ch);
       break;
 
     case SPELL_DARKNESS: //divination

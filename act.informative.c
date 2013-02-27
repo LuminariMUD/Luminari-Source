@@ -1180,6 +1180,18 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   
   send_to_char(ch, 
 	"\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_CLERIC) >= 14) {
+    if (PLR_FLAGGED(ch, PLR_SALVATION)) { 
+      if (GET_SALVATION_NAME(ch) != NULL) {
+        send_to_char(ch, "Salvation:  Set at %s\r\n", GET_SALVATION_NAME(ch));
+      } else {
+        send_to_char(ch, "Salvation:  Not set.\r\n");
+      }
+    } else {
+      send_to_char(ch, "Salvation:  Not set.\r\n");
+    }
+  }
+  
   if ((pMudEvent = char_has_mud_event(k, eTAUNTED)))
     send_to_char(ch, "\tRTaunted!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent)/10));
   if ((pMudEvent = char_has_mud_event(k, eSTUNNED)))

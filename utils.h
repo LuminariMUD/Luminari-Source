@@ -803,6 +803,8 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define GET_STONESKIN(ch)	(ch->player_specials->saved.warding[STONESKIN])
 #define PARRY_LEFT(ch)		((ch)->char_specials.parryAttempts)
 #define IS_MORPHED(ch)		(ch->player_specials->saved.morphed)
+#define GET_SALVATION_NAME(ch)  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->salvation_name))
+#define GET_SALVATION_ROOM(ch)  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->salvation_room))
 
 //  our spec_abil values
 #define GET_SPEC_ABIL(ch, slot)		(ch->player_specials->saved.spec_abil[slot])

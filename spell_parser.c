@@ -490,7 +490,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   if (IS_SET(SINFO.routines, MAG_MANUAL))
     switch (spellnum) {
     case SPELL_CHARM:		MANUAL_SPELL(spell_charm); break;
-      case SPELL_CHARM_ANIMAL:  MANUAL_SPELL(spell_charm_animal); break;
+    case SPELL_SALVATION:		MANUAL_SPELL(spell_salvation); break;
+    case SPELL_CHARM_ANIMAL:  MANUAL_SPELL(spell_charm_animal); break;
     case SPELL_REFUGE:		MANUAL_SPELL(spell_refuge); break;
     case SPELL_CREATE_WATER:	MANUAL_SPELL(spell_create_water); break;
     case SPELL_DETECT_POISON:	MANUAL_SPELL(spell_detect_poison); break;
@@ -1022,7 +1023,8 @@ ACMD(do_cast)
     return;
   }
 
-  if (IS_AFFECTED(ch, AFF_TFORM)) {
+  if (IS_AFFECTED(ch, AFF_TFORM) ||
+          IS_AFFECTED(ch, AFF_BATTLETIDE)) {
     send_to_char(ch, "Cast?  Why when you can SMASH!!\r\n");
     return;
   }
@@ -1467,9 +1469,9 @@ void mag_assign_spells(void)
   spello(SPELL_EYEBITE, "eyebite", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS |
      MAG_ALTER_OBJS, "You feel the disease fade away.", 6, 10, NECROMANCY);  //wiz6 cle6
-  spello(SPELL_MASS_WISDOM, "mass wisdom", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "The wisdom spell fades away.", 5, 11, TRANSMUTATION);
-  spello(SPELL_MASS_CHARISMA, "mass charisma", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+  spello(SPELL_MASS_WISDOM, "mass wisdom", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,  //wiz7, cle6
+          FALSE, MAG_GROUPS, "The wisdom spell fades away.", 5, 11, TRANSMUTATION);  //wiz7, cle6
+  spello(SPELL_MASS_CHARISMA, "mass charisma", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,  //wiz7, cle6
           FALSE, MAG_GROUPS, "The charisma spell fades away.", 5, 11, TRANSMUTATION);
   spello(SPELL_MASS_CUNNING, "mass cunning", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
           FALSE, MAG_GROUPS, "The cunning spell fades away.", 5, 11, TRANSMUTATION);
@@ -2285,18 +2287,43 @@ void mag_assign_spells(void)
 	NULL, 0, 13, NOSCHOOL);
   spello(SPELL_MASS_CURE_CRIT, "mass cure critic", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_GROUPS,
-	NULL, 7, 13, NOSCHOOL);  
-
-  // 8th circle
+	NULL, 7, 13, NOSCHOOL);
   spello(SPELL_SENSE_LIFE, "sense life", 79, 64, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"You feel less aware of your surroundings.", 8, 14, NOSCHOOL);
+  spello(SPELL_BLADE_BARRIER, "blade barrier", 0, 0, 0,  POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_ROOM,
+	"You watch as the barrier of blades dissipates.", 7, 13,
+	CONJURATION);
+  spello(SPELL_BATTLETIDE, "battletide", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+     "You feel the battletide fade.", 10, 13, NOSCHOOL);
+  spello(SPELL_SPELL_RESISTANCE, "spell resistance", 79, 64, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+	"You feel your spell resistance fade.", 8, 14, NOSCHOOL);
+  //control weather - shared
+  //summon creature 7 - shared
+  //greater dispelling - shared
+  //mass enhance - shared
+
+  // 8th circle
   spello(SPELL_SANCTUARY, "sanctuary", 79, 64, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
 	"The white aura around your body fades.", 8, 14, NOSCHOOL);
   spello(SPELL_DESTRUCTION, "destruction", 79, 64, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 9, 14, NOSCHOOL);
+  spello(SPELL_WORD_OF_FAITH, "word off faith", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+	"You no longer feel divinely inflicted.", 0, 14,
+	NOSCHOOL);
+  spello(SPELL_DIMENSIONAL_LOCK, "dimensional lock", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+	"You feel locked to this dimension.", 0, 14,
+	NOSCHOOL);
+  spello(SPELL_SALVATION, "salvation", 79, 64, 1, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_MANUAL,
+	NULL, 8, 14, NOSCHOOL);
 
   // 9th circle
   spello(SPELL_EARTHQUAKE, "earthquake", 85, 70, 1, POS_FIGHTING,

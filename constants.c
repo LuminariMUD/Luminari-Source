@@ -187,7 +187,8 @@ const char *room_affections[] = {
   "Stench",
   "Billowing",
   "Anti-Magic Field",
-  "Acid Fogged",
+  "Acid-Fogged",
+  "Blade-Barriered",
   "\n"
 };
 
@@ -442,19 +443,21 @@ const char *affected_bits[] =
   "Regenerating",
   "Diseased",
   "T-Transform",  //50
-  "Globe of Invulnerability",
+  "Globe-of-Invulnerability",
   "Listen-Mode",
   "Displaced",
   "Spell-Mantled",
   "Confused",  //55
   "Refuged",
-  "Spell Turning",
+  "Spell-Turning",
   "Mind-Blanked",
   "Shadow-Shielded",
   "Time-Stopped",  //60
   "Bravery",
   "Free-Movement",
-  "Faerie Fire",
+  "Faerie-Fired",
+  "Battletide",
+  "Spell-Resistant", //65
   "\n"
 };
 
