@@ -1600,6 +1600,9 @@ void mag_assign_spells(void)
 
 /* = =  2nd circle  = = */
 			/* evocation */
+  spello(SPELL_ACID_ARROW, "acid arrow", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,
+	NULL, 2, 6, EVOCATION);
   spello(SPELL_SHOCKING_GRASP, "shocking grasp", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 2, 6, EVOCATION);
@@ -1609,15 +1612,24 @@ void mag_assign_spells(void)
   spello(SPELL_CONTINUAL_FLAME, "continual flame", 0, 0, 0, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_CREATIONS,
 	NULL, 5, 6, EVOCATION);
+  spello(SPELL_FLAME_BLADE, "flame blade", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+          NULL, 2, 6, EVOCATION);
+  spello(SPELL_FLAMING_SPHERE, "flaming sphere", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS,
+          NULL, 5, 6, EVOCATION);
                         /* conjuration */
   //summon creature 2 - shared
+  spello(SPELL_SUMMON_NATURES_ALLY_2, "summon natures ally ii", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_SUMMONS,
+          NULL, 4, 7, CONJURATION);
+  spello(SPELL_SUMMON_SWARM, "summon swarm", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS,
+          NULL, 5, 8, CONJURATION);
   spello(SPELL_WEB, "web", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
 	"You feel the sticky strands of the magical web dissolve.", 2, 6,
 	CONJURATION);
-  spello(SPELL_ACID_ARROW, "acid arrow", 0, 0, 0, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,
-	NULL, 2, 6, EVOCATION);
 			/* necromancy */
   //blindness - shared
   spello(SPELL_FALSE_LIFE, "false life", 0, 0, 0, POS_FIGHTING,
@@ -1631,6 +1643,10 @@ void mag_assign_spells(void)
   spello(SPELL_HIDEOUS_LAUGHTER, "hideous laughter", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
 	"You feel able to control your laughter again.", 2, 6,
+	ENCHANTMENT);
+    spello(SPELL_HOLD_ANIMAL, "hold animal", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+	"You feel able to control yourself again.", 3, 7,
 	ENCHANTMENT);
   spello(SPELL_TOUCH_OF_IDIOCY, "touch of idiocy", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,

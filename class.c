@@ -1148,11 +1148,11 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_ENDURANCE, 99);
     SET_SKILL(ch, SPELL_STRENGTH, 99);
     SET_SKILL(ch, SPELL_GRACE, 99);
-    // flame blade SET_SKILL(ch, SPELL_FLAME_BLADE, 99);
-    // flaming sphere SET_SKILL(ch, SPELL_FLAMING_SPHERE, 99);
-    // hold animal SET_SKILL(ch, SPELL_HOLD_ANIMAL, 99);
-    // summon nature's ally ii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_2, 99);
-    // summon swarm SET_SKILL(ch, SPELL_SUMMON_SWARM, 99);
+    SET_SKILL(ch, SPELL_FLAME_BLADE, 99);
+    SET_SKILL(ch, SPELL_FLAMING_SPHERE, 99);
+    SET_SKILL(ch, SPELL_HOLD_ANIMAL, 99);
+    SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_2, 99);
+    SET_SKILL(ch, SPELL_SUMMON_SWARM, 99);
     SET_SKILL(ch, SPELL_WISDOM, 99);
     SET_SKILL(ch, SPELL_CREATE_FOOD, 99); // no
     SET_SKILL(ch, SPELL_CREATE_WATER, 99); // no
@@ -2607,18 +2607,18 @@ void init_spell_levels(void)
   //2nd circle
   spell_level(SPELL_BARKSKIN, CLASS_DRUID, 3);
   spell_level(SPELL_ENDURANCE, CLASS_DRUID, 3);
-  spell_level(SPELL_STRENGTH, CLASS_DRUID, 3);
+  spell_level(SPELL_FLAME_BLADE, CLASS_DRUID, 3);
+  spell_level(SPELL_FLAMING_SPHERE, CLASS_DRUID, 3);
   spell_level(SPELL_GRACE, CLASS_DRUID, 3);
-  // flame blade
-  // flaming sphere
-  // hold animal
-  // owl's wisdom
-  // summon nature's ally ii
-  // summon swarm
-  spell_level(SPELL_CREATE_FOOD, CLASS_DRUID, 3); // no
-  spell_level(SPELL_CREATE_WATER, CLASS_DRUID, 3); // no
-  spell_level(SPELL_DETECT_POISON, CLASS_DRUID, 3); // no
-  spell_level(SPELL_CAUSE_MODERATE_WOUNDS, CLASS_DRUID, 3); // no
+  spell_level(SPELL_HOLD_ANIMAL, CLASS_DRUID, 3);
+  spell_level(SPELL_WISDOM, CLASS_DRUID, 3);
+  spell_level(SPELL_STRENGTH, CLASS_DRUID, 3);
+  spell_level(SPELL_SUMMON_NATURES_ALLY_2, CLASS_DRUID, 3);
+  spell_level(SPELL_SUMMON_SWARM, CLASS_DRUID, 3);
+//  spell_level(SPELL_CREATE_FOOD, CLASS_DRUID, 3); // no
+//  spell_level(SPELL_CREATE_WATER, CLASS_DRUID, 3); // no
+//  spell_level(SPELL_DETECT_POISON, CLASS_DRUID, 3); // no
+//  spell_level(SPELL_CAUSE_MODERATE_WOUNDS, CLASS_DRUID, 3); // no
   
   //3rd circle
   spell_level(SPELL_CALL_LIGHTNING, CLASS_DRUID, 5);

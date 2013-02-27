@@ -254,16 +254,16 @@
    we have abandoned that primary purpose and converted her to an array
    of easy to use reserved values in the pfile that saves for special
    ability info we need */
-#define SPELL_MANTLE          0 // spell mantle left
-#define INCEND                1 // unused
-#define SONG_AFF              2 // how much to modify skill with song-affects
-#define CALLCOMPANION		3 // animal companion vnum
+#define SPELL_MANTLE            0 // spell mantle left
+#define INCEND                  1 // unused
+#define SONG_AFF                2 // how much to modify skill with song-affects
+#define CALLCOMPANION           3 // animal companion vnum
 #define CALLFAMILIAR		4 // familiars vnum
-#define SORC_KNOWN            5 // true/false if can 'study'
-#define RANG_KNOWN            6 // true/false if can 'study'
-#define CALLMOUNT             7 // paladin mount vnum
-#define WIZ_KNOWN             8 // true/false if can 'study'
-#define BARD_KNOWN            9 // true/false if can 'study'
+#define SORC_KNOWN              5 // true/false if can 'study'
+#define RANG_KNOWN              6 // true/false if can 'study'
+#define CALLMOUNT               7 // paladin mount vnum
+#define WIZ_KNOWN               8 // true/false if can 'study'
+#define BARD_KNOWN              9 // true/false if can 'study'
 /*---------------*/
 #define NUM_SPEC_ABIL		10
 #define MAX_SPEC_ABIL	MAX_CLASSES
