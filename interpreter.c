@@ -1986,7 +1986,7 @@ void nanny(struct descriptor_data *d, char *arg)
       act("$n has entered the game.", TRUE, d->character, 0, 0, TO_ROOM);
 
       STATE(d) = CON_PLAYING;
-      MXPSendTag( d, "<VERSION>" );
+      //MXPSendTag( d, "<VERSION>" ); this is already called in perform_dupe_check() before we get here, shouldn't be needed here.. -Nashak
       if (GET_LEVEL(d->character) == 0) {
         do_start(d->character);
         newbieEquipment(d->character);
