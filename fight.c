@@ -657,6 +657,7 @@ void die(struct char_data * ch, struct char_data * killer) {
   if (!IS_NPC(ch)) {
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_KILLER);
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_THIEF);
+    REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_SALVATION);
   }
 
   if (!IS_NPC(ch))

@@ -884,6 +884,40 @@ ASPELL(spell_charm_animal) // enchantment
 }
 
 
+ASPELL(spell_salvation) // divination
+{  
+  sh_int load_broom;
+
+  if (!PLR_FLAGGED(ch, PLR_SALVATION) ||
+          !GET_SALVATION_NAME(ch) ||
+          GET_SALVATION_ROOM(ch) == NOWHERE) {
+    SET_BIT_AR(PLR_FLAGS(ch), PLR_SALVATION);
+    load_broom = world[ch->in_room].number;
+    if (GET_SALVATION_NAME(ch) != NULL)
+      free(GET_SALVATION_NAME(ch));
+    GET_SALVATION_NAME(ch) = strdup(world[ch->in_room].name);
+    GET_SALVATION_ROOM(ch) = load_broom;
+    send_to_char(ch, "Your salvation is set to this room.\r\n");
+    return;
+  }
+  else {
+    REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_SALVATION);
+    if (GET_SALVATION_NAME(ch) != NULL)
+      free(GET_SALVATION_NAME(ch));
+    load_broom = GET_SALVATION_ROOM(ch);
+    load_broom = real_room(load_broom);
+    act("$n disappears in a flash of white light", FALSE, ch, 0, 0, TO_ROOM);
+    char_from_room(ch);
+    char_to_room(ch, load_broom);
+    send_to_char(ch, "As the flash of light disappears you can see the room.\r\n\r\n");
+    act("$n appears in a flash of white light", FALSE, ch, 0, 0, TO_ROOM);
+    look_at_room(ch, 0);
+    return;    
+  }
+ 
+}
+
+
 ASPELL(spell_refuge) // illusion
 {
   struct char_data *tch, *next_tch;

@@ -100,14 +100,15 @@
 #define NUM_ROOM_FLAGS    18
 
 // Room affects
-#define RAFF_FOG         (1 << 0)
-#define RAFF_DARKNESS    (1 << 1)
-#define RAFF_LIGHT       (1 << 2)
-#define RAFF_STINK       (1 << 3)
-#define RAFF_BILLOWING   (1 << 4)
-#define RAFF_ANTI_MAGIC  (1 << 5)
-#define RAFF_ACID_FOG    (1 << 6)
-#define NUM_RAFF    7
+#define RAFF_FOG            (1 << 0)
+#define RAFF_DARKNESS       (1 << 1)
+#define RAFF_LIGHT          (1 << 2)
+#define RAFF_STINK          (1 << 3)
+#define RAFF_BILLOWING      (1 << 4)
+#define RAFF_ANTI_MAGIC     (1 << 5)
+#define RAFF_ACID_FOG       (1 << 6)
+#define RAFF_BLADE_BARRIER  (1 << 7)
+#define NUM_RAFF    8
 
 /* Zone info: Used in zone_data.zone_flags */
 #define ZONE_CLOSED       0  /**< Zone is closed - players cannot enter */
@@ -389,8 +390,9 @@
 #define PLR_BUG          17   /**< Player is writing a bug */
 #define PLR_IDEA         18   /**< Player is writing an idea */
 #define PLR_TYPO         19   /**< Player is writing a typo */
+#define PLR_SALVATION    20   /* for salvation cleric spell */
 /***************/
-#define NUM_PLR_BITS	20
+#define NUM_PLR_BITS	21
 
 
 /* Mobile flags: used by char_data.char_specials.act */
@@ -538,10 +540,12 @@
 #define AFF_TIME_STOPPED     60
 #define AFF_BRAVERY          61
 #define AFF_FREE_MOVEMENT    62
-#define AFF_FAERIE_FIRE         63
+#define AFF_FAERIE_FIRE      63
+#define AFF_BATTLETIDE       64
+#define AFF_SPELL_RESISTANT  65
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS        64
+#define NUM_AFF_FLAGS        66
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/
@@ -1463,6 +1467,10 @@ struct player_special_data
   char *host;            /**< Resolved hostname, or ip, for player. */
   int diplomacy_wait;  /**< Diplomacy Timer */
   int buildwalk_sector;  /**< Default sector type for buildwalk */
+  
+  /* salvation spell */
+  int salvation_room;
+  char *salvation_name;
 };
 
 /** Special data used by NPCs, not PCs */
