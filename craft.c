@@ -370,7 +370,7 @@ int convert(struct obj_data *kit, struct char_data *ch)
 
 /* rename an object */  
 int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
-  int num_objs = 0, cost, arg_size = 0;
+  int num_objs = 0, cost;
   struct obj_data *obj = NULL;
   char buf[MAX_INPUT_LENGTH];
   
@@ -416,9 +416,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
     return 1;
   }
 
-  /* need address of arg-size to modify length of string (protocol) */
-  arg_size = strlen(argument);
-  
+  /* you need to parse the @ sign */
   parse_at(argument);
   
   /* success!! */
@@ -953,6 +951,9 @@ int create(char *argument, struct obj_data *kit,
                cost);
     GET_GOLD(ch) -= cost;
   
+    /* gotta convert @ sign */
+    parse_at(argument);
+    
     /* restringing aspect */
     char buf[MAX_INPUT_LENGTH];
     mold->name = strdup(argument);
