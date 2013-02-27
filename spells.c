@@ -369,7 +369,6 @@ ASPELL(spell_incendiary_cloud) {
   act("$n summons forth an incendiary cloud!", FALSE, ch, 0, 0, TO_ROOM);
 
   INCENDIARY(ch) = MAGIC_LEVEL(ch) / 4;
-  
 }
 
 

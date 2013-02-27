@@ -665,6 +665,18 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = magic_level + 35;
       break;
       
+    case SPELL_FLAME_BLADE: // evocation
+      if (SECT(ch->in_room) == SECT_UNDERWATER) {
+        send_to_char(ch, "Your flame blade immediately burns out underwater.");
+        return (0);
+      }
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = 1;
+      size_dice = 8;
+      bonus = MIN(magic_level / 2, 10);
+      break;
+      
     case SPELL_PRODUCE_FLAME: // evocation
       if (SECT(ch->in_room) == SECT_UNDERWATER) {
         send_to_char(ch, "You are unable to produce a flame while underwater.");
@@ -918,6 +930,23 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       num_dice = magic_level;
       size_dice = 4;
       bonus = 0;
+      break;
+      
+    case SPELL_FLAMING_SPHERE: // evocation
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = 2;
+      size_dice = 6;
+      bonus = 0;
+      break;
+      
+    case SPELL_SUMMON_SWARM: // conjuration
+      mag_resist = FALSE;
+      element = DAM_NEGATIVE;
+      num_dice = 1;
+      size_dice = 6;
+      bonus = MAX(magic_level, 5);
       break;
 
     case SPELL_METEOR_SWARM:
@@ -1356,6 +1385,27 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You begin to dance uncontrollably!";
       break;
 
+    case SPELL_HOLD_ANIMAL: // enchantment
+      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
+        send_to_char(ch, "This spell is only effective on animals.\r\n");
+        return;
+      }
+      if (GET_LEVEL(victim) > 11) {
+        send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
+        return;
+      }
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+        return;
+      }
+
+      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+      af[0].duration = magic_level; // one round per level
+      to_room = "$n is overcome by a powerful hold spell!";
+      to_vict = "You are overcome by a powerful hold spell!";
+      break;
+      
     case SPELL_HOLD_PERSON: //enchantment
       if (GET_LEVEL(victim) > 11) {
         send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
@@ -3104,6 +3154,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
       to_char = "Your wilting causes the moisture to leave the area!";
       to_room = "$n's horrid wilting causes all the moisture to leave the area!";
       break;
+    case SPELL_FLAMING_SPHERE:
+      to_char = "You summon a burning globe of fire that rolls through the area!";
+      to_room = "$n summons a burning globe of fire that rolls through the area!";
+      break;
     case SPELL_DEATHCLOUD: //cloudkill
       break;
     case SPELL_INCENDIARY: //incendiary cloud
@@ -3531,7 +3585,15 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       handle_corpse = FALSE;
       msg = 20;
       fmsg = rand_number(2, 6); /* Random fail message. */
-      mob_num = 9400 + rand_number(0, 7);
+      mob_num = 9400 + rand_number(0, 7); // 9400-9407
+      pfail = 0;
+      break;
+    
+    case SPELL_SUMMON_NATURES_ALLY_2: // conjuration
+      handle_corpse = FALSE;
+      msg = 20;
+      fmsg = rand_number(2, 6);
+      mob_num = 9408 + rand_number(0, 6); // 9408-9414 for now
       pfail = 0;
       break;
       
