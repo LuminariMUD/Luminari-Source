@@ -1462,7 +1462,25 @@ void mag_assign_spells(void)
   spello(SPELL_DAYLIGHT, "daylight", 50, 25, 5, POS_STANDING,
 	TAR_IGNORE, FALSE, MAG_ROOM, 
 	"The artificial daylight fades away.", 6, 7, ILLUSION); //wiz3, cle4
-
+  spello(SPELL_SUMMON_CREATURE_6, "summon creature vi", 0, 0, 0, 
+     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 10, CONJURATION); //wiz6 cle6
+  spello(SPELL_EYEBITE, "eyebite", 0, 0, 0, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS |
+     MAG_ALTER_OBJS, "You feel the disease fade away.", 6, 10, NECROMANCY);  //wiz6 cle6
+  spello(SPELL_MASS_WISDOM, "mass wisdom", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+          FALSE, MAG_GROUPS, "The wisdom spell fades away.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_CHARISMA, "mass charisma", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+          FALSE, MAG_GROUPS, "The charisma spell fades away.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_CUNNING, "mass cunning", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+          FALSE, MAG_GROUPS, "The cunning spell fades away.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_STRENGTH, "mass strength", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+          FALSE, MAG_GROUPS, "You feel weaker.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_GRACE, "mass grace", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+          FALSE, MAG_GROUPS, "You feel less dextrous.", 5, 11, TRANSMUTATION);
+  spello(SPELL_MASS_ENDURANCE, "mass endurance", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+          FALSE, MAG_GROUPS, "Your magical endurance has faded away.", 5, 11, TRANSMUTATION);
+  /**  end shared list **/
+  
   
   //shared epic
   spello(SPELL_DRAGON_KNIGHT, "dragon knight", 0, 0, 0, POS_FIGHTING,
@@ -1677,7 +1695,7 @@ void mag_assign_spells(void)
   spello(SPELL_BARKSKIN, "barkskin", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "You feel your barkskin wear off.", 3, 6, TRANSMUTATION);
-    //endurance - shared
+  //endurance - shared
   //strengrth - shared
   //grace - shared
 
@@ -1883,16 +1901,13 @@ void mag_assign_spells(void)
   spello(SPELL_ACID_FOG, "acid fog", 0, 0, 0,  POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_ROOM,
 	"You watch as the acid fog dissipates.", 7, 8,
-	CONJURATION);  
-  spello(SPELL_SUMMON_CREATURE_6, "summon creature vi", 0, 0, 0, 
-     POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 10, CONJURATION);
+	CONJURATION);
+  //summon creature 6 - shared
 			/* necromancy */
   spello(SPELL_TRANSFORMATION, "transformation", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
      "You feel your transformation fade.", 5, 10, NECROMANCY);
-  spello(SPELL_EYEBITE, "eyebite", 0, 0, 0, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS |
-     MAG_ALTER_OBJS, "You feel the disease fade away.", 6, 10, NECROMANCY);  
+  //eyebite - shared
 			/* enchantment */
   spello(SPELL_MASS_HASTE, "mass haste", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
      FALSE, MAG_GROUPS, "The haste spell fades away.", 8, 10, ENCHANTMENT);
@@ -1985,18 +2000,11 @@ void mag_assign_spells(void)
   spello(SPELL_TELEPORT, "teleport", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
 	NULL, 2, 11, TRANSMUTATION);
-  spello(SPELL_MASS_WISDOM, "mass wisdom", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "The wisdom spell fades away.", 5, 11, TRANSMUTATION);
-  spello(SPELL_MASS_CHARISMA, "mass charisma", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "The charisma spell fades away.", 5, 11, TRANSMUTATION);
-  spello(SPELL_MASS_CUNNING, "mass cunning", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "The cunning spell fades away.", 5, 11, TRANSMUTATION);
-  spello(SPELL_MASS_STRENGTH, "mass strength", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "You feel weaker.", 5, 11, TRANSMUTATION);
-  spello(SPELL_MASS_GRACE, "mass grace", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "You feel less dextrous.", 5, 11, TRANSMUTATION);
-  spello(SPELL_MASS_ENDURANCE, "mass endurance", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "Your magical endurance has faded away.", 5, 11, TRANSMUTATION);
+  //mass wisdom - shared
+  //mass charisma - shared
+  //mass cunning - shared
+  
+  
   // 8th circle
 			/* evocation */
   spello(SPELL_CLENCHED_FIST, "clenched fist", 72, 57, 1, POS_FIGHTING,
@@ -2242,18 +2250,28 @@ void mag_assign_spells(void)
   spello(SPELL_DISPEL_EVIL, "dispel evil", 65, 50, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 5, 12, NOSCHOOL);
-  spello(SPELL_DISPEL_GOOD, "dispel good", 65, 50, 1, POS_FIGHTING,
-	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-	NULL, 5, 12, NOSCHOOL);
   spello(SPELL_HARM, "harm", 65, 50, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 7, 12, NOSCHOOL);
   spello(SPELL_HEAL, "heal", 65, 50, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_POINTS | MAG_UNAFFECTS,
 	NULL, 5, 12, NOSCHOOL);
+  spello(SPELL_DISPEL_GOOD, "dispel good", 65, 50, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+	NULL, 5, 12, NOSCHOOL);
   spello(SPELL_MASS_CURE_SERIOUS, "mass cure serious", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 6, 12, NOSCHOOL);  
+  spello(SPELL_PRAYER, "prayer", 44, 29, 1, POS_FIGHTING, TAR_IGNORE, FALSE,
+     MAG_GROUPS, "You feel the aid spell fade away.", 8, 12, NOSCHOOL);
+  spello(SPELL_REMOVE_DISEASE, "remove disease", 44, 29, 1, POS_FIGHTING,
+	TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS,
+	NULL, 7, 12, NOSCHOOL);
+  //summon creature 6 - shared
+  //eyebite - shared
+  //mass wisdom - shared
+  //mass charisma - shared
+  //mass cunning - shared
 
   // 7th circle
   spello(SPELL_CALL_LIGHTNING, "call lightning", 72, 57, 1, POS_FIGHTING,

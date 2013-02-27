@@ -1592,6 +1592,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is surrounded by magical armor!";
       break;
 
+    case SPELL_STRENGTHEN_BONE:
+      if (!IS_UNDEAD(victim))
+        return;
+
+      af[0].location = APPLY_AC_NEW;
+      af[0].modifier = 2;
+      af[0].duration = 600;
+      accum_duration = TRUE;
+      to_vict = "You feel your bones harden.";
+      to_room = "$n's bones harden!";
+      break;
+
     case SPELL_GREASE: //divination
       if (mag_resistance(ch, victim, 0))
         return;
@@ -1646,6 +1658,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_AID:
+      if (affected_by_spell(victim, SPELL_BLESS) ||
+              affected_by_spell(victim, SPELL_PRAYER)) {
+        send_to_char(ch, "The target is already blessed!\r\n");
+        return;
+      }
+      
       af[0].location = APPLY_HITROLL;
       af[0].modifier = 3;
       af[0].duration = 300;
@@ -1675,7 +1693,49 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel divinely aided.";
       break;
 
+    case SPELL_PRAYER:
+      if (affected_by_spell(victim, SPELL_BLESS) ||
+              affected_by_spell(victim, SPELL_AID)) {
+        send_to_char(ch, "The target is already blessed!\r\n");
+        return;
+      }
+      
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = 5;
+      af[0].duration = 300;
+
+      af[1].location = APPLY_DAMROLL;
+      af[1].modifier = 5;
+      af[1].duration = 300;
+
+      af[2].location = APPLY_SAVING_WILL;
+      af[2].modifier = 3;
+      af[2].duration = 300;
+
+      af[3].location = APPLY_SAVING_FORT;
+      af[3].modifier = 3;
+      af[3].duration = 300;
+
+      af[4].location = APPLY_SAVING_REFL;
+      af[4].modifier = 3;
+      af[4].duration = 300;
+
+      af[5].location = APPLY_HIT;
+      af[5].modifier = dice(4, 12) + divine_level;
+      af[5].duration = 300;
+
+      accum_duration = TRUE;
+      to_room = "$n is now divinely blessed and aided!";
+      to_vict = "You feel divinely blessed and aided.";
+      break;
+
     case SPELL_BLESS:
+      if (affected_by_spell(victim, SPELL_AID) ||
+              affected_by_spell(victim, SPELL_PRAYER)) {
+        send_to_char(ch, "The target is already blessed!\r\n");
+        return;
+      }
+      
       af[0].location = APPLY_HITROLL;
       af[0].modifier = 2;
       af[0].duration = 300;
@@ -2504,7 +2564,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       accum_duration = FALSE;
       to_vict = "Your limbs feel looser as the free movement spell takes effect.";
-      to_room = "$n .";
+      to_room = "$n's limbs now move freer.";
       break;
 
     case SPELL_BRAVERY:
@@ -2925,6 +2985,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
       break;
     case SPELL_AID:
       mag_affects(level, ch, tch, obj, SPELL_AID, savetype);
+      break;
+    case SPELL_PRAYER:
+      mag_affects(level, ch, tch, obj, SPELL_PRAYER, savetype);
       break;
     case SPELL_MASS_ENDURANCE:
       mag_affects(level, ch, tch, obj, SPELL_MASS_ENDURANCE, savetype);
@@ -3850,6 +3913,14 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
       to_notvict = "$N briefly glows blue.";
       break;
       
+    case SPELL_REMOVE_DISEASE:
+      spell = SPELL_EYEBITE;
+      affect = AFF_DISEASE;
+      to_char = "You remove the disease from $N.";
+      to_vict = "$n removes the disease inflicting you.";
+      to_notvict = "$N briefly flushes red then no longer looks diseased.";
+      break;
+      
     case SPELL_REMOVE_FEAR:
       spell = SPELL_SCARE;
       affect = AFF_FEAR;
@@ -3872,6 +3943,14 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
       to_char = "You remove the deafness from $N.";
       to_vict = "$n removes the deafness from you.";
       to_notvict = "$N looks like $E can hear again.";
+      break;
+      
+    case SPELL_FREE_MOVEMENT:
+      spell = SPELL_WEB;
+      affect = AFF_GRAPPLED;
+      to_char = "You remove the web from $N.";
+      to_vict = "$n removes the web from you.";
+      to_notvict = "$N looks like $E can move again.";
       break;
       
     case SPELL_FAERIE_FOG:
