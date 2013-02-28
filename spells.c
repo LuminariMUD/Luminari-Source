@@ -903,16 +903,21 @@ ASPELL(spell_salvation) // divination
     SET_BIT_AR(PLR_FLAGS(ch), PLR_SALVATION);
     load_broom = world[ch->in_room].number;
     if (GET_SALVATION_NAME(ch) != NULL)
-      free(GET_SALVATION_NAME(ch));
+      GET_SALVATION_NAME(ch) = NULL;
     GET_SALVATION_NAME(ch) = strdup(world[ch->in_room].name);
     GET_SALVATION_ROOM(ch) = load_broom;
     send_to_char(ch, "Your salvation is set to this room.\r\n");
     return;
   }
   else {
+    if (!valid_mortal_tele_dest(ch, real_room(world[ch->in_room].number), TRUE)) {
+      send_to_char(ch, "You can't use salvation here.\r\n");
+      return;
+    }
+    
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_SALVATION);
     if (GET_SALVATION_NAME(ch) != NULL)
-      free(GET_SALVATION_NAME(ch));
+      GET_SALVATION_NAME(ch) = NULL;
     load_broom = GET_SALVATION_ROOM(ch);
     load_broom = real_room(load_broom);
     act("$n disappears in a flash of white light", FALSE, ch, 0, 0, TO_ROOM);
