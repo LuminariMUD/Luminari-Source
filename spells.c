@@ -36,11 +36,14 @@
    TRUE - mortals CAN teleport to this destination 
  * accepts NULL ch data
  */
-int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest) {
+int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool dim_lock) {
 
   if (dest == NOWHERE)
     return FALSE;
 
+  if (IS_AFFECTED(ch, AFF_DIM_LOCK) && dim_lock)
+    return FALSE;
+  
   /* this function needs a vnum, not rnum */
   if (ch && !House_can_enter(ch, GET_ROOM_VNUM(dest)))
     return FALSE;
@@ -592,12 +595,12 @@ ASPELL(spell_teleport) {
 
   to_room = IN_ROOM(victim);
 
-  if (!valid_mortal_tele_dest(ch, to_room)) {
+  if (!valid_mortal_tele_dest(ch, to_room, TRUE)) {
     send_to_char(ch, "A bright flash prevents your spell from working!");
     return;
   }
 
-  if (!valid_mortal_tele_dest(ch, IN_ROOM(ch))) {
+  if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE)) {
     send_to_char(ch, "A bright flash prevents your spell from working!");
     return;
   }
@@ -656,12 +659,12 @@ ASPELL(spell_summon) {
     return;
   }
 
-  if (!valid_mortal_tele_dest(victim, IN_ROOM(victim))) {
+  if (!valid_mortal_tele_dest(victim, IN_ROOM(victim), TRUE)) {
     send_to_char(ch, "A bright flash prevents your spell from working!");
     return;
   }
 
-  if (!valid_mortal_tele_dest(ch, IN_ROOM(ch))) {
+  if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE)) {
     send_to_char(ch, "A bright flash prevents your spell from working!");
     return;
   }
@@ -891,6 +894,12 @@ ASPELL(spell_salvation) // divination
   if (!PLR_FLAGGED(ch, PLR_SALVATION) ||
           !GET_SALVATION_NAME(ch) ||
           GET_SALVATION_ROOM(ch) == NOWHERE) {
+    
+    if (!valid_mortal_tele_dest(ch, world[ch->in_room].number, TRUE)) {
+      send_to_char(ch, "You can't use salvation here.\r\n");
+      return;
+    }
+    
     SET_BIT_AR(PLR_FLAGS(ch), PLR_SALVATION);
     load_broom = world[ch->in_room].number;
     if (GET_SALVATION_NAME(ch) != NULL)

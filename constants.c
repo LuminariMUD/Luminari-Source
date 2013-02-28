@@ -458,6 +458,7 @@ const char *affected_bits[] =
   "Faerie-Fired",
   "Battletide",
   "Spell-Resistant", //65
+  "Dimensional-Locked",
   "\n"
 };
 

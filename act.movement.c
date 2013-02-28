@@ -1361,7 +1361,7 @@ ACMD(do_enter) {
       }
 
       /* All checks passed, except checking the destination, so let's do that now */
-      if (!valid_mortal_tele_dest(ch, real_room(portal_dest))) {
+      if (!valid_mortal_tele_dest(ch, real_room(portal_dest), FALSE)) {
         send_to_char(ch, "As you try to enter the portal, it flares "
                 "brightly, pushing you back!\r\n");
         return;

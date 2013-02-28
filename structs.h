@@ -543,9 +543,10 @@
 #define AFF_FAERIE_FIRE      63
 #define AFF_BATTLETIDE       64
 #define AFF_SPELL_RESISTANT  65
+#define AFF_DIM_LOCK         66 //locked to current plane (can't teleport)
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS        66
+#define NUM_AFF_FLAGS        67
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/
