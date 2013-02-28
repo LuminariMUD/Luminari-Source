@@ -518,6 +518,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_MASS_DOMINATION:	MANUAL_SPELL(spell_mass_domination); break;
     case SPELL_DISMISSAL:	MANUAL_SPELL(spell_dismissal); break;
     case SPELL_BANISH:	MANUAL_SPELL(spell_banish); break;
+    case SPELL_GROUP_SUMMON:	MANUAL_SPELL(spell_group_summon); break;
     case SPELL_CLOUDKILL:	MANUAL_SPELL(spell_cloudkill); break;
     case SPELL_INCENDIARY_CLOUD:	MANUAL_SPELL(spell_incendiary_cloud); break;
     }
@@ -2338,7 +2339,7 @@ void mag_assign_spells(void)
 	TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 5, 15, NOSCHOOL);
   spello(SPELL_GROUP_SUMMON, "group summon", 85, 70, 1, POS_FIGHTING,
-	TAR_IGNORE, FALSE, MAG_GROUPS,
+	TAR_IGNORE, FALSE, MAG_MANUAL,
 	NULL, 5, 15, NOSCHOOL);
   //energy drain - shared
   
