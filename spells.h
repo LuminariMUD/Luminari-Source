@@ -697,6 +697,7 @@ ASPELL(spell_banish);
 ASPELL(spell_mass_domination);
 ASPELL(spell_incendiary_cloud);
 ASPELL(spell_salvation);
+ASPELL(spell_plane_shift);
 
 /* basic magic calling functions */
 int find_skill_num(char *name);
