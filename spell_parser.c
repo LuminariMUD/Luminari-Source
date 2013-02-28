@@ -2337,6 +2337,9 @@ void mag_assign_spells(void)
   spello(SPELL_GROUP_HEAL, "group heal", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 5, 15, NOSCHOOL);
+  spello(SPELL_GROUP_SUMMON, "group summon", 85, 70, 1, POS_FIGHTING,
+	TAR_IGNORE, FALSE, MAG_GROUPS,
+	NULL, 5, 15, NOSCHOOL);
   //energy drain - shared
   
   
