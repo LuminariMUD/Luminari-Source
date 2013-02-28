@@ -257,8 +257,10 @@
 #define SPELL_MASS_ENHANCE         215  //done
 #define SPELL_PORTAL               216  //done
 #define SPELL_ACID                 217  //acid fog proc
+
 #define SPELL_HOLY_SWORD           218  //paladin
 #define SPELL_INCENDIARY           219  // incendiary cloud
+/* some cleric spells */
 #define SPELL_CURE_MODERATE        220  //almost done
 #define SPELL_CURE_SERIOUS         221  //almost done
 #define SPELL_REMOVE_FEAR          222  //almost done

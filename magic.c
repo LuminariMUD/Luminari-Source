@@ -2033,6 +2033,20 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel yourself slow down!";
       break;
 
+    case SPELL_DIMENSIONAL_LOCK: //divination
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+        return;
+      }
+
+      af[0].duration = (divine_level + 12);
+      SET_BIT_AR(af[0].bitvector, AFF_DIM_LOCK);
+      to_room = "$n is bound to this dimension!";
+      to_vict = "You feel yourself bound to this dimension!";
+      break;
+
     case SPELL_BARKSKIN: // transmutation
       if (isMagicArmored(victim))
         return;
@@ -4135,6 +4149,12 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       to_char = "You create $p.";
       to_room = "$n creates $p.";
       object_vnum = 222;
+      break;
+    case SPELL_SPRING_OF_LIFE:
+      to_char = "You create $p.";
+      to_room = "$n creates $p.";
+      obj_to_floor = TRUE;
+      object_vnum = 805;
       break;
     case SPELL_PORTAL:
       if (vict == NULL) {

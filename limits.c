@@ -554,6 +554,25 @@ void point_update(void)
         
       } /* end portal fade */
 
+    /** general item that fade **/
+    } else if (OBJ_FLAGGED(j, ITEM_DECAY)) {
+      /* timer count down */
+      if (GET_OBJ_TIMER(j) > 0)
+        GET_OBJ_TIMER(j)--;
+      
+      /* the object fades */
+      if (GET_OBJ_TIMER(j) <= 0) {
+        /* send message if it makes sense */
+        if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people)) {
+          act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(j)].people,
+                  j, 0, TO_ROOM);
+          act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(j)].people,
+                  j, 0, TO_CHAR);
+	   }
+        extract_obj(j);
+        
+      } /* end 'general' fade */
+
     /** If this is a corpse **/
     }  else if (IS_CORPSE(j)) {
       /* timer count down */
