@@ -895,7 +895,7 @@ ASPELL(spell_salvation) // divination
           !GET_SALVATION_NAME(ch) ||
           GET_SALVATION_ROOM(ch) == NOWHERE) {
     
-    if (!valid_mortal_tele_dest(ch, world[ch->in_room].number, TRUE)) {
+    if (!valid_mortal_tele_dest(ch, real_room(world[ch->in_room].number), TRUE)) {
       send_to_char(ch, "You can't use salvation here.\r\n");
       return;
     }
