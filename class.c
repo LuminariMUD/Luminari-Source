@@ -1105,6 +1105,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_SANCTUARY, 99);
     SET_SKILL(ch, SPELL_DESTRUCTION, 99);
     SET_SKILL(ch, SPELL_SALVATION, 99);
+    SET_SKILL(ch, SPELL_SPRING_OF_LIFE, 99);
     //9th circle
     SET_SKILL(ch, SPELL_EARTHQUAKE, 99);
     SET_SKILL(ch, SPELL_GROUP_HEAL, 99);
@@ -2591,6 +2592,7 @@ void init_spell_levels(void)
   spell_level(SPELL_SANCTUARY, CLASS_CLERIC, 15);
   spell_level(SPELL_DESTRUCTION, CLASS_CLERIC, 15);
   spell_level(SPELL_SALVATION, CLASS_CLERIC, 15);
+  spell_level(SPELL_SPRING_OF_LIFE, CLASS_CLERIC, 15);
   //9th circle
   spell_level(SPELL_EARTHQUAKE, CLASS_CLERIC, 17);
   spell_level(SPELL_GROUP_HEAL, CLASS_CLERIC, 17);
