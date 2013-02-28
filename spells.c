@@ -821,6 +821,9 @@ ASPELL(spell_group_summon) {
 
   while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
           NULL) {
+
+    if (ch == tch)
+      continue;
     
     if (MOB_FLAGGED(tch, MOB_NOSUMMON))
       continue;
