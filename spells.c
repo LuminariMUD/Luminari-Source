@@ -619,6 +619,95 @@ ASPELL(spell_teleport) {
 }
 
 
+ASPELL(spell_plane_shift) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  room_rnum to_room = NOWHERE;
+
+  if (ch == NULL)
+    return;
+  
+  if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE)) {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+  
+  one_argument(cast_arg2, arg);
+
+  if (is_abbrev(arg, "astral")) {
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE)) {
+      send_to_char(ch, "You are already on the astral plane!\r\n");
+      return;
+    }
+
+    do {
+      to_room = rand_number(0, top_of_world);
+    } while (!ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ASTRAL_PLANE));
+
+  } else if (is_abbrev(arg, "ethereal")) {
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE)) {
+      send_to_char(ch, "You are already on the ethereal plane!\r\n");
+      return;
+    }
+
+    do {
+      to_room = rand_number(0, top_of_world);
+    } while (!ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ETH_PLANE));
+
+  } else if (is_abbrev(arg, "elemental")) {
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL)) {
+      send_to_char(ch, "You are already on the elemental plane!\r\n");
+      return;
+    }
+
+    do {
+      to_room = rand_number(0, top_of_world);
+    } while (!ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ELEMENTAL));
+
+  } else if (is_abbrev(arg, "prime")) {
+
+    if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE) &&
+            !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) &&
+            !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL)
+            ) {
+      send_to_char(ch,
+              "You need to be off the prime plane to gate to it!\r\n");
+      return;
+    }
+
+    do {
+      to_room = rand_number(0, top_of_world);
+    } while ((ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ELEMENTAL) ||
+            ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ETH_PLANE) ||
+            ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ASTRAL_PLANE))
+            );
+
+  } else {
+    send_to_char(ch, "Not a valid target (astral, ethereal, elemental, prime)");
+    return;
+  }
+  
+  if (!valid_mortal_tele_dest(ch, to_room, TRUE)) {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  send_to_char(ch, "You slowly fade out of existence...\r\n");
+  act("$n slowly fades out of existence and is gone.",
+          FALSE, ch, 0, 0, TO_ROOM);
+  char_from_room(ch);
+  char_to_room(ch, to_room);
+  act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "You slowly fade back into existence...\r\n");
+  look_at_room(ch, 0);
+  entry_memory_mtrigger(ch);
+  greet_mtrigger(ch, -1);
+  greet_memory_mtrigger(ch);
+}
+
+
 ASPELL(spell_clairvoyance) {
   room_rnum location, original_loc;
 

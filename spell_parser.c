@@ -504,6 +504,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case SPELL_SUMMON:		MANUAL_SPELL(spell_summon); break;
     case SPELL_WORD_OF_RECALL:  MANUAL_SPELL(spell_recall); break;
     case SPELL_TELEPORT:	MANUAL_SPELL(spell_teleport); break;
+    case SPELL_PLANE_SHIFT:	MANUAL_SPELL(spell_plane_shift); break;
     case SPELL_ACID_ARROW:	MANUAL_SPELL(spell_acid_arrow); break;
     case SPELL_IMPLODE:	MANUAL_SPELL(spell_implode); break;
     case SPELL_CLAIRVOYANCE:	MANUAL_SPELL(spell_clairvoyance); break;
@@ -2331,10 +2332,14 @@ void mag_assign_spells(void)
   spello(SPELL_EARTHQUAKE, "earthquake", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS,
 	NULL, 10, 15, NOSCHOOL);
-    //energy drain - shared
+  spello(SPELL_PLANE_SHIFT, "plane shift", 85, 70, 1, POS_FIGHTING,
+	TAR_IGNORE, TRUE, MAG_MANUAL, NULL, 2, 15, NOSCHOOL);
   spello(SPELL_GROUP_HEAL, "group heal", 85, 70, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_GROUPS,
 	NULL, 5, 15, NOSCHOOL);
+  //energy drain - shared
+  
+  
   // epic divine
   // end divine
 
