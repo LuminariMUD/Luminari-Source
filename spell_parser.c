@@ -2324,6 +2324,8 @@ void mag_assign_spells(void)
   spello(SPELL_SALVATION, "salvation", 79, 64, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_MANUAL,
 	NULL, 8, 14, NOSCHOOL);
+  spello(SPELL_SPRING_OF_LIFE, "spring of life", 37, 22, 1, POS_FIGHTING, TAR_IGNORE,
+     FALSE, MAG_CREATIONS, NULL, 14, 14, NOSCHOOL);
 
   // 9th circle
   spello(SPELL_EARTHQUAKE, "earthquake", 85, 70, 1, POS_FIGHTING,
