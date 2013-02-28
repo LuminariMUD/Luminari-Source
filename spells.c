@@ -805,6 +805,48 @@ ASPELL(spell_summon) {
 }
 
 
+ASPELL(spell_group_summon) {
+  struct char_data *tch = NULL;
+  
+  if (ch == NULL)
+    return;
+  
+  if (!GROUP(ch))
+    return;
+
+  if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE)) {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
+          NULL) {
+    
+    if (MOB_FLAGGED(tch, MOB_NOSUMMON))
+      continue;
+
+    if (IN_ROOM(tch) == IN_ROOM(ch))
+      continue;
+    
+    if (!valid_mortal_tele_dest(tch, IN_ROOM(tch), TRUE))
+      continue;
+      
+    act("$n disappears suddenly.", TRUE, tch, 0, 0, TO_ROOM);
+
+    char_from_room(tch);
+    char_to_room(tch, IN_ROOM(ch));
+
+    act("$n arrives suddenly.", TRUE, tch, 0, 0, TO_ROOM);
+    act("$n has summoned you!", FALSE, ch, 0, tch, TO_VICT);
+    look_at_room(tch, 0);
+    entry_memory_mtrigger(tch);
+    greet_mtrigger(tch, -1);
+    greet_memory_mtrigger(tch);
+  }
+}
+
+
+
 ASPELL(spell_polymorph) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
