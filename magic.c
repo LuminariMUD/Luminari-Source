@@ -869,7 +869,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       save = -1;
       mag_resist = TRUE;
       element = DAM_COLD;
-      num_dice = MIN(15, magic_level);
+      num_dice = MIN(15, CASTER_LEVEL(ch));
       size_dice = 8;
       bonus = 0;
       break;
@@ -889,9 +889,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       save = SAVING_REFL;
       mag_resist = TRUE;
       element = DAM_ELECTRIC;
-      num_dice = MIN(28, magic_level);
+      num_dice = MIN(28, CASTER_LEVEL(ch));
       size_dice = 9;
-      bonus = magic_level;
+      bonus = CASTER_LEVEL(ch);
       break;
 
     case SPELL_HORRID_WILTING: //horrid wilting, necromancy

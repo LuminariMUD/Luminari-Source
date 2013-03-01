@@ -52,7 +52,9 @@ typedef enum {
     eIMPLODE,            //  implode damage event
     eSMITE,              //  smite eeeevil cooldown
     ePERFORM,            //  Bard performance
-    ePURGEMOB,            //  mob purge
+    ePURGEMOB,           //  mob purge
+    eICE_STORM,          //  storm of vengeance - ice storm
+    eCHAIN_LIGHTNING,    //  storm of vengeance - chain lightning
 } event_id;
 /* probaly a smart place to mention to not forget to update:
    act.informative.c
@@ -94,4 +96,6 @@ EVENTFUNC(event_memorizing);
 EVENTFUNC(event_crafting);
 EVENTFUNC(event_acid_arrow);
 EVENTFUNC(event_implode);
+EVENTFUNC(event_ice_storm);
+EVENTFUNC(event_chain_lightning);
 #endif /* _MUD_EVENT_H_ */
