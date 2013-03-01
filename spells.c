@@ -430,12 +430,23 @@ ASPELL(spell_acid_arrow) {
 
 
 ASPELL(spell_storm_of_vengeance) {
+  struct mud_event_data *pMudEvent = NULL;
 
   if (ch == NULL)
     return;
   
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+  
+  if ((pMudEvent = char_has_mud_event(ch, eICE_STORM))) {
+    send_to_char(ch, "You already have a storm of vengeance!\r\n");
+    return;
+  }
+
+  if ((pMudEvent = char_has_mud_event(ch, eCHAIN_LIGHTNING))) {
+    send_to_char(ch, "You already have a storm of vengeance!\r\n");
     return;
   }
 
