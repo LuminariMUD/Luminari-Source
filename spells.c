@@ -1130,7 +1130,7 @@ ASPELL(spell_salvation) // divination
 }
 
 
-ASPELL(spell_refuge) // illusion
+ASPELL(spell_refuge) // illusion (also divine)
 {
   struct char_data *tch, *next_tch;
   struct affected_type af;
