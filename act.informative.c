@@ -1216,6 +1216,8 @@ void perform_affects(struct char_data *ch, struct char_data *k)
 }
 
 
+/* compartmentalized affects, so wizard command (stat affect)
+ *  and this can share */
 ACMD(do_affects)
 {
  
