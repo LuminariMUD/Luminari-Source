@@ -53,6 +53,8 @@ struct mud_event_list mud_event_index[] = {
   { "Smite Evil"         , event_countdown,  EVENT_CHAR  }, // eSMITE
   { "Perform"            , event_countdown,  EVENT_CHAR  }, // ePERFORM
   { "Mob Purge"          , event_countdown,  EVENT_CHAR  }, // ePURGEMOB
+  { "SoV Ice Storm"      , event_ice_storm,  EVENT_CHAR  }, // eICE_STORM
+  { "SoV Chain Lightning", event_chain_lightning,  EVENT_CHAR  }, // eCHAIN_LIGHTNING
 };
 
 

@@ -699,6 +699,7 @@ ASPELL(spell_incendiary_cloud);
 ASPELL(spell_salvation);
 ASPELL(spell_plane_shift);
 ASPELL(spell_group_summon);
+ASPELL(spell_storm_of_vengeance);
 
 /* basic magic calling functions */
 int find_skill_num(char *name);

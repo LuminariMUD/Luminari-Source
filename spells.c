@@ -274,6 +274,41 @@ void perform_dispel(struct char_data *ch, struct char_data *vict, int spellnum) 
   }
 }
 
+EVENTFUNC(event_ice_storm) {
+  struct char_data *ch;
+  struct mud_event_data *pMudEvent;
+  
+  if (event_obj == NULL)
+    return 0;
+  
+  pMudEvent = (struct mud_event_data *) event_obj;
+  ch = (struct char_data *) pMudEvent->pStruct;
+  
+  if (ch == NULL)
+    return 0;
+
+  cast_spell(ch, NULL, NULL, SPELL_ICE_STORM);
+  return 0; 
+}
+
+EVENTFUNC(event_chain_lightning) {
+  struct char_data *ch;
+  struct mud_event_data *pMudEvent;
+  
+  if (event_obj == NULL)
+    return 0;
+  
+  pMudEvent = (struct mud_event_data *) event_obj;
+  ch = (struct char_data *) pMudEvent->pStruct;
+  
+  if (ch == NULL)
+    return 0;
+
+  cast_spell(ch, NULL, NULL, SPELL_CHAIN_LIGHTNING);
+  return 0; 
+  
+}
+
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
@@ -391,6 +426,24 @@ ASPELL(spell_acid_arrow) {
   for (x = 0; x < (MAGIC_LEVEL(ch) / 3); x++) {
     NEW_EVENT(eACIDARROW, ch, NULL, ((x * 6) * PASSES_PER_SEC));
   }
+}
+
+
+ASPELL(storm_of_vengeance) {
+
+  if (ch == NULL)
+    return;
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You summon a storm of vengeance!\r\n");
+  act("$n summons a storm of vengeance!", FALSE, ch, 0, 0, TO_ROOM);
+
+  NEW_EVENT(eICE_STORM, ch, NULL, (6 * PASSES_PER_SEC));
+  NEW_EVENT(eCHAIN_LIGHTNING, ch, NULL, (12 * PASSES_PER_SEC));
 }
 
 

@@ -1112,6 +1112,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_ENERGY_DRAIN, 99);
     SET_SKILL(ch, SPELL_PLANE_SHIFT, 99);
     SET_SKILL(ch, SPELL_GROUP_SUMMON, 99);
+    SET_SKILL(ch, SPELL_STORM_OF_VENGEANCE, 99);
     
     // skill init
     if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
@@ -2601,6 +2602,7 @@ void init_spell_levels(void)
   spell_level(SPELL_ENERGY_DRAIN, CLASS_CLERIC, 17);  //shared
   spell_level(SPELL_PLANE_SHIFT, CLASS_CLERIC, 17);
   spell_level(SPELL_GROUP_SUMMON, CLASS_CLERIC, 17);
+  spell_level(SPELL_STORM_OF_VENGEANCE, CLASS_CLERIC, 17);
   //epic spells
   spell_level(SPELL_MUMMY_DUST, CLASS_CLERIC, 20);
   spell_level(SPELL_DRAGON_KNIGHT, CLASS_CLERIC, 20);
