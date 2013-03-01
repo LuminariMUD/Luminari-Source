@@ -287,7 +287,7 @@ EVENTFUNC(event_ice_storm) {
   if (ch == NULL)
     return 0;
 
-  cast_spell(ch, NULL, NULL, SPELL_ICE_STORM);
+  call_magic(ch, NULL, NULL, SPELL_ICE_STORM, CASTER_LEVEL(ch), CAST_SPELL);
   return 0; 
 }
 
@@ -304,7 +304,7 @@ EVENTFUNC(event_chain_lightning) {
   if (ch == NULL)
     return 0;
 
-  cast_spell(ch, NULL, NULL, SPELL_CHAIN_LIGHTNING);
+  call_magic(ch, NULL, NULL, SPELL_CHAIN_LIGHTNING, CASTER_LEVEL(ch), CAST_SPELL);
   return 0; 
   
 }
@@ -429,7 +429,7 @@ ASPELL(spell_acid_arrow) {
 }
 
 
-ASPELL(storm_of_vengeance) {
+ASPELL(spell_storm_of_vengeance) {
 
   if (ch == NULL)
     return;
