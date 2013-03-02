@@ -280,9 +280,9 @@ const char *pc_race_types[] = {
         "Crystal Dwarf",
         "Halfling",
         "Half Elf",
-        "Half Orc"
-        "Gnome"
-        "Trelux"
+        "Half Orc",
+        "Gnome",
+        "Trelux",
         "\n"
 };
 
