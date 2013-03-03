@@ -1277,8 +1277,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
   if (dam > 0 && attacktype != TYPE_SUFFERING &&
           attacktype != SKILL_BASH && attacktype != SKILL_TRIP &&
-          attacktype != SPELL_POISON) {
-
+          attacktype != SPELL_POISON && attacktype != SPELL_SPIKE_GROWTH) {
     int concealment = compute_concealment(victim);
     if (dice(1, 100) <= compute_concealment(victim)) {
       send_to_char(victim, "\tW<conceal:%d>\tn", concealment);
