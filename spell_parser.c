@@ -1957,12 +1957,12 @@ void mag_assign_spells(void)
   spello(SPELL_GRASPING_HAND, "grasping hand", 72, 57, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
 	NULL, 6, 11, EVOCATION);  //grapples opponent
+  spello(SPELL_SUNBEAM, "sunbeam", 0, 0, 0,
+          POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AREAS | MAG_ROOM,
+          "You feel a cloak of blindness dissolve.", 6, 11, EVOCATION);
                /* conjuration */
   spello(SPELL_SUMMON_CREATURE_7, "summon creature vii", 0, 0, 0, 
      POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 10, 11, CONJURATION);
-  spello(SPELL_SUNBEAM, "sunbeam (inc)", 0, 0, 0,
-          POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
-          "You feel a cloak of blindness dissolve.", 6, 11, EVOCATION);
   //control weather, enhances some spells (shared)
 			/* necromancy */
   spello(SPELL_POWER_WORD_BLIND, "power word blind", 0, 0, 0, POS_FIGHTING,
@@ -2048,7 +2048,7 @@ void mag_assign_spells(void)
   spello(SPELL_BANISH, "banish", 51, 36, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL, NULL, 8, 12,
      DIVINATION);
-  spello(SPELL_SUNBURST, "sun burst", 72, 57, 1, POS_FIGHTING,
+  spello(SPELL_SUNBURST, "sunburst", 72, 57, 1, POS_FIGHTING,
 	TAR_IGNORE, TRUE, MAG_AREAS | MAG_ROOM,
 	NULL, 7, 12, DIVINATION);
 			/* abjuration */

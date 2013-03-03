@@ -309,7 +309,7 @@
 #define SPELL_FLAME_BLADE               264
 #define SPELL_FLAMING_SPHERE            265
 #define SPELL_HOLD_ANIMAL               266
-#define SPELL_CALL_LIGHTNING_STORM      267 // hey b, maybe use call lightning
+#define SPELL_CALL_LIGHTNING_STORM      267
 #define SPELL_SUMMON_SWARM              268
 #define SPELL_CONTAGION                 269
 #define SPELL_GREATER_MAGIC_FANG        270
@@ -331,13 +331,13 @@
 #define SPELL_MASS_ENDURANCE            286 // *note mass enhance combines these 3
 #define SPELL_MASS_STRENGTH             287 // *note mass enhance combines these 3
 #define SPELL_MASS_GRACE                288 // *note mass enhance combines these 3
-#define SPELL_SPELL_RESISTANCE          289 // hey b, i'm using this, please modify code if you don't like how i implement it (its cleric too)
+#define SPELL_SPELL_RESISTANCE          289
 #define SPELL_SPELLSTAFF                290
 #define SPELL_TRANSPORT_VIA_PLANTS      291
 #define SPELL_CREEPING_DOOM             292
 #define SPELL_FIRE_STORM                293
 #define SPELL_GREATER_SCRYING           294
-#define SPELL_SUNBEAM                   295 // hey b, maybe use sunburst
+#define SPELL_SUNBEAM                   295
 #define SPELL_ANIMAL_SHAPES             296
 #define SPELL_CONTROL_PLANTS            297
 #define SPELL_FINGER_OF_DEATH           298
