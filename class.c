@@ -1194,10 +1194,10 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_2, 99);
     SET_SKILL(ch, SPELL_SUMMON_SWARM, 99);
     SET_SKILL(ch, SPELL_WISDOM, 99);
-    SET_SKILL(ch, SPELL_CREATE_FOOD, 99); // no
-    SET_SKILL(ch, SPELL_CREATE_WATER, 99); // no
-    SET_SKILL(ch, SPELL_DETECT_POISON, 99); // no
-    SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99); // no
+    //SET_SKILL(ch, SPELL_CREATE_FOOD, 99); // no
+    //SET_SKILL(ch, SPELL_CREATE_WATER, 99); // no
+    //SET_SKILL(ch, SPELL_DETECT_POISON, 99); // no
+    //SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99); // no
     //3rd circle
     SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
     SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
@@ -1265,7 +1265,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_HEAL, 99);
     SET_SKILL(ch, SPELL_MASS_CURE_MODERATE, 99);
     // summon nature's ally vii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_7, 99);
-    // sunbeam SET_SKILL(ch, SPELL_SUNBEAM, 99);
+    SET_SKILL(ch, SPELL_SUNBEAM, 99);
     SET_SKILL(ch, SPELL_SUMMON, 99); // no
     //8th circle
     // animal shapes SET_SKILL(ch, SPELL_ANIMAL_SHAPES, 99);

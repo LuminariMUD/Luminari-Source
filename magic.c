@@ -842,6 +842,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = 0;
       break;
 
+    case SPELL_SUNBEAM: // evocation [light]
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_LIGHT;
+      num_dice = 4;
+      size_dice = 6;
+      bonus = magic_level;
+      break;
+      
     case SPELL_SUNBURST: //divination
       //  has effect too
       save = SAVING_WILL;
@@ -1076,105 +1085,243 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   }
 
   /* racial ch bonus/penalty */
-  switch (GET_RACE(ch)) {
-    case RACE_GNOME: // illusions
-      gnome_bonus -= 2;
-      break;
-    default:
-      break;
+  /* added IS_NPC check to prevent NPCs from getting incorrect bonuses,
+   * since NPCRACE_HUMAN = RACE_ELF, etc. -Nashak */
+  if (!IS_NPC(ch)) {
+    switch (GET_RACE(ch)) {
+      case RACE_GNOME: // illusions
+        gnome_bonus -= 2;
+        break;
+      default:
+        break;
+    }
+    /* racial victim resistance */
+    switch (GET_RACE(victim)) {
+      case RACE_H_ELF:
+      case RACE_ELF: //enchantments
+        elf_bonus += 2;
+        break;
+      case RACE_GNOME: // illusions
+        gnome_bonus += 2;
+        break;
+      default:
+        break;
+    }
   }
-  /* racial victim resistance */
-  switch (GET_RACE(victim)) {
-    case RACE_H_ELF:
-    case RACE_ELF: //enchantments
-      elf_bonus += 2;
-      break;
-    case RACE_GNOME: // illusions
-      gnome_bonus += 2;
-      break;
-    default:
-      break;
-  }
-
   magic_level = MAGIC_LEVEL(ch);
   divine_level = DIVINE_LEVEL(ch);
   if (wpn)
     if (HAS_SPELLS(wpn))
       magic_level = divine_level = level;
 
-
   switch (spellnum) {
 
-    case SPELL_STENCH:
-      if (GET_LEVEL(victim) >= 9) {
+    case SPELL_ACID_SHEATH: //divination
+      if (affected_by_spell(victim, SPELL_FIRE_SHIELD) ||
+              affected_by_spell(victim, SPELL_COLD_SHIELD)) {
+        send_to_char(ch, "You are already affected by an elemental shield!\r\n");
         return;
       }
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
-        return;
-      }
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_ASHIELD);
 
-      SET_BIT_AR(af[0].bitvector, AFF_NAUSEATED);
-      af[0].duration = 3;
-      to_room = "$n becomes nauseated from the stinky fumes!";
-      to_vict = "You become nauseated from the stinky fumes!";
+      accum_duration = FALSE;
+      to_vict = "A shield of acid surrounds you.";
+      to_room = "$n is surrounded by shield of acid.";
       break;
 
-    case SPELL_SCARE: //illusion
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
-        return;
-      }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
+    case SPELL_AID:
+      if (affected_by_spell(victim, SPELL_BLESS) ||
+              affected_by_spell(victim, SPELL_PRAYER)) {
+        send_to_char(ch, "The target is already blessed!\r\n");
         return;
       }
-      is_mind_affect = TRUE;
+      
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = 3;
+      af[0].duration = 300;
 
-      if (GET_LEVEL(victim) >= 7) {
-        send_to_char(ch, "The victim is too powerful for this illusion!\r\n");
-        return;
-      }
+      af[1].location = APPLY_DAMROLL;
+      af[1].modifier = 3;
+      af[1].duration = 300;
 
-      SET_BIT_AR(af[0].bitvector, AFF_FEAR);
-      af[0].duration = dice(2, 6);
-      to_room = "$n is imbued with fear!";
-      to_vict = "You feel scared and fearful!";
+      af[2].location = APPLY_SAVING_WILL;
+      af[2].modifier = 2;
+      af[2].duration = 300;
+
+      af[3].location = APPLY_SAVING_FORT;
+      af[3].modifier = 2;
+      af[3].duration = 300;
+
+      af[4].location = APPLY_SAVING_REFL;
+      af[4].modifier = 2;
+      af[4].duration = 300;
+
+      af[5].location = APPLY_HIT;
+      af[5].modifier = dice(2, 6) + MAX(divine_level, 15);
+      af[5].duration = 300;
+
+      accum_duration = TRUE;
+      to_room = "$n is now divinely aided!";
+      to_vict = "You feel divinely aided.";
       break;
 
-    case SPELL_WAIL_OF_THE_BANSHEE: //necromancy (does damage too)
+    case SPELL_ARMOR:
+      if (isMagicArmored(victim))
+        return;
+
+      af[0].location = APPLY_AC_NEW;
+      af[0].modifier = 2;
+      af[0].duration = 600;
+      accum_duration = TRUE;
+      to_vict = "You feel someone protecting you.";
+      to_room = "$n is surrounded by magical armor!";
+      break;
+
+    case SPELL_BARKSKIN: // transmutation
+      if (isMagicArmored(victim))
+        return;
+
+      af[0].location = APPLY_AC_NEW;
+      if (magic_level >= 12)
+        af[0].modifier = 5;
+      else if (magic_level >= 9)
+        af[0].modifier = 4;
+      else if (magic_level >= 6)
+        af[0].modifier = 3;
+      else
+        af[0].modifier = 2;
+      af[0].duration = (magic_level * 200); // magic level * 10, * 20 for minutes
+      accum_affect = FALSE;
+      accum_duration = FALSE;
+      to_vict = "Your skin hardens to bark.";
+      to_room = "$n skin hardens to bark!";
+      break;
+     
+    case SPELL_BATTLETIDE: //divine
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_BATTLETIDE);
+
+      af[1].duration = 50;
+      SET_BIT_AR(af[1].bitvector, AFF_HASTE);
+
+      af[2].location = APPLY_HITROLL;
+      af[2].modifier = 3;
+      af[2].duration = 50;
+
+      af[3].location = APPLY_DAMROLL;
+      af[3].modifier = 3;
+      af[3].duration = 50;
+
+      accum_duration = FALSE;
+      to_vict = "You feel the tide of battle turn in your favor!";
+      to_room = "The tide of battle turns in $n's favor!";
+      break;
+
+    case SPELL_BLESS:
+      if (affected_by_spell(victim, SPELL_AID) ||
+              affected_by_spell(victim, SPELL_PRAYER)) {
+        send_to_char(ch, "The target is already blessed!\r\n");
+        return;
+      }
+      
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = 2;
+      af[0].duration = 300;
+
+      af[1].location = APPLY_SAVING_WILL;
+      af[1].modifier = 1;
+      af[1].duration = 300;
+
+      accum_duration = TRUE;
+      to_room = "$n is now righteous!";
+      to_vict = "You feel righteous.";
+      break;
+
+    case SPELL_BLINDNESS: //necromancy
+      if (MOB_FLAGGED(victim, MOB_NOBLIND)) {
+        send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
+        return;
+      }
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
+        send_to_char(ch, "You fail.\r\n");
         return;
       }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
-      is_mind_affect = TRUE;
 
-      SET_BIT_AR(af[0].bitvector, AFF_FEAR);
-      af[0].duration = dice(2, 6);
-      to_room = "$n is imbued with fear!";
-      to_vict = "You feel scared and fearful!";
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = -4;
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+
+      af[1].location = APPLY_AC_NEW;
+      af[1].modifier = -4;
+      af[1].duration = 50;
+      SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+
+      to_room = "$n seems to be blinded!";
+      to_vict = "You have been blinded!";
+      break;
+      
+    case SPELL_BLUR: //illusion
+      af[0].location = APPLY_AC;
+      af[0].modifier = -1;
+      af[0].duration = 300;
+      to_room = "$n's images becomes blurry!.";
+      to_vict = "You observe as your image becomes blurry.";
+      SET_BIT_AR(af[0].bitvector, AFF_BLUR);
+      accum_duration = FALSE;
       break;
 
-    case SPELL_HORIZIKAULS_BOOM:
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
+    case SPELL_BRAVERY:
+      af[0].duration = 25 + divine_level;
+      SET_BIT_AR(af[0].bitvector, AFF_BRAVERY);
+
+      accum_duration = TRUE;
+      to_vict = "You suddenly feel very brave.";
+      to_room = "$n suddenly feels very brave.";
+      break;
+
+    case SPELL_CHARISMA: //transmutation
+      if (affected_by_spell(victim, SPELL_MASS_CHARISMA)) {
+        send_to_char(ch, "Your target already has a charisma spell in effect.\r\n");
         return;
       }
+      af[0].location = APPLY_CHA;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 4;
+      accum_duration = TRUE;
+      to_vict = "You feel more charismatic!";
+      to_room = "$n's charisma increases!";
+      break;
 
-      SET_BIT_AR(af[0].bitvector, AFF_DEAF);
-      af[0].duration = dice(2, 4);
-      to_room = "$n is deafened by the blast!";
-      to_vict = "You feel deafened by the blast!";
+    case SPELL_CHILL_TOUCH: //necromancy
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0))
+        return;
+
+      af[0].location = APPLY_STR;
+      af[0].duration = 4 + magic_level;
+      af[0].modifier = -2;
+      accum_duration = TRUE;
+      to_room = "$n's strength is withered!";
+      to_vict = "You feel your strength wither!";
+      break;
+
+    case SPELL_COLD_SHIELD: //evocation
+      if (affected_by_spell(victim, SPELL_ACID_SHEATH) ||
+              affected_by_spell(victim, SPELL_FIRE_SHIELD)) {
+        send_to_char(ch, "You are already affected by an elemental shield!\r\n");
+        return;
+      }
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_CSHIELD);
+
+      accum_duration = FALSE;
+      to_vict = "A shield of ice surrounds you.";
+      to_room = "$n is surrounded by shield of ice.";
       break;
 
     case SPELL_COLOR_SPRAY: //enchantment
@@ -1194,6 +1341,986 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are stunned by the colors!";
       break;
 
+    case SPELL_CUNNING: //transmutation
+      if (affected_by_spell(victim, SPELL_MASS_CUNNING)) {
+        send_to_char(ch, "Your target already has a cunning spell in effect.\r\n");
+        return;
+      }
+      af[0].location = APPLY_INT;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 4;
+      accum_duration = TRUE;
+      to_vict = "You feel more intelligent!";
+      to_room = "$n's intelligence increases!";
+      break;
+
+    case SPELL_CURSE: //necromancy
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+        return;
+      }
+
+      af[0].location = APPLY_HITROLL;
+      af[0].duration = 25 + (CASTER_LEVEL(ch) * 12);
+      af[0].modifier = -2;
+      SET_BIT_AR(af[0].bitvector, AFF_CURSE);
+
+      af[1].location = APPLY_DAMROLL;
+      af[1].duration = 25 + (CASTER_LEVEL(ch) * 12);
+      af[1].modifier = -2;
+      SET_BIT_AR(af[1].bitvector, AFF_CURSE);
+
+      af[2].location = APPLY_SAVING_WILL;
+      af[2].duration = 25 + (CASTER_LEVEL(ch) * 12);
+      af[2].modifier = -2;
+      SET_BIT_AR(af[2].bitvector, AFF_CURSE);
+
+      accum_duration = TRUE;
+      accum_affect = TRUE;
+      to_room = "$n briefly glows red!";
+      to_vict = "You feel very uncomfortable.";
+      break;
+
+    case SPELL_DAZE_MONSTER: //enchantment
+      if (GET_LEVEL(victim) > 8) {
+        send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
+        return;
+      }
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+        return;
+      }
+      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+        send_to_char(victim, "Mind blank protects you from %s!",
+                GET_NAME(ch));
+        return;
+      }
+
+      is_mind_affect = TRUE;
+
+      SET_BIT_AR(af[0].bitvector, AFF_STUN);
+      af[0].duration = dice(2, 4);
+      to_room = "$n is dazed by the spell!";
+      to_vict = "You are dazed by the spell!";
+      break;
+
+    case SPELL_DEAFNESS: //necromancy
+      if (MOB_FLAGGED(victim, MOB_NODEAF)) {
+        send_to_char(ch, "Your opponent doesn't seem deafable.\r\n");
+        return;
+      }
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
+        send_to_char(ch, "You fail.\r\n");
+        return;
+      }
+
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_DEAF);
+
+      to_room = "$n seems to be deafened!";
+      to_vict = "You have been deafened!";
+      break;
+
+    case SPELL_DEEP_SLUMBER: //enchantment
+      if (GET_LEVEL(victim) >= 15 ||
+              (!IS_NPC(victim) && GET_RACE(victim) == RACE_ELF)) {
+        send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
+        return;
+      }
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (!CONFIG_PK_ALLOWED && !IS_NPC(ch) && !IS_NPC(victim))
+        return;
+      if (MOB_FLAGGED(victim, MOB_NOSLEEP)) {
+        send_to_char(ch, "Your victim doesn't seem vulnerable to your spell.");
+        return;
+      }
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+        return;
+      }
+
+      af[0].duration = 100 + (magic_level * 6);
+      SET_BIT_AR(af[0].bitvector, AFF_SLEEP);
+
+      if (GET_POS(victim) > POS_SLEEPING) {
+        send_to_char(victim, "You feel very sleepy...  Zzzz......\r\n");
+        act("$n goes to sleep.", TRUE, victim, 0, 0, TO_ROOM);
+        if (FIGHTING(victim))
+          stop_fighting(victim);
+        GET_POS(victim) = POS_SLEEPING;
+        if (FIGHTING(ch) == victim)
+          stop_fighting(ch);
+      }
+      break;
+
+    case SPELL_DETECT_ALIGN:
+      af[0].duration = 300 + CASTER_LEVEL(ch) * 25;
+      SET_BIT_AR(af[0].bitvector, AFF_DETECT_ALIGN);
+      accum_duration = TRUE;
+      to_room = "$n's eyes become sensitive to motives!";
+      to_vict = "Your eyes become sensitive to motives.";
+      break;
+
+    case SPELL_DETECT_INVIS: //divination
+      af[0].duration = 300 + magic_level * 25;
+      SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
+      accum_duration = TRUE;
+      to_vict = "Your eyes tingle, now sensitive to invisibility.";
+      to_room = "$n's eyes become sensitive to invisibility!";
+      break;
+
+    case SPELL_DETECT_MAGIC: //divination
+      af[0].duration = 300 + CASTER_LEVEL(ch) * 25;
+      SET_BIT_AR(af[0].bitvector, AFF_DETECT_MAGIC);
+      accum_duration = TRUE;
+      to_room = "$n's eyes become sensitive to magic!";
+      to_vict = "Magic becomes clear as your eyes tingle.";
+      break;
+
+    case SPELL_DIMENSIONAL_LOCK: //divination
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+        return;
+      }
+
+      af[0].duration = (divine_level + 12);
+      SET_BIT_AR(af[0].bitvector, AFF_DIM_LOCK);
+      to_room = "$n is bound to this dimension!";
+      to_vict = "You feel yourself bound to this dimension!";
+      break;
+
+    case SPELL_DISPLACEMENT: //illusion
+      af[0].location = APPLY_AC;
+      af[0].modifier = -1;
+      af[0].duration = 100;
+      to_room = "$n's images becomes displaced!";
+      to_vict = "You observe as your image becomes displaced!";
+      SET_BIT_AR(af[0].bitvector, AFF_DISPLACE);
+      accum_duration = FALSE;
+      break;
+
+    case SPELL_ENDURANCE: //transmutation
+      af[0].location = APPLY_CON;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel more hardy!";
+      to_room = "$n begins to feel more hardy!";
+      break;
+
+    case SPELL_ENDURE_ELEMENTS: //abjuration
+      af[0].duration = 600;
+      SET_BIT_AR(af[0].bitvector, AFF_ELEMENT_PROT);
+      to_vict = "You feel a slight protection from the elements!";
+      to_room = "$n begins to feel slightly protected from the elements!";
+      break;
+
+    case SPELL_ENFEEBLEMENT: //enchantment
+      if (mag_resistance(ch, victim, 0))
+        return;
+
+      if (mag_savingthrow(ch, victim, SAVING_FORT, (elf_bonus-4))) {
+        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+        return;
+      }
+
+      af[0].location = APPLY_STR;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = -(2 + (CASTER_LEVEL(ch) / 5));
+
+      af[1].location = APPLY_DEX;
+      af[1].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[1].modifier = -(2 + (CASTER_LEVEL(ch) / 5));
+
+      af[2].location = APPLY_CON;
+      af[2].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[2].modifier = -(2 + (CASTER_LEVEL(ch) / 5));
+
+      accum_duration = FALSE;
+      accum_affect = FALSE;
+      to_room = "$n is terribly enfeebled!";
+      to_vict = "You feel terribly enfeebled!";
+      break;
+
+    case SPELL_ENLARGE_PERSON: //transmutation
+      af[0].location = APPLY_SIZE;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 1;
+      to_vict = "You feel yourself growing!";
+      to_room = "$n's begins to grow much larger!";
+      break;
+
+    case SPELL_EPIC_MAGE_ARMOR: //epic
+      if (isMagicArmored(victim))
+        return;
+
+      af[0].location = APPLY_AC_NEW;
+      af[0].modifier = 12;
+      af[0].duration = 1200;
+      af[1].location = APPLY_DEX;
+      af[1].modifier = 7;
+      af[1].duration = 1200;
+      accum_duration = FALSE;
+      to_vict = "You feel magic protecting you.";
+      to_room = "$n is surrounded by magical bands of armor!";
+      break;
+
+    case SPELL_EPIC_WARDING: //no school
+      if (affected_by_spell(victim, SPELL_STONESKIN) ||
+              affected_by_spell(victim, SPELL_IRONSKIN)) {
+        send_to_char(ch, "A magical ward is already in effect on target.\r\n");
+        return;
+      }
+      af[0].location = APPLY_AC;
+      af[0].modifier = -1;
+      af[0].duration = 600;
+      to_room = "$n becomes surrounded by a powerful magical ward!";
+      to_vict = "You become surrounded by a powerful magical ward!";
+      GET_STONESKIN(victim) = MIN(700, CASTER_LEVEL(ch) * 60);
+      break;
+
+    case SPELL_EXPEDITIOUS_RETREAT: //transmutation
+      af[0].location = APPLY_MOVE;
+      af[0].modifier = 20 + magic_level;
+      af[0].duration = magic_level * 2;
+      to_vict = "You feel expeditious.";
+      to_room = "$n is now expeditious!";
+      break;
+
+    case SPELL_EYEBITE: //necromancy
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
+        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+        return;
+      }
+
+      af[0].duration = CASTER_LEVEL(ch) * 1000;
+      SET_BIT_AR(af[0].bitvector, AFF_DISEASE);
+      to_vict = "You feel a powerful necromantic disease overcome you.";
+      to_room =
+              "$n suffers visibly as a powerful necromantic disease strikes $m!";
+      break;
+
+    case SPELL_FAERIE_FIRE: // evocation
+      if (mag_resistance(ch, victim, 0))
+        return;
+      
+      // need to make this show an outline around concealed, blue, displaced, invisible people
+      SET_BIT_AR(af[0].bitvector, AFF_FAERIE_FIRE);
+      af[0].duration = magic_level;
+      accum_duration = FALSE;
+      accum_affect = FALSE;
+      to_room = "A pale blue light begins to glow around $n.";
+      to_vict = "You are suddenly surrounded by a pale blue light.";
+      break;
+       
+    case SPELL_FALSE_LIFE: //necromancy
+      af[1].location = APPLY_HIT;
+      af[1].modifier = 30;
+      af[1].duration = 300;
+
+      accum_duration = TRUE;
+      to_room = "$n grows strong with \tDdark\tn life!";
+      to_vict = "You grow strong with \tDdark\tn life!";
+      break;
+     
+    case SPELL_FEEBLEMIND: //enchantment
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+        return;
+      }
+      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+        send_to_char(victim, "Mind blank protects you from %s!",
+                GET_NAME(ch));
+        return;
+      }
+
+      is_mind_affect = TRUE;
+
+      af[0].location = APPLY_INT;
+      af[0].duration = magic_level;
+      af[0].modifier = -((victim->real_abils.intel) - 3);
+
+      af[1].location = APPLY_WIS;
+      af[1].duration = magic_level;
+      af[1].modifier = -((victim->real_abils.wis) - 3);
+
+      to_room = "$n grasps $s head in pain, $s eyes glazing over!";
+      to_vict = "Your head starts to throb and a wave of confusion washes over you.";
+      break;
+
+    case SPELL_FIRE_SHIELD: //evocation
+      if (affected_by_spell(victim, SPELL_ACID_SHEATH) ||
+              affected_by_spell(victim, SPELL_COLD_SHIELD)) {
+        send_to_char(ch, "You are already affected by an elemental shield!\r\n");
+        return;
+      }
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_FSHIELD);
+
+      accum_duration = FALSE;
+      to_vict = "A shield of flames surrounds you.";
+      to_room = "$n is surrounded by shield of flames.";
+      break;
+
+    case SPELL_FLY:
+      af[0].duration = 600;
+      SET_BIT_AR(af[0].bitvector, AFF_FLYING);
+      accum_duration = TRUE;
+      to_room = "$n begins to fly above the ground!";
+      to_vict = "You fly above the ground.";
+      break;
+
+    case SPELL_FREE_MOVEMENT:
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_FREE_MOVEMENT);
+
+      accum_duration = FALSE;
+      to_vict = "Your limbs feel looser as the free movement spell takes effect.";
+      to_room = "$n's limbs now move freer.";
+      break;
+
+    case SPELL_GLOBE_OF_INVULN: //abjuration
+      if (affected_by_spell(victim, SPELL_MINOR_GLOBE)) {
+        send_to_char(ch, "You are already affected by a globe spell!\r\n");
+        return;
+      }
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_GLOBE_OF_INVULN);
+
+      accum_duration = FALSE;
+      to_vict = "A globe of invulnerability surrounds you.";
+      to_room = "$n is surrounded by a globe of invulnerability.";
+      break;
+
+    case SPELL_GRACE: //transmutation
+      af[0].location = APPLY_DEX;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel more dextrous!";
+      to_room = "$n's appears to be more dextrous!";
+      break;
+
+    case SPELL_GRASPING_HAND: //evocation (also does damage)
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0))
+        return;
+
+      SET_BIT_AR(af[0].bitvector, AFF_GRAPPLED);
+      af[0].duration = dice(2, 4) - 1;
+      accum_duration = FALSE;
+      to_room = "$n's is grasped by the spell!";
+      to_vict = "You are grasped by the magical hand!";
+      break;
+
+    case SPELL_GREASE: //divination
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0)) {
+        send_to_char(ch, "You fail.\r\n");
+        return;
+      }
+
+      af[0].location = APPLY_MOVE;
+      af[0].modifier = -20 - magic_level;
+      af[0].duration = magic_level * 2;
+      to_vict = "Your feet are all greased up!";
+      to_room = "$n now has greasy feet!";
+      break;
+
+    case SPELL_GREATER_HEROISM: //enchantment
+      if (affected_by_spell(victim, SPELL_HEROISM)) {
+        send_to_char(ch, "The target is already heroic!\r\n");
+        return;
+      }
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = 4;
+      af[0].duration = 300;
+
+      af[1].location = APPLY_SAVING_WILL;
+      af[1].modifier = 4;
+      af[1].duration = 300;
+
+      af[2].location = APPLY_SAVING_FORT;
+      af[2].modifier = 4;
+      af[2].duration = 300;
+
+      af[3].location = APPLY_SAVING_REFL;
+      af[3].modifier = 4;
+      af[3].duration = 300;
+
+      to_room = "$n is now very heroic!";
+      to_vict = "You feel very heroic.";
+      break;
+
+    case SPELL_GREATER_INVIS: //illusion
+      if (!victim)
+        victim = ch;
+
+      af[0].duration = 10 + (magic_level * 6);
+      af[0].modifier = 4;
+      af[0].location = APPLY_AC_NEW;
+      SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
+      accum_duration = TRUE;
+      to_vict = "You vanish.";
+      to_room = "$n slowly fades out of existence.";
+      break;
+
+    case SPELL_GREATER_MAGIC_FANG:
+            if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
+        send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
+        return;
+      }
+      af[0].location = APPLY_HITROLL;
+      if (CLASS_LEVEL(ch, CLASS_DRUID) >= 20)
+        af[0].modifier = 5;
+      else if (CLASS_LEVEL(ch, CLASS_DRUID) >= 16)
+        af[0].modifier = 4;
+      else if (CLASS_LEVEL(ch, CLASS_DRUID) >= 12)
+        af[0].modifier = 3;
+      else if (CLASS_LEVEL(ch, CLASS_DRUID) >= 8)
+        af[0].modifier = 2;
+      else
+        af[0].modifier = 1;
+      af[0].duration = 5 * magic_level;
+
+      accum_duration = TRUE;
+      to_room = "$n is now affected by magic fang!";
+      to_vict = "You are suddenly empowered by magic fang.";
+      break;
+      
+    case SPELL_GREATER_MIRROR_IMAGE: //illusion
+      if (affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
+              affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) {
+        send_to_char(ch, "You already have mirror images!\r\n");
+        return;
+      }
+      af[0].location = APPLY_AC;
+      af[0].modifier = -1;
+      af[0].duration = 300;
+      to_room = "$n grins as multiple images pop up and smile!";
+      to_vict = "You watch as multiple images pop up and smile at you!";
+      GET_IMAGES(victim) = 6 + (magic_level / 3);
+      break;
+
+    case SPELL_GREATER_SPELL_MANTLE: //abjuration
+      if (affected_by_spell(victim, SPELL_MANTLE)) {
+        send_to_char(ch, "A magical mantle is already in effect on target.\r\n");
+        return;
+      }
+      
+      af[0].duration = magic_level * 4;
+      SET_BIT_AR(af[0].bitvector, AFF_SPELL_MANTLE);
+      GET_SPELL_MANTLE(victim) = 4;
+      accum_duration = FALSE;
+      to_room = "$n begins to shimmer from a greater magical mantle!";
+      to_vict = "You begin to shimmer from a greater magical mantle.";
+      break;
+
+    case SPELL_HALT_UNDEAD: //necromancy
+      if (!IS_UNDEAD(victim)) {
+        send_to_char(ch, "Your target is not undead.\r\n");
+        return;
+      }
+      if (GET_LEVEL(victim) > 11) {
+        send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
+        return;
+      }
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+        return;
+      }
+
+      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+      af[0].duration = dice(3, 3);
+      to_room = "$n is overcome by a powerful hold spell!";
+      to_vict = "You are overcome by a powerful hold spell!";
+      break;
+      
+    case SPELL_HASTE: //abjuration
+      if (affected_by_spell(victim, SPELL_SLOW)) {
+        affect_from_char(victim, SPELL_SLOW);
+        send_to_char(ch, "You dispel the slow spell!\r\n");
+        send_to_char(victim, "Your slow spell is dispelled!\r\n");
+        return;
+      }
+
+      af[0].duration = (magic_level * 12);
+      SET_BIT_AR(af[0].bitvector, AFF_HASTE);
+      to_room = "$n begins to speed up!";
+      to_vict = "You begin to speed up!";
+      break;
+
+    case SPELL_HEROISM: //necromancy
+      if (affected_by_spell(victim, SPELL_GREATER_HEROISM)) {
+        send_to_char(ch, "The target is already heroic!\r\n");
+        return;
+      }
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = 2;
+      af[0].duration = 300;
+
+      af[1].location = APPLY_SAVING_WILL;
+      af[1].modifier = 2;
+      af[1].duration = 300;
+
+      af[2].location = APPLY_SAVING_FORT;
+      af[2].modifier = 2;
+      af[2].duration = 300;
+
+      af[3].location = APPLY_SAVING_REFL;
+      af[3].modifier = 2;
+      af[3].duration = 300;
+
+      to_room = "$n is now heroic!";
+      to_vict = "You feel heroic.";
+      break;
+
+    case SPELL_HIDEOUS_LAUGHTER: //enchantment
+      if (GET_LEVEL(victim) > 8) {
+        send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
+        return;
+      }
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+        return;
+      }
+      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+        send_to_char(victim, "Mind blank protects you from %s!",
+                GET_NAME(ch));
+        return;
+      }
+
+      is_mind_affect = TRUE;
+
+      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+      af[0].duration = dice(1, 4);
+      to_room = "$n is overcome by a fit of hideous laughter!";
+      to_vict = "You are overcome by a fit of hideous luaghter!";
+      break;
+
+    case SPELL_HOLD_ANIMAL: // enchantment
+      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
+        send_to_char(ch, "This spell is only effective on animals.\r\n");
+        return;
+      }
+      if (GET_LEVEL(victim) > 11) {
+        send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
+        return;
+      }
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+        return;
+      }
+
+      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+      af[0].duration = magic_level; // one round per level
+      to_room = "$n is overcome by a powerful hold spell!";
+      to_vict = "You are overcome by a powerful hold spell!";
+      break;
+      
+    case SPELL_HOLD_PERSON: //enchantment
+      if (GET_LEVEL(victim) > 11) {
+        send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
+        return;
+      }
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+        return;
+      }
+
+      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+      af[0].duration = dice(3, 3);
+      to_room = "$n is overcome by a powerful hold spell!";
+      to_vict = "You are overcome by a powerful hold spell!";
+      break;
+
+    case SPELL_HORIZIKAULS_BOOM:
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
+        return;
+      }
+
+      SET_BIT_AR(af[0].bitvector, AFF_DEAF);
+      af[0].duration = dice(2, 4);
+      to_room = "$n is deafened by the blast!";
+      to_vict = "You feel deafened by the blast!";
+      break;
+
+    case SPELL_INFRAVISION: //divination, shared
+      af[0].duration = 300 + CASTER_LEVEL(ch) * 25;
+      SET_BIT_AR(af[0].bitvector, AFF_INFRAVISION);
+      accum_duration = TRUE;
+      to_vict = "Your eyes glow red.";
+      to_room = "$n's eyes glow red.";
+      break;
+
+    case SPELL_INTERPOSING_HAND: //evocation
+      if (mag_resistance(ch, victim, 0))
+        return;
+      // no save
+
+      af[0].location = APPLY_HITROLL;
+      af[0].duration = 4 + magic_level;
+      af[0].modifier = -4;
+
+      to_room = "A disembodied hand moves in front of $n!";
+      to_vict = "A disembodied hand moves in front of you!";
+      break;
+
+    case SPELL_INVISIBLE: //illusion
+      if (!victim)
+        victim = ch;
+
+      af[0].duration = 300 + (magic_level * 6);
+      af[0].modifier = 4;
+      af[0].location = APPLY_AC_NEW;
+      SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
+      accum_duration = TRUE;
+      to_vict = "You vanish.";
+      to_room = "$n slowly fades out of existence.";
+      break;
+
+    case SPELL_IRON_GUTS: //transmutation
+      af[0].location = APPLY_SAVING_FORT;
+      af[0].modifier = 3;
+      af[0].duration = 300;
+
+      to_room = "$n now has guts tough as iron!";
+      to_vict = "You feel like your guts are tough as iron!";
+      break;
+
+    case SPELL_IRONSKIN: //transmutation
+      if (affected_by_spell(victim, SPELL_STONESKIN) ||
+              affected_by_spell(victim, SPELL_EPIC_WARDING)) {
+        send_to_char(ch, "A magical ward is already in effect on target.\r\n");
+        return;
+      }
+      af[0].location = APPLY_AC;
+      af[0].modifier = -1;
+      af[0].duration = 600;
+      to_room = "$n's skin takes on the texture of iron!";
+      to_vict = "Your skin takes on the texture of iron!";
+      GET_STONESKIN(victim) = MIN(450, CASTER_LEVEL(ch) * 35);
+      break;
+
+    case SPELL_IRRESISTIBLE_DANCE: //enchantment
+      if (mag_resistance(ch, victim, 0))
+        return;
+      // no save
+
+      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+      af[0].duration = dice(1, 4) + 1;
+      to_room = "$n begins to dance uncontrollably!";
+      to_vict = "You begin to dance uncontrollably!";
+      break;
+
+    case SPELL_JUMP: // transmutation
+      af[0].duration = CLASS_LEVEL(ch, CLASS_DRUID);
+
+      accum_affect = FALSE;
+      accum_duration = FALSE;
+      to_room = "$n feels much lighter on $s feet.";
+      to_vict = "You feel much lighter on your feet.";
+      break;
+
+    case SPELL_MAGE_ARMOR: //conjuration
+      if (isMagicArmored(victim))
+        return;
+
+      af[0].location = APPLY_AC_NEW;
+      af[0].modifier = 2;
+      af[0].duration = 600;
+      accum_duration = FALSE;
+      to_vict = "You feel someone protecting you.";
+      to_room = "$n is surrounded by magical armor!";
+      break;
+
+    case SPELL_MAGIC_FANG:
+      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
+        send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
+        return;
+      }
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = 1;
+      af[0].duration = magic_level;
+
+      accum_duration = TRUE;
+      to_room = "$n is now affected by magic fang!";
+      to_vict = "You are suddenly empowered by magic fang.";
+      break;
+      
+    case SPELL_MASS_CHARISMA: //transmutation
+      if (affected_by_spell(victim, SPELL_CHARISMA)) {
+        send_to_char(ch, "Your target already has a charisma spell in effect.\r\n");
+        return;
+      }
+      af[0].location = APPLY_CHA;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel more charismatic!";
+      to_room = "$n's charisma increases!";
+      break;
+
+    case SPELL_MASS_CUNNING: //transmutation
+      if (affected_by_spell(victim, SPELL_CUNNING)) {
+        send_to_char(ch, "Your target already has a cunning spell in effect.\r\n");
+        return;
+      }
+
+      af[0].location = APPLY_INT;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel more intelligent!";
+      to_room = "$n's intelligence increases!";
+      break;
+
+    case SPELL_MASS_ENDURANCE: //transmutation
+      af[0].location = APPLY_CON;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel more hardy!";
+      to_room = "$n's begins to feel more hardy!";
+      break;
+
+    case SPELL_MASS_ENHANCE: //transmutation
+      if (affected_by_spell(victim, SPELL_GRACE) ||
+          affected_by_spell(victim, SPELL_ENDURANCE) ||
+          affected_by_spell(victim, SPELL_STRENGTH)    
+              ) {
+        send_to_char(ch, "Your target already has a physical enhancement spell in effect.\r\n");
+        return;
+      }
+      
+      af[0].location = APPLY_STR;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      
+      af[1].location = APPLY_DEX;
+      af[1].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[1].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      
+      af[2].location = APPLY_CON;
+      af[2].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[2].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      
+      accum_duration = TRUE;      
+      to_vict = "You feel your physical atributes enhanced!";
+      to_room = "$n's physical attributes are enhanced!";
+      break;
+
+    case SPELL_MASS_GRACE: //transmutation
+      af[0].location = APPLY_DEX;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel more dextrous!";
+      to_room = "$n's appears to be more dextrous!";
+      break;
+
+    case SPELL_MASS_HOLD_PERSON: //enchantment
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+        return;
+      }
+
+      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+      af[0].duration = dice(3, 4);
+      to_room = "$n is overcome by a powerful hold spell!";
+      to_vict = "You are overcome by a powerful hold spell!";
+      break;
+
+    case SPELL_MASS_STRENGTH: //transmutation
+      af[0].location = APPLY_STR;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel stronger!";
+      to_room = "$n's muscles begin to bulge!";
+      break;
+
+    case SPELL_MASS_WISDOM: //transmutation
+      af[0].location = APPLY_WIS;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel more wise!";
+      to_room = "$n's wisdom increases!";
+      break;
+
+    case SPELL_MINOR_GLOBE: //abjuration
+      if (affected_by_spell(victim, SPELL_GLOBE_OF_INVULN)) {
+        send_to_char(ch, "You are already affected by a globe spell!\r\n");
+        return;
+      }
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_MINOR_GLOBE);
+
+      accum_duration = FALSE;
+      to_vict = "A minor globe of invulnerability surrounds you.";
+      to_room = "$n is surrounded by a minor globe of invulnerability.";
+      break;
+
+    case SPELL_MIND_BLANK:  //abjuration
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_MIND_BLANK);
+
+      accum_duration = FALSE;
+      to_vict = "Your mind becomes blank from harmful magicks.";
+      to_room = "$n's mind becomes blanked from harmful magicks.";
+      break;
+
+    case SPELL_MIND_FOG: //illusion
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
+        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+        return;
+      }
+      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+        send_to_char(victim, "Mind blank protects you from %s!",
+                GET_NAME(ch));
+        return;
+      }
+
+      is_mind_affect = TRUE;
+
+      af[0].location = APPLY_SAVING_WILL;
+      af[0].duration = 10 + magic_level;
+      af[0].modifier = -10;
+      to_room = "$n reels in confusion as a mind fog strikes $e!";
+      to_vict = "You reel in confusion as a mind fog spell strikes you!";
+      break;
+
+    case SPELL_MIRROR_IMAGE: //illusion
+      if (affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
+              affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) {
+        send_to_char(ch, "You already have mirror images!\r\n");
+        return;
+      }
+      af[0].location = APPLY_AC;
+      af[0].modifier = -1;
+      af[0].duration = 300;
+      to_room = "$n grins as multiple images pop up and smile!";
+      to_vict = "You watch as multiple images pop up and smile at you!";
+      GET_IMAGES(victim) = 4 + MIN(5, (int) (magic_level / 3));
+      break;
+
+    case SPELL_NIGHTMARE: //illusion
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_FORT, gnome_bonus))
+        return;
+      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+        send_to_char(victim, "Mind blank protects you from %s!",
+                GET_NAME(ch));
+        return;
+      }
+
+      is_mind_affect = TRUE;
+
+      SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
+      GET_MOVE(victim) -= magic_level;
+      af[0].duration = magic_level;
+      to_room = "$n is overcome by overwhelming fatigue from the nightmare!";
+      to_vict = "You are overcome by overwhelming fatigue from the nightmare!";
+      break;
+
+    case SPELL_NON_DETECTION:
+      af[0].duration = 25 + (magic_level * 12);
+      SET_BIT_AR(af[0].bitvector, AFF_NON_DETECTION);
+      to_room = "$n briefly glows green!";
+      to_vict = "You feel protection from scrying.";
+      break;
+
+    case SPELL_OBSCURING_MIST: // conjuration
+      /* so right now this spell is simply 20% concealment to 1 char, needs
+       * to be modified so that it actually creates an obscuring mist object in the room
+       * and sets a room flag, which the room flag will determine the effects of the spell.
+       * also, gust of wind, fireball, flamestrike, etc. will disperse the mist when cast,
+       * or even a strong wind in the weather...
+       */
+      if (SECT(ch->in_room) == SECT_UNDERWATER) {
+        send_to_char(ch, "The obscuring mist quickly disappears under the water.\r\n");
+        return;
+      }
+      
+      af[0].duration = magic_level;
+      to_room = "An obscuring mist suddenly fills the room!";
+      to_vict = "An obscruring mist suddenly surrounds you.";
+      break;
+
+    case SPELL_POISON: //enchantment, shared
+      if (mag_resistance(ch, victim, 0))
+        return;
+      int bonus = 0;
+      if (GET_RACE(ch) == RACE_DWARF || //dwarf dwarven poison resist
+              GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+        bonus += 2;
+      if (mag_savingthrow(ch, victim, SAVING_FORT, bonus)) {
+        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+        return;
+      }
+
+      af[0].location = APPLY_STR;
+      af[0].duration = CASTER_LEVEL(ch) * 25;
+      af[0].modifier = -2;
+      SET_BIT_AR(af[0].bitvector, AFF_POISON);
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case SPELL_POWER_WORD_BLIND: //necromancy
+      if (MOB_FLAGGED(victim, MOB_NOBLIND)) {
+        send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
+        return;
+      }
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_REFL, -4)) {
+        send_to_char(ch, "You fail.\r\n");
+        return;
+      }
+
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = -4;
+      af[0].duration = 200;
+      SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+
+      af[1].location = APPLY_AC_NEW;
+      af[1].modifier = -4;
+      af[1].duration = 200;
+      SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+
+      to_room = "$n seems to be blinded!";
+      to_vict = "You have been blinded!";
+      break;
+
     case SPELL_POWER_WORD_STUN: //divination
       if (mag_resistance(ch, victim, 0))
         return;
@@ -1205,114 +2332,40 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are stunned by a powerful magical word!";
       break;
 
-    case SPELL_WORD_OF_FAITH: //divine spell
-      /* this spell will only work on opposite alignment */
-      /* I formed the if-test for clarity, not efficiency */
-      if (IS_EVIL(ch) && IS_GOOD(victim))
-        ; // ok
-      else if (IS_GOOD(ch) && IS_EVIL(victim))
-        ; // ok
-      else {  /* no good, spell fails */
-        act("The word of faith has no effect on you!", 
-                FALSE, victim, 0, ch, TO_CHAR);
-        act("$n seems to not be effected by the word of faith!", 
-                TRUE, victim, 0, ch, TO_ROOM);        
-        send_to_char(ch, "Your word of faith has no effect on %s!",
-                GET_NAME(victim));
+    case SPELL_PRAYER:
+      if (affected_by_spell(victim, SPELL_BLESS) ||
+              affected_by_spell(victim, SPELL_AID)) {
+        send_to_char(ch, "The target is already blessed!\r\n");
         return;
       }
       
-      success = 0;
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = 5;
+      af[0].duration = 300;
 
-      if (!MOB_FLAGGED(victim, MOB_NODEAF) &&
-              !mag_savingthrow(ch, victim, SAVING_FORT, 0) &&
-              !mag_resistance(ch, victim, 0)) {
-        af[0].duration = 10;
-        SET_BIT_AR(af[0].bitvector, AFF_DEAF);
+      af[1].location = APPLY_DAMROLL;
+      af[1].modifier = 5;
+      af[1].duration = 300;
 
-        act("You have been deafened by a word of faith!", 
-                FALSE, victim, 0, ch, TO_CHAR);
-        act("$n seems to be deafened by a word of faith!", 
-                TRUE, victim, 0, ch, TO_ROOM);
-        success = 1;
-      }
+      af[2].location = APPLY_SAVING_WILL;
+      af[2].modifier = 3;
+      af[2].duration = 300;
 
-      if (!mag_savingthrow(ch, victim, SAVING_WILL, 0) &&
-              !mag_resistance(ch, victim, 0)) {
-        af[1].duration = 4;
-        SET_BIT_AR(af[1].bitvector, AFF_STUN);
+      af[3].location = APPLY_SAVING_FORT;
+      af[3].modifier = 3;
+      af[3].duration = 300;
 
-        act("You have been stunned by a word of faith!", 
-                FALSE, victim, 0, ch, TO_CHAR);
-        act("$n seems to be stunned by a word of faith!", 
-                TRUE, victim, 0, ch, TO_ROOM);
-        success = 1;
-      }
+      af[4].location = APPLY_SAVING_REFL;
+      af[4].modifier = 3;
+      af[4].duration = 300;
 
-      if (!mag_savingthrow(ch, victim, SAVING_REFL, 0) &&
-              !mag_resistance(ch, victim, 0)) {
-        af[2].duration = 1;
-        SET_BIT_AR(af[2].bitvector, AFF_PARALYZED);
+      af[5].location = APPLY_HIT;
+      af[5].modifier = dice(4, 12) + divine_level;
+      af[5].duration = 300;
 
-        act("You have been paralyzed by a word of faith!", 
-                FALSE, victim, 0, ch, TO_CHAR);
-        act("$n is paralyzed by a word of faith!", 
-                TRUE, victim, 0, ch, TO_ROOM);
-        success = 1;
-      }
-
-      if (!MOB_FLAGGED(victim, MOB_NOBLIND) &&
-              !mag_savingthrow(ch, victim, SAVING_FORT, 0) &&
-              !mag_resistance(ch, victim, 0)) {
-        af[3].duration = 10;
-        SET_BIT_AR(af[3].bitvector, AFF_BLIND);
-
-        act("You have been blinded by a word of faith!", 
-                FALSE, victim, 0, ch, TO_CHAR);
-        act("$n seems to be blinded by a word of faith!", 
-                TRUE, victim, 0, ch, TO_ROOM);
-        success = 1;
-      }
-
-      if (!success)
-        return;
-      break;
-
-    case SPELL_THUNDERCLAP: //abjuration
-      success = 0;
-
-      if (!MOB_FLAGGED(victim, MOB_NODEAF) &&
-              !mag_savingthrow(ch, victim, SAVING_FORT, 0) &&
-              !mag_resistance(ch, victim, 0)) {
-        af[0].duration = 10;
-        SET_BIT_AR(af[0].bitvector, AFF_DEAF);
-
-        act("You have been deafened!", FALSE, victim, 0, ch, TO_CHAR);
-        act("$n seems to be deafened!", TRUE, victim, 0, ch, TO_ROOM);
-        success = 1;
-      }
-
-      if (!mag_savingthrow(ch, victim, SAVING_WILL, 0) &&
-              !mag_resistance(ch, victim, 0)) {
-        af[1].duration = 4;
-        SET_BIT_AR(af[1].bitvector, AFF_STUN);
-
-        act("You have been stunned!", FALSE, victim, 0, ch, TO_CHAR);
-        act("$n seems to be stunned!", TRUE, victim, 0, ch, TO_ROOM);
-        success = 1;
-      }
-
-      if (!mag_savingthrow(ch, victim, SAVING_REFL, 0) &&
-              !mag_resistance(ch, victim, 0)) {
-        GET_POS(victim) = POS_SITTING;
-        WAIT_STATE(victim, PULSE_VIOLENCE * 1);
-
-        act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
-        act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);
-      }
-
-      if (!success)
-        return;
+      accum_duration = TRUE;
+      to_room = "$n is now divinely blessed and aided!";
+      to_vict = "You feel divinely blessed and aided.";
       break;
 
     case SPELL_PRISMATIC_SPRAY: //illusion, does damage too
@@ -1360,29 +2413,27 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       break;
 
-    case SPELL_DAZE_MONSTER: //enchantment
-      if (GET_LEVEL(victim) > 8) {
-        send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
-        return;
-      }
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
-        return;
-      }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
+    case SPELL_PROT_FROM_EVIL: // abjuration
+      af[0].duration = 600;
+      SET_BIT_AR(af[0].bitvector, AFF_PROTECT_EVIL);
+      accum_duration = TRUE;
+      to_vict = "You feel invulnerable to evil!";
+      break;
 
-      is_mind_affect = TRUE;
+    case SPELL_PROT_FROM_GOOD: // abjuration
+      af[0].duration = 600;
+      SET_BIT_AR(af[0].bitvector, AFF_PROTECT_GOOD);
+      accum_duration = TRUE;
+      to_vict = "You feel invulnerable to good!";
+      break;
 
-      SET_BIT_AR(af[0].bitvector, AFF_STUN);
-      af[0].duration = dice(2, 4);
-      to_room = "$n is dazed by the spell!";
-      to_vict = "You are dazed by the spell!";
+    case SPELL_PROTECT_FROM_SPELLS: //divination
+      af[1].location = APPLY_SAVING_WILL;
+      af[1].modifier = 1;
+      af[1].duration = 100;
+
+      to_room = "$n is now protected from spells!";
+      to_vict = "You feel protected from spells!";
       break;
 
     case SPELL_RAINBOW_PATTERN: //illusion
@@ -1410,14 +2461,51 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are dazed by the pattern of bright colors!";
       break;
 
-    case SPELL_HIDEOUS_LAUGHTER: //enchantment
-      if (GET_LEVEL(victim) > 8) {
-        send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
-        return;
-      }
+    case SPELL_RAY_OF_ENFEEBLEMENT: //necromancy
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0)) {
+        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+        return;
+      }
+
+      af[0].location = APPLY_STR;
+      af[0].duration = 25 + (magic_level * 12);
+      af[0].modifier = -dice(2, 4);
+      accum_duration = TRUE;
+      to_room = "$n is struck by enfeeblement!";
+      to_vict = "You feel enfeebled!";
+      break;
+
+    case SPELL_REGENERATION:
+      af[0].duration = 100;
+      SET_BIT_AR(af[0].bitvector, AFF_REGEN);
+
+      accum_duration = FALSE;
+      to_vict = "You begin regenerating.";
+      to_room = "$n begins regenerating.";
+      break;
+
+    case SPELL_RESIST_ENERGY: //abjuration
+      af[0].duration = 600;
+      SET_BIT_AR(af[0].bitvector, AFF_ELEMENT_PROT);
+      to_vict = "You feel a slight protection from energy!";
+      to_room = "$n begins to feel slightly protected from energy!";
+      break;
+
+    case SPELL_SANCTUARY:
+      af[0].duration = 100;
+      SET_BIT_AR(af[0].bitvector, AFF_SANCTUARY);
+
+      accum_duration = FALSE;
+      to_vict = "A white aura momentarily surrounds you.";
+      to_room = "$n is surrounded by a white aura.";
+      break;
+
+    case SPELL_SCARE: //illusion
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -1426,26 +2514,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
                 GET_NAME(ch));
         return;
       }
-
       is_mind_affect = TRUE;
 
-      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-      af[0].duration = dice(1, 4);
-      to_room = "$n is overcome by a fit of hideous laughter!";
-      to_vict = "You are overcome by a fit of hideous luaghter!";
-      break;
-
-    case SPELL_MASS_HOLD_PERSON: //enchantment
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      if (GET_LEVEL(victim) >= 7) {
+        send_to_char(ch, "The victim is too powerful for this illusion!\r\n");
         return;
       }
 
-      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-      af[0].duration = dice(3, 4);
-      to_room = "$n is overcome by a powerful hold spell!";
-      to_vict = "You are overcome by a powerful hold spell!";
+      SET_BIT_AR(af[0].bitvector, AFF_FEAR);
+      af[0].duration = dice(2, 6);
+      to_room = "$n is imbued with fear!";
+      to_vict = "You feel scared and fearful!";
       break;
 
     case SPELL_SCINT_PATTERN: //illusion
@@ -1459,194 +2538,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are confused by the scintillating pattern!";
       break;
 
-    case SPELL_IRRESISTIBLE_DANCE: //enchantment
-      if (mag_resistance(ch, victim, 0))
-        return;
-      // no save
-
-      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-      af[0].duration = dice(1, 4) + 1;
-      to_room = "$n begins to dance uncontrollably!";
-      to_vict = "You begin to dance uncontrollably!";
-      break;
-
-    case SPELL_HOLD_ANIMAL: // enchantment
-      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
-        send_to_char(ch, "This spell is only effective on animals.\r\n");
-        return;
-      }
-      if (GET_LEVEL(victim) > 11) {
-        send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
-        return;
-      }
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
-        return;
-      }
-
-      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-      af[0].duration = magic_level; // one round per level
-      to_room = "$n is overcome by a powerful hold spell!";
-      to_vict = "You are overcome by a powerful hold spell!";
-      break;
-      
-    case SPELL_HOLD_PERSON: //enchantment
-      if (GET_LEVEL(victim) > 11) {
-        send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
-        return;
-      }
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
-        return;
-      }
-
-      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-      af[0].duration = dice(3, 3);
-      to_room = "$n is overcome by a powerful hold spell!";
-      to_vict = "You are overcome by a powerful hold spell!";
-      break;
-
-    case SPELL_HALT_UNDEAD: //necromancy
-      if (!IS_UNDEAD(victim)) {
-        send_to_char(ch, "Your target is not undead.\r\n");
-        return;
-      }
-      if (GET_LEVEL(victim) > 11) {
-        send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
-        return;
-      }
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
-        return;
-      }
-
-      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-      af[0].duration = dice(3, 3);
-      to_room = "$n is overcome by a powerful hold spell!";
-      to_vict = "You are overcome by a powerful hold spell!";
-      break;
-      
-    case SPELL_OBSCURING_MIST: // conjuration
-      /* so right now this spell is simply 20% concealment to 1 char, needs
-       * to be modified so that it actually creates an obscuring mist object in the room
-       * and sets a room flag, which the room flag will determine the effects of the spell.
-       * also, gust of wind, fireball, flamestrike, etc. will disperse the mist when cast,
-       * or even a strong wind in the weather...
-       */
-      if (SECT(ch->in_room) == SECT_UNDERWATER) {
-        send_to_char(ch, "The obscuring mist quickly disappears under the water.\r\n");
-        return;
-      }
-      
-      af[0].duration = magic_level;
-      to_room = "An obscuring mist suddenly fills the room!";
-      to_vict = "An obscruring mist suddenly surrounds you.";
-      break;
-
-    case SPELL_WAVES_OF_FATIGUE: //necromancy
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
-        return;
-      }
-      SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
-      GET_MOVE(victim) -= 10 + magic_level;
-      af[0].duration = magic_level;
-      to_room = "$n is overcome by overwhelming fatigue!!";
-      to_vict = "You are overcome by overwhelming fatigue!!";
-      break;
-
-
-    case SPELL_WAVES_OF_EXHAUSTION: //necromancy
-      if (mag_resistance(ch, victim, 0))
-        return;
-      // no save
-
-      SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
-      GET_MOVE(victim) -= 20 + magic_level;
-      af[0].duration = magic_level + 10;
-      to_room = "$n is overcome by overwhelming exhaustion!!";
-      to_vict = "You are overcome by overwhelming exhaustion!!";
-      break;
-
-    case SPELL_GRASPING_HAND: //evocation (also does damage)
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0))
-        return;
-
-      SET_BIT_AR(af[0].bitvector, AFF_GRAPPLED);
-      af[0].duration = dice(2, 4) - 1;
-      accum_duration = FALSE;
-      to_room = "$n's is grasped by the spell!";
-      to_vict = "You are grasped by the magical hand!";
-      break;
-
-    case SPELL_WEIRD: //illusion (also does damage)
-      if (mag_resistance(ch, victim, 0))
-        return;
-      // no save
-
-      af[0].location = APPLY_STR;
-      af[0].duration = magic_level;
-      af[0].modifier = -(dice(1, 4));
-      to_room = "$n's strength is withered!";
-      to_vict = "You feel your strength wither!";
-      
-      SET_BIT_AR(af[1].bitvector, AFF_STUN);
-      af[1].duration = 1;
-      to_room = "$n is stunned by a terrible WEIRD!";
-      to_vict = "You are stunned by a terrible WEIRD!";      
-      
-      break;
-
-    case SPELL_CHILL_TOUCH: //necromancy
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0))
-        return;
-
-      af[0].location = APPLY_STR;
-      af[0].duration = 4 + magic_level;
-      af[0].modifier = -2;
+    case SPELL_SENSE_LIFE:
+      to_vict = "Your feel your awareness improve.";
+      to_room = "$n's eyes become aware of life forms!";
+      af[0].duration = divine_level * 25;
+      SET_BIT_AR(af[0].bitvector, AFF_SENSE_LIFE);
       accum_duration = TRUE;
-      to_room = "$n's strength is withered!";
-      to_vict = "You feel your strength wither!";
-      break;
-
-    case SPELL_NIGHTMARE: //illusion
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, gnome_bonus))
-        return;
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
-
-      is_mind_affect = TRUE;
-
-      SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
-      GET_MOVE(victim) -= magic_level;
-      af[0].duration = magic_level;
-      to_room = "$n is overcome by overwhelming fatigue from the nightmare!";
-      to_vict = "You are overcome by overwhelming fatigue from the nightmare!";
-      break;
-
-    case SPELL_SHIELD: //transmutation
-      if (isMagicArmored(victim))
-        return;
-
-      af[0].location = APPLY_AC_NEW;
-      af[0].modifier = 2;
-      af[0].duration = 300;
-      to_vict = "You feel someone protecting you.";
-      to_room = "$n is surrounded by magical armor!";
       break;
 
     case SPELL_SHADOW_SHIELD: //illusion
@@ -1665,425 +2562,54 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is surrounded by a shadowy shield!";
       break;
 
-    case SPELL_ARMOR:
+    case SPELL_SHIELD: //transmutation
       if (isMagicArmored(victim))
         return;
 
       af[0].location = APPLY_AC_NEW;
       af[0].modifier = 2;
-      af[0].duration = 600;
-      accum_duration = TRUE;
+      af[0].duration = 300;
       to_vict = "You feel someone protecting you.";
       to_room = "$n is surrounded by magical armor!";
       break;
 
-    case SPELL_STRENGTHEN_BONE:
-      if (!IS_UNDEAD(victim))
-        return;
-
-      af[0].location = APPLY_AC_NEW;
-      af[0].modifier = 2;
-      af[0].duration = 600;
-      accum_duration = TRUE;
-      to_vict = "You feel your bones harden.";
-      to_room = "$n's bones harden!";
-      break;
-
-    case SPELL_GREASE: //divination
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0)) {
-        send_to_char(ch, "You fail.\r\n");
-        return;
-      }
-
-      af[0].location = APPLY_MOVE;
-      af[0].modifier = -20 - magic_level;
-      af[0].duration = magic_level * 2;
-      to_vict = "Your feet are all greased up!";
-      to_room = "$n now has greasy feet!";
-      break;
-
-    case SPELL_EXPEDITIOUS_RETREAT: //transmutation
-      af[0].location = APPLY_MOVE;
-      af[0].modifier = 20 + magic_level;
-      af[0].duration = magic_level * 2;
-      to_vict = "You feel expeditious.";
-      to_room = "$n is now expeditious!";
-      break;
-
-    case SPELL_MAGE_ARMOR: //conjuration
-      if (isMagicArmored(victim))
-        return;
-
-      af[0].location = APPLY_AC_NEW;
-      af[0].modifier = 2;
-      af[0].duration = 600;
-      accum_duration = FALSE;
-      to_vict = "You feel someone protecting you.";
-      to_room = "$n is surrounded by magical armor!";
-      break;
-
-    case SPELL_IRON_GUTS: //transmutation
-      af[0].location = APPLY_SAVING_FORT;
-      af[0].modifier = 3;
-      af[0].duration = 300;
-
-      to_room = "$n now has guts tough as iron!";
-      to_vict = "You feel like your guts are tough as iron!";
-      break;
-
-    case SPELL_PROTECT_FROM_SPELLS: //divination
-      af[1].location = APPLY_SAVING_WILL;
-      af[1].modifier = 1;
-      af[1].duration = 100;
-
-      to_room = "$n is now protected from spells!";
-      to_vict = "You feel protected from spells!";
-      break;
-
-    case SPELL_AID:
-      if (affected_by_spell(victim, SPELL_BLESS) ||
-              affected_by_spell(victim, SPELL_PRAYER)) {
-        send_to_char(ch, "The target is already blessed!\r\n");
-        return;
-      }
-      
-      af[0].location = APPLY_HITROLL;
-      af[0].modifier = 3;
-      af[0].duration = 300;
-
-      af[1].location = APPLY_DAMROLL;
-      af[1].modifier = 3;
-      af[1].duration = 300;
-
-      af[2].location = APPLY_SAVING_WILL;
-      af[2].modifier = 2;
-      af[2].duration = 300;
-
-      af[3].location = APPLY_SAVING_FORT;
-      af[3].modifier = 2;
-      af[3].duration = 300;
-
-      af[4].location = APPLY_SAVING_REFL;
-      af[4].modifier = 2;
-      af[4].duration = 300;
-
-      af[5].location = APPLY_HIT;
-      af[5].modifier = dice(2, 6) + MAX(divine_level, 15);
-      af[5].duration = 300;
-
-      accum_duration = TRUE;
-      to_room = "$n is now divinely aided!";
-      to_vict = "You feel divinely aided.";
-      break;
-
-    case SPELL_PRAYER:
-      if (affected_by_spell(victim, SPELL_BLESS) ||
-              affected_by_spell(victim, SPELL_AID)) {
-        send_to_char(ch, "The target is already blessed!\r\n");
-        return;
-      }
-      
-      af[0].location = APPLY_HITROLL;
-      af[0].modifier = 5;
-      af[0].duration = 300;
-
-      af[1].location = APPLY_DAMROLL;
-      af[1].modifier = 5;
-      af[1].duration = 300;
-
-      af[2].location = APPLY_SAVING_WILL;
-      af[2].modifier = 3;
-      af[2].duration = 300;
-
-      af[3].location = APPLY_SAVING_FORT;
-      af[3].modifier = 3;
-      af[3].duration = 300;
-
-      af[4].location = APPLY_SAVING_REFL;
-      af[4].modifier = 3;
-      af[4].duration = 300;
-
-      af[5].location = APPLY_HIT;
-      af[5].modifier = dice(4, 12) + divine_level;
-      af[5].duration = 300;
-
-      accum_duration = TRUE;
-      to_room = "$n is now divinely blessed and aided!";
-      to_vict = "You feel divinely blessed and aided.";
-      break;
-
-    case SPELL_BLESS:
-      if (affected_by_spell(victim, SPELL_AID) ||
-              affected_by_spell(victim, SPELL_PRAYER)) {
-        send_to_char(ch, "The target is already blessed!\r\n");
-        return;
-      }
-      
-      af[0].location = APPLY_HITROLL;
-      af[0].modifier = 2;
-      af[0].duration = 300;
-
-      af[1].location = APPLY_SAVING_WILL;
-      af[1].modifier = 1;
-      af[1].duration = 300;
-
-      accum_duration = TRUE;
-      to_room = "$n is now righteous!";
-      to_vict = "You feel righteous.";
-      break;
-
-    case SPELL_GREATER_HEROISM: //enchantment
-      if (affected_by_spell(victim, SPELL_HEROISM)) {
-        send_to_char(ch, "The target is already heroic!\r\n");
-        return;
-      }
-      af[0].location = APPLY_HITROLL;
-      af[0].modifier = 4;
-      af[0].duration = 300;
-
-      af[1].location = APPLY_SAVING_WILL;
-      af[1].modifier = 4;
-      af[1].duration = 300;
-
-      af[2].location = APPLY_SAVING_FORT;
-      af[2].modifier = 4;
-      af[2].duration = 300;
-
-      af[3].location = APPLY_SAVING_REFL;
-      af[3].modifier = 4;
-      af[3].duration = 300;
-
-      to_room = "$n is now very heroic!";
-      to_vict = "You feel very heroic.";
-      break;
-
-    case SPELL_HEROISM: //necromancy
-      if (affected_by_spell(victim, SPELL_GREATER_HEROISM)) {
-        send_to_char(ch, "The target is already heroic!\r\n");
-        return;
-      }
-      af[0].location = APPLY_HITROLL;
-      af[0].modifier = 2;
-      af[0].duration = 300;
-
-      af[1].location = APPLY_SAVING_WILL;
-      af[1].modifier = 2;
-      af[1].duration = 300;
-
-      af[2].location = APPLY_SAVING_FORT;
-      af[2].modifier = 2;
-      af[2].duration = 300;
-
-      af[3].location = APPLY_SAVING_REFL;
-      af[3].modifier = 2;
-      af[3].duration = 300;
-
-      to_room = "$n is now heroic!";
-      to_vict = "You feel heroic.";
-      break;
-
-    case SPELL_FALSE_LIFE: //necromancy
-      af[1].location = APPLY_HIT;
-      af[1].modifier = 30;
-      af[1].duration = 300;
-
-      accum_duration = TRUE;
-      to_room = "$n grows strong with \tDdark\tn life!";
-      to_vict = "You grow strong with \tDdark\tn life!";
-      break;
-
-    case SPELL_BLINDNESS: //necromancy
-      if (MOB_FLAGGED(victim, MOB_NOBLIND)) {
-        send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
-        return;
-      }
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
-        send_to_char(ch, "You fail.\r\n");
-        return;
-      }
-
-      af[0].location = APPLY_HITROLL;
-      af[0].modifier = -4;
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_BLIND);
-
-      af[1].location = APPLY_AC_NEW;
-      af[1].modifier = -4;
-      af[1].duration = 50;
-      SET_BIT_AR(af[1].bitvector, AFF_BLIND);
-
-      to_room = "$n seems to be blinded!";
-      to_vict = "You have been blinded!";
-      break;
-      
-    case SPELL_MAGIC_FANG:
-      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
-        send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
-        return;
-      }
-      af[0].location = APPLY_HITROLL;
-      af[0].modifier = 1;
-      af[0].duration = magic_level;
-
-      accum_duration = TRUE;
-      to_room = "$n is now affected by magic fang!";
-      to_vict = "You are suddenly empowered by magic fang.";
-      break;
-      
-    case SPELL_GREATER_MAGIC_FANG:
-            if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
-        send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
-        return;
-      }
-      af[0].location = APPLY_HITROLL;
-      if (CLASS_LEVEL(ch, CLASS_DRUID) >= 20)
-        af[0].modifier = 5;
-      else if (CLASS_LEVEL(ch, CLASS_DRUID) >= 16)
-        af[0].modifier = 4;
-      else if (CLASS_LEVEL(ch, CLASS_DRUID) >= 12)
-        af[0].modifier = 3;
-      else if (CLASS_LEVEL(ch, CLASS_DRUID) >= 8)
-        af[0].modifier = 2;
-      else
-        af[0].modifier = 1;
-      af[0].duration = 5 * magic_level;
-
-      accum_duration = TRUE;
-      to_room = "$n is now affected by magic fang!";
-      to_vict = "You are suddenly empowered by magic fang.";
-      break;
-      
-    case SPELL_SUNBURST: //divination, does damage and room affect
-      if (MOB_FLAGGED(victim, MOB_NOBLIND)) {
-        send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
-        return;
-      }
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
-        return;
-      }
-
-      af[0].location = APPLY_HITROLL;
-      af[0].modifier = -4;
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_BLIND);
-
-      af[1].location = APPLY_AC_NEW;
-      af[1].modifier = -4;
-      af[1].duration = 50;
-      SET_BIT_AR(af[1].bitvector, AFF_BLIND);
-
-      to_room = "$n seems to be blinded!";
-      to_vict = "You have been blinded!";
-      break;
-
-    case SPELL_POWER_WORD_BLIND: //necromancy
-      if (MOB_FLAGGED(victim, MOB_NOBLIND)) {
-        send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
-        return;
-      }
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_REFL, -4)) {
-        send_to_char(ch, "You fail.\r\n");
-        return;
-      }
-
-      af[0].location = APPLY_HITROLL;
-      af[0].modifier = -4;
-      af[0].duration = 200;
-      SET_BIT_AR(af[0].bitvector, AFF_BLIND);
-
-      af[1].location = APPLY_AC_NEW;
-      af[1].modifier = -4;
-      af[1].duration = 200;
-      SET_BIT_AR(af[1].bitvector, AFF_BLIND);
-
-      to_room = "$n seems to be blinded!";
-      to_vict = "You have been blinded!";
-      break;
-
-    case SPELL_DEAFNESS: //necromancy
-      if (MOB_FLAGGED(victim, MOB_NODEAF)) {
-        send_to_char(ch, "Your opponent doesn't seem deafable.\r\n");
-        return;
-      }
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
-        send_to_char(ch, "You fail.\r\n");
-        return;
-      }
-
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_DEAF);
-
-      to_room = "$n seems to be deafened!";
-      to_vict = "You have been deafened!";
-      break;
-
-
-    case SPELL_WEB: //conjuration
-      if (MOB_FLAGGED(victim, MOB_NOGRAPPLE)) {
-        send_to_char(ch, "Your opponent doesn't seem webbable.\r\n");
-        return;
-      }
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0)) {
-        send_to_char(ch, "You fail.\r\n");
-        return;
-      }
-
-      af[0].duration = 7 * magic_level;
-      SET_BIT_AR(af[0].bitvector, AFF_GRAPPLED);
-
-      to_room = "$n is covered in a sticky magical web!";
-      to_vict = "You are covered in a sticky magical web!";
-      break;
-
-    case SPELL_BLUR: //illusion
-      af[0].location = APPLY_AC;
+    case SPELL_SHRINK_PERSON: //transmutation
+      af[0].location = APPLY_SIZE;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = -1;
-      af[0].duration = 300;
-      to_room = "$n's images becomes blurry!.";
-      to_vict = "You observe as your image becomes blurry.";
-      SET_BIT_AR(af[0].bitvector, AFF_BLUR);
-      accum_duration = FALSE;
+      to_vict = "You feel yourself shrinking!";
+      to_room = "$n's begins to shrink to being much smaller!";
       break;
 
-    case SPELL_DISPLACEMENT: //illusion
-      af[0].location = APPLY_AC;
-      af[0].modifier = -1;
-      af[0].duration = 100;
-      to_room = "$n's images becomes displaced!";
-      to_vict = "You observe as your image becomes displaced!";
-      SET_BIT_AR(af[0].bitvector, AFF_DISPLACE);
-      accum_duration = FALSE;
-      break;
-
-    case SPELL_NON_DETECTION:
-      af[0].duration = 25 + (magic_level * 12);
-      SET_BIT_AR(af[0].bitvector, AFF_NON_DETECTION);
-      to_room = "$n briefly glows green!";
-      to_vict = "You feel protection from scrying.";
-      break;
-
-    case SPELL_HASTE: //abjuration
-      if (affected_by_spell(victim, SPELL_SLOW)) {
-        affect_from_char(victim, SPELL_SLOW);
-        send_to_char(ch, "You dispel the slow spell!\r\n");
-        send_to_char(victim, "Your slow spell is dispelled!\r\n");
+    case SPELL_SLEEP: //enchantment
+      if (GET_LEVEL(victim) >= 7 || (!IS_NPC(victim) && GET_RACE(victim) == RACE_ELF)) {
+        send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
+        return;
+      }
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (!CONFIG_PK_ALLOWED && !IS_NPC(ch) && !IS_NPC(victim))
+        return;
+      if (MOB_FLAGGED(victim, MOB_NOSLEEP)) {
+        send_to_char(ch, "Your victim doesn't seem vulnerable to your spell.");
+        return;
+      }
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
         return;
       }
 
-      af[0].duration = (magic_level * 12);
-      SET_BIT_AR(af[0].bitvector, AFF_HASTE);
-      to_room = "$n begins to speed up!";
-      to_vict = "You begin to speed up!";
+      af[0].duration = 100 + (magic_level * 6);
+      SET_BIT_AR(af[0].bitvector, AFF_SLEEP);
+
+      if (GET_POS(victim) > POS_SLEEPING) {
+        send_to_char(victim, "You feel very sleepy...  Zzzz......\r\n");
+        act("$n goes to sleep.", TRUE, victim, 0, 0, TO_ROOM);
+        if (FIGHTING(victim))
+          stop_fighting(victim);
+        GET_POS(victim) = POS_SLEEPING;
+        if (FIGHTING(ch) == victim)
+          stop_fighting(ch);
+      }
       break;
 
     case SPELL_SLOW: //abjuration
@@ -2106,156 +2632,157 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel yourself slow down!";
       break;
 
-    case SPELL_DIMENSIONAL_LOCK: //divination
-      if (mag_resistance(ch, victim, 0))
+    case SPELL_SPELL_MANTLE: //abjuration
+      if (affected_by_spell(victim, SPELL_GREATER_SPELL_MANTLE)) {
+        send_to_char(ch, "A magical mantle is already in effect on target.\r\n");
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
-        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+      }
+      
+      af[0].duration = magic_level * 3;
+      SET_BIT_AR(af[0].bitvector, AFF_SPELL_MANTLE);
+      GET_SPELL_MANTLE(victim) = 2;
+      accum_duration = FALSE;
+      to_room = "$n begins to shimmer from a magical mantle!";
+      to_vict = "You begin to shimmer from a magical mantle.";
+      break;
+
+    case SPELL_SPELL_RESISTANCE:
+      af[0].duration = 50 + divine_level;
+      SET_BIT_AR(af[0].bitvector, AFF_SPELL_RESISTANT);
+
+      accum_duration = FALSE;
+      to_vict = "You feel your spell resistance increase.";
+      to_room = "$n's spell resistance increases.";
+      break;
+
+    case SPELL_SPELL_TURNING:  //abjuration
+      af[0].duration = 100;
+      SET_BIT_AR(af[0].bitvector, AFF_SPELL_TURNING);
+
+      accum_duration = FALSE;
+      to_vict = "A spell-turning shield surrounds you.";
+      to_room = "$n is surrounded by a spell turning shield.";
+      break;
+
+    case SPELL_STENCH:
+      if (GET_LEVEL(victim) >= 9) {
+        return;
+      }
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
         return;
       }
 
-      af[0].duration = (divine_level + 12);
-      SET_BIT_AR(af[0].bitvector, AFF_DIM_LOCK);
-      to_room = "$n is bound to this dimension!";
-      to_vict = "You feel yourself bound to this dimension!";
+      SET_BIT_AR(af[0].bitvector, AFF_NAUSEATED);
+      af[0].duration = 3;
+      to_room = "$n becomes nauseated from the stinky fumes!";
+      to_vict = "You become nauseated from the stinky fumes!";
       break;
 
-    case SPELL_BARKSKIN: // transmutation
-      if (isMagicArmored(victim))
+    case SPELL_STONESKIN:
+      if (affected_by_spell(victim, SPELL_EPIC_WARDING) ||
+              affected_by_spell(victim, SPELL_IRONSKIN)) {
+        send_to_char(ch, "A magical ward is already in effect on target.\r\n");
+        return;
+      }
+      af[0].location = APPLY_AC;
+      af[0].modifier = -1;
+      af[0].duration = 600;
+      to_room = "$n's skin becomes hard as rock!";
+      to_vict = "Your skin becomes hard as stone.";
+      GET_STONESKIN(victim) = MIN(225, magic_level * 15);
+      break;
+
+    case SPELL_STRENGTH: //transmutation
+      af[0].location = APPLY_STR;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      accum_duration = TRUE;
+      to_vict = "You feel stronger!";
+      to_room = "$n's muscles begin to bulge!";
+      break;
+      
+    case SPELL_STRENGTHEN_BONE:
+      if (!IS_UNDEAD(victim))
         return;
 
       af[0].location = APPLY_AC_NEW;
-      if (magic_level >= 12)
-        af[0].modifier = 5;
-      else if (magic_level >= 9)
-        af[0].modifier = 4;
-      else if (magic_level >= 6)
-        af[0].modifier = 3;
-      else
-        af[0].modifier = 2;
-      af[0].duration = (magic_level * 10); // should be 10 min. * magic_level
-      accum_affect = FALSE;
-      accum_duration = FALSE;
-      to_vict = "Your skin hardens to bark.";
-      to_room = "$n skin hardens to bark!";
-      break;
-     
-    case SPELL_CURSE: //necromancy
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
-        send_to_char(ch, "%s", CONFIG_NOEFFECT);
-        return;
-      }
-
-      af[0].location = APPLY_HITROLL;
-      af[0].duration = 25 + (CASTER_LEVEL(ch) * 12);
-      af[0].modifier = -2;
-      SET_BIT_AR(af[0].bitvector, AFF_CURSE);
-
-      af[1].location = APPLY_DAMROLL;
-      af[1].duration = 25 + (CASTER_LEVEL(ch) * 12);
-      af[1].modifier = -2;
-      SET_BIT_AR(af[1].bitvector, AFF_CURSE);
-
-      af[2].location = APPLY_SAVING_WILL;
-      af[2].duration = 25 + (CASTER_LEVEL(ch) * 12);
-      af[2].modifier = -2;
-      SET_BIT_AR(af[2].bitvector, AFF_CURSE);
-
+      af[0].modifier = 2;
+      af[0].duration = 600;
       accum_duration = TRUE;
-      accum_affect = TRUE;
-      to_room = "$n briefly glows red!";
-      to_vict = "You feel very uncomfortable.";
+      to_vict = "You feel your bones harden.";
+      to_room = "$n's bones harden!";
       break;
 
-    case SPELL_ENFEEBLEMENT: //enchantment
-      if (mag_resistance(ch, victim, 0))
-        return;
-
-      if (mag_savingthrow(ch, victim, SAVING_FORT, (elf_bonus-4))) {
-        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+    case SPELL_SUNBEAM: // evocation[light]
+    case SPELL_SUNBURST: // divination, does damage and room affect
+      if (MOB_FLAGGED(victim, MOB_NOBLIND)) {
+        send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
         return;
       }
-
-      af[0].location = APPLY_STR;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = -(2 + (CASTER_LEVEL(ch) / 5));
-
-      af[1].location = APPLY_DEX;
-      af[1].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[1].modifier = -(2 + (CASTER_LEVEL(ch) / 5));
-
-      af[2].location = APPLY_CON;
-      af[2].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[2].modifier = -(2 + (CASTER_LEVEL(ch) / 5));
-
-      accum_duration = FALSE;
-      accum_affect = FALSE;
-      to_room = "$n is terribly enfeebled!";
-      to_vict = "You feel terribly enfeebled!";
-      break;
-
-    case SPELL_FAERIE_FIRE: // evocation
       if (mag_resistance(ch, victim, 0))
         return;
-      
-      // need to make this show an outline around concealed, blue, displaced, invisible people
-      SET_BIT_AR(af[0].bitvector, AFF_FAERIE_FIRE);
-      af[0].duration = magic_level;
-      accum_duration = FALSE;
-      accum_affect = FALSE;
-      to_room = "A pale blue light begins to glow around $n.";
-      to_vict = "You are suddenly surrounded by a pale blue light.";
-      break;
-            
-    case SPELL_JUMP: // transmutation
-      af[0].duration = CLASS_LEVEL(ch, CLASS_DRUID);
-
-      accum_affect = FALSE;
-      accum_duration = FALSE;
-      to_room = "$n feels much lighter on $s feet.";
-      to_vict = "You feel much lighter on your feet.";
-      break;
-
-    case SPELL_INTERPOSING_HAND: //evocation
-      if (mag_resistance(ch, victim, 0))
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0)) {
         return;
-      // no save
+      }
 
       af[0].location = APPLY_HITROLL;
-      af[0].duration = 4 + magic_level;
       af[0].modifier = -4;
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_BLIND);
 
-      to_room = "A disembodied hand moves in front of $n!";
-      to_vict = "A disembodied hand moves in front of you!";
+      af[1].location = APPLY_AC_NEW;
+      af[1].modifier = -4;
+      af[1].duration = 50;
+      SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+
+      to_room = "$n seems to be blinded!";
+      to_vict = "You have been blinded!";
       break;
 
-    case SPELL_FEEBLEMIND: //enchantment
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
-        return;
+    case SPELL_THUNDERCLAP: //abjuration
+      success = 0;
+
+      if (!MOB_FLAGGED(victim, MOB_NODEAF) &&
+              !mag_savingthrow(ch, victim, SAVING_FORT, 0) &&
+              !mag_resistance(ch, victim, 0)) {
+        af[0].duration = 10;
+        SET_BIT_AR(af[0].bitvector, AFF_DEAF);
+
+        act("You have been deafened!", FALSE, victim, 0, ch, TO_CHAR);
+        act("$n seems to be deafened!", TRUE, victim, 0, ch, TO_ROOM);
+        success = 1;
       }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
+
+      if (!mag_savingthrow(ch, victim, SAVING_WILL, 0) &&
+              !mag_resistance(ch, victim, 0)) {
+        af[1].duration = 4;
+        SET_BIT_AR(af[1].bitvector, AFF_STUN);
+
+        act("You have been stunned!", FALSE, victim, 0, ch, TO_CHAR);
+        act("$n seems to be stunned!", TRUE, victim, 0, ch, TO_ROOM);
+        success = 1;
       }
 
-      is_mind_affect = TRUE;
+      if (!mag_savingthrow(ch, victim, SAVING_REFL, 0) &&
+              !mag_resistance(ch, victim, 0)) {
+        GET_POS(victim) = POS_SITTING;
+        WAIT_STATE(victim, PULSE_VIOLENCE * 1);
 
-      af[0].location = APPLY_INT;
-      af[0].duration = magic_level;
-      af[0].modifier = -((victim->real_abils.intel) - 3);
+        act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
+        act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);
+      }
 
-      af[1].location = APPLY_WIS;
-      af[1].duration = magic_level;
-      af[1].modifier = -((victim->real_abils.wis) - 3);
+      if (!success)
+        return;
+      break;
 
-      to_room = "$n grasps $s head in pain, $s eyes glazing over!";
-      to_vict = "Your head starts to throb and a wave of confusion washes over you.";
+    case SPELL_TIMESTOP:  //abjuration
+      af[0].duration = 7;
+      SET_BIT_AR(af[0].bitvector, AFF_TIME_STOPPED);
+
+      accum_duration = FALSE;
+      to_vict = "The world around starts moving very slowly.";
+      to_room = "$n begins to move outside of time.";
       break;
 
     case SPELL_TOUCH_OF_IDIOCY: //enchantment
@@ -2292,88 +2819,20 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel very idiotic.";
       break;
 
-    case SPELL_MIND_FOG: //illusion
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
-        send_to_char(ch, "%s", CONFIG_NOEFFECT);
-        return;
-      }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
+    case SPELL_TRANSFORMATION: //necromancy
+      af[0].duration = 50;
+      SET_BIT_AR(af[0].bitvector, AFF_TFORM);
 
-      is_mind_affect = TRUE;
-
-      af[0].location = APPLY_SAVING_WILL;
-      af[0].duration = 10 + magic_level;
-      af[0].modifier = -10;
-      to_room = "$n reels in confusion as a mind fog strikes $e!";
-      to_vict = "You reel in confusion as a mind fog spell strikes you!";
-      break;
-
-    case SPELL_RAY_OF_ENFEEBLEMENT: //necromancy
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0)) {
-        send_to_char(ch, "%s", CONFIG_NOEFFECT);
-        return;
-      }
-
-      af[0].location = APPLY_STR;
-      af[0].duration = 25 + (magic_level * 12);
-      af[0].modifier = -dice(2, 4);
-      accum_duration = TRUE;
-      to_room = "$n is struck by enfeeblement!";
-      to_vict = "You feel enfeebled!";
-      break;
-
-    case SPELL_DETECT_ALIGN:
-      af[0].duration = 300 + CASTER_LEVEL(ch) * 25;
-      SET_BIT_AR(af[0].bitvector, AFF_DETECT_ALIGN);
-      accum_duration = TRUE;
-      to_room = "$n's eyes become sensitive to motives!";
-      to_vict = "Your eyes become sensitive to motives.";
-      break;
-
-    case SPELL_DETECT_INVIS: //divination
-      af[0].duration = 300 + magic_level * 25;
-      SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
-      accum_duration = TRUE;
-      to_vict = "Your eyes tingle, now sensitive to invisibility.";
-      to_room = "$n's eyes become sensitive to invisibility!";
+      accum_duration = FALSE;
+      to_vict = "You feel your combat skill increase!";
+      to_room = "The combat skill of $n increases!";
       break;
 
     case SPELL_TRUE_SEEING: //divination
-      af[0].duration = 20 + CASTER_LEVEL(ch);
+      af[0].duration = 20 + magic_level;
       SET_BIT_AR(af[0].bitvector, AFF_TRUE_SIGHT);
       to_vict = "Your eyes tingle, now with true-sight.";
       to_room = "$n's eyes become enhanced with true-sight!";
-      break;
-
-    case SPELL_DETECT_MAGIC: //divination
-      af[0].duration = 300 + CASTER_LEVEL(ch) * 25;
-      SET_BIT_AR(af[0].bitvector, AFF_DETECT_MAGIC);
-      accum_duration = TRUE;
-      to_room = "$n's eyes become sensitive to magic!";
-      to_vict = "Magic becomes clear as your eyes tingle.";
-      break;
-
-    case SPELL_ENDURE_ELEMENTS: //abjuration
-      af[0].duration = 600;
-      SET_BIT_AR(af[0].bitvector, AFF_ELEMENT_PROT);
-      to_vict = "You feel a slight protection from the elements!";
-      to_room = "$n begins to feel slightly protected from the elements!";
-      break;
-
-    case SPELL_RESIST_ENERGY: //abjuration
-      af[0].duration = 600;
-      SET_BIT_AR(af[0].bitvector, AFF_ELEMENT_PROT);
-      to_vict = "You feel a slight protection from energy!";
-      to_room = "$n begins to feel slightly protected from energy!";
       break;
 
     case SPELL_TRUE_STRIKE: //illusion
@@ -2385,615 +2844,32 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is now able to strike true!";
       break;
 
-    case SPELL_ENDURANCE: //transmutation
-      af[0].location = APPLY_CON;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      accum_duration = TRUE;
-      to_vict = "You feel more hardy!";
-      to_room = "$n begins to feel more hardy!";
-      break;
-
-    case SPELL_MASS_ENDURANCE: //transmutation
-      af[0].location = APPLY_CON;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      accum_duration = TRUE;
-      to_vict = "You feel more hardy!";
-      to_room = "$n's begins to feel more hardy!";
-      break;
-
-    case SPELL_EPIC_MAGE_ARMOR: //epic
-      if (isMagicArmored(victim))
-        return;
-
-      af[0].location = APPLY_AC_NEW;
-      af[0].modifier = 12;
-      af[0].duration = 1200;
-      af[1].location = APPLY_DEX;
-      af[1].modifier = 7;
-      af[1].duration = 1200;
-      accum_duration = FALSE;
-      to_vict = "You feel magic protecting you.";
-      to_room = "$n is surrounded by magical bands of armor!";
-      break;
-
-    case SPELL_EPIC_WARDING: //no school
-      if (affected_by_spell(victim, SPELL_STONESKIN) ||
-              affected_by_spell(victim, SPELL_IRONSKIN)) {
-        send_to_char(ch, "A magical ward is already in effect on target.\r\n");
-        return;
-      }
-      af[0].location = APPLY_AC;
-      af[0].modifier = -1;
-      af[0].duration = 600;
-      to_room = "$n becomes surrounded by a powerful magical ward!";
-      to_vict = "You become surrounded by a powerful magical ward!";
-      GET_STONESKIN(victim) = MIN(700, CASTER_LEVEL(ch) * 60);
-      break;
-
-    case SPELL_SPELL_MANTLE: //abjuration
-      if (affected_by_spell(victim, SPELL_GREATER_SPELL_MANTLE)) {
-        send_to_char(ch, "A magical mantle is already in effect on target.\r\n");
-        return;
-      }
-      
-      af[0].duration = CASTER_LEVEL(ch) * 3;
-      SET_BIT_AR(af[0].bitvector, AFF_SPELL_MANTLE);
-      GET_SPELL_MANTLE(victim) = 2;
-      accum_duration = FALSE;
-      to_room = "$n begins to shimmer from a magical mantle!";
-      to_vict = "You begin to shimmer from a magical mantle.";
-      break;
-
-    case SPELL_GREATER_SPELL_MANTLE: //abjuration
-      if (affected_by_spell(victim, SPELL_MANTLE)) {
-        send_to_char(ch, "A magical mantle is already in effect on target.\r\n");
-        return;
-      }
-      
-      af[0].duration = magic_level * 4;
-      SET_BIT_AR(af[0].bitvector, AFF_SPELL_MANTLE);
-      GET_SPELL_MANTLE(victim) = 4;
-      accum_duration = FALSE;
-      to_room = "$n begins to shimmer from a greater magical mantle!";
-      to_vict = "You begin to shimmer from a greater magical mantle.";
-      break;
-
-    case SPELL_FLY:
-      af[0].duration = 600;
-      SET_BIT_AR(af[0].bitvector, AFF_FLYING);
-      accum_duration = TRUE;
-      to_room = "$n begins to fly above the ground!";
-      to_vict = "You fly above the ground.";
-      break;
-
-    case SPELL_INFRAVISION: //divination, shared
-      af[0].duration = 300 + CASTER_LEVEL(ch) * 25;
-      SET_BIT_AR(af[0].bitvector, AFF_INFRAVISION);
-      accum_duration = TRUE;
-      to_vict = "Your eyes glow red.";
-      to_room = "$n's eyes glow red.";
-      break;
-
-    case SPELL_INVISIBLE: //illusion
-      if (!victim)
-        victim = ch;
-
-      af[0].duration = 300 + (magic_level * 6);
-      af[0].modifier = 4;
-      af[0].location = APPLY_AC_NEW;
-      SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
-      accum_duration = TRUE;
-      to_vict = "You vanish.";
-      to_room = "$n slowly fades out of existence.";
-      break;
-
-    case SPELL_GREATER_INVIS: //illusion
-      if (!victim)
-        victim = ch;
-
-      af[0].duration = 10 + (magic_level * 6);
-      af[0].modifier = 4;
-      af[0].location = APPLY_AC_NEW;
-      SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
-      accum_duration = TRUE;
-      to_vict = "You vanish.";
-      to_room = "$n slowly fades out of existence.";
-      break;
-
-    case SPELL_GREATER_MIRROR_IMAGE: //illusion
-      if (affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
-              affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) {
-        send_to_char(ch, "You already have mirror images!\r\n");
-        return;
-      }
-      af[0].location = APPLY_AC;
-      af[0].modifier = -1;
-      af[0].duration = 300;
-      to_room = "$n grins as multiple images pop up and smile!";
-      to_vict = "You watch as multiple images pop up and smile at you!";
-      GET_IMAGES(victim) = 6 + (magic_level / 3);
-      break;
-
-    case SPELL_MIRROR_IMAGE: //illusion
-      if (affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
-              affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) {
-        send_to_char(ch, "You already have mirror images!\r\n");
-        return;
-      }
-      af[0].location = APPLY_AC;
-      af[0].modifier = -1;
-      af[0].duration = 300;
-      to_room = "$n grins as multiple images pop up and smile!";
-      to_vict = "You watch as multiple images pop up and smile at you!";
-      GET_IMAGES(victim) = 4 + MIN(5, (int) (magic_level / 3));
-      break;
-
-    case SPELL_EYEBITE: //necromancy
+    case SPELL_WAIL_OF_THE_BANSHEE: //necromancy (does damage too)
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
-        send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
-
-      af[0].duration = CASTER_LEVEL(ch) * 1000;
-      SET_BIT_AR(af[0].bitvector, AFF_DISEASE);
-      to_vict = "You feel a powerful necromantic disease overcome you.";
-      to_room =
-              "$n suffers visibly as a powerful necromantic disease strikes $m!";
-      break;
-
-    case SPELL_POISON: //enchantment, shared
-      if (mag_resistance(ch, victim, 0))
-        return;
-      int bonus = 0;
-      if (GET_RACE(ch) == RACE_DWARF || //dwarf dwarven poison resist
-              GET_RACE(ch) == RACE_CRYSTAL_DWARF)
-        bonus += 2;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, bonus)) {
-        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+        send_to_char(victim, "Mind blank protects you from %s!",
+                GET_NAME(ch));
         return;
       }
+      is_mind_affect = TRUE;
 
-      af[0].location = APPLY_STR;
-      af[0].duration = CASTER_LEVEL(ch) * 25;
-      af[0].modifier = -2;
-      SET_BIT_AR(af[0].bitvector, AFF_POISON);
-      to_vict = "You feel very sick.";
-      to_room = "$n gets violently ill!";
+      SET_BIT_AR(af[0].bitvector, AFF_FEAR);
+      af[0].duration = dice(2, 6);
+      to_room = "$n is imbued with fear!";
+      to_vict = "You feel scared and fearful!";
       break;
 
-    case SPELL_PROT_FROM_EVIL: // abjuration
+    case SPELL_WATER_BREATHE:
       af[0].duration = 600;
-      SET_BIT_AR(af[0].bitvector, AFF_PROTECT_EVIL);
+      SET_BIT_AR(af[0].bitvector, AFF_SCUBA);
       accum_duration = TRUE;
-      to_vict = "You feel invulnerable to evil!";
-      break;
-
-    case SPELL_PROT_FROM_GOOD: // abjuration
-      af[0].duration = 600;
-      SET_BIT_AR(af[0].bitvector, AFF_PROTECT_GOOD);
-      accum_duration = TRUE;
-      to_vict = "You feel invulnerable to good!";
-      break;
-
-    case SPELL_ACID_SHEATH: //divination
-      if (affected_by_spell(victim, SPELL_FIRE_SHIELD) ||
-              affected_by_spell(victim, SPELL_COLD_SHIELD)) {
-        send_to_char(ch, "You are already affected by an elemental shield!\r\n");
-        return;
-      }
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_ASHIELD);
-
-      accum_duration = FALSE;
-      to_vict = "A shield of acid surrounds you.";
-      to_room = "$n is surrounded by shield of acid.";
-      break;
-
-    case SPELL_FIRE_SHIELD: //evocation
-      if (affected_by_spell(victim, SPELL_ACID_SHEATH) ||
-              affected_by_spell(victim, SPELL_COLD_SHIELD)) {
-        send_to_char(ch, "You are already affected by an elemental shield!\r\n");
-        return;
-      }
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_FSHIELD);
-
-      accum_duration = FALSE;
-      to_vict = "A shield of flames surrounds you.";
-      to_room = "$n is surrounded by shield of flames.";
-      break;
-
-    case SPELL_COLD_SHIELD: //evocation
-      if (affected_by_spell(victim, SPELL_ACID_SHEATH) ||
-              affected_by_spell(victim, SPELL_FIRE_SHIELD)) {
-        send_to_char(ch, "You are already affected by an elemental shield!\r\n");
-        return;
-      }
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_CSHIELD);
-
-      accum_duration = FALSE;
-      to_vict = "A shield of ice surrounds you.";
-      to_room = "$n is surrounded by shield of ice.";
-      break;
-
-    case SPELL_TIMESTOP:  //abjuration
-      af[0].duration = 7;
-      SET_BIT_AR(af[0].bitvector, AFF_TIME_STOPPED);
-
-      accum_duration = FALSE;
-      to_vict = "The world around starts moving very slowly.";
-      to_room = "$n begins to move outside of time.";
-      break;
-
-    case SPELL_MIND_BLANK:  //abjuration
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_MIND_BLANK);
-
-      accum_duration = FALSE;
-      to_vict = "Your mind becomes blank from harmful magicks.";
-      to_room = "$n's mind becomes blanked from harmful magicks.";
-      break;
-
-    case SPELL_SANCTUARY:
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_SANCTUARY);
-
-      accum_duration = FALSE;
-      to_vict = "A white aura momentarily surrounds you.";
-      to_room = "$n is surrounded by a white aura.";
-      break;
-
-    case SPELL_SPELL_RESISTANCE:
-      af[0].duration = 50 + divine_level;
-      SET_BIT_AR(af[0].bitvector, AFF_SPELL_RESISTANT);
-
-      accum_duration = FALSE;
-      to_vict = "You feel your spell resistance increase.";
-      to_room = "$n's spell resistance increases.";
-      break;
-
-    case SPELL_REGENERATION:
-      af[0].duration = 100;
-      SET_BIT_AR(af[0].bitvector, AFF_REGEN);
-
-      accum_duration = FALSE;
-      to_vict = "You begin regenerating.";
-      to_room = "$n begins regenerating.";
-      break;
-
-    case SPELL_FREE_MOVEMENT:
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_FREE_MOVEMENT);
-
-      accum_duration = FALSE;
-      to_vict = "Your limbs feel looser as the free movement spell takes effect.";
-      to_room = "$n's limbs now move freer.";
-      break;
-
-    case SPELL_BRAVERY:
-      af[0].duration = 25 + divine_level;
-      SET_BIT_AR(af[0].bitvector, AFF_BRAVERY);
-
-      accum_duration = TRUE;
-      to_vict = "You suddenly feel very brave.";
-      to_room = "$n suddenly feels very brave.";
-      break;
-
-    case SPELL_SPELL_TURNING:  //abjuration
-      af[0].duration = 100;
-      SET_BIT_AR(af[0].bitvector, AFF_SPELL_TURNING);
-
-      accum_duration = FALSE;
-      to_vict = "A spell-turning shield surrounds you.";
-      to_room = "$n is surrounded by a spell turning shield.";
-      break;
-
-    case SPELL_TRANSFORMATION: //necromancy
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_TFORM);
-
-      accum_duration = FALSE;
-      to_vict = "You feel your combat skill increase!";
-      to_room = "The combat skill of $n increases!";
-      break;
-
-    case SPELL_BATTLETIDE: //divine
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_BATTLETIDE);
-
-      af[1].duration = 50;
-      SET_BIT_AR(af[1].bitvector, AFF_HASTE);
-
-      af[2].location = APPLY_HITROLL;
-      af[2].modifier = 3;
-      af[2].duration = 50;
-
-      af[3].location = APPLY_DAMROLL;
-      af[3].modifier = 3;
-      af[3].duration = 50;
-
-      accum_duration = FALSE;
-      to_vict = "You feel the tide of battle turn in your favor!";
-      to_room = "The tide of battle turns in $n's favor!";
-      break;
-
-    case SPELL_MINOR_GLOBE: //abjuration
-      if (affected_by_spell(victim, SPELL_GLOBE_OF_INVULN)) {
-        send_to_char(ch, "You are already affected by a globe spell!\r\n");
-        return;
-      }
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_MINOR_GLOBE);
-
-      accum_duration = FALSE;
-      to_vict = "A minor globe of invulnerability surrounds you.";
-      to_room = "$n is surrounded by a minor globe of invulnerability.";
-      break;
-
-    case SPELL_GLOBE_OF_INVULN: //abjuration
-      if (affected_by_spell(victim, SPELL_MINOR_GLOBE)) {
-        send_to_char(ch, "You are already affected by a globe spell!\r\n");
-        return;
-      }
-      af[0].duration = 50;
-      SET_BIT_AR(af[0].bitvector, AFF_GLOBE_OF_INVULN);
-
-      accum_duration = FALSE;
-      to_vict = "A globe of invulnerability surrounds you.";
-      to_room = "$n is surrounded by a globe of invulnerability.";
-      break;
-
-    case SPELL_SLEEP: //enchantment
-      if (GET_LEVEL(victim) >= 7 || (!IS_NPC(victim) && GET_RACE(victim) == RACE_ELF)) {
-        send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
-        return;
-      }
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (!CONFIG_PK_ALLOWED && !IS_NPC(ch) && !IS_NPC(victim))
-        return;
-      if (MOB_FLAGGED(victim, MOB_NOSLEEP)) {
-        send_to_char(ch, "Your victim doesn't seem vulnerable to your spell.");
-        return;
-      }
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
-        return;
-      }
-
-      af[0].duration = 100 + (magic_level * 6);
-      SET_BIT_AR(af[0].bitvector, AFF_SLEEP);
-
-      if (GET_POS(victim) > POS_SLEEPING) {
-        send_to_char(victim, "You feel very sleepy...  Zzzz......\r\n");
-        act("$n goes to sleep.", TRUE, victim, 0, 0, TO_ROOM);
-        if (FIGHTING(victim))
-          stop_fighting(victim);
-        GET_POS(victim) = POS_SLEEPING;
-        if (FIGHTING(ch) == victim)
-          stop_fighting(ch);
-      }
-      break;
-
-    case SPELL_DEEP_SLUMBER: //enchantment
-      if (GET_LEVEL(victim) >= 15 ||
-              (!IS_NPC(victim) && GET_RACE(victim) == RACE_ELF)) {
-        send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
-        return;
-      }
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (!CONFIG_PK_ALLOWED && !IS_NPC(ch) && !IS_NPC(victim))
-        return;
-      if (MOB_FLAGGED(victim, MOB_NOSLEEP)) {
-        send_to_char(ch, "Your victim doesn't seem vulnerable to your spell.");
-        return;
-      }
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
-        return;
-      }
-
-      af[0].duration = 100 + (magic_level * 6);
-      SET_BIT_AR(af[0].bitvector, AFF_SLEEP);
-
-      if (GET_POS(victim) > POS_SLEEPING) {
-        send_to_char(victim, "You feel very sleepy...  Zzzz......\r\n");
-        act("$n goes to sleep.", TRUE, victim, 0, 0, TO_ROOM);
-        if (FIGHTING(victim))
-          stop_fighting(victim);
-        GET_POS(victim) = POS_SLEEPING;
-        if (FIGHTING(ch) == victim)
-          stop_fighting(ch);
-      }
-      break;
-
-    case SPELL_STONESKIN:
-      if (affected_by_spell(victim, SPELL_EPIC_WARDING) ||
-              affected_by_spell(victim, SPELL_IRONSKIN)) {
-        send_to_char(ch, "A magical ward is already in effect on target.\r\n");
-        return;
-      }
-      af[0].location = APPLY_AC;
-      af[0].modifier = -1;
-      af[0].duration = 600;
-      to_room = "$n's skin becomes hard as rock!";
-      to_vict = "Your skin becomes hard as stone.";
-      GET_STONESKIN(victim) = MIN(225, magic_level * 15);
-      break;
-
-    case SPELL_IRONSKIN: //transmutation
-      if (affected_by_spell(victim, SPELL_STONESKIN) ||
-              affected_by_spell(victim, SPELL_EPIC_WARDING)) {
-        send_to_char(ch, "A magical ward is already in effect on target.\r\n");
-        return;
-      }
-      af[0].location = APPLY_AC;
-      af[0].modifier = -1;
-      af[0].duration = 600;
-      to_room = "$n's skin takes on the texture of iron!";
-      to_vict = "Your skin takes on the texture of iron!";
-      GET_STONESKIN(victim) = MIN(450, CASTER_LEVEL(ch) * 35);
-      break;
-
-    case SPELL_ENLARGE_PERSON: //transmutation
-      af[0].location = APPLY_SIZE;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 1;
-      to_vict = "You feel yourself growing!";
-      to_room = "$n's begins to grow much larger!";
-      break;
-
-    case SPELL_SHRINK_PERSON: //transmutation
-      af[0].location = APPLY_SIZE;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = -1;
-      to_vict = "You feel yourself shrinking!";
-      to_room = "$n's begins to shrink to being much smaller!";
-      break;
-
-    case SPELL_STRENGTH: //transmutation
-      af[0].location = APPLY_STR;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      accum_duration = TRUE;
-      to_vict = "You feel stronger!";
-      to_room = "$n's muscles begin to bulge!";
-      break;
-      
-    case SPELL_MASS_STRENGTH: //transmutation
-      af[0].location = APPLY_STR;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      accum_duration = TRUE;
-      to_vict = "You feel stronger!";
-      to_room = "$n's muscles begin to bulge!";
-      break;
-
-    case SPELL_CHARISMA: //transmutation
-      if (affected_by_spell(victim, SPELL_MASS_CHARISMA)) {
-        send_to_char(ch, "Your target already has a charisma spell in effect.\r\n");
-        return;
-      }
-      af[0].location = APPLY_CHA;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 4;
-      accum_duration = TRUE;
-      to_vict = "You feel more charismatic!";
-      to_room = "$n's charisma increases!";
-      break;
-
-    case SPELL_MASS_CHARISMA: //transmutation
-      if (affected_by_spell(victim, SPELL_CHARISMA)) {
-        send_to_char(ch, "Your target already has a charisma spell in effect.\r\n");
-        return;
-      }
-      af[0].location = APPLY_CHA;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      accum_duration = TRUE;
-      to_vict = "You feel more charismatic!";
-      to_room = "$n's charisma increases!";
-      break;
-
-    case SPELL_CUNNING: //transmutation
-      if (affected_by_spell(victim, SPELL_MASS_CUNNING)) {
-        send_to_char(ch, "Your target already has a cunning spell in effect.\r\n");
-        return;
-      }
-      af[0].location = APPLY_INT;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 4;
-      accum_duration = TRUE;
-      to_vict = "You feel more intelligent!";
-      to_room = "$n's intelligence increases!";
-      break;
-
-    case SPELL_MASS_CUNNING: //transmutation
-      if (affected_by_spell(victim, SPELL_CUNNING)) {
-        send_to_char(ch, "Your target already has a cunning spell in effect.\r\n");
-        return;
-      }
-
-      af[0].location = APPLY_INT;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      accum_duration = TRUE;
-      to_vict = "You feel more intelligent!";
-      to_room = "$n's intelligence increases!";
-      break;
-
-    case SPELL_WISDOM: //transmutation
-      af[0].location = APPLY_WIS;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 4;
-      accum_duration = TRUE;
-      to_vict = "You feel more wise!";
-      to_room = "$n's wisdom increases!";
-      break;
-
-    case SPELL_MASS_WISDOM: //transmutation
-      af[0].location = APPLY_WIS;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      accum_duration = TRUE;
-      to_vict = "You feel more wise!";
-      to_room = "$n's wisdom increases!";
-      break;
-
-    case SPELL_MASS_ENHANCE: //transmutation
-      if (affected_by_spell(victim, SPELL_GRACE) ||
-          affected_by_spell(victim, SPELL_ENDURANCE) ||
-          affected_by_spell(victim, SPELL_STRENGTH)    
-              ) {
-        send_to_char(ch, "Your target already has a physical enhancement spell in effect.\r\n");
-        return;
-      }
-      
-      af[0].location = APPLY_STR;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      
-      af[1].location = APPLY_DEX;
-      af[1].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[1].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      
-      af[2].location = APPLY_CON;
-      af[2].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[2].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      
-      accum_duration = TRUE;      
-      to_vict = "You feel your physical atributes enhanced!";
-      to_room = "$n's physical attributes are enhanced!";
-      break;
-
-    case SPELL_GRACE: //transmutation
-      af[0].location = APPLY_DEX;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      accum_duration = TRUE;
-      to_vict = "You feel more dextrous!";
-      to_room = "$n's appears to be more dextrous!";
-      break;
-      
-    case SPELL_MASS_GRACE: //transmutation
-      af[0].location = APPLY_DEX;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      accum_duration = TRUE;
-      to_vict = "You feel more dextrous!";
-      to_room = "$n's appears to be more dextrous!";
-      break;
-
-    case SPELL_SENSE_LIFE:
-      to_vict = "Your feel your awareness improve.";
-      to_room = "$n's eyes become aware of life forms!";
-      af[0].duration = divine_level * 25;
-      SET_BIT_AR(af[0].bitvector, AFF_SENSE_LIFE);
-      accum_duration = TRUE;
+      to_vict = "You feel gills grow behind your neck.";
+      to_room = "$n's neck grows gills!";
       break;
 
     case SPELL_WATERWALK: //transmutation
@@ -3003,13 +2879,73 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel webbing between your toes.";
       to_room = "$n's feet grow webbing!";
       break;
+      
+    case SPELL_WAVES_OF_EXHAUSTION: //necromancy
+      if (mag_resistance(ch, victim, 0))
+        return;
+      // no save
 
-    case SPELL_WATER_BREATHE:
-      af[0].duration = 600;
-      SET_BIT_AR(af[0].bitvector, AFF_SCUBA);
+      SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
+      GET_MOVE(victim) -= 20 + magic_level;
+      af[0].duration = magic_level + 10;
+      to_room = "$n is overcome by overwhelming exhaustion!!";
+      to_vict = "You are overcome by overwhelming exhaustion!!";
+      break;
+
+    case SPELL_WAVES_OF_FATIGUE: //necromancy
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
+        return;
+      }
+      SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
+      GET_MOVE(victim) -= 10 + magic_level;
+      af[0].duration = magic_level;
+      to_room = "$n is overcome by overwhelming fatigue!!";
+      to_vict = "You are overcome by overwhelming fatigue!!";
+      break;
+
+    case SPELL_WEB: //conjuration
+      if (MOB_FLAGGED(victim, MOB_NOGRAPPLE)) {
+        send_to_char(ch, "Your opponent doesn't seem webbable.\r\n");
+        return;
+      }
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0)) {
+        send_to_char(ch, "You fail.\r\n");
+        return;
+      }
+
+      af[0].duration = 7 * magic_level;
+      SET_BIT_AR(af[0].bitvector, AFF_GRAPPLED);
+
+      to_room = "$n is covered in a sticky magical web!";
+      to_vict = "You are covered in a sticky magical web!";
+      break;
+
+    case SPELL_WEIRD: //illusion (also does damage)
+      if (mag_resistance(ch, victim, 0))
+        return;
+      // no save
+
+      af[0].location = APPLY_STR;
+      af[0].duration = magic_level;
+      af[0].modifier = -(dice(1, 4));
+      to_room = "$n's strength is withered!";
+      to_vict = "You feel your strength wither!";
+      
+      SET_BIT_AR(af[1].bitvector, AFF_STUN);
+      af[1].duration = 1;
+      to_room = "$n is stunned by a terrible WEIRD!";
+      to_vict = "You are stunned by a terrible WEIRD!";
+      break;
+
+    case SPELL_WISDOM: //transmutation
+      af[0].location = APPLY_WIS;
+      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].modifier = 4;
       accum_duration = TRUE;
-      to_vict = "You feel gills grow behind your neck.";
-      to_room = "$n's neck grows gills!";
+      to_vict = "You feel more wise!";
+      to_room = "$n's wisdom increases!";
       break;
   }
 
@@ -3392,6 +3328,11 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
       is_eff_and_dam = TRUE;
       to_char = "\tnYou fire from your hands a \tYr\tRa\tBi\tGn\tCb\tWo\tDw\tn of color!\tn";
       to_room = "$n \tnfires from $s hands a \tYr\tRa\tBi\tGn\tCb\tWo\tDw\tn of color!\tn";
+      break;
+    case SPELL_SUNBEAM:
+      is_eff_and_dam = TRUE;
+      to_char = "\tnYou bring forth a powerful sunbeam!\tn";
+      to_room = "$n brings forth a powerful sunbeam!\tn";
       break;
     case SPELL_SUNBURST:
       is_eff_and_dam = TRUE;
@@ -4479,6 +4420,7 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       rounds = 15;
       break;
 
+    case SPELL_SUNBEAM: // evocation[light]
     case SPELL_SUNBURST: //divination
     case SPELL_DAYLIGHT: //illusion
       to_char = "You create a blanket of artificial daylight.";
