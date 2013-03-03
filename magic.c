@@ -3139,6 +3139,8 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
         break;
       case SPELL_ACID:
         break;
+      case SPELL_BLADES:
+        break;
     }
 
     if (isEffect)
