@@ -2133,7 +2133,7 @@ void mag_assign_spells(void)
   spello(SPELL_CURE_LIGHT, "cure light", 30, 15, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_POINTS,
 	NULL, 1, 6, NOSCHOOL);
-  spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wounds", 30, 15, 1, POS_FIGHTING,
+  spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 2, 6, NOSCHOOL);
   spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
      MAG_AFFECTS, "You feel less protected.", 4, 6, CONJURATION);
@@ -2157,7 +2157,7 @@ void mag_assign_spells(void)
 	TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE, MAG_MANUAL, NULL, 2, 7, NOSCHOOL);
   spello(SPELL_CURE_MODERATE, "cure moderate", 30, 15, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_POINTS, NULL, 2, 7, NOSCHOOL);
-  spello(SPELL_CAUSE_MODERATE_WOUNDS, "cause moderate wounds", 37, 22, 1, 
+  spello(SPELL_CAUSE_MODERATE_WOUNDS, "cause moderate wound", 37, 22, 1, 
 	POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 3, 7, NOSCHOOL);
   //detect poison - shared
@@ -2181,7 +2181,7 @@ void mag_assign_spells(void)
 	"You feel less righteous.", 3, 8, NOSCHOOL);
   spello(SPELL_CURE_SERIOUS, "cure serious", 30, 15, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_POINTS, NULL, 3, 8, NOSCHOOL);
-  spello(SPELL_CAUSE_SERIOUS_WOUNDS, "cause serious wounds", 44, 29, 1,
+  spello(SPELL_CAUSE_SERIOUS_WOUNDS, "cause serious wound", 44, 29, 1,
 	POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 4, 9, NOSCHOOL);
   spello(SPELL_CURE_DEAFNESS, "cure deafness", 44, 29, 1, POS_FIGHTING,
@@ -2199,7 +2199,7 @@ void mag_assign_spells(void)
   spello(SPELL_CURE_CRITIC, "cure critic", 51, 36, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM, FALSE, MAG_POINTS,
 	NULL, 3, 10, NOSCHOOL);
-  spello(SPELL_CAUSE_CRITICAL_WOUNDS, "cause critical wounds", 51, 36, 1, 
+  spello(SPELL_CAUSE_CRITICAL_WOUNDS, "cause critical wound", 51, 36, 1, 
 	POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 5, 10, NOSCHOOL);
   spello(SPELL_MASS_CURE_LIGHT, "mass cure light", 85, 70, 1, POS_FIGHTING,
@@ -2316,7 +2316,7 @@ void mag_assign_spells(void)
   spello(SPELL_DESTRUCTION, "destruction", 79, 64, 1, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
 	NULL, 9, 14, NOSCHOOL);
-  spello(SPELL_WORD_OF_FAITH, "word off faith", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_WORD_OF_FAITH, "word of faith", 0, 0, 0, POS_FIGHTING,
 	TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
 	"You no longer feel divinely inflicted.", 0, 14,
 	NOSCHOOL);
@@ -2327,8 +2327,8 @@ void mag_assign_spells(void)
   spello(SPELL_SALVATION, "salvation", 79, 64, 1, POS_FIGHTING,
 	TAR_IGNORE, FALSE, MAG_MANUAL,
 	NULL, 8, 14, NOSCHOOL);
-  spello(SPELL_SPRING_OF_LIFE, "spring of life", 37, 22, 1, POS_FIGHTING, TAR_IGNORE,
-     FALSE, MAG_CREATIONS, NULL, 14, 14, NOSCHOOL);
+  spello(SPELL_SPRING_OF_LIFE, "spring of life", 37, 22, 1, POS_FIGHTING,
+     TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 14, 14, NOSCHOOL);
 
   // 9th circle
   spello(SPELL_EARTHQUAKE, "earthquake", 85, 70, 1, POS_FIGHTING,

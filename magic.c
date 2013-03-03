@@ -1205,6 +1205,79 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are stunned by a powerful magical word!";
       break;
 
+    case SPELL_WORD_OF_FAITH: //divine spell
+      /* this spell will only work on opposite alignment */
+      /* I formed the if-test for clarity, not efficiency */
+      if (IS_EVIL(ch) && IS_GOOD(victim))
+        ; // ok
+      else if (IS_GOOD(ch) && IS_EVIL(victim))
+        ; // ok
+      else {  /* no good, spell fails */
+        act("The word of faith has no effect on you!", 
+                FALSE, victim, 0, ch, TO_CHAR);
+        act("$n seems to not be effected by the word of faith!", 
+                TRUE, victim, 0, ch, TO_ROOM);        
+        send_to_char(ch, "Your word of faith has no effect on %s!",
+                GET_NAME(victim));
+        return;
+      }
+      
+      success = 0;
+
+      if (!MOB_FLAGGED(victim, MOB_NODEAF) &&
+              !mag_savingthrow(ch, victim, SAVING_FORT, 0) &&
+              !mag_resistance(ch, victim, 0)) {
+        af[0].duration = 10;
+        SET_BIT_AR(af[0].bitvector, AFF_DEAF);
+
+        act("You have been deafened by a word of faith!", 
+                FALSE, victim, 0, ch, TO_CHAR);
+        act("$n seems to be deafened by a word of faith!", 
+                TRUE, victim, 0, ch, TO_ROOM);
+        success = 1;
+      }
+
+      if (!mag_savingthrow(ch, victim, SAVING_WILL, 0) &&
+              !mag_resistance(ch, victim, 0)) {
+        af[1].duration = 4;
+        SET_BIT_AR(af[1].bitvector, AFF_STUN);
+
+        act("You have been stunned by a word of faith!", 
+                FALSE, victim, 0, ch, TO_CHAR);
+        act("$n seems to be stunned by a word of faith!", 
+                TRUE, victim, 0, ch, TO_ROOM);
+        success = 1;
+      }
+
+      if (!mag_savingthrow(ch, victim, SAVING_REFL, 0) &&
+              !mag_resistance(ch, victim, 0)) {
+        af[2].duration = 1;
+        SET_BIT_AR(af[2].bitvector, AFF_PARALYZED);
+
+        act("You have been paralyzed by a word of faith!", 
+                FALSE, victim, 0, ch, TO_CHAR);
+        act("$n is paralyzed by a word of faith!", 
+                TRUE, victim, 0, ch, TO_ROOM);
+        success = 1;
+      }
+
+      if (!MOB_FLAGGED(victim, MOB_NOBLIND) &&
+              !mag_savingthrow(ch, victim, SAVING_FORT, 0) &&
+              !mag_resistance(ch, victim, 0)) {
+        af[3].duration = 10;
+        SET_BIT_AR(af[3].bitvector, AFF_BLIND);
+
+        act("You have been blinded by a word of faith!", 
+                FALSE, victim, 0, ch, TO_CHAR);
+        act("$n seems to be blinded by a word of faith!", 
+                TRUE, victim, 0, ch, TO_ROOM);
+        success = 1;
+      }
+
+      if (!success)
+        return;
+      break;
+
     case SPELL_THUNDERCLAP: //abjuration
       success = 0;
 
@@ -2275,7 +2348,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_TRUE_SEEING: //divination
-      af[0].duration = 20 + magic_level;
+      af[0].duration = 20 + CASTER_LEVEL(ch);
       SET_BIT_AR(af[0].bitvector, AFF_TRUE_SIGHT);
       to_vict = "Your eyes tingle, now with true-sight.";
       to_room = "$n's eyes become enhanced with true-sight!";
@@ -2365,7 +2438,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       }
       
-      af[0].duration = magic_level * 3;
+      af[0].duration = CASTER_LEVEL(ch) * 3;
       SET_BIT_AR(af[0].bitvector, AFF_SPELL_MANTLE);
       GET_SPELL_MANTLE(victim) = 2;
       accum_duration = FALSE;
@@ -2567,7 +2640,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_SANCTUARY:
-      af[0].duration = 100;
+      af[0].duration = 50;
       SET_BIT_AR(af[0].bitvector, AFF_SANCTUARY);
 
       accum_duration = FALSE;
