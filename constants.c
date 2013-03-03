@@ -189,6 +189,7 @@ const char *room_affections[] = {
   "Anti-Magic Field",
   "Acid-Fogged",
   "Blade-Barriered",
+  "Spike Growth",
   "\n"
 };
 

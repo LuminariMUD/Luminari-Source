@@ -4483,6 +4483,13 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       rounds = 15;
       break;
 
+    case SPELL_SPIKE_GROWTH: // transmutation
+      to_char = "Large spikes suddenly protrude from the ground.";
+      to_room = "Large spikes suddenly protrude from the ground.";
+      aff = RAFF_SPIKE_GROWTH;
+      rounds = DIVINE_LEVEL(ch);
+      break;
+
     case SPELL_STINKING_CLOUD: //conjuration
       to_char = "Clouds of billowing stinking fumes fill the area.";
       to_room = "$n creates clouds of billowing stinking fumes that fill the area.";

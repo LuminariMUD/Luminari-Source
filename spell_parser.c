@@ -1782,6 +1782,9 @@ void mag_assign_spells(void)
   spello(SPELL_GREATER_MAGIC_FANG, "greater magic fang", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "Your greater magic fang wears off.", 4, 7, TRANSMUTATION);
+  spello(SPELL_SPIKE_GROWTH, "spike growth", 0, 0, 0, POS_STANDING,
+        TAR_IGNORE, FALSE, MAG_ROOM,
+        NULL, 5, 8, TRANSMUTATION);
   //cunning - shared
   //wisdom - shared
   //charisma - shared
