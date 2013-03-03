@@ -1455,7 +1455,7 @@ int damage(struct char_data *ch, struct char_data *victim,
     die(victim, ch);
     return (-1);
   }
-
+  
   if (ch->nr != real_mobile(DG_CASTER_PROXY) &&
           ch != victim && ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");

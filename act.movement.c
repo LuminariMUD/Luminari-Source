@@ -676,10 +676,10 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     if (riding && same_room) {
       // mount will take the damage, don't hurt rider
           /* damage characters upon entering spike growth room */
-      damage(NULL, RIDING(ch), dice(1, 4), SPELL_SPIKE_GROWTH, DAM_EARTH, FALSE);
+      damage(RIDING(ch), RIDING(ch), dice(1, 4), SPELL_SPIKE_GROWTH, DAM_EARTH, FALSE);
     } else {
       // mount is not there, or not mounted
-      damage(NULL, ch, dice(1, 4), SPELL_SPIKE_GROWTH, DAM_EARTH, FALSE);
+      damage(ch, ch, dice(1, 4), SPELL_SPIKE_GROWTH, DAM_EARTH, FALSE);
     }
   }
 
