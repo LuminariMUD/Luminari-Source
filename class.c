@@ -1201,11 +1201,11 @@ void init_class(struct char_data *ch, int class, int level)
     //3rd circle
     SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
     SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
-    // contagion SET_SKILL(ch, SPELL_CONTAGION, 99);
+    SET_SKILL(ch, SPELL_CONTAGION, 99);
     SET_SKILL(ch, SPELL_GREATER_MAGIC_FANG, 99);
-    // neutralize poison SET_SKILL(ch, SPELL_NEUTRALIZE_POISON, 99);
     SET_SKILL(ch, SPELL_POISON, 99);
     SET_SKILL(ch, SPELL_REMOVE_DISEASE, 99);
+    SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
     // spike growth SET_SKILL(ch, SPELL_SPIKE_GROWTH, 99);
     // summon nature's ally iii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_3, 99);
     SET_SKILL(ch, SPELL_DETECT_ALIGN, 99); // no
@@ -2703,11 +2703,11 @@ void init_spell_levels(void)
   //3rd circle
   spell_level(SPELL_CALL_LIGHTNING, CLASS_DRUID, 5);
   spell_level(SPELL_CURE_MODERATE, CLASS_DRUID, 5);
-  // contagion
+  spell_level(SPELL_CONTAGION, CLASS_DRUID, 5);
   spell_level(SPELL_GREATER_MAGIC_FANG, CLASS_DRUID, 5);
-  // neutralize poison
   spell_level(SPELL_POISON, CLASS_DRUID, 5);
-  // remove disease
+  spell_level(SPELL_REMOVE_DISEASE, CLASS_DRUID, 5);
+  spell_level(SPELL_REMOVE_POISON, CLASS_DRUID, 5);
   // spike growth
   // summon nature's ally iii
   spell_level(SPELL_DETECT_ALIGN, CLASS_DRUID, 5); // no

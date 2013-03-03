@@ -1341,6 +1341,59 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are stunned by the colors!";
       break;
 
+    case SPELL_CONTAGION: // necromancy
+      switch (rand_number(1, 7)) {
+        case 1: // blinding sickness
+          af[0].location = APPLY_STR;
+          af[0].modifier = dice(1, 4);
+          to_vict = "You are overcome with a blinding sickness.";
+          to_room = "$n is overcome with a blinding sickness.";
+          break;
+        case 2: // cackle fever
+          af[0].location = APPLY_WIS;
+          af[0].modifier = dice(1, 6);
+          to_vict = "You suddenly come down with cackle fever.";
+          to_room = "$n suddenly comes down with cackle fever.";
+          break;
+        case 3: // filth fever
+          af[0].location = APPLY_DEX;
+          af[0].modifier = dice(1, 3);
+          af[1].location = APPLY_CON;
+          af[1].modifier = dice(1, 3);
+          af[1].duration = 600;
+          to_vict = "You suddenly come down with filth fever.";
+          to_room = "$n suddenly comes down with filth fever.";
+          break;
+        case 4: // mindfire
+          af[0].location = APPLY_INT;
+          af[0].modifier = dice(1, 4);
+          to_vict = "You feel your mind start to burn incessantly.";
+          to_room = "$n's mind starts to burn incessantly.";
+          break;
+        case 5: // red ache
+          af[0].location = APPLY_STR;
+          af[0].modifier = dice(1, 6);
+          to_vict = "You suddenly feel weakened by the red ache.";
+          to_room = "$n suddenly feels weakened by the red ache.";
+          break;
+        case 6: // shakes
+          af[0].location = APPLY_DEX;
+          af[0].modifier = dice(1, 8);
+          to_vict = "You feel yourself start to uncontrollably shake.";
+          to_room = "$n starts to shake uncontrollably.";
+          break;
+        case 7: // slimy doom
+          af[0].location = APPLY_CON;
+          af[0].modifier = dice(1, 4);
+          to_vict = "You feel yourself affected by the slimy doom.";
+          to_room = "$n feels affected by the slimy doom.";
+          break;
+      }
+      af[0].duration = 600; // 30 real minutes (supposed to be permanent)
+      accum_affect = FALSE;
+      accum_duration = FALSE;
+      break;
+
     case SPELL_CUNNING: //transmutation
       if (affected_by_spell(victim, SPELL_MASS_CUNNING)) {
         send_to_char(ch, "Your target already has a cunning spell in effect.\r\n");
