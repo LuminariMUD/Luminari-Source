@@ -1,39 +1,40 @@
 /**************************************************************************
-* @file spells.h
-* Constants and function prototypes for the spell system.
-*
-* Part of the core tbaMUD source code distribution, which is a derivative
-* of, and continuation of, CircleMUD.
-*
-* All rights reserved.  See license for complete information.
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
-**************************************************************************/
+ * @file spells.h
+ * Constants and function prototypes for the spell system.
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * All rights reserved.  See license for complete information.
+ * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+ * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
+ **************************************************************************/
 #ifndef _SPELLS_H_
 #define _SPELLS_H_
 
-#define DEFAULT_STAFF_LVL	12
-#define DEFAULT_WAND_LVL	12
+
+#define DEFAULT_STAFF_LVL    12
+#define DEFAULT_WAND_LVL     12
 
 #define CAST_UNDEFINED	(-1)
-#define CAST_SPELL	0
-#define CAST_POTION	1
-#define CAST_WAND	2
-#define CAST_STAFF	3
-#define CAST_SCROLL	4
+#define CAST_SPELL       0
+#define CAST_POTION      1
+#define CAST_WAND        2
+#define CAST_STAFF       3
+#define CAST_SCROLL      4
 
-#define MAG_DAMAGE	(1 << 0)
-#define MAG_AFFECTS	(1 << 1)
-#define MAG_UNAFFECTS	(1 << 2)
-#define MAG_POINTS	(1 << 3)
-#define MAG_ALTER_OBJS	(1 << 4)
-#define MAG_GROUPS	(1 << 5)
-#define MAG_MASSES	(1 << 6)
-#define MAG_AREAS	(1 << 7)
-#define MAG_SUMMONS	(1 << 8)
-#define MAG_CREATIONS	(1 << 9)
-#define MAG_MANUAL	(1 << 10)
-#define MAG_ROOM	(1 << 11)
+#define MAG_DAMAGE        (1 << 0)
+#define MAG_AFFECTS       (1 << 1)
+#define MAG_UNAFFECTS     (1 << 2)
+#define MAG_POINTS        (1 << 3)
+#define MAG_ALTER_OBJS    (1 << 4)
+#define MAG_GROUPS        (1 << 5)
+#define MAG_MASSES        (1 << 6)
+#define MAG_AREAS         (1 << 7)
+#define MAG_SUMMONS       (1 << 8)
+#define MAG_CREATIONS     (1 << 9)
+#define MAG_MANUAL        (1 << 10)
+#define MAG_ROOM          (1 << 11)
 
 
 #define TYPE_UNDEFINED               (-1)
@@ -261,34 +262,34 @@
 #define SPELL_HOLY_SWORD           218  //paladin
 #define SPELL_INCENDIARY           219  // incendiary cloud
 /* some cleric spells */
-#define SPELL_CURE_MODERATE        220  //almost done
-#define SPELL_CURE_SERIOUS         221  //almost done
-#define SPELL_REMOVE_FEAR          222  //almost done
-#define SPELL_CURE_DEAFNESS        223  //almost done
-#define SPELL_FAERIE_FOG           224  //almost done
-#define SPELL_MASS_CURE_LIGHT      225  //almost done
-#define SPELL_AID                  226  //almost done
-#define SPELL_BRAVERY              227  //almost done
-#define SPELL_MASS_CURE_MODERATE   228  //almost done
-#define SPELL_REGENERATION         229  //almost done
-#define SPELL_FREE_MOVEMENT        230  //almost done
-#define SPELL_STRENGTHEN_BONE      231  //almost done
-#define SPELL_MASS_CURE_SERIOUS    232  //almost done
-#define SPELL_PRAYER               233  //almost done
-#define SPELL_REMOVE_DISEASE       234  //almost done
-#define SPELL_WORD_OF_FAITH        235
-#define SPELL_DIMENSIONAL_LOCK     236
-#define SPELL_SALVATION            237
-#define SPELL_SPRING_OF_LIFE       238
-#define SPELL_PLANE_SHIFT          239
-#define SPELL_STORM_OF_VENGEANCE   240
+#define SPELL_CURE_MODERATE        220  //done
+#define SPELL_CURE_SERIOUS         221  //done
+#define SPELL_REMOVE_FEAR          222  //done
+#define SPELL_CURE_DEAFNESS        223  //done
+#define SPELL_FAERIE_FOG           224  //done
+#define SPELL_MASS_CURE_LIGHT      225  //done
+#define SPELL_AID                  226  //done
+#define SPELL_BRAVERY              227  //done
+#define SPELL_MASS_CURE_MODERATE   228  //done
+#define SPELL_REGENERATION         229  //done
+#define SPELL_FREE_MOVEMENT        230  //done
+#define SPELL_STRENGTHEN_BONE      231  //done
+#define SPELL_MASS_CURE_SERIOUS    232  //done
+#define SPELL_PRAYER               233  //done
+#define SPELL_REMOVE_DISEASE       234  //done
+#define SPELL_WORD_OF_FAITH        235  //done
+#define SPELL_DIMENSIONAL_LOCK     236  //done
+#define SPELL_SALVATION            237  //done
+#define SPELL_SPRING_OF_LIFE       238  //done
+#define SPELL_PLANE_SHIFT          239  //done
+#define SPELL_STORM_OF_VENGEANCE   240  //done
 #define SPELL_DEATH_SHIELD         241
 #define SPELL_COMMAND              242
 #define SPELL_AIR_WALKER           243
-#define SPELL_GROUP_SUMMON         244
-#define SPELL_MASS_CURE_CRIT       245  //almost done
+#define SPELL_GROUP_SUMMON         244  //done
+#define SPELL_MASS_CURE_CRIT       245  //done
 /* some druid spells */
-#define SPELL_CHARM_ANIMAL         246
+#define SPELL_CHARM_ANIMAL              246
 #define SPELL_FAERIE_FIRE               247
 #define SPELL_GOODBERRY                 248
 #define SPELL_JUMP                      249
@@ -342,19 +343,19 @@
 #define SPELL_CONTROL_PLANTS            297
 #define SPELL_FINGER_OF_DEATH           298
 #define SPELL_ELEMENTAL_SWARM           299
-#define SPELL_REGENERATE                300 // maybe use regeneration
+#define SPELL_REGENERATE                300 // maybe use regeneration (done)
 #define SPELL_SHAMBLER                  301
 #define SPELL_SHAPECHANGE               302 // hey b, maybe use polymorph
 /* some more cleric spells */
-#define SPELL_BLADE_BARRIER             303
-#define SPELL_BLADES                    304  //blades (for blade barrier)
-#define SPELL_BATTLETIDE                305
+#define SPELL_BLADE_BARRIER             303  //done
+#define SPELL_BLADES                    304  //blades (for blade barrier) (done)
+#define SPELL_BATTLETIDE                305  //done
 /** Total Number of defined spells (last spell define + 1) */
-#define NUM_SPELLS                 306
+#define NUM_SPELLS                      306
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
-#define MAX_SPELLS		          400
+#define MAX_SPELLS		               400
 
 /* PLAYER SKILLS - Numbered from MAX_SPELLS+1 to MAX_SKILLS */
 #define SKILL_BACKSTAB                  401  // implemented
@@ -489,31 +490,31 @@
 /* NEW NPC/OBJECT SPELLS can be inserted here up to 699 */
 
 /* WEAPON ATTACK TYPES */
-#define TYPE_HIT        700
-#define TYPE_STING      701
-#define TYPE_WHIP       702
-#define TYPE_SLASH      703
-#define TYPE_BITE       704
-#define TYPE_BLUDGEON   705
-#define TYPE_CRUSH      706
-#define TYPE_POUND      707
-#define TYPE_CLAW       708
-#define TYPE_MAUL       709
-#define TYPE_THRASH     710
-#define TYPE_PIERCE     711
-#define TYPE_BLAST      712
-#define TYPE_PUNCH      713
-#define TYPE_STAB       714
+#define TYPE_HIT          700
+#define TYPE_STING        701
+#define TYPE_WHIP         702
+#define TYPE_SLASH        703
+#define TYPE_BITE         704
+#define TYPE_BLUDGEON     705
+#define TYPE_CRUSH        706
+#define TYPE_POUND        707
+#define TYPE_CLAW         708
+#define TYPE_MAUL         709
+#define TYPE_THRASH       710
+#define TYPE_PIERCE       711
+#define TYPE_BLAST        712
+#define TYPE_PUNCH        713
+#define TYPE_STAB         714
 /** The total number of attack types */
 #define NUM_ATTACK_TYPES  15
 
 /* other attack types */
-#define TYPE_CSHIELD          796
-#define TYPE_FSHIELD          797
-#define TYPE_ASHIELD          798
-#define TYPE_SUFFERING		799
+#define TYPE_CSHIELD      796
+#define TYPE_FSHIELD      797
+#define TYPE_ASHIELD      798
+#define TYPE_SUFFERING    799
 /* new attack types can be added here - up to TYPE_SUFFERING */
-#define MAX_TYPES		800
+#define MAX_TYPES		 800
 
 /*---------------------------ABILITIES-------------------------------------*/
 
@@ -538,7 +539,7 @@
 #define ABILITY_STEAL			18 //pick pockets
 
 #define NUM_ABILITIES			19 /* Number of defined abilities */
-/*	MAX_ABILITIES = 200 */ 
+/*	MAX_ABILITIES = 200 */
 /*-------------------------------------------------------------------------*/
 
 
@@ -587,14 +588,14 @@
 
 
 /************************************/
-/********** Saves ******************/
+/********** Saves *******************/
 /************************************/
 #define SAVING_FORT   0
 #define SAVING_REFL   1
 #define SAVING_WILL   2
-#define SAVING_POISON 3
-#define SAVING_DEATH  4
-/*--------------------------------------*/
+#define SAVING_POISON 3  /* this is not really used -zusuk */
+#define SAVING_DEATH  4  /* this is not really used -zusuk */
+/*----------------------------------*/
 
 
 /***
@@ -623,22 +624,21 @@
 #define TAR_OBJ_WORLD   (1 << 9)
 #define TAR_OBJ_EQUIP   (1 << 10)
 
-
 struct spell_info_type {
-   byte min_position;	/* Position for caster	 */
-   int mana_min;	/* Min amount of mana used by a spell (highest lev) */
-   int mana_max;	/* Max amount of mana used by a spell (lowest lev) */
-   int mana_change;	/* Change in mana used by spell from lev to lev */
+  byte min_position; /* Position for caster	 */
+  int mana_min; /* Min amount of mana used by a spell (highest lev) */
+  int mana_max; /* Max amount of mana used by a spell (lowest lev) */
+  int mana_change; /* Change in mana used by spell from lev to lev */
 
-   int min_level[NUM_CLASSES];
-   int routines;
-   byte violent;
-   int targets;         /* See below for use with TAR_XXX  */
-   const char *name;	/* Input size not limited. Originates from string constants. */
-   const char *wear_off_msg;	/* Input size not limited. Originates from string constants. */
-   int time;  /* casting time */
-   int memtime;  /* mem time */
-   int schoolOfMagic;	// school of magic
+  int min_level[NUM_CLASSES];
+  int routines;
+  byte violent;
+  int targets; /* See below for use with TAR_XXX  */
+  const char *name; /* Input size not limited. Originates from string constants. */
+  const char *wear_off_msg; /* Input size not limited. Originates from string constants. */
+  int time; /* casting time */
+  int memtime; /* mem time */
+  int schoolOfMagic; // school of magic
 };
 
 /* Possible Targets:
@@ -705,9 +705,9 @@ ASPELL(spell_storm_of_vengeance);
 int find_skill_num(char *name);
 int find_ability_num(char *name);
 int mag_damage(int level, struct char_data *ch, struct char_data *victim,
-  struct obj_data *obj, int spellnum, int savetype);
+        struct obj_data *obj, int spellnum, int savetype);
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
-  struct obj_data *obj, int spellnum, int savetype);
+        struct obj_data *obj, int spellnum, int savetype);
 void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum, int savetype);
 void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
@@ -715,23 +715,23 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
 void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum, int savetype);
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
- int spellnum, int savetype);
+        int spellnum, int savetype);
 void mag_points(int level, struct char_data *ch, struct char_data *victim,
         struct obj_data *obj, int spellnum, int savetype);
 void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
-  struct obj_data *obj, int spellnum, int type);
+        struct obj_data *obj, int spellnum, int type);
 void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
-  int spellnum, int type);
+        int spellnum, int type);
 void mag_creations(int level, struct char_data *ch, struct char_data *vict,
         struct obj_data *obj, int spellnum);
 void mag_room(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum);
-int	call_magic(struct char_data *caster, struct char_data *cvict,
-  struct obj_data *ovict, int spellnum, int level, int casttype);
-void	mag_objectmagic(struct char_data *ch, struct obj_data *obj,
-			char *argument);
-int	cast_spell(struct char_data *ch, struct char_data *tch,
-  struct obj_data *tobj, int spellnum);
+int call_magic(struct char_data *caster, struct char_data *cvict,
+        struct obj_data *ovict, int spellnum, int level, int casttype);
+void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
+        char *argument);
+int cast_spell(struct char_data *ch, struct char_data *tch,
+        struct obj_data *tobj, int spellnum);
 
 
 /* other prototypes */
@@ -744,9 +744,9 @@ int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool is_tele);
 
 /* From magic.c */
 int compute_mag_saves(struct char_data *vict,
-	int type, int modifier);
+        int type, int modifier);
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
-	int type, int modifier);
+        int type, int modifier);
 void affect_update(void);
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier);
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int mod);
