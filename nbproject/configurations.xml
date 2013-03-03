@@ -96,7 +96,6 @@
       <in>limits.c</in>
       <in>lists.c</in>
       <in>lists.h</in>
-      <in>magic.c</in>
       <in>mail.c</in>
       <in>mail.h</in>
       <in>medit.c</in>
