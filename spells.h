@@ -313,7 +313,7 @@
 #define SPELL_SUMMON_SWARM              268
 #define SPELL_CONTAGION                 269
 #define SPELL_GREATER_MAGIC_FANG        270
-#define SPELL_NEUTRALIZE_POISON         271 // hey b, maybe use remove poison
+#define SPELL_UNUSED271                 271
 #define SPELL_SPIKE_GROWTH              272
 #define SPELL_BLIGHT                    273
 #define SPELL_REINCARNATE               274
