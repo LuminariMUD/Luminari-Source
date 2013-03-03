@@ -4378,6 +4378,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "The spell fails!\r\n");
       return;
     }
+    
 
     /* make sure its a portal **/
     GET_OBJ_TYPE(tobj) = ITEM_PORTAL;
