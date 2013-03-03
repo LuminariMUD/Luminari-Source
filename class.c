@@ -1206,7 +1206,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_POISON, 99);
     SET_SKILL(ch, SPELL_REMOVE_DISEASE, 99);
     SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
-    // spike growth SET_SKILL(ch, SPELL_SPIKE_GROWTH, 99);
+    SET_SKILL(ch, SPELL_SPIKE_GROWTH, 99);
     // summon nature's ally iii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_3, 99);
     SET_SKILL(ch, SPELL_DETECT_ALIGN, 99); // no
     SET_SKILL(ch, SPELL_CURE_BLIND, 99); // no
@@ -2708,7 +2708,7 @@ void init_spell_levels(void)
   spell_level(SPELL_POISON, CLASS_DRUID, 5);
   spell_level(SPELL_REMOVE_DISEASE, CLASS_DRUID, 5);
   spell_level(SPELL_REMOVE_POISON, CLASS_DRUID, 5);
-  // spike growth
+  spell_level(SPELL_SPIKE_GROWTH, CLASS_DRUID, 5);
   // summon nature's ally iii
   spell_level(SPELL_DETECT_ALIGN, CLASS_DRUID, 5); // no
   spell_level(SPELL_CURE_BLIND, CLASS_DRUID, 5); // no

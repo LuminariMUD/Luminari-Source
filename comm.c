@@ -990,39 +990,6 @@ void pulse_luminari() {
   for (raff = raff_list; raff; raff = next_raff) {
     next_raff = raff->next;
 
-    //stinking cloud
-    if (raff->spell == SPELL_STINKING_CLOUD) {
-      caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
-      caster_room = &world[raff->room];
-      if (!caster) {
-        script_log("comm.c: Cannot load the caster mob!");
-        return;
-      }
-      
-      /* set the caster's name */
-      caster->player.short_descr = strdup("The room");
-      caster->next_in_room = caster_room->people;
-      caster_room->people = caster;
-      caster->in_room = real_room(caster_room->number);
-      call_magic(caster, NULL, NULL, SPELL_STENCH, DG_SPELL_LEVEL, CAST_SPELL);
-      extract_char(caster);
-    }
-    /* end stinking cloud */
-
-    //billowing cloud
-    if (raff->spell == SPELL_BILLOWING_CLOUD) {
-      for (tch = world[raff->room].people; tch; tch = tch->next_in_room) {
-        if (tch && GET_LEVEL(tch) < 13) {
-          if (!mag_savingthrow(tch, tch, SAVING_FORT, 0)) {
-            send_to_char(tch, "You are bogged down by the billowing cloud!\r\n");
-            act("$n is bogged down by the billowing cloud.", TRUE, tch, 0, NULL, TO_ROOM);
-            WAIT_STATE(tch, PULSE_VIOLENCE);
-          }
-        }
-      }
-    }
-    /* end billowing cloud */
-    
     //acid fog
     if (raff->spell == SPELL_ACID_FOG) {
       caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
@@ -1040,6 +1007,20 @@ void pulse_luminari() {
       call_magic(caster, NULL, NULL, SPELL_ACID, DG_SPELL_LEVEL, CAST_SPELL);
       extract_char(caster);
     } /* end acid fog */
+    
+    //billowing cloud
+    if (raff->spell == SPELL_BILLOWING_CLOUD) {
+      for (tch = world[raff->room].people; tch; tch = tch->next_in_room) {
+        if (tch && GET_LEVEL(tch) < 13) {
+          if (!mag_savingthrow(tch, tch, SAVING_FORT, 0)) {
+            send_to_char(tch, "You are bogged down by the billowing cloud!\r\n");
+            act("$n is bogged down by the billowing cloud.", TRUE, tch, 0, NULL, TO_ROOM);
+            WAIT_STATE(tch, PULSE_VIOLENCE);
+          }
+        }
+      }
+    }
+    /* end billowing cloud */
     
     //blade barrier
     if (raff->spell == SPELL_BLADE_BARRIER) {
@@ -1060,6 +1041,25 @@ void pulse_luminari() {
     }
     /* end blade barrier */
     
+    //stinking cloud
+    if (raff->spell == SPELL_STINKING_CLOUD) {
+      caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+      caster_room = &world[raff->room];
+      if (!caster) {
+        script_log("comm.c: Cannot load the caster mob!");
+        return;
+      }
+      
+      /* set the caster's name */
+      caster->player.short_descr = strdup("The room");
+      caster->next_in_room = caster_room->people;
+      caster_room->people = caster;
+      caster->in_room = real_room(caster_room->number);
+      call_magic(caster, NULL, NULL, SPELL_STENCH, DG_SPELL_LEVEL, CAST_SPELL);
+      extract_char(caster);
+    }
+    /* end stinking cloud */
+
   }
 
   // looping through char list, what needs to be done?
