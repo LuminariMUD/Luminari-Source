@@ -37,6 +37,7 @@
 #define EX_PICKPROOF		(1 << 3)	/* Lock can't be picked    */
 
 #define MAX_STRING_LENGTH	8192
+#define MEDIUM_STRING	256
 
 typedef signed char sbyte;
 typedef unsigned char ubyte;
