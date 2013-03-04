@@ -1219,8 +1219,8 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_FLAME_STRIKE, 99);
     SET_SKILL(ch, SPELL_FREE_MOVEMENT, 99);
     SET_SKILL(ch, SPELL_ICE_STORM, 99);
+    SET_SKILL(ch, SPELL_LOCATE_CREATURE, 99);
     // reincarnate? SET_SKILL(ch, SPELL_REINCARNATE, 99);
-    // scrying SET_SKILL(ch, SPELL_SCRYING, 99);
     // spike stones SET_SKILL(ch, SPELL_SPIKE_STONES, 99);
     // summon nature's ally iv SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_4, 99);
     SET_SKILL(ch, SPELL_INFRAVISION, 99); // no
@@ -2710,10 +2710,10 @@ void init_spell_levels(void)
   spell_level(SPELL_REMOVE_POISON, CLASS_DRUID, 5);
   spell_level(SPELL_SPIKE_GROWTH, CLASS_DRUID, 5);
   // summon nature's ally iii
-  spell_level(SPELL_DETECT_ALIGN, CLASS_DRUID, 5); // no
-  spell_level(SPELL_CURE_BLIND, CLASS_DRUID, 5); // no
-  spell_level(SPELL_BLESS, CLASS_DRUID, 5); // no
-  spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_DRUID, 5); // no
+  //spell_level(SPELL_DETECT_ALIGN, CLASS_DRUID, 5); // no
+  //spell_level(SPELL_CURE_BLIND, CLASS_DRUID, 5); // no
+  //spell_level(SPELL_BLESS, CLASS_DRUID, 5); // no
+  //spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_DRUID, 5); // no
 
   //4th circle
   spell_level(SPELL_BLIGHT, CLASS_DRUID, 7);
@@ -2722,8 +2722,8 @@ void init_spell_levels(void)
   spell_level(SPELL_FLAME_STRIKE, CLASS_DRUID, 7);
   spell_level(SPELL_FREE_MOVEMENT, CLASS_DRUID, 7);
   spell_level(SPELL_ICE_STORM, CLASS_DRUID, 7);
+  spell_level(SPELL_LOCATE_CREATURE, CLASS_DRUID, 7);
   // reincarnate
-  // scrying
   // spike stones
   // summon nature's ally iv
   spell_level(SPELL_INFRAVISION, CLASS_DRUID, 7); // no
@@ -2747,7 +2747,7 @@ void init_spell_levels(void)
   spell_level(SPELL_GROUP_ARMOR, CLASS_DRUID, 9); // no
   //6th circle
   // fire seeds
-  // greater dispel magic
+  spell_level(SPELL_GREATER_DISPELLING, CLASS_DRUID, 11);
   spell_level(SPELL_MASS_CURE_LIGHT, CLASS_DRUID, 11);
   spell_level(SPELL_MASS_ENDURANCE, CLASS_DRUID, 11);
   spell_level(SPELL_MASS_STRENGTH, CLASS_DRUID, 11);
