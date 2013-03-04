@@ -1624,7 +1624,7 @@ void mag_assign_spells(void) {
   spello(SPELL_OBSCURING_MIST, "obscuring mist", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "The obscuring mist begins to dissipate.", 3, 5, CONJURATION);
-  spello(SPELL_SUMMON_NATURES_ALLY_1, "summon natures ally i", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_SUMMON_NATURES_ALLY_1, "natures ally i", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 4, 5, CONJURATION);
   // summon creature 1 - shared
   /* necromancy */
@@ -1717,7 +1717,7 @@ void mag_assign_spells(void) {
           NULL, 5, 6, EVOCATION);
   /* conjuration */
   //summon creature 2 - shared
-  spello(SPELL_SUMMON_NATURES_ALLY_2, "summon natures ally ii", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_SUMMON_NATURES_ALLY_2, "natures ally ii", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
           NULL, 4, 7, CONJURATION);
   spello(SPELL_SUMMON_SWARM, "summon swarm", 0, 0, 0, POS_FIGHTING,
