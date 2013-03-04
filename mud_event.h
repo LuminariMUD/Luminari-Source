@@ -18,6 +18,7 @@
 #define EVENT_WORLD 0
 #define EVENT_DESC  1
 #define EVENT_CHAR  2
+#define EVENT_ROOM  3
 
 #define NEW_EVENT(event_id, struct, var, time) (attach_mud_event(new_mud_event(event_id, struct,  var), time))
 
@@ -55,9 +56,10 @@ typedef enum {
     ePURGEMOB,           //  mob purge
     eICE_STORM,          //  storm of vengeance - ice storm
     eCHAIN_LIGHTNING,    //  storm of vengeance - chain lightning
+    eDARKNESS,           //  darkness room event
 } event_id;
 /* probaly a smart place to mention to not forget to update:
-   act.informative.c
+   act.informative.c (if you want do_affects to show status)
    players.c (if you want it to save)
  */
 
@@ -98,4 +100,5 @@ EVENTFUNC(event_acid_arrow);
 EVENTFUNC(event_implode);
 EVENTFUNC(event_ice_storm);
 EVENTFUNC(event_chain_lightning);
+
 #endif /* _MUD_EVENT_H_ */

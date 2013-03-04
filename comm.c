@@ -76,6 +76,7 @@
 #include "boards.h"
 #include "act.h"
 #include "ban.h"
+#include "msgedit.h"
 #include "fight.h"
 #include "spells.h" /* for affect_update */
 #include "modify.h"
@@ -85,9 +86,7 @@
 #include "clan.h"
 #include "class.h" /* needed for level_exp for prompt */
 #include "mail.h" /* has_mail() */
-#include "msgedit.h"
 #include "screen.h"
-
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)

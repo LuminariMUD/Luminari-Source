@@ -22,6 +22,7 @@
 #include "class.h"
 #include "fight.h"
 #include "utils.h"
+#include "mud_event.h"
 
 //external
 extern struct raff_node *raff_list;
@@ -4437,23 +4438,50 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   load_otrigger(tobj);
 }
 
-void mag_room(int level, struct char_data * ch, struct obj_data *obj,
+/* so this function is becoming a beast, we have to support both
+   room-affections AND room-events now
+ */
+void mag_room(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum) {
-  long aff; /* what affection */
-  int rounds; /* how many rounds this spell lasts */
+  long aff = -1; /* what affection, -1 means it must be an event */
+  int rounds = 0; /* how many rounds this spell lasts (duration) */
   char *to_char = NULL;
-  char *to_room = NULL, buf[MAX_INPUT_LENGTH];
-  struct raff_node *raff;
+  char *to_room = NULL, buf[MAX_INPUT_LENGTH] = {'\0'};
+  struct raff_node *raff = NULL;
   extern struct raff_node *raff_list;
-
-  aff = rounds = 0;
+  room_rnum rnum = NOWHERE;
+  bool failure = FALSE;
+  event_id IdNum = -1; /* which event? -1 means it must be an affection */
 
   if (ch == NULL)
     return;
+  
+  rnum = IN_ROOM(ch);  
 
+  if (ROOM_FLAGGED(rnum, ROOM_NOMAGIC))
+    failure = TRUE;
+  
   level = MAX(MIN(level, LVL_IMPL), 1);
 
   switch (spellnum) {
+    /*******  ROOM EVENTS     ************/
+    
+    case SPELL_I_DARKNESS:
+      IdNum = eDARKNESS;
+      if (ROOM_FLAGGED(rnum, ROOM_DARK))
+        failure = TRUE;
+        
+      rounds = 10;
+      SET_BIT_AR(ROOM_FLAGS(rnum), ROOM_DARK);
+        
+      to_char = "You cast a shroud of darkness upon the area.";
+      to_room = "$n casts a shroud of darkness upon this area.";
+    break;
+    
+    /*******  END ROOM EVENTS ************/
+    
+    /*******  ROOM AFFECTIONS ************/
+    
     case SPELL_WALL_OF_FOG: //illusion
       to_char = "You create a fog out of nowhere.";
       to_room = "$n creates a fog out of nowhere.";
@@ -4527,25 +4555,52 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       rounds = 15;
       break;
 
+    /*******  END ROOM AFFECTIONS ***********/
+      
     default:
       sprintf(buf, "SYSERR: unknown spellnum %d passed to mag_room", spellnum);
       log(buf);
       break;
   }
 
-  /* create, initialize, and link a room-affection node */
-  CREATE(raff, struct raff_node, 1);
-  raff->room = ch->in_room;
-  raff->timer = rounds;
-  raff->affection = aff;
-  raff->ch = ch;
-  raff->spell = spellnum;
-  raff->next = raff_list;
-  raff_list = raff;
+  /* no event data or room-affection */
+  if (IdNum == -1 && aff == -1) {
+    send_to_char(ch, "Your spell is inert!\r\n");
+    return;
+  }
+  
+  /* failed for whatever reason! */
+  if (failure) {
+    send_to_char(ch, "You failed!\r\n");
+    return;
+  }
+  
+  /* first check if this is a room event */
+  if (IdNum != -1) {
+    /* note, as of now we are setting the room flag in the switch() above */
+    NEW_EVENT(IdNum, &world[rnum], NULL, rounds * PULSE_VIOLENCE);
+  }
+  /* ok, must be a room affection */
+  else if (aff != -1) {
+    /* create, initialize, and link a room-affection node */
+    CREATE(raff, struct raff_node, 1);
+    raff->room = rnum;
+    raff->timer = rounds;
+    raff->affection = aff;
+    raff->ch = ch;
+    raff->spell = spellnum;
+    raff->next = raff_list;
+    raff_list = raff;
 
-  /* set the affection */
-  SET_BIT(ROOM_AFFECTIONS(raff->room), aff);
-
+    /* set the affection */
+    SET_BIT(ROOM_AFFECTIONS(raff->room), aff);
+  } else {
+    /* should not get here */
+    send_to_char(ch, "Your spell is completely inert!\r\n");
+    return;    
+  }
+  
+  /* OK send message now */
   if (to_char == NULL)
     send_to_char(ch, "%s", CONFIG_NOEFFECT);
   else

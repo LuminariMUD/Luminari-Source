@@ -350,8 +350,9 @@
 #define SPELL_BLADE_BARRIER             303  //done
 #define SPELL_BLADES                    304  //blades (for blade barrier) (done)
 #define SPELL_BATTLETIDE                305  //done
+#define SPELL_I_DARKNESS                306  //room event test spell
 /** Total Number of defined spells (last spell define + 1) */
-#define NUM_SPELLS                      306
+#define NUM_SPELLS                      307
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */

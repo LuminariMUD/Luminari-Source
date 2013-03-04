@@ -11,6 +11,7 @@
  */
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
+
 #include "protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
@@ -21,7 +22,7 @@
  * on an older version. You are supposed to compare this with the macro
  * TBAMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP */
-#define _TBAMUD    0x030630
+#define _TBAMUD    0x030640
 
 /** If you want equipment to be automatically equipped to the same place
  * it was when players rented, set the define below to 1 because
@@ -1139,6 +1140,8 @@ struct obj_data {
   struct weapon_spells wpn_spells[MAX_WEAPON_SPELLS];
 
   struct obj_spellbook_spell *sbinfo; /* For spellbook info */
+  
+  struct list_data *events;      /**< Used for object events */  
 };
 
 /** Instance info for an object that gets saved to disk.
@@ -1223,6 +1226,8 @@ struct room_data {
   struct script_data *script; /**< script info for the room */
   struct obj_data *contents; /**< List of items in room */
   struct char_data *people; /**< List of NPCs / PCs in room */
+
+  struct list_data * events;  
 };
 
 /* char-related structures */
