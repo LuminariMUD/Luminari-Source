@@ -318,7 +318,7 @@
 #define SPELL_SPIKE_GROWTH              272
 #define SPELL_BLIGHT                    273
 #define SPELL_REINCARNATE               274
-#define SPELL_SCRYING                   275 // hey b, maybe use locate creature
+#define SPELL_UNUSED275                 275
 #define SPELL_SPIKE_STONES              276
 #define SPELL_BALEFUL_POLYMORPH         277 // hey b, maybe use polymorph
 #define SPELL_DEATH_WARD                278
@@ -328,7 +328,7 @@
 #define SPELL_WALL_OF_FIRE              282
 #define SPELL_WALL_OF_THORNS            283
 #define SPELL_FIRE_SEEDS                284
-#define SPELL_GREATER_DISPEL_MAGIC      285 // same as greater dispelling?
+#define SPELL_UNUSED285                 285 
 #define SPELL_MASS_ENDURANCE            286 // *note mass enhance combines these 3
 #define SPELL_MASS_STRENGTH             287 // *note mass enhance combines these 3
 #define SPELL_MASS_GRACE                288 // *note mass enhance combines these 3

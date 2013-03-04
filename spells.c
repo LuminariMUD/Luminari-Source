@@ -1014,7 +1014,6 @@ ASPELL(spell_locate_object) {
 
 ASPELL(spell_greater_dispelling) // abjuration
 {
-
   if (ch == NULL)
     return;
   if (victim == NULL)
