@@ -517,8 +517,9 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
     write_to_output(d, "Number of damage dice : ");
     break;
   case ITEM_FOOD:
+    write_to_output(d, "Spell number : ");
     /* Values 2 and 3 are unused, jump to 4...Odd. */
-    oedit_disp_val4_menu(d);
+//    oedit_disp_val4_menu(d);
     break;
   case ITEM_CONTAINER:
     /* These are flags, needs a bit of special handling. */
@@ -553,48 +554,50 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
     oedit_disp_menu(d);
   }
 }
-
 /* Object value #3 */
-static void oedit_disp_val3_menu(struct descriptor_data *d)
-{
+static void oedit_disp_val3_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_3;
   switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
-  case ITEM_LIGHT:
-    write_to_output(d, "Number of hours (0 = burnt, -1 is infinite) : ");
-    break;
-  case ITEM_SCROLL:
-  case ITEM_POTION:
-    oedit_disp_spells_menu(d);
-    break;
-  case ITEM_WAND:
-  case ITEM_STAFF:
-    write_to_output(d, "Number of charges remaining : ");
-    break;
-  case ITEM_WEAPON:
-    write_to_output(d, "Size of damage dice : ");
-    break;
-  case ITEM_CONTAINER:
-    write_to_output(d, "Vnum of key to open container (-1 for no key) : ");
-    break;
-  case ITEM_DRINKCON:
-  case ITEM_FOUNTAIN:
-    oedit_liquid_type(d);
-    break;
-  case ITEM_PORTAL: 
-    switch(GET_OBJ_VAL(OLC_OBJ(d), 0)) { 
-      case PORTAL_NORMAL: 
-      case PORTAL_CHECKFLAGS: 
-        oedit_disp_menu(d);  /* We are done for these portal types */ 
-        break; 
- 
-      case PORTAL_RANDOM: 
-        write_to_output(d, "Highest room VNUM in range : "); 
-        break; 
-    } 
-    break; 
+    case ITEM_LIGHT:
+      write_to_output(d, "Number of hours (0 = burnt, -1 is infinite) : ");
+      break;
+    case ITEM_FOOD:
+      /* val 3 is unused, jump to 4 */
+      oedit_disp_val4_menu(d);
+      break;
+    case ITEM_SCROLL:
+    case ITEM_POTION:
+      oedit_disp_spells_menu(d);
+      break;
+    case ITEM_WAND:
+    case ITEM_STAFF:
+      write_to_output(d, "Number of charges remaining : ");
+      break;
+    case ITEM_WEAPON:
+      write_to_output(d, "Size of damage dice : ");
+      break;
+    case ITEM_CONTAINER:
+      write_to_output(d, "Vnum of key to open container (-1 for no key) : ");
+      break;
+    case ITEM_DRINKCON:
+    case ITEM_FOUNTAIN:
+      oedit_liquid_type(d);
+      break;
+    case ITEM_PORTAL:
+      switch (GET_OBJ_VAL(OLC_OBJ(d), 0)) {
+        case PORTAL_NORMAL:
+        case PORTAL_CHECKFLAGS:
+          oedit_disp_menu(d); /* We are done for these portal types */
+          break;
 
-  default:
-    oedit_disp_menu(d);
+        case PORTAL_RANDOM:
+          write_to_output(d, "Highest room VNUM in range : ");
+          break;
+      }
+      break;
+
+    default:
+      oedit_disp_menu(d);
   }
 }
 
