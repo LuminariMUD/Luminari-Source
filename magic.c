@@ -21,7 +21,7 @@
 #include "dg_scripts.h"
 #include "class.h"
 #include "fight.h"
-
+#include "utils.h"
 
 //external
 extern struct raff_node *raff_list;
@@ -643,13 +643,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_BLIGHT: // evocation
       if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_PLANT) {
         send_to_char(ch, "Your blight spell will only effect plant life.\r\n");
-        return;
+        return (0);
       }
       save = SAVING_FORT;
       mag_resist = TRUE;
       element = DAM_EARTH;
       num_dice = MIN(divine_level, 15); // maximum 15d6
-      size_size = 6;
+      size_dice = 6;
       bonus = MIN(divine_level, 15);
       break;
       
@@ -4502,7 +4502,7 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       if (SECT(ch->in_room) == SECT_UNDERWATER ||
               SECT(ch->in_room)== SECT_FLYING ||
               SECT(ch->in_room) == SECT_WATER_SWIM ||
-              SECT(ch->in_room) == SECT_WATER_NO_SWIM ||
+              SECT(ch->in_room) == SECT_WATER_NOSWIM ||
               SECT(ch->in_room) == SECT_OCEAN) {
         send_to_char(ch, "Your spikes are not effective in this terrain.\r\n");
         return;
