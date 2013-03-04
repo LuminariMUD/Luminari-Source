@@ -704,7 +704,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       element = DAM_FIRE;
       num_dice = 1;
       size_dice = 6;
-      bonus = MIN(magic_level, 5);
+      bonus = MIN(divine_level, 5);
       break;
 
       /***************/
@@ -980,10 +980,11 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       
     case SPELL_SUMMON_SWARM: // conjuration
       mag_resist = FALSE;
+      save = -1;
       element = DAM_NEGATIVE;
       num_dice = 1;
       size_dice = 6;
-      bonus = MAX(magic_level, 5);
+      bonus = MAX(divine_level, 5);
       break;
 
     case SPELL_METEOR_SWARM:
@@ -2000,7 +2001,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
 
       SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-      af[0].duration = magic_level; // one round per level
+      af[0].duration = divine_level; // one round per level
       to_room = "$n is overcome by a powerful hold spell!";
       to_vict = "You are overcome by a powerful hold spell!";
       break;
@@ -2339,7 +2340,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       }
       
-      af[0].duration = magic_level;
+      af[0].duration = divine_level;
       to_room = "An obscuring mist suddenly fills the room!";
       to_vict = "An obscruring mist suddenly surrounds you.";
       break;
@@ -2758,7 +2759,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 600;
       to_room = "$n's skin becomes hard as rock!";
       to_vict = "Your skin becomes hard as stone.";
-      GET_STONESKIN(victim) = MIN(225, magic_level * 15);
+      /* using level variable here for weapon spells and druid compatibility */
+      GET_STONESKIN(victim) = MIN(225, level * 15);
       break;
 
     case SPELL_STRENGTH: //transmutation

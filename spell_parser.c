@@ -1612,7 +1612,7 @@ void mag_assign_spells(void) {
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
           NULL, 1, 5, EVOCATION);
   spello(SPELL_PRODUCE_FLAME, "produce flame", 0, 0, 0, POS_FIGHTING,
-          TAR_CHAR_ROOM, TRUE, MAG_DAMAGE,
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
           NULL, 3, 5, EVOCATION);
   /* conjuration */
   spello(SPELL_ICE_DAGGER, "ice dagger", 0, 0, 0, POS_FIGHTING,
