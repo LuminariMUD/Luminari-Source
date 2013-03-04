@@ -55,6 +55,7 @@ struct mud_event_list mud_event_index[] = {
   { "Mob Purge"          , event_countdown,  EVENT_CHAR  }, // ePURGEMOB
   { "SoV Ice Storm"      , event_ice_storm,  EVENT_CHAR  }, // eICE_STORM
   { "SoV Chain Lightning", event_chain_lightning,  EVENT_CHAR  }, // eCHAIN_LIGHTNING
+  { "Darkness"           , event_countdown,  EVENT_ROOM  }   /* eDARKNESS */
 };
 
 
@@ -75,6 +76,8 @@ EVENTFUNC(event_countdown)
 {
   struct mud_event_data * pMudEvent = NULL;
   struct char_data * ch = NULL;
+  struct room_data * room = NULL;
+  room_rnum rnum = NOWHERE;
 	
   pMudEvent = (struct mud_event_data * ) event_obj;
 	
@@ -82,11 +85,19 @@ EVENTFUNC(event_countdown)
     case EVENT_CHAR:
       ch = (struct char_data * ) pMudEvent->pStruct;
     break;
+    case EVENT_ROOM:
+      room = (struct room_data * ) pMudEvent->pStruct;
+      rnum = real_room(room->number);
+    break;
     default:
     break;
   }	
 	
   switch (pMudEvent->iId) {
+    case eDARKNESS:
+      REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_DARK);
+      send_to_room(rnum, "The dark shroud disappates.\r\n");
+    break;
     case eMUMMYDUST:
       send_to_char(ch, "You are now able to cast Mummy Dust again.\r\n");
       break;
@@ -178,7 +189,8 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
   struct event * pEvent = NULL;
   struct descriptor_data * d = NULL;
   struct char_data * ch = NULL;
-   
+  struct room_data * room = NULL;
+  
   pEvent = event_create(mud_event_index[pMudEvent->iId].func, pMudEvent, time);
   pEvent->isMudEvent = TRUE;	
   pMudEvent->pEvent = pEvent;        
@@ -193,8 +205,20 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     break;
     case EVENT_CHAR:
       ch = (struct char_data *) pMudEvent->pStruct;
+      
+      if (ch->events == NULL)
+        ch->events = create_list();
+      
       add_to_list(pEvent, ch->events);
     break;
+    case EVENT_ROOM:
+      room = (struct room_data *) pMudEvent->pStruct;
+      
+      if (room->events == NULL)
+        room->events = create_list();      
+      
+      add_to_list(pEvent, room->events);
+    break;    
   }
 }
 
@@ -220,19 +244,34 @@ void free_mud_event(struct mud_event_data *pMudEvent)
 {
   struct descriptor_data * d = NULL;
   struct char_data * ch = NULL;
-
+  struct room_data * room = NULL;
+  
   switch (mud_event_index[pMudEvent->iId].iEvent_Type) {
     case EVENT_WORLD:
       remove_from_list(pMudEvent->pEvent, world_events);
-    break;
+      break;
     case EVENT_DESC:
       d = (struct descriptor_data *) pMudEvent->pStruct;
       remove_from_list(pMudEvent->pEvent, d->events);
-    break;
+      break;
     case EVENT_CHAR:
       ch = (struct char_data *) pMudEvent->pStruct;
       remove_from_list(pMudEvent->pEvent, ch->events);
-    break;
+      
+      if (ch->events->iSize == 0) {
+        free_list(ch->events);
+        ch->events = NULL;
+      }
+      break;
+    case EVENT_ROOM:
+      room = (struct room_data *) pMudEvent->pStruct;
+      remove_from_list(pMudEvent->pEvent, room->events);
+      
+      if (room->events->iSize == 0) {
+        free_list(room->events);
+        room->events = NULL;
+      }      
+      break;
   }
 
   if (pMudEvent->sVariables != NULL)
@@ -249,10 +288,13 @@ struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId)
   struct mud_event_data * pMudEvent = NULL;
   bool found = FALSE;
 
+  if (ch->events == NULL)
+    return NULL;
+  
   if (ch->events->iSize == 0)
     return NULL;
 
-  simple_list(NULL);
+  clear_simple_list();
 	
   while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
 		if (!pEvent->isMudEvent)
@@ -263,8 +305,6 @@ struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId)
 	    break;
     }
   }
-  
-  simple_list(NULL);
   
   if (found)
     return (pMudEvent);
@@ -283,31 +323,34 @@ void clear_char_event_list(struct char_data * ch)
   if (ch->events->iSize == 0)
     return;
     
-  simple_list(NULL);
+  clear_simple_list();
 
   while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
     event_cancel(pEvent);
   }
   
-  simple_list(NULL);  
 }
 
 
 void change_event_duration(struct char_data * ch, event_id iId, long time) {
-  struct event *pEvent;
+  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
+  if (ch->events == NULL);
+    return;
+    
   if (ch->events->iSize == 0)
     return;
 
-  simple_list(NULL);
+  clear_simple_list();
 
-  while ((pEvent = (struct event *)simple_list(ch->events)) != NULL) {
+  while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
+
     if (!pEvent->isMudEvent)
       continue;
 
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
+    pMudEvent = (struct mud_event_data *) pEvent->event_obj;
 
     if (pMudEvent->iId == iId) {
       found = TRUE;
@@ -315,12 +358,11 @@ void change_event_duration(struct char_data * ch, event_id iId, long time) {
     }
   }
 
-  simple_list(NULL);
-
-  if (found && pMudEvent != NULL) {        
+  if (found) {        
     /* So we found the offending event, now build a new one, with the new time */
     attach_mud_event(new_mud_event(iId, pMudEvent->pStruct, pMudEvent->sVariables), time);
     event_cancel(pEvent);
   }    
+  
 }
 

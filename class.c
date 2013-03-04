@@ -771,6 +771,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_DETECT_INVIS, 99);
     SET_SKILL(ch, SPELL_DETECT_MAGIC, 99);    
     SET_SKILL(ch, SPELL_DARKNESS, 99);
+    SET_SKILL(ch, SPELL_I_DARKNESS, 99);
     SET_SKILL(ch, SPELL_RESIST_ENERGY, 99);
     SET_SKILL(ch, SPELL_ENERGY_SPHERE, 99);
     SET_SKILL(ch, SPELL_ENDURANCE, 99);
@@ -2053,6 +2054,7 @@ void init_spell_levels(void)
   spell_level(SPELL_DETECT_INVIS, CLASS_WIZARD, 3);
   spell_level(SPELL_DETECT_MAGIC, CLASS_WIZARD, 3);
   spell_level(SPELL_DARKNESS, CLASS_WIZARD, 3);
+  spell_level(SPELL_I_DARKNESS, CLASS_WIZARD, 3);
   spell_level(SPELL_RESIST_ENERGY, CLASS_WIZARD, 3);
   spell_level(SPELL_ENERGY_SPHERE, CLASS_WIZARD, 3);
   spell_level(SPELL_ENDURANCE, CLASS_WIZARD, 3);  //shared

@@ -161,8 +161,6 @@ char *fread_action(FILE *fl, int nr)
   char buf[MAX_STRING_LENGTH] = { '\0' };
   char *buf1 = NULL;
   int i = 0;
-
-  *buf = '\0';
   
   buf1 = fgets(buf, MAX_STRING_LENGTH, fl);
   if (feof(fl)) {
@@ -515,6 +513,18 @@ void destroy_db(void)
     if (world[cnt].description)
       free(world[cnt].description);
     free_extra_descriptions(world[cnt].ex_description);
+
+    /* freeing room events */
+    if (world[cnt].events != NULL) {
+      if (world[cnt].events->iSize > 0) {
+        struct event * pEvent;
+
+        while ((pEvent = simple_list(world[cnt].events)) != NULL)
+          event_cancel(pEvent);
+      }
+      free_list(world[cnt].events);
+      world[cnt].events = NULL;
+    }
 
     /* free any assigned scripts */
     if (SCRIPT(&world[cnt]))
@@ -2544,10 +2554,10 @@ struct char_data *create_char(void)
   return (ch);
 }
 
-
 void new_mobile_data(struct char_data *ch)
 {
-	ch->events   = create_list();
+  ch->events   = NULL;
+  ch->group    = NULL;
 }
 
 
@@ -2629,6 +2639,8 @@ struct obj_data *create_obj(void)
   obj->next = object_list;
   object_list = obj;
 
+  obj->events = NULL;
+  
   GET_ID(obj) = max_obj_id++;
   /* find_obj helper */
   add_to_lookup_table(GET_ID(obj), (void *)obj);
@@ -2654,6 +2666,8 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   obj->next = object_list;
   object_list = obj;
 
+  obj->events = NULL;
+  
   obj_index[i].number++;
 
   GET_ID(obj) = max_obj_id++;

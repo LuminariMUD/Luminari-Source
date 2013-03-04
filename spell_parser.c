@@ -2469,6 +2469,10 @@ void mag_assign_spells(void) {
           TAR_IGNORE, FALSE, MAG_MASSES,
           "Your nausea from the noxious gas passes.", 4, 7,
           CONJURATION);
+  /* innate darkness spell, room events testing spell as well */
+  spello(SPELL_I_DARKNESS, "innate darkness", 0, 0, 0, POS_STANDING,
+          TAR_IGNORE, FALSE, MAG_ROOM,
+          "The cloak of darkness in the area dissolves.", 5, 6, NOSCHOOL);
 
 
   spello(SPELL_DG_AFFECT, "Afflicted", 0, 0, 0, POS_SITTING,

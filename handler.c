@@ -851,6 +851,17 @@ void extract_obj(struct obj_data *obj) {
   if (SCRIPT(obj))
     extract_script(obj, OBJ_TRIGGER);
 
+  if (obj->events != NULL) {
+	  if (obj->events->iSize > 0) {
+		struct event * pEvent;
+
+		while ((pEvent = simple_list(obj->events)) != NULL)
+		  event_cancel(pEvent);
+	  }
+	  free_list(obj->events);
+    obj->events = NULL;
+  }
+
   if (GET_OBJ_RNUM(obj) == NOTHING || obj->proto_script != obj_proto[GET_OBJ_RNUM(obj)].proto_script)
     free_proto_script(obj, OBJ_TRIGGER);
 
@@ -967,6 +978,7 @@ void extract_char_final(struct char_data *ch) {
   /* stop any fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
+  
   for (k = combat_list; k; k = temp) {
     temp = k->next_fighting;
     if (FIGHTING(k) == ch)
@@ -1452,6 +1464,7 @@ struct group_data * create_group(struct char_data * leader) {
 
   /* Assign Data */
   SET_BIT(GROUP_FLAGS(new_group), GROUP_OPEN);
+  
   if (IS_NPC(leader))
     SET_BIT(GROUP_FLAGS(new_group), GROUP_NPC);
 
@@ -1469,6 +1482,7 @@ void free_group(struct group_data * group) {
             tch;
             tch = next_in_list(&Iterator))
       leave_group(tch);
+    
     remove_iterator(&Iterator);
   }
 
@@ -1486,9 +1500,8 @@ void leave_group(struct char_data *ch) {
   if ((group = ch->group) == NULL)
     return;
 
-  if (group->members->iSize == 0)
-
-    send_to_group(NULL, group, "%s has left the group.\r\n", GET_NAME(ch));
+//  if (group->members->iSize == 0)
+  send_to_group(NULL, group, "%s has left the group.\r\n", GET_NAME(ch));
 
   remove_from_list(ch, group->members);
   ch->group = NULL;
@@ -1498,6 +1511,7 @@ void leave_group(struct char_data *ch) {
             tch; tch = next_in_list(&Iterator))
       if (!IS_NPC(tch))
         found_pc = TRUE;
+    
     remove_iterator(&Iterator);
   }
 

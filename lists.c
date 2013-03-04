@@ -12,6 +12,10 @@
 #include "db.h"
 #include "dg_event.h"
 
+static struct iterator_data Iterator;
+static bool loop = FALSE;
+static struct list_data *pLastList = NULL;
+
 /* Global lists */
 struct list_data * global_lists = NULL;
 struct list_data * group_list   = NULL;
@@ -72,7 +76,7 @@ void free_list(struct list_data * pList)
 {
   void *pContent = NULL;
   
-  simple_list(NULL);  
+  clear_simple_list();  
     
   if (pList->iSize)
     while ((pContent = simple_list(pList)))
@@ -122,7 +126,7 @@ void remove_from_list(void * pContent, struct list_data * pList)
   struct item_data *pRemovedItem = NULL;
 	
   if ((pRemovedItem = find_in_list(pContent, pList)) == NULL) {
-    mudlog(CMP, LVL_GOD, TRUE, "SYSERR: Attempting to remove contents that don't exist in list.");
+    mudlog(CMP, LVL_GOD, TRUE, "WARNING: Attempting to remove contents that don't exist in list.");
     return;
   }
 	
@@ -157,13 +161,13 @@ void * merge_iterator(struct iterator_data * pIterator, struct list_data * pList
   void * pContent = NULL;
 	
   if (pList == NULL) {
-    mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Attempting to merge iterator to NULL list.");
+    mudlog(NRM, LVL_GOD, TRUE, "WARNING: Attempting to merge iterator to NULL list.");
     pIterator->pList = NULL;
     pIterator->pItem = NULL;
     return NULL;
   }
   if (pList->pFirstItem == NULL) {
-    mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Attempting to merge iterator to empty list.");
+    mudlog(NRM, LVL_GOD, TRUE, "WARNING: Attempting to merge iterator to empty list.");
     pIterator->pList = NULL;
     pIterator->pItem = NULL;
     return NULL;
@@ -181,7 +185,7 @@ void * merge_iterator(struct iterator_data * pIterator, struct list_data * pList
 void remove_iterator(struct iterator_data * pIterator)
 {
   if (pIterator->pList == NULL) {
-    mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Attempting to remove iterator from NULL list.");
+    mudlog(NRM, LVL_GOD, TRUE, "WARNING: Attempting to remove iterator from NULL list.");
     return;
   }
 
@@ -202,7 +206,7 @@ void * next_in_list(struct iterator_data * pIterator)
   //pTempItem = create_item();
 	
   if (pIterator->pList == NULL) {
-    mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Attempting to get content from iterator with NULL list.");
+    mudlog(NRM, LVL_GOD, TRUE, "WARNING: Attempting to get content from iterator with NULL list.");
     return NULL;
   }
 	
@@ -248,6 +252,12 @@ struct item_data * find_in_list(void * pContent, struct list_data * pList)
     return NULL;
 }
 
+void clear_simple_list(void)
+{
+  loop = FALSE;
+  pLastList = NULL;  
+}
+
 /** This is the "For Dummies" function, as although it's not as flexible,
  * it is even easier applied for list searches then using your own iterators
  * and next_in_list()
@@ -262,15 +272,11 @@ struct item_data * find_in_list(void * pContent, struct list_data * pList)
 
 void * simple_list(struct list_data * pList)
 {
-  static struct iterator_data Iterator;
-  static bool loop = FALSE;
-  static struct list_data *pLastList = NULL;
   void * pContent = NULL;
 	
   /* Reset List */
   if (pList == NULL) {
-    loop = FALSE;
-    pLastList = NULL;
+    clear_simple_list();
     return NULL;
   }
 
