@@ -640,6 +640,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = magic_level + 10;
       break;
 
+    case SPELL_BLIGHT: // evocation
+      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_PLANT) {
+        send_to_char(ch, "Your blight spell will only effect plant life.\r\n");
+        return;
+      }
+      save = SAVING_FORT;
+      mag_resist = TRUE;
+      element = DAM_EARTH;
+      num_dice = MIN(divine_level, 15); // maximum 15d6
+      size_size = 6;
+      bonus = MIN(divine_level, 15);
+      break;
+      
     case SPELL_GRASPING_HAND: //evocation
       save = SAVING_REFL;
       mag_resist = TRUE;
@@ -672,6 +685,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "Your flame blade immediately burns out underwater.");
         return (0);
       }
+      save = -1;
       mag_resist = TRUE;
       element = DAM_FIRE;
       num_dice = 1;
@@ -684,6 +698,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "You are unable to produce a flame while underwater.");
         return (0);
       }
+      save = -1;
       mag_resist = TRUE;
       element = DAM_FIRE;
       num_dice = 1;
@@ -1833,7 +1848,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_GREATER_MAGIC_FANG:
-            if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
+      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
         send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
         return;
       }
@@ -4484,6 +4499,14 @@ void mag_room(int level, struct char_data * ch, struct obj_data *obj,
       break;
 
     case SPELL_SPIKE_GROWTH: // transmutation
+      if (SECT(ch->in_room) == SECT_UNDERWATER ||
+              SECT(ch->in_room)== SECT_FLYING ||
+              SECT(ch->in_room) == SECT_WATER_SWIM ||
+              SECT(ch->in_room) == SECT_WATER_NO_SWIM ||
+              SECT(ch->in_room) == SECT_OCEAN) {
+        send_to_char(ch, "Your spikes are not effective in this terrain.\r\n");
+        return;
+      }
       to_char = "Large spikes suddenly protrude from the ground.";
       to_room = "Large spikes suddenly protrude from the ground.";
       aff = RAFF_SPIKE_GROWTH;

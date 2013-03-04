@@ -1213,7 +1213,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_BLESS, 99); // no
     SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99); // no
     //4th circle
-    // blight SET_SKILL(ch, SPELL_BLIGHT, 99);
+    SET_SKILL(ch, SPELL_BLIGHT, 99);
     SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
     SET_SKILL(ch, SPELL_DISPEL_MAGIC, 99);
     SET_SKILL(ch, SPELL_FLAME_STRIKE, 99);
@@ -2716,7 +2716,7 @@ void init_spell_levels(void)
   spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_DRUID, 5); // no
 
   //4th circle
-  // blight
+  spell_level(SPELL_BLIGHT, CLASS_DRUID, 7);
   spell_level(SPELL_CURE_SERIOUS, CLASS_DRUID, 7);
   spell_level(SPELL_DISPEL_MAGIC, CLASS_DRUID, 7);
   spell_level(SPELL_FLAME_STRIKE, CLASS_DRUID, 7);

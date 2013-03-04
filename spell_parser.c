@@ -1726,6 +1726,9 @@ void mag_assign_spells(void)
 	"You watch as the noxious gasses fade away.", 4, 7,
 	CONJURATION);  
 			/* necromancy */
+  spello(SPELL_BLIGHT, "blight", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+          NULL, 4, 7, NECROMANCY);
   spello(SPELL_CONTAGION, "contagion", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
           "You feel much better as your disease wears off.", 5, 7, NECROMANCY);

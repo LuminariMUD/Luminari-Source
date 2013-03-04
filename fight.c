@@ -1377,6 +1377,12 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "\tR<oSanc:%d>\tn", dam);
     }
   }
+  
+  /* this spell is also supposed to injure victims who fail reflex save
+  if (attacktype == SPELL_SPIKE_GROWTH) {
+    
+  }
+   */
   return dam;
 }
 
