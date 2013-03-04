@@ -966,6 +966,9 @@
 /** Max amount of output that can be buffered */
 #define LARGE_BUFSIZE      (MAX_SOCK_BUF - GARBAGE_SPACE - MAX_PROMPT_LENGTH)
 
+/* an arbitrary cap, medium in size */
+#define MEDIUM_STRING         256
+
 #define MAX_STRING_LENGTH     49152  /**< Max length of string, as defined */
 #define MAX_INPUT_LENGTH      512    /**< Max length per *line* of input */
 #define MAX_RAW_INPUT_LENGTH  (12 * 1024) /**< Max size of *raw* input */

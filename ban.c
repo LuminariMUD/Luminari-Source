@@ -291,7 +291,7 @@ void free_invalid_list(void)
 void read_invalid_list(void)
 {
   FILE *fp;
-  char temp[256];
+  char temp[MEDIUM_STRING];
 
   if (!(fp = fopen(XNAME_FILE, "r"))) {
     perror("SYSERR: Unable to open '" XNAME_FILE "' for reading");

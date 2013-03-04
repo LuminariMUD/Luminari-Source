@@ -256,11 +256,11 @@ char *CAP(char *txt)
  * file. */
 int get_line(FILE * fl, char *buf)
 {
-  char temp[256], *buf2;
+  char temp[MEDIUM_STRING], *buf2;
   int lines = 0;
 
   do {
-    buf2 = fgets(temp, 256, fl);
+    buf2 = fgets(temp, MEDIUM_STRING, fl);
     if (feof(fl))
       return (0);
     lines++;

@@ -127,7 +127,7 @@ void clearMemory(struct char_data *ch);
 
 struct last_entry {
   int close_type;
-  char hostname[256];
+  char hostname[MEDIUM_STRING];
   char username[16];
   time_t time;
   time_t close_time;

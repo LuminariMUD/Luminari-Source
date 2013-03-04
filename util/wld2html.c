@@ -250,7 +250,7 @@ void index_boot(char *name)
 void discrete_load(FILE * fl)
 {
   int nr = -1, last = 0;
-  char line[256];
+  char line[MEDIUM_STRING];
 
   for (;;) {
     if (!get_line(fl, line)) {
@@ -305,7 +305,7 @@ void parse_room(FILE * fl, int virtual_nr)
 {
   static int room_nr = 0, zone = 0;
   int t[10], i;
-  char line[256], flags[128];
+  char line[MEDIUM_STRING], flags[128];
   struct extra_descr_data *new_descr;
 
   sprintf(buf2, "room #%d", virtual_nr);
@@ -366,7 +366,7 @@ void parse_room(FILE * fl, int virtual_nr)
 void setup_dir(FILE * fl, int room, int dir)
 {
   int t[5];
-  char line[256];
+  char line[MEDIUM_STRING];
 
   sprintf(buf2, "room #%d, direction D%d", world[room].number, dir);
 
@@ -496,10 +496,10 @@ int real_room(int virtual, int reference)
  */
 int get_line(FILE * fl, char *buf)
 {
-  char temp[256], *buf2;
+  char temp[MEDIUM_STRING], *buf2;
 
   do {
-    buf2 = fgets(temp, 256, fl);
+    buf2 = fgets(temp, MEDIUM_STRING, fl);
     if (*temp)
       temp[strlen(temp) - 1] = '\0';
   } while (!feof(fl) && (*temp == '*' || !*temp));

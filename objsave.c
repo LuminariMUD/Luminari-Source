@@ -835,7 +835,7 @@ static int Crash_report_unrentables(struct char_data *ch, struct char_data *rece
 static void Crash_report_rent(struct char_data *ch, struct char_data *recep, struct
     obj_data *obj, long *cost, long *nitems, int display, int factor)
 {
-  static char buf[256];
+  static char buf[MEDIUM_STRING];
 
   if (obj) {
     if (!Crash_is_unrentable(obj)) {

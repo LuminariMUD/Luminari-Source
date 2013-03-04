@@ -760,7 +760,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim) {
 
 static char *replace_string(const char *str, const char *weapon_singular,
         const char *weapon_plural) {
-  static char buf[256];
+  static char buf[MEDIUM_STRING];
   char *cp = buf;
 
   for (; *str; str++) {
@@ -1389,7 +1389,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 /* victim died at the hands of ch */
 int dam_killed_vict(struct char_data *ch, struct char_data *victim,
         int dam, int attacktype, int dam_type) {
-  char local_buf[256] = {'\0'};
+  char local_buf[MEDIUM_STRING] = {'\0'};
   long local_gold = 0, happy_gold = 0;
   struct char_data *tmp_char;
   struct obj_data *corpse_obj;

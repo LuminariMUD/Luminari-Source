@@ -335,7 +335,7 @@ static void postmaster_check_mail(struct char_data *ch, struct char_data *mailma
 static void postmaster_receive_mail(struct char_data *ch, struct char_data *mailman,
 			  int cmd, char *arg)
 {
-  char buf[256];
+  char buf[MEDIUM_STRING];
   struct obj_data *obj = NULL;
   int y = 0;
 
