@@ -132,6 +132,7 @@ void parse_tab(char *str)
 void sentence_case(char *str)
 {
   char *p = str;
+  char *tmp = '\0';
   bool cap_next = TRUE;
   int len;
   
@@ -148,7 +149,7 @@ void sentence_case(char *str)
   }
   
   for (; *p; p++) {   
-    while (strchr(".!?", *p)) {
+    while ((tmp = strchr(".!?", *p)) && (strlen(tmp) > 1) && *(tmp + 1) == ' ') {
       cap_next = TRUE;
       p++;
     }

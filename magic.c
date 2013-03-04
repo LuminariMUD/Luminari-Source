@@ -642,7 +642,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_BLIGHT: // evocation
-      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_PLANT) {
+      if ((IS_NPC(victim) && GET_RACE(victim) != NPCRACE_PLANT) ||
+              IS_MORPHED(victim) == NPCRACE_PLANT) {
         send_to_char(ch, "Your blight spell will only effect plant life.\r\n");
         return (0);
       }
