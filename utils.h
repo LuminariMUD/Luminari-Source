@@ -1464,7 +1464,8 @@ void reset_acraft(struct char_data *ch);
 				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ANIMAL) )
 #define IS_UNDEAD(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_UNDEAD) || \
 				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_UNDEAD) )
-
+#define IS_PLANT(ch)    ( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_PLANT) || \
+                                (!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_UNDEAD) )
 
 /** Defines if ch is outdoors or not. */
 #define OUTSIDE(ch) (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS))
