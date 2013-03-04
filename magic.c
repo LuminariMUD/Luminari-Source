@@ -1199,15 +1199,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
 
       af[0].location = APPLY_AC_NEW;
-      if (magic_level >= 12)
+      if (divine_level >= 12)
         af[0].modifier = 5;
-      else if (magic_level >= 9)
+      else if (divine_level >= 9)
         af[0].modifier = 4;
-      else if (magic_level >= 6)
+      else if (divine_level >= 6)
         af[0].modifier = 3;
       else
         af[0].modifier = 2;
-      af[0].duration = (magic_level * 200); // magic level * 10, * 20 for minutes
+      af[0].duration = (divine_level * 200); // magic level * 10, * 20 for minutes
       accum_affect = FALSE;
       accum_duration = FALSE;
       to_vict = "Your skin hardens to bark.";
