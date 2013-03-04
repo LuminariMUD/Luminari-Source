@@ -2041,7 +2041,7 @@ void mag_assign_spells(void) {
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
           NULL, 6, 11, EVOCATION); //grapples opponent
   spello(SPELL_SUNBEAM, "sunbeam", 0, 0, 0,
-          POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AREAS | MAG_ROOM,
+          POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS | MAG_ROOM,
           "You feel a cloak of blindness dissolve.", 6, 11, EVOCATION);
   /* conjuration */
   spello(SPELL_SUMMON_CREATURE_7, "summon creature vii", 0, 0, 0,
