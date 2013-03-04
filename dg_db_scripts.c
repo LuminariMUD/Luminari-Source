@@ -30,7 +30,8 @@ static void trig_data_init(trig_data *this_data);
 void parse_trigger(FILE *trig_f, int nr)
 {
     int t[2], k, attach_type;
-    char line[256], *cmds, *s, flags[256], errors[MAX_INPUT_LENGTH];
+    char line[MEDIUM_STRING], *cmds, *s, flags[MEDIUM_STRING],
+            errors[MAX_INPUT_LENGTH];
     struct cmdlist_element *cle;
     struct index_data *t_index;
     struct trig_data *trig;

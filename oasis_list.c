@@ -916,7 +916,7 @@ void print_zone(struct char_data *ch, zone_vnum vnum)
 static void list_triggers(struct char_data *ch, zone_rnum rnum, trig_vnum vmin, trig_vnum vmax)
 {
   int i, bottom, top, counter = 0;
-  char trgtypes[256];
+  char trgtypes[MEDIUM_STRING];
 
   /* Expect a minimum / maximum number if the rnum for the zone is NOWHERE. */
   if (rnum != NOWHERE) {

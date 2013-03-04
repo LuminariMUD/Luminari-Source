@@ -1386,7 +1386,7 @@ SPECIAL(cityguard)
 #define PET_PRICE(pet) (GET_LEVEL(pet) * 300)
 SPECIAL(pet_shops)
 {
-  char buf[MAX_STRING_LENGTH], pet_name[256];
+  char buf[MAX_STRING_LENGTH], pet_name[MEDIUM_STRING];
   room_rnum pet_room;
   struct char_data *pet;
 

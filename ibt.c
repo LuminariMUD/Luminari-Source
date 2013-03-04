@@ -289,7 +289,7 @@ void save_ibt_file(int mode)
 {
    IBT_DATA *ibtData, *first_ibt, *last_ibt;
    FILE *fp;
-   char filename[256];
+   char filename[MEDIUM_STRING];
 
    switch(mode) {
      case SCMD_BUG : sprintf( filename, "%s",BUGS_FILE );

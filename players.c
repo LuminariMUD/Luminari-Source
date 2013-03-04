@@ -71,7 +71,7 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count);
 void build_player_index(void) {
   int rec_count = 0, i, nr;
   FILE *plr_index;
-  char index_name[40], line[256], bits[64];
+  char index_name[40], line[MEDIUM_STRING], bits[64];
   char arg2[80];
 
   sprintf(index_name, "%s%s", LIB_PLRFILES, INDEX_FILE);
