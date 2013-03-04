@@ -1207,7 +1207,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         af[0].modifier = 3;
       else
         af[0].modifier = 2;
-      af[0].duration = (divine_level * 200); // magic level * 10, * 20 for minutes
+      af[0].duration = (divine_level * 200); // divine level * 10, * 20 for minutes
       accum_affect = FALSE;
       accum_duration = FALSE;
       to_vict = "Your skin hardens to bark.";
