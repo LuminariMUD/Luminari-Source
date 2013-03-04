@@ -112,7 +112,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "abilityset", "abilityset",POS_SLEEPING,do_abilityset, LVL_GRGOD, 0 },
   { "autocraft", "autocraft", POS_STANDING, do_not_here, 1, 0 },
   { "adjure"   , "adjure"  , POS_RESTING , do_gen_memorize, 0, SCMD_ADJURE },
-
+  { "afflist"  , "affl"    , POS_DEAD    , do_afflist  , LVL_IMMORT, 0 }, 
+  
   { "backstab" , "ba"      , POS_STANDING, do_backstab , 1, 0 },
   { "ban"      , "ban"     , POS_DEAD    , do_ban      , LVL_GRGOD, 0 },
   { "balance"  , "bal"     , POS_STANDING, do_not_here , 1, 0 },
@@ -392,7 +393,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "tstat"    , "tstat"   , POS_DEAD    , do_tstat    , LVL_BUILDER, 0 },
   { "tailsweep"     , "tailsweep"     , POS_FIGHTING, do_tailsweep     , 1, 0 },
   { "tame"     , "tame"     , POS_FIGHTING, do_tame  , 0, 0 },
-
+  { "typelist" , "typel"   , POS_DEAD    , do_typelist , LVL_IMMORT, 0 },
+  
   { "unlock"   , "unlock"  , POS_SITTING , do_gen_door , 0, SCMD_UNLOCK },
   { "unban"    , "unban"   , POS_DEAD    , do_unban    , LVL_GRGOD, 0 },
   { "unaffect" , "unaffect", POS_DEAD    , do_wizutil  , LVL_GOD, SCMD_UNAFFECT },

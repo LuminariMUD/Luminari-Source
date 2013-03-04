@@ -438,5 +438,7 @@ ACMD(do_zlock);
 ACMD(do_zpurge);
 ACMD(do_zreset);
 ACMD(do_zunlock);
+ACMD(do_afflist); 
+ACMD(do_typelist);
 
 #endif /* _ACT_H_ */
