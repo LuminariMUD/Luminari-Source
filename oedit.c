@@ -617,6 +617,8 @@ static void oedit_disp_val4_menu(struct descriptor_data *d)
     break;
   case ITEM_DRINKCON:
   case ITEM_FOUNTAIN:
+    write_to_output(d, "Spell # (0 = no spell) : ");
+    break;
   case ITEM_FOOD:
     write_to_output(d, "Poisoned (0 = not poison) : ");
     break;
