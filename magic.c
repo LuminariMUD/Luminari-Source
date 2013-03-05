@@ -3933,11 +3933,14 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_CURE_LIGHT:
       healing = dice(2, 4) + 5 + MIN(10, level);
 
-      to_notvict = "$n \twcures light wounds\tn on $N.";
-      if (ch == victim)
-        to_char = "You \twcure lights wounds\tn on yourself.";
-      else
+      //to_notvict = "$n \twcures light wounds\tn on $N.";
+      to_notvict = "$N feels a little better.";
+      if (ch == victim) {
+        //to_char = "You \twcure lights wounds\tn on yourself.";
+        to_char = "You \twfeel a little better\tn.";
+      } else {
         to_char = "You \twcure lights wounds\tn on $N.";
+      }
       to_vict = "$n \twcures light wounds\tn on you.";
       break;
     case SPELL_CURE_MODERATE:
