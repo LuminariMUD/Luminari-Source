@@ -24,6 +24,7 @@
 #include "quest.h"
 #include "spec_procs.h"
 #include "clan.h"
+#include "mud_event.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -1047,7 +1048,10 @@ ACMD(do_eat)
     send_to_char(ch, "You are too full to eat more!\r\n");
     return;
   }
-  
+  if (GET_OBJ_VAL(food, 1) != 0 && char_has_mud_event(ch, eMAGIC_FOOD)) {
+    send_to_char(ch, "You cannot eat any more magical food right now.\r\n");
+    return;
+  }
   if (!consume_otrigger(food, ch, OCMD_EAT)) /* check trigger */
     return;
 
@@ -1090,6 +1094,11 @@ ACMD(do_eat)
       extract_obj(food);
     }
   }
+  
+  /* attach event to character to prevent over-eating magical food/drink
+   * cooldown of 5 minutes 100 (20 rounds == 1 RL minute)
+   */
+  attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 100);
 }
 
 ACMD(do_pour)
