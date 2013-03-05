@@ -196,12 +196,19 @@ void perform_obj_type_list(struct char_data * ch, char *arg)
 
           case ITEM_DRINKCON:
           case ITEM_FOUNTAIN:
-            if (v1 != -1)
-              tmp_len = snprintf(buf+len, sizeof(buf)-len,"%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s\r\n",
-                   QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
+            v2 = (obj_proto[num].obj_flags.value[3]);
+            
+            if (v2 != 0)
+              sprintf(buf2, " \tc[\tyspell %d\tn: %s\tc]\tn", v2, spell_info[v2].name);
             else
-              tmp_len = snprintf(buf+len, sizeof(buf)-len,"%s%3d%s) %s[%s%8d%s] %sINFINITE%s %s%s\r\n",
-                   QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QBRED, QCYN, obj_proto[r_num].short_description, QNRM);
+              *buf2 = '\0';
+            
+            if (v1 != -1)
+              tmp_len = snprintf(buf+len, sizeof(buf)-len,"%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s%s\r\n",
+                   QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, buf2, QNRM);
+            else
+              tmp_len = snprintf(buf+len, sizeof(buf)-len,"%s%3d%s) %s[%s%8d%s] %sINFINITE%s %s%s%s\r\n",
+                   QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QBRED, QCYN, obj_proto[r_num].short_description, buf2, QNRM);
             break;
 
           case ITEM_FOOD:

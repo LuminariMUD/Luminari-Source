@@ -993,6 +993,13 @@ ACMD(do_drink)
   if (GET_COND(ch, HUNGER) > 20)
     send_to_char(ch, "You are full.\r\n");
 
+  if (GET_OBJ_VAL(temp, 1) != 0) {
+    // this drink has a spell attached to it
+    // call the spell, ch as target
+    call_magic(ch, ch, NULL, GET_OBJ_VAL(temp, 1), GET_LEVEL(ch), CAST_SPELL);
+    /* attach event to character to prevent over-eating magical food/drink */
+    attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
+  }
   if (GET_OBJ_VAL(temp, 3) && GET_LEVEL(ch) < LVL_IMMORT) { /* The crap was poisoned ! */
     send_to_char(ch, "Oops, it tasted rather strange!\r\n");
     act("$n chokes and utters some strange sounds.", TRUE, ch, 0, 0, TO_ROOM);
