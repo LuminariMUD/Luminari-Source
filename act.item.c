@@ -1069,7 +1069,7 @@ ACMD(do_eat)
   if (GET_OBJ_VAL(food, 1) != 0) {
     // this food has a spell attached to it
     // call the spell, ch as target
-    call_magic(NULL, ch, NULL, GET_OBJ_VAL(food, 1), GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, ch, NULL, GET_OBJ_VAL(food, 1), GET_LEVEL(ch), CAST_SPELL);
   }
   if (GET_OBJ_VAL(food, 3) && (GET_LEVEL(ch) < LVL_IMMORT)) {
     /* The crap was poisoned ! */
