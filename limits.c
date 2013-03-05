@@ -111,9 +111,11 @@ void regen_update(struct char_data *ch)
   }
 
   //position, other bonuses
-  if (GET_POS(ch) == POS_RESTING)
+  if (GET_POS(ch) == POS_SITTING && SITTING(ch) && GET_OBJ_TYPE(SITTING(ch)) == ITEM_FURNITURE)
+    hp += dice(3, 2);
+  else if (GET_POS(ch) == POS_RESTING)
     hp += dice(1, 2);
-  if (GET_POS(ch) == POS_SLEEPING)
+  else if (GET_POS(ch) == POS_SLEEPING)
     hp += dice(3, 2);
 
   if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
