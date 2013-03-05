@@ -190,6 +190,7 @@ const char *room_affections[] = {
   "Acid-Fogged",
   "Blade-Barriered",
   "Spike Growth",
+  "Spike Stone",
   "\n"
 };
 
