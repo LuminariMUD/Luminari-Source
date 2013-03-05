@@ -55,7 +55,8 @@ struct mud_event_list mud_event_index[] = {
   { "Mob Purge"          , event_countdown,  EVENT_CHAR  }, // ePURGEMOB
   { "SoV Ice Storm"      , event_ice_storm,  EVENT_CHAR  }, // eICE_STORM
   { "SoV Chain Lightning", event_chain_lightning,  EVENT_CHAR  }, // eCHAIN_LIGHTNING
-  { "Darkness"           , event_countdown,  EVENT_ROOM  }   /* eDARKNESS */
+  { "Darkness"           , event_countdown,  EVENT_ROOM  },   /* eDARKNESS */
+  { "Magic Food"         , event_countdown, EVENT_CHAR  }       /* eMAGIC_FOOD */
 };
 
 
@@ -94,61 +95,6 @@ EVENTFUNC(event_countdown)
   }	
 	
   switch (pMudEvent->iId) {
-    case eDARKNESS:
-      REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_DARK);
-      send_to_room(rnum, "The dark shroud disappates.\r\n");
-    break;
-    case eMUMMYDUST:
-      send_to_char(ch, "You are now able to cast Mummy Dust again.\r\n");
-      break;
-    case eDRAGONKNIGHT:
-      send_to_char(ch, "You are now able to cast Dragon Knight again.\r\n");
-      break;
-    case eGREATERRUIN:
-      send_to_char(ch, "You are now able to cast Greater Ruin again.\r\n");
-      break;
-    case eHELLBALL:
-      send_to_char(ch, "You are now able to cast Hellball again.\r\n");
-      break;
-    case eEPICMAGEARMOR:
-      send_to_char(ch, "You are now able to cast Epic Mage Armor again.\r\n");
-      break;
-    case eEPICWARDING:
-      send_to_char(ch, "You are now able to cast Epic Warding again.\r\n");
-      break;
-    case eTAUNT:
-      send_to_char(ch, "You are now able to taunt again.\r\n");
-      break;
-    case eRAGE:
-      send_to_char(ch, "You are now able to Rage again.\r\n");
-      break;
-    case eTAUNTED:
-      send_to_char(ch, "You feel the effects of the taunt wear off.\r\n");
-      break;
-    case eD_ROLL:
-      send_to_char(ch, "You are now able to 'defensive roll' again.\r\n");
-      break;
-    case eLAYONHANDS:
-      send_to_char(ch, "You are now able to lay on hands again.\r\n");
-      break;
-    case eTREATINJURY:
-      send_to_char(ch, "You are now able to treat injuries again.\r\n");
-      break;
-    case eSTUNNED:
-      send_to_char(ch, "You are now free from the stunning affect.\r\n");
-      break;
-    case eSTUNNINGFIST:
-      send_to_char(ch, "You are now able to strike with your stunning fist again.\r\n");
-      break;
-    case eCRYSTALFIST:
-      send_to_char(ch, "You are now able to use crystal fist again.\r\n");
-      break;
-    case eCRYSTALBODY:
-      send_to_char(ch, "You are now able to use crystal body again.\r\n");
-      break;
-    case ePURIFY:
-      send_to_char(ch, "You are now able to 'purify' again.\r\n");
-      break;
     case eC_ANIMAL:
       send_to_char(ch, "You are now able to 'call companion' again.\r\n");
       break;
@@ -158,8 +104,42 @@ EVENTFUNC(event_countdown)
     case eC_MOUNT:
       send_to_char(ch, "You are now able to 'call mount' again.\r\n");
       break;
-    case eSMITE:
-      send_to_char(ch, "You are once again prepared to smite your foe.\r\n");
+    case eCRYSTALBODY:
+      send_to_char(ch, "You are now able to use crystal body again.\r\n");
+      break;
+    case eCRYSTALFIST:
+      send_to_char(ch, "You are now able to use crystal fist again.\r\n");
+      break;
+    case eDARKNESS:
+      REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_DARK);
+      send_to_room(rnum, "The dark shroud disappates.\r\n");
+    break;
+    case eD_ROLL:
+      send_to_char(ch, "You are now able to 'defensive roll' again.\r\n");
+      break;
+    case eDRAGONKNIGHT:
+      send_to_char(ch, "You are now able to cast Dragon Knight again.\r\n");
+      break;
+    case eEPICMAGEARMOR:
+      send_to_char(ch, "You are now able to cast Epic Mage Armor again.\r\n");
+      break;
+    case eEPICWARDING:
+      send_to_char(ch, "You are now able to cast Epic Warding again.\r\n");
+      break;
+    case eGREATERRUIN:
+      send_to_char(ch, "You are now able to cast Greater Ruin again.\r\n");
+      break;
+    case eHELLBALL:
+      send_to_char(ch, "You are now able to cast Hellball again.\r\n");
+      break;
+    case eLAYONHANDS:
+      send_to_char(ch, "You are now able to lay on hands again.\r\n");
+      break;
+    case eMAGIC_FOOD:
+      send_to_char(ch, "You feel able to eat magical food again.\r\n");
+      break;
+    case eMUMMYDUST:
+      send_to_char(ch, "You are now able to cast Mummy Dust again.\r\n");
       break;
     case ePERFORM:
       send_to_char(ch, "You are once again prepared to perform.\r\n");
@@ -169,6 +149,30 @@ EVENTFUNC(event_countdown)
       act("With a sigh of relief $n fades out of this plane!",
               FALSE, ch, NULL, NULL, TO_ROOM);
       extract_char(ch);
+      break;
+    case ePURIFY:
+      send_to_char(ch, "You are now able to 'purify' again.\r\n");
+      break;
+    case eRAGE:
+      send_to_char(ch, "You are now able to Rage again.\r\n");
+      break;
+    case eSMITE:
+      send_to_char(ch, "You are once again prepared to smite your foe.\r\n");
+      break;
+    case eSTUNNED:
+      send_to_char(ch, "You are now free from the stunning affect.\r\n");
+      break;
+    case eSTUNNINGFIST:
+      send_to_char(ch, "You are now able to strike with your stunning fist again.\r\n");
+      break;
+    case eTAUNT:
+      send_to_char(ch, "You are now able to taunt again.\r\n");
+      break;
+    case eTAUNTED:
+      send_to_char(ch, "You feel the effects of the taunt wear off.\r\n");
+      break;
+    case eTREATINJURY:
+      send_to_char(ch, "You are now able to treat injuries again.\r\n");
       break;
       
     default:

@@ -245,7 +245,7 @@ const char *sector_types[] = {
   "Ocean",
   "Marshland",
   "High Mountains",
-  "Outter Planes",
+  "Outer Planes",
   "\n"
 };
 

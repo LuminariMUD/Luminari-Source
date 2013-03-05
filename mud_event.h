@@ -57,6 +57,7 @@ typedef enum {
     eICE_STORM,          //  storm of vengeance - ice storm
     eCHAIN_LIGHTNING,    //  storm of vengeance - chain lightning
     eDARKNESS,           //  darkness room event
+            eMAGIC_FOOD, // goodberry cooldown
 } event_id;
 /* probaly a smart place to mention to not forget to update:
    act.informative.c (if you want do_affects to show status)
