@@ -463,7 +463,8 @@ ACMD(do_mpurge) {
     return;
   }
 
-  if (victim == ch) dg_owner_purged = 1;
+  if (victim == ch) 
+    dg_owner_purged = 1;
 
   extract_char(victim);
 }

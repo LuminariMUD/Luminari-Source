@@ -1360,8 +1360,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
             *str = '\0';
         }
-      }
-      else if (!str_cmp(field, "name"))
+      } else if (!str_cmp(field, "name"))
         snprintf(str, slen, "%s", r->name);
 
       else if (!str_cmp(field, "sector"))
@@ -1391,8 +1390,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             *str = '\0';
           }
         }
-      }
-      else if (!str_cmp(field, "people")) {
+      } else if (!str_cmp(field, "people")) {
         if (r->people)
           snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(r->people));
         else
@@ -1619,8 +1617,7 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig,
       *buf = '\0';
       left--;
       continue;
-    }
-      /* so it wasn't double %'s */
+    }      /* so it wasn't double %'s */
     else if (*p && (left > 0)) {
 
       /* search until end of var or beginning of field */

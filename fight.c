@@ -37,7 +37,7 @@
 struct char_data *combat_list = NULL;
 
 /* Weapon attack texts */
-struct attack_hit_type attack_hit_text[] ={
+struct attack_hit_type attack_hit_text[] = {
   {"hit", "hits"}, /* 0 */
   {"sting", "stings"},
   {"whip", "whips"},
@@ -527,6 +527,7 @@ void death_message(struct char_data *ch) {
 
 // we're not extracting anybody anymore, just penalize them xp
 // and move them back to the starting room -zusuk
+
 /* we will consider changing this back to corpse creation and dump
    but only on the condition of corpse-saving code */
 void raw_kill(struct char_data *ch, struct char_data *killer) {
@@ -584,8 +585,8 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   update_pos(ch);
 
   /* spec-abil saves on exit, so make sure this does not save */
-  INCENDIARY(ch) = 0;  
-  
+  INCENDIARY(ch) = 0;
+
   /* move char to starting room */
   char_to_room(ch, r_mortal_start_room);
   act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
@@ -593,11 +594,11 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   entry_memory_mtrigger(ch);
   greet_mtrigger(ch, -1);
   greet_memory_mtrigger(ch);
-  
+
   /* this was commented out for some reason, undid that to make sure
      events clear on death */
   clear_char_event_list(ch);
-  
+
   save_char(ch, 0);
   Crash_delete_crashfile(ch);
   //end extraction replacement 
@@ -636,7 +637,7 @@ void raw_kill_old(struct char_data * ch, struct char_data * killer) {
 
   /* spec-abil saves on exit, so make sure this does not save */
   INCENDIARY(ch) = 0;
-  
+
   /* extraction!  *SLURRRRRRRRRRRRRP* */
   extract_char(ch);
 
@@ -1377,7 +1378,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "\tR<oSanc:%d>\tn", dam);
     }
   }
-  
+
   /* this spell is also supposed to injure victims who fail reflex save
   if (attacktype == SPELL_SPIKE_GROWTH) {
     
@@ -1460,7 +1461,7 @@ int damage(struct char_data *ch, struct char_data *victim,
     die(victim, ch);
     return (-1);
   }
-  
+
   if (ch->nr != real_mobile(DG_CASTER_PROXY) &&
           ch != victim && ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
@@ -1724,7 +1725,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       dambonus += CLASS_LEVEL(ch, CLASS_PALADIN);
     affect_from_char(ch, SKILL_SMITE);
   }
-    
+
   /**** display, keep mods above this *****/
   if (mode == 2 || mode == 3) {
     send_to_char(ch, "Dam Bonus:  %d, ", dambonus);
@@ -1936,6 +1937,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 #define STONESKIN_ABSORB	16
 #define IRONSKIN_ABSORB	36
 #define EPIC_WARDING_ABSORB	76
+
 int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
   int warding = 0;
 
@@ -1968,8 +1970,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
       send_to_char(ch, "\tR<oStone:%d>\tn", warding);
     }
 
-  }
-  else if (affected_by_spell(victim, SPELL_IRONSKIN)) {
+  } else if (affected_by_spell(victim, SPELL_IRONSKIN)) {
     if (GET_STONESKIN(victim) <= 0) {
       send_to_char(victim, "\tDYour ironskin has faded!\tn\r\n");
       affect_from_char(victim, SPELL_IRONSKIN);
@@ -1998,8 +1999,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
       send_to_char(ch, "\tR<oIronskin:%d>\tn", warding);
     }
 
-  }
-  else if (affected_by_spell(victim, SPELL_EPIC_WARDING)) {
+  } else if (affected_by_spell(victim, SPELL_EPIC_WARDING)) {
     if (GET_STONESKIN(victim) <= 0) {
       send_to_char(victim, "\tDYour ward has fallen!\tn\r\n");
       affect_from_char(victim, SPELL_EPIC_WARDING);
@@ -2028,8 +2028,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
       send_to_char(ch, "\tR<oWard:%d>\tn", warding);
     }
 
-  }
-  else { // has no warding
+  } else { // has no warding
     return dam;
   }
 
@@ -2557,6 +2556,7 @@ int perform_attacks(struct char_data *ch, int mode) {
 #undef EPIC_TWO_PNLY
 
 /* display condition of FIGHTING() target to ch */
+
 /* this is deprecated with the prompt changes */
 void autoDiagnose(struct char_data *ch) {
   struct char_data *char_fighting = NULL, *tank = NULL;
@@ -2658,7 +2658,7 @@ void autoDiagnose(struct char_data *ch) {
 void perform_violence(void) {
   struct char_data *ch, *tch, *charmee;
   struct list_data *room_list = NULL;
-  
+
 
   for (ch = combat_list; ch; ch = next_combat_list) {
     next_combat_list = ch->next_fighting;
@@ -2685,28 +2685,28 @@ void perform_violence(void) {
         REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_PARALYZED);
         send_to_char(ch, "Your free movement breaks the paralysis!\r\n");
         act("$n's free movement breaks the paralysis!",
-                 TRUE, ch, 0, 0, TO_ROOM);        
+                TRUE, ch, 0, 0, TO_ROOM);
       } else {
         send_to_char(ch, "You are paralyzed and unable to react!\r\n");
         act("$n seems to be paralyzed and unable to react!",
-                 TRUE, ch, 0, 0, TO_ROOM);
+                TRUE, ch, 0, 0, TO_ROOM);
         continue;
       }
     }
-    
+
     if (AFF_FLAGGED(ch, AFF_NAUSEATED)) {
       send_to_char(ch, "You are too nauseated to fight!\r\n");
       act("$n seems to be too nauseated to fight!",
               TRUE, ch, 0, 0, TO_ROOM);
       continue;
     }
-    
+
     if (char_has_mud_event(ch, eSTUNNED)) {
       if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {
         change_event_duration(ch, eSTUNNED, 0);
         send_to_char(ch, "Your free movement breaks the stun!\r\n");
         act("$n's free movement breaks the stun!",
-                 TRUE, ch, 0, 0, TO_ROOM);        
+                TRUE, ch, 0, 0, TO_ROOM);
       } else {
         send_to_char(ch, "You are stunned and unable to react!\r\n");
         act("$n seems to be stunned and unable to react!",
@@ -2721,10 +2721,10 @@ void perform_violence(void) {
         REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_STUN);
         send_to_char(ch, "Your free movement breaks the stun!\r\n");
         act("$n's free movement breaks the stun!",
-                 TRUE, ch, 0, 0, TO_ROOM);        
+                TRUE, ch, 0, 0, TO_ROOM);
       }
     }
-        
+
     /* make sure this goes after attack-stopping affects like paralyze */
     if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
       /* this should be called in hit() but need a copy here for !fight flag */
@@ -2759,7 +2759,7 @@ void perform_violence(void) {
       send_to_char(ch, "You are in no position to fight!!\r\n");
       continue;
     }
-    
+
     // confusion code
     // 20% chance to act normal
     if (AFF_FLAGGED(ch, AFF_CONFUSED) && rand_number(0, 4)) {
@@ -2768,43 +2768,41 @@ void perform_violence(void) {
       if (rand_number(1, 100) <= 30) {
         send_to_char(ch, "\tDConfusion\tc overcomes you and you stand dumbfounded!\tn  ");
         act("$n \tcis overcome with \tDconfusion and stands dumbfounded\tc!\tn",
-              TRUE, ch, 0, 0, TO_ROOM);
+                TRUE, ch, 0, 0, TO_ROOM);
         stop_fighting(ch);
         WAIT_STATE(ch, PULSE_VIOLENCE);
         continue;
       }
-
-      // 20% to flee
+        // 20% to flee
       else if (rand_number(1, 100) <= 20) {
         send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");
         act("$n \tcis overcome with \tDfear\tc!\tn",
-              TRUE, ch, 0, 0, TO_ROOM);
-        perform_flee(ch);        
-        perform_flee(ch);        
+                TRUE, ch, 0, 0, TO_ROOM);
+        perform_flee(ch);
+        perform_flee(ch);
         continue;
       }
-
-      // 30% to attack random
+        // 30% to attack random
       else {
         /* allocate memory for list */
         room_list = create_list();
-  
+
         /* dummy check */
         if (!IN_ROOM(ch))
           continue;
 
         /* build list */
-        for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)  
+        for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
           if (tch)
             add_to_list(tch, room_list);
-      
+
         /* If our list is empty or has "0" entries, we free it from memory
          * and flee for the hills */
         if (room_list->iSize == 0) {
           free_list(room_list);
           continue;
         }
-        
+
         /* ok we should have something in the list, pick randomly and switch
            to our new target */
         tch = random_from_list(room_list);
@@ -2813,15 +2811,15 @@ void perform_violence(void) {
           hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
           send_to_char(ch, "\tDConfusion\tc overcomes you and you lash out!\tn  ");
           act("$n \tcis overcome with \tDconfusion and lashes out\tc!\tn",
-              TRUE, ch, 0, 0, TO_ROOM);          
+                  TRUE, ch, 0, 0, TO_ROOM);
         }
-        
+
         /* we're done, free the list */
         free_list(room_list);
         continue;
       }
     }
-    
+
     if (GROUP(ch)) {
       while ((tch = (struct char_data *) simple_list(GROUP(ch)->members))
               != NULL) {
@@ -2958,7 +2956,7 @@ void perform_violence(void) {
     }
 
     //    autoDiagnose(ch);
-        
+
     // the mighty awesome fear code
     if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0, 2)) {
       send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");
