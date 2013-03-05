@@ -823,6 +823,8 @@ static void look_at_target(struct char_data *ch, char *arg) {
 }
 
 ACMD(do_look) {
+  struct obj_data *tmp_object;
+  struct char_data *tmp_char;
   int look_type;
   int found = 0;
 
@@ -844,8 +846,14 @@ ACMD(do_look) {
     if (subcmd == SCMD_READ) {
       if (!*arg)
         send_to_char(ch, "Read what?\r\n");
-      else
-        look_at_target(ch, arg);
+      else {
+        generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM |
+        FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
+        if (tmp_object)
+          look_at_target(ch, arg);
+        else
+          send_to_char(ch, "You can't read that.\r\n");
+      }
       return;
     }
     if (!*arg) /* "look" alone, without an argument at all */
