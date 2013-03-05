@@ -5319,16 +5319,16 @@ void perform_type_list(struct char_data * ch, char *arg) {
             it2 = obj_index[num].vnum;
 
             if (it == -1)
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s INFINITE%s %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CBRED(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s]%s INFINITE%s %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CBRED(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM));
             else
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s (%-3dhrs) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, obj->short_description, CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s]%s (%-3dhrs) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, obj->short_description, CCNRM(ch, C_NRM));
             break;
 
           case ITEM_SCROLL:
           case ITEM_POTION:
             it = obj_index[num].vnum;
 
-            send_to_char(ch, "%s%d. %s[%s%8d%s]%s %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM));
+            send_to_char(ch, "%s%3d. %s[%s%8d%s]%s %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM));
             break;
 
           case ITEM_WAND:
@@ -5337,7 +5337,7 @@ void perform_type_list(struct char_data * ch, char *arg) {
             it2 = obj_index[num].vnum;
             it3 = (obj_proto[num].obj_flags.value[3]);
 
-            send_to_char(ch, "%s%d. %s[%s%8d%s]%s (%dx%s) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, skill_name(it3), obj->short_description, CCNRM(ch, C_NRM));
+            send_to_char(ch, "%s%3d. %s[%s%8d%s]%s (%dx%s) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, skill_name(it3), obj->short_description, CCNRM(ch, C_NRM));
             break;
 
           case ITEM_WEAPON:
@@ -5345,7 +5345,7 @@ void perform_type_list(struct char_data * ch, char *arg) {
             it2 = obj_index[num].vnum;
             it3 = (obj_proto[num].obj_flags.value[3]);
 
-            send_to_char(ch, "%s%d. %s[%s%8d%s]%s (%d Avg Dam) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, obj->short_description, CCNRM(ch, C_NRM));
+            send_to_char(ch, "%s%3d. %s[%s%8d%s]%s (%d Avg Dam) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, obj->short_description, CCNRM(ch, C_NRM));
             break;
 
           case ITEM_ARMOR:
@@ -5354,9 +5354,9 @@ void perform_type_list(struct char_data * ch, char *arg) {
             it3 = (obj_proto[num].obj_flags.value[1]);
 
             if (it3 > 0)
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s (%dAC) %s%s (casts %s%s%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, obj->short_description, CCNRM(ch, C_NRM), CBGRN(ch, C_NRM), skill_name(it3), CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s]%s (%dAC) %s%s (casts %s%s%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, obj->short_description, CCNRM(ch, C_NRM), CBGRN(ch, C_NRM), skill_name(it3), CCNRM(ch, C_NRM));
             else
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s (%dAC) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, obj->short_description, CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s]%s (%dAC) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, obj->short_description, CCNRM(ch, C_NRM));
             break;
 
           case ITEM_CLANARMOR:
@@ -5366,16 +5366,16 @@ void perform_type_list(struct char_data * ch, char *arg) {
             it4 = (obj_proto[num].obj_flags.value[2]);
 
             if (it3 > 0)
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s (%dAC, clan %d) %s %s(casts %s%s%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, it4, obj->short_description, CCNRM(ch, C_NRM), CBGRN(ch, C_NRM), skill_name(it3), CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s]%s (%dAC, clan %d) %s %s(casts %s%s%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, it4, obj->short_description, CCNRM(ch, C_NRM), CBGRN(ch, C_NRM), skill_name(it3), CCNRM(ch, C_NRM));
             else
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s (%dAC, clan %d) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, it4, obj->short_description, CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s]%s (%dAC, clan %d) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it2, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it, it4, obj->short_description, CCNRM(ch, C_NRM));
             break;
 
           case ITEM_CONTAINER:
             it = obj_index[num].vnum;
             it2 = (obj_proto[num].obj_flags.value[0]);
 
-            send_to_char(ch, "%s%d. %s[%s%8d%s]%s (Max: %d) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it2, obj->short_description, CCNRM(ch, C_NRM));
+            send_to_char(ch, "%s%3d. %s[%s%8d%s]%s (Max: %d) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it2, obj->short_description, CCNRM(ch, C_NRM));
             break;
 
           case ITEM_DRINKCON:
@@ -5384,18 +5384,18 @@ void perform_type_list(struct char_data * ch, char *arg) {
             it2 = (obj_proto[num].obj_flags.value[0]);
 
             if (it2 != -1)
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s (Max: %d) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it2, obj->short_description, CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s]%s (Max: %d) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it2, obj->short_description, CCNRM(ch, C_NRM));
             else
-              send_to_char(ch, "%s%d. %s[%s%8d%s] %sINFINITE%s %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CBRED(ch, C_NRM), CBMAG(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s] %sINFINITE%s %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CBRED(ch, C_NRM), CBMAG(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM));
             break;
 
           case ITEM_FOOD:
             it = obj_index[num].vnum;
             it2 = (obj_proto[num].obj_flags.value[0]);
-            it3 = (obj_proto[num].obj_flags.value[3]);
+            it3 = (obj_proto[num].obj_flags.value[1]);
             it4 = (obj_proto[num].obj_flags.value[3]);
 
-            sprintf(buf, "\tn%d. \tc[\ty%8d\tc]\tn (%dhrs) %s", ++found, it, it2, obj->short_description);
+            sprintf(buf, "\tn%3d. \tc[\ty%8d\tc]\tn (%dhrs) %s", ++found, it, it2, obj->short_description);
             if (it3 != 0)
               sprintf(buf + strlen(buf), " \tnSpell: \ty%d\tn: %s", it2, spell_info[it2].name);
             if (it4 != 0)
@@ -5408,7 +5408,7 @@ void perform_type_list(struct char_data * ch, char *arg) {
             it = obj_index[num].vnum;
             it2 = (obj_proto[num].obj_flags.value[0]);
 
-            send_to_char(ch, "%s%d. %s[%s%8d%s]%s %s%s (%s%d coins%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM), CBYEL(ch, C_NRM), it2, CCNRM(ch, C_NRM));
+            send_to_char(ch, "%s%3d. %s[%s%8d%s]%s %s%s (%s%d coins%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM), CBYEL(ch, C_NRM), it2, CCNRM(ch, C_NRM));
             break;
 
           case ITEM_PORTAL:
@@ -5418,13 +5418,13 @@ void perform_type_list(struct char_data * ch, char *arg) {
             it4 = (obj_proto[num].obj_flags.value[2]);
 
             if (it2 == PORTAL_NORMAL)
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s %s%s (%sNormal to %d%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM), CCYEL(ch, C_NRM), it3, CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s]%s %s%s (%sNormal to %d%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM), CCYEL(ch, C_NRM), it3, CCNRM(ch, C_NRM));
             if (it2 == PORTAL_RANDOM)
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s %s%s (%sRandom to %d-%d%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM), CCYEL(ch, C_NRM), it3, it4, CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s]%s %s%s (%sRandom to %d-%d%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM), CCYEL(ch, C_NRM), it3, it4, CCNRM(ch, C_NRM));
             else if (it2 == PORTAL_CLANHALL)
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s %s%s (%sClanportal%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM), CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s]%s %s%s (%sClanportal%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM), CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
             else if (it2 == PORTAL_CHECKFLAGS)
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s %s%s (%sCheckflags to %d%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM), CCYEL(ch, C_NRM), it3, CCNRM(ch, C_NRM));
+              send_to_char(ch, "%s%3d. %s[%s%8d%s]%s %s%s (%sCheckflags to %d%s)\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM), CCYEL(ch, C_NRM), it3, CCNRM(ch, C_NRM));
             break;
 
             /* The 'normal' items - don't provide extra info */
@@ -5443,7 +5443,7 @@ void perform_type_list(struct char_data * ch, char *arg) {
           case ITEM_FURNITURE:
             it = obj_index[num].vnum;
 
-            send_to_char(ch, "%s%d. %s[%s%8d%s]%s %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM));
+            send_to_char(ch, "%s%3d. %s[%s%8d%s]%s %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM));
             break;
 
           default:
