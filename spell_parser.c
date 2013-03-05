@@ -1922,7 +1922,9 @@ void mag_assign_spells(void) {
   spello(SPELL_SHRINK_PERSON, "shrink person", 37, 22, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "You feel your shrink spell wear off.", 8, 8, TRANSMUTATION);
-
+  spello(SPELL_SPIKE_STONES, "spike stone", 0, 0, 0, POS_STANDING,
+          TAR_IGNORE, FALSE, MAG_ROOM,
+          "The large spike stones morph back into their natural form.", 8, 8, TRANSMUTATION);
 
   // 5th circle
   /* evocation */
