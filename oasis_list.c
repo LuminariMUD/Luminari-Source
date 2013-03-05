@@ -134,11 +134,13 @@ void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int
 
 void perform_obj_type_list(struct char_data * ch, char *arg)
 {
-  int num, itemtype, v1, v2, found = 0, len = 0, tmp_len = 0;
+  int num, itemtype, v1, v2, v3, found = 0, len = 0, tmp_len = 0;
   obj_vnum ov;
   obj_rnum r_num;
   char buf[MAX_STRING_LENGTH];
+  char buf2[256];
 
+  *buf2 = '\0';
   itemtype = atoi(arg);
 
   len = snprintf(buf, sizeof(buf), "Listing all objects of type %s[%s]%s\r\n",
@@ -203,13 +205,18 @@ void perform_obj_type_list(struct char_data * ch, char *arg)
             break;
 
           case ITEM_FOOD:
-            v2 = (obj_proto[num].obj_flags.value[3]);
+            v2 = (obj_proto[num].obj_flags.value[1]);
+            v3 = (obj_proto[num].obj_flags.value[3]);
+            
             if (v2 != 0)
-              tmp_len = snprintf(buf+len, sizeof(buf)-len,"%s%3d%s) %s[%s%8d%s]%s (%dhrs) %s%s %sPoisoned!%s\r\n",
-                   QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QBGRN, QNRM);
+              sprintf(buf2, " \tc[\tyspell %3d\tyn: %s\tc]\tn", v2, spell_info[v2].name);
+              
+            if (v3 != 0)
+              tmp_len = snprintf(buf+len, sizeof(buf)-len,"%s%3d%s) %s[%s%8d%s]%s (%2dhrs) %s%s%s %sPoisoned!%s\r\n",
+                   QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, buf2, QBGRN, QNRM);
             else
-              tmp_len = snprintf(buf+len, sizeof(buf)-len,"%s%3d%s) %s[%s%8d%s]%s (%dhrs) %s%s%s\r\n",
-                   QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
+              tmp_len = snprintf(buf+len, sizeof(buf)-len,"%s%3d%s) %s[%s%8d%s]%s (%2dhrs) %s%s%s%s\r\n",
+                   QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, buf2, QNRM);
             break;
 
           case ITEM_MONEY:
