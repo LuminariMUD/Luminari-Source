@@ -1,17 +1,17 @@
 /**
-* @file dg_scripts.h
-* Header file for script structures, constants, and function prototypes for
-* dg_scripts.c
-*
-* Part of the core tbaMUD source code distribution, which is a derivative
-* of, and continuation of, CircleMUD.
-*
-* This source code, which was not part of the CircleMUD legacy code,
-* was created by the following people:
-* $Author: Mark A. Heilpern/egreen/Welcor $
-* $Date: 2004/10/11 12:07:00$
-* $Revision: 1.0.14 $
-*/
+ * @file dg_scripts.h
+ * Header file for script structures, constants, and function prototypes for
+ * dg_scripts.c
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * This source code, which was not part of the CircleMUD legacy code,
+ * was created by the following people:
+ * $Author: Mark A. Heilpern/egreen/Welcor $
+ * $Date: 2004/10/11 12:07:00$
+ * $Revision: 1.0.14 $
+ */
 #ifndef _DG_SCRIPTS_H_
 #define _DG_SCRIPTS_H_
 
@@ -132,49 +132,49 @@
 
 /* one line of the trigger */
 struct cmdlist_element {
-  char *cmd;				/* one line of a trigger */
+  char *cmd; /* one line of a trigger */
   struct cmdlist_element *original;
   struct cmdlist_element *next;
 };
 
 struct trig_var_data {
-  char *name;				/* name of variable  */
-  char *value;				/* value of variable */
-  long context;				/* 0: global context */
+  char *name; /* name of variable  */
+  char *value; /* value of variable */
+  long context; /* 0: global context */
 
   struct trig_var_data *next;
 };
 
 /** structure for triggers */
 struct trig_data {
-    IDXTYPE nr;                         /**< trigger's rnum                  */
-    byte attach_type;                   /**< mob/obj/wld intentions          */
-    byte data_type;                     /**< type of game_data for trig      */
-    char *name;                         /**< name of trigger                 */
-    long trigger_type;                  /**< type of trigger (for bitvector) */
-    struct cmdlist_element *cmdlist;    /**< top of command list             */
-    struct cmdlist_element *curr_state;	/**< ptr to current line of trigger  */
-    int narg;                           /**< numerical argument              */
-    char *arglist;                      /**< argument list                   */
-    int depth;                          /**< depth into nest ifs/whiles/etc  */
-    int loops;                          /**< loop iteration counter          */
-    struct event *wait_event;           /**< event to pause the trigger  */
-    ubyte purged;                       /**< trigger is set to be purged     */
-    struct trig_var_data *var_list;	    /**< list of local vars for trigger  */
+  IDXTYPE nr; /**< trigger's rnum                  */
+  byte attach_type; /**< mob/obj/wld intentions          */
+  byte data_type; /**< type of game_data for trig      */
+  char *name; /**< name of trigger                 */
+  long trigger_type; /**< type of trigger (for bitvector) */
+  struct cmdlist_element *cmdlist; /**< top of command list             */
+  struct cmdlist_element *curr_state; /**< ptr to current line of trigger  */
+  int narg; /**< numerical argument              */
+  char *arglist; /**< argument list                   */
+  int depth; /**< depth into nest ifs/whiles/etc  */
+  int loops; /**< loop iteration counter          */
+  struct event *wait_event; /**< event to pause the trigger  */
+  ubyte purged; /**< trigger is set to be purged     */
+  struct trig_var_data *var_list; /**< list of local vars for trigger  */
 
-    struct trig_data *next;
-    struct trig_data *next_in_world;    /**< next in the global trigger list */
+  struct trig_data *next;
+  struct trig_data *next_in_world; /**< next in the global trigger list */
 };
 
 /** a complete script (composed of several triggers) */
 struct script_data {
-  long types;                        /**< bitvector of trigger types */
-  struct trig_data *trig_list;       /**< list of triggers           */
+  long types; /**< bitvector of trigger types */
+  struct trig_data *trig_list; /**< list of triggers           */
   struct trig_var_data *global_vars; /**< list of global variables   */
-  ubyte purged;                      /**< script is set to be purged */
-  long context;                      /**< current context for statics */
+  ubyte purged; /**< script is set to be purged */
+  long context; /**< current context for statics */
 
-  struct script_data *next;          /**< used for purged_scripts    */
+  struct script_data *next; /**< used for purged_scripts    */
 };
 
 /* The event data for the wait command */
@@ -186,8 +186,8 @@ struct wait_event_data {
 
 /* used for actor memory triggers */
 struct script_memory {
-  long id;        /* id of who to remember */
-  char *cmd;        /* command, or NULL for generic */
+  long id; /* id of who to remember */
+  char *cmd; /* command, or NULL for generic */
   struct script_memory *next;
 };
 
@@ -205,7 +205,7 @@ int is_substring(char *sub, char *string);
 int word_check(char *str, char *wordlist);
 
 void act_mtrigger(const char_data *ch, char *str,
-	char_data *actor, char_data *victim, obj_data *object, obj_data *target, char *arg);
+        char_data *actor, char_data *victim, obj_data *object, obj_data *target, char *arg);
 void speech_mtrigger(char_data *actor, char *str);
 void speech_wtrigger(char_data *actor, char *str);
 void greet_memory_mtrigger(char_data *ch);
@@ -218,16 +218,16 @@ void timer_otrigger(obj_data *obj);
 int get_otrigger(obj_data *obj, char_data *actor);
 int drop_wtrigger(obj_data *obj, char_data *actor);
 int give_otrigger(obj_data *obj, char_data *actor,
-         char_data *victim);
+        char_data *victim);
 int receive_mtrigger(char_data *ch, char_data *actor,
-         obj_data *obj);
+        obj_data *obj);
 void bribe_mtrigger(char_data *ch, char_data *actor,
-         int amount);
+        int amount);
 int wear_otrigger(obj_data *obj, char_data *actor, int where);
 int remove_otrigger(obj_data *obj, char_data *actor);
 
 int cmd_otrig(obj_data *obj, char_data *actor, char *cmd,
-              char *argument, int type);
+        char *argument, int type);
 int command_mtrigger(char_data *actor, char *cmd, char *argument);
 int command_otrigger(char_data *actor, char *cmd, char *argument);
 int command_wtrigger(char_data *actor, char *cmd, char *argument);
@@ -264,7 +264,7 @@ void time_wtrigger(room_data *room);
 int login_wtrigger(struct room_data *room, char_data *actor);
 
 /* function prototypes from dg_scripts.c */
-ACMD(do_attach) ;
+ACMD(do_attach);
 ACMD(do_detach);
 ACMD(do_vdelete);
 ACMD(do_tstat);
@@ -294,7 +294,7 @@ void do_sstat_object(char_data *ch, obj_data *j);
 void do_sstat_character(char_data *ch, char_data *k);
 void add_trigger(struct script_data *sc, trig_data *t, int loc);
 void script_vlog(const char *format, va_list args);
-void script_log(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
+void script_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *matching_quote(char *p);
 struct room_data *dg_room_of_obj(struct obj_data *obj);
 bool check_flags_by_name_ar(int *array, int numflags, char *search, const char *namelist[]);
@@ -308,7 +308,7 @@ int trig_is_attached(struct script_data *sc, int trig_num);
 int script_driver(void *go_adress, trig_data *trig, int type, int mode);
 trig_rnum real_trigger(trig_vnum vnum);
 void process_eval(void *go, struct script_data *sc, trig_data *trig,
-                 int type, char *cmd);
+        int type, char *cmd);
 void read_saved_vars(struct char_data *ch);
 void save_char_vars(struct char_data *ch);
 void init_lookup_table(void);
@@ -329,11 +329,11 @@ int item_in_list(char *item, obj_data *list);
 char *skill_percent(struct char_data *ch, char *skill);
 int char_has_item(char *item, struct char_data *ch);
 void var_subst(void *go, struct script_data *sc, trig_data *trig,
-               int type, char *line, char *buf);
+        int type, char *line, char *buf);
 int text_processed(char *field, char *subfield, struct trig_var_data *vd,
-                   char *str, size_t slen);
+        char *str, size_t slen);
 void find_replacement(void *go, struct script_data *sc, trig_data *trig,
-                int type, char *var, char *field, char *subfield, char *str, size_t slen);
+        int type, char *var, char *field, char *subfield, char *str, size_t slen);
 
 /* From dg_handler.c */
 void free_var_el(struct trig_var_data *var);
@@ -355,9 +355,9 @@ void send_to_zone(char *messg, zone_rnum zone);
 
 /* from dg_misc.c */
 void do_dg_cast(void *go, struct script_data *sc, trig_data *trig,
-    int type, char *cmd);
+        int type, char *cmd);
 void do_dg_affect(void *go, struct script_data *sc, trig_data *trig,
-    int type, char *cmd);
+        int type, char *cmd);
 void send_char_pos(struct char_data *ch, int dam);
 int valid_dg_target(char_data *ch, int bitvector);
 void script_damage(char_data *vict, int dam);

@@ -1,12 +1,12 @@
 /**************************************************************************
-*  File: db.c                                              Part of tbaMUD *
-*  Usage: Loading/saving chars, booting/resetting world, internal funcs.  *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-**************************************************************************/
+ *  File: db.c                                              Part of tbaMUD *
+ *  Usage: Loading/saving chars, booting/resetting world, internal funcs.  *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ **************************************************************************/
 
 #define __DB_C__
 
@@ -45,87 +45,87 @@
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
 
-struct room_data *world = NULL;	/* array of rooms		 */
-room_rnum top_of_world = 0;	/* ref to top element of world	 */
+struct room_data *world = NULL; /* array of rooms		 */
+room_rnum top_of_world = 0; /* ref to top element of world	 */
 
-struct raff_node *raff_list = NULL;	// list of room affections
+struct raff_node *raff_list = NULL; // list of room affections
 
 struct char_data *character_list = NULL; /* global linked list of chars	*/
-struct index_data *mob_index = NULL;	/* index table for mobile file	 */
-struct char_data *mob_proto = NULL;	/* prototypes for mobs		 */
-mob_rnum top_of_mobt = 0;	/* top of mobile index table	 */
+struct index_data *mob_index = NULL; /* index table for mobile file	 */
+struct char_data *mob_proto = NULL; /* prototypes for mobs		 */
+mob_rnum top_of_mobt = 0; /* top of mobile index table	 */
 
-struct obj_data *object_list = NULL;	/* global linked list of objs	*/
-struct index_data *obj_index = NULL;	/* index table for object file	 */
-struct obj_data *obj_proto = NULL;	/* prototypes for objs		 */
-obj_rnum top_of_objt = 0;	/* top of object index table	 */
+struct obj_data *object_list = NULL; /* global linked list of objs	*/
+struct index_data *obj_index = NULL; /* index table for object file	 */
+struct obj_data *obj_proto = NULL; /* prototypes for objs		 */
+obj_rnum top_of_objt = 0; /* top of object index table	 */
 
 struct zone_data *zone_table = NULL; /* zone table      */
-zone_rnum top_of_zone_table = 0;/* top element of zone tab   */
+zone_rnum top_of_zone_table = 0; /* top element of zone tab   */
 
 /* begin previously located in players.c */
 struct player_index_element *player_table = NULL; /* index to plr file   */
-int top_of_p_table = 0;   /* ref to top of table     */
-int top_of_p_file = 0;    /* ref of size of p file   */
-long top_idnum = 0;       /* highest idnum in use    */
+int top_of_p_table = 0; /* ref to top of table     */
+int top_of_p_file = 0; /* ref of size of p file   */
+long top_idnum = 0; /* highest idnum in use    */
 /* end previously located in players.c */
 
-struct message_list fight_messages[MAX_MESSAGES];	/* fighting messages	 */
+struct message_list fight_messages[MAX_MESSAGES]; /* fighting messages	 */
 
 struct index_data **trig_index = NULL; /* index table for triggers      */
-struct trig_data *trigger_list = NULL;  /* all attached triggers */
-int top_of_trigt = 0;           /* top of trigger index table    */
-long max_mob_id = MOB_ID_BASE;  /* for unique mob id's           */
-long max_obj_id = OBJ_ID_BASE;  /* for unique obj id's           */
-int dg_owner_purged = 0;            /* For control of scripts        */
+struct trig_data *trigger_list = NULL; /* all attached triggers */
+int top_of_trigt = 0; /* top of trigger index table    */
+long max_mob_id = MOB_ID_BASE; /* for unique mob id's           */
+long max_obj_id = OBJ_ID_BASE; /* for unique obj id's           */
+int dg_owner_purged = 0; /* For control of scripts        */
 
-struct aq_data *aquest_table = NULL;   /* Autoquests table              */
-qst_rnum total_quests = 0;      /* top of autoquest table        */
+struct aq_data *aquest_table = NULL; /* Autoquests table              */
+qst_rnum total_quests = 0; /* top of autoquest table        */
 
-struct shop_data *shop_index = NULL;   /* index table for shops         */
-int top_shop = -1;              /* top of shop table             */
+struct shop_data *shop_index = NULL; /* index table for shops         */
+int top_shop = -1; /* top of shop table             */
 
-int no_mail = 0;                /* mail disabled?		 */
-int mini_mud = 0;               /* mini-mud mode?		 */
-int no_rent_check = 0;          /* skip rent check on boot?	 */
-time_t boot_time = 0;           /* time of mud boot		 */
-int circle_restrict = 0;        /* level of game restriction	 */
-room_rnum r_mortal_start_room = 0;	/* rnum of mortal start room	 */
-room_rnum r_immort_start_room = 0;	/* rnum of immort start room	 */
-room_rnum r_frozen_start_room = 0;	/* rnum of frozen start room	 */
+int no_mail = 0; /* mail disabled?		 */
+int mini_mud = 0; /* mini-mud mode?		 */
+int no_rent_check = 0; /* skip rent check on boot?	 */
+time_t boot_time = 0; /* time of mud boot		 */
+int circle_restrict = 0; /* level of game restriction	 */
+room_rnum r_mortal_start_room = 0; /* rnum of mortal start room	 */
+room_rnum r_immort_start_room = 0; /* rnum of immort start room	 */
+room_rnum r_frozen_start_room = 0; /* rnum of frozen start room	 */
 
-char *credits = NULL;		/* game credits			 */
-char *news = NULL;		/* mud news			 */
-char *motd = NULL;		/* message of the day - mortals  */
-char *imotd = NULL;		/* message of the day - immorts  */
-char *GREETINGS = NULL;		/* opening credits screen        */
-char *help = NULL;		/* help screen			 */
-char *ihelp = NULL;             /* help screen (immortals)       */
-char *info = NULL;		/* info page			 */
-char *wizlist = NULL;		/* list of higher gods		 */
-char *immlist = NULL;		/* list of peon gods		 */
-char *background = NULL;	/* background story		 */
-char *handbook = NULL;		/* handbook for new immortals	 */
-char *policies = NULL;		/* policies page		 */
-char *bugs = NULL;              /* bugs file                     */
-char *typos = NULL;             /* typos file                    */
-char *ideas = NULL;             /* ideas file                    */
+char *credits = NULL; /* game credits			 */
+char *news = NULL; /* mud news			 */
+char *motd = NULL; /* message of the day - mortals  */
+char *imotd = NULL; /* message of the day - immorts  */
+char *GREETINGS = NULL; /* opening credits screen        */
+char *help = NULL; /* help screen			 */
+char *ihelp = NULL; /* help screen (immortals)       */
+char *info = NULL; /* info page			 */
+char *wizlist = NULL; /* list of higher gods		 */
+char *immlist = NULL; /* list of peon gods		 */
+char *background = NULL; /* background story		 */
+char *handbook = NULL; /* handbook for new immortals	 */
+char *policies = NULL; /* policies page		 */
+char *bugs = NULL; /* bugs file                     */
+char *typos = NULL; /* typos file                    */
+char *ideas = NULL; /* ideas file                    */
 
 int top_of_helpt = 0;
 struct help_index_element *help_table = NULL;
 
-struct social_messg *soc_mess_list = NULL;      /* list of socials */
-int top_of_socialt = -1;                        /* number of socials */
+struct social_messg *soc_mess_list = NULL; /* list of socials */
+int top_of_socialt = -1; /* number of socials */
 
 time_t newsmod = 0; /* Time news file was last modified. */
 time_t motdmod = 0; /* Time motd file was last modified. */
 
-struct time_info_data time_info;  /* the infomation about the time    */
-struct weather_data weather_info;	/* the infomation about the weather */
-struct player_special_data dummy_mob;	/* dummy spec area for mobs	*/
-struct reset_q_type reset_q;	    /* queue of zones to be reset	 */
+struct time_info_data time_info; /* the infomation about the time    */
+struct weather_data weather_info; /* the infomation about the weather */
+struct player_special_data dummy_mob; /* dummy spec area for mobs	*/
+struct reset_q_type reset_q; /* queue of zones to be reset	 */
 
-struct happyhour happy_data = {0,0,0,0};
+struct happyhour happy_data = {0, 0, 0, 0};
 
 /* declaration of local (file scope) variables */
 static int converting = FALSE;
@@ -150,18 +150,17 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message);
 static void reset_time(void);
 static char fread_letter(FILE *fp);
 static void free_followers(struct follow_type *k);
-static void load_default_config( void );
+static void load_default_config(void);
 static void free_extra_descriptions(struct extra_descr_data *edesc);
 static bitvector_t asciiflag_conv_aff(char *flag);
 static int hsort(const void *a, const void *b);
 
 /* routines for booting the system */
-char *fread_action(FILE *fl, int nr)
-{
-  char buf[MAX_STRING_LENGTH] = { '\0' };
+char *fread_action(FILE *fl, int nr) {
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char *buf1 = NULL;
   int i = 0;
-  
+
   buf1 = fgets(buf, MAX_STRING_LENGTH, fl);
   if (feof(fl)) {
     log("SYSERR: fread_action: unexpected EOF near action #%d", nr);
@@ -182,12 +181,11 @@ char *fread_action(FILE *fl, int nr)
       buf[i] = '\0';
       break;
     }
-  
+
   return (strdup(buf));
 }
 
-void boot_social_messages(void)
-{
+void boot_social_messages(void) {
   FILE *fl;
   int nr = 0, hide, min_char_pos, min_pos, min_lvl, curr_soc = -1, i;
   char next_soc[MAX_STRING_LENGTH], sorted[MAX_INPUT_LENGTH], *buf;
@@ -204,7 +202,7 @@ void boot_social_messages(void)
     /* count socials */
     *next_soc = '\0';
     while (!feof(fl)) {
-    buf =  fgets(next_soc, MAX_STRING_LENGTH, fl);
+      buf = fgets(next_soc, MAX_STRING_LENGTH, fl);
       if (*next_soc == '~') top_of_socialt++;
     }
   } else { /* old style */
@@ -219,7 +217,7 @@ void boot_social_messages(void)
     }
     /* count socials */
     while (!feof(fl)) {
-    buf =  fgets(next_soc, MAX_STRING_LENGTH, fl);
+      buf = fgets(next_soc, MAX_STRING_LENGTH, fl);
       if (*next_soc == '\n' || *next_soc == '\r') top_of_socialt++; /* all socials are followed by a blank line */
     }
   }
@@ -235,33 +233,33 @@ void boot_social_messages(void)
     if (*next_soc == '$') break;
     if (CONFIG_NEW_SOCIALS == TRUE) {
       if (fscanf(fl, " %s %d %d %d %d \n",
-  		sorted, &hide, &min_char_pos, &min_pos, &min_lvl) != 5) {
-      log("SYSERR: format error in social file near social '%s'", next_soc);
-      /* SYSERR_DESC: From boot_social_messages(), this error is output when
-       * the server is expecting to find the remainder of the first line of the
-       * social ('hide' and 'minimum position').  These must follow the name of
-       * the social with a single space such as: 'accuse 0 5\n'. This error
-       * often occurs when one of the numbers is missing or the social name has
-       * a space in it (i.e., 'bend over'). */
-      exit(1);
-    }
+              sorted, &hide, &min_char_pos, &min_pos, &min_lvl) != 5) {
+        log("SYSERR: format error in social file near social '%s'", next_soc);
+        /* SYSERR_DESC: From boot_social_messages(), this error is output when
+         * the server is expecting to find the remainder of the first line of the
+         * social ('hide' and 'minimum position').  These must follow the name of
+         * the social with a single space such as: 'accuse 0 5\n'. This error
+         * often occurs when one of the numbers is missing or the social name has
+         * a space in it (i.e., 'bend over'). */
+        exit(1);
+      }
       curr_soc++;
-      soc_mess_list[curr_soc].command = strdup(next_soc+1);
+      soc_mess_list[curr_soc].command = strdup(next_soc + 1);
       soc_mess_list[curr_soc].sort_as = strdup(sorted);
       soc_mess_list[curr_soc].hide = hide;
       soc_mess_list[curr_soc].min_char_position = min_char_pos;
       soc_mess_list[curr_soc].min_victim_position = min_pos;
       soc_mess_list[curr_soc].min_level_char = min_lvl;
-    } else {  /* old style */
+    } else { /* old style */
       if (fscanf(fl, " %d %d \n", &hide, &min_pos) != 2) {
         log("SYSERR: format error in social file near social '%s'", next_soc);
-      /* SYSERR_DESC: From boot_social_messages(), this error is output when the
-       * server is expecting to find the remainder of the first line of the
-       * social ('hide' and 'minimum position').  These must follow the name of
-       * the social with a single space such as: 'accuse 0 5\n'. This error
-       * often occurs when one of the numbers is missing or the social name has
-       * a space in it (i.e., 'bend over'). */
-      exit(1);
+        /* SYSERR_DESC: From boot_social_messages(), this error is output when the
+         * server is expecting to find the remainder of the first line of the
+         * social ('hide' and 'minimum position').  These must follow the name of
+         * the social with a single space such as: 'accuse 0 5\n'. This error
+         * often occurs when one of the numbers is missing or the social name has
+         * a space in it (i.e., 'bend over'). */
+        exit(1);
       }
       curr_soc++;
       soc_mess_list[curr_soc].command = strdup(next_soc);
@@ -275,11 +273,11 @@ void boot_social_messages(void)
 #ifdef CIRCLE_ACORN
     if (fgetc(fl) != '\n')
       log("SYSERR: Acorn bug workaround failed.");
-      /* SYSERR_DESC: The only time that this error should ever arise is if you
-       * are running your MUD on the Acorn platform.  The error arises when the
-       * server cannot properly read a '\n' out of the file at the end of the
-       * first line of the social (that with 'hide' and 'min position').  This
-       * is in boot_social_messages(). */
+    /* SYSERR_DESC: The only time that this error should ever arise is if you
+     * are running your MUD on the Acorn platform.  The error arises when the
+     * server cannot properly read a '\n' out of the file at the end of the
+     * first line of the social (that with 'hide' and 'min position').  This
+     * is in boot_social_messages(). */
 #endif
 
     soc_mess_list[curr_soc].char_no_arg = fread_action(fl, nr);
@@ -313,18 +311,16 @@ void boot_social_messages(void)
 }
 
 /* this is necessary for the autowiz system */
-void reboot_wizlists(void)
-{
+void reboot_wizlists(void) {
   file_to_string_alloc(WIZLIST_FILE, &wizlist);
   file_to_string_alloc(IMMLIST_FILE, &immlist);
 }
 
 /* Wipe out all the loaded text files, for shutting down. */
-void free_text_files(void)
-{
+void free_text_files(void) {
   char **textfiles[] = {
-	&wizlist, &immlist, &news, &credits, &motd, &imotd, &help, &ihelp, &info,
-	&policies, &handbook, &background, &GREETINGS, &bugs, &typos, &ideas, NULL
+    &wizlist, &immlist, &news, &credits, &motd, &imotd, &help, &ihelp, &info,
+    &policies, &handbook, &background, &GREETINGS, &bugs, &typos, &ideas, NULL
   };
   int rf;
 
@@ -338,8 +334,7 @@ void free_text_files(void)
 /* Too bad it doesn't check the return values to let the user know about -1
  * values.  This will result in an 'Okay.' to a 'reload' command even when the
  * string was not replaced. To fix later. */
-ACMD(do_reboot)
-{
+ACMD(do_reboot) {
   char arg[MAX_INPUT_LENGTH];
 
   one_argument(argument, arg);
@@ -373,7 +368,7 @@ ACMD(do_reboot)
       send_to_char(ch, "Cannot read background\r\n");
     if (help_table) {
       free_help_table();
-    index_boot(DB_BOOT_HLP);
+      index_boot(DB_BOOT_HLP);
     }
   } else if (!str_cmp(arg, "wizlist")) {
     if (file_to_string_alloc(WIZLIST_FILE, &wizlist) < 0)
@@ -419,7 +414,7 @@ ACMD(do_reboot)
   } else if (!str_cmp(arg, "xhelp")) {
     if (help_table) {
       free_help_table();
-    index_boot(DB_BOOT_HLP);
+      index_boot(DB_BOOT_HLP);
     }
   } else {
     send_to_char(ch, "Unknown reload option.\r\n");
@@ -429,8 +424,7 @@ ACMD(do_reboot)
   send_to_char(ch, "%s", CONFIG_OK);
 }
 
-void boot_world(void)
-{
+void boot_world(void) {
   log("Loading zone table.");
   index_boot(DB_BOOT_ZON);
 
@@ -455,7 +449,7 @@ void boot_world(void)
   log("Renumbering zone table.");
   renum_zone_table();
 
-  if(converting) {
+  if (converting) {
     log("Saving 128bit world files to disk.");
     save_all();
   }
@@ -470,8 +464,7 @@ void boot_world(void)
 
 }
 
-static void free_extra_descriptions(struct extra_descr_data *edesc)
-{
+static void free_extra_descriptions(struct extra_descr_data *edesc) {
   struct extra_descr_data *enext;
 
   for (; edesc; edesc = enext) {
@@ -484,8 +477,7 @@ static void free_extra_descriptions(struct extra_descr_data *edesc)
 }
 
 /* Free the world, in a memory allocation sense. */
-void destroy_db(void)
-{
+void destroy_db(void) {
   ssize_t cnt = 0, itr = 0;
   struct char_data *chtmp = NULL;
   struct obj_data *objtmp = NULL;
@@ -580,7 +572,7 @@ void destroy_db(void)
       free(mob_proto[cnt].player.walkin);
     if (mob_proto[cnt].player.walkout)
       free(mob_proto[cnt].player.walkout);
-    
+
     /* free script proto list */
     free_proto_script(&mob_proto[cnt], MOB_TRIGGER);
 
@@ -606,7 +598,7 @@ void destroy_db(void)
       free(zone_table[cnt].builders);
     if (zone_table[cnt].cmd) {
       /* first see if any vars were defined in this zone */
-      for (itr = 0;THIS_CMD.command != 'S';itr++)
+      for (itr = 0; THIS_CMD.command != 'S'; itr++)
         if (THIS_CMD.command == 'V') {
           if (THIS_CMD.sarg1)
             free(THIS_CMD.sarg1);
@@ -623,7 +615,7 @@ void destroy_db(void)
 
   /* zone table reset queue */
   if (reset_q.head) {
-    struct reset_q_element *ftemp=reset_q.head, *temp;
+    struct reset_q_element *ftemp = reset_q.head, *temp;
     while (ftemp) {
       temp = ftemp->next;
       free(ftemp);
@@ -632,7 +624,7 @@ void destroy_db(void)
   }
 
   /* Triggers */
-  for (cnt=0; cnt < top_of_trigt; cnt++) {
+  for (cnt = 0; cnt < top_of_trigt; cnt++) {
     if (trig_index[cnt]->proto) {
       /* make sure to nuke the command list (memory leak) */
       /* free_trigger() doesn't free the command list */
@@ -659,8 +651,7 @@ void destroy_db(void)
 }
 
 /* body of the booting system */
-void boot_db(void)
-{
+void boot_db(void) {
   zone_rnum i = 0;
 
 
@@ -668,10 +659,10 @@ void boot_db(void)
 
   log("Resetting the game time:");
   reset_time();
-  
+
   log("Initialize Global / Group Lists");
   global_lists = create_list();
-  group_list   = create_list();
+  group_list = create_list();
 
   log("Initializing Events");
   init_events();
@@ -737,7 +728,7 @@ void boot_db(void)
 
   log("Sorting command list and spells.");
   sort_commands();
-//  sort_spells();
+  //  sort_spells();
 
   log("Booting mail system.");
   if (!scan_file()) {
@@ -764,7 +755,7 @@ void boot_db(void)
   }
 
   /* Moved here so the object limit code works. -gg 6/24/98 */
-  if (!mini_mud)  {
+  if (!mini_mud) {
     log("Booting houses.");
     House_boot();
 
@@ -779,21 +770,21 @@ void boot_db(void)
   clean_llog_entries();
 
 #if 1
-{
-  int j;
+  {
+    int j;
 
-  for (j = 0 ; j < top_of_objt; j++) {
-    if (obj_proto[j].script == (struct script_data *)&shop_keeper) {
-      log("Item %d (%s) had shopkeeper trouble.", obj_index[j].vnum, obj_proto[j].short_description);
-      obj_proto[j].script = NULL;
+    for (j = 0; j < top_of_objt; j++) {
+      if (obj_proto[j].script == (struct script_data *) &shop_keeper) {
+        log("Item %d (%s) had shopkeeper trouble.", obj_index[j].vnum, obj_proto[j].short_description);
+        obj_proto[j].script = NULL;
+      }
     }
   }
-}
 #endif
 
   for (i = 0; i <= top_of_zone_table; i++) {
     log("Resetting #%d: %s (rooms %d-%d).", zone_table[i].number,
-	zone_table[i].name, zone_table[i].bot, zone_table[i].top);
+            zone_table[i].name, zone_table[i].bot, zone_table[i].top);
     reset_zone(i);
   }
 
@@ -806,8 +797,7 @@ void boot_db(void)
 }
 
 /* reset the time in the game from file */
-static void reset_time(void)
-{
+static void reset_time(void) {
   time_t beginning_of_time = 0;
   FILE *bgtime;
   int i;
@@ -815,14 +805,14 @@ static void reset_time(void)
   if ((bgtime = fopen(TIME_FILE, "r")) == NULL)
     log("No time file '%s' starting from the beginning.", TIME_FILE);
   else {
-    i = fscanf(bgtime, "%ld\n", (long *)&beginning_of_time);
+    i = fscanf(bgtime, "%ld\n", (long *) &beginning_of_time);
     fclose(bgtime);
   }
 
   if (beginning_of_time == 0)
     beginning_of_time = 650336715;
 
-time_info = *mud_time_passed(time(0), beginning_of_time);
+  time_info = *mud_time_passed(time(0), beginning_of_time);
 
   if (time_info.hours <= 4)
     weather_info.sunlight = SUN_DARK;
@@ -836,7 +826,7 @@ time_info = *mud_time_passed(time(0), beginning_of_time);
     weather_info.sunlight = SUN_DARK;
 
   log("   Current Gametime: %dH %dD %dM %dY.", time_info.hours,
-	  time_info.day, time_info.month, time_info.year);
+          time_info.day, time_info.month, time_info.year);
 
   weather_info.pressure = 960;
   if ((time_info.month >= 7) && (time_info.month <= 12))
@@ -857,22 +847,20 @@ time_info = *mud_time_passed(time(0), beginning_of_time);
 }
 
 /* Write the time in 'when' to the MUD-time file. */
-void save_mud_time(struct time_info_data *when)
-{
+void save_mud_time(struct time_info_data *when) {
   FILE *bgtime;
 
   if ((bgtime = fopen(TIME_FILE, "w")) == NULL)
     log("SYSERR: Can't write to '%s' time file.", TIME_FILE);
   else {
-    fprintf(bgtime, "%ld\n", (long)mud_time_to_secs(when));
+    fprintf(bgtime, "%ld\n", (long) mud_time_to_secs(when));
     fclose(bgtime);
   }
 }
 
 /* Thanks to Andrey (andrey@alex-ua.com) for this bit of code, although I did
  * add the 'goto' and changed some "while()" into "do { } while()". -gg */
-static int count_alias_records(FILE *fl)
-{
+static int count_alias_records(FILE *fl) {
   char key[READ_SIZE], next_key[READ_SIZE];
   char line[READ_SIZE], *scan;
   int total_keywords = 0;
@@ -885,7 +873,7 @@ static int count_alias_records(FILE *fl)
     do {
       get_one_line(fl, line);
       if (feof(fl))
-	goto ackeof;
+        goto ackeof;
     } while (*line != '#');
 
     /* now count keywords */
@@ -908,12 +896,11 @@ static int count_alias_records(FILE *fl)
   /* No, they are not evil. -gg 6/24/98 */
 ackeof:
   log("SYSERR: Unexpected end of help file.");
-  exit(1);	/* Some day we hope to handle these things better... */
+  exit(1); /* Some day we hope to handle these things better... */
 }
 
 /* function to count how many hash-mark delimited records exist in a file */
-int count_hash_records(FILE *fl)
-{
+int count_hash_records(FILE *fl) {
   char buf[128];
   int count = 0;
 
@@ -924,42 +911,41 @@ int count_hash_records(FILE *fl)
   return (count);
 }
 
-void index_boot(int mode)
-{
-  const char *index_filename, *prefix = NULL;	/* NULL or egcs 1.1 complains */
+void index_boot(int mode) {
+  const char *index_filename, *prefix = NULL; /* NULL or egcs 1.1 complains */
   FILE *db_index, *db_file;
-  int rec_count = 0, size[2] = { 0, 0 }, i = 0;
-  char buf2[PATH_MAX] = { '\0' };
-  char buf1[MAX_STRING_LENGTH] = { '\0' };
+  int rec_count = 0, size[2] = {0, 0}, i = 0;
+  char buf2[PATH_MAX] = {'\0'};
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
 
   switch (mode) {
-  case DB_BOOT_WLD:
-    prefix = WLD_PREFIX;
-    break;
-  case DB_BOOT_MOB:
-    prefix = MOB_PREFIX;
-    break;
-  case DB_BOOT_OBJ:
-    prefix = OBJ_PREFIX;
-    break;
-  case DB_BOOT_ZON:
-    prefix = ZON_PREFIX;
-    break;
-  case DB_BOOT_SHP:
-    prefix = SHP_PREFIX;
-    break;
-  case DB_BOOT_HLP:
-    prefix = HLP_PREFIX;
-    break;
-  case DB_BOOT_TRG:
-    prefix = TRG_PREFIX;
-    break;
-  case DB_BOOT_QST:
-    prefix = QST_PREFIX;
-    break;
-  default:
-    log("SYSERR: Unknown subcommand %d to index_boot!", mode);
-    exit(1);
+    case DB_BOOT_WLD:
+      prefix = WLD_PREFIX;
+      break;
+    case DB_BOOT_MOB:
+      prefix = MOB_PREFIX;
+      break;
+    case DB_BOOT_OBJ:
+      prefix = OBJ_PREFIX;
+      break;
+    case DB_BOOT_ZON:
+      prefix = ZON_PREFIX;
+      break;
+    case DB_BOOT_SHP:
+      prefix = SHP_PREFIX;
+      break;
+    case DB_BOOT_HLP:
+      prefix = HLP_PREFIX;
+      break;
+    case DB_BOOT_TRG:
+      prefix = TRG_PREFIX;
+      break;
+    case DB_BOOT_QST:
+      prefix = QST_PREFIX;
+      break;
+    default:
+      log("SYSERR: Unknown subcommand %d to index_boot!", mode);
+      exit(1);
   }
 
   if (mini_mud)
@@ -967,7 +953,7 @@ void index_boot(int mode)
   else
     index_filename = INDEX_FILE;
 
-  snprintf(buf2, sizeof(buf2), "%s%s", prefix, index_filename);
+  snprintf(buf2, sizeof (buf2), "%s%s", prefix, index_filename);
   if (!(db_index = fopen(buf2, "r"))) {
     log("SYSERR: opening index file '%s': %s", buf2, strerror(errno));
     exit(1);
@@ -976,19 +962,19 @@ void index_boot(int mode)
   /* first, count the number of records in the file so we can malloc */
   i = fscanf(db_index, "%s\n", buf1);
   while (*buf1 != '$') {
-    snprintf(buf2, sizeof(buf2), "%s%s", prefix, buf1);
+    snprintf(buf2, sizeof (buf2), "%s%s", prefix, buf1);
     if (!(db_file = fopen(buf2, "r"))) {
       log("SYSERR: File '%s' listed in '%s/%s': %s", buf2, prefix,
-	  index_filename, strerror(errno));
+              index_filename, strerror(errno));
       i = fscanf(db_index, "%s\n", buf1);
       continue;
     } else {
       if (mode == DB_BOOT_ZON)
-	rec_count++;
+        rec_count++;
       else if (mode == DB_BOOT_HLP)
-	rec_count += count_alias_records(db_file);
+        rec_count += count_alias_records(db_file);
       else
-	rec_count += count_hash_records(db_file);
+        rec_count += count_hash_records(db_file);
     }
 
     fclose(db_file);
@@ -1000,76 +986,76 @@ void index_boot(int mode)
     if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST)
       return;
     log("SYSERR: boot error - 0 records counted in %s/%s.", prefix,
-	index_filename);
+            index_filename);
     exit(1);
   }
 
   /* "bytes" does _not_ include strings or other later malloc'd things. */
   switch (mode) {
-  case DB_BOOT_TRG:
-    CREATE(trig_index, struct index_data *, rec_count);
-    break;
-  case DB_BOOT_WLD:
-    CREATE(world, struct room_data, rec_count);
-    size[0] = sizeof(struct room_data) * rec_count;
-    log("   %d rooms, %d bytes.", rec_count, size[0]);
-    break;
-  case DB_BOOT_MOB:
-    CREATE(mob_proto, struct char_data, rec_count);
-    CREATE(mob_index, struct index_data, rec_count);
-    size[0] = sizeof(struct index_data) * rec_count;
-    size[1] = sizeof(struct char_data) * rec_count;
-    log("   %d mobs, %d bytes in index, %d bytes in prototypes.", rec_count, size[0], size[1]);
-    break;
-  case DB_BOOT_OBJ:
-    CREATE(obj_proto, struct obj_data, rec_count);
-    CREATE(obj_index, struct index_data, rec_count);
-    size[0] = sizeof(struct index_data) * rec_count;
-    size[1] = sizeof(struct obj_data) * rec_count;
-    log("   %d objs, %d bytes in index, %d bytes in prototypes.", rec_count, size[0], size[1]);
-    break;
-  case DB_BOOT_ZON:
-    CREATE(zone_table, struct zone_data, rec_count);
-    size[0] = sizeof(struct zone_data) * rec_count;
-    log("   %d zones, %d bytes.", rec_count, size[0]);
-    break;
-  case DB_BOOT_HLP:
-    CREATE(help_table, struct help_index_element, rec_count);
-    size[0] = sizeof(struct help_index_element) * rec_count;
-    log("   %d entries, %d bytes.", rec_count, size[0]);
-    break;
-  case DB_BOOT_QST:
-    CREATE(aquest_table, struct aq_data, rec_count);
-    size[0] = sizeof(struct aq_data) * rec_count;
-    log("   %d entries, %d bytes.", rec_count, size[0]);
-    break;
+    case DB_BOOT_TRG:
+      CREATE(trig_index, struct index_data *, rec_count);
+      break;
+    case DB_BOOT_WLD:
+      CREATE(world, struct room_data, rec_count);
+      size[0] = sizeof (struct room_data) * rec_count;
+      log("   %d rooms, %d bytes.", rec_count, size[0]);
+      break;
+    case DB_BOOT_MOB:
+      CREATE(mob_proto, struct char_data, rec_count);
+      CREATE(mob_index, struct index_data, rec_count);
+      size[0] = sizeof (struct index_data) * rec_count;
+      size[1] = sizeof (struct char_data) * rec_count;
+      log("   %d mobs, %d bytes in index, %d bytes in prototypes.", rec_count, size[0], size[1]);
+      break;
+    case DB_BOOT_OBJ:
+      CREATE(obj_proto, struct obj_data, rec_count);
+      CREATE(obj_index, struct index_data, rec_count);
+      size[0] = sizeof (struct index_data) * rec_count;
+      size[1] = sizeof (struct obj_data) * rec_count;
+      log("   %d objs, %d bytes in index, %d bytes in prototypes.", rec_count, size[0], size[1]);
+      break;
+    case DB_BOOT_ZON:
+      CREATE(zone_table, struct zone_data, rec_count);
+      size[0] = sizeof (struct zone_data) * rec_count;
+      log("   %d zones, %d bytes.", rec_count, size[0]);
+      break;
+    case DB_BOOT_HLP:
+      CREATE(help_table, struct help_index_element, rec_count);
+      size[0] = sizeof (struct help_index_element) * rec_count;
+      log("   %d entries, %d bytes.", rec_count, size[0]);
+      break;
+    case DB_BOOT_QST:
+      CREATE(aquest_table, struct aq_data, rec_count);
+      size[0] = sizeof (struct aq_data) * rec_count;
+      log("   %d entries, %d bytes.", rec_count, size[0]);
+      break;
   }
 
   rewind(db_index);
   i = fscanf(db_index, "%s\n", buf1);
   while (*buf1 != '$') {
-    snprintf(buf2, sizeof(buf2), "%s%s", prefix, buf1);
+    snprintf(buf2, sizeof (buf2), "%s%s", prefix, buf1);
     if (!(db_file = fopen(buf2, "r"))) {
       log("SYSERR: %s: %s", buf2, strerror(errno));
       exit(1);
     }
     switch (mode) {
-    case DB_BOOT_WLD:
-    case DB_BOOT_OBJ:
-    case DB_BOOT_MOB:
-    case DB_BOOT_TRG:
-    case DB_BOOT_QST:
-      discrete_load(db_file, mode, buf2);
-      break;
-    case DB_BOOT_ZON:
-      load_zones(db_file, buf2);
-      break;
-    case DB_BOOT_HLP:
-      load_help(db_file, buf2);
-      break;
-    case DB_BOOT_SHP:
-      boot_the_shops(db_file, buf2, rec_count);
-      break;
+      case DB_BOOT_WLD:
+      case DB_BOOT_OBJ:
+      case DB_BOOT_MOB:
+      case DB_BOOT_TRG:
+      case DB_BOOT_QST:
+        discrete_load(db_file, mode, buf2);
+        break;
+      case DB_BOOT_ZON:
+        load_zones(db_file, buf2);
+        break;
+      case DB_BOOT_HLP:
+        load_help(db_file, buf2);
+        break;
+      case DB_BOOT_SHP:
+        boot_the_shops(db_file, buf2, rec_count);
+        break;
     }
 
     fclose(db_file);
@@ -1079,14 +1065,13 @@ void index_boot(int mode)
 
   /* Sort the help index. */
   if (mode == DB_BOOT_HLP) {
-    qsort(help_table, top_of_helpt, sizeof(struct help_index_element), hsort);
+    qsort(help_table, top_of_helpt, sizeof (struct help_index_element), hsort);
   }
 }
 
-void discrete_load(FILE *fl, int mode, char *filename)
-{
+void discrete_load(FILE *fl, int mode, char *filename) {
   int nr = -1, last = 0;
-  char line[READ_SIZE] = { '\0' };
+  char line[READ_SIZE] = {'\0'};
 
   const char *modes[] = {"world", "mob", "obj", "ZON", "SHP", "HLP", "trg", "qst"};
   /* modes positions correspond to DB_BOOT_xxx in db.h */
@@ -1096,15 +1081,15 @@ void discrete_load(FILE *fl, int mode, char *filename)
      * end-of-record marker. */
     if (mode != DB_BOOT_OBJ || nr < 0)
       if (!get_line(fl, line)) {
-	if (nr == -1) {
-	  log("SYSERR: %s file %s is empty!", modes[mode], filename);
-	} else {
-	  log("SYSERR: Format error in %s after %s #%d\n"
-	      "...expecting a new %s, but file ended!\n"
-	      "(maybe the file is not terminated with '$'?)", filename,
-	      modes[mode], nr, modes[mode]);
-	}
-	exit(1);
+        if (nr == -1) {
+          log("SYSERR: %s file %s is empty!", modes[mode], filename);
+        } else {
+          log("SYSERR: Format error in %s after %s #%d\n"
+                  "...expecting a new %s, but file ended!\n"
+                  "(maybe the file is not terminated with '$'?)", filename,
+                  modes[mode], nr, modes[mode]);
+        }
+        exit(1);
       }
     if (*line == '$')
       return;
@@ -1112,40 +1097,39 @@ void discrete_load(FILE *fl, int mode, char *filename)
     if (*line == '#') {
       last = nr;
       if (sscanf(line, "#%d", &nr) != 1) {
-	log("SYSERR: Format error after %s #%d", modes[mode], last);
-	exit(1);
+        log("SYSERR: Format error after %s #%d", modes[mode], last);
+        exit(1);
       }
       if (nr >= 99999)
-	return;
+        return;
       else
-	switch (mode) {
-	case DB_BOOT_WLD:
-	  parse_room(fl, nr);
-	  break;
-	case DB_BOOT_MOB:
-	  parse_mobile(fl, nr);
-	  break;
-        case DB_BOOT_TRG:
-          parse_trigger(fl, nr);
-          break;
-	case DB_BOOT_OBJ:
-	  strlcpy(line, parse_object(fl, nr), sizeof(line));
-	  break;
-  case DB_BOOT_QST:
-    parse_quest(fl, nr);
-    break;
-	}
+        switch (mode) {
+          case DB_BOOT_WLD:
+            parse_room(fl, nr);
+            break;
+          case DB_BOOT_MOB:
+            parse_mobile(fl, nr);
+            break;
+          case DB_BOOT_TRG:
+            parse_trigger(fl, nr);
+            break;
+          case DB_BOOT_OBJ:
+            strlcpy(line, parse_object(fl, nr), sizeof (line));
+            break;
+          case DB_BOOT_QST:
+            parse_quest(fl, nr);
+            break;
+        }
     } else {
       log("SYSERR: Format error in %s file %s near %s #%d", modes[mode],
-	  filename, modes[mode], nr);
+              filename, modes[mode], nr);
       log("SYSERR: ... offending line: '%s'", line);
       exit(1);
     }
   }
 }
 
-static char fread_letter(FILE *fp)
-{
+static char fread_letter(FILE *fp) {
   char c;
   do {
     c = getc(fp);
@@ -1153,8 +1137,7 @@ static char fread_letter(FILE *fp)
   return c;
 }
 
-bitvector_t asciiflag_conv(char *flag)
-{
+bitvector_t asciiflag_conv(char *flag) {
   bitvector_t flags = 0;
   int is_num = TRUE;
   char *p;
@@ -1176,8 +1159,7 @@ bitvector_t asciiflag_conv(char *flag)
   return (flags);
 }
 
-static bitvector_t asciiflag_conv_aff(char *flag)
-{
+static bitvector_t asciiflag_conv_aff(char *flag) {
   bitvector_t flags = 0;
   int is_num = TRUE;
   char *p;
@@ -1200,23 +1182,22 @@ static bitvector_t asciiflag_conv_aff(char *flag)
 }
 
 /* load the rooms */
-void parse_room(FILE *fl, int virtual_nr)
-{
+void parse_room(FILE *fl, int virtual_nr) {
   static int room_nr = 0, zone = 0;
-  int t[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  int t[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   int i = 0, retval = 0;
-  char line[READ_SIZE] = { '\0' };
-  char flags[128] = { '\0' };
-  char flags2[128] = { '\0' };
-  char flags3[128] = { '\0' };
-  char flags4[128] = { '\0' };
-  char buf[128] = { '\0' };
-  char buf2[MAX_STRING_LENGTH] = { '\0' };
+  char line[READ_SIZE] = {'\0'};
+  char flags[128] = {'\0'};
+  char flags2[128] = {'\0'};
+  char flags3[128] = {'\0'};
+  char flags4[128] = {'\0'};
+  char buf[128] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   struct extra_descr_data *new_descr = NULL;
   char letter = '\0';
 
   /* This really had better fit or there are other problems. */
-  snprintf(buf2, sizeof(buf2), "room #%d", virtual_nr);
+  snprintf(buf2, sizeof (buf2), "room #%d", virtual_nr);
 
   if (virtual_nr < zone_table[zone].bot) {
     log("SYSERR: Room #%d is below zone %d (bot=%d, top=%d).", virtual_nr, zone_table[zone].number, zone_table[zone].bot, zone_table[zone].top);
@@ -1234,7 +1215,7 @@ void parse_room(FILE *fl, int virtual_nr)
 
   if (!get_line(fl, line)) {
     log("SYSERR: Expecting roomflags/sector type of room #%d but file ended!",
-	virtual_nr);
+            virtual_nr);
     exit(1);
   }
 
@@ -1255,17 +1236,17 @@ void parse_room(FILE *fl, int virtual_nr)
     /* In the old-style files, the 3rd item was the sector-type */
     world[room_nr].sector_type = atoi(flags2);
 
-   sprintf(flags, "room #%d", virtual_nr);	/* sprintf: OK (until 399-bit integers) */
+    sprintf(flags, "room #%d", virtual_nr); /* sprintf: OK (until 399-bit integers) */
 
     /* No need to scan the other three sections; they're 0 anyway. */
     check_bitvector_names(world[room_nr].room_flags[0], room_bits_count, flags, "room");
 
-    if(bitsavetodisk) { /* Maybe the implementor just wants to look at the 128bit files */
+    if (bitsavetodisk) { /* Maybe the implementor just wants to look at the 128bit files */
       add_to_save_list(zone_table[real_zone_by_thing(virtual_nr)].number, 3);
       converting = TRUE;
     }
 
-  log("   done.");
+    log("   done.");
   } else if (retval == 6) {
     int taeller;
 
@@ -1274,30 +1255,30 @@ void parse_room(FILE *fl, int virtual_nr)
     world[room_nr].room_flags[2] = asciiflag_conv(flags3);
     world[room_nr].room_flags[3] = asciiflag_conv(flags4);
 
-    sprintf(flags, "object #%d", virtual_nr);	/* sprintf: OK (until 399-bit integers) */
-    for(taeller=0; taeller < AF_ARRAY_MAX; taeller++)
+    sprintf(flags, "object #%d", virtual_nr); /* sprintf: OK (until 399-bit integers) */
+    for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
       check_bitvector_names(world[room_nr].room_flags[taeller], room_bits_count, flags, "room");
 
     /* Added Sanity check */
     if (t[2] > NUM_ROOM_SECTORS) t[2] = SECT_INSIDE;
 
     world[room_nr].sector_type = t[2];
-    } else {
-      log("SYSERR: Format error in roomflags/sector type of room #%d", virtual_nr);
+  } else {
+    log("SYSERR: Format error in roomflags/sector type of room #%d", virtual_nr);
     exit(1);
   }
 
   world[room_nr].func = NULL;
   world[room_nr].contents = NULL;
   world[room_nr].people = NULL;
-  world[room_nr].light = 0;	/* Zero light sources */
+  world[room_nr].light = 0; /* Zero light sources */
 
   for (i = 0; i < NUM_OF_DIRS; i++) /* NUM_OF_DIRS here, not DIR_COUNT */
     world[room_nr].dir_option[i] = NULL;
 
   world[room_nr].ex_description = NULL;
 
-  snprintf(buf, sizeof(buf), "SYSERR: Format error in room #%d (expecting D/E/S)", virtual_nr);
+  snprintf(buf, sizeof (buf), "SYSERR: Format error in room #%d (expecting D/E/S)", virtual_nr);
 
   for (;;) {
     if (!get_line(fl, line)) {
@@ -1305,52 +1286,51 @@ void parse_room(FILE *fl, int virtual_nr)
       exit(1);
     }
     switch (*line) {
-    case 'D':
-      setup_dir(fl, room_nr, atoi(line + 1));
-      break;
-    case 'E':
-      CREATE(new_descr, struct extra_descr_data, 1);
-      new_descr->keyword = fread_string(fl, buf2);
-      new_descr->description = fread_string(fl, buf2);
-      /* Fix for crashes in the editor when formatting. E-descs are assumed to
-       * end with a \r\n. -Welcor */
+      case 'D':
+        setup_dir(fl, room_nr, atoi(line + 1));
+        break;
+      case 'E':
+        CREATE(new_descr, struct extra_descr_data, 1);
+        new_descr->keyword = fread_string(fl, buf2);
+        new_descr->description = fread_string(fl, buf2);
+        /* Fix for crashes in the editor when formatting. E-descs are assumed to
+         * end with a \r\n. -Welcor */
       {
-      	char *end = strchr(new_descr->description, '\0');
-      	if (end > new_descr->description && *(end-1) != '\n') {
-      	  CREATE(end, char, strlen(new_descr->description)+3);
-      	  sprintf(end, "%s\r\n", new_descr->description); /* snprintf ok : size checked above*/
-      	  free(new_descr->description);
-      	  new_descr->description = end;
-      	}
+        char *end = strchr(new_descr->description, '\0');
+        if (end > new_descr->description && *(end - 1) != '\n') {
+          CREATE(end, char, strlen(new_descr->description) + 3);
+          sprintf(end, "%s\r\n", new_descr->description); /* snprintf ok : size checked above*/
+          free(new_descr->description);
+          new_descr->description = end;
+        }
       }
-      new_descr->next = world[room_nr].ex_description;
-      world[room_nr].ex_description = new_descr;
-      break;
-    case 'S':			/* end of room */
-      /* DG triggers -- script is defined after the end of the room */
-      letter = fread_letter(fl);
-      ungetc(letter, fl);
-      while (letter=='T') {
-        dg_read_trigger(fl, &world[room_nr], WLD_TRIGGER);
+        new_descr->next = world[room_nr].ex_description;
+        world[room_nr].ex_description = new_descr;
+        break;
+      case 'S': /* end of room */
+        /* DG triggers -- script is defined after the end of the room */
         letter = fread_letter(fl);
         ungetc(letter, fl);
-      }
-      top_of_world = room_nr++;
-      return;
-    default:
-      log("%s", buf);
-      exit(1);
+        while (letter == 'T') {
+          dg_read_trigger(fl, &world[room_nr], WLD_TRIGGER);
+          letter = fread_letter(fl);
+          ungetc(letter, fl);
+        }
+        top_of_world = room_nr++;
+        return;
+      default:
+        log("%s", buf);
+        exit(1);
     }
   }
 }
 
 /* read direction data */
-void setup_dir(FILE *fl, int room, int dir)
-{
+void setup_dir(FILE *fl, int room, int dir) {
   int t[5];
   char line[READ_SIZE], buf2[128];
 
-  snprintf(buf2, sizeof(buf2), "room #%d, direction D%d", GET_ROOM_VNUM(room)+1, dir);
+  snprintf(buf2, sizeof (buf2), "room #%d, direction D%d", GET_ROOM_VNUM(room) + 1, dir);
 
   if (!CONFIG_DIAGONAL_DIRS && IS_DIAGONAL(dir)) {
     log("Warning: Diagonal direction disabled: %s", buf2);
@@ -1381,12 +1361,11 @@ void setup_dir(FILE *fl, int room, int dir)
     world[room].dir_option[dir]->exit_info = 0;
 
   world[room].dir_option[dir]->key = ((t[1] == -1 || t[1] == 65535) ? NOTHING : t[1]);
-  world[room].dir_option[dir]->to_room = ((t[2] == -1  || t[2] == 0) ? NOWHERE : t[2]);
+  world[room].dir_option[dir]->to_room = ((t[2] == -1 || t[2] == 0) ? NOWHERE : t[2]);
 }
 
 /* make sure the start rooms exist & resolve their vnums to rnums */
-static void check_start_rooms(void)
-{
+static void check_start_rooms(void) {
   if ((r_mortal_start_room = real_room(CONFIG_MORTAL_START)) == NOWHERE) {
     log("SYSERR:  Mortal start room does not exist.  Change in config.c.");
     exit(1);
@@ -1404,16 +1383,15 @@ static void check_start_rooms(void)
 }
 
 /* resolve all vnums into rnums in the world */
-void renum_world(void)
-{
+void renum_world(void) {
   int room, door;
 
   for (room = 0; room <= top_of_world; room++)
     for (door = 0; door < NUM_OF_DIRS; door++)
       if (world[room].dir_option[door])
-	if (world[room].dir_option[door]->to_room != NOWHERE)
-	  world[room].dir_option[door]->to_room =
-	    real_room(world[room].dir_option[door]->to_room);
+        if (world[room].dir_option[door]->to_room != NOWHERE)
+          world[room].dir_option[door]->to_room =
+                real_room(world[room].dir_option[door]->to_room);
 }
 
 /** This is not the same ZCMD as used elsewhere. GRUMBLE... namespace conflict
@@ -1429,8 +1407,7 @@ void renum_world(void)
  * is running.  This does make adding any room, mobile, or object a little more
  * difficult while the game is running. Assumes NOWHERE == NOBODY == NOTHING.
  * Assumes sizeof(room_rnum) >= (sizeof(mob_rnum) and sizeof(obj_rnum)) */
-static void renum_zone_table(void)
-{
+static void renum_zone_table(void) {
   int cmd_no;
   room_rnum a, b, c, olda, oldb, oldc;
   zone_rnum zone;
@@ -1443,53 +1420,52 @@ static void renum_zone_table(void)
       oldb = ZCMD.arg2;
       oldc = ZCMD.arg3;
       switch (ZCMD.command) {
-      case 'M':
-	a = ZCMD.arg1 = real_mobile(ZCMD.arg1);
-	c = ZCMD.arg3 = real_room(ZCMD.arg3);
-	break;
-      case 'O':
-	a = ZCMD.arg1 = real_object(ZCMD.arg1);
-	if (ZCMD.arg3 != NOWHERE)
-	  c = ZCMD.arg3 = real_room(ZCMD.arg3);
-	break;
-      case 'G':
-	a = ZCMD.arg1 = real_object(ZCMD.arg1);
-	break;
-      case 'E':
-	a = ZCMD.arg1 = real_object(ZCMD.arg1);
-	break;
-      case 'P':
-	a = ZCMD.arg1 = real_object(ZCMD.arg1);
-	c = ZCMD.arg3 = real_object(ZCMD.arg3);
-	break;
-      case 'D':
-	a = ZCMD.arg1 = real_room(ZCMD.arg1);
-	break;
-      case 'R': /* rem obj from room */
-        a = ZCMD.arg1 = real_room(ZCMD.arg1);
-	b = ZCMD.arg2 = real_object(ZCMD.arg2);
-        break;
-      case 'T': /* a trigger */
-        b = ZCMD.arg2 = real_trigger(ZCMD.arg2);
-        c = ZCMD.arg3 = real_room(ZCMD.arg3);
-        break;
-      case 'V': /* trigger variable assignment */
-        b = ZCMD.arg3 = real_room(ZCMD.arg3);
-        break;
+        case 'M':
+          a = ZCMD.arg1 = real_mobile(ZCMD.arg1);
+          c = ZCMD.arg3 = real_room(ZCMD.arg3);
+          break;
+        case 'O':
+          a = ZCMD.arg1 = real_object(ZCMD.arg1);
+          if (ZCMD.arg3 != NOWHERE)
+            c = ZCMD.arg3 = real_room(ZCMD.arg3);
+          break;
+        case 'G':
+          a = ZCMD.arg1 = real_object(ZCMD.arg1);
+          break;
+        case 'E':
+          a = ZCMD.arg1 = real_object(ZCMD.arg1);
+          break;
+        case 'P':
+          a = ZCMD.arg1 = real_object(ZCMD.arg1);
+          c = ZCMD.arg3 = real_object(ZCMD.arg3);
+          break;
+        case 'D':
+          a = ZCMD.arg1 = real_room(ZCMD.arg1);
+          break;
+        case 'R': /* rem obj from room */
+          a = ZCMD.arg1 = real_room(ZCMD.arg1);
+          b = ZCMD.arg2 = real_object(ZCMD.arg2);
+          break;
+        case 'T': /* a trigger */
+          b = ZCMD.arg2 = real_trigger(ZCMD.arg2);
+          c = ZCMD.arg3 = real_room(ZCMD.arg3);
+          break;
+        case 'V': /* trigger variable assignment */
+          b = ZCMD.arg3 = real_room(ZCMD.arg3);
+          break;
       }
       if (a == NOWHERE || b == NOWHERE || c == NOWHERE) {
-	if (!mini_mud) {
-	  snprintf(buf, sizeof(buf), "Invalid vnum %d, cmd disabled",
-			 a == NOWHERE ? olda : b == NOWHERE ? oldb : oldc);
-	  log_zone_error(zone, cmd_no, buf);
-	}
-	ZCMD.command = '*';
+        if (!mini_mud) {
+          snprintf(buf, sizeof (buf), "Invalid vnum %d, cmd disabled",
+                  a == NOWHERE ? olda : b == NOWHERE ? oldb : oldc);
+          log_zone_error(zone, cmd_no, buf);
+        }
+        ZCMD.command = '*';
       }
     }
 }
 
-static void parse_simple_mob(FILE *mob_f, int i, int nr)
-{
+static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   int j, t[10];
   char line[READ_SIZE];
 
@@ -1506,9 +1482,9 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
   }
 
   if (sscanf(line, " %d %d %d %dd%d+%d %dd%d+%d ",
-	  t, t + 1, t + 2, t + 3, t + 4, t + 5, t + 6, t + 7, t + 8) != 9) {
+          t, t + 1, t + 2, t + 3, t + 4, t + 5, t + 6, t + 7, t + 8) != 9) {
     log("SYSERR: Format error in mob #%d, first line after S flag\n"
-	"...expecting line of form '# # # #d#+# #d#+#'", nr);
+            "...expecting line of form '# # # #d#+# #d#+#'", nr);
     exit(1);
   }
 
@@ -1532,14 +1508,14 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
   GET_DAMROLL(mob_proto + i) = t[8];
 
   if (!get_line(mob_f, line)) {
-      log("SYSERR: Format error in mob #%d, second line after S flag\n"
-	  "...expecting line of form '# #', but file ended!", nr);
-      exit(1);
-    }
+    log("SYSERR: Format error in mob #%d, second line after S flag\n"
+            "...expecting line of form '# #', but file ended!", nr);
+    exit(1);
+  }
 
   if (sscanf(line, " %d %d ", t, t + 1) != 2) {
     log("SYSERR: Format error in mob #%d, second line after S flag\n"
-	"...expecting line of form '# #'", nr);
+            "...expecting line of form '# #'", nr);
     exit(1);
   }
 
@@ -1548,13 +1524,13 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
 
   if (!get_line(mob_f, line)) {
     log("SYSERR: Format error in last line of mob #%d\n"
-	"...expecting line of form '# # #', but file ended!", nr);
+            "...expecting line of form '# # #', but file ended!", nr);
     exit(1);
   }
 
   if (sscanf(line, " %d %d %d ", t, t + 1, t + 2) != 3) {
     log("SYSERR: Format error in last line of mob #%d\n"
-	"...expecting line of form '# # #'", nr);
+            "...expecting line of form '# # #'", nr);
     exit(1);
   }
 
@@ -1590,8 +1566,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
 #define RANGE(low, high)	\
 	(num_arg = MAX((low), MIN((high), (num_arg))))
 
-static void interpret_espec(const char *keyword, const char *value, int i, int nr)
-{
+static void interpret_espec(const char *keyword, const char *value, int i, int nr) {
   int num_arg = 0, matched = FALSE;
 
   /* If there isn't a colon, there is no value.  While Boolean options are
@@ -1643,6 +1618,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     RANGE(0, 100);
     mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_FORT] = num_arg;
   }
+
   CASE("SavingFort") {
     RANGE(0, 100);
     mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_FORT] = num_arg;
@@ -1652,6 +1628,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     RANGE(0, 100);
     mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_REFL] = num_arg;
   }
+
   CASE("SavingRefl") {
     RANGE(0, 100);
     mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_REFL] = num_arg;
@@ -1661,6 +1638,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     RANGE(0, 100);
     mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_WILL] = num_arg;
   }
+
   CASE("SavingWill") {
     RANGE(0, 100);
     mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_WILL] = num_arg;
@@ -1670,6 +1648,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     RANGE(0, 100);
     mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_POISON] = num_arg;
   }
+
   CASE("SavingPoison") {
     RANGE(0, 100);
     mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_POISON] = num_arg;
@@ -1679,6 +1658,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     RANGE(0, 100);
     mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_DEATH] = num_arg;
   }
+
   CASE("SavingDeath") {
     RANGE(0, 100);
     mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_DEATH] = num_arg;
@@ -1717,14 +1697,14 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("Walkin") {
     mob_proto[i].player.walkin = strdup(value);
   }
-  
+
   CASE("Walkout") {
     mob_proto[i].player.walkout = strdup(value);
   }
-  
+
   if (!matched) {
     log("SYSERR: Warning: unrecognized espec keyword %s in mob #%d",
-	    keyword, nr);
+            keyword, nr);
   }
 }
 
@@ -1732,8 +1712,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 #undef BOOL_CASE
 #undef RANGE
 
-static void parse_espec(char *buf, int i, int nr)
-{
+static void parse_espec(char *buf, int i, int nr) {
   char *ptr;
 
   if ((ptr = strchr(buf, ':')) != NULL) {
@@ -1744,16 +1723,15 @@ static void parse_espec(char *buf, int i, int nr)
   interpret_espec(buf, ptr, i, nr);
 }
 
-static void parse_enhanced_mob(FILE *mob_f, int i, int nr)
-{
+static void parse_enhanced_mob(FILE *mob_f, int i, int nr) {
   char line[READ_SIZE];
 
   parse_simple_mob(mob_f, i, nr);
 
   while (get_line(mob_f, line)) {
-    if (!strcmp(line, "E"))	/* end of the enhanced section */
+    if (!strcmp(line, "E")) /* end of the enhanced section */
       return;
-    else if (*line == '#') {	/* we've hit the next mob, maybe? */
+    else if (*line == '#') { /* we've hit the next mob, maybe? */
       log("SYSERR: Unterminated E section in mob #%d", nr);
       exit(1);
     } else
@@ -1764,15 +1742,14 @@ static void parse_enhanced_mob(FILE *mob_f, int i, int nr)
   exit(1);
 }
 
-void parse_mobile(FILE *mob_f, int nr)
-{
+void parse_mobile(FILE *mob_f, int nr) {
   static int i = 0;
   int j, t[10], retval;
   char line[READ_SIZE], *tmpptr, letter;
   char f1[128], f2[128], f3[128], f4[128], f5[128], f6[128], f7[128], f8[128], buf2[128];
-//  char walk[MAX_STRING_LENGTH];
-//  char *message;
-  
+  //  char walk[MAX_STRING_LENGTH];
+  //  char *message;
+
   mob_index[i].vnum = nr;
   mob_index[i].number = 0;
   mob_index[i].func = NULL;
@@ -1783,23 +1760,23 @@ void parse_mobile(FILE *mob_f, int nr)
    * The only reason we have every mob in the game share this copy of the
    * structure is to save newbie coders from themselves. -gg */
   mob_proto[i].player_specials = &dummy_mob;
-  sprintf(buf2, "mob vnum %d", nr);	/* sprintf: OK (for 'buf2 >= 19') */
+  sprintf(buf2, "mob vnum %d", nr); /* sprintf: OK (for 'buf2 >= 19') */
 
   /* String data */
   mob_proto[i].player.name = fread_string(mob_f, buf2);
   tmpptr = mob_proto[i].player.short_descr = fread_string(mob_f, buf2);
   if (tmpptr && *tmpptr)
     if (!str_cmp(fname(tmpptr), "a") || !str_cmp(fname(tmpptr), "an") ||
-	!str_cmp(fname(tmpptr), "the"))
+            !str_cmp(fname(tmpptr), "the"))
       *tmpptr = LOWER(*tmpptr);
   mob_proto[i].player.long_descr = fread_string(mob_f, buf2);
   mob_proto[i].player.description = fread_string(mob_f, buf2);
   GET_TITLE(mob_proto + i) = NULL;
-  
+
   /* Numeric data */
   if (!get_line(mob_f, line)) {
     log("SYSERR: Format error after string section of mob #%d\n"
-	"...expecting line of form '# # # {S | E}', but file ended!", nr);
+            "...expecting line of form '# # # {S | E}', but file ended!", nr);
     exit(1);
   }
 
@@ -1841,12 +1818,12 @@ void parse_mobile(FILE *mob_f, int nr)
      * characters, but this shouldn't occur anyway. */
     letter = *f4;
 
-    if(bitsavetodisk) {
+    if (bitsavetodisk) {
       add_to_save_list(zone_table[real_zone_by_thing(nr)].number, 0);
-      converting =TRUE;
+      converting = TRUE;
     }
 
-  log("   done.");
+    log("   done.");
   } else if (retval == 10) {
     int taeller;
 
@@ -1854,7 +1831,7 @@ void parse_mobile(FILE *mob_f, int nr)
     MOB_FLAGS(mob_proto + i)[1] = asciiflag_conv(f2);
     MOB_FLAGS(mob_proto + i)[2] = asciiflag_conv(f3);
     MOB_FLAGS(mob_proto + i)[3] = asciiflag_conv(f4);
-    for(taeller=0; taeller < AF_ARRAY_MAX; taeller++)
+    for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
       check_bitvector_names(MOB_FLAGS(mob_proto + i)[taeller], action_bits_count, buf2, "mobile");
 
     AFF_FLAGS(mob_proto + i)[0] = asciiflag_conv(f5);
@@ -1864,7 +1841,7 @@ void parse_mobile(FILE *mob_f, int nr)
 
     GET_ALIGNMENT(mob_proto + i) = t[2];
 
-    for(taeller=0; taeller < AF_ARRAY_MAX; taeller++)
+    for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
       check_bitvector_names(AFF_FLAGS(mob_proto + i)[taeller], affected_bits_count, buf2, "mobile affect");
   } else {
     log("SYSERR: Format error after string section of mob #%d\n ...expecting line of form '# # # {S | E}'", nr);
@@ -1879,22 +1856,22 @@ void parse_mobile(FILE *mob_f, int nr)
   }
 
   switch (UPPER(letter)) {
-  case 'S':	/* Simple monsters */
-    parse_simple_mob(mob_f, i, nr);
-    break;
-  case 'E':	/* Circle3 Enhanced monsters */
-    parse_enhanced_mob(mob_f, i, nr);
-    break;
-  /* add new mob types here.. */
-  default:
-    log("SYSERR: Unsupported mob type '%c' in mob #%d", letter, nr);
-    exit(1);
+    case 'S': /* Simple monsters */
+      parse_simple_mob(mob_f, i, nr);
+      break;
+    case 'E': /* Circle3 Enhanced monsters */
+      parse_enhanced_mob(mob_f, i, nr);
+      break;
+      /* add new mob types here.. */
+    default:
+      log("SYSERR: Unsupported mob type '%c' in mob #%d", letter, nr);
+      exit(1);
   }
 
   /* DG triggers -- script info follows mob S/E section */
   letter = fread_letter(mob_f);
   ungetc(letter, mob_f);
-  while (letter=='T') {
+  while (letter == 'T') {
     dg_read_trigger(mob_f, &mob_proto[i], MOB_TRIGGER);
     letter = fread_letter(mob_f);
     ungetc(letter, mob_f);
@@ -1912,8 +1889,7 @@ void parse_mobile(FILE *mob_f, int nr)
 }
 
 /* read all objects from obj file; generate index and prototypes */
-char *parse_object(FILE *obj_f, int nr)
-{
+char *parse_object(FILE *obj_f, int nr) {
   static int i = 0;
   static char line[READ_SIZE];
   int t[10], j, retval, wsplnum;
@@ -1929,7 +1905,7 @@ char *parse_object(FILE *obj_f, int nr)
   clear_object(obj_proto + i);
   obj_proto[i].item_number = i;
 
-  sprintf(buf2, "object #%d", nr);	/* sprintf: OK (for 'buf2 >= 19') */
+  sprintf(buf2, "object #%d", nr); /* sprintf: OK (for 'buf2 >= 19') */
 
   /* string data */
   if ((obj_proto[i].name = fread_string(obj_f, buf2)) == NULL) {
@@ -1939,7 +1915,7 @@ char *parse_object(FILE *obj_f, int nr)
   tmpptr = obj_proto[i].short_description = fread_string(obj_f, buf2);
   if (tmpptr && *tmpptr)
     if (!str_cmp(fname(tmpptr), "a") || !str_cmp(fname(tmpptr), "an") ||
-	!str_cmp(fname(tmpptr), "the"))
+            !str_cmp(fname(tmpptr), "the"))
       *tmpptr = LOWER(*tmpptr);
 
   tmpptr = obj_proto[i].description = fread_string(obj_f, buf2);
@@ -1954,7 +1930,7 @@ char *parse_object(FILE *obj_f, int nr)
   }
 
   if (((retval = sscanf(line, " %d %s %s %s %s %s %s %s %s %s %s %s %s", t, f1, f2, f3,
-      f4, f5, f6, f7, f8, f9, f10, f11, f12)) == 4) && (bitwarning == TRUE)) {
+          f4, f5, f6, f7, f8, f9, f10, f11, f12)) == 4) && (bitwarning == TRUE)) {
     /* Let's make the implementor read some, before converting his world files. */
     log("WARNING: Conventional object files detected. Please see config.c.");
     exit(1);
@@ -1979,7 +1955,7 @@ char *parse_object(FILE *obj_f, int nr)
     GET_OBJ_PERM(obj_proto + i)[2] = 0;
     GET_OBJ_PERM(obj_proto + i)[3] = 0;
 
-    if(bitsavetodisk) {
+    if (bitsavetodisk) {
       add_to_save_list(zone_table[real_zone_by_thing(nr)].number, 1);
       converting = TRUE;
     }
@@ -2047,7 +2023,7 @@ char *parse_object(FILE *obj_f, int nr)
 
   /* check to make sure that weight of containers exceeds curr. quantity */
   if (GET_OBJ_TYPE(obj_proto + i) == ITEM_DRINKCON ||
-      GET_OBJ_TYPE(obj_proto + i) == ITEM_FOUNTAIN) {
+          GET_OBJ_TYPE(obj_proto + i) == ITEM_FOUNTAIN) {
     if (GET_OBJ_WEIGHT(obj_proto + i) < GET_OBJ_VAL(obj_proto + i, 1) && CAN_WEAR(obj_proto + i, ITEM_WEAR_TAKE))
       GET_OBJ_WEIGHT(obj_proto + i) = GET_OBJ_VAL(obj_proto + i, 1) + 5;
   }
@@ -2059,7 +2035,7 @@ char *parse_object(FILE *obj_f, int nr)
   }
 
   strcat(buf2, ", after numeric constants\n" /* strcat: OK (for 'buf2 >= 87') */
-	 "...expecting 'E', 'A', '$', or next object number");
+          "...expecting 'E', 'A', '$', or next object number");
   j = 0;
   wsplnum = 0;
 
@@ -2095,25 +2071,25 @@ char *parse_object(FILE *obj_f, int nr)
           log("SYSERR: Unknown spellbook slot in S field, %s", buf2);
           exit(1);
         }
-        
+
         if (!get_line(obj_f, line)) {
           log("SYSERR: Format error in 'S' field, %s\n"
-              "...expecting 2 numeric constants but file ended!", buf2);
+                  "...expecting 2 numeric constants but file ended!", buf2);
           exit(1);
         }
 
         if ((retval = sscanf(line, " %d %d ", t, t + 1)) != 2) {
           log("SYSERR: Format error in 'S' field, %s\n"
-              "...expecting 2 numeric arguments, got %d\n"
-              "...offending line: '%s'", buf2, retval, line);
+                  "...expecting 2 numeric arguments, got %d\n"
+                  "...offending line: '%s'", buf2, retval, line);
           exit(1);
         }
-        
+
         if (!obj_proto[i].sbinfo) {
           CREATE(obj_proto[i].sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
-          memset((char *) obj_proto[i].sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
+          memset((char *) obj_proto[i].sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
         }
-        
+
         obj_proto[i].sbinfo[j].spellname = t[0];
         obj_proto[i].sbinfo[j].pages = t[1];
         j++;
@@ -2209,9 +2185,9 @@ char *parse_object(FILE *obj_f, int nr)
 }
 
 #define Z	zone_table[zone]
+
 /* load the zone table and command tables */
-static void load_zones(FILE *fl, char *zonename)
-{
+static void load_zones(FILE *fl, char *zonename) {
   static zone_rnum zone = 0;
   int i, cmd_no, num_of_cmds = 0, line_num = 0, tmp, error;
   char *ptr, buf[READ_SIZE], zname[READ_SIZE], buf2[MAX_STRING_LENGTH];
@@ -2220,7 +2196,7 @@ static void load_zones(FILE *fl, char *zonename)
   char zbuf1[MAX_STRING_LENGTH], zbuf2[MAX_STRING_LENGTH];
   char zbuf3[MAX_STRING_LENGTH], zbuf4[MAX_STRING_LENGTH];
 
-  strlcpy(zname, zonename, sizeof(zname));
+  strlcpy(zname, zonename, sizeof (zname));
 
   /* Skip first 3 lines lest we mistake the zone name for a command. */
   for (tmp = 0; tmp < 3; tmp++)
@@ -2247,7 +2223,7 @@ static void load_zones(FILE *fl, char *zonename)
     log("SYSERR: Format error in %s, line %d", zname, line_num);
     exit(1);
   }
-  snprintf(buf2, sizeof(buf2), "beginning of zone #%d", Z.number);
+  snprintf(buf2, sizeof (buf2), "beginning of zone #%d", Z.number);
 
   line_num += get_line(fl, buf);
   if ((ptr = strchr(buf, '~')) != NULL) /* take off the '~' if it's there */
@@ -2255,23 +2231,23 @@ static void load_zones(FILE *fl, char *zonename)
   Z.builders = strdup(buf);
 
   line_num += get_line(fl, buf);
-  if ((ptr = strchr(buf, '~')) != NULL)	/* take off the '~' if it's there */
+  if ((ptr = strchr(buf, '~')) != NULL) /* take off the '~' if it's there */
     *ptr = '\0';
   Z.name = strdup(buf);
   parse_at(Z.name);
 
   /* Clear all the zone flags */
-  for (i=0; i<ZN_ARRAY_MAX; i++)
+  for (i = 0; i < ZN_ARRAY_MAX; i++)
     Z.zone_flags[i] = 0;
 
   // had to change this block -zusuk
   line_num += get_line(fl, buf);
   if (sscanf(buf, " %hd %hd %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top, &Z.lifespan,
-	&Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
-	&Z.show_weather) != 11) {
+          &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
+          &Z.show_weather) != 11) {
     // not 11 values, lets try 10
-    if  (sscanf(buf, " %hd %hd %d %d %s %s %s %s %d %d", &Z.bot, &Z.top, &Z.lifespan,
-	&Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level) != 10) {
+    if (sscanf(buf, " %hd %hd %d %d %s %s %s %s %d %d", &Z.bot, &Z.top, &Z.lifespan,
+            &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level) != 10) {
       // not 10 values, last try for 4 values
       if (sscanf(buf, " %hd %hd %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4) {
         // attempt to fix: copy previous 2 last reads into this and last variable
@@ -2336,21 +2312,21 @@ static void load_zones(FILE *fl, char *zonename)
       break;
     }
     error = 0;
-    if (strchr("MOGEPDTV", ZCMD.command) == NULL) {	/* a 3-arg command */
+    if (strchr("MOGEPDTV", ZCMD.command) == NULL) { /* a 3-arg command */
       if (sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2) != 3)
-	error = 1;
-    } else if (ZCMD.command=='V') { /* a string-arg command */
+        error = 1;
+    } else if (ZCMD.command == 'V') { /* a string-arg command */
       if (sscanf(ptr, " %d %d %d %d %79s %79[^\f\n\r\t\v]", &tmp, &ZCMD.arg1, &ZCMD.arg2,
-		 &ZCMD.arg3, t1, t2) != 6)
-	error = 1;
+              &ZCMD.arg3, t1, t2) != 6)
+        error = 1;
       else {
         ZCMD.sarg1 = strdup(t1);
         ZCMD.sarg2 = strdup(t2);
       }
     } else {
       if (sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
-		 &ZCMD.arg3) != 4)
-	error = 1;
+              &ZCMD.arg3) != 4)
+        error = 1;
     }
 
     ZCMD.if_flag = tmp;
@@ -2372,8 +2348,7 @@ static void load_zones(FILE *fl, char *zonename)
 }
 #undef Z
 
-static void get_one_line(FILE *fl, char *buf)
-{
+static void get_one_line(FILE *fl, char *buf) {
   if (fgets(buf, READ_SIZE, fl) == NULL) {
     log("SYSERR: error reading help file: not terminated with $?");
     exit(1);
@@ -2382,10 +2357,9 @@ static void get_one_line(FILE *fl, char *buf)
   buf[strlen(buf) - 1] = '\0'; /* take off the trailing \n */
 }
 
-void free_help(struct help_index_element *hentry)
-{
-//  if (hentry->index)
-//    free(hentry->index);
+void free_help(struct help_index_element *hentry) {
+  //  if (hentry->index)
+  //    free(hentry->index);
   if (hentry->keywords)
     free(hentry->keywords);
   if (hentry->entry && !hentry->duplicate)
@@ -2394,13 +2368,12 @@ void free_help(struct help_index_element *hentry)
   free(hentry);
 }
 
-void free_help_table(void)
-{
+void free_help_table(void) {
   if (help_table) {
     int hp;
     for (hp = 0; hp < top_of_helpt; hp++) {
-//      if (help_table[hp].index)
-//        free(help_table[hp].index);
+      //      if (help_table[hp].index)
+      //        free(help_table[hp].index);
       if (help_table[hp].keywords)
         free(help_table[hp].keywords);
       if (help_table[hp].entry && !help_table[hp].duplicate)
@@ -2412,44 +2385,43 @@ void free_help_table(void)
   top_of_helpt = 0;
 }
 
-void load_help(FILE * fl, char *name)
-{
+void load_help(FILE * fl, char *name) {
   char key[READ_SIZE + 1], next_key[READ_SIZE + 1], entry[32384];
   size_t entrylen;
   char line[READ_SIZE + 1], hname[READ_SIZE + 1], *scan;
   struct help_index_element el;
 
-  strlcpy(hname, name, sizeof(hname));
+  strlcpy(hname, name, sizeof (hname));
 
   get_one_line(fl, key);
   while (*key != '$') {
     strcat(key, "\r\n"); /* strcat: OK (READ_SIZE - "\n"  "\r\n" == READ_SIZE  1) */
-    entrylen = strlcpy(entry, key, sizeof(entry));
+    entrylen = strlcpy(entry, key, sizeof (entry));
 
     /* Read in the corresponding help entry. */
     get_one_line(fl, line);
-    while (*line != '#' && entrylen < sizeof(entry) - 1) {
-      entrylen += strlcpy(entry + entrylen, line, sizeof(entry) - entrylen);
+    while (*line != '#' && entrylen < sizeof (entry) - 1) {
+      entrylen += strlcpy(entry + entrylen, line, sizeof (entry) - entrylen);
 
-      if (entrylen + 2 < sizeof(entry) - 1) {
+      if (entrylen + 2 < sizeof (entry) - 1) {
         strcpy(entry + entrylen, "\r\n"); /* strcpy: OK (size checked above) */
         entrylen += 2;
       }
       get_one_line(fl, line);
     }
 
-    if (entrylen >= sizeof(entry) - 1) {
+    if (entrylen >= sizeof (entry) - 1) {
       int keysize;
       const char *truncmsg = "\r\n*TRUNCATED*\r\n";
 
-      strcpy(entry + sizeof(entry) - strlen(truncmsg) - 1, truncmsg); /* strcpy: OK (assuming sane 'entry' size) */
+      strcpy(entry + sizeof (entry) - strlen(truncmsg) - 1, truncmsg); /* strcpy: OK (assuming sane 'entry' size) */
 
       keysize = strlen(key) - 2;
       log("SYSERR: Help entry exceeded buffer space: %.*s", keysize, key);
 
       /* If we ran out of buffer space, eat the rest of the entry. */
       while (*line != '#')
-      get_one_line(fl, line);
+        get_one_line(fl, line);
     }
 
     if (*line == '#') {
@@ -2470,12 +2442,11 @@ void load_help(FILE * fl, char *name)
       el.duplicate++;
       scan = one_word(scan, next_key);
     }
-  get_one_line(fl, key);
+    get_one_line(fl, key);
   }
 }
 
-static int hsort(const void *a, const void *b)
-{
+static int hsort(const void *a, const void *b) {
   const struct help_index_element *a1, *b1;
 
   a1 = (const struct help_index_element *) a;
@@ -2484,86 +2455,78 @@ static int hsort(const void *a, const void *b)
   return (str_cmp(a1->keywords, b1->keywords));
 }
 
-int vnum_mobile(char *searchname, struct char_data *ch)
-{
+int vnum_mobile(char *searchname, struct char_data *ch) {
   int nr, found = 0;
 
   for (nr = 0; nr <= top_of_mobt; nr++)
     if (isname(searchname, mob_proto[nr].player.name))
       send_to_char(ch, "%3d. [%5d] %-40s %s\r\n",
-                   ++found, mob_index[nr].vnum, mob_proto[nr].player.short_descr,
-                   mob_proto[nr].proto_script ? "[TRIG]" : "" );
+            ++found, mob_index[nr].vnum, mob_proto[nr].player.short_descr,
+            mob_proto[nr].proto_script ? "[TRIG]" : "");
 
   return (found);
 }
 
-int vnum_object(char *searchname, struct char_data *ch)
-{
+int vnum_object(char *searchname, struct char_data *ch) {
   int nr, found = 0;
 
   for (nr = 0; nr <= top_of_objt; nr++)
     if (isname(searchname, obj_proto[nr].name))
       send_to_char(ch, "%3d. [%5d] %-40s %s\r\n",
-                   ++found, obj_index[nr].vnum, obj_proto[nr].short_description,
-                   obj_proto[nr].proto_script ? "[TRIG]" : "" );
+            ++found, obj_index[nr].vnum, obj_proto[nr].short_description,
+            obj_proto[nr].proto_script ? "[TRIG]" : "");
 
   return (found);
 }
 
-int vnum_room(char *searchname, struct char_data *ch)
-{
- int nr, found = 0;
+int vnum_room(char *searchname, struct char_data *ch) {
+  int nr, found = 0;
 
- for (nr = 0; nr <= top_of_world; nr++)
-   if (isname(searchname, world[nr].name))
-   send_to_char(ch, "%3d. [%5d] %-40s %s\r\n",
-   ++found, world[nr].number, world[nr].name,
-  world[nr].proto_script ? "[TRIG]" : "" );
+  for (nr = 0; nr <= top_of_world; nr++)
+    if (isname(searchname, world[nr].name))
+      send_to_char(ch, "%3d. [%5d] %-40s %s\r\n",
+            ++found, world[nr].number, world[nr].name,
+            world[nr].proto_script ? "[TRIG]" : "");
   return (found);
 }
 
-int vnum_trig(char *searchname, struct char_data *ch)
-{
- int nr, found = 0;
+int vnum_trig(char *searchname, struct char_data *ch) {
+  int nr, found = 0;
   for (nr = 0; nr < top_of_trigt; nr++)
     if (isname(searchname, trig_index[nr]->proto->name))
-    send_to_char(ch, "%3d. [%5d] %-40s\r\n",
-    ++found, trig_index[nr]->vnum, trig_index[nr]->proto->name);
+      send_to_char(ch, "%3d. [%5d] %-40s\r\n",
+            ++found, trig_index[nr]->vnum, trig_index[nr]->proto->name);
   return (found);
 }
 
 /* create a character, and add it to the char list */
-struct char_data *create_char(void)
-{
+struct char_data *create_char(void) {
   struct char_data *ch;
 
   CREATE(ch, struct char_data, 1);
   clear_char(ch);
 
-  new_mobile_data(ch);  
+  new_mobile_data(ch);
   /* Allocate mobile event list */
   //ch->events = create_list();  
-  
+
   ch->next = character_list;
   character_list = ch;
 
   GET_ID(ch) = max_mob_id++;
   /* find_char helper */
-  add_to_lookup_table(GET_ID(ch), (void *)ch);
+  add_to_lookup_table(GET_ID(ch), (void *) ch);
 
   return (ch);
 }
 
-void new_mobile_data(struct char_data *ch)
-{
-  ch->events   = NULL;
-  ch->group    = NULL;
+void new_mobile_data(struct char_data *ch) {
+  ch->events = NULL;
+  ch->group = NULL;
 }
 
-
 /* create a new mobile from a prototype */
-struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
-{
+struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
   mob_rnum i;
   struct char_data *mob;
 
@@ -2577,18 +2540,18 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
 
   CREATE(mob, struct char_data, 1);
   clear_char(mob);
- 
+
   *mob = mob_proto[i];
   mob->next = character_list;
   character_list = mob;
 
-  new_mobile_data(mob);   
+  new_mobile_data(mob);
   /* Allocate mobile event list */
   //mob->events = create_list();   
-  
+
   if (!mob->points.max_hit) {
     mob->points.max_hit = dice(mob->points.hit, mob->points.mana) +
-      mob->points.move;
+            mob->points.move;
   } else
     mob->points.max_hit = rand_number(mob->points.hit, mob->points.mana);
 
@@ -2606,9 +2569,9 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   mob_index[i].number++;
 
   GET_ID(mob) = max_mob_id++;
-  
+
   /* find_char helper */
-  add_to_lookup_table(GET_ID(mob), (void *)mob);
+  add_to_lookup_table(GET_ID(mob), (void *) mob);
 
   copy_proto_script(&mob_proto[i], mob, MOB_TRIGGER);
   assign_triggers(mob, MOB_TRIGGER);
@@ -2617,21 +2580,20 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
     GET_RACE(mob) = 0;
 
   if (GET_CLASS(mob) < 0 || GET_CLASS(mob) >= NUM_CLASSES)
-    GET_CLASS(mob) = 0;  //that's right defaulting to a wizard
+    GET_CLASS(mob) = 0; //that's right defaulting to a wizard
 
   if (GET_SIZE(mob) < 0 || GET_SIZE(mob) >= NUM_SIZES)
     GET_SIZE(mob) = SIZE_MEDIUM;
 
-//  this line of code can be used to randomize the classes of the world
-//  for testing purposes - zusuk
-//  GET_CLASS(mob) = rand_number(0, NUM_CLASSES - 1);
+  //  this line of code can be used to randomize the classes of the world
+  //  for testing purposes - zusuk
+  //  GET_CLASS(mob) = rand_number(0, NUM_CLASSES - 1);
 
   return (mob);
 }
 
 /* create an object, and add it to the object list */
-struct obj_data *create_obj(void)
-{
+struct obj_data *create_obj(void) {
   struct obj_data *obj;
 
   CREATE(obj, struct obj_data, 1);
@@ -2640,17 +2602,16 @@ struct obj_data *create_obj(void)
   object_list = obj;
 
   obj->events = NULL;
-  
+
   GET_ID(obj) = max_obj_id++;
   /* find_obj helper */
-  add_to_lookup_table(GET_ID(obj), (void *)obj);
+  add_to_lookup_table(GET_ID(obj), (void *) obj);
 
   return (obj);
 }
 
 /* create a new object from a prototype */
-struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
-{
+struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
   struct obj_data *obj;
   int j;
   obj_rnum i = type == VIRTUAL ? real_object(nr) : nr;
@@ -2667,12 +2628,12 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   object_list = obj;
 
   obj->events = NULL;
-  
+
   obj_index[i].number++;
 
   GET_ID(obj) = max_obj_id++;
   /* find_obj helper */
-  add_to_lookup_table(GET_ID(obj), (void *)obj);
+  add_to_lookup_table(GET_ID(obj), (void *) obj);
 
   if (obj_proto[i].sbinfo) {
     CREATE(obj->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
@@ -2686,9 +2647,9 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   /* weapons */
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON) {
     GET_OBJ_VAL(obj, 1) = MIN(2, GET_OBJ_VAL(obj, 1));
-    GET_OBJ_VAL(obj, 2) = MIN(12, GET_OBJ_VAL(obj, 2));    
+    GET_OBJ_VAL(obj, 2) = MIN(12, GET_OBJ_VAL(obj, 2));
   }
-  
+
   copy_proto_script(&obj_proto[i], obj, OBJ_TRIGGER);
   assign_triggers(obj, OBJ_TRIGGER);
 
@@ -2696,9 +2657,9 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
 }
 
 #define ZO_DEAD  999
+
 /* update zone ages, queue for reset if necessary, and dequeue when possible */
-void zone_update(void)
-{
+void zone_update(void) {
   int i;
   struct reset_q_element *update_u, *temp;
   static int timer = 0;
@@ -2713,49 +2674,49 @@ void zone_update(void)
     /* since one minute has passed, increment zone ages */
     for (i = 0; i <= top_of_zone_table; i++) {
       if (zone_table[i].age < zone_table[i].lifespan &&
-	  zone_table[i].reset_mode)
-	(zone_table[i].age)++;
+              zone_table[i].reset_mode)
+        (zone_table[i].age)++;
 
       if (zone_table[i].age >= zone_table[i].lifespan &&
-	  zone_table[i].age < ZO_DEAD && zone_table[i].reset_mode) {
-	/* enqueue zone */
+              zone_table[i].age < ZO_DEAD && zone_table[i].reset_mode) {
+        /* enqueue zone */
 
-	CREATE(update_u, struct reset_q_element, 1);
+        CREATE(update_u, struct reset_q_element, 1);
 
-	update_u->zone_to_reset = i;
-	update_u->next = 0;
+        update_u->zone_to_reset = i;
+        update_u->next = 0;
 
-	if (!reset_q.head)
-	  reset_q.head = reset_q.tail = update_u;
-	else {
-	  reset_q.tail->next = update_u;
-	  reset_q.tail = update_u;
-	}
+        if (!reset_q.head)
+          reset_q.head = reset_q.tail = update_u;
+        else {
+          reset_q.tail->next = update_u;
+          reset_q.tail = update_u;
+        }
 
-	zone_table[i].age = ZO_DEAD;
+        zone_table[i].age = ZO_DEAD;
       }
     }
-  }	/* end - one minute has passed */
+  } /* end - one minute has passed */
 
   /* Dequeue zones (if possible) and reset. This code is executed every 10
    * seconds (i.e. PULSE_ZONE). */
   for (update_u = reset_q.head; update_u; update_u = update_u->next)
     if (zone_table[update_u->zone_to_reset].reset_mode == 2 ||
-	is_empty(update_u->zone_to_reset)) {
+            is_empty(update_u->zone_to_reset)) {
       reset_zone(update_u->zone_to_reset);
       mudlog(CMP, LVL_IMPL, FALSE, "Auto zone reset: %s (Zone %d)",
-          zone_table[update_u->zone_to_reset].name, zone_table[update_u->zone_to_reset].number);
+              zone_table[update_u->zone_to_reset].name, zone_table[update_u->zone_to_reset].number);
       /* dequeue */
       if (update_u == reset_q.head)
-	reset_q.head = reset_q.head->next;
+        reset_q.head = reset_q.head->next;
       else {
-	for (temp = reset_q.head; temp->next != update_u;
-	     temp = temp->next);
+        for (temp = reset_q.head; temp->next != update_u;
+                temp = temp->next);
 
-	if (!update_u->next)
-	  reset_q.tail = temp;
+        if (!update_u->next)
+          reset_q.tail = temp;
 
-	temp->next = update_u->next;
+        temp->next = update_u->next;
       }
 
       free(update_u);
@@ -2763,26 +2724,24 @@ void zone_update(void)
     }
 }
 
-static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
-{
+static void log_zone_error(zone_rnum zone, int cmd_no, const char *message) {
   mudlog(NRM, LVL_GOD, TRUE, "SYSERR: zone file: %s", message);
   mudlog(NRM, LVL_GOD, TRUE, "SYSERR: ...offending cmd: '%c' cmd in zone #%d, line %d",
-	ZCMD.command, zone_table[zone].number, ZCMD.line);
+          ZCMD.command, zone_table[zone].number, ZCMD.line);
 }
 
 #define ZONE_ERROR(message) \
 	{ log_zone_error(zone, cmd_no, message); last_cmd = 0; }
 
 /* execute the reset command table of a given zone */
-void reset_zone(zone_rnum zone)
-{
+void reset_zone(zone_rnum zone) {
   int cmd_no = 0, last_cmd = 0;
   struct char_data *mob = NULL;
   struct obj_data *obj = NULL, *obj_to = NULL;
   room_vnum rvnum = 0;
   room_rnum rrnum = 0;
   struct char_data *tmob = NULL; /* for trigger assignment */
-  struct obj_data *tobj = NULL;  /* for trigger assignment */
+  struct obj_data *tobj = NULL; /* for trigger assignment */
 
   for (cmd_no = 0; ZCMD.command != 'S'; cmd_no++) {
 
@@ -2793,205 +2752,205 @@ void reset_zone(zone_rnum zone)
      * added to the game, be certain to update the list of commands in load_zone
      * () so that the counting will still be correct. - ae. */
     switch (ZCMD.command) {
-    case '*':			/* ignore command */
-      last_cmd = 0;
-      break;
+      case '*': /* ignore command */
+        last_cmd = 0;
+        break;
 
-    case 'M':			/* read a mobile */
-      if (mob_index[ZCMD.arg1].number < ZCMD.arg2) {
-	mob = read_mobile(ZCMD.arg1, REAL);
-	char_to_room(mob, ZCMD.arg3);
-        load_mtrigger(mob);
-        tmob = mob;
-	last_cmd = 1;
-      } else
-	last_cmd = 0;
-      tobj = NULL;
-      break;
+      case 'M': /* read a mobile */
+        if (mob_index[ZCMD.arg1].number < ZCMD.arg2) {
+          mob = read_mobile(ZCMD.arg1, REAL);
+          char_to_room(mob, ZCMD.arg3);
+          load_mtrigger(mob);
+          tmob = mob;
+          last_cmd = 1;
+        } else
+          last_cmd = 0;
+        tobj = NULL;
+        break;
 
-    case 'O':			/* read an object */
-      if (obj_index[ZCMD.arg1].number < ZCMD.arg2) {
-	if (ZCMD.arg3 != NOWHERE) {
-	  obj = read_object(ZCMD.arg1, REAL);
-	  obj_to_room(obj, ZCMD.arg3);
-	  last_cmd = 1;
-          load_otrigger(obj);
-          tobj = obj;
-	} else {
-	  obj = read_object(ZCMD.arg1, REAL);
-	  IN_ROOM(obj) = NOWHERE;
-	  last_cmd = 1;
-          tobj = obj;
-	}
-      } else
-	last_cmd = 0;
-      tmob = NULL;
-      break;
-
-    case 'P':			/* object to object */
-      if (obj_index[ZCMD.arg1].number < ZCMD.arg2) {
-	obj = read_object(ZCMD.arg1, REAL);
-	if (!(obj_to = get_obj_num(ZCMD.arg3))) {
-	  ZONE_ERROR("target obj not found, command disabled");
-	  ZCMD.command = '*';
-	  break;
-	}
-	obj_to_obj(obj, obj_to);
-	last_cmd = 1;
-        load_otrigger(obj);
-        tobj = obj;
-      } else
-	last_cmd = 0;
-      tmob = NULL;
-      break;
-
-    case 'G':			/* obj_to_char */
-      if (!mob) {
-	char error[MAX_INPUT_LENGTH];
-	snprintf(error, sizeof(error), "attempt to give obj #%d to non-existant mob, command disabled", obj_index[ZCMD.arg1].vnum);
-	ZONE_ERROR(error);
-	ZCMD.command = '*';
-	break;
-      }
-      if (obj_index[ZCMD.arg1].number < ZCMD.arg2) {
-	obj = read_object(ZCMD.arg1, REAL);
-	obj_to_char(obj, mob);
-	last_cmd = 1;
-        load_otrigger(obj);
-        tobj = obj;
-      } else
-	last_cmd = 0;
-      tmob = NULL;
-      break;
-
-    case 'E':			/* object to equipment list */
-      if (!mob) {
-	char error[MAX_INPUT_LENGTH];
-	snprintf(error, sizeof(error), "trying to equip non-existant mob with obj #%d, command disabled", obj_index[ZCMD.arg1].vnum);
-	ZONE_ERROR(error);
-	ZCMD.command = '*';
-	break;
-      }
-      if (obj_index[ZCMD.arg1].number < ZCMD.arg2) {
-	if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS) {
-          char error[MAX_INPUT_LENGTH];
-	  snprintf(error, sizeof(error), "invalid equipment pos number (mob %s, obj %d, pos %d)", GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
-	  ZONE_ERROR(error);
-	} else {
-	  obj = read_object(ZCMD.arg1, REAL);
-          IN_ROOM(obj) = IN_ROOM(mob);
-          load_otrigger(obj);
-          if (wear_otrigger(obj, mob, ZCMD.arg3)) {
+      case 'O': /* read an object */
+        if (obj_index[ZCMD.arg1].number < ZCMD.arg2) {
+          if (ZCMD.arg3 != NOWHERE) {
+            obj = read_object(ZCMD.arg1, REAL);
+            obj_to_room(obj, ZCMD.arg3);
+            last_cmd = 1;
+            load_otrigger(obj);
+            tobj = obj;
+          } else {
+            obj = read_object(ZCMD.arg1, REAL);
             IN_ROOM(obj) = NOWHERE;
-            equip_char(mob, obj, ZCMD.arg3);
-          } else
-            obj_to_char(obj, mob);
+            last_cmd = 1;
+            tobj = obj;
+          }
+        } else
+          last_cmd = 0;
+        tmob = NULL;
+        break;
+
+      case 'P': /* object to object */
+        if (obj_index[ZCMD.arg1].number < ZCMD.arg2) {
+          obj = read_object(ZCMD.arg1, REAL);
+          if (!(obj_to = get_obj_num(ZCMD.arg3))) {
+            ZONE_ERROR("target obj not found, command disabled");
+            ZCMD.command = '*';
+            break;
+          }
+          obj_to_obj(obj, obj_to);
+          last_cmd = 1;
+          load_otrigger(obj);
           tobj = obj;
-	  last_cmd = 1;
-	}
-      } else
-	last_cmd = 0;
-      tmob = NULL;
-      break;
+        } else
+          last_cmd = 0;
+        tmob = NULL;
+        break;
 
-    case 'R': /* rem obj from room */
-      if ((obj = get_obj_in_list_num(ZCMD.arg2, world[ZCMD.arg1].contents)) != NULL)
-        extract_obj(obj);
-      last_cmd = 1;
-      tmob = NULL;
-      tobj = NULL;
-      break;
-
-
-    case 'D':			/* set state of door */
-      if (ZCMD.arg2 < 0 || ZCMD.arg2 >= DIR_COUNT ||
-	  (world[ZCMD.arg1].dir_option[ZCMD.arg2] == NULL)) {
-        char error[MAX_INPUT_LENGTH];
-        snprintf(error, sizeof(error), "door does not exist in room %d - dir %d, command disabled",  world[ZCMD.arg1].number, ZCMD.arg2);
-	ZONE_ERROR(error);
-	ZCMD.command = '*';
-      } else
-	switch (ZCMD.arg3) {
-	case 0:
-	  REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-		     EX_LOCKED);
-	  REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-		     EX_CLOSED);
-	  break;
-	case 1:
-	  SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-		  EX_CLOSED);
-	  REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-		     EX_LOCKED);
-	  break;
-	case 2:
-	  SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-		  EX_LOCKED);
-	  SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-		  EX_CLOSED);
-	  break;
-	}
-      last_cmd = 1;
-      tmob = NULL;
-      tobj = NULL;
-      break;
-
-    case 'T': /* trigger command */
-      if (ZCMD.arg1==MOB_TRIGGER && tmob) {
-        if (!SCRIPT(tmob))
-          CREATE(SCRIPT(tmob), struct script_data, 1);
-        add_trigger(SCRIPT(tmob), read_trigger(ZCMD.arg2), -1);
-        last_cmd = 1;
-      } else if (ZCMD.arg1==OBJ_TRIGGER && tobj) {
-        if (!SCRIPT(tobj))
-          CREATE(SCRIPT(tobj), struct script_data, 1);
-        add_trigger(SCRIPT(tobj), read_trigger(ZCMD.arg2), -1);
-        last_cmd = 1;
-      } else if (ZCMD.arg1==WLD_TRIGGER) {
-        if (ZCMD.arg3 == NOWHERE || ZCMD.arg3>top_of_world) {
-          ZONE_ERROR("Invalid room number in trigger assignment");
+      case 'G': /* obj_to_char */
+        if (!mob) {
+          char error[MAX_INPUT_LENGTH];
+          snprintf(error, sizeof (error), "attempt to give obj #%d to non-existant mob, command disabled", obj_index[ZCMD.arg1].vnum);
+          ZONE_ERROR(error);
+          ZCMD.command = '*';
+          break;
         }
-        if (!world[ZCMD.arg3].script)
-          CREATE(world[ZCMD.arg3].script, struct script_data, 1);
-        add_trigger(world[ZCMD.arg3].script, read_trigger(ZCMD.arg2), -1);
-        last_cmd = 1;
-      }
-
-      break;
-
-    case 'V':
-      if (ZCMD.arg1==MOB_TRIGGER && tmob) {
-        if (!SCRIPT(tmob)) {
-          ZONE_ERROR("Attempt to give variable to scriptless mobile");
+        if (obj_index[ZCMD.arg1].number < ZCMD.arg2) {
+          obj = read_object(ZCMD.arg1, REAL);
+          obj_to_char(obj, mob);
+          last_cmd = 1;
+          load_otrigger(obj);
+          tobj = obj;
         } else
-          add_var(&(SCRIPT(tmob)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
-                  ZCMD.arg3);
-        last_cmd = 1;
-      } else if (ZCMD.arg1==OBJ_TRIGGER && tobj) {
-        if (!SCRIPT(tobj)) {
-          ZONE_ERROR("Attempt to give variable to scriptless object");
+          last_cmd = 0;
+        tmob = NULL;
+        break;
+
+      case 'E': /* object to equipment list */
+        if (!mob) {
+          char error[MAX_INPUT_LENGTH];
+          snprintf(error, sizeof (error), "trying to equip non-existant mob with obj #%d, command disabled", obj_index[ZCMD.arg1].vnum);
+          ZONE_ERROR(error);
+          ZCMD.command = '*';
+          break;
+        }
+        if (obj_index[ZCMD.arg1].number < ZCMD.arg2) {
+          if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS) {
+            char error[MAX_INPUT_LENGTH];
+            snprintf(error, sizeof (error), "invalid equipment pos number (mob %s, obj %d, pos %d)", GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
+            ZONE_ERROR(error);
+          } else {
+            obj = read_object(ZCMD.arg1, REAL);
+            IN_ROOM(obj) = IN_ROOM(mob);
+            load_otrigger(obj);
+            if (wear_otrigger(obj, mob, ZCMD.arg3)) {
+              IN_ROOM(obj) = NOWHERE;
+              equip_char(mob, obj, ZCMD.arg3);
+            } else
+              obj_to_char(obj, mob);
+            tobj = obj;
+            last_cmd = 1;
+          }
         } else
-          add_var(&(SCRIPT(tobj)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
-                  ZCMD.arg3);
+          last_cmd = 0;
+        tmob = NULL;
+        break;
+
+      case 'R': /* rem obj from room */
+        if ((obj = get_obj_in_list_num(ZCMD.arg2, world[ZCMD.arg1].contents)) != NULL)
+          extract_obj(obj);
         last_cmd = 1;
-      } else if (ZCMD.arg1==WLD_TRIGGER) {
-        if (ZCMD.arg3 == NOWHERE || ZCMD.arg3>top_of_world) {
-          ZONE_ERROR("Invalid room number in variable assignment");
-        } else {
-          if (!(world[ZCMD.arg3].script)) {
-            ZONE_ERROR("Attempt to give variable to scriptless object");
-          } else
-            add_var(&(world[ZCMD.arg3].script->global_vars),
-                    ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg2);
+        tmob = NULL;
+        tobj = NULL;
+        break;
+
+
+      case 'D': /* set state of door */
+        if (ZCMD.arg2 < 0 || ZCMD.arg2 >= DIR_COUNT ||
+                (world[ZCMD.arg1].dir_option[ZCMD.arg2] == NULL)) {
+          char error[MAX_INPUT_LENGTH];
+          snprintf(error, sizeof (error), "door does not exist in room %d - dir %d, command disabled", world[ZCMD.arg1].number, ZCMD.arg2);
+          ZONE_ERROR(error);
+          ZCMD.command = '*';
+        } else
+          switch (ZCMD.arg3) {
+            case 0:
+              REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED);
+              REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              break;
+            case 1:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED);
+              break;
+            case 2:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              break;
+          }
+        last_cmd = 1;
+        tmob = NULL;
+        tobj = NULL;
+        break;
+
+      case 'T': /* trigger command */
+        if (ZCMD.arg1 == MOB_TRIGGER && tmob) {
+          if (!SCRIPT(tmob))
+            CREATE(SCRIPT(tmob), struct script_data, 1);
+          add_trigger(SCRIPT(tmob), read_trigger(ZCMD.arg2), -1);
+          last_cmd = 1;
+        } else if (ZCMD.arg1 == OBJ_TRIGGER && tobj) {
+          if (!SCRIPT(tobj))
+            CREATE(SCRIPT(tobj), struct script_data, 1);
+          add_trigger(SCRIPT(tobj), read_trigger(ZCMD.arg2), -1);
+          last_cmd = 1;
+        } else if (ZCMD.arg1 == WLD_TRIGGER) {
+          if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world) {
+            ZONE_ERROR("Invalid room number in trigger assignment");
+          }
+          if (!world[ZCMD.arg3].script)
+            CREATE(world[ZCMD.arg3].script, struct script_data, 1);
+          add_trigger(world[ZCMD.arg3].script, read_trigger(ZCMD.arg2), -1);
           last_cmd = 1;
         }
-      }
-      break;
 
-    default:
-      ZONE_ERROR("unknown cmd in reset table; cmd disabled");
-      ZCMD.command = '*';
-      break;
+        break;
+
+      case 'V':
+        if (ZCMD.arg1 == MOB_TRIGGER && tmob) {
+          if (!SCRIPT(tmob)) {
+            ZONE_ERROR("Attempt to give variable to scriptless mobile");
+          } else
+            add_var(&(SCRIPT(tmob)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
+                  ZCMD.arg3);
+          last_cmd = 1;
+        } else if (ZCMD.arg1 == OBJ_TRIGGER && tobj) {
+          if (!SCRIPT(tobj)) {
+            ZONE_ERROR("Attempt to give variable to scriptless object");
+          } else
+            add_var(&(SCRIPT(tobj)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
+                  ZCMD.arg3);
+          last_cmd = 1;
+        } else if (ZCMD.arg1 == WLD_TRIGGER) {
+          if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world) {
+            ZONE_ERROR("Invalid room number in variable assignment");
+          } else {
+            if (!(world[ZCMD.arg3].script)) {
+              ZONE_ERROR("Attempt to give variable to scriptless object");
+            } else
+              add_var(&(world[ZCMD.arg3].script->global_vars),
+                    ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg2);
+            last_cmd = 1;
+          }
+        }
+        break;
+
+      default:
+        ZONE_ERROR("unknown cmd in reset table; cmd disabled");
+        ZCMD.command = '*';
+        break;
     }
   }
 
@@ -3007,8 +2966,7 @@ void reset_zone(zone_rnum zone)
 }
 
 /* for use in reset_zone; return TRUE if zone 'nr' is free of PC's  */
-int is_empty(zone_rnum zone_nr)
-{
+int is_empty(zone_rnum zone_nr) {
   struct descriptor_data *i;
 
   for (i = descriptor_list; i; i = i->next) {
@@ -3030,10 +2988,10 @@ int is_empty(zone_rnum zone_nr)
 }
 
 /* Functions of a general utility nature. */
+
 /* read and allocate space for a '~'-terminated string from a given file */
-char *fread_string(FILE *fl, const char *error)
-{
-  char buf[MAX_STRING_LENGTH] = { '\0' }, tmp[513] = { '\0' };
+char *fread_string(FILE *fl, const char *error) {
+  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[513] = {'\0'};
   char *point = NULL;
   int done = 0, length = 0, templength = 0;
 
@@ -3047,11 +3005,11 @@ char *fread_string(FILE *fl, const char *error)
 
     point = strchr(tmp, '\0');
 
-    for (point-- ; (*point == '\r' || *point== '\n'); point--)
+    for (point--; (*point == '\r' || *point == '\n'); point--)
       ;
 
     if (*point == '~') {
-      *point= '\0';
+      *point = '\0';
       done = 1;
     } else {
       *(++point) = '\r';
@@ -3066,39 +3024,34 @@ char *fread_string(FILE *fl, const char *error)
       log("%s", error);
       exit(1);
     } else {
-      strcat(buf + length, tmp);	/* strcat: OK (size checked above) */
+      strcat(buf + length, tmp); /* strcat: OK (size checked above) */
       length += templength;
     }
   } while (!done);
-  
+
   parse_at(buf);
 
   /* allocate space for the new string and copy it */
   return (strlen(buf) ? strdup(buf) : NULL);
 }
 
-
 /* fread_clean_string is the same as fread_string, but skips preceding spaces */
-char *fread_clean_string(FILE *fl, const char *error)
-{
-  char buf[MAX_STRING_LENGTH] = { '\0' }, tmp[513] = { '\0' };
+char *fread_clean_string(FILE *fl, const char *error) {
+  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[513] = {'\0'};
   char *point = NULL, c = '\0';
   int done = 0, length = 0, templength = 0;
 
   *buf = '\0';
   *tmp = '\0';
 
-  do
-  {
-    if( feof( fl ) )
-    {
-      log( "%s", "fread_clean_string: EOF encountered on read." );
+  do {
+    if (feof(fl)) {
+      log("%s", "fread_clean_string: EOF encountered on read.");
       return 0;
     }
-    c = getc( fl );
-  }
-  while( isspace( c ) );
-  ungetc( c, fl );
+    c = getc(fl);
+  }  while (isspace(c));
+  ungetc(c, fl);
 
   do {
     if (!fgets(tmp, 512, fl)) {
@@ -3108,9 +3061,9 @@ char *fread_clean_string(FILE *fl, const char *error)
     /* If there is a '~', end the string; else put an "\r\n" over the '\n'. */
     /* now only removes trailing ~'s -- Welcor */
     point = strchr(tmp, '\0');
-    for (point-- ; (*point=='\r' || *point=='\n'); point--);
-    if (*point=='~') {
-      *point='\0';
+    for (point--; (*point == '\r' || *point == '\n'); point--);
+    if (*point == '~') {
+      *point = '\0';
       done = 1;
     } else {
       *(++point) = '\r';
@@ -3125,11 +3078,11 @@ char *fread_clean_string(FILE *fl, const char *error)
       log("%s", error);
       exit(1);
     } else {
-      strcat(buf + length, tmp);	/* strcat: OK (size checked above) */
+      strcat(buf + length, tmp); /* strcat: OK (size checked above) */
       length += templength;
     }
   } while (!done);
-  
+
   parse_at(buf);
 
   /* allocate space for the new string and copy it */
@@ -3137,61 +3090,56 @@ char *fread_clean_string(FILE *fl, const char *error)
 }
 
 /* Read a numerical value from a given file */
-int fread_number(FILE *fp)
-{
+int fread_number(FILE *fp) {
   int number;
   bool sign;
   char c;
 
-  do
-  {
-    if( feof( fp ) )
-    {
-      log( "%s", "fread_number: EOF encountered on read." );
+  do {
+    if (feof(fp)) {
+      log("%s", "fread_number: EOF encountered on read.");
       return 0;
     }
-    c = getc( fp );
-  }
-  while( isspace( c ) );
+    c = getc(fp);
+  }  while (isspace(c));
 
   number = 0;
 
   sign = FALSE;
-  if( c == '+' )
-    c = getc( fp );
-  else if( c == '-' ) {
+  if (c == '+')
+    c = getc(fp);
+  else if (c == '-') {
     sign = TRUE;
-    c = getc( fp );
+    c = getc(fp);
   }
 
-  if(!isdigit(c)) {
-    log( "fread_number: bad format. (%c)", c );
+  if (!isdigit(c)) {
+    log("fread_number: bad format. (%c)", c);
     return 0;
   }
 
-  while(isdigit(c)) {
-    if(feof(fp)) {
-      log( "%s", "fread_number: EOF encountered on read." );
+  while (isdigit(c)) {
+    if (feof(fp)) {
+      log("%s", "fread_number: EOF encountered on read.");
       return number;
     }
     number = number * 10 + c - '0';
-    c = getc( fp );
+    c = getc(fp);
   }
 
-  if( sign )
+  if (sign)
     number = 0 - number;
 
-  if( c == '|' )
-    number += fread_number( fp );
-  else if( c != ' ' )
-    ungetc( c, fp );
+  if (c == '|')
+    number += fread_number(fp);
+  else if (c != ' ')
+    ungetc(c, fp);
 
   return number;
 }
 
 /* Read to end of line from a given file into a static buffer */
-char *fread_line(FILE *fp)
-{
+char *fread_line(FILE *fp) {
   static char line[MAX_STRING_LENGTH];
   char *pline;
   char c;
@@ -3204,58 +3152,53 @@ char *fread_line(FILE *fp)
   /* Skip blanks.     */
   /* Read first char. */
   do {
-    if(feof(fp)) {
+    if (feof(fp)) {
       log("fread_line: EOF encountered on read.");
       *pline = '\0';
       return (line);
     }
-    c = getc( fp );
-  }
-  while(isspace(c));
+    c = getc(fp);
+  }  while (isspace(c));
 
   /* Un-Read first char */
-  ungetc( c, fp );
+  ungetc(c, fp);
 
   do {
-    if(feof(fp)) {
+    if (feof(fp)) {
       log("fread_line: EOF encountered on read.");
       *pline = '\0';
-      return ( line );
+      return ( line);
     }
-    c = getc( fp );
+    c = getc(fp);
     *pline++ = c;
     ln++;
-    if( ln >= ( MAX_STRING_LENGTH - 1 ) ) {
+    if (ln >= (MAX_STRING_LENGTH - 1)) {
       log("fread_line: line too long");
       break;
     }
-  }
-  while( (c != '\n') && (c != '\r') );
+  }  while ((c != '\n') && (c != '\r'));
 
-  do
-  {
+  do {
     c = getc(fp);
-  }
-  while( c == '\n' || c == '\r' );
+  }  while (c == '\n' || c == '\r');
 
-  ungetc( c, fp );
+  ungetc(c, fp);
   pline--;
   *pline = '\0';
 
   /* Since tildes generally aren't found at the end of lines, this seems workable. Will enable reading old configs. */
-  if( line[strlen(line) - 1] == '~' )
+  if (line[strlen(line) - 1] == '~')
     line[strlen(line) - 1] = '\0';
 
   return (line);
 }
 
 /* Read to end of line from a given file and convert to flag values, then return number of ints */
-int fread_flags(FILE *fp, int *fg, int fg_size)
-{
+int fread_flags(FILE *fp, int *fg, int fg_size) {
   char line[MAX_STRING_LENGTH];
   char *pline, *tmp_txt, val_txt[MAX_INPUT_LENGTH];
   char c;
-  int ln,i;
+  int ln, i;
 
   pline = line;
   line[0] = '\0';
@@ -3264,134 +3207,116 @@ int fread_flags(FILE *fp, int *fg, int fg_size)
   /* Skip blanks.     */
   /* Read first char. */
   do {
-    if(feof(fp)) {
+    if (feof(fp)) {
       log("fread_flags: EOF encountered on read.");
       *pline = '\0';
       return (0);
     }
-    c = getc( fp );
-  }
-  while(isspace(c));
+    c = getc(fp);
+  }  while (isspace(c));
 
   /* Un-Read first char */
-  ungetc( c, fp );
+  ungetc(c, fp);
 
   do {
-    if(feof(fp)) {
+    if (feof(fp)) {
       log("fread_flags: EOF encountered on read.");
       *pline = '\0';
       return (0);
     }
-    c = getc( fp );
+    c = getc(fp);
     *pline++ = c;
     ln++;
-    if( ln >= ( MAX_STRING_LENGTH - 1 ) ) {
+    if (ln >= (MAX_STRING_LENGTH - 1)) {
       log("fread_flags: line too long");
       break;
     }
-  }
-  while( (c != '\n') && (c != '\r') );
+  }  while ((c != '\n') && (c != '\r'));
 
-  do
-  {
+  do {
     c = getc(fp);
-  }
-  while( c == '\n' || c == '\r' );
+  }  while (c == '\n' || c == '\r');
 
-  ungetc( c, fp );
+  ungetc(c, fp);
   pline--;
   *pline = '\0';
 
   /* Since tildes generally aren't found at the end of lines, this seems workable. Will enable reading old configs. */
-  if( line[strlen(line) - 1] == '~' )
+  if (line[strlen(line) - 1] == '~')
     line[strlen(line) - 1] = '\0';
 
   /* We now have a line of text with all the flags on it - let's convert it */
-  for (i=0,tmp_txt=line;tmp_txt && *tmp_txt && i<fg_size;i++) {
-    tmp_txt = one_argument(tmp_txt,val_txt);  /* Grab a number  */
-    fg[i]   = atoi(val_txt);                  /* Convert to int */
+  for (i = 0, tmp_txt = line; tmp_txt && *tmp_txt && i < fg_size; i++) {
+    tmp_txt = one_argument(tmp_txt, val_txt); /* Grab a number  */
+    fg[i] = atoi(val_txt); /* Convert to int */
   }
 
   return (i);
 }
 
 /* Read one word from a given file (into static buffer). */
-char *fread_word(FILE *fp)
-{
-   static char word[MAX_STRING_LENGTH];
-   char *pword;
-   char cEnd;
+char *fread_word(FILE *fp) {
+  static char word[MAX_STRING_LENGTH];
+  char *pword;
+  char cEnd;
 
-   do
-   {
-      if( feof( fp ) )
-      {
-         log( "fread_word: EOF encountered on read.");
-         word[0] = '\0';
-         return word;
-      }
-      cEnd = getc( fp );
-   }
-   while( isspace( cEnd ) );
+  do {
+    if (feof(fp)) {
+      log("fread_word: EOF encountered on read.");
+      word[0] = '\0';
+      return word;
+    }
+    cEnd = getc(fp);
+  } while (isspace(cEnd));
 
-   if( cEnd == '\'' || cEnd == '"' )
-   {
-      pword = word;
-   }
-   else
-   {
-      word[0] = cEnd;
-      pword = word + 1;
-      cEnd = ' ';
-   }
+  if (cEnd == '\'' || cEnd == '"') {
+    pword = word;
+  } else {
+    word[0] = cEnd;
+    pword = word + 1;
+    cEnd = ' ';
+  }
 
-   for( ; pword < word + MAX_STRING_LENGTH; pword++ )
-   {
-      if( feof( fp ) )
-      {
-         log( "fread_word: EOF encountered on read.");
-         *pword = '\0';
-         return word;
-      }
-      *pword = getc( fp );
-      if( cEnd == ' ' ? isspace( *pword ) : *pword == cEnd )
-      {
-         if( cEnd == ' ' )
-            ungetc( *pword, fp );
-         *pword = '\0';
-         return word;
-      }
-   }
-   log( "fread_word: word too long");
-   return NULL;
+  for (; pword < word + MAX_STRING_LENGTH; pword++) {
+    if (feof(fp)) {
+      log("fread_word: EOF encountered on read.");
+      *pword = '\0';
+      return word;
+    }
+    *pword = getc(fp);
+    if (cEnd == ' ' ? isspace(*pword) : *pword == cEnd) {
+      if (cEnd == ' ')
+        ungetc(*pword, fp);
+      *pword = '\0';
+      return word;
+    }
+  }
+  log("fread_word: word too long");
+  return NULL;
 }
 
 /* Read to end of line in a given file (for comments) */
-void fread_to_eol(FILE *fp)
-{
+void fread_to_eol(FILE *fp) {
   char c;
 
   do {
-    if(feof(fp)) {
-      log( "%s", "fread_to_eol: EOF encountered on read." );
+    if (feof(fp)) {
+      log("%s", "fread_to_eol: EOF encountered on read.");
       return;
     }
-    c = getc( fp );
-  }
-  while( c != '\n' && c != '\r' );
+    c = getc(fp);
+  }  while (c != '\n' && c != '\r');
 
   do {
-    c = getc( fp );
-  }
-  while( c == '\n' || c == '\r' );
+    c = getc(fp);
+  }  while (c == '\n' || c == '\r');
 
-  ungetc( c, fp );
+  ungetc(c, fp);
 }
 
 /* Called to free all allocated follow_type structs */
-static void free_followers(struct follow_type *k)
-{
-   if (!k)
+static void free_followers(struct follow_type *k) {
+  if (!k)
     return;
 
   if (k->next)
@@ -3402,8 +3327,7 @@ static void free_followers(struct follow_type *k)
 }
 
 /* release memory allocated for a char struct */
-void free_char(struct char_data *ch)
-{
+void free_char(struct char_data *ch) {
   int i = 0;
   struct alias_data *a = NULL;
 
@@ -3498,14 +3422,13 @@ void free_char(struct char_data *ch)
   /* find_char helper, when free_char is called with a blank character struct,
    * ID is set to 0, and has not yet been added to the lookup table. */
   if (GET_ID(ch) != 0)
-  remove_from_lookup_table(GET_ID(ch));
+    remove_from_lookup_table(GET_ID(ch));
 
   free(ch);
 }
 
 /* release memory allocated for an obj struct */
-void free_obj(struct obj_data *obj)
-{
+void free_obj(struct obj_data *obj) {
   if (GET_OBJ_RNUM(obj) == NOWHERE) {
     free_object_strings(obj);
     /* free script proto list */
@@ -3535,8 +3458,7 @@ void free_obj(struct obj_data *obj)
  * interested in and not a copy. If someone is reading a global copy we're
  * trying to replace, give everybody using it a different copy so as to avoid
  * special cases. */
-static int file_to_string_alloc(const char *name, char **buf)
-{
+static int file_to_string_alloc(const char *name, char **buf) {
   int temppage;
   char temp[MAX_STRING_LENGTH];
   struct descriptor_data *in_use;
@@ -3561,16 +3483,15 @@ static int file_to_string_alloc(const char *name, char **buf)
 
   if (*buf)
     free(*buf);
-  
-  parse_at(temp);   
-    
+
+  parse_at(temp);
+
   *buf = strdup(temp);
   return (0);
 }
 
 /* read contents of a text file, and place in buf */
-static int file_to_string(const char *name, char *buf)
-{
+static int file_to_string(const char *name, char *buf) {
   FILE *fl;
   char tmp[READ_SIZE + 3];
   int len;
@@ -3583,24 +3504,22 @@ static int file_to_string(const char *name, char *buf)
     return (-1);
   }
 
-   /* Grab the date/time the file was last edited */
-   if (!strcmp(name, NEWS_FILE))
-   {
-     fstat(fileno(fl), &statbuf);
-     newsmod = statbuf.st_mtime;
-   }
-   if (!strcmp(name, MOTD_FILE))
-   {
-     fstat(fileno(fl), &statbuf);
-     motdmod = statbuf.st_mtime;
-   }
+  /* Grab the date/time the file was last edited */
+  if (!strcmp(name, NEWS_FILE)) {
+    fstat(fileno(fl), &statbuf);
+    newsmod = statbuf.st_mtime;
+  }
+  if (!strcmp(name, MOTD_FILE)) {
+    fstat(fileno(fl), &statbuf);
+    motdmod = statbuf.st_mtime;
+  }
 
   for (;;) {
-    if (!fgets(tmp, READ_SIZE, fl))	/* EOF check */
+    if (!fgets(tmp, READ_SIZE, fl)) /* EOF check */
       break;
     if ((len = strlen(tmp)) > 0)
       tmp[len - 1] = '\0'; /* take off the trailing \n */
-    strcat(tmp, "\r\n");	/* strcat: OK (tmp:READ_SIZE+3) */
+    strcat(tmp, "\r\n"); /* strcat: OK (tmp:READ_SIZE+3) */
 
     if (strlen(buf) + strlen(tmp) + 1 > MAX_STRING_LENGTH) {
       log("SYSERR: %s: string too big (%d max)", name, MAX_STRING_LENGTH);
@@ -3608,7 +3527,7 @@ static int file_to_string(const char *name, char *buf)
       fclose(fl);
       return (-1);
     }
-    strcat(buf, tmp);	/* strcat: OK (size checked above) */
+    strcat(buf, tmp); /* strcat: OK (size checked above) */
   }
 
   fclose(fl);
@@ -3617,8 +3536,7 @@ static int file_to_string(const char *name, char *buf)
 }
 
 /* clear some of the the working variables of a char */
-void reset_char(struct char_data *ch)
-{
+void reset_char(struct char_data *ch) {
   int i;
 
   for (i = 0; i < NUM_WEARS; i++)
@@ -3663,9 +3581,8 @@ void reset_char(struct char_data *ch)
 }
 
 /* clear ALL the working variables of a char; do NOT free any space alloc'ed */
-void clear_char(struct char_data *ch)
-{
-  memset((char *) ch, 0, sizeof(struct char_data));
+void clear_char(struct char_data *ch) {
+  memset((char *) ch, 0, sizeof (struct char_data));
 
   IN_ROOM(ch) = NOWHERE;
   GET_PFILEPOS(ch) = -1;
@@ -3674,15 +3591,14 @@ void clear_char(struct char_data *ch)
   GET_POS(ch) = POS_STANDING;
   ch->mob_specials.default_pos = POS_STANDING;
   ch->events = NULL;
-  
-  GET_AC(ch) = 100;		/* Basic Armor */
+
+  GET_AC(ch) = 100; /* Basic Armor */
   if (ch->points.max_mana < 100)
     ch->points.max_mana = 100;
 }
 
-void clear_object(struct obj_data *obj)
-{
-  memset((char *) obj, 0, sizeof(struct obj_data));
+void clear_object(struct obj_data *obj) {
+  memset((char *) obj, 0, sizeof (struct obj_data));
 
   obj->item_number = NOTHING;
   IN_ROOM(obj) = NOWHERE;
@@ -3692,8 +3608,7 @@ void clear_object(struct obj_data *obj)
 
 /* Called during character creation after picking character class (and then
  * never again for that character). */
-void init_char(struct char_data *ch)
-{
+void init_char(struct char_data *ch) {
   int i;
 
   /* create a player_special structure */
@@ -3788,27 +3703,27 @@ void init_char(struct char_data *ch)
 
   GET_LOADROOM(ch) = NOWHERE;
   GET_SCREEN_WIDTH(ch) = PAGE_WIDTH;
-  
+
   /* Set Beginning Toggles Here */
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOEXIT);
   if (ch->desc)
-    if (ch->desc->pProtocol->pVariables[eMSDP_ANSI_COLORS] || 
-      ch->desc->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]) {
+    if (ch->desc->pProtocol->pVariables[eMSDP_ANSI_COLORS] ||
+            ch->desc->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]) {
       SET_BIT_AR(PRF_FLAGS(ch), PRF_COLOR_1);
       SET_BIT_AR(PRF_FLAGS(ch), PRF_COLOR_2);
-    } 
-  SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);  
+    }
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
   SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
 
   // automap toggled on -zusuk
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOMAP);
-  
+
   // fresh start on casting data
   resetCastingData(ch);
 
   // fresh start on auto-crafting data
   reset_acraft(ch);
-  
+
   // fresh start on mem data
   init_spell_slots(ch);
 
@@ -3839,8 +3754,7 @@ void init_char(struct char_data *ch)
 }
 
 /* returns the real number of the room with given virtual number */
-room_rnum real_room(room_vnum vnum)
-{
+room_rnum real_room(room_vnum vnum) {
   room_rnum bot, top, mid;
 
   bot = 0;
@@ -3850,7 +3764,7 @@ room_rnum real_room(room_vnum vnum)
     return (NOWHERE);
 
   /* perform binary search on world-table */
-  while (bot<= top) {
+  while (bot <= top) {
     mid = (bot + top) / 2;
 
     if ((world + mid)->number == vnum)
@@ -3864,8 +3778,7 @@ room_rnum real_room(room_vnum vnum)
 }
 
 /* returns the real number of the monster with given virtual number */
-mob_rnum real_mobile(mob_vnum vnum)
-{
+mob_rnum real_mobile(mob_vnum vnum) {
   mob_rnum bot, top, mid;
 
   bot = 0;
@@ -3890,8 +3803,7 @@ mob_rnum real_mobile(mob_vnum vnum)
 }
 
 /* returns the real number of the object with given virtual number */
-obj_rnum real_object(obj_vnum vnum)
-{
+obj_rnum real_object(obj_vnum vnum) {
   obj_rnum bot, top, mid;
 
   bot = 0;
@@ -3916,8 +3828,7 @@ obj_rnum real_object(obj_vnum vnum)
 }
 
 /* returns the real number of the zone with given virtual number */
-zone_rnum real_zone(zone_vnum vnum)
-{
+zone_rnum real_zone(zone_vnum vnum) {
   zone_rnum bot, top, mid;
 
   bot = 0;
@@ -3941,86 +3852,84 @@ zone_rnum real_zone(zone_vnum vnum)
 }
 
 /* Extend later to include more checks and add checks for unknown bitvectors. */
-static int check_object(struct obj_data *obj)
-{
+static int check_object(struct obj_data *obj) {
   char objname[MAX_INPUT_LENGTH + 32];
   int error = FALSE, y;
 
   if (GET_OBJ_WEIGHT(obj) < 0 && (error = TRUE))
     log("SYSERR: Object #%d (%s) has negative weight (%d).",
-	GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_WEIGHT(obj));
+          GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_WEIGHT(obj));
 
   if (GET_OBJ_RENT(obj) < 0 && (error = TRUE))
     log("SYSERR: Object #%d (%s) has negative cost/day (%d).",
-	GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_RENT(obj));
+          GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_RENT(obj));
 
-  snprintf(objname, sizeof(objname), "Object #%d (%s)", GET_OBJ_VNUM(obj), obj->short_description);
-  for(y = 0; y < TW_ARRAY_MAX; y++) {
+  snprintf(objname, sizeof (objname), "Object #%d (%s)", GET_OBJ_VNUM(obj), obj->short_description);
+  for (y = 0; y < TW_ARRAY_MAX; y++) {
     error |= check_bitvector_names(GET_OBJ_WEAR(obj)[y], wear_bits_count, objname, "object wear");
     error |= check_bitvector_names(GET_OBJ_EXTRA(obj)[y], extra_bits_count, objname, "object extra");
     error |= check_bitvector_names(GET_OBJ_AFFECT(obj)[y], affected_bits_count, objname, "object affect");
   }
 
   switch (GET_OBJ_TYPE(obj)) {
-  case ITEM_DRINKCON:
-  {
-    char onealias[MAX_INPUT_LENGTH], *space = strrchr(obj->name, ' ');
+    case ITEM_DRINKCON:
+    {
+      char onealias[MAX_INPUT_LENGTH], *space = strrchr(obj->name, ' ');
 
-    strlcpy(onealias, space ? space + 1 : obj->name, sizeof(onealias));
-    if (search_block(onealias, drinknames, TRUE) < 0 && (error = TRUE))
-      log("SYSERR: Object #%d (%s) doesn't have drink type as last keyword. (%s)",
-		GET_OBJ_VNUM(obj), obj->short_description, obj->name);
-  }
-  /* Fall through. */
-  case ITEM_FOUNTAIN:
-    if ((GET_OBJ_VAL(obj,0) > 0) && (GET_OBJ_VAL(obj, 1) > GET_OBJ_VAL(obj, 0)
-        && (error = TRUE)))
-      log("SYSERR: Object #%d (%s) contains (%d) more than maximum (%d).",
-		GET_OBJ_VNUM(obj), obj->short_description,
-		GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 0));
-    break;
-  case ITEM_SCROLL:
-  case ITEM_POTION:
-    error |= check_object_level(obj, 0);
-    error |= check_object_spell_number(obj, 1);
-    error |= check_object_spell_number(obj, 2);
-    error |= check_object_spell_number(obj, 3);
-    break;
-  case ITEM_WAND:
-  case ITEM_STAFF:
-    error |= check_object_level(obj, 0);
-    error |= check_object_spell_number(obj, 3);
-    if (GET_OBJ_VAL(obj, 2) > GET_OBJ_VAL(obj, 1) && (error = TRUE))
-      log("SYSERR: Object #%d (%s) has more charges (%d) than maximum (%d).",
-		GET_OBJ_VNUM(obj), obj->short_description,
-		GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 1));
-    break;
-  case ITEM_NOTE:
-    if (obj->ex_description) {
-      char onealias[MAX_INPUT_LENGTH],*next_name;
-      next_name = any_one_arg(obj->name, onealias);
-      do {
-  	if (find_exdesc(onealias, obj->ex_description) && (error = TRUE)) {
-	log("SYSERR: Object #%d (%s) is type NOTE and has extra description with same name. (%s)",
-	  GET_OBJ_VNUM(obj), obj->short_description, obj->name);
-        }
-  	next_name = any_one_arg(next_name, onealias);
-      } while (*onealias);
+      strlcpy(onealias, space ? space + 1 : obj->name, sizeof (onealias));
+      if (search_block(onealias, drinknames, TRUE) < 0 && (error = TRUE))
+        log("SYSERR: Object #%d (%s) doesn't have drink type as last keyword. (%s)",
+              GET_OBJ_VNUM(obj), obj->short_description, obj->name);
     }
-  break;
-  case ITEM_FURNITURE:
-    if (GET_OBJ_VAL(obj, 1) > GET_OBJ_VAL(obj, 0) && (error = TRUE))
-      log("SYSERR: Object #%d (%s) contains (%d) more than maximum (%d).",
-          GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_VAL(obj, 1),
-	  GET_OBJ_VAL(obj, 0));
-    break;
+      /* Fall through. */
+    case ITEM_FOUNTAIN:
+      if ((GET_OBJ_VAL(obj, 0) > 0) && (GET_OBJ_VAL(obj, 1) > GET_OBJ_VAL(obj, 0)
+              && (error = TRUE)))
+        log("SYSERR: Object #%d (%s) contains (%d) more than maximum (%d).",
+              GET_OBJ_VNUM(obj), obj->short_description,
+              GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 0));
+      break;
+    case ITEM_SCROLL:
+    case ITEM_POTION:
+      error |= check_object_level(obj, 0);
+      error |= check_object_spell_number(obj, 1);
+      error |= check_object_spell_number(obj, 2);
+      error |= check_object_spell_number(obj, 3);
+      break;
+    case ITEM_WAND:
+    case ITEM_STAFF:
+      error |= check_object_level(obj, 0);
+      error |= check_object_spell_number(obj, 3);
+      if (GET_OBJ_VAL(obj, 2) > GET_OBJ_VAL(obj, 1) && (error = TRUE))
+        log("SYSERR: Object #%d (%s) has more charges (%d) than maximum (%d).",
+              GET_OBJ_VNUM(obj), obj->short_description,
+              GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 1));
+      break;
+    case ITEM_NOTE:
+      if (obj->ex_description) {
+        char onealias[MAX_INPUT_LENGTH], *next_name;
+        next_name = any_one_arg(obj->name, onealias);
+        do {
+          if (find_exdesc(onealias, obj->ex_description) && (error = TRUE)) {
+            log("SYSERR: Object #%d (%s) is type NOTE and has extra description with same name. (%s)",
+                    GET_OBJ_VNUM(obj), obj->short_description, obj->name);
+          }
+          next_name = any_one_arg(next_name, onealias);
+        } while (*onealias);
+      }
+      break;
+    case ITEM_FURNITURE:
+      if (GET_OBJ_VAL(obj, 1) > GET_OBJ_VAL(obj, 0) && (error = TRUE))
+        log("SYSERR: Object #%d (%s) contains (%d) more than maximum (%d).",
+              GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_VAL(obj, 1),
+              GET_OBJ_VAL(obj, 0));
+      break;
   }
 
   return (error);
 }
 
-static int check_object_spell_number(struct obj_data *obj, int val)
-{
+static int check_object_spell_number(struct obj_data *obj, int val) {
   int error = FALSE;
   const char *spellname;
 
@@ -4037,9 +3946,9 @@ static int check_object_spell_number(struct obj_data *obj, int val)
     error = TRUE;
   if (error)
     log("SYSERR: Object #%d (%s) has out of range spell #%d.",
-	GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_VAL(obj, val));
+          GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_VAL(obj, val));
 
-  if (scheck)		/* Spell names don't exist in syntax check mode. */
+  if (scheck) /* Spell names don't exist in syntax check mode. */
     return (error);
 
   /* Now check for unnamed spells. */
@@ -4047,139 +3956,135 @@ static int check_object_spell_number(struct obj_data *obj, int val)
 
   if ((spellname == unused_spellname || !str_cmp("UNDEFINED", spellname)) && (error = TRUE))
     log("SYSERR: Object #%d (%s) uses '%s' spell #%d.",
-		GET_OBJ_VNUM(obj), obj->short_description, spellname,
-		GET_OBJ_VAL(obj, val));
+          GET_OBJ_VNUM(obj), obj->short_description, spellname,
+          GET_OBJ_VAL(obj, val));
 
   return (error);
 }
 
-static int check_object_level(struct obj_data *obj, int val)
-{
+static int check_object_level(struct obj_data *obj, int val) {
   int error = FALSE;
 
   if ((GET_OBJ_VAL(obj, val) < 0 || GET_OBJ_VAL(obj, val) > LVL_IMPL) && (error = TRUE))
     log("SYSERR: Object #%d (%s) has out of range level #%d.",
-	GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_VAL(obj, val));
+          GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_VAL(obj, val));
 
   return (error);
 }
 
-static int check_bitvector_names(bitvector_t bits, size_t namecount, const char *whatami, const char *whatbits)
-{
+static int check_bitvector_names(bitvector_t bits, size_t namecount, const char *whatami, const char *whatbits) {
   unsigned int flagnum;
   bool error = FALSE;
 
   /* See if any bits are set above the ones we know about. */
-  if (bits <= (~(bitvector_t)0 >> (sizeof(bitvector_t) * 8 - namecount)))
+  if (bits <= (~(bitvector_t) 0 >> (sizeof (bitvector_t) * 8 - namecount)))
     return (FALSE);
 
-  for (flagnum = namecount; flagnum < sizeof(bitvector_t) * 8; flagnum++)
+  for (flagnum = namecount; flagnum < sizeof (bitvector_t) * 8; flagnum++)
     if ((1 << flagnum) & bits) {
-      log("SYSERR: %s has unknown %s flag, bit %d (0 through %d known).", whatami, whatbits, flagnum, (int)namecount - 1);
+      log("SYSERR: %s has unknown %s flag, bit %d (0 through %d known).", whatami, whatbits, flagnum, (int) namecount - 1);
       error = TRUE;
     }
 
   return (error);
 }
 
-static void load_default_config( void )
-{
+static void load_default_config(void) {
   /* This function is called only once, at boot-time. We assume config_info is
    * empty. -Welcor */
   /* Game play options. */
-  CONFIG_PK_ALLOWED 	        = pk_allowed;
-  CONFIG_PT_ALLOWED             = pt_allowed;
-  CONFIG_LEVEL_CAN_SHOUT 	    = level_can_shout;
-  CONFIG_HOLLER_MOVE_COST 	    = holler_move_cost;
-  CONFIG_TUNNEL_SIZE 	        = tunnel_size;
-  CONFIG_MAX_EXP_GAIN	        = max_exp_gain;
-  CONFIG_MAX_EXP_LOSS 	        = max_exp_loss;
-  CONFIG_MAX_NPC_CORPSE_TIME    = max_npc_corpse_time;
-  CONFIG_MAX_PC_CORPSE_TIME	    = max_pc_corpse_time;
-  CONFIG_IDLE_VOID		        = idle_void;
-  CONFIG_IDLE_RENT_TIME	        = idle_rent_time;
-  CONFIG_IDLE_MAX_LEVEL	        = idle_max_level;
-  CONFIG_DTS_ARE_DUMPS	        = dts_are_dumps;
-  CONFIG_LOAD_INVENTORY         = load_into_inventory;
-  CONFIG_OK			            = strdup(OK);
-  CONFIG_NOPERSON	          	= strdup(NOPERSON);
-  CONFIG_NOEFFECT	         	= strdup(NOEFFECT);
-  CONFIG_TRACK_T_DOORS          = track_through_doors;
-  CONFIG_NO_MORT_TO_IMMORT	    = no_mort_to_immort;
-  CONFIG_DISP_CLOSED_DOORS      = display_closed_doors;
-  CONFIG_PROTOCOL_NEGOTIATION   = protocol_negotiation;
-  CONFIG_SPECIAL_IN_COMM        = special_in_comm;
-  CONFIG_DIAGONAL_DIRS          = diagonal_dirs;
-  CONFIG_MAP                    = map_option;
-  CONFIG_MAP_SIZE               = default_map_size;
-  CONFIG_MINIMAP_SIZE           = default_minimap_size;
-  CONFIG_SCRIPT_PLAYERS         = script_players;
-  CONFIG_MIN_POP_TO_CLAIM       = min_pop_to_claim;
-  CONFIG_DEBUG_MODE             = debug_mode;
-  
+  CONFIG_PK_ALLOWED = pk_allowed;
+  CONFIG_PT_ALLOWED = pt_allowed;
+  CONFIG_LEVEL_CAN_SHOUT = level_can_shout;
+  CONFIG_HOLLER_MOVE_COST = holler_move_cost;
+  CONFIG_TUNNEL_SIZE = tunnel_size;
+  CONFIG_MAX_EXP_GAIN = max_exp_gain;
+  CONFIG_MAX_EXP_LOSS = max_exp_loss;
+  CONFIG_MAX_NPC_CORPSE_TIME = max_npc_corpse_time;
+  CONFIG_MAX_PC_CORPSE_TIME = max_pc_corpse_time;
+  CONFIG_IDLE_VOID = idle_void;
+  CONFIG_IDLE_RENT_TIME = idle_rent_time;
+  CONFIG_IDLE_MAX_LEVEL = idle_max_level;
+  CONFIG_DTS_ARE_DUMPS = dts_are_dumps;
+  CONFIG_LOAD_INVENTORY = load_into_inventory;
+  CONFIG_OK = strdup(OK);
+  CONFIG_NOPERSON = strdup(NOPERSON);
+  CONFIG_NOEFFECT = strdup(NOEFFECT);
+  CONFIG_TRACK_T_DOORS = track_through_doors;
+  CONFIG_NO_MORT_TO_IMMORT = no_mort_to_immort;
+  CONFIG_DISP_CLOSED_DOORS = display_closed_doors;
+  CONFIG_PROTOCOL_NEGOTIATION = protocol_negotiation;
+  CONFIG_SPECIAL_IN_COMM = special_in_comm;
+  CONFIG_DIAGONAL_DIRS = diagonal_dirs;
+  CONFIG_MAP = map_option;
+  CONFIG_MAP_SIZE = default_map_size;
+  CONFIG_MINIMAP_SIZE = default_minimap_size;
+  CONFIG_SCRIPT_PLAYERS = script_players;
+  CONFIG_MIN_POP_TO_CLAIM = min_pop_to_claim;
+  CONFIG_DEBUG_MODE = debug_mode;
+
   /* Rent / crashsave options. */
-  CONFIG_FREE_RENT              = free_rent;
-  CONFIG_MAX_OBJ_SAVE           = max_obj_save;
-  CONFIG_MIN_RENT_COST	        = min_rent_cost;
-  CONFIG_AUTO_SAVE		        = auto_save;
-  CONFIG_AUTOSAVE_TIME	        = autosave_time;
-  CONFIG_CRASH_TIMEOUT          = crash_file_timeout;
-  CONFIG_RENT_TIMEOUT	        = rent_file_timeout;
+  CONFIG_FREE_RENT = free_rent;
+  CONFIG_MAX_OBJ_SAVE = max_obj_save;
+  CONFIG_MIN_RENT_COST = min_rent_cost;
+  CONFIG_AUTO_SAVE = auto_save;
+  CONFIG_AUTOSAVE_TIME = autosave_time;
+  CONFIG_CRASH_TIMEOUT = crash_file_timeout;
+  CONFIG_RENT_TIMEOUT = rent_file_timeout;
 
   /* Room numbers. */
-  CONFIG_MORTAL_START           = mortal_start_room;
-  CONFIG_IMMORTAL_START         = immort_start_room;
-  CONFIG_FROZEN_START           = frozen_start_room;
-  CONFIG_DON_ROOM_1             = donation_room_1;
-  CONFIG_DON_ROOM_2             = donation_room_2;
-  CONFIG_DON_ROOM_3             = donation_room_3;
+  CONFIG_MORTAL_START = mortal_start_room;
+  CONFIG_IMMORTAL_START = immort_start_room;
+  CONFIG_FROZEN_START = frozen_start_room;
+  CONFIG_DON_ROOM_1 = donation_room_1;
+  CONFIG_DON_ROOM_2 = donation_room_2;
+  CONFIG_DON_ROOM_3 = donation_room_3;
 
   /* Game operation options. */
-  CONFIG_DFLT_PORT              = DFLT_PORT;
+  CONFIG_DFLT_PORT = DFLT_PORT;
 
   if (DFLT_IP)
-    CONFIG_DFLT_IP              = strdup(DFLT_IP);
+    CONFIG_DFLT_IP = strdup(DFLT_IP);
   else
-    CONFIG_DFLT_IP              = NULL;
+    CONFIG_DFLT_IP = NULL;
 
-  CONFIG_DFLT_DIR               = strdup(DFLT_DIR);
+  CONFIG_DFLT_DIR = strdup(DFLT_DIR);
 
   if (LOGNAME)
-    CONFIG_LOGNAME              = strdup(LOGNAME);
+    CONFIG_LOGNAME = strdup(LOGNAME);
   else
-    CONFIG_LOGNAME              = NULL;
+    CONFIG_LOGNAME = NULL;
 
-  CONFIG_MAX_PLAYING            = max_playing;
-  CONFIG_MAX_FILESIZE           = max_filesize;
-  CONFIG_MAX_BAD_PWS            = max_bad_pws;
-  CONFIG_SITEOK_ALL             = siteok_everyone;
-  CONFIG_NS_IS_SLOW             = nameserver_is_slow;
-  CONFIG_NEW_SOCIALS            = use_new_socials;
-  CONFIG_OLC_SAVE               = auto_save_olc;
-  CONFIG_MENU                   = strdup(MENU);
-  CONFIG_WELC_MESSG             = strdup(WELC_MESSG);
-  CONFIG_START_MESSG            = strdup(START_MESSG);
-  CONFIG_MEDIT_ADVANCED         = medit_advanced_stats;
-  CONFIG_IBT_AUTOSAVE           = ibt_autosave;
+  CONFIG_MAX_PLAYING = max_playing;
+  CONFIG_MAX_FILESIZE = max_filesize;
+  CONFIG_MAX_BAD_PWS = max_bad_pws;
+  CONFIG_SITEOK_ALL = siteok_everyone;
+  CONFIG_NS_IS_SLOW = nameserver_is_slow;
+  CONFIG_NEW_SOCIALS = use_new_socials;
+  CONFIG_OLC_SAVE = auto_save_olc;
+  CONFIG_MENU = strdup(MENU);
+  CONFIG_WELC_MESSG = strdup(WELC_MESSG);
+  CONFIG_START_MESSG = strdup(START_MESSG);
+  CONFIG_MEDIT_ADVANCED = medit_advanced_stats;
+  CONFIG_IBT_AUTOSAVE = ibt_autosave;
   /* Autowiz options. */
-  CONFIG_USE_AUTOWIZ            = use_autowiz;
-  CONFIG_MIN_WIZLIST_LEV        = min_wizlist_lev;
+  CONFIG_USE_AUTOWIZ = use_autowiz;
+  CONFIG_MIN_WIZLIST_LEV = min_wizlist_lev;
 }
 
-void load_config( void )
-{
+void load_config(void) {
   FILE *fl;
-  char line[MAX_STRING_LENGTH] = { '\0' };
-  char tag[MAX_INPUT_LENGTH] = { '\0' };
-  int  num = 0;
+  char line[MAX_STRING_LENGTH] = {'\0'};
+  char tag[MAX_INPUT_LENGTH] = {'\0'};
+  int num = 0;
   float fl_num = 0.0;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   load_default_config();
 
-  snprintf(buf, sizeof(buf), "%s/%s", CONFIG_DFLT_DIR, CONFIG_CONFFILE);
-  if ( !(fl = fopen(CONFIG_CONFFILE, "r")) && !(fl = fopen(buf, "r")) ) {
-    snprintf(buf, sizeof(buf), "No %s file, using defaults", CONFIG_CONFFILE);
+  snprintf(buf, sizeof (buf), "%s/%s", CONFIG_DFLT_DIR, CONFIG_CONFFILE);
+  if (!(fl = fopen(CONFIG_CONFFILE, "r")) && !(fl = fopen(buf, "r"))) {
+    snprintf(buf, sizeof (buf), "No %s file, using defaults", CONFIG_CONFFILE);
     perror(buf);
     return;
   }
@@ -4207,7 +4112,7 @@ void load_config( void )
 
       case 'd':
         if (!str_cmp(tag, "debug_mode"))
-          CONFIG_DEBUG_MODE = num;        
+          CONFIG_DEBUG_MODE = num;
         else if (!str_cmp(tag, "display_closed_doors"))
           CONFIG_DISP_CLOSED_DOORS = num;
         else if (!str_cmp(tag, "diagonal_dirs"))
@@ -4273,7 +4178,7 @@ void load_config( void )
         else if (!str_cmp(tag, "immort_start_room"))
           CONFIG_IMMORTAL_START = num;
         else if (!str_cmp(tag, "ibt_autosave"))
-		  CONFIG_IBT_AUTOSAVE = num;
+          CONFIG_IBT_AUTOSAVE = num;
         break;
 
       case 'l':
@@ -4311,7 +4216,7 @@ void load_config( void )
         else if (!str_cmp(tag, "menu")) {
           if (CONFIG_MENU)
             free(CONFIG_MENU);
-          strncpy(buf, "Reading menu in load_config()", sizeof(buf));
+          strncpy(buf, "Reading menu in load_config()", sizeof (buf));
           CONFIG_MENU = fread_string(fl, buf);
           parse_at(CONFIG_MENU);
         } else if (!str_cmp(tag, "min_rent_cost"))
@@ -4337,13 +4242,13 @@ void load_config( void )
           char tmp[READ_SIZE];
           if (CONFIG_NOPERSON)
             free(CONFIG_NOPERSON);
-          snprintf(tmp, sizeof(tmp), "%s\r\n", line);
+          snprintf(tmp, sizeof (tmp), "%s\r\n", line);
           CONFIG_NOPERSON = strdup(tmp);
         } else if (!str_cmp(tag, "noeffect")) {
           char tmp[READ_SIZE];
           if (CONFIG_NOEFFECT)
             free(CONFIG_NOEFFECT);
-          snprintf(tmp, sizeof(tmp), "%s\r\n", line);
+          snprintf(tmp, sizeof (tmp), "%s\r\n", line);
           CONFIG_NOEFFECT = strdup(tmp);
         }
         break;
@@ -4353,7 +4258,7 @@ void load_config( void )
           char tmp[READ_SIZE];
           if (CONFIG_OK)
             free(CONFIG_OK);
-          snprintf(tmp, sizeof(tmp), "%s\r\n", line);
+          snprintf(tmp, sizeof (tmp), "%s\r\n", line);
           CONFIG_OK = strdup(tmp);
         }
         break;
@@ -4380,7 +4285,7 @@ void load_config( void )
         else if (!str_cmp(tag, "special_in_comm"))
           CONFIG_SPECIAL_IN_COMM = num;
         else if (!str_cmp(tag, "start_messg")) {
-          strncpy(buf, "Reading start message in load_config()", sizeof(buf));
+          strncpy(buf, "Reading start message in load_config()", sizeof (buf));
           if (CONFIG_START_MESSG)
             free(CONFIG_START_MESSG);
           CONFIG_START_MESSG = fread_string(fl, buf);
@@ -4404,7 +4309,7 @@ void load_config( void )
 
       case 'w':
         if (!str_cmp(tag, "welc_messg")) {
-          strncpy(buf, "Reading welcome message in load_config()", sizeof(buf));
+          strncpy(buf, "Reading welcome message in load_config()", sizeof (buf));
           if (CONFIG_WELC_MESSG)
             free(CONFIG_WELC_MESSG);
           CONFIG_WELC_MESSG = fread_string(fl, buf);
@@ -4420,19 +4325,19 @@ void load_config( void )
 }
 
 /* Centralized character creation - Jamdog - 31st December 2007 */
+
 /* If you need a new blank char_data struct, call this          */
-struct char_data * new_char()
-{
-    struct char_data *ch;
-    CREATE(ch, struct char_data, 1);
-    clear_char(ch);
-    CREATE(ch->player_specials, struct player_special_data, 1);
+struct char_data * new_char() {
+  struct char_data *ch;
+  CREATE(ch, struct char_data, 1);
+  clear_char(ch);
+  CREATE(ch->player_specials, struct player_special_data, 1);
 
-    /* Set all required NULL pointers and variables */
-    ch->player_specials->saved.completed_quests = NULL;
-    ch->player_specials->saved.num_completed_quests = 0;
+  /* Set all required NULL pointers and variables */
+  ch->player_specials->saved.completed_quests = NULL;
+  ch->player_specials->saved.num_completed_quests = 0;
 
-    return ch;
+  return ch;
 }
 
 
