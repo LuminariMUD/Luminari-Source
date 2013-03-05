@@ -1222,7 +1222,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_ICE_STORM, 99);
     SET_SKILL(ch, SPELL_LOCATE_CREATURE, 99);
     // reincarnate? SET_SKILL(ch, SPELL_REINCARNATE, 99);
-    // spike stones SET_SKILL(ch, SPELL_SPIKE_STONES, 99);
+    SET_SKILL(ch, SPELL_SPIKE_STONES, 99);
     // summon nature's ally iv SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_4, 99);
     SET_SKILL(ch, SPELL_INFRAVISION, 99); // no
     SET_SKILL(ch, SPELL_REMOVE_CURSE, 99); // no
@@ -2726,7 +2726,7 @@ void init_spell_levels(void)
   spell_level(SPELL_ICE_STORM, CLASS_DRUID, 7);
   spell_level(SPELL_LOCATE_CREATURE, CLASS_DRUID, 7);
   // reincarnate
-  // spike stones
+  spell_level(SPELL_SPIKE_STONES, CLASS_DRUID, 7);
   // summon nature's ally iv
   spell_level(SPELL_INFRAVISION, CLASS_DRUID, 7); // no
   spell_level(SPELL_REMOVE_CURSE, CLASS_DRUID, 7); // no

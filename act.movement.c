@@ -816,6 +816,19 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /*****/
 
   /* spike growth damages upon entering the room */
+  if (ROOM_AFFECTED(going_to, RAFF_SPIKE_STONES)) {
+    /* only damage the character if they're not mounted (mount takes damage) */
+    if (riding && same_room) {
+      // mount will take the damage, don't hurt rider
+          /* damage characters upon entering spike growth room */
+      damage(RIDING(ch), RIDING(ch), dice(3, 4), SPELL_SPIKE_STONES, DAM_EARTH, FALSE);
+      send_to_char(RIDING(ch), "You are impaled by large stone spikes as you enter the room.\r\n");
+    } else {
+      // mount is not there, or not mounted
+      damage(ch, ch, dice(3, 4), SPELL_SPIKE_STONES, DAM_EARTH, FALSE);
+      send_to_char(ch, "You are impaled by large stone spikes as you enter the room.\r\n");
+    }    
+  }
   if (ROOM_AFFECTED(going_to, RAFF_SPIKE_GROWTH)) {
     /* only damage the character if they're not mounted (mount takes damage) */
     if (riding && same_room) {

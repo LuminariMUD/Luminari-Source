@@ -4545,6 +4545,17 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
       aff = RAFF_SPIKE_GROWTH;
       rounds = DIVINE_LEVEL(ch);
       break;
+      
+    case SPELL_SPIKE_STONES: // transmutation
+      if (SECT(ch->in_room) != SECT_MOUNTAIN) {
+        send_to_char(ch, "Your spike stones are not effective in this terrain.\r\n");
+        return;
+      }
+      to_char = "Large stone spikes suddenly protrude from the ground.";
+      to_room = "Large stone spikes suddenly protrude from the ground.";
+      aff = RAFF_SPIKE_GROWTH;
+      rounds = DIVINE_LEVEL(ch);
+      break;
 
     case SPELL_STINKING_CLOUD: //conjuration
       to_char = "Clouds of billowing stinking fumes fill the area.";
