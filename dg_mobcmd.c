@@ -874,7 +874,7 @@ ACMD(do_mtransform) {
     if (isdigit(*arg))
       m = read_mobile(atoi(arg), VIRTUAL);
     else {
-      keep_hp = 1;
+      keep_hp = 0;
       m = read_mobile(atoi(arg + 1), VIRTUAL);
     }
     if (m == NULL) {
