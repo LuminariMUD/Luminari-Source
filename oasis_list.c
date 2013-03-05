@@ -226,6 +226,7 @@ void perform_obj_type_list(struct char_data * ch, char *arg)
           case ITEM_PEN:
           case ITEM_BOAT:
           case ITEM_KEY:
+          case ITEM_FURNITURE:
             tmp_len = snprintf(buf+len, sizeof(buf)-len,"%s%3d%s) %s[%s%8d%s] %s%s\r\n",
                  QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM);
             break;
