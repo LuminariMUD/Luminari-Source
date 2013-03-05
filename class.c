@@ -930,7 +930,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_RAY_OF_FROST, 99);
     */
 
-    send_to_char(ch, "Magic-User / Sorcerer Done.\tn\r\n");
+    send_to_char(ch, "Wizard / Sorcerer Done.\tn\r\n");
   break;
 
   case CLASS_BARD:
@@ -2208,7 +2208,7 @@ void init_spell_levels(void)
   spell_level(SPELL_HELLBALL, CLASS_WIZARD, 20);  //shared
   spell_level(SPELL_EPIC_MAGE_ARMOR, CLASS_WIZARD, 20);
   spell_level(SPELL_EPIC_WARDING, CLASS_WIZARD, 20);
-  //end magic-user spells
+  //end wizard spells
 
   
   // sorcerer, increment spells by spell-level

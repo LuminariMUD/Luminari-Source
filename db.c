@@ -2682,6 +2682,13 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
     }
   }
 
+  /* going to put some caps here -zusuk */
+  /* weapons */
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON) {
+    GET_OBJ_VAL(obj, 1) = MIN(2, GET_OBJ_VAL(obj, 1));
+    GET_OBJ_VAL(obj, 2) = MIN(12, GET_OBJ_VAL(obj, 2));    
+  }
+  
   copy_proto_script(&obj_proto[i], obj, OBJ_TRIGGER);
   assign_triggers(obj, OBJ_TRIGGER);
 

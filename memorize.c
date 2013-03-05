@@ -749,7 +749,7 @@ int comp_slots(struct char_data *ch, int circle, int class)
 
 // SORCERER types:   this will add circle-slot to the mem list
 //   and the corresponding memtime in memtime list
-// MAGIC-USER types:  adds <spellnum> to the characters memorizing list, and
+// WIZARD types:  adds <spellnum> to the characters memorizing list, and
 //   places the corresponding memtime in memtime list
 #define SORC_TIME_FACTOR  12
 #define BARD_TIME_FACTOR  14
@@ -772,7 +772,7 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class)
   } 
 
 
-  /* magic-user type system */
+  /* wizard type system */
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PRAYING(ch, slot, classArray(class)) == TERMINATE) {
       PRAYING(ch, slot, classArray(class)) = spellnum;
@@ -824,7 +824,7 @@ void addSpellMemmed(struct char_data *ch, int spellnum, int class)
 }
 
 // SORCERER types:  just clears top of PRAYING() list
-// MAGIC-USER types:  finds the first instance of <spellnum> in the characters
+// WIZARD types:  finds the first instance of <spellnum> in the characters
 //   memorizing spells, forgets it, then updates the memorizing list
 void removeSpellMemming(struct char_data *ch, int spellnum, int class)
 {
@@ -1100,7 +1100,7 @@ int sorc_add_known(struct char_data *ch, int spellnum, int class)
 
 // for SORCERER types:  returns TRUE if they know the spell AND if they
 //   got free slots
-// for MAGIC-USER types:  returns TRUE if the character has the spell memorized
+// for WIZARD types:  returns TRUE if the character has the spell memorized
 //   returns FALSE if the character doesn't
 bool hasSpell(struct char_data *ch, int spellnum)
 {
