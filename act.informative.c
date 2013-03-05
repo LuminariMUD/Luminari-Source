@@ -848,7 +848,7 @@ ACMD(do_look) {
         send_to_char(ch, "Read what?\r\n");
       else {
         generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM |
-        FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
+                FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
         if (tmp_object)
           look_at_target(ch, arg);
         else
