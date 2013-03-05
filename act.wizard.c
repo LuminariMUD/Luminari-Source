@@ -676,7 +676,7 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j) {
     case ITEM_KEY: /* Nothing */
       break;
     case ITEM_FOOD:
-      send_to_char(ch, "Makes full: %d, Spellnum: %d, Poisoned: %s\r\n", GET_OBJ_VAL(j, 0), GET_OBJ_VAL(j, 1), YESNO(GET_OBJ_VAL(j, 3)));
+      send_to_char(ch, "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(j, 0), GET_OBJ_VAL(j, 1), spell_info[GET_OBJ_VAL(j, 1)].name, YESNO(GET_OBJ_VAL(j, 3)));
       break;
     case ITEM_MONEY:
       send_to_char(ch, "Coins: %d\r\n", GET_OBJ_VAL(j, 0));
