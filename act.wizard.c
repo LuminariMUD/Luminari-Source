@@ -5297,11 +5297,14 @@ ACMD(do_oset) {
     }
   }
 }
+
 void perform_type_list(struct char_data * ch, char *arg) {
   int num, itemtype, it, it2, found = 0;
   int it3, it4, r_num;
   struct obj_data *obj;
+  char buf[MAX_STRING_LENGTH];
 
+  *buf = '\0';
   itemtype = atoi(arg);
 
   for (num = 0; num <= top_of_objt; num++) {
@@ -5390,11 +5393,15 @@ void perform_type_list(struct char_data * ch, char *arg) {
             it = obj_index[num].vnum;
             it2 = (obj_proto[num].obj_flags.value[0]);
             it3 = (obj_proto[num].obj_flags.value[3]);
+            it4 = (obj_proto[num].obj_flags.value[3]);
 
+            sprintf(buf, "\tn%d. \tc[\ty%8d\tc]\tn (%dhrs) %s", ++found, it, it2, obj->short_description);
             if (it3 != 0)
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s (%dhrs) %s %sPoisoned!%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it2, obj->short_description, CBGRN(ch, C_NRM), CCNRM(ch, C_NRM));
-            else
-              send_to_char(ch, "%s%d. %s[%s%8d%s]%s (%dhrs) %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), it2, obj->short_description, CCNRM(ch, C_NRM));
+              sprintf(buf + strlen(buf), " \tnSpell: \ty%d\tn: %s", it2, spell_info[it2].name);
+            if (it4 != 0)
+              sprintf(buf + strlen(buf), " \tgPoisoned!\tn");
+            
+            send_to_char(ch, "%s\r\n", buf);
             break;
 
           case ITEM_MONEY:
@@ -5430,9 +5437,10 @@ void perform_type_list(struct char_data * ch, char *arg) {
           case ITEM_BOAT:
           case ITEM_KEY:
           case ITEM_CRYSTAL:
-          case ITEM_ESSENCE:            
-          case ITEM_MATERIAL:            
-          case ITEM_SPELLBOOK:            
+          case ITEM_ESSENCE:
+          case ITEM_MATERIAL:
+          case ITEM_SPELLBOOK:
+          case ITEM_FURNITURE:
             it = obj_index[num].vnum;
 
             send_to_char(ch, "%s%d. %s[%s%8d%s]%s %s%s\r\n", CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), it, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM));
