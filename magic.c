@@ -4553,7 +4553,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
       }
       to_char = "Large stone spikes suddenly protrude from the ground.";
       to_room = "Large stone spikes suddenly protrude from the ground.";
-      aff = RAFF_SPIKE_GROWTH;
+      aff = RAFF_SPIKE_STONES;
       rounds = DIVINE_LEVEL(ch);
       break;
 
