@@ -1015,8 +1015,7 @@ ACMD(do_drink)
   return;
 }
 
-ACMD(do_eat)
-{
+ACMD(do_eat) {
   char arg[MAX_INPUT_LENGTH];
   struct obj_data *food;
   struct affected_type af;
@@ -1036,7 +1035,7 @@ ACMD(do_eat)
     return;
   }
   if (subcmd == SCMD_TASTE && ((GET_OBJ_TYPE(food) == ITEM_DRINKCON) ||
-			       (GET_OBJ_TYPE(food) == ITEM_FOUNTAIN))) {
+          (GET_OBJ_TYPE(food) == ITEM_FOUNTAIN))) {
     do_drink(ch, argument, 0, SCMD_SIP);
     return;
   }
@@ -1074,6 +1073,8 @@ ACMD(do_eat)
     // this food has a spell attached to it
     // call the spell, ch as target
     call_magic(ch, ch, NULL, GET_OBJ_VAL(food, 1), GET_LEVEL(ch), CAST_SPELL);
+    /* attach event to character to prevent over-eating magical food/drink */
+    attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
   }
   if (GET_OBJ_VAL(food, 3) && (GET_LEVEL(ch) < LVL_IMMORT)) {
     /* The crap was poisoned ! */
@@ -1094,11 +1095,6 @@ ACMD(do_eat)
       extract_obj(food);
     }
   }
-  
-  /* attach event to character to prevent over-eating magical food/drink
-   * cooldown of 5 minutes 100 (20 rounds == 1 RL minute)
-   */
-  attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 100);
 }
 
 ACMD(do_pour)
