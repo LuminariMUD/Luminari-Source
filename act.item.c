@@ -949,7 +949,10 @@ ACMD(do_drink)
     send_to_char(ch, "You are not thirsty.\r\n");
     return;
   }
-
+  if (GET_OBJ_VAL(temp, 3) != 0 && char_has_mud_event(ch, eMAGIC_FOOD)) {
+    send_to_char(ch, "You cannot drink any more magical liquids right now.\r\n");
+    return;
+  }
   if (!consume_otrigger(temp, ch, OCMD_DRINK))  /* check trigger */
     return;
 
@@ -996,7 +999,7 @@ ACMD(do_drink)
   if (GET_OBJ_VAL(temp, 1) != 0) {
     // this drink has a spell attached to it
     // call the spell, ch as target
-    call_magic(ch, ch, NULL, GET_OBJ_VAL(temp, 1), GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, ch, NULL, GET_OBJ_VAL(temp, 3), GET_LEVEL(ch), CAST_SPELL);
     /* attach event to character to prevent over-eating magical food/drink */
     attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
   }
