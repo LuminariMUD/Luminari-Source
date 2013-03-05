@@ -209,8 +209,10 @@ void perform_obj_type_list(struct char_data * ch, char *arg)
             v3 = (obj_proto[num].obj_flags.value[3]);
             
             if (v2 != 0)
-              sprintf(buf2, " \tc[\tyspell %3d\tyn: %s\tc]\tn", v2, spell_info[v2].name);
-              
+              sprintf(buf2, " \tc[\tyspell %3d\tn: %s\tc]\tn", v2, spell_info[v2].name);
+            else
+              *buf2 = '\0';
+            
             if (v3 != 0)
               tmp_len = snprintf(buf+len, sizeof(buf)-len,"%s%3d%s) %s[%s%8d%s]%s (%2dhrs) %s%s%s %sPoisoned!%s\r\n",
                    QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, buf2, QBGRN, QNRM);
