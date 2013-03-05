@@ -885,7 +885,7 @@ ACMD(do_drink)
 {
   char arg[MAX_INPUT_LENGTH];
   struct obj_data *temp;
-  struct affected_type af;
+  // struct affected_type af;
   int amount, weight;
   int on_ground = 0;
 
@@ -1003,7 +1003,10 @@ ACMD(do_drink)
     /* attach event to character to prevent over-eating magical food/drink */
     attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
   }
-  if (GET_OBJ_VAL(temp, 3) && GET_LEVEL(ch) < LVL_IMMORT) { /* The crap was poisoned ! */
+  /* removed poison value from drink containers, replaced with spellnum
+   * so now if you want a poisoned drink container, just use poison spell for
+   * value 3 -Nashak
+  if (GET_OBJ_VAL(temp, 3) && GET_LEVEL(ch) < LVL_IMMORT) { // The crap was poisoned !
     send_to_char(ch, "Oops, it tasted rather strange!\r\n");
     act("$n chokes and utters some strange sounds.", TRUE, ch, 0, 0, TO_ROOM);
 
@@ -1012,7 +1015,7 @@ ACMD(do_drink)
     af.duration = amount * 3;
     SET_BIT_AR(af.bitvector, AFF_POISON);
     affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
-  }
+  } */
   /* Empty the container (unless unlimited), and no longer poison. */
   if (GET_OBJ_VAL(temp, 0) > 0) {
     GET_OBJ_VAL(temp, 1) -= amount;
