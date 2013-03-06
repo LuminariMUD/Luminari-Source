@@ -998,6 +998,10 @@
 #define MAX_CONCEAL           50 // its percentage
 #define MAX_DAM_REDUC         20
 #define MAX_ENERGY_ABSORB     20
+/* NOTE: oasis.h has a maximum value for weapon dice, this is diffrent */
+/* 2nd NOTE:  Hard-coded weapon dice caps in db.c */
+#define MAX_WEAPON_DAMAGE     24
+#define MIN_WEAPON_DAMAGE     2
 
 
 #define MAX_GOLD 2140000000 /**< Maximum possible on hand gold (2.14 Billion) */
