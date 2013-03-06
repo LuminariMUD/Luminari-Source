@@ -136,8 +136,8 @@ bool scale_damage(struct obj_data *weapon, int scaling) {
     return FALSE;
   
   /* more cap-checks, min/max damage */
-  if (new_max_damage >= MAX_WEAPON_DAMAGE ||
-          new_max_damage <= MIN_WEAPON_DAMAGE)
+  if (new_max_damage > MAX_WEAPON_DAMAGE ||
+          new_max_damage < MIN_WEAPON_DAMAGE)
     return FALSE;
 
   /* OK, passed all our checks, modify weapon damage */
@@ -675,17 +675,6 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
     return 1;
   }
   
-  /* "cost" of resizing */
-  cost = GET_OBJ_COST(obj) / 2;
-  if (GET_GOLD(ch) < cost) {
-    send_to_char(ch, "You need %d coins on hand for supplies to make this "
-                                     "item.\r\n", cost);
-    return 1;
-  }
-  send_to_char(ch, "It cost you %d coins to resize this item.\r\n",
-                       cost); 
-  GET_GOLD(ch) -= cost;
-  
   /* weapon damage adjustment */
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON) {
     num_dice = GET_OBJ_VAL(obj, 1);
@@ -701,6 +690,17 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
       return 1;
     }
   }
+  
+  /* "cost" of resizing */
+  cost = GET_OBJ_COST(obj) / 2;
+  if (GET_GOLD(ch) < cost) {
+    send_to_char(ch, "You need %d coins on hand for supplies to make this "
+                                     "item.\r\n", cost);
+    return 1;
+  }
+  send_to_char(ch, "It cost you %d coins to resize this item.\r\n",
+                       cost); 
+  GET_GOLD(ch) -= cost;
   
   send_to_char(ch, "You resize %s from %s to %s.\r\n",
                obj->short_description, size_names[GET_OBJ_SIZE(obj)],
