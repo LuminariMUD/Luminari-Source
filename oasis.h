@@ -1,14 +1,14 @@
-     /**
-* @file oasis.h
-* Oasis online creation general defines.
-*
-* Part of the core tbaMUD source code distribution, which is a derivative
-* of, and continuation of, CircleMUD.
-*
-* This source code, which was not part of the CircleMUD legacy code,
-* is attributed to:
-* By Levork. Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer.
-*/
+/**
+ * @file oasis.h
+ * Oasis online creation general defines.
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * This source code, which was not part of the CircleMUD legacy code,
+ * is attributed to:
+ * By Levork. Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer.
+ */
 #ifndef _OASIS_H_
 #define _OASIS_H_
 
@@ -39,15 +39,15 @@
 #define MAX_OBJ_NAME	100
 #define MAX_ROOM_DESC	2048
 #define MAX_EXIT_DESC	256
-#define MAX_EXTRA_DESC  512
-#define MAX_MOB_DESC	1024
+#define MAX_EXTRA_DESC   512
+#define MAX_MOB_DESC     1024
 #define MAX_OBJ_DESC	512
 #define MAX_DUPLICATES  100  /* when loading in zedit */
 
 /* arbitrary limits - roll your own */
 /* max weapon is 50d50 .. avg. 625 dam... */
-#define MAX_WEAPON_SDICE         50
-#define MAX_WEAPON_NDICE         50
+#define MAX_WEAPON_SDICE         2
+#define MAX_WEAPON_NDICE         12
 
 #define MAX_OBJ_WEIGHT      1000000
 #define MAX_OBJ_COST        2000000
@@ -80,34 +80,35 @@ void split_argument(char *argument, char *tag);
 void send_cannot_edit(struct char_data *ch, zone_vnum zone);
 
 /* OLC structures. */
+
 /* NO and YES are defined in utils.h. Removed from here. */
 
 struct oasis_olc_data {
-  int mode;                      /* how to parse input       */
-  zone_rnum zone_num;            /* current zone             */
-  room_vnum number;              /* vnum of subject          */
-  int value;                     /* mostly 'has changed' flag*/
-  char *storage;                 /* used for 'tedit'         */
-  struct char_data *mob;         /* used for 'medit'         */
-  struct room_data *room;        /* used for 'redit'         */
-  struct obj_data *obj;          /* used for 'oedit'         */
-  struct zone_data *zone;        /* used for 'zedit'         */
-  struct shop_data *shop;        /* used for 'sedit'         */
-  struct config_data *config;    /* used for 'cedit'         */
-  struct aq_data *quest;         /* used for 'qedit'         */
+  int mode; /* how to parse input       */
+  zone_rnum zone_num; /* current zone             */
+  room_vnum number; /* vnum of subject          */
+  int value; /* mostly 'has changed' flag*/
+  char *storage; /* used for 'tedit'         */
+  struct char_data *mob; /* used for 'medit'         */
+  struct room_data *room; /* used for 'redit'         */
+  struct obj_data *obj; /* used for 'oedit'         */
+  struct zone_data *zone; /* used for 'zedit'         */
+  struct shop_data *shop; /* used for 'sedit'         */
+  struct config_data *config; /* used for 'cedit'         */
+  struct aq_data *quest; /* used for 'qedit'         */
   struct extra_descr_data *desc; /* used in '[r|o|m]edit'    */
-  struct social_messg *action;   /* Aedit uses this one      */
+  struct social_messg *action; /* Aedit uses this one      */
   struct trig_data *trig;
-  struct prefs_data *prefs;      /* used for 'prefedit'      */
-  struct ibt_data *ibt;          /* used for 'ibtedit'       */
-  struct clan_data *clan;        /* used for 'clanedit'      */
+  struct prefs_data *prefs; /* used for 'prefedit'      */
+  struct ibt_data *ibt; /* used for 'ibtedit'       */
+  struct clan_data *clan; /* used for 'clanedit'      */
   struct message_list *msg;
   struct message_type *m_type;
   int script_mode;
   int trigger_position;
   int item_type;
   struct trig_proto_list *script; /* for assigning triggers in [r|o|m]edit*/
-  struct help_index_element*help;   /* Hedit uses this */
+  struct help_index_element*help; /* Hedit uses this */
 };
 
 /* Exported globals. */
@@ -231,30 +232,30 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define REDIT_COPY			18
 
 /* Submodes of ZEDIT connectedness. */
-#define ZEDIT_MAIN_MENU              	0
-#define ZEDIT_DELETE_ENTRY		1
+#define ZEDIT_MAIN_MENU            0
+#define ZEDIT_DELETE_ENTRY         1
 #define ZEDIT_NEW_ENTRY			2
 #define ZEDIT_CHANGE_ENTRY		3
 #define ZEDIT_COMMAND_TYPE		4
 #define ZEDIT_IF_FLAG			5
-#define ZEDIT_ARG1			6
-#define ZEDIT_ARG2			7
-#define ZEDIT_ARG3			8
+#define ZEDIT_ARG1                 6
+#define ZEDIT_ARG2                 7
+#define ZEDIT_ARG3                 8
 #define ZEDIT_ZONE_NAME			9
 #define ZEDIT_ZONE_LIFE			10
 #define ZEDIT_ZONE_BOT			11
 #define ZEDIT_ZONE_TOP			12
-#define ZEDIT_ZONE_RESET		13
+#define ZEDIT_ZONE_RESET           13
 #define ZEDIT_CONFIRM_SAVESTRING	14
 #define ZEDIT_ZONE_BUILDERS		15
-#define ZEDIT_SARG1             20
-#define ZEDIT_SARG2             21
-#define ZEDIT_ZONE_FLAGS        22
-#define ZEDIT_LEVELS            23
-#define ZEDIT_LEV_MIN           24
-#define ZEDIT_LEV_MAX           25
-#define ZEDIT_ZONE_CLAIM        26
-#define ZEDIT_ZONE_WEATHER        27
+#define ZEDIT_SARG1                20
+#define ZEDIT_SARG2                21
+#define ZEDIT_ZONE_FLAGS           22
+#define ZEDIT_LEVELS               23
+#define ZEDIT_LEV_MIN              24
+#define ZEDIT_LEV_MAX              25
+#define ZEDIT_ZONE_CLAIM           26
+#define ZEDIT_ZONE_WEATHER         27
 
 /* Submodes of MEDIT connectedness. */
 #define MEDIT_MAIN_MENU            	0
@@ -460,7 +461,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define BARD_MAIN_MENU         9
 #define BARD_STUDY_SPELLS      10
 
-int  save_config( IDXTYPE nowhere );
+int save_config(IDXTYPE nowhere);
 
 /* Prototypes to keep. */
 void clear_screen(struct descriptor_data *);
@@ -502,7 +503,7 @@ void zedit_parse(struct descriptor_data *d, char *arg);
 ACMD(do_oasis_zedit);
 
 /* public functions from cedit.c */
-void cedit_save_to_disk( void );
+void cedit_save_to_disk(void);
 void cedit_parse(struct descriptor_data *d, char *arg);
 void cedit_string_cleanup(struct descriptor_data *d, int terminator);
 ACMD(do_oasis_cedit);

@@ -2644,10 +2644,10 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
   }
 
   /* going to put some caps here -zusuk */
-  /* weapons */
+  /* weapons, max_weapon_x is defined in oasis.h */
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON) {
-    GET_OBJ_VAL(obj, 1) = MIN(2, GET_OBJ_VAL(obj, 1));
-    GET_OBJ_VAL(obj, 2) = MIN(12, GET_OBJ_VAL(obj, 2));
+    GET_OBJ_VAL(obj, 1) = MIN(MAX_WEAPON_SDICE, GET_OBJ_VAL(obj, 1));
+    GET_OBJ_VAL(obj, 2) = MIN(MAX_WEAPON_NDICE, GET_OBJ_VAL(obj, 2));
   }
 
   copy_proto_script(&obj_proto[i], obj, OBJ_TRIGGER);

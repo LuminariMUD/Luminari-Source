@@ -32,8 +32,6 @@
 
 
 // External Functions
-void scaleup_dam(int *num, int *size);
-void scaledown_dam(int *num, int *size);
 void get_random_essence(struct char_data *ch, int level);
 void get_random_crystal(struct char_data *ch, int level);
 int art_level_exp(int level);
@@ -41,30 +39,117 @@ int art_level_exp(int level);
 
 //DEFINES//
 /* number of mats needed to complete a supply order */
-#define SUPPLYORDER_MATS     3
+#define SUPPLYORDER_MATS    3
 /* craft_pattern_vnums() determines pattern vnums, but you */
 /* can modify the list of patterns here (i.e. molds) */
-#define PATTERN_UPPER     30299
-#define PATTERN_LOWER     30200
+#define PATTERN_UPPER       30299
+#define PATTERN_LOWER       30200
 /* regardless of object weight, minimum needed mats to create an object */
-#define MIN_MATS          5
+#define MIN_MATS            5
 /* regardless of object weight, minimum needed mats to create an object
    for those with 'elf-crafting' feat */
-#define MIN_ELF_MATS      2
+#define MIN_ELF_MATS        2
 /* Amount of material needed: [mold weight divided by weight_factor] */
-#define WEIGHT_FACTOR     50
+#define WEIGHT_FACTOR       50
 /* Max level of a crystal in determining bonus */
-#define CRYSTAL_CAP       (LVL_IMMORT-1)
+#define CRYSTAL_CAP         (LVL_IMMORT-1)
 /* Crystal bonus division factor, ex. level 30 = +6 bonus (factor of 5) */
-#define BONUS_FACTOR      6
+#define BONUS_FACTOR        6
 /* Maximum crit rolls you can get on crafting */
-#define MAX_CRAFT_CRIT    3
+#define MAX_CRAFT_CRIT      3
 #define AUTOCQUEST_VNUM     30084  /* set your autoquest object here */
-#define AUTOCQUEST_MAKENUM      5  /* how many objects needed to craft */
+#define AUTOCQUEST_MAKENUM  5  /* how many objects needed to craft */
+/* for resizing weapons, what increment for size change in damage? */
+#define WEAPON_RESIZE_INC   2
 // end DEFINES //
 
+/***********************************/
 /* crafting local utility functions*/
+/***********************************/
 
+int weapon_damage[MAX_WEAPON_DAMAGE+1][2] = {
+  /* damage  num_dice  siz_dice */
+  /*     0 */{       0,        0, },
+  /*     1 */{       1,        1, },
+  /*     2 */{       1,        2, },
+  /*     3 */{       1,        3, },
+  /*     4 */{       2,        2, },
+  /*     5 */{       1,        5, },
+  /*     6 */{       1,        6, },
+  /*     7 */{       1,        7, },
+  /*     8 */{       2,        4, },
+  /*     9 */{       1,        9, },
+  /*     10*/{       1,       10, },
+  /*     11*/{       1,       11, },
+  /*     12*/{       2,        6, },
+  /*     13*/{       1,       13, },
+  /*     14*/{       1,       14, },
+  /*     15*/{       1,       15, },
+  /*     16*/{       2,        8, },
+  /*     17*/{       1,       17, },
+  /*     18*/{       1,       18, },
+  /*     19*/{       1,       19, },
+  /*     20*/{       2,       10, },
+  /*     21*/{       1,       21, },
+  /*     22*/{       1,       22, },
+  /*     23*/{       1,       23, },
+  /*     24*/{       2,       12, }
+};
+/* the primary use of this function is to modify a weapons damage
+ * when resizing it...
+ *   weapon:  object, needs to be a weapon
+ *   scaling:  integer, negative or positive indicating how many
+ *             size classes the weapon is shifting
+ * 
+ * returns TRUE if successful, FALSE if failed
+ */
+bool scale_damage(struct obj_data *weapon, int scaling) {
+  int max_damage = 0; // number-of-dice * size-of-dice of weapon
+  int new_max_damage = 0; // new weapon damage
+  int num_of_dice = 0;  // number-of-dice rolled for weapon dam
+  int size_of_dice = 0;  // size-of-dice rolled for weapon dam
+  int size = -1;  // starting size of weapon
+  int new_size = -1;  // new size of weapon
+
+  /* no scaling to be done */
+  if (!scaling)
+    return FALSE;
+  
+  if (!weapon)
+    return FALSE;
+  
+  /* this only works for weapons */
+  if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON)
+    return FALSE;
+  
+  /* assigned for ease-of-use */
+  num_of_dice = GET_OBJ_VAL(weapon, 1);  // how many dice are we rolling?
+  size_of_dice = GET_OBJ_VAL(weapon, 2);  // how big is the current dice roll?
+  size = GET_OBJ_SIZE(weapon);  // what is current size of weapon?
+  new_size = size + scaling;  // what size will weapon be now?
+  max_damage = num_of_dice * size_of_dice;  // weapons max damage
+  new_max_damage = max_damage + (scaling * WEAPON_RESIZE_INC);  // new max dam
+  
+  /* make sure the weapon is not becoming too big or too small */
+  if (new_size >= NUM_SIZES ||
+          new_size <= SIZE_RESERVED)
+    return FALSE;
+  
+  /* more cap-checks, min/max damage */
+  if (new_max_damage >= MAX_WEAPON_DAMAGE ||
+          new_max_damage <= MIN_WEAPON_DAMAGE)
+    return FALSE;
+
+  /* OK, passed all our checks, modify weapon damage */
+  GET_OBJ_VAL(weapon, 1) = weapon_damage[new_max_damage][0];
+  GET_OBJ_VAL(weapon, 2) = weapon_damage[new_max_damage][1];
+  
+  return TRUE;
+}
+
+/* this function will switch the material of an item based on the
+   conversion crafting system
+ */
 int convert_material(int material)
 {
   switch(material) {
@@ -73,10 +158,10 @@ int convert_material(int material)
     case MATERIAL_SILVER:
       return MATERIAL_ALCHEMAL_SILVER;
     default:
-      return 0;
+      return material;
   }
  
-  return 0;
+  return material;
 }
 
 /* simple function to reset craft data */
@@ -101,6 +186,9 @@ void reset_acraft(struct char_data *ch) {
   GET_AUTOCQUEST_DESC(ch) = strdup("nothing");  
 }
 
+/* compartmentalized auto-quest crafting reporting since its done
+   a few times in the code
+ */
 void cquest_report(struct char_data *ch) {
   if (GET_AUTOCQUEST_VNUM(ch)) {
     if (GET_AUTOCQUEST_MAKENUM(ch) <= 0)
@@ -543,6 +631,8 @@ int autocraft(struct obj_data *kit, struct char_data *ch) {
 int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
   int num_objs = 0, newsize, cost, i;
   struct obj_data *obj = NULL;
+  int num_dice = -1;
+  int size_dice = -1;
        
   /* Cycle through contents */
   /* resize requires just one item be inside the kit */
@@ -598,31 +688,18 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
   
   /* weapon damage adjustment */
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON) {
-    int ndice, diesize, sz, lvl;
-                 
-    ndice = GET_OBJ_VAL(obj, 1);
-    diesize = GET_OBJ_VAL(obj, 2);
+    num_dice = GET_OBJ_VAL(obj, 1);
+    size_dice = GET_OBJ_VAL(obj, 2);
     
-    sz = newsize - GET_OBJ_SIZE(obj);
-    if (!sz) /* should never pass this test */
-      send_to_char(ch, "ERROR:  Report to Staff Error: "
-              "Weapon Dam Adjustment\r\n");
-    else if (sz > 0)
-      for (lvl = 0; lvl < sz; lvl++)
-        send_to_char(ch, "scaleup_dam ");
-//        scaleup_dam(&ndice, &diesize);
-    else {
-      sz *= -1;
-      for (lvl = 0; lvl < sz; lvl++)
-        send_to_char(ch, "scaledown_dam ");
-//        scaledown_dam(&ndice, &diesize);
+    if (scale_damage(obj, newsize - GET_OBJ_SIZE(obj))) {
+      /* success, weapon upgraded or downgraded in damage
+         corresponding to size change */
+      send_to_char(ch, "Weapon change:  %dd%d to %dd%d\r\n",
+              num_dice, size_dice, GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
+    } else {
+      send_to_char(ch, "This weapon can not be resized.\r\n");
+      return 1;
     }
-    
-    send_to_char(ch, "Old weapond dice: %dd%d, New weapons dice: %dd%d.\r\n",
-                 GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2),
-                 ndice, diesize);
-    GET_OBJ_VAL(obj, 1) = ndice;
-    GET_OBJ_VAL(obj, 2) = diesize;
   }
   
   send_to_char(ch, "You resize %s from %s to %s.\r\n",
