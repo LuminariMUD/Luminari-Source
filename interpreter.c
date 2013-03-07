@@ -148,7 +148,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "create", "create", POS_STANDING, do_not_here, 1, 0},
   { "checkcraft", "checkcraft", POS_STANDING, do_not_here, 1, 0},
   { "compose", "compose", POS_RESTING, do_gen_memorize, 0, SCMD_COMPOSE},
-  { "convert", "covert", POS_STANDING, do_not_here, 1, 0},
+  //{ "convert", "covert", POS_STANDING, do_not_here, 1, 0},
   { "crystalfist", "crystalf", POS_FIGHTING, do_crystalfist, 0, 0},
   { "crystalbody", "crystalb", POS_FIGHTING, do_crystalbody, 0, 0},
   { "call", "call", POS_FIGHTING, do_call, 1, 0},

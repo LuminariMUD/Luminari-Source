@@ -37,12 +37,6 @@ int hunting_nodes = 0;
 int foresting_nodes = 0;
 long times_harvested[1000000];
 
-// External Functions
-void get_random_essence(struct char_data *ch, int level);
-void get_random_crystal(struct char_data *ch, int level);
-int art_level_exp(int level);
-/**********************/
-
 //DEFINES//
 /* number of mats needed to complete a supply order */
 #define SUPPLYORDER_MATS    3
@@ -78,27 +72,27 @@ int weapon_damage[MAX_WEAPON_DAMAGE+1][2] = {
   /*     0 */{       0,        0, },
   /*     1 */{       1,        1, },
   /*     2 */{       1,        2, },
-  /*     3 */{       1,        3, },
+  /*     3 */{       1,        2, },
   /*     4 */{       1,        4, },
-  /*     5 */{       1,        5, },
+  /*     5 */{       2,        2, },
   /*     6 */{       1,        6, },
-  /*     7 */{       1,        7, },
-  /*     8 */{       2,        4, },
-  /*     9 */{       1,        9, },
+  /*     7 */{       1,        6, },
+  /*     8 */{       1,        8, },
+  /*     9 */{       2,        4, },
   /*     10*/{       1,       10, },
-  /*     11*/{       1,       11, },
-  /*     12*/{       3,        4, },
-  /*     13*/{       1,       13, },
-  /*     14*/{       1,       14, },
-  /*     15*/{       1,       15, },
+  /*     11*/{       1,       10, },
+  /*     12*/{       1,       12, },
+  /*     13*/{       2,        6, },
+  /*     14*/{       3,        4, },
+  /*     15*/{       2,        8, },
   /*     16*/{       4,        4, },
-  /*     17*/{       1,       17, },
+  /*     17*/{       4,        4, },
   /*     18*/{       3,        6, },
-  /*     19*/{       1,       19, },
-  /*     20*/{       5,        4, },
-  /*     21*/{       1,       21, },
-  /*     22*/{       1,       22, },
-  /*     23*/{       1,       23, },
+  /*     19*/{       2,       10, },
+  /*     20*/{       2,       10, },
+  /*     21*/{       5,        4, },
+  /*     22*/{       5,        4, },
+  /*     23*/{       4,        6, },
   /*     24*/{       6,        4, }
 };
 /* the primary use of this function is to modify a weapons damage
@@ -249,7 +243,7 @@ int crystal_bonus(struct obj_data *crystal, int mod)
 }
 
 /* this function returns an appropriate keyword(s) based on material */
-char * node_keywords(int material) {
+char *node_keywords(int material) {
 
   switch (material) {
     case MATERIAL_STEEL:
@@ -285,7 +279,7 @@ char * node_keywords(int material) {
 }
 
 /* this function returns an appropriate short-desc based on material */
-char * node_sdesc(int material) {
+char *node_sdesc(int material) {
   switch (material) {
     case MATERIAL_STEEL:
       return strdup("a vein of iron ore");
@@ -320,7 +314,7 @@ char * node_sdesc(int material) {
 }
 
 /* this function returns an appropriate desc based on material */
-char * node_desc(int material) {
+char *node_desc(int material) {
   switch (material) {
     case MATERIAL_STEEL:
       return strdup("A vein of iron ore is here.");
@@ -361,7 +355,7 @@ char * node_desc(int material) {
 
 
 /* a function to try and make an intelligent(?) decision
-   about what material a node should be */
+   about what material a harvesting node should be */
 int random_node_material(int allowed) {
   int rand = 0;
   
@@ -616,14 +610,17 @@ int augment(struct obj_data *kit, struct char_data *ch)
   }
   /* new level is half of lower level crystal + higher level crystal */
   bonus = bonus + (bonus2 / 2);
-  if (bonus > (LVL_IMMORT - 1))
-    bonus = LVL_IMMORT - 1;  //cap
+  
+  if (bonus > (LVL_IMMORT - 1)) {  // cap
+    send_to_char(ch, "This augmentation process would create a crystal that is unstable!\r\n");
+    return 1;
+  }
 
-  if (bonus > GET_SKILL(ch, skill_type)) {    // high enough skill?
+  if (bonus > (GET_SKILL(ch, skill_type)/3)) {    // high enough skill?
     send_to_char(ch, "The crystal level is %d but your %s skill is "
-                     "only %d.\r\n",
+                     "only capable of creating level %d crystals.\r\n",
                  bonus, spell_info[skill_type].name,
-                 GET_SKILL(ch, skill_type));
+                 (GET_SKILL(ch, skill_type)/3));
     return 1;
   }
 
@@ -659,6 +656,7 @@ int augment(struct obj_data *kit, struct char_data *ch)
     
   GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
   GET_CRAFTING_TICKS(ch) = 5;  // add code here to modify speed of crafting
+  GET_CRAFTING_TICKS(ch) -= MIN(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25 ));
   GET_CRAFTING_OBJ(ch) = crystal_one;
   send_to_char(ch, "You begin to augment %s.\r\n", 
                crystal_one->short_description);
@@ -678,6 +676,7 @@ int augment(struct obj_data *kit, struct char_data *ch)
 
 // convert one material into another
 // requires multiples of exactly 10 of same mat to do the converstion
+/*  !! still under construction - zusuk !! */
 int convert(struct obj_data *kit, struct char_data *ch)
 {
   int cost = 500;  /* flat cost */
@@ -755,8 +754,8 @@ int convert(struct obj_data *kit, struct char_data *ch)
                        
   GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(new_mat));
   GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
-  GET_CRAFTING_TICKS(ch) = 6;  // adding time-takes here
-  GET_CRAFTING_TICKS(ch) -= MAX(10, GET_SKILL(ch, SKILL_FAST_CRAFTER));
+  GET_CRAFTING_TICKS(ch) = 11;  // adding time-takes here
+  GET_CRAFTING_TICKS(ch) -= MIN(10, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 10 ));
   GET_CRAFTING_OBJ(ch) = new_mat;
   GET_CRAFTING_REPEAT(ch) = MAX(0, (num_mats / 10) + 1);
                            
@@ -835,6 +834,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
   obj->description = strdup(buf);
   GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
   GET_CRAFTING_TICKS(ch) = 5; // here you'd add tick calculator
+  GET_CRAFTING_TICKS(ch) -= MIN(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25 ));
   GET_CRAFTING_OBJ(ch) = obj;
   
   send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n",
@@ -932,6 +932,7 @@ int autocraft(struct obj_data *kit, struct char_data *ch) {
           
   GET_CRAFTING_TYPE(ch) = SCMD_SUPPLYORDER;
   GET_CRAFTING_TICKS(ch) = 5;
+  GET_CRAFTING_TICKS(ch) -= MAX(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25 ));
   GET_AUTOCQUEST_GOLD(ch) += GET_LEVEL(ch) * GET_LEVEL(ch);
   send_to_char(ch, "You begin a supply order for %s.\r\n",
                GET_AUTOCQUEST_DESC(ch));
@@ -1251,56 +1252,48 @@ int create(char *argument, struct obj_data *kit,
   /*** end valid crystal usage ***/
                          
   /* which skill is used for this crafting session? */
-  /* for now, skill is determined by TYPE flag */
-  /* for now, only dealing with 4 crafting skills: armortech, weapontech,
-      tinkering and robotics */
-  switch (GET_OBJ_TYPE(mold)) {
-        
-  /* tinkering */
-  case ITEM_TRASH:
-  case ITEM_SCROLL:
-  case ITEM_WAND:
-  case ITEM_MATERIAL:
-  case ITEM_CRYSTAL:
+  /* we determine crafting skill by wear-flag */
+  
+  /* jewel making (finger, */
+  if (CAN_WEAR(mold, ITEM_WEAR_FINGER) ||
+          CAN_WEAR(mold, ITEM_WEAR_NECK) ||
+          CAN_WEAR(mold, ITEM_WEAR_HOLD) ||
+          ) {
     skill = SKILL_JEWELRY_MAKING;
-    break;
-      
-  /* armortech */
-  case ITEM_ARMOR:
-  case ITEM_WORN:
-  case ITEM_OTHER:
-  case ITEM_CONTAINER:
-  case ITEM_NOTE:
-  case ITEM_DRINKCON:
-  case ITEM_KEY:
-    skill = SKILL_ARMOR_SMITHING;
-    break;
-                       
-  /* robotics */
-  case ITEM_LIGHT:
-  case ITEM_POTION:
-  case ITEM_FOUNTAIN:
-  case ITEM_BOAT:
-    skill = SKILL_LEATHER_WORKING;
-    break;
-  
-  /* weapontech */
-  case ITEM_STAFF:
-  case ITEM_WEAPON:
-  case ITEM_TREASURE:
-  case ITEM_FOOD:
-  case ITEM_MONEY:   
-  case ITEM_PEN: 
-    skill = SKILL_WEAPON_SMITHING;
-    break;
-  
-  default: /* you can add here other categories */
-    skill = SKILL_LEATHER_WORKING;
-    break;
   }
-      
+
+  /* body armor pieces: either armor-smith/leather-worker/or knitting */
+  else if (CAN_WEAR(mold, ITEM_WEAR_BODY) ||
+          CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
+          CAN_WEAR(mold, ITEM_WEAR_LEGS) ||
+          CAN_WEAR(mold, ITEM_WEAR_HEAD) ||
+          CAN_WEAR(mold, ITEM_WEAR_FEET) ||
+          CAN_WEAR(mold, ITEM_WEAR_HANDS) ||
+          CAN_WEAR(mold, ITEM_WEAR_WRIST) ||
+          CAN_WEAR(mold, ITEM_WEAR_WAIST)
+          ) {
+    if (IS_HARD_METAL(mold))
+      skill = SKILL_ARMOR_SMITHING;
+    else if (IS_LEATHER(mold))
+      skill = SKILL_LEATHER_WORKING;
+    else
+      skill = SKILL_KNITTING;
+  }
+
+  /* about body */
+  else if (CAN_WEAR(mold, ITEM_WEAR_ABOUT)) {
+    skill = SKILL_KNITTING;
+  }
+
+  /* weapon-smithing:  weapons and shields */
+  else if (CAN_WEAR(mold, ITEM_WEAR_WIELD) ||
+          CAN_WEAR(mold, ITEM_WEAR_SHIELD)
+          ) {
+    skill = SKILL_WEAPON_SMITHING;
+  }
+
   /* skill restriction */
-  if (GET_SKILL(ch, skill) < obj_level) {
+  if ((GET_SKILL(ch, skill)/3) < obj_level) {
     send_to_char(ch, "Your skill in %s is too low to create that item.\r\n",
                  spell_info[skill].name);
     return 1;
@@ -1361,20 +1354,11 @@ int create(char *argument, struct obj_data *kit,
     send_to_char(ch, "You begin to craft %s.\r\n", mold->short_description);
     act("$n begins to craft $p.", FALSE, ch, mold, 0, TO_ROOM);
 
-    /*
-    if (dice(1, 100) < ((GET_GUILD(ch) != GUILD_ARTISANS) ? 0 :
-        ((GET_GUILD_RANK(ch) + 2) / 4 * 5))) {
-      send_to_char(ch, "One of %s was refunded to your due to your "
-                       "artisan guild bonus.\r\n", material->short_description);
-      obj_from_obj(material);
-      obj_to_char(material, ch);
-    }
-    */
-    
     GET_CRAFTING_OBJ(ch) = mold;
     obj_from_obj(mold); /* extracting this causes issues, solution? */
     GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
-    GET_CRAFTING_TICKS(ch) = 5;
+    GET_CRAFTING_TICKS(ch) = 11;
+    GET_CRAFTING_TICKS(ch) -= MAX(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25 ));
     int kit_obj_vnum = GET_OBJ_VNUM(kit);
     obj_from_room(kit);
     extract_obj(kit);
