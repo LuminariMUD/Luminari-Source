@@ -78,7 +78,7 @@ void free_list(struct list_data * pList)
   
   clear_simple_list();  
     
-  if (pList->iSize)
+  if (pList && pList->iSize)
     while ((pContent = simple_list(pList)))
       remove_from_list(pContent, pList);
     
