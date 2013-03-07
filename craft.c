@@ -30,6 +30,12 @@
 #include "mud_event.h"
 #include "modify.h" // for parse_at()
 
+/* global variables */
+int mining_nodes = 0;
+int farming_nodes = 0;
+int hunting_nodes = 0;
+int foresting_nodes = 0;
+long times_harvested[1000000];
 
 // External Functions
 void get_random_essence(struct char_data *ch, int level);
@@ -242,15 +248,324 @@ int crystal_bonus(struct obj_data *crystal, int mod)
   return bonus;
 }
 
+/* this function returns an appropriate keyword(s) based on material */
+char * node_keywords(int material) {
+
+  switch (material) {
+    case MATERIAL_STEEL:
+      return strdup("vein iron ore");
+    case MATERIAL_COLD_IRON:
+      return strdup("vein cold iron ore");
+    case MATERIAL_MITHRIL:
+      return strdup("vein mithril ore");
+    case MATERIAL_ADAMANTINE:
+      return strdup("vein adamantine ore");
+    case MATERIAL_SILVER:
+      return strdup("vein copper silver ore");
+    case MATERIAL_GOLD:
+      return strdup("vein gold platinum ore");
+    case MATERIAL_WOOD:
+      return strdup("tree fallen");
+    case MATERIAL_DARKWOOD:
+      return strdup("tree darkwood fallen");
+    case MATERIAL_LEATHER:
+      return strdup("game freshly killed");
+    case MATERIAL_DRAGONHIDE:
+      return strdup("wyvern freshly killed");
+    case MATERIAL_HEMP:
+      return strdup("hemp plants");
+    case MATERIAL_COTTON:
+      return strdup("cotton plants");
+    case MATERIAL_VELVET:
+      return strdup("cache of cloth");
+    case MATERIAL_SILK:
+      return strdup("silkworms");
+  }
+  return strdup("node harvesting");
+}
+
+/* this function returns an appropriate short-desc based on material */
+char * node_sdesc(int material) {
+  switch (material) {
+    case MATERIAL_STEEL:
+      return strdup("a vein of iron ore");
+    case MATERIAL_COLD_IRON:
+      return strdup("a vein of cold iron ore");
+    case MATERIAL_MITHRIL:
+      return strdup("a vein of mithril ore");
+    case MATERIAL_ADAMANTINE:
+      return strdup("a vein of adamantine ore");
+    case MATERIAL_SILVER:
+      return strdup("a vein of copper and silver ore");
+    case MATERIAL_GOLD:
+      return strdup("a vein of gold and platinum ore");
+    case MATERIAL_WOOD:
+      return strdup("a fallen tree");
+    case MATERIAL_DARKWOOD:
+      return strdup("a fallen darkwood tree");
+    case MATERIAL_LEATHER:
+      return strdup("the corpse of some freshly killed game");
+    case MATERIAL_DRAGONHIDE:
+      return strdup("the corpse of a freshly killed baby wyvern");
+    case MATERIAL_HEMP:
+      return strdup("a patch of hemp plants");
+    case MATERIAL_COTTON:
+      return strdup("a patch of cotton plants");
+    case MATERIAL_VELVET:
+      return strdup("an abandoned cache of cloths");
+    case MATERIAL_SILK:
+      return strdup("a large family of silkworms");
+  }
+  return strdup("a harvesting node");
+}
+
+/* this function returns an appropriate desc based on material */
+char * node_desc(int material) {
+  switch (material) {
+    case MATERIAL_STEEL:
+      return strdup("A vein of iron ore is here.");
+    case MATERIAL_COLD_IRON:
+      return strdup("A vein of cold iron ore is here.");
+    case MATERIAL_MITHRIL:
+      return strdup("A vein of mithril ore is here.");
+    case MATERIAL_ADAMANTINE:
+      return strdup("A vein of adamantine ore is here.");
+    case MATERIAL_SILVER:
+      return strdup("A vein of copper and silver ore is here.");
+    case MATERIAL_GOLD:
+      return strdup("A vein of gold and platinum ore is here.");
+    case MATERIAL_WOOD:
+      return strdup("A fallen tree is here.");
+    case MATERIAL_DARKWOOD:
+      return strdup("A fallen darkwood tree is here.");
+    case MATERIAL_LEATHER:
+      return strdup("The corpse of some freshly killed game is here.");
+    case MATERIAL_DRAGONHIDE:
+      return strdup("The corpse of a freshly killed baby wyvern is here.");
+    case MATERIAL_HEMP:
+      return strdup("A patch of hemp plants is here.");
+    case MATERIAL_COTTON:
+      return strdup("A patch of cotton plants is here.");
+    case MATERIAL_VELVET:
+      return strdup("An abandoned cache of cloths is here.");
+    case MATERIAL_SILK:
+      return strdup("A large family of silkworms is here.");
+  }
+  return strdup("A harvesting node is here.  Please inform an imm, this is an error.");
+}
+
+
 /************************/
 /* start primary engine */
 /************************/
+
+
+/* a function to try and make an intelligent(?) decision
+   about what material a node should be */
+int random_node_material(int allowed) {
+  int rand = 0;
+  
+  if (mining_nodes >= (allowed * 2) && foresting_nodes >= allowed &&
+          farming_nodes >= allowed && hunting_nodes >= allowed)
+    return MATERIAL_STEEL;
+
+  /* 34% mining, blacksmithing or goldsmithing */
+  if (dice(1, 100) <= 34) {
+
+    // mining
+    if (mining_nodes >= (allowed * 2))
+      return random_node_material(allowed);
+
+    rand = dice(1, 100);
+    /* 80% chance of blacksmithing (steel/cold-iron/mithril/adamantine */
+    if (rand <= 80) {
+
+      rand = dice(1, 1000);
+      // blacksmithing
+
+      if (rand <= 900)
+        return MATERIAL_STEEL;
+      else if (rand <= 980)
+        return MATERIAL_COLD_IRON;
+      else if (rand <= 999)
+        return MATERIAL_MITHRIL;
+      else
+        return MATERIAL_ADAMANTINE;
+
+    /* 20% of goldsmithing (silver/gold) */
+    } else {
+
+      // goldsmithing
+
+      if (dice(1, 100) <= 90)
+        return MATERIAL_SILVER;
+      else
+        return MATERIAL_GOLD;
+    }
+
+  /* 33% farming (hemp/cotton/velvet/silk) */
+  } else if (rand <= 67) {
+
+    rand = dice(1, 100);
+    // farming
+
+    if (farming_nodes >= allowed)
+      return random_node_material(allowed);
+
+    rand = dice(1, 100);
+
+    if (rand <= 30)
+      return MATERIAL_HEMP;
+    else if (rand <= 90)
+      return MATERIAL_COTTON;
+    else if (rand <= 99)
+      return MATERIAL_VELVET;
+    else
+      return MATERIAL_SILK;
+
+  /* 33% foresting (leather/dragonhide/wood/darkwood) */
+  } else {
+    // foresting
+
+    if (foresting_nodes >= allowed)
+      return random_node_material(allowed);
+
+    rand = dice(1, 100);
+
+    if (rand <= 50) {
+
+      rand = dice(1, 100);
+      if (rand <= 99)
+        return MATERIAL_LEATHER;
+      else
+        return MATERIAL_DRAGONHIDE;
+    } else {
+
+      rand = dice(1, 100);
+      if (rand <= 99)
+        return MATERIAL_WOOD;
+      else
+        return MATERIAL_DARKWOOD;
+    }
+  }
+
+  /* default steel */
+  return MATERIAL_STEEL;
+}
+
+void reset_harvesting_rooms(void) {
+
+  int i = 0;
+
+  for (i = 0; i < 1000000; i++)
+    times_harvested[i] = 0;
+
+  int cnt = 0;
+  int num_rooms = 0;
+  int nodes_allowed = 0;
+  struct obj_data *obj = NULL;
+  int orphans_allowed = 0;
+  int lockboxes_allowed = 0;
+
+
+  for (cnt = 0; cnt <= top_of_world; cnt++) {
+    if (world[cnt].sector_type == SECT_CITY)
+      continue;
+    num_rooms++;
+  }
+
+  nodes_allowed = num_rooms / 33;
+  orphans_allowed = lockboxes_allowed = num_rooms / 80;
+
+  if (mining_nodes >= (nodes_allowed * 2) && foresting_nodes >= nodes_allowed &&
+          farming_nodes >= nodes_allowed && hunting_nodes >= nodes_allowed)
+    return;
+
+  for (cnt = 0; cnt <= top_of_world; cnt++) {
+    if (ROOM_FLAGGED(cnt, ROOM_HOUSE))
+      continue;
+
+    if (dice(1, 80) == 1) {
+      obj = read_object(64098, VIRTUAL);
+      if (!obj)
+        continue;
+      obj_to_room(obj, cnt);
+    }
+  }
+
+  for (cnt = 0; cnt <= top_of_world; cnt++) {
+    if (ROOM_FLAGGED(cnt, ROOM_HOUSE))
+      continue;
+
+    if (dice(1, 80) == 1) {
+      obj = read_object(64097, VIRTUAL);
+      if (!obj)
+        continue;
+      obj_to_room(obj, cnt);
+    }
+  }
+
+  for (cnt = 0; cnt <= top_of_world; cnt++) {
+    if (ROOM_FLAGGED(cnt, ROOM_HOUSE))
+      continue;
+    if (world[cnt].sector_type == SECT_CITY)
+      continue;
+    if (dice(1, 33) == 1) {
+      obj = read_object(64099, VIRTUAL);
+      if (!obj)
+        continue;
+      GET_OBJ_MATERIAL(obj) = random_node_material(nodes_allowed);
+      switch (GET_OBJ_MATERIAL(obj)) {
+        case MATERIAL_STEEL:
+        case MATERIAL_COLD_IRON:
+        case MATERIAL_MITHRIL:
+        case MATERIAL_ADAMANTINE:
+        case MATERIAL_SILVER:
+        case MATERIAL_GOLD:
+          if (mining_nodes >= nodes_allowed)
+            continue;
+          else
+            mining_nodes++;
+          break;
+        case MATERIAL_WOOD:
+        case MATERIAL_DARKWOOD:
+        case MATERIAL_LEATHER:
+        case MATERIAL_DRAGONHIDE:
+          if (foresting_nodes >= nodes_allowed)
+            continue;
+          else
+            foresting_nodes++;
+        case MATERIAL_HEMP:
+        case MATERIAL_COTTON:
+        case MATERIAL_WOOL:
+        case MATERIAL_VELVET:
+        case MATERIAL_SATIN:
+        case MATERIAL_SILK:
+          if (farming_nodes >= nodes_allowed)
+            continue;
+          else
+            farming_nodes++;
+          break;
+        default:
+          continue;
+          break;
+      }
+      GET_OBJ_VAL(obj, 0) = dice(2, 3);
+
+      /* strdup()ed in node_foo() functions */
+      obj->name = node_keywords(GET_OBJ_MATERIAL(obj));
+      obj->short_description = node_sdesc(GET_OBJ_MATERIAL(obj));
+      obj->description = node_desc(GET_OBJ_MATERIAL(obj));
+      obj_to_room(obj, cnt);
+    }
+  }
+}
 
 // combine crystals to make them stronger
 int augment(struct obj_data *kit, struct char_data *ch)
 {
   struct obj_data *obj = NULL, *crystal_one = NULL, *crystal_two = NULL;
-  int num_objs = 0, cost = 0, bonus = 0;
+  int num_objs = 0, cost = 0, bonus = 0, bonus2 = 0;
   int skill_type = SKILL_CHEMISTRY; // change this to change the skill used
   char buf[MAX_INPUT_LENGTH];
   
@@ -291,10 +606,16 @@ int augment(struct obj_data *kit, struct char_data *ch)
   }
 
   // new level of crystal, with cap
-  bonus = (GET_OBJ_LEVEL(crystal_one) + GET_OBJ_LEVEL(crystal_two)) * 3 / 4;
-  if (bonus <= GET_OBJ_LEVEL(crystal_one) || 
-          bonus <= GET_OBJ_LEVEL(crystal_two))
-    bonus++;  //gaurantee improvement
+  /* first determine the higher/lower bonus */
+  if (GET_OBJ_LEVEL(crystal_one) >= GET_OBJ_LEVEL(crystal_two)) {
+    bonus = GET_OBJ_LEVEL(crystal_one);
+    bonus2 = GET_OBJ_LEVEL(crystal_two);
+  } else {
+    bonus = GET_OBJ_LEVEL(crystal_two);
+    bonus2 = GET_OBJ_LEVEL(crystal_one);    
+  }
+  /* new level is half of lower level crystal + higher level crystal */
+  bonus = bonus + (bonus2 / 2);
   if (bonus > (LVL_IMMORT - 1))
     bonus = LVL_IMMORT - 1;  //cap
 
