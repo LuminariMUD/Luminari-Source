@@ -1007,7 +1007,8 @@ ACMD(do_drink)
     // call the spell, ch as target
     call_magic(ch, ch, NULL, GET_OBJ_VAL(temp, 3), GET_LEVEL(ch), CAST_SPELL);
     /* attach event to character to prevent over-eating magical food/drink */
-    attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
+    if (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE))
+      attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
   }
   /* removed poison value from drink containers, replaced with spellnum
    * so now if you want a poisoned drink container, just use poison spell for
@@ -1088,12 +1089,13 @@ ACMD(do_eat) {
   if (GET_COND(ch, HUNGER) > 20)
     send_to_char(ch, "You are full.\r\n");
 
-  if (GET_OBJ_VAL(food, 1) != 0) {
+  if (GET_OBJ_TYPE(food) == ITEM_FOOD && GET_OBJ_VAL(food, 1) != 0) {
     // this food has a spell attached to it
     // call the spell, ch as target
     call_magic(ch, ch, NULL, GET_OBJ_VAL(food, 1), GET_LEVEL(ch), CAST_SPELL);
     /* attach event to character to prevent over-eating magical food/drink */
-    attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
+    if (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE))
+      attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
   }
   if (GET_OBJ_VAL(food, 3) && (GET_LEVEL(ch) < LVL_IMMORT)) {
     /* The crap was poisoned ! */
