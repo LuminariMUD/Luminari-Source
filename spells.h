@@ -430,16 +430,16 @@
 #define SKILL_LOBBY                     469
 #define SKILL_STUNNING_FIST             470  //implemented
 /* initial crafting skills */
-#define SKILL_MINING                    471
-#define SKILL_HUNTING                   472
-#define SKILL_FORESTING                 473
-#define SKILL_KNITTING                  474
-#define SKILL_CHEMISTRY                 475
-#define SKILL_ARMOR_SMITHING            476
-#define SKILL_WEAPON_SMITHING           477
-#define SKILL_JEWELRY_MAKING            478
-#define SKILL_LEATHER_WORKING           479
-#define SKILL_FAST_CRAFTER              480
+#define SKILL_MINING                    471  //implemented
+#define SKILL_HUNTING                   472  //implemented
+#define SKILL_FORESTING                 473  //implemented
+#define SKILL_KNITTING                  474  //implemented
+#define SKILL_CHEMISTRY                 475  //implemented
+#define SKILL_ARMOR_SMITHING            476  //implemented
+#define SKILL_WEAPON_SMITHING           477  //implemented
+#define SKILL_JEWELRY_MAKING            478  //implemented
+#define SKILL_LEATHER_WORKING           479  //implemented
+#define SKILL_FAST_CRAFTER              480  //implemented
 #define SKILL_BONE_ARMOR                481
 #define SKILL_ELVEN_CRAFTING            482
 #define SKILL_MASTERWORK_CRAFTING       483
