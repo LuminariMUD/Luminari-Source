@@ -97,24 +97,22 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
     }
   }
 }
-
 /* The following put modes are supported:
      1) put <object> <container>
      2) put all.<object> <container>
      3) put all <container>
    The <container> must be in inventory or on ground. All objects to be put
    into container must be in inventory. */
-ACMD(do_put)
-{
-  char arg1[MAX_INPUT_LENGTH] = { '\0' };
-  char arg2[MAX_INPUT_LENGTH] = { '\0' };
-  char arg3[MAX_INPUT_LENGTH] = { '\0' };
+ACMD(do_put) {
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char arg3[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL, *next_obj = NULL, *cont = NULL;
   struct char_data *tmp_char = NULL;
   int obj_dotmode = 0, cont_dotmode = 0, found = 0, howmany = 1;
   char *theobj = NULL, *thecont = NULL;
 
-  one_argument(two_arguments(argument, arg1, arg2), arg3);	/* three_arguments */
+  one_argument(two_arguments(argument, arg1, arg2), arg3); /* three_arguments */
 
   if (*arg3 && is_number(arg1)) {
     howmany = atoi(arg1);
@@ -142,36 +140,40 @@ ACMD(do_put)
     else if (OBJVAL_FLAGGED(cont, CONT_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
       send_to_char(ch, "You'd better open it first!\r\n");
     else {
-      if (obj_dotmode == FIND_INDIV) {	/* put <obj> <container> */
-	if (!(obj = get_obj_in_list_vis(ch, theobj, NULL, ch->carrying)))
-	  send_to_char(ch, "You aren't carrying %s %s.\r\n", AN(theobj), theobj);
-	else if (obj == cont && howmany == 1)
-	  send_to_char(ch, "You attempt to fold it into itself, but fail.\r\n");
-	else {
-	  while (obj && howmany) {
-	    next_obj = obj->next_content;
-            if (obj != cont) {
-              howmany--;
-	      perform_put(ch, obj, cont);
+      if (obj_dotmode == FIND_INDIV) { /* put <obj> <container> */
+        if (!(obj = get_obj_in_list_vis(ch, theobj, NULL, ch->carrying)))
+          send_to_char(ch, "You aren't carrying %s %s.\r\n", AN(theobj), theobj);
+        else if (obj == cont && howmany == 1)
+          send_to_char(ch, "You attempt to fold it into itself, but fail.\r\n");
+        else {
+          while (obj && howmany) {
+            if (OBJ_FLAGGED(obj, ITEM_NODROP))
+              send_to_char(ch, "You can't do that, it's cursed!\r\n");
+            else {
+              next_obj = obj->next_content;
+              if (obj != cont) {
+                howmany--;
+                perform_put(ch, obj, cont);
+              }
             }
-	    obj = get_obj_in_list_vis(ch, theobj, NULL, next_obj);
-	  }
-	}
+            obj = get_obj_in_list_vis(ch, theobj, NULL, next_obj);
+          }
+        }
       } else {
-	for (obj = ch->carrying; obj; obj = next_obj) {
-	  next_obj = obj->next_content;
-	  if (obj != cont && CAN_SEE_OBJ(ch, obj) &&
-	      (obj_dotmode == FIND_ALL || isname(theobj, obj->name))) {
-	    found = 1;
-	    perform_put(ch, obj, cont);
-	  }
-	}
-	if (!found) {
-	  if (obj_dotmode == FIND_ALL)
-	    send_to_char(ch, "You don't seem to have anything to put in it.\r\n");
-	  else
-	    send_to_char(ch, "You don't seem to have any %ss.\r\n", theobj);
-	}
+        for (obj = ch->carrying; obj; obj = next_obj) {
+          next_obj = obj->next_content;
+          if (obj != cont && CAN_SEE_OBJ(ch, obj) &&
+                  (obj_dotmode == FIND_ALL || isname(theobj, obj->name))) {
+            found = 1;
+            perform_put(ch, obj, cont);
+          }
+        }
+        if (!found) {
+          if (obj_dotmode == FIND_ALL)
+            send_to_char(ch, "You don't seem to have anything to put in it.\r\n");
+          else
+            send_to_char(ch, "You don't seem to have any %ss.\r\n", theobj);
+        }
       }
     }
   }
