@@ -409,20 +409,20 @@ ACMD(do_dismiss) {
        * if so, modify event cooldown (if it exits) */
       if (MOB_FLAGGED(vict, MOB_C_ANIMAL)) {
         if ((pMudEvent = char_has_mud_event(ch, eC_ANIMAL)) &&
-                event_time(pMudEvent->pEvent) > (12 * SECS_PER_MUD_HOUR)) {
-          change_event_duration(ch, eC_ANIMAL, 12 * SECS_PER_MUD_HOUR);
+                event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC)) {
+          change_event_duration(ch, eC_ANIMAL, (59 * PASSES_PER_SEC));
         }
       }
       if (MOB_FLAGGED(vict, MOB_C_FAMILIAR)) {
         if ((pMudEvent = char_has_mud_event(ch, eC_FAMILIAR)) &&
-                event_time(pMudEvent->pEvent) > (12 * SECS_PER_MUD_HOUR)) {
-          change_event_duration(ch, eC_FAMILIAR, 12 * SECS_PER_MUD_HOUR);
+                event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC)) {
+          change_event_duration(ch, eC_FAMILIAR, (59 * PASSES_PER_SEC));
         }
       }
       if (MOB_FLAGGED(vict, MOB_C_MOUNT)) {
         if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)) &&
-                event_time(pMudEvent->pEvent) > (12 * SECS_PER_MUD_HOUR)) {
-          change_event_duration(ch, eC_MOUNT, 12 * SECS_PER_MUD_HOUR);
+                event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC)) {
+          change_event_duration(ch, eC_MOUNT, (59 * PASSES_PER_SEC));
         }
       }
 
