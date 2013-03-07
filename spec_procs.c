@@ -380,15 +380,6 @@ case SKILL_RAGE:
     case SKILL_GREAT_FORTITUDE:
     case SKILL_LIGHTNING_REFLEXES:
     case SKILL_STEALTHY:
-      return TRUE;
-      
-      /**
-       *  not implemented yet or
-       * unattainable
-       *  **/
-    case SKILL_MURMUR:
-    case SKILL_PROPAGANDA:
-    case SKILL_LOBBY:
     case SKILL_MINING:
     case SKILL_HUNTING:
     case SKILL_FORESTING:
@@ -399,6 +390,15 @@ case SKILL_RAGE:
     case SKILL_JEWELRY_MAKING:
     case SKILL_LEATHER_WORKING:
     case SKILL_FAST_CRAFTER:
+      return TRUE;
+      
+      /**
+       *  not implemented yet or
+       * unattainable
+       *  **/
+    case SKILL_MURMUR:
+    case SKILL_PROPAGANDA:
+    case SKILL_LOBBY:
     case SKILL_BONE_ARMOR:
     case SKILL_ELVEN_CRAFTING:
     case SKILL_MASTERWORK_CRAFTING:
