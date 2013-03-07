@@ -82,7 +82,7 @@ void free_list(struct list_data * pList)
     while ((pContent = simple_list(pList)))
       remove_from_list(pContent, pList);
     
-  if (pList->iSize > 0)
+  if (pList && pList->iSize > 0)
     mudlog(CMP, LVL_GOD, TRUE, "List being freed while not empty.");
       
   /* Global List for debugging */
