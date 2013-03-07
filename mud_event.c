@@ -404,5 +404,7 @@ void change_event_duration(struct char_data * ch, event_id iId, long time) {
   }    
   
 }
-
 */
+
+
+
