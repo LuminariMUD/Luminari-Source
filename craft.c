@@ -1062,8 +1062,8 @@ int create(char *argument, struct obj_data *kit,
         struct char_data *ch, int mode) {
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
                   *material = NULL, *essence = NULL;
-  int num_mats = 0, obj_level = 1, skill = -1, crystal_value = -1,
-      mats_needed = 12345, found = 0, i = 0, bonus = 0;
+  int num_mats = 0, obj_level = 1, skill = SKILL_WEAPON_SMITHING,
+          crystal_value = -1, mats_needed = 12345, found = 0, i = 0, bonus = 0;
 
   /* sort through our kit and check if we got everything we need */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
@@ -1257,7 +1257,7 @@ int create(char *argument, struct obj_data *kit,
   /* jewel making (finger, */
   if (CAN_WEAR(mold, ITEM_WEAR_FINGER) ||
           CAN_WEAR(mold, ITEM_WEAR_NECK) ||
-          CAN_WEAR(mold, ITEM_WEAR_HOLD) ||
+          CAN_WEAR(mold, ITEM_WEAR_HOLD)
           ) {
     skill = SKILL_JEWELRY_MAKING;
   }
@@ -1272,9 +1272,9 @@ int create(char *argument, struct obj_data *kit,
           CAN_WEAR(mold, ITEM_WEAR_WRIST) ||
           CAN_WEAR(mold, ITEM_WEAR_WAIST)
           ) {
-    if (IS_HARD_METAL(mold))
+    if (IS_HARD_METAL(GET_OBJ_MATERIAL(mold)))
       skill = SKILL_ARMOR_SMITHING;
-    else if (IS_LEATHER(mold))
+    else if (IS_LEATHER(GET_OBJ_MATERIAL(mold)))
       skill = SKILL_LEATHER_WORKING;
     else
       skill = SKILL_KNITTING;
