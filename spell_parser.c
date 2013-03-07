@@ -2555,16 +2555,16 @@ void mag_assign_spells(void) {
   skillo(SKILL_PROPAGANDA, "propaganda(inc)"); //468
   skillo(SKILL_LOBBY, "lobby(inc)"); //469
   skillo(SKILL_STUNNING_FIST, "stunning fist"); //470
-  skillo(SKILL_MINING, "mining(inc)"); //471
-  skillo(SKILL_HUNTING, "hunting(inc)"); //472
-  skillo(SKILL_FORESTING, "foresting(inc)"); //473
-  skillo(SKILL_KNITTING, "knitting(inc)"); //474
-  skillo(SKILL_CHEMISTRY, "chemistry(inc)"); //475
-  skillo(SKILL_ARMOR_SMITHING, "armor smithing(inc)"); //476
-  skillo(SKILL_WEAPON_SMITHING, "weapon smithing(inc)"); //477
-  skillo(SKILL_JEWELRY_MAKING, "jewelry making(inc)"); //478
-  skillo(SKILL_LEATHER_WORKING, "leather working(inc)"); //479
-  skillo(SKILL_FAST_CRAFTER, "fast crafter(inc)"); //480
+  skillo(SKILL_MINING, "mining"); //471
+  skillo(SKILL_HUNTING, "hunting"); //472
+  skillo(SKILL_FORESTING, "foresting"); //473
+  skillo(SKILL_KNITTING, "knitting"); //474
+  skillo(SKILL_CHEMISTRY, "chemistry"); //475
+  skillo(SKILL_ARMOR_SMITHING, "armor smithing"); //476
+  skillo(SKILL_WEAPON_SMITHING, "weapon smithing"); //477
+  skillo(SKILL_JEWELRY_MAKING, "jewelry making"); //478
+  skillo(SKILL_LEATHER_WORKING, "leather working"); //479
+  skillo(SKILL_FAST_CRAFTER, "fast crafter"); //480
   skillo(SKILL_BONE_ARMOR, "bone armor(inc)"); //481
   skillo(SKILL_ELVEN_CRAFTING, "elven crafting(inc)"); //482
   skillo(SKILL_MASTERWORK_CRAFTING, "masterwork craft(inc)"); //483
