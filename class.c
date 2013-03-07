@@ -1683,7 +1683,41 @@ void advance_level(struct char_data *ch, int class)
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);  
   ch->aff_abils = ch->real_abils;
   /******  end unaffect ******/
-
+  
+  /* init some skills if needed */
+  if (!GET_SKILL(ch, SKILL_MINING))
+    SET_SKILL(ch, SKILL_MINING, 5);
+  if (!GET_SKILL(ch, SKILL_HUNTING))
+    SET_SKILL(ch, SKILL_HUNTING, 5);
+  if (!GET_SKILL(ch, SKILL_FORESTING))
+    SET_SKILL(ch, SKILL_FORESTING, 5);
+  if (!GET_SKILL(ch, SKILL_KNITTING))
+    SET_SKILL(ch, SKILL_KNITTING, 5);
+  if (!GET_SKILL(ch, SKILL_CHEMISTRY))
+    SET_SKILL(ch, SKILL_CHEMISTRY, 5);
+  if (!GET_SKILL(ch, SKILL_ARMOR_SMITHING))
+    SET_SKILL(ch, SKILL_ARMOR_SMITHING, 5);
+  if (!GET_SKILL(ch, SKILL_WEAPON_SMITHING))
+    SET_SKILL(ch, SKILL_WEAPON_SMITHING, 5);
+  if (!GET_SKILL(ch, SKILL_JEWELRY_MAKING))
+    SET_SKILL(ch, SKILL_JEWELRY_MAKING, 5);
+  if (!GET_SKILL(ch, SKILL_LEATHER_WORKING))
+    SET_SKILL(ch, SKILL_LEATHER_WORKING, 5);
+  if (!GET_SKILL(ch, SKILL_FAST_CRAFTER))
+    SET_SKILL(ch, SKILL_FAST_CRAFTER, 5);
+  /*
+  if (!GET_SKILL(ch, SKILL_BONE_ARMOR))
+    SET_SKILL(ch, SKILL_BONE_ARMOR, 5);
+  if (!GET_SKILL(ch, SKILL_ELVEN_CRAFTING))
+    SET_SKILL(ch, SKILL_ELVEN_CRAFTING, 5);
+  if (!GET_SKILL(ch, SKILL_MASTERWORK_CRAFTING))
+    SET_SKILL(ch, SKILL_MASTERWORK_CRAFTING, 5);  
+  if (!GET_SKILL(ch, SKILL_DRACONIC_CRAFTING))
+    SET_SKILL(ch, SKILL_DRACONIC_CRAFTING, 5);
+  if (!GET_SKILL(ch, SKILL_DWARVEN_CRAFTING))
+    SET_SKILL(ch, SKILL_DWARVEN_CRAFTING, 5);
+  */
+  
   /* first level in a class?  might have some inits to do! */
   if (CLASS_LEVEL(ch, class) == 1) {
     send_to_char(ch, "\tMInititializing class:  ");

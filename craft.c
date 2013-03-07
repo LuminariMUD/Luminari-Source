@@ -73,7 +73,7 @@ int weapon_damage[MAX_WEAPON_DAMAGE+1][2] = {
   /*     1 */{       1,        1, },
   /*     2 */{       1,        2, },
   /*     3 */{       1,        3, },
-  /*     4 */{       2,        2, },
+  /*     4 */{       1,        4, },
   /*     5 */{       1,        5, },
   /*     6 */{       1,        6, },
   /*     7 */{       1,        7, },
@@ -81,19 +81,19 @@ int weapon_damage[MAX_WEAPON_DAMAGE+1][2] = {
   /*     9 */{       1,        9, },
   /*     10*/{       1,       10, },
   /*     11*/{       1,       11, },
-  /*     12*/{       2,        6, },
+  /*     12*/{       3,        4, },
   /*     13*/{       1,       13, },
   /*     14*/{       1,       14, },
   /*     15*/{       1,       15, },
-  /*     16*/{       2,        8, },
+  /*     16*/{       4,        4, },
   /*     17*/{       1,       17, },
-  /*     18*/{       1,       18, },
+  /*     18*/{       3,        6, },
   /*     19*/{       1,       19, },
-  /*     20*/{       2,       10, },
+  /*     20*/{       5,        4, },
   /*     21*/{       1,       21, },
   /*     22*/{       1,       22, },
   /*     23*/{       1,       23, },
-  /*     24*/{       2,       12, }
+  /*     24*/{       6,        4, }
 };
 /* the primary use of this function is to modify a weapons damage
  * when resizing it...
@@ -629,7 +629,7 @@ int autocraft(struct obj_data *kit, struct char_data *ch) {
 
 
 int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
-  int num_objs = 0, newsize, cost, i;
+  int num_objs = 0, newsize, cost;
   struct obj_data *obj = NULL;
   int num_dice = -1;
   int size_dice = -1;
@@ -711,10 +711,9 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
   /* resize object after taking out of kit, otherwise issues */
   /* weight adjustment of object */
   GET_OBJ_SIZE(obj) = newsize;
-  for (i = 0; i < newsize - GET_OBJ_SIZE(obj); i++)
-    GET_OBJ_WEIGHT(obj) = GET_OBJ_WEIGHT(obj) * 3 / 2;
-  for (i = 0; i < GET_OBJ_SIZE(obj) - newsize; i++)
-    GET_OBJ_WEIGHT(obj) = GET_OBJ_WEIGHT(obj) * 2 / 3;
+  GET_OBJ_WEIGHT(obj) += (newsize - GET_OBJ_SIZE(obj)) * GET_OBJ_WEIGHT(obj);
+  if (GET_OBJ_WEIGHT(obj) <= 0)
+    GET_OBJ_WEIGHT(obj) = 1;
   
   obj_to_char(obj, ch);
   reset_craft(ch);
@@ -1127,8 +1126,7 @@ SPECIAL(crafting_kit)
       send_to_char(ch, "You must place the item to restring and in the "
                        "crafting kit.\r\n");
     else if (CMD_IS("resize"))
-      send_to_char(ch, "You must place the original item plus enough material "
-              "in the kit to resize it.\r\n");
+      send_to_char(ch, "You must place the item in the kit to resize it.\r\n");
     else if (CMD_IS("checkcraft"))
       send_to_char(ch, "You must place an item to use as the mold pattern, a "
               "crystal and your crafting resource materials in the kit and "
@@ -1163,6 +1161,7 @@ SPECIAL(crafting_kit)
 }
 
 
+/* here is our room-spec for crafting quest */
 SPECIAL(crafting_quest) {
   if (!CMD_IS("supplyorder")) {
     return 0;
@@ -1243,8 +1242,8 @@ SPECIAL(crafting_quest) {
     send_to_char(ch, "You have been commissioned for a supply order to "
             "make %s.  We expect you to make %d before you can collect your "
             "reward.  Good luck!  Once completed you will receive the "
-            "following:  You will receive %d reputation points."
-            "  %d gold will be given to you.  You will receive %d artisan "
+            "following:  You will receive %d quest points."
+            "  %d gold will be given to you.  You will receive %d "
             "experience points.\r\n", 
                  desc, GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_QP(ch),
                  GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
@@ -1274,6 +1273,7 @@ SPECIAL(crafting_quest) {
   return 1;
 }
 
+/* the event driver for crafting */
 EVENTFUNC(event_crafting) {
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
