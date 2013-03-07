@@ -3410,7 +3410,8 @@ void free_char(struct char_data *ch) {
       while ((pEvent = simple_list(ch->events)) != NULL)
         event_cancel(pEvent);
     }
-    free_list(ch->events);
+    if (ch->events)
+      free_list(ch->events);
   }
 
   /* new version of free_followers take the followers pointer as arg */
