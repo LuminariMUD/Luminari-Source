@@ -161,15 +161,15 @@ ACMD(do_put) {
         }
       } else {
         for (obj = ch->carrying; obj; obj = next_obj) {
+          next_obj = obj->next_content;
           if (OBJ_FLAGGED(obj, ITEM_NODROP))
             act("You can't let go of $p, it must be CURSED!", FALSE, ch, obj, 0, TO_CHAR);
           else {
-          next_obj = obj->next_content;
-          if (obj != cont && CAN_SEE_OBJ(ch, obj) &&
-                  (obj_dotmode == FIND_ALL || isname(theobj, obj->name))) {
-            found = 1;
-            perform_put(ch, obj, cont);
-          }
+            if (obj != cont && CAN_SEE_OBJ(ch, obj) &&
+                    (obj_dotmode == FIND_ALL || isname(theobj, obj->name))) {
+              found = 1;
+              perform_put(ch, obj, cont);
+            }
           }
         }
         if (!found) {
