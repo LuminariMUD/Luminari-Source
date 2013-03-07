@@ -337,6 +337,41 @@ void clear_char_event_list(struct char_data * ch)
 
 
 void change_event_duration(struct char_data * ch, event_id iId, long time) {
+
+  struct event * pEvent;
+  struct mud_event_data * pMudEvent;
+  bool found = FALSE;
+
+  if (ch->events->iSize == 0)
+    return;
+
+  simple_list(NULL);
+
+  while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
+
+    if (!pEvent->isMudEvent)
+      continue;
+
+    pMudEvent = (struct mud_event_data * ) pEvent->event_obj;
+
+    if (pMudEvent->iId == iId) {
+      found = TRUE;
+      break;
+    }
+  }
+
+  simple_list(NULL);
+
+  if (found) {        
+    /* So we found the offending event, now build a new one, with the new time */
+    attach_mud_event(new_mud_event(iId, pMudEvent->pStruct, pMudEvent->sVariables), time);
+    event_cancel(pEvent);
+  }    
+
+}
+
+/*
+ void change_event_duration(struct char_data * ch, event_id iId, long time) {
   struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
@@ -363,10 +398,11 @@ void change_event_duration(struct char_data * ch, event_id iId, long time) {
   }
 
   if (found) {        
-    /* So we found the offending event, now build a new one, with the new time */
+    // So we found the offending event, now build a new one, with the new time
     attach_mud_event(new_mud_event(iId, pMudEvent->pStruct, pMudEvent->sVariables), time);
     event_cancel(pEvent);
   }    
   
 }
 
+*/
