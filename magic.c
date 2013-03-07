@@ -803,6 +803,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       size_dice = 8;
       bonus = num_dice + 10;
       break;
+      
+    case SPELL_CALL_LIGHTNING_STORM:
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_ELECTRIC;
+      num_dice = MIN(24, divine_level);
+      size_dice = 12;
+      bonus = num_dice + 20;
+      break;
 
     case SPELL_DESTRUCTION:
       save = SAVING_FORT;

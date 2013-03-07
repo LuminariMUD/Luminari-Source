@@ -1247,10 +1247,10 @@ void init_class(struct char_data *ch, int class, int level)
     //6th circle
     // fire seeds SET_SKILL(ch, SPELL_FIRE_SEEDS, 99);
     SET_SKILL(ch, SPELL_GREATER_DISPELLING, 99);
-    // mass bear's endurance SET_SKILL(ch, SPELL_MASS_BEARS_ENDURANCE, 99);
-    // mass bull's strength SET_SKILL(ch, SPELL_MASS_BULLS_STRENGTH, 99);
-    // mass cat's grace SET_SKILL(ch, SPELL_MASS_CATS_GRACE, 99);
-    // mass owl's wisdom SET_SKILL(ch, SPELL_MASS_OWLS_WISDOM, 99);
+    SET_SKILL(ch, SPELL_MASS_ENDURANCE, 99);
+    SET_SKILL(ch, SPELL_MASS_STRENGTH, 99);
+    SET_SKILL(ch, SPELL_MASS_GRACE, 99);
+    SET_SKILL(ch, SPELL_MASS_WISDOM, 99);
     // spellstaff SET_SKILL(ch, SPELL_SPELLSTAFF, 99);
     // summon nature's ally vi SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_6, 99);
     // transport via plants SET_SKILL(ch, SPELL_TRANSPORT_VIA_PLANTS, 99);
