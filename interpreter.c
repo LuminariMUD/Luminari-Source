@@ -89,7 +89,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "advance", "adv", POS_DEAD, do_advance, LVL_GRGOD, 0, FALSE},
   { "aedit", "aed", POS_DEAD, do_oasis_aedit, LVL_GOD, 0, FALSE},
   { "alias", "ali", POS_DEAD, do_alias, 0, 0, FALSE},
-  { "affects", "aff", POS_DEAD, do_affects, 0, 0, FALSE},
+  { "affects", "aff", POS_DEAD, do_affects, 0, 0, TRUE},
   { "afk", "afk", POS_DEAD, do_gen_tog, 0, SCMD_AFK, FALSE},
   { "areas", "are", POS_DEAD, do_areas, 0, 0, FALSE},
   { "assist", "as", POS_FIGHTING, do_assist, 1, 0, FALSE},
@@ -128,7 +128,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
   { "cast", "c", POS_SITTING, do_cast, 1, 0, FALSE},
   { "cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, FALSE},
-  { "chat", "chat", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, FALSE},
+  { "chat", "chat", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, TRUE},
   { "changelog", "cha", POS_DEAD, do_changelog, LVL_IMPL, 0, FALSE},
   { "check", "ch", POS_STANDING, do_not_here, 1, 0, FALSE},
   { "checkload", "checkl", POS_DEAD, do_checkloadstatus, LVL_GOD, 0, FALSE},
@@ -194,10 +194,10 @@ cpp_extern const struct command_info cmd_info[] = {
   { "give", "giv", POS_RESTING, do_give, 0, 0, FALSE},
   { "goto", "go", POS_SLEEPING, do_goto, LVL_IMMORT, 0, FALSE},
   { "gold", "gol", POS_RESTING, do_gold, 0, 0, FALSE},
-  { "gossip", "gos", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, FALSE},
+  { "gossip", "gos", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, TRUE},
   { "group", "gr", POS_RESTING, do_group, 1, 0, FALSE},
   { "grab", "grab", POS_RESTING, do_grab, 0, 0, FALSE},
-  { "grats", "grat", POS_SLEEPING, do_gen_comm, 0, SCMD_GRATZ, FALSE},
+  { "grats", "grat", POS_SLEEPING, do_gen_comm, 0, SCMD_GRATZ, TRUE},
   { "greport", "grepo", POS_RESTING, do_greport, 0, 0, FALSE},
   { "gsay", "gsay", POS_SLEEPING, do_gsay, 0, 0, FALSE},
   { "gtell", "gt", POS_SLEEPING, do_gsay, 0, 0, FALSE},
@@ -211,7 +211,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "hindex", "hind", POS_DEAD, do_hindex, 0, 0, FALSE},
   { "handbook", "handb", POS_DEAD, do_gen_ps, LVL_IMMORT, SCMD_HANDBOOK, FALSE},
   { "hcontrol", "hcontrol", POS_DEAD, do_hcontrol, LVL_GRGOD, 0, FALSE},
-  { "history", "history", POS_DEAD, do_history, 0, 0, FALSE},
+  { "history", "history", POS_DEAD, do_history, 0, 0, TRUE},
   { "hit", "hit", POS_FIGHTING, do_hit, 0, SCMD_HIT, FALSE},
   { "hold", "hold", POS_RESTING, do_grab, 1, 0, FALSE},
   { "holler", "holler", POS_RESTING, do_gen_comm, 1, SCMD_HOLLER, FALSE},
@@ -332,12 +332,12 @@ cpp_extern const struct command_info cmd_info[] = {
   { "rage", "rage", POS_FIGHTING, do_rage, 1, 0, FALSE},
 
   { "sacrifice", "sac", POS_RESTING, do_sac, 0, 0, FALSE},
-  { "say", "s", POS_RESTING, do_say, 0, 0, FALSE},
+  { "say", "s", POS_RESTING, do_say, 0, 0, TRUE},
   { "score", "sc", POS_DEAD, do_score, 0, 0, FALSE},
   { "scan", "sca", POS_RESTING, do_scan, 0, 0, FALSE},
   { "scopy", "scopy", POS_DEAD, do_oasis_copy, LVL_GOD, CON_SEDIT, FALSE},
   { "sit", "si", POS_RESTING, do_sit, 0, 0, FALSE},
-  { "'", "'", POS_RESTING, do_say, 0, 0, FALSE},
+  { "'", "'", POS_RESTING, do_say, 0, 0, TRUE},
   { "save", "sav", POS_SLEEPING, do_save, 0, 0, FALSE},
   { "saveall", "saveall", POS_DEAD, do_saveall, LVL_BUILDER, 0, FALSE},
   //  { "savemobs"  , "savemobs" , POS_DEAD    , do_savemobs  , LVL_IMPL, 0, FALSE},
@@ -681,8 +681,10 @@ void command_interpreter(struct char_data *ch, char *argument) {
       case POS_FIGHTING:
         send_to_char(ch, "No way!  You're fighting for your life!\r\n");
         break;
-    } else if (no_specials || !special(ch, cmd, line))
-    ((*complete_cmd_info[cmd].command_pointer) (ch, line, cmd, complete_cmd_info[cmd].subcmd));
+    } else if (no_specials || !special(ch, cmd, line)) {
+      ((*complete_cmd_info[cmd].command_pointer) (ch, line, cmd, complete_cmd_info[cmd].subcmd));
+      SET_WAIT(ch, 50);
+    }
 }
 
 /* Routines to handle aliasing. */
