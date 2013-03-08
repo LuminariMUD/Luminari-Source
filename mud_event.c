@@ -267,7 +267,7 @@ void free_mud_event(struct mud_event_data *pMudEvent)
       ch = (struct char_data *) pMudEvent->pStruct;
       remove_from_list(pMudEvent->pEvent, ch->events);
       
-      if (ch->events->iSize == 0) {
+      if (ch->events && ch->events->iSize == 0) {
         free_list(ch->events);
         ch->events = NULL;
       }
