@@ -63,8 +63,31 @@
 #define DIAMOND_MATERIAL      3195
 #define EMERALD_MATERIAL      3196
 
+#define ALDERWOOD_MATERIAL    3197
+#define FOS_BIRD_MATERIAL     3198  // fossilized bird egg
+#define FOS_WYVERN_MATERIAL   3199  // fossilized wyvern egg
+#define FOS_DRAGON_MATERIAL   3200  // fossilized dragon egg
+#define YEW_MATERIAL          3201
+#define OAK_MATERIAL          3202
+#define DARKWOOD_MATERIAL     3203
+#define LEATHER_LQ_MATERIAL   3204  // low quality
+#define LEATHER_MQ_MATERIAL   3205  // medium quality
+#define LEATHER_HQ_MATERIAL   3206  // high quality
+#define FOS_LIZARD_MATERIAL   3207  // fossilized giant lizard egg
 
 /* end item defines */
+
+/* external functions */
+
+void reset_harvesting_rooms(void);
+
+/* end external functions */
+
+/* command functions */
+ACMD(do_harvest);
+ACMD(do_disenchant);
+/* end command functions */
+
 
 #endif	/* CRAFT_H */
 

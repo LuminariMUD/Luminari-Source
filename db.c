@@ -41,6 +41,7 @@
 #include "class.h"
 #include "clan.h"
 #include "msgedit.h"
+#include "craft.h"
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -425,6 +426,8 @@ ACMD(do_reboot) {
 }
 
 void boot_world(void) {
+  int x = 0;
+  
   log("Loading zone table.");
   index_boot(DB_BOOT_ZON);
 
@@ -457,6 +460,9 @@ void boot_world(void) {
   if (!no_specials) {
     log("Loading shops.");
     index_boot(DB_BOOT_SHP);
+    log("Placing Harvesting Nodes");
+    for (x = 0; x < 10; x++)
+      reset_harvesting_rooms();
   }
 
   log("Loading quests.");

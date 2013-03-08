@@ -74,27 +74,27 @@ int weapon_damage[MAX_WEAPON_DAMAGE + 1][2] = {
   /*     13*/
   { 2, 6,},
   /*     14*/
-  { 3, 4,},
+  { 2, 6,},
   /*     15*/
   { 2, 8,},
   /*     16*/
-  { 4, 4,},
+  { 2, 8,},
   /*     17*/
-  { 4, 4,},
+  { 2, 8,},
   /*     18*/
-  { 3, 6,},
+  { 2, 10,},
   /*     19*/
   { 2, 10,},
   /*     20*/
   { 2, 10,},
   /*     21*/
-  { 5, 4,},
+  { 2, 10,},
   /*     22*/
-  { 5, 4,},
+  { 2, 12,},
   /*     23*/
-  { 4, 6,},
+  { 2, 12,},
   /*     24*/
-  { 6, 4,}
+  { 2, 12,}
 };
 
 /* the primary use of this function is to modify a weapons damage
@@ -1721,12 +1721,15 @@ ACMD(do_harvest) {
 
   material = GET_OBJ_MATERIAL(node);
 
-  if (IS_WOOD(material) || IS_LEATHER(material)) {
+  if (IS_WOOD(material)) {
     skillnum = SKILL_FORESTING;
+  } else if (IS_LEATHER(material)) {
+    skillnum = SKILL_HUNTING;
   } else if (IS_CLOTH(material)) {
     skillnum = SKILL_KNITTING;
+  } else {
+    skillnum = SKILL_MINING;
   }
-  // else skill is mining.
 
   switch (material) {
 
@@ -1787,21 +1790,21 @@ ACMD(do_harvest) {
       if (roll <= (8)) {
         roll = dice(1, 100);
         if (roll <= 48)
-          obj = read_object(64027, VIRTUAL); // copper
+          obj = read_object(COPPER_MATERIAL, VIRTUAL); // copper
         else if (roll <= 96)
-          obj = read_object(64027, VIRTUAL); // copper
+          obj = read_object(COPPER_MATERIAL, VIRTUAL); // copper
         else if (roll <= 98)
-          obj = read_object(64003, VIRTUAL); // onyx
+          obj = read_object(ONYX_MATERIAL, VIRTUAL); // onyx
         else
-          obj = read_object(64001, VIRTUAL); // obsidian
+          obj = read_object(OBSIDIAN_MATERIAL, VIRTUAL); // obsidian
       } else {
         roll = dice(1, 100);
         if (roll <= 48)
-          obj = read_object(64004, VIRTUAL); // silver
+          obj = read_object(SILVER_MATERIAL, VIRTUAL); // silver
         else if (roll <= 52)
-          obj = read_object(64003, VIRTUAL); // onyx
+          obj = read_object(ONYX_MATERIAL, VIRTUAL); // onyx
         else
-          obj = read_object(64004, VIRTUAL); // silver
+          obj = read_object(SILVER_MATERIAL, VIRTUAL); // silver
       }
       minskill = 1;
       break;
@@ -1811,24 +1814,24 @@ ACMD(do_harvest) {
       if (roll <= (8)) {
         roll = dice(1, 100);
         if (roll <= 48)
-          obj = read_object(64005, VIRTUAL); // gold
+          obj = read_object(GOLD_MATERIAL, VIRTUAL); // gold
         else if (roll <= 96)
-          obj = read_object(64005, VIRTUAL); // gold
+          obj = read_object(GOLD_MATERIAL, VIRTUAL); // gold
         else if (roll <= 98)
-          obj = read_object(64006, VIRTUAL); // ruby
+          obj = read_object(RUBY_MATERIAL, VIRTUAL); // ruby
         else
-          obj = read_object(64008, VIRTUAL); // sapphire
+          obj = read_object(SAPPHIRE_MATERIAL, VIRTUAL); // sapphire
       } else {
         roll = dice(1, 100);
         if (roll <= 4)
-          obj = read_object(64028, VIRTUAL); // platinum
+          obj = read_object(PLATINUM_MATERIAL, VIRTUAL); // platinum
         else if (roll <= 96)
-          obj = read_object(64028, VIRTUAL); // platinum
+          obj = read_object(PLATINUM_MATERIAL, VIRTUAL); // platinum
         else {
           if (dice(1, 2) % 2 == 0)
-            obj = read_object(64011, VIRTUAL); // diamond
+            obj = read_object(DIAMOND_MATERIAL, VIRTUAL); // diamond
           else
-            obj = read_object(64009, VIRTUAL); // emerald
+            obj = read_object(EMERALD_MATERIAL, VIRTUAL); // emerald
         }
       }
       minskill = 30;
@@ -1838,28 +1841,28 @@ ACMD(do_harvest) {
       roll = dice(1, 100);
       if (roll <= (80)) {
         if (dice(1, 100) <= 96)
-          obj = read_object(64015, VIRTUAL); // alderwood
+          obj = read_object(ALDERWOOD_MATERIAL, VIRTUAL); // alderwood
         else
-          obj = read_object(64037, VIRTUAL); // fossilized bird egg
+          obj = read_object(FOS_BIRD_MATERIAL, VIRTUAL); // fossilized bird egg
       } else if (roll <= (94)) {
         if (dice(1, 100) <= 96)
-          obj = read_object(64031, VIRTUAL); // yew
+          obj = read_object(YEW_MATERIAL, VIRTUAL); // yew
         else
-          obj = read_object(64038, VIRTUAL); // fossilized giant lizard egg
+          obj = read_object(FOS_LIZARD_MATERIAL, VIRTUAL); // fossilized giant lizard egg
       } else {
         if (dice(1, 100) <= 96)
-          obj = read_object(64032, VIRTUAL); // oak
+          obj = read_object(OAK_MATERIAL, VIRTUAL); // oak
         else
-          obj = read_object(64039, VIRTUAL); // fossilized wyvern egg
+          obj = read_object(FOS_WYVERN_MATERIAL, VIRTUAL); // fossilized wyvern egg
       }
       minskill = 1;
       break;
 
     case MATERIAL_DARKWOOD:
       if (dice(1, 100) <= 96)
-        obj = read_object(64016, VIRTUAL); // darkwood
+        obj = read_object(DARKWOOD_MATERIAL, VIRTUAL); // darkwood
       else
-        obj = read_object(64040, VIRTUAL); // fossilized dragon egg
+        obj = read_object(FOS_DRAGON_MATERIAL, VIRTUAL); // fossilized dragon egg
       minskill = 38;
       break;
 
@@ -1867,55 +1870,55 @@ ACMD(do_harvest) {
       roll = dice(1, 100);
       if (roll <= (82)) {
         if (dice(1, 100) <= 96) {
-          obj = read_object(64014, VIRTUAL); // low quality hide
+          obj = read_object(LEATHER_LQ_MATERIAL, VIRTUAL); // low quality hide
         } else
-          obj = read_object(64037, VIRTUAL); // fossilized bird egg
+          obj = read_object(FOS_BIRD_MATERIAL, VIRTUAL); // fossilized bird egg
       } else if (roll <= (94)) {
         if (dice(1, 10) <= 96) {
-          obj = read_object(64029, VIRTUAL); // medium quality hide
+          obj = read_object(LEATHER_MQ_MATERIAL, VIRTUAL); // medium quality hide
         } else
-          obj = read_object(64038, VIRTUAL); // fossilized giant lizard egg
+          obj = read_object(FOS_LIZARD_MATERIAL, VIRTUAL); // fossilized giant lizard egg
       } else {
         if (dice(1, 100) <= 96) {
-          obj = read_object(64030, VIRTUAL); // high quality hide
+          obj = read_object(LEATHER_HQ_MATERIAL, VIRTUAL); // high quality hide
         } else
-          obj = read_object(64039, VIRTUAL); // fossilized wyvern egg
+          obj = read_object(FOS_WYVERN_MATERIAL, VIRTUAL); // fossilized wyvern egg
       }
       minskill = 1;
       break;
 
     case MATERIAL_HEMP:
       if (dice(1, 100) <= 96)
-        obj = read_object(64020, VIRTUAL); // hemp
+        obj = read_object(HEMP_MATERIAL, VIRTUAL); // hemp
       else
-        obj = read_object(64037, VIRTUAL); // fossilized bird egg
+        obj = read_object(FOS_BIRD_MATERIAL, VIRTUAL); // fossilized bird egg
       minskill = 1;
       break;
 
     case MATERIAL_COTTON:
       if (dice(1, 100) <= 96) {
-        obj = read_object(64017, VIRTUAL); // cotton
+        obj = read_object(COTTON_MATERIAL, VIRTUAL); // cotton
       } else
-        obj = read_object(64038, VIRTUAL); // fossilized giant lizard egg
+        obj = read_object(FOS_LIZARD_MATERIAL, VIRTUAL); // fossilized giant lizard egg
       minskill = 12;
       break;
 
     case MATERIAL_VELVET:
       if (dice(1, 100) <= 96) {
-        obj = read_object(64021, VIRTUAL); // velvet
+        obj = read_object(VELVET_MATERIAL, VIRTUAL); // velvet
       } else
-        obj = read_object(64039, VIRTUAL); // fossilized wyvern egg
+        obj = read_object(FOS_WYVERN_MATERIAL, VIRTUAL); // fossilized wyvern egg
       minskill = 25;
       break;
 
     case MATERIAL_SILK:
       if (dice(1, 100) <= 96) {
         if ((dice(1, 20) % 2) == 0)
-          obj = read_object(64022, VIRTUAL); // satin
+          obj = read_object(SATIN_MATERIAL, VIRTUAL); // satin
         else
-          obj = read_object(64023, VIRTUAL); // silk
+          obj = read_object(SILK_MATERIAL, VIRTUAL); // silk
       } else
-        obj = read_object(64040, VIRTUAL); // fossilized dragon egg
+        obj = read_object(FOS_DRAGON_MATERIAL, VIRTUAL); // fossilized dragon egg
       minskill = 38;
       break;
 
@@ -1934,9 +1937,6 @@ ACMD(do_harvest) {
             spell_info[skillnum].name, minskill, GET_SKILL(ch, skillnum));
     return;
   }
-
-  if (obj == NULL)
-    obj = read_object(64012, VIRTUAL);
 
   GET_CRAFTING_TYPE(ch) = subcmd;
   GET_CRAFTING_TICKS(ch) = 1;
@@ -1958,11 +1958,11 @@ ACMD(do_harvest) {
       case SKILL_MINING:
         mining_nodes--;
         break;
-      case SKILL_FORESTING:
-        foresting_nodes--;
-        break;
       case SKILL_KNITTING:
         farming_nodes--;
+        break;
+      default:
+        foresting_nodes--;
         break;
     }
     obj_from_room(node);
@@ -1971,4 +1971,87 @@ ACMD(do_harvest) {
 
   return;
 }
+
+/* unfinished -zusuk */
+ACMD(do_disenchant)
+{
+  struct obj_data *obj = NULL;
+  struct obj_data *essence = NULL;
+  int chance = 100;
+  int level = 0;
+
+  skip_spaces(&argument);
+
+  if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
+    send_to_char(ch, "You must drop something before you can disenchant anything.\r\n");
+    return;
+  }
+
+  if (GET_CRAFTING_OBJ(ch)) {
+    send_to_char(ch, "You are already doing something.  Please wait until your current task ends.\r\n");
+    return;
+  }
+
+  if (!*argument) {
+    send_to_char(ch, "What would you like to disenchant?\r\n");
+    return;
+  }
+
+  if (!(obj = get_obj_in_list_vis(ch, argument, NULL, ch->carrying))) {
+    send_to_char(ch, "There doesn't seem to be %s in your inventory.\r\n", argument);
+    return;
+  }
+
+  if (!IS_SET_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC)) {
+    send_to_char(ch, "Only magical items can be disenchanted.\r\n");
+    return;
+  }
+
+  if (obj && GET_OBJ_LEVEL(obj) > GET_SKILL(ch, SKILL_MINING)) {
+    send_to_char(ch, "Your crafting_theory skill isn't high enough to disenchant that item.\r\n");
+    return;
+  }
+
+
+  if (GET_OBJ_TYPE(obj) == ITEM_POTION)
+    chance = 20;
+  else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL)
+    chance = 30;
+  else if (GET_OBJ_TYPE(obj) == ITEM_WAND)
+    chance = 10 + GET_OBJ_VAL(obj, 2);
+  else if (GET_OBJ_TYPE(obj) == ITEM_STAFF)
+    chance = 25 + GET_OBJ_VAL(obj, 2);
+  else if (GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR
+           && GET_OBJ_TYPE(obj) != ITEM_WORN) {
+    send_to_char(ch, "You cannot disenchant that item.\r\n");
+    return;
+  }
+
+  if (dice(1, 100) <= chance) {
+    level = GET_OBJ_LEVEL(obj);
+    if (level <= 4)
+      essence = read_object(64100, VIRTUAL); // minor
+    else if (level <= 8)
+      essence = read_object(64101, VIRTUAL); // lesser
+    else if (level <= 12)
+      essence = read_object(64102, VIRTUAL); // medium
+    else if (level <= 16)
+      essence = read_object(64103, VIRTUAL); // greater
+    else 
+      essence = read_object(64104, VIRTUAL); // major
+
+  }
+  else {
+    essence = read_object(64012, VIRTUAL); // failed attempt
+  }
+  GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
+  GET_CRAFTING_TICKS(ch) = 3;
+  GET_CRAFTING_OBJ(ch) = essence;
+
+  send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
+  act("$n begins to disenchant $p.", FALSE, ch, obj, 0, TO_ROOM);
+  obj_from_char(obj);
+  extract_obj(obj);
+}
+
 
