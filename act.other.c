@@ -35,6 +35,8 @@
 #include "race.h"
 #include "clan.h"
 #include "mud_event.h"
+#include "craft.h"
+
 /* Local defined utility functions */
 /* do_group utility functions */
 static void print_group(struct char_data *ch);

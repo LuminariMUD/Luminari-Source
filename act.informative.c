@@ -29,6 +29,7 @@
 #include "asciimap.h"
 #include "spells.h"
 #include "clan.h"
+#include "craft.h"  // auto crafting quest
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
