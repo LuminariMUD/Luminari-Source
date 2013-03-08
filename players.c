@@ -25,6 +25,7 @@
 #include "spells.h"
 #include "clan.h"
 #include "mud_event.h"
+#include "craft.h"  // crafting (auto craft quest inits)
 
 #define LOAD_HIT	0
 #define LOAD_MANA	1

@@ -37,6 +37,7 @@
 #include "screen.h"
 #include "mud_event.h"
 #include "clan.h"
+#include "craft.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);

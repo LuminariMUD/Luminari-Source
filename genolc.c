@@ -28,6 +28,7 @@
 #include "act.h"        /* for the space_to_minus function */
 #include "modify.h"      /* for smash_tilde */
 #include "quest.h"
+#include "craft.h" // get_obj_material
 
 /* Global variables defined here, used elsewhere */
 /* List of zones to be saved. */

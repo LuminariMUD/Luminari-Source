@@ -25,6 +25,7 @@
 #include "fight.h"
 #include "modify.h"
 #include "clan.h"
+#include "craft.h"
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);

@@ -19,6 +19,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "boards.h" /* for board_info */
+#include "craft.h"
 
 
 /* local functions */

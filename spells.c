@@ -24,6 +24,7 @@
 #include "mud_event.h"
 #include "house.h"  /* for house_can_enter() */
 #include "screen.h" /* for QNRM, etc */
+#include "craft.h"
 
 
 /************************************************************/

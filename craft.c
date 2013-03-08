@@ -4,7 +4,7 @@
  * From d20MUD
  * Ported and re-written by Zusuk
  * 
- * utils.h has most of the header info
+ * craft.h has most of the header info
  */
 
 /*
