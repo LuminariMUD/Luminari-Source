@@ -1698,11 +1698,12 @@ ACMD(do_harvest) {
     return;
   }
 
+/*
   if (GET_CRAFTING_OBJ(ch)) {
     send_to_char(ch, "You are already doing something.  Please wait until your current task ends.\r\n");
     return;
   }
-
+*/
   one_argument(argument, arg);
 
   if (!*arg) {
