@@ -1939,7 +1939,7 @@ ACMD(do_harvest) {
   }
 
   GET_CRAFTING_TYPE(ch) = subcmd;
-  GET_CRAFTING_TICKS(ch) = 1;
+  GET_CRAFTING_TICKS(ch) = 5;
   GET_CRAFTING_OBJ(ch) = obj;
 
   // Tell the character they made something. 
