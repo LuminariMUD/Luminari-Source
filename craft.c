@@ -1691,7 +1691,8 @@ ACMD(do_harvest) {
   int roll = 0, skillnum = SKILL_MINING, material = -1, minskill = 0;
   char arg[MAX_INPUT_LENGTH] = { '\0' };
   char buf[MEDIUM_STRING] = { '\0' };
-
+  int sub_command = SCMD_CRAFT_UNDF;
+  
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
     send_to_char(ch, "You must drop something before you can harvest anything else.\r\n");
     return;
@@ -1723,12 +1724,16 @@ ACMD(do_harvest) {
 
   if (IS_WOOD(material)) {
     skillnum = SKILL_FORESTING;
+    sub_command = SCMD_FOREST;
   } else if (IS_LEATHER(material)) {
     skillnum = SKILL_HUNTING;
+    sub_command = SCMD_HUNT;
   } else if (IS_CLOTH(material)) {
     skillnum = SKILL_KNITTING;
+    sub_command = SCMD_KNIT;
   } else {
     skillnum = SKILL_MINING;
+    sub_command = SCMD_MINE;
   }
 
   switch (material) {
@@ -1938,7 +1943,7 @@ ACMD(do_harvest) {
     return;
   }
 
-  GET_CRAFTING_TYPE(ch) = subcmd;
+  GET_CRAFTING_TYPE(ch) = sub_command;
   GET_CRAFTING_TICKS(ch) = 5;
   GET_CRAFTING_OBJ(ch) = obj;
 
