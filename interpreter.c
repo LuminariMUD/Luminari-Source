@@ -685,7 +685,8 @@ void command_interpreter(struct char_data *ch, char *argument) {
         break;
     } else if (no_specials || !special(ch, cmd, line)) {
       ((*complete_cmd_info[cmd].command_pointer) (ch, line, cmd, complete_cmd_info[cmd].subcmd));
-      SET_WAIT(ch, 50);
+      /* nashak's set_wait debugger */
+      //      SET_WAIT(ch, 50);
     }
 }
 
