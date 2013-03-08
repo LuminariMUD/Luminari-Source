@@ -41,6 +41,7 @@
 #include "mud_event.h"
 #include "race.h"
 #include "clan.h"
+#include "craft.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -217,6 +218,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "holler", "holler", POS_RESTING, do_gen_comm, 1, SCMD_HOLLER, FALSE},
   { "holylight", "holy", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_HOLYLIGHT, FALSE},
   { "house", "house", POS_RESTING, do_house, 0, 0, FALSE},
+  { "harvest", "harvest", POS_STANDING, do_harvest, 1, 0, FALSE},
 
   { "inventory", "i", POS_DEAD, do_inventory, 0, 0, FALSE},
   { "identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE},
