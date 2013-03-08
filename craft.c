@@ -357,7 +357,7 @@ char *node_desc(int material) {
 int random_node_material(int allowed) {
   int rand = 0;
 
-  if (mining_nodes >= (allowed * 2) && foresting_nodes >= allowed &&
+  if (mining_nodes >= allowed  && foresting_nodes >= allowed &&
           farming_nodes >= allowed && hunting_nodes >= allowed)
     return MATERIAL_STEEL;
 
@@ -366,7 +366,7 @@ int random_node_material(int allowed) {
   if (rand <= 34) {
 
     // mining
-    if (mining_nodes >= (allowed * 2))
+    if (mining_nodes >= allowed)
       return random_node_material(allowed);
 
     rand = dice(1, 100);
