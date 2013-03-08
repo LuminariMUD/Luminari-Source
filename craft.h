@@ -37,7 +37,7 @@
 /* item defines, by vnum */
 #define HARVESTING_NODE       811
 #define STEEL_MATERIAL        3121
-#define LEATHER_MATERIAL      3122
+#define LEATHER_MATERIAL      3122 // this matches low quality leather below
 #define BRONZE_MATERIAL       3125
 #define IRON_MATERIAL         3126
 #define BURLAP_MATERIAL       3127
@@ -70,7 +70,7 @@
 #define YEW_MATERIAL          3201
 #define OAK_MATERIAL          3202
 #define DARKWOOD_MATERIAL     3203
-#define LEATHER_LQ_MATERIAL   3204  // low quality
+#define LEATHER_LQ_MATERIAL   3122  // low quality
 #define LEATHER_MQ_MATERIAL   3205  // medium quality
 #define LEATHER_HQ_MATERIAL   3206  // high quality
 #define FOS_LIZARD_MATERIAL   3207  // fossilized giant lizard egg

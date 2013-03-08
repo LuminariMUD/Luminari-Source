@@ -1923,12 +1923,12 @@ ACMD(do_harvest) {
       break;
 
     default:
-      send_to_char(ch, "That is not a valid node type, please report this to a staff member.\r\n");
+      send_to_char(ch, "That is not a valid node type, please report this to a staff member [1].\r\n");
       return;
   }
 
   if (!obj) {
-    send_to_char(ch, "That is not a valid node type, please report this to a staff member.\r\n");
+    send_to_char(ch, "That is not a valid node type, please report this to a staff member [2].\r\n");
     return;
   }
 
@@ -1968,6 +1968,9 @@ ACMD(do_harvest) {
     obj_from_room(node);
     extract_obj(node);
   }
+  
+  obj_to_char(obj, ch);
+  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   return;
 }
