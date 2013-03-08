@@ -92,8 +92,8 @@ struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId);
 void clear_char_event_list(struct char_data * ch);
 void change_event_duration(struct char_data * ch, event_id iId, long time);
 
-#define HAS_WAIT(ch)            char_has_mud_event(ch, eWAIT);
-#define SET_WAIT(ch, wait)      attach_mud_event(new_mud_event(eWAIT, ch, NULL), wait);
+#define HAS_WAIT(ch)            char_has_mud_event(ch, eWAIT)
+#define SET_WAIT(ch, wait)      attach_mud_event(new_mud_event(eWAIT, ch, NULL), wait)
 
 /* Events */
 EVENTFUNC(event_countdown);
