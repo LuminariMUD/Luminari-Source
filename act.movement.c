@@ -24,6 +24,7 @@
 #include "fight.h"
 #include "oasis.h" /* for buildwalk */
 #include "spec_procs.h"
+#include "mud_event.h"
 
 
 /* local only functions */
@@ -899,6 +900,8 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check) {
 
   if (ch == NULL || dir < 0 || dir >= NUM_OF_DIRS || FIGHTING(ch))
     return (0);
+  else if (char_has_mud_event(ch, eFISTED))
+    send_to_char(ch, "You can't move!  You are being held in place by a large clenched fist!\r\n");
   else if (!CONFIG_DIAGONAL_DIRS && IS_DIAGONAL(dir))
     send_to_char(ch, "Alas, you cannot go that way...\r\n");
   else if ((!EXIT(ch, dir) && !buildwalk(ch, dir)) || EXIT(ch, dir)->to_room == NOWHERE)

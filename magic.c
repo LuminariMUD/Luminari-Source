@@ -389,8 +389,195 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
    */
 
   switch (spellnum) {
-
       // magical spells
+
+    case SPELL_ACID_ARROW: //conjuration
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_ACID;
+      num_dice = 4;
+      size_dice = 6;
+      bonus = 0;
+      break;
+
+    case SPELL_ACID_SPLASH:
+      save = SAVING_REFL;
+      num_dice = 2;
+      size_dice = 3;
+      element = DAM_ACID;
+      break;
+
+    case SPELL_BALL_OF_LIGHTNING: //evocation
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_ELECTRIC;
+      num_dice = MIN(22, magic_level);
+      size_dice = 10;
+      bonus = 0;
+      break;
+
+    case SPELL_BLIGHT: // evocation
+      if (!IS_PLANT(victim)) {
+        send_to_char(ch, "Your blight spell will only effect plant life.\r\n");
+        return (0);
+      }
+      save = SAVING_FORT;
+      mag_resist = TRUE;
+      element = DAM_EARTH;
+      num_dice = MIN(divine_level, 15); // maximum 15d6
+      size_dice = 6;
+      bonus = MIN(divine_level, 15);
+      break;
+      
+    case SPELL_BURNING_HANDS: //evocation
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = MIN(8, magic_level);
+      size_dice = 6;
+      bonus = 0;
+      break;
+
+    case SPELL_CHILL_TOUCH: //necromancy
+      // *note chill touch also has an effect, only save on effect
+      save = -1;
+      mag_resist = TRUE;
+      element = DAM_COLD;
+      num_dice = 1;
+      size_dice = 10;
+      bonus = 0;
+      break;
+
+    case SPELL_CLENCHED_FIST: //evocation
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_FORCE;
+      num_dice = MIN(28, magic_level);
+      size_dice = 11;
+      bonus = magic_level + 5;
+
+      // 33% chance of causing a wait-state to victim
+      if (!rand_number(0, 2))
+        attach_mud_event(new_mud_event(eFISTED, ch, NULL), 1000);
+        //WAIT_STATE(victim, PULSE_VIOLENCE);
+
+      break;
+
+    case SPELL_COLOR_SPRAY: //illusion
+      //  has effect too
+      save = SAVING_WILL;
+      mag_resist = TRUE;
+      element = DAM_ILLUSION;
+      num_dice = 1;
+      size_dice = 4;
+      bonus = 0;
+      break;
+
+    case SPELL_CONE_OF_COLD: //abjuration
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_COLD;
+      num_dice = MIN(22, magic_level);
+      size_dice = 6;
+      bonus = 0;
+      break;
+
+    case SPELL_ENERGY_SPHERE: //abjuration
+      save = SAVING_FORT;
+      mag_resist = TRUE;
+      element = DAM_ENERGY;
+      num_dice = MIN(10, magic_level);
+      size_dice = 8;
+      bonus = 0;
+      break;
+
+    case SPELL_FIREBALL: //evocation
+      // Nashak: make this dissipate obscuring mist when finished
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = MIN(15, magic_level);
+      size_dice = 10;
+      bonus = 0;
+      break;
+
+    case SPELL_FIREBRAND: //transmutation
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = MIN(22, magic_level);
+      size_dice = 6;
+      bonus = 0;
+      break;
+
+    case SPELL_FLAME_BLADE: // evocation
+      if (SECT(ch->in_room) == SECT_UNDERWATER) {
+        send_to_char(ch, "Your flame blade immediately burns out underwater.");
+        return (0);
+      }
+      save = -1;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = 1;
+      size_dice = 8;
+      bonus = MIN(magic_level / 2, 10);
+      break;
+      
+    case SPELL_FREEZING_SPHERE: //evocation
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_COLD;
+      num_dice = MIN(24, magic_level);
+      size_dice = 10;
+      bonus = magic_level / 2;
+      break;
+
+    case SPELL_GRASPING_HAND: //evocation
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_FORCE;
+      num_dice = MIN(26, magic_level);
+      size_dice = 6;
+      bonus = magic_level;
+      break;
+
+    case SPELL_GREATER_RUIN: //epic spell
+      save = SAVING_WILL;
+      mag_resist = TRUE;
+      element = DAM_PUNCTURE;
+      num_dice = magic_level + 6;
+      size_dice = 12;
+      bonus = magic_level + 35;
+      break;
+      
+
+    case SPELL_HORIZIKAULS_BOOM: //evocation
+      // *note also has an effect
+      save = SAVING_FORT;
+      mag_resist = TRUE;
+      element = DAM_SOUND;
+      num_dice = MIN(8, magic_level);
+      size_dice = 4;
+      bonus = num_dice;
+      break;
+
+    case SPELL_ICE_DAGGER: //conjurations
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_COLD;
+      num_dice = MIN(7, magic_level);
+      size_dice = 8;
+      bonus = 0;
+      break;
+
+    case SPELL_LIGHTNING_BOLT: //evocation
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_ELECTRIC;
+      num_dice = MIN(15, magic_level);
+      size_dice = 10;
+      bonus = 0;
+      break;
 
     case SPELL_MAGIC_MISSILE: //evocation
       if (affected_by_spell(victim, SPELL_SHIELD)) {
@@ -405,6 +592,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       element = DAM_FORCE;
       break;
 
+    case SPELL_MISSILE_STORM: //evocation
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_FORCE;
+      num_dice = MIN(26, magic_level);
+      size_dice = 10;
+      bonus = magic_level;
+      break;
+
     case SPELL_NEGATIVE_ENERGY_RAY: //necromancy
       save = SAVING_WILL;
       mag_resist = TRUE;
@@ -412,25 +608,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       num_dice = 2;
       size_dice = 6;
       bonus = 3;
-      break;
-
-    case SPELL_ICE_DAGGER: //conjurations
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_COLD;
-      num_dice = MIN(7, magic_level);
-      size_dice = 8;
-      bonus = 0;
-      break;
-
-    case SPELL_CHILL_TOUCH: //necromancy
-      // *note chill touch also has an effect, only save on effect
-      save = -1;
-      mag_resist = TRUE;
-      element = DAM_COLD;
-      num_dice = 1;
-      size_dice = 10;
-      bonus = 0;
       break;
 
     case SPELL_NIGHTMARE: //illusion
@@ -441,89 +618,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       num_dice = magic_level;
       size_dice = 4;
       bonus = 10;
-      break;
-
-    case SPELL_HORIZIKAULS_BOOM: //evocation
-      // *note also has an effect
-      save = SAVING_FORT;
-      mag_resist = TRUE;
-      element = DAM_SOUND;
-      num_dice = MIN(8, magic_level);
-      size_dice = 4;
-      bonus = num_dice;
-      break;
-
-    case SPELL_BURNING_HANDS: //evocation
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_FIRE;
-      num_dice = MIN(8, magic_level);
-      size_dice = 6;
-      bonus = 0;
-      break;
-
-    case SPELL_SHOCKING_GRASP: //evocation
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_ELECTRIC;
-      num_dice = MIN(10, magic_level);
-      size_dice = 8;
-      bonus = 0;
-      break;
-
-    case SPELL_SCORCHING_RAY: //evocation
-      save = -1;
-      mag_resist = TRUE;
-      element = DAM_FIRE;
-      num_dice = MIN(22, magic_level * 2);
-      size_dice = 6;
-      bonus = 0;
-      break;
-
-    case SPELL_ACID_ARROW: //conjuration
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_ACID;
-      num_dice = 4;
-      size_dice = 6;
-      bonus = 0;
-      break;
-
-    case SPELL_ENERGY_SPHERE: //abjuration
-      save = SAVING_FORT;
-      mag_resist = TRUE;
-      element = DAM_ENERGY;
-      num_dice = MIN(10, magic_level);
-      size_dice = 8;
-      bonus = 0;
-      break;
-
-    case SPELL_LIGHTNING_BOLT: //evocation
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_ELECTRIC;
-      num_dice = MIN(15, magic_level);
-      size_dice = 10;
-      bonus = 0;
-      break;
-
-    case SPELL_VAMPIRIC_TOUCH: //necromancy
-      save = SAVING_FORT;
-      mag_resist = TRUE;
-      element = DAM_UNHOLY;
-      num_dice = MIN(15, magic_level);
-      size_dice = 5;
-      bonus = 0;
-      break;
-
-    case SPELL_FIREBALL: //evocation
-      // Nashak: make this dissipate obscuring mist when finished
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_FIRE;
-      num_dice = MIN(15, magic_level);
-      size_dice = 10;
-      bonus = 0;
       break;
 
     case SPELL_POWER_WORD_KILL: //divination
@@ -538,49 +632,41 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
         bonus = 0;
       break;
 
-    case SPELL_COLOR_SPRAY: //illusion
-      //  has effect too
-      save = SAVING_WILL;
+    case SPELL_PRODUCE_FLAME: // evocation
+      if (SECT(ch->in_room) == SECT_UNDERWATER) {
+        send_to_char(ch, "You are unable to produce a flame while underwater.");
+        return (0);
+      }
+      save = -1;
       mag_resist = TRUE;
-      element = DAM_ILLUSION;
+      element = DAM_FIRE;
       num_dice = 1;
-      size_dice = 4;
+      size_dice = 6;
+      bonus = MIN(divine_level, 5);
+      break;
+
+    case SPELL_RAY_OF_FROST:
+      save = SAVING_REFL;
+      num_dice = 2;
+      size_dice = 3;
+      element = DAM_COLD;
+      break;
+
+    case SPELL_SCORCHING_RAY: //evocation
+      save = -1;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = MIN(22, magic_level * 2);
+      size_dice = 6;
       bonus = 0;
       break;
 
-    case SPELL_BALL_OF_LIGHTNING: //evocation
+    case SPELL_SHOCKING_GRASP: //evocation
       save = SAVING_REFL;
       mag_resist = TRUE;
       element = DAM_ELECTRIC;
-      num_dice = MIN(22, magic_level);
-      size_dice = 10;
-      bonus = 0;
-      break;
-
-    case SPELL_FREEZING_SPHERE: //evocation
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_COLD;
-      num_dice = MIN(24, magic_level);
-      size_dice = 10;
-      bonus = magic_level / 2;
-      break;
-
-    case SPELL_CONE_OF_COLD: //abjuration
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_COLD;
-      num_dice = MIN(22, magic_level);
-      size_dice = 6;
-      bonus = 0;
-      break;
-
-    case SPELL_FIREBRAND: //transmutation
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_FIRE;
-      num_dice = MIN(22, magic_level);
-      size_dice = 6;
+      num_dice = MIN(10, magic_level);
+      size_dice = 8;
       bonus = 0;
       break;
 
@@ -604,32 +690,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       }
       break;
 
-    case SPELL_ACID_SPLASH:
-      save = SAVING_REFL;
-      num_dice = 2;
-      size_dice = 3;
-      element = DAM_ACID;
-      break;
-
-    case SPELL_RAY_OF_FROST:
-      save = SAVING_REFL;
-      num_dice = 2;
-      size_dice = 3;
-      element = DAM_COLD;
-      break;
-
-    case SPELL_CLENCHED_FIST: //evocation
-      save = SAVING_REFL;
+    case SPELL_VAMPIRIC_TOUCH: //necromancy
+      save = SAVING_FORT;
       mag_resist = TRUE;
-      element = DAM_FORCE;
-      num_dice = MIN(28, magic_level);
-      size_dice = 11;
-      bonus = magic_level + 5;
-
-      // 33% chance of causing a wait-state to victim
-      if (!rand_number(0, 2))
-        WAIT_STATE(victim, PULSE_VIOLENCE);
-
+      element = DAM_UNHOLY;
+      num_dice = MIN(15, magic_level);
+      size_dice = 5;
+      bonus = 0;
       break;
 
     case SPELL_WEIRD: //enchantment
@@ -641,75 +708,36 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = magic_level + 10;
       break;
 
-    case SPELL_BLIGHT: // evocation
-      if (!IS_PLANT(victim)) {
-        send_to_char(ch, "Your blight spell will only effect plant life.\r\n");
-        return (0);
-      }
-      save = SAVING_FORT;
+      /*******************************************\
+      || ------------ DIVINE SPELLS ------------ ||
+      \*******************************************/
+
+    case SPELL_CALL_LIGHTNING:
+      save = SAVING_REFL;
       mag_resist = TRUE;
-      element = DAM_EARTH;
-      num_dice = MIN(divine_level, 15); // maximum 15d6
-      size_dice = 6;
-      bonus = MIN(divine_level, 15);
+      element = DAM_ELECTRIC;
+      num_dice = MIN(24, divine_level);
+      size_dice = 8;
+      bonus = num_dice + 10;
       break;
       
-    case SPELL_GRASPING_HAND: //evocation
+    case SPELL_CALL_LIGHTNING_STORM:
       save = SAVING_REFL;
       mag_resist = TRUE;
-      element = DAM_FORCE;
-      num_dice = MIN(26, magic_level);
-      size_dice = 6;
-      bonus = magic_level;
+      element = DAM_ELECTRIC;
+      num_dice = MIN(24, divine_level);
+      size_dice = 12;
+      bonus = num_dice + 20;
       break;
 
-    case SPELL_MISSILE_STORM: //evocation
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_FORCE;
-      num_dice = MIN(26, magic_level);
-      size_dice = 10;
-      bonus = magic_level;
-      break;
-
-    case SPELL_GREATER_RUIN: //epic spell
+    case SPELL_CAUSE_CRITICAL_WOUNDS:
       save = SAVING_WILL;
       mag_resist = TRUE;
-      element = DAM_PUNCTURE;
-      num_dice = magic_level + 6;
+      element = DAM_HOLY;
+      num_dice = 4;
       size_dice = 12;
-      bonus = magic_level + 35;
+      bonus = MIN(30, divine_level);
       break;
-      
-    case SPELL_FLAME_BLADE: // evocation
-      if (SECT(ch->in_room) == SECT_UNDERWATER) {
-        send_to_char(ch, "Your flame blade immediately burns out underwater.");
-        return (0);
-      }
-      save = -1;
-      mag_resist = TRUE;
-      element = DAM_FIRE;
-      num_dice = 1;
-      size_dice = 8;
-      bonus = MIN(magic_level / 2, 10);
-      break;
-      
-    case SPELL_PRODUCE_FLAME: // evocation
-      if (SECT(ch->in_room) == SECT_UNDERWATER) {
-        send_to_char(ch, "You are unable to produce a flame while underwater.");
-        return (0);
-      }
-      save = -1;
-      mag_resist = TRUE;
-      element = DAM_FIRE;
-      num_dice = 1;
-      size_dice = 6;
-      bonus = MIN(divine_level, 5);
-      break;
-
-      /***************/
-      // divine spells
-      /***************/
 
     case SPELL_CAUSE_LIGHT_WOUNDS:
       save = SAVING_WILL;
@@ -738,22 +766,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = MIN(22, divine_level);
       break;
 
-    case SPELL_CAUSE_CRITICAL_WOUNDS:
-      save = SAVING_WILL;
+    case SPELL_DESTRUCTION:
+      save = SAVING_FORT;
       mag_resist = TRUE;
-      element = DAM_HOLY;
-      num_dice = 4;
-      size_dice = 12;
-      bonus = MIN(30, divine_level);
-      break;
-
-    case SPELL_FLAME_STRIKE:
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_FIRE;
-      num_dice = MIN(20, divine_level);
+      element = DAM_NEGATIVE;
+      num_dice = MIN(26, divine_level);
       size_dice = 8;
-      bonus = 0;
+      bonus = num_dice + 20;
       break;
 
     case SPELL_DISPEL_EVIL:
@@ -786,42 +805,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = divine_level;
       break;
 
-    case SPELL_HARM:
-      save = SAVING_FORT;
-      mag_resist = TRUE;
-      element = DAM_HOLY;
-      num_dice = MIN(22, divine_level);
-      size_dice = 8;
-      bonus = num_dice;
-      break;
-
-    case SPELL_CALL_LIGHTNING:
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_ELECTRIC;
-      num_dice = MIN(24, divine_level);
-      size_dice = 8;
-      bonus = num_dice + 10;
-      break;
-      
-    case SPELL_CALL_LIGHTNING_STORM:
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_ELECTRIC;
-      num_dice = MIN(24, divine_level);
-      size_dice = 12;
-      bonus = num_dice + 20;
-      break;
-
-    case SPELL_DESTRUCTION:
-      save = SAVING_FORT;
-      mag_resist = TRUE;
-      element = DAM_NEGATIVE;
-      num_dice = MIN(26, divine_level);
-      size_dice = 8;
-      bonus = num_dice + 20;
-      break;
-
     case SPELL_ENERGY_DRAIN:
       //** Magic AND Divine
       save = SAVING_FORT;
@@ -837,106 +820,28 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = 0;
       break;
 
-      /* trying to keep the AOE together */
-      /***************/
-      // AoE spells
-      /***************/
-
-      /***************/
-      // AoE magical spells
-      /***************/
-
-
-    case SPELL_WAIL_OF_THE_BANSHEE: //necromancy
-      //  has effect too
-      save = SAVING_FORT;
-      mag_resist = TRUE;
-      element = DAM_SOUND;
-      num_dice = magic_level + 2;
-      size_dice = 5;
-      bonus = magic_level + 10;
-      break;
-
-    case SPELL_PRISMATIC_SPRAY: //illusion
-      //  has effect too
-      save = SAVING_WILL;
-      mag_resist = TRUE;
-      element = DAM_ILLUSION;
-      num_dice = MIN(26, magic_level);
-      size_dice = 4;
-      bonus = 0;
-      break;
-
-    case SPELL_SUNBEAM: // evocation [light]
+    case SPELL_FLAME_STRIKE:
       save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_LIGHT;
-      num_dice = 4;
-      size_dice = 6;
-      bonus = magic_level;
-      break;
-      
-    case SPELL_SUNBURST: //divination
-      //  has effect too
-      save = SAVING_WILL;
       mag_resist = TRUE;
       element = DAM_FIRE;
-      num_dice = MIN(26, magic_level);
-      size_dice = 5;
-      bonus = magic_level;
-      break;
-
-    case SPELL_THUNDERCLAP: // abjuration
-      //  has effect too
-      // no save
-      save = -1;
-      // no resistance
-      mag_resist = FALSE;
-      element = DAM_SOUND;
-      num_dice = 1;
-      size_dice = 10;
-      bonus = magic_level;
-      break;
-
-    case SPELL_ICE_STORM: //evocation
-      //AoE
-      save = -1;
-      mag_resist = TRUE;
-      element = DAM_COLD;
-      num_dice = MIN(15, CASTER_LEVEL(ch));
+      num_dice = MIN(20, divine_level);
       size_dice = 8;
       bonus = 0;
       break;
 
-    case SPELL_SYMBOL_OF_PAIN: //necromancy
-      //AoE
-      save = SAVING_WILL;
-      mag_resist = TRUE;
-      element = DAM_UNHOLY;
-      num_dice = MIN(17, magic_level);
-      size_dice = 6;
-      bonus = 0;
-      break;
-
-    case SPELL_CHAIN_LIGHTNING: //evocation
-      //AoE
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_ELECTRIC;
-      num_dice = MIN(28, CASTER_LEVEL(ch));
-      size_dice = 9;
-      bonus = CASTER_LEVEL(ch);
-      break;
-
-    case SPELL_HORRID_WILTING: //horrid wilting, necromancy
-      //AoE
+    case SPELL_HARM:
       save = SAVING_FORT;
       mag_resist = TRUE;
-      element = DAM_NEGATIVE;
-      num_dice = MIN(28, magic_level);
+      element = DAM_HOLY;
+      num_dice = MIN(22, divine_level);
       size_dice = 8;
-      bonus = magic_level / 2;
+      bonus = num_dice;
       break;
+
+      /* trying to keep the AOE together */
+      /****************************************\
+      || ------------ AoE SPELLS ------------ ||
+      \****************************************/
 
     case SPELL_ACID: //acid fog (conjuration)
       //AoE
@@ -958,14 +863,14 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = 2;
       break;
 
-    case SPELL_INCENDIARY: //incendiary cloud (conjuration)
+    case SPELL_CHAIN_LIGHTNING: //evocation
       //AoE
       save = SAVING_REFL;
       mag_resist = TRUE;
-      element = DAM_FIRE;
-      num_dice = magic_level;
-      size_dice = 5;
-      bonus = magic_level;
+      element = DAM_ELECTRIC;
+      num_dice = MIN(28, CASTER_LEVEL(ch));
+      size_dice = 9;
+      bonus = CASTER_LEVEL(ch);
       break;
 
     case SPELL_DEATHCLOUD: //cloudkill (conjuration)
@@ -987,25 +892,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = 0;
       break;
       
-    case SPELL_SUMMON_SWARM: // conjuration
-      mag_resist = FALSE;
-      save = -1;
-      element = DAM_NEGATIVE;
-      num_dice = 1;
-      size_dice = 6;
-      bonus = MAX(divine_level, 5);
-      break;
-
-    case SPELL_METEOR_SWARM:
-      //AoE
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_FIRE;
-      num_dice = magic_level + 4;
-      size_dice = 12;
-      bonus = magic_level + 8;
-      break;
-
     case SPELL_HELLBALL:
       //AoE
       save = SAVING_FORT;
@@ -1016,9 +902,127 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = magic_level + 50;
       break;
 
-      /***************/
-      // divine AoE spells
-      /***************/
+    case SPELL_HORRID_WILTING: //horrid wilting, necromancy
+      //AoE
+      save = SAVING_FORT;
+      mag_resist = TRUE;
+      element = DAM_NEGATIVE;
+      num_dice = MIN(28, magic_level);
+      size_dice = 8;
+      bonus = magic_level / 2;
+      break;
+
+    case SPELL_ICE_STORM: //evocation
+      //AoE
+      save = -1;
+      mag_resist = TRUE;
+      element = DAM_COLD;
+      num_dice = MIN(15, CASTER_LEVEL(ch));
+      size_dice = 8;
+      bonus = 0;
+      break;
+
+    case SPELL_INCENDIARY: //incendiary cloud (conjuration)
+      //AoE
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = magic_level;
+      size_dice = 5;
+      bonus = magic_level;
+      break;
+
+    case SPELL_INSECT_PLAGUE: // conjuration
+      mag_resist = FALSE;
+      save = -1;
+      element = DAM_NEGATIVE;
+      num_dice = MIN(divine_level / 3, 6);
+      size_dice = 6;
+      bonus = divine_level;
+      
+    case SPELL_METEOR_SWARM:
+      //AoE
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = magic_level + 4;
+      size_dice = 12;
+      bonus = magic_level + 8;
+      break;
+
+    case SPELL_PRISMATIC_SPRAY: //illusion
+      //  has effect too
+      save = SAVING_WILL;
+      mag_resist = TRUE;
+      element = DAM_ILLUSION;
+      num_dice = MIN(26, magic_level);
+      size_dice = 4;
+      bonus = 0;
+      break;
+
+    case SPELL_SUMMON_SWARM: // conjuration
+      mag_resist = FALSE;
+      save = -1;
+      element = DAM_NEGATIVE;
+      num_dice = 1;
+      size_dice = 6;
+      bonus = MAX(divine_level, 5);
+      break;
+
+    case SPELL_SUNBEAM: // evocation [light]
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_LIGHT;
+      num_dice = 4;
+      size_dice = 6;
+      bonus = magic_level;
+      break;
+      
+    case SPELL_SUNBURST: //divination
+      //  has effect too
+      save = SAVING_WILL;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = MIN(26, magic_level);
+      size_dice = 5;
+      bonus = magic_level;
+      break;
+
+    case SPELL_SYMBOL_OF_PAIN: //necromancy
+      //AoE
+      save = SAVING_WILL;
+      mag_resist = TRUE;
+      element = DAM_UNHOLY;
+      num_dice = MIN(17, magic_level);
+      size_dice = 6;
+      bonus = 0;
+      break;
+
+    case SPELL_THUNDERCLAP: // abjuration
+      //  has effect too
+      // no save
+      save = -1;
+      // no resistance
+      mag_resist = FALSE;
+      element = DAM_SOUND;
+      num_dice = 1;
+      size_dice = 10;
+      bonus = magic_level;
+      break;
+
+    case SPELL_WAIL_OF_THE_BANSHEE: //necromancy
+      //  has effect too
+      save = SAVING_FORT;
+      mag_resist = TRUE;
+      element = DAM_SOUND;
+      num_dice = magic_level + 2;
+      size_dice = 5;
+      bonus = magic_level + 10;
+      break;
+
+      /***********************************************\
+      || ------------ DIVINE AoE SPELLS ------------ ||
+      \***********************************************/
 
     case SPELL_EARTHQUAKE:
       //AoE

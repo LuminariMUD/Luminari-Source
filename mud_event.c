@@ -56,7 +56,9 @@ struct mud_event_list mud_event_index[] = {
   { "SoV Ice Storm"      , event_ice_storm,  EVENT_CHAR  }, // eICE_STORM
   { "SoV Chain Lightning", event_chain_lightning,  EVENT_CHAR  }, // eCHAIN_LIGHTNING
   { "Darkness"           , event_countdown,  EVENT_ROOM  },   /* eDARKNESS */
-  { "Magic Food"         , event_countdown, EVENT_CHAR  }       /* eMAGIC_FOOD */
+  { "Magic Food"        ,       event_countdown,        EVENT_CHAR },   /* eMAGIC_FOOD */
+  { "Fisted"            ,       event_countdown,        EVENT_CHAR },   /* eFISTED */
+  { "Wait"              ,       event_countdown,        EVENT_CHAR }    /* eWAIT */
 };
 
 
@@ -71,8 +73,8 @@ void init_events(void)
 
 
  /* The bottom switch() is for any post-event actions, like telling the character they can
- * now access their skill again.
- */
+  * now access their skill again.
+  */
 EVENTFUNC(event_countdown)
 {
   struct mud_event_data * pMudEvent = NULL;
@@ -125,6 +127,9 @@ EVENTFUNC(event_countdown)
       break;
     case eEPICWARDING:
       send_to_char(ch, "You are now able to cast Epic Warding again.\r\n");
+      break;
+    case eFISTED:
+      send_to_char(ch, "The magic fist holding you in place dissolves into nothingness.\r\n");
       break;
     case eGREATERRUIN:
       send_to_char(ch, "You are now able to cast Greater Ruin again.\r\n");
@@ -339,7 +344,7 @@ void clear_char_event_list(struct char_data * ch)
 void change_event_duration(struct char_data * ch, event_id iId, long time) {
 
   struct event * pEvent;
-  struct mud_event_data * pMudEvent;
+  struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
   if (ch->events->iSize == 0)

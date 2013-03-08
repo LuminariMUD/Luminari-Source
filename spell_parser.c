@@ -1940,6 +1940,9 @@ void mag_assign_spells(void) {
   /* conjuration */
   spello(SPELL_CLOUDKILL, "cloudkill", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 9, CONJURATION);
+  spello(SPELL_INSECT_PLAGUE, "insect plague", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS,
+          NULL, 9, 9, CONJURATION);
   spello(SPELL_SUMMON_CREATURE_5, "summon creature v", 95, 80, 1,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 9, CONJURATION);
   /* necromancy */
