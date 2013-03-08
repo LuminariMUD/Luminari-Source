@@ -57,7 +57,9 @@ typedef enum {
     eICE_STORM,          //  storm of vengeance - ice storm
     eCHAIN_LIGHTNING,    //  storm of vengeance - chain lightning
     eDARKNESS,           //  darkness room event
-            eMAGIC_FOOD, // goodberry cooldown
+            eMAGIC_FOOD, // magic food/drink cooldown
+            eFISTED,    // being fisted
+            eWAIT,      // replace WAIT_STATE with wait event
 } event_id;
 /* probaly a smart place to mention to not forget to update:
    act.informative.c (if you want do_affects to show status)
@@ -89,6 +91,9 @@ void free_mud_event(struct mud_event_data *pMudEvent);
 struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId);
 void clear_char_event_list(struct char_data * ch);
 void change_event_duration(struct char_data * ch, event_id iId, long time);
+
+#define HAS_WAIT(ch)            char_has_mud_event(ch, eWAIT);
+#define SET_WAIT(ch, wait)      attach_mud_event(new_mud_event(eWAIT, ch, NULL), wait);
 
 /* Events */
 EVENTFUNC(event_countdown);
