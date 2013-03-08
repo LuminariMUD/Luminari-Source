@@ -361,8 +361,9 @@ int random_node_material(int allowed) {
           farming_nodes >= allowed && hunting_nodes >= allowed)
     return MATERIAL_STEEL;
 
+  rand = dice(1, 100);
   /* 34% mining, blacksmithing or goldsmithing */
-  if (dice(1, 100) <= 34) {
+  if (rand <= 34) {
 
     // mining
     if (mining_nodes >= (allowed * 2))
@@ -403,8 +404,6 @@ int random_node_material(int allowed) {
 
     if (farming_nodes >= allowed)
       return random_node_material(allowed);
-
-    rand = dice(1, 100);
 
     if (rand <= 30)
       return MATERIAL_HEMP;
@@ -1621,6 +1620,13 @@ EVENTFUNC(event_crafting) {
         sprintf(buf, "You find $p from your hunting.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n finds $p from $s hunting.");
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+        break;
+      case SCMD_KNIT:
+        skill = SKILL_KNITTING;
+        sprintf(buf, "You knit $p.  Success!!!");
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+        sprintf(buf, "$n knits $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_FOREST:
