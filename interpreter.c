@@ -1370,7 +1370,8 @@ int enter_player_game(struct descriptor_data *d) {
   /* Check for a login trigger in the players' start room */
   login_wtrigger(&world[IN_ROOM(d->character)], d->character);
 
-  MXPSendTag(d, "<VERSION>");
+  // this is already called in perform_dupe_check() before we get here, shouldn't be needed here -Nashak
+  //MXPSendTag(d, "<VERSION>"); 
 
   return load_result;
 }
