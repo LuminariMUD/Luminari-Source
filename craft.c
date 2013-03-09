@@ -403,7 +403,7 @@ int random_node_material(int allowed) {
         return MATERIAL_GOLD;
     }
 
-    /* 33% farming (hemp/cotton/velvet/silk) */
+    /* 33% farming (hemp/cotton/wool/velvet/satin/silk) */
   } else if (rand <= 67) {
 
     rand = rand_number(1, 100);
