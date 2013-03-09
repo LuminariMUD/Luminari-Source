@@ -1259,74 +1259,76 @@ ACMD(do_pour)
   weight_change_object(to_obj, amount); /* Add weight */
 }
 
-static void wear_message(struct char_data *ch, struct obj_data *obj, int where)
-{
+static void wear_message(struct char_data *ch, struct obj_data *obj, int where) {
   const char *wear_messages[][2] = {
     {"$n lights $p and holds it.",
-    "You light $p and hold it."},
+      "You light $p and hold it."},
 
     {"$n slides $p on to $s right ring finger.",
-    "You slide $p on to your right ring finger."},
+      "You slide $p on to your right ring finger."},
 
     {"$n slides $p on to $s left ring finger.",
-    "You slide $p on to your left ring finger."},
+      "You slide $p on to your left ring finger."},
 
     {"$n wears $p around $s neck.",
-    "You wear $p around your neck."},
+      "You wear $p around your neck."},
 
     {"$n wears $p around $s neck.",
-    "You wear $p around your neck."},
+      "You wear $p around your neck."},
 
     {"$n wears $p on $s body.",
-    "You wear $p on your body."},
+      "You wear $p on your body."},
 
     {"$n wears $p on $s head.",
-    "You wear $p on your head."},
+      "You wear $p on your head."},
 
     {"$n puts $p on $s legs.",
-    "You put $p on your legs."},
+      "You put $p on your legs."},
 
     {"$n wears $p on $s feet.",
-    "You wear $p on your feet."},
+      "You wear $p on your feet."},
 
     {"$n puts $p on $s hands.",
-    "You put $p on your hands."},
+      "You put $p on your hands."},
 
     {"$n wears $p on $s arms.",
-    "You wear $p on your arms."},
+      "You wear $p on your arms."},
 
     {"$n straps $p around $s arm as a shield.",
-    "You start to use $p as a shield."},
+      "You start to use $p as a shield."},
 
     {"$n wears $p about $s body.",
-    "You wear $p around your body."},
+      "You wear $p around your body."},
 
     {"$n wears $p around $s waist.",
-    "You wear $p around your waist."},
+      "You wear $p around your waist."},
 
     {"$n puts $p on around $s right wrist.",
-    "You put $p on around your right wrist."},
+      "You put $p on around your right wrist."},
 
     {"$n puts $p on around $s left wrist.",
-    "You put $p on around your left wrist."},
+      "You put $p on around your left wrist."},
 
     {"$n wields $p.",
-    "You wield $p."},
+      "You wield $p."},
 
     {"$n grabs $p.",
-    "You grab $p."},
+      "You grab $p."},
 
     {"$n wields $p.",
-    "You wield $p."},
+      "You wield $p."},
 
     {"$n grabs $p.",
-    "You grab $p."},
+      "You grab $p."},
 
     {"$n wields $p with two hands.",
-    "You wield $p with two hands."},
+      "You wield $p with two hands."},
 
     {"$n holds $p with two hands.",
-    "You hold $p with two hands."}
+      "You hold $p with two hands."},
+
+    {"$n places $p on $s face.",
+      "You place $p on your face."},
   };
 
   act(wear_messages[where][0], TRUE, ch, obj, 0, TO_ROOM);
