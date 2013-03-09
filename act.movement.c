@@ -1357,12 +1357,12 @@ ACMD(do_enter) {
 
         case PORTAL_RANDOM:
           if (real_room(portal->obj_flags.value[1]) == NOWHERE) {
-            send_to_char(ch, "The portal leads nowhere\n\r");
+            send_to_char(ch, "The portal leads nowhere.\r\n");
             return;
           }
 
           if (real_room(portal->obj_flags.value[2]) == NOWHERE) {
-            send_to_char(ch, "The portal leads nowhere\n\r");
+            send_to_char(ch, "The portal leads nowhere.\r\n");
             return;
           }
 
@@ -1385,7 +1385,7 @@ ACMD(do_enter) {
 
         default:
           mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Invalid portal type (%d) in room %d", portal->obj_flags.value[0], world[IN_ROOM(ch)].number);
-          send_to_char(ch, "This portal is broken, please tell an Imm.\n\r");
+          send_to_char(ch, "This portal is broken, please tell an Imm.\r\n");
           return;
           break;
       }
@@ -1400,7 +1400,7 @@ ACMD(do_enter) {
       /* ok NOW we are good to go */
 
       act("$n enters $p, and vanishes!", FALSE, ch, portal, 0, TO_ROOM);
-      act("You enter $p, and you are transported elsewhere", FALSE, ch, portal, 0, TO_CHAR);
+      act("You enter $p, and you are transported elsewhere.", FALSE, ch, portal, 0, TO_CHAR);
       char_from_room(ch);
       char_to_room(ch, real_room(portal_dest));
       look_at_room(ch, 0);
