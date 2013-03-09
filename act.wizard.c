@@ -3801,7 +3801,7 @@ struct zcheck_affs {
 /*room limits*/
 /* Off limit zones are any zones a player should NOT be able to walk to (ex. Limbo) */
 const int offlimit_zones[] = {0, 12, 13, 14, -1}; /*what zones can no room connect to (virtual num) */
-#define MIN_ROOM_DESC_LENGTH   80       /* at least one line - set to 0 to not care. */
+#define MIN_ROOM_DESC_LENGTH   300       /* at least one line - set to 0 to not care. */
 #define MAX_COLOUMN_WIDTH      80       /* at most 80 chars per line */
 
 ACMD(do_zcheck) {
@@ -3852,9 +3852,9 @@ ACMD(do_zcheck) {
         if (!strncmp(mob->player.description, "It looks unfinished.", 20) && (found = 1))
           len += snprintf(buf + len, sizeof (buf) - len,
                 "- Description hasn't been set.\r\n");
-        else if (strncmp(mob->player.description, "   ", 3) && (found = 1))
+        /*else if (strncmp(mob->player.description, "   ", 3) && (found = 1))
           len += snprintf(buf + len, sizeof (buf) - len,
-                "- Description hasn't been formatted. (/fi)\r\n");
+                "- Description hasn't been formatted. (/fi)\r\n");*/
       }
 
       if (GET_LEVEL(mob) > MAX_LEVEL_ALLOWED && (found = 1))
@@ -4120,13 +4120,13 @@ ACMD(do_zcheck) {
               "- Room description not wrapped at %d chars (/fi in the editor).\r\n",
               MAX_COLOUMN_WIDTH);
 
-      for (ext2 = NULL, ext = world[i].ex_description; ext; ext = ext->next)
+      /*for (ext2 = NULL, ext = world[i].ex_description; ext; ext = ext->next)
         if (strncmp(ext->description, "   ", 3))
           ext2 = ext;
 
       if (ext2 && (found = 1))
         len += snprintf(buf + len, sizeof (buf) - len,
-              "- has unformatted extra description\r\n");
+              "- has unformatted extra description\r\n");*/
 
       if (found) {
         send_to_char(ch, "[%5d] %-30s: \r\n",
