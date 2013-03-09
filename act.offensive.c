@@ -450,7 +450,8 @@ ACMD(do_flee)
       return;
     }
   }
-  WAIT_STATE(ch, PULSE_VIOLENCE * 1);
+  SET_WAIT(ch, 100);
+  //WAIT_STATE(ch, PULSE_VIOLENCE * 1);
 }
 
 

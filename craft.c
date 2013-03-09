@@ -399,7 +399,7 @@ int random_node_material(int allowed) {
     /* 33% farming (hemp/cotton/velvet/silk) */
   } else if (rand <= 67) {
 
-    rand = dice(1, 100);
+    rand = rand_number(1, 100); //dice(1, 100);
     // farming
 
     if (farming_nodes >= allowed)
