@@ -245,8 +245,6 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
 char *node_keywords(int material) {
 
   switch (material) {
-    case MATERIAL_IRON:
-      return strdup("vein iron ore");
     case MATERIAL_STEEL:
       return strdup("vein steel ore");
     case MATERIAL_COLD_IRON:
@@ -282,8 +280,6 @@ char *node_keywords(int material) {
 /* this function returns an appropriate short-desc based on material */
 char *node_sdesc(int material) {
   switch (material) {
-    case MATERIAL_IRON:
-      return strdup("a vein of iron ore");
     case MATERIAL_STEEL:
       return strdup("a vein of steel ore");
     case MATERIAL_COLD_IRON:
@@ -319,8 +315,6 @@ char *node_sdesc(int material) {
 /* this function returns an appropriate desc based on material */
 char *node_desc(int material) {
   switch (material) {
-    case MATERIAL_IRON:
-      return strdup("A vein of iron ore is here.");
     case MATERIAL_STEEL:
       return strdup("A vein of steel ore is here.");
     case MATERIAL_COLD_IRON:
@@ -353,11 +347,6 @@ char *node_desc(int material) {
   return strdup("A harvesting node is here.  Please inform an imm, this is an error.");
 }
 
-
-/*************************/
-/* start primary engines */
-/*************************/
-
 /* a function to try and make an intelligent(?) decision
    about what material a harvesting node should be */
 int random_node_material(int allowed) {
@@ -365,7 +354,7 @@ int random_node_material(int allowed) {
 
   if (mining_nodes >= (allowed * 2)  && foresting_nodes >= allowed &&
           farming_nodes >= allowed && hunting_nodes >= allowed)
-    return MATERIAL_IRON;
+    return MATERIAL_STEEL;
 
   rand = dice(1, 100);
   /* 34% mining, blacksmithing or goldsmithing */
@@ -382,9 +371,7 @@ int random_node_material(int allowed) {
       rand = dice(1, 1000);
       // blacksmithing
 
-      if (rand <= 600)
-        return MATERIAL_IRON;
-      else if (rand <= 900)
+      if (rand <= 900)
         return MATERIAL_STEEL;
       else if (rand <= 980)
         return MATERIAL_COLD_IRON;
@@ -449,11 +436,21 @@ int random_node_material(int allowed) {
   }
 
   /* default steel */
-  return MATERIAL_IRON;
+  return MATERIAL_STEEL;
 }
 
+
+
+
+/*************************/
+/* start primary engines */
+/*************************/
+
+
 void reset_harvesting_rooms(void) {
-  return;
+
+  /* debugging */
+//  return;
 
   int i = 0;
 
@@ -489,7 +486,6 @@ void reset_harvesting_rooms(void) {
         continue;
       GET_OBJ_MATERIAL(obj) = random_node_material(nodes_allowed);
       switch (GET_OBJ_MATERIAL(obj)) {
-        case MATERIAL_IRON:
         case MATERIAL_STEEL:
         case MATERIAL_COLD_IRON:
         case MATERIAL_MITHRIL:
