@@ -1425,7 +1425,8 @@ static void perform_wear(struct char_data *ch,
     "Your hands are full.\r\n",							//18
     "Your hands are full.\r\n",							//19
     "Your hands are full.\r\n",							//20
-    "Your hands are full.\r\n"							//21
+    "Your hands are full.\r\n",							//21
+    "You are already wearing something on your face.\r\n"
   };
 
   /* first, make sure that the wear position is valid. */
@@ -1529,6 +1530,9 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
     "!RESERVED!",
     "!RESERVED!",
     "!RESERVED!",
+    "!RESERVED!",
+    "!RESERVED!",
+    "face",
     "\n"
   };
 
@@ -1545,6 +1549,7 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
     if (CAN_WEAR(obj, ITEM_WEAR_ABOUT))       where = WEAR_ABOUT;
     if (CAN_WEAR(obj, ITEM_WEAR_WAIST))       where = WEAR_WAIST;
     if (CAN_WEAR(obj, ITEM_WEAR_WRIST))       where = WEAR_WRIST_R;
+    if (CAN_WEAR(obj, ITEM_WEAR_FACE))          where = WEAR_FACE;
   } else if ((where = search_block(arg, keywords, FALSE)) < 0)
     send_to_char(ch, "'%s'?  What part of your body is THAT?\r\n", arg);
 
