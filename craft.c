@@ -245,8 +245,10 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
 char *node_keywords(int material) {
 
   switch (material) {
-    case MATERIAL_STEEL:
+    case MATERIAL_IRON:
       return strdup("vein iron ore");
+    case MATERIAL_STEEL:
+      return strdup("vein steel ore");
     case MATERIAL_COLD_IRON:
       return strdup("vein cold iron ore");
     case MATERIAL_MITHRIL:
@@ -280,8 +282,10 @@ char *node_keywords(int material) {
 /* this function returns an appropriate short-desc based on material */
 char *node_sdesc(int material) {
   switch (material) {
-    case MATERIAL_STEEL:
+    case MATERIAL_IRON:
       return strdup("a vein of iron ore");
+    case MATERIAL_STEEL:
+      return strdup("a vein of steel ore");
     case MATERIAL_COLD_IRON:
       return strdup("a vein of cold iron ore");
     case MATERIAL_MITHRIL:
@@ -315,8 +319,10 @@ char *node_sdesc(int material) {
 /* this function returns an appropriate desc based on material */
 char *node_desc(int material) {
   switch (material) {
-    case MATERIAL_STEEL:
+    case MATERIAL_IRON:
       return strdup("A vein of iron ore is here.");
+    case MATERIAL_STEEL:
+      return strdup("A vein of steel ore is here.");
     case MATERIAL_COLD_IRON:
       return strdup("A vein of cold iron ore is here.");
     case MATERIAL_MITHRIL:
@@ -348,9 +354,9 @@ char *node_desc(int material) {
 }
 
 
-/************************/
-/* start primary engine */
-/************************/
+/*************************/
+/* start primary engines */
+/*************************/
 
 /* a function to try and make an intelligent(?) decision
    about what material a harvesting node should be */
@@ -359,7 +365,7 @@ int random_node_material(int allowed) {
 
   if (mining_nodes >= (allowed * 2)  && foresting_nodes >= allowed &&
           farming_nodes >= allowed && hunting_nodes >= allowed)
-    return MATERIAL_STEEL;
+    return MATERIAL_IRON;
 
   rand = dice(1, 100);
   /* 34% mining, blacksmithing or goldsmithing */
@@ -370,13 +376,15 @@ int random_node_material(int allowed) {
       return random_node_material(allowed);
 
     rand = dice(1, 100);
-    /* 80% chance of blacksmithing (steel/cold-iron/mithril/adamantine */
+    /* 80% chance of blacksmithing (iron/steel/cold-iron/mithril/adamantine */
     if (rand <= 80) {
 
       rand = dice(1, 1000);
       // blacksmithing
 
-      if (rand <= 900)
+      if (rand <= 600)
+        return MATERIAL_IRON;
+      else if (rand <= 900)
         return MATERIAL_STEEL;
       else if (rand <= 980)
         return MATERIAL_COLD_IRON;
@@ -441,7 +449,7 @@ int random_node_material(int allowed) {
   }
 
   /* default steel */
-  return MATERIAL_STEEL;
+  return MATERIAL_IRON;
 }
 
 void reset_harvesting_rooms(void) {
@@ -480,24 +488,27 @@ void reset_harvesting_rooms(void) {
         continue;
       GET_OBJ_MATERIAL(obj) = random_node_material(nodes_allowed);
       switch (GET_OBJ_MATERIAL(obj)) {
+        case MATERIAL_IRON:
         case MATERIAL_STEEL:
         case MATERIAL_COLD_IRON:
         case MATERIAL_MITHRIL:
         case MATERIAL_ADAMANTINE:
         case MATERIAL_SILVER:
         case MATERIAL_GOLD:
-          if (mining_nodes >= nodes_allowed)
+          if (mining_nodes >= nodes_allowed) {
+            free_obj(obj);
             continue;
-          else
+          } else
             mining_nodes++;
           break;
         case MATERIAL_WOOD:
         case MATERIAL_DARKWOOD:
         case MATERIAL_LEATHER:
         case MATERIAL_DRAGONHIDE:
-          if (foresting_nodes >= nodes_allowed)
+          if (foresting_nodes >= nodes_allowed) {
+            free_obj(obj);
             continue;
-          else
+          } else
             foresting_nodes++;
         case MATERIAL_HEMP:
         case MATERIAL_COTTON:
@@ -505,12 +516,14 @@ void reset_harvesting_rooms(void) {
         case MATERIAL_VELVET:
         case MATERIAL_SATIN:
         case MATERIAL_SILK:
-          if (farming_nodes >= nodes_allowed)
+          if (farming_nodes >= nodes_allowed) {
+            free_obj(obj);
             continue;
-          else
+          } else
             farming_nodes++;
           break;
         default:
+          free_obj(obj);
           continue;
           break;
       }
@@ -524,6 +537,7 @@ void reset_harvesting_rooms(void) {
     }
   }
 }
+
 
 // combine crystals to make them stronger
 
