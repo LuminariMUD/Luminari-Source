@@ -3801,8 +3801,8 @@ struct zcheck_affs {
 /*room limits*/
 /* Off limit zones are any zones a player should NOT be able to walk to (ex. Limbo) */
 const int offlimit_zones[] = {0, 12, 13, 14, -1}; /*what zones can no room connect to (virtual num) */
-#define MIN_ROOM_DESC_LENGTH   300       /* at least one line - set to 0 to not care. */
-#define MAX_COLOUMN_WIDTH      80       /* at most 80 chars per line */
+#define MIN_ROOM_DESC_LENGTH   250       /* at least one line - set to 0 to not care. */
+#define MAX_COLUMN_WIDTH      80       /* at most 80 chars per line */
 
 ACMD(do_zcheck) {
   zone_rnum zrnum;
@@ -4115,10 +4115,10 @@ ACMD(do_zcheck) {
               "- Room description not formatted with indent (/fi in the editor).\r\n");
 
       /* strcspan = size of text in first arg before any character in second arg */
-      if ((strcspn(world[i].description, "\r\n") > MAX_COLOUMN_WIDTH) && (found = 1))
+      if ((strcspn(world[i].description, "\r\n") > MAX_COLUMN_WIDTH) && (found = 1))
         len += snprintf(buf + len, sizeof (buf) - len,
               "- Room description not wrapped at %d chars (/fi in the editor).\r\n",
-              MAX_COLOUMN_WIDTH);
+              MAX_COLUMN_WIDTH);
 
       /*for (ext2 = NULL, ext = world[i].ex_description; ext; ext = ext->next)
         if (strncmp(ext->description, "   ", 3))
