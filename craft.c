@@ -453,6 +453,7 @@ int random_node_material(int allowed) {
 }
 
 void reset_harvesting_rooms(void) {
+  return;
 
   int i = 0;
 
