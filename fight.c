@@ -1815,7 +1815,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 
 int isCriticalHit(struct char_data *ch, int diceroll) {
   if ((!IS_NPC(ch) && GET_SKILL(ch, SKILL_EPIC_CRIT) && diceroll >= 18) ||
-          (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_CRITICAL) && diceroll >= 19)
+      (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_CRITICAL) && diceroll >= 19)
           || diceroll == 20)
     return 1;
   return 0;
@@ -1831,8 +1831,7 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
 
   if (mode == 0) {
     //critical hit!  improved crit increases crit chance by 5%, epic 10%
-    if (isCriticalHit(ch, diceroll)) {
-
+    if (isCriticalHit(ch, diceroll) && !(IS_NPC(victim) && GET_RACE(victim) == NPCRACE_UNDEAD)) {
       /* overwhelming crit is going to be yellow to inflicter
        * and dark red to the victim */
       send_to_char(ch, "\tW");

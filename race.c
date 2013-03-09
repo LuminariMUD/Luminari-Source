@@ -244,7 +244,7 @@ const char *morph_to_char[] = {
   /* Monstrous Humanoid */
 " ",
   /* Ooze */
-"Your bones dissolve and your flesh becomes translucent as you changes form "
+"Your bones dissolve and your flesh becomes translucent as you change form "
 "into an \tGooze\tn!",
   /* Outsider */
 " ",
