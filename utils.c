@@ -123,18 +123,114 @@ bool can_see_hidden(struct char_data *ch, const struct char_data *vict)
    that is passive, such as dodge increasing per use:
    !rand_number(0, this)*/
 #define PASS 2000
+/* this define is for crafting skills, they increase much easier */
+#define C_SKILL 30
 void increase_skill(struct char_data *ch, int skillnum)
 {
   int notched = FALSE;
   
   //if the skill isn't learned or is mastered, don't adjust
-  if (GET_SKILL(ch, skillnum) < 75 || GET_SKILL(ch, skillnum >= 99))
+  if (GET_SKILL(ch, skillnum) <= 0 || GET_SKILL(ch, skillnum >= 99))
     return;
 
+  int c_skill = rand_number(0, C_SKILL);
   int use = rand_number(0, USE);
   int pass = rand_number(0, PASS);
 
   switch(skillnum) {
+    /* crafting skills */
+    case SKILL_MINING:
+      if (!c_skill) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_HUNTING:
+      if (!c_skill) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_FORESTING:
+      if (!c_skill) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_KNITTING:
+      if (!c_skill) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_CHEMISTRY:
+      if (!c_skill) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_ARMOR_SMITHING:
+      if (!c_skill) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_WEAPON_SMITHING:
+      if (!c_skill) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_JEWELRY_MAKING:
+      if (!c_skill) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_LEATHER_WORKING:
+      if (!c_skill) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_FAST_CRAFTER:
+      if (!c_skill) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;    
+    case SKILL_BONE_ARMOR:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_ELVEN_CRAFTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_MASTERWORK_CRAFTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DRACONIC_CRAFTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DWARVEN_CRAFTING:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+      
+    /* end crafting */
     case SKILL_PERFORM:
       if (!pass) {
         notched = TRUE;
@@ -659,96 +755,6 @@ void increase_skill(struct char_data *ch, int skillnum)
       break;
     case SKILL_STUNNING_FIST:
       if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_MINING:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_HUNTING:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_FORESTING:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_KNITTING:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_CHEMISTRY:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_ARMOR_SMITHING:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_WEAPON_SMITHING:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_JEWELRY_MAKING:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_LEATHER_WORKING:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_FAST_CRAFTER:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_BONE_ARMOR:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_ELVEN_CRAFTING:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_MASTERWORK_CRAFTING:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DRACONIC_CRAFTING:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DWARVEN_CRAFTING:
-      if (!pass) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
