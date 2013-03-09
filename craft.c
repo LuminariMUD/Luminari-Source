@@ -269,8 +269,12 @@ char *node_keywords(int material) {
       return strdup("hemp plants");
     case MATERIAL_COTTON:
       return strdup("cotton plants");
+    case MATERIAL_WOOL:
+      return strdup("cache of wool");
     case MATERIAL_VELVET:
       return strdup("cache of cloth");
+    case MATERIAL_SATIN:
+      return strdup("cache of satin");
     case MATERIAL_SILK:
       return strdup("silkworms");
   }
@@ -304,8 +308,12 @@ char *node_sdesc(int material) {
       return strdup("a patch of hemp plants");
     case MATERIAL_COTTON:
       return strdup("a patch of cotton plants");
+    case MATERIAL_WOOL:
+      return strdup("an abandoned cache of cloth");
     case MATERIAL_VELVET:
-      return strdup("an abandoned cache of cloths");
+      return strdup("an abandoned cache of cloth");
+    case MATERIAL_SATIN:
+      return strdup("an abandoned cache of cloth");
     case MATERIAL_SILK:
       return strdup("a large family of silkworms");
   }
@@ -339,8 +347,12 @@ char *node_desc(int material) {
       return strdup("A patch of hemp plants is here.");
     case MATERIAL_COTTON:
       return strdup("A patch of cotton plants is here.");
+    case MATERIAL_WOOL:
+      return strdup("An abandoned cache of cloth is here.");
     case MATERIAL_VELVET:
-      return strdup("An abandoned cache of cloths is here.");
+      return strdup("An abandoned cache of cloth is here.");
+    case MATERIAL_SATIN:
+      return strdup("An abandoned cache of cloth is here.");
     case MATERIAL_SILK:
       return strdup("A large family of silkworms is here.");
   }
@@ -356,7 +368,7 @@ int random_node_material(int allowed) {
           farming_nodes >= allowed && hunting_nodes >= allowed)
     return MATERIAL_STEEL;
 
-  rand = dice(1, 100);
+  rand = rand_number(1, 100);
   /* 34% mining, blacksmithing or goldsmithing */
   if (rand <= 34) {
 
@@ -364,11 +376,11 @@ int random_node_material(int allowed) {
     if (mining_nodes >= (allowed * 2))
       return random_node_material(allowed);
 
-    rand = dice(1, 100);
+    rand = rand_number(1, 100);
     /* 80% chance of blacksmithing (iron/steel/cold-iron/mithril/adamantine */
     if (rand <= 80) {
 
-      rand = dice(1, 1000);
+      rand = rand_number(1, 1000);
       // blacksmithing
 
       if (rand <= 900)
@@ -385,7 +397,7 @@ int random_node_material(int allowed) {
 
       // goldsmithing
 
-      if (dice(1, 100) <= 90)
+      if (rand_number(1, 100) <= 90)
         return MATERIAL_SILVER;
       else
         return MATERIAL_GOLD;
@@ -394,7 +406,7 @@ int random_node_material(int allowed) {
     /* 33% farming (hemp/cotton/velvet/silk) */
   } else if (rand <= 67) {
 
-    rand = rand_number(1, 100); //dice(1, 100);
+    rand = rand_number(1, 100);
     // farming
 
     if (farming_nodes >= allowed)
@@ -402,10 +414,14 @@ int random_node_material(int allowed) {
 
     if (rand <= 30)
       return MATERIAL_HEMP;
-    else if (rand <= 90)
+    else if (rand <= 70)
       return MATERIAL_COTTON;
-    else if (rand <= 99)
+    else if (rand <= 85)
+      return MATERIAL_WOOL;
+    else if (rand <= 96)
       return MATERIAL_VELVET;
+    else if (rand <= 98)
+      return MATERIAL_SATIN;
     else
       return MATERIAL_SILK;
 
