@@ -32,6 +32,8 @@
 #define AUTOCQUEST_MAKENUM  5  /* how many objects needed to craft */
 /* for resizing weapons, what increment for size change in damage? */
 #define WEAPON_RESIZE_INC   2
+/* the maximun harvesting-nodes allowed is number of rooms divided by this value */
+#define NODE_CAP_FACTOR     33
 // end DEFINES //
 
 /* item defines, by vnum */
@@ -80,8 +82,9 @@
 
 #define IS_CLOTH(mat)      (mat == MATERIAL_COTTON || mat == MATERIAL_SILK || \
                             mat == MATERIAL_SATIN || mat == MATERIAL_VELVET || \
-                            mat == MATERIAL_WOOL || mat == MATERIAL_HEMP)
-#define IS_LEATHER(mat)    (mat == MATERIAL_LEATHER || mat == MATERIAL_BURLAP || \
+                            mat == MATERIAL_WOOL || mat == MATERIAL_HEMP || \
+                            mat == MATERIAL_BURLAP)
+#define IS_LEATHER(mat)    (mat == MATERIAL_LEATHER || \
                             mat == MATERIAL_DRAGONHIDE)
 #define IS_WOOD(mat)       (mat == MATERIAL_WOOD || mat == MATERIAL_DARKWOOD)
 #define IS_HARD_METAL(mat) (mat == MATERIAL_STEEL || \

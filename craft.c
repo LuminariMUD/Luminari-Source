@@ -36,13 +36,13 @@ int mining_nodes = 0;
 int farming_nodes = 0;
 int hunting_nodes = 0;
 int foresting_nodes = 0;
-long times_harvested[1000000];
 
 
 /***********************************/
 /* crafting local utility functions*/
 /***********************************/
 
+/* bare in mind any CAP that has been established for num/size of dice */
 int weapon_damage[MAX_WEAPON_DAMAGE + 1][2] = {
   /* damage  num_dice  siz_dice */
   /*     0 */
@@ -72,11 +72,11 @@ int weapon_damage[MAX_WEAPON_DAMAGE + 1][2] = {
   /*     12*/
   { 1, 12,},
   /*     13*/
-  { 2, 6,},
+  { 1, 12 ,},
   /*     14*/
   { 2, 6,},
   /*     15*/
-  { 2, 8,},
+  { 2, 6,},
   /*     16*/
   { 2, 8,},
   /*     17*/
@@ -412,14 +412,14 @@ int random_node_material(int allowed) {
     /* 80% chance of blacksmithing (iron/steel/cold-iron/mithril/adamantine */
     if (rand <= 80) {
 
-      rand = rand_number(1, 1000);
+      rand = rand_number(1, 100);
       // blacksmithing
 
-      if (rand <= 900)
+      if (rand <= 85)
         return MATERIAL_STEEL;
-      else if (rand <= 980)
+      else if (rand <= 93)
         return MATERIAL_COLD_IRON;
-      else if (rand <= 999)
+      else if (rand <= 98)
         return MATERIAL_MITHRIL;
       else
         return MATERIAL_ADAMANTINE;
@@ -496,20 +496,10 @@ int random_node_material(int allowed) {
 
 
 void reset_harvesting_rooms(void) {
-
-  /* debugging */
-//  return;
-
-  int i = 0;
-
-  for (i = 0; i < 1000000; i++)
-    times_harvested[i] = 0;
-
   int cnt = 0;
   int num_rooms = 0;
   int nodes_allowed = 0;
   struct obj_data *obj = NULL;
-
 
   for (cnt = 0; cnt <= top_of_world; cnt++) {
     if (world[cnt].sector_type == SECT_CITY)
@@ -517,7 +507,7 @@ void reset_harvesting_rooms(void) {
     num_rooms++;
   }
 
-  nodes_allowed = num_rooms / 33;
+  nodes_allowed = num_rooms / NODE_CAP_FACTOR;
 
   if (mining_nodes >= (nodes_allowed * 2) && foresting_nodes >= nodes_allowed &&
           farming_nodes >= nodes_allowed && hunting_nodes >= nodes_allowed)
@@ -1492,11 +1482,14 @@ SPECIAL(crafting_kit) {
 
 /* here is our room-spec for crafting quest */
 SPECIAL(crafting_quest) {
+  char desc[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  int roll = 0;
+
   if (!CMD_IS("supplyorder")) {
     return 0;
   }
 
-  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   two_arguments(argument, arg, arg2);
 
   if (!*arg)
@@ -1508,8 +1501,6 @@ SPECIAL(crafting_quest) {
       return 1;
     }
 
-    char desc[MAX_INPUT_LENGTH];
-    int roll = 0;
     /* initialize values */
     reset_acraft(ch);
     GET_AUTOCQUEST_VNUM(ch) = AUTOCQUEST_VNUM;
@@ -1608,7 +1599,7 @@ EVENTFUNC(event_crafting) {
   struct mud_event_data *pMudEvent;
   struct obj_data *obj2 = NULL;
   char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
-  int exp = 0, skill = -1;
+  int exp = 0, skill = -1, roll = -1;
 
   //initialize everything and dummy checks
   if (event_obj == NULL) return 0;
@@ -1727,8 +1718,25 @@ EVENTFUNC(event_crafting) {
         }
         break;
       case SCMD_SUPPLYORDER:
+        /* picking a random trade to notch */
+        roll = dice(1, 4);
+        switch (dice(1,4)) {
+          case 1:
+            skill = SKILL_ARMOR_SMITHING;
+            break;
+          case 2:
+            skill = SKILL_WEAPON_SMITHING;
+            break;
+          case 3:
+            skill = SKILL_JEWELRY_MAKING;
+            break;
+          default:
+            skill = SKILL_LEATHER_WORKING;
+            break;
+        }
+        
         GET_AUTOCQUEST_MAKENUM(ch)--;
-        if (GET_AUTOCQUEST_MAKENUM(ch) == 0) {
+        if (GET_AUTOCQUEST_MAKENUM(ch) <= 0) {
           sprintf(buf, "$n completes an item for a supply order.");
           act(buf, false, ch, NULL, 0, TO_ROOM);
           send_to_char(ch, "You have completed your supply order! Go turn"
@@ -1747,6 +1755,8 @@ EVENTFUNC(event_crafting) {
         return 0;
     }
 
+    /* notch skills */
+    increase_skill(ch, skill);
     reset_craft(ch);
     return 0; //done with the event
   }
