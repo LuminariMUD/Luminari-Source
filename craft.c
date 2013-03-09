@@ -509,6 +509,8 @@ void reset_harvesting_rooms(void) {
         case MATERIAL_SILVER:
         case MATERIAL_GOLD:
           if (mining_nodes >= nodes_allowed) {
+            obj_to_room(obj, cnt);
+            extract_obj(obj);
             continue;
           } else
             mining_nodes++;
@@ -518,6 +520,8 @@ void reset_harvesting_rooms(void) {
         case MATERIAL_LEATHER:
         case MATERIAL_DRAGONHIDE:
           if (foresting_nodes >= nodes_allowed) {
+            obj_to_room(obj, cnt);
+            extract_obj(obj);
             continue;
           } else
             foresting_nodes++;
@@ -528,11 +532,15 @@ void reset_harvesting_rooms(void) {
         case MATERIAL_SATIN:
         case MATERIAL_SILK:
           if (farming_nodes >= nodes_allowed) {
+            obj_to_room(obj, cnt);
+            extract_obj(obj);
             continue;
           } else
             farming_nodes++;
           break;
         default:
+          obj_to_room(obj, cnt);
+          extract_obj(obj);
           continue;
           break;
       }
