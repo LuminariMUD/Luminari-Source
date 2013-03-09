@@ -74,6 +74,8 @@
 #define LEATHER_MQ_MATERIAL   3205  // medium quality
 #define LEATHER_HQ_MATERIAL   3206  // high quality
 #define FOS_LIZARD_MATERIAL   3207  // fossilized giant lizard egg
+#define ALCHEMAL_SILVER_MATERIAL  3208
+#define DRAGONHIDE_MATERIAL   3209
 
 
 #define IS_CLOTH(mat)      (mat == MATERIAL_COTTON || mat == MATERIAL_SILK || \

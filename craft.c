@@ -241,12 +241,44 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
   return bonus;
 }
 
+/*
+ * Our current list of materials distributed in this manner:
+ * METALS (hard)
+ * bronze
+ * iron
+ * steel
+ * cold iron
+ * alchemal silver
+ * mithril
+ * adamantine
+ * METALS (precious)
+ * copper
+ * brass
+ * silver
+ * gold
+ * platinum
+ * LEATHERS
+ * leather
+ * dragonhide
+ * WOODS
+ * wood
+ * darkwood
+ * CLOTH
+ * burlap
+ * hemp
+ * cotton
+ * wool
+ * velvet
+ * satin
+ * silk
+ */
+
 /* this function returns an appropriate keyword(s) based on material */
 char *node_keywords(int material) {
 
   switch (material) {
     case MATERIAL_STEEL:
-      return strdup("vein steel ore");
+      return strdup("vein iron ore");
     case MATERIAL_COLD_IRON:
       return strdup("vein cold iron ore");
     case MATERIAL_MITHRIL:
@@ -285,7 +317,7 @@ char *node_keywords(int material) {
 char *node_sdesc(int material) {
   switch (material) {
     case MATERIAL_STEEL:
-      return strdup("a vein of steel ore");
+      return strdup("a vein of iron ore");
     case MATERIAL_COLD_IRON:
       return strdup("a vein of cold iron ore");
     case MATERIAL_MITHRIL:
@@ -324,7 +356,7 @@ char *node_sdesc(int material) {
 char *node_desc(int material) {
   switch (material) {
     case MATERIAL_STEEL:
-      return strdup("A vein of steel ore is here.");
+      return strdup("A vein of iron ore is here.");
     case MATERIAL_COLD_IRON:
       return strdup("A vein of cold iron ore is here.");
     case MATERIAL_MITHRIL:
@@ -1778,8 +1810,10 @@ ACMD(do_harvest) {
 
     case MATERIAL_STEEL:
       roll = dice(1, 100);
-      if (roll <= 48)
-        obj = read_object(STEEL_MATERIAL, VIRTUAL); // steel
+      if (roll <= 40)
+        obj = read_object(BRONZE_MATERIAL, VIRTUAL); // bronze
+      else if (roll <= 75)
+        obj = read_object(IRON_MATERIAL, VIRTUAL); // iron
       else if (roll <= 96)
         obj = read_object(STEEL_MATERIAL, VIRTUAL); // steel
       else if (roll <= 98)
@@ -1796,7 +1830,7 @@ ACMD(do_harvest) {
       else if (roll <= 52)
         obj = read_object(ONYX_MATERIAL, VIRTUAL); // onyx
       else
-        obj = read_object(COLD_IRON_MATERIAL, VIRTUAL); // cold iron
+        obj = read_object(IRON_MATERIAL, VIRTUAL); // iron
       minskill = 15;
       break;
 
@@ -1835,7 +1869,7 @@ ACMD(do_harvest) {
         if (roll <= 48)
           obj = read_object(COPPER_MATERIAL, VIRTUAL); // copper
         else if (roll <= 96)
-          obj = read_object(COPPER_MATERIAL, VIRTUAL); // copper
+          obj = read_object(ALCHEMAL_SILVER_MATERIAL, VIRTUAL); // alchemal silver
         else if (roll <= 98)
           obj = read_object(ONYX_MATERIAL, VIRTUAL); // onyx
         else
@@ -1930,6 +1964,14 @@ ACMD(do_harvest) {
       minskill = 1;
       break;
 
+    case MATERIAL_DRAGONHIDE:
+      if (dice(1, 100) <= 70)
+        obj = read_object(LEATHER_HQ_MATERIAL, VIRTUAL); // high quality leather
+      else
+        obj = read_object(DRAGONHIDE_MATERIAL, VIRTUAL); // dragon hide
+      minskill = 58;
+      break;
+
     case MATERIAL_HEMP:
       if (dice(1, 100) <= 96)
         obj = read_object(HEMP_MATERIAL, VIRTUAL); // hemp
@@ -1946,6 +1988,14 @@ ACMD(do_harvest) {
       minskill = 12;
       break;
 
+    case MATERIAL_WOOL:
+      if (dice(1, 100) <= 96) {
+        obj = read_object(WOOL_MATERIAL, VIRTUAL); // wool
+      } else
+        obj = read_object(FOS_LIZARD_MATERIAL, VIRTUAL); // fossilized giant lizard egg
+      minskill = 18;
+      break;
+
     case MATERIAL_VELVET:
       if (dice(1, 100) <= 96) {
         obj = read_object(VELVET_MATERIAL, VIRTUAL); // velvet
@@ -1954,9 +2004,19 @@ ACMD(do_harvest) {
       minskill = 25;
       break;
 
+    case MATERIAL_SATIN:
+      if (dice(1, 100) <= 96) {
+        obj = read_object(SATIN_MATERIAL, VIRTUAL); // satin
+      } else
+        obj = read_object(FOS_WYVERN_MATERIAL, VIRTUAL); // fossilized wyvern egg
+      minskill = 31;
+      break;
+
     case MATERIAL_SILK:
       if (dice(1, 100) <= 96) {
-        if ((dice(1, 20) % 2) == 0)
+        if (dice(1, 100) <= 25)
+          obj = read_object(VELVET_MATERIAL, VIRTUAL); // velvet
+        else if (dice(1, 100) <= 25)
           obj = read_object(SATIN_MATERIAL, VIRTUAL); // satin
         else
           obj = read_object(SILK_MATERIAL, VIRTUAL); // silk
