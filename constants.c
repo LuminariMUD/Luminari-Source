@@ -537,7 +537,8 @@ const char *wear_where[] = {
   "\tY{Wielded Offhand}\tn    ",
   "\tY{Held Offhand}\tn       ",
   "\tY{Wielded Twohanded}\tn  ",
-  "\tY{Held Twohanded}\tn     "
+  "\tY{Held Twohanded}\tn     ",
+  "\tY{Worn On Face}\tn       "
 };
 
 /* Describes where an item can be worn.
@@ -566,6 +567,7 @@ const char *equipment_types[] = {
   "Held offhand",
   "Wielded twohands",
   "Held twohands",
+  "Worn on face",
   "\n"
 };
 
@@ -692,6 +694,7 @@ const char *wear_bits[] = {
   "Wrist",
   "Wield",
   "Hold",
+  "Face",
   "\n"
 };
 

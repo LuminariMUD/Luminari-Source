@@ -289,63 +289,62 @@ void remove_completed_quest(struct char_data *ch, qst_vnum vnum)
   ch->player_specials->saved.completed_quests = temp;
 }
 
-void generic_complete_quest(struct char_data *ch)
-{
+void generic_complete_quest(struct char_data *ch) {
   qst_rnum rnum;
   qst_vnum vnum = GET_QUEST(ch);
   struct obj_data *new_obj;
   int happy_qp, happy_gold, happy_exp;
 
+  rnum = real_quest(vnum);
   if (--GET_QUEST_COUNTER(ch) <= 0) {
-    rnum = real_quest(vnum);
     if (IS_HAPPYHOUR && IS_HAPPYQP) {
-      happy_qp = (int)(QST_POINTS(rnum) * (((float)(100+HAPPY_QP))/(float)100));
+      happy_qp = (int) (QST_POINTS(rnum) * (((float) (100 + HAPPY_QP)) / (float) 100));
       happy_qp = MAX(happy_qp, 0);
       GET_QUESTPOINTS(ch) += happy_qp;
       send_to_char(ch,
-          "%s\r\nYou have been awarded %d quest points for your service.\r\n",
-          QST_DONE(rnum), happy_qp);
-	} else {
+              "%s\r\nYou have been awarded %d quest points for your service.\r\n",
+              QST_DONE(rnum), happy_qp);
+    } else {
       GET_QUESTPOINTS(ch) += QST_POINTS(rnum);
       send_to_char(ch,
-          "%s\r\nYou have been awarded %d quest points for your service.\r\n",
-          QST_DONE(rnum), QST_POINTS(rnum));
+              "%s\r\nYou have been awarded %d quest points for your service.\r\n",
+              QST_DONE(rnum), QST_POINTS(rnum));
     }
     if (QST_GOLD(rnum)) {
       if ((IS_HAPPYHOUR) && (IS_HAPPYGOLD)) {
-        happy_gold = (int)(QST_GOLD(rnum) * (((float)(100+HAPPY_GOLD))/(float)100));
+        happy_gold = (int) (QST_GOLD(rnum) * (((float) (100 + HAPPY_GOLD)) / (float) 100));
         happy_gold = MAX(happy_gold, 0);
         increase_gold(ch, happy_gold);
         send_to_char(ch,
-              "You have been awarded %d gold coins for your service.\r\n",
-              happy_gold);
-	  } else {
+                "You have been awarded %d gold coins for your service.\r\n",
+                happy_gold);
+      } else {
         increase_gold(ch, QST_GOLD(rnum));
         send_to_char(ch,
-              "You have been awarded %d gold coins for your service.\r\n",
-              QST_GOLD(rnum));
+                "You have been awarded %d gold coins for your service.\r\n",
+                QST_GOLD(rnum));
       }
     }
     if (QST_EXP(rnum)) {
       gain_exp(ch, QST_EXP(rnum));
       if ((IS_HAPPYHOUR) && (IS_HAPPYEXP)) {
-        happy_exp = (int)(QST_EXP(rnum) * (((float)(100+HAPPY_EXP))/(float)100));
+        happy_exp = (int) (QST_EXP(rnum) * (((float) (100 + HAPPY_EXP)) / (float) 100));
         happy_exp = MAX(happy_exp, 0);
         send_to_char(ch,
-              "You have been awarded %d experience for your service.\r\n",
-              happy_exp);
+                "You have been awarded %d experience for your service.\r\n",
+                happy_exp);
       } else {
         send_to_char(ch,
-              "You have been awarded %d experience points for your service.\r\n",
-              QST_EXP(rnum));
+                "You have been awarded %d experience points for your service.\r\n",
+                QST_EXP(rnum));
       }
     }
     if (QST_OBJ(rnum) && QST_OBJ(rnum) != NOTHING) {
       if (real_object(QST_OBJ(rnum)) != NOTHING) {
-        if ((new_obj = read_object((QST_OBJ(rnum)),VIRTUAL)) != NULL) {
-            obj_to_char(new_obj, ch);
-            send_to_char(ch, "You have been presented with %s%s for your service.\r\n",
-                GET_OBJ_SHORT(new_obj), CCNRM(ch, C_NRM));
+        if ((new_obj = read_object((QST_OBJ(rnum)), VIRTUAL)) != NULL) {
+          obj_to_char(new_obj, ch);
+          send_to_char(ch, "You have been presented with %s%s for your service.\r\n",
+                  GET_OBJ_SHORT(new_obj), CCNRM(ch, C_NRM));
         }
       }
     }
@@ -353,16 +352,19 @@ void generic_complete_quest(struct char_data *ch)
       add_completed_quest(ch, vnum);
     clear_quest(ch);
     if ((real_quest(QST_NEXT(rnum)) != NOTHING) &&
-        (QST_NEXT(rnum) != vnum) &&
-        !is_complete(ch, QST_NEXT(rnum))) {
+            (QST_NEXT(rnum) != vnum) &&
+            !is_complete(ch, QST_NEXT(rnum))) {
       rnum = real_quest(QST_NEXT(rnum));
       set_quest(ch, rnum);
       send_to_char(ch,
-          "The next stage of your quest awaits:\r\n%s",
-          QST_INFO(rnum));
+              "The next stage of your quest awaits:\r\n%s",
+              QST_INFO(rnum));
     }
+  } else {
+    send_to_char(ch, "You still have to achieve %d out of %d goals for the quest.\r\n",
+            GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
+    save_char(ch, 0);
   }
-  save_char(ch, 0);
 }
 
 void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,

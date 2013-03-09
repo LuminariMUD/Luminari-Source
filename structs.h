@@ -622,8 +622,9 @@
 #define WEAR_HOLD_2    19	// off-hand held
 #define WEAR_WIELD_2H  20	// two-hand weapons
 #define WEAR_HOLD_2H   21	// two-hand held
+#define WEAR_FACE       22      // equipment location face
 /** Total number of available equipment lcoations */
-#define NUM_WEARS      22
+#define NUM_WEARS      23
 
 /* object-related defines */
 /* Item types: used by obj_data.obj_flags.type_flag */
@@ -751,8 +752,9 @@
 #define ITEM_WEAR_WRIST	   12   /**< Item can be worn on wrist */
 #define ITEM_WEAR_WIELD	   13   /**< Item can be wielded */
 #define ITEM_WEAR_HOLD      14   /**< Item can be held */
+#define ITEM_WEAR_FACE          15 // item can be worn on face
 /** Total number of item wears */
-#define NUM_ITEM_WEARS      15
+#define NUM_ITEM_WEARS      16
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
 #define ITEM_GLOW                 0   /**< Item is glowing */
