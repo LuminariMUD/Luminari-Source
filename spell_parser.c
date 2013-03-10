@@ -1950,11 +1950,14 @@ void mag_assign_spells(void) {
   spello(SPELL_SUMMON_CREATURE_5, "summon creature v", 95, 80, 1,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 9, CONJURATION);
   /* necromancy */
+  spello(SPELL_DEATH_WARD, "death ward", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+          "You are no longer warded against the effects of death magic.", 7, 9, NECROMANCY);
+  spello(SPELL_SYMBOL_OF_PAIN, "symbol of pain", 58, 43, 1, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 9, NECROMANCY);
   spello(SPELL_WAVES_OF_FATIGUE, "waves of fatigue", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical fatigue fade away.", 7,
           9, NECROMANCY);
-  spello(SPELL_SYMBOL_OF_PAIN, "symbol of pain", 58, 43, 1, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 9, NECROMANCY);
   /* enchantment */
   spello(SPELL_DOMINATE_PERSON, "dominate person", 51, 36, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,

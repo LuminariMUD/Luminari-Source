@@ -514,13 +514,13 @@
 #define AFF_FEAR             30	// under affect of fear
 #define AFF_STUN             31	// stunned
 #define AFF_PARALYZED        32	// paralyzed
-#define AFF_ULTRAVISION 	    33   /**< Char can see in dark */
+#define AFF_ULTRAVISION      33   /**< Char can see in dark */
 #define AFF_GRAPPLED         34   // grappled
-#define AFF_TAMED		    35   // tamed
-#define AFF_CLIMB		    36   // affect that allows you to climb
-#define AFF_NAUSEATED	    37   // nauseated
+#define AFF_TAMED	     35   // tamed
+#define AFF_CLIMB            36   // affect that allows you to climb
+#define AFF_NAUSEATED	     37   // nauseated
 #define AFF_NON_DETECTION    38
-#define AFF_SLOW		    39
+#define AFF_SLOW             39
 #define AFF_FSHIELD          40  //fire shield
 #define AFF_CSHIELD          41  //cold shield
 #define AFF_MINOR_GLOBE      42  //minor globe of invulernability
@@ -548,6 +548,7 @@
 #define AFF_BATTLETIDE       64
 #define AFF_SPELL_RESISTANT  65
 #define AFF_DIM_LOCK         66 //locked to current plane (can't teleport)
+#define AFF_DEATH_WARD          67
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
 #define NUM_AFF_FLAGS        67

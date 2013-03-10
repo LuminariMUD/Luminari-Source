@@ -1231,7 +1231,7 @@ void init_class(struct char_data *ch, int class, int level)
     // baleful polymorph SET_SKILL(ch, SPELL_BALEFUL_POLYMORPH, 99);
     SET_SKILL(ch, SPELL_CALL_LIGHTNING_STORM, 99);
     SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
-    // death ward SET_SKILL(ch, SPELL_DEATH_WARD, 99);
+    SET_SKILL(ch, SPELL_DEATH_WARD, 99);
     SET_SKILL(ch, SPELL_HALLOW, 99);
     SET_SKILL(ch, SPELL_INSECT_PLAGUE, 99);
     SET_SKILL(ch, SPELL_STONESKIN, 99);
@@ -2773,7 +2773,7 @@ void init_spell_levels(void)
   // baleful polymorph
   spell_level(SPELL_CALL_LIGHTNING_STORM, CLASS_DRUID, 9);
   spell_level(SPELL_CURE_CRITIC, CLASS_DRUID, 9);
-  // death ward
+  spell_level(SPELL_DEATH_WARD, CLASS_DRUID, 9);
   spell_level(SPELL_HALLOW, CLASS_DRUID, 9);
   spell_level(SPELL_INSECT_PLAGUE, CLASS_DRUID, 9);
   spell_level(SPELL_STONESKIN, CLASS_DRUID, 9);
