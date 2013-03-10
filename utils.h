@@ -1013,6 +1013,8 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define RIDING(ch)	      ((ch)->char_specials.riding)
 #define RIDDEN_BY(ch)	  ((ch)->char_specials.ridden_by)
 
+#define IS_HOLY(room)   (ROOM_AFFECTED(room, RAFF_HOLY) && !ROOM_AFFECTED(room, RAFF_UNHOLY))
+#define IS_UNHOLY(room) (ROOM_AFFECTED(room, RAFF_UNHOLY) && !ROOM_AFFECTED(room, RAFF_HOLY))
 
 /** Defines if ch is good. */
 #define IS_GOOD(ch)    (GET_ALIGNMENT(ch) >= 350)
