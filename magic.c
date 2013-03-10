@@ -3625,6 +3625,10 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         act(mag_summon_fail_msgs[7], FALSE, ch, 0, 0, TO_CHAR);
         return;
       }
+      if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_HOLY) && !ROOM_FLAGGED(IN_ROOM(ch), RAFF_UNHOLY)) {
+        send_to_char(ch, "This place is too holy for such blasphemy!");
+        return;
+      }
       handle_corpse = TRUE;
       msg = 12;
       fmsg = rand_number(2, 6); /* Random fail message. */
@@ -4483,7 +4487,6 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
 
   switch (spellnum) {
     /*******  ROOM EVENTS     ************/
-    
     case SPELL_I_DARKNESS:
       IdNum = eDARKNESS;
       if (ROOM_FLAGGED(rnum, ROOM_DARK))
@@ -4495,16 +4498,14 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
       to_char = "You cast a shroud of darkness upon the area.";
       to_room = "$n casts a shroud of darkness upon this area.";
     break;
-    
     /*******  END ROOM EVENTS ************/
     
     /*******  ROOM AFFECTIONS ************/
-    
-    case SPELL_WALL_OF_FOG: //illusion
-      to_char = "You create a fog out of nowhere.";
-      to_room = "$n creates a fog out of nowhere.";
-      aff = RAFF_FOG;
-      rounds = 8 + CASTER_LEVEL(ch);
+    case SPELL_ACID_FOG: //conjuration
+      to_char = "You create a thick bank of acid fog!";
+      to_room = "$n creates a thick bank of acid fog!";
+      aff = RAFF_ACID_FOG;
+      rounds = MAGIC_LEVEL(ch);
       break;
 
     case SPELL_ANTI_MAGIC_FIELD: //illusion
@@ -4514,11 +4515,11 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
       rounds = 15;
       break;
 
-    case SPELL_ACID_FOG: //conjuration
-      to_char = "You create a thick bank of acid fog!";
-      to_room = "$n creates a thick bank of acid fog!";
-      aff = RAFF_ACID_FOG;
-      rounds = MAGIC_LEVEL(ch);
+    case SPELL_BILLOWING_CLOUD: //conjuration
+      to_char = "Clouds of billowing thickness fill the area.";
+      to_room = "$n creates clouds of billowing thickness that fill the area.";
+      aff = RAFF_BILLOWING;
+      rounds = 15;
       break;
 
     case SPELL_BLADE_BARRIER: //divine spell
@@ -4535,15 +4536,22 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
       rounds = 15;
       break;
 
+    case SPELL_DAYLIGHT: //illusion
     case SPELL_SUNBEAM: // evocation[light]
     case SPELL_SUNBURST: //divination
-    case SPELL_DAYLIGHT: //illusion
       to_char = "You create a blanket of artificial daylight.";
       to_room = "$n creates a blanket of artificial daylight.";
       aff = RAFF_LIGHT;
       rounds = 15;
       break;
 
+    case SPELL_HALLOW: // evocation
+      to_char = "A holy aura fills the area.";
+      to_room = "A holy aura fills the area as $n finishes $s spell.";
+      aff = RAFF_HOLY;
+      rounds = 1000;
+      break;
+     
     case SPELL_SPIKE_GROWTH: // transmutation
       if (SECT(ch->in_room) == SECT_UNDERWATER ||
               SECT(ch->in_room)== SECT_FLYING ||
@@ -4577,11 +4585,18 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
       rounds = 12;
       break;
 
-    case SPELL_BILLOWING_CLOUD: //conjuration
-      to_char = "Clouds of billowing thickness fill the area.";
-      to_room = "$n creates clouds of billowing thickness that fill the area.";
-      aff = RAFF_BILLOWING;
-      rounds = 15;
+    case SPELL_UNHALLOW: // evocation
+      to_char = "An unholy aura fills the area.";
+      to_room = "An unholy aura fills the area as $n finishes $s spell.";
+      aff = RAFF_UNHOLY;
+      rounds = 1000;
+      break;
+      
+    case SPELL_WALL_OF_FOG: //illusion
+      to_char = "You create a fog out of nowhere.";
+      to_room = "$n creates a fog out of nowhere.";
+      aff = RAFF_FOG;
+      rounds = 8 + CASTER_LEVEL(ch);
       break;
 
     /*******  END ROOM AFFECTIONS ***********/

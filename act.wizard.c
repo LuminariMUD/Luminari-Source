@@ -3731,7 +3731,7 @@ ACMD(do_links) {
 #define MAX_OBJ_GOLD_ALLOWED       1000000
 
 /* Armor class limits*/
-#define TOTAL_WEAR_CHECKS  (NUM_ITEM_WEARS-2)  /*minus Wield and Take*/
+#define TOTAL_WEAR_CHECKS  (NUM_ITEM_WEARS)  /* (removed the-2, to allow face also) minus Wield and Take*/
 
 struct zcheck_armor {
   bitvector_t bitvector; /* from Structs.h                       */
@@ -3750,7 +3750,9 @@ struct zcheck_armor {
   {ITEM_WEAR_ABOUT, 10, "Cloak"},
   {ITEM_WEAR_WAIST, 10, "Belt"},
   {ITEM_WEAR_WRIST, 10, "Wristwear"},
-  {ITEM_WEAR_HOLD, 10, "Held item"}
+  {ITEM_WEAR_WIELD, 10, "Weapon"},
+  {ITEM_WEAR_HOLD, 10, "Held item"},
+  {ITEM_WEAR_FACE, 10, "Face"}
 };
 
 /*These are strictly boolean*/
@@ -3815,7 +3817,7 @@ ACMD(do_zcheck) {
   char buf[MAX_STRING_LENGTH];
   float avg_dam;
   size_t len = 0;
-  struct extra_descr_data *ext, *ext2;
+  //struct extra_descr_data *ext, *ext2;
   one_argument(argument, buf);
 
   if (!is_number(buf) || !strcmp(buf, "."))
@@ -4054,13 +4056,13 @@ ACMD(do_zcheck) {
               tohit, MAX_APPLY_HITROLL_TOTAL);
 
 
-      for (ext2 = NULL, ext = obj->ex_description; ext; ext = ext->next)
+      /*for (ext2 = NULL, ext = obj->ex_description; ext; ext = ext->next)
         if (strncmp(ext->description, "   ", 3))
           ext2 = ext;
 
       if (ext2 && (found = 1))
         len += snprintf(buf + len, sizeof (buf) - len,
-              "- has unformatted extra description\r\n");
+              "- has unformatted extra description\r\n"); */
       /* Additional object checks. */
       if (found) {
         send_to_char(ch, "[%5d] %-30s: \r\n", GET_OBJ_VNUM(obj), obj->short_description);

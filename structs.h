@@ -110,7 +110,9 @@
 #define RAFF_BLADE_BARRIER  (1 << 7)
 #define RAFF_SPIKE_GROWTH   (1 << 8)
 #define RAFF_SPIKE_STONES   (1 << 9)
-#define NUM_RAFF            10
+#define RAFF_HOLY               (1 << 10)
+#define RAFF_UNHOLY             (1 << 11)
+#define NUM_RAFF            12
 
 /* Zone info: Used in zone_data.zone_flags */
 #define ZONE_CLOSED         0  /**< Zone is closed - players cannot enter */

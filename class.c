@@ -1232,11 +1232,11 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_CALL_LIGHTNING_STORM, 99);
     SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
     // death ward SET_SKILL(ch, SPELL_DEATH_WARD, 99);
-    // hallow SET_SKILL(ch, SPELL_HALLOW, 99);
+    SET_SKILL(ch, SPELL_HALLOW, 99);
     SET_SKILL(ch, SPELL_INSECT_PLAGUE, 99);
     SET_SKILL(ch, SPELL_STONESKIN, 99);
     // summon nature's ally v SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_5, 99);
-    // unhallow SET_SKILL(ch, SPELL_UNHALLOW, 99);
+    SET_SKILL(ch, SPELL_UNHALLOW, 99);
     // wall of fire SET_SKILL(ch, SPELL_WALL_OF_FIRE, 99);
     // wall of thorns SET_SKILL(ch, SPELL_WALL_OF_THORNS, 99);
     SET_SKILL(ch, SPELL_BLINDNESS, 99); // no
@@ -2774,11 +2774,11 @@ void init_spell_levels(void)
   spell_level(SPELL_CALL_LIGHTNING_STORM, CLASS_DRUID, 9);
   spell_level(SPELL_CURE_CRITIC, CLASS_DRUID, 9);
   // death ward
-  // hallow
+  spell_level(SPELL_HALLOW, CLASS_DRUID, 9);
   spell_level(SPELL_INSECT_PLAGUE, CLASS_DRUID, 9);
   spell_level(SPELL_STONESKIN, CLASS_DRUID, 9);
   // summon nature's ally v
-  // unhallow
+  spell_level(SPELL_UNHALLOW, CLASS_DRUID, 9);
   // wall of fire
   // wall of thorns
   spell_level(SPELL_BLINDNESS, CLASS_DRUID, 9); // no

@@ -192,6 +192,8 @@ const char *room_affections[] = {
   "Blade-Barriered",
   "Spike Growth",
   "Spike Stone",
+  "Holy",
+  "Unholy",
   "\n"
 };
 

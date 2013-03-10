@@ -1928,15 +1928,19 @@ void mag_assign_spells(void) {
 
   // 5th circle
   /* evocation */
+  spello(SPELL_BALL_OF_LIGHTNING, "ball of lightning", 65, 50, 1, POS_FIGHTING,
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 5, 9, EVOCATION);
   spello(SPELL_CALL_LIGHTNING_STORM, "call lightning storm", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 9, EVOCATION);
+  spello(SPELL_HALLOW, "hallow", 0, 0, 0, POS_STANDING,
+          TAR_IGNORE, FALSE, MAG_ROOM, NULL, 8, 9, EVOCATION);
   spello(SPELL_INTERPOSING_HAND, "interposing hand", 80, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
           "You feel more optimistic.", 7, 9, EVOCATION);
+  spello(SPELL_UNHALLOW, "unhallow", 0, 0, 0, POS_STANDING,
+          TAR_IGNORE, FALSE, MAG_ROOM, NULL, 8, 9, EVOCATION);
   spello(SPELL_WALL_OF_FORCE, "wall of force", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 6, 9, EVOCATION);
-  spello(SPELL_BALL_OF_LIGHTNING, "ball of lightning", 65, 50, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 5, 9, EVOCATION);
   /* conjuration */
   spello(SPELL_CLOUDKILL, "cloudkill", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 9, CONJURATION);
