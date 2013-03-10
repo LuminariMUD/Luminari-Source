@@ -807,6 +807,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_ENERGY_DRAIN:
       //** Magic AND Divine
+      if (AFF_FLAGGED(victim, AFF_DEATH_WARD)) {
+        act("$N is warded against death magic.", FALSE, ch, 0, victim, TO_CHAR);
+        return (0);
+      }
       save = SAVING_FORT;
       mag_resist = TRUE;
       element = DAM_NEGATIVE;
@@ -1510,6 +1514,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You have been deafened!";
       break;
 
+    case SPELL_DEATH_WARD: // necromancy
+      af[0].duration = 10 * divine_level;
+      SET_BIT_AR(af[0].bitvector, AFF_DEATH_WARD);
+
+      accum_affect = FALSE;
+      accum_duration = FALSE;
+      to_room = "$n is warded against death magic!";
+      to_vict = "You are warded against death magic!";
+      break;
+      
     case SPELL_DEEP_SLUMBER: //enchantment
       if (GET_LEVEL(victim) >= 15 ||
               (!IS_NPC(victim) && GET_RACE(victim) == RACE_ELF)) {
@@ -3351,6 +3365,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   /* to add spells just add the message here plus an entry in mag_damage for
    * the damaging part of the spell.   */
   switch (spellnum) {
+    case SPELL_CALL_LIGHTNING_STORM:
+      to_char = "You call down a furious lightning storm upon the area!";
+      to_room = "$n raises $s arms and calls down a furious lightning storm!";
+      break;
     case SPELL_EARTHQUAKE:
       to_char = "You gesture and the earth begins to shake all around you!";
       to_room = "$n gracefully gestures and the earth begins to shake violently!";
