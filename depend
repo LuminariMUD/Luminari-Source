@@ -246,6 +246,11 @@ study.o: study.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 tedit.o: tedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h comm.h db.h genolc.h oasis.h improved-edit.h \
  modify.h
+treasure.o: treasure.c conf.h sysdep.h structs.h protocol.h lists.h \
+ utils.h race.h comm.h interpreter.h handler.h db.h spells.h constants.h \
+ dg_scripts.h treasure.h craft.h
+treasure_const.o: treasure_const.c conf.h sysdep.h structs.h protocol.h \
+ lists.h treasure.h
 utils.o: utils.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h modify.h screen.h spells.h handler.h interpreter.h \
  class.h spec_procs.h mud_event.h dg_event.h

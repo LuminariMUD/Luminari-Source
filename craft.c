@@ -356,37 +356,37 @@ char *node_sdesc(int material) {
 char *node_desc(int material) {
   switch (material) {
     case MATERIAL_STEEL:
-      return strdup("A vein of iron ore is here.");
+      return strdup("A vein of iron ore is here (\tYharvest\tn).");
     case MATERIAL_COLD_IRON:
-      return strdup("A vein of cold iron ore is here.");
+      return strdup("A vein of cold iron ore is here (\tYharvest\tn).");
     case MATERIAL_MITHRIL:
-      return strdup("A vein of mithril ore is here.");
+      return strdup("A vein of mithril ore is here (\tYharvest\tn).");
     case MATERIAL_ADAMANTINE:
-      return strdup("A vein of adamantine ore is here.");
+      return strdup("A vein of adamantine ore is here (\tYharvest\tn).");
     case MATERIAL_SILVER:
-      return strdup("A vein of copper and silver ore is here.");
+      return strdup("A vein of copper and silver ore is here (\tYharvest\tn).");
     case MATERIAL_GOLD:
-      return strdup("A vein of gold and platinum ore is here.");
+      return strdup("A vein of gold and platinum ore is here (\tYharvest\tn).");
     case MATERIAL_WOOD:
-      return strdup("A fallen tree is here.");
+      return strdup("A fallen tree is here (\tYharvest\tn).");
     case MATERIAL_DARKWOOD:
-      return strdup("A fallen darkwood tree is here.");
+      return strdup("A fallen darkwood tree is here (\tYharvest\tn).");
     case MATERIAL_LEATHER:
-      return strdup("The corpse of some freshly killed game is here.");
+      return strdup("The corpse of some freshly killed game is here (\tYharvest\tn).");
     case MATERIAL_DRAGONHIDE:
-      return strdup("The corpse of a freshly killed baby wyvern is here.");
+      return strdup("The corpse of a freshly killed baby wyvern is here (\tYharvest\tn).");
     case MATERIAL_HEMP:
-      return strdup("A patch of hemp plants is here.");
+      return strdup("A patch of hemp plants is here (\tYharvest\tn).");
     case MATERIAL_COTTON:
-      return strdup("A patch of cotton plants is here.");
+      return strdup("A patch of cotton plants is here (\tYharvest\tn).");
     case MATERIAL_WOOL:
-      return strdup("An abandoned cache of cloth is here.");
+      return strdup("An abandoned cache of cloth is here (\tYharvest\tn).");
     case MATERIAL_VELVET:
-      return strdup("An abandoned cache of cloth is here.");
+      return strdup("An abandoned cache of cloth is here (\tYharvest\tn).");
     case MATERIAL_SATIN:
-      return strdup("An abandoned cache of cloth is here.");
+      return strdup("An abandoned cache of cloth is here (\tYharvest\tn).");
     case MATERIAL_SILK:
-      return strdup("A large family of silkworms is here.");
+      return strdup("A large family of silkworms is here (\tYharvest\tn).");
   }
   return strdup("A harvesting node is here.  Please inform an imm, this is an error.");
 }
@@ -487,14 +487,10 @@ int random_node_material(int allowed) {
   return MATERIAL_STEEL;
 }
 
-
-
-
-/*************************/
-/* start primary engines */
-/*************************/
-
-
+/* this is called in db.c on boot-up
+   harvesting nodes are placed by this function randomly(?)
+   throughout the world
+ */
 void reset_harvesting_rooms(void) {
   int cnt = 0;
   int num_rooms = 0;
@@ -576,6 +572,14 @@ void reset_harvesting_rooms(void) {
     }
   }
 }
+
+
+
+
+/*************************/
+/* start primary engines */
+/*************************/
+
 
 
 // combine crystals to make them stronger
@@ -677,7 +681,7 @@ int augment(struct obj_data *kit, struct char_data *ch) {
           "augment this crytsal.\r\n", cost);
   GET_GOLD(ch) -= cost;
 
-  GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
+  GET_CRAFTING_TYPE(ch) = SCMD_AUGMENT;
   GET_CRAFTING_TICKS(ch) = 5; // add code here to modify speed of crafting
   GET_CRAFTING_TICKS(ch) -= MIN(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25));
   GET_CRAFTING_OBJ(ch) = crystal_one;
@@ -775,7 +779,7 @@ int convert(struct obj_data *kit, struct char_data *ch) {
           new_mat, 0, TO_ROOM);
 
   GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(new_mat));
-  GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
+  GET_CRAFTING_TYPE(ch) = SCMD_CONVERT;
   GET_CRAFTING_TICKS(ch) = 11; // adding time-takes here
   GET_CRAFTING_TICKS(ch) -= MIN(10, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 10));
   GET_CRAFTING_OBJ(ch) = new_mat;
@@ -852,7 +856,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
   obj->short_description = strdup(argument);
   sprintf(buf, "%s lies here.", CAP(argument));
   obj->description = strdup(buf);
-  GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
+  GET_CRAFTING_TYPE(ch) = SCMD_RESTRING;
   GET_CRAFTING_TICKS(ch) = 5; // here you'd add tick calculator
   GET_CRAFTING_TICKS(ch) -= MIN(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25));
   GET_CRAFTING_OBJ(ch) = obj;
@@ -931,23 +935,6 @@ int autocraft(struct obj_data *kit, struct char_data *ch) {
     return 1;
   }
 
-  /*
-  obj = create_obj();
-  obj->name = strdup(GET_AUTOCQUEST_DESC(ch));
-  obj->description = strdup(GET_AUTOCQUEST_DESC(ch));
-  obj->short_description = strdup(GET_AUTOCQUEST_DESC(ch));
-   
-  
-       this is where we determine level of object
-  if (GET_ARTISAN_TYPE(ch) == ARTISAN_TYPE_TINKERING)
-    GET_OBJ_LEVEL(obj) = get_skill_value(ch, SKILL_TINKERING);
-  else if (GET_ARTISAN_TYPE(ch) == ARTISAN_TYPE_WEAPONTECH)
-    GET_OBJ_LEVEL(obj) = get_skill_value(ch, SKILL_WEAPONTECH);
-  else if (GET_ARTISAN_TYPE(ch) == ARTISAN_TYPE_ARMORTECH)
-    GET_OBJ_LEVEL(obj) = get_skill_value(ch, SKILL_ARMORTECH);
-  else
-   */
-
   GET_CRAFTING_TYPE(ch) = SCMD_SUPPLYORDER;
   GET_CRAFTING_TICKS(ch) = 5;
   GET_CRAFTING_TICKS(ch) -= MAX(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25));
@@ -967,6 +954,7 @@ int autocraft(struct obj_data *kit, struct char_data *ch) {
   return 1;
 }
 
+/* resize an object, also will change weapon damage */
 int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
   int num_objs = 0, newsize, cost;
   struct obj_data *obj = NULL;
@@ -1065,6 +1053,87 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
   return 1;
 }
 
+
+/* unfinished -zusuk */
+int disenchant (struct obj_data *kit, struct char_data *ch)
+{
+  struct obj_data *obj = NULL;
+  struct obj_data *essence = NULL;
+  int chance = 100, num_objs = 0;
+  int level = 0;
+  
+  /* Cycle through contents */
+  /* disenchant requires just one item be inside the kit */
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
+    num_objs++;
+    break;
+  }
+
+  if (num_objs > 1) {
+    send_to_char(ch, "Only one item should be inside the kit.\r\n");
+    return 1;
+  }  
+
+  if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
+    send_to_char(ch, "You must drop something before you can disenchant anything.\r\n");
+    return 1;
+  }
+
+  if (!IS_SET_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC)) {
+    send_to_char(ch, "Only magical items can be disenchanted.\r\n");
+    return 1;
+  }
+
+  if (obj && GET_OBJ_LEVEL(obj) > (GET_SKILL(ch, SKILL_CHEMISTRY)/3)) {
+    send_to_char(ch, "Your chemistry skill isn't high enough to disenchant that item.\r\n");
+    return 1;
+  }
+
+  if (GET_OBJ_TYPE(obj) == ITEM_POTION)
+    chance = 20;
+  else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL)
+    chance = 30;
+  else if (GET_OBJ_TYPE(obj) == ITEM_WAND)
+    chance = 10 + GET_OBJ_VAL(obj, 2);
+  else if (GET_OBJ_TYPE(obj) == ITEM_STAFF)
+    chance = 25 + GET_OBJ_VAL(obj, 2);
+  else if (GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR
+           && GET_OBJ_TYPE(obj) != ITEM_WORN) {
+    send_to_char(ch, "You cannot disenchant that item.\r\n");
+    return 1;
+  }
+
+  if (dice(1, 100) <= chance) {
+    level = GET_OBJ_LEVEL(obj);
+    if (level <= 4)
+      essence = read_object(64100, VIRTUAL); // minor
+    else if (level <= 8)
+      essence = read_object(64101, VIRTUAL); // lesser
+    else if (level <= 12)
+      essence = read_object(64102, VIRTUAL); // medium
+    else if (level <= 16)
+      essence = read_object(64103, VIRTUAL); // greater
+    else 
+      essence = read_object(64104, VIRTUAL); // major
+
+  }
+  else {
+    essence = read_object(64012, VIRTUAL); // failed attempt
+  }
+  GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
+  GET_CRAFTING_TICKS(ch) = 5;
+  GET_CRAFTING_TICKS(ch) -= MAX(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25));
+  GET_CRAFTING_OBJ(ch) = essence;
+
+  send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
+  act("$n begins to disenchant $p.", FALSE, ch, obj, 0, TO_ROOM);
+  obj_from_char(obj);
+  extract_obj(obj);
+  return 1;
+}
+
+
+
 /* our create command and craftcheck, mode determines which we're using */
 /* mode = 1; create     */
 /* mode = 2; craftcheck */
@@ -1081,6 +1150,7 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
  */
 int create(char *argument, struct obj_data *kit,
         struct char_data *ch, int mode) {
+  char buf[MAX_INPUT_LENGTH] = { '\0' };  
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
           *material = NULL, *essence = NULL;
   int num_mats = 0, obj_level = 1, skill = SKILL_WEAPON_SMITHING,
@@ -1158,7 +1228,10 @@ int create(char *argument, struct obj_data *kit,
     send_to_char(ch, "The creation process requires a mold to continue.\r\n");
     return 1;
   }
+  
+  /* set base level, crystal should be ultimate determinant */
   obj_level = GET_OBJ_LEVEL(mold);
+  
   if (!material) {
     send_to_char(ch, "You need to put materials into the kit.\r\n");
     return 1;
@@ -1199,8 +1272,11 @@ int create(char *argument, struct obj_data *kit,
    * [mold weight divided by weight_factor]
    */
   mats_needed = MAX(MIN_MATS, (GET_OBJ_WEIGHT(mold) / WEIGHT_FACTOR));
+
+  /* elvent crafting reduces material needed */
   if (GET_SKILL(ch, SKILL_ELVEN_CRAFTING))
     mats_needed = MAX(MIN_ELF_MATS, mats_needed / 2);
+  
   if (num_mats < mats_needed) {
     send_to_char(ch, "You do not have enough materials to make that item.  "
             "You need %d more units of the same type.\r\n",
@@ -1253,16 +1329,19 @@ int create(char *argument, struct obj_data *kit,
         send_to_char(ch, "@l@WYou have received a critical success on your "
               "craft! (+%d)@n\r\n", mod);
     }
+    
     if (GET_SKILL(ch, SKILL_MASTERWORK_CRAFTING)) {
       send_to_char(ch, "Your masterwork-crafting skill increases the quality of "
               "the item.\r\n");
       mod++;
     }
+    
     if (GET_SKILL(ch, SKILL_DWARVEN_CRAFTING)) {
       send_to_char(ch, "Your dwarven-crafting skill increases the quality of "
               "the item.\r\n");
       mod++;
     }
+    
     if (GET_SKILL(ch, SKILL_DRACONIC_CRAFTING)) {
       send_to_char(ch, "Your draconic-crafting skill increases the quality of "
               "the item.\r\n");
@@ -1363,7 +1442,6 @@ int create(char *argument, struct obj_data *kit,
     parse_at(argument);
 
     /* restringing aspect */
-    char buf[MAX_INPUT_LENGTH];
     mold->name = strdup(argument);
     mold->short_description = strdup(argument);
     sprintf(buf, "%s lies here.", CAP(argument));
@@ -1385,6 +1463,7 @@ int create(char *argument, struct obj_data *kit,
     obj_to_char(kit, ch);
 
     obj_to_char(mold, ch);
+    increase_skill(ch, skill);
     NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
   }
   return 1;
@@ -1454,11 +1533,14 @@ SPECIAL(crafting_kit) {
     else if (CMD_IS("convert"))
       send_to_char(ch, "You must place exact multiples of 10, of a material "
             "to being the conversion process.\r\n");
+    else if (CMD_IS("disenchant"))
+      send_to_char(ch, "You must place the item you want to disenchant "
+              "in the kit.\r\n");
     else
       send_to_char(ch, "Unrecognized crafting-kit command!\r\n");
     return 1;
-  }
-
+  }  
+  
   if (CMD_IS("resize"))
     return resize(argument, kit, ch);
   else if (CMD_IS("restring"))
@@ -1473,6 +1555,8 @@ SPECIAL(crafting_kit) {
     return create(argument, kit, ch, 1);
   else if (CMD_IS("checkcraft"))
     return create(NULL, kit, ch, 2);
+  else if (CMD_IS("disenchant"))
+    return disenchant(kit, ch);
   else {
     send_to_char(ch, "Invalid command.\r\n");
     return 0;
@@ -1635,7 +1719,12 @@ EVENTFUNC(event_crafting) {
 
     send_to_char(ch, "You have approximately %d seconds "
             "left to go.\r\n", GET_CRAFTING_TICKS(ch) * 6);
+
     GET_CRAFTING_TICKS(ch)--;
+    
+    /* skill notch */
+    increase_skill(ch, SKILL_FAST_CRAFTER);
+    
     if (GET_LEVEL(ch) >= LVL_IMMORT)
       return 1;
     else
@@ -1645,12 +1734,14 @@ EVENTFUNC(event_crafting) {
 
     switch (GET_CRAFTING_TYPE(ch)) {
       case SCMD_RESIZE:
+        // no skill association
         sprintf(buf, "You resize $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n resizes $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_DIVIDE:
+        // no skill association
         sprintf(buf, "You create $p (x%d).  Success!!!",
                 GET_CRAFTING_REPEAT(ch));
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
@@ -1697,7 +1788,7 @@ EVENTFUNC(event_crafting) {
         // synthesizing here
         break;
       case SCMD_CRAFT:
-        // crafting
+        // skill notch is done in create command
         if (GET_CRAFTING_REPEAT(ch)) {
           sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
           for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++) {
@@ -1716,6 +1807,49 @@ EVENTFUNC(event_crafting) {
         } else {
           GET_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
         }
+        break;
+      case SCMD_AUGMENT:
+        // use to be part of crafting
+        skill = SKILL_CHEMISTRY;
+        if (GET_CRAFTING_REPEAT(ch)) {
+          sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
+          for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++) {
+            obj2 = GET_CRAFTING_OBJ(ch);
+            obj_to_char(obj2, ch);
+          }
+          GET_CRAFTING_REPEAT(ch) = 0;
+        } else
+          sprintf(buf2, "\tn");
+        sprintf(buf, "You augment $p%s.  Success!!!", buf2);
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+        sprintf(buf, "$n augments $p%s.", buf2);
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+        break;
+      case SCMD_CONVERT:
+        // use to be part of crafting
+        skill = SKILL_CHEMISTRY;
+        if (GET_CRAFTING_REPEAT(ch)) {
+          sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
+          for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++) {
+            obj2 = GET_CRAFTING_OBJ(ch);
+            obj_to_char(obj2, ch);
+          }
+          GET_CRAFTING_REPEAT(ch) = 0;
+        } else
+          sprintf(buf2, "\tn");
+        sprintf(buf, "You convert $p%s.  Success!!!", buf2);
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+        sprintf(buf, "$n converts $p%s.", buf2);
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+        break;
+      case SCMD_RESTRING:
+        // no skill association
+        // use to be part of crafting
+        sprintf(buf2, "\tn");
+        sprintf(buf, "You rename $p%s.  Success!!!", buf2);
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+        sprintf(buf, "$n renames $p%s.", buf2);
+        act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_SUPPLYORDER:
         /* picking a random trade to notch */
@@ -1756,7 +1890,8 @@ EVENTFUNC(event_crafting) {
     }
 
     /* notch skills */
-    increase_skill(ch, skill);
+    if (skill != -1)
+      increase_skill(ch, skill);
     reset_craft(ch);
     return 0; //done with the event
   }
@@ -1777,12 +1912,6 @@ ACMD(do_harvest) {
     return;
   }
 
-/*
-  if (GET_CRAFTING_OBJ(ch)) {
-    send_to_char(ch, "You are already doing something.  Please wait until your current task ends.\r\n");
-    return;
-  }
-*/
   one_argument(argument, arg);
 
   if (!*arg) {
@@ -2088,86 +2217,5 @@ ACMD(do_harvest) {
   return;
 }
 
-/* unfinished -zusuk */
-ACMD(do_disenchant)
-{
-  struct obj_data *obj = NULL;
-  struct obj_data *essence = NULL;
-  int chance = 100;
-  int level = 0;
-
-  skip_spaces(&argument);
-
-  if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
-    send_to_char(ch, "You must drop something before you can disenchant anything.\r\n");
-    return;
-  }
-
-  if (GET_CRAFTING_OBJ(ch)) {
-    send_to_char(ch, "You are already doing something.  Please wait until your current task ends.\r\n");
-    return;
-  }
-
-  if (!*argument) {
-    send_to_char(ch, "What would you like to disenchant?\r\n");
-    return;
-  }
-
-  if (!(obj = get_obj_in_list_vis(ch, argument, NULL, ch->carrying))) {
-    send_to_char(ch, "There doesn't seem to be %s in your inventory.\r\n", argument);
-    return;
-  }
-
-  if (!IS_SET_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC)) {
-    send_to_char(ch, "Only magical items can be disenchanted.\r\n");
-    return;
-  }
-
-  if (obj && GET_OBJ_LEVEL(obj) > GET_SKILL(ch, SKILL_MINING)) {
-    send_to_char(ch, "Your crafting_theory skill isn't high enough to disenchant that item.\r\n");
-    return;
-  }
-
-
-  if (GET_OBJ_TYPE(obj) == ITEM_POTION)
-    chance = 20;
-  else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL)
-    chance = 30;
-  else if (GET_OBJ_TYPE(obj) == ITEM_WAND)
-    chance = 10 + GET_OBJ_VAL(obj, 2);
-  else if (GET_OBJ_TYPE(obj) == ITEM_STAFF)
-    chance = 25 + GET_OBJ_VAL(obj, 2);
-  else if (GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR
-           && GET_OBJ_TYPE(obj) != ITEM_WORN) {
-    send_to_char(ch, "You cannot disenchant that item.\r\n");
-    return;
-  }
-
-  if (dice(1, 100) <= chance) {
-    level = GET_OBJ_LEVEL(obj);
-    if (level <= 4)
-      essence = read_object(64100, VIRTUAL); // minor
-    else if (level <= 8)
-      essence = read_object(64101, VIRTUAL); // lesser
-    else if (level <= 12)
-      essence = read_object(64102, VIRTUAL); // medium
-    else if (level <= 16)
-      essence = read_object(64103, VIRTUAL); // greater
-    else 
-      essence = read_object(64104, VIRTUAL); // major
-
-  }
-  else {
-    essence = read_object(64012, VIRTUAL); // failed attempt
-  }
-  GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
-  GET_CRAFTING_TICKS(ch) = 3;
-  GET_CRAFTING_OBJ(ch) = essence;
-
-  send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
-  act("$n begins to disenchant $p.", FALSE, ch, obj, 0, TO_ROOM);
-  obj_from_char(obj);
-  extract_obj(obj);
-}
 
 

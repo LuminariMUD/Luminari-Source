@@ -98,12 +98,12 @@
 #define SPELL_MIRROR_IMAGE           55  //done
 #define SPELL_STONESKIN              56  //done
 #define SPELL_ENDURANCE              57  //done
-#define SPELL_MUMMY_DUST             58  //done
-#define SPELL_DRAGON_KNIGHT          59  //done
-#define SPELL_GREATER_RUIN           60  //done
-#define SPELL_HELLBALL               61  //done
-#define SPELL_EPIC_MAGE_ARMOR        62  //done
-#define SPELL_EPIC_WARDING           63  //done
+#define SPELL_MUMMY_DUST             58  //done, epic
+#define SPELL_DRAGON_KNIGHT          59  //done, epic
+#define SPELL_GREATER_RUIN           60  //done, epic
+#define SPELL_HELLBALL               61  //done, epic
+#define SPELL_EPIC_MAGE_ARMOR        62  //done, epic
+#define SPELL_EPIC_WARDING           63  //done, epic
 #define SPELL_CAUSE_LIGHT_WOUNDS     64  //done
 #define SPELL_CAUSE_MODERATE_WOUNDS  65  //done
 #define SPELL_CAUSE_SERIOUS_WOUNDS   66  //done
@@ -116,7 +116,7 @@
 #define SPELL_CHAIN_LIGHTNING        73  //done
 #define SPELL_METEOR_SWARM           74  //done
 #define SPELL_PROT_FROM_GOOD         75  //done
-#define SPELL_FIRE_BREATHE           76  //done
+#define SPELL_FIRE_BREATHE           76  //done, [not spell]
 #define SPELL_POLYMORPH              77  //done
 #define SPELL_ENDURE_ELEMENTS        78  //done
 #define SPELL_EXPEDITIOUS_RETREAT    79  //done
@@ -169,8 +169,8 @@
 #define SPELL_WISDOM               126  //done
 #define SPELL_CHARISMA             127  //done
 #define SPELL_STENCH               128  //done - stinking cloud proc
-#define SPELL_ACID_SPLASH          129  //done
-#define SPELL_RAY_OF_FROST         130  //done
+#define SPELL_ACID_SPLASH          129    // cantrip
+#define SPELL_RAY_OF_FROST         130    // cantrip
 #define SPELL_WIZARD_EYE           131  //done
 #define SPELL_FIRE_SHIELD          132  //done
 #define SPELL_COLD_SHIELD          133  //done
@@ -182,9 +182,9 @@
 #define SPELL_MINOR_GLOBE          139  //done
 #define SPELL_ENLARGE_PERSON       140  //done
 #define SPELL_SHRINK_PERSON        141  //done
-#define SPELL_FSHIELD_DAM          142  //done
-#define SPELL_CSHIELD_DAM          143  //done
-#define SPELL_ASHIELD_DAM          144  //done
+#define SPELL_FSHIELD_DAM          142  //done, fire shield proc
+#define SPELL_CSHIELD_DAM          143  //done, cold shield proc
+#define SPELL_ASHIELD_DAM          144  //done, acid shield proc
 #define SPELL_ACID_SHEATH          145  //done
 #define SPELL_INTERPOSING_HAND     146  //done
 #define SPELL_WALL_OF_FORCE        147  //done
@@ -260,7 +260,7 @@
 #define SPELL_ACID                 217  //acid fog proc
 
 #define SPELL_HOLY_SWORD           218  //paladin
-#define SPELL_INCENDIARY           219  // incendiary cloud
+#define SPELL_INCENDIARY           219  // incendiary cloud proc
 /* some cleric spells */
 #define SPELL_CURE_MODERATE        220  //done
 #define SPELL_CURE_SERIOUS         221  //done
@@ -350,6 +350,7 @@
 #define SPELL_BLADE_BARRIER             303  //done
 #define SPELL_BLADES                    304  //blades (for blade barrier) (done)
 #define SPELL_BATTLETIDE                305  //done
+/* room events test spell */
 #define SPELL_I_DARKNESS                306  //room event test spell
 /** Total Number of defined spells (last spell define + 1) */
 #define NUM_SPELLS                      307
