@@ -3643,7 +3643,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         act(mag_summon_fail_msgs[7], FALSE, ch, 0, 0, TO_CHAR);
         return;
       }
-      if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_HOLY) && !ROOM_FLAGGED(IN_ROOM(ch), RAFF_UNHOLY)) {
+      if (IS_HOLY(IN_ROOM(ch))) {
         send_to_char(ch, "This place is too holy for such blasphemy!");
         return;
       }

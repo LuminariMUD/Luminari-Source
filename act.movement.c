@@ -193,11 +193,11 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   if (need_specials_check && special(ch, dir + 1, spec_proc_args))
     return 0;
 
-  if (IS_EVIL(ch) && ROOM_AFFECTED(going_to, RAFF_HOLY) && !ROOM_AFFECTED(going_to, RAFF_UNHOLY)) {
+  if (IS_EVIL(ch) && IS_HOLY(going_to)) {
     send_to_char(ch, "The sanctity of the area prevents you from entering.\r\n");
     return 0;
   }
-  if (IS_GOOD(ch) && ROOM_AFFECTED(going_to, RAFF_UNHOLY) && !ROOM_AFFECTED(going_to, RAFF_HOLY)) {
+  if (IS_GOOD(ch) && IS_UNHOLY(going_to)) {
     send_to_char(ch, "The corruption of the area prevents you from entering.\r\n");
     return 0;
   }
