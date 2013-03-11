@@ -133,7 +133,7 @@ void determine_crafting_component_treasure(struct char_data *ch, struct char_dat
 void determine_treasure(struct char_data *ch, struct char_data *mob);
 // character should get treasure, chooses what awards are given out
 // uses:  award_special/expendable (potion/scroll/wand/staff)/weapon/"item"/armor
-void award_magic_item(int number, struct char_data *ch, struct char_data *mob, int grade);
+void award_magic_item(int number, struct char_data *ch, int level, int grade);
 // gives away staff/potion/scroll/wand
 void award_expendable_item(struct char_data *ch, int grade, int type);
 // gives away random magic armor
@@ -146,7 +146,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel);
 void award_special_magic_item(struct char_data *ch);
 
 // staff tool to load random items
-//ACMD(do_loadmagic)
+ACMD(do_loadmagic);
 
 
 #endif	/* TREASURE_H */
