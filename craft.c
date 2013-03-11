@@ -235,7 +235,7 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
       break;
       
     case APPLY_AC:
-      bonus *= 5;
+      bonus *= -5;
       break;
       
     case APPLY_HITROLL:

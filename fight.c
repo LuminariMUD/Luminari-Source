@@ -30,6 +30,7 @@
 #include "mud_event.h"
 #include "spec_procs.h"
 #include "clan.h"
+#include "treasure.h"
 
 /* locally defined global variables, used externally */
 
@@ -610,7 +611,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
 
 }
 
-void raw_kill_old(struct char_data * ch, struct char_data * killer) {
+void raw_kill_old(struct char_data *ch, struct char_data *killer) {
   if (FIGHTING(ch))
     stop_fighting(ch);
 
@@ -630,6 +631,10 @@ void raw_kill_old(struct char_data * ch, struct char_data * killer) {
 
   update_pos(ch);
 
+  /* random treasure drop */
+  if (killer && ch)
+    determine_treasure(find_treasure_recipient(killer), ch);
+  
   make_corpse(ch);
   /* this was commented out for some reason, undid that to make sure
      events clear on death */
