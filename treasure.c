@@ -471,10 +471,13 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
     color2 = rand_number(0, NUM_A_COLORS);
 
   /* load prototype */
-  obj = read_object(ITEM_PROTOTYPE, VIRTUAL);
+  
+  if ((obj = read_object(ITEM_PROTOTYPE, VIRTUAL)) == NULL) {
+    log("SYSERR:  award_expendable_item returned NULL");
+    return;
+  }
 
   switch (type) {
-
     case TYPE_POTION:
       /* assign a description (potions only) */
       desc = rand_number(0, NUM_A_POTION_DESCS);
@@ -635,6 +638,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       break;
   }
 
+  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
 
   obj_to_char(obj, ch);
@@ -1111,6 +1115,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
           random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR));
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
 
+  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
   if (grade > GRADE_MUNDANE)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
 
@@ -1601,6 +1606,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   GET_OBJ_LEVEL(obj) = level;
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
 
+  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
   if (grade > GRADE_MUNDANE)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
 
@@ -1904,6 +1910,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
           random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR));
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
 
+  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
   if (grade > GRADE_MUNDANE)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
 
