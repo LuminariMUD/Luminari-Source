@@ -248,7 +248,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "load", "load", POS_DEAD, do_load, LVL_BUILDER, 0, TRUE},
   { "lore", "lore", POS_FIGHTING, do_lore, 1, 0, FALSE},
   { "land", "land", POS_FIGHTING, do_land, 1, 0, FALSE},
-  { "loadmagic", "loadmagic", POS_DEAD, do_loadmagic, LVL_IMPL, 0, TRUE},
+  { "loadmagic", "loadmagic", POS_DEAD, do_loadmagic, LVL_IMMORT, 0, TRUE},
 
   { "memorize", "memorize", POS_RESTING, do_gen_memorize, 0, SCMD_MEMORIZE, FALSE},
   { "mail", "mail", POS_STANDING, do_not_here, 1, 0, FALSE},
