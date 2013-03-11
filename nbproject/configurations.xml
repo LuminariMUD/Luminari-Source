@@ -144,6 +144,9 @@
       <in>sysdep.h</in>
       <in>tedit.c</in>
       <in>telnet.h</in>
+      <in>treasure.c</in>
+      <in>treasure.h</in>
+      <in>treasure_const.c</in>
       <in>utils.c</in>
       <in>utils.h</in>
       <in>weather.c</in>
