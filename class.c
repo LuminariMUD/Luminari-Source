@@ -1209,10 +1209,10 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
     SET_SKILL(ch, SPELL_SPIKE_GROWTH, 99);
     // summon nature's ally iii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_3, 99);
-    SET_SKILL(ch, SPELL_DETECT_ALIGN, 99); // no
-    SET_SKILL(ch, SPELL_CURE_BLIND, 99); // no
-    SET_SKILL(ch, SPELL_BLESS, 99); // no
-    SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99); // no
+    //SET_SKILL(ch, SPELL_DETECT_ALIGN, 99); // no
+    //SET_SKILL(ch, SPELL_CURE_BLIND, 99); // no
+    //SET_SKILL(ch, SPELL_BLESS, 99); // no
+    //SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99); // no
     //4th circle
     SET_SKILL(ch, SPELL_BLIGHT, 99);
     SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
@@ -1237,7 +1237,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_STONESKIN, 99);
     // summon nature's ally v SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_5, 99);
     SET_SKILL(ch, SPELL_UNHALLOW, 99);
-    // wall of fire SET_SKILL(ch, SPELL_WALL_OF_FIRE, 99);
+    SET_SKILL(ch, SPELL_WALL_OF_FIRE, 99);
     // wall of thorns SET_SKILL(ch, SPELL_WALL_OF_THORNS, 99);
     SET_SKILL(ch, SPELL_BLINDNESS, 99); // no
     SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99); // no
@@ -2779,7 +2779,7 @@ void init_spell_levels(void)
   spell_level(SPELL_STONESKIN, CLASS_DRUID, 9);
   // summon nature's ally v
   spell_level(SPELL_UNHALLOW, CLASS_DRUID, 9);
-  // wall of fire
+  spell_level(SPELL_WALL_OF_FIRE, CLASS_DRUID, 9);
   // wall of thorns
   spell_level(SPELL_BLINDNESS, CLASS_DRUID, 9); // no
   spell_level(SPELL_PROT_FROM_EVIL, CLASS_DRUID, 9); // no
