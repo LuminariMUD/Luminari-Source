@@ -180,8 +180,6 @@ extern const char *head_types[];
 /* some spells are not appropriate for expendable items, this simple
  function returns TRUE if the spell is OK, FALSE if not */
 bool valid_item_spell(int spellnum);
-/* function that creates a random crystal */
-void get_random_crystal(struct char_data *ch, int level);
 /* when groupped, determine random recipient from group */
 struct char_data *find_treasure_recipient(struct char_data *killer);
 
@@ -190,6 +188,8 @@ void determine_treasure(struct char_data *ch, struct char_data *mob);
 // character should get treasure, chooses what awards are given out
 // uses:  award_special/expendable (potion/scroll/wand/staff)/weapon/"item"/armor
 void award_magic_item(int number, struct char_data *ch, int level, int grade);
+/* function that creates a random crystal */
+void award_random_crystal(struct char_data *ch, int level);
 // gives away staff/potion/scroll/wand
 void award_expendable_item(struct char_data *ch, int grade, int type);
 // gives away random magic armor

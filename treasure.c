@@ -206,93 +206,6 @@ int random_bonus_value(int apply_value, int level) {
   return MAX(1, bonus);
 }
 
-/* function to create a random crystal */
-void get_random_crystal(struct char_data *ch, int level) {
-  int color1 = -1, color2 = -1, desc = -1, roll = 0;
-  struct obj_data *obj = NULL;
-  char buf[MEDIUM_STRING] = {'\0'};
-
-  if ((obj = read_object(CRYSTAL_PROTOTYPE, VIRTUAL)) == NULL) {
-    log("SYSERR:  get_random_crystal read_object returned NULL");
-    return;
-  }
-
-  /* this is just to make sure the item is set correctly */
-  GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
-  GET_OBJ_COST(obj) = level * 100;
-  GET_OBJ_LEVEL(obj) = dice(1, level);
-  GET_OBJ_MATERIAL(obj) = MATERIAL_CRYSTAL;
-
-  /* set a random apply value */
-  obj->affected[0].location = random_apply_value();
-  /* determine bonus */
-  /* this is deprecated, level determines modifier now (in craft.c) */
-  obj->affected[0].modifier =
-          random_bonus_value(obj->affected[0].location, GET_OBJ_LEVEL(obj));
-
-  /* random color(s) and description */
-  color1 = rand_number(0, NUM_A_COLORS);
-  color2 = rand_number(0, NUM_A_COLORS);
-  while (color2 == color1)
-    color2 = rand_number(0, NUM_A_COLORS);
-  desc = rand_number(0, NUM_A_CRYSTAL_DESCS);
-
-  roll = dice(1, 100);
-
-  // two colors and descriptor
-  if (roll >= 91) {
-    sprintf(buf, "crystal %s %s %s", colors[color1], colors[color2],
-            crystal_descs[desc]);
-    obj->name = strdup(buf);
-    sprintf(buf, "a  %s, %s and %s crystal", crystal_descs[desc],
-            colors[color1], colors[color2]);
-    obj->short_description = strdup(buf);
-    sprintf(buf, "A %s, %s and %s crystal lies here.", crystal_descs[desc],
-            colors[color1], colors[color2]);
-    obj->description = strdup(buf);
-
-    // one color and descriptor
-  } else if (roll >= 66) {
-    sprintf(buf, "crystal %s %s", colors[color1], crystal_descs[desc]);
-    obj->name = strdup(buf);
-    sprintf(buf, "a %s %s crystal", crystal_descs[desc], colors[color1]);
-    obj->short_description = strdup(buf);
-    sprintf(buf, "A %s %s crystal lies here.", crystal_descs[desc],
-            colors[color1]);
-    obj->description = strdup(buf);
-
-    // two colors no descriptor
-  } else if (roll >= 41) {
-    sprintf(buf, "crystal %s %s", colors[color1], colors[color2]);
-    obj->name = strdup(buf);
-    sprintf(buf, "a %s and %s crystal", colors[color1], colors[color2]);
-    obj->short_description = strdup(buf);
-    sprintf(buf, "A %s and %s crystal lies here.", colors[color1], colors[color2]);
-    obj->description = strdup(buf);
-  } else if (roll >= 21) {// one color no descriptor
-    sprintf(buf, "crystal %s", colors[color1]);
-    obj->name = strdup(buf);
-    sprintf(buf, "a %s crystal", colors[color1]);
-    obj->short_description = strdup(buf);
-    sprintf(buf, "A %s crystal lies here.", colors[color1]);
-    obj->description = strdup(buf);
-
-    // descriptor only  
-  } else {
-    sprintf(buf, "crystal %s", crystal_descs[desc]);
-    obj->name = strdup(buf);
-    sprintf(buf, "a %s crystal", crystal_descs[desc]);
-    obj->short_description = strdup(buf);
-    sprintf(buf, "A %s crystal lies here.", crystal_descs[desc]);
-    obj->description = strdup(buf);
-  }
-
-  obj_to_char(obj, ch);
-
-  send_to_char(ch, "\tYYou have found %s.\tn\r\n", obj->short_description);
-  act("\tY$n has found $p.\tn", true, ch, obj, 0, TO_ROOM);
-}
-
 /* when groupped, determine random recipient from group */
 struct char_data *find_treasure_recipient(struct char_data *ch) {
   struct group_data *group = NULL;
@@ -393,7 +306,96 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
       award_misc_magic_item(ch, grade, level);
     if (dice(1, 100) <= 10)
       award_magic_armor(ch, grade, level);
+    if (dice(1, 100) <= 5)
+      award_random_crystal(ch, level);
   }
+}
+
+/* function to create a random crystal */
+void award_random_crystal(struct char_data *ch, int level) {
+  int color1 = -1, color2 = -1, desc = -1, roll = 0;
+  struct obj_data *obj = NULL;
+  char buf[MEDIUM_STRING] = {'\0'};
+
+  if ((obj = read_object(CRYSTAL_PROTOTYPE, VIRTUAL)) == NULL) {
+    log("SYSERR:  get_random_crystal read_object returned NULL");
+    return;
+  }
+
+  /* this is just to make sure the item is set correctly */
+  GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
+  GET_OBJ_COST(obj) = level * 100;
+  GET_OBJ_LEVEL(obj) = dice(1, level);
+  GET_OBJ_MATERIAL(obj) = MATERIAL_CRYSTAL;
+
+  /* set a random apply value */
+  obj->affected[0].location = random_apply_value();
+  /* determine bonus */
+  /* this is deprecated, level determines modifier now (in craft.c) */
+  obj->affected[0].modifier =
+          random_bonus_value(obj->affected[0].location, GET_OBJ_LEVEL(obj));
+
+  /* random color(s) and description */
+  color1 = rand_number(0, NUM_A_COLORS);
+  color2 = rand_number(0, NUM_A_COLORS);
+  while (color2 == color1)
+    color2 = rand_number(0, NUM_A_COLORS);
+  desc = rand_number(0, NUM_A_CRYSTAL_DESCS);
+
+  roll = dice(1, 100);
+
+  // two colors and descriptor
+  if (roll >= 91) {
+    sprintf(buf, "crystal %s %s %s", colors[color1], colors[color2],
+            crystal_descs[desc]);
+    obj->name = strdup(buf);
+    sprintf(buf, "a  %s, %s and %s crystal", crystal_descs[desc],
+            colors[color1], colors[color2]);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "A %s, %s and %s crystal lies here.", crystal_descs[desc],
+            colors[color1], colors[color2]);
+    obj->description = strdup(buf);
+
+    // one color and descriptor
+  } else if (roll >= 66) {
+    sprintf(buf, "crystal %s %s", colors[color1], crystal_descs[desc]);
+    obj->name = strdup(buf);
+    sprintf(buf, "a %s %s crystal", crystal_descs[desc], colors[color1]);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "A %s %s crystal lies here.", crystal_descs[desc],
+            colors[color1]);
+    obj->description = strdup(buf);
+
+    // two colors no descriptor
+  } else if (roll >= 41) {
+    sprintf(buf, "crystal %s %s", colors[color1], colors[color2]);
+    obj->name = strdup(buf);
+    sprintf(buf, "a %s and %s crystal", colors[color1], colors[color2]);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "A %s and %s crystal lies here.", colors[color1], colors[color2]);
+    obj->description = strdup(buf);
+  } else if (roll >= 21) {// one color no descriptor
+    sprintf(buf, "crystal %s", colors[color1]);
+    obj->name = strdup(buf);
+    sprintf(buf, "a %s crystal", colors[color1]);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "A %s crystal lies here.", colors[color1]);
+    obj->description = strdup(buf);
+
+    // descriptor only  
+  } else {
+    sprintf(buf, "crystal %s", crystal_descs[desc]);
+    obj->name = strdup(buf);
+    sprintf(buf, "a %s crystal", crystal_descs[desc]);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "A %s crystal lies here.", crystal_descs[desc]);
+    obj->description = strdup(buf);
+  }
+
+  obj_to_char(obj, ch);
+
+  send_to_char(ch, "\tYYou have found %s.\tn\r\n", obj->short_description);
+  act("\tY$n has found $p.\tn", true, ch, obj, 0, TO_ROOM);
 }
 
 /* awards potions or scroll or wand or staff */
@@ -574,9 +576,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       GET_OBJ_VAL(obj, 2) = 10;
       GET_OBJ_VAL(obj, 3) = spell_num;
 
-      GET_OBJ_COST(obj) = 50;
-      for (i = 1; i < spell_level; i++)
-        GET_OBJ_COST(obj) *= 3;
+      GET_OBJ_COST(obj) = MIN(1000, 50 * spell_level);
       GET_OBJ_MATERIAL(obj) = MATERIAL_WOOD;
       GET_OBJ_TYPE(obj) = ITEM_WAND;
       SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HOLD);
@@ -603,9 +603,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       GET_OBJ_VAL(obj, 2) = 8;
       GET_OBJ_VAL(obj, 3) = spell_num;
 
-      GET_OBJ_COST(obj) = 110;
-      for (i = 1; i < spell_level; i++)
-        GET_OBJ_COST(obj) *= 3;
+      GET_OBJ_COST(obj) = MIN(1000, 110 * spell_level);
       GET_OBJ_MATERIAL(obj) = MATERIAL_WOOD;
       GET_OBJ_TYPE(obj) = ITEM_STAFF;
       SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HOLD);
@@ -629,9 +627,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       GET_OBJ_VAL(obj, 0) = spell_level;
       GET_OBJ_VAL(obj, 1) = spell_num;
 
-      GET_OBJ_COST(obj) = 10;
-      for (i = 1; i < spell_level; i++)
-        GET_OBJ_COST(obj) *= 3;
+      GET_OBJ_COST(obj) = MIN(1000, 10 * spell_level);
       GET_OBJ_MATERIAL(obj) = MATERIAL_PAPER;
       GET_OBJ_TYPE(obj) = ITEM_SCROLL;
       GET_OBJ_LEVEL(obj) = dice(1, spell_level);
