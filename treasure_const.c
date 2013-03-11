@@ -452,13 +452,11 @@ const char *handle_types[] = {
   "shaft",
   "hilt",
   "strap",
-  "string",
-  "grip",  //5
-  "handle",
-  "glove",
+  "grip",  
+  "handle",  //5
   "\n"
 };
-//8
+//6
 
 
 const char *head_types[] = {

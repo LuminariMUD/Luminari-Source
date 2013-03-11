@@ -247,7 +247,7 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
       break;
   }
 
-  return MAX(1, bonus);
+  return bonus;
 }
 
 /*

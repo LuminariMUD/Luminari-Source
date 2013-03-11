@@ -51,7 +51,7 @@ extern const char *head_types[];
 #define NUM_A_POTION_DESCS    29
 #define NUM_A_ARMOR_SPECIAL_DESCS    25
 #define NUM_A_ARMOR_CRESTS    38
-#define NUM_A_HANDLE_TYPES    7
+#define NUM_A_HANDLE_TYPES    5
 #define NUM_A_HEAD_TYPES      9
 
 #define GRADE_MUNDANE 1
