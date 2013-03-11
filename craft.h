@@ -25,7 +25,7 @@
 /* Max level of a crystal in determining bonus */
 #define CRYSTAL_CAP         (LVL_IMMORT-1)
 /* Crystal bonus division factor, ex. level 30 = +6 bonus (factor of 5) */
-#define BONUS_FACTOR        6
+#define BONUS_FACTOR        5
 /* Maximum crit rolls you can get on crafting */
 #define MAX_CRAFT_CRIT      3
 #define AUTOCQUEST_VNUM     30084  /* set your autoquest object here */
