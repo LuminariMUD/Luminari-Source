@@ -181,7 +181,7 @@ int random_bonus_value(int apply_value, int level) {
       bonus *= 12;
       break;
     case APPLY_AC:
-      bonus *= 5;
+      bonus *= -5;
       break;
     case APPLY_HITROLL:
     case APPLY_DAMROLL:
@@ -660,7 +660,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
  */
 void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   struct obj_data *obj = NULL;
-  int vnum = -1, material = MATERIAL_BRONZE, roll = 0;
+  int vnum = -1, material = MATERIAL_BRONZE, roll = 0, crest_num = 0;
   int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -670,13 +670,13 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   roll = dice(1, 100);
   if (roll == 1) {
     rare_grade = 3;
-    sprintf(desc, "\tM[Mythical]\tn");
+    sprintf(desc, "\tM[Mythical] \tn");
   } else if (roll <= 6) {
     rare_grade = 2;
-    sprintf(desc, "\tY[Legendary]\tn");
+    sprintf(desc, "\tY[Legendary] \tn");
   } else if (roll <= 16) {
     rare_grade = 1;
-    sprintf(desc, "\tG[Rare]\tn");
+    sprintf(desc, "\tG[Rare] \tn");
   }
 
   /* find a random piece of armor
@@ -689,49 +689,49 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
     case 1:
       vnum = PLATE_BODY;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a suit of", desc);
+      sprintf(desc, "%sa suit of", desc);
       sprintf(armor_name, "plate mail armor");
       break;
     case 2:
       vnum = HALFPLATE_BODY;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a suit of", desc);
+      sprintf(desc, "%sa suit of", desc);
       sprintf(armor_name, "half plate armor");
       break;
     case 3:
       vnum = SPLINT_BODY;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a suit of", desc);
+      sprintf(desc, "%sa suit of", desc);
       sprintf(armor_name, "splint mail armor");
       break;
     case 4:
       vnum = BREASTPLATE_BODY;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a suit of", desc);
+      sprintf(desc, "%sa suit of", desc);
       sprintf(armor_name, "breastplate armor");
       break;
     case 5:
       vnum = CHAIN_BODY;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a suit of", desc);
+      sprintf(desc, "%sa suit of", desc);
       sprintf(armor_name, "chain mail armor");
       break;
     case 6:
       vnum = STUD_LEATHER_BODY;
       material = MATERIAL_LEATHER;
-      sprintf(desc, "%s a suit of", desc);
+      sprintf(desc, "%sa suit of", desc);
       sprintf(armor_name, "studded leather armor");
       break;
     case 7:
       vnum = LEATHER_BODY;
       material = MATERIAL_LEATHER;
-      sprintf(desc, "%s a suit of", desc);
+      sprintf(desc, "%sa suit of", desc);
       sprintf(armor_name, "leather armor");
       break;
     case 8:
       vnum = PADDED_BODY;
       material = MATERIAL_COTTON;
-      sprintf(desc, "%s a suit of", desc);
+      sprintf(desc, "%sa suit of", desc);
       sprintf(armor_name, "padded armor");
       break;
     case 9:
@@ -744,55 +744,55 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
     case 10:
       vnum = PLATE_HELM;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "plate mail helm");
       break;
     case 11:
       vnum = HALFPLATE_HELM;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "half plate helm");
       break;
     case 12:
       vnum = SPLINT_HELM;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "splint mail helm");
       break;
     case 13:
       vnum = PIECEPLATE_HELM;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "piece plate helm");
       break;
     case 14:
       vnum = CHAIN_HELM;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "chain mail helm");
       break;
     case 15:
       vnum = STUD_LEATHER_HELM;
       material = MATERIAL_LEATHER;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "studded leather helm");
       break;
     case 16:
       vnum = LEATHER_HELM;
       material = MATERIAL_LEATHER;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "leather helm");
       break;
     case 17:
       vnum = PADDED_HELM;
       material = MATERIAL_COTTON;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "padded armor helm");
       break;
     case 18:
       vnum = CLOTH_HELM;
       material = MATERIAL_COTTON;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "cloth hood");
       break;
 
@@ -800,49 +800,49 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
     case 19:
       vnum = PLATE_ARMS;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "plate mail vambraces");
       break;
     case 20:
       vnum = HALFPLATE_ARMS;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "half plate vambraces");
       break;
     case 21:
       vnum = SPLINT_ARMS;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "splint mail vambraces");
       break;
     case 22:
       vnum = CHAIN_ARMS;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "chain mail sleeves");
       break;
     case 23:
       vnum = STUD_LEATHER_ARMS;
       material = MATERIAL_LEATHER;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "studded leather sleeves");
       break;
     case 24:
       vnum = LEATHER_ARMS;
       material = MATERIAL_LEATHER;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "leather sleeves");
       break;
     case 25:
       vnum = PADDED_ARMS;
       material = MATERIAL_COTTON;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "padded armor sleeves");
       break;
     case 26:
       vnum = CLOTH_ARMS;
       material = MATERIAL_COTTON;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "cloth sleeves");
       break;
 
@@ -850,49 +850,49 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
     case 27:
       vnum = PLATE_LEGS;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "plate mail greaves");
       break;
     case 28:
       vnum = HALFPLATE_LEGS;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "half plate greaves");
       break;
     case 29:
       vnum = SPLINT_LEGS;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "splint mail greaves");
       break;
     case 30:
       vnum = CHAIN_LEGS;
       material = MATERIAL_BRONZE;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "chain mail leggings");
       break;
     case 31:
       vnum = STUD_LEATHER_LEGS;
       material = MATERIAL_LEATHER;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "studded leather leggings");
       break;
     case 32:
       vnum = LEATHER_LEGS;
       material = MATERIAL_LEATHER;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "leather leggings");
       break;
     case 33:
       vnum = PADDED_LEGS;
       material = MATERIAL_COTTON;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "padded armor leggings");
       break;
     case 34:
       vnum = CLOTH_LEGS;
       material = MATERIAL_COTTON;
-      sprintf(desc, "%s a set of", desc);
+      sprintf(desc, "%sa set of", desc);
       sprintf(armor_name, "cloth pants");
       break;
 
@@ -900,19 +900,19 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
     case 35:
       vnum = SHIELD_MEDIUM;
       material = MATERIAL_WOOD;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "medium shield");
       break;
     case 36:
       vnum = SHIELD_LARGE;
       material = MATERIAL_WOOD;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "large shield");
       break;
     case 37:
       vnum = SHIELD_TOWER;
       material = MATERIAL_WOOD;
-      sprintf(desc, "%s a", desc);
+      sprintf(desc, "%sa", desc);
       sprintf(armor_name, "tower shield");
       break;
   }
@@ -1088,16 +1088,17 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   roll = dice(1, 8);
 
   // It has a crest so find out which and set the desc
+  crest_num = rand_number(0, NUM_A_ARMOR_CRESTS);
   if (roll >= 7)
     sprintf(desc, "%s with %s %s crest", desc,
-          AN(armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS)]),
-          armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS)]);
+          AN(armor_crests[crest_num]),
+          armor_crests[crest_num]);
 
     // It has a symbol so find out which and set the desc
   else if (roll >= 5)
     sprintf(desc, "%s covered in symbols of %s %s", desc,
-          AN(armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS)]),
-          armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS)]);
+          AN(armor_crests[crest_num]),
+          armor_crests[crest_num]);
 
 
   // Set descriptions
@@ -1152,13 +1153,13 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   roll = dice(1, 100);
   if (roll == 1) {
     rare_grade = 3;
-    sprintf(desc, "\tM[Mythical]\tn");
+    sprintf(desc, "\tM[Mythical] \tn");
   } else if (roll <= 6) {
     rare_grade = 2;
-    sprintf(desc, "\tY[Legendary]\tn");
+    sprintf(desc, "\tY[Legendary] \tn");
   } else if (roll <= 16) {
     rare_grade = 1;
-    sprintf(desc, "\tG[Rare]\tn");
+    sprintf(desc, "\tG[Rare] \tn");
   }
 
   /* find a random weapon
@@ -1643,13 +1644,13 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   roll = dice(1, 100);
   if (roll == 1) {
     rare_grade = 3;
-    sprintf(desc, "\tM[Mythical]\tn");
+    sprintf(desc, "\tM[Mythical] \tn");
   } else if (roll <= 6) {
     rare_grade = 2;
-    sprintf(desc, "\tY[Legendary]\tn");
+    sprintf(desc, "\tY[Legendary] \tn");
   } else if (roll <= 16) {
     rare_grade = 1;
-    sprintf(desc, "\tG[Rare]\tn");
+    sprintf(desc, "\tG[Rare] \tn");
   }
 
   /* find a random piece of armor
@@ -1895,10 +1896,10 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
       obj->description = strdup(desc);
       break;
     case HELD_MOLD:
-      sprintf(desc, "%sa %s %s orb", desc, desc2, desc3);
+      sprintf(desc, "%sa %s %s orb", desc, desc2, armor_name);
       obj->name = strdup(desc);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%sA %s %s orb is lying here.", desc, desc2, desc3);
+      sprintf(desc, "%sA %s %s orb is lying here.", desc, desc2, armor_name);
       obj->description = strdup(desc);
       break;
   }
