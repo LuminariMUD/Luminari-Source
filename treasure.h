@@ -39,7 +39,6 @@ extern const char *head_types[];
 #define NUM_A_RING_DESCS      3
 #define NUM_A_WRIST_DESCS     9
 #define NUM_A_NECK_DESCS      13
-#define NUM_A_HEAD_DESCS      16
 #define NUM_A_HAND_DESCS      3
 #define NUM_A_CLOAK_DESCS     4
 #define NUM_A_WAIST_DESCS     5
@@ -52,6 +51,8 @@ extern const char *head_types[];
 #define NUM_A_POTION_DESCS    29
 #define NUM_A_ARMOR_SPECIAL_DESCS    25
 #define NUM_A_ARMOR_CRESTS    38
+#define NUM_A_HANDLE_TYPES    7
+#define NUM_A_HEAD_TYPES      9
 
 #define GRADE_MUNDANE 1
 #define GRADE_MINOR   2
@@ -108,6 +109,52 @@ extern const char *head_types[];
 #define SHIELD_TOWER          3182
 /* end armor molds */
 #define NUM_ARMOR_MOLDS 37
+
+/* weapon mold vnums */
+/* simple */
+/* light */
+#define DAGGER                3212  //0
+#define MACE                  3213
+#define SICKLE                3214
+/* one handed */            
+#define CLUB                  3215
+#define MORNINGSTAR           3216
+/* two handed */
+#define SPEAR                 3217  //5
+#define QUARTERSTAFF          3218
+/* martial */
+/* light */
+#define HANDAXE               3219
+#define KUKRI                 3220
+#define SHORTSWORD            3221
+/* one handed */
+#define BATTLEAXE             3222  //10
+#define FLAIL                 3223
+#define LONGSWORD             3224
+#define RAPIER                3225
+#define SCIMITAR              3226
+#define TRIDENT               3227  //15
+#define WARHAMMER             3228
+/* two handed */
+#define FALCHION              3229
+#define GLAIVE                3230
+#define GREATAXE              3231
+#define GREATCLUB             3232  //20
+#define GREATSWORD            3233
+#define HALBERD               3234
+#define LANCE                 3235
+#define SCYTHE                3236
+/* exotic */
+/* light */
+#define KAMA                  3237  //25
+/* one handed */
+#define BASTARDSWORD          3238
+#define DWARVENWARAXE         3239
+/* two handed */
+#define DIREFLAIL             3240
+/* end weapon molds */
+#define NUM_WEAPON_MOLDS 29
+
 
 /* item prototype for potions/scrolls/wands/staves */
 #define ITEM_PROTOTYPE        3210

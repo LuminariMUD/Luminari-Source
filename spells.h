@@ -510,6 +510,42 @@
 /** The total number of attack types */
 #define NUM_ATTACK_TYPES  15
 
+
+/* (stock)
+ * hit - 0      blunt
+ * sting - 1      piercing
+ * whip - 2      blades (slashing)
+ * slash - 3      blades (slashing)
+ * bite - 4      piercing
+ * bludgeon - 5      blunt
+ * crush - 6      blunt
+ * pound - 7      blunt
+ * claw - 8      blades (slashing)
+ * maul - 9      blades (slashing)
+ * thrash - 10      blades (slashing)
+ * pierce - 11      piercing
+ * blast - 12      piercing
+ * punch - 13      blunt
+ * stab - 14      piercing
+ */
+/* weapon type macros */
+#define IS_BLADE(obj)      ( GET_OBJ_VAL(obj, 3) == (TYPE_WHIP - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_SLASH - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_CLAW - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_MAUL - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_THRASH - TYPE_HIT) )
+#define IS_PIERCE(obj)     ( GET_OBJ_VAL(obj, 3) == (TYPE_STING - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_BITE - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_PIERCE - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_BLAST - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_STAB - TYPE_HIT) )
+#define IS_BLUNT(obj)      ( GET_OBJ_VAL(obj, 3) == (TYPE_HIT - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_BLUDGEON - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_CRUSH - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_POUND - TYPE_HIT) || \
+                             GET_OBJ_VAL(obj, 3) == (TYPE_PUNCH - TYPE_HIT) )
+
+
 /* other attack types */
 #define TYPE_CSHIELD      796
 #define TYPE_FSHIELD      797

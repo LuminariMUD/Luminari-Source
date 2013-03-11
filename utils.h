@@ -85,8 +85,9 @@ void new_affect(struct affected_type *af);
 int get_class_by_name(char *classname);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
-char * convert_from_tabs(char * string);
+char *convert_from_tabs(char * string);
 int count_non_protocol_chars(char * str);
+char *a_or_an(char *string);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
@@ -954,7 +955,6 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define GET_WEAPON_SPELL_LVL(obj, i)	((obj)->wpn_spells[i].level)
 #define GET_WEAPON_SPELL_PCT(obj, i)	((obj)->wpn_spells[i].percent)
 #define GET_WEAPON_SPELL_AGG(obj, i)	((obj)->wpn_spells[i].inCombat)
-
 
 /** If ch is a mob, return the special function, else return NULL. */
 #define GET_MOB_SPEC(ch)	(IS_MOB(ch) ? mob_index[(ch)->nr].func : NULL)

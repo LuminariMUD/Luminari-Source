@@ -37,6 +37,21 @@
  */
 
 
+/* returns a or an based on first character of next word */
+char * a_or_an(char *string) {
+  switch (tolower(*string)) {
+    case 'a':
+    case 'e':
+    case 'i':
+    case 'u':
+    case 'o':
+      return "an";
+  }
+
+  return "a";
+}
+
+
 /* function for sneak-check
  * ch = listener (challenge), vict = sneaker (DC)
  */

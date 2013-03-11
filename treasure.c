@@ -101,7 +101,7 @@ int choose_cloth_material(void) {
 /* returns random apply value */
 int random_apply_value(void) {
   int val = APPLY_NONE;
-  
+
   switch (dice(1, 14)) {
     case 1:
       val = APPLY_AC;
@@ -146,15 +146,16 @@ int random_apply_value(void) {
       val = APPLY_HIT;
       break;
   }
-  
+
   return val;
 }
 
 /* function that returns bonus value based on apply-value and level */
+
 /* TODO:  probably can merge this with crystal_bonus fuction in craft.c */
 int random_bonus_value(int apply_value, int level) {
   int bonus = level / BONUS_FACTOR;
-  
+
   switch (apply_value) {
     case APPLY_HIT:
       bonus *= 12;
@@ -169,7 +170,7 @@ int random_bonus_value(int apply_value, int level) {
     case APPLY_MOVE:
       bonus *= 24;
       break;
-    /* no modifications */
+      /* no modifications */
     case APPLY_STR:
     case APPLY_CON:
     case APPLY_DEX:
@@ -181,7 +182,7 @@ int random_bonus_value(int apply_value, int level) {
     case APPLY_SAVING_WILL:
       break;
   }
-  
+
   return MAX(1, bonus);
 }
 
@@ -189,8 +190,8 @@ int random_bonus_value(int apply_value, int level) {
 void get_random_crystal(struct char_data *ch, int level) {
   int color1 = -1, color2 = -1, desc = -1, roll = 0;
   struct obj_data *obj = NULL;
-  char buf[MEDIUM_STRING] = { '\0' };
-  
+  char buf[MEDIUM_STRING] = {'\0'};
+
   if ((obj = read_object(CRYSTAL_PROTOTYPE, VIRTUAL)) == NULL) {
     log("SYSERR:  get_random_crystal read_object returned NULL");
     return;
@@ -199,9 +200,9 @@ void get_random_crystal(struct char_data *ch, int level) {
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
   GET_OBJ_COST(obj) = level * 100;
-  GET_OBJ_LEVEL(obj) = dice (1, level);
+  GET_OBJ_LEVEL(obj) = dice(1, level);
   GET_OBJ_MATERIAL(obj) = MATERIAL_CRYSTAL;
-  
+
   /* set a random apply value */
   obj->affected[0].location = random_apply_value();
   /* determine bonus */
@@ -213,7 +214,7 @@ void get_random_crystal(struct char_data *ch, int level) {
   color1 = rand_number(0, NUM_A_COLORS);
   color2 = rand_number(0, NUM_A_COLORS);
   while (color2 == color1)
-    color2 = rand_number(0, NUM_A_COLORS);  
+    color2 = rand_number(0, NUM_A_COLORS);
   desc = rand_number(0, NUM_A_CRYSTAL_DESCS);
 
   roll = dice(1, 100);
@@ -230,7 +231,7 @@ void get_random_crystal(struct char_data *ch, int level) {
             colors[color1], colors[color2]);
     obj->description = strdup(buf);
 
-  // one color and descriptor
+    // one color and descriptor
   } else if (roll >= 66) {
     sprintf(buf, "crystal %s %s", colors[color1], crystal_descs[desc]);
     obj->name = strdup(buf);
@@ -239,8 +240,8 @@ void get_random_crystal(struct char_data *ch, int level) {
     sprintf(buf, "A %s %s crystal lies here.", crystal_descs[desc],
             colors[color1]);
     obj->description = strdup(buf);
-    
-  // two colors no descriptor
+
+    // two colors no descriptor
   } else if (roll >= 41) {
     sprintf(buf, "crystal %s %s", colors[color1], colors[color2]);
     obj->name = strdup(buf);
@@ -255,8 +256,8 @@ void get_random_crystal(struct char_data *ch, int level) {
     obj->short_description = strdup(buf);
     sprintf(buf, "A %s crystal lies here.", colors[color1]);
     obj->description = strdup(buf);
-    
-  // descriptor only  
+
+    // descriptor only  
   } else {
     sprintf(buf, "crystal %s", crystal_descs[desc]);
     obj->name = strdup(buf);
@@ -272,22 +273,20 @@ void get_random_crystal(struct char_data *ch, int level) {
   act("\tY$n has found $p.\tn", true, ch, obj, 0, TO_ROOM);
 }
 
-
 /* when groupped, determine random recipient from group */
 struct char_data *find_treasure_recipient(struct char_data *ch) {
   struct group_data *group = NULL;
-  
+
   /* assign group data */
   if ((group = ch->group) == NULL)
     return ch;
-  
-  return ((struct char_data * )(random_from_list(group->members)));
-}  
-  
+
+  return ((struct char_data *) (random_from_list(group->members)));
+}
+
 
 /***************************************************************/
 /***  primary functions ***/
-
 
 /* this function determines whether the character will get treasure or not
  *   for example, called before make_corpse() when killing a mobile */
@@ -295,17 +294,17 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
   int roll = dice(1, 100);
   int gold = 0;
   int level = 0;
-  char buf[MEDIUM_STRING] = { '\0' };
+  char buf[MEDIUM_STRING] = {'\0'};
   int grade = GRADE_MUNDANE;
-  
+
   if (IS_NPC(ch))
     return;
   if (!IS_NPC(mob))
     return;
-  
+
   gold = dice(1, GET_LEVEL(mob)) * 10;
   level = GET_LEVEL(mob);
- 
+
   if (level >= 20) {
     grade = GRADE_MAJOR;
   } else if (level >= 16) {
@@ -352,9 +351,8 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
     GET_GOLD(ch) += gold;
     /* does not split this gold, maybe change later */
   }
-  
-}
 
+}
 
 /* character should get treasure, roll dice for what items to give out */
 void award_magic_item(int number, struct char_data *ch, int level, int grade) {
@@ -1024,7 +1022,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
       level = rand_number(25, 30);
       break;
   }
-  
+
   /* ok load object, set material */
   if ((obj = read_object(vnum, VIRTUAL)) == NULL) {
     log("SYSERR: award_magic_armor created NULL object");
@@ -1087,19 +1085,14 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   obj->description = strdup(desc);
   GET_OBJ_LEVEL(obj) = level;
 
-  obj->affected[0].modifier += (rare_grade * 10);
-  GET_OBJ_COST(obj) = 100 + GET_OBJ_LEVEL(obj) * 50 * MAX(1, GET_OBJ_LEVEL(obj) - 1);
-  GET_OBJ_COST(obj) = GET_OBJ_COST(obj) * (3 + (rare_grade * 2)) / 3;
-  GET_OBJ_RENT(obj) = GET_OBJ_COST(obj) / 25;
+  obj->affected[0].location = random_apply_value();
+  obj->affected[0].modifier =
+          random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR));
+
+  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
 
   if (grade > GRADE_MUNDANE)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
-
-  roll = dice(1, 100);
-  while (roll == 100) {
-    roll = dice(1, 100);
-    obj->affected[0].modifier += 10;
-  }
 
   obj_to_char(obj, ch);
 
@@ -1108,422 +1101,500 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
 
-/* gives out a random magic weapon */
+/* give away random magic weapon */
+
 /*
+ method:
+ * 1)  determine weapon
+ * 2)  determine material
+ * 3)  assign description
+ * 4)  determine modifier (if applicable)
+ * 5)  determine amount (if applicable)
+ */
+#define SHORT_STRING 80
+
 void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
-  int i = 0;
-  int roll = 0;
-  int size = 0;
-  int hit_bonus = 0;
-  int dmg_bonus = 0;
-  struct obj_data *obj;
-  char buf[MAX_STRING_LENGTH];
-  int special_roll = 0;
-  int head_color_roll = 0;
-  int hilt_color_roll = 0;
-  char special[100];
-  char head_color[100];
-  char hilt_color[100];
-  int rare = dice(1, 100);
-  int raregrade = 0;
+  struct obj_data *obj = NULL;
+  int vnum = -1, material = MATERIAL_BRONZE, roll = 0, size = SIZE_MEDIUM;
+  int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
+  char desc[MEDIUM_STRING] = {'\0'}, weapon_name[SHORT_STRING] = {'\0'};
+  char hilt_color[SHORT_STRING] = {'\0'}, head_color[SHORT_STRING] = {'\0'};
+  char special[SHORT_STRING] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  if (grade == GRADE_MUNDANE) {
-    hit_bonus = 1;
-    dmg_bonus = 0;
-  } else if (grade == GRADE_MINOR) {
-    roll = dice(1, 100);
 
-    if (roll >= 86) {
-      award_magic_weapon(ch, grade, moblevel);
-      return;
-    } else if (roll >= 71) {
-      hit_bonus = 2;
-      dmg_bonus = 2;
-    } else if (roll >= 51) {
-      hit_bonus = dice(1, 2);
-      dmg_bonus = dice(1, 2);
-    } else {
-      hit_bonus = 1;
-      dmg_bonus = 1;
-    }
-  } else if (grade == GRADE_MEDIUM) {
-    roll = dice(1, 100);
-
-    if (roll >= 69) {
-      award_magic_weapon(ch, grade, moblevel);
-      return;
-    } else if (roll >= 63) {
-      award_magic_weapon(ch, grade, moblevel);
-      return;
-    } else if (roll >= 59) {
-      hit_bonus = 4;
-      dmg_bonus = 4;
-    } else if (roll >= 51) {
-      hit_bonus = dice(1, 2) + 2;
-      dmg_bonus = dice(1, 2) + 2;
-    } else if (roll >= 21) {
-      hit_bonus = 3;
-      dmg_bonus = 3;
-    } else if (roll >= 16) {
-      hit_bonus = dice(1, 2) + 1;
-      dmg_bonus = dice(1, 2) + 1;
-    } else if (roll >= 11) {
-      hit_bonus = 2;
-      dmg_bonus = 2;
-    } else if (roll >= 6) {
-      hit_bonus = dice(1, 2);
-      dmg_bonus = dice(1, 2);
-    } else {
-      hit_bonus = 1;
-      dmg_bonus = 1;
-    }
-  } else {
-    roll = dice(1, 100);
-
-    if (roll >= 64) {
-      award_magic_weapon(ch, grade, moblevel);
-      return;
-    } else if (roll >= 50) {
-      award_magic_weapon(ch, grade, moblevel);
-      return;
-    } else if (roll >= 39) {
-      hit_bonus = 5;
-      dmg_bonus = 5;
-    } else if (roll >= 31) {
-      hit_bonus = dice(1, 2) + 3;
-      dmg_bonus = dice(1, 2) + 3;
-    } else if (roll >= 21) {
-      hit_bonus = 4;
-      dmg_bonus = 4;
-    } else if (roll >= 11) {
-      hit_bonus = dice(1, 2) + 2;
-      dmg_bonus = dice(1, 2) + 2;
-    } else {
-      hit_bonus = 3;
-      dmg_bonus = 3;
-    }
-    moblevel -= 20;
-    if (moblevel > 0) {
-      hit_bonus += moblevel / 4;
-      dmg_bonus += moblevel / 4;
-    }
-  }
-
-  obj = read_object(30020, VIRTUAL);
-
+  /* determine if rare or not */
   roll = dice(1, 100);
+  if (roll == 1) {
+    rare_grade = 3;
+    sprintf(desc, "\tM[Mythical]\tn");
+  } else if (roll <= 6) {
+    rare_grade = 2;
+    sprintf(desc, "\tY[Legendary]\tn");
+  } else if (roll <= 16) {
+    rare_grade = 1;
+    sprintf(desc, "\tG[Rare]\tn");
+  }
 
-  if (roll <= 50) {
-    for (i = 0; i < 10; i++)
-      if (ch->player_specials->wishlist[i][0] == 1)
-        roll = 0;
-    if (roll == 0) {
-      roll = dice(1, 10) - 1;
-      while (ch->player_specials->wishlist[roll][0] != 1) {
-        roll = dice(1, 10) - 1;
+  /* find a random weapon
+   * assign base material
+   * assign size
+   * and last but not least, give appropriate start of description
+   *  */
+  switch (dice(1, NUM_WEAPON_MOLDS)) {
+
+      /* simple */
+      /* light */
+    case 1:
+      vnum = DAGGER;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "dagger");
+      size = SIZE_SMALL;
+      break;
+    case 2:
+      vnum = MACE;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "mace");
+      size = SIZE_SMALL;
+      break;
+    case 3:
+      vnum = SICKLE;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "sickle");
+      size = SIZE_SMALL;
+      break;
+      /* one handed */
+    case 4:
+      vnum = CLUB;
+      material = MATERIAL_WOOD;
+      sprintf(weapon_name, "club");
+      size = SIZE_MEDIUM;
+      break;
+    case 5:
+      vnum = MORNINGSTAR;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "morning star");
+      size = SIZE_MEDIUM;
+      break;
+      /* two handed */
+    case 6:
+      vnum = SPEAR;
+      material = MATERIAL_WOOD;
+      sprintf(weapon_name, "spear");
+      size = SIZE_LARGE;
+      break;
+    case 7:
+      vnum = QUARTERSTAFF;
+      material = MATERIAL_WOOD;
+      sprintf(weapon_name, "quarterstaff");
+      size = SIZE_LARGE;
+      break;
+      /* martial */
+      /* light */
+    case 8:
+      vnum = HANDAXE;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "handaxe");
+      size = SIZE_SMALL;
+      break;
+    case 9:
+      vnum = KUKRI;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "kukri");
+      size = SIZE_SMALL;
+      break;
+    case 10:
+      vnum = SHORTSWORD;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "short sword");
+      size = SIZE_SMALL;
+      break;
+      /* one handed */
+    case 11:
+      vnum = BATTLEAXE;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "battle axe");
+      size = SIZE_MEDIUM;
+      break;
+    case 12:
+      vnum = FLAIL;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "flail");
+      size = SIZE_MEDIUM;
+      break;
+    case 13:
+      vnum = LONGSWORD;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "long sword");
+      size = SIZE_MEDIUM;
+      break;
+    case 14:
+      vnum = RAPIER;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "rapier");
+      size = SIZE_MEDIUM;
+      break;
+    case 15:
+      vnum = SCIMITAR;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "scimitar");
+      size = SIZE_MEDIUM;
+      break;
+    case 16:
+      vnum = TRIDENT;
+      material = MATERIAL_WOOD;
+      sprintf(weapon_name, "trident");
+      size = SIZE_MEDIUM;
+      break;
+    case 17:
+      vnum = WARHAMMER;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "war hammer");
+      size = SIZE_MEDIUM;
+      break;
+      /* two handed */
+    case 18:
+      vnum = FALCHION;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "falchion");
+      size = SIZE_LARGE;
+      break;
+    case 19:
+      vnum = GLAIVE;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "glaive");
+      size = SIZE_LARGE;
+      break;
+    case 20:
+      vnum = GREATAXE;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "great axe");
+      size = SIZE_LARGE;
+      break;
+    case 21:
+      vnum = GREATCLUB;
+      material = MATERIAL_WOOD;
+      sprintf(weapon_name, "great club");
+      size = SIZE_LARGE;
+      break;
+    case 22:
+      vnum = GREATSWORD;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "great sword");
+      size = SIZE_LARGE;
+      break;
+    case 23:
+      vnum = HALBERD;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "halberd");
+      size = SIZE_LARGE;
+      break;
+    case 24:
+      vnum = LANCE;
+      material = MATERIAL_WOOD;
+      sprintf(weapon_name, "lance");
+      size = SIZE_LARGE;
+      break;
+    case 25:
+      vnum = SCYTHE;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "scythe");
+      size = SIZE_LARGE;
+      break;
+      /* exotic */
+      /* light */
+    case 26:
+      vnum = KAMA;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "kama");
+      size = SIZE_SMALL;
+      break;
+      /* one handed */
+    case 27:
+      vnum = BASTARDSWORD;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "bastard sword");
+      size = SIZE_MEDIUM;
+      break;
+    case 28:
+      vnum = DWARVENWARAXE;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "dwarven war axe");
+      size = SIZE_MEDIUM;
+      break;
+      /* two handed */
+    case 29:
+      vnum = DIREFLAIL;
+      material = MATERIAL_BRONZE;
+      sprintf(weapon_name, "dire flail");
+      size = SIZE_LARGE;
+      break;
+  }
+
+  /* we already determined 'base' material, now
+   determine whether an upgrade was achieved by item-grade */
+  roll = dice(1, 100);
+  switch (material) {
+    case MATERIAL_BRONZE:
+      switch (grade) {
+        case GRADE_MUNDANE:
+          if (roll <= 75)
+            material = MATERIAL_BRONZE;
+          else
+            material = MATERIAL_IRON;
+          break;
+        case GRADE_MINOR:
+          if (roll <= 75)
+            material = MATERIAL_IRON;
+          else
+            material = MATERIAL_STEEL;
+          break;
+        case GRADE_MEDIUM:
+          if (roll <= 50)
+            material = MATERIAL_IRON;
+          else if (roll <= 80)
+            material = MATERIAL_STEEL;
+          else if (roll <= 95)
+            material = MATERIAL_COLD_IRON;
+          else
+            material = MATERIAL_ALCHEMAL_SILVER;
+          break;
+        default: // major grade
+          if (roll <= 50)
+            material = MATERIAL_COLD_IRON;
+          else if (roll <= 80)
+            material = MATERIAL_ALCHEMAL_SILVER;
+          else if (roll <= 95)
+            material = MATERIAL_MITHRIL;
+          else
+            material = MATERIAL_ADAMANTINE;
+          break;
       }
-      roll = ch->player_specials->wishlist[roll][1];
-    }
-  } else
-    roll = determine_random_weapon_type();
-
-  set_weapon_values(obj, roll);
-
-  if (roll == WEAPON_TYPE_UNARMED)
-    GET_OBJ_MATERIAL(obj) = MATERIAL_LEATHER;
-
-  if (GET_OBJ_MATERIAL(obj) == MATERIAL_STEEL) {
-    roll = dice(1, 100);
-
-    if (roll >= 97) {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_ADAMANTINE;
-    } else if (roll >= 90) {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_MITHRIL;
-    } else if (roll >= 81) {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_ALCHEMAL_SILVER;
-    } else if (roll >= 71) {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_COLD_IRON;
-    } else {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_STEEL;
-    }
-  } else if (GET_OBJ_MATERIAL(obj) == MATERIAL_WOOD) {
-    roll = dice(1, 100);
-
-    if (roll >= 90) {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_DARKWOOD;
-    } else {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_WOOD;
-    }
+      break;
+    case MATERIAL_WOOD:
+      switch (grade) {
+        case GRADE_MUNDANE:
+        case GRADE_MINOR:
+        case GRADE_MEDIUM:
+          material = MATERIAL_WOOD;
+          break;
+        default: // major grade
+          if (roll <= 80)
+            material = MATERIAL_WOOD;
+          else
+            material = MATERIAL_DARKWOOD;
+          break;
+      }
+      break;
   }
 
-  if (rare == 1) {
-    raregrade = 3;
-  } else if (rare <= 6) {
-    raregrade = 2;
-  } else if (rare <= 16) {
-    raregrade = 1;
+  /* determine level */
+  switch (grade) {
+    case GRADE_MUNDANE:
+      level = rand_number(1, 8);
+      break;
+    case GRADE_MINOR:
+      level = rand_number(9, 16);
+      break;
+    case GRADE_MEDIUM:
+      level = rand_number(17, 24);
+      break;
+    default: // major grade
+      level = rand_number(25, 30);
+      break;
   }
 
-  char desc[50];
-  if (raregrade == 0)
-    sprintf(desc, "@n");
-  else if (raregrade == 1)
-    sprintf(desc, "@G[Rare]@n ");
-  else if (raregrade == 2)
-    sprintf(desc, "@Y[Legendary]@n ");
-  else if (raregrade == 3)
-    sprintf(desc, "@M[Mythical]@n ");
-
-  i = 0;
-  while (*(colors + i++)) {
+  /* ok load object, set material */
+  if ((obj = read_object(vnum, VIRTUAL)) == NULL) {
+    log("SYSERR: award_magic_armor created NULL object");
+    return;
   }
-  size = i;
-  head_color_roll = MAX(0, dice(1, (int) size) - 2);
-  hilt_color_roll = MAX(0, dice(1, (int) size) - 2);
-  sprintf(head_color, "%s", colors[head_color_roll]);
-  sprintf(hilt_color, "%s", colors[hilt_color_roll]);
+  GET_OBJ_MATERIAL(obj) = material;
 
-  if (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_SLASHING)) {
-    i = 0;
-    while (*(blade_descs + i++)) {
-    }
-    size = i;
-    special_roll = MAX(0, dice(1, (int) size) - 2);
-    sprintf(special, "%s%s", desc, blade_descs[special_roll]);
-  } else if (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_PIERCING)) {
-    i = 0;
-    while (*(piercing_descs + i++)) {
-    }
-    size = i;
-    special_roll = MAX(0, dice(1, (int) size) - 2);
-    sprintf(special, "%s%s", desc, piercing_descs[special_roll]);
-  } else {
-    i = 0;
-    while (*(blunt_descs + i++)) {
-    }
-    size = i;
-    special_roll = MAX(0, dice(1, (int) size) - 2);
-    sprintf(special, "%s%s", desc, blunt_descs[special_roll]);
-  }
+  // pick a pair of random colors for usage
+  /* first assign two random colors for usage */
+  color1 = rand_number(0, NUM_A_COLORS);
+  color2 = rand_number(0, NUM_A_COLORS);
+  /* make sure they are not the same colors */
+  while (color2 == color1)
+    color2 = rand_number(0, NUM_A_COLORS);
 
+  sprintf(head_color, "%s", colors[color1]);
+  sprintf(hilt_color, "%s", colors[color2]);
+  if (IS_BLADE(obj))
+    sprintf(special, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS)]);
+  else if (IS_PIERCE(obj))
+    sprintf(special, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS)]);
+  else //blunt
+    sprintf(special, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS)]);
+  
   roll = dice(1, 100);
 
   // special, head color, hilt color
   if (roll >= 91) {
-
     sprintf(buf, "%s %s-%s %s %s %s %s", special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
+            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
     obj->name = strdup(buf);
-
     sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s", a_or_an(special), special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
+            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
     obj->short_description = strdup(buf);
-
     sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s lies here.", a_or_an(special),
-            special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
+            special, head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
- *buf = UPPER(*buf);
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+    *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-  }    // special, head color
-  else if (roll >= 81) {
-
+  // special, head color
+  } else if (roll >= 81) {
     sprintf(buf, "%s %s-%s %s %s", special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
+            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->name = strdup(buf);
-
     sprintf(buf, "%s %s, %s-%s %s %s", a_or_an(special), special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
+            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->short_description = strdup(buf);
-
     sprintf(buf, "%s %s, %s-%s %s %s lies here.", a_or_an(special),
-            special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
- *buf = UPPER(*buf);
+            special, head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
+    *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-  }    // special, hilt color
-  else if (roll >= 71) {
-
+  // special, hilt color
+  } else if (roll >= 71) {
     sprintf(buf, "%s %s %s %s %s", special,
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name, hilt_color,
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
     obj->name = strdup(buf);
-
     sprintf(buf, "%s %s %s %s with %s %s %s", a_or_an(special), special,
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
     obj->short_description = strdup(buf);
-
     sprintf(buf, "%s %s %s %s with %s %s %s lies here.", a_or_an(special),
-            special,
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
+            special, material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
- *buf = UPPER(*buf);
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+    *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-
-  }    // head color, hilt color
-  else if (roll >= 41) {
-
+  // head color, hilt color
+  } else if (roll >= 41) {
     sprintf(buf, "%s-%s %s %s %s %s",
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
+            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
     obj->name = strdup(buf);
-
     sprintf(buf, "%s %s-%s %s %s with %s %s %s", a_or_an(head_color),
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
+            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
     obj->short_description = strdup(buf);
-
     sprintf(buf, "%s %s-%s %s %s with %s %s %s lies here.", a_or_an(head_color),
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
+            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
- *buf = UPPER(*buf);
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+    *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-  }    // head color
-  else if (roll >= 31) {
-
+  // head color
+  } else if (roll >= 31) {
     sprintf(buf, "%s-%s %s %s",
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
+            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->name = strdup(buf);
-
     sprintf(buf, "%s %s-%s %s %s", a_or_an(head_color),
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
+            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->short_description = strdup(buf);
-
     sprintf(buf, "%s %s-%s %s %s lies here.", a_or_an(head_color),
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
- *buf = UPPER(*buf);
+            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
+    *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-
-  }    // hilt color
-  else if (roll >= 21) {
-
+  // hilt color
+  } else if (roll >= 21) {
     sprintf(buf, "%s %s %s %s",
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
     obj->name = strdup(buf);
-
-    sprintf(buf, "%s %s %s with %s %s %s", a_or_an((char *) material_names[GET_OBJ_MATERIAL(obj)]),
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
+    sprintf(buf, "%s %s %s with %s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
     obj->short_description = strdup(buf);
-
     sprintf(buf, "%s %s %s with %s %s %s lies here.",
-            a_or_an((char *) material_names[GET_OBJ_MATERIAL(obj)]),
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
+            a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
- *buf = UPPER(*buf);
+            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+    *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-  }    // special
-  else if (roll >= 11) {
-
+  // special
+  } else if (roll >= 11) {
     sprintf(buf, "%s %s %s", special,
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->name = strdup(buf);
-
     sprintf(buf, "%s %s %s %s", a_or_an(special), special,
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->short_description = strdup(buf);
-
     sprintf(buf, "%s %s %s %s lies here.", a_or_an(special), special,
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
- *buf = UPPER(*buf);
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
+    *buf = UPPER(*buf);
     obj->description = strdup(buf);
-
-  }    // none
-  else {
-
+    
+  // none
+  } else {
     sprintf(buf, "%s %s",
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->name = strdup(buf);
-
-    sprintf(buf, "%s %s %s", a_or_an((char *) material_names[GET_OBJ_MATERIAL(obj)]),
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
+    sprintf(buf, "%s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->short_description = strdup(buf);
-
     sprintf(buf, "%s %s %s lies here.",
-            a_or_an((char *) material_names[GET_OBJ_MATERIAL(obj)]),
-            material_names[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
- *buf = UPPER(*buf);
+            a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
+    *buf = UPPER(*buf);
     obj->description = strdup(buf);
-
   }
+  
+  /* object is fully described 
+   base object is taken care of including material, now set random stats, etc */
+  
+  GET_OBJ_LEVEL(obj) = level;
 
-  obj->name = strdup(replace_string(obj->name, "unarmed", "gauntlet"));
-  obj->short_description = strdup(replace_string(obj->short_description, "unarmed", "gauntlet"));
-  obj->description = strdup(replace_string(obj->description, "unarmed", "gauntlet"));
+  obj->affected[0].location = random_apply_value();
+  obj->affected[0].modifier =
+          random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR));
 
-  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_UNIQUE_SAVE);
-
-  if (dmg_bonus) {
-    obj->affected[0].location = APPLY_DAMROLL;
-    obj->affected[0].modifier = dmg_bonus;
-  }
-
-  if (hit_bonus) {
-    obj->affected[1].location = APPLY_HITROLL;
-    obj->affected[1].modifier = hit_bonus;
-  }
-
-  GET_OBJ_LEVEL(obj) = MAX(1, set_object_level(obj));
-
-  if (GET_OBJ_LEVEL(obj) >= CONFIG_LEVEL_CAP) {
-    award_magic_weapon(ch, grade, moblevel);
-    return;
-  }
-
-  obj->affected[0].modifier += raregrade;
-  obj->affected[1].modifier += raregrade;
-
-  GET_OBJ_COST(obj) = 250 + GET_OBJ_LEVEL(obj) * 50 * MAX(1, GET_OBJ_LEVEL(obj) - 1);
-  GET_OBJ_COST(obj) = GET_OBJ_COST(obj) * (3 + (raregrade * 2)) / 3;
-  GET_OBJ_RENT(obj) = GET_OBJ_COST(obj) / 25;
+  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
 
   if (grade > GRADE_MUNDANE)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
 
   obj_to_char(obj, ch);
 
-  if (!(IS_NPC(ch) && IS_MOB(ch) && GET_MOB_SPEC(ch) == shop_keeper)) {
-    send_to_char(ch, "@YYou have found %s in a nearby lair!@n\r\n", obj->short_description);
-
-    sprintf(buf, "@Y$n has found %s in a nearby lair!@n", obj->short_description);
-    act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
-  }
+  send_to_char(ch, "@YYou have found %s in a nearby lair!@n\r\n", obj->short_description);
+  sprintf(buf, "@Y$n has found %s in a nearby lair!@n", obj->short_description);
+  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
- */
+#undef SHORT_STRING
+
+
 
 /* gives out random armor pieces (outside of body-armor/shield) */
 /*
@@ -1899,7 +1970,6 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   }
 }
  */
-
 
 /* staff tool to load random items */
 ACMD(do_loadmagic) {
