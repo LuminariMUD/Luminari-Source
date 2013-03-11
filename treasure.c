@@ -1860,7 +1860,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
               armor_name, AN(desc2), desc2);
       obj->name = strdup(desc);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%s%s %s %s set with %s %s gemstone lies here.", desc,
+      sprintf(desc, "%s %s %s set with %s %s gemstone lies here.", 
               AN(material_name[material]), material_name[material],
               armor_name, AN(desc2), desc2);
       obj->description = strdup(CAP(desc));
@@ -1871,7 +1871,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
               armor_name);
       obj->name = strdup(desc);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%sA pair of %s %s leather %s lie here.", desc, desc2, desc3,
+      sprintf(desc, "A pair of %s %s leather %s lie here.", desc2, desc3,
               armor_name);
       obj->description = strdup(desc);
       break;
@@ -1881,7 +1881,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
               desc3);
       obj->name = strdup(desc);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%s%s %s %s %s bearing the crest of %s %s is lying here.", desc, AN(desc3), desc3,
+      sprintf(desc, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
               material_name[material], armor_name, AN(desc2),
               desc3);
       obj->description = strdup(CAP(desc));
@@ -1891,7 +1891,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
               armor_name);
       obj->name = strdup(desc);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%s%s %s %s leather %s lie here.", desc, AN(desc2), desc2, desc3,
+      sprintf(desc, "%s %s %s leather %s lie here.", AN(desc2), desc2, desc3,
               armor_name);
       obj->description = strdup(desc);
       break;
@@ -1899,7 +1899,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
       sprintf(desc, "%sa %s %s orb", desc, desc2, armor_name);
       obj->name = strdup(desc);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%sA %s %s orb is lying here.", desc, desc2, armor_name);
+      sprintf(desc, "A %s %s orb is lying here.", desc2, armor_name);
       obj->description = strdup(desc);
       break;
   }
