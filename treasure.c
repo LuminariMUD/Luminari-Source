@@ -203,7 +203,7 @@ int random_bonus_value(int apply_value, int level) {
       break;
   }
 
-  return MAX(1, bonus);
+  return bonus;
 }
 
 /* when groupped, determine random recipient from group */
@@ -553,7 +553,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       GET_OBJ_VAL(obj, 1) = spell_num;
 
       GET_OBJ_MATERIAL(obj) = MATERIAL_GLASS;
-      GET_OBJ_COST(obj) = spell_level * spell_level * 30;
+      GET_OBJ_COST(obj) = MIN(1000, 5 * spell_level);
       GET_OBJ_LEVEL(obj) = dice(1, spell_level);
       break;
 
