@@ -1122,8 +1122,8 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
 
   obj_to_char(obj, ch);
 
-  send_to_char(ch, "@YYou have found %s in a nearby lair!@n\r\n", obj->short_description);
-  sprintf(buf, "@Y$n has found %s in a nearby lair!@n", obj->short_description);
+  send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
+  sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
   act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
 
@@ -1613,8 +1613,8 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
 
   obj_to_char(obj, ch);
 
-  send_to_char(ch, "@YYou have found %s in a nearby lair!@n\r\n", obj->short_description);
-  sprintf(buf, "@Y$n has found %s in a nearby lair!@n", obj->short_description);
+  send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
+  sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
   act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
 #undef SHORT_STRING
@@ -1917,8 +1917,8 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
 
   obj_to_char(obj, ch);
 
-  send_to_char(ch, "@YYou have found %s in a nearby lair!@n\r\n", obj->short_description);
-  sprintf(buf, "@Y$n has found %s in a nearby lair!@n", obj->short_description);
+  send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
+  sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
   act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
 #undef SHORT_STRING
