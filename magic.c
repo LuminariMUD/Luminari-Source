@@ -1392,6 +1392,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         case 3: // filth fever
           af[0].location = APPLY_DEX;
           af[0].modifier = dice(1, 3);
+          SET_BIT_AR(af[1].bitvector, AFF_DISEASE);
           af[1].location = APPLY_CON;
           af[1].modifier = dice(1, 3);
           af[1].duration = 600;
@@ -1423,6 +1424,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
           to_room = "$n feels affected by the slimy doom.";
           break;
       }
+      SET_BIT_AR(af[0].bitvector, AFF_DISEASE);
       af[0].duration = 600; // 30 real minutes (supposed to be permanent)
       accum_affect = FALSE;
       accum_duration = FALSE;
@@ -3369,62 +3371,61 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
       to_char = "You call down a furious lightning storm upon the area!";
       to_room = "$n raises $s arms and calls down a furious lightning storm!";
       break;
-    case SPELL_EARTHQUAKE:
-      to_char = "You gesture and the earth begins to shake all around you!";
-      to_room = "$n gracefully gestures and the earth begins to shake violently!";
-      break;
-    case SPELL_ICE_STORM:
-      to_char = "You conjure a storm of ice that blankets the area!";
-      to_room = "$n conjures a storm of ice, blanketing the area!";
-      break;
     case SPELL_CHAIN_LIGHTNING:
       to_char = "Arcing bolts of lightning flare from your fingertips!";
       to_room = "Arcing bolts of lightning fly from the fingers of $n!";
       break;
-    case SPELL_HORRID_WILTING:
-      to_char = "Your wilting causes the moisture to leave the area!";
-      to_room = "$n's horrid wilting causes all the moisture to leave the area!";
+    case SPELL_DEATHCLOUD: //cloudkill
+      break;
+    case SPELL_EARTHQUAKE:
+      to_char = "You gesture and the earth begins to shake all around you!";
+      to_room = "$n gracefully gestures and the earth begins to shake violently!";
+      break;
+    case SPELL_ENFEEBLEMENT:
+      isEffect = TRUE;
+      to_char = "You invoke a powerful enfeeblement enchantment!\tn";
+      to_room = "$n invokes a powerful enfeeblement enchantment!\tn";
+      break;
+    case SPELL_FAERIE_FOG:
+      is_uneffect = TRUE;
+      to_char = "You summon faerie fog!\tn";
+      to_room = "$n summons faerie fog!\tn";
       break;
     case SPELL_FLAMING_SPHERE:
       to_char = "You summon a burning globe of fire that rolls through the area!";
       to_room = "$n summons a burning globe of fire that rolls through the area!";
-      break;
-    case SPELL_DEATHCLOUD: //cloudkill
-      break;
-    case SPELL_INCENDIARY: //incendiary cloud
-      break;
-    case SPELL_METEOR_SWARM:
-      to_char = "You call down meteors from the sky to pummel your foes!";
-      to_room = "$n invokes a swarm of meteors to rain from the sky!";
-      break;
-    case SPELL_HELLBALL:
-      to_char = "\tMYou conjures a pure ball of Hellfire!\tn";
-      to_room = "$n\tM conjures a pure ball of Hellfire!\tn";
       break;
     case SPELL_HALT_UNDEAD:
       isEffect = TRUE;
       to_char = "\tDYou invoke a powerful halt spell!\tn";
       to_room = "$n\tD invokes a powerful halt spell!\tn";
       break;
-    case SPELL_WAVES_OF_FATIGUE:
-      isEffect = TRUE;
-      to_char = "\tDYou muster the power of death creating waves of fatigue!\tn";
-      to_room = "$n\tD musters the power of death creating waves of fatigue!\tn";
+    case SPELL_HELLBALL:
+      to_char = "\tMYou conjures a pure ball of Hellfire!\tn";
+      to_room = "$n\tM conjures a pure ball of Hellfire!\tn";
       break;
-    case SPELL_WAVES_OF_EXHAUSTION:
-      isEffect = TRUE;
-      to_char = "\tDYou muster the power of death creating waves of exhaustion!\tn";
-      to_room = "$n\tD musters the power of death creating waves of exhaustion!\tn";
+    case SPELL_HORRID_WILTING:
+      to_char = "Your wilting causes the moisture to leave the area!";
+      to_room = "$n's horrid wilting causes all the moisture to leave the area!";
+      break;
+    case SPELL_ICE_STORM:
+      to_char = "You conjure a storm of ice that blankets the area!";
+      to_room = "$n conjures a storm of ice, blanketing the area!";
+      break;
+    case SPELL_INCENDIARY: //incendiary cloud
+      break;
+    case SPELL_INSECT_PLAGUE:
+      to_char = "You summon a swarm of locusts into the area!";
+      to_room = "$n summons a swarm of locusts into the area!";
       break;
     case SPELL_MASS_HOLD_PERSON:
       isEffect = TRUE;
       to_char = "You invoke a powerful hold person enchantment!\tn";
       to_room = "$n invokes a powerful hold person enchantment!\tn";
       break;
-    case SPELL_ENFEEBLEMENT:
-      isEffect = TRUE;
-      to_char = "You invoke a powerful enfeeblement enchantment!\tn";
-      to_room = "$n invokes a powerful enfeeblement enchantment!\tn";
+    case SPELL_METEOR_SWARM:
+      to_char = "You call down meteors from the sky to pummel your foes!";
+      to_room = "$n invokes a swarm of meteors to rain from the sky!";
       break;
     case SPELL_PRISMATIC_SPRAY:
       is_eff_and_dam = TRUE;
@@ -3451,10 +3452,15 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
       to_char = "You emit a terrible banshee wail!\tn";
       to_room = "$n emits a terrible banshee wail!\tn";
       break;
-    case SPELL_FAERIE_FOG:
-      is_uneffect = TRUE;
-      to_char = "You summon faerie fog!\tn";
-      to_room = "$n summons faerie fog!\tn";
+    case SPELL_WAVES_OF_EXHAUSTION:
+      isEffect = TRUE;
+      to_char = "\tDYou muster the power of death creating waves of exhaustion!\tn";
+      to_room = "$n\tD musters the power of death creating waves of exhaustion!\tn";
+      break;
+    case SPELL_WAVES_OF_FATIGUE:
+      isEffect = TRUE;
+      to_char = "\tDYou muster the power of death creating waves of fatigue!\tn";
+      to_room = "$n\tD musters the power of death creating waves of fatigue!\tn";
       break;
   }
 
@@ -4255,47 +4261,10 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       to_room = "$n creates $p.";
       object_vnum = 10;
       break;
-    case SPELL_GOODBERRY:
-      to_char = "You create $p.";
-      to_room = "$n creates $p.";
-      object_vnum = 9400;
-      break;
-    case SPELL_MAGIC_STONE:
-      to_char = "You create $p.";
-      to_room = "$n creates $p.";
-      object_vnum = 9401;
-      break;
-    case SPELL_HOLY_SWORD:
-      to_char = "You summon $p.";
-      to_room = "$n summons $p.";
-      object_vnum = 810;
-      break;
     case SPELL_CONTINUAL_FLAME:
       to_char = "You create $p.";
       to_room = "$n creates $p.";
       object_vnum = 222;
-      break;
-    case SPELL_SPRING_OF_LIFE:
-      to_char = "You create $p.";
-      to_room = "$n creates $p.";
-      obj_to_floor = TRUE;
-      object_vnum = 805;
-      break;
-    case SPELL_PORTAL:
-      if (vict == NULL) {
-        send_to_char(ch, "Spell failed!  You have no target!\r\n");
-        return;
-      }
-      if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOSUMMON)) {
-        send_to_char(ch, "The portal begins to open, then shuts suddenly!\r\n");
-        return;
-      }
-      to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
-      to_room = "$n \tnfolds \tMtime\tn and \tDspace\tn, and creates $p\tn.";
-      obj_to_floor = TRUE;
-      object_vnum = 801;
-      /* a little more work with portals */
-      portal_process = TRUE;
       break;
     case SPELL_GATE:
       to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
@@ -4368,6 +4337,50 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
         return;
       }
       break;
+    case SPELL_GOODBERRY:
+      to_char = "You create $p.";
+      to_room = "$n creates $p.";
+      object_vnum = 9400;
+      break;
+    case SPELL_HOLY_SWORD:
+      to_char = "You summon $p.";
+      to_room = "$n summons $p.";
+      object_vnum = 810;
+      break;
+    case SPELL_MAGIC_STONE:
+      to_char = "You create $p.";
+      to_room = "$n creates $p.";
+      object_vnum = 9401;
+      break;
+    case SPELL_PORTAL:
+      if (vict == NULL) {
+        send_to_char(ch, "Spell failed!  You have no target!\r\n");
+        return;
+      }
+      if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOSUMMON)) {
+        send_to_char(ch, "The portal begins to open, then shuts suddenly!\r\n");
+        return;
+      }
+      to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
+      to_room = "$n \tnfolds \tMtime\tn and \tDspace\tn, and creates $p\tn.";
+      obj_to_floor = TRUE;
+      object_vnum = 801;
+      /* a little more work with portals */
+      portal_process = TRUE;
+      break;
+    case SPELL_SPRING_OF_LIFE:
+      to_char = "You create $p.";
+      to_room = "$n creates $p.";
+      obj_to_floor = TRUE;
+      object_vnum = 805;
+      break;
+    case SPELL_WALL_OF_FIRE:
+      to_char = "You create $p.";
+      to_room = "$n creates $p.";
+      obj_to_floor = TRUE;
+      object_vnum = 9402;
+      break;
+      
     default:
       send_to_char(ch, "Spell unimplemented, it would seem.\r\n");
       return;

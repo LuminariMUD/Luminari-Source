@@ -1939,6 +1939,8 @@ void mag_assign_spells(void) {
           "You feel more optimistic.", 7, 9, EVOCATION);
   spello(SPELL_UNHALLOW, "unhallow", 0, 0, 0, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_ROOM, NULL, 8, 9, EVOCATION);
+  spello(SPELL_WALL_OF_FIRE, "wall of fire", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 7, 9, EVOCATION);
   spello(SPELL_WALL_OF_FORCE, "wall of force", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 6, 9, EVOCATION);
   /* conjuration */
