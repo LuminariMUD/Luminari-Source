@@ -306,7 +306,7 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
       award_misc_magic_item(ch, grade, level);
     if (dice(1, 100) <= 10)
       award_magic_armor(ch, grade, level);
-    if (dice(1, 100) <= 5)
+    if (dice(1, 100) <= 1)
       award_random_crystal(ch, level);
   }
 }
