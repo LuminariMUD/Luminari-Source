@@ -156,8 +156,22 @@ extern const char *head_types[];
 #define NUM_WEAPON_MOLDS 29
 
 
+/* misc mold vnums */
+#define RING_MOLD        3176  //0
+#define NECKLACE_MOLD    3177
+#define BOOTS_MOLD       3178
+#define GLOVES_MOLD      3179
+#define CLOAK_MOLD       3183
+#define BELT_MOLD        3184  //5
+#define WRIST_MOLD       3185
+#define HELD_MOLD        3186
+/* end misc molds */
+#define NUM_MISC_MOLDS 8
+
+
 /* item prototype for potions/scrolls/wands/staves */
 #define ITEM_PROTOTYPE        3210
+/* item prototype for crystals */
 #define CRYSTAL_PROTOTYPE     3211
 
 /* treasure.c functions */
@@ -166,14 +180,10 @@ extern const char *head_types[];
 /* some spells are not appropriate for expendable items, this simple
  function returns TRUE if the spell is OK, FALSE if not */
 bool valid_item_spell(int spellnum);
-// simple function to give a random metal type 
-int choose_metal_material(void);
-// simple function to give a random cloth type 
-int choose_cloth_material(void);
 /* function that creates a random crystal */
 void get_random_crystal(struct char_data *ch, int level);
 /* when groupped, determine random recipient from group */
-struct char_data * find_treasure_recipient(struct char_data *killer);
+struct char_data *find_treasure_recipient(struct char_data *killer);
 
 // determines whether the character will get treasure or not
 void determine_treasure(struct char_data *ch, struct char_data *mob);
