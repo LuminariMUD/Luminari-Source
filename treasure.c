@@ -547,10 +547,10 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
     award_magic_item(1, ch, GET_LEVEL(mob), grade);
 
     if (!(IS_NPC(ch) && IS_MOB(ch) && GET_MOB_SPEC(ch) == shop_keeper)) {
-      sprintf(buf, "\tYYou have found %s coins on $N's corpse!\tn", change_coins(gold));
-      act(buf, FALSE, ch, 0, mob, TO_CHAR);
-      sprintf(buf, "$n \tYhas has found %s coins on $N's corpse!\tn", change_coins(gold));
-      act(buf, FALSE, ch, 0, mob, TO_NOTVICT);
+//      sprintf(buf, "\tYYou have found %s coins on $N's corpse!\tn", change_coins(gold));
+ //     act(buf, FALSE, ch, 0, mob, TO_CHAR);
+ //     sprintf(buf, "$n \tYhas has found %s coins on $N's corpse!\tn", change_coins(gold));
+ //     act(buf, FALSE, ch, 0, mob, TO_NOTVICT);
       GET_GOLD(ch) += gold;
       if (IS_AFFECTED(ch, AFF_GROUP) && (gold > 0) &&
               PRF_FLAGGED(ch, PRF_AUTOSPLIT)) {
@@ -576,10 +576,10 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
       award_expendable_item(ch, grade, TYPE_WAND);
     if (dice(1, 100) <= 10)
       award_expendable_item(ch, grade, TYPE_STAFF);
-    if (dice(1, 100) <= 10)
-      award_magic_weapon(ch, grade, level);
-    if (dice(1, 100) <= 20)
-      award_misc_magic_item(ch, grade, level);
+ //   if (dice(1, 100) <= 10)
+//      award_magic_weapon(ch, grade, level);
+ //   if (dice(1, 100) <= 20)
+//      award_misc_magic_item(ch, grade, level);
     if (dice(1, 100) <= 10)
       award_magic_armor(ch, grade, level);
   }
@@ -1273,7 +1273,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   desc[0] = toupper(desc[0]);
   sprintf(desc, "%s is lying here.", desc);
   obj->description = strdup(desc);
-  GET_OBJ_LEVEL(obj) = MAX(1, set_object_level(obj));
+//  GET_OBJ_LEVEL(obj) = MAX(1, set_object_level(obj));
 
   obj->affected[0].modifier += (rare_grade * 10);
   GET_OBJ_COST(obj) = 100 + GET_OBJ_LEVEL(obj) * 50 * MAX(1, GET_OBJ_LEVEL(obj) - 1);
