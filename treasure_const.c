@@ -1,5 +1,5 @@
 /* *************************************************************************
- *   File: spec_procs.c                                Part of LuminariMUD *
+ *   File: treasure_const.c                            Part of LuminariMUD *
  *  Usage: constants for random treasure objects                           *
  *  Author: d20mud, ported to tba/luminari by Zusuk                        *
  ************************************************************************* */
@@ -7,6 +7,8 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "utils.h"
+#include "interpreter.h"
 #include "treasure.h"
 
 /* for ease of use, added defines with number of items
