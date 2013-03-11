@@ -227,9 +227,18 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
       break;
 
     case APPLY_HIT:
-      bonus *= 5;
+      bonus *= 12;
       break;
 
+    case APPLY_MOVE:
+      bonus *= 24;
+      break;
+      
+    case APPLY_AC:
+      bonus *= 5;
+      break;
+      
+    case APPLY_HITROLL:
     case APPLY_DAMROLL:
       bonus += 2;
       break;
@@ -238,7 +247,7 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
       break;
   }
 
-  return bonus;
+  return MAX(1, bonus);
 }
 
 /*

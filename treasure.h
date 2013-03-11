@@ -8,6 +8,7 @@
 #ifndef TREASURE_H
 #define	TREASURE_H
 
+
 /* treasure_const.c - list of constant arrays */
 extern const char *gemstones[];
 extern const char *ring_descs[];
@@ -30,6 +31,10 @@ extern const char *handle_types[];
 extern const char *head_types[];
 
 /* defines */
+/* percentage chance of random treasure drop */
+#define TREASURE_PERCENT  3
+
+/* array sizes */
 #define NUM_A_GEMSTONES       26
 #define NUM_A_RING_DESCS      3
 #define NUM_A_WRIST_DESCS     9
@@ -106,6 +111,7 @@ extern const char *head_types[];
 
 /* item prototype for potions/scrolls/wands/staves */
 #define ITEM_PROTOTYPE        3210
+#define CRYSTAL_PROTOTYPE     3211
 
 /* treasure.c functions */
 
@@ -117,18 +123,11 @@ bool valid_item_spell(int spellnum);
 int choose_metal_material(void);
 // simple function to give a random cloth type 
 int choose_cloth_material(void);
-// a function to determine a random weapon type 
-int determine_random_weapon_type(void);
 /* function that creates a random crystal */
 void get_random_crystal(struct char_data *ch, int level);
-/* function that creates a random essebce */
-void get_random_essence(struct char_data *ch, int level);
 /* when groupped, determine random recipient from group */
 struct char_data * find_treasure_recipient(struct char_data *killer);
 
-/* function to determine if target should get a random 'crafting component'
-   used, for example, before make_corpse() in fight.c */
-void determine_crafting_component_treasure(struct char_data *ch, struct char_data *mob);
 // determines whether the character will get treasure or not
 void determine_treasure(struct char_data *ch, struct char_data *mob);
 // character should get treasure, chooses what awards are given out
@@ -142,8 +141,6 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel);
 void award_magic_weapon(struct char_data *ch, int grade, int moblevel);
 // gives away random armor pieces (outside of body-armor/shield)
 void award_misc_magic_item(struct char_data *ch, int grade, int moblevel);
-/* awards very rare magical items */
-void award_special_magic_item(struct char_data *ch);
 
 // staff tool to load random items
 ACMD(do_loadmagic);
