@@ -573,8 +573,9 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
 {
   room_rnum i;
   room_vnum bottom, top;
-  int j, counter = 0, len;
+  int j, counter = 0, len, temp_num = 0, zscmd = 0;
   char buf[MAX_STRING_LENGTH];
+  bool *has_zcmds = NULL;
 
   /* Expect a minimum / maximum number if the rnum for the zone is NOWHERE. */
   if (rnum != NOWHERE) {
@@ -593,14 +594,30 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
   if (!top_of_world)
     return;
 
+  CREATE(has_zcmds, bool, top - bottom);
+  while (ZCMD(real_zone(bottom), zscmd).command != 'S') {
+    switch (ZCMD(real_zone(bottom), zscmd).command)
+    {
+      case 'D':
+      case 'R':
+        temp_num = GET_ROOM_VNUM(ZCMD(real_zone(bottom), zscmd).arg1);
+        break;
+      case 'O':
+      case 'M':
+        temp_num = GET_ROOM_VNUM(ZCMD(real_zone(bottom), zscmd).arg3);
+        break;
+    }
+    zscmd++;
+    if (temp_num >= bottom && temp_num <= top)
+      has_zcmds[temp_num - bottom] = TRUE;
+  }
   for (i = 0; i <= top_of_world; i++) {
-
     /** Check to see if this room is one of the ones needed to be listed.    **/
     if ((world[i].number >= bottom) && (world[i].number <= top)) {
       counter++;
 
-        len += snprintf(buf + len, sizeof(buf) - len, "%4d) [%s%-5d%s] %s%-*s%s %s",
-                          counter, QGRN, world[i].number, QNRM,
+        len += snprintf(buf + len, sizeof(buf) - len, "%4d)%1s [%s%-5d%s] %s%-*s%s %s",
+                          counter, (has_zcmds != NULL ? (has_zcmds[i] == TRUE ? "Z" : " ") : ""), QGRN, world[i].number, QNRM,
                           QCYN, count_color_chars(world[i].name)+44, world[i].name, QNRM,
                           world[i].proto_script ? "[TRIG] " : ""
                           );
@@ -623,6 +640,9 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     }
   }
 
+  if (has_zcmds)
+    free(has_zcmds);
+  
   if (counter == 0)
     send_to_char(ch, "No rooms found for zone/range specified.\r\n");
   else
