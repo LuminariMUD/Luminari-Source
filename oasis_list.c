@@ -588,7 +588,6 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     top    = vmax;
   }
 
-  send_to_char(ch, "zone rnum: %d\r\n", rnum);
   len = strlcpy(buf,
   "Index VNum    Room Name                                    Exits\r\n"
   "----- ------- -------------------------------------------- -----\r\n",
@@ -622,7 +621,7 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
       counter++;
 
         len += snprintf(buf + len, sizeof(buf) - len, "%4d)%s [%s%-5d%s] %s%-*s%s %s",
-                          counter, (has_zcmds != NULL ? (has_zcmds[counter - 1] == TRUE ? "Z" : " ") : ""), QGRN, world[i].number, QNRM,
+                          counter, (has_zcmds != NULL ? (has_zcmds[i - bottom] == TRUE ? "Z" : " ") : ""), QGRN, world[i].number, QNRM,
                           QCYN, count_color_chars(world[i].name)+44, world[i].name, QNRM,
                           world[i].proto_script ? "[TRIG] " : ""
                           );
