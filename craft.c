@@ -1097,7 +1097,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   }
   
   /* award crystal for item */
-  award_random_crystal(ch, dice(1, GET_OBJ_LEVEL(obj)));
+  award_random_crystal(ch, GET_OBJ_LEVEL(obj));
   
   increase_skill(ch, SKILL_CHEMISTRY);
 
