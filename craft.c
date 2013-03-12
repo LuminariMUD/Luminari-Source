@@ -1065,8 +1065,7 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
 
 
 /* unfinished -zusuk */
-int disenchant (struct obj_data *kit, struct char_data *ch)
-{
+int disenchant(struct obj_data *kit, struct char_data *ch) {
   struct obj_data *obj = NULL;
   int num_objs = 0;
   
@@ -1457,7 +1456,7 @@ int create(char *argument, struct obj_data *kit,
 SPECIAL(crafting_kit) {
   if (!CMD_IS("resize") && !CMD_IS("create") && !CMD_IS("checkcraft") &&
           !CMD_IS("restring") && !CMD_IS("augment") && !CMD_IS("convert") &&
-          !CMD_IS("autocraft"))
+          !CMD_IS("autocraft") && !CMD_IS("disenchant"))
     return 0;
 
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
