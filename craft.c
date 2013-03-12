@@ -30,6 +30,7 @@
 #include "spells.h"
 #include "mud_event.h"
 #include "modify.h" // for parse_at()
+#include "treasure.h"
 
 /* global variables */
 int mining_nodes = 0;
@@ -1067,9 +1068,7 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
 int disenchant (struct obj_data *kit, struct char_data *ch)
 {
   struct obj_data *obj = NULL;
-  struct obj_data *essence = NULL;
-  int chance = 100, num_objs = 0;
-  int level = 0;
+  int num_objs = 0;
   
   /* Cycle through contents */
   /* disenchant requires just one item be inside the kit */
@@ -1097,42 +1096,19 @@ int disenchant (struct obj_data *kit, struct char_data *ch)
     send_to_char(ch, "Your chemistry skill isn't high enough to disenchant that item.\r\n");
     return 1;
   }
+  
+  /* award crystal for item */
+  award_random_crystal(ch, dice(1, GET_OBJ_LEVEL(obj)));
+  
+  /* clear item that got disenchanted */
+  obj_from_obj(obj);
+  extract_obj(obj);  
+  
+  increase_skill(ch, SKILL_CHEMISTRY);
 
-  if (GET_OBJ_TYPE(obj) == ITEM_POTION)
-    chance = 20;
-  else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL)
-    chance = 30;
-  else if (GET_OBJ_TYPE(obj) == ITEM_WAND)
-    chance = 10 + GET_OBJ_VAL(obj, 2);
-  else if (GET_OBJ_TYPE(obj) == ITEM_STAFF)
-    chance = 25 + GET_OBJ_VAL(obj, 2);
-  else if (GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR
-           && GET_OBJ_TYPE(obj) != ITEM_WORN) {
-    send_to_char(ch, "You cannot disenchant that item.\r\n");
-    return 1;
-  }
-
-  if (dice(1, 100) <= chance) {
-    level = GET_OBJ_LEVEL(obj);
-    if (level <= 4)
-      essence = read_object(64100, VIRTUAL); // minor
-    else if (level <= 8)
-      essence = read_object(64101, VIRTUAL); // lesser
-    else if (level <= 12)
-      essence = read_object(64102, VIRTUAL); // medium
-    else if (level <= 16)
-      essence = read_object(64103, VIRTUAL); // greater
-    else 
-      essence = read_object(64104, VIRTUAL); // major
-
-  }
-  else {
-    essence = read_object(64012, VIRTUAL); // failed attempt
-  }
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
   GET_CRAFTING_TICKS(ch) = 5;
   GET_CRAFTING_TICKS(ch) -= MAX(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25));
-  GET_CRAFTING_OBJ(ch) = essence;
 
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
   act("$n begins to disenchant $p.", FALSE, ch, obj, 0, TO_ROOM);

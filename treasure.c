@@ -325,7 +325,7 @@ void award_random_crystal(struct char_data *ch, int level) {
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
   GET_OBJ_COST(obj) = level * 100;
-  GET_OBJ_LEVEL(obj) = dice(1, level);
+  GET_OBJ_LEVEL(obj) = MIN(LVL_IMMORT - 1, dice(1, level));
   GET_OBJ_MATERIAL(obj) = MATERIAL_CRYSTAL;
 
   /* set a random apply value */
@@ -393,9 +393,6 @@ void award_random_crystal(struct char_data *ch, int level) {
   }
 
   obj_to_char(obj, ch);
-
-  send_to_char(ch, "\tYYou have found %s.\tn\r\n", obj->short_description);
-  act("\tY$n has found $p.\tn", true, ch, obj, 0, TO_ROOM);
 }
 
 /* awards potions or scroll or wand or staff */
@@ -733,6 +730,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
     case 9:
       vnum = CLOTH_BODY;
       material = MATERIAL_COTTON;
+      sprintf(desc, "%ssome", desc);
       sprintf(armor_name, "robes");
       break;
 
@@ -1057,6 +1055,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   /* make sure they are not the same colors */
   while (color2 == color1)
     color2 = rand_number(0, NUM_A_COLORS);
+  crest_num = rand_number(0, NUM_A_ARMOR_CRESTS);
 
   // Find out if there's an armor special adjective in the desc
   roll = dice(1, 3);
@@ -1084,7 +1083,6 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   roll = dice(1, 8);
 
   // It has a crest so find out which and set the desc
-  crest_num = rand_number(0, NUM_A_ARMOR_CRESTS);
   if (roll >= 7)
     sprintf(desc, "%s with %s %s crest", desc,
           AN(armor_crests[crest_num]),
@@ -1138,7 +1136,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
 void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE, roll = 0, size = SIZE_MEDIUM;
-  int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
+  int rare_grade = 0, color1 = 0, color2 = 0, level = 0, roll2 = 0, roll3 = 0;
   char desc[MEDIUM_STRING] = {'\0'}, weapon_name[SHORT_STRING] = {'\0'};
   char hilt_color[SHORT_STRING] = {'\0'}, head_color[SHORT_STRING] = {'\0'};
   char special[SHORT_STRING] = {'\0'};
@@ -1451,41 +1449,43 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     sprintf(special, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS)]);
   
   roll = dice(1, 100);
+  roll2 = rand_number(0, NUM_A_HEAD_TYPES);
+  roll3 = rand_number(0, NUM_A_HANDLE_TYPES);
 
   // special, head color, hilt color
   if (roll >= 91) {
     sprintf(buf, "%s %s-%s %s %s %s %s", special,
-            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     obj->name = strdup(buf);
     sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s", a_or_an(special), special,
-            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     obj->short_description = strdup(buf);
     sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s lies here.", a_or_an(special),
-            special, head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            special, head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
   // special, head color
   } else if (roll >= 81) {
     sprintf(buf, "%s %s-%s %s %s", special,
-            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->name = strdup(buf);
     sprintf(buf, "%s %s, %s-%s %s %s", a_or_an(special), special,
-            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->short_description = strdup(buf);
     sprintf(buf, "%s %s, %s-%s %s %s lies here.", a_or_an(special),
-            special, head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            special, head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
@@ -1494,54 +1494,54 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   } else if (roll >= 71) {
     sprintf(buf, "%s %s %s %s %s", special,
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name, hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     obj->name = strdup(buf);
     sprintf(buf, "%s %s %s %s with %s %s %s", a_or_an(special), special,
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     obj->short_description = strdup(buf);
     sprintf(buf, "%s %s %s %s with %s %s %s lies here.", a_or_an(special),
             special, material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
   // head color, hilt color
   } else if (roll >= 41) {
     sprintf(buf, "%s-%s %s %s %s %s",
-            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     obj->name = strdup(buf);
     sprintf(buf, "%s %s-%s %s %s with %s %s %s", a_or_an(head_color),
-            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     obj->short_description = strdup(buf);
     sprintf(buf, "%s %s-%s %s %s with %s %s %s lies here.", a_or_an(head_color),
-            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
   // head color
   } else if (roll >= 31) {
     sprintf(buf, "%s-%s %s %s",
-            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->name = strdup(buf);
     sprintf(buf, "%s %s-%s %s %s", a_or_an(head_color),
-            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     obj->short_description = strdup(buf);
     sprintf(buf, "%s %s-%s %s %s lies here.", a_or_an(head_color),
-            head_color, head_types[rand_number(0, NUM_A_HEAD_TYPES)],
+            head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
@@ -1551,18 +1551,18 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     sprintf(buf, "%s %s %s %s",
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     obj->name = strdup(buf);
     sprintf(buf, "%s %s %s with %s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     obj->short_description = strdup(buf);
     sprintf(buf, "%s %s %s with %s %s %s lies here.",
             a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name,
             a_or_an(hilt_color), hilt_color,
-            handle_types[rand_number(0, NUM_A_HANDLE_TYPES)]);
+            handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
