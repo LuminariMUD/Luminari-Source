@@ -588,6 +588,7 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     top    = vmax;
   }
 
+  send_to_char(ch, "zone rnum: %d", rnum);
   len = strlcpy(buf,
   "Index VNum    Room Name                                    Exits\r\n"
   "----- ------- -------------------------------------------- -----\r\n",
