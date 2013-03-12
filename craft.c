@@ -1477,7 +1477,7 @@ SPECIAL(crafting_kit) {
 
   /* Some of the commands require argument */
   if (!*argument && !CMD_IS("checkcraft") && !CMD_IS("augment") &&
-          !CMD_IS("autocraft") && !CMD_IS("convert")) {
+          !CMD_IS("autocraft") && !CMD_IS("convert")&& !CMD_IS("disenchant")) {
     if (CMD_IS("create") || CMD_IS("restring"))
       send_to_char(ch, "Please provide an item description containing the "
             "material and item name in the string.\r\n");
@@ -1767,7 +1767,11 @@ EVENTFUNC(event_crafting) {
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_DISENCHANT:
-        // disenchant here
+        skill = SKILL_CHEMISTRY;
+        sprintf(buf, "You complete the disenchantment process.  Success!!!");
+        act(buf, false, ch, 0, 0, TO_CHAR);
+        sprintf(buf, "$n finishes the disenchanting process.");
+        act(buf, false, ch, 0, 0, TO_ROOM);
         break;
       case SCMD_SYNTHESIZE:
         // synthesizing here
