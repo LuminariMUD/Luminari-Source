@@ -25,6 +25,7 @@
 #include "modify.h"
 #include "spells.h"
 #include "race.h"
+#include "genzon.h"
 
  
 #define MAX_OBJ_LIST 100
@@ -596,16 +597,16 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     return;
 
   CREATE(has_zcmds, bool, top - bottom);
-  for (zscmd = 0; ZCMD(real_zone_by_thing(vmin), zscmd).command != 'S'; zscmd++) {
-    switch (ZCMD(real_zone_by_thing(vmin), zscmd).command)
+  for (zscmd = 0; ZCMD(real_zone_by_thing(bottom), zscmd).command != 'S'; zscmd++) {
+    switch (ZCMD(real_zone_by_thing(bottom), zscmd).command)
     {
       case 'D':
       case 'R':
-        temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(vmin), zscmd).arg1);
+        temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), zscmd).arg1);
         break;
       case 'O':
       case 'M':
-        temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(vmin), zscmd).arg3);
+        temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), zscmd).arg3);
         break;
     }
     if (temp_num >= bottom && temp_num <= top)
