@@ -588,7 +588,7 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     top    = vmax;
   }
 
-  send_to_char(ch, "zone rnum: %d", rnum);
+  send_to_char(ch, "zone rnum: %d\r\n", rnum);
   len = strlcpy(buf,
   "Index VNum    Room Name                                    Exits\r\n"
   "----- ------- -------------------------------------------- -----\r\n",
@@ -604,10 +604,12 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
       case 'D':
       case 'R':
         temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), zscmd).arg1);
+        send_to_char(ch, "D/R subcmd: %d\r\n", temp_num);
         break;
       case 'O':
       case 'M':
         temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), zscmd).arg3);
+        send_to_char(ch, "O/M subcmd: %d\r\n", temp_num);
         break;
     }
     if (temp_num >= bottom && temp_num <= top)
