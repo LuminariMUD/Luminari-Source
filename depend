@@ -109,7 +109,7 @@ dg_wldcmd.o: dg_wldcmd.c conf.h sysdep.h structs.h protocol.h lists.h \
 fight.o: fight.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h interpreter.h db.h spells.h screen.h constants.h \
  dg_scripts.h act.h class.h fight.h shop.h quest.h mud_event.h dg_event.h \
- spec_procs.h clan.h
+ spec_procs.h clan.h treasure.h
 genmob.o: genmob.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h shop.h handler.h genolc.h genmob.h genzon.h dg_olc.h \
  dg_scripts.h spells.h
@@ -195,7 +195,7 @@ oasis_delete.o: oasis_delete.c conf.h sysdep.h structs.h protocol.h \
 oasis_list.o: oasis_list.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h genolc.h oasis.h \
  improved-edit.h shop.h screen.h constants.h dg_scripts.h quest.h \
- modify.h spells.h
+ modify.h spells.h genzon.h
 objsave.o: objsave.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h db.h interpreter.h spells.h act.h class.h \
  config.h modify.h genolc.h craft.h
