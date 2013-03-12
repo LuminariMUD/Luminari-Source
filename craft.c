@@ -1099,10 +1099,6 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   /* award crystal for item */
   award_random_crystal(ch, dice(1, GET_OBJ_LEVEL(obj)));
   
-  /* clear item that got disenchanted */
-  obj_from_obj(obj);
-  extract_obj(obj);  
-  
   increase_skill(ch, SKILL_CHEMISTRY);
 
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
@@ -1111,6 +1107,12 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
 
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
   act("$n begins to disenchant $p.", FALSE, ch, obj, 0, TO_ROOM);
+
+  /* clear item that got disenchanted */
+  obj_from_obj(obj);
+  extract_obj(obj);  
+  
+  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
   return 1;
 }
 
