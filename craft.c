@@ -1111,8 +1111,6 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
 
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
   act("$n begins to disenchant $p.", FALSE, ch, obj, 0, TO_ROOM);
-  obj_from_char(obj);
-  extract_obj(obj);
   return 1;
 }
 
