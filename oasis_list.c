@@ -589,8 +589,8 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
   }
 
   len = strlcpy(buf,
-  "Index VNum    Room Name                                    Exits\r\n"
-  "----- ------- -------------------------------------------- -----\r\n",
+  "Index  VNum    Room Name                                    Exits\r\n"
+  "-----  ------- -------------------------------------------- -----\r\n",
   sizeof(buf));
 
   if (!top_of_world)
@@ -603,12 +603,12 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
       case 'D':
       case 'R':
         temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), zscmd).arg1);
-        send_to_char(ch, "D/R subcmd: %d\r\n", temp_num);
+        //send_to_char(ch, "D/R subcmd: %d\r\n", temp_num);
         break;
       case 'O':
       case 'M':
         temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), zscmd).arg3);
-        send_to_char(ch, "O/M subcmd: %d\r\n", temp_num);
+        //send_to_char(ch, "O/M subcmd: %d\r\n", temp_num);
         break;
     }
     if (temp_num >= bottom && temp_num <= top)
