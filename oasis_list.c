@@ -582,7 +582,7 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     bottom = zone_table[rnum].bot;
     top    = zone_table[rnum].top;
   } else {
-    rnum = real_zone(vmin);
+    rnum = real_zone_by_thing(vmin);
     bottom = vmin;
     top    = vmax;
   }
@@ -596,16 +596,16 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     return;
 
   CREATE(has_zcmds, bool, top - bottom);
-  for (zscmd = 0; ZCMD(rnum, zscmd).command != 'S'; zscmd++) {
-    switch (ZCMD(rnum, zscmd).command)
+  for (zscmd = 0; ZCMD(real_zone_by_thing(vmin), zscmd).command != 'S'; zscmd++) {
+    switch (ZCMD(real_zone_by_thing(vmin), zscmd).command)
     {
       case 'D':
       case 'R':
-        temp_num = GET_ROOM_VNUM(ZCMD(rnum, zscmd).arg1);
+        temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(vmin), zscmd).arg1);
         break;
       case 'O':
       case 'M':
-        temp_num = GET_ROOM_VNUM(ZCMD(rnum, zscmd).arg3);
+        temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(vmin), zscmd).arg3);
         break;
     }
     if (temp_num >= bottom && temp_num <= top)
