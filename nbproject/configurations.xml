@@ -32,7 +32,6 @@
       <in>boards.h</in>
       <in>bsd-snprintf.c</in>
       <in>bsd-snprintf.h</in>
-      <in>castle.c</in>
       <in>cedit.c</in>
       <in>clan.c</in>
       <in>clan.h</in>
@@ -153,6 +152,7 @@
       <in>zedit.c</in>
       <in>zmalloc.c</in>
       <in>zmalloc.h</in>
+      <in>zone_procs.c</in>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

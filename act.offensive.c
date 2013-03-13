@@ -434,7 +434,7 @@ ACMD(do_flee)
     if ((i = search_block(arg, dirs, FALSE)) >= 0) {
       if (CAN_GO(ch, i)) {
         if (do_simple_move(ch, i, 3)) {
-          send_to_char(ch, "You make a tactic retreat from battle!\r\n");
+          send_to_char(ch, "You make a tactical retreat from battle!\r\n");
           act("$n makes a tactical retreat from the battle!",
 		TRUE, ch, 0, 0, TO_ROOM);
         } else {
@@ -450,8 +450,8 @@ ACMD(do_flee)
       return;
     }
   }
-  SET_WAIT(ch, 100);
-  //WAIT_STATE(ch, PULSE_VIOLENCE * 1);
+  // half a second
+  SET_WAIT(ch, 50);
 }
 
 
@@ -512,6 +512,7 @@ ACMD(do_expertise)
 }
 
 
+
 ACMD(do_taunt)
 {
   char arg[MAX_INPUT_LENGTH];
@@ -550,7 +551,6 @@ ACMD(do_taunt)
   }
   if (char_has_mud_event(ch, eTAUNT)) {
     send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 7 seconds.\r\n");
     return;
   }
 
@@ -780,9 +780,9 @@ ACMD(do_bash)
     GET_POS(vict) = POS_SITTING;
     if (GET_SKILL(ch, SKILL_IMPROVED_BASH)) {
       if (damage(ch, vict, GET_LEVEL(ch), SKILL_BASH, DAM_FORCE, FALSE) > 0)
-        WAIT_STATE(vict, PULSE_VIOLENCE * 2);
+        SET_WAIT(vict, PULSE_VIOLENCE * 1.75);
     } else if (damage(ch, vict, 1, SKILL_BASH, DAM_FORCE, FALSE) > 0)
-      WAIT_STATE(vict, PULSE_VIOLENCE * 2);
+      SET_WAIT(vict, PULSE_VIOLENCE * 2);
   }
 
   WAIT_STATE(ch, PULSE_VIOLENCE * 2);

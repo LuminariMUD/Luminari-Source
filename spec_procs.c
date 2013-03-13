@@ -8,8 +8,6 @@
 *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
 **************************************************************************/
 
-/* For more examples: 
- * ftp://ftp.circlemud.org/pub/CircleMUD/contrib/snippets/specials */
 
 #include "conf.h"
 #include "sysdep.h"
@@ -757,7 +755,16 @@ SPECIAL(guild)
       send_to_char(ch, "You haven't met the pre-requisites for that skill.\r\n");
       return (TRUE);
     }
-
+    
+    /* added with addition of crafting system so you can't use your
+     'practice points' for training your crafting skills which have
+     a much lower base value than 75 */
+    
+    if (GET_SKILL(ch, skill_num)) {
+      send_to_char(ch, "You already have this skill trained.\r\n");
+      return TRUE;
+    }
+    
     send_to_char(ch, "You practice '%s' with your trainer...\r\n",
 	spell_info[skill_num].name);
     GET_PRACTICES(ch)--;
