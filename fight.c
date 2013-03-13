@@ -2737,11 +2737,11 @@ void perform_violence(void) {
     }
 
     if (IS_NPC(ch)) {
-      if (GET_MOB_WAIT(ch) > 0) {
+      if (GET_MOB_WAIT(ch) > 0 || HAS_WAIT(ch)) {
         GET_MOB_WAIT(ch) -= PULSE_VIOLENCE;
       } else {
         GET_MOB_WAIT(ch) = 0;
-        if (GET_POS(ch) < POS_FIGHTING) {
+        if (GET_POS(ch) < POS_FIGHTING) {          
           GET_POS(ch) = POS_FIGHTING;
           send_to_char(ch, "You scramble to your feet!\r\n");
           act("$n scrambles to $s feet!", TRUE, ch, 0, 0, TO_ROOM);

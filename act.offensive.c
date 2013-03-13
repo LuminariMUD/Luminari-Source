@@ -782,10 +782,10 @@ ACMD(do_bash)
       if (damage(ch, vict, GET_LEVEL(ch), SKILL_BASH, DAM_FORCE, FALSE) > 0)
         SET_WAIT(vict, PULSE_VIOLENCE * 1.75);
     } else if (damage(ch, vict, 1, SKILL_BASH, DAM_FORCE, FALSE) > 0)
-      SET_WAIT(vict, PULSE_VIOLENCE * 2);
+      SET_WAIT(vict, PULSE_VIOLENCE * 1.75);
   }
 
-  WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_BASH);
   
