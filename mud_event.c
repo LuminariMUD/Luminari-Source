@@ -179,6 +179,9 @@ EVENTFUNC(event_countdown)
     case eTREATINJURY:
       send_to_char(ch, "You are now able to treat injuries again.\r\n");
       break;
+    case eWAIT:
+      send_to_char(ch, "You are able to act again.\r\n");
+      break;
       
     default:
       break;
