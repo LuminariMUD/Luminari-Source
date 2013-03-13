@@ -40,9 +40,6 @@ boards.o: boards.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h boards.h interpreter.h handler.h improved-edit.h \
  modify.h
 bsd-snprintf.o: bsd-snprintf.c conf.h sysdep.h
-castle.o: castle.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
- race.h comm.h interpreter.h handler.h db.h spells.h act.h spec_procs.h \
- fight.h
 cedit.o: cedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h db.h constants.h genolc.h oasis.h \
  improved-edit.h modify.h
@@ -65,7 +62,7 @@ constants.o: constants.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h interpreter.h spells.h craft.h
 craft.o: craft.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h interpreter.h constants.h handler.h db.h craft.h \
- mud_event.h dg_event.h modify.h
+ mud_event.h dg_event.h modify.h treasure.h
 db.o: db.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  db.h comm.h handler.h spells.h mail.h interpreter.h house.h constants.h \
  oasis.h dg_scripts.h dg_event.h act.h ban.h spec_procs.h genzon.h \
@@ -261,3 +258,6 @@ zedit.o: zedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h db.h constants.h genolc.h genzon.h oasis.h \
  dg_scripts.h
 zmalloc.o: zmalloc.c
+zone_procs.o: zone_procs.c conf.h sysdep.h structs.h protocol.h lists.h \
+ utils.h race.h comm.h interpreter.h handler.h db.h spells.h act.h \
+ spec_procs.h fight.h
