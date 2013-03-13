@@ -1507,14 +1507,20 @@ static char *make_prompt(struct descriptor_data *d)
       }      
     } /* end prompt itself, start extra */
 
+    if (HAS_WAIT(d->character) && len < sizeof(prompt)) {
+      count = snprintf(prompt + len, sizeof(prompt) - len, "{wait} ");
+      if (count >= 0)
+        len += count;
+    }
+
     if (PRF_FLAGGED(d->character, PRF_BUILDWALK) && len < sizeof(prompt)) {
-      count = snprintf(prompt + len, sizeof(prompt) - len, "BUILDWALKING ");
+      count = snprintf(prompt + len, sizeof(prompt) - len, "(BUILDWALKING) ");
       if (count >= 0)
         len += count;
     }
 
     if (PRF_FLAGGED(d->character, PRF_AFK) && len < sizeof(prompt)) {
-      count = snprintf(prompt + len, sizeof(prompt) - len, "AFK ");
+      count = snprintf(prompt + len, sizeof(prompt) - len, "(AFK) ");
       if (count >= 0)
         len += count;
     }
