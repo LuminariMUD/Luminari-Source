@@ -1,7 +1,7 @@
 /**
 * @file spec_procs.h
 * Header file for special procedure modules. This file groups a lot of the
-* legacy special procedures found in spec_procs.c and castle.c.
+* legacy special procedures found in spec_procs.c and zone_procs.c.
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
@@ -15,7 +15,7 @@
 #define _SPEC_PROCS_H_
 
 /*****************************************************************************
- * Begin Functions and defines for castle.c 
+ * Begin Functions and defines for zone_procs.c 
  ****************************************************************************/
 void assign_kings_castle(void);
 int do_npc_rescue(struct char_data *ch, struct char_data *friend);

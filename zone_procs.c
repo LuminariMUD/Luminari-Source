@@ -1,11 +1,8 @@
 /**************************************************************************
-*  File: castle.c                                          Part of tbaMUD *
-*  Usage: Special procedures for King's Castle area.                      *
+*  File: zone_procs.c                                 Part of LuminariMUD *
+*  Usage: Special procedures for zones                                    *
 *                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Special procedures for Kings Castle by Pjotr. Coded by Sapowox.        *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+*  Header File:  spec_procs.h                                             *
 **************************************************************************/
 
 #include "conf.h"
@@ -18,13 +15,12 @@
 #include "db.h"
 #include "spells.h"
 #include "act.h"
-#include "spec_procs.h" /**< castle.c is part of the spec_procs module */
+#include "spec_procs.h" /**< zone_procs.c is part of the spec_procs module */
 #include "fight.h"
 
 /* IMPORTANT! The below defined number is the zone number of the Kings Castle.
- * Change it to apply to your chosen zone number. The default zone number 
- * is 80. */
-
+ * Change it to apply to your chosen zone number.
+ * */
 #define Z_KINGS_C 150
 
 /* local, file scope restricted functions */
@@ -42,6 +38,7 @@ static void fry_victim(struct char_data *ch);
 static int castle_cleaner(struct char_data *ch, int cmd, int gripe);
 static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum, const char *twinname);
 static void castle_mob_spec(mob_vnum mobnum, SPECIAL(*specproc));
+
 /* Special procedures for Kings Castle by Pjotr. Coded by Sapowox. */
 SPECIAL(CastleGuard);
 SPECIAL(James);
@@ -56,6 +53,9 @@ SPECIAL(jerry);
 
 
 
+/******************************************************************/
+/*  KINGS CASTLE */
+/******************************************************************/
 
 /* Assign castle special procedures. NOTE: The mobile number isn't fully 
  * specified. It's only an offset from the zone's base. */
@@ -809,3 +809,10 @@ SPECIAL(jerry)
   }
   return (FALSE);
 }
+
+
+/******************************************************************/
+/*  END KINGS CASTLE */
+/******************************************************************/
+
+/* put new zone procs here */
