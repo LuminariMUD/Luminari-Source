@@ -574,7 +574,7 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
 {
   room_rnum i;
   room_vnum bottom, top;
-  int j, counter = 0, len, temp_num = 0, zscmd = 0;
+  int j, counter = 0, len, temp_num = 0, subcmd = 0;
   char buf[MAX_STRING_LENGTH];
   bool *has_zcmds = NULL;
 
@@ -597,17 +597,17 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     return;
 
   CREATE(has_zcmds, bool, top - bottom);
-  for (zscmd = 0; ZCMD(real_zone_by_thing(bottom), zscmd).command != 'S'; zscmd++) {
-    switch (ZCMD(real_zone_by_thing(bottom), zscmd).command)
+  for (subcmd = 0; ZCMD(real_zone_by_thing(bottom), subcmd).command != 'S'; subcmd++) {
+    switch (ZCMD(real_zone_by_thing(bottom), subcmd).command)
     {
       case 'D':
       case 'R':
-        temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), zscmd).arg1);
+        temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), subcmd).arg1);
         //send_to_char(ch, "D/R subcmd: %d\r\n", temp_num);
         break;
       case 'O':
       case 'M':
-        temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), zscmd).arg3);
+        temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), subcmd).arg3);
         //send_to_char(ch, "O/M subcmd: %d\r\n", temp_num);
         break;
     }
@@ -620,8 +620,9 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     if ((world[i].number >= bottom) && (world[i].number <= top)) {
       counter++;
 
-        len += snprintf(buf + len, sizeof(buf) - len, "%4d)%s [%s%-5d%s] %s%-*s%s %s",
-                          counter, (has_zcmds != NULL ? (has_zcmds[world[i].number - bottom] == TRUE ? "Z" : " ") : ""), QGRN, world[i].number, QNRM,
+        len += snprintf(buf + len, sizeof(buf) - len, "%4d)%s%s%s [%s%-5d%s] %s%-*s%s %s",
+                          counter, QYEL, (has_zcmds != NULL ? (has_zcmds[world[i].number - bottom] == TRUE ? "Z" : " ") : ""), QNRM,
+                          QGRN, world[i].number, QNRM,
                           QCYN, count_color_chars(world[i].name)+44, world[i].name, QNRM,
                           world[i].proto_script ? "[TRIG] " : ""
                           );
