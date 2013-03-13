@@ -1958,7 +1958,7 @@ ACMD(do_harvest) {
         obj = read_object(ONYX_MATERIAL, VIRTUAL); // onyx
       else
         obj = read_object(IRON_MATERIAL, VIRTUAL); // iron
-      minskill = 15;
+      minskill = 35;
       break;
 
     case MATERIAL_MITHRIL:
@@ -1971,7 +1971,7 @@ ACMD(do_harvest) {
         obj = read_object(RUBY_MATERIAL, VIRTUAL); // ruby
       else
         obj = read_object(SAPPHIRE_MATERIAL, VIRTUAL); // sapphire
-      minskill = 28;
+      minskill = 48;
       break;
 
     case MATERIAL_ADAMANTINE:
@@ -1986,7 +1986,7 @@ ACMD(do_harvest) {
         else
           obj = read_object(EMERALD_MATERIAL, VIRTUAL); // emerald
       }
-      minskill = 42;
+      minskill = 61;
       break;
 
     case MATERIAL_SILVER:
@@ -2112,7 +2112,7 @@ ACMD(do_harvest) {
         obj = read_object(COTTON_MATERIAL, VIRTUAL); // cotton
       } else
         obj = read_object(FOS_LIZARD_MATERIAL, VIRTUAL); // fossilized giant lizard egg
-      minskill = 12;
+      minskill = 5;
       break;
 
     case MATERIAL_WOOL:
@@ -2120,7 +2120,7 @@ ACMD(do_harvest) {
         obj = read_object(WOOL_MATERIAL, VIRTUAL); // wool
       } else
         obj = read_object(FOS_LIZARD_MATERIAL, VIRTUAL); // fossilized giant lizard egg
-      minskill = 18;
+      minskill = 10;
       break;
 
     case MATERIAL_VELVET:
