@@ -742,7 +742,7 @@ static struct obj_data *get_selling_obj(struct char_data *ch, char *name, struct
 
   switch (result) {
   case OBJECT_NOVAL:
-    snprintf(buf, sizeof(buf), "%s You've got to be kidding, that thing is worthless! (%d)", GET_NAME(ch), GET_OBJ_COST(obj));
+    snprintf(buf, sizeof(buf), "%s You've got to be kidding, that thing is worthless! (%d) VNUM: %d", GET_NAME(ch), GET_OBJ_COST(obj), GET_OBJ_VNUM(obj));
     break;
   case OBJECT_NOTOK:
     snprintf(buf, sizeof(buf), shop_index[shop_nr].do_not_buy, GET_NAME(ch));
