@@ -264,12 +264,15 @@ ACMD(do_scribe) {
     send_to_char(ch, "You scribe the spell '%s' into your spellbook, which "
             "takes up %d pages.\r\n", spell_info[spellnum].name,
             obj->sbinfo[i].pages);
+    extract_obj(scroll);
+    save_char(ch, 0);
+    
   } else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL) {
     
     if (GET_OBJ_VAL(obj, 1) > 0 ||
         GET_OBJ_VAL(obj, 2) > 0 ||
         GET_OBJ_VAL(obj, 3) > 0) {
-      send_to_char(ch, "The scroll has a spell enscribed on it!\r\n");
+      send_to_char(ch, "The scroll has a spell inscribed on it!\r\n");
       return;
     }
     
