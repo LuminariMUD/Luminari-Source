@@ -687,6 +687,10 @@ static void look_in_obj(struct char_data *ch, char *arg) {
   else if (!(bits = generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM |
           FIND_OBJ_EQUIP, ch, &dummy, &obj))) {
     send_to_char(ch, "There doesn't seem to be %s %s here.\r\n", AN(arg), arg);
+  } else if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
+    display_spells(ch, obj);
+  } else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL) {
+    display_scroll(ch, obj);
   } else if ((GET_OBJ_TYPE(obj) != ITEM_DRINKCON) &&
           (GET_OBJ_TYPE(obj) != ITEM_FOUNTAIN) &&
           (GET_OBJ_TYPE(obj) != ITEM_CONTAINER))
