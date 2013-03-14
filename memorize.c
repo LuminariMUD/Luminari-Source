@@ -8,6 +8,9 @@
  *            Spellbook functions taken from CWG project, adapted by Zusuk
  ****************************************************************************/
 
+/*** TODO:  03/14/2013 reported - move header info into separate file or
+ neatly organize in spells.h */
+
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
@@ -164,7 +167,144 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class)
     return FALSE;
   return TRUE;
 }
+
+/* used for scribing spells from scrolls to spellbook
+   used for scribing spells from memory to scrolls
+ TODO:  scribing spells from memory to spellbook 
+ */
+ACMD(do_scribe) {
+  char arg1[MAX_INPUT_LENGTH] = { '\0' };
+  char arg2[MAX_INPUT_LENGTH] = { '\0' };
+  char *s = NULL, buf[READ_SIZE] = { '\0' };
+  int i = 0, spellnum = -1, found = FALSE;
+  struct obj_data *obj = NULL, *scroll = NULL, *next_obj = NULL;
+
+  half_chop(argument, arg1, arg2);
+
+  /* quick outs */
+  if (!*arg1 || !*arg2) {
+    send_to_char(ch, "Usually you scribe SOMETHING.\r\n");
+    return;
+  }
+  if (!GET_SKILL(ch, SKILL_SCRIBE)) {
+    send_to_char(ch, "You really aren't qualified to do that...\r\n");
+    return;
+  }
+  if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying))) {
+    send_to_char(ch, "You don't seem to have any %ss.\r\n", arg1);
+    return;
+  }
+
+  s = strtok(arg2, "\0");
+  spellnum = find_skill_num(s);
+
+  if ((spellnum < 1) || (spellnum >= NUM_SPELLS) || !GET_SKILL(ch, spellnum)) {
+    send_to_char(ch, "Strange, there is no such spell.\r\n");
+    return;
+  }
+
+  /* found an object, looking for a spellbook or scroll.. */
+  if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {    
+    /* check if spell is already in book */
+    if (spell_in_book(obj, spellnum)) {
+      send_to_char(ch, "You already have the spell '%s' in this spellbook.\r\n",
+              spell_info[spellnum].name);
+      return;
+    }
+    /* initiate spellbook if needed */
+    if (!obj->sbinfo) {
+      CREATE(obj->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+      memset((char *) obj->sbinfo, 0,
+              SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
+    }
+    /* look for empty spot in book */
+    for (i = 0; i < SPELLBOOK_SIZE; i++)
+      if (obj->sbinfo[i].spellname == 0)
+        break;
+
+    /* oops no space */
+    if (i == SPELLBOOK_SIZE) {
+      send_to_char(ch, "Your spellbook is full!\r\n");
+      return;
+    }
+
+    /* ok now loop through inventory, check if we have a scroll
+       with requested spell name in it */
+    for (scroll = ch->carrying; scroll; scroll = next_obj) {
+      next_obj = scroll->next_content;
+
+      if (scroll && GET_OBJ_TYPE(scroll) == ITEM_SCROLL) {
+        if ( GET_OBJ_VAL(scroll, 1) == spellnum ||
+             GET_OBJ_VAL(scroll, 2) == spellnum  ||
+             GET_OBJ_VAL(scroll, 3) == spellnum ) {
+          send_to_char(ch, "You use a scroll with the spell in your "
+                  "inventory...\r\n");
+          found = TRUE;
+          break;
+        }
+      }
+    }
+    
+    if (!found || !scroll) {
+      send_to_char(ch, "You must have the spell committed to memory before "
+              "you can scribe it!\r\n");
+      return;
+    }
+    
+    /*
+    if (!hasSpell(ch, spellnum)) {
+      send_to_char(ch, "You must have the spell committed to memory before "
+              "you can scribe it!\r\n");
+      return;
+    }
+    */
+
+    obj->sbinfo[i].spellname = spellnum;
+    obj->sbinfo[i].pages = MAX(1, lowest_spell_level(spellnum) / 2);
+    send_to_char(ch, "You scribe the spell '%s' into your spellbook, which "
+            "takes up %d pages.\r\n", spell_info[spellnum].name,
+            obj->sbinfo[i].pages);
+  } else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL) {
+    
+    if (GET_OBJ_VAL(obj, 1) > 0 ||
+        GET_OBJ_VAL(obj, 2) > 0 ||
+        GET_OBJ_VAL(obj, 3) > 0) {
+      send_to_char(ch, "The scroll has a spell enscribed on it!\r\n");
+      return;
+    }
+    
+    if (!hasSpell(ch, spellnum)) {
+      send_to_char(ch, "You must have the spell committed to memory before "
+              "you can scribe it!\r\n");
+      return;
+    }
+    
+    GET_OBJ_VAL(obj, 0) = GET_LEVEL(ch);
+    GET_OBJ_VAL(obj, 1) = spellnum;
+    GET_OBJ_VAL(obj, 2) = -1;
+    GET_OBJ_VAL(obj, 3) = -1;
+    
+    found = FALSE;
+    
+    sprintf(buf, "a scroll of '%s'", spell_info[spellnum].name);
+    obj->short_description = strdup(buf);
+    send_to_char(ch, "You scribe the spell '%s' onto %s.\r\n",
+            spell_info[spellnum].name, obj->short_description);
+  } else {
+    send_to_char(ch, "But you don't have anything suitable for scribing!\r\n");
+    return;
+  }
+
+  if (!found) {
+    send_to_char(ch, "The magical energy committed for the spell '%s' has been "
+            "expended.\r\n", spell_info[spellnum].name);
+    sprintf(buf, "%d", spellnum);
+    forgetSpell(ch, spellnum, -1);
+  }
   
+  increase_skill(ch, SKILL_SCRIBE);
+  
+}
 
 
 /* =============================================== */

@@ -250,6 +250,9 @@ case SKILL_EPIC_CRIT:
 case SKILL_QUICK_CHANT:
 	if (CASTER_LEVEL(ch))
 		return TRUE;	else return FALSE;
+case SKILL_SCRIBE:
+	if (CASTER_LEVEL(ch))
+		return TRUE;	else return FALSE;
 
 /* special restrictions */
 case SKILL_USE_MAGIC:  /* shared - with casters and rogue */

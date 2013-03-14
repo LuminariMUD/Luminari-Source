@@ -360,6 +360,12 @@ void increase_skill(struct char_data *ch, int skillnum)
         GET_SKILL(ch, skillnum)++;
       }
       break;
+    case SKILL_SCRIBE:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
     case SKILL_MUMMY_DUST:
       if (!use) {
         notched = TRUE;

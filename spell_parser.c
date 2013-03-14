@@ -123,7 +123,17 @@ static int mag_manacost(struct char_data *ch, int spellnum)
           SINFO.mana_min) / 2);
 }
  */
+/* calculates lowest possible level of a spell (spells can be different
+ levels for different classes) */
+int lowest_spell_level(int spellnum) {
+  int i, lvl = SINFO.min_level[0];
 
+  for (i = 1; i < NUM_CLASSES; i++)
+    if (lvl >= SINFO.min_level[i])
+      lvl = SINFO.min_level[i];
+
+  return lvl;
+}
 
 /* displays substitude text for spells to represent 'magical phrases' */
 static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
@@ -396,10 +406,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   /* globe of invulernability spell(s)
    * and spell mantles */
   if (cvict) {
-    int i, lvl = SINFO.min_level[0];
-    for (i = 1; i < NUM_CLASSES; i++)
-      if (lvl >= SINFO.min_level[i])
-        lvl = SINFO.min_level[i];
+    int lvl = lowest_spell_level(spellnum);    
 
     /* minor globe */
     /* we're translating level to circle, so 4 = 2nd circle */
@@ -1134,7 +1141,7 @@ ACMD(do_cast) {
 
   if (!hasSpell(ch, spellnum) && !isEpicSpell(spellnum)) {
     //       && spellnum != SPELL_ACID_SPLASH && spellnum != SPELL_RAY_OF_FROST) {
-    send_to_char(ch, "You do not seem to have that spell... (help memorization)\r\n");
+    send_to_char(ch, "You aren't ready to cast that spell... (help preparation)\r\n");
     return;
   }
 
@@ -2610,6 +2617,7 @@ void mag_assign_spells(void) {
   skillo(SKILL_PALADIN_MOUNT, "paladin mount"); //511
   skillo(SKILL_CALL_FAMILIAR, "call familiar"); //512
   skillo(SKILL_PERFORM, "perform"); //513
+  skillo(SKILL_SCRIBE, "scribe"); //514
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 
