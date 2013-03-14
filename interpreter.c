@@ -341,6 +341,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "score", "sc", POS_DEAD, do_score, 0, 0, TRUE},
   { "scan", "sca", POS_RESTING, do_scan, 0, 0, FALSE},
   { "scopy", "scopy", POS_DEAD, do_oasis_copy, LVL_GOD, CON_SEDIT, TRUE},
+  { "scribe", "scribe", POS_RESTING, do_scribe, 0, 0, FALSE},
   { "sit", "si", POS_RESTING, do_sit, 0, 0, FALSE},
   { "'", "'", POS_RESTING, do_say, 0, 0, TRUE},
   { "save", "sav", POS_SLEEPING, do_save, 0, 0, TRUE},

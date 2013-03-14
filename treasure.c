@@ -55,6 +55,7 @@ bool valid_item_spell(int spellnum) {
 }
 
 /* simple function to give a random metal type */
+/* (currently unused) */
 int choose_metal_material(void) {  
   switch (dice(1, 12)) {
     case 1:
@@ -78,6 +79,7 @@ int choose_metal_material(void) {
 }
 
 /* simple function to give a random precious metal type */
+/* (currently unused) */
 int choose_precious_metal_material(void) {
   switch (dice(1, 9)) {
     case 1:
@@ -96,6 +98,7 @@ int choose_precious_metal_material(void) {
 }
 
 /* simple function to give a random cloth type */
+/* (currently unused) */
 int choose_cloth_material(void) {
   switch (dice(1, 12)) {
     case 1:
@@ -118,7 +121,8 @@ int choose_cloth_material(void) {
   }
 }
 
-/* returns random apply value */
+/* returns random apply value 
+   from a list of values staff approved */
 int random_apply_value(void) {
   int val = APPLY_NONE;
 

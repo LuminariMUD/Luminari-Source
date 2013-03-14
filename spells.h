@@ -474,9 +474,10 @@
 #define SKILL_ANIMAL_COMPANION          510  //implemented
 #define SKILL_PALADIN_MOUNT             511  //implemented
 #define SKILL_CALL_FAMILIAR             512  //implemented
-#define SKILL_PERFORM                   513
+#define SKILL_PERFORM                   513  //implemented
+#define SKILL_SCRIBE                    514  //implemented
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      514
+#define NUM_SKILLS                      515
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the
@@ -799,6 +800,8 @@ void display_spells(struct char_data *ch, struct obj_data *obj);
 bool spell_in_book(struct obj_data *obj, int spellnum);
 int spell_in_scroll(struct obj_data *obj, int spellnum);
 bool spellbook_ok(struct char_data *ch, int spellnum, int class);
+/* spellbook commands */
+ACMD(do_scribe);
 /* memorize related functions */
 void init_spell_slots(struct char_data *ch);
 int spellCircle(int class, int spellnum);
@@ -827,6 +830,8 @@ ACMD(do_cast);
 void unused_spell(int spl);
 void mag_assign_spells(void);
 void resetCastingData(struct char_data *ch);
+int lowest_spell_level(int spellnum);
+
 
 
 /* Global variables exported */

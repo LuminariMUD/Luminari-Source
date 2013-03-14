@@ -465,6 +465,11 @@ void bard_skills(struct char_data *ch, int level) {
         SET_SKILL(ch, SKILL_PERFORM, 75);
       send_to_char(ch, "\tMYou have learned 'Perform'\tn\r\n");
       break;
+    case 3:
+      if (!GET_SKILL(ch, SKILL_SCRIBE))
+        SET_SKILL(ch, SKILL_SCRIBE, 75);
+      send_to_char(ch, "\tMYou have learned 'Scribe'\tn\r\n");
+      break;
     default:
       break;
   }
@@ -569,6 +574,11 @@ void sorc_skills(struct char_data *ch, int level) {
         SET_SKILL(ch, SKILL_USE_MAGIC, 75);
       send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
       break;
+    case 3:
+      if (!GET_SKILL(ch, SKILL_SCRIBE))
+        SET_SKILL(ch, SKILL_SCRIBE, 75);
+      send_to_char(ch, "\tMYou have learned 'Scribe'\tn\r\n");
+      break;
     default:
       break;
   }
@@ -588,6 +598,11 @@ void wizard_skills(struct char_data *ch, int level) {
       if (!GET_SKILL(ch, SKILL_USE_MAGIC))
         SET_SKILL(ch, SKILL_USE_MAGIC, 75);
       send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
+      break;
+    case 3:
+      if (!GET_SKILL(ch, SKILL_SCRIBE))
+        SET_SKILL(ch, SKILL_SCRIBE, 75);
+      send_to_char(ch, "\tMYou have learned 'Scribe'\tn\r\n");
       break;
     default:
       break;
