@@ -1958,6 +1958,8 @@ void mag_assign_spells(void) {
           NULL, 9, 9, CONJURATION);
   spello(SPELL_SUMMON_CREATURE_5, "summon creature v", 95, 80, 1,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 9, CONJURATION);
+  spello(SPELL_WALL_OF_THORNS, "wall of thorns", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 7, 9, CONJURATION);
   /* necromancy */
   spello(SPELL_DEATH_WARD, "death ward", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
@@ -2011,6 +2013,8 @@ void mag_assign_spells(void) {
           TAR_IGNORE, FALSE, MAG_ROOM,
           "You watch as the acid fog dissipates.", 7, 8,
           CONJURATION);
+  spello(SPELL_FIRE_SEEDS, "fire seeds", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 7, 8, CONJURATION);
   //summon creature 6 - shared
   /* necromancy */
   spello(SPELL_TRANSFORMATION, "transformation", 0, 0, 0, POS_FIGHTING,

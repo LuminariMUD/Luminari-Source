@@ -4266,6 +4266,14 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       to_room = "$n creates $p.";
       object_vnum = 222;
       break;
+    case SPELL_FIRE_SEEDS:
+      to_char = "You create $p.";
+      to_room = "$n creates $p.";
+      if (rand_number(0, 1))
+        object_vnum = 9404;
+      else
+        object_vnum = 9405;
+      break;
     case SPELL_GATE:
       to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
       to_room = "$n \tnfolds \tMtime\tn and \tDspace\tn, and creates $p\tn.";
@@ -4380,7 +4388,13 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       obj_to_floor = TRUE;
       object_vnum = 9402;
       break;
-      
+    case SPELL_WALL_OF_THORNS:
+      to_char = "You create $p.";
+      to_room = "$n creates $p.";
+      obj_to_floor = TRUE;
+      object_vnum = 9403;
+      break;
+
     default:
       send_to_char(ch, "Spell unimplemented, it would seem.\r\n");
       return;

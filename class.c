@@ -1253,14 +1253,14 @@ void init_class(struct char_data *ch, int class, int level)
     // summon nature's ally v SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_5, 99);
     SET_SKILL(ch, SPELL_UNHALLOW, 99);
     SET_SKILL(ch, SPELL_WALL_OF_FIRE, 99);
-    // wall of thorns SET_SKILL(ch, SPELL_WALL_OF_THORNS, 99);
-    SET_SKILL(ch, SPELL_BLINDNESS, 99); // no
-    SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99); // no
-    SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99); // no
-    SET_SKILL(ch, SPELL_POISON, 99); // no
-    SET_SKILL(ch, SPELL_GROUP_ARMOR, 99); // no
+    SET_SKILL(ch, SPELL_WALL_OF_THORNS, 99);
+    //SET_SKILL(ch, SPELL_BLINDNESS, 99); // no
+    //SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99); // no
+    //SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99); // no
+    //SET_SKILL(ch, SPELL_POISON, 99); // no
+    //SET_SKILL(ch, SPELL_GROUP_ARMOR, 99); // no
     //6th circle
-    // fire seeds SET_SKILL(ch, SPELL_FIRE_SEEDS, 99);
+    SET_SKILL(ch, SPELL_FIRE_SEEDS, 99);
     SET_SKILL(ch, SPELL_GREATER_DISPELLING, 99);
     SET_SKILL(ch, SPELL_MASS_ENDURANCE, 99);
     SET_SKILL(ch, SPELL_MASS_STRENGTH, 99);
@@ -2795,13 +2795,13 @@ void init_spell_levels(void)
   // summon nature's ally v
   spell_level(SPELL_UNHALLOW, CLASS_DRUID, 9);
   spell_level(SPELL_WALL_OF_FIRE, CLASS_DRUID, 9);
-  // wall of thorns
-  spell_level(SPELL_BLINDNESS, CLASS_DRUID, 9); // no
-  spell_level(SPELL_PROT_FROM_EVIL, CLASS_DRUID, 9); // no
-  spell_level(SPELL_PROT_FROM_GOOD, CLASS_DRUID, 9); // no
-  spell_level(SPELL_GROUP_ARMOR, CLASS_DRUID, 9); // no
+  spell_level(SPELL_WALL_OF_THORNS, CLASS_DRUID, 9);
+  //spell_level(SPELL_BLINDNESS, CLASS_DRUID, 9); // no
+  //spell_level(SPELL_PROT_FROM_EVIL, CLASS_DRUID, 9); // no
+  //spell_level(SPELL_PROT_FROM_GOOD, CLASS_DRUID, 9); // no
+  //spell_level(SPELL_GROUP_ARMOR, CLASS_DRUID, 9); // no
   //6th circle
-  // fire seeds
+  spell_level(SPELL_FIRE_SEEDS, CLASS_DRUID, 11);
   spell_level(SPELL_GREATER_DISPELLING, CLASS_DRUID, 11);
   spell_level(SPELL_MASS_CURE_LIGHT, CLASS_DRUID, 11);
   spell_level(SPELL_MASS_ENDURANCE, CLASS_DRUID, 11);
