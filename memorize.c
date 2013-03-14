@@ -246,8 +246,8 @@ ACMD(do_scribe) {
     }
     
     if (!found || !scroll) {
-      send_to_char(ch, "You must have the spell committed to memory before "
-              "you can scribe it!\r\n");
+      send_to_char(ch, "You must have a scroll with that spell in order"
+              " to scribe it!\r\n");
       return;
     }
     
