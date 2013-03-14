@@ -57,33 +57,24 @@ void display_scroll(struct char_data *ch, struct obj_data *obj)
 /* This function displays the contents of ch's given spellbook */
 void display_spells(struct char_data *ch, struct obj_data *obj)
 {
+  int i;
+  
   if (GET_OBJ_TYPE(obj) != ITEM_SPELLBOOK)
     return;
 
-  int i, j;
-  int titleDone = FALSE;
-
-  send_to_char(ch, "The spellbook contains the following spell(s):\r\n");
-  send_to_char(ch, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
   if (!obj->sbinfo)
     return;
-  for (j = 0; j <= 9; j++) {
-    titleDone = FALSE;
-    for (i=0; i < SPELLBOOK_SIZE; i++) {
-      if (obj->sbinfo[i].spellname != 0 &&
-          spell_info[i].min_level[CLASS_WIZARD] == j) {
-        if (!titleDone) {
-          send_to_char(ch, "\r\n@WSpell Level %d:@n\r\n", j);
-          titleDone = TRUE;
-        }
-        send_to_char(ch, "%-20s		[%2d]\r\n",
-                     obj->sbinfo[i].spellname <= MAX_SPELLS ?
-                     spell_info[obj->sbinfo[i].spellname].name :
-                     "Spellbook Error: Contact Admin",
-                     obj->sbinfo[i].pages ? obj->sbinfo[i].pages : 0);
-      }
-    }
+  
+  send_to_char(ch, "The spellbook contains the following spell(s):\r\n");
+  send_to_char(ch, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
+  
+  for (i = 0; i < SPELLBOOK_SIZE; i++) {
+    send_to_char(ch, "%-20s		[%2d]\r\n",
+            spell_info[obj->sbinfo[i].spellname].name,
+            obj->sbinfo[i].pages ? obj->sbinfo[i].pages : 0);
+    
   }
+      
   return;
 }
 
