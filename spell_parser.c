@@ -601,6 +601,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       case SPELL_SALVATION:
         MANUAL_SPELL(spell_salvation);
         break;
+      case SPELL_SPELLSTAFF:
+        MANUAL_SPELL(spell_spellstaff);
+        break;
       case SPELL_STORM_OF_VENGEANCE:
         MANUAL_SPELL(spell_storm_of_vengeance);
         break;
@@ -1311,7 +1314,7 @@ ACMD(do_cast) {
   }
 
   if (cast_spell(ch, tch, tobj, spellnum)) {
-    SET_WAIT(ch, 50);
+    SET_WAIT(ch, 80);
     //WAIT_STATE(ch, PULSE_VIOLENCE);
     // maybe use this as a way to keep npc's in check
     //   if (mana > 0)
