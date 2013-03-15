@@ -523,17 +523,26 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   /* this switch statement sends us to spells.c for the manual spells */
   if (IS_SET(SINFO.routines, MAG_MANUAL))
     switch (spellnum) {
+      case SPELL_ACID_ARROW:
+        MANUAL_SPELL(spell_acid_arrow);
+        break;
+      case SPELL_BANISH:
+        MANUAL_SPELL(spell_banish);
+        break;
       case SPELL_CHARM:
         MANUAL_SPELL(spell_charm);
-        break;
-      case SPELL_SALVATION:
-        MANUAL_SPELL(spell_salvation);
         break;
       case SPELL_CHARM_ANIMAL:
         MANUAL_SPELL(spell_charm_animal);
         break;
-      case SPELL_REFUGE:
-        MANUAL_SPELL(spell_refuge);
+      case SPELL_CLAIRVOYANCE:
+        MANUAL_SPELL(spell_clairvoyance);
+        break;
+      case SPELL_CLOUDKILL:
+        MANUAL_SPELL(spell_cloudkill);
+        break;
+      case SPELL_CONTROL_WEATHER:
+        MANUAL_SPELL(spell_control_weather);
         break;
       case SPELL_CREATE_WATER:
         MANUAL_SPELL(spell_create_water);
@@ -541,83 +550,74 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       case SPELL_DETECT_POISON:
         MANUAL_SPELL(spell_detect_poison);
         break;
-      case SPELL_ENCHANT_WEAPON:
-        MANUAL_SPELL(spell_enchant_weapon);
-        break;
-      case SPELL_IDENTIFY:
-        MANUAL_SPELL(spell_identify);
-        break;
-      case SPELL_WIZARD_EYE:
-        MANUAL_SPELL(spell_wizard_eye);
-        break;
-      case SPELL_LOCATE_OBJECT:
-        MANUAL_SPELL(spell_locate_object);
-        break;
-      case SPELL_POLYMORPH:
-        MANUAL_SPELL(spell_polymorph);
-        break;
-      case SPELL_CONTROL_WEATHER:
-        MANUAL_SPELL(spell_control_weather);
-        break;
-      case SPELL_SUMMON:
-        MANUAL_SPELL(spell_summon);
-        break;
-      case SPELL_WORD_OF_RECALL:
-        MANUAL_SPELL(spell_recall);
-        break;
-      case SPELL_TELEPORT:
-        MANUAL_SPELL(spell_teleport);
-        break;
-      case SPELL_PLANE_SHIFT:
-        MANUAL_SPELL(spell_plane_shift);
-        break;
-      case SPELL_ACID_ARROW:
-        MANUAL_SPELL(spell_acid_arrow);
-        break;
-      case SPELL_IMPLODE:
-        MANUAL_SPELL(spell_implode);
-        break;
-      case SPELL_CLAIRVOYANCE:
-        MANUAL_SPELL(spell_clairvoyance);
+      case SPELL_DISMISSAL:
+        MANUAL_SPELL(spell_dismissal);
         break;
       case SPELL_DISPEL_MAGIC:
         MANUAL_SPELL(spell_dispel_magic);
         break;
-      case SPELL_GREATER_DISPELLING:
-        MANUAL_SPELL(spell_greater_dispelling);
-        break;
-      case SPELL_LOCATE_CREATURE:
-        MANUAL_SPELL(spell_locate_creature);
-        break;
-      case SPELL_WALL_OF_FORCE:
-        MANUAL_SPELL(spell_wall_of_force);
-        break;
-      case SPELL_PRISMATIC_SPHERE:
-        MANUAL_SPELL(spell_prismatic_sphere);
-        break;
       case SPELL_DOMINATE_PERSON:
         MANUAL_SPELL(spell_dominate_person);
         break;
-      case SPELL_MASS_DOMINATION:
-        MANUAL_SPELL(spell_mass_domination);
+      case SPELL_ENCHANT_WEAPON:
+        MANUAL_SPELL(spell_enchant_weapon);
         break;
-      case SPELL_DISMISSAL:
-        MANUAL_SPELL(spell_dismissal);
-        break;
-      case SPELL_BANISH:
-        MANUAL_SPELL(spell_banish);
+      case SPELL_GREATER_DISPELLING:
+        MANUAL_SPELL(spell_greater_dispelling);
         break;
       case SPELL_GROUP_SUMMON:
         MANUAL_SPELL(spell_group_summon);
         break;
-      case SPELL_CLOUDKILL:
-        MANUAL_SPELL(spell_cloudkill);
+      case SPELL_IDENTIFY:
+        MANUAL_SPELL(spell_identify);
+        break;
+      case SPELL_IMPLODE:
+        MANUAL_SPELL(spell_implode);
         break;
       case SPELL_INCENDIARY_CLOUD:
         MANUAL_SPELL(spell_incendiary_cloud);
         break;
+      case SPELL_LOCATE_CREATURE:
+        MANUAL_SPELL(spell_locate_creature);
+        break;
+      case SPELL_LOCATE_OBJECT:
+        MANUAL_SPELL(spell_locate_object);
+        break;
+      case SPELL_MASS_DOMINATION:
+        MANUAL_SPELL(spell_mass_domination);
+        break;
+      case SPELL_PLANE_SHIFT:
+        MANUAL_SPELL(spell_plane_shift);
+        break;
+      case SPELL_POLYMORPH:
+        MANUAL_SPELL(spell_polymorph);
+        break;
+      case SPELL_PRISMATIC_SPHERE:
+        MANUAL_SPELL(spell_prismatic_sphere);
+        break;
+      case SPELL_REFUGE:
+        MANUAL_SPELL(spell_refuge);
+        break;
+      case SPELL_SALVATION:
+        MANUAL_SPELL(spell_salvation);
+        break;
       case SPELL_STORM_OF_VENGEANCE:
         MANUAL_SPELL(spell_storm_of_vengeance);
+        break;
+      case SPELL_SUMMON:
+        MANUAL_SPELL(spell_summon);
+        break;
+      case SPELL_TELEPORT:
+        MANUAL_SPELL(spell_teleport);
+        break;
+      case SPELL_WALL_OF_FORCE:
+        MANUAL_SPELL(spell_wall_of_force);
+        break;
+      case SPELL_WIZARD_EYE:
+        MANUAL_SPELL(spell_wizard_eye);
+        break;
+      case SPELL_WORD_OF_RECALL:
+        MANUAL_SPELL(spell_recall);
         break;
     } /* end manual spells */
 
@@ -1311,7 +1311,8 @@ ACMD(do_cast) {
   }
 
   if (cast_spell(ch, tch, tobj, spellnum)) {
-    WAIT_STATE(ch, PULSE_VIOLENCE);
+    SET_WAIT(ch, 50);
+    //WAIT_STATE(ch, PULSE_VIOLENCE);
     // maybe use this as a way to keep npc's in check
     //   if (mana > 0)
     //     GET_MANA(ch) = MAX(0, MIN(GET_MAX_MANA(ch), GET_MANA(ch) - mana));
@@ -2052,6 +2053,8 @@ void mag_assign_spells(void) {
   spello(SPELL_CLONE, "clone", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
           NULL, 9, 10, TRANSMUTATION);
+  spello(SPELL_SPELLSTAFF, "spellstaff", 0, 0, 0, POS_STANDING,
+          TAR_OBJ_INV, FALSE, MAG_MANUAL, NULL, 9, 10, TRANSMUTATION);
   spello(SPELL_WATERWALK, "waterwalk", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "Your feet seem less buoyant.", 7, 10, TRANSMUTATION);
