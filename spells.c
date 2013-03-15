@@ -448,19 +448,24 @@ ASPELL(spell_spellstaff) {
       break;
     }
   }
-  
+
   if (staff) {
     send_to_char(ch, "Found a staff: %s\r\n", staff->name);
+
+    if (GET_OBJ_VAL(staff, 1) > 0) {
+      send_to_char(ch, "That staff is already enchanted with a spell.\r\n");
+      return;
+    } else {
+      // determine the spellname to enchant with
+      if (is_abbrev(spellname, "cure light wounds")) {
+        send_to_char(ch, "cast cure light wounds on character\r\n");
+      } else {
+        send_to_char(ch, "arg: %s\r\n", cast_arg2);
+      }
+    }
   } else {
     send_to_char(ch, "Couldn't find a staff in your inventory.\r\n");
   }
-
-  // determine the spellname to enchant with
-  if (is_abbrev(spellname, "cure light wounds")) {
-    send_to_char(ch, "cast cure light wounds on character\r\n");
-  } else {
-    send_to_char(ch, "arg: %s\r\n", cast_arg2);
-  } 
 }
 
 ASPELL(spell_storm_of_vengeance) {
