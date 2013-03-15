@@ -1266,7 +1266,7 @@ void init_class(struct char_data *ch, int class, int level)
     SET_SKILL(ch, SPELL_MASS_STRENGTH, 99);
     SET_SKILL(ch, SPELL_MASS_GRACE, 99);
     SET_SKILL(ch, SPELL_MASS_WISDOM, 99);
-    // spellstaff SET_SKILL(ch, SPELL_SPELLSTAFF, 99);
+    SET_SKILL(ch, SPELL_SPELLSTAFF, 99);
     // summon nature's ally vi SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_6, 99);
     // transport via plants SET_SKILL(ch, SPELL_TRANSPORT_VIA_PLANTS, 99);
     SET_SKILL(ch, SPELL_DISPEL_EVIL, 99); // no
@@ -2808,7 +2808,7 @@ void init_spell_levels(void)
   spell_level(SPELL_MASS_STRENGTH, CLASS_DRUID, 11);
   spell_level(SPELL_MASS_GRACE, CLASS_DRUID, 11);
   spell_level(SPELL_MASS_WISDOM, CLASS_DRUID, 11);
-  // spellstaff
+  spell_level(SPELL_SPELLSTAFF, CLASS_DRUID, 11);
   // summon nature's ally vi
   // transport via plants
   spell_level(SPELL_DISPEL_EVIL, CLASS_DRUID, 11); // no
