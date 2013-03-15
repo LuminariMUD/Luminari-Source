@@ -800,7 +800,7 @@ void display_scroll(struct char_data *ch, struct obj_data *obj);
 void display_spells(struct char_data *ch, struct obj_data *obj);
 bool spell_in_book(struct obj_data *obj, int spellnum);
 int spell_in_scroll(struct obj_data *obj, int spellnum);
-bool spellbook_ok(struct char_data *ch, int spellnum, int class);
+bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scroll);
 /* spellbook commands */
 ACMD(do_scribe);
 /* memorize related functions */
