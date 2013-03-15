@@ -121,14 +121,22 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
             send_to_char(ch, "[TRIGS] ");
         }
       }
-      
-      if (mxp_type == 1) {
+
+      if (mxp_type != 0) {
         one_argument(obj->name, keyword);
-        send_to_char(ch, "\t<send href=\"%s %s\">%s\t</send>", (GET_OBJ_TYPE(obj) == ITEM_WEAPON ?
-          "wield" : "wear"), keyword, obj->short_description);
-      } else if (mxp_type == 2) {
-        one_argument(obj->name, keyword);
-        send_to_char(ch, "\t<send href=\"remove %s\">%s\t</send>", keyword, obj->short_description);
+
+        // will need to loop through to ensure correct item, i.e. 2.dagger, 3.armor, etc.
+        switch (mxp_type) {
+          case 1:
+            send_to_char(ch, "\t<send href='%s %s' hint='test|test2|test3'>%s\t</send>", (GET_OBJ_TYPE(obj) == ITEM_WEAPON ?
+                    "wield" : "wear"), keyword, obj->short_description);
+            // wear/wield/hold
+            break;
+          case 2:
+            send_to_char(ch, "\t<send href='remove %s'>%s\t</send>", keyword, obj->short_description);
+            // remove
+            break;
+        }
       } else {
         send_to_char(ch, "%s", obj->short_description);
       }
