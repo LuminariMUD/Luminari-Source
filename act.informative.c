@@ -60,6 +60,7 @@ static void print_object_location(int num, struct obj_data *obj, struct char_dat
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type) {
   int found = 0;
   struct char_data *temp;
+  char keyword[100];
 
   // mxp_type 1 = do_inventory
   // mxp_type 2 = do_equipment
@@ -122,10 +123,12 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
       }
       
       if (mxp_type == 1) {
+        one_argument(obj->name, keyword);
         send_to_char(ch, "\t<send href=\"%s %s\">%s\t</send>", (GET_OBJ_TYPE(obj) == ITEM_WEAPON ?
-          "wield" : "wear"), obj->name, obj->short_description);
+          "wield" : "wear"), keyword, obj->short_description);
       } else if (mxp_type == 2) {
-        send_to_char(ch, "\t<send href=\"remove %s\"%s\t</send>", obj->name, obj->short_description);
+        one_argument(obj->name, keyword);
+        send_to_char(ch, "\t<send href=\"remove %s\">%s\t</send>", keyword, obj->short_description);
       } else {
         send_to_char(ch, "%s", obj->short_description);
       }
