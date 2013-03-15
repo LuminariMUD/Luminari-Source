@@ -431,12 +431,30 @@ ASPELL(spell_acid_arrow) {
 
 ASPELL(spell_spellstaff) {
   char spellname[MAX_STRING_LENGTH] = {'\0'};
+  struct obj_data *staff;
   
   // cast_arg2 should be the spellname
   one_argument(cast_arg2, spellname);
   
-  // find a staff in caster's inventory
+  if (!*spellname || spellname == NULL) {
+    send_to_char(ch, "You must specify which spell you want to enchant the staff with.\r\n");
+    return;
+  }
   
+  // find a staff in caster's inventory
+  for (staff = ch->carrying; staff; staff = staff->next) {
+    if (GET_OBJ_TYPE(obj) == ITEM_STAFF) {
+      // found one!
+      break;
+    }
+  }
+  
+  if (staff) {
+    send_to_char(ch, "Found a staff: %s\r\n", staff->name);
+  } else {
+    send_to_char(ch, "Couldn't find a staff in your inventory.\r\n");
+  }
+
   // determine the spellname to enchant with
   if (is_abbrev(spellname, "cure light wounds")) {
     send_to_char(ch, "cast cure light wounds on character\r\n");
