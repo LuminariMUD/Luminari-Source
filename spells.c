@@ -479,12 +479,13 @@ ASPELL(spell_spellstaff) {
         GET_OBJ_VAL(staff, 2) = 1; // only good for 1 charge
         GET_OBJ_VAL(staff, 3) = spellnum;
         send_to_char(ch, "You enchant %s with the %s spell.\r\n", staff->short_description, spell_info[spellnum].name);
+        act("$n concentrates on enhancing the power of $p.", FALSE, ch, staff, 0, TO_ROOM);
       } else {
         send_to_char(ch, "You are unable to store that spell in the staff.\r\n");
       }
     }
   } else {
-    send_to_char(ch, "Couldn't find a staff in your inventory.\r\n");
+    send_to_char(ch, "You are not holding a staff.\r\n");
   }
 }
 
