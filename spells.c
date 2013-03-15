@@ -456,13 +456,19 @@ ASPELL(spell_spellstaff) {
       return;
     } else {
       // determine the spellname to enchant with
-      if (is_abbrev(spellname, "cure light wounds")) {
+      if (is_abbrev(spellname, "barkskin")) {
+        spellnum = SPELL_BARKSKIN;
+      } else if (is_abbrev(spellname, "cure light wounds")) {
         spellnum = SPELL_CURE_LIGHT;
-        GET_OBJ_VAL(staff, 2) = 1;
+      }
+
+      if (spellnum != 0) {
+        GET_OBJ_VAL(staff, 0) = GET_LEVEL(ch); // new staff only cast at caster's level
+        GET_OBJ_VAL(staff, 2) = 1; // only good for 1 charge
         GET_OBJ_VAL(staff, 3) = spellnum;
-        send_to_char(ch, "You enchant %s with the cure light wounds spell.\r\n", staff->short_description);
+        send_to_char(ch, "You enchant %s with the %s spell.\r\n", staff->short_description, spell_info[spellnum].name);
       } else {
-        send_to_char(ch, "arg: %s\r\n", cast_arg2);
+        send_to_char(ch, "You are unable to store that spell in the staff.\r\n");
       }
     }
   } else {
