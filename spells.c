@@ -443,7 +443,7 @@ ASPELL(spell_spellstaff) {
   
   // find a staff in caster's inventory
   for (staff = ch->carrying; staff; staff = staff->next) {
-    if (GET_OBJ_TYPE(obj) == ITEM_STAFF) {
+    if (GET_OBJ_TYPE(staff) == ITEM_STAFF) {
       // found one!
       break;
     }
