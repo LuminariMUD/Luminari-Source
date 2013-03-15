@@ -128,7 +128,7 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
         // will need to loop through to ensure correct item, i.e. 2.dagger, 3.armor, etc.
         switch (mxp_type) {
           case 1:
-            send_to_char(ch, "\t<send href='%s %s' hint='test|test2|test3'>%s\t</send>", (GET_OBJ_TYPE(obj) == ITEM_WEAPON ?
+            send_to_char(ch, "\t<send href='%s %s|test|test2' >%s\t</send>", (GET_OBJ_TYPE(obj) == ITEM_WEAPON ?
                     "wield" : "wear"), keyword, obj->short_description);
             // wear/wield/hold
             break;
