@@ -432,6 +432,8 @@ ASPELL(spell_acid_arrow) {
 ASPELL(spell_spellstaff) {
   char arg[MAX_STRING_LENGTH];
   
+  send_to_char(ch, "spellstaff cast\r\n");
+  
   // obj should be the staff to cast upon
   if (!obj || obj == NULL) {
     send_to_char(ch, "You must specify which staff you would like to enchant.\r\n");
@@ -444,7 +446,7 @@ ASPELL(spell_spellstaff) {
   if (is_abbrev(arg, "cure light wounds")) {
     send_to_char(ch, "cast cure light wounds on character\r\n");
   } else {
-    send_to_char(ch, "arg: %s", arg);
+    send_to_char(ch, "arg: %s\r\n", arg);
   } 
 }
 
