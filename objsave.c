@@ -168,7 +168,8 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
       if (obj->sbinfo[i].spellname == 0) {
         break;
       }
-      fprintf(fp, "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
+      fprintf(fp, "Spbk:\n"
+              "%d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
       continue;
     }
   }  
@@ -993,7 +994,7 @@ void Crash_save_all(void) {
 obj_save_data *objsave_parse_objects(FILE *fl) {
   obj_save_data *head, *current, *tempsave;
   char f1[128], f2[128], f3[128], f4[128], line[READ_SIZE];
-  int t[4], i, nr;
+  int t[4], i, j = 0, nr;
   struct obj_data *temp;
 
   CREATE(current, obj_save_data, 1);
@@ -1091,6 +1092,7 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
 
     tag_argument(line, tag);
     num = atoi(line);
+    /* we need an incrementor here */
 
     switch (*tag) {
       case 'A':
@@ -1177,17 +1179,18 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
           GET_OBJ_SIZE(temp) = num;
         else if (!strcmp(tag, "Spbk")) {
           sscanf(line, "%d %d", &t[0], &t[1]);
-          if (t[0] < SPELLBOOK_SIZE) {
+          if (j < SPELLBOOK_SIZE) {
 
             if (!temp->sbinfo) {
               CREATE(temp->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
               memset((char *) temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
             }            
             
-            temp->sbinfo[t[0]].spellname = t[0];
-            temp->sbinfo[t[0]].pages = t[1];
+            temp->sbinfo[j++].spellname = t[0];
+            temp->sbinfo[j++].pages = t[1];
           }
-        }        break;
+        }        
+        break;
       case 'T':
         if (!strcmp(tag, "Type"))
           GET_OBJ_TYPE(temp) = num;
@@ -1212,7 +1215,7 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
       default:
         log("Unknown tag in rentfile: %s", tag);
     }
-  }
+  } //end big while loop
 
   return head;
 }
