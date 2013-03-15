@@ -1439,6 +1439,8 @@ void updateMemming(struct char_data *ch, int class)
           !spellbook_ok(ch, PRAYING(ch, 0, classArray(class)), CLASS_WIZARD, FALSE)
           ) {
     send_to_char(ch, "You don't seem to have that spell in your spellbook!\r\n");
+    resetMemtimes(ch, class);
+    PRAYIN(ch, classArray(class)) = FALSE;
     return;
   }
 
