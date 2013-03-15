@@ -1178,6 +1178,12 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
         else if (!strcmp(tag, "Spbk")) {
           sscanf(line, "%d %d", &t[0], &t[1]);
           if (t[0] < SPELLBOOK_SIZE) {
+
+            if (!temp->sbinfo) {
+              CREATE(temp->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+              memset((char *) temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
+            }            
+            
             temp->sbinfo[t[0]].spellname = t[0];
             temp->sbinfo[t[0]].pages = t[1];
           }
