@@ -86,8 +86,14 @@ void display_spells(struct char_data *ch, struct obj_data *obj)
  */
 bool spell_in_book(struct obj_data *obj, int spellnum)
 {
-  int i;
-
+  int i = 0;
+  
+  if (!obj)
+    return FALSE;
+  
+  if (GET_OBJ_TYPE(obj) != ITEM_SPELLBOOK)
+    return FALSE;
+  
   if (!obj->sbinfo)
     return FALSE;
 
@@ -106,10 +112,18 @@ bool spell_in_book(struct obj_data *obj, int spellnum)
  */
 int spell_in_scroll(struct obj_data *obj, int spellnum)
 {
-  if (GET_OBJ_VAL(obj, 1) == spellnum)
-    return true;
+  if (!obj)
+    return FALSE;
+  
+  if (GET_OBJ_TYPE(obj) != ITEM_SCROLL)
+    return FALSE;
+  
+  if (GET_OBJ_VAL(obj, 1) == spellnum ||
+      GET_OBJ_VAL(obj, 2) == spellnum ||
+      GET_OBJ_VAL(obj, 3) == spellnum)
+    return TRUE;
 
-  return false;
+  return FALSE;
 }
 
 
@@ -120,10 +134,11 @@ int spell_in_scroll(struct obj_data *obj, int spellnum)
  * Input:  ch, spellnum, class of ch related to gen_mem command
  * Output:  returns TRUE if found, FALSE if not found
  */
-bool spellbook_ok(struct char_data *ch, int spellnum, int class)
+bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scroll)
 {
   struct obj_data *obj;
   bool found = FALSE;
+  
   if (class == CLASS_WIZARD) {
 
     for (obj = ch->carrying; obj && !found; obj = obj->next_content) {
@@ -134,13 +149,13 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class)
         }
         continue;
       }
-      if (GET_OBJ_TYPE(obj) == ITEM_SCROLL) {
+      if (GET_OBJ_TYPE(obj) == ITEM_SCROLL && check_scroll) {
         if (spell_in_scroll(obj, spellnum) && CLASS_LEVEL(ch, class) >=
               spell_info[spellnum].min_level[class]) {
           found = TRUE;
-          send_to_char(ch, "The @mmagical energy@n of the scroll leaves the "
-                "paper and enters your @rmind@n!\r\n");
-          send_to_char(ch, "With the @mmagical energy@n transfered from the "
+          send_to_char(ch, "The \tmmagical energy\tn of the scroll leaves the "
+                "paper and enters your \trmind\tn!\r\n");
+          send_to_char(ch, "With the \tmmagical energy\tn transfered from the "
                 "scroll, the scroll withers to dust!\r\n");
           obj_from_char(obj);
           break;
@@ -150,14 +165,15 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class)
     }
 
     if (!found) {
-      /*
-      send_to_char(ch, "You don't seem to have %s in your spellbook.\r\n",
-              spell_info[spellnum].name);
-       */ 
+      if (check_scroll)
+        send_to_char(ch, "You don't seem to have %s in your spellbook or in "
+                "any scrolls.\r\n",
+              spell_info[spellnum].name);        
       return FALSE;
     }
-  } else
+  } else  //classes besides wizard
     return FALSE;
+  
   return TRUE;
 }
 
@@ -232,16 +248,13 @@ ACMD(do_scribe) {
     for (scroll = ch->carrying; scroll; scroll = next_obj) {
       next_obj = scroll->next_content;
 
-      if (scroll && GET_OBJ_TYPE(scroll) == ITEM_SCROLL) {
-        if ( GET_OBJ_VAL(scroll, 1) == spellnum ||
-             GET_OBJ_VAL(scroll, 2) == spellnum  ||
-             GET_OBJ_VAL(scroll, 3) == spellnum ) {
-          send_to_char(ch, "You use a scroll with the spell in your "
+      if (spell_in_scroll(scroll, spellnum)) {
+        send_to_char(ch, "You use a scroll with the spell in your "
                   "inventory...\r\n");
-          found = TRUE;
-          break;
-        }
+        found = TRUE;
+        break;
       }
+      
     }
     
     if (!found || !scroll) {
@@ -1420,6 +1433,14 @@ void updateMemming(struct char_data *ch, int class)
     PRAYIN(ch, classArray(class)) = FALSE;
     return;
   }
+  
+  // wizard spellbook requirement
+  if (class == CLASS_WIZARD &&
+          !spellbook_ok(ch, PRAYING(ch, 0, classArray(class)), CLASS_WIZARD, FALSE)
+          ) {
+    send_to_char(ch, "You don't seem to have that spell in your spellbook!\r\n");
+    return;
+  }
 
   // continue memorizing
   PRAYTIME(ch, 0, classArray(class)) -= bonus;
@@ -2116,11 +2137,9 @@ ACMD(do_gen_memorize)
     send_to_char(ch, "You are not relaxed enough, you must be resting.\r\n");
     return;
   }
-
-  //spellbooks
   
   if (CLASS_LEVEL(ch, class) < spell_info[spellnum].min_level[class]) {
-    send_to_char(ch, "You do not know that spell.\r\n");
+    send_to_char(ch, "You have heard of that spell....\r\n");
     return;
   }
 
@@ -2144,7 +2163,11 @@ ACMD(do_gen_memorize)
         case CLASS_PALADIN:
           send_to_char(ch, "You start to chant for %s.\r\n", spell_info[spellnum].name);
           break;
-        default:  /* wizard */
+        case CLASS_WIZARD:
+          //spellbooks
+          if (!spellbook_ok(ch, spellnum, class, TRUE)) {
+            return;
+          }
           send_to_char(ch, "You start to memorize %s.\r\n", spell_info[spellnum].name);
           break;
       }

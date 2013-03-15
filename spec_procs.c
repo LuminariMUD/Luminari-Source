@@ -459,7 +459,7 @@ void list_spells(struct char_data *ch, int mode, int class)
             break;
           len += nlen;
         }
-        else if (class == CLASS_WIZARD && spellbook_ok(ch, i, class) &&
+        else if (class == CLASS_WIZARD && spellbook_ok(ch, i, class, FALSE) &&
              CLASS_LEVEL(ch, class) >= sinfo && spellCircle(class,i) == slot &&
              GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,
