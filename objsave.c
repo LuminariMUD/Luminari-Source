@@ -168,8 +168,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
       if (obj->sbinfo[i].spellname == 0) {
         break;
       }
-      fprintf(fp, "Spbk:\n"
-              "%d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
+      fprintf(fp, "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
       continue;
     }
   }  
