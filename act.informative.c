@@ -43,7 +43,7 @@ static void look_at_target(struct char_data *ch, char *arg);
 static void look_in_direction(struct char_data *ch, int dir);
 static void look_in_obj(struct char_data *ch, char *arg);
 /* do_look, do_inventory utility functions */
-static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show);
+static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type);
 /* do_look, do_equipment, do_examine, do_inventory */
 static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch);
 /* do_where utility functions */
@@ -57,10 +57,16 @@ static void print_object_location(int num, struct obj_data *obj, struct char_dat
 #define SHOW_OBJ_SHORT    1
 #define SHOW_OBJ_ACTION   2
 
-void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode) {
+void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type) {
   int found = 0;
   struct char_data *temp;
 
+  // mxp_type 1 = do_inventory
+  // mxp_type 2 = do_equipment
+  // maybe change these to defines in protocol.h or something
+  // these will be used to give click options i.e. click an item in inventory
+  // to equip it, or right click with context menu, to equip/drop/lore/etc.
+  
   if (!obj || !ch) {
     log("SYSERR: NULL pointer in show_obj_to_char(): obj=%p ch=%p", obj, ch);
     /*  SYSERR_DESC: Somehow a NULL pointer was sent to show_obj_to_char() in
@@ -114,7 +120,15 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode) {
             send_to_char(ch, "[TRIGS] ");
         }
       }
-      send_to_char(ch, "%s", obj->short_description);
+      
+      if (mxp_type == 1) {
+        send_to_char(ch, "\t<send href=\"%s %s\">%s\t</send>", (GET_OBJ_TYPE(obj) == ITEM_WEAPON ?
+          "wield" : "wear"), obj->name, obj->short_description);
+      } else if (mxp_type == 2) {
+        send_to_char(ch, "\t<send href=\"remove %s\"%s\t</send>", obj->name, obj->short_description);
+      } else {
+        send_to_char(ch, "%s", obj->short_description);
+      }
       break;
 
     case SHOW_OBJ_ACTION:
@@ -171,7 +185,7 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch) {
     send_to_char(ch, " \tn..It emits a faint \tChumming\tn sound!");
 }
 
-static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show) {
+static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type) {
   struct obj_data *i, *j, *display;
   bool found;
   int num;
@@ -209,7 +223,7 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mo
         send_to_char(ch, "%s", CCGRN(ch, C_NRM));
       if (num != 1)
         send_to_char(ch, "(%2i) ", num);
-      show_obj_to_char(display, ch, mode);
+      show_obj_to_char(display, ch, mode, mxp_type);
       send_to_char(ch, "%s", CCNRM(ch, C_NRM));
       found = TRUE;
     }
@@ -315,12 +329,12 @@ static void look_at_char(struct char_data *i, struct char_data *ch) {
     for (j = 0; j < NUM_WEARS; j++)
       if (GET_EQ(i, j) && CAN_SEE_OBJ(ch, GET_EQ(i, j))) {
         send_to_char(ch, "%s", wear_where[j]);
-        show_obj_to_char(GET_EQ(i, j), ch, SHOW_OBJ_SHORT);
+        show_obj_to_char(GET_EQ(i, j), ch, SHOW_OBJ_SHORT, 0);
       }
   }
   if (ch != i && (IS_ROGUE(ch) || GET_LEVEL(ch) >= LVL_IMMORT)) {
     act("\r\nYou attempt to peek at $s inventory:", FALSE, i, 0, ch, TO_VICT);
-    list_obj_to_char(i->carrying, ch, SHOW_OBJ_SHORT, TRUE);
+    list_obj_to_char(i->carrying, ch, SHOW_OBJ_SHORT, TRUE, 0);
   }
 }
 
@@ -657,7 +671,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
     do_auto_exits(ch);
 
   /* now list characters & objects */
-  list_obj_to_char(world[IN_ROOM(ch)].contents, ch, SHOW_OBJ_LONG, FALSE);
+  list_obj_to_char(world[IN_ROOM(ch)].contents, ch, SHOW_OBJ_LONG, FALSE, 0);
   list_char_to_char(world[IN_ROOM(ch)].people, ch);
 }
 
@@ -713,7 +727,7 @@ static void look_in_obj(struct char_data *ch, char *arg) {
             break;
         }
 
-        list_obj_to_char(obj->contains, ch, SHOW_OBJ_SHORT, TRUE);
+        list_obj_to_char(obj->contains, ch, SHOW_OBJ_SHORT, TRUE, 0);
       }
     } else { /* item must be a fountain or drink container */
       if ((GET_OBJ_VAL(obj, 1) == 0) && (GET_OBJ_VAL(obj, 0) != -1))
@@ -818,7 +832,7 @@ static void look_at_target(struct char_data *ch, char *arg) {
   /* If an object was found back in generic_find */
   if (bits) {
     if (!found)
-      show_obj_to_char(found_obj, ch, SHOW_OBJ_ACTION);
+      show_obj_to_char(found_obj, ch, SHOW_OBJ_ACTION, 0);
     else {
       show_obj_modifiers(found_obj, ch);
       send_to_char(ch, "\r\n");
@@ -1433,11 +1447,12 @@ ACMD(do_score) {
 
 ACMD(do_inventory) {
   send_to_char(ch, "You are carrying:\r\n");
-  list_obj_to_char(ch->carrying, ch, SHOW_OBJ_SHORT, TRUE);
+  list_obj_to_char(ch->carrying, ch, SHOW_OBJ_SHORT, TRUE, 1);
 }
 
 ACMD(do_equipment) {
   int i, found = 0;
+  int mxp_type = 2;
 
   send_to_char(ch, "You are using:\r\n");
   for (i = 0; i < NUM_WEARS; i++) {
@@ -1445,7 +1460,7 @@ ACMD(do_equipment) {
       found = TRUE;
       if (CAN_SEE_OBJ(ch, GET_EQ(ch, i))) {
         send_to_char(ch, "%s", wear_where[i]);
-        show_obj_to_char(GET_EQ(ch, i), ch, SHOW_OBJ_SHORT);
+        show_obj_to_char(GET_EQ(ch, i), ch, SHOW_OBJ_SHORT, mxp_type); 
       } else {
         send_to_char(ch, "%s", wear_where[i]);
         send_to_char(ch, "Something.\r\n");

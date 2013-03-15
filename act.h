@@ -58,7 +58,7 @@ void perform_help(struct descriptor_data *d, char *argument);
 void perform_affects(struct char_data *ch, struct char_data *k);
 
 // displaying more info -zusuk
-void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode);
+void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type);
 #define SHOW_OBJ_SHORT	1
 
 /** @todo Move to a utility library */

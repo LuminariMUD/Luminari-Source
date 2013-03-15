@@ -1752,14 +1752,14 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
         wielded = GET_EQ(ch, WEAR_WIELD_2H);
       else
         wielded = GET_EQ(ch, WEAR_WIELD_1);
-      show_obj_to_char(wielded, ch, SHOW_OBJ_SHORT);
+      show_obj_to_char(wielded, ch, SHOW_OBJ_SHORT, 0);
     }
   } else if (mode == 3) {
     if (!GET_EQ(ch, WEAR_WIELD_2)) {
       send_to_char(ch, "Bare-hands\r\n");
     } else {
       wielded = GET_EQ(ch, WEAR_WIELD_2);
-      show_obj_to_char(GET_EQ(ch, WEAR_WIELD_2), ch, SHOW_OBJ_SHORT);
+      show_obj_to_char(GET_EQ(ch, WEAR_WIELD_2), ch, SHOW_OBJ_SHORT, 0);
     }
   }
 
