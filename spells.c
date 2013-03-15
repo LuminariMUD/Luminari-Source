@@ -431,6 +431,7 @@ ASPELL(spell_acid_arrow) {
 
 ASPELL(spell_spellstaff) {
   char arg[MAX_STRING_LENGTH];
+  char spellname[100];
   
   send_to_char(ch, "spellstaff cast\r\n");
   
@@ -441,12 +442,12 @@ ASPELL(spell_spellstaff) {
   }
   
   // cast_arg2 should be the spellname
-  one_argument(cast_arg2, arg);
+  two_arguments(cast_arg2, arg, spellname);
   
-  if (is_abbrev(arg, "cure light wounds")) {
+  if (is_abbrev(spellname, "cure light wounds")) {
     send_to_char(ch, "cast cure light wounds on character\r\n");
   } else {
-    send_to_char(ch, "arg: %s\r\n", arg);
+    send_to_char(ch, "arg: %s\r\n", cast_arg2);
   } 
 }
 
