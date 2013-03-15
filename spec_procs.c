@@ -410,7 +410,12 @@ case SKILL_RAGE:
   return FALSE;
 }
 
-
+/* completely re-written for Luminari, probably needs to be rewritten again :P
+   this is the engine for the 'spells' and 'spelllist' commands
+   class - you can send -1 for a 'default' class
+   mode = 0:  known spells
+   mode = anything else: full spelllist for given class 
+ */
 void list_spells(struct char_data *ch, int mode, int class)
 {
   int i = 0, slot = 0, sinfo = 0;
@@ -454,7 +459,16 @@ void list_spells(struct char_data *ch, int mode, int class)
             break;
           len += nlen;
         }
-        else if (class != CLASS_SORCERER && class != CLASS_BARD &&
+        else if (class == CLASS_WIZARD && spellbook_ok(ch, i, class) &&
+             CLASS_LEVEL(ch, class) >= sinfo && spellCircle(class,i) == slot &&
+             GET_SKILL(ch, i)) {
+          nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+                    "%-20s \tRReady\tn\r\n", spell_info[i].name);
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+            break;
+          len += nlen;          
+        }
+        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
              CLASS_LEVEL(ch, class) >= sinfo && spellCircle(class,i) == slot &&
              GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,

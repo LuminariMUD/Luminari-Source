@@ -138,9 +138,9 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class)
         if (spell_in_scroll(obj, spellnum) && CLASS_LEVEL(ch, class) >=
               spell_info[spellnum].min_level[class]) {
           found = TRUE;
-          send_to_char(ch, "The @gmagical energy@n of the scroll leaves the "
+          send_to_char(ch, "The @mmagical energy@n of the scroll leaves the "
                 "paper and enters your @rmind@n!\r\n");
-          send_to_char(ch, "With the @gmagical energy@n transfered from the "
+          send_to_char(ch, "With the @mmagical energy@n transfered from the "
                 "scroll, the scroll withers to dust!\r\n");
           obj_from_char(obj);
           break;
@@ -191,6 +191,12 @@ ACMD(do_scribe) {
 
   if ((spellnum < 1) || (spellnum >= NUM_SPELLS) || !GET_SKILL(ch, spellnum)) {
     send_to_char(ch, "Strange, there is no such spell.\r\n");
+    return;
+  }
+  
+  /* only wizard spells */
+  if ((LVL_IMMORT - 1) < spell_info[spellnum].min_level[CLASS_WIZARD]) {
+    send_to_char(ch, "That spell is not appropriate for scribing!\r\n");
     return;
   }
 
