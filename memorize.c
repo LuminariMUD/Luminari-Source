@@ -150,8 +150,10 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class)
     }
 
     if (!found) {
+      /*
       send_to_char(ch, "You don't seem to have %s in your spellbook.\r\n",
               spell_info[spellnum].name);
+       */ 
       return FALSE;
     }
   } else
