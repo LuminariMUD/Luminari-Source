@@ -431,7 +431,7 @@ ASPELL(spell_acid_arrow) {
 
 ASPELL(spell_spellstaff) {
   char spellname[MAX_STRING_LENGTH] = {'\0'};
-  struct obj_data *staff;
+  struct obj_data *staff = NULL;
   int spellnum = 0;
   
   // cast_arg2 should be the spellname
@@ -442,13 +442,20 @@ ASPELL(spell_spellstaff) {
     return;
   }
   
-  // find a staff in caster's inventory
-  for (staff = ch->carrying; staff; staff = staff->next_content) {
-    if (GET_OBJ_TYPE(staff) == ITEM_STAFF) {
-      // found one!
-      break;
-    }
-  }
+  // find staff in caster's hands
+  if (GET_EQ(ch, WEAR_HOLD_1) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_HOLD_1)) == ITEM_STAFF)
+    staff = GET_EQ(ch, WEAR_HOLD_1);
+  else if (GET_EQ(ch, WEAR_HOLD_2) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_HOLD_2)) == ITEM_STAFF)
+    staff = GET_EQ(ch, WEAR_HOLD_2);
+  else if (GET_EQ(ch, WEAR_HOLD_2H) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_HOLD_2H)) == ITEM_STAFF)
+    staff = GET_EQ(ch, WEAR_HOLD_2H);
+
+//  for (staff = ch->carrying; staff; staff = staff->next_content) {
+//    if (GET_OBJ_TYPE(staff) == ITEM_STAFF) {
+//      // found one!
+//      break;
+//    }
+//  }
 
   if (staff) {
     if (GET_OBJ_VAL(staff, 2) > 0) {
@@ -456,11 +463,16 @@ ASPELL(spell_spellstaff) {
       return;
     } else {
       // determine the spellname to enchant with
-      if (is_abbrev(spellname, "barkskin")) {
+      if (is_abbrev(spellname, "barkskin"))
         spellnum = SPELL_BARKSKIN;
-      } else if (is_abbrev(spellname, "cure light wounds")) {
+      else if (is_abbrev(spellname, "cure light wounds"))
         spellnum = SPELL_CURE_LIGHT;
-      }
+      else if (is_abbrev(spellname, "endurance"))
+        spellnum = SPELL_ENDURANCE;
+      else if (is_abbrev(spellname, "flame strike"))
+        spellnum = SPELL_FLAME_STRIKE;
+      else if (is_abbrev(spellname, "strength"))
+        spellnum = SPELL_STRENGTH;
 
       if (spellnum != 0) {
         GET_OBJ_VAL(staff, 0) = GET_LEVEL(ch); // new staff only cast at caster's level
