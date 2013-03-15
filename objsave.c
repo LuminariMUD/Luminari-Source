@@ -168,7 +168,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
       if (obj->sbinfo[i].spellname == 0) {
         break;
       }
-      fprintf(fp, "S\n" "%d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
+      fprintf(fp, "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
       continue;
     }
   }  
@@ -1175,7 +1175,13 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
           temp->short_description = strdup(line);
         else if (!strcmp(tag, "Size"))
           GET_OBJ_SIZE(temp) = num;
-        break;
+        else if (!strcmp(tag, "Spbk")) {
+          sscanf(line, "%d %d", &t[0], &t[1]);
+          if (t[0] < SPELLBOOK_SIZE) {
+            temp->sbinfo[t[0]].spellname = t[0];
+            temp->sbinfo[t[0]].pages = t[1];
+          }
+        }        break;
       case 'T':
         if (!strcmp(tag, "Type"))
           GET_OBJ_TYPE(temp) = num;
