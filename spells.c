@@ -432,6 +432,7 @@ ASPELL(spell_acid_arrow) {
 ASPELL(spell_spellstaff) {
   char spellname[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *staff;
+  int spellnum = 0;
   
   // cast_arg2 should be the spellname
   one_argument(cast_arg2, spellname);
@@ -450,15 +451,16 @@ ASPELL(spell_spellstaff) {
   }
 
   if (staff) {
-    send_to_char(ch, "Found a staff: %s\r\n", staff->name);
-
-    if (GET_OBJ_VAL(staff, 1) > 0) {
+    if (GET_OBJ_VAL(staff, 2) > 0) {
       send_to_char(ch, "That staff is already enchanted with a spell.\r\n");
       return;
     } else {
       // determine the spellname to enchant with
       if (is_abbrev(spellname, "cure light wounds")) {
-        send_to_char(ch, "cast cure light wounds on character\r\n");
+        spellnum = SPELL_CURE_LIGHT;
+        GET_OBJ_VAL(staff, 2) = 1;
+        GET_OBJ_VAL(staff, 3) = spellnum;
+        send_to_char(ch, "You enchant %s with the cure light wounds spell.\r\n", staff->short_description);
       } else {
         send_to_char(ch, "arg: %s\r\n", cast_arg2);
       }
