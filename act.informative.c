@@ -58,9 +58,10 @@ static void print_object_location(int num, struct obj_data *obj, struct char_dat
 #define SHOW_OBJ_ACTION   2
 
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type) {
-  int found = 0;
+  char keyword[100], sendcmd[20];
+  int found = 0, item_num = 0;
   struct char_data *temp;
-  char keyword[100];
+  struct obj_data *temp_obj;
 
   // mxp_type 1 = do_inventory
   // mxp_type 2 = do_equipment
@@ -125,16 +126,32 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
       if (mxp_type != 0) {
         one_argument(obj->name, keyword);
 
-        // will need to loop through to ensure correct item, i.e. 2.dagger, 3.armor, etc.
+        // loop through to ensure correct item, i.e. 2.dagger, 3.armor, etc.
+        for (temp_obj = ch->carrying; temp_obj; temp_obj = temp_obj->next_content) {
+          // check if the temp_obj contains keyword in the name list
+          if (isname(keyword, temp_obj->name)) {
+            if (temp_obj->short_description == obj->short_description)
+              // this is the item they are trying to interact with
+              // or at least has the same short description
+              break;
+            else
+              item_num++;
+          }
+        }
+        if (item_num > 0)
+          sprintf(keyword, "%d.%s", item_num, keyword);
+        
         switch (mxp_type) {
-          case 1:
-            send_to_char(ch, "\t<send href='%s %s|test|test2' >%s\t</send>", (GET_OBJ_TYPE(obj) == ITEM_WEAPON ?
-                    "wield" : "wear"), keyword, obj->short_description);
-            // wear/wield/hold
+          case 1: // inventory
+            if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+              strcpy(sendcmd, "wield");
+            else
+              strcpy(sendcmd, "wear");
+            send_to_char(ch, "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s' >%s\t</send>", sendcmd, keyword,
+                    keyword, keyword, keyword, keyword, obj->short_description);
             break;
-          case 2:
+          case 2: // equipment
             send_to_char(ch, "\t<send href='remove %s'>%s\t</send>", keyword, obj->short_description);
-            // remove
             break;
         }
       } else {
