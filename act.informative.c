@@ -146,9 +146,15 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
           case 1: // inventory
             if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
               strcpy(sendcmd, "wield");
-            else
+            else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL)
+              strcpy(sendcmd, "recite");
+            else if (GET_OBJ_TYPE(obj) == ITEM_POTION)
+              strcpy(sendcmd, "quaff");
+            else if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
               strcpy(sendcmd, "wear");
-            send_to_char(ch, "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s' hint='1|drop|eat|hold|lore'>%s\t</send>", sendcmd, keyword,
+            else
+              strcpy(sendcmd, "hold");
+            send_to_char(ch, "\t<send href='%s %s\r\ninventory|drop %s|eat %s|hold %s|lore %s' hint='use/equip|drop|eat|hold|lore'>%s\t</send>", sendcmd, keyword,
                     keyword, keyword, keyword, keyword, obj->short_description);
             break;
           case 2: // equipment
