@@ -1484,7 +1484,9 @@ ACMD(do_score) {
 ACMD(do_inventory) {
   send_to_char(ch, "You are carrying:\r\n");
   list_obj_to_char(ch->carrying, ch, SHOW_OBJ_SHORT, TRUE, 1);
-  send_to_char(ch, "\t<send href='equipment'>View equipped items\t</send>\r\n");
+  
+  if (ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
+    send_to_char(ch, "\r\n\t<send href='equipment'>View equipped items\t</send>\r\n");
 }
 
 ACMD(do_equipment) {
@@ -1507,7 +1509,8 @@ ACMD(do_equipment) {
   if (!found)
     send_to_char(ch, " Nothing.\r\n");
   
-  send_to_char(ch, "\t<send href='inventory'>View inventory\t</send>\r\n");
+  if (ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
+    send_to_char(ch, "\r\n\t<send href='inventory'>View inventory\t</send>\r\n");
 }
 
 ACMD(do_time) {
