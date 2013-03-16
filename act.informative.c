@@ -148,7 +148,7 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
               strcpy(sendcmd, "wield");
             else
               strcpy(sendcmd, "wear");
-            send_to_char(ch, "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s' '1|drop|eat|hold|lore'>%s\t</send>", sendcmd, keyword,
+            send_to_char(ch, "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s' hint='1|drop|eat|hold|lore'>%s\t</send>", sendcmd, keyword,
                     keyword, keyword, keyword, keyword, obj->short_description);
             break;
           case 2: // equipment
