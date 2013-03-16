@@ -138,8 +138,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
               item_num++;
           }
         }
-        if (item_num > 0)
-          sprintf(keyword, "%d.%s", item_num, keyword);
+        //if (item_num > 0)
+        //  sprintf(keyword, "%d.%s", item_num, keyword);
         
         switch (mxp_type) {
           case 1: // inventory
