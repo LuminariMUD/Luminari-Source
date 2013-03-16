@@ -1127,10 +1127,12 @@ void pulse_luminari() {
       if (!IS_NPC(i) && GET_SKILL(i, SKILL_DIVINE_HEALTH)) {
         if (affected_by_spell(i, SPELL_EYEBITE))
           affect_from_char(i, SPELL_EYEBITE);
+        if (affected_by_spell(i, SPELL_CONTAGION))
+          affect_from_char(i, SPELL_CONTAGION);
         if (IS_AFFECTED(i, AFF_DISEASE))
           REMOVE_BIT_AR(AFF_FLAGS(i), AFF_DISEASE);
         send_to_char(i, "The \tYdisease\tn you have fades away!\r\n");
-        act("$n glows bright \tWwhite\tn and the \tYdisease\tn $s had "
+        act("$n glows bright \tWwhite\tn and the \tYdisease\tn $e had "
                 "fades away!", TRUE, i, 0, NULL, TO_ROOM);
         increase_skill(i, SKILL_DIVINE_HEALTH);
       } else if (GET_HIT(i) > (GET_MAX_HIT(i)*3/5)) {
