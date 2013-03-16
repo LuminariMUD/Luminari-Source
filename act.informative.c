@@ -152,10 +152,14 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
               strcpy(sendcmd, "quaff");
             else if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
               strcpy(sendcmd, "wear");
+            else if (GET_OBJ_TYPE(obj) == ITEM_FOOD)
+              strcpy(sendcmd, "eat");
+            else if (GET_OBJ_TYPE(obj) == ITEM_DRINKCON)
+              strcpy(sendcmd, "drink");
             else
               strcpy(sendcmd, "hold");
-            send_to_char(ch, "\t<send href='%s %s\r\ninventory|drop %s|eat %s|hold %s|lore %s' hint='use/equip|drop|eat|hold|lore'>%s\t</send>", sendcmd, keyword,
-                    keyword, keyword, keyword, keyword, obj->short_description);
+            send_to_char(ch, "\t<send href='%s %s\r\ninventory|drop %s|eat %s|hold %s|lore %s' hint='use/equip %s|drop %s|eat %s|hold %s|lore %s'>%s\t</send>", sendcmd, keyword,
+                    keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword, obj->short_description);
             break;
           case 2: // equipment
             send_to_char(ch, "\t<send href='remove %s'>%s\t</send>", keyword, obj->short_description);
