@@ -58,7 +58,7 @@ static void print_object_location(int num, struct obj_data *obj, struct char_dat
 #define SHOW_OBJ_ACTION   2
 
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type) {
-  char keyword[100], sendcmd[20];
+  char keyword[100], keyword1[100], sendcmd[20];
   int found = 0, item_num = 0;
   struct char_data *temp;
   struct obj_data *temp_obj;
@@ -138,16 +138,17 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
               item_num++;
           }
         }
-        //if (item_num > 0)
-        //  sprintf(keyword, "%d.%s", item_num, keyword);
-        
+        if (item_num > 0) {
+          sprintf(keyword1, "%d.%s", (item_num + 1), keyword);
+          strcpy(keyword, keyword1);
+        }
         switch (mxp_type) {
           case 1: // inventory
             if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
               strcpy(sendcmd, "wield");
             else
               strcpy(sendcmd, "wear");
-            send_to_char(ch, "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s' >%s\t</send>", sendcmd, keyword,
+            send_to_char(ch, "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s'>%s\t</send>", sendcmd, keyword,
                     keyword, keyword, keyword, keyword, obj->short_description);
             break;
           case 2: // equipment
@@ -1292,15 +1293,12 @@ ACMD(do_score) {
       if (CLASS_LEVEL(ch, i)) {
         if (counter)
           strcat(buf, " / ");
-        //send_to_char(ch, " / ");
         sprintf(buf, "%s%d %s", buf, CLASS_LEVEL(ch, i), class_abbrevs[i]);
-        //send_to_char(ch, "%d %s", CLASS_LEVEL(ch, i), class_abbrevs[i]);
         counter++;
       }
     }
   } else
     strcpy(buf, CLASS_ABBR(ch));
-  //send_to_char(ch, " %s", CLASS_ABBR(ch));
   send_to_char(ch, "\tCClass%s:\tn %s", (counter == 1 ? "" : "es"), buf);
 
   send_to_char(ch, "\r\n\tCLevel:\tn %d  \tCRace:\tn %s "
