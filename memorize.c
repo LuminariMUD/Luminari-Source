@@ -72,7 +72,7 @@ void display_spells(struct char_data *ch, struct obj_data *obj)
     if (obj->sbinfo[i].spellname)
       send_to_char(ch, "%-20s		[%2d]\r\n",
             spell_info[obj->sbinfo[i].spellname].name,
-            obj->sbinfo[i].pages ? obj->sbinfo[i].pages : 0);    
+            ((spell_info[obj->sbinfo[i].spellname].min_level[CLASS_WIZARD] + 1) / 2));    
   }
       
   return;
