@@ -154,6 +154,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
               strcpy(sendcmd, "quaff");
             else if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
               strcpy(sendcmd, "wear");
+            else if (GET_OBJ_TYPE(obj) == ITEM_WORN)
+              strcpy(sendcmd, "wear");
             else if (GET_OBJ_TYPE(obj) == ITEM_FOOD)
               strcpy(sendcmd, "eat");
             else if (GET_OBJ_TYPE(obj) == ITEM_DRINKCON)
