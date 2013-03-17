@@ -373,14 +373,14 @@ void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d)
 
   clear_screen(d);
 
-  for (i = 0; i < (LVL_IMMORT-1); i++) {
+  for (i = 1; i < 9; i++) {
     columns = 0;
     write_to_output(d, "%s", !(columns % 3) ? "\r\n" : "");
     write_to_output(d, "---Level %d Spells---===============================================---\r\n", i);
     for (counter = 0; counter < SPELLBOOK_SIZE; counter++) {
       if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname != 0 &&
               OLC_OBJ(d)->sbinfo[counter].spellname < MAX_SPELLS &&
-              spell_info[OLC_OBJ(d)->sbinfo[counter].spellname].min_level[CLASS_WIZARD] == i) {
+              ((spell_info[OLC_OBJ(d)->sbinfo[counter].spellname].min_level[CLASS_WIZARD] + 1) / 2) == i) {
         write_to_output(d, " %3d) %-20.20s %s", counter + 1, spell_info[OLC_OBJ(d)->sbinfo[counter].spellname].name, !(++columns % 3) ? "\r\n" : "");
         u++;
       }
@@ -401,12 +401,12 @@ void oedit_disp_spellbook_menu(struct descriptor_data *d)
 
   clear_screen(d);
 
-  for (i = 0; i < (LVL_IMMORT-1); i++) {
+  for (i = 1; i < 9; i++) {
     columns = 0;
     write_to_output(d, "%s", !(columns % 3) ? "\n" : "");
     write_to_output(d, "---Level %d Spells---==============================================---\r\n", i);
     for (counter = 0; counter < NUM_SPELLS; counter++) {
-      if (spell_info[counter].min_level[CLASS_WIZARD] == i &&
+      if (((spell_info[counter].min_level[CLASS_WIZARD] + 1) / 2) == i &&
           spell_info[counter].schoolOfMagic != NOSCHOOL) 
         write_to_output(d, "%3d) %-20.20s%s", counter, spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
     }
