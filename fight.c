@@ -248,9 +248,9 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch) {
   if (CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
-      armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 1;
+      armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
     else if (IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, GET_RACE(attacker)))
-      armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 1;
+      armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
   }
   if (CLASS_LEVEL(ch, CLASS_MONK) && monk_gear_ok(ch)) {
     armorclass += GET_WIS_BONUS(ch);
@@ -1716,6 +1716,14 @@ int compute_bab(struct char_data *ch, struct char_data *victim, int type) {
   //fatigued
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
     calc_bab -= 2;
+  /* favored enemy */
+  if (CLASS_LEVEL(ch, CLASS_RANGER)) {
+    // checking if we have humanoid favored enemies for PC victims
+    if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
+      calc_bab += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+    else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)))
+      calc_bab += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+  }  
 
   return (MIN(MAX_BAB, calc_bab));
 }
@@ -1766,6 +1774,15 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     affect_from_char(ch, SKILL_SMITE);
   }
 
+  /* favored enemy */
+  if (CLASS_LEVEL(ch, CLASS_RANGER)) {
+    // checking if we have humanoid favored enemies for PC victims
+    if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
+      dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+    else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict)))
+      dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+  }  
+  
   /**** display, keep mods above this *****/
   if (mode == 2 || mode == 3) {
     send_to_char(ch, "Dam Bonus:  %d, ", dambonus);
