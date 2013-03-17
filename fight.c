@@ -245,7 +245,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch) {
       armorclass += compute_size_bonus(GET_SIZE(attacker), GET_SIZE(ch));
   }
   /* favored enemy */
-  if (CLASS_LEVEL(ch, CLASS_RANGER)) {
+  if (attacker && CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
       armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
@@ -1717,7 +1717,7 @@ int compute_bab(struct char_data *ch, struct char_data *victim, int type) {
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
     calc_bab -= 2;
   /* favored enemy */
-  if (CLASS_LEVEL(ch, CLASS_RANGER)) {
+  if (victim && CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
       calc_bab += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
@@ -1769,13 +1769,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   // smite evil (remove after one attack)
   if (affected_by_spell(ch, SKILL_SMITE)) {
     // only give damage bonus if opponent is evil
-    if (IS_EVIL(vict))
+    if (vict && IS_EVIL(vict))
       dambonus += CLASS_LEVEL(ch, CLASS_PALADIN);
     affect_from_char(ch, SKILL_SMITE);
   }
 
   /* favored enemy */
-  if (CLASS_LEVEL(ch, CLASS_RANGER)) {
+  if (vict && CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
       dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
