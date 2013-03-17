@@ -678,7 +678,7 @@ void raw_kill_old(struct char_data *ch, struct char_data *killer) {
 }
 
 /* called after striking the mortal blow to ch */
-void die(struct char_data * ch, struct char_data * killer) {
+void die(struct char_data *ch, struct char_data *killer) {
   if (GET_LEVEL(ch) <= 6) {
     // no xp loss for newbs - Bakarus
   } else {
@@ -1427,12 +1427,13 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 /* victim died at the hands of ch
  * this is called before die() to handle xp gain, corpse, memory and
  * a handful of other things */
-int dam_killed_vict(struct char_data *ch, struct char_data *victim,
-        int dam, int attacktype, int dam_type) {
+int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
   char local_buf[MEDIUM_STRING] = {'\0'};
   long local_gold = 0, happy_gold = 0;
   struct char_data *tmp_char;
   struct obj_data *corpse_obj;
+  
+  GET_POS(victim) = POS_DEAD;
 
   if (ch != victim && (IS_NPC(victim) || victim->desc)) { //xp gain
     if (GROUP(ch))
@@ -1660,7 +1661,7 @@ int damage(struct char_data *ch, struct char_data *victim,
     appear(ch, FALSE);
 
   if (GET_POS(victim) == POS_DEAD) // victim died
-    return (dam_killed_vict(ch, victim, dam, attacktype, dam_type));
+    return (dam_killed_vict(ch, victim));
 
   return (dam);
 }
