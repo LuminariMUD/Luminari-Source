@@ -1185,8 +1185,9 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
               memset((char *) temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
             }            
             
-            temp->sbinfo[j++].spellname = t[0];
-            temp->sbinfo[j++].pages = t[1];
+            temp->sbinfo[j].spellname = t[0];
+            temp->sbinfo[j].pages = t[1];
+            j++;
           }
         }        
         break;
