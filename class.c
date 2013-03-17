@@ -410,8 +410,11 @@ void newbieEquipment(struct char_data *ch)
 
       break;
 
-    case CLASS_SORCERER:
     case CLASS_WIZARD:
+      obj_to_char(read_object(812, VIRTUAL), ch);  //spellbook
+      
+    /* switch fallthrough */
+    case CLASS_SORCERER:
       obj = read_object(854, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch);       // leather sleeves
