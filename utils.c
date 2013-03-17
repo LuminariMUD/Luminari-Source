@@ -164,6 +164,13 @@ void increase_skill(struct char_data *ch, int skillnum)
   int pass = rand_number(0, PASS);
 
   switch(skillnum) {
+    case SKILL_TURN_UNDEAD:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+      
     /* crafting skills */
     case SKILL_MINING:
       if (!c_skill) {
@@ -255,8 +262,8 @@ void increase_skill(struct char_data *ch, int skillnum)
         GET_SKILL(ch, skillnum)++;
       }
       break;
-      
     /* end crafting */
+      
     case SKILL_PERFORM:
       if (!pass) {
         notched = TRUE;

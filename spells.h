@@ -476,8 +476,9 @@
 #define SKILL_CALL_FAMILIAR             512  //implemented
 #define SKILL_PERFORM                   513  //implemented
 #define SKILL_SCRIBE                    514  //implemented
+#define SKILL_TURN_UNDEAD               515
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      515
+#define NUM_SKILLS                      516
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the
