@@ -150,7 +150,7 @@ ACMD(do_turnundead) {
       act("The mighty force of your faith blasts $N out of existence!", FALSE, ch, 0, vict, TO_CHAR);
       act("The mighty force of $N's faith blasts you out of existence!", FALSE, vict, 0, ch, TO_CHAR);
       act("The mighty force of $N's faith blasts $n out of existence!", FALSE, vict, 0, ch, TO_NOTVICT);
-      raw_kill(vict, ch);
+      dam_killed_vict(ch, vict);
       break;
   }
   
