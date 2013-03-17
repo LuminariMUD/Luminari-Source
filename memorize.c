@@ -209,7 +209,7 @@ ACMD(do_scribe) {
   s = strtok(arg2, "\0");
   spellnum = find_skill_num(s);
 
-  if ((spellnum < 1) || (spellnum >= NUM_SPELLS) || !GET_SKILL(ch, spellnum)) {
+  if ((spellnum < 1) || (spellnum >= NUM_SPELLS)) {
     send_to_char(ch, "Strange, there is no such spell.\r\n");
     return;
   }
@@ -219,7 +219,13 @@ ACMD(do_scribe) {
     send_to_char(ch, "That spell is not appropriate for scribing!\r\n");
     return;
   }
-
+  
+  /* very much just a dummy check*/
+  if (!GET_SKILL(ch, spellnum)) {
+    send_to_char(ch, "That spell is not fitting!\r\n");
+    return;
+  }
+  
   /* found an object, looking for a spellbook or scroll.. */
   if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {    
     /* check if spell is already in book */
