@@ -600,9 +600,6 @@ void wizard_skills(struct char_data *ch, int level) {
       send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
       break;
     case 3:
-      if (!GET_SKILL(ch, SKILL_SCRIBE))
-        SET_SKILL(ch, SKILL_SCRIBE, 75);
-      send_to_char(ch, "\tMYou have learned 'Scribe'\tn\r\n");
       break;
     default:
       break;
@@ -738,8 +735,13 @@ void init_class(struct char_data *ch, int class, int level)
 {
   switch (class) {
 
-  case CLASS_SORCERER:
   case CLASS_WIZARD:
+    if (!GET_SKILL(ch, SKILL_SCRIBE)) {
+      SET_SKILL(ch, SKILL_SCRIBE, 75);
+      send_to_char(ch, "\tMYou have learned 'Scribe'\tn\r\n");
+    }  
+  /* SWITCH FALL THROUGH */
+  case CLASS_SORCERER:
     //spell init
     //1st circle
     SET_SKILL(ch, SPELL_HORIZIKAULS_BOOM, 99);
