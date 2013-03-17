@@ -1506,7 +1506,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           break;
 
       /* oops no space */
-      if (counter == SPELLBOOK_SIZE) {
+      if (OLC_OBJ(d)->sbinfo && counter == SPELLBOOK_SIZE) {
         write_to_output(d, "This spellbook is full!\r\n");
         return;
       }
