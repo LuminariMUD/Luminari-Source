@@ -1497,14 +1497,6 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         memset((char *) OLC_OBJ(d)->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
       }      
 
-      /* add in check here if already applied.. deny builders another */
-      for (counter = 0; counter < SPELLBOOK_SIZE; counter++) {
-        if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname == number) {
-          write_to_output(d, "Object already has that spell.");
-          return;
-        }
-      }
-
       /* look for empty spot in book */
       for (counter = 0; counter < SPELLBOOK_SIZE; counter++)
         if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname == 0)
