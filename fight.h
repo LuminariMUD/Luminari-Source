@@ -39,6 +39,9 @@ int damage(struct char_data *ch, struct char_data *victim,
 void death_cry(struct char_data *ch);
 void die(struct char_data * ch, struct char_data * killer);
 void free_messages(void);
+/*
+ * dualwield = is this a dual wield attack?
+ */
 void hit(struct char_data *ch, struct char_data *victim,
 	int type, int dam_type, int penalty, int dualwield);
 void load_messages(void);

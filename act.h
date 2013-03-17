@@ -200,6 +200,7 @@ ACMD(do_hit);
 /* Functions without subcommands */
 ACMD(do_assist);
 ACMD(do_rage);
+ACMD(do_turnundead);
 ACMD(do_bash);
 ACMD(do_call);
 ACMD(do_fly);

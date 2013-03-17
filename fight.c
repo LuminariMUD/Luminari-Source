@@ -1790,6 +1790,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   return dambonus;
 }
 
+/* computes damage dice based on bare-hands, weapon, class (monk), or
+ npc's (which use special bare hand damage dice) */
 int compute_dam_dice(struct char_data *ch, struct char_data *victim,
         struct obj_data *wielded, int mode) {
   int diceOne = 0, diceTwo = 0;
@@ -1823,11 +1825,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       diceOne = ch->mob_specials.damnodice;
       diceTwo = ch->mob_specials.damsizedice;
     } else {
-      if (monkLevel && !GET_EQ(ch, WEAR_HOLD_1) &&
-              !GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_HOLD_2) &&
-              !GET_EQ(ch, WEAR_WIELD_2) && !GET_EQ(ch, WEAR_SHIELD) &&
-              !GET_EQ(ch, WEAR_WIELD_2H)
-              ) {
+      if (monkLevel && monk_gear_ok(ch)) {  // monk?
         if (monkLevel < 4) {
           diceOne = 1;
           diceTwo = 6;
@@ -1841,14 +1839,14 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
           diceOne = 2;
           diceTwo = 6;
         } else if (monkLevel < 20) {
-          diceOne = 2;
-          diceTwo = 8;
+          diceOne = 4;
+          diceTwo = 4;
         } else if (monkLevel < 25) {
           diceOne = 4;
           diceTwo = 5;
         } else {
-          diceOne = 6;
-          diceTwo = 4;
+          diceOne = 4;
+          diceTwo = 6;
         }
         if (GET_RACE(ch) == RACE_TRELUX)
           diceOne++;
@@ -1870,6 +1868,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   return dice(diceOne, diceTwo);
 }
 
+/* simple test for testing critical hit */
 int isCriticalHit(struct char_data *ch, int diceroll) {
   if ((!IS_NPC(ch) && GET_SKILL(ch, SKILL_EPIC_CRIT) && diceroll >= 18) ||
       (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_CRITICAL) && diceroll >= 19)
@@ -1989,7 +1988,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 /* this function takes ch (attacker) against victim (defender) who has
    inflicted dam damage and will reduce damage by X depending on the type
    of 'ward' the defender has (such as stoneskin) 
-   this will return the modified damage */
+   this will return the modified damage
+ * -note- melee only */
 #define STONESKIN_ABSORB	16
 #define IRONSKIN_ABSORB	36
 #define EPIC_WARDING_ABSORB	76

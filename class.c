@@ -528,6 +528,9 @@ void paladin_skills(struct char_data *ch, int level) {
       if (!GET_SKILL(ch, SKILL_DIVINE_HEALTH))
         SET_SKILL(ch, SKILL_DIVINE_HEALTH, 75);
       send_to_char(ch, "\tMYou have learned 'Divine Health'\tn\r\n");
+      if (!GET_SKILL(ch, SKILL_TURN_UNDEAD))
+        SET_SKILL(ch, SKILL_TURN_UNDEAD, 60);
+      send_to_char(ch, "\tMYou have learned 'Turn Undead'\tn\r\n");
       break;
     case 4:
       if (!GET_SKILL(ch, SKILL_COURAGE))
@@ -1183,7 +1186,8 @@ void init_class(struct char_data *ch, int class, int level)
       SET_SKILL(ch, SKILL_PROF_HEAVY_A, 75);
     if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
       SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
-
+    if (!GET_SKILL(ch, SKILL_TURN_UNDEAD))
+      SET_SKILL(ch, SKILL_TURN_UNDEAD, 75);
             
     send_to_char(ch, "Cleric Done.\tn\r\n");
   break;
@@ -3381,7 +3385,42 @@ const char *titles(int chclass, int level)
   return "the Classless";
 }
 
+/* our simple little function to make sure our monk
+   is following his order's requirements for gear */
 bool monk_gear_ok(struct char_data *ch) {
-
+  int i = 0;
+  
+  /* hands have to be free */
+  if (GET_EQ(ch, WEAR_HOLD_1))
+    return FALSE;
+  
+  if (GET_EQ(ch, WEAR_HOLD_2))
+    return FALSE;
+  
+  if (GET_EQ(ch, WEAR_WIELD_1))
+    return FALSE;
+  
+  if (GET_EQ(ch, WEAR_WIELD_2))
+    return FALSE;
+  
+  if (GET_EQ(ch, WEAR_WIELD_2H))
+    return FALSE;
+  
+  if (GET_EQ(ch, WEAR_SHIELD))
+    return FALSE;
+  
+  /* now check to make sure he isn't wearing invalid armor */
+  for (i = 0; i < NUM_WEARS; i++) {
+    if (GET_EQ(ch, i)) {
+      if (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS ||
+              i == WEAR_ARMS || i == WEAR_HANDS) {
+        if (GET_OBJ_PROF(GET_EQ(ch, i)) > ITEM_PROF_NONE) {
+          return FALSE;
+        }
+      }
+    }
+  }  
+  
+  /* monk gear is ok */
   return TRUE;
 }

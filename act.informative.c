@@ -1223,6 +1223,8 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Smite Evil - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePERFORM)))
     send_to_char(ch, "Perform - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eTURN_UNDEAD)))
+    send_to_char(ch, "Turn Undead - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
 
   send_to_char(ch,
           "\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");

@@ -24,6 +24,139 @@
 #include "spec_procs.h"
 
 
+/******* start offensive commands *******/
+
+/* turn undead skill (clerics, paladins, etc) */
+ACMD(do_turnundead) {
+  struct char_data *vict = NULL;
+  int turn_level = 0, percent = 0;
+  int turn_difference = 0, turn_result = 0, turn_roll = 0;
+  char buf[MAX_STRING_LENGTH] = { '\0' };
+
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) > 2)
+    turn_level += CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
+  turn_level += CLASS_LEVEL(ch, CLASS_CLERIC);
+
+  if (turn_level <= 0) {
+    send_to_char(ch, "You do not possess the divine favor!\r\n");
+    return;
+  }
+
+  one_argument(argument, buf);
+
+  if (!(vict = get_char_room_vis(ch, buf, NULL))) {
+    send_to_char(ch, "Turn who?\r\n");
+    return;
+  }
+
+  if (vict == ch) {
+    send_to_char(ch, "How do you plan to turn yourself?\r\n");
+    return;
+  }
+
+  if (!IS_UNDEAD(vict)) {
+    send_to_char(ch, "You can only attempt to turn undead!\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eTURN_UNDEAD)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    return;
+  } 
+  
+  percent = GET_SKILL(ch, SKILL_TURN_UNDEAD);
+
+  if (!percent) {
+    send_to_char(ch, "You lost your concentration!\r\n");
+    return;
+  }
+
+  /* add cooldown, increase skill */
+  attach_mud_event(new_mud_event(eTURN_UNDEAD, ch, NULL), 120 * PASSES_PER_SEC);  
+  increase_skill(ch, SKILL_TURN_UNDEAD);
+  
+  /* too powerful */
+  if (GET_LEVEL(vict) >= LVL_IMMORT) {
+    send_to_char(ch, "This undead is too powerful!\r\n");
+    return;
+  }
+  
+  turn_difference = (turn_level - GET_LEVEL(vict));
+  turn_roll = rand_number(1, 20);
+
+  switch (turn_difference) {
+    case -5:
+    case -4:
+      if (turn_roll >= 20)
+        turn_result = 1;
+      break;
+    case -3:
+      if (turn_roll >= 17)
+        turn_result = 1;
+      break;
+    case -2:
+      if (turn_roll >= 15)
+        turn_result = 1;
+      break;
+    case -1:
+      if (turn_roll >= 13)
+        turn_result = 1;
+      break;
+    case 0:
+      if (turn_roll >= 11)
+        turn_result = 1;
+      break;
+    case 1:
+      if (turn_roll >= 9)
+        turn_result = 1;
+      break;
+    case 2:
+      if (turn_roll >= 6)
+        turn_result = 1;
+      break;
+    case 3:
+      if (turn_roll >= 3)
+        turn_result = 1;
+      break;
+    case 4:
+    case 5:
+      if (turn_roll >= 2)
+        turn_result = 1;
+      break;
+    default:
+      turn_result = 0;
+      break;
+  }
+
+  if (turn_difference <= -6)
+    turn_result = 0;
+  else if (turn_difference >= 6)
+    turn_result = 2;
+
+  switch (turn_result) {
+    case 0: /* Undead resists turning */
+      act("$N blasphemously mocks your faith!", FALSE, ch, 0, vict, TO_CHAR);
+      act("You blasphemously mock $N and $S faith!", FALSE, vict, 0, ch, TO_CHAR);
+      act("$n blasphemously mocks $N and $S faith!", FALSE, vict, 0, ch, TO_NOTVICT);
+      hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      break;
+    case 1: /* Undead is turned */
+      act("The power of your faith overwhelms $N, who flees!", FALSE, ch, 0, vict, TO_CHAR);
+      act("The power of $N's faith overwhelms you! You flee in terror!!!", FALSE, vict, 0, ch, TO_CHAR);
+      act("The power of $N's faith overwhelms $n, who flees!", FALSE, vict, 0, ch, TO_NOTVICT);
+      do_flee(vict, 0, 0, 0);
+      break;
+    case 2: /* Undead is automatically destroyed */
+      act("The mighty force of your faith blasts $N out of existence!", FALSE, ch, 0, vict, TO_CHAR);
+      act("The mighty force of $N's faith blasts you out of existence!", FALSE, vict, 0, ch, TO_CHAR);
+      act("The mighty force of $N's faith blasts $n out of existence!", FALSE, vict, 0, ch, TO_NOTVICT);
+      raw_kill(vict, ch);
+      break;
+  }
+  
+}
+
+/* rage skill (berserk) primarily for berserkers character class */
 ACMD(do_rage)
 {
   struct affected_type af, aftwo, afthree, affour;
@@ -1212,7 +1345,6 @@ ACMD(do_stunningfist)
   }
   if (char_has_mud_event(ch, eSTUNNINGFIST)) {
     send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 5 minutes.\r\n");
     return;
   }
   
