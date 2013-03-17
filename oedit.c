@@ -1492,6 +1492,10 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       }
       int counter;
 
+      if (!OLC_OBJ(d)->sbinfo) {
+        CREATE(OLC_OBJ(d)->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+      }      
+
       /* add in check here if already applied.. deny builders another */
       for (counter = 0; counter < SPELLBOOK_SIZE; counter++) {
         if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname == number) {
