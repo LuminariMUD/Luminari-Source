@@ -34,7 +34,7 @@ extern const char *head_types[];
 /* percentage chance of random treasure drop */
 #define TREASURE_PERCENT  3
 
-/* array sizes */
+/* array sizes for treasure_const.c */
 #define NUM_A_GEMSTONES       26
 #define NUM_A_RING_DESCS      3
 #define NUM_A_WRIST_DESCS     9
