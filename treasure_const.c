@@ -54,7 +54,7 @@ const char *ring_descs[] = {
   "band",
   "\n"     
 };
-//4
+//3
 
 const char *wrist_descs[] = {
   "bracer",  //0

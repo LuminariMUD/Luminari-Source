@@ -36,7 +36,7 @@ extern const char *head_types[];
 
 /* array sizes for treasure_const.c */
 #define NUM_A_GEMSTONES       26
-#define NUM_A_RING_DESCS      3
+#define NUM_A_RING_DESCS      2
 #define NUM_A_WRIST_DESCS     9
 #define NUM_A_NECK_DESCS      13
 #define NUM_A_HAND_DESCS      3
