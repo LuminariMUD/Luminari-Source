@@ -25,6 +25,7 @@ void roll_real_abils(struct char_data *ch);
 byte saving_throws(struct char_data *, int type);
 int BAB(struct char_data *ch);
 const char *titles(int chclass, int level);
+bool monk_gear_ok(struct char_data *ch);
 
 /* Global variables */
 
