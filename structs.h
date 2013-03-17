@@ -660,8 +660,9 @@
 #define ITEM_MATERIAL  27  //crafting / general
 #define ITEM_SPELLBOOK 28
 #define ITEM_PORTAL    29
+#define ITEM_PLANT      30 /* for transport via plants spell */
 /** Total number of item types.*/
-#define NUM_ITEM_TYPES 30
+#define NUM_ITEM_TYPES 31
 
 /* Item profs: used by obj_data.obj_flags.prof_flag constants.c = item_profs */
 #define ITEM_PROF_NONE		0	// no proficiency required

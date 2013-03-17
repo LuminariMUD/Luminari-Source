@@ -51,6 +51,8 @@ static void perform_immort_where(struct char_data *ch, char *arg);
 static void perform_mortal_where(struct char_data *ch, char *arg);
 static void print_object_location(int num, struct obj_data *obj, struct char_data *ch, int recur);
 
+int boot_high = 0;
+
 /* Subcommands */
 /* For show_obj_to_char 'mode'.	/-- arbitrary */
 #define SHOW_OBJ_LONG     0
@@ -1698,6 +1700,7 @@ ACMD(do_who) {
   int showclass = 0, short_list = 0, outlaws = 0;
   int who_room = 0, showgroup = 0, showleader = 0;
   int showrace = 0;
+  int mortals = 0, staff = 0;
   clan_rnum c_n;
 
   struct {
@@ -1867,10 +1870,12 @@ ACMD(do_who) {
                 GET_LEVEL(tch), RACE_ABBR(tch), GET_NAME(tch),
                 CCNRM(ch, C_SPR), ((!(++num_can_see % 4)) ? "\r\n" : ""));
       } else {
-        num_can_see++;
+        //num_can_see++;
         if (GET_LEVEL(tch) >= LVL_IMMORT) {
+          staff++;
           send_to_char(ch, "%13s", admin_level_names[(GET_LEVEL(tch) - LVL_IMMORT)]);
         } else {
+          mortals++;
           send_to_char(ch, "[%2d %8s ",
                   GET_LEVEL(tch), RACE_ABBR(tch));
         }
@@ -1962,13 +1967,17 @@ ACMD(do_who) {
   }
   if (short_list && num_can_see % 4)
     send_to_char(ch, "\r\n");
-  if (!num_can_see)
-    send_to_char(ch, "Nobody at all!\r\n");
-  else if (num_can_see == 1)
-    send_to_char(ch, "One lonely character displayed.\r\n");
-  else
-    send_to_char(ch, "%d characters displayed.\r\n", num_can_see);
-
+  //if (!num_can_see)
+  //  send_to_char(ch, "Nobody at all!\r\n");
+  //else if (num_can_see == 1)
+  //  send_to_char(ch, "One lonely character displayed.\r\n");
+  //else
+  //  send_to_char(ch, "%d characters displayed.\r\n", num_can_see);
+  send_to_char(ch, "Total visible players: %d.\r\n", mortals + staff);
+  if ((mortals + staff) > boot_high)
+    boot_high = mortals + staff;
+  send_to_char(ch, "Maximum visible players this boot: %d.\r\n", boot_high);
+  
   if (IS_HAPPYHOUR > 0) {
     send_to_char(ch, "\tWIt's a Happy Hour! Type \tRhappyhour\tW to see the current bonuses.\tn\r\n");
   }

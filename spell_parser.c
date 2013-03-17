@@ -613,6 +613,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       case SPELL_TELEPORT:
         MANUAL_SPELL(spell_teleport);
         break;
+      case SPELL_TRANSPORT_VIA_PLANTS:
+        MANUAL_SPELL(spell_transport_via_plants);
+        break;
       case SPELL_WALL_OF_FORCE:
         MANUAL_SPELL(spell_wall_of_force);
         break;
@@ -2019,6 +2022,8 @@ void mag_assign_spells(void) {
           CONJURATION);
   spello(SPELL_FIRE_SEEDS, "fire seeds", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 7, 8, CONJURATION);
+  spello(SPELL_TRANSPORT_VIA_PLANTS, "transport via plants", 0, 0, 0, POS_STANDING,
+        TAR_OBJ_ROOM, FALSE, MAG_MANUAL, NULL, 8, 10, CONJURATION);
   //summon creature 6 - shared
   /* necromancy */
   spello(SPELL_TRANSFORMATION, "transformation", 0, 0, 0, POS_FIGHTING,

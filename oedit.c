@@ -460,23 +460,24 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
       break;
     case ITEM_MONEY:
       write_to_output(d, "Number of gold coins : ");
-      break;
+      break;      
     case ITEM_PORTAL:
       oedit_disp_portaltypes_menu(d);
       break;
     case ITEM_FURNITURE:
       write_to_output(d, "Number of people it can hold : ");
       break;
-    case ITEM_NOTE: // These object types have no 'values' so go back to menu
-    case ITEM_OTHER:
-    case ITEM_WORN:
-    case ITEM_TREASURE:
-    case ITEM_TRASH:
-    case ITEM_KEY:
-    case ITEM_PEN:
-    case ITEM_BOAT:
+    case ITEM_BOAT: // these object types have no 'values' so go back to menu
     case ITEM_FREE: /* Not implemented, but should be handled here */
     case ITEM_FREE2: /* Not implemented, but should be handled here */
+    case ITEM_KEY:
+    case ITEM_NOTE:
+    case ITEM_OTHER:
+    case ITEM_PLANT:
+    case ITEM_PEN:
+    case ITEM_TRASH:
+    case ITEM_TREASURE:
+    case ITEM_WORN:
       oedit_disp_menu(d);
       break;
     default:
