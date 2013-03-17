@@ -1317,7 +1317,7 @@ ACMD(do_cast) {
   }
 
   if (cast_spell(ch, tch, tobj, spellnum)) {
-    SET_WAIT(ch, 80);
+    SET_WAIT(ch, PULSE_VIOLENCE);
     //WAIT_STATE(ch, PULSE_VIOLENCE);
     // maybe use this as a way to keep npc's in check
     //   if (mana > 0)
