@@ -192,7 +192,7 @@ oasis_delete.o: oasis_delete.c conf.h sysdep.h structs.h protocol.h \
 oasis_list.o: oasis_list.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h genolc.h oasis.h \
  improved-edit.h shop.h screen.h constants.h dg_scripts.h quest.h \
- modify.h spells.h genzon.h
+ modify.h spells.h genzon.h class.h
 objsave.o: objsave.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h db.h interpreter.h spells.h act.h class.h \
  config.h modify.h genolc.h craft.h

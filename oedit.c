@@ -50,6 +50,7 @@ static void oedit_disp_wear_menu(struct descriptor_data *d);
 static void oedit_disp_menu(struct descriptor_data *d);
 static void oedit_disp_perm_menu(struct descriptor_data *d);
 static void oedit_save_to_disk(int zone_num);
+static void oedit_disp_spellbook_menu(struct descriptor_data *d);
 
 /* handy macro */
 #define S_PRODUCT(s, i) ((s)->producing[(i)])
@@ -364,6 +365,54 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d) {
   }
   write_to_output(d, "\r\nEnter affection to modify (0 to quit) : ");
   OLC_MODE(d) = OEDIT_PROMPT_APPLY;
+}
+
+void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d)
+{
+  int counter, columns, i, u = 0;
+
+  clear_screen(d);
+
+  for (i = 0; i < (LVL_IMMORT-1); i++) {
+    columns = 0;
+    write_to_output(d, "%s", !(columns % 3) ? "\r\n" : "");
+    write_to_output(d, "---Level %d Spells---===============================================---\r\n", i);
+    for (counter = 0; counter < SPELLBOOK_SIZE; counter++) {
+      if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname != 0 &&
+              OLC_OBJ(d)->sbinfo[counter].spellname < MAX_SPELLS &&
+              spell_info[OLC_OBJ(d)->sbinfo[counter].spellname].min_level[CLASS_WIZARD] == i) {
+        write_to_output(d, " %3d) %-20.20s %s", counter + 1, spell_info[OLC_OBJ(d)->sbinfo[counter].spellname].name, !(++columns % 3) ? "\r\n" : "");
+        u++;
+      }
+    }
+  }
+  u++;
+  if (u > SPELLBOOK_SIZE) {
+    write_to_output(d, "\r\nEnter spell slot to modify (0 to quit) : ");
+  } else {
+    write_to_output(d, "\r\nEnter spell slot to modify [ next empty slot is %2d ] (0 to quit) : ", u);
+  }
+  OLC_MODE(d) = OEDIT_PROMPT_SPELLBOOK;
+}
+
+void oedit_disp_spellbook_menu(struct descriptor_data *d)
+{
+  int counter, columns, i;
+
+  clear_screen(d);
+
+  for (i = 0; i < (LVL_IMMORT-1); i++) {
+    columns = 0;
+    write_to_output(d, "%s", !(columns % 3) ? "\n" : "");
+    write_to_output(d, "---Level %d Spells---==============================================---\r\n", i);
+    for (counter = 0; counter < NUM_SPELLS; counter++) {
+      if (spell_info[counter].min_level[CLASS_WIZARD] == i &&
+          spell_info[counter].schoolOfMagic != NOSCHOOL) 
+        write_to_output(d, "%3d) %-20.20s%s", counter, spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+    }
+  }
+  write_to_output(d, "\r\nEnter spell number (0 is no spell) : ");
+  OLC_MODE(d) = OEDIT_SPELLBOOK;
 }
 
 /* Ask for liquid type. */
@@ -773,6 +822,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           "%sM%s) Min Level              : %s%d\r\n"
           "%sP%s) Perm Affects           : %s%s\r\n"
           "%sS%s) Script                 : %s%s\r\n"
+          "%sT%s) Spellbook menu\r\n"
           "%sW%s) Copy object\r\n"
           "%sX%s) Delete object\r\n"
           "%sQ%s) Quit\r\n"
@@ -794,6 +844,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           grn, nrm, cyn, GET_OBJ_LEVEL(obj),
           grn, nrm, cyn, buf2,
           grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
+          grn, nrm,
           grn, nrm,
           grn, nrm,
           grn, nrm
@@ -957,6 +1008,10 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           OLC_SCRIPT_EDIT_MODE(d) = SCRIPT_MAIN_MENU;
           dg_script_menu(d);
           return;
+        case 't':
+        case 'T':
+          oedit_disp_prompt_spellbook_menu(d);
+          break;
         case 'w':
         case 'W':
           write_to_output(d, "Copy what object? ");
@@ -1428,6 +1483,54 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       oedit_disp_weapon_spells(d);
       return;
 
+    case OEDIT_PROMPT_SPELLBOOK:
+      if ((number = atoi(arg)) == 0)
+        break;
+      else if (number < 0 || number > NUM_SPELLS) {
+        oedit_disp_prompt_spellbook_menu(d);
+        return;
+      }
+      OLC_VAL(d) = number - 1;
+      OLC_MODE(d) = OEDIT_SPELLBOOK;
+      oedit_disp_spellbook_menu(d);
+      return;
+
+    case OEDIT_SPELLBOOK:
+      if ((number = atoi(arg)) == 0) {
+        if (OLC_OBJ(d)->sbinfo) {
+          OLC_OBJ(d)->sbinfo[OLC_VAL(d)].spellname = 0;
+          OLC_OBJ(d)->sbinfo[OLC_VAL(d)].pages = 0;
+        } else {
+          CREATE(OLC_OBJ(d)->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+          OLC_OBJ(d)->sbinfo[OLC_VAL(d)].spellname = 0;
+          OLC_OBJ(d)->sbinfo[OLC_VAL(d)].pages = 0;
+        }
+        oedit_disp_prompt_spellbook_menu(d);
+      } else if (number < 0 || number >= NUM_SPELLS) {
+        oedit_disp_spellbook_menu(d);
+      } else {
+        int counter;
+
+        /* add in check here if already applied.. deny builders another */
+        if (GET_LEVEL(d->character) < LVL_IMPL) {
+          for (counter = 0; counter < NUM_SPELLS; counter++) {
+            if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname == number) {
+              write_to_output(d, "Object already has that spell.");
+              return;
+            }
+          }
+        }
+
+        if (!OLC_OBJ(d)->sbinfo) {
+          CREATE(OLC_OBJ(d)->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+        }
+
+        OLC_OBJ(d)->sbinfo[OLC_VAL(d)].spellname = number;
+        OLC_OBJ(d)->sbinfo[OLC_VAL(d)].pages = MAX(1, lowest_spell_level(number) / 2);;
+        oedit_disp_prompt_spellbook_menu(d);
+      }
+      return;
+    
     default:
       mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: Reached default case in oedit_parse()!");
       write_to_output(d, "Oops...\r\n");

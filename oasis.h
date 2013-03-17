@@ -210,6 +210,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define OEDIT_PROF                      35	//proficiency
 #define OEDIT_MATERIAL                  36
 #define OEDIT_SPELLBOOK                 37
+#define OEDIT_PROMPT_SPELLBOOK          38
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 		1
