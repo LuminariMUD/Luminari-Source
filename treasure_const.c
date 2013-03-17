@@ -304,7 +304,7 @@ const char *colors[] = {
   "slate-grey",
   "steel-blue",
   "tan",
-  "turquiose",  //40
+  "turquoise",  //40
   "ultramarine",
   "violet",
   "white",
@@ -325,8 +325,8 @@ const char *crystal_descs[] = {
   "glowing",
   "radiant",
   "glittering",  //10
-  "incandescant",
-  "effulgant",
+  "incandescent",
+  "effulgent",
   "scintillating",
   "murky",
   "opaque",  //15
@@ -360,8 +360,8 @@ const char *potion_descs[] = {
   "glowing",  //20
   "radiant",
   "glittering",
-  "incandescant",
-  "effulgant",
+  "incandescent",
+  "effulgent",
   "scintillating",  //25
   "murky",
   "opaque",
@@ -466,7 +466,7 @@ const char *head_types[] = {
   "pointed",
   "bowed",
   "strapped",  //5
-  "lengthed",
+  "lengthened",
   "meshed",
   "chained",
   "fisted",

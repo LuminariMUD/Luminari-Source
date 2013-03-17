@@ -634,7 +634,7 @@ const char *material_name[NUM_MATERIALS+1] = {
   "diamond",
   "earth",
   "silver",
-  "alchemal silver",
+  "alchemical silver",
   "cold iron",
   "darkwood",
   "\n"
