@@ -165,11 +165,11 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
   /* got spells? */
   if (obj->sbinfo) { /*. Yep, save them too . */
     for (i = 0; i < SPELLBOOK_SIZE; i++) {
-      if (obj->sbinfo[i].spellname == 0) {
-        break;
-      }
+  //    if (obj->sbinfo[i].spellname == 0) {
+    //    break;
+  //    }
       fprintf(fp, "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
-      continue;
+//      continue;
     }
   }  
 
