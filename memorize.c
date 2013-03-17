@@ -62,8 +62,10 @@ void display_spells(struct char_data *ch, struct obj_data *obj)
   if (GET_OBJ_TYPE(obj) != ITEM_SPELLBOOK)
     return;
 
-  if (!obj->sbinfo)
+  if (!obj->sbinfo) {
+    send_to_char(ch, "This spellbook is completely unused...\r\n");
     return;
+  }
   
   send_to_char(ch, "The spellbook contains the following spell(s):\r\n");
   send_to_char(ch, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
