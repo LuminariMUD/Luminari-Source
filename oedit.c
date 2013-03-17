@@ -1494,6 +1494,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
 
       if (!OLC_OBJ(d)->sbinfo) {
         CREATE(OLC_OBJ(d)->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+        memset((char *) OLC_OBJ(d)->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
       }      
 
       /* add in check here if already applied.. deny builders another */
@@ -1527,6 +1528,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           OLC_OBJ(d)->sbinfo[OLC_VAL(d)].pages = 0;
         } else {
           CREATE(OLC_OBJ(d)->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+          memset((char *) OLC_OBJ(d)->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
           OLC_OBJ(d)->sbinfo[OLC_VAL(d)].spellname = 0;
           OLC_OBJ(d)->sbinfo[OLC_VAL(d)].pages = 0;
         }
@@ -1546,6 +1548,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
 
         if (!OLC_OBJ(d)->sbinfo) {
           CREATE(OLC_OBJ(d)->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+          memset((char *) OLC_OBJ(d)->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
         }
 
         OLC_OBJ(d)->sbinfo[OLC_VAL(d)].spellname = number;
