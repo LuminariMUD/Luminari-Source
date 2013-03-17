@@ -675,6 +675,7 @@ const char *item_types[] = {
   "Crafting Material",
   "Spellbook",
   "Portal",
+  "Plant",
   "\n"
 };
 

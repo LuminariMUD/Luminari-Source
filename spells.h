@@ -738,6 +738,7 @@ ASPELL(spell_spellstaff);
 ASPELL(spell_storm_of_vengeance);
 ASPELL(spell_summon);
 ASPELL(spell_teleport);
+ASPELL(spell_transport_via_plants);
 ASPELL(spell_wall_of_force);
 ASPELL(spell_wizard_eye);
 
