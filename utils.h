@@ -88,6 +88,7 @@ int get_subrace_by_name(char *racename);
 char *convert_from_tabs(char * string);
 int count_non_protocol_chars(char * str);
 char *a_or_an(char *string);
+bool is_fav_enemy_of(struct char_data *ch, int race);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
@@ -811,6 +812,7 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define GET_SPEC_ABIL(ch, slot)		(ch->player_specials->saved.spec_abil[slot])
 
 #define GET_FAVORED_ENEMY(ch, slot)		(ch->player_specials->saved.favored_enemy[slot])
+#define IS_FAV_ENEMY_OF(ch, race)            (is_fav_enemy_of(ch, race))
 #define GET_ANIMAL_COMPANION(ch)  (ch->player_specials->saved.spec_abil[CALLCOMPANION])
 #define GET_FAMILIAR(ch)  (ch->player_specials->saved.spec_abil[CALLFAMILIAR])
 #define GET_MOUNT(ch)  (ch->player_specials->saved.spec_abil[CALLMOUNT])

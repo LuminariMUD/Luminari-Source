@@ -77,6 +77,8 @@ static char *replace_string(const char *str, const char *weapon_singular,
 /*********************************/
 
 
+/* rewritten subfunction
+   the engine for fleeing */
 void perform_flee(struct char_data *ch) {
   int i, found = 0, fleeOptions[DIR_COUNT];
   struct char_data *was_fighting;
@@ -135,6 +137,8 @@ void perform_flee(struct char_data *ch) {
 
 }
 
+/* a function for removing sneak/hide/invisibility on a ch
+   the forced variable is just used for greater invis */
 void appear(struct char_data *ch, bool forced) {
 
   if (affected_by_spell(ch, SPELL_INVISIBLE))
@@ -193,6 +197,9 @@ int compute_size_bonus(int sizeA, int sizeB) {
   return ((sizeB - sizeA) * 2);
 }
 
+/* this function will go through all the tests for modifying
+   a given ch's AC under the circumstances of being attacked 
+ * by 'attacker' */
 int compute_armor_class(struct char_data *attacker, struct char_data *ch) {
   //hack to translate old D&D to 3.5 Edition
   int armorclass = GET_AC(ch) / (-10);
@@ -237,7 +244,15 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch) {
     else
       armorclass += compute_size_bonus(GET_SIZE(attacker), GET_SIZE(ch));
   }
-  if (CLASS_LEVEL(ch, CLASS_MONK)) {
+  /* favored enemy */
+  if (CLASS_LEVEL(ch, CLASS_RANGER)) {
+    // checking if we have humanoid favored enemies for PC victims
+    if (!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
+      armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 1;
+    else if (IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, GET_RACE(attacker)))
+      armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 1;
+  }
+  if (CLASS_LEVEL(ch, CLASS_MONK) && monk_gear_ok(ch)) {
     armorclass += GET_WIS_BONUS(ch);
     if (CLASS_LEVEL(ch, CLASS_MONK) >= 5)
       armorclass++;
@@ -269,10 +284,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch) {
   switch (GET_POS(ch)) { //position penalty
     case POS_SITTING:
     case POS_RESTING:
-    case POS_SLEEPING:
     case POS_STUNNED:
       armorclass -= 2;
       break;
+    case POS_SLEEPING:
     case POS_INCAP:
     case POS_MORTALLYW:
     case POS_DEAD:
@@ -310,7 +325,6 @@ void update_pos_dam(struct char_data *victim) {
   }
 
 }
-
 void update_pos(struct char_data *victim) {
 
   if ((GET_HIT(victim) > 0) && (GET_POS(victim) > POS_STUNNED))
@@ -333,6 +347,9 @@ void update_pos(struct char_data *victim) {
   }
 }
 
+/* if appropriate, this function will set the 'killer' flag
+   a 'killer' is someone who pkilled against the current ruleset
+ */
 void check_killer(struct char_data *ch, struct char_data *vict) {
   if (PLR_FLAGGED(vict, PLR_KILLER) || PLR_FLAGGED(vict, PLR_THIEF))
     return;
@@ -361,6 +378,7 @@ void check_killer(struct char_data *ch, struct char_data *vict) {
           GET_NAME(ch), GET_NAME(vict), world[IN_ROOM(vict)].name);
 }
 
+/* a function that sets ch fighting victim */
 void set_fighting(struct char_data *ch, struct char_data *vict) {
   if (ch == vict)
     return;
@@ -398,6 +416,7 @@ void stop_fighting(struct char_data *ch) {
   update_pos(ch);
 }
 
+/* function for creating corpses */
 static void make_corpse(struct char_data *ch) {
   char buf2[MAX_NAME_LENGTH + 64] = {'\0'};
   struct obj_data *corpse = NULL, *o = NULL;
@@ -484,6 +503,8 @@ static void change_alignment(struct char_data *ch, struct char_data *victim) {
   //  GET_ALIGNMENT(ch) += (-GET_ALIGNMENT(victim) - GET_ALIGNMENT(ch)) / 16;
 }
 
+/* a function for 'audio' effect of killing, notifies neighboring
+ room of a nearby death */
 void death_cry(struct char_data *ch) {
   int door;
 
@@ -496,6 +517,7 @@ void death_cry(struct char_data *ch) {
             "Your blood freezes as you hear someone's death cry.\r\n");
 }
 
+/* this message is a replacement in our new (temporary?) death system */
 void death_message(struct char_data *ch) {
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
@@ -611,6 +633,9 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
 
 }
 
+/* this is circle/tba stock raw_kill code
+   called after striking the mortal blow to ch via instant kill
+ * like staff 'kill' command or the die() function */
 void raw_kill_old(struct char_data *ch, struct char_data *killer) {
   if (FIGHTING(ch))
     stop_fighting(ch);
@@ -652,6 +677,7 @@ void raw_kill_old(struct char_data *ch, struct char_data *killer) {
   }
 }
 
+/* called after striking the mortal blow to ch */
 void die(struct char_data * ch, struct char_data * killer) {
   if (GET_LEVEL(ch) <= 6) {
     // no xp loss for newbs - Bakarus
@@ -672,6 +698,7 @@ void die(struct char_data * ch, struct char_data * killer) {
     raw_kill_old(ch, killer);
 }
 
+/* called for splitting xp in a group (engine) */
 static void perform_group_gain(struct char_data *ch, int base,
         struct char_data *victim) {
   int share, hap_share;
@@ -700,6 +727,7 @@ static void perform_group_gain(struct char_data *ch, int base,
   change_alignment(ch, victim);
 }
 
+/* called for splitting xp in a group (prelim) */
 static void group_gain(struct char_data *ch, struct char_data *victim) {
   int tot_members = 0, base, tot_gain;
   struct char_data *k;
@@ -725,6 +753,7 @@ static void group_gain(struct char_data *ch, struct char_data *victim) {
       perform_group_gain(k, base, victim);
 }
 
+/* called for splitting xp if NOT in a group (engine) */
 static void solo_gain(struct char_data *ch, struct char_data *victim) {
   int exp, happy_exp;
 
@@ -764,6 +793,8 @@ static void solo_gain(struct char_data *ch, struct char_data *victim) {
           "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
 }
 
+/* this function replaces the #w or #W with an appropriate weapon
+   constant dependent on plural or not */
 static char *replace_string(const char *str, const char *weapon_singular,
         const char *weapon_plural) {
   static char buf[MEDIUM_STRING];
@@ -941,10 +972,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
  *  damage on miss and death blows. */
 
 /* took out attacking-staff-messages -zusuk*/
-//      if (!IS_NPC(vict) && (GET_LEVEL(vict) >= LVL_IMPL)) {
-//	act(msg->god_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
-//	act(msg->god_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT);
-//	act(msg->god_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);} else
+/* this is so trelux's natural attack reflects an actualy object */
 #define TRELUX_CLAWS 800
 
 int skill_message(int dam, struct char_data *ch, struct char_data *vict,
@@ -1231,6 +1259,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
   return damtype_reduction; //no cap as of yet
 }
 
+/* this is straight damage reduction, applies to ALL attacks 
+ (not melee exclusive damage reduction) */
 int compute_damage_reduction(struct char_data *ch, int dam_type) {
   int damage_reduction = 0;
 
@@ -1251,6 +1281,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
   return (MIN(MAX_DAM_REDUC, damage_reduction));
 }
 
+/* this is straight avoidance percentage, applies to ALL attacks
+ (not exclusive to just melee attacks) */
 int compute_concealment(struct char_data *ch) {
   int concealment = 0;
 
@@ -1392,7 +1424,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
   return dam;
 }
 
-/* victim died at the hands of ch */
+/* victim died at the hands of ch
+ * this is called before die() to handle xp gain, corpse, memory and
+ * a handful of other things */
 int dam_killed_vict(struct char_data *ch, struct char_data *victim,
         int dam, int attacktype, int dam_type) {
   char local_buf[MEDIUM_STRING] = {'\0'};
@@ -1451,6 +1485,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim,
 
 
 // death < 0, no dam = 0, damage done > 0
+/* ALLLLLL damage goes through this function */
 
 int damage(struct char_data *ch, struct char_data *victim,
         int dam, int attacktype, int dam_type, int offhand) {

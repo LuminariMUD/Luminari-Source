@@ -37,6 +37,17 @@
  */
 
 
+/* function to check if a char (ranger) has given favored enemy (race) */
+bool is_fav_enemy_of(struct char_data *ch, int race) {
+  int i = 0;
+  
+  for (i = 0; i < MAX_ENEMIES; i++) {
+    if (GET_FAVORED_ENEMY(ch, i) == race)
+      return TRUE;
+  }
+  return FALSE;
+}
+
 /* returns a or an based on first character of next word */
 char * a_or_an(char *string) {
   switch (tolower(*string)) {

@@ -3381,3 +3381,7 @@ const char *titles(int chclass, int level)
   return "the Classless";
 }
 
+bool monk_gear_ok(struct char_data *ch) {
+
+  return TRUE;
+}
