@@ -1316,13 +1316,8 @@ ACMD(do_cast) {
     return;
   }
 
-  if (cast_spell(ch, tch, tobj, spellnum)) {
+  if (cast_spell(ch, tch, tobj, spellnum))
     SET_WAIT(ch, PULSE_VIOLENCE);
-    //WAIT_STATE(ch, PULSE_VIOLENCE);
-    // maybe use this as a way to keep npc's in check
-    //   if (mana > 0)
-    //     GET_MANA(ch) = MAX(0, MIN(GET_MAX_MANA(ch), GET_MANA(ch) - mana));
-  }
 }
 
 void spell_level(int spell, int chclass, int level) {
