@@ -1502,7 +1502,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
 
       /* look for empty spot in book */
       for (counter = 0; counter < SPELLBOOK_SIZE; counter++)
-        if (OLC_OBJ(d)->sbinfo[counter].spellname == 0)
+        if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname == 0)
           break;
 
       /* oops no space */
