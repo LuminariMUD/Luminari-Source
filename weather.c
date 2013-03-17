@@ -34,18 +34,44 @@ void weather_and_time(int mode) {
     weather_change();
 }
 
+void reset_dailies() {
+  struct char_data *ch = NULL;
+  int changes = 0;
+  
+  /* reset dailies (like shapechange) */
+  for (ch = character_list; ch; ch = ch->next) {
+    if (!ch)
+      continue;
+
+    if (IS_NPC(ch))
+      continue;
+
+    if (CLASS_LEVEL(ch, CLASS_DRUID) < 5)
+      continue;
+
+    changes = CLASS_LEVEL(ch, CLASS_DRUID) / 3;
+    if (GET_SHAPECHANGES(ch) < changes) {
+      GET_SHAPECHANGES(ch) = changes;
+      send_to_char(ch, "Your shapechanges refresh to:  %d!\r\n", changes);
+    }
+  }
+  
+}
+
 /** Increment the game time by one hour (no matter what) and display any time 
  * dependent messages via send_to_outdoors() (if parameter is non-zero).
  * @param mode Really, this parameter has the effect of a boolean. If non-zero,
  * display day/night messages to all eligible players.
  */
 static void another_hour(int mode) {
+  
   time_info.hours++;
 
   if (mode) {
     switch (time_info.hours) {
       case 1:
-        /* reset dailies (like shapechange) */
+        /* we are resetting dailies (such as shapechange) every 6 game hours */
+        reset_dailies();        
         break;
       case 5:
         weather_info.sunlight = SUN_RISE;
@@ -55,8 +81,16 @@ static void another_hour(int mode) {
         weather_info.sunlight = SUN_LIGHT;
         send_to_outdoor("\tYThe day has begun.\tn\r\n");
         break;
+      case 7:
+        /* we are resetting dailies (such as shapechange) every 6 game hours */
+        reset_dailies();        
+        break;
       case 12:
         send_to_outdoor("\tYThe sun is at its \tWzenith\tY.\tn\r\n");
+        break;
+      case 13:
+        /* we are resetting dailies (such as shapechange) every 6 game hours */
+        reset_dailies();        
         break;
       case 17:
         weather_info.sunlight = SUN_SET;
@@ -65,6 +99,10 @@ static void another_hour(int mode) {
       case 18:
         weather_info.sunlight = SUN_DARK;
         send_to_outdoor("\tDThe night has begun.\tn\r\n");
+        break;
+      case 19:
+        /* we are resetting dailies (such as shapechange) every 6 game hours */
+        reset_dailies();        
         break;
       case 24:
         send_to_outdoor("\tDThe \tRintense\tD darkness of midnight envelops you.\tn\r\n");
