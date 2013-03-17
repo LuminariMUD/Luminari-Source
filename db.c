@@ -2643,6 +2643,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
 
   if (obj_proto[i].sbinfo) {
     CREATE(obj->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+    memset((char *) obj->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
     for (j = 0; j < SPELLBOOK_SIZE; j++) {
       obj->sbinfo[j].spellname = obj_proto[i].sbinfo[j].spellname;
       obj->sbinfo[j].pages = obj_proto[i].sbinfo[j].pages;
