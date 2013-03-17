@@ -1465,6 +1465,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
     sprintf(local_buf, "%ld", (long) local_gold);
   }
 
+  /* corpse should be made here    */
   die(victim, ch);
 
   //handle dead mob and PRF_
