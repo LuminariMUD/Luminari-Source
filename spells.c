@@ -1398,7 +1398,7 @@ ASPELL(spell_transport_via_plants) {
     send_to_char(ch, "Your target does not exist!\r\n");
     return;
   } else if (GET_OBJ_TYPE(obj) != ITEM_PLANT) {
-    send_to_char(ch, "You are unable to transport through that!\r\n");
+    send_to_char(ch, "That is not a plant!\r\n");
     return;
   } else if (GET_OBJ_SIZE(obj) < SIZE_MEDIUM) {
     send_to_char(ch, "That plant is not large enough to transport you.\r\n");
@@ -1410,6 +1410,8 @@ ASPELL(spell_transport_via_plants) {
   for (dest_obj = object_list; dest_obj; dest_obj = dest_obj->next) {
     // TODO: make sure dest_obj isn't the same plant they are transporting from
     //       maybe randomize this somehow so they don't always transport to same location
+    if (dest_obj == obj)
+      continue;
     
     // we don't want to transport to a plant in someone's inventory
     if (GET_OBJ_VNUM(dest_obj) == obj_num && !dest_obj->carried_by) {
@@ -1418,8 +1420,12 @@ ASPELL(spell_transport_via_plants) {
     }
   }
   
+  if (to_room == NOWHERE) {
+    send_to_char(ch, "You are unable to find another plant to transport to.\r\n");
+    return;
+  } else {
   if (!valid_mortal_tele_dest(ch, to_room, TRUE)) {
-    send_to_char(ch, "A bright flash prevents your spell from working!");
+    send_to_char(ch, "A bright flash prevents your spell from working!\r\n");
     return;
   }
 
@@ -1427,7 +1433,9 @@ ASPELL(spell_transport_via_plants) {
   send_to_char(ch, "You enter the plant, and are whisked away to a distant location.\r\n");
   char_from_room(ch);
   char_to_room(ch, to_room);
-  // TODO: make this an event, so player enters into the plant, and sees a couple messages, then comes out the other side
+  look_at_room(ch, 0);
+  // TODO: make this an event, so player enters into the plant, and sees a couple messages, then comes out the other side    
+  }
 }
 
 
