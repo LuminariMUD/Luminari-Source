@@ -967,7 +967,12 @@ ACMD(do_shapechange) {
     send_to_char(ch, "You are not a high enough level druid to do this...\r\n");
     return;
   }
-
+  
+  if (GET_SHAPECHANGES(ch) <= 0) {
+    send_to_char(ch, "You are too exhausted to do that, wait for your skill to refresh!\r\n");
+    return;
+  }
+  GET_SHAPECHANGES(ch)--;
   perform_shapechange(ch, arg);
 }
 

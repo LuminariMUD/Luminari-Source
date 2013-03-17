@@ -74,7 +74,7 @@
 /** Total number of directions available to move in. BEFORE CHANGING THIS, make
  * sure you change every other direction and movement based item that this will
  * impact. */
-#define NUM_OF_DIRS 10
+#define NUM_OF_DIRS    10
 
 /* Room flags: used in room_data.room_flags */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -97,7 +97,7 @@
 #define ROOM_WORLDMAP      16   /**< World-map style maps here */
 #define ROOM_REGEN         17
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS    18
+#define NUM_ROOM_FLAGS     18
 
 // Room affects
 #define RAFF_FOG            (1 << 0)
@@ -110,8 +110,8 @@
 #define RAFF_BLADE_BARRIER  (1 << 7)
 #define RAFF_SPIKE_GROWTH   (1 << 8)
 #define RAFF_SPIKE_STONES   (1 << 9)
-#define RAFF_HOLY               (1 << 10)
-#define RAFF_UNHOLY             (1 << 11)
+#define RAFF_HOLY           (1 << 10)
+#define RAFF_UNHOLY         (1 << 11)
 #define NUM_RAFF            12
 
 /* Zone info: Used in zone_data.zone_flags */
@@ -260,7 +260,7 @@
    of easy to use reserved values in the pfile that saves for special
    ability info we need */
 #define SPELL_MANTLE            0 // spell mantle left
-#define INCEND                  1 // unused
+#define INCEND                  1 // incendiary cloud
 #define SONG_AFF                2 // how much to modify skill with song-affects
 #define CALLCOMPANION           3 // animal companion vnum
 #define CALLFAMILIAR            4 // familiars vnum
@@ -269,8 +269,9 @@
 #define CALLMOUNT               7 // paladin mount vnum
 #define WIZ_KNOWN               8 // true/false if can 'study'
 #define BARD_KNOWN              9 // true/false if can 'study'
+#define SHAPECHANGES           10 // druid shapechanges left today
 /*---------------*/
-#define NUM_SPEC_ABIL		10
+#define NUM_SPEC_ABIL		11
 #define MAX_SPEC_ABIL	MAX_CLASSES
 /* max = MAX_CLASSES right now */
 
