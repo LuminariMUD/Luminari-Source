@@ -373,10 +373,10 @@ void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d)
 
   clear_screen(d);
 
-  for (i = 1; i < 9; i++) {
+  for (i = 1; i <= 9; i++) {
     columns = 0;
     write_to_output(d, "%s", !(columns % 3) ? "\r\n" : "");
-    write_to_output(d, "---Level %d Spells---===============================================---\r\n", i);
+    write_to_output(d, "---Circle %d Spells---===============================================---\r\n", i);
     for (counter = 0; counter < SPELLBOOK_SIZE; counter++) {
       if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname != 0 &&
               OLC_OBJ(d)->sbinfo[counter].spellname < MAX_SPELLS &&
@@ -401,10 +401,10 @@ void oedit_disp_spellbook_menu(struct descriptor_data *d)
 
   clear_screen(d);
 
-  for (i = 1; i < 9; i++) {
+  for (i = 1; i <= 9; i++) {
     columns = 0;
     write_to_output(d, "%s", !(columns % 3) ? "\n" : "");
-    write_to_output(d, "---Level %d Spells---==============================================---\r\n", i);
+    write_to_output(d, "---Circle %d Spells---==============================================---\r\n", i);
     for (counter = 0; counter < NUM_SPELLS; counter++) {
       if (((spell_info[counter].min_level[CLASS_WIZARD] + 1) / 2) == i &&
           spell_info[counter].schoolOfMagic != NOSCHOOL) 
@@ -1486,11 +1486,32 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
     case OEDIT_PROMPT_SPELLBOOK:
       if ((number = atoi(arg)) == 0)
         break;
-      else if (number < 0 || number > NUM_SPELLS) {
+      else if (number < 0 || number > SPELLBOOK_SIZE) {
         oedit_disp_prompt_spellbook_menu(d);
         return;
       }
-      OLC_VAL(d) = number - 1;
+      int counter;
+
+      /* add in check here if already applied.. deny builders another */
+      for (counter = 0; counter < SPELLBOOK_SIZE; counter++) {
+        if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname == number) {
+          write_to_output(d, "Object already has that spell.");
+          return;
+        }
+      }
+
+      /* look for empty spot in book */
+      for (counter = 0; counter < SPELLBOOK_SIZE; counter++)
+        if (OLC_OBJ(d)->sbinfo[counter].spellname == 0)
+          break;
+
+      /* oops no space */
+      if (counter == SPELLBOOK_SIZE) {
+        write_to_output(d, "This spellbook is full!\r\n");
+        return;
+      }
+
+      OLC_VAL(d) = counter;
       OLC_MODE(d) = OEDIT_SPELLBOOK;
       oedit_disp_spellbook_menu(d);
       return;
@@ -1512,12 +1533,10 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         int counter;
 
         /* add in check here if already applied.. deny builders another */
-        if (GET_LEVEL(d->character) < LVL_IMPL) {
-          for (counter = 0; counter < NUM_SPELLS; counter++) {
-            if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname == number) {
-              write_to_output(d, "Object already has that spell.");
-              return;
-            }
+        for (counter = 0; counter < SPELLBOOK_SIZE; counter++) {
+          if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname == number) {
+            write_to_output(d, "Object already has that spell.");
+            return;
           }
         }
 
