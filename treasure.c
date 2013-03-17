@@ -1640,7 +1640,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   int vnum = -1, material = MATERIAL_BRONZE, roll = 0;
   int rare_grade = 0, level = 0;
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
-  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'}, keywords[MEDIUM_STRING] = {'\0'};
   char desc2[SHORT_STRING] = {'\0'}, desc3[SHORT_STRING] = {'\0'};
   
   /* determine if rare or not */
@@ -1858,10 +1858,12 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
     case RING_MOLD:
     case NECKLACE_MOLD:
     case WRIST_MOLD:
+      sprintf(keywords, "%s %s set with %s gemstone",
+              armor_name, material_name[material], desc2);
+      obj->name = strdup(keywords);
       sprintf(desc, "%s%s %s %s set with %s %s gemstone", desc,
               AN(material_name[material]), material_name[material],
               armor_name, AN(desc2), desc2);
-      obj->name = strdup(desc);
       obj->short_description = strdup(desc);
       sprintf(desc, "%s %s %s set with %s %s gemstone lies here.", 
               AN(material_name[material]), material_name[material],
@@ -1870,37 +1872,43 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
       break;
     case BOOTS_MOLD:
     case GLOVES_MOLD:
+      sprintf(keywords, "pair %s %s leather %s", desc2, desc3,
+              armor_name);
+      obj->name = strdup(keywords);
       sprintf(desc, "%sa pair of %s %s leather %s", desc, desc2, desc3,
               armor_name);
-      obj->name = strdup(desc);
       obj->short_description = strdup(desc);
       sprintf(desc, "A pair of %s %s leather %s lie here.", desc2, desc3,
               armor_name);
       obj->description = strdup(desc);
       break;
     case CLOAK_MOLD:
+      sprintf(keywords, "%s %s %s %s bearing crest", desc3, desc2,
+              material_name[material], armor_name);
+      obj->name = strdup(keywords);
       sprintf(desc, "%s%s %s %s %s bearing the crest of %s %s", desc, AN(desc3), desc3,
               material_name[material], armor_name, AN(desc2),
-              desc3);
-      obj->name = strdup(desc);
+              desc2);
       obj->short_description = strdup(desc);
       sprintf(desc, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
               material_name[material], armor_name, AN(desc2),
-              desc3);
+              desc2);
       obj->description = strdup(CAP(desc));
       break;
     case BELT_MOLD:
+      sprintf(keywords, "%s %s leather %s", desc2, desc3, armor_name);
+      obj->name = strdup(keywords);
       sprintf(desc, "%s%s %s %s leather %s", desc, AN(desc2), desc2, desc3,
               armor_name);
-      obj->name = strdup(desc);
       obj->short_description = strdup(desc);
       sprintf(desc, "%s %s %s leather %s lie here.", AN(desc2), desc2, desc3,
               armor_name);
       obj->description = strdup(desc);
       break;
     case HELD_MOLD:
+      sprintf(keywords, "%s %s orb", desc2, armor_name);
+      obj->name = strdup(keywords);
       sprintf(desc, "%sa %s %s orb", desc, desc2, armor_name);
-      obj->name = strdup(desc);
       obj->short_description = strdup(desc);
       sprintf(desc, "A %s %s orb is lying here.", desc2, armor_name);
       obj->description = strdup(desc);
