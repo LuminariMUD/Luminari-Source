@@ -1,6 +1,6 @@
 /* *************************************************************************
- *   File: spec_procs.c                                Part of LuminariMUD *
- *  Usage: constants for random treasure objects                           *
+ *   File: treasure.c                                 Part of LuminariMUD *
+ *  Usage: functions for random treasure objects                           *
  *  Author: d20mud, ported to tba/luminari by Zusuk                        *
  ************************************************************************* */
 
@@ -298,9 +298,9 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
   for (i = 0; i < number; i++) {
     if (dice(1, 100) <= 60)
       award_expendable_item(ch, grade, TYPE_POTION);
-    if (dice(1, 100) <= 30)
-      award_expendable_item(ch, grade, TYPE_SCROLL);
     if (dice(1, 100) <= 20)
+      award_expendable_item(ch, grade, TYPE_SCROLL);
+    if (dice(1, 100) <= 30)
       award_expendable_item(ch, grade, TYPE_WAND);
     if (dice(1, 100) <= 10)
       award_expendable_item(ch, grade, TYPE_STAFF);
@@ -660,20 +660,20 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   int vnum = -1, material = MATERIAL_BRONZE, roll = 0, crest_num = 0;
   int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
-  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'}, keywords[MEDIUM_STRING] = {'\0'};
 
 
   /* determine if rare or not */
   roll = dice(1, 100);
   if (roll == 1) {
     rare_grade = 3;
-    sprintf(desc, "\tM[Mythical] \tn");
+    sprintf(desc, "\tM[Mythical]\tn ");
   } else if (roll <= 6) {
     rare_grade = 2;
-    sprintf(desc, "\tY[Legendary] \tn");
+    sprintf(desc, "\tY[Legendary]\tn ");
   } else if (roll <= 16) {
     rare_grade = 1;
-    sprintf(desc, "\tG[Rare] \tn");
+    sprintf(desc, "\tG[Rare]\tn ");
   }
 
   /* find a random piece of armor
@@ -1052,7 +1052,6 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   }
   GET_OBJ_MATERIAL(obj) = material;
 
-  // pick a pair of random colors for usage
   /* first assign two random colors for usage */
   color1 = rand_number(0, NUM_A_COLORS);
   color2 = rand_number(0, NUM_A_COLORS);
@@ -1061,47 +1060,51 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
     color2 = rand_number(0, NUM_A_COLORS);
   crest_num = rand_number(0, NUM_A_ARMOR_CRESTS);
 
-  // Find out if there's an armor special adjective in the desc
-  roll = dice(1, 3);
-  if (roll == 3)
+  /* start with keyword string */
+  sprintf(keywords, "%s %s", keywords, armor_name);
+  sprintf(keywords, "%s %s", keywords, material_name[material]);
+  
+  roll = dice(1, 3);  
+  if (roll == 3) {  // armor spec adjective in desc?
     sprintf(desc, "%s %s", desc,
           armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
+    sprintf(keywords, "%s %s", keywords,
+          armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
+  }
 
-  // Find out if there's a color describer in the desc
   roll = dice(1, 5);
-  // There's one color describer in the desc so find out which one
-  if (roll >= 4)
+  if (roll >= 4) {  // color describe #1?
     sprintf(desc, "%s %s", desc, colors[color1]);
-
-    // There's two colors describer in the desc so find out which one
-  else if (roll == 3)
+    sprintf(keywords, "%s %s", keywords, colors[color1]);
+  } else if (roll == 3) {  // two colors
     sprintf(desc, "%s %s and %s", desc, colors[color1], colors[color2]);
+    sprintf(keywords, "%s %s and %s", keywords, colors[color1], colors[color2]);
+  }
 
-  // Insert the material type
+  // Insert the material type, then armor type
   sprintf(desc, "%s %s", desc, material_name[material]);
-
-  // Insert the armor type
   sprintf(desc, "%s %s", desc, armor_name);
 
-  // Find out if the armor has any crests or symbols
   roll = dice(1, 8);
-
-  // It has a crest so find out which and set the desc
-  if (roll >= 7)
+  if (roll >= 7) {  // crest?
     sprintf(desc, "%s with %s %s crest", desc,
           AN(armor_crests[crest_num]),
           armor_crests[crest_num]);
-
-    // It has a symbol so find out which and set the desc
-  else if (roll >= 5)
+    sprintf(keywords, "%s with %s %s crest", keywords,
+          AN(armor_crests[crest_num]),
+          armor_crests[crest_num]);
+  } else if (roll >= 5) {  // or symbol?
     sprintf(desc, "%s covered in symbols of %s %s", desc,
           AN(armor_crests[crest_num]),
           armor_crests[crest_num]);
+    sprintf(keywords, "%s covered in symbols of %s %s", keywords,
+          AN(armor_crests[crest_num]),
+          armor_crests[crest_num]);
+  }
 
-
-  // Set descriptions
   // keywords
-  obj->name = strdup(desc);
+  obj->name = strdup(keywords);
+  // Set descriptions  
   obj->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
   sprintf(desc, "%s is lying here.", desc);

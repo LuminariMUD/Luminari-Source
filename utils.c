@@ -837,7 +837,7 @@ void increase_skill(struct char_data *ch, int skillnum)
 #undef PASS
 
 
-/** Aportable random number function.
+/** A portable random number function.
  * @param from The lower bounds of the random number.
  * @param to The upper bounds of the random number.
  * @retval int The resulting randomly generated number. */
