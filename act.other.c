@@ -996,19 +996,19 @@ ACMD(do_shapechange) {
   }
 
   /* should be OK at this point */
-  if (is_abbrev(argument, shape_types[1])) {
+  if (is_abbrev(arg, shape_types[1])) {
     /* badger */
     SUBRACE(ch) = PC_SUBRACE_BADGER;
     
-  } if (is_abbrev(argument, shape_types[2])) {
+  } if (is_abbrev(arg, shape_types[2])) {
     /* panther */
     SUBRACE(ch) = PC_SUBRACE_PANTHER;
     
-  } if (is_abbrev(argument, shape_types[3])) {
+  } if (is_abbrev(arg, shape_types[3])) {
     /* bear */
     SUBRACE(ch) = PC_SUBRACE_BEAR;
     
-  } if (is_abbrev(argument, shape_types[4])) {
+  } if (is_abbrev(arg, shape_types[4])) {
     /* giant crocodile */
     SUBRACE(ch) = PC_SUBRACE_G_CROCODILE;
     
