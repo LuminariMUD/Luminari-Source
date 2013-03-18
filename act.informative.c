@@ -160,6 +160,10 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
               strcpy(sendcmd, "eat");
             else if (GET_OBJ_TYPE(obj) == ITEM_DRINKCON)
               strcpy(sendcmd, "drink");
+            else if (GET_OBJ_TYPE(obj) == ITEM_NOTE)
+              strcpy(sendcmd, "read");
+            else if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
+              strcpy(sendcmd, "look in");
             else
               strcpy(sendcmd, "hold");
             send_to_char(ch, "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s' hint='use/equip %s|drop %s|eat %s|hold %s|lore %s'>%s\t</send>", sendcmd, keyword,
