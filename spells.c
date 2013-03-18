@@ -496,7 +496,7 @@ ASPELL(spell_clairvoyance) {
 }
 
 ASPELL(spell_cloudkill) {
-  if (INCENDIARY(ch)) {
+  if (INCENDIARY(ch) || DOOM(ch)) {
     send_to_char(ch, "You already have a cloud following you!\r\n");
     return;
   }
@@ -553,6 +553,20 @@ ASPELL(spell_create_water) {
     }
   }
 }
+
+
+ASPELL(spell_creeping_doom) {
+  if (CLOUDKILL(ch) || INCENDIARY(ch)) {
+    send_to_char(ch, "You already have a cloud following you!\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "You summon forth a mass of centipede swarms!\r\n");
+  act("$n summons forth a mass of centipede swarms!", FALSE, ch, 0, 0, TO_ROOM);
+
+  DOOM(ch) = MAGIC_LEVEL(ch) / 4;
+}
+
 
 ASPELL(spell_detect_poison) {
   if (victim) {
@@ -857,7 +871,7 @@ ASPELL(spell_implode) {
 
 
 ASPELL(spell_incendiary_cloud) {
-  if (CLOUDKILL(ch)) {
+  if (CLOUDKILL(ch) || DOOM(ch)) {
     send_to_char(ch, "You already have a cloud following you!\r\n");
     return;
   }

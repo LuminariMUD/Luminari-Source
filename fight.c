@@ -608,6 +608,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   update_pos(ch);
 
   /* spec-abil saves on exit, so make sure this does not save */
+  DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
 
   /* move char to starting room */
@@ -666,6 +667,7 @@ void raw_kill_old(struct char_data *ch, struct char_data *killer) {
   clear_char_event_list(ch);
 
   /* spec-abil saves on exit, so make sure this does not save */
+  DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
 
   /* extraction!  *SLURRRRRRRRRRRRRP* */
@@ -1444,6 +1446,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
 
   resetCastingData(victim); //stop casting
   CLOUDKILL(victim) = 0; //stop any cloudkill bursts
+  DOOM(victim) = 0; // stop any creeping doom
   INCENDIARY(victim) = 0; //stop any incendiary bursts
 
   if (!IS_NPC(victim)) { //forget victim, log

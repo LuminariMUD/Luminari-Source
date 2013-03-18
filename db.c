@@ -3577,7 +3577,8 @@ void reset_char(struct char_data *ch) {
   ch->char_specials.crafting_object = NULL;
   ch->char_specials.crafting_repeat = 0;
   ch->char_specials.crafting_bonus = 0;
-  ch->char_specials.cloudkill = 0;
+  CLOUDKILL(ch) = 0;
+  DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
 
   if (GET_HIT(ch) <= 0)
@@ -3739,6 +3740,7 @@ void init_char(struct char_data *ch) {
 
   // make sure no cloudkills, incendiary
   CLOUDKILL(ch) = 0;
+  DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
 
   /* more inits */
