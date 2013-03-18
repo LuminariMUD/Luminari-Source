@@ -1389,7 +1389,7 @@ ASPELL(spell_teleport) {
 ASPELL(spell_transport_via_plants) {
   obj_vnum obj_num = NOTHING;
   room_rnum to_room = NOWHERE;
-  struct obj_data *dest_obj;
+  struct obj_data *dest_obj = NULL, *tmp_obj;
 
   if (ch == NULL)
     return;
@@ -1407,34 +1407,44 @@ ASPELL(spell_transport_via_plants) {
   obj_num = GET_OBJ_VNUM(obj);
 
   // find another of that plant in the world
-  for (dest_obj = object_list; dest_obj; dest_obj = dest_obj->next) {
-    // TODO: maybe randomize this somehow so they don't always transport to same location
-    if (dest_obj == obj)
+  for (tmp_obj = object_list; tmp_obj; tmp_obj = tmp_obj->next) {
+    if (tmp_obj == obj)
       continue;
     
     // we don't want to transport to a plant in someone's inventory
-    if (GET_OBJ_VNUM(dest_obj) == obj_num && !dest_obj->carried_by) {
-      to_room = dest_obj->in_room;
-      break;
+    if (GET_OBJ_VNUM(tmp_obj) == obj_num && !tmp_obj->carried_by) {
+      dest_obj = tmp_obj;
+
+      // 5% chance we will just stop at this obj
+      if (!rand_number(0, 10))
+        break;
     }
   }
   
+  act("$n walks toward $p, and steps inside of it.", FALSE, ch, obj, 0, TO_ROOM);
+  act("You walk toward $p, and step inside of it.", FALSE, ch, obj, 0, TO_CHAR);
+  
+  if (dest_obj != NULL) {
+    to_room = dest_obj->in_room;
+  }
+  
   if (to_room == NOWHERE) {
-    send_to_char(ch, "You are unable to find another plant to transport to.\r\n");
+    send_to_char(ch, "You are unable to find another exit, and are ejected from the plant.\r\n");
+    act("$n comes tumbling out from inside of $p.", FALSE, ch, obj, 0, TO_ROOM);
     return;
   } else {
   if (!valid_mortal_tele_dest(ch, to_room, TRUE)) {
     send_to_char(ch, "A bright flash prevents your spell from working!\r\n");
+    act("$n comes tumbling out from inside of $p.", FALSE, ch, obj, 0, TO_ROOM);
     return;
   }
 
   // transport player to new location
-  send_to_char(ch, "You enter the plant, and are whisked away to a distant location.\r\n");
-  act("$n enters into $p, and disappears!", FALSE, ch, obj, 0, TO_ROOM);
   char_from_room(ch);
   char_to_room(ch, to_room);
   look_at_room(ch, 0);
-  act("$n suddenly appears, stepping out of $p!", FALSE, ch, dest_obj, 0, TO_ROOM);
+  act("You find your destination, and step out through $p.", FALSE, ch, dest_obj, 0, TO_CHAR);
+  act("$n steps out from inside of $p!", FALSE, ch, dest_obj, 0, TO_ROOM);
   // TODO: make this an event, so player enters into the plant, and sees a couple messages, then comes out the other side    
   }
 }
