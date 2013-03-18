@@ -34,6 +34,8 @@ void weather_and_time(int mode) {
     weather_change();
 }
 
+/* a nice little cheesy function used to reset dailies, currently
+ dailies are resetting every 6 game hours */
 void reset_dailies() {
   struct char_data *ch = NULL;
   int changes = 0;

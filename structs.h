@@ -229,7 +229,7 @@
 #define CLASS_RANGER      9
 #define CLASS_BARD        10
 /** Total number of available PC Classes */
-#define NUM_CLASSES	  11
+#define NUM_CLASSES       11
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -271,8 +271,8 @@
 #define BARD_KNOWN              9 // true/false if can 'study'
 #define SHAPECHANGES           10 // druid shapechanges left today
 /*---------------*/
-#define NUM_SPEC_ABIL		11
-#define MAX_SPEC_ABIL	MAX_CLASSES
+#define NUM_SPEC_ABIL		 11
+#define MAX_SPEC_ABIL          MAX_CLASSES
 /* max = MAX_CLASSES right now */
 
 /* max enemies, reserved space for array of ranger's favored enemies */
@@ -351,6 +351,16 @@
 #define SUBRACE_WATER            20
 //total
 #define NUM_SUB_RACES		   21
+
+// pc sub-race types, so far used for druid shapechange
+#define PC_SUBRACE_UNDEFINED       (-1)	/*Race Undefined*/
+#define PC_SUBRACE_UNKNOWN          0
+#define PC_SUBRACE_BADGER           1
+#define PC_SUBRACE_PANTHER          2
+#define PC_SUBRACE_BEAR             3
+#define PC_SUBRACE_G_ALLIGATOR      4
+//total
+#define MAX_PC_SUBRACES	           5
 
 
 /* Sex */
@@ -1299,6 +1309,7 @@ struct char_player_data {
   ubyte weight; /**< PC / NPC weight */
   ubyte height; /**< PC / NPC height */
   byte race; // Race
+  byte pc_subrace[MAX_PC_SUBRACES]; // SubRace  
   int size; // size
   char *walkin; // NPC (for now) walkin message
   char *walkout; // NPC (for now) walkout message

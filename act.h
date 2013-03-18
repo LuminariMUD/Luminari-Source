@@ -233,7 +233,7 @@ ACMD(do_crystalbody);
  ****************************************************************************/
 /* Functions with subcommands */
 void list_forms(struct char_data *ch);
-void perform_shapechange(struct char_data *ch, char *arg);
+void perform_shapechange(struct char_data *ch, char *arg, int mode);
 int valid_align_by_class(int alignment, int class);
 /* do_gen_tog */
 ACMD(do_gen_tog);

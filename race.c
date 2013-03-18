@@ -29,8 +29,6 @@
 #include "race.h"
 
 
-
-
 // npc races
 const char *npc_race_types[] = {
    "Unknown",
@@ -168,8 +166,60 @@ const char *npc_race_menu =
    "14) \tGPlant\tn\r\n"
    "15) \tyVermin\tn\r\n";
 
+/* druid shape change race options */
+const char *shape_types[] = {
+   "Unknown",
+   "Badger",
+   "Panther",
+   "Bear",
+   "Crocodile, Giant"
+};
 
-// shapechange morph messages to_room
+/* druid shape change messages, to room */
+const char *shape_to_room[] = {
+   "Unknown",
+   /* badger */
+   "$n shrinks and suddenly grows spiny brown fur all over $s body, $s nose lengthens"
+     " into a dirty snout as $s face contorts into an expression of primal"
+     " rage.",
+   /* panther */
+   "$n's back arches into a feline form and $s teeth grow long and sharp.  "
+     "Knifelike claws extend from $s newly formed paws and $s body becomes "
+     "covered in sleek, dark fur.",
+   /* bear */
+   "$n's form swells with muscle as $s shoulders expand into a great girth.  "
+     "Suddenly $e seems more aware of scents in the air as $s nose transforms "
+     "into a short perceptive snout.  $s ears become larger and rounder on the "
+     "top of $s head and $s teeth become sharper as claws extend from $s meaty paws.",
+   /* crocodile, giant */
+   "$n involuntarily drops to the ground on all fours as $s legs shorten to "
+     "small stumps and a large tail extends from $s body.  Hard dark scales cover "
+     "$s whole body as $s nose and mouth extend into a large tooth-filled maw."
+};
+
+/* druid shape change messages, to char */
+const char *shape_to_char[] = {
+   "Unknown",
+   /* badger */
+   "You shrink and suddenly grows spiny brown fur all over your body, your nose lengthens"
+     " into a dirty snout as his face contorts into an expression of primal"
+     " rage.",
+   /* panther */
+   "Your back arches into a feline form and your teeth grow long and sharp.  "
+     "Knifelike claws extend from your newly formed paws and your body becomes "
+     "covered in sleek, dark fur.",
+   /* bear */
+   "Your form swells with muscle as your shoulders expand into a great girth.  "
+     "Suddenly you seem more aware of scents in the air as your nose transforms "
+     "into a short perceptive snout.  Your ears become larger and rounder on the "
+     "top of your head and your teeth become sharper as claws extend from your meaty paws.",
+   /* crocodile, giant */
+   "$n involuntarily drops to the ground on all fours as $s legs shorten to "
+     "small stumps and a large tail extends from $s body.  Hard dark scales cover "
+     "$s whole body as $s nose and mouth extend into a large tooth-filled maw."
+};
+
+// shapechange morph messages to_room, original system
 const char *morph_to_room[] = {
   /* unknown */
 " ",
@@ -183,7 +233,7 @@ const char *morph_to_room[] = {
   /* Dragon */
 "$n's features lengthen, $s skin peeling back to reveal a thick, "
 "scaly hide.  Leathery wings sprout from $s shoulders and $s "
-"fingers become long, razor sharp talons.",
+"fingers become long, razor-sharp talons.",
   /* Giant */
 " ",
   /* Aberration */
