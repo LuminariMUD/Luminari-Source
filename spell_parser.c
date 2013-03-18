@@ -2628,6 +2628,8 @@ void mag_assign_spells(void) {
   skillo(SKILL_CALL_FAMILIAR, "call familiar"); //512
   skillo(SKILL_PERFORM, "perform"); //513
   skillo(SKILL_SCRIBE, "scribe"); //514
+  skillo(SKILL_TURN_UNDEAD, "turn undead"); //515
+  skillo(SKILL_WILDSHAPE, "wildshape"); //516
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 

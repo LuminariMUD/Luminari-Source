@@ -1012,6 +1012,15 @@ ACMD(do_shapechange) {
     /* giant crocodile */
     SUBRACE(ch) = PC_SUBRACE_G_CROCODILE;
     
+  } else if (is_abbrev(argument, "normal")) {
+    /* return to normal form */
+    SUBRACE(ch) = 0;
+    IS_MORPHED(ch) = 0;
+    if (affected_by_spell(ch, SKILL_WILDSHAPE))
+      affect_from_char(ch, SKILL_WILDSHAPE);
+    send_to_char(ch, "You return to your normal form..\r\n");
+    return;
+    
   } else {
     /* invalid */
     send_to_char(ch, "This is not a valid form to shapechange into!\r\n");
@@ -1042,10 +1051,10 @@ ACMD(do_shapechange) {
       af[1].modifier = 8;
       break;
     case PC_SUBRACE_G_CROCODILE:
-      af[0].location = APPLY_STR;
-      af[0].modifier = 6;
-      SET_BIT_AR(af[1].bitvector, AFF_SCUBA);
-      SET_BIT_AR(af[2].bitvector, AFF_WATERWALK);
+      SET_BIT_AR(af[0].bitvector, AFF_SCUBA);
+      SET_BIT_AR(af[1].bitvector, AFF_WATERWALK);
+      af[2].location = APPLY_STR;
+      af[2].modifier = 6;
       break;
   }
 
