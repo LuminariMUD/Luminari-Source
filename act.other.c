@@ -1027,6 +1027,10 @@ ACMD(do_shapechange) {
   
   /* determine stat bonuses, etc */
   switch (SUBRACE(ch)) {
+    case PC_SUBRACE_BADGER:
+      af[0].location = APPLY_DEX;
+      af[0].modifier = 2;
+      break;
     case PC_SUBRACE_PANTHER:
       af[0].location = APPLY_DEX;
       af[0].modifier = 8;
@@ -1044,7 +1048,10 @@ ACMD(do_shapechange) {
       SET_BIT_AR(af[2].bitvector, AFF_WATERWALK);
       break;
   }
-  
+
+  for (i = 0; i < SHAPE_AFFECTS; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+
   GET_SHAPECHANGES(ch)--;
   increase_skill(ch, SKILL_WILDSHAPE);
   IS_MORPHED(ch) = NPCRACE_ANIMAL;
