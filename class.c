@@ -1295,8 +1295,8 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_HARM, 99); // no
       //7th circle
       SET_SKILL(ch, SPELL_CONTROL_WEATHER, 99);
-      // creeping doom SET_SKILL(ch, SPELL_CREEPING_DOOM, 99);
-      // fire storm SET_SKILL(ch, SPELL_FIRE_STORM, 99);
+      SET_SKILL(ch, SPELL_CREEPING_DOOM, 99);
+      SET_SKILL(ch, SPELL_FIRE_STORM, 99);
       // greater scrying SET_SKILL(ch, SPELL_GREATER_SCRYING, 99);
       SET_SKILL(ch, SPELL_HEAL, 99);
       SET_SKILL(ch, SPELL_MASS_CURE_MODERATE, 99);
@@ -2835,14 +2835,14 @@ void init_spell_levels(void) {
   //spell_level(SPELL_HARM, CLASS_DRUID, 11); // no
   //7th circle
   spell_level(SPELL_CONTROL_WEATHER, CLASS_DRUID, 13);
-  // creeping doom
-  // fire storm
+  spell_level(SPELL_CREEPING_DOOM, CLASS_DRUID, 13);
+  spell_level(SPELL_FIRE_STORM, CLASS_DRUID, 13);
   // greater scrying
   spell_level(SPELL_HEAL, CLASS_DRUID, 13);
   spell_level(SPELL_MASS_CURE_MODERATE, CLASS_DRUID, 13);
   // summon nature's ally vii
   spell_level(SPELL_SUNBEAM, CLASS_DRUID, 13);
-  spell_level(SPELL_SUMMON, CLASS_DRUID, 13); // no
+  //spell_level(SPELL_SUMMON, CLASS_DRUID, 13); // no
   //8th circle
   // animal shapes
   // control plant

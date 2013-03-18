@@ -1110,6 +1110,18 @@ void pulse_luminari() {
     } 
     //end cloudkill
     
+    /* creeping doom */
+    else if (DOOM(i)) {
+      call_magic(i, NULL, NULL, SPELL_DOOM, MAGIC_LEVEL(i), CAST_SPELL);
+      DOOM(i)--;
+      if (DOOM(i) <= 0) {
+        send_to_char(i, "Your creeping swarm of centipedes dissipates!\r\n");
+        act("The creeping swarm of centipedes following $n dissipates!", TRUE, i, 0, NULL,
+                TO_ROOM);
+      }
+    }
+    //end creeping doom
+    
     /* incendiary cloud */
     else if (INCENDIARY(i)) {
       call_magic(i, NULL, NULL, SPELL_INCENDIARY, MAGIC_LEVEL(i), CAST_SPELL);

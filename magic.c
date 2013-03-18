@@ -515,7 +515,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       size_dice = 6;
       bonus = 0;
       break;
-
+      
     case SPELL_FLAME_BLADE: // evocation
       if (SECT(ch->in_room) == SECT_UNDERWATER) {
         send_to_char(ch, "Your flame blade immediately burns out underwater.");
@@ -893,6 +893,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = 0;
       break;
       
+    case SPELL_DOOM: // creeping doom (conjuration)
+      //AoE
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = magic_level;
+      size_dice = 5;
+      bonus = magic_level;
+      break;
+
     case SPELL_FLAMING_SPHERE: // evocation
       save = SAVING_REFL;
       mag_resist = TRUE;
@@ -1042,6 +1052,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       num_dice = divine_level;
       size_dice = 8;
       bonus = num_dice + 30;
+      break;
+    case SPELL_FIRE_STORM:
+      // AoE
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = MIN(divine_level, 20);
+      size_dice = 6;
+      bonus = 0;
       break;
 
   } /* switch(spellnum) */
@@ -3383,6 +3402,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
       break;
     case SPELL_DEATHCLOUD: //cloudkill
       break;
+    case SPELL_DOOM: // creeping doom
+      break;
     case SPELL_EARTHQUAKE:
       to_char = "You gesture and the earth begins to shake all around you!";
       to_room = "$n gracefully gestures and the earth begins to shake violently!";
@@ -3396,6 +3417,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
       is_uneffect = TRUE;
       to_char = "You summon faerie fog!\tn";
       to_room = "$n summons faerie fog!\tn";
+      break;
+    case SPELL_FIRE_STORM:
+      to_char = "You call forth sheets of roaring flame!";
+      to_room = "$n calls forth sheets of roaring flame!";
       break;
     case SPELL_FLAMING_SPHERE:
       to_char = "You summon a burning globe of fire that rolls through the area!";

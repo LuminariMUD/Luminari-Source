@@ -825,7 +825,7 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define INCENDIARY(ch) (ch->player_specials->saved.spec_abil[INCEND])
 #define SONG_AFF_VAL(ch)  (ch->player_specials->saved.spec_abil[SONG_AFF])
 #define GET_SHAPECHANGES(ch)  (ch->player_specials->saved.spec_abil[SHAPECHANGES])
-
+#define DOOM(ch)        (ch->player_specials->saved.spec_abil[C_DOOM])
 
 /** Return condition i (DRUNK, HUNGER, THIRST) of ch. */
 #define GET_COND(ch, i)		CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.conditions[(i)]))

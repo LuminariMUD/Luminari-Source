@@ -547,6 +547,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       case SPELL_CREATE_WATER:
         MANUAL_SPELL(spell_create_water);
         break;
+      case SPELL_CREEPING_DOOM:
+        MANUAL_SPELL(spell_creeping_doom);
+        break;
       case SPELL_DETECT_POISON:
         MANUAL_SPELL(spell_detect_poison);
         break;
@@ -2065,16 +2068,20 @@ void mag_assign_spells(void) {
 
   // 7th circle
   /* evocation */
-  spello(SPELL_MISSILE_STORM, "missile storm", 72, 57, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 6, 11, EVOCATION);
+  spello(SPELL_FIRE_STORM, "fire storm", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 7, 11, EVOCATION);
   spello(SPELL_GRASPING_HAND, "grasping hand", 72, 57, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
           NULL, 6, 11, EVOCATION); //grapples opponent
+  spello(SPELL_MISSILE_STORM, "missile storm", 72, 57, 1, POS_FIGHTING,
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+          NULL, 6, 11, EVOCATION);
   spello(SPELL_SUNBEAM, "sunbeam", 0, 0, 0,
           POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS | MAG_ROOM,
           "You feel a cloak of blindness dissolve.", 6, 11, EVOCATION);
   /* conjuration */
+  spello(SPELL_CREEPING_DOOM, "creeping doom", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 10, 11, CONJURATION);
   spello(SPELL_SUMMON_CREATURE_7, "summon creature vii", 0, 0, 0,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 10, 11, CONJURATION);
   //control weather, enhances some spells (shared)
@@ -2466,16 +2473,22 @@ void mag_assign_spells(void) {
   // end divine
 
 
-
   /* NON-castable spells should appear below here. */
-  spello(SPELL_IDENTIFY, "identify", 0, 0, 0, 0,
-          TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
+  spello(SPELL_ACID, "_acid_", 79, 64, 1, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_MASSES,
+          NULL, 8, 12, EVOCATION);
+  spello(SPELL_ASHIELD_DAM, "_acid sheath dam_", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AFFECTS,
           NULL, 0, 0, NOSCHOOL);
-
+  spello(SPELL_BLADES, "_blades_", 79, 64, 1, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_MASSES,
+          NULL, 8, 12, NOSCHOOL);
+  spello(SPELL_CSHIELD_DAM, "_cold shield dam_", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AFFECTS,
+          NULL, 0, 0, NOSCHOOL);
+  spello(SPELL_DOOM, "_doom_", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL);
   spello(SPELL_DEATHCLOUD, "_deathcloud_", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS,
-          NULL, 0, 0, NOSCHOOL);
-  spello(SPELL_INCENDIARY, "_incendiary_", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
           NULL, 0, 0, NOSCHOOL);
   spello(SPELL_FIRE_BREATHE, "_fire breathe_", 0, 0, 0, POS_FIGHTING,
@@ -2484,26 +2497,20 @@ void mag_assign_spells(void) {
   spello(SPELL_FSHIELD_DAM, "_fire shield dam_", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AFFECTS,
           NULL, 0, 0, NOSCHOOL);
-  spello(SPELL_CSHIELD_DAM, "_cold shield dam_", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AFFECTS,
-          NULL, 0, 0, NOSCHOOL);
-  spello(SPELL_ASHIELD_DAM, "_acid sheath dam_", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AFFECTS,
-          NULL, 0, 0, NOSCHOOL);
-  spello(SPELL_ACID, "_acid_", 79, 64, 1, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_MASSES,
-          NULL, 8, 12, EVOCATION);
-  spello(SPELL_BLADES, "_blades_", 79, 64, 1, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_MASSES,
-          NULL, 8, 12, NOSCHOOL);
-  spello(SPELL_STENCH, "stench", 65, 50, 1, POS_DEAD,
-          TAR_IGNORE, FALSE, MAG_MASSES,
-          "Your nausea from the noxious gas passes.", 4, 7,
-          CONJURATION);
   /* innate darkness spell, room events testing spell as well */
   spello(SPELL_I_DARKNESS, "innate darkness", 0, 0, 0, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_ROOM,
           "The cloak of darkness in the area dissolves.", 5, 6, NOSCHOOL);
+  spello(SPELL_IDENTIFY, "identify", 0, 0, 0, 0,
+          TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
+          NULL, 0, 0, NOSCHOOL);
+  spello(SPELL_INCENDIARY, "_incendiary_", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS,
+          NULL, 0, 0, NOSCHOOL);
+  spello(SPELL_STENCH, "stench", 65, 50, 1, POS_DEAD,
+          TAR_IGNORE, FALSE, MAG_MASSES,
+          "Your nausea from the noxious gas passes.", 4, 7,
+          CONJURATION);
 
 
   spello(SPELL_DG_AFFECT, "Afflicted", 0, 0, 0, POS_SITTING,
