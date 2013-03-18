@@ -919,10 +919,11 @@ void list_forms(struct char_data *ch) {
 }
 
 
-/* shapechange function */
-
-/* header file:  act.h */
-void perform_shapechange(struct char_data *ch, char *arg) {
+/* shapechange function
+ * mode = 1 = druid
+ * mode = 2 = polymorph spell
+ * header file:  act.h */
+void perform_shapechange(struct char_data *ch, char *arg, int mode) {
   int form = -1;
 
   if (!*arg) {
@@ -943,6 +944,8 @@ void perform_shapechange(struct char_data *ch, char *arg) {
       return;
     }
     IS_MORPHED(ch) = form;
+    if (mode == 1)
+      GET_SHAPECHANGES(ch)--;
 
     /* the morph_to_x are in race.c */
     send_to_char(ch, "You transform into a %s!\r\n", RACE_ABBR(ch));
@@ -969,11 +972,11 @@ ACMD(do_shapechange) {
   }
   
   if (GET_SHAPECHANGES(ch) <= 0) {
-    send_to_char(ch, "You are too exhausted to do that, wait for your skill to refresh!\r\n");
+    send_to_char(ch, "You are too exhausted to do that, wait for your skill "
+            "to refresh!\r\n");
     return;
   }
-  GET_SHAPECHANGES(ch)--;
-  perform_shapechange(ch, arg);
+  perform_shapechange(ch, arg, 1);
 }
 
 ACMD(do_quit) {

@@ -183,7 +183,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
   { "force", "force", POS_SLEEPING, do_force, LVL_GOD, 0, TRUE},
   { "fill", "fil", POS_STANDING, do_pour, 0, SCMD_FILL, FALSE},
-  { "file", "file", POS_SLEEPING, do_file, LVL_GOD, 0, TRUE},
+  { "file", "file", POS_SLEEPING, do_file, LVL_IMMORT, 0, TRUE},
   { "flee", "fl", POS_FIGHTING, do_flee, 1, 0, FALSE},
   { "follow", "fol", POS_RESTING, do_follow, 0, 0, FALSE},
   { "forget", "forget", POS_RESTING, do_gen_forget, 0, SCMD_FORGET, FALSE},

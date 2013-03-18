@@ -642,6 +642,7 @@ do                                                              \
 
 /** Race of ch. */
 #define GET_RACE(ch)   ((ch)->player.race)
+#define SUBRACE(ch)    ((ch)->player.pc_subrace)
 #define GET_NPC_RACE(ch)   (IS_NPC(ch) ? (ch)->player.race : RACE_UNDEFINED)
 
 /** Height of ch. */
