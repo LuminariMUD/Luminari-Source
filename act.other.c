@@ -999,15 +999,15 @@ ACMD(do_shapechange) {
     /* badger */
     SUBRACE(ch) = PC_SUBRACE_BADGER;
     
-  } if (is_abbrev(argument, shape_types[2])) {
+  } else if (is_abbrev(argument, shape_types[2])) {
     /* panther */
     SUBRACE(ch) = PC_SUBRACE_PANTHER;
     
-  } if (is_abbrev(argument, shape_types[3])) {
+  } else if (is_abbrev(argument, shape_types[3])) {
     /* bear */
     SUBRACE(ch) = PC_SUBRACE_BEAR;
     
-  } if (is_abbrev(argument, shape_types[4])) {
+  } else if (is_abbrev(argument, shape_types[4])) {
     /* giant crocodile */
     SUBRACE(ch) = PC_SUBRACE_G_CROCODILE;
     
@@ -1020,8 +1020,8 @@ ACMD(do_shapechange) {
   GET_SHAPECHANGES(ch)--;
   IS_MORPHED(ch) = NPCRACE_ANIMAL;
 
-  act(morph_to_char[SUBRACE(ch)], TRUE, ch, 0, 0, TO_CHAR);
-  act(morph_to_room[SUBRACE(ch)], TRUE, ch, 0, 0, TO_ROOM);
+  act(shape_to_char[SUBRACE(ch)], TRUE, ch, 0, 0, TO_CHAR);
+  act(shape_to_room[SUBRACE(ch)], TRUE, ch, 0, 0, TO_ROOM);
 }
 
 
