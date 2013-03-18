@@ -169,10 +169,10 @@ const char *npc_race_menu =
 /* druid shape change race options */
 const char *shape_types[] = {
    "Unknown",
-   "Badger",
-   "Panther",
-   "Bear",
-   "Crocodile, Giant"
+   "badger",
+   "panther",
+   "bear",
+   "crocodile, giant"
 };
 
 /* druid shape change messages, to room */
