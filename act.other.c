@@ -957,6 +957,7 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode) {
 
 }
 
+
 /* a trivial shapechange code for druids */
 ACMD(do_shapechange) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -976,8 +977,48 @@ ACMD(do_shapechange) {
             "to refresh!\r\n");
     return;
   }
-  perform_shapechange(ch, arg, 1);
+  
+  if (!*arg) {
+    if (CLASS_LEVEL(ch, CLASS_DRUID) < 10)
+      send_to_char(ch, shape_types[1]);
+    if (CLASS_LEVEL(ch, CLASS_DRUID) < 14)
+      send_to_char(ch, shape_types[2]);
+    if (CLASS_LEVEL(ch, CLASS_DRUID) < 14)
+      send_to_char(ch, shape_types[3]);
+    if (CLASS_LEVEL(ch, CLASS_DRUID) >= 14)
+      send_to_char(ch, shape_types[4]);
+  }
+
+  /* should be OK at this point */
+  if (is_abbrev(argument, shape_types[1])) {
+    /* badger */
+    SUBRACE(ch) = PC_SUBRACE_BADGER;
+    
+  } if (is_abbrev(argument, shape_types[2])) {
+    /* panther */
+    SUBRACE(ch) = PC_SUBRACE_PANTHER;
+    
+  } if (is_abbrev(argument, shape_types[3])) {
+    /* bear */
+    SUBRACE(ch) = PC_SUBRACE_BEAR;
+    
+  } if (is_abbrev(argument, shape_types[4])) {
+    /* giant crocodile */
+    SUBRACE(ch) = PC_SUBRACE_G_CROCODILE;
+    
+  } else {
+    /* invalid */
+    send_to_char(ch, "This is not a valid form to shapecahnge into!\r\n");
+    return;
+    
+  }
+  GET_SHAPECHANGES(ch)--;
+  IS_MORPHED(ch) = NPCRACE_ANIMAL;
+
+  act(morph_to_char[SUBRACE(ch)], TRUE, ch, 0, 0, TO_CHAR);
+  act(morph_to_room[SUBRACE(ch)], TRUE, ch, 0, 0, TO_ROOM);
 }
+
 
 ACMD(do_quit) {
   if (IS_NPC(ch) || !ch->desc)

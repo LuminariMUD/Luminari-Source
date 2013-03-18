@@ -358,7 +358,7 @@
 #define PC_SUBRACE_BADGER           1
 #define PC_SUBRACE_PANTHER          2
 #define PC_SUBRACE_BEAR             3
-#define PC_SUBRACE_G_ALLIGATOR      4
+#define PC_SUBRACE_G_CROCODILE      4
 //total
 #define MAX_PC_SUBRACES	           5
 
@@ -1309,7 +1309,7 @@ struct char_player_data {
   ubyte weight; /**< PC / NPC weight */
   ubyte height; /**< PC / NPC height */
   byte race; // Race
-  byte pc_subrace[MAX_PC_SUBRACES]; // SubRace  
+  byte pc_subrace; // SubRace  
   int size; // size
   char *walkin; // NPC (for now) walkin message
   char *walkout; // NPC (for now) walkout message
