@@ -214,9 +214,9 @@ const char *shape_to_char[] = {
      "into a short perceptive snout.  Your ears become larger and rounder on the "
      "top of your head and your teeth become sharper as claws extend from your meaty paws.",
    /* crocodile, giant */
-   "$n involuntarily drops to the ground on all fours as $s legs shorten to "
-     "small stumps and a large tail extends from $s body.  Hard dark scales cover "
-     "$s whole body as $s nose and mouth extend into a large tooth-filled maw."
+   "You involuntarily drop to the ground on all fours as your legs shorten to "
+     "small stumps and a large tail extends from your body.  Hard dark scales cover "
+     "your whole body as your nose and mouth extend into a large tooth-filled maw."
 };
 
 // shapechange morph messages to_room, original system
