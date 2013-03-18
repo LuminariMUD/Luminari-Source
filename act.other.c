@@ -960,15 +960,14 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode) {
 
 /* a trivial shapechange code for druids */
 ACMD(do_shapechange) {
-  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int form_num = -1, i = 0;
 
   if (!ch->desc || IS_NPC(ch))
     return;
 
-  one_argument(argument, arg);
+  skip_spaces(&argument);
 
-  if (CLASS_LEVEL(ch, CLASS_DRUID) < 5 && *arg) {
+  if (CLASS_LEVEL(ch, CLASS_DRUID) < 5 && *argument) {
     send_to_char(ch, "You are not a high enough level druid to do this...\r\n");
     return;
   }
@@ -979,7 +978,7 @@ ACMD(do_shapechange) {
     return;
   }
   
-  if (!*arg) {
+  if (!*argument) {
     if (CLASS_LEVEL(ch, CLASS_DRUID) < 10)
       form_num = 1;
     if (CLASS_LEVEL(ch, CLASS_DRUID) < 14)
@@ -996,19 +995,19 @@ ACMD(do_shapechange) {
   }
 
   /* should be OK at this point */
-  if (is_abbrev(arg, shape_types[1])) {
+  if (is_abbrev(argument, shape_types[1])) {
     /* badger */
     SUBRACE(ch) = PC_SUBRACE_BADGER;
     
-  } if (is_abbrev(arg, shape_types[2])) {
+  } if (is_abbrev(argument, shape_types[2])) {
     /* panther */
     SUBRACE(ch) = PC_SUBRACE_PANTHER;
     
-  } if (is_abbrev(arg, shape_types[3])) {
+  } if (is_abbrev(argument, shape_types[3])) {
     /* bear */
     SUBRACE(ch) = PC_SUBRACE_BEAR;
     
-  } if (is_abbrev(arg, shape_types[4])) {
+  } if (is_abbrev(argument, shape_types[4])) {
     /* giant crocodile */
     SUBRACE(ch) = PC_SUBRACE_G_CROCODILE;
     
