@@ -179,7 +179,7 @@ const char *shape_types[] = {
 const char *shape_to_room[] = {
    "Unknown",
    /* badger */
-   "$n shrinks and suddenly grows spiny brown fur all over $s body, $s nose lengthens"
+   "$n shrinks and suddenly grows spiky brown fur all over $s body, $s nose lengthens"
      " into a dirty snout as $s face contorts into an expression of primal"
      " rage.",
    /* panther */
@@ -188,9 +188,9 @@ const char *shape_to_room[] = {
      "covered in sleek, dark fur.",
    /* bear */
    "$n's form swells with muscle as $s shoulders expand into a great girth.  "
-     "Suddenly $e seems more aware of scents in the air as $s nose transforms "
-     "into a short perceptive snout.  $s ears become larger and rounder on the "
-     "top of $s head and $s teeth become sharper as claws extend from $s meaty paws.",
+     "Suddenly $s nose transforms "
+     "into a short perceptive snout and $s ears become larger and rounder on the "
+     "top of $s head.  Then $s teeth become sharper as claws extend from $s meaty paws.",
    /* crocodile, giant */
    "$n involuntarily drops to the ground on all fours as $s legs shorten to "
      "small stumps and a large tail extends from $s body.  Hard dark scales cover "
@@ -201,7 +201,7 @@ const char *shape_to_room[] = {
 const char *shape_to_char[] = {
    "Unknown",
    /* badger */
-   "You shrink and suddenly grows spiny brown fur all over your body, your nose lengthens"
+   "You shrink and suddenly grows spiky brown fur all over your body, your nose lengthens"
      " into a dirty snout as his face contorts into an expression of primal"
      " rage.",
    /* panther */

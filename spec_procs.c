@@ -587,6 +587,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
             value += 2;
           if (AFF_FLAGGED(ch, AFF_REFUGE))
             value += 15;
+          if (IS_MORPHED(ch) && SUBRACE(ch) == PC_SUBRACE_PANTHER)
+            value += 4;
 		return value; 
 	case ABILITY_SNEAK:
 		value += GET_DEX_BONUS(ch);
@@ -596,6 +598,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
             value += 2;
           if (AFF_FLAGGED(ch, AFF_REFUGE))
             value += 15;
+          if (IS_MORPHED(ch) && SUBRACE(ch) == PC_SUBRACE_PANTHER)
+            value += 4;
 		return value; 
 	case ABILITY_SPOT:
 		value += GET_WIS_BONUS(ch);

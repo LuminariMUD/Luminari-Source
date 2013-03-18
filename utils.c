@@ -164,6 +164,13 @@ void increase_skill(struct char_data *ch, int skillnum)
   int pass = rand_number(0, PASS);
 
   switch(skillnum) {
+    
+    case SKILL_WILDSHAPE:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
     case SKILL_TURN_UNDEAD:
       if (!use) {
         notched = TRUE;
