@@ -1408,8 +1408,7 @@ ASPELL(spell_transport_via_plants) {
 
   // find another of that plant in the world
   for (dest_obj = object_list; dest_obj; dest_obj = dest_obj->next) {
-    // TODO: make sure dest_obj isn't the same plant they are transporting from
-    //       maybe randomize this somehow so they don't always transport to same location
+    // TODO: maybe randomize this somehow so they don't always transport to same location
     if (dest_obj == obj)
       continue;
     
@@ -1431,9 +1430,11 @@ ASPELL(spell_transport_via_plants) {
 
   // transport player to new location
   send_to_char(ch, "You enter the plant, and are whisked away to a distant location.\r\n");
+  act("$n enters into $p, and disappears!", FALSE, ch, obj, 0, TO_ROOM);
   char_from_room(ch);
   char_to_room(ch, to_room);
   look_at_room(ch, 0);
+  act("$n suddenly appears, stepping out of $p!", FALSE, ch, dest_obj, 0, TO_ROOM);
   // TODO: make this an event, so player enters into the plant, and sees a couple messages, then comes out the other side    
   }
 }
