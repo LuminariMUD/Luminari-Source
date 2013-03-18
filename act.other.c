@@ -961,6 +961,7 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode) {
 /* a trivial shapechange code for druids */
 ACMD(do_shapechange) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int form_num = -1, i = 0;
 
   if (!ch->desc || IS_NPC(ch))
     return;
@@ -980,13 +981,18 @@ ACMD(do_shapechange) {
   
   if (!*arg) {
     if (CLASS_LEVEL(ch, CLASS_DRUID) < 10)
-      send_to_char(ch, shape_types[1]);
+      form_num = 1;
     if (CLASS_LEVEL(ch, CLASS_DRUID) < 14)
-      send_to_char(ch, shape_types[2]);
+      form_num = 2;
     if (CLASS_LEVEL(ch, CLASS_DRUID) < 14)
-      send_to_char(ch, shape_types[3]);
+      form_num = 3;
     if (CLASS_LEVEL(ch, CLASS_DRUID) >= 14)
-      send_to_char(ch, shape_types[4]);
+      form_num = 4;
+    for (i = 1; i <= form_num; i++) {
+      send_to_char(ch, shape_types[i]);
+      send_to_char(ch, "\r\n");
+    }
+    return;
   }
 
   /* should be OK at this point */
