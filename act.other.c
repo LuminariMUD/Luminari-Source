@@ -912,8 +912,9 @@ ACMD(do_gain) {
 }
 #undef MULTICAP
 
-
-/* shapechange function */
+/*************************/
+/* shapechange functions */
+/*************************/
 
 /* header file:  act.h */
 void list_forms(struct char_data *ch) {
@@ -921,7 +922,8 @@ void list_forms(struct char_data *ch) {
 }
 
 
-/* shapechange function
+/*    FIRST version of shapechange/wildshape
+ *  shapechange function
  * mode = 1 = druid
  * mode = 2 = polymorph spell
  * header file:  act.h */
@@ -959,10 +961,75 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode) {
 
 }
 
+/* engine for shapechanging / wildshape 
+   turned this into a sub-function in case we want
+   to use the engine for spells (like 'animal shapes')
+ */
 #define SHAPE_AFFECTS   3
+void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
+  struct affected_type af[SHAPE_AFFECTS];
+  int i = 0;
+  
+  /* some dummy checks */
+  if (!ch)
+    return;
+  if (spellnum <= 0 || spellnum >= NUM_SKILLS)
+    return;
+  if (form_num <= 0 || form_num >= NUM_SHAPE_TYPES)
+    return;
+  if (affected_by_spell(ch, spellnum))
+    affect_from_char(ch, spellnum);
+
+  /* should be ok to apply */
+  for (i = 0; i < SHAPE_AFFECTS; i++) {
+    new_affect(&(af[i]));
+    af[i].spell = spellnum;
+    if (spellnum == SKILL_WILDSHAPE)
+      af[i].duration = 50 + CLASS_LEVEL(ch, CLASS_DRUID) * GET_WIS_BONUS(ch);
+    else
+      af[i].duration = 100;
+  }
+  
+  /* determine stat bonuses, etc */
+  SUBRACE(ch) = form_num;
+  switch (SUBRACE(ch)) {
+    case PC_SUBRACE_BADGER:
+      af[0].location = APPLY_DEX;
+      af[0].modifier = 2;
+      break;
+    case PC_SUBRACE_PANTHER:
+      af[0].location = APPLY_DEX;
+      af[0].modifier = 8;
+      break;
+    case PC_SUBRACE_BEAR:
+      af[0].location = APPLY_STR;
+      af[0].modifier = 8;
+      af[1].location = APPLY_CON;
+      af[1].modifier = 8;
+      break;
+    case PC_SUBRACE_G_CROCODILE:
+      SET_BIT_AR(af[0].bitvector, AFF_SCUBA);
+      SET_BIT_AR(af[1].bitvector, AFF_WATERWALK);
+      af[2].location = APPLY_STR;
+      af[2].modifier = 6;
+      break;
+  }
+
+  for (i = 0; i < SHAPE_AFFECTS; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+
+  if (spellnum == SKILL_WILDSHAPE) {
+    GET_SHAPECHANGES(ch)--;
+    increase_skill(ch, SKILL_WILDSHAPE);
+  }
+  IS_MORPHED(ch) = NPCRACE_ANIMAL;
+
+  act(shape_to_char[SUBRACE(ch)], TRUE, ch, 0, 0, TO_CHAR);
+  act(shape_to_room[SUBRACE(ch)], TRUE, ch, 0, 0, TO_ROOM);
+}
+
 /* a trivial shapechange code for druids */
 ACMD(do_shapechange) {
-  struct affected_type af[SHAPE_AFFECTS];
   int form_num = -1, i = 0;
 
   if (!ch->desc || IS_NPC(ch))
@@ -1000,19 +1067,19 @@ ACMD(do_shapechange) {
   /* should be OK at this point */  
   if (is_abbrev(argument, shape_types[1])) {
     /* badger */
-    SUBRACE(ch) = PC_SUBRACE_BADGER;
+    form_num = PC_SUBRACE_BADGER;
     
   } else if (is_abbrev(argument, shape_types[2])) {
     /* panther */
-    SUBRACE(ch) = PC_SUBRACE_PANTHER;
+    form_num = PC_SUBRACE_PANTHER;
     
   } else if (is_abbrev(argument, shape_types[3])) {
     /* bear */
-    SUBRACE(ch) = PC_SUBRACE_BEAR;
+    form_num = PC_SUBRACE_BEAR;
     
   } else if (is_abbrev(argument, shape_types[4])) {
     /* giant crocodile */
-    SUBRACE(ch) = PC_SUBRACE_G_CROCODILE;
+    form_num = PC_SUBRACE_G_CROCODILE;
     
   } else if (is_abbrev(argument, "normal")) {
     /* return to normal form */
@@ -1030,49 +1097,13 @@ ACMD(do_shapechange) {
     
   }
 
-  for (i = 0; i < SHAPE_AFFECTS; i++) {
-    new_affect(&(af[i]));
-    af[i].spell = SKILL_WILDSHAPE;
-    af[i].duration = 50 + CLASS_LEVEL(ch, CLASS_DRUID) * GET_WIS_BONUS(ch);
-  }
-  
-  /* determine stat bonuses, etc */
-  switch (SUBRACE(ch)) {
-    case PC_SUBRACE_BADGER:
-      af[0].location = APPLY_DEX;
-      af[0].modifier = 2;
-      break;
-    case PC_SUBRACE_PANTHER:
-      af[0].location = APPLY_DEX;
-      af[0].modifier = 8;
-      break;
-    case PC_SUBRACE_BEAR:
-      af[0].location = APPLY_STR;
-      af[0].modifier = 8;
-      af[1].location = APPLY_CON;
-      af[1].modifier = 8;
-      break;
-    case PC_SUBRACE_G_CROCODILE:
-      SET_BIT_AR(af[0].bitvector, AFF_SCUBA);
-      SET_BIT_AR(af[1].bitvector, AFF_WATERWALK);
-      af[2].location = APPLY_STR;
-      af[2].modifier = 6;
-      break;
-  }
-
-  if (affected_by_spell(ch, SKILL_WILDSHAPE))
-    affect_from_char(ch, SKILL_WILDSHAPE);
-  for (i = 0; i < SHAPE_AFFECTS; i++)
-    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
-
-  GET_SHAPECHANGES(ch)--;
-  increase_skill(ch, SKILL_WILDSHAPE);
-  IS_MORPHED(ch) = NPCRACE_ANIMAL;
-
-  act(shape_to_char[SUBRACE(ch)], TRUE, ch, 0, 0, TO_CHAR);
-  act(shape_to_room[SUBRACE(ch)], TRUE, ch, 0, 0, TO_ROOM);
+  perform_wildshape(ch, form_num, SKILL_WILDSHAPE);  
 }
 #undef SHAPE_AFFECTS
+
+/*****************************/
+/* end shapechange functions */
+/*****************************/
 
 
 ACMD(do_quit) {

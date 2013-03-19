@@ -174,6 +174,7 @@ const char *shape_types[] = {
    "bear",
    "crocodile, giant"
 };
+//5 (number of types)
 
 /* druid shape change messages, to room */
 const char *shape_to_room[] = {
