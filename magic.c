@@ -3219,7 +3219,7 @@ static void perform_mag_groups(int level, struct char_data *ch,
       mag_affects(level, ch, tch, obj, SPELL_MASS_STRENGTH, savetype);
       break;
     case SPELL_ANIMAL_SHAPES:
-      perform_wildshape(ch, rand_number(1, (NUM_SHAPE_TYPES - 1)), spellnum);
+      perform_wildshape(tch, rand_number(1, (NUM_SHAPE_TYPES - 1)), spellnum);
       break;
   }
 }
