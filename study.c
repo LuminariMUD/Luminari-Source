@@ -217,7 +217,7 @@ ACMD(do_study) {
       send_to_char(ch, "How?  You are not a druid!\r\n");
       return;
     }
-    class = CLASS_BARD;
+    class = CLASS_DRUID;
   } else if (is_abbrev(argument, "ranger")) {
     if (IS_RANG_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
       send_to_char(ch, "You already adjusted your ranger "
