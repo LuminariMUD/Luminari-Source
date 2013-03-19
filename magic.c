@@ -465,7 +465,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       // 33% chance of causing a wait-state to victim
       if (!rand_number(0, 2))
         attach_mud_event(new_mud_event(eFISTED, ch, NULL), 1000);
-        //WAIT_STATE(victim, PULSE_VIOLENCE);
 
       break;
 
@@ -702,7 +701,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
         act("A wave of telekinetic energy originating from $n knocks $N to "
                 "the ground!", FALSE, ch, 0, victim, TO_NOTVICT);
         GET_POS(victim) = POS_SITTING;
-        WAIT_STATE(victim, PULSE_VIOLENCE);
+        SET_WAIT(victim, PULSE_VIOLENCE);
       }
       break;
 
@@ -2916,7 +2915,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (!mag_savingthrow(ch, victim, SAVING_REFL, 0) &&
               !mag_resistance(ch, victim, 0)) {
         GET_POS(victim) = POS_SITTING;
-        WAIT_STATE(victim, PULSE_VIOLENCE * 1);
+        SET_WAIT(victim, PULSE_VIOLENCE * 1);
 
         act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
         act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);

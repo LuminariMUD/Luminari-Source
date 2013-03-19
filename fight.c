@@ -128,7 +128,7 @@ void perform_flee(struct char_data *ch) {
       stop_fighting(ch);
       if (was_fighting && ch == FIGHTING(was_fighting))
         stop_fighting(was_fighting);
-      WAIT_STATE(ch, PULSE_VIOLENCE);
+      SET_WAIT(ch, PULSE_VIOLENCE);
     } else { //failure
       send_to_char(ch, "You failed to flee the battle...\r\n");
       act("$n failed to flee the battle!", TRUE, ch, 0, 0, TO_ROOM);
@@ -603,7 +603,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   //this replaces extraction
   char_from_room(ch);
   death_message(ch);
-  WAIT_STATE(ch, PULSE_VIOLENCE * 4);
+  SET_WAIT(ch, PULSE_VIOLENCE * 4);
   GET_HIT(ch) = 1;
   update_pos(ch);
 
@@ -2831,7 +2831,7 @@ void perform_violence(void) {
         act("$n \tcis overcome with \tDconfusion and stands dumbfounded\tc!\tn",
                 TRUE, ch, 0, 0, TO_ROOM);
         stop_fighting(ch);
-        WAIT_STATE(ch, PULSE_VIOLENCE);
+        SET_WAIT(ch, PULSE_VIOLENCE);
         continue;
       }
         // 20% to flee

@@ -1014,7 +1014,7 @@ void pulse_luminari() {
           if (!mag_savingthrow(tch, tch, SAVING_FORT, 0)) {
             send_to_char(tch, "You are bogged down by the billowing cloud!\r\n");
             act("$n is bogged down by the billowing cloud.", TRUE, tch, 0, NULL, TO_ROOM);
-            WAIT_STATE(tch, PULSE_VIOLENCE);
+            SET_WAIT(tch, PULSE_VIOLENCE);
           }
         }
       }
