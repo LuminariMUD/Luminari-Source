@@ -174,8 +174,10 @@ int random_apply_value(void) {
   return val;
 }
 
+/* added this because the apply_X bonus is capped, stop it before
+   it causes problems */
+#define RANDOM_BONUS_CAP  127
 /* function that returns bonus value based on apply-value and level */
-
 /* TODO:  probably can merge this with crystal_bonus fuction in craft.c */
 int random_bonus_value(int apply_value, int level) {
   int bonus = level / BONUS_FACTOR;
@@ -192,7 +194,7 @@ int random_bonus_value(int apply_value, int level) {
       bonus += 2;
       break;
     case APPLY_MOVE:
-      bonus *= 24;
+      bonus *= 12;
       break;
       /* no modifications */
     case APPLY_STR:
@@ -207,7 +209,7 @@ int random_bonus_value(int apply_value, int level) {
       break;
   }
 
-  return bonus;
+  return MIN(RANDOM_BONUS_CAP, bonus);
 }
 
 /* when groupped, determine random recipient from group */
@@ -296,21 +298,21 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
   int i = 0;
 
   for (i = 0; i < number; i++) {
-    if (dice(1, 100) <= 60)
-      award_expendable_item(ch, grade, TYPE_POTION);
-    if (dice(1, 100) <= 20)
+    if (dice(1, 100) <= 40)
       award_expendable_item(ch, grade, TYPE_SCROLL);
     if (dice(1, 100) <= 30)
+      award_expendable_item(ch, grade, TYPE_POTION);
+    if (dice(1, 100) <= 20)
       award_expendable_item(ch, grade, TYPE_WAND);
     if (dice(1, 100) <= 10)
       award_expendable_item(ch, grade, TYPE_STAFF);
-    if (dice(1, 100) <= 10)
-      award_magic_weapon(ch, grade, level);
     if (dice(1, 100) <= 20)
       award_misc_magic_item(ch, grade, level);
-    if (dice(1, 100) <= 10)
+    if (dice(1, 100) <= 20)
       award_magic_armor(ch, grade, level);
-    if (dice(1, 100) <= 1)
+    if (dice(1, 100) <= 10)
+      award_magic_weapon(ch, grade, level);
+    if (dice(1, 100) <= 5)
       award_random_crystal(ch, level);
   }
 }
@@ -452,7 +454,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       spell_level = rand_number(11, 14);
       break;
     default:
-      spell_level = rand_number(15, 18);
+      spell_level = rand_number(15, 20);
       break;
   }
 
