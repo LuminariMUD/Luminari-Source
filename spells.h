@@ -343,7 +343,7 @@
 #define SPELL_CONTROL_PLANTS            297
 #define SPELL_FINGER_OF_DEATH           298
 #define SPELL_ELEMENTAL_SWARM           299
-#define SPELL_REGENERATE                300
+#define SPELL_UNUSED300                 300
 #define SPELL_SHAMBLER                  301
 #define SPELL_SHAPECHANGE               302 // hey b, maybe use polymorph
 /* some more cleric spells */
