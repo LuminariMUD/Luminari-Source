@@ -321,14 +321,14 @@ ACMD(do_hit)
           hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         }
       }
-      WAIT_STATE(ch, PULSE_VIOLENCE + 2);
+      SET_WAIT(ch, PULSE_VIOLENCE);
     /* not fighting, so switch opponents */
     } else {
       stop_fighting(ch);
       send_to_char(ch, "You switch opponents!\r\n");
       act("$n switches opponents!", FALSE, ch, 0, vict, TO_ROOM);      
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-      WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+      SET_WAIT(ch, PULSE_VIOLENCE);
 
       //everyone gets a free shot at you unless you make a tumble check
         //15 is DC
@@ -478,7 +478,7 @@ ACMD(do_backstab)
   if (successful) {
     if (!IS_NPC(ch))
       increase_skill(ch, SKILL_BACKSTAB);
-    WAIT_STATE(ch, 2 * PULSE_VIOLENCE);
+    SET_WAIT(ch, 2 * PULSE_VIOLENCE);
   } else
     send_to_char(ch, "You have no piercing weapon equipped.\r\n");
 }
@@ -739,11 +739,11 @@ ACMD(do_frightful)
       perform_flee(vict);
       perform_flee(vict);
       perform_flee(vict);
-      WAIT_STATE(vict, PULSE_VIOLENCE * 3);
+      SET_WAIT(vict, PULSE_VIOLENCE * 3);
     }
   }
 
-  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
+  SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 
 
@@ -767,7 +767,7 @@ ACMD(do_breathe)
     next_vict = vict->next_in_room;
 
     if (aoeOK(ch, vict, SPELL_FIRE_BREATHE)) {  
-      WAIT_STATE(vict, PULSE_VIOLENCE * 1);
+      SET_WAIT(vict, PULSE_VIOLENCE * 1);
       if (GET_LEVEL(ch) <= 15)
         damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_FIRE_BREATHE, DAM_FIRE,
                 FALSE);
@@ -777,7 +777,7 @@ ACMD(do_breathe)
     }
   }
 
-  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
+  SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 
 
@@ -817,7 +817,7 @@ ACMD(do_tailsweep)
 		TO_NOTVICT);
       } else {
         GET_POS(vict) = POS_SITTING;
-        WAIT_STATE(vict, PULSE_VIOLENCE * 2);
+        SET_WAIT(vict, PULSE_VIOLENCE * 2);
 
         send_to_char(ch, "You knock over %s.\r\n", GET_NAME(vict));
         send_to_char(vict, "You were knocked down by a tailsweep from %s.\r\n", 
@@ -837,7 +837,7 @@ ACMD(do_tailsweep)
     }
   }
 
-  WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
 }
 
 
@@ -1009,12 +1009,12 @@ ACMD(do_trip)
     GET_POS(vict) = POS_SITTING;
     if (GET_SKILL(ch, SKILL_IMPROVED_TRIP)) {
       if (damage(ch, vict, GET_LEVEL(ch), SKILL_TRIP, DAM_FORCE, FALSE) > 0)
-        WAIT_STATE(vict, PULSE_VIOLENCE * 2);
+        SET_WAIT(vict, PULSE_VIOLENCE * 2);
     } else if (damage(ch, vict, 1, SKILL_TRIP, DAM_FORCE, FALSE) > 0)
-      WAIT_STATE(vict, PULSE_VIOLENCE * 2);
+      SET_WAIT(vict, PULSE_VIOLENCE * 2);
   }
 
-  WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_TRIP);
@@ -1194,7 +1194,7 @@ ACMD(do_rescue)
   set_fighting(ch, tmp_ch);
   set_fighting(tmp_ch, ch);
 
-  WAIT_STATE(vict, 2 * PULSE_VIOLENCE);
+  SET_WAIT(vict, 2 * PULSE_VIOLENCE);
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_RESCUE);  
 }
@@ -1306,7 +1306,7 @@ ACMD(do_whirlwind)
    * This function below adds a new event of "eWHIRLWIND", to "ch", and passes "NULL" as
    * additional data. The event will be called in "3 * PASSES_PER_SEC" or 3 seconds */
   NEW_EVENT(eWHIRLWIND, ch, NULL, 3 * PASSES_PER_SEC);
-  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
+  SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 
 
@@ -1366,7 +1366,7 @@ ACMD(do_stunningfist)
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_STUNNING_FIST);
-  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
+  SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 
 
@@ -1455,6 +1455,6 @@ ACMD(do_kick)
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_KICK);
-  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
+  SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 

@@ -682,7 +682,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         act("Nothing seems to happen.", FALSE, ch, obj, 0, TO_ROOM);
       } else {
         GET_OBJ_VAL(obj, 2)--;
-        WAIT_STATE(ch, PULSE_VIOLENCE);
+        SET_WAIT(ch, PULSE_VIOLENCE);
         /* Level to cast spell at. */
         k = GET_OBJ_VAL(obj, 0) ? GET_OBJ_VAL(obj, 0) : DEFAULT_STAFF_LVL;
 
@@ -735,7 +735,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         return;
       }
       GET_OBJ_VAL(obj, 2)--;
-      WAIT_STATE(ch, PULSE_VIOLENCE);
+      SET_WAIT(ch, PULSE_VIOLENCE);
       if (GET_OBJ_VAL(obj, 0))
         call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3),
               GET_OBJ_VAL(obj, 0), CAST_WAND);
@@ -759,7 +759,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       else
         act("$n recites $p.", FALSE, ch, obj, NULL, TO_ROOM);
 
-      WAIT_STATE(ch, PULSE_VIOLENCE);
+      SET_WAIT(ch, PULSE_VIOLENCE);
       for (i = 1; i <= 3; i++)
         if (call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, i),
                 GET_OBJ_VAL(obj, 0), CAST_SCROLL) <= 0)
@@ -780,7 +780,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       else
         act("$n quaffs $p.", TRUE, ch, obj, NULL, TO_ROOM);
 
-      WAIT_STATE(ch, PULSE_VIOLENCE);
+      SET_WAIT(ch, PULSE_VIOLENCE);
       for (i = 1; i <= 3; i++)
         if (call_magic(ch, ch, NULL, GET_OBJ_VAL(obj, i),
                 GET_OBJ_VAL(obj, 0), CAST_POTION) <= 0)
