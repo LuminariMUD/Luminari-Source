@@ -1393,7 +1393,8 @@ void unused_spell(int spl) {
 }
 
 
-#define skillo(skill, name) spello(skill, name, 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0);
+#define skillo(skill, name, category)  spello(skill, name, 0, 0, 0, 0, 0, 0, \
+                                       0, NULL, 0, 0, category);
 
 
 /* Arguments for spello calls:
@@ -1420,6 +1421,7 @@ void unused_spell(int spl) {
  * time:  casting time of the spell 
  * memtime:  memtime of the spell 
  * schoolOfMagic:  if magical spell, which school does it belong?
+ * Note about - schoolOfMagic:  for skills this is used to categorize it
  * 
  * See the documentation for a more detailed description of these fields. You
  * only need a spello() call to define a new spell; to decide who gets to use
@@ -1433,7 +1435,6 @@ void unused_spell(int spl) {
 /* illusion */
 /* divination */
 /* abjuration */
-
 /* transmutation */
 
 void mag_assign_spells(void) {
@@ -2532,122 +2533,122 @@ void mag_assign_spells(void) {
   /* Declaration of skills - this actually doesn't do anything except set it up
    * so that immortals can use these skills by default.  The min level to use
    * the skill for other classes is set up in class.c. */
-  skillo(SKILL_BACKSTAB, "backstab"); //401
-  skillo(SKILL_BASH, "bash");
-  skillo(SKILL_MUMMY_DUST, "es mummy dust");
-  skillo(SKILL_KICK, "kick");
-  skillo(SKILL_WEAPON_SPECIALIST, "weapon specialist"); //405
-  skillo(SKILL_WHIRLWIND, "whirlwind");
-  skillo(SKILL_RESCUE, "rescue");
-  skillo(SKILL_DRAGON_KNIGHT, "es dragon knight");
-  skillo(SKILL_LUCK_OF_HEROES, "luck of heroes");
-  skillo(SKILL_TRACK, "track"); //410
-  skillo(SKILL_QUICK_CHANT, "quick chant");
-  skillo(SKILL_AMBIDEXTERITY, "ambidexterity");
-  skillo(SKILL_DIRTY_FIGHTING, "dirty fighting");
-  skillo(SKILL_DODGE, "dodge");
-  skillo(SKILL_IMPROVED_CRITICAL, "improved critical"); //415
-  skillo(SKILL_MOBILITY, "mobility");
-  skillo(SKILL_SPRING_ATTACK, "spring attack");
-  skillo(SKILL_TOUGHNESS, "toughness");
-  skillo(SKILL_TWO_WEAPON_FIGHT, "two weapon fighting");
-  skillo(SKILL_FINESSE, "finesse"); //420
-  skillo(SKILL_ARMOR_SKIN, "armor skin");
-  skillo(SKILL_BLINDING_SPEED, "blinding speed");
-  skillo(SKILL_DAMAGE_REDUC_1, "damage reduction");
-  skillo(SKILL_DAMAGE_REDUC_2, "greater damage reduction");
-  skillo(SKILL_DAMAGE_REDUC_3, "epic damage reduction"); //425
-  skillo(SKILL_EPIC_TOUGHNESS, "epic toughness");
-  skillo(SKILL_OVERWHELMING_CRIT, "overwhelming critical");
-  skillo(SKILL_SELF_CONCEAL_1, "self concealment");
-  skillo(SKILL_SELF_CONCEAL_2, "greater concealment");
-  skillo(SKILL_SELF_CONCEAL_3, "epic concealment"); //430
-  skillo(SKILL_TRIP, "trip");
-  skillo(SKILL_IMPROVED_WHIRL, "improved whirlwind");
-  skillo(SKILL_CLEAVE, "cleave (inc)");
-  skillo(SKILL_GREAT_CLEAVE, "great_cleave (inc)");
-  skillo(SKILL_SPELLPENETRATE, "spell penetration"); //435
-  skillo(SKILL_SPELLPENETRATE_2, "greater spell penetrate");
-  skillo(SKILL_PROWESS, "prowess");
-  skillo(SKILL_EPIC_PROWESS, "epic prowess");
-  skillo(SKILL_EPIC_2_WEAPON, "epic two weapon fighting");
-  skillo(SKILL_SPELLPENETRATE_3, "epic spell penetrate"); //440
-  skillo(SKILL_SPELL_RESIST_1, "spell resistance");
-  skillo(SKILL_SPELL_RESIST_2, "improved spell resist");
-  skillo(SKILL_SPELL_RESIST_3, "greater spell resist");
-  skillo(SKILL_SPELL_RESIST_4, "epic spell resist");
-  skillo(SKILL_SPELL_RESIST_5, "supreme spell resist"); //445
-  skillo(SKILL_INITIATIVE, "initiative");
-  skillo(SKILL_EPIC_CRIT, "epic critical");
-  skillo(SKILL_IMPROVED_BASH, "improved bash");
-  skillo(SKILL_IMPROVED_TRIP, "improved trip");
-  skillo(SKILL_POWER_ATTACK, "power attack"); //450
-  skillo(SKILL_EXPERTISE, "combat expertise");
-  skillo(SKILL_GREATER_RUIN, "es greater ruin");
-  skillo(SKILL_HELLBALL, "es hellball");
-  skillo(SKILL_EPIC_MAGE_ARMOR, "es epic mage armor");
-  skillo(SKILL_EPIC_WARDING, "es epic warding"); //455
-  skillo(SKILL_RAGE, "rage"); //456
-  skillo(SKILL_PROF_MINIMAL, "minimal weapon prof"); //457
-  skillo(SKILL_PROF_BASIC, "basic weapon prof"); //458
-  skillo(SKILL_PROF_ADVANCED, "advanced weapon prof"); //459
-  skillo(SKILL_PROF_MASTER, "master weapon prof"); //460
-  skillo(SKILL_PROF_EXOTIC, "exotic weapon prof"); //461
-  skillo(SKILL_PROF_LIGHT_A, "light armor prof"); //462
-  skillo(SKILL_PROF_MEDIUM_A, "medium armor prof"); //463
-  skillo(SKILL_PROF_HEAVY_A, "heavy armor prof"); //464
-  skillo(SKILL_PROF_SHIELDS, "shield prof"); //465
-  skillo(SKILL_PROF_T_SHIELDS, "tower shield prof"); //466
-  skillo(SKILL_MURMUR, "murmur(inc)"); //467
-  skillo(SKILL_PROPAGANDA, "propaganda(inc)"); //468
-  skillo(SKILL_LOBBY, "lobby(inc)"); //469
-  skillo(SKILL_STUNNING_FIST, "stunning fist"); //470
-  skillo(SKILL_MINING, "mining"); //471
-  skillo(SKILL_HUNTING, "hunting"); //472
-  skillo(SKILL_FORESTING, "foresting"); //473
-  skillo(SKILL_KNITTING, "knitting"); //474
-  skillo(SKILL_CHEMISTRY, "chemistry"); //475
-  skillo(SKILL_ARMOR_SMITHING, "armor smithing"); //476
-  skillo(SKILL_WEAPON_SMITHING, "weapon smithing"); //477
-  skillo(SKILL_JEWELRY_MAKING, "jewelry making"); //478
-  skillo(SKILL_LEATHER_WORKING, "leather working"); //479
-  skillo(SKILL_FAST_CRAFTER, "fast crafter"); //480
-  skillo(SKILL_BONE_ARMOR, "bone armor(inc)"); //481
-  skillo(SKILL_ELVEN_CRAFTING, "elven crafting(inc)"); //482
-  skillo(SKILL_MASTERWORK_CRAFTING, "masterwork craft(inc)"); //483
-  skillo(SKILL_DRACONIC_CRAFTING, "draconic crafting(inc)"); //484
-  skillo(SKILL_DWARVEN_CRAFTING, "dwarven crafting(inc)"); //485
-  skillo(SKILL_LIGHTNING_REFLEXES, "lightning reflexes"); //486
-  skillo(SKILL_GREAT_FORTITUDE, "great fortitude"); //487
-  skillo(SKILL_IRON_WILL, "iron will"); //488
-  skillo(SKILL_EPIC_REFLEXES, "epic reflexes"); //489
-  skillo(SKILL_EPIC_FORTITUDE, "epic fortitude"); //490
-  skillo(SKILL_EPIC_WILL, "epic will"); //491
-  skillo(SKILL_SHIELD_SPECIALIST, "shield specialist"); //492
-  skillo(SKILL_USE_MAGIC, "use magic"); //493
-  skillo(SKILL_EVASION, "evasion"); //494
-  skillo(SKILL_IMP_EVASION, "improved evasion"); //495
-  skillo(SKILL_CRIP_STRIKE, "crippling strike"); //496
-  skillo(SKILL_SLIPPERY_MIND, "slippery mind"); //497
-  skillo(SKILL_DEFENSE_ROLL, "defensive roll"); //498
-  skillo(SKILL_GRACE, "divine grace"); //499
-  skillo(SKILL_DIVINE_HEALTH, "divine health"); //500
-  skillo(SKILL_LAY_ON_HANDS, "lay on hands"); //501
-  skillo(SKILL_COURAGE, "courage"); //502
-  skillo(SKILL_SMITE, "smite"); //503
-  skillo(SKILL_REMOVE_DISEASE, "purify"); //504
-  skillo(SKILL_RECHARGE, "recharge"); //505
-  skillo(SKILL_STEALTHY, "stealthy"); //506
-  skillo(SKILL_NATURE_STEP, "nature step"); //507
-  skillo(SKILL_FAVORED_ENEMY, "favored enemy"); //508
-  skillo(SKILL_DUAL_WEAPONS, "dual weapons"); //509
-  skillo(SKILL_ANIMAL_COMPANION, "animal companion"); //510
-  skillo(SKILL_PALADIN_MOUNT, "paladin mount"); //511
-  skillo(SKILL_CALL_FAMILIAR, "call familiar"); //512
-  skillo(SKILL_PERFORM, "perform"); //513
-  skillo(SKILL_SCRIBE, "scribe"); //514
-  skillo(SKILL_TURN_UNDEAD, "turn undead"); //515
-  skillo(SKILL_WILDSHAPE, "wildshape"); //516
+  skillo(SKILL_BACKSTAB, "backstab", ACTIVE_SKILL); //401
+  skillo(SKILL_BASH, "bash", ACTIVE_SKILL);
+  skillo(SKILL_MUMMY_DUST, "es mummy dust", CASTER_SKILL);
+  skillo(SKILL_KICK, "kick", ACTIVE_SKILL);
+  skillo(SKILL_WEAPON_SPECIALIST, "weapon specialist", PASSIVE_SKILL); //405
+  skillo(SKILL_WHIRLWIND, "whirlwind", ACTIVE_SKILL);
+  skillo(SKILL_RESCUE, "rescue", ACTIVE_SKILL);
+  skillo(SKILL_DRAGON_KNIGHT, "es dragon knight", CASTER_SKILL);
+  skillo(SKILL_LUCK_OF_HEROES, "luck of heroes", PASSIVE_SKILL);
+  skillo(SKILL_TRACK, "track", ACTIVE_SKILL); //410
+  skillo(SKILL_QUICK_CHANT, "quick chant", CASTER_SKILL);
+  skillo(SKILL_AMBIDEXTERITY, "ambidexterity", PASSIVE_SKILL);
+  skillo(SKILL_DIRTY_FIGHTING, "dirty fighting", PASSIVE_SKILL);
+  skillo(SKILL_DODGE, "dodge", PASSIVE_SKILL);
+  skillo(SKILL_IMPROVED_CRITICAL, "improved critical", PASSIVE_SKILL); //415
+  skillo(SKILL_MOBILITY, "mobility", PASSIVE_SKILL);
+  skillo(SKILL_SPRING_ATTACK, "spring attack", PASSIVE_SKILL);
+  skillo(SKILL_TOUGHNESS, "toughness", PASSIVE_SKILL);
+  skillo(SKILL_TWO_WEAPON_FIGHT, "two weapon fighting", PASSIVE_SKILL);
+  skillo(SKILL_FINESSE, "finesse", PASSIVE_SKILL); //420
+  skillo(SKILL_ARMOR_SKIN, "armor skin", PASSIVE_SKILL);
+  skillo(SKILL_BLINDING_SPEED, "blinding speed", PASSIVE_SKILL);
+  skillo(SKILL_DAMAGE_REDUC_1, "damage reduction", PASSIVE_SKILL);
+  skillo(SKILL_DAMAGE_REDUC_2, "greater damage reduction", PASSIVE_SKILL);
+  skillo(SKILL_DAMAGE_REDUC_3, "epic damage reduction", PASSIVE_SKILL); //425
+  skillo(SKILL_EPIC_TOUGHNESS, "epic toughness", PASSIVE_SKILL);
+  skillo(SKILL_OVERWHELMING_CRIT, "overwhelming critical", PASSIVE_SKILL);
+  skillo(SKILL_SELF_CONCEAL_1, "self concealment", PASSIVE_SKILL);
+  skillo(SKILL_SELF_CONCEAL_2, "greater concealment", PASSIVE_SKILL);
+  skillo(SKILL_SELF_CONCEAL_3, "epic concealment", PASSIVE_SKILL); //430
+  skillo(SKILL_TRIP, "trip", ACTIVE_SKILL);
+  skillo(SKILL_IMPROVED_WHIRL, "improved whirlwind", ACTIVE_SKILL);
+  skillo(SKILL_CLEAVE, "cleave (inc)", PASSIVE_SKILL);
+  skillo(SKILL_GREAT_CLEAVE, "great_cleave (inc)", PASSIVE_SKILL);
+  skillo(SKILL_SPELLPENETRATE, "spell penetration", CASTER_SKILL); //435
+  skillo(SKILL_SPELLPENETRATE_2, "greater spell penetrate", CASTER_SKILL);
+  skillo(SKILL_PROWESS, "prowess", PASSIVE_SKILL);
+  skillo(SKILL_EPIC_PROWESS, "epic prowess", PASSIVE_SKILL);
+  skillo(SKILL_EPIC_2_WEAPON, "epic two weapon fighting", PASSIVE_SKILL);
+  skillo(SKILL_SPELLPENETRATE_3, "epic spell penetrate", CASTER_SKILL); //440
+  skillo(SKILL_SPELL_RESIST_1, "spell resistance", CASTER_SKILL);
+  skillo(SKILL_SPELL_RESIST_2, "improved spell resist", CASTER_SKILL);
+  skillo(SKILL_SPELL_RESIST_3, "greater spell resist", CASTER_SKILL);
+  skillo(SKILL_SPELL_RESIST_4, "epic spell resist", CASTER_SKILL);
+  skillo(SKILL_SPELL_RESIST_5, "supreme spell resist", CASTER_SKILL); //445
+  skillo(SKILL_INITIATIVE, "initiative", PASSIVE_SKILL);
+  skillo(SKILL_EPIC_CRIT, "epic critical", PASSIVE_SKILL);
+  skillo(SKILL_IMPROVED_BASH, "improved bash", ACTIVE_SKILL);
+  skillo(SKILL_IMPROVED_TRIP, "improved trip", ACTIVE_SKILL);
+  skillo(SKILL_POWER_ATTACK, "power attack", ACTIVE_SKILL); //450
+  skillo(SKILL_EXPERTISE, "combat expertise", ACTIVE_SKILL);
+  skillo(SKILL_GREATER_RUIN, "es greater ruin", CASTER_SKILL);
+  skillo(SKILL_HELLBALL, "es hellball", CASTER_SKILL);
+  skillo(SKILL_EPIC_MAGE_ARMOR, "es epic mage armor", CASTER_SKILL);
+  skillo(SKILL_EPIC_WARDING, "es epic warding", CASTER_SKILL); //455
+  skillo(SKILL_RAGE, "rage", ACTIVE_SKILL); //456
+  skillo(SKILL_PROF_MINIMAL, "minimal weapon prof", PASSIVE_SKILL); //457
+  skillo(SKILL_PROF_BASIC, "basic weapon prof", PASSIVE_SKILL); //458
+  skillo(SKILL_PROF_ADVANCED, "advanced weapon prof", PASSIVE_SKILL); //459
+  skillo(SKILL_PROF_MASTER, "master weapon prof", PASSIVE_SKILL); //460
+  skillo(SKILL_PROF_EXOTIC, "exotic weapon prof", PASSIVE_SKILL); //461
+  skillo(SKILL_PROF_LIGHT_A, "light armor prof", PASSIVE_SKILL); //462
+  skillo(SKILL_PROF_MEDIUM_A, "medium armor prof", PASSIVE_SKILL); //463
+  skillo(SKILL_PROF_HEAVY_A, "heavy armor prof", PASSIVE_SKILL); //464
+  skillo(SKILL_PROF_SHIELDS, "shield prof", PASSIVE_SKILL); //465
+  skillo(SKILL_PROF_T_SHIELDS, "tower shield prof", PASSIVE_SKILL); //466
+  skillo(SKILL_MURMUR, "murmur(inc)", UNCATEGORIZED); //467
+  skillo(SKILL_PROPAGANDA, "propaganda(inc)", UNCATEGORIZED); //468
+  skillo(SKILL_LOBBY, "lobby(inc)", UNCATEGORIZED); //469
+  skillo(SKILL_STUNNING_FIST, "stunning fist", ACTIVE_SKILL); //470
+  skillo(SKILL_MINING, "mining", CRAFTING_SKILL); //471
+  skillo(SKILL_HUNTING, "hunting", CRAFTING_SKILL); //472
+  skillo(SKILL_FORESTING, "foresting", CRAFTING_SKILL); //473
+  skillo(SKILL_KNITTING, "knitting", CRAFTING_SKILL); //474
+  skillo(SKILL_CHEMISTRY, "chemistry", CRAFTING_SKILL); //475
+  skillo(SKILL_ARMOR_SMITHING, "armor smithing", CRAFTING_SKILL); //476
+  skillo(SKILL_WEAPON_SMITHING, "weapon smithing", CRAFTING_SKILL); //477
+  skillo(SKILL_JEWELRY_MAKING, "jewelry making", CRAFTING_SKILL); //478
+  skillo(SKILL_LEATHER_WORKING, "leather working", CRAFTING_SKILL); //479
+  skillo(SKILL_FAST_CRAFTER, "fast crafter", CRAFTING_SKILL); //480
+  skillo(SKILL_BONE_ARMOR, "bone armor(inc)", CRAFTING_SKILL); //481
+  skillo(SKILL_ELVEN_CRAFTING, "elven crafting(inc)", CRAFTING_SKILL); //482
+  skillo(SKILL_MASTERWORK_CRAFTING, "masterwork craft(inc)", CRAFTING_SKILL); //483
+  skillo(SKILL_DRACONIC_CRAFTING, "draconic crafting(inc)", CRAFTING_SKILL); //484
+  skillo(SKILL_DWARVEN_CRAFTING, "dwarven crafting(inc)", CRAFTING_SKILL); //485
+  skillo(SKILL_LIGHTNING_REFLEXES, "lightning reflexes", PASSIVE_SKILL); //486
+  skillo(SKILL_GREAT_FORTITUDE, "great fortitude", PASSIVE_SKILL); //487
+  skillo(SKILL_IRON_WILL, "iron will", PASSIVE_SKILL); //488
+  skillo(SKILL_EPIC_REFLEXES, "epic reflexes", PASSIVE_SKILL); //489
+  skillo(SKILL_EPIC_FORTITUDE, "epic fortitude", PASSIVE_SKILL); //490
+  skillo(SKILL_EPIC_WILL, "epic will", PASSIVE_SKILL); //491
+  skillo(SKILL_SHIELD_SPECIALIST, "shield specialist", PASSIVE_SKILL); //492
+  skillo(SKILL_USE_MAGIC, "use magic", ACTIVE_SKILL); //493
+  skillo(SKILL_EVASION, "evasion", PASSIVE_SKILL); //494
+  skillo(SKILL_IMP_EVASION, "improved evasion", PASSIVE_SKILL); //495
+  skillo(SKILL_CRIP_STRIKE, "crippling strike", PASSIVE_SKILL); //496
+  skillo(SKILL_SLIPPERY_MIND, "slippery mind", PASSIVE_SKILL); //497
+  skillo(SKILL_DEFENSE_ROLL, "defensive roll", PASSIVE_SKILL); //498
+  skillo(SKILL_GRACE, "divine grace", PASSIVE_SKILL); //499
+  skillo(SKILL_DIVINE_HEALTH, "divine health", PASSIVE_SKILL); //500
+  skillo(SKILL_LAY_ON_HANDS, "lay on hands", ACTIVE_SKILL); //501
+  skillo(SKILL_COURAGE, "courage", PASSIVE_SKILL); //502
+  skillo(SKILL_SMITE, "smite", ACTIVE_SKILL); //503
+  skillo(SKILL_REMOVE_DISEASE, "purify", ACTIVE_SKILL); //504
+  skillo(SKILL_RECHARGE, "recharge", CASTER_SKILL); //505
+  skillo(SKILL_STEALTHY, "stealthy", PASSIVE_SKILL); //506
+  skillo(SKILL_NATURE_STEP, "nature step", PASSIVE_SKILL); //507
+  skillo(SKILL_FAVORED_ENEMY, "favored enemy", PASSIVE_SKILL); //508
+  skillo(SKILL_DUAL_WEAPONS, "dual weapons", PASSIVE_SKILL); //509
+  skillo(SKILL_ANIMAL_COMPANION, "animal companion", ACTIVE_SKILL); //510
+  skillo(SKILL_PALADIN_MOUNT, "paladin mount", ACTIVE_SKILL); //511
+  skillo(SKILL_CALL_FAMILIAR, "call familiar", ACTIVE_SKILL); //512
+  skillo(SKILL_PERFORM, "perform", ACTIVE_SKILL); //513
+  skillo(SKILL_SCRIBE, "scribe", ACTIVE_SKILL); //514
+  skillo(SKILL_TURN_UNDEAD, "turn undead", ACTIVE_SKILL); //515
+  skillo(SKILL_WILDSHAPE, "wildshape", ACTIVE_SKILL); //516
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 

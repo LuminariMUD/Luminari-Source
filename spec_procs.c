@@ -523,11 +523,10 @@ void list_skills(struct char_data *ch)
   if (IS_NPC(ch))
     return;
 
-  send_to_char(ch, "\tCPractice Session(s): %d, Available/Known Skills:\tn\r\n\r\n",
-    GET_PRACTICES(ch));
-
+  /* Active Skills */
   for (i = MAX_SPELLS+1; i < NUM_SKILLS; i++) {
-    if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)]) {
+    if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
+            spell_info[i].schoolOfMagic == ACTIVE_SKILL) {
       if (meet_skill_reqs(ch, i)) {
         send_to_char(ch, "%-24s", spell_info[i].name);
         if (!GET_SKILL(ch, i))
@@ -551,6 +550,9 @@ void list_skills(struct char_data *ch)
     }
   }
   send_to_char(ch, "\r\n");
+  send_to_char(ch, "\tCPractice Session(s): %d, Available/Known Skills:\tn\r\n\r\n",
+    GET_PRACTICES(ch));
+  
 }
 
 

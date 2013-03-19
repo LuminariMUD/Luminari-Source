@@ -615,6 +615,8 @@
 
 /*********************************/
 /******** Schools of Magic *******/
+/*****Note Skills use this same***/
+/********category for "type"******/
 /*********************************/
 #define NOSCHOOL       0	// non magical spells
 #define ABJURATION     1
@@ -628,6 +630,18 @@
 
 #define NUM_SCHOOLS    9
 /*--------------------------------*/
+
+
+/*********************************/
+/********** Skill types **********/
+/*********************************/
+#define UNCATEGORIZED        0
+#define ACTIVE_SKILL         1
+#define PASSIVE_SKILL        2
+#define CRAFTING_SKILL       3
+#define CASTER_SKILL         4
+
+#define NUM_SKILL_CATEGORIES 5
 
 
 /************************************/
@@ -681,7 +695,7 @@ struct spell_info_type {
   const char *wear_off_msg; /* Input size not limited. Originates from string constants. */
   int time; /* casting time */
   int memtime; /* mem time */
-  int schoolOfMagic; // school of magic
+  int schoolOfMagic; // school of magic, category for skills
 };
 
 /* Possible Targets:
