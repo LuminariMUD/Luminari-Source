@@ -495,6 +495,7 @@ ASPELL(spell_clairvoyance) {
   }
 }
 
+
 ASPELL(spell_cloudkill) {
   if (INCENDIARY(ch) || DOOM(ch)) {
     send_to_char(ch, "You already have a cloud following you!\r\n");
@@ -507,6 +508,16 @@ ASPELL(spell_cloudkill) {
 }
 
 
+ASPELL(spell_control_plants) {
+  if (victim == NULL || ch == NULL)
+    return;
+  
+  if (IS_NPC(victim) && GET_RACE(victim) == NPCRACE_PLANT) {
+    effect_charm(ch, victim, SPELL_CONTROL_PLANTS);
+  } else {
+    send_to_char(ch, "This spell can only be used on plants.");
+  }
+}
 /* i decided to wait for room events for this one */
 ASPELL(spell_control_weather) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};

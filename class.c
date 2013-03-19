@@ -1302,16 +1302,16 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_MASS_CURE_MODERATE, 99);
       // summon nature's ally vii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_7, 99);
       SET_SKILL(ch, SPELL_SUNBEAM, 99);
-      SET_SKILL(ch, SPELL_SUMMON, 99); // no
+      //SET_SKILL(ch, SPELL_SUMMON, 99); // no
       //8th circle
       // animal shapes SET_SKILL(ch, SPELL_ANIMAL_SHAPES, 99);
-      // control plants SET_SKILL(ch, SPELL_CONTROL_PLANTS, 99);
+      SET_SKILL(ch, SPELL_CONTROL_PLANTS, 99);
       SET_SKILL(ch, SPELL_EARTHQUAKE, 99);
-      // finger of death SET_SKILL(ch, SPELL_FINGER_OF_DEATH, 99);
+      SET_SKILL(ch, SPELL_FINGER_OF_DEATH, 99);
       SET_SKILL(ch, SPELL_MASS_CURE_SERIOUS, 99);
       // summon nature's ally viii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_8, 99);
       SET_SKILL(ch, SPELL_SUNBURST, 99);
-      // whirlwind/cyclone SET_SKILL(ch, SPELL_WHIRLWIND, 99);
+      SET_SKILL(ch, SPELL_WHIRLWIND, 99);
       SET_SKILL(ch, SPELL_WORD_OF_RECALL, 99);
       SET_SKILL(ch, SPELL_SENSE_LIFE, 99); // no
       SET_SKILL(ch, SPELL_SANCTUARY, 99); // no
@@ -1321,7 +1321,7 @@ void init_class(struct char_data *ch, int class, int level) {
       // regenerate SET_SKILL(ch, SPELL_REGENERATE, 99);
       SET_SKILL(ch, SPELL_MASS_CURE_CRIT, 99);
       // shambler SET_SKILL(ch, SPELL_SHAMBLER, 99);
-      // shapechange SET_SKILL(ch, SPELL_SHAPECHANGE, 99);
+      SET_SKILL(ch, SPELL_POLYMORPH, 99); // should be SHAPECHANGE
       SET_SKILL(ch, SPELL_STORM_OF_VENGEANCE, 99);
       // summon nature's ally ix SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_9, 99);
       SET_SKILL(ch, SPELL_GROUP_HEAL, 99); // no
@@ -2845,23 +2845,23 @@ void init_spell_levels(void) {
   //spell_level(SPELL_SUMMON, CLASS_DRUID, 13); // no
   //8th circle
   // animal shapes
-  // control plant
+  spell_level(SPELL_CONTROL_PLANTS, CLASS_DRUID, 15);
   spell_level(SPELL_EARTHQUAKE, CLASS_DRUID, 15);
-  // finger of death
+  spell_level(SPELL_FINGER_OF_DEATH, CLASS_DRUID, 15);
   spell_level(SPELL_MASS_CURE_SERIOUS, CLASS_DRUID, 15);
   // summon nature's ally viii
-  // sunburst
-  // whirlwind/cyclone
+  spell_level(SPELL_SUNBURST, CLASS_DRUID, 15);
+  spell_level(SPELL_WHIRLWIND, CLASS_DRUID, 15);
   spell_level(SPELL_WORD_OF_RECALL, CLASS_DRUID, 15);
-  spell_level(SPELL_SENSE_LIFE, CLASS_DRUID, 15); // no
-  spell_level(SPELL_SANCTUARY, CLASS_DRUID, 15); // no
-  spell_level(SPELL_DESTRUCTION, CLASS_DRUID, 15); // no
+  //spell_level(SPELL_SENSE_LIFE, CLASS_DRUID, 15); // no
+  //spell_level(SPELL_SANCTUARY, CLASS_DRUID, 15); // no
+  //spell_level(SPELL_DESTRUCTION, CLASS_DRUID, 15); // no
   //9th circle
   // elemental swarm
   // regenerate
   spell_level(SPELL_MASS_CURE_CRIT, CLASS_DRUID, 17);
   // shambler
-  // shapechange
+  spell_level(SPELL_POLYMORPH, CLASS_DRUID, 17); // should be shapechange
   // storm of vengeance
   // summon nature's ally ix
   spell_level(SPELL_GROUP_HEAL, CLASS_DRUID, 17); // no

@@ -353,8 +353,9 @@
 /* room events test spell */
 #define SPELL_I_DARKNESS                306  //room event test spell
 #define SPELL_DOOM                      307  // creeping doom damage proc
+#define SPELL_WHIRLWIND                 308
 /** Total Number of defined spells (last spell define + 1) */
-#define NUM_SPELLS                      308
+#define NUM_SPELLS                      309
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
@@ -715,6 +716,7 @@ ASPELL(spell_charm);
 ASPELL(spell_charm_animal);
 ASPELL(spell_clairvoyance);
 ASPELL(spell_cloudkill);
+ASPELL(spell_control_plants);
 ASPELL(spell_control_weather);
 ASPELL(spell_create_water);
 ASPELL(spell_creeping_doom);

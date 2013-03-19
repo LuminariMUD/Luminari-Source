@@ -497,6 +497,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = 0;
       break;
 
+    case SPELL_FINGER_OF_DEATH: // necromancy
+      // saving throw is handled special below
+      save = SAVING_FORT;
+      mag_resist = TRUE;
+      element = DAM_UNHOLY;
+      num_dice = 3;
+      size_dice = 6;
+      bonus = GET_HIT(victim) + 10; // MIN(divine_level, 25);      
+      break;
+      
     case SPELL_FIREBALL: //evocation
       // Nashak: make this dissipate obscuring mist when finished
       save = SAVING_REFL;
@@ -1039,6 +1049,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       size_dice = 5;
       bonus = magic_level + 10;
       break;
+      
+    case SPELL_WHIRLWIND: // evocation
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_AIR;
+      num_dice = 3 * dice(1, 3);
+      size_dice = 6;
+      bonus = divine_level;
+      break;
 
       /***********************************************\
       || ------------ DIVINE AoE SPELLS ------------ ||
@@ -1079,8 +1098,14 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (GET_RACE(victim) == RACE_GNOME && element == DAM_ILLUSION)
     race_bonus += 2;
 
-  //saving throw for half damage if applies  
-  if (dam && (save != -1)) {
+  // figure saving throw for finger of death here, because it's not half damage
+  if (spellnum == SPELL_FINGER_OF_DEATH) {
+    if (mag_savingthrow(ch, victim, save, race_bonus)) {
+      dam = dice(num_dice, size_dice) + MIN(25, divine_level);
+    }
+  }
+  else if (dam && (save != -1)) {
+    //saving throw for half damage if applies  
     if (mag_savingthrow(ch, victim, save, race_bonus)) {
       if ((!IS_NPC(victim)) && save == SAVING_REFL && // evasion
               (GET_SKILL(victim, SKILL_EVASION) ||
@@ -3492,6 +3517,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
       isEffect = TRUE;
       to_char = "\tDYou muster the power of death creating waves of fatigue!\tn";
       to_room = "$n\tD musters the power of death creating waves of fatigue!\tn";
+      break;
+    case SPELL_WHIRLWIND:
+      to_char = "You call down a rip-roaring cyclone on the area!";
+      to_room = "$n calls down a rip-roaring cyclone on the area!";
       break;
   }
 
