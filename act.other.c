@@ -1042,7 +1042,7 @@ ACMD(do_shapechange) {
     return;
   }
   
-  if (GET_SHAPECHANGES(ch) <= 0) {
+  if (GET_SHAPECHANGES(ch) <= 0 && *argument) {
     send_to_char(ch, "You are too exhausted to do that, wait for your skill "
             "to refresh!\r\n");
     return;
