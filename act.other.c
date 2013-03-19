@@ -1058,6 +1058,8 @@ ACMD(do_shapechange) {
       break;
   }
 
+  if (affected_by_spell(ch, SKILL_WILDSHAPE))
+    affect_from_char(ch, SKILL_WILDSHAPE);
   for (i = 0; i < SHAPE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
 
