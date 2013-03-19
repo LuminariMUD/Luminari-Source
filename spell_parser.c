@@ -541,6 +541,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       case SPELL_CLOUDKILL:
         MANUAL_SPELL(spell_cloudkill);
         break;
+      case SPELL_CONTROL_PLANTS:
+        MANUAL_SPELL(spell_control_plants);
+        break;
       case SPELL_CONTROL_WEATHER:
         MANUAL_SPELL(spell_control_weather);
         break;
@@ -2139,18 +2142,23 @@ void mag_assign_spells(void) {
   spello(SPELL_CHAIN_LIGHTNING, "chain lightning", 79, 64, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
           NULL, 8, 12, EVOCATION);
+  spello(SPELL_WHIRLWIND, "whirlwind", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 12, EVOCATION);
   /* conjuration */
   spello(SPELL_INCENDIARY_CLOUD, "incendiary cloud", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 9, 12, CONJURATION);
   spello(SPELL_SUMMON_CREATURE_8, "summon creature viii", 0, 0, 0,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 11, 12, CONJURATION);
   /* necromancy */
-  spello(SPELL_HORRID_WILTING, "horrid wilting", 79, 64, 1, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS,
-          NULL, 9, 12, NECROMANCY);
+  spello(SPELL_FINGER_OF_DEATH, "finger of death", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+          NULL, 8, 12, NECROMANCY);
   spello(SPELL_GREATER_ANIMATION, "greater animation", 72, 57, 1, POS_FIGHTING,
           TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
           NULL, 11, 12, NECROMANCY);
+  spello(SPELL_HORRID_WILTING, "horrid wilting", 79, 64, 1, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS,
+          NULL, 9, 12, NECROMANCY);
   /* enchantment */
   spello(SPELL_IRRESISTIBLE_DANCE, "irresistible dance", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
@@ -2180,6 +2188,9 @@ void mag_assign_spells(void) {
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "Your mind-blank fades.", 8, 12, ABJURATION);
   /* transmutation */
+  spello(SPELL_CONTROL_PLANTS, "control plants", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+          "You are able to control yourself again.", 7, 12, TRANSMUTATION);
   spello(SPELL_IRONSKIN, "iron skin", 51, 36, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "Your skin loses its iron-like texture.", 4, 12, TRANSMUTATION);
