@@ -550,7 +550,7 @@ void list_skills(struct char_data *ch)
       }
     }
   }
-  send_to_char(ch, "\r\n");
+  send_to_char(ch, "\r\n\r\n");
   
   /* Passive Skills */
   send_to_char(ch, "\tCPassive Skills\tn\r\n\r\n");
@@ -579,7 +579,7 @@ void list_skills(struct char_data *ch)
       }
     }
   }
-  send_to_char(ch, "\r\n");
+  send_to_char(ch, "\r\n\r\n");
   
   /* Caster Skills */
   send_to_char(ch, "\tCCaster Skills\tn\r\n\r\n");
@@ -608,7 +608,7 @@ void list_skills(struct char_data *ch)
       }
     }
   }
-  send_to_char(ch, "\r\n");
+  send_to_char(ch, "\r\n\r\n");
   
   /* Crafting Skills */
   send_to_char(ch, "\tCCrafting Skills\tn\r\n\r\n");
@@ -637,7 +637,7 @@ void list_skills(struct char_data *ch)
       }
     }
   }
-  send_to_char(ch, "\r\n");
+  send_to_char(ch, "\r\n\r\n");
   
   send_to_char(ch, "\tCPractice Session(s): %d\tn\r\n\r\n",
     GET_PRACTICES(ch));
