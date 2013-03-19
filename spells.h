@@ -634,6 +634,7 @@
 
 /*********************************/
 /********** Skill types **********/
+/*******Used for Sorting Only*****/
 /*********************************/
 #define UNCATEGORIZED        0
 #define ACTIVE_SKILL         1

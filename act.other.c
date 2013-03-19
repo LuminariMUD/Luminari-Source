@@ -137,6 +137,8 @@ ACMD(do_call) {
   struct follow_type *k = NULL, *next = NULL;
   struct char_data *mob = NULL;
   mob_vnum mob_num = 0;
+  
+  skip_spaces(&argument);  
 
   /* call types
      MOB_C_ANIMAL -> animal companion
@@ -146,7 +148,7 @@ ACMD(do_call) {
   if (!argument) {
     send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
     return;
-  } else if (is_abbrev(argument, " companion")) {
+  } else if (is_abbrev(argument, "companion")) {
     level = CLASS_LEVEL(ch, CLASS_DRUID);
     if (CLASS_LEVEL(ch, CLASS_RANGER) >= 4)
       level += CLASS_LEVEL(ch, CLASS_RANGER) - 3;
@@ -163,7 +165,7 @@ ACMD(do_call) {
       return;
     }
     call_type = MOB_C_ANIMAL;
-  } else if (is_abbrev(argument, " familiar")) {
+  } else if (is_abbrev(argument, "familiar")) {
     level = CLASS_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_WIZARD);
 
     if (!GET_SKILL(ch, SKILL_CALL_FAMILIAR)) {
@@ -178,7 +180,7 @@ ACMD(do_call) {
       return;
     }
     call_type = MOB_C_FAMILIAR;
-  } else if (is_abbrev(argument, " mount")) {
+  } else if (is_abbrev(argument, "mount")) {
     level = CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
 
     if (!GET_SKILL(ch, SKILL_PALADIN_MOUNT)) {
