@@ -23,6 +23,7 @@
 #include "fight.h"
 #include "utils.h"
 #include "mud_event.h"
+#include "act.h"  //perform_wildshapes
 
 //external
 extern struct raff_node *raff_list;
@@ -208,6 +209,12 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
       break;
     case SKILL_WILDSHAPE:
       send_to_char(ch, "You are unable to maintain your wildshape and "
+              "transform back to your normal form...\r\n");
+      IS_MORPHED(ch) = 0;      
+      SUBRACE(ch) = 0;      
+      break;
+    case SPELL_ANIMAL_SHAPES:
+      send_to_char(ch, "As the spell wears off you feel yourself "
               "transform back to your normal form...\r\n");
       IS_MORPHED(ch) = 0;      
       SUBRACE(ch) = 0;      
@@ -3211,6 +3218,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
     case SPELL_MASS_STRENGTH:
       mag_affects(level, ch, tch, obj, SPELL_MASS_STRENGTH, savetype);
       break;
+    case SPELL_ANIMAL_SHAPES:
+      perform_wildshape(ch, rand_number(1, (NUM_SHAPE_TYPES - 1)), spellnum);
+      break;
   }
 }
 
@@ -3263,6 +3273,10 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
     case SPELL_MASS_FLY:
       to_char = "Your magicks brings strong magical winds to aid in flight!\tn";
       to_room = "$n brings strong magical winds to aid in flight!\tn";
+      break;
+    case SPELL_ANIMAL_SHAPES:
+      to_char = "You transform your group!\tn";
+      to_room = "$n transforms $s group!\tn";
       break;
   }
 
