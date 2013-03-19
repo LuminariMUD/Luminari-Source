@@ -628,6 +628,8 @@ ACMD(do_powerattack)
 
 ACMD(do_disengage)
 {
+  struct char_data *vict;
+  
   if (!FIGHTING(ch)) {
     send_to_char(ch, "You aren't even fighting anyone, calm down.\r\n");
     return;
@@ -635,10 +637,17 @@ ACMD(do_disengage)
     send_to_char(ch, "Maybe you should get on your feet first.\r\n");
     return;
   } else {
+    vict = FIGHTING(ch);
+    if (FIGHTING(vict) == ch) {
+      send_to_char(ch, "You are too busy fighting for your life!\r\n");
+      return;
+    }
+
+    stop_fighting(ch);
     send_to_char(ch, "You disengage from the fight.\r\n");
-    FIGHTING(ch) = NULL;
-    if (GET_POS(ch) == POS_FIGHTING)
-      GET_POS(ch) = POS_STANDING;
+    act("$n disengages from the fight.", FALSE, ch, 0, 0, TO_ROOM);
+    
+    SET_WAIT(ch, 50);
   }
 }
 
