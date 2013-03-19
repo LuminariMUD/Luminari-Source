@@ -1057,11 +1057,12 @@ ACMD(do_shapechange) {
       form_num = 3;
     if (CLASS_LEVEL(ch, CLASS_DRUID) >= 14)
       form_num = 4;
+    send_to_char(ch, "Available Forms:\r\n\r\n");
     for (i = 1; i <= form_num; i++) {
       send_to_char(ch, shape_types[i]);
       send_to_char(ch, "\r\n");
     }
-    send_to_char(ch, "You can return to your normal form by typing:  "
+    send_to_char(ch, "\r\nYou can return to your normal form by typing:  "
               "shapechange normal\r\n");
     return;
   }
