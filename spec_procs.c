@@ -524,6 +524,7 @@ void list_skills(struct char_data *ch)
     return;
 
   /* Active Skills */
+  send_to_char(ch, "\tCActive Skills\tn\r\n\r\n");
   for (i = MAX_SPELLS+1; i < NUM_SKILLS; i++) {
     if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
             spell_info[i].schoolOfMagic == ACTIVE_SKILL) {
@@ -550,7 +551,95 @@ void list_skills(struct char_data *ch)
     }
   }
   send_to_char(ch, "\r\n");
-  send_to_char(ch, "\tCPractice Session(s): %d, Available/Known Skills:\tn\r\n\r\n",
+  
+  /* Passive Skills */
+  send_to_char(ch, "\tCPassive Skills\tn\r\n\r\n");
+  for (i = MAX_SPELLS+1; i < NUM_SKILLS; i++) {
+    if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
+            spell_info[i].schoolOfMagic == PASSIVE_SKILL) {
+      if (meet_skill_reqs(ch, i)) {
+        send_to_char(ch, "%-24s", spell_info[i].name);
+        if (!GET_SKILL(ch, i))
+          send_to_char(ch, "  \tYUnlearned\tn ");
+        else if (GET_SKILL(ch, i) >= 99)
+          send_to_char(ch, "  \tWMastered \tn ");
+        else if (GET_SKILL(ch, i) >= 95)
+          send_to_char(ch, "  \twSuperb \tn ");
+        else if (GET_SKILL(ch, i) >= 90)
+          send_to_char(ch, "  \tMExcellent \tn ");
+        else if (GET_SKILL(ch, i) >= 85)
+          send_to_char(ch, "  \tmAdvanced \tn ");
+        else if (GET_SKILL(ch, i) >= 80)
+          send_to_char(ch, "  \tBSkilled \tn ");
+        else
+          send_to_char(ch, "  \tGLearned  \tn ");
+        printed++;
+        if (!(printed % 2))
+          send_to_char(ch, "\r\n");
+      }
+    }
+  }
+  send_to_char(ch, "\r\n");
+  
+  /* Caster Skills */
+  send_to_char(ch, "\tCCaster Skills\tn\r\n\r\n");
+  for (i = MAX_SPELLS+1; i < NUM_SKILLS; i++) {
+    if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
+            spell_info[i].schoolOfMagic == PASSIVE_SKILL) {
+      if (meet_skill_reqs(ch, i)) {
+        send_to_char(ch, "%-24s", spell_info[i].name);
+        if (!GET_SKILL(ch, i))
+          send_to_char(ch, "  \tYUnlearned\tn ");
+        else if (GET_SKILL(ch, i) >= 99)
+          send_to_char(ch, "  \tWMastered \tn ");
+        else if (GET_SKILL(ch, i) >= 95)
+          send_to_char(ch, "  \twSuperb \tn ");
+        else if (GET_SKILL(ch, i) >= 90)
+          send_to_char(ch, "  \tMExcellent \tn ");
+        else if (GET_SKILL(ch, i) >= 85)
+          send_to_char(ch, "  \tmAdvanced \tn ");
+        else if (GET_SKILL(ch, i) >= 80)
+          send_to_char(ch, "  \tBSkilled \tn ");
+        else
+          send_to_char(ch, "  \tGLearned  \tn ");
+        printed++;
+        if (!(printed % 2))
+          send_to_char(ch, "\r\n");
+      }
+    }
+  }
+  send_to_char(ch, "\r\n");
+  
+  /* Crafting Skills */
+  send_to_char(ch, "\tCCrafting Skills\tn\r\n\r\n");
+  for (i = MAX_SPELLS+1; i < NUM_SKILLS; i++) {
+    if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
+            spell_info[i].schoolOfMagic == PASSIVE_SKILL) {
+      if (meet_skill_reqs(ch, i)) {
+        send_to_char(ch, "%-24s", spell_info[i].name);
+        if (!GET_SKILL(ch, i))
+          send_to_char(ch, "  \tYUnlearned\tn ");
+        else if (GET_SKILL(ch, i) >= 99)
+          send_to_char(ch, "  \tWMastered \tn ");
+        else if (GET_SKILL(ch, i) >= 95)
+          send_to_char(ch, "  \twSuperb \tn ");
+        else if (GET_SKILL(ch, i) >= 90)
+          send_to_char(ch, "  \tMExcellent \tn ");
+        else if (GET_SKILL(ch, i) >= 85)
+          send_to_char(ch, "  \tmAdvanced \tn ");
+        else if (GET_SKILL(ch, i) >= 80)
+          send_to_char(ch, "  \tBSkilled \tn ");
+        else
+          send_to_char(ch, "  \tGLearned  \tn ");
+        printed++;
+        if (!(printed % 2))
+          send_to_char(ch, "\r\n");
+      }
+    }
+  }
+  send_to_char(ch, "\r\n");
+  
+  send_to_char(ch, "\tCPractice Session(s): %d\tn\r\n\r\n",
     GET_PRACTICES(ch));
   
 }
