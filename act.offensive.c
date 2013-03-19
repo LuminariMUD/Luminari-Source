@@ -626,6 +626,23 @@ ACMD(do_powerattack)
 }
 
 
+ACMD(do_disengage)
+{
+  if (!FIGHTING(ch)) {
+    send_to_char(ch, "You aren't even fighting anyone, calm down.\r\n");
+    return;
+  } else if (GET_POS(ch) < POS_STANDING) {
+    send_to_char(ch, "Maybe you should get on your feet first.\r\n");
+    return;
+  } else {
+    send_to_char(ch, "You disengage from the fight.\r\n");
+    FIGHTING(ch) = NULL;
+    if (GET_POS(ch) == POS_FIGHTING)
+      GET_POS(ch) = POS_STANDING;
+  }
+}
+
+
 ACMD(do_expertise)
 {
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_EXPERTISE)) {

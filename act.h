@@ -101,6 +101,7 @@ ACMD(do_areas);
 ACMD(do_attacks);
 ACMD(do_consider);
 ACMD(do_diagnose);
+ACMD(do_disengage);
 ACMD(do_equipment);
 ACMD(do_examine);
 ACMD(do_exits);
