@@ -189,6 +189,26 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
   return (FALSE);
 }
 
+/* added this function to add special wear off handling -zusuk */
+void spec_wear_off(struct char_data *ch, int skillnum) {
+  if (skillnum >= MAX_SKILLS)
+    return;
+  if (skillnum <= 0)
+    return;
+  
+  switch (skillnum) {
+    case SPELL_ANIMAL_SHAPES:
+      send_to_char(ch, "As the spell wears off you feel yourself "
+              "transform back to your normal form...\r\n");
+      IS_MORPHED(ch) = 0;      
+      SUBRACE(ch) = 0;      
+      break;
+    default:
+      break;
+  }
+  
+}
+
 /* added this function to add wear off messages for skills -zusuk */
 void alt_wear_off_msg(struct char_data *ch, int skillnum) {
   if (skillnum < (MAX_SPELLS + 1))
@@ -209,12 +229,6 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
       break;
     case SKILL_WILDSHAPE:
       send_to_char(ch, "You are unable to maintain your wildshape and "
-              "transform back to your normal form...\r\n");
-      IS_MORPHED(ch) = 0;      
-      SUBRACE(ch) = 0;      
-      break;
-    case SPELL_ANIMAL_SHAPES:
-      send_to_char(ch, "As the spell wears off you feel yourself "
               "transform back to your normal form...\r\n");
       IS_MORPHED(ch) = 0;      
       SUBRACE(ch) = 0;      
@@ -258,6 +272,7 @@ void affect_update(void) {
                   (af->next->duration > 0)) {
             if (spell_info[af->spell].wear_off_msg) {
               send_to_char(i, "%s\r\n", spell_info[af->spell].wear_off_msg);
+              spec_wear_off(i, af->spell);
               has_message = 1;
             }
           }
