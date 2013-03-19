@@ -2464,6 +2464,10 @@ void mag_assign_spells(void) {
           NULL, 8, 14, NOSCHOOL);
   spello(SPELL_SPRING_OF_LIFE, "spring of life", 37, 22, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 14, 14, NOSCHOOL);
+  //druid spell
+  spello(SPELL_ANIMAL_SHAPES, "animal shapes", 85, 70, 1, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_GROUPS,
+          "The primal spell wears off!", 5, 15, NOSCHOOL);
 
   // 9th circle
   spello(SPELL_EARTHQUAKE, "earthquake", 85, 70, 1, POS_FIGHTING,
