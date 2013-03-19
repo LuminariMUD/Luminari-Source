@@ -13,7 +13,11 @@
 #ifndef _race_H_
 #define _race_H_
 
+/* defines */
+// this is for shapechange/wildshape, define for array max
+#define NUM_SHAPE_TYPES  5
 
+/* functions */
 int parse_race(char arg);
 bitvector_t find_race_bitvector(const char *arg);
 int invalid_race(struct char_data *ch, struct obj_data *obj);
