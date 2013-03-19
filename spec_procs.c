@@ -585,7 +585,7 @@ void list_skills(struct char_data *ch)
   send_to_char(ch, "\tCCaster Skills\tn\r\n\r\n");
   for (i = MAX_SPELLS+1; i < NUM_SKILLS; i++) {
     if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
-            spell_info[i].schoolOfMagic == PASSIVE_SKILL) {
+            spell_info[i].schoolOfMagic == CASTER_SKILL) {
       if (meet_skill_reqs(ch, i)) {
         send_to_char(ch, "%-24s", spell_info[i].name);
         if (!GET_SKILL(ch, i))
@@ -614,7 +614,7 @@ void list_skills(struct char_data *ch)
   send_to_char(ch, "\tCCrafting Skills\tn\r\n\r\n");
   for (i = MAX_SPELLS+1; i < NUM_SKILLS; i++) {
     if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
-            spell_info[i].schoolOfMagic == PASSIVE_SKILL) {
+            spell_info[i].schoolOfMagic == CRAFTING_SKILL) {
       if (meet_skill_reqs(ch, i)) {
         send_to_char(ch, "%-24s", spell_info[i].name);
         if (!GET_SKILL(ch, i))
