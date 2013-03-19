@@ -646,6 +646,7 @@ void warrior_skills(struct char_data *ch, int level) {
  * i.e free skills  ;  make sure to set in spec_procs too
  */
 void druid_skills(struct char_data *ch, int level) {
+  IS_DRUID_LEARNED(ch) = 0;
   switch (level) {
     case 2:
       if (!GET_SKILL(ch, SKILL_USE_MAGIC))
@@ -1562,6 +1563,7 @@ void init_start_char(struct char_data *ch) {
   IS_BARD_LEARNED(ch) = 0;
   IS_RANG_LEARNED(ch) = 0;
   IS_WIZ_LEARNED(ch) = 0;
+  IS_DRUID_LEARNED(ch) = 0;
 
   /* hunger and thirst are off */
   GET_COND(ch, HUNGER) = -1;

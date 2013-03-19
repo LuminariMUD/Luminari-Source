@@ -270,9 +270,10 @@
 #define WIZ_KNOWN               8 // true/false if can 'study'
 #define BARD_KNOWN              9 // true/false if can 'study'
 #define SHAPECHANGES           10 // druid shapechanges left today
-#define C_DOOM                    11 // creeping doom
+#define C_DOOM                 11 // creeping doom
+#define DRUID_KNOWN            12 // true/false if can 'study'
 /*---------------*/
-#define NUM_SPEC_ABIL		 12
+#define NUM_SPEC_ABIL		 13
 #define MAX_SPEC_ABIL          MAX_CLASSES
 /* max = MAX_CLASSES right now */
 

@@ -24,6 +24,7 @@
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
 
+static void druid_disp_menu(struct descriptor_data *d);
 static void sorc_disp_menu(struct descriptor_data *d);
 static void bard_disp_menu(struct descriptor_data *d);
 static void wizard_disp_menu(struct descriptor_data *d);
@@ -179,10 +180,12 @@ ACMD(do_study) {
   struct descriptor_data *d = NULL;
   int class = -1;
 
+  skip_spaces(&argument);
+
   if (!argument) {
     send_to_char(ch, "Specify a class to edit known spells.\r\n");
     return;
-  } else if (is_abbrev(argument, " sorcerer")) {
+  } else if (is_abbrev(argument, "sorcerer")) {
     if (IS_SORC_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
       send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
               "(You can also RESPEC to reset your character)\r\n");
@@ -193,18 +196,29 @@ ACMD(do_study) {
       return;
     }
     class = CLASS_SORCERER;
-  } else if (is_abbrev(argument, " bard")) {
+  } else if (is_abbrev(argument, "bard")) {
     if (IS_BARD_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
       send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
               "(You can also RESPEC to reset your character)\r\n");
       return;
     }
     if (!CLASS_LEVEL(ch, CLASS_BARD)) {
-      send_to_char(ch, "How?  You are not a sorcerer!\r\n");
+      send_to_char(ch, "How?  You are not a bard!\r\n");
       return;
     }
     class = CLASS_BARD;
-  } else if (is_abbrev(argument, " ranger")) {
+  } else if (is_abbrev(argument, "druid")) {
+    if (IS_DRUID_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
+      send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
+              "(You can also RESPEC to reset your character)\r\n");
+      return;
+    }
+    if (!CLASS_LEVEL(ch, CLASS_DRUID)) {
+      send_to_char(ch, "How?  You are not a druid!\r\n");
+      return;
+    }
+    class = CLASS_BARD;
+  } else if (is_abbrev(argument, "ranger")) {
     if (IS_RANG_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
       send_to_char(ch, "You already adjusted your ranger "
               "skills this level.\r\n");
@@ -215,7 +229,7 @@ ACMD(do_study) {
       return;
     }
     class = CLASS_RANGER;
-  } else if (is_abbrev(argument, " wizard")) {
+  } else if (is_abbrev(argument, "wizard")) {
     if (IS_WIZ_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
       send_to_char(ch, "You already adjusted your wizard "
               "skills this level.\r\n");
@@ -261,6 +275,9 @@ ACMD(do_study) {
   } else if (class == CLASS_RANGER) {
     global_class = CLASS_RANGER;
     ranger_disp_menu(d);
+  } else if (class == CLASS_DRUID) {
+    global_class = CLASS_DRUID;
+    druid_disp_menu(d);
   } else if (class == CLASS_WIZARD) {
     global_class = CLASS_WIZARD;
     wizard_disp_menu(d);
@@ -559,7 +576,7 @@ static void favored_enemy_menu(struct descriptor_data *d) {
   OLC_MODE(d) = FAVORED_ENEMY;
 }
 
-/* ranger study sub-menu:  adjust animal companion */
+/* druid/ranger study sub-menu:  adjust animal companion */
 static void animal_companion_menu(struct descriptor_data *d) {
   int i = 1, found = 0;
 
@@ -567,7 +584,7 @@ static void animal_companion_menu(struct descriptor_data *d) {
   clear_screen(d);
 
   write_to_output(d,
-          "\r\n-- %sRanger Animal Companion Menu%s\r\n"
+          "\r\n-- %sDruid/Ranger Animal Companion Menu%s\r\n"
           "\r\n", mgn, nrm);
 
   for (i = 1; i <= TOP_OF_C; i++) {
@@ -600,6 +617,46 @@ static void animal_companion_menu(struct descriptor_data *d) {
 }
 
 /*********************** end ranger ****************************************/
+
+/***************************/
+/* main menu for druid */
+
+/***************************/
+static void druid_disp_menu(struct descriptor_data *d) {
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+          "\r\n-- %sDruid Skill Menu\r\n"
+          "\r\n"
+          "\r\n"
+          "%s 1%s) Animal Companion Menu\r\n"
+          "\r\n"
+          "\r\n"
+          "%s Q%s) Quit\r\n"
+          "\r\n"
+          "%sWhen you quit it finalizes all changes%s\r\n"
+          "%sYour druid skills can only be modified once per level%s\r\n"
+          "\r\n"
+          "Enter Choice : ",
+
+          mgn,
+          /* empty line */
+          /* empty line */
+          grn, nrm,
+          /* empty line */
+          /* empty line */
+          grn, nrm,
+          mgn, nrm,
+          mgn, nrm
+          );
+
+  OLC_MODE(d) = DRUID_MAIN_MENU;
+}
+
+/* animal companion is under ranger section */
+
+/*********************** end druid ****************************************/
 
 /*********************** wizard ******************************************/
 
@@ -816,6 +873,34 @@ void study_parse(struct descriptor_data *d, char *arg) {
       /******* end bard **********/
 
 
+      /******* start druid **********/
+
+    case DRUID_MAIN_MENU:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          write_to_output(d, "Your choices have been finalized!\r\n\r\n");
+          if (global_class == CLASS_DRUID)
+            IS_DRUID_LEARNED(d->character) = 1;
+          save_char(d->character, 0);
+          cleanup_olc(d, CLEANUP_ALL);
+          return;
+        case '1': // animal companion choice
+          animal_companion_menu(d);
+          OLC_MODE(d) = ANIMAL_COMPANION;
+          break;
+        default:
+          write_to_output(d, "That is an invalid choice!\r\n");
+          ranger_disp_menu(d);
+          break;
+      }
+      break;
+      
+      /* animal companion is under ranger section */
+      
+      
+      /******* end druid **********/
+      
       /******* start ranger **********/
 
     case RANG_MAIN_MENU:
@@ -973,12 +1058,19 @@ void study_parse(struct descriptor_data *d, char *arg) {
       OLC_MODE(d) = FAVORED_ENEMY_SUB;
       break;
 
+      /* shared with druid */
     case ANIMAL_COMPANION:
       switch (*arg) {
         case 'q':
         case 'Q':
-          ranger_disp_menu(d);
-          OLC_MODE(d) = RANG_MAIN_MENU;
+          if (global_class == CLASS_RANGER) {
+            ranger_disp_menu(d);
+            OLC_MODE(d) = RANG_MAIN_MENU;            
+          }
+          if (global_class == CLASS_DRUID) {
+            druid_disp_menu(d);
+            OLC_MODE(d) = DRUID_MAIN_MENU;            
+          }
           return;
 
         default:

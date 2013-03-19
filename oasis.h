@@ -461,6 +461,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define FAMILIAR_MENU          8
 #define BARD_MAIN_MENU         9
 #define BARD_STUDY_SPELLS      10
+#define DRUID_MAIN_MENU        11
 
 int save_config(IDXTYPE nowhere);
 
