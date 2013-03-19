@@ -1289,7 +1289,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_SUNBEAM, 99);
 
       //8th circle
-      // animal shapes SET_SKILL(ch, SPELL_ANIMAL_SHAPES, 99);
+      SET_SKILL(ch, SPELL_ANIMAL_SHAPES, 99);
       SET_SKILL(ch, SPELL_CONTROL_PLANTS, 99);
       SET_SKILL(ch, SPELL_EARTHQUAKE, 99);
       SET_SKILL(ch, SPELL_FINGER_OF_DEATH, 99);
@@ -2806,7 +2806,7 @@ void init_spell_levels(void) {
   spell_level(SPELL_SUNBEAM, CLASS_DRUID, 13);
 
   //8th circle
-  // animal shapes
+  spell_level(SPELL_ANIMAL_SHAPES, CLASS_DRUID, 15);
   spell_level(SPELL_CONTROL_PLANTS, CLASS_DRUID, 15);
   spell_level(SPELL_EARTHQUAKE, CLASS_DRUID, 15);
   spell_level(SPELL_FINGER_OF_DEATH, CLASS_DRUID, 15);
