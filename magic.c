@@ -3574,7 +3574,7 @@ static const char *mag_summon_msgs[] = {
   "$N disappears in a thick black cloud!", //6
   "\tCAs \tn$n\tC makes a strange magical gesture, you feel a strong breeze.\tn", //7
   "\tRAs \tn$n\tR makes a strange magical gesture, you feel a searing heat.\tn", //8
-  "\tYAs \tn$n\tY makes a strange magical gesture, you feel a sudden shift int he earth.\tn", //9
+  "\tYAs \tn$n\tY makes a strange magical gesture, you feel a sudden shift in the earth.\tn", //9
   "\tBAs \tn$n\tB makes a strange magical gesture, you feel the dust swirl.\tn", //10
   "$n magically divides!", //11 clone
   "$n animates a corpse!", //12 animate dead
@@ -3774,6 +3774,20 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       pfail = 0;
       break;
 
+    case SPELL_ELEMENTAL_SWARM: // conjuration
+      handle_corpse = FALSE;
+      fmsg = rand_number(2, 6);
+      mob_num = 9412 + rand_number(0, 3); // 9412-9415
+      switch (mob_num)
+      {
+        case 9412: msg = 7; break;
+        case 9413: msg = 9; break;
+        case 9414: msg = 8; break;
+        case 9415: msg = 10; break;
+      }
+      num = dice(2, 4);
+      break;
+      
     case SPELL_FAITHFUL_HOUND: //divination
       handle_corpse = FALSE;
       msg = 22;

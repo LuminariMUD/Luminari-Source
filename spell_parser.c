@@ -2206,10 +2206,12 @@ void mag_assign_spells(void) {
   spello(SPELL_BLADE_OF_DISASTER, "blade of disaster", 0, 0, 0,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 14, 13, EVOCATION);
   /* conjuration */
-  spello(SPELL_SUMMON_CREATURE_9, "summon creature ix", 0, 0, 0,
-          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 12, 13, CONJURATION);
+  spello(SPELL_ELEMENTAL_SWARM, "elemental swarm", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+          FALSE, MAG_SUMMONS, NULL, 12, 13, CONJURATION);
   spello(SPELL_GATE, "gate", 51, 36, 1, POS_FIGHTING, TAR_IGNORE, TRUE,
           MAG_CREATIONS, NULL, 9, 13, CONJURATION);
+  spello(SPELL_SUMMON_CREATURE_9, "summon creature ix", 0, 0, 0,
+          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 12, 13, CONJURATION);
   /* necromancy */
   //*energy drain, shared
   spello(SPELL_WAIL_OF_THE_BANSHEE, "wail of the banshee", 85, 70, 1,
