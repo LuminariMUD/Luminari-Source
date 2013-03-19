@@ -1060,6 +1060,8 @@ ACMD(do_shapechange) {
     for (i = 1; i <= form_num; i++) {
       send_to_char(ch, shape_types[i]);
       send_to_char(ch, "\r\n");
+      send_to_char(ch, "You can return to your normal form by typing:  "
+              "shapechange normal\r\n");
     }
     return;
   }
