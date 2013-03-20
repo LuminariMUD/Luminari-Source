@@ -1649,7 +1649,7 @@ ACMD(do_wield)
   else {
     if (!CAN_WEAR(obj, ITEM_WEAR_WIELD))
       send_to_char(ch, "You can't wield that.\r\n");
-    else if (OBJ_FLAGGED(obj, ITEM_MOLD)) {
+    else if (OBJ_FLAGGED(obj, ITEM_MOLD))
       send_to_char(ch, "You can't wield an object mold!\r\n");
     else if (GET_OBJ_WEIGHT(obj) > str_app[GET_STR(ch)].wield_w)
       send_to_char(ch, "It's too heavy for you to use.\r\n");
