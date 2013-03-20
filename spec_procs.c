@@ -628,9 +628,19 @@ void list_skills(struct char_data *ch)
         else if (GET_SKILL(ch, i) >= 85)
           send_to_char(ch, "  \tmAdvanced \tn ");
         else if (GET_SKILL(ch, i) >= 80)
-          send_to_char(ch, "  \tBSkilled \tn ");
+          send_to_char(ch, "  \tBGood \tn ");
+        else if (GET_SKILL(ch, i) >= 70)
+          send_to_char(ch, "  \tbFair \tn ");
+        else if (GET_SKILL(ch, i) >= 55)
+          send_to_char(ch, "  \tnLearned \tn ");
+        else if (GET_SKILL(ch, i) >= 40)
+          send_to_char(ch, "  \tyAverage \tn ");
+        else if (GET_SKILL(ch, i) >= 20)
+          send_to_char(ch, "  \tYPoor \tn ");
+        else if (GET_SKILL(ch, i) >= 10)
+          send_to_char(ch, "  \trBad \tn ");
         else
-          send_to_char(ch, "  \tGLearned  \tn ");
+          send_to_char(ch, "  \tRAwful  \tn ");
         printed++;
         if (!(printed % 2))
           send_to_char(ch, "\r\n");
