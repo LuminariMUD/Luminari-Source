@@ -917,7 +917,7 @@ EVENTFUNC(event_casting) {
         finishCasting(ch);
         return 0;
       } else
-        return 1 * PASSES_PER_SEC;
+        return (7);
     }
 
     //spell needs to be completed now (casting time <= 0)
