@@ -417,8 +417,11 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
    */
 
   switch (spellnum) {
-      // magical spells
-
+    
+      /*******************************************\
+      || ------------- MAGIC SPELLS ------------ ||
+      \*******************************************/
+    
     case SPELL_ACID_ARROW: //conjuration
       save = SAVING_REFL;
       mag_resist = TRUE;
