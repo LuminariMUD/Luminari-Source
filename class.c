@@ -1303,7 +1303,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_ELEMENTAL_SWARM, 99);
       SET_SKILL(ch, SPELL_REGENERATION, 99);
       SET_SKILL(ch, SPELL_MASS_CURE_CRIT, 99);
-      // shambler SET_SKILL(ch, SPELL_SHAMBLER, 99);
+      SET_SKILL(ch, SPELL_SHAMBLER, 99);
       SET_SKILL(ch, SPELL_POLYMORPH, 99); // should be SHAPECHANGE
       SET_SKILL(ch, SPELL_STORM_OF_VENGEANCE, 99);
       // summon nature's ally ix SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_9, 99);
@@ -2820,12 +2820,10 @@ void init_spell_levels(void) {
   spell_level(SPELL_ELEMENTAL_SWARM, CLASS_DRUID, 17);
   spell_level(SPELL_REGENERATION, CLASS_DRUID, 17);
   spell_level(SPELL_MASS_CURE_CRIT, CLASS_DRUID, 17);
-  // shambler
+  spell_level(SPELL_SHAMBLER, CLASS_DRUID, 17);
   spell_level(SPELL_POLYMORPH, CLASS_DRUID, 17); // should be shapechange
   spell_level(SPELL_STORM_OF_VENGEANCE, CLASS_DRUID, 17);
   // summon nature's ally ix
-  //spell_level(SPELL_GROUP_HEAL, CLASS_DRUID, 17); // no
-  //spell_level(SPELL_ENERGY_DRAIN, CLASS_DRUID, 17); // no
 
   //epic spells
   spell_level(SPELL_MUMMY_DUST, CLASS_DRUID, 20);

@@ -2208,8 +2208,10 @@ void mag_assign_spells(void) {
   /* conjuration */
   spello(SPELL_ELEMENTAL_SWARM, "elemental swarm", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
           FALSE, MAG_SUMMONS, NULL, 12, 13, CONJURATION);
-  spello(SPELL_GATE, "gate", 51, 36, 1, POS_FIGHTING, TAR_IGNORE, TRUE,
+  spello(SPELL_GATE, "gate", 51, 36, 1, POS_FIGHTING, TAR_IGNORE, FALSE,
           MAG_CREATIONS, NULL, 9, 13, CONJURATION);
+  spello(SPELL_SHAMBLER, "shambler", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
+          MAG_SUMMONS, NULL, 9, 13, CONJURATION);
   spello(SPELL_SUMMON_CREATURE_9, "summon creature ix", 0, 0, 0,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 12, 13, CONJURATION);
   /* necromancy */

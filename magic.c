@@ -993,6 +993,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       num_dice = MIN(divine_level / 3, 6);
       size_dice = 6;
       bonus = divine_level;
+      break;
       
     case SPELL_METEOR_SWARM:
       //AoE
@@ -3624,6 +3625,7 @@ static const char *mag_summon_msgs[] = {
   "$N manifests with an ancient howl, then moves towards $n.", //22 hound
   "$N stalks into the area, roars loudly, then moves towards $n.", //23 d tiger
   "$N pops into existence next to $n.", //24 black blade of disaster
+  "$N skulks into the area, seemingly from nowhere!", // 25 shambler
 };
 static const char *mag_summon_to_msgs[] = {
   "\r\n", //0
@@ -3652,6 +3654,7 @@ static const char *mag_summon_to_msgs[] = {
   "$N manifests with an ancient howl, then moves towards you.", //22 hound
   "$N stalks into the area, roars loudly, then moves towards you.", //23 d tiger
   "$N pops into existence next to you.", //24 black blade of disaster
+  "$N skulks into the area, seemingly from nowhere!", // 25 shambler
 };
 
 
@@ -3799,14 +3802,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       pfail = 0;
       break;
 
-    case SPELL_SHELGARNS_BLADE: //divination
-      handle_corpse = FALSE;
-      msg = 15;
-      fmsg = rand_number(2, 6); /* Random fail message. */
-      mob_num = MOB_SHELGARNS_BLADE;
-      pfail = 0;
-      break;
-
     case SPELL_ELEMENTAL_SWARM: // conjuration
       handle_corpse = FALSE;
       fmsg = rand_number(2, 6);
@@ -3834,6 +3829,22 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       msg = 19;
       fmsg = rand_number(2, 6); /* Random fail message. */
       mob_num = MOB_PHANTOM_STEED;
+      pfail = 0;
+      break;
+
+    case SPELL_SHAMBLER: // conjuration
+      handle_corpse = FALSE;
+      msg = 25;
+      fmsg = rand_number(2, 6);
+      mob_num = 9499;
+      num = dice(1, 4) + 2;
+      break;
+      
+    case SPELL_SHELGARNS_BLADE: //divination
+      handle_corpse = FALSE;
+      msg = 15;
+      fmsg = rand_number(2, 6); /* Random fail message. */
+      mob_num = MOB_SHELGARNS_BLADE;
       pfail = 0;
       break;
 
