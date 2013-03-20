@@ -1394,6 +1394,11 @@ static void perform_wear(struct char_data *ch,
     return;
   }
 
+  if (OBJ_FLAGGED(obj, ITEM_MOLD)) {
+    send_to_char(ch, "You can't wear an object mold!\r\n");
+    return;
+  }
+
   // TAKE is used for objects that don't require special bits, ex. HOLD
   int wear_bitvectors[] = {
     ITEM_WEAR_TAKE, ITEM_WEAR_FINGER, ITEM_WEAR_FINGER, ITEM_WEAR_NECK,
@@ -1644,6 +1649,8 @@ ACMD(do_wield)
   else {
     if (!CAN_WEAR(obj, ITEM_WEAR_WIELD))
       send_to_char(ch, "You can't wield that.\r\n");
+    else if (OBJ_FLAGGED(obj, ITEM_MOLD)) {
+      send_to_char(ch, "You can't wield an object mold!\r\n");
     else if (GET_OBJ_WEIGHT(obj) > str_app[GET_STR(ch)].wield_w)
       send_to_char(ch, "It's too heavy for you to use.\r\n");
     else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
