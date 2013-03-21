@@ -488,7 +488,7 @@ int bardSlots[LVL_IMPL + 1][10] = {
 };
   
 
-/** known spells for 1sorcs **/
+/** known spells for sorcs **/
 int sorcererKnown[LVL_IMPL + 1][10] = {
 // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
   {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },	// 0
