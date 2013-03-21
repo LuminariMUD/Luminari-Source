@@ -68,6 +68,7 @@ ACMD(do_kitquests);
 ACMD(do_spellquests);
 ACMD(do_qref);
 ACMD(do_qview);
+ACMD(do_hlqedit);
 /* end commands */
   
 /*
