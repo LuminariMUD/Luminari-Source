@@ -1181,37 +1181,37 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_STR:
-    GET_STR(OLC_MOB(d)) = LIMIT(i, 11, 50);
+    GET_STR(OLC_MOB(d)) = LIMIT(i, 3, 50);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
 
   case MEDIT_INT:
-    GET_INT(OLC_MOB(d)) = LIMIT(i, 11, 50);
+    GET_INT(OLC_MOB(d)) = LIMIT(i, 3, 50);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
 
   case MEDIT_WIS:
-    GET_WIS(OLC_MOB(d)) = LIMIT(i, 11, 50);
+    GET_WIS(OLC_MOB(d)) = LIMIT(i, 3, 50);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
 
   case MEDIT_DEX:
-    GET_DEX(OLC_MOB(d)) = LIMIT(i, 11, 50);
+    GET_DEX(OLC_MOB(d)) = LIMIT(i, 3, 50);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
 
   case MEDIT_CON:
-    GET_CON(OLC_MOB(d)) = LIMIT(i, 11, 50);
+    GET_CON(OLC_MOB(d)) = LIMIT(i, 3, 50);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
 
   case MEDIT_CHA:
-    GET_CHA(OLC_MOB(d)) = LIMIT(i, 11, 50);
+    GET_CHA(OLC_MOB(d)) = LIMIT(i, 3, 50);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
