@@ -271,6 +271,7 @@ static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum 
       case CON_OEDIT:
       case CON_TRIGEDIT:
       case CON_QEDIT:
+      case CON_HLQEDIT:
         OLC_ZNUM(dsc) += (OLC_ZNUM(dsc) >= result);
         break;
       default:

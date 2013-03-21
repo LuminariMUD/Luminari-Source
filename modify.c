@@ -239,6 +239,7 @@ void string_add(struct descriptor_data *d, char *str)
         case CON_TRIGEDIT:
         case CON_HEDIT:
         case CON_QEDIT:
+        case CON_HLQEDIT:
         case CON_STUDY:
         case CON_IBTEDIT:
 	     free(*d->str);
@@ -281,6 +282,7 @@ void string_add(struct descriptor_data *d, char *str)
       { CON_PLAYING, playing_string_cleanup },
       { CON_HEDIT, hedit_string_cleanup },
       { CON_QEDIT  , qedit_string_cleanup },
+//      { CON_HLQEDIT  , hlqedit_string_cleanup },
       { CON_IBTEDIT, ibtedit_string_cleanup },
       { -1, NULL }
     };

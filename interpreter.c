@@ -1445,6 +1445,7 @@ void nanny(struct descriptor_data *d, char *arg) {
     { CON_AEDIT, aedit_parse},
     { CON_HEDIT, hedit_parse},
     { CON_QEDIT, qedit_parse},
+    { CON_HLQEDIT, hlqedit_parse},
     { CON_PREFEDIT, prefedit_parse},
     { CON_IBTEDIT, ibtedit_parse},
     { CON_CLANEDIT, clanedit_parse},

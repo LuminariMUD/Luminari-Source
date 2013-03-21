@@ -15,14 +15,15 @@
 
 
 /* arbitrary constants used by index_boot() (must be unique) */
-#define DB_BOOT_WLD	0
-#define DB_BOOT_MOB	1
-#define DB_BOOT_OBJ	2
-#define DB_BOOT_ZON	3
-#define DB_BOOT_SHP	4
-#define DB_BOOT_HLP	5
-#define DB_BOOT_TRG	6
-#define DB_BOOT_QST 7
+#define DB_BOOT_WLD   0
+#define DB_BOOT_MOB   1
+#define DB_BOOT_OBJ   2
+#define DB_BOOT_ZON   3
+#define DB_BOOT_SHP   4
+#define DB_BOOT_HLP   5
+#define DB_BOOT_TRG	  6
+#define DB_BOOT_QST   7
+#define DB_BOOT_HLQST 8
 
 #if defined(CIRCLE_MACINTOSH)
 #define LIB_WORLD	":world:"
@@ -84,6 +85,7 @@
 #define TRG_PREFIX  LIB_WORLD"trg"SLASH	/* trigger files	*/
 #define HLP_PREFIX  LIB_TEXT"help"SLASH /* Help files           */
 #define QST_PREFIX  LIB_WORLD"qst"SLASH /* quest files          */
+#define HLQST_PREFIX  LIB_WORLD"hlq"SLASH /* quest files          */
 
 #define CREDITS_FILE	LIB_TEXT"credits" /* for the 'credits' command	*/
 #define NEWS_FILE	LIB_TEXT"news"	/* for the 'news' command	*/
