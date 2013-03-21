@@ -633,11 +633,11 @@ do                                                              \
     GET_LEVEL(ch))
 
 
-
-
 // player class is really defined by CLASS_LEVEL now - zusuk
 #define GET_CLASS(ch)   ((ch)->player.chclass)
 
+// churches homeland-port
+#define GET_CHURCH(ch)  ((ch)->player_specials->saved.church)
 
 
 /** Race of ch. */

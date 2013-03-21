@@ -77,6 +77,25 @@ const char *class_menu =
         "  r)  \tYRanger\tn\r\n"
         "  a)  \tCBard\tn\r\n";
 
+
+/* homeland-port */
+const char *church_types[] = {
+	"Ao",
+	"Akadi",
+	"Chauntea",
+	"Cyric",
+	"Grumbar",
+	"Istishia",
+	"Kelemvor",
+	"Kossuth",
+	"Lathander",
+	"Mystra",
+	"Oghma",
+	"Shar",
+	"Silvanus",
+	"\n"
+};
+
 /* The code to interpret a class letter -- used in interpreter.c when a new
  * character is selecting a class and by 'set class' in act.wizard.c. */
 int parse_class(char arg) {

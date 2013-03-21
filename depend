@@ -135,6 +135,9 @@ handler.o: handler.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 hedit.o: hedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h db.h boards.h oasis.h genolc.h genzon.h \
  handler.h improved-edit.h act.h hedit.h modify.h
+hlquest.o: hlquest.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
+ race.h comm.h interpreter.h handler.h db.h hlquest.h spells.h class.h \
+ fight.h
 house.o: house.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h db.h interpreter.h house.h constants.h modify.h
 ibt.o: ibt.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
@@ -156,7 +159,7 @@ lists.o: lists.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h dg_event.h
 magic.o: magic.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h handler.h db.h interpreter.h constants.h \
- dg_scripts.h class.h fight.h mud_event.h dg_event.h
+ dg_scripts.h class.h fight.h mud_event.h dg_event.h act.h
 mail.o: mail.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h interpreter.h handler.h mail.h modify.h
 medit.o: medit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \

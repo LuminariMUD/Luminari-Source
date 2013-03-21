@@ -697,6 +697,8 @@ struct spell_info_type {
   int time; /* casting time */
   int memtime; /* mem time */
   int schoolOfMagic; // school of magic, category for skills
+  
+  bool quest;  // is this a quest spell?
 };
 
 /* Possible Targets:
