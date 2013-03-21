@@ -606,10 +606,11 @@
 #define CON_QCLASS_HELP  36 /* help info during char creation */
 #define CON_QALIGN       37 /* alignment selection in char creation */
 #define CON_QRACE_HELP   38 /* help info (race) during char creation */
+#define CON_HLQEDIT      39 /* homeland-port quest editor */
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT     /**< The first CON_ state that is an OLC */
-#define LAST_OLC_STATE  CON_STUDY    /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES	39
+#define LAST_OLC_STATE  CON_HLQEDIT    /**< The last CON_ state that is an OLC  */
+#define NUM_CON_STATES	40
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
