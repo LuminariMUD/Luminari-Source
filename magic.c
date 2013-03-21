@@ -4648,6 +4648,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
   level = MAX(MIN(level, LVL_IMPL), 1);
 
   switch (spellnum) {
+    
     /*******  ROOM EVENTS     ************/
     case SPELL_I_DARKNESS:
       IdNum = eDARKNESS;

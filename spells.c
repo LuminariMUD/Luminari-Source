@@ -1379,8 +1379,7 @@ ASPELL(spell_teleport) {
     return;
 
   if (!victim) {
-    send_to_char(ch, "Your target does not exist!\r\n");
-    return;
+    victim = ch;
   }
 
   if (IS_NPC(victim) && MOB_FLAGGED(victim, MOB_NOSUMMON)) {

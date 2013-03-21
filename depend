@@ -135,9 +135,12 @@ handler.o: handler.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 hedit.o: hedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h db.h boards.h oasis.h genolc.h genzon.h \
  handler.h improved-edit.h act.h hedit.h modify.h
+hlqedit.o: hlqedit.c conf.h sysdep.h structs.h protocol.h lists.h comm.h \
+ utils.h race.h db.h boards.h oasis.h interpreter.h constants.h hlquest.h \
+ spells.h class.h
 hlquest.o: hlquest.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h handler.h db.h hlquest.h spells.h class.h \
- fight.h
+ fight.h act.h constants.h
 house.o: house.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h db.h interpreter.h house.h constants.h modify.h
 ibt.o: ibt.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
@@ -150,8 +153,8 @@ interpreter.o: interpreter.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h db.h spells.h handler.h mail.h \
  screen.h genolc.h oasis.h improved-edit.h dg_scripts.h constants.h act.h \
  ban.h class.h graph.h hedit.h house.h config.h modify.h quest.h \
- asciimap.h prefedit.h ibt.h mud_event.h dg_event.h clan.h craft.h \
- treasure.h
+ hlquest.h asciimap.h prefedit.h ibt.h mud_event.h dg_event.h clan.h \
+ craft.h treasure.h
 limits.o: limits.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h spells.h comm.h db.h handler.h interpreter.h dg_scripts.h class.h \
  fight.h screen.h mud_event.h dg_event.h
