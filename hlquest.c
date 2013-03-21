@@ -383,7 +383,7 @@ ACMD(do_spellquests) {
         for (qcom = quest->out; qcom; qcom = qcom->next) {
           if (qcom->type == QUEST_COMMAND_TEACH_SPELL) {
             sprintf(buf, "/tc%-32s/tn - %s(/tW%d/tn)\r\n"
-                    , spells[qcom->value]
+                    , spell_info[qcom->value].name
                     , mob_proto[i].player.short_descr
                     , mob_index[i].vnum
                     );
