@@ -224,6 +224,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "holylight", "holy", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_HOLYLIGHT, TRUE},
   { "house", "house", POS_RESTING, do_house, 0, 0, FALSE},
   { "harvest", "harvest", POS_STANDING, do_harvest, 1, 0, FALSE},
+  { "hlqedit", "hlqedit", POS_DEAD, do_hlqedit, LVL_BUILDER, 0, TRUE},
 
   { "inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE},
   { "identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE},
