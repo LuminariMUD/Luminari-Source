@@ -85,16 +85,17 @@ const char *church_types[] = {
 	"Chauntea",
 	"Cyric",
 	"Grumbar",
-	"Istishia",
+	"Istishia",  //5
 	"Kelemvor",
 	"Kossuth",
 	"Lathander",
 	"Mystra",
-	"Oghma",
+	"Oghma",  //10
 	"Shar",
 	"Silvanus",
 	"\n"
 };
+// 14
 
 /* The code to interpret a class letter -- used in interpreter.c when a new
  * character is selecting a class and by 'set class' in act.wizard.c. */

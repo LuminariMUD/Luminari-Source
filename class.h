@@ -13,6 +13,10 @@
 #ifndef _CLASS_H_
 #define _CLASS_H_
 
+/* defines */
+#define NUM_CHURCHES 13
+/* end defines */
+
 /* Functions available through class.c */
 int backstab_mult(struct char_data *ch);
 void do_start(struct char_data *ch);

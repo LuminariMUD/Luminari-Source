@@ -26,6 +26,9 @@
 bool valid_item_spell(int spellnum) {
 
   /* just list exceptions */
+  /* NOTE if you add any exception here, better make
+   sure wizards have another way of getting the spell
+   */
   switch (spellnum) {
     case SPELL_VENTRILOQUATE:
     case SPELL_MUMMY_DUST:
@@ -47,7 +50,10 @@ bool valid_item_spell(int spellnum) {
     case SPELL_UNUSED271:
     case SPELL_UNUSED275:
     case SPELL_UNUSED285:
+    case SPELL_ANIMATE_DEAD:
+    case SPELL_GREATER_ANIMATION:
     case SPELL_BLADES:
+    case SPELL_CONTROL_WEATHER:
     case SPELL_I_DARKNESS:
       return FALSE;
   }
@@ -355,7 +361,7 @@ void award_random_crystal(struct char_data *ch, int level) {
     sprintf(buf, "crystal %s %s %s", colors[color1], colors[color2],
             crystal_descs[desc]);
     obj->name = strdup(buf);
-    sprintf(buf, "a  %s, %s and %s crystal", crystal_descs[desc],
+    sprintf(buf, "a %s, %s and %s crystal", crystal_descs[desc],
             colors[color1], colors[color2]);
     obj->short_description = strdup(buf);
     sprintf(buf, "A %s, %s and %s crystal lies here.", crystal_descs[desc],
@@ -719,13 +725,13 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
       vnum = STUD_LEATHER_BODY;
       material = MATERIAL_LEATHER;
       sprintf(desc, "%sa suit of", desc);
-      sprintf(armor_name, "studded leather armor");
+      sprintf(armor_name, "studded armor");
       break;
     case 7:
       vnum = LEATHER_BODY;
       material = MATERIAL_LEATHER;
       sprintf(desc, "%sa suit of", desc);
-      sprintf(armor_name, "leather armor");
+      sprintf(armor_name, "armor");
       break;
     case 8:
       vnum = PADDED_BODY;
@@ -769,19 +775,19 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
       vnum = CHAIN_HELM;
       material = MATERIAL_BRONZE;
       sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "chain mail helm");
+      sprintf(armor_name, "coif");
       break;
     case 15:
       vnum = STUD_LEATHER_HELM;
       material = MATERIAL_LEATHER;
       sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "studded leather helm");
+      sprintf(armor_name, "studded helm");
       break;
     case 16:
       vnum = LEATHER_HELM;
       material = MATERIAL_LEATHER;
       sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "leather helm");
+      sprintf(armor_name, "helm");
       break;
     case 17:
       vnum = PADDED_HELM;
@@ -825,13 +831,13 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
       vnum = STUD_LEATHER_ARMS;
       material = MATERIAL_LEATHER;
       sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "studded leather sleeves");
+      sprintf(armor_name, "studded sleeves");
       break;
     case 24:
       vnum = LEATHER_ARMS;
       material = MATERIAL_LEATHER;
       sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "leather sleeves");
+      sprintf(armor_name, "sleeves");
       break;
     case 25:
       vnum = PADDED_ARMS;
@@ -875,13 +881,13 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
       vnum = STUD_LEATHER_LEGS;
       material = MATERIAL_LEATHER;
       sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "studded leather leggings");
+      sprintf(armor_name, "studded leggings");
       break;
     case 32:
       vnum = LEATHER_LEGS;
       material = MATERIAL_LEATHER;
       sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "leather leggings");
+      sprintf(armor_name, "cuisses");
       break;
     case 33:
       vnum = PADDED_LEGS;
@@ -1970,7 +1976,13 @@ ACMD(do_loadmagic) {
 
   if (*arg2)
     number = atoi(arg2);
-
+  
+  if (number < 0)
+    number = 1;
+  
+  if (number > 99)
+    number = 99;
+  
   award_magic_item(number, ch, GET_LEVEL(ch), grade);
 }
 

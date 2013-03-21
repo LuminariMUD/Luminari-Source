@@ -23,9 +23,7 @@
 /***************************************************************/
 
 void add_follower(struct char_data * ch, struct char_data *leader);
-extern void clear_hlquest(struct quest_entry *quest);
 extern struct char_data *mob_proto;
-void erase_spell_memory(struct char_data *ch);
 extern int isname(const char *str, const char *namelist);
 extern void quest_open_door(int room, int door);
 extern struct zone_data *zone_table;
@@ -39,8 +37,6 @@ int level_exp(struct char_data *ch, int level);
 
 /*********************************/
 /*********************************/
-
-
 
 
 /* homeland-port this eventually can be used to have special class 
@@ -167,117 +163,6 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
   send_to_char(ch, quest->reply_msg);
 }
 
-ACMD(do_qinfo) {
-  int i = 0, j = 0, start_num = 0, end_num = 0, number = 0, found = 0;
-  int realnum = -1;
-  struct quest_entry *quest = NULL;
-  struct quest_command *qcmd = NULL;
-  char arg[MAX_INPUT_LENGTH] = { '\0' };
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-  char buf2[MAX_INPUT_LENGTH] = { '\0' };
-
-  one_argument(argument, arg);
-
-  if (!*arg) {
-    send_to_char(ch, "qinfo what object?\r\n");
-    return;
-  }
-  if ((number = atoi(arg)) < 0) {
-    send_to_char(ch, "No such object.\r\n");
-    return;
-  }
-
-  for (j = 0; j <= top_of_zone_table; j++) {
-    start_num = zone_table[j].number * 100;
-    end_num = zone_table[real_zone(start_num)].top;
-    for (i = start_num; i <= end_num; i++) {
-      if ((realnum = real_mobile(i)) >= 0) {
-        if (mob_proto[realnum].mob_specials.quest) {
-          for (quest = mob_proto[realnum].mob_specials.quest; quest; quest =
-                  quest->next) {
-            for (qcmd = quest->in; qcmd && !found; qcmd = qcmd->next) {
-              if (qcmd->type == QUEST_COMMAND_ITEM && number == qcmd->value) {
-                found = 1;
-              }
-            }
-            for (qcmd = quest->out; qcmd && !found; qcmd = qcmd->next) {
-              if (qcmd->type == QUEST_GIVE && number == qcmd->value) {
-                found = 1;
-              }
-            }
-            if (found) {
-              sprintf(buf, "You");
-              for (qcmd = quest->in; qcmd; qcmd = qcmd->next) {
-                if (qcmd->type == QUEST_GIVE) {
-                  sprintf(buf2, " give %s (%d)",
-                          obj_proto[ real_object(qcmd->value)].short_description,
-                          qcmd->value);
-                  strcat(buf, buf2);
-                } else if (qcmd->type == QUEST_COMMAND_COINS) {
-                  sprintf(buf2, " give %d copper coins", qcmd->value);
-                  strcat(buf, buf2);
-                }
-                if (qcmd->next) {
-                  strcat(buf, " and");
-                }
-              }
-              sprintf(buf2, "\r\nTo %s (%d)\r\n", mob_proto[realnum].player.
-                      short_descr, i);
-              strcat(buf, buf2);
-              for (qcmd = quest->out; qcmd; qcmd = qcmd->next) {
-                if (qcmd->type == QUEST_GIVE) {
-                  sprintf(buf2, " and you receive %s (%d)",
-                          obj_proto[ real_object(qcmd->value)].short_description,
-                          qcmd->value);
-                  strcat(buf, buf2);
-                } else if (qcmd->type == QUEST_COMMAND_DISAPPEAR) {
-                  strcat(buf, " and the mob disappears");
-                } else if (qcmd->type == QUEST_COMMAND_ATTACK_QUESTOR) {
-                  strcat(buf, " and the mob Attacks!");
-                } else if (qcmd->type == QUEST_COMMAND_LOAD_OBJECT_INROOM) {
-                  sprintf(buf2, " and the mob loads %s in %s(%d)",
-                          obj_proto[ real_object(qcmd->value)].short_description,
-                          (qcmd->location == -1 ? "CurrentRoom" :
-                          world[real_room(qcmd->location)].name), qcmd->location);
-                  strcat(buf, buf2);
-                } else if (qcmd->type == QUEST_COMMAND_TEACH_SPELL) {
-                  sprintf(buf2, " and teaches you %s", spell_info[qcmd->value].name);
-                  strcat(buf, buf2);
-                } else if (qcmd->type == QUEST_COMMAND_OPEN_DOOR) {
-                  sprintf(buf2, "and opens a door %s in %s(%d)", dirs[qcmd->value],
-                          world[real_room(qcmd->location)].name, qcmd->location);
-                  strcat(buf, buf2);
-                } else if (qcmd->type == QUEST_COMMAND_LOAD_MOB_INROOM) {
-                  sprintf(buf2, " and loads %s in %s (%d)",
-                          mob_proto[ real_mobile(qcmd->value)].player.short_descr,
-                          qcmd->location == -1 ? "CurrentRoom" :
-                          world[real_room(qcmd->location)].name, qcmd->location);
-                  strcat(buf, buf2);
-                } else if (qcmd->type == QUEST_COMMAND_FOLLOW) {
-                  strcat(buf, " and follows you");
-                } else if (qcmd->type == QUEST_COMMAND_KIT) {
-                  sprintf(buf, "and changes your kit to %s", pc_class_types[qcmd->value]);
-                  strcat(buf, buf2);
-                } else if (qcmd->type == QUEST_COMMAND_CHURCH) {
-                  sprintf(buf2, " and changes your religious affiliation to %s",
-                          church_types[qcmd->value]);
-                  strcat(buf, buf2);
-                } else {
-                  strcat(buf, " tell azuth get off his lazy @$$ and fix this");
-                }
-              } // end quest-> out loop 
-
-              strcat(buf, ".\r\n\r\n");
-              send_to_char(ch, buf);
-              found = 0;
-            } // end of if (found)
-          } // end quest loop
-        } // End if (mob has quest)
-      } //do we have a mob?
-    } // mobs in zone walk
-  } // zone table walk
-}
-
 bool has_spell_a_quest(int spell) {
   int i;
   struct quest_entry *quest;
@@ -293,222 +178,6 @@ bool has_spell_a_quest(int spell) {
     }
   }
   return FALSE;
-}
-
-ACMD(do_checkapproved) {
-  int i;
-  int count;
-  int total;
-  struct quest_entry *quest;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-
-  for (i = 0; i < top_of_mobt; i++) {
-    if (mob_proto[i].mob_specials.quest) {
-      count = 0;
-      total = 0;
-      for (quest = mob_proto[i].mob_specials.quest; quest; quest = quest->next) {
-        if (quest->approved == FALSE)
-          count++;
-        total++;
-      }
-      if (count > 0) {
-        sprintf(buf, "[%5d] %-40s  %d/%d\r\n"
-                , mob_index[i].vnum
-                , mob_proto[i].player.short_descr
-                , total - count
-                , total
-                );
-        send_to_char(ch, buf);
-      }
-    }
-  }
-}
-
-ACMD(do_kitquests) {
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-  
-  if (GET_LEVEL(ch) < LVL_IMMORT) {
-    sprintf(buf, "(GC) %s looked at kitquest list.", GET_NAME(ch));
-    log(buf);
-  }
-
-  int i;
-  struct quest_entry *quest;
-  struct quest_command *qcom;
-
-  for (i = 0; i < top_of_mobt; i++) {
-    if (mob_proto[i].mob_specials.quest) {
-      for (quest = mob_proto[i].mob_specials.quest; quest; quest = quest->next) {
-        // check in.
-        for (qcom = quest->out; qcom; qcom = qcom->next) {
-          if (qcom->type == QUEST_COMMAND_KIT) {
-            sprintf(buf, "\tc%-32s\tn - %s(\tW%d\tn)\r\n"
-                    , pc_class_types[ qcom->value ]
-                    , mob_proto[i].player.short_descr
-                    , mob_index[i].vnum
-                    );
-            send_to_char(ch, buf);
-          }
-        }
-      }
-    }
-  }
-}
-
-ACMD(do_spellquests) {
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-  int i;
-  struct quest_entry *quest;
-  struct quest_command *qcom;
-
-  if (GET_LEVEL(ch) < LVL_IMMORT) {
-    sprintf(buf, "(GC) %s looked at spellquest list.", GET_NAME(ch));
-    log(buf);
-  }
-
-  send_to_char(ch, "\tcSpells requiring quests:\tn\r\n\tc-------------------\tn\r\n");
-  for (i = 0; i < MAX_SPELLS; i++) {
-    if (spell_info[i].quest) {
-      sprintf(buf, "\tc%-32s\tn  %s\r\n", spell_info[i].name, (has_spell_a_quest(i) ? "(\tCQuest\tn)" : ""));
-      send_to_char(ch, buf);
-    }
-  }
-
-  send_to_char(ch, "\r\n\tCCurrent quests:\tn\r\n\tc-------------------\tn\r\n");
-  for (i = 0; i < top_of_mobt; i++) {
-    if (mob_proto[i].mob_specials.quest) {
-      for (quest = mob_proto[i].mob_specials.quest; quest; quest = quest->next) {
-        // check in.
-        for (qcom = quest->out; qcom; qcom = qcom->next) {
-          if (qcom->type == QUEST_COMMAND_TEACH_SPELL) {
-            sprintf(buf, "\tc%-32s\tn - %s(\tW%d\tn)\r\n"
-                    , spell_info[qcom->value].name
-                    , mob_proto[i].player.short_descr
-                    , mob_index[i].vnum
-                    );
-            send_to_char(ch, buf);
-          }
-        }
-      }
-    }
-  }
-}
-
-ACMD(do_qref) {
-  int i;
-  int count = 0;
-  int vnum = 0;
-  int real_num = 0;
-  struct quest_entry *quest;
-  struct quest_command *qcom;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-
-  one_argument(argument, buf);
-  
-  if (!*buf) {
-    send_to_char(ch, "qref what object?\r\n");
-    return;
-  }
-  
-  vnum = atoi(buf);
-  real_num = real_object(vnum);
-  
-  if (real_num < 0) {
-    send_to_char(ch, "\tRNo such object!\tn\r\n");
-    return;
-  }
-
-  if (GET_LEVEL(ch) < LVL_IMMORT) {
-    sprintf(buf, "(GC) %s did a reference check for (%d).", GET_NAME(ch), vnum);
-    log(buf);
-  }
-
-  for (i = 0; i < top_of_mobt; i++) {
-    if (mob_proto[i].mob_specials.quest) {
-      for (quest = mob_proto[i].mob_specials.quest; quest; quest = quest->next) {
-        // check in.
-        for (qcom = quest->in; qcom; qcom = qcom->next) {
-          if (qcom->value == vnum && qcom->type == QUEST_COMMAND_ITEM) {
-            sprintf(buf, "\tCGIVE\tn %s to %s(\tW%d\tn)\r\n"
-                    , obj_proto[real_num].short_description
-                    , mob_proto[i].player.short_descr
-                    , mob_index[i].vnum
-                    );
-            send_to_char(ch, buf);
-            count++;
-          }
-        }
-
-        // check out.
-        for (qcom = quest->out; qcom; qcom = qcom->next) {
-          if (qcom->value == vnum) {
-            switch (qcom->type) {
-              case QUEST_COMMAND_ITEM:
-                sprintf(buf, "\tCRECIEVE\tn %s from %s(\tW%d\tn)\r\n"
-                        , obj_proto[real_num].short_description
-                        , mob_proto[i].player.short_descr
-                        , mob_index[i].vnum
-                        );
-                send_to_char(ch, buf);
-                count++;
-                break;
-              case QUEST_COMMAND_LOAD_OBJECT_INROOM:
-                sprintf(buf, "\tcLOADOBJECT\tn %s in quest for %s (\tW%d\tn)\r\n",
-                        obj_proto[ real_num].short_description
-                        , mob_proto[i].player.short_descr
-                        , mob_index[i].vnum);
-                send_to_char(ch, buf);
-                count++;
-                break;
-
-            }
-          }
-        }
-
-
-      }
-    }
-  }
-  if (count == 0) {
-    send_to_char(ch, "\tRThat object is not used in any quests!\tn\r\n");
-    return;
-  }
-}
-
-ACMD(do_qview) {
-  struct quest_entry *quest;
-  int num;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-  
-  one_argument(argument, buf);
-  
-  if (!*buf) {
-    send_to_char(ch, "Qview what mob?\r\n");
-    return;
-  }
-
-  num = real_mobile(atoi(buf));
-  if (num < 0) {
-    send_to_char(ch, "\tRNo such mobile!\tn\r\n");
-    return;
-  }
-
-  if (mob_proto[num].mob_specials.quest == 0) {
-    send_to_char(ch, "\tRThat mob has no quests.\tn\r\n");
-    return;
-  }
-
-  if (GET_LEVEL(ch) < 60) {
-    sprintf(buf, "(GC) %s has peeked at quest for (%d).", GET_NAME(ch), atoi(buf));
-    log(buf);
-  }
-
-  for (quest = mob_proto[num].mob_specials.quest; quest; quest = quest->next) {
-    show_quest_to_player(ch, quest);
-    if (quest->next)
-      send_to_char(ch, "\r\n\tW-------------------------------------\tn\r\n\r\n");
-  }
-
 }
 
 void give_back_items(struct char_data *questor, struct char_data *player, struct quest_entry *quest) {
@@ -1004,3 +673,333 @@ int quest_location_vnum(struct quest_command *qcom) {
   return -1;
 }
 
+/* utility functions end */
+
+/* hlquest commands ***/
+
+ACMD(do_qinfo) {
+  int i = 0, j = 0, start_num = 0, end_num = 0, number = 0, found = 0;
+  int realnum = -1;
+  struct quest_entry *quest = NULL;
+  struct quest_command *qcmd = NULL;
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf2[MAX_INPUT_LENGTH] = { '\0' };
+
+  one_argument(argument, arg);
+
+  if (!*arg) {
+    send_to_char(ch, "qinfo what object?\r\n");
+    return;
+  }
+  if ((number = atoi(arg)) < 0) {
+    send_to_char(ch, "No such object.\r\n");
+    return;
+  }
+
+  for (j = 0; j <= top_of_zone_table; j++) {
+    start_num = zone_table[j].number * 100;
+    end_num = zone_table[real_zone(start_num)].top;
+    for (i = start_num; i <= end_num; i++) {
+      if ((realnum = real_mobile(i)) >= 0) {
+        if (mob_proto[realnum].mob_specials.quest) {
+          for (quest = mob_proto[realnum].mob_specials.quest; quest; quest =
+                  quest->next) {
+            for (qcmd = quest->in; qcmd && !found; qcmd = qcmd->next) {
+              if (qcmd->type == QUEST_COMMAND_ITEM && number == qcmd->value) {
+                found = 1;
+              }
+            }
+            for (qcmd = quest->out; qcmd && !found; qcmd = qcmd->next) {
+              if (qcmd->type == QUEST_GIVE && number == qcmd->value) {
+                found = 1;
+              }
+            }
+            if (found) {
+              sprintf(buf, "You");
+              for (qcmd = quest->in; qcmd; qcmd = qcmd->next) {
+                if (qcmd->type == QUEST_GIVE) {
+                  sprintf(buf2, " give %s (%d)",
+                          obj_proto[ real_object(qcmd->value)].short_description,
+                          qcmd->value);
+                  strcat(buf, buf2);
+                } else if (qcmd->type == QUEST_COMMAND_COINS) {
+                  sprintf(buf2, " give %d copper coins", qcmd->value);
+                  strcat(buf, buf2);
+                }
+                if (qcmd->next) {
+                  strcat(buf, " and");
+                }
+              }
+              sprintf(buf2, "\r\nTo %s (%d)\r\n", mob_proto[realnum].player.
+                      short_descr, i);
+              strcat(buf, buf2);
+              for (qcmd = quest->out; qcmd; qcmd = qcmd->next) {
+                if (qcmd->type == QUEST_GIVE) {
+                  sprintf(buf2, " and you receive %s (%d)",
+                          obj_proto[ real_object(qcmd->value)].short_description,
+                          qcmd->value);
+                  strcat(buf, buf2);
+                } else if (qcmd->type == QUEST_COMMAND_DISAPPEAR) {
+                  strcat(buf, " and the mob disappears");
+                } else if (qcmd->type == QUEST_COMMAND_ATTACK_QUESTOR) {
+                  strcat(buf, " and the mob Attacks!");
+                } else if (qcmd->type == QUEST_COMMAND_LOAD_OBJECT_INROOM) {
+                  sprintf(buf2, " and the mob loads %s in %s(%d)",
+                          obj_proto[ real_object(qcmd->value)].short_description,
+                          (qcmd->location == -1 ? "CurrentRoom" :
+                          world[real_room(qcmd->location)].name), qcmd->location);
+                  strcat(buf, buf2);
+                } else if (qcmd->type == QUEST_COMMAND_TEACH_SPELL) {
+                  sprintf(buf2, " and teaches you %s", spell_info[qcmd->value].name);
+                  strcat(buf, buf2);
+                } else if (qcmd->type == QUEST_COMMAND_OPEN_DOOR) {
+                  sprintf(buf2, "and opens a door %s in %s(%d)", dirs[qcmd->value],
+                          world[real_room(qcmd->location)].name, qcmd->location);
+                  strcat(buf, buf2);
+                } else if (qcmd->type == QUEST_COMMAND_LOAD_MOB_INROOM) {
+                  sprintf(buf2, " and loads %s in %s (%d)",
+                          mob_proto[ real_mobile(qcmd->value)].player.short_descr,
+                          qcmd->location == -1 ? "CurrentRoom" :
+                          world[real_room(qcmd->location)].name, qcmd->location);
+                  strcat(buf, buf2);
+                } else if (qcmd->type == QUEST_COMMAND_FOLLOW) {
+                  strcat(buf, " and follows you");
+                } else if (qcmd->type == QUEST_COMMAND_KIT) {
+                  sprintf(buf, "and changes your kit to %s", pc_class_types[qcmd->value]);
+                  strcat(buf, buf2);
+                } else if (qcmd->type == QUEST_COMMAND_CHURCH) {
+                  sprintf(buf2, " and changes your religious affiliation to %s",
+                          church_types[qcmd->value]);
+                  strcat(buf, buf2);
+                } else {
+                  strcat(buf, " tell azuth get off his lazy @$$ and fix this");
+                }
+              } // end quest-> out loop 
+
+              strcat(buf, ".\r\n\r\n");
+              send_to_char(ch, buf);
+              found = 0;
+            } // end of if (found)
+          } // end quest loop
+        } // End if (mob has quest)
+      } //do we have a mob?
+    } // mobs in zone walk
+  } // zone table walk
+}
+
+ACMD(do_checkapproved) {
+  int i;
+  int count;
+  int total;
+  struct quest_entry *quest;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+
+  for (i = 0; i < top_of_mobt; i++) {
+    if (mob_proto[i].mob_specials.quest) {
+      count = 0;
+      total = 0;
+      for (quest = mob_proto[i].mob_specials.quest; quest; quest = quest->next) {
+        if (quest->approved == FALSE)
+          count++;
+        total++;
+      }
+      if (count > 0) {
+        sprintf(buf, "[%5d] %-40s  %d/%d\r\n"
+                , mob_index[i].vnum
+                , mob_proto[i].player.short_descr
+                , total - count
+                , total
+                );
+        send_to_char(ch, buf);
+      }
+    }
+  }
+}
+
+ACMD(do_kitquests) {
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  
+  if (GET_LEVEL(ch) < LVL_IMMORT) {
+    sprintf(buf, "(GC) %s looked at kitquest list.", GET_NAME(ch));
+    log(buf);
+  }
+
+  int i;
+  struct quest_entry *quest;
+  struct quest_command *qcom;
+
+  for (i = 0; i < top_of_mobt; i++) {
+    if (mob_proto[i].mob_specials.quest) {
+      for (quest = mob_proto[i].mob_specials.quest; quest; quest = quest->next) {
+        // check in.
+        for (qcom = quest->out; qcom; qcom = qcom->next) {
+          if (qcom->type == QUEST_COMMAND_KIT) {
+            sprintf(buf, "\tc%-32s\tn - %s(\tW%d\tn)\r\n"
+                    , pc_class_types[ qcom->value ]
+                    , mob_proto[i].player.short_descr
+                    , mob_index[i].vnum
+                    );
+            send_to_char(ch, buf);
+          }
+        }
+      }
+    }
+  }
+}
+
+ACMD(do_spellquests) {
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  int i;
+  struct quest_entry *quest;
+  struct quest_command *qcom;
+
+  if (GET_LEVEL(ch) < LVL_IMMORT) {
+    sprintf(buf, "(GC) %s looked at spellquest list.", GET_NAME(ch));
+    log(buf);
+  }
+
+  send_to_char(ch, "\tcSpells requiring quests:\tn\r\n\tc-------------------\tn\r\n");
+  for (i = 0; i < MAX_SPELLS; i++) {
+    if (spell_info[i].quest) {
+      sprintf(buf, "\tc%-32s\tn  %s\r\n", spell_info[i].name, (has_spell_a_quest(i) ? "(\tCQuest\tn)" : ""));
+      send_to_char(ch, buf);
+    }
+  }
+
+  send_to_char(ch, "\r\n\tCCurrent quests:\tn\r\n\tc-------------------\tn\r\n");
+  for (i = 0; i < top_of_mobt; i++) {
+    if (mob_proto[i].mob_specials.quest) {
+      for (quest = mob_proto[i].mob_specials.quest; quest; quest = quest->next) {
+        // check in.
+        for (qcom = quest->out; qcom; qcom = qcom->next) {
+          if (qcom->type == QUEST_COMMAND_TEACH_SPELL) {
+            sprintf(buf, "\tc%-32s\tn - %s(\tW%d\tn)\r\n"
+                    , spell_info[qcom->value].name
+                    , mob_proto[i].player.short_descr
+                    , mob_index[i].vnum
+                    );
+            send_to_char(ch, buf);
+          }
+        }
+      }
+    }
+  }
+}
+
+ACMD(do_qref) {
+  int i;
+  int count = 0;
+  int vnum = 0;
+  int real_num = 0;
+  struct quest_entry *quest;
+  struct quest_command *qcom;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+
+  one_argument(argument, buf);
+  
+  if (!*buf) {
+    send_to_char(ch, "qref what object?\r\n");
+    return;
+  }
+  
+  vnum = atoi(buf);
+  real_num = real_object(vnum);
+  
+  if (real_num < 0) {
+    send_to_char(ch, "\tRNo such object!\tn\r\n");
+    return;
+  }
+
+  if (GET_LEVEL(ch) < LVL_IMMORT) {
+    sprintf(buf, "(GC) %s did a reference check for (%d).", GET_NAME(ch), vnum);
+    log(buf);
+  }
+
+  for (i = 0; i < top_of_mobt; i++) {
+    if (mob_proto[i].mob_specials.quest) {
+      for (quest = mob_proto[i].mob_specials.quest; quest; quest = quest->next) {
+        // check in.
+        for (qcom = quest->in; qcom; qcom = qcom->next) {
+          if (qcom->value == vnum && qcom->type == QUEST_COMMAND_ITEM) {
+            sprintf(buf, "\tCGIVE\tn %s to %s(\tW%d\tn)\r\n"
+                    , obj_proto[real_num].short_description
+                    , mob_proto[i].player.short_descr
+                    , mob_index[i].vnum
+                    );
+            send_to_char(ch, buf);
+            count++;
+          }
+        }
+
+        // check out.
+        for (qcom = quest->out; qcom; qcom = qcom->next) {
+          if (qcom->value == vnum) {
+            switch (qcom->type) {
+              case QUEST_COMMAND_ITEM:
+                sprintf(buf, "\tCRECIEVE\tn %s from %s(\tW%d\tn)\r\n"
+                        , obj_proto[real_num].short_description
+                        , mob_proto[i].player.short_descr
+                        , mob_index[i].vnum
+                        );
+                send_to_char(ch, buf);
+                count++;
+                break;
+              case QUEST_COMMAND_LOAD_OBJECT_INROOM:
+                sprintf(buf, "\tcLOADOBJECT\tn %s in quest for %s (\tW%d\tn)\r\n",
+                        obj_proto[ real_num].short_description
+                        , mob_proto[i].player.short_descr
+                        , mob_index[i].vnum);
+                send_to_char(ch, buf);
+                count++;
+                break;
+
+            }
+          }
+        }
+      }
+    }
+  }
+  if (count == 0) {
+    send_to_char(ch, "\tRThat object is not used in any quests!\tn\r\n");
+    return;
+  }
+}
+
+ACMD(do_qview) {
+  struct quest_entry *quest;
+  int num;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  
+  one_argument(argument, buf);
+  
+  if (!*buf) {
+    send_to_char(ch, "Qview what mob?\r\n");
+    return;
+  }
+
+  num = real_mobile(atoi(buf));
+  if (num < 0) {
+    send_to_char(ch, "\tRNo such mobile!\tn\r\n");
+    return;
+  }
+
+  if (mob_proto[num].mob_specials.quest == 0) {
+    send_to_char(ch, "\tRThat mob has no quests.\tn\r\n");
+    return;
+  }
+
+  if (GET_LEVEL(ch) < 60) {
+    sprintf(buf, "(GC) %s has peeked at quest for (%d).", GET_NAME(ch), atoi(buf));
+    log(buf);
+  }
+
+  for (quest = mob_proto[num].mob_specials.quest; quest; quest = quest->next) {
+    show_quest_to_player(ch, quest);
+    if (quest->next)
+      send_to_char(ch, "\r\n\tW-------------------------------------\tn\r\n\r\n");
+  }
+
+}
+
+/* end hlquest commands */

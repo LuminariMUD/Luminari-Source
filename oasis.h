@@ -104,6 +104,12 @@ struct oasis_olc_data {
   struct clan_data *clan; /* used for 'clanedit'      */
   struct message_list *msg;
   struct message_type *m_type;
+
+  /* homeland-port */
+  struct quest_entry *hlquest;
+  struct quest_entry *entry;
+  struct quest_command *qcom;
+  
   int script_mode;
   int trigger_position;
   int item_type;
@@ -138,6 +144,12 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define OLC_PREFS(d)   (OLC(d)->prefs)    /**< Preferences structure */
 #define OLC_IBT(d)     (OLC(d)->ibt)      /**< IBT (idea/bug/typo) structure */
 #define OLC_CLAN(d)    (OLC(d)->clan)     /**< Clan structure       */
+
+/* homeland-port */
+#define OLC_HLQUEST(d)     (OLC(d)->hlquest) /* hl autoquest */
+#define OLC_QCOM(d)        (OLC(d)->qcom)    /* hl autoquest */
+#define OLC_QUESTENTRY(d)  (OLC(d)->entry)   /* hl autoquest */
+
 /* Other macros. */
 #define OLC_EXIT(d)	   (OLC_ROOM(d)->dir_option[OLC_VAL(d)])
 #define OLC_MSG(d)     (OLC(d)->m_type)
