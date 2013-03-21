@@ -10,9 +10,8 @@
 #ifndef __QUEST_CODE_H
 #define __QUEST_CODE_H
 
-enum quest_command_type
-{
-  QUEST_COMMAND_COINS=0,
+enum quest_command_type {
+  QUEST_COMMAND_COINS = 0,
   QUEST_COMMAND_ITEM,
   QUEST_COMMAND_LOAD_OBJECT_INROOM,
   QUEST_COMMAND_LOAD_MOB_INROOM,
@@ -26,38 +25,43 @@ enum quest_command_type
   QUEST_COMMAND_CAST_SPELL,
 };
 
-enum quest_type
-{
- QUEST_ASK=0,
- QUEST_GIVE,
- QUEST_ROOM
+enum quest_type {
+  QUEST_ASK = 0,
+  QUEST_GIVE,
+  QUEST_ROOM
 };
 
-struct quest_command
-{
+struct quest_command {
   int type;
   int value;
-  int location;  
+  int location;
   struct quest_command *next;
 };
 
-struct quest_entry
-{
- int  type;
- char *keywords;
- char *reply_msg;
- struct quest_command  *in;
- struct quest_command  *out;
- bool	approved;
- int 	room;
+struct quest_entry {
+  int type;
+  char *keywords;
+  char *reply_msg;
+  struct quest_command *in;
+  struct quest_command *out;
+  bool approved;
+  int room;
 
- struct quest_entry *next;
-
+  struct quest_entry *next;
 };
 
+/* commands */
+ACMD(do_qinfo);
+ACMD(do_checkapproved);
+ACMD(do_kitquests);
+ACMD(do_spellquests);
+ACMD(do_qref);
+ACMD(do_qview);
+/* end commands */
+  
+
+
 #endif
-
-
 
 #endif	/* HLQUEST_H */
 
