@@ -18,6 +18,7 @@
 #include "hlquest.h"
 #include "spells.h"
 #include "class.h"
+#include "genzon.h"
 
 /*---------------------------------------------*/
 /*. Function prototypes / Globals / Externals. */
@@ -990,9 +991,10 @@ ACMD(do_hlqedit) {
   CREATE(d->olc, struct oasis_olc_data, 1);
 
   // find zone
-  if ((OLC_ZNUM(d) = real_zone(number)) == -1) {
+  if ((OLC_ZNUM(d) = real_zone_by_thing(number)) == NOWHERE) {
     send_to_char(ch, "Sorry, there is no zone for that number!\r\n");
     free(d->olc);
+    d->olc = NULL;
     return;
   }
 
