@@ -237,7 +237,7 @@ void hlqedit_save_to_disk(int zone_num) {
   top = zone_table[zone_num].top;
 
   /*
-   * Seach the database for mobs with quests in this zone and save them.
+   * Search the database for mobs with quests in this zone and save them.
    */
   for (i = zone * 100; i <= top; i++) {
     if ((rmob_num = real_mobile(i)) != -1) {

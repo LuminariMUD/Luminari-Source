@@ -468,6 +468,9 @@ void boot_world(void) {
   log("Loading quests.");
   index_boot(DB_BOOT_QST);
 
+  log("Loading homeland quests.");
+  index_boot(DB_BOOT_HLQST);
+
 }
 
 static void free_extra_descriptions(struct extra_descr_data *edesc) {
@@ -949,6 +952,9 @@ void index_boot(int mode) {
     case DB_BOOT_QST:
       prefix = QST_PREFIX;
       break;
+    case DB_BOOT_HLQST:
+      prefix = HLQST_PREFIX;
+      break;
     default:
       log("SYSERR: Unknown subcommand %d to index_boot!", mode);
       exit(1);
@@ -989,7 +995,7 @@ void index_boot(int mode) {
 
   /* Exit if 0 records, unless this is shops */
   if (!rec_count) {
-    if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST)
+    if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST || mode == DB_BOOT_HLQST)
       return;
     log("SYSERR: boot error - 0 records counted in %s/%s.", prefix,
             index_filename);
@@ -1035,6 +1041,11 @@ void index_boot(int mode) {
       size[0] = sizeof (struct aq_data) * rec_count;
       log("   %d entries, %d bytes.", rec_count, size[0]);
       break;
+    case DB_BOOT_HLQST:
+      CREATE(aquest_table, struct aq_data, rec_count);
+      size[0] = sizeof (struct aq_data) * rec_count;
+      log("   %d entries, %d bytes.", rec_count, size[0]);
+      break;
   }
 
   rewind(db_index);
@@ -1051,6 +1062,7 @@ void index_boot(int mode) {
       case DB_BOOT_MOB:
       case DB_BOOT_TRG:
       case DB_BOOT_QST:
+      case DB_BOOT_HLQST:
         discrete_load(db_file, mode, buf2);
         break;
       case DB_BOOT_ZON:
@@ -1124,6 +1136,9 @@ void discrete_load(FILE *fl, int mode, char *filename) {
             break;
           case DB_BOOT_QST:
             parse_quest(fl, nr);
+            break;
+          case DB_BOOT_HLQST:
+            //parse_quest(fl, nr);
             break;
         }
     } else {

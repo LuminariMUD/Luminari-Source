@@ -1950,6 +1950,8 @@ ACMD(do_who) {
           send_to_char(ch, " (Help edit)");
         if (d->connected == CON_QEDIT)
           send_to_char(ch, " (Quest Edit)");
+        if (d->connected == CON_HLQEDIT)
+          send_to_char(ch, " (HLQuest Edit)");
         if (d->connected == CON_STUDY)
           send_to_char(ch, " (Spells Known Editor)");
         if (PRF_FLAGGED(tch, PRF_BUILDWALK))

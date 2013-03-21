@@ -58,6 +58,7 @@ void free_hlquest(struct char_data * ch);
 void free_hlquests(struct quest_entry *quest);
 void clear_hlquest(struct quest_entry *quest);
 void show_quest_to_player(struct char_data *ch, struct quest_entry *quest);
+void hlqedit_parse(struct descriptor_data *d, char *arg);
 /* end functions */
 
 /* commands */
