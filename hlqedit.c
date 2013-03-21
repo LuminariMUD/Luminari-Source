@@ -30,9 +30,7 @@ extern struct zone_data *zone_table;
 extern struct obj_data *obj_proto;
 extern struct index_data *mob_index;
 
-/* using global buf */
 char *hlqedit_command = "CIOMADTXFKUS";
-char buf[MAX_INPUT_LENGTH] = { '\0' };
 
 void hlqedit_disp_menu(struct descriptor_data *d);
 
@@ -46,7 +44,9 @@ void hlqedit_disp_menu(struct descriptor_data *d);
 
 
 void hlqedit_show_classes(struct descriptor_data *d) {
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
   int i;
+  
   for (i = 0; i < NUM_CLASSES; i++) {
     sprintf(buf, "%d) %s\r\n", i, pc_class_types[i]);
     send_to_char(d->character, buf);
@@ -145,6 +145,7 @@ void hlqedit_save_to_disk(int zone_num) {
   int top;
   int i;
   int rmob_num;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
   char buf2[MAX_INPUT_LENGTH] = { '\0' };
 
   if (zone_num < 0 || zone_num > top_of_zone_table) {
@@ -233,6 +234,8 @@ void hlqedit_save_to_disk(int zone_num) {
  * For extra descriptions.
  */
 void hlqedit_disp_incommand_menu(struct descriptor_data *d) {
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+
   sprintf(buf,
           "%sC%s) Give Coins to Mob\r\n"
           "%sI%s) Give Item to Mob\r\n",
@@ -245,6 +248,8 @@ void hlqedit_disp_incommand_menu(struct descriptor_data *d) {
 }
 
 void hlqedit_disp_outcommand_menu(struct descriptor_data *d) {
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+
   sprintf(buf,
           "%sC%s) Return Coin\r\n"
           "%sI%s) Return item\r\n"
@@ -278,6 +283,8 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d) {
 }
 
 void hlqedit_disp_spells(struct descriptor_data *d) {
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+
   int counter, columns = 0;
 
   get_char_colors(d->character);
@@ -296,6 +303,7 @@ void hlqedit_disp_spells(struct descriptor_data *d) {
  * The main menu.
  */
 void hlqedit_disp_menu(struct descriptor_data *d) {
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
   int num = 1;
 
   struct quest_entry *quest;
@@ -408,6 +416,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
   struct quest_entry *qtmp;
   struct quest_command *qcom;
   int number;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
 
   switch (OLC_MODE(d)) {
 
