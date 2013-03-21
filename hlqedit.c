@@ -19,6 +19,7 @@
 #include "spells.h"
 #include "class.h"
 #include "genzon.h"
+#include "genolc.h"
 
 /*---------------------------------------------*/
 /*. Function prototypes / Globals / Externals. */
@@ -935,7 +936,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
 ACMD(do_hlqedit) {
   int number = -1, save = 0, real_num;
   struct descriptor_data *d;
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  char *buf3;
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
@@ -944,35 +945,39 @@ ACMD(do_hlqedit) {
     return;
 
   // parse arguments
-  two_arguments(argument, buf, buf2);
+  buf3 = two_arguments(argument, buf1, buf2);
 
   // no argument  
   if (!*buf1) {
-    sprintf(buf, "Specify a VNUM to edit.\r\n");
-    send_to_char(ch, buf);
+    send_to_char(ch, "Specify a hlquest VNUM to edit.\r\n");
     return;
   } else if (!isdigit(*buf1)) {
-    if (strn_cmp("save", buf1, 4) == 0) {
-      if (!*buf2) {
-        if (GET_OLC_ZONE(ch)) {
-          save = 1;
-          number = (GET_OLC_ZONE(ch) * 100);
-        } else {
-          send_to_char(ch, "Save which zone?\r\n");
-          return;
-        }
-      } else {
-        save = 1;
-        number = atoi(buf2) * 100;
-      }
-    } else {
+    if (str_cmp("save", buf1) != 0) {
       send_to_char(ch, "Yikes!  Stop that, someone will get hurt!\r\n");
+      return;
+    }
+
+    save = TRUE;
+
+    if (is_number(buf2))
+      number = atoi(buf2);
+    else if (GET_OLC_ZONE(ch) > 0) {
+      zone_rnum zlok;
+
+      if ((zlok = real_zone(GET_OLC_ZONE(ch))) == NOWHERE)
+        number = NOWHERE;
+      else
+        number = genolc_zone_bottom(zlok);
+    }
+
+    if (number == NOWHERE) {
+      send_to_char(ch, "Save which zone?\r\n");
       return;
     }
   }
 
   // if numberic arg was given, get it
-  if (number == -1)
+  if (number == NOWHERE)
     number = atoi(buf1);
 
   // make sure not already being editted
@@ -988,6 +993,11 @@ ACMD(do_hlqedit) {
   d = ch->desc;
 
   // give descriptor olc struct
+  if (d->olc) {
+    mudlog(BRF, LVL_IMMORT, TRUE,
+      "SYSERR: do_oasis_hlquest: Player already had olc structure.");
+    free(d->olc);
+  }
   CREATE(d->olc, struct oasis_olc_data, 1);
 
   // find zone
@@ -1008,22 +1018,21 @@ ACMD(do_hlqedit) {
   }
 
   if (save) {
-    sprintf(buf, "Saving all hlquest info in zone %d.\r\n",
+    send_to_char(ch, "Saving all hlquest info in zone %d.\r\n",
             zone_table[OLC_ZNUM(d)].number);
-    send_to_char(ch, buf);
-    sprintf(buf, "OLC: %s saves hlquest info for zone %d.", GET_NAME(ch),
+    log( "OLC: %s saves hlquest info for zone %d.", GET_NAME(ch),
             zone_table[OLC_ZNUM(d)].number);
-    log(buf);
 
     hlqedit_save_to_disk(OLC_ZNUM(d));
     free(d->olc);
+    d->olc = NULL;
     return;
   }
 
   OLC_NUM(d) = number;
 
   // take descriptor and start up subcommands
-  if ((real_num = real_mobile(number)) < 0) {
+  if ((real_num = real_mobile(number)) != NOTHING) {
     send_to_char(ch, "No such mob to make a quest for!\r\n");
     return;
   }
@@ -1033,5 +1042,8 @@ ACMD(do_hlqedit) {
   act("$n starts using OLC (hlqedit).", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
+  mudlog(BRF, LVL_IMMORT, TRUE,
+         "OLC: %s starts editing zone %d allowed zone %d",
+         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
