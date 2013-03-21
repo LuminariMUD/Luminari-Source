@@ -164,6 +164,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
               strcpy(sendcmd, "read");
             else if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
               strcpy(sendcmd, "look in");
+            else if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER)
+              strcpy(sendcmd, "look in");
             else
               strcpy(sendcmd, "hold");
             send_to_char(ch, "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s' hint='use/equip %s|drop %s|eat %s|hold %s|lore %s'>%s\t</send>", sendcmd, keyword,
@@ -256,7 +258,9 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mo
       /* This if-clause should be exactly the same as the one in the loop above */
       if ((j->short_description == i->short_description && j->name == i->name) ||
               (!strcmp(j->short_description, i->short_description) && !strcmp(j->name, i->name)))
-        if (CAN_SEE_OBJ(ch, j)) {
+        if (CAN_SEE_OBJ(ch, j) || (!AFF_FLAGGED(ch, AFF_BLIND) && OBJ_FLAGGED(j, ITEM_GLOW))) {
+          /* added the ability for players to see glowing items in their inventory in the dark
+           * as long as they are not blind! maybe add this to CAN_SEE_OBJ macro? */
           ++num;
           /* If the original item can't be seen, switch it for this one */
           if (display == i && !CAN_SEE_OBJ(ch, display))
