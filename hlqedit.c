@@ -23,7 +23,6 @@
 /*. Function prototypes / Globals / Externals. */
 /*---------------------------------------------*/
 
-extern void zedit_create_index(int znum, char *type);
 extern struct room_data *world;
 extern struct char_data *mob_proto;
 extern struct zone_data *zone_table;
@@ -41,6 +40,83 @@ void hlqedit_disp_menu(struct descriptor_data *d);
 
 /*---------------------------------------------*/
 
+
+void zedit_create_index(int znum, char *type)
+{
+  FILE *newfile, *oldfile;
+  char new_name[32], old_name[32], *prefix;
+  int num, found = FALSE;
+  char buf1[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+
+  switch (*type) {
+  case 'z':
+    prefix = ZON_PREFIX;
+    break;
+  case 'w':
+    prefix = WLD_PREFIX;
+    break;
+  case 'o':
+    prefix = OBJ_PREFIX;
+    break;
+  case 'm':
+    prefix = MOB_PREFIX;
+    break;
+  case 's':
+    prefix = SHP_PREFIX;
+    break;
+  case 'q':
+    prefix = QST_PREFIX;
+    break;
+  default:
+    /*
+     * Caller messed up  
+     */
+    return;
+  }
+
+  sprintf(old_name, "%s/index", prefix);
+  sprintf(new_name, "%s/newindex", prefix);
+
+  if (!(oldfile = fopen(old_name, "r"))) {
+    sprintf(buf, "SYSERR: OLC: Failed to open %s", buf);
+    log(buf);
+    return;
+  } else if (!(newfile = fopen(new_name, "w"))) {
+    sprintf(buf, "SYSERR: OLC: Failed to open %s", buf);
+    log(buf);
+    return;
+  }
+
+  /*
+   * Index contents must be in order: search through the old file for the
+   * right place, insert the new file, then copy the rest over. 
+   */
+  sprintf(buf1, "%d.%s", znum, type);
+  while (get_line(oldfile, buf)) {
+    if (*buf == '$') {
+      fprintf(newfile, "%s\n$\n", (!found ? buf1 : ""));
+      break;
+    } else if (!found) {
+      sscanf(buf, "%d", &num);
+	  if( num== znum)
+		  found = TRUE;
+      if (num > znum ) {
+	found = TRUE;
+	fprintf(newfile, "%s\n", buf1);
+      }
+    }
+    fprintf(newfile, "%s\n", buf);
+  }
+
+  fclose(newfile);
+  fclose(oldfile);
+  /*
+   * Out with the old, in with the new.
+   */
+  remove(old_name);
+  rename(new_name, old_name);
+}
 
 
 void hlqedit_show_classes(struct descriptor_data *d) {
