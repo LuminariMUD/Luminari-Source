@@ -35,6 +35,7 @@
 #include "config.h"
 #include "modify.h" /* for do_skillset... */
 #include "quest.h"
+#include "hlquest.h"
 #include "asciimap.h"
 #include "prefedit.h"
 #include "ibt.h"
@@ -155,6 +156,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "crystalbody", "crystalb", POS_FIGHTING, do_crystalbody, 0, 0, FALSE},
   { "call", "call", POS_FIGHTING, do_call, 1, 0, FALSE},
   { "chant", "chant", POS_RESTING, do_gen_memorize, 0, SCMD_CHANT, FALSE},
+  { "checkapproved", "checkapproved", POS_DEAD, do_checkapproved, LVL_BUILDER, 0, TRUE},
 
   { "date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE},
   { "dc", "dc", POS_DEAD, do_dc, LVL_GOD, 0, TRUE},
@@ -236,7 +238,8 @@ cpp_extern const struct command_info cmd_info[] = {
 
   { "kill", "k", POS_FIGHTING, do_kill, 0, 0, FALSE},
   { "kick", "ki", POS_FIGHTING, do_kick, 1, 0, FALSE},
-
+  { "kitquests", "kitquests", POS_DEAD, do_kitquests, LVL_BUILDER, 0, TRUE},
+  
   { "look", "l", POS_RESTING, do_look, 0, SCMD_LOOK, TRUE},
   { "layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE},
   { "last", "last", POS_DEAD, do_last, LVL_GOD, 0, TRUE},
@@ -312,7 +315,10 @@ cpp_extern const struct command_info cmd_info[] = {
   { "qui", "qui", POS_DEAD, do_quit, 0, 0, TRUE},
   { "quit", "quit", POS_DEAD, do_quit, 0, SCMD_QUIT, TRUE},
   { "qsay", "qsay", POS_RESTING, do_qcomm, 0, SCMD_QSAY, TRUE},
-
+  { "qinfo", "qinfo", POS_DEAD, do_qinfo, LVL_BUILDER, 0, TRUE},
+  { "qref", "qref", POS_DEAD, do_qref, LVL_BUILDER, 0, TRUE},
+  { "qview", "qview", POS_DEAD, do_qview, LVL_BUILDER, 0, TRUE},
+  
   { "rest", "res", POS_RESTING, do_rest, 0, 0, FALSE},
   { "reply", "r", POS_SLEEPING, do_reply, 0, 0, TRUE},
   { "read", "rea", POS_RESTING, do_look, 0, SCMD_READ, FALSE},
@@ -376,7 +382,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "switch", "switch", POS_DEAD, do_switch, LVL_GOD, 0, TRUE},
   { "shapechange", "shapechange", POS_FIGHTING, do_shapechange, 1, 0, FALSE},
   { "supplyorder", "supplyorder", POS_STANDING, do_not_here, 1, 0, FALSE},
-
+  { "spellquests", "spellquests", POS_DEAD, do_spellquests, LVL_BUILDER, 0, TRUE},
+  
   { "tell", "t", POS_DEAD, do_tell, 0, 0, TRUE},
   { "take", "ta", POS_RESTING, do_get, 0, 0, FALSE},
   { "taste", "tas", POS_RESTING, do_eat, 0, SCMD_TASTE, FALSE},

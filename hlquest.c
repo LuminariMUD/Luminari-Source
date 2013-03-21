@@ -20,29 +20,28 @@
 #include "act.h"
 #include "constants.h"
 
+/***************************************************************/
+
 void add_follower(struct char_data * ch, struct char_data *leader);
 extern void clear_hlquest(struct quest_entry *quest);
 extern struct char_data *mob_proto;
 void erase_spell_memory(struct char_data *ch);
 extern int isname(const char *str, const char *namelist);
 extern void quest_open_door(int room, int door);
-//extern int real_zone(int number);
-
-//extern long top_of_zone_table;
 extern struct zone_data *zone_table;
-//extern long top_of_mobt;
-//extern char *pc_class_types[];
 extern struct obj_data *obj_proto;
 extern struct index_data *obj_index;
 extern struct index_data *mob_index;
 extern struct room_data *world;
-//extern long top_of_world;
-extern const char *spells[];
 extern struct spell_info_type spell_info[];
 extern const char *dirs[];
 int level_exp(struct char_data *ch, int level);
 
 /*********************************/
+/*********************************/
+
+
+
 
 /* homeland-port this eventually can be used to have special class 
    quests */
