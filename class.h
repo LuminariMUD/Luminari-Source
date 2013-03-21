@@ -34,6 +34,7 @@ bool monk_gear_ok(struct char_data *ch);
 extern const char *class_abbrevs[];
 extern const char *pc_class_types[];
 extern const char *class_menu;
+extern const char *church_types[];
 extern int prac_params[][NUM_CLASSES];
 extern struct guild_info_type guild_info[];
 extern int class_ability[NUM_ABILITIES][NUM_CLASSES];

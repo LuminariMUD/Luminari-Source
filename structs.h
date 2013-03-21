@@ -1422,6 +1422,8 @@ struct player_special_data_saved {
   int prayed[MAX_MEM][NUM_CASTERS]; //memorization
   int praytimes[MAX_MEM][NUM_CASTERS]; //memorization
 
+  byte church;  // homeland-port
+  
   int wimp_level; /**< Below this # of hit points, flee! */
   byte freeze_level; /**< Level of god who froze char, if any */
   sh_int invis_level; /**< level of invisibility */
@@ -1488,6 +1490,7 @@ struct mob_special_data {
   byte damsizedice; /**< The size of each die rolled for damage. */
   float frustration_level; /**< The anger/frustration level of the mob */
   byte subrace[MAX_SUBRACES]; // SubRace
+  struct quest_entry *quest;  // quest info for a mob (homeland-port)
 };
 
 /** An affect structure. */

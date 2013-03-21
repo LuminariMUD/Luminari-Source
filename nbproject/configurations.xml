@@ -85,6 +85,8 @@
       <in>handler.h</in>
       <in>hedit.c</in>
       <in>hedit.h</in>
+      <in>hlquest.c</in>
+      <in>hlquest.h</in>
       <in>house.c</in>
       <in>house.h</in>
       <in>ibt.c</in>
