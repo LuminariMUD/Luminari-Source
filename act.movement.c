@@ -1055,22 +1055,7 @@ static const int flags_door[] = {
   NEED_CLOSED | NEED_LOCKED
 };
 
-#define EXITN(room, door)		(world[room].dir_option[door])
-#define OPEN_DOOR(room, obj, door)	((obj) ?\
-		(REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_CLOSED)) :\
-		(REMOVE_BIT(EXITN(room, door)->exit_info, EX_CLOSED)))
-#define CLOSE_DOOR(room, obj, door)	((obj) ?\
-		(SET_BIT(GET_OBJ_VAL(obj, 1), CONT_CLOSED)) :\
-		(SET_BIT(EXITN(room, door)->exit_info, EX_CLOSED)))
-#define LOCK_DOOR(room, obj, door)	((obj) ?\
-		(SET_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) :\
-		(SET_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))
-#define UNLOCK_DOOR(room, obj, door)	((obj) ?\
-		(REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) :\
-		(REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))
-#define TOGGLE_LOCK(room, obj, door)	((obj) ?\
-		(TOGGLE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) :\
-		(TOGGLE_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))
+
 
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd) {
   char buf[MAX_STRING_LENGTH];

@@ -36,7 +36,6 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
 static int perform_get_from_room(struct char_data *ch, struct obj_data *obj);
 /* do_give utility functions */
 static struct char_data *give_find_vict(struct char_data *ch, char *arg);
-static void perform_give(struct char_data *ch, struct char_data *vict, struct obj_data *obj);
 static void perform_give_gold(struct char_data *ch, struct char_data *vict, int amount);
 /* do_drop utility functions */
 static int perform_drop(struct char_data *ch, struct obj_data *obj, byte mode, const char *sname, room_rnum RDR);
@@ -668,25 +667,25 @@ ACMD(do_drop)
   }
 }
 
-static void perform_give(struct char_data *ch, struct char_data *vict,
+bool perform_give(struct char_data *ch, struct char_data *vict,
 		       struct obj_data *obj)
 {
   if (!give_otrigger(obj, ch, vict))
-    return;
+    return FALSE;
   if (!receive_mtrigger(vict, ch, obj))
-    return;
+    return FALSE;
 
   if (OBJ_FLAGGED(obj, ITEM_NODROP) && !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
     act("You can't let go of $p!!  Yeech!", FALSE, ch, obj, 0, TO_CHAR);
-    return;
+    return FALSE;
   }
   if (IS_CARRYING_N(vict) >= CAN_CARRY_N(vict) && GET_LEVEL(ch) < LVL_IMMORT && GET_LEVEL(vict) < LVL_IMMORT) {
     act("$N seems to have $S hands full.", FALSE, ch, 0, vict, TO_CHAR);
-    return;
+    return FALSE;
   }
   if (GET_OBJ_WEIGHT(obj) + IS_CARRYING_W(vict) > CAN_CARRY_W(vict) && GET_LEVEL(ch) < LVL_IMMORT && GET_LEVEL(vict) < LVL_IMMORT) {
     act("$E can't carry that much weight.", FALSE, ch, 0, vict, TO_CHAR);
-    return;
+    return FALSE;
   }
   obj_from_char(obj);
   obj_to_char(obj, vict);
@@ -695,6 +694,7 @@ static void perform_give(struct char_data *ch, struct char_data *vict,
   act("$n gives $p to $N.", TRUE, ch, obj, vict, TO_NOTVICT);
 
   autoquest_trigger_check( ch, vict, obj, AQ_OBJ_RETURN);
+  return TRUE;
 }
 
 /* utility function for give */
