@@ -5380,3 +5380,4 @@ ACMD(do_objlist) {
   }
   page_string(ch->desc, buf, 1);
 }
+
