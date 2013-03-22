@@ -20,6 +20,7 @@
 #include "class.h"
 #include "genzon.h"
 #include "genolc.h"
+#include "genmob.h"
 
 /*---------------------------------------------*/
 /*. Function prototypes / Globals / Externals. */
@@ -935,16 +936,16 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
 }
 
 ACMD(do_hlqedit) {
-  int number = -1, save = 0, real_num;
+  int number = NOBODY, save = 0, real_num;
   struct descriptor_data *d;
   char *buf3;
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
   //No screwing around as a mobile.
-  if (IS_NPC(ch))
+  if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)
     return;
-
+  
   // parse arguments
   buf3 = two_arguments(argument, buf1, buf2);
 
@@ -978,7 +979,7 @@ ACMD(do_hlqedit) {
   }
 
   // if numberic arg was given, get it
-  if (number == NOWHERE)
+  if (number == NOBODY)
     number = atoi(buf1);
 
   // make sure not already being editted
@@ -1001,8 +1002,9 @@ ACMD(do_hlqedit) {
   }
   CREATE(d->olc, struct oasis_olc_data, 1);
 
-  // find zone
-  if ((OLC_ZNUM(d) = real_zone(number)) == NOWHERE) {
+  /* Find the zone. */
+  OLC_ZNUM(d) = save ? real_zone(number) : real_zone_by_thing(number);
+  if (OLC_ZNUM(d) == NOWHERE) {
     send_to_char(ch, "Sorry, there is no zone for that number!\r\n");
     free(d->olc);
     d->olc = NULL;
@@ -1025,6 +1027,9 @@ ACMD(do_hlqedit) {
             zone_table[OLC_ZNUM(d)].number);
 
     hlqedit_save_to_disk(OLC_ZNUM(d));
+    /* Save the mobiles. */
+    save_mobiles(OLC_ZNUM(d));
+    
     free(d->olc);
     d->olc = NULL;
     return;
@@ -1033,7 +1038,7 @@ ACMD(do_hlqedit) {
   OLC_NUM(d) = number;
 
   // take descriptor and start up subcommands
-  if ((real_num = real_mobile(number)) != NOTHING) {
+  if ((real_num = real_mobile(number)) != NOBODY) {
     send_to_char(ch, "No such mob to make a quest for!\r\n");
     return;
   }
