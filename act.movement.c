@@ -25,6 +25,7 @@
 #include "oasis.h" /* for buildwalk */
 #include "spec_procs.h"
 #include "mud_event.h"
+#include "hlquest.h"
 
 
 /* local only functions */
@@ -899,6 +900,11 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
   /* Only here is the move successful *and* complete. Return success for
    * calling functions to handle post move operations. */
+  
+  /* homeland-port */
+  if (IS_NPC(ch))
+    quest_room(ch);
+  
   return (1);
 }
 

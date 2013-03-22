@@ -67,7 +67,7 @@ db.o: db.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  db.h comm.h handler.h spells.h mail.h interpreter.h house.h constants.h \
  oasis.h dg_scripts.h dg_event.h act.h ban.h spec_procs.h genzon.h \
  genolc.h genobj.h config.h fight.h modify.h shop.h quest.h ibt.h \
- mud_event.h class.h clan.h msgedit.h craft.h
+ mud_event.h class.h clan.h msgedit.h craft.h hlquest.h
 dg_comm.o: dg_comm.c conf.h sysdep.h structs.h protocol.h lists.h \
  dg_scripts.h utils.h race.h comm.h handler.h db.h constants.h
 dg_db_scripts.o: dg_db_scripts.c conf.h sysdep.h structs.h protocol.h \
@@ -137,7 +137,7 @@ hedit.o: hedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  handler.h improved-edit.h act.h hedit.h modify.h
 hlqedit.o: hlqedit.c conf.h sysdep.h structs.h protocol.h lists.h comm.h \
  utils.h race.h db.h boards.h oasis.h interpreter.h constants.h hlquest.h \
- spells.h class.h
+ spells.h class.h genzon.h genolc.h
 hlquest.o: hlquest.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h handler.h db.h hlquest.h spells.h class.h \
  fight.h act.h constants.h

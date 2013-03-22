@@ -59,6 +59,11 @@ void free_hlquests(struct quest_entry *quest);
 void clear_hlquest(struct quest_entry *quest);
 void show_quest_to_player(struct char_data *ch, struct quest_entry *quest);
 void hlqedit_parse(struct descriptor_data *d, char *arg);
+void boot_the_quests(FILE * quest_f, char *filename, int rec_count);
+void quest_ask(struct char_data * ch, struct char_data * victim, char *keyword);
+void quest_give(struct char_data * ch, struct char_data * victim);
+void quest_room(struct char_data * ch);
+bool is_object_in_a_quest(struct obj_data *obj);
 /* end functions */
 
 /* commands */

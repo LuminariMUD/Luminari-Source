@@ -38,6 +38,7 @@
 #include "mud_event.h"
 #include "clan.h"
 #include "craft.h"
+#include "hlquest.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -5301,3 +5302,81 @@ ACMD(do_oset) {
   }
 }
 
+ACMD(do_objlist) {
+  bool quest = FALSE;
+
+  int i, j, k, l, m;
+  char value[MAX_INPUT_LENGTH];
+  struct obj_data *obj;
+  char buf[8192];
+  char buf2[8192];
+  char buf3[8192];
+  char buf4[8192];
+  char buf5[8192];
+  one_argument(argument, (char*) &value);
+
+
+  if (*value && is_number(value))
+    j = atoi(value);
+  else
+    j = zone_table[world[ch->in_room].zone].number;
+  j *= 100;
+  if (real_zone(j) <= 0) {
+    sprintf(buf, "&cR%d &cris not in a defined zone.&c0\r\n", j);
+    send_to_char(ch, buf);
+    return;
+  }
+  k = real_zone(j);
+  k = zone_table[k].top;
+  sprintf(buf, "Detailed Object list : From %d to %d\r\n", j, k);
+  for (i = j; i <= k; i++) {
+    if ((l = real_object(i)) >= 0) {
+      obj = &obj_proto[l];
+
+      quest = is_object_in_a_quest(obj);
+
+      sprintf(buf, "%s[%5d] %s   %s\r\n", buf, i,
+              obj->short_description, (quest ? "(&ccUsed in Quests&c0)" : "")
+              );
+      switch (GET_OBJ_TYPE(obj)) {
+        case ITEM_WEAPON:
+          sprintf(buf, "%s      &ccWeapon&c0: %dd%d ", buf, GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
+          break;
+        case ITEM_ARMOR:
+          sprintf(buf, "%s      &ccAC&c0: %d ", buf, GET_OBJ_VAL(obj, 0));
+          break;
+        default:
+          sprintf(buf, "%s      &ccValue&c0: %d/%d/%d/%d ", buf,
+                  GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1),
+                  GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3));
+          break;
+      }
+
+      for (m = 0; m < MAX_OBJ_AFFECT; m++)
+        if (obj->affected[m].modifier) {
+          sprinttype(obj->affected[m].location, apply_types, buf2, sizeof (buf2));
+          sprintf(buf, "%s&cc%s&c0%s%d ", buf, buf2, (obj->affected[m].modifier > 0 ? "+" : ""),
+                  obj->affected[m].modifier);
+        }
+      strcat(buf, "\r\n");
+
+      //      sprintbit((long) rm->room_affections, room_affections, buf2, sizeof (buf2));
+      sprintbit((long) obj->obj_flags.wear_flags, wear_bits, buf2, sizeof (buf2));
+
+      sprintbit((long) obj->obj_flags.bitvector, affected_bits, buf3, sizeof (buf3));
+      if (strcmp(buf3, "NOBITS ") == 0)
+        buf3[0] = 0;
+      if (strcmp(buf4, "NOBITS ") == 0)
+        buf4[0] = 0;
+      if (strcmp(buf5, "NOBITS ") == 0)
+        buf5[0] = 0;
+      if (buf3[0] == 0 && buf4[0] == 0 && buf5[0] == 0)
+        strcpy(buf3, "NOBITS ");
+      sprintf(buf, "%s      &ccWorn&c0: %s &ccAffects:&c0 %s %s %s\r\n", buf,
+              buf2, buf3, buf4, buf5
+              );
+
+    }
+  }
+  page_string(ch->desc, buf, 1);
+}

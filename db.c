@@ -42,6 +42,7 @@
 #include "clan.h"
 #include "msgedit.h"
 #include "craft.h"
+#include "hlquest.h"
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -427,7 +428,7 @@ ACMD(do_reboot) {
 
 void boot_world(void) {
   int x = 0;
-  
+
   log("Loading zone table.");
   index_boot(DB_BOOT_ZON);
 
@@ -1042,9 +1043,9 @@ void index_boot(int mode) {
       log("   %d entries, %d bytes.", rec_count, size[0]);
       break;
     case DB_BOOT_HLQST:
-      CREATE(aquest_table, struct aq_data, rec_count);
-      size[0] = sizeof (struct aq_data) * rec_count;
-      log("   %d entries, %d bytes.", rec_count, size[0]);
+      //CREATE(aquest_table, struct aq_data, rec_count);
+      //size[0] = sizeof (struct aq_data) * rec_count;
+      //log("   %d entries, %d bytes.", rec_count, size[0]);
       break;
   }
 
@@ -1062,7 +1063,6 @@ void index_boot(int mode) {
       case DB_BOOT_MOB:
       case DB_BOOT_TRG:
       case DB_BOOT_QST:
-      case DB_BOOT_HLQST:
         discrete_load(db_file, mode, buf2);
         break;
       case DB_BOOT_ZON:
@@ -1073,6 +1073,9 @@ void index_boot(int mode) {
         break;
       case DB_BOOT_SHP:
         boot_the_shops(db_file, buf2, rec_count);
+        break;
+      case DB_BOOT_HLQST:
+        boot_the_quests(db_file, buf2, rec_count);
         break;
     }
 
@@ -3074,7 +3077,7 @@ char *fread_clean_string(FILE *fl, const char *error) {
       return 0;
     }
     c = getc(fl);
-  }  while (isspace(c));
+  } while (isspace(c));
   ungetc(c, fl);
 
   do {
@@ -3125,7 +3128,7 @@ int fread_number(FILE *fp) {
       return 0;
     }
     c = getc(fp);
-  }  while (isspace(c));
+  } while (isspace(c));
 
   number = 0;
 
@@ -3182,7 +3185,7 @@ char *fread_line(FILE *fp) {
       return (line);
     }
     c = getc(fp);
-  }  while (isspace(c));
+  } while (isspace(c));
 
   /* Un-Read first char */
   ungetc(c, fp);
@@ -3200,11 +3203,11 @@ char *fread_line(FILE *fp) {
       log("fread_line: line too long");
       break;
     }
-  }  while ((c != '\n') && (c != '\r'));
+  } while ((c != '\n') && (c != '\r'));
 
   do {
     c = getc(fp);
-  }  while (c == '\n' || c == '\r');
+  } while (c == '\n' || c == '\r');
 
   ungetc(c, fp);
   pline--;
@@ -3237,7 +3240,7 @@ int fread_flags(FILE *fp, int *fg, int fg_size) {
       return (0);
     }
     c = getc(fp);
-  }  while (isspace(c));
+  } while (isspace(c));
 
   /* Un-Read first char */
   ungetc(c, fp);
@@ -3255,11 +3258,11 @@ int fread_flags(FILE *fp, int *fg, int fg_size) {
       log("fread_flags: line too long");
       break;
     }
-  }  while ((c != '\n') && (c != '\r'));
+  } while ((c != '\n') && (c != '\r'));
 
   do {
     c = getc(fp);
-  }  while (c == '\n' || c == '\r');
+  } while (c == '\n' || c == '\r');
 
   ungetc(c, fp);
   pline--;
@@ -3329,11 +3332,11 @@ void fread_to_eol(FILE *fp) {
       return;
     }
     c = getc(fp);
-  }  while (c != '\n' && c != '\r');
+  } while (c != '\n' && c != '\r');
 
   do {
     c = getc(fp);
-  }  while (c == '\n' || c == '\r');
+  } while (c == '\n' || c == '\r');
 
   ungetc(c, fp);
 }
@@ -3418,6 +3421,14 @@ void free_char(struct char_data *ch) {
     /* free script proto list if it's not the prototype */
     if (ch->proto_script && ch->proto_script != mob_proto[i].proto_script)
       free_proto_script(ch, MOB_TRIGGER);
+    if (ch == &mob_proto[i]) {
+      free_hlquest(ch);
+      //int j;
+      //for (j = 0; j < ECHO_AMOUNT(ch); j++)
+        //free(ECHO_ENTRIES(ch)[j]);
+      //free(ECHO_ENTRIES(ch));
+
+    }
   }
   while (ch->affected)
     affect_remove(ch, ch->affected);
