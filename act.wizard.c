@@ -5330,7 +5330,7 @@ ACMD(do_objlist) {
   k = zone_table[k].top;
   sprintf(buf, "Detailed Object list : From %d to %d\r\n", j, k);
   for (i = j; i <= k; i++) {
-    if ((l = real_object(i)) >= 0) {
+    if ((l = real_object(i)) != NOWHERE) {
       obj = &obj_proto[l];
 
       quest = is_object_in_a_quest(obj);
