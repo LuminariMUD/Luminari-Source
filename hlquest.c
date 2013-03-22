@@ -204,6 +204,10 @@ bool is_object_in_a_quest(struct obj_data *obj) {
   int vnum = 0;
   struct quest_entry *quest;
   struct quest_command *qcom;
+
+  if (!obj)
+    return FALSE;
+
   vnum = GET_OBJ_VNUM(obj);
 
   for (i = 0; i < top_of_mobt; i++) {
