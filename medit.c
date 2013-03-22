@@ -299,6 +299,8 @@ void medit_save_internally(struct descriptor_data *d)
       S_KEEPER(OLC_SHOP(dsc)) += (S_KEEPER(OLC_SHOP(dsc)) != NOTHING && S_KEEPER(OLC_SHOP(dsc)) >= new_rnum);
     else if (STATE(dsc) == CON_MEDIT)
       GET_MOB_RNUM(OLC_MOB(dsc)) += (GET_MOB_RNUM(OLC_MOB(dsc)) != NOTHING && GET_MOB_RNUM(OLC_MOB(dsc)) >= new_rnum);
+    else if (STATE(dsc) == CON_HLQEDIT)
+      GET_MOB_RNUM(OLC_MOB(dsc)) += (GET_MOB_RNUM(OLC_MOB(dsc)) != NOTHING && GET_MOB_RNUM(OLC_MOB(dsc)) >= new_rnum);
   }
 
   /* Update other people in zedit too. From: C.Raehl 4/27/99 */

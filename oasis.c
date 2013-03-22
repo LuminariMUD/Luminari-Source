@@ -44,6 +44,7 @@ static struct olc_scmd_info_t {
   { "action",   CON_AEDIT },
   { "help",     CON_HEDIT },
   { "quest",     CON_QEDIT },
+  { "hlquest",     CON_HLQEDIT },
   { "\n",	-1	  }
 };
 */

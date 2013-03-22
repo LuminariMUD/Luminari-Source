@@ -939,8 +939,8 @@ ACMD(do_hlqedit) {
   int number = NOBODY, save = 0, real_num;
   struct descriptor_data *d;
   char *buf3;
-  char buf2[MAX_INPUT_LENGTH] = {'\0'};
-  char buf1[MAX_INPUT_LENGTH] = {'\0'};
+  char buf2[MAX_INPUT_LENGTH];
+  char buf1[MAX_INPUT_LENGTH];
 
   //No screwing around as a mobile.
   if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)
@@ -981,12 +981,15 @@ ACMD(do_hlqedit) {
   // if numberic arg was given, get it
   if (number == NOBODY)
     number = atoi(buf1);
+  
+  /* debug */
+  send_to_char(ch, "Number = %d\r\n", number);
 
   // make sure not already being editted
   for (d = descriptor_list; d; d = d->next) {
-    if (STATE(d) == CON_HLQEDIT) {
+    if (STATE(d) == CON_HLQEDIT || STATE(d) == CON_MEDIT) {
       if (d->olc && OLC_NUM(d) == number) {
-        send_to_char(ch, "That hlquest is currently being edited by %s.\r\n",
+        send_to_char(ch, "That hlquest/mob is currently being edited by %s.\r\n",
           PERS(d->character, ch));
         return;
       }
@@ -1004,6 +1007,10 @@ ACMD(do_hlqedit) {
 
   /* Find the zone. */
   OLC_ZNUM(d) = save ? real_zone(number) : real_zone_by_thing(number);
+  
+  /* debug */
+  send_to_char(ch, "Number 2 = %d\r\n", OLC_ZNUM(d));
+  
   if (OLC_ZNUM(d) == NOWHERE) {
     send_to_char(ch, "Sorry, there is no zone for that number!\r\n");
     free(d->olc);
@@ -1036,10 +1043,15 @@ ACMD(do_hlqedit) {
   }
 
   OLC_NUM(d) = number;
+  /* debug */
+  send_to_char(ch, "Number 3 = %d\r\n", number);
 
   // take descriptor and start up subcommands
   if ((real_num = real_mobile(number)) != NOBODY) {
     send_to_char(ch, "No such mob to make a quest for!\r\n");
+    
+    free(d->olc);
+    d->olc = NULL;
     return;
   }
   hlqedit_setup(d, real_num);
