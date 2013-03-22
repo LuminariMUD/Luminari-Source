@@ -5320,9 +5320,9 @@ ACMD(do_objlist) {
     j = atoi(value);
   else
     j = zone_table[world[ch->in_room].zone].number;
-  j *= 100;
-  if (real_zone(j) <= 0) {
-    sprintf(buf, "&cR%d &cris not in a defined zone.&c0\r\n", j);
+  //j *= 100;
+  if (real_zone(j) < 0) {
+    sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n", j);
     send_to_char(ch, buf);
     return;
   }
@@ -5336,17 +5336,17 @@ ACMD(do_objlist) {
       quest = is_object_in_a_quest(obj);
 
       sprintf(buf, "%s[%5d] %s   %s\r\n", buf, i,
-              obj->short_description, (quest ? "(&ccUsed in Quests&c0)" : "")
+              obj->short_description, (quest ? "(\tcUsed in Quests\tn)" : "")
               );
       switch (GET_OBJ_TYPE(obj)) {
         case ITEM_WEAPON:
-          sprintf(buf, "%s      &ccWeapon&c0: %dd%d ", buf, GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
+          sprintf(buf, "%s      \tcWeapon\tn: %dd%d ", buf, GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
           break;
         case ITEM_ARMOR:
-          sprintf(buf, "%s      &ccAC&c0: %d ", buf, GET_OBJ_VAL(obj, 0));
+          sprintf(buf, "%s      \tcAC\tn: %d ", buf, GET_OBJ_VAL(obj, 0));
           break;
         default:
-          sprintf(buf, "%s      &ccValue&c0: %d/%d/%d/%d ", buf,
+          sprintf(buf, "%s      \tcValue\tn: %d/%d/%d/%d ", buf,
                   GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1),
                   GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3));
           break;
@@ -5355,12 +5355,11 @@ ACMD(do_objlist) {
       for (m = 0; m < MAX_OBJ_AFFECT; m++)
         if (obj->affected[m].modifier) {
           sprinttype(obj->affected[m].location, apply_types, buf2, sizeof (buf2));
-          sprintf(buf, "%s&cc%s&c0%s%d ", buf, buf2, (obj->affected[m].modifier > 0 ? "+" : ""),
+          sprintf(buf, "%s\tc%s\tn%s%d ", buf, buf2, (obj->affected[m].modifier > 0 ? "+" : ""),
                   obj->affected[m].modifier);
         }
       strcat(buf, "\r\n");
 
-      //      sprintbit((long) rm->room_affections, room_affections, buf2, sizeof (buf2));
       sprintbit((long) obj->obj_flags.wear_flags, wear_bits, buf2, sizeof (buf2));
 
       sprintbit((long) obj->obj_flags.bitvector, affected_bits, buf3, sizeof (buf3));
@@ -5372,7 +5371,7 @@ ACMD(do_objlist) {
         buf5[0] = 0;
       if (buf3[0] == 0 && buf4[0] == 0 && buf5[0] == 0)
         strcpy(buf3, "NOBITS ");
-      sprintf(buf, "%s      &ccWorn&c0: %s &ccAffects:&c0 %s %s %s\r\n", buf,
+      sprintf(buf, "%s      \tcWorn\tn: %s \tcAffects:\tn %s %s %s\r\n", buf,
               buf2, buf3, buf4, buf5
               );
 
