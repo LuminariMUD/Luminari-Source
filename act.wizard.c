@@ -5321,7 +5321,7 @@ ACMD(do_objlist) {
   else
     j = zone_table[world[ch->in_room].zone].number;
   //j *= 100;
-  if (real_zone(j) < 0) {
+  if (real_zone(j) == NOWHERE) {
     sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n", j);
     send_to_char(ch, buf);
     return;
