@@ -21,6 +21,7 @@
 #include "dg_scripts.h"
 #include "act.h"
 #include "modify.h"
+#include "hlquest.h"
 
 static bool legal_communication(char * arg);
 
@@ -305,6 +306,10 @@ ACMD(do_spec_comm)
     send_to_char(ch, "Your target seems to be deaf!\r\n");
   else {
     char buf1[MAX_STRING_LENGTH];
+
+    /* homeland-port */
+    if(subcmd == SCMD_ASK)  
+      quest_ask(ch, vict, buf2);    
 
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
       parse_at(buf2);    

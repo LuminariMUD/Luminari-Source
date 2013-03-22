@@ -421,6 +421,7 @@ ACMD(do_wizutil);
 #define SCMD_UNAFFECT 6
 /* Functions without subcommands */
 ACMD(do_advance);
+ACMD(do_objlist);
 ACMD(do_at);
 ACMD(do_checkloadstatus);
 ACMD(do_copyover);
