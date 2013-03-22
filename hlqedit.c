@@ -241,8 +241,9 @@ void hlqedit_save_to_disk(int zone_num) {
   /*
    * Search the database for mobs with quests in this zone and save them.
    */
-  for (i = zone * 100; i <= top; i++) {
-    if ((rmob_num = real_mobile(i)) != -1) {
+  //for (i = zone * 100; i <= top; i++) {
+  for (i = zone; i <= top; i++) {
+    if ((rmob_num = real_mobile(i)) != NOWHERE) {
       ch = &mob_proto[rmob_num];
       if (ch->mob_specials.quest) {
         if (fprintf(fp, "#%d\n", i) < 0) {
@@ -580,7 +581,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           OLC_QUESTENTRY(d)->in = qcom;
           OLC_MODE(d) = QEDIT_IN_COIN;
           qcom->type = QUEST_COMMAND_COINS;
-          send_to_char(d->character, "How much coins (in copper)?");
+          send_to_char(d->character, "How much coins?");
           return;
         case 'i':
         case 'I':
@@ -610,7 +611,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       return;
       break;
     case QEDIT_IN_ITEM:
-      if ((number = real_object(atoi(arg))) >= 0) {
+      if ((number = real_object(atoi(arg))) != NOWHERE) {
         OLC_QUESTENTRY(d)->in->value = atoi(arg);
         hlqedit_disp_incommand_menu(d);
       } else
@@ -748,7 +749,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       }
       return;
     case QEDIT_OUT_ITEM:
-      if ((number = real_object(atoi(arg))) >= 0) {
+      if ((number = real_object(atoi(arg))) != NOWHERE) {
         OLC_QCOM(d)->value = atoi(arg);
         hlqedit_disp_outcommand_menu(d);
       } else
@@ -756,7 +757,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       return;
 
     case QEDIT_OUT_LOAD_OBJECT:
-      if ((number = real_object(atoi(arg))) >= 0) {
+      if ((number = real_object(atoi(arg))) != NOWHERE) {
         OLC_QCOM(d)->value = atoi(arg);
         OLC_MODE(d) = QEDIT_OUT_LOAD_OBJECT_ROOM;
         send_to_char(d->character, "Which room to load it. (-1 for current room)\r\n: ");
@@ -782,7 +783,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       return;
     case QEDIT_OUT_LOAD_OBJECT_ROOM:
     case QEDIT_OUT_LOAD_MOB_ROOM:
-      if ((number = real_room(atoi(arg))) >= 0)
+      if ((number = real_room(atoi(arg))) != NOWHERE)
         OLC_QCOM(d)->location = atoi(arg);
       else
         OLC_QCOM(d)->location = -1;
@@ -816,7 +817,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       }
 
     case QEDIT_OUT_OPEN_DOOR:
-      if ((number = real_room(atoi(arg))) >= 0) {
+      if ((number = real_room(atoi(arg))) != NOWHERE) {
         OLC_QCOM(d)->location = atoi(arg);
         send_to_char(d->character, "Which direction? (0=n, 1=e, 2=s, 3=w, 4=u, 5=d): ");
 

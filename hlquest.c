@@ -19,6 +19,7 @@
 #include "fight.h"
 #include "act.h"
 #include "constants.h"
+#include "mud_event.h"
 
 /***************************************************************/
 
@@ -280,7 +281,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
         break;
       case QUEST_COMMAND_ATTACK_QUESTOR:
         hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-        WAIT_STATE(victim, PULSE_VIOLENCE + 2);
+        SET_WAIT(victim, PULSE_VIOLENCE * 2);
         break;
       case QUEST_COMMAND_OPEN_DOOR:
         quest_open_door(real_room(qcom->location), qcom->value);
@@ -702,10 +703,11 @@ ACMD(do_qinfo) {
   }
 
   for (j = 0; j <= top_of_zone_table; j++) {
-    start_num = zone_table[j].number * 100;
+    //start_num = zone_table[j].number * 100;
+    start_num = zone_table[j].number;
     end_num = zone_table[real_zone(start_num)].top;
     for (i = start_num; i <= end_num; i++) {
-      if ((realnum = real_mobile(i)) >= 0) {
+      if ((realnum = real_mobile(i)) != NOWHERE) {
         if (mob_proto[realnum].mob_specials.quest) {
           for (quest = mob_proto[realnum].mob_specials.quest; quest; quest =
                   quest->next) {
@@ -777,7 +779,7 @@ ACMD(do_qinfo) {
                           church_types[qcmd->value]);
                   strcat(buf, buf2);
                 } else {
-                  strcat(buf, " tell azuth get off his lazy @$$ and fix this");
+                  strcat(buf, " needs fixing (hlquest.c)");
                 }
               } // end quest-> out loop 
 
@@ -910,7 +912,7 @@ ACMD(do_qref) {
   vnum = atoi(buf);
   real_num = real_object(vnum);
   
-  if (real_num < 0) {
+  if (real_num == NOWHERE) {
     send_to_char(ch, "\tRNo such object!\tn\r\n");
     return;
   }
@@ -983,7 +985,7 @@ ACMD(do_qview) {
   }
 
   num = real_mobile(atoi(buf));
-  if (num < 0) {
+  if (num == NOWHERE) {
     send_to_char(ch, "\tRNo such mobile!\tn\r\n");
     return;
   }
@@ -993,7 +995,7 @@ ACMD(do_qview) {
     return;
   }
 
-  if (GET_LEVEL(ch) < 60) {
+  if (GET_LEVEL(ch) < LVL_IMPL) {
     sprintf(buf, "(GC) %s has peeked at quest for (%d).", GET_NAME(ch), atoi(buf));
     log(buf);
   }
