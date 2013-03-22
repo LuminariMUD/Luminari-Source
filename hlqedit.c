@@ -983,7 +983,7 @@ ACMD(do_hlqedit) {
     number = atoi(buf1);
   
   /* debug */
-  send_to_char(ch, "Number = %d\r\n", number);
+  send_to_char(ch, "Number inputed: %d\r\n", number);
 
   // make sure not already being editted
   for (d = descriptor_list; d; d = d->next) {
@@ -1009,7 +1009,7 @@ ACMD(do_hlqedit) {
   OLC_ZNUM(d) = save ? real_zone(number) : real_zone_by_thing(number);
   
   /* debug */
-  send_to_char(ch, "Number 2 = %d\r\n", OLC_ZNUM(d));
+  send_to_char(ch, "OLC Zone Number: %d\r\n", OLC_ZNUM(d));
   
   if (OLC_ZNUM(d) == NOWHERE) {
     send_to_char(ch, "Sorry, there is no zone for that number!\r\n");
@@ -1043,11 +1043,9 @@ ACMD(do_hlqedit) {
   }
 
   OLC_NUM(d) = number;
-  /* debug */
-  send_to_char(ch, "Number 3 = %d\r\n", number);
 
   // take descriptor and start up subcommands
-  if ((real_num = real_mobile(number)) != NOBODY) {
+  if ((real_num = real_mobile(number)) == NOBODY) {
     send_to_char(ch, "No such mob to make a quest for!\r\n");
     
     free(d->olc);
