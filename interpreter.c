@@ -289,7 +289,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "oset", "oset", POS_DEAD, do_oset, LVL_BUILDER, 0, TRUE},
   { "ocopy", "ocopy", POS_DEAD, do_oasis_copy, LVL_GOD, CON_OEDIT, TRUE},
   { "omit", "omit", POS_RESTING, do_gen_forget, 0, SCMD_OMIT, FALSE},
-  { "objlist", "objlist", POS_DEAD, do_objlist, LVL_BUILDER, 0, TRUE},
+  //{ "objlist", "objlist", POS_DEAD, do_objlist, LVL_BUILDER, 0, TRUE},
   
   { "put", "p", POS_RESTING, do_put, 0, 0, FALSE},
   { "parry", "parry", POS_FIGHTING, do_parry, 1, 0, FALSE},
