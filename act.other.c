@@ -1835,7 +1835,7 @@ ACMD(do_group) {
     display_group_list(ch);
   else if (is_abbrev(buf, "join")) {
     skip_spaces(&argument);
-    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM))) {
+    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_WORLD))) {
       send_to_char(ch, "Join who?\r\n");
       return;
     } else if (vict == ch) {
