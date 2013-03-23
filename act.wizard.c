@@ -5415,7 +5415,7 @@ ACMD(do_hlqlist) {
 
   /* if no buf2, use buf1, and top of zone information */
   if (!*buf2) {
-    if ((temp_num = real_zone(start_num)) <= 0) {
+    if ((temp_num = real_zone(start_num)) == NOWHERE) {
       sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n",
               start_num);
       send_to_char(ch, buf);
@@ -5438,7 +5438,7 @@ ACMD(do_hlqlist) {
   /* start engine */
   sprintf(buf, "Quest Listings : From %d to %d\r\n", start_num, end_num);
   for (i = start_num; i <= end_num; i++) {
-    if ((realnum = real_mobile(i)) >= 0) {
+    if ((realnum = real_mobile(i)) != NOBODY) {
       if (mob_proto[realnum].mob_specials.quest) {
         temp_num = 0;
         num_found = 0;
