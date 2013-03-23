@@ -85,7 +85,7 @@
 #define TRG_PREFIX  LIB_WORLD"trg"SLASH	/* trigger files	*/
 #define HLP_PREFIX  LIB_TEXT"help"SLASH /* Help files           */
 #define QST_PREFIX  LIB_WORLD"qst"SLASH /* quest files          */
-#define HLQST_PREFIX  LIB_WORLD"hlq"SLASH /* quest files          */
+#define HLQST_PREFIX  LIB_WORLD"hlq"SLASH /* quest files (homeland-port) */
 
 #define CREDITS_FILE	LIB_TEXT"credits" /* for the 'credits' command	*/
 #define NEWS_FILE	LIB_TEXT"news"	/* for the 'news' command	*/

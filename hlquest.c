@@ -326,7 +326,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
                   );
           give_back_items(victim, ch, quest);
           send_to_char(ch, buf);
-        } else if (0 == has_race_kit(GET_RACE(ch), qcom->value)) {
+        } else if (!has_race_kit(GET_RACE(ch), qcom->value)) {
           sprintf(buf, "Your race can NEVER learn how to become a %s.\r\n"
                   , pc_class_types[ qcom->value ]
                   );
