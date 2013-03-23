@@ -208,6 +208,9 @@ void hlqedit_save_internally(struct descriptor_data *d) {
   ch->mob_specials.quest = OLC_HLQUEST(d);
   /* homeland-port this has to be rewritten for luminari */
   //  olc_add_to_save_list(zone_table[OLC_ZNUM(d)].number, OLC_SAVE_QUEST);
+
+  /* going ahead and saving to disk now -zusuk */
+  hlqedit_save_to_disk(OLC_ZNUM(d));
 }
 
 /*------------------------------------------------------------------------*/
@@ -236,7 +239,7 @@ void hlqedit_save_to_disk(int zone_num) {
     return;
   }
 
-  zone = zone_table[zone_num].number;
+  zone = zone_table[zone_num].bot;
   top = zone_table[zone_num].top;
 
   /*
@@ -248,7 +251,7 @@ void hlqedit_save_to_disk(int zone_num) {
       ch = &mob_proto[rmob_num];
       if (ch->mob_specials.quest) {
         if (fprintf(fp, "#%d\n", i) < 0) {
-          log("SYSERR: OLC: Cannot write quest file!\r\n");
+          log("SYSERR: OLC: Cannot write hl quest file!\r\n");
           fclose(fp);
           return;
         }
@@ -287,7 +290,7 @@ void hlqedit_save_to_disk(int zone_num) {
 
   fprintf(fp, "$~\n");
   fclose(fp);
-  sprintf(buf2, "%s/%d.hlq", QST_PREFIX, zone_table[zone_num].number);
+  sprintf(buf2, "%s/%d.hlq", HLQST_PREFIX, zone_table[zone_num].number);
   /*
    * We're fubar'd if we crash between the two lines below.
    */
@@ -504,11 +507,12 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         case 'y':
         case 'Y':
           hlqedit_save_internally(d);
+          hlqedit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));
           sprintf(buf, "OLC: %s edits quest %d.", GET_NAME(d->character), OLC_NUM(d));
           log(buf);
           OLC_MOB(d) = 0;
           cleanup_olc(d, CLEANUP_STRUCTS);
-          send_to_char(d->character, "Quest saved to memory.\r\n");
+          send_to_char(d->character, "Quest saved to memory and disk.\r\n");
           break;
         case 'n':
         case 'N':
