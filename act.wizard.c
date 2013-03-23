@@ -5302,6 +5302,7 @@ ACMD(do_oset) {
   }
 }
 
+/* this is deprecated by olist */
 ACMD(do_objlist) {
   bool quest = FALSE;
 
@@ -5380,3 +5381,87 @@ ACMD(do_objlist) {
   page_string(ch->desc, buf, 1);
 }
 
+
+
+/************************************************************************
+ * do_hlqlist       by Kelemvor, rewritten for Luminari by Zusuk        *
+ *    This function allows immortals to view information about the      *
+ ***********************************************************************/
+ACMD(do_hlqlist) {
+  struct quest_entry *quest;
+  int czone = 0, i = 0, start_num = 0, end_num = 0, realnum = 0;
+  int temp_num = 0, num_found = 0;
+  int j = 0;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf1[MAX_INPUT_LENGTH] = { '\0' };
+  char buf2[MAX_INPUT_LENGTH] = { '\0' };
+
+  /* parse any arguments */
+  two_arguments(argument, buf1, buf2);
+
+  /* if no buf1, use current zone information */
+  if (!*buf1) {
+    czone = zone_table[world[ch->in_room].zone].number;
+    start_num = czone;
+    //start_num = czone * 100;
+    
+  }/* if buf1 is not a number send them back */
+  else if (!isdigit(*buf1)) {
+    send_to_char(ch, "\tcFirst value must be a digit, or nothing.\tn\r\n");
+    return;
+    /* convert buf1 to an integer */
+  } else
+    start_num = atoi(buf1);
+
+  /* if no buf2, use buf1, and top of zone information */
+  if (!*buf2) {
+    if ((temp_num = real_zone(start_num)) <= 0) {
+      sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n",
+              start_num);
+      send_to_char(ch, buf);
+      return;
+    } else
+      end_num = zone_table[temp_num].top;
+  }/* if buf2 is not a number send them back */
+  else if (!isdigit(*buf2)) {
+    send_to_char(ch, "\tcSecond value must be a digit, or nothing.\tn\r\n");
+    return;
+  }/* convert buf2 to an integer */
+  else {
+    end_num = atoi(buf2);
+    if (start_num > end_num) {
+      send_to_char(ch, "\tcFirst number must be less than second.\tn\r\n");
+      return;
+    }
+  }
+
+  /* start engine */
+  sprintf(buf, "Quest Listings : From %d to %d\r\n", start_num, end_num);
+  for (i = start_num; i <= end_num; i++) {
+    if ((realnum = real_mobile(i)) >= 0) {
+      if (mob_proto[realnum].mob_specials.quest) {
+        temp_num = 0;
+        num_found = 0;
+        for (quest = mob_proto[realnum].mob_specials.quest; quest;
+                quest = quest->next) {
+          num_found++;
+          if (quest->approved)
+            temp_num++;
+        }
+
+        sprintf(buf, "%s[%5d] %40s %d/%d\r\n", buf, i,
+                mob_proto[realnum].player.short_descr, temp_num, num_found);
+        j++;
+      }
+    }
+    /* Large buf can't hold that much memory so cut off list */
+    if (j >= 500) {
+      sprintf(buf, "%s&crListing too long, truncated at 500.\r\n", buf);
+      return;
+    }
+  }
+  /* end of qlist */
+
+  /* now send it all to the pager */
+  page_string(ch->desc, buf, 1);
+}
