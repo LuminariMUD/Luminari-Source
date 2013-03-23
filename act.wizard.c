@@ -5415,7 +5415,7 @@ ACMD(do_hlqlist) {
 
   /* if no buf1, use current zone information */
   if (!*buf1) {
-    czone = zone_table[world[ch->in_room].zone].bot;
+    czone = zone_table[world[ch->in_room].zone].number;
     start_num = czone;
     //start_num = czone * 100;
     
