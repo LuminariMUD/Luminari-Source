@@ -64,6 +64,7 @@ void quest_ask(struct char_data * ch, struct char_data * victim, char *keyword);
 void quest_give(struct char_data * ch, struct char_data * victim);
 void quest_room(struct char_data * ch);
 bool is_object_in_a_quest(struct obj_data *obj);
+void hlqedit_save_to_disk(int zone_num);
 /* end functions */
 
 /* commands */

@@ -3678,6 +3678,7 @@ ACMD(do_saveall) {
   else {
     save_all();
     House_save_all();
+    //hlqedit_save_to_disk(OLC_ZNUM(d));
     send_to_char(ch, "World and house files saved.\n\r");
   }
 }
