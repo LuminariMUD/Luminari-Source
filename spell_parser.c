@@ -1323,7 +1323,7 @@ ACMD(do_cast) {
   }
 
   if (cast_spell(ch, tch, tobj, spellnum))
-    SET_WAIT(ch, PULSE_VIOLENCE);
+    SET_WAIT(ch, PULSE_VIOLENCE / 2);
 }
 
 void spell_level(int spell, int chclass, int level) {
