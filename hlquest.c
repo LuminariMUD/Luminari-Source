@@ -52,6 +52,7 @@ int has_race_kit( int race, int c )
   return TRUE;
 }
 
+/* this function will have the quest mob open a specific door */
 void quest_open_door(int room, int door) {
   int other_room = 0;
   struct obj_data *dummy = 0;
@@ -77,6 +78,7 @@ void quest_open_door(int room, int door) {
   
 }
 
+/* this utility function display quest info to a viewer in nice format */
 void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
   struct quest_command *qcom = NULL;
   char buf[MAX_INPUT_LENGTH] = { '\0' };
@@ -168,6 +170,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
   send_to_char(ch, quest->reply_msg);
 }
 
+/* utility function to check if there is a spell reward for all quests */
 bool has_spell_a_quest(int spell) {
   int i;
   struct quest_entry *quest;
@@ -185,7 +188,9 @@ bool has_spell_a_quest(int spell) {
   return FALSE;
 }
 
-void give_back_items(struct char_data *questor, struct char_data *player, struct quest_entry *quest) {
+/* utility function used to return items given in quest */
+void give_back_items(struct char_data *questor, struct char_data *player,
+        struct quest_entry *quest) {
   struct quest_command *qcom;
   struct obj_data * obj;
 
@@ -204,6 +209,7 @@ void give_back_items(struct char_data *questor, struct char_data *player, struct
 
 }
 
+/* utility function will identify if given item is involved in a quest */
 bool is_object_in_a_quest(struct obj_data *obj) {
   int i;
   int vnum = 0;
@@ -240,6 +246,7 @@ bool is_object_in_a_quest(struct obj_data *obj) {
   return FALSE;
 }
 
+/* this is the main driver for the quest-out quest-reward system */
 /* temporary definition for initial compile by zusuk */
 #define CLASS_LICH 0
 #define RACE_LICH 0
@@ -295,6 +302,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
         char_to_room(victim, real_room(1));
         if (victim->master)
           stop_follower(victim);
+        /* getting rid of his/her pets too */
         for (homie = world[victim->in_room].people; homie; homie = nexth) {
           nexth = homie->next_in_room;
           if (IS_NPC(homie) && homie->master == victim) {
@@ -317,11 +325,15 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
         SET_BIT_AR(AFF_FLAGS(victim), AFF_CHARM);
 
         break;
+
+        /* unfinished for luminari port */
       case QUEST_COMMAND_CHURCH:
         GET_CHURCH(ch) = qcom->value;
         sprintf(buf, "You are now a servant of %s.\r\n", church_types[GET_CHURCH(ch)]);
         send_to_char(ch, buf);
         break;
+        
+        /* unfinished for luminari port */
       case QUEST_COMMAND_KIT:
         if (GET_CLASS(ch) != qcom->location) {
           sprintf(buf, "You need to be a %s to learn how to be a %s.\r\n"
@@ -376,16 +388,18 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
           log("quest_log : %s have changed to %s", GET_NAME(ch), pc_class_types[ GET_CLASS(ch) ]);
         }
         break;
+        
+        /* unfinished for luminari port */
       case QUEST_COMMAND_TEACH_SPELL:
-        if (GET_LEVEL(ch) < spell_info[qcom->value].min_level[(int) GET_CLASS(ch) ])
+        if (GET_LEVEL(ch) < spell_info[qcom->value].min_level[(int) GET_CLASS(ch)])
           send_to_char(ch, "The teaching is way beyond your comprehension!\r\n");
         else if (GET_SKILL(ch, qcom->value) > 0)
           send_to_char(ch, "You realize that you already know this way too well.\r\n");
         else {
-          sprintf(buf, "$N teaches you '\tL%s\tn'", spell_info[qcom->value ].name);
+          sprintf(buf, "$N teaches you '\tL%s\tn'", spell_info[qcom->value].name);
           act(buf, FALSE, ch, 0, victim, TO_CHAR);
-          GET_SKILL(ch, qcom->value) = 100;
-          sprintf(buf, "quest_log: %s has quested %s", GET_NAME(ch), spell_info[qcom->value ].name);
+          GET_SKILL(ch, qcom->value) = 9;
+          sprintf(buf, "quest_log: %s has quested %s", GET_NAME(ch), spell_info[qcom->value].name);
           log(buf);
         }
         break;
@@ -409,7 +423,8 @@ void quest_room(struct char_data * ch) {
 
   for (quest = ch->mob_specials.quest; quest; quest = quest->next) {
     /* Mortals can only quest on approved quests */
-    if (quest->type == QUEST_ROOM && ch->in_room == real_room(quest->room) && ch->in_room == ch->master->in_room) {
+    if (quest->type == QUEST_ROOM && ch->in_room == real_room(quest->room) &&
+            ch->in_room == ch->master->in_room) {
       perform_out_chain(ch->master, ch, quest, GET_NAME(ch->master));
       return;
     }
@@ -458,8 +473,9 @@ void quest_give(struct char_data * ch, struct char_data * victim) {
 
   for (quest = victim->mob_specials.quest; quest; quest = quest->next) {
     /* Mortals can only quest on approved quests */
-    if (quest->approved == FALSE && GET_LEVEL(ch) < LVL_IMMORT)
-      continue;
+    if (quest && ch)
+      if (quest->approved == FALSE && GET_LEVEL(ch) < LVL_IMMORT)
+        continue;
 
     if (quest->type == QUEST_GIVE) {
       fullfilled = TRUE;
