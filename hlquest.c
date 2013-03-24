@@ -428,8 +428,9 @@ void quest_ask(struct char_data * ch, struct char_data * victim, char *keyword) 
 
   for (quest = victim->mob_specials.quest; quest; quest = quest->next) {
     /* Mortals can only quest on approved quests */
-    if (quest->approved == FALSE && GET_LEVEL(ch) < LVL_IMMORT)
-      continue;
+    if (quest && ch)
+      if (quest->approved == FALSE && GET_LEVEL(ch) < LVL_IMMORT)
+        continue;
 
     if (quest->type == QUEST_ASK && isname(keyword, quest->keywords)) {
       act(quest->reply_msg, FALSE, ch, 0, victim, TO_CHAR);

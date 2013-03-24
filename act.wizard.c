@@ -5463,7 +5463,7 @@ ACMD(do_hlqlist) {
             temp_num++;
         }
 
-        sprintf(buf, "%s[%5d] %40s %d/%d\r\n", buf, i,
+        sprintf(buf, "%s[%5d] %-40s %d/%d\r\n", buf, i,
                 mob_proto[realnum].player.short_descr, temp_num, num_found);
         j++;
       }
