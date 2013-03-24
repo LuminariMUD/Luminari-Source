@@ -39,11 +39,13 @@ void hlqedit_disp_menu(struct descriptor_data *d);
 /*****************************************************************************/
 
 /*---------------------------------------------*/
-/*. local functions                            */
-
+/*. local functions, utility                            */
 /*---------------------------------------------*/
 
-
+/* this is ported from old circlemud 3.0 for exclusive usage
+   for the questing system
+   TODO:  trim it down since its only used for hlqedit
+ */
 void zedit_create_index(int znum, char *type) {
   FILE *newfile, *oldfile;
   char new_name[32], old_name[32], *prefix;
@@ -132,6 +134,9 @@ void hlqedit_show_classes(struct descriptor_data *d) {
   }
 }
 
+/*
+ *  this is the first step in editting an existing or new quest
+ */
 void hlqedit_setup(struct descriptor_data *d, int mob) {
   struct quest_entry *quest = 0;
   struct quest_entry *qexist;
@@ -200,9 +205,42 @@ void hlqedit_setup(struct descriptor_data *d, int mob) {
 
 }
 
+/* utility function that finds quest entry with given num */
+struct quest_entry *getquest(struct descriptor_data *d, int num) {
+  struct quest_entry *quest;
+  int a = 1;
+  for (quest = OLC_HLQUEST(d); quest; quest = quest->next) {
+    if (a == num)
+      return quest;
+    a++;
+  }
+  return NULL;
+}
+
+/* utility function, links quest chain*/
+void hlqedit_addtoout(struct descriptor_data *d, struct quest_command *qcom) {
+  struct quest_command *qlast;
+  if (OLC_QUESTENTRY(d)->out == 0)
+    OLC_QUESTENTRY(d)->out = qcom;
+  else {
+    qlast = OLC_QUESTENTRY(d)->out;
+    while (qlast->next != 0)
+      qlast = qlast->next;
+    qlast->next = qcom;
+  }
+  OLC_QCOM(d) = qcom;
+}
+/*------------------------------------------------------------------------*/
+/*  saving/loading related functions */
 /*------------------------------------------------------------------------*/
 
+/* note loading the quests from file is in hlquest.c */
 
+/* our saving function, comes from a deprecated system that added
+   a list of zone info that needed to be saved, which you then would
+   save with a seperate command - it is now changed to autosave to
+   disk whenever its saved internally
+ */
 void hlqedit_save_internally(struct descriptor_data *d) {
   struct char_data *ch;
   ch = OLC_MOB(d);
@@ -215,8 +253,8 @@ void hlqedit_save_internally(struct descriptor_data *d) {
   hlqedit_save_to_disk(OLC_ZNUM(d));
 }
 
-/*------------------------------------------------------------------------*/
-
+/* writing the hlq file to disk
+ */
 void hlqedit_save_to_disk(int zone_num) {
   FILE *fp;
   struct char_data *ch;
@@ -308,6 +346,8 @@ void hlqedit_save_to_disk(int zone_num) {
    */
   zedit_create_index(zone_table[zone_num].number, "hlq");
 }
+/*------------------------------------------------------------------------*/
+
 
 /**************************************************************************
  Menu functions 
@@ -399,14 +439,17 @@ void hlqedit_disp_menu(struct descriptor_data *d) {
     OLC_QUESTENTRY(d) = 0;
   }
 
-  sprintf(buf, "\r\n----Quests for %s(%d)\r\n", GET_NAME(OLC_MOB(d)), GET_MOB_VNUM(OLC_MOB(d)));
+  sprintf(buf, "\r\n----Quests for %s(%d)\r\n", GET_NAME(OLC_MOB(d)),
+          GET_MOB_VNUM(OLC_MOB(d)));
   send_to_char(d->character, buf);
 
   for (quest = OLC_HLQUEST(d); quest; quest = quest->next) {
     if (quest->type == QUEST_ASK)
-      sprintf(buf, "%d) (%s) ASK %s", num, quest->approved ? "OK" : "-", quest->keywords);
+      sprintf(buf, "%d) (%s) ASK %s", num, quest->approved ? "OK" :
+        "-", quest->keywords);
     else if (quest->type == QUEST_ROOM)
-      sprintf(buf, "%d) (%s) ROOM %d", num, quest->approved ? "OK" : "-", quest->room);
+      sprintf(buf, "%d) (%s) ROOM %d", num, quest->approved ? "OK" :
+        "-", quest->room);
     else {
       if (quest->in > 0) {
         if (quest->in->type == QUEST_COMMAND_ITEM)
@@ -447,6 +490,8 @@ void hlqedit_disp_menu(struct descriptor_data *d) {
   OLC_MODE(d) = QEDIT_MAIN_MENU;
 }
 
+/* message displayed upon finishing a quest's step
+ */
 void hlqedit_init_replymsg(struct descriptor_data *d) {
   char *msg;
   OLC_MODE(d) = QEDIT_REPLYMSG;
@@ -463,30 +508,6 @@ void hlqedit_init_replymsg(struct descriptor_data *d) {
   d->max_str = MAX_ROOM_DESC;
   d->mail_to = 0;
   OLC_VAL(d) = 1;
-}
-
-struct quest_entry *getquest(struct descriptor_data *d, int num) {
-  struct quest_entry *quest;
-  int a = 1;
-  for (quest = OLC_HLQUEST(d); quest; quest = quest->next) {
-    if (a == num)
-      return quest;
-    a++;
-  }
-  return NULL;
-}
-
-void hlqedit_addtoout(struct descriptor_data *d, struct quest_command *qcom) {
-  struct quest_command *qlast;
-  if (OLC_QUESTENTRY(d)->out == 0)
-    OLC_QUESTENTRY(d)->out = qcom;
-  else {
-    qlast = OLC_QUESTENTRY(d)->out;
-    while (qlast->next != 0)
-      qlast = qlast->next;
-    qlast->next = qcom;
-  }
-  OLC_QCOM(d) = qcom;
 }
 
 /**************************************************************************
@@ -580,6 +601,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       break;
 
     case QEDIT_INCOMMAND:
+    {
       switch (*arg) {
         case 'c':
         case 'C':
@@ -605,7 +627,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           hlqedit_disp_outcommand_menu(d);
           return;
       }
-      break;
+    }
+    break;
 
     case QEDIT_IN_COIN:
       number = atoi(arg);
@@ -681,6 +704,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           OLC_MODE(d) = QEDIT_OUT_OPEN_DOOR;
           send_to_char(d->character, "Select room vnum?");
           return;
+          
+          break;
 
         case 'a':
         case 'A':
@@ -689,6 +714,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           qcom->type = QUEST_COMMAND_ATTACK_QUESTOR;
           hlqedit_init_replymsg(d);
           return;
+          
+          break;
 
         case 'd':
         case 'D':
@@ -697,6 +724,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           qcom->type = QUEST_COMMAND_DISAPPEAR;
           hlqedit_init_replymsg(d);
           return;
+          
+          break;
 
         case 'f':
         case 'F':
@@ -705,6 +734,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           qcom->type = QUEST_COMMAND_FOLLOW;
           hlqedit_disp_outcommand_menu(d);
           return;
+          
+          break;
 
         case 'k':
         case 'K':
@@ -737,13 +768,15 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           OLC_MODE(d) = QEDIT_OUT_TEACH_SPELL; //same no need for new.
           hlqedit_disp_spells(d);
           return;
+          
+          break;
 
         case '0':
         case 'E':
         case 'e':
           hlqedit_init_replymsg(d);
           return;
-      }
+      } /* end out command arg switch */
       break;
 
     case QEDIT_OUT_COIN:
@@ -755,6 +788,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         hlqedit_disp_outcommand_menu(d);
       }
       return;
+      
+      break;
+      
     case QEDIT_OUT_ITEM:
       if ((number = real_object(atoi(arg))) != NOWHERE) {
         OLC_QCOM(d)->value = atoi(arg);
@@ -762,6 +798,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       } else
         send_to_char(d->character, "That object does not exist, try again : ");
       return;
+      
+      break;
 
     case QEDIT_OUT_LOAD_OBJECT:
       if ((number = real_object(atoi(arg))) != NOWHERE) {
@@ -771,6 +809,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       } else
         send_to_char(d->character, "That object does not exist, try again : ");
       return;
+      
+      break;
+      
     case QEDIT_OUT_LOAD_MOB:
       if ((number = real_mobile(atoi(arg))) >= 0) {
         OLC_QCOM(d)->value = atoi(arg);
@@ -779,6 +820,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       } else
         send_to_char(d->character, "That mob does not exist, try again : ");
       return;
+      
+      break;
 
     case QEDIT_OUT_TEACH_SPELL:
       number = atoi(arg);
@@ -796,6 +839,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         OLC_QCOM(d)->location = -1;
       hlqedit_disp_outcommand_menu(d);
       return;
+      
+      break;
 
     case QEDIT_OUT_CHURCH:
       number = atoi(arg);
@@ -805,6 +850,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         return;
       }
       break;
+      
     case QEDIT_OUT_KIT_SELECT:
       number = atoi(arg);
       if (number >= 0 && number < NUM_CLASSES) {
@@ -822,6 +868,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         hlqedit_disp_outcommand_menu(d);
         return;
       }
+      break;
 
     case QEDIT_OUT_OPEN_DOOR:
       if ((number = real_room(atoi(arg))) != NOWHERE) {
@@ -832,6 +879,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       } else {
         send_to_char(d->character, "Which room ?");
       }
+      return;
+      
       break;
 
     case QEDIT_OUT_OPEN_DOOR_DIR:
@@ -844,7 +893,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       return;
 
       break;
+      
     case QEDIT_DELETE_QUEST:
+    {
       OLC_VAL(d) = 1;
       number = atoi(arg);
       if (number < 1 || NULL == (quest = getquest(d, number)))
@@ -864,6 +915,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       }
       hlqedit_disp_menu(d);
       return;
+    }
+    break;
 
     case QEDIT_APPROVE_QUEST:
       number = atoi(arg);
@@ -875,15 +928,20 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       }
       hlqedit_disp_menu(d);
       return;
+      
       break;
 
     case QEDIT_VIEW_QUEST:
+    {
       number = atoi(arg);
       if (number < 1 || NULL == (quest = getquest(d, number)))
         send_to_char(d->character, "No such quest!");
       else
         show_quest_to_player(d->character, quest);
       break;
+    }
+    
+    
     case QEDIT_MAIN_MENU:
       switch (*arg) {
         case 'q':
@@ -943,8 +1001,10 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
 
 /* end main loop */
 
+/*-----------------------------------------------------*/
+/* commands code */
+/*-----------------------------------------------------*/
 
-/* command code */
 ACMD(do_hlqedit) {
   int number = NOBODY, save = 0, real_num;
   struct descriptor_data *d;

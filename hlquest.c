@@ -39,6 +39,10 @@ int level_exp(struct char_data *ch, int level);
 /*********************************/
 /*********************************/
 
+/*-----------------------------------*/
+/* utility functions */
+/*-----------------------------------*/
+
 
 /* homeland-port this eventually can be used to have special class 
    quests */
@@ -494,6 +498,81 @@ void quest_give(struct char_data * ch, struct char_data * victim) {
   }
 }
 
+void clear_hlquest(struct quest_entry *quest) {
+  quest->approved = FALSE;
+  quest->next = NULL;
+  quest->in = 0;
+  quest->out = 0;
+  quest->reply_msg = 0;
+  quest->keywords = 0;
+  quest->room = 1;
+}
+
+void free_hlquests(struct quest_entry *quest) {
+  struct quest_entry *next;
+  struct quest_command *qcom;
+  while (quest) {
+    next = quest->next;
+    free(quest->keywords);
+    free(quest->reply_msg);
+    while (quest->in) {
+      qcom = quest->in;
+      quest->in = qcom->next;
+      free(qcom);
+    }
+    while (quest->out) {
+      qcom = quest->out;
+      quest->out = qcom->next;
+      free(qcom);
+    }
+    free(quest);
+    quest = next;
+  }
+}
+
+void free_hlquest(struct char_data * ch) {
+  if (!IS_NPC(ch))
+    return;
+  free_hlquests(ch->mob_specials.quest);
+  ch->mob_specials.quest = 0;
+}
+
+int quest_value_vnum(struct quest_command * qcom) {
+  switch (qcom->type) {
+    case QUEST_COMMAND_TEACH_SPELL:
+    case QUEST_COMMAND_COINS:
+      return qcom->value;
+    case QUEST_COMMAND_ITEM:
+    case QUEST_COMMAND_LOAD_OBJECT_INROOM:
+      return GET_OBJ_VNUM(&obj_proto[qcom->value]);
+      break;
+    case QUEST_COMMAND_LOAD_MOB_INROOM:
+      return GET_MOB_VNUM(&mob_proto[qcom->value]);
+      break;
+    case QUEST_COMMAND_ATTACK_QUESTOR:
+    case QUEST_COMMAND_DISAPPEAR:
+      return 0;
+  }
+  return 0;
+}
+
+int quest_location_vnum(struct quest_command *qcom) {
+  if (qcom->location == -1)
+    return -1;
+
+  switch (qcom->type) {
+    case QUEST_COMMAND_LOAD_OBJECT_INROOM:
+    case QUEST_COMMAND_LOAD_MOB_INROOM:
+      return GET_ROOM_VNUM(qcom->value);
+  }
+  return -1;
+}
+
+/*-----------------------------------*/
+/* loading/saving functions */
+/*-----------------------------------*/
+
+/* loading the quests from disk */
 void boot_the_quests(FILE * quest_f, char *filename, int rec_count) {
   char str[256];
   char line[256];
@@ -609,80 +688,13 @@ void boot_the_quests(FILE * quest_f, char *filename, int rec_count) {
   }
 }
 
-void clear_hlquest(struct quest_entry *quest) {
-  quest->approved = FALSE;
-  quest->next = NULL;
-  quest->in = 0;
-  quest->out = 0;
-  quest->reply_msg = 0;
-  quest->keywords = 0;
-  quest->room = 1;
-}
 
-void free_hlquests(struct quest_entry *quest) {
-  struct quest_entry *next;
-  struct quest_command *qcom;
-  while (quest) {
-    next = quest->next;
-    free(quest->keywords);
-    free(quest->reply_msg);
-    while (quest->in) {
-      qcom = quest->in;
-      quest->in = qcom->next;
-      free(qcom);
-    }
-    while (quest->out) {
-      qcom = quest->out;
-      quest->out = qcom->next;
-      free(qcom);
-    }
-    free(quest);
-    quest = next;
-  }
-}
-
-void free_hlquest(struct char_data * ch) {
-  if (!IS_NPC(ch))
-    return;
-  free_hlquests(ch->mob_specials.quest);
-  ch->mob_specials.quest = 0;
-}
-
-int quest_value_vnum(struct quest_command * qcom) {
-  switch (qcom->type) {
-    case QUEST_COMMAND_TEACH_SPELL:
-    case QUEST_COMMAND_COINS:
-      return qcom->value;
-    case QUEST_COMMAND_ITEM:
-    case QUEST_COMMAND_LOAD_OBJECT_INROOM:
-      return GET_OBJ_VNUM(&obj_proto[qcom->value]);
-      break;
-    case QUEST_COMMAND_LOAD_MOB_INROOM:
-      return GET_MOB_VNUM(&mob_proto[qcom->value]);
-      break;
-    case QUEST_COMMAND_ATTACK_QUESTOR:
-    case QUEST_COMMAND_DISAPPEAR:
-      return 0;
-  }
-  return 0;
-}
-
-int quest_location_vnum(struct quest_command *qcom) {
-  if (qcom->location == -1)
-    return -1;
-
-  switch (qcom->type) {
-    case QUEST_COMMAND_LOAD_OBJECT_INROOM:
-    case QUEST_COMMAND_LOAD_MOB_INROOM:
-      return GET_ROOM_VNUM(qcom->value);
-  }
-  return -1;
-}
-
-/* utility functions end */
-
+/*-----------------------------------*/
 /* hlquest commands ***/
+/*-----------------------------------*/
 
+/* quest info command
+   CURRENTLY unfinished */
 ACMD(do_qinfo) {
   int i = 0, j = 0, start_num = 0, end_num = 0, number = 0, found = 0;
   int realnum = -1;
@@ -795,6 +807,7 @@ ACMD(do_qinfo) {
   } // zone table walk
 }
 
+/* command to check for any unapproved quests in given zone/mob vnum range */
 ACMD(do_checkapproved) {
   int i;
   int count;
@@ -824,6 +837,7 @@ ACMD(do_checkapproved) {
   }
 }
 
+/* displays all kitquests in the game */
 ACMD(do_kitquests) {
   char buf[MAX_INPUT_LENGTH] = { '\0' };
   
@@ -855,6 +869,7 @@ ACMD(do_kitquests) {
   }
 }
 
+/* displays all spell quests in the game */
 ACMD(do_spellquests) {
   char buf[MAX_INPUT_LENGTH] = { '\0' };
   int i;
@@ -894,6 +909,7 @@ ACMD(do_spellquests) {
   }
 }
 
+/* with a given object vnum, finds references to quests in game */
 ACMD(do_qref) {
   int i;
   int count = 0;
@@ -973,6 +989,7 @@ ACMD(do_qref) {
   }
 }
 
+/* qview will view the quest details of a given mob's vnum in a nice format */
 ACMD(do_qview) {
   struct quest_entry *quest;
   int num;
@@ -1009,4 +1026,6 @@ ACMD(do_qview) {
 
 }
 
+/*-----------------------------------*/
 /* end hlquest commands */
+/*-----------------------------------*/
