@@ -469,7 +469,7 @@ void boot_world(void) {
   log("Loading quests.");
   index_boot(DB_BOOT_QST);
 
-  log("Loading homeland quests.");
+  log("Loading Homeland quests.");
   index_boot(DB_BOOT_HLQST);
 
 }
@@ -1041,11 +1041,6 @@ void index_boot(int mode) {
       CREATE(aquest_table, struct aq_data, rec_count);
       size[0] = sizeof (struct aq_data) * rec_count;
       log("   %d entries, %d bytes.", rec_count, size[0]);
-      break;
-    case DB_BOOT_HLQST:
-      //CREATE(aquest_table, struct aq_data, rec_count);
-      //size[0] = sizeof (struct aq_data) * rec_count;
-      //log("   %d entries, %d bytes.", rec_count, size[0]);
       break;
   }
 

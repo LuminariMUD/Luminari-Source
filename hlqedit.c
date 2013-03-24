@@ -68,12 +68,14 @@ void zedit_create_index(int znum, char *type) {
       prefix = SHP_PREFIX;
       break;
     case 'q':
-      prefix = QST_PREFIX;
+      prefix = HLQST_PREFIX;
+      break;
+    case 'h':
+      prefix = HLQST_PREFIX;
       break;
     default:
-      /*
-       * Caller messed up  
-       */
+      prefix = HLQST_PREFIX;
+      break;
       return;
   }
 
@@ -233,7 +235,7 @@ void hlqedit_save_to_disk(int zone_num) {
     return;
   }
 
-  sprintf(buf, "%s/%d.new", QST_PREFIX, zone_table[zone_num].number);
+  sprintf(buf, "%s/%d.new", HLQST_PREFIX, zone_table[zone_num].number);
   if (!(fp = fopen(buf, "w+"))) {
     log("SYSERR: OLC: Cannot open quest file!");
     return;
@@ -939,6 +941,10 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
   hlqedit_disp_menu(d);
 }
 
+/* end main loop */
+
+
+/* command code */
 ACMD(do_hlqedit) {
   int number = NOBODY, save = 0, real_num;
   struct descriptor_data *d;
