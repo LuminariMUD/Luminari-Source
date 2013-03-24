@@ -776,6 +776,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         case 'e':
           hlqedit_init_replymsg(d);
           return;
+          
+          break;
       } /* end out command arg switch */
       break;
 
