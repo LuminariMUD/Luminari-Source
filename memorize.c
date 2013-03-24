@@ -914,8 +914,8 @@ int comp_slots(struct char_data *ch, int circle, int class)
 //   and the corresponding memtime in memtime list
 // WIZARD types:  adds <spellnum> to the characters memorizing list, and
 //   places the corresponding memtime in memtime list
-#define SORC_TIME_FACTOR  12
-#define BARD_TIME_FACTOR  14
+#define SORC_TIME_FACTOR  10
+#define BARD_TIME_FACTOR  12
 void addSpellMemming(struct char_data *ch, int spellnum, int time, int class)
 {
   int slot;
