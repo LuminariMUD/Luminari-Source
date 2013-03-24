@@ -21,6 +21,8 @@
 #include "genzon.h"
 #include "genolc.h"
 #include "genmob.h"
+#include "improved-edit.h"
+#include "modify.h"
 
 /*---------------------------------------------*/
 /*. Function prototypes / Globals / Externals. */
@@ -44,43 +46,16 @@ void hlqedit_disp_menu(struct descriptor_data *d);
 
 /* this is ported from old circlemud 3.0 for exclusive usage
    for the questing system
-   TODO:  trim it down since its only used for hlqedit
  */
-void zedit_create_index(int znum, char *type) {
+void zedit_create_index(int znum) {
   FILE *newfile, *oldfile;
   char new_name[32], old_name[32], *prefix;
   int num, found = FALSE;
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-  switch (*type) {
-    case 'z':
-      prefix = ZON_PREFIX;
-      break;
-    case 'w':
-      prefix = WLD_PREFIX;
-      break;
-    case 'o':
-      prefix = OBJ_PREFIX;
-      break;
-    case 'm':
-      prefix = MOB_PREFIX;
-      break;
-    case 's':
-      prefix = SHP_PREFIX;
-      break;
-    case 'q':
-      prefix = HLQST_PREFIX;
-      break;
-    case 'h':
-      prefix = HLQST_PREFIX;
-      break;
-    default:
-      prefix = HLQST_PREFIX;
-      break;
-      return;
-  }
-
+  prefix = HLQST_PREFIX;
+      
   sprintf(old_name, "%s/index", prefix);
   sprintf(new_name, "%s/newindex", prefix);
 
@@ -98,7 +73,7 @@ void zedit_create_index(int znum, char *type) {
    * Index contents must be in order: search through the old file for the
    * right place, insert the new file, then copy the rest over. 
    */
-  sprintf(buf1, "%d.%s", znum, type);
+  sprintf(buf1, "%d.%s", znum, "hlq");
   while (get_line(oldfile, buf)) {
     if (*buf == '$') {
       fprintf(newfile, "%s\n$\n", (!found ? buf1 : ""));
@@ -124,6 +99,8 @@ void zedit_create_index(int znum, char *type) {
   rename(new_name, old_name);
 }
 
+/* lists classes appropriate for hlqedit
+   UNFINISHED for Luminari usage */
 void hlqedit_show_classes(struct descriptor_data *d) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int i;
@@ -202,7 +179,6 @@ void hlqedit_setup(struct descriptor_data *d, int mob) {
   OLC_VAL(d) = 0;
   OLC_MOB(d) = ch;
   hlqedit_disp_menu(d);
-
 }
 
 /* utility function that finds quest entry with given num */
@@ -246,8 +222,6 @@ void hlqedit_save_internally(struct descriptor_data *d) {
   ch = OLC_MOB(d);
   free_hlquest(ch);
   ch->mob_specials.quest = OLC_HLQUEST(d);
-  /* homeland-port this has to be rewritten for luminari */
-  //  olc_add_to_save_list(zone_table[OLC_ZNUM(d)].number, OLC_SAVE_QUEST);
 
   /* going ahead and saving to disk now -zusuk */
   hlqedit_save_to_disk(OLC_ZNUM(d));
@@ -285,7 +259,6 @@ void hlqedit_save_to_disk(int zone_num) {
   /*
    * Search the database for mobs with quests in this zone and save them.
    */
-  //for (i = zone * 100; i <= top; i++) {
   for (i = zone; i <= top; i++) {
     if ((rmob_num = real_mobile(i)) != NOWHERE) {
       ch = &mob_proto[rmob_num];
@@ -337,14 +310,11 @@ void hlqedit_save_to_disk(int zone_num) {
   remove(buf2);
   rename(buf, buf2);
 
-  /* homeland-port this has to be rewritten for luminari */
-  //olc_remove_from_save_list(zone_table[zone_num].number, OLC_SAVE_QUEST);
-
   /*
    * Since quests were not in from start, make sure that they are in index file
    * index files now do not add duplicates (Vhaerun)
    */
-  zedit_create_index(zone_table[zone_num].number, "hlq");
+  zedit_create_index(zone_table[zone_num].number);
 }
 /*------------------------------------------------------------------------*/
 
@@ -492,6 +462,7 @@ void hlqedit_disp_menu(struct descriptor_data *d) {
 
 /* message displayed upon finishing a quest's step
  */
+/*
 void hlqedit_init_replymsg(struct descriptor_data *d) {
   char *msg;
   OLC_MODE(d) = QEDIT_REPLYMSG;
@@ -509,7 +480,22 @@ void hlqedit_init_replymsg(struct descriptor_data *d) {
   d->mail_to = 0;
   OLC_VAL(d) = 1;
 }
+*/
+void hlqedit_init_replymsg(struct descriptor_data *d) {
+  char *msg = NULL;
+  
+  OLC_MODE(d) = QEDIT_REPLYMSG;
+  write_to_output(d, "Enter reply message on quest:\r\n");
+  send_editor_help(d);
 
+  if (OLC_QUESTENTRY(d)->reply_msg) {
+    write_to_output(d, "%s", OLC_QUESTENTRY(d)->reply_msg);
+    msg = strdup(OLC_QUESTENTRY(d)->reply_msg);
+  }
+  string_write(d, &OLC_QUESTENTRY(d)->reply_msg, MAX_ROOM_DESC, 0, msg);
+  OLC_VAL(d) = 1;
+}
+          
 /**************************************************************************
   The main loop
  **************************************************************************/
@@ -583,6 +569,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       OLC_MODE(d) = QEDIT_REPLYMSG;
       hlqedit_init_replymsg(d);
       return;
+      
+      break;
 
     case QEDIT_REPLYMSG:
       /*
