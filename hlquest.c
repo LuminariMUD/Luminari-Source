@@ -114,13 +114,13 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
     for (qcom = quest->out; qcom; qcom = qcom->next) {
       switch (qcom->type) {
         case QUEST_COMMAND_ITEM:
-          sprintf(buf, "\tcRECIEVE\tn %s (%d)\r\n",
+          sprintf(buf, "\tcRECEIVE\tn %s (%d)\r\n",
                   obj_proto[real_object(qcom->value)].short_description
                   , qcom->value);
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_COINS:
-          sprintf(buf, "\tcRECIEVE\tn %d coins\r\n", qcom->value);
+          sprintf(buf, "\tcRECEIVE\tn %d coins\r\n", qcom->value);
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_LOAD_OBJECT_INROOM:
@@ -1027,7 +1027,7 @@ ACMD(do_qref) {
           if (qcom->value == vnum) {
             switch (qcom->type) {
               case QUEST_COMMAND_ITEM:
-                sprintf(buf, "\tCRECIEVE\tn %s from %s(\tW%d\tn)\r\n"
+                sprintf(buf, "\tCRECEIVE\tn %s from %s(\tW%d\tn)\r\n"
                         , obj_proto[real_num].short_description
                         , mob_proto[i].player.short_descr
                         , mob_index[i].vnum
