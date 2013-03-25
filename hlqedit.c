@@ -128,10 +128,10 @@ void hlqedit_setup(struct descriptor_data *d, int mob) {
   /*
      Okies copy what already exist
    */
-  if (ch->mob_specials.quest) {
+  if (ch && ch->mob_specials.quest) {
 
     for (qexist = ch->mob_specials.quest; qexist; qexist = qexist->next) {
-      if (qexist) {
+      if (ch && qexist) {
 
         CREATE(qtmp, struct quest_entry, 1);
         clear_hlquest(qtmp);
@@ -178,7 +178,7 @@ void hlqedit_setup(struct descriptor_data *d, int mob) {
         } /* end out chain */
         
       } /* end if qexist */
-    }
+    } /* for loop */
   }
   /*
    * Attach reference to quest to player's struct descriptor_data.
@@ -263,13 +263,15 @@ void hlqedit_save_to_disk(int zone_num) {
     return;
   }
 
-  zone = zone_table[zone_num].bot;
+  zone = zone_table[zone_num].number;
+  //zone = zone_table[zone_num].bot;  
   top = zone_table[zone_num].top;
 
   /*
    * Search the database for mobs with quests in this zone and save them.
    */
-  for (i = zone; i <= top; i++) {
+  //for (i = zone; i <= top; i++) {
+  for (i = zone * 100; i <= top; i++) {
     if ((rmob_num = real_mobile(i)) != NOWHERE) {
       ch = &mob_proto[rmob_num];
       if (ch->mob_specials.quest) {
