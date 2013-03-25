@@ -1378,8 +1378,9 @@ ACMD(do_score) {
           compute_damage_reduction(ch, -1),
           compute_concealment(ch));
 
-  send_to_char(ch, "\tCAlignment:\tn %s", get_align_by_num(GET_ALIGNMENT(ch)));
-  send_to_char(ch, "        \tCLoad carried:\tn %d \tClbs\tn\r\n", IS_CARRYING_W(ch));
+  send_to_char(ch, "\tCAlignment:\tn %11s", get_align_by_num(GET_ALIGNMENT(ch)));
+  send_to_char(ch, "     \tCLoad carried/max:\tn %d/%d \tClbs\tn\r\n", IS_CARRYING_W(ch),
+          CAN_CARRY_W(ch));
 
   send_to_char(ch,
           "\tCSaving Throws:  Fortitude[\tn%d\tC] Reflex[\tn%d\tC] Will[\tn%d\tC]\tn\r\n",
