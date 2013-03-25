@@ -1378,8 +1378,8 @@ ACMD(do_score) {
           compute_damage_reduction(ch, -1),
           compute_concealment(ch));
 
-  send_to_char(ch, "\tCAlignment:\tn %11s", get_align_by_num(GET_ALIGNMENT(ch)));
-  send_to_char(ch, "     \tCLoad carried/max:\tn %d/%d \tClbs\tn\r\n", IS_CARRYING_W(ch),
+  send_to_char(ch, "\tCAlignment:\tn %13s", get_align_by_num(GET_ALIGNMENT(ch)));
+  send_to_char(ch, "    \tCLoad carried/max:\tn %d/%d \tClbs\tn\r\n", IS_CARRYING_W(ch),
           CAN_CARRY_W(ch));
 
   send_to_char(ch,
@@ -1481,19 +1481,19 @@ ACMD(do_score) {
   send_to_char(ch, "\tDType 'attacks' to see your attack rotation\tn\r\n");
   send_to_char(ch, "\tDType 'affects' to see what you are affected by\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_WIZARD))
-    send_to_char(ch, "\tDType 'memorize' to see your spell interface\tn\r\n");
+    send_to_char(ch, "\tDType 'memorize' to see your Wizard spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_SORCERER))
-    send_to_char(ch, "\tDType 'meditate' to see your spell interface\tn\r\n");
+    send_to_char(ch, "\tDType 'meditate' to see your Sorcerer spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_CLERIC))
-    send_to_char(ch, "\tDType 'prayer' to see your spell interface\tn\r\n");
+    send_to_char(ch, "\tDType 'prayer' to see your Cleric spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_RANGER))
-    send_to_char(ch, "\tDType 'adjure' to see your spell interface\tn\r\n");
+    send_to_char(ch, "\tDType 'adjure' to see your Ranger spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_BARD))
-    send_to_char(ch, "\tDType 'compose' to see your spell interface\tn\r\n");
+    send_to_char(ch, "\tDType 'compose' to see your Bard spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_DRUID))
-    send_to_char(ch, "\tDType 'commune' to see your spell interface\tn\r\n");
+    send_to_char(ch, "\tDType 'commune' to see your Druid spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_PALADIN))
-    send_to_char(ch, "\tDType 'chant' to see your spell interface\tn\r\n");
+    send_to_char(ch, "\tDType 'chant' to see your Paladin spell interface\tn\r\n");
 }
 
 ACMD(do_inventory) {
