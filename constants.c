@@ -475,43 +475,44 @@ const char *affected_bits[] =
 const char *connected_types[] = {
   "Playing",		//0
   "Disconnecting",
-  "Get name",
-  "Confirm name",
-  "Get password",
-  "Get new PW",		//5
-  "Confirm new PW",
-  "Select sex",
-  "Select class",
+  "Get Name",
+  "Confirm Name",
+  "Get Password",
+  "Get New PW",		//5
+  "Confirm New PW",
+  "Select Sex",
+  "Select Class",
   "Reading MOTD",
   "Main Menu",		//10
-  "Get descript.",
+  "Get Descript.",
   "Changing PW 1",
   "Changing PW 2",
   "Changing PW 3",
   "Self-Delete 1",	//15
   "Self-Delete 2",
   "Disconnecting",
-  "Object edit",
-  "Room edit",
-  "Zone edit",		//20
-  "Mobile edit",
-  "Shop edit",
-  "Text edit",
-  "Config edit",
-  "Social edit",	//25
-  "Trigger edit",
-  "Help edit",
-  "Quest edit",
-  "Preference edit",
-  "IBT edit",		//30
+  "Object Edit",
+  "Room Edit",
+  "Zone Edit",		//20
+  "Mobile Edit",
+  "Shop Edit",
+  "Text Edit",
+  "Config Edit",
+  "Social Edit",	//25
+  "Trigger Edit",
+  "Help Edit",
+  "Quest Edit",
+  "Preference Edit",
+  "IBT Edit",		//30
   "Protocol Detection",
   "Select Race",
-  "Clan edit",
+  "Clan Edit",
   "Message Edit",
   "Spells Known Edit",	//35
   "Class Help",	//36
   "Alignment Selection",	//37
   "Race Help", // 38
+  "HL Quest Edit"
   "\n"  /* make sure this matches NUM_CON_STATES:  39 */
 };
 
