@@ -507,7 +507,7 @@ void quest_give(struct char_data *ch, struct char_data *victim) {
 
   for (quest = victim->mob_specials.quest; quest; quest = quest->next) {
     /* Mortals can only quest on approved quests */
-    if (quest && ch)
+    if (victim && quest && ch)
       if (quest->approved == FALSE && GET_LEVEL(ch) < LVL_IMMORT)
         continue;
 

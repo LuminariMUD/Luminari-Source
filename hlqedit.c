@@ -958,8 +958,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           return;
         case 'a':
         case 'A':
-          if (GET_LEVEL(d->character) < LVL_IMPL)
-            send_to_char(d->character, "You are definitely NOT a forger!\r\n");
+          if (GET_LEVEL(d->character) < LVL_GRGOD)
+            send_to_char(d->character, "You are not high enough level to do"
+                    " that!\r\n");
           else {
             OLC_VAL(d) = 1;
             OLC_MODE(d) = QEDIT_APPROVE_QUEST;
