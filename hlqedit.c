@@ -131,43 +131,53 @@ void hlqedit_setup(struct descriptor_data *d, int mob) {
   if (ch->mob_specials.quest) {
 
     for (qexist = ch->mob_specials.quest; qexist; qexist = qexist->next) {
+      if (qexist) {
 
-      CREATE(qtmp, struct quest_entry, 1);
-      clear_hlquest(qtmp);
-      qtmp->type = qexist->type;
-      qtmp->approved = qexist->approved;
-      qtmp->reply_msg = strdup(qexist->reply_msg);
-      if (qtmp->type == QUEST_ASK)
-        qtmp->keywords = strdup(qexist->keywords);
-      qtmp->room = qexist->room;
+        CREATE(qtmp, struct quest_entry, 1);
+        clear_hlquest(qtmp);
+        qtmp->type = qexist->type;
+        qtmp->approved = qexist->approved;
+        if (qexist->reply_msg)
+          qtmp->reply_msg = strdup(qexist->reply_msg);
+        else
+          qtmp->reply_msg = strdup("Nothing\r\n");
+        if (qtmp->type == QUEST_ASK && qexist->keywords)
+          qtmp->keywords = strdup(qexist->keywords);
+        else if (qtmp->type == QUEST_ASK)
+          qtmp->keywords = strdup("hi hello quest");
+        qtmp->room = qexist->room;
 
-      qtmp->next = quest;
-      quest = qtmp;
-      /* in chain */
-      for (qcomexist = qexist->in; qcomexist; qcomexist = qcomexist->next) {
-        CREATE(qcom, struct quest_command, 1);
-        qcom->type = qcomexist->type;
-        qcom->value = qcomexist->value;
-        qcom->location = qcomexist->location;
-        qcom->next = quest->in;
-        quest->in = qcom;
-      }
-      /* out chain */
-      for (qcomexist = qexist->out; qcomexist; qcomexist = qcomexist->next) {
-        CREATE(qcom, struct quest_command, 1);
-        qcom->type = qcomexist->type;
-        qcom->value = qcomexist->value;
-        qcom->location = qcomexist->location;
-
-        if (quest->out == 0)
-          quest->out = qcom;
-        else {
-          qlast = quest->out;
-          while (qlast->next != 0)
-            qlast = qlast->next;
-          qlast->next = qcom;
+        qtmp->next = quest;
+        quest = qtmp;
+ 
+        /* in chain */
+        for (qcomexist = qexist->in; qcomexist; qcomexist = qcomexist->next) {
+          CREATE(qcom, struct quest_command, 1);
+          qcom->type = qcomexist->type;
+          qcom->value = qcomexist->value;
+          qcom->location = qcomexist->location;
+          qcom->next = quest->in;
+          quest->in = qcom;
         }
-      }
+        
+        /* out chain */
+        for (qcomexist = qexist->out; qcomexist; qcomexist = qcomexist->next) {
+          CREATE(qcom, struct quest_command, 1);
+          qcom->type = qcomexist->type;
+          qcom->value = qcomexist->value;
+          qcom->location = qcomexist->location;
+
+          if (quest->out == 0)
+            quest->out = qcom;
+          else {
+            qlast = quest->out;
+            while (qlast->next != 0)
+              qlast = qlast->next;
+            qlast->next = qcom;
+          }
+        } /* end out chain */
+        
+      } /* end if qexist */
     }
   }
   /*
@@ -350,11 +360,11 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d) {
           "%sM%s) Load mob in a room\r\n"
           "%sA%s) Attack questor\r\n"
           "%sD%s) Dissappear\r\n"
-          "%sT%s) Teach spell/skill\r\n"
+          "%sT%s) Teach spell/skill (not yet implemented)\r\n"
           "%sX%s) Open Door\r\n"
           "%sF%s) Follow questor\r\n"
-          "%sU%s) Set Church\r\n"
-          "%sK%s) Change Kit\r\n"
+          "%sU%s) Set Church (not yet implemented)\r\n"
+          "%sK%s) Change Kit (not yet implemented)\r\n"
           "%sS%s) Cast Spell\r\n"
           ,
           grn, nrm,
@@ -505,7 +515,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
   struct quest_entry *quest;
   struct quest_entry *qtmp;
   struct quest_command *qcom;
-  int number;
+  int number = 1;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   switch (OLC_MODE(d)) {
@@ -580,8 +590,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       break;
 
     case QEDIT_ROOM:
-      number = atoi(arg);
-      if (number) {
+      if (number && real_room(number) != NOWHERE) {
         OLC_QUESTENTRY(d)->room = number;
         hlqedit_disp_outcommand_menu(d);
         return;
@@ -771,8 +780,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
 
     case QEDIT_OUT_COIN:
       number = atoi(arg);
-      if (number < 0)
-        send_to_char(d->character, "That is not a valid choice!\r\n");
+      if (number < 0 || number > 100000)
+        send_to_char(d->character, "That is not a valid choice! (0 - 100000)\r\n");
       else {
         OLC_QCOM(d)->value = number;
         hlqedit_disp_outcommand_menu(d);
@@ -782,7 +791,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       break;
       
     case QEDIT_OUT_ITEM:
-      if ((number = real_object(atoi(arg))) != NOWHERE) {
+      if ((number = real_object(atoi(arg))) != NOTHING) {
         OLC_QCOM(d)->value = atoi(arg);
         hlqedit_disp_outcommand_menu(d);
       } else
@@ -792,7 +801,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       break;
 
     case QEDIT_OUT_LOAD_OBJECT:
-      if ((number = real_object(atoi(arg))) != NOWHERE) {
+      if ((number = real_object(atoi(arg))) != NOTHING) {
         OLC_QCOM(d)->value = atoi(arg);
         OLC_MODE(d) = QEDIT_OUT_LOAD_OBJECT_ROOM;
         send_to_char(d->character, "Which room to load it. (-1 for current room)\r\n: ");
@@ -803,7 +812,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       break;
       
     case QEDIT_OUT_LOAD_MOB:
-      if ((number = real_mobile(atoi(arg))) >= 0) {
+      if ((number = real_mobile(atoi(arg))) != NOBODY) {
         OLC_QCOM(d)->value = atoi(arg);
         OLC_MODE(d) = QEDIT_OUT_LOAD_MOB_ROOM;
         send_to_char(d->character, "Which room to load it. (0 for current room)\r\n: ");
@@ -825,8 +834,11 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
     case QEDIT_OUT_LOAD_MOB_ROOM:
       if ((number = real_room(atoi(arg))) != NOWHERE)
         OLC_QCOM(d)->location = atoi(arg);
-      else
-        OLC_QCOM(d)->location = -1;
+      else {
+        OLC_QCOM(d)->location = 0;
+        send_to_char(d->character, "Invalid room, defaulting to room 0"
+                " (which is current mobile room).\r\n");
+      }
       hlqedit_disp_outcommand_menu(d);
       return;
       
