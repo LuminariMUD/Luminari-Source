@@ -28,15 +28,7 @@
 /*. Function prototypes / Globals / Externals. */
 /*---------------------------------------------*/
 
-extern struct room_data *world;
-extern struct char_data *mob_proto;
-extern struct zone_data *zone_table;
-extern struct obj_data *obj_proto;
-extern struct index_data *mob_index;
-
 char *hlqedit_command = "CIOMADTXFKUS";
-
-void hlqedit_disp_menu(struct descriptor_data *d);
 
 /*****************************************************************************/
 
