@@ -553,6 +553,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         case 'R':
           OLC_QUESTENTRY(d)->type = QUEST_ROOM;
           OLC_MODE(d) = QEDIT_ROOM;
+          send_to_char(d->character, "Room Quest is a quest that requires the"
+                  " questor to bring the quest-mobile to a given room.\r\n");
           send_to_char(d->character, "Which room to trigger in (num) ?");
           return;
           break;
@@ -583,7 +585,19 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       log("SYSERR: Reached QEDIT_REPLYMSG case in parse_hlqedit");
       break;
 
+/*
     case QEDIT_ROOM:
+      number = atoi(arg);
+      if (number) {
+        OLC_QUESTENTRY(d)->room = number;
+        qedit_disp_outcommand_menu(d);
+        return;
+      }
+      break;
+ * */
+      
+    case QEDIT_ROOM:
+      number = atoi(arg);
       if (number && real_room(number) != NOWHERE) {
         OLC_QUESTENTRY(d)->room = number;
         hlqedit_disp_outcommand_menu(d);
