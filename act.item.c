@@ -733,7 +733,9 @@ ACMD(do_give) {
 
   if (!*arg)
     send_to_char(ch, "Give what to who?\r\n");
+  
   else if (is_number(arg)) {
+    /* ok we received a number value */
     amount = atoi(arg);
     argument = one_argument(argument, arg);
     if (!str_cmp("coins", arg) || !str_cmp("coin", arg)) {

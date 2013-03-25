@@ -22,23 +22,6 @@
 #include "mud_event.h"
 
 
-/*****************************************************************************/
-
-void add_follower(struct char_data * ch, struct char_data *leader);
-extern struct char_data *mob_proto;
-extern int isname(const char *str, const char *namelist);
-extern void quest_open_door(int room, int door);
-extern struct zone_data *zone_table;
-extern struct obj_data *obj_proto;
-extern struct index_data *obj_index;
-extern struct index_data *mob_index;
-extern struct room_data *world;
-extern struct spell_info_type spell_info[];
-extern const char *dirs[];
-int level_exp(struct char_data *ch, int level);
-
-/*****************************************************************************/
-
 /*-----------------------------------*/
 /* utility functions */
 /*-----------------------------------*/
