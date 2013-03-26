@@ -512,7 +512,7 @@ const char *connected_types[] = {
   "Class Help",	//36
   "Alignment Selection",	//37
   "Race Help", // 38
-  "HL Quest Edit"
+  "HL Quest Edit",
   "\n"  /* make sure this matches NUM_CON_STATES:  39 */
 };
 
