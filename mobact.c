@@ -709,6 +709,9 @@ void mobile_echos(struct char_data *ch) {
   if (!ECHO_AMOUNT(ch))
     return;
 
+  if (rand_number(1, 100) <= ECHO_FREQ(ch))
+    return;
+  
   echo = ECHO_ENTRIES(ch)[rand_number(0, ECHO_AMOUNT(ch) - 1)];
   if (!echo)
     return;
