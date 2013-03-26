@@ -1570,6 +1570,12 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
    * warrior save table. */
   for (j = 0; j < NUM_OF_SAVING_THROWS; j++)
     GET_SAVE(mob_proto + i, j) = 0;
+  
+  // be sure to initialize any numeric echo stuff too
+  ECHO_IS_ZONE(mob_proto + i) = FALSE;
+  ECHO_FREQ(mob_proto + i) = 0;
+  ECHO_AMOUNT(mob_proto + i) = 0;
+  // ECHO_ENTRIES(mob_proto + i) = "";
 }
 
 /* interpret_espec is the function that takes espec keywords and values and
@@ -1720,6 +1726,26 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("Walkout") {
     mob_proto[i].player.walkout = strdup(value);
   }
+
+  CASE("EchoZone") {
+    RANGE(0, 1);
+    ECHO_IS_ZONE(mob_proto + i) = num_arg;
+  }
+  
+  CASE("EchoFreq") {
+    RANGE(0, 100);
+    ECHO_FREQ(mob_proto + i) = num_arg;
+  }
+  
+  CASE("EchoCount") {
+    RANGE(0, 10);
+    CREATE(ECHO_ENTRIES(mob_proto + i), char *, num_arg);
+  }
+  
+  CASE("Echo") {
+    ECHO_ENTRIES(mob_proto + i)[ECHO_AMOUNT(mob_proto + i)] = strdup(value);
+    ECHO_AMOUNT(mob_proto + i)++;
+  }  
 
   if (!matched) {
     log("SYSERR: Warning: unrecognized espec keyword %s in mob #%d",
@@ -3387,6 +3413,7 @@ void free_char(struct char_data *ch) {
       free(ch->player.walkin);
     if (ch->player.walkout)
       free(ch->player.walkout);
+      
     for (i = 0; i < NUM_HIST; i++)
       if (GET_HISTORY(ch, i))
         free_history(ch, i);
@@ -3418,11 +3445,10 @@ void free_char(struct char_data *ch) {
       free_proto_script(ch, MOB_TRIGGER);
     if (ch == &mob_proto[i]) {
       free_hlquest(ch);
-      //int j;
-      //for (j = 0; j < ECHO_AMOUNT(ch); j++)
-        //free(ECHO_ENTRIES(ch)[j]);
-      //free(ECHO_ENTRIES(ch));
-
+      int j;
+      for (j = 0; j < ECHO_AMOUNT(ch); j++)
+        free(ECHO_ENTRIES(ch)[j]);
+      free(ECHO_ENTRIES(ch));
     }
   }
   while (ch->affected)

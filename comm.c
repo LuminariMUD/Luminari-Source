@@ -2356,7 +2356,7 @@ static int process_input(struct descriptor_data *t)
             perform_socket_read(t->descriptor, read_buf, space_left)) > 0)
       read_buf[bytes_read] = '\0';
 
-    /* Since we have recieved atleast 1 byte of data from the socket, lets run
+    /* Since we have received at least 1 byte of data from the socket, lets run
      * it through ProtocolInput() and rip out anything that is Out Of Band */ 
     if ( bytes_read > 0 )
       bytes_read = ProtocolInput( t, read_buf, bytes_read, t->inbuf );

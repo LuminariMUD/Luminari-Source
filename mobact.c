@@ -580,7 +580,7 @@ void mobile_activity(void)
       continue;
     
     /* If the mob has no specproc, do the default actions */
-    
+
     // entry point for npc race and class behaviour in combat -zusuk
     if (FIGHTING(ch)) {
       // 50% chance will react off of class, 50% chance will react off of race
@@ -590,6 +590,7 @@ void mobile_activity(void)
         npc_class_behave(ch);
       continue;
     }
+    mobile_echos(ch);
 
     /* hunt a victim, if applicable */
     hunt_victim(ch);
@@ -699,6 +700,33 @@ void mobile_activity(void)
     /* Add new mobile actions here */
 
   }				/* end for() */
+}
+
+void mobile_echos(struct char_data *ch) {
+  char *echo;
+  struct descriptor_data *d;
+
+  if (!ECHO_AMOUNT(ch))
+    return;
+
+  echo = ECHO_ENTRIES(ch)[rand_number(0, ECHO_AMOUNT(ch) - 1)];
+  if (!echo)
+    return;
+
+  if (ECHO_IS_ZONE(ch)) {
+    for (d = descriptor_list; d; d = d->next) {
+      if (!d->character)
+        continue;
+      if (world[d->character->in_room].zone != world[ch->in_room].zone)
+        continue;
+      if (!AWAKE(d->character))
+        continue;
+
+      send_to_char(d->character, echo);
+    }
+  } else {
+    act(echo, FALSE, ch, 0, 0, TO_ROOM);
+  }
 }
 
 /* Mob Memory Routines */
