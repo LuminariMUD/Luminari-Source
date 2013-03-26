@@ -561,6 +561,7 @@ static void medit_disp_menu(struct descriptor_data *d)
 	"%sI%s) Size      : %s%s\r\n"
           "%sJ%s) Walk-In   : %s%s\r\n"
           "%sK%s) Walk-Out  : %s%s\r\n"
+          "%s-%s) Echo Menu : IS ZONE: %d FREQ: %d%% COUNT: %d\r\n"
 	  "%sA%s) NPC Flags : %s%s\r\n"
 	  "%sB%s) AFF Flags : %s%s\r\n"
           "%sS%s) Script    : %s%s\r\n"
@@ -581,6 +582,7 @@ static void medit_disp_menu(struct descriptor_data *d)
           grn, nrm, yel, size_names[GET_SIZE(mob)],
           grn, nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.",
           grn, nrm, yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.",
+          grn, nrm, ECHO_IS_ZONE(mob), ECHO_FREQ(mob), ECHO_AMOUNT(mob),
 	  grn, nrm, cyn, flags,
 	  grn, nrm, cyn, flag2,
           grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",

@@ -2195,6 +2195,10 @@ ACMD(do_harvest) {
         foresting_nodes--;
         break;
     }
+    
+    /* this will probably need to be in the eCRAFTING event, so that 
+     * it is not displayed until after harvesting is complete */
+    // act("$p has been depleted.", FALSE, 0, node, 0, TO_ROOM);
     obj_from_room(node);
     extract_obj(node);
   }

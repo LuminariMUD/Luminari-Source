@@ -1491,7 +1491,11 @@ struct mob_special_data {
   byte damsizedice; /**< The size of each die rolled for damage. */
   float frustration_level; /**< The anger/frustration level of the mob */
   byte subrace[MAX_SUBRACES]; // SubRace
-  struct quest_entry *quest;  // quest info for a mob (homeland-port)
+  struct quest_entry *quest; // quest info for a mob (homeland-port)
+  byte echo_is_zone;    // display the echo to entire zone
+  byte echo_frequency;  // how often to display echo
+  sh_int echo_amount;   // how many echos
+  char **echo_entries;  // echo array
 };
 
 /** An affect structure. */

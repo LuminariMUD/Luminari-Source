@@ -953,7 +953,6 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 /** Get obj worn in position i on ch. */
 #define GET_EQ(ch, i)		((ch)->equipment[i])
 
-
 // weapon spells
 #define HAS_SPELLS(obj)			((obj)->has_spells)
 #define GET_WEAPON_SPELL(obj, i)	((obj)->wpn_spells[i].spellnum)
@@ -986,7 +985,13 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define GET_DAMSIZEDICE(ch)     ((ch)->mob_specials.damsizedice)
 /** MOB attack type (slash, bite, etc) **/
 #define GET_ATTACK_TYPE(ch)     ((ch)->mob_specials.attack_type)
-/**/
+
+/* mobile special data for echo */
+#define ECHO_IS_ZONE(mob)       ((mob)->mob_specials.echo_is_zone)
+#define ECHO_FREQ(mob)          ((mob)->mob_specials.echo_frequency)
+#define ECHO_AMOUNT(mob)        ((mob)->mob_specials.echo_amount)
+#define ECHO_ENTRIES(mob)       ((mob)->mob_specials.echo_entries)
+
 /** Has Subrace will check the (3) arrays if subrace is there **/
 #define HAS_SUBRACE(ch, i)      (GET_SUBRACE(ch, 0) == i || \
                                  GET_SUBRACE(ch, 1) == i || \
