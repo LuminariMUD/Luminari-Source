@@ -513,7 +513,7 @@ const char *connected_types[] = {
   "Alignment Selection",	//37
   "Race Help", // 38
   "HL Quest Edit",
-  "\n"  /* make sure this matches NUM_CON_STATES:  39 */
+  "\n"  /* make sure this matches NUM_CON_STATES:  40 */
 };
 
 /** Describes the position in the equipment listing.
