@@ -527,9 +527,8 @@ static void medit_disp_menu(struct descriptor_data *d) {
 
   sprintbitarray(MOB_FLAGS(mob), action_bits, AF_ARRAY_MAX, flags);
   sprintbitarray(AFF_FLAGS(mob), affected_bits, AF_ARRAY_MAX, flag2);
-  send_to_char(d->character, 
           
-/*  write_to_output(d, */
+  write_to_output(d, 
           "%s6%s) Position  : %s%s\r\n"
           "%s7%s) Default   : %s%s\r\n"
           "%s8%s) Attack    : %s%s\r\n"
@@ -542,7 +541,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
           "%sI%s) Size      : %s%s\r\n"
           "%sJ%s) Walk-In   : %s%s\r\n"
           "%sK%s) Walk-Out  : %s%s\r\n"
-          "%s-%s) Echo Menu : IS ZONE: %d FREQ: %d%% COUNT: %d Echo: %s\r\n"
+//          "%s-%s) Echo Menu : IS ZONE: %d FREQ: %d%% COUNT: %d Echo: %s\r\n"
           "%sA%s) NPC Flags : %s%s\r\n"
           "%sB%s) AFF Flags : %s%s\r\n"
           "%sS%s) Script    : %s%s\r\n"
@@ -563,8 +562,8 @@ static void medit_disp_menu(struct descriptor_data *d) {
           grn, nrm, yel, size_names[GET_SIZE(mob)],
           grn, nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.",
           grn, nrm, yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.",
-          grn, nrm, ECHO_IS_ZONE(mob), ECHO_FREQ(mob), ECHO_AMOUNT(mob),
-          (ECHO_ENTRIES(mob)[0] ? ECHO_ENTRIES(mob)[0] : "None."),
+ //         grn, nrm, ECHO_IS_ZONE(mob), ECHO_FREQ(mob), ECHO_AMOUNT(mob),
+ //         (ECHO_ENTRIES(mob)[0] ? ECHO_ENTRIES(mob)[0] : "None."),
           grn, nrm, cyn, flags,
           grn, nrm, cyn, flag2,
           grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
@@ -572,7 +571,6 @@ static void medit_disp_menu(struct descriptor_data *d) {
           grn, nrm,
           grn, nrm
           );
-
   OLC_MODE(d) = MEDIT_MAIN_MENU;
 }
 
