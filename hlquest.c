@@ -246,7 +246,7 @@ bool is_object_in_a_quest(struct obj_data *obj) {
 void perform_out_chain(struct char_data *ch, struct char_data *victim, 
         struct quest_entry *quest, char *name) {
   struct char_data *mob = NULL;
-  struct quest_command *qcom;
+  struct quest_command *qcom = NULL;
   struct char_data *homie = NULL, *nexth = NULL;
   struct obj_data *obj = NULL;
   char buf[MAX_INPUT_LENGTH] = { '\0' };
@@ -265,7 +265,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "You receive %d \tYcoins\tn.\r\n", qcom->value);
         break;
       case QUEST_COMMAND_ITEM:
-        obj = read_object(real_object(qcom->value), VIRTUAL);
+        obj = read_object(qcom->value, VIRTUAL);
         
         if (obj) {
           obj_to_char(obj, victim);
@@ -277,17 +277,17 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         }
         break;
       case QUEST_COMMAND_LOAD_OBJECT_INROOM:
-        obj = read_object(real_object(qcom->value), VIRTUAL);
+        obj = read_object(qcom->value, VIRTUAL);
         if (obj && qcom->location == 0)
           obj_to_room(obj, victim->in_room);
-        else
+        else if (obj)
           obj_to_room(obj, real_room(qcom->location));
         break;
       case QUEST_COMMAND_LOAD_MOB_INROOM:
-        mob = read_mobile(real_mobile(qcom->value), VIRTUAL);
+        mob = read_mobile(qcom->value, VIRTUAL);
         if (mob && qcom->location == 0)
           char_to_room(mob, victim->in_room);
-        else
+        else if (mob)
           char_to_room(mob, real_room(qcom->location));
         break;
       case QUEST_COMMAND_ATTACK_QUESTOR:
