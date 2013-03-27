@@ -527,7 +527,9 @@ static void medit_disp_menu(struct descriptor_data *d) {
 
   sprintbitarray(MOB_FLAGS(mob), action_bits, AF_ARRAY_MAX, flags);
   sprintbitarray(AFF_FLAGS(mob), affected_bits, AF_ARRAY_MAX, flag2);
-  write_to_output(d,
+  send_to_char(d->character, 
+          
+/*  write_to_output(d, */
           "%s6%s) Position  : %s%s\r\n"
           "%s7%s) Default   : %s%s\r\n"
           "%s8%s) Attack    : %s%s\r\n"
