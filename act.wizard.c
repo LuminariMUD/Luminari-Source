@@ -2622,20 +2622,20 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
 }
 
 ACMD(do_show) {
-  int i, j, k, l, con, builder = 0; /* i, j, k to specifics? */
-  size_t len, nlen;
-  zone_rnum zrn;
-  zone_vnum zvn;
+  int i = 0, j = 0, k = 0, l = 0, con = 0, builder = 0;
+  size_t len = 0, nlen = 0;
+  zone_rnum zrn = NOWHERE;
+  zone_vnum zvn = NOWHERE;
   byte self = FALSE;
   struct char_data *vict = NULL;
-  struct obj_data *obj;
-  struct descriptor_data *d;
-  char field[MAX_INPUT_LENGTH], value[MAX_INPUT_LENGTH],
-          arg[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
-  int r, g, b;
-  char colour[16];
+  struct obj_data *obj = NULL;
+  struct descriptor_data *d = NULL;
+  char field[MAX_INPUT_LENGTH] = { '\0' }, value[MAX_INPUT_LENGTH] = { '\0' },
+          arg[MAX_INPUT_LENGTH] = { '\0' }, buf[MAX_STRING_LENGTH] = { '\0' };
+  int r = 0, g = 0, b = 0;
+  char colour[16] = { '\0' };
   int q_total = 0, q_approved = 0;
-  struct quest_entry *quest;
+  struct quest_entry *quest = NULL;
   
   struct show_struct {
     const char *cmd;
@@ -2781,21 +2781,21 @@ ACMD(do_show) {
       con = 0;
       for (vict = character_list; vict; vict = vict->next) {
         if (IS_NPC(vict))
-          j++;
+          j++;  //mobile in game count
         else if (CAN_SEE(ch, vict)) {
-          i++;
+          i++;  //player in game count
           if (vict->desc)
-            con++;
+            con++;  //how many connected
         }
       }
       for (obj = object_list; obj; obj = obj->next)
-        k++;
-      for (i = 0; i < top_of_mobt; i++) {
-        if (mob_proto[i].mob_specials.quest) {
-          for (quest = mob_proto[i].mob_specials.quest; quest; quest = quest->next) {
-            q_total++;
+        k++;  //number of objects in game
+      for (l = 0; l < top_of_mobt; l++) {
+        if (mob_proto[l].mob_specials.quest) {
+          for (quest = mob_proto[l].mob_specials.quest; quest; quest = quest->next) {
+            q_total++;  // total homeland quests
             if (quest->approved)
-              q_approved++;
+              q_approved++;  // homeland quests approved
           }
         }
       }      
