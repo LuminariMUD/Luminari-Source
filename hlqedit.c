@@ -251,7 +251,7 @@ void hlqedit_save_to_disk(int zone_num) {
 
   sprintf(buf, "%s/%d.new", HLQST_PREFIX, zone_table[zone_num].number);
   if (!(fp = fopen(buf, "w+"))) {
-    log("SYSERR: OLC: Cannot open quest file!");
+    log("SYSERR: OLC: Cannot open hl quest file!");
     return;
   }
 
@@ -334,13 +334,13 @@ void hlqedit_disp_incommand_menu(struct descriptor_data *d) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   sprintf(buf,
-          "Quest-Give Menu\r\n"
+          "\r\nQuest-Give Menu\r\n"
           "%sC%s) Give Coins to Mob\r\n"
           "%sI%s) Give Item to Mob\r\n",
           grn, nrm,
           grn, nrm);
 
-  strcat(buf, "Enter choice (0 to end/quit) : ");
+  strcat(buf, "Enter choice (0 to end/quit):  ");
   send_to_char(d->character, buf);
   OLC_MODE(d) = HLQEDIT_INCOMMAND;
 }
@@ -349,15 +349,15 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   sprintf(buf,
-          "Quest-Out Menu (Quest Rewards)\r\n"
-          "%sC%s) Return Coin\r\n"
-          "%sI%s) Return item\r\n"
+          "\r\nQuest-Out Menu (Quest Rewards)\r\n"
+          "%sC%s) Give coins\r\n"
+          "%sI%s) Give item\r\n"
           "%sO%s) Load object in a room\r\n"
           "%sM%s) Load mob in a room\r\n"
           "%sA%s) Attack questor\r\n"
           "%sD%s) Dissappear\r\n"
           "%sT%s) Teach spell/skill (not yet implemented)\r\n"
-          "%sX%s) Open Door\r\n"
+          "%sX%s) Open door in a room\r\n"
           "%sF%s) Follow questor\r\n"
           "%sU%s) Set Church (not yet implemented)\r\n"
           "%sK%s) Change Kit (not yet implemented)\r\n"
@@ -376,7 +376,7 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d) {
           grn, nrm,
           grn, nrm);
 
-  strcat(buf, "Enter choice (0 to end/quit): ");
+  strcat(buf, "Enter choice (0 to end/quit):  ");
   send_to_char(d->character, buf);
   OLC_MODE(d) = HLQEDIT_OUTCOMMANDMENU;
 }
@@ -394,7 +394,7 @@ void hlqedit_disp_spells(struct descriptor_data *d) {
             spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
     send_to_char(d->character, buf);
   }
-  sprintf(buf, "\r\n%sEnter spell choice (0 for none): ", nrm);
+  sprintf(buf, "\r\n%sEnter spell choice (0 for none):  ", nrm);
   send_to_char(d->character, buf);
 }
 
@@ -415,7 +415,7 @@ void hlqedit_disp_menu(struct descriptor_data *d) {
     OLC_QUESTENTRY(d) = 0;
   }
 
-  sprintf(buf, "\r\n----Quests for %s(%d)\r\n", GET_NAME(OLC_MOB(d)),
+  sprintf(buf, "\r\n---- Quests for %s (vnum: %d)\r\n", GET_NAME(OLC_MOB(d)),
           GET_MOB_VNUM(OLC_MOB(d)));
   send_to_char(d->character, buf);
 
@@ -469,25 +469,6 @@ void hlqedit_disp_menu(struct descriptor_data *d) {
 
 /* message displayed upon finishing a quest's step
  */
-/*
-void hlqedit_init_replymsg(struct descriptor_data *d) {
-  char *msg;
-  OLC_MODE(d) = HLQEDIT_REPLYMSG;
-  write_to_output(d, "Enter reply message on quest: (/s saves /h for help)\r\n\r\n");
-  d->backstr = NULL;
-  if (OLC_QUESTENTRY(d)->reply_msg) {
-    write_to_output(d, OLC_QUESTENTRY(d)->reply_msg);
-    d->backstr = strdup(OLC_QUESTENTRY(d)->reply_msg);
-  }
-
-  CREATE(msg, char, MAX_ROOM_DESC);
-  OLC_QUESTENTRY(d)->reply_msg = msg;
-  d->str = &OLC_QUESTENTRY(d)->reply_msg;
-  d->max_str = MAX_ROOM_DESC;
-  d->mail_to = 0;
-  OLC_VAL(d) = 1;
-}
-*/
 void hlqedit_init_replymsg(struct descriptor_data *d) {
   char *msg = NULL;
   
@@ -502,7 +483,8 @@ void hlqedit_init_replymsg(struct descriptor_data *d) {
   string_write(d, &OLC_QUESTENTRY(d)->reply_msg, MAX_ROOM_DESC, 0, msg);
   OLC_VAL(d) = 1;
 }
-          
+        
+
 /**************************************************************************
   The main loop
  **************************************************************************/
@@ -524,11 +506,11 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         case 'Y':
           hlqedit_save_internally(d);
           hlqedit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));
-          sprintf(buf, "OLC: %s edits quest %d.", GET_NAME(d->character), OLC_NUM(d));
+          sprintf(buf, "OLC: %s edits hl quest %d.", GET_NAME(d->character), OLC_NUM(d));
           log(buf);
           OLC_MOB(d) = 0;
           cleanup_olc(d, CLEANUP_STRUCTS);
-          send_to_char(d->character, "Quest saved to memory and disk.\r\n");
+          send_to_char(d->character, "HL Quest saved to memory and disk.\r\n");
           break;
         case 'n':
         case 'N':
@@ -539,7 +521,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           cleanup_olc(d, CLEANUP_ALL);
           break;
         default:
-          send_to_char(d->character, "Invalid choice!\r\nDo you wish to save this quest internally? : ");
+          send_to_char(d->character, "Invalid choice!\r\nDo you wish to "
+                  "save this hl quest internally?:  ");
           break;
       }
       return;
@@ -558,7 +541,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           OLC_MODE(d) = HLQEDIT_ROOM;
           send_to_char(d->character, "Room Quest is a quest that requires the"
                   " questor to bring the quest-mobile to a given room.\r\n");
-          send_to_char(d->character, "Which room to trigger in (num) ?");
+          send_to_char(d->character, "Which room to trigger in (vnum)?:  ");
           return;
           break;
         case 'a':
@@ -568,7 +551,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           send_to_char(d->character, "Enter Keywords >");
           return;
       }
-      send_to_char(d->character, "Invalid choice!\r\nWhat type of quest entry (G)ive, (R)oom or (A)sk?");
+      send_to_char(d->character, "\r\nInvalid choice!\r\nWhat type of quest"
+              " entry (G)ive, (R)oom or (A)sk?  ");
       break;
     case HLQEDIT_KEYWORDS:
       OLC_VAL(d) = 1;
@@ -588,17 +572,6 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       log("SYSERR: Reached HLQEDIT_REPLYMSG case in parse_hlqedit");
       break;
 
-/*
-    case HLQEDIT_ROOM:
-      number = atoi(arg);
-      if (number) {
-        OLC_QUESTENTRY(d)->room = number;
-        qedit_disp_outcommand_menu(d);
-        return;
-      }
-      break;
- * */
-      
     case HLQEDIT_ROOM:
       number = atoi(arg);
       if (number && real_room(number) != NOWHERE) {
@@ -618,7 +591,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           OLC_QUESTENTRY(d)->in = qcom;
           OLC_MODE(d) = HLQEDIT_IN_COIN;
           qcom->type = QUEST_COMMAND_COINS;
-          send_to_char(d->character, "How much coins?");
+          send_to_char(d->character, "How many coins?  ");
           return;
         case 'i':
         case 'I':
@@ -627,7 +600,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           OLC_QUESTENTRY(d)->in = qcom;
           qcom->type = QUEST_COMMAND_ITEM;
           OLC_MODE(d) = HLQEDIT_IN_ITEM;
-          send_to_char(d->character, "Select item(vnum)?");
+          send_to_char(d->character, "Select item (vnum)?  ");
           return;
         case '0':
         case 'E':
@@ -640,8 +613,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
 
     case HLQEDIT_IN_COIN:
       number = atoi(arg);
-      if (number < 0)
-        send_to_char(d->character, "That is not a valid choice!\r\n");
+      if (number < 0 || number > 100000)
+        send_to_char(d->character, "Invalid choice! (0-100000)\r\n");
       else {
         OLC_QUESTENTRY(d)->in->value = number;
         hlqedit_disp_incommand_menu(d);
@@ -653,7 +626,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         OLC_QUESTENTRY(d)->in->value = atoi(arg);
         hlqedit_disp_incommand_menu(d);
       } else
-        send_to_char(d->character, "That object does not exist, try again : ");
+        send_to_char(d->character, "That object does not exist, try again:  ");
       return;
       break;
 
@@ -666,7 +639,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           hlqedit_addtoout(d, qcom);
           OLC_MODE(d) = HLQEDIT_OUT_COIN;
           qcom->type = QUEST_COMMAND_COINS;
-          send_to_char(d->character, "How much coins (in copper)?");
+          send_to_char(d->character, "How many coins?  ");
           return;
           break;
         case 'i':
@@ -675,7 +648,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           hlqedit_addtoout(d, qcom);
           qcom->type = QUEST_COMMAND_ITEM;
           OLC_MODE(d) = HLQEDIT_OUT_ITEM;
-          send_to_char(d->character, "Select item(vnum)?");
+          send_to_char(d->character, "Select item (vnum)?  ");
           return;
           break;
         case 'o':
@@ -684,7 +657,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           hlqedit_addtoout(d, qcom);
           qcom->type = QUEST_COMMAND_LOAD_OBJECT_INROOM;
           OLC_MODE(d) = HLQEDIT_OUT_LOAD_OBJECT;
-          send_to_char(d->character, "Select item(vnum)?");
+          send_to_char(d->character, "Select item (vnum)?  ");
           return;
           break;
         case 'm':
@@ -693,7 +666,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           hlqedit_addtoout(d, qcom);
           qcom->type = QUEST_COMMAND_LOAD_MOB_INROOM;
           OLC_MODE(d) = HLQEDIT_OUT_LOAD_MOB;
-          send_to_char(d->character, "Select mob(vnum)?");
+          send_to_char(d->character, "Select mob (vnum)?  ");
           return;
         case 't':
         case 'T':
@@ -710,7 +683,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           hlqedit_addtoout(d, qcom);
           qcom->type = QUEST_COMMAND_OPEN_DOOR;
           OLC_MODE(d) = HLQEDIT_OUT_OPEN_DOOR;
-          send_to_char(d->character, "Select room vnum?");
+          send_to_char(d->character, "Select room (vnum)?  ");
           return;
           
           break;
@@ -752,7 +725,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           qcom->type = QUEST_COMMAND_KIT;
           OLC_MODE(d) = HLQEDIT_OUT_KIT_SELECT;
           hlqedit_show_classes(d);
-          send_to_char(d->character, "Select Kit?");
+          send_to_char(d->character, "Select Kit:  ");
           return;
 
         case 'u':
@@ -766,7 +739,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
                     , i, church_types[i]);
             send_to_char(d->character, buf);
           }
-          send_to_char(d->character, "Select church?");
+          send_to_char(d->character, "Select church:  ");
           return;
         case 's':
         case 'S':
@@ -806,7 +779,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         OLC_QCOM(d)->value = atoi(arg);
         hlqedit_disp_outcommand_menu(d);
       } else
-        send_to_char(d->character, "That object does not exist, try again : ");
+        send_to_char(d->character, "That object does not exist, try again:  ");
       return;
       
       break;
@@ -815,9 +788,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       if ((number = real_object(atoi(arg))) != NOTHING) {
         OLC_QCOM(d)->value = atoi(arg);
         OLC_MODE(d) = HLQEDIT_OUT_LOAD_OBJECT_ROOM;
-        send_to_char(d->character, "Which room to load it. (-1 for current room)\r\n: ");
+        send_to_char(d->character, "Which room to load it (vnum). (0 for current room):\r\n");
       } else
-        send_to_char(d->character, "That object does not exist, try again : ");
+        send_to_char(d->character, "That object does not exist, try again:  ");
       return;
       
       break;
@@ -826,9 +799,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       if ((number = real_mobile(atoi(arg))) != NOBODY) {
         OLC_QCOM(d)->value = atoi(arg);
         OLC_MODE(d) = HLQEDIT_OUT_LOAD_MOB_ROOM;
-        send_to_char(d->character, "Which room to load it. (0 for current room)\r\n: ");
+        send_to_char(d->character, "Which room to load it (vnum). (0 for current room): ");
       } else
-        send_to_char(d->character, "That mob does not exist, try again : ");
+        send_to_char(d->character, "That mob does not exist, try again:  ");
       return;
       
       break;
@@ -839,7 +812,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         OLC_QCOM(d)->value = atoi(arg);
         hlqedit_disp_outcommand_menu(d);
       } else
-        send_to_char(d->character, "That spell/skill does not exist, try again : ");
+        send_to_char(d->character, "That spell/skill does not exist, try again:  ");
       return;
     case HLQEDIT_OUT_LOAD_OBJECT_ROOM:
     case HLQEDIT_OUT_LOAD_MOB_ROOM:
@@ -870,7 +843,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         OLC_QCOM(d)->value = number;
         OLC_MODE(d) = HLQEDIT_OUT_KIT_PREREQ;
         hlqedit_show_classes(d);
-        send_to_char(d->character, "Select Prerequisite?");
+        send_to_char(d->character, "Select Prerequisite:  ");
         return;
       }
       break;
@@ -887,11 +860,11 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       if ((number = real_room(atoi(arg))) != NOWHERE) {
         OLC_QCOM(d)->location = atoi(arg);
         send_to_char(d->character, "Which direction? (0 = North, 1 = East, "
-                "2 = South, 3 = West, 4 = Up, 5 = Down): ");
+                "2 = South, 3 = West, 4 = Up, 5 = Down):  ");
 
         OLC_MODE(d) = HLQEDIT_OUT_OPEN_DOOR_DIR;
       } else {
-        send_to_char(d->character, "Which room? ");
+        send_to_char(d->character, "Which room to open door in (vnum)?:  ");
       }
       return;
       
@@ -939,7 +912,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         send_to_char(d->character, "No such quest!\r\n");
       else {
         quest->approved = TRUE;
-        send_to_char(d->character, "QUEST APPROVED!\r\n");
+        send_to_char(d->character, "\r\nQUEST APPROVED!\r\n");
       }
       hlqedit_disp_menu(d);
       return;
@@ -985,7 +958,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           CREATE(OLC_QUESTENTRY(d), struct quest_entry, 1);
           clear_hlquest(OLC_QUESTENTRY(d));
           OLC_MODE(d) = HLQEDIT_NEWCOMMAND;
-          send_to_char(d->character, "What type of quest entry (G)ive, (R)oom or (A)sk?");
+          send_to_char(d->character, "What type of quest entry (G)ive, (R)oom or (A)sk?  ");
           return;
         case 'd':
         case 'D':
