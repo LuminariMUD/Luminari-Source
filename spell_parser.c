@@ -2542,9 +2542,12 @@ void mag_assign_spells(void) {
           NULL, 0, 0, NOSCHOOL, FALSE);
 
 
-  /* Declaration of skills - this actually doesn't do anything except set it up
+  /* Declaration of skills - this assigns categories and also will set it up
    * so that immortals can use these skills by default.  The min level to use
-   * the skill for other classes is set up in class.c. */
+   * the skill for other classes is set up in class.c
+   * to-date all skills are assigned to all classes, and a separate function
+   * in spec_procs.c checks if the player has the pre-reqs for the skill
+   * to be obtained fully. */
   skillo(SKILL_BACKSTAB, "backstab", ACTIVE_SKILL); //401
   skillo(SKILL_BASH, "bash", ACTIVE_SKILL);
   skillo(SKILL_MUMMY_DUST, "es mummy dust", CASTER_SKILL);
