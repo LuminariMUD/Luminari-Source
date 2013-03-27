@@ -109,7 +109,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
         case QUEST_COMMAND_LOAD_OBJECT_INROOM:
           sprintf(buf, "\tcLOADOBJECT\tn %s in %s\r\n",
                   obj_proto[ real_object(qcom->value)].short_description,
-                  (qcom->location == -1 ? "CurrentRoom" : 
+                  (qcom->location == 0 ? "CurrentRoom" : 
                     world[real_room(qcom->location)].name));
           send_to_char(ch, buf);
           break;
@@ -135,7 +135,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
         case QUEST_COMMAND_LOAD_MOB_INROOM:
           sprintf(buf, "\tcLOADMOB\tn %s in %s\r\n",
                   mob_proto[ real_mobile(qcom->value)].player.short_descr,
-                  (qcom->location == -1 ? "CurrentRoom" :
+                  (qcom->location == 0 ? "CurrentRoom" :
                     world[real_room(qcom->location)].name));
           send_to_char(ch, buf);
           break;
