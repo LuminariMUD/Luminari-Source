@@ -355,7 +355,7 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d) {
           "%sO%s) Load object in a room\r\n"
           "%sM%s) Load mob in a room\r\n"
           "%sA%s) Attack questor\r\n"
-          "%sD%s) Dissappear\r\n"
+          "%sD%s) Disappear\r\n"
           "%sT%s) Teach spell/skill (not yet implemented)\r\n"
           "%sX%s) Open door in a room\r\n"
           "%sF%s) Follow questor\r\n"
