@@ -262,7 +262,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
           GET_GOLD(ch) += qcom->value;
         else
           GET_GOLD(ch) = MAX_GOLD;
-        send_to_char(ch, "You receive %d @Ycoins@n.\r\n", qcom->value);
+        send_to_char(ch, "You receive %d \tYcoins\tn.\r\n", qcom->value);
         break;
       case QUEST_COMMAND_ITEM:
         obj = read_object(real_object(qcom->value), REAL);
