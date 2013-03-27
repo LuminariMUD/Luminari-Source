@@ -81,31 +81,31 @@ ACMD(do_hlqedit);
 /*
  * Submodes of QEDIT connectedness.
  */
-#define QEDIT_MAIN_MENU             0
-#define QEDIT_NEWCOMMAND            1
-#define QEDIT_KEYWORDS              2
-#define QEDIT_REPLYMSG              3
-#define QEDIT_INCOMMAND             4
-#define QEDIT_OUTCOMMANDMENU        5
-#define QEDIT_OUT_COIN              6
-#define QEDIT_OUT_ITEM              7
-#define QEDIT_OUT_LOAD_OBJECT       8
-#define QEDIT_OUT_LOAD_OBJECT_ROOM  9
-#define QEDIT_OUT_LOAD_MOB         10
-#define QEDIT_OUT_LOAD_MOB_ROOM    11
-#define QEDIT_DELETE_QUEST         12
-#define QEDIT_CONFIRM_HLSAVESTRING 13
-#define QEDIT_APPROVE_QUEST        14
-#define QEDIT_VIEW_QUEST           15
-#define QEDIT_IN_COIN              16
-#define QEDIT_IN_ITEM              17
-#define QEDIT_OUT_TEACH_SPELL      18
-#define QEDIT_OUT_OPEN_DOOR        19
-#define QEDIT_OUT_OPEN_DOOR_DIR    20
-#define QEDIT_OUT_CHURCH           21
-#define QEDIT_OUT_KIT_PREREQ       22
-#define QEDIT_OUT_KIT_SELECT       23
-#define QEDIT_ROOM                 24
+#define HLQEDIT_MAIN_MENU             0
+#define HLQEDIT_NEWCOMMAND            1
+#define HLQEDIT_KEYWORDS              2
+#define HLQEDIT_REPLYMSG              3
+#define HLQEDIT_INCOMMAND             4
+#define HLQEDIT_OUTCOMMANDMENU        5
+#define HLQEDIT_OUT_COIN              6
+#define HLQEDIT_OUT_ITEM              7
+#define HLQEDIT_OUT_LOAD_OBJECT       8
+#define HLQEDIT_OUT_LOAD_OBJECT_ROOM  9
+#define HLQEDIT_OUT_LOAD_MOB         10
+#define HLQEDIT_OUT_LOAD_MOB_ROOM    11
+#define HLQEDIT_DELETE_QUEST         12
+#define HLQEDIT_CONFIRM_HLSAVESTRING 13
+#define HLQEDIT_APPROVE_QUEST        14
+#define HLQEDIT_VIEW_QUEST           15
+#define HLQEDIT_IN_COIN              16
+#define HLQEDIT_IN_ITEM              17
+#define HLQEDIT_OUT_TEACH_SPELL      18
+#define HLQEDIT_OUT_OPEN_DOOR        19
+#define HLQEDIT_OUT_OPEN_DOOR_DIR    20
+#define HLQEDIT_OUT_CHURCH           21
+#define HLQEDIT_OUT_KIT_PREREQ       22
+#define HLQEDIT_OUT_KIT_SELECT       23
+#define HLQEDIT_ROOM                 24
 /* end qedit connectedness */
 
 #endif
