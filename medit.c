@@ -192,10 +192,10 @@ static void medit_setup_new(struct descriptor_data *d) {
   GET_LDESC(mob) = strdup("An unfinished mob stands here.\r\n");
   GET_DDESC(mob) = strdup("It looks unfinished.\r\n");
   /* these don't need to be set up with defaults, because if we
-   * don't assign a value, they will use the stock messages
+   * don't assign a value, they will use the stock messages*/
   GET_WALKIN(mob) = strdup("$n enters from");
   GET_WALKOUT(mob) = strdup("$n leaves");
-   */
+  
   SCRIPT(mob) = NULL;
   mob->proto_script = OLC_SCRIPT(d) = NULL;
 
