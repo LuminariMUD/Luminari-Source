@@ -713,6 +713,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           CREATE(qcom, struct quest_command, 1);
           hlqedit_addtoout(d, qcom);
           qcom->type = QUEST_COMMAND_FOLLOW;
+          send_to_char(d->character, "\r\nQuest-mobile now set to follow"
+                  " questor.\r\n");
           hlqedit_disp_outcommand_menu(d);
           return;
           
