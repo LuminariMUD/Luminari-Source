@@ -265,7 +265,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "You receive %d \tYcoins\tn.\r\n", qcom->value);
         break;
       case QUEST_COMMAND_ITEM:
-        obj = read_object(real_object(qcom->value), REAL);
+        obj = read_object(real_object(qcom->value), VIRTUAL);
         
         if (obj) {
           obj_to_char(obj, victim);
@@ -277,14 +277,14 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         }
         break;
       case QUEST_COMMAND_LOAD_OBJECT_INROOM:
-        obj = read_object(real_object(qcom->value), REAL);
+        obj = read_object(real_object(qcom->value), VIRTUAL);
         if (obj && qcom->location == 0)
           obj_to_room(obj, victim->in_room);
         else
           obj_to_room(obj, real_room(qcom->location));
         break;
       case QUEST_COMMAND_LOAD_MOB_INROOM:
-        mob = read_mobile(real_mobile(qcom->value), REAL);
+        mob = read_mobile(real_mobile(qcom->value), VIRTUAL);
         if (mob && qcom->location == 0)
           char_to_room(mob, victim->in_room);
         else

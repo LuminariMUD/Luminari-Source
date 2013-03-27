@@ -1,9 +1,9 @@
 /**************************************************************************
-*  File: medit.c                                           Part of tbaMUD *
-*  Usage: Oasis OLC - Mobiles.                                            *
-*                                                                         *
-* Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.                   *
-**************************************************************************/
+ *  File: medit.c                                           Part of tbaMUD *
+ *  Usage: Oasis OLC - Mobiles.                                            *
+ *                                                                         *
+ * Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.                   *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -43,14 +43,13 @@ static void medit_disp_class(struct descriptor_data *d);
 static void medit_disp_size(struct descriptor_data *d);
 static void medit_disp_attack_types(struct descriptor_data *d);
 static bool medit_illegal_mob_flag(int fl);
-static int  medit_get_mob_flag_by_number(int num);
+static int medit_get_mob_flag_by_number(int num);
 static void medit_disp_mob_flags(struct descriptor_data *d);
 static void medit_disp_aff_flags(struct descriptor_data *d);
 static void medit_disp_menu(struct descriptor_data *d);
 
 /*  utility functions */
-ACMD(do_oasis_medit)
-{
+ACMD(do_oasis_medit) {
   int number = NOBODY, save = 0, real_num;
   struct descriptor_data *d;
   char *buf3;
@@ -101,7 +100,7 @@ ACMD(do_oasis_medit)
     if (STATE(d) == CON_MEDIT) {
       if (d->olc && OLC_NUM(d) == number) {
         send_to_char(ch, "That mobile is currently being edited by %s.\r\n",
-          GET_NAME(d->character));
+                GET_NAME(d->character));
         return;
       }
     }
@@ -112,7 +111,7 @@ ACMD(do_oasis_medit)
   /* Give descriptor an OLC structure. */
   if (d->olc) {
     mudlog(BRF, LVL_IMMORT, TRUE,
-      "SYSERR: do_oasis_medit: Player already had olc structure.");
+            "SYSERR: do_oasis_medit: Player already had olc structure.");
     free(d->olc);
   }
 
@@ -139,10 +138,10 @@ ACMD(do_oasis_medit)
   /* If save is TRUE, save the mobiles. */
   if (save) {
     send_to_char(ch, "Saving all mobiles in zone %d.\r\n",
-      zone_table[OLC_ZNUM(d)].number);
+            zone_table[OLC_ZNUM(d)].number);
     mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
-      "OLC: %s saves mobile info for zone %d.",
-      GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
+            "OLC: %s saves mobile info for zone %d.",
+            GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
 
     /* Save the mobiles. */
     save_mobiles(OLC_ZNUM(d));
@@ -170,17 +169,15 @@ ACMD(do_oasis_medit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE,"OLC: %s starts editing zone %d allowed zone %d",
-    GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d",
+          GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
-static void medit_save_to_disk(zone_vnum foo)
-{
+static void medit_save_to_disk(zone_vnum foo) {
   save_mobiles(real_zone(foo));
 }
 
-static void medit_setup_new(struct descriptor_data *d)
-{
+static void medit_setup_new(struct descriptor_data *d) {
   struct char_data *mob;
 
   /* Allocate a scratch mobile structure. */
@@ -208,8 +205,7 @@ static void medit_setup_new(struct descriptor_data *d)
   OLC_ITEM_TYPE(d) = MOB_TRIGGER;
 }
 
-void medit_setup_existing(struct descriptor_data *d, int rmob_num)
-{
+void medit_setup_existing(struct descriptor_data *d, int rmob_num) {
   struct char_data *mob;
 
   /* Allocate a scratch mobile structure. */
@@ -229,8 +225,7 @@ void medit_setup_existing(struct descriptor_data *d, int rmob_num)
 }
 
 /* Ideally, this function should be in db.c, but I'll put it here for portability. */
-static void init_mobile(struct char_data *mob)
-{
+static void init_mobile(struct char_data *mob) {
   clear_char(mob);
 
   GET_HIT(mob) = GET_MANA(mob) = 1;
@@ -243,19 +238,18 @@ static void init_mobile(struct char_data *mob)
   mob->real_abils.dex = mob->real_abils.con = mob->real_abils.cha = 11;
   mob->aff_abils = mob->real_abils;
 
-  GET_SAVE(mob, SAVING_FORT)   = 0;
-  GET_SAVE(mob, SAVING_REFL)    = 0;
-  GET_SAVE(mob, SAVING_WILL)  = 0;
+  GET_SAVE(mob, SAVING_FORT) = 0;
+  GET_SAVE(mob, SAVING_REFL) = 0;
+  GET_SAVE(mob, SAVING_WILL) = 0;
   GET_SAVE(mob, SAVING_POISON) = 0;
-  GET_SAVE(mob, SAVING_DEATH)  = 0;
+  GET_SAVE(mob, SAVING_DEATH) = 0;
 
   SET_BIT_AR(MOB_FLAGS(mob), MOB_ISNPC);
   mob->player_specials = &dummy_mob;
 }
 
 /* Save new/edited mob to memory. */
-void medit_save_internally(struct descriptor_data *d)
-{
+void medit_save_internally(struct descriptor_data *d) {
   int i;
   mob_rnum new_rnum;
   struct descriptor_data *dsc;
@@ -270,7 +264,7 @@ void medit_save_internally(struct descriptor_data *d)
 
   /* Update triggers and free old proto list */
   if (mob_proto[new_rnum].proto_script &&
-      mob_proto[new_rnum].proto_script != OLC_SCRIPT(d))
+          mob_proto[new_rnum].proto_script != OLC_SCRIPT(d))
     free_proto_script(&mob_proto[new_rnum], MOB_TRIGGER);
 
   mob_proto[new_rnum].proto_script = OLC_SCRIPT(d);
@@ -290,7 +284,7 @@ void medit_save_internally(struct descriptor_data *d)
   }
   /* end trigger update */
 
-  if (!i)	/* Only renumber on new mobiles. */
+  if (!i) /* Only renumber on new mobiles. */
     return;
 
   /* Update keepers in shops being edited and other mobs being edited. */
@@ -314,8 +308,7 @@ void medit_save_internally(struct descriptor_data *d)
 
 /* Menu functions
    Display positions. (sitting, standing, etc) */
-static void medit_disp_positions(struct descriptor_data *d)
-{
+static void medit_disp_positions(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
   column_list(d->character, 0, position_types, NUM_POSITIONS, TRUE);
@@ -323,109 +316,100 @@ static void medit_disp_positions(struct descriptor_data *d)
 }
 
 /* Display the gender of the mobile. */
-static void medit_disp_sex(struct descriptor_data *d)
-{
+static void medit_disp_sex(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
   column_list(d->character, 0, genders, NUM_GENDERS, TRUE);
   write_to_output(d, "Enter gender number : ");
 }
 
-void medit_disp_race(struct descriptor_data *d)
-{
+void medit_disp_race(struct descriptor_data *d) {
   int counter, columns = 0;
 
   get_char_colors(d->character);
   clear_screen(d);
 
   for (counter = 0; counter < NUM_NPC_RACES; counter++) {
-   write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-     npc_race_types[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+            npc_race_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%sEnter race number : ", nrm);
 }
 
-void medit_disp_subrace1(struct descriptor_data *d)
-{
+void medit_disp_subrace1(struct descriptor_data *d) {
   int counter, columns = 0;
 
   get_char_colors(d->character);
   clear_screen(d);
 
   for (counter = 0; counter < NUM_SUB_RACES; counter++) {
-   write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-     npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+            npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
 }
 
-void medit_disp_subrace2(struct descriptor_data *d)
-{
+void medit_disp_subrace2(struct descriptor_data *d) {
   int counter, columns = 0;
 
   get_char_colors(d->character);
   clear_screen(d);
 
   for (counter = 0; counter < NUM_SUB_RACES; counter++) {
-   write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-     npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+            npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
 }
 
-void medit_disp_subrace3(struct descriptor_data *d)
-{
+void medit_disp_subrace3(struct descriptor_data *d) {
   int counter, columns = 0;
 
   get_char_colors(d->character);
   clear_screen(d);
 
   for (counter = 0; counter < NUM_SUB_RACES; counter++) {
-   write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-     npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+            npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
 }
 
-void medit_disp_class(struct descriptor_data *d)
-{
+void medit_disp_class(struct descriptor_data *d) {
   int counter, columns = 0;
 
   get_char_colors(d->character);
   clear_screen(d);
 
   for (counter = 0; counter < NUM_CLASSES; counter++) {
-   write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-     pc_class_types[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+            pc_class_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%s(You can choose 98 to turn off the class)", nrm);
   write_to_output(d, "\r\n%sEnter class number : ", nrm);
 }
 
-void medit_disp_size(struct descriptor_data *d)
-{
+void medit_disp_size(struct descriptor_data *d) {
   int i, columns = 0;
   char buf[MAX_INPUT_LENGTH];
- 
+
   clear_screen(d);
   for (i = -1; i < NUM_SIZES; i++) {
-    sprintf(buf, "%2d) %-20.20s  %s", i ,
+    sprintf(buf, "%2d) %-20.20s  %s", i,
             (i == SIZE_UNDEFINED) ? "DEFAULT" : size_names[i],
-                        !(++columns % 2) ? "\r\n" : "");
+            !(++columns % 2) ? "\r\n" : "");
     write_to_output(d, buf);
   }
   write_to_output(d, "Enter size number (-1 for default): ");
 }
 
-
 /* Display attack types menu. */
-static void medit_disp_attack_types(struct descriptor_data *d)
-{
+static void medit_disp_attack_types(struct descriptor_data *d) {
   int i;
 
   get_char_colors(d->character);
@@ -438,8 +422,7 @@ static void medit_disp_attack_types(struct descriptor_data *d)
 }
 
 /* Find mob flags that shouldn't be set by builders */
-static bool medit_illegal_mob_flag(int fl)
-{
+static bool medit_illegal_mob_flag(int fl) {
   int i;
 
   /* add any other flags you dont want them setting */
@@ -448,10 +431,10 @@ static bool medit_illegal_mob_flag(int fl)
     MOB_NOTDEADYET,
   };
 
-  const int num_illegal_flags = sizeof(illegal_flags)/sizeof(int);
+  const int num_illegal_flags = sizeof (illegal_flags) / sizeof (int);
 
 
-  for (i=0; i < num_illegal_flags;i++)
+  for (i = 0; i < num_illegal_flags; i++)
     if (fl == illegal_flags[i])
       return (TRUE);
 
@@ -461,8 +444,7 @@ static bool medit_illegal_mob_flag(int fl)
 
 /* Due to illegal mob flags not showing in the mob flags list,
    we need this to convert the list number back to flag value */
-static int medit_get_mob_flag_by_number(int num)
-{
+static int medit_get_mob_flag_by_number(int num) {
   int i, count = 0;
   for (i = 0; i < NUM_MOB_FLAGS; i++) {
     if (medit_illegal_mob_flag(i)) continue;
@@ -473,8 +455,7 @@ static int medit_get_mob_flag_by_number(int num)
 }
 
 /* Display mob-flags menu. */
-static void medit_disp_mob_flags(struct descriptor_data *d)
-{
+static void medit_disp_mob_flags(struct descriptor_data *d) {
   int i, count = 0, columns = 0;
   char flags[MAX_STRING_LENGTH];
 
@@ -485,7 +466,7 @@ static void medit_disp_mob_flags(struct descriptor_data *d)
   for (i = 0; i < NUM_MOB_FLAGS; i++) {
     if (medit_illegal_mob_flag(i)) continue;
     write_to_output(d, "%s%2d%s) %-20.20s  %s", grn, ++count, nrm, action_bits[i],
-                !(++columns % 2) ? "\r\n" : "");
+            !(++columns % 2) ? "\r\n" : "");
   }
 
   sprintbitarray(MOB_FLAGS(OLC_MOB(d)), action_bits, AF_ARRAY_MAX, flags);
@@ -493,8 +474,7 @@ static void medit_disp_mob_flags(struct descriptor_data *d)
 }
 
 /* Display affection flags menu. */
-static void medit_disp_aff_flags(struct descriptor_data *d)
-{
+static void medit_disp_aff_flags(struct descriptor_data *d) {
   char flags[MAX_STRING_LENGTH];
 
   get_char_colors(d->character);
@@ -503,17 +483,16 @@ static void medit_disp_aff_flags(struct descriptor_data *d)
   column_list(d->character, 0, affected_bits + 1, NUM_AFF_FLAGS - 1, TRUE);
   sprintbitarray(AFF_FLAGS(OLC_MOB(d)), affected_bits, AF_ARRAY_MAX, flags);
   write_to_output(d, "\r\nCurrent flags   : %s%s%s\r\nEnter aff flags (0 to quit) : ",
-                          cyn, flags, nrm);
+          cyn, flags, nrm);
 }
 
 /* Display alignment choices */
-static void disp_align_menu(struct descriptor_data *d)
-{
+static void disp_align_menu(struct descriptor_data *d) {
   int i = 0;
-  
+
   get_char_colors(d->character);
   clear_screen(d);
-  
+
   write_to_output(d, "\r\n");
   for (; i < NUM_ALIGNMENTS; i++) {
     write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
@@ -522,58 +501,58 @@ static void disp_align_menu(struct descriptor_data *d)
 }
 
 /* Display main menu. */
-static void medit_disp_menu(struct descriptor_data *d)
-{
-  struct char_data *mob;
-  char flags[MAX_STRING_LENGTH], flag2[MAX_STRING_LENGTH];
+static void medit_disp_menu(struct descriptor_data *d) {
+  struct char_data *mob = NULL;
+  char flags[MAX_STRING_LENGTH] = {'\0'},
+  flag2[MAX_STRING_LENGTH] = {'\0'};
 
   mob = OLC_MOB(d);
   get_char_colors(d->character);
   clear_screen(d);
 
   write_to_output(d,
-  "-- Mob Number:  [%s%d%s]\r\n"
-  "%s1%s) Sex: %s%-7.7s%s	         %s2%s) Keywords: %s%s\r\n"
-  "%s3%s) S-Desc: %s%s\r\n"
-  "%s4%s) L-Desc:-\r\n%s%s\r\n"
-  "%s5%s) D-Desc:-\r\n%s%s\r\n",
+          "-- Mob Number:  [%s%d%s]\r\n"
+          "%s1%s) Sex: %s%-7.7s%s	         %s2%s) Keywords: %s%s\r\n"
+          "%s3%s) S-Desc: %s%s\r\n"
+          "%s4%s) L-Desc:-\r\n%s%s\r\n"
+          "%s5%s) D-Desc:-\r\n%s%s\r\n",
 
-	  cyn, OLC_NUM(d), nrm,
-	  grn, nrm, yel, genders[(int)GET_SEX(mob)], nrm,
-	  grn, nrm, yel, GET_ALIAS(mob),
-	  grn, nrm, yel, GET_SDESC(mob),
-	  grn, nrm, yel, GET_LDESC(mob),
-	  grn, nrm, yel, GET_DDESC(mob)
-	  );
+          cyn, OLC_NUM(d), nrm,
+          grn, nrm, yel, genders[(int) GET_SEX(mob)], nrm,
+          grn, nrm, yel, GET_ALIAS(mob),
+          grn, nrm, yel, GET_SDESC(mob),
+          grn, nrm, yel, GET_LDESC(mob),
+          grn, nrm, yel, GET_DDESC(mob)
+          );
 
   sprintbitarray(MOB_FLAGS(mob), action_bits, AF_ARRAY_MAX, flags);
   sprintbitarray(AFF_FLAGS(mob), affected_bits, AF_ARRAY_MAX, flag2);
   write_to_output(d,
-	  "%s6%s) Position  : %s%s\r\n"
-	  "%s7%s) Default   : %s%s\r\n"
-	  "%s8%s) Attack    : %s%s\r\n"
-      "%s9%s) Stats Menu...\r\n"
-	"%sR%s) Race      : %s%s\r\n"
-	"%sD%s) SubRace   : %s%s\r\n"
-	"%sE%s) SubRace   : %s%s\r\n"
-	"%sF%s) SubRace   : %s%s\r\n"
-	"%sC%s) Class     : %s%s\r\n"
-	"%sI%s) Size      : %s%s\r\n"
+          "%s6%s) Position  : %s%s\r\n"
+          "%s7%s) Default   : %s%s\r\n"
+          "%s8%s) Attack    : %s%s\r\n"
+          "%s9%s) Stats Menu...\r\n"
+          "%sR%s) Race      : %s%s\r\n"
+          "%sD%s) SubRace   : %s%s\r\n"
+          "%sE%s) SubRace   : %s%s\r\n"
+          "%sF%s) SubRace   : %s%s\r\n"
+          "%sC%s) Class     : %s%s\r\n"
+          "%sI%s) Size      : %s%s\r\n"
           "%sJ%s) Walk-In   : %s%s\r\n"
           "%sK%s) Walk-Out  : %s%s\r\n"
           "%s-%s) Echo Menu : IS ZONE: %d FREQ: %d%% COUNT: %d Echo: %s\r\n"
-	  "%sA%s) NPC Flags : %s%s\r\n"
-	  "%sB%s) AFF Flags : %s%s\r\n"
+          "%sA%s) NPC Flags : %s%s\r\n"
+          "%sB%s) AFF Flags : %s%s\r\n"
           "%sS%s) Script    : %s%s\r\n"
           "%sW%s) Copy mob\r\n"
-	  "%sX%s) Delete mob\r\n"
-	  "%sQ%s) Quit\r\n"
-	  "Enter choice : ",
+          "%sX%s) Delete mob\r\n"
+          "%sQ%s) Quit\r\n"
+          "Enter choice : ",
 
-	  grn, nrm, yel, position_types[(int)GET_POS(mob)],
-	  grn, nrm, yel, position_types[(int)GET_DEFAULT_POS(mob)],
-	  grn, nrm, yel, attack_hit_text[(int)GET_ATTACK(mob)].singular,
-	  grn, nrm,
+          grn, nrm, yel, position_types[(int) GET_POS(mob)],
+          grn, nrm, yel, position_types[(int) GET_DEFAULT_POS(mob)],
+          grn, nrm, yel, attack_hit_text[(int) GET_ATTACK(mob)].singular,
+          grn, nrm,
           grn, nrm, yel, npc_race_types[GET_RACE(mob)],
           grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 0)],
           grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 1)],
@@ -584,20 +563,19 @@ static void medit_disp_menu(struct descriptor_data *d)
           grn, nrm, yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.",
           grn, nrm, ECHO_IS_ZONE(mob), ECHO_FREQ(mob), ECHO_AMOUNT(mob),
           (ECHO_ENTRIES(mob)[0] ? ECHO_ENTRIES(mob)[0] : "None."),
-	  grn, nrm, cyn, flags,
-	  grn, nrm, cyn, flag2,
+          grn, nrm, cyn, flags,
+          grn, nrm, cyn, flag2,
           grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
           grn, nrm,
-	  grn, nrm,
-	  grn, nrm
-	  );
+          grn, nrm,
+          grn, nrm
+          );
 
   OLC_MODE(d) = MEDIT_MAIN_MENU;
 }
 
 /* Display main menu. */
-static void medit_disp_stats_menu(struct descriptor_data *d)
-{
+static void medit_disp_stats_menu(struct descriptor_data *d) {
   struct char_data *mob;
   char buf[MAX_STRING_LENGTH];
 
@@ -610,50 +588,50 @@ static void medit_disp_stats_menu(struct descriptor_data *d)
 
   /* Top section - standard stats */
   write_to_output(d,
-  "-- Mob Number:  %s[%s%d%s]%s\r\n"
-  "(%s1%s) Level:       %s[%s%4d%s]%s\r\n"
-  "(%s2%s) %sAuto Set Stats (based on level)%s\r\n\r\n"
-  "Hit Points  (xdy+z):        Bare Hand Damage (xdy+z): \r\n"
-  "(%s3%s) HP NumDice:  %s[%s%5d%s]%s    (%s6%s) BHD NumDice:  %s[%s%5d%s]%s\r\n"
-  "(%s4%s) HP SizeDice: %s[%s%5d%s]%s    (%s7%s) BHD SizeDice: %s[%s%5d%s]%s\r\n"
-  "(%s5%s) HP Addition: %s[%s%5d%s]%s    (%s8%s) DamRoll:      %s[%s%5d%s]%s\r\n"
-  "%-*s(range %s%d%s to %s%d%s)\r\n\r\n"
+          "-- Mob Number:  %s[%s%d%s]%s\r\n"
+          "(%s1%s) Level:       %s[%s%4d%s]%s\r\n"
+          "(%s2%s) %sAuto Set Stats (based on level)%s\r\n\r\n"
+          "Hit Points  (xdy+z):        Bare Hand Damage (xdy+z): \r\n"
+          "(%s3%s) HP NumDice:  %s[%s%5d%s]%s    (%s6%s) BHD NumDice:  %s[%s%5d%s]%s\r\n"
+          "(%s4%s) HP SizeDice: %s[%s%5d%s]%s    (%s7%s) BHD SizeDice: %s[%s%5d%s]%s\r\n"
+          "(%s5%s) HP Addition: %s[%s%5d%s]%s    (%s8%s) DamRoll:      %s[%s%5d%s]%s\r\n"
+          "%-*s(range %s%d%s to %s%d%s)\r\n\r\n"
 
-  "(%sA%s) Armor Class: %s[%s%4d%s]%s        (%sD%s) Hitroll:   %s[%s%5d%s]%s\r\n"
-  "(%sB%s) Exp Points:  %s[%s%10d%s]%s  (%sE%s) Alignment: %s[%s%s%s]%s\r\n"
-  "(%sC%s) Gold:        %s[%s%10d%s]%s\r\n\r\n",
-      cyn, yel, OLC_NUM(d), cyn, nrm,
-      cyn, nrm, cyn, yel, GET_LEVEL(mob), cyn, nrm,
-      cyn, nrm, cyn, nrm,
-      cyn, nrm, cyn, yel, GET_HIT(mob), cyn, nrm,   cyn, nrm, cyn, yel, GET_NDD(mob), cyn, nrm,
-      cyn, nrm, cyn, yel, GET_MANA(mob), cyn, nrm,  cyn, nrm, cyn, yel, GET_SDD(mob), cyn, nrm,
-      cyn, nrm, cyn, yel, GET_MOVE(mob), cyn, nrm,  cyn, nrm, cyn, yel, GET_DAMROLL(mob), cyn, nrm,
+          "(%sA%s) Armor Class: %s[%s%4d%s]%s        (%sD%s) Hitroll:   %s[%s%5d%s]%s\r\n"
+          "(%sB%s) Exp Points:  %s[%s%10d%s]%s  (%sE%s) Alignment: %s[%s%s%s]%s\r\n"
+          "(%sC%s) Gold:        %s[%s%10d%s]%s\r\n\r\n",
+          cyn, yel, OLC_NUM(d), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_LEVEL(mob), cyn, nrm,
+          cyn, nrm, cyn, nrm,
+          cyn, nrm, cyn, yel, GET_HIT(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_NDD(mob), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_MANA(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SDD(mob), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_MOVE(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_DAMROLL(mob), cyn, nrm,
 
-      count_color_chars(buf)+28, buf,
-      yel, GET_NDD(mob) + GET_DAMROLL(mob), nrm,
-      yel, (GET_NDD(mob) * GET_SDD(mob)) + GET_DAMROLL(mob), nrm,
+          count_color_chars(buf) + 28, buf,
+          yel, GET_NDD(mob) + GET_DAMROLL(mob), nrm,
+          yel, (GET_NDD(mob) * GET_SDD(mob)) + GET_DAMROLL(mob), nrm,
 
-      cyn, nrm, cyn, yel, GET_AC(mob), cyn, nrm,   cyn, nrm, cyn, yel, GET_HITROLL(mob), cyn, nrm,
-      cyn, nrm, cyn, yel, GET_EXP(mob), cyn, nrm,  cyn, nrm, cyn, yel, get_align_by_num(GET_ALIGNMENT(mob)), cyn, nrm,
-      cyn, nrm, cyn, yel, GET_GOLD(mob), cyn, nrm
-      );
+          cyn, nrm, cyn, yel, GET_AC(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_HITROLL(mob), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_EXP(mob), cyn, nrm, cyn, nrm, cyn, yel, get_align_by_num(GET_ALIGNMENT(mob)), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_GOLD(mob), cyn, nrm
+          );
 
   if (CONFIG_MEDIT_ADVANCED) {
     /* Bottom section - non-standard stats, togglable in cedit */
     write_to_output(d,
-    "(%sF%s) Str: %s[%s%2d/%3d%s]%s   Saving Throws\r\n"
-    "(%sG%s) Int: %s[%s%3d%s]%s      (%sL%s) Paralysis     %s[%s%3d%s]%s\r\n"
-    "(%sH%s) Wis: %s[%s%3d%s]%s      (%sM%s) Rods/Staves   %s[%s%3d%s]%s\r\n"
-    "(%sI%s) Dex: %s[%s%3d%s]%s      (%sN%s) Petrification %s[%s%3d%s]%s\r\n"
-    "(%sJ%s) Con: %s[%s%3d%s]%s      (%sO%s) Breath        %s[%s%3d%s]%s\r\n"
-    "(%sK%s) Cha: %s[%s%3d%s]%s      (%sP%s) Spells        %s[%s%3d%s]%s\r\n\r\n",
-        cyn, nrm, cyn, yel, GET_STR(mob), GET_ADD(mob), cyn, nrm,
-        cyn, nrm, cyn, yel, GET_INT(mob), cyn, nrm,   cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_FORT), cyn, nrm,
-        cyn, nrm, cyn, yel, GET_WIS(mob), cyn, nrm,   cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_REFL), cyn, nrm,
-        cyn, nrm, cyn, yel, GET_DEX(mob), cyn, nrm,   cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_WILL), cyn, nrm,
-        cyn, nrm, cyn, yel, GET_CON(mob), cyn, nrm,   cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_POISON), cyn, nrm,
-        cyn, nrm, cyn, yel, GET_CHA(mob), cyn, nrm,   cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_DEATH), cyn, nrm
-        );
+            "(%sF%s) Str: %s[%s%2d/%3d%s]%s   Saving Throws\r\n"
+            "(%sG%s) Int: %s[%s%3d%s]%s      (%sL%s) Paralysis     %s[%s%3d%s]%s\r\n"
+            "(%sH%s) Wis: %s[%s%3d%s]%s      (%sM%s) Rods/Staves   %s[%s%3d%s]%s\r\n"
+            "(%sI%s) Dex: %s[%s%3d%s]%s      (%sN%s) Petrification %s[%s%3d%s]%s\r\n"
+            "(%sJ%s) Con: %s[%s%3d%s]%s      (%sO%s) Breath        %s[%s%3d%s]%s\r\n"
+            "(%sK%s) Cha: %s[%s%3d%s]%s      (%sP%s) Spells        %s[%s%3d%s]%s\r\n\r\n",
+            cyn, nrm, cyn, yel, GET_STR(mob), GET_ADD(mob), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_INT(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_FORT), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_WIS(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_REFL), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_DEX(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_WILL), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_CON(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_POISON), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_CHA(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_DEATH), cyn, nrm
+            );
   }
 
   /* Quit to previous menu option */
@@ -662,8 +640,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d)
   OLC_MODE(d) = MEDIT_STATS_MENU;
 }
 
-void medit_parse(struct descriptor_data *d, char *arg)
-{
+void medit_parse(struct descriptor_data *d, char *arg) {
   int i = -1, j;
   char *oldtext = NULL;
 
@@ -673,721 +650,719 @@ void medit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Try again : ");
       return;
     }
-  } else {	/* String response. */
+  } else { /* String response. */
     if (!genolc_checkstring(d, arg))
       return;
   }
   switch (OLC_MODE(d)) {
-  case MEDIT_CONFIRM_SAVESTRING:
-    /* Ensure mob has MOB_ISNPC set. */
-    SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_ISNPC);
-    switch (*arg) {
-    case 'y':
-    case 'Y':
-      /* Save the mob in memory and to disk. */
-      medit_save_internally(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits mob %d", GET_NAME(d->character), OLC_NUM(d));
-      if (CONFIG_OLC_SAVE) {
-        medit_save_to_disk(zone_table[real_zone_by_thing(OLC_NUM(d))].number);
-        write_to_output(d, "Mobile saved to disk.\r\n");
-      } else
-        write_to_output(d, "Mobile saved to memory.\r\n");
-      cleanup_olc(d, CLEANUP_ALL);
-      return;
-    case 'n':
-    case 'N':
-      /* If not saving, we must free the script_proto list. We do so by
-       * assigning it to the edited mob and letting free_mobile in
-       * cleanup_olc handle it. */
-      OLC_MOB(d)->proto_script = OLC_SCRIPT(d);
-      cleanup_olc(d, CLEANUP_ALL);
-      return;
-    default:
-      write_to_output(d, "Invalid choice!\r\n");
-      write_to_output(d, "Do you wish to save your changes? : ");
-      return;
-    }
-    break;
-
-  case MEDIT_MAIN_MENU:
-    i = 0;
-    switch (*arg) {
-    case 'q':
-    case 'Q':
-      if (OLC_VAL(d)) {	/* Anything been changed? */
-	write_to_output(d, "Do you wish to save your changes? : ");
-	OLC_MODE(d) = MEDIT_CONFIRM_SAVESTRING;
-      } else
-	cleanup_olc(d, CLEANUP_ALL);
-      return;
-    case '1':
-      OLC_MODE(d) = MEDIT_SEX;
-      medit_disp_sex(d);
-      return;
-    case '2':
-      OLC_MODE(d) = MEDIT_KEYWORD;
-      i--;
-      break;
-    case '3':
-      OLC_MODE(d) = MEDIT_S_DESC;
-      i--;
-      break;
-    case '4':
-      OLC_MODE(d) = MEDIT_L_DESC;
-      i--;
-      break;
-    case '5':
-      OLC_MODE(d) = MEDIT_D_DESC;
-      send_editor_help(d);
-      write_to_output(d, "Enter mob description:\r\n\r\n");
-      if (OLC_MOB(d)->player.description) {
-	write_to_output(d, "%s", OLC_MOB(d)->player.description);
-	oldtext = strdup(OLC_MOB(d)->player.description);
+    case MEDIT_CONFIRM_SAVESTRING:
+      /* Ensure mob has MOB_ISNPC set. */
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_ISNPC);
+      switch (*arg) {
+        case 'y':
+        case 'Y':
+          /* Save the mob in memory and to disk. */
+          medit_save_internally(d);
+          mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits mob %d", GET_NAME(d->character), OLC_NUM(d));
+          if (CONFIG_OLC_SAVE) {
+            medit_save_to_disk(zone_table[real_zone_by_thing(OLC_NUM(d))].number);
+            write_to_output(d, "Mobile saved to disk.\r\n");
+          } else
+            write_to_output(d, "Mobile saved to memory.\r\n");
+          cleanup_olc(d, CLEANUP_ALL);
+          return;
+        case 'n':
+        case 'N':
+          /* If not saving, we must free the script_proto list. We do so by
+           * assigning it to the edited mob and letting free_mobile in
+           * cleanup_olc handle it. */
+          OLC_MOB(d)->proto_script = OLC_SCRIPT(d);
+          cleanup_olc(d, CLEANUP_ALL);
+          return;
+        default:
+          write_to_output(d, "Invalid choice!\r\n");
+          write_to_output(d, "Do you wish to save your changes? : ");
+          return;
       }
-      string_write(d, &OLC_MOB(d)->player.description, MAX_MOB_DESC, 0, oldtext);
-      OLC_VAL(d) = 1;
-      return;
-    case '6':
-      OLC_MODE(d) = MEDIT_POS;
-      medit_disp_positions(d);
-      return;
-    case '7':
-      OLC_MODE(d) = MEDIT_DEFAULT_POS;
-      medit_disp_positions(d);
-      return;
-    case '8':
-      OLC_MODE(d) = MEDIT_ATTACK;
-      medit_disp_attack_types(d);
-      return;
-    case '9':
-      OLC_MODE(d) = MEDIT_STATS_MENU;
-      medit_disp_stats_menu(d);
-      return;
-    case 'r':
-    case 'R':
-       OLC_MODE(d) = MEDIT_RACE;
-       medit_disp_race(d);
-       return;
-    case 'd':
-    case 'D':
-       OLC_MODE(d) = MEDIT_SUB_RACE_1;
-       medit_disp_subrace1(d);
-       return;
-    case 'e':
-    case 'E':
-       OLC_MODE(d) = MEDIT_SUB_RACE_2;
-       medit_disp_subrace2(d);
-       return;
-    case 'f':
-    case 'F':
-       OLC_MODE(d) = MEDIT_SUB_RACE_3;
-       medit_disp_subrace3(d);
-       return;
-    case 'c':
-    case 'C':
-       OLC_MODE(d) = MEDIT_CLASS;
-       medit_disp_class(d);
-       return;
-    case 'i':
-    case 'I':
-       OLC_MODE(d) = MEDIT_SIZE;
-       medit_disp_size(d);
-       return;
-      case 'j':
-      case 'J': // walk-in
-        write_to_output(d, "Please enter a new walkin with proper format:\r\n"
-                "Example:  $n stomps in from\r\n"
-                "Result:   The monster stomps in from the north.\r\n"
-                "<leave blank for default>\r\n: ");
-        OLC_MODE(d) = MEDIT_WALKIN;
-        i--;
-        return;
-      case 'k':
-      case 'K': // walk-out
-        write_to_output(d, "Please enter a new walkout with proper format:\r\n"
-                "Example:  $n stomps\r\n"
-                "Result:   The monster stomps north.\r\n"
-                "<leave blank for default>\r\n: ");
-        OLC_MODE(d) = MEDIT_WALKOUT;
-        i--;
-        return;
-    case 'a':
-    case 'A':
-      OLC_MODE(d) = MEDIT_NPC_FLAGS;
-      medit_disp_mob_flags(d);
-      return;
-    case 'b':
-    case 'B':
-      OLC_MODE(d) = MEDIT_AFF_FLAGS;
-      medit_disp_aff_flags(d);
-      return;
-    case 'w':
-    case 'W':
-      write_to_output(d, "Copy what mob? ");
-      OLC_MODE(d) = MEDIT_COPY;
-      return;
-    case 'x':
-    case 'X':
-      write_to_output(d, "Are you sure you want to delete this mobile? ");
-      OLC_MODE(d) = MEDIT_DELETE;
-      return;
-    case 's':
-    case 'S':
-      OLC_SCRIPT_EDIT_MODE(d) = SCRIPT_MAIN_MENU;
-      dg_script_menu(d);
-      return;
-    default:
-      medit_disp_menu(d);
-      return;
-    }
-    if (i == 0)
       break;
-    else if (i == 1)
-      write_to_output(d, "\r\nEnter new value : ");
-    else if (i == -1)
-      write_to_output(d, "\r\nEnter new text :\r\n] ");
-    else
+
+    case MEDIT_MAIN_MENU:
+      i = 0;
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          if (OLC_VAL(d)) { /* Anything been changed? */
+            write_to_output(d, "Do you wish to save your changes? : ");
+            OLC_MODE(d) = MEDIT_CONFIRM_SAVESTRING;
+          } else
+            cleanup_olc(d, CLEANUP_ALL);
+          return;
+        case '1':
+          OLC_MODE(d) = MEDIT_SEX;
+          medit_disp_sex(d);
+          return;
+        case '2':
+          OLC_MODE(d) = MEDIT_KEYWORD;
+          i--;
+          break;
+        case '3':
+          OLC_MODE(d) = MEDIT_S_DESC;
+          i--;
+          break;
+        case '4':
+          OLC_MODE(d) = MEDIT_L_DESC;
+          i--;
+          break;
+        case '5':
+          OLC_MODE(d) = MEDIT_D_DESC;
+          send_editor_help(d);
+          write_to_output(d, "Enter mob description:\r\n\r\n");
+          if (OLC_MOB(d)->player.description) {
+            write_to_output(d, "%s", OLC_MOB(d)->player.description);
+            oldtext = strdup(OLC_MOB(d)->player.description);
+          }
+          string_write(d, &OLC_MOB(d)->player.description, MAX_MOB_DESC, 0, oldtext);
+          OLC_VAL(d) = 1;
+          return;
+        case '6':
+          OLC_MODE(d) = MEDIT_POS;
+          medit_disp_positions(d);
+          return;
+        case '7':
+          OLC_MODE(d) = MEDIT_DEFAULT_POS;
+          medit_disp_positions(d);
+          return;
+        case '8':
+          OLC_MODE(d) = MEDIT_ATTACK;
+          medit_disp_attack_types(d);
+          return;
+        case '9':
+          OLC_MODE(d) = MEDIT_STATS_MENU;
+          medit_disp_stats_menu(d);
+          return;
+        case 'r':
+        case 'R':
+          OLC_MODE(d) = MEDIT_RACE;
+          medit_disp_race(d);
+          return;
+        case 'd':
+        case 'D':
+          OLC_MODE(d) = MEDIT_SUB_RACE_1;
+          medit_disp_subrace1(d);
+          return;
+        case 'e':
+        case 'E':
+          OLC_MODE(d) = MEDIT_SUB_RACE_2;
+          medit_disp_subrace2(d);
+          return;
+        case 'f':
+        case 'F':
+          OLC_MODE(d) = MEDIT_SUB_RACE_3;
+          medit_disp_subrace3(d);
+          return;
+        case 'c':
+        case 'C':
+          OLC_MODE(d) = MEDIT_CLASS;
+          medit_disp_class(d);
+          return;
+        case 'i':
+        case 'I':
+          OLC_MODE(d) = MEDIT_SIZE;
+          medit_disp_size(d);
+          return;
+        case 'j':
+        case 'J': // walk-in
+          write_to_output(d, "Please enter a new walkin with proper format:\r\n"
+                  "Example:  $n stomps in from\r\n"
+                  "Result:   The monster stomps in from the north.\r\n"
+                  "<leave blank for default>\r\n: ");
+          OLC_MODE(d) = MEDIT_WALKIN;
+          i--;
+          return;
+        case 'k':
+        case 'K': // walk-out
+          write_to_output(d, "Please enter a new walkout with proper format:\r\n"
+                  "Example:  $n stomps\r\n"
+                  "Result:   The monster stomps north.\r\n"
+                  "<leave blank for default>\r\n: ");
+          OLC_MODE(d) = MEDIT_WALKOUT;
+          i--;
+          return;
+        case 'a':
+        case 'A':
+          OLC_MODE(d) = MEDIT_NPC_FLAGS;
+          medit_disp_mob_flags(d);
+          return;
+        case 'b':
+        case 'B':
+          OLC_MODE(d) = MEDIT_AFF_FLAGS;
+          medit_disp_aff_flags(d);
+          return;
+        case 'w':
+        case 'W':
+          write_to_output(d, "Copy what mob? ");
+          OLC_MODE(d) = MEDIT_COPY;
+          return;
+        case 'x':
+        case 'X':
+          write_to_output(d, "Are you sure you want to delete this mobile? ");
+          OLC_MODE(d) = MEDIT_DELETE;
+          return;
+        case 's':
+        case 'S':
+          OLC_SCRIPT_EDIT_MODE(d) = SCRIPT_MAIN_MENU;
+          dg_script_menu(d);
+          return;
+        default:
+          medit_disp_menu(d);
+          return;
+      }
+      if (i == 0)
+        break;
+      else if (i == 1)
+        write_to_output(d, "\r\nEnter new value : ");
+      else if (i == -1)
+        write_to_output(d, "\r\nEnter new text :\r\n] ");
+      else
+        write_to_output(d, "Oops...\r\n");
+      return;
+
+    case MEDIT_STATS_MENU:
+      i = 0;
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          medit_disp_menu(d);
+          return;
+        case '1': /* Edit level */
+          OLC_MODE(d) = MEDIT_LEVEL;
+          i++;
+          break;
+        case '2': /* Autoroll stats */
+          medit_autoroll_stats(d);
+          medit_disp_stats_menu(d);
+          OLC_VAL(d) = TRUE;
+          return;
+        case '3':
+          OLC_MODE(d) = MEDIT_NUM_HP_DICE;
+          i++;
+          break;
+        case '4':
+          OLC_MODE(d) = MEDIT_SIZE_HP_DICE;
+          i++;
+          break;
+        case '5':
+          OLC_MODE(d) = MEDIT_ADD_HP;
+          i++;
+          break;
+        case '6':
+          OLC_MODE(d) = MEDIT_NDD;
+          i++;
+          break;
+        case '7':
+          OLC_MODE(d) = MEDIT_SDD;
+          i++;
+          break;
+        case '8':
+          OLC_MODE(d) = MEDIT_DAMROLL;
+          i++;
+          break;
+        case 'a':
+        case 'A':
+          OLC_MODE(d) = MEDIT_AC;
+          i++;
+          break;
+        case 'b':
+        case 'B':
+          OLC_MODE(d) = MEDIT_EXP;
+          i++;
+          break;
+        case 'c':
+        case 'C':
+          OLC_MODE(d) = MEDIT_GOLD;
+          i++;
+          break;
+        case 'd':
+        case 'D':
+          OLC_MODE(d) = MEDIT_HITROLL;
+          i++;
+          break;
+        case 'e':
+        case 'E':
+          OLC_MODE(d) = MEDIT_ALIGNMENT;
+          disp_align_menu(d);
+          i++;
+          break;
+        case 'f':
+        case 'F':
+          if (!CONFIG_MEDIT_ADVANCED) {
+            write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_STR;
+          i++;
+          break;
+        case 'g':
+        case 'G':
+          if (!CONFIG_MEDIT_ADVANCED) {
+            write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_INT;
+          i++;
+          break;
+        case 'h':
+        case 'H':
+          if (!CONFIG_MEDIT_ADVANCED) {
+            write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_WIS;
+          i++;
+          break;
+        case 'i':
+        case 'I':
+          if (!CONFIG_MEDIT_ADVANCED) {
+            write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_DEX;
+          i++;
+          break;
+        case 'j':
+        case 'J':
+          if (!CONFIG_MEDIT_ADVANCED) {
+            write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_CON;
+          i++;
+          break;
+        case 'k':
+        case 'K':
+          if (!CONFIG_MEDIT_ADVANCED) {
+            write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_CHA;
+          i++;
+          break;
+        case 'l':
+        case 'L':
+          if (!CONFIG_MEDIT_ADVANCED) {
+            write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_PARA;
+          i++;
+          break;
+        case 'm':
+        case 'M':
+          if (!CONFIG_MEDIT_ADVANCED) {
+            write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_ROD;
+          i++;
+          break;
+        case 'n':
+        case 'N':
+          if (!CONFIG_MEDIT_ADVANCED) {
+            write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_PETRI;
+          i++;
+          break;
+        case 'o':
+        case 'O':
+          if (!CONFIG_MEDIT_ADVANCED) {
+            write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_BREATH;
+          i++;
+          break;
+        case 'p':
+        case 'P':
+          if (!CONFIG_MEDIT_ADVANCED) {
+            write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_SPELL;
+          i++;
+          break;
+        default:
+          medit_disp_stats_menu(d);
+          return;
+      }
+      if (i == 0)
+        break;
+      else if (i == 1)
+        write_to_output(d, "\r\nEnter new value : ");
+      else if (i == -1)
+        write_to_output(d, "\r\nEnter new text :\r\n] ");
+      else
+        write_to_output(d, "Oops...\r\n");
+      return;
+
+    case OLC_SCRIPT_EDIT:
+      if (dg_script_edit_parse(d, arg)) return;
+      break;
+
+    case MEDIT_KEYWORD:
+      smash_tilde(arg);
+      if (GET_ALIAS(OLC_MOB(d)))
+        free(GET_ALIAS(OLC_MOB(d)));
+      GET_ALIAS(OLC_MOB(d)) = str_udup(arg);
+      break;
+
+    case MEDIT_S_DESC:
+      smash_tilde(arg);
+      if (GET_SDESC(OLC_MOB(d)))
+        free(GET_SDESC(OLC_MOB(d)));
+      GET_SDESC(OLC_MOB(d)) = str_udup(arg);
+      break;
+
+    case MEDIT_L_DESC:
+      smash_tilde(arg);
+      if (GET_LDESC(OLC_MOB(d)))
+        free(GET_LDESC(OLC_MOB(d)));
+      if (arg && *arg) {
+        char buf[MAX_INPUT_LENGTH];
+        snprintf(buf, sizeof (buf), "%s\r\n", arg);
+        GET_LDESC(OLC_MOB(d)) = strdup(buf);
+      } else
+        GET_LDESC(OLC_MOB(d)) = strdup("undefined");
+
+      break;
+
+    case MEDIT_D_DESC:
+      /*
+       * We should never get here.
+       */
+      cleanup_olc(d, CLEANUP_ALL);
+      mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: medit_parse(): Reached D_DESC case!");
       write_to_output(d, "Oops...\r\n");
-    return;
+      break;
 
-  case MEDIT_STATS_MENU:
-    i=0;
-    switch(*arg) {
-    case 'q':
-    case 'Q':
-      medit_disp_menu(d);
-      return;
-    case '1':  /* Edit level */
-      OLC_MODE(d) = MEDIT_LEVEL;
-      i++;
-      break;
-    case '2':  /* Autoroll stats */
-      medit_autoroll_stats(d);
-      medit_disp_stats_menu(d);
-      OLC_VAL(d) = TRUE;
-      return;
-    case '3':
-      OLC_MODE(d) = MEDIT_NUM_HP_DICE;
-      i++;
-      break;
-    case '4':
-      OLC_MODE(d) = MEDIT_SIZE_HP_DICE;
-      i++;
-      break;
-    case '5':
-      OLC_MODE(d) = MEDIT_ADD_HP;
-      i++;
-      break;
-    case '6':
-      OLC_MODE(d) = MEDIT_NDD;
-      i++;
-      break;
-    case '7':
-      OLC_MODE(d) = MEDIT_SDD;
-      i++;
-      break;
-    case '8':
-      OLC_MODE(d) = MEDIT_DAMROLL;
-      i++;
-      break;
-    case 'a':
-    case 'A':
-      OLC_MODE(d) = MEDIT_AC;
-      i++;
-      break;
-    case 'b':
-    case 'B':
-      OLC_MODE(d) = MEDIT_EXP;
-      i++;
-      break;
-    case 'c':
-    case 'C':
-      OLC_MODE(d) = MEDIT_GOLD;
-      i++;
-      break;
-    case 'd':
-    case 'D':
-      OLC_MODE(d) = MEDIT_HITROLL;
-      i++;
-      break;
-    case 'e':
-    case 'E':
-      OLC_MODE(d) = MEDIT_ALIGNMENT;
-      disp_align_menu(d);
-      i++;
-      break;
-    case 'f':
-    case 'F':
-      if (!CONFIG_MEDIT_ADVANCED) {
-        write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
-        return;
-	  }
-      OLC_MODE(d) = MEDIT_STR;
-      i++;
-      break;
-    case 'g':
-    case 'G':
-      if (!CONFIG_MEDIT_ADVANCED) {
-        write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
-        return;
-	  }
-      OLC_MODE(d) = MEDIT_INT;
-      i++;
-      break;
-    case 'h':
-    case 'H':
-      if (!CONFIG_MEDIT_ADVANCED) {
-        write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
-        return;
-	  }
-      OLC_MODE(d) = MEDIT_WIS;
-      i++;
-      break;
-    case 'i':
-    case 'I':
-      if (!CONFIG_MEDIT_ADVANCED) {
-        write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
-        return;
-	  }
-      OLC_MODE(d) = MEDIT_DEX;
-      i++;
-      break;
-    case 'j':
-    case 'J':
-      if (!CONFIG_MEDIT_ADVANCED) {
-        write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
-        return;
-	  }
-      OLC_MODE(d) = MEDIT_CON;
-      i++;
-      break;
-    case 'k':
-    case 'K':
-      if (!CONFIG_MEDIT_ADVANCED) {
-        write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
-        return;
-	  }
-      OLC_MODE(d) = MEDIT_CHA;
-      i++;
-      break;
-    case 'l':
-    case 'L':
-      if (!CONFIG_MEDIT_ADVANCED) {
-        write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
-        return;
-	  }
-      OLC_MODE(d) = MEDIT_PARA;
-      i++;
-      break;
-    case 'm':
-    case 'M':
-      if (!CONFIG_MEDIT_ADVANCED) {
-        write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
-        return;
-	  }
-      OLC_MODE(d) = MEDIT_ROD;
-      i++;
-      break;
-    case 'n':
-    case 'N':
-      if (!CONFIG_MEDIT_ADVANCED) {
-        write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
-        return;
-	  }
-      OLC_MODE(d) = MEDIT_PETRI;
-      i++;
-      break;
-    case 'o':
-    case 'O':
-      if (!CONFIG_MEDIT_ADVANCED) {
-        write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
-        return;
-	  }
-      OLC_MODE(d) = MEDIT_BREATH;
-      i++;
-      break;
-    case 'p':
-    case 'P':
-      if (!CONFIG_MEDIT_ADVANCED) {
-        write_to_output(d, "Invalid Choice!\r\nEnter Choice : ");
-        return;
-	  }
-      OLC_MODE(d) = MEDIT_SPELL;
-      i++;
-      break;
-    default:
-      medit_disp_stats_menu(d);
-      return;
-    }
-    if (i == 0)
-      break;
-    else if (i == 1)
-      write_to_output(d, "\r\nEnter new value : ");
-    else if (i == -1)
-      write_to_output(d, "\r\nEnter new text :\r\n] ");
-    else
-      write_to_output(d, "Oops...\r\n");
-    return;
-
-  case OLC_SCRIPT_EDIT:
-    if (dg_script_edit_parse(d, arg)) return;
-    break;
-
-  case MEDIT_KEYWORD:
-    smash_tilde(arg);
-    if (GET_ALIAS(OLC_MOB(d)))
-      free(GET_ALIAS(OLC_MOB(d)));
-    GET_ALIAS(OLC_MOB(d)) = str_udup(arg);
-    break;
-
-  case MEDIT_S_DESC:
-    smash_tilde(arg);
-    if (GET_SDESC(OLC_MOB(d)))
-      free(GET_SDESC(OLC_MOB(d)));
-    GET_SDESC(OLC_MOB(d)) = str_udup(arg);
-    break;
-
-  case MEDIT_L_DESC:
-    smash_tilde(arg);
-    if (GET_LDESC(OLC_MOB(d)))
-      free(GET_LDESC(OLC_MOB(d)));
-    if (arg && *arg) {
-      char buf[MAX_INPUT_LENGTH];
-      snprintf(buf, sizeof(buf), "%s\r\n", arg);
-      GET_LDESC(OLC_MOB(d)) = strdup(buf);
-    } else
-      GET_LDESC(OLC_MOB(d)) = strdup("undefined");
-
-    break;
-
-  case MEDIT_D_DESC:
-    /*
-     * We should never get here.
-     */
-    cleanup_olc(d, CLEANUP_ALL);
-    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: medit_parse(): Reached D_DESC case!");
-    write_to_output(d, "Oops...\r\n");
-    break;
-    
     case MEDIT_WALKIN:
       smash_tilde(arg);
       if (GET_WALKIN(OLC_MOB(d)))
         free(GET_WALKIN(OLC_MOB(d)));
       if (arg && *arg) {
         char buf[MAX_INPUT_LENGTH];
-        snprintf(buf, sizeof(buf), "%s", delete_doubledollar(arg));
-        GET_WALKIN(OLC_MOB(d)) = strdup(buf);        
+        snprintf(buf, sizeof (buf), "%s", delete_doubledollar(arg));
+        GET_WALKIN(OLC_MOB(d)) = strdup(buf);
       } else
         GET_WALKIN(OLC_MOB(d)) = NULL;
       break;
-      
+
     case MEDIT_WALKOUT:
       smash_tilde(arg);
       if (GET_WALKOUT(OLC_MOB(d)))
         free(GET_WALKOUT(OLC_MOB(d)));
       if (arg && *arg) {
         char buf[MAX_INPUT_LENGTH];
-        snprintf(buf, sizeof(buf), "%s", delete_doubledollar(arg));
+        snprintf(buf, sizeof (buf), "%s", delete_doubledollar(arg));
         GET_WALKOUT(OLC_MOB(d)) = strdup(buf);
       } else
         GET_WALKOUT(OLC_MOB(d)) = NULL;
       break;
 
-  case MEDIT_NPC_FLAGS:
-    if ((i = atoi(arg)) <= 0)
-      break;
-    else if ( (j = medit_get_mob_flag_by_number(i)) == -1) {
-       write_to_output(d, "Invalid choice!\r\n");
-       write_to_output(d, "Enter mob flags (0 to quit) :");
-       return;
-    } else if (j <= NUM_MOB_FLAGS) {
-      TOGGLE_BIT_AR(MOB_FLAGS(OLC_MOB(d)), (j));
-    }
-    medit_disp_mob_flags(d);
-    return;
-
-  case MEDIT_AFF_FLAGS:
-    if ((i = atoi(arg)) <= 0)
-      break;
-    else if (i <= NUM_AFF_FLAGS)
-      TOGGLE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), i);
-
-    /* Remove unwanted bits right away. */
-    REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_CHARM);
-    REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_POISON);
-    REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_SLEEP);
-    medit_disp_aff_flags(d);
-    return;
-
-/* Numerical responses. */
-
-  case MEDIT_SEX:
-    GET_SEX(OLC_MOB(d)) = LIMIT(i - 1, 0, NUM_GENDERS - 1);
-    break;
-
-  case MEDIT_HITROLL:
-    GET_HITROLL(OLC_MOB(d)) = LIMIT(i, 0, 50);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_DAMROLL:
-    GET_DAMROLL(OLC_MOB(d)) = LIMIT(i, 0, 50);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_NDD:
-    GET_NDD(OLC_MOB(d)) = LIMIT(i, 0, 30);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_SDD:
-    GET_SDD(OLC_MOB(d)) = LIMIT(i, 0, 127);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_NUM_HP_DICE:
-    GET_HIT(OLC_MOB(d)) = LIMIT(i, 0, 30);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_SIZE_HP_DICE:
-    GET_MANA(OLC_MOB(d)) = LIMIT(i, 0, 1000);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_ADD_HP:
-    GET_MOVE(OLC_MOB(d)) = LIMIT(i, 0, 30000);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_AC:
-    GET_AC(OLC_MOB(d)) = LIMIT(i, -200, 200);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_EXP:
-    GET_EXP(OLC_MOB(d)) = LIMIT(i, 0, MAX_MOB_EXP);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_GOLD:
-    GET_GOLD(OLC_MOB(d)) = LIMIT(i, 0, MAX_MOB_GOLD);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_STR:
-    GET_STR(OLC_MOB(d)) = LIMIT(i, 3, 50);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_INT:
-    GET_INT(OLC_MOB(d)) = LIMIT(i, 3, 50);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_WIS:
-    GET_WIS(OLC_MOB(d)) = LIMIT(i, 3, 50);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_DEX:
-    GET_DEX(OLC_MOB(d)) = LIMIT(i, 3, 50);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_CON:
-    GET_CON(OLC_MOB(d)) = LIMIT(i, 3, 50);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_CHA:
-    GET_CHA(OLC_MOB(d)) = LIMIT(i, 3, 50);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_PARA:
-    GET_SAVE(OLC_MOB(d), SAVING_FORT) = LIMIT(i, 0, 100);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_ROD:
-    GET_SAVE(OLC_MOB(d), SAVING_REFL) = LIMIT(i, 0, 100);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_PETRI:
-    GET_SAVE(OLC_MOB(d), SAVING_WILL) = LIMIT(i, 0, 100);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_BREATH:
-    GET_SAVE(OLC_MOB(d), SAVING_POISON) = LIMIT(i, 0, 100);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_SPELL:
-    GET_SAVE(OLC_MOB(d), SAVING_DEATH) = LIMIT(i, 0, 100);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-  case MEDIT_POS:
-    GET_POS(OLC_MOB(d)) = LIMIT(i - 1, 0, NUM_POSITIONS - 1);
-    break;
-
-  case MEDIT_DEFAULT_POS:
-    GET_DEFAULT_POS(OLC_MOB(d)) = LIMIT(i - 1, 0, NUM_POSITIONS - 1);
-    break;
-
-  case MEDIT_ATTACK:
-    GET_ATTACK(OLC_MOB(d)) = LIMIT(i, 0, NUM_ATTACK_TYPES - 1);
-    break;
-
-  case MEDIT_LEVEL:
-    GET_LEVEL(OLC_MOB(d)) = LIMIT(i, 1, LVL_IMPL);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
-
-    /*
-          "0) Lawful Good\r\n" 
-          "1) Neutral Good\r\n" 
-          "2) Chaotic Good\r\n" 
-          "3) Lawful Neutral\r\n" 
-          "4) True Neutral\r\n" 
-          "5) Chaotic Neutral\r\n" 
-          "6) Lawful Evil\r\n" 
-          "7) Neutral Evil\r\n" 
-          "8) Chaotic Evil\r\n\r\n"*/ 
-  case MEDIT_ALIGNMENT:
-    if (i < 0 || i > (NUM_ALIGNMENTS-1)) {
-      write_to_output(d, "\r\nInvalid choice!\r\n");
+    case MEDIT_NPC_FLAGS:
+      if ((i = atoi(arg)) <= 0)
+        break;
+      else if ((j = medit_get_mob_flag_by_number(i)) == -1) {
+        write_to_output(d, "Invalid choice!\r\n");
+        write_to_output(d, "Enter mob flags (0 to quit) :");
+        return;
+      } else if (j <= NUM_MOB_FLAGS) {
+        TOGGLE_BIT_AR(MOB_FLAGS(OLC_MOB(d)), (j));
+      }
+      medit_disp_mob_flags(d);
       return;
-    }
-    set_alignment(OLC_MOB(d), i);
-    OLC_VAL(d) = TRUE;
-    medit_disp_stats_menu(d);
-    return;
 
-  case MEDIT_RACE:
-    if (i == 99)
-      GET_RACE(OLC_MOB(d)) = rand_number(1, NUM_NPC_RACES - 1);
-    else
-      GET_RACE(OLC_MOB(d)) = LIMIT(i, 0, NUM_NPC_RACES - 1);
-    break;
+    case MEDIT_AFF_FLAGS:
+      if ((i = atoi(arg)) <= 0)
+        break;
+      else if (i <= NUM_AFF_FLAGS)
+        TOGGLE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), i);
 
-  case MEDIT_SUB_RACE_1:
-    if (i == 99)
-      GET_SUBRACE(OLC_MOB(d), 0) = rand_number(1, NUM_SUB_RACES - 1);
-    else
-      GET_SUBRACE(OLC_MOB(d), 0) = LIMIT(i, 0, NUM_SUB_RACES - 1);
-    break;
+      /* Remove unwanted bits right away. */
+      REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_CHARM);
+      REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_POISON);
+      REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_SLEEP);
+      medit_disp_aff_flags(d);
+      return;
 
-  case MEDIT_SUB_RACE_2:
-    if (i == 99)
-      GET_SUBRACE(OLC_MOB(d), 1) = rand_number(1, NUM_SUB_RACES - 1);
-    else
-      GET_SUBRACE(OLC_MOB(d), 1) = LIMIT(i, 0, NUM_SUB_RACES - 1);
-    break;
-    
-  case MEDIT_SUB_RACE_3:
-    if (i == 99)
-      GET_SUBRACE(OLC_MOB(d), 2) = rand_number(1, NUM_SUB_RACES - 1);
-    else
-      GET_SUBRACE(OLC_MOB(d), 2) = LIMIT(i, 0, NUM_SUB_RACES - 1);
-    break;
+      /* Numerical responses. */
 
-  case MEDIT_CLASS:
-    if (i == 99)
-      GET_CLASS(OLC_MOB(d)) = rand_number(0, NUM_CLASSES - 1);
-    else if (i == 99)
-      GET_CLASS(OLC_MOB(d)) = -1;
-    else
-      GET_CLASS(OLC_MOB(d)) = LIMIT(i, 0, NUM_CLASSES - 1);
-    break;
+    case MEDIT_SEX:
+      GET_SEX(OLC_MOB(d)) = LIMIT(i - 1, 0, NUM_GENDERS - 1);
+      break;
 
-  case MEDIT_SIZE:
-    GET_SIZE(OLC_MOB(d)) = LIMIT(i, 0, NUM_SIZES - 1);
-    break;
+    case MEDIT_HITROLL:
+      GET_HITROLL(OLC_MOB(d)) = LIMIT(i, 0, 50);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
 
-  case MEDIT_COPY:
-    if ((i = real_mobile(atoi(arg))) != NOWHERE) {
-      medit_setup_existing(d, i);
-    } else
-      write_to_output(d, "That mob does not exist.\r\n");
-    break;
+    case MEDIT_DAMROLL:
+      GET_DAMROLL(OLC_MOB(d)) = LIMIT(i, 0, 50);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
 
-  case MEDIT_DELETE:
-    if (*arg == 'y' || *arg == 'Y') {
-      if (delete_mobile(GET_MOB_RNUM(OLC_MOB(d))) != NOBODY)
-        write_to_output(d, "Mobile deleted.\r\n");
+    case MEDIT_NDD:
+      GET_NDD(OLC_MOB(d)) = LIMIT(i, 0, 30);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_SDD:
+      GET_SDD(OLC_MOB(d)) = LIMIT(i, 0, 127);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_NUM_HP_DICE:
+      GET_HIT(OLC_MOB(d)) = LIMIT(i, 0, 30);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_SIZE_HP_DICE:
+      GET_MANA(OLC_MOB(d)) = LIMIT(i, 0, 1000);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_ADD_HP:
+      GET_MOVE(OLC_MOB(d)) = LIMIT(i, 0, 30000);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_AC:
+      GET_AC(OLC_MOB(d)) = LIMIT(i, -200, 200);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_EXP:
+      GET_EXP(OLC_MOB(d)) = LIMIT(i, 0, MAX_MOB_EXP);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_GOLD:
+      GET_GOLD(OLC_MOB(d)) = LIMIT(i, 0, MAX_MOB_GOLD);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_STR:
+      GET_STR(OLC_MOB(d)) = LIMIT(i, 3, 50);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_INT:
+      GET_INT(OLC_MOB(d)) = LIMIT(i, 3, 50);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_WIS:
+      GET_WIS(OLC_MOB(d)) = LIMIT(i, 3, 50);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_DEX:
+      GET_DEX(OLC_MOB(d)) = LIMIT(i, 3, 50);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_CON:
+      GET_CON(OLC_MOB(d)) = LIMIT(i, 3, 50);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_CHA:
+      GET_CHA(OLC_MOB(d)) = LIMIT(i, 3, 50);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_PARA:
+      GET_SAVE(OLC_MOB(d), SAVING_FORT) = LIMIT(i, 0, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_ROD:
+      GET_SAVE(OLC_MOB(d), SAVING_REFL) = LIMIT(i, 0, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_PETRI:
+      GET_SAVE(OLC_MOB(d), SAVING_WILL) = LIMIT(i, 0, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_BREATH:
+      GET_SAVE(OLC_MOB(d), SAVING_POISON) = LIMIT(i, 0, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_SPELL:
+      GET_SAVE(OLC_MOB(d), SAVING_DEATH) = LIMIT(i, 0, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_POS:
+      GET_POS(OLC_MOB(d)) = LIMIT(i - 1, 0, NUM_POSITIONS - 1);
+      break;
+
+    case MEDIT_DEFAULT_POS:
+      GET_DEFAULT_POS(OLC_MOB(d)) = LIMIT(i - 1, 0, NUM_POSITIONS - 1);
+      break;
+
+    case MEDIT_ATTACK:
+      GET_ATTACK(OLC_MOB(d)) = LIMIT(i, 0, NUM_ATTACK_TYPES - 1);
+      break;
+
+    case MEDIT_LEVEL:
+      GET_LEVEL(OLC_MOB(d)) = LIMIT(i, 1, LVL_IMPL);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+      /*
+            "0) Lawful Good\r\n" 
+            "1) Neutral Good\r\n" 
+            "2) Chaotic Good\r\n" 
+            "3) Lawful Neutral\r\n" 
+            "4) True Neutral\r\n" 
+            "5) Chaotic Neutral\r\n" 
+            "6) Lawful Evil\r\n" 
+            "7) Neutral Evil\r\n" 
+            "8) Chaotic Evil\r\n\r\n"*/
+    case MEDIT_ALIGNMENT:
+      if (i < 0 || i > (NUM_ALIGNMENTS - 1)) {
+        write_to_output(d, "\r\nInvalid choice!\r\n");
+        return;
+      }
+      set_alignment(OLC_MOB(d), i);
+      OLC_VAL(d) = TRUE;
+      medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_RACE:
+      if (i == 99)
+        GET_RACE(OLC_MOB(d)) = rand_number(1, NUM_NPC_RACES - 1);
       else
-        write_to_output(d, "Couldn't delete the mobile!\r\n");
+        GET_RACE(OLC_MOB(d)) = LIMIT(i, 0, NUM_NPC_RACES - 1);
+      break;
 
+    case MEDIT_SUB_RACE_1:
+      if (i == 99)
+        GET_SUBRACE(OLC_MOB(d), 0) = rand_number(1, NUM_SUB_RACES - 1);
+      else
+        GET_SUBRACE(OLC_MOB(d), 0) = LIMIT(i, 0, NUM_SUB_RACES - 1);
+      break;
+
+    case MEDIT_SUB_RACE_2:
+      if (i == 99)
+        GET_SUBRACE(OLC_MOB(d), 1) = rand_number(1, NUM_SUB_RACES - 1);
+      else
+        GET_SUBRACE(OLC_MOB(d), 1) = LIMIT(i, 0, NUM_SUB_RACES - 1);
+      break;
+
+    case MEDIT_SUB_RACE_3:
+      if (i == 99)
+        GET_SUBRACE(OLC_MOB(d), 2) = rand_number(1, NUM_SUB_RACES - 1);
+      else
+        GET_SUBRACE(OLC_MOB(d), 2) = LIMIT(i, 0, NUM_SUB_RACES - 1);
+      break;
+
+    case MEDIT_CLASS:
+      if (i == 99)
+        GET_CLASS(OLC_MOB(d)) = rand_number(0, NUM_CLASSES - 1);
+      else if (i == 99)
+        GET_CLASS(OLC_MOB(d)) = -1;
+      else
+        GET_CLASS(OLC_MOB(d)) = LIMIT(i, 0, NUM_CLASSES - 1);
+      break;
+
+    case MEDIT_SIZE:
+      GET_SIZE(OLC_MOB(d)) = LIMIT(i, 0, NUM_SIZES - 1);
+      break;
+
+    case MEDIT_COPY:
+      if ((i = real_mobile(atoi(arg))) != NOWHERE) {
+        medit_setup_existing(d, i);
+      } else
+        write_to_output(d, "That mob does not exist.\r\n");
+      break;
+
+    case MEDIT_DELETE:
+      if (*arg == 'y' || *arg == 'Y') {
+        if (delete_mobile(GET_MOB_RNUM(OLC_MOB(d))) != NOBODY)
+          write_to_output(d, "Mobile deleted.\r\n");
+        else
+          write_to_output(d, "Couldn't delete the mobile!\r\n");
+
+        cleanup_olc(d, CLEANUP_ALL);
+        return;
+      } else if (*arg == 'n' || *arg == 'N') {
+        medit_disp_menu(d);
+        OLC_MODE(d) = MEDIT_MAIN_MENU;
+        return;
+      } else
+        write_to_output(d, "Please answer 'Y' or 'N': ");
+      break;
+
+    default:
+      /* We should never get here. */
       cleanup_olc(d, CLEANUP_ALL);
-      return;
-    } else if (*arg == 'n' || *arg == 'N') {
-      medit_disp_menu(d);
-      OLC_MODE(d) = MEDIT_MAIN_MENU;
-      return;
-    } else
-      write_to_output(d, "Please answer 'Y' or 'N': ");
-    break;
-
-  default:
-    /* We should never get here. */
-    cleanup_olc(d, CLEANUP_ALL);
-    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: medit_parse(): Reached default case!");
-    write_to_output(d, "Oops...\r\n");
-    break;
+      mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: medit_parse(): Reached default case!");
+      write_to_output(d, "Oops...\r\n");
+      break;
   }
 
-/* END OF CASE If we get here, we have probably changed something, and now want
-   to return to main menu.  Use OLC_VAL as a 'has changed' flag */
+  /* END OF CASE If we get here, we have probably changed something, and now want
+     to return to main menu.  Use OLC_VAL as a 'has changed' flag */
 
   OLC_VAL(d) = TRUE;
   medit_disp_menu(d);
 }
 
-void medit_string_cleanup(struct descriptor_data *d, int terminator)
-{
+void medit_string_cleanup(struct descriptor_data *d, int terminator) {
   switch (OLC_MODE(d)) {
 
-  case MEDIT_D_DESC:
-  default:
-     medit_disp_menu(d);
-     break;
+    case MEDIT_D_DESC:
+    default:
+      medit_disp_menu(d);
+      break;
   }
 }
 
-void medit_autoroll_stats(struct descriptor_data *d)
-{
+void medit_autoroll_stats(struct descriptor_data *d) {
   int mob_lev;
 
   mob_lev = GET_LEVEL(OLC_MOB(d));
   mob_lev = GET_LEVEL(OLC_MOB(d)) = LIMIT(mob_lev, 1, LVL_IMPL);
 
-  GET_MOVE(OLC_MOB(d))    = mob_lev*10;          /* hit point bonus (mobs don't use movement points */
+  GET_MOVE(OLC_MOB(d)) = mob_lev * 10; /* hit point bonus (mobs don't use movement points */
   if (mob_lev >= 10)
     GET_MOVE(OLC_MOB(d)) += mob_lev;
   if (mob_lev >= 15)
@@ -1400,12 +1375,12 @@ void medit_autoroll_stats(struct descriptor_data *d)
     GET_MOVE(OLC_MOB(d)) += (mob_lev * 5 + 100);
   if (mob_lev == LVL_IMPL)
     GET_MOVE(OLC_MOB(d)) += (mob_lev * 6 + 150);
-  GET_HIT(OLC_MOB(d))     = mob_lev/5;           /* number of hitpoint dice */
-  GET_MANA(OLC_MOB(d))    = mob_lev/5;           /* size of hitpoint dice   */
+  GET_HIT(OLC_MOB(d)) = mob_lev / 5; /* number of hitpoint dice */
+  GET_MANA(OLC_MOB(d)) = mob_lev / 5; /* size of hitpoint dice   */
 
-  GET_NDD(OLC_MOB(d))     = MAX(1, mob_lev/6);   /* number damage dice 1-5  */
-  GET_SDD(OLC_MOB(d))     = MAX(2, mob_lev/6);   /* size of damage dice 2-5 */
-  GET_DAMROLL(OLC_MOB(d)) = mob_lev/6;           /* damroll (dam bonus) 0-5 */
+  GET_NDD(OLC_MOB(d)) = MAX(1, mob_lev / 6); /* number damage dice 1-5  */
+  GET_SDD(OLC_MOB(d)) = MAX(2, mob_lev / 6); /* size of damage dice 2-5 */
+  GET_DAMROLL(OLC_MOB(d)) = mob_lev / 6; /* damroll (dam bonus) 0-5 */
   if (mob_lev >= 20)
     GET_DAMROLL(OLC_MOB(d))++;
   if (mob_lev >= 25)
@@ -1415,7 +1390,7 @@ void medit_autoroll_stats(struct descriptor_data *d)
   if (mob_lev == LVL_IMPL)
     GET_DAMROLL(OLC_MOB(d))++;
 
-  GET_HITROLL(OLC_MOB(d)) = mob_lev/3;           /* hitroll 0-10            */
+  GET_HITROLL(OLC_MOB(d)) = mob_lev / 3; /* hitroll 0-10            */
   if (mob_lev >= 20)
     GET_HITROLL(OLC_MOB(d))++;
   if (mob_lev >= 25)
@@ -1424,9 +1399,9 @@ void medit_autoroll_stats(struct descriptor_data *d)
     GET_HITROLL(OLC_MOB(d))++;
   if (mob_lev == LVL_IMPL)
     GET_HITROLL(OLC_MOB(d))++;
-  GET_EXP(OLC_MOB(d))     = (mob_lev*mob_lev*75);
-  GET_GOLD(OLC_MOB(d))    = (mob_lev*10);
-  GET_AC(OLC_MOB(d))      = (100-(mob_lev*6));   /* AC 94 to -80            */
+  GET_EXP(OLC_MOB(d)) = (mob_lev * mob_lev * 75);
+  GET_GOLD(OLC_MOB(d)) = (mob_lev * 10);
+  GET_AC(OLC_MOB(d)) = (100 - (mob_lev * 6)); /* AC 94 to -80            */
   if (mob_lev >= 20)
     GET_AC(OLC_MOB(d)) -= 10;
   if (mob_lev >= 25)
@@ -1439,18 +1414,18 @@ void medit_autoroll_stats(struct descriptor_data *d)
   /* 'Advanced' stats are only rolled if advanced options are enabled */
   if (CONFIG_MEDIT_ADVANCED) {
     /* 2/3 level within range 11 - 50 */
-    GET_STR(OLC_MOB(d))     = LIMIT((mob_lev*2)/3, 11, 50);
-    GET_INT(OLC_MOB(d))     = LIMIT((mob_lev*2)/3, 11, 50);
-    GET_WIS(OLC_MOB(d))     = LIMIT((mob_lev*2)/3, 11, 50);
-    GET_DEX(OLC_MOB(d))     = LIMIT((mob_lev*2)/3, 11, 50);
-    GET_CON(OLC_MOB(d))     = LIMIT((mob_lev*2)/3, 11, 50);
-    GET_CHA(OLC_MOB(d))     = LIMIT((mob_lev*2)/3, 11, 50);
+    GET_STR(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
+    GET_INT(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
+    GET_WIS(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
+    GET_DEX(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
+    GET_CON(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
+    GET_CHA(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
 
-    GET_SAVE(OLC_MOB(d), SAVING_FORT)   = mob_lev / 4;  /* All Saving throws */
-    GET_SAVE(OLC_MOB(d), SAVING_REFL)    = mob_lev / 4;  /* set to a quarter  */
-    GET_SAVE(OLC_MOB(d), SAVING_WILL)  = mob_lev / 4;  /* of the mobs level */
+    GET_SAVE(OLC_MOB(d), SAVING_FORT) = mob_lev / 4; /* All Saving throws */
+    GET_SAVE(OLC_MOB(d), SAVING_REFL) = mob_lev / 4; /* set to a quarter  */
+    GET_SAVE(OLC_MOB(d), SAVING_WILL) = mob_lev / 4; /* of the mobs level */
     GET_SAVE(OLC_MOB(d), SAVING_POISON) = mob_lev / 4;
-    GET_SAVE(OLC_MOB(d), SAVING_DEATH)  = mob_lev / 4;
+    GET_SAVE(OLC_MOB(d), SAVING_DEATH) = mob_lev / 4;
   }
 
 }
