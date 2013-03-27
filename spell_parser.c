@@ -2442,7 +2442,7 @@ void mag_assign_spells(void) {
   spello(SPELL_BATTLETIDE, "battletide", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
           "You feel the battletide fade.", 10, 13, NOSCHOOL, FALSE);
-  spello(SPELL_SPELL_RESISTANCE, "spell resistance", 79, 64, 1, POS_FIGHTING,
+  spello(SPELL_SPELL_RESISTANCE, "magic resistance", 79, 64, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "You feel your spell resistance fade.", 8, 14, NOSCHOOL, FALSE);
   //control weather - shared
@@ -2550,7 +2550,7 @@ void mag_assign_spells(void) {
   skillo(SKILL_MUMMY_DUST, "es mummy dust", CASTER_SKILL);
   skillo(SKILL_KICK, "kick", ACTIVE_SKILL);
   skillo(SKILL_WEAPON_SPECIALIST, "weapon specialist", PASSIVE_SKILL); //405
-  skillo(SKILL_WHIRLWIND, "whirlwind", ACTIVE_SKILL);
+  skillo(SKILL_WHIRLWIND, "weapon whirlwind", ACTIVE_SKILL);
   skillo(SKILL_RESCUE, "rescue", ACTIVE_SKILL);
   skillo(SKILL_DRAGON_KNIGHT, "es dragon knight", CASTER_SKILL);
   skillo(SKILL_LUCK_OF_HEROES, "luck of heroes", PASSIVE_SKILL);
