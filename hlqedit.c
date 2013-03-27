@@ -1120,8 +1120,10 @@ ACMD(do_hlqedit) {
     log( "OLC: %s saves hlquest info for zone %d.", GET_NAME(ch),
             zone_table[OLC_ZNUM(d)].number);
 
+    send_to_char(ch, "Saving to disk...");
     hlqedit_save_to_disk(OLC_ZNUM(d));
     /* Save the mobiles. */
+    send_to_char(ch, "Saving mobiles...");
     save_mobiles(OLC_ZNUM(d));
     
     free(d->olc);
