@@ -654,7 +654,7 @@ ACMD(do_spellbattle)
   /* passed all the tests, we should have a valid number for spellbattle */
   SPELLBATTLE(ch) = number;
   send_to_char(ch, "You are now in 'spellbattle' mode.\r\n");
-  duration = 3 * SECS_PER_MUD_DAY;
+  duration = (3 * SECS_PER_MUD_DAY) / 10;
   
     /* init affect array */
   for (i = 0; i < SPELLBATTLE_AFFECTS; i++) {
@@ -670,7 +670,7 @@ ACMD(do_spellbattle)
   af[2].location = APPLY_CHA;
   af[2].modifier = -2;  
   af[3].location = APPLY_HIT;
-  af[3].modifier = SPELLBATTLE(ch) * 10 + 20;  
+  af[3].modifier = SPELLBATTLE(ch) * 10;  
   
   for (i = 0; i < SPELLBATTLE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);  

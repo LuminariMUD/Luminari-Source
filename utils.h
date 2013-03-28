@@ -605,22 +605,24 @@ do                                                              \
 // level
 #define GET_LEVEL(ch)   ((ch)->player.level)
 #define CLASS_LEVEL(ch, class)	(ch->player_specials->saved.class_level[class])
+
+#define SPELLBATTLE(ch)        (ch->player_specials->saved.spec_abil[AG_SPELLBATTLE])
 #define DIVINE_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  ( CLASS_LEVEL(ch, CLASS_CLERIC) + \
                                    CLASS_LEVEL(ch, CLASS_DRUID) + \
                                   (CLASS_LEVEL(ch, CLASS_PALADIN)/2) + \
                                   (CLASS_LEVEL(ch, CLASS_RANGER)/2) + \
-                                  (compute_arcana_golem_level(ch)) \
-                                  ) )
+                                  (compute_arcana_golem_level(ch)) - \
+                                  (SPELLBATTLE(ch)/2)) )
 #define MAGIC_LEVEL(ch)		(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  (CLASS_LEVEL(ch, CLASS_WIZARD) + \
                                  CLASS_LEVEL(ch, CLASS_SORCERER)+ \
                                  CLASS_LEVEL(ch, CLASS_BARD) + \
-                                 (compute_arcana_golem_level(ch)) \
-                                 ) )
+                                 (compute_arcana_golem_level(ch)) -\
+                                 (SPELLBATTLE(ch)/2)) )
 #define CASTER_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
-                                 DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) + \
-                                 (compute_arcana_golem_level(ch) / 2))
+                                 DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) - \
+                                 (compute_arcana_golem_level(ch)))
 
 
 
@@ -833,7 +835,7 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define SONG_AFF_VAL(ch)  (ch->player_specials->saved.spec_abil[SONG_AFF])
 #define GET_SHAPECHANGES(ch)  (ch->player_specials->saved.spec_abil[SHAPECHANGES])
 #define DOOM(ch)        (ch->player_specials->saved.spec_abil[C_DOOM])
-#define SPELLBATTLE(ch)        (ch->player_specials->saved.spec_abil[AG_SPELLBATTLE])
+/* moved SPELLBATTLE up near caster_level */
 
 /** Return condition i (DRUNK, HUNGER, THIRST) of ch. */
 #define GET_COND(ch, i)		CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.conditions[(i)]))
