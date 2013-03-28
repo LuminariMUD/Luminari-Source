@@ -2664,6 +2664,7 @@ void mag_assign_spells(void) {
   skillo(SKILL_SCRIBE, "scribe", ACTIVE_SKILL); //514
   skillo(SKILL_TURN_UNDEAD, "turn undead", ACTIVE_SKILL); //515
   skillo(SKILL_WILDSHAPE, "wildshape", ACTIVE_SKILL); //516
+  skillo(SKILL_SPELLBATTLE, "spellbattle", ACTIVE_SKILL); //517
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 

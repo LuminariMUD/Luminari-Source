@@ -465,6 +465,7 @@ const char *affected_bits[] =
   "Spell-Resistant", //65
   "Dimensional-Locked",
   "Death-Ward",
+  "Mode-Spellbattle",
   "\n"
 };
 
