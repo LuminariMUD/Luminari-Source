@@ -654,7 +654,7 @@ ACMD(do_spellbattle)
   /* passed all the tests, we should have a valid number for spellbattle */
   SPELLBATTLE(ch) = number;
   send_to_char(ch, "You are now in 'spellbattle' mode.\r\n");
-  duration = (6 * SECS_PER_REAL_MIN) / PULSE_VIOLENCE;  // this should match our event duration
+  duration = (1 * SECS_PER_REAL_HOUR) / PULSE_VIOLENCE;  // this should match our event duration
   
     /* init affect array */
   for (i = 0; i < SPELLBATTLE_AFFECTS; i++) {
@@ -677,7 +677,7 @@ ACMD(do_spellbattle)
   
   SET_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
   attach_mud_event(new_mud_event(eSPELLBATTLE, ch, NULL), 
-          6 * SECS_PER_REAL_MIN);
+          1 * SECS_PER_REAL_HOUR);
 }
 #undef SPELLBATTLE_CAP
 #undef SPELLBATTLE_AFFECTS
