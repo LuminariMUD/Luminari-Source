@@ -672,6 +672,9 @@ ACMD(do_spellbattle)
   af[3].location = APPLY_HIT;
   af[3].modifier = SPELLBATTLE(ch) * 10 + 20;  
   
+  for (i = 0; i < SPELLBATTLE_AFFECTS; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);  
+  
   SET_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
   attach_mud_event(new_mud_event(eSPELLBATTLE, ch, NULL), 
           3 * SECS_PER_MUD_DAY);
