@@ -1122,6 +1122,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     race_bonus += 2;
   if (GET_RACE(victim) == RACE_GNOME && element == DAM_ILLUSION)
     race_bonus += 2;
+  if (GET_RACE(victim) == RACE_ARCANA_GOLEM)
+    race_bonus -= 2;
 
   // figure saving throw for finger of death here, because it's not half damage
   if (spellnum == SPELL_FINGER_OF_DEATH) {
@@ -1209,6 +1211,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       case RACE_H_ELF:
       case RACE_ELF: //enchantments
         elf_bonus += 2;
+        break;
+      case RACE_ARCANA_GOLEM: //enchantments, penalty
+        elf_bonus -= 2;
         break;
       case RACE_GNOME: // illusions
         gnome_bonus += 2;

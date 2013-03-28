@@ -476,7 +476,6 @@ void quest_ask(struct char_data *ch, struct char_data *victim, char *keyword) {
     }
   }
 }
-
 /* this function will determine whether the quest-out will fire when
  * the quest mob receives items/coins
  */
@@ -502,16 +501,18 @@ void quest_give(struct char_data *ch, struct char_data *victim) {
     if (quest->type == QUEST_GIVE) {
       fullfilled = TRUE;
       for (qcom = quest->in; qcom && fullfilled == TRUE; qcom = qcom->next) {
-        switch (qcom->type) {
-          case QUEST_COMMAND_COINS:
-            if (GET_GOLD(victim) < qcom->value)
-              fullfilled = FALSE;
-            break;
-          case QUEST_COMMAND_ITEM:
-            if (!get_obj_in_list_num(real_object(qcom->value),
-                    victim->carrying))
-              fullfilled = FALSE;
-            break;
+        if (qcom) {
+          switch (qcom->type) {
+            case QUEST_COMMAND_COINS:
+              if (GET_GOLD(victim) < qcom->value)
+                fullfilled = FALSE;
+              break;
+            case QUEST_COMMAND_ITEM:
+              if (!get_obj_in_list_num(real_object(qcom->value),
+                      victim->carrying))
+                fullfilled = FALSE;
+              break;
+          }
         }
       }
       if (fullfilled) {
@@ -524,8 +525,10 @@ void quest_give(struct char_data *ch, struct char_data *victim) {
             case QUEST_COMMAND_ITEM:
               obj = get_obj_in_list_num(real_object(qcom->value),
                       victim->carrying);
-              obj_from_char(obj);
-              obj_to_room(obj, real_room(1));
+              if (obj) {
+                obj_from_char(obj);
+                obj_to_room(obj, real_room(1));
+              }
               break;
           }
         }

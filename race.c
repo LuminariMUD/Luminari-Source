@@ -166,6 +166,7 @@ const char *npc_race_menu =
    "14) \tGPlant\tn\r\n"
    "15) \tyVermin\tn\r\n";
 
+
 /* druid shape change race options */
 const char *shape_types[] = {
    "Unknown",
@@ -175,6 +176,7 @@ const char *shape_types[] = {
    "crocodile, giant"
 };
 //5 (number of types)
+
 
 /* druid shape change messages, to room */
 const char *shape_to_room[] = {
@@ -318,6 +320,7 @@ const char *race_abbrevs[] = {
         "\twH\tROrc\tn",
         "\tmGnme\tn",
         "\tGTr\tYlx\tn",
+        "\tRAr\tcGo\tn",
         "\n"
 };
 
@@ -334,6 +337,7 @@ const char *pc_race_types[] = {
         "Half Orc",
         "Gnome",
         "Trelux",
+        "Arcana Golem",
         "\n"
 };
 
@@ -351,7 +355,9 @@ const char *race_menu =
 "  f)  \tcHalfling\tn\r\n"
 "  g)  \twHalf \tYElf\tn\r\n"
 "  h)  \twHalf \tROrc\tn\r\n"
-"  i)  \tMGnome\tn\r\n";
+"  i)  \tMGnome\tn\r\n"
+"  j)  \tRArcana \tcGolem\tn\r\n"
+;
 
 
 // interpret race for interpreter.c and act.wizard.c etc
@@ -369,6 +375,7 @@ int parse_race(char arg)
   case 'g': return RACE_H_ELF;  
   case 'h': return RACE_H_ORC;
   case 'i': return RACE_GNOME;
+  case 'j': return RACE_ARCANA_GOLEM;
   default:  return RACE_UNDEFINED;
   }
 }
@@ -397,6 +404,7 @@ int invalid_race(struct char_data *ch, struct obj_data *obj) {
       (OBJ_FLAGGED(obj, ITEM_ANTI_GNOME)   && IS_GNOME(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_CRYSTAL_DWARF)   && IS_CRYSTAL_DWARF(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_TRELUX)   && IS_TRELUX(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_ARCANA_GOLEM)   && IS_ARCANA_GOLEM(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_DWARF) && IS_DWARF(ch)))
         return 1;
   else

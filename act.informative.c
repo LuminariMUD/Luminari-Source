@@ -1121,6 +1121,20 @@ ACMD(do_innates) {
         send_to_char(ch, "\tRtroll wisdom (-4 cha)\tn\r\n");
         send_to_char(ch, "ultravision\r\n");
         break;
+      case RACE_ARCANA_GOLEM:
+        send_to_char(ch, "\tRarcana golem spell vulnerability "
+                "(-2 penalty against damaging spell saves)\tn\r\n");
+        send_to_char(ch, "\tRarcana golem enchantment vulnerability "
+                "(-2 penalty against enchantment saves)\tn\r\n");
+        send_to_char(ch, "\tRarcana golem constitution (-2 con)\tn\r\n");
+        send_to_char(ch, "\tRarcana golem strength (-2 str)\tn\r\n");
+        send_to_char(ch, "arcana intelligence (+2 int)\r\n");
+        send_to_char(ch, "arcana wisdom (+2 wis)\r\n");
+        send_to_char(ch, "arcana charisma (+2 cha)\r\n");
+        send_to_char(ch, "Magical Heritage (a 6th of level bonus to: "
+                "caster-level, concentration and spellcraft\r\n");        
+        send_to_char(ch, "spellbattle (help SPELLBATTLE)\r\n");
+        break;
       default:
         send_to_char(ch, "No Racial (yet)\r\n");
         break;

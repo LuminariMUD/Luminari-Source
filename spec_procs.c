@@ -405,6 +405,7 @@ case SKILL_RAGE:
     case SKILL_MASTERWORK_CRAFTING:
     case SKILL_DRACONIC_CRAFTING:
     case SKILL_DWARVEN_CRAFTING:    
+    case SKILL_SPELLBATTLE:    
     default: return FALSE;
   }
   return FALSE;
@@ -724,9 +725,15 @@ int compute_ability(struct char_data *ch, int abilityNum)
           if (GET_RACE(ch) == RACE_GNOME)
             value += 2;
 		value += GET_CON_BONUS(ch);
-		return value; 
+          if (!IS_NPC(ch) && GET_RACE(ch) == RACE_ARCANA_GOLEM) {
+            value += GET_LEVEL(ch) / 6;
+          }
+          return value; 
 	case ABILITY_SPELLCRAFT:
 		value += GET_INT_BONUS(ch);
+          if (!IS_NPC(ch) && GET_RACE(ch) == RACE_ARCANA_GOLEM) {
+            value += GET_LEVEL(ch) / 6;
+          }
 		return value; 
 	case ABILITY_APPRAISE:
 		value += GET_INT_BONUS(ch);

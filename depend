@@ -15,7 +15,7 @@ act.movement.o: act.movement.c conf.h sysdep.h structs.h protocol.h \
  mud_event.h dg_event.h hlquest.h
 act.offensive.o: act.offensive.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h handler.h db.h spells.h \
- act.h fight.h mud_event.h dg_event.h constants.h spec_procs.h
+ act.h fight.h mud_event.h dg_event.h constants.h spec_procs.h class.h
 act.other.o: act.other.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h screen.h \
  house.h constants.h dg_scripts.h act.h spec_procs.h class.h fight.h \
@@ -50,7 +50,8 @@ clan_edit.o: clan_edit.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h db.h screen.h genolc.h oasis.h improved-edit.h comm.h \
  interpreter.h modify.h clan.h
 class.o: class.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
- race.h db.h spells.h interpreter.h constants.h act.h handler.h comm.h
+ race.h db.h spells.h interpreter.h constants.h act.h handler.h comm.h \
+ mud_event.h dg_event.h
 comm.o: comm.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h handler.h db.h house.h oasis.h genolc.h \
  dg_scripts.h dg_event.h screen.h constants.h boards.h act.h ban.h \

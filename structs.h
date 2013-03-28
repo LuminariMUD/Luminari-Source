@@ -272,8 +272,9 @@
 #define SHAPECHANGES           10 // druid shapechanges left today
 #define C_DOOM                 11 // creeping doom
 #define DRUID_KNOWN            12 // true/false if can 'study'
+#define AG_SPELLBATTLE         13 // arg for spellbattle racial
 /*---------------*/
-#define NUM_SPEC_ABIL		 13
+#define NUM_SPEC_ABIL		 14
 #define MAX_SPEC_ABIL          MAX_CLASSES
 /* max = MAX_CLASSES right now */
 
@@ -288,19 +289,20 @@
 #define MAX_MEM		NUM_SLOTS * NUM_CIRCLES
 
 // Races
-#define RACE_UNDEFINED     (-1) /*Race Undefined*/
-#define RACE_HUMAN         0 /* Race Human */
-#define RACE_ELF           1 /* Race Elf   */
-#define RACE_DWARF         2 /* Race Dwarf */
-#define RACE_TROLL         3 /* Race Troll (advanced) */
-#define RACE_CRYSTAL_DWARF 4  /* crystal dwarf (epic) */
-#define RACE_HALFLING      5  // halfling
-#define RACE_H_ELF         6  // half elf
-#define RACE_H_ORC         7  // half orc
-#define RACE_GNOME         8  // gnome
-#define RACE_TRELUX        9  // trelux (epic)
+#define RACE_UNDEFINED    (-1) /*Race Undefined*/
+#define RACE_HUMAN           0 /* Race Human */
+#define RACE_ELF             1 /* Race Elf   */
+#define RACE_DWARF           2 /* Race Dwarf */
+#define RACE_TROLL           3 /* Race Troll (advanced) */
+#define RACE_CRYSTAL_DWARF   4  /* crystal dwarf (epic) */
+#define RACE_HALFLING        5  // halfling
+#define RACE_H_ELF           6  // half elf
+#define RACE_H_ORC           7  // half orc
+#define RACE_GNOME           8  // gnome
+#define RACE_TRELUX          9  // trelux (epic)
+#define RACE_ARCANA_GOLEM   10  // arcana golem (advanced)
 /* Total Number of available PC Races*/
-#define NUM_RACES          10
+#define NUM_RACES          11
 
 
 // NPC races
@@ -561,10 +563,11 @@
 #define AFF_BATTLETIDE       64
 #define AFF_SPELL_RESISTANT  65
 #define AFF_DIM_LOCK         66 //locked to current plane (can't teleport)
-#define AFF_DEATH_WARD          67
+#define AFF_DEATH_WARD       67
+#define AFF_SPELLBATTLE      68
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS        67
+#define NUM_AFF_FLAGS        69
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/
@@ -812,8 +815,9 @@
 #define ITEM_ANTI_PALADIN         34
 #define ITEM_ANTI_RANGER          35
 #define ITEM_ANTI_BARD            36
+#define ITEM_ANTI_ARCANA_GOLEM    37
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            37
+#define NUM_ITEM_FLAGS            38
 
 
 /* Modifier constants used with obj affects ('A' fields) */

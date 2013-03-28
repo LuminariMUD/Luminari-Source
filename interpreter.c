@@ -385,6 +385,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "switch", "switch", POS_DEAD, do_switch, LVL_GOD, 0, TRUE},
   { "shapechange", "shapechange", POS_FIGHTING, do_shapechange, 1, 0, FALSE},
   { "supplyorder", "supplyorder", POS_STANDING, do_not_here, 1, 0, FALSE},
+  { "spellbattle", "spellbattle", POS_STANDING, do_spellbattle, 1, 0, FALSE},
   { "spellquests", "spellquests", POS_DEAD, do_spellquests, LVL_BUILDER, 0, TRUE},
   
   { "tell", "t", POS_DEAD, do_tell, 0, 0, TRUE},
@@ -1789,6 +1790,9 @@ void nanny(struct descriptor_data *d, char *arg) {
           break;
         case RACE_GNOME:
           perform_help(d, "race-gnome");
+          break;
+        case RACE_ARCANA_GOLEM:
+          perform_help(d, "race-arcana-golem");
           break;
         default:
           write_to_output(d, "\r\nCommand not understood.\r\n");

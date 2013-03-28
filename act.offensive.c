@@ -22,6 +22,7 @@
 #include "mud_event.h"
 #include "constants.h"
 #include "spec_procs.h"
+#include "class.h"
 
 
 /******* start offensive commands *******/
@@ -588,10 +589,130 @@ ACMD(do_flee)
 }
 
 
+#define SPELLBATTLE_CAP  12
+#define SPELLBATTLE_AFFECTS 4
+ACMD(do_spellbattle)
+{
+  char arg[MAX_INPUT_LENGTH] = { '\0' };
+  int number = -1, cap = SPELLBATTLE_CAP, duration = 1, i = 0;
+  struct affected_type af[SPELLBATTLE_AFFECTS];
+  
+  if (IS_NPC(ch) || (!IS_NPC(ch) && GET_RACE(ch) != RACE_ARCANA_GOLEM)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_EXPERTISE) ||
+          AFF_FLAGGED(ch, AFF_PARRY) ||
+          AFF_FLAGGED(ch, AFF_POWER_ATTACK)) {
+    send_to_char(ch, "You can't be in a combat-mode and enter "
+            "spell-battle.\r\n");
+    return;
+  }
+  
+  if (argument)
+    one_argument(argument, arg);
+
+  /* OK no argument, that means we're attempting to turn it off */
+  if (!*arg) {
+    if (AFF_FLAGGED(ch, AFF_SPELLBATTLE) &&
+            !char_has_mud_event(ch, eSPELLBATTLE)) {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
+      send_to_char(ch, "You leave 'spellbattle' mode.\r\n");
+      return;
+    }
+    if (char_has_mud_event(ch, eSPELLBATTLE)) {
+      send_to_char(ch, "You can't exit spellbattle until the cooldown wears"
+              " off.\r\n");
+      return;
+    } else {
+      send_to_char(ch, "Spellbattle requires an argument to be activated!\r\n");
+      return;
+    }
+  }
+
+  /* ok we have an arg, lets make sure its valid */
+  if (is_number(arg))
+    number = atoi(arg);
+  else {
+    send_to_char(ch, "The argument needs to be a number!\r\n");
+    return;
+  }
+  
+  /* we have a cap of SPELLBATTLE_CAP or BAB or CASTER_LEVEL, whatever is
+   lowest */
+  if (cap > BAB(ch))
+    cap = BAB(ch);
+  if (cap > CASTER_LEVEL(ch))
+    cap = CASTER_LEVEL(ch);
+  
+  if (number > cap) {
+    send_to_char(ch, "Your maximum spellbattle level is %d!\r\n", cap);
+    return;
+  }
+  
+  /* passed all the tests, we should have a valid number for spellbattle */
+  SPELLBATTLE(ch) = number;
+  send_to_char(ch, "You are now in 'spellbattle' mode.\r\n");
+  duration = 3 * SECS_PER_MUD_DAY;
+  
+    /* init affect array */
+  for (i = 0; i < SPELLBATTLE_AFFECTS; i++) {
+    new_affect(&(af[i]));
+    af[i].spell = SKILL_SPELLBATTLE;
+    af[i].duration = duration;
+  }
+ 
+  af[0].location = APPLY_INT;
+  af[0].modifier = -2;  
+  af[1].location = APPLY_WIS;
+  af[1].modifier = -2;  
+  af[2].location = APPLY_CHA;
+  af[2].modifier = -2;  
+  af[3].location = APPLY_HIT;
+  af[3].modifier = SPELLBATTLE(ch) * 10 + 20;  
+  
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
+  attach_mud_event(new_mud_event(eSPELLBATTLE, ch, NULL), 
+          3 * SECS_PER_MUD_DAY);
+}
+#undef SPELLBATTLE_CAP
+#undef SPELLBATTLE_AFFECTS
+
+
+ACMD(do_expertise)
+{
+  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_EXPERTISE)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_SPELLBATTLE)) {
+    send_to_char(ch, "You can't enter this mode while in spellbattle!\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_EXPERTISE)) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_EXPERTISE);
+    send_to_char(ch, "You leave 'expertise' mode.\r\n");
+    return;
+  }
+ 
+  send_to_char(ch, "You are now in 'expertise' mode.\r\n");
+ 
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_EXPERTISE);
+}
+
+
 ACMD(do_parry)
 {
   if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_PARRY)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_SPELLBATTLE)) {
+    send_to_char(ch, "You can't enter this mode while in spellbattle!\r\n");
     return;
   }
   
@@ -611,6 +732,11 @@ ACMD(do_powerattack)
 {
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_POWER_ATTACK)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_SPELLBATTLE)) {
+    send_to_char(ch, "You can't enter this mode while in spellbattle!\r\n");
     return;
   }
   
@@ -650,26 +776,6 @@ ACMD(do_disengage)
     SET_WAIT(ch, 50);
   }
 }
-
-
-ACMD(do_expertise)
-{
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_EXPERTISE)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
-  
-  if (AFF_FLAGGED(ch, AFF_EXPERTISE)) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_EXPERTISE);
-    send_to_char(ch, "You leave 'expertise' mode.\r\n");
-    return;
-  }
- 
-  send_to_char(ch, "You are now in 'expertise' mode.\r\n");
- 
-  SET_BIT_AR(AFF_FLAGS(ch), AFF_EXPERTISE);
-}
-
 
 
 ACMD(do_taunt)

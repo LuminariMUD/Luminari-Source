@@ -28,6 +28,7 @@
 #include "handler.h"
 #include "comm.h"
 #include "spells.h"
+#include "mud_event.h"
 
 /* Names first */
 const char *class_abbrevs[] = {
@@ -305,7 +306,12 @@ int BAB(struct char_data *ch) {
   }
 
   if (bab == -1)
-    log("ERROR:  BAB returning -1");
+    log("ERROR:  BAB catching -1");
+  
+  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
+    bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));    
+  }
+  
   return bab;
 }
 
@@ -1689,6 +1695,14 @@ void init_start_char(struct char_data *ch) {
       ch->real_abils.con += 4;
       GET_MAX_HIT(ch) += 10;
       break;
+    case RACE_ARCANA_GOLEM:
+      GET_SIZE(ch) = SIZE_MEDIUM;
+      ch->real_abils.str -= 2;
+      ch->real_abils.con -= 2;
+      ch->real_abils.intel += 2;
+      ch->real_abils.wis += 2;
+      ch->real_abils.cha += 2;
+      break;
     default:
       GET_SIZE(ch) = SIZE_MEDIUM;
       break;
@@ -2904,6 +2918,9 @@ int level_exp(struct char_data *ch, int level) {
   switch (GET_RACE(ch)) {
       //advanced races
     case RACE_TROLL:
+      exp *= 2;
+      break;
+    case RACE_ARCANA_GOLEM:
       exp *= 2;
       break;
       //epic races

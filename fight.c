@@ -281,6 +281,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch) {
     if (GET_LEVEL(ch) >= 30)
       armorclass++;
   }
+  if (GET_RACE(ch) == RACE_ARCANA_GOLEM)
+    armorclass -= 2;
   switch (GET_POS(ch)) { //position penalty
     case POS_SITTING:
     case POS_RESTING:
@@ -291,7 +293,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch) {
     case POS_INCAP:
     case POS_MORTALLYW:
     case POS_DEAD:
-      armorclass -= 8;
+      armorclass -= 20;
       break;
     case POS_FIGHTING:
     case POS_STANDING:
@@ -1728,7 +1730,11 @@ int compute_bab(struct char_data *ch, struct char_data *victim, int type) {
       calc_bab += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
     else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)))
       calc_bab += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
-  }  
+  }
+  
+  /* spellbattle */
+  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
+    calc_bab -= SPELLBATTLE(ch);
 
   return (MIN(MAX_BAB, calc_bab));
 }
