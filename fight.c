@@ -2275,7 +2275,7 @@ void hit(struct char_data *ch, struct char_data *victim,
     dam = TRUE;
   } else if (diceroll == 1) {
     send_to_char(ch, "[stum!]");
-    send_to_char(ch, "[stum!]");
+    send_to_char(victim, "[stum!]");
     dam = FALSE;
   } else {
     sprintf(buf1, "\tW[R: %2d]\tn", diceroll);
@@ -2295,15 +2295,16 @@ void hit(struct char_data *ch, struct char_data *victim,
   //check parry attempt
   int parryDC = calc_bab + diceroll;
   if (!IS_NPC(victim) && compute_ability(victim, ABILITY_PARRY) &&
-          PARRY_LEFT(victim) && AFF_FLAGGED(victim, AFF_PARRY)) {
+          PARRY_LEFT(victim) && AFF_FLAGGED(victim, AFF_PARRY) &&
+          !IS_CASTING(victim)) {
     int parryAttempt = compute_ability(victim, ABILITY_PARRY) + dice(1, 20);
     if (parryDC > parryAttempt) {
       send_to_char(victim, "You failed to \tcparry\tn the attack from %s!  ",
               GET_NAME(ch));
     } else if ((parryAttempt - parryDC) >= 10) {
-      send_to_char(victim, "You deftly \tcriposte the attack\tn from %s!  ",
+      send_to_char(victim, "You deftly \tcriposte the attack\tn from %s!\r\n",
               GET_NAME(ch));
-      send_to_char(ch, "%s \tCparries\tn your attack and strikes back!  ",
+      send_to_char(ch, "%s \tCparries\tn your attack and strikes back!\r\n",
               GET_NAME(victim));
       act("$N \tDripostes\tn an attack from $n!", FALSE, ch, 0, victim,
               TO_NOTVICT);
