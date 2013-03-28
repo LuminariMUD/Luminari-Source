@@ -401,7 +401,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "track", "track", POS_STANDING, do_track, 0, 0, FALSE},
   { "train", "tr", POS_RESTING, do_train, 1, 0, FALSE},
   { "transfer", "transfer", POS_SLEEPING, do_trans, LVL_GOD, 0, TRUE},
-  { "treatinjury", "treatinjury", POS_FIGHTING, do_treatinjury, 1, 0, FALSE},
+  { "treatinjury", "treatinjury", POS_RESTING, do_treatinjury, 1, 0, FALSE},
   { "trip", "trip", POS_FIGHTING, do_trip, 1, 0, FALSE},
   { "trigedit", "trigedit", POS_DEAD, do_oasis_trigedit, LVL_BUILDER, 0, TRUE},
   { "turnundead", "turnundead", POS_FIGHTING, do_turnundead, 1, 0, FALSE},
