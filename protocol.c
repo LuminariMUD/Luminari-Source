@@ -2054,7 +2054,7 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
                /* Create a secure channel, and note that MXP is active. */
                Write(apDescriptor, "\033[7z");
                pProtocol->bMXP = true;
-               //pProtocol->pVariables[eMSDP_MXP]->ValueInt = 1;
+               pProtocol->pVariables[eMSDP_MXP]->ValueInt = 1;
 
                if ( pProtocol->bNeedMXPVersion )
                   MXPSendTag( apDescriptor, "<VERSION>" );
