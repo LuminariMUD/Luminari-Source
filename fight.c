@@ -610,7 +610,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   //this replaces extraction
   char_from_room(ch);
   death_message(ch);
-  SET_WAIT(ch, PULSE_VIOLENCE * 4);
   GET_HIT(ch) = 1;
   update_pos(ch);
 
@@ -639,6 +638,8 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
     autoquest_trigger_check(killer, NULL, NULL, AQ_ROOM_CLEAR);
   }
 
+  /* "punishment" for death */
+  SET_WAIT(ch, PULSE_VIOLENCE * 4);
 }
 
 /* this is circle/tba stock raw_kill code
