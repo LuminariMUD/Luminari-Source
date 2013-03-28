@@ -37,6 +37,20 @@
  */
 
 
+/* this will calculate the arcana-golem race bonus caster level */
+int compute_arcana_golem_level(struct char_data *ch) {
+  if (!ch)
+    return 0;
+  
+  if (IS_NPC(ch))
+    return 0;
+  
+  if (GET_RACE(ch) != RACE_ARCANA_GOLEM)
+    return 0;
+  
+  return ((int)(GET_LEVEL(ch) / 6));
+}
+
 /* function to check if a char (ranger) has given favored enemy (race) */
 bool is_fav_enemy_of(struct char_data *ch, int race) {
   int i = 0;

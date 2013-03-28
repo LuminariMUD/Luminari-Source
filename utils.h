@@ -89,6 +89,7 @@ char *convert_from_tabs(char * string);
 int count_non_protocol_chars(char * str);
 char *a_or_an(char *string);
 bool is_fav_enemy_of(struct char_data *ch, int race);
+int compute_arcana_golem_level(struct char_data *ch);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
@@ -608,13 +609,18 @@ do                                                              \
                                  ( CLASS_LEVEL(ch, CLASS_CLERIC) + \
                                    CLASS_LEVEL(ch, CLASS_DRUID) + \
                                   (CLASS_LEVEL(ch, CLASS_PALADIN)/2) + \
-                                  (CLASS_LEVEL(ch, CLASS_RANGER)/2) ) )
+                                  (CLASS_LEVEL(ch, CLASS_RANGER)/2) + \
+                                  (compute_arcana_golem_level(ch)) \
+                                  ) )
 #define MAGIC_LEVEL(ch)		(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  (CLASS_LEVEL(ch, CLASS_WIZARD) + \
                                  CLASS_LEVEL(ch, CLASS_SORCERER)+ \
-                                 CLASS_LEVEL(ch, CLASS_BARD)))
+                                 CLASS_LEVEL(ch, CLASS_BARD) + \
+                                 (compute_arcana_golem_level(ch)) \
+                                 ) )
 #define CASTER_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
-                                 DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch))
+                                 DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) + \
+                                 (compute_arcana_golem_level(ch) / 2))
 
 
 
@@ -827,6 +833,7 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define SONG_AFF_VAL(ch)  (ch->player_specials->saved.spec_abil[SONG_AFF])
 #define GET_SHAPECHANGES(ch)  (ch->player_specials->saved.spec_abil[SHAPECHANGES])
 #define DOOM(ch)        (ch->player_specials->saved.spec_abil[C_DOOM])
+#define SPELLBATTLE(ch)        (ch->player_specials->saved.spec_abil[AG_SPELLBATTLE])
 
 /** Return condition i (DRUNK, HUNGER, THIRST) of ch. */
 #define GET_COND(ch, i)		CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.conditions[(i)]))
@@ -1402,6 +1409,8 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
         (GET_RACE(ch) == RACE_H_ORC))
 #define IS_GNOME(ch)            (!IS_NPC(ch) && \
         (GET_RACE(ch) == RACE_GNOME))
+#define IS_ARCANA_GOLEM(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_ARCANA_GOLEM))
 
 
 // IS_race for various morph/shapechange equivalent of npc races

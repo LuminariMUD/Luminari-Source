@@ -74,30 +74,31 @@ struct shop_data {
 #define LIST_ROOM		2
 
 /* Whom will we not trade with (bitvector for SHOP_TRADE_WITH()) */
-#define TRADE_NOGOOD        (1 << 0)
-#define TRADE_NOEVIL        (1 << 1)
-#define TRADE_NONEUTRAL     (1 << 2)
-#define TRADE_NOWIZARD      (1 << 3)
-#define TRADE_NOCLERIC      (1 << 4)
-#define TRADE_NOROGUE       (1 << 5)
-#define TRADE_NOWARRIOR     (1 << 6)
-#define TRADE_NOMONK        (1 << 7)
-#define TRADE_NOBERSERKER   (1 << 8)
-#define TRADE_NODRUID       (1 << 9)
-#define TRADE_NOSORCERER    (1 << 10)
-#define TRADE_NOPALADIN     (1 << 11)
-#define TRADE_NORANGER      (1 << 12)
-#define TRADE_NOBARD        (1 << 13)
-#define TRADE_NOHUMAN       (1 << 14)
-#define TRADE_NOELF         (1 << 15)
-#define TRADE_NODWARF       (1 << 16)
-#define TRADE_NOTROLL       (1 << 17)
-#define TRADE_NOHALFLING    (1 << 18)
-#define TRADE_NOH_ELF       (1 << 19)
-#define TRADE_NOH_ORC       (1 << 20)
-#define TRADE_NOGNOME       (1 << 21)
+#define TRADE_NOGOOD         (1 << 0)
+#define TRADE_NOEVIL         (1 << 1)
+#define TRADE_NONEUTRAL      (1 << 2)
+#define TRADE_NOWIZARD       (1 << 3)
+#define TRADE_NOCLERIC       (1 << 4)
+#define TRADE_NOROGUE        (1 << 5)
+#define TRADE_NOWARRIOR      (1 << 6)
+#define TRADE_NOMONK         (1 << 7)
+#define TRADE_NOBERSERKER    (1 << 8)
+#define TRADE_NODRUID        (1 << 9)
+#define TRADE_NOSORCERER     (1 << 10)
+#define TRADE_NOPALADIN      (1 << 11)
+#define TRADE_NORANGER       (1 << 12)
+#define TRADE_NOBARD         (1 << 13)
+#define TRADE_NOHUMAN        (1 << 14)
+#define TRADE_NOELF          (1 << 15)
+#define TRADE_NODWARF        (1 << 16)
+#define TRADE_NOTROLL        (1 << 17)
+#define TRADE_NOHALFLING     (1 << 18)
+#define TRADE_NOH_ELF        (1 << 19)
+#define TRADE_NOH_ORC        (1 << 20)
+#define TRADE_NOGNOME        (1 << 21)
+#define TRADE_NOARCANAGOLEM  (1 << 22)
 /** Total number of trade types */
-#define NUM_TRADERS     21
+#define NUM_TRADERS     23
 
 struct stack_data {
    int data[100];
@@ -156,6 +157,7 @@ struct stack_data {
 #define NOTRADE_H_ELF(i)        (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOH_ELF))
 #define NOTRADE_H_ORC(i)        (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOH_ORC))
 #define NOTRADE_GNOME(i)        (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOGNOME))
+#define NOTRADE_ARCANAGOLEM(i)  (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOARCANAGOLEM))
 
 /* Shop flags */
 #define WILL_START_FIGHT    (1 << 0)

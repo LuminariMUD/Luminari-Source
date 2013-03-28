@@ -744,6 +744,7 @@ const char *extra_bits[] = {
   "Anti-Paladin",
   "Anti-Ranger",  //35
   "Anti-Bard",
+  "Anti-Arcana-Golem",
   "\n"
 };
 

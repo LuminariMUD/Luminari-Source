@@ -61,6 +61,7 @@ typedef enum {
   eFISTED, // being fisted
   eWAIT, // replace WAIT_STATE with wait event
   eTURN_UNDEAD, // turn undead
+  eSPELLBATTLE, // spellbattle
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
