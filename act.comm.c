@@ -39,13 +39,21 @@ static bool legal_communication(char * arg)
 }
 
 ACMD(do_say) {
-  skip_spaces(&argument);
   char type[20];
+  char *arg2 = NULL;
+  
+  skip_spaces(&argument);
 
+  if (IS_ANIMAL(ch)) {
+    send_to_char(ch, "You can't speak!\r\n");
+    return;
+  }
+  
   if (!*argument)
     send_to_char(ch, "Yes, but WHAT do you want to say?\r\n");
   else {
     char buf[MAX_INPUT_LENGTH + 14], *msg;
+    arg2 = strdup(argument);
     struct char_data *vict;
 
     /* TODO (Nashak):
@@ -91,8 +99,8 @@ ACMD(do_say) {
   }
 
   /* Trigger check. */
-  speech_mtrigger(ch, argument);
-  speech_wtrigger(ch, argument);
+  speech_mtrigger(ch, arg2);
+  speech_wtrigger(ch, arg2);
 }
 
 ACMD(do_gsay)
