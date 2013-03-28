@@ -42,18 +42,18 @@ ACMD(do_say) {
   char type[20];
   char *arg2 = NULL;
   
-  skip_spaces(&argument);
-
   if (IS_ANIMAL(ch)) {
     send_to_char(ch, "You can't speak!\r\n");
     return;
   }
   
+  skip_spaces(&argument);
+
   if (!*argument)
     send_to_char(ch, "Yes, but WHAT do you want to say?\r\n");
   else {
     char buf[MAX_INPUT_LENGTH + 14], *msg;
-    arg2 = strdup(argument);
+    arg2 = strdup(argument);  // make a copy to send to triggers b4 parse
     struct char_data *vict;
 
     /* TODO (Nashak):
@@ -107,6 +107,11 @@ ACMD(do_gsay)
 {
   skip_spaces(&argument);
 
+  if (IS_ANIMAL(ch)) {
+    send_to_char(ch, "You can't speak!\r\n");
+    return;
+  }
+  
   if (!GROUP(ch)) {
     send_to_char(ch, "But you are not a member of a group!\r\n");
     return;
@@ -176,6 +181,8 @@ static int is_tell_ok(struct char_data *ch, struct char_data *vict)
     act("$E can't hear you.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
   else if (AFF_FLAGGED(vict, AFF_DEAF))
     act("$E seems to be deaf!", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
+  if (IS_ANIMAL(ch))
+    send_to_char(ch, "You can't speak!\r\n");
   else
     return (TRUE);
 
@@ -273,7 +280,7 @@ ACMD(do_reply)
 
 ACMD(do_spec_comm)
 {
-  char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH], *buf3 = NULL;
   struct char_data *vict;
   const char *action_sing, *action_plur, *action_others;
   char punctuation[1];
@@ -315,9 +322,8 @@ ACMD(do_spec_comm)
   else {
     char buf1[MAX_STRING_LENGTH];
 
-    /* homeland-port */
-    if(subcmd == SCMD_ASK)  
-      quest_ask(ch, vict, buf2);    
+    /* homeland-port copying string before parsing */
+    buf3 = strdup(buf2);
 
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
       parse_at(buf2);    
@@ -343,6 +349,9 @@ ACMD(do_spec_comm)
     else
       send_to_char(ch, "You %s %s, '%s'\r\n", action_sing, GET_NAME(vict), buf2);
     act(action_others, FALSE, ch, 0, vict, TO_NOTVICT);
+
+    if (subcmd == SCMD_ASK)
+      quest_ask(ch, vict, buf3);    
   }
 }
 
