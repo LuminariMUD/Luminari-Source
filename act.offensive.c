@@ -632,6 +632,12 @@ ACMD(do_spellbattle)
     }
   }
 
+  if (char_has_mud_event(ch, eSPELLBATTLE) ||
+          affected_by_spell(ch, SKILL_SPELLBATTLE)) {  
+    send_to_char(ch, "You are already in spellbattle mode!\r\n");
+    return;
+  }
+  
   /* ok we have an arg, lets make sure its valid */
   if (is_number(arg))
     number = atoi(arg);
