@@ -711,7 +711,7 @@ ACMD(do_expertise)
   send_to_char(ch, "You are now in 'expertise' mode.\r\n");
  
   SET_BIT_AR(AFF_FLAGS(ch), AFF_EXPERTISE);
-  SET_WAIT(ch, 50);
+  SET_WAIT(ch, 10);
 }
 
 
@@ -736,7 +736,7 @@ ACMD(do_parry)
   send_to_char(ch, "You are now in 'parry' mode.\r\n");
  
   SET_BIT_AR(AFF_FLAGS(ch), AFF_PARRY);
-  SET_WAIT(ch, 50);
+  SET_WAIT(ch, 10);
 }
 
 
@@ -761,6 +761,7 @@ ACMD(do_powerattack)
   send_to_char(ch, "You are now in 'power attack' mode.\r\n");
  
   SET_BIT_AR(AFF_FLAGS(ch), AFF_POWER_ATTACK);
+  SET_WAIT(ch, 10);
 }
 
 
@@ -785,7 +786,7 @@ ACMD(do_disengage)
     send_to_char(ch, "You disengage from the fight.\r\n");
     act("$n disengages from the fight.", FALSE, ch, 0, 0, TO_ROOM);
     
-    SET_WAIT(ch, 50);
+    SET_WAIT(ch, PULSE_VIOLENCE);
   }
 }
 
