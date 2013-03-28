@@ -1178,10 +1178,10 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   /* Routine to show what spells a char is affected by */
   if (k->affected) {
     for (aff = k->affected; aff; aff = aff->next) {
-      if (aff->duration + 1 >= 1200) // hours
-        send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 1200));
-      else if (aff->duration + 1 >= 20) // minutes
-        send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 20));
+      if (aff->duration + 1 >= 900) // how many rounds in an hour?
+        send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
+      else if (aff->duration + 1 >= 15) // how many rounds in a minute?
+        send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
       else // rounds
         send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
       send_to_char(ch, "%s%-19s%s ",

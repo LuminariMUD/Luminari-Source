@@ -224,6 +224,7 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
       break;
     case SKILL_SPELLBATTLE:
       send_to_char(ch, "Your spellbattle has faded...\r\n");
+      SPELLBATTLE(ch) = 0;
       break;
     case SKILL_PERFORM:
       send_to_char(ch, "Your bard-song morale has faded...\r\n");

@@ -619,6 +619,7 @@ ACMD(do_spellbattle)
             !char_has_mud_event(ch, eSPELLBATTLE)) {
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
       send_to_char(ch, "You leave 'spellbattle' mode.\r\n");
+      SPELLBATTLE(ch) = 0;
       return;
     }
     if (char_has_mud_event(ch, eSPELLBATTLE)) {
