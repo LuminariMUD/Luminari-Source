@@ -385,6 +385,36 @@ ACMD(do_kill)
   }
 }
 
+/* simple function to check whether ch has a piercing weapon, has 3 modes:
+   wield == 1  --  primary one hand weapon
+   wield == 2  --  off hand weapon
+   wield == 3  --  two hand weapon
+ */
+bool has_piercing_weapon(struct char_data *ch, int wield) {
+  if (!ch)
+    return FALSE;
+  
+  if (wield < 1 || wield > 3)
+    return FALSE;
+  
+  if (wield == 1 && GET_EQ(ch, WEAR_WIELD_1) &&
+          IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1)) ) {
+    return TRUE;
+  }
+      
+  if (wield == 2 && GET_EQ(ch, WEAR_WIELD_2) && 
+          GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2), 3) == TYPE_PIERCE - TYPE_HIT) {
+    return TRUE;
+  }
+      
+  if (wield == 3 && GET_EQ(ch, WEAR_WIELD_2H) && 
+         GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2H), 3) == TYPE_PIERCE - TYPE_HIT) {
+    return TRUE;    
+  }
+  
+  return FALSE;
+}
+
 ACMD(do_backstab)
 {
   char buf[MAX_INPUT_LENGTH];
@@ -438,7 +468,7 @@ ACMD(do_backstab)
   int successful = 0;
 
   if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_1) &&
-	(GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_1), 3) == TYPE_PIERCE - TYPE_HIT))) {
+	IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1)))) {
     if (AWAKE(vict) && (percent > prob)) {
       damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, FALSE);
     } else {
@@ -451,7 +481,7 @@ ACMD(do_backstab)
 
   if (vict && GET_POS(vict) >= POS_DEAD) {
     if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_2) &&
-	GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2), 3) == (TYPE_PIERCE - TYPE_HIT))) {
+	IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2)))) {
       if (AWAKE(vict) && (percent2 > prob)) {
         damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
       } else {
@@ -465,7 +495,7 @@ ACMD(do_backstab)
 
   if (vict) {
     if (GET_EQ(ch, WEAR_WIELD_2H) &&
-	GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2H), 3) == TYPE_PIERCE - TYPE_HIT &&
+	IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2H)) &&
  	GET_POS(vict) >= POS_DEAD) {
       if (AWAKE(vict) && (percent2 > prob)) {
         damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
