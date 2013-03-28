@@ -132,9 +132,11 @@ int compute_mag_saves(struct char_data *vict,
     saves++;
   if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_GRACE)) {
     increase_skill(vict, SKILL_GRACE);
-    /* i decided to cap this, a little too powerful otherwise */
-    saves += MIN(CLASS_LEVEL(vict, CLASS_PALADIN) + 2,
-            GET_CHA_BONUS(vict));
+    /* this might need capping */
+    saves += GET_CHA_BONUS(vict);
+  }
+  if (char_has_mud_event(vict, eSPELLBATTLE) && SPELLBATTLE(vict) > 0) {
+    saves += SPELLBATTLE(vict);
   }
 
   /* determine base, add/minus bonus/penalty and return */

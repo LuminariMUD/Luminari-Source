@@ -281,8 +281,13 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch) {
     if (GET_LEVEL(ch) >= 30)
       armorclass++;
   }
+  /* arcana golem */
   if (GET_RACE(ch) == RACE_ARCANA_GOLEM)
     armorclass -= 2;
+  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
+    armorclass += SPELLBATTLE(ch);
+  }
+  
   switch (GET_POS(ch)) { //position penalty
     case POS_SITTING:
     case POS_RESTING:
@@ -694,6 +699,9 @@ void die(struct char_data *ch, struct char_data *killer) {
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_KILLER);
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_THIEF);
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_SALVATION);
+    if (AFF_FLAGGED(ch, AFF_SPELLBATTLE))
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);            
+    SPELLBATTLE(ch) = 0;
   }
 
   if (!IS_NPC(ch))
