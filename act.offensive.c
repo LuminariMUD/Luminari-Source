@@ -711,6 +711,7 @@ ACMD(do_expertise)
   send_to_char(ch, "You are now in 'expertise' mode.\r\n");
  
   SET_BIT_AR(AFF_FLAGS(ch), AFF_EXPERTISE);
+  SET_WAIT(ch, 50);
 }
 
 
@@ -735,6 +736,7 @@ ACMD(do_parry)
   send_to_char(ch, "You are now in 'parry' mode.\r\n");
  
   SET_BIT_AR(AFF_FLAGS(ch), AFF_PARRY);
+  SET_WAIT(ch, 50);
 }
 
 
