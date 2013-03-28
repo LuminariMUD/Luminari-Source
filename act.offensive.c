@@ -654,7 +654,7 @@ ACMD(do_spellbattle)
   /* passed all the tests, we should have a valid number for spellbattle */
   SPELLBATTLE(ch) = number;
   send_to_char(ch, "You are now in 'spellbattle' mode.\r\n");
-  duration = (3 * SECS_PER_MUD_DAY) / 10;
+  duration = 540;  // this should match our event duration
   
     /* init affect array */
   for (i = 0; i < SPELLBATTLE_AFFECTS; i++) {
