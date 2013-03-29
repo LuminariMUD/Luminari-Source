@@ -493,7 +493,7 @@ void delete_echo_entry(struct char_data *mob, int entry_num) {
   for (i = entry_num - 1; i < ECHO_COUNT(mob) - 1; i++) {
     if (ECHO_ENTRIES(mob)[i] != NULL)
       free(ECHO_ENTRIES(mob)[i]);
-    ECHO_ENTRIES(mob)[i] = ECHO_ENTRIES(mob)[i + 1];
+    ECHO_ENTRIES(mob)[i] = strdup(ECHO_ENTRIES(mob)[i + 1]);
   }
   free(ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1]);
   ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1] = NULL;
@@ -913,8 +913,8 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         return;
       }
       
-      //OLC_VAL(d) = TRUE;
-      //delete_echo_entry(OLC_MOB(d), j - 1);
+      OLC_VAL(d) = TRUE;
+      delete_echo_entry(OLC_MOB(d), j);
       OLC_MODE(d) = MEDIT_ECHO_MENU;
       medit_disp_echo_menu(d);
       return;
