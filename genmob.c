@@ -350,6 +350,8 @@ int save_mobiles(zone_rnum rznum)
 
 int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
 {
+  int i = 0;
+  
   if (GET_ATTACK(mob) != 0)
     fprintf(fd, "BareHandAttack: %d\n", GET_ATTACK(mob));
   if (GET_STR(mob) != 11)
@@ -392,6 +394,13 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     fprintf(fd, "Walkin: %s\n", GET_WALKIN(mob));
   if (GET_WALKOUT(mob))
     fprintf(fd, "Walkout: %s\n", GET_WALKOUT(mob));
+  if (ECHO_ENTRIES(mob)) {
+    fprintf(fd, "EchoZone: %d\n", ECHO_IS_ZONE(mob));
+    fprintf(fd, "EchoCount: %d\n" , ECHO_COUNT(mob));
+    fprintf(fd, "EchoFreq: %d\n", ECHO_FREQ(mob));
+    for (i = 0; i < ECHO_COUNT(mob); i++)
+      fprintf(fd, "Echo: %s\n", ECHO_ENTRIES(mob)[i]);
+  }
   fputs("E\n", fd);
   return TRUE;
 }
