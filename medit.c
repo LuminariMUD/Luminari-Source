@@ -899,6 +899,8 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         return;
       }
       
+      OLC_VAL(d) = j;
+      OLC_MODE(d) = MEDIT_EDIT_ECHO_TEXT;
       write_to_output(d, "\r\nEnter new text :\r\n] ");
       return;
       
@@ -908,10 +910,12 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       if (arg && *arg) {
         char buf[MAX_INPUT_LENGTH];
         snprintf(buf, sizeof (buf), "%s", delete_doubledollar(arg));
-        free(ECHO_ENTRIES(OLC_MOB(d))[ECHO_COUNT(OLC_MOB(d)) - 1]);
-        ECHO_ENTRIES(OLC_MOB(d))[ECHO_COUNT(OLC_MOB(d)) - 1] = strdup(buf);
+        free(ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1]);
+        ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1] = strdup(buf);
       } else
-        ECHO_ENTRIES(OLC_MOB(d))[--ECHO_COUNT(OLC_MOB(d))] = NULL;
+        // this will be the equivalent of delete echo
+        // which will free the echo, then move other echos down 1 spot
+        ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1] = NULL;
 
       OLC_VAL(d) = TRUE;
       medit_disp_echo_menu(d);
