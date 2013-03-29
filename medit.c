@@ -885,8 +885,6 @@ void medit_parse(struct descriptor_data *d, char *arg) {
 
     case MEDIT_ADD_ECHO:
       smash_tilde(arg);
-      //if (GET_WALKIN(OLC_MOB(d)))
-      //  free(GET_WALKIN(OLC_MOB(d)));
       if (ECHO_COUNT(OLC_MOB(d)) >= 5) { // arbitrary maximum echos
         OLC_MODE(d) = MEDIT_ECHO_MENU;
         medit_disp_echo_menu(d);
