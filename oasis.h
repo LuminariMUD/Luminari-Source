@@ -118,7 +118,7 @@ struct oasis_olc_data {
 };
 
 /* Exported globals. */
-extern const char *nrm, *grn, *cyn, *yel, *mgn;
+extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 
 /* Descriptor access macros. */
 #define OLC(d)         ((d)->olc)
@@ -322,6 +322,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define MEDIT_SUB_RACE_1		53
 #define MEDIT_SUB_RACE_2		54
 #define MEDIT_SUB_RACE_3		55
+#define MEDIT_ECHO_FREQUENCY            56
 
 /* Submodes of SEDIT connectedness. */
 #define SEDIT_MAIN_MENU              	0
