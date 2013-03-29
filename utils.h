@@ -998,7 +998,7 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 /* mobile special data for echo */
 #define ECHO_IS_ZONE(mob)       ((mob)->mob_specials.echo_is_zone)
 #define ECHO_FREQ(mob)          ((mob)->mob_specials.echo_frequency)
-#define ECHO_AMOUNT(mob)        ((mob)->mob_specials.echo_amount)
+#define ECHO_COUNT(mob)         ((mob)->mob_specials.echo_count)
 #define ECHO_ENTRIES(mob)       ((mob)->mob_specials.echo_entries)
 
 /** Has Subrace will check the (3) arrays if subrace is there **/
