@@ -486,6 +486,7 @@ static void medit_disp_aff_flags(struct descriptor_data *d) {
           cyn, flags, nrm);
 }
 
+// needs to be fixed/finished
 void delete_echo_entry(struct char_data *mob, int entry_num) {
   int i = 0;
 
@@ -609,7 +610,7 @@ static void medit_disp_echo_menu(struct descriptor_data *d) {
   }
 
   write_to_output(d, "%sA%s) Add Echo\r\n"
-          "%sD%s) Delete Echo\r\n"
+          "%sD%s) Delete Echo ** NOT FINISHED **\r\n"
           "%sE%s) Edit Echo\r\n"
           "%sF%s) Echo Frequency: %d%%\r\n"
           "%sT%s) Echo Type: [%s%s%s] %s** NOT IMPLEMENTED **%s\r\n"
@@ -912,8 +913,8 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         return;
       }
       
-      OLC_VAL(d) = TRUE;
-      delete_echo_entry(OLC_MOB(d), j - 1);
+      //OLC_VAL(d) = TRUE;
+      //delete_echo_entry(OLC_MOB(d), j - 1);
       OLC_MODE(d) = MEDIT_ECHO_MENU;
       medit_disp_echo_menu(d);
       return;
