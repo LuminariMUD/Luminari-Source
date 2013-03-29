@@ -894,7 +894,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         case 'A':
           OLC_MODE(d) = MEDIT_ADD_ECHO;
           i--;
-          return;
+          break;
         case 'q':
         case 'Q':
           medit_disp_menu(d);
