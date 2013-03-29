@@ -912,6 +912,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         return;
       }
       
+      OLC_VAL(d) = TRUE;
       delete_echo_entry(OLC_MOB(d), j - 1);
       OLC_MODE(d) = MEDIT_ECHO_MENU;
       medit_disp_echo_menu(d);
