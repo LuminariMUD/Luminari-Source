@@ -610,16 +610,16 @@ static void medit_disp_echo_menu(struct descriptor_data *d) {
   }
 
   write_to_output(d, "%sA%s) Add Echo\r\n"
-          "%sD%s) Delete Echo ** NOT FINISHED **\r\n"
+          "%sD%s) Delete Echo\r\n"
           "%sE%s) Edit Echo\r\n"
           "%sF%s) Echo Frequency: %d%%\r\n"
-          "%sT%s) Echo Type: [%s%s%s] %s** NOT IMPLEMENTED **%s\r\n"
-          "%sZ%s) Zone Echo: [%s]\r\n\r\n"
+          "%sT%s) Echo Type: [%s%s%s]\r\n"
+          "%sZ%s) Zone Echo: [%s%s%s]\r\n\r\n"
           "%sQ%s) Quit to main menu\r\n"
           "Enter choice : ", grn, nrm,
           grn, nrm, grn, nrm, grn, nrm, ECHO_FREQ(mob), 
           grn, nrm, cyn, ECHO_SEQUENTIAL(mob) ? "SEQUENTIAL" : "RANDOM", nrm, 
-          red, nrm, grn, nrm, ECHO_IS_ZONE(mob) ? "YES" : "NO",
+          grn, nrm, cyn, ECHO_IS_ZONE(mob) ? "YES" : "NO", nrm,
           grn, nrm);
   
   OLC_MODE(d) = MEDIT_ECHO_MENU;

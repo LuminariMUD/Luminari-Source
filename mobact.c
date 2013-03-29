@@ -709,10 +709,17 @@ void mobile_echos(struct char_data *ch) {
   if (!ECHO_COUNT(ch))
     return;
 
-  if (rand_number(1, 100) > ECHO_FREQ(ch))
+  if (rand_number(1, 75) > (ECHO_FREQ(ch) / 2))
     return;
   
-  echo = ECHO_ENTRIES(ch)[rand_number(0, ECHO_COUNT(ch) - 1)];
+  if (ECHO_SEQUENTIAL(ch)) {
+    echo = ECHO_ENTRIES(ch)[CURRENT_ECHO(ch)++];
+    if (CURRENT_ECHO(ch) >= ECHO_COUNT(ch))
+      CURRENT_ECHO(ch) = 0;
+  } else {
+    echo = ECHO_ENTRIES(ch)[rand_number(0, ECHO_COUNT(ch) - 1)];    
+  }
+  
   if (!echo)
     return;
 
