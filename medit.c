@@ -596,8 +596,8 @@ static void medit_disp_echo_menu(struct descriptor_data *d) {
   }
 
   write_to_output(d, "%sA%s) Add Echo\r\n"
-          "%sD%s) Delete Echo\r\n"
-          "%sE%s) Edit Echo\r\n"
+          "%sD%s) Delete Echo ** NOT FINISHED **\r\n"
+          "%sE%s) Edit Echo ** NOT FINISHED **\r\n"
           "%sF%s) Echo Frequency: %d%%\r\n"
           "%sT%s) Echo Type: [%s%s%s] %s** NOT IMPLEMENTED **%s\r\n"
           "%sZ%s) Zone Echo: [%s]\r\n\r\n"
@@ -952,13 +952,15 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         case 't':
         case 'T':
           ECHO_SEQUENTIAL(OLC_MOB(d)) = !ECHO_SEQUENTIAL(OLC_MOB(d));
+          OLC_VAL(d) = TRUE;
           medit_disp_echo_menu(d);
           return;
         case 'z':
         case 'Z':
           ECHO_IS_ZONE(OLC_MOB(d)) = !ECHO_IS_ZONE(OLC_MOB(d));
-//          medit_disp_echo_menu(d);
-//          return;
+          OLC_VAL(d) = TRUE;
+          medit_disp_echo_menu(d);
+          return;
         default:
           medit_disp_echo_menu(d);
           return;
