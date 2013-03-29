@@ -1000,6 +1000,7 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define ECHO_FREQ(mob)          ((mob)->mob_specials.echo_frequency)
 #define ECHO_COUNT(mob)         ((mob)->mob_specials.echo_count)
 #define ECHO_ENTRIES(mob)       ((mob)->mob_specials.echo_entries)
+#define ECHO_SEQUENTIAL(mob)    ((mob)->mob_specials.echo_sequential)
 
 /** Has Subrace will check the (3) arrays if subrace is there **/
 #define HAS_SUBRACE(ch, i)      (GET_SUBRACE(ch, 0) == i || \

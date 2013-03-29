@@ -1498,6 +1498,7 @@ struct mob_special_data {
   struct quest_entry *quest; // quest info for a mob (homeland-port)
   byte echo_is_zone;    // display the echo to entire zone
   byte echo_frequency;  // how often to display echo
+  byte echo_sequential; // sequential/random
   sh_int echo_count;    // how many echos
   char **echo_entries;  // echo array
 };

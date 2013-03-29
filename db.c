@@ -1575,6 +1575,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   ECHO_IS_ZONE(mob_proto + i) = FALSE;
   ECHO_FREQ(mob_proto + i) = 0;
   ECHO_COUNT(mob_proto + i) = 0;
+  ECHO_SEQUENTIAL(mob_proto + i) = 0;
   // ECHO_ENTRIES(mob_proto + i) = "";
 }
 
@@ -1740,6 +1741,11 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("EchoCount") {
     RANGE(0, 10);
     CREATE(ECHO_ENTRIES(mob_proto + i), char *, 1);
+  }
+  
+  CASE("EchoSequential") {
+    RANGE(0, 1);
+    ECHO_SEQUENTIAL(mob_proto + i) = num_arg;
   }
   
   CASE("Echo") {
