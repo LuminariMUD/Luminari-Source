@@ -400,7 +400,8 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     fprintf(fd, "EchoFreq: %d\n", ECHO_FREQ(mob));
     fprintf(fd, "EchoSequential: %d\n", ECHO_SEQUENTIAL(mob));
     for (i = 0; i < ECHO_COUNT(mob); i++)
-      fprintf(fd, "Echo: %s\n", ECHO_ENTRIES(mob)[i]);
+      if (ECHO_ENTRIES(mob)[i] != NULL)
+        fprintf(fd, "Echo: %s\n", ECHO_ENTRIES(mob)[i]);
   }
   fputs("E\n", fd);
   return TRUE;

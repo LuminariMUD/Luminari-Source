@@ -486,6 +486,19 @@ static void medit_disp_aff_flags(struct descriptor_data *d) {
           cyn, flags, nrm);
 }
 
+void delete_echo_entry(struct char_data *mob, int entry_num) {
+  int i = 0;
+
+  for (i = entry_num; i < ECHO_COUNT(mob) - 1; i++) {
+    if (ECHO_ENTRIES(mob)[i] != NULL)
+      free(ECHO_ENTRIES(mob)[i]);
+    ECHO_ENTRIES(mob)[i] = ECHO_ENTRIES(mob)[i + 1];
+  }
+  free(ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1]);
+  ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1] = NULL;
+  ECHO_COUNT(mob)--;
+}
+
 /* Display alignment choices */
 static void disp_align_menu(struct descriptor_data *d) {
   int i = 0;
@@ -596,8 +609,8 @@ static void medit_disp_echo_menu(struct descriptor_data *d) {
   }
 
   write_to_output(d, "%sA%s) Add Echo\r\n"
-          "%sD%s) Delete Echo ** NOT FINISHED **\r\n"
-          "%sE%s) Edit Echo ** NOT FINISHED **\r\n"
+          "%sD%s) Delete Echo\r\n"
+          "%sE%s) Edit Echo\r\n"
           "%sF%s) Echo Frequency: %d%%\r\n"
           "%sT%s) Echo Type: [%s%s%s] %s** NOT IMPLEMENTED **%s\r\n"
           "%sZ%s) Zone Echo: [%s]\r\n\r\n"
@@ -892,6 +905,18 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       medit_disp_echo_menu(d);
       return;
       
+    case MEDIT_DELETE_ECHO:
+      if ((j = atoi(arg)) <= 0 || j > ECHO_COUNT(OLC_MOB(d))) {
+        OLC_MODE(d) = MEDIT_ECHO_MENU;
+        medit_disp_echo_menu(d);
+        return;
+      }
+      
+      delete_echo_entry(OLC_MOB(d), j - 1);
+      OLC_MODE(d) = MEDIT_ECHO_MENU;
+      medit_disp_echo_menu(d);
+      return;
+      
     case MEDIT_EDIT_ECHO:
       if ((j = atoi(arg)) <= 0 || j > ECHO_COUNT(OLC_MOB(d))) {
         OLC_MODE(d) = MEDIT_ECHO_MENU;
@@ -915,7 +940,8 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       } else
         // this will be the equivalent of delete echo
         // which will free the echo, then move other echos down 1 spot
-        ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1] = NULL;
+        delete_echo_entry(OLC_MOB(d), OLC_VAL(d) - 1);
+        //ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1] = NULL;
 
       OLC_VAL(d) = TRUE;
       medit_disp_echo_menu(d);
@@ -935,10 +961,19 @@ void medit_parse(struct descriptor_data *d, char *arg) {
           OLC_MODE(d) = MEDIT_ADD_ECHO;
           i--;
           break;
+        case 'd':
+        case 'D':
+          if (ECHO_COUNT(OLC_MOB(d)) <= 0) {
+            write_to_output(d, "\r\nNo echos to delete.  Enter choice : ");
+            return;
+          }
+          OLC_MODE(d) = MEDIT_DELETE_ECHO;
+          write_to_output(d, "Delete which echo? [1-%d] : ", ECHO_COUNT(OLC_MOB(d)));
+          return;
         case 'e':
         case 'E':
           if (ECHO_COUNT(OLC_MOB(d)) <= 0) {
-            medit_disp_echo_menu(d);
+            write_to_output(d, "\r\nNo echos to edit.  Enter choice : ");
             return;
           }
           OLC_MODE(d) = MEDIT_EDIT_ECHO;

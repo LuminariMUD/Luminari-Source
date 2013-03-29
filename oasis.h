@@ -325,6 +325,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define MEDIT_SUB_RACE_2		54
 #define MEDIT_SUB_RACE_3		55
 #define MEDIT_ECHO_FREQUENCY            56
+#define MEDIT_DELETE_ECHO               57
 
 /* Submodes of SEDIT connectedness. */
 #define SEDIT_MAIN_MENU              	0
