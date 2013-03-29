@@ -885,7 +885,10 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         ECHO_ENTRIES(OLC_MOB(d))[ECHO_COUNT(OLC_MOB(d))++] = strdup(buf);
       } else
         ECHO_ENTRIES(OLC_MOB(d))[--ECHO_COUNT(OLC_MOB(d))] = NULL;
-      break;
+
+      OLC_MODE(d) = MEDIT_ECHO_MENU;
+      medit_disp_echo_menu(d);
+      return;
       
     case MEDIT_ECHO_MENU:
       i = 0;
