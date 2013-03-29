@@ -879,10 +879,12 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       }
       if (arg && *arg) {
         char buf[MAX_INPUT_LENGTH];
+        if (!ECHO_ENTRIES(OLC_MOB(d)))
+          CREATE(ECHO_ENTRIES(OLC_MOB(d)), char *, 1);
         snprintf(buf, sizeof (buf), "%s", delete_doubledollar(arg));
         ECHO_ENTRIES(OLC_MOB(d))[ECHO_COUNT(OLC_MOB(d))++] = strdup(buf);
       } else
-        GET_WALKIN(OLC_MOB(d)) = NULL;
+        ECHO_ENTRIES(OLC_MOB(d))[--ECHO_COUNT(OLC_MOB(d))] = NULL;
       break;
       
     case MEDIT_ECHO_MENU:
