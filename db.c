@@ -1574,7 +1574,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   // be sure to initialize any numeric echo stuff too
   ECHO_IS_ZONE(mob_proto + i) = FALSE;
   ECHO_FREQ(mob_proto + i) = 0;
-  ECHO_AMOUNT(mob_proto + i) = 0;
+  ECHO_COUNT(mob_proto + i) = 0;
   // ECHO_ENTRIES(mob_proto + i) = "";
 }
 
@@ -1743,8 +1743,8 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   }
   
   CASE("Echo") {
-    ECHO_ENTRIES(mob_proto + i)[ECHO_AMOUNT(mob_proto + i)] = strdup(value);
-    ECHO_AMOUNT(mob_proto + i)++;
+    ECHO_ENTRIES(mob_proto + i)[ECHO_COUNT(mob_proto + i)] = strdup(value);
+    ECHO_COUNT(mob_proto + i)++;
   }  
 
   if (!matched) {
@@ -3446,7 +3446,7 @@ void free_char(struct char_data *ch) {
     if (ch == &mob_proto[i]) {
       free_hlquest(ch);
       int j;
-      for (j = 0; j < ECHO_AMOUNT(ch); j++)
+      for (j = 0; j < ECHO_COUNT(ch); j++)
         free(ECHO_ENTRIES(ch)[j]);
       free(ECHO_ENTRIES(ch));
     }

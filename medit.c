@@ -541,6 +541,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
           "%sI%s) Size      : %s%s\r\n"
           "%sJ%s) Walk-In   : %s%s\r\n"
           "%sK%s) Walk-Out  : %s%s\r\n"
+          "%sL%s) Echo Menu...\r\n"
 //          "%s-%s) Echo Menu : IS ZONE: %d FREQ: %d%% COUNT: %d Echo: %s\r\n"
           "%sA%s) NPC Flags : %s%s\r\n"
           "%sB%s) AFF Flags : %s%s\r\n"
@@ -562,6 +563,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
           grn, nrm, yel, size_names[GET_SIZE(mob)],
           grn, nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.",
           grn, nrm, yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.",
+          grn, nrm,
  //         grn, nrm, ECHO_IS_ZONE(mob), ECHO_FREQ(mob), ECHO_AMOUNT(mob),
  //         (ECHO_ENTRIES(mob)[0] ? ECHO_ENTRIES(mob)[0] : "None."),
           grn, nrm, cyn, flags,
@@ -572,6 +574,40 @@ static void medit_disp_menu(struct descriptor_data *d) {
           grn, nrm
           );
   OLC_MODE(d) = MEDIT_MAIN_MENU;
+}
+
+static void medit_disp_echo_menu(struct descriptor_data *d) {
+  struct char_data *mob;
+  //char buf[MAX_STRING_LENGTH];
+  int i = 0;
+  
+  mob = OLC_MOB(d);
+  get_char_colors(d->character);
+  clear_screen(d);
+  
+  write_to_output(d, "Mobile Echos:\r\n");
+  if (ECHO_ENTRIES(mob)) {
+    for (i = 0; i < ECHO_COUNT(mob); i++)
+      if (ECHO_ENTRIES(mob)[i])
+        write_to_output(d, "%d) %s\r\n", (i + 1), ECHO_ENTRIES(mob)[i]);
+    write_to_output(d, "\r\n");
+  } else {
+    write_to_output(d, "-=- NONE -=-\r\n\r\n");
+  }
+
+  write_to_output(d, "%sA%s) Add Echo\r\n"
+          "%sD%s) Delete Echo\r\n"
+          "%sE%s) Edit Echo\r\n"
+          "%sF%s) Echo Frequency: %d%%\r\n"
+          "%sT%s) Echo Type: [RANDOM/SEQUENTIAL] ** NOT IMPLEMENTED **\r\n"
+          "%sZ%s) Zone Echo: [%s]\r\n\r\n"
+          "%sQ%s) Quit to main menu\r\n"
+          "Enter choice : ", grn, nrm,
+          grn, nrm, grn, nrm, grn, nrm, ECHO_FREQ(mob), 
+          grn, nrm, grn, nrm, ECHO_IS_ZONE(mob) ? "YES" : "NO",
+          grn, nrm);
+  
+  OLC_MODE(d) = MEDIT_ECHO_MENU;
 }
 
 /* Display main menu. */
@@ -788,6 +824,11 @@ void medit_parse(struct descriptor_data *d, char *arg) {
           OLC_MODE(d) = MEDIT_WALKOUT;
           i--;
           return;
+        case 'l':
+        case 'L':
+          OLC_MODE(d) = MEDIT_ECHO_MENU;
+          medit_disp_echo_menu(d);
+          return;
         case 'a':
         case 'A':
           OLC_MODE(d) = MEDIT_NPC_FLAGS;
@@ -815,6 +856,49 @@ void medit_parse(struct descriptor_data *d, char *arg) {
           return;
         default:
           medit_disp_menu(d);
+          return;
+      }
+      if (i == 0)
+        break;
+      else if (i == 1)
+        write_to_output(d, "\r\nEnter new value : ");
+      else if (i == -1)
+        write_to_output(d, "\r\nEnter new text :\r\n] ");
+      else
+        write_to_output(d, "Oops...\r\n");
+      return;
+
+    case MEDIT_ADD_ECHO:
+      smash_tilde(arg);
+      //if (GET_WALKIN(OLC_MOB(d)))
+      //  free(GET_WALKIN(OLC_MOB(d)));
+      if (ECHO_COUNT(OLC_MOB(d)) >= 5) { // arbitrary maximum echos
+        OLC_MODE(d) = MEDIT_ECHO_MENU;
+        medit_disp_echo_menu(d);
+        return;
+      }
+      if (arg && *arg) {
+        char buf[MAX_INPUT_LENGTH];
+        snprintf(buf, sizeof (buf), "%s", delete_doubledollar(arg));
+        ECHO_ENTRIES(OLC_MOB(d))[ECHO_COUNT(OLC_MOB(d))++] = strdup(buf);
+      } else
+        GET_WALKIN(OLC_MOB(d)) = NULL;
+      break;
+      
+    case MEDIT_ECHO_MENU:
+      i = 0;
+      switch (*arg) {
+        case 'a':
+        case 'A':
+          OLC_MODE(d) = MEDIT_ADD_ECHO;
+          i--;
+          return;
+        case 'q':
+        case 'Q':
+          medit_disp_menu(d);
+          return;
+        default:
+          medit_disp_echo_menu(d);
           return;
       }
       if (i == 0)

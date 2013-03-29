@@ -282,6 +282,8 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn;
 #define MEDIT_STATS_MENU            8
 #define MEDIT_WALKIN                    9
 #define MEDIT_WALKOUT                   10
+#define MEDIT_ECHO_MENU                 11
+#define MEDIT_ADD_ECHO                  12
 
 /* Numerical responses. */
 #define MEDIT_NUMERICAL_RESPONSE	20
