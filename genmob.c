@@ -264,6 +264,7 @@ int free_mobile_strings(struct char_data *mob)
 int free_mobile(struct char_data *mob)
 {
   mob_rnum i;
+  int j = 0;
 
   if (mob == NULL)
     return FALSE;
@@ -291,6 +292,11 @@ int free_mobile(struct char_data *mob)
     /* free script proto list if it's not the prototype */
     if (mob->proto_script && mob->proto_script != mob_proto[i].proto_script)
       free_proto_script(mob, MOB_TRIGGER);
+    if (mob->mob_specials.echo_entries && mob->mob_specials.echo_entries != mob_proto[i].mob_specials.echo_entries) {
+      for (j = 0; j < mob->mob_specials.echo_count; j++)
+        free(mob->mob_specials.echo_entries[j]);
+      free(mob->mob_specials.echo_entries);
+    }
   }
   while (mob->affected)
     affect_remove(mob, mob->affected);
