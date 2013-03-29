@@ -398,6 +398,7 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     fprintf(fd, "EchoZone: %d\n", ECHO_IS_ZONE(mob));
     fprintf(fd, "EchoCount: %d\n" , ECHO_COUNT(mob));
     fprintf(fd, "EchoFreq: %d\n", ECHO_FREQ(mob));
+    fprintf(fd, "EchoSequential: %d\n", ECHO_SEQUENTIAL(mob));
     for (i = 0; i < ECHO_COUNT(mob); i++)
       fprintf(fd, "Echo: %s\n", ECHO_ENTRIES(mob)[i]);
   }
