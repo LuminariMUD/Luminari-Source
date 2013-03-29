@@ -599,12 +599,13 @@ static void medit_disp_echo_menu(struct descriptor_data *d) {
           "%sD%s) Delete Echo\r\n"
           "%sE%s) Edit Echo\r\n"
           "%sF%s) Echo Frequency: %d%%\r\n"
-          "%sT%s) Echo Type: [%sRANDOM/SEQUENTIAL%s] %s** NOT IMPLEMENTED **%s\r\n"
+          "%sT%s) Echo Type: [%s%s%s] %s** NOT IMPLEMENTED **%s\r\n"
           "%sZ%s) Zone Echo: [%s]\r\n\r\n"
           "%sQ%s) Quit to main menu\r\n"
           "Enter choice : ", grn, nrm,
           grn, nrm, grn, nrm, grn, nrm, ECHO_FREQ(mob), 
-          grn, nrm, cyn, nrm, red, nrm, grn, nrm, ECHO_IS_ZONE(mob) ? "YES" : "NO",
+          grn, nrm, cyn, ECHO_SEQUENTIAL(mob) ? "SEQUENTIAL" : "RANDOM", nrm, 
+          red, nrm, grn, nrm, ECHO_IS_ZONE(mob) ? "YES" : "NO",
           grn, nrm);
   
   OLC_MODE(d) = MEDIT_ECHO_MENU;
@@ -886,30 +887,36 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       } else
         ECHO_ENTRIES(OLC_MOB(d))[--ECHO_COUNT(OLC_MOB(d))] = NULL;
 
+      OLC_VAL(d) = TRUE;
       OLC_MODE(d) = MEDIT_ECHO_MENU;
       medit_disp_echo_menu(d);
       return;
       
     case MEDIT_EDIT_ECHO:
-      i = 0;
-      if ((j = atoi(arg)) <= 0)
-        break;
-      else if (j > ECHO_COUNT(OLC_MOB(d)) || j <= 0) {
-        write_to_output(d, "Invalid choice!\r\n");
+      if ((j = atoi(arg)) <= 0 || j > ECHO_COUNT(OLC_MOB(d))) {
+        OLC_MODE(d) = MEDIT_ECHO_MENU;
         medit_disp_echo_menu(d);
         return;
-      } else {
-        i--;
       }
-
-      if (i == 0)
-        break;
-      else if (i == -1)
-        write_to_output(d, "\r\nEnter new text :\r\n] ");
-      else
-        write_to_output(d, "Oops...\r\n");
+      
+      write_to_output(d, "\r\nEnter new text :\r\n] ");
       return;
       
+    case MEDIT_EDIT_ECHO_TEXT:
+      smash_tilde(arg);
+
+      if (arg && *arg) {
+        char buf[MAX_INPUT_LENGTH];
+        snprintf(buf, sizeof (buf), "%s", delete_doubledollar(arg));
+        free(ECHO_ENTRIES(OLC_MOB(d))[ECHO_COUNT(OLC_MOB(d)) - 1]);
+        ECHO_ENTRIES(OLC_MOB(d))[ECHO_COUNT(OLC_MOB(d)) - 1] = strdup(buf);
+      } else
+        ECHO_ENTRIES(OLC_MOB(d))[--ECHO_COUNT(OLC_MOB(d))] = NULL;
+
+      OLC_VAL(d) = TRUE;
+      medit_disp_echo_menu(d);
+      return;
+
     case MEDIT_ECHO_FREQUENCY:
       ECHO_FREQ(OLC_MOB(d)) = LIMIT(i, 0, 100);
       OLC_VAL(d) = TRUE;
