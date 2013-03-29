@@ -890,6 +890,26 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       medit_disp_echo_menu(d);
       return;
       
+    case MEDIT_EDIT_ECHO:
+      i = 0;
+      if ((j = atoi(arg)) <= 0)
+        break;
+      else if (j > ECHO_COUNT(OLC_MOB(d)) || j <= 0) {
+        write_to_output(d, "Invalid choice!\r\n");
+        medit_disp_echo_menu(d);
+        return;
+      } else {
+        i--;
+      }
+
+      if (i == 0)
+        break;
+      else if (i == -1)
+        write_to_output(d, "\r\nEnter new text :\r\n] ");
+      else
+        write_to_output(d, "Oops...\r\n");
+      return;
+      
     case MEDIT_ECHO_FREQUENCY:
       ECHO_FREQ(OLC_MOB(d)) = LIMIT(i, 0, 100);
       OLC_VAL(d) = TRUE;
@@ -904,6 +924,15 @@ void medit_parse(struct descriptor_data *d, char *arg) {
           OLC_MODE(d) = MEDIT_ADD_ECHO;
           i--;
           break;
+        case 'e':
+        case 'E':
+          if (ECHO_COUNT(OLC_MOB(d)) <= 0) {
+            medit_disp_echo_menu(d);
+            return;
+          }
+          OLC_MODE(d) = MEDIT_EDIT_ECHO;
+          write_to_output(d, "Edit which echo? [1-%d] : ", ECHO_COUNT(OLC_MOB(d)));
+          return;
         case 'f':
         case 'F':
           OLC_MODE(d) = MEDIT_ECHO_FREQUENCY;
@@ -913,6 +942,16 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         case 'Q':
           medit_disp_menu(d);
           return;
+        case 't':
+        case 'T':
+          ECHO_SEQUENTIAL(OLC_MOB(d)) = !ECHO_SEQUENTIAL(OLC_MOB(d));
+          medit_disp_echo_menu(d);
+          return;
+        case 'z':
+        case 'Z':
+          ECHO_IS_ZONE(OLC_MOB(d)) = !ECHO_IS_ZONE(OLC_MOB(d));
+//          medit_disp_echo_menu(d);
+//          return;
         default:
           medit_disp_echo_menu(d);
           return;
