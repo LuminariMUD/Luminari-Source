@@ -940,10 +940,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         free(ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1]);
         ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1] = strdup(buf);
       } else
-        // this will be the equivalent of delete echo
-        // which will free the echo, then move other echos down 1 spot
-        delete_echo_entry(OLC_MOB(d), OLC_VAL(d) - 1);
-        //ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1] = NULL;
+        delete_echo_entry(OLC_MOB(d), OLC_VAL(d));
 
       OLC_VAL(d) = TRUE;
       medit_disp_echo_menu(d);
