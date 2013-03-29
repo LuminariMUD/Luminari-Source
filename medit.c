@@ -599,12 +599,12 @@ static void medit_disp_echo_menu(struct descriptor_data *d) {
           "%sD%s) Delete Echo\r\n"
           "%sE%s) Edit Echo\r\n"
           "%sF%s) Echo Frequency: %d%%\r\n"
-          "%sT%s) Echo Type: [RANDOM/SEQUENTIAL] ** NOT IMPLEMENTED **\r\n"
+          "%sT%s) Echo Type: [%sRANDOM/SEQUENTIAL%s] %s** NOT IMPLEMENTED **%s\r\n"
           "%sZ%s) Zone Echo: [%s]\r\n\r\n"
           "%sQ%s) Quit to main menu\r\n"
           "Enter choice : ", grn, nrm,
           grn, nrm, grn, nrm, grn, nrm, ECHO_FREQ(mob), 
-          grn, nrm, grn, nrm, ECHO_IS_ZONE(mob) ? "YES" : "NO",
+          grn, nrm, cyn, nrm, red, nrm, grn, nrm, ECHO_IS_ZONE(mob) ? "YES" : "NO",
           grn, nrm);
   
   OLC_MODE(d) = MEDIT_ECHO_MENU;
@@ -890,6 +890,12 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       medit_disp_echo_menu(d);
       return;
       
+    case MEDIT_ECHO_FREQUENCY:
+      ECHO_FREQ(OLC_MOB(d)) = LIMIT(i, 0, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_echo_menu(d);
+      return;
+      
     case MEDIT_ECHO_MENU:
       i = 0;
       switch (*arg) {
@@ -897,6 +903,11 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         case 'A':
           OLC_MODE(d) = MEDIT_ADD_ECHO;
           i--;
+          break;
+        case 'f':
+        case 'F':
+          OLC_MODE(d) = MEDIT_ECHO_FREQUENCY;
+          i++;
           break;
         case 'q':
         case 'Q':
