@@ -1576,6 +1576,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   ECHO_FREQ(mob_proto + i) = 0;
   ECHO_COUNT(mob_proto + i) = 0;
   ECHO_SEQUENTIAL(mob_proto + i) = 0;
+  CURRENT_ECHO(mob_proto + i) = 0;
   // ECHO_ENTRIES(mob_proto + i) = "";
 }
 

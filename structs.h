@@ -1501,6 +1501,7 @@ struct mob_special_data {
   byte echo_sequential; // sequential/random
   sh_int echo_count;    // how many echos
   char **echo_entries;  // echo array
+  sh_int current_echo;  // keep track of the current echo, for sequential echos
 };
 
 /** An affect structure. */

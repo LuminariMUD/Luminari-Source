@@ -394,11 +394,19 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     fprintf(fd, "Walkin: %s\n", GET_WALKIN(mob));
   if (GET_WALKOUT(mob))
     fprintf(fd, "Walkout: %s\n", GET_WALKOUT(mob));
-  if (ECHO_ENTRIES(mob)) {
-    fprintf(fd, "EchoZone: %d\n", ECHO_IS_ZONE(mob));
+  if (ECHO_ENTRIES(mob) && ECHO_COUNT(mob) > 0) {
+    if (ECHO_IS_ZONE(mob)) // we don't need to save it if it's false
+      fprintf(fd, "EchoZone: %d\n", ECHO_IS_ZONE(mob));
+    if (ECHO_SEQUENTIAL(mob))
+      fprintf(fd, "EchoSequential: %d\n", ECHO_SEQUENTIAL(mob));
+    if (ECHO_FREQ(mob))
+      fprintf(fd, "EchoFreq: %d\n", ECHO_FREQ(mob));
+    /* storing the echo count is probably unnecessary, we can probably just
+     * give all mobiles an echo_entries array, just don't populate unless
+     * needed.. for now, the echo_entries array isn't CREATEd unless an
+     * EchoCount value is found, although the value has no effect on the 
+     * amount of memory allocated -Nashak */
     fprintf(fd, "EchoCount: %d\n" , ECHO_COUNT(mob));
-    fprintf(fd, "EchoFreq: %d\n", ECHO_FREQ(mob));
-    fprintf(fd, "EchoSequential: %d\n", ECHO_SEQUENTIAL(mob));
     for (i = 0; i < ECHO_COUNT(mob); i++)
       if (ECHO_ENTRIES(mob)[i] != NULL)
         fprintf(fd, "Echo: %s\n", ECHO_ENTRIES(mob)[i]);
