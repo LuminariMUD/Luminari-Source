@@ -885,7 +885,8 @@ void medit_parse(struct descriptor_data *d, char *arg) {
 
     case MEDIT_ADD_ECHO:
       smash_tilde(arg);
-      if (ECHO_COUNT(OLC_MOB(d)) >= 5) { // arbitrary maximum echos
+      if (ECHO_COUNT(OLC_MOB(d)) >= 10) { // arbitrary maximum echos
+        write_to_output(d, "This mobile has the maximum amount of echos allowed.\r\n");
         OLC_MODE(d) = MEDIT_ECHO_MENU;
         medit_disp_echo_menu(d);
         return;
@@ -896,10 +897,9 @@ void medit_parse(struct descriptor_data *d, char *arg) {
           CREATE(ECHO_ENTRIES(OLC_MOB(d)), char *, 1);
         snprintf(buf, sizeof (buf), "%s", delete_doubledollar(arg));
         ECHO_ENTRIES(OLC_MOB(d))[ECHO_COUNT(OLC_MOB(d))++] = strdup(buf);
-      } else
-        ECHO_ENTRIES(OLC_MOB(d))[--ECHO_COUNT(OLC_MOB(d))] = NULL;
+        OLC_VAL(d) = TRUE;
+      } 
 
-      OLC_VAL(d) = TRUE;
       OLC_MODE(d) = MEDIT_ECHO_MENU;
       medit_disp_echo_menu(d);
       return;
