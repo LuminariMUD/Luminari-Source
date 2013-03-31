@@ -600,7 +600,7 @@ static void medit_disp_echo_menu(struct descriptor_data *d) {
   clear_screen(d);
   
   write_to_output(d, "Mobile Echos:\r\n");
-  if (ECHO_ENTRIES(mob)) {
+  if (ECHO_COUNT(mob) > 0 && ECHO_ENTRIES(mob)) {
     for (i = 0; i < ECHO_COUNT(mob); i++)
       if (ECHO_ENTRIES(mob)[i])
         write_to_output(d, "%d) %s\r\n", (i + 1), ECHO_ENTRIES(mob)[i]);
