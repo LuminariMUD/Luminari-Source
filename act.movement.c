@@ -274,14 +274,14 @@ EVENTFUNC(event_falling)
   
   /* already checked if there is a down exit, lets move the char down */
   do_simple_move(ch, DOWN, FALSE);
-  send_to_char(ch, "You fall into a new area!");
+  send_to_char(ch, "You fall into a new area!\r\n");
   act("$n appears from above, arms flailing helplessly as $e falls...", 
           FALSE, ch, 0, 0, TO_ROOM);
   height_fallen += 20;  // 20 feet per room right now
   
   /* can we continue this fall? */
   if (!ROOM_FLAGGED(ch->in_room, ROOM_FLY_NEEDED) || !CAN_GO(ch, DOWN)) {
-    send_to_char(ch, "You fall headfirst to the ground!");
+    send_to_char(ch, "You fall headfirst to the ground!\r\n");
     act("$n crashes into the ground!", FALSE, ch, 0, 0, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
     SET_WAIT(ch, 4 * PULSE_VIOLENCE);
@@ -296,7 +296,7 @@ EVENTFUNC(event_falling)
    * falling every event call
    *  */
   if (char_should_fall(ch)) {
-    send_to_char(ch, "You fall tumbling down!");
+    send_to_char(ch, "You fall tumbling down!\r\n");
     act("$n drops from sight.", FALSE, ch, 0, 0, TO_ROOM);
     
     /* are we falling more?  then we gotta increase the heigh fallen */
