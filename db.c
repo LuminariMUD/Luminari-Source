@@ -2820,6 +2820,35 @@ void zone_update(void) {
     }
 }
 
+int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
+{
+  struct char_data *temp_mob = NULL;
+  int count = 0;
+  
+  if ((room == NOWHERE) && (max < 0)) {
+    log("Illegal room for check_max_existing() in room.");
+    return FALSE;
+  }
+
+  if (max == 0 && boot_time <= 1 && mob_index[mob_num].number == 0)
+    return TRUE;
+  
+  if (max > 0) {
+    if (mob_index[mob_num].number < max)
+      return TRUE;
+  } else {
+    for (temp_mob = world[room].people; temp_mob; temp_mob = temp_mob->next_in_room)
+      if (GET_MOB_RNUM(temp_mob) == mob_num)
+        count++;
+    
+    if (count < abs(max))
+      return TRUE;
+  }
+  
+  // if we got here, then return FALSE
+  return FALSE;
+}
+
 static void log_zone_error(zone_rnum zone, int cmd_no, const char *message) {
   mudlog(NRM, LVL_GOD, TRUE, "SYSERR: zone file: %s", message);
   mudlog(NRM, LVL_GOD, TRUE, "SYSERR: ...offending cmd: '%c' cmd in zone #%d, line %d",
@@ -2855,7 +2884,8 @@ void reset_zone(zone_rnum zone) {
           break;
 
         case 'M': /* read a mobile (with percentage loads) */
-          if (mob_index[ZCMD.arg1].number < ZCMD.arg2 && 
+//        if ((mob_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) && 
+          if ((check_max_existing(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3) || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                   rand_number(1, 100) <= ZCMD.arg4) {
             mob = read_mobile(ZCMD.arg1, REAL);
             char_to_room(mob, ZCMD.arg3);
@@ -2869,7 +2899,7 @@ void reset_zone(zone_rnum zone) {
           break;
 
         case 'O': /* read an object (with percentage loads) */
-          if (obj_index[ZCMD.arg1].number < ZCMD.arg2 &&
+          if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                   rand_number(1, 100) <= ZCMD.arg4) {
             if (ZCMD.arg3 != NOWHERE) {
               obj = read_object(ZCMD.arg1, REAL);
@@ -2889,7 +2919,7 @@ void reset_zone(zone_rnum zone) {
           break;
 
         case 'P': /* object to object (with percentage loads) */
-          if (obj_index[ZCMD.arg1].number < ZCMD.arg2 &&
+          if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                   rand_number(1, 100) <= ZCMD.arg4) {
             obj = read_object(ZCMD.arg1, REAL);
             if (!(obj_to = get_obj_num(ZCMD.arg3))) {
@@ -2914,7 +2944,7 @@ void reset_zone(zone_rnum zone) {
             ZCMD.command = '*';
             break;
           }
-          if (obj_index[ZCMD.arg1].number < ZCMD.arg2 &&
+          if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                   rand_number(1, 100) <= ZCMD.arg3) {
             obj = read_object(ZCMD.arg1, REAL);
             obj_to_char(obj, mob);
@@ -2934,7 +2964,7 @@ void reset_zone(zone_rnum zone) {
             ZCMD.command = '*';
             break;
           }
-          if (obj_index[ZCMD.arg1].number < ZCMD.arg2 &&
+          if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                   rand_number(1, 100) <= ZCMD.arg4) {
             if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS) {
               char error[MAX_INPUT_LENGTH];
