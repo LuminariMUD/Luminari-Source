@@ -45,7 +45,6 @@ static void perform_drop_gold(struct char_data *ch, int amount, byte mode, room_
 static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_data *cont);
 /* do_remove utility functions */
 /* do_wear utility functions */
-static void perform_wear(struct char_data *ch, struct obj_data *obj, int where);
 static int hands_have(struct char_data *ch);
 static int hands_used(struct char_data *ch);
 static int hands_available(struct char_data *ch);
@@ -1360,8 +1359,7 @@ static int hands_needed(struct char_data *ch, struct obj_data *obj) {
   return 1;
 }
 
-static void perform_wear(struct char_data *ch,
-        struct obj_data *obj, int where) {
+void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
   int handsNeeded = hands_needed(ch, obj);
 
   if (handsNeeded == -1) {

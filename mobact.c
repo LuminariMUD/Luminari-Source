@@ -42,7 +42,7 @@ bool move_on_path(struct char_data *ch) {
 
   if (!ch)
     return FALSE;
-  
+
   if (FIGHTING(ch))
     return FALSE;
 
@@ -55,7 +55,7 @@ bool move_on_path(struct char_data *ch) {
     PATH_DELAY(ch)--;
     return FALSE;
   }
-  
+
   PATH_DELAY(ch) = PATH_RESET(ch);
   PATH_INDEX(ch)++;
 
@@ -64,10 +64,10 @@ bool move_on_path(struct char_data *ch) {
 
   next = GET_PATH(ch, PATH_INDEX(ch));
   dir = find_first_step(ch->in_room, real_room(next));
-  
+
   if (dir >= 0)
     perform_move(ch, dir, 1);
-  
+
   return TRUE;
 }
 
@@ -736,12 +736,11 @@ void npc_class_behave(struct char_data *ch) {
 
 /*** MOBILE ACTIVITY ***/
 
-
 /* the primary engine for mobile activity */
 void mobile_activity(void) {
   struct char_data *ch = NULL, *next_ch = NULL, *vict = NULL;
   struct obj_data *obj = NULL, *best_obj = NULL;
-  int door = 0, found = 0, max = 0;
+  int door = 0, found = 0, max = 0, where = -1;
   memory_rec *names = NULL;
 
   for (ch = character_list; ch; ch = next_ch) {
@@ -774,11 +773,11 @@ void mobile_activity(void) {
     if (!AWAKE(ch) || IS_CASTING(ch))
       continue;
 
+    /* If the mob has no specproc, do the default actions */
+
     /* follow set path for mobile (like patrols) */
     if (move_on_path(ch))
       continue;
-    
-    /* If the mob has no specproc, do the default actions */
 
     // entry point for npc race and class behaviour in combat -zusuk
     if (FIGHTING(ch)) {
@@ -789,7 +788,7 @@ void mobile_activity(void) {
         npc_class_behave(ch);
       continue;
     }
-    
+
     /* send out mobile echos to room or zone */
     mobile_echos(ch);
 
@@ -810,6 +809,11 @@ void mobile_activity(void) {
           obj_from_room(best_obj);
           obj_to_char(best_obj, ch);
           act("$n gets $p.", FALSE, ch, best_obj, 0, TO_ROOM);
+          
+          if ((where = find_eq_pos(ch, best_obj, 0)) > 0)
+            perform_wear(ch, best_obj, where);
+
+          continue;
         }
       }
 
@@ -895,16 +899,21 @@ void mobile_activity(void) {
         hit(ch, FIGHTING(vict), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         found = TRUE;
       }
+      if (found)
+        continue;
     }
 
+    /* helping group members use to be here, now its in 
+     * perform_violence() in fight.c */
+
     /* a function to move mobile back to its loadroom (if sentinel) */
-    if (!HUNTING(ch) && !MEMORY(ch) && !ch->master && 
-            MOB_FLAGGED(ch, MOB_SENTINEL) && !IS_PET(ch) && 
+    if (!HUNTING(ch) && !MEMORY(ch) && !ch->master &&
+            MOB_FLAGGED(ch, MOB_SENTINEL) && !IS_PET(ch) &&
             GET_MOB_LOADROOM(ch) != ch->in_room)
       hunt_loadroom(ch);
 
     /* pets return to their master */
-    if (GET_POS(ch) == POS_STANDING && IS_PET(ch) && ch->master->in_room != 
+    if (GET_POS(ch) == POS_STANDING && IS_PET(ch) && ch->master->in_room !=
             ch->in_room && !HUNTING(ch)) {
       HUNTING(ch) = ch->master;
       hunt_victim(ch);
