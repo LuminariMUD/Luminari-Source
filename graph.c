@@ -216,7 +216,7 @@ void hunt_victim(struct char_data *ch) {
     HUNTING(ch) = NULL;
   } else {
     perform_move(ch, dir, 1);
-    if (IN_ROOM(ch) == IN_ROOM(HUNTING(ch)))
+    if (IN_ROOM(ch) == IN_ROOM(HUNTING(ch)) && !IS_PET(ch))
       hit(ch, HUNTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
 }
