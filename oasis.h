@@ -270,6 +270,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define ZEDIT_ZONE_CLAIM           26
 #define ZEDIT_ZONE_WEATHER         27
 #define ZEDIT_ARG4                      28
+#define ZEDIT_GR_QUERY                  29
 
 /* Submodes of MEDIT connectedness. */
 #define MEDIT_MAIN_MENU            	0
