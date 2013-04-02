@@ -19,6 +19,7 @@
 #include "dg_scripts.h"
 
 /* Nasty internal macros to clean up the code. */
+//#define ZCMD            (zone_table[OLC_ZNUM(d)].cmd[subcmd])
 #define MYCMD		(OLC_ZONE(d)->cmd[subcmd])
 #define OLC_CMD(d)	(OLC_ZONE(d)->cmd[OLC_VAL(d)])
 #define MAX_DUPLICATES 100
@@ -415,13 +416,14 @@ bool zedit_get_levels(struct descriptor_data *d, char *buf)
 /* the main menu */
 static void zedit_disp_menu(struct descriptor_data *d)
 {
-  int subcmd = 0, room, counter = 0;
+  int subcmd = 0, room, counter = 0, maxcount;
   char buf1[MAX_STRING_LENGTH], lev_string[50];
   bool levels_set = FALSE;
 
   get_char_colors(d->character);
   clear_screen(d);
   room = real_room(OLC_NUM(d));
+  maxcount = count_commands(OLC_ZONE(d)->cmd);
 
   sprintbitarray(OLC_ZONE(d)->zone_flags, zone_bits, ZN_ARRAY_MAX, buf1);
   levels_set = zedit_get_levels(d, lev_string);
@@ -457,68 +459,88 @@ static void zedit_disp_menu(struct descriptor_data *d)
 
   /* Print the commands for this room into display buffer. */
   while (MYCMD.command != 'S') {
+    /* Display the conditional */
+    if ((counter - abs(MYCMD.if_flag)) < 0)
+      sprintf(buf1, "IF line <Warn: %d> %s,\r\n  ", MYCMD.if_flag,
+              (MYCMD.if_flag < 0) ? "fails" : "executes");
+    else if (abs(MYCMD.if_flag) > 1)
+      sprintf(buf1, "IF line #%d %s,\r\n  ", counter - abs(MYCMD.if_flag),
+              (MYCMD.if_flag < 0) ? "fails" : "executes");
+    else
+      sprintf(buf1, "%s", (MYCMD.if_flag == 0) ? "" :
+        (MYCMD.if_flag < 0) ? " else " : " then ");
+
     /* Translate what the command means. */
     write_to_output(d, "%s%d - %s", nrm, counter++, yel);
     switch (MYCMD.command) {
+      case 'J':
+        if ((counter + MYCMD.arg1) <= maxcount)
+          write_to_output(d, "%sJump over %d line%s to line #%d. (%d)",
+                  buf1, MYCMD.arg1, (MYCMD.arg1 > 1) ? "s" : "",
+                  counter + MYCMD.arg1 + 1, MYCMD.arg2);
+        else
+          write_to_output(d, "%sJump over %d line%s to <OUTSIDE ROOM>. (%d)",
+                  buf1, MYCMD.arg1, (MYCMD.arg1 > 1) ? "s" : "", MYCMD.arg2);
+        break;
     case 'M':
-      write_to_output(d, "%sLoad %s [%s%d%s], Max : %d",
-              MYCMD.if_flag ? " then " : "",
+      write_to_output(d, "%sLoad %s [%s%d%s], Max : %d (%d%%)",
+              buf1, // MYCMD.if_flag ? " then " : "",
               mob_proto[MYCMD.arg1].player.short_descr, cyn,
-              mob_index[MYCMD.arg1].vnum, yel, MYCMD.arg2
+              mob_index[MYCMD.arg1].vnum, yel, MYCMD.arg2, MYCMD.arg4
               );
       break;
     case 'G':
-      write_to_output(d, "%sGive it %s [%s%d%s], Max : %d",
-	      MYCMD.if_flag ? " then " : "",
+      write_to_output(d, "%sGive it %s [%s%d%s], Max : %d (%d%%)",
+	      buf1, // MYCMD.if_flag ? " then " : "",
 	      obj_proto[MYCMD.arg1].short_description,
 	      cyn, obj_index[MYCMD.arg1].vnum, yel,
-	      MYCMD.arg2
+	      MYCMD.arg2, MYCMD.arg4
 	      );
       break;
     case 'O':
-      write_to_output(d, "%sLoad %s [%s%d%s], Max : %d",
-	      MYCMD.if_flag ? " then " : "",
+      write_to_output(d, "%sLoad %s [%s%d%s], Max : %d (%d%%)",
+	      buf1, // MYCMD.if_flag ? " then " : "",
 	      obj_proto[MYCMD.arg1].short_description,
 	      cyn, obj_index[MYCMD.arg1].vnum, yel,
-	      MYCMD.arg2
+	      MYCMD.arg2, MYCMD.arg4
 	      );
       break;
     case 'E':
-      write_to_output(d, "%sEquip with %s [%s%d%s], %s, Max : %d",
-	      MYCMD.if_flag ? " then " : "",
+      write_to_output(d, "%sEquip with %s [%s%d%s], %s, Max : %d (%d%%)",
+	      buf1, // MYCMD.if_flag ? " then " : "",
 	      obj_proto[MYCMD.arg1].short_description,
 	      cyn, obj_index[MYCMD.arg1].vnum, yel,
 	      equipment_types[MYCMD.arg3],
-	      MYCMD.arg2
+	      MYCMD.arg2, MYCMD.arg4
 	      );
       break;
     case 'P':
-      write_to_output(d, "%sPut %s [%s%d%s] in %s [%s%d%s], Max : %d",
-	      MYCMD.if_flag ? " then " : "",
+      write_to_output(d, "%sPut %s [%s%d%s] in %s [%s%d%s], Max : %d (%d%%)",
+	      buf1, // MYCMD.if_flag ? " then " : "",
 	      obj_proto[MYCMD.arg1].short_description,
 	      cyn, obj_index[MYCMD.arg1].vnum, yel,
 	      obj_proto[MYCMD.arg3].short_description,
 	      cyn, obj_index[MYCMD.arg3].vnum, yel,
-	      MYCMD.arg2
+	      MYCMD.arg2, MYCMD.arg4
 	      );
       break;
     case 'R':
       write_to_output(d, "%sRemove %s [%s%d%s] from room.",
-	      MYCMD.if_flag ? " then " : "",
+	      buf1, // MYCMD.if_flag ? " then " : "",
 	      obj_proto[MYCMD.arg2].short_description,
 	      cyn, obj_index[MYCMD.arg2].vnum, yel
 	      );
       break;
     case 'D':
       write_to_output(d, "%sSet door %s as %s.",
-	      MYCMD.if_flag ? " then " : "",
+	      buf1, // MYCMD.if_flag ? " then " : "",
 	      dirs[MYCMD.arg2],
 	      MYCMD.arg3 ? ((MYCMD.arg3 == 1) ? "closed" : "locked") : "open"
 	      );
       break;
     case 'T':
       write_to_output(d, "%sAttach trigger %s%s%s [%s%d%s] to %s",
-        MYCMD.if_flag ? " then " : "",
+        buf1, // MYCMD.if_flag ? " then " : "",
         cyn, trig_index[MYCMD.arg2]->proto->name, yel,
         cyn, trig_index[MYCMD.arg2]->vnum, yel,
         ((MYCMD.arg1 == MOB_TRIGGER) ? "mobile" :
@@ -527,7 +549,7 @@ static void zedit_disp_menu(struct descriptor_data *d)
       break;
     case 'V':
       write_to_output(d, "%sAssign global %s:%d to %s = %s",
-        MYCMD.if_flag ? " then " : "",
+        buf1, // MYCMD.if_flag ? " then " : "",
         MYCMD.sarg1, MYCMD.arg2,
         ((MYCMD.arg1 == MOB_TRIGGER) ? "mobile" :
           ((MYCMD.arg1 == OBJ_TRIGGER) ? "object" :
