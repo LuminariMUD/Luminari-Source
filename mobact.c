@@ -97,6 +97,8 @@ void mobile_echos(struct char_data *ch) {
     for (d = descriptor_list; d; d = d->next) {
       if (!d->character)
         continue;
+      if (d->character->in_room == NOWHERE || ch->in_room == NOWHERE)
+        continue;
       if (world[d->character->in_room].zone != world[ch->in_room].zone)
         continue;
       if (!AWAKE(d->character))

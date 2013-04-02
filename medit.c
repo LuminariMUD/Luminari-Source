@@ -993,9 +993,13 @@ void medit_parse(struct descriptor_data *d, char *arg) {
           return;
         case 'z':
         case 'Z':
-          ECHO_IS_ZONE(OLC_MOB(d)) = !ECHO_IS_ZONE(OLC_MOB(d));
-          OLC_VAL(d) = TRUE;
-          medit_disp_echo_menu(d);
+          if (GET_LEVEL(d->character) >= LVL_GRGOD) {
+            ECHO_IS_ZONE(OLC_MOB(d)) = !ECHO_IS_ZONE(OLC_MOB(d));
+            OLC_VAL(d) = TRUE;
+            medit_disp_echo_menu(d);
+          } else {
+            write_to_output(d, "You need someone more privileged than you to enable zone echo.\r\nEnter choice : ");
+          }
           return;
         default:
           medit_disp_echo_menu(d);

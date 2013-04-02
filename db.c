@@ -2241,7 +2241,7 @@ char *parse_object(FILE *obj_f, int nr) {
 /* load the zone table and command tables */
 static void load_zones(FILE *fl, char *zonename) {
   static zone_rnum zone = 0;
-  int i, cmd_no, num_of_cmds = 0, line_num = 0, tmp, error;
+  int i, cmd_no, num_of_cmds = 0, line_num = 0, tmp, error, arg_count = 0;
   char *ptr, buf[READ_SIZE], zname[READ_SIZE], buf2[MAX_STRING_LENGTH];
   int zone_fix = FALSE;
   char t1[80], t2[80];
@@ -2376,9 +2376,49 @@ static void load_zones(FILE *fl, char *zonename) {
         ZCMD.sarg2 = strdup(t2);
       }
     } else {
-      if (sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
-              &ZCMD.arg3) != 4)
-        error = 1;
+      switch (ZCMD.command) {
+        case 'J':
+          arg_count = sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2);
+          if (arg_count == 2)
+            ZCMD.arg2 = 100; /* defaults to 100%, always loads */
+          else if (arg_count != 3)
+            error = 1;
+          break;
+        case 'M':
+        case 'O':
+        case 'E':
+        case 'P':
+          arg_count = sscanf(ptr, " %d %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
+                  &ZCMD.arg3, &ZCMD.arg4);
+          if (arg_count == 4 || ZCMD.arg4 < 0)
+            ZCMD.arg4 = 100;
+          else if (arg_count != 5)
+            error = 1;
+          break;
+        case 'G':
+          arg_count = sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
+                  &ZCMD.arg3);
+          if (arg_count == 3 || ZCMD.arg3 < 0)
+            ZCMD.arg3 = 100;
+          else if (arg_count != 4)
+            error = 1;
+          break;
+        case 'D':
+          if (sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
+                  &ZCMD.arg3) != 4)
+            error = 1;
+          break;
+        case 'R':
+          if (sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2) != 3)
+            error = 1;
+          break;
+        default:
+          error = 1;
+          break;
+      }
+      //if (sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
+      //        &ZCMD.arg3) != 4)
+      //  error = 1;
     }
 
     ZCMD.if_flag = tmp;
