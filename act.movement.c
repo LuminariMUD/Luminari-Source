@@ -285,7 +285,7 @@ EVENTFUNC(event_falling)
     act("$n crashes into the ground!", FALSE, ch, 0, 0, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
     SET_WAIT(ch, 4 * PULSE_VIOLENCE);
-    damage(ch, ch, dice((height_fallen/10), 6), TYPE_UNDEFINED, DAM_FORCE, FALSE);
+    damage(ch, ch, (dice((height_fallen/5), 6) + 20), TYPE_UNDEFINED, DAM_FORCE, FALSE);
     return 0;  //end event
   }
   
@@ -1189,6 +1189,8 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check) {
     send_to_char(ch, "Alas, you cannot go that way...\r\n");
   else if ((!EXIT(ch, dir) && !buildwalk(ch, dir)) || EXIT(ch, dir)->to_room == NOWHERE)
     send_to_char(ch, "Alas, you cannot go that way...\r\n");
+  else if (char_has_mud_event(ch, eFALLING))
+    send_to_char(ch, "You can't, you are falling!!!\r\n");
   else if (EXIT_FLAGGED(EXIT(ch, dir), EX_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE)))) {
     if (EXIT(ch, dir)->keyword)
       send_to_char(ch, "The %s seems to be closed.\r\n", fname(EXIT(ch, dir)->keyword));
