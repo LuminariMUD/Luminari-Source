@@ -494,7 +494,7 @@ static void zedit_disp_menu(struct descriptor_data *d)
 	      buf1, // MYCMD.if_flag ? " then " : "",
 	      obj_proto[MYCMD.arg1].short_description,
 	      cyn, obj_index[MYCMD.arg1].vnum, yel,
-	      MYCMD.arg2, MYCMD.arg4
+	      MYCMD.arg2, MYCMD.arg3
 	      );
       break;
     case 'O':
