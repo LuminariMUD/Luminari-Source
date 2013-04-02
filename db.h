@@ -159,6 +159,7 @@ struct reset_com {
    int	arg1;		/*                                      */
    int	arg2;		/* Arguments to the command             */
    int	arg3;		/*                                      */
+   int  arg4;           /* probability of command executing     */
    int line;		/* line number this command appears on  */
    char *sarg1;		/* string argument                      */
    char *sarg2;		/* string argument                      */
