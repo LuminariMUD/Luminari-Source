@@ -60,7 +60,8 @@ struct mud_event_list mud_event_index[] = {
   { "Fisted", event_countdown, EVENT_CHAR}, /* eFISTED */
   { "Wait", event_countdown, EVENT_CHAR}, /* eWAIT */
   { "Turn Undead", event_countdown, EVENT_CHAR}, /* eTURN_UNDEAD */
-  { "SpellBattle", event_countdown, EVENT_CHAR} /* eSPELLBATTLE */
+  { "SpellBattle", event_countdown, EVENT_CHAR}, /* eSPELLBATTLE */
+  { "Falling", event_falling, EVENT_CHAR} /* eFALLING */
 };
 
 /* init_events() is the ideal function for starting global events. This

@@ -1503,8 +1503,8 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
 // death < 0, no dam = 0, damage done > 0
 /* ALLLLLL damage goes through this function */
 
-int damage(struct char_data *ch, struct char_data *victim,
-        int dam, int attacktype, int dam_type, int offhand) {
+int damage(struct char_data *ch, struct char_data *victim, int dam, 
+        int attacktype, int dam_type, int offhand) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
@@ -2326,55 +2326,82 @@ void hit(struct char_data *ch, struct char_data *victim,
   if (!dam) //miss
     damage(ch, victim, 0, type == SKILL_BACKSTAB ? SKILL_BACKSTAB : w_type,
           dam_type, offhand);
+  
+  /* OK, attack should be a success at this stage */
   else {
+    
     if (affected_by_spell(ch, SPELL_TRUE_STRIKE)) {
-      send_to_char(ch, "\tWTRUE-STRIKE\tn  ");
+      send_to_char(ch, "[\tWTRUE-STRIKE\tn]  ");
       affect_from_char(ch, SPELL_TRUE_STRIKE);
     }
+    
     if (affected_by_spell(ch, SKILL_SMITE)) {
       if (IS_EVIL(victim))
         send_to_char(ch, "[SMITE]  ");
     }
-    //calculate damage
+    
+    //calculate damage, modify by melee warding
     dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
     if ((dam = handle_warding(ch, victim, dam)) == -1)
       return;
 
-    if (type == SKILL_BACKSTAB) {
-      damage(ch, victim, dam * backstab_mult(ch),
-              SKILL_BACKSTAB, dam_type, offhand);
-      /* crippling strike */
-      if (dam && GET_SKILL(ch, SKILL_CRIP_STRIKE) &&
-              !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
-        new_affect(&af);
+    /* if the 'type' of hit() requires special handling, do it here */
+    switch (type) {
+      case SKILL_BACKSTAB:
+        damage(ch, victim, dam * backstab_mult(ch),
+                SKILL_BACKSTAB, dam_type, offhand);
+        /* crippling strike */
+        if (dam && GET_SKILL(ch, SKILL_CRIP_STRIKE) &&
+                !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
+          new_affect(&af);
 
-        af.spell = SKILL_CRIP_STRIKE;
-        af.duration = 10;
-        af.location = APPLY_STR;
-        af.modifier = -(dice(2, 4));
+          af.spell = SKILL_CRIP_STRIKE;
+          af.duration = 10;
+          af.location = APPLY_STR;
+          af.modifier = -(dice(2, 4));
 
-        affect_to_char(victim, &af);
-        act("Your well placed attack \tTcripples\tn $N!",
-                FALSE, ch, wielded, victim, TO_CHAR);
-        act("A well placed attack from $n \tTcripples\tn you!",
-                FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
-        act("A well placed attack from $n \tTcripples\tn $N!",
-                FALSE, ch, wielded, victim, TO_NOTVICT);
+          affect_to_char(victim, &af);
+          act("Your well placed attack \tTcripples\tn $N!",
+                  FALSE, ch, wielded, victim, TO_CHAR);
+          act("A well placed attack from $n \tTcripples\tn you!",
+                  FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
+          act("A well placed attack from $n \tTcripples\tn $N!",
+                  FALSE, ch, wielded, victim, TO_NOTVICT);
 
-        if (!IS_NPC(ch))
-          increase_skill(ch, SKILL_CRIP_STRIKE);
-      }
-    } else if (GET_RACE(ch) == RACE_TRELUX)
-      damage(ch, victim, dam, TYPE_CLAW, dam_type, offhand);
-    else
-      damage(ch, victim, dam, w_type, dam_type, offhand);
-
-    if (ch && victim)
-      weapon_spells(ch, victim, wielded);
-
+          if (!IS_NPC(ch))
+            increase_skill(ch, SKILL_CRIP_STRIKE);
+        }
+        break;
+      default:
+        if (GET_RACE(ch) == RACE_TRELUX)
+          damage(ch, victim, dam, TYPE_CLAW, dam_type, offhand);
+        else
+          damage(ch, victim, dam, w_type, dam_type, offhand);
+        break;
+    }
+    
+    /* trelux natural ability to poison with their claws */
     if (GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
             && !rand_number(0, 5)) {
       call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_SPELL);
+    }
+
+    /* weapon spells */
+    if (ch && victim && wielded)
+      weapon_spells(ch, victim, wielded);
+    
+    /* vampiric curse will do some minor healing to attacker */
+    if (!IS_UNDEAD(victim) && IS_AFFECTED(victim, AFF_VAMPIRIC_CURSE)) {
+      send_to_char(ch, "\tWYou feel slightly better as you land an attack!\r\n");
+      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + dice(1, 10));      
+    }
+
+    /* vampiric touch will do some healing to attacker */
+    if (dam > 0 && !IS_UNDEAD(victim) && IS_AFFECTED(ch, AFF_VAMPIRIC_TOUCH)) {
+      send_to_char(ch, "\tWYou feel \tRvampiric\tn \tWenergy heal you as you "
+              "land an attack!\r\n");
+      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + dam);      
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_VAMPIRIC_TOUCH);
     }
 
     // damage inflicting shields, like fire shield

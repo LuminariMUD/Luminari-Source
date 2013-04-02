@@ -62,6 +62,7 @@ typedef enum {
   eWAIT, // replace WAIT_STATE with wait event
   eTURN_UNDEAD, // turn undead
   eSPELLBATTLE, // spellbattle
+  eFALLING, // char falling
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
@@ -109,5 +110,6 @@ EVENTFUNC(event_acid_arrow);
 EVENTFUNC(event_implode);
 EVENTFUNC(event_ice_storm);
 EVENTFUNC(event_chain_lightning);
+EVENTFUNC(event_falling);;
 
 #endif /* _MUD_EVENT_H_ */

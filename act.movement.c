@@ -45,6 +45,275 @@ static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof,
 void dismount_char(struct char_data * ch);
 void mount_char(struct char_data *ch, struct char_data *mount);
 
+
+/* falling system */
+/*
+
+struct falling_obj_event_obj {
+  struct obj_data *obj;
+  int room;
+  int next_delay;
+};
+
+EVENTFUNC(cast_obj_falling) {
+  struct falling_obj_event_obj *falling_event = (struct falling_obj_event_obj *) event_obj;
+  struct obj_data *obj = falling_event->obj;
+  int room = falling_event->room;
+
+  obj_from_room(obj);
+  obj_to_room(obj, room);
+
+  if (ROOM_FLAGGED(obj->in_room, ROOM_FLYNEEDED) && world[obj->in_room].dir_option[DOWN]) {
+    // fall further!
+    act("$p drops through the air!", FALSE, 0, obj, 0, TO_ROOM);
+    room = world[room].dir_option[5]->to_room;
+  }
+  
+  if (!ROOM_FLAGGED(obj->in_room, ROOM_FLYNEEDED) || !world[obj->in_room].dir_option[DOWN]) {
+    act("$p crashes into the ground!", FALSE, 0, obj, 0, TO_ROOM);
+    FREE(event_obj);
+    return 0;
+  }
+
+  falling_event->next_delay -= 5;
+  if (falling_event->next_delay < 5)
+    falling_event->next_delay = 5;
+  
+  falling_event->room = room;
+
+  return falling_event->next_delay;
+}
+
+
+void start_fall_object_event(struct obj_data *obj) {
+  struct falling_obj_event_obj *falling_event;
+  
+  if (obj->in_room <= 0)
+    return;
+
+  if (!ROOM_FLAGGED(obj->in_room, ROOM_FLYNEEDED) || !CAN_GO(obj, DOWN))
+    return;
+
+  if (IS_OBJ_STAT(obj, ITEM_FLOAT))
+    return;
+
+  CREATE(falling_event, struct falling_obj_event_obj, 1);
+
+  falling_event->obj = obj;
+  falling_event->next_delay = 15;
+  falling_event->room = obj->in_room;
+  event_create(cast_obj_falling, falling_event, 5);
+  //act("$p drops from sight.", FALSE, 0, obj, 0, TO_ROOM);
+  obj_from_room(obj);
+}
+
+
+struct falling_event_obj {
+  int impact;
+  struct char_data *ch;
+  int next_delay;
+};
+
+
+EVENTFUNC(cast_falling) {
+  struct falling_event_obj *falling_event = (struct falling_event_obj *) event_obj;
+  struct char_data *ch = falling_event->ch;
+  int dam = 0;
+
+  if (GET_FALLING(ch) == NULL) {
+    FREE(event_obj);
+    return 0; 
+  }
+
+  bool f = FALSE;
+  if (AFF_FLAGGED(ch, AFF_FLYING) || AFF2_FLAGGED(ch, AFF2_LEVITATE))
+    f = TRUE; 
+  if (MOUNTED(ch) && AFF_FLAGGED(MOUNTED(ch), AFF_FLYING))
+    f = TRUE;
+
+  if (f) {
+    FREE(event_obj);
+    GET_FALLING(ch) = NULL;
+    return 0;
+  }
+
+  dam = dice(falling_event->impact, 50) + falling_event->impact * 10;
+  
+  if (AFF3_FLAGGED(ch, AFF3_SAFEFALL))
+    dam /= 2;
+
+  if (ROOM_FLAGGED(ch->in_room, ROOM_FLYNEEDED)) {
+    // fall further! 
+    act("You fall tumbling down!", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n drops from sight.", FALSE, ch, 0, 0, TO_ROOM);
+    do_simple_move(ch, 5, FALSE);
+    act("$n falls from above screaming and flailing $s limbs.", FALSE, ch, 0, 0, TO_ROOM);
+    
+    if (!ROOM_FLAGGED(ch->in_room, ROOM_FLYNEEDED) || !CAN_GO(ch, DOWN)) {
+      act("You fall headfirst to the ground!", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n crashes into the ground!", FALSE, ch, 0, 0, TO_ROOM);
+      
+      if (rand() % (100 + 10 * falling_event->impact) > GET_R_DEX(ch)) {
+        // char lands on ass!
+        GET_POS(ch) = POS_SITTING;
+        WAIT_STATE(ch, falling_event->impact RL_SEC);
+      }
+      
+      damage(ch, ch, dam, TYPE_UNDEFINED, DAMBIT_PHYSICAL);
+      GET_FALLING(ch) = NULL;
+      FREE(event_obj);
+      return 0;
+    }
+    
+    falling_event->impact++;
+    falling_event->next_delay -= 5;
+    if (falling_event->next_delay < 5)
+      falling_event->next_delay = 5;
+    return falling_event->next_delay;
+  } else {
+    act("You fall headfirst to the ground!", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n crashes into the ground!", FALSE, ch, 0, 0, TO_ROOM);
+    if (rand() % (100 + 10 * falling_event->impact) > GET_R_DEX(ch)) {
+      // char lands on ass! 
+      GET_POS(ch) = POS_SITTING;
+      WAIT_STATE(ch, falling_event->impact RL_SEC);
+    }
+    damage(ch, ch, dam, TYPE_UNDEFINED, DAMBIT_PHYSICAL);
+    GET_FALLING(ch) = NULL;
+    FREE(event_obj);
+    return 0;
+  }
+}
+
+void start_fall_event(struct char_data *ch) {
+  struct falling_event_obj *falling_event;
+
+  CREATE(falling_event, struct falling_event_obj, 1);
+  falling_event->ch = ch;
+  falling_event->impact = 1;
+  falling_event->next_delay = 20;
+  GET_FALLING(ch) = event_create(cast_falling, falling_event, 5);
+  act("You just realize that you have no visible mean of support!",
+       FALSE, ch, 0, 0, TO_CHAR);
+  act("$n has just realized $e has no visible means of support!",
+       FALSE, ch, 0, 0, TO_ROOM);
+}
+*/
+
+/* this function will check whether a obj should fall or not based on
+   circumstances and whether the obj is floating */
+bool obj_should_fall(struct obj_data *obj) {
+  int falling = FALSE;
+  
+  if (!obj)
+    return FALSE;
+  
+  if (ROOM_FLAGGED(obj->in_room, ROOM_FLY_NEEDED) && EXIT_OBJ(obj, DOWN))
+    falling = TRUE;
+  
+  if (OBJ_FLAGGED(obj, ITEM_FLOAT)) {
+    act("You watch as $p floats gracefully in the air!",
+            FALSE, 0, obj, 0, TO_ROOM);
+    return FALSE;
+  }
+  
+  return falling;
+}
+
+/* this function will check whether a char should fall or not based on
+   circumstances and whether the ch is flying */
+bool char_should_fall(struct char_data *ch) {
+  int falling = FALSE;
+  
+  if (!ch)
+    return FALSE;
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_FLY_NEEDED) && EXIT(ch, DOWN))
+    falling = TRUE;
+  
+  if (RIDING(ch) && AFF_FLAGGED(RIDING(ch), AFF_FLYING)) {
+    send_to_char(ch, "Your mount flies gracefully through the air...\r\n");
+    return FALSE;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_FLYING)) {
+    send_to_char(ch, "You fly gracefully through the air...\r\n");
+    return FALSE;
+  }
+  
+  return falling;
+}
+
+EVENTFUNC(event_falling)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  struct char_data *ch = NULL;
+  int height_fallen = 0;
+  char buf[50] = { '\0' };
+  
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+	  
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */  
+  pMudEvent = (struct mud_event_data *) event_obj;
+  
+  /* nab char data */
+  ch = (struct char_data *) pMudEvent->pStruct;    
+
+  /* dummy check */
+  if (!IS_PLAYING(ch->desc))
+    return 0;
+  
+  send_to_char(ch, "DEBUG:  sVariables: %s.\r\n", pMudEvent->sVariables);
+  
+  /* retrieve svariables and convert it */
+  height_fallen += atoi((char *) pMudEvent->sVariables);
+  send_to_char(ch, "DEBUG:  You have fallen %d feet!\r\n", height_fallen);
+  
+  /* already checked if there is a down exit, lets move the char down */
+  do_simple_move(ch, DOWN, FALSE);
+  send_to_char(ch, "You fall into a new area!");
+  act("$n appears from above, arms flailing helplessly as $e falls...", 
+          FALSE, ch, 0, 0, TO_ROOM);
+  height_fallen += 20;  // 20 feet per room right now
+  
+  /* can we continue this fall? */
+  if (!ROOM_FLAGGED(ch->in_room, ROOM_FLY_NEEDED) || !CAN_GO(ch, DOWN)) {
+    send_to_char(ch, "You fall headfirst to the ground!");
+    act("$n crashes into the ground!", FALSE, ch, 0, 0, TO_ROOM);
+    GET_POS(ch) = POS_SITTING;
+    SET_WAIT(ch, 4 * PULSE_VIOLENCE);
+    damage(ch, ch, dice((height_fallen/10), 6), TYPE_UNDEFINED, DAM_FORCE, FALSE);
+    return 0;  //end event
+  }
+  
+  /* hitting ground or fixing your falling situation is the only way to stop
+   *  this event :P
+   * theoritically the player now could try to cast a spell, use an item, hop
+   * on a mount to fix his falling situation, so we gotta check if he's still
+   * falling every event call
+   *  */
+  if (char_should_fall(ch)) {
+    send_to_char(ch, "You fall tumbling down!");
+    act("$n drops from sight.", FALSE, ch, 0, 0, TO_ROOM);
+    
+    /* are we falling more?  then we gotta increase the heigh fallen */
+    sprintf(buf, "%d", height_fallen);
+    pMudEvent->sVariables = strdup(buf);
+    return (1 * PASSES_PER_SEC);
+  } else {  // stop falling!
+    send_to_char(ch, "You put a stop to your fall!\r\n");
+    act("$n turns on the air-brakes from a plummet!", FALSE, ch, 0, 0, TO_ROOM);
+    return 0;
+  }
+
+  return 0;
+}
+
+/*  END falling system */
+
 /* simple function to determine if char can walk on water */
 int has_boat(struct char_data *ch) {
   struct obj_data *obj;

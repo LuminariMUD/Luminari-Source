@@ -51,7 +51,35 @@ static void perform_immort_where(struct char_data *ch, char *arg);
 static void perform_mortal_where(struct char_data *ch, char *arg);
 static void print_object_location(int num, struct obj_data *obj, struct char_data *ch, int recur);
 
+/* globals */
 int boot_high = 0;
+
+
+
+
+
+
+/* special affect that allows you to sense 'aggro' enemies */
+void check_dangersense(struct char_data *ch, room_rnum room) {
+  struct char_data *tch;
+  bool danger = FALSE;
+
+  if (!AFF_FLAGGED(ch, AFF_DANGERSENSE) || room == NOWHERE)
+    return;
+
+  for (tch = world[room].people; tch && danger == FALSE; tch = tch->next_in_room) {
+    if (!IS_NPC(tch))
+      continue;
+
+    if ((MOB_FLAGGED(tch, MOB_AGGRESSIVE)) ||
+            (MOB_FLAGGED(tch, MOB_AGGR_EVIL) && IS_EVIL(ch)) ||
+            (MOB_FLAGGED(tch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(ch)) ||
+            (MOB_FLAGGED(tch, MOB_AGGR_GOOD) && IS_GOOD(ch)))
+      danger = TRUE;
+  }
+  if (danger)
+    send_to_char(ch, "\tRYou feel \trdanger\tR there.\tn\r\n");
+}
 
 /* Subcommands */
 /* For show_obj_to_char 'mode'.	/-- arbitrary */
@@ -738,6 +766,7 @@ static void look_in_direction(struct char_data *ch, int dir) {
     else if (EXIT_FLAGGED(EXIT(ch, dir), EX_ISDOOR) && EXIT(ch, dir)->keyword)
       send_to_char(ch, "The %s is open.\r\n", fname(EXIT(ch, dir)->keyword));
 
+    check_dangersense(ch, EXIT(ch, dir)->to_room);
   } else
     send_to_char(ch, "You do not see anything special in that direction...\r\n");
 }
@@ -3404,7 +3433,8 @@ ACMD(do_scan) {
     send_to_char(ch, "Scanning %s:\r\n", dirs[door]);
     look_in_direction(ch, door);
     for (range = 1; range <= maxrange; range++) {
-      if (world[scanned_room].dir_option[door] && world[scanned_room].dir_option[door]->to_room != NOWHERE &&
+      if (world[scanned_room].dir_option[door] && 
+              world[scanned_room].dir_option[door]->to_room != NOWHERE &&
               !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_CLOSED) &&
               !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN)) {
         scanned_room = world[scanned_room].dir_option[door]->to_room;

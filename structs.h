@@ -96,8 +96,9 @@
 #define ROOM_BFS_MARK      15   /**< (R) breath-first srch mrk */
 #define ROOM_WORLDMAP      16   /**< World-map style maps here */
 #define ROOM_REGEN         17
+#define ROOM_FLY_NEEDED    18
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS     18
+#define NUM_ROOM_FLAGS     19
 
 // Room affects
 #define RAFF_FOG            (1 << 0)
@@ -517,7 +518,7 @@
 #define AFF_SCUBA            18   /**< Room for future expansion */
 #define AFF_SNEAK            19   /**< Char can move quietly */
 #define AFF_HIDE             20   /**< Char is hidden */
-#define AFF_FREE             21   /**< Room for future expansion */
+#define AFF_VAMPIRIC_CURSE   21   // hit victim heals attacker
 #define AFF_CHARM            22   /**< Char is charmed */
 #define AFF_BLUR             23	// char has blurry image
 #define AFF_POWER_ATTACK     24	// power attack mode
@@ -531,9 +532,9 @@
 #define AFF_PARALYZED        32	// paralyzed
 #define AFF_ULTRAVISION      33   /**< Char can see in dark */
 #define AFF_GRAPPLED         34   // grappled
-#define AFF_TAMED	     35   // tamed
+#define AFF_TAMED            35   // tamed
 #define AFF_CLIMB            36   // affect that allows you to climb
-#define AFF_NAUSEATED	     37   // nauseated
+#define AFF_NAUSEATED        37   // nauseated
 #define AFF_NON_DETECTION    38
 #define AFF_SLOW             39
 #define AFF_FSHIELD          40  //fire shield
@@ -565,9 +566,19 @@
 #define AFF_DIM_LOCK         66 //locked to current plane (can't teleport)
 #define AFF_DEATH_WARD       67
 #define AFF_SPELLBATTLE      68
+/* works in progress -zusuk (don't forget vampiric-curse (21) */
+#define AFF_VAMPIRIC_TOUCH   69  // will make next attack vampiric
+#define AFF_BLACKMANTLE      70  // stop normal regen, reduce healing
+#define AFF_DANGERSENSE      71  // sense aggro in surround rooms
+#define AFF_SAFEFALL         72  // reduce damage from falling
+#define AFF_TOWER_OF_IRON_WILL 73  // reduce psionic damage
+#define AFF_INERTIAL_BARRIER 74  // absorb damage based on mana
+#define AFF_NOTELEPORT       75  // make target not reachable via teleport
+#define AFF_MAX_DAMAGE       76  // enhance next attack/spell/etc
+
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS        69
+#define NUM_AFF_FLAGS        77
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/
@@ -816,8 +827,9 @@
 #define ITEM_ANTI_RANGER          35
 #define ITEM_ANTI_BARD            36
 #define ITEM_ANTI_ARCANA_GOLEM    37
+#define ITEM_FLOAT                38
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            38
+#define NUM_ITEM_FLAGS            39
 
 
 /* Modifier constants used with obj affects ('A' fields) */

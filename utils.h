@@ -1345,6 +1345,9 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 /** Does direction door exist in the same room as ch? */
 #define EXIT(ch, door)  (world[IN_ROOM(ch)].dir_option[door])
 
+/** Does direction door exist in the same room as obj? */
+#define EXIT_OBJ(obj, door)  (world[obj->in_room].dir_option[door])
+
 /** Does room number have direction num? */
 #define W_EXIT(room, num)     (world[(room)].dir_option[(num)])
 
