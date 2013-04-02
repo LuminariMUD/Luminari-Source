@@ -2404,6 +2404,7 @@ static void load_zones(FILE *fl, char *zonename) {
             error = 1;
           break;
         case 'D':
+        case 'T':
           if (sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
                   &ZCMD.arg3) != 4)
             error = 1;
