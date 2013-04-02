@@ -18,12 +18,15 @@
 #include "spec_procs.h" /**< zone_procs.c is part of the spec_procs module */
 #include "fight.h"
 
+/*  Defines  */
+
 /* IMPORTANT! The below defined number is the zone number of the Kings Castle.
  * Change it to apply to your chosen zone number.
  * */
 #define Z_KINGS_C 150
 
 /* local, file scope restricted functions */
+
 static mob_vnum castle_virtual(mob_vnum offset);
 static room_rnum castle_real_room(room_vnum roomoffset);
 static struct char_data *find_npc_by_name(struct char_data *chAtChar, const char *pszName, int iLen);
@@ -40,6 +43,7 @@ static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum
 static void castle_mob_spec(mob_vnum mobnum, SPECIAL(*specproc));
 
 /* Special procedures for Kings Castle by Pjotr. Coded by Sapowox. */
+
 SPECIAL(CastleGuard);
 SPECIAL(James);
 SPECIAL(cleaning);
@@ -51,10 +55,10 @@ SPECIAL(training_master);
 SPECIAL(peter);
 SPECIAL(jerry);
 
-
+/* end head of file */
 
 /******************************************************************/
-/*  KINGS CASTLE */
+/*  KINGS CASTLE, zone# defined above */
 /******************************************************************/
 
 /* Assign castle special procedures. NOTE: The mobile number isn't fully 
@@ -809,7 +813,6 @@ SPECIAL(jerry)
   }
   return (FALSE);
 }
-
 
 /******************************************************************/
 /*  END KINGS CASTLE */

@@ -1,12 +1,12 @@
 /**************************************************************************
-*  File: mobact.c                                          Part of tbaMUD *
-*  Usage: Functions for generating intelligent (?) behavior in mobiles.   *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-**************************************************************************/
+ *  File: mobact.c                                          Part of tbaMUD *
+ *  Usage: Functions for generating intelligent (?) behavior in mobiles.   *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -24,12 +24,202 @@
 #include "spec_procs.h"
 #include "mud_event.h" /* for eSTUNNED */
 
-/* local file scope only function prototypes */
-static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data *master, struct char_data *attack);
+/* local file scope only function prototypes, defines, externs, etc */
+
+/* end local */
 
 
-int canContinue(struct char_data *ch)
-{
+
+
+
+
+/*** UTILITY FUNCTIONS ***/
+
+/* function to move a mobile along a specified path (patrols) */
+bool move_on_path(struct char_data *ch) {
+  int dir = -1;
+  int next = 0;
+
+  if (!ch)
+    return FALSE;
+  
+  if (FIGHTING(ch))
+    return FALSE;
+
+  /* finished path */
+  if (PATH_SIZE(ch) < 1)
+    return FALSE;
+
+  /* stuck in a spot for a moment */
+  if (PATH_DELAY(ch) > 0) {
+    PATH_DELAY(ch)--;
+    return FALSE;
+  }
+  
+  PATH_DELAY(ch) = PATH_RESET(ch);
+  PATH_INDEX(ch)++;
+
+  if (PATH_INDEX(ch) >= PATH_SIZE(ch) || PATH_INDEX(ch) < 0)
+    PATH_INDEX(ch) = 0;
+
+  next = GET_PATH(ch, PATH_INDEX(ch));
+  dir = find_first_step(ch->in_room, real_room(next));
+  
+  if (dir >= 0)
+    perform_move(ch, dir, 1);
+  
+  return TRUE;
+}
+
+/* mobile echo system, from homeland ported by nashak */
+void mobile_echos(struct char_data *ch) {
+  char *echo;
+  struct descriptor_data *d;
+
+  if (!ECHO_COUNT(ch))
+    return;
+
+  if (rand_number(1, 75) > (ECHO_FREQ(ch) / 2))
+    return;
+
+  if (ECHO_SEQUENTIAL(ch)) {
+    echo = ECHO_ENTRIES(ch)[CURRENT_ECHO(ch)++];
+    if (CURRENT_ECHO(ch) >= ECHO_COUNT(ch))
+      CURRENT_ECHO(ch) = 0;
+  } else {
+    echo = ECHO_ENTRIES(ch)[rand_number(0, ECHO_COUNT(ch) - 1)];
+  }
+
+  if (!echo)
+    return;
+
+  if (ECHO_IS_ZONE(ch)) {
+    for (d = descriptor_list; d; d = d->next) {
+      if (!d->character)
+        continue;
+      if (world[d->character->in_room].zone != world[ch->in_room].zone)
+        continue;
+      if (!AWAKE(d->character))
+        continue;
+
+      send_to_char(d->character, "%s\r\n", echo);
+    }
+  } else {
+    act(echo, FALSE, ch, 0, 0, TO_ROOM);
+  }
+}
+
+/* Mob Memory Routines */
+
+/* make ch remember victim */
+void remember(struct char_data *ch, struct char_data *victim) {
+  memory_rec *tmp = NULL;
+  bool present = FALSE;
+
+  if (!IS_NPC(ch) || IS_NPC(victim) || PRF_FLAGGED(victim, PRF_NOHASSLE))
+    return;
+
+  for (tmp = MEMORY(ch); tmp && !present; tmp = tmp->next)
+    if (tmp->id == GET_IDNUM(victim))
+      present = TRUE;
+
+  if (!present) {
+    CREATE(tmp, memory_rec, 1);
+    tmp->next = MEMORY(ch);
+    tmp->id = GET_IDNUM(victim);
+    MEMORY(ch) = tmp;
+  }
+}
+
+/* make ch forget victim */
+void forget(struct char_data *ch, struct char_data *victim) {
+  memory_rec *curr = NULL, *prev = NULL;
+
+  if (!(curr = MEMORY(ch)))
+    return;
+
+  while (curr && curr->id != GET_IDNUM(victim)) {
+    prev = curr;
+    curr = curr->next;
+  }
+
+  if (!curr)
+    return; /* person wasn't there at all. */
+
+  if (curr == MEMORY(ch))
+    MEMORY(ch) = curr->next;
+  else
+    prev->next = curr->next;
+
+  free(curr);
+}
+
+/* erase ch's memory */
+void clearMemory(struct char_data *ch) {
+  memory_rec *curr = NULL, *next = NULL;
+
+  curr = MEMORY(ch);
+
+  while (curr) {
+    next = curr->next;
+    free(curr);
+    curr = next;
+  }
+
+  MEMORY(ch) = NULL;
+}
+
+/* An aggressive mobile wants to attack something.  If they're under the 
+ * influence of mind altering PC, then see if their master can talk them out 
+ * of it, eye them down, or otherwise intimidate the slave. */
+static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data *master, struct char_data *attack) {
+  static int snarl_cmd = 0, sneer_cmd = 0;
+  int dieroll = 0;
+
+  if (!slave)
+    return FALSE;
+
+  if (!master || !AFF_FLAGGED(slave, AFF_CHARM))
+    return (FALSE);
+
+  if (!snarl_cmd)
+    snarl_cmd = find_command("snarl");
+  if (!sneer_cmd)
+    sneer_cmd = find_command("sneer");
+
+  /* Sit. Down boy! HEEEEeeeel! */
+  dieroll = rand_number(1, 20);
+  if (dieroll != 1 && (dieroll == 20 || dieroll > 10 -
+          GET_CHA_BONUS(master) + GET_WIS_BONUS(slave))) {
+    if (snarl_cmd > 0 && attack && !rand_number(0, 3)) {
+      char victbuf[MAX_NAME_LENGTH + 1];
+
+      strncpy(victbuf, GET_NAME(attack), sizeof (victbuf)); /* strncpy: OK */
+      victbuf[sizeof (victbuf) - 1] = '\0';
+
+      do_action(slave, victbuf, snarl_cmd, 0);
+    }
+
+    /* Success! But for how long? Hehe. */
+    return (TRUE);
+  }
+
+  /* indicator that he/she isn't happy! */
+  if (snarl_cmd > 0 && attack) {
+    char victbuf[MAX_NAME_LENGTH + 1];
+
+    strncpy(victbuf, GET_NAME(attack), sizeof (victbuf)); /* strncpy: OK */
+    victbuf[sizeof (victbuf) - 1] = '\0';
+
+    do_action(slave, victbuf, sneer_cmd, 0);
+  }
+
+  return (FALSE);
+}
+
+/* function encapsulating conditions that will stop the mobile from
+ acting */
+int canContinue(struct char_data *ch) {
   //dummy checks
   if (FIGHTING(ch) == NULL || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))) {
     stop_fighting(ch);
@@ -45,14 +235,18 @@ int canContinue(struct char_data *ch)
     return 0;
 
   // this combined with PULSE_MOBILE will control how often they proc
-//  if (!rand_number(0,3))
-//    return 0;
+  //  if (!rand_number(0,3))
+  //    return 0;
 
   return 1;
 }
 
-void npc_racial_behave(struct char_data *ch)
-{
+/*** END UTILITY FUNCTIONS ***/
+
+/*** RACE TYPES ***/
+
+/* racial behaviour function */
+void npc_racial_behave(struct char_data *ch) {
   struct char_data *AoE = NULL, *vict = NULL;
   int engaged = 0;
 
@@ -63,10 +257,10 @@ void npc_racial_behave(struct char_data *ch)
   for (AoE = world[IN_ROOM(ch)].people; AoE; AoE = AoE->next_in_room)
     if (FIGHTING(AoE) == ch) {
       engaged++;
-      if(!rand_number(0, 4)) {
+      if (!rand_number(0, 4)) {
         vict = AoE;
+      }
     }
-  }
   if (vict == NULL && IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
     vict = FIGHTING(ch);
   if (vict == NULL)
@@ -75,7 +269,7 @@ void npc_racial_behave(struct char_data *ch)
     return;
 
   //first figure out which race we are dealing with
-  switch(GET_RACE(ch)) {
+  switch (GET_RACE(ch)) {
     case NPCRACE_ANIMAL:
       switch (rand_number(1, 2)) {
         case 1:
@@ -113,28 +307,28 @@ void npc_racial_behave(struct char_data *ch)
 
 }
 
+/*** CLASSES ***/
 
 // monk behaviour, behave based on level
-void npc_monk_behave(struct char_data *ch, struct char_data *vict,
-	int level, int engaged)
-{
 
-  switch(rand_number(5, level)) {
-    case 5:  // level 1-4 mobs won't act
+void npc_monk_behave(struct char_data *ch, struct char_data *vict,
+        int level, int engaged) {
+
+  switch (rand_number(5, level)) {
+    case 5: // level 1-4 mobs won't act
       break;
     default:
       break;
   }
 }
 
-
 // rogue behaviour, behave based on level
-void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
-	int level, int engaged)
-{
 
-  switch(rand_number(5, level)) {
-    case 5:  // level 1-4 mobs won't act
+void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
+        int level, int engaged) {
+
+  switch (rand_number(5, level)) {
+    case 5: // level 1-4 mobs won't act
       break;
     default:
       break;
@@ -143,9 +337,9 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
 
 
 // warrior behaviour, behave based on circle
+
 void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
-	int level, int engaged)
-{
+        int level, int engaged) {
 
   // going to prioritize rescuing master (if he has one)
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
@@ -155,8 +349,8 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
     }
   }
 
-  switch(rand_number(5, level)) {
-    case 5:  // level 1-4 mobs won't act
+  switch (rand_number(5, level)) {
+    case 5: // level 1-4 mobs won't act
       break;
     default:
       break;
@@ -165,9 +359,9 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
 
 
 // ranger behaviour, behave based on level
+
 void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
-	int level, int engaged)
-{
+        int level, int engaged) {
 
   // going to prioritize rescuing master (if he has one)
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
@@ -177,8 +371,8 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
     }
   }
 
-  switch(rand_number(5, level)) {
-    case 5:  // level 1-4 mobs won't act
+  switch (rand_number(5, level)) {
+    case 5: // level 1-4 mobs won't act
       break;
     default:
       break;
@@ -187,9 +381,9 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
 
 
 // paladin behaviour, behave based on level
+
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
-	int level, int engaged)
-{
+        int level, int engaged) {
 
   // going to prioritize rescuing master (if he has one)
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
@@ -199,8 +393,8 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
     }
   }
 
-  switch(rand_number(5, level)) {
-    case 5:  // level 1-4 mobs won't act
+  switch (rand_number(5, level)) {
+    case 5: // level 1-4 mobs won't act
       break;
     default:
       break;
@@ -209,25 +403,25 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
 
 
 // cleric behaviour, behave based on circle
-void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
-	int circle, int engaged)
-{
 
-  switch(rand_number(3, circle)) {
-    case 3:  // level 1-4 mobs won't cast
+void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
+        int circle, int engaged) {
+
+  switch (rand_number(3, circle)) {
+    case 3: // level 1-4 mobs won't cast
       switch (rand_number(1, 3)) {
         case 1:
           if (!affected_by_spell(ch, SPELL_ARMOR))
             cast_spell(ch, ch, NULL, SPELL_ARMOR);
           else
             cast_spell(ch, vict, NULL, SPELL_CAUSE_LIGHT_WOUNDS);
-          break;            
+          break;
         case 2:
           if (!affected_by_spell(ch, SPELL_ENDURANCE))
             cast_spell(ch, ch, NULL, SPELL_ENDURANCE);
           else
             cast_spell(ch, vict, NULL, SPELL_CAUSE_MODERATE_WOUNDS);
-          break;            
+          break;
         case 3:
           if (GET_HIT(ch) < GET_MAX_HIT(ch))
             if (circle >= 7)
@@ -247,13 +441,13 @@ void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
             cast_spell(ch, ch, NULL, SPELL_BLESS);
           else
             cast_spell(ch, vict, NULL, SPELL_CAUSE_SERIOUS_WOUNDS);
-          break;            
+          break;
         case 2:
           if (AFF_FLAGGED(ch, AFF_BLIND))
             cast_spell(ch, ch, NULL, SPELL_CURE_BLIND);
           else
             cast_spell(ch, vict, NULL, SPELL_CAUSE_MODERATE_WOUNDS);
-          break;            
+          break;
       }
       break;
     case 5:
@@ -263,13 +457,13 @@ void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
             cast_spell(ch, ch, NULL, SPELL_INFRAVISION);
           else
             cast_spell(ch, vict, NULL, SPELL_CAUSE_CRITICAL_WOUNDS);
-          break;            
+          break;
         case 2:
           if (AFF_FLAGGED(ch, AFF_CURSE))
             cast_spell(ch, ch, NULL, SPELL_REMOVE_CURSE);
           else
             cast_spell(ch, vict, NULL, SPELL_CAUSE_CRITICAL_WOUNDS);
-          break;            
+          break;
         case 3:
           if (GET_HIT(ch) < GET_MAX_HIT(ch))
             if (circle >= 7)
@@ -278,7 +472,7 @@ void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
               cast_spell(ch, ch, NULL, SPELL_CURE_CRITIC);
           else
             cast_spell(ch, vict, NULL, SPELL_CAUSE_CRITICAL_WOUNDS);
-          break;            
+          break;
       }
       break;
     case 6:
@@ -288,13 +482,13 @@ void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
             cast_spell(ch, vict, NULL, SPELL_BLINDNESS);
           else
             cast_spell(ch, vict, NULL, SPELL_FLAME_STRIKE);
-          break;            
+          break;
         case 2:
           if (!AFF_FLAGGED(vict, AFF_POISON))
             cast_spell(ch, vict, NULL, SPELL_POISON);
           else
             cast_spell(ch, vict, NULL, SPELL_FLAME_STRIKE);
-          break;            
+          break;
         case 3:
           if (GET_ALIGNMENT(ch) < 0 && !AFF_FLAGGED(ch, AFF_PROTECT_GOOD))
             cast_spell(ch, ch, NULL, SPELL_PROT_FROM_GOOD);
@@ -302,7 +496,7 @@ void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
             cast_spell(ch, ch, NULL, SPELL_PROT_FROM_EVIL);
           else
             cast_spell(ch, vict, NULL, SPELL_FLAME_STRIKE);
-          break;            
+          break;
       }
       break;
     case 7:
@@ -312,13 +506,13 @@ void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
             cast_spell(ch, ch, NULL, SPELL_REMOVE_POISON);
           else
             cast_spell(ch, vict, NULL, SPELL_HARM);
-          break;            
+          break;
         case 2:
           if (GET_MAX_HIT(ch) - GET_HIT(ch) > 75)
             cast_spell(ch, ch, NULL, SPELL_HEAL);
           else
             cast_spell(ch, vict, NULL, SPELL_HARM);
-          break;            
+          break;
         case 3:
           if (GET_ALIGNMENT(ch) < 0 && GET_ALIGNMENT(vict) > 333)
             cast_spell(ch, vict, NULL, SPELL_DISPEL_GOOD);
@@ -326,7 +520,7 @@ void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
             cast_spell(ch, vict, NULL, SPELL_DISPEL_EVIL);
           else
             cast_spell(ch, vict, NULL, SPELL_HARM);
-          break;            
+          break;
       }
       break;
     case 8:
@@ -336,13 +530,13 @@ void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
             cast_spell(ch, ch, NULL, SPELL_SANCTUARY);
           else
             cast_spell(ch, vict, NULL, SPELL_DESTRUCTION);
-          break;            
+          break;
         case 2:
           if (!AFF_FLAGGED(ch, AFF_SENSE_LIFE))
             cast_spell(ch, ch, NULL, SPELL_SENSE_LIFE);
           else
             cast_spell(ch, vict, NULL, SPELL_CALL_LIGHTNING);
-          break;            
+          break;
       }
       break;
     case 9:
@@ -359,62 +553,62 @@ void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
 
 
 // wizard behaviour, behave based on circle
+
 void npc_wizard_behave(struct char_data *ch, struct char_data *vict,
-	int circle, int engaged)
-{
+        int circle, int engaged) {
   int num = -1;
 
   if (circle < 3)
     return;
   num = rand_number(3, circle);
 
-  switch(num) {
-    case 3:  // level 1-4 mobs won't cast
-      switch (rand_number(1,2)) {
+  switch (num) {
+    case 3: // level 1-4 mobs won't cast
+      switch (rand_number(1, 2)) {
         case 1:
           if (!affected_by_spell(ch, SPELL_BLUR))
             cast_spell(ch, ch, NULL, SPELL_BLUR);
           else
             cast_spell(ch, vict, NULL, SPELL_CHILL_TOUCH);
-          break;            
+          break;
         case 2:
           if (!affected_by_spell(ch, SPELL_DETECT_INVIS))
             cast_spell(ch, ch, NULL, SPELL_DETECT_INVIS);
           else
             cast_spell(ch, vict, NULL, SPELL_BURNING_HANDS);
-          break;            
+          break;
       }
       break;
     case 4:
-      switch (rand_number(1,2)) {
+      switch (rand_number(1, 2)) {
         case 1:
           if (!affected_by_spell(ch, SPELL_INFRAVISION))
             cast_spell(ch, ch, NULL, SPELL_INFRAVISION);
           else
             cast_spell(ch, vict, NULL, SPELL_SHOCKING_GRASP);
-          break;            
+          break;
         case 2:
           if (!affected_by_spell(ch, SPELL_MIRROR_IMAGE))
             cast_spell(ch, ch, NULL, SPELL_MIRROR_IMAGE);
           else
             cast_spell(ch, vict, NULL, SPELL_LIGHTNING_BOLT);
-          break;            
+          break;
       }
       break;
     case 5:
-      switch (rand_number(1,2)) {
+      switch (rand_number(1, 2)) {
         case 1:
           if (!affected_by_spell(ch, SPELL_ARMOR))
             cast_spell(ch, ch, NULL, SPELL_ARMOR);
           else
             cast_spell(ch, vict, NULL, SPELL_COLOR_SPRAY);
-          break;            
+          break;
         case 2:
           if (!affected_by_spell(ch, SPELL_STONESKIN))
             cast_spell(ch, ch, NULL, SPELL_STONESKIN);
           else
             cast_spell(ch, vict, NULL, SPELL_FIREBALL);
-          break;            
+          break;
       }
       break;
     case 6:
@@ -424,14 +618,14 @@ void npc_wizard_behave(struct char_data *ch, struct char_data *vict,
         cast_spell(ch, vict, NULL, SPELL_LIGHTNING_BOLT);
       break;
     case 7:
-      switch (rand_number(1,2)) {
-        case 1: 
+      switch (rand_number(1, 2)) {
+        case 1:
           if (!affected_by_spell(ch, SPELL_STRENGTH))
             cast_spell(ch, ch, NULL, SPELL_STRENGTH);
           else
             cast_spell(ch, vict, NULL, SPELL_BALL_OF_LIGHTNING);
           break;
-        case 2: 
+        case 2:
           if (!affected_by_spell(vict, SPELL_BLINDNESS))
             cast_spell(ch, vict, NULL, SPELL_BLINDNESS);
           else
@@ -440,8 +634,8 @@ void npc_wizard_behave(struct char_data *ch, struct char_data *vict,
       }
       break;
     case 8:
-      switch (rand_number(1,2)) {
-        case 1: 
+      switch (rand_number(1, 2)) {
+        case 1:
           if (!affected_by_spell(vict, SPELL_CURSE))
             cast_spell(ch, vict, NULL, SPELL_CURSE);
           else
@@ -456,8 +650,8 @@ void npc_wizard_behave(struct char_data *ch, struct char_data *vict,
       }
       break;
     case 9:
-      switch (rand_number(1,2)) {
-        case 1: 
+      switch (rand_number(1, 2)) {
+        case 1:
           if (!affected_by_spell(vict, SPELL_POISON))
             cast_spell(ch, vict, NULL, SPELL_POISON);
           else
@@ -478,9 +672,7 @@ void npc_wizard_behave(struct char_data *ch, struct char_data *vict,
 
 }
 
-
-void npc_class_behave(struct char_data *ch)
-{
+void npc_class_behave(struct char_data *ch) {
   struct char_data *AoE = NULL, *vict = NULL;
   int engaged = 0;
 
@@ -495,10 +687,10 @@ void npc_class_behave(struct char_data *ch)
   for (AoE = world[IN_ROOM(ch)].people; AoE; AoE = AoE->next_in_room)
     if (FIGHTING(AoE) == ch) {
       engaged++;
-      if(!rand_number(0, 4)) {
+      if (!rand_number(0, 4)) {
         vict = AoE;
+      }
     }
-  }
   if (vict == NULL && IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
     vict = FIGHTING(ch);
   if (vict == NULL)
@@ -506,7 +698,7 @@ void npc_class_behave(struct char_data *ch)
   if (!CAN_SEE(ch, vict))
     return;
 
-  switch(GET_CLASS(ch)) {
+  switch (GET_CLASS(ch)) {
     case CLASS_SORCERER:
     case CLASS_WIZARD:
       npc_wizard_behave(ch, vict, getCircle(ch, CLASS_WIZARD), engaged);
@@ -531,9 +723,9 @@ void npc_class_behave(struct char_data *ch)
       npc_cleric_behave(ch, vict, getCircle(ch, CLASS_CLERIC), engaged);
       break;
     case CLASS_MONK:
-      npc_monk_behave(ch, vict, GET_LEVEL(ch), engaged);      
+      npc_monk_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
-    case CLASS_BERSERKER:      
+    case CLASS_BERSERKER:
       break;
     default:
       log("ERR:  Reached invalid class in npc_class_behave.");
@@ -541,9 +733,10 @@ void npc_class_behave(struct char_data *ch)
   }
 }
 
+/*** MOBILE ACTIVITY ***/
 
-void mobile_activity(void)
-{
+
+void mobile_activity(void) {
   struct char_data *ch = NULL, *next_ch = NULL, *vict = NULL;
   struct obj_data *obj = NULL, *best_obj = NULL;
   int door = 0, found = 0, max = 0;
@@ -556,7 +749,7 @@ void mobile_activity(void)
       continue;
 
     if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
-        char_has_mud_event(ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED)) {
+            char_has_mud_event(ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED)) {
       send_to_char(ch, "You are unable to move!\r\n");
       continue;
     }
@@ -566,30 +759,32 @@ void mobile_activity(void)
     if (MOB_FLAGGED(ch, MOB_SPEC) && !no_specials) {
       if (mob_index[GET_MOB_RNUM(ch)].func == NULL) {
         log("SYSERR: %s (#%d): Attempting to call non-existing mob function.",
-            GET_NAME(ch), GET_MOB_VNUM(ch));
+                GET_NAME(ch), GET_MOB_VNUM(ch));
         REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_SPEC);
       } else {
         char actbuf[MAX_INPUT_LENGTH] = "";
         if ((mob_index[GET_MOB_RNUM(ch)].func) (ch, ch, 0, actbuf))
-          continue;		/* go to next char */
+          continue; /* go to next char */
       }
     }
 
-    /* can't do any of the following if not at least AWAKE() */
-    if (!AWAKE(ch))
+    /* can't do any of the following if not at least AWAKE() and not casting */
+    if (!AWAKE(ch) || IS_CASTING(ch))
       continue;
-    
+
     /* If the mob has no specproc, do the default actions */
 
     // entry point for npc race and class behaviour in combat -zusuk
     if (FIGHTING(ch)) {
       // 50% chance will react off of class, 50% chance will react off of race
-      if (rand_number(0,1))
+      if (rand_number(0, 1))
         npc_racial_behave(ch);
       else
         npc_class_behave(ch);
       continue;
     }
+    
+    /* send out mobile echos to room or zone */
     mobile_echos(ch);
 
     /* hunt a victim, if applicable */
@@ -613,21 +808,20 @@ void mobile_activity(void)
       }
 
     /* Mob Movement */
-    if (rand_number(0,1))  //customize frequency
-    if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
-       ((door = rand_number(0, 18)) < DIR_COUNT) && CAN_GO(ch, door) &&
-       !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&
-       !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_DEATH) &&
-       (!MOB_FLAGGED(ch, MOB_STAY_ZONE) ||
-           (world[EXIT(ch, door)->to_room].zone == world[IN_ROOM(ch)].zone))) 
-    {
-      /* If the mob is charmed, do not move the mob. */
-      if (ch->master == NULL)
-        perform_move(ch, door, 1);
-    }
+    if (rand_number(0, 1)) //customize frequency
+      if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
+              ((door = rand_number(0, 18)) < DIR_COUNT) && CAN_GO(ch, door) &&
+              !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&
+              !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_DEATH) &&
+              (!MOB_FLAGGED(ch, MOB_STAY_ZONE) ||
+              (world[EXIT(ch, door)->to_room].zone == world[IN_ROOM(ch)].zone))) {
+        /* If the mob is charmed, do not move  qthe mob. */
+        if (ch->master == NULL)
+          perform_move(ch, door, 1);
+      }
 
     /* Aggressive Mobs */
-     if (!MOB_FLAGGED(ch, MOB_HELPER) && (!AFF_FLAGGED(ch, AFF_BLIND) || !AFF_FLAGGED(ch, AFF_CHARM))) {
+    if (!MOB_FLAGGED(ch, MOB_HELPER) && (!AFF_FLAGGED(ch, AFF_BLIND) || !AFF_FLAGGED(ch, AFF_CHARM))) {
       found = FALSE;
       for (vict = world[IN_ROOM(ch)].people; vict && !found; vict = vict->next_in_room) {
 
@@ -637,10 +831,10 @@ void mobile_activity(void)
         if (MOB_FLAGGED(ch, MOB_WIMPY) && AWAKE(vict))
           continue;
 
-        if (MOB_FLAGGED(ch, MOB_AGGRESSIVE  ) ||
-            (MOB_FLAGGED(ch, MOB_AGGR_EVIL   ) && IS_EVIL(vict)) ||
-            (MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(vict)) ||
-            (MOB_FLAGGED(ch, MOB_AGGR_GOOD   ) && IS_GOOD(vict))) {
+        if (MOB_FLAGGED(ch, MOB_AGGRESSIVE) ||
+                (MOB_FLAGGED(ch, MOB_AGGR_EVIL) && IS_EVIL(vict)) ||
+                (MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(vict)) ||
+                (MOB_FLAGGED(ch, MOB_AGGR_GOOD) && IS_GOOD(vict))) {
           hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
           found = TRUE;
         }
@@ -670,7 +864,7 @@ void mobile_activity(void)
      * mobiles have a chance based on the charisma of their leader.
      * 1-4 = 0, 5-7 = 1, 8-10 = 2, 11-13 = 3, 14-16 = 4, 17-19 = 5, etc. */
     if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master &&
-           num_followers_charmed(ch->master) > MAX(1, GET_CHA_BONUS(ch->master))) {
+            num_followers_charmed(ch->master) > MAX(1, GET_CHA_BONUS(ch->master))) {
       if (!aggressive_mob_on_a_leash(ch, ch->master, ch->master)) {
         if (CAN_SEE(ch, ch->master) && !PRF_FLAGGED(ch->master, PRF_NOHASSLE))
           hit(ch, ch->master, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -685,7 +879,7 @@ void mobile_activity(void)
       for (vict = world[IN_ROOM(ch)].people; vict && !found;
               vict = vict->next_in_room) {
         if (ch == vict || !IS_NPC(vict) || !FIGHTING(vict))
-          continue; 
+          continue;
         if (GROUP(vict) && GROUP(vict) == GROUP(ch))
           continue;
         if (IS_NPC(FIGHTING(vict)) || ch == FIGHTING(vict))
@@ -697,156 +891,13 @@ void mobile_activity(void)
       }
     }
 
+    /* a function to move mobile back to its loadroom (if sentinel) */
+    if (!HUNTING(ch) && !MEMORY(ch) && !ch->master && 
+            MOB_FLAGGED(ch, MOB_SENTINEL) && !IS_PET(ch) && 
+            GET_MOB_LOADROOM(ch) != ch->in_room)
+      hunt_loadroom(ch);
+    
     /* Add new mobile actions here */
 
-  }				/* end for() */
+  } /* end for() */
 }
-
-void mobile_echos(struct char_data *ch) {
-  char *echo;
-  struct descriptor_data *d;
-
-  if (!ECHO_COUNT(ch))
-    return;
-
-  if (rand_number(1, 75) > (ECHO_FREQ(ch) / 2))
-    return;
-  
-  if (ECHO_SEQUENTIAL(ch)) {
-    echo = ECHO_ENTRIES(ch)[CURRENT_ECHO(ch)++];
-    if (CURRENT_ECHO(ch) >= ECHO_COUNT(ch))
-      CURRENT_ECHO(ch) = 0;
-  } else {
-    echo = ECHO_ENTRIES(ch)[rand_number(0, ECHO_COUNT(ch) - 1)];    
-  }
-  
-  if (!echo)
-    return;
-
-  if (ECHO_IS_ZONE(ch)) {
-    for (d = descriptor_list; d; d = d->next) {
-      if (!d->character)
-        continue;
-      if (world[d->character->in_room].zone != world[ch->in_room].zone)
-        continue;
-      if (!AWAKE(d->character))
-        continue;
-
-      send_to_char(d->character, "%s\r\n", echo);
-    }
-  } else {
-    act(echo, FALSE, ch, 0, 0, TO_ROOM);
-  }
-}
-
-/* Mob Memory Routines */
-/* make ch remember victim */
-void remember(struct char_data *ch, struct char_data *victim)
-{
-  memory_rec *tmp = NULL;
-  bool present = FALSE;
-
-  if (!IS_NPC(ch) || IS_NPC(victim) || PRF_FLAGGED(victim, PRF_NOHASSLE))
-    return;
-
-  for (tmp = MEMORY(ch); tmp && !present; tmp = tmp->next)
-    if (tmp->id == GET_IDNUM(victim))
-      present = TRUE;
-
-  if (!present) {
-    CREATE(tmp, memory_rec, 1);
-    tmp->next = MEMORY(ch);
-    tmp->id = GET_IDNUM(victim);
-    MEMORY(ch) = tmp;
-  }
-}
-
-/* make ch forget victim */
-void forget(struct char_data *ch, struct char_data *victim)
-{
-  memory_rec *curr = NULL, *prev = NULL;
-
-  if (!(curr = MEMORY(ch)))
-    return;
-
-  while (curr && curr->id != GET_IDNUM(victim)) {
-    prev = curr;
-    curr = curr->next;
-  }
-
-  if (!curr)
-    return;			/* person wasn't there at all. */
-
-  if (curr == MEMORY(ch))
-    MEMORY(ch) = curr->next;
-  else
-    prev->next = curr->next;
-
-  free(curr);
-}
-
-/* erase ch's memory */
-void clearMemory(struct char_data *ch)
-{
-  memory_rec *curr = NULL, *next = NULL;
-
-  curr = MEMORY(ch);
-
-  while (curr) {
-    next = curr->next;
-    free(curr);
-    curr = next;
-  }
-
-  MEMORY(ch) = NULL;
-}
-
-/* An aggressive mobile wants to attack something.  If they're under the 
- * influence of mind altering PC, then see if their master can talk them out 
- * of it, eye them down, or otherwise intimidate the slave. */
-static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data *master, struct char_data *attack)
-{
-  static int snarl_cmd = 0, sneer_cmd = 0;
-  int dieroll = 0;
-
-  if (!slave)
-    return FALSE;
-  
-  if (!master || !AFF_FLAGGED(slave, AFF_CHARM))
-    return (FALSE);
-
-  if (!snarl_cmd)
-    snarl_cmd = find_command("snarl");
-  if (!sneer_cmd)
-    sneer_cmd = find_command("sneer");
-
-  /* Sit. Down boy! HEEEEeeeel! */
-  dieroll = rand_number(1, 20);
-  if (dieroll != 1 && (dieroll == 20 || dieroll > 10 -
-         GET_CHA_BONUS(master) + GET_WIS_BONUS(slave))) {
-    if (snarl_cmd > 0 && attack && !rand_number(0, 3)) {
-      char victbuf[MAX_NAME_LENGTH + 1];
-
-      strncpy(victbuf, GET_NAME(attack), sizeof(victbuf));	/* strncpy: OK */
-      victbuf[sizeof(victbuf) - 1] = '\0';
-
-      do_action(slave, victbuf, snarl_cmd, 0);
-    }
-
-    /* Success! But for how long? Hehe. */
-    return (TRUE);
-  }
-
-  /* indicator that he/she isn't happy! */
-  if (snarl_cmd > 0 && attack) {
-    char victbuf[MAX_NAME_LENGTH + 1];
-      
-    strncpy(victbuf, GET_NAME(attack), sizeof(victbuf));      /* strncpy: OK */
-    victbuf[sizeof(victbuf) - 1] = '\0';
-     
-    do_action(slave, victbuf, sneer_cmd, 0);
-  }
-
-  return (FALSE);
-}
-

@@ -2196,9 +2196,8 @@ ACMD(do_harvest) {
         break;
     }
     
-    /* this will probably need to be in the eCRAFTING event, so that 
-     * it is not displayed until after harvesting is complete */
-    // act("$p has been depleted.", FALSE, 0, node, 0, TO_ROOM);
+    // Tell the room the character used up the node 
+    act("$p has been depleted.", FALSE, 0, node, 0, TO_ROOM);
     obj_from_room(node);
     extract_obj(node);
   }

@@ -1027,6 +1027,8 @@
 #define MAX_WEAPON_DAMAGE     24
 #define MIN_WEAPON_DAMAGE     2
 
+/* maximum number of moves a mobile can store for walking paths (patrols) */
+#define MAX_PATH              50
 
 #define MAX_GOLD 2140000000 /**< Maximum possible on hand gold (2.14 Billion) */
 #define MAX_BANK 2140000000 /**< Maximum possible in bank gold (2.14 Billion) */
@@ -1496,12 +1498,20 @@ struct mob_special_data {
   float frustration_level; /**< The anger/frustration level of the mob */
   byte subrace[MAX_SUBRACES]; // SubRace
   struct quest_entry *quest; // quest info for a mob (homeland-port)
+  room_rnum loadroom;  // mob loadroom saved
+  /* echo system */
   byte echo_is_zone;    // display the echo to entire zone
   byte echo_frequency;  // how often to display echo
   byte echo_sequential; // sequential/random
   sh_int echo_count;    // how many echos
   char **echo_entries;  // echo array
   sh_int current_echo;  // keep track of the current echo, for sequential echos
+  /* path system */
+  int path_index;
+  int path_delay;
+  int path_reset;
+  int path_size;
+  int path[MAX_PATH];
 };
 
 /** An affect structure. */
