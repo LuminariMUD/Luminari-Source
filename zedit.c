@@ -709,7 +709,6 @@ static void zedit_disp_arg3(struct descriptor_data *d) {
 /* Print the appropriate message for the command type for arg4 and set
    up the input catch clause. */
 static void zedit_disp_arg4(struct descriptor_data *d) {
-
   write_to_output(d, "\r\n");
 
   switch (OLC_CMD(d).command) {
@@ -735,6 +734,31 @@ static void zedit_disp_arg4(struct descriptor_data *d) {
   OLC_MODE(d) = ZEDIT_ARG4;
 }
 
+static void zedit_disp_gr_query(struct descriptor_data *d) {
+  write_to_output(d, "\r\n");
+
+  switch (OLC_CMD(d).command) {
+    case 'M':
+      write_to_output(d, "Count maximum (g)lobally, or in (r)oom : ");
+      break;
+    case 'E':
+    case 'O':
+    case 'P':
+    case 'D':
+    case 'V':
+    case 'T':
+    case 'R':
+    case 'G':
+    case 'J':
+    default:
+      /* We should never get here, just in case. */
+      cleanup_olc(d, CLEANUP_ALL);
+      mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: zedit_disp_gr_query(): Help!");
+      write_to_output(d, "Oops...\r\n");
+      return;
+  }
+  OLC_MODE(d) = ZEDIT_GR_QUERY;
+}
 /*-------------------------------------------------------------------*/
 
 /*
@@ -1081,7 +1105,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
         case 'M':
           OLC_CMD(d).arg2 = MIN(MAX_DUPLICATES, atoi(arg));
           OLC_CMD(d).arg3 = real_room(OLC_NUM(d));
-          zedit_disp_arg3(d);
+          zedit_disp_gr_query(d);
           break;
         case 'O':
           OLC_CMD(d).arg2 = MIN(MAX_DUPLICATES, atoi(arg));
@@ -1240,6 +1264,41 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
           break;
       }
 
+      break;
+      
+    case ZEDIT_GR_QUERY:
+      switch (OLC_CMD(d).command) {
+        case 'M':
+          switch (*arg) {
+            case 'g':
+            case 'G':
+              zedit_disp_arg4(d);
+              break;
+            case 'r':
+            case 'R':
+              OLC_CMD(d).arg2 = -(OLC_CMD(d).arg2);
+              break;
+            default:
+              write_to_output(d, "(g)lobal or (r)oom : ");
+              break;              
+          }
+          break;
+        case 'E':
+        case 'P':
+        case 'D':
+        case 'G':
+        case 'O':
+        case 'R':
+        case 'T':
+        case 'V':
+        case 'J':
+        default:
+          /* We should never get here, but just in case. */
+          cleanup_olc(d, CLEANUP_ALL);
+          mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: zedit_parse(): case GR Query: Ack!");
+          write_to_output(d, "Oops...\r\n");
+          break;
+      }
       break;
 
       /*-------------------------------------------------------------------*/
