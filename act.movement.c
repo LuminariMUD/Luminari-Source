@@ -228,6 +228,11 @@ bool char_should_fall(struct char_data *ch) {
   if (!ch)
     return FALSE;
   
+  /* NPC's crash it, and also was advised that players will twink this
+   badly if you can pull it off on NPC's */
+  if (IS_NPC(ch))
+    return FALSE;
+  
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_FLY_NEEDED) && EXIT(ch, DOWN))
     falling = TRUE;
   
