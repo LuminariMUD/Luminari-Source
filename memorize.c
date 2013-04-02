@@ -130,6 +130,9 @@ int spell_in_scroll(struct obj_data *obj, int spellnum) {
 bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scroll) {
   struct obj_data *obj;
   bool found = FALSE;
+  
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return TRUE;
 
   if (class == CLASS_WIZARD) {
 
@@ -2150,8 +2153,7 @@ ACMD(do_gen_memorize) {
           break;
         case CLASS_WIZARD:
           //spellbooks
-          if (!spellbook_ok(ch, spellnum, class, TRUE) && 
-                  GET_LEVEL(ch) < LVL_IMMORT) {
+          if (!spellbook_ok(ch, spellnum, class, TRUE)) {
             return;
           }
           send_to_char(ch, "You start to memorize %s.\r\n", spell_info[spellnum].name);
