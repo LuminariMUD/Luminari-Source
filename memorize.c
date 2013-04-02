@@ -2150,7 +2150,8 @@ ACMD(do_gen_memorize) {
           break;
         case CLASS_WIZARD:
           //spellbooks
-          if (!spellbook_ok(ch, spellnum, class, TRUE)) {
+          if (!spellbook_ok(ch, spellnum, class, TRUE) && 
+                  GET_LEVEL(ch) < LVL_IMMORT) {
             return;
           }
           send_to_char(ch, "You start to memorize %s.\r\n", spell_info[spellnum].name);
