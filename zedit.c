@@ -633,6 +633,8 @@ static void zedit_disp_arg2(struct descriptor_data *d) {
 
   switch (OLC_CMD(d).command) {
     case 'M':
+      write_to_output(d, "Input the maximum number that can exist on the mud : ");
+      break;
     case 'O':
     case 'E':
     case 'P':
@@ -667,10 +669,12 @@ static void zedit_disp_arg2(struct descriptor_data *d) {
 /* Print the appropriate message for the command type for arg3 and set
    up the input catch clause. */
 static void zedit_disp_arg3(struct descriptor_data *d) {
-
   write_to_output(d, "\r\n");
 
   switch (OLC_CMD(d).command) {
+    case 'M':
+      write_to_output(d, "Count maximum (g)lobally, or in (r)oom : ");
+      break;
     case 'E':
       column_list(d->character, 0, equipment_types, NUM_WEARS, TRUE);
       write_to_output(d, "Location to equip : ");
@@ -689,7 +693,6 @@ static void zedit_disp_arg3(struct descriptor_data *d) {
       break;
     case 'V':
     case 'T':
-    case 'M':
     case 'O':
     case 'R':
     case 'J':
@@ -1076,11 +1079,14 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
       }
       switch (OLC_CMD(d).command) {
         case 'M':
+          OLC_CMD(d).arg2 = MIN(MAX_DUPLICATES, atoi(arg));
+          OLC_CMD(d).arg3 = real_room(OLC_NUM(d));
+          zedit_disp_arg3(d);
+          break;
         case 'O':
           OLC_CMD(d).arg2 = MIN(MAX_DUPLICATES, atoi(arg));
           OLC_CMD(d).arg3 = real_room(OLC_NUM(d));
           zedit_disp_arg4(d);
-          //zedit_disp_menu(d);
           break;
         case 'G':
           OLC_CMD(d).arg2 = MIN(MAX_DUPLICATES, atoi(arg));
@@ -1140,6 +1146,21 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
         return;
       }
       switch (OLC_CMD(d).command) {
+        case 'M':
+          switch (*arg) {
+            case 'g':
+            case 'G':
+              zedit_disp_arg4(d);
+              break;
+            case 'r':
+            case 'R':
+              OLC_CMD(d).arg2 = -(OLC_CMD(d).arg2);
+              break;
+            default:
+              write_to_output(d, "(g)lobal or (r)oom : ");
+              break;              
+          }
+          break;
         case 'E':
           pos = atoi(arg) - 1;
           /* Count number of wear positions. */
@@ -1177,7 +1198,6 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
             zedit_disp_menu(d);
           }
           break;
-        case 'M':
         case 'O':
         case 'R':
         case 'T':
