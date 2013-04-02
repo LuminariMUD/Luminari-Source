@@ -262,15 +262,13 @@ EVENTFUNC(event_falling)
   /* nab char data */
   ch = (struct char_data *) pMudEvent->pStruct;    
 
-  /* dummy check */
-  if (!IS_PLAYING(ch->desc))
-    return 0;
-  
-  send_to_char(ch, "DEBUG:  sVariables: %s.\r\n", pMudEvent->sVariables);
+  /* dummy checks */
+  if (!ch)  return 0;
+  if (!IS_NPC(ch) && !IS_PLAYING(ch->desc))  return 0;
   
   /* retrieve svariables and convert it */
   height_fallen += atoi((char *) pMudEvent->sVariables);
-  send_to_char(ch, "DEBUG:  You have fallen %d feet!\r\n", height_fallen);
+  send_to_char(ch, "AIYEE!!!  You have fallen %d feet!\r\n", height_fallen);
   
   /* already checked if there is a down exit, lets move the char down */
   do_simple_move(ch, DOWN, FALSE);
@@ -281,8 +279,8 @@ EVENTFUNC(event_falling)
   
   /* can we continue this fall? */
   if (!ROOM_FLAGGED(ch->in_room, ROOM_FLY_NEEDED) || !CAN_GO(ch, DOWN)) {
-    send_to_char(ch, "You fall headfirst to the ground!\r\n");
-    act("$n crashes into the ground!", FALSE, ch, 0, 0, TO_ROOM);
+    send_to_char(ch, "You fall headfirst to the ground!  OUCH!\r\n");
+    act("$n crashes into the ground headfirst, OUCH!", FALSE, ch, 0, 0, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
     SET_WAIT(ch, 4 * PULSE_VIOLENCE);
     damage(ch, ch, (dice((height_fallen/5), 6) + 20), TYPE_UNDEFINED, DAM_FORCE, FALSE);
