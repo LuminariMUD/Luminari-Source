@@ -706,6 +706,7 @@ void npc_class_behave(struct char_data *ch) {
     case CLASS_BARD:
       npc_wizard_behave(ch, vict, getCircle(ch, CLASS_BARD), engaged);
       break;
+    case CLASS_BERSERKER:
     case CLASS_WARRIOR:
       npc_warrior_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
@@ -725,8 +726,6 @@ void npc_class_behave(struct char_data *ch) {
     case CLASS_MONK:
       npc_monk_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
-    case CLASS_BERSERKER:
-      break;
     default:
       log("ERR:  Reached invalid class in npc_class_behave.");
       break;
@@ -736,6 +735,7 @@ void npc_class_behave(struct char_data *ch) {
 /*** MOBILE ACTIVITY ***/
 
 
+/* the primary engine for mobile activity */
 void mobile_activity(void) {
   struct char_data *ch = NULL, *next_ch = NULL, *vict = NULL;
   struct obj_data *obj = NULL, *best_obj = NULL;
@@ -772,6 +772,10 @@ void mobile_activity(void) {
     if (!AWAKE(ch) || IS_CASTING(ch))
       continue;
 
+    /* follow set path for mobile (like patrols) */
+    if (move_on_path(ch))
+      continue;
+    
     /* If the mob has no specproc, do the default actions */
 
     // entry point for npc race and class behaviour in combat -zusuk
@@ -815,7 +819,7 @@ void mobile_activity(void) {
               !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_DEATH) &&
               (!MOB_FLAGGED(ch, MOB_STAY_ZONE) ||
               (world[EXIT(ch, door)->to_room].zone == world[IN_ROOM(ch)].zone))) {
-        /* If the mob is charmed, do not move  qthe mob. */
+        /* If the mob is charmed, do not move the mob. */
         if (ch->master == NULL)
           perform_move(ch, door, 1);
       }
@@ -896,7 +900,13 @@ void mobile_activity(void) {
             MOB_FLAGGED(ch, MOB_SENTINEL) && !IS_PET(ch) && 
             GET_MOB_LOADROOM(ch) != ch->in_room)
       hunt_loadroom(ch);
-    
+
+    /* pets return to their master */
+    if (GET_POS(ch) == POS_STANDING && IS_PET(ch) && ch->master->in_room != 
+            ch->in_room && !HUNTING(ch)) {
+      HUNTING(ch) = ch->master;
+      hunt_victim(ch);
+    }
     /* Add new mobile actions here */
 
   } /* end for() */
