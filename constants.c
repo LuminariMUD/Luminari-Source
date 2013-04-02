@@ -163,19 +163,20 @@ const char *room_bits[] = {
   "No-Mob",
   "Indoors",
   "Peaceful",
-  "Soundproof",
+  "Soundproof",  //5
   "No-Track",
   "No-Magic",
   "Tunnel",
   "Private",
-  "Staff-Room",
+  "Staff-Room",  //10
   "House",
   "House-Crash",
   "Atrium",
   "OLC",
-  "*",				/* The BFS Mark. */
+  "*",  /* The BFS Mark. (15) */
   "Worldmap",
   "Regenerating",
+  "Fly-Needed",
   "\n"
 };
 
@@ -418,7 +419,7 @@ const char *affected_bits[] =
   "Underwater-Breathing",
   "Sneaking",
   "Hiding",  //20
-  "!UNUSED!",
+  "Vampiric-Curse",
   "Charmed",
   "Blurred",
   "Mode-PowerAttack",
@@ -466,6 +467,14 @@ const char *affected_bits[] =
   "Dimensional-Locked",
   "Death-Ward",
   "Mode-Spellbattle",
+  "Vampiric-Touch",
+  "Blackmantled",  //70
+  "Danger-Sense",
+  "SafeFall",
+  "Tower-of-Iron-Will",
+  "Inertial-Barrier",
+  "Not-teleportable",  //75
+  "DamageBoost",  // AFF_MAX_DAMAGE
   "\n"
 };
 
@@ -746,6 +755,7 @@ const char *extra_bits[] = {
   "Anti-Ranger",  //35
   "Anti-Bard",
   "Anti-Arcana-Golem",
+  "Floating",
   "\n"
 };
 

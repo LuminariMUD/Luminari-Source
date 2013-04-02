@@ -4171,6 +4171,10 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "$n \twcures some wounds\tn on you.";
       break;
   }
+  
+  /* black mantle reduces effectiveness of healing by 20% */
+  if (AFF_FLAGGED(ch, AFF_BLACKMANTLE))
+    healing = healing - (healing * 20 / 100);
 
   send_to_char(ch, "<%d> ", healing);
   if (ch != victim)

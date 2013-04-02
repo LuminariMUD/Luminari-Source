@@ -1,12 +1,12 @@
 /**************************************************************************
-*  File: act.offensive.c                                   Part of tbaMUD *
-*  Usage: Player-level commands of an offensive nature.                   *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-**************************************************************************/
+ *  File: act.offensive.c                                   Part of tbaMUD *
+ *  Usage: Player-level commands of an offensive nature.                   *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -32,7 +32,7 @@ ACMD(do_turnundead) {
   struct char_data *vict = NULL;
   int turn_level = 0, percent = 0;
   int turn_difference = 0, turn_result = 0, turn_roll = 0;
-  char buf[MAX_STRING_LENGTH] = { '\0' };
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (CLASS_LEVEL(ch, CLASS_PALADIN) > 2)
     turn_level += CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
@@ -63,8 +63,8 @@ ACMD(do_turnundead) {
   if (char_has_mud_event(ch, eTURN_UNDEAD)) {
     send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
     return;
-  } 
-  
+  }
+
   percent = GET_SKILL(ch, SKILL_TURN_UNDEAD);
 
   if (!percent) {
@@ -73,15 +73,15 @@ ACMD(do_turnundead) {
   }
 
   /* add cooldown, increase skill */
-  attach_mud_event(new_mud_event(eTURN_UNDEAD, ch, NULL), 120 * PASSES_PER_SEC);  
+  attach_mud_event(new_mud_event(eTURN_UNDEAD, ch, NULL), 120 * PASSES_PER_SEC);
   increase_skill(ch, SKILL_TURN_UNDEAD);
-  
+
   /* too powerful */
   if (GET_LEVEL(vict) >= LVL_IMMORT) {
     send_to_char(ch, "This undead is too powerful!\r\n");
     return;
   }
-  
+
   turn_difference = (turn_level - GET_LEVEL(vict));
   turn_roll = rand_number(1, 20);
 
@@ -154,15 +154,14 @@ ACMD(do_turnundead) {
       dam_killed_vict(ch, vict);
       break;
   }
-  
+
 }
 
 /* rage skill (berserk) primarily for berserkers character class */
-ACMD(do_rage)
-{
+ACMD(do_rage) {
   struct affected_type af, aftwo, afthree, affour;
   int bonus = 0, duration = 0;
-  
+
   if (affected_by_spell(ch, SKILL_RAGE)) {
     send_to_char(ch, "You are already raging!\r\n");
     return;
@@ -175,7 +174,7 @@ ACMD(do_rage)
   }
   if (char_has_mud_event(ch, eRAGE)) {
     send_to_char(ch, "You must wait longer before you can use this ability "
-                     "again.\r\n");
+            "again.\r\n");
     return;
   }
 
@@ -185,7 +184,7 @@ ACMD(do_rage)
     bonus = (CLASS_LEVEL(ch, CLASS_BERSERKER) / 3) + 3;
   }
   duration = 6 + GET_CON_BONUS(ch) * 2;
-  
+
   send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
   act("$n goes into a \tRR\trA\tRG\trE\tn!", FALSE, ch, 0, 0, TO_ROOM);
 
@@ -203,7 +202,7 @@ ACMD(do_rage)
   aftwo.duration = duration;
   aftwo.location = APPLY_CON;
   aftwo.modifier = bonus;
-  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2;  //little boost in current hps
+  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2; //little boost in current hps
 
   afthree.spell = SKILL_RAGE;
   afthree.duration = duration;
@@ -221,14 +220,12 @@ ACMD(do_rage)
   affect_to_char(ch, &afthree);
   affect_to_char(ch, &affour);
   attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
-  
+
   if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_RAGE);  
+    increase_skill(ch, SKILL_RAGE);
 }
 
-
-ACMD(do_assist)
-{
+ACMD(do_assist) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *helpee, *opponent;
 
@@ -252,14 +249,14 @@ ACMD(do_assist)
       opponent = FIGHTING(helpee);
     else
       for (opponent = world[IN_ROOM(ch)].people;
-	   opponent && (FIGHTING(opponent) != helpee);
-	   opponent = opponent->next_in_room);
+              opponent && (FIGHTING(opponent) != helpee);
+              opponent = opponent->next_in_room);
 
     if (!opponent)
       act("But nobody is fighting $M!", FALSE, ch, 0, helpee, TO_CHAR);
     else if (!CAN_SEE(ch, opponent))
       act("You can't see who is fighting $M!", FALSE, ch, 0, helpee, TO_CHAR);
-         /* prevent accidental pkill */
+      /* prevent accidental pkill */
     else if (!CONFIG_PK_ALLOWED && !IS_NPC(opponent))
       send_to_char(ch, "You cannot kill other players.\r\n");
     else if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
@@ -273,11 +270,10 @@ ACMD(do_assist)
   }
 }
 
-ACMD(do_hit)
-{
-  char arg[MAX_INPUT_LENGTH] = { '\0' };
+ACMD(do_hit) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
-  int chInitiative = dice(1,20), victInitiative = dice(1,20);
+  int chInitiative = dice(1, 20), victInitiative = dice(1, 20);
 
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
     send_to_char(ch, "But you can't fight!\r\n");
@@ -285,7 +281,7 @@ ACMD(do_hit)
   }
 
   one_argument(argument, arg);
-  
+
   if (!*arg)
     send_to_char(ch, "Hit who?\r\n");
   else if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
@@ -298,10 +294,10 @@ ACMD(do_hit)
   } else if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == vict))
     act("$N is just such a good friend, you simply can't hit $M.", FALSE, ch, 0, vict, TO_CHAR);
   else {
-    if (!CONFIG_PK_ALLOWED && !IS_NPC(vict) && !IS_NPC(ch)) 
-	check_killer(ch, vict);
+    if (!CONFIG_PK_ALLOWED && !IS_NPC(vict) && !IS_NPC(ch))
+      check_killer(ch, vict);
     /* already fighting */
-    if (!FIGHTING(ch)) {  
+    if (!FIGHTING(ch)) {
       if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_INITIATIVE))
         chInitiative += 8;
       chInitiative += GET_DEX(ch);
@@ -309,30 +305,30 @@ ACMD(do_hit)
         victInitiative += 8;
       victInitiative += GET_DEX(vict);
       if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING)
-        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);  /* ch first */
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */
       else {
         send_to_char(vict, "\tYYour superior initiative grants the first strike!\tn\r\n");
         send_to_char(ch,
-"\tyYour opponents superior \tYinitiative\ty grants the first strike!\tn\r\n");
-        hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);  // victim is first 
+                "\tyYour opponents superior \tYinitiative\ty grants the first strike!\tn\r\n");
+        hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); // victim is first 
         update_pos(ch);
         if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_INITIATIVE) &&
-		GET_POS(ch) > POS_DEAD) {
+                GET_POS(ch) > POS_DEAD) {
           send_to_char(vict, "\tYYour superior initiative grants another attack!\tn\r\n");
           hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         }
       }
       SET_WAIT(ch, PULSE_VIOLENCE);
-    /* not fighting, so switch opponents */
+      /* not fighting, so switch opponents */
     } else {
       stop_fighting(ch);
       send_to_char(ch, "You switch opponents!\r\n");
-      act("$n switches opponents!", FALSE, ch, 0, vict, TO_ROOM);      
+      act("$n switches opponents!", FALSE, ch, 0, vict, TO_ROOM);
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       SET_WAIT(ch, PULSE_VIOLENCE);
 
       //everyone gets a free shot at you unless you make a tumble check
-        //15 is DC
+      //15 is DC
       vict = FIGHTING(ch);
       if (FIGHTING(ch) && FIGHTING(vict)) {
         if (!IS_NPC(ch) && dice(1, 20) + compute_ability(ch, ABILITY_TUMBLE) <= 15) {
@@ -348,12 +344,11 @@ ACMD(do_hit)
       }
 
     }
-  } 
+  }
 }
 
-ACMD(do_kill)
-{
-  char arg[MAX_INPUT_LENGTH] = { '\0' };
+ACMD(do_kill) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
   if (GET_LEVEL(ch) < LVL_IMMORT || IS_NPC(ch) ||
@@ -393,30 +388,29 @@ ACMD(do_kill)
 bool has_piercing_weapon(struct char_data *ch, int wield) {
   if (!ch)
     return FALSE;
-  
+
   if (wield < 1 || wield > 3)
     return FALSE;
-  
+
   if (wield == 1 && GET_EQ(ch, WEAR_WIELD_1) &&
-          IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1)) ) {
+          IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1))) {
     return TRUE;
   }
-      
-  if (wield == 2 && GET_EQ(ch, WEAR_WIELD_2) && 
+
+  if (wield == 2 && GET_EQ(ch, WEAR_WIELD_2) &&
           GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2), 3) == TYPE_PIERCE - TYPE_HIT) {
     return TRUE;
   }
-      
-  if (wield == 3 && GET_EQ(ch, WEAR_WIELD_2H) && 
-         GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2H), 3) == TYPE_PIERCE - TYPE_HIT) {
-    return TRUE;    
+
+  if (wield == 3 && GET_EQ(ch, WEAR_WIELD_2H) &&
+          GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2H), 3) == TYPE_PIERCE - TYPE_HIT) {
+    return TRUE;
   }
-  
+
   return FALSE;
 }
 
-ACMD(do_backstab)
-{
+ACMD(do_backstab) {
   char buf[MAX_INPUT_LENGTH];
   struct char_data *vict;
   int percent, percent2, prob;
@@ -457,18 +451,18 @@ ACMD(do_backstab)
     return;
   }
 
-  percent = rand_number(1, 101);	/* 101% is a complete failure */
-  percent2 = rand_number(1, 101);	/* 101% is a complete failure */
+  percent = rand_number(1, 101); /* 101% is a complete failure */
+  percent2 = rand_number(1, 101); /* 101% is a complete failure */
   prob = GET_SKILL(ch, SKILL_BACKSTAB);
   if (AFF_FLAGGED(ch, AFF_HIDE))
-    prob += 4;  //minor bonus for being hidden
+    prob += 4; //minor bonus for being hidden
   if (AFF_FLAGGED(ch, AFF_SNEAK))
-    prob += 4;  //minor bonus for being sneaky
+    prob += 4; //minor bonus for being sneaky
 
   int successful = 0;
 
   if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_1) &&
-	IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1)))) {
+          IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1)))) {
     if (AWAKE(vict) && (percent > prob)) {
       damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, FALSE);
     } else {
@@ -481,7 +475,7 @@ ACMD(do_backstab)
 
   if (vict && GET_POS(vict) >= POS_DEAD) {
     if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_2) &&
-	IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2)))) {
+            IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2)))) {
       if (AWAKE(vict) && (percent2 > prob)) {
         damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
       } else {
@@ -495,8 +489,8 @@ ACMD(do_backstab)
 
   if (vict) {
     if (GET_EQ(ch, WEAR_WIELD_2H) &&
-	IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2H)) &&
- 	GET_POS(vict) >= POS_DEAD) {
+            IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2H)) &&
+            GET_POS(vict) >= POS_DEAD) {
       if (AWAKE(vict) && (percent2 > prob)) {
         damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
       } else {
@@ -514,9 +508,7 @@ ACMD(do_backstab)
     send_to_char(ch, "You have no piercing weapon equipped.\r\n");
 }
 
-
-ACMD(do_order)
-{
+ACMD(do_order) {
   char name[MAX_INPUT_LENGTH], message[MAX_INPUT_LENGTH];
   bool found = FALSE;
   struct char_data *vict;
@@ -539,7 +531,7 @@ ACMD(do_order)
     if (vict) {
       char buf[MAX_STRING_LENGTH];
 
-      snprintf(buf, sizeof(buf), "$N orders you to '%s'", message);
+      snprintf(buf, sizeof (buf), "$N orders you to '%s'", message);
       act(buf, FALSE, vict, 0, ch, TO_CHAR);
       act("$n gives $N an order.", FALSE, ch, 0, vict, TO_ROOM);
 
@@ -549,10 +541,10 @@ ACMD(do_order)
         send_to_char(ch, "%s", CONFIG_OK);
         command_interpreter(vict, message);
       }
-    } else {			/* This is order "followers" */
+    } else { /* This is order "followers" */
       char buf[MAX_STRING_LENGTH];
 
-      snprintf(buf, sizeof(buf), "$n issues the order '%s'.", message);
+      snprintf(buf, sizeof (buf), "$n issues the order '%s'.", message);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
       for (k = ch->followers; k; k = k->next) {
@@ -562,7 +554,7 @@ ACMD(do_order)
             command_interpreter(k->follower, message);
           }
       }
-      
+
       if (found)
         send_to_char(ch, "%s", CONFIG_OK);
       else
@@ -571,9 +563,7 @@ ACMD(do_order)
   }
 }
 
-
-ACMD(do_flee)
-{
+ACMD(do_flee) {
   char arg[MAX_INPUT_LENGTH];
   int i;
 
@@ -600,7 +590,7 @@ ACMD(do_flee)
         if (do_simple_move(ch, i, 3)) {
           send_to_char(ch, "You make a tactical retreat from battle!\r\n");
           act("$n makes a tactical retreat from the battle!",
-		TRUE, ch, 0, 0, TO_ROOM);
+                  TRUE, ch, 0, 0, TO_ROOM);
         } else {
           send_to_char(ch, "You can't escape that direction!\r\n");
           return;
@@ -608,7 +598,7 @@ ACMD(do_flee)
       } else {
         send_to_char(ch, "You can't escape that direction!\r\n");
         return;
-      }      
+      }
     } else {
       send_to_char(ch, "That isn't a valid direction!\r\n");
       return;
@@ -621,17 +611,17 @@ ACMD(do_flee)
 
 #define SPELLBATTLE_CAP  12
 #define SPELLBATTLE_AFFECTS 4
-ACMD(do_spellbattle)
-{
-  char arg[MAX_INPUT_LENGTH] = { '\0' };
+
+ACMD(do_spellbattle) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int number = -1, cap = SPELLBATTLE_CAP, duration = 1, i = 0;
   struct affected_type af[SPELLBATTLE_AFFECTS];
-  
+
   if (IS_NPC(ch) || (!IS_NPC(ch) && GET_RACE(ch) != RACE_ARCANA_GOLEM)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_EXPERTISE) ||
           AFF_FLAGGED(ch, AFF_PARRY) ||
           AFF_FLAGGED(ch, AFF_POWER_ATTACK)) {
@@ -639,7 +629,7 @@ ACMD(do_spellbattle)
             "spell-battle.\r\n");
     return;
   }
-  
+
   if (argument)
     one_argument(argument, arg);
 
@@ -663,11 +653,11 @@ ACMD(do_spellbattle)
   }
 
   if (char_has_mud_event(ch, eSPELLBATTLE) ||
-          affected_by_spell(ch, SKILL_SPELLBATTLE)) {  
+          affected_by_spell(ch, SKILL_SPELLBATTLE)) {
     send_to_char(ch, "You are already in spellbattle mode!\r\n");
     return;
   }
-  
+
   /* ok we have an arg, lets make sure its valid */
   if (is_number(arg))
     number = atoi(arg);
@@ -675,130 +665,122 @@ ACMD(do_spellbattle)
     send_to_char(ch, "The argument needs to be a number!\r\n");
     return;
   }
-  
+
   /* we have a cap of SPELLBATTLE_CAP or BAB or CASTER_LEVEL, whatever is
    lowest */
   if (cap > BAB(ch))
     cap = BAB(ch);
   if (cap > CASTER_LEVEL(ch))
     cap = CASTER_LEVEL(ch);
-  
+
   if (number > cap) {
     send_to_char(ch, "Your maximum spellbattle level is %d!\r\n", cap);
     return;
   }
-  
+
   /* passed all the tests, we should have a valid number for spellbattle */
   SPELLBATTLE(ch) = number;
   send_to_char(ch, "You are now in 'spellbattle' mode.\r\n");
-  duration = (1 * SECS_PER_REAL_HOUR) / PULSE_VIOLENCE;  // this should match our event duration
-  
-    /* init affect array */
+  duration = (1 * SECS_PER_REAL_HOUR) / PULSE_VIOLENCE; // this should match our event duration
+
+  /* init affect array */
   for (i = 0; i < SPELLBATTLE_AFFECTS; i++) {
     new_affect(&(af[i]));
     af[i].spell = SKILL_SPELLBATTLE;
     af[i].duration = duration;
   }
- 
+
   af[0].location = APPLY_INT;
-  af[0].modifier = -2;  
+  af[0].modifier = -2;
   af[1].location = APPLY_WIS;
-  af[1].modifier = -2;  
+  af[1].modifier = -2;
   af[2].location = APPLY_CHA;
-  af[2].modifier = -2;  
+  af[2].modifier = -2;
   af[3].location = APPLY_HIT;
-  af[3].modifier = SPELLBATTLE(ch) * 10;  
-  
+  af[3].modifier = SPELLBATTLE(ch) * 10;
+
   for (i = 0; i < SPELLBATTLE_AFFECTS; i++)
-    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);  
-  
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+
   SET_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
-  attach_mud_event(new_mud_event(eSPELLBATTLE, ch, NULL), 
+  attach_mud_event(new_mud_event(eSPELLBATTLE, ch, NULL),
           1 * SECS_PER_REAL_HOUR);
 }
 #undef SPELLBATTLE_CAP
 #undef SPELLBATTLE_AFFECTS
 
-
-ACMD(do_expertise)
-{
+ACMD(do_expertise) {
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_EXPERTISE)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_SPELLBATTLE)) {
     send_to_char(ch, "You can't enter this mode while in spellbattle!\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_EXPERTISE)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_EXPERTISE);
     send_to_char(ch, "You leave 'expertise' mode.\r\n");
     return;
   }
- 
+
   send_to_char(ch, "You are now in 'expertise' mode.\r\n");
- 
+
   SET_BIT_AR(AFF_FLAGS(ch), AFF_EXPERTISE);
   SET_WAIT(ch, 10);
 }
 
-
-ACMD(do_parry)
-{
+ACMD(do_parry) {
   if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_PARRY)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_SPELLBATTLE)) {
     send_to_char(ch, "You can't enter this mode while in spellbattle!\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_PARRY)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_PARRY);
     send_to_char(ch, "You leave 'parry' mode.\r\n");
     return;
   }
- 
+
   send_to_char(ch, "You are now in 'parry' mode.\r\n");
- 
+
   SET_BIT_AR(AFF_FLAGS(ch), AFF_PARRY);
   SET_WAIT(ch, 10);
 }
 
-
-ACMD(do_powerattack)
-{
+ACMD(do_powerattack) {
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_POWER_ATTACK)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_SPELLBATTLE)) {
     send_to_char(ch, "You can't enter this mode while in spellbattle!\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POWER_ATTACK);
     send_to_char(ch, "You leave 'power attack' mode.\r\n");
     return;
   }
- 
+
   send_to_char(ch, "You are now in 'power attack' mode.\r\n");
- 
+
   SET_BIT_AR(AFF_FLAGS(ch), AFF_POWER_ATTACK);
   SET_WAIT(ch, 10);
 }
 
-
-ACMD(do_disengage)
-{
+ACMD(do_disengage) {
   struct char_data *vict;
-  
+
   if (!FIGHTING(ch)) {
     send_to_char(ch, "You aren't even fighting anyone, calm down.\r\n");
     return;
@@ -815,17 +797,15 @@ ACMD(do_disengage)
     stop_fighting(ch);
     send_to_char(ch, "You disengage from the fight.\r\n");
     act("$n disengages from the fight.", FALSE, ch, 0, 0, TO_ROOM);
-    
+
     SET_WAIT(ch, PULSE_VIOLENCE);
   }
 }
 
-
-ACMD(do_taunt)
-{
+ACMD(do_taunt) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
-  int attempt = dice(1,20), resist = dice(1,20);
+  int attempt = dice(1, 20), resist = dice(1, 20);
 
   one_argument(argument, arg);
 
@@ -883,9 +863,7 @@ ACMD(do_taunt)
   attach_mud_event(new_mud_event(eTAUNT, ch, NULL), 8 * PASSES_PER_SEC);
 }
 
-
-ACMD(do_frightful)
-{
+ACMD(do_frightful) {
   struct char_data *vict, *next_vict;
 
   if (!IS_DRAGON(ch)) {
@@ -902,14 +880,14 @@ ACMD(do_frightful)
 
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict) {
     next_vict = vict->next_in_room;
-  
-    if (aoeOK(ch, vict, -1) && 
+
+    if (aoeOK(ch, vict, -1) &&
             (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_COURAGE))) {
       send_to_char(ch, "You roar at %s.\r\n", GET_NAME(vict));
-      send_to_char(vict, "A mighty roar from %s is directed at you!\r\n", 
-		GET_NAME(ch));
-      act("$n roars at $N!", FALSE, ch, 0, vict, 
-		TO_NOTVICT);
+      send_to_char(vict, "A mighty roar from %s is directed at you!\r\n",
+              GET_NAME(ch));
+      act("$n roars at $N!", FALSE, ch, 0, vict,
+              TO_NOTVICT);
 
       perform_flee(vict);
       perform_flee(vict);
@@ -921,9 +899,7 @@ ACMD(do_frightful)
   SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 
-
-ACMD(do_breathe)
-{
+ACMD(do_breathe) {
   struct char_data *vict, *next_vict;
 
   if (!IS_DRAGON(ch)) {
@@ -941,23 +917,21 @@ ACMD(do_breathe)
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict) {
     next_vict = vict->next_in_room;
 
-    if (aoeOK(ch, vict, SPELL_FIRE_BREATHE)) {  
+    if (aoeOK(ch, vict, SPELL_FIRE_BREATHE)) {
       SET_WAIT(vict, PULSE_VIOLENCE * 1);
       if (GET_LEVEL(ch) <= 15)
         damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_FIRE_BREATHE, DAM_FIRE,
-                FALSE);
+              FALSE);
       else
         damage(ch, vict, dice(GET_LEVEL(ch), 14), SPELL_FIRE_BREATHE, DAM_FIRE,
-                FALSE);
+              FALSE);
     }
   }
 
   SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 
-
-ACMD(do_tailsweep)
-{
+ACMD(do_tailsweep) {
   struct char_data *vict, *next_vict;
   int percent = 0, prob = 0;
 
@@ -980,30 +954,30 @@ ACMD(do_tailsweep)
       continue;
 
     // pass -2 as spellnum to handle tailsweep
-    if (aoeOK(ch, vict, -2)) {  
+    if (aoeOK(ch, vict, -2)) {
       percent = rand_number(1, 101);
       prob = rand_number(75, 100);
 
       if (percent > prob) {
         send_to_char(ch, "You failed to knock over %s.\r\n", GET_NAME(vict));
-        send_to_char(vict, "You were able to dodge a tailsweep from %s.\r\n", 
-		GET_NAME(ch));
-        act("$N dodges a tailsweep from $n.", FALSE, ch, 0, vict, 
-		TO_NOTVICT);
+        send_to_char(vict, "You were able to dodge a tailsweep from %s.\r\n",
+                GET_NAME(ch));
+        act("$N dodges a tailsweep from $n.", FALSE, ch, 0, vict,
+                TO_NOTVICT);
       } else {
         GET_POS(vict) = POS_SITTING;
         SET_WAIT(vict, PULSE_VIOLENCE * 2);
 
         send_to_char(ch, "You knock over %s.\r\n", GET_NAME(vict));
-        send_to_char(vict, "You were knocked down by a tailsweep from %s.\r\n", 
-		GET_NAME(ch));
-        act("$N is knocked down by a tailsweep from $n.", FALSE, ch, 0, vict, 
-		TO_NOTVICT);
+        send_to_char(vict, "You were knocked down by a tailsweep from %s.\r\n",
+                GET_NAME(ch));
+        act("$N is knocked down by a tailsweep from $n.", FALSE, ch, 0, vict,
+                TO_NOTVICT);
       }
 
-      if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))  // ch -> vict
+      if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) // ch -> vict
         set_fighting(ch, vict);
-      if (GET_POS(vict) > POS_STUNNED && (FIGHTING(vict) == NULL)) {  // vict -> ch
+      if (GET_POS(vict) > POS_STUNNED && (FIGHTING(vict) == NULL)) { // vict -> ch
         set_fighting(vict, ch);
         if (MOB_FLAGGED(vict, MOB_MEMORY) && !IS_NPC(ch))
           remember(vict, ch);
@@ -1015,9 +989,7 @@ ACMD(do_tailsweep)
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
 }
 
-
-ACMD(do_bash)
-{
+ACMD(do_bash) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
   int percent, prob;
@@ -1055,9 +1027,9 @@ ACMD(do_bash)
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
     send_to_char(ch, "Your target is too big!\r\n");
     return;
-  }  
+  }
 
-  percent = rand_number(1, 101);	/* 101% is a complete failure */
+  percent = rand_number(1, 101); /* 101% is a complete failure */
   prob = GET_SKILL(ch, SKILL_BASH);
 
   if (MOB_FLAGGED(vict, MOB_NOBASH) && !GET_SKILL(ch, SKILL_IMPROVED_BASH)) {
@@ -1068,15 +1040,15 @@ ACMD(do_bash)
     send_to_char(ch, "It is difficult to knock down something already down:  ");
     percent += 75;
   }
-   
+
   if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_BASH)) {
     increase_skill(ch, SKILL_IMPROVED_BASH);
     prob += GET_SKILL(ch, SKILL_IMPROVED_BASH) / 5;
   }
-  
+
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     percent += compute_ability(vict, ABILITY_DISCIPLINE);
-  
+
   if (GET_RACE(ch) == RACE_DWARF ||
           GET_RACE(ch) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
     percent += 4;
@@ -1096,12 +1068,10 @@ ACMD(do_bash)
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_BASH);
-  
+
 }
 
-
-ACMD(do_trip)
-{
+ACMD(do_trip) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
   int percent, prob;
@@ -1112,12 +1082,12 @@ ACMD(do_trip)
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-  
+
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
       vict = FIGHTING(ch);
@@ -1126,38 +1096,38 @@ ACMD(do_trip)
       return;
     }
   }
-  
+
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
-  
+
   if (MOB_FLAGGED(vict, MOB_NOKILL)) {
     send_to_char(ch, "This mob is protected.\r\n");
     return;
   }
-  
+
   if (GET_POS(vict) == POS_SITTING) {
     send_to_char(ch, "Your target is already prone!\r\n");
     return;
   }
-  
+
   if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2) {
     send_to_char(ch, "Your target is too small!\r\n");
     return;
   }
-  
+
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
     send_to_char(ch, "Your target is too big!\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(vict, AFF_FLYING)) {
     send_to_char(ch, "Impossible, your target is flying!\r\n");
     return;
   }
 
-  percent = rand_number(1, 101);	/* 101% is a complete failure */
+  percent = rand_number(1, 101); /* 101% is a complete failure */
   prob = GET_SKILL(ch, SKILL_TRIP);
 
   if (MOB_FLAGGED(vict, MOB_NOBASH) && !GET_SKILL(ch, SKILL_IMPROVED_TRIP)) {
@@ -1172,11 +1142,11 @@ ACMD(do_trip)
 
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     percent += compute_ability(vict, ABILITY_DISCIPLINE);
-  
+
   if (GET_RACE(ch) == RACE_DWARF ||
           GET_RACE(ch) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
     percent += 4;
-  
+
   if (percent > prob) {
     GET_POS(ch) = POS_SITTING;
     damage(ch, vict, 0, SKILL_TRIP, DAM_FORCE, FALSE);
@@ -1195,17 +1165,15 @@ ACMD(do_trip)
     increase_skill(ch, SKILL_TRIP);
 }
 
-
-ACMD(do_layonhands)
-{
-  char arg[MAX_INPUT_LENGTH] = { '\0' };
+ACMD(do_layonhands) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_LAY_ON_HANDS)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
-  
+
   one_argument(argument, arg);
 
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
@@ -1224,16 +1192,14 @@ ACMD(do_layonhands)
 
   attach_mud_event(new_mud_event(eLAYONHANDS, ch, NULL), 2 * SECS_PER_MUD_DAY);
   GET_HIT(vict) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch),
-          20 + GET_LEVEL(ch) + 
+          20 + GET_LEVEL(ch) +
           (GET_CHA_BONUS(ch) * CLASS_LEVEL(ch, CLASS_PALADIN)));
   update_pos(vict);
-  
+
   increase_skill(ch, SKILL_LAY_ON_HANDS);
 }
 
-
-ACMD(do_crystalfist)
-{
+ACMD(do_crystalfist) {
   if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
     send_to_char(ch, "How do you plan on doing that?\r\n");
     return;
@@ -1252,9 +1218,7 @@ ACMD(do_crystalfist)
           (8 * SECS_PER_MUD_HOUR));
 }
 
-
-ACMD(do_crystalbody)
-{
+ACMD(do_crystalbody) {
   if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
     send_to_char(ch, "How do you plan on doing that?\r\n");
     return;
@@ -1273,10 +1237,7 @@ ACMD(do_crystalbody)
           (8 * SECS_PER_MUD_HOUR));
 }
 
-
-
-ACMD(do_treatinjury)
-{
+ACMD(do_treatinjury) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
@@ -1302,14 +1263,12 @@ ACMD(do_treatinjury)
   act("$n \tWtreats\tn $N's injuries!", FALSE, ch, 0, vict, TO_NOTVICT);
   attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL),
           (6 * SECS_PER_MUD_HOUR));
-  GET_HIT(vict) += MIN((GET_MAX_HIT(vict)-GET_HIT(vict)),
-                   (10 + (compute_ability(ch, ABILITY_TREAT_INJURY) * 2)));
+  GET_HIT(vict) += MIN((GET_MAX_HIT(vict) - GET_HIT(vict)),
+          (10 + (compute_ability(ch, ABILITY_TREAT_INJURY) * 2)));
   update_pos(vict);
 }
 
-
-ACMD(do_rescue)
-{
+ACMD(do_rescue) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict, *tmp_ch;
   int percent, prob;
@@ -1334,21 +1293,21 @@ ACMD(do_rescue)
     return;
   }
   for (tmp_ch = world[IN_ROOM(ch)].people; tmp_ch &&
-       (FIGHTING(tmp_ch) != vict); tmp_ch = tmp_ch->next_in_room);
+          (FIGHTING(tmp_ch) != vict); tmp_ch = tmp_ch->next_in_room);
 
   if ((FIGHTING(vict) != NULL) && (FIGHTING(ch) == FIGHTING(vict)) && (tmp_ch == NULL)) {
-     tmp_ch = FIGHTING(vict);
-     if (FIGHTING(tmp_ch) == ch) {
-     send_to_char(ch, "You have already rescued %s from %s.\r\n", GET_NAME(vict), GET_NAME(FIGHTING(ch)));
-     return;
-  }
+    tmp_ch = FIGHTING(vict);
+    if (FIGHTING(tmp_ch) == ch) {
+      send_to_char(ch, "You have already rescued %s from %s.\r\n", GET_NAME(vict), GET_NAME(FIGHTING(ch)));
+      return;
+    }
   }
 
   if (!tmp_ch) {
     act("But nobody is fighting $M!", FALSE, ch, 0, vict, TO_CHAR);
     return;
   }
-  percent = rand_number(1, 101);	/* 101% is a complete failure */
+  percent = rand_number(1, 101); /* 101% is a complete failure */
   prob = GET_SKILL(ch, SKILL_RESCUE);
 
   if (percent > prob) {
@@ -1371,49 +1330,47 @@ ACMD(do_rescue)
 
   SET_WAIT(vict, 2 * PULSE_VIOLENCE);
   if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_RESCUE);  
+    increase_skill(ch, SKILL_RESCUE);
 }
 
-
-EVENTFUNC(event_whirlwind)
-{
+EVENTFUNC(event_whirlwind) {
   struct char_data *ch = NULL, *tch = NULL;
   struct mud_event_data *pMudEvent = NULL;
   struct list_data *room_list = NULL;
   int count = 0;
-	
+
   /* This is just a dummy check, but we'll do it anyway */
   if (event_obj == NULL)
     return 0;
-	  
+
   /* For the sake of simplicity, we will place the event data in easily
-   * referenced pointers */  
+   * referenced pointers */
   pMudEvent = (struct mud_event_data *) event_obj;
-  ch = (struct char_data *) pMudEvent->pStruct;    
+  ch = (struct char_data *) pMudEvent->pStruct;
   if (!IS_PLAYING(ch->desc))
     return 0;
-  
+
   /* When using a list, we have to make sure to allocate the list as it
    * uses dynamic memory */
   room_list = create_list();
-  
+
   /* We search through the "next_in_room", and grab all NPCs and add them
    * to our list */
   if (!IN_ROOM(ch))
     return 0;
 
-  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)  
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
     if (IS_NPC(tch))
       add_to_list(tch, room_list);
-      
+
   /* If our list is empty or has "0" entries, we free it from memory and
-   * close off our event */    
+   * close off our event */
   if (room_list->iSize == 0) {
     free_list(room_list);
     send_to_char(ch, "There is no one in the room to whirlwind!\r\n");
     return 0;
   }
-  
+
   if (GET_HIT(ch) < 1)
     return 0;
 
@@ -1426,17 +1383,17 @@ EVENTFUNC(event_whirlwind)
   /* We spit out some ugly colour, making use of the new colour options,
    * to let the player know they are performing their whirlwind strike */
   send_to_char(ch, "\t[f313]You deliver a vicious \t[f014]\t[b451]WHIRLWIND!!!\tn\r\n");
-  
+
   /* Lets grab some a random NPC from the list, and hit() them up */
   for (count = dice(1, 4); count > 0; count--) {
     tch = random_from_list(room_list);
     hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-  
+
   /* Now that our attack is done, let's free out list */
   if (room_list)
     free_list(room_list);
-  
+
   /* The "return" of the event function is the time until the event is called
    * again. If we return 0, then the event is freed and removed from the list, but
    * any other numerical response will be the delay until the next call */
@@ -1444,24 +1401,23 @@ EVENTFUNC(event_whirlwind)
     send_to_char(ch, "You stop spinning.\r\n");
     return 0;
   } else if (GET_SKILL(ch, SKILL_IMPROVED_WHIRL))
-      return 1.5 * PASSES_PER_SEC;
-    else
-      return 4 * PASSES_PER_SEC;
+    return 1.5 * PASSES_PER_SEC;
+  else
+    return 4 * PASSES_PER_SEC;
 }
 
 /* The "Whirlwind" skill is designed to provide a basic understanding of the
  * mud event and list systems. This is in NO WAY a balanced skill. */
-ACMD(do_whirlwind)
-{
-  
+ACMD(do_whirlwind) {
+
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_WHIRLWIND)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
-  
+
   if (GET_POS(ch) < POS_FIGHTING) {
     send_to_char(ch, "You must be on your feet to perform a whirlwind.\r\n");
-    return;    
+    return;
   }
 
   /* First thing we do is check to make sure the character is not in the middle
@@ -1471,12 +1427,12 @@ ACMD(do_whirlwind)
    * an event of type "eWHIRLWIND" currently exists. */
   if (char_has_mud_event(ch, eWHIRLWIND)) {
     send_to_char(ch, "You are already attempting that!\r\n");
-    return;   
+    return;
   }
 
   send_to_char(ch, "You begin to spin rapidly in circles.\r\n");
   act("$n begins to rapidly spin in a circle!", FALSE, ch, 0, 0, TO_ROOM);
-  
+
   /* NEW_EVENT() will add a new mud event to the event list of the character.
    * This function below adds a new event of "eWHIRLWIND", to "ch", and passes "NULL" as
    * additional data. The event will be called in "3 * PASSES_PER_SEC" or 3 seconds */
@@ -1484,9 +1440,7 @@ ACMD(do_whirlwind)
   SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 
-
-ACMD(do_stunningfist)
-{
+ACMD(do_stunningfist) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
   int percent, prob;
@@ -1522,7 +1476,7 @@ ACMD(do_stunningfist)
     send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
     return;
   }
-  
+
   /* 101% is a complete failure */
   percent = rand_number(1, 101);
   prob = GET_SKILL(ch, SKILL_STUNNING_FIST);
@@ -1533,8 +1487,8 @@ ACMD(do_stunningfist)
   if (percent > prob) {
     damage(ch, vict, 0, SKILL_STUNNING_FIST, DAM_FORCE, FALSE);
   } else {
-    damage(ch, vict, (dice(1,8)+GET_DAMROLL(ch)), SKILL_STUNNING_FIST,
-           DAM_FORCE, FALSE);
+    damage(ch, vict, (dice(1, 8) + GET_DAMROLL(ch)), SKILL_STUNNING_FIST,
+            DAM_FORCE, FALSE);
     attach_mud_event(new_mud_event(eSTUNNED, vict, NULL), 4 * PASSES_PER_SEC);
   }
   attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), 300 * PASSES_PER_SEC);
@@ -1544,12 +1498,10 @@ ACMD(do_stunningfist)
   SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 
-
-ACMD(do_smite)
-{
+ACMD(do_smite) {
   struct affected_type af;
   int cooldown = (3 * SECS_PER_MUD_DAY);
-  
+
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_SMITE)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
@@ -1572,7 +1524,7 @@ ACMD(do_smite)
     cooldown /= 3;
   else if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 5)
     cooldown /= 2;
-  
+
   new_affect(&af);
 
   af.spell = SKILL_SMITE;
@@ -1581,15 +1533,13 @@ ACMD(do_smite)
   affect_to_char(ch, &af);
   attach_mud_event(new_mud_event(eSMITE, ch, NULL), cooldown);
   send_to_char(ch, "You prepare to wreak vengeance upon your foe.\r\n");
-  
+
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_SMITE);
 }
 
-
-ACMD(do_kick)
-{
-  char arg[MAX_INPUT_LENGTH] = { '\0' };
+ACMD(do_kick) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
   int percent = 0, prob = 0;
 

@@ -413,6 +413,16 @@ void char_to_room(struct char_data *ch, room_rnum room) {
       stop_fighting(FIGHTING(ch));
       stop_fighting(ch);
     }
+    
+    /* falling */
+    if (char_should_fall(ch)) {
+      /* the svariable value of 20 is just a rough number for feet */
+      attach_mud_event(new_mud_event(eFALLING, ch, "20"), 5);  
+      send_to_char(ch, "Suddenly your realize you are falling!\r\n");
+      act("$n has just realized $e has no visible means of support!",
+              FALSE, ch, 0, 0, TO_ROOM);
+    }
+    
   }
 }
 
@@ -720,6 +730,10 @@ void obj_to_room(struct obj_data *object, room_rnum room) {
     object->carried_by = NULL;
     if (ROOM_FLAGGED(room, ROOM_HOUSE))
       SET_BIT_AR(ROOM_FLAGS(room), ROOM_HOUSE_CRASH);
+    
+    /* falling check */
+    if (obj_should_fall(object))
+      ;  // fall event for objects
   }
 }
 
