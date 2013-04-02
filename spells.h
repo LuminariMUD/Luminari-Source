@@ -534,7 +534,7 @@
  * punch - 13      blunt
  * stab - 14      piercing
  */
-/* weapon type macros */
+/* weapon type macros, returns true or false */
 #define IS_BLADE(obj)      ( GET_OBJ_VAL(obj, 3) == (TYPE_WHIP - TYPE_HIT) || \
                              GET_OBJ_VAL(obj, 3) == (TYPE_SLASH - TYPE_HIT) || \
                              GET_OBJ_VAL(obj, 3) == (TYPE_CLAW - TYPE_HIT) || \
@@ -563,24 +563,24 @@
 /*---------------------------ABILITIES-------------------------------------*/
 
 /* PLAYER ABILITIES -- Numbered from 1 to MAX_ABILITIES */
-#define ABILITY_TUMBLE			1 // tumble
-#define ABILITY_HIDE			2 // hide
-#define ABILITY_SNEAK			3 // sneak
-#define ABILITY_SPOT			4 // spot
-#define ABILITY_LISTEN			5 // listen
-#define ABILITY_TREAT_INJURY		6 // treat injuries
-#define ABILITY_TAUNT			7 // taunt
-#define ABILITY_CONCENTRATION		8 // concentration
-#define ABILITY_SPELLCRAFT		9 // spellcraft
+#define ABILITY_TUMBLE			1  // tumble
+#define ABILITY_HIDE			2  // hide
+#define ABILITY_SNEAK			3  // sneak
+#define ABILITY_SPOT			4  // spot
+#define ABILITY_LISTEN			5  // listen
+#define ABILITY_TREAT_INJURY		6  // treat injuries
+#define ABILITY_TAUNT			7  // taunt
+#define ABILITY_CONCENTRATION		8  // concentration
+#define ABILITY_SPELLCRAFT		9  // spellcraft
 #define ABILITY_APPRAISE	          10 // appraise
 #define ABILITY_DISCIPLINE		11 // discipline
 #define ABILITY_PARRY			12 // parry
 #define ABILITY_LORE			13 // lore
-#define ABILITY_MOUNT			14 //mounts
-#define ABILITY_RIDING			15 //mounts
-#define ABILITY_TAME			16 //mounts
-#define ABILITY_PICK_LOCK		17 //open locks
-#define ABILITY_STEAL			18 //pick pockets
+#define ABILITY_MOUNT			14 // mounts
+#define ABILITY_RIDING			15 // mounts
+#define ABILITY_TAME			16 // mounts
+#define ABILITY_PICK_LOCK		17 // open locks
+#define ABILITY_STEAL			18 // pick pockets
 
 #define NUM_ABILITIES			19 /* Number of defined abilities */
 /*	MAX_ABILITIES = 200 */
@@ -728,6 +728,7 @@ void	spellname(int level, struct char_data *ch, \
 
 #define MANUAL_SPELL(spellname)	spellname(level, caster, cvict, ovict);
 
+/* manual spells */
 ASPELL(spell_acid_arrow);
 ASPELL(spell_banish);
 ASPELL(spell_charm);

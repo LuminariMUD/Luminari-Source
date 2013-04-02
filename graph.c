@@ -1,12 +1,12 @@
 /**************************************************************************
-*  File: graph.c                                           Part of tbaMUD *
-*  Usage: Various graph algorithms.                                       *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-************************************************************************ */
+ *  File: graph.c                                           Part of tbaMUD *
+ *  Usage: Various graph algorithms.                                       *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ ************************************************************************ */
 
 #include "conf.h"
 #include "sysdep.h"
@@ -27,7 +27,6 @@ static int VALID_EDGE(room_rnum x, int y);
 static void bfs_enqueue(room_rnum room, int dir);
 static void bfs_dequeue(void);
 static void bfs_clear_queue(void);
-static int find_first_step(room_rnum src, room_rnum target);
 
 struct bfs_queue_struct {
   room_rnum room;
@@ -44,8 +43,7 @@ static struct bfs_queue_struct *queue_head = 0, *queue_tail = 0;
 #define TOROOM(x, y)	(world[(x)].dir_option[(y)]->to_room)
 #define IS_CLOSED(x, y)	(EXIT_FLAGGED(world[(x)].dir_option[(y)], EX_CLOSED))
 
-static int VALID_EDGE(room_rnum x, int y)
-{
+static int VALID_EDGE(room_rnum x, int y) {
   if (world[x].dir_option[y] == NULL || TOROOM(x, y) == NOWHERE)
     return 0;
   if (CONFIG_TRACK_T_DOORS == FALSE && IS_CLOSED(x, y))
@@ -56,8 +54,7 @@ static int VALID_EDGE(room_rnum x, int y)
   return 1;
 }
 
-static void bfs_enqueue(room_rnum room, int dir)
-{
+static void bfs_enqueue(room_rnum room, int dir) {
   struct bfs_queue_struct *curr;
 
   CREATE(curr, struct bfs_queue_struct, 1);
@@ -72,8 +69,7 @@ static void bfs_enqueue(room_rnum room, int dir)
     queue_head = queue_tail = curr;
 }
 
-static void bfs_dequeue(void)
-{
+static void bfs_dequeue(void) {
   struct bfs_queue_struct *curr;
 
   curr = queue_head;
@@ -83,8 +79,7 @@ static void bfs_dequeue(void)
   free(curr);
 }
 
-static void bfs_clear_queue(void)
-{
+static void bfs_clear_queue(void) {
   while (queue_head)
     bfs_dequeue();
 }
@@ -93,8 +88,7 @@ static void bfs_clear_queue(void)
  * on the shortest path from the source to the target. Intended usage: in 
  * mobile_activity, give a mob a dir to go if they're tracking another mob or a
  * PC.  Or, a 'track' skill for PCs. */
-static int find_first_step(room_rnum src, room_rnum target)
-{
+int find_first_step(room_rnum src, room_rnum target) {
   int curr_dir;
   room_rnum curr_room;
 
@@ -126,10 +120,10 @@ static int find_first_step(room_rnum src, room_rnum target)
       return (curr_dir);
     } else {
       for (curr_dir = 0; curr_dir < DIR_COUNT; curr_dir++)
-	if (VALID_EDGE(queue_head->room, curr_dir)) {
-	  MARK(TOROOM(queue_head->room, curr_dir));
-	  bfs_enqueue(TOROOM(queue_head->room, curr_dir), queue_head->dir);
-	}
+        if (VALID_EDGE(queue_head->room, curr_dir)) {
+          MARK(TOROOM(queue_head->room, curr_dir));
+          bfs_enqueue(TOROOM(queue_head->room, curr_dir), queue_head->dir);
+        }
       bfs_dequeue();
     }
   }
@@ -138,8 +132,7 @@ static int find_first_step(room_rnum src, room_rnum target)
 }
 
 /* Functions and Commands which use the above functions. */
-ACMD(do_track)
-{
+ACMD(do_track) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
   int dir;
@@ -180,23 +173,22 @@ ACMD(do_track)
   dir = find_first_step(IN_ROOM(ch), IN_ROOM(vict));
 
   switch (dir) {
-  case BFS_ERROR:
-    send_to_char(ch, "Hmm.. something seems to be wrong.\r\n");
-    break;
-  case BFS_ALREADY_THERE:
-    send_to_char(ch, "You're already in the same room!!\r\n");
-    break;
-  case BFS_NO_PATH:
-    send_to_char(ch, "You can't sense a trail to %s from here.\r\n", HMHR(vict));
-    break;
-  default:	/* Success! */
-    send_to_char(ch, "You sense a trail %s from here!\r\n", dirs[dir]);
-    break;
+    case BFS_ERROR:
+      send_to_char(ch, "Hmm.. something seems to be wrong.\r\n");
+      break;
+    case BFS_ALREADY_THERE:
+      send_to_char(ch, "You're already in the same room!!\r\n");
+      break;
+    case BFS_NO_PATH:
+      send_to_char(ch, "You can't sense a trail to %s from here.\r\n", HMHR(vict));
+      break;
+    default: /* Success! */
+      send_to_char(ch, "You sense a trail %s from here!\r\n", dirs[dir]);
+      break;
   }
 }
 
-void hunt_victim(struct char_data *ch)
-{
+void hunt_victim(struct char_data *ch) {
   int dir;
   byte found;
   struct char_data *tmp;
@@ -219,7 +211,7 @@ void hunt_victim(struct char_data *ch)
   if ((dir = find_first_step(IN_ROOM(ch), IN_ROOM(HUNTING(ch)))) < 0) {
     char buf[MAX_INPUT_LENGTH];
 
-    snprintf(buf, sizeof(buf), "Damn!  I lost %s!", HMHR(HUNTING(ch)));
+    snprintf(buf, sizeof (buf), "Damn!  I lost %s!", HMHR(HUNTING(ch)));
     do_say(ch, buf, 0, 0);
     HUNTING(ch) = NULL;
   } else {
@@ -227,4 +219,23 @@ void hunt_victim(struct char_data *ch)
     if (IN_ROOM(ch) == IN_ROOM(HUNTING(ch)))
       hit(ch, HUNTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
+}
+
+/* this function will cause ch to attempt to find its loadroom */
+void hunt_loadroom(struct char_data *ch) {
+  int dir;
+
+  if (!ch || FIGHTING(ch))
+    return;
+
+  if (GET_MOB_LOADROOM(ch) == NOWHERE)
+    return;
+
+  if (GET_ROOM_VNUM(ch->in_room) == GET_ROOM_VNUM(GET_MOB_LOADROOM(ch)))
+    return;
+
+  if ((dir = find_first_step(ch->in_room, GET_MOB_LOADROOM(ch))) < 0)
+    return;
+
+  perform_move(ch, dir, 1);
 }

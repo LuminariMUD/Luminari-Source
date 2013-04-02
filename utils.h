@@ -1003,6 +1003,19 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define ECHO_SEQUENTIAL(mob)    ((mob)->mob_specials.echo_sequential)
 #define CURRENT_ECHO(mob)       ((mob)->mob_specials.current_echo)
 
+/* path utilities for mobiles (patrols) */
+#define PATH_INDEX(mob)          ((mob)->mob_specials.path_index)
+#define PATH_DELAY(mob)          ((mob)->mob_specials.path_delay)
+#define PATH_RESET(mob)          ((mob)->mob_specials.path_reset)
+#define GET_PATH(mob, x)         ((mob)->mob_specials.path[x])
+#define PATH_SIZE(mob)           ((mob)->mob_specials.path_size)
+
+/* mobile load room */
+#define GET_MOB_LOADROOM(ch)    ((ch)->mob_specials.loadroom)
+
+/* a function to check if a mobile is a 'pet' */
+#define IS_PET(ch)		(IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
+
 /** Has Subrace will check the (3) arrays if subrace is there **/
 #define HAS_SUBRACE(ch, i)      (GET_SUBRACE(ch, 0) == i || \
                                  GET_SUBRACE(ch, 1) == i || \
