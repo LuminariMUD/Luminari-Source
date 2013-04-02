@@ -475,10 +475,12 @@ static void zedit_disp_menu(struct descriptor_data *d) {
                 buf1, MYCMD.arg1, (MYCMD.arg1 > 1) ? "s" : "", MYCMD.arg2);
         break;
       case 'M':
-        write_to_output(d, "%sLoad %s [%s%d%s], Max : %d (%d%%)",
+        write_to_output(d, "%sLoad %s [%s%d%s], Max (%s) : %d (%d%%)",
                 buf1, // MYCMD.if_flag ? " then " : "",
                 mob_proto[MYCMD.arg1].player.short_descr, cyn,
-                mob_index[MYCMD.arg1].vnum, yel, MYCMD.arg2, MYCMD.arg4
+                mob_index[MYCMD.arg1].vnum, yel, 
+                (MYCMD.arg2 < 0 ? "in room" : "in game"),
+                abs(MYCMD.arg2), MYCMD.arg4
                 );
         break;
       case 'G':
@@ -1277,6 +1279,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
             case 'r':
             case 'R':
               OLC_CMD(d).arg2 = -(OLC_CMD(d).arg2);
+              zedit_disp_arg4(d);
               break;
             default:
               write_to_output(d, "(g)lobal or (r)oom : ");
