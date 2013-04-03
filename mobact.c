@@ -27,7 +27,8 @@
 /* local file scope only function prototypes, defines, externs, etc */
 #define SINFO spell_info[spellnum]
 #define SPELLUP_SPELLS 54
-#define OFFENSIVE_SPELLS 54
+#define OFFENSIVE_SPELLS 58
+#define OFFENSIVE_AOE_SPELLS 16
 
 /* end local */
 
@@ -93,6 +94,91 @@ int valid_spellup_spell[SPELLUP_SPELLS] = {
   SPELL_DEATH_SHIELD,
   SPELL_BARKSKIN,
   SPELL_SPELL_RESISTANCE
+};
+
+
+/* list of spells mobiles will use for offense (aoe) */
+int valid_aoe_spell[OFFENSIVE_AOE_SPELLS] = {
+  /* aoe */
+  SPELL_EARTHQUAKE,  //0
+  SPELL_ICE_STORM,
+  SPELL_METEOR_SWARM,
+  SPELL_CHAIN_LIGHTNING,
+  SPELL_SYMBOL_OF_PAIN,
+  SPELL_MASS_HOLD_PERSON,  //5
+  SPELL_PRISMATIC_SPRAY,
+  SPELL_THUNDERCLAP,
+  SPELL_INCENDIARY_CLOUD,
+  SPELL_HORRID_WILTING,
+  SPELL_WAIL_OF_THE_BANSHEE,  //10
+  SPELL_STORM_OF_VENGEANCE,
+  SPELL_CALL_LIGHTNING_STORM,
+  SPELL_CREEPING_DOOM,
+  SPELL_FIRE_STORM,
+  SPELL_SUNBEAM  //15
+};
+
+/* list of spells mobiles will use for offense */
+int valid_offensive_spell[OFFENSIVE_SPELLS] = {
+  /* single target */
+  SPELL_BLINDNESS,  //0
+  SPELL_BURNING_HANDS,
+  SPELL_CALL_LIGHTNING,
+  SPELL_CHILL_TOUCH,
+  SPELL_COLOR_SPRAY,
+  SPELL_CURSE,  //5
+  SPELL_ENERGY_DRAIN,
+  SPELL_FIREBALL,
+  SPELL_HARM,
+  SPELL_LIGHTNING_BOLT,
+  SPELL_MAGIC_MISSILE,  //10
+  SPELL_POISON,
+  SPELL_SHOCKING_GRASP,
+  SPELL_CAUSE_LIGHT_WOUNDS,
+  SPELL_CAUSE_MODERATE_WOUNDS,
+  SPELL_CAUSE_SERIOUS_WOUNDS,  //15
+  SPELL_CAUSE_CRITICAL_WOUNDS,
+  SPELL_FLAME_STRIKE,
+  SPELL_DESTRUCTION,
+  SPELL_BALL_OF_LIGHTNING,
+  SPELL_MISSILE_STORM,  //20
+  SPELL_HORIZIKAULS_BOOM,
+  SPELL_ICE_DAGGER,
+  SPELL_NEGATIVE_ENERGY_RAY,
+  SPELL_RAY_OF_ENFEEBLEMENT,
+  SPELL_SCARE,  //25
+  SPELL_ACID_ARROW,
+  SPELL_DAZE_MONSTER,
+  SPELL_HIDEOUS_LAUGHTER,
+  SPELL_TOUCH_OF_IDIOCY,
+  SPELL_SCORCHING_RAY,  //30
+  SPELL_DEAFNESS,
+  SPELL_ENERGY_SPHERE,
+  SPELL_VAMPIRIC_TOUCH,
+  SPELL_HOLD_PERSON,
+  SPELL_SLOW,  //35
+  SPELL_FEEBLEMIND,
+  SPELL_NIGHTMARE,
+  SPELL_MIND_FOG,
+  SPELL_CONE_OF_COLD,
+  SPELL_TELEKINESIS,  //40
+  SPELL_FIREBRAND,
+  SPELL_FREEZING_SPHERE,
+  SPELL_EYEBITE,
+  SPELL_GRASPING_HAND,
+  SPELL_POWER_WORD_BLIND,  //45
+  SPELL_POWER_WORD_STUN,
+  SPELL_CLENCHED_FIST,
+  SPELL_IRRESISTIBLE_DANCE,
+  SPELL_SCINT_PATTERN,
+  SPELL_SUNBURST,  //50
+  SPELL_WEIRD,
+  SPELL_IMPLODE,
+  SPELL_FAERIE_FIRE,
+  SPELL_FLAMING_SPHERE,
+  SPELL_BLIGHT,  //55
+  SPELL_FINGER_OF_DEATH,
+  SPELL_WHIRLWIND
 };
 
 
@@ -232,6 +318,8 @@ void clearMemory(struct char_data *ch) {
   MEMORY(ch) = NULL;
 }
 
+/* end memory routines */
+
 /* An aggressive mobile wants to attack something.  If they're under the 
  * influence of mind altering PC, then see if their master can talk them out 
  * of it, eye them down, or otherwise intimidate the slave. */
@@ -296,10 +384,6 @@ int canContinue(struct char_data *ch) {
     return 0;
   if (GET_HIT(ch) <= 1)
     return 0;
-
-  // this combined with PULSE_MOBILE will control how often they proc
-  //  if (!rand_number(0,3))
-  //    return 0;
 
   return 1;
 }
@@ -796,7 +880,8 @@ void npc_class_behave(struct char_data *ch) {
 }
 
 /* this defines maximum amount of times the function will check the
- spellup array for a valid spell */
+ spellup array for a valid spell 
+ note:  npc_offensive_spells() uses this define as well */
 #define MAX_LOOPS 10
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
@@ -890,6 +975,105 @@ void npc_spellup(struct char_data *ch) {
   return;
 }
 
+/* note MAX_LOOPS used here too */
+/* generic function for spelling up as a caster */
+void npc_offensive_spells(struct char_data *ch) {
+  struct char_data *tch = NULL;
+  int level, spellnum = -1, loop_counter = 0;
+  struct list_data *room_list = NULL;
+  bool use_aoe = FALSE;
+
+  if (!ch)
+    return;
+  
+  /* our semi-casters will rarely use this function */
+  switch (GET_CLASS(ch)) {
+    case CLASS_RANGER:
+    case CLASS_PALADIN:  // 10 out of 11 times will not cast
+      if (rand_number(0, 10)) {
+        npc_class_behave(ch);
+        return;
+      }
+      break;
+    case CLASS_BARD:  // bards 33% will not cast
+      if (!rand_number(0, 2)) {
+        npc_class_behave(ch);
+        return;
+      }
+      break;
+  }
+  
+  if (!IN_ROOM(ch))  // dummy check since room info used in building list
+    return;
+  
+  if (FIGHTING(ch))
+    tch = FIGHTING(ch);
+  
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    level = LVL_IMMORT - 1;
+  else
+    level = GET_LEVEL(ch);
+
+  /* determine victim (fighting multiple opponents?) */
+  room_list = create_list();  //allocate memory for list
+  
+  /* build list of opponents */
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
+    if (tch && FIGHTING(tch) && FIGHTING(tch) == ch)
+      add_to_list(tch, room_list);
+  }
+
+  /* if list empty, free it */
+  if (room_list->iSize == 0)
+    free_list(room_list);
+  else {
+    /* ok we have a list, lets pick a random out of it */
+    tch = random_from_list(room_list);
+  }
+  
+  /* just a dummy check, after this tch should have a valid target */
+  if (!tch && FIGHTING(ch))
+    tch = FIGHTING(ch);
+  
+  /* should we use Aoe?  if 2 or more opponents, lets do it */
+  if (room_list->iSize >= 2)
+    use_aoe = TRUE;
+     
+  /* random offensive spell */
+  if (use_aoe) {
+    do {
+      spellnum = valid_aoe_spell[rand_number(0, OFFENSIVE_AOE_SPELLS - 1)];
+      loop_counter++;
+      if (loop_counter >= (MAX_LOOPS/2))
+        break;
+    } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)]);
+
+    if (loop_counter < (MAX_LOOPS/2)) {
+      // found a spell, cast it
+      cast_spell(ch, tch, NULL, spellnum);
+      return;
+    }
+  }
+  
+  /* we intentionally fall through here,
+   a lot of mobiles will not have aoe spells */
+  loop_counter = 0;
+  
+  do {
+    spellnum = valid_offensive_spell[rand_number(0, OFFENSIVE_SPELLS - 1)];
+    loop_counter++;
+    if (loop_counter >= (MAX_LOOPS/2))
+      break;
+  } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
+          affected_by_spell(tch, spellnum));
+  
+  if (loop_counter < (MAX_LOOPS/2))
+    // found a spell, cast it
+    cast_spell(ch, tch, NULL, spellnum);
+  
+  return;
+}
+
 /*** MOBILE ACTIVITY ***/
 
 /* the primary engine for mobile activity */
@@ -940,6 +1124,8 @@ void mobile_activity(void) {
       // 50% chance will react off of class, 50% chance will react off of race
       if (rand_number(0, 1))
         npc_racial_behave(ch);
+      else if (IS_NPC_CASTER(ch))
+        npc_offensive_spells(ch);
       else
         npc_class_behave(ch);
       continue;
