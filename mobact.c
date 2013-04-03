@@ -745,6 +745,10 @@ void npc_spellup(struct char_data *ch) {
    */
   if (!ch)
     return;
+
+  /* create a group in case we need it */
+  if (!GROUP(ch))
+    create_group(ch);
   
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     level = LVL_IMMORT - 1;
