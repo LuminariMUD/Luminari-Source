@@ -58,7 +58,7 @@ int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool dim_lock) 
   if (ROOM_FLAGGED(dest, ROOM_DEATH))
     return FALSE;
 
-  if (ROOM_FLAGGED(dest, ROOM_GODROOM))
+  if (ROOM_FLAGGED(dest, ROOM_STAFFROOM))
     return FALSE;
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_CLOSED))

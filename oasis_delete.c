@@ -101,7 +101,7 @@ int free_strings(void *data, int type)
       return (TRUE);
 
     default:
-      mudlog(BRF, LVL_GOD, TRUE, "SYSERR: oasis_delete.c: free_strings: Invalid type handled (Type %d).", type);
+      mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: oasis_delete.c: free_strings: Invalid type handled (Type %d).", type);
       return (FALSE);
   }
 }

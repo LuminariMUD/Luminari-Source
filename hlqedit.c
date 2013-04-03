@@ -946,7 +946,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           return;
         case 'a':
         case 'A':
-          if (GET_LEVEL(d->character) < LVL_GRGOD)
+          if (GET_LEVEL(d->character) < LVL_GRSTAFF)
             send_to_char(d->character, "You are not high enough level to do"
                     " that!\r\n");
           else {

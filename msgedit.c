@@ -463,19 +463,19 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
         case 'j':
           write_to_output(d, "Example: You can't hit $N!\r\n");
           write_to_output(d, "Enter new string : ");
-          OLC_MODE(d) = MSGEDIT_GOD_CHAR;
+          OLC_MODE(d) = MSGEDIT_STAFF_CHAR;
         return;
         case 'K':
         case 'k':
           write_to_output(d, "Example: $n can't hit you!\r\n");
           write_to_output(d, "Enter new string : ");
-          OLC_MODE(d) = MSGEDIT_GOD_VICT;
+          OLC_MODE(d) = MSGEDIT_STAFF_VICT;
         return;
         case 'L':
         case 'l':
           write_to_output(d, "Example: $n can't hit $N!\r\n");
           write_to_output(d, "Enter new string : ");
-          OLC_MODE(d) = MSGEDIT_GOD_ROOM;
+          OLC_MODE(d) = MSGEDIT_STAFF_ROOM;
         return;
         case 'N':
         case 'n':
@@ -632,7 +632,7 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
             
       OLC_MSG(d)->hit_msg.room_msg = strdup(arg);    
     break;
-    case MSGEDIT_GOD_CHAR:
+    case MSGEDIT_STAFF_CHAR:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
@@ -642,7 +642,7 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
             
       OLC_MSG(d)->god_msg.attacker_msg = strdup(arg);    
     break;
-    case MSGEDIT_GOD_VICT:
+    case MSGEDIT_STAFF_VICT:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
@@ -652,7 +652,7 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
             
       OLC_MSG(d)->god_msg.victim_msg = strdup(arg);    
     break;
-    case MSGEDIT_GOD_ROOM:
+    case MSGEDIT_STAFF_ROOM:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);

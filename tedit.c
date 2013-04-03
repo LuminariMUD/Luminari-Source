@@ -38,7 +38,7 @@ void tedit_string_cleanup(struct descriptor_data *d, int terminator)
         fputs(*d->str, fl);
       }
       fclose(fl);
-      mudlog(CMP, LVL_GOD, TRUE, "OLC: %s saves '%s'.", GET_NAME(d->character), storage);
+      mudlog(CMP, LVL_STAFF, TRUE, "OLC: %s saves '%s'.", GET_NAME(d->character), storage);
       write_to_output(d, "Saved.\r\n");
       if (!strcmp(storage, NEWS_FILE))
         newsmod = time(0);
@@ -75,18 +75,18 @@ ACMD(do_tedit)
   } fields[] = {
 	/* edit the lvls to your own needs */
 	{ "credits",	LVL_IMPL,	&credits,	2400,	CREDITS_FILE},
-	{ "news",	LVL_GRGOD,	&news,		8192,	NEWS_FILE},
-	{ "motd",	LVL_GRGOD,	&motd,		2400,	MOTD_FILE},
+	{ "news",	LVL_GRSTAFF,	&news,		8192,	NEWS_FILE},
+	{ "motd",	LVL_GRSTAFF,	&motd,		2400,	MOTD_FILE},
 	{ "imotd",	LVL_IMPL,	&imotd,		2400,	IMOTD_FILE},
         { "greetings",  LVL_IMPL,       &GREETINGS,     2400,   GREETINGS_FILE},
-        { "help",       LVL_GRGOD,      &help,          2400,   HELP_PAGE_FILE},
-	{ "ihelp",      LVL_GRGOD,	&ihelp, 	2400,	IHELP_PAGE_FILE},
-	{ "info",	LVL_GRGOD,	&info,		8192,	INFO_FILE},
+        { "help",       LVL_GRSTAFF,      &help,          2400,   HELP_PAGE_FILE},
+	{ "ihelp",      LVL_GRSTAFF,	&ihelp, 	2400,	IHELP_PAGE_FILE},
+	{ "info",	LVL_GRSTAFF,	&info,		8192,	INFO_FILE},
 	{ "background",	LVL_IMPL,	&background,	8192,	BACKGROUND_FILE},
 	{ "handbook",   LVL_IMPL,	&handbook,	8192,   HANDBOOK_FILE},
 	{ "policies",	LVL_IMPL,	&policies,	8192,	POLICIES_FILE},
         { "wizlist",    LVL_IMPL,       &wizlist,       2400,   WIZLIST_FILE},
-        { "immlist",    LVL_GRGOD,      &immlist,       2400,   IMMLIST_FILE},
+        { "immlist",    LVL_GRSTAFF,      &immlist,       2400,   IMMLIST_FILE},
 	{ "\n",		0,		NULL,		0,	NULL }
   };
 

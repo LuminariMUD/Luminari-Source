@@ -83,7 +83,7 @@ void free_list(struct list_data * pList)
       remove_from_list(pContent, pList);
     
   if (pList && pList->iSize > 0)
-    mudlog(CMP, LVL_GOD, TRUE, "List being freed while not empty.");
+    mudlog(CMP, LVL_STAFF, TRUE, "List being freed while not empty.");
       
   /* Global List for debugging */
   if (pList != global_lists)
@@ -126,7 +126,7 @@ void remove_from_list(void * pContent, struct list_data * pList)
   struct item_data *pRemovedItem = NULL;
 	
   if ((pRemovedItem = find_in_list(pContent, pList)) == NULL) {
-    mudlog(CMP, LVL_GOD, TRUE, "WARNING: Attempting to remove contents that don't exist in list.");
+    mudlog(CMP, LVL_STAFF, TRUE, "WARNING: Attempting to remove contents that don't exist in list.");
     return;
   }
 	
@@ -161,13 +161,13 @@ void * merge_iterator(struct iterator_data * pIterator, struct list_data * pList
   void * pContent = NULL;
 	
   if (pList == NULL) {
-    mudlog(NRM, LVL_GOD, TRUE, "WARNING: Attempting to merge iterator to NULL list.");
+    mudlog(NRM, LVL_STAFF, TRUE, "WARNING: Attempting to merge iterator to NULL list.");
     pIterator->pList = NULL;
     pIterator->pItem = NULL;
     return NULL;
   }
   if (pList->pFirstItem == NULL) {
-    mudlog(NRM, LVL_GOD, TRUE, "WARNING: Attempting to merge iterator to empty list.");
+    mudlog(NRM, LVL_STAFF, TRUE, "WARNING: Attempting to merge iterator to empty list.");
     pIterator->pList = NULL;
     pIterator->pItem = NULL;
     return NULL;
@@ -185,7 +185,7 @@ void * merge_iterator(struct iterator_data * pIterator, struct list_data * pList
 void remove_iterator(struct iterator_data * pIterator)
 {
   if (pIterator->pList == NULL) {
-    mudlog(NRM, LVL_GOD, TRUE, "WARNING: Attempting to remove iterator from NULL list.");
+    mudlog(NRM, LVL_STAFF, TRUE, "WARNING: Attempting to remove iterator from NULL list.");
     return;
   }
 
@@ -206,7 +206,7 @@ void * next_in_list(struct iterator_data * pIterator)
   //pTempItem = create_item();
 	
   if (pIterator->pList == NULL) {
-    mudlog(NRM, LVL_GOD, TRUE, "WARNING: Attempting to get content from iterator with NULL list.");
+    mudlog(NRM, LVL_STAFF, TRUE, "WARNING: Attempting to get content from iterator with NULL list.");
     return NULL;
   }
 	
@@ -286,7 +286,7 @@ void * simple_list(struct list_data * pList)
 	
   if (!loop || pLastList != pList) {
     if (loop && pLastList != pList)
-      mudlog(CMP, LVL_GRGOD, TRUE, "SYSERR: simple_list() forced to reset itself.");
+      mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: simple_list() forced to reset itself.");
 		  
     pContent = merge_iterator(&Iterator, pList);
     if (pContent != NULL) {

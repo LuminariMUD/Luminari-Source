@@ -55,12 +55,12 @@ const char *clan_priv_names[] = {
 };
 
 const struct clan_cmds clan_commands[] = {
-  { "apply",    CP_ALL,      LVL_GRGOD,  do_clanapply,
+  { "apply",    CP_ALL,      LVL_GRSTAFF,  do_clanapply,
           "%sclan apply <clan>         %s- %sRequest to join a clan%s\r\n" },
   { "award",    CP_AWARD,    LVL_IMPL,   do_clanaward,
           "%sclan award <player> <num> %s- %sAward CP to player (costs 10 "
           "coins per CP from clan bank)%s\r\n" },
-  { "claim",    CP_CLAIM,    LVL_GRGOD,  do_clanclaim,
+  { "claim",    CP_CLAIM,    LVL_GRSTAFF,  do_clanclaim,
           "%sclan claim                %s- %sTry to claim your current "
           "zone for your clan%s\r\n" },
   { "balance",  CP_BALANCE,  LVL_IMPL,   do_clanbalance,
@@ -69,22 +69,22 @@ const struct clan_cmds clan_commands[] = {
   { "create",   CP_NONE,     LVL_IMPL,   do_clancreate,
           "%sclan create <plr> <name>  %s- %sCreate a new clan, and set "
           "a leader \tw(IMP-Only!)%s\r\n" },
-  { "demote",   CP_DEMOTE,   LVL_GRGOD,  do_clandemote,
+  { "demote",   CP_DEMOTE,   LVL_GRSTAFF,  do_clandemote,
           "%sclan demote <player>      %s- %sReduce a clan member's clan "
           "rank%s\r\n" },
-  { "deposit",  CP_DEPOSIT,  LVL_GRGOD,  do_clandeposit,
+  { "deposit",  CP_DEPOSIT,  LVL_GRSTAFF,  do_clandeposit,
           "%sclan deposit <amount>     %s- %sDeposit gold into clan "
           "bank%s\r\n" },
   { "destroy",  CP_NONE,     LVL_IMPL,   do_clandestroy,
           "%sclan destroy <clan>       %s- %sRemove a clan from the clan list"
           " \tw(IMP-Only!)%s\r\n" },
-  { "edit",     CP_CLANEDIT, LVL_GRGOD,  do_clanedit,
+  { "edit",     CP_CLANEDIT, LVL_GRSTAFF,  do_clanedit,
           "%sclan edit                 %s- %sEdit clan settings in "
           "an OLC%s\r\n" },
-  { "enrol",    CP_ENROL,    LVL_GRGOD,  do_clanenrol,
+  { "enrol",    CP_ENROL,    LVL_GRSTAFF,  do_clanenrol,
           "%sclan enrol [player]       %s- %sList requests or enrol a "
           "pending player%s\r\n" },
-  { "expel",    CP_EXPEL,    LVL_GRGOD,  do_clanexpel,
+  { "expel",    CP_EXPEL,    LVL_GRSTAFF,  do_clanexpel,
           "%sclan expel <player>       %s- %sKick a player out of the "
           "clan%s\r\n" },
   { "info",     CP_ALL,      LVL_IMMORT, do_claninfo,
@@ -93,10 +93,10 @@ const struct clan_cmds clan_commands[] = {
   { "list",     CP_ALL,      LVL_IMMORT, do_clanlist,
           "%sclan list                 %s- %sList all members of your clan "
           "(same as clan who)%s\r\n" },
-  { "owner",    CP_OWNER,    LVL_GRGOD,  do_clanowner,
+  { "owner",    CP_OWNER,    LVL_GRSTAFF,  do_clanowner,
           "%sclan owner <player>       %s- %sChange ownership of the "
           "clan%s\r\n" },
-  { "promote",  CP_PROMOTE,  LVL_GRGOD,  do_clanpromote,
+  { "promote",  CP_PROMOTE,  LVL_GRSTAFF,  do_clanpromote,
           "%sclan promote <player>     %s- %sIncrease a clan member's clan"
           " rank%s\r\n" },
   { "status",   CP_ALL,      LVL_IMMORT, do_clanstatus,
@@ -108,7 +108,7 @@ const struct clan_cmds clan_commands[] = {
   { "who",      CP_ALL,      LVL_IMMORT, do_clanlist,
           "%sclan who                  %s- %sList all members of your clan "
           "(same as clan list)%s\r\n" },
-  { "withdraw", CP_WITHDRAW, LVL_GRGOD,  do_clanwithdraw,
+  { "withdraw", CP_WITHDRAW, LVL_GRSTAFF,  do_clanwithdraw,
           "%sclan withdraw <amount>    %s- %sWithdraw gold from clan "
           "bank%s\r\n" },
   { "unclaim",  CP_NONE,     LVL_IMPL,   do_clanunclaim,
@@ -2556,23 +2556,23 @@ ACMD(do_clanset)
     sh_int level;
     char type;
   }          fields[] = {
-   { "name",        LVL_GOD, 	MISC },    /* 0  */
-   { "numranks",    LVL_GOD, 	NUMBER },  /* 1  */
-   { "rankname",    LVL_GOD, 	MISC },    /* 2  */
-   { "treasure",    LVL_GRGOD, 	NUMBER },  /* 3  */
+   { "name",        LVL_STAFF, 	MISC },    /* 0  */
+   { "numranks",    LVL_STAFF, 	NUMBER },  /* 1  */
+   { "rankname",    LVL_STAFF, 	MISC },    /* 2  */
+   { "treasure",    LVL_GRSTAFF, 	NUMBER },  /* 3  */
    { "clanhall",    LVL_IMPL, 	NUMBER },  /* 4  */
-   { "applev",      LVL_GOD, 	NUMBER },  /* 5  */
-   { "appfee",      LVL_GOD, 	NUMBER },  /* 6  */
-   { "tax",         LVL_GOD, 	NUMBER },  /* 7  */
-   { "skills",      LVL_GOD, 	NUMBER },  /* 8  */
-   { "desc",        LVL_GOD, 	MISC   },  /* 9  */
-   { "atwar",       LVL_GOD, 	NUMBER },  /* 10 */
-   { "allied",      LVL_GOD, 	NUMBER },  /* 11 */
-   { "wartimer",    LVL_GRGOD, 	NUMBER },  /* 12 */
+   { "applev",      LVL_STAFF, 	NUMBER },  /* 5  */
+   { "appfee",      LVL_STAFF, 	NUMBER },  /* 6  */
+   { "tax",         LVL_STAFF, 	NUMBER },  /* 7  */
+   { "skills",      LVL_STAFF, 	NUMBER },  /* 8  */
+   { "desc",        LVL_STAFF, 	MISC   },  /* 9  */
+   { "atwar",       LVL_STAFF, 	NUMBER },  /* 10 */
+   { "allied",      LVL_STAFF, 	NUMBER },  /* 11 */
+   { "wartimer",    LVL_GRSTAFF, 	NUMBER },  /* 12 */
    { "pkwin",       LVL_IMPL, 	NUMBER },  /* 13 */
    { "pklose",      LVL_IMPL, 	NUMBER },  /* 14 */
    { "raided",      LVL_IMPL, 	NUMBER },  /* 15 */
-   { "abbreviation",LVL_GOD,    MISC   },  /* 16  */
+   { "abbreviation",LVL_STAFF,    MISC   },  /* 16  */
    { "\n", 0, MISC }
   };
 
@@ -2976,7 +2976,7 @@ ACMD(do_clantalk)
       continue;
 
     imm = FALSE;
-    if (GET_LEVEL(i->character) >= LVL_GOD)
+    if (GET_LEVEL(i->character) >= LVL_STAFF)
       if (!PRF_FLAGGED(i->character, PRF_NOCLANTALK))
         imm = TRUE;
 
@@ -2988,7 +2988,7 @@ ACMD(do_clantalk)
     leader = FALSE;
     if (imm)
       leader = TRUE;
-    else if (GET_LEVEL(ch) >= LVL_GOD)
+    else if (GET_LEVEL(ch) >= LVL_STAFF)
       leader = FALSE;
     else if (GET_CLAN(ch))
       if (GET_IDNUM(i->character) == clan_list[real_clan(GET_CLAN(ch))].leader)

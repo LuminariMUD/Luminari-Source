@@ -488,7 +488,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           if (type == MOB_TRIGGER) {
             ch = (char_data *) go;
             for (c = world[IN_ROOM(ch)].people; c; c = c->next_in_room)
-              if ((c != ch) && valid_dg_target(c, DG_ALLOW_GODS) &&
+              if ((c != ch) && valid_dg_target(c, DG_ALLOW_STAFFS) &&
                       CAN_SEE(ch, c)) {
                 if (!rand_number(0, count))
                   rndm = c;
@@ -498,7 +498,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else if (type == OBJ_TRIGGER) {
             for (c = world[obj_room((obj_data *) go)].people; c;
                     c = c->next_in_room)
-              if (valid_dg_target(c, DG_ALLOW_GODS)) {
+              if (valid_dg_target(c, DG_ALLOW_STAFFS)) {
                 if (!rand_number(0, count))
                   rndm = c;
                 count++;
@@ -507,7 +507,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else if (type == WLD_TRIGGER) {
             for (c = ((struct room_data *) go)->people; c;
                     c = c->next_in_room)
-              if (valid_dg_target(c, DG_ALLOW_GODS)) {
+              if (valid_dg_target(c, DG_ALLOW_STAFFS)) {
 
                 if (!rand_number(0, count))
                   rndm = c;
@@ -1076,7 +1076,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             }
             snprintf(str, slen, "%d", GET_COND(c, THIRST));
           } else if (!str_cmp(field, "title")) {
-            if (!IS_NPC(c) && subfield && *subfield && valid_dg_target(c, DG_ALLOW_GODS)) {
+            if (!IS_NPC(c) && subfield && *subfield && valid_dg_target(c, DG_ALLOW_STAFFS)) {
               if (GET_TITLE(c)) free(GET_TITLE(c));
               GET_TITLE(c) = strdup(subfield);
             }

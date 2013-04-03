@@ -1566,7 +1566,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
    */
   if (!IS_NPC(victim) && ((GET_HIT(victim) - dam) <= 0) &&
           GET_SKILL(victim, SKILL_DEFENSE_ROLL) &&
-          !char_has_mud_event(victim, eD_ROLL)) {
+          !char_has_mud_event(victim, eD_ROLL) && ch != victim) {
     act("\tWYou time a defensive roll perfectly and avoid the attack from"
             " \tn$N\tW!\tn", FALSE, victim, NULL, ch, TO_CHAR);
     act("$n \tRtimes a defensive roll perfectly and avoids your attack!\tn",

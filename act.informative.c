@@ -1623,7 +1623,7 @@ ACMD(do_weather) {
     send_to_char(ch, "The sky is %s and %s.\r\n", sky_look[weather_info.sky],
             weather_info.change >= 0 ? "you feel a warm wind from south" :
             "your foot tells you bad weather is due");
-    if (GET_LEVEL(ch) >= LVL_GOD)
+    if (GET_LEVEL(ch) >= LVL_STAFF)
       send_to_char(ch, "Pressure: %d (change: %d), Sky: %d (%s)\r\n",
             weather_info.pressure,
             weather_info.change,
@@ -2626,7 +2626,7 @@ ACMD(do_toggle) {
       "You will now need to specify a door direction when opening, closing and unlocking.\r\n",
       "You will now find the next available door when opening, closing or unlocking.\r\n"},
     /*28*/
-    {"clantalk", PRF_NOCLANTALK, LVL_GOD,
+    {"clantalk", PRF_NOCLANTALK, LVL_STAFF,
       "You can now hear all clan's clantalk.\r\n",
       "All clantalk will now be hidden.\r\n"},
     /*29*/
@@ -3204,7 +3204,7 @@ ACMD(do_whois) {
   if (PLR_FLAGGED(victim, PLR_DELETED))
     send_to_char(ch, "***DELETED***\r\n");
 
-  if (!got_from_file && victim->desc != NULL && GET_LEVEL(ch) >= LVL_GOD) {
+  if (!got_from_file && victim->desc != NULL && GET_LEVEL(ch) >= LVL_STAFF) {
     protocol_t * prot = victim->desc->pProtocol;
     send_to_char(ch, "Client:  %s [%s]\r\n",
             prot->pVariables[eMSDP_CLIENT_ID]->pValueString,

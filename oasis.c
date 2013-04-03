@@ -316,7 +316,7 @@ int can_edit_zone(struct char_data *ch, zone_rnum rnum)
     return TRUE;
 
   /* always access if ch is high enough level */
-  if (GET_LEVEL(ch) >= LVL_GRGOD)
+  if (GET_LEVEL(ch) >= LVL_GRSTAFF)
     return (TRUE);
 
   /* always access if a player helped build the zone in the first place */

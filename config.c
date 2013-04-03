@@ -74,7 +74,7 @@ int idle_void = 99;
 int idle_rent_time = 199;
 
 /* This level and up is immune to idling, LVL_IMPL+1 will disable it. */
-int idle_max_level = LVL_GOD;
+int idle_max_level = LVL_STAFF;
 
 /* Should items in death traps automatically be junked? */
 int dts_are_dumps = NO;
@@ -293,7 +293,7 @@ int use_autowiz = YES;
 
 /* If yes, what is the lowest level which should be on the wizlist?  (All immort
  * levels below the level you specify will go on the immlist instead.) */
-int min_wizlist_lev = LVL_GOD;
+int min_wizlist_lev = LVL_STAFF;
 
 /* To mimic stock behavior set to NO. To allow mortals to see doors in exits
  * set to YES. */

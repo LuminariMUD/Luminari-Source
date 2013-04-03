@@ -39,7 +39,7 @@ void free_message_list(struct message_list * mlist);
 #define MSGEDIT_HIT_CHAR      10
 #define MSGEDIT_HIT_VICT      11
 #define MSGEDIT_HIT_ROOM      12
-#define MSGEDIT_GOD_CHAR      13
-#define MSGEDIT_GOD_VICT      14
-#define MSGEDIT_GOD_ROOM      15
+#define MSGEDIT_STAFF_CHAR      13
+#define MSGEDIT_STAFF_VICT      14
+#define MSGEDIT_STAFF_ROOM      15
 

@@ -747,8 +747,8 @@ void npc_spellup(struct char_data *ch) {
     return;
 
   /* create a group in case we need it */
-  if (!GROUP(ch))
-    create_group(ch);
+  //if (!GROUP(ch))
+  //  create_group(ch);
   
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     level = LVL_IMMORT - 1;
@@ -784,7 +784,16 @@ void npc_spellup(struct char_data *ch) {
   }
   
   /* try healing */
-  
+  if ((GET_MAX_HIT(ch) / GET_HIT(ch)) >= 2) {
+    if (level >= spell_info[SPELL_HEAL].min_level[GET_CLASS(ch)]) {
+      cast_spell(ch, ch, NULL, SPELL_HEAL);
+      return;
+    }    
+    else if (level >= spell_info[SPELL_CURE_CRITIC].min_level[GET_CLASS(ch)]) {
+      cast_spell(ch, ch, NULL, SPELL_CURE_CRITIC);
+      return;
+    }    
+  }
   
   return;
 }

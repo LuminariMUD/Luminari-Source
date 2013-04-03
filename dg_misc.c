@@ -277,8 +277,8 @@ int valid_dg_target(struct char_data *ch, int bitvector) {
     return FALSE; /* Only PC's who are playing can be targetted */
   else if (GET_LEVEL(ch) < LVL_IMMORT)
     return TRUE; /* as well as all mortals */
-  else if (!IS_SET(bitvector, DG_ALLOW_GODS) &&
-          GET_LEVEL(ch) >= LVL_GRGOD) /* LVL_GOD has the advance command. Can't allow them to be forced. */
+  else if (!IS_SET(bitvector, DG_ALLOW_STAFFS) &&
+          GET_LEVEL(ch) >= LVL_GRSTAFF) /* LVL_STAFF has the advance command. Can't allow them to be forced. */
     return FALSE; /* but not always the highest gods */
   else if (!PRF_FLAGGED(ch, PRF_NOHASSLE))
     return TRUE; /* the ones in between as allowed as long as they have no-hassle off.   */

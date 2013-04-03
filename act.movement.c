@@ -150,7 +150,8 @@ EVENTFUNC(event_falling)
               "strikes you as all your upper-body bones shatter and your "
               "head splatters all over the area!\r\n");
       act("$n attempts to scream in horror as $s skull slams "
-              "into the ground, as all of $s upper-body bones shatter and $s "
+              "into the ground.  There is the sound like the cracking of a "
+              "ripe melon.  You watch as all of $s upper-body bones shatter and $s "
               "head splatters all over the area!\r\n", 
           FALSE, ch, 0, 0, TO_ROOM);
       return 0;
@@ -446,7 +447,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     return (0);
   }
   if (ZONE_FLAGGED(GET_ROOM_ZONE(going_to), ZONE_NOIMMORT) &&
-          (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRGOD)) {
+          (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRSTAFF)) {
     send_to_char(ch, "A mysterious barrier forces you back! That area is off-limits.\r\n");
     return (0);
   }
@@ -467,7 +468,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
 
   /* Room Level Requirements: Is ch privileged enough to enter the room? */
-  if (ROOM_FLAGGED(going_to, ROOM_GODROOM) && GET_LEVEL(ch) < LVL_GOD) {
+  if (ROOM_FLAGGED(going_to, ROOM_STAFFROOM) && GET_LEVEL(ch) < LVL_STAFF) {
     send_to_char(ch, "You aren't godly enough to use that room!\r\n");
     return (0);
   }
@@ -1354,7 +1355,7 @@ ACMD(do_gen_door) {
             IS_SET(flags_door[subcmd], NEED_UNLOCKED) &&
             (GET_LEVEL(ch) < LVL_IMMORT || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))))
       send_to_char(ch, "It seems to be locked.\r\n");
-    else if (!has_key(ch, keynum) && (GET_LEVEL(ch) < LVL_GOD) &&
+    else if (!has_key(ch, keynum) && (GET_LEVEL(ch) < LVL_STAFF) &&
             ((subcmd == SCMD_LOCK) || (subcmd == SCMD_UNLOCK)))
       send_to_char(ch, "You don't seem to have the proper key.\r\n");
     else if (ok_pick(ch, keynum, DOOR_IS_PICKPROOF(ch, obj, door), subcmd))
@@ -1525,7 +1526,7 @@ ACMD(do_enter) {
           break;
 
         default:
-          mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Invalid portal type (%d) in room %d", portal->obj_flags.value[0], world[IN_ROOM(ch)].number);
+          mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Invalid portal type (%d) in room %d", portal->obj_flags.value[0], world[IN_ROOM(ch)].number);
           send_to_char(ch, "This portal is broken, please tell an Imm.\r\n");
           return;
           break;
