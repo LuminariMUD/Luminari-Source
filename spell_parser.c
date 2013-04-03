@@ -2669,3 +2669,9 @@ void mag_assign_spells(void) {
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 
 }
+
+
+/* must be at end of file */
+#undef SINFO
+/**************************/
+

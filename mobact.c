@@ -25,6 +25,7 @@
 #include "mud_event.h" /* for eSTUNNED */
 
 /* local file scope only function prototypes, defines, externs, etc */
+#define SINFO spell_info[spellnum]
 
 /* end local */
 
@@ -34,6 +35,43 @@
 
 
 /*** UTILITY FUNCTIONS ***/
+
+/* some spells are not appropriate for spellup, this simple
+ function returns TRUE if the spell is OK, FALSE if not */
+bool valid_spellup_spell(int spellnum) {
+
+  /* just list exceptions */
+  /* NOTE if you add any exception here, better make
+   sure wizards have another way of getting the spell
+   */
+  switch (spellnum) {
+    case SPELL_VENTRILOQUATE:
+    case SPELL_MUMMY_DUST:
+    case SPELL_DRAGON_KNIGHT:
+    case SPELL_GREATER_RUIN:
+    case SPELL_HELLBALL:
+    case SPELL_EPIC_MAGE_ARMOR:
+    case SPELL_EPIC_WARDING:
+    case SPELL_FIRE_BREATHE:
+    case SPELL_STENCH:
+    case SPELL_ACID_SPLASH:
+    case SPELL_RAY_OF_FROST:
+    case SPELL_FSHIELD_DAM:
+    case SPELL_CSHIELD_DAM:
+    case SPELL_ASHIELD_DAM:
+    case SPELL_DEATHCLOUD:
+    case SPELL_ACID:
+    case SPELL_INCENDIARY:
+    case SPELL_UNUSED271:
+    case SPELL_UNUSED275:
+    case SPELL_UNUSED285:
+    case SPELL_BLADES:
+    case SPELL_CONTROL_WEATHER:
+    case SPELL_I_DARKNESS:
+      return FALSE;
+  }
+  return TRUE;
+}
 
 /* function to move a mobile along a specified path (patrols) */
 bool move_on_path(struct char_data *ch) {
@@ -737,7 +775,7 @@ void npc_class_behave(struct char_data *ch) {
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
   struct obj_data *obj = NULL;
-  int level;
+  int level, spellnum = -1;
   /* our priorities are going to be in this order:
    1)  get a charmee
    2)  heal (heal group)
@@ -794,6 +832,16 @@ void npc_spellup(struct char_data *ch) {
       return;
     }    
   }
+  
+  /* random buffs */
+  do {
+    spellnum = rand_number(1, NUM_SPELLS - 1);
+  } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
+          SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE) ||
+          !valid_spellup_spell(spellnum));
+  
+  /* found a spell, cast it */
+  cast_spell(ch, ch, NULL, spellnum);
   
   return;
 }
@@ -997,3 +1045,8 @@ void mobile_activity(void) {
 
   } /* end for() */
 }
+
+/* must be at end of file */
+#undef SINFO
+/**************************/
+
