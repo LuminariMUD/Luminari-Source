@@ -1178,18 +1178,30 @@ void pulse_luminari() {
   }  // end char list loop
 }
 
+/* added this for falling event */
+void death_check() {
+  struct char_data *i = NULL;
+  
+  for (i = character_list; i; i = i->next) {
+    if (GET_HIT(i) <= -12)
+      damage(i, i, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
+  }
+}
 
+
+/* here she is, heartbeat function - called every 1/10th of a second */
 void heartbeat(int heart_pulse)
 {
   static int mins_since_crashsave = 0;
 
   event_process(); 
-
+  
   if (!(heart_pulse % PULSE_DG_SCRIPT))
     script_trigger_check();
 
   if (!(heart_pulse % PASSES_PER_SEC)) {    /* EVERY second */
     msdp_update();
+    death_check();
     next_tick--;
   }
 
