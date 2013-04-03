@@ -305,7 +305,7 @@ WCMD(do_wteleport)
         for (ch = room->people; ch; ch = next_ch)
         {
             next_ch = ch->next_in_room;
-            if (!valid_dg_target(ch, DG_ALLOW_GODS))
+            if (!valid_dg_target(ch, DG_ALLOW_STAFFS))
               continue;
             char_from_room(ch);
             char_to_room(ch, target);
@@ -316,7 +316,7 @@ WCMD(do_wteleport)
     else
     {
         if ((ch = get_char_by_room(room, arg1))) {
-          if (valid_dg_target(ch, DG_ALLOW_GODS)) {
+          if (valid_dg_target(ch, DG_ALLOW_STAFFS)) {
             char_from_room(ch);
             char_to_room(ch, target);
             enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);

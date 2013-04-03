@@ -2850,8 +2850,8 @@ int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
 }
 
 static void log_zone_error(zone_rnum zone, int cmd_no, const char *message) {
-  mudlog(NRM, LVL_GOD, TRUE, "SYSERR: zone file: %s", message);
-  mudlog(NRM, LVL_GOD, TRUE, "SYSERR: ...offending cmd: '%c' cmd in zone #%d, line %d",
+  mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: zone file: %s", message);
+  mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: ...offending cmd: '%c' cmd in zone #%d, line %d",
           ZCMD.command, zone_table[zone].number, ZCMD.line);
 }
 

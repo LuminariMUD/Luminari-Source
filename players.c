@@ -272,7 +272,7 @@ int load_char(const char *name, struct char_data *ch) {
     if (!get_filename(filename, sizeof (filename), PLR_FILE, player_table[id].name))
       return (-1);
     if (!(fl = fopen(filename, "r"))) {
-      mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Couldn't open player file %s", filename);
+      mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't open player file %s", filename);
       return (-1);
     }
 
@@ -625,7 +625,7 @@ void save_char(struct char_data * ch, int mode) {
   if (!get_filename(filename, sizeof (filename), PLR_FILE, GET_NAME(ch)))
     return;
   if (!(fl = fopen(filename, "w"))) {
-    mudlog(NRM, LVL_GOD, TRUE, "SYSERR: Couldn't open player file %s for write", filename);
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't open player file %s for write", filename);
     return;
   }
 

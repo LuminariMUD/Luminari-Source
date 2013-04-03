@@ -2037,7 +2037,7 @@ static int new_descriptor(socket_t s)
   /* determine if the site is banned */
   if (isbanned(newd->host) == BAN_ALL) {
     CLOSE_SOCKET(desc);
-    mudlog(CMP, LVL_GOD, TRUE, "Connection attempt denied from [%s]", newd->host);
+    mudlog(CMP, LVL_STAFF, TRUE, "Connection attempt denied from [%s]", newd->host);
     free(newd);
     return (0);
   }

@@ -186,7 +186,7 @@ ACMD(do_ban)
   ban_node->next = ban_list;
   ban_list = ban_node;
 
-  mudlog(NRM, MAX(LVL_GOD, GET_INVIS_LEV(ch)), TRUE, "%s has banned %s for %s players.",
+  mudlog(NRM, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "%s has banned %s for %s players.",
 	GET_NAME(ch), site, ban_types[ban_node->type]);
   send_to_char(ch, "Site banned.\r\n");
   write_ban_list();
@@ -218,7 +218,7 @@ ACMD(do_unban)
   }
   REMOVE_FROM_LIST(ban_node, ban_list, next);
   send_to_char(ch, "Site unbanned.\r\n");
-  mudlog(NRM, MAX(LVL_GOD, GET_INVIS_LEV(ch)), TRUE, "%s removed the %s-player ban on %s.",
+  mudlog(NRM, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "%s removed the %s-player ban on %s.",
 	GET_NAME(ch), ban_types[ban_node->type], ban_node->site);
 
   free(ban_node);

@@ -133,7 +133,7 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
     do_say(keeper, actbuf, cmd_say, 0);
     return (FALSE);
   }
-  if (IS_GOD(ch))
+  if (IS_STAFF(ch))
     return (TRUE);
 
   if ((IS_GOOD(ch) && NOTRADE_GOOD(shop_nr)) ||
@@ -586,7 +586,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
     return;
 
   if (OBJ_FLAGGED(obj, ITEM_QUEST)) {
-    if (GET_OBJ_COST(obj) > GET_QUESTPOINTS(ch) && !IS_GOD(ch)) {
+    if (GET_OBJ_COST(obj) > GET_QUESTPOINTS(ch) && !IS_STAFF(ch)) {
       char actbuf[MAX_INPUT_LENGTH];
       snprintf(actbuf, sizeof(actbuf),
         "%s You haven't earned enough quest points for such an item.",
@@ -595,7 +595,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
       return;
     }
   } else { /*has the player got enough gold? */
-  if (buy_price(obj, shop_nr, keeper, ch) > GET_GOLD(ch) && !IS_GOD(ch)) {
+  if (buy_price(obj, shop_nr, keeper, ch) > GET_GOLD(ch) && !IS_STAFF(ch)) {
     char actbuf[MAX_INPUT_LENGTH];
 
     snprintf(actbuf, sizeof(actbuf), shop_index[shop_nr].missing_cash2, GET_NAME(ch));
@@ -627,7 +627,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
   
   if (OBJ_FLAGGED(obj, ITEM_QUEST)) {
     while (obj &&
-           (GET_QUESTPOINTS(ch) >= GET_OBJ_COST(obj) || IS_GOD(ch))
+           (GET_QUESTPOINTS(ch) >= GET_OBJ_COST(obj) || IS_STAFF(ch))
     && IS_CARRYING_N(ch) < CAN_CARRY_N(ch)
     && bought < buynum
     && IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) <= CAN_CARRY_W(ch)) {
@@ -642,7 +642,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
       obj_to_char(obj, ch);
 
       goldamt += GET_OBJ_COST(obj);
-      if (!IS_GOD(ch))
+      if (!IS_STAFF(ch))
         GET_QUESTPOINTS(ch) -= GET_OBJ_COST(obj);
 
       last_obj = obj;
@@ -651,7 +651,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
         break;
     }
   } else {
-  while (obj && (GET_GOLD(ch) >= buy_price(obj, shop_nr, keeper, ch) || IS_GOD(ch))
+  while (obj && (GET_GOLD(ch) >= buy_price(obj, shop_nr, keeper, ch) || IS_STAFF(ch))
 	 && IS_CARRYING_N(ch) < CAN_CARRY_N(ch) && bought < buynum
 	 && IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) <= CAN_CARRY_W(ch)) {
     int charged;
@@ -668,7 +668,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
 
     charged = buy_price(obj, shop_nr, keeper, ch);
     goldamt += charged;
-    if (!IS_GOD(ch))
+    if (!IS_STAFF(ch))
       decrease_gold(ch, charged);
 
     last_obj = obj;
@@ -697,7 +697,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
       snprintf(buf, sizeof(buf), "%s Something screwy only gave you %d.", GET_NAME(ch), bought);
     do_tell(keeper, buf, cmd_tell, 0);
   }
-  if (!IS_GOD(ch) && obj && !OBJ_FLAGGED(obj, ITEM_QUEST)) {
+  if (!IS_STAFF(ch) && obj && !OBJ_FLAGGED(obj, ITEM_QUEST)) {
     increase_gold(keeper, goldamt);
     if (SHOP_USES_BANK(shop_nr))
       if (GET_GOLD(keeper) > MAX_OUTSIDE_BANK) {

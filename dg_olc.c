@@ -579,7 +579,7 @@ void trigedit_save(struct descriptor_data *d)
 #endif
 
   if (!(trig_file = fopen(fname, "w"))) {
-    mudlog(BRF, MAX(LVL_GOD, GET_INVIS_LEV(d->character)), TRUE,
+    mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(d->character)), TRUE,
            "SYSERR: OLC: Can't open trig file \"%s\"", fname);
     return;
   }
@@ -589,7 +589,7 @@ void trigedit_save(struct descriptor_data *d)
       trig = trig_index[rnum]->proto;
 
       if (fprintf(trig_file, "#%d\n", i) < 0) {
-        mudlog(BRF, MAX(LVL_GOD, GET_INVIS_LEV(d->character)), TRUE,
+        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(d->character)), TRUE,
                "SYSERR: OLC: Can't write trig file!");
         fclose(trig_file);
         return;

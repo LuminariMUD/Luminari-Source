@@ -354,12 +354,12 @@ char_data *get_char(char *name)
   if (*name == UID_CHAR) {
     i = find_char(atoi(name + 1));
 
-    if (i && valid_dg_target(i, DG_ALLOW_GODS))
+    if (i && valid_dg_target(i, DG_ALLOW_STAFFS))
       return i;
   } else {
     for (i = character_list; i; i = i->next)
       if (isname(name, i->player.name) &&
-          valid_dg_target(i, DG_ALLOW_GODS))
+          valid_dg_target(i, DG_ALLOW_STAFFS))
         return i;
   }
 
@@ -374,7 +374,7 @@ char_data *get_char(char *name)
  * @param name Character name keyword to search for, or unique ID. Unique
  * id must be prefixed with UID_CHAR. 
  * @retval char_data * Pointer to the the char if found, NULL if not. Will
- * only find god characters if DG_ALLOW_GODS is on. */
+ * only find god characters if DG_ALLOW_STAFFS is on. */
 char_data *get_char_near_obj(obj_data *obj, char *name)
 {
   char_data *ch;
@@ -382,14 +382,14 @@ char_data *get_char_near_obj(obj_data *obj, char *name)
   if (*name == UID_CHAR) {
     ch = find_char(atoi(name + 1));
 
-    if (ch && valid_dg_target(ch, DG_ALLOW_GODS))
+    if (ch && valid_dg_target(ch, DG_ALLOW_STAFFS))
       return ch;
   } else {
     room_rnum num;
     if ((num = obj_room(obj)) != NOWHERE)
       for (ch = world[num].people; ch; ch = ch->next_in_room)
         if (isname(name, ch->player.name) &&
-            valid_dg_target(ch, DG_ALLOW_GODS))
+            valid_dg_target(ch, DG_ALLOW_STAFFS))
           return ch;
   }
 
@@ -404,7 +404,7 @@ char_data *get_char_near_obj(obj_data *obj, char *name)
  * @param name Character name keyword to search for, or unique ID. Unique
  * id must be prefixed with UID_CHAR. 
  * @retval char_data * Pointer to the the char if found, NULL if not. Will
- * only find god characters if DG_ALLOW_GODS is on. */
+ * only find god characters if DG_ALLOW_STAFFS is on. */
 char_data *get_char_in_room(room_data *room, char *name)
 {
   char_data *ch;
@@ -412,12 +412,12 @@ char_data *get_char_in_room(room_data *room, char *name)
   if (*name == UID_CHAR) {
     ch = find_char(atoi(name + 1));
 
-    if (ch && valid_dg_target(ch, DG_ALLOW_GODS))
+    if (ch && valid_dg_target(ch, DG_ALLOW_STAFFS))
       return ch;
   } else {
     for (ch = room->people; ch; ch = ch->next_in_room)
       if (isname(name, ch->player.name) &&
-          valid_dg_target(ch, DG_ALLOW_GODS))
+          valid_dg_target(ch, DG_ALLOW_STAFFS))
         return ch;
     }
 
@@ -513,22 +513,22 @@ char_data *get_char_by_obj(obj_data *obj, char *name)
   if (*name == UID_CHAR) {
     ch = find_char(atoi(name + 1));
 
-    if (ch && valid_dg_target(ch, DG_ALLOW_GODS))
+    if (ch && valid_dg_target(ch, DG_ALLOW_STAFFS))
       return ch;
   } else {
     if (obj->carried_by &&
         isname(name, obj->carried_by->player.name) &&
-        valid_dg_target(obj->carried_by, DG_ALLOW_GODS))
+        valid_dg_target(obj->carried_by, DG_ALLOW_STAFFS))
       return obj->carried_by;
 
     if (obj->worn_by &&
         isname(name, obj->worn_by->player.name) &&
-        valid_dg_target(obj->worn_by, DG_ALLOW_GODS))
+        valid_dg_target(obj->worn_by, DG_ALLOW_STAFFS))
       return obj->worn_by;
 
     for (ch = character_list; ch; ch = ch->next)
       if (isname(name, ch->player.name) &&
-          valid_dg_target(ch, DG_ALLOW_GODS))
+          valid_dg_target(ch, DG_ALLOW_STAFFS))
         return ch;
   }
 
@@ -544,17 +544,17 @@ char_data *get_char_by_room(room_data *room, char *name)
   if (*name == UID_CHAR) {
     ch = find_char(atoi(name + 1));
 
-    if (ch && valid_dg_target(ch, DG_ALLOW_GODS))
+    if (ch && valid_dg_target(ch, DG_ALLOW_STAFFS))
       return ch;
   } else {
     for (ch = room->people; ch; ch = ch->next_in_room)
       if (isname(name, ch->player.name) &&
-          valid_dg_target(ch, DG_ALLOW_GODS))
+          valid_dg_target(ch, DG_ALLOW_STAFFS))
         return ch;
 
     for (ch = character_list; ch; ch = ch->next)
       if (isname(name, ch->player.name) &&
-          valid_dg_target(ch, DG_ALLOW_GODS))
+          valid_dg_target(ch, DG_ALLOW_STAFFS))
         return ch;
   }
 
@@ -2882,7 +2882,7 @@ void save_char_vars(struct char_data *ch)
 
   file = fopen(fn,"wt");
   if (!file) {
-    mudlog( NRM, LVL_GOD, TRUE,
+    mudlog( NRM, LVL_STAFF, TRUE,
             "SYSERR: Could not open player variable file %s for writing.:%s",
             fn, strerror(errno));
     return;

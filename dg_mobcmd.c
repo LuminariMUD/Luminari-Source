@@ -577,7 +577,7 @@ ACMD(do_mteleport) {
     for (vict = world[IN_ROOM(ch)].people; vict; vict = next_ch) {
       next_ch = vict->next_in_room;
 
-      if (valid_dg_target(vict, DG_ALLOW_GODS)) {
+      if (valid_dg_target(vict, DG_ALLOW_STAFFS)) {
         char_from_room(vict);
         char_to_room(vict, target);
         enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
@@ -594,7 +594,7 @@ ACMD(do_mteleport) {
       return;
     }
 
-    if (valid_dg_target(ch, DG_ALLOW_GODS)) {
+    if (valid_dg_target(ch, DG_ALLOW_STAFFS)) {
       char_from_room(vict);
       char_to_room(vict, target);
       enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);

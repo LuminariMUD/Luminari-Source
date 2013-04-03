@@ -52,8 +52,8 @@ const char *alignment_names[] = {
 /* structure for immortal prefix */
 const char *admin_level_names[] = {
   "\tB[  \tC Staff   \tB ]\tn", // LVL_IMMORTAL
-  "\tB[\tCSenior Staff\tB]\tn", // LVL_GOD
-  "\tB[\tCWorld Forger\tB]\tn", // LVL_GRGOD
+  "\tB[\tCSenior Staff\tB]\tn", // LVL_STAFF
+  "\tB[\tCWorld Forger\tB]\tn", // LVL_GRSTAFF
   "\tB[   \tCForger\tB   ]\tn", // LVL_IMPL
   "\n",
 };

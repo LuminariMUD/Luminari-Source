@@ -399,7 +399,7 @@ void obj_command_interpreter(obj_data *obj, char *argument);
 void wld_command_interpreter(room_data *room, char *argument);
 
 /* defines for valid_dg_target */
-#define DG_ALLOW_GODS (1<<0)
+#define DG_ALLOW_STAFFS (1<<0)
 
 /* Macros for scripts */
 #define UID_CHAR   '}'

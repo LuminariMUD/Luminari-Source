@@ -556,7 +556,7 @@ void House_save_all(void) {
 int House_can_enter(struct char_data *ch, room_vnum house) {
   int i, j;
 
-  if (GET_LEVEL(ch) >= LVL_GRGOD || (i = find_house(house)) == NOWHERE)
+  if (GET_LEVEL(ch) >= LVL_GRSTAFF || (i = find_house(house)) == NOWHERE)
     return (1);
 
   switch (house_control[i].mode) {

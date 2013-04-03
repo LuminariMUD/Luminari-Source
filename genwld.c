@@ -96,7 +96,7 @@ room_rnum add_room(struct room_data *room)
 	/* Known zone entries we don't care about. */
         break;
       default:
-        mudlog(BRF, LVL_GOD, TRUE, "SYSERR: GenOLC: add_room: Unknown zone entry found!");
+        mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: GenOLC: add_room: Unknown zone entry found!");
       }
 
   /* Update the loadroom table. Adds 1 or 0. */
@@ -233,7 +233,7 @@ int delete_room(room_rnum rnum)
         /* Known zone entries we don't care about. */
         break;
       default:
-        mudlog(BRF, LVL_GOD, TRUE, "SYSERR: GenOLC: delete_room: Unknown zone entry found!");
+        mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: GenOLC: delete_room: Unknown zone entry found!");
       }
 
   /* Remove this room from all shop lists. */

@@ -2980,8 +2980,8 @@ const char *titles(int chclass, int level) {
         case 29: return "the Delver of Mysteries";
         case 30: return "the Knower of Hidden Things";
         case LVL_IMMORT: return "the Immortal Warlock";
-        case LVL_GOD: return "the Avatar of Magic";
-        case LVL_GRGOD: return "the God of Magic";
+        case LVL_STAFF: return "the Avatar of Magic";
+        case LVL_GRSTAFF: return "the God of Magic";
         default: return "the Wizard";
       }
       break;
@@ -3020,8 +3020,8 @@ const char *titles(int chclass, int level) {
         case 29: return "the Hidden Stalker";
         case 30: return "the Great Seeker";
         case LVL_IMMORT: return "the Avatar of the Wild";
-        case LVL_GOD: return "the Wrath of the Wild";
-        case LVL_GRGOD: return "the Cyclone of Nature";
+        case LVL_STAFF: return "the Wrath of the Wild";
+        case LVL_GRSTAFF: return "the Cyclone of Nature";
         default: return "the Ranger";
       }
       break;
@@ -3060,8 +3060,8 @@ const char *titles(int chclass, int level) {
         case 29: return "the Balancer";
         case 30: return "the Still Waters";
         case LVL_IMMORT: return "the Avatar of Nature";
-        case LVL_GOD: return "the Wrath of Nature";
-        case LVL_GRGOD: return "the Storm of Earth's Voice";
+        case LVL_STAFF: return "the Wrath of Nature";
+        case LVL_GRSTAFF: return "the Storm of Earth's Voice";
         default: return "the Druid";
       }
       break;
@@ -3100,8 +3100,8 @@ const char *titles(int chclass, int level) {
         case 29: return "the Crux of Power";
         case 30: return "the Near-Divine";
         case LVL_IMMORT: return "the Immortal Magic Weaver";
-        case LVL_GOD: return "the Avatar of the Flow";
-        case LVL_GRGOD: return "the Hand of Mystical Might";
+        case LVL_STAFF: return "the Avatar of the Flow";
+        case LVL_GRSTAFF: return "the Hand of Mystical Might";
         default: return "the Sorcerer";
       }
       break;
@@ -3140,8 +3140,8 @@ const char *titles(int chclass, int level) {
         case 29: return "the Composer";
         case 30: return "the Maestro";
         case LVL_IMMORT: return "the Immortal Songweaver";
-        case LVL_GOD: return "the Master of Sound";
-        case LVL_GRGOD: return "the Lord of Dance";
+        case LVL_STAFF: return "the Master of Sound";
+        case LVL_GRSTAFF: return "the Lord of Dance";
         default: return "the Bard";
       }
       break;
@@ -3180,8 +3180,8 @@ const char *titles(int chclass, int level) {
         case 29: return "the God-Favored";
         case 30: return "the One Who Moves Mountains";
         case LVL_IMMORT: return "the Immortal Cardinal";
-        case LVL_GOD: return "the Inquisitor";
-        case LVL_GRGOD: return "the God of Good and Evil";
+        case LVL_STAFF: return "the Inquisitor";
+        case LVL_GRSTAFF: return "the God of Good and Evil";
         default: return "the Cleric";
       }
       break;
@@ -3219,8 +3219,8 @@ const char *titles(int chclass, int level) {
         case 29: return "who Walks in the Light";
         case 30: return "the Defender of the Faith";
         case LVL_IMMORT: return "the Immortal Justicar";
-        case LVL_GOD: return "the Immortal Sword of Light";
-        case LVL_GRGOD: return "the Immortal Hammer of Justic";
+        case LVL_STAFF: return "the Immortal Sword of Light";
+        case LVL_GRSTAFF: return "the Immortal Hammer of Justic";
         default: return "the Paladin";
       }
       break;
@@ -3258,8 +3258,8 @@ const char *titles(int chclass, int level) {
         case 29: return "of the Disciplined Mind";
         case 30: return "of the Mastered Self";
         case LVL_IMMORT: return "the Immortal Monk";
-        case LVL_GOD: return "the Inquisitor Monk";
-        case LVL_GRGOD: return "the God of the Fist";
+        case LVL_STAFF: return "the Inquisitor Monk";
+        case LVL_GRSTAFF: return "the God of the Fist";
         default: return "the Monk";
       }
       break;
@@ -3297,8 +3297,8 @@ const char *titles(int chclass, int level) {
         case 29: return "the Marauder";
         case 30: return "the Volatile";
         case LVL_IMMORT: return "the Immortal Assassin";
-        case LVL_GOD: return "the Demi God of Thieves";
-        case LVL_GRGOD: return "the God of Thieves and Tradesmen";
+        case LVL_STAFF: return "the Demi God of Thieves";
+        case LVL_GRSTAFF: return "the God of Thieves and Tradesmen";
         default: return "the Rogue";
       }
       break;
@@ -3336,8 +3336,8 @@ const char *titles(int chclass, int level) {
         case 29: return "the Bane of All Enemies";
         case 30: return "the Exceptionally Dangerous";
         case LVL_IMMORT: return "the Immortal Warlord";
-        case LVL_GOD: return "the Extirpator";
-        case LVL_GRGOD: return "the God of War";
+        case LVL_STAFF: return "the Extirpator";
+        case LVL_GRSTAFF: return "the God of War";
         default: return "the Warrior";
       }
       break;
@@ -3375,8 +3375,8 @@ const char *titles(int chclass, int level) {
         case 29: return "the Effulgence of Rage";
         case 30: return "the Foe-Hewer";
         case LVL_IMMORT: return "the Immortal Warlord";
-        case LVL_GOD: return "the Extirpator";
-        case LVL_GRGOD: return "the God of Rage";
+        case LVL_STAFF: return "the Extirpator";
+        case LVL_GRSTAFF: return "the God of Rage";
         default: return "the Berserker";
       }
       break;

@@ -171,13 +171,13 @@ static int is_tell_ok(struct char_data *ch, struct char_data *vict)
     send_to_char(ch, "You try to tell yourself something.\r\n");
   else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOTELL))
     send_to_char(ch, "You can't tell other people while you have notell on.\r\n");
-  else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_GOD))
+  else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF))
     send_to_char(ch, "The walls seem to absorb your words.\r\n");
   else if (!IS_NPC(vict) && !vict->desc)        /* linkless */
     act("$E's linkless at the moment.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
   else if (PLR_FLAGGED(vict, PLR_WRITING))
     act("$E's writing a message right now; try again later.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
-  else if ((!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_NOTELL)) || (ROOM_FLAGGED(IN_ROOM(vict), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_GOD)))
+  else if ((!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_NOTELL)) || (ROOM_FLAGGED(IN_ROOM(vict), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF)))
     act("$E can't hear you.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
   else if (AFF_FLAGGED(vict, AFF_DEAF))
     act("$E seems to be deaf!", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
@@ -454,7 +454,7 @@ ACMD(do_page)
 
     snprintf(buf, sizeof(buf), "\007\007*$n* %s", buf2);
     if (!str_cmp(arg, "all")) {
-      if (GET_LEVEL(ch) > LVL_GOD) {
+      if (GET_LEVEL(ch) > LVL_STAFF) {
 	for (d = descriptor_list; d; d = d->next)
 	  if (STATE(d) == CON_PLAYING && d->character)
 	    act(buf, FALSE, ch, 0, d->character, TO_VICT);
@@ -540,7 +540,7 @@ ACMD(do_gen_comm)
     send_to_char(ch, "%s", com_msgs[subcmd][0]);
     return;
   }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_GOD)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF)) {
     send_to_char(ch, "The walls seem to absorb your words.\r\n");
     return;
   }
@@ -606,7 +606,7 @@ ACMD(do_gen_comm)
     if (!IS_NPC(ch) && (PRF_FLAGGED(i->character, channels[subcmd]) || PLR_FLAGGED(i->character, PLR_WRITING)))
       continue;
 
-    if (ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_GOD))
+    if (ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF))
       continue;
 
     if (subcmd == SCMD_SHOUT && ((world[IN_ROOM(ch)].zone != world[IN_ROOM(i->character)].zone) ||

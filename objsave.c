@@ -1309,7 +1309,7 @@ static int Crash_load_objs(struct char_data *ch) {
   }
 
   /* Little hoarding check. -gg 3/1/98 */
-  mudlog(NRM, MAX(LVL_GOD, GET_INVIS_LEV(ch)), TRUE, "%s (level %d) has %d %s (max %d).",
+  mudlog(NRM, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "%s (level %d) has %d %s (max %d).",
           GET_NAME(ch), GET_LEVEL(ch), num_objs, num_objs > 1 ? "objects" : "object", CONFIG_MAX_OBJ_SAVE);
 
   fclose(fl);
