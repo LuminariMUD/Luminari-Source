@@ -216,6 +216,8 @@ extern const char *cmd_door[];
 /*****************************************************************************
  * Begin Functions and defines for act.offensive.c
  ****************************************************************************/
+/* functions */
+void perform_assist(struct char_data *ch, struct char_data *helpee);
 /* Functions with subcommands */
 /* do_hit */
 ACMD(do_hit);

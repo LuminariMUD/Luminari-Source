@@ -842,7 +842,7 @@ void mobile_activity(void) {
       else
         npc_class_behave(ch);
       continue;
-    } else if (IS_NPC_CASTER(ch)) {
+    } else if (IS_NPC_CASTER(ch) && rand_number(0, 1)) {
       /* not in combat */
       npc_spellup(ch);
     }

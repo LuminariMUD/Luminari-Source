@@ -2761,7 +2761,7 @@ void autoDiagnose(struct char_data *ch) {
 /* control the fights going on.
  * Called every PULSE_VIOLENCE seconds from comm.c. */
 void perform_violence(void) {
-  struct char_data *ch, *tch, *charmee;
+  struct char_data *ch, *tch = NULL, *charmee;
   struct list_data *room_list = NULL;
 
 
@@ -2940,8 +2940,10 @@ void perform_violence(void) {
           continue;
         if (!CAN_SEE(tch, ch))
           continue;
+        
+        perform_assist(tch, ch);
 
-        do_assist(tch, GET_NAME(ch), 0, 0);
+        //do_assist(tch, GET_NAME(ch), 0, 0);
       }
     }
 
@@ -2951,7 +2953,8 @@ void perform_violence(void) {
       if (AFF_FLAGGED(charmee, AFF_CHARM) && charmee->master == ch &&
               !FIGHTING(charmee) &&
               GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch))
-        do_assist(charmee, GET_NAME(ch), 0, 0);
+        perform_assist(tch, ch);
+        //do_assist(charmee, GET_NAME(ch), 0, 0);
 
     if (AFF_FLAGGED(ch, AFF_PARRY))
       send_to_char(ch, "You continue the battle in defensive positioning!\r\n");
