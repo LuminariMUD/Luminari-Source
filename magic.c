@@ -3722,7 +3722,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   int hp_bonus = 0, dam_bonus = 0, hit_bonus = 0;
   int mob_level = 0;
   mob_vnum mob_num = 0;
-  struct follow_type *k = NULL, *next = NULL;
 
   if (ch == NULL)
     return;

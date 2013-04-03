@@ -766,15 +766,15 @@ void npc_spellup(struct char_data *ch) {
   /* try for an elemental */
   if (!HAS_PET_ELEMENTAL(ch)) {
     if (level >= spell_info[SPELL_SUMMON_CREATURE_9].min_level[GET_CLASS(ch)]) {
-      cast_spell(ch, NULL, obj, SPELL_SUMMON_CREATURE_9);
+      cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_9);
       return;
     }    
     else if (level >= spell_info[SPELL_SUMMON_CREATURE_8].min_level[GET_CLASS(ch)]) {
-      cast_spell(ch, NULL, obj, SPELL_SUMMON_CREATURE_8);
+      cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_8);
       return;
     }    
     else if (level >= spell_info[SPELL_SUMMON_CREATURE_7].min_level[GET_CLASS(ch)]) {
-      cast_spell(ch, NULL, obj, SPELL_SUMMON_CREATURE_7);
+      cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_7);
       return;
     }    
   }
@@ -838,7 +838,7 @@ void mobile_activity(void) {
       else
         npc_class_behave(ch);
       continue;
-    } else if (IS_CASTER(ch)) {
+    } else if (IS_NPC_CASTER(ch)) {
       /* not in combat */
       npc_spellup(ch);
     }
