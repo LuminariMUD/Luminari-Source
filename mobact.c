@@ -864,19 +864,20 @@ void npc_spellup(struct char_data *ch) {
   /* try to fix condition issues */
   
   /* random buffs */
-  /*
   do {
     spellnum = rand_number(1, NUM_SPELLS - 1);
     loop_counter++;
   } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
           SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE) ||
           !valid_spellup_spell(spellnum) || affected_by_spell(ch, spellnum) ||
-          loop_counter >= (NUM_SPELLS * 50));
+          loop_counter < (NUM_SPELLS * 50));
   
-  if (loop_counter < (NUM_SPELLS * 50))
+  if (loop_counter >= (NUM_SPELLS * 50))
     // found a spell, cast it
     cast_spell(ch, ch, NULL, spellnum);
-  */
+  else
+    log("NPC spellup looped NUM_SPELLS * 50 times");
+  
   return;
 }
 
