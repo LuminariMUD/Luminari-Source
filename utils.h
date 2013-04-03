@@ -1406,6 +1406,13 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
                          || IS_SORCERER(ch) || IS_PALADIN(ch) || \
                          IS_RANGER(ch) || IS_BARD(ch))
 
+#define IS_NPC_CASTER(ch)  (GET_CLASS(ch) == CLASS_CLERIC || \
+                            GET_CLASS(ch) == CLASS_WIZARD || \
+                            GET_CLASS(ch) == CLASS_DRUID || \
+                            GET_CLASS(ch) == CLASS_SORCERER || \
+                            GET_CLASS(ch) == CLASS_PALADIN || \
+                            GET_CLASS(ch) == CLASS_RANGER || \
+                            GET_CLASS(ch) == CLASS_BARD)
 
 #define RACE_ABBR(ch)	( IS_NPC(ch) ?  \
 		npc_race_abbrevs[GET_RACE(ch)] : (IS_MORPHED(ch) ? \
