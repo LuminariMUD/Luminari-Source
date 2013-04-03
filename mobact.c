@@ -26,80 +26,74 @@
 
 /* local file scope only function prototypes, defines, externs, etc */
 #define SINFO spell_info[spellnum]
+#define SPELLUP_SPELLS 54
 
 /* end local */
 
 
 
 
-
-
 /*** UTILITY FUNCTIONS ***/
 
-/* some spells are not appropriate for spellup, this simple
- function returns TRUE if the spell is OK, FALSE if not */
-bool valid_spellup_spell(int spellnum) {
 
-  /* list valid spellup spells */
-  switch (spellnum) {
-    case SPELL_ARMOR:
-    case SPELL_BLESS:
-    case SPELL_DETECT_ALIGN:
-    case SPELL_DETECT_INVIS:
-    case SPELL_DETECT_MAGIC:
-    case SPELL_DETECT_POISON:
-    case SPELL_INVISIBLE:
-    case SPELL_PROT_FROM_EVIL:
-    case SPELL_SANCTUARY:
-    case SPELL_STRENGTH:
-    case SPELL_SENSE_LIFE:
-    case SPELL_INFRAVISION:
-    case SPELL_WATERWALK:
-    case SPELL_FLY:
-    case SPELL_BLUR:
-    case SPELL_MIRROR_IMAGE:
-    case SPELL_STONESKIN:
-    case SPELL_ENDURANCE:
-    case SPELL_PROT_FROM_GOOD:
-    case SPELL_ENDURE_ELEMENTS:
-    case SPELL_EXPEDITIOUS_RETREAT:
-    case SPELL_IRON_GUTS:
-    case SPELL_MAGE_ARMOR:
-    case SPELL_SHIELD:
-    case SPELL_TRUE_STRIKE:
-    case SPELL_FALSE_LIFE:
-    case SPELL_GRACE:
-    case SPELL_RESIST_ENERGY:
-    case SPELL_WATER_BREATHE:
-    case SPELL_HEROISM:
-    case SPELL_NON_DETECTION:
-    case SPELL_HASTE:
-    case SPELL_CUNNING:
-    case SPELL_WISDOM:
-    case SPELL_CHARISMA:
-    case SPELL_FIRE_SHIELD:
-    case SPELL_COLD_SHIELD:
-    case SPELL_GREATER_INVIS:
-    case SPELL_MINOR_GLOBE:
-    case SPELL_GREATER_HEROISM:
-    case SPELL_TRUE_SEEING:
-    case SPELL_GLOBE_OF_INVULN:
-    case SPELL_GREATER_MIRROR_IMAGE:
-    case SPELL_DISPLACEMENT:
-    case SPELL_PROTECT_FROM_SPELLS:
-    case SPELL_SPELL_MANTLE:
-    case SPELL_IRONSKIN:
-    case SPELL_MIND_BLANK:
-    case SPELL_SHADOW_SHIELD:
-    case SPELL_GREATER_SPELL_MANTLE:
-    case SPELL_REGENERATION:
-    case SPELL_DEATH_SHIELD:
-    case SPELL_BARKSKIN:
-    case SPELL_SPELL_RESISTANCE:
-      return TRUE;
-  }
-  return FALSE;
-}
+/* list of spells mobiles will use for spellups */
+int valid_spellup_spell[SPELLUP_SPELLS] = {
+  SPELL_ARMOR,  //0
+  SPELL_BLESS,
+  SPELL_DETECT_ALIGN,
+  SPELL_DETECT_INVIS,
+  SPELL_DETECT_MAGIC,
+  SPELL_DETECT_POISON,  //5
+  SPELL_INVISIBLE,
+  SPELL_PROT_FROM_EVIL,
+  SPELL_SANCTUARY,
+  SPELL_STRENGTH,
+  SPELL_SENSE_LIFE,  //10
+  SPELL_INFRAVISION,
+  SPELL_WATERWALK,
+  SPELL_FLY,
+  SPELL_BLUR,
+  SPELL_MIRROR_IMAGE,  //15
+  SPELL_STONESKIN,
+  SPELL_ENDURANCE,
+  SPELL_PROT_FROM_GOOD,
+  SPELL_ENDURE_ELEMENTS,
+  SPELL_EXPEDITIOUS_RETREAT,  //20
+  SPELL_IRON_GUTS,
+  SPELL_MAGE_ARMOR,
+  SPELL_SHIELD,
+  SPELL_TRUE_STRIKE,
+  SPELL_FALSE_LIFE,  //25
+  SPELL_GRACE,
+  SPELL_RESIST_ENERGY,
+  SPELL_WATER_BREATHE,
+  SPELL_HEROISM,
+  SPELL_NON_DETECTION,  //30
+  SPELL_HASTE,
+  SPELL_CUNNING,
+  SPELL_WISDOM,
+  SPELL_CHARISMA,
+  SPELL_FIRE_SHIELD,  //35
+  SPELL_COLD_SHIELD,
+  SPELL_GREATER_INVIS,
+  SPELL_MINOR_GLOBE,
+  SPELL_GREATER_HEROISM,
+  SPELL_TRUE_SEEING,  //40
+  SPELL_GLOBE_OF_INVULN,
+  SPELL_GREATER_MIRROR_IMAGE,
+  SPELL_DISPLACEMENT,
+  SPELL_PROTECT_FROM_SPELLS,
+  SPELL_SPELL_MANTLE,  //45
+  SPELL_IRONSKIN,
+  SPELL_MIND_BLANK,
+  SPELL_SHADOW_SHIELD,
+  SPELL_GREATER_SPELL_MANTLE,
+  SPELL_REGENERATION,  //50
+  SPELL_DEATH_SHIELD,
+  SPELL_BARKSKIN,
+  SPELL_SPELL_RESISTANCE
+};
+
 
 /* function to move a mobile along a specified path (patrols) */
 bool move_on_path(struct char_data *ch) {
@@ -800,11 +794,13 @@ void npc_class_behave(struct char_data *ch) {
   }
 }
 
-/* this single define can really affect the CPU drain of the MUD */
-#define MAX_LOOPS 50
+/* this defines maximum amount of times the function will check the
+ spellup array for a valid spell */
+#define MAX_LOOPS 10
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
   struct obj_data *obj = NULL;
+  struct char_data *victim = NULL;
   int level, spellnum = -1, loop_counter = 0;
   /* our priorities are going to be in this order:
    1)  get a charmee
@@ -856,40 +852,42 @@ void npc_spellup(struct char_data *ch) {
   }
   
   /* determine victim (someone in group, including self) */
+  if (GROUP(ch)) {
+    victim = random_from_list(GROUP(ch)->members);
+    if (!victim)
+      victim = ch;
+  }
   
   /* try healing */
-  if ((GET_MAX_HIT(ch) / GET_HIT(ch)) >= 2) {
+  if ((GET_MAX_HIT(victim) / GET_HIT(victim)) >= 2) {
     if (level >= spell_info[SPELL_HEAL].min_level[GET_CLASS(ch)]) {
-      cast_spell(ch, ch, NULL, SPELL_HEAL);
+      cast_spell(ch, victim, NULL, SPELL_HEAL);
       return;
     }    
     else if (level >= spell_info[SPELL_CURE_CRITIC].min_level[GET_CLASS(ch)]) {
-      cast_spell(ch, ch, NULL, SPELL_CURE_CRITIC);
+      cast_spell(ch, victim, NULL, SPELL_CURE_CRITIC);
       return;
     }    
   }
   
-  /* try to fix condition issues */
+  /* try to fix condition issues (blindness, etc) */
   /* TODO */
   
   /* random buffs */
-  /* this sure does seem like a resource monster, but i guess we can monitor it
-   and see what happens over time -zusuk 
-   */
   do {
-    spellnum = rand_number(1, NUM_SPELLS - 1);
+    spellnum = valid_spellup_spell[rand_number(0, SPELLUP_SPELLS - 1)];
     loop_counter++;
     if (loop_counter >= (MAX_LOOPS))
       break;
   } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
-          !valid_spellup_spell(spellnum) || affected_by_spell(ch, spellnum));
+          affected_by_spell(victim, spellnum));
   
   if (loop_counter >= (MAX_LOOPS))
     // didn't find a spell efficiently enough
     return;
   else
     // found a spell, cast it
-    cast_spell(ch, ch, NULL, spellnum);
+    cast_spell(ch, victim, NULL, spellnum);
   
   return;
 }
@@ -1096,5 +1094,7 @@ void mobile_activity(void) {
 
 /* must be at end of file */
 #undef SINFO
+#undef MOB_SPELLS
+
 /**************************/
 
