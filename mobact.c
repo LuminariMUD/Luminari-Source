@@ -800,7 +800,7 @@ void npc_class_behave(struct char_data *ch) {
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
   struct obj_data *obj = NULL;
-  struct char_data *victim = NULL;
+  struct char_data *victim = ch;
   int level, spellnum = -1, loop_counter = 0;
   /* our priorities are going to be in this order:
    1)  get a charmee
@@ -852,7 +852,7 @@ void npc_spellup(struct char_data *ch) {
   }
   
   /* determine victim (someone in group, including self) */
-  if (GROUP(ch)) {    
+  if (GROUP(ch) && GROUP(ch)->members->iSize) {
     victim = (struct char_data *) random_from_list(GROUP(ch)->members);
     if (!victim)
       victim = ch;
