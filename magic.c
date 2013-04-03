@@ -3989,26 +3989,17 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   switch (spellnum) {
     case SPELL_SUMMON_CREATURE_9: //conjuration
     case SPELL_SUMMON_CREATURE_8: //conjuration
-    case SPELL_SUMMON_CREATURE_7: //conjuration    
-      for (k = ch->followers; k; k = next) {
-        next = k->next;
-        if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
-                (MOB_FLAGGED(k->follower, MOB_ELEMENTAL))) {
-          send_to_char(ch, "You can't control more elementals!\r\n");
-          return;
-        }
+    case SPELL_SUMMON_CREATURE_7: //conjuration
+      if (HAS_PET_ELEMENTAL(ch)) {
+        send_to_char(ch, "You can't control more elementals!\r\n");
+        return;        
       }
       break;
-  }
-  switch (spellnum) {
+    case SPELL_ANIMATE_DEAD:
     case SPELL_GREATER_ANIMATION:
-      for (k = ch->followers; k; k = next) {
-        next = k->next;
-        if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
-                (MOB_FLAGGED(k->follower, MOB_ANIMATED_DEAD))) {
-          send_to_char(ch, "You can't control more power undead!\r\n");
-          return;
-        }
+      if (HAS_PET_UNDEAD(ch)) {
+        send_to_char(ch, "You can't control more undead!\r\n");
+        return;        
       }
       break;
   }

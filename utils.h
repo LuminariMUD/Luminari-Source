@@ -90,6 +90,8 @@ int count_non_protocol_chars(char * str);
 char *a_or_an(char *string);
 bool is_fav_enemy_of(struct char_data *ch, int race);
 int compute_arcana_golem_level(struct char_data *ch);
+bool has_elemental_follower(struct char_data *ch);
+bool has_undead_follower(struct char_data *ch);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
@@ -1015,6 +1017,9 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 
 /* a function to check if a mobile is a 'pet' */
 #define IS_PET(ch)		(IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
+#define HAS_PET_UNDEAD(ch)     (has_undead_follower(ch))
+#define HAS_PET_ELEMENTAL(ch)  (has_elemental_follower(ch))
+
 
 /** Has Subrace will check the (3) arrays if subrace is there **/
 #define HAS_SUBRACE(ch, i)      (GET_SUBRACE(ch, 0) == i || \
