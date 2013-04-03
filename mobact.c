@@ -40,37 +40,65 @@
  function returns TRUE if the spell is OK, FALSE if not */
 bool valid_spellup_spell(int spellnum) {
 
-  /* just list exceptions */
-  /* NOTE if you add any exception here, better make
-   sure wizards have another way of getting the spell
-   */
+  /* list valid spellup spells */
   switch (spellnum) {
-    case SPELL_VENTRILOQUATE:
-    case SPELL_MUMMY_DUST:
-    case SPELL_DRAGON_KNIGHT:
-    case SPELL_GREATER_RUIN:
-    case SPELL_HELLBALL:
-    case SPELL_EPIC_MAGE_ARMOR:
-    case SPELL_EPIC_WARDING:
-    case SPELL_FIRE_BREATHE:
-    case SPELL_STENCH:
-    case SPELL_ACID_SPLASH:
-    case SPELL_RAY_OF_FROST:
-    case SPELL_FSHIELD_DAM:
-    case SPELL_CSHIELD_DAM:
-    case SPELL_ASHIELD_DAM:
-    case SPELL_DEATHCLOUD:
-    case SPELL_ACID:
-    case SPELL_INCENDIARY:
-    case SPELL_UNUSED271:
-    case SPELL_UNUSED275:
-    case SPELL_UNUSED285:
-    case SPELL_BLADES:
-    case SPELL_CONTROL_WEATHER:
-    case SPELL_I_DARKNESS:
-      return FALSE;
+    case SPELL_ARMOR:
+    case SPELL_BLESS:
+    case SPELL_DETECT_ALIGN:
+    case SPELL_DETECT_INVIS:
+    case SPELL_DETECT_MAGIC:
+    case SPELL_DETECT_POISON:
+    case SPELL_INVISIBLE:
+    case SPELL_PROT_FROM_EVIL:
+    case SPELL_SANCTUARY:
+    case SPELL_STRENGTH:
+    case SPELL_SENSE_LIFE:
+    case SPELL_INFRAVISION:
+    case SPELL_WATERWALK:
+    case SPELL_FLY:
+    case SPELL_BLUR:
+    case SPELL_MIRROR_IMAGE:
+    case SPELL_STONESKIN:
+    case SPELL_ENDURANCE:
+    case SPELL_PROT_FROM_GOOD:
+    case SPELL_ENDURE_ELEMENTS:
+    case SPELL_EXPEDITIOUS_RETREAT:
+    case SPELL_IRON_GUTS:
+    case SPELL_MAGE_ARMOR:
+    case SPELL_SHIELD:
+    case SPELL_TRUE_STRIKE:
+    case SPELL_FALSE_LIFE:
+    case SPELL_GRACE:
+    case SPELL_RESIST_ENERGY:
+    case SPELL_WATER_BREATHE:
+    case SPELL_HEROISM:
+    case SPELL_NON_DETECTION:
+    case SPELL_HASTE:
+    case SPELL_CUNNING:
+    case SPELL_WISDOM:
+    case SPELL_CHARISMA:
+    case SPELL_FIRE_SHIELD:
+    case SPELL_COLD_SHIELD:
+    case SPELL_GREATER_INVIS:
+    case SPELL_MINOR_GLOBE:
+    case SPELL_GREATER_HEROISM:
+    case SPELL_TRUE_SEEING:
+    case SPELL_GLOBE_OF_INVULN:
+    case SPELL_GREATER_MIRROR_IMAGE:
+    case SPELL_DISPLACEMENT:
+    case SPELL_PROTECT_FROM_SPELLS:
+    case SPELL_SPELL_MANTLE:
+    case SPELL_IRONSKIN:
+    case SPELL_MIND_BLANK:
+    case SPELL_SHADOW_SHIELD:
+    case SPELL_GREATER_SPELL_MANTLE:
+    case SPELL_REGENERATION:
+    case SPELL_DEATH_SHIELD:
+    case SPELL_BARKSKIN:
+    case SPELL_SPELL_RESISTANCE:
+      return TRUE;
   }
-  return TRUE;
+  return FALSE;
 }
 
 /* function to move a mobile along a specified path (patrols) */
@@ -775,11 +803,11 @@ void npc_class_behave(struct char_data *ch) {
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
   struct obj_data *obj = NULL;
-  int level, spellnum = -1;
+  int level, spellnum = -1, loop_counter = 0;
   /* our priorities are going to be in this order:
    1)  get a charmee
-   2)  heal (heal group)
-   3)  spellup (spellup group)
+   2)  heal (heal group?), condition issues
+   3)  spellup (spellup group?)
    */
   if (!ch)
     return;
@@ -833,15 +861,20 @@ void npc_spellup(struct char_data *ch) {
     }    
   }
   
+  /* try to fix condition issues */
+  
   /* random buffs */
   do {
     spellnum = rand_number(1, NUM_SPELLS - 1);
+    loop_counter++;
   } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
           SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE) ||
-          !valid_spellup_spell(spellnum));
+          !valid_spellup_spell(spellnum) || affected_by_spell(ch, spellnum) ||
+          loop_counter >= (NUM_SPELLS * 50));
   
-  /* found a spell, cast it */
-  cast_spell(ch, ch, NULL, spellnum);
+  if (loop_counter < (NUM_SPELLS * 50))
+    /* found a spell, cast it */
+    cast_spell(ch, ch, NULL, spellnum);
   
   return;
 }
