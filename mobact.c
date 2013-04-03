@@ -800,7 +800,7 @@ void npc_class_behave(struct char_data *ch) {
   }
 }
 
-#define MAX_LOOPS 50
+#define MAX_LOOPS 20
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
   struct obj_data *obj = NULL;
@@ -865,6 +865,9 @@ void npc_spellup(struct char_data *ch) {
   /* try to fix condition issues */
   
   /* random buffs */
+  /* this sure does seem like a resource monster, but i guess we can monitor it
+   and see what happens over time -zusuk 
+   */
   do {
     spellnum = rand_number(1, NUM_SPELLS - 1);
     loop_counter++;
