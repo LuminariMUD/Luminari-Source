@@ -800,6 +800,7 @@ void npc_class_behave(struct char_data *ch) {
   }
 }
 
+/* this single define can really affect the CPU drain of the MUD */
 #define MAX_LOOPS 20
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
