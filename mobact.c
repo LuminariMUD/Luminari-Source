@@ -852,8 +852,8 @@ void npc_spellup(struct char_data *ch) {
   }
   
   /* determine victim (someone in group, including self) */
-  if (GROUP(ch)) {
-    victim = random_from_list(GROUP(ch)->members);
+  if (GROUP(ch)) {    
+    victim = (struct char_data *) random_from_list(GROUP(ch)->members);
     if (!victim)
       victim = ch;
   }
