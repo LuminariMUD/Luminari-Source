@@ -734,6 +734,57 @@ void npc_class_behave(struct char_data *ch) {
   }
 }
 
+/* generic function for spelling up as a caster */
+void npc_spellup(struct char_data *ch) {
+  struct obj_data *obj = NULL;
+  int level;
+  /* our priorities are going to be in this order:
+   1)  get a charmee
+   2)  heal (heal group)
+   3)  spellup (spellup group)
+   */
+  if (!ch)
+    return;
+  
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    level = LVL_IMMORT - 1;
+  else
+    level = GET_LEVEL(ch);
+
+  /* try animate undead first */
+  if (!HAS_PET_UNDEAD(ch)) {
+    for (obj = world[ch->in_room].contents; obj; obj = obj->next_content) {
+      if (!IS_CORPSE(obj))
+        continue;
+      if (level >= spell_info[SPELL_GREATER_ANIMATION].min_level[GET_CLASS(ch)]) {
+        cast_spell(ch, NULL, obj, SPELL_GREATER_ANIMATION);
+        return;
+      }
+    }
+  }
+  
+  /* try for an elemental */
+  if (!HAS_PET_ELEMENTAL(ch)) {
+    if (level >= spell_info[SPELL_SUMMON_CREATURE_9].min_level[GET_CLASS(ch)]) {
+      cast_spell(ch, NULL, obj, SPELL_SUMMON_CREATURE_9);
+      return;
+    }    
+    else if (level >= spell_info[SPELL_SUMMON_CREATURE_8].min_level[GET_CLASS(ch)]) {
+      cast_spell(ch, NULL, obj, SPELL_SUMMON_CREATURE_8);
+      return;
+    }    
+    else if (level >= spell_info[SPELL_SUMMON_CREATURE_7].min_level[GET_CLASS(ch)]) {
+      cast_spell(ch, NULL, obj, SPELL_SUMMON_CREATURE_7);
+      return;
+    }    
+  }
+  
+  /* try healing */
+  
+  
+  return;
+}
+
 /*** MOBILE ACTIVITY ***/
 
 /* the primary engine for mobile activity */
@@ -787,6 +838,9 @@ void mobile_activity(void) {
       else
         npc_class_behave(ch);
       continue;
+    } else if (IS_CASTER(ch)) {
+      /* not in combat */
+      npc_spellup(ch);
     }
 
     /* send out mobile echos to room or zone */
