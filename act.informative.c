@@ -443,7 +443,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     }
   }
 
-  if (GROUP(i)) {
+  if (!IS_NPC(i) && GROUP(i)) {
     if (GROUP(i) == GROUP(ch))
       send_to_char(ch, "(%s) ",
             GROUP_LEADER(GROUP(i)) == i ? "leader" : "group");
