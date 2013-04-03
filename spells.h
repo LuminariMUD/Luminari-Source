@@ -258,7 +258,6 @@
 #define SPELL_MASS_ENHANCE         215  //done
 #define SPELL_PORTAL               216  //done
 #define SPELL_ACID                 217  //acid fog proc
-
 #define SPELL_HOLY_SWORD           218  //paladin
 #define SPELL_INCENDIARY           219  // incendiary cloud proc
 /* some cleric spells */
@@ -354,6 +353,8 @@
 #define SPELL_I_DARKNESS                306  //room event test spell
 #define SPELL_DOOM                      307  // creeping doom damage proc
 #define SPELL_WHIRLWIND                 308
+/* Now would be a good time to mention other files to be aware of with spells:
+ * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c */
 /** Total Number of defined spells (last spell define + 1) */
 #define NUM_SPELLS                      309
 
