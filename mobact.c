@@ -27,6 +27,7 @@
 /* local file scope only function prototypes, defines, externs, etc */
 #define SINFO spell_info[spellnum]
 #define SPELLUP_SPELLS 54
+#define OFFENSIVE_SPELLS 54
 
 /* end local */
 
@@ -882,10 +883,7 @@ void npc_spellup(struct char_data *ch) {
   } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
           affected_by_spell(victim, spellnum));
   
-  if (loop_counter >= (MAX_LOOPS))
-    // didn't find a spell efficiently enough
-    return;
-  else
+  if (loop_counter < (MAX_LOOPS))
     // found a spell, cast it
     cast_spell(ch, victim, NULL, spellnum);
   
