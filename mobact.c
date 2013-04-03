@@ -801,7 +801,7 @@ void npc_class_behave(struct char_data *ch) {
 }
 
 /* this single define can really affect the CPU drain of the MUD */
-#define MAX_LOOPS 100
+#define MAX_LOOPS 50
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
   struct obj_data *obj = NULL;
@@ -940,7 +940,7 @@ void mobile_activity(void) {
       else
         npc_class_behave(ch);
       continue;
-    } else if (IS_NPC_CASTER(ch) && !rand_number(0, 4)) {
+    } else if (!rand_number(0, 6)&& IS_NPC_CASTER(ch)) {
       /* not in combat */
       npc_spellup(ch);
     }
