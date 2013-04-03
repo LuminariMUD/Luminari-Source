@@ -800,6 +800,7 @@ void npc_class_behave(struct char_data *ch) {
   }
 }
 
+#define MAX_LOOPS 50
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
   struct obj_data *obj = NULL;
@@ -867,13 +868,14 @@ void npc_spellup(struct char_data *ch) {
   do {
     spellnum = rand_number(1, NUM_SPELLS - 1);
     loop_counter++;
-    if (loop_counter >= (NUM_SPELLS * 50))
+    if (loop_counter >= (NUM_SPELLS * MAX_LOOPS))
       break;
   } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
           !valid_spellup_spell(spellnum) || affected_by_spell(ch, spellnum));
   
-  if (loop_counter >= (NUM_SPELLS * 50))
-    log("NPC spellup looped NUM_SPELLS * 50 times");
+  if (loop_counter >= (NUM_SPELLS * MAX_LOOPS))
+    // didn't find a spell efficiently enough
+    return;
   else
     // found a spell, cast it
     cast_spell(ch, ch, NULL, spellnum);
@@ -934,7 +936,7 @@ void mobile_activity(void) {
       else
         npc_class_behave(ch);
       continue;
-    } else if (IS_NPC_CASTER(ch) && rand_number(0, 1)) {
+    } else if (IS_NPC_CASTER(ch) && !rand_number(0, 4)) {
       /* not in combat */
       npc_spellup(ch);
     }
