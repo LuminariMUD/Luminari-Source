@@ -813,10 +813,6 @@ void npc_spellup(struct char_data *ch) {
    */
   if (!ch)
     return;
-
-  /* create a group in case we need it */
-  //if (!GROUP(ch))
-  //  create_group(ch);
   
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     level = LVL_IMMORT - 1;
@@ -829,6 +825,8 @@ void npc_spellup(struct char_data *ch) {
       if (!IS_CORPSE(obj))
         continue;
       if (level >= spell_info[SPELL_GREATER_ANIMATION].min_level[GET_CLASS(ch)]) {
+        if (!GROUP(ch))
+          create_group(ch);
         cast_spell(ch, NULL, obj, SPELL_GREATER_ANIMATION);
         return;
       }
@@ -838,18 +836,26 @@ void npc_spellup(struct char_data *ch) {
   /* try for an elemental */
   if (!HAS_PET_ELEMENTAL(ch)) {
     if (level >= spell_info[SPELL_SUMMON_CREATURE_9].min_level[GET_CLASS(ch)]) {
+      if (!GROUP(ch))
+        create_group(ch);
       cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_9);
       return;
     }    
     else if (level >= spell_info[SPELL_SUMMON_CREATURE_8].min_level[GET_CLASS(ch)]) {
+      if (!GROUP(ch))
+        create_group(ch);
       cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_8);
       return;
     }    
     else if (level >= spell_info[SPELL_SUMMON_CREATURE_7].min_level[GET_CLASS(ch)]) {
+      if (!GROUP(ch))
+        create_group(ch);
       cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_7);
       return;
     }    
   }
+  
+  /* determine victim (someone in group, including self) */
   
   /* try healing */
   if ((GET_MAX_HIT(ch) / GET_HIT(ch)) >= 2) {
@@ -864,6 +870,7 @@ void npc_spellup(struct char_data *ch) {
   }
   
   /* try to fix condition issues */
+  /* TODO */
   
   /* random buffs */
   /* this sure does seem like a resource monster, but i guess we can monitor it

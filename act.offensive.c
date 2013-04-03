@@ -227,9 +227,11 @@ ACMD(do_rage) {
 
 void perform_assist(struct char_data *ch, struct char_data *helpee) {
   struct char_data *opponent = NULL;
-  /*
-   * Hit the same enemy the person you're helping is.
-   */
+  
+  if (!ch)
+    return;
+  
+  /* hit same opponent as person you are helping */  
   if (FIGHTING(helpee))
     opponent = FIGHTING(helpee);
   else
