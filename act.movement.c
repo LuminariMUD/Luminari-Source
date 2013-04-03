@@ -27,7 +27,6 @@
 #include "mud_event.h"
 #include "hlquest.h"
 
-
 /* local only functions */
 
 /* do_simple_move utility functions */
@@ -46,159 +45,12 @@ void dismount_char(struct char_data * ch);
 void mount_char(struct char_data *ch, struct char_data *mount);
 
 
+
+
+
+
+
 /* falling system */
-/*
-
-struct falling_obj_event_obj {
-  struct obj_data *obj;
-  int room;
-  int next_delay;
-};
-
-EVENTFUNC(cast_obj_falling) {
-  struct falling_obj_event_obj *falling_event = (struct falling_obj_event_obj *) event_obj;
-  struct obj_data *obj = falling_event->obj;
-  int room = falling_event->room;
-
-  obj_from_room(obj);
-  obj_to_room(obj, room);
-
-  if (ROOM_FLAGGED(obj->in_room, ROOM_FLYNEEDED) && world[obj->in_room].dir_option[DOWN]) {
-    // fall further!
-    act("$p drops through the air!", FALSE, 0, obj, 0, TO_ROOM);
-    room = world[room].dir_option[5]->to_room;
-  }
-  
-  if (!ROOM_FLAGGED(obj->in_room, ROOM_FLYNEEDED) || !world[obj->in_room].dir_option[DOWN]) {
-    act("$p crashes into the ground!", FALSE, 0, obj, 0, TO_ROOM);
-    FREE(event_obj);
-    return 0;
-  }
-
-  falling_event->next_delay -= 5;
-  if (falling_event->next_delay < 5)
-    falling_event->next_delay = 5;
-  
-  falling_event->room = room;
-
-  return falling_event->next_delay;
-}
-
-
-void start_fall_object_event(struct obj_data *obj) {
-  struct falling_obj_event_obj *falling_event;
-  
-  if (obj->in_room <= 0)
-    return;
-
-  if (!ROOM_FLAGGED(obj->in_room, ROOM_FLYNEEDED) || !CAN_GO(obj, DOWN))
-    return;
-
-  if (IS_OBJ_STAT(obj, ITEM_FLOAT))
-    return;
-
-  CREATE(falling_event, struct falling_obj_event_obj, 1);
-
-  falling_event->obj = obj;
-  falling_event->next_delay = 15;
-  falling_event->room = obj->in_room;
-  event_create(cast_obj_falling, falling_event, 5);
-  //act("$p drops from sight.", FALSE, 0, obj, 0, TO_ROOM);
-  obj_from_room(obj);
-}
-
-
-struct falling_event_obj {
-  int impact;
-  struct char_data *ch;
-  int next_delay;
-};
-
-
-EVENTFUNC(cast_falling) {
-  struct falling_event_obj *falling_event = (struct falling_event_obj *) event_obj;
-  struct char_data *ch = falling_event->ch;
-  int dam = 0;
-
-  if (GET_FALLING(ch) == NULL) {
-    FREE(event_obj);
-    return 0; 
-  }
-
-  bool f = FALSE;
-  if (AFF_FLAGGED(ch, AFF_FLYING) || AFF2_FLAGGED(ch, AFF2_LEVITATE))
-    f = TRUE; 
-  if (MOUNTED(ch) && AFF_FLAGGED(MOUNTED(ch), AFF_FLYING))
-    f = TRUE;
-
-  if (f) {
-    FREE(event_obj);
-    GET_FALLING(ch) = NULL;
-    return 0;
-  }
-
-  dam = dice(falling_event->impact, 50) + falling_event->impact * 10;
-  
-  if (AFF3_FLAGGED(ch, AFF3_SAFEFALL))
-    dam /= 2;
-
-  if (ROOM_FLAGGED(ch->in_room, ROOM_FLYNEEDED)) {
-    // fall further! 
-    act("You fall tumbling down!", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n drops from sight.", FALSE, ch, 0, 0, TO_ROOM);
-    do_simple_move(ch, 5, FALSE);
-    act("$n falls from above screaming and flailing $s limbs.", FALSE, ch, 0, 0, TO_ROOM);
-    
-    if (!ROOM_FLAGGED(ch->in_room, ROOM_FLYNEEDED) || !CAN_GO(ch, DOWN)) {
-      act("You fall headfirst to the ground!", FALSE, ch, 0, 0, TO_CHAR);
-      act("$n crashes into the ground!", FALSE, ch, 0, 0, TO_ROOM);
-      
-      if (rand() % (100 + 10 * falling_event->impact) > GET_R_DEX(ch)) {
-        // char lands on ass!
-        GET_POS(ch) = POS_SITTING;
-        WAIT_STATE(ch, falling_event->impact RL_SEC);
-      }
-      
-      damage(ch, ch, dam, TYPE_UNDEFINED, DAMBIT_PHYSICAL);
-      GET_FALLING(ch) = NULL;
-      FREE(event_obj);
-      return 0;
-    }
-    
-    falling_event->impact++;
-    falling_event->next_delay -= 5;
-    if (falling_event->next_delay < 5)
-      falling_event->next_delay = 5;
-    return falling_event->next_delay;
-  } else {
-    act("You fall headfirst to the ground!", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n crashes into the ground!", FALSE, ch, 0, 0, TO_ROOM);
-    if (rand() % (100 + 10 * falling_event->impact) > GET_R_DEX(ch)) {
-      // char lands on ass! 
-      GET_POS(ch) = POS_SITTING;
-      WAIT_STATE(ch, falling_event->impact RL_SEC);
-    }
-    damage(ch, ch, dam, TYPE_UNDEFINED, DAMBIT_PHYSICAL);
-    GET_FALLING(ch) = NULL;
-    FREE(event_obj);
-    return 0;
-  }
-}
-
-void start_fall_event(struct char_data *ch) {
-  struct falling_event_obj *falling_event;
-
-  CREATE(falling_event, struct falling_event_obj, 1);
-  falling_event->ch = ch;
-  falling_event->impact = 1;
-  falling_event->next_delay = 20;
-  GET_FALLING(ch) = event_create(cast_falling, falling_event, 5);
-  act("You just realize that you have no visible mean of support!",
-       FALSE, ch, 0, 0, TO_CHAR);
-  act("$n has just realized $e has no visible means of support!",
-       FALSE, ch, 0, 0, TO_ROOM);
-}
-*/
 
 /* this function will check whether a obj should fall or not based on
    circumstances and whether the obj is floating */
@@ -230,8 +82,8 @@ bool char_should_fall(struct char_data *ch) {
   
   /* NPC's crash it, and also was advised that players will twink this
    badly if you can pull it off on NPC's */
-  if (IS_NPC(ch))
-    return FALSE;
+  //if (IS_NPC(ch))
+  //  return FALSE;
   
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_FLY_NEEDED) && EXIT(ch, DOWN))
     falling = TRUE;
@@ -284,12 +136,28 @@ EVENTFUNC(event_falling)
   
   /* can we continue this fall? */
   if (!ROOM_FLAGGED(ch->in_room, ROOM_FLY_NEEDED) || !CAN_GO(ch, DOWN)) {
+    int dam = dice((height_fallen/5), 6) + 20;
     send_to_char(ch, "You fall headfirst to the ground!  OUCH!\r\n");
     act("$n crashes into the ground headfirst, OUCH!", FALSE, ch, 0, 0, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
     SET_WAIT(ch, 4 * PULSE_VIOLENCE);
-    damage(ch, ch, (dice((height_fallen/5), 6) + 20), TYPE_UNDEFINED, DAM_FORCE, FALSE);
-    return 0;  //end event
+    /* we have a special situation if you die, the event will get cleared */
+
+    if (dam >= GET_HIT(ch) + 9) {
+      GET_HIT(ch) = -999;
+      send_to_char(ch, "You attempt to scream in horror as your skull slams "
+              "into the ground, the very brief sensation of absolute pain "
+              "strikes you as all your upper-body bones shatter and your "
+              "head splatters all over the area!\r\n");
+      act("$n attempts to scream in horror as $s skull slams "
+              "into the ground, as all of $s upper-body bones shatter and $s "
+              "head splatters all over the area!\r\n", 
+          FALSE, ch, 0, 0, TO_ROOM);
+      return 0;
+    } else {
+      damage(ch, ch, dam, TYPE_UNDEFINED, DAM_FORCE, FALSE);
+      return 0;  //end event
+    }
   }
   
   /* hitting ground or fixing your falling situation is the only way to stop
