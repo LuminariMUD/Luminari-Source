@@ -225,9 +225,38 @@ ACMD(do_rage) {
     increase_skill(ch, SKILL_RAGE);
 }
 
+void perform_assist(struct char_data *ch, struct char_data *helpee) {
+  struct char_data *opponent = NULL;
+  /*
+   * Hit the same enemy the person you're helping is.
+   */
+  if (FIGHTING(helpee))
+    opponent = FIGHTING(helpee);
+  else
+    for (opponent = world[IN_ROOM(ch)].people;
+            opponent && (FIGHTING(opponent) != helpee);
+            opponent = opponent->next_in_room);
+
+  if (!opponent)
+    act("But nobody is fighting $M!", FALSE, ch, 0, helpee, TO_CHAR);
+  else if (!CAN_SEE(ch, opponent))
+    act("You can't see who is fighting $M!", FALSE, ch, 0, helpee, TO_CHAR);
+    /* prevent accidental pkill */
+  else if (!CONFIG_PK_ALLOWED && !IS_NPC(opponent))
+    send_to_char(ch, "You cannot kill other players.\r\n");
+  else if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
+    send_to_char(ch, "You can't fight!\r\n");
+  } else {
+    send_to_char(ch, "You join the fight!\r\n");
+    act("$N assists you!", 0, helpee, 0, ch, TO_CHAR);
+    act("$n assists $N.", FALSE, ch, 0, helpee, TO_NOTVICT);
+    hit(ch, opponent, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }  
+}
+
 ACMD(do_assist) {
   char arg[MAX_INPUT_LENGTH];
-  struct char_data *helpee, *opponent;
+  struct char_data *helpee = NULL;
 
   if (FIGHTING(ch)) {
     send_to_char(ch, "You're already fighting!  How can you assist someone else?\r\n");
@@ -241,33 +270,8 @@ ACMD(do_assist) {
     send_to_char(ch, "%s", CONFIG_NOPERSON);
   else if (helpee == ch)
     send_to_char(ch, "You can't help yourself any more than this!\r\n");
-  else {
-    /*
-     * Hit the same enemy the person you're helping is.
-     */
-    if (FIGHTING(helpee))
-      opponent = FIGHTING(helpee);
-    else
-      for (opponent = world[IN_ROOM(ch)].people;
-              opponent && (FIGHTING(opponent) != helpee);
-              opponent = opponent->next_in_room);
-
-    if (!opponent)
-      act("But nobody is fighting $M!", FALSE, ch, 0, helpee, TO_CHAR);
-    else if (!CAN_SEE(ch, opponent))
-      act("You can't see who is fighting $M!", FALSE, ch, 0, helpee, TO_CHAR);
-      /* prevent accidental pkill */
-    else if (!CONFIG_PK_ALLOWED && !IS_NPC(opponent))
-      send_to_char(ch, "You cannot kill other players.\r\n");
-    else if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
-      send_to_char(ch, "You can't fight!\r\n");
-    } else {
-      send_to_char(ch, "You join the fight!\r\n");
-      act("$N assists you!", 0, helpee, 0, ch, TO_CHAR);
-      act("$n assists $N.", FALSE, ch, 0, helpee, TO_NOTVICT);
-      hit(ch, opponent, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-    }
-  }
+  else
+    perform_assist(ch, helpee);
 }
 
 ACMD(do_hit) {
