@@ -801,7 +801,7 @@ void npc_class_behave(struct char_data *ch) {
 }
 
 /* this single define can really affect the CPU drain of the MUD */
-#define MAX_LOOPS 20
+#define MAX_LOOPS 100
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
   struct obj_data *obj = NULL;
@@ -872,12 +872,12 @@ void npc_spellup(struct char_data *ch) {
   do {
     spellnum = rand_number(1, NUM_SPELLS - 1);
     loop_counter++;
-    if (loop_counter >= (NUM_SPELLS * MAX_LOOPS))
+    if (loop_counter >= (MAX_LOOPS))
       break;
   } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
           !valid_spellup_spell(spellnum) || affected_by_spell(ch, spellnum));
   
-  if (loop_counter >= (NUM_SPELLS * MAX_LOOPS))
+  if (loop_counter >= (MAX_LOOPS))
     // didn't find a spell efficiently enough
     return;
   else
