@@ -30,14 +30,6 @@
 #define OFFENSIVE_SPELLS 58
 #define OFFENSIVE_AOE_SPELLS 16
 
-/* end local */
-
-
-
-
-/*** UTILITY FUNCTIONS ***/
-
-
 /* list of spells mobiles will use for spellups */
 int valid_spellup_spell[SPELLUP_SPELLS] = {
   SPELL_ARMOR,  //0
@@ -95,7 +87,6 @@ int valid_spellup_spell[SPELLUP_SPELLS] = {
   SPELL_BARKSKIN,
   SPELL_SPELL_RESISTANCE
 };
-
 
 /* list of spells mobiles will use for offense (aoe) */
 int valid_aoe_spell[OFFENSIVE_AOE_SPELLS] = {
@@ -180,6 +171,43 @@ int valid_offensive_spell[OFFENSIVE_SPELLS] = {
   SPELL_FINGER_OF_DEATH,
   SPELL_WHIRLWIND
 };
+
+/* end local */
+
+
+/*** UTILITY FUNCTIONS ***/
+
+
+/* this function will attempt to rescue
+   1)  master
+   2)  group member 
+ */
+void npc_rescue(struct char_data *ch) {
+  struct char_data *victim = NULL;
+  
+  // going to prioritize rescuing master (if it has one)
+  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !rand_number(0, 2) &&
+          (GET_MAX_HIT(ch) / GET_HIT(ch)) <= 2) {
+    if (FIGHTING(ch->master)) {
+      do_npc_rescue(ch, ch->master);
+      SET_WAIT(ch, PULSE_VIOLENCE * 2);
+      return;
+    }
+  }
+
+  /* determine victim (someone in group, including self) */
+  if (GROUP(ch) && GROUP(ch)->members->iSize && !rand_number(0, 2) &&
+          (GET_MAX_HIT(ch) / GET_HIT(ch)) <= 2) {
+    victim = (struct char_data *) random_from_list(GROUP(ch)->members);
+    if (!victim || victim == ch)
+      return;
+    if (FIGHTING(victim)) {
+      do_npc_rescue(ch, victim);
+      SET_WAIT(ch, PULSE_VIOLENCE * 2);
+      return;
+    }
+  }
+}
 
 
 /* function to move a mobile along a specified path (patrols) */
@@ -500,13 +528,8 @@ void npc_bard_behave(struct char_data *ch, struct char_data *vict,
 void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
 
-  // going to prioritize rescuing master (if he has one)
-  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
-    if (FIGHTING(ch->master)) {
-      do_npc_rescue(ch, ch->master);
-      return;
-    }
-  }
+  /* first rescue friends/master */
+  npc_rescue(ch);
 
   switch (rand_number(5, level)) {
     case 5: // level 1-4 mobs won't act
@@ -522,13 +545,8 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
 void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
 
-  // going to prioritize rescuing master (if he has one)
-  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
-    if (FIGHTING(ch->master)) {
-      do_npc_rescue(ch, ch->master);
-      return;
-    }
-  }
+  /* first rescue friends/master */
+  npc_rescue(ch);
 
   switch (rand_number(5, level)) {
     case 5: // level 1-4 mobs won't act
@@ -544,13 +562,8 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
 
-  // going to prioritize rescuing master (if he has one)
-  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
-    if (FIGHTING(ch->master)) {
-      do_npc_rescue(ch, ch->master);
-      return;
-    }
-  }
+  /* first rescue friends/master */
+  npc_rescue(ch);
 
   switch (rand_number(5, level)) {
     case 5: // level 1-4 mobs won't act
@@ -565,14 +578,9 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
 void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
 
-  // going to prioritize rescuing master (if he has one)
-  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
-    if (FIGHTING(ch->master)) {
-      do_npc_rescue(ch, ch->master);
-      return;
-    }
-  }
-
+  /* first rescue friends/master */
+  npc_rescue(ch);
+  
   switch (rand_number(5, level)) {
     case 5: // level 1-4 mobs won't act
       break;
