@@ -850,8 +850,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
         }
         string_write(d, &OLC_CLAN(d)->description, MAX_CLAN_DESC, 0, oldtext);
         OLC_VAL(d) = 1;
-        clanedit_save(d);
-        write_to_output(d, "Clan saved.\r\n");
+
         return;
       } else {
         write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
@@ -1261,6 +1260,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     /*
      * We should never get here.
      */
+            clanedit_save(d);
+        write_to_output(d, "Clan saved.\r\n");
     cleanup_olc(d, CLEANUP_ALL);
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: clanedit_parse(): Reached"
             "CLANEDIT_DESC case!");
