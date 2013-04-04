@@ -355,6 +355,7 @@ void clearMemory(struct char_data *ch) {
 /* An aggressive mobile wants to attack something.  If they're under the 
  * influence of mind altering PC, then see if their master can talk them out 
  * of it, eye them down, or otherwise intimidate the slave. */
+/*
 static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data *master, struct char_data *attack) {
   static int snarl_cmd = 0, sneer_cmd = 0;
   int dieroll = 0;
@@ -370,28 +371,28 @@ static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data 
   if (!sneer_cmd)
     sneer_cmd = find_command("sneer");
 
-  /* Sit. Down boy! HEEEEeeeel! */
+  // Sit. Down boy! HEEEEeeeel!
   dieroll = rand_number(1, 20);
   if (dieroll != 1 && (dieroll == 20 || dieroll > 10 -
           GET_CHA_BONUS(master) + GET_WIS_BONUS(slave))) {
     if (snarl_cmd > 0 && attack && !rand_number(0, 3)) {
       char victbuf[MAX_NAME_LENGTH + 1];
 
-      strncpy(victbuf, GET_NAME(attack), sizeof (victbuf)); /* strncpy: OK */
+      strncpy(victbuf, GET_NAME(attack), sizeof (victbuf)); // strncpy: OK
       victbuf[sizeof (victbuf) - 1] = '\0';
 
       do_action(slave, victbuf, snarl_cmd, 0);
     }
 
-    /* Success! But for how long? Hehe. */
+    // Success! But for how long? Hehe
     return (TRUE);
   }
 
-  /* indicator that he/she isn't happy! */
+  // indicator that he/she isn't happy!
   if (snarl_cmd > 0 && attack) {
     char victbuf[MAX_NAME_LENGTH + 1];
 
-    strncpy(victbuf, GET_NAME(attack), sizeof (victbuf)); /* strncpy: OK */
+    strncpy(victbuf, GET_NAME(attack), sizeof (victbuf)); // strncpy: OK
     victbuf[sizeof (victbuf) - 1] = '\0';
 
     do_action(slave, victbuf, sneer_cmd, 0);
@@ -399,6 +400,7 @@ static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data 
 
   return (FALSE);
 }
+*/
 
 /* function encapsulating conditions that will stop the mobile from
  acting */
@@ -1024,6 +1026,7 @@ void mobile_activity(void) {
      * monsters than the person can feasibly control at a time.  Then the
      * mobiles have a chance based on the charisma of their leader.
      * 1-4 = 0, 5-7 = 1, 8-10 = 2, 11-13 = 3, 14-16 = 4, 17-19 = 5, etc. */
+    /*
     if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master &&
             num_followers_charmed(ch->master) > MAX(1, GET_CHA_BONUS(ch->master))) {
       if (!aggressive_mob_on_a_leash(ch, ch->master, ch->master)) {
@@ -1032,7 +1035,8 @@ void mobile_activity(void) {
         stop_follower(ch);
       }
     }
-
+    */
+    
     /* Helper Mobs */
     if (MOB_FLAGGED(ch, MOB_HELPER) && (!AFF_FLAGGED(ch, AFF_BLIND) ||
             !AFF_FLAGGED(ch, AFF_CHARM))) {

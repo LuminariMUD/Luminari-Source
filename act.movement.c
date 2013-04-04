@@ -375,13 +375,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
 
   /* Charm effect: Does it override the movement? */
+  /*
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master
           && was_in == IN_ROOM(ch->master)) {
     send_to_char(ch, "The thought of leaving your master makes you weep.\r\n");
     act("$n bursts into tears.", FALSE, ch, 0, 0, TO_ROOM);
     return (0);
   }
-
+  */
+  
   /* Water, No Swimming Rooms: Does the deep water prevent movement? */
   if ((SECT(was_in) == SECT_WATER_NOSWIM) ||
           (SECT(going_to) == SECT_WATER_NOSWIM)) {

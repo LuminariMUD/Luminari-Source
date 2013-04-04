@@ -37,6 +37,26 @@
  */
 
 
+/* check if ch has a misc follower or not */
+bool has_pet_follower(struct char_data *ch) {
+  struct follow_type *k = NULL, *next = NULL;
+
+  for (k = ch->followers; k; k = next) {
+    next = k->next;
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
+            !MOB_FLAGGED(k->follower, MOB_ELEMENTAL) &&
+            !MOB_FLAGGED(k->follower, MOB_ANIMATED_DEAD) &&
+            !MOB_FLAGGED(k->follower, MOB_C_FAMILIAR) &&
+            !MOB_FLAGGED(k->follower, MOB_C_ANIMAL) &&
+            !MOB_FLAGGED(k->follower, MOB_C_MOUNT)
+            ) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
 /* check if ch has an elemental follower or not */
 bool has_elemental_follower(struct char_data *ch) {
   struct follow_type *k = NULL, *next = NULL;
