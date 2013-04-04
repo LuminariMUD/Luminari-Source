@@ -460,16 +460,16 @@ static void zedit_disp_menu(struct descriptor_data *d) {
             (MYCMD.if_flag < 0) ? "fails" : "executes");
     else
       sprintf(buf1, "%s", (MYCMD.if_flag == 0) ? "" :
-            (MYCMD.if_flag < 0) ? " else " : " then ");
+            (MYCMD.if_flag < 0) ? "  [ON FAIL]: " : "  [ON SUCCESS]: ");
 
     /* Translate what the command means. */
-    write_to_output(d, "%s%d - %s", nrm, counter++, yel);
+    write_to_output(d, "%s%d - %s", nrm, counter + 1, yel);
     switch (MYCMD.command) {
       case 'J':
         if ((counter + MYCMD.arg1) <= maxcount)
           write_to_output(d, "%sJump over %d line%s to line #%d. (%d%%)",
                 buf1, MYCMD.arg1, (MYCMD.arg1 > 1) ? "s" : "",
-                counter + MYCMD.arg1, MYCMD.arg2);
+                counter + MYCMD.arg1 + 1, MYCMD.arg2);
         else
           write_to_output(d, "%sJump over %d line%s to <OUTSIDE ROOM>. (%d%%)",
                 buf1, MYCMD.arg1, (MYCMD.arg1 > 1) ? "s" : "", MYCMD.arg2);
@@ -555,6 +555,7 @@ static void zedit_disp_menu(struct descriptor_data *d) {
         break;
     }
     write_to_output(d, "\r\n");
+    counter++;
     subcmd++;
   }
   /* Finish off menu */
