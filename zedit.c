@@ -1120,6 +1120,10 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
         return;
       }
       switch (OLC_CMD(d).command) {
+        case 'J':
+          OLC_CMD(d).arg2 = MAX(0, MIN(100, atoi(arg)));
+          zedit_disp_menu(d);
+          break;
         case 'M':
           OLC_CMD(d).arg2 = MIN(MAX_DUPLICATES, atoi(arg));
           OLC_CMD(d).arg3 = real_room(OLC_NUM(d));
