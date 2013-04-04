@@ -1084,7 +1084,7 @@ void npc_offensive_spells(struct char_data *ch) {
 
 /* the primary engine for mobile activity */
 void mobile_activity(void) {
-  struct char_data *ch = NULL, *next_ch = NULL, *vict = NULL;
+  struct char_data *ch = NULL, *next_ch = NULL, *vict = NULL, *tmp_char = NULL;
   struct obj_data *obj = NULL, *best_obj = NULL;
   int door = 0, found = 0, max = 0, where = -1;
   memory_rec *names = NULL;
@@ -1149,8 +1149,22 @@ void mobile_activity(void) {
       } else if (GET_DEFAULT_POS(ch) == POS_STANDING) {
         do_stand(ch, NULL, 0, 0);
       } else if (GET_DEFAULT_POS(ch) == POS_SLEEPING) {
+        bool go_to_sleep = FALSE;
         do_rest(ch, NULL, 0, 0);
-        do_sleep(ch, NULL, 0, 0);
+
+        // only go back to sleep if no PCs in the room, and percentage
+        if (rand_number(1, 100) <= 10) {
+          go_to_sleep = TRUE;
+          for (tmp_char = world[ch->in_room].people; tmp_char; tmp_char = tmp_char->next_in_room)
+            if (!IS_NPC(tmp_char)) {
+              // don't go to sleep
+              go_to_sleep = FALSE;
+              break;
+            }
+        }
+        
+        if (go_to_sleep)
+          do_sleep(ch, NULL, 0, 0);
       }
     }
       
