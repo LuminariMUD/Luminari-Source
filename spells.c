@@ -1399,6 +1399,24 @@ ASPELL(spell_teleport) {
     return;
   }
 
+  /* no teleporting on the outter planes */
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL) ||
+          ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) ||
+          ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE)
+          ) {
+    send_to_char(ch, "This magic won't help you travel on this plane!\r\n");
+    return;
+  }
+
+  /* no teleporting off the prime plane to another */
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ELEMENTAL) ||
+          ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ETH_PLANE) ||
+          ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ASTRAL_PLANE)
+          ) {
+    send_to_char(ch, "Your target is beyond the reach of your magic!\r\n");
+    return;
+  }
+  
   send_to_char(ch, "You slowly fade out of existence...\r\n");
   act("$n slowly fades out of existence and is gone.",
           FALSE, ch, 0, 0, TO_ROOM);
