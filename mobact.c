@@ -370,9 +370,9 @@ static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data 
 
 /* function encapsulating conditions that will stop the mobile from
  acting */
-int canContinue(struct char_data *ch) {
+int can_continue(struct char_data *ch, bool fighting) {
   //dummy checks
-  if (FIGHTING(ch) == NULL || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))) {
+  if (fighting && (!FIGHTING(ch) || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch)))) {
     stop_fighting(ch);
     return 0;
   }
@@ -397,7 +397,7 @@ void npc_racial_behave(struct char_data *ch) {
   struct char_data *AoE = NULL, *vict = NULL;
   int engaged = 0;
 
-  if (!canContinue(ch))
+  if (!can_continue(ch, TRUE))
     return;
 
   //semi randomly choose vict, determine if can AoE
@@ -454,7 +454,7 @@ void npc_racial_behave(struct char_data *ch) {
 
 }
 
-/*** CLASSES ***/
+/*** MELEE CLASSES ***/
 
 // monk behaviour, behave based on level
 
@@ -482,6 +482,18 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
   }
 }
 
+// bard behaviour, behave based on level
+
+void npc_bard_behave(struct char_data *ch, struct char_data *vict,
+        int level, int engaged) {
+
+  switch (rand_number(5, level)) {
+    case 5: // level 1-4 mobs won't act
+      break;
+    default:
+      break;
+  }
+}
 
 // warrior behaviour, behave based on circle
 
@@ -548,286 +560,39 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
   }
 }
 
+// berserk behaviour, behave based on level
 
-// cleric behaviour, behave based on circle
+void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
+        int level, int engaged) {
 
-void npc_cleric_behave(struct char_data *ch, struct char_data *vict,
-        int circle, int engaged) {
+  // going to prioritize rescuing master (if he has one)
+  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
+    if (FIGHTING(ch->master)) {
+      do_npc_rescue(ch, ch->master);
+      return;
+    }
+  }
 
-  switch (rand_number(3, circle)) {
-    case 3: // level 1-4 mobs won't cast
-      switch (rand_number(1, 3)) {
-        case 1:
-          if (!affected_by_spell(ch, SPELL_ARMOR))
-            cast_spell(ch, ch, NULL, SPELL_ARMOR);
-          else
-            cast_spell(ch, vict, NULL, SPELL_CAUSE_LIGHT_WOUNDS);
-          break;
-        case 2:
-          if (!affected_by_spell(ch, SPELL_ENDURANCE))
-            cast_spell(ch, ch, NULL, SPELL_ENDURANCE);
-          else
-            cast_spell(ch, vict, NULL, SPELL_CAUSE_MODERATE_WOUNDS);
-          break;
-        case 3:
-          if (GET_HIT(ch) < GET_MAX_HIT(ch))
-            if (circle >= 7)
-              cast_spell(ch, ch, NULL, SPELL_HEAL);
-            else if (circle >= 5)
-              cast_spell(ch, ch, NULL, SPELL_CURE_CRITIC);
-            else
-              cast_spell(ch, ch, NULL, SPELL_CURE_LIGHT);
-          else
-            cast_spell(ch, vict, NULL, SPELL_CAUSE_LIGHT_WOUNDS);
-      }
-      break;
-    case 4:
-      switch (rand_number(1, 2)) {
-        case 1:
-          if (!affected_by_spell(ch, SPELL_BLESS))
-            cast_spell(ch, ch, NULL, SPELL_BLESS);
-          else
-            cast_spell(ch, vict, NULL, SPELL_CAUSE_SERIOUS_WOUNDS);
-          break;
-        case 2:
-          if (AFF_FLAGGED(ch, AFF_BLIND))
-            cast_spell(ch, ch, NULL, SPELL_CURE_BLIND);
-          else
-            cast_spell(ch, vict, NULL, SPELL_CAUSE_MODERATE_WOUNDS);
-          break;
-      }
-      break;
-    case 5:
-      switch (rand_number(1, 3)) {
-        case 1:
-          if (!affected_by_spell(ch, SPELL_INFRAVISION))
-            cast_spell(ch, ch, NULL, SPELL_INFRAVISION);
-          else
-            cast_spell(ch, vict, NULL, SPELL_CAUSE_CRITICAL_WOUNDS);
-          break;
-        case 2:
-          if (AFF_FLAGGED(ch, AFF_CURSE))
-            cast_spell(ch, ch, NULL, SPELL_REMOVE_CURSE);
-          else
-            cast_spell(ch, vict, NULL, SPELL_CAUSE_CRITICAL_WOUNDS);
-          break;
-        case 3:
-          if (GET_HIT(ch) < GET_MAX_HIT(ch))
-            if (circle >= 7)
-              cast_spell(ch, ch, NULL, SPELL_HEAL);
-            else
-              cast_spell(ch, ch, NULL, SPELL_CURE_CRITIC);
-          else
-            cast_spell(ch, vict, NULL, SPELL_CAUSE_CRITICAL_WOUNDS);
-          break;
-      }
-      break;
-    case 6:
-      switch (rand_number(1, 3)) {
-        case 1:
-          if (!AFF_FLAGGED(vict, AFF_BLIND))
-            cast_spell(ch, vict, NULL, SPELL_BLINDNESS);
-          else
-            cast_spell(ch, vict, NULL, SPELL_FLAME_STRIKE);
-          break;
-        case 2:
-          if (!AFF_FLAGGED(vict, AFF_POISON))
-            cast_spell(ch, vict, NULL, SPELL_POISON);
-          else
-            cast_spell(ch, vict, NULL, SPELL_FLAME_STRIKE);
-          break;
-        case 3:
-          if (GET_ALIGNMENT(ch) < 0 && !AFF_FLAGGED(ch, AFF_PROTECT_GOOD))
-            cast_spell(ch, ch, NULL, SPELL_PROT_FROM_GOOD);
-          else if (GET_ALIGNMENT(ch) >= 0 && !AFF_FLAGGED(ch, AFF_PROTECT_EVIL))
-            cast_spell(ch, ch, NULL, SPELL_PROT_FROM_EVIL);
-          else
-            cast_spell(ch, vict, NULL, SPELL_FLAME_STRIKE);
-          break;
-      }
-      break;
-    case 7:
-      switch (rand_number(1, 3)) {
-        case 1:
-          if (AFF_FLAGGED(ch, AFF_POISON))
-            cast_spell(ch, ch, NULL, SPELL_REMOVE_POISON);
-          else
-            cast_spell(ch, vict, NULL, SPELL_HARM);
-          break;
-        case 2:
-          if (GET_MAX_HIT(ch) - GET_HIT(ch) > 75)
-            cast_spell(ch, ch, NULL, SPELL_HEAL);
-          else
-            cast_spell(ch, vict, NULL, SPELL_HARM);
-          break;
-        case 3:
-          if (GET_ALIGNMENT(ch) < 0 && GET_ALIGNMENT(vict) > 333)
-            cast_spell(ch, vict, NULL, SPELL_DISPEL_GOOD);
-          if (GET_ALIGNMENT(ch) >= 0 && GET_ALIGNMENT(vict) < -333)
-            cast_spell(ch, vict, NULL, SPELL_DISPEL_EVIL);
-          else
-            cast_spell(ch, vict, NULL, SPELL_HARM);
-          break;
-      }
-      break;
-    case 8:
-      switch (rand_number(1, 2)) {
-        case 1:
-          if (!AFF_FLAGGED(ch, AFF_SANCTUARY))
-            cast_spell(ch, ch, NULL, SPELL_SANCTUARY);
-          else
-            cast_spell(ch, vict, NULL, SPELL_DESTRUCTION);
-          break;
-        case 2:
-          if (!AFF_FLAGGED(ch, AFF_SENSE_LIFE))
-            cast_spell(ch, ch, NULL, SPELL_SENSE_LIFE);
-          else
-            cast_spell(ch, vict, NULL, SPELL_CALL_LIGHTNING);
-          break;
-      }
-      break;
-    case 9:
-      if (engaged >= 2)
-        cast_spell(ch, vict, NULL, SPELL_EARTHQUAKE);
-      else
-        cast_spell(ch, vict, NULL, SPELL_DESTRUCTION);
+  switch (rand_number(5, level)) {
+    case 5: // level 1-4 mobs won't act
       break;
     default:
-      log("ERR:  Reached invalid circle in npc_cleric_behave.");
       break;
   }
 }
 
-
-// wizard behaviour, behave based on circle
-
-void npc_wizard_behave(struct char_data *ch, struct char_data *vict,
-        int circle, int engaged) {
-  int num = -1;
-
-  if (circle < 3)
-    return;
-  num = rand_number(3, circle);
-
-  switch (num) {
-    case 3: // level 1-4 mobs won't cast
-      switch (rand_number(1, 2)) {
-        case 1:
-          if (!affected_by_spell(ch, SPELL_BLUR))
-            cast_spell(ch, ch, NULL, SPELL_BLUR);
-          else
-            cast_spell(ch, vict, NULL, SPELL_CHILL_TOUCH);
-          break;
-        case 2:
-          if (!affected_by_spell(ch, SPELL_DETECT_INVIS))
-            cast_spell(ch, ch, NULL, SPELL_DETECT_INVIS);
-          else
-            cast_spell(ch, vict, NULL, SPELL_BURNING_HANDS);
-          break;
-      }
-      break;
-    case 4:
-      switch (rand_number(1, 2)) {
-        case 1:
-          if (!affected_by_spell(ch, SPELL_INFRAVISION))
-            cast_spell(ch, ch, NULL, SPELL_INFRAVISION);
-          else
-            cast_spell(ch, vict, NULL, SPELL_SHOCKING_GRASP);
-          break;
-        case 2:
-          if (!affected_by_spell(ch, SPELL_MIRROR_IMAGE))
-            cast_spell(ch, ch, NULL, SPELL_MIRROR_IMAGE);
-          else
-            cast_spell(ch, vict, NULL, SPELL_LIGHTNING_BOLT);
-          break;
-      }
-      break;
-    case 5:
-      switch (rand_number(1, 2)) {
-        case 1:
-          if (!affected_by_spell(ch, SPELL_ARMOR))
-            cast_spell(ch, ch, NULL, SPELL_ARMOR);
-          else
-            cast_spell(ch, vict, NULL, SPELL_COLOR_SPRAY);
-          break;
-        case 2:
-          if (!affected_by_spell(ch, SPELL_STONESKIN))
-            cast_spell(ch, ch, NULL, SPELL_STONESKIN);
-          else
-            cast_spell(ch, vict, NULL, SPELL_FIREBALL);
-          break;
-      }
-      break;
-    case 6:
-      if (engaged >= 2)
-        cast_spell(ch, vict, NULL, SPELL_ICE_STORM);
-      else
-        cast_spell(ch, vict, NULL, SPELL_LIGHTNING_BOLT);
-      break;
-    case 7:
-      switch (rand_number(1, 2)) {
-        case 1:
-          if (!affected_by_spell(ch, SPELL_STRENGTH))
-            cast_spell(ch, ch, NULL, SPELL_STRENGTH);
-          else
-            cast_spell(ch, vict, NULL, SPELL_BALL_OF_LIGHTNING);
-          break;
-        case 2:
-          if (!affected_by_spell(vict, SPELL_BLINDNESS))
-            cast_spell(ch, vict, NULL, SPELL_BLINDNESS);
-          else
-            cast_spell(ch, vict, NULL, SPELL_BALL_OF_LIGHTNING);
-          break;
-      }
-      break;
-    case 8:
-      switch (rand_number(1, 2)) {
-        case 1:
-          if (!affected_by_spell(vict, SPELL_CURSE))
-            cast_spell(ch, vict, NULL, SPELL_CURSE);
-          else
-            cast_spell(ch, vict, NULL, SPELL_BALL_OF_LIGHTNING);
-          break;
-        case 2:
-          if (engaged >= 2)
-            cast_spell(ch, vict, NULL, SPELL_CHAIN_LIGHTNING);
-          else
-            cast_spell(ch, vict, NULL, SPELL_MISSILE_STORM);
-          break;
-      }
-      break;
-    case 9:
-      switch (rand_number(1, 2)) {
-        case 1:
-          if (!affected_by_spell(vict, SPELL_POISON))
-            cast_spell(ch, vict, NULL, SPELL_POISON);
-          else
-            cast_spell(ch, vict, NULL, SPELL_BALL_OF_LIGHTNING);
-          break;
-        case 2:
-          if (engaged >= 2)
-            cast_spell(ch, vict, NULL, SPELL_METEOR_SWARM);
-          else
-            cast_spell(ch, vict, NULL, SPELL_MISSILE_STORM);
-          break;
-      }
-      break;
-    default:
-      log("ERR:  Reached invalid circle in npc_wizard_behave.");
-      break;
-  }
-
-}
-
+/* this is our non-caster's entry point in combat AI
+ all semi-casters such as ranger/paladin will go through here */
 void npc_class_behave(struct char_data *ch) {
   struct char_data *AoE = NULL, *vict = NULL;
   int engaged = 0;
 
   if (MOB_FLAGGED(ch, MOB_NOCLASS))
     return;
-  if (!canContinue(ch))
+  if (!can_continue(ch, TRUE))
     return;
   if (GET_LEVEL(ch) < 5)
+    
     return;
 
   //semi randomly choose vict, determine if can AoE
@@ -846,14 +611,12 @@ void npc_class_behave(struct char_data *ch) {
     return;
 
   switch (GET_CLASS(ch)) {
-    case CLASS_SORCERER:
-    case CLASS_WIZARD:
-      npc_wizard_behave(ch, vict, getCircle(ch, CLASS_WIZARD), engaged);
-      break;
     case CLASS_BARD:
-      npc_wizard_behave(ch, vict, getCircle(ch, CLASS_BARD), engaged);
+      npc_bard_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
     case CLASS_BERSERKER:
+      npc_berserker_behave(ch, vict, GET_LEVEL(ch), engaged);
+      break;
     case CLASS_WARRIOR:
       npc_warrior_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
@@ -866,15 +629,10 @@ void npc_class_behave(struct char_data *ch) {
     case CLASS_ROGUE:
       npc_rogue_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
-    case CLASS_DRUID:
-    case CLASS_CLERIC:
-      npc_cleric_behave(ch, vict, getCircle(ch, CLASS_CLERIC), engaged);
-      break;
     case CLASS_MONK:
       npc_monk_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
     default:
-      log("ERR:  Reached invalid class in npc_class_behave.");
       break;
   }
 }
@@ -895,6 +653,10 @@ void npc_spellup(struct char_data *ch) {
    */
   if (!ch)
     return;
+  if (MOB_FLAGGED(ch, MOB_NOCLASS))
+    return;
+  if (!can_continue(ch, FALSE))
+    return;
   
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     level = LVL_IMMORT - 1;
@@ -902,7 +664,7 @@ void npc_spellup(struct char_data *ch) {
     level = GET_LEVEL(ch);
 
   /* try animate undead first */
-  if (!HAS_PET_UNDEAD(ch)) {
+  if (!HAS_PET_UNDEAD(ch) && !rand_number(0, 1)) {
     for (obj = world[ch->in_room].contents; obj; obj = obj->next_content) {
       if (!IS_CORPSE(obj))
         continue;
@@ -916,7 +678,7 @@ void npc_spellup(struct char_data *ch) {
   }
   
   /* try for an elemental */
-  if (!HAS_PET_ELEMENTAL(ch)) {
+  if (!HAS_PET_ELEMENTAL(ch) && !rand_number(0, 6)) {
     if (level >= spell_info[SPELL_SUMMON_CREATURE_9].min_level[GET_CLASS(ch)]) {
       if (!GROUP(ch))
         create_group(ch);
@@ -984,6 +746,8 @@ void npc_offensive_spells(struct char_data *ch) {
   bool use_aoe = FALSE;
 
   if (!ch)
+    return;
+  if (MOB_FLAGGED(ch, MOB_NOCLASS))
     return;
   
   /* 25% of spellup instead of offensive spell */

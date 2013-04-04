@@ -1485,7 +1485,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
     case MEDIT_CLASS:
       if (i == 99)
         GET_CLASS(OLC_MOB(d)) = rand_number(0, NUM_CLASSES - 1);
-      else if (i == 99)
+      else if (i == 98)
         GET_CLASS(OLC_MOB(d)) = -1;
       else
         GET_CLASS(OLC_MOB(d)) = LIMIT(i, 0, NUM_CLASSES - 1);
