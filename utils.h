@@ -1110,8 +1110,14 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 /** Defines if it is ok to send a message to ch. */
 #define SENDOK(ch)	(((ch)->desc || SCRIPT_CHECK((ch), MTRIG_ACT)) && \
 			(to_sleeping || AWAKE(ch)) && \
-			!PLR_FLAGGED((ch), PLR_WRITING) && !AFF_FLAGGED(ch, AFF_DEAF))
+			!PLR_FLAGGED((ch), PLR_WRITING))
 
+/* deaf flag maybe isn't a good idea to have here */
+/*
+#define SENDOK(ch)	(((ch)->desc || SCRIPT_CHECK((ch), MTRIG_ACT)) && \
+			(to_sleeping || AWAKE(ch)) && \
+			!PLR_FLAGGED((ch), PLR_WRITING) && !AFF_FLAGGED(ch, AFF_DEAF))
+*/
 
 
 
