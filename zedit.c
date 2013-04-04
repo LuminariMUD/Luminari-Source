@@ -1029,7 +1029,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
             OLC_CMD(d).if_flag = 1;
             zedit_disp_arg1(d);
           } else {
-            write_to_output(d, "Is this command dependent on the success of the previous one? (y/n)\r\n");
+            write_to_output(d, "Is this command dependent on the success/failure of the previous one?\r\n(s/f/[n]):\r\n");
             OLC_MODE(d) = ZEDIT_IF_FLAG;
           }
         } else { /* 'if-flag' not appropriate. */
@@ -1043,13 +1043,24 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
     case ZEDIT_IF_FLAG:
       /* Parse the input for the if flag, and goto next quiz. */
       switch (*arg) {
-        case 'y':
-        case 'Y':
-          OLC_CMD(d).if_flag = 1;
-          break;
+        //case 'y':
+        //case 'Y':
+        //  OLC_CMD(d).if_flag = 1;
+        //  break;
         case 'n':
         case 'N':
+        case '\0':
           OLC_CMD(d).if_flag = 0;
+          break;
+        case 'f':
+        case 'F':
+          //if ((OLC_CMD(d).if_flag = -atoi(arg + 1)) == 0)
+            OLC_CMD(d).if_flag = -1;
+          break;
+        case 's':
+        case 'S':
+          //if ((OLC_CMD(d).if_flag = atoi(arg + 1)) == 0)
+            OLC_CMD(d).if_flag = 1;
           break;
         default:
           write_to_output(d, "Try again : ");
