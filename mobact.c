@@ -986,6 +986,12 @@ void npc_offensive_spells(struct char_data *ch) {
   if (!ch)
     return;
   
+  /* 25% of spellup instead of offensive spell */
+  if (!rand_number(0, 3)) {
+    npc_spellup(ch);
+    return;
+  }
+  
   /* our semi-casters will rarely use this function */
   switch (GET_CLASS(ch)) {
     case CLASS_RANGER:
