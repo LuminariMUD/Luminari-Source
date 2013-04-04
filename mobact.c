@@ -1140,6 +1140,20 @@ void mobile_activity(void) {
       npc_spellup(ch);
     }
 
+    /* return mobile to preferred (default) position if necessary */
+    if (GET_POS(ch) != GET_DEFAULT_POS(ch)) {
+      if (GET_DEFAULT_POS(ch) == POS_SITTING) {
+        do_sit(ch, NULL, 0, 0);
+      } else if (GET_DEFAULT_POS(ch) == POS_RESTING) {
+        do_rest(ch, NULL, 0, 0);
+      } else if (GET_DEFAULT_POS(ch) == POS_STANDING) {
+        do_stand(ch, NULL, 0, 0);
+      } else if (GET_DEFAULT_POS(ch) == POS_SLEEPING) {
+        do_rest(ch, NULL, 0, 0);
+        do_sleep(ch, NULL, 0, 0);
+      }
+    }
+      
     /* send out mobile echos to room or zone */
     mobile_echos(ch);
 
