@@ -463,7 +463,7 @@ static void zedit_disp_menu(struct descriptor_data *d) {
             (MYCMD.if_flag < 0) ? "  [ON FAIL]: " : "  [ON SUCCESS]: ");
 
     /* Translate what the command means. */
-    write_to_output(d, "%s%d - %s", nrm, counter + 1, yel);
+    write_to_output(d, "%s%d - %s", nrm, counter, yel);
     switch (MYCMD.command) {
       case 'J':
         if ((counter + MYCMD.arg1) <= maxcount)
