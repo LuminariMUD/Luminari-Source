@@ -4001,6 +4001,12 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         return;        
       }
       break;
+    default:
+      if (HAS_PET(ch)) {
+        send_to_char(ch, "You can't control more followers!\r\n");
+        return;        
+      }
+      break;
   }
 
   /* bring the mob into existence! */

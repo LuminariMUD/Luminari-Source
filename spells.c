@@ -154,6 +154,9 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
           GET_LEVEL(victim) >= 8))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
+  else if (HAS_PET(ch))
+    send_to_char(ch, "You can not manage more followers!\r\n");
+  
   else if ((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION) &&
           CASTER_LEVEL(ch) < GET_LEVEL(victim))
     send_to_char(ch, "Your victim is too powerful.\r\n");

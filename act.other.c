@@ -136,7 +136,7 @@ ACMD(do_call) {
   int call_type = -1, level = 0, i = 0;
   struct follow_type *k = NULL, *next = NULL;
   struct char_data *mob = NULL;
-  mob_vnum mob_num = 0;
+  mob_vnum mob_num = NOBODY;
   
   skip_spaces(&argument);  
 
