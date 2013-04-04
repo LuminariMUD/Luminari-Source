@@ -1156,7 +1156,7 @@ void mobile_activity(void) {
         if (rand_number(1, 100) <= 10) {
           go_to_sleep = TRUE;
           for (tmp_char = world[ch->in_room].people; tmp_char; tmp_char = tmp_char->next_in_room)
-            if (!IS_NPC(tmp_char)) {
+            if (!IS_NPC(tmp_char) && CAN_SEE(ch, tmp_char)) {
               // don't go to sleep
               go_to_sleep = FALSE;
               break;
