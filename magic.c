@@ -4491,6 +4491,23 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
         send_to_char(ch, "The portal begins to open, then shuts suddenly!\r\n");
         return;
       }
+      /* no portaling on the outter planes */
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL) ||
+          ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) ||
+          ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE)
+              ) {
+        send_to_char(ch, "This magic won't help you travel on this plane!\r\n");
+        return;        
+      }
+      /* no portaling off the prime plane to another */
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_ELEMENTAL) ||
+          ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_ETH_PLANE) ||
+          ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_ASTRAL_PLANE)
+              ) {
+        send_to_char(ch, "Your target is beyond the reach of your magic!\r\n");
+        return;        
+      }
+
       to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
       to_room = "$n \tnfolds \tMtime\tn and \tDspace\tn, and creates $p\tn.";
       obj_to_floor = TRUE;

@@ -1362,6 +1362,11 @@ static int hands_needed(struct char_data *ch, struct obj_data *obj) {
 void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
   int handsNeeded = hands_needed(ch, obj);
 
+  if (IS_ANIMAL(ch)) {
+    send_to_char(ch, "You are animal, how you going to wear that?\r\n");
+    return;
+  }
+  
   if (handsNeeded == -1) {
     send_to_char(ch, "There is no way this item will fit you!\r\n");
     return;
