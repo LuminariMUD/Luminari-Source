@@ -2258,7 +2258,7 @@ static void load_zones(FILE *fl, char *zonename) {
    * a new zone command is added to reset_zone(), this string will need to be
    * updated to suit. - ae. */
   while (get_line(fl, buf))
-    if ((strchr("MOPGERDTV", buf[0]) && buf[1] == ' ') || (buf[0] == 'S' && buf[1] == '\0'))
+    if ((strchr("MOPGERDTVJ", buf[0]) && buf[1] == ' ') || (buf[0] == 'S' && buf[1] == '\0'))
       num_of_cmds++;
 
   rewind(fl);
@@ -2364,7 +2364,7 @@ static void load_zones(FILE *fl, char *zonename) {
       break;
     }
     error = 0;
-    if (strchr("MOGEPDTV", ZCMD.command) == NULL) { /* a 3-arg command */
+    if (strchr("MOGEPDTVJ", ZCMD.command) == NULL) { /* a 3-arg command */
       if (sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2) != 3)
         error = 1;
     } else if (ZCMD.command == 'V') { /* a string-arg command */
