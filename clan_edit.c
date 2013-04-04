@@ -1258,12 +1258,12 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     /*
      * We should never get here.
      */
+    OLC_VAL(d) = 1;
     cleanup_olc(d, CLEANUP_ALL);
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: clanedit_parse(): Reached"
             "CLANEDIT_DESC case!");
     write_to_output(d, "Oops (still some work to do here -Zusuk)...\r\n");
 
-    OLC_VAL(d) = 1;
     clanedit_disp_menu(d);
     return;
 

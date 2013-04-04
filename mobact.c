@@ -197,7 +197,7 @@ void npc_rescue(struct char_data *ch) {
   }
 
   /* determine victim (someone in group, including self) */
-  if (GROUP(ch) && GROUP(ch)->members->iSize && !rand_number(0, 2) &&
+  if (GROUP(ch) && GROUP(ch)->members->iSize && !rand_number(0, 1) &&
           (GET_MAX_HIT(ch) / GET_HIT(ch)) <= 2) {
     do {
       victim = (struct char_data *) random_from_list(GROUP(ch)->members);
@@ -491,7 +491,6 @@ void npc_racial_behave(struct char_data *ch) {
 /*** MELEE CLASSES ***/
 
 // monk behaviour, behave based on level
-
 void npc_monk_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
 
@@ -502,9 +501,7 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
       break;
   }
 }
-
 // rogue behaviour, behave based on level
-
 void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
 
@@ -515,9 +512,7 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
       break;
   }
 }
-
 // bard behaviour, behave based on level
-
 void npc_bard_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
 
@@ -528,9 +523,7 @@ void npc_bard_behave(struct char_data *ch, struct char_data *vict,
       break;
   }
 }
-
 // warrior behaviour, behave based on circle
-
 void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
 
@@ -544,10 +537,7 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
       break;
   }
 }
-
-
 // ranger behaviour, behave based on level
-
 void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
 
@@ -561,10 +551,7 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
       break;
   }
 }
-
-
 // paladin behaviour, behave based on level
-
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
 
@@ -578,9 +565,7 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
       break;
   }
 }
-
 // berserk behaviour, behave based on level
-
 void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
 
