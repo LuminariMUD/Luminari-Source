@@ -19,6 +19,7 @@
 #include "comm.h" /* descriptor_list etc */
 #include "interpreter.h" /* one_argument() etc */
 #include "modify.h" /* string_write etc */
+#include "ibt.h"
 #include "clan.h"
 
 /* Static internal (only used in clan_edit.c) functions */
@@ -850,6 +851,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
         }
         string_write(d, &OLC_CLAN(d)->description, MAX_CLAN_DESC, 0, oldtext);
         OLC_VAL(d) = 1;
+        return;
       } else {
         write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
                 CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
@@ -1258,13 +1260,11 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     /*
      * We should never get here.
      */
-    OLC_VAL(d) = 1;
     cleanup_olc(d, CLEANUP_ALL);
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: clanedit_parse(): Reached"
             "CLANEDIT_DESC case!");
     write_to_output(d, "Oops (still some work to do here -Zusuk)...\r\n");
 
-    clanedit_disp_menu(d);
     return;
 
   /*-------------------------------------------------------------------*/
