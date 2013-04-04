@@ -225,7 +225,7 @@ void hunt_victim(struct char_data *ch) {
 void hunt_loadroom(struct char_data *ch) {
   int dir;
 
-  if (!ch || FIGHTING(ch))
+  if (!ch || FIGHTING(ch) || GET_POS(ch) != POS_STANDING)
     return;
 
   if (GET_MOB_LOADROOM(ch) == NOWHERE)

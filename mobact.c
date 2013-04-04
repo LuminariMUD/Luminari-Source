@@ -185,6 +185,8 @@ int valid_offensive_spell[OFFENSIVE_SPELLS] = {
 void npc_rescue(struct char_data *ch) {
   struct char_data *victim = NULL;
   
+  send_to_char(ch, "DEBUG:  getting here fine\r\n");
+  
   // going to prioritize rescuing master (if it has one)
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !rand_number(0, 2) &&
           (GET_MAX_HIT(ch) / GET_HIT(ch)) <= 2) {
@@ -406,11 +408,13 @@ int can_continue(struct char_data *ch, bool fighting) {
   }
   if (GET_MOB_WAIT(ch) > 0)
     return 0;
+  if (HAS_WAIT(ch))
+    return 0;
   if (GET_POS(ch) <= POS_SITTING)
     return 0;
   if (IS_CASTING(ch))
     return 0;
-  if (GET_HIT(ch) <= 1)
+  if (GET_HIT(ch) <= 0)
     return 0;
 
   return 1;
@@ -600,7 +604,6 @@ void npc_class_behave(struct char_data *ch) {
   if (!can_continue(ch, TRUE))
     return;
   if (GET_LEVEL(ch) < 5)
-    
     return;
 
   //semi randomly choose vict, determine if can AoE
