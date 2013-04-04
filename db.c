@@ -2820,6 +2820,13 @@ void zone_update(void) {
     }
 }
 
+/* this function will be implemented when command can
+ * be dependent on success or failure of specific command #
+sbyte test_result(sbyte offset) {
+  
+}
+*/
+
 int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
 {
   struct char_data *temp_mob = NULL;
@@ -2876,8 +2883,13 @@ void reset_zone(zone_rnum zone) {
         last_cmd = 0;
         continue;
       }
+
+      // dependent on success of last command
+      if (ZCMD.if_flag > 0 && !last_cmd)
+        continue;
       
-      if (ZCMD.if_flag && !last_cmd)
+      // dependent on failure of last command
+      if (ZCMD.if_flag < 0 && last_cmd)
         continue;
 
       /* This is the list of actual zone commands. If any new zone commands are
