@@ -1334,6 +1334,7 @@ ACMD(do_rescue) {
   set_fighting(ch, tmp_ch);
   set_fighting(tmp_ch, ch);
 
+  SET_WAIT(ch, PULSE_VIOLENCE);
   SET_WAIT(vict, 2 * PULSE_VIOLENCE);
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_RESCUE);

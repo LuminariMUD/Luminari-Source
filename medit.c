@@ -232,7 +232,7 @@ static void init_mobile(struct char_data *mob) {
   GET_MAX_MANA(mob) = GET_MAX_MOVE(mob) = 100;
   GET_NDD(mob) = GET_SDD(mob) = 1;
   GET_WEIGHT(mob) = 200;
-  GET_HEIGHT(mob) = 198;
+  GET_HEIGHT(mob) = 200;
 
   mob->real_abils.str = mob->real_abils.intel = mob->real_abils.wis = 11;
   mob->real_abils.dex = mob->real_abils.con = mob->real_abils.cha = 11;
@@ -390,7 +390,7 @@ void medit_disp_class(struct descriptor_data *d) {
             pc_class_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
-  write_to_output(d, "\r\n%s(You can choose 98 to turn off the class)", nrm);
+  write_to_output(d, "\r\n%s(Set the classless MOBFLAG to turn off the class)", nrm);
   write_to_output(d, "\r\n%sEnter class number : ", nrm);
 }
 
@@ -1485,8 +1485,6 @@ void medit_parse(struct descriptor_data *d, char *arg) {
     case MEDIT_CLASS:
       if (i == 99)
         GET_CLASS(OLC_MOB(d)) = rand_number(0, NUM_CLASSES - 1);
-      else if (i == 98)
-        GET_CLASS(OLC_MOB(d)) = -1;
       else
         GET_CLASS(OLC_MOB(d)) = LIMIT(i, 0, NUM_CLASSES - 1);
       break;
