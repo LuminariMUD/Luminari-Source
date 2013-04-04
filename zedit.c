@@ -469,7 +469,7 @@ static void zedit_disp_menu(struct descriptor_data *d) {
         if ((counter + MYCMD.arg1) <= maxcount)
           write_to_output(d, "%sJump over %d line%s to line #%d. (%d%%)",
                 buf1, MYCMD.arg1, (MYCMD.arg1 > 1) ? "s" : "",
-                counter + MYCMD.arg1 + 1, MYCMD.arg2);
+                counter + MYCMD.arg1, MYCMD.arg2);
         else
           write_to_output(d, "%sJump over %d line%s to <OUTSIDE ROOM>. (%d%%)",
                 buf1, MYCMD.arg1, (MYCMD.arg1 > 1) ? "s" : "", MYCMD.arg2);
