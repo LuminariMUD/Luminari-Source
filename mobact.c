@@ -185,10 +185,8 @@ int valid_offensive_spell[OFFENSIVE_SPELLS] = {
 void npc_rescue(struct char_data *ch) {
   struct char_data *victim = NULL;
   
-  send_to_char(ch, "DEBUG:  getting here fine\r\n");
-  
   // going to prioritize rescuing master (if it has one)
-  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !rand_number(0, 2) &&
+  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !rand_number(0, 1) &&
           (GET_MAX_HIT(ch) / GET_HIT(ch)) <= 2) {
     if (FIGHTING(ch->master)) {
       do_npc_rescue(ch, ch->master);
@@ -198,7 +196,7 @@ void npc_rescue(struct char_data *ch) {
   }
 
   /* determine victim (someone in group, including self) */
-  if (GROUP(ch) && GROUP(ch)->members->iSize && !rand_number(0, 2) &&
+  if (GROUP(ch) && GROUP(ch)->members->iSize && !rand_number(0, 1) &&
           (GET_MAX_HIT(ch) / GET_HIT(ch)) <= 2) {
     victim = (struct char_data *) random_from_list(GROUP(ch)->members);
     if (!victim || victim == ch)
