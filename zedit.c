@@ -467,11 +467,11 @@ static void zedit_disp_menu(struct descriptor_data *d) {
     switch (MYCMD.command) {
       case 'J':
         if ((counter + MYCMD.arg1) <= maxcount)
-          write_to_output(d, "%sJump over %d line%s to line #%d. (%d)",
+          write_to_output(d, "%sJump over %d line%s to line #%d. (%d%%)",
                 buf1, MYCMD.arg1, (MYCMD.arg1 > 1) ? "s" : "",
                 counter + MYCMD.arg1 + 1, MYCMD.arg2);
         else
-          write_to_output(d, "%sJump over %d line%s to <OUTSIDE ROOM>. (%d)",
+          write_to_output(d, "%sJump over %d line%s to <OUTSIDE ROOM>. (%d%%)",
                 buf1, MYCMD.arg1, (MYCMD.arg1 > 1) ? "s" : "", MYCMD.arg2);
         break;
       case 'M':
@@ -579,12 +579,12 @@ static void zedit_disp_comtype(struct descriptor_data *d) {
           "%sM%s) Load Mobile to room             %sO%s) Load Object to room\r\n"
           "%sE%s) Equip mobile with object        %sG%s) Give an object to a mobile\r\n"
           "%sP%s) Put object in another object    %sD%s) Open/Close/Lock a Door\r\n"
-          "%sR%s) Remove an object from the room\r\n"
+          "%sR%s) Remove an object from the room  %sJ%s) Jump over next <x> commands\r\n"
           "%sT%s) Assign a trigger                %sV%s) Set a global variable\r\n"
           "\r\n"
           "What sort of command will this be? : ",
           grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm,
-          grn, nrm, grn, nrm, grn, nrm, grn, nrm
+          grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm
           );
   OLC_MODE(d) = ZEDIT_COMMAND_TYPE;
 }
@@ -595,6 +595,10 @@ static void zedit_disp_arg1(struct descriptor_data *d) {
   write_to_output(d, "\r\n");
 
   switch (OLC_CMD(d).command) {
+    case 'J':
+      write_to_output(d, "How many to jump : ");
+      OLC_MODE(d) = ZEDIT_ARG1;
+      break;
     case 'M':
       write_to_output(d, "Input mob's vnum : ");
       OLC_MODE(d) = ZEDIT_ARG1;
@@ -634,6 +638,9 @@ static void zedit_disp_arg2(struct descriptor_data *d) {
   write_to_output(d, "\r\n");
 
   switch (OLC_CMD(d).command) {
+    case 'J':
+      write_to_output(d, "Chance to execute (0-100%%) : ");
+      break;
     case 'M':
       write_to_output(d, "Input the maximum number that can exist on the mud : ");
       break;
@@ -1059,6 +1066,15 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
         return;
       }
       switch (OLC_CMD(d).command) {
+        case 'J':
+          pos = atoi(arg);
+          if (pos < 0 || pos > 5) { // arbitrary maximum jump
+            write_to_output(d, "Invalid jump, must be between 0-5 : ");
+          } else {
+            OLC_CMD(d).arg1 = pos;
+            zedit_disp_arg2(d);
+          }
+          break;
         case 'M':
           if ((pos = real_mobile(atoi(arg))) != NOBODY) {
             OLC_CMD(d).arg1 = pos;

@@ -2860,7 +2860,7 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message) {
 
 /* execute the reset command table of a given zone */
 void reset_zone(zone_rnum zone) {
-  int cmd_no = 0, last_cmd = 0;
+  int cmd_no = 0, last_cmd = 0, jump = 0;
   struct char_data *mob = NULL;
   struct obj_data *obj = NULL, *obj_to = NULL;
   room_vnum rvnum = 0;
@@ -2871,7 +2871,12 @@ void reset_zone(zone_rnum zone) {
   /* dummy check added by zusuk due to mysterious crash (03/31/2013) */
   //if (zone_table && zone_table[zone].cmd) {
     for (cmd_no = 0; ZCMD.command != 'S'; cmd_no++) {
-
+      if (jump > 0) {
+        jump--;
+        last_cmd = 0;
+        continue;
+      }
+      
       if (ZCMD.if_flag && !last_cmd)
         continue;
 
@@ -2883,6 +2888,14 @@ void reset_zone(zone_rnum zone) {
           last_cmd = 0;
           break;
 
+        case 'J': /* jump over lines (with percentage chance) */
+          if (rand_number(1, 100) <= ZCMD.arg2) {
+            jump = ZCMD.arg1;
+            last_cmd = 1;
+          } else
+            last_cmd = 0;
+          break;
+          
         case 'M': /* read a mobile (with percentage loads) */
 //        if ((mob_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) && 
           if ((check_max_existing(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3) || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
