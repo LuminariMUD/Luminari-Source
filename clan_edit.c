@@ -841,7 +841,6 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     case '3':
       if (CHK_CP(CP_DESC)) {
         OLC_MODE(d) = CLANEDIT_DESC;
-        clear_screen(d);
         send_editor_help(d);
         write_to_output(d, "Enter clan description:\r\n\r\n");
 
@@ -851,6 +850,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
         }
         string_write(d, &OLC_CLAN(d)->description, MAX_CLAN_DESC, 0, oldtext);
         OLC_VAL(d) = 1;
+        clanedit_save(d);
+        write_to_output(d, "Clan saved.\r\n");
         return;
       } else {
         write_to_output(d, "%sInvalid Choice!%s\r\nEnter Choice : ",
