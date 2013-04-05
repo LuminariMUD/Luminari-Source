@@ -708,7 +708,7 @@ void npc_spellup(struct char_data *ch) {
   }
 
   /* try healing */
-  if ((GET_MAX_HIT(victim) / GET_HIT(victim)) >= 2) {
+  if (GET_HIT(victim) && (GET_MAX_HIT(victim) / GET_HIT(victim)) >= 2) {
     if (level >= spell_info[SPELL_HEAL].min_level[GET_CLASS(ch)]) {
       cast_spell(ch, victim, NULL, SPELL_HEAL);
       return;
