@@ -1331,7 +1331,6 @@ struct char_player_data {
   ubyte height; /**< PC / NPC height */
   byte race; // Race
   byte pc_subrace; // SubRace  
-  int size; // size
   char *walkin; // NPC (for now) walkin message
   char *walkout; // NPC (for now) walkout message
 };
@@ -1367,7 +1366,7 @@ struct char_point_data {
   sbyte hitroll; /**< Any bonus or penalty to the hit roll */
   sbyte damroll; /**< Any bonus or penalty to the damage roll */
 
-
+  int size; // size
 };
 
 /** char_special_data_saved: specials which both a PC and an NPC have in
