@@ -186,7 +186,7 @@ ACMD(do_study) {
     send_to_char(ch, "Specify a class to edit known spells.\r\n");
     return;
   } else if (is_abbrev(argument, "sorcerer")) {
-    if (IS_SORC_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
+    if (IS_SORC_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
       send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
               "(You can also RESPEC to reset your character)\r\n");
       return;
@@ -197,7 +197,7 @@ ACMD(do_study) {
     }
     class = CLASS_SORCERER;
   } else if (is_abbrev(argument, "bard")) {
-    if (IS_BARD_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
+    if (IS_BARD_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
       send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
               "(You can also RESPEC to reset your character)\r\n");
       return;
@@ -208,7 +208,7 @@ ACMD(do_study) {
     }
     class = CLASS_BARD;
   } else if (is_abbrev(argument, "druid")) {
-    if (IS_DRUID_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
+    if (IS_DRUID_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
       send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
               "(You can also RESPEC to reset your character)\r\n");
       return;
@@ -219,7 +219,7 @@ ACMD(do_study) {
     }
     class = CLASS_DRUID;
   } else if (is_abbrev(argument, "ranger")) {
-    if (IS_RANG_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
+    if (IS_RANG_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
       send_to_char(ch, "You already adjusted your ranger "
               "skills this level.\r\n");
       return;
@@ -230,7 +230,7 @@ ACMD(do_study) {
     }
     class = CLASS_RANGER;
   } else if (is_abbrev(argument, "wizard")) {
-    if (IS_WIZ_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMPL) {
+    if (IS_WIZ_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
       send_to_char(ch, "You already adjusted your wizard "
               "skills this level.\r\n");
       return;

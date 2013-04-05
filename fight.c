@@ -2526,10 +2526,12 @@ int perform_attacks(struct char_data *ch, int mode) {
   //default of one offhand attack for everyone
   if (dual) {
     numAttacks += 2;
+    if (GET_SIZE(ch) - 1 > GET_OBJ_SIZE(GET_EQ(ch, WEAR_WIELD_2)))
+      penalty -= 4;
     if (!IS_NPC(ch) && is_skilled_dualer(ch, 1))
-      penalty = -1;
+      penalty -= 1;
     else
-      penalty = -4;
+      penalty -= 4;
     if (mode == 0) { //normal attack routine
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
@@ -2925,6 +2927,10 @@ void perform_violence(void) {
       }
     }
 
+    /* group members will autoassist if
+     1)  npc or
+     2)  pref flagged autoassist
+     */
     if (GROUP(ch)) {
       while ((tch = (struct char_data *) simple_list(GROUP(ch)->members))
               != NULL) {
@@ -2942,8 +2948,6 @@ void perform_violence(void) {
           continue;
         
         perform_assist(tch, ch);
-
-        //do_assist(tch, GET_NAME(ch), 0, 0);
       }
     }
 
@@ -2954,11 +2958,11 @@ void perform_violence(void) {
               !FIGHTING(charmee) &&
               GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch))
         perform_assist(tch, ch);
-        //do_assist(charmee, GET_NAME(ch), 0, 0);
 
     if (AFF_FLAGGED(ch, AFF_PARRY))
       send_to_char(ch, "You continue the battle in defensive positioning!\r\n");
 
+    /* here is our entry point for melee attack rotation */
     if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_PARRY))
       perform_attacks(ch, 0);
 
