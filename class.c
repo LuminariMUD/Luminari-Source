@@ -1563,16 +1563,16 @@ void init_start_char(struct char_data *ch) {
 
   /* reset stats */
   roll_real_abils(ch);
-  GET_AC(ch) = 100;
-  GET_HITROLL(ch) = 0;
-  GET_DAMROLL(ch) = 0;
-  GET_MAX_HIT(ch) = 20;
-  GET_MAX_MANA(ch) = 100;
-  GET_MAX_MOVE(ch) = 82;
+  GET_REAL_AC(ch) = 100;
+  GET_REAL_HITROLL(ch) = 0;
+  GET_REAL_DAMROLL(ch) = 0;
+  GET_REAL_MAX_HIT(ch) = 20;
+  GET_REAL_MAX_MANA(ch) = 100;
+  GET_REAL_MAX_MOVE(ch) = 82;
   GET_PRACTICES(ch) = 0;
   GET_TRAINS(ch) = 0;
   GET_BOOSTS(ch) = 4; //freebies
-  GET_SPELL_RES(ch) = 0;
+  GET_REAL_SPELL_RES(ch) = 0;
 
   /* reset skills/abilities */
   for (i = 1; i <= NUM_SKILLS; i++)
@@ -1963,12 +1963,12 @@ void advance_level(struct char_data *ch, int class) {
     add_hp++;
 
   /* adjust final and report changes! */
-  GET_MAX_HIT(ch) += MAX(1, add_hp);
+  GET_REAL_MAX_HIT(ch) += MAX(1, add_hp);
   send_to_char(ch, "\tMTotal HP:\tn %d\r\n", MAX(1, add_hp));
-  GET_MAX_MOVE(ch) += MAX(1, add_move);
+  GET_REAL_MAX_MOVE(ch) += MAX(1, add_move);
   send_to_char(ch, "\tMTotal Move:\tn %d\r\n", MAX(1, add_move));
   if (GET_LEVEL(ch) > 1) {
-    GET_MAX_MANA(ch) += add_mana;
+    GET_REAL_MAX_MANA(ch) += add_mana;
     send_to_char(ch, "\tMTotal Mana:\tn %d\r\n", add_mana);
   }
   GET_PRACTICES(ch) += practices;
