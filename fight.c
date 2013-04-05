@@ -2526,7 +2526,7 @@ int perform_attacks(struct char_data *ch, int mode) {
   //default of one offhand attack for everyone
   if (dual) {
     numAttacks += 2;
-    if (GET_SIZE(ch) - 1 > GET_OBJ_SIZE(GET_EQ(ch, WEAR_WIELD_2)))
+    if (GET_SIZE(ch) <= GET_OBJ_SIZE(GET_EQ(ch, WEAR_WIELD_2)))
       penalty -= 4;
     if (!IS_NPC(ch) && is_skilled_dualer(ch, 1))
       penalty -= 1;
