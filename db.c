@@ -1508,23 +1508,23 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   }
 
   GET_LEVEL(mob_proto + i) = t[0];
-  GET_HITROLL(mob_proto + i) = 20 - t[1];
-  GET_AC(mob_proto + i) = 10 * t[2];
+  GET_REAL_HITROLL(mob_proto + i) = 20 - t[1];
+  GET_REAL_AC(mob_proto + i) = 10 * t[2];
 
   /* max hit = 0 is a flag that H, M, V is xdy+z */
-  GET_MAX_HIT(mob_proto + i) = 0;
+  GET_REAL_MAX_HIT(mob_proto + i) = 0;
   GET_HIT(mob_proto + i) = t[3];
   GET_MANA(mob_proto + i) = t[4];
   GET_MOVE(mob_proto + i) = t[5];
 
-  GET_MAX_MANA(mob_proto + i) = 10;
-  GET_MAX_MOVE(mob_proto + i) = 50;
+  GET_REAL_MAX_MANA(mob_proto + i) = 10;
+  GET_REAL_MAX_MOVE(mob_proto + i) = 50;
 
-  GET_SPELL_RES(mob_proto + i) = 0;
+  GET_REAL_SPELL_RES(mob_proto + i) = 0;
 
   mob_proto[i].mob_specials.damnodice = t[6];
   mob_proto[i].mob_specials.damsizedice = t[7];
-  GET_DAMROLL(mob_proto + i) = t[8];
+  GET_REAL_DAMROLL(mob_proto + i) = t[8];
 
   if (!get_line(mob_f, line)) {
     log("SYSERR: Format error in mob #%d, second line after S flag\n"
@@ -1562,14 +1562,17 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   GET_SUBRACE(mob_proto + i, 2) = 0;
   GET_RACE(mob_proto + i) = 0;
   GET_CLASS(mob_proto + i) = 0;
-  GET_SIZE(mob_proto + i) = SIZE_MEDIUM;
+  GET_REAL_SIZE(mob_proto + i) = SIZE_MEDIUM;
   GET_WEIGHT(mob_proto + i) = 200;
   GET_HEIGHT(mob_proto + i) = 198;
 
   /* These are now save applies; base save numbers for MOBs are now from the
    * warrior save table. */
   for (j = 0; j < NUM_OF_SAVING_THROWS; j++)
-    GET_SAVE(mob_proto + i, j) = 0;
+    GET_REAL_SAVE(mob_proto + i, j) = 0;
+  
+  for (j = 0; j < NUM_DAM_TYPES; j++)
+    GET_REAL_RESISTANCES(mob_proto + i, j) = 0;
   
   // be sure to initialize any numeric echo stuff too
   ECHO_IS_ZONE(mob_proto + i) = FALSE;

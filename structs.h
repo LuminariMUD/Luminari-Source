@@ -1396,6 +1396,9 @@ struct char_point_data {
   int size; // size
   sh_int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
   sh_int resistances[NUM_DAM_TYPES];  // resistances (dam-types)
+
+  /* note - if you add something new here, make sure to check
+   handler.c reset_char_points() to see if it needs to be added */
 };
 #undef NUM_DAM_TYPES
 

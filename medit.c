@@ -241,12 +241,7 @@ static void init_mobile(struct char_data *mob) {
   GET_REAL_WIS(mob) = 11;
   GET_REAL_CHA(mob) = 11;
   mob->aff_abils = mob->real_abils;
-
-  GET_SAVE(mob, SAVING_FORT) = 0;
-  GET_SAVE(mob, SAVING_REFL) = 0;
-  GET_SAVE(mob, SAVING_WILL) = 0;
-  GET_SAVE(mob, SAVING_POISON) = 0;
-  GET_SAVE(mob, SAVING_DEATH) = 0;
+  reset_char_points(mob);
 
   SET_BIT_AR(MOB_FLAGS(mob), MOB_ISNPC);
   mob->player_specials = &dummy_mob;
@@ -551,6 +546,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
           "%s7%s) Default   : %s%s\r\n"
           "%s8%s) Attack    : %s%s\r\n"
           "%s9%s) Stats Menu...\r\n"
+          "%sG%s) Resists   ...\r\n"
           "%sR%s) Race      : %s%s\r\n"
           "%sD%s) SubRace   : %s%s\r\n"
           "%sE%s) SubRace   : %s%s\r\n"
@@ -573,6 +569,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
           grn, nrm, yel, position_types[(int) GET_DEFAULT_POS(mob)],
           grn, nrm, yel, attack_hit_text[(int) GET_ATTACK(mob)].singular,
           grn, nrm,
+          grn, nrm,
           grn, nrm, yel, npc_race_types[GET_RACE(mob)],
           grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 0)],
           grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 1)],
@@ -594,6 +591,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
   OLC_MODE(d) = MEDIT_MAIN_MENU;
 }
 
+/* mobile echoes, dispaly */
 static void medit_disp_echo_menu(struct descriptor_data *d) {
   struct char_data *mob;
   //char buf[MAX_STRING_LENGTH];
@@ -629,7 +627,56 @@ static void medit_disp_echo_menu(struct descriptor_data *d) {
   OLC_MODE(d) = MEDIT_ECHO_MENU;
 }
 
-/* Display main menu. */
+/* Display resistances menu. */
+static void medit_disp_resistances_menu(struct descriptor_data *d) {
+  struct char_data *mob;
+
+  mob = OLC_MOB(d);
+  get_char_colors(d->character);
+  clear_screen(d);
+  
+  write_to_output(d,
+          "-- RESISTANCES -- Mob Number:  %s[%s%d%s]%s\r\n"
+            "(%sA%s) Fire:     %s[%s%4d%s]%s   (%sK%s) Force:    %s[%s%4d%s]%s\r\n"
+            "(%sB%s) Cold:     %s[%s%4d%s]%s   (%sL%s) Sound:    %s[%s%4d%s]%s\r\n"
+            "(%sC%s) Air:      %s[%s%4d%s]%s   (%sM%s) Poison:   %s[%s%4d%s]%s\r\n"
+            "(%sD%s) Earth:    %s[%s%4d%s]%s   (%sN%s) Disease:  %s[%s%4d%s]%s\r\n"
+            "(%sE%s) Acid:     %s[%s%4d%s]%s   (%sO%s) Negative: %s[%s%4d%s]%s\r\n"
+            "(%sF%s) Holy:     %s[%s%4d%s]%s   (%sP%s) Illusion: %s[%s%4d%s]%s\r\n"
+            "(%sG%s) Electric: %s[%s%4d%s]%s   (%sR%s) Mental:   %s[%s%4d%s]%s\r\n"
+            "(%sH%s) Unholy:   %s[%s%4d%s]%s   (%sS%s) Light:    %s[%s%4d%s]%s\r\n"
+            "(%sI%s) Slice:    %s[%s%4d%s]%s   (%sT%s) Energy:   %s[%s%4d%s]%s\r\n"
+            "(%sJ%s) Puncture: %s[%s%4d%s]%s   (%sU%s) Water:    %s[%s%4d%s]%s\r\n\r\n",
+            cyn, yel, OLC_NUM(d), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 1), cyn, nrm, cyn, nrm, 
+                               cyn, yel, GET_RESISTANCES(mob, 11), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 2), cyn, nrm, cyn, nrm, 
+                               cyn, yel, GET_RESISTANCES(mob, 12), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 3), cyn, nrm, cyn, nrm, 
+                               cyn, yel, GET_RESISTANCES(mob, 13), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 4), cyn, nrm, cyn, nrm, 
+                               cyn, yel, GET_RESISTANCES(mob, 14), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 5), cyn, nrm, cyn, nrm, 
+                               cyn, yel, GET_RESISTANCES(mob, 15), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 6), cyn, nrm, cyn, nrm, 
+                               cyn, yel, GET_RESISTANCES(mob, 16), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 7), cyn, nrm, cyn, nrm, 
+                               cyn, yel, GET_RESISTANCES(mob, 17), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 8), cyn, nrm, cyn, nrm, 
+                               cyn, yel, GET_RESISTANCES(mob, 18), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 9), cyn, nrm, cyn, nrm, 
+                               cyn, yel, GET_RESISTANCES(mob, 19), cyn, nrm,
+            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 10), cyn, nrm, cyn, nrm, 
+                               cyn, yel, GET_RESISTANCES(mob, 20), cyn, nrm          
+          );
+
+  /* Quit to previous menu option */
+  write_to_output(d, "(%sQ%s) Quit to main menu\r\nEnter choice : ", cyn, nrm);
+
+  OLC_MODE(d) = MEDIT_RESISTANCES_MENU;
+}
+
+/* Display main stats menu. */
 static void medit_disp_stats_menu(struct descriptor_data *d) {
   struct char_data *mob;
   char buf[MAX_STRING_LENGTH];
@@ -687,6 +734,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d) {
             cyn, nrm, cyn, yel, GET_CON(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_POISON), cyn, nrm,
             cyn, nrm, cyn, yel, GET_CHA(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_DEATH), cyn, nrm
             );
+    
   }
 
   /* Quit to previous menu option */
@@ -794,6 +842,11 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         case '9':
           OLC_MODE(d) = MEDIT_STATS_MENU;
           medit_disp_stats_menu(d);
+          return;
+        case 'g':
+        case 'G':
+          OLC_MODE(d) = MEDIT_RESISTANCES_MENU;
+          medit_disp_resistances_menu(d);
           return;
         case 'r':
         case 'R':
@@ -1198,6 +1251,125 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         write_to_output(d, "Oops...\r\n");
       return;
 
+    case MEDIT_RESISTANCES_MENU:
+      i = 0;
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          medit_disp_menu(d);
+          return;
+        case 'a':
+        case 'A':
+          OLC_MODE(d) = MEDIT_DAM_FIRE;
+          i++;
+          break;
+        case 'b':
+        case 'B':
+          OLC_MODE(d) = MEDIT_DAM_COLD;
+          i++;
+          break;
+        case 'c':
+        case 'C':
+          OLC_MODE(d) = MEDIT_DAM_AIR;
+          i++;
+          break;
+        case 'd':
+        case 'D':
+          OLC_MODE(d) = MEDIT_DAM_EARTH;
+          i++;
+          break;
+        case 'e':
+        case 'E':
+          OLC_MODE(d) = MEDIT_DAM_ACID;
+          i++;
+          break;
+        case 'f':
+        case 'F':
+          OLC_MODE(d) = MEDIT_DAM_HOLY;
+          i++;
+          break;
+        case 'g':
+        case 'G':
+          OLC_MODE(d) = MEDIT_DAM_ELECTRIC;
+          i++;
+          break;
+        case 'h':
+        case 'H':
+          OLC_MODE(d) = MEDIT_DAM_UNHOLY;
+          i++;
+          break;
+        case 'i':
+        case 'I':
+          OLC_MODE(d) = MEDIT_DAM_SLICE;
+          i++;
+          break;
+        case 'j':
+        case 'J':
+          OLC_MODE(d) = MEDIT_DAM_PUNCTURE;
+          i++;
+          break;
+        case 'k':
+        case 'K':
+          OLC_MODE(d) = MEDIT_DAM_FORCE;
+          i++;
+          break;
+        case 'l':
+        case 'L':
+          OLC_MODE(d) = MEDIT_DAM_SOUND;
+          i++;
+          break;
+        case 'm':
+        case 'M':
+          OLC_MODE(d) = MEDIT_DAM_POISON;
+          i++;
+          break;
+        case 'n':
+        case 'N':
+          OLC_MODE(d) = MEDIT_DAM_DISEASE;
+          i++;
+          break;
+        case 'o':
+        case 'O':
+          OLC_MODE(d) = MEDIT_DAM_NEGATIVE;
+          i++;
+          break;
+        case 'p':
+        case 'P':
+          OLC_MODE(d) = MEDIT_DAM_ILLUSION;
+          i++;
+          break;
+        case 'r':
+        case 'R':
+          OLC_MODE(d) = MEDIT_DAM_MENTAL;
+          i++;
+          break;
+        case 's':
+        case 'S':
+          OLC_MODE(d) = MEDIT_DAM_LIGHT;
+          i++;
+          break;
+        case 't':
+        case 'T':
+          OLC_MODE(d) = MEDIT_DAM_ENERGY;
+          i++;
+          break;
+        case 'u':
+        case 'U':
+          OLC_MODE(d) = MEDIT_DAM_WATER;
+          i++;
+          break;
+        default:
+          medit_disp_resistances_menu(d);
+          return;
+      }
+      if (i == 0)
+        break;
+      else if (i == 1)
+        write_to_output(d, "\r\nEnter new value : ");
+      else
+        write_to_output(d, "Oops...\r\n");
+      return;
+
     case OLC_SCRIPT_EDIT:
       if (dg_script_edit_parse(d, arg)) return;
       break;
@@ -1418,6 +1590,107 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       GET_SAVE(OLC_MOB(d), SAVING_DEATH) = LIMIT(i, 0, 100);
       OLC_VAL(d) = TRUE;
       medit_disp_stats_menu(d);
+      return;
+
+    case MEDIT_DAM_FIRE:
+      GET_RESISTANCES(OLC_MOB(d), DAM_FIRE) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_COLD:
+      GET_RESISTANCES(OLC_MOB(d), DAM_COLD) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_AIR:
+      GET_RESISTANCES(OLC_MOB(d), DAM_AIR) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_EARTH:
+      GET_RESISTANCES(OLC_MOB(d), DAM_EARTH) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_ACID:
+      GET_RESISTANCES(OLC_MOB(d), DAM_ACID) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_HOLY:
+      GET_RESISTANCES(OLC_MOB(d), DAM_HOLY) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_ELECTRIC:
+      GET_RESISTANCES(OLC_MOB(d), DAM_ELECTRIC) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_UNHOLY:
+      GET_RESISTANCES(OLC_MOB(d), DAM_UNHOLY) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_SLICE:
+      GET_RESISTANCES(OLC_MOB(d), DAM_SLICE) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_PUNCTURE:
+      GET_RESISTANCES(OLC_MOB(d), DAM_PUNCTURE) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_FORCE:
+      GET_RESISTANCES(OLC_MOB(d), DAM_FORCE) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_SOUND:
+      GET_RESISTANCES(OLC_MOB(d), DAM_SOUND) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_POISON:
+      GET_RESISTANCES(OLC_MOB(d), DAM_POISON) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_DISEASE:
+      GET_RESISTANCES(OLC_MOB(d), DAM_DISEASE) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_NEGATIVE:
+      GET_RESISTANCES(OLC_MOB(d), DAM_NEGATIVE) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_ILLUSION:
+      GET_RESISTANCES(OLC_MOB(d), DAM_ILLUSION) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_MENTAL:
+      GET_RESISTANCES(OLC_MOB(d), DAM_MENTAL) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_LIGHT:
+      GET_RESISTANCES(OLC_MOB(d), DAM_LIGHT) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_ENERGY:
+      GET_RESISTANCES(OLC_MOB(d), DAM_ENERGY) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
+      return;
+    case MEDIT_DAM_WATER:
+      GET_RESISTANCES(OLC_MOB(d), DAM_WATER) = LIMIT(i, -100, 100);
+      OLC_VAL(d) = TRUE;
+      medit_disp_resistances_menu(d);
       return;
 
     case MEDIT_POS:
