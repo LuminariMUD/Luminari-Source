@@ -662,13 +662,6 @@ do                                                              \
 /** Weight of ch. */
 #define GET_WEIGHT(ch)	((ch)->player.weight)
 
-// size
-#define GET_SIZE(ch)	((ch)->points.size)
-/*
-#define GET_SIZE(ch)	(affected_by_spell(ch, SPELL_SHRINK_PERSON) ? \
-MAX(SIZE_FINE, (ch->player.size - 1)) : affected_by_spell(ch, SPELL_ENLARGE_PERSON) ? \
-MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
- */
 
 /** Sex of ch. */
 #define GET_SEX(ch)	((ch)->player.sex)
@@ -676,6 +669,7 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 
 
 /** Current strength of ch. */
+#define GET_REAL_STR(ch)     	((ch)->real_abils.str)
 #define GET_STR(ch)     	((ch)->aff_abils.str)
 #define GET_STR_BONUS(ch)	(((ch)->aff_abils.str - 10) / 2)
 
@@ -683,68 +677,76 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 #define GET_ADD(ch)     ((ch)->aff_abils.str_add)
 
 /** Current dexterity of ch. */
+#define GET_REAL_DEX(ch)     	((ch)->real_abils.dex)
 #define GET_DEX(ch)		((ch)->aff_abils.dex)
 #define GET_DEX_BONUS(ch)	(((ch)->aff_abils.dex - 10) / 2)
 
 /** Current intelligence of ch. */
+#define GET_REAL_INT(ch)     	((ch)->real_abils.intel)
 #define GET_INT(ch)		((ch)->aff_abils.intel)
 #define GET_INT_BONUS(ch)	(((ch)->aff_abils.intel - 10) / 2)
 
 /** Current wisdom of ch. */
+#define GET_REAL_WIS(ch)     	((ch)->real_abils.wis)
 #define GET_WIS(ch)		((ch)->aff_abils.wis)
 #define GET_WIS_BONUS(ch)	(((ch)->aff_abils.wis - 10) / 2)
 
 /** Current constitution of ch. */
+#define GET_REAL_CON(ch)     	((ch)->real_abils.con)
 #define GET_CON(ch)		((ch)->aff_abils.con)
 #define GET_CON_BONUS(ch)	(((ch)->aff_abils.con - 10) / 2)
 
 /** Current charisma of ch. */
+#define GET_REAL_CHA(ch)     	((ch)->real_abils.cha)
 #define GET_CHA(ch)		((ch)->aff_abils.cha)
 #define GET_CHA_BONUS(ch)	(((ch)->aff_abils.cha - 10) / 2)
 
-
-
-
 /** Experience points of ch. */
 #define GET_EXP(ch)	  ((ch)->points.exp)
-
 /** Armor class of ch. */
+#define GET_REAL_AC(ch)        ((ch)->real_points.armor)
 #define GET_AC(ch)        ((ch)->points.armor)
-
 /** Current hit points (health) of ch. */
 #define GET_HIT(ch)	  ((ch)->points.hit)
-
 /** Maximum hit points of ch. */
+#define GET_REAL_MAX_HIT(ch)	  ((ch)->real_points.max_hit)
 #define GET_MAX_HIT(ch)	  ((ch)->points.max_hit)
-
 /** Current move points (stamina) of ch. */
 #define GET_MOVE(ch)	  ((ch)->points.move)
-
 /** Maximum move points (stamina) of ch. */
+#define GET_REAL_MAX_MOVE(ch)  ((ch)->real_points.max_move)
 #define GET_MAX_MOVE(ch)  ((ch)->points.max_move)
-
 /** Current mana points (magic) of ch. */
 #define GET_MANA(ch)	  ((ch)->points.mana)
-
 /** Maximum mana points (magic) of ch. */
+#define GET_REAL_MAX_MANA(ch)  ((ch)->real_points.max_mana)
 #define GET_MAX_MANA(ch)  ((ch)->points.max_mana)
-
 /** Gold on ch. */
 #define GET_GOLD(ch)	  ((ch)->points.gold)
-
 /** Gold in bank of ch. */
 #define GET_BANK_GOLD(ch) ((ch)->points.bank_gold)
-
 /** Current to-hit roll modifier for ch. */
+#define GET_REAL_HITROLL(ch)	  ((ch)->real_points.hitroll)
 #define GET_HITROLL(ch)	  ((ch)->points.hitroll)
-
 /** Current damage roll modifier for ch. */
+#define GET_REAL_DAMROLL(ch)   ((ch)->real_points.damroll)
 #define GET_DAMROLL(ch)   ((ch)->points.damroll)
-
 /** Current spell resistance modifier for ch. */
+#define GET_REAL_SPELL_RES(ch)   ((ch)->real_points.spell_res)
 #define GET_SPELL_RES(ch)   ((ch)->points.spell_res)
-
-
+// size
+#define GET_REAL_SIZE(ch)	((ch)->real_points.size)
+#define GET_SIZE(ch)	((ch)->points.size)
+/*
+#define GET_SIZE(ch)	(affected_by_spell(ch, SPELL_SHRINK_PERSON) ? \
+MAX(SIZE_FINE, (ch->player.size - 1)) : affected_by_spell(ch, SPELL_ENLARGE_PERSON) ? \
+MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
+ */
+#define GET_REAL_RESISTANCES(ch, type)  ((ch)->real_points.resistances[type])
+#define GET_RESISTANCES(ch, type)  ((ch)->points.resistances[type])
+/** Saving throw i for character ch. */
+#define GET_REAL_SAVE(ch, i)	  ((ch)->real_points.apply_saving_throw[i])
+#define GET_SAVE(ch, i)	  ((ch)->points.apply_saving_throw[i])
 
 
 /** Current position (standing, sitting) of ch. */
@@ -770,9 +772,6 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 
 /** Who or what the ch is hunting. */
 #define HUNTING(ch)	  ((ch)->char_specials.hunting)
-
-/** Saving throw i for character ch. */
-#define GET_SAVE(ch, i)	  ((ch)->char_specials.saved.apply_saving_throw[i])
 
 
 /* we changed the alignment system on luminarimud, but built it on top

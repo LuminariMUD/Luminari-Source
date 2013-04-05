@@ -318,13 +318,13 @@ int load_char(const char *name, struct char_data *ch) {
     GET_HITROLL(ch) = PFDEF_HITROLL;
     GET_DAMROLL(ch) = PFDEF_DAMROLL;
     GET_AC(ch) = PFDEF_AC;
-    ch->real_abils.str = PFDEF_STR;
     ch->real_abils.str_add = PFDEF_STRADD;
-    ch->real_abils.dex = PFDEF_DEX;
-    ch->real_abils.intel = PFDEF_INT;
-    ch->real_abils.wis = PFDEF_WIS;
-    ch->real_abils.con = PFDEF_CON;
-    ch->real_abils.cha = PFDEF_CHA;
+    GET_REAL_STR(ch) = PFDEF_STR;
+    GET_REAL_CON(ch) = PFDEF_CON;
+    GET_REAL_DEX(ch) = PFDEF_DEX;
+    GET_REAL_INT(ch) = PFDEF_INT;
+    GET_REAL_WIS(ch) = PFDEF_WIS;
+    GET_REAL_CHA(ch) = PFDEF_CHA;
     GET_HIT(ch) = PFDEF_HIT;
     GET_MAX_HIT(ch) = PFDEF_MAXHIT;
     GET_MANA(ch) = PFDEF_MANA;
@@ -404,9 +404,9 @@ int load_char(const char *name, struct char_data *ch) {
           break;
 
         case 'C':
-          if (!strcmp(tag, "Cha ")) ch->real_abils.cha = atoi(line);
+          if (!strcmp(tag, "Cha ")) GET_REAL_CHA(ch) = atoi(line);
           else if (!strcmp(tag, "Clas")) GET_CLASS(ch) = atoi(line);
-          else if (!strcmp(tag, "Con ")) ch->real_abils.con = atoi(line);
+          else if (!strcmp(tag, "Con ")) GET_REAL_CON(ch) = atoi(line);
           else if (!strcmp(tag, "CLvl")) load_class_level(fl, ch);
           else if (!strcmp(tag, "Cln ")) GET_CLAN(ch) = atoi(line);
           else if (!strcmp(tag, "Clrk")) GET_CLANRANK(ch) = atoi(line);
@@ -425,7 +425,7 @@ int load_char(const char *name, struct char_data *ch) {
 
         case 'D':
           if (!strcmp(tag, "Desc")) ch->player.description = fread_string(fl, buf2);
-          else if (!strcmp(tag, "Dex ")) ch->real_abils.dex = atoi(line);
+          else if (!strcmp(tag, "Dex ")) GET_REAL_DEX(ch) = atoi(line);
           else if (!strcmp(tag, "Drnk")) GET_COND(ch, DRUNK) = atoi(line);
           else if (!strcmp(tag, "Drol")) GET_DAMROLL(ch) = atoi(line);
           else if (!strcmp(tag, "DipT")) GET_DIPTIMER(ch) = atoi(line);
@@ -458,7 +458,7 @@ int load_char(const char *name, struct char_data *ch) {
 
         case 'I':
           if (!strcmp(tag, "Id  ")) GET_IDNUM(ch) = atol(line);
-          else if (!strcmp(tag, "Int ")) ch->real_abils.intel = atoi(line);
+          else if (!strcmp(tag, "Int ")) GET_REAL_INT(ch) = atoi(line);
           else if (!strcmp(tag, "Invs")) GET_INVIS_LEV(ch) = atoi(line);
           break;
 
@@ -553,7 +553,7 @@ int load_char(const char *name, struct char_data *ch) {
           if (!strcmp(tag, "Wate")) GET_WEIGHT(ch) = atoi(line);
           else if (!strcmp(tag, "Wimp")) GET_WIMP_LEV(ch) = atoi(line);
           else if (!strcmp(tag, "Ward")) load_warding(fl, ch);
-          else if (!strcmp(tag, "Wis ")) ch->real_abils.wis = atoi(line);
+          else if (!strcmp(tag, "Wis ")) GET_REAL_WIS(ch) = atoi(line);
           break;
 
         default:
@@ -1303,7 +1303,7 @@ static void load_HMVS(struct char_data *ch, const char *line, int mode) {
       break;
 
     case LOAD_STRENGTH:
-      ch->real_abils.str = num;
+      GET_REAL_CHA(ch) = num;
       ch->real_abils.str_add = num2;
       break;
   }

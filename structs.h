@@ -136,6 +136,7 @@
 #define EX_LOCKED    (1 << 2) /**< The door is locked */
 #define EX_PICKPROOF (1 << 3) /**< Lock can't be picked */
 #define EX_HIDDEN    (1 << 4) /**< Exit is hidden, secret */
+#define NUM_EXIT_BITS  5
 
 /* Sector types: used in room_data.sector_type */
 #define SECT_INSIDE          0		/**< Indoors, connected to SECT macro. */
@@ -861,8 +862,32 @@
 #define APPLY_SPELL_RES        25	// spell resistance
 #define APPLY_SIZE             26	// char size
 #define APPLY_AC_NEW           27      // apply to armor class (post conversion)
+/* dam_types (resistances/vulnerabilties) */
+#define APPLY_RES_FIRE         28  //1        
+#define APPLY_RES_COLD         29
+#define APPLY_RES_AIR          30
+#define APPLY_RES_EARTH        31
+#define APPLY_RES_ACID         32  //5
+#define APPLY_RES_HOLY         33
+#define APPLY_RES_ELECTRIC     34
+#define APPLY_RES_UNHOLY       35
+#define APPLY_RES_SLICE        36
+#define APPLY_RES_PUNCTURE     37  //10
+#define APPLY_RES_FORCE        38
+#define APPLY_RES_SOUND        39
+#define APPLY_RES_POISON       40
+#define APPLY_RES_DISEASE      41
+#define APPLY_RES_NEGATIVE     42  //15
+#define APPLY_RES_ILLUSION     43
+#define APPLY_RES_MENTAL       44
+#define APPLY_RES_LIGHT        45
+#define APPLY_RES_ENERGY       46
+#define APPLY_RES_WATER        47  //20
+/* end dam_types, make sure it matches NUM_DAM_TYPES */
+
 /** Total number of applies */
-#define NUM_APPLIES            28
+#define NUM_APPLIES            48
+
 
 /* Equals the total number of SAVING_* defines in spells.h */
 #define NUM_OF_SAVING_THROWS  5
@@ -1348,6 +1373,8 @@ struct char_ability_data {
   sbyte cha; /**< Charisma */
 };
 
+/* make sure this matches spells.h define */
+#define NUM_DAM_TYPES  21
 /** Character 'points', or health statistics. */
 struct char_point_data {
   sh_int mana; /**< Current mana level  */
@@ -1367,7 +1394,10 @@ struct char_point_data {
   sbyte damroll; /**< Any bonus or penalty to the damage roll */
 
   int size; // size
+  sh_int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
+  sh_int resistances[NUM_DAM_TYPES];  // resistances (dam-types)
 };
+#undef NUM_DAM_TYPES
 
 /** char_special_data_saved: specials which both a PC and an NPC have in
  * common, but which must be saved to the players file for PC's. */
@@ -1376,7 +1406,6 @@ struct char_special_data_saved {
   long idnum; /**< PC's idnum; -1 for mobiles. */
   int act[PM_ARRAY_MAX]; /**< act flags for NPC's; player flag for PC's */
   int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
-  sh_int apply_saving_throw[5]; /**< Saving throw (Bonuses)		*/
 };
 
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */
@@ -1555,6 +1584,7 @@ struct char_data {
   struct char_ability_data real_abils; /**< Abilities without modifiers */
   struct char_ability_data aff_abils; /**< Abilities with modifiers */
   struct char_point_data points; /**< Point/statistics */
+  struct char_point_data real_points; /**< Point/statistics */
   struct char_special_data char_specials; /**< PC/NPC specials	  */
   struct player_special_data *player_specials; /**< PC specials		  */
   struct mob_special_data mob_specials; /**< NPC specials		  */

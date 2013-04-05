@@ -139,7 +139,7 @@ case SKILL_EPIC_WARDING:
      
      /* 'epic' skills */
 case SKILL_BLINDING_SPEED:
-	if (ch->real_abils.dex >= 21 && GET_LEVEL(ch) >= 20)
+	if (GET_REAL_DEX(ch) >= 21 && GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
 case SKILL_EPIC_TOUGHNESS:
         if (GET_LEVEL(ch) >= 20)
@@ -166,13 +166,13 @@ case SKILL_ARMOR_SKIN:
 	if (GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
 case SKILL_SELF_CONCEAL_3:
-	if (ch->real_abils.dex >= 21 && GET_SKILL(ch, SKILL_SELF_CONCEAL_2))
+	if (GET_REAL_DEX(ch) >= 21 && GET_SKILL(ch, SKILL_SELF_CONCEAL_2))
 		return TRUE;	else return FALSE;
 case SKILL_OVERWHELMING_CRIT:
 	if (GET_LEVEL(ch) >= 20)
 		return TRUE;	else return FALSE;
 case SKILL_DAMAGE_REDUC_3:
-	if (ch->real_abils.con >= 19 && GET_SKILL(ch, SKILL_DAMAGE_REDUC_2))
+	if (GET_REAL_CON(ch) >= 19 && GET_SKILL(ch, SKILL_DAMAGE_REDUC_2))
 		return TRUE;	else return FALSE;
 case SKILL_EPIC_REFLEXES:
 case SKILL_EPIC_FORTITUDE:
@@ -180,24 +180,24 @@ case SKILL_EPIC_WILL:
         if (GET_LEVEL(ch) >= 20)
                 return TRUE;  else return FALSE;
 case SKILL_EPIC_2_WEAPON:
-	if (ch->real_abils.dex >= 21 && GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT))
+	if (GET_REAL_DEX(ch) >= 21 && GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT))
 		return TRUE;	else return FALSE;
      
 /* the rest */
 case SKILL_AMBIDEXTERITY:
-	if (ch->real_abils.dex >= 13)
+	if (GET_REAL_DEX(ch) >= 13)
 		return TRUE;	else return FALSE;
 case SKILL_TWO_WEAPON_FIGHT:
-	if (ch->real_abils.dex >= 17 && GET_SKILL(ch, SKILL_AMBIDEXTERITY))
+	if (GET_REAL_DEX(ch) >= 17 && GET_SKILL(ch, SKILL_AMBIDEXTERITY))
 		return TRUE;	else return FALSE;
 case SKILL_FINESSE:
-	if (ch->real_abils.dex >= 13)
+	if (GET_REAL_DEX(ch) >= 13)
 		return TRUE;	else return FALSE;
 case SKILL_POWER_ATTACK:
-	if (ch->real_abils.str >= 13)
+	if (GET_REAL_STR(ch) >= 13)
 		return TRUE;	else return FALSE;
 case SKILL_EXPERTISE:
-	if (ch->real_abils.intel >= 13)
+	if (GET_REAL_INT(ch) >= 13)
 		return TRUE;	else return FALSE;
 case SKILL_SPELLPENETRATE:
 	if (GET_LEVEL(ch) >= 5 && IS_CASTER(ch))
@@ -215,34 +215,34 @@ case SKILL_SPELL_RESIST_3:
 	if (GET_LEVEL(ch) >= 15 && GET_SKILL(ch, SKILL_SPELL_RESIST_2))
 		return TRUE;	else return FALSE;
 case SKILL_INITIATIVE:
-	if (ch->real_abils.dex >= 13)
+	if (GET_REAL_DEX(ch) >= 13)
 		return TRUE;	else return FALSE;
 case SKILL_IMPROVED_TRIP:
 	if (GET_SKILL(ch, SKILL_TRIP))
 		return TRUE;	else return FALSE;
 case SKILL_BASH:
-	if (ch->real_abils.str >= 13)
+	if (GET_REAL_STR(ch) >= 13)
 		return TRUE;	else return FALSE;
 case SKILL_TRIP:
-	if (ch->real_abils.dex >= 13)
+	if (GET_REAL_DEX(ch) >= 13)
 		return TRUE;	else return FALSE;
 case SKILL_WHIRLWIND:
 	if (GET_SKILL(ch, SKILL_SPRING_ATTACK))
 		return TRUE;	else return FALSE;
 case SKILL_DODGE:
-	if (ch->real_abils.dex >= 13)
+	if (GET_REAL_DEX(ch) >= 13)
 		return TRUE;	else return FALSE;
 case SKILL_DAMAGE_REDUC_1:
-	if (ch->real_abils.con >= 15)
+	if (GET_REAL_CON(ch) >= 15)
 		return TRUE;	else return FALSE;
 case SKILL_DAMAGE_REDUC_2:
-	if (ch->real_abils.con >= 17 && GET_SKILL(ch, SKILL_DAMAGE_REDUC_1))
+	if (GET_REAL_CON(ch) >= 17 && GET_SKILL(ch, SKILL_DAMAGE_REDUC_1))
 		return TRUE;	else return FALSE;
 case SKILL_SELF_CONCEAL_1:
-	if (ch->real_abils.dex >= 15)
+	if (GET_REAL_DEX(ch) >= 15)
 		return TRUE;	else return FALSE;
 case SKILL_SELF_CONCEAL_2:
-	if (ch->real_abils.dex >= 17 && GET_SKILL(ch, SKILL_SELF_CONCEAL_1))
+	if (GET_REAL_DEX(ch) >= 17 && GET_SKILL(ch, SKILL_SELF_CONCEAL_1))
 		return TRUE;	else return FALSE;
 case SKILL_EPIC_CRIT:
 	if (GET_LEVEL(ch) >= 10 && GET_SKILL(ch, SKILL_IMPROVED_CRITICAL))
@@ -986,14 +986,14 @@ SPECIAL(guild)
     else if (!strncasecmp("strength", argument, strlen(argument))) {
       send_to_char(ch, CONFIG_OK);
       send_to_char(ch, "\tMYour strength increases!\tn\r\n");
-      ch->real_abils.str += 1;
+      GET_REAL_STR(ch) += 1;
       GET_BOOSTS(ch) -= 1;
     } else if (!strncasecmp("constitution", argument, strlen(argument))) {
       send_to_char(ch, CONFIG_OK);
       send_to_char(ch, "\tMYour constitution increases!\tn\r\n");
-      ch->real_abils.con += 1;
+      GET_REAL_CON(ch) += 1;
       /* Give them retroactive hit points for constitution */
-      if (! (ch->real_abils.con % 2)) {
+      if (! (GET_REAL_CON(ch) % 2)) {
         GET_MAX_HIT(ch) += GET_LEVEL(ch);
         send_to_char(ch, "\tMYou gain %d hitpoints!\tn\r\n", GET_LEVEL(ch));
       }
@@ -1001,25 +1001,25 @@ SPECIAL(guild)
     } else if (!strncasecmp("dexterity", argument, strlen(argument))) {
       send_to_char(ch, CONFIG_OK);
       send_to_char(ch, "\tMYour dexterity increases!\tn\r\n");
-      ch->real_abils.dex += 1;
+      GET_REAL_DEX(ch) += 1;
       GET_BOOSTS(ch) -= 1; 
     } else if (!strncasecmp("intelligence", argument, strlen(argument))) {
       send_to_char(ch, CONFIG_OK);
       send_to_char(ch, "\tMYour intelligence increases!\tn\r\n");
-      ch->real_abils.intel += 1;
+      GET_REAL_INT(ch) += 1;
       /* Give extra skill practice, but only for this level */  
-      if (! (ch->real_abils.intel % 2))
+      if (! (GET_REAL_INT(ch) % 2))
         GET_TRAINS(ch)++;
       GET_BOOSTS(ch) -= 1;
     } else if (!strncasecmp("wisdom", argument, strlen(argument))) {
       send_to_char(ch, CONFIG_OK);
       send_to_char(ch, "\tMYour wisdom increases!\tn\r\n");
-      ch->real_abils.wis += 1;
+      GET_REAL_WIS(ch) += 1;
       GET_BOOSTS(ch) -= 1;
     } else if (!strncasecmp("charisma", argument, strlen(argument))) {
       send_to_char(ch, CONFIG_OK);
       send_to_char(ch, "\tMYour charisma increases!\tn\r\n");
-      ch->real_abils.cha += 1;
+      GET_REAL_CHA(ch) += 1;
       GET_BOOSTS(ch) -= 1;
     } else
       send_to_char(ch, "\tCStat boost sessions remaining: %d\tn\r\n"

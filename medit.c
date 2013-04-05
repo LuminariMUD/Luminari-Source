@@ -234,8 +234,12 @@ static void init_mobile(struct char_data *mob) {
   GET_WEIGHT(mob) = 200;
   GET_HEIGHT(mob) = 200;
 
-  mob->real_abils.str = mob->real_abils.intel = mob->real_abils.wis = 11;
-  mob->real_abils.dex = mob->real_abils.con = mob->real_abils.cha = 11;
+  GET_REAL_STR(mob) = 11;
+  GET_REAL_CON(mob) = 11;
+  GET_REAL_DEX(mob) = 11;
+  GET_REAL_INT(mob) = 11;
+  GET_REAL_WIS(mob) = 11;
+  GET_REAL_CHA(mob) = 11;
   mob->aff_abils = mob->real_abils;
 
   GET_SAVE(mob, SAVING_FORT) = 0;
