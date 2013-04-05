@@ -2830,8 +2830,10 @@ sbyte test_result(sbyte offset) {
 int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
 {
   struct char_data *temp_mob = NULL;
+  char buf[MAX_STRING_LENGTH];
   int count = 0;
   
+  *buf = '\0';
   if ((room == NOWHERE) && (max < 0)) {
     log("Illegal room for check_max_existing() in room.");
     return FALSE;
