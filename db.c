@@ -2839,15 +2839,19 @@ int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
 
   if (max == 0 && boot_time <= 1 && mob_index[mob_num].number == 0)
     return TRUE;
-  
+
   if (max > 0) {
+    if (mob_index[mob_num].vnum == 6902) {
+      sprintf(buf, "MOB: 6902, Max: %d, Exist: %d", max, mob_index[mob_num].number);
+      log(buf);
+    }
     if (mob_index[mob_num].number < max)
       return TRUE;
   } else {
     for (temp_mob = world[room].people; temp_mob; temp_mob = temp_mob->next_in_room)
       if (GET_MOB_RNUM(temp_mob) == mob_num)
         count++;
-    
+
     if (count < abs(max))
       return TRUE;
   }
