@@ -915,21 +915,22 @@ void mobile_activity(void) {
       } else if (GET_DEFAULT_POS(ch) == POS_STANDING) {
         do_stand(ch, NULL, 0, 0);
       } else if (GET_DEFAULT_POS(ch) == POS_SLEEPING) {
-        bool go_to_sleep = FALSE;
+        int go_to_sleep = FALSE;
         do_rest(ch, NULL, 0, 0);
 
         // only go back to sleep if no PCs in the room, and percentage
         if (rand_number(1, 100) <= 10) {
           go_to_sleep = TRUE;
-          for (tmp_char = world[ch->in_room].people; tmp_char; tmp_char = tmp_char->next_in_room)
+          for (tmp_char = world[ch->in_room].people; tmp_char; tmp_char = tmp_char->next_in_room) {
             if (!IS_NPC(tmp_char) && CAN_SEE(ch, tmp_char)) {
               // don't go to sleep
               go_to_sleep = FALSE;
               break;
             }
+          }
         }
 
-        if (go_to_sleep)
+        if (go_to_sleep == TRUE)
           do_sleep(ch, NULL, 0, 0);
       }
     }
