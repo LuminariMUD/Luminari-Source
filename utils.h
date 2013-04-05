@@ -663,7 +663,7 @@ do                                                              \
 #define GET_WEIGHT(ch)	((ch)->player.weight)
 
 // size
-#define GET_SIZE(ch)	((ch)->player.size)
+#define GET_SIZE(ch)	((ch)->points.size)
 /*
 #define GET_SIZE(ch)	(affected_by_spell(ch, SPELL_SHRINK_PERSON) ? \
 MAX(SIZE_FINE, (ch->player.size - 1)) : affected_by_spell(ch, SPELL_ENLARGE_PERSON) ? \

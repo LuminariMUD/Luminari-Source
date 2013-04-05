@@ -241,12 +241,14 @@ void affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[],
   aff_apply_modify(ch, loc, mod, "affect_modify_ar");
 }
 
+#define STAT_CAP 50
 /* This updates a character by subtracting everything he is affected by
  * restoring original abilities, and then affecting all again. */
 void affect_total(struct char_data *ch) {
   struct affected_type *af;
   int i, j;
 
+  /* subtract affects with gear */
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i))
       for (j = 0; j < MAX_OBJ_AFFECT; j++)
@@ -255,11 +257,14 @@ void affect_total(struct char_data *ch) {
               GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
   }
 
+  /* modify affects based on 'nekked' char */
   for (af = ch->affected; af; af = af->next)
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
 
+  /* reset stats */
   ch->aff_abils = ch->real_abils;
 
+  /* add gear back on */
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i))
       for (j = 0; j < MAX_OBJ_AFFECT; j++)
@@ -268,21 +273,27 @@ void affect_total(struct char_data *ch) {
               GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
   }
 
+  /* modify affects based on 'regeared' char */
   for (af = ch->affected; af; af = af->next)
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
 
+  /* absolute caps */
   /* Make certain values are between 1..50, not < 1 and not > 50! */
-  i = 50;
-  GET_DEX(ch) = MAX(0, MIN(GET_DEX(ch), i));
-  GET_INT(ch) = MAX(0, MIN(GET_INT(ch), i));
-  GET_WIS(ch) = MAX(0, MIN(GET_WIS(ch), i));
-  GET_CON(ch) = MAX(0, MIN(GET_CON(ch), i));
-  GET_CHA(ch) = MAX(0, MIN(GET_CHA(ch), i));
-  GET_STR(ch) = MAX(0, MIN(GET_STR(ch), i));
+  GET_DEX(ch) = MAX(0, MIN(GET_DEX(ch), STAT_CAP));
+  GET_INT(ch) = MAX(0, MIN(GET_INT(ch), STAT_CAP));
+  GET_WIS(ch) = MAX(0, MIN(GET_WIS(ch), STAT_CAP));
+  GET_CON(ch) = MAX(0, MIN(GET_CON(ch), STAT_CAP));
+  GET_CHA(ch) = MAX(0, MIN(GET_CHA(ch), STAT_CAP));
+  GET_STR(ch) = MAX(0, MIN(GET_STR(ch), STAT_CAP));
 
   /* make sure size is between valid values */
   GET_SIZE(ch) = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
+  /* end absolute caps */
+  
+  /* begin relative caps */
+  /* end relative caps */
 }
+#undef STAT_CAP
 
 /* Insert an affect_type in a char_data structure. Automatically sets
  * apropriate bits and apply's */
