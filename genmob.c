@@ -384,6 +384,46 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     fprintf(fd, "SavingPoison: %d\n", GET_SAVE(mob, SAVING_POISON));
   if (GET_SAVE(mob, SAVING_DEATH) != 0)
     fprintf(fd, "SavingDeath: %d\n", GET_SAVE(mob, SAVING_DEATH));
+  if (GET_RESISTANCES(mob, DAM_FIRE) != 0)
+    fprintf(fd, "ResFire: %d\n", GET_RESISTANCES(mob, DAM_FIRE));
+  if (GET_RESISTANCES(mob, DAM_COLD) != 0)
+    fprintf(fd, "ResCold: %d\n", GET_RESISTANCES(mob, DAM_COLD));
+  if (GET_RESISTANCES(mob, DAM_AIR) != 0)
+    fprintf(fd, "ResAir: %d\n", GET_RESISTANCES(mob, DAM_AIR));
+  if (GET_RESISTANCES(mob, DAM_EARTH) != 0)
+    fprintf(fd, "ResEarth: %d\n", GET_RESISTANCES(mob, DAM_EARTH));
+  if (GET_RESISTANCES(mob, DAM_ACID) != 0)
+    fprintf(fd, "ResAcid: %d\n", GET_RESISTANCES(mob, DAM_ACID));
+  if (GET_RESISTANCES(mob, DAM_HOLY) != 0)
+    fprintf(fd, "ResHoly: %d\n", GET_RESISTANCES(mob, DAM_HOLY));
+  if (GET_RESISTANCES(mob, DAM_ELECTRIC) != 0)
+    fprintf(fd, "ResElectric: %d\n", GET_RESISTANCES(mob, DAM_ELECTRIC));
+  if (GET_RESISTANCES(mob, DAM_UNHOLY) != 0)
+    fprintf(fd, "ResUnholy: %d\n", GET_RESISTANCES(mob, DAM_UNHOLY));
+  if (GET_RESISTANCES(mob, DAM_SLICE) != 0)
+    fprintf(fd, "ResSlice: %d\n", GET_RESISTANCES(mob, DAM_SLICE));
+  if (GET_RESISTANCES(mob, DAM_PUNCTURE) != 0)
+    fprintf(fd, "ResPuncture: %d\n", GET_RESISTANCES(mob, DAM_PUNCTURE));
+  if (GET_RESISTANCES(mob, DAM_FORCE) != 0)
+    fprintf(fd, "ResForce: %d\n", GET_RESISTANCES(mob, DAM_FORCE));
+  if (GET_RESISTANCES(mob, DAM_SOUND) != 0)
+    fprintf(fd, "ResSound: %d\n", GET_RESISTANCES(mob, DAM_SOUND));
+  if (GET_RESISTANCES(mob, DAM_POISON) != 0)
+    fprintf(fd, "ResPoison: %d\n", GET_RESISTANCES(mob, DAM_POISON));
+  if (GET_RESISTANCES(mob, DAM_DISEASE) != 0)
+    fprintf(fd, "ResDisease: %d\n", GET_RESISTANCES(mob, DAM_DISEASE));
+  if (GET_RESISTANCES(mob, DAM_NEGATIVE) != 0)
+    fprintf(fd, "ResNegative: %d\n", GET_RESISTANCES(mob, DAM_NEGATIVE));
+  if (GET_RESISTANCES(mob, DAM_ILLUSION) != 0)
+    fprintf(fd, "ResIllusion: %d\n", GET_RESISTANCES(mob, DAM_ILLUSION));
+  if (GET_RESISTANCES(mob, DAM_MENTAL) != 0)
+    fprintf(fd, "ResMental: %d\n", GET_RESISTANCES(mob, DAM_MENTAL));
+  if (GET_RESISTANCES(mob, DAM_LIGHT) != 0)
+    fprintf(fd, "ResLight: %d\n", GET_RESISTANCES(mob, DAM_LIGHT));
+  if (GET_RESISTANCES(mob, DAM_ENERGY) != 0)
+    fprintf(fd, "ResEnergy: %d\n", GET_RESISTANCES(mob, DAM_ENERGY));
+  if (GET_RESISTANCES(mob, DAM_WATER) != 0)
+    fprintf(fd, "ResWater: %d\n", GET_RESISTANCES(mob, DAM_WATER));
   if (GET_SUBRACE(mob, 0) != -1)
     fprintf(fd, "SubRace 1: %d\n", GET_SUBRACE(mob, 0));
   if (GET_SUBRACE(mob, 1) != -1)

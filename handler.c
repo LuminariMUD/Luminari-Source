@@ -240,29 +240,28 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
     case APPLY_RES_POISON:
       GET_RESISTANCES(ch, DAM_POISON) += mod;
       break;
-      /*
     case APPLY_RES_DISEASE:
-      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      GET_RESISTANCES(ch, DAM_DISEASE) += mod;
       break;
     case APPLY_RES_NEGATIVE:
-      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      GET_RESISTANCES(ch, DAM_NEGATIVE) += mod;
       break;
     case APPLY_RES_ILLUSION:
-      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      GET_RESISTANCES(ch, DAM_ILLUSION) += mod;
       break;
     case APPLY_RES_MENTAL:
-      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      GET_RESISTANCES(ch, DAM_MENTAL) += mod;
       break;
     case APPLY_RES_LIGHT:
-      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      GET_RESISTANCES(ch, DAM_LIGHT) += mod;
       break;
     case APPLY_RES_ENERGY:
-      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      GET_RESISTANCES(ch, DAM_ENERGY) += mod;
       break;
     case APPLY_RES_WATER:
-      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      GET_RESISTANCES(ch, DAM_WATER) += mod;
       break;
-*/      
+      
       /* Do Not Use. */
     case APPLY_CLASS:
       break;
@@ -303,6 +302,25 @@ void affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[],
   aff_apply_modify(ch, loc, mod, "affect_modify_ar");
 }
 
+/* this will take a character's modified 'points' and reset it
+ to their 'real points' */
+void reset_char_points(struct char_data *ch) {
+  int i = 0;
+  
+  ch->points.max_mana =  ch->real_points.max_mana; 
+  ch->points.max_hit =  ch->real_points.max_hit; 
+  ch->points.max_move =  ch->real_points.max_move; 
+  ch->points.armor =  ch->real_points.armor; 
+  ch->points.spell_res =  ch->real_points.spell_res; 
+  ch->points.hitroll =  ch->real_points.hitroll; 
+  ch->points.damroll =  ch->real_points.damroll; 
+  ch->points.size =  ch->real_points.size; 
+  for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+    ch->points.apply_saving_throw[i] =  ch->real_points.apply_saving_throw[i]; 
+  for (i = 0; i < NUM_DAM_TYPES; i++)
+    ch->points.resistances[i] =  ch->real_points.resistances[i]; 
+}
+
 #define STAT_CAP 50
 /* This updates a character by subtracting everything he is affected by
  * restoring original abilities, and then affecting all again. */
@@ -325,6 +343,7 @@ void affect_total(struct char_data *ch) {
 
   /* reset stats */
   ch->aff_abils = ch->real_abils;
+  reset_char_points(ch);
 
   /* add gear back on */
   for (i = 0; i < NUM_WEARS; i++) {

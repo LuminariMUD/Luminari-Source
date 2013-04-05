@@ -670,6 +670,7 @@ int compute_ability(struct char_data *ch, int abilityNum)
     value += 4;  
   if (affected_by_spell(ch, SKILL_PERFORM))
     value += SONG_AFF_VAL(ch);  
+  value += GET_RESISTANCES(ch, abilityNum);
 
   // try to avoid sending NPC's here, but just in case:
   if (IS_NPC(ch))

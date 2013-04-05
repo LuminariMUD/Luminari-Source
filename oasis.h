@@ -288,6 +288,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define MEDIT_ADD_ECHO                  12
 #define MEDIT_EDIT_ECHO                 13
 #define MEDIT_EDIT_ECHO_TEXT            14
+#define MEDIT_RESISTANCES_MENU            15
 
 /* Numerical responses. */
 #define MEDIT_NUMERICAL_RESPONSE	20
@@ -328,6 +329,27 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define MEDIT_SUB_RACE_3		55
 #define MEDIT_ECHO_FREQUENCY            56
 #define MEDIT_DELETE_ECHO               57
+#define MEDIT_DAM_FIRE		58
+#define MEDIT_DAM_COLD		59
+#define MEDIT_DAM_AIR		60
+#define MEDIT_DAM_EARTH		61
+#define MEDIT_DAM_ACID        62
+#define MEDIT_DAM_HOLY		63
+#define MEDIT_DAM_ELECTRIC	64
+#define MEDIT_DAM_UNHOLY		65
+#define MEDIT_DAM_SLICE		66
+#define MEDIT_DAM_PUNCTURE	67
+#define MEDIT_DAM_FORCE		68
+#define MEDIT_DAM_SOUND		69
+#define MEDIT_DAM_POISON		70
+#define MEDIT_DAM_DISEASE	71
+#define MEDIT_DAM_NEGATIVE	72
+#define MEDIT_DAM_ILLUSION	73
+#define MEDIT_DAM_MENTAL		74
+#define MEDIT_DAM_LIGHT		75
+#define MEDIT_DAM_ENERGY		76
+#define MEDIT_DAM_WATER		77
+
 
 /* Submodes of SEDIT connectedness. */
 #define SEDIT_MAIN_MENU              	0

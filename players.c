@@ -291,7 +291,7 @@ int load_char(const char *name, struct char_data *ch) {
     for (i = 1; i <= MAX_ABILITIES; i++)
       GET_ABILITY(ch, i) = 0;
     init_spell_slots(ch);
-    GET_SIZE(ch) = PFDEF_SIZE;
+    GET_REAL_SIZE(ch) = PFDEF_SIZE;
     IS_MORPHED(ch) = PFDEF_MORPHED;
     GET_SEX(ch) = PFDEF_SEX;
     GET_CLASS(ch) = PFDEF_CLASS;
@@ -300,7 +300,9 @@ int load_char(const char *name, struct char_data *ch) {
     GET_WEIGHT(ch) = PFDEF_WEIGHT;
     GET_ALIGNMENT(ch) = PFDEF_ALIGNMENT;
     for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
-      GET_SAVE(ch, i) = PFDEF_SAVETHROW;
+      GET_REAL_SAVE(ch, i) = PFDEF_SAVETHROW;
+    for (i = 0; i < NUM_DAM_TYPES; i++)
+      GET_REAL_RESISTANCES(ch, i) = PFDEF_RESISTANCES;
     GET_LOADROOM(ch) = PFDEF_LOADROOM;
     GET_INVIS_LEV(ch) = PFDEF_INVISLEV;
     GET_FREEZE_LEV(ch) = PFDEF_FREEZELEV;
@@ -315,9 +317,9 @@ int load_char(const char *name, struct char_data *ch) {
     GET_GOLD(ch) = PFDEF_GOLD;
     GET_BANK_GOLD(ch) = PFDEF_BANK;
     GET_EXP(ch) = PFDEF_EXP;
-    GET_HITROLL(ch) = PFDEF_HITROLL;
-    GET_DAMROLL(ch) = PFDEF_DAMROLL;
-    GET_AC(ch) = PFDEF_AC;
+    GET_REAL_HITROLL(ch) = PFDEF_HITROLL;
+    GET_REAL_DAMROLL(ch) = PFDEF_DAMROLL;
+    GET_REAL_AC(ch) = PFDEF_AC;
     ch->real_abils.str_add = PFDEF_STRADD;
     GET_REAL_STR(ch) = PFDEF_STR;
     GET_REAL_CON(ch) = PFDEF_CON;
@@ -326,12 +328,12 @@ int load_char(const char *name, struct char_data *ch) {
     GET_REAL_WIS(ch) = PFDEF_WIS;
     GET_REAL_CHA(ch) = PFDEF_CHA;
     GET_HIT(ch) = PFDEF_HIT;
-    GET_MAX_HIT(ch) = PFDEF_MAXHIT;
+    GET_REAL_MAX_HIT(ch) = PFDEF_MAXHIT;
     GET_MANA(ch) = PFDEF_MANA;
-    GET_MAX_MANA(ch) = PFDEF_MAXMANA;
+    GET_REAL_MAX_MANA(ch) = PFDEF_MAXMANA;
     GET_MOVE(ch) = PFDEF_MOVE;
-    GET_SPELL_RES(ch) = PFDEF_SPELL_RES;
-    GET_MAX_MOVE(ch) = PFDEF_MAXMOVE;
+    GET_REAL_SPELL_RES(ch) = PFDEF_SPELL_RES;
+    GET_REAL_MAX_MOVE(ch) = PFDEF_MAXMOVE;
     GET_OLC_ZONE(ch) = PFDEF_OLC;
     GET_PAGE_LENGTH(ch) = PFDEF_PAGELENGTH;
     GET_SCREEN_WIDTH(ch) = PFDEF_SCREENWIDTH;
@@ -373,7 +375,7 @@ int load_char(const char *name, struct char_data *ch) {
       switch (*tag) {
         case 'A':
           if (!strcmp(tag, "Ablt")) load_abilities(fl, ch);
-          else if (!strcmp(tag, "Ac  ")) GET_AC(ch) = atoi(line);
+          else if (!strcmp(tag, "Ac  ")) GET_REAL_AC(ch) = atoi(line);
           else if (!strcmp(tag, "Act ")) {
             if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4) {
               PLR_FLAGS(ch)[0] = asciiflag_conv(f1);
@@ -427,7 +429,7 @@ int load_char(const char *name, struct char_data *ch) {
           if (!strcmp(tag, "Desc")) ch->player.description = fread_string(fl, buf2);
           else if (!strcmp(tag, "Dex ")) GET_REAL_DEX(ch) = atoi(line);
           else if (!strcmp(tag, "Drnk")) GET_COND(ch, DRUNK) = atoi(line);
-          else if (!strcmp(tag, "Drol")) GET_DAMROLL(ch) = atoi(line);
+          else if (!strcmp(tag, "Drol")) GET_REAL_DAMROLL(ch) = atoi(line);
           else if (!strcmp(tag, "DipT")) GET_DIPTIMER(ch) = atoi(line);
           break;
 
@@ -452,7 +454,7 @@ int load_char(const char *name, struct char_data *ch) {
             if (GET_HOST(ch))
               free(GET_HOST(ch));
             GET_HOST(ch) = strdup(line);
-          } else if (!strcmp(tag, "Hrol")) GET_HITROLL(ch) = atoi(line);
+          } else if (!strcmp(tag, "Hrol")) GET_REAL_HITROLL(ch) = atoi(line);
           else if (!strcmp(tag, "Hung")) GET_COND(ch, HUNGER) = atoi(line);
           break;
 
@@ -515,6 +517,26 @@ int load_char(const char *name, struct char_data *ch) {
         case 'R':
           if (!strcmp(tag, "Race")) GET_RACE(ch) = atoi(line);
           else if (!strcmp(tag, "Room")) GET_LOADROOM(ch) = atoi(line);
+          else if (!strcmp(tag, "Res1")) GET_REAL_RESISTANCES(ch, 1) = atoi(line);
+          else if (!strcmp(tag, "Res2")) GET_REAL_RESISTANCES(ch, 2) = atoi(line);
+          else if (!strcmp(tag, "Res3")) GET_REAL_RESISTANCES(ch, 3) = atoi(line);
+          else if (!strcmp(tag, "Res4")) GET_REAL_RESISTANCES(ch, 4) = atoi(line);
+          else if (!strcmp(tag, "Res5")) GET_REAL_RESISTANCES(ch, 5) = atoi(line);
+          else if (!strcmp(tag, "Res6")) GET_REAL_RESISTANCES(ch, 6) = atoi(line);
+          else if (!strcmp(tag, "Res7")) GET_REAL_RESISTANCES(ch, 7) = atoi(line);
+          else if (!strcmp(tag, "Res8")) GET_REAL_RESISTANCES(ch, 8) = atoi(line);
+          else if (!strcmp(tag, "Res9")) GET_REAL_RESISTANCES(ch, 9) = atoi(line);
+          else if (!strcmp(tag, "ResA")) GET_REAL_RESISTANCES(ch, 10) = atoi(line);
+          else if (!strcmp(tag, "ResB")) GET_REAL_RESISTANCES(ch, 11) = atoi(line);
+          else if (!strcmp(tag, "ResC")) GET_REAL_RESISTANCES(ch, 12) = atoi(line);
+          else if (!strcmp(tag, "ResD")) GET_REAL_RESISTANCES(ch, 13) = atoi(line);
+          else if (!strcmp(tag, "ResE")) GET_REAL_RESISTANCES(ch, 14) = atoi(line);
+          else if (!strcmp(tag, "ResF")) GET_REAL_RESISTANCES(ch, 15) = atoi(line);
+          else if (!strcmp(tag, "ResG")) GET_REAL_RESISTANCES(ch, 16) = atoi(line);
+          else if (!strcmp(tag, "ResH")) GET_REAL_RESISTANCES(ch, 17) = atoi(line);
+          else if (!strcmp(tag, "ResI")) GET_REAL_RESISTANCES(ch, 18) = atoi(line);
+          else if (!strcmp(tag, "ResJ")) GET_REAL_RESISTANCES(ch, 19) = atoi(line);
+          else if (!strcmp(tag, "ResK")) GET_REAL_RESISTANCES(ch, 20) = atoi(line);
           break;
 
         case 'S':
@@ -522,18 +544,18 @@ int load_char(const char *name, struct char_data *ch) {
           else if (!strcmp(tag, "ScrW")) GET_SCREEN_WIDTH(ch) = atoi(line);
           else if (!strcmp(tag, "Skil")) load_skills(fl, ch);
           else if (!strcmp(tag, "SpAb")) load_spec_abil(fl, ch);
-          else if (!strcmp(tag, "SpRs")) GET_SPELL_RES(ch) = atoi(line);
-          else if (!strcmp(tag, "Size")) GET_SIZE(ch) = atoi(line);
+          else if (!strcmp(tag, "SpRs")) GET_REAL_SPELL_RES(ch) = atoi(line);
+          else if (!strcmp(tag, "Size")) GET_REAL_SIZE(ch) = atoi(line);
           else if (!strcmp(tag, "Str ")) load_HMVS(ch, line, LOAD_STRENGTH);
           break;
 
         case 'T':
           if (!strcmp(tag, "Thir")) GET_COND(ch, THIRST) = atoi(line);
-          else if (!strcmp(tag, "Thr1")) GET_SAVE(ch, 0) = atoi(line);
-          else if (!strcmp(tag, "Thr2")) GET_SAVE(ch, 1) = atoi(line);
-          else if (!strcmp(tag, "Thr3")) GET_SAVE(ch, 2) = atoi(line);
-          else if (!strcmp(tag, "Thr4")) GET_SAVE(ch, 3) = atoi(line);
-          else if (!strcmp(tag, "Thr5")) GET_SAVE(ch, 4) = atoi(line);
+          else if (!strcmp(tag, "Thr1")) GET_REAL_SAVE(ch, 0) = atoi(line);
+          else if (!strcmp(tag, "Thr2")) GET_REAL_SAVE(ch, 1) = atoi(line);
+          else if (!strcmp(tag, "Thr3")) GET_REAL_SAVE(ch, 2) = atoi(line);
+          else if (!strcmp(tag, "Thr4")) GET_REAL_SAVE(ch, 3) = atoi(line);
+          else if (!strcmp(tag, "Thr5")) GET_REAL_SAVE(ch, 4) = atoi(line);
           else if (!strcmp(tag, "Titl")) GET_TITLE(ch) = strdup(line);
           else if (!strcmp(tag, "Trig") && CONFIG_SCRIPT_PLAYERS) {
             if ((t_rnum = real_trigger(atoi(line))) != NOTHING) {
@@ -663,6 +685,7 @@ void save_char(struct char_data * ch, int mode) {
     log("SYSERR: WARNING: OUT OF STORE ROOM FOR AFFECTED TYPES!!!");
 
   ch->aff_abils = ch->real_abils;
+  reset_char_points(ch);
 
   /* Make sure size doesn't go over/under caps */
 
@@ -725,6 +748,47 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_SAVE(ch, 3) != PFDEF_SAVETHROW) fprintf(fl, "Thr4: %d\n", GET_SAVE(ch, 3));
   if (GET_SAVE(ch, 4) != PFDEF_SAVETHROW) fprintf(fl, "Thr5: %d\n", GET_SAVE(ch, 4));
 
+  if (GET_RESISTANCES(ch, 1) != PFDEF_RESISTANCES)
+    fprintf(fl, "Res1: %d\n", GET_RESISTANCES(ch, 1));    
+  if (GET_RESISTANCES(ch, 2) != PFDEF_RESISTANCES)
+    fprintf(fl, "Res2: %d\n", GET_RESISTANCES(ch, 2));    
+  if (GET_RESISTANCES(ch, 3) != PFDEF_RESISTANCES)
+    fprintf(fl, "Res3: %d\n", GET_RESISTANCES(ch, 3));    
+  if (GET_RESISTANCES(ch, 4) != PFDEF_RESISTANCES)
+    fprintf(fl, "Res4: %d\n", GET_RESISTANCES(ch, 4));    
+  if (GET_RESISTANCES(ch, 5) != PFDEF_RESISTANCES)
+    fprintf(fl, "Res5: %d\n", GET_RESISTANCES(ch, 5));    
+  if (GET_RESISTANCES(ch, 6) != PFDEF_RESISTANCES)
+    fprintf(fl, "Res6: %d\n", GET_RESISTANCES(ch, 6));    
+  if (GET_RESISTANCES(ch, 7) != PFDEF_RESISTANCES)
+    fprintf(fl, "Res7: %d\n", GET_RESISTANCES(ch, 7));    
+  if (GET_RESISTANCES(ch, 8) != PFDEF_RESISTANCES)
+    fprintf(fl, "Res8: %d\n", GET_RESISTANCES(ch, 8));    
+  if (GET_RESISTANCES(ch, 9) != PFDEF_RESISTANCES)
+    fprintf(fl, "Res9: %d\n", GET_RESISTANCES(ch, 9));    
+  if (GET_RESISTANCES(ch, 10) != PFDEF_RESISTANCES)
+    fprintf(fl, "ResA: %d\n", GET_RESISTANCES(ch, 10));    
+  if (GET_RESISTANCES(ch, 11) != PFDEF_RESISTANCES)
+    fprintf(fl, "ResB: %d\n", GET_RESISTANCES(ch, 11));    
+  if (GET_RESISTANCES(ch, 12) != PFDEF_RESISTANCES)
+    fprintf(fl, "ResC: %d\n", GET_RESISTANCES(ch, 12));    
+  if (GET_RESISTANCES(ch, 13) != PFDEF_RESISTANCES)
+    fprintf(fl, "ResD: %d\n", GET_RESISTANCES(ch, 13));    
+  if (GET_RESISTANCES(ch, 14) != PFDEF_RESISTANCES)
+    fprintf(fl, "ResE: %d\n", GET_RESISTANCES(ch, 14));    
+  if (GET_RESISTANCES(ch, 15) != PFDEF_RESISTANCES)
+    fprintf(fl, "ResF: %d\n", GET_RESISTANCES(ch, 15));    
+  if (GET_RESISTANCES(ch, 16) != PFDEF_RESISTANCES)
+    fprintf(fl, "ResG: %d\n", GET_RESISTANCES(ch, 16));    
+  if (GET_RESISTANCES(ch, 17) != PFDEF_RESISTANCES)
+    fprintf(fl, "ResH: %d\n", GET_RESISTANCES(ch, 17));    
+  if (GET_RESISTANCES(ch, 18) != PFDEF_RESISTANCES)
+    fprintf(fl, "ResI: %d\n", GET_RESISTANCES(ch, 18));    
+  if (GET_RESISTANCES(ch, 19) != PFDEF_RESISTANCES)
+    fprintf(fl, "ResJ: %d\n", GET_RESISTANCES(ch, 19));    
+  if (GET_RESISTANCES(ch, 20) != PFDEF_RESISTANCES)
+    fprintf(fl, "ResK: %d\n", GET_RESISTANCES(ch, 20));    
+  
   if (GET_WIMP_LEV(ch) != PFDEF_WIMPLEV) fprintf(fl, "Wimp: %d\n", GET_WIMP_LEV(ch));
   if (GET_FREEZE_LEV(ch) != PFDEF_FREEZELEV) fprintf(fl, "Frez: %d\n", GET_FREEZE_LEV(ch));
   if (GET_INVIS_LEV(ch) != PFDEF_INVISLEV) fprintf(fl, "Invs: %d\n", GET_INVIS_LEV(ch));

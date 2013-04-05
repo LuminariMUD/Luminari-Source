@@ -955,6 +955,126 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
               }
             } else
               sprinttype(GET_RACE(c), pc_race_types, str, slen);
+          } else if (!str_cmp(field, "resist_fire")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_FIRE) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_FIRE));
+          } else if (!str_cmp(field, "resist_cold")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_COLD) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_COLD));
+          } else if (!str_cmp(field, "resist_air")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_AIR) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_AIR));
+          } else if (!str_cmp(field, "resist_earth")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_EARTH) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_EARTH));
+          } else if (!str_cmp(field, "resist_acid")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_ACID) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_ACID));
+          } else if (!str_cmp(field, "resist_holy")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_HOLY) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_HOLY));
+          } else if (!str_cmp(field, "resist_electric")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_ELECTRIC) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_ELECTRIC));
+          } else if (!str_cmp(field, "resist_unholy")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_UNHOLY) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_UNHOLY));
+          } else if (!str_cmp(field, "resist_slice")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_SLICE) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_SLICE));
+          } else if (!str_cmp(field, "resist_puncture")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_PUNCTURE) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_PUNCTURE));
+          } else if (!str_cmp(field, "resist_force")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_FORCE) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_FORCE));
+          } else if (!str_cmp(field, "resist_sound")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_SOUND) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_SOUND));
+          } else if (!str_cmp(field, "resist_poison")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_POISON) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_POISON));
+          } else if (!str_cmp(field, "resist_disease")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_DISEASE) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_DISEASE));
+          } else if (!str_cmp(field, "resist_negative")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_NEGATIVE) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_NEGATIVE));
+          } else if (!str_cmp(field, "resist_illusion")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_ILLUSION) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_ILLUSION));
+          } else if (!str_cmp(field, "resist_mental")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_MENTAL) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_MENTAL));
+          } else if (!str_cmp(field, "resist_light")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_LIGHT) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_LIGHT));
+          } else if (!str_cmp(field, "resist_energy")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_ENERGY) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_ENERGY));
+          } else if (!str_cmp(field, "resist_water")) {
+            if (subfield && *subfield) {
+              int addition = atoi(subfield);
+              GET_RESISTANCES(c, DAM_WATER) += addition;
+            }
+            snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_WATER));
           } else if (!str_cmp(field, "room")) { /* in NOWHERE, return the void */
             /* see note in dg_scripts.h */
 #ifdef ACTOR_ROOM_IS_UID
