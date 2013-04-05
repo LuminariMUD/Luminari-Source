@@ -1488,12 +1488,12 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   int j, t[10];
   char line[READ_SIZE];
 
-  mob_proto[i].real_abils.str = 11;
-  mob_proto[i].real_abils.intel = 11;
-  mob_proto[i].real_abils.wis = 11;
-  mob_proto[i].real_abils.dex = 11;
-  mob_proto[i].real_abils.con = 11;
-  mob_proto[i].real_abils.cha = 11;
+  GET_REAL_CON(mob_proto + i) = 11;
+  GET_REAL_STR(mob_proto + i) = 11;
+  GET_REAL_DEX(mob_proto + i) = 11;
+  GET_REAL_INT(mob_proto + i) = 11;
+  GET_REAL_CHA(mob_proto + i) = 11;
+  GET_REAL_WIS(mob_proto + i) = 11;
 
   if (!get_line(mob_f, line)) {
     log("SYSERR: Format error in mob #%d, file ended after S flag!", nr);
@@ -1608,7 +1608,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("Str") {
     RANGE(3, 50);
-    mob_proto[i].real_abils.str = num_arg;
+    GET_REAL_STR(mob_proto + i) = num_arg;
   }
 
   CASE("StrAdd") {
@@ -1618,77 +1618,77 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("Int") {
     RANGE(3, 50);
-    mob_proto[i].real_abils.intel = num_arg;
+    GET_REAL_INT(mob_proto + i) = num_arg;
   }
 
   CASE("Wis") {
     RANGE(3, 50);
-    mob_proto[i].real_abils.wis = num_arg;
+    GET_REAL_WIS(mob_proto + i) = num_arg;
   }
 
   CASE("Dex") {
     RANGE(3, 50);
-    mob_proto[i].real_abils.dex = num_arg;
+    GET_REAL_DEX(mob_proto + i) = num_arg;
   }
 
   CASE("Con") {
     RANGE(3, 50);
-    mob_proto[i].real_abils.con = num_arg;
+    GET_REAL_CON(mob_proto + i) = num_arg;
   }
 
   CASE("Cha") {
     RANGE(3, 50);
-    mob_proto[i].real_abils.cha = num_arg;
+    GET_REAL_CHA(mob_proto + i) = num_arg;
   }
 
   CASE("SavingPara") {
     RANGE(0, 100);
-    mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_FORT] = num_arg;
+    GET_SAVE(mob_proto + i, SAVING_FORT) = num_arg;
   }
 
   CASE("SavingFort") {
     RANGE(0, 100);
-    mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_FORT] = num_arg;
+    GET_SAVE(mob_proto + i, SAVING_FORT) = num_arg;
   }
 
   CASE("SavingRod") {
     RANGE(0, 100);
-    mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_REFL] = num_arg;
+    GET_SAVE(mob_proto + i, SAVING_REFL) = num_arg;
   }
 
   CASE("SavingRefl") {
     RANGE(0, 100);
-    mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_REFL] = num_arg;
+    GET_SAVE(mob_proto + i, SAVING_REFL) = num_arg;
   }
 
   CASE("SavingPetri") {
     RANGE(0, 100);
-    mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_WILL] = num_arg;
+    GET_SAVE(mob_proto + i, SAVING_WILL) = num_arg;
   }
 
   CASE("SavingWill") {
     RANGE(0, 100);
-    mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_WILL] = num_arg;
+    GET_SAVE(mob_proto + i, SAVING_WILL) = num_arg;
   }
 
   CASE("SavingBreath") {
     RANGE(0, 100);
-    mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_POISON] = num_arg;
+    GET_SAVE(mob_proto + i, SAVING_POISON) = num_arg;
   }
 
   CASE("SavingPoison") {
     RANGE(0, 100);
-    mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_POISON] = num_arg;
+    GET_SAVE(mob_proto + i, SAVING_POISON) = num_arg;
   }
 
   CASE("SavingSpell") {
     RANGE(0, 100);
-    mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_DEATH] = num_arg;
+    GET_SAVE(mob_proto + i, SAVING_DEATH) = num_arg;
   }
 
   CASE("SavingDeath") {
     RANGE(0, 100);
-    mob_proto[i].char_specials.saved.apply_saving_throw[SAVING_DEATH] = num_arg;
+    GET_SAVE(mob_proto + i, SAVING_DEATH) = num_arg;
   }
 
   CASE("Race") {
@@ -3867,13 +3867,13 @@ void init_char(struct char_data *ch) {
   for (i = 0; i < 5; i++)
     GET_SAVE(ch, i) = 0;
 
-  ch->real_abils.intel = 3;
-  ch->real_abils.wis = 3;
-  ch->real_abils.dex = 3;
-  ch->real_abils.str = 3;
   ch->real_abils.str_add = 0;
-  ch->real_abils.con = 3;
-  ch->real_abils.cha = 3;
+  GET_REAL_STR(ch) = 3;
+  GET_REAL_CON(ch) = 3;
+  GET_REAL_DEX(ch) = 3;
+  GET_REAL_INT(ch) = 3;
+  GET_REAL_CHA(ch) = 3;
+  GET_REAL_WIS(ch) = 3;
 
   for (i = 0; i < 3; i++)
     GET_COND(ch, i) = (GET_LEVEL(ch) == LVL_IMPL ? -1 : 24);

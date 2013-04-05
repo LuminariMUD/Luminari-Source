@@ -1835,11 +1835,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       af[0].location = APPLY_INT;
       af[0].duration = magic_level;
-      af[0].modifier = -((victim->real_abils.intel) - 3);
+      af[0].modifier = -(GET_REAL_INT(victim) - 3);
 
       af[1].location = APPLY_WIS;
       af[1].duration = magic_level;
-      af[1].modifier = -((victim->real_abils.wis) - 3);
+      af[1].modifier = -(GET_REAL_WIS(victim) - 3);
+
+      af[2].location = APPLY_CHA;
+      af[2].duration = magic_level;
+      af[2].modifier = -(GET_REAL_CHA(victim) - 3);
 
       to_room = "$n grasps $s head in pain, $s eyes glazing over!";
       to_vict = "Your head starts to throb and a wave of confusion washes over you.";

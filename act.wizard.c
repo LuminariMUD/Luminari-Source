@@ -1736,18 +1736,18 @@ ACMD(do_restore) {
           SET_ABILITY(vict, i, 40);
 
       if (GET_LEVEL(vict) >= LVL_GRSTAFF) {
-        if (vict->real_abils.intel < 25)
-          vict->real_abils.intel = 25;
-        if (vict->real_abils.wis < 25)
-          vict->real_abils.wis = 25;
-        if (vict->real_abils.dex < 25)
-          vict->real_abils.dex = 25;
-        if (vict->real_abils.str < 25)
-          vict->real_abils.str = 25;
-        if (vict->real_abils.con < 25)
-          vict->real_abils.con = 25;
-        if (vict->real_abils.cha < 25)
-          vict->real_abils.cha = 25;
+        if (GET_REAL_INT(vict) < 25)
+          GET_REAL_INT(vict) = 25;
+        if (GET_REAL_WIS(vict) < 25)
+          GET_REAL_WIS(vict) = 25;
+        if (GET_REAL_CHA(vict) < 25)
+          GET_REAL_CHA(vict) = 25;
+        if (GET_REAL_STR(vict) < 25)
+          GET_REAL_STR(vict) = 25;
+        if (GET_REAL_DEX(vict) < 25)
+          GET_REAL_DEX(vict) = 25;
+        if (GET_REAL_CON(vict) < 25)
+          GET_REAL_CON(vict) = 25;
         GET_SPELL_RES(ch) = 0;
       }
     }
@@ -3125,7 +3125,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 6: /* cha */
       RANGE(3, 50);
-      vict->real_abils.cha = value;
+      GET_REAL_CHA(vict) = value;
       affect_total(vict);
       break;
     case 7: /* clan */
@@ -3167,7 +3167,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 11: /* con */
       RANGE(3, 50);
-      vict->real_abils.con = value;
+      GET_REAL_CON(vict) = value;
       affect_total(vict);
       break;
     case 12: /* damroll */
@@ -3179,7 +3179,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 14: /* dex */
       RANGE(3, 50);
-      vict->real_abils.dex = value;
+      GET_REAL_DEX(vict) = value;
       affect_total(vict);
       break;
     case 15: /* drunk */
@@ -3237,7 +3237,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 23: /* int */
       RANGE(3, 50);
-      vict->real_abils.intel = value;
+      GET_REAL_INT(vict) = value;
       affect_total(vict);
       break;
     case 24: /* invis */
@@ -3409,7 +3409,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 50: /* str */
       RANGE(3, 50);
-      vict->real_abils.str = value;
+      GET_REAL_STR(vict) = value;
       affect_total(vict);
       break;
     case 51: /* stradd */
@@ -3446,7 +3446,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 57: /* wis */
       RANGE(3, 50);
-      vict->real_abils.wis = value;
+      GET_REAL_WIS(vict) = value;
       affect_total(vict);
       break;
     case 58: /* questpoints */

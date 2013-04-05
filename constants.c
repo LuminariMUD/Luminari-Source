@@ -31,11 +31,13 @@ cpp_extern const char *tbamud_version = "LuminariMUD 1.0 (tbaMUD 3.64)";
 /* strings corresponding to ordinals/bitvectors in structs.h */
 /* (Note: strings for class definitions in class.c instead of here) */
 
+
+
 /* note - in utils.c there are two functions for alignment as well 
  * char *get_align_by_num(int align)
  * char *get_align_by_num_cnd(int align)
 */
-const char *alignment_names[] = {
+const char *alignment_names[NUM_ALIGNMENTS + 1] = {
   "\tYLawful \tWGood\tn",
   "\tcNeutral \tWGood\tn",
   "\tRChaotic \tWGood\tn",
@@ -50,7 +52,7 @@ const char *alignment_names[] = {
 
 
 /* structure for immortal prefix */
-const char *admin_level_names[] = {
+const char *admin_level_names[LVL_IMPL - LVL_IMMORT + 2] = {
   "\tB[  \tC Staff   \tB ]\tn", // LVL_IMMORTAL
   "\tB[\tCSenior Staff\tB]\tn", // LVL_STAFF
   "\tB[\tCWorld Forger\tB]\tn", // LVL_GRSTAFF
@@ -58,7 +60,7 @@ const char *admin_level_names[] = {
   "\n",
 };
 
-const char *craft_type[NUM_CRAFT+1] = {
+const char *craft_type[NUM_CRAFT + 1] = {
   "RESERVED",
   "brew",
   "craft",
@@ -80,7 +82,7 @@ const char *craft_type[NUM_CRAFT+1] = {
   "\n"
 };
   
-const char *size_names[NUM_SIZES+1] = {
+const char *size_names[NUM_SIZES + 1] = {
   "RESERVED",
   "Fine",
   "Diminutive",
@@ -95,7 +97,7 @@ const char *size_names[NUM_SIZES+1] = {
 };
 
 
-const char *damtype_display[] = {
+const char *damtype_display[NUM_DAM_TYPES + 1] = {
   "RESERVED",
   "Damage Fire",
   "Damage Cold",
@@ -124,7 +126,7 @@ const char *damtype_display[] = {
 /** Description of cardinal directions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *dirs[] =
+const char *dirs[NUM_OF_DIRS + 1] =
 {
   "north",
   "east",
@@ -139,7 +141,7 @@ const char *dirs[] =
   "\n"
 };
 
-const char *autoexits[] =
+const char *autoexits[NUM_OF_DIRS + 1] =
 {
   "N",
   "E",
@@ -157,7 +159,7 @@ const char *autoexits[] =
 /** Room flag descriptions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *room_bits[] = {
+const char *room_bits[NUM_ROOM_FLAGS + 1] = {
   "Dark",
   "Death-Trap",
   "No-Mob",
@@ -182,7 +184,7 @@ const char *room_bits[] = {
 
 
 // room affect effect
-const char *room_affections[] = {
+const char *room_affections[NUM_RAFF + 1] = {
   "Fogged",  
   "Darkened",
   "Lighted",
@@ -202,7 +204,7 @@ const char *room_affections[] = {
 /** Room flag descriptions. (ZONE_x)
  * @pre Must be in the same order as the defines in structs.h.
  * Must end array with a single newline. */
-const char *zone_bits[] = {
+const char *zone_bits[NUM_ZONE_FLAGS + 1] = {
   "Closed",
   "No-Immortal",
   "Quest",
@@ -220,18 +222,19 @@ const char *zone_bits[] = {
 /** Exit bits for doors.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *exit_bits[] = {
-  "DOOR",
-  "CLOSED",
-  "LOCKED",
-  "PICKPROOF",
+const char *exit_bits[NUM_EXIT_BITS + 1] = {
+  "Door",
+  "Closed",
+  "Locked",
+  "Pickproof",
+  "Hidden",
   "\n"
 };
 
 /** Description of the room sector type.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *sector_types[] = {
+const char *sector_types[NUM_ROOM_SECTORS + 1] = {
   "Inside",
   "City",
   "Field",
@@ -257,7 +260,7 @@ const char *sector_types[] = {
 /** PC and NPC sex.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *genders[] =
+const char *genders[NUM_GENDERS + 1] =
 {
   "neutral",
   "male",
@@ -268,7 +271,7 @@ const char *genders[] =
 /** Character positions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *position_types[] = {
+const char *position_types[NUM_POSITIONS + 1] = {
   "Dead",
   "Mortally wounded",
   "Incapacitated",
@@ -284,7 +287,7 @@ const char *position_types[] = {
 /** Player flags.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *player_bits[] = {
+const char *player_bits[NUM_PLR_BITS + 1] = {
   "KILLER",		//0
   "THIEF",
   "FROZEN",
@@ -311,7 +314,7 @@ const char *player_bits[] = {
 /** Mob action flags.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *action_bits[] = {
+const char *action_bits[NUM_MOB_FLAGS + 1] = {
   "<spec>",
   "Sentinel",
   "Scavenger",
@@ -349,7 +352,7 @@ const char *action_bits[] = {
 /** PC Preference flags.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *preference_bits[] = {
+const char *preference_bits[NUM_PRF_FLAGS + 1] = {
   "BRIEF",
   "COMPACT",
   "NO_SHOUT",
@@ -396,7 +399,7 @@ const char *preference_bits[] = {
 /** Affected bits.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *affected_bits[] =
+const char *affected_bits[NUM_AFF_FLAGS + 1] =
 {
   "\0", /* DO NOT REMOVE!! */
   "Blinded",
@@ -482,7 +485,7 @@ const char *affected_bits[] =
 /** Connection type descriptions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *connected_types[] = {
+const char *connected_types[NUM_CON_STATES + 1] = {
   "Playing",		//0
   "Disconnecting",
   "Get Name",
@@ -494,7 +497,7 @@ const char *connected_types[] = {
   "Select Class",
   "Reading MOTD",
   "Main Menu",		//10
-  "Get Descript.",
+  "Get Descrip",
   "Changing PW 1",
   "Changing PW 2",
   "Changing PW 3",
@@ -523,13 +526,13 @@ const char *connected_types[] = {
   "Alignment Selection",	//37
   "Race Help", // 38
   "HL Quest Edit",
-  "\n"  /* make sure this matches NUM_CON_STATES:  40 */
+  "\n"  /* make sure this matches NUM_CON_STATES */
 };
 
 /** Describes the position in the equipment listing.
  * @pre Must be in the same order as the defines.
  * Not used in sprinttype() so no \n. */
-const char *wear_where[] = {
+const char *wear_where[NUM_WEARS] = {
   "\tY{Used As Light}\tn      ",
   "\tY{Worn On Finger}\tn     ",
   "\tY{Worn On Finger}\tn     ",
@@ -558,7 +561,7 @@ const char *wear_where[] = {
 /* Describes where an item can be worn.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *equipment_types[] = {
+const char *equipment_types[NUM_WEARS + 1] = {
   "Used as light",
   "Worn on right finger",
   "Worn on left finger",
@@ -587,7 +590,7 @@ const char *equipment_types[] = {
 
 
 // labels for item proficiency category
-const char *item_profs[] = {
+const char *item_profs[NUM_ITEM_PROFS + 1] = {
   "None Required",
   "Minimal Weapon Proficiency",
   "Basic Weapon Proficiency",
@@ -602,7 +605,7 @@ const char *item_profs[] = {
   "\n"
 };
 
-const char *material_name[NUM_MATERIALS+1] = {
+const char *material_name[NUM_MATERIALS + 1] = {
   "RESERVED",
   "cotton",
   "leather",
@@ -655,7 +658,7 @@ const char *material_name[NUM_MATERIALS+1] = {
 /** Describes the type of object.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *item_types[] = {
+const char *item_types[NUM_ITEM_TYPES + 1] = {
   "UNDEFINED",
   "Light",
   "Scroll",
@@ -693,7 +696,7 @@ const char *item_types[] = {
 /** Describes the wear flags set on an item.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *wear_bits[] = {
+const char *wear_bits[NUM_ITEM_WEARS + 1] = {
   "(Takeable)",
   "Finger",
   "Neck",
@@ -716,7 +719,7 @@ const char *wear_bits[] = {
 /** Describes the extra flags applied to an item.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *extra_bits[] = {
+const char *extra_bits[NUM_ITEM_FLAGS + 1] = {
   "Glows",  //0
   "Hums",
   "Not-Rentable",
@@ -762,7 +765,7 @@ const char *extra_bits[] = {
 /** Describes the apply types.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *apply_types[] = {
+const char *apply_types[NUM_APPLIES + 1] = {
   "<None>",
   "Strength",
   "Dexterity",
@@ -791,13 +794,33 @@ const char *apply_types[] = {
   "Spell-Resist",
   "Size",
   "AC (converted)",
+  "Resist-Fire",
+  "Resist-Cold",
+  "Resist-Air",
+  "Resist-Earth",
+  "Resist-Acid",
+  "Resist-Holy",
+  "Resist-Electric",
+  "Resist-Unholy",
+  "Resist-Slice",
+  "Resist-Puncture",
+  "Resist-Force",
+  "Resist-Sound",
+  "Resist-Poison",
+  "Resist-Disease",
+  "Resist-Negative",
+  "Resist-Illusion",
+  "Resist-Mental",
+  "Resist-Light",
+  "Resist-Energy",
+  "Resist-Water",
   "\n"
 };
 
 /** Describes the closure mechanism for a container.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *container_bits[] = {
+const char *container_bits[NUM_CONT_FLAGS + 1] = {
   "Closeable",
   "Pick-Proof",
   "Closed",
@@ -808,7 +831,7 @@ const char *container_bits[] = {
 /** Describes the liquid description.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *drinks[] =
+const char *drinks[NUM_LIQ_TYPES + 1] =
 {
   "water",
   "beer",
@@ -832,7 +855,7 @@ const char *drinks[] =
 /** Describes a one word alias for each type of liquid.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *drinknames[] =
+const char *drinknames[NUM_LIQ_TYPES + 1] =
 {
   "water",
   "beer",
@@ -878,7 +901,7 @@ int drink_aff[][3] = {
 /** Describes the color of the various drinks.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *color_liquid[] =
+const char *color_liquid[NUM_LIQ_TYPES + 1] =
 {
   "clear",
   "brown",

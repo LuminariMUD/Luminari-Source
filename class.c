@@ -319,16 +319,13 @@ int BAB(struct char_data *ch) {
 // old random roll system abandoned for base stats + point distribution
 
 void roll_real_abils(struct char_data *ch) {
-
-  ch->real_abils.str = 12;
-  ch->real_abils.con = 12;
-  ch->real_abils.dex = 12;
-  ch->real_abils.intel = 12;
-  ch->real_abils.wis = 12;
-  ch->real_abils.cha = 12;
-
+  GET_REAL_INT(ch) = 12;
+  GET_REAL_WIS(ch) = 12;
+  GET_REAL_CHA(ch) = 12;
+  GET_REAL_STR(ch) = 12;
+  GET_REAL_DEX(ch) = 12;
+  GET_REAL_CON(ch) = 12;
   ch->aff_abils = ch->real_abils;
-
 }
 
 
@@ -1643,18 +1640,18 @@ void init_start_char(struct char_data *ch) {
     case RACE_ELF:
       GET_SIZE(ch) = SIZE_MEDIUM;
       SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-      ch->real_abils.dex += 2;
-      ch->real_abils.con -= 2;
+      GET_REAL_DEX(ch) += 2;
+      GET_REAL_CON(ch) -= 2;
       break;
     case RACE_DWARF:
       GET_SIZE(ch) = SIZE_MEDIUM;
-      ch->real_abils.con += 2;
-      ch->real_abils.cha -= 2;
+      GET_REAL_CON(ch) += 2;
+      GET_REAL_CHA(ch) -= 2;
       break;
     case RACE_HALFLING:
       GET_SIZE(ch) = SIZE_SMALL;
-      ch->real_abils.dex += 2;
-      ch->real_abils.str -= 2;
+      GET_REAL_STR(ch) -= 2;
+      GET_REAL_DEX(ch) += 2;
       break;
     case RACE_H_ELF:
       GET_SIZE(ch) = SIZE_MEDIUM;
@@ -1662,46 +1659,46 @@ void init_start_char(struct char_data *ch) {
       break;
     case RACE_H_ORC:
       GET_SIZE(ch) = SIZE_MEDIUM;
-      ch->real_abils.str += 2;
-      ch->real_abils.cha -= 2;
-      ch->real_abils.intel -= 2;
+      GET_REAL_INT(ch) -= 2;
+      GET_REAL_CHA(ch) -= 2;
+      GET_REAL_STR(ch) += 2;
       break;
     case RACE_GNOME:
       GET_SIZE(ch) = SIZE_SMALL;
-      ch->real_abils.con += 2;
-      ch->real_abils.str -= 2;
+      GET_REAL_CON(ch) += 2;
+      GET_REAL_STR(ch) -= 2;
       break;
     case RACE_TROLL:
       GET_SIZE(ch) = SIZE_LARGE;
-      ch->real_abils.str += 2;
-      ch->real_abils.con += 2;
-      ch->real_abils.dex += 2;
-      ch->real_abils.intel -= 4;
-      ch->real_abils.wis -= 4;
-      ch->real_abils.cha -= 4;
+      GET_REAL_CON(ch) += 2;
+      GET_REAL_STR(ch) += 2;
+      GET_REAL_DEX(ch) += 2;
+      GET_REAL_INT(ch) -= 4;
+      GET_REAL_WIS(ch) -= 4;
+      GET_REAL_CHA(ch) -= 4;
       break;
     case RACE_CRYSTAL_DWARF:
       GET_SIZE(ch) = SIZE_MEDIUM;
-      ch->real_abils.str += 2;
-      ch->real_abils.con += 8;
-      ch->real_abils.wis += 2;
-      ch->real_abils.cha += 2;
+      GET_REAL_CON(ch) += 8;
+      GET_REAL_STR(ch) += 2;
+      GET_REAL_CHA(ch) += 2;
+      GET_REAL_WIS(ch) += 2;
       GET_MAX_HIT(ch) += 10;
       break;
     case RACE_TRELUX:
       GET_SIZE(ch) = SIZE_SMALL;
-      ch->real_abils.str += 2;
-      ch->real_abils.dex += 8;
-      ch->real_abils.con += 4;
+      GET_REAL_STR(ch) += 2;
+      GET_REAL_DEX(ch) += 8;
+      GET_REAL_CON(ch) += 4;
       GET_MAX_HIT(ch) += 10;
       break;
     case RACE_ARCANA_GOLEM:
       GET_SIZE(ch) = SIZE_MEDIUM;
-      ch->real_abils.str -= 2;
-      ch->real_abils.con -= 2;
-      ch->real_abils.intel += 2;
-      ch->real_abils.wis += 2;
-      ch->real_abils.cha += 2;
+      GET_REAL_CON(ch) -= 2;
+      GET_REAL_STR(ch) -= 2;
+      GET_REAL_INT(ch) += 2;
+      GET_REAL_WIS(ch) += 2;
+      GET_REAL_CHA(ch) += 2;
       break;
     default:
       GET_SIZE(ch) = SIZE_MEDIUM;
@@ -1966,12 +1963,12 @@ void advance_level(struct char_data *ch, int class) {
     add_hp++;
 
   /* adjust final and report changes! */
-  ch->points.max_hit += MAX(1, add_hp);
+  GET_MAX_HIT(ch) += MAX(1, add_hp);
   send_to_char(ch, "\tMTotal HP:\tn %d\r\n", MAX(1, add_hp));
-  ch->points.max_move += MAX(1, add_move);
+  GET_MAX_MOVE(ch) += MAX(1, add_move);
   send_to_char(ch, "\tMTotal Move:\tn %d\r\n", MAX(1, add_move));
   if (GET_LEVEL(ch) > 1) {
-    ch->points.max_mana += add_mana;
+    GET_MAX_MANA(ch) += add_mana;
     send_to_char(ch, "\tMTotal Mana:\tn %d\r\n", add_mana);
   }
   GET_PRACTICES(ch) += practices;

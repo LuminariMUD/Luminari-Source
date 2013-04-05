@@ -177,6 +177,10 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       GET_SPELL_RES(ch) += mod;
       break;
 
+    case APPLY_SIZE:
+      GET_SIZE(ch) += mod;
+      break;
+
     case APPLY_SAVING_FORT:
       GET_SAVE(ch, SAVING_FORT) += mod;
       break;
@@ -197,10 +201,68 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       GET_SAVE(ch, SAVING_DEATH) += mod;
       break;
 
-    case APPLY_SIZE:
-      GET_SIZE(ch) += mod;
+    case APPLY_RES_FIRE:
+      GET_RESISTANCES(ch, DAM_FIRE) += mod;
       break;
-
+    case APPLY_RES_COLD:
+      GET_RESISTANCES(ch, DAM_COLD) += mod;
+      break;
+    case APPLY_RES_AIR:
+      GET_RESISTANCES(ch, DAM_AIR) += mod;
+      break;
+    case APPLY_RES_EARTH:
+      GET_RESISTANCES(ch, DAM_EARTH) += mod;
+      break;
+    case APPLY_RES_ACID:
+      GET_RESISTANCES(ch, DAM_ACID) += mod;
+      break;
+    case APPLY_RES_HOLY:
+      GET_RESISTANCES(ch, DAM_HOLY) += mod;
+      break;
+    case APPLY_RES_ELECTRIC:
+      GET_RESISTANCES(ch, DAM_ELECTRIC) += mod;
+      break;
+    case APPLY_RES_UNHOLY:
+      GET_RESISTANCES(ch, DAM_UNHOLY) += mod;
+      break;
+    case APPLY_RES_SLICE:
+      GET_RESISTANCES(ch, DAM_SLICE) += mod;
+      break;
+    case APPLY_RES_PUNCTURE:
+      GET_RESISTANCES(ch, DAM_PUNCTURE) += mod;
+      break;
+    case APPLY_RES_FORCE:
+      GET_RESISTANCES(ch, DAM_FORCE) += mod;
+      break;
+    case APPLY_RES_SOUND:
+      GET_RESISTANCES(ch, DAM_SOUND) += mod;
+      break;
+    case APPLY_RES_POISON:
+      GET_RESISTANCES(ch, DAM_POISON) += mod;
+      break;
+      /*
+    case APPLY_RES_DISEASE:
+      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      break;
+    case APPLY_RES_NEGATIVE:
+      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      break;
+    case APPLY_RES_ILLUSION:
+      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      break;
+    case APPLY_RES_MENTAL:
+      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      break;
+    case APPLY_RES_LIGHT:
+      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      break;
+    case APPLY_RES_ENERGY:
+      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      break;
+    case APPLY_RES_WATER:
+      GET_RESISTANCES(ch, APPLY_RES_FIRE) += mod;
+      break;
+*/      
       /* Do Not Use. */
     case APPLY_CLASS:
       break;
