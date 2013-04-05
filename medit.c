@@ -489,6 +489,7 @@ static void medit_disp_aff_flags(struct descriptor_data *d) {
 void delete_echo_entry(struct char_data *mob, int entry_num) {
   int i = 0;
 
+  // delete the entry, then decrement the entries that follow
   for (i = entry_num - 1; i < ECHO_COUNT(mob) - 1; i++) {
     if (ECHO_ENTRIES(mob)[i] != NULL)
       free(ECHO_ENTRIES(mob)[i]);
