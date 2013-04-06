@@ -2964,7 +2964,7 @@ void perform_violence(void) {
       if (AFF_FLAGGED(charmee, AFF_CHARM) && charmee->master == ch &&
               !FIGHTING(charmee) &&
               GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch))
-        perform_assist(tch, ch);
+        perform_assist(charmee, ch);
 
     if (AFF_FLAGGED(ch, AFF_PARRY))
       send_to_char(ch, "You continue the battle in defensive positioning!\r\n");
