@@ -1353,21 +1353,21 @@ static void load_HMVS(struct char_data *ch, const char *line, int mode) {
   switch (mode) {
     case LOAD_HIT:
       GET_HIT(ch) = num;
-      GET_MAX_HIT(ch) = num2;
+      GET_REAL_MAX_HIT(ch) = num2;
       break;
 
     case LOAD_MANA:
       GET_MANA(ch) = num;
-      GET_MAX_MANA(ch) = num2;
+      GET_REAL_MAX_MANA(ch) = num2;
       break;
 
     case LOAD_MOVE:
       GET_MOVE(ch) = num;
-      GET_MAX_MOVE(ch) = num2;
+      GET_REAL_MAX_MOVE(ch) = num2;
       break;
 
     case LOAD_STRENGTH:
-      GET_REAL_CHA(ch) = num;
+      GET_REAL_STR(ch) = num;
       ch->real_abils.str_add = num2;
       break;
   }

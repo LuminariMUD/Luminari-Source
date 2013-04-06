@@ -2657,8 +2657,8 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
     GET_SPELL_RES(mob) = 0;
 
   GET_HIT(mob) = GET_MAX_HIT(mob);
-  GET_MANA(mob) = GET_MAX_MANA(mob);
-  GET_MOVE(mob) = GET_MAX_MOVE(mob);
+  GET_MANA(mob) = GET_REAL_MAX_MANA(mob) = GET_MAX_MANA(mob);
+  GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = GET_MAX_MOVE(mob);
 
   mob->player.time.birth = time(0);
   mob->player.time.played = 0;
@@ -3803,12 +3803,12 @@ void init_char(struct char_data *ch) {
     GET_EXP(ch) = 7000000;
 
     /* The implementor never goes through do_start(). */
-    GET_MAX_HIT(ch) = 500;
-    GET_MAX_MANA(ch) = 100;
-    GET_MAX_MOVE(ch) = 82;
-    GET_HIT(ch) = GET_MAX_HIT(ch);
-    GET_MANA(ch) = GET_MAX_MANA(ch);
-    GET_MOVE(ch) = GET_MAX_MOVE(ch);
+    GET_REAL_MAX_HIT(ch) = 500;
+    GET_REAL_MAX_MANA(ch) = 100;
+    GET_REAL_MAX_MOVE(ch) = 82;
+    GET_HIT(ch) = GET_REAL_MAX_HIT(ch);
+    GET_MANA(ch) = GET_REAL_MAX_MANA(ch);
+    GET_MOVE(ch) = GET_REAL_MAX_MOVE(ch);
     newbieEquipment(ch);
   }
 
@@ -3827,8 +3827,8 @@ void init_char(struct char_data *ch) {
   ch->player.time.logon = time(0);
   ch->player.time.played = 0;
 
-  GET_AC(ch) = 100;
-  GET_SPELL_RES(ch) = 0;
+  GET_REAL_AC(ch) = 100;
+  GET_REAL_SPELL_RES(ch) = 0;
 
   /* Bias the height and weight of the character depending on what gender
    * they have chosen. While it is possible to have a tall, heavy female it's
@@ -3842,7 +3842,7 @@ void init_char(struct char_data *ch) {
     GET_HEIGHT(ch) = rand_number(150, 180); /* 5'0" - 6'0" */
   }
 
-  GET_SIZE(ch) = SIZE_MEDIUM;
+  GET_REAL_SIZE(ch) = SIZE_MEDIUM;
 
   if (GET_RACE(ch) < -1 || GET_RACE(ch) >= NUM_RACES)
     GET_RACE(ch) = RACE_UNDEFINED;
