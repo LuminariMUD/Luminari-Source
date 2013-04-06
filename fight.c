@@ -1058,7 +1058,6 @@ int compute_energy_absorb(struct char_data *ch, int dam_type) {
   int dam_reduction = 0;
 
   /* universal bonuses */
-  dam_reduction += GET_RESISTANCES(ch, dam_type);
   
   switch (dam_type) {
     case DAM_FIRE:
@@ -1125,6 +1124,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type) {
 
 int compute_damtype_reduction(struct char_data *ch, int dam_type) {
   int damtype_reduction = 0;
+  
+  /* universal bonsues */
+  damtype_reduction += GET_RESISTANCES(ch, dam_type);
 
   switch (dam_type) {
     case DAM_FIRE:
