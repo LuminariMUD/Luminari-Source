@@ -204,7 +204,7 @@ int delete_mobile(mob_rnum refpt)
 
 int copy_mobile_strings(struct char_data *t, struct char_data *f)
 {
-  int i = 0;
+//  int i = 0;
   
   if (f->player.name)
     t->player.name = strdup(f->player.name);
@@ -231,7 +231,7 @@ int copy_mobile_strings(struct char_data *t, struct char_data *f)
 
 int update_mobile_strings(struct char_data *t, struct char_data *f)
 {
-  int i = 0;
+//  int i = 0;
   
   if (f->player.name)
     t->player.name = f->player.name;

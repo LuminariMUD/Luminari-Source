@@ -3097,7 +3097,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   }
   switch (mode) {
     case 0: /* ac */
-      vict->points.armor = RANGE(-100, 100);
+      GET_REAL_AC(vict) = RANGE(-100, 100);
       affect_total(vict);
       break;
     case 1: /* afk */
@@ -3214,11 +3214,11 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       affect_total(vict);
       break;
     case 20: /* hit */
-      vict->points.hit = RANGE(-9, vict->points.max_hit);
+      GET_HIT(vict) = RANGE(-9, GET_MAX_HIT(vict));
       affect_total(vict);
       break;
     case 21: /* hitroll */
-      vict->points.hitroll = RANGE(-20, 20);
+      GET_REAL_HITROLL(vict) = RANGE(-20, 20);
       affect_total(vict);
       break;
     case 22: /* hunger */
@@ -3259,7 +3259,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
         return (0);
       }
       RANGE(1, LVL_IMPL);
-      vict->player.level = value;
+      GET_LEVEL(vict) = value;
       break;
     case 28: /* loadroom */
       if (!str_cmp(val_arg, "off")) {
@@ -3280,23 +3280,23 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       }
       break;
     case 29: /* mana */
-      vict->points.mana = RANGE(0, vict->points.max_mana);
+      GET_MANA(vict) = RANGE(0, GET_MAX_MANA(vict));
       affect_total(vict);
       break;
     case 30: /* maxhit */
-      vict->points.max_hit = RANGE(1, 5000);
+      GET_REAL_MAX_HIT(vict) = RANGE(1, GET_LEVEL(vict) * 500);
       affect_total(vict);
       break;
     case 31: /* maxmana */
-      vict->points.max_mana = RANGE(1, 5000);
+      GET_REAL_MAX_MANA(vict) = RANGE(1, GET_LEVEL(vict) * 500);
       affect_total(vict);
       break;
     case 32: /* maxmove */
-      vict->points.max_move = RANGE(1, 5000);
+      GET_REAL_MAX_MOVE(vict) = RANGE(1, GET_LEVEL(vict) * 500);
       affect_total(vict);
       break;
     case 33: /* move */
-      vict->points.move = RANGE(0, vict->points.max_move);
+      GET_MOVE(vict) = RANGE(0, GET_MAX_MOVE(vict));
       affect_total(vict);
       break;
     case 34: /* name */
@@ -3479,11 +3479,11 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       GET_RACE(vict) = i;
       break;
     case 62: /* spellres spell resistance */
-      vict->points.spell_res = RANGE(0, 99);
+      GET_REAL_SPELL_RES(vict) = RANGE(0, 99);
       affect_total(vict);
       break;
     case 63: // size
-      GET_SIZE(vict) = RANGE(0, NUM_SIZES - 1);
+      GET_REAL_SIZE(vict) = RANGE(0, NUM_SIZES - 1);
       affect_total(vict);
       break;
     case 64: // wizard level
