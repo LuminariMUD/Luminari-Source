@@ -204,7 +204,7 @@ int delete_mobile(mob_rnum refpt)
 
 int copy_mobile_strings(struct char_data *t, struct char_data *f)
 {
-//  int i = 0;
+  int i = 0;
   
   if (f->player.name)
     t->player.name = strdup(f->player.name);
@@ -220,18 +220,21 @@ int copy_mobile_strings(struct char_data *t, struct char_data *f)
     t->player.walkin = strdup(f->player.walkin);
   if (f->player.walkout)
     t->player.walkout = strdup(f->player.walkout);
-  /*if (ECHO_COUNT(f) > 0) {
+  if (ECHO_COUNT(f) > 0) {
+    if (ECHO_ENTRIES(t) == NULL)
+      CREATE(ECHO_ENTRIES(t), char *, 1);
+    
     for (i = 0; i < ECHO_COUNT(f); i++)
       if (ECHO_ENTRIES(f)[i])
         ECHO_ENTRIES(t)[i] = strdup(ECHO_ENTRIES(f)[i]);
     ECHO_COUNT(t) = ECHO_COUNT(f);
-  }*/
+  }
   return TRUE;
 }
 
 int update_mobile_strings(struct char_data *t, struct char_data *f)
 {
-//  int i = 0;
+  int i = 0;
   
   if (f->player.name)
     t->player.name = f->player.name;
@@ -247,12 +250,14 @@ int update_mobile_strings(struct char_data *t, struct char_data *f)
     t->player.walkin = f->player.walkin;
   if (f->player.walkout)
     t->player.walkout = f->player.walkout;
-  /*if (ECHO_COUNT(f) > 0) {
+  if (ECHO_COUNT(f) > 0) {
+    if (ECHO_ENTRIES(t) == NULL)
+      CREATE(ECHO_ENTRIES(t), char *, 1);
     for (i = 0; i < ECHO_COUNT(f); i++)
       if (ECHO_ENTRIES(f)[i])
         ECHO_ENTRIES(t)[i] = strdup(ECHO_ENTRIES(f)[i]);
     ECHO_COUNT(t) = ECHO_COUNT(f);
-  }*/
+  }
   return TRUE;
 }
 
