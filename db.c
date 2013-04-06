@@ -3774,9 +3774,9 @@ void clear_char(struct char_data *ch) {
   ch->mob_specials.default_pos = POS_STANDING;
   ch->events = NULL;
 
-  GET_AC(ch) = 100; /* Basic Armor */
-  if (ch->points.max_mana < 100)
-    ch->points.max_mana = 100;
+  GET_REAL_AC(ch) = 100; /* Basic Armor */
+  if (GET_REAL_MAX_MANA(ch) < 100)
+    GET_REAL_MAX_MANA(ch) = 100;
 }
 
 void clear_object(struct obj_data *obj) {
@@ -3869,8 +3869,11 @@ void init_char(struct char_data *ch) {
   for (i = 0; i < AF_ARRAY_MAX; i++)
     AFF_FLAGS(ch)[i] = 0;
 
-  for (i = 0; i < 5; i++)
-    GET_SAVE(ch, i) = 0;
+  for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+    GET_REAL_SAVE(ch, i) = 0;
+
+  for (i = 0; i < NUM_DAM_TYPES; i++)
+    GET_REAL_RESISTANCES(ch, i) = 0;
 
   ch->real_abils.str_add = 0;
   GET_REAL_STR(ch) = 3;

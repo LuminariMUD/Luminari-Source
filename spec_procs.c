@@ -670,7 +670,6 @@ int compute_ability(struct char_data *ch, int abilityNum)
     value += 4;  
   if (affected_by_spell(ch, SKILL_PERFORM))
     value += SONG_AFF_VAL(ch);  
-  value += GET_RESISTANCES(ch, abilityNum);
 
   // try to avoid sending NPC's here, but just in case:
   if (IS_NPC(ch))
@@ -802,11 +801,11 @@ void process_skill(struct char_data *ch, int skillnum)
 {
   switch (skillnum) {
     case SKILL_EPIC_TOUGHNESS:
-      ch->points.max_hit += GET_LEVEL(ch);
+      GET_REAL_MAX_HIT(ch) += GET_LEVEL(ch);
       send_to_char(ch, "\tMYou gained %d hp!\tn\r\n", GET_LEVEL(ch));
       return;
     case SKILL_TOUGHNESS:
-      ch->points.max_hit += GET_LEVEL(ch);
+      GET_REAL_MAX_HIT(ch) += GET_LEVEL(ch);
       send_to_char(ch, "\tMYou gained %d hp!\tn\r\n", GET_LEVEL(ch));
       return;
 
@@ -995,7 +994,7 @@ SPECIAL(guild)
       GET_REAL_CON(ch) += 1;
       /* Give them retroactive hit points for constitution */
       if (! (GET_REAL_CON(ch) % 2)) {
-        GET_MAX_HIT(ch) += GET_LEVEL(ch);
+        GET_REAL_MAX_HIT(ch) += GET_LEVEL(ch);
         send_to_char(ch, "\tMYou gain %d hitpoints!\tn\r\n", GET_LEVEL(ch));
       }
       GET_BOOSTS(ch) -= 1;
