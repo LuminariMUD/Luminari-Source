@@ -496,7 +496,7 @@ void delete_echo_entry(struct char_data *mob, int entry_num) {
     ECHO_ENTRIES(mob)[i] = strdup(ECHO_ENTRIES(mob)[i + 1]);
   }
   //free(ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1]);
-  ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1] = NULL;
+  //ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1] = NULL;
   ECHO_COUNT(mob)--;
   
   //if (ECHO_COUNT(mob) == 0) {
@@ -609,7 +609,7 @@ static void medit_disp_echo_menu(struct descriptor_data *d) {
   
   write_to_output(d, "Mobile Echos:\r\n");
   if (ECHO_COUNT(mob) > 0 && ECHO_ENTRIES(mob)) {
-    write_to_output(d, "debug: echo count: %d", ECHO_COUNT(mob));
+    write_to_output(d, "debug: echo count: %d\r\n", ECHO_COUNT(mob));
     for (i = 0; i < ECHO_COUNT(mob); i++)
       if (ECHO_ENTRIES(mob)[i])
         write_to_output(d, "%d) %s\r\n", (i + 1), ECHO_ENTRIES(mob)[i]);
