@@ -495,14 +495,14 @@ void delete_echo_entry(struct char_data *mob, int entry_num) {
       free(ECHO_ENTRIES(mob)[i]);
     ECHO_ENTRIES(mob)[i] = strdup(ECHO_ENTRIES(mob)[i + 1]);
   }
-  free(ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1]);
+  //free(ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1]);
   ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1] = NULL;
   ECHO_COUNT(mob)--;
   
-  if (ECHO_COUNT(mob) == 0) {
-    free(ECHO_ENTRIES(mob));
-    ECHO_ENTRIES(mob) = NULL;
-  }
+  //if (ECHO_COUNT(mob) == 0) {
+    //free(ECHO_ENTRIES(mob));
+    //ECHO_ENTRIES(mob) = NULL;
+  //}
 }
 
 /* Display alignment choices */
