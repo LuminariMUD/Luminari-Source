@@ -600,7 +600,6 @@ static void medit_disp_menu(struct descriptor_data *d) {
 /* mobile echoes, dispaly */
 static void medit_disp_echo_menu(struct descriptor_data *d) {
   struct char_data *mob;
-  //char buf[MAX_STRING_LENGTH];
   int i = 0;
   
   mob = OLC_MOB(d);
@@ -609,7 +608,7 @@ static void medit_disp_echo_menu(struct descriptor_data *d) {
   
   write_to_output(d, "Mobile Echos:\r\n");
   if (ECHO_COUNT(mob) > 0 && ECHO_ENTRIES(mob)) {
-    write_to_output(d, "debug: echo count: %d\r\n", ECHO_COUNT(mob));
+    //write_to_output(d, "debug: echo count: %d\r\n", ECHO_COUNT(mob));
     for (i = 0; i < ECHO_COUNT(mob); i++)
       if (ECHO_ENTRIES(mob)[i])
         write_to_output(d, "%d) %s\r\n", (i + 1), ECHO_ENTRIES(mob)[i]);
