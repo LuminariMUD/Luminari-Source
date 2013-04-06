@@ -1512,7 +1512,8 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   GET_REAL_AC(mob_proto + i) = 10 * t[2];
 
   /* max hit = 0 is a flag that H, M, V is xdy+z */
-  GET_REAL_MAX_HIT(mob_proto + i) = 0;
+//  GET_REAL_MAX_HIT(mob_proto + i) = 0;
+  GET_MAX_HIT(mob_proto + i) = 0;
   GET_HIT(mob_proto + i) = t[3];
   GET_MANA(mob_proto + i) = t[4];
   GET_MOVE(mob_proto + i) = t[5];
