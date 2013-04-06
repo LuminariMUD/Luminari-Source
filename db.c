@@ -2646,18 +2646,19 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
   /* Allocate mobile event list */
   //mob->events = create_list();   
 
-  if (!mob->points.max_hit) {
-    mob->points.max_hit = dice(mob->points.hit, mob->points.mana) +
-            mob->points.move;
+  if (!GET_MAX_HIT(mob)) {
+    GET_MAX_HIT(mob) = dice(GET_HIT(mob), GET_MANA(mob)) + GET_MOVE(mob);
   } else
-    mob->points.max_hit = rand_number(mob->points.hit, mob->points.mana);
+    GET_MAX_HIT(mob) = rand_number(GET_HIT(mob), GET_MANA(mob));
 
-  if (mob->points.spell_res < 0)
-    mob->points.spell_res = 0;
+  GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob);
+  
+  if (GET_SPELL_RES(mob) < 0)
+    GET_SPELL_RES(mob) = 0;
 
-  mob->points.hit = mob->points.max_hit;
-  mob->points.mana = mob->points.max_mana;
-  mob->points.move = mob->points.max_move;
+  GET_HIT(mob) = GET_MAX_HIT(mob);
+  GET_MANA(mob) = GET_MAX_MANA(mob);
+  GET_MOVE(mob) = GET_MAX_MOVE(mob);
 
   mob->player.time.birth = time(0);
   mob->player.time.played = 0;
@@ -2677,7 +2678,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
     GET_RACE(mob) = 0;
 
   if (GET_CLASS(mob) < 0 || GET_CLASS(mob) >= NUM_CLASSES)
-    GET_CLASS(mob) = 0; //that's right defaulting to a wizard
+    GET_CLASS(mob) = CLASS_WARRIOR;
 
   if (GET_SIZE(mob) < 0 || GET_SIZE(mob) >= NUM_SIZES)
     GET_SIZE(mob) = SIZE_MEDIUM;
