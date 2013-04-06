@@ -737,11 +737,7 @@ do                                                              \
 // size
 #define GET_REAL_SIZE(ch)	((ch)->real_points.size)
 #define GET_SIZE(ch)	((ch)->points.size)
-/*
-#define GET_SIZE(ch)	(affected_by_spell(ch, SPELL_SHRINK_PERSON) ? \
-MAX(SIZE_FINE, (ch->player.size - 1)) : affected_by_spell(ch, SPELL_ENLARGE_PERSON) ? \
-MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
- */
+/* resistances to dam_types */
 #define GET_REAL_RESISTANCES(ch, type)  ((ch)->real_points.resistances[type])
 #define GET_RESISTANCES(ch, type)  ((ch)->points.resistances[type])
 /** Saving throw i for character ch. */
@@ -821,7 +817,7 @@ MIN(SIZE_COLOSSAL, (ch->player-size + 1)) : ch->player.size)
 
 //  our spec_abil values
 #define GET_SPEC_ABIL(ch, slot)		(ch->player_specials->saved.spec_abil[slot])
-
+//  better macros for spec abils
 #define GET_FAVORED_ENEMY(ch, slot)		(ch->player_specials->saved.favored_enemy[slot])
 #define IS_FAV_ENEMY_OF(ch, race)            (is_fav_enemy_of(ch, race))
 #define GET_ANIMAL_COMPANION(ch)  (ch->player_specials->saved.spec_abil[CALLCOMPANION])

@@ -1057,6 +1057,9 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
 int compute_energy_absorb(struct char_data *ch, int dam_type) {
   int dam_reduction = 0;
 
+  /* universal bonuses */
+  dam_reduction += GET_RESISTANCES(ch, dam_type);
+  
   switch (dam_type) {
     case DAM_FIRE:
       if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -1657,7 +1660,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       break;
   } //end SWITCH
 
-  //linkless
+  //linkless, very abusable, so trying with this off
+  /*
   if (!IS_NPC(victim) && !(victim->desc) && GET_POS(victim) > POS_STUNNED) {
     perform_flee(victim);
     if (!FIGHTING(victim)) {
@@ -1667,7 +1671,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       char_to_room(victim, 0);
     }
   }
-
+  */
+  
   //too hurt to continue
   if (GET_POS(victim) <= POS_STUNNED && FIGHTING(victim) != NULL)
     stop_fighting(victim);

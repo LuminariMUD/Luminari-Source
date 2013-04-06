@@ -3171,7 +3171,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       affect_total(vict);
       break;
     case 12: /* damroll */
-      vict->points.damroll = RANGE(-20, 20);
+      GET_REAL_DAMROLL(vict) = RANGE(-20, 20);
       affect_total(vict);
       break;
     case 13: /* delete */
