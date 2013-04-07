@@ -420,12 +420,13 @@ static void look_at_char(struct char_data *i, struct char_data *ch) {
 static void list_one_char(struct char_data *i, struct char_data *ch) {
   struct obj_data *furniture;
   char *short_descr;
-  const char *positions[] = {
+  const char *positions[NUM_POSITIONS] = {
     " is lying here, dead.",
     " is lying here, mortally wounded.",
     " is lying here, incapacitated.",
     " is lying here, stunned.",
     " is sleeping here.",
+    " is reclining here.",
     " is resting here.",
     " is sitting here.",
     "!FIGHTING!",
@@ -532,12 +533,13 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     send_to_char(ch, ".");
   } else if (!FIGHTING(i)) {
     if (!SITTING(i))
-      send_to_char(ch, "%s", positions[(int) GET_POS(i)]);
+      send_to_char(ch, "%s", positions[GET_POS(i)]);
     else {
       furniture = SITTING(i);
       send_to_char(ch, " is %s upon %s.", (GET_POS(i) == POS_SLEEPING ?
-              "sleeping" : (GET_POS(i) == POS_RESTING ? "resting" : "sitting")),
-              OBJS(furniture, ch));
+                "sleeping" : (GET_POS(i) == POS_RECLINING ? "reclining" : 
+                (GET_POS(i) == POS_RESTING ? "resting" : "sitting"))),
+                OBJS(furniture, ch));
     }
   } else {
     if (FIGHTING(i)) {
