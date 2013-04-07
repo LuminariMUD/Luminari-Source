@@ -245,25 +245,32 @@ const char *exit_bits[NUM_EXIT_BITS + 1] = {
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *sector_types[NUM_ROOM_SECTORS + 1] = {
-  "Inside",
+  "Inside",  //0
   "City",
   "Field",
   "Forest",
   "Hills",
-  "Low Mountains",
+  "Low Mountains",  //5
   "Water (Swim)",
   "Water (No Swim)",
   "In Flight",
   "Underwater",
-  "Zone Entrance",
+  "Zone Entrance",  //10
   "Road North-South",
   "Road East-West",
   "Road Intersection",
   "Desert",
-  "Ocean",
+  "Ocean",  //15
   "Marshland",
   "High Mountains",
   "Outer Planes",
+  "Underdark - Wild",
+  "Underdark - City",  //20
+  "Underdark - Inside",
+  "Underdark - Water (Swim)",
+  "Underdark - Water (No Swim)",
+  "Underdark - In Flight",
+  "Lava",  //25
   "\n"
 };
 
@@ -357,6 +364,13 @@ const char *action_bits[NUM_MOB_FLAGS + 1] = {
   "Paladin-Mount",
   "Summoned-Elemental",
   "Animated-Dead",  //30
+  "Guard",
+  "Citizen",
+  "Hunter",
+  "Listen",
+  "Lit-Up",
+  "Planar-Ally",
+  "No-Steal",
   "\n"
 };
 

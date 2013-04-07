@@ -434,7 +434,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
         }
         act("You squeeze by the prone body of $N.", FALSE, ch, 0, other, TO_CHAR);
         act("$n squeezes by YOU.", FALSE, ch, 0, other, TO_VICT);
-        act("$n squeeze by the prone body of $N.", FALSE, ch, 0, other, TO_NOTVICT);
+        act("$n squeezes by the prone body of $N.", FALSE, ch, 0, other, TO_NOTVICT);
         return 0;
       } else
         if (GET_POS(ch) == POS_RECLINING && GET_POS(other) >= POS_FIGHTING
