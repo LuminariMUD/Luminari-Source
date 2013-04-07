@@ -24,6 +24,19 @@
 #include "spec_procs.h"
 #include "class.h"
 
+
+/* to be deleted */
+ACMD(do_bodyslam) {}
+ACMD(do_charge) {}
+ACMD(do_dirtkick) {}
+ACMD(do_headbutt) {}
+ACMD(do_sap) {}
+ACMD(do_shieldpunch) {}
+ACMD(do_springleap) {}
+/* to be deleted */
+
+
+
 /**** Utility functions *******/
 
 /* simple function to check whether ch has a piercing weapon, has 3 modes:
