@@ -137,7 +137,7 @@ void regen_update(struct char_data *ch)
     hp = 0;
   
   /* blackmantle stops natural regeneration */
-  if (AFF_FLAGGED(ch, AFF_BLACKMANTLE))
+  if (AFF_FLAGGED(ch, AFF_BLACKMANTLE) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOHEAL))
     hp = 0;
 
   if (GET_HIT(ch) > GET_MAX_HIT(ch)) {
