@@ -350,7 +350,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "resize", "resize", POS_STANDING, do_not_here, 1, 0, FALSE},
   { "restring", "restring", POS_STANDING, do_not_here, 1, 0, FALSE},
   { "rage", "rage", POS_FIGHTING, do_rage, 1, 0, FALSE},
-  { "recline", "recline", POS_RECLINING, do_recline, 0, 0, FALSE},
+  { "recline", "recline", POS_SLEEPING, do_recline, 0, 0, FALSE},
 
   { "sacrifice", "sac", POS_RESTING, do_sac, 0, 0, FALSE},
   { "say", "s", POS_RESTING, do_say, 0, 0, TRUE},
