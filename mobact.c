@@ -24,8 +24,127 @@
 #include "spec_procs.h"
 #include "mud_event.h" /* for eSTUNNED */
 
+/***********/
+
+/* leaving this here to research more a summoning mechanic for mobiles -zusuk */
 /*
- 
+bool can_summon(struct char_data *ch) {
+  if (GET_CASTING(ch))
+    return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_BLIND))
+    return FALSE;
+
+  // dont track if hurt.
+  if ((100 * GET_HIT(ch)) / GET_MAX_HIT(ch) <= 80)
+    return FALSE;
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF))
+    return FALSE;
+
+
+  if (ROOM_FLAGGED(ch->in_room, ROOM_NOSUMMON))
+    return FALSE;
+
+  if (GET_CLASS(ch) < 0)
+    return FALSE;
+
+  int moblevel;
+  moblevel = GET_LEVEL(ch);
+  if (moblevel > 50)
+    moblevel = 50;
+
+  if (moblevel < spell_info[SPELL_SUMMON].min_level[GET_CLASS(ch)])
+    return FALSE;
+
+  return TRUE;
+}
+bool mobai_summon(struct char_data *ch, struct char_data *victim) {
+
+  bool samezone;
+
+  if (victim->in_room == ch->in_room)
+    return FALSE;
+  samezone = (world[victim->in_room].zone == world[ch->in_room].zone);
+  if (!samezone)
+    return false;
+  if (!CAN_SEE(ch, victim))
+    return FALSE;
+  if (AFF_FLAGGED(victim, AFF_HIDE))
+    return FALSE;
+
+  if (AFF3_FLAGGED(victim, AFF3_NOSUMMON))
+    return FALSE;
+  if (ROOM_FLAGGED(ch->in_room, ROOM_NOSUMMON))
+    return FALSE;
+  cast_spell(ch, victim, 0, SPELL_SUMMON, FALSE);
+
+  return TRUE;
+}
+*/
+
+/* leaving this here to research more a teleporting mechanic for 
+ * mobiles -zusuk */
+/*
+bool mobai_track(struct char_data *ch, struct char_data *victim) {
+  act("Attempt to track $N", FALSE, ch, 0, victim, TO_CHAR);
+
+  if (GET_CASTING(ch))
+    return FALSE;
+
+  // dont track if hurt.
+  if ((100 * GET_HIT(ch)) / GET_MAX_HIT(ch) <= 12)
+    return FALSE;
+  if (AFF2_FLAGGED(ch, AFF2_MISLEAD))
+    return false;
+
+
+  bool samezone;
+  int moblevel;
+  moblevel = GET_LEVEL(ch);
+  if (moblevel > 50)
+    moblevel = 50;
+
+  if (victim->in_room == ch->in_room)
+    return FALSE;
+  samezone = (world[victim->in_room].zone == world[ch->in_room].zone);
+
+
+  if (MOB_FLAGGED(ch, MOB_STAY_ZONE) && !samezone)
+    return FALSE;
+
+  if (!ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
+
+
+    if (!ROOM_FLAGGED(ch->in_room, ROOM_NOTELEPORT) && !ROOM_FLAGGED(victim->in_room, ROOM_NOTELEPORT) &&
+            !AFF3_FLAGGED(ch, AFF3_NOTELEPORT)) {
+      if (!samezone && GET_CLASS(ch) > -1 && !AFF_FLAGGED(ch, AFF_GROUP)) {
+        if (moblevel >= spell_info[SPELL_RELOCATE].min_level[GET_CLASS(ch)]) {
+          act("We want to reloc to $N", FALSE, ch, 0, victim, TO_CHAR);
+          cast_spell(ch, victim, 0, SPELL_RELOCATE, FALSE);
+          return TRUE;
+        }
+      }
+
+
+      if (samezone && GET_CLASS(ch) > -1 && !AFF_FLAGGED(ch, AFF_GROUP)) {
+        if (moblevel >= spell_info[SPELL_DIMENSION_DOOR].min_level[GET_CLASS(ch)]) {
+          act("We want to dim to $N", FALSE, ch, 0, victim, TO_CHAR);
+
+          cast_spell(ch, victim, 0, SPELL_DIMENSION_DOOR, FALSE);
+          return TRUE;
+        }
+      }
+    }
+  }
+  HUNTING(ch) = victim;
+  act("We are tracking $N", FALSE, ch, 0, victim, TO_CHAR);
+  hunt_victim(ch);
+  return TRUE;
+}
+*/
+
+/* leaving this here for now to research AI for switching opponents -zusuk */
+/*
 bool mobai_switchopponents(struct char_data *ch) {
   struct char_data *homie = NULL;
   struct char_data *switchvict = NULL;
@@ -82,10 +201,10 @@ bool mobai_switchopponents(struct char_data *ch) {
     }
   }
   return FALSE;
-}
+} 
+*/
 
- 
- */
+/***********/
 
 
 /* local file scope only function prototypes, defines, externs, etc */

@@ -66,7 +66,10 @@ int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool dim_lock) 
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_NOASTRAL))
     return FALSE;
-
+  
+  if (ROOM_FLAGGED(dest, ROOM_NOTELEPORT))
+    return FALSE;
+  
   //passed all tests!
   return TRUE;
 }
@@ -1324,15 +1327,20 @@ ASPELL(spell_summon) {
     return;
   }
 
-  if (!valid_mortal_tele_dest(victim, IN_ROOM(victim), TRUE)) {
+  if (!valid_mortal_tele_dest(victim, IN_ROOM(ch), TRUE)) {
     send_to_char(ch, "A bright flash prevents your spell from working!");
     return;
   }
 
-  if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE)) {
+  if (!valid_mortal_tele_dest(ch, IN_ROOM(victim), TRUE)) {
     send_to_char(ch, "A bright flash prevents your spell from working!");
     return;
   }
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOSUMMON)) {
+    send_to_char(ch, SUMMON_FAIL);
+    return;
+  }  
 
   if (!CONFIG_PK_ALLOWED) {
     if (MOB_FLAGGED(victim, MOB_AGGRESSIVE)) {

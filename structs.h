@@ -100,13 +100,17 @@
 #define ROOM_NORECALL      19  /* no recalling from/to this room */
 #define ROOM_SINGLEFILE    20  /* very narrow room */
 #define ROOM_NOTELEPORT    21  /* no teleportin from/to this room */
+/* working on these */
 #define ROOM_MAGICDARK     22  /* pitch black, not lightable */
 #define ROOM_MAGICLIGHT    23  /* lit */
+/****/
 #define ROOM_NOSUMMON      24  /* no summoning from/to this room */
 #define ROOM_NOHEAL        25  /* all regen stops in this room */
 #define ROOM_NOFLY         26  /* can't fly in this room */
+/* working on these */
 #define ROOM_FOG           27  /* fogged (hamper vision/stops daylight) */
 #define ROOM_AIRY          28  /* airy (breathe underwater) */
+/****/
 /** The total number of Room Flags */
 #define NUM_ROOM_FLAGS     29
 
