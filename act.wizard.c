@@ -5496,7 +5496,8 @@ ACMD(do_singlefile) {
       
       sprintf(exits, "%d   ", num_exits);
       sprintf(buf, "[%5d] %-*s \tgExits: \tc%4s %s\tn\r\n", world[room].number,
-              50 + count_color_chars(world[room].name),
+                50,
+//              50 + count_color_chars(world[room].name),
 //              50 + color_count(world[room].name),
               world[room].name,
               num_exits == 0 ? "NONE" : exits, num_exits != 2 ? "\tRERROR!\tn" : ""
