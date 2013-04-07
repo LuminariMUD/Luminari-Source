@@ -1110,6 +1110,12 @@ ASPELL(spell_prismatic_sphere) {
 ASPELL(spell_recall) {
   if (victim == NULL || IS_NPC(victim))
     return;
+  
+  if (ROOM_FLAGGED(IN_ROOM(victim), ROOM_NOTELEPORT) ||
+          ROOM_FLAGGED(IN_ROOM(victim), ROOM_NORECALL)) {
+    send_to_char(ch, "Something in the area is hampering your magic!\r\n");
+    return;
+  }
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(victim)), ZONE_NOASTRAL)) {
     send_to_char(ch, "A bright flash prevents your spell from working!");

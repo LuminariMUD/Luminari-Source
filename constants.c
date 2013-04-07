@@ -179,6 +179,16 @@ const char *room_bits[NUM_ROOM_FLAGS + 1] = {
   "Worldmap",
   "Regenerating",
   "Fly-Needed",
+  "No-Recall",
+  "Singlefile",  //20
+  "No-Teleport",
+  "Magical-Darkness",
+  "Magical-Light",
+  "No-Summon",
+  "No-Heal",  //25
+  "No-Fly",
+  "Fogged",
+  "Airy",
   "\n"
 };
 

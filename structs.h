@@ -95,10 +95,20 @@
 #define ROOM_OLC           14   /**< (R) Modifyable/!compress */
 #define ROOM_BFS_MARK      15   /**< (R) breath-first srch mrk */
 #define ROOM_WORLDMAP      16   /**< World-map style maps here */
-#define ROOM_REGEN         17
-#define ROOM_FLY_NEEDED    18
+#define ROOM_REGEN         17  /* regen room */
+#define ROOM_FLY_NEEDED    18  /* will drop without fly */
+#define ROOM_NORECALL      19  /* no recalling from/to this room */
+#define ROOM_SINGLEFILE    20  /* very narrow room */
+#define ROOM_NOTELEPORT    21  /* no teleportin from/to this room */
+#define ROOM_MAGICDARK     22  /* pitch black, not lightable */
+#define ROOM_MAGICLIGHT    23  /* lit */
+#define ROOM_NOSUMMON      24  /* no summoning from/to this room */
+#define ROOM_NOHEAL        25  /* all regen stops in this room */
+#define ROOM_NOFLY         26  /* can't fly in this room */
+#define ROOM_FOG           27  /* fogged (hamper vision/stops daylight) */
+#define ROOM_AIRY          28  /* airy (breathe underwater) */
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS     19
+#define NUM_ROOM_FLAGS     29
 
 // Room affects
 #define RAFF_FOG            (1 << 0)
@@ -1413,8 +1423,13 @@ struct char_special_data_saved {
 
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */
 struct char_special_data {
+  /* combat related */
   struct char_data *fighting; /**< Target of fight; else NULL */
   struct char_data *hunting; /**< Target of NPC hunt; else NULL */
+  int parryAttempts; // how many parry attempts left in the round
+  ubyte cloudkill; //how many more bursts of cloudkill left
+  struct char_data *guarding;  //target for 'guard' ability
+  bool firing;  //is char firing missile weapon?
 
   /* furniture */
   struct obj_data *furniture; /**< Object being sat on/in; else NULL */
@@ -1424,13 +1439,9 @@ struct char_special_data {
   struct char_data *riding; /* Who are they riding? */
   struct char_data *ridden_by; /* Who is riding them? */
 
-  byte position; /**< Standing, fighting, sleeping, etc. */
-
   /* carrying */
   int carry_weight; /**< Carried weight */
   byte carry_items; /**< Number of items carried */
-
-  int timer; /**< Timer for update */
 
   /** casting **/
   bool isCasting; // casting or not
@@ -1440,17 +1451,17 @@ struct char_special_data {
   struct char_data *castingTCH; // target char of spell
   struct obj_data *castingTOBJ; // target obj of spell
 
-  int parryAttempts; // how many parry attempts left in the round
-  int prayin[NUM_CASTERS]; //memorization
-
   /** crafting **/
   ubyte crafting_type; //like SCMD_x
-  ubyte crafting_ticks;
-  struct obj_data *crafting_object;
+  ubyte crafting_ticks;  // ticks left to complete task
+  struct obj_data *crafting_object;  // refers to obj crafting (deprecated)
   ubyte crafting_repeat; // multiple objects created in one session
   int crafting_bonus; // bonus for crafting the item
-
-  ubyte cloudkill; //how many more bursts of cloudkill left
+  
+  /* miscellaneous */
+  int prayin[NUM_CASTERS]; //memorization
+  byte position; /**< Standing, fighting, sleeping, etc. */
+  int timer; /**< Timer for update */
 
   struct char_special_data_saved saved; /**< Constants saved for PCs. */
 };

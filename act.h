@@ -429,6 +429,7 @@ ACMD(do_wizutil);
 ACMD(do_hlqlist);
 ACMD(do_advance);
 ACMD(do_objlist);
+ACMD(do_singlefile);
 ACMD(do_at);
 ACMD(do_checkloadstatus);
 ACMD(do_copyover);

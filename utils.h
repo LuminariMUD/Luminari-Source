@@ -93,6 +93,7 @@ int compute_arcana_golem_level(struct char_data *ch);
 bool has_pet_follower(struct char_data *ch);
 bool has_elemental_follower(struct char_data *ch);
 bool has_undead_follower(struct char_data *ch);
+int color_count(char *bufptr);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
@@ -744,31 +745,28 @@ do                                                              \
 #define GET_REAL_SAVE(ch, i)	  ((ch)->real_points.apply_saving_throw[i])
 #define GET_SAVE(ch, i)	  ((ch)->points.apply_saving_throw[i])
 
-
+// ***  char_specials (there are others spread about utils.h file) *** //
 /** Current position (standing, sitting) of ch. */
 #define GET_POS(ch)	  ((ch)->char_specials.position)
+/** Timer  */
+#define TIMER(ch) ((ch)->char_specials.timer)
+/** Weight carried by ch. */
+#define IS_CARRYING_W(ch) ((ch)->char_specials.carry_weight)
+/** Number of items carried by ch. */
+#define IS_CARRYING_N(ch) ((ch)->char_specials.carry_items)
+/** Who or what ch is fighting. */
+#define FIGHTING(ch)	  ((ch)->char_specials.fighting)
+/** Who or what the ch is hunting. */
+#define HUNTING(ch)	  ((ch)->char_specials.hunting)
+/** Who is ch guarding? */
+#define GUARDING(ch)	  ((ch)->char_specials.guarding)
+/** Is ch firing a missile weapon? */
+#define FIRING(ch)	  ((ch)->char_specials.firing)
 
 /** Unique ID of ch. */
 #define GET_IDNUM(ch)	  ((ch)->char_specials.saved.idnum)
-
 /** Returns contents of id field from x. */
 #define GET_ID(x)         ((x)->id)
-
-/** Timer  */
-#define TIMER(ch) ((ch)->char_specials.timer)
-
-/** Weight carried by ch. */
-#define IS_CARRYING_W(ch) ((ch)->char_specials.carry_weight)
-
-/** Number of items carried by ch. */
-#define IS_CARRYING_N(ch) ((ch)->char_specials.carry_items)
-
-/** Who or what ch is fighting. */
-#define FIGHTING(ch)	  ((ch)->char_specials.fighting)
-
-/** Who or what the ch is hunting. */
-#define HUNTING(ch)	  ((ch)->char_specials.hunting)
-
 
 /* we changed the alignment system on luminarimud, but built it on top
    of the stock one */

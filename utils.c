@@ -37,6 +37,27 @@
  */
 
 
+/* Ils: color code counter */
+/* homeland-port */
+int color_count(char *bufptr) {
+  int count = 0;
+  char *temp = bufptr;
+
+  while((temp = strchr(temp, '@')) != NULL) {
+    if (*(temp + 1) == '@') {
+      count++; /* adjust count 1 char for every && */
+      temp++; /* point to char after 2nd && */
+    } else {
+      count += 2; /* adjust count by 3 for every color change */
+      temp++; /* point to char after color codes */
+    }
+    if(*temp == '\0')
+      break;
+  }
+
+  return count;
+}
+
 /* check if ch has a misc follower or not */
 bool has_pet_follower(struct char_data *ch) {
   struct follow_type *k = NULL, *next = NULL;

@@ -5479,3 +5479,30 @@ ACMD(do_hlqlist) {
   /* now send it all to the pager */
   page_string(ch->desc, buf, 1);
 }
+
+/* a simple function/command to check location of all SINGLEFILE rooms
+ in-game */
+ACMD(do_singlefile) {
+  room_rnum room = NOWHERE;
+  int dirs = -1, num_exits = -1;
+  char exits[24] = "NONE", buf[MAX_INPUT_LENGTH] = { '\0' };
+
+  for (room = 0; room < top_of_world; room++) {
+    if (ROOM_FLAGGED(room, ROOM_SINGLEFILE)) {
+      num_exits = 0;
+      for (dirs = 0; dirs < NUM_OF_DIRS; dirs++)
+        if (world[room].dir_option[dirs])
+          num_exits++;
+      
+      sprintf(exits, "%d   ", num_exits);
+      sprintf(buf, "[%5d] %-*s \tgExits: \tc%4s %s\tn\r\n", world[room].number,
+              50 + color_count(world[room].name),
+              world[room].name,
+              num_exits == 0 ? "NONE" : exits, num_exits != 2 ? "\tRERROR!\tn" : ""
+              );
+
+      send_to_char(ch, buf);
+    }
+  }
+}
+

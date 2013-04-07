@@ -387,6 +387,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "supplyorder", "supplyorder", POS_STANDING, do_not_here, 1, 0, FALSE},
   { "spellbattle", "spellbattle", POS_STANDING, do_spellbattle, 1, 0, FALSE},
   { "spellquests", "spellquests", POS_DEAD, do_spellquests, LVL_BUILDER, 0, TRUE},
+  { "singlefile", "singlefile", POS_DEAD, do_singlefile, LVL_BUILDER, 0, TRUE},
   
   { "tell", "t", POS_DEAD, do_tell, 0, 0, TRUE},
   { "take", "ta", POS_RESTING, do_get, 0, 0, FALSE},
