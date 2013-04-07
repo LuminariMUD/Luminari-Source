@@ -475,15 +475,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
   /* end singlefile mechanic */
   
-  /* Charm effect: Does it override the movement? */
-  /*
-  if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master
-          && was_in == IN_ROOM(ch->master)) {
-    send_to_char(ch, "The thought of leaving your master makes you weep.\r\n");
-    act("$n bursts into tears.", FALSE, ch, 0, 0, TO_ROOM);
-    return (0);
-  }
-  */
+  /* Charm effect: Does it override the movement? 
+     for now it is cut out of the code */
   
   /* Water, No Swimming Rooms: Does the deep water prevent movement? */
   if ((SECT(was_in) == SECT_WATER_NOSWIM) ||
@@ -529,18 +522,18 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     }
   }
 
+  /* flight restricted to enter that room */
+  if (ROOM_FLAGGED(going_to, ROOM_NOFLY) && AFF_FLAGGED(ch, AFF_FLYING)) {
+    send_to_char(ch, "It is not possible to fly in that direction\r\n");
+    return 0;
+  } 
+  
   /* Houses: Can the player walk into the house? */
   if (ROOM_FLAGGED(was_in, ROOM_ATRIUM)) {
     if (!House_can_enter(ch, GET_ROOM_VNUM(going_to))) {
       send_to_char(ch, "That's private property -- no trespassing!\r\n");
       return (0);
     }
-  }
-
-  /* Check zone level recommendations */
-  if (GET_LEVEL(ch) <= 6 && (ZONE_MINLVL(GET_ROOM_ZONE(going_to)) != -1) &&
-          ZONE_MINLVL(GET_ROOM_ZONE(going_to)) > GET_LEVEL(ch)) {
-    send_to_char(ch, "(OOC)  This zone is above your recommended level.\r\n");
   }
 
   /* Check zone flag restrictions */
@@ -575,12 +568,18 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     send_to_char(ch, "You aren't godly enough to use that room!\r\n");
     return (0);
   }
-
+  
   /* a silly zusuk dummy check */
   update_pos(ch);
   if (GET_POS(ch) <= POS_STUNNED) {
     send_to_char(ch, "You are in no condition to move!\r\n");
     return (0);
+  }
+
+  /* Check zone level recommendations */
+  if (GET_LEVEL(ch) <= 6 && (ZONE_MINLVL(GET_ROOM_ZONE(going_to)) != -1) &&
+          ZONE_MINLVL(GET_ROOM_ZONE(going_to)) > GET_LEVEL(ch)) {
+    send_to_char(ch, "(OOC)  This zone is above your recommended level.\r\n");
   }
 
   //tumble check

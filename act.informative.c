@@ -680,7 +680,8 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   target_room = IN_ROOM(ch);
   zn = GET_ROOM_ZONE(target_room);
 
-  if (IS_DARK(IN_ROOM(ch)))
+  if (ROOM_FLAGGED(target_room,ROOM_MAGICDARK) ||
+      IS_DARK(target_room))
     isDark = 1;
   if ((isDark && CAN_SEE_IN_DARK(ch)) || !isDark)
     canSee = 1;
@@ -3421,16 +3422,38 @@ void list_scanned_chars(struct char_data * list, struct char_data * ch, int
 ACMD(do_scan) {
   int door;
   bool found = FALSE;
-
   int range;
   int maxrange = 3;
-
-  room_rnum scanned_room = IN_ROOM(ch);
+  room_rnum scanned_room = NOWHERE;
+  
+  if (ch)
+    scanned_room = IN_ROOM(ch);
+  else
+    return;
 
   if (IS_AFFECTED(ch, AFF_BLIND)) {
     send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
     return;
   }
+  if (GET_POS(ch) < POS_SLEEPING) {
+    send_to_char(ch, "You can't see anything but stars!\r\n");
+    return;
+  }
+  if (IS_SET_AR(ROOM_FLAGS(scanned_room), ROOM_FOG)) {
+    send_to_char(ch, "A fog makes it impossible to look far.\r\n");
+    return;
+  }
+  if (IS_SET_AR(ROOM_FLAGS(scanned_room), ROOM_MAGICDARK)) {
+    send_to_char(ch, "Its too dark to see.\r\n");
+    return;
+  }
+  
+  /*
+  if (AFF_FLAGGED(ch, AFF_ULTRAVISION) && ultra_blind(ch, ch->in_room)) {
+    send_to_char("Its too bright to see.\r\n", ch);
+    return;
+  }
+  */
 
   for (door = 0; door < DIR_COUNT; door++) {
     send_to_char(ch, "Scanning %s:\r\n", dirs[door]);

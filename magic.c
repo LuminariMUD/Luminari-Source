@@ -4476,6 +4476,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
         send_to_char(ch, "Not a valid target (astral, ethereal, elemental, prime)");
         return;
       }
+      if (!valid_mortal_tele_dest(ch, gate_dest, FALSE)) {
+        send_to_char(ch, "Your magic is being block at the destination!\r\n");
+        return;
+      }
+      
       break;
     case SPELL_GOODBERRY:
       to_char = "You create $p.";
@@ -4499,6 +4504,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       }
       if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOSUMMON)) {
         send_to_char(ch, "The portal begins to open, then shuts suddenly!\r\n");
+        return;
+      }
+      if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), FALSE) || 
+          !valid_mortal_tele_dest(ch, IN_ROOM(vict), FALSE)) {
+        send_to_char(ch, "Your magic is not working!\r\n");
         return;
       }
       /* no portaling on the outter planes */
