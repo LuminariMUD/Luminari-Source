@@ -636,6 +636,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /* if in "listen-mode" double cost of movement */
   if (AFF_FLAGGED(ch, AFF_LISTEN))
     need_movement *= 2;
+  /* if reclined quadruple movement cost */
+  if (GET_POS(ch) <= POS_RECLINING)
+    need_movement *= 4;
 
   /* Move Point Requirement Check */
   if (riding) {
