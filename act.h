@@ -204,6 +204,7 @@ ACMD(do_leave);
 ACMD(do_move);
 ACMD(do_rest);
 ACMD(do_sit);
+ACMD(do_recline);
 ACMD(do_sleep);
 ACMD(do_stand);
 ACMD(do_wake);
@@ -223,6 +224,14 @@ void perform_assist(struct char_data *ch, struct char_data *helpee);
 ACMD(do_hit);
 #define SCMD_HIT    0
 /* Functions without subcommands */
+ACMD(do_hitall);
+ACMD(do_charge);
+ACMD(do_bodyslam);
+ACMD(do_springleap);
+ACMD(do_headbutt);
+ACMD(do_shieldpunch);
+ACMD(do_dirtkick);
+ACMD(do_sap);
 ACMD(do_assist);
 ACMD(do_rage);
 ACMD(do_spellbattle);

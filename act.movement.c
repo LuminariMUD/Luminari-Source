@@ -27,10 +27,6 @@
 #include "mud_event.h"
 #include "hlquest.h"
 
-/* local only functions */
-
-/* do_simple_move utility functions */
-
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
         const char *cmdname);
@@ -40,15 +36,43 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door,
 static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof,
         int scmd);
 
-// external
-void dismount_char(struct char_data * ch);
-void mount_char(struct char_data *ch, struct char_data *mount);
 
 
+/***** start file body *****/
 
 
+/* checks if target ch is first-in-line in singlefile room */
+bool is_top_of_room_for_singlefile(struct char_data *ch, int dir) {
+  bool exit = FALSE;
+  int i;
+  
+  for (i = 0; i < 6; i++) {
+    if (EXIT(ch, i)) {
+      if (exit == FALSE && dir == i)
+        return TRUE;
+      exit = TRUE;
+    }
+  }
+  return FALSE;
+}
 
+/* function to find which char is ahead of the next
+   in a singlefile room */
+struct char_data *get_char_ahead_of_me(struct char_data *ch, int dir) {
+  struct char_data *tmp;
+  
+  if (is_top_of_room_for_singlefile(ch, dir)) {
+    tmp = world[ch->in_room].people;
+    while (tmp) {
+      if (tmp->next_in_room == ch)
+        return tmp;
+      tmp = tmp->next_in_room;
+    }
+    return 0;
 
+  }
+  return ch->next_in_room;
+}
 
 /* falling system */
 
@@ -139,7 +163,7 @@ EVENTFUNC(event_falling)
     int dam = dice((height_fallen/5), 6) + 20;
     send_to_char(ch, "You fall headfirst to the ground!  OUCH!\r\n");
     act("$n crashes into the ground headfirst, OUCH!", FALSE, ch, 0, 0, TO_ROOM);
-    GET_POS(ch) = POS_SITTING;
+    GET_POS(ch) = POS_RECLINING;
     SET_WAIT(ch, 4 * PULSE_VIOLENCE);
     /* we have a special situation if you die, the event will get cleared */
 
@@ -318,7 +342,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   struct char_data *tch = NULL, *next_tch = NULL;
   // for mount code
   int same_room = 0, riding = 0, ridden_by = 0;
+  /* extra buffer */
   char buf2[MAX_STRING_LENGTH] = {'\0'};
+  /* singlefile variables */
+  struct char_data *other;
+  struct char_data **prev;
+  bool was_top = TRUE;
 
   /*---------------------------------------------------------------------*/
   /* End Local variable definitions */
@@ -374,6 +403,80 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     return 0;
   }
 
+  /* begin singlefile mechanic */
+  
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+    other = get_char_ahead_of_me(ch, dir);
+    if (other && RIDING(other) != ch && RIDDEN_BY(other) != ch) {
+      if (GET_POS(other) == POS_RECLINING) {
+        was_top = is_top_of_room_for_singlefile(ch, dir);
+        prev = &world[ch->in_room].people;
+        while (*prev) {
+          if (*prev == ch) {
+            *prev = ch->next_in_room;
+            ch->next_in_room = 0;
+          }
+          if (*prev)
+            prev = &((*prev)->next_in_room);
+        }
+
+        prev = &world[ch->in_room].people;
+        if (was_top) {
+          while (*prev) {
+            if (*prev == other) {
+              *prev = ch;
+              ch->next_in_room = other;
+            }
+            prev = &((*prev)->next_in_room);
+          }
+        } else {
+          ch->next_in_room = other->next_in_room;
+          other->next_in_room = ch;
+        }
+        act("You clamber over the prone body of $N.", FALSE, ch, 0, other, TO_CHAR);
+        act("$n clambers over YOU.", FALSE, ch, 0, other, TO_VICT);
+        act("$n crawls over the prone body of $N.", FALSE, ch, 0, other, TO_NOTVICT);
+        return 0;
+      } else
+        if (GET_POS(ch) == POS_RECLINING && GET_POS(other) >= POS_FIGHTING
+              && FIGHTING(ch) != other && FIGHTING(other) != ch) {
+        was_top = is_top_of_room_for_singlefile(ch, dir);
+        prev = &world[ch->in_room].people;
+        while (*prev) {
+          if (*prev == ch) {
+            *prev = ch->next_in_room;
+            ch->next_in_room = 0;
+          }
+          if (*prev)
+            prev = &((*prev)->next_in_room);
+
+        }
+
+        prev = &world[ch->in_room].people;
+        if (was_top) {
+          while (*prev) {
+            if (*prev == other) {
+              *prev = ch;
+              ch->next_in_room = other;
+            }
+            prev = &((*prev)->next_in_room);
+          }
+        } else {
+          ch->next_in_room = other->next_in_room;
+          other->next_in_room = ch;
+        }
+        act("You crawl under $N.", FALSE, ch, 0, other, TO_CHAR);
+        act("$n crawls under YOU.", FALSE, ch, 0, other, TO_VICT);
+        act("$n crawls below $N.", FALSE, ch, 0, other, TO_NOTVICT);
+        return 0;
+      } else {
+        act("You bump into $N.", FALSE, ch, 0, other, TO_CHAR);
+        return 0;
+      }
+    }
+  }
+  /* end singlefile mechanic */
+  
   /* Charm effect: Does it override the movement? */
   /*
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master
@@ -1632,6 +1735,13 @@ ACMD(do_stand) {
       /* Were they sitting in something. */
       char_from_furniture(ch);
       break;
+    case POS_RECLINING:
+      send_to_char(ch, "You stop reclining, and stand up.\r\n");
+      act("$n stops reclining, and clambers on $s feet.", TRUE, ch, 0, 0, TO_ROOM);
+      GET_POS(ch) = POS_STANDING;
+      /* Were they sitting in something. */
+      char_from_furniture(ch);
+      break;
     case POS_SLEEPING:
       send_to_char(ch, "You have to wake up first!\r\n");
       break;
@@ -1705,11 +1815,17 @@ ACMD(do_sit) {
       act("$n stops resting.", TRUE, ch, 0, 0, TO_ROOM);
       GET_POS(ch) = POS_SITTING;
       break;
+    case POS_RECLINING:
+      send_to_char(ch, "You stop reclining, and sit up.\r\n");
+      act("$n stops reclining and sits up.", TRUE, ch, 0, 0, TO_ROOM);
+      GET_POS(ch) = POS_SITTING;
+      break;
     case POS_SLEEPING:
       send_to_char(ch, "You have to wake up first.\r\n");
       break;
     case POS_FIGHTING:
-      send_to_char(ch, "Sit down while fighting? Are you MAD?\r\n");
+      send_to_char(ch, "You drop down in a low squat!\r\n");
+      GET_POS(ch) = POS_SITTING;
       break;
     default:
       send_to_char(ch, "You stop floating around, and sit down.\r\n");
@@ -1734,6 +1850,11 @@ ACMD(do_rest) {
     case POS_RESTING:
       send_to_char(ch, "You are already resting.\r\n");
       break;
+    case POS_RECLINING:
+      send_to_char(ch, "You sit up slowly.\r\n");
+      act("$n sits up slowly.", TRUE, ch, 0, 0, TO_ROOM);
+      GET_POS(ch) = POS_RESTING;
+      break;
     case POS_SLEEPING:
       send_to_char(ch, "You have to wake up first.\r\n");
       break;
@@ -1748,11 +1869,47 @@ ACMD(do_rest) {
   }
 }
 
+ACMD(do_recline) {
+  switch (GET_POS(ch)) {
+    case POS_STANDING:
+      send_to_char(ch, "You lay down and rest your tired bones.\r\n");
+      act("$n lays down and rests.", TRUE, ch, 0, 0, TO_ROOM);
+      GET_POS(ch) = POS_RECLINING;
+      break;
+    case POS_SITTING:
+      send_to_char(ch, "You shift to a lying position.\r\n");
+      act("$n shifts to a lying position.", TRUE, ch, 0, 0, TO_ROOM);
+      GET_POS(ch) = POS_RECLINING;
+      break;
+    case POS_RESTING:
+      send_to_char(ch, "You lie down and continue resting.\r\n");
+      act("$n lays down.", TRUE, ch, 0, 0, TO_ROOM);
+      GET_POS(ch) = POS_RECLINING;
+      break;
+    case POS_RECLINING:
+      send_to_char(ch, "You are already reclining.\r\n");
+      break;
+    case POS_SLEEPING:
+      send_to_char(ch, "You have to wake up first.\r\n");
+      break;
+    case POS_FIGHTING:
+      send_to_char(ch, "You drop down to your stomach!\r\n");
+      GET_POS(ch) = POS_RECLINING;
+      break;
+    default:
+      send_to_char(ch, "You stop floating around, and recline on the ground.\r\n");
+      act("$n stops floating around, and reclines.", FALSE, ch, 0, 0, TO_ROOM);
+      GET_POS(ch) = POS_RECLINING;
+      break;
+  }
+}
+
 ACMD(do_sleep) {
   switch (GET_POS(ch)) {
     case POS_STANDING:
     case POS_SITTING:
     case POS_RESTING:
+    case POS_RECLINING:
       send_to_char(ch, "You go to sleep.\r\n");
       act("$n lies down and falls asleep.", TRUE, ch, 0, 0, TO_ROOM);
       GET_POS(ch) = POS_SLEEPING;
@@ -1794,7 +1951,7 @@ ACMD(do_wake) {
     else {
       act("You wake $M up.", FALSE, ch, 0, vict, TO_CHAR);
       act("You are awakened by $n.", FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
-      GET_POS(vict) = POS_SITTING;
+      GET_POS(vict) = POS_RECLINING;
     }
     if (!self)
       return;
@@ -1804,9 +1961,9 @@ ACMD(do_wake) {
   else if (GET_POS(ch) > POS_SLEEPING)
     send_to_char(ch, "You are already awake...\r\n");
   else {
-    send_to_char(ch, "You awaken, and sit up.\r\n");
+    send_to_char(ch, "You awaken.\r\n");
     act("$n awakens.", TRUE, ch, 0, 0, TO_ROOM);
-    GET_POS(ch) = POS_SITTING;
+    GET_POS(ch) = POS_RECLINING;
   }
 }
 

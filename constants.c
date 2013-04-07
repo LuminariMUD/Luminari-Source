@@ -287,6 +287,7 @@ const char *position_types[NUM_POSITIONS + 1] = {
   "Incapacitated",
   "Stunned",
   "Sleeping",
+  "Reclining",
   "Resting",
   "Sitting",
   "Fighting",
@@ -488,6 +489,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Inertial-Barrier",
   "Not-teleportable",  //75
   "DamageBoost",  // AFF_MAX_DAMAGE
+  "Incorporeal",
   "\n"
 };
 
