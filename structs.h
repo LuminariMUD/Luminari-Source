@@ -103,13 +103,14 @@
 /* working on these */
 #define ROOM_MAGICDARK     22  /* pitch black, not lightable */
 #define ROOM_MAGICLIGHT    23  /* lit */
-/****/
+/** done **/
 #define ROOM_NOSUMMON      24  /* no summoning from/to this room */
 #define ROOM_NOHEAL        25  /* all regen stops in this room */
 #define ROOM_NOFLY         26  /* can't fly in this room */
 /* working on these */
 #define ROOM_FOG           27  /* fogged (hamper vision/stops daylight) */
 #define ROOM_AIRY          28  /* airy (breathe underwater) */
+/* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
 #define NUM_ROOM_FLAGS     29
@@ -153,27 +154,52 @@
 #define NUM_EXIT_BITS  5
 
 /* Sector types: used in room_data.sector_type */
-#define SECT_INSIDE          0		/**< Indoors, connected to SECT macro. */
-#define SECT_CITY            1		/**< In a city			*/
-#define SECT_FIELD           2		/**< In a field		*/
-#define SECT_FOREST          3		/**< In a forest		*/
-#define SECT_HILLS           4		/**< In the hills		*/
-#define SECT_MOUNTAIN        5		/**< On a mountain		*/
-#define SECT_WATER_SWIM      6		/**< Swimmable water		*/
-#define SECT_WATER_NOSWIM    7		/**< Water - need a boat	*/
-#define SECT_FLYING	         8		/**< Flying			*/
-#define SECT_UNDERWATER	    9		/**< Underwater		*/
-#define SECT_ZONE_START	    10		// zone start (for asciimap)
-#define SECT_ROAD_NS         11	// road runing north-south
-#define SECT_ROAD_EW         12	// road running east-north
-#define SECT_ROAD_INT        13	// road intersection
-#define SECT_DESERT          14	// desert
-#define SECT_OCEAN           15
-#define SECT_MARSHLAND       16
-#define SECT_HIGH_MOUNTAIN   17
-#define SECT_PLANES          18
+#define SECT_INSIDE          0  /**< Indoors, connected to SECT macro. */
+#define SECT_CITY            1  /**< In a city			*/
+#define SECT_FIELD           2  /**< In a field		*/
+#define SECT_FOREST          3  /**< In a forest		*/
+#define SECT_HILLS           4  /**< In the hills		*/
+#define SECT_MOUNTAIN        5  /**< On a mountain		*/
+#define SECT_WATER_SWIM      6  /**< Swimmable water		*/
+#define SECT_WATER_NOSWIM    7  /**< Water - need a boat	*/
+#define SECT_FLYING	         8  /**< Flying			*/
+#define SECT_UNDERWATER	    9  /**< Underwater		*/
+#define SECT_ZONE_START	    10  // zone start (for asciimap)
+#define SECT_ROAD_NS         11  // road runing north-south
+#define SECT_ROAD_EW         12  // road running east-north
+#define SECT_ROAD_INT        13  // road intersection
+#define SECT_DESERT          14  // desert
+#define SECT_OCEAN           15  // ocean (ships only, unfinished)
+#define SECT_MARSHLAND       16  // marsh/swamps
+#define SECT_HIGH_MOUNTAIN   17  // mountains (climb only)
+/* unfinished below this line */
+#define SECT_PLANES          18  // non-prime (unfinished)
+#define SECT_UD_WILD         19  // the outdoors of the underdark
+#define SECT_UD_CITY	    20  // city in the underdark
+#define SECT_UD_INSIDE 	    21  // inside in the underdark
+#define SECT_UD_WATER	    22  // water in the underdark
+#define SECT_UD_NOSWIM	    23  // water, boat needed, in the underdark
+#define SECT_UD_NOGROUND     24  // chasm in the underdark (Flying)
+#define SECT_LAVA	         25  // lava (damaging)
+
 /** The total number of room Sector Types */
-#define NUM_ROOM_SECTORS     19
+#define NUM_ROOM_SECTORS     26
+
+/* homeland conversion reference */
+/*
+#define SECT_AIR_PLANE	    SECT_PLANES   (18)
+#define SECT_ASTRAL_PLANE    SECT_PLANES   (18)
+#define SECT_EARTH_PLANE     SECT_PLANES   (18)
+#define SECT_ETHEREAL	    SECT_PLANES   (18)
+#define SECT_ICE_PLANE	    SECT_PLANES   (18)
+#define SECT_LONG_ROAD	    SECT_ROAD_INT (13)
+#define SECT_SHIPREQUIRED    SECT_OCEAN    (15)
+#define SECT_WATER_PLANE     SECT_PLANES   (18)
+#define SECT_CLOUDS          SECT_PLANES   (18)
+#define SECT_SHADOWPLANE     SECT_PLANES   (18)
+#define SECT_LIGHTNING       SECT_PLANES   (18)
+#define SECT_PASSION         SECT_INSIDE   (0)
+*/
 
 /* char and mob-related defines */
 
@@ -463,9 +489,28 @@
 #define MOB_C_MOUNT        28
 #define MOB_ELEMENTAL      29
 #define MOB_ANIMATED_DEAD  30
-/**********************/
-#define NUM_MOB_FLAGS      31
+/* below this line unfinished */
+#define MOB_GUARD          31  /* will protect citizen */
+#define MOB_CITIZEN	       32  /* will be protected by guard */
+#define MOB_HUNTER         33  /* will track down memory targets */
+#define MOB_LISTEN         34  /* will enter room if hearing fighting */
+#define MOB_LIT            35  /* light up mob */
+#define MOB_PLANAR_ALLY    36  /* is a planar ally */
+#define MOB_NOSTEAL        37  /* Can't steal from mob*/
 
+/**********************/
+#define NUM_MOB_FLAGS      38
+
+/* keeping this temporarily for homeland-port reference */
+/*
+#define MOB_AGGR_EVILRACE    MOB_AGGR_EVIL     (8)
+#define MOB_AGGR_GOODRACE    MOB_AGGR_EVIL     (9)
+#define MOB_MENTAL	         MOB_ELEMENTAL     (29)
+#define MOB_FAMILIAR	    MOB_C_FAMILIAR    (27)
+#define MOB_NORMAL_PET       MOB_C_ANIMAL      (26)
+#define MOB_CLASS_MOUNT      MOB_C_MOUNT       (28)
+#define MOB_AGGR_NEUTRACE    MOB_AGGR_NEUTRAL  (10)
+*/
 
 /* Preference flags: used by char_data.player_specials.pref */
 #define PRF_BRIEF         0   /**< Room descs won't normally be shown */
@@ -529,6 +574,7 @@
 #define AFF_PROTECT_EVIL     13   /**< Char protected from evil */
 #define AFF_PROTECT_GOOD     14   /**< Char protected from good */
 #define AFF_SLEEP            15   /**< (R) Char magically asleep */
+
 #define AFF_NOTRACK          16   /**< Char can't be tracked */
 #define AFF_FLYING           17   /**< Char is flying */
 #define AFF_SCUBA            18   /**< Room for future expansion */
