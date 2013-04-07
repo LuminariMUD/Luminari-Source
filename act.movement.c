@@ -404,7 +404,6 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
 
   /* begin singlefile mechanic */
-  
   if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
     other = get_char_ahead_of_me(ch, dir);
     if (other && RIDING(other) != ch && RIDDEN_BY(other) != ch) {
@@ -433,9 +432,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
           ch->next_in_room = other->next_in_room;
           other->next_in_room = ch;
         }
-        act("You clamber over the prone body of $N.", FALSE, ch, 0, other, TO_CHAR);
-        act("$n clambers over YOU.", FALSE, ch, 0, other, TO_VICT);
-        act("$n crawls over the prone body of $N.", FALSE, ch, 0, other, TO_NOTVICT);
+        act("You squeeze by the prone body of $N.", FALSE, ch, 0, other, TO_CHAR);
+        act("$n squeezes by YOU.", FALSE, ch, 0, other, TO_VICT);
+        act("$n squeeze by the prone body of $N.", FALSE, ch, 0, other, TO_NOTVICT);
         return 0;
       } else
         if (GET_POS(ch) == POS_RECLINING && GET_POS(other) >= POS_FIGHTING
@@ -464,9 +463,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
           ch->next_in_room = other->next_in_room;
           other->next_in_room = ch;
         }
-        act("You crawl under $N.", FALSE, ch, 0, other, TO_CHAR);
-        act("$n crawls under YOU.", FALSE, ch, 0, other, TO_VICT);
-        act("$n crawls below $N.", FALSE, ch, 0, other, TO_NOTVICT);
+        act("You crawl by $N.", FALSE, ch, 0, other, TO_CHAR);
+        act("$n crawls by YOU.", FALSE, ch, 0, other, TO_VICT);
+        act("$n crawls by $N.", FALSE, ch, 0, other, TO_NOTVICT);
         return 0;
       } else {
         act("You bump into $N.", FALSE, ch, 0, other, TO_CHAR);
@@ -690,6 +689,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /*****/
   /* Generate the leave message(s) and display to others in the was_in room. */
   /*****/
+  
+  /* silly to keep people reclining when they leave a room */
+  if (GET_POS(ch) == POS_RECLINING) {
+    send_to_char(ch, "You move from a crawling position to standing as you leave the area.\r\n");
+    GET_POS(ch) = POS_STANDING;
+  }
 
   /* scenario:  mounted char */
   if (riding) {
@@ -960,6 +965,16 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     return 0;
   }
 
+  /* char moved from room, so shift everything around */
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE) && 
+          !is_top_of_room_for_singlefile(ch, rev_dir[dir])) {
+    world[ch->in_room].people = ch->next_in_room;
+    prev = &world[ch->in_room].people;
+    while (*prev)
+      prev = &((*prev)->next_in_room);
+    *prev = ch;
+    ch->next_in_room = NULL;
+  }
 
   /* ... and the room description to the character. */
   if (ch->desc != NULL) {
