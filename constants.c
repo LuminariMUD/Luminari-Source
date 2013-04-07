@@ -282,12 +282,12 @@ const char *genders[NUM_GENDERS + 1] =
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *position_types[NUM_POSITIONS + 1] = {
-  "Dead",
+  "Dead",  //0
   "Mortally wounded",
   "Incapacitated",
   "Stunned",
   "Sleeping",
-  "Reclining",
+  "Reclining",  //5
   "Resting",
   "Sitting",
   "Fighting",
