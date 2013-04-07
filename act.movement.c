@@ -449,7 +449,6 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
           }
           if (*prev)
             prev = &((*prev)->next_in_room);
-
         }
 
         prev = &world[ch->in_room].people;
@@ -1195,6 +1194,13 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check) {
 }
 
 ACMD(do_move) {
+  
+  /* this test added for newer reclining position */
+  if (GET_POS(ch) == POS_SITTING || GET_POS(ch) == POS_RESTING) {
+    send_to_char(ch, "You have to be standing or reclining to move.\r\n");
+    return;
+  }
+  
   /* These subcmd defines are mapped precisely to the direction defines. */
   perform_move(ch, subcmd, 0);
 }
