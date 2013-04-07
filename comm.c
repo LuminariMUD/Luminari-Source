@@ -1178,13 +1178,16 @@ void pulse_luminari() {
   }  // end char list loop
 }
 
-/* added this for falling event */
+/* added this for falling event 
+ * 04/07/13 - added position check since pos_fighting is deprecated */
 void death_check() {
   struct char_data *i = NULL;
   
   for (i = character_list; i; i = i->next) {
     if (GET_HIT(i) <= -12)
       damage(i, i, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
+    if (GET_POS(i) == POS_FIGHTING && !FIGHTING(i))
+      GET_POS(i) = POS_STANDING;
   }
 }
 
