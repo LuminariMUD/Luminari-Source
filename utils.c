@@ -1,14 +1,14 @@
 /**
-* @file utils.c
-* Various utility functions used within the core mud code.
-*
-* Part of the core tbaMUD source code distribution, which is a derivative
-* of, and continuation of, CircleMUD.
-*
-* All rights reserved.  See license for complete information.
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
-*/
+ * @file utils.c
+ * Various utility functions used within the core mud code.
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * All rights reserved.  See license for complete information.
+ * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+ * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
+ */
 
 #include "conf.h"
 #include "sysdep.h"
@@ -38,12 +38,13 @@
 
 
 /* Ils: color code counter */
+
 /* homeland-port */
 int color_count(char *bufptr) {
   int count = 0;
   char *temp = bufptr;
 
-  while((temp = strchr(temp, '@')) != NULL) {
+  while ((temp = strchr(temp, '@')) != NULL) {
     if (*(temp + 1) == '@') {
       count++; /* adjust count 1 char for every && */
       temp++; /* point to char after 2nd && */
@@ -51,7 +52,7 @@ int color_count(char *bufptr) {
       count += 2; /* adjust count by 3 for every color change */
       temp++; /* point to char after color codes */
     }
-    if(*temp == '\0')
+    if (*temp == '\0')
       break;
   }
 
@@ -112,20 +113,20 @@ bool has_undead_follower(struct char_data *ch) {
 int compute_arcana_golem_level(struct char_data *ch) {
   if (!ch)
     return 0;
-  
+
   if (IS_NPC(ch))
     return 0;
-  
+
   if (GET_RACE(ch) != RACE_ARCANA_GOLEM)
     return 0;
-  
-  return ((int)(GET_LEVEL(ch) / 6));
+
+  return ((int) (GET_LEVEL(ch) / 6));
 }
 
 /* function to check if a char (ranger) has given favored enemy (race) */
 bool is_fav_enemy_of(struct char_data *ch, int race) {
   int i = 0;
-  
+
   for (i = 0; i < MAX_ENEMIES; i++) {
     if (GET_FAVORED_ENEMY(ch, i) == race)
       return TRUE;
@@ -147,19 +148,17 @@ char * a_or_an(char *string) {
   return "a";
 }
 
-
 /* function for sneak-check
  * ch = listener (challenge), vict = sneaker (DC)
  */
-bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict)
-{
+bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict) {
   /* free passes */
   if (!AFF_FLAGGED(vict, AFF_SNEAK))
     return TRUE;
-  
-        /* do listen check here */
-  bool can_hear = FALSE, challenge = dice(1,20), dc = (dice(1,20) + 10);
-  
+
+  /* do listen check here */
+  bool can_hear = FALSE, challenge = dice(1, 20), dc = (dice(1, 20) + 10);
+
   //challenger bonuses/penalty (ch)
   if (!IS_NPC(ch)) {
     challenge += compute_ability(ch, ABILITY_LISTEN);
@@ -167,37 +166,35 @@ bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict)
     challenge += GET_LEVEL(ch);
   if (AFF_FLAGGED(ch, AFF_LISTEN))
     challenge += 10;
-  
+
   //hider bonus/penalties (vict)
   if (!IS_NPC(vict)) {
-    dc += compute_ability((struct char_data *)vict, ABILITY_SNEAK);
+    dc += compute_ability((struct char_data *) vict, ABILITY_SNEAK);
     if (IN_NATURE(vict) && GET_SKILL(vict, SKILL_NATURE_STEP)) {
       dc += 4;
-      increase_skill((struct char_data *)vict, SKILL_NATURE_STEP);      
+      increase_skill((struct char_data *) vict, SKILL_NATURE_STEP);
     }
   } else
     dc += GET_LEVEL(vict);
-  dc += (GET_SIZE(ch) - GET_SIZE(vict)) * 2;  //size bonus
+  dc += (GET_SIZE(ch) - GET_SIZE(vict)) * 2; //size bonus
 
   if (challenge > dc)
     can_hear = TRUE;
-  
+
   return (can_hear);
 }
-
 
 /* function for hide-check
  * ch = spotter (challenge), vict = hider (DC)
  */
-bool can_see_hidden(struct char_data *ch, const struct char_data *vict)
-{
+bool can_see_hidden(struct char_data *ch, const struct char_data *vict) {
   /* free passes */
   if (!AFF_FLAGGED(vict, AFF_HIDE) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
     return TRUE;
-  
-        /* do spot check here */
-  bool can_see = FALSE, challenge = dice(1,20), dc = (dice(1,20) + 10);
-  
+
+  /* do spot check here */
+  bool can_see = FALSE, challenge = dice(1, 20), dc = (dice(1, 20) + 10);
+
   //challenger bonuses/penalty (ch)
   if (!IS_NPC(ch))
     challenge += compute_ability(ch, ABILITY_SPOT);
@@ -205,21 +202,21 @@ bool can_see_hidden(struct char_data *ch, const struct char_data *vict)
     challenge += GET_LEVEL(ch);
   if (AFF_FLAGGED(ch, AFF_SPOT))
     challenge += 10;
-  
+
   //hider bonus/penalties (vict)
   if (!IS_NPC(vict)) {
-    dc += compute_ability((struct char_data *)vict, ABILITY_HIDE);
+    dc += compute_ability((struct char_data *) vict, ABILITY_HIDE);
     if (IN_NATURE(vict) && GET_SKILL(vict, SKILL_NATURE_STEP)) {
       dc += 4;
-      increase_skill((struct char_data *)vict, SKILL_NATURE_STEP);      
+      increase_skill((struct char_data *) vict, SKILL_NATURE_STEP);
     }
   } else
     dc += GET_LEVEL(vict);
-  dc += (GET_SIZE(ch) - GET_SIZE(vict)) * 2;  //size bonus
+  dc += (GET_SIZE(ch) - GET_SIZE(vict)) * 2; //size bonus
 
   if (challenge > dc)
     can_see = TRUE;
-  
+
   return (can_see);
 }
 
@@ -236,10 +233,10 @@ bool can_see_hidden(struct char_data *ch, const struct char_data *vict)
 #define PASS 2000
 /* this define is for crafting skills, they increase much easier */
 #define C_SKILL 30
-void increase_skill(struct char_data *ch, int skillnum)
-{
+
+void increase_skill(struct char_data *ch, int skillnum) {
   int notched = FALSE;
-  
+
   //if the skill isn't learned or is mastered, don't adjust
   if (GET_SKILL(ch, skillnum) <= 0 || GET_SKILL(ch, skillnum >= 99))
     return;
@@ -248,8 +245,8 @@ void increase_skill(struct char_data *ch, int skillnum)
   int use = rand_number(0, USE);
   int pass = rand_number(0, PASS);
 
-  switch(skillnum) {
-    
+  switch (skillnum) {
+
     case SKILL_WILDSHAPE:
       if (!use) {
         notched = TRUE;
@@ -262,8 +259,8 @@ void increase_skill(struct char_data *ch, int skillnum)
         GET_SKILL(ch, skillnum)++;
       }
       break;
-      
-    /* crafting skills */
+
+      /* crafting skills */
     case SKILL_MINING:
       if (!c_skill) {
         notched = TRUE;
@@ -323,7 +320,7 @@ void increase_skill(struct char_data *ch, int skillnum)
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
-      break;    
+      break;
     case SKILL_BONE_ARMOR:
       if (!pass) {
         notched = TRUE;
@@ -354,8 +351,8 @@ void increase_skill(struct char_data *ch, int skillnum)
         GET_SKILL(ch, skillnum)++;
       }
       break;
-    /* end crafting */
-      
+      /* end crafting */
+
     case SKILL_PERFORM:
       if (!pass) {
         notched = TRUE;
@@ -937,22 +934,20 @@ void increase_skill(struct char_data *ch, int skillnum)
               spell_info[skillnum].name);
       return;
   }
-  
+
   if (notched)
     send_to_char(ch, "\tMYou feel your skill in \tC%s\tM improve!\tn\r\n",
-            spell_info[skillnum].name);
+          spell_info[skillnum].name);
   return;
 }
 #undef USE
 #undef PASS
 
-
 /** A portable random number function.
  * @param from The lower bounds of the random number.
  * @param to The upper bounds of the random number.
  * @retval int The resulting randomly generated number. */
-int rand_number(int from, int to)
-{
+int rand_number(int from, int to) {
   /* error checking in case people call this incorrectly */
   if (from > to) {
     int tmp = from;
@@ -974,8 +969,7 @@ int rand_number(int from, int to)
  * @param from The lower bounds of the random number.
  * @param to The upper bounds of the random number.
  * @retval int The resulting randomly generated number. */
-float rand_float(float from, float to)
-{
+float rand_float(float from, float to) {
   float ret;
   /* error checking in case people call this incorrectly */
   if (from > to) {
@@ -1002,8 +996,7 @@ float rand_float(float from, float to)
  * @param size The number of sides each die has, and hence the number range
  * of the die.
  * @retval int The sum of all the dice rolled. A random number. */
-int dice(int num, int size)
-{
+int dice(int num, int size) {
   int sum = 0;
 
   if (size <= 0 || num <= 0)
@@ -1019,13 +1012,11 @@ int dice(int num, int size)
  * @param a The first number.
  * @param b The second number.
  * @retval int The smaller of the two, a or b. */
-int MIN(int a, int b)
-{
+int MIN(int a, int b) {
   return (a < b ? a : b);
 }
 
-float FLOATMIN(float a, float b)
-{
+float FLOATMIN(float a, float b) {
   return (a < b ? a : b);
 }
 
@@ -1033,30 +1024,27 @@ float FLOATMIN(float a, float b)
  * @param a The first number.
  * @param b The second number.
  * @retval int The larger of the two, a or b. */
-int MAX(int a, int b)
-{
+int MAX(int a, int b) {
   return (a > b ? a : b);
 }
 
-float FLOATMAX(float a, float b)
-{
+float FLOATMAX(float a, float b) {
   return (a > b ? a : b);
 }
 
 /** Used to capitalize a string. Will not change any mud specific color codes.
  * @param txt The string to capitalize.
  * @retval char* Pointer to the capitalized string. */
-char *CAP(char *txt)
-{
+char *CAP(char *txt) {
   char *p = txt;
 
   /* Skip all preceeding color codes and ANSI codes */
-  while ((*p == '\t' && *(p+1)) || (*p == '\x1B' && *(p+1) == '[')) {
-    if (*p == '\t') p += 2;  /* Skip \t sign and color letter/number */
+  while ((*p == '\t' && *(p + 1)) || (*p == '\x1B' && *(p + 1) == '[')) {
+    if (*p == '\t') p += 2; /* Skip \t sign and color letter/number */
     else {
-      p += 2;                          /* Skip the CSI section of the ANSI code */
-      while (*p && !isalpha(*p)) p++;  /* Skip until a 'letter' is found */
-      if (*p) p++;                     /* Skip the letter */
+      p += 2; /* Skip the CSI section of the ANSI code */
+      while (*p && !isalpha(*p)) p++; /* Skip until a 'letter' is found */
+      if (*p) p++; /* Skip the letter */
     }
   }
 
@@ -1066,6 +1054,7 @@ char *CAP(char *txt)
 }
 
 #if !defined(HAVE_STRLCPY)
+
 /** A 'strlcpy' function in the same fashion as 'strdup' below. This copies up
  * to totalsize - 1 bytes from the source string, placing them and a trailing
  * NUL into the destination string. Returns the total length of the string it
@@ -1073,18 +1062,17 @@ char *CAP(char *txt)
  * says it was truncated. (Note that you may have _expected_ truncation
  * because you only wanted a few characters from the source string.) Portable
  * function, in case your system does not have strlcpy. */
-size_t strlcpy(char *dest, const char *source, size_t totalsize)
-{
-  strncpy(dest, source, totalsize - 1);	/* strncpy: OK (we must assume 'totalsize' is correct) */
+size_t strlcpy(char *dest, const char *source, size_t totalsize) {
+  strncpy(dest, source, totalsize - 1); /* strncpy: OK (we must assume 'totalsize' is correct) */
   dest[totalsize - 1] = '\0';
   return strlen(source);
 }
 #endif
 
 #if !defined(HAVE_STRDUP)
+
 /** Create a duplicate of a string function. Portable. */
-char *strdup(const char *source)
-{
+char *strdup(const char *source) {
   char *new_z;
 
   CREATE(new_z, char, strlen(source) + 1);
@@ -1096,8 +1084,7 @@ char *strdup(const char *source)
  * "\r\n" values to the string.
  * @post Replaces any "\r\n" values at the end of the string with null.
  * @param txt The writable string to prune. */
-void prune_crlf(char *txt)
-{
+void prune_crlf(char *txt) {
   int i = strlen(txt) - 1;
 
   while (txt[i] == '\n' || txt[i] == '\r')
@@ -1105,11 +1092,11 @@ void prune_crlf(char *txt)
 }
 
 #ifndef str_cmp
+
 /** a portable, case-insensitive version of strcmp(). Returns: 0 if equal, > 0
  * if arg1 > arg2, or < 0 if arg1 < arg2. Scan until strings are found
  * different or we reach the end of both. */
-int str_cmp(const char *arg1, const char *arg2)
-{
+int str_cmp(const char *arg1, const char *arg2) {
   int chk, i;
 
   if (arg1 == NULL || arg2 == NULL) {
@@ -1119,18 +1106,18 @@ int str_cmp(const char *arg1, const char *arg2)
 
   for (i = 0; arg1[i] || arg2[i]; i++)
     if ((chk = LOWER(arg1[i]) - LOWER(arg2[i])) != 0)
-      return (chk);	/* not equal */
+      return (chk); /* not equal */
 
   return (0);
 }
 #endif
 
 #ifndef strn_cmp
+
 /** a portable, case-insensitive version of strncmp(). Returns: 0 if equal, > 0
  * if arg1 > arg2, or < 0 if arg1 < arg2. Scan until strings are found
  * different, the end of both, or n is reached. */
-int strn_cmp(const char *arg1, const char *arg2, int n)
-{
+int strn_cmp(const char *arg1, const char *arg2, int n) {
   int chk, i;
 
   if (arg1 == NULL || arg2 == NULL) {
@@ -1140,7 +1127,7 @@ int strn_cmp(const char *arg1, const char *arg2, int n)
 
   for (i = 0; (arg1[i] || arg2[i]) && (n > 0); i++, n--)
     if ((chk = LOWER(arg1[i]) - LOWER(arg2[i])) != 0)
-      return (chk);	/* not equal */
+      return (chk); /* not equal */
 
   return (0);
 }
@@ -1153,8 +1140,7 @@ int strn_cmp(const char *arg1, const char *arg2, int n)
  * @param format The message to log. Standard printf formatting and variable
  * arguments are allowed.
  * @param args The comma delimited, variable substitutions to make in str. */
-void basic_mud_vlog(const char *format, va_list args)
-{
+void basic_mud_vlog(const char *format, va_list args) {
   time_t ct = time(0);
   char *time_s = asctime(localtime(&ct));
 
@@ -1181,8 +1167,7 @@ void basic_mud_vlog(const char *format, va_list args)
  * @param format The message to log. Standard printf formatting and variable
  * arguments are allowed.
  * @param ... The comma delimited, variable substitutions to make in str. */
-void basic_mud_log(const char *format, ...)
-{
+void basic_mud_log(const char *format, ...) {
   va_list args;
 
   va_start(args, format);
@@ -1196,8 +1181,7 @@ void basic_mud_log(const char *format, ...)
  * directory relative to the root of the mud distribution.
  * @retval int 0 on a success, -1 on a failure; standard system call exit
  * values. */
-int touch(const char *path)
-{
+int touch(const char *path) {
   FILE *fl;
 
   if (!(fl = fopen(path, "a"))) {
@@ -1219,14 +1203,13 @@ int touch(const char *path)
  * @param str The message to log. Standard printf formatting and variable
  * arguments are allowed.
  * @param ... The comma delimited, variable substitutions to make in str. */
-void mudlog(int type, int level, int file, const char *str, ...)
-{
+void mudlog(int type, int level, int file, const char *str, ...) {
   char buf[MAX_STRING_LENGTH];
   struct descriptor_data *i;
   va_list args;
 
   if (str == NULL)
-    return;	/* eh, oh well. */
+    return; /* eh, oh well. */
 
   if (file) {
     va_start(args, str);
@@ -1237,11 +1220,11 @@ void mudlog(int type, int level, int file, const char *str, ...)
   if (level < 0)
     return;
 
-  strcpy(buf, "[ ");	/* strcpy: OK */
+  strcpy(buf, "[ "); /* strcpy: OK */
   va_start(args, str);
-  vsnprintf(buf + 2, sizeof(buf) - 6, str, args);
+  vsnprintf(buf + 2, sizeof (buf) - 6, str, args);
   va_end(args);
-  strcat(buf, " ]\r\n");	/* strcat: OK */
+  strcat(buf, " ]\r\n"); /* strcat: OK */
 
   for (i = descriptor_list; i; i = i->next) {
     if (STATE(i) != CON_PLAYING || IS_NPC(i->character)) /* switch */
@@ -1256,8 +1239,6 @@ void mudlog(int type, int level, int file, const char *str, ...)
     send_to_char(i->character, "%s%s%s", CCGRN(i->character, C_NRM), buf, CCNRM(i->character, C_NRM));
   }
 }
-
-
 
 /** Take a bitvector and return a human readable
  * description of which bits are set in it.
@@ -1277,8 +1258,7 @@ void mudlog(int type, int level, int file, const char *str, ...)
  * Ideally, results will be large enough to hold the description of every bit
  * that could possibly be set in bitvector.
  * @retval size_t The length of the string copied into result. */
-size_t sprintbit(bitvector_t bitvector, const char *names[], char *result, size_t reslen)
-{
+size_t sprintbit(bitvector_t bitvector, const char *names[], char *result, size_t reslen) {
   size_t len = 0;
   int nlen;
   long nr;
@@ -1317,8 +1297,7 @@ size_t sprintbit(bitvector_t bitvector, const char *names[], char *result, size_
  * available.
  * @param[in] reslen The length of the available memory in the result buffer.
  * @retval size_t The length of the string copied into result. */
-size_t sprinttype(int type, const char *names[], char *result, size_t reslen)
-{
+size_t sprinttype(int type, const char *names[], char *result, size_t reslen) {
   int nr = 0;
 
   while (type && *names[nr] != '\n') {
@@ -1349,18 +1328,17 @@ size_t sprinttype(int type, const char *names[], char *result, size_t reslen)
  * Will be set to "NOBITS" if no bits are set in bitarray (ie all bits in the
  * bitarray are equal to 0).
  */
-void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result)
-{
+void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result) {
   int nr, teller, found = FALSE, count = 0;
 
   *result = '\0';
 
-  for(teller = 0; teller < maxar && !found; teller++) {
+  for (teller = 0; teller < maxar && !found; teller++) {
     for (nr = 0; nr < 32 && !found; nr++) {
-      if (IS_SET_AR(bitvector, (teller*32)+nr)) {
-        if (*names[(teller*32)+nr] != '\n') {
-          if (*names[(teller*32)+nr] != '\0') {
-            strcat(result, names[(teller*32)+nr]);
+      if (IS_SET_AR(bitvector, (teller * 32) + nr)) {
+        if (*names[(teller * 32) + nr] != '\n') {
+          if (*names[(teller * 32) + nr] != '\0') {
+            strcat(result, names[(teller * 32) + nr]);
             strcat(result, " ");
             count++;
             if (count >= 8) {
@@ -1372,7 +1350,7 @@ void sprintbitarray(int bitvector[], const char *names[], int maxar, char *resul
           strcat(result, "UNDEFINED ");
         }
       }
-      if (*names[(teller*32)+nr] == '\n')
+      if (*names[(teller * 32) + nr] == '\n')
         found = TRUE;
     }
   }
@@ -1385,28 +1363,26 @@ void sprintbitarray(int bitvector[], const char *names[], int maxar, char *resul
  * @param t2 The later time.
  * @param t1 The earlier time.
  * @retval time_info_data The real hours, days, months and years passed between t2 and t1. */
-struct time_info_data *real_time_passed(time_t t2, time_t t1)
-{
+struct time_info_data *real_time_passed(time_t t2, time_t t1) {
   long secs;
   static struct time_info_data now;
 
   secs = t2 - t1;
 
-  now.hours = (secs / SECS_PER_REAL_HOUR) % 24;	/* 0..23 hours */
+  now.hours = (secs / SECS_PER_REAL_HOUR) % 24; /* 0..23 hours */
   secs -= SECS_PER_REAL_HOUR * now.hours;
 
-  now.day = (secs / SECS_PER_REAL_DAY) % 35;	/* 0..34 days  */
+  now.day = (secs / SECS_PER_REAL_DAY) % 35; /* 0..34 days  */
   secs -= SECS_PER_REAL_DAY * now.day;
 
-  now.month = (secs / (SECS_PER_REAL_YEAR / 12)) % 12;  /* 0..11 months */
+  now.month = (secs / (SECS_PER_REAL_YEAR / 12)) % 12; /* 0..11 months */
   secs -= (SECS_PER_REAL_YEAR / 12) * now.month;
 
   now.year = (secs / SECS_PER_REAL_YEAR);
   secs -= SECS_PER_REAL_YEAR * now.year;
-  
+
   return (&now);
 }
-
 
 /** Calculate the MUD time passed between two time invervals.
  * @param t2 The later time.
@@ -1414,23 +1390,22 @@ struct time_info_data *real_time_passed(time_t t2, time_t t1)
  * @retval time_info_data A pointer to the mud hours, days, months and years
  * that have passed between the two time intervals. DO NOT FREE the structure
  * pointed to by the return value. */
-struct time_info_data *mud_time_passed(time_t t2, time_t t1)
-{
+struct time_info_data *mud_time_passed(time_t t2, time_t t1) {
   long secs;
   static struct time_info_data now;
 
   secs = t2 - t1;
 
-  now.hours = (secs / SECS_PER_MUD_HOUR) % 24;	/* 0..23 hours */
+  now.hours = (secs / SECS_PER_MUD_HOUR) % 24; /* 0..23 hours */
   secs -= SECS_PER_MUD_HOUR * now.hours;
 
-  now.day = (secs / SECS_PER_MUD_DAY) % 35;	/* 0..34 days  */
+  now.day = (secs / SECS_PER_MUD_DAY) % 35; /* 0..34 days  */
   secs -= SECS_PER_MUD_DAY * now.day;
 
-  now.month = (secs / SECS_PER_MUD_MONTH) % 17;	/* 0..16 months */
+  now.month = (secs / SECS_PER_MUD_MONTH) % 17; /* 0..16 months */
   secs -= SECS_PER_MUD_MONTH * now.month;
 
-  now.year = (secs / SECS_PER_MUD_YEAR);	/* 0..XX? years */
+  now.year = (secs / SECS_PER_MUD_YEAR); /* 0..XX? years */
 
   return (&now);
 }
@@ -1439,13 +1414,12 @@ struct time_info_data *mud_time_passed(time_t t2, time_t t1)
  * @param now The current mud time to translate into a real time unit.
  * @retval time_t The real time that would have had to have passed
  * to represent the mud time represented by the now parameter. */
-time_t mud_time_to_secs(struct time_info_data *now)
-{
+time_t mud_time_to_secs(struct time_info_data *now) {
   time_t when = 0;
 
-  when += now->year  * SECS_PER_MUD_YEAR;
+  when += now->year * SECS_PER_MUD_YEAR;
   when += now->month * SECS_PER_MUD_MONTH;
-  when += now->day   * SECS_PER_MUD_DAY;
+  when += now->day * SECS_PER_MUD_DAY;
   when += now->hours * SECS_PER_MUD_HOUR;
   return (time(NULL) - when);
 }
@@ -1456,13 +1430,12 @@ time_t mud_time_to_secs(struct time_info_data *now)
  * @param ch A valid player character.
  * @retval time_info_data A pointer to the mud age in years of the player
  * character. DO NOT FREE the structure pointed to by the return value. */
-struct time_info_data *age(struct char_data *ch)
-{
+struct time_info_data *age(struct char_data *ch) {
   static struct time_info_data player_age;
 
   player_age = *mud_time_passed(time(0), ch->player.time.birth);
 
-  player_age.year += 17;	/* All players start at 17 */
+  player_age.year += 17; /* All players start at 17 */
 
   return (&player_age);
 }
@@ -1474,8 +1447,7 @@ struct time_info_data *age(struct char_data *ch)
  * @param victim The character being followed.
  * @retval bool TRUE if ch is already leading someone in victims group, FALSE
  * if it is okay for ch to follow victim. */
-bool circle_follow(struct char_data *ch, struct char_data *victim)
-{
+bool circle_follow(struct char_data *ch, struct char_data *victim) {
   struct char_data *k;
 
   for (k = victim; k; k = k->master) {
@@ -1495,8 +1467,7 @@ bool circle_follow(struct char_data *ch, struct char_data *victim)
  * the character will stop following the "master" they were following.
  * @param ch The character (NPC or PC) to stop from following.
  * */
-void stop_follower(struct char_data *ch)
-{
+void stop_follower(struct char_data *ch) {
   struct follow_type *j = NULL, *k = NULL;
 
   /* Makes sure this function is not called when it shouldn't be called. */
@@ -1508,7 +1479,7 @@ void stop_follower(struct char_data *ch)
   if (AFF_FLAGGED(ch, AFF_CHARM)) {
     act("You realize that you do not need to serve $N anymore!",
             FALSE, ch, 0, ch->master, TO_CHAR);
-//    act("$n realizes that $N is a jerk!", FALSE, ch, 0, ch->master, TO_NOTVICT);
+    //    act("$n realizes that $N is a jerk!", FALSE, ch, 0, ch->master, TO_NOTVICT);
     act("$n is no longer serving you!", FALSE, ch, 0, ch->master, TO_VICT);
     if (affected_by_spell(ch, SPELL_CHARM))
       affect_from_char(ch, SPELL_CHARM);
@@ -1518,11 +1489,11 @@ void stop_follower(struct char_data *ch)
     act("$n stops following you.", TRUE, ch, 0, ch->master, TO_VICT);
   }
 
-  if (ch->master->followers->follower == ch) {	/* Head of follower-list? */
+  if (ch->master->followers->follower == ch) { /* Head of follower-list? */
     k = ch->master->followers;
     ch->master->followers = k->next;
     free(k);
-  } else {			/* locate follower who is not head of list */
+  } else { /* locate follower who is not head of list */
     for (k = ch->master->followers; k->next->follower != ch; k = k->next)
       ;
 
@@ -1545,8 +1516,7 @@ void stop_follower(struct char_data *ch)
  * @param ch The character to check for charmed followers.
  * @retval int The number of followers that are also charmed by the character.
  */
-int num_followers_charmed(struct char_data *ch)
-{
+int num_followers_charmed(struct char_data *ch) {
   struct follow_type *lackey;
   int total = 0;
 
@@ -1563,8 +1533,7 @@ int num_followers_charmed(struct char_data *ch)
  * the character passed in as the argument.
  * @param ch The character (NPC or PC) to stop from following.
  * */
-void die_follower(struct char_data *ch)
-{
+void die_follower(struct char_data *ch) {
   struct follow_type *j, *k;
 
   if (ch->master)
@@ -1582,8 +1551,7 @@ void die_follower(struct char_data *ch)
  * be following anyone, otherwise core dump.
  * @param ch The character to follow.
  * @param leader The character to be followed. */
-void add_follower(struct char_data *ch, struct char_data *leader)
-{
+void add_follower(struct char_data *ch, struct char_data *leader) {
   struct follow_type *k;
 
   if (ch->master) {
@@ -1616,8 +1584,7 @@ void add_follower(struct char_data *ch, struct char_data *leader)
  * @param[out] buf The next non-blank line read from the file. Buffer given must
  * be at least READ_SIZE (256) characters large.
  * @retval int The number of lines advanced in the file. */
-int get_line(FILE *fl, char *buf)
-{
+int get_line(FILE *fl, char *buf) {
   char temp[READ_SIZE];
   int lines = 0;
   int sl;
@@ -1652,61 +1619,60 @@ int get_line(FILE *fl, char *buf)
  * @param[in] orig_name The player name to create the filepath (of type mode)
  * for.
  * @retval int 0 if filename cannot be created, 1 if it can. */
-int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name)
-{
+int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name) {
   const char *prefix, *middle, *suffix;
   char name[PATH_MAX], *ptr;
 
   if (orig_name == NULL || *orig_name == '\0' || filename == NULL) {
     log("SYSERR: NULL pointer or empty string passed to get_filename(), %p or %p.",
-		orig_name, filename);
+            orig_name, filename);
     return (0);
   }
 
   switch (mode) {
-  case CRASH_FILE:
-    prefix = LIB_PLROBJS;
-    suffix = SUF_OBJS;
-    break;
-  case ETEXT_FILE:
-    prefix = LIB_PLRTEXT;
-    suffix = SUF_TEXT;
-    break;
-  case SCRIPT_VARS_FILE:
-    prefix = LIB_PLRVARS;
-    suffix = SUF_MEM;
-    break;
-  case PLR_FILE:
-    prefix = LIB_PLRFILES;
-    suffix = SUF_PLR;
-    break;
-  default:
-    return (0);
+    case CRASH_FILE:
+      prefix = LIB_PLROBJS;
+      suffix = SUF_OBJS;
+      break;
+    case ETEXT_FILE:
+      prefix = LIB_PLRTEXT;
+      suffix = SUF_TEXT;
+      break;
+    case SCRIPT_VARS_FILE:
+      prefix = LIB_PLRVARS;
+      suffix = SUF_MEM;
+      break;
+    case PLR_FILE:
+      prefix = LIB_PLRFILES;
+      suffix = SUF_PLR;
+      break;
+    default:
+      return (0);
   }
 
-  strlcpy(name, orig_name, sizeof(name));
+  strlcpy(name, orig_name, sizeof (name));
   for (ptr = name; *ptr; ptr++)
     *ptr = LOWER(*ptr);
 
   switch (LOWER(*name)) {
-  case 'a':  case 'b':  case 'c':  case 'd':  case 'e':
-    middle = "A-E";
-    break;
-  case 'f':  case 'g':  case 'h':  case 'i':  case 'j':
-    middle = "F-J";
-    break;
-  case 'k':  case 'l':  case 'm':  case 'n':  case 'o':
-    middle = "K-O";
-    break;
-  case 'p':  case 'q':  case 'r':  case 's':  case 't':
-    middle = "P-T";
-    break;
-  case 'u':  case 'v':  case 'w':  case 'x':  case 'y':  case 'z':
-    middle = "U-Z";
-    break;
-  default:
-    middle = "ZZZ";
-    break;
+    case 'a': case 'b': case 'c': case 'd': case 'e':
+      middle = "A-E";
+      break;
+    case 'f': case 'g': case 'h': case 'i': case 'j':
+      middle = "F-J";
+      break;
+    case 'k': case 'l': case 'm': case 'n': case 'o':
+      middle = "K-O";
+      break;
+    case 'p': case 'q': case 'r': case 's': case 't':
+      middle = "P-T";
+      break;
+    case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
+      middle = "U-Z";
+      break;
+    default:
+      middle = "ZZZ";
+      break;
   }
 
   snprintf(filename, fbufsize, "%s%s"SLASH"%s.%s", prefix, middle, name, suffix);
@@ -1716,8 +1682,7 @@ int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_nam
 /** Calculate the number of player characters (PCs) in the room. Any NPC (mob)
  * is not returned in the count.
  * @param room The room to check for PCs. */
-int num_pc_in_room(struct room_data *room)
-{
+int num_pc_in_room(struct room_data *room) {
   int i = 0;
   struct char_data *ch;
 
@@ -1728,7 +1693,6 @@ int num_pc_in_room(struct room_data *room)
   return (i);
 }
 
-
 /** This function (derived from basic fork() abort() idea by Erwin S Andreasen)
  * causes your MUD to dump core (assuming you can) but continue running. The
  * core dump will allow post-mortem debugging that is less severe than assert();
@@ -1738,8 +1702,7 @@ int num_pc_in_room(struct room_data *room)
  * flushing streams includes sockets?
  * @param who The file in which this call was made.
  * @param line The line at which this call was made. */
-void core_dump_real(const char *who, int line)
-{
+void core_dump_real(const char *who, int line) {
   log("SYSERR: Assertion failed at %s:%d!", who, line);
 
 #if 1	/* By default, let's not litter. */
@@ -1763,15 +1726,14 @@ void core_dump_real(const char *who, int line)
  * empty space once the color codes are converted and made non-printable.
  * @param string The string in which to check for color codes.
  * @retval int the number of color codes found. */
-int count_color_chars(char *string)
-{
+int count_color_chars(char *string) {
   int i, len;
   int num = 0;
 
-	if (!string || !*string)
-		return 0;
+  if (!string || !*string)
+    return 0;
 
-	len = strlen(string);
+  len = strlen(string);
   for (i = 0; i < len; i++) {
     while (string[i] == '\t') {
       if (string[i + 1] == '\t')
@@ -1787,11 +1749,10 @@ int count_color_chars(char *string)
 /* Not the prettiest thing I've ever written but it does the task which
  * is counting all characters in a string which are not part of the
  * protocol system. This is with the exception of detailed MXP codes. */
-int count_non_protocol_chars(char * str)
-{
+int count_non_protocol_chars(char * str) {
   int count = 0;
   char *string = str;
-  
+
   while (*string) {
     if (*string == '\r' || *string == '\n') {
       string++;
@@ -1812,13 +1773,12 @@ int count_non_protocol_chars(char * str)
     count++;
     string++;
   }
-  
+
   return count;
 }
 
 /* simple test to check if the given ch has infravision */
-bool char_has_infra(struct char_data *ch)
-{
+bool char_has_infra(struct char_data *ch) {
   if (AFF_FLAGGED(ch, AFF_INFRAVISION))
     return TRUE;
 
@@ -1838,10 +1798,8 @@ bool char_has_infra(struct char_data *ch)
   return FALSE;
 }
 
-
 /* simple test to check if the given ch has ultra (perfect dark vision) */
-bool char_has_ultra(struct char_data *ch)
-{
+bool char_has_ultra(struct char_data *ch) {
   if (AFF_FLAGGED(ch, AFF_ULTRAVISION))
     return TRUE;
 
@@ -1855,15 +1813,13 @@ bool char_has_ultra(struct char_data *ch)
   return FALSE;
 }
 
-
 /** Tests to see if a room is dark. Rules (unless overridden by ROOM_DARK):
  * Inside and City rooms are always lit. Outside rooms are dark at sunset and
  * night.
  * @todo Make the return value a bool.
  * @param room The real room to test for.
  * @retval int FALSE if the room is lit, TRUE if the room is dark. */
-int room_is_dark(room_rnum room)
-{
+int room_is_dark(room_rnum room) {
   if (!VALID_ROOM_RNUM(room)) {
     log("room_is_dark: Invalid room rnum %d. (0-%d)", room, top_of_world);
     return (FALSE);
@@ -1899,8 +1855,7 @@ int room_is_dark(room_rnum room)
  * @param s1 The input string.
  * @param s2 The string to be compared to.
  * @retval int The Levenshtein distance between s1 and s2. */
-int levenshtein_distance(const char *s1, const char *s2)
-{
+int levenshtein_distance(const char *s1, const char *s2) {
   int **d, i, j;
   int s1_len = strlen(s1), s2_len = strlen(s2);
 
@@ -1916,7 +1871,7 @@ int levenshtein_distance(const char *s1, const char *s2)
   for (i = 1; i <= s1_len; i++)
     for (j = 1; j <= s2_len; j++)
       d[i][j] = MIN(d[i - 1][j] + 1, MIN(d[i][j - 1] + 1,
-      d[i - 1][j - 1] + ((s1[i - 1] == s2[j - 1]) ? 0 : 1)));
+            d[i - 1][j - 1] + ((s1[i - 1] == s2[j - 1]) ? 0 : 1)));
 
   i = d[s1_len][s2_len];
 
@@ -1932,22 +1887,21 @@ int levenshtein_distance(const char *s1, const char *s2)
  * @post ch is unattached from the furniture object.
  * @param ch The character to remove from the furniture object.
  */
-void char_from_furniture(struct char_data *ch)
-{
+void char_from_furniture(struct char_data *ch) {
   struct obj_data *furniture;
   struct char_data *tempch;
 
   if (!SITTING(ch))
     return;
 
-  if (!(furniture = SITTING(ch))){
+  if (!(furniture = SITTING(ch))) {
     log("SYSERR: No furniture for char in char_from_furniture.");
     SITTING(ch) = NULL;
     NEXT_SITTING(ch) = NULL;
     return;
   }
 
-  if (!(tempch = OBJ_SAT_IN_BY(furniture))){
+  if (!(tempch = OBJ_SAT_IN_BY(furniture))) {
     log("SYSERR: Char from furniture, but no furniture!");
     SITTING(ch) = NULL;
     NEXT_SITTING(ch) = NULL;
@@ -1955,7 +1909,7 @@ void char_from_furniture(struct char_data *ch)
     return;
   }
 
-  if (tempch == ch){
+  if (tempch == ch) {
     if (!NEXT_SITTING(ch)) {
       OBJ_SAT_IN_BY(furniture) = NULL;
     } else {
@@ -1973,14 +1927,13 @@ void char_from_furniture(struct char_data *ch)
   NEXT_SITTING(ch) = NULL;
 
 
-  if (GET_OBJ_VAL(furniture, 1) < 1){
+  if (GET_OBJ_VAL(furniture, 1) < 1) {
     OBJ_SAT_IN_BY(furniture) = NULL;
     GET_OBJ_VAL(furniture, 1) = 0;
   }
 
- return;
+  return;
 }
-
 
 /* column_list
    The list is output in a fixed format, and only the number of columns can be adjusted
@@ -1991,68 +1944,63 @@ void char_from_furniture(struct char_data *ch)
      list        - a pointer to a list of strings
      list_length - So we can work with lists that don't end with /n
      show_nums   - when set to TRUE, it will show a number before the list entry.
-*/
-void column_list(struct char_data *ch, int num_cols, const char **list, int list_length, bool show_nums)
-{
-   int num_per_col, col_width,r,c,i, offset=0, len=0, temp_len, max_len=0;
-   char buf[MAX_STRING_LENGTH];
+ */
+void column_list(struct char_data *ch, int num_cols, const char **list, int list_length, bool show_nums) {
+  int num_per_col, col_width, r, c, i, offset = 0, len = 0, temp_len, max_len = 0;
+  char buf[MAX_STRING_LENGTH];
 
-   /* Work out the longest list item */
-   for (i=0; i<list_length; i++)
-     if (max_len < strlen(list[i]))
-       max_len = strlen(list[i]);
+  /* Work out the longest list item */
+  for (i = 0; i < list_length; i++)
+    if (max_len < strlen(list[i]))
+      max_len = strlen(list[i]);
 
-   /* auto columns case */
-   if (num_cols == 0) {
-	   num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / (max_len + (show_nums ? 5 : 1));
-   }
+  /* auto columns case */
+  if (num_cols == 0) {
+    num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / (max_len + (show_nums ? 5 : 1));
+  }
 
-   /* Ensure that the number of columns is in the range 1-10 */
-   num_cols = MIN(MAX(num_cols,1), 10);
+  /* Ensure that the number of columns is in the range 1-10 */
+  num_cols = MIN(MAX(num_cols, 1), 10);
 
-   /* Work out the longest list item */
-   for (i=0; i<list_length; i++)
-     if (max_len < strlen(list[i]))
-       max_len = strlen(list[i]);
+  /* Work out the longest list item */
+  for (i = 0; i < list_length; i++)
+    if (max_len < strlen(list[i]))
+      max_len = strlen(list[i]);
 
-   /* Calculate the width of each column */
-   if (IS_NPC(ch))   col_width = 80 / num_cols;
-   else              col_width = (GET_SCREEN_WIDTH(ch)) / num_cols;
+  /* Calculate the width of each column */
+  if (IS_NPC(ch)) col_width = 80 / num_cols;
+  else col_width = (GET_SCREEN_WIDTH(ch)) / num_cols;
 
-   if (show_nums) col_width-=4;
+  if (show_nums) col_width -= 4;
 
-   if (col_width < max_len)
-     log("Warning: columns too narrow for correct output to %s in simple_column_list (utils.c)", GET_NAME(ch));
+  if (col_width < max_len)
+    log("Warning: columns too narrow for correct output to %s in simple_column_list (utils.c)", GET_NAME(ch));
 
-   /* Calculate how many list items there should be per column */
-   num_per_col = (list_length / num_cols) + ((list_length % num_cols) ? 1 : 0);
+  /* Calculate how many list items there should be per column */
+  num_per_col = (list_length / num_cols) + ((list_length % num_cols) ? 1 : 0);
 
-   /* Fill 'buf' with the columnised list */
-   for (r=0; r<num_per_col; r++)
-   {
-     for (c=0; c<num_cols; c++)
-     {
-       offset = (c*num_per_col)+r;
-       if (offset < list_length)
-       {
-         if (show_nums)
-           temp_len = snprintf(buf+len, sizeof(buf) - len, "%2d) %-*s", offset+1, col_width, list[(offset)]);
-         else
-           temp_len = snprintf(buf+len, sizeof(buf) - len, "%-*s", col_width, list[(offset)]);
-         len += temp_len;
-       }
-     }
-     temp_len = snprintf(buf+len, sizeof(buf) - len, "\r\n");
-     len += temp_len;
-   }
+  /* Fill 'buf' with the columnised list */
+  for (r = 0; r < num_per_col; r++) {
+    for (c = 0; c < num_cols; c++) {
+      offset = (c * num_per_col) + r;
+      if (offset < list_length) {
+        if (show_nums)
+          temp_len = snprintf(buf + len, sizeof (buf) - len, "%2d) %-*s", offset + 1, col_width, list[(offset)]);
+        else
+          temp_len = snprintf(buf + len, sizeof (buf) - len, "%-*s", col_width, list[(offset)]);
+        len += temp_len;
+      }
+    }
+    temp_len = snprintf(buf + len, sizeof (buf) - len, "\r\n");
+    len += temp_len;
+  }
 
-   if (len >= sizeof(buf))
-     snprintf((buf + MAX_STRING_LENGTH) - 22, 22, "\r\n*** OVERFLOW ***\r\n");
+  if (len >= sizeof (buf))
+    snprintf((buf + MAX_STRING_LENGTH) - 22, 22, "\r\n*** OVERFLOW ***\r\n");
 
-   /* Send the list to the player */
-   page_string(ch->desc, buf, TRUE);
+  /* Send the list to the player */
+  page_string(ch->desc, buf, TRUE);
 }
-
 
 /**
  * Search through a string array of flags for a particular flag.
@@ -2062,10 +2010,9 @@ void column_list(struct char_data *ch, int num_cols, const char **list, int list
  * @retval int Returns the element number in flag_list of flag_name or
  * NOFLAG (-1) if no match.
  */
-int get_flag_by_name(const char *flag_list[], char *flag_name)
-{
-  int i=0;
-  for (;flag_list[i] && *flag_list[i] && strcmp(flag_list[i], "\n") != 0; i++)
+int get_flag_by_name(const char *flag_list[], char *flag_name) {
+  int i = 0;
+  for (; flag_list[i] && *flag_list[i] && strcmp(flag_list[i], "\n") != 0; i++)
     if (!strcmp(flag_list[i], flag_name))
       return (i);
   return (NOFLAG);
@@ -2093,56 +2040,48 @@ int get_flag_by_name(const char *flag_list[], char *flag_name)
  * entire file was read. If lines_to_read is <= 0, no processing occurs
  * and lines_to_read is returned.
  */
-int file_head( FILE *file, char *buf, size_t bufsize, int lines_to_read )
-{
+int file_head(FILE *file, char *buf, size_t bufsize, int lines_to_read) {
   /* Local variables */
-  int lines_read = 0;   /* The number of lines read so far. */
+  int lines_read = 0; /* The number of lines read so far. */
   char line[READ_SIZE]; /* Retrieval buffer for file. */
-  size_t buflen;        /* Amount of previous existing data in buffer. */
-  int readstatus = 1;   /* Are we at the end of the file? */
-  int n = 0;            /* Return value from snprintf. */
+  size_t buflen; /* Amount of previous existing data in buffer. */
+  int readstatus = 1; /* Are we at the end of the file? */
+  int n = 0; /* Return value from snprintf. */
   const char *overflow = "\r\n**OVERFLOW**\r\n"; /* Appended if overflow. */
 
   /* Quick check for bad arguments. */
-  if (lines_to_read <= 0)
-  {
+  if (lines_to_read <= 0) {
     return lines_to_read;
   }
 
   /* Initialize local variables not already initialized. */
-  buflen  = strlen(buf);
+  buflen = strlen(buf);
 
   /* Read from the front of the file. */
   rewind(file);
 
-  while ( (lines_read < lines_to_read) &&
-      (readstatus > 0) && (buflen < bufsize) )
-  {
+  while ((lines_read < lines_to_read) &&
+          (readstatus > 0) && (buflen < bufsize)) {
     /* Don't use get_line to set lines_read because get_line will return
      * the number of comments skipped during reading. */
-    readstatus = get_line( file, line );
+    readstatus = get_line(file, line);
 
-    if (readstatus > 0)
-    {
-      n = snprintf( buf + buflen, bufsize - buflen, "%s\r\n", line);
+    if (readstatus > 0) {
+      n = snprintf(buf + buflen, bufsize - buflen, "%s\r\n", line);
       buflen += n;
       lines_read++;
     }
   }
 
   /* Check to see if we had a potential buffer overflow. */
-  if (buflen >= bufsize)
-  {
+  if (buflen >= bufsize) {
     /* We should never see this case, but... */
-    if ( (strlen(overflow) + 1) >= bufsize )
-    {
+    if ((strlen(overflow) + 1) >= bufsize) {
       core_dump();
-      snprintf( buf, bufsize, "%s", overflow);
-    }
-    else
-    {
+      snprintf(buf, bufsize, "%s", overflow);
+    } else {
       /* Append the overflow statement to the buffer. */
-      snprintf( buf + buflen - strlen(overflow) - 1, strlen(overflow) + 1, "%s", overflow);
+      snprintf(buf + buflen - strlen(overflow) - 1, strlen(overflow) + 1, "%s", overflow);
     }
   }
 
@@ -2174,34 +2113,31 @@ int file_head( FILE *file, char *buf, size_t bufsize, int lines_to_read )
  * entire file was read. If lines_to_read is <= 0, no processing occurs
  * and lines_to_read is returned.
  */
-int file_tail( FILE *file, char *buf, size_t bufsize, int lines_to_read )
-{
+int file_tail(FILE *file, char *buf, size_t bufsize, int lines_to_read) {
   /* Local variables */
-  int lines_read = 0;   /* The number of lines read so far. */
-  int total_lines = 0;  /* The total number of lines in the file. */
-  char c;               /* Used to fast forward the file. */
+  int lines_read = 0; /* The number of lines read so far. */
+  int total_lines = 0; /* The total number of lines in the file. */
+  char c; /* Used to fast forward the file. */
   char line[READ_SIZE]; /* Retrieval buffer for file. */
-  size_t buflen;        /* Amount of previous existing data in buffer. */
-  int readstatus = 1;   /* Are we at the end of the file? */
-  int n = 0;            /* Return value from snprintf. */
+  size_t buflen; /* Amount of previous existing data in buffer. */
+  int readstatus = 1; /* Are we at the end of the file? */
+  int n = 0; /* Return value from snprintf. */
   const char *overflow = "\r\n**OVERFLOW**\r\n"; /* Appended if overflow. */
 
   /* Quick check for bad arguments. */
-  if (lines_to_read <= 0)
-  {
+  if (lines_to_read <= 0) {
     return lines_to_read;
   }
 
   /* Initialize local variables not already initialized. */
-  buflen  = strlen(buf);
+  buflen = strlen(buf);
   total_lines = file_numlines(file); /* Side effect: file is rewound. */
 
   /* Fast forward to the location we should start reading from */
-  while (((lines_to_read + lines_read) < total_lines))
-  {
+  while (((lines_to_read + lines_read) < total_lines)) {
     do {
       c = fgetc(file);
-    } while(c != '\n');
+    } while (c != '\n');
 
     lines_read++;
   }
@@ -2210,34 +2146,28 @@ int file_tail( FILE *file, char *buf, size_t bufsize, int lines_to_read )
   lines_read = 0;
 
   /** From here on, we perform just like file_head */
-  while ( (lines_read < lines_to_read) &&
-      (readstatus > 0) && (buflen < bufsize) )
-  {
+  while ((lines_read < lines_to_read) &&
+          (readstatus > 0) && (buflen < bufsize)) {
     /* Don't use get_line to set lines_read because get_line will return
      * the number of comments skipped during reading. */
-    readstatus = get_line( file, line );
+    readstatus = get_line(file, line);
 
-    if (readstatus > 0)
-    {
-      n = snprintf( buf + buflen, bufsize - buflen, "%s\r\n", line);
+    if (readstatus > 0) {
+      n = snprintf(buf + buflen, bufsize - buflen, "%s\r\n", line);
       buflen += n;
       lines_read++;
     }
   }
 
   /* Check to see if we had a potential buffer overflow. */
-  if (buflen >= bufsize)
-  {
+  if (buflen >= bufsize) {
     /* We should never see this case, but... */
-    if ( (strlen(overflow) + 1) >= bufsize )
-    {
+    if ((strlen(overflow) + 1) >= bufsize) {
       core_dump();
-      snprintf( buf, bufsize, "%s", overflow);
-    }
-    else
-    {
+      snprintf(buf, bufsize, "%s", overflow);
+    } else {
       /* Append the overflow statement to the buffer. */
-      snprintf( buf + buflen - strlen(overflow) - 1, strlen(overflow) + 1, "%s", overflow);
+      snprintf(buf + buflen - strlen(overflow) - 1, strlen(overflow) + 1, "%s", overflow);
     }
   }
 
@@ -2257,8 +2187,7 @@ int file_tail( FILE *file, char *buf, size_t bufsize, int lines_to_read )
  * @retval size_t The byte size of the file (we assume no errors will be
  * encountered in this function).
  */
-size_t file_sizeof( FILE *file )
-{
+size_t file_sizeof(FILE *file) {
   size_t numbytes = 0;
 
   rewind(file);
@@ -2268,8 +2197,7 @@ size_t file_sizeof( FILE *file )
    * I've found says that getting a file size from ftell for text files is
    * not portable. Oh well, this method should be extremely fast for the
    * relatively small filesizes in the mud, and portable, too. */
-  while (!feof(file))
-  {
+  while (!feof(file)) {
     fgetc(file);
     numbytes++;
   }
@@ -2288,18 +2216,15 @@ size_t file_sizeof( FILE *file )
  * @retval size_t The byte size of the file (we assume no errors will be
  * encountered in this function).
  */
-int file_numlines( FILE *file )
-{
+int file_numlines(FILE *file) {
   int numlines = 0;
   char c;
 
   rewind(file);
 
-  while (!feof(file))
-  {
+  while (!feof(file)) {
     c = fgetc(file);
-    if (c == '\n')
-    {
+    if (c == '\n') {
       numlines++;
     }
   }
@@ -2309,7 +2234,6 @@ int file_numlines( FILE *file )
   return numlines;
 }
 
-
 /** A string converter designed to deal with the compile sensitive IDXTYPE.
  * Relies on the friendlier strtol function.
  * @pre Assumes that NOWHERE, NOTHING, NOBODY, NOFLAG, etc are all equal.
@@ -2317,8 +2241,7 @@ int file_numlines( FILE *file )
  * IDXTYPE number.
  * @retval IDXTYPE A valid index number, or NOWHERE if not valid.
  */
-IDXTYPE atoidx( const char *str_to_conv )
-{
+IDXTYPE atoidx(const char *str_to_conv) {
   long int result;
 
   /* Check for errors */
@@ -2326,7 +2249,7 @@ IDXTYPE atoidx( const char *str_to_conv )
 
   result = strtol(str_to_conv, NULL, 10);
 
-  if ( errno || (result > IDXTYPE_MAX) || (result < 0) )
+  if (errno || (result > IDXTYPE_MAX) || (result < 0))
     return NOWHERE; /* All of the NO* settings should be the same */
   else
     return (IDXTYPE) result;
@@ -2339,11 +2262,10 @@ IDXTYPE atoidx( const char *str_to_conv )
    Recognises @ color codes, and if a line ends in one color, the
    next line will start with the same color.
    Ends every line with \tn to prevent color bleeds.
-*/
-char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad)
-{
-  static char ret[MAX_STRING_LENGTH] = { '\0' };
-  char line[MAX_INPUT_LENGTH] = { '\0' };
+ */
+char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad) {
+  static char ret[MAX_STRING_LENGTH] = {'\0'};
+  char line[MAX_INPUT_LENGTH] = {'\0'};
   char *sp = str;
   char *lp = line;
   char *rp = ret;
@@ -2355,23 +2277,23 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad)
   memset(line, '\0', MAX_INPUT_LENGTH);
   /* Nomalize spaces and newlines */
   /* Split into lines, including convert \\ into \r\n */
-  while(*sp) {
+  while (*sp) {
     /* eat leading space */
-    while(*sp && isspace_ignoretabs(*sp)) sp++;
+    while (*sp && isspace_ignoretabs(*sp)) sp++;
     /* word begins */
     wp = sp;
     wlen = 0;
-    while(*sp) { /* Find the end of the word */
-      if(isspace_ignoretabs(*sp)) break;
-      if(*sp=='\\' && sp[1] && sp[1]=='\\') {
-        if(sp!=wp)
+    while (*sp) { /* Find the end of the word */
+      if (isspace_ignoretabs(*sp)) break;
+      if (*sp == '\\' && sp[1] && sp[1] == '\\') {
+        if (sp != wp)
           break; /* Finish dealing with the current word */
         sp += 2; /* Eat the marker and any trailing space */
-        while(*sp && isspace_ignoretabs(*sp)) sp++;
+        while (*sp && isspace_ignoretabs(*sp)) sp++;
         wp = sp;
         /* Start a new line */
-        if(hpad)
-          for(; llen < w; llen++)
+        if (hpad)
+          for (; llen < w; llen++)
             *lp++ = ' ';
         *lp++ = '\r';
         *lp++ = '\n';
@@ -2380,32 +2302,32 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad)
         llen = 0;
         lcount++;
         lp = line;
-      } else if (*sp=='`'||*sp=='$'||*sp=='#') {
-        if (sp[1] && (sp[1]==*sp))
+      } else if (*sp == '`' || *sp == '$' || *sp == '#') {
+        if (sp[1] && (sp[1] == *sp))
           wlen++; /* One printable char here */
         sp += 2; /* Eat the whole code regardless */
       } else if (*sp == '\t' && sp[1]) {
-        char MXPcode = (sp[1] == '[' ? ']' : sp[1]=='<' ? '>' : '\0');
-	
+        char MXPcode = (sp[1] == '[' ? ']' : sp[1] == '<' ? '>' : '\0');
+
         if (!MXPcode)
-	     last_color = sp[1];
- 
+          last_color = sp[1];
+
         sp += 2; /* Eat the code */
         if (MXPcode) {
           while (*sp != '\0' && *sp != MXPcode)
             ++sp; /* Eat the rest of the code */
-        } 
+        }
       } else {
         wlen++;
         sp++;
       }
     }
-    if(llen + wlen + (lp==line ? 0 : 1) > w) {
+    if (llen + wlen + (lp == line ? 0 : 1) > w) {
       /* Start a new line */
-      if(hpad)
-        for(; llen < w; llen++)
+      if (hpad)
+        for (; llen < w; llen++)
           *lp++ = ' ';
-      *lp++ = '\t';  /* 'normal' color */
+      *lp++ = '\t'; /* 'normal' color */
       *lp++ = 'n';
       *lp++ = '\r'; /* New line */
       *lp++ = '\n';
@@ -2416,24 +2338,24 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad)
       lcount++;
       lp = line;
       if (last_color != 'n') {
-        *lp++ = '\t';  /* restore previous color */
+        *lp++ = '\t'; /* restore previous color */
         *lp++ = last_color;
         new_line_started = TRUE;
       }
     }
     /* add word to line */
-    if (lp!=line && new_line_started!=TRUE) {
+    if (lp != line && new_line_started != TRUE) {
       *lp++ = ' ';
       llen++;
     }
     new_line_started = FALSE;
-    llen += wlen ;
-    for( ; wp!=sp ; *lp++ = *wp++);
+    llen += wlen;
+    for (; wp != sp; *lp++ = *wp++);
   }
   /* Copy over the last line */
-  if(lp!=line) {
-    if(hpad)
-      for(; llen < w; llen++)
+  if (lp != line) {
+    if (hpad)
+      for (; llen < w; llen++)
         *lp++ = ' ';
     *lp++ = '\r';
     *lp++ = '\n';
@@ -2442,9 +2364,9 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad)
     rp += strlen(line);
     lcount++;
   }
-  if(vpad) {
-    while(lcount < h) {
-      if(hpad) {
+  if (vpad) {
+    while (lcount < h) {
+      if (hpad) {
         memset(rp, ' ', w);
         rp += w;
       }
@@ -2464,44 +2386,43 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad)
    @param str2 The string to be displayed on the right.
    @param joiner ???.
    @retval char * Pointer to the output to be displayed?
-*/
-char *strpaste(char *str1, char *str2, char *joiner)
-{
-  static char ret[MAX_STRING_LENGTH+1];
+ */
+char *strpaste(char *str1, char *str2, char *joiner) {
+  static char ret[MAX_STRING_LENGTH + 1];
   char *sp1 = str1;
   char *sp2 = str2;
   char *rp = ret;
   int jlen = strlen(joiner);
 
-  while((rp - ret) < MAX_STRING_LENGTH && (*sp1 || *sp2)) {
-     /* Copy line from str1 */
-    while((rp - ret) < MAX_STRING_LENGTH && *sp1 && !ISNEWL(*sp1))
+  while ((rp - ret) < MAX_STRING_LENGTH && (*sp1 || *sp2)) {
+    /* Copy line from str1 */
+    while ((rp - ret) < MAX_STRING_LENGTH && *sp1 && !ISNEWL(*sp1))
       *rp++ = *sp1++;
     /* Eat the newline */
-    if(*sp1) {
-      if(sp1[1] && sp1[1]!=sp1[0] && ISNEWL(sp1[1]))
+    if (*sp1) {
+      if (sp1[1] && sp1[1] != sp1[0] && ISNEWL(sp1[1]))
         sp1++;
       sp1++;
     }
 
     /* Add the joiner */
-    if((rp - ret) + jlen >= MAX_STRING_LENGTH)
+    if ((rp - ret) + jlen >= MAX_STRING_LENGTH)
       break;
     strcpy(rp, joiner);
     rp += jlen;
 
-     /* Copy line from str2 */
-    while((rp - ret) < MAX_STRING_LENGTH && *sp2 && !ISNEWL(*sp2))
+    /* Copy line from str2 */
+    while ((rp - ret) < MAX_STRING_LENGTH && *sp2 && !ISNEWL(*sp2))
       *rp++ = *sp2++;
     /* Eat the newline */
-    if(*sp2) {
-      if(sp2[1] && sp2[1]!=sp2[0] && ISNEWL(sp2[1]))
+    if (*sp2) {
+      if (sp2[1] && sp2[1] != sp2[0] && ISNEWL(sp2[1]))
         sp2++;
       sp2++;
     }
 
     /* Add the newline */
-    if((rp - ret) + 2 >= MAX_STRING_LENGTH)
+    if ((rp - ret) + 2 >= MAX_STRING_LENGTH)
       break;
     *rp++ = '\r';
     *rp++ = '\n';
@@ -2512,26 +2433,24 @@ char *strpaste(char *str1, char *str2, char *joiner)
 }
 
 /* with given name, returns character structure if found */
-struct char_data *is_playing(char *vict_name)
-{
+struct char_data *is_playing(char *vict_name) {
   extern struct descriptor_data *descriptor_list;
   struct descriptor_data *i, *next_i;
-  char name_copy[MAX_NAME_LENGTH+1];
+  char name_copy[MAX_NAME_LENGTH + 1];
 
   /* We need to CAP the name, so make a copy otherwise original is damaged */
-  snprintf(name_copy, MAX_NAME_LENGTH+1, "%s", vict_name);
+  snprintf(name_copy, MAX_NAME_LENGTH + 1, "%s", vict_name);
 
   for (i = descriptor_list; i; i = next_i) {
     next_i = i->next;
-    if(i->connected == CON_PLAYING && !strcmp(i->character->player.name,CAP(name_copy)))
+    if (i->connected == CON_PLAYING && !strcmp(i->character->player.name, CAP(name_copy)))
       return i->character;
   }
   return NULL;
 }
 
 /* for displaying large numbers with commas */
-char *add_commas(long num)
-{
+char *add_commas(long num) {
   int i, j = 0, len;
   int negative = (num < 0);
   char num_string[MAX_INPUT_LENGTH];
@@ -2551,66 +2470,59 @@ char *add_commas(long num)
 }
 
 /* Create a blank affect struct */
-void new_affect(struct affected_type *af)
-{
+void new_affect(struct affected_type *af) {
   int i;
-  af->spell     = 0;
-  af->duration  = 0;
-  af->modifier  = 0;
-  af->location  = APPLY_NONE;
-  for (i=0; i<AF_ARRAY_MAX; i++) af->bitvector[i]=0;
+  af->spell = 0;
+  af->duration = 0;
+  af->modifier = 0;
+  af->location = APPLY_NONE;
+  for (i = 0; i < AF_ARRAY_MAX; i++) af->bitvector[i] = 0;
 }
 
 /* Handy function to get class ID number by name (abbreviations allowed) */
-int get_class_by_name(char *classname)
-{
-    int i;
-    
-    for (i = 0; i < NUM_CLASSES; i++)
-      if (is_abbrev(classname, pc_class_types[i]))
-        return(i);
+int get_class_by_name(char *classname) {
+  int i;
 
-    return (-1);
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (is_abbrev(classname, pc_class_types[i]))
+      return (i);
+
+  return (-1);
 }
 
 /* Handy function to get race ID number by name (abbreviations allowed) */
-int get_race_by_name(char *racename)
-{
-    int i;
-    
-    for (i = 0; i < NUM_RACES; i++)
-      if (is_abbrev(racename, pc_race_types[i]))
-        return(i);
+int get_race_by_name(char *racename) {
+  int i;
 
-    return (-1);
+  for (i = 0; i < NUM_RACES; i++)
+    if (is_abbrev(racename, pc_race_types[i]))
+      return (i);
+
+  return (-1);
 }
 
 /* Handy function to get subrace ID number by name (abbreviations allowed) */
-int get_subrace_by_name(char *racename)
-{
-    int i;
-    
-    for (i = 0; i < NUM_SUB_RACES; i++)
-      if (is_abbrev(racename, npc_subrace_types[i]))
-        return(i);
+int get_subrace_by_name(char *racename) {
+  int i;
 
-    return (-1);
+  for (i = 0; i < NUM_SUB_RACES; i++)
+    if (is_abbrev(racename, npc_subrace_types[i]))
+      return (i);
+
+  return (-1);
 }
 
 /* parse tabs function */
-char *convert_from_tabs(char * string)
-{
+char *convert_from_tabs(char * string) {
   static char buf[MAX_STRING_LENGTH * 8];
-  
+
   strcpy(buf, string);
   parse_tab(buf);
-  return(buf);
+  return (buf);
 }
 
-
 /* this function takes old-system alignment and converts it to new */
-int convert_alignment(int align)
-{
+int convert_alignment(int align) {
   if (align >= 800)
     return LAWFUL_GOOD;
   if (align >= 575 && align < 800)
@@ -2629,14 +2541,12 @@ int convert_alignment(int align)
     return NEUTRAL_EVIL;
   if (align <= -800)
     return CHAOTIC_EVIL;
-  
+
   /* shouldn't get here */
   return TRUE_NEUTRAL;
 }
 
-
-void set_alignment(struct char_data *ch, int alignment)
-{
+void set_alignment(struct char_data *ch, int alignment) {
   switch (alignment) {
     case LAWFUL_GOOD:
       GET_ALIGNMENT(ch) = 900;
@@ -2667,14 +2577,14 @@ void set_alignment(struct char_data *ch, int alignment)
       break;
     default:
       break;
-  }          
+  }
 }
-    /* return colored two-letter string referring to alignment */
+/* return colored two-letter string referring to alignment */
+
 /* also have in constants.c
  * const char *alignment_names[] = {
-*/
-char *get_align_by_num_cnd(int align)
-{
+ */
+char *get_align_by_num_cnd(int align) {
   if (align >= 800)
     return "\tWLG\tn";
   if (align >= 575 && align < 800)
@@ -2698,12 +2608,12 @@ char *get_align_by_num_cnd(int align)
 }
 
 
-    /* return colored full string referring to alignment */
+/* return colored full string referring to alignment */
+
 /* also have in constants.c
  * const char *alignment_names[] = {
-*/
-char *get_align_by_num(int align)
-{
+ */
+char *get_align_by_num(int align) {
   if (align >= 800)
     return "\tYLawful \tWGood\tn";
   if (align >= 575 && align < 800)
