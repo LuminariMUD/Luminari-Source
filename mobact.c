@@ -24,6 +24,70 @@
 #include "spec_procs.h"
 #include "mud_event.h" /* for eSTUNNED */
 
+/*
+ 
+bool mobai_switchopponents(struct char_data *ch) {
+  struct char_data *homie = NULL;
+  struct char_data *switchvict = NULL;
+
+  if (IS_PET(ch))
+    return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_BLIND))
+    return FALSE;
+
+  if (GET_POS(ch) < POS_FIGHTING)
+    return FALSE;
+
+  int score = 10000;
+
+  if (AFF_FLAGGED(FIGHTING(ch), AFF_GROUP) || (FIGHTING(ch)->master && AFF_FLAGGED(FIGHTING(ch)->master, AFF_GROUP))) {
+    for (homie = world[ch->in_room].people; homie; homie = homie->next_in_room) {
+      if (is_grouped(FIGHTING(ch), homie) ||
+              (FIGHTING(ch)->master && is_grouped(homie, FIGHTING(ch)->master)) ||
+              homie == FIGHTING(ch)->master || GET_LEVEL(homie) > 30) {
+        if (IS_NPC(homie) && MOB_FLAGGED(homie, MOB_NOFIGHT))
+          continue;
+        if (RIDER(homie))
+          continue;
+
+        if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+          if (ch->next_in_room != homie && homie->next_in_room != ch)
+            continue;
+        }
+
+        int comp = GET_HIT(homie) + dice(1, 200);
+        if (GET_CASTING(homie))
+          comp -= 200;
+        switch (GET_CLASS(homie)) {
+          case CLASS_CLERIC:
+            comp -= 200;
+            break;
+        }
+
+        if (!switchvict || (comp < score)) {
+          if (CAN_SEE(ch, homie) && (!IS_NPC(homie) || !MOB_CAN_FIGHT(homie))) {
+            switchvict = homie;
+            score = comp;
+          }
+        }
+      }
+    }
+    if (switchvict && switchvict != FIGHTING(ch) && skill_test(ch, SKILL_SWITCH_OPPONENTS, 101, 0)) {
+      init_fight(ch, switchvict);
+      FIGHTING(ch) = switchvict;
+      act("&cC$n &cCswitches opponents!&c0", FALSE, ch, 0, 0, TO_ROOM);
+      WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+ 
+ */
+
+
 /* local file scope only function prototypes, defines, externs, etc */
 #define SINFO spell_info[spellnum]
 #define SPELLUP_SPELLS 54
@@ -995,6 +1059,10 @@ void mobile_activity(void) {
         if (MOB_FLAGGED(ch, MOB_WIMPY) && AWAKE(vict))
           continue;
 
+        if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+                (ch->next_in_room != vict && vict->next_in_room != ch))
+          continue;
+        
         if (MOB_FLAGGED(ch, MOB_AGGRESSIVE) ||
                 (MOB_FLAGGED(ch, MOB_AGGR_EVIL) && IS_EVIL(vict)) ||
                 (MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(vict)) ||

@@ -947,6 +947,11 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     return (0);
   }
 
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF)) {
+    send_to_char(ch, "You can not even speak a single word!\r\n");
+    return 0;
+  }  
+  
   if (FIGHTING(ch) && GET_POS(ch) > POS_STUNNED)
     position = POS_FIGHTING;
 
@@ -997,6 +1002,13 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
             TRUE, ch, 0, 0, TO_ROOM);
     return (0);
   }
+
+  if (IS_SET(SINFO.targets, TAR_IGNORE) && SINFO.violent) {
+    if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
+      send_to_char(ch, "This room is much too narrow to focus that magic in.\r\n");
+      return 0;
+    }
+  }  
 
   //default casting class will be the highest level casting class
   int class = -1, clevel = -1;

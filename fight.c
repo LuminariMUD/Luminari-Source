@@ -74,8 +74,44 @@ static char *replace_string(const char *str, const char *weapon_singular,
 
 #define IS_WEAPON(type) (((type) >= TYPE_HIT) && ((type) < TYPE_SUFFERING))
 
-/*********************************/
+/************ utility functions *********************/
 
+/* code to check if vict is going to be rescued by someone while
+ being attacked by ch */
+void guard_check(struct char_data *ch, struct char_data *vict) {
+  struct char_data *tch;
+  struct char_data *next_tch;
+  
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE))
+    return;
+
+  for (tch = world[ch->in_room].people; tch; tch = next_tch) {
+    next_tch = tch->next_in_room;
+    if (tch == ch || tch == vict)
+      continue;
+    if (IS_NPC(tch))
+      continue;
+    if (GET_POS(tch) < POS_FIGHTING)
+      continue;
+    if (AFF_FLAGGED(tch, AFF_BLIND))
+      continue;
+    if (GUARDING(tch) == vict) {
+      if (rand_number(1, 100) > GET_SKILL(tch, SKILL_RESCUE)) {
+        act("$N fails to guard you.", FALSE, vict, 0, tch, TO_CHAR);
+        act("You fail to guard $n.", FALSE, vict, 0, tch, TO_VICT);
+      } else {
+        act("$N comes to your protection.", FALSE, vict, 0, tch, TO_CHAR);
+        act("$N guards $n succesfully.", FALSE, vict, 0, tch, TO_NOTVICT);
+        act("You guard $n succesfully.", FALSE, vict, 0, tch, TO_VICT);
+
+        if (!FIGHTING(tch))
+          set_fighting(tch, ch);
+        FIGHTING(ch) = tch;
+        return;
+      }
+    }
+  }
+}
 
 /* rewritten subfunction
    the engine for fleeing */
@@ -2248,7 +2284,14 @@ void hit(struct char_data *ch, struct char_data *victim,
     stop_fighting(ch);
     return;
   }
-
+  
+  /* single file rooms restriction */
+  if (!FIGHTING(ch)) {
+    if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE) &&
+            (ch->next_in_room != victim && victim->next_in_room != ch))
+      return;
+  }
+  
   if (victim != ch) {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) // ch -> vict
       set_fighting(ch, victim);
