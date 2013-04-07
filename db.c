@@ -2740,6 +2740,10 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
   GET_HIT(mob) = GET_MAX_HIT(mob);
   GET_MANA(mob) = GET_REAL_MAX_MANA(mob) = GET_MAX_MANA(mob);
   GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = GET_MAX_MOVE(mob);
+  
+  /* pos_fighting is deprecated */
+  if (GET_POS(mob) == POS_FIGHTING)
+    GET_POS(mob) = POS_STANDING;
 
   mob->player.time.birth = time(0);
   mob->player.time.played = 0;
