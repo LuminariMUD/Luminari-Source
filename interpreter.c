@@ -128,6 +128,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "blank", "blank", POS_RESTING, do_gen_forget, 0, SCMD_BLANK, FALSE},
   { "boosts", "boost", POS_RESTING, do_boosts, 1, 0, FALSE},
   { "buck", "buck", POS_FIGHTING, do_buck, 1, 0, FALSE},
+  { "bodyslam", "bodyslam", POS_FIGHTING, do_bodyslam, 1, 0, FALSE},
 
   { "cast", "c", POS_SITTING, do_cast, 1, 0, FALSE},
   { "cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE},
@@ -157,6 +158,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "call", "call", POS_FIGHTING, do_call, 1, 0, FALSE},
   { "chant", "chant", POS_RESTING, do_gen_memorize, 0, SCMD_CHANT, FALSE},
   { "checkapproved", "checkapproved", POS_DEAD, do_checkapproved, LVL_BUILDER, 0, TRUE},
+  { "charge", "charge", POS_FIGHTING, do_charge, 1, 0, FALSE},
 
   { "date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE},
   { "dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE},
@@ -172,6 +174,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "dismount", "dismount", POS_FIGHTING, do_dismount, 0, 0, FALSE},
   { "dismiss", "dismiss", POS_FIGHTING, do_dismiss, 0, 0, FALSE},
   { "disenchant", "disenchant", POS_STANDING, do_not_here, 1, 0, FALSE},
+  { "dirtkick", "dirtkick", POS_FIGHTING, do_dirtkick, 1, 0, FALSE},
 
   { "eat", "ea", POS_RESTING, do_eat, 0, SCMD_EAT, FALSE},
   { "echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE},
@@ -226,6 +229,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "harvest", "harvest", POS_STANDING, do_harvest, 1, 0, FALSE},
   { "hlqedit", "hlqedit", POS_DEAD, do_hlqedit, LVL_BUILDER, 0, TRUE},
   { "hlqlist", "hlqlist", POS_DEAD, do_hlqlist, LVL_BUILDER, 0, TRUE},
+  { "headbutt", "headbutt", POS_FIGHTING, do_headbutt, 1, 0, FALSE},
+  { "hitall", "hitall", POS_FIGHTING, do_hitall, 1, 0, FALSE},
 
   { "inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE},
   { "identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE},
@@ -345,6 +350,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "resize", "resize", POS_STANDING, do_not_here, 1, 0, FALSE},
   { "restring", "restring", POS_STANDING, do_not_here, 1, 0, FALSE},
   { "rage", "rage", POS_FIGHTING, do_rage, 1, 0, FALSE},
+  { "recline", "recline", POS_RECLINING, do_recline, 0, 0, FALSE},
 
   { "sacrifice", "sac", POS_RESTING, do_sac, 0, 0, FALSE},
   { "say", "s", POS_RESTING, do_say, 0, 0, TRUE},
@@ -388,6 +394,9 @@ cpp_extern const struct command_info cmd_info[] = {
   { "spellbattle", "spellbattle", POS_STANDING, do_spellbattle, 1, 0, FALSE},
   { "spellquests", "spellquests", POS_DEAD, do_spellquests, LVL_BUILDER, 0, TRUE},
   { "singlefile", "singlefile", POS_DEAD, do_singlefile, LVL_BUILDER, 0, TRUE},
+  { "sap", "sap", POS_FIGHTING, do_sap, 1, 0, FALSE},
+  { "shieldpunch", "shieldpunch", POS_FIGHTING, do_shieldpunch, 1, 0, FALSE},
+  { "springleap", "springleap", POS_SITTING, do_springleap, 1, 0, FALSE},
   
   { "tell", "t", POS_DEAD, do_tell, 0, 0, TRUE},
   { "take", "ta", POS_RESTING, do_get, 0, 0, FALSE},
@@ -691,6 +700,9 @@ void command_interpreter(struct char_data *ch, char *argument) {
         break;
       case POS_SLEEPING:
         send_to_char(ch, "In your dreams, or what?\r\n");
+        break;
+      case POS_RECLINING:
+        send_to_char(ch, "You can't do that while reclining...\r\n");
         break;
       case POS_RESTING:
         send_to_char(ch, "Nah... You feel too relaxed to do that..\r\n");

@@ -24,6 +24,314 @@
 #include "spec_procs.h"
 #include "class.h"
 
+/**** Utility functions *******/
+
+/* simple function to check whether ch has a piercing weapon, has 3 modes:
+   wield == 1  --  primary one hand weapon
+   wield == 2  --  off hand weapon
+   wield == 3  --  two hand weapon
+ */
+/* NOTE - this is probably deprecated by the IS_PIERCE() macro */
+bool has_piercing_weapon(struct char_data *ch, int wield) {
+  if (!ch)
+    return FALSE;
+
+  if (wield < 1 || wield > 3)
+    return FALSE;
+
+  if (wield == 1 && GET_EQ(ch, WEAR_WIELD_1) &&
+          IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1))) {
+    return TRUE;
+  }
+
+  if (wield == 2 && GET_EQ(ch, WEAR_WIELD_2) &&
+          GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2), 3) == TYPE_PIERCE - TYPE_HIT) {
+    return TRUE;
+  }
+
+  if (wield == 3 && GET_EQ(ch, WEAR_WIELD_2H) &&
+          GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2H), 3) == TYPE_PIERCE - TYPE_HIT) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/* main engine for dirt-kick mechanic */
+void perform_dirtkick(struct char_data *ch, struct char_data *vict) {
+  struct affected_type af;
+  int dam = 0;
+
+  if (ch->in_room != vict->in_room)
+    return;
+  
+  if (!CAN_SEE(ch, vict)) {
+    send_to_char(ch, "You don't see well enough to attempt that.\r\n");
+    return;
+  }
+  
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+    if (ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char(ch, "You simply can't reach that far.\r\n");
+      return;
+    }
+  }
+
+  if (AFF_FLAGGED(ch, AFF_IMMATERIAL)) {
+    send_to_char(ch, "Its pretty hard to kick with immaterial legs.\r\n");
+    return;    
+  }
+  
+  if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOBLIND)) {
+    damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
+    return;
+  }
+  
+  int base_probability = GET_SKILL(ch, SKILL_DIRT_KICK);
+  if (IS_NPC(ch))
+    base_probability = 40;  //flate rate 40% right now
+  int lvl_penalty = GET_LEVEL(vict) / 2;
+  int agi_penalty = GET_DEX(vict);
+  int size_penalty = (GET_SIZE(ch) - GET_SIZE(vict)) * 12;
+  if (size_penalty < 0)
+    size_penalty *= -1;
+
+  int chance = MAX(2, base_probability - lvl_penalty - agi_penalty - size_penalty);
+
+  SET_WAIT(ch, PULSE_VIOLENCE * 3);
+
+  if (dice(1, 100) < chance) {
+    dam = 2 + dice(1, GET_LEVEL(ch));
+    af.spell = SKILL_DIRT_KICK;
+    SET_BIT_AR(af.bitvector, AFF_BLIND);
+    af.modifier = -4;
+    af.duration = GET_LEVEL(ch) / 5;
+    af.location = APPLY_HITROLL;
+    affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+    damage(ch, vict, dam, SKILL_DIRT_KICK, 0, FALSE);
+  } else
+    damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
+}
+
+/* main engine for assist mechanic */
+void perform_assist(struct char_data *ch, struct char_data *helpee) {
+  struct char_data *opponent = NULL;
+  
+  if (!ch)
+    return;
+  
+  /* hit same opponent as person you are helping */  
+  if (FIGHTING(helpee))
+    opponent = FIGHTING(helpee);
+  else
+    for (opponent = world[IN_ROOM(ch)].people;
+            opponent && (FIGHTING(opponent) != helpee);
+            opponent = opponent->next_in_room);
+
+  if (!opponent)
+    act("But nobody is fighting $M!", FALSE, ch, 0, helpee, TO_CHAR);
+  else if (!CAN_SEE(ch, opponent))
+    act("You can't see who is fighting $M!", FALSE, ch, 0, helpee, TO_CHAR);
+    /* prevent accidental pkill */
+  else if (!CONFIG_PK_ALLOWED && !IS_NPC(opponent))
+    send_to_char(ch, "You cannot kill other players.\r\n");
+  else if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "You can't fight!\r\n");
+  } else  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+              ch->next_in_room != opponent && opponent->next_in_room != ch) {
+      send_to_char(ch, "You simply can't reach that far.\r\n");
+  } else {
+    send_to_char(ch, "You join the fight!\r\n");
+    act("$N assists you!", 0, helpee, 0, ch, TO_CHAR);
+    act("$n assists $N.", FALSE, ch, 0, helpee, TO_NOTVICT);
+    hit(ch, opponent, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }  
+}
+
+/* the primary engine for springleap */
+void perform_springleap(struct char_data *ch, struct char_data *vict) {
+  int dam = 0;
+  
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  if (!CAN_SEE(ch, vict)) {
+    send_to_char(ch, "You don't see well enough to attempt that.\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+    if (ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char(ch, "You simply can't reach that far.\r\n");
+      return;
+    }
+  }
+  
+  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+    act("You sprawl completely through $N as you try to springleap them!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n sprawls completely through $N as $e tries to springleap $M.", FALSE, ch, 0, vict, TO_ROOM);
+    GET_POS(ch) = POS_SITTING;
+    SET_WAIT(ch, PULSE_VIOLENCE);
+    return;
+  }
+
+  if (rand_number(0, 100) < GET_SKILL(ch, SKILL_SPRINGLEAP)) {
+    dam = dice(6, (GET_LEVEL(ch) / 5) + 2);
+
+    damage(ch, vict, dam, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
+    SET_WAIT(vict, PULSE_VIOLENCE);
+    GET_POS(ch) = POS_STANDING;
+  } else {
+    damage(ch, vict, 0, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
+    GET_POS(ch) = POS_SITTING;
+  }
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+
+}
+
+/* the primary engine for backstab */
+void perform_backstab(struct char_data *ch, struct char_data *vict) {
+  int percent = -1, percent2 = -1, prob = -1, successful = 0;
+  
+  percent = rand_number(1, 101); /* 101% is a complete failure */
+  percent2 = rand_number(1, 101); /* 101% is a complete failure */
+  if (IS_NPC(ch))
+    prob = 40;  // flat 40% success rate for now
+  else
+    prob = GET_SKILL(ch, SKILL_BACKSTAB);
+  
+  if (AFF_FLAGGED(ch, AFF_HIDE))
+    prob += 4; //minor bonus for being hidden
+  if (AFF_FLAGGED(ch, AFF_SNEAK))
+    prob += 4; //minor bonus for being sneaky
+
+  if ((!IS_NPC(ch)&& GET_RACE(ch) == RACE_TRELUX) || (GET_EQ(ch, WEAR_WIELD_1)
+          && IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1)))) {
+    if (AWAKE(vict) && (percent > prob)) {
+      damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, FALSE);
+    } else {
+      hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, FALSE);
+    }
+    successful++;
+  }
+
+  update_pos(vict);
+
+  if (vict && GET_POS(vict) >= POS_DEAD) {
+    if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_2) &&
+            IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2)))) {
+      if (AWAKE(vict) && (percent2 > prob)) {
+        damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
+      } else {
+        hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
+      }
+      successful++;
+    }
+  }
+
+  update_pos(vict);
+
+  if (vict) {
+    if (GET_EQ(ch, WEAR_WIELD_2H) &&
+            IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2H)) &&
+            GET_POS(vict) >= POS_DEAD) {
+      if (AWAKE(vict) && (percent2 > prob)) {
+        damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
+      } else {
+        hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
+      }
+      successful++;
+    }
+  }
+
+  if (successful) {
+    if (!IS_NPC(ch))
+      increase_skill(ch, SKILL_BACKSTAB);
+    SET_WAIT(ch, 2 * PULSE_VIOLENCE);
+  } else
+    send_to_char(ch, "You have no piercing weapon equipped.\r\n");  
+}
+
+/* this is the event function for whirlwind */
+EVENTFUNC(event_whirlwind) {
+  struct char_data *ch = NULL, *tch = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+  struct list_data *room_list = NULL;
+  int count = 0;
+
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */
+  pMudEvent = (struct mud_event_data *) event_obj;
+  ch = (struct char_data *) pMudEvent->pStruct;
+  if (!IS_PLAYING(ch->desc))
+    return 0;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
+    send_to_char(ch, "You simply can't reach in this area.\r\n");
+    return 0;
+  }
+  
+  /* When using a list, we have to make sure to allocate the list as it
+   * uses dynamic memory */
+  room_list = create_list();
+
+  /* We search through the "next_in_room", and grab all NPCs and add them
+   * to our list */
+  if (!IN_ROOM(ch))
+    return 0;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    if (IS_NPC(tch))
+      add_to_list(tch, room_list);
+
+  /* If our list is empty or has "0" entries, we free it from memory and
+   * close off our event */
+  if (room_list->iSize == 0) {
+    free_list(room_list);
+    send_to_char(ch, "There is no one in the room to whirlwind!\r\n");
+    return 0;
+  }
+
+  if (GET_HIT(ch) < 1)
+    return 0;
+
+  if (!IS_NPC(ch)) {
+    increase_skill(ch, SKILL_WHIRLWIND);
+    if (GET_SKILL(ch, SKILL_IMPROVED_WHIRL))
+      increase_skill(ch, SKILL_IMPROVED_WHIRL);
+  }
+
+  /* We spit out some ugly colour, making use of the new colour options,
+   * to let the player know they are performing their whirlwind strike */
+  send_to_char(ch, "\t[f313]You deliver a vicious \t[f014]\t[b451]WHIRLWIND!!!\tn\r\n");
+
+  /* Lets grab some a random NPC from the list, and hit() them up */
+  for (count = dice(1, 4); count > 0; count--) {
+    tch = random_from_list(room_list);
+    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }
+
+  /* Now that our attack is done, let's free out list */
+  if (room_list)
+    free_list(room_list);
+
+  /* The "return" of the event function is the time until the event is called
+   * again. If we return 0, then the event is freed and removed from the list, but
+   * any other numerical response will be the delay until the next call */
+  if (GET_SKILL(ch, SKILL_WHIRLWIND) < rand_number(1, 101)) {
+    send_to_char(ch, "You stop spinning.\r\n");
+    return 0;
+  } else if (GET_SKILL(ch, SKILL_IMPROVED_WHIRL))
+    return 1.5 * PASSES_PER_SEC;
+  else
+    return 4 * PASSES_PER_SEC;
+}
 
 /******* start offensive commands *******/
 
@@ -225,36 +533,6 @@ ACMD(do_rage) {
     increase_skill(ch, SKILL_RAGE);
 }
 
-void perform_assist(struct char_data *ch, struct char_data *helpee) {
-  struct char_data *opponent = NULL;
-  
-  if (!ch)
-    return;
-  
-  /* hit same opponent as person you are helping */  
-  if (FIGHTING(helpee))
-    opponent = FIGHTING(helpee);
-  else
-    for (opponent = world[IN_ROOM(ch)].people;
-            opponent && (FIGHTING(opponent) != helpee);
-            opponent = opponent->next_in_room);
-
-  if (!opponent)
-    act("But nobody is fighting $M!", FALSE, ch, 0, helpee, TO_CHAR);
-  else if (!CAN_SEE(ch, opponent))
-    act("You can't see who is fighting $M!", FALSE, ch, 0, helpee, TO_CHAR);
-    /* prevent accidental pkill */
-  else if (!CONFIG_PK_ALLOWED && !IS_NPC(opponent))
-    send_to_char(ch, "You cannot kill other players.\r\n");
-  else if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
-    send_to_char(ch, "You can't fight!\r\n");
-  } else {
-    send_to_char(ch, "You join the fight!\r\n");
-    act("$N assists you!", 0, helpee, 0, ch, TO_CHAR);
-    act("$n assists $N.", FALSE, ch, 0, helpee, TO_NOTVICT);
-    hit(ch, opponent, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  }  
-}
 
 ACMD(do_assist) {
   char arg[MAX_INPUT_LENGTH];
@@ -281,7 +559,7 @@ ACMD(do_hit) {
   struct char_data *vict = NULL;
   int chInitiative = dice(1, 20), victInitiative = dice(1, 20);
 
-  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
+  if (!MOB_CAN_FIGHT(ch)) {
     send_to_char(ch, "But you can't fight!\r\n");
     return;
   }
@@ -299,6 +577,10 @@ ACMD(do_hit) {
     send_to_char(ch, "You are already fighting that one!\r\n");
   } else if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == vict))
     act("$N is just such a good friend, you simply can't hit $M.", FALSE, ch, 0, vict, TO_CHAR);
+  else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+        send_to_char(ch, "You simply can't reach that far.\r\n");
+  }
   else {
     if (!CONFIG_PK_ALLOWED && !IS_NPC(vict) && !IS_NPC(ch))
       check_killer(ch, vict);
@@ -375,6 +657,12 @@ ACMD(do_kill) {
             PRF_FLAGGED(vict, PRF_NOHASSLE)) {
       do_hit(ch, argument, cmd, subcmd);
     } else {
+      if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+              ch->next_in_room != vict && vict->next_in_room != ch) {
+        send_to_char(ch, "You simply can't reach that far.\r\n");
+        return;
+      }
+
       act("You chop $M to pieces!  Ah!  The blood!", FALSE, ch, 0, vict, TO_CHAR);
       act("$N chops you to pieces!", FALSE, vict, 0, ch, TO_CHAR);
       act("$n brutally slays $N!", FALSE, ch, 0, vict, TO_NOTVICT);
@@ -386,48 +674,23 @@ ACMD(do_kill) {
   }
 }
 
-/* simple function to check whether ch has a piercing weapon, has 3 modes:
-   wield == 1  --  primary one hand weapon
-   wield == 2  --  off hand weapon
-   wield == 3  --  two hand weapon
- */
-bool has_piercing_weapon(struct char_data *ch, int wield) {
-  if (!ch)
-    return FALSE;
-
-  if (wield < 1 || wield > 3)
-    return FALSE;
-
-  if (wield == 1 && GET_EQ(ch, WEAR_WIELD_1) &&
-          IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1))) {
-    return TRUE;
-  }
-
-  if (wield == 2 && GET_EQ(ch, WEAR_WIELD_2) &&
-          GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2), 3) == TYPE_PIERCE - TYPE_HIT) {
-    return TRUE;
-  }
-
-  if (wield == 3 && GET_EQ(ch, WEAR_WIELD_2H) &&
-          GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2H), 3) == TYPE_PIERCE - TYPE_HIT) {
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
 ACMD(do_backstab) {
   char buf[MAX_INPUT_LENGTH];
   struct char_data *vict;
-  int percent, percent2, prob;
 
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_BACKSTAB)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
 
-  one_argument(argument, buf);
+  if (GET_RACE(ch) == RACE_TRELUX)
+    ;
+  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2) && !GET_EQ(ch, WEAR_WIELD_2H)) {
+    send_to_char(ch, "You need to wield a weapon to make it a success.\r\n");
+    return;
+  }
 
+  one_argument(argument, buf);
   if (!(vict = get_char_vis(ch, buf, NULL, FIND_CHAR_ROOM))) {
     send_to_char(ch, "Backstab who?\r\n");
     return;
@@ -436,11 +699,9 @@ ACMD(do_backstab) {
     send_to_char(ch, "How can you sneak up on yourself?\r\n");
     return;
   }
-
-  if (GET_RACE(ch) == RACE_TRELUX)
-    ;
-  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2) && !GET_EQ(ch, WEAR_WIELD_2H)) {
-    send_to_char(ch, "You need to wield a weapon to make it a success.\r\n");
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
 
@@ -456,62 +717,8 @@ ACMD(do_backstab) {
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
     return;
   }
-
-  percent = rand_number(1, 101); /* 101% is a complete failure */
-  percent2 = rand_number(1, 101); /* 101% is a complete failure */
-  prob = GET_SKILL(ch, SKILL_BACKSTAB);
-  if (AFF_FLAGGED(ch, AFF_HIDE))
-    prob += 4; //minor bonus for being hidden
-  if (AFF_FLAGGED(ch, AFF_SNEAK))
-    prob += 4; //minor bonus for being sneaky
-
-  int successful = 0;
-
-  if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_1) &&
-          IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1)))) {
-    if (AWAKE(vict) && (percent > prob)) {
-      damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, FALSE);
-    } else {
-      hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, FALSE);
-    }
-    successful++;
-  }
-
-  update_pos(vict);
-
-  if (vict && GET_POS(vict) >= POS_DEAD) {
-    if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_2) &&
-            IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2)))) {
-      if (AWAKE(vict) && (percent2 > prob)) {
-        damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
-      } else {
-        hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
-      }
-      successful++;
-    }
-  }
-
-  update_pos(vict);
-
-  if (vict) {
-    if (GET_EQ(ch, WEAR_WIELD_2H) &&
-            IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2H)) &&
-            GET_POS(vict) >= POS_DEAD) {
-      if (AWAKE(vict) && (percent2 > prob)) {
-        damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
-      } else {
-        hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
-      }
-      successful++;
-    }
-  }
-
-  if (successful) {
-    if (!IS_NPC(ch))
-      increase_skill(ch, SKILL_BACKSTAB);
-    SET_WAIT(ch, 2 * PULSE_VIOLENCE);
-  } else
-    send_to_char(ch, "You have no piercing weapon equipped.\r\n");
+  
+  perform_backstab(ch, vict);
 }
 
 ACMD(do_order) {
@@ -879,7 +1086,7 @@ ACMD(do_frightful) {
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
-  }
+  }  
 
   send_to_char(ch, "You ROAR!\r\n");
   act("$n lets out a mighty ROAR!", FALSE, ch, 0, 0, TO_ROOM);
@@ -949,6 +1156,10 @@ ACMD(do_tailsweep) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
+    send_to_char(ch, "It is too narrow to try that here.\r\n");
+    return;
+  }
 
   send_to_char(ch, "You lash out with your mighty tail!\r\n");
   act("$n lashes out with $s mighty tail!", FALSE, ch, 0, 0, TO_ROOM);
@@ -957,6 +1168,8 @@ ACMD(do_tailsweep) {
     next_vict = vict->next_in_room;
 
     if (vict == ch)
+      continue;
+    if (AFF_FLAGGED(vict, AFF_IMMATERIAL))
       continue;
 
     // pass -2 as spellnum to handle tailsweep
@@ -1000,8 +1213,6 @@ ACMD(do_bash) {
   struct char_data *vict;
   int percent, prob;
 
-  one_argument(argument, arg);
-
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_BASH)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
@@ -1010,6 +1221,8 @@ ACMD(do_bash) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
+  
+  one_argument(argument, arg);
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
       vict = FIGHTING(ch);
@@ -1022,6 +1235,12 @@ ACMD(do_bash) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+  
   if (MOB_FLAGGED(vict, MOB_NOKILL)) {
     send_to_char(ch, "This mob is protected.\r\n");
     return;
@@ -1032,6 +1251,14 @@ ACMD(do_bash) {
   }
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
     send_to_char(ch, "Your target is too big!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
+    GET_POS(ch) = POS_SITTING;
+    SET_WAIT(ch, PULSE_VIOLENCE);
     return;
   }
 
@@ -1103,6 +1330,12 @@ ACMD(do_trip) {
     }
   }
 
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+  
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
@@ -1130,6 +1363,14 @@ ACMD(do_trip) {
 
   if (AFF_FLAGGED(vict, AFF_FLYING)) {
     send_to_char(ch, "Impossible, your target is flying!\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
+    GET_POS(ch) = POS_SITTING;
+    SET_WAIT(ch, PULSE_VIOLENCE);
     return;
   }
 
@@ -1180,15 +1421,20 @@ ACMD(do_layonhands) {
     return;
   }
 
+  if (char_has_mud_event(ch, eLAYONHANDS)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    return;
+  }
+  
   one_argument(argument, arg);
-
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     send_to_char(ch, "Whom do you want to lay hands on?\r\n");
     return;
   }
-
-  if (char_has_mud_event(ch, eLAYONHANDS)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
 
@@ -1298,6 +1544,12 @@ ACMD(do_rescue) {
     send_to_char(ch, "How can you rescue someone you are trying to kill?\r\n");
     return;
   }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+  
   for (tmp_ch = world[IN_ROOM(ch)].people; tmp_ch &&
           (FIGHTING(tmp_ch) != vict); tmp_ch = tmp_ch->next_in_room);
 
@@ -1340,81 +1592,8 @@ ACMD(do_rescue) {
     increase_skill(ch, SKILL_RESCUE);
 }
 
-EVENTFUNC(event_whirlwind) {
-  struct char_data *ch = NULL, *tch = NULL;
-  struct mud_event_data *pMudEvent = NULL;
-  struct list_data *room_list = NULL;
-  int count = 0;
-
-  /* This is just a dummy check, but we'll do it anyway */
-  if (event_obj == NULL)
-    return 0;
-
-  /* For the sake of simplicity, we will place the event data in easily
-   * referenced pointers */
-  pMudEvent = (struct mud_event_data *) event_obj;
-  ch = (struct char_data *) pMudEvent->pStruct;
-  if (!IS_PLAYING(ch->desc))
-    return 0;
-
-  /* When using a list, we have to make sure to allocate the list as it
-   * uses dynamic memory */
-  room_list = create_list();
-
-  /* We search through the "next_in_room", and grab all NPCs and add them
-   * to our list */
-  if (!IN_ROOM(ch))
-    return 0;
-
-  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
-    if (IS_NPC(tch))
-      add_to_list(tch, room_list);
-
-  /* If our list is empty or has "0" entries, we free it from memory and
-   * close off our event */
-  if (room_list->iSize == 0) {
-    free_list(room_list);
-    send_to_char(ch, "There is no one in the room to whirlwind!\r\n");
-    return 0;
-  }
-
-  if (GET_HIT(ch) < 1)
-    return 0;
-
-  if (!IS_NPC(ch)) {
-    increase_skill(ch, SKILL_WHIRLWIND);
-    if (GET_SKILL(ch, SKILL_IMPROVED_WHIRL))
-      increase_skill(ch, SKILL_IMPROVED_WHIRL);
-  }
-
-  /* We spit out some ugly colour, making use of the new colour options,
-   * to let the player know they are performing their whirlwind strike */
-  send_to_char(ch, "\t[f313]You deliver a vicious \t[f014]\t[b451]WHIRLWIND!!!\tn\r\n");
-
-  /* Lets grab some a random NPC from the list, and hit() them up */
-  for (count = dice(1, 4); count > 0; count--) {
-    tch = random_from_list(room_list);
-    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  }
-
-  /* Now that our attack is done, let's free out list */
-  if (room_list)
-    free_list(room_list);
-
-  /* The "return" of the event function is the time until the event is called
-   * again. If we return 0, then the event is freed and removed from the list, but
-   * any other numerical response will be the delay until the next call */
-  if (GET_SKILL(ch, SKILL_WHIRLWIND) < rand_number(1, 101)) {
-    send_to_char(ch, "You stop spinning.\r\n");
-    return 0;
-  } else if (GET_SKILL(ch, SKILL_IMPROVED_WHIRL))
-    return 1.5 * PASSES_PER_SEC;
-  else
-    return 4 * PASSES_PER_SEC;
-}
-
-/* The "Whirlwind" skill is designed to provide a basic understanding of the
- * mud event and list systems. This is in NO WAY a balanced skill. */
+/* built initially by vatiken as an illustration of event/lists systems 
+ * of TBA, adapted to Luminari mechanics */
 ACMD(do_whirlwind) {
 
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_WHIRLWIND)) {
@@ -1426,7 +1605,11 @@ ACMD(do_whirlwind) {
     send_to_char(ch, "You must be on your feet to perform a whirlwind.\r\n");
     return;
   }
-
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
+    send_to_char(ch, "It is too narrow to try that here.\r\n");
+    return;
+  }
+  
   /* First thing we do is check to make sure the character is not in the middle
    * of a whirl wind attack.
    * 
@@ -1460,9 +1643,13 @@ ACMD(do_stunningfist) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-
+  
+  if (char_has_mud_event(ch, eSTUNNINGFIST)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    return;
+  }
+  
   one_argument(argument, arg);
-
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
       vict = FIGHTING(ch);
@@ -1475,12 +1662,13 @@ ACMD(do_stunningfist) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
-  if (char_has_mud_event(ch, eSTUNNED)) {
-    send_to_char(ch, "Your target is already stunned...\r\n");
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
-  if (char_has_mud_event(ch, eSTUNNINGFIST)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+  if (char_has_mud_event(vict, eSTUNNED)) {
+    send_to_char(ch, "Your target is already stunned...\r\n");
     return;
   }
 
@@ -1560,7 +1748,6 @@ ACMD(do_kick) {
   }
 
   one_argument(argument, arg);
-
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
       vict = FIGHTING(ch);
@@ -1573,6 +1760,21 @@ ACMD(do_kick) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
+    GET_POS(ch) = POS_SITTING;
+    SET_WAIT(ch, PULSE_VIOLENCE);
+    return;
+  }
+  
   /* 101% is a complete failure */
   percent = rand_number(1, 101);
   prob = GET_SKILL(ch, SKILL_KICK);
@@ -1590,3 +1792,784 @@ ACMD(do_kick) {
   SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 
+ACMD(do_hitall) {
+  int lag = 1;
+  int count = 0;
+  struct char_data *vict, *next_vict;
+  
+  if (!MOB_CAN_FIGHT(ch))
+    return;
+
+  if ((IS_NPC(ch) || !GET_SKILL(ch, SKILL_HITALL)) && (!IS_PET(ch) || IS_FAMILIAR(ch))) {
+    send_to_char(ch, "But you do not know how to do that.\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
+    send_to_char(ch, "It is too narrow to try that here.\r\n");
+    return;
+  }
+  
+  for (vict = world[ch->in_room].people; vict; vict = next_vict) {
+    next_vict = vict->next_in_room;
+    if (IS_NPC(vict) && !IS_PET(vict) && 
+            (CAN_SEE(ch, vict) || 
+            IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_MAGICDARK))) {
+      count++;
+      if (rand_number(0, 101) < GET_SKILL(ch, SKILL_HITALL) ||
+              (IS_PET(ch) && rand_number(0, 101) > GET_LEVEL(ch))) {
+        lag++;
+
+      }
+      if (aoeOK(ch, vict, SKILL_HITALL))
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 0);
+    }
+  }
+  lag = 1 + lag / 3 + count / 4;
+  if (lag > 3)
+    lag = 3;
+
+  SET_WAIT(ch, lag * PULSE_VIOLENCE);
+}
+
+
+/* 
+ * Original by Vhaerun, a neat skill for rogues to get an additional attack 
+ * while not tanking. 
+ */
+ACMD(do_circle) {
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_BACKSTAB)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+
+  if (!FIGHTING(ch)) {
+    send_to_char(ch, "You can only circle while in combat.\r\n");
+    return;
+  }
+
+  if (is_tanking(ch)) {
+    send_to_char(ch, "You are too busy defending yourself to try that.\r\n");
+    return;
+  }
+  
+  if (GET_RACE(ch) == RACE_TRELUX)
+    ;
+  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2) && !GET_EQ(ch, WEAR_WIELD_2H)) {
+    send_to_char(ch, "You need to wield a weapon to make it a success.\r\n");
+    return;
+  }
+  
+  one_argument(argument, buf);
+  if (!*buf && FIGHTING(ch))
+    vict = FIGHTING(ch);
+  else if (!(vict = get_char_vis(ch, buf, NULL, FIND_CHAR_ROOM))) {
+    send_to_char(ch, "Circle who?\r\n");
+    return;
+  }
+
+  if (vict == ch) {
+    send_to_char(ch, "Do not be ridiculous!\r\n");
+    return;
+  }
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+  
+  perform_backstab(ch, vict);
+}
+
+/* 
+Vhaerun: 
+    A rather useful type of bash for large humanoids to start a combat with. 
+ */
+/*
+ACMD(do_bodyslam) {
+  struct char_data *vict;
+  int percent, prob;
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+
+  one_argument(argument, buf);
+
+  if (!GET_SKILL(ch, SKILL_BODYSLAM)) {
+    send_to_char("You have no idea how!\r\n", ch);
+    return;
+  }
+
+  if (IS_NPC(ch)) {
+    send_to_char("You have no idea how.\r\n", ch);
+    return;
+  }
+
+  if (FIGHTING(ch)) {
+    send_to_char("You can't bodyslam while fighting!", ch);
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char("This room just has such a peaceful, easy feeling...\r\n", ch);
+    return;
+  }
+
+  if (!*buf) {
+    send_to_char("Bodyslam who?\r\n", ch);
+    return;
+  }
+  if (!(vict = get_char_room_vis(ch, buf))) {
+    send_to_char("Bodyslam who?\r\n", ch);
+    return;
+  }
+  if (vict == ch) {
+    send_to_char("Aren't we funny today...\r\n", ch);
+    return;
+  }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+
+  if (!is_valid_target(ch, vict)) {
+    send_to_char("Can't we all get along.\r\n", ch);
+    return;
+  }
+
+  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
+    GET_POS(ch) = POS_SITTING;
+    SET_WAIT(ch, PULSE_VIOLENCE);
+    return;
+  }
+
+  percent = number(1, 101); // 101% = complete failure
+  prob = GET_LEVEL(ch)*2;
+  prob += GET_R_DEX(ch);
+  prob -= GET_R_DEX(vict);
+
+  if (prob > 100)
+    prob = 100;
+
+  if (MOB_FLAGGED(vict, MOB_NOBASH))
+    percent = 101;
+
+  if (get_size_diff(ch, vict) > 0) {
+    act("You bounce of the huge form of $N as you try to bodyslam $M!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n bounce of the huge form of $N as $e try to bodyslam $M!", FALSE, ch, 0, vict, TO_ROOM);
+    GET_POS(ch) = POS_SITTING;
+    WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+    return;
+
+  }
+
+  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
+
+  if (percent > prob) {
+    GET_POS(ch) = POS_SITTING;
+
+    damage(ch, vict, 0, SKILL_BODYSLAM, DAMBIT_PHYSICAL);
+    GET_POS(ch) = POS_SITTING;
+  } else {
+    GET_POS(vict) = POS_SITTING;
+    WAIT_STATE(vict, 4 * PULSE_VIOLENCE);
+    //-1 = dead, 0 = miss
+    if (damage(ch, vict, 1, SKILL_BODYSLAM, DAMBIT_PHYSICAL) > 0) {
+      if (IN_ROOM(ch) == IN_ROOM(vict))
+        GET_POS(vict) = POS_SITTING;
+    }
+  }
+}
+*/
+        
+/* unfinished */
+/*
+ACMD(do_disarm) {
+  struct char_data *vict = FIGHTING(ch);
+  int pos;
+  struct obj_data *wielded = 0;
+  int mod = 0;
+
+  if (!GET_SKILL(ch, SKILL_DISARM)) {
+    send_to_char("But you do not know how.\r\n", ch);
+    return;
+  }
+
+
+  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
+    send_to_char("You are paralysed to the bone.\r\n", ch);
+    return;
+  }
+
+  if (!vict) {
+    send_to_char("You can only try to disarm the opponent you are fighting.\r\n", ch);
+    return;
+  }
+
+  if (!CAN_SEE(ch, vict)) {
+    send_to_char("You don't see well enough to attempt that.\r\n", ch);
+    return;
+  }
+
+  if (GET_EQ(vict, WEAR_WIELD_2H)) {
+    wielded = GET_EQ(vict, WEAR_WIELD_2H);
+    pos = WEAR_WIELD_2H;
+    mod = -25;
+  } else {
+    wielded = GET_EQ(vict, WEAR_WIELD_P);
+    pos = WEAR_WIELD_P;
+  }
+  if (!wielded) {
+    wielded = GET_EQ(vict, WEAR_WIELD_S);
+    pos = WEAR_WIELD_S;
+  }
+  if (!wielded) {
+    act("But $N is not wielding anything.", FALSE, ch, 0, vict, TO_CHAR);
+    return;
+  }
+
+
+  if (skill_test(ch, SKILL_DISARM, 500, mod + GET_R_DEX(ch) / 10 - GET_R_STR(vict) / 15) && !IS_OBJ_STAT(wielded, ITEM_NODROP)) {
+    act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict, TO_ROOM);
+    act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict, TO_CHAR);
+    obj_to_room(unequip_char(vict, pos), vict->in_room);
+  } else {
+    act("$n failed to disarm $N.", FALSE, ch, 0, vict, TO_ROOM);
+    act("You failed to disarm $N.", FALSE, ch, 0, vict, TO_CHAR);
+  }
+
+  WAIT_STATE(ch, 3 * PULSE_VIOLENCE);
+}
+*/
+
+/*
+ACMD(do_headbutt) {
+  struct char_data *vict = 0;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+
+  one_argument(argument, arg);
+
+  if (!IS_NPC(ch))
+    if (!GET_SKILL(ch, SKILL_HEADBUTT)) {
+      send_to_char("You have no idea how.\r\n", ch);
+      return;
+    }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char("This room just has such a peaceful, easy feeling...\r\n", ch);
+    return;
+  }
+
+
+  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
+    send_to_char("You are paralysed to the bone.\r\n", ch);
+    return;
+  }
+  if (!arg || !*arg || !(vict = get_char_room_vis(ch, arg))) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  }
+  if (!vict) {
+    send_to_char("Headbutt who?\r\n", ch);
+    return;
+  }
+
+  if (vict == ch) {
+    send_to_char("Aren't we funny today...\r\n", ch);
+    return;
+  }
+  if (!is_valid_target(ch, vict)) {
+    send_to_char("Can't we all get along.\r\n", ch);
+    return;
+  }
+
+
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+    if (ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char("You simply can't reach that far.\r\n", ch);
+      return;
+    }
+  }
+
+  if (GET_POS(ch) <= POS_SITTING) {
+    send_to_char("You need to get on your feet to do a headbutt.\r\n", ch);
+    return;
+  }
+
+  if (MOB_FLAGGED(vict, MOB_NOBASH) || get_curr_size(vict) > 4) {
+    send_to_char("It feels like slamming your head into a wall, you are dazed and confused.\r\n", ch);
+    WAIT_STATE(ch, PULSE_VIOLENCE);
+    return;
+  }
+
+  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
+    GET_POS(ch) = POS_SITTING;
+    SET_WAIT(ch, PULSE_VIOLENCE);
+    return;
+  }
+
+  if (skill_test(ch, SKILL_HEADBUTT, 101, 0)) {
+    WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+
+    GET_POS(vict) = POS_RECLINING;
+    WAIT_STATE(vict, PULSE_VIOLENCE * 4);
+    damage(ch, vict, dice(3, GET_LEVEL(ch)), SKILL_HEADBUTT, DAMBIT_PHYSICAL);
+  } else {
+    GET_POS(ch) = POS_RECLINING;
+    WAIT_STATE(ch, PULSE_VIOLENCE * 4);
+    ch->char_specials.firing = FALSE;
+    damage(ch, vict, 0, SKILL_HEADBUTT, DAMBIT_PHYSICAL);
+  }
+}
+*/
+
+/*
+ACMD(do_sap) {
+  struct char_data *vict = 0;
+  int dam = 0;
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  
+  one_argument(argument, buf);
+
+  if (!GET_SKILL(ch, SKILL_SAP)) {
+    send_to_char("But you do not know how?\r\n", ch);
+    return;
+  }
+
+  if (!(vict = get_char_room_vis(ch, buf))) {
+    send_to_char("Sap who?\r\n", ch);
+    return;
+  }
+
+
+  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
+    send_to_char("You are paralysed to the bone.\r\n", ch);
+    return;
+  }
+  if (vict == ch) {
+    send_to_char("How can you sneak up on yourself?\r\n", ch);
+    return;
+  }
+
+  struct obj_data *sap = GET_EQ(ch, WEAR_WIELD_P);
+  if (!sap)
+    sap = GET_EQ(ch, WEAR_WIELD_S);
+
+
+  if (!sap) {
+    send_to_char("You need to wield a one handed weapon to make it a success.\r\n", ch);
+    return;
+  }
+  if (ch->in_room != vict->in_room) {
+    send_to_char("That would be a bit hard.\r\n", ch);
+    return;
+  }
+  // check offhand
+  if (
+          GET_OBJ_VAL(sap, 3) != TYPE_BLUDGEON - TYPE_HIT
+          && GET_OBJ_VAL(sap, 3) != TYPE_MAUL - TYPE_HIT
+          && GET_OBJ_VAL(sap, 3) != TYPE_CRUSH - TYPE_HIT
+          && GET_OBJ_VAL(sap, 3) != TYPE_POUND - TYPE_HIT
+          && GET_OBJ_VAL(sap, 3) != TYPE_BLAST - TYPE_HIT
+          ) {
+    if (GET_EQ(ch, WEAR_WIELD_S))
+      sap = GET_EQ(ch, WEAR_WIELD_S);
+  }
+
+
+
+
+  if (
+          GET_OBJ_VAL(sap, 3) != TYPE_BLUDGEON - TYPE_HIT
+          && GET_OBJ_VAL(sap, 3) != TYPE_MAUL - TYPE_HIT
+          && GET_OBJ_VAL(sap, 3) != TYPE_CRUSH - TYPE_HIT
+          && GET_OBJ_VAL(sap, 3) != TYPE_POUND - TYPE_HIT
+          && GET_OBJ_VAL(sap, 3) != TYPE_BLAST - TYPE_HIT
+          ) {
+    send_to_char("Only bludgeoning weapons can be used to sap someone with.\r\n", ch);
+    return;
+  }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char("This room just has such a peaceful, easy feeling...\r\n", ch);
+    return;
+  }
+
+  if (!is_valid_target(ch, vict)) {
+    send_to_char("Can't we all get along.\r\n", ch);
+    return;
+  }
+
+
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+    if (ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char("You simply can't reach that far.\r\n", ch);
+      return;
+    }
+  }
+  if (!AFF_FLAGGED(ch, AFF_HIDE)) {
+    send_to_char("You have to be hidden before you can sap anyone.\r\n", ch);
+    return;
+  }
+ * 
+  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+    send_to_char("There is simply nothing solid there to sap.\r\n", ch);
+    return;
+  }
+
+  if (get_curr_size(vict) > get_curr_size(ch)) {
+    send_to_char("You can't reach that high.\r\n", ch);
+    return;
+  }
+
+  if (!skill_test(ch, SKILL_SAP, 101, 0)) {
+    WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+    damage(ch, vict, 0, SKILL_SAP, DAMBIT_BLUDGEON);
+    return;
+  }
+
+  WAIT_STATE(vict, PULSE_VIOLENCE * 4);
+  dam = 5 + dice(GET_LEVEL(ch), 3);
+  GET_POS(vict) = POS_SITTING;
+  WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+  damage(ch, vict, dam, SKILL_SAP, DAMBIT_BLUDGEON);
+}
+*/
+
+/*
+ACMD(do_guard) {
+  struct char_data *vict;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+
+  if (IS_NPC(ch))
+    return;
+
+  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
+    send_to_char("You are paralysed to the bone.\r\n", ch);
+    return;
+  }
+  if (AFF2_FLAGGED(ch, AFF2_BZKRAGE)) {
+    send_to_char("All you want is BLOOD!\r\n", ch);
+    return;
+  }
+  if (AFF_FLAGGED(ch, AFF_BLIND)) {
+    send_to_char("You are blind, and couldn't rescue a mouse.\r\n", ch);
+    return;
+  }
+
+
+  one_argument(argument, arg);
+  if (!*arg) {
+    if (ch->char_specials.guarding)
+      act("You are guarding $N", FALSE, ch, 0, ch->char_specials.guarding, TO_CHAR);
+    else
+      send_to_char("You are not guarding anyone.\r\n", ch);
+    return;
+  }
+
+  if (!GET_SKILL(ch, SKILL_GUARD)) {
+    send_to_char("But you have no idea how!\r\n", ch);
+    return;
+  }
+  if (!(vict = get_char_room_vis(ch, arg))) {
+    send_to_char("Whom do you want to guard?\r\n", ch);
+    return;
+  }
+  if (IS_NPC(vict) && !IS_PET(vict)) {
+    send_to_char("Not even funny..\r\n", ch);
+    return;
+  }
+
+
+  if (ch->char_specials.guarding) {
+    act("$n stops guarding $N", FALSE, ch, 0, ch->char_specials.guarding, TO_ROOM);
+    act("You stop guarding $N", FALSE, ch, 0, ch->char_specials.guarding, TO_CHAR);
+  }
+
+  ch->char_specials.guarding = vict;
+  act("$n now guards $N", FALSE, ch, 0, vict, TO_ROOM);
+  act("You now guard $N", FALSE, ch, 0, vict, TO_CHAR);
+
+}
+*/
+
+/*
+ACMD(do_dirtkick) {
+  struct char_data *vict = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+
+
+  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
+    send_to_char("You are paralysed to the bone.\r\n", ch);
+    return;
+  }
+  one_argument(argument, arg);
+
+  if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_DIRT_KICK)) {
+    send_to_char("You have no idea how.\r\n", ch);
+    return;
+  }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char("This room just has such a peaceful, easy feeling...\r\n", ch);
+    return;
+  }
+
+  if (INN_FLAGGED(ch, INNATE_IMMATERIAL)) {
+    send_to_char("You got no material feet to dirtkick with.\r\n", ch);
+    return;
+  }
+  if (!arg || !*arg || !(vict = get_char_room_vis(ch, arg))) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  }
+  if (!vict) {
+    send_to_char("Dirtkick who?\r\n", ch);
+    return;
+  }
+
+  if (vict == ch) {
+    send_to_char("Aren't we funny today...\r\n", ch);
+    return;
+  }
+  perform_dirtkick(ch, vict);
+}
+*/
+
+/* 
+Vhaerun: 
+  Monks gamble to take down a caster, if fail, they are down for quite a while. 
+ */
+/*
+ACMD(do_springleap) {
+  struct char_data *vict = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+
+  one_argument(argument, arg);
+
+  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_SPRINGLEAP)) {
+    send_to_char("You have no idea how.\r\n", ch);
+    return;
+  }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char("This room just has such a peaceful, easy feeling...\r\n", ch);
+    return;
+  }
+
+  if (GET_STUN(ch) > 0) {
+    send_to_char("You are too stunned to attempt that at the moment.\r\n", ch);
+    return;
+  }
+
+  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
+    send_to_char("You are paralysed to the bone.\r\n", ch);
+    return;
+  }
+  if (GET_POS(ch) != POS_SITTING) {
+    send_to_char("You must be sitting to springleap.\r\n", ch);
+    return;
+  }
+
+  if (!arg || !*arg) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  }
+  else
+    vict = get_char_room_vis(ch, arg);
+
+  if (!vict) {
+    send_to_char("Springleap who?\r\n", ch);
+    return;
+  }
+  perform_springleap(ch, vict);
+}
+*/
+
+/* 
+ * Vhaerun:  A warrior skill to Stun !BASH mobs. 
+ */
+/*
+ACMD(do_shieldpunch) {
+  struct char_data *vict = 0;
+  extern struct index_data *obj_index;
+  int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
+  struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+
+  one_argument(argument, arg);
+
+  if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_SHIELD_PUNCH)) {
+    send_to_char("You have no idea how.\r\n", ch);
+    return;
+  }
+  if (GET_STUN(ch) > 0) {
+    send_to_char("You are too stunned to attempt that at the moment.\r\n", ch);
+    return;
+  }
+
+
+  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
+    send_to_char("You are paralysed to the bone.\r\n", ch);
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char("This room just has such a peaceful, easy feeling...\r\n", ch);
+    return;
+  }
+
+
+  if (!arg || !*arg) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  } else
+    vict = get_char_room_vis(ch, arg);
+
+  if (!vict) {
+    send_to_char("Shieldpunch who?\r\n", ch);
+    return;
+  }
+  if (vict == ch) {
+    send_to_char("Aren't we funny today...\r\n", ch);
+    return;
+  }
+  if (!CAN_SEE(ch, vict)) {
+    send_to_char("You don't see well enough to attempt that.\r\n", ch);
+    return;
+  }
+
+  if (!is_valid_target(ch, vict)) {
+    send_to_char("Can't we all get along.\r\n", ch);
+    return;
+  }
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+    if (ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char("You simply can't reach that far.\r\n", ch);
+      return;
+    }
+  }
+
+  if (GET_POS(ch) <= POS_SITTING) {
+    send_to_char("You need to get on your feet to shieldpunch.\r\n", ch);
+    return;
+  }
+
+  if (!GET_EQ(ch, WEAR_SHIELD)) {
+    send_to_char("You need to wear a shield to be able to shieldpunch.\r\n", ch);
+    return;
+  }
+
+  WAIT_STATE(ch, PULSE_VIOLENCE * 2); // stun the player doing it first
+
+  if (!skill_test(ch, SKILL_SHIELD_PUNCH, 101, 0))
+    damage(ch, vict, 0, SKILL_SHIELD_PUNCH, DAMBIT_PHYSICAL);
+  else {
+    if (number(0, 100) < GET_LEVEL(ch)) {
+      stun_char(ch, vict, 5 + dice(5, 2));
+    } else
+      WAIT_STATE(vict, 1 RL_SEC);
+
+    name = obj_index[GET_OBJ_RNUM(shield)].func;
+    if (name)
+      (name)(ch, shield, 0, "shieldpunch");
+    else {
+      damage(ch, vict, GET_DAMROLL(ch) + GET_SKILL(ch, SKILL_SHIELD_PUNCH) / 2, SKILL_SHIELD_PUNCH, DAMBIT_PHYSICAL);
+    }
+  }
+}
+*/
+
+/*
+ * Vhaerun:  Charging when mounted
+ */
+/*
+ACMD(do_charge) {
+  struct char_data *vict = 0;
+  extern struct index_data *obj_index;
+  int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+
+  one_argument(argument, arg);
+
+  if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_CHARGE)) {
+    send_to_char("You do not know how to charge.\r\n", ch);
+    return;
+  }
+  if (GET_STUN(ch) > 0) {
+    send_to_char("You are too stunned to attempt that at the moment.\r\n", ch);
+    return;
+  }
+  if (!MOUNTED(ch)) {
+    send_to_char("You must be mounted to charge.\r\n", ch);
+    return;
+  }
+
+
+  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
+    send_to_char("You are paralysed to the bone.\r\n", ch);
+    return;
+  }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char("This room just has such a peaceful, easy feeling...\r\n", ch);
+    return;
+  }
+
+
+  if (!arg || !*arg) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  } else
+    vict = get_char_room_vis(ch, arg);
+
+  if (!vict) {
+    send_to_char("Charge who?\r\n", ch);
+    return;
+  }
+  if (vict == ch) {
+    send_to_char("Aren't we funny today...\r\n", ch);
+    return;
+  }
+  if (!CAN_SEE(ch, vict)) {
+    send_to_char("You don't see well enough to attempt that.\r\n", ch);
+    return;
+  }
+
+  if (!is_valid_target(ch, vict)) {
+    send_to_char("Can't we all get along.\r\n", ch);
+    return;
+  }
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+    if (ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char("You simply can't reach that far.\r\n", ch);
+      return;
+    }
+  }
+
+  if (GET_POS(ch) <= POS_SITTING) {
+    send_to_char("You need to stand in the stirrups to charge!\r\n", ch);
+    return;
+  }
+  WAIT_STATE(ch, PULSE_VIOLENCE * 2); // stun the player doing it first
+
+  if (!skill_test(ch, SKILL_CHARGE, 101, 0))
+    damage(ch, vict, 0, SKILL_CHARGE, DAMBIT_PHYSICAL);
+  else {
+    if (number(0, 100) < GET_LEVEL(ch))
+      stun_char(ch, vict, 3 + dice(3, 4));
+    else
+      WAIT_STATE(vict, 1 RL_SEC);
+    damage(ch, vict, GET_DAMROLL(ch) + GET_SKILL(ch, SKILL_CHARGE) / 2, SKILL_CHARGE, DAMBIT_PHYSICAL);
+  }
+}
+*/
+        
+        

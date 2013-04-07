@@ -960,6 +960,9 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       case POS_SLEEPING:
         send_to_char(ch, "You dream about great magical powers.\r\n");
         break;
+      case POS_RECLINING:
+        send_to_char(ch, "You can't do this reclining!\r\n");
+        break;
       case POS_RESTING:
         send_to_char(ch, "You cannot concentrate while resting.\r\n");
         break;
@@ -1622,10 +1625,10 @@ void mag_assign_spells(void) {
 
   /* = =  cantrips  = = */
   /* evocation */
-  spello(SPELL_ACID_SPLASH, "acid splash", 0, 0, 0, POS_SITTING,
+  spello(SPELL_ACID_SPLASH, "acid splash", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
           NULL, 0, 1, EVOCATION, FALSE);
-  spello(SPELL_RAY_OF_FROST, "ray of frost", 0, 0, 0, POS_SITTING,
+  spello(SPELL_RAY_OF_FROST, "ray of frost", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
           NULL, 0, 1, EVOCATION, FALSE);
 
@@ -2677,6 +2680,14 @@ void mag_assign_spells(void) {
   skillo(SKILL_TURN_UNDEAD, "turn undead", ACTIVE_SKILL); //515
   skillo(SKILL_WILDSHAPE, "wildshape", ACTIVE_SKILL); //516
   skillo(SKILL_SPELLBATTLE, "spellbattle", ACTIVE_SKILL); //517
+  skillo(SKILL_HITALL, "hitall", ACTIVE_SKILL);  //518
+  skillo(SKILL_CHARGE, "charge", ACTIVE_SKILL);  //519
+  skillo(SKILL_BODYSLAM, "bodyslam", ACTIVE_SKILL);  //520
+  skillo(SKILL_SPRINGLEAP, "spring leap", ACTIVE_SKILL);  //521
+  skillo(SKILL_HEADBUTT, "headbutt", ACTIVE_SKILL);  //522
+  skillo(SKILL_SHIELD_PUNCH, "shield punch", ACTIVE_SKILL);  //523
+  skillo(SKILL_DIRT_KICK, "dirt kick", ACTIVE_SKILL);  //524
+  skillo(SKILL_SAP, "sap", ACTIVE_SKILL);  //525
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 

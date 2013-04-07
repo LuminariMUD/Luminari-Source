@@ -46,7 +46,7 @@ bool mobai_switchopponents(struct char_data *ch) {
       if (is_grouped(FIGHTING(ch), homie) ||
               (FIGHTING(ch)->master && is_grouped(homie, FIGHTING(ch)->master)) ||
               homie == FIGHTING(ch)->master || GET_LEVEL(homie) > 30) {
-        if (IS_NPC(homie) && MOB_FLAGGED(homie, MOB_NOFIGHT))
+        if (!MOB_CAN_FIGHT(homie))
           continue;
         if (RIDER(homie))
           continue;
@@ -974,6 +974,8 @@ void mobile_activity(void) {
     if (GET_POS(ch) != GET_DEFAULT_POS(ch)) {
       if (GET_DEFAULT_POS(ch) == POS_SITTING) {
         do_sit(ch, NULL, 0, 0);
+      } else if (GET_DEFAULT_POS(ch) == POS_RECLINING) {
+        do_recline(ch, NULL, 0, 0);
       } else if (GET_DEFAULT_POS(ch) == POS_RESTING) {
         do_rest(ch, NULL, 0, 0);
       } else if (GET_DEFAULT_POS(ch) == POS_STANDING) {

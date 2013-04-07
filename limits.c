@@ -112,9 +112,11 @@ void regen_update(struct char_data *ch)
 
   //position, other bonuses
   if (GET_POS(ch) == POS_SITTING && SITTING(ch) && GET_OBJ_TYPE(SITTING(ch)) == ITEM_FURNITURE)
-    hp += dice(3, 2);
+    hp += dice(3, 2) + 1;
   else if (GET_POS(ch) == POS_RESTING)
     hp += dice(1, 2);
+  else if (GET_POS(ch) == POS_RECLINING)
+    hp += dice(1, 4);
   else if (GET_POS(ch) == POS_SLEEPING)
     hp += dice(3, 2);
 
@@ -185,6 +187,10 @@ int mana_gain(struct char_data *ch)
     case POS_SLEEPING:
       gain *= 2;
       break;
+    case POS_RECLINING:
+      gain *= 3;
+      gain /= 2;
+      break;
     case POS_RESTING:
       gain += (gain / 2);	/* Divide by 2 */
       break;
@@ -227,6 +233,9 @@ int hit_gain(struct char_data *ch)
     case POS_SLEEPING:
       gain += (gain / 2);	/* Divide by 2 */
       break;
+    case POS_RECLINING:
+      gain += (gain / 3);	/* Divide by 3 */
+      break;
     case POS_RESTING:
       gain += (gain / 4);	/* Divide by 4 */
       break;
@@ -266,6 +275,9 @@ int move_gain(struct char_data *ch)
     switch (GET_POS(ch)) {
     case POS_SLEEPING:
       gain += (gain / 2);	/* Divide by 2 */
+      break;
+    case POS_RECLINING:
+      gain += (gain / 3);	/* Divide by 3 */
       break;
     case POS_RESTING:
       gain += (gain / 4);	/* Divide by 4 */

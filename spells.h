@@ -481,9 +481,18 @@
 #define SKILL_SCRIBE                    514  //implemented
 #define SKILL_TURN_UNDEAD               515  //implemented
 #define SKILL_WILDSHAPE                 516  //implemented
-#define SKILL_SPELLBATTLE               517
+#define SKILL_SPELLBATTLE               517  //implemented
+#define SKILL_HITALL                    518
+#define SKILL_CHARGE                    519
+#define SKILL_BODYSLAM                  520
+#define SKILL_SPRINGLEAP                521
+#define SKILL_HEADBUTT                  522
+#define SKILL_SHIELD_PUNCH              523
+#define SKILL_DIRT_KICK                 524
+#define SKILL_SAP                       525
+
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      518
+#define NUM_SKILLS                      526
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the

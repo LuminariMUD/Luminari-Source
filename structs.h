@@ -393,12 +393,13 @@
 #define POS_INCAP      2	/**< Position = incapacitated */
 #define POS_STUNNED    3	/**< Position = stunned	*/
 #define POS_SLEEPING   4	/**< Position = sleeping */
-#define POS_RESTING    5	/**< Position = resting	*/
-#define POS_SITTING    6	/**< Position = sitting	*/
-#define POS_FIGHTING   7	/**< Position = fighting */
-#define POS_STANDING   8	/**< Position = standing */
+#define POS_RECLINING  5	/**< Position = reclining */
+#define POS_RESTING    6	/**< Position = resting	*/
+#define POS_SITTING    7	/**< Position = sitting	*/
+#define POS_FIGHTING   8	/**< Position = fighting */
+#define POS_STANDING   9	/**< Position = standing */
 /** Total number of positions. */
-#define NUM_POSITIONS   9
+#define NUM_POSITIONS   10
 
 /* Player flags: used by char_data.char_specials.act */
 #define PLR_KILLER        0   /**< Player is a player-killer */
@@ -586,10 +587,10 @@
 #define AFF_INERTIAL_BARRIER 74  // absorb damage based on mana
 #define AFF_NOTELEPORT       75  // make target not reachable via teleport
 #define AFF_MAX_DAMAGE       76  // enhance next attack/spell/etc
-
+#define AFF_IMMATERIAL       77  // no physical body (ghost-like)
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS        77
+#define NUM_AFF_FLAGS        78
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/

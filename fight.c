@@ -76,6 +76,19 @@ static char *replace_string(const char *str, const char *weapon_singular,
 
 /************ utility functions *********************/
 
+
+/* simple utility function to check if ch is tanking */
+bool is_tanking(struct char_data *ch) {
+  struct char_data *vict;
+  for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room) {
+    if (FIGHTING(vict) == ch)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+
 /* code to check if vict is going to be rescued by someone while
  being attacked by ch */
 void guard_check(struct char_data *ch, struct char_data *vict) {
@@ -325,6 +338,9 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch) {
   }
   
   switch (GET_POS(ch)) { //position penalty
+    case POS_RECLINING:
+      armorclass -= 3;
+      break;
     case POS_SITTING:
     case POS_RESTING:
     case POS_STUNNED:
@@ -1358,19 +1374,45 @@ int compute_concealment(struct char_data *ch) {
 
 }
 
+/* this function lets damage_handling know that the given attacktype
+   is VALID for being handled, otherwise ignore this attack */
+bool ok_damage_handling(int attacktype) {
+  switch (attacktype) {
+    case TYPE_SUFFERING:
+      return FALSE;
+    case SKILL_BASH:
+      return FALSE;
+    case SKILL_TRIP:
+      return FALSE;
+    case SPELL_POISON:
+      return FALSE;
+    case SPELL_SPIKE_GROWTH:
+      return FALSE;    
+    case SKILL_CHARGE:
+      return FALSE;    
+    case SKILL_BODYSLAM:
+      return FALSE;    
+    case SKILL_SPRINGLEAP:
+      return FALSE;
+    case SKILL_SHIELD_PUNCH:
+      return FALSE;
+    case SKILL_DIRT_KICK:
+      return FALSE;
+    case SKILL_SAP:
+      return FALSE;
+  }
+  return TRUE;
+}
 
-// returns modified damage, process elements/resistance/avoidance
-// -1 means we're gonna go ahead and exit damage()
-// anything that goes through here will affect ALL damage, whether
-// skill or spell, etc
 
+/* returns modified damage, process elements/resistance/avoidance
+   -1 means we're gonna go ahead and exit damage()
+   anything that goes through here will affect ALL damage, whether
+   skill or spell, etc */
 int damage_handling(struct char_data *ch, struct char_data *victim,
         int dam, int attacktype, int dam_type) {
 
-  if (dam > 0 && attacktype != TYPE_SUFFERING &&
-          attacktype != SKILL_BASH && attacktype != SKILL_TRIP &&
-          attacktype != SPELL_POISON && attacktype != SPELL_SPIKE_GROWTH
-          && victim != ch) {
+  if (dam > 0 && ok_damage_handling(attacktype) && victim != ch) {
     int concealment = compute_concealment(victim);
     if (dice(1, 100) <= compute_concealment(victim)) {
       send_to_char(victim, "\tW<conceal:%d>\tn", concealment);
@@ -2262,7 +2304,7 @@ void hit(struct char_data *ch, struct char_data *victim,
   /* added this to perform_violence for mobs flaged !fight */
   fight_mtrigger(ch); //fight trig
 
-  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) { // can't hit!
+  if (!MOB_CAN_FIGHT(ch)) {  /* this mob can't hit */
     send_to_char(ch, "But you can't fight!\r\n");
     return;
   }
@@ -2883,7 +2925,7 @@ void perform_violence(void) {
     }
 
     /* make sure this goes after attack-stopping affects like paralyze */
-    if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOFIGHT)) {
+    if (!MOB_CAN_FIGHT(ch)) {
       /* this should be called in hit() but need a copy here for !fight flag */
       fight_mtrigger(ch); //fight trig
       continue;

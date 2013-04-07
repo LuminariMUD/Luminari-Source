@@ -241,12 +241,61 @@ void increase_skill(struct char_data *ch, int skillnum) {
   if (GET_SKILL(ch, skillnum) <= 0 || GET_SKILL(ch, skillnum >= 99))
     return;
 
-  int c_skill = rand_number(0, C_SKILL);
+  int craft_skill = rand_number(0, C_SKILL);
   int use = rand_number(0, USE);
   int pass = rand_number(0, PASS);
 
   switch (skillnum) {
 
+    case SKILL_HITALL:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_CHARGE:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_BODYSLAM:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SPRINGLEAP:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_HEADBUTT:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SHIELD_PUNCH:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_DIRT_KICK:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SAP:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+      
     case SKILL_WILDSHAPE:
       if (!use) {
         notched = TRUE;
@@ -262,91 +311,91 @@ void increase_skill(struct char_data *ch, int skillnum) {
 
       /* crafting skills */
     case SKILL_MINING:
-      if (!c_skill) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_HUNTING:
-      if (!c_skill) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_FORESTING:
-      if (!c_skill) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_KNITTING:
-      if (!c_skill) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_CHEMISTRY:
-      if (!c_skill) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_ARMOR_SMITHING:
-      if (!c_skill) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_WEAPON_SMITHING:
-      if (!c_skill) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_JEWELRY_MAKING:
-      if (!c_skill) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_LEATHER_WORKING:
-      if (!c_skill) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_FAST_CRAFTER:
-      if (!c_skill) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_BONE_ARMOR:
-      if (!pass) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_ELVEN_CRAFTING:
-      if (!pass) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_MASTERWORK_CRAFTING:
-      if (!pass) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_DRACONIC_CRAFTING:
-      if (!pass) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
       break;
     case SKILL_DWARVEN_CRAFTING:
-      if (!pass) {
+      if (!craft_skill) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }

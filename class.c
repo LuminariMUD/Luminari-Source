@@ -766,7 +766,11 @@ void monk_skills(struct char_data *ch, int level) {
         SET_SKILL(ch, SKILL_STUNNING_FIST, 75);
       send_to_char(ch, "\tMYou have learned 'Stunning Fist'\tn\r\n");
       break;
-
+    case 6:
+      if (!GET_SKILL(ch, SKILL_SPRINGLEAP))
+        SET_SKILL(ch, SKILL_SPRINGLEAP, 75);
+      send_to_char(ch, "\tMYou have learned 'Spring Leap'\tn\r\n");
+      break;
     default:
       break;
   }

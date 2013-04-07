@@ -441,6 +441,7 @@ do                                                              \
 /** The act flags on a mob. Synonomous with PLR_FLAGS. */
 #define MOB_FLAGS(ch)	((ch)->char_specials.saved.act)
 
+
 /** Player flags on a PC. Synonomous with MOB_FLAGS. */
 #define PLR_FLAGS(ch)	((ch)->char_specials.saved.act)
 
@@ -494,6 +495,16 @@ do                                                              \
 
 /** 1 if ch is flagged an NPC and flag is set in the act bitarray, 0 if not. */
 #define MOB_FLAGGED(ch, flag) (IS_NPC(ch) && IS_SET_AR(MOB_FLAGS(ch), (flag)))
+#define MOB_CAN_FIGHT(ch)     (!MOB_FLAGGED(ch, MOB_NOFIGHT))
+#define IS_FAMILIAR(ch) (MOB_FLAGGED(ch, MOB_C_FAMILIAR) && \
+                         AFF_FLAGGED(ch, AFF_CHARM) && \
+                         ch->master)
+#define IS_PAL_MOUNT(ch) (MOB_FLAGGED(ch, MOB_C_MOUNT) && \
+                          AFF_FLAGGED(ch, AFF_CHARM) && \
+                          ch->master)
+#define IS_COMPANION(ch) (MOB_FLAGGED(ch, MOB_C_ANIMAL) && \
+                          AFF_FLAGGED(ch, AFF_CHARM) && \
+                          ch->master)
 
 /** 1 if ch is not flagged an NPC and flag is set in the act bitarray, 0 if
  * not. */

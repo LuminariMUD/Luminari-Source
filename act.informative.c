@@ -477,8 +477,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     return;
 
     /* for non fighting mobiles */
-  } else if (IS_NPC(i) && i->player.long_descr &&
-          MOB_FLAGGED(i, MOB_NOFIGHT)) {
+  } else if (!MOB_CAN_FIGHT(i) && i->player.long_descr) {
 
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
@@ -1462,6 +1461,8 @@ ACMD(do_score) {
     case POS_STUNNED: send_to_char(ch, "Stunned\r\n");
       break;
     case POS_SLEEPING: send_to_char(ch, "Sleeping\r\n");
+      break;
+    case POS_RECLINING: send_to_char(ch, "Reclining\r\n");
       break;
     case POS_RESTING: send_to_char(ch, "Resting\r\n");
       break;
