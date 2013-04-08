@@ -1127,6 +1127,9 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define LVL_STAFF     32  /**< Level of Gods */
 #define LVL_IMMORT	31  /**< Level of Immortals */
 
+/* this level and lower is classified as newbie */
+#define NEWBIE_LEVEL 6
+
 /** Minimum level to build and to run the saveall command */
 #define LVL_BUILDER	LVL_IMMORT
 

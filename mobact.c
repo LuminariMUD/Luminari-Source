@@ -1075,18 +1075,20 @@ void mobile_activity(void) {
       continue;
 
     // entry point for npc race and class behaviour in combat -zusuk
-    if (FIGHTING(ch)) {
-      // 50% chance will react off of class, 50% chance will react off of race
-      if (rand_number(0, 1))
-        npc_racial_behave(ch);
-      else if (IS_NPC_CASTER(ch))
-        npc_offensive_spells(ch);
-      else
-        npc_class_behave(ch);
-      continue;
-    } else if (!rand_number(0, 6) && IS_NPC_CASTER(ch)) {
-      /* not in combat */
-      npc_spellup(ch);
+    if (GET_LEVEL(ch) > NEWBIE_LEVEL) {
+      if (FIGHTING(ch)) {
+        // 50% chance will react off of class, 50% chance will react off of race
+        if (rand_number(0, 1))
+          npc_racial_behave(ch);
+        else if (IS_NPC_CASTER(ch))
+          npc_offensive_spells(ch);
+        else
+          npc_class_behave(ch);
+        continue;
+      } else if (!rand_number(0, 6) && IS_NPC_CASTER(ch)) {
+        /* not in combat */
+        npc_spellup(ch);
+      }
     }
 
     /* return mobile to preferred (default) position if necessary */

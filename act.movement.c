@@ -574,7 +574,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
 
   /* Check zone level recommendations */
-  if (GET_LEVEL(ch) <= 6 && (ZONE_MINLVL(GET_ROOM_ZONE(going_to)) != -1) &&
+  if (GET_LEVEL(ch) <= NEWBIE_LEVEL && (ZONE_MINLVL(GET_ROOM_ZONE(going_to)) != -1) &&
           ZONE_MINLVL(GET_ROOM_ZONE(going_to)) > GET_LEVEL(ch)) {
     send_to_char(ch, "(OOC)  This zone is above your recommended level.\r\n");
   }

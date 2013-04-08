@@ -345,7 +345,6 @@ void run_autowiz(void)
 
 
 /* changed to return gain */
-#define NEWBIE_LEVEL	5   /* max level for newbie bonus */
 #define NEWBIE_EXP       150 /* bonus in percent */
 #define NUM_MOBS_10      50
 #define NUM_MOBS_20      100
