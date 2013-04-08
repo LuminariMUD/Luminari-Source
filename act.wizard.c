@@ -5406,7 +5406,7 @@ ACMD(do_hlqlist) {
   mob_vnum bottom = NOBODY, top = NOBODY;
   mob_rnum realnum = 0;
   int temp_num = 0, num_found = 0;
-  int i = 0, j = 0, k = 0, len = 0;
+  int i = 0, len = 0;
   char buf[MAX_STRING_LENGTH] = { '\0' };
   char buf1[MAX_INPUT_LENGTH] = { '\0' };
   char buf2[MAX_INPUT_LENGTH] = { '\0' };
@@ -5471,19 +5471,13 @@ ACMD(do_hlqlist) {
           num_found++;
           if (quest->approved)
             temp_num++;
-          k++;
-          if (k >= 5000) {
-            send_to_char(ch, "Infinite Loop detected!\r\n");
-            return;
-          }
         }
 
         len += snprintf(buf + len, sizeof (buf) - len,
-                "%s[%5d] %-40s %d/%d\r\n", buf, i,
+                "[%5d] %-40s %d/%d\r\n", i,
                 mob_proto[realnum].player.short_descr, temp_num, num_found);
-        j++;
-        /* Large buf can't hold that much memory so cut off list */
         
+        /* Large buf can't hold that much memory so cut off list */        
         if (len > sizeof(buf))
           break;
       }
