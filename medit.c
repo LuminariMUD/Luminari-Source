@@ -1707,7 +1707,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
 
     case MEDIT_DEFAULT_POS:
       if (i == POS_FIGHTING)
-        i++;
+        i = POS_STANDING;
       GET_DEFAULT_POS(OLC_MOB(d)) = LIMIT(i - 1, 0, NUM_POSITIONS - 1);
       break;
 

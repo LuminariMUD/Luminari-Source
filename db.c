@@ -1554,8 +1554,13 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
     exit(1);
   }
 
-  GET_POS(mob_proto + i) = t[0];
   GET_DEFAULT_POS(mob_proto + i) = t[1];
+  if (GET_DEFAULT_POS(mob_proto + i) == POS_FIGHTING)
+    GET_DEFAULT_POS(mob_proto + i) = POS_STANDING;
+  GET_POS(mob_proto + i) = t[0];
+  if (GET_POS(mob_proto + i) == POS_FIGHTING)
+    GET_POS(mob_proto + i) = POS_STANDING;
+  
   GET_SEX(mob_proto + i) = t[2];
 
   GET_SUBRACE(mob_proto + i, 0) = 0;
@@ -2742,6 +2747,8 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
   GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = GET_MAX_MOVE(mob);
   
   /* pos_fighting is deprecated */
+  if (GET_DEFAULT_POS(mob) == POS_FIGHTING)
+    GET_DEFAULT_POS(mob) = POS_STANDING;
   if (GET_POS(mob) == POS_FIGHTING)
     GET_POS(mob) = POS_STANDING;
 
