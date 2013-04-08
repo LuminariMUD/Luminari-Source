@@ -5461,8 +5461,10 @@ ACMD(do_hlqlist) {
 
   /* start engine */
   sprintf(buf, "Quest Listings : From %d to %d\r\n", bottom, top);
-  for (i = bottom; i <= top; i++) {
-    if ((realnum = real_mobile(i)) != NOBODY) {
+  for (i = 0; i <= top_of_mobt; i++) {
+    if (mob_index[i].vnum >= bottom && mob_index[i].vnum <= top) {
+//  for (i = bottom; i <= top; i++) {
+//    if ((realnum = real_mobile(i)) != NOBODY) {
       if (mob_proto[realnum].mob_specials.quest) {
         temp_num = 0;
         num_found = 0;
@@ -5491,9 +5493,8 @@ ACMD(do_hlqlist) {
   }
   /* end of qlist */
 
-  send_to_char(ch, buf);
   /* now send it all to the pager */
-  //page_string(ch->desc, buf, 1);
+  page_string(ch->desc, buf, TRUE);
 }
 
 /* a simple function/command to check location of all SINGLEFILE rooms
