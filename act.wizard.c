@@ -5415,8 +5415,10 @@ ACMD(do_hlqlist) {
   two_arguments(argument, buf1, buf2);
 
   /* if no buf1, use current zone information */
-  if (!*buf1)
+  if (!*buf1) {
     bottom = zone_table[world[IN_ROOM(ch)].zone].bot;
+    send_to_char(ch, "Bottom:  %d\r\n", bottom);
+  }  
   
   /* if buf1 is not a number send them back */
   else if (!isdigit(*buf1)) {
@@ -5428,9 +5430,11 @@ ACMD(do_hlqlist) {
     bottom = atoi(buf1);
 
   /* if no buf2, use buf1, and top of zone information */
-  if (!*buf2)
+  if (!*buf2) {
     top = zone_table[world[IN_ROOM(ch)].zone].top;
-    
+    send_to_char(ch, "Top:  %d\r\n", top);
+  }  
+  
   /* if buf2 is not a number send them back */
   else if (!isdigit(*buf2)) {
     send_to_char(ch, "\tcSecond value must be a digit, or nothing.\tn\r\n");
@@ -5455,6 +5459,7 @@ ACMD(do_hlqlist) {
     return;
   }
 
+  return;
   /* start engine */
   sprintf(buf, "Quest Listings : From %d to %d\r\n", bottom, top);
   for (i = bottom; i <= top; i++) {
