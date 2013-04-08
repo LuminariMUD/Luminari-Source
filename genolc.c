@@ -564,7 +564,7 @@ static int export_save_mobiles(zone_rnum rznum)
 
 static int export_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
 {
-
+  int pos = GET_DEFAULT_POS(mob);
   char ldesc[MAX_STRING_LENGTH];
   char ddesc[MAX_STRING_LENGTH];
 
@@ -596,10 +596,14 @@ static int export_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
       GET_MANA(mob), GET_MOVE(mob), GET_NDD(mob), GET_SDD(mob),
       GET_DAMROLL(mob));
 
+  /* pos_fighting is deprecated */
+  if (pos == POS_FIGHTING)
+    pos = POS_STANDING;
+  
   fprintf(fd, 	"%d %d\n"
 		"%d %d %d\n",
 		GET_GOLD(mob), GET_EXP(mob),
-		GET_POS(mob), GET_DEFAULT_POS(mob), GET_SEX(mob)
+		GET_POS(mob), pos, GET_SEX(mob)
   );
 
   if (write_mobile_espec(mvnum, mob, fd) < 0)

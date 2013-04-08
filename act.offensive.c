@@ -8,6 +8,8 @@
  *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
  **************************************************************************/
 
+#include <zconf.h>
+
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
@@ -26,10 +28,8 @@
 
 
 /* to be deleted */
-ACMD(do_bodyslam) {}
 ACMD(do_charge) {}
 ACMD(do_dirtkick) {}
-ACMD(do_headbutt) {}
 ACMD(do_sap) {}
 ACMD(do_shieldpunch) {}
 ACMD(do_springleap) {}
@@ -75,6 +75,7 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
 void perform_knockdown(struct char_data *ch, struct char_data *vict, 
         int skill) {
   int percent = 0, prob = 0, dam = dice(1, 4);
+  float rounds_wait = 1.75;
   
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
       ch->next_in_room != vict && vict->next_in_room != ch) {
@@ -113,6 +114,10 @@ void perform_knockdown(struct char_data *ch, struct char_data *vict,
         dam *= 2;
       }
       break;
+    case SKILL_BODYSLAM:
+      dam *= 4;
+      rounds_wait = rounds_wait + 1.0;
+      break;
     case SKILL_TRIP:
       if (AFF_FLAGGED(vict, AFF_FLYING)) {
         send_to_char(ch, "Impossible, your target is flying!\r\n");
@@ -128,7 +133,7 @@ void perform_knockdown(struct char_data *ch, struct char_data *vict,
       log("Invalid skill sent to perform knockdown!\r\n");
       return;
   }
-  
+    
   percent += rand_number(1, 101); /* 101% is a complete failure */
   prob += GET_SKILL(ch, skill);
 
@@ -155,7 +160,7 @@ void perform_knockdown(struct char_data *ch, struct char_data *vict,
   } else {
     GET_POS(vict) = POS_SITTING;
     if (damage(ch, vict, dam, skill, DAM_FORCE, FALSE) > 0)
-      SET_WAIT(vict, PULSE_VIOLENCE * 1.75);
+      SET_WAIT(vict, PULSE_VIOLENCE * rounds_wait);
   }
 
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
@@ -208,12 +213,15 @@ void perform_dirtkick(struct char_data *ch, struct char_data *vict) {
 
   if (dice(1, 100) < chance) {
     dam = 2 + dice(1, GET_LEVEL(ch));
+    
+    new_affect(&af);
     af.spell = SKILL_DIRT_KICK;
     SET_BIT_AR(af.bitvector, AFF_BLIND);
     af.modifier = -4;
     af.duration = GET_LEVEL(ch) / 5;
     af.location = APPLY_HITROLL;
     affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+    
     damage(ch, vict, dam, SKILL_DIRT_KICK, 0, FALSE);
   } else
     damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
@@ -286,10 +294,11 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
 
   if (rand_number(0, 100) < GET_SKILL(ch, SKILL_SPRINGLEAP)) {
     dam = dice(6, (GET_LEVEL(ch) / 5) + 2);
-
     damage(ch, vict, dam, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
+
     SET_WAIT(vict, PULSE_VIOLENCE);
     GET_POS(ch) = POS_STANDING;
+    new_affect(&af);
     af.spell = SKILL_SPRINGLEAP;
     SET_BIT_AR(af.bitvector, AFF_STUN);
     af.duration = dice(1, 3);
@@ -1852,54 +1861,74 @@ ACMD(do_circle) {
 Vhaerun: 
     A rather useful type of bash for large humanoids to start a combat with. 
  */
-/*
 ACMD(do_bodyslam) {
   struct char_data *vict;
-  int percent, prob;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, buf);
 
   if (!GET_SKILL(ch, SKILL_BODYSLAM)) {
-    send_to_char("You have no idea how!\r\n", ch);
+    send_to_char(ch, "You have no idea how!\r\n");
     return;
   }
 
   if (IS_NPC(ch)) {
-    send_to_char("You have no idea how.\r\n", ch);
+    send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
 
   if (FIGHTING(ch)) {
-    send_to_char("You can't bodyslam while fighting!", ch);
+    send_to_char(ch, "You can't bodyslam while fighting!");
     return;
   }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char("This room just has such a peaceful, easy feeling...\r\n", ch);
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
+
   }
 
   if (!*buf) {
-    send_to_char("Bodyslam who?\r\n", ch);
+    send_to_char(ch, "Bodyslam who?\r\n");
     return;
   }
-  if (!(vict = get_char_room_vis(ch, buf))) {
-    send_to_char("Bodyslam who?\r\n", ch);
-    return;
-  }
-  if (vict == ch) {
-    send_to_char("Aren't we funny today...\r\n", ch);
-    return;
-  }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
-    send_to_char(ch, "You simply can't reach that far.\r\n");
+  
+  if (!(vict = get_char_room_vis(ch, buf, NULL))) {
+    send_to_char(ch, "Bodyslam who?\r\n");
     return;
   }
 
-  if (!is_valid_target(ch, vict)) {
-    send_to_char("Can't we all get along.\r\n", ch);
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+  
+  perform_knockdown(ch, vict, SKILL_BODYSLAM);
+}
+
+void perform_headbutt(struct char_data *ch, struct char_data *vict) {
+  struct affected_type af;
+  
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+  
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+    if (ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char(ch, "You simply can't reach that far.\r\n");
+      return;
+    }
+  }
+
+  if (GET_POS(ch) <= POS_SITTING) {
+    send_to_char(ch, "You need to get on your feet to do a headbutt.\r\n");
+    return;
+  }
+
+  if (GET_SIZE(ch) != GET_SIZE(vict)) {
+    send_to_char(ch, "Its too difficult to headbutt that target due to size!\r\n");
+    SET_WAIT(ch, PULSE_VIOLENCE);
     return;
   }
 
@@ -1911,106 +1940,24 @@ ACMD(do_bodyslam) {
     return;
   }
 
-  percent = number(1, 101); // 101% = complete failure
-  prob = GET_LEVEL(ch)*2;
-  prob += GET_R_DEX(ch);
-  prob -= GET_R_DEX(vict);
-
-  if (prob > 100)
-    prob = 100;
-
-  if (MOB_FLAGGED(vict, MOB_NOBASH))
-    percent = 101;
-
-  if (get_size_diff(ch, vict) > 0) {
-    act("You bounce of the huge form of $N as you try to bodyslam $M!", FALSE, ch, 0, vict, TO_CHAR);
-    act("$n bounce of the huge form of $N as $e try to bodyslam $M!", FALSE, ch, 0, vict, TO_ROOM);
-    GET_POS(ch) = POS_SITTING;
-    WAIT_STATE(ch, PULSE_VIOLENCE * 2);
-    return;
-
-  }
-
-  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
-
-  if (percent > prob) {
-    GET_POS(ch) = POS_SITTING;
-
-    damage(ch, vict, 0, SKILL_BODYSLAM, DAMBIT_PHYSICAL);
-    GET_POS(ch) = POS_SITTING;
-  } else {
-    GET_POS(vict) = POS_SITTING;
-    WAIT_STATE(vict, 4 * PULSE_VIOLENCE);
-    //-1 = dead, 0 = miss
-    if (damage(ch, vict, 1, SKILL_BODYSLAM, DAMBIT_PHYSICAL) > 0) {
-      if (IN_ROOM(ch) == IN_ROOM(vict))
-        GET_POS(vict) = POS_SITTING;
+  if (rand_number(1, 101) < GET_SKILL(ch, SKILL_HEADBUTT)) {
+    if (!rand_number(0, 2)) {
+      new_affect(&af);
+      af.spell = SKILL_HEADBUTT;
+      SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+      af.duration = 1;
+      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
     }
+    
+    SET_WAIT(ch, PULSE_VIOLENCE * 2);
+    GET_POS(vict) = POS_RECLINING;
+    damage(ch, vict, dice(2, GET_LEVEL(ch)), SKILL_HEADBUTT, DAM_FORCE, FALSE);
+  } else {
+    SET_WAIT(ch, PULSE_VIOLENCE * 3);
+    damage(ch, vict, 0, SKILL_HEADBUTT, DAM_FORCE, FALSE);
   }
 }
-*/
-        
-/* unfinished */
-/*
-ACMD(do_disarm) {
-  struct char_data *vict = FIGHTING(ch);
-  int pos;
-  struct obj_data *wielded = 0;
-  int mod = 0;
 
-  if (!GET_SKILL(ch, SKILL_DISARM)) {
-    send_to_char("But you do not know how.\r\n", ch);
-    return;
-  }
-
-
-  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
-    send_to_char("You are paralysed to the bone.\r\n", ch);
-    return;
-  }
-
-  if (!vict) {
-    send_to_char("You can only try to disarm the opponent you are fighting.\r\n", ch);
-    return;
-  }
-
-  if (!CAN_SEE(ch, vict)) {
-    send_to_char("You don't see well enough to attempt that.\r\n", ch);
-    return;
-  }
-
-  if (GET_EQ(vict, WEAR_WIELD_2H)) {
-    wielded = GET_EQ(vict, WEAR_WIELD_2H);
-    pos = WEAR_WIELD_2H;
-    mod = -25;
-  } else {
-    wielded = GET_EQ(vict, WEAR_WIELD_P);
-    pos = WEAR_WIELD_P;
-  }
-  if (!wielded) {
-    wielded = GET_EQ(vict, WEAR_WIELD_S);
-    pos = WEAR_WIELD_S;
-  }
-  if (!wielded) {
-    act("But $N is not wielding anything.", FALSE, ch, 0, vict, TO_CHAR);
-    return;
-  }
-
-
-  if (skill_test(ch, SKILL_DISARM, 500, mod + GET_R_DEX(ch) / 10 - GET_R_STR(vict) / 15) && !IS_OBJ_STAT(wielded, ITEM_NODROP)) {
-    act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict, TO_ROOM);
-    act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict, TO_CHAR);
-    obj_to_room(unequip_char(vict, pos), vict->in_room);
-  } else {
-    act("$n failed to disarm $N.", FALSE, ch, 0, vict, TO_ROOM);
-    act("You failed to disarm $N.", FALSE, ch, 0, vict, TO_CHAR);
-  }
-
-  WAIT_STATE(ch, 3 * PULSE_VIOLENCE);
-}
-*/
-
-/*
 ACMD(do_headbutt) {
   struct char_data *vict = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -2019,78 +1966,27 @@ ACMD(do_headbutt) {
 
   if (!IS_NPC(ch))
     if (!GET_SKILL(ch, SKILL_HEADBUTT)) {
-      send_to_char("You have no idea how.\r\n", ch);
+      send_to_char(ch, "You have no idea how.\r\n");
       return;
     }
+  
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char("This room just has such a peaceful, easy feeling...\r\n", ch);
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
 
-
-  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
-    send_to_char("You are paralysed to the bone.\r\n", ch);
-    return;
-  }
-  if (!arg || !*arg || !(vict = get_char_room_vis(ch, arg))) {
+  if (!*arg || !(vict = get_char_room_vis(ch, arg, NULL))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
       vict = FIGHTING(ch);
   }
+  
   if (!vict) {
-    send_to_char("Headbutt who?\r\n", ch);
+    send_to_char(ch, "Headbutt who?\r\n");
     return;
   }
-
-  if (vict == ch) {
-    send_to_char("Aren't we funny today...\r\n", ch);
-    return;
-  }
-  if (!is_valid_target(ch, vict)) {
-    send_to_char("Can't we all get along.\r\n", ch);
-    return;
-  }
-
-
-  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
-    if (ch->next_in_room != vict && vict->next_in_room != ch) {
-      send_to_char("You simply can't reach that far.\r\n", ch);
-      return;
-    }
-  }
-
-  if (GET_POS(ch) <= POS_SITTING) {
-    send_to_char("You need to get on your feet to do a headbutt.\r\n", ch);
-    return;
-  }
-
-  if (MOB_FLAGGED(vict, MOB_NOBASH) || get_curr_size(vict) > 4) {
-    send_to_char("It feels like slamming your head into a wall, you are dazed and confused.\r\n", ch);
-    WAIT_STATE(ch, PULSE_VIOLENCE);
-    return;
-  }
-
-  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
-    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
-    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
-    GET_POS(ch) = POS_SITTING;
-    SET_WAIT(ch, PULSE_VIOLENCE);
-    return;
-  }
-
-  if (skill_test(ch, SKILL_HEADBUTT, 101, 0)) {
-    WAIT_STATE(ch, PULSE_VIOLENCE * 2);
-
-    GET_POS(vict) = POS_RECLINING;
-    WAIT_STATE(vict, PULSE_VIOLENCE * 4);
-    damage(ch, vict, dice(3, GET_LEVEL(ch)), SKILL_HEADBUTT, DAMBIT_PHYSICAL);
-  } else {
-    GET_POS(ch) = POS_RECLINING;
-    WAIT_STATE(ch, PULSE_VIOLENCE * 4);
-    ch->char_specials.firing = FALSE;
-    damage(ch, vict, 0, SKILL_HEADBUTT, DAMBIT_PHYSICAL);
-  }
+  
+  perform_headbutt(ch, vict);
 }
-*/
 
 /*
 ACMD(do_sap) {
@@ -2530,4 +2426,65 @@ ACMD(do_charge) {
 }
 */
         
+/* unfinished */
+/*
+ACMD(do_disarm) {
+  struct char_data *vict = FIGHTING(ch);
+  int pos;
+  struct obj_data *wielded = 0;
+  int mod = 0;
+
+  if (!GET_SKILL(ch, SKILL_DISARM)) {
+    send_to_char("But you do not know how.\r\n", ch);
+    return;
+  }
+
+
+  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
+    send_to_char("You are paralysed to the bone.\r\n", ch);
+    return;
+  }
+
+  if (!vict) {
+    send_to_char("You can only try to disarm the opponent you are fighting.\r\n", ch);
+    return;
+  }
+
+  if (!CAN_SEE(ch, vict)) {
+    send_to_char("You don't see well enough to attempt that.\r\n", ch);
+    return;
+  }
+
+  if (GET_EQ(vict, WEAR_WIELD_2H)) {
+    wielded = GET_EQ(vict, WEAR_WIELD_2H);
+    pos = WEAR_WIELD_2H;
+    mod = -25;
+  } else {
+    wielded = GET_EQ(vict, WEAR_WIELD_P);
+    pos = WEAR_WIELD_P;
+  }
+  if (!wielded) {
+    wielded = GET_EQ(vict, WEAR_WIELD_S);
+    pos = WEAR_WIELD_S;
+  }
+  if (!wielded) {
+    act("But $N is not wielding anything.", FALSE, ch, 0, vict, TO_CHAR);
+    return;
+  }
+
+
+  if (skill_test(ch, SKILL_DISARM, 500, mod + GET_R_DEX(ch) / 10 - GET_R_STR(vict) / 15) && !IS_OBJ_STAT(wielded, ITEM_NODROP)) {
+    act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict, TO_ROOM);
+    act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict, TO_CHAR);
+    obj_to_room(unequip_char(vict, pos), vict->in_room);
+  } else {
+    act("$n failed to disarm $N.", FALSE, ch, 0, vict, TO_ROOM);
+    act("You failed to disarm $N.", FALSE, ch, 0, vict, TO_CHAR);
+  }
+
+  WAIT_STATE(ch, 3 * PULSE_VIOLENCE);
+}
+*/
+
+
 
