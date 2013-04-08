@@ -159,6 +159,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "chant", "chant", POS_RESTING, do_gen_memorize, 0, SCMD_CHANT, FALSE},
   { "checkapproved", "checkapproved", POS_DEAD, do_checkapproved, LVL_BUILDER, 0, TRUE},
   { "charge", "charge", POS_FIGHTING, do_charge, 1, 0, FALSE},
+  { "circle", "circle", POS_FIGHTING, do_circle, 1, 0, FALSE},
 
   { "date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE},
   { "dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE},

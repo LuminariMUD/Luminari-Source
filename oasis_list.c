@@ -830,7 +830,7 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
   for (i = 0; i <= top_of_zone_table; i++) {
     if (zone_table[i].number >= bottom && zone_table[i].number <= top) {
       if ((!use_name) || (is_name(name, zone_table[i].builders))) {
-        
+
         /* status display added for head builder */
         if (ZONE_FLAGGED(i, ZONE_CLOSED))
           buf2 = strdup("\trIncomp\tn");
@@ -838,18 +838,18 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
           buf2 = strdup("\tGReady\tn ");
         else
           buf2 = strdup("\tYN-Reva\tn");
-        
+
         tmp_len = snprintf(buf + len, sizeof (buf) - len, "[%s%3d%s] %s%-*s %s %s%-1s%s\r\n",
-                QGRN, zone_table[i].number, QNRM, QCYN, 
+                QGRN, zone_table[i].number, QNRM, QCYN,
                 count_color_chars(zone_table[i].name) + 26, zone_table[i].name,
-                buf2, QYEL, zone_table[i].builders ? zone_table[i].builders : 
-                  "None.", QNRM);
+                buf2, QYEL, zone_table[i].builders ? zone_table[i].builders :
+                "None.", QNRM);
         len += tmp_len;
         counter++;
       }
     }
   }
-  
+
 
   if (!counter)
     send_to_char(ch, "  None found within those parameters.\r\n");
