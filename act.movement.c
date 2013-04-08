@@ -76,6 +76,8 @@ struct char_data *get_char_ahead_of_me(struct char_data *ch, int dir) {
 
 /* falling system */
 
+/* TODO objects */
+
 /* this function will check whether a obj should fall or not based on
    circumstances and whether the obj is floating */
 bool obj_should_fall(struct obj_data *obj) {
@@ -103,11 +105,6 @@ bool char_should_fall(struct char_data *ch) {
   
   if (!ch)
     return FALSE;
-  
-  /* NPC's crash it, and also was advised that players will twink this
-   badly if you can pull it off on NPC's */
-  //if (IS_NPC(ch))
-  //  return FALSE;
   
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_FLY_NEEDED) && EXIT(ch, DOWN))
     falling = TRUE;
@@ -165,8 +162,8 @@ EVENTFUNC(event_falling)
     act("$n crashes into the ground headfirst, OUCH!", FALSE, ch, 0, 0, TO_ROOM);
     GET_POS(ch) = POS_RECLINING;
     SET_WAIT(ch, 4 * PULSE_VIOLENCE);
+    
     /* we have a special situation if you die, the event will get cleared */
-
     if (dam >= GET_HIT(ch) + 9) {
       GET_HIT(ch) = -999;
       send_to_char(ch, "You attempt to scream in horror as your skull slams "
