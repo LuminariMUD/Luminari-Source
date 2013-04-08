@@ -5461,8 +5461,6 @@ ACMD(do_hlqlist) {
 
   /* start engine */
   send_to_char(ch, "Quest Listings : From %d to %d\r\n", bottom, top);
-//  for (i = 0; i <= top_of_mobt; i++) {
-//    if (mob_index[i].vnum >= bottom && mob_index[i].vnum <= top) {
   for (i = bottom; i <= top; i++) {
     if ((realnum = real_mobile(i)) != NOBODY) {
       if (mob_proto[realnum].mob_specials.quest) {
