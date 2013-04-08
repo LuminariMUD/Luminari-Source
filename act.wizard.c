@@ -5416,8 +5416,8 @@ ACMD(do_hlqlist) {
   /* if no buf1, use current zone information */
   if (!*buf1) {
     czone = zone_table[world[ch->in_room].zone].number;
-    start_num = czone;
-    //start_num = czone * 100;
+    //start_num = czone;
+    start_num = czone * 100;
     
   }/* if buf1 is not a number send them back */
   else if (!isdigit(*buf1)) {
@@ -5458,6 +5458,11 @@ ACMD(do_hlqlist) {
     send_to_char(ch, "Invalid values!\r\n");
     return;
   }
+  
+  if (end_num - start_num >= 999) {
+    send_to_char(ch, "Too many at once, 999 limits.\r\n");
+    return;
+  }
 
   /* start engine */
   sprintf(buf, "Quest Listings : From %d to %d\r\n", start_num, end_num);
@@ -5479,7 +5484,7 @@ ACMD(do_hlqlist) {
       }
     }
     /* Large buf can't hold that much memory so cut off list */
-    if (j >= 350) {
+    if (j >= 500) {
       sprintf(buf, "%s&crListing too long, truncated at 500.\r\n", buf);
       return;
     }
