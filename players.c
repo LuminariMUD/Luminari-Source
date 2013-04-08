@@ -603,7 +603,7 @@ int load_char(const char *name, struct char_data *ch) {
   }
   fclose(fl);
   return (id);
-}
+}                    
 
 /* Write the vital data of a player to the player file. */
 

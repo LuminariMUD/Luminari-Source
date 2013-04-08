@@ -70,6 +70,99 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
   return FALSE;
 }
 
+
+/* engine for knockdown, used in bash/trip/etc */
+void perform_knockdown(struct char_data *ch, struct char_data *vict, 
+        int skill) {
+  int percent = 0, prob = 0, dam = dice(1, 4);
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+  
+  if (MOB_FLAGGED(vict, MOB_NOKILL)) {
+    send_to_char(ch, "This mob is protected.\r\n");
+    return;
+  }
+  
+  if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2) {
+    send_to_char(ch, "Your target is too small!\r\n");
+    return;
+  }
+  
+  if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
+    send_to_char(ch, "Your target is too big!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
+    GET_POS(ch) = POS_SITTING;
+    SET_WAIT(ch, PULSE_VIOLENCE);
+    return;
+  }
+
+  switch (skill) {
+    case SKILL_BASH:
+      if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_BASH)) {
+        increase_skill(ch, SKILL_IMPROVED_BASH);
+        prob += GET_SKILL(ch, SKILL_IMPROVED_BASH) / 5;
+        dam *= 2;
+      }
+      break;
+    case SKILL_TRIP:
+      if (AFF_FLAGGED(vict, AFF_FLYING)) {
+        send_to_char(ch, "Impossible, your target is flying!\r\n");
+        return;
+      }
+      if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_TRIP)) {
+        increase_skill(ch, SKILL_IMPROVED_TRIP);
+        prob += GET_SKILL(ch, SKILL_IMPROVED_TRIP) / 6;
+        dam *= 2;
+      }
+      break;
+    default:
+      log("Invalid skill sent to perform knockdown!\r\n");
+      return;
+  }
+  
+  percent += rand_number(1, 101); /* 101% is a complete failure */
+  prob += GET_SKILL(ch, skill);
+
+  if (MOB_FLAGGED(vict, MOB_NOBASH)) {
+    send_to_char(ch, "You realize you will probably not succeed:  ");
+    percent = 101;
+  }
+  
+  if (GET_POS(vict) == POS_SITTING) {
+    send_to_char(ch, "It is difficult to knock down something already down:  ");
+    percent += 75;
+  }
+
+  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
+    percent += compute_ability(vict, ABILITY_DISCIPLINE);
+
+  if (GET_RACE(ch) == RACE_DWARF ||
+          GET_RACE(ch) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
+    percent += 4;
+
+  if (percent > prob) {
+    GET_POS(ch) = POS_SITTING;
+    damage(ch, vict, 0, skill, DAM_FORCE, FALSE);
+  } else {
+    GET_POS(vict) = POS_SITTING;
+    if (damage(ch, vict, dam, skill, DAM_FORCE, FALSE) > 0)
+      SET_WAIT(vict, PULSE_VIOLENCE * 1.75);
+  }
+
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  if (!IS_NPC(ch))
+    increase_skill(ch, skill);
+}
+
 /* main engine for dirt-kick mechanic */
 void perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
@@ -163,6 +256,7 @@ void perform_assist(struct char_data *ch, struct char_data *helpee) {
 
 /* the primary engine for springleap */
 void perform_springleap(struct char_data *ch, struct char_data *vict) {
+  struct affected_type af;
   int dam = 0;
   
   if (vict == ch) {
@@ -196,6 +290,10 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
     damage(ch, vict, dam, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
     SET_WAIT(vict, PULSE_VIOLENCE);
     GET_POS(ch) = POS_STANDING;
+    af.spell = SKILL_SPRINGLEAP;
+    SET_BIT_AR(af.bitvector, AFF_STUN);
+    af.duration = dice(1, 3);
+    affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
   } else {
     damage(ch, vict, 0, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
     GET_POS(ch) = POS_SITTING;
@@ -478,10 +576,11 @@ ACMD(do_turnundead) {
 
 }
 
+#define RAGE_AFFECTS 4
 /* rage skill (berserk) primarily for berserkers character class */
 ACMD(do_rage) {
-  struct affected_type af, aftwo, afthree, affour;
-  int bonus = 0, duration = 0;
+  struct affected_type af[RAGE_AFFECTS];
+  int bonus = 0, duration = 0, i = 0;
 
   if (affected_by_spell(ch, SKILL_RAGE)) {
     send_to_char(ch, "You are already raging!\r\n");
@@ -509,43 +608,36 @@ ACMD(do_rage) {
   send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
   act("$n goes into a \tRR\trA\tRG\trE\tn!", FALSE, ch, 0, 0, TO_ROOM);
 
-  new_affect(&af);
-  new_affect(&aftwo);
-  new_affect(&afthree);
-  new_affect(&affour);
+  /* init affect array */
+  for (i = 0; i < RAGE_AFFECTS; i++) {
+    new_affect(&(af[i]));
+    af[i].spell = SKILL_RAGE;
+    af[i].duration = duration;
+  }
 
-  af.spell = SKILL_RAGE;
-  af.duration = duration;
-  af.location = APPLY_STR;
-  af.modifier = bonus;
+  af[0].location = APPLY_STR;
+  af[0].modifier = bonus;
 
-  aftwo.spell = SKILL_RAGE;
-  aftwo.duration = duration;
-  aftwo.location = APPLY_CON;
-  aftwo.modifier = bonus;
+  af[1].location = APPLY_CON;
+  af[1].modifier = bonus;
   GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2; //little boost in current hps
 
-  afthree.spell = SKILL_RAGE;
-  afthree.duration = duration;
-  afthree.location = APPLY_SAVING_WILL;
-  afthree.modifier = bonus;
+  af[2].location = APPLY_SAVING_WILL;
+  af[2].modifier = bonus;
 
   //this is a penalty
-  affour.spell = SKILL_RAGE;
-  affour.duration = duration;
-  affour.location = APPLY_AC;
-  affour.modifier = bonus * 5;
+  af[3].location = APPLY_AC;
+  af[3].modifier = bonus * 5;
 
-  affect_to_char(ch, &af);
-  affect_to_char(ch, &aftwo);
-  affect_to_char(ch, &afthree);
-  affect_to_char(ch, &affour);
+  for (i = 0; i < RAGE_AFFECTS; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+  
   attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_RAGE);
 }
-
+#undef RAGE_AFFECTS
 
 ACMD(do_assist) {
   char arg[MAX_INPUT_LENGTH];
@@ -1224,7 +1316,6 @@ ACMD(do_tailsweep) {
 ACMD(do_bash) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
-  int percent, prob;
 
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_BASH)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -1248,79 +1339,12 @@ ACMD(do_bash) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
-    send_to_char(ch, "You simply can't reach that far.\r\n");
-    return;
-  }
-  
-  if (MOB_FLAGGED(vict, MOB_NOKILL)) {
-    send_to_char(ch, "This mob is protected.\r\n");
-    return;
-  }
-  if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2) {
-    send_to_char(ch, "Your target is too small!\r\n");
-    return;
-  }
-  if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
-    send_to_char(ch, "Your target is too big!\r\n");
-    return;
-  }
-
-  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
-    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
-    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
-    GET_POS(ch) = POS_SITTING;
-    SET_WAIT(ch, PULSE_VIOLENCE);
-    return;
-  }
-
-  percent = rand_number(1, 101); /* 101% is a complete failure */
-  prob = GET_SKILL(ch, SKILL_BASH);
-
-  if (MOB_FLAGGED(vict, MOB_NOBASH) && !GET_SKILL(ch, SKILL_IMPROVED_BASH)) {
-    send_to_char(ch, "You realize you will probably not succeed:  ");
-    percent = 101;
-  }
-  if (GET_POS(vict) == POS_SITTING) {
-    send_to_char(ch, "It is difficult to knock down something already down:  ");
-    percent += 75;
-  }
-
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_BASH)) {
-    increase_skill(ch, SKILL_IMPROVED_BASH);
-    prob += GET_SKILL(ch, SKILL_IMPROVED_BASH) / 5;
-  }
-
-  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
-    percent += compute_ability(vict, ABILITY_DISCIPLINE);
-
-  if (GET_RACE(ch) == RACE_DWARF ||
-          GET_RACE(ch) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
-    percent += 4;
-
-  if (percent > prob) {
-    GET_POS(ch) = POS_SITTING;
-    damage(ch, vict, 0, SKILL_BASH, DAM_FORCE, FALSE);
-  } else {
-    GET_POS(vict) = POS_SITTING;
-    if (GET_SKILL(ch, SKILL_IMPROVED_BASH)) {
-      if (damage(ch, vict, GET_LEVEL(ch), SKILL_BASH, DAM_FORCE, FALSE) > 0)
-        SET_WAIT(vict, PULSE_VIOLENCE * 1.75);
-    } else if (damage(ch, vict, 1, SKILL_BASH, DAM_FORCE, FALSE) > 0)
-      SET_WAIT(vict, PULSE_VIOLENCE * 1.75);
-  }
-
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_BASH);
-
+  perform_knockdown(ch, vict, SKILL_BASH);
 }
 
 ACMD(do_trip) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
-  int percent, prob;
 
   one_argument(argument, arg);
 
@@ -1343,86 +1367,7 @@ ACMD(do_trip) {
     }
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
-    send_to_char(ch, "You simply can't reach that far.\r\n");
-    return;
-  }
-  
-  if (vict == ch) {
-    send_to_char(ch, "Aren't we funny today...\r\n");
-    return;
-  }
-
-  if (MOB_FLAGGED(vict, MOB_NOKILL)) {
-    send_to_char(ch, "This mob is protected.\r\n");
-    return;
-  }
-
-  if (GET_POS(vict) == POS_SITTING) {
-    send_to_char(ch, "Your target is already prone!\r\n");
-    return;
-  }
-
-  if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2) {
-    send_to_char(ch, "Your target is too small!\r\n");
-    return;
-  }
-
-  if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
-    send_to_char(ch, "Your target is too big!\r\n");
-    return;
-  }
-
-  if (AFF_FLAGGED(vict, AFF_FLYING)) {
-    send_to_char(ch, "Impossible, your target is flying!\r\n");
-    return;
-  }
-  
-  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
-    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
-    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
-    GET_POS(ch) = POS_SITTING;
-    SET_WAIT(ch, PULSE_VIOLENCE);
-    return;
-  }
-
-  percent = rand_number(1, 101); /* 101% is a complete failure */
-  prob = GET_SKILL(ch, SKILL_TRIP);
-
-  if (MOB_FLAGGED(vict, MOB_NOBASH) && !GET_SKILL(ch, SKILL_IMPROVED_TRIP)) {
-    send_to_char(ch, "You realize too late that you will probably not succeed:  ");
-    percent = 101;
-  }
-
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_TRIP)) {
-    increase_skill(ch, SKILL_IMPROVED_TRIP);
-    prob += GET_SKILL(ch, SKILL_IMPROVED_TRIP) / 5;
-  }
-
-  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
-    percent += compute_ability(vict, ABILITY_DISCIPLINE);
-
-  if (GET_RACE(ch) == RACE_DWARF ||
-          GET_RACE(ch) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
-    percent += 4;
-
-  if (percent > prob) {
-    GET_POS(ch) = POS_SITTING;
-    damage(ch, vict, 0, SKILL_TRIP, DAM_FORCE, FALSE);
-  } else {
-    GET_POS(vict) = POS_SITTING;
-    if (GET_SKILL(ch, SKILL_IMPROVED_TRIP)) {
-      if (damage(ch, vict, GET_LEVEL(ch), SKILL_TRIP, DAM_FORCE, FALSE) > 0)
-        SET_WAIT(vict, PULSE_VIOLENCE * 2);
-    } else if (damage(ch, vict, 1, SKILL_TRIP, DAM_FORCE, FALSE) > 0)
-      SET_WAIT(vict, PULSE_VIOLENCE * 2);
-  }
-
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
-
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_TRIP);
+  perform_knockdown(ch, vict, SKILL_TRIP);
 }
 
 ACMD(do_layonhands) {

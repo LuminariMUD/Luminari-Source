@@ -226,6 +226,7 @@ ACMD(do_hit);
 /* Functions without subcommands */
 ACMD(do_hitall);
 ACMD(do_charge);
+ACMD(do_circle);
 ACMD(do_bodyslam);
 ACMD(do_springleap);
 ACMD(do_headbutt);
