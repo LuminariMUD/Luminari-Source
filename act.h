@@ -225,6 +225,7 @@ ACMD(do_hit);
 #define SCMD_HIT    0
 /* Functions without subcommands */
 ACMD(do_hitall);
+ACMD(do_guard);
 ACMD(do_charge);
 ACMD(do_circle);
 ACMD(do_bodyslam);
