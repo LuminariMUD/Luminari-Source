@@ -115,6 +115,17 @@
 /** The total number of Room Flags */
 #define NUM_ROOM_FLAGS     29
 
+/* homeland-port reference */
+/*
+ROOM FLAGS
+----------- 
+JAIL (18)        ROOM_INDOORS   (3)
+HASTRAP (20)     ROOM_DEATH     (1)
+DOCKABLE (21)    ROOM_NOSUMMON  (24)
+HEAL (25)        ROOM_REGEN     (17)
+NOPRIME (27)     ROOM_NORECALL  (27)
+*/
+
 // Room affects
 #define RAFF_FOG            (1 << 0)
 #define RAFF_DARKNESS       (1 << 1)
@@ -181,7 +192,6 @@
 #define SECT_UD_NOSWIM	    23  // water, boat needed, in the underdark
 #define SECT_UD_NOGROUND     24  // chasm in the underdark (Flying)
 #define SECT_LAVA	         25  // lava (damaging)
-
 /** The total number of room Sector Types */
 #define NUM_ROOM_SECTORS     26
 
@@ -223,7 +233,6 @@
 #define GROUP_ANON    (1 << 1)  /**< Group is Anonymous */
 #define GROUP_NPC     (1 << 2)  /**< Group created by NPC and thus not listed */
 
-
 // size definitions, based on DnD3.5
 #define SIZE_UNDEFINED	  (-1)
 #define SIZE_RESERVED      0
@@ -238,7 +247,6 @@
 #define SIZE_COLOSSAL      9
 /* ** */
 #define NUM_SIZES          10
-
 
 /* this sytem is built on top of stock alignment
  * which is a value between -1000 to 1000
@@ -255,7 +263,6 @@
 /***/
 #define NUM_ALIGNMENTS      9
 /***/
-
 
 /* PC classes */
 #define CLASS_UNDEFINED	 (-1) /**< PC Class undefined */
@@ -323,7 +330,6 @@
 /* max enemies, reserved space for array of ranger's favored enemies */
 #define MAX_ENEMIES  10
 
-
 // Memorization
 #define NUM_SLOTS	20  //theoretical max num slots per circle
 #define NUM_CIRCLES	10  //max num circles
@@ -345,7 +351,6 @@
 #define RACE_ARCANA_GOLEM   10  // arcana golem (advanced)
 /* Total Number of available PC Races*/
 #define NUM_RACES          11
-
 
 // NPC races
 #define NPCRACE_UNDEFINED	(-1)	/*Race Undefined*/
@@ -408,14 +413,12 @@
 //total
 #define MAX_PC_SUBRACES	           5
 
-
 /* Sex */
 #define SEX_NEUTRAL   0   /**< Neutral Sex (Hermaphrodite) */
 #define SEX_MALE      1   /**< Male Sex (XY Chromosome) */
 #define SEX_FEMALE    2   /**< Female Sex (XX Chromosome) */
 /** Total number of Genders */
 #define NUM_GENDERS   3
-
 
 /* Positions */
 #define POS_DEAD       0	/**< Position = dead */
@@ -455,7 +458,6 @@
 #define PLR_SALVATION    20   /* for salvation cleric spell */
 /***************/
 #define NUM_PLR_BITS	21
-
 
 /* Mobile flags: used by char_data.char_specials.act */
 #define MOB_SPEC            0   /**< Mob has a callable spec-proc */
@@ -577,39 +579,39 @@
 
 #define AFF_NOTRACK          16   /**< Char can't be tracked */
 #define AFF_FLYING           17   /**< Char is flying */
-#define AFF_SCUBA            18   /**< Room for future expansion */
+#define AFF_SCUBA            18  // waterbreathe
 #define AFF_SNEAK            19   /**< Char can move quietly */
 #define AFF_HIDE             20   /**< Char is hidden */
 #define AFF_VAMPIRIC_CURSE   21   // hit victim heals attacker
 #define AFF_CHARM            22   /**< Char is charmed */
-#define AFF_BLUR             23	// char has blurry image
-#define AFF_POWER_ATTACK     24	// power attack mode
-#define AFF_EXPERTISE        25	// combat expertise mode
-#define AFF_HASTE            26	// hasted
-#define AFF_PARRY            27	// parry mode
-#define AFF_ELEMENT_PROT     28	// endure elements, etc
-#define AFF_DEAF             29	// deafened
-#define AFF_FEAR             30	// under affect of fear
-#define AFF_STUN             31	// stunned
-#define AFF_PARALYZED        32	// paralyzed
-#define AFF_ULTRAVISION      33   /**< Char can see in dark */
-#define AFF_GRAPPLED         34   // grappled
-#define AFF_TAMED            35   // tamed
-#define AFF_CLIMB            36   // affect that allows you to climb
-#define AFF_NAUSEATED        37   // nauseated
+#define AFF_BLUR             23  // char has blurry image
+#define AFF_POWER_ATTACK     24  // power attack mode
+#define AFF_EXPERTISE        25  // combat expertise mode
+#define AFF_HASTE            26  // hasted
+#define AFF_PARRY            27  // parry mode
+#define AFF_ELEMENT_PROT     28  // endure elements, etc
+#define AFF_DEAF             29  // deafened
+#define AFF_FEAR             30  // under affect of fear
+#define AFF_STUN             31  // stunned
+#define AFF_PARALYZED        32  // paralyzed
+#define AFF_ULTRAVISION      33  /**< Char can see in dark */
+#define AFF_GRAPPLED         34  // grappled
+#define AFF_TAMED            35  // tamed
+#define AFF_CLIMB            36  // affect that allows you to climb
+#define AFF_NAUSEATED        37  // nauseated
 #define AFF_NON_DETECTION    38
 #define AFF_SLOW             39
-#define AFF_FSHIELD          40  //fire shield
-#define AFF_CSHIELD          41  //cold shield
-#define AFF_MINOR_GLOBE      42  //minor globe of invulernability
-#define AFF_ASHIELD          43  //acid shield
+#define AFF_FSHIELD          40  // fire shield
+#define AFF_CSHIELD          41  // cold shield
+#define AFF_MINOR_GLOBE      42  // minor globe of invulernability
+#define AFF_ASHIELD          43  // acid shield
 #define AFF_SIZECHANGED      44
 #define AFF_TRUE_SIGHT       45
 #define AFF_SPOT             46
 #define AFF_FATIGUED         47
 #define AFF_REGEN            48
 #define AFF_DISEASE          49
-#define AFF_TFORM            50  //tenser's transformation
+#define AFF_TFORM            50  // tenser's transformation
 #define AFF_GLOBE_OF_INVULN  51
 #define AFF_LISTEN           52
 #define AFF_DISPLACE         53
@@ -638,9 +640,64 @@
 #define AFF_NOTELEPORT       75  // make target not reachable via teleport
 #define AFF_MAX_DAMAGE       76  // enhance next attack/spell/etc
 #define AFF_IMMATERIAL       77  // no physical body (ghost-like)
+#define AFF_CAGE             78  // can't interact/be-interacted with
+#define AFF_MAGE_FLAME       79  // light up an individual
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS        78
+#define NUM_AFF_FLAGS        80
+
+/* homeland-port reference */
+/*
+AFF FLAGS
+----------
+PROTECT GAS (15)      AFF_ELEMENT_PROT    (28)
+FARSEE (16)           AFF_DETECT_MAGIC    (5)
+STONESKIN (20)        AFF_DETECT_MAGIC    (5)
+BARKSKIN (22)         AFF_DETECT_MAGIC    (5)
+FLYING (24)           AFF_SCUBA           (18)
+
+AFF2 FLAGS
+-----------
+WATER BREATH (0)      (we have this flag) (17)
+RAY ENFEEBLE (4)      AFF_DETECT_MAGIC    (5)
+FEEBLEMIND (5)        AFF_DETECT_MAGIC    (5)
+SLOWNESS (6)          AFF_SLOW            (39)
+FEAR (7)              (we have this flag) (30)
+METALSKIN (9)         AFF_DETECT_MAGIC    (5)
+BLUR (10)             (we have this flag) (23)
+DRAGONSCALES (11)     AFF_DETECT_MAGIC    (5)
+EPURATION (12)        AFF_DETECT_MAGIC    (5)
+PROTECT UNDEAD (13)   AFF_DETECT_MAGIC    (5)
+BERSERK RAGE (14)     AFF_DETECT_MAGIC    (5)
+WITHER (15)           AFF_DETECT_MAGIC    (5)
+HEROISM (16)          AFF_BRAVERY         (61)
+DARKVISION (18)       AFF_ULTRAVISION     (33)
+LEVITATE (19)         AFF_DETECT_MAGIC    (5)
+ENTANGLED (20)        AFF_GRAPPLED        (34)
+BEAR SKIN (21)        AFF_DETECT_MAGIC    (5)
+CROCODILE HIDE (22)   AFF_DETECT_MAGIC    (5)
+CAGE (23)             (added this flag)   (78)
+FALSE VISION (24)     AFF_NON_DETECTION   (38)
+DEATH SHROUD (28)     AFF_ASHIELD         (43)
+MIRROR IMAGE (29)     AFF_DETECT_MAGIC    (5)
+MISLEAD (30)          AFF_NON_DETECTION   (38)
+        
+AFF3 FLAGS
+-----------
+DANGER SENSE (2)      (added this flag)   (71)
+BODY WEAPONRY (3)     AFF_DETECT_MAGIC    (5)
+BIOFEEDBACK (5)       AFF_DETECT_MAGIC    (5)
+CRISIS OF BREATH (7)  AFF_DETECT_MAGIC    (5)
+AWARE (9)             AFF_DETECT_MAGIC    (5)
+MAGE FLAME (12)	      AFF_MAGE_FLAME      (79)
+THORN SHIELD (13)     AFF_DETECT_MAGIC    (5)
+PROTECTION FROM ANIMALS (14)   AFF_DETECT_MAGIC    (5)
+LIGHTNING WEB (15)    AFF_ASHIELD         (43)
+NOTRACK (16)          AFF_DETECT_MAGIC    (5) 
+PROTECTION FROM POSITIVE ENERGY (17)    AFF_ELEMENT_PROT    (28)
+PROTECTION FROM NEGATIVE ENERGY (18)    AFF_ELEMENT_PROT    (28)
+MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
+*/
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/
@@ -719,6 +776,16 @@
 /** Total number of available equipment lcoations */
 #define NUM_WEARS      23
 
+/* homeland port */
+/*
+#define WEAR_BADGE      1
+#define WEAR_EYES       3
+#define WEAR_EAR_R      4
+#define WEAR_EAR_L      5
+#define WEAR_QUIVER    26
+#define WEAR_TAIL      27
+*/
+
 /* object-related defines */
 /* Item types: used by obj_data.obj_flags.type_flag */
 #define ITEM_LIGHT      1		/**< Item is a light source	*/
@@ -727,14 +794,14 @@
 #define ITEM_STAFF      4		/**< Item is a staff		*/
 #define ITEM_WEAPON     5		/**< Item is a weapon		*/
 #define ITEM_FURNITURE  6   /**< Sittable Furniture		*/
-#define ITEM_FREE       7   /**< Unimplemented		*/
+#define ITEM_FIREWEAPON 7  // ranged weapon
 #define ITEM_TREASURE   8   /**< Item is a treasure, not gold	*/
 #define ITEM_ARMOR      9   /**< Item is armor		*/
 #define ITEM_POTION    10   /**< Item is a potion		*/
 #define ITEM_WORN      11		/**< Unimplemented		*/
 #define ITEM_OTHER     12		/**< Misc object			*/
 #define ITEM_TRASH     13		/**< Trash - shopkeepers won't buy	*/
-#define ITEM_FREE2     14		/**< Unimplemented		*/
+#define ITEM_MISSILE   14  // missile weapon (for ranged weapon)
 #define ITEM_CONTAINER 15		/**< Item is a container		*/
 #define ITEM_NOTE      16		/**< Item is note 		*/
 #define ITEM_DRINKCON  17		/**< Item is a drink container	*/
@@ -753,6 +820,29 @@
 #define ITEM_PLANT     30 /* for transport via plants spell */
 /** Total number of item types.*/
 #define NUM_ITEM_TYPES 31
+
+/* homeland-port */
+/*  note:  swapped free1 (7) with fireweapon 
+           swapped free2 (14) with missile */
+/*
+#define ITEM_TRAP        14  // traps
+#define ITEM_TELEPORT    25  // triggers teleport on command
+#define ITEM_POISON      26  // apply poison
+#define ITEM_SUMMON      27  // summons mob on command
+#define ITEM_SHIP        28  // travel on oceans
+#define ITEM_SWITCH	     29  // activation mechanism
+#define ITEM_QUIVER	     30  // quiver mechanic for missile weapons
+#define ITEM_PICK        31  // pick used for opening locks bonus
+#define ITEM_INSTRUMENT	32  // instrument used for bard song
+#define ITEM_PET         33  // ?
+#define ITEM_DISGUISE    34  // disguise kit used for disguise command
+#define ITEM_WALL        35  // magical wall (like wall of flames spell)
+#define ITEM_BOWL        36  // bowl for mixing recipes
+#define ITEM_INGREDIENT  37  // ingredient used with bowl for recipes
+#define ITEM_BLOCKER     38  // stops movement in direction X
+#define ITEM_WAGON       39  // used for carrying resources for trade
+#define ITEM_RESOURCE    40  // used for trade with wagon
+*/
 
 /* Item profs: used by obj_data.obj_flags.prof_flag constants.c = item_profs */
 #define ITEM_PROF_NONE		0	// no proficiency required
@@ -893,6 +983,15 @@
 /** Total number of item flags */
 #define NUM_ITEM_FLAGS            39
 
+/* homeland-port */
+/*
+#define ITEM_HIDDEN        (1 << 22)  // item is hidden (need to search to find)
+#define ITEM_MAGLIGHT      (1 << 23)  // item is continual-lighted
+#define ITEM_NOLOCATE      (1 << 24)  // item can not be located via spells
+#define ITEM_NOBURN        (1 << 25)  // item can not be disintegrated by spells
+#define ITEM_TRANSIENT     (1 << 26)  // item will crumble and fade when dropped
+#define ITEM_AUTOPROC	  (1 << 27)  // item can be called by proc_update()
+*/
 
 /* Modifier constants used with obj affects ('A' fields) */
 #define APPLY_NONE              0	/**< No effect			*/
@@ -1206,9 +1305,8 @@ struct obj_flag_data {
   int timer; /**< Timer for object             */
   int bitvector[AF_ARRAY_MAX]; /**< Affects characters           */
 
-  byte material;
-
-  int size;
+  byte material;  // what material is the item made of?
+  int size;  // how big is the object?
 };
 
 /** Used in obj_file_elem. DO NOT CHANGE if you are using binary object files
@@ -1220,12 +1318,11 @@ struct obj_affected_type {
 
 /* For weapon spells. */
 struct weapon_spells {
-  int spellnum;
-  int level;
-  int percent;
-  int inCombat;
+  int spellnum;  // spellnum weapon will cast
+  int level;  // level at which it will cast spellnum
+  int percent;  // chance spellnum will fire per round
+  int inCombat;  // will spellnum fire only in combat?
 };
-
 
 // Spellbooks
 /* maximum # spells in a spellbook */
@@ -1265,7 +1362,8 @@ struct obj_data {
   struct obj_data *next; /**< For the object list */
   struct char_data *sitting_here; /**< For furniture, who is sitting in it */
 
-  bool has_spells;
+  bool has_spells;  // used to keep track if weapon has weapon_spells
+  // weapon spells allow gear to fire off spells intermittently or in combat
   struct weapon_spells wpn_spells[MAX_WEAPON_SPELLS];
 
   struct obj_spellbook_spell *sbinfo; /* For spellbook info */
@@ -1356,7 +1454,7 @@ struct room_data {
   struct obj_data *contents; /**< List of items in room */
   struct char_data *people; /**< List of NPCs / PCs in room */
 
-  struct list_data * events;  
+  struct list_data *events;  // room events
 };
 
 /* char-related structures */
@@ -1388,9 +1486,9 @@ struct time_data {
 
 /* Group Data Struct */
 struct group_data {
-  struct char_data * leader;
-  struct list_data * members;
-  int group_flags;
+  struct char_data *leader;  // leader of group
+  struct list_data *members;  // list of members
+  int group_flags;  // group flags set
 };
 
 /** The pclean_criteria_data is set up in config.c and used in db.c to determine
@@ -1560,13 +1658,13 @@ struct player_special_data_saved {
   int quest_counter; /**< Count of targets left to get  */
 
   /* auto crafting quest */
-  unsigned int autocquest_vnum;
-  char *autocquest_desc;
-  ubyte autocquest_material;
-  ubyte autocquest_makenum;
-  ubyte autocquest_qp;
-  unsigned int autocquest_exp;
-  unsigned int autocquest_gold;
+  unsigned int autocquest_vnum;  // vnum of crafting quest item
+  char *autocquest_desc;  // description of crafting quest item
+  ubyte autocquest_material;  // material used for crafting quest
+  ubyte autocquest_makenum;  // how many more objects to finish quest
+  ubyte autocquest_qp;  // quest point reward for quest
+  unsigned int autocquest_exp;  // exp reward for quest
+  unsigned int autocquest_gold;  // gold reward for quest
 
   time_t lastmotd; /**< Last time player read motd */
   time_t lastnews; /**< Last time player read news */
@@ -1730,8 +1828,7 @@ struct descriptor_data {
   struct oasis_olc_data *olc; /**< OLC info */
 
   protocol_t *pProtocol; /**< Kavir plugin */
-
-  struct list_data * events;
+  struct list_data *events;  // event system
 };
 
 /* other miscellaneous structures */
@@ -1884,10 +1981,10 @@ struct guild_info_type {
 
 /** Happy Hour Data */
 struct happyhour {
-  int qp_rate;
-  int exp_rate;
-  int gold_rate;
-  int ticks_left;
+  int qp_rate;  // % increase in qp
+  int exp_rate;  // % increase in exp
+  int gold_rate;  // % increase in gold
+  int ticks_left;  // time left for happyhour
 };
 
 /** structure for list of recent players (see 'recent' command) */
