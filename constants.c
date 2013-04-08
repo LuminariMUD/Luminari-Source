@@ -368,7 +368,7 @@ const char *action_bits[NUM_MOB_FLAGS + 1] = {
   "Citizen",
   "Hunter",
   "Listen",
-  "Lit-Up",
+  "Lit-Up",  //35
   "Planar-Ally",
   "No-Steal",
   "\n"
@@ -504,6 +504,8 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Not-teleportable",  //75
   "DamageBoost",  // AFF_MAX_DAMAGE
   "Incorporeal",
+  "Caged",
+  "Mage-Flamed",
   "\n"
 };
 

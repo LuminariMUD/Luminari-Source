@@ -517,8 +517,8 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
       write_to_output(d, "Number of people it can hold : ");
       break;
     case ITEM_BOAT: // these object types have no 'values' so go back to menu
-    case ITEM_FREE: /* Not implemented, but should be handled here */
-    case ITEM_FREE2: /* Not implemented, but should be handled here */
+    case ITEM_FIREWEAPON: /* Not implemented, but should be handled here */
+    case ITEM_MISSILE: /* Not implemented, but should be handled here */
     case ITEM_KEY:
     case ITEM_NOTE:
     case ITEM_OTHER:
