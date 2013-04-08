@@ -5445,11 +5445,6 @@ ACMD(do_hlqlist) {
     }
   }
   
-  if (bottom < 0 || top < 0) {
-    send_to_char(ch, "Invalid values!\r\n");
-    return;
-  }
-
   if (bottom >= NOWHERE || top >= NOWHERE) {
     send_to_char(ch, "Invalid values!\r\n");
     return;
