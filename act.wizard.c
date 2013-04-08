@@ -5403,9 +5403,10 @@ ACMD(do_objlist) {
  ***********************************************************************/
 ACMD(do_hlqlist) {
   struct quest_entry *quest;
-  int czone = 0, i = 0, start_num = 0, end_num = 0, realnum = 0;
+  mob_vnum bottom = NOBODY, top = NOBODY;
+  mob_rnum realnum = 0;
   int temp_num = 0, num_found = 0;
-  int j = 0;
+  int i = 0, j = 0;
   char buf[MAX_INPUT_LENGTH] = { '\0' };
   char buf1[MAX_INPUT_LENGTH] = { '\0' };
   char buf2[MAX_INPUT_LENGTH] = { '\0' };
@@ -5414,10 +5415,8 @@ ACMD(do_hlqlist) {
   two_arguments(argument, buf1, buf2);
 
   /* if no buf1, use current zone information */
-  if (!*buf1) {
-    czone = zone_table[world[IN_ROOM(ch)].zone].number;
-    start_num = czone * 100;    
-  }
+  if (!*buf1)
+    bottom = zone_table[world[IN_ROOM(ch)].zone].bot;
   
   /* if buf1 is not a number send them back */
   else if (!isdigit(*buf1)) {
@@ -5426,48 +5425,44 @@ ACMD(do_hlqlist) {
     
   /* convert buf1 to an integer */
   } else
-    start_num = atoi(buf1);
+    bottom = atoi(buf1);
 
   /* if no buf2, use buf1, and top of zone information */
-  if (!*buf2) {
-    if ((temp_num = real_zone(start_num)) == NOWHERE) {
-      sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n",
-              start_num);
-      send_to_char(ch, buf);
-      return;
-    } else
-      end_num = zone_table[temp_num].top;
-  }/* if buf2 is not a number send them back */
+  if (!*buf2)
+    top = zone_table[world[IN_ROOM(ch)].zone].top;
+    
+  /* if buf2 is not a number send them back */
   else if (!isdigit(*buf2)) {
     send_to_char(ch, "\tcSecond value must be a digit, or nothing.\tn\r\n");
     return;
+    
   }/* convert buf2 to an integer */
   else {
-    end_num = atoi(buf2);
-    if (start_num > end_num) {
+    top = atoi(buf2);
+    if (bottom > top) {
       send_to_char(ch, "\tcFirst number must be less than second.\tn\r\n");
       return;
     }
   }
   
-  if (start_num < 0 || end_num < 0) {
+  if (bottom < 0 || top < 0) {
     send_to_char(ch, "Invalid values!\r\n");
     return;
   }
 
-  if (start_num >= NOWHERE || end_num >= NOWHERE) {
+  if (bottom >= NOWHERE || top >= NOWHERE) {
     send_to_char(ch, "Invalid values!\r\n");
     return;
   }
   
-  if (end_num - start_num >= 999) {
+  if (top - bottom >= 999) {
     send_to_char(ch, "Too many at once, 999 limits.\r\n");
     return;
   }
 
   /* start engine */
-  sprintf(buf, "Quest Listings : From %d to %d\r\n", start_num, end_num);
-  for (i = start_num; i <= end_num; i++) {
+  sprintf(buf, "Quest Listings : From %d to %d\r\n", bottom, top);
+  for (i = bottom; i <= top; i++) {
     if ((realnum = real_mobile(i)) != NOBODY) {
       if (mob_proto[realnum].mob_specials.quest) {
         temp_num = 0;
