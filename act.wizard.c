@@ -5406,8 +5406,8 @@ ACMD(do_hlqlist) {
   mob_vnum bottom = NOBODY, top = NOBODY;
   mob_rnum realnum = 0;
   int temp_num = 0, num_found = 0;
-  int i = 0, j = 0, k = 0;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  int i = 0, j = 0, k = 0, len = 0;
+  char buf[MAX_STRING_LENGTH] = { '\0' };
   char buf1[MAX_INPUT_LENGTH] = { '\0' };
   char buf2[MAX_INPUT_LENGTH] = { '\0' };
 
@@ -5460,11 +5460,11 @@ ACMD(do_hlqlist) {
   }
 
   /* start engine */
-  sprintf(buf, "Quest Listings : From %d to %d\r\n", bottom, top);
-  for (i = 0; i <= top_of_mobt; i++) {
-    if (mob_index[i].vnum >= bottom && mob_index[i].vnum <= top) {
-//  for (i = bottom; i <= top; i++) {
-//    if ((realnum = real_mobile(i)) != NOBODY) {
+  send_to_char(ch, "Quest Listings : From %d to %d\r\n", bottom, top);
+//  for (i = 0; i <= top_of_mobt; i++) {
+//    if (mob_index[i].vnum >= bottom && mob_index[i].vnum <= top) {
+  for (i = bottom; i <= top; i++) {
+    if ((realnum = real_mobile(i)) != NOBODY) {
       if (mob_proto[realnum].mob_specials.quest) {
         temp_num = 0;
         num_found = 0;
@@ -5480,14 +5480,14 @@ ACMD(do_hlqlist) {
           }
         }
 
-        sprintf(buf, "%s[%5d] %-40s %d/%d\r\n", buf, i,
+        len += snprintf(buf + len, sizeof (buf) - len,
+                "%s[%5d] %-40s %d/%d\r\n", buf, i,
                 mob_proto[realnum].player.short_descr, temp_num, num_found);
         j++;
         /* Large buf can't hold that much memory so cut off list */
-        if (j >= 500) {
-          sprintf(buf, "%s&crListing too long, truncated at 500.\r\n", buf);
+        
+        if (len > sizeof(buf))
           break;
-        }
       }
     }    
   }
