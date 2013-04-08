@@ -833,9 +833,9 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
         
         /* status display added for head builder */
         if (ZONE_FLAGGED(i, ZONE_CLOSED))
-          buf2 = strdup("Incomp");
+          buf2 = strdup("\trIncomp\tn");
         else if (ZONE_FLAGGED(i, ZONE_GRID))
-          buf2 = strdup("Ready ");
+          buf2 = strdup("@GReady@n ");
         else
           buf2 = strdup("Unknon");
         
