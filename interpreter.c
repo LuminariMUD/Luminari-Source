@@ -681,6 +681,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "kill") &&
           !is_abbrev(complete_cmd_info[cmd].command, "sit") &&
           !is_abbrev(complete_cmd_info[cmd].command, "stand") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "sap") &&
           !is_abbrev(complete_cmd_info[cmd].command, "scan")
           ) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
