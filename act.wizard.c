@@ -5429,7 +5429,7 @@ ACMD(do_hlqlist) {
 
   /* if no buf2, use buf1, and top of zone information */
   if (!*buf2) {
-    if ((temp_num = real_zone(start_num)) == NOWHERE) {
+    if ((temp_num = real_zone(start_num/100)) == NOWHERE) {
       sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n",
               start_num);
       send_to_char(ch, buf);
