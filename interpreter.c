@@ -658,7 +658,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
     send_to_char(ch, "You need to wait longer before you are able to do that.\r\n");
   else if (AFF_FLAGGED(ch, AFF_HIDE) && !AFF_FLAGGED(ch, AFF_SNEAK)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
-    send_to_char(ch, "You step out of the shadows...\r\n");
+    send_to_char(ch, "You slowly step out of the shadows...\r\n");
   } else if (AFF_FLAGGED(ch, AFF_HIDE) && AFF_FLAGGED(ch, AFF_SNEAK) &&
           !is_abbrev(complete_cmd_info[cmd].command, "look") &&
           !is_abbrev(complete_cmd_info[cmd].command, "trip") &&
