@@ -1365,6 +1365,12 @@ ACMD(do_fly) {
 
 /* entry point for sneak, the command just flips the flag */
 ACMD(do_sneak) {
+  
+  if (FIGHTING(ch)) {
+    send_to_char(ch, "You can't do that in combat!\r\n");
+    return;
+  }
+  
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
@@ -1389,6 +1395,12 @@ ACMD(do_sneak) {
 
 /* entry point for hide, the command just flips the flag */
 ACMD(do_hide) {
+
+  if (FIGHTING(ch)) {
+    send_to_char(ch, "You can't do that in combat!\r\n");
+    return;
+  }
+  
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
