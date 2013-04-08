@@ -5415,21 +5415,22 @@ ACMD(do_hlqlist) {
 
   /* if no buf1, use current zone information */
   if (!*buf1) {
-    czone = zone_table[world[ch->in_room].zone].number;
-    //start_num = czone;
-    start_num = czone * 100;
-    
-  }/* if buf1 is not a number send them back */
+    czone = zone_table[world[IN_ROOM(ch)].zone].number;
+    start_num = czone * 100;    
+  }
+  
+  /* if buf1 is not a number send them back */
   else if (!isdigit(*buf1)) {
     send_to_char(ch, "\tcFirst value must be a digit, or nothing.\tn\r\n");
     return;
-    /* convert buf1 to an integer */
+    
+  /* convert buf1 to an integer */
   } else
     start_num = atoi(buf1);
 
   /* if no buf2, use buf1, and top of zone information */
   if (!*buf2) {
-    if ((temp_num = real_zone(start_num/100)) == NOWHERE) {
+    if ((temp_num = real_zone(start_num)) == NOWHERE) {
       sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n",
               start_num);
       send_to_char(ch, buf);
