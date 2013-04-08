@@ -5448,6 +5448,16 @@ ACMD(do_hlqlist) {
       return;
     }
   }
+  
+  if (start_num < 0 || end_num < 0) {
+    send_to_char(ch, "Invalid values!\r\n");
+    return;
+  }
+
+  if (start_num >= NOWHERE || end_num >= NOWHERE) {
+    send_to_char(ch, "Invalid values!\r\n");
+    return;
+  }
 
   /* start engine */
   sprintf(buf, "Quest Listings : From %d to %d\r\n", start_num, end_num);
@@ -5469,7 +5479,7 @@ ACMD(do_hlqlist) {
       }
     }
     /* Large buf can't hold that much memory so cut off list */
-    if (j >= 500) {
+    if (j >= 350) {
       sprintf(buf, "%s&crListing too long, truncated at 500.\r\n", buf);
       return;
     }
