@@ -5406,7 +5406,7 @@ ACMD(do_hlqlist) {
   mob_vnum bottom = NOBODY, top = NOBODY;
   mob_rnum realnum = 0;
   int temp_num = 0, num_found = 0;
-  int i = 0, j = 0;
+  int i = 0, j = 0, k = 0;
   char buf[MAX_INPUT_LENGTH] = { '\0' };
   char buf1[MAX_INPUT_LENGTH] = { '\0' };
   char buf2[MAX_INPUT_LENGTH] = { '\0' };
@@ -5459,7 +5459,6 @@ ACMD(do_hlqlist) {
     return;
   }
 
-  return;
   /* start engine */
   sprintf(buf, "Quest Listings : From %d to %d\r\n", bottom, top);
   for (i = bottom; i <= top; i++) {
@@ -5472,18 +5471,23 @@ ACMD(do_hlqlist) {
           num_found++;
           if (quest->approved)
             temp_num++;
+          k++;
+          if (k >= 5000) {
+            send_to_char(ch, "Infinite Loop detected!\r\n");
+            return;
+          }
         }
 
         sprintf(buf, "%s[%5d] %-40s %d/%d\r\n", buf, i,
                 mob_proto[realnum].player.short_descr, temp_num, num_found);
         j++;
+        /* Large buf can't hold that much memory so cut off list */
+        if (j >= 500) {
+          sprintf(buf, "%s&crListing too long, truncated at 500.\r\n", buf);
+          break;
+        }
       }
-    }
-    /* Large buf can't hold that much memory so cut off list */
-    if (j >= 500) {
-      sprintf(buf, "%s&crListing too long, truncated at 500.\r\n", buf);
-      return;
-    }
+    }    
   }
   /* end of qlist */
 
