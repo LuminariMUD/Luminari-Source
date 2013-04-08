@@ -5491,8 +5491,9 @@ ACMD(do_hlqlist) {
   }
   /* end of qlist */
 
+  send_to_char(ch, buf);
   /* now send it all to the pager */
-  page_string(ch->desc, buf, 1);
+  //page_string(ch->desc, buf, 1);
 }
 
 /* a simple function/command to check location of all SINGLEFILE rooms
