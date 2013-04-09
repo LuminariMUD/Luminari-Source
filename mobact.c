@@ -23,6 +23,7 @@
 #include "fight.h"
 #include "spec_procs.h"
 #include "mud_event.h" /* for eSTUNNED */
+#include "modify.h"
 
 /***********/
 
@@ -466,6 +467,7 @@ void mobile_echos(struct char_data *ch) {
       if (!AWAKE(d->character))
         continue;
 
+      parse_at(echo);
       send_to_char(d->character, "%s\r\n", echo);
     }
   } else {
