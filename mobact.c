@@ -442,7 +442,7 @@ void mobile_echos(struct char_data *ch) {
   if (!ECHO_COUNT(ch))
     return;
 
-  if (rand_number(1, 75) > (ECHO_FREQ(ch) / 2))
+  if (rand_number(1, 75) > (ECHO_FREQ(ch) / 4))
     return;
 
   if (ECHO_SEQUENTIAL(ch)) {
