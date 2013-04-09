@@ -60,6 +60,73 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
   return FALSE;
 }
 
+/* rescue skill mechanic */
+void perform_rescue(struct char_data *ch, struct char_data *vict) {
+  struct char_data *tmp_ch;
+  int percent, prob;
+  
+  if (vict == ch) {
+    send_to_char(ch, "What about fleeing instead?\r\n");
+    return;
+  }
+  
+  if (FIGHTING(ch) == vict) {
+    send_to_char(ch, "How can you rescue someone you are trying to kill?\r\n");
+    return;
+  }
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+  
+  for (tmp_ch = world[IN_ROOM(ch)].people; tmp_ch &&
+          (FIGHTING(tmp_ch) != vict); tmp_ch = tmp_ch->next_in_room);
+
+  if ((FIGHTING(vict) != NULL) && (FIGHTING(ch) == FIGHTING(vict)) && (tmp_ch == NULL)) {
+    tmp_ch = FIGHTING(vict);
+    if (FIGHTING(tmp_ch) == ch) {
+      send_to_char(ch, "You have already rescued %s from %s.\r\n", GET_NAME(vict), GET_NAME(FIGHTING(ch)));
+      return;
+    }
+  }
+
+  if (!tmp_ch) {
+    act("But nobody is fighting $M!", FALSE, ch, 0, vict, TO_CHAR);
+    return;
+  }
+  
+  percent = rand_number(1, 101); /* 101% is a complete failure */
+  if (IS_NPC(ch))
+    prob = 60;
+  else
+    prob = GET_SKILL(ch, SKILL_RESCUE);
+  if (percent > prob) {
+    send_to_char(ch, "You fail the rescue!\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "Banzai!  To the rescue...\r\n");
+  act("You are rescued by $N, you are confused!", FALSE, vict, 0, ch, TO_CHAR);
+  act("$n heroically rescues $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+
+  if (FIGHTING(vict) == tmp_ch)
+    stop_fighting(vict);
+  if (FIGHTING(tmp_ch))
+    stop_fighting(tmp_ch);
+  if (FIGHTING(ch))
+    stop_fighting(ch);
+
+  set_fighting(ch, tmp_ch);
+  set_fighting(tmp_ch, ch);
+
+  SET_WAIT(ch, PULSE_VIOLENCE);
+  SET_WAIT(vict, 2 * PULSE_VIOLENCE);
+  
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_RESCUE);  
+}
 
 /* engine for knockdown, used in bash/trip/etc */
 void perform_knockdown(struct char_data *ch, struct char_data *vict, 
@@ -206,7 +273,7 @@ void perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
       new_affect(&af);
       af.spell = SKILL_SHIELD_PUNCH;
       SET_BIT_AR(af.bitvector, AFF_STUN);
-      af.duration = 4 + dice(2, 5);
+      af.duration = dice(1, 4) + 1;
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       act("You slam $p into $N, stunning $E!", FALSE, ch, shield, vict, TO_CHAR);
       act("$n slams $p into $N, stunning $E!", FALSE, ch, shield, vict, TO_ROOM);
@@ -214,6 +281,9 @@ void perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
       WAIT_STATE(vict, 1 RL_SEC);
   }
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_SHIELD_PUNCH);
 }
 
 /* engine for headbutt skill */
@@ -253,22 +323,25 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
 
   if (rand_number(1, 101) < GET_SKILL(ch, SKILL_HEADBUTT)) {
     damage(ch, vict, dice(2, GET_LEVEL(ch)), SKILL_HEADBUTT, DAM_FORCE, FALSE);
-    SET_WAIT(ch, PULSE_VIOLENCE * 2);
     GET_POS(vict) = POS_RECLINING;
     
     if (!rand_number(0, 2)) {
       new_affect(&af);
       af.spell = SKILL_HEADBUTT;
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
-      af.duration = 1;
+      af.duration = rand_number(1, 3);
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       act("You slam your head into $N with \tRVICIOUS\tn force!", FALSE, ch, 0, vict, TO_CHAR);
       act("$n slams $s head into $N with \tRVICIOUS\tn force!", FALSE, ch, 0, vict, TO_ROOM);
     }    
   } else {
-    SET_WAIT(ch, PULSE_VIOLENCE * 3);
     damage(ch, vict, 0, SKILL_HEADBUTT, DAM_FORCE, FALSE);
   }
+  
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_HEADBUTT);
 }
 
 /* engine for sap skill */
@@ -372,13 +445,18 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
   } else {
     damage(ch, vict, 0, SKILL_SAP, DAM_FORCE, FALSE);    
   }
+  
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_SAP);
 }
 
 /* main engine for dirt-kick mechanic */
 void perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
   int dam = 0;
+  int base_probability = 0;
 
   if (ch->in_room != vict->in_room)
     return;
@@ -405,20 +483,25 @@ void perform_dirtkick(struct char_data *ch, struct char_data *vict) {
     return;
   }
   
-  int base_probability = GET_SKILL(ch, SKILL_DIRT_KICK);
+  if (GET_SIZE(ch) - GET_SIZE(vict) <= 1) {
+    send_to_char(ch, "Your target is too large for this technique to be effective!\r\n");
+    return;
+  }
+  
+  if (GET_SIZE(ch) - GET_SIZE(vict) >= 2) {
+    send_to_char(ch, "Your target is too small for this technique to be effective!\r\n");
+    return;
+  }
+  
   if (IS_NPC(ch))
     base_probability = 40;  //flate rate 40% right now
-  int lvl_penalty = GET_LEVEL(vict) / 2;
-  int agi_penalty = GET_DEX(vict);
-  int size_penalty = (GET_SIZE(ch) - GET_SIZE(vict)) * 12;
-  if (size_penalty < 0)
-    size_penalty *= -1;
-
-  int chance = MAX(2, base_probability - lvl_penalty - agi_penalty - size_penalty);
-
-  SET_WAIT(ch, PULSE_VIOLENCE * 3);
-
-  if (dice(1, 100) < chance) {
+  else
+    base_probability = GET_SKILL(ch, SKILL_DIRT_KICK);
+  
+  base_probability -= GET_LEVEL(vict) / 2;
+  base_probability -= GET_DEX(vict);
+  
+  if (dice(1, 101) < base_probability) {
     dam = 2 + dice(1, GET_LEVEL(ch));
     damage(ch, vict, dam, SKILL_DIRT_KICK, 0, FALSE);
     
@@ -426,11 +509,16 @@ void perform_dirtkick(struct char_data *ch, struct char_data *vict) {
     af.spell = SKILL_DIRT_KICK;
     SET_BIT_AR(af.bitvector, AFF_BLIND);
     af.modifier = -4;
-    af.duration = GET_LEVEL(ch) / 5;
+    af.duration = dice(1, GET_LEVEL(ch) / 5);
     af.location = APPLY_HITROLL;
     affect_join(vict, &af, 1, FALSE, FALSE, FALSE);    
   } else
     damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
+  
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_DIRT_KICK);
 }
 
 /* main engine for assist mechanic */
@@ -513,8 +601,11 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
     damage(ch, vict, 0, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
     GET_POS(ch) = POS_SITTING;
   }
+  
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
 
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_SPRINGLEAP);
 }
 
 /* the primary engine for backstab */
@@ -789,6 +880,8 @@ ACMD(do_turnundead) {
       break;
   }
 
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_TURN_UNDEAD);
 }
 
 #define RAGE_AFFECTS 4
@@ -1238,6 +1331,9 @@ ACMD(do_spellbattle) {
   SET_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
   attach_mud_event(new_mud_event(eSPELLBATTLE, ch, NULL),
           1 * SECS_PER_REAL_HOUR);
+  
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_SPELLBATTLE);
 }
 #undef SPELLBATTLE_CAP
 #undef SPELLBATTLE_AFFECTS
@@ -1695,8 +1791,7 @@ ACMD(do_treatinjury) {
 
 ACMD(do_rescue) {
   char arg[MAX_INPUT_LENGTH];
-  struct char_data *vict, *tmp_ch;
-  int percent, prob;
+  struct char_data *vict;
 
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_RESCUE)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
@@ -1709,60 +1804,8 @@ ACMD(do_rescue) {
     send_to_char(ch, "Whom do you want to rescue?\r\n");
     return;
   }
-  if (vict == ch) {
-    send_to_char(ch, "What about fleeing instead?\r\n");
-    return;
-  }
-  if (FIGHTING(ch) == vict) {
-    send_to_char(ch, "How can you rescue someone you are trying to kill?\r\n");
-    return;
-  }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
-    send_to_char(ch, "You simply can't reach that far.\r\n");
-    return;
-  }
-  
-  for (tmp_ch = world[IN_ROOM(ch)].people; tmp_ch &&
-          (FIGHTING(tmp_ch) != vict); tmp_ch = tmp_ch->next_in_room);
 
-  if ((FIGHTING(vict) != NULL) && (FIGHTING(ch) == FIGHTING(vict)) && (tmp_ch == NULL)) {
-    tmp_ch = FIGHTING(vict);
-    if (FIGHTING(tmp_ch) == ch) {
-      send_to_char(ch, "You have already rescued %s from %s.\r\n", GET_NAME(vict), GET_NAME(FIGHTING(ch)));
-      return;
-    }
-  }
-
-  if (!tmp_ch) {
-    act("But nobody is fighting $M!", FALSE, ch, 0, vict, TO_CHAR);
-    return;
-  }
-  percent = rand_number(1, 101); /* 101% is a complete failure */
-  prob = GET_SKILL(ch, SKILL_RESCUE);
-
-  if (percent > prob) {
-    send_to_char(ch, "You fail the rescue!\r\n");
-    return;
-  }
-  send_to_char(ch, "Banzai!  To the rescue...\r\n");
-  act("You are rescued by $N, you are confused!", FALSE, vict, 0, ch, TO_CHAR);
-  act("$n heroically rescues $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-
-  if (FIGHTING(vict) == tmp_ch)
-    stop_fighting(vict);
-  if (FIGHTING(tmp_ch))
-    stop_fighting(tmp_ch);
-  if (FIGHTING(ch))
-    stop_fighting(ch);
-
-  set_fighting(ch, tmp_ch);
-  set_fighting(tmp_ch, ch);
-
-  SET_WAIT(ch, PULSE_VIOLENCE);
-  SET_WAIT(vict, 2 * PULSE_VIOLENCE);
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_RESCUE);
+  perform_rescue(ch, vict);
 }
 
 /* built initially by vatiken as an illustration of event/lists systems 
@@ -1994,18 +2037,18 @@ ACMD(do_hitall) {
             (CAN_SEE(ch, vict) || 
             IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_MAGICDARK))) {
       count++;
-      if (rand_number(0, 101) < GET_SKILL(ch, SKILL_HITALL) ||
-              (IS_PET(ch) && rand_number(0, 101) > GET_LEVEL(ch))) {
+      
+      if (rand_number(0, 111) < GET_SKILL(ch, SKILL_HITALL) ||
+              (IS_PET(ch) && rand_number(0, 101) > GET_LEVEL(ch)))
         lag++;
 
-      }
       if (aoeOK(ch, vict, SKILL_HITALL))
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 0);
     }
   }
   lag = 1 + lag / 3 + count / 4;
-  if (lag > 3)
-    lag = 3;
+  if (lag > 4)
+    lag = 4;
 
   SET_WAIT(ch, lag * PULSE_VIOLENCE);
 }
