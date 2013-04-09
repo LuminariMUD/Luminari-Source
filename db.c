@@ -1831,7 +1831,9 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   
   CASE("EchoCount") {
     RANGE(0, 10);
-    CREATE(ECHO_ENTRIES(mob_proto + i), char *, 1);
+    //ECHO_COUNT(mob_proto + i) = num_arg;
+    //ECHO_ENTRIES(mob_proto + i) = new char*[num_arg];
+    CREATE(ECHO_ENTRIES(mob_proto + i), char *, num_arg);
   }
   
   CASE("EchoSequential") {
