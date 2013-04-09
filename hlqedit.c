@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "db.h"
 #include "boards.h"
+#include "handler.h"
 #include "oasis.h" 
 #include "interpreter.h"
 #include "constants.h"
@@ -104,16 +105,16 @@ void hlqedit_show_classes(struct descriptor_data *d) {
 }
 
 /*
- *  this is the first step in editting an existing or new quest
+ *  this is the first step in editing an existing or new quest
  */
-void hlqedit_setup(struct descriptor_data *d, int mob) {
-  struct quest_entry *quest = 0;
-  struct quest_entry *qexist;
-  struct quest_entry *qtmp;
-  struct quest_command *qcom;
-  struct quest_command *qlast;
-  struct quest_command *qcomexist;
-  struct char_data *ch;
+void hlqedit_setup(struct descriptor_data *d, mob_rnum mob) {
+  struct quest_entry *quest = NULL;
+  struct quest_entry *qexist = NULL;
+  struct quest_entry *qtmp = NULL;
+  struct quest_command *qcom = NULL;
+  struct quest_command *qlast = NULL;
+  struct quest_command *qcomexist = NULL;
+  struct char_data *ch = NULL;
 
   ch = &mob_proto[mob];
 
@@ -163,7 +164,7 @@ void hlqedit_setup(struct descriptor_data *d, int mob) {
             quest->out = qcom;
           else {
             qlast = quest->out;
-            while (qlast->next != 0)
+            while (qlast->next)
               qlast = qlast->next;
             qlast->next = qcom;
           }
@@ -187,6 +188,7 @@ void hlqedit_setup(struct descriptor_data *d, int mob) {
 struct quest_entry *getquest(struct descriptor_data *d, int num) {
   struct quest_entry *quest;
   int a = 1;
+  
   for (quest = OLC_HLQUEST(d); quest; quest = quest->next) {
     if (a == num)
       return quest;
@@ -198,11 +200,12 @@ struct quest_entry *getquest(struct descriptor_data *d, int num) {
 /* utility function, links quest chain*/
 void hlqedit_addtoout(struct descriptor_data *d, struct quest_command *qcom) {
   struct quest_command *qlast;
-  if (OLC_QUESTENTRY(d)->out == 0)
+  
+  if (!OLC_QUESTENTRY(d)->out)
     OLC_QUESTENTRY(d)->out = qcom;
   else {
     qlast = OLC_QUESTENTRY(d)->out;
-    while (qlast->next != 0)
+    while (qlast->next)
       qlast = qlast->next;
     qlast->next = qcom;
   }
@@ -220,8 +223,19 @@ void hlqedit_addtoout(struct descriptor_data *d, struct quest_command *qcom) {
    disk whenever its saved internally
  */
 void hlqedit_save_internally(struct descriptor_data *d) {
-  struct char_data *ch;
+  struct char_data *i = NULL;
+  struct char_data *ch = NULL;
+  
   ch = OLC_MOB(d);
+  
+  /* quest mobs have to be wiped off the planet */
+  for (i = character_list; i; i = i->next) {
+    if (!IS_NPC(i))
+      continue;
+    if (GET_MOB_VNUM(i) == GET_MOB_VNUM(ch))
+      extract_char(i);    
+  }
+    
   free_hlquest(ch);
   ch->mob_specials.quest = OLC_HLQUEST(d);
 
@@ -243,6 +257,7 @@ void hlqedit_save_to_disk(int zone_num) {
   int rmob_num;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
+  
 
   if (zone_num < 0 || zone_num > top_of_zone_table) {
     log("SYSERR: hlqedit_save_to_disk: Invalid real zone passed!");
