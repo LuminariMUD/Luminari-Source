@@ -1378,7 +1378,7 @@ ACMD(do_masterlist) {
   
   len = snprintf(buf2, sizeof (buf2), "\tCMaster List\tn\r\n");
   
-  for (; bottom < NUM_SPELLS; bottom++) {
+  for (; bottom < top; bottom++) {
     
     if (!strcmp(spell_info[bottom].name, "!UNUSED!"))
       continue;
