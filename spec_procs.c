@@ -70,7 +70,7 @@ void sort_spells(void) {
   
   /* initialize array, avoiding reserved. */
   for (a = 1; a <= (MAX_SKILLS - MAX_SPELLS); a++)
-    sorted_spells[a] = a + MAX_SPELLS;
+    sorted_skills[a] = a + MAX_SPELLS;
 
   qsort(&sorted_skills[1], MAX_SPELLS - MAX_SKILLS,
           sizeof (int), compare_spells);
