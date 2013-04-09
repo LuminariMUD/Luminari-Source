@@ -1370,8 +1370,8 @@ ACMD(do_masterlist) {
   }
  
   if (is_abbrev(argument, "skills")) {
-    bottom = MAX_SPELLS;
-    top = MAX_SKILLS;
+    bottom = 0;
+    top = MAX_SKILLS - MAX_SPELLS + 1;
     is_spells = FALSE;
   } else if (is_abbrev(argument, "spells")) {
     bottom = 0;
