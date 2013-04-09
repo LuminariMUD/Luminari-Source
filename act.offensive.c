@@ -180,7 +180,7 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
       new_affect(&af);
       af.spell = SKILL_CHARGE;
       SET_BIT_AR(af.bitvector, AFF_STUN);
-      af.duration = 2 + dice(3, 4);
+      af.duration = dice(1, 4) + 2;
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       act("You charge into $N, stunning $E!", FALSE, ch, 0, vict, TO_CHAR);
       act("$n charges into $N, stunning $E!", FALSE, ch, 0, vict, TO_ROOM);
@@ -497,9 +497,9 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
   }
   
   if (IS_NPC(ch))
-    prob += 60;
+    prob += 30;
   else
-    prob += GET_SKILL(ch, SKILL_SAP);
+    prob += GET_SKILL(ch, SKILL_SAP) / 2;
   prob += GET_DEX(ch);
   prob -= GET_CON(vict);
   
@@ -513,7 +513,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
     GET_POS(vict) = POS_RECLINING;
     
     /* success!  critical? */
-    if (prob - percent >= 88) {
+    if (prob - percent >= 20) {
       /* critical! */
       dam *= 2;
       new_affect(&af);
@@ -540,7 +540,7 @@ void perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   int dam = 0;
   int base_probability = 0;
 
-  if (ch->in_room != vict->in_room)
+  if (IN_ROOM(ch) != IN_ROOM(vict))
     return;
   
   if (!CAN_SEE(ch, vict)) {
@@ -663,7 +663,6 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
   if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
     act("You sprawl completely through $N as you try to springleap them!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n sprawls completely through $N as $e tries to springleap $M.", FALSE, ch, 0, vict, TO_ROOM);
-    GET_POS(ch) = POS_SITTING;
     SET_WAIT(ch, PULSE_VIOLENCE);
     return;
   }
@@ -677,19 +676,21 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
     dam = dice(6, (GET_LEVEL(ch) / 5) + 2);
     damage(ch, vict, dam, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
     SET_WAIT(vict, PULSE_VIOLENCE);
-    GET_POS(ch) = POS_STANDING;
     
     new_affect(&af);
     af.spell = SKILL_SPRINGLEAP;
-    SET_BIT_AR(af.bitvector, AFF_STUN);
-    af.duration = dice(1, 3);
+    if (!rand_number(0, 5))
+      SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+    else
+      SET_BIT_AR(af.bitvector, AFF_STUN);
+    af.duration = dice(1, 2);
     affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
   } else {
     damage(ch, vict, 0, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
-    GET_POS(ch) = POS_SITTING;
   }
-  
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+
+  GET_POS(ch) = POS_STANDING;
+  SET_WAIT(ch, PULSE_VIOLENCE);
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_SPRINGLEAP);
