@@ -210,10 +210,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       if (GET_SKILL(ch, SKILL_TRIP) && GET_LEVEL(ch) >= 20)
         return TRUE;
       else return FALSE;
-    case SKILL_DIRT_KICK:
-      if (GET_LEVEL(ch) >= 20 && GET_REAL_DEX(ch) >= 17)
-        return TRUE;
-      else return FALSE;
     case SKILL_HEADBUTT:
       if (GET_LEVEL(ch) >= 20 && 
               (GET_REAL_CON(ch) + GET_REAL_STR(ch) >= 32))
@@ -471,6 +467,11 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 21)
         return TRUE;
       else return FALSE;
+    case SKILL_DIRT_KICK:
+      if (GET_LEVEL(ch) >= 20 && GET_REAL_DEX(ch) >= 17) {
+        if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 15)
+          return TRUE;
+      } else return FALSE;
 
       /* berserker */
     case SKILL_RAGE:

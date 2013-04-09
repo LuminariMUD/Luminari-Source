@@ -109,18 +109,23 @@ void guard_check(struct char_data *ch, struct char_data *vict) {
     if (AFF_FLAGGED(tch, AFF_BLIND))
       continue;
     if (GUARDING(tch) == vict) {
-      if (rand_number(1, 100) > GET_SKILL(tch, SKILL_RESCUE)) {
+      if (rand_number(1, 111) > GET_SKILL(tch, SKILL_RESCUE)) {
         act("$N fails to guard you.", FALSE, vict, 0, tch, TO_CHAR);
         act("You fail to guard $n.", FALSE, vict, 0, tch, TO_VICT);
       } else {
         act("$N comes to your protection.", FALSE, vict, 0, tch, TO_CHAR);
         act("$N guards $n succesfully.", FALSE, vict, 0, tch, TO_NOTVICT);
         act("You guard $n succesfully.", FALSE, vict, 0, tch, TO_VICT);
+        
+        perform_rescue(tch, vict);
+        return;
 
+        /*
         if (!FIGHTING(tch))
           set_fighting(tch, ch);
         FIGHTING(ch) = tch;
         return;
+        */
       }
     }
   }
