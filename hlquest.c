@@ -548,13 +548,15 @@ void quest_give(struct char_data *ch, struct char_data *victim) {
  * init a quest
  */
 void clear_hlquest(struct quest_entry *quest) {
+  quest->type = -1;
+  quest->keywords = strdup("hi hello quest");
+  quest->reply_msg = strdup("Undefined Quest");
+  quest->in = NULL;
+  quest->out = NULL;
   quest->approved = FALSE;
+  quest->room = NOWHERE;
+  
   quest->next = NULL;
-  quest->in = 0;
-  quest->out = 0;
-  quest->reply_msg = 0;
-  quest->keywords = 0;
-  quest->room = 1;
 }
 
 /*
