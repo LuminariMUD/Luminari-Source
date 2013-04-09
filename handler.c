@@ -1014,6 +1014,7 @@ void extract_char_final(struct char_data *ch) {
   struct char_data *k, *temp;
   struct descriptor_data *d;
   struct obj_data *obj;
+  struct char_data *tch = NULL;
   int i;
 
   if (IN_ROOM(ch) == NOWHERE) {
@@ -1069,6 +1070,13 @@ void extract_char_final(struct char_data *ch) {
   if (GROUP(ch))
     leave_group(ch);
 
+  /* reset guard */
+  GUARDING(ch) = NULL;
+  for (tch = character_list; tch; tch = tch->next) {
+    if (GUARDING(tch) == ch)
+      GUARDING(tch) = NULL;
+  }
+  
   /* transfer objects to room, if any */
   while (ch->carrying) {
     obj = ch->carrying;

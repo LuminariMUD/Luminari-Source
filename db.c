@@ -4029,6 +4029,7 @@ void init_char(struct char_data *ch) {
     GET_SPEC_ABIL(ch, i) = 0;
   for (i = 0; i < MAX_ENEMIES; i++)
     GET_FAVORED_ENEMY(ch, i) = 0;
+  GUARDING(ch) = NULL;
 }
 
 /* returns the real number of the room with given virtual number */

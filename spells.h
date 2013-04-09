@@ -358,6 +358,9 @@
 #define SPELL_VIGORIZE_SERIOUS          310
 #define SPELL_VIGORIZE_CRITICAL         311
 #define SPELL_GROUP_VIGORIZE            312
+#define SPELL_EMBALM                    313
+#define SPELL_CONTINUAL_LIGHT           314
+#define SPELL_ELEMENTAL_RESISTANCE      315  // endure elements improved
 /* end unfinished list */
 
 /* Now would be a good time to mention other files to be aware of with spells:
