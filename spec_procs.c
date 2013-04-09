@@ -75,7 +75,7 @@ void sort_spells(void) {
   /* spell list */
   
   /* initialize array, avoiding reserved. */
-  for (a = 1; a <= (MAX_SKILLS - MAX_SPELLS); a++)
+  for (a = 1; a < (MAX_SKILLS - MAX_SPELLS); a++)
     sorted_skills[a] = a + MAX_SPELLS;
 
   qsort(&sorted_skills[1], MAX_SPELLS - MAX_SKILLS,
