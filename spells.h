@@ -353,6 +353,13 @@
 #define SPELL_I_DARKNESS                306  //room event test spell
 #define SPELL_DOOM                      307  // creeping doom damage proc
 #define SPELL_WHIRLWIND                 308
+/* unfinished list */
+#define SPELL_VIGORIZE_LIGHT            309
+#define SPELL_VIGORIZE_SERIOUS          310
+#define SPELL_VIGORIZE_CRITICAL         311
+#define SPELL_GROUP_VIGORIZE            312
+/* end unfinished list */
+
 /* Now would be a good time to mention other files to be aware of with spells:
  * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c */
 /** Total Number of defined spells (last spell define + 1) */
