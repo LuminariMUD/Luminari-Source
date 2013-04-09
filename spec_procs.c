@@ -39,6 +39,12 @@ int sorted_skills[MAX_SKILLS - MAX_SPELLS + 1];
 static int compare_spells(const void *x, const void *y) {
   int a = *(const int *) x,
           b = *(const int *) y;
+  
+  if (a <= 1 || b <= 1)
+    return 0;
+
+  if (a > MAX_SKILLS || b > MAX_SKILLS)
+    return 0;
 
   return strcmp(spell_info[a].name, spell_info[b].name);
 }
