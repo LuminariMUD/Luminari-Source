@@ -97,6 +97,7 @@ ACMD(do_look);
 /* functions without subcommands */
 ACMD(do_affects);
 ACMD(do_innates);
+ACMD(do_masterlist);
 ACMD(do_areas);
 ACMD(do_attacks);
 ACMD(do_consider);

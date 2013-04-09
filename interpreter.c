@@ -274,6 +274,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "msgedit", "msgedit", POS_DEAD, do_msgedit, LVL_STAFF, 0, TRUE},
   { "mute", "mute", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_MUTE, TRUE},
   { "mount", "mount", POS_FIGHTING, do_mount, 0, 0, FALSE},
+  { "masterlist", "masterlist", POS_DEAD, do_masterlist, 0, 0, TRUE},
 
   { "news", "news", POS_SLEEPING, do_gen_ps, 0, SCMD_NEWS, TRUE},
   { "noauction", "noauction", POS_DEAD, do_gen_tog, 0, SCMD_NOAUCTION, TRUE},

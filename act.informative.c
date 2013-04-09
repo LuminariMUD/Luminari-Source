@@ -57,7 +57,7 @@ int boot_high = 0;
 
 
 
-
+/*******  UTILITY FUNCTIONS ***********/
 
 /* special affect that allows you to sense 'aggro' enemies */
 void check_dangersense(struct char_data *ch, room_rnum room) {
@@ -629,43 +629,6 @@ static void do_auto_exits(struct char_data *ch) {
   send_to_char(ch, "%s]%s\r\n", slen ? "" : "None!", CCNRM(ch, C_NRM));
 }
 
-ACMD(do_exits) {
-  int door, len = 0;
-
-  if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT) {
-    send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
-    return;
-  }
-
-  send_to_char(ch, "Obvious exits:\r\n");
-
-  for (door = 0; door < DIR_COUNT; door++) {
-    if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
-      continue;
-    if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) && !CONFIG_DISP_CLOSED_DOORS)
-      continue;
-    if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) && !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
-      continue;
-
-    len++;
-
-    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS) && !EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
-      send_to_char(ch, "%-5s - [%5d]%s %s\r\n", dirs[door], GET_ROOM_VNUM(EXIT(ch, door)->to_room),
-            EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " [HIDDEN]" : "", world[EXIT(ch, door)->to_room].name);
-    else if (CONFIG_DISP_CLOSED_DOORS && EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)) {
-      /* But we tell them the door is closed */
-      send_to_char(ch, "%-5s - The %s is closed%s\r\n", dirs[door],
-              (EXIT(ch, door)->keyword) ? fname(EXIT(ch, door)->keyword) : "opening",
-              EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " and hidden." : ".");
-    } else
-      send_to_char(ch, "%-5s - %s\r\n", dirs[door], IS_DARK(EXIT(ch, door)->to_room) &&
-            !CAN_SEE_IN_DARK(ch) ? "Too dark to tell." : world[EXIT(ch, door)->to_room].name);
-  }
-
-  if (!len)
-    send_to_char(ch, " None.\r\n");
-}
-
 void look_at_room(struct char_data *ch, int ignore_brief) {
   trig_data *t;
   struct room_data *rm = &world[IN_ROOM(ch)];
@@ -832,6 +795,117 @@ static void look_in_obj(struct char_data *ch, char *arg) {
   }
 }
 
+
+/* puts -'s instead of spaces */
+void space_to_minus(char *str) {
+  while ((str = strchr(str, ' ')) != NULL)
+    *str = '-';
+}
+
+int search_help(const char *argument, int level) {
+  int chk, bot, top, mid, minlen;
+
+  bot = 0;
+  top = top_of_helpt;
+  minlen = strlen(argument);
+
+  while (bot <= top) {
+    mid = (bot + top) / 2;
+
+    if (!(chk = strn_cmp(argument, help_table[mid].keywords, minlen))) {
+      while ((mid > 0) && !strn_cmp(argument, help_table[mid - 1].keywords, minlen))
+        mid--;
+
+      while (level < help_table[mid].min_level && mid < (bot + top) / 2)
+        mid++;
+
+      /* The following line was commented out at some point, by someone, for some reason...
+       * as I am unaware of that reason, and without a level check all help files, including
+       * the ones we may not want a player to see, are available. So I'm reversing this now.
+       * -Vat */
+      if (strn_cmp(argument, help_table[mid].keywords, minlen) ||
+              level < help_table[mid].min_level)
+        /*if (strn_cmp(argument, help_table[mid].keywords, minlen))*/
+        break;
+
+      return mid;
+    } else if (chk > 0)
+      bot = mid + 1;
+    else
+      top = mid - 1;
+  }
+  return NOWHERE;
+}
+
+
+/* this is used for char creation help */
+
+/* make sure arg doesn't have spaces */
+void perform_help(struct descriptor_data *d, char *argument) {
+  int mid = 0;
+
+  if (!help_table)
+    return;
+
+  if (!*argument)
+    return;
+
+  if ((mid = search_help(argument, LVL_IMPL)) == NOWHERE)
+    return;
+
+  page_string(d, help_table[mid].entry, 0);
+}
+
+ACMD(do_help) {
+  int mid = 0;
+  int i, found = 0;
+
+  if (!ch->desc)
+    return;
+
+  skip_spaces(&argument);
+
+  if (!help_table) {
+    send_to_char(ch, "No help available.\r\n");
+    return;
+  }
+
+  if (!*argument) {
+    if (GET_LEVEL(ch) < LVL_IMMORT)
+      page_string(ch->desc, help, 0);
+    else
+      page_string(ch->desc, ihelp, 0);
+    return;
+  }
+
+  space_to_minus(argument);
+
+  if ((mid = search_help(argument, GET_LEVEL(ch))) == NOWHERE) {
+    send_to_char(ch, "There is no help on that word.\r\n");
+    mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
+            "%s tried to get help on %s", GET_NAME(ch), argument);
+    for (i = 0; i < top_of_helpt; i++) {
+      if (help_table[i].min_level > GET_LEVEL(ch))
+        continue;
+      /* To help narrow down results, if they don't start with the same letters, move on. */
+      if (*argument != *help_table[i].keywords)
+        continue;
+      if (levenshtein_distance(argument, help_table[i].keywords) <= 2) {
+        if (!found) {
+          send_to_char(ch, "\r\nDid you mean:\r\n");
+          found = 1;
+        }
+        send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
+                help_table[i].keywords, help_table[i].keywords);
+      }
+    }
+    send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
+    return;
+  }
+  page_string(ch->desc, help_table[mid].entry, 0);
+  send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
+}
+
 char *find_exdesc(char *word, struct extra_descr_data *list) {
   struct extra_descr_data *i;
 
@@ -840,6 +914,117 @@ char *find_exdesc(char *word, struct extra_descr_data *list) {
       return (i->description);
 
   return (NULL);
+}
+
+
+static void perform_mortal_where(struct char_data *ch, char *arg) {
+  struct char_data *i;
+  struct descriptor_data *d;
+  int j;
+
+  if (!*arg) {
+    j = world[(IN_ROOM(ch))].zone;
+    send_to_char(ch, "\tb--\tB= \tCPlayers in %s \tB=\tb--\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", zone_table[j].name);
+    for (d = descriptor_list; d; d = d->next) {
+      if (STATE(d) != CON_PLAYING || d->character == ch)
+        continue;
+      if ((i = (d->original ? d->original : d->character)) == NULL)
+        continue;
+      if (IN_ROOM(i) == NOWHERE || !CAN_SEE(ch, i))
+        continue;
+      if (world[IN_ROOM(ch)].zone != world[IN_ROOM(i)].zone)
+        continue;
+      send_to_char(ch, "\tB[\tc%-20s%s\tB]\tW - %s%s\tn\r\n", GET_NAME(i), QNRM, world[IN_ROOM(i)].name, QNRM);
+    }
+  } else { /* print only FIRST char, not all. */
+    for (i = character_list; i; i = i->next) {
+      if (IN_ROOM(i) == NOWHERE || i == ch)
+        continue;
+      if (!CAN_SEE(ch, i) || world[IN_ROOM(i)].zone != world[IN_ROOM(ch)].zone)
+        continue;
+      if (!isname(arg, i->player.name))
+        continue;
+      send_to_char(ch, "\tB[\tc%-25s%s\tB]\tW - %s%s\tn\r\n", GET_NAME(i), QNRM, world[IN_ROOM(i)].name, QNRM);
+      return;
+    }
+    send_to_char(ch, "Nobody around by that name.\r\n");
+  }
+}
+
+static void print_object_location(int num, struct obj_data *obj, struct char_data *ch,
+        int recur) {
+  if (num > 0)
+    send_to_char(ch, "O%3d. %-25s%s - ", num, obj->short_description, QNRM);
+  else
+    send_to_char(ch, "%33s", " - ");
+
+  if (SCRIPT(obj)) {
+    if (!TRIGGERS(SCRIPT(obj))->next)
+      send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
+    else
+      send_to_char(ch, "[TRIGS] ");
+  }
+
+  if (IN_ROOM(obj) != NOWHERE)
+    send_to_char(ch, "[%5d] %s%s\r\n", GET_ROOM_VNUM(IN_ROOM(obj)), world[IN_ROOM(obj)].name, QNRM);
+  else if (obj->carried_by)
+    send_to_char(ch, "carried by %s%s\r\n", PERS(obj->carried_by, ch), QNRM);
+  else if (obj->worn_by)
+    send_to_char(ch, "worn by %s%s\r\n", PERS(obj->worn_by, ch), QNRM);
+  else if (obj->in_obj) {
+    send_to_char(ch, "inside %s%s%s\r\n", obj->in_obj->short_description, QNRM, (recur ? ", which is" : " "));
+    if (recur)
+      print_object_location(0, obj->in_obj, ch, recur);
+  } else
+    send_to_char(ch, "in an unknown location\r\n");
+}
+
+static void perform_immort_where(struct char_data *ch, char *arg) {
+  struct char_data *i;
+  struct obj_data *k;
+  struct descriptor_data *d;
+  int num = 0, found = 0;
+
+  if (!*arg) {
+    send_to_char(ch, "Players  Room    Location                       Zone\r\n");
+    send_to_char(ch, "-------- ------- ------------------------------ -------------------\r\n");
+    for (d = descriptor_list; d; d = d->next)
+      if (IS_PLAYING(d)) {
+        i = (d->original ? d->original : d->character);
+        if (i && CAN_SEE(ch, i) && (IN_ROOM(i) != NOWHERE)) {
+          if (d->original)
+            send_to_char(ch, "%-8s%s - [%5d] %s%s (in %s%s)\r\n",
+                  GET_NAME(i), QNRM, GET_ROOM_VNUM(IN_ROOM(d->character)),
+                  world[IN_ROOM(d->character)].name, QNRM, GET_NAME(d->character), QNRM);
+          else
+            send_to_char(ch, "%-8s%s %s[%s%5d%s]%s %-*s%s %s%s\r\n", GET_NAME(i), QNRM,
+                  QCYN, QYEL, GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
+                  30 + count_color_chars(world[IN_ROOM(i)].name), world[IN_ROOM(i)].name, QNRM,
+                  zone_table[(world[IN_ROOM(i)].zone)].name, QNRM);
+        }
+      }
+  } else {
+    for (i = character_list; i; i = i->next)
+      if (CAN_SEE(ch, i) && IN_ROOM(i) != NOWHERE && isname(arg, i->player.name)) {
+        found = 1;
+        send_to_char(ch, "M%3d. %-25s%s - [%5d] %-25s%s", ++num, GET_NAME(i), QNRM,
+                GET_ROOM_VNUM(IN_ROOM(i)), world[IN_ROOM(i)].name, QNRM);
+        if (SCRIPT(i) && TRIGGERS(SCRIPT(i))) {
+          if (!TRIGGERS(SCRIPT(i))->next)
+            send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(i))));
+          else
+            send_to_char(ch, "[TRIGS] ");
+        }
+        send_to_char(ch, "%s\r\n", QNRM);
+      }
+    for (num = 0, k = object_list; k; k = k->next)
+      if (CAN_SEE_OBJ(ch, k) && isname(arg, k->name)) {
+        found = 1;
+        print_object_location(++num, k, ch, TRUE);
+      }
+    if (!found)
+      send_to_char(ch, "Couldn't find any such thing.\r\n");
+  }
 }
 
 /* Given the argument "look at <target>", figure out what object or char
@@ -921,6 +1106,288 @@ static void look_at_target(struct char_data *ch, char *arg) {
     }
   } else if (!found)
     send_to_char(ch, "You do not see that here.\r\n");
+}
+
+void perform_affects(struct char_data *ch, struct char_data *k) {
+  int i = 0;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  struct affected_type *aff = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+
+  send_to_char(ch,
+          "\tC---------------------------------------------------------\tn\r\n");
+  send_to_char(ch,
+          "\tC-------------- \tWAffected By\tC ------------------------------\tn\r\n");
+
+  /* Showing the bitvector */
+  sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
+  send_to_char(ch, "%s%s%s\r\n", CCYEL(ch, C_NRM),
+          buf, CCNRM(ch, C_NRM));
+
+  send_to_char(ch,
+          "\tC-------------- \tWSpell-Like Affects\tC -----------------------\tn\r\n");
+
+  /* Routine to show what spells a char is affected by */
+  if (k->affected) {
+    for (aff = k->affected; aff; aff = aff->next) {
+      if (aff->duration + 1 >= 900) // how many rounds in an hour?
+        send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
+      else if (aff->duration + 1 >= 15) // how many rounds in a minute?
+        send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
+      else // rounds
+        send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
+      send_to_char(ch, "%s%-19s%s ",
+              CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
+
+      if (aff->modifier)
+        send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
+
+      if (aff->bitvector[0] || aff->bitvector[1] ||
+              aff->bitvector[2] || aff->bitvector[3]) {
+        if (aff->modifier)
+          send_to_char(ch, ", ");
+        for (i = 0; i < NUM_AFF_FLAGS; i++) {
+          if (IS_SET_AR(aff->bitvector, i)) {
+            send_to_char(ch, "sets %s, ", affected_bits[i]);
+          }
+        }
+      }
+      send_to_char(ch, "\r\n");
+    }
+  }
+  send_to_char(ch,
+          "\tC-------------- \tWCool Downs\tC -------------------------------\tn\r\n");
+  if ((pMudEvent = char_has_mud_event(k, eTAUNT)))
+    send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eRAGE)))
+    send_to_char(ch, "Rage - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eCRYSTALFIST)))
+    send_to_char(ch, "Crystal Fist - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eCRYSTALBODY)))
+    send_to_char(ch, "Crystal Body - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eLAYONHANDS)))
+    send_to_char(ch, "Lay on Hands - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eTREATINJURY)))
+    send_to_char(ch, "Treat Injuries - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eMUMMYDUST)))
+    send_to_char(ch, "Epic Spell:  Mummy Dust - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eDRAGONKNIGHT)))
+    send_to_char(ch, "Epic Spell:  Dragon Knight - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eGREATERRUIN)))
+    send_to_char(ch, "Epic Spell:  Greater Ruin - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eHELLBALL)))
+    send_to_char(ch, "Epic Spell:  Hellball - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eEPICMAGEARMOR)))
+    send_to_char(ch, "Epic Spell:  Epic Mage Armor - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eEPICWARDING)))
+    send_to_char(ch, "Epic Spell:  Epic Warding - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSTUNNINGFIST)))
+    send_to_char(ch, "Stunning Fist - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eD_ROLL)))
+    send_to_char(ch, "Defensive Roll - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, ePURIFY)))
+    send_to_char(ch, "Purify - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eC_ANIMAL)))
+    send_to_char(ch, "Call Companion - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eC_FAMILIAR)))
+    send_to_char(ch, "Call Familiar - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eC_MOUNT)))
+    send_to_char(ch, "Call Mount - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSMITE)))
+    send_to_char(ch, "Smite Evil - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, ePERFORM)))
+    send_to_char(ch, "Perform - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eTURN_UNDEAD)))
+    send_to_char(ch, "Turn Undead - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSPELLBATTLE)))
+    send_to_char(ch, "Spellbattle - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+
+  send_to_char(ch,
+          "\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_CLERIC) >= 14) {
+    if (PLR_FLAGGED(ch, PLR_SALVATION)) {
+      if (GET_SALVATION_NAME(ch) != NULL) {
+        send_to_char(ch, "Salvation:  Set at %s\r\n", GET_SALVATION_NAME(ch));
+      } else {
+        send_to_char(ch, "Salvation:  Not set.\r\n");
+      }
+    } else {
+      send_to_char(ch, "Salvation:  Not set.\r\n");
+    }
+  }
+
+  if ((pMudEvent = char_has_mud_event(k, eTAUNTED)))
+    send_to_char(ch, "\tRTaunted!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSTUNNED)))
+    send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eACIDARROW)))
+    send_to_char(ch, "\tRAcid Arrow!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eIMPLODE)))
+    send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+
+  //location of our DAM_x  damtypes
+  send_to_char(ch,
+          "\tC-------- \tWDamage Type Resistance / Vulnerability\tC ---------\tn\r\n");
+  for (i = 0; i < NUM_DAM_TYPES - 1; i++) {
+    send_to_char(ch, "%-15s: %-4d%% (%-2d)   ", damtype_display[i + 1],
+            compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
+    if (i % 2)
+      send_to_char(ch, "\r\n");
+  }
+  send_to_char(ch, "\r\n");
+  send_to_char(ch,
+          "\tC---------------------------------------------------------\tn\r\n");
+}
+
+void free_history(struct char_data *ch, int type) {
+  struct txt_block *tmp = GET_HISTORY(ch, type), *ftmp;
+
+  while ((ftmp = tmp)) {
+    tmp = tmp->next;
+    if (ftmp->text)
+      free(ftmp->text);
+    free(ftmp);
+  }
+  GET_HISTORY(ch, type) = NULL;
+}
+
+#define HIST_LENGTH 100
+
+void add_history(struct char_data *ch, char *str, int type) {
+  int i = 0;
+  char time_str[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
+  struct txt_block *tmp;
+  time_t ct;
+
+  if (IS_NPC(ch))
+    return;
+
+  tmp = GET_HISTORY(ch, type);
+  ct = time(0);
+  strftime(time_str, sizeof (time_str), "%H:%M ", localtime(&ct));
+
+  sprintf(buf, "%s%s", time_str, str);
+
+  if (!tmp) {
+    CREATE(GET_HISTORY(ch, type), struct txt_block, 1);
+    GET_HISTORY(ch, type)->text = strdup(buf);
+  } else {
+    while (tmp->next)
+      tmp = tmp->next;
+    CREATE(tmp->next, struct txt_block, 1);
+    tmp->next->text = strdup(buf);
+
+    for (tmp = GET_HISTORY(ch, type); tmp; tmp = tmp->next, i++);
+
+    for (; i > HIST_LENGTH && GET_HISTORY(ch, type); i--) {
+      tmp = GET_HISTORY(ch, type);
+      GET_HISTORY(ch, type) = tmp->next;
+      if (tmp->text)
+        free(tmp->text);
+      free(tmp);
+    }
+  }
+  /* add this history message to ALL */
+  if (type != HIST_ALL)
+    add_history(ch, str, HIST_ALL);
+}
+
+void list_scanned_chars(struct char_data * list, struct char_data * ch, int
+        distance, int door) {
+  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+
+  const char *how_far[] = {
+    "close by",
+    "a ways off",
+    "far off to the"
+  };
+
+  struct char_data *i;
+  int count = 0;
+  *buf = '\0';
+
+  /* this loop is a quick, easy way to help make a grammatical sentence
+     (i.e., "You see x, x, y, and z." with commas, "and", etc.) */
+
+  for (i = list; i; i = i->next_in_room)
+
+    /* put any other conditions for scanning someone in this if statement -
+       i.e., if (CAN_SEE(ch, i) && condition2 && condition3) or whatever */
+
+    if (CAN_SEE(ch, i))
+      count++;
+
+  if (!count)
+    return;
+
+  for (i = list; i; i = i->next_in_room) {
+
+    /* make sure to add changes to the if statement above to this one also, using
+       or's to join them.. i.e.,
+       if (!CAN_SEE(ch, i) || !condition2 || !condition3) */
+
+    if (!CAN_SEE(ch, i))
+      continue;
+    if (!*buf)
+      sprintf(buf, "You see %s", GET_NAME(i));
+    else
+      sprintf(buf, "%s%s", buf, GET_NAME(i));
+    if (--count > 1)
+      strcat(buf, ", ");
+    else if (count == 1)
+      strcat(buf, " and ");
+    else {
+      sprintf(buf2, " %s %s.\r\n", how_far[distance], dirs[door]);
+      strcat(buf, buf2);
+    }
+
+  }
+  send_to_char(ch, "%s", buf);
+}
+
+/*****  End Utility Functions *****/
+
+/****  Commands ACMD ******/
+
+ACMD(do_masterlist) {
+  size_t len = 0, nlen = 0;
+  int bottom = 0, top = 0;
+  char buf2[MAX_STRING_LENGTH] = { '\0' };
+  const char *overflow = "\r\n**OVERFLOW**\r\n";
+
+  if (IS_NPC(ch))
+    return;
+  
+  skip_spaces(&argument);
+
+  if (!argument) {
+    send_to_char(ch, "Specify 'spells' or 'skills' list.\r\n");
+    return;
+  }
+ 
+  if (is_abbrev(argument, "skills")) {
+    bottom = MAX_SPELLS;
+    top = MAX_SKILLS;
+  } else if (is_abbrev(argument, "spells")) {
+    bottom = 0;
+    top = MAX_SPELLS;
+  }
+  
+  len = snprintf(buf2, sizeof (buf2), "\tCMaster List\tn\r\n");
+  
+  for (; bottom < NUM_SPELLS; bottom++) {
+    nlen = snprintf(buf2 + len, sizeof (buf2) - len,
+            "%s\r\n", spell_info[bottom].name);
+    if (len + nlen >= sizeof (buf2) || nlen < 0)
+      break;
+    len += nlen;    
+  }
+
+  /* strcpy: OK */
+  if (len >= sizeof (buf2))
+    strcpy(buf2 + sizeof (buf2) - strlen(overflow) - 1, overflow);
+
+  page_string(ch->desc, buf2, TRUE);
 }
 
 ACMD(do_look) {
@@ -1185,137 +1652,6 @@ ACMD(do_innates) {
     }
      */
   }
-}
-
-void perform_affects(struct char_data *ch, struct char_data *k) {
-  int i = 0;
-  char buf[MAX_STRING_LENGTH] = {'\0'};
-  struct affected_type *aff = NULL;
-  struct mud_event_data *pMudEvent = NULL;
-
-  send_to_char(ch,
-          "\tC---------------------------------------------------------\tn\r\n");
-  send_to_char(ch,
-          "\tC-------------- \tWAffected By\tC ------------------------------\tn\r\n");
-
-  /* Showing the bitvector */
-  sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
-  send_to_char(ch, "%s%s%s\r\n", CCYEL(ch, C_NRM),
-          buf, CCNRM(ch, C_NRM));
-
-  send_to_char(ch,
-          "\tC-------------- \tWSpell-Like Affects\tC -----------------------\tn\r\n");
-
-  /* Routine to show what spells a char is affected by */
-  if (k->affected) {
-    for (aff = k->affected; aff; aff = aff->next) {
-      if (aff->duration + 1 >= 900) // how many rounds in an hour?
-        send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
-      else if (aff->duration + 1 >= 15) // how many rounds in a minute?
-        send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
-      else // rounds
-        send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
-      send_to_char(ch, "%s%-19s%s ",
-              CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
-
-      if (aff->modifier)
-        send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
-
-      if (aff->bitvector[0] || aff->bitvector[1] ||
-              aff->bitvector[2] || aff->bitvector[3]) {
-        if (aff->modifier)
-          send_to_char(ch, ", ");
-        for (i = 0; i < NUM_AFF_FLAGS; i++) {
-          if (IS_SET_AR(aff->bitvector, i)) {
-            send_to_char(ch, "sets %s, ", affected_bits[i]);
-          }
-        }
-      }
-      send_to_char(ch, "\r\n");
-    }
-  }
-  send_to_char(ch,
-          "\tC-------------- \tWCool Downs\tC -------------------------------\tn\r\n");
-  if ((pMudEvent = char_has_mud_event(k, eTAUNT)))
-    send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eRAGE)))
-    send_to_char(ch, "Rage - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eCRYSTALFIST)))
-    send_to_char(ch, "Crystal Fist - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eCRYSTALBODY)))
-    send_to_char(ch, "Crystal Body - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eLAYONHANDS)))
-    send_to_char(ch, "Lay on Hands - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eTREATINJURY)))
-    send_to_char(ch, "Treat Injuries - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eMUMMYDUST)))
-    send_to_char(ch, "Epic Spell:  Mummy Dust - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eDRAGONKNIGHT)))
-    send_to_char(ch, "Epic Spell:  Dragon Knight - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eGREATERRUIN)))
-    send_to_char(ch, "Epic Spell:  Greater Ruin - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eHELLBALL)))
-    send_to_char(ch, "Epic Spell:  Hellball - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eEPICMAGEARMOR)))
-    send_to_char(ch, "Epic Spell:  Epic Mage Armor - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eEPICWARDING)))
-    send_to_char(ch, "Epic Spell:  Epic Warding - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eSTUNNINGFIST)))
-    send_to_char(ch, "Stunning Fist - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eD_ROLL)))
-    send_to_char(ch, "Defensive Roll - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, ePURIFY)))
-    send_to_char(ch, "Purify - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eC_ANIMAL)))
-    send_to_char(ch, "Call Companion - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eC_FAMILIAR)))
-    send_to_char(ch, "Call Familiar - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eC_MOUNT)))
-    send_to_char(ch, "Call Mount - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eSMITE)))
-    send_to_char(ch, "Smite Evil - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, ePERFORM)))
-    send_to_char(ch, "Perform - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eTURN_UNDEAD)))
-    send_to_char(ch, "Turn Undead - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eSPELLBATTLE)))
-    send_to_char(ch, "Spellbattle - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-
-  send_to_char(ch,
-          "\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_CLERIC) >= 14) {
-    if (PLR_FLAGGED(ch, PLR_SALVATION)) {
-      if (GET_SALVATION_NAME(ch) != NULL) {
-        send_to_char(ch, "Salvation:  Set at %s\r\n", GET_SALVATION_NAME(ch));
-      } else {
-        send_to_char(ch, "Salvation:  Not set.\r\n");
-      }
-    } else {
-      send_to_char(ch, "Salvation:  Not set.\r\n");
-    }
-  }
-
-  if ((pMudEvent = char_has_mud_event(k, eTAUNTED)))
-    send_to_char(ch, "\tRTaunted!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eSTUNNED)))
-    send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eACIDARROW)))
-    send_to_char(ch, "\tRAcid Arrow!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eIMPLODE)))
-    send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-
-  //location of our DAM_x  damtypes
-  send_to_char(ch,
-          "\tC-------- \tWDamage Type Resistance / Vulnerability\tC ---------\tn\r\n");
-  for (i = 0; i < NUM_DAM_TYPES - 1; i++) {
-    send_to_char(ch, "%-15s: %-4d%% (%-2d)   ", damtype_display[i + 1],
-            compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
-    if (i % 2)
-      send_to_char(ch, "\r\n");
-  }
-  send_to_char(ch, "\r\n");
-  send_to_char(ch,
-          "\tC---------------------------------------------------------\tn\r\n");
 }
 
 /* compartmentalized affects, so wizard command (stat affect)
@@ -1636,117 +1972,6 @@ ACMD(do_weather) {
   } else
     send_to_char(ch, "You have no feeling about the weather at all.\r\n");
 }
-
-/* puts -'s instead of spaces */
-void space_to_minus(char *str) {
-  while ((str = strchr(str, ' ')) != NULL)
-    *str = '-';
-}
-
-int search_help(const char *argument, int level) {
-  int chk, bot, top, mid, minlen;
-
-  bot = 0;
-  top = top_of_helpt;
-  minlen = strlen(argument);
-
-  while (bot <= top) {
-    mid = (bot + top) / 2;
-
-    if (!(chk = strn_cmp(argument, help_table[mid].keywords, minlen))) {
-      while ((mid > 0) && !strn_cmp(argument, help_table[mid - 1].keywords, minlen))
-        mid--;
-
-      while (level < help_table[mid].min_level && mid < (bot + top) / 2)
-        mid++;
-
-      /* The following line was commented out at some point, by someone, for some reason...
-       * as I am unaware of that reason, and without a level check all help files, including
-       * the ones we may not want a player to see, are available. So I'm reversing this now.
-       * -Vat */
-      if (strn_cmp(argument, help_table[mid].keywords, minlen) ||
-              level < help_table[mid].min_level)
-        /*if (strn_cmp(argument, help_table[mid].keywords, minlen))*/
-        break;
-
-      return mid;
-    } else if (chk > 0)
-      bot = mid + 1;
-    else
-      top = mid - 1;
-  }
-  return NOWHERE;
-}
-
-
-/* this is used for char creation help */
-
-/* make sure arg doesn't have spaces */
-void perform_help(struct descriptor_data *d, char *argument) {
-  int mid = 0;
-
-  if (!help_table)
-    return;
-
-  if (!*argument)
-    return;
-
-  if ((mid = search_help(argument, LVL_IMPL)) == NOWHERE)
-    return;
-
-  page_string(d, help_table[mid].entry, 0);
-}
-
-ACMD(do_help) {
-  int mid = 0;
-  int i, found = 0;
-
-  if (!ch->desc)
-    return;
-
-  skip_spaces(&argument);
-
-  if (!help_table) {
-    send_to_char(ch, "No help available.\r\n");
-    return;
-  }
-
-  if (!*argument) {
-    if (GET_LEVEL(ch) < LVL_IMMORT)
-      page_string(ch->desc, help, 0);
-    else
-      page_string(ch->desc, ihelp, 0);
-    return;
-  }
-
-  space_to_minus(argument);
-
-  if ((mid = search_help(argument, GET_LEVEL(ch))) == NOWHERE) {
-    send_to_char(ch, "There is no help on that word.\r\n");
-    mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
-            "%s tried to get help on %s", GET_NAME(ch), argument);
-    for (i = 0; i < top_of_helpt; i++) {
-      if (help_table[i].min_level > GET_LEVEL(ch))
-        continue;
-      /* To help narrow down results, if they don't start with the same letters, move on. */
-      if (*argument != *help_table[i].keywords)
-        continue;
-      if (levenshtein_distance(argument, help_table[i].keywords) <= 2) {
-        if (!found) {
-          send_to_char(ch, "\r\nDid you mean:\r\n");
-          found = 1;
-        }
-        send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
-                help_table[i].keywords, help_table[i].keywords);
-      }
-    }
-    send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
-    return;
-  }
-  page_string(ch->desc, help_table[mid].entry, 0);
-  send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
-}
-
 
 #define WHO_FORMAT \
 "Usage: who [minlev[-maxlev]] [-n name] [-c classlist] [-t racelist] [-k] [-l] [-n] [-q] [-r] [-s] [-z]\r\n"
@@ -2247,116 +2472,6 @@ ACMD(do_gen_ps) {
        * subcmd that is being passed to it, or the call to the function needs to
        * have the correct subcmd put into place. */
       return;
-  }
-}
-
-static void perform_mortal_where(struct char_data *ch, char *arg) {
-  struct char_data *i;
-  struct descriptor_data *d;
-  int j;
-
-  if (!*arg) {
-    j = world[(IN_ROOM(ch))].zone;
-    send_to_char(ch, "\tb--\tB= \tCPlayers in %s \tB=\tb--\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", zone_table[j].name);
-    for (d = descriptor_list; d; d = d->next) {
-      if (STATE(d) != CON_PLAYING || d->character == ch)
-        continue;
-      if ((i = (d->original ? d->original : d->character)) == NULL)
-        continue;
-      if (IN_ROOM(i) == NOWHERE || !CAN_SEE(ch, i))
-        continue;
-      if (world[IN_ROOM(ch)].zone != world[IN_ROOM(i)].zone)
-        continue;
-      send_to_char(ch, "\tB[\tc%-20s%s\tB]\tW - %s%s\tn\r\n", GET_NAME(i), QNRM, world[IN_ROOM(i)].name, QNRM);
-    }
-  } else { /* print only FIRST char, not all. */
-    for (i = character_list; i; i = i->next) {
-      if (IN_ROOM(i) == NOWHERE || i == ch)
-        continue;
-      if (!CAN_SEE(ch, i) || world[IN_ROOM(i)].zone != world[IN_ROOM(ch)].zone)
-        continue;
-      if (!isname(arg, i->player.name))
-        continue;
-      send_to_char(ch, "\tB[\tc%-25s%s\tB]\tW - %s%s\tn\r\n", GET_NAME(i), QNRM, world[IN_ROOM(i)].name, QNRM);
-      return;
-    }
-    send_to_char(ch, "Nobody around by that name.\r\n");
-  }
-}
-
-static void print_object_location(int num, struct obj_data *obj, struct char_data *ch,
-        int recur) {
-  if (num > 0)
-    send_to_char(ch, "O%3d. %-25s%s - ", num, obj->short_description, QNRM);
-  else
-    send_to_char(ch, "%33s", " - ");
-
-  if (SCRIPT(obj)) {
-    if (!TRIGGERS(SCRIPT(obj))->next)
-      send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
-    else
-      send_to_char(ch, "[TRIGS] ");
-  }
-
-  if (IN_ROOM(obj) != NOWHERE)
-    send_to_char(ch, "[%5d] %s%s\r\n", GET_ROOM_VNUM(IN_ROOM(obj)), world[IN_ROOM(obj)].name, QNRM);
-  else if (obj->carried_by)
-    send_to_char(ch, "carried by %s%s\r\n", PERS(obj->carried_by, ch), QNRM);
-  else if (obj->worn_by)
-    send_to_char(ch, "worn by %s%s\r\n", PERS(obj->worn_by, ch), QNRM);
-  else if (obj->in_obj) {
-    send_to_char(ch, "inside %s%s%s\r\n", obj->in_obj->short_description, QNRM, (recur ? ", which is" : " "));
-    if (recur)
-      print_object_location(0, obj->in_obj, ch, recur);
-  } else
-    send_to_char(ch, "in an unknown location\r\n");
-}
-
-static void perform_immort_where(struct char_data *ch, char *arg) {
-  struct char_data *i;
-  struct obj_data *k;
-  struct descriptor_data *d;
-  int num = 0, found = 0;
-
-  if (!*arg) {
-    send_to_char(ch, "Players  Room    Location                       Zone\r\n");
-    send_to_char(ch, "-------- ------- ------------------------------ -------------------\r\n");
-    for (d = descriptor_list; d; d = d->next)
-      if (IS_PLAYING(d)) {
-        i = (d->original ? d->original : d->character);
-        if (i && CAN_SEE(ch, i) && (IN_ROOM(i) != NOWHERE)) {
-          if (d->original)
-            send_to_char(ch, "%-8s%s - [%5d] %s%s (in %s%s)\r\n",
-                  GET_NAME(i), QNRM, GET_ROOM_VNUM(IN_ROOM(d->character)),
-                  world[IN_ROOM(d->character)].name, QNRM, GET_NAME(d->character), QNRM);
-          else
-            send_to_char(ch, "%-8s%s %s[%s%5d%s]%s %-*s%s %s%s\r\n", GET_NAME(i), QNRM,
-                  QCYN, QYEL, GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
-                  30 + count_color_chars(world[IN_ROOM(i)].name), world[IN_ROOM(i)].name, QNRM,
-                  zone_table[(world[IN_ROOM(i)].zone)].name, QNRM);
-        }
-      }
-  } else {
-    for (i = character_list; i; i = i->next)
-      if (CAN_SEE(ch, i) && IN_ROOM(i) != NOWHERE && isname(arg, i->player.name)) {
-        found = 1;
-        send_to_char(ch, "M%3d. %-25s%s - [%5d] %-25s%s", ++num, GET_NAME(i), QNRM,
-                GET_ROOM_VNUM(IN_ROOM(i)), world[IN_ROOM(i)].name, QNRM);
-        if (SCRIPT(i) && TRIGGERS(SCRIPT(i))) {
-          if (!TRIGGERS(SCRIPT(i))->next)
-            send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(i))));
-          else
-            send_to_char(ch, "[TRIGS] ");
-        }
-        send_to_char(ch, "%s\r\n", QNRM);
-      }
-    for (num = 0, k = object_list; k; k = k->next)
-      if (CAN_SEE_OBJ(ch, k) && isname(arg, k->name)) {
-        found = 1;
-        print_object_location(++num, k, ch, TRUE);
-      }
-    if (!found)
-      send_to_char(ch, "Couldn't find any such thing.\r\n");
   }
 }
 
@@ -3011,18 +3126,6 @@ ACMD(do_commands) {
   column_list(ch, 0, commands, no, FALSE);
 }
 
-void free_history(struct char_data *ch, int type) {
-  struct txt_block *tmp = GET_HISTORY(ch, type), *ftmp;
-
-  while ((ftmp = tmp)) {
-    tmp = tmp->next;
-    if (ftmp->text)
-      free(ftmp->text);
-    free(ftmp);
-  }
-  GET_HISTORY(ch, type) = NULL;
-}
-
 ACMD(do_history) {
   char arg[MAX_INPUT_LENGTH];
   int type;
@@ -3057,47 +3160,6 @@ ACMD(do_history) {
 #endif
   } else
     send_to_char(ch, "You have no history in that channel.\r\n");
-}
-
-#define HIST_LENGTH 100
-
-void add_history(struct char_data *ch, char *str, int type) {
-  int i = 0;
-  char time_str[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
-  struct txt_block *tmp;
-  time_t ct;
-
-  if (IS_NPC(ch))
-    return;
-
-  tmp = GET_HISTORY(ch, type);
-  ct = time(0);
-  strftime(time_str, sizeof (time_str), "%H:%M ", localtime(&ct));
-
-  sprintf(buf, "%s%s", time_str, str);
-
-  if (!tmp) {
-    CREATE(GET_HISTORY(ch, type), struct txt_block, 1);
-    GET_HISTORY(ch, type)->text = strdup(buf);
-  } else {
-    while (tmp->next)
-      tmp = tmp->next;
-    CREATE(tmp->next, struct txt_block, 1);
-    tmp->next->text = strdup(buf);
-
-    for (tmp = GET_HISTORY(ch, type); tmp; tmp = tmp->next, i++);
-
-    for (; i > HIST_LENGTH && GET_HISTORY(ch, type); i--) {
-      tmp = GET_HISTORY(ch, type);
-      GET_HISTORY(ch, type) = tmp->next;
-      if (tmp->text)
-        free(tmp->text);
-      free(tmp);
-    }
-  }
-  /* add this history message to ALL */
-  if (type != HIST_ALL)
-    add_history(ch, str, HIST_ALL);
 }
 
 ACMD(do_whois) {
@@ -3366,59 +3428,6 @@ ACMD(do_areas) {
     page_string(ch->desc, buf, TRUE);
 }
 
-void list_scanned_chars(struct char_data * list, struct char_data * ch, int
-        distance, int door) {
-  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
-
-  const char *how_far[] = {
-    "close by",
-    "a ways off",
-    "far off to the"
-  };
-
-  struct char_data *i;
-  int count = 0;
-  *buf = '\0';
-
-  /* this loop is a quick, easy way to help make a grammatical sentence
-     (i.e., "You see x, x, y, and z." with commas, "and", etc.) */
-
-  for (i = list; i; i = i->next_in_room)
-
-    /* put any other conditions for scanning someone in this if statement -
-       i.e., if (CAN_SEE(ch, i) && condition2 && condition3) or whatever */
-
-    if (CAN_SEE(ch, i))
-      count++;
-
-  if (!count)
-    return;
-
-  for (i = list; i; i = i->next_in_room) {
-
-    /* make sure to add changes to the if statement above to this one also, using
-       or's to join them.. i.e.,
-       if (!CAN_SEE(ch, i) || !condition2 || !condition3) */
-
-    if (!CAN_SEE(ch, i))
-      continue;
-    if (!*buf)
-      sprintf(buf, "You see %s", GET_NAME(i));
-    else
-      sprintf(buf, "%s%s", buf, GET_NAME(i));
-    if (--count > 1)
-      strcat(buf, ", ");
-    else if (count == 1)
-      strcat(buf, " and ");
-    else {
-      sprintf(buf2, " %s %s.\r\n", how_far[distance], dirs[door]);
-      strcat(buf, buf2);
-    }
-
-  }
-  send_to_char(ch, "%s", buf);
-}
-
 ACMD(do_scan) {
   int door;
   bool found = FALSE;
@@ -3486,3 +3495,39 @@ ACMD(do_scan) {
   }
 } // end of do_scan
 
+ACMD(do_exits) {
+  int door, len = 0;
+
+  if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT) {
+    send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Obvious exits:\r\n");
+
+  for (door = 0; door < DIR_COUNT; door++) {
+    if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
+      continue;
+    if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) && !CONFIG_DISP_CLOSED_DOORS)
+      continue;
+    if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) && !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+      continue;
+
+    len++;
+
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS) && !EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
+      send_to_char(ch, "%-5s - [%5d]%s %s\r\n", dirs[door], GET_ROOM_VNUM(EXIT(ch, door)->to_room),
+            EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " [HIDDEN]" : "", world[EXIT(ch, door)->to_room].name);
+    else if (CONFIG_DISP_CLOSED_DOORS && EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)) {
+      /* But we tell them the door is closed */
+      send_to_char(ch, "%-5s - The %s is closed%s\r\n", dirs[door],
+              (EXIT(ch, door)->keyword) ? fname(EXIT(ch, door)->keyword) : "opening",
+              EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " and hidden." : ".");
+    } else
+      send_to_char(ch, "%-5s - %s\r\n", dirs[door], IS_DARK(EXIT(ch, door)->to_room) &&
+            !CAN_SEE_IN_DARK(ch) ? "Too dark to tell." : world[EXIT(ch, door)->to_room].name);
+  }
+
+  if (!len)
+    send_to_char(ch, " None.\r\n");
+}
