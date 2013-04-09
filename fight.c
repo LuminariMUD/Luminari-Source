@@ -2617,6 +2617,9 @@ int perform_attacks(struct char_data *ch, int mode) {
   int i = 0, penalty = 0, numAttacks = 0, bonusAttacks = 0;
   bool dual = FALSE;
 
+  // check guard skill
+  guard_check(ch, FIGHTING(ch));
+          
   //now lets determine base attack(s) and resulting possible penalty
   dual = is_skilled_dualer(ch, 0); // trelux or has off-hander equipped
 
