@@ -948,7 +948,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
 
     case MEDIT_ADD_ECHO:
       smash_tilde(arg);
-      if (ECHO_COUNT(OLC_MOB(d)) >= 10) { // arbitrary maximum echos
+      if (ECHO_COUNT(OLC_MOB(d)) >= 4) { // arbitrary maximum echos (not arbitrary, set to 4 for now)
         write_to_output(d, "This mobile has the maximum amount of echos allowed.\r\n");
         OLC_MODE(d) = MEDIT_ECHO_MENU;
         medit_disp_echo_menu(d);
