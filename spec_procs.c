@@ -32,7 +32,7 @@ static int compare_spells(const void *x, const void *y);
 static void npc_steal(struct char_data *ch, struct char_data *victim);
 
 /* Special procedures for mobiles. */
-static int spell_sort_info[MAX_SKILLS + 1];
+int spell_sort_info[MAX_SKILLS + 1];
 
 static int compare_spells(const void *x, const void *y) {
   int a = *(const int *) x,
