@@ -53,8 +53,8 @@ static void print_object_location(int num, struct obj_data *obj, struct char_dat
 
 /* globals */
 int spell_sort_info[MAX_SKILLS + 1];
-int sorted_spells[MAX_SPELLS + 1];
-int sorted_skills[MAX_SKILLS - MAX_SPELLS + 1];
+int sorted_spells[MAX_SKILLS + 1];
+int sorted_skills[MAX_SKILLS + 1];
 int boot_high = 0;
 
 
