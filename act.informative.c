@@ -1360,7 +1360,7 @@ ACMD(do_masterlist) {
   
   skip_spaces(&argument);
 
-  if (!argument) {
+  if (!argument || !*argument) {
     send_to_char(ch, "Specify 'spells' or 'skills' list.\r\n");
     return;
   }
@@ -1371,11 +1371,17 @@ ACMD(do_masterlist) {
   } else if (is_abbrev(argument, "spells")) {
     bottom = 0;
     top = MAX_SPELLS;
+  } else {
+    send_to_char(ch, "Specify 'spells' or 'skills' list.\r\n");
+    return;    
   }
   
   len = snprintf(buf2, sizeof (buf2), "\tCMaster List\tn\r\n");
   
   for (; bottom < NUM_SPELLS; bottom++) {
+    
+    if (!strcmp(spell_info[bottom].name, "!UNUSED!"))
+      continue;
     nlen = snprintf(buf2 + len, sizeof (buf2) - len,
             "%s\r\n", spell_info[bottom].name);
     if (len + nlen >= sizeof (buf2) || nlen < 0)
