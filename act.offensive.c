@@ -128,6 +128,70 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
     increase_skill(ch, SKILL_RESCUE);  
 }
 
+/* charge mechanic */
+void perform_charge(struct char_data *ch, struct char_data *vict) {
+  struct affected_type af;
+  extern struct index_data *mob_index;
+  int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
+  int prob = 0;
+  
+  if (!RIDING(ch)) {
+    send_to_char(ch, "You must be mounted to charge.\r\n");
+    return;
+  }
+
+  if (!vict) {
+    send_to_char(ch, "Charge who?\r\n");
+    return;
+  }
+  
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+  
+  if (!CAN_SEE(ch, vict)) {
+    send_to_char(ch, "You don't see well enough to attempt that.\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+    if (ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char(ch, "You simply can't reach that far.\r\n");
+      return;
+    }
+  }
+
+  if (IS_NPC(ch))
+    prob = 60;
+  else
+    prob = GET_SKILL(ch, SKILL_CHARGE);
+  
+  if (rand_number(1, 101) >= prob) {
+    damage(ch, vict, 0, SKILL_CHARGE, DAM_FORCE, FALSE);
+  } else {
+    name = mob_index[GET_MOB_RNUM(RIDING(ch))].func;
+    if (name)
+      (name)(ch, RIDING(ch), 0, "charge");
+    else
+      damage(ch, vict, GET_DAMROLL(ch) + GET_SKILL(ch, SKILL_CHARGE) / 2,
+            SKILL_CHARGE, DAM_FORCE, FALSE);
+    if (rand_number(0, 100) < GET_LEVEL(ch)) {
+      new_affect(&af);
+      af.spell = SKILL_CHARGE;
+      SET_BIT_AR(af.bitvector, AFF_STUN);
+      af.duration = 2 + dice(3, 4);
+      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+      act("You charge into $N, stunning $E!", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n charges into $N, stunning $E!", FALSE, ch, 0, vict, TO_ROOM);
+    } else
+      WAIT_STATE(vict, 1 RL_SEC);
+  }
+  
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  
+}
+
 /* engine for knockdown, used in bash/trip/etc */
 void perform_knockdown(struct char_data *ch, struct char_data *vict, 
         int skill) {
@@ -192,7 +256,10 @@ void perform_knockdown(struct char_data *ch, struct char_data *vict,
   }
     
   percent += rand_number(1, 101); /* 101% is a complete failure */
-  prob += GET_SKILL(ch, skill);
+  if (IS_NPC(ch))
+    prob += 60;
+  else
+    prob += GET_SKILL(ch, skill);
 
   if (MOB_FLAGGED(vict, MOB_NOBASH)) {
     send_to_char(ch, "You realize you will probably not succeed:  ");
@@ -230,6 +297,7 @@ void perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
   extern struct index_data *obj_index;
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
+  int prob = 0;
   
   if (!shield) {
     send_to_char(ch, "You need a shield to make it a success..\r\n");
@@ -257,8 +325,13 @@ void perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
       return;
     }
   }
+  
+  if (IS_NPC(ch))
+    prob = 60;
+  else
+    prob = GET_SKILL(ch, SKILL_SHIELD_PUNCH);
 
-  if (rand_number(1, 101) >= GET_SKILL(ch, SKILL_SHIELD_PUNCH)) {
+  if (rand_number(1, 101) >= prob) {
     damage(ch, vict, 0, SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
   } else {
     name = obj_index[GET_OBJ_RNUM(shield)].func;
@@ -289,6 +362,7 @@ void perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
 /* engine for headbutt skill */
 void perform_headbutt(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
+  int prob = 0;
   
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
@@ -321,7 +395,12 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  if (rand_number(1, 101) < GET_SKILL(ch, SKILL_HEADBUTT)) {
+  if (IS_NPC(ch))
+    prob = 60;
+  else
+    prob = GET_SKILL(ch, SKILL_HEADBUTT);
+  
+  if (rand_number(1, 101) < prob) {
     damage(ch, vict, dice(2, GET_LEVEL(ch)), SKILL_HEADBUTT, DAM_FORCE, FALSE);
     GET_POS(vict) = POS_RECLINING;
     
@@ -417,7 +496,10 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
     return;
   }
   
-  prob += GET_SKILL(ch, SKILL_SAP);
+  if (IS_NPC(ch))
+    prob += 60;
+  else
+    prob += GET_SKILL(ch, SKILL_SAP);
   prob += GET_DEX(ch);
   prob -= GET_CON(vict);
   
@@ -494,7 +576,7 @@ void perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   }
   
   if (IS_NPC(ch))
-    base_probability = 40;  //flate rate 40% right now
+    base_probability = 60;  //flate rate 60% right now
   else
     base_probability = GET_SKILL(ch, SKILL_DIRT_KICK);
   
@@ -559,7 +641,7 @@ void perform_assist(struct char_data *ch, struct char_data *helpee) {
 /* the primary engine for springleap */
 void perform_springleap(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
-  int dam = 0;
+  int dam = 0, prob = 0;
   
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
@@ -586,7 +668,12 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  if (rand_number(0, 100) < GET_SKILL(ch, SKILL_SPRINGLEAP)) {
+  if (IS_NPC(ch))
+    prob = 60;
+  else
+    prob = GET_SKILL(ch, SKILL_SPRINGLEAP);
+  
+  if (rand_number(0, 100) < prob) {
     dam = dice(6, (GET_LEVEL(ch) / 5) + 2);
     damage(ch, vict, dam, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
     SET_WAIT(vict, PULSE_VIOLENCE);
@@ -615,7 +702,7 @@ void perform_backstab(struct char_data *ch, struct char_data *vict) {
   percent = rand_number(1, 101); /* 101% is a complete failure */
   percent2 = rand_number(1, 101); /* 101% is a complete failure */
   if (IS_NPC(ch))
-    prob = 40;  // flat 40% success rate for now
+    prob = 60;  // flat 60% success rate for now
   else
     prob = GET_SKILL(ch, SKILL_BACKSTAB);
   
@@ -2370,55 +2457,6 @@ ACMD(do_shieldpunch) {
   perform_shieldpunch(ch, vict);
 }
 
-void perform_charge(struct char_data *ch, struct char_data *vict) {
-  struct affected_type af;
-  extern struct index_data *mob_index;
-  int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
-  
-  if (!vict) {
-    send_to_char(ch, "Charge who?\r\n");
-    return;
-  }
-  if (vict == ch) {
-    send_to_char(ch, "Aren't we funny today...\r\n");
-    return;
-  }
-  if (!CAN_SEE(ch, vict)) {
-    send_to_char(ch, "You don't see well enough to attempt that.\r\n");
-    return;
-  }
-
-  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
-    if (ch->next_in_room != vict && vict->next_in_room != ch) {
-      send_to_char(ch, "You simply can't reach that far.\r\n");
-      return;
-    }
-  }
-
-  if (rand_number(1, 101) >= GET_SKILL(ch, SKILL_CHARGE)) {
-    damage(ch, vict, 0, SKILL_CHARGE, DAM_FORCE, FALSE);
-  } else {
-    name = mob_index[GET_MOB_RNUM(RIDING(ch))].func;
-    if (name)
-      (name)(ch, RIDING(ch), 0, "charge");
-    else
-      damage(ch, vict, GET_DAMROLL(ch) + GET_SKILL(ch, SKILL_CHARGE) / 2,
-            SKILL_CHARGE, DAM_FORCE, FALSE);
-    if (rand_number(0, 100) < GET_LEVEL(ch)) {
-      new_affect(&af);
-      af.spell = SKILL_CHARGE;
-      SET_BIT_AR(af.bitvector, AFF_STUN);
-      af.duration = 2 + dice(3, 4);
-      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
-      act("You charge into $N, stunning $E!", FALSE, ch, 0, vict, TO_CHAR);
-      act("$n charges into $N, stunning $E!", FALSE, ch, 0, vict, TO_ROOM);
-    } else
-      WAIT_STATE(vict, 1 RL_SEC);
-  }
-  
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
-  
-}
 
 
 /*
@@ -2435,11 +2473,6 @@ ACMD(do_charge) {
     return;
   }
   
-  if (!RIDING(ch)) {
-    send_to_char(ch, "You must be mounted to charge.\r\n");
-    return;
-  }
-
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
