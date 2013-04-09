@@ -33,8 +33,10 @@ static void npc_steal(struct char_data *ch, struct char_data *victim);
 
 /* Special procedures for mobiles. */
 int spell_sort_info[MAX_SKILLS + 1];
-int sorted_spells[MAX_SPELLS + 1];
-int sorted_skills[MAX_SKILLS - MAX_SPELLS + 1];
+int sorted_spells[MAX_SKILLS + 1];
+int sorted_skills[MAX_SKILLS + 1];
+//int sorted_spells[MAX_SPELLS + 1];
+//int sorted_skills[MAX_SKILLS - MAX_SPELLS + 1];
 
 static int compare_spells(const void *x, const void *y) {
   int a = *(const int *) x,
@@ -57,8 +59,11 @@ void sort_spells(void) {
   /* full list */
   
   /* initialize array, avoiding reserved. */
-  for (a = 1; a <= MAX_SKILLS; a++)
+  for (a = 1; a <= MAX_SKILLS; a++) {
     spell_sort_info[a] = a;
+    sorted_spells[a] = -1;
+    sorted_skills[a] = -1;
+  }
 
   qsort(&spell_sort_info[1], MAX_SKILLS, sizeof (int), 
           compare_spells);
