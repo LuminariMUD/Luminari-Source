@@ -738,7 +738,7 @@ void boot_db(void) {
 
   log("Sorting command list and spells.");
   sort_commands();
-  //  sort_spells();
+  sort_spells();
 
   log("Booting mail system.");
   if (!scan_file()) {
