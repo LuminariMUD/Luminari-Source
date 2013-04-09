@@ -450,7 +450,7 @@ void quest_room(struct char_data * ch) {
  * a certain set of keywords
  */
 void quest_ask(struct char_data *ch, struct char_data *victim, char *keyword) {
-  struct quest_entry *quest;
+  struct quest_entry *quest = NULL;
   char buf[MAX_INPUT_LENGTH] = { '\0' };
 
   if (IS_NPC(ch))
@@ -465,10 +465,16 @@ void quest_ask(struct char_data *ch, struct char_data *victim, char *keyword) {
   }
 
   for (quest = victim->mob_specials.quest; quest; quest = quest->next) {
+    
+    if (!quest || !ch)
+      continue;
+    
+    if (!quest->keywords || !quest->reply_msg)
+      continue;
+    
     /* Mortals can only quest on approved quests */
-    if (quest && ch)
-      if (quest->approved == FALSE && GET_LEVEL(ch) < LVL_IMMORT)
-        continue;
+    if (quest->approved == FALSE && GET_LEVEL(ch) < LVL_IMMORT)
+      continue;
 
     if (quest->type == QUEST_ASK && isname(keyword, quest->keywords)) {
       act(quest->reply_msg, FALSE, ch, 0, victim, TO_CHAR);
