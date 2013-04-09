@@ -33,6 +33,8 @@ static void npc_steal(struct char_data *ch, struct char_data *victim);
 
 /* Special procedures for mobiles. */
 int spell_sort_info[MAX_SKILLS + 1];
+int sorted_spells[MAX_SPELLS + 1];
+int sorted_skills[MAX_SKILLS - MAX_SPELLS + 1];
 
 static int compare_spells(const void *x, const void *y) {
   int a = *(const int *) x,
@@ -41,14 +43,37 @@ static int compare_spells(const void *x, const void *y) {
   return strcmp(spell_info[a].name, spell_info[b].name);
 }
 
+/* this will create a full list, added two more lists
+   to seperate the skills/spells */
 void sort_spells(void) {
   int a;
 
+  /* full list */
+  
   /* initialize array, avoiding reserved. */
   for (a = 1; a <= MAX_SKILLS; a++)
     spell_sort_info[a] = a;
 
-  qsort(&spell_sort_info[1], MAX_SKILLS, sizeof (int), compare_spells);
+  qsort(&spell_sort_info[1], MAX_SKILLS, sizeof (int), 
+          compare_spells);
+
+  /* spell list */
+  
+  /* initialize array, avoiding reserved. */
+  for (a = 1; a <= MAX_SPELLS; a++)
+    sorted_spells[a] = a;
+
+  qsort(&sorted_spells[1], MAX_SPELLS, sizeof (int), 
+          compare_spells);
+  
+  /* spell list */
+  
+  /* initialize array, avoiding reserved. */
+  for (a = 1; a <= (MAX_SKILLS - MAX_SPELLS); a++)
+    sorted_spells[a] = a + MAX_SPELLS;
+
+  qsort(&sorted_skills[1], MAX_SPELLS - MAX_SKILLS,
+          sizeof (int), compare_spells);
 }
 
 

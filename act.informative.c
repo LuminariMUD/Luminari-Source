@@ -53,6 +53,8 @@ static void print_object_location(int num, struct obj_data *obj, struct char_dat
 
 /* globals */
 int spell_sort_info[MAX_SKILLS + 1];
+int sorted_spells[MAX_SPELLS + 1];
+int sorted_skills[MAX_SKILLS - MAX_SPELLS + 1];
 int boot_high = 0;
 
 
@@ -1355,6 +1357,7 @@ ACMD(do_masterlist) {
   int bottom = 0, top = 0, counter = 0, i = 0;
   char buf2[MAX_STRING_LENGTH] = { '\0' };
   const char *overflow = "\r\n**OVERFLOW**\r\n";
+  bool is_spells = FALSE;
 
   if (IS_NPC(ch))
     return;
@@ -1369,9 +1372,11 @@ ACMD(do_masterlist) {
   if (is_abbrev(argument, "skills")) {
     bottom = MAX_SPELLS;
     top = MAX_SKILLS;
+    is_spells = FALSE;
   } else if (is_abbrev(argument, "spells")) {
     bottom = 0;
     top = MAX_SPELLS;
+    is_spells = TRUE;
   } else {
     send_to_char(ch, "Specify 'spells' or 'skills' list.\r\n");
     return;    
@@ -1380,7 +1385,10 @@ ACMD(do_masterlist) {
   len = snprintf(buf2, sizeof (buf2), "\tCMaster List\tn\r\n");
   
   for (; bottom < top; bottom++) {
-    i = spell_sort_info[bottom];
+    if (is_spells)
+      i = sorted_spells[bottom];
+    else
+      i = sorted_skills[bottom];
     
     if (!strcmp(spell_info[i].name, "!UNUSED!"))
       continue;

@@ -14,7 +14,11 @@
 #ifndef _SPEC_PROCS_H_
 #define _SPEC_PROCS_H_
 
+#include "spells.h"
+
 int spell_sort_info[MAX_SKILLS + 1];
+int sorted_spells[MAX_SPELLS + 1];
+int sorted_skills[MAX_SKILLS - MAX_SPELLS + 1];
 
 /*****************************************************************************
  * Begin Functions and defines for zone_procs.c 
