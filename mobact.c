@@ -456,6 +456,7 @@ void mobile_echos(struct char_data *ch) {
   if (!echo)
     return;
 
+  parse_at(echo);
   if (ECHO_IS_ZONE(ch)) {
     for (d = descriptor_list; d; d = d->next) {
       if (!d->character)
@@ -467,7 +468,6 @@ void mobile_echos(struct char_data *ch) {
       if (!AWAKE(d->character))
         continue;
 
-      parse_at(echo);
       send_to_char(d->character, "%s\r\n", echo);
     }
   } else {
