@@ -14,6 +14,8 @@
 #ifndef _SPEC_PROCS_H_
 #define _SPEC_PROCS_H_
 
+int spell_sort_info[MAX_SKILLS + 1];
+
 /*****************************************************************************
  * Begin Functions and defines for zone_procs.c 
  ****************************************************************************/

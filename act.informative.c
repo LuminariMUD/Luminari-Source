@@ -52,6 +52,7 @@ static void perform_mortal_where(struct char_data *ch, char *arg);
 static void print_object_location(int num, struct obj_data *obj, struct char_data *ch, int recur);
 
 /* globals */
+int spell_sort_info[MAX_SKILLS + 1];
 int boot_high = 0;
 
 
@@ -1351,7 +1352,7 @@ void list_scanned_chars(struct char_data * list, struct char_data * ch, int
 
 ACMD(do_masterlist) {
   size_t len = 0, nlen = 0;
-  int bottom = 0, top = 0, counter = 0;
+  int bottom = 0, top = 0, counter = 0, i = 0;
   char buf2[MAX_STRING_LENGTH] = { '\0' };
   const char *overflow = "\r\n**OVERFLOW**\r\n";
 
@@ -1379,11 +1380,12 @@ ACMD(do_masterlist) {
   len = snprintf(buf2, sizeof (buf2), "\tCMaster List\tn\r\n");
   
   for (; bottom < top; bottom++) {
+    i = spell_sort_info[bottom];
     
-    if (!strcmp(spell_info[bottom].name, "!UNUSED!"))
+    if (!strcmp(spell_info[i].name, "!UNUSED!"))
       continue;
     nlen = snprintf(buf2 + len, sizeof (buf2) - len,
-            "%s\r\n", spell_info[bottom].name);
+            "%s\r\n", spell_info[i].name);
     if (len + nlen >= sizeof (buf2) || nlen < 0)
       break;
     len += nlen;    
