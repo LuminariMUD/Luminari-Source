@@ -356,6 +356,7 @@ int load_char(const char *name, struct char_data *ch) {
     GET_AUTOCQUEST_MATERIAL(ch) = PFDEF_AUTOCQUEST_MATERIAL;
     GET_SALVATION_ROOM(ch) = NOWHERE;
     GET_SALVATION_NAME(ch) = NULL;
+    GUARDING(ch) = NULL;
 
     GET_DIPTIMER(ch) = PFDEF_DIPTIMER;
     GET_CLAN(ch) = PFDEF_CLAN;

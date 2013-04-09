@@ -94,12 +94,17 @@ bool is_tanking(struct char_data *ch) {
 void guard_check(struct char_data *ch, struct char_data *vict) {
   struct char_data *tch;
   struct char_data *next_tch;
+
+  if (!ch || !vict)
+    return;
   
   if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE))
     return;
 
   for (tch = world[ch->in_room].people; tch; tch = next_tch) {
     next_tch = tch->next_in_room;
+    if (!tch)
+      continue;
     if (tch == ch || tch == vict)
       continue;
     if (IS_NPC(tch))
