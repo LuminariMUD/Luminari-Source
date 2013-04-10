@@ -29,6 +29,58 @@
 
 /**** Utility functions *******/
 
+/* ranged combat (archery, etc)
+ * this function will check to make sure ammo is ready for firing
+ */
+bool has_missile_in_quiver(struct char_data *ch) {
+  struct obj_data *quiver = GET_EQ(ch, WEAR_QUIVER);
+  
+  if (!quiver)
+    return FALSE;
+  
+  if (!quiver->contains)
+    return FALSE;
+
+  if (GET_OBJ_TYPE(quiver->contains) != ITEM_MISSILE)
+    return FALSE;
+  
+  return TRUE;
+}
+
+/* ranged combat (archery, etc)
+ * this function will check for a ranged weapon, ammo and does
+ * a check of "has_missile_in_quiver"
+ */
+bool can_fire_arrow(struct char_data *ch) {
+  if (!GET_EQ(ch, WEAR_QUIVER)) {
+    send_to_char(ch, "But you do not wear an ammo pouch.\r\n");
+    return FALSE;
+  }
+  
+  struct obj_data *obj = GET_EQ(ch, WEAR_WIELD_2H);
+  
+  if (!obj)
+    obj = GET_EQ(ch, WEAR_WIELD_1);
+  
+  if (!obj) {
+    send_to_char(ch, "You are not wielding anything!");
+    return FALSE;
+  }
+  
+  if (GET_OBJ_TYPE(obj) != ITEM_FIREWEAPON) {
+    send_to_char(ch, "But you are not wielding a ranged weapon.\r\n");
+    return FALSE;    
+  }
+  
+  if (!has_missile_in_quiver(ch)) {
+    send_to_char(ch, "You have no ammo!\r\n");
+    return FALSE;
+  }
+  
+  /* ok! */
+  return TRUE;
+}
+
 /* simple function to check whether ch has a piercing weapon, has 3 modes:
    wield == 1  --  primary one hand weapon
    wield == 2  --  off hand weapon
@@ -2493,7 +2545,193 @@ ACMD(do_charge) {
   perform_charge(ch, vict);
 }
 
-        
+/* ranged-weapons combat, archery
+ * fire command, fires single arrow - checks can_fire_arrow()
+ */
+ACMD(do_fire) {
+  struct char_data *vict = NULL;
+  char arg1[MAX_INPUT_LENGTH] = { '\0' };
+  char arg2[MAX_INPUT_LENGTH] = { '\0' };
+  room_rnum room = NOWHERE;
+  int direction = -1, original_loc = NOWHERE;
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+  
+  two_arguments(argument, arg1, arg2);
+  
+  if (!*arg2) {
+    room = ch->in_room;
+  } else {
+    direction = search_block(arg2, dirs, FALSE);
+    if (direction < 0) {
+      send_to_char(ch, "That is not a direction!\r\n");
+      return;
+    }
+    if (!CAN_GO(ch, direction)) {
+      send_to_char(ch, "You can't fire in that direction!\r\n");
+      return;
+    }
+    room = EXIT(ch, direction)->to_room;
+  }
+  if (!*arg1) {
+    send_to_char(ch, "Fire at who?\r\n");
+    return;
+  }
+  
+  /* a location has been found. */
+  original_loc = ch->in_room;
+  char_from_room(ch);
+  char_to_room(ch, room);
+  vict = get_char_room_vis(ch, arg1, NULL);
+
+  /* check if the char is still there */
+  if (ch->in_room == room) {
+    char_from_room(ch);
+    char_to_room(ch, original_loc);
+  }  
+  
+  if (!vict) {
+    send_to_char(ch, "Fire at who?\r\n");
+    return;
+  }
+
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  if (can_fire_arrow(ch)) {
+    //fire_missile(ch, vict, GET_EQ(ch, WEAR_WIELD_2H), 0);
+    if (IN_ROOM(ch) != IN_ROOM(vict))
+      stop_fighting(ch);
+    SET_WAIT(ch, PULSE_VIOLENCE);
+  }
+}
+
+/* ranged-weapons combat, archery
+ * autofire command, fires single arrow - checks can_fire_arrow()
+ * sets FIRING()
+ */
+ACMD(do_autofire) {
+  char arg[MAX_INPUT_LENGTH] = { '\0' };  
+  struct char_data *vict = NULL, *tch = NULL;
+
+  one_argument(argument, arg);
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+  
+  if (!*arg) {
+    send_to_char(ch, "Fire at who?\r\n");
+    return;
+  }
+  
+  vict = get_char_room_vis(ch, arg, NULL);
+
+  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
+          NULL) {
+    if (IN_ROOM(tch) != IN_ROOM(vict))
+      continue;
+    if (vict == tch) {
+      vict = FIGHTING(vict);
+      break;
+    }
+  }
+  
+  if (!vict) {
+    send_to_char(ch, "Fire at who?\r\n");
+    return;
+  }
+
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  if (can_fire_arrow(ch)) {
+    //fire_missile(ch, vict, GET_EQ(ch, WEAR_WIELD_2H), 0);
+    FIRING(ch) = TRUE;
+    SET_WAIT(ch, PULSE_VIOLENCE);
+  }
+}
+
+/* function used to gather up all the ammo in the room/corpses-in-room */
+ACMD(do_collect) {
+  struct obj_data *quiver = GET_EQ(ch, WEAR_QUIVER);
+  struct obj_data *obj = NULL;
+  struct obj_data *nobj = NULL;
+  struct obj_data *cobj = NULL;
+  struct obj_data *next_obj = NULL;
+  int ammo = 0;
+  bool fit = TRUE;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };  
+  
+  if (!quiver) {
+    send_to_char(ch, "But you don't have an ammo pouch to collect to.\r\n");
+    return;
+  }
+
+  for (obj = world[ch->in_room].contents; obj; obj = nobj) {
+    nobj = obj->next_content;
+
+    /* checking corpse for ammo first */
+    if (IS_CORPSE(obj)) {
+      for (cobj = obj->contains; cobj; cobj = next_obj) {
+        next_obj = cobj->next_content;
+        if (GET_OBJ_TYPE(cobj) == ITEM_MISSILE &&
+                GET_OBJ_VAL(cobj, 3) == GET_IDNUM(ch)) {
+          if (num_obj_in_obj(quiver) < GET_OBJ_VAL(quiver, 0)) {
+            obj_from_obj(cobj);
+            obj_to_obj(cobj, quiver);
+            ammo++;
+            act("You get $p.", FALSE, ch, cobj, 0, TO_CHAR);
+          } else {
+            fit = FALSE;
+            break;
+          }
+        }
+      }
+
+      /* checking room for ammo */
+    } else if (GET_OBJ_TYPE(obj) == ITEM_MISSILE &&
+            GET_OBJ_VAL(obj, 3) == GET_IDNUM(ch)) {
+      if (num_obj_in_obj(quiver) < GET_OBJ_VAL(quiver, 0)) {
+        obj_from_room(obj);
+        obj_to_obj(obj, quiver);
+        ammo++;
+        act("You get $p.", FALSE, ch, obj, 0, TO_CHAR);
+      } else {
+        fit = FALSE;
+        break;
+      }
+    }
+  }
+
+  sprintf(buf, "You collected ammo:  %d.\r\n", ammo);
+  send_to_char(ch, buf);
+  if (!fit)
+    send_to_char(ch, "There are still some of your ammunition laying around that does not\r\nfit into your currently"
+          "equipped quiver.\r\n");
+
+  act("$n gathers $s ammunition.", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+
 /* unfinished */
 /*
 ACMD(do_disarm) {

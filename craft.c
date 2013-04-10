@@ -1673,8 +1673,9 @@ EVENTFUNC(event_crafting) {
   if (event_obj == NULL) return 0;
   pMudEvent = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) pMudEvent->pStruct;
-  if (!IS_NPC(ch) && !IS_PLAYING(ch->desc))
-    return 0;
+  
+  if (!ch || !ch->desc)  return 0;
+  if (!IS_NPC(ch) && !IS_PLAYING(ch->desc))  return 0;
 
   // something is off, so ensure reset
   if (!GET_AUTOCQUEST_VNUM(ch) && GET_CRAFTING_OBJ(ch) == NULL) {

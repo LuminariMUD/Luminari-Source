@@ -94,6 +94,7 @@ bool has_pet_follower(struct char_data *ch);
 bool has_elemental_follower(struct char_data *ch);
 bool has_undead_follower(struct char_data *ch);
 int color_count(char *bufptr);
+int num_obj_in_obj(struct obj_data *obj);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
