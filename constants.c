@@ -583,7 +583,12 @@ const char *wear_where[NUM_WEARS] = {
   "\tY{Held Offhand}\tn       ",
   "\tY{Wielded Twohanded}\tn  ",
   "\tY{Held Twohanded}\tn     ",
-  "\tY{Worn On Face}\tn       "
+  "\tY{Worn On Face}\tn       ",
+  "\tY{Worn As Quiver}\tn     ",
+  "\tY{Worn In Ear}\tn        ",
+  "\tY{Worn In Ear}\tn        ",
+  "\tY{Worn On Eyes}\tn       ",
+  "\tY{Worn As Badge}\tn      ",
 };
 
 /* Describes where an item can be worn.
@@ -613,6 +618,11 @@ const char *equipment_types[NUM_WEARS + 1] = {
   "Wielded twohands",
   "Held twohands",
   "Worn on face",
+  "Worn as quiver",
+  "Worn in right ear",
+  "Worn in left ear",
+  "Worn on eyes",
+  "Worn as badge",
   "\n"
 };
 
@@ -741,6 +751,10 @@ const char *wear_bits[NUM_ITEM_WEARS + 1] = {
   "Wield",
   "Hold",
   "Face",
+  "Quiver",
+  "Ears",
+  "Eyes",
+  "Badge",
   "\n"
 };
 
