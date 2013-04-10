@@ -760,7 +760,7 @@ static void oedit_disp_wear_menu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
 
-  for (counter = 0; counter < NUM_ITEM_WEARS; counter++) {
+  for (counter = 0; counter < NUM_ITEM_WEARS-3; counter++) { /* added the -3 to prevent eyes/ears/badge */
     write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter + 1, nrm,
             wear_bits[counter], !(++columns % 2) ? "\r\n" : "");
   }
@@ -1106,7 +1106,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
 
     case OEDIT_WEAR:
       number = atoi(arg);
-      if ((number < 0) || (number > NUM_ITEM_WEARS)) {
+      if ((number < 0) || (number > NUM_ITEM_WEARS-3)) { // added -3 to prevent eyes, ears, badge
         write_to_output(d, "That's not a valid choice!\r\n");
         oedit_disp_wear_menu(d);
         return;
