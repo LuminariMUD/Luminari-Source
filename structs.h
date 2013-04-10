@@ -780,7 +780,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAR_BADGE      27
 
 /** Total number of available equipment lcoations */
-#define NUM_WEARS      23 // 28 left at 23 so won't show in olc menu
+#define NUM_WEARS      28
 
 /* homeland port */
 /*
@@ -949,7 +949,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_WEAR_BADGE         19 // item can be worn as badge (UNUSED HOMELAND))
 
 /** Total number of item wears */
-#define NUM_ITEM_WEARS      17 // 20 left at 17 so won't show in olc menu
+#define NUM_ITEM_WEARS      20
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
 #define ITEM_GLOW                 0   /**< Item is glowing */
