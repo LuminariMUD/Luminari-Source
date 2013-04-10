@@ -37,9 +37,20 @@
  */
 
 
+/** Calculate the number of objects in the given obj.
+ * @param obj - The object to check for contents. */
+int num_obj_in_obj(struct obj_data *obj) {
+  int i = 0;
+
+  for (; obj; obj = obj->next_content)
+    i++;
+  
+  return i;
+}
+
 /* Ils: color code counter */
 
-/* homeland-port */
+/* homeland-port - don't think it even works in our codebase */
 int color_count(char *bufptr) {
   int count = 0;
   char *temp = bufptr;

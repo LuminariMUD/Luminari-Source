@@ -837,7 +837,7 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
         else if (ZONE_FLAGGED(i, ZONE_GRID))
           buf2 = strdup("\tGReady\tn ");
         else
-          buf2 = strdup("\tYN-Reva\tn");
+          buf2 = strdup("\tmN-Reva\tn");
 
         tmp_len = snprintf(buf + len, sizeof (buf) - len, "[%s%3d%s] %s%-*s %s %s%-1s%s\r\n",
                 QGRN, zone_table[i].number, QNRM, QCYN,

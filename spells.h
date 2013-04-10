@@ -169,8 +169,8 @@
 #define SPELL_WISDOM               126  //done
 #define SPELL_CHARISMA             127  //done
 #define SPELL_STENCH               128  //done - stinking cloud proc
-#define SPELL_ACID_SPLASH          129    // cantrip
-#define SPELL_RAY_OF_FROST         130    // cantrip
+#define SPELL_ACID_SPLASH          129    // cantrip, unfinished
+#define SPELL_RAY_OF_FROST         130    // cantrip, unfinished
 #define SPELL_WIZARD_EYE           131  //done
 #define SPELL_FIRE_SHIELD          132  //done
 #define SPELL_COLD_SHIELD          133  //done
@@ -258,7 +258,7 @@
 #define SPELL_MASS_ENHANCE         215  //done
 #define SPELL_PORTAL               216  //done
 #define SPELL_ACID                 217  //acid fog proc
-#define SPELL_HOLY_SWORD           218  //paladin
+#define SPELL_HOLY_SWORD           218  //done (paladin)
 #define SPELL_INCENDIARY           219  // incendiary cloud proc
 /* some cleric spells */
 #define SPELL_CURE_MODERATE        220  //done
@@ -347,13 +347,13 @@
 #define SPELL_SHAPECHANGE               302 // hey b, maybe use polymorph
 /* some more cleric spells */
 #define SPELL_BLADE_BARRIER             303  //done
-#define SPELL_BLADES                    304  //blades (for blade barrier) (done)
+#define SPELL_BLADES                    304  //done - blades (for blade barrier)
 #define SPELL_BATTLETIDE                305  //done
-/* room events test spell */
-#define SPELL_I_DARKNESS                306  //room event test spell
+/**/
+#define SPELL_I_DARKNESS                306  // room event test spell
 #define SPELL_DOOM                      307  // creeping doom damage proc
 #define SPELL_WHIRLWIND                 308
-/* unfinished list */
+/* unfinished list (homeland-port) */
 #define SPELL_VIGORIZE_LIGHT            309
 #define SPELL_VIGORIZE_SERIOUS          310
 #define SPELL_VIGORIZE_CRITICAL         311
@@ -361,10 +361,65 @@
 #define SPELL_EMBALM                    313
 #define SPELL_CONTINUAL_LIGHT           314
 #define SPELL_ELEMENTAL_RESISTANCE      315  // endure elements improved
+#define SPELL_PRESERVE                  316
+#define SPELL_RESURRECT                 317
+#define SPELL_SILENCE                   318
+#define SPELL_MINOR_CREATE              319
+/* unfinished list (homeland-port) psionics */
+#define PSIONIC_AURA_SIGHT              320
+#define PSIONIC_COMBATMIND              321
+#define PSIONIC_MINDBLAST               322
+#define PSIONIC_EGO_WHIP                323
+#define PSIONIC_BODY_EQUALIBRIUM        324
+#define PSIONIC_SENSE_DANGER            325
+#define PSIONIC_PYROKINESIS             326
+#define PSIONIC_CREATE_OBJECT           327
+#define PSIONIC_FLOAT                   328
+#define PSIONIC_ENHANCED_STRENGTH       329
+#define PSIONIC_DETONATE                330
+#define PSIONIC_ADRENALIZE              331
+#define PSIONIC_BODY_WEAPONRY           332
+#define PSIONIC_ENERGY_CONTAINMENT      333
+#define PSIONIC_SHARE_STRENGTH          334
+#define PSIONIC_CATFALL                 335
+#define PSIONIC_INTELLECT_FORTRESS      336
+#define PSIONIC_PLANE_SHIFT             337
+#define PSIONIC_PROJECT_FORCE           338
+#define PSIONIC_EXPANSION               339
+#define PSIONIC_REDUCTION               340
+#define PSIONIC_SUSTAIN                 341
+#define PSIONIC_MIND_THRUST             342
+#define PSIONIC_BIOFEEDBACK             343
+#define PSIONIC_EQUALIBRIUM             344
+#define PSIONIC_FLESH_ARMOR             345
+#define PSIONIC_DOMINATE                346
+#define PSIONIC_AEROKINESIS             347
+#define PSIONIC_DIMENSION_WALK          348
+#define PSIONIC_LEND_HEALTH             349
+#define PSIONIC_AWE                     350
+#define PSIONIC_ALL_AROUND_VISION       351
+#define PSIONIC_KNOW_LOCATION           352
+#define PSIONIC_MASS_DOMINATE           353
+#define PSIONIC_SYNAPTIC_STATE          354
+#define PSIONIC_GLOBE_OF_DARKNESS       355
+#define PSIONIC_MANA_DRAIN              356
+#define PSIONIC_SEVER_THE_TIE           357
+#define PSIONIC_DISLOCATION             358
+#define PSIONIC_DEATH_FIELD             359
+#define PSIONIC_TOWER_OF_IRON_WILL      360
+#define PSIONIC_ETHEREAL_WALKING        361
+#define PSIONIC_CANNIBALIZE             362
+#define PSIONIC_SHIFT                   363
+#define PSIONIC_CRISIS_OF_BREATH        364
+#define PSIONIC_STASIS_FIELD            365
+#define PSIONIC_INTERTIAL_BARRIER       366
+#define PSIONIC_PLANAR_RIFT             367
 /* end unfinished list */
 
-/* Now would be a good time to mention other files to be aware of with spells:
- * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c */
+/* Other files to be aware of for new spells:
+ * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c
+ * 2)  if you want this spell to be available as a npc nuke, mobact.c 
+ */
 /** Total Number of defined spells (last spell define + 1) */
 #define NUM_SPELLS                      309
 

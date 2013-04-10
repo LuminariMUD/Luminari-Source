@@ -26,7 +26,7 @@
  * @todo cpp_extern isn't needed here (or anywhere) as the extern reserved word
  * works correctly with C compilers (at least in my Experience)
  * Jeremy Osborne 1/28/2008 */
-cpp_extern const char *tbamud_version = "LuminariMUD 1.0 (tbaMUD 3.64)";
+cpp_extern const char *tbamud_version = "LuminariMUD 1.37 (tbaMUD 3.64)";
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 /* (Note: strings for class definitions in class.c instead of here) */
@@ -561,29 +561,30 @@ const char *connected_types[NUM_CON_STATES + 1] = {
  * @pre Must be in the same order as the defines.
  * Not used in sprinttype() so no \n. */
 const char *wear_where[NUM_WEARS] = {
-  "\tY{Used As Light}\tn      ",
+  "\tY{Used As Light}\tn      ",  //0
   "\tY{Worn On Finger}\tn     ",
   "\tY{Worn On Finger}\tn     ",
   "\tY{Worn Around Neck}\tn   ",
   "\tY{Worn Around Neck}\tn   ",
-  "\tY{Worn On Body}\tn       ",
+  "\tY{Worn On Body}\tn       ",  //5
   "\tY{Worn On Head}\tn       ",
   "\tY{Worn On Legs}\tn       ",
   "\tY{Worn On Feet}\tn       ",
   "\tY{Worn On Hands}\tn      ",
-  "\tY{Worn On Arms}\tn       ",
+  "\tY{Worn On Arms}\tn       ",  //10
   "\tY{Worn As Shield}\tn     ",
   "\tY{Worn About Body}\tn    ",
   "\tY{Worn About Waist}\tn   ",
   "\tY{Worn Around Wrist}\tn  ",
-  "\tY{Worn Around Wrist}\tn  ",
+  "\tY{Worn Around Wrist}\tn  ",  //15
   "\tY{Wielded}\tn            ",
   "\tY{Held}\tn               ",
   "\tY{Wielded Offhand}\tn    ",
   "\tY{Held Offhand}\tn       ",
-  "\tY{Wielded Twohanded}\tn  ",
+  "\tY{Wielded Twohanded}\tn  ",  //20
   "\tY{Held Twohanded}\tn     ",
   "\tY{Worn On Face}\tn       ",
+  /* todo */
   "\tY{Worn As Quiver}\tn     ",
   "\tY{Worn In Ear}\tn        ",
   "\tY{Worn In Ear}\tn        ",
@@ -618,6 +619,7 @@ const char *equipment_types[NUM_WEARS + 1] = {
   "Wielded twohands",
   "Held twohands",
   "Worn on face",
+  /* todo */
   "Worn as quiver",
   "Worn in right ear",
   "Worn in left ear",
@@ -697,37 +699,53 @@ const char *material_name[NUM_MATERIALS + 1] = {
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *item_types[NUM_ITEM_TYPES + 1] = {
-  "UNDEFINED",
+  "UNDEFINED",  //0
   "Light",
   "Scroll",
   "Wand",
   "Staff",
-  "Weapon",
+  "Weapon",  //5
   "Furniture",
-  "FREE",
+  "Ranged-Weapon",
   "Treasure",
   "Armor",
-  "Potion",
+  "Potion",  //10
   "Wearable",
   "OTHER",
   "Trash",
-  "FREE2",
-  "Container",
+  "Ammo",
+  "Container",  //15
   "Note",
   "Liquid-Cont",
   "Key",
   "Food",
-  "Money",
+  "Money",  //20
   "Pen",
   "Boat",
   "Fountain",
   "Clan-Armor",
-  "Crystal",
+  "Crystal",  //25
   "Essence",
   "Crafting Material",
   "Spellbook",
   "Portal",
-  "Plant",
+  "Plant",  //30
+  /* todo list */
+  "Trap",
+  "Teleport",
+  "Poison",
+  "Summon",
+  "Switch",  //35
+  "Quiver",
+  "Pick",
+  "Instrument",
+  "Disguise",
+  "Wall",  //40
+  "Bowl",
+  "Ingredient",
+  "Blocker",
+  "Wagon",
+  "Resources",  //45  
   "\n"
 };
 
@@ -735,22 +753,23 @@ const char *item_types[NUM_ITEM_TYPES + 1] = {
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *wear_bits[NUM_ITEM_WEARS + 1] = {
-  "(Takeable)",
+  "(Takeable)",  //0
   "Finger",
   "Neck",
   "Body",
   "Head",
-  "Legs",
+  "Legs",  //5
   "Feet",
   "Hands",
   "Arms",
   "Shield",
-  "About-Body",
+  "About-Body",  //10
   "Waist",
   "Wrist",
   "Wield",
   "Hold",
-  "Face",
+  "Face",  //15
+  /* todo */
   "Quiver",
   "Ears",
   "Eyes",
@@ -800,7 +819,14 @@ const char *extra_bits[NUM_ITEM_FLAGS + 1] = {
   "Anti-Ranger",  //35
   "Anti-Bard",
   "Anti-Arcana-Golem",
+  /* todo */
   "Floating",
+  "Hidden",
+  "Magical-Light",  //40
+  "No-Locate",
+  "No-Burn",
+  "Transient",
+  "Auto-Proc",
   "\n"
 };
 

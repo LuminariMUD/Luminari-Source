@@ -767,18 +767,19 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAR_WRIST_R   14  /**< Equipment Location Right Wrist */
 #define WEAR_WRIST_L   15  /**< Equipment Location Left Wrist */
 #define WEAR_WIELD_1   16  /**< Equipment Location Weapon */
-#define WEAR_HOLD_1     17  /**< Equipment Location held in offhand */
-#define WEAR_WIELD_2    18	// off-hand weapon
-#define WEAR_HOLD_2     19	// off-hand held
-#define WEAR_WIELD_2H   20	// two-hand weapons
-#define WEAR_HOLD_2H    21	// two-hand held
-#define WEAR_FACE       22      // equipment location face
+#define WEAR_HOLD_1	   17  /**< Equipment Location held in offhand */
+#define WEAR_WIELD_2   18  // off-hand weapon
+#define WEAR_HOLD_2    19  // off-hand held
+#define WEAR_WIELD_2H  20  // two-hand weapons
+#define WEAR_HOLD_2H   21  // two-hand held
+#define WEAR_FACE      22  // equipment location face
+/* unfinished */
 #define WEAR_QUIVER     23      // quiver (for ranged weapons)
 #define WEAR_EAR_R      24
 #define WEAR_EAR_L      25
 #define WEAR_EYES       26
 #define WEAR_BADGE      27
-
+/**/
 /** Total number of available equipment lcoations */
 #define NUM_WEARS      28
 
@@ -824,30 +825,32 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_SPELLBOOK 28
 #define ITEM_PORTAL    29
 #define ITEM_PLANT     30 /* for transport via plants spell */
+/* unfinished item_types */
+#define ITEM_TRAP        31  // traps
+#define ITEM_TELEPORT    32  // triggers teleport on command
+#define ITEM_POISON      33  // apply poison
+#define ITEM_SUMMON      34  // summons mob on command
+#define ITEM_SWITCH	     35  // activation mechanism
+#define ITEM_QUIVER	     36  // quiver mechanic for missile weapons
+#define ITEM_PICK        37  // pick used for opening locks bonus
+#define ITEM_INSTRUMENT	38  // instrument used for bard song
+#define ITEM_DISGUISE    39  // disguise kit used for disguise command
+#define ITEM_WALL        40  // magical wall (like wall of flames spell)
+#define ITEM_BOWL        41  // bowl for mixing recipes
+#define ITEM_INGREDIENT  42  // ingredient used with bowl for recipes
+#define ITEM_BLOCKER     43  // stops movement in direction X
+#define ITEM_WAGON       44  // used for carrying resources for trade
+#define ITEM_RESOURCE    45  // used for trade with wagon
+/**/
 /** Total number of item types.*/
-#define NUM_ITEM_TYPES 31
+#define NUM_ITEM_TYPES   46
 
 /* homeland-port */
 /*  note:  swapped free1 (7) with fireweapon 
            swapped free2 (14) with missile */
 /*
-#define ITEM_TRAP        14  // traps
-#define ITEM_TELEPORT    25  // triggers teleport on command
-#define ITEM_POISON      26  // apply poison
-#define ITEM_SUMMON      27  // summons mob on command
-#define ITEM_SHIP        28  // travel on oceans
-#define ITEM_SWITCH	     29  // activation mechanism
-#define ITEM_QUIVER	     30  // quiver mechanic for missile weapons
-#define ITEM_PICK        31  // pick used for opening locks bonus
-#define ITEM_INSTRUMENT	32  // instrument used for bard song
-#define ITEM_PET         33  // ?
-#define ITEM_DISGUISE    34  // disguise kit used for disguise command
-#define ITEM_WALL        35  // magical wall (like wall of flames spell)
-#define ITEM_BOWL        36  // bowl for mixing recipes
-#define ITEM_INGREDIENT  37  // ingredient used with bowl for recipes
-#define ITEM_BLOCKER     38  // stops movement in direction X
-#define ITEM_WAGON       39  // used for carrying resources for trade
-#define ITEM_RESOURCE    40  // used for trade with wagon
+#define ITEM_SHIP        28  // travel on oceans -> ITEM_BOAT  (22)
+#define ITEM_PET         33  // ?                -> ITEM_OTHER (12)
 */
 
 /* Item profs: used by obj_data.obj_flags.prof_flag constants.c = item_profs */
@@ -937,12 +940,13 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_WEAR_HANDS	   7   /**< Item can be worn on hands	*/
 #define ITEM_WEAR_ARMS      8   /**< Item can be worn on arms */
 #define ITEM_WEAR_SHIELD    9   /**< Item can be used as a shield */
-#define ITEM_WEAR_ABOUT	   10   /**< Item can be worn about body */
-#define ITEM_WEAR_WAIST     11   /**< Item can be worn around waist */
-#define ITEM_WEAR_WRIST	   12   /**< Item can be worn on wrist */
-#define ITEM_WEAR_WIELD	   13   /**< Item can be wielded */
-#define ITEM_WEAR_HOLD      14   /**< Item can be held */
-#define ITEM_WEAR_FACE          15 // item can be worn on face
+#define ITEM_WEAR_ABOUT	   10  /**< Item can be worn about body */
+#define ITEM_WEAR_WAIST     11  /**< Item can be worn around waist */
+#define ITEM_WEAR_WRIST	   12  /**< Item can be worn on wrist */
+#define ITEM_WEAR_WIELD	   13  /**< Item can be wielded */
+#define ITEM_WEAR_HOLD      14  /**< Item can be held */
+#define ITEM_WEAR_FACE      15  // item can be worn on face
+/* unfinished */
 #define ITEM_WEAR_QUIVER        16 // item can be used as quiver
 #define ITEM_WEAR_EAR           17 // item can be worn on ears (UNUSED HOMELAND)
 #define ITEM_WEAR_EYES          18 // item can be worn on eyes (UNUSED HOMELAND)
@@ -950,6 +954,16 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 
 /** Total number of item wears */
 #define NUM_ITEM_WEARS      20
+
+/* homeland-port */
+/*
+#define ITEM_WEAR_EAR		(1 << 15)  // Can be worn in ear
+#define ITEM_WEAR_EYES		(1 << 17)  // Can be worn on eyes
+#define ITEM_WEAR_BADGE		(1 << 18)  // Can be worn as badge
+#define ITEM_WEAR_WIELD_2H    (1 << 19)  // Item can be wielded 2h -> ITEM_WEAR_WIELD (13)
+#define ITEM_WEAR_QUIVER      (1 << 20)  // Item can be worn as quiver
+#define ITEM_WEAR_TAIL        (1 << 21)  // Can be worn on tail
+*/
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
 #define ITEM_GLOW                 0   /**< Item is glowing */
@@ -991,8 +1005,16 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_ANTI_BARD            36
 #define ITEM_ANTI_ARCANA_GOLEM    37
 #define ITEM_FLOAT                38
+/* unfinished */
+#define ITEM_HIDDEN               39  // item is hidden (need to search to find)
+#define ITEM_MAGLIGHT             40  // item is continual-lighted
+#define ITEM_NOLOCATE             41  // item can not be located via spells
+#define ITEM_NOBURN               42  // item can not be disintegrated by spells
+#define ITEM_TRANSIENT            43  // item will crumble and fade when dropped
+#define ITEM_AUTOPROC	         44  // item can be called by proc_update()
+/**/
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            39
+#define NUM_ITEM_FLAGS            45
 
 /* homeland-port */
 /*

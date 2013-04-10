@@ -115,6 +115,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "abilityset", "abilityset", POS_SLEEPING, do_abilityset, LVL_GRSTAFF, 0, TRUE},
   { "autocraft", "autocraft", POS_STANDING, do_not_here, 1, 0, TRUE},
   { "adjure", "adjure", POS_RESTING, do_gen_memorize, 0, SCMD_ADJURE, FALSE},
+  { "autofire", "autofire", POS_FIGHTING, do_autofire, 1, 0, FALSE},
 
   { "backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE},
   { "ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE},
@@ -160,6 +161,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "checkapproved", "checkapproved", POS_DEAD, do_checkapproved, LVL_BUILDER, 0, TRUE},
   { "charge", "charge", POS_FIGHTING, do_charge, 1, 0, FALSE},
   { "circle", "circle", POS_FIGHTING, do_circle, 1, 0, FALSE},
+  { "collect", "collect", POS_STANDING, do_collect, 1, 0, FALSE},
 
   { "date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE},
   { "dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE},
@@ -197,6 +199,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "freeze", "freeze", POS_DEAD, do_wizutil, LVL_GRSTAFF, SCMD_FREEZE, TRUE},
   { "frightful", "frightful", POS_FIGHTING, do_frightful, 1, 0, FALSE},
   { "fly", "fly", POS_FIGHTING, do_fly, 1, 0, FALSE},
+  { "fire", "fire", POS_FIGHTING, do_fire, 1, 0, FALSE},
 
   { "get", "g", POS_RECLINING, do_get, 0, 0, FALSE},
   { "gecho", "gecho", POS_DEAD, do_gecho, LVL_STAFF, 0, TRUE},

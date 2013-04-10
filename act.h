@@ -234,6 +234,9 @@ void perform_backstab(struct char_data *ch, struct char_data *vict);
 ACMD(do_hit);
 #define SCMD_HIT    0
 /* Functions without subcommands */
+ACMD(do_fire);
+ACMD(do_autofire);
+ACMD(do_collect);
 ACMD(do_hitall);
 ACMD(do_guard);
 ACMD(do_charge);
