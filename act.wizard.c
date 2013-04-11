@@ -1351,13 +1351,13 @@ ACMD(do_switch) {
 void do_cheat(struct char_data *ch) {
   switch (GET_IDNUM(ch)) {
     case 1: // IMP
+      send_to_char(ch, "Your level has been restored, for now!\r\n");
       GET_LEVEL(ch) = LVL_IMPL;
       break;
     default:
       send_to_char(ch, "You do not have access to this command.\r\n");
       return;
   }
-  send_to_char(ch, "Your level has been restored, for now!\r\n");
   /* just in case, this is called possibly in extract_char_final() 
      this will keep from saving events */
   save_char(ch, 1);

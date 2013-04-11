@@ -807,9 +807,12 @@ static void group_gain(struct char_data *ch, struct char_data *victim) {
   int tot_members = 0, base, tot_gain;
   struct char_data *k;
 
-  while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL)
+  while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
+    if (IS_PET(k))
+      continue;
     if (IN_ROOM(ch) == IN_ROOM(k))
       tot_members++;
+  }
 
   /* round up to the nearest tot_members */
   tot_gain = (GET_EXP(victim) / 3) + tot_members - 1;
@@ -823,9 +826,12 @@ static void group_gain(struct char_data *ch, struct char_data *victim) {
   else
     base = 0;
 
-  while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL)
+  while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
+    if (IS_PET(k))
+      continue;
     if (IN_ROOM(k) == IN_ROOM(ch))
       perform_group_gain(k, base, victim);
+  }
 }
 
 /* called for splitting xp if NOT in a group (engine) */
@@ -1543,10 +1549,18 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
   GET_POS(victim) = POS_DEAD;
 
   if (ch != victim && (IS_NPC(victim) || victim->desc)) { //xp gain
-    if (GROUP(ch))
-      group_gain(ch, victim);
-    else
-      solo_gain(ch, victim);
+    /* pets give xp to their master */
+    if (IS_PET(ch)) {
+      if (GROUP(ch))
+        group_gain(ch->master, victim);
+      else
+        solo_gain(ch->master, victim);            
+    } else {
+      if (GROUP(ch))
+        group_gain(ch, victim);
+      else
+        solo_gain(ch, victim);
+    }
   }
 
   resetCastingData(victim); //stop casting
