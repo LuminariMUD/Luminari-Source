@@ -1708,6 +1708,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       break;
 
     case MEDIT_DEFAULT_POS:
+      /* the menu starts with value 1, which is 1 greater than defines */
       i--;
       if (i == POS_FIGHTING)
         i = POS_STANDING;
