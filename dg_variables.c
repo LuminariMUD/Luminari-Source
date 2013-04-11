@@ -93,7 +93,8 @@ int item_in_list(char *item, obj_data *list) {
     for (i = list; i; i = i->next_content) {
       if (id == GET_ID(i))
         count++;
-      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER)
+      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER ||
+              GET_OBJ_TYPE(i) == ITEM_QUIVER)
         count += item_in_list(item, i->contains);
     }
   } else if (is_number(item)) { /* check for vnum */
@@ -102,14 +103,16 @@ int item_in_list(char *item, obj_data *list) {
     for (i = list; i; i = i->next_content) {
       if (GET_OBJ_VNUM(i) == ovnum)
         count++;
-      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER)
+      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER ||
+              GET_OBJ_TYPE(i) == ITEM_QUIVER)
         count += item_in_list(item, i->contains);
     }
   } else {
     for (i = list; i; i = i->next_content) {
       if (isname(item, i->name))
         count++;
-      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER)
+      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER ||
+              GET_OBJ_TYPE(i) == ITEM_QUIVER)
         count += item_in_list(item, i->contains);
     }
   }
@@ -1311,7 +1314,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
               *str = '\0';
           }            /* thanks to Jamie Nelson (Mordecai of 4 Dimensions MUD) */
           else if (!str_cmp(field, "count")) {
-            if (GET_OBJ_TYPE(o) == ITEM_CONTAINER)
+            if (GET_OBJ_TYPE(o) == ITEM_CONTAINER ||
+                    GET_OBJ_TYPE(o) == ITEM_QUIVER)
               snprintf(str, slen, "%d", item_in_list(subfield,
                     o->contains));
             else
@@ -1333,7 +1337,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         case 'h':
           /* thanks to Jamie Nelson (Mordecai of 4 Dimensions MUD) */
           if (!str_cmp(field, "has_in")) {
-            if (GET_OBJ_TYPE(o) == ITEM_CONTAINER)
+            if (GET_OBJ_TYPE(o) == ITEM_CONTAINER ||
+                    GET_OBJ_TYPE(o) == ITEM_QUIVER)
               snprintf(str, slen, "%s", (item_in_list(subfield,
                     o->contains) ? "1" : "0"));
             else

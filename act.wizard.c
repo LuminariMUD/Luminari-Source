@@ -666,6 +666,12 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j) {
               GET_OBJ_VAL(j, 0), buf, GET_OBJ_VAL(j, 2),
               YESNO(GET_OBJ_VAL(j, 3)));
       break;
+    case ITEM_QUIVER:
+      sprintbit(GET_OBJ_VAL(j, 1), container_bits, buf, sizeof (buf));
+      send_to_char(ch, "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse: %s\r\n",
+              GET_OBJ_VAL(j, 0), buf, GET_OBJ_VAL(j, 2),
+              YESNO(GET_OBJ_VAL(j, 3)));
+      break;
     case ITEM_DRINKCON:
     case ITEM_FOUNTAIN:
       sprinttype(GET_OBJ_VAL(j, 2), drinks, buf, sizeof (buf));

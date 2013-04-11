@@ -800,7 +800,8 @@ static int export_save_objects(zone_rnum zrnum)
           wbuf1, wbuf2, wbuf3, wbuf4,
           pbuf1, pbuf2, pbuf3, pbuf4);
 
-      if (GET_OBJ_TYPE(obj) != ITEM_CONTAINER)
+      if (GET_OBJ_TYPE(obj) != ITEM_CONTAINER &&
+              GET_OBJ_TYPE(obj) != ITEM_QUIVER)
         fprintf(obj_file,
                 "%d %d %d %d\n",
 	        GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3));

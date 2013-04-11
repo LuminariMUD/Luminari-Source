@@ -1422,8 +1422,8 @@ static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scm
   return (0);
 }
 
-#define DOOR_IS_OPENABLE(ch, obj, door)	((obj) ? ((GET_OBJ_TYPE(obj) == \
-    ITEM_CONTAINER) && OBJVAL_FLAGGED(obj, CONT_CLOSEABLE)) :\
+#define DOOR_IS_OPENABLE(ch, obj, door)	((obj) ? (((GET_OBJ_TYPE(obj) == \
+    ITEM_CONTAINER) || GET_OBJ_TYPE(obj) == ITEM_QUIVER) && OBJVAL_FLAGGED(obj, CONT_CLOSEABLE)) :\
     (EXIT_FLAGGED(EXIT(ch, door), EX_ISDOOR)))
 #define DOOR_IS_OPEN(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj, \
     CONT_CLOSED)) : (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)))
@@ -1452,7 +1452,9 @@ ACMD(do_gen_door) {
   if (!generic_find(type, FIND_OBJ_INV | FIND_OBJ_ROOM, ch, &victim, &obj))
     door = find_door(ch, type, dir, cmd_door[subcmd]);
 
-  if ((obj) && (GET_OBJ_TYPE(obj) != ITEM_CONTAINER)) {
+  if ((obj) && (GET_OBJ_TYPE(obj) != ITEM_CONTAINER &&
+          GET_OBJ_TYPE(obj) != ITEM_QUIVER)
+          ) {
     obj = NULL;
     door = find_door(ch, type, dir, cmd_door[subcmd]);
   }
