@@ -32,7 +32,7 @@ extern const char *head_types[];
 
 /* defines */
 /* percentage chance of random treasure drop */
-#define TREASURE_PERCENT  7
+#define TREASURE_PERCENT  100
 
 /* array sizes for treasure_const.c */
 #define NUM_A_GEMSTONES       26
@@ -198,6 +198,8 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel);
 void award_magic_weapon(struct char_data *ch, int grade, int moblevel);
 // gives away random armor pieces (outside of body-armor/shield)
 void award_misc_magic_item(struct char_data *ch, int grade, int moblevel);
+// determines bonus modifiers to apply_value
+int random_bonus_value(int apply_value, int level, int mod);
 
 // staff tool to load random items
 ACMD(do_loadmagic);
