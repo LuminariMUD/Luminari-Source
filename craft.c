@@ -707,6 +707,9 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   obj_to_char(crystal_one, ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
+  if (!IS_NPC(ch))
+    increase_skill(ch, skill_type);
+  
   return 1;
 }
 
@@ -1448,7 +1451,9 @@ int create(char *argument, struct obj_data *kit,
     obj_to_char(kit, ch);
 
     obj_to_char(mold, ch);
-    increase_skill(ch, skill);
+    
+    if (!IS_NPC(ch))
+      increase_skill(ch, skill);
     NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
   }
   return 1;
@@ -2206,6 +2211,9 @@ ACMD(do_harvest) {
   
   obj_to_char(obj, ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
+  
+  if (!IS_NPC(ch))
+    increase_skill(ch, skillnum);
 
   return;
 }

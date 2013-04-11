@@ -32,24 +32,34 @@
 /* ranged combat (archery, etc)
  * this function will check to make sure ammo is ready for firing
  */
-bool has_missile_in_quiver(struct char_data *ch, bool silent) {
+bool has_missile_in_quiver(struct char_data *ch, struct obj_data *wielded, bool silent) {
   struct obj_data *quiver = GET_EQ(ch, WEAR_QUIVER);
   
   if (!quiver) {
     if (!silent)
       send_to_char(ch, "You have no ammo pouch!\r\n");
+    FIRING(ch) = FALSE;
     return FALSE;
   }
   
   if (!quiver->contains) {
     if (!silent)
       send_to_char(ch, "Your ammo pouch is empty!\r\n");
+    FIRING(ch) = FALSE;
     return FALSE;
   }
 
   if (GET_OBJ_TYPE(quiver->contains) != ITEM_MISSILE) {
     if (!silent)
       send_to_char(ch, "Your ammo pouch needs to be filled with only ammo!\r\n");
+    FIRING(ch) = FALSE;
+    return FALSE;
+  }
+  
+  if (GET_OBJ_VAL(wielded, 0) != GET_OBJ_VAL(quiver->contains, 0)) {
+    if (!silent)
+      act("Your $p does not fit your weapon.", FALSE, ch, quiver->contains, NULL, TO_CHAR);
+    FIRING(ch) = FALSE;
     return FALSE;
   }
   
@@ -64,6 +74,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
   if (!GET_EQ(ch, WEAR_QUIVER)) {
     if (!silent)
       send_to_char(ch, "But you do not wear an ammo pouch.\r\n");
+    FIRING(ch) = FALSE;
     return FALSE;
   }
   
@@ -75,18 +86,21 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
   if (!obj) {
     if (!silent)
       send_to_char(ch, "You are not wielding anything!");
+    FIRING(ch) = FALSE;
     return FALSE;
   }
   
   if (GET_OBJ_TYPE(obj) != ITEM_FIREWEAPON) {
     if (!silent)
       send_to_char(ch, "But you are not wielding a ranged weapon.\r\n");
+    FIRING(ch) = FALSE;
     return FALSE;    
   }
   
-  if (!has_missile_in_quiver(ch, TRUE)) {
+  if (!has_missile_in_quiver(ch, obj, TRUE)) {
     if (!silent)
       send_to_char(ch, "You have no ammo!\r\n");
+    FIRING(ch) = FALSE;
     return FALSE;
   }
   
