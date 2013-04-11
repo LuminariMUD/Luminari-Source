@@ -1629,6 +1629,10 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
         int attacktype, int dam_type, int offhand) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
+  bool is_ranged = FALSE;
+  
+  if (offhand == 2)
+    is_ranged = TRUE;
 
   if (GET_POS(victim) <= POS_DEAD) { //delayed extraction
     if (PLR_FLAGGED(victim, PLR_NOTDEADYET) ||
@@ -1724,7 +1728,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     else {
       //miss and death = skill_message
       if (GET_POS(victim) == POS_DEAD || dam == 0) {
-        if (!skill_message(dam, ch, victim, attacktype, offhand))
+        if (!dam && is_ranged)  // miss with ranged = dam_message()
+          dam_message(dam, ch, victim, attacktype, offhand);
+        else if (!skill_message(dam, ch, victim, attacktype, offhand))
           //default if no skill_message
           dam_message(dam, ch, victim, attacktype, offhand);
       } else {
