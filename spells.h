@@ -590,8 +590,6 @@
 #define TYPE_STAB         714
 /** The total number of attack types */
 #define NUM_ATTACK_TYPES  15
-
-
 /* (stock)
  * hit - 0      blunt
  * sting - 1      piercing
@@ -609,6 +607,16 @@
  * punch - 13      blunt
  * stab - 14      piercing
  */
+
+/* not hard coded, but up to 750 */
+
+/* RANGED WEAPON ATTACK TYPES */
+#define TYPE_ARROW           751
+/** total number of ranged attack types */
+#define NUM_RANGED_TYPES     1
+
+/* not hard coded, but up to 775 */
+
 /* weapon type macros, returns true or false */
 #define IS_BLADE(obj)      ( GET_OBJ_VAL(obj, 3) == (TYPE_WHIP - TYPE_HIT) || \
                              GET_OBJ_VAL(obj, 3) == (TYPE_SLASH - TYPE_HIT) || \
