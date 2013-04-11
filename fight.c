@@ -909,8 +909,6 @@ static char *replace_string(const char *str, const char *weapon_singular,
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
         int w_type, int offhand) {
   char *buf = NULL;
-  char buf2[MAX_STRING_LENGTH] = { '\0' };
-  char *buf3 = NULL;
   int msgnum = -1, hp = 0, pct = 0;
   bool is_ranged = FALSE;
 
@@ -1034,30 +1032,21 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   else msgnum = 13;
 
   if (offhand == 2 && last_missile) { // ranged
-    send_to_char(ch, "You fire %s:  ", last_missile->short_description);
-    sprintf(buf2, "WHIZZ, $n fires %s:  ", last_missile->short_description);
+    send_to_char(ch, "WHIZZ, you fire %s:  ", last_missile->short_description);
+    act("WHIZZ, $n fires $p at $N!", FALSE, ch, last_missile, victim, TO_NOTVICT);
+    act("WHIZZ, $n fires $p!", FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
     is_ranged = TRUE;
   }
   
   /* damage message to onlookers */
   // note, we may have to add more info if we have some way to attack
   // someone that isn't in your room - zusuk
-  if (is_ranged) {
-    buf3 = replace_string(dam_weapons[msgnum].to_room,
-            attack_hit_text[w_type].singular, attack_hit_text[w_type].plural), dam;
-    sprintf(buf, "%s%s", buf2, buf3);
-  } else
-    buf = replace_string(dam_weapons[msgnum].to_room,
+  buf = replace_string(dam_weapons[msgnum].to_room,
             attack_hit_text[w_type].singular, attack_hit_text[w_type].plural), dam;
   act(buf, FALSE, ch, NULL, victim, TO_NOTVICT);
 
   /* damage message to damager */
-  if (is_ranged) {
-    buf3 = replace_string(dam_weapons[msgnum].to_char,
-            attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
-    sprintf(buf, "%s%s", buf2, buf);
-  } else
-    buf = replace_string(dam_weapons[msgnum].to_char,
+  buf = replace_string(dam_weapons[msgnum].to_char,
             attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
   act(buf, FALSE, ch, NULL, victim, TO_CHAR);
   send_to_char(ch, CCNRM(ch, C_CMP));
