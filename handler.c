@@ -133,10 +133,6 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       GET_CHA(ch) += mod;
       break;
 
-    case APPLY_AGE:
-      ch->player.time.birth -= (mod * SECS_PER_MUD_YEAR);
-      break;
-
     case APPLY_CHAR_WEIGHT:
       GET_WEIGHT(ch) += mod;
       break;
@@ -263,6 +259,9 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       break;
       
       /* Do Not Use. */
+    case APPLY_AGE:
+      //ch->player.time.birth -= (mod * SECS_PER_MUD_YEAR);
+      break;
     case APPLY_CLASS:
       break;
     case APPLY_LEVEL:
@@ -326,7 +325,7 @@ void reset_char_points(struct char_data *ch) {
  * restoring original abilities, and then affecting all again. */
 void affect_total(struct char_data *ch) {
   struct affected_type *af;
-  int i, j;
+  int i, j, armor = 100;
 
   /* subtract affects with gear */
   for (i = 0; i < NUM_WEARS; i++) {
@@ -337,6 +336,9 @@ void affect_total(struct char_data *ch) {
               GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
   }
 
+  /* any stats that are not an APPLY_ need to be stored */
+  armor = GET_AC(ch);
+
   /* modify affects based on 'nekked' char */
   for (af = ch->affected; af; af = af->next)
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
@@ -345,6 +347,9 @@ void affect_total(struct char_data *ch) {
   ch->aff_abils = ch->real_abils;
   reset_char_points(ch);
 
+  /* restore stored stats */
+  GET_AC(ch) = armor;
+  
   /* add gear back on */
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i))
