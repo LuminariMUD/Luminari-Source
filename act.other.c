@@ -36,6 +36,7 @@
 #include "clan.h"
 #include "mud_event.h"
 #include "craft.h"
+#include "treasure.h"
 
 /* Local defined utility functions */
 /* do_group utility functions */
@@ -2422,7 +2423,7 @@ ACMD(do_diplomacy) {
 }
 
 void show_happyhour(struct char_data *ch) {
-  char happyexp[80], happygold[80], happyqp[80];
+  char happyexp[80], happygold[80], happyqp[80], happytreasure[80];
   int secs_left;
 
   if ((IS_HAPPYHOUR) || (GET_LEVEL(ch) >= LVL_GRSTAFF)) {
@@ -2434,12 +2435,14 @@ void show_happyhour(struct char_data *ch) {
     sprintf(happyqp, "%s+%d%%%s to Questpoints per quest\r\n", CCYEL(ch, C_NRM), HAPPY_QP, CCNRM(ch, C_NRM));
     sprintf(happygold, "%s+%d%%%s to Gold gained per kill\r\n", CCYEL(ch, C_NRM), HAPPY_GOLD, CCNRM(ch, C_NRM));
     sprintf(happyexp, "%s+%d%%%s to Experience per kill\r\n", CCYEL(ch, C_NRM), HAPPY_EXP, CCNRM(ch, C_NRM));
+    sprintf(happytreasure, "%s+%d%%%s to Treasure Drop rate\r\n", CCYEL(ch, C_NRM), HAPPY_EXP, CCNRM(ch, C_NRM));
 
     send_to_char(ch, "LuminariMUD Happy Hour!\r\n"
             "------------------\r\n"
             "%s%s%sTime Remaining: %s%d%s hours %s%d%s mins %s%d%s secs\r\n",
             (IS_HAPPYEXP || (GET_LEVEL(ch) >= LVL_STAFF)) ? happyexp : "",
             (IS_HAPPYGOLD || (GET_LEVEL(ch) >= LVL_STAFF)) ? happygold : "",
+            (IS_HAPPYTREASURE || (GET_LEVEL(ch) >= LVL_STAFF)) ? happygold : "",
             (IS_HAPPYQP || (GET_LEVEL(ch) >= LVL_STAFF)) ? happyqp : "",
             CCYEL(ch, C_NRM), (secs_left / 3600), CCNRM(ch, C_NRM),
             CCYEL(ch, C_NRM), (secs_left % 3600) / 60, CCNRM(ch, C_NRM),
@@ -2465,6 +2468,10 @@ ACMD(do_happyhour) {
     num = MIN(MAX((atoi(val)), 0), 1000);
     HAPPY_EXP = num;
     send_to_char(ch, "Happy Hour Exp rate set to +%d%%\r\n", HAPPY_EXP);
+  } else if (is_abbrev(arg, "treasure")) {
+    num = MIN(MAX((atoi(val)), TREASURE_PERCENT + 1), 99 - TREASURE_PERCENT);
+    HAPPY_TREASURE = num;
+    send_to_char(ch, "Happy Hour Treasure drop-rate set to +%d%%\r\n", HAPPY_EXP);
   } else if ((is_abbrev(arg, "gold")) || (is_abbrev(arg, "coins"))) {
     num = MIN(MAX((atoi(val)), 0), 1000);
     HAPPY_GOLD = num;
@@ -2492,19 +2499,23 @@ ACMD(do_happyhour) {
     HAPPY_EXP = 100;
     HAPPY_GOLD = 50;
     HAPPY_QP = 50;
+    HAPPY_TREASURE = 30;
     HAPPY_TIME = 48;
     game_info("A Happyhour has started!");
   } else {
-    send_to_char(ch, "Usage: %shappyhour              %s- show usage (this info)\r\n"
-            "       %shappyhour show         %s- display current settings (what mortals see)\r\n"
-            "       %shappyhour time <ticks> %s- set happyhour time and start timer\r\n"
-            "       %shappyhour qp <num>     %s- set qp percentage gain\r\n"
-            "       %shappyhour exp <num>    %s- set exp percentage gain\r\n"
-            "       %shappyhour gold <num>   %s- set gold percentage gain\r\n"
+    send_to_char(ch, 
+            "Usage: %shappyhour                 %s- show usage (this info)\r\n"
+            "       %shappyhour show            %s- display current settings (what mortals see)\r\n"
+            "       %shappyhour time <ticks>    %s- set happyhour time and start timer\r\n"
+            "       %shappyhour qp <num>        %s- set qp percentage gain\r\n"
+            "       %shappyhour exp <num>       %s- set exp percentage gain\r\n"
+            "       %shappyhour gold <num>      %s- set gold percentage gain\r\n"
+            "       %shappyhour treasure <num>  %s- set treasure drop-rate gain\r\n"
             "       \tyhappyhour default      \tw- sets a default setting for happyhour\r\n\r\n"
             "Configure the happyhour settings and start a happyhour.\r\n"
             "Currently 1 hour IRL = %d ticks\r\n"
             "If no number is specified, 0 (off) is assumed.\r\nThe command \tyhappyhour time\tn will therefore stop the happyhour timer.\r\n",
+            CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
             CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
             CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
             CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
