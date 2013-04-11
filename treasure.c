@@ -286,7 +286,7 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
       grade = GRADE_MUNDANE;
   }
 
-  if (dice(1, 100) <= TREASURE_PERCENT) {
+  if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE)) {
     award_magic_item(dice(1, 2), ch, level, grade);
     sprintf(buf, "\tYYou have found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_CHAR);
