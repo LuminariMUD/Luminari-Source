@@ -236,14 +236,18 @@ bool can_see_hidden(struct char_data *ch, const struct char_data *vict) {
    takes character structure and skillnum, based on chance, can
    increase skill permanently up to cap */
 /* some easy configure values, this is percent chance of a used
-   skill, such as bash increasing per use:  !rand_number(0, this)*/
-#define USE 150
+   skill, such as bash increasing per use:  !rand_number(0, this)
+ suggested:  75
+ */
+#define USE 50
 /* some easy configure values, this is percent chance of a skill
    that is passive, such as dodge increasing per use:
-   !rand_number(0, this)*/
-#define PASS 2000
-/* this define is for crafting skills, they increase much easier */
-#define C_SKILL 30
+   !rand_number(0, this)
+   suggested:  (500) */
+#define PASS 1000
+/* this define is for crafting skills, they increase much easier 
+ suggested:  (20) */
+#define C_SKILL 5
 
 void increase_skill(struct char_data *ch, int skillnum) {
   int notched = FALSE;
