@@ -1351,7 +1351,8 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate, s
         cont_row[j] = NULL;
       }
     if (cont_row[0]) { /* content list existing */
-      if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER) {
+      if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
+              GET_OBJ_TYPE(temp) == ITEM_QUIVER) {
         /* rem item ; fill ; equip again */
         temp = unequip_char(ch, locate - 1);
         temp->contains = NULL; /* should be empty - but who knows */
@@ -1379,7 +1380,8 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate, s
       }
 
     if (j == -locate && cont_row[j]) { /* content list existing */
-      if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER) {
+      if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
+              GET_OBJ_TYPE(temp) == ITEM_QUIVER) {
         /* take item ; fill ; give to char again */
         obj_from_char(temp);
         temp->contains = NULL;

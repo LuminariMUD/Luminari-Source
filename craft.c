@@ -839,7 +839,8 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
     return 1;
   }
 
-  if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER) {
+  if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER ||
+          GET_OBJ_TYPE(obj) == ITEM_QUIVER) {
     if (obj->contains) {
       send_to_char(ch, "You cannot restring bags that have items in them.\r\n");
       return 1;

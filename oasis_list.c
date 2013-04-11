@@ -192,6 +192,11 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                     QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
             break;
 
+          case ITEM_QUIVER:
+            tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s\r\n",
+                    QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
+            break;
+
           case ITEM_DRINKCON:
           case ITEM_FOUNTAIN:
             v2 = (obj_proto[num].obj_flags.value[3]);

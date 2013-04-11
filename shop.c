@@ -1710,6 +1710,9 @@ bool shopping_identify(char *arg, struct char_data *ch, struct char_data *keeper
         case ITEM_CONTAINER:
           send_to_char(ch, "Capacity: %d/%d\r\n", GET_OBJ_WEIGHT(obj), GET_OBJ_VAL(obj, 0));
           break;
+        case ITEM_QUIVER:
+          send_to_char(ch, "Capacity (only ammo): %d/%d\r\n", GET_OBJ_WEIGHT(obj), GET_OBJ_VAL(obj, 0));
+          break;
         case ITEM_DRINKCON:
         case ITEM_FOUNTAIN:
           send_to_char(ch, "Drinks: %d/%d\r\n", GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 0));
