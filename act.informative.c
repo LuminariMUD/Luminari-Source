@@ -759,7 +759,8 @@ static void look_in_obj(struct char_data *ch, char *arg) {
           (GET_OBJ_TYPE(obj) != ITEM_CONTAINER))
     send_to_char(ch, "There's nothing inside that!\r\n");
   else {
-    if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER) {
+    if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER ||
+            GET_OBJ_TYPE(obj) == ITEM_QUIVER) {
       if (OBJVAL_FLAGGED(obj, CONT_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
         send_to_char(ch, "It is closed.\r\n");
       else {
