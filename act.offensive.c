@@ -2576,7 +2576,7 @@ ACMD(do_charge) {
  * fire command, fires single arrow - checks can_fire_arrow()
  */
 ACMD(do_fire) {
-  struct char_data *vict = NULL;
+  struct char_data *vict = NULL, *tch = NULL;
   char arg1[MAX_INPUT_LENGTH] = { '\0' };
   char arg2[MAX_INPUT_LENGTH] = { '\0' };
   room_rnum room = NOWHERE;
@@ -2595,7 +2595,7 @@ ACMD(do_fire) {
   two_arguments(argument, arg1, arg2);
   
   if (!*arg2) {
-    room = ch->in_room;
+    room = IN_ROOM(ch);
   } else {
     direction = search_block(arg2, dirs, FALSE);
     if (direction < 0) {
@@ -2608,22 +2608,38 @@ ACMD(do_fire) {
     }
     room = EXIT(ch, direction)->to_room;
   }
+  
+  if (ROOM_FLAGGED(room, ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+  
   if (!*arg1) {
     send_to_char(ch, "Fire at who?\r\n");
     return;
   }
   
   /* a location has been found. */
-  original_loc = ch->in_room;
+  original_loc = IN_ROOM(ch);
   char_from_room(ch);
   char_to_room(ch, room);
   vict = get_char_room_vis(ch, arg1, NULL);
 
   /* check if the char is still there */
-  if (ch->in_room == room) {
+  if (IN_ROOM(ch) == room) {
     char_from_room(ch);
     char_to_room(ch, original_loc);
   }  
+  
+  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
+          NULL) {
+    if (IN_ROOM(tch) != IN_ROOM(vict))
+      continue;
+    if (vict == tch) {
+      vict = FIGHTING(vict);
+      break;
+    }
+  }
   
   if (!vict) {
     send_to_char(ch, "Fire at who?\r\n");
@@ -2639,6 +2655,8 @@ ACMD(do_fire) {
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);  // 2 in last arg indicates ranged
     if (IN_ROOM(ch) != IN_ROOM(vict))
       stop_fighting(ch);
+    else
+      FIRING(ch) = TRUE;      
     SET_WAIT(ch, PULSE_VIOLENCE);
   }
 }

@@ -2746,9 +2746,9 @@ int perform_attacks(struct char_data *ch, int mode) {
       }
       return 0;
     }
-  } else if (mode == 1 && can_fire_arrow(ch, TRUE))
+  } else if (mode == 1 && can_fire_arrow(ch, TRUE)) {
     return ranged_attacks;
-  else if (mode == 2 && can_fire_arrow(ch, TRUE)) {
+  } else if (mode == 2 && can_fire_arrow(ch, TRUE)) {
     while (ranged_attacks > 0) {
       send_to_char(ch, "Ranged Attack Bonus:  %d; ",
               compute_bab(ch, ch, 0) + penalty);
@@ -2877,7 +2877,7 @@ int perform_attacks(struct char_data *ch, int mode) {
     }
   }
 
-  return numAttacks++;
+  return numAttacks;
 }
 #undef ATTACK_CAP
 #undef MONK_CAP
