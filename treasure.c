@@ -288,7 +288,7 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
   }
 
   if (dice(1, 100) <= TREASURE_PERCENT) {
-    award_magic_item(1, ch, level, grade);
+    award_magic_item(dice(1, 2), ch, level, grade);
     sprintf(buf, "\tYYou have found %d coins on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_CHAR);
     sprintf(buf, "$n \tYhas has found %d coins on $N's corpse!\tn", gold);
@@ -302,6 +302,12 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
 /* character should get treasure, roll dice for what items to give out */
 void award_magic_item(int number, struct char_data *ch, int level, int grade) {
   int i = 0;
+  
+  if (number <= 0)
+    number = 1;
+  
+  if (number >= 99)
+    number = 99;
 
   for (i = 0; i < number; i++) {
     if (dice(1, 100) <= 40)
@@ -419,7 +425,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
   int class = CLASS_UNDEFINED, spell_level = 1, spell_num = SPELL_RESERVED_DBC;
   int color1 = 0, color2 = 0, desc = 0, roll = dice(1, 100), i = 0;
   struct obj_data *obj = NULL;
-  char keywords[100] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
+  char keywords[MEDIUM_STRING] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
 
   /* first determine which class the scroll will be,
    then determine what level spell the scroll will be */
@@ -469,8 +475,13 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
      - does not match class
      - does not match level
    */
+  int loop_counter = 0;  // just in case
   do {
     spell_num = rand_number(1, NUM_SPELLS - 1);
+    loop_counter++;
+    
+    if (loop_counter >= 999)
+      return;
   } while (spell_level < spell_info[spell_num].min_level[class] ||
           !valid_item_spell(spell_num));
 
@@ -1977,10 +1988,10 @@ ACMD(do_loadmagic) {
   if (*arg2)
     number = atoi(arg2);
   
-  if (number < 0)
+  if (number <= 0)
     number = 1;
   
-  if (number > 99)
+  if (number >= 99)
     number = 99;
   
   award_magic_item(number, ch, GET_LEVEL(ch), grade);
