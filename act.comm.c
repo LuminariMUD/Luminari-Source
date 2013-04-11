@@ -567,6 +567,12 @@ ACMD(do_gen_comm)
 
   /* skip leading spaces */
   skip_spaces(&argument);
+  
+  /* animals can't speak */
+  if (IS_ANIMAL(ch)) {
+    send_to_char(ch, "You can't speak!\r\n");
+    return;
+  }
 
   /* Make sure that there is something there to say! */
   if (!*argument) {
