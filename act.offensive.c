@@ -2707,7 +2707,7 @@ ACMD(do_collect) {
       for (cobj = obj->contains; cobj; cobj = next_obj) {
         next_obj = cobj->next_content;
         if (GET_OBJ_TYPE(cobj) == ITEM_MISSILE &&
-                GET_OBJ_VAL(cobj, 3) == GET_IDNUM(ch)) {
+                MISSILE_ID(cobj) == GET_IDNUM(ch)) {
           if (num_obj_in_obj(quiver) < GET_OBJ_VAL(quiver, 0)) {
             obj_from_obj(cobj);
             obj_to_obj(cobj, quiver);
@@ -2722,7 +2722,7 @@ ACMD(do_collect) {
 
       /* checking room for ammo */
     } else if (GET_OBJ_TYPE(obj) == ITEM_MISSILE &&
-            GET_OBJ_VAL(obj, 3) == GET_IDNUM(ch)) {
+            MISSILE_ID(obj) == GET_IDNUM(ch)) {
       if (num_obj_in_obj(quiver) < GET_OBJ_VAL(quiver, 0)) {
         obj_from_room(obj);
         obj_to_obj(obj, quiver);

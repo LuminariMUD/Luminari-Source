@@ -833,6 +833,22 @@ ASPELL(spell_identify) // divination
         send_to_char(ch, "Weapon Type: %s\r\n", attack_hit_text[GET_OBJ_VAL(obj, 3)].singular);
         send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
         break;
+      case ITEM_MISSILE:
+        send_to_char(ch, 
+                "Type:                   %s\r\n"
+                "Damage:                 %d\r\n"
+                "Breaking Probability:   %d percent\r\n", 
+                ranged_missiles[GET_OBJ_VAL(obj, 0)], GET_OBJ_VAL(obj, 1), 
+                GET_OBJ_VAL(obj, 2));
+        break;
+      case ITEM_FIREWEAPON:
+        send_to_char(ch, 
+                "Type:                   %s\r\n"
+                "Damage:                 %d\r\n"
+                "Breaking Probability:   %d percent\r\n", 
+                ranged_weapons[GET_OBJ_VAL(obj, 0)], GET_OBJ_VAL(obj, 1),
+                GET_OBJ_VAL(obj, 2));
+        break;
       case ITEM_ARMOR:
         send_to_char(ch, "AC-apply is %d\r\n", GET_OBJ_VAL(obj, 0));
         send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);

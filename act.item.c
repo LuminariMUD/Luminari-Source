@@ -51,13 +51,26 @@ static int hands_available(struct char_data *ch);
 static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
 
 static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_data *cont) {
-
+  char buf[MEDIUM_STRING] = { '\0' };
+  
   if (!drop_otrigger(obj, ch))
     return;
 
   if (!obj) /* object might be extracted by drop_otrigger */
     return;
 
+  if (GET_OBJ_TYPE(cont) == ITEM_QUIVER && GET_OBJ_TYPE(obj) != ITEM_MISSILE) {
+    act("You can only put ammo into $P.", FALSE, ch, obj, cont, TO_CHAR);
+    return;
+  }
+
+  if (GET_OBJ_TYPE(cont) == ITEM_QUIVER && 
+          GET_OBJ_VAL(cont, 0) <= num_obj_in_obj(cont)) {
+    sprintf(buf, "You can only fit %d $p into $P.", GET_OBJ_VAL(cont, 0));
+    act(buf, FALSE, ch, obj, cont, TO_CHAR);
+    return;
+  }
+  
   if ((GET_OBJ_VAL(cont, 0) > 0) &&
           (GET_OBJ_WEIGHT(cont) + GET_OBJ_WEIGHT(obj) > GET_OBJ_VAL(cont, 0)))
     act("$p won't fit in $P.", FALSE, ch, obj, cont, TO_CHAR);
@@ -1307,6 +1320,22 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where) 
 
     {"$n places $p on $s face.",
       "You place $p on your face."},
+      
+    {"$n straps $p on $s back.",
+      "You strap $p on your back."},
+      
+    {"$n attaches $p to $s ear.",
+      "You attach $p to your ear."},
+
+    {"$n attaches $p to $s ear.",
+      "You attach $p to your ear."},
+      
+    {"$n covers $s eye(s) with $p.",
+      "You cover your eye(s) with $p."},
+      
+    {"$n wears $p as a badge.",
+      "You wear $p as a badge."},
+      
   };
 
   act(wear_messages[where][0], TRUE, ch, obj, 0, TO_ROOM);
@@ -1384,10 +1413,11 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
     ITEM_WEAR_FEET, ITEM_WEAR_HANDS, ITEM_WEAR_ARMS, ITEM_WEAR_SHIELD,
     ITEM_WEAR_ABOUT, ITEM_WEAR_WAIST, ITEM_WEAR_WRIST, ITEM_WEAR_WRIST,
     ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_WIELD, ITEM_WEAR_TAKE,
-    ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_FACE
+    ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_FACE, ITEM_WEAR_QUIVER,
+    ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE
   };
 
-  const char *already_wearing[] = {
+  const char *already_wearing[NUM_WEARS] = {
     "You're already using a light.\r\n", //0
     "YOU SHOULD NEVER SEE THIS MESSAGE.  PLEASE REPORT.\r\n", //1
     "You're already wearing something on both of your ring fingers.\r\n", //2
@@ -1411,6 +1441,11 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
     "Your hands are full.\r\n", //20
     "Your hands are full.\r\n", //21
     "You are already wearing something on your face.\r\n"
+    "You are already wearing an ammo pouch.\r\n"
+    "YOU SHOULD NEVER SEE THIS MESSAGE.  PLEASE REPORT.\r\n",
+    "You are already wearing an item on each ear.\r\n"  //25
+    "You are already wearing something on your eyes.\r\n"
+    "You are already wearing a badge.\r\n"
   };
 
   /* first, make sure that the wear position is valid. */
@@ -1494,28 +1529,37 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
 int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg) {
   int where = -1;
 
-  const char *keywords[] = {
-    "!RESERVED!",
+  /* this is lined up with equipment_types, it SHOULD be lined
+   up with wear_bits probably, but not changing the status quo */
+  const char *keywords[NUM_WEARS + 1] = {
+    "!RESERVED!",  //0 (light)
     "finger",
-    "!RESERVED!",
+    "!RESERVED!",  // (2nd finger)
     "neck",
-    "!RESERVED!",
-    "body",
+    "!RESERVED!",  // (2nd neck)
+    "body",  //5
     "head",
     "legs",
     "feet",
     "hands",
-    "arms",
+    "arms",  //10
     "shield",
     "about",
     "waist",
     "wrist",
-    "!RESERVED!",
-    "!RESERVED!",
-    "!RESERVED!",
-    "!RESERVED!",
-    "!RESERVED!",
+    "!RESERVED!",  //15 (2nd wrist)
+    "!RESERVED!",  // (wielded)
+    "!RESERVED!",  // (held)
+    "!RESERVED!",  // (wielded offhand)
+    "!RESERVED!",  // (held offhand)
+    "!RESERVED!",  //20 (wielded twohanded)
+    "!RESERVED!",  // (held twohanded)
     "face",
+    "quiver",
+    "ear",
+    "!RESERVED!",  //25
+    "eyes",
+    "badge",
     "\n"
   };
 
@@ -1533,6 +1577,10 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg) {
     if (CAN_WEAR(obj, ITEM_WEAR_WAIST)) where = WEAR_WAIST;
     if (CAN_WEAR(obj, ITEM_WEAR_WRIST)) where = WEAR_WRIST_R;
     if (CAN_WEAR(obj, ITEM_WEAR_FACE)) where = WEAR_FACE;
+    if (CAN_WEAR(obj, ITEM_WEAR_QUIVER)) where = WEAR_QUIVER;
+    if (CAN_WEAR(obj, ITEM_WEAR_EAR)) where = WEAR_EAR_R;
+    if (CAN_WEAR(obj, ITEM_WEAR_EYES)) where = WEAR_EYES;
+    if (CAN_WEAR(obj, ITEM_WEAR_BADGE)) where = WEAR_BADGE;
   } else if ((where = search_block(arg, keywords, FALSE)) < 0)
     send_to_char(ch, "'%s'?  What part of your body is THAT?\r\n", arg);
 
