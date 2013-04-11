@@ -32,7 +32,9 @@
 #include "clan.h"
 #include "treasure.h"
 
-/* locally defined global variables, used externally */
+/* local global */
+struct obj_data *last_missile = NULL;
+
 
 /* head of l-list of fighting chars */
 struct char_data *combat_list = NULL;
@@ -907,7 +909,9 @@ static char *replace_string(const char *str, const char *weapon_singular,
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
         int w_type, int offhand) {
   char *buf = NULL;
+  char buf2[MEDIUM_STRING] = { '\0' };
   int msgnum = -1, hp = 0, pct = 0;
+  bool is_ranged = FALSE;
 
   hp = GET_HIT(victim);
   if (GET_HIT(victim) < 1)
@@ -1028,16 +1032,26 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   else if (pct <= 50) msgnum = 12;
   else msgnum = 13;
 
+  if (offhand == 2 && last_missile) { // ranged
+    send_to_char(ch, "You fire %s:  ", last_missile->short_description);
+    sprintf(buf2, "WHIZZ, $n fires %s:  ", last_missile->short_description);
+    is_ranged = TRUE;
+  }
+  
   /* damage message to onlookers */
   // note, we may have to add more info if we have some way to attack
   // someone that isn't in your room - zusuk
   buf = replace_string(dam_weapons[msgnum].to_room,
           attack_hit_text[w_type].singular, attack_hit_text[w_type].plural), dam;
+  if (is_ranged)
+    sprintf(buf, "%s%s", buf2, buf);
   act(buf, FALSE, ch, NULL, victim, TO_NOTVICT);
 
   /* damage message to damager */
   buf = replace_string(dam_weapons[msgnum].to_char,
           attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
+  if (is_ranged)
+    sprintf(buf, "%s%s", buf2, buf);
   act(buf, FALSE, ch, NULL, victim, TO_CHAR);
   send_to_char(ch, CCNRM(ch, C_CMP));
 
@@ -2341,7 +2355,9 @@ void hit(struct char_data *ch, struct char_data *victim,
   if (offhand == 2) {
     is_ranged = TRUE; // just nicer variable to use for readability
     if (quiver)
-      missile = quiver->contains;
+      /* last_missile is a global variable used in case we want
+       the missile name or whatnot outside of the function */
+      last_missile = missile = quiver->contains;
     if (!missile) {
       send_to_char(ch, "You have no ammo!\r\n");
       return;
