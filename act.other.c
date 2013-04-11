@@ -2435,7 +2435,7 @@ void show_happyhour(struct char_data *ch) {
     sprintf(happyqp, "%s+%d%%%s to Questpoints per quest\r\n", CCYEL(ch, C_NRM), HAPPY_QP, CCNRM(ch, C_NRM));
     sprintf(happygold, "%s+%d%%%s to Gold gained per kill\r\n", CCYEL(ch, C_NRM), HAPPY_GOLD, CCNRM(ch, C_NRM));
     sprintf(happyexp, "%s+%d%%%s to Experience per kill\r\n", CCYEL(ch, C_NRM), HAPPY_EXP, CCNRM(ch, C_NRM));
-    sprintf(happytreasure, "%s+%d%%%s to Treasure Drop rate\r\n", CCYEL(ch, C_NRM), HAPPY_EXP, CCNRM(ch, C_NRM));
+    sprintf(happytreasure, "%s+%d%%%s to Treasure Drop rate\r\n", CCYEL(ch, C_NRM), HAPPY_TREASURE, CCNRM(ch, C_NRM));
 
     send_to_char(ch, "LuminariMUD Happy Hour!\r\n"
             "------------------\r\n"
@@ -2471,7 +2471,8 @@ ACMD(do_happyhour) {
   } else if (is_abbrev(arg, "treasure")) {
     num = MIN(MAX((atoi(val)), TREASURE_PERCENT + 1), 99 - TREASURE_PERCENT);
     HAPPY_TREASURE = num;
-    send_to_char(ch, "Happy Hour Treasure drop-rate set to +%d%%\r\n", HAPPY_EXP);
+    send_to_char(ch, "Happy Hour Treasure drop-rate set to +%d%%\r\n", 
+            HAPPY_TREASURE);
   } else if ((is_abbrev(arg, "gold")) || (is_abbrev(arg, "coins"))) {
     num = MIN(MAX((atoi(val)), 0), 1000);
     HAPPY_GOLD = num;
