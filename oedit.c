@@ -461,6 +461,34 @@ static void oedit_disp_portaltypes_menu(struct descriptor_data *d) {
   write_to_output(d, "\r\nEnter portal type : ");
 }
 
+/* ranged combat, weapon-type (like bow vs crossbow) */
+static void oedit_disp_ranged_menu(struct descriptor_data *d) {
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 0; counter < NUM_RANGED_WEAPONS; counter++) {
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm,
+            ranged_weapons[counter], !(++columns % 2) ? "\r\n" : "");
+  }
+  write_to_output(d, "\r\nEnter ranged-weapon type : ");
+}
+
+/* ranged combat, missile-type (like arrow vs bolt) */
+static void oedit_disp_missile_menu(struct descriptor_data *d) {
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 0; counter < NUM_RANGED_MISSILES; counter++) {
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm,
+            ranged_missiles[counter], !(++columns % 2) ? "\r\n" : "");
+  }
+  write_to_output(d, "\r\nEnter missile-weapon type : ");
+}
+
 /* Spell type. */
 static void oedit_disp_spells_menu(struct descriptor_data *d) {
   int counter, columns = 0;
@@ -498,6 +526,7 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
       write_to_output(d, "Apply to AC : ");
       break;
     case ITEM_CONTAINER:
+    case ITEM_QUIVER:
       write_to_output(d, "Max weight to contain (-1 for unlimited) : ");
       break;
     case ITEM_DRINKCON:
@@ -516,9 +545,13 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
     case ITEM_FURNITURE:
       write_to_output(d, "Number of people it can hold : ");
       break;
+    case ITEM_FIREWEAPON:
+      oedit_disp_ranged_menu(d);
+      break;
+    case ITEM_MISSILE:
+      oedit_disp_missile_menu(d);
+      break;
     case ITEM_BOAT: // these object types have no 'values' so go back to menu
-    case ITEM_FIREWEAPON: /* Not implemented, but should be handled here */
-    case ITEM_MISSILE: /* Not implemented, but should be handled here */
     case ITEM_KEY:
     case ITEM_NOTE:
     case ITEM_OTHER:
@@ -550,11 +583,18 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
     case ITEM_WEAPON:
       write_to_output(d, "Number of damage dice : ");
       break;
+    case ITEM_FIREWEAPON:
+      write_to_output(d, "Number of damage dice : ");
+      break;
+    case ITEM_MISSILE:
+      write_to_output(d, "Size of damage dice : ");
+      break;
     case ITEM_FOOD:
       write_to_output(d, "Spell number (0 for none) : ");
       /* Values 2 and 3 are unused, jump to 4...Odd. */
       //    oedit_disp_val4_menu(d);
       break;
+    case ITEM_QUIVER:
     case ITEM_CONTAINER:
       /* These are flags, needs a bit of special handling. */
       oedit_disp_container_flags_menu(d);
@@ -611,7 +651,14 @@ static void oedit_disp_val3_menu(struct descriptor_data *d) {
     case ITEM_WEAPON:
       write_to_output(d, "Size of damage dice : ");
       break;
+    case ITEM_FIREWEAPON:
+      write_to_output(d, "Breaking probability : ");
+      break;
+    case ITEM_MISSILE:
+      write_to_output(d, "Breaking probability : ");
+      break;
     case ITEM_CONTAINER:
+    case ITEM_QUIVER:
       write_to_output(d, "Vnum of key to open container (-1 for no key) : ");
       break;
     case ITEM_DRINKCON:
@@ -647,6 +694,9 @@ static void oedit_disp_val4_menu(struct descriptor_data *d) {
       oedit_disp_spells_menu(d);
       break;
     case ITEM_WEAPON:
+      oedit_disp_weapon_menu(d);
+      break;
+    case ITEM_MISSILE:
       oedit_disp_weapon_menu(d);
       break;
     case ITEM_DRINKCON:
@@ -1167,9 +1217,16 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           }
           break;
         case ITEM_WEAPON:
-          GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), -50), 50);
+          //GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), -50), 50);
+          break;
+        case ITEM_FIREWEAPON:
+          GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_WEAPONS - 1);
+          break;
+        case ITEM_MISSILE:
+          GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_MISSILES - 1);
           break;
         case ITEM_CONTAINER:
+        case ITEM_QUIVER:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), -1, MAX_CONTAINER_SIZE);
           break;
         default:
@@ -1192,6 +1249,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           oedit_disp_val3_menu(d);
           break;
         case ITEM_CONTAINER:
+        case ITEM_QUIVER:
           /* Needs some special handling since we are dealing with flag values here. */
           if (number < 0 || number > 4)
             oedit_disp_container_flags_menu(d);
@@ -1204,6 +1262,14 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           break;
         case ITEM_WEAPON:
           GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, MAX_WEAPON_NDICE);
+          oedit_disp_val3_menu(d);
+          break;
+        case ITEM_FIREWEAPON:
+          GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, MAX_WEAPON_NDICE);
+          oedit_disp_val3_menu(d);
+          break;
+        case ITEM_MISSILE:
+          GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, MAX_WEAPON_SDICE);
           oedit_disp_val3_menu(d);
           break;
         case ITEM_CLANARMOR:
@@ -1233,6 +1299,14 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case ITEM_WEAPON:
           min_val = 1;
           max_val = MAX_WEAPON_SDICE;
+          break;
+        case ITEM_FIREWEAPON:
+          min_val = 2;
+          max_val = 98;
+          break;
+        case ITEM_MISSILE:
+          min_val = 2;
+          max_val = 98;
           break;
         case ITEM_WAND:
         case ITEM_STAFF:
@@ -1276,6 +1350,14 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           max_val = NUM_SPELLS;
           break;
         case ITEM_WEAPON:
+          min_val = 0;
+          max_val = NUM_ATTACK_TYPES - 1;
+          break;
+        case ITEM_FIREWEAPON:
+          min_val = 0;
+          max_val = NUM_ATTACK_TYPES - 1;
+          break;
+        case ITEM_MISSILE:
           min_val = 0;
           max_val = NUM_ATTACK_TYPES - 1;
           break;

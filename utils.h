@@ -970,6 +970,9 @@ do                                                              \
 /** Get obj worn in position i on ch. */
 #define GET_EQ(ch, i)		((ch)->equipment[i])
 
+/* ranged-combat:  missiles */
+#define MISSILE_ID(obj)          ((obj)->missile_id)
+
 // weapon spells
 #define HAS_SPELLS(obj)			((obj)->has_spells)
 #define GET_WEAPON_SPELL(obj, i)	((obj)->wpn_spells[i].spellnum)

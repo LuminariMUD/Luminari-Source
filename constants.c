@@ -32,6 +32,19 @@ cpp_extern const char *tbamud_version = "LuminariMUD 1.37 (tbaMUD 3.64)";
 /* (Note: strings for class definitions in class.c instead of here) */
 
 
+/* ranged weapon types (bows, etc) */
+const char *ranged_weapons[NUM_RANGED_WEAPONS + 1] = {
+  "bow",
+  "crossbow",
+  "\n"  
+};
+
+/* ranged weapon missiles (arrows, etc) */
+const char *ranged_missiles[NUM_RANGED_MISSILES + 1] = {
+  "arrow",
+  "bolt",
+  "\n"    
+};
 
 /* note - in utils.c there are two functions for alignment as well 
  * char *get_align_by_num(int align)
@@ -49,7 +62,6 @@ const char *alignment_names[NUM_ALIGNMENTS + 1] = {
   "\tRChaotic \tDEvil\tn",
   "\n"
 };
-
 
 /* structure for immortal prefix */
 const char *admin_level_names[LVL_IMPL - LVL_IMMORT + 2] = {
@@ -587,7 +599,7 @@ const char *wear_where[NUM_WEARS] = {
   /* todo */
   "\tY{Worn As Quiver}\tn     ",
   "\tY{Worn In Ear}\tn        ",
-  "\tY{Worn In Ear}\tn        ",
+  "\tY{Worn In Ear}\tn        ",  //25
   "\tY{Worn On Eyes}\tn       ",
   "\tY{Worn As Badge}\tn      ",
 };
@@ -596,33 +608,33 @@ const char *wear_where[NUM_WEARS] = {
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *equipment_types[NUM_WEARS + 1] = {
-  "Used as light",
+  "Used as light",  //0
   "Worn on right finger",
   "Worn on left finger",
   "First worn around Neck",
   "Second worn around Neck",
-  "Worn on body",
+  "Worn on body",  //5
   "Worn on head",
   "Worn on legs",
   "Worn on feet",
   "Worn on hands",
-  "Worn on arms",
+  "Worn on arms",  //10
   "Worn as shield",
   "Worn about body",
   "Worn around waist",
   "Worn around right wrist",
-  "Worn around left wrist",
+  "Worn around left wrist",  //15
   "Wielded",
   "Held",
   "Wielded offhand",
   "Held offhand",
-  "Wielded twohands",
+  "Wielded twohands",  //20
   "Held twohands",
   "Worn on face",
   /* todo */
   "Worn as quiver",
   "Worn in right ear",
-  "Worn in left ear",
+  "Worn in left ear",  //25
   "Worn on eyes",
   "Worn as badge",
   "\n"

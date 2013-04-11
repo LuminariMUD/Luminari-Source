@@ -793,6 +793,18 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAR_TAIL      27
 */
 
+/* ranged combat */
+#define RANGED_BOW           0
+#define RANGED_CROSSBOW      1
+/**/
+#define NUM_RANGED_WEAPONS   2
+
+/* ranged combat */
+#define MISSILE_ARROW         0
+#define MISSILE_BOLT          1
+/**/
+#define NUM_RANGED_MISSILES   2
+
 /* object-related defines */
 /* Item types: used by obj_data.obj_flags.type_flag */
 #define ITEM_LIGHT      1		/**< Item is a light source	*/
@@ -1405,6 +1417,8 @@ struct obj_data {
   struct obj_spellbook_spell *sbinfo; /* For spellbook info */
   
   struct list_data *events;      /**< Used for object events */  
+  
+  long missile_id;  //non saving variable to id missiles
 };
 
 /** Instance info for an object that gets saved to disk.

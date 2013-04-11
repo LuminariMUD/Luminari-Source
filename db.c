@@ -2049,7 +2049,7 @@ char *parse_object(FILE *obj_f, int nr) {
 
   clear_object(obj_proto + i);
   obj_proto[i].item_number = i;
-
+  
   sprintf(buf2, "object #%d", nr); /* sprintf: OK (for 'buf2 >= 19') */
 
   /* string data */
@@ -3881,6 +3881,7 @@ void clear_object(struct obj_data *obj) {
   IN_ROOM(obj) = NOWHERE;
   obj->worn_on = NOWHERE;
   GET_OBJ_SIZE(obj) = SIZE_MEDIUM;
+  MISSILE_ID(obj) = 0;
 }
 
 /* Called during character creation after picking character class (and then

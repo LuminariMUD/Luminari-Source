@@ -1951,6 +1951,16 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { //weapon
     diceOne = GET_OBJ_VAL(wielded, 1);
     diceTwo = GET_OBJ_VAL(wielded, 2);
+  } else if (mode == 4 && can_fire_arrow(ch, TRUE)) {  //ranged info
+    struct obj_data *obj = GET_EQ(ch, WEAR_WIELD_2H);
+    struct obj_data *quiver = GET_EQ(ch, WEAR_QUIVER);
+
+    if (!obj)
+      obj = GET_EQ(ch, WEAR_WIELD_1);
+
+    show_obj_to_char(obj, ch, SHOW_OBJ_SHORT, 0);
+    diceOne = GET_OBJ_VAL(obj, 1);
+    diceTwo = GET_OBJ_VAL(quiver->contains, 1);
   } else { //barehand
     if (IS_NPC(ch)) {
       diceOne = ch->mob_specials.damnodice;
@@ -1992,7 +2002,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       }
     }
   }
-  if (mode == 2 || mode == 3) {
+  if (mode == 2 || mode == 3 || mode == 4) {
     send_to_char(ch, "Damage Dice:  %dD%d, ", diceOne, diceTwo);
   }
 
@@ -2043,7 +2053,7 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
     }
 
     /* this is the display mode */
-  } else if (mode == 2 || mode == 3) {
+  } else if (mode == 2 || mode == 3 || mode == 4) {
     send_to_char(ch, "Other Bonuses:  ");
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DIRTY_FIGHTING))
       send_to_char(ch, "[DF] ");
@@ -2062,6 +2072,7 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
 //mode = 0	Normal damage calculating in hit()
 //mode = 2	Display damage info primary
 //mode = 3	Display damage info offhand
+//mode = 4     Display damage info ranged
 
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         struct obj_data *wielded, int w_type, int diceroll, int mode) {
@@ -2103,11 +2114,14 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
     /* calculate damage with either mainhand (2) or offhand (3)
        weapon for _display_ purposes */
-  } else if (mode == 2 || mode == 3) {
+  } else if (mode == 2 || mode == 3 || mode == 4) {
     /* calculate dice */
     dam = compute_dam_dice(ch, ch, NULL, mode);
     /* modifiers to melee damage */
     dam += compute_damage_bonus(ch, ch, 0, 0, mode);
+    /* ranged combat -> mode = 4 */
+    if (mode == 4)
+      dam -= GET_STR_BONUS(ch);
     /* throw in melee bonus such as dirty-fighting and critical */
     hit_dam_bonus(ch, ch, dam, 0, mode);
   }
@@ -2320,7 +2334,21 @@ void hit(struct char_data *ch, struct char_data *victim,
   char buf[DAM_MES_LENGTH] = {'\0'};
   char buf1[DAM_MES_LENGTH] = {'\0'};
   bool is_ranged = FALSE;
-
+  bool same_room = FALSE;
+  struct obj_data *quiver = GET_EQ(ch, WEAR_QUIVER);
+  struct obj_data *missile = NULL;
+    
+  // check if ranged attack
+  if (offhand == 2) {
+    is_ranged = TRUE;  // just nicer variable to use for readability
+    if (quiver)
+      missile = quiver->contains;
+    if (!missile) {
+      send_to_char(ch, "You have no ammo!\r\n");
+      return;
+    }
+  }
+  
   // primary hand setting
   if (GET_EQ(ch, WEAR_WIELD_2H))
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
@@ -2335,11 +2363,12 @@ void hit(struct char_data *ch, struct char_data *victim,
     return;
   }
 
-  if (offhand != 2 && IN_ROOM(ch) != IN_ROOM(victim)) { //same room?
+  if (!is_ranged && IN_ROOM(ch) != IN_ROOM(victim)) { //same room?
     if (FIGHTING(ch) && FIGHTING(ch) == victim)
       stop_fighting(ch);
     return;
-  }
+  } else if (IN_ROOM(ch) == IN_ROOM(victim))
+    same_room = TRUE;
 
   update_pos(ch);
   update_pos(victim); //valid positions?
@@ -2353,6 +2382,13 @@ void hit(struct char_data *ch, struct char_data *victim,
     return;
   }
   
+  /* ranged attack and victim in peace room */
+  if (ROOM_FLAGGED(IN_ROOM(victim), ROOM_PEACEFUL)) {
+    send_to_char(ch, "That room just has such a peaceful, easy feeling...\r\n");
+    stop_fighting(ch);
+    return;
+  }
+  
   /* single file rooms restriction */
   if (!FIGHTING(ch)) {
     if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE) &&
@@ -2361,34 +2397,36 @@ void hit(struct char_data *ch, struct char_data *victim,
   }
   
   if (victim != ch) {
-    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) // ch -> vict
+    if (same_room && GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) // ch -> vict
       set_fighting(ch, victim);
     // vict -> ch
     if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL)) {
-      set_fighting(victim, ch);
+      if (same_room)
+        set_fighting(victim, ch);
       if (MOB_FLAGGED(victim, MOB_MEMORY) && !IS_NPC(ch))
         remember(victim, ch);
     }
   }
 
-  // primary or offhand attack?
-  if (offhand == 2) {  // ranged-attack
-    wielded = NULL;
-    is_ranged = TRUE;
-    w_type = TYPE_ARROW;
+  // ranged, primary or offhand attack?  establish weapon type and wielded
+  if (is_ranged) {  // ranged-attack
+    if (!wielded)
+      wielded = GET_EQ(ch, WEAR_WIELD_1);
     /* ranged attacks don't get strength bonus */
     penalty -= GET_STR_BONUS(ch);
-  } else if (offhand)
+    w_type = GET_OBJ_VAL(missile, 3) + TYPE_HIT;
+  } else if (offhand) {
     wielded = GET_EQ(ch, WEAR_WIELD_2);
-  
-  if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
-    w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
-  else if (!w_type) {
+    w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;    
+  } else if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) {
+    w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;    
+  } else {
     if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
       w_type = ch->mob_specials.attack_type + TYPE_HIT;
     else
-      w_type = TYPE_HIT;
+      w_type = TYPE_HIT;    
   }
+  
 
   // attack rolls:  1 = stumble, 20 = crit
   calc_bab = compute_bab(ch, victim, w_type) + penalty;
@@ -2537,15 +2575,17 @@ void hit(struct char_data *ch, struct char_data *victim,
     }
 
     // damage inflicting shields, like fire shield
-    if (dam && victim && GET_HIT(victim) >= -1 &&
-            IS_AFFECTED(victim, AFF_CSHIELD)) { // cold shield
-      damage(victim, ch, dice(1, 6), SPELL_CSHIELD_DAM, DAM_COLD, offhand);
-    } else if (dam && victim && GET_HIT(victim) >= -1 &&
-            IS_AFFECTED(victim, AFF_FSHIELD)) { // fire shield
-      damage(victim, ch, dice(1, 6), SPELL_FSHIELD_DAM, DAM_FIRE, offhand);
-    } else if (dam && victim && GET_HIT(victim) >= -1 &&
-            IS_AFFECTED(victim, AFF_ASHIELD)) { // acid shield
-      damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, offhand);
+    if (offhand != 2) {
+      if (dam && victim && GET_HIT(victim) >= -1 &&
+              IS_AFFECTED(victim, AFF_CSHIELD)) { // cold shield
+        damage(victim, ch, dice(1, 6), SPELL_CSHIELD_DAM, DAM_COLD, offhand);
+      } else if (dam && victim && GET_HIT(victim) >= -1 &&
+              IS_AFFECTED(victim, AFF_FSHIELD)) { // fire shield
+        damage(victim, ch, dice(1, 6), SPELL_FSHIELD_DAM, DAM_FIRE, offhand);
+      } else if (dam && victim && GET_HIT(victim) >= -1 &&
+              IS_AFFECTED(victim, AFF_ASHIELD)) { // acid shield
+        damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, offhand);
+      }
     }
   }
 
@@ -2681,14 +2721,15 @@ int perform_attacks(struct char_data *ch, int mode) {
   if (FIRING(ch) && mode == 0) {
     if (is_tanking(ch)) {
       send_to_char(ch, "You are too busy defending yourself to fire any "
-              "arrows.\r\n");
+              "ammo.\r\n");
       FIRING(ch) = FALSE;
     } else {
       while (ranged_attacks > 0) {
-        if (can_fire_arrow(ch, FALSE) && FIGHTING(ch))
+        if (can_fire_arrow(ch, FALSE) && FIGHTING(ch)) {
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 penalty, 2);  // 2 in last arg indicates ranged
-        else if (FIGHTING(ch)) {
+          penalty -= 3;
+        } else if (FIGHTING(ch)) {
           send_to_char(ch, "\tWYou are out of ammunition!\tn\r\n");
           stop_fighting(ch);
           return 0;
@@ -2698,14 +2739,17 @@ int perform_attacks(struct char_data *ch, int mode) {
       }
       return 0;
     }
-  } else if (mode == 1)
+  } else if (mode == 1 && can_fire_arrow(ch, TRUE))
     return ranged_attacks;
-  else if (mode == 2) {
-    if (can_fire_arrow(ch, TRUE)) {
+  else if (mode == 2 && can_fire_arrow(ch, TRUE)) {
+    while (ranged_attacks > 0) {
       send_to_char(ch, "Ranged Attack Bonus:  %d; ",
               compute_bab(ch, ch, 0) + penalty);
-      compute_hit_damage(ch, ch, NULL, 0, 0, 2);      
+      compute_hit_damage(ch, ch, NULL, 0, 0, 4);
+      penalty -= 3;
+      ranged_attacks--;
     }
+    return 0;
   }
   
   //now lets determine base attack(s) and resulting possible penalty

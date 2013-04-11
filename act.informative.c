@@ -755,6 +755,7 @@ static void look_in_obj(struct char_data *ch, char *arg) {
     display_scroll(ch, obj);
   } else if ((GET_OBJ_TYPE(obj) != ITEM_DRINKCON) &&
           (GET_OBJ_TYPE(obj) != ITEM_FOUNTAIN) &&
+          (GET_OBJ_TYPE(obj) != ITEM_QUIVER) &&
           (GET_OBJ_TYPE(obj) != ITEM_CONTAINER))
     send_to_char(ch, "There's nothing inside that!\r\n");
   else {
@@ -1490,6 +1491,7 @@ ACMD(do_examine) {
   if (tmp_object) {
     if ((GET_OBJ_TYPE(tmp_object) == ITEM_DRINKCON) ||
             (GET_OBJ_TYPE(tmp_object) == ITEM_FOUNTAIN) ||
+            (GET_OBJ_TYPE(tmp_object) == ITEM_QUIVER) ||
             (GET_OBJ_TYPE(tmp_object) == ITEM_CONTAINER)) {
       send_to_char(ch, "When you look inside, you see:\r\n");
       look_in_obj(ch, arg);
