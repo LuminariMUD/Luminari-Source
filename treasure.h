@@ -32,7 +32,8 @@ extern const char *head_types[];
 
 /* defines */
 /* percentage chance of random treasure drop */
-#define TREASURE_PERCENT  100
+/* DO NOT MAKE OVER 98 (because of happyhour settings) */
+#define TREASURE_PERCENT  7
 
 /* array sizes for treasure_const.c */
 #define NUM_A_GEMSTONES       26

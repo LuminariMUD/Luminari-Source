@@ -1497,17 +1497,20 @@ do                                                              \
 #define IS_HAPPYQP   (happy_data.qp_rate > 0)
 #define IS_HAPPYEXP  (happy_data.exp_rate > 0)
 #define IS_HAPPYGOLD (happy_data.gold_rate > 0)
+#define IS_HAPPYTREASURE (happy_data.treasure_rate > 0)
 
 
 #define HAPPY_EXP    happy_data.exp_rate
 #define HAPPY_GOLD   happy_data.gold_rate
 #define HAPPY_QP     happy_data.qp_rate
+#define HAPPY_TREASURE     happy_data.treasure_rate
 
 
 #define HAPPY_TIME   happy_data.ticks_left
 
 
-#define IS_HAPPYHOUR ((IS_HAPPYEXP || IS_HAPPYGOLD || IS_HAPPYQP) && (HAPPY_TIME > 0))
+#define IS_HAPPYHOUR ((IS_HAPPYEXP || IS_HAPPYGOLD || IS_HAPPYQP || \
+                       IS_HAPPYTREASURE) && (HAPPY_TIME > 0))
 
 
 /* OS compatibility */

@@ -2020,6 +2020,7 @@ struct happyhour {
   int qp_rate;  // % increase in qp
   int exp_rate;  // % increase in exp
   int gold_rate;  // % increase in gold
+  int treasure_rate;  // % increase in treasure drop
   int ticks_left;  // time left for happyhour
 };
 

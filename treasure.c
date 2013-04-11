@@ -288,9 +288,9 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
 
   if (dice(1, 100) <= TREASURE_PERCENT) {
     award_magic_item(dice(1, 2), ch, level, grade);
-    sprintf(buf, "\tYYou have found %d coins on $N's corpse!\tn", gold);
+    sprintf(buf, "\tYYou have found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_CHAR);
-    sprintf(buf, "$n \tYhas has found %d coins on $N's corpse!\tn", gold);
+    sprintf(buf, "$n \tYhas has found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_NOTVICT);
     GET_GOLD(ch) += gold;
     /* does not split this gold, maybe change later */

@@ -422,6 +422,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           snprintf(str, slen, "%d", HAPPY_EXP);
         else if (!str_cmp(field, "gold") && IS_HAPPYHOUR)
           snprintf(str, slen, "%d", HAPPY_GOLD);
+        else if (!str_cmp(field, "treasure") && IS_HAPPYHOUR)
+          snprintf(str, slen, "%d", HAPPY_TREASURE);
         else snprintf(str, slen, "%d", HAPPY_TIME);
         return;
       } else if (!str_cmp(var, "time")) {
