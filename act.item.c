@@ -1361,8 +1361,8 @@ static int hands_have(struct char_data *ch) {
       num = 2;
       break;
   }
-  if (GET_LEVEL(ch) >= LVL_IMPL)
-    num = 4;
+  //if (GET_LEVEL(ch) >= LVL_IMPL)
+    //num = 4;
   return (num);
 }
 
