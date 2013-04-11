@@ -2439,10 +2439,10 @@ void show_happyhour(struct char_data *ch) {
 
     send_to_char(ch, "LuminariMUD Happy Hour!\r\n"
             "------------------\r\n"
-            "%s%s%sTime Remaining: %s%d%s hours %s%d%s mins %s%d%s secs\r\n",
+            "%s%s%s%sTime Remaining: %s%d%s hours %s%d%s mins %s%d%s secs\r\n",
             (IS_HAPPYEXP || (GET_LEVEL(ch) >= LVL_STAFF)) ? happyexp : "",
             (IS_HAPPYGOLD || (GET_LEVEL(ch) >= LVL_STAFF)) ? happygold : "",
-            (IS_HAPPYTREASURE || (GET_LEVEL(ch) >= LVL_STAFF)) ? happygold : "",
+            (IS_HAPPYTREASURE || (GET_LEVEL(ch) >= LVL_STAFF)) ? happytreasure : "",
             (IS_HAPPYQP || (GET_LEVEL(ch) >= LVL_STAFF)) ? happyqp : "",
             CCYEL(ch, C_NRM), (secs_left / 3600), CCNRM(ch, C_NRM),
             CCYEL(ch, C_NRM), (secs_left % 3600) / 60, CCNRM(ch, C_NRM),

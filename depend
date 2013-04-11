@@ -19,7 +19,8 @@ act.offensive.o: act.offensive.c conf.h sysdep.h structs.h protocol.h \
 act.other.o: act.other.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h screen.h \
  house.h constants.h dg_scripts.h act.h spec_procs.h class.h fight.h \
- mail.h shop.h quest.h modify.h clan.h mud_event.h dg_event.h craft.h
+ mail.h shop.h quest.h modify.h clan.h mud_event.h dg_event.h craft.h \
+ treasure.h
 act.social.o: act.social.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h screen.h spells.h \
  act.h
@@ -48,7 +49,7 @@ clan.o: clan.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  spells.h clan.h
 clan_edit.o: clan_edit.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h db.h screen.h genolc.h oasis.h improved-edit.h comm.h \
- interpreter.h modify.h clan.h
+ interpreter.h modify.h ibt.h clan.h
 class.o: class.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h spells.h interpreter.h constants.h act.h handler.h comm.h \
  mud_event.h dg_event.h
@@ -137,8 +138,9 @@ hedit.o: hedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h db.h boards.h oasis.h genolc.h genzon.h \
  handler.h improved-edit.h act.h hedit.h modify.h
 hlqedit.o: hlqedit.c conf.h sysdep.h structs.h protocol.h lists.h comm.h \
- utils.h race.h db.h boards.h oasis.h interpreter.h constants.h hlquest.h \
- spells.h class.h genzon.h genolc.h genmob.h improved-edit.h modify.h
+ utils.h race.h db.h boards.h handler.h oasis.h interpreter.h constants.h \
+ hlquest.h spells.h class.h genzon.h genolc.h genmob.h improved-edit.h \
+ modify.h
 hlquest.o: hlquest.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h handler.h db.h hlquest.h spells.h class.h \
  fight.h act.h constants.h mud_event.h dg_event.h
@@ -175,7 +177,7 @@ memorize.o: memorize.c conf.h sysdep.h structs.h protocol.h lists.h \
  constants.h act.h handler.h spec_procs.h
 mobact.o: mobact.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h interpreter.h handler.h spells.h constants.h act.h \
- graph.h fight.h spec_procs.h mud_event.h dg_event.h
+ graph.h fight.h spec_procs.h mud_event.h dg_event.h modify.h
 modify.o: modify.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h handler.h db.h comm.h spells.h mail.h boards.h \
  improved-edit.h oasis.h class.h dg_scripts.h modify.h quest.h ibt.h \
@@ -235,7 +237,8 @@ shop.o: shop.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h db.h interpreter.h shop.h genshp.h constants.h \
  act.h modify.h spells.h screen.h spec_procs.h
 spec_assign.o: spec_assign.c conf.h sysdep.h structs.h protocol.h lists.h \
- utils.h race.h db.h interpreter.h spec_procs.h ban.h boards.h mail.h
+ utils.h race.h db.h interpreter.h spec_procs.h spells.h ban.h boards.h \
+ mail.h
 spec_procs.o: spec_procs.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h constants.h \
  act.h spec_procs.h class.h fight.h modify.h house.h clan.h
