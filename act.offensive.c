@@ -2594,9 +2594,11 @@ ACMD(do_fire) {
   
   two_arguments(argument, arg1, arg2);
   
+  /* no 2nd argument?  target room has to be same room */
   if (!*arg2) {
     room = IN_ROOM(ch);
   } else {
+    /* try to find target room */
     direction = search_block(arg2, dirs, FALSE);
     if (direction < 0) {
       send_to_char(ch, "That is not a direction!\r\n");
@@ -2609,11 +2611,14 @@ ACMD(do_fire) {
     room = EXIT(ch, direction)->to_room;
   }
   
+  /* since we could possible no longer be in room, check if combat is ok
+   in new room */
   if (ROOM_FLAGGED(room, ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
   
+  /* no arguments?  no go! */
   if (!*arg1) {
     send_to_char(ch, "Fire at who?\r\n");
     return;
@@ -2636,6 +2641,7 @@ ACMD(do_fire) {
     return;
   }
 
+  /* if target is group member, we presume you meant to assist */
   if (GROUP(ch)) {
     while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
             NULL) {
@@ -2647,6 +2653,10 @@ ACMD(do_fire) {
       }
     }
   }
+  
+  /* maybe its your pet? */
+  if (IS_PET(vict) && vict->master == ch)
+    vict = FIGHTING(vict);
   
   if (!vict) {
     send_to_char(ch, "Fire at who?\r\n");
