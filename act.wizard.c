@@ -2601,6 +2601,7 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
             "       Zone stats:\r\n"
             "       ---------------\r\n"
             "         Flags:    %s\r\n"
+            "         RealNum:  %2d\r\n"
             "         Min Lev:  %2d\r\n"
             "         Max Lev:  %2d\r\n"
             "         Rooms:    %2d\r\n"
@@ -2609,7 +2610,7 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
             "         Shops:    %2d\r\n"
             "         Triggers: %2d\r\n"
             "         Quests:   %2d\r\n",
-            buf, zone_table[zone].min_level, zone_table[zone].max_level,
+            buf, zone, zone_table[zone].min_level, zone_table[zone].max_level,
             j, k, l, m, n, o);
 
     return tmp;

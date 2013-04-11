@@ -61,8 +61,9 @@ bool valid_item_spell(int spellnum) {
 }
 
 /* simple function to give a random metal type */
+
 /* (currently unused) */
-int choose_metal_material(void) {  
+int choose_metal_material(void) {
   switch (dice(1, 12)) {
     case 1:
     case 2:
@@ -80,11 +81,12 @@ int choose_metal_material(void) {
     case 9:
       return MATERIAL_MITHRIL;
     default:
-      return MATERIAL_IRON;    
+      return MATERIAL_IRON;
   }
 }
 
 /* simple function to give a random precious metal type */
+
 /* (currently unused) */
 int choose_precious_metal_material(void) {
   switch (dice(1, 9)) {
@@ -99,11 +101,12 @@ int choose_precious_metal_material(void) {
     case 6:
       return MATERIAL_PLATINUM;
     default:
-      return MATERIAL_COPPER;    
+      return MATERIAL_COPPER;
   }
 }
 
 /* simple function to give a random cloth type */
+
 /* (currently unused) */
 int choose_cloth_material(void) {
   switch (dice(1, 12)) {
@@ -123,7 +126,7 @@ int choose_cloth_material(void) {
     case 9:
       return MATERIAL_SILK;
     default:
-      return MATERIAL_HEMP;    
+      return MATERIAL_HEMP;
   }
 }
 
@@ -132,7 +135,7 @@ int choose_cloth_material(void) {
 int random_apply_value(void) {
   int val = APPLY_NONE;
 
-  switch (dice(1, 14)) {
+  switch (dice(1, 16)) {
     case 1:
       val = APPLY_AC;
       break;
@@ -175,6 +178,69 @@ int random_apply_value(void) {
     case 14:
       val = APPLY_HIT;
       break;
+    default:
+      switch (rand_number(1, 20)) {
+        case 1:
+          val = APPLY_RES_FIRE;
+          break;
+        case 2:
+          val = APPLY_RES_COLD;
+          break;
+        case 3:
+          val = APPLY_RES_AIR;
+          break;
+        case 4:
+          val = APPLY_RES_EARTH;
+          break;
+        case 5:
+          val = APPLY_RES_ACID;
+          break;
+        case 6:
+          val = APPLY_RES_HOLY;
+          break;
+        case 7:
+          val = APPLY_RES_ELECTRIC;
+          break;
+        case 8:
+          val = APPLY_RES_UNHOLY;
+          break;
+        case 9:
+          val = APPLY_RES_SLICE;
+          break;
+        case 10:
+          val = APPLY_RES_PUNCTURE;
+          break;
+        case 11:
+          val = APPLY_RES_FORCE;
+          break;
+        case 12:
+          val = APPLY_RES_SOUND;
+          break;
+        case 13:
+          val = APPLY_RES_POISON;
+          break;
+        case 14:
+          val = APPLY_RES_DISEASE;
+          break;
+        case 15:
+          val = APPLY_RES_NEGATIVE;
+          break;
+        case 16:
+          val = APPLY_RES_ILLUSION;
+          break;
+        case 17:
+          val = APPLY_RES_MENTAL;
+          break;
+        case 18:
+          val = APPLY_RES_LIGHT;
+          break;
+        case 19:
+          val = APPLY_RES_ENERGY;
+          break;
+        case 20:
+          val = APPLY_RES_WATER;
+          break;
+      }
   }
 
   return val;
@@ -183,9 +249,10 @@ int random_apply_value(void) {
 /* added this because the apply_X bonus is capped, stop it before
    it causes problems */
 #define RANDOM_BONUS_CAP  127
+
 /* function that returns bonus value based on apply-value and level */
 int random_bonus_value(int apply_value, int level, int mod) {
-  int bonus = (level / BONUS_FACTOR) + mod;
+  int bonus = MAX(1, (level / BONUS_FACTOR) + mod);
 
   switch (apply_value) {
     case APPLY_HIT:
@@ -211,6 +278,7 @@ int random_bonus_value(int apply_value, int level, int mod) {
     case APPLY_SAVING_FORT:
     case APPLY_SAVING_REFL:
     case APPLY_SAVING_WILL:
+    default:
       break;
   }
 
@@ -301,10 +369,10 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
 /* character should get treasure, roll dice for what items to give out */
 void award_magic_item(int number, struct char_data *ch, int level, int grade) {
   int i = 0;
-  
+
   if (number <= 0)
     number = 1;
-  
+
   if (number >= 50)
     number = 50;
 
@@ -341,8 +409,8 @@ void award_random_crystal(struct char_data *ch, int level) {
 
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
-  GET_OBJ_COST(obj) = level * 100;
-  GET_OBJ_LEVEL(obj) = MIN(LVL_IMMORT - 1, dice(1, level));
+  GET_OBJ_LEVEL(obj) = rand_number(6, level);
+  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
   GET_OBJ_MATERIAL(obj) = MATERIAL_CRYSTAL;
 
   /* set a random apply value */
@@ -474,11 +542,11 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
      - does not match class
      - does not match level
    */
-  int loop_counter = 0;  // just in case
+  int loop_counter = 0; // just in case
   do {
     spell_num = rand_number(1, NUM_SPELLS - 1);
     loop_counter++;
-    
+
     if (loop_counter >= 999)
       return;
   } while (spell_level < spell_info[spell_num].min_level[class] ||
@@ -492,7 +560,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
     color2 = rand_number(0, NUM_A_COLORS);
 
   /* load prototype */
-  
+
   if ((obj = read_object(ITEM_PROTOTYPE, VIRTUAL)) == NULL) {
     log("SYSERR:  award_expendable_item returned NULL");
     return;
@@ -1081,20 +1149,20 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   /* start with keyword string */
   sprintf(keywords, "%s %s", keywords, armor_name);
   sprintf(keywords, "%s %s", keywords, material_name[material]);
-  
-  roll = dice(1, 3);  
-  if (roll == 3) {  // armor spec adjective in desc?
+
+  roll = dice(1, 3);
+  if (roll == 3) { // armor spec adjective in desc?
     sprintf(desc, "%s %s", desc,
-          armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
+            armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
     sprintf(keywords, "%s %s", keywords,
-          armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
+            armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
   }
 
   roll = dice(1, 5);
-  if (roll >= 4) {  // color describe #1?
+  if (roll >= 4) { // color describe #1?
     sprintf(desc, "%s %s", desc, colors[color1]);
     sprintf(keywords, "%s %s", keywords, colors[color1]);
-  } else if (roll == 3) {  // two colors
+  } else if (roll == 3) { // two colors
     sprintf(desc, "%s %s and %s", desc, colors[color1], colors[color2]);
     sprintf(keywords, "%s %s and %s", keywords, colors[color1], colors[color2]);
   }
@@ -1104,20 +1172,20 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   sprintf(desc, "%s %s", desc, armor_name);
 
   roll = dice(1, 8);
-  if (roll >= 7) {  // crest?
+  if (roll >= 7) { // crest?
     sprintf(desc, "%s with %s %s crest", desc,
-          AN(armor_crests[crest_num]),
-          armor_crests[crest_num]);
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
     sprintf(keywords, "%s with %s %s crest", keywords,
-          AN(armor_crests[crest_num]),
-          armor_crests[crest_num]);
-  } else if (roll >= 5) {  // or symbol?
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
+  } else if (roll >= 5) { // or symbol?
     sprintf(desc, "%s covered in symbols of %s %s", desc,
-          AN(armor_crests[crest_num]),
-          armor_crests[crest_num]);
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
     sprintf(keywords, "%s covered in symbols of %s %s", keywords,
-          AN(armor_crests[crest_num]),
-          armor_crests[crest_num]);
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
   }
 
   // keywords
@@ -1472,7 +1540,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     sprintf(special, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS)]);
   else //blunt
     sprintf(special, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS)]);
-  
+
   roll = dice(1, 100);
   roll2 = rand_number(0, NUM_A_HEAD_TYPES);
   roll3 = rand_number(0, NUM_A_HANDLE_TYPES);
@@ -1499,7 +1567,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-  // special, head color
+    // special, head color
   } else if (roll >= 81) {
     sprintf(buf, "%s %s-%s %s %s", weapon_name,
             head_color, head_types[roll2],
@@ -1515,7 +1583,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-  // special, hilt color
+    // special, hilt color
   } else if (roll >= 71) {
     sprintf(buf, "%s %s %s %s %s", weapon_name,
             material_name[GET_OBJ_MATERIAL(obj)], special, hilt_color,
@@ -1533,10 +1601,10 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-  // head color, hilt color
+    // head color, hilt color
   } else if (roll >= 41) {
     sprintf(buf, "%s %s-%s %s %s %s",
-            weapon_name,head_color, head_types[roll2],
+            weapon_name, head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)],
             hilt_color,
             handle_types[roll3]);
@@ -1555,7 +1623,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-  // head color
+    // head color
   } else if (roll >= 31) {
     sprintf(buf, "%s %s-%s %s", weapon_name,
             head_color, head_types[roll2],
@@ -1571,7 +1639,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-  // hilt color
+    // hilt color
   } else if (roll >= 21) {
     sprintf(buf, "%s %s %s %s",
             weapon_name, material_name[GET_OBJ_MATERIAL(obj)],
@@ -1591,7 +1659,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
-  // special
+    // special
   } else if (roll >= 11) {
     sprintf(buf, "%s %s %s", weapon_name,
             material_name[GET_OBJ_MATERIAL(obj)], special);
@@ -1603,8 +1671,8 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
             material_name[GET_OBJ_MATERIAL(obj)], weapon_name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
-    
-  // none
+
+    // none
   } else {
     sprintf(buf, "%s %s",
             weapon_name, material_name[GET_OBJ_MATERIAL(obj)]);
@@ -1618,10 +1686,10 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
   }
-  
+
   /* object is fully described 
    base object is taken care of including material, now set random stats, etc */
-  
+
   obj->affected[0].location = random_apply_value();
   obj->affected[0].modifier =
           random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR), 0);
@@ -1653,6 +1721,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
  * 5)  determine amount (if applicable)
  */
 #define SHORT_STRING    80
+
 void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE, roll = 0;
@@ -1660,7 +1729,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
   char buf[MAX_STRING_LENGTH] = {'\0'}, keywords[MEDIUM_STRING] = {'\0'};
   char desc2[SHORT_STRING] = {'\0'}, desc3[SHORT_STRING] = {'\0'};
-  
+
   /* determine if rare or not */
   roll = dice(1, 100);
   if (roll == 1) {
@@ -1826,7 +1895,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
           break;
       }
       break;
-    /* options:  crystal, obsidian, onyx, ivory, pewter*/
+      /* options:  crystal, obsidian, onyx, ivory, pewter*/
     case MATERIAL_ONYX:
       switch (dice(1, 5)) {
         case 1:
@@ -1870,8 +1939,8 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
     return;
   }
   GET_OBJ_MATERIAL(obj) = material;
-  
-  /* put together a descrip */  
+
+  /* put together a descrip */
   switch (vnum) {
     case RING_MOLD:
     case NECKLACE_MOLD:
@@ -1883,7 +1952,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
               AN(material_name[material]), material_name[material],
               armor_name, AN(desc2), desc2);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%s %s %s set with %s %s gemstone lies here.", 
+      sprintf(desc, "%s %s %s set with %s %s gemstone lies here.",
               AN(material_name[material]), material_name[material],
               armor_name, AN(desc2), desc2);
       obj->description = strdup(CAP(desc));
@@ -1931,7 +2000,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
       obj->description = strdup(desc);
       break;
   }
-  
+
   /* level, bonus and cost */
   GET_OBJ_LEVEL(obj) = level;
   obj->affected[0].location = random_apply_value();
@@ -1950,7 +2019,6 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
 #undef SHORT_STRING
-
 
 /* staff tool to load random items */
 ACMD(do_loadmagic) {
@@ -1986,13 +2054,13 @@ ACMD(do_loadmagic) {
 
   if (*arg2)
     number = atoi(arg2);
-  
+
   if (number <= 0)
     number = 1;
-  
+
   if (number >= 50)
     number = 50;
-  
+
   award_magic_item(number, ch, GET_LEVEL(ch), grade);
 }
 

@@ -2510,7 +2510,7 @@ void hit(struct char_data *ch, struct char_data *victim,
     //calculate damage, modify by melee warding
     dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
     /* deduct strength bonus if ranged attack */
-    if (offhand == 2)
+    if (is_ranged)
       dam -= GET_STR_BONUS(ch);
     if ((dam = handle_warding(ch, victim, dam)) == -1)
       return;
@@ -2557,7 +2557,7 @@ void hit(struct char_data *ch, struct char_data *victim,
     }
 
     /* weapon spells */
-    if (ch && victim && wielded && offhand != 2)
+    if (ch && victim && wielded)
       weapon_spells(ch, victim, wielded);
     
     /* vampiric curse will do some minor healing to attacker */
@@ -2575,7 +2575,7 @@ void hit(struct char_data *ch, struct char_data *victim,
     }
 
     // damage inflicting shields, like fire shield
-    if (offhand != 2) {
+    if (!is_ranged) {
       if (dam && victim && GET_HIT(victim) >= -1 &&
               IS_AFFECTED(victim, AFF_CSHIELD)) { // cold shield
         damage(victim, ch, dice(1, 6), SPELL_CSHIELD_DAM, DAM_COLD, offhand);
