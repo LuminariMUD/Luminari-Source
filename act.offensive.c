@@ -2631,23 +2631,25 @@ ACMD(do_fire) {
     char_to_room(ch, original_loc);
   }  
   
-  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
-          NULL) {
-    if (IN_ROOM(tch) != IN_ROOM(vict))
-      continue;
-    if (vict == tch) {
-      vict = FIGHTING(vict);
-      break;
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  if (GROUP(ch)) {
+    while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
+            NULL) {
+      if (IN_ROOM(tch) != IN_ROOM(vict))
+        continue;
+      if (vict == tch) {
+        vict = FIGHTING(vict);
+        break;
+      }
     }
   }
   
   if (!vict) {
     send_to_char(ch, "Fire at who?\r\n");
-    return;
-  }
-
-  if (vict == ch) {
-    send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
 
