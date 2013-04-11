@@ -2293,7 +2293,7 @@ void idle_weapon_spells(struct char_data *ch) {
    type -> SKILL_  /  SPELL_  / TYPE_ / etc. (determined here)
    dam_type -> DAM_FIRE / etc (not used here, passed to dam() function) 
    penalty ->  (or bonus)  applied to hitroll, BAB multi-attack for example
-   offhand -> is this a dual wielding attack?
+   offhand -> is this a dual wielding attack?  ranged-attack = 2
  */
 #define DAM_MES_LENGTH  20
 
@@ -2304,6 +2304,7 @@ void hit(struct char_data *ch, struct char_data *victim,
   struct affected_type af; /* for crippling strike */
   char buf[DAM_MES_LENGTH] = {'\0'};
   char buf1[DAM_MES_LENGTH] = {'\0'};
+  bool is_ranged = FALSE;
 
   // primary hand setting
   if (GET_EQ(ch, WEAR_WIELD_2H))
@@ -2319,7 +2320,7 @@ void hit(struct char_data *ch, struct char_data *victim,
     return;
   }
 
-  if (IN_ROOM(ch) != IN_ROOM(victim)) { //same room?
+  if (offhand != 2 && IN_ROOM(ch) != IN_ROOM(victim)) { //same room?
     if (FIGHTING(ch) && FIGHTING(ch) == victim)
       stop_fighting(ch);
     return;
@@ -2356,11 +2357,18 @@ void hit(struct char_data *ch, struct char_data *victim,
   }
 
   // primary or offhand attack?
-  if (offhand)
+  if (offhand == 2) {  // ranged-attack
+    wielded = NULL;
+    is_ranged = TRUE;
+    w_type = TYPE_ARROW;
+    /* ranged attacks don't get strength bonus */
+    penalty -= GET_STR_BONUS(ch);
+  } else if (offhand)
     wielded = GET_EQ(ch, WEAR_WIELD_2);
+  
   if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
     w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
-  else {
+  else if (!w_type) {
     if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
       w_type = ch->mob_specials.attack_type + TYPE_HIT;
     else
@@ -2400,8 +2408,11 @@ void hit(struct char_data *ch, struct char_data *victim,
   int parryDC = calc_bab + diceroll;
   if (!IS_NPC(victim) && compute_ability(victim, ABILITY_PARRY) &&
           PARRY_LEFT(victim) && AFF_FLAGGED(victim, AFF_PARRY) &&
-          !IS_CASTING(victim)) {
+          !IS_CASTING(victim) && GET_POS(victim) >= POS_SITTING && 
+          offhand != 2) {
     int parryAttempt = compute_ability(victim, ABILITY_PARRY) + dice(1, 20);
+    if (GET_POS(victim) <= POS_SITTING)
+      parryAttempt -= 2;
     if (parryDC > parryAttempt) {
       send_to_char(victim, "You failed to \tcparry\tn the attack from %s!  ",
               GET_NAME(ch));
@@ -2445,6 +2456,9 @@ void hit(struct char_data *ch, struct char_data *victim,
     
     //calculate damage, modify by melee warding
     dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
+    /* deduct strength bonus if ranged attack */
+    if (offhand == 2)
+      dam -= GET_STR_BONUS(ch);
     if ((dam = handle_warding(ch, victim, dam)) == -1)
       return;
 
@@ -2490,7 +2504,7 @@ void hit(struct char_data *ch, struct char_data *victim,
     }
 
     /* weapon spells */
-    if (ch && victim && wielded)
+    if (ch && victim && wielded && offhand != 2)
       weapon_spells(ch, victim, wielded);
     
     /* vampiric curse will do some minor healing to attacker */
@@ -2620,11 +2634,65 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
 
 int perform_attacks(struct char_data *ch, int mode) {
   int i = 0, penalty = 0, numAttacks = 0, bonusAttacks = 0;
+  int monkMode = FALSE, ranged_attacks = 2;
   bool dual = FALSE;
 
   // check guard skill
   guard_check(ch, FIGHTING(ch));
-          
+  
+  //now level based bonus attacks
+  // note to self, do not forget to put armor restrictions! -zusuk
+  // you get an attack for every 5 points of BAB unless you are a monk
+  bonusAttacks = MIN((BAB(ch) - 1) / 5, ATTACK_CAP);
+  if (CLASS_LEVEL(ch, CLASS_MONK)) {
+    if (!GET_EQ(ch, WEAR_HOLD_1)
+            && !GET_EQ(ch, WEAR_WIELD_1)
+            && !GET_EQ(ch, WEAR_HOLD_2)
+            && !GET_EQ(ch, WEAR_WIELD_2)
+            && !GET_EQ(ch, WEAR_SHIELD)
+            && !GET_EQ(ch, WEAR_WIELD_2H)
+            ) {
+      // monks get an attack for every 3 points of BAB
+      bonusAttacks = MIN((BAB(ch) - 1) / 3, MONK_CAP);
+      monkMode = TRUE;
+    }
+  }
+  /* ranged get extra attacks */
+  ranged_attacks += bonusAttacks;
+  if (AFF_FLAGGED(ch, AFF_HASTE))
+    ranged_attacks++;
+
+  // ranged combat
+  if (FIRING(ch) && mode == 0) {
+    if (is_tanking(ch)) {
+      send_to_char(ch, "You are too busy defending yourself to fire any "
+              "arrows.\r\n");
+      FIRING(ch) = FALSE;
+    } else {
+      while (ranged_attacks > 0) {
+        if (can_fire_arrow(ch, FALSE) && FIGHTING(ch))
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+                penalty, 2);  // 2 in last arg indicates ranged
+        else if (FIGHTING(ch)) {
+          send_to_char(ch, "\tWYou are out of ammunition!\tn\r\n");
+          stop_fighting(ch);
+          return 0;
+        } else
+          stop_fighting(ch);
+        ranged_attacks--;
+      }
+      return 0;
+    }
+  } else if (mode == 1)
+    return ranged_attacks;
+  else if (mode == 2) {
+    if (can_fire_arrow(ch, TRUE)) {
+      send_to_char(ch, "Ranged Attack Bonus:  %d; ",
+              compute_bab(ch, ch, 0) + penalty);
+      compute_hit_damage(ch, ch, NULL, 0, 0, 2);      
+    }
+  }
+  
   //now lets determine base attack(s) and resulting possible penalty
   dual = is_skilled_dualer(ch, 0); // trelux or has off-hander equipped
 
@@ -2686,25 +2754,6 @@ int perform_attacks(struct char_data *ch, int mode) {
       send_to_char(ch, "Mainhand (Haste), Attack Bonus:  %d; ",
               compute_bab(ch, ch, 0) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
-    }
-  }
-
-  //now level based bonus attacks
-  // note to self, do not forget to put armor restrictions! -zusuk
-  int monkMode = FALSE;
-  // you get an attack for every 5 points of BAB unless you are a monk
-  bonusAttacks = MIN((BAB(ch) - 1) / 5, ATTACK_CAP);
-  if (CLASS_LEVEL(ch, CLASS_MONK)) {
-    if (!GET_EQ(ch, WEAR_HOLD_1)
-            && !GET_EQ(ch, WEAR_WIELD_1)
-            && !GET_EQ(ch, WEAR_HOLD_2)
-            && !GET_EQ(ch, WEAR_WIELD_2)
-            && !GET_EQ(ch, WEAR_SHIELD)
-            && !GET_EQ(ch, WEAR_WIELD_2H)
-            ) {
-      // monks get an attack for every 3 points of BAB
-      bonusAttacks = MIN((BAB(ch) - 1) / 3, MONK_CAP);
-      monkMode = TRUE;
     }
   }
 

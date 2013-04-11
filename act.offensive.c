@@ -32,17 +32,26 @@
 /* ranged combat (archery, etc)
  * this function will check to make sure ammo is ready for firing
  */
-bool has_missile_in_quiver(struct char_data *ch) {
+bool has_missile_in_quiver(struct char_data *ch, bool silent) {
   struct obj_data *quiver = GET_EQ(ch, WEAR_QUIVER);
   
-  if (!quiver)
+  if (!quiver) {
+    if (!silent)
+      send_to_char(ch, "You have no ammo pouch!\r\n");
     return FALSE;
+  }
   
-  if (!quiver->contains)
+  if (!quiver->contains) {
+    if (!silent)
+      send_to_char(ch, "Your ammo pouch is empty!\r\n");
     return FALSE;
+  }
 
-  if (GET_OBJ_TYPE(quiver->contains) != ITEM_MISSILE)
+  if (GET_OBJ_TYPE(quiver->contains) != ITEM_MISSILE) {
+    if (!silent)
+      send_to_char(ch, "Your ammo pouch needs to be filled with only ammo!\r\n");
     return FALSE;
+  }
   
   return TRUE;
 }
@@ -51,9 +60,10 @@ bool has_missile_in_quiver(struct char_data *ch) {
  * this function will check for a ranged weapon, ammo and does
  * a check of "has_missile_in_quiver"
  */
-bool can_fire_arrow(struct char_data *ch) {
+bool can_fire_arrow(struct char_data *ch, bool silent) {
   if (!GET_EQ(ch, WEAR_QUIVER)) {
-    send_to_char(ch, "But you do not wear an ammo pouch.\r\n");
+    if (!silent)
+      send_to_char(ch, "But you do not wear an ammo pouch.\r\n");
     return FALSE;
   }
   
@@ -63,17 +73,20 @@ bool can_fire_arrow(struct char_data *ch) {
     obj = GET_EQ(ch, WEAR_WIELD_1);
   
   if (!obj) {
-    send_to_char(ch, "You are not wielding anything!");
+    if (!silent)
+      send_to_char(ch, "You are not wielding anything!");
     return FALSE;
   }
   
   if (GET_OBJ_TYPE(obj) != ITEM_FIREWEAPON) {
-    send_to_char(ch, "But you are not wielding a ranged weapon.\r\n");
+    if (!silent)
+      send_to_char(ch, "But you are not wielding a ranged weapon.\r\n");
     return FALSE;    
   }
   
-  if (!has_missile_in_quiver(ch)) {
-    send_to_char(ch, "You have no ammo!\r\n");
+  if (!has_missile_in_quiver(ch, TRUE)) {
+    if (!silent)
+      send_to_char(ch, "You have no ammo!\r\n");
     return FALSE;
   }
   
@@ -2608,8 +2621,8 @@ ACMD(do_fire) {
     return;
   }
 
-  if (can_fire_arrow(ch)) {
-    //fire_missile(ch, vict, GET_EQ(ch, WEAR_WIELD_2H), 0);
+  if (can_fire_arrow(ch, FALSE)) {
+    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);  // 2 in last arg indicates ranged
     if (IN_ROOM(ch) != IN_ROOM(vict))
       stop_fighting(ch);
     SET_WAIT(ch, PULSE_VIOLENCE);
@@ -2663,8 +2676,8 @@ ACMD(do_autofire) {
     return;
   }
 
-  if (can_fire_arrow(ch)) {
-    //fire_missile(ch, vict, GET_EQ(ch, WEAR_WIELD_2H), 0);
+  if (can_fire_arrow(ch, FALSE)) {
+    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);  // 2 in last arg indicates ranged
     FIRING(ch) = TRUE;
     SET_WAIT(ch, PULSE_VIOLENCE);
   }
