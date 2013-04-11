@@ -1700,15 +1700,18 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       return;
 
     case MEDIT_POS:
+      /* the menu starts with value 1, which is 1 greater than defines */
+      i--;
       if (i == POS_FIGHTING)
-        i++;
-      GET_POS(OLC_MOB(d)) = LIMIT(i - 1, 0, NUM_POSITIONS - 1);
+        i = POS_STANDING;
+      GET_POS(OLC_MOB(d)) = LIMIT(i, 0, NUM_POSITIONS);
       break;
 
     case MEDIT_DEFAULT_POS:
+      i--;
       if (i == POS_FIGHTING)
         i = POS_STANDING;
-      GET_DEFAULT_POS(OLC_MOB(d)) = LIMIT(i - 1, 0, NUM_POSITIONS - 1);
+      GET_DEFAULT_POS(OLC_MOB(d)) = LIMIT(i, 0, NUM_POSITIONS);
       break;
 
     case MEDIT_ATTACK:
