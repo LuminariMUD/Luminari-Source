@@ -216,6 +216,7 @@ void cquest_report(struct char_data *ch) {
           "to quit your current supply order.\r\n");
 }
 
+/* deprecated by random_bonus_value() in treasure.c */
 /* this function determines the factor of bonus for crystal_value/level */
 int crystal_bonus(struct obj_data *crystal, int mod) {
   int bonus = mod + (GET_OBJ_LEVEL(crystal) / BONUS_FACTOR);
@@ -1331,7 +1332,7 @@ int create(char *argument, struct obj_data *kit,
               "the item.\r\n");
       mod++;
     }
-    bonus = crystal_bonus(crystal, mod);
+    bonus = random_bonus_value(crystal_value, GET_OBJ_LEVEL(crystal), mod);
   }
   /*** end valid crystal usage ***/
 

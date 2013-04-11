@@ -732,6 +732,7 @@ void raw_kill_old(struct char_data *ch, struct char_data *killer) {
     determine_treasure(find_treasure_recipient(killer), ch);
   
   make_corpse(ch);
+  
   /* this was commented out for some reason, undid that to make sure
      events clear on death */
   clear_char_event_list(ch);

@@ -184,9 +184,8 @@ int random_apply_value(void) {
    it causes problems */
 #define RANDOM_BONUS_CAP  127
 /* function that returns bonus value based on apply-value and level */
-/* TODO:  probably can merge this with crystal_bonus fuction in craft.c */
-int random_bonus_value(int apply_value, int level) {
-  int bonus = level / BONUS_FACTOR;
+int random_bonus_value(int apply_value, int level, int mod) {
+  int bonus = (level / BONUS_FACTOR) + mod;
 
   switch (apply_value) {
     case APPLY_HIT:
@@ -306,8 +305,8 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
   if (number <= 0)
     number = 1;
   
-  if (number >= 99)
-    number = 99;
+  if (number >= 50)
+    number = 50;
 
   for (i = 0; i < number; i++) {
     if (dice(1, 100) <= 40)
@@ -351,7 +350,7 @@ void award_random_crystal(struct char_data *ch, int level) {
   /* determine bonus */
   /* this is deprecated, level determines modifier now (in craft.c) */
   obj->affected[0].modifier =
-          random_bonus_value(obj->affected[0].location, GET_OBJ_LEVEL(obj));
+          random_bonus_value(obj->affected[0].location, GET_OBJ_LEVEL(obj), 0);
 
   /* random color(s) and description */
   color1 = rand_number(0, NUM_A_COLORS);
@@ -1133,7 +1132,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   GET_OBJ_LEVEL(obj) = level;
   obj->affected[0].location = random_apply_value();
   obj->affected[0].modifier =
-          random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR));
+          random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR), 0);
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
 
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
@@ -1625,7 +1624,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   
   obj->affected[0].location = random_apply_value();
   obj->affected[0].modifier =
-          random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR));
+          random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR), 0);
   GET_OBJ_LEVEL(obj) = level;
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
 
@@ -1937,7 +1936,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   GET_OBJ_LEVEL(obj) = level;
   obj->affected[0].location = random_apply_value();
   obj->affected[0].modifier =
-          random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR));
+          random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR), 0);
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
 
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
@@ -1991,8 +1990,8 @@ ACMD(do_loadmagic) {
   if (number <= 0)
     number = 1;
   
-  if (number >= 99)
-    number = 99;
+  if (number >= 50)
+    number = 50;
   
   award_magic_item(number, ch, GET_LEVEL(ch), grade);
 }
