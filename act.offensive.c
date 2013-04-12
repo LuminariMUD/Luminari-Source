@@ -1949,7 +1949,7 @@ ACMD(do_treatinjury) {
   
   if (FIGHTING(ch) && GET_POS(ch) < POS_FIGHTING) {
     send_to_char(ch, "You need to be in a better position in combat in order"
-            "to use this ability!\r\n");
+            " to use this ability!\r\n");
     return;
   }
 
@@ -2081,7 +2081,9 @@ ACMD(do_stunningfist) {
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_STUNNING_FIST);
-  SET_WAIT(ch, PULSE_VIOLENCE * 3);
+  
+  /* after testing this seems unecessary with cooldown */
+  //SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 
 ACMD(do_smite) {
