@@ -1945,6 +1945,12 @@ ACMD(do_treatinjury) {
             "ability again.\r\n");
     return;
   }
+  
+  if (FIGHTING(ch) && GET_POS(ch) < POS_FIGHTING) {
+    send_to_char(ch, "You need to be in a better position in combat in order"
+            "to use this ability!\r\n");
+    return;
+  }
 
   send_to_char(ch, "You skillfully dress the wounds...\r\n");
   act("Your injuries are \tWtreated\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
@@ -1977,6 +1983,7 @@ ACMD(do_rescue) {
 
 /* built initially by vatiken as an illustration of event/lists systems 
  * of TBA, adapted to Luminari mechanics */
+/*TODO:  definitely needs more balance tweaking and dummy checks for usage */
 ACMD(do_whirlwind) {
 
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_WHIRLWIND)) {
@@ -2067,9 +2074,9 @@ ACMD(do_stunningfist) {
   } else {
     damage(ch, vict, (dice(1, 8) + GET_DAMROLL(ch)), SKILL_STUNNING_FIST,
             DAM_FORCE, FALSE);
-    attach_mud_event(new_mud_event(eSTUNNED, vict, NULL), 4 * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eSTUNNED, vict, NULL), 6 * PASSES_PER_SEC);
   }
-  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), 300 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), 150 * PASSES_PER_SEC);
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_STUNNING_FIST);
@@ -2636,13 +2643,18 @@ ACMD(do_fire) {
     char_to_room(ch, original_loc);
   }  
   
+  if (!vict) {
+    send_to_char(ch, "Fire at who?\r\n");
+    return;
+  }
+
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
 
   /* if target is group member, we presume you meant to assist */
-  if (GROUP(ch)) {
+  if (GROUP(ch) && room == IN_ROOM(ch)) {
     while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
             NULL) {
       if (IN_ROOM(tch) != IN_ROOM(vict))
@@ -2654,15 +2666,10 @@ ACMD(do_fire) {
     }
   }
   
-  /* maybe its your pet? */
-  if (IS_PET(vict) && vict->master == ch)
+  /* maybe its your pet?  so assist */
+  if (IS_PET(vict) && vict->master == ch && room == IN_ROOM(ch))
     vict = FIGHTING(vict);
   
-  if (!vict) {
-    send_to_char(ch, "Fire at who?\r\n");
-    return;
-  }
-
   if (can_fire_arrow(ch, FALSE)) {
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);  // 2 in last arg indicates ranged
     if (IN_ROOM(ch) != IN_ROOM(vict))
