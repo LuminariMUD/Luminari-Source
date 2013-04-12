@@ -337,7 +337,7 @@ void affect_total(struct char_data *ch) {
   }
 
   /* any stats that are not an APPLY_ need to be stored */
-  armor = GET_AC(ch);
+  //armor = GET_AC(ch);
 
   /* modify affects based on 'nekked' char */
   for (af = ch->affected; af; af = af->next)
@@ -348,7 +348,7 @@ void affect_total(struct char_data *ch) {
   reset_char_points(ch);
 
   /* restore stored stats */
-  GET_AC(ch) = armor;
+  //GET_AC(ch) = armor;
   
   /* add gear back on */
   for (i = 0; i < NUM_WEARS; i++) {
