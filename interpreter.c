@@ -647,8 +647,8 @@ void command_interpreter(struct char_data *ch, char *argument) {
       }
     }
     send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
-  } else if (!IS_NPC(ch) && (AFF_FLAGGED(ch, AFF_STUN) ||
-          AFF_FLAGGED(ch, AFF_PARALYZED) || char_has_mud_event(ch, eSTUNNED)))
+  } else if ((AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) || 
+          char_has_mud_event(ch, eSTUNNED)))
     send_to_char(ch, "You try, but you are unable to move!\r\n");
   else if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_FROZEN) && GET_LEVEL(ch) < LVL_IMPL)
     send_to_char(ch, "You try, but the mind-numbing cold prevents you...\r\n");

@@ -799,7 +799,15 @@ void list_skills(struct char_data *ch) {
 int compute_ability(struct char_data *ch, int abilityNum) {
   int value = 0;
 
+  if (!ch)
+    return -1;
+  
   if (abilityNum < 1 || abilityNum > NUM_ABILITIES)
+    return -1;
+  
+  /* this dummy check was added to to possible problems with checking
+   affected_by_spell on a target that just died */
+  if (GET_HIT(ch) <= 0 || GET_POS(ch) <= POS_STUNNED)
     return -1;
 
   //universal bonuses
