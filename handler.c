@@ -325,7 +325,10 @@ void reset_char_points(struct char_data *ch) {
  * restoring original abilities, and then affecting all again. */
 void affect_total(struct char_data *ch) {
   struct affected_type *af;
-  int i, j, armor = 100;
+  int i, j;
+/*
+  /int armor = 100;
+*/
 
   /* subtract affects with gear */
   for (i = 0; i < NUM_WEARS; i++) {
