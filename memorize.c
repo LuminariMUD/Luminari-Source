@@ -128,14 +128,16 @@ int spell_in_scroll(struct obj_data *obj, int spellnum) {
  * Output:  returns TRUE if found, FALSE if not found
  */
 bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scroll) {
-  struct obj_data *obj;
+  struct obj_data *obj = NULL;
   bool found = FALSE;
+  int i = 0;
   
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return TRUE;
 
   if (class == CLASS_WIZARD) {
 
+    /* for-loop for inventory */
     for (obj = ch->carrying; obj && !found; obj = obj->next_content) {
       if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
         if (spell_in_book(obj, spellnum)) {
@@ -144,6 +146,38 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
         }
         continue;
       }
+      
+      if (GET_OBJ_TYPE(obj) == ITEM_SCROLL && check_scroll) {
+        if (spell_in_scroll(obj, spellnum) && CLASS_LEVEL(ch, class) >=
+                spell_info[spellnum].min_level[class]) {
+          found = TRUE;
+          send_to_char(ch, "The \tmmagical energy\tn of the scroll leaves the "
+                  "paper and enters your \trmind\tn!\r\n");
+          send_to_char(ch, "With the \tmmagical energy\tn transfered from the "
+                  "scroll, the scroll withers to dust!\r\n");
+          obj_from_char(obj);
+          break;
+        }
+        continue;
+      }
+      
+    }
+
+    /* for-loop for gear */
+    for (i = 0; i < NUM_WEARS; i++) {
+      if (GET_EQ(ch, i))
+        obj = GET_EQ(ch, i);
+      else
+        continue;
+      
+      if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
+        if (spell_in_book(obj, spellnum)) {
+          found = TRUE;
+          break;
+        }
+        continue;
+      }
+      
       if (GET_OBJ_TYPE(obj) == ITEM_SCROLL && check_scroll) {
         if (spell_in_scroll(obj, spellnum) && CLASS_LEVEL(ch, class) >=
                 spell_info[spellnum].min_level[class]) {
