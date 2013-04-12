@@ -1267,7 +1267,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_REMOVE_DISEASE, 99);
       SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
       SET_SKILL(ch, SPELL_SPIKE_GROWTH, 99);
-      // summon nature's ally iii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_3, 99);
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_3, 99);
 
       //4th circle
       SET_SKILL(ch, SPELL_BLIGHT, 99);
@@ -1279,7 +1279,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_LOCATE_CREATURE, 99);
       // reincarnate? SET_SKILL(ch, SPELL_REINCARNATE, 99);
       SET_SKILL(ch, SPELL_SPIKE_STONES, 99);
-      // summon nature's ally iv SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_4, 99);
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_4, 99);
 
       //5th circle
       // baleful polymorph SET_SKILL(ch, SPELL_BALEFUL_POLYMORPH, 99);
@@ -1289,7 +1289,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_HALLOW, 99);
       SET_SKILL(ch, SPELL_INSECT_PLAGUE, 99);
       SET_SKILL(ch, SPELL_STONESKIN, 99);
-      // summon nature's ally v SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_5, 99);
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_5, 99);
       SET_SKILL(ch, SPELL_UNHALLOW, 99);
       SET_SKILL(ch, SPELL_WALL_OF_FIRE, 99);
       SET_SKILL(ch, SPELL_WALL_OF_THORNS, 99);
@@ -1302,7 +1302,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_MASS_GRACE, 99);
       SET_SKILL(ch, SPELL_MASS_WISDOM, 99);
       SET_SKILL(ch, SPELL_SPELLSTAFF, 99);
-      // summon nature's ally vi SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_6, 99);
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_6, 99);
       SET_SKILL(ch, SPELL_TRANSPORT_VIA_PLANTS, 99);
 
       //7th circle
@@ -1312,7 +1312,7 @@ void init_class(struct char_data *ch, int class, int level) {
       // greater scrying SET_SKILL(ch, SPELL_GREATER_SCRYING, 99);
       SET_SKILL(ch, SPELL_HEAL, 99);
       SET_SKILL(ch, SPELL_MASS_CURE_MODERATE, 99);
-      // summon nature's ally vii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_7, 99);
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_7, 99);
       SET_SKILL(ch, SPELL_SUNBEAM, 99);
 
       //8th circle
@@ -1321,7 +1321,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_EARTHQUAKE, 99);
       SET_SKILL(ch, SPELL_FINGER_OF_DEATH, 99);
       SET_SKILL(ch, SPELL_MASS_CURE_SERIOUS, 99);
-      // summon nature's ally viii SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_8, 99);
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_8, 99);
       SET_SKILL(ch, SPELL_SUNBURST, 99);
       SET_SKILL(ch, SPELL_WHIRLWIND, 99);
       SET_SKILL(ch, SPELL_WORD_OF_RECALL, 99);
@@ -1333,7 +1333,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_SHAMBLER, 99);
       SET_SKILL(ch, SPELL_POLYMORPH, 99); // should be SHAPECHANGE
       SET_SKILL(ch, SPELL_STORM_OF_VENGEANCE, 99);
-      // summon nature's ally ix SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_9, 99);
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_9, 99);
 
       // skill init
       if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
@@ -2791,7 +2791,7 @@ void init_spell_levels(void) {
   spell_level(SPELL_REMOVE_DISEASE, CLASS_DRUID, 5);
   spell_level(SPELL_REMOVE_POISON, CLASS_DRUID, 5);
   spell_level(SPELL_SPIKE_GROWTH, CLASS_DRUID, 5);
-  // summon nature's ally iii
+  spell_level(SPELL_SUMMON_NATURES_ALLY_3, CLASS_DRUID, 5);
 
   //4th circle
   spell_level(SPELL_BLIGHT, CLASS_DRUID, 7);
@@ -2803,7 +2803,7 @@ void init_spell_levels(void) {
   spell_level(SPELL_LOCATE_CREATURE, CLASS_DRUID, 7);
   // reincarnate
   spell_level(SPELL_SPIKE_STONES, CLASS_DRUID, 7);
-  // summon nature's ally iv
+  spell_level(SPELL_SUMMON_NATURES_ALLY_4, CLASS_DRUID, 7);
 
   //5th circle
   // baleful polymorph (holding off on this one for now)
@@ -2813,7 +2813,7 @@ void init_spell_levels(void) {
   spell_level(SPELL_HALLOW, CLASS_DRUID, 9);
   spell_level(SPELL_INSECT_PLAGUE, CLASS_DRUID, 9);
   spell_level(SPELL_STONESKIN, CLASS_DRUID, 9);
-  // summon nature's ally v
+  spell_level(SPELL_SUMMON_NATURES_ALLY_5, CLASS_DRUID, 9);
   spell_level(SPELL_UNHALLOW, CLASS_DRUID, 9);
   spell_level(SPELL_WALL_OF_FIRE, CLASS_DRUID, 9);
   spell_level(SPELL_WALL_OF_THORNS, CLASS_DRUID, 9);
@@ -2827,7 +2827,7 @@ void init_spell_levels(void) {
   spell_level(SPELL_MASS_GRACE, CLASS_DRUID, 11);
   spell_level(SPELL_MASS_WISDOM, CLASS_DRUID, 11);
   spell_level(SPELL_SPELLSTAFF, CLASS_DRUID, 11);
-  // summon nature's ally vi
+  spell_level(SPELL_SUMMON_NATURES_ALLY_6, CLASS_DRUID, 11);
   spell_level(SPELL_TRANSPORT_VIA_PLANTS, CLASS_DRUID, 11);
 
   //7th circle
@@ -2837,7 +2837,7 @@ void init_spell_levels(void) {
   // greater scrying (not going to implement this yet)
   spell_level(SPELL_HEAL, CLASS_DRUID, 13);
   spell_level(SPELL_MASS_CURE_MODERATE, CLASS_DRUID, 13);
-  // summon nature's ally vii
+  spell_level(SPELL_SUMMON_NATURES_ALLY_7, CLASS_DRUID, 13);
   spell_level(SPELL_SUNBEAM, CLASS_DRUID, 13);
 
   //8th circle
@@ -2846,7 +2846,7 @@ void init_spell_levels(void) {
   spell_level(SPELL_EARTHQUAKE, CLASS_DRUID, 15);
   spell_level(SPELL_FINGER_OF_DEATH, CLASS_DRUID, 15);
   spell_level(SPELL_MASS_CURE_SERIOUS, CLASS_DRUID, 15);
-  // summon nature's ally viii
+  spell_level(SPELL_SUMMON_NATURES_ALLY_8, CLASS_DRUID, 15);
   spell_level(SPELL_SUNBURST, CLASS_DRUID, 15);
   spell_level(SPELL_WHIRLWIND, CLASS_DRUID, 15);
   spell_level(SPELL_WORD_OF_RECALL, CLASS_DRUID, 15);
@@ -2858,7 +2858,7 @@ void init_spell_levels(void) {
   spell_level(SPELL_SHAMBLER, CLASS_DRUID, 17);
   spell_level(SPELL_POLYMORPH, CLASS_DRUID, 17); // should be shapechange
   spell_level(SPELL_STORM_OF_VENGEANCE, CLASS_DRUID, 17);
-  // summon nature's ally ix
+  spell_level(SPELL_SUMMON_NATURES_ALLY_9, CLASS_DRUID, 17);
 
   //epic spells
   spell_level(SPELL_MUMMY_DUST, CLASS_DRUID, 20);

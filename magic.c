@@ -3862,6 +3862,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       pfail = 0;
       break;
 
+    case SPELL_SUMMON_NATURES_ALLY_1:
     case SPELL_SUMMON_CREATURE_1: //conjuration
       handle_corpse = FALSE;
       msg = 16;
@@ -3870,6 +3871,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       pfail = 0;
       break;
 
+    case SPELL_SUMMON_NATURES_ALLY_2:
     case SPELL_SUMMON_CREATURE_2: //conjuration
       handle_corpse = FALSE;
       msg = 17;
@@ -3878,6 +3880,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       pfail = 0;
       break;
 
+    case SPELL_SUMMON_NATURES_ALLY_3:
     case SPELL_SUMMON_CREATURE_3: //conjuration
       handle_corpse = FALSE;
       msg = 18;
@@ -3886,6 +3889,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       pfail = 0;
       break;
 
+    case SPELL_SUMMON_NATURES_ALLY_4:
     case SPELL_SUMMON_CREATURE_4: //conjuration
       handle_corpse = FALSE;
       msg = 20;
@@ -3894,6 +3898,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       pfail = 0;
       break;
 
+    case SPELL_SUMMON_NATURES_ALLY_5:
     case SPELL_SUMMON_CREATURE_5: //conjuration
       handle_corpse = FALSE;
       msg = 21;
@@ -3902,6 +3907,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       pfail = 0;
       break;
 
+    case SPELL_SUMMON_NATURES_ALLY_6:
     case SPELL_SUMMON_CREATURE_6: //conjuration
       handle_corpse = FALSE;
       msg = 23;
@@ -3923,14 +3929,17 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       
       break;
 
+    case SPELL_SUMMON_NATURES_ALLY_9:
     case SPELL_SUMMON_CREATURE_9: //conjuration
       hp_bonus += mob_level * 5;
       dam_bonus += 4;
       hit_bonus += 5;
+    case SPELL_SUMMON_NATURES_ALLY_8:
     case SPELL_SUMMON_CREATURE_8: //conjuration
       hp_bonus += mob_level * 5;
       dam_bonus += 3;
       hit_bonus += 4;
+    case SPELL_SUMMON_NATURES_ALLY_7:
     case SPELL_SUMMON_CREATURE_7: //conjuration
       handle_corpse = FALSE;
       fmsg = rand_number(2, 6); /* Random fail message. */
@@ -3958,10 +3967,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       pfail = 0;
       break;
 
+      /*
     case SPELL_SUMMON_NATURES_ALLY_1: //conjuration
       handle_corpse = FALSE;
       msg = 20;
-      fmsg = rand_number(2, 6); /* Random fail message. */
+      fmsg = rand_number(2, 6); // Random fail message
       mob_num = 9400 + rand_number(0, 7); // 9400-9407
       pfail = 0;
       break;
@@ -3973,6 +3983,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       mob_num = 9408 + rand_number(0, 6); // 9408-9414 for now
       pfail = 0;
       break;
+      */
       
     default:
       return;
