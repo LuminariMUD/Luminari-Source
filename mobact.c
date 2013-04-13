@@ -468,7 +468,8 @@ void mobile_echos(struct char_data *ch) {
       if (!AWAKE(d->character))
         continue;
 
-      send_to_char(d->character, "%s\r\n", echo);
+      if (!PLR_FLAGGED(d->character, PLR_WRITING))
+        send_to_char(d->character, "%s\r\n", echo);
     }
   } else {
     act(echo, FALSE, ch, 0, 0, TO_ROOM);
