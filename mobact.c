@@ -1094,7 +1094,7 @@ void mobile_activity(void) {
     }
 
     /* return mobile to preferred (default) position if necessary */
-    if (GET_POS(ch) != GET_DEFAULT_POS(ch)) {
+    if (GET_POS(ch) != GET_DEFAULT_POS(ch) && MOB_FLAGGED(ch, MOB_SENTINEL)) {
       if (GET_DEFAULT_POS(ch) == POS_SITTING) {
         do_sit(ch, NULL, 0, 0);
       } else if (GET_DEFAULT_POS(ch) == POS_RECLINING) {

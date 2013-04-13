@@ -1333,7 +1333,8 @@ do                                                              \
 
 /** Can sub character see the obj, using mortal and immortal checks? */
 #define CAN_SEE_OBJ(sub, obj) \
-   (MORT_CAN_SEE_OBJ(sub, obj) || (!IS_NPC(sub) && PRF_FLAGGED((sub), PRF_HOLYLIGHT)))
+   (MORT_CAN_SEE_OBJ(sub, obj) || (!IS_NPC(sub) && PRF_FLAGGED((sub), PRF_HOLYLIGHT)) || \
+   (!AFF_FLAGGED(sub, AFF_BLIND) && OBJ_FLAGGED(obj, ITEM_GLOW)))
 #define CAN_INFRA_OBJ(sub, obj) \
    (MORT_CAN_INFRA_OBJ(sub, obj) || (!IS_NPC(sub) && PRF_FLAGGED((sub), PRF_HOLYLIGHT)))
 
