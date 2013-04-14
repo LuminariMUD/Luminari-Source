@@ -1762,8 +1762,8 @@ const char *ability_names[] = {
   "Parry",
   "Lore",
   "Mount",
-  "Riding",
-  "Taming",
+  "<under construction>",
+  "<under construction>",
   "Pick Locks",
   "Steal"
 };
