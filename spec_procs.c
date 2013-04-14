@@ -901,12 +901,6 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     case ABILITY_MOUNT:
       value += GET_DEX_BONUS(ch);
       return value;
-    case ABILITY_RIDING:
-      value += GET_DEX_BONUS(ch);
-      return value;
-    case ABILITY_TAME:
-      value += GET_INT_BONUS(ch);
-      return value;
     case ABILITY_PICK_LOCK:
       value += GET_DEX_BONUS(ch);
       return value;

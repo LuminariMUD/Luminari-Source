@@ -613,19 +613,19 @@ ACMD(do_tame) {
   } else if (GET_LEVEL(ch) < LVL_IMMORT && IS_NPC(vict) && !MOB_FLAGGED(vict, MOB_MOUNTABLE)) {
     send_to_char(ch, "You can't do that to them.\r\n");
     return;
-  } else if (!GET_ABILITY(ch, ABILITY_TAME)) {
+  } else if (!GET_ABILITY(ch, ABILITY_MOUNT)) {
     send_to_char(ch, "You don't even know how to tame something.\r\n");
     return;
   } else if (!IS_NPC(vict) && GET_LEVEL(ch) < LVL_IMMORT) {
     send_to_char(ch, "You can't do that.\r\n");
     return;
-  } else if (GET_SKILL(ch, ABILITY_TAME) <= rand_number(1, GET_LEVEL(vict))) {
+  } else if (GET_SKILL(ch, ABILITY_MOUNT) <= rand_number(1, GET_LEVEL(vict))) {
     send_to_char(ch, "You fail to tame it.\r\n");
     return;
   }
 
   new_affect(&af);
-  af.duration = 50 + compute_ability(ch, ABILITY_TAME) * 4;
+  af.duration = 50 + compute_ability(ch, ABILITY_MOUNT) * 4;
   SET_BIT_AR(af.bitvector, AFF_TAMED);
   affect_to_char(vict, &af);
 
