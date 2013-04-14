@@ -2978,10 +2978,6 @@ int check_max_existing(mob_rnum mob_num, int max, room_rnum room) {
     return TRUE;
 
   if (max > 0) {
-    if (mob_index[mob_num].vnum == 6902) {
-      sprintf(buf, "MOB: 6902, Max: %d, Exist: %d", max, mob_index[mob_num].number);
-      log(buf);
-    }
     if (mob_index[mob_num].number < max)
       return TRUE;
   } else {
