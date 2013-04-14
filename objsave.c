@@ -1060,7 +1060,7 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
       if (sscanf(line, "#%d", &nr) == 1) {
         /* If we attempt to load an object with a legal VNUM 0-65534, that
          * does not exist, skip it. If the object has a VNUM of NOTHING or
-         * 65535, then we assume it doesn't exist on purpose. (Custom Item,
+         * NOWHERE, then we assume it doesn't exist on purpose. (Custom Item,
          * Coins, Corpse, etc...) */
         if (real_object(nr) == NOTHING && nr != NOTHING) {
           log("SYSERR: Prevented loading of non-existant item #%d.", nr);

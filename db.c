@@ -1376,8 +1376,10 @@ void setup_dir(FILE *fl, int room, int dir) {
   else
     world[room].dir_option[dir]->exit_info = 0;
 
-  world[room].dir_option[dir]->key = ((t[1] == -1 || t[1] == 65535) ? NOTHING : t[1]);
-  world[room].dir_option[dir]->to_room = ((t[2] == -1 || t[2] == 0) ? NOWHERE : t[2]);
+  world[room].dir_option[dir]->key = ((t[1] == -1 || t[1] == 65535) ? NOTHING :
+          t[1]);
+  world[room].dir_option[dir]->to_room = ((t[2] == -1 || t[2] == 0 || 
+          t[2] == 65535) ? NOWHERE : t[2]);
 }
 
 /* make sure the start rooms exist & resolve their vnums to rnums */
