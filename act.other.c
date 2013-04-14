@@ -2500,7 +2500,7 @@ ACMD(do_happyhour) {
     HAPPY_EXP = 100;
     HAPPY_GOLD = 50;
     HAPPY_QP = 50;
-    HAPPY_TREASURE = 30;
+    HAPPY_TREASURE = 15;
     HAPPY_TIME = 48;
     game_info("A Happyhour has started!");
   } else {
