@@ -267,7 +267,8 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch) {
     send_to_char(ch, " \tn..It emits a faint \tChumming\tn sound!");
 }
 
-static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type) {
+static void list_obj_to_char(struct obj_data *list, struct char_data *ch, 
+        int mode, int show, int mxp_type) {
   struct obj_data *i, *j, *display;
   bool found;
   int num;
@@ -290,7 +291,8 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mo
     for (display = j = i; j; j = j->next_content)
       /* This if-clause should be exactly the same as the one in the loop above */
       if ((j->short_description == i->short_description && j->name == i->name) ||
-              (!strcmp(j->short_description, i->short_description) && !strcmp(j->name, i->name)))
+              (!strcmp(j->short_description, i->short_description) && 
+              !strcmp(j->name, i->name)))
         if (CAN_SEE_OBJ(ch, j) /*|| (!AFF_FLAGGED(ch, AFF_BLIND) && OBJ_FLAGGED(j, ITEM_GLOW))*/) {
           /* added the ability for players to see glowing items in their inventory in the dark
            * as long as they are not blind! maybe add this to CAN_SEE_OBJ macro? */
@@ -638,7 +640,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   trig_data *t;
   struct room_data *rm = &world[IN_ROOM(ch)];
   room_vnum target_room;
-  int isDark = 0, canSee = 0, canInfra = 0, worldmapOn = 0;
+  int can_infra_in_dark = FALSE, world_map = FALSE, room_dark = FALSE;
   zone_rnum zn;
   char buf[MAX_STRING_LENGTH];
 
@@ -648,17 +650,22 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   target_room = IN_ROOM(ch);
   zn = GET_ROOM_ZONE(target_room);
 
-  if (ROOM_FLAGGED(target_room,ROOM_MAGICDARK) ||
-      IS_DARK(target_room))
-    isDark = 1;
-  if ((isDark && CAN_SEE_IN_DARK(ch)) || !isDark)
-    canSee = 1;
-  if (isDark && !canSee && CAN_INFRA_IN_DARK(ch)) {
-    canInfra = 1;
-    ignore_brief = 0;
+  /* set up variables to establish light/dark situation */
+  if (ROOM_FLAGGED(target_room, ROOM_MAGICDARK) || IS_DARK(target_room))
+    room_dark = TRUE;
+  
+  if (room_dark) {
+    if (CAN_SEE_IN_DARK(ch))
+      room_dark = FALSE;
+    else if (CAN_INFRA_IN_DARK(ch)) {
+      room_dark = FALSE;
+      can_infra_in_dark = TRUE;
+      ignore_brief = FALSE;
+    }
   }
 
-  if (isDark && !CAN_SEE_IN_DARK(ch) && !CAN_INFRA_IN_DARK(ch)) {
+  /* exit conditions */
+  if (room_dark) {
     send_to_char(ch, "It is pitch black...\r\n");
     return;
   } else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT) {
@@ -669,14 +676,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
     return;
   }
 
-  if (!canInfra && (ROOM_FLAGGED(target_room, ROOM_WORLDMAP) ||
-          ZONE_FLAGGED(zn, ZONE_WORLDMAP))) {
-    worldmapOn = 1;
-    /* if you want clear screen, uncomment this */
-    //    send_to_char(ch, "\033[H\033[J");
-  }
-
-  // staff can see the vnums
+  // staff can see some extra details
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
     sprintbitarray(ROOM_FLAGS(IN_ROOM(ch)), room_bits, RF_ARRAY_MAX, buf);
     send_to_char(ch, "%s", CCCYN(ch, C_NRM));
@@ -689,7 +689,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
         send_to_char(ch, " %d", GET_TRIG_VNUM(t));
       send_to_char(ch, "]");
     }
-  } else
+  } else  // non-staffers just see the name
     send_to_char(ch, "%s", world[IN_ROOM(ch)].name);
 
   // room affections
@@ -699,19 +699,39 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   // carrier return
   send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM));
 
-  // !infra && worldmap, force seeing worldmap no descrip
-  // !brief/infra && !worldmap display str_and_map or descrip
-  // if infra/brief, you'll get a brief mapless output
-  if (worldmapOn) {
+  /* worldmap room/zone? */
+  if (ROOM_FLAGGED(target_room, ROOM_WORLDMAP) ||
+          ZONE_FLAGGED(zn, ZONE_WORLDMAP)) {
+    world_map = TRUE;
+    /* if you want clear screen, uncomment this */
+    //    send_to_char(ch, "\033[H\033[J");
+  }
+  
+  /* scenarios:
+     1)  worldmap,                               see worldmap
+     2)  worldmap infra,                         can't see anything
+     3)  normal-room not-brief no-map,           see full descrip
+     4)  normal-room not-brief no-map infra,     can't see anything
+     3)  normal-room not-brief automap,          see full descrip & sidemap
+     4)  normal-room not-brief automap infra,    can't see anything
+     4)  brief'd room, can't see it
+     4)  brief'd room, can't see it
+     4)  brief'd room, can't see it
+   */
+
+  /* if we are on the worldmap (and can actually see it), then show it */
+  if ((!room_dark || can_infra_in_dark) && world_map) {
     perform_map(ch, "", show_worldmap(ch));
-  } else if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF) && !canInfra) || ignore_brief ||
-          ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH)) {
+    
+  /* we are not looking at worldmap, or we can't see the worldmap */
+  } else if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF) && !can_infra_in_dark) 
+          || ignore_brief || ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH)) {
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) && can_see_map(ch)) {
       str_and_map(world[target_room].description, ch, target_room);
     } else {
       send_to_char(ch, "%s", world[IN_ROOM(ch)].description);
     }
-  } else if (canInfra) {
+  } else if (can_infra_in_dark) {
     send_to_char(ch, "\tDIt is hard to make out too much detail with just \trinfravision\tD.\r\n");
   }
 

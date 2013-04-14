@@ -2540,9 +2540,11 @@ void mag_assign_spells(void) {
   spello(SPELL_I_DARKNESS, "!UNUSED!", 0, 0, 0, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_ROOM,
           "The cloak of darkness in the area dissolves.", 5, 6, NOSCHOOL, FALSE);
-  spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
+  /*  
+   spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
           NULL, 0, 0, NOSCHOOL, FALSE);
+  */
   spello(SPELL_INCENDIARY, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
           NULL, 0, 0, NOSCHOOL, FALSE);

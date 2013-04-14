@@ -1298,10 +1298,10 @@ do                                                              \
 
 /** Can sub character see obj character? */
 #define CAN_SEE(sub, obj) (SELF(sub, obj) || \
-   ((GET_REAL_LEVEL(sub) >= (IS_NPC(obj) ? 0 : GET_INVIS_LEV(obj))) && \
+   ((GET_REAL_LEVEL(sub) >= (IS_NPC(obj) ? FALSE : GET_INVIS_LEV(obj))) && \
    IMM_CAN_SEE(sub, obj)))
 #define CAN_INFRA(sub, obj) (SELF(sub, obj) || \
-   ((GET_REAL_LEVEL(sub) >= (IS_NPC(obj) ? 0 : GET_INVIS_LEV(obj))) && \
+   ((GET_REAL_LEVEL(sub) >= (IS_NPC(obj) ? FALSE   : GET_INVIS_LEV(obj))) && \
    IMM_CAN_INFRA(sub, obj)))
 
 /* End of CAN_SEE */
