@@ -43,10 +43,10 @@
 #define IDXTYPE       unsigned int   /** Index types are unsigned ints */ 
 #define IDXTYPE_MAX   UINT_MAX       /** Used for compatibility checks. */ 
 #define IDXTYPE_MIN   0              /**< Used for compatibility checks. */
-#define NOWHERE	  ((IDXTYPE)~0)  /**< Sets to ush_int_MAX, or 65,535 */
-#define NOTHING	  ((IDXTYPE)~0)  /**< Sets to ush_int_MAX, or 65,535 */
-#define NOBODY		  ((IDXTYPE)~0)  /**< Sets to ush_int_MAX, or 65,535 */
-#define NOFLAG        ((IDXTYPE)~0)  /**< Sets to ush_int_MAX, or 65,535 */
+#define NOWHERE	  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or 4bil */
+#define NOTHING	  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or 4bil */
+#define NOBODY		  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or 4bil */
+#define NOFLAG        ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or 4bil */
 #else
 //#define IDXTYPE	  sh_int           /**< Index types are unsigned short ints */
 //#define IDXTYPE_MAX   SHRT_MAX       /**< Used for compatibility checks. */
