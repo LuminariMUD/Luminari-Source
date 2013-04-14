@@ -663,7 +663,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
 
   /* chance of being thrown off mount */
-  if (riding && compute_ability(ch, ABILITY_RIDING) <
+  if (riding && compute_ability(ch, ABILITY_MOUNT) <
           rand_number(1, GET_LEVEL(RIDING(ch))) - rand_number(-4, need_movement)) {
     act("$N rears backwards, throwing you to the ground.",
             FALSE, ch, 0, RIDING(ch), TO_CHAR);

@@ -660,8 +660,8 @@
 #define ABILITY_PARRY			12 // parry
 #define ABILITY_LORE			13 // lore
 #define ABILITY_MOUNT			14 // mounts
-#define ABILITY_RIDING			15 // mounts
-#define ABILITY_TAME			16 // mounts
+#define ABILITY_FREE15			15 // use to be riding
+#define ABILITY_FREE16			16 // use to be taming
 #define ABILITY_PICK_LOCK		17 // open locks
 #define ABILITY_STEAL			18 // pick pockets
 
