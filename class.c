@@ -377,6 +377,9 @@ void newbieEquipment(struct char_data *ch) {
     if (quiver && obj)
       obj_to_obj(obj, quiver);    
   }
+  
+  if (quiver)
+    obj_to_char(quiver, ch);
 
   switch (GET_CLASS(ch)) {
     case CLASS_PALADIN:
