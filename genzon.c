@@ -49,24 +49,25 @@ zone_rnum real_zone_by_thing(room_vnum vznum) {
 zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, const char **error) {
   FILE *fp;
   struct zone_data *zone;
-  int i, max_zone;
+  //int i, max_zone;
+  int i, max_zone = IDXTYPE_MAX / 100;   
   zone_rnum rznum;
   char buf[MAX_STRING_LENGTH];
 
 #if CIRCLE_UNSIGNED_INDEX
-  max_zone = 655;
   if (vzone_num == NOWHERE) {
 #else
-  max_zone = 327;
   if (vzone_num < 0) {
 #endif
     *error = "You can't make negative zones.\r\n";
     return NOWHERE;
   } else if (vzone_num > max_zone) {
 #if CIRCLE_UNSIGNED_INDEX
-    *error = "New zone cannot be higher than 655.\r\n";
+    //*error = "New zone cannot be higher than 655.\r\n";
+    *error = "New zone cannot be higher than 42949672.\r\n";
 #else
-    *error = "New zone cannot be higher than 327.\r\n";
+    //*error = "New zone cannot be higher than 327.\r\n";
+    *error = "New zone cannot be higher than 21474836.\r\n"; 
 #endif
     return NOWHERE;
   } else if (bottom > top) {
