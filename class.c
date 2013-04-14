@@ -371,6 +371,8 @@ void newbieEquipment(struct char_data *ch) {
   }
   
   quiver = read_object(objNums[x], VIRTUAL);
+  if (quiver)
+    obj_to_char(quiver, ch);
   
   for (x = 0; x < NUM_NOOB_ARROWS; x++) {
     obj = read_object(NOOB_ARROW, VIRTUAL);
@@ -378,8 +380,6 @@ void newbieEquipment(struct char_data *ch) {
       obj_to_obj(obj, quiver);    
   }
   
-  if (quiver)
-    obj_to_char(quiver, ch);
 
   switch (GET_CLASS(ch)) {
     case CLASS_PALADIN:
