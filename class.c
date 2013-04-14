@@ -370,7 +370,7 @@ void newbieEquipment(struct char_data *ch) {
     }
   }
   
-  quiver = read_object(objNums[x], VIRTUAL);
+  quiver = read_object(NOOB_QUIVER, VIRTUAL);
   if (quiver)
     obj_to_char(quiver, ch);
   
