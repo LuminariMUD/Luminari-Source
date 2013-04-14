@@ -648,6 +648,10 @@ void cleric_skills(struct char_data *ch, int level) {
         SET_SKILL(ch, SKILL_USE_MAGIC, 75);
       send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
       break;
+    case 3:
+      if (!GET_SKILL(ch, SKILL_TURN_UNDEAD))
+        SET_SKILL(ch, SKILL_TURN_UNDEAD, 75);
+      send_to_char(ch, "\tMYou have learned 'Turn Undead'\tn\r\n");
     default:
       break;
   }

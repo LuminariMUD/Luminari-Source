@@ -361,14 +361,6 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   if (need_specials_check && special(ch, dir + 1, spec_proc_args))
     return 0;
 
-  if (IS_EVIL(ch) && IS_HOLY(going_to)) {
-    send_to_char(ch, "The sanctity of the area prevents you from entering.\r\n");
-    return 0;
-  }
-  if (IS_GOOD(ch) && IS_UNHOLY(going_to)) {
-    send_to_char(ch, "The corruption of the area prevents you from entering.\r\n");
-    return 0;
-  }
   /* Leave Trigger Checks: Does a leave trigger block exit from the room? */
   /* next 3 if blocks prevent teleport crashes */
   if (!leave_mtrigger(ch, dir) || IN_ROOM(ch) != was_in)
@@ -383,7 +375,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     act("$n struggles to move, but can't!", FALSE, ch, 0, 0, TO_ROOM);
     return 0;
   }
-
+  
   /* check if they're mounted */
   if (RIDING(ch)) riding = 1;
   if (RIDDEN_BY(ch)) ridden_by = 1;
@@ -474,6 +466,22 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   
   /* Charm effect: Does it override the movement? 
      for now it is cut out of the code */
+
+  // dummy check
+  if (going_to == NOWHERE)
+    return 0;
+
+  /* druid spell */
+  if (IS_EVIL(ch) && IS_HOLY(going_to)) {
+    send_to_char(ch, "The sanctity of the area prevents "
+            "you from entering.\r\n");
+    return 0;
+  }
+  if (IS_GOOD(ch) && IS_UNHOLY(going_to)) {
+    send_to_char(ch, "The corruption of the area prevents "
+            "you from entering.\r\n");
+    return 0;
+  }
   
   /* Water, No Swimming Rooms: Does the deep water prevent movement? */
   if ((SECT(was_in) == SECT_WATER_NOSWIM) ||
@@ -539,6 +547,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
             "off-limits.\r\n");
     return (0);
   }
+  
   if (ZONE_FLAGGED(GET_ROOM_ZONE(going_to), ZONE_NOIMMORT) &&
           (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRSTAFF)) {
     send_to_char(ch, "A mysterious barrier forces you back! That area is off-limits.\r\n");
@@ -550,6 +559,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     send_to_char(ch, "There isn't enough space to enter mounted!\r\n");
     return 0;
   }
+  
   if (ROOM_FLAGGED(going_to, ROOM_TUNNEL) &&
           num_pc_in_room(&(world[going_to])) >= CONFIG_TUNNEL_SIZE) {
     if (CONFIG_TUNNEL_SIZE > 1)
