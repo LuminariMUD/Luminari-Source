@@ -2364,11 +2364,13 @@ void hit(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "You have no ammo!\r\n");
       return;
     }
-  }
-
-  // primary hand setting, determine later if inappropriate 'wielded'
-  if (GET_EQ(ch, WEAR_WIELD_2H))
+    if (!wielded)
+      wielded = GET_EQ(ch, WEAR_WIELD_2H);      
+  } else if (offhand == 1) {  // off-hand weapon
+    wielded = GET_EQ(ch, WEAR_WIELD_2);    
+  } else if (offhand == 0 && !wielded) {  // 2-hand weapon, primary hand
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
+  }  // weither either have wielded or NULL
 
   if (!ch || !victim) return; //ch and victim exist?
 
@@ -2425,19 +2427,18 @@ void hit(struct char_data *ch, struct char_data *victim,
     }
   }
 
-  // ranged, primary or offhand attack?  establish weapon type and wielded
+  // ranged, primary or offhand attack?  establish weapon type
   if (is_ranged) { // ranged-attack
     if (!wielded)
-      wielded = GET_EQ(ch, WEAR_WIELD_1);
-    /* ranged attacks don't get strength bonus */
-    penalty -= GET_STR_BONUS(ch);
-    w_type = GET_OBJ_VAL(missile, 3) + TYPE_HIT;
-    // tag missile so that only this char collects it.
-    MISSILE_ID(missile) = GET_IDNUM(ch);
-    obj_from_obj(missile);
-  } else if (offhand) {
-    wielded = GET_EQ(ch, WEAR_WIELD_2);
-    w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
+      w_type = TYPE_HIT;
+    else {
+      w_type = GET_OBJ_VAL(missile, 3) + TYPE_HIT;
+      /* ranged attacks don't get strength bonus */
+      penalty -= GET_STR_BONUS(ch);
+      // tag missile so that only this char collects it.
+      MISSILE_ID(missile) = GET_IDNUM(ch);
+      obj_from_obj(missile);
+    }
   } else if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) {
     w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
   } else {
@@ -2446,7 +2447,6 @@ void hit(struct char_data *ch, struct char_data *victim,
     else
       w_type = TYPE_HIT;
   }
-
 
   // attack rolls:  1 = stumble, 20 = crit
   calc_bab = compute_bab(ch, victim, w_type) + penalty;
