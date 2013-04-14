@@ -137,6 +137,8 @@ handler.o: handler.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 hedit.o: hedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h db.h boards.h oasis.h genolc.h genzon.h \
  handler.h improved-edit.h act.h hedit.h modify.h
+hl_events.o: hl_events.c conf.h sysdep.h structs.h protocol.h lists.h \
+ utils.h race.h hl_events.h
 hlqedit.o: hlqedit.c conf.h sysdep.h structs.h protocol.h lists.h comm.h \
  utils.h race.h db.h boards.h handler.h oasis.h interpreter.h constants.h \
  hlquest.h spells.h class.h genzon.h genolc.h genmob.h improved-edit.h \
