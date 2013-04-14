@@ -326,9 +326,7 @@ void reset_char_points(struct char_data *ch) {
 void affect_total(struct char_data *ch) {
   struct affected_type *af;
   int i, j;
-/*
-  /int armor = 100;
-*/
+  int armor = 100;
 
   /* subtract affects with gear */
   for (i = 0; i < NUM_WEARS; i++) {
@@ -339,19 +337,19 @@ void affect_total(struct char_data *ch) {
               GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
   }
 
-  /* any stats that are not an APPLY_ need to be stored */
-  //armor = GET_AC(ch);
-
   /* modify affects based on 'nekked' char */
   for (af = ch->affected; af; af = af->next)
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
 
-  /* reset stats */
+  /* any stats that are not an APPLY_ need to be stored */
+  armor = GET_AC(ch);
+  
+  /* reset stats - everything should be at 0 now */
   ch->aff_abils = ch->real_abils;
   reset_char_points(ch);
 
   /* restore stored stats */
-  //GET_AC(ch) = armor;
+  GET_AC(ch) = armor;
   
   /* add gear back on */
   for (i = 0; i < NUM_WEARS; i++) {
