@@ -159,7 +159,7 @@ bitvector_t find_class_bitvector(const char *arg) {
 /* #define PRAC_TYPE		3  should it say 'spell' or 'skill'?	*/
 
 int prac_params[4][NUM_CLASSES] = {
-  /* MG  CL  TH	 WR  MN  DR  BK  SR  PL  RA  BA*/
+  /* MG  CL  TH WR  MN  DR  BK  SR  PL  RA  BA*/
   { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* learned level */
   { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* max per practice */
   { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* min per practice */
@@ -235,7 +235,7 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
 #define		H	1	//high
 #define		L	0	//low
 int preferred_save[5][NUM_CLASSES] = {
-  //           MU CL TH WA MO DR BK SR PL RA BA
+  //MU CL TH WA MO DR BK SR PL RA BA
   /*fort */
   { L, H, L, H, H, H, H, L, H, H, L},
   /*refl */
@@ -330,19 +330,52 @@ void roll_real_abils(struct char_data *ch) {
 
 
 //   give newbie's some eq to start with
+#define NOOB_TELEPORTER    82
+#define NOOB_TORCH         858
+#define NOOB_RATIONS       804
+#define NOOB_WATERSKIN     803
+#define NOOB_BP            857
+#define NOOB_CRAFTING_KIT  3118
+#define NOOB_BOW           814
+#define NOOB_QUIVER        816
+#define NOOB_ARROW         815
 
+#define NUM_NOOB_ARROWS    40
 void newbieEquipment(struct char_data *ch) {
-  int objNums[] = {82, 858, 858, 804, 804, 804, 804, 803, 857, 3118, -1};
+  int objNums[] = {
+    NOOB_TELEPORTER,
+    NOOB_TORCH,
+    NOOB_TORCH,
+    NOOB_RATIONS,
+    NOOB_RATIONS,
+    NOOB_RATIONS,
+    NOOB_RATIONS,
+    NOOB_WATERSKIN,
+    NOOB_BP,
+    NOOB_CRAFTING_KIT,
+    NOOB_BOW,
+    -1  //had to end with -1
+  };
   int x;
-  struct obj_data *obj = NULL;
+  struct obj_data *obj = NULL, *quiver = NULL;
 
   send_to_char(ch, "\tMYou are given a set of starting equipment...\tn\r\n");
 
   // give everyone torch, rations, skin, backpack
   for (x = 0; objNums[x] != -1; x++) {
     obj = read_object(objNums[x], VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch);
+    if (obj) {
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);
+    }
+  }
+  
+  quiver = read_object(objNums[x], VIRTUAL);
+  
+  for (x = 0; x < NUM_NOOB_ARROWS; x++) {
+    obj = read_object(NOOB_ARROW, VIRTUAL);
+    if (quiver && obj)
+      obj_to_obj(obj, quiver);    
   }
 
   switch (GET_CLASS(ch)) {
@@ -461,6 +494,16 @@ void newbieEquipment(struct char_data *ch) {
       break;
   }
 }
+#undef NOOB_TELEPORTER    
+#undef NOOB_TORCH         
+#undef NOOB_RATIONS       
+#undef NOOB_WATERSKIN     
+#undef NOOB_BP            
+#undef NOOB_CRAFTING_KIT  
+#undef NOOB_BOW           
+#undef NOOB_QUIVER        
+#undef NOOB_ARROW         
+
 
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
