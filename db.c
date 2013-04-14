@@ -1116,29 +1116,26 @@ void discrete_load(FILE *fl, int mode, char *filename) {
         log("SYSERR: Format error after %s #%d", modes[mode], last);
         exit(1);
       }
-      if (nr >= 99999)
-        return;
-      else
-        switch (mode) {
-          case DB_BOOT_WLD:
-            parse_room(fl, nr);
-            break;
-          case DB_BOOT_MOB:
-            parse_mobile(fl, nr);
-            break;
-          case DB_BOOT_TRG:
-            parse_trigger(fl, nr);
-            break;
-          case DB_BOOT_OBJ:
-            strlcpy(line, parse_object(fl, nr), sizeof (line));
-            break;
-          case DB_BOOT_QST:
-            parse_quest(fl, nr);
-            break;
-          case DB_BOOT_HLQST:
-            //parse_quest(fl, nr);
-            break;
-        }
+      switch (mode) {
+        case DB_BOOT_WLD:
+          parse_room(fl, nr);
+          break;
+        case DB_BOOT_MOB:
+          parse_mobile(fl, nr);
+          break;
+        case DB_BOOT_TRG:
+          parse_trigger(fl, nr);
+          break;
+        case DB_BOOT_OBJ:
+          strlcpy(line, parse_object(fl, nr), sizeof (line));
+          break;
+        case DB_BOOT_QST:
+          parse_quest(fl, nr);
+          break;
+        case DB_BOOT_HLQST:
+          //parse_quest(fl, nr);
+          break;
+      }
     } else {
       log("SYSERR: Format error in %s file %s near %s #%d", modes[mode],
               filename, modes[mode], nr);
@@ -1512,7 +1509,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   GET_REAL_AC(mob_proto + i) = 10 * t[2];
 
   /* max hit = 0 is a flag that H, M, V is xdy+z */
-//  GET_REAL_MAX_HIT(mob_proto + i) = 0;
+  //  GET_REAL_MAX_HIT(mob_proto + i) = 0;
   GET_MAX_HIT(mob_proto + i) = 0;
   GET_HIT(mob_proto + i) = t[3];
   GET_MANA(mob_proto + i) = t[4];
@@ -1560,7 +1557,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   GET_POS(mob_proto + i) = t[0];
   if (GET_POS(mob_proto + i) == POS_FIGHTING)
     GET_POS(mob_proto + i) = POS_STANDING;
-  
+
   GET_SEX(mob_proto + i) = t[2];
 
   GET_SUBRACE(mob_proto + i, 0) = 0;
@@ -1577,10 +1574,10 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
    * warrior save table. */
   for (j = 0; j < NUM_OF_SAVING_THROWS; j++)
     GET_REAL_SAVE(mob_proto + i, j) = 0;
-  
+
   for (j = 0; j < NUM_DAM_TYPES; j++)
     GET_REAL_RESISTANCES(mob_proto + i, j) = 0;
-  
+
   // be sure to initialize any numeric echo stuff too
   ECHO_IS_ZONE(mob_proto + i) = FALSE;
   ECHO_FREQ(mob_proto + i) = 0;
@@ -1656,125 +1653,154 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     RANGE(0, 100);
     GET_SAVE(mob_proto + i, SAVING_FORT) = num_arg;
   }
+
   CASE("SavingFort") {
     RANGE(0, 100);
     GET_SAVE(mob_proto + i, SAVING_FORT) = num_arg;
   }
+
   CASE("SavingRod") {
     RANGE(0, 100);
     GET_SAVE(mob_proto + i, SAVING_REFL) = num_arg;
   }
+
   CASE("SavingRefl") {
     RANGE(0, 100);
     GET_SAVE(mob_proto + i, SAVING_REFL) = num_arg;
   }
+
   CASE("SavingPetri") {
     RANGE(0, 100);
     GET_SAVE(mob_proto + i, SAVING_WILL) = num_arg;
   }
+
   CASE("SavingWill") {
     RANGE(0, 100);
     GET_SAVE(mob_proto + i, SAVING_WILL) = num_arg;
   }
+
   CASE("SavingBreath") {
     RANGE(0, 100);
     GET_SAVE(mob_proto + i, SAVING_POISON) = num_arg;
   }
+
   CASE("SavingPoison") {
     RANGE(0, 100);
     GET_SAVE(mob_proto + i, SAVING_POISON) = num_arg;
   }
+
   CASE("SavingSpell") {
     RANGE(0, 100);
     GET_SAVE(mob_proto + i, SAVING_DEATH) = num_arg;
   }
+
   CASE("SavingDeath") {
     RANGE(0, 100);
     GET_SAVE(mob_proto + i, SAVING_DEATH) = num_arg;
   }
   /* end saving throws */
-  
+
   /* damtype resistances */
   CASE("ResFire") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_FIRE) = num_arg;
   }
+
   CASE("ResCold") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_COLD) = num_arg;
   }
+
   CASE("ResAir") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_AIR) = num_arg;
   }
+
   CASE("ResEarth") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_EARTH) = num_arg;
   }
+
   CASE("ResAcid") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_ACID) = num_arg;
   }
+
   CASE("ResHoly") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_HOLY) = num_arg;
   }
+
   CASE("ResElectric") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_ELECTRIC) = num_arg;
   }
+
   CASE("ResUnholy") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_UNHOLY) = num_arg;
   }
+
   CASE("ResSlice") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_SLICE) = num_arg;
   }
+
   CASE("ResPuncture") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_PUNCTURE) = num_arg;
   }
+
   CASE("ResForce") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_FORCE) = num_arg;
   }
+
   CASE("ResSound") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_SOUND) = num_arg;
   }
+
   CASE("ResPoison") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_POISON) = num_arg;
   }
+
   CASE("ResDisease") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_DISEASE) = num_arg;
   }
+
   CASE("ResNegative") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_NEGATIVE) = num_arg;
   }
+
   CASE("ResIllusion") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_ILLUSION) = num_arg;
   }
+
   CASE("ResMental") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_MENTAL) = num_arg;
   }
+
   CASE("ResLight") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_LIGHT) = num_arg;
   }
+
   CASE("ResEnergy") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_ENERGY) = num_arg;
   }
+
   CASE("ResWater") {
     RANGE(-100, 100);
     GET_RESISTANCES(mob_proto + i, DAM_WATER) = num_arg;
   }
+
   /* end damtype resisatnces */
 
   CASE("SavingDeath") {
@@ -1824,28 +1850,28 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     RANGE(0, 1);
     ECHO_IS_ZONE(mob_proto + i) = num_arg;
   }
-  
+
   CASE("EchoFreq") {
     RANGE(0, 100);
     ECHO_FREQ(mob_proto + i) = num_arg;
   }
-  
+
   CASE("EchoCount") {
     //RANGE(0, 20);
     //ECHO_COUNT(mob_proto + i) = num_arg;
     //ECHO_ENTRIES(mob_proto + i) = new char*[num_arg];
     CREATE(ECHO_ENTRIES(mob_proto + i), char *, num_arg);
   }
-  
+
   CASE("EchoSequential") {
     RANGE(0, 1);
     ECHO_SEQUENTIAL(mob_proto + i) = num_arg;
   }
-  
+
   CASE("Echo") {
     ECHO_ENTRIES(mob_proto + i)[ECHO_COUNT(mob_proto + i)] = strdup(value);
     ECHO_COUNT(mob_proto + i)++;
-  }  
+  }
 
   if (!matched) {
     log("SYSERR: Warning: unrecognized espec keyword %s in mob #%d",
@@ -2049,7 +2075,7 @@ char *parse_object(FILE *obj_f, int nr) {
 
   clear_object(obj_proto + i);
   obj_proto[i].item_number = i;
-  
+
   sprintf(buf2, "object #%d", nr); /* sprintf: OK (for 'buf2 >= 19') */
 
   /* string data */
@@ -2363,9 +2389,10 @@ static void load_zones(FILE *fl, char *zonename) {
     CREATE(Z.cmd, struct reset_com, num_of_cmds);
 
   line_num += get_line(fl, buf);
-
-  if (sscanf(buf, "#%hd", &Z.number) != 1) {
-    log("SYSERR: Format error in %s, line %d", zname, line_num);
+/* vnum expansion */
+//  if (sscanf(buf, "#%hd", &Z.number) != 1) {
+  if (sscanf(buf, "#%d", &Z.number) != 1) { 
+  log("SYSERR: Format error in %s, line %d", zname, line_num);
     exit(1);
   }
   snprintf(buf2, sizeof (buf2), "beginning of zone #%d", Z.number);
@@ -2387,17 +2414,24 @@ static void load_zones(FILE *fl, char *zonename) {
 
   // had to change this block -zusuk
   line_num += get_line(fl, buf);
+  
+  /* vnum expansion 
   if (sscanf(buf, " %hd %hd %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top, &Z.lifespan,
           &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
           &Z.show_weather) != 11) {
+  */
+  if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top, 
+      &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, 
+      &Z.max_level, &Z.show_weather) != 11) 
+   {     
     // not 11 values, lets try 10
-    if (sscanf(buf, " %hd %hd %d %d %s %s %s %s %d %d", &Z.bot, &Z.top, &Z.lifespan,
+    if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d", &Z.bot, &Z.top, &Z.lifespan,
             &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level) != 10) {
       // not 10 values, last try for 4 values
-      if (sscanf(buf, " %hd %hd %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4) {
+      if (sscanf(buf, " %d %d %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4) {
         // attempt to fix: copy previous 2 last reads into this and last variable
         log("SYSERR: Format error in numeric constant line of %s, attempting to fix.", zname);
-        if (sscanf(Z.name, " %hd %hd %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4) {
+        if (sscanf(Z.name, " %d %d %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4) {
           log("SYSERR: Could not fix previous error, aborting game.");
           exit(1);
         } else {
@@ -2741,14 +2775,14 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
     GET_MAX_HIT(mob) = rand_number(GET_HIT(mob), GET_MANA(mob));
 
   GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob);
-  
+
   if (GET_SPELL_RES(mob) < 0)
     GET_SPELL_RES(mob) = 0;
 
   GET_HIT(mob) = GET_MAX_HIT(mob);
   GET_MANA(mob) = GET_REAL_MAX_MANA(mob) = GET_MAX_MANA(mob);
   GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = GET_MAX_MOVE(mob);
-  
+
   /* pos_fighting is deprecated */
   if (GET_DEFAULT_POS(mob) == POS_FIGHTING)
     GET_DEFAULT_POS(mob) = POS_STANDING;
@@ -2925,14 +2959,13 @@ void zone_update(void) {
 sbyte test_result(sbyte offset) {
   
 }
-*/
+ */
 
-int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
-{
+int check_max_existing(mob_rnum mob_num, int max, room_rnum room) {
   struct char_data *temp_mob = NULL;
   char buf[MAX_STRING_LENGTH];
   int count = 0;
-  
+
   *buf = '\0';
   if ((room == NOWHERE) && (max < 0)) {
     log("Illegal room for check_max_existing() in room.");
@@ -2957,7 +2990,7 @@ int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
     if (count < abs(max))
       return TRUE;
   }
-  
+
   // if we got here, then return FALSE
   return FALSE;
 }
@@ -2983,241 +3016,241 @@ void reset_zone(zone_rnum zone) {
 
   /* dummy check added by zusuk due to mysterious crash (03/31/2013) */
   //if (zone_table && zone_table[zone].cmd) {
-    for (cmd_no = 0; ZCMD.command != 'S'; cmd_no++) {
-      if (jump > 0) {
-        jump--;
+  for (cmd_no = 0; ZCMD.command != 'S'; cmd_no++) {
+    if (jump > 0) {
+      jump--;
+      last_cmd = 0;
+      continue;
+    }
+
+    // dependent on success of last command
+    if (ZCMD.if_flag > 0 && !last_cmd)
+      continue;
+
+    // dependent on failure of last command
+    if (ZCMD.if_flag < 0 && last_cmd)
+      continue;
+
+    /* This is the list of actual zone commands. If any new zone commands are
+     * added to the game, be certain to update the list of commands in load_zone
+     * () so that the counting will still be correct. - ae. */
+    switch (ZCMD.command) {
+      case '*': /* ignore command */
         last_cmd = 0;
-        continue;
-      }
+        break;
 
-      // dependent on success of last command
-      if (ZCMD.if_flag > 0 && !last_cmd)
-        continue;
-      
-      // dependent on failure of last command
-      if (ZCMD.if_flag < 0 && last_cmd)
-        continue;
-
-      /* This is the list of actual zone commands. If any new zone commands are
-       * added to the game, be certain to update the list of commands in load_zone
-       * () so that the counting will still be correct. - ae. */
-      switch (ZCMD.command) {
-        case '*': /* ignore command */
+      case 'J': /* jump over lines (with percentage chance) */
+        if (rand_number(1, 100) <= ZCMD.arg2) {
+          jump = ZCMD.arg1;
+          last_cmd = 1;
+        } else
           last_cmd = 0;
-          break;
+        break;
 
-        case 'J': /* jump over lines (with percentage chance) */
-          if (rand_number(1, 100) <= ZCMD.arg2) {
-            jump = ZCMD.arg1;
-            last_cmd = 1;
-          } else
-            last_cmd = 0;
-          break;
-          
-        case 'M': /* read a mobile (with percentage loads) */
-//        if ((mob_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) && 
-          if ((check_max_existing(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3) || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
-                  rand_number(1, 100) <= ZCMD.arg4) {
-            mob = read_mobile(ZCMD.arg1, REAL);
-            char_to_room(mob, ZCMD.arg3);
-            load_mtrigger(mob);
-            tmob = mob;
-            GET_MOB_LOADROOM(mob) = mob->in_room;
-            last_cmd = 1;
-          } else
-            last_cmd = 0;
-          tobj = NULL;
-          break;
+      case 'M': /* read a mobile (with percentage loads) */
+        //        if ((mob_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) && 
+        if ((check_max_existing(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3) || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
+                rand_number(1, 100) <= ZCMD.arg4) {
+          mob = read_mobile(ZCMD.arg1, REAL);
+          char_to_room(mob, ZCMD.arg3);
+          load_mtrigger(mob);
+          tmob = mob;
+          GET_MOB_LOADROOM(mob) = mob->in_room;
+          last_cmd = 1;
+        } else
+          last_cmd = 0;
+        tobj = NULL;
+        break;
 
-        case 'O': /* read an object (with percentage loads) */
-          if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
-                  rand_number(1, 100) <= ZCMD.arg4) {
-            if (ZCMD.arg3 != NOWHERE) {
-              obj = read_object(ZCMD.arg1, REAL);
-              obj_to_room(obj, ZCMD.arg3);
-              last_cmd = 1;
-              load_otrigger(obj);
-              tobj = obj;
-            } else {
-              obj = read_object(ZCMD.arg1, REAL);
-              IN_ROOM(obj) = NOWHERE;
-              last_cmd = 1;
-              tobj = obj;
-            }
-          } else
-            last_cmd = 0;
-          tmob = NULL;
-          break;
-
-        case 'P': /* object to object (with percentage loads) */
-          if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
-                  rand_number(1, 100) <= ZCMD.arg4) {
+      case 'O': /* read an object (with percentage loads) */
+        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
+                rand_number(1, 100) <= ZCMD.arg4) {
+          if (ZCMD.arg3 != NOWHERE) {
             obj = read_object(ZCMD.arg1, REAL);
-            if (!(obj_to = get_obj_num(ZCMD.arg3))) {
-              ZONE_ERROR("target obj not found, command disabled");
-              ZCMD.command = '*';
-              break;
-            }
-            obj_to_obj(obj, obj_to);
+            obj_to_room(obj, ZCMD.arg3);
             last_cmd = 1;
             load_otrigger(obj);
             tobj = obj;
-          } else
-            last_cmd = 0;
-          tmob = NULL;
-          break;
-
-        case 'G': /* obj_to_char (with percentage loads) */
-          if (!mob) {
-            char error[MAX_INPUT_LENGTH];
-            snprintf(error, sizeof (error), "attempt to give obj #%d to non-existant mob, command disabled", obj_index[ZCMD.arg1].vnum);
-            ZONE_ERROR(error);
-            ZCMD.command = '*';
-            break;
-          }
-          if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
-                  rand_number(1, 100) <= ZCMD.arg3) {
+          } else {
             obj = read_object(ZCMD.arg1, REAL);
-            obj_to_char(obj, mob);
+            IN_ROOM(obj) = NOWHERE;
             last_cmd = 1;
-            load_otrigger(obj);
             tobj = obj;
-          } else
-            last_cmd = 0;
-          tmob = NULL;
-          break;
+          }
+        } else
+          last_cmd = 0;
+        tmob = NULL;
+        break;
 
-        case 'E': /* object to equipment list (with percentage loads) */
-          if (!mob) {
-            char error[MAX_INPUT_LENGTH];
-            snprintf(error, sizeof (error), "trying to equip non-existant mob with obj #%d, command disabled", obj_index[ZCMD.arg1].vnum);
-            ZONE_ERROR(error);
+      case 'P': /* object to object (with percentage loads) */
+        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
+                rand_number(1, 100) <= ZCMD.arg4) {
+          obj = read_object(ZCMD.arg1, REAL);
+          if (!(obj_to = get_obj_num(ZCMD.arg3))) {
+            ZONE_ERROR("target obj not found, command disabled");
             ZCMD.command = '*';
             break;
           }
-          if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
-                  rand_number(1, 100) <= ZCMD.arg4) {
-            if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS) {
-              char error[MAX_INPUT_LENGTH];
-              snprintf(error, sizeof (error), "invalid equipment pos number (mob %s, obj %d, pos %d)", GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
-              ZONE_ERROR(error);
-            } else {
-              obj = read_object(ZCMD.arg1, REAL);
-              IN_ROOM(obj) = IN_ROOM(mob);
-              load_otrigger(obj);
-              if (wear_otrigger(obj, mob, ZCMD.arg3)) {
-                IN_ROOM(obj) = NOWHERE;
-                equip_char(mob, obj, ZCMD.arg3);
-              } else
-                obj_to_char(obj, mob);
-              tobj = obj;
-              last_cmd = 1;
-            }
-          } else
-            last_cmd = 0;
-          tmob = NULL;
-          break;
-
-        case 'R': /* rem obj from room */
-          if ((obj = get_obj_in_list_num(ZCMD.arg2, world[ZCMD.arg1].contents)) != NULL)
-            extract_obj(obj);
+          obj_to_obj(obj, obj_to);
           last_cmd = 1;
-          tmob = NULL;
-          tobj = NULL;
-          break;
+          load_otrigger(obj);
+          tobj = obj;
+        } else
+          last_cmd = 0;
+        tmob = NULL;
+        break;
 
-
-        case 'D': /* set state of door */
-          if (ZCMD.arg2 < 0 || ZCMD.arg2 >= DIR_COUNT ||
-                  (world[ZCMD.arg1].dir_option[ZCMD.arg2] == NULL)) {
-            char error[MAX_INPUT_LENGTH];
-            snprintf(error, sizeof (error), "door does not exist in room %d - dir %d, command disabled", world[ZCMD.arg1].number, ZCMD.arg2);
-            ZONE_ERROR(error);
-            ZCMD.command = '*';
-          } else
-            switch (ZCMD.arg3) {
-              case 0:
-                REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                        EX_LOCKED);
-                REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                        EX_CLOSED);
-                break;
-              case 1:
-                SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                        EX_CLOSED);
-                REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                        EX_LOCKED);
-                break;
-              case 2:
-                SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                        EX_LOCKED);
-                SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                        EX_CLOSED);
-                break;
-            }
-          last_cmd = 1;
-          tmob = NULL;
-          tobj = NULL;
-          break;
-
-        case 'T': /* trigger command */
-          if (ZCMD.arg1 == MOB_TRIGGER && tmob) {
-            if (!SCRIPT(tmob))
-              CREATE(SCRIPT(tmob), struct script_data, 1);
-            add_trigger(SCRIPT(tmob), read_trigger(ZCMD.arg2), -1);
-            last_cmd = 1;
-          } else if (ZCMD.arg1 == OBJ_TRIGGER && tobj) {
-            if (!SCRIPT(tobj))
-              CREATE(SCRIPT(tobj), struct script_data, 1);
-            add_trigger(SCRIPT(tobj), read_trigger(ZCMD.arg2), -1);
-            last_cmd = 1;
-          } else if (ZCMD.arg1 == WLD_TRIGGER) {
-            if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world) {
-              ZONE_ERROR("Invalid room number in trigger assignment");
-            }
-            if (!world[ZCMD.arg3].script)
-              CREATE(world[ZCMD.arg3].script, struct script_data, 1);
-            add_trigger(world[ZCMD.arg3].script, read_trigger(ZCMD.arg2), -1);
-            last_cmd = 1;
-          }
-
-          break;
-
-        case 'V':
-          if (ZCMD.arg1 == MOB_TRIGGER && tmob) {
-            if (!SCRIPT(tmob)) {
-              ZONE_ERROR("Attempt to give variable to scriptless mobile");
-            } else
-              add_var(&(SCRIPT(tmob)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
-                    ZCMD.arg3);
-            last_cmd = 1;
-          } else if (ZCMD.arg1 == OBJ_TRIGGER && tobj) {
-            if (!SCRIPT(tobj)) {
-              ZONE_ERROR("Attempt to give variable to scriptless object");
-            } else
-              add_var(&(SCRIPT(tobj)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
-                    ZCMD.arg3);
-            last_cmd = 1;
-          } else if (ZCMD.arg1 == WLD_TRIGGER) {
-            if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world) {
-              ZONE_ERROR("Invalid room number in variable assignment");
-            } else {
-              if (!(world[ZCMD.arg3].script)) {
-                ZONE_ERROR("Attempt to give variable to scriptless object");
-              } else
-                add_var(&(world[ZCMD.arg3].script->global_vars),
-                      ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg2);
-              last_cmd = 1;
-            }
-          }
-          break;
-
-        default:
-          ZONE_ERROR("unknown cmd in reset table; cmd disabled");
+      case 'G': /* obj_to_char (with percentage loads) */
+        if (!mob) {
+          char error[MAX_INPUT_LENGTH];
+          snprintf(error, sizeof (error), "attempt to give obj #%d to non-existant mob, command disabled", obj_index[ZCMD.arg1].vnum);
+          ZONE_ERROR(error);
           ZCMD.command = '*';
           break;
-      }
+        }
+        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
+                rand_number(1, 100) <= ZCMD.arg3) {
+          obj = read_object(ZCMD.arg1, REAL);
+          obj_to_char(obj, mob);
+          last_cmd = 1;
+          load_otrigger(obj);
+          tobj = obj;
+        } else
+          last_cmd = 0;
+        tmob = NULL;
+        break;
+
+      case 'E': /* object to equipment list (with percentage loads) */
+        if (!mob) {
+          char error[MAX_INPUT_LENGTH];
+          snprintf(error, sizeof (error), "trying to equip non-existant mob with obj #%d, command disabled", obj_index[ZCMD.arg1].vnum);
+          ZONE_ERROR(error);
+          ZCMD.command = '*';
+          break;
+        }
+        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
+                rand_number(1, 100) <= ZCMD.arg4) {
+          if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS) {
+            char error[MAX_INPUT_LENGTH];
+            snprintf(error, sizeof (error), "invalid equipment pos number (mob %s, obj %d, pos %d)", GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
+            ZONE_ERROR(error);
+          } else {
+            obj = read_object(ZCMD.arg1, REAL);
+            IN_ROOM(obj) = IN_ROOM(mob);
+            load_otrigger(obj);
+            if (wear_otrigger(obj, mob, ZCMD.arg3)) {
+              IN_ROOM(obj) = NOWHERE;
+              equip_char(mob, obj, ZCMD.arg3);
+            } else
+              obj_to_char(obj, mob);
+            tobj = obj;
+            last_cmd = 1;
+          }
+        } else
+          last_cmd = 0;
+        tmob = NULL;
+        break;
+
+      case 'R': /* rem obj from room */
+        if ((obj = get_obj_in_list_num(ZCMD.arg2, world[ZCMD.arg1].contents)) != NULL)
+          extract_obj(obj);
+        last_cmd = 1;
+        tmob = NULL;
+        tobj = NULL;
+        break;
+
+
+      case 'D': /* set state of door */
+        if (ZCMD.arg2 < 0 || ZCMD.arg2 >= DIR_COUNT ||
+                (world[ZCMD.arg1].dir_option[ZCMD.arg2] == NULL)) {
+          char error[MAX_INPUT_LENGTH];
+          snprintf(error, sizeof (error), "door does not exist in room %d - dir %d, command disabled", world[ZCMD.arg1].number, ZCMD.arg2);
+          ZONE_ERROR(error);
+          ZCMD.command = '*';
+        } else
+          switch (ZCMD.arg3) {
+            case 0:
+              REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED);
+              REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              break;
+            case 1:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED);
+              break;
+            case 2:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              break;
+          }
+        last_cmd = 1;
+        tmob = NULL;
+        tobj = NULL;
+        break;
+
+      case 'T': /* trigger command */
+        if (ZCMD.arg1 == MOB_TRIGGER && tmob) {
+          if (!SCRIPT(tmob))
+            CREATE(SCRIPT(tmob), struct script_data, 1);
+          add_trigger(SCRIPT(tmob), read_trigger(ZCMD.arg2), -1);
+          last_cmd = 1;
+        } else if (ZCMD.arg1 == OBJ_TRIGGER && tobj) {
+          if (!SCRIPT(tobj))
+            CREATE(SCRIPT(tobj), struct script_data, 1);
+          add_trigger(SCRIPT(tobj), read_trigger(ZCMD.arg2), -1);
+          last_cmd = 1;
+        } else if (ZCMD.arg1 == WLD_TRIGGER) {
+          if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world) {
+            ZONE_ERROR("Invalid room number in trigger assignment");
+          }
+          if (!world[ZCMD.arg3].script)
+            CREATE(world[ZCMD.arg3].script, struct script_data, 1);
+          add_trigger(world[ZCMD.arg3].script, read_trigger(ZCMD.arg2), -1);
+          last_cmd = 1;
+        }
+
+        break;
+
+      case 'V':
+        if (ZCMD.arg1 == MOB_TRIGGER && tmob) {
+          if (!SCRIPT(tmob)) {
+            ZONE_ERROR("Attempt to give variable to scriptless mobile");
+          } else
+            add_var(&(SCRIPT(tmob)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
+                  ZCMD.arg3);
+          last_cmd = 1;
+        } else if (ZCMD.arg1 == OBJ_TRIGGER && tobj) {
+          if (!SCRIPT(tobj)) {
+            ZONE_ERROR("Attempt to give variable to scriptless object");
+          } else
+            add_var(&(SCRIPT(tobj)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
+                  ZCMD.arg3);
+          last_cmd = 1;
+        } else if (ZCMD.arg1 == WLD_TRIGGER) {
+          if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world) {
+            ZONE_ERROR("Invalid room number in variable assignment");
+          } else {
+            if (!(world[ZCMD.arg3].script)) {
+              ZONE_ERROR("Attempt to give variable to scriptless object");
+            } else
+              add_var(&(world[ZCMD.arg3].script->global_vars),
+                    ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg2);
+            last_cmd = 1;
+          }
+        }
+        break;
+
+      default:
+        ZONE_ERROR("unknown cmd in reset table; cmd disabled");
+        ZCMD.command = '*';
+        break;
     }
+  }
   //}
 
 
@@ -3632,7 +3665,7 @@ void free_char(struct char_data *ch) {
       free(ch->player.walkin);
     if (ch->player.walkout)
       free(ch->player.walkout);
-      
+
     for (i = 0; i < NUM_HIST; i++)
       if (GET_HISTORY(ch, i))
         free_history(ch, i);
@@ -3879,7 +3912,7 @@ void clear_object(struct obj_data *obj) {
 
   obj->item_number = NOTHING;
   IN_ROOM(obj) = NOWHERE;
-  obj->worn_on = NOWHERE;
+  obj->worn_on = -1;
   GET_OBJ_SIZE(obj) = SIZE_MEDIUM;
   MISSILE_ID(obj) = 0;
 }
