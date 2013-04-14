@@ -2793,7 +2793,7 @@ ACMD(do_collect) {
   send_to_char(ch, buf);
   if (!fit)
     send_to_char(ch, "There are still some of your ammunition laying around that does not\r\nfit into your currently"
-          "equipped quiver.\r\n");
+          " equipped ammo pouch.\r\n");
 
   act("$n gathers $s ammunition.", FALSE, ch, 0, 0, TO_ROOM);
 }
