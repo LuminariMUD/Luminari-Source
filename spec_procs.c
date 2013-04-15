@@ -759,7 +759,7 @@ void list_skills(struct char_data *ch) {
     if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
             spell_info[i].schoolOfMagic == CRAFTING_SKILL) {
       if (meet_skill_reqs(ch, i)) {
-        send_to_char(ch, "%-24s %d", spell_info[i].name, GET_SKILL(ch, i));
+        send_to_char(ch, "%-24s %d          ", spell_info[i].name, GET_SKILL(ch, i));
         printed++;
         if (!(printed % 2))
           send_to_char(ch, "\r\n");
