@@ -770,7 +770,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
   }
 
   GET_POS(ch) = POS_STANDING;
-  SET_WAIT(ch, PULSE_VIOLENCE);
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_SPRINGLEAP);

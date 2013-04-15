@@ -47,7 +47,7 @@ cedit.o: cedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  improved-edit.h modify.h
 clan.o: clan.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h interpreter.h handler.h screen.h improved-edit.h \
- spells.h clan.h
+ spells.h clan.h limits.h
 clan_edit.o: clan_edit.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h db.h screen.h genolc.h oasis.h improved-edit.h comm.h \
  interpreter.h modify.h ibt.h clan.h
@@ -168,7 +168,7 @@ magic.o: magic.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h handler.h db.h interpreter.h constants.h \
  dg_scripts.h class.h fight.h mud_event.h dg_event.h act.h limits.h
 mail.o: mail.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
- race.h comm.h db.h interpreter.h handler.h mail.h modify.h
+ race.h comm.h db.h interpreter.h handler.h mail.h modify.h limits.h
 medit.o: medit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h comm.h spells.h db.h shop.h genolc.h genmob.h \
  genzon.h genshp.h oasis.h handler.h constants.h improved-edit.h dg_olc.h \
@@ -237,7 +237,7 @@ sedit.o: sedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  oasis.h constants.h
 shop.o: shop.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h db.h interpreter.h shop.h genshp.h constants.h \
- act.h modify.h spells.h screen.h spec_procs.h
+ act.h modify.h spells.h screen.h spec_procs.h limits.h
 spec_assign.o: spec_assign.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h db.h interpreter.h spec_procs.h spells.h ban.h boards.h \
  mail.h

@@ -105,10 +105,8 @@
 #define ROOM_NORECALL      19  /* no recalling from/to this room */
 #define ROOM_SINGLEFILE    20  /* very narrow room */
 #define ROOM_NOTELEPORT    21  /* no teleportin from/to this room */
-/* working on these */
 #define ROOM_MAGICDARK     22  /* pitch black, not lightable */
 #define ROOM_MAGICLIGHT    23  /* lit */
-/** done **/
 #define ROOM_NOSUMMON      24  /* no summoning from/to this room */
 #define ROOM_NOHEAL        25  /* all regen stops in this room */
 #define ROOM_NOFLY         26  /* can't fly in this room */
@@ -130,7 +128,9 @@ HEAL (25)        ROOM_REGEN     (17)
 NOPRIME (27)     ROOM_NORECALL  (27)
 */
 
-// Room affects
+/* Room affects */
+/* Old room-affection system, could be replaced by room-events
+   theoritically, but for the time being its still in usage */
 #define RAFF_FOG            (1 << 0)
 #define RAFF_DARKNESS       (1 << 1)
 #define RAFF_LIGHT          (1 << 2)
@@ -143,6 +143,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RAFF_SPIKE_STONES   (1 << 9)
 #define RAFF_HOLY           (1 << 10)
 #define RAFF_UNHOLY         (1 << 11)
+/** The total number of Room Affections */
 #define NUM_RAFF            12
 
 /* Zone info: Used in zone_data.zone_flags */
@@ -166,6 +167,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define EX_LOCKED    (1 << 2) /**< The door is locked */
 #define EX_PICKPROOF (1 << 3) /**< Lock can't be picked */
 #define EX_HIDDEN    (1 << 4) /**< Exit is hidden, secret */
+/** The total number of Exit Bits */
 #define NUM_EXIT_BITS  5
 
 /* Sector types: used in room_data.sector_type */
