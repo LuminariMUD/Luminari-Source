@@ -29,6 +29,7 @@
 #include "comm.h"
 #include "spells.h"
 #include "mud_event.h"
+#include "limits.h"
 
 /* Names first */
 const char *class_abbrevs[] = {
@@ -221,8 +222,8 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
   { CC, CA, CA, CA, CA, CA, CA, CC, CA, CA, CA}, //12 parry
   { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //13 lore
   { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //14 mount
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //15 riding
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //16 tame
+  { NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA}, //15
+  { NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA}, //16
   { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA, CC}, //17 pick locks
   { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA, CC}, //18 steal
 };

@@ -43,10 +43,10 @@
 #define IDXTYPE       unsigned int   /** Index types are unsigned ints */ 
 #define IDXTYPE_MAX   UINT_MAX       /** Used for compatibility checks. */ 
 #define IDXTYPE_MIN   0              /**< Used for compatibility checks. */
-#define NOWHERE	  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or 4bil */
-#define NOTHING	  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or 4bil */
-#define NOBODY		  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or 4bil */
-#define NOFLAG        ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or 4bil */
+#define NOWHERE	  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
+#define NOTHING	  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
+#define NOBODY		  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
+#define NOFLAG        ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
 #else
 //#define IDXTYPE	  sh_int           /**< Index types are unsigned short ints */
 //#define IDXTYPE_MAX   SHRT_MAX       /**< Used for compatibility checks. */
@@ -112,7 +112,6 @@
 #define ROOM_NOSUMMON      24  /* no summoning from/to this room */
 #define ROOM_NOHEAL        25  /* all regen stops in this room */
 #define ROOM_NOFLY         26  /* can't fly in this room */
-/* working on these */
 #define ROOM_FOG           27  /* fogged (hamper vision/stops daylight) */
 #define ROOM_AIRY          28  /* airy (breathe underwater) */
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
@@ -647,9 +646,10 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_IMMATERIAL       77  // no physical body (ghost-like)
 #define AFF_CAGE             78  // can't interact/be-interacted with
 #define AFF_MAGE_FLAME       79  // light up an individual
+#define AFF_DARKVISION       80  // light up an individual
 /** Total number of affect flags not including the don't use flag. */
 // zusuk, don't forget to add to constants.c!
-#define NUM_AFF_FLAGS        80
+#define NUM_AFF_FLAGS        81
 
 /* homeland-port reference */
 /*
@@ -1504,6 +1504,7 @@ struct room_data {
   struct extra_descr_data *ex_description; /**< Additional things to look at */
   struct room_direction_data * dir_option[NUM_OF_DIRS]; /**< Directions */
   byte light; /**< Number of lightsources in room */
+  byte globe; /**< Number of darkness sources in room */
   SPECIAL(*func); /**< Points to special function attached to room */
   struct trig_proto_list *proto_script; /**< list of default triggers */
   struct script_data *script; /**< script info for the room */

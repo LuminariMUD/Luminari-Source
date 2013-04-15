@@ -39,6 +39,7 @@
 #include "clan.h"
 #include "craft.h"
 #include "hlquest.h"
+#include "limits.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);

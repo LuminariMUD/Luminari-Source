@@ -157,6 +157,10 @@ ACMD(do_track) {
     send_to_char(ch, "You sense no trail.\r\n");
     return;
   }
+  if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG)) {
+    send_to_char(ch, "The fog makes it impossible to attempt to track anything from here.");
+    return;
+  }
 
   /* 101 is a complete failure, no matter what the proficiency. */
   if (rand_number(0, 101) >= GET_SKILL(ch, SKILL_TRACK)) {

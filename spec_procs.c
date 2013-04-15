@@ -26,6 +26,7 @@
 #include "modify.h"
 #include "house.h"
 #include "clan.h"
+#include "limits.h"
 
 /* locally defined functions of local (file) scope */
 static int compare_spells(const void *x, const void *y);

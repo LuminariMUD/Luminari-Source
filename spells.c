@@ -25,6 +25,7 @@
 #include "house.h"  /* for house_can_enter() */
 #include "screen.h" /* for QNRM, etc */
 #include "craft.h"
+#include "limits.h"
 
 
 /************************************************************/
@@ -224,9 +225,41 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
 /* a hack job so far, gets rid of the first x affections */
 /* TODO:  add strength/etc to affection struct, that'd help a lot especially
    here */
-void perform_dispel(struct char_data *ch, struct char_data *vict, int spellnum) {
+void perform_dispel(struct char_data *ch, struct char_data *vict, 
+        struct obj_data *obj, int spellnum) {
   int i = 0, attempt = 0, challenge = 0, num_dispels = 0, msg = FALSE;
 
+  // no target == room
+  if (!vict && !obj) {
+    if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), (ROOM_FOG))) {
+
+      //if (SECT(ch->in_room) != SECT_CLOUDS && SECT(ch->in_room) != SECT_SHADOWPLANE) {
+        REMOVE_BIT_AR(ROOM_FLAGS(IN_ROOM(ch)), (ROOM_FOG));
+        send_to_room(IN_ROOM(ch), "\tWThe fog dissipates into thin air!\tn\r\n");
+      //} else {
+        //send_to_room("Your magic is useless against these clouds!\r\n", ch->in_room);
+      //}
+    }
+    return;
+  }
+
+  if (obj) {
+    attempt = dice(1, 20) + CASTER_LEVEL(ch);
+    challenge = dice(1, 20) + GET_OBJ_LEVEL(obj);
+
+    if (GET_OBJ_TYPE(obj) == ITEM_WALL) {
+      if (attempt >= challenge) {
+        act("You dispel $p, which fades away.", FALSE, ch, obj, 0, TO_CHAR);
+        act("$n dispels $p, which fades away.", FALSE, ch, obj, 0, TO_ROOM);
+        extract_obj(obj);
+      } else {
+        act("You fail to dispel $p!", FALSE, ch, obj, NULL, TO_CHAR);
+        act("$n fails to dispel $p!", FALSE, ch, obj, NULL, TO_ROOM);
+      }
+    }
+    return;
+  }
+  
   if (vict == ch) {
     send_to_char(ch, "You dispel all your own magic!\r\n");
     act("$n dispels all $s magic!", FALSE, ch, 0, 0, TO_ROOM);
@@ -653,7 +686,7 @@ ASPELL(spell_dispel_magic) // divination
   if (victim == NULL)
     victim = ch;
 
-  perform_dispel(ch, victim, SPELL_DISPEL_MAGIC);
+  perform_dispel(ch, victim, obj, SPELL_DISPEL_MAGIC);
 }
 
 
@@ -710,7 +743,7 @@ ASPELL(spell_greater_dispelling) // abjuration
   if (victim == NULL)
     victim = ch;
 
-  perform_dispel(ch, victim, SPELL_GREATER_DISPELLING);
+  perform_dispel(ch, victim, obj, SPELL_GREATER_DISPELLING);
 }
 
 

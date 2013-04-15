@@ -31,6 +31,7 @@
 #include "mud_event.h"
 #include "modify.h" // for parse_at()
 #include "treasure.h"
+#include "limits.h"
 
 /* global variables */
 int mining_nodes = 0;

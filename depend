@@ -8,19 +8,20 @@ act.informative.o: act.informative.c conf.h sysdep.h structs.h protocol.h \
 act.item.o: act.item.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h constants.h \
  dg_scripts.h oasis.h act.h quest.h spec_procs.h clan.h mud_event.h \
- dg_event.h hlquest.h
+ dg_event.h hlquest.h fight.h limits.h
 act.movement.o: act.movement.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h handler.h db.h spells.h \
  house.h constants.h dg_scripts.h act.h fight.h oasis.h spec_procs.h \
- mud_event.h dg_event.h hlquest.h
+ mud_event.h dg_event.h hlquest.h limits.h
 act.offensive.o: act.offensive.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h handler.h db.h spells.h \
- act.h fight.h mud_event.h dg_event.h constants.h spec_procs.h class.h
+ act.h fight.h mud_event.h dg_event.h constants.h spec_procs.h class.h \
+ limits.h
 act.other.o: act.other.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h screen.h \
  house.h constants.h dg_scripts.h act.h spec_procs.h class.h fight.h \
  mail.h shop.h quest.h modify.h clan.h mud_event.h dg_event.h craft.h \
- treasure.h
+ treasure.h limits.h
 act.social.o: act.social.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h screen.h spells.h \
  act.h
@@ -28,7 +29,7 @@ act.wizard.o: act.wizard.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h house.h \
  screen.h constants.h oasis.h dg_scripts.h shop.h act.h genzon.h class.h \
  genolc.h genobj.h fight.h modify.h quest.h ban.h mud_event.h dg_event.h \
- clan.h craft.h hlquest.h
+ clan.h craft.h hlquest.h limits.h
 aedit.o: aedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h handler.h comm.h db.h oasis.h screen.h constants.h \
  genolc.h act.h
@@ -52,24 +53,24 @@ clan_edit.o: clan_edit.c conf.h sysdep.h structs.h protocol.h lists.h \
  interpreter.h modify.h ibt.h clan.h
 class.o: class.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h spells.h interpreter.h constants.h act.h handler.h comm.h \
- mud_event.h dg_event.h
+ mud_event.h dg_event.h limits.h
 comm.o: comm.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h handler.h db.h house.h oasis.h genolc.h \
  dg_scripts.h dg_event.h screen.h constants.h boards.h act.h ban.h \
  msgedit.h fight.h spells.h modify.h quest.h ibt.h mud_event.h clan.h \
- class.h mail.h
+ class.h mail.h limits.h
 config.o: config.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h config.h asciimap.h
 constants.o: constants.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h interpreter.h spells.h craft.h
 craft.o: craft.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h interpreter.h constants.h handler.h db.h craft.h \
- mud_event.h dg_event.h modify.h treasure.h
+ mud_event.h dg_event.h modify.h treasure.h limits.h
 db.o: db.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  db.h comm.h handler.h spells.h mail.h interpreter.h house.h constants.h \
  oasis.h dg_scripts.h dg_event.h act.h ban.h spec_procs.h genzon.h \
  genolc.h genobj.h config.h fight.h modify.h shop.h quest.h ibt.h \
- mud_event.h class.h clan.h msgedit.h craft.h hlquest.h
+ mud_event.h class.h clan.h msgedit.h craft.h hlquest.h limits.h
 dg_comm.o: dg_comm.c conf.h sysdep.h structs.h protocol.h lists.h \
  dg_scripts.h utils.h race.h comm.h handler.h db.h constants.h
 dg_db_scripts.o: dg_db_scripts.c conf.h sysdep.h structs.h protocol.h \
@@ -82,7 +83,7 @@ dg_handler.o: dg_handler.c conf.h sysdep.h structs.h protocol.h lists.h \
  constants.h
 dg_misc.o: dg_misc.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h dg_scripts.h comm.h interpreter.h handler.h dg_event.h db.h \
- screen.h spells.h constants.h fight.h
+ screen.h spells.h constants.h fight.h limits.h
 dg_mobcmd.o: dg_mobcmd.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h screen.h dg_scripts.h db.h handler.h interpreter.h comm.h \
  spells.h constants.h genzon.h act.h fight.h
@@ -101,14 +102,14 @@ dg_triggers.o: dg_triggers.c conf.h sysdep.h structs.h protocol.h lists.h \
 dg_variables.o: dg_variables.c conf.h sysdep.h structs.h protocol.h \
  lists.h dg_scripts.h utils.h race.h comm.h interpreter.h handler.h \
  dg_event.h db.h fight.h screen.h constants.h spells.h oasis.h class.h \
- quest.h act.h genobj.h clan.h
+ quest.h act.h genobj.h clan.h limits.h
 dg_wldcmd.o: dg_wldcmd.c conf.h sysdep.h structs.h protocol.h lists.h \
  screen.h dg_scripts.h utils.h race.h comm.h interpreter.h handler.h db.h \
  constants.h genzon.h fight.h
 fight.o: fight.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h interpreter.h db.h spells.h screen.h constants.h \
  dg_scripts.h act.h class.h fight.h shop.h quest.h mud_event.h dg_event.h \
- spec_procs.h clan.h treasure.h
+ spec_procs.h clan.h treasure.h limits.h
 genmob.o: genmob.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h shop.h handler.h genolc.h genmob.h genzon.h dg_olc.h \
  dg_scripts.h spells.h
@@ -137,8 +138,6 @@ handler.o: handler.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 hedit.o: hedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h db.h boards.h oasis.h genolc.h genzon.h \
  handler.h improved-edit.h act.h hedit.h modify.h
-hl_events.o: hl_events.c conf.h sysdep.h structs.h protocol.h lists.h \
- utils.h race.h hl_events.h
 hlqedit.o: hlqedit.c conf.h sysdep.h structs.h protocol.h lists.h comm.h \
  utils.h race.h db.h boards.h handler.h oasis.h interpreter.h constants.h \
  hlquest.h spells.h class.h genzon.h genolc.h genmob.h improved-edit.h \
@@ -162,12 +161,12 @@ interpreter.o: interpreter.c conf.h sysdep.h structs.h protocol.h lists.h \
  craft.h treasure.h
 limits.o: limits.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h spells.h comm.h db.h handler.h interpreter.h dg_scripts.h class.h \
- fight.h screen.h mud_event.h dg_event.h
+ fight.h screen.h mud_event.h dg_event.h limits.h
 lists.o: lists.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h dg_event.h
 magic.o: magic.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h handler.h db.h interpreter.h constants.h \
- dg_scripts.h class.h fight.h mud_event.h dg_event.h act.h
+ dg_scripts.h class.h fight.h mud_event.h dg_event.h act.h limits.h
 mail.o: mail.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h interpreter.h handler.h mail.h modify.h
 medit.o: medit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
@@ -224,7 +223,8 @@ qedit.o: qedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h oasis.h improved-edit.h screen.h genolc.h genzon.h \
  interpreter.h modify.h quest.h
 quest.o: quest.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
- race.h interpreter.h handler.h db.h comm.h screen.h quest.h act.h
+ race.h interpreter.h handler.h db.h comm.h screen.h quest.h act.h \
+ limits.h
 race.o: race.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h spells.h interpreter.h constants.h act.h comm.h
 random.o: random.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
@@ -243,14 +243,14 @@ spec_assign.o: spec_assign.c conf.h sysdep.h structs.h protocol.h lists.h \
  mail.h
 spec_procs.o: spec_procs.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h constants.h \
- act.h spec_procs.h class.h fight.h modify.h house.h clan.h
+ act.h spec_procs.h class.h fight.h modify.h house.h clan.h limits.h
 spell_parser.o: spell_parser.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h interpreter.h spells.h handler.h comm.h db.h \
  dg_scripts.h fight.h constants.h mud_event.h dg_event.h spec_procs.h
 spells.o: spells.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h handler.h db.h constants.h interpreter.h \
  dg_scripts.h act.h fight.h mud_event.h dg_event.h house.h screen.h \
- craft.h
+ craft.h limits.h
 study.o: study.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h oasis.h screen.h interpreter.h modify.h spells.h
 tedit.o: tedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \

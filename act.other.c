@@ -37,6 +37,7 @@
 #include "mud_event.h"
 #include "craft.h"
 #include "treasure.h"
+#include "limits.h"
 
 /* Local defined utility functions */
 /* do_group utility functions */

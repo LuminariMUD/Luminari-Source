@@ -518,6 +518,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Incorporeal",
   "Caged",
   "Mage-Flamed",
+  "Dark-Vision",  //80
   "\n"
 };
 

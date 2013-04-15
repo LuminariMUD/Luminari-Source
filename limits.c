@@ -22,19 +22,238 @@
 #include "fight.h"
 #include "screen.h"
 #include "mud_event.h"
-
-/* local file scope function prototypes */
-static int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6);
-static void check_idling(struct char_data *ch);
+#include "limits.h"
 
 
-/* When age < 15 return the value p0
+
+
+  /*  pulse_luminari was built to throw in customized Luminari
+   *  procedures that we want called in a similar manner as the
+   *  other pulses.  The whole concept was created before I had
+   *  a full grasp on the event system, otherwise it would have
+   *  been implemented differently.  -Zusuk
+   * 
+   *  Also should be noted, its nice to keep this off-beat with
+   *  PULSE_VIOLENCE, it has a little nicer feel to it
+   */
+void pulse_luminari() {
+  struct char_data *i = NULL, *caster = NULL, *tch = NULL;
+  struct raff_node *raff = NULL, *next_raff = NULL;
+  struct room_data *caster_room = NULL;
+
+  // room-affections, loop through em
+  for (raff = raff_list; raff; raff = next_raff) {
+    next_raff = raff->next;
+
+    //acid fog
+    if (raff->spell == SPELL_ACID_FOG) {
+      caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+      caster_room = &world[raff->room];
+      if (!caster) {
+        script_log("comm.c: Cannot load the caster mob (acid fog)!");
+        return;
+      }
+      
+      /* set the caster's name */
+      caster->player.short_descr = strdup("The room");
+      caster->next_in_room = caster_room->people;
+      caster_room->people = caster;
+      caster->in_room = real_room(caster_room->number);
+      call_magic(caster, NULL, NULL, SPELL_ACID, DG_SPELL_LEVEL, CAST_SPELL);
+      extract_char(caster);
+    } /* end acid fog */
+    
+    //billowing cloud
+    if (raff->spell == SPELL_BILLOWING_CLOUD) {
+      for (tch = world[raff->room].people; tch; tch = tch->next_in_room) {
+        if (tch && GET_LEVEL(tch) < 13) {
+          if (!mag_savingthrow(tch, tch, SAVING_FORT, 0)) {
+            send_to_char(tch, "You are bogged down by the billowing cloud!\r\n");
+            act("$n is bogged down by the billowing cloud.", TRUE, tch, 0, NULL, TO_ROOM);
+            SET_WAIT(tch, PULSE_VIOLENCE);
+          }
+        }
+      }
+    }
+    /* end billowing cloud */
+    
+    //blade barrier
+    if (raff->spell == SPELL_BLADE_BARRIER) {
+      caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+      caster_room = &world[raff->room];
+      if (!caster) {
+        script_log("comm.c: Cannot load the caster mob (blade barrier)!");
+        return;
+      }
+      
+      /* set the caster's name */
+      caster->player.short_descr = strdup("The room");
+      caster->next_in_room = caster_room->people;
+      caster_room->people = caster;
+      caster->in_room = real_room(caster_room->number);
+      call_magic(caster, NULL, NULL, SPELL_BLADES, DG_SPELL_LEVEL, CAST_SPELL);
+      extract_char(caster);
+    }
+    /* end blade barrier */
+    
+    //stinking cloud
+    if (raff->spell == SPELL_STINKING_CLOUD) {
+      caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+      caster_room = &world[raff->room];
+      if (!caster) {
+        script_log("comm.c: Cannot load the caster mob!");
+        return;
+      }
+      
+      /* set the caster's name */
+      caster->player.short_descr = strdup("The room");
+      caster->next_in_room = caster_room->people;
+      caster_room->people = caster;
+      caster->in_room = real_room(caster_room->number);
+      call_magic(caster, NULL, NULL, SPELL_STENCH, DG_SPELL_LEVEL, CAST_SPELL);
+      extract_char(caster);
+    }
+    /* end stinking cloud */
+
+  }
+
+  // looping through char list, what needs to be done?
+  for (i = character_list; i; i = i->next) {
+    
+    /* mount clean-up */
+    if (RIDING(i)) {
+      if (RIDDEN_BY(RIDING(i)) != i) {
+        /* dismount both of these guys */
+        dismount_char(i);
+        dismount_char(RIDDEN_BY(RIDING(i)));
+      } else if (RIDING(i)->in_room != i->in_room) {
+        /* not in same room?  dismount 'em */
+        dismount_char(i);
+      }
+    } else if (RIDDEN_BY(i)) {
+      if (RIDING(RIDDEN_BY(i)) != i) {
+        /* dismount both of these guys */
+        dismount_char(i);
+        dismount_char(RIDING(RIDDEN_BY(i)));
+      } else if (RIDDEN_BY(i)->in_room != i->in_room) {
+        /* not in same room?  dismount 'em */
+        dismount_char(i);
+      }    
+    }
+    
+    /* vitals regeneration */
+    if (GET_HIT(i) == GET_MAX_HIT(i) &&
+            GET_MOVE(i) == GET_MAX_MOVE(i) &&
+            GET_MANA(i) == GET_MAX_MANA(i) &&
+            !AFF_FLAGGED(i, AFF_POISON))
+      ;
+    else
+      regen_update(i);
+    
+    /* weapon spells */
+    // weapon spells call (in fight.c currently)
+    idle_weapon_spells(i);
+
+    /* cloudkill */
+    if (CLOUDKILL(i)) {
+      call_magic(i, NULL, NULL, SPELL_DEATHCLOUD, MAGIC_LEVEL(i), CAST_SPELL);
+      CLOUDKILL(i)--;
+      if (CLOUDKILL(i) <= 0) {
+        send_to_char(i, "Your cloud of death dissipates!\r\n");
+        act("The cloud of death following $n dissipates!", TRUE, i, 0, NULL,
+                TO_ROOM);
+      }
+    } 
+    //end cloudkill
+    
+    /* creeping doom */
+    else if (DOOM(i)) {
+      call_magic(i, NULL, NULL, SPELL_DOOM, MAGIC_LEVEL(i), CAST_SPELL);
+      DOOM(i)--;
+      if (DOOM(i) <= 0) {
+        send_to_char(i, "Your creeping swarm of centipedes dissipates!\r\n");
+        act("The creeping swarm of centipedes following $n dissipates!", TRUE, i, 0, NULL,
+                TO_ROOM);
+      }
+    }
+    //end creeping doom
+    
+    /* incendiary cloud */
+    else if (INCENDIARY(i)) {
+      call_magic(i, NULL, NULL, SPELL_INCENDIARY, MAGIC_LEVEL(i), CAST_SPELL);
+      INCENDIARY(i)--;
+      if (INCENDIARY(i) <= 0) {
+        send_to_char(i, "Your incendiary cloud dissipates!\r\n");
+        act("The incendiary cloud following $n dissipates!", TRUE, i, 0, NULL,
+                TO_ROOM);
+      }
+    }
+    //end incendiary cloud
+    
+    /* disease */
+    if (IS_AFFECTED(i, AFF_DISEASE)) {
+      if (!IS_NPC(i) && GET_SKILL(i, SKILL_DIVINE_HEALTH)) {
+        if (affected_by_spell(i, SPELL_EYEBITE))
+          affect_from_char(i, SPELL_EYEBITE);
+        if (affected_by_spell(i, SPELL_CONTAGION))
+          affect_from_char(i, SPELL_CONTAGION);
+        if (IS_AFFECTED(i, AFF_DISEASE))
+          REMOVE_BIT_AR(AFF_FLAGS(i), AFF_DISEASE);
+        send_to_char(i, "The \tYdisease\tn you have fades away!\r\n");
+        act("$n glows bright \tWwhite\tn and the \tYdisease\tn $e had "
+                "fades away!", TRUE, i, 0, NULL, TO_ROOM);
+        increase_skill(i, SKILL_DIVINE_HEALTH);
+      } else if (GET_HIT(i) > (GET_MAX_HIT(i)*3/5)) {
+        send_to_char(i, "The \tYdisease\tn you have causes you to suffer!\r\n");
+        act("$n suffers from a \tYdisease\tn!", TRUE, i, 0, NULL,
+                  TO_ROOM);
+        GET_HIT(i) = GET_MAX_HIT(i) * 3 / 5;
+      }
+    }
+    
+    /* fear -> skill-courage*/
+    if (AFF_FLAGGED(i, AFF_FEAR) && (!IS_NPC(i) &&
+            GET_SKILL(i, SKILL_COURAGE))) {
+      REMOVE_BIT_AR(AFF_FLAGS(i), AFF_FEAR);
+      send_to_char(i, "Your divine courage overcomes the fear!\r\n");
+      act("$n \tWovercomes the \tDfear\tW with courage!\tn\tn",
+		TRUE, i, 0, 0, TO_ROOM);
+      increase_skill(i, SKILL_COURAGE);
+      return;
+    }      
+    
+    /* fear -> spell-bravery */
+    if (AFF_FLAGGED(i, AFF_FEAR) && AFF_FLAGGED(i, AFF_BRAVERY)) {
+      REMOVE_BIT_AR(AFF_FLAGS(i), AFF_FEAR);
+      send_to_char(i, "Your bravery overcomes the fear!\r\n");
+      act("$n \tWovercomes the \tDfear\tW with braveru!\tn\tn",
+		TRUE, i, 0, 0, TO_ROOM);
+      return;
+    }          
+    
+  }  // end char list loop
+}
+
+/* added this for falling event 
+ * 04/07/13 - added position check since pos_fighting is deprecated */
+void death_check() {
+  struct char_data *i = NULL;
+  
+  for (i = character_list; i; i = i->next) {
+    if (GET_HIT(i) <= -12)
+      damage(i, i, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
+    if (GET_POS(i) == POS_FIGHTING && !FIGHTING(i))
+      GET_POS(i) = POS_STANDING;
+  }
+}
+
+  /* When age < 15 return the value p0
    When age is 15..29 calculate the line between p1 & p2
    When age is 30..44 calculate the line between p2 & p3
    When age is 45..59 calculate the line between p3 & p4
    When age is 60..79 calculate the line between p4 & p5
    When age >= 80 return the value p6 */
-static int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6)
+int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6)
 {
 
   if (grafage < 15)
@@ -463,7 +682,7 @@ void gain_condition(struct char_data *ch, int condition, int value)
 
 }
 
-static void check_idling(struct char_data *ch)
+void check_idling(struct char_data *ch)
 {
   if (ch->char_specials.timer > CONFIG_IDLE_VOID) {
     if (GET_WAS_IN(ch) == NOWHERE && IN_ROOM(ch) != NOWHERE) {
@@ -633,7 +852,6 @@ void point_update(void)
   }
 
 }
-
 
 /* Note: amt may be negative */
 int increase_gold(struct char_data *ch, int amt)

@@ -95,6 +95,7 @@ bool has_elemental_follower(struct char_data *ch);
 bool has_undead_follower(struct char_data *ch);
 int color_count(char *bufptr);
 int num_obj_in_obj(struct obj_data *obj);
+bool ultra_blind(struct char_data *ch, room_rnum room_number);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
@@ -146,19 +147,6 @@ void add_history(struct char_data *ch, char *msg, int type);
 /* in act.movmement.c */
 int do_simple_move(struct char_data *ch, int dir, int following);
 int perform_move(struct char_data *ch, int dir, int following);
-
-/* in limits.c */
-int mana_gain(struct char_data *ch);
-int hit_gain(struct char_data *ch);
-int move_gain(struct char_data *ch);
-void set_title(struct char_data *ch, char *title);
-int gain_exp(struct char_data *ch, int gain);
-void gain_exp_regardless(struct char_data *ch, int gain);
-void gain_condition(struct char_data *ch, int condition, int value);
-void point_update(void);
-void regen_update(struct char_data *ch);
-void update_pos(struct char_data *victim);
-void run_autowiz(void);
 
 int increase_gold(struct char_data *ch, int amt);
 int decrease_gold(struct char_data *ch, int amt);
@@ -1248,7 +1236,7 @@ do                                                              \
 /** "an" or "a" for text (lowercased) */
 #define TANA(obj) (strchr("aeiouAEIOU", *(obj)) ? "an" : "a")
 
-
+#define ULTRA_BLIND(ch, room)     (ultra_blind(ch, room))
 
 // moved this here for connection between vision macros -zusuk
 #define CAN_SEE_IN_DARK(ch) \
