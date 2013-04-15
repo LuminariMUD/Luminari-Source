@@ -15,7 +15,7 @@ extern "C" {
   
 /* limits.c functions */
 void pulse_luminari();
-void death_check();
+bool death_check(struct char_data *ch);
 int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6);
 void regen_update(struct char_data *ch);
 int mana_gain(struct char_data *ch);

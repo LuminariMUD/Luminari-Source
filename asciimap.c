@@ -541,7 +541,7 @@ void perform_map(struct char_data *ch, char *argument, bool worldmap) {
   count += sprintf(buf + count, "\tn%s UD City\\\\", map_info[SECT_UD_CITY].disp);
   count += sprintf(buf + count, "\tn%s UD Inside\\\\", map_info[SECT_UD_INSIDE].disp);
   count += sprintf(buf + count, "\tn%s UD Water\\\\", map_info[SECT_UD_WATER].disp);
-  count += sprintf(buf + count, "\tn%s UD Deep Water\\\\", map_info[SECT_UD_NOSWIM].disp);
+  count += sprintf(buf + count, "\tn%s UD D Water\\\\", map_info[SECT_UD_NOSWIM].disp);
   count += sprintf(buf + count, "\tn%s UD Air\\\\", map_info[SECT_UD_NOGROUND].disp);
   count += sprintf(buf + count, "\tn%s Lava\\\\", map_info[SECT_LAVA].disp);
   

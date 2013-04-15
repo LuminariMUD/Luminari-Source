@@ -17,6 +17,8 @@
 #include "comm.h"
 #include "db.h"
 
+#define NUM_WEATHER_CHANGES 6
+
 static void another_hour(int mode);
 static void weather_change(void);
 void send_weather(int weather_change);
@@ -202,6 +204,7 @@ static void weather_change(void) {
       break;
   }
 
+  /* the result is 6 different weather transitions */
   send_weather(change);
 
   switch (change) {
@@ -242,18 +245,29 @@ bool sect_no_weather(struct char_data *ch) {
   int s_type;
 
   s_type = world[IN_ROOM(ch)].sector_type;
-
-  if (s_type == SECT_INSIDE) return TRUE;
-  else if (s_type == SECT_UNDERWATER) return TRUE;
-  else if (s_type == SECT_CITY) return TRUE;
-  //   else if (s_type == SECT_UNDERGROUND) return TRUE; 
+  
+  switch (s_type) {
+    case SECT_INSIDE:
+    case SECT_CITY:
+    case SECT_UNDERWATER:
+    case SECT_PLANES:
+    case SECT_UD_WILD:
+    case SECT_UD_CITY:
+    case SECT_UD_INSIDE:
+    case SECT_UD_WATER:
+    case SECT_UD_NOSWIM:
+    case SECT_UD_NOGROUND:
+    case SECT_LAVA:
+    //case SECT_UNDERGROUND:
+      return TRUE;      
+  }
 
   return FALSE;
 }
 
 struct weather_msg {
   int sector_type;
-  char msg[6][100];
+  char msg[NUM_WEATHER_CHANGES][MEDIUM_STRING];
 } weather_messages[] = {
   /*
    {SECT_SNOW, 
@@ -345,48 +359,6 @@ struct weather_msg {
       "The rain stops, but the cool wind continues to whip at you.",
       "Earsplitting booms echo through the mountains as it starts to thunder.",
       "The thunder stops but the cold rain and heavy winds keeps whipping at you."}},
-  {SECT_FLYING,
-    {"Soft fluffy clouds begin to drift in over the landscape.",
-      "The soft fluffy clouds dissipate and the sun shines through.",
-      "Heavy droplets begin to fall, the clouds above growing thicker.",
-      "The heavy droplets of water stops falling and the cloud cover grows thinner.",
-      "Loud booms announces the arrival of a fierce thunderstorm.",
-      "The rolling thunder stops, but the heavy rain cover remains."}},
-  {SECT_FIELD,
-    {"Soft fluffy clouds begin to drift in over the landscape.",
-      "The soft fluffy clouds dissipate and the sun shines through.",
-      "Heavy droplets begin to fall, the clouds above growing thicker.",
-      "The heavy droplets of water stops falling and the cloud cover grows thinner.",
-      "Loud booms announces the arrival of a fierce thunderstorm.",
-      "The rolling thunder stops, but the heavy rain cover remains."}},
-  {SECT_ZONE_START,
-    {"Soft fluffy clouds begin to drift in over the landscape.",
-      "The soft fluffy clouds dissipate and the sun shines through.",
-      "Heavy droplets begin to fall, the clouds above growing thicker.",
-      "The heavy droplets of water stops falling and the cloud cover grows thinner.",
-      "Loud booms announces the arrival of a fierce thunderstorm.",
-      "The rolling thunder stops, but the heavy rain cover remains."}},
-  {SECT_ROAD_NS,
-    {"Soft fluffy clouds begin to drift in over the landscape.",
-      "The soft fluffy clouds dissipate and the sun shines through.",
-      "Heavy droplets begin to fall, the clouds above growing thicker.",
-      "The heavy droplets of water stops falling and the cloud cover grows thinner.",
-      "Loud booms announces the arrival of a fierce thunderstorm.",
-      "The rolling thunder stops, but the heavy rain cover remains."}},
-  {SECT_ROAD_EW,
-    {"Soft fluffy clouds begin to drift in over the landscape.",
-      "The soft fluffy clouds dissipate and the sun shines through.",
-      "Heavy droplets begin to fall, the clouds above growing thicker.",
-      "The heavy droplets of water stops falling and the cloud cover grows thinner.",
-      "Loud booms announces the arrival of a fierce thunderstorm.",
-      "The rolling thunder stops, but the heavy rain cover remains."}},
-  {SECT_ROAD_INT,
-    {"Soft fluffy clouds begin to drift in over the landscape.",
-      "The soft fluffy clouds dissipate and the sun shines through.",
-      "Heavy droplets begin to fall, the clouds above growing thicker.",
-      "The heavy droplets of water stops falling and the cloud cover grows thinner.",
-      "Loud booms announces the arrival of a fierce thunderstorm.",
-      "The rolling thunder stops, but the heavy rain cover remains."}},
   {SECT_INSIDE, /* Always last - inside doesn't show weather, so default messages below */
     {"Soft fluffy clouds begin to drift in over the landscape.",
       "The soft fluffy clouds dissipate and the sun shines through.",

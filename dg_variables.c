@@ -1537,7 +1537,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           "lightning"
         };
 
-        if (!IS_SET_AR(r->room_flags, ROOM_INDOORS))
+        room_rnum rnum = real_room(r->number);
+        
+        if (rnum != NOWHERE && ROOM_OUTSIDE(rnum))
           snprintf(str, slen, "%s", sky_look[weather_info.sky]);
         else
           *str = '\0';

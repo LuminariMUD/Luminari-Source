@@ -614,7 +614,7 @@ ASPELL(spell_creeping_doom) {
   send_to_char(ch, "You summon forth a mass of centipede swarms!\r\n");
   act("$n summons forth a mass of centipede swarms!", FALSE, ch, 0, 0, TO_ROOM);
 
-  DOOM(ch) = MAGIC_LEVEL(ch) / 4;
+  DOOM(ch) = MAX(1, DIVINE_LEVEL(ch) / 4);
 }
 
 
@@ -945,7 +945,7 @@ ASPELL(spell_incendiary_cloud) {
   send_to_char(ch, "You summon forth an incendiary cloud!\r\n");
   act("$n summons forth an incendiary cloud!", FALSE, ch, 0, 0, TO_ROOM);
 
-  INCENDIARY(ch) = MAGIC_LEVEL(ch) / 4;
+  INCENDIARY(ch) = MAX(1, MAGIC_LEVEL(ch) / 4);
 }
 
 

@@ -983,7 +983,6 @@ void heartbeat(int heart_pulse)
 
   if (!(heart_pulse % PASSES_PER_SEC)) {    /* EVERY second */
     msdp_update();
-    death_check();  // limits.c
     next_tick--;
   }
 
