@@ -26,11 +26,11 @@
 #include "act.h"
 
 /* added this for falling event, general dummy check */
-bool death_check(struct char_data *i) {
+bool death_check(struct char_data *ch) {
 
-  if (GET_HIT(i) <= -12) {
+  if (GET_HIT(ch) <= -12) {
     /* we're just making sure damage() is called if he should be dead */
-    damage(i, i, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
+    damage(ch, ch, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
     return TRUE;  // dead for sure now!
   }
 
