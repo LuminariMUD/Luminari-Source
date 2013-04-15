@@ -65,7 +65,7 @@ void core_dump_real(const char *who, int line);
 int count_color_chars(char *string);
 bool char_has_infra(struct char_data *ch);
 bool char_has_ultra(struct char_data *ch);
-int room_is_dark(room_rnum room);
+bool room_is_dark(room_rnum room);
 int levenshtein_distance(const char *s1, const char *s2);
 struct time_info_data *real_time_passed(time_t t2, time_t t1);
 struct time_info_data *mud_time_passed(time_t t2, time_t t1);
@@ -148,19 +148,14 @@ void add_history(struct char_data *ch, char *msg, int type);
 int do_simple_move(struct char_data *ch, int dir, int following);
 int perform_move(struct char_data *ch, int dir, int following);
 
-int increase_gold(struct char_data *ch, int amt);
-int decrease_gold(struct char_data *ch, int amt);
-int increase_bank(struct char_data *ch, int amt);
-int decrease_bank(struct char_data *ch, int amt);
-void increase_anger(struct char_data *ch, float amount);
-
 /* in class.c */
 void advance_level(struct char_data *ch, int class);
 
-
-
-
 void char_from_furniture(struct char_data *ch);
+
+/*****************/
+/* start defines */
+/*****************/
 
 /** What ch is currently sitting on. */
 #define SITTING(ch)             ((ch)->char_specials.furniture)
@@ -170,8 +165,6 @@ void char_from_furniture(struct char_data *ch);
 
 /** Who is sitting on this obj */
 #define OBJ_SAT_IN_BY(obj)      ((obj)->sitting_here)
-
-
 
 /* various constants */
 

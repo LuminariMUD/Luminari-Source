@@ -1920,31 +1920,36 @@ bool char_has_ultra(struct char_data *ch) {
 /** Tests to see if a room is dark. Rules (unless overridden by ROOM_DARK):
  * Inside and City rooms are always lit. Outside rooms are dark at sunset and
  * night.
- * @todo Make the return value a bool.
  * @param room The real room to test for.
  * @retval int FALSE if the room is lit, TRUE if the room is dark. */
-int room_is_dark(room_rnum room) {
+bool room_is_dark(room_rnum room) {
   if (!VALID_ROOM_RNUM(room)) {
     log("room_is_dark: Invalid room rnum %d. (0-%d)", room, top_of_world);
     return (FALSE);
   }
 
-  if (ROOM_AFFECTED(room, RAFF_DARKNESS))
-    return (TRUE);
+  if (SECT(room) == SECT_INSIDE || SECT(room) == SECT_CITY)
+    return (FALSE);
+
+  if (ROOM_FLAGGED(room, ROOM_MAGICLIGHT))
+    return (FALSE);
 
   if (ROOM_AFFECTED(room, RAFF_LIGHT))
     return (FALSE);
 
+  /* magic-dark flag will over-ride lights */
+  if (ROOM_FLAGGED(room, ROOM_MAGICDARK))
+    return (TRUE);
   if (world[room].light)
     return (FALSE);
 
   if (ROOM_FLAGGED(room, ROOM_DARK))
     return (TRUE);
 
-  if (SECT(room) == SECT_INSIDE || SECT(room) == SECT_CITY)
-    return (FALSE);
-
   if (weather_info.sunlight == SUN_SET || weather_info.sunlight == SUN_DARK)
+    return (TRUE);
+
+  if (ROOM_AFFECTED(room, RAFF_DARKNESS))
     return (TRUE);
 
   return (FALSE);

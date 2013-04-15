@@ -5,6 +5,8 @@
       <df name="util">
         <in>asciipasswd.c</in>
         <in>autowiz.c</in>
+        <in>hl_events.c</in>
+        <in>hl_events.h</in>
         <in>plrtoascii.c</in>
         <in>rebuildAsciiIndex.c</in>
         <in>rebuildMailIndex.c</in>
@@ -97,6 +99,7 @@
       <in>interpreter.c</in>
       <in>interpreter.h</in>
       <in>limits.c</in>
+      <in>limits.h</in>
       <in>lists.c</in>
       <in>lists.h</in>
       <in>magic.c</in>
