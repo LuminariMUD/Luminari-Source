@@ -22,7 +22,7 @@
 #include "fight.h"
 #include "screen.h"
 #include "mud_event.h"
-#include "limits.h"
+#include "mudlim.h"
 #include "act.h"
 
 /* added this for falling event, general dummy check */

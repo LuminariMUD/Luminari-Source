@@ -19,7 +19,7 @@
 #include "handler.h"
 #include "mail.h"
 #include "modify.h"
-#include "limits.h"
+#include "mudlim.h"
 
 /* local (file scope) function prototypes */
 static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman, int cmd, char *arg);

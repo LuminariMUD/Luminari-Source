@@ -29,7 +29,7 @@
 #include "screen.h"
 #include "race.h"
 #include "spec_procs.h"
-#include "limits.h"
+#include "mudlim.h"
 
 /* Global variables definitions used externally */
 /* Constant list for printing out who we sell to */

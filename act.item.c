@@ -27,7 +27,7 @@
 #include "mud_event.h"
 #include "hlquest.h"
 #include "fight.h"
-#include "limits.h"
+#include "mudlim.h"
 
 /* local function prototypes */
 /* do_get utility functions */

@@ -25,7 +25,7 @@
 #include "house.h"  /* for house_can_enter() */
 #include "screen.h" /* for QNRM, etc */
 #include "craft.h"
-#include "limits.h"
+#include "mudlim.h"
 
 
 /************************************************************/

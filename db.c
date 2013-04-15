@@ -43,7 +43,7 @@
 #include "msgedit.h"
 #include "craft.h"
 #include "hlquest.h"
-#include "limits.h"
+#include "mudlim.h"
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */

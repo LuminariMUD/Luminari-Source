@@ -28,7 +28,7 @@
 #include "genobj.h"
 #include "race.h"
 #include "clan.h"
-#include "limits.h"
+#include "mudlim.h"
 
 /* Utility functions */
 

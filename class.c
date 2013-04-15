@@ -29,7 +29,7 @@
 #include "comm.h"
 #include "spells.h"
 #include "mud_event.h"
-#include "limits.h"
+#include "mudlim.h"
 
 /* Names first */
 const char *class_abbrevs[] = {

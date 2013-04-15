@@ -99,7 +99,6 @@
       <in>interpreter.c</in>
       <in>interpreter.h</in>
       <in>limits.c</in>
-      <in>limits.h</in>
       <in>lists.c</in>
       <in>lists.h</in>
       <in>magic.c</in>
@@ -114,6 +113,7 @@
       <in>msgedit.h</in>
       <in>mud_event.c</in>
       <in>mud_event.h</in>
+      <in>mudlim.h</in>
       <in>oasis.c</in>
       <in>oasis.h</in>
       <in>oasis_copy.c</in>
