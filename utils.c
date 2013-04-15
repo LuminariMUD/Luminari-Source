@@ -30,11 +30,49 @@
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
 
-
 /* Functions of a general utility nature
    Functions directly related to utils.h needs
  */
 
+
+/* identifies if room is outdoors or not (as opposed to room num) 
+ used by:  ROOM_OUTSIDE() macro */
+bool is_room_outdoors(room_rnum room_number) {
+  if (room_number == NOWHERE) {
+    log("is_room_outdoors() found NOWHERE");
+    return FALSE;
+  }
+  
+  if (ROOM_FLAGGED(room_number, ROOM_INDOORS))
+    return FALSE;
+  
+  switch (SECT(room_number)) {
+    case SECT_INSIDE:
+    case SECT_OCEAN:
+    case SECT_UD_WILD:
+    case SECT_UD_CITY:
+    case SECT_UD_INSIDE:
+    case SECT_UD_WATER:
+    case SECT_UD_NOSWIM:
+    case SECT_UD_NOGROUND:
+    case SECT_LAVA:
+    case SECT_UNDERWATER:
+      return FALSE;
+  }
+
+  return TRUE;
+}
+
+/* identifies if CH is outdoors or not (as opposed to room num) 
+ used by:  OUTSIDE() macro */
+bool is_outdoors(struct char_data *ch) {
+  if (!ch) {
+    log("is_outdoors() receive NULL ch");
+    return FALSE;
+  }  
+  
+  return (is_room_outdoors(IN_ROOM(ch)));
+}
 
 /* will check if ch should suffer from ultra-blindness */
 bool ultra_blind(struct char_data *ch, room_rnum room_number) {

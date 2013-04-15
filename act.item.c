@@ -905,6 +905,8 @@ ACMD(do_drink) {
     switch (SECT(IN_ROOM(ch))) {
       case SECT_WATER_SWIM:
       case SECT_WATER_NOSWIM:
+      case SECT_UD_WATER:
+      case SECT_UD_NOSWIM:
       case SECT_UNDERWATER:
         if ((GET_COND(ch, HUNGER) > 20) && (GET_COND(ch, THIRST) > 0)) {
           send_to_char(ch, "Your stomach can't contain anymore!\r\n");

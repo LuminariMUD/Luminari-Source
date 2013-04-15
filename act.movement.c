@@ -488,8 +488,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
   
   /* Water, No Swimming Rooms: Does the deep water prevent movement? */
-  if ((SECT(was_in) == SECT_WATER_NOSWIM) ||
-          (SECT(going_to) == SECT_WATER_NOSWIM)) {
+  if ((SECT(was_in) == SECT_WATER_NOSWIM) || (SECT(was_in) == SECT_UD_NOSWIM) ||
+          (SECT(going_to) == SECT_WATER_NOSWIM) || (SECT(going_to) == SECT_UD_NOSWIM)) {
     if ((riding && !has_boat(RIDING(ch))) || !has_boat(ch)) {
       send_to_char(ch, "You need a boat to go there.\r\n");
       return (0);
@@ -497,7 +497,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
 
   /* Flying Required: Does lack of flying prevent movement? */
-  if ((SECT(was_in) == SECT_FLYING) || (SECT(going_to) == SECT_FLYING)) {
+  if ((SECT(was_in) == SECT_FLYING) || (SECT(going_to) == SECT_FLYING) ||
+          (SECT(was_in) == SECT_UD_NOGROUND) || (SECT(going_to) == SECT_UD_NOGROUND)) {
     if ((riding && !has_flight(RIDING(ch))) || !has_flight(ch)) {
       send_to_char(ch, "You need to be flying to go there!\r\n");
       return (0);
@@ -1714,7 +1715,7 @@ ACMD(do_enter) {
       }
       send_to_char(ch, "There is no %s here.\r\n", buf);
     }
-  } else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS)) {
+  } else if (!OUTSIDE(ch)) {
     send_to_char(ch, "You are already indoors.\r\n");
   } else {
     /* try to locate an entrance */
@@ -1722,7 +1723,7 @@ ACMD(do_enter) {
       if (EXIT(ch, door)) {
         if (EXIT(ch, door)->to_room != NOWHERE) {
           if (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) &&
-                  ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_INDOORS)) {
+                  ROOM_OUTSIDE(EXIT(ch, door)->to_room)) {
             perform_move(ch, door, 1);
             return;
           }

@@ -4770,11 +4770,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
       break;
      
     case SPELL_SPIKE_GROWTH: // transmutation
-      if (SECT(ch->in_room) == SECT_UNDERWATER ||
-              SECT(ch->in_room)== SECT_FLYING ||
-              SECT(ch->in_room) == SECT_WATER_SWIM ||
-              SECT(ch->in_room) == SECT_WATER_NOSWIM ||
-              SECT(ch->in_room) == SECT_OCEAN) {
+      if (!IN_NATURE(ch)) {
         send_to_char(ch, "Your spikes are not effective in this terrain.\r\n");
         return;
       }
@@ -4785,7 +4781,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
       break;
       
     case SPELL_SPIKE_STONES: // transmutation
-      if (SECT(ch->in_room) != SECT_MOUNTAIN) {
+      if (!IN_NATURE(ch)) {
         send_to_char(ch, "Your spike stones are not effective in this terrain.\r\n");
         return;
       }

@@ -96,6 +96,8 @@ bool has_undead_follower(struct char_data *ch);
 int color_count(char *bufptr);
 int num_obj_in_obj(struct obj_data *obj);
 bool ultra_blind(struct char_data *ch, room_rnum room_number);
+bool is_room_outdoors(room_rnum room_number);
+bool is_outdoors(struct char_data *ch);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
@@ -1460,7 +1462,10 @@ do                                                              \
                                 (!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_UNDEAD) )
 
 /** Defines if ch is outdoors or not. */
-#define OUTSIDE(ch) (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS))
+#define OUTDOORS(ch)         (is_outdoors(ch))
+#define ROOM_OUTDOORS(room)  (is_room_outdoors(room))
+#define OUTSIDE(ch)          (is_outdoors(ch))
+#define ROOM_OUTSIDE(room)   (is_room_outdoors(room))
 
 /** A little more specific macro than above **/
 #define IN_NATURE(ch)  (world[IN_ROOM(ch)].sector_type == SECT_FIELD || \
@@ -1468,9 +1473,17 @@ do                                                              \
                         world[IN_ROOM(ch)].sector_type == SECT_HILLS || \
                         world[IN_ROOM(ch)].sector_type == SECT_MOUNTAIN || \
                         world[IN_ROOM(ch)].sector_type == SECT_WATER_SWIM || \
+                        world[IN_ROOM(ch)].sector_type == SECT_WATER_NOSWIM || \
                         world[IN_ROOM(ch)].sector_type == SECT_DESERT || \
-                        world[IN_ROOM(ch)].sector_type == SECT_MARSHLAND)
-
+                        world[IN_ROOM(ch)].sector_type == SECT_UD_WILD || \
+                        world[IN_ROOM(ch)].sector_type == SECT_HIGH_MOUNTAIN || \
+                        world[IN_ROOM(ch)].sector_type == SECT_UD_WATER || \
+                        world[IN_ROOM(ch)].sector_type == SECT_UD_NOSWIM || \
+                        world[IN_ROOM(ch)].sector_type == SECT_UD_NOGROUND || \
+                        world[IN_ROOM(ch)].sector_type == SECT_LAVA || \
+                        world[IN_ROOM(ch)].sector_type == SECT_FLYING || \
+                        world[IN_ROOM(ch)].sector_type == SECT_MARSHLAND \
+                        )
 
 /* Group related defines */
 #define GROUP(ch)            (ch->group)

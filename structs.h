@@ -189,10 +189,10 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define SECT_OCEAN           15  // ocean (ships only, unfinished)
 #define SECT_MARSHLAND       16  // marsh/swamps
 #define SECT_HIGH_MOUNTAIN   17  // mountains (climb only)
-/* unfinished below this line */
-#define SECT_PLANES          18  // non-prime (unfinished)
+#define SECT_PLANES          18  // non-prime (no effect yet)
 #define SECT_UD_WILD         19  // the outdoors of the underdark
 #define SECT_UD_CITY	    20  // city in the underdark
+/* unfinished below this line */
 #define SECT_UD_INSIDE 	    21  // inside in the underdark
 #define SECT_UD_WATER	    22  // water in the underdark
 #define SECT_UD_NOSWIM	    23  // water, boat needed, in the underdark
@@ -582,7 +582,6 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_PROTECT_EVIL     13   /**< Char protected from evil */
 #define AFF_PROTECT_GOOD     14   /**< Char protected from good */
 #define AFF_SLEEP            15   /**< (R) Char magically asleep */
-
 #define AFF_NOTRACK          16   /**< Char can't be tracked */
 #define AFF_FLYING           17   /**< Char is flying */
 #define AFF_SCUBA            18  // waterbreathe
@@ -650,7 +649,8 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_MAGE_FLAME       79  // light up an individual
 #define AFF_DARKVISION       80  // light up an individual
 /** Total number of affect flags not including the don't use flag. */
-// zusuk, don't forget to add to constants.c!
+// don't forget to add to constants.c!
+#define AFF_WATER_BREATH     AFF_SCUBA  // just the more conventional name
 #define NUM_AFF_FLAGS        81
 
 /* homeland-port reference */
@@ -1245,7 +1245,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 /** Max amount of output that can be buffered */
 #define LARGE_BUFSIZE      (MAX_SOCK_BUF - GARBAGE_SPACE - MAX_PROMPT_LENGTH)
 
-/* an arbitrary cap, medium in size */
+/* an arbitrary cap, medium in size for text */
 #define MEDIUM_STRING         256
 
 #define MAX_STRING_LENGTH     49152  /**< Max length of string, as defined */
