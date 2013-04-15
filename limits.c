@@ -31,7 +31,7 @@ bool death_check(struct char_data *i) {
   if (GET_HIT(i) <= -12) {
     /* we're just making sure damage() is called if he should be dead */
     damage(i, i, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
-    return TRUE;
+    return TRUE;  // dead for sure now!
   }
 
   return FALSE;

@@ -648,20 +648,22 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_CAGE             78  // can't interact/be-interacted with
 #define AFF_MAGE_FLAME       79  // light up an individual
 #define AFF_DARKVISION       80  // light up an individual
+#define AFF_BODYWEAPONRY     81  // light up an individual
+#define AFF_FARSEE     82  // light up an individual
 /** Total number of affect flags not including the don't use flag. */
 // don't forget to add to constants.c!
 #define AFF_WATER_BREATH     AFF_SCUBA  // just the more conventional name
-#define NUM_AFF_FLAGS        81
+#define NUM_AFF_FLAGS        83
 
 /* homeland-port reference */
 /*
 AFF FLAGS
 ----------
 PROTECT GAS (15)      AFF_ELEMENT_PROT    (28)
-FARSEE (16)           AFF_DETECT_MAGIC    (5)
+FARSEE (16)           AFF_FARSEE          (82)
 STONESKIN (20)        AFF_DETECT_MAGIC    (5)
 BARKSKIN (22)         AFF_DETECT_MAGIC    (5)
-FLYING (24)           AFF_SCUBA           (18)
+FLYING (24)           AFF_FLYING          (17)
 
 AFF2 FLAGS
 -----------
@@ -678,8 +680,8 @@ PROTECT UNDEAD (13)   AFF_DETECT_MAGIC    (5)
 BERSERK RAGE (14)     AFF_DETECT_MAGIC    (5)
 WITHER (15)           AFF_DETECT_MAGIC    (5)
 HEROISM (16)          AFF_BRAVERY         (61)
-DARKVISION (18)       AFF_ULTRAVISION     (33)
-LEVITATE (19)         AFF_DETECT_MAGIC    (5)
+DARKVISION (18)       AFF_DARKVISION      (80)
+LEVITATE (19)         AFF_FLYING          (17)
 ENTANGLED (20)        AFF_GRAPPLED        (34)
 BEAR SKIN (21)        AFF_DETECT_MAGIC    (5)
 CROCODILE HIDE (22)   AFF_DETECT_MAGIC    (5)
@@ -692,15 +694,15 @@ MISLEAD (30)          AFF_NON_DETECTION   (38)
 AFF3 FLAGS
 -----------
 DANGER SENSE (2)      (added this flag)   (71)
-BODY WEAPONRY (3)     AFF_DETECT_MAGIC    (5)
+BODY WEAPONRY (3)     (added this flag)   (81)
 BIOFEEDBACK (5)       AFF_DETECT_MAGIC    (5)
 CRISIS OF BREATH (7)  AFF_DETECT_MAGIC    (5)
 AWARE (9)             AFF_DETECT_MAGIC    (5)
-MAGE FLAME (12)	      AFF_MAGE_FLAME      (79)
+MAGE FLAME (12)	  AFF_MAGE_FLAME      (79)
 THORN SHIELD (13)     AFF_DETECT_MAGIC    (5)
-PROTECTION FROM ANIMALS (14)   AFF_DETECT_MAGIC    (5)
+PROTECTION FROM ANIMALS (14)            AFF_DETECT_MAGIC    (5)
 LIGHTNING WEB (15)    AFF_ASHIELD         (43)
-NOTRACK (16)          AFF_DETECT_MAGIC    (5) 
+NOTRACK (16)          AFF_NON_DETECTION   (38) 
 PROTECTION FROM POSITIVE ENERGY (17)    AFF_ELEMENT_PROT    (28)
 PROTECTION FROM NEGATIVE ENERGY (18)    AFF_ELEMENT_PROT    (28)
 MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
