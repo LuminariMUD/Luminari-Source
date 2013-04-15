@@ -26,11 +26,9 @@
 /* utility functions */
 /*-----------------------------------*/
 
-
 /* homeland-port this eventually can be used to have special class 
    quests */
-int has_race_kit( int race, int c )
-{
+int has_race_kit(int race, int c) {
   //return has_kit[race][c];
   return TRUE;
 }
@@ -52,20 +50,23 @@ void quest_open_door(int room, int door) {
     UNLOCK_DOOR(room, dummy, door);
 
   OPEN_DOOR(room, dummy, door);
-  
+
   if (back) {
     if (EXIT_FLAGGED(world[other_room].dir_option[rev_dir[door]], EX_LOCKED))
       UNLOCK_DOOR(other_room, dummy, rev_dir[door]);
     OPEN_DOOR(other_room, dummy, rev_dir[door]);
   }
-  
+
 }
 
 /* this utility function display quest info to a viewer in nice format */
 void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
   struct quest_command *qcom = NULL;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-  
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+
+  if (!quest)
+    return;
+
   if (quest->approved)
     send_to_char(ch, "\tc*** \tCQuest is Approved\tc ***\tn\r\n");
   else
@@ -82,6 +83,8 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
       for (qcom = quest->in; qcom; qcom = qcom->next) {
         switch (qcom->type) {
           case QUEST_COMMAND_ITEM:
+            if (NOTHING == real_object(qcom->value))
+              break;
             sprintf(buf, "\tCGIVE\tn %s (%d)\r\n",
                     obj_proto[real_object(qcom->value)].short_description,
                     qcom->value);
@@ -97,6 +100,8 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
     for (qcom = quest->out; qcom; qcom = qcom->next) {
       switch (qcom->type) {
         case QUEST_COMMAND_ITEM:
+          if (NOTHING == real_object(qcom->value))
+            break;
           sprintf(buf, "\tcRECEIVE\tn %s (%d)\r\n",
                   obj_proto[real_object(qcom->value)].short_description
                   , qcom->value);
@@ -107,13 +112,17 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_LOAD_OBJECT_INROOM:
+          if (NOTHING == real_object(qcom->value))
+            break;
           sprintf(buf, "\tcLOADOBJECT\tn %s in %s\r\n",
                   obj_proto[ real_object(qcom->value)].short_description,
-                  (qcom->location == 0 ? "CurrentRoom" : 
-                    world[real_room(qcom->location)].name));
+                  (qcom->location == 0 ? "CurrentRoom" :
+                  world[real_room(qcom->location)].name));
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_OPEN_DOOR:
+          if (NOWHERE == real_room(qcom->location))
+            break;
           sprintf(buf, "\tcOPEN_DOOR\tn %s in %s(%d)\r\n", dirs[qcom->value],
                   world[real_room(qcom->location)].name, qcom->location);
           send_to_char(ch, buf);
@@ -133,10 +142,12 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_LOAD_MOB_INROOM:
+          if (NOWHERE == real_room(qcom->location))
+            break;
           sprintf(buf, "\tcLOADMOB\tn %s in %s\r\n",
                   mob_proto[ real_mobile(qcom->value)].player.short_descr,
                   (qcom->location == 0 ? "CurrentRoom" :
-                    world[real_room(qcom->location)].name));
+                  world[real_room(qcom->location)].name));
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_ATTACK_QUESTOR:
@@ -168,7 +179,7 @@ bool has_spell_a_quest(int spell) {
   struct quest_command *qcom;
   for (i = 0; i < top_of_mobt; i++) {
     if (mob_proto[i].mob_specials.quest) {
-      for (quest = mob_proto[i].mob_specials.quest; quest; 
+      for (quest = mob_proto[i].mob_specials.quest; quest;
               quest = quest->next) {
         for (qcom = quest->out; qcom; qcom = qcom->next) {
           if (qcom->type == QUEST_COMMAND_TEACH_SPELL && qcom->value == spell)
@@ -243,18 +254,19 @@ bool is_object_in_a_quest(struct obj_data *obj) {
 /* temporary definition for initial compile by zusuk */
 #define CLASS_LICH 0
 #define RACE_LICH 0
-void perform_out_chain(struct char_data *ch, struct char_data *victim, 
+
+void perform_out_chain(struct char_data *ch, struct char_data *victim,
         struct quest_entry *quest, char *name) {
   struct char_data *mob = NULL;
   struct quest_command *qcom = NULL;
   struct char_data *homie = NULL, *nexth = NULL;
   struct obj_data *obj = NULL;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int i = 0;
-  
+
   // heh.. give stuff..
   act(quest->reply_msg, FALSE, ch, 0, victim, TO_CHAR);
-  
+
   for (qcom = quest->out; qcom; qcom = qcom->next) {
     switch (qcom->type) {
       case QUEST_COMMAND_COINS:
@@ -266,7 +278,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         break;
       case QUEST_COMMAND_ITEM:
         obj = read_object(qcom->value, VIRTUAL);
-        
+
         if (obj) {
           obj_to_char(obj, victim);
           if (FALSE == perform_give(victim, ch, obj)) {
@@ -334,7 +346,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
                 church_types[GET_CHURCH(ch)]);
         send_to_char(ch, buf);
         break;
-        
+
         /* unfinished for luminari port */
       case QUEST_COMMAND_KIT:
         if (GET_CLASS(ch) != qcom->location) {
@@ -348,7 +360,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
                   , pc_class_types[ qcom->value]);
           send_to_char(ch, buf);
           give_back_items(victim, ch, quest);
-          log("quest_log : %s failed to do a kitquest.(Not right race)", 
+          log("quest_log : %s failed to do a kitquest.(Not right race)",
                   GET_NAME(ch));
         } else if (GET_LEVEL(ch) < 10) {
           send_to_char(ch, "You are to low level to do this now.\r\n");
@@ -356,7 +368,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
                   GET_NAME(ch));
           give_back_items(victim, ch, quest);
 
-        } else if (GET_LEVEL(ch) < (LVL_IMMORT-1) && 
+        } else if (GET_LEVEL(ch) < (LVL_IMMORT - 1) &&
                 qcom->value == CLASS_LICH) {
           send_to_char(ch, "You are to low level to do this now.\r\n");
           log("quest_log : %s failed to do a kitquest.(too low level)",
@@ -384,7 +396,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
 
           for (i = 0; i < MAX_SKILLS; i++) {
             if (GET_SKILL(ch, i) &&
-                    spell_info[i].min_level[(int)GET_CLASS(ch)] >
+                    spell_info[i].min_level[(int) GET_CLASS(ch)] >
                     GET_LEVEL(ch)) {
               GET_SKILL(ch, i) = 0;
             }
@@ -392,31 +404,31 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
 
           sprintf(buf, "You are now a %s.\r\n", pc_class_types[GET_CLASS(ch)]);
           send_to_char(ch, buf);
-          log("quest_log : %s have changed to %s", GET_NAME(ch), 
+          log("quest_log : %s have changed to %s", GET_NAME(ch),
                   pc_class_types[GET_CLASS(ch)]);
         }
         break;
-        
-      /* unfinished for luminari port */
+
+        /* unfinished for luminari port */
       case QUEST_COMMAND_TEACH_SPELL:
-        if (GET_LEVEL(ch) < 
-                spell_info[qcom->value].min_level[(int)GET_CLASS(ch)])
+        if (GET_LEVEL(ch) <
+                spell_info[qcom->value].min_level[(int) GET_CLASS(ch)])
           send_to_char(ch, "The teaching is way beyond your comprehension!\r\n");
         else if (GET_SKILL(ch, qcom->value) > 0)
           send_to_char(ch, "You realize that you already know this way too "
-                  "well.\r\n");
+                "well.\r\n");
         else {
           sprintf(buf, "$N teaches you '\tL%s\tn'",
                   spell_info[qcom->value].name);
           act(buf, FALSE, ch, 0, victim, TO_CHAR);
           GET_SKILL(ch, qcom->value) = 9;
-          sprintf(buf, "quest_log: %s has quested %s", GET_NAME(ch), 
+          sprintf(buf, "quest_log: %s has quested %s", GET_NAME(ch),
                   spell_info[qcom->value].name);
           log(buf);
         }
         break;
 
-      /* took out casting time for this */
+        /* took out casting time for this */
       case QUEST_COMMAND_CAST_SPELL:
         call_magic(victim, ch, 0, qcom->value, GET_LEVEL(victim), CAST_SPELL);
         break;
@@ -451,7 +463,7 @@ void quest_room(struct char_data * ch) {
  */
 void quest_ask(struct char_data *ch, struct char_data *victim, char *keyword) {
   struct quest_entry *quest = NULL;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (IS_NPC(ch))
     return;
@@ -465,13 +477,13 @@ void quest_ask(struct char_data *ch, struct char_data *victim, char *keyword) {
   }
 
   for (quest = victim->mob_specials.quest; quest; quest = quest->next) {
-    
+
     if (!quest || !ch)
       continue;
-    
+
     if (!quest->keywords || !quest->reply_msg)
       continue;
-    
+
     /* Mortals can only quest on approved quests */
     if (quest->approved == FALSE && GET_LEVEL(ch) < LVL_IMMORT)
       continue;
@@ -482,6 +494,7 @@ void quest_ask(struct char_data *ch, struct char_data *victim, char *keyword) {
     }
   }
 }
+
 /* this function will determine whether the quest-out will fire when
  * the quest mob receives items/coins
  */
@@ -555,7 +568,7 @@ void clear_hlquest(struct quest_entry *quest) {
   quest->out = NULL;
   quest->approved = FALSE;
   quest->room = NOWHERE;
-  
+
   quest->next = NULL;
 }
 
@@ -649,7 +662,7 @@ void boot_the_quests(FILE * quest_f, char *filename, int rec_count) {
   struct quest_command *qcom = 0;
   struct quest_command *qlast = 0;
   struct quest_entry *quest = 0;
-  char buf2[MAX_INPUT_LENGTH] = { '\0' };
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   while (done == FALSE) {
     get_line(quest_f, line);
@@ -765,9 +778,9 @@ ACMD(do_qinfo) {
   int realnum = -1;
   struct quest_entry *quest = NULL;
   struct quest_command *qcmd = NULL;
-  char arg[MAX_INPUT_LENGTH] = { '\0' };
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-  char buf2[MAX_INPUT_LENGTH] = { '\0' };
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg);
 
@@ -871,14 +884,13 @@ ACMD(do_qinfo) {
   } // zone table walk
 }
 
-
 /* command to check for any unapproved quests in given zone/mob vnum range */
 ACMD(do_checkapproved) {
   int i;
   int count;
   int total;
   struct quest_entry *quest;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   for (i = 0; i < top_of_mobt; i++) {
     if (mob_proto[i].mob_specials.quest) {
@@ -902,11 +914,10 @@ ACMD(do_checkapproved) {
   }
 }
 
-
 /* displays all kitquests in the game */
 ACMD(do_kitquests) {
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-  
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+
   if (GET_LEVEL(ch) < LVL_IMMORT) {
     sprintf(buf, "(GC) %s looked at kitquest list.", GET_NAME(ch));
     log(buf);
@@ -935,10 +946,9 @@ ACMD(do_kitquests) {
   }
 }
 
-
 /* displays all spell quests in the game */
 ACMD(do_spellquests) {
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int i;
   struct quest_entry *quest;
   struct quest_command *qcom;
@@ -976,7 +986,6 @@ ACMD(do_spellquests) {
   }
 }
 
-
 /* with a given object vnum, finds references to quests in game */
 ACMD(do_qref) {
   int i;
@@ -985,18 +994,18 @@ ACMD(do_qref) {
   int real_num = 0;
   struct quest_entry *quest;
   struct quest_command *qcom;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, buf);
-  
+
   if (!*buf) {
     send_to_char(ch, "qref what object?\r\n");
     return;
   }
-  
+
   vnum = atoi(buf);
   real_num = real_object(vnum);
-  
+
   if (real_num == NOWHERE) {
     send_to_char(ch, "\tRNo such object!\tn\r\n");
     return;
@@ -1057,15 +1066,14 @@ ACMD(do_qref) {
   }
 }
 
-
 /* qview will view the quest details of a given mob's vnum in a nice format */
 ACMD(do_qview) {
   struct quest_entry *quest;
   int num;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-  
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+
   one_argument(argument, buf);
-  
+
   if (!*buf) {
     send_to_char(ch, "Qview what mob?\r\n");
     return;
@@ -1091,7 +1099,7 @@ ACMD(do_qview) {
     show_quest_to_player(ch, quest);
     if (quest->next)
       send_to_char(ch, "\r\n\tW-------------------------------------\tn"
-              "\r\n\r\n");
+            "\r\n\r\n");
   }
 
 }
