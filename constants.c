@@ -286,6 +286,38 @@ const char *sector_types[NUM_ROOM_SECTORS + 1] = {
   "\n"
 };
 
+/** How much movement is lost moving through a particular sector type. */
+/* make sure it matches SECT_ */
+int movement_loss[NUM_ROOM_SECTORS] =
+{
+  1,	/* Inside     */  // 0
+  1,	/* City       */
+  2,	/* Field      */
+  3,	/* Forest     */
+  4,	/* Hills      */
+  7,	/* Mountains  */  //5
+  4,	/* Swimming   */
+  3,	/* Unswimable */
+  1,	/* Flying     */
+  5,   /* Underwater */
+  1,	// zone entrance  10
+  1,	// road north-south
+  1,	// road east-west
+  1,	// road intersection
+  3,	// Desert
+  1,	// Ocean  15
+  5,	// Marshland
+  10,	// High Mountain
+  6,	// planes
+  3,	// ud wild
+  1,	// ud city  20
+  1,	// ud inside
+  4,	// ud swim
+  3,	// ud noswim
+  1,	// ud flying
+  6,	// lava  25
+};
+
 /** PC and NPC sex.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
@@ -1589,31 +1621,6 @@ int rev_dir[] =
   SOUTHWEST,
   NORTHWEST,
   NORTHEAST
-};
-
-/** How much movement is lost moving through a particular sector type. */
-/* make sure it matches SECT_ */
-int movement_loss[] =
-{
-  1,	/* Inside     */
-  1,	/* City       */
-  2,	/* Field      */
-  3,	/* Forest     */
-  4,	/* Hills      */
-  7,	/* Mountains  */
-  4,	/* Swimming   */
-  3,	/* Unswimable */
-  1,	/* Flying     */
-  5,   /* Underwater */
-  1,	// zone entrance
-  1,	// road north-south
-  1,	// road east-west
-  1,	// road intersection
-  3,	// Desert
-  1,	// Ocean
-  5,	// Marshland
-  10,	// High Mountain
-  6	// planes
 };
 
 /** The names of the days of the mud week. Not used in sprinttype(). */
