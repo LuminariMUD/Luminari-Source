@@ -169,6 +169,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   create_world_index(vzone_num, "obj");
   create_world_index(vzone_num, "shp");
   create_world_index(vzone_num, "trg");
+  create_world_index(vzone_num, "hlq");
 
   /* Make a new zone in memory. This was the source of all the zedit new
    * crashes. It was happily overwriting the stack.  This new loop by Andrew
@@ -247,6 +248,9 @@ void create_world_index(int znum, const char *type) {
       break;
     case 'q':
       prefix = QST_PREFIX;
+      break;
+    case 'h':
+      prefix = HLQST_PREFIX;
       break;
     default:
       /* Caller messed up. */
