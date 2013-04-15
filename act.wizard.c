@@ -2664,7 +2664,9 @@ ACMD(do_show) {
     { "popularity", LVL_IMMORT},
     { "bab", LVL_IMMORT},
     { "exp", LVL_IMMORT},
-    { "colour", LVL_IMMORT},
+    { "colour", LVL_IMMORT},  //15
+    { "citizen", LVL_IMMORT},
+    { "guard", LVL_IMMORT},
     { "\n", 0}
   };
 
@@ -2940,6 +2942,52 @@ ACMD(do_show) {
       page_string(ch->desc, buf, TRUE);
       break;
 
+    case 16:  //show citizen
+      if (*value && is_number(value))
+        j = atoi(value);
+      else
+        j = zone_table[world[ch->in_room].zone].number;
+      j *= 100;
+      if (real_zone(j) <= 0) {
+        sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n", j);
+        send_to_char(ch, buf);
+        return;
+      }
+      k = real_zone(j);
+      k = zone_table[k].top;
+      sprintf(buf, "Citizens in this zone : From %d to %d\r\n", j, k);
+      for (i = j; i <= k; i++) {
+        if ((l = real_mobile(i)) >= 0) {
+          if (MOB_FLAGGED(&mob_proto[l], MOB_CITIZEN))
+            sprintf(buf, "%s[%5d] %-40s\r\n", buf, i, mob_proto[l].player.short_descr);
+        }
+      }
+      page_string(ch->desc, buf, 1);
+      break;
+      
+    case 17:  //show guard
+      if (*value && is_number(value))
+        j = atoi(value);
+      else
+        j = zone_table[world[ch->in_room].zone].number;
+      j *= 100;
+      if (real_zone(j) <= 0) {
+        sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n", j);
+        send_to_char(ch, buf);
+        return;
+      }
+      k = real_zone(j);
+      k = zone_table[k].top;
+      sprintf(buf, "Guard in this zone : From %d to %d\r\n", j, k);
+      for (i = j; i <= k; i++) {
+        if ((l = real_mobile(i)) >= 0) {
+          if (MOB_FLAGGED(&mob_proto[l], MOB_GUARD))
+            sprintf(buf, "%s[%5d] %-40s\r\n", buf, i, mob_proto[l].player.short_descr);
+        }
+      }
+      page_string(ch->desc, buf, 1);
+      break;
+      
       /* show what? */
     default:
       send_to_char(ch, "Sorry, I don't understand that.\r\n");
