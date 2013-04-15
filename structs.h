@@ -192,7 +192,6 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define SECT_PLANES          18  // non-prime (no effect yet)
 #define SECT_UD_WILD         19  // the outdoors of the underdark
 #define SECT_UD_CITY	    20  // city in the underdark
-/* unfinished below this line */
 #define SECT_UD_INSIDE 	    21  // inside in the underdark
 #define SECT_UD_WATER	    22  // water in the underdark
 #define SECT_UD_NOSWIM	    23  // water, boat needed, in the underdark
