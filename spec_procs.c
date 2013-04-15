@@ -759,31 +759,7 @@ void list_skills(struct char_data *ch) {
     if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
             spell_info[i].schoolOfMagic == CRAFTING_SKILL) {
       if (meet_skill_reqs(ch, i)) {
-        send_to_char(ch, "%-24s", spell_info[i].name);
-        if (!GET_SKILL(ch, i))
-          send_to_char(ch, "  \tYUnlearned\tn ");
-        else if (GET_SKILL(ch, i) >= 99)
-          send_to_char(ch, "  \tWMastered \tn ");
-        else if (GET_SKILL(ch, i) >= 95)
-          send_to_char(ch, "  \twSuperb \tn ");
-        else if (GET_SKILL(ch, i) >= 90)
-          send_to_char(ch, "  \tMExcellent \tn ");
-        else if (GET_SKILL(ch, i) >= 85)
-          send_to_char(ch, "  \tmAdvanced \tn ");
-        else if (GET_SKILL(ch, i) >= 80)
-          send_to_char(ch, "  \tBGood \tn ");
-        else if (GET_SKILL(ch, i) >= 70)
-          send_to_char(ch, "  \tbFair \tn ");
-        else if (GET_SKILL(ch, i) >= 55)
-          send_to_char(ch, "  \tnLearned \tn ");
-        else if (GET_SKILL(ch, i) >= 40)
-          send_to_char(ch, "  \tyAverage \tn ");
-        else if (GET_SKILL(ch, i) >= 20)
-          send_to_char(ch, "  \tYPoor \tn ");
-        else if (GET_SKILL(ch, i) >= 10)
-          send_to_char(ch, "  \trBad \tn ");
-        else
-          send_to_char(ch, "  \tRAwful  \tn ");
+        send_to_char(ch, "%-24s %d", spell_info[i].name, GET_SKILL(ch, i));
         printed++;
         if (!(printed % 2))
           send_to_char(ch, "\r\n");
