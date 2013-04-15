@@ -22,7 +22,7 @@
 #include "improved-edit.h"
 #include "spells.h" /* find skill, etc */
 #include "clan.h"
-#include "limits.h"
+#include "mudlim.h"
 
 /* Global Variables used by clans */
 struct clan_data *clan_list = NULL;

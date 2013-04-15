@@ -26,7 +26,7 @@
 #include "spec_procs.h"
 #include "mud_event.h"
 #include "hlquest.h"
-#include "limits.h"
+#include "mudlim.h"
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,

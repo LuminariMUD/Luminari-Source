@@ -25,7 +25,7 @@
 #include "constants.h"
 #include "spec_procs.h"
 #include "class.h"
-#include "limits.h"
+#include "mudlim.h"
 
 
 /**** Utility functions *******/

@@ -1,6 +1,6 @@
 /****************************************************************************
  *  Realms of Luminari
- *  File:     limits.h
+ *  File:     mudlim.h (equivalent of local limits.h, but limits.h is reserved)
  *  Authors:  Nashak and Zusuk
  *  Created:  April 15, 2013
  ****************************************************************************/

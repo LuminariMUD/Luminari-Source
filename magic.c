@@ -24,7 +24,7 @@
 #include "utils.h"
 #include "mud_event.h"
 #include "act.h"  //perform_wildshapes
-#include "limits.h"
+#include "mudlim.h"
 
 //external
 extern struct raff_node *raff_list;

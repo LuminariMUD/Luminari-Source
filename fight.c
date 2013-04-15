@@ -31,7 +31,7 @@
 #include "spec_procs.h"
 #include "clan.h"
 #include "treasure.h"
-#include "limits.h"
+#include "mudlim.h"
 
 /* local global */
 struct obj_data *last_missile = NULL;

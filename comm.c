@@ -87,7 +87,7 @@
 #include "class.h" /* needed for level_exp for prompt */
 #include "mail.h" /* has_mail() */
 #include "screen.h"
-#include "limits.h"
+#include "mudlim.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
