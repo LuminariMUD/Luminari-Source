@@ -21,6 +21,7 @@
 #include "spells.h"
 #include "constants.h"
 #include "fight.h"
+#include "limits.h"
 
 
 /* copied from spell_parser.c: */

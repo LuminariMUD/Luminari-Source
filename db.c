@@ -43,6 +43,7 @@
 #include "msgedit.h"
 #include "craft.h"
 #include "hlquest.h"
+#include "limits.h"
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -1288,6 +1289,7 @@ void parse_room(FILE *fl, int virtual_nr) {
   world[room_nr].contents = NULL;
   world[room_nr].people = NULL;
   world[room_nr].light = 0; /* Zero light sources */
+  world[room_nr].globe = 0; /* Zero darkness sources */
 
   for (i = 0; i < NUM_OF_DIRS; i++) /* NUM_OF_DIRS here, not DIR_COUNT */
     world[room_nr].dir_option[i] = NULL;

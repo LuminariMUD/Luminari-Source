@@ -31,11 +31,50 @@
 
 
 
-
 /* Functions of a general utility nature
    Functions directly related to utils.h needs
  */
 
+
+/* will check if ch should suffer from ultra-blindness */
+bool ultra_blind(struct char_data *ch, room_rnum room_number) {
+  if (!AFF_FLAGGED(ch, AFF_ULTRAVISION))
+    return FALSE;
+
+  if (world[room_number].globe)
+    return FALSE;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS))
+    return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_DARKVISION))
+    return FALSE;
+
+  if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG))
+    return FALSE;
+
+  switch (SECT(room_number)) {
+    case SECT_INSIDE:
+    case SECT_FOREST:
+    case SECT_MARSHLAND:
+    case SECT_UNDERWATER:
+    case SECT_UD_WILD:
+    case SECT_UD_CITY:
+    case SECT_UD_INSIDE:
+    case SECT_UD_WATER:
+    case SECT_UD_NOSWIM:
+    case SECT_UD_NOGROUND:
+    case SECT_LAVA:
+      return FALSE;
+    default:
+      break;
+  }
+
+  if (weather_info.sunlight == SUN_LIGHT)
+    return TRUE;
+
+  return FALSE;
+}
 
 /** Calculate the number of objects in the given obj.
  * @param obj - The object to check for contents. */

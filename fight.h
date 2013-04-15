@@ -40,6 +40,7 @@ void death_cry(struct char_data *ch);
 void die(struct char_data * ch, struct char_data * killer);
 void free_messages(void);
 int dam_killed_vict(struct char_data *ch, struct char_data *victim);
+void update_pos(struct char_data *victim);
 /*
  * dualwield = is this a dual wield attack?
  */

@@ -675,6 +675,11 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
     send_to_char(ch, "Your view is obscured by a thick fog...\r\n");
     return;
   }
+  
+  if(!IS_DARK(target_room) && ULTRA_BLIND(ch, target_room)) {
+    send_to_char(ch, "\tWIt is far too bright to see anything...\tn\r\n");
+    return;
+  }
 
   // staff can see some extra details
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
@@ -696,8 +701,12 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   sprintbit((long) rm->room_affections, room_affections, buf, sizeof (buf));
   send_to_char(ch, " ( %s)", buf);
 
-  // carrier return
-  send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM));
+  /* display some extra info about the room (special flags) */
+  send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM));  // CR
+  if(IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG))
+    send_to_char(ch, "\tDA hazy \tWfog\tD enshrouds the area.\tn\r\n");  
+  if(IS_SET_AR(ROOM_FLAGS(target_room), ROOM_AIRY))
+    send_to_char(ch, "\tBLarge bubbles of air float through the water\tn\r\n");  
 
   /* worldmap room/zone? */
   if (ROOM_FLAGGED(target_room, ROOM_WORLDMAP) ||
@@ -736,7 +745,8 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   }
 
   /* autoexits */
-  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOEXIT))
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOEXIT) && 
+          !IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG))
     do_auto_exits(ch);
 
   /* now list characters & objects */
@@ -745,6 +755,11 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
 }
 
 static void look_in_direction(struct char_data *ch, int dir) {
+  if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG)) {
+    send_to_char(ch, "A fog makes it impossible to look far.\r\n");
+    return;
+  }
+  
   if (EXIT(ch, dir)) {
     if (EXIT(ch, dir)->general_description)
       send_to_char(ch, "%s", EXIT(ch, dir)->general_description);
@@ -3547,6 +3562,16 @@ ACMD(do_exits) {
     return;
   }
 
+  if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT) {
+    send_to_char(ch, "A fog makes any exits indistinguishable.\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_ULTRAVISION) && ULTRA_BLIND(ch, IN_ROOM(ch))) {
+    send_to_char(ch, "Its too bright to see.\r\n");
+    return;
+  }
+  
   send_to_char(ch, "Obvious exits:\r\n");
 
   for (door = 0; door < DIR_COUNT; door++) {

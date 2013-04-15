@@ -26,6 +26,7 @@
 #include "spec_procs.h"
 #include "mud_event.h"
 #include "hlquest.h"
+#include "limits.h"
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
@@ -256,7 +257,7 @@ int has_flight(struct char_data *ch) {
 }
 
 /* Simple function to determine if char can scuba. */
-int has_scuba(struct char_data *ch) {
+int has_scuba(struct char_data *ch, room_rnum destination) {
   struct obj_data *obj;
   int i;
 
@@ -276,6 +277,9 @@ int has_scuba(struct char_data *ch) {
     if (GET_EQ(ch, i) && OBJAFF_FLAGGED(GET_EQ(ch, i), AFF_SCUBA))
       return (1);
 
+  if (IS_SET_AR(ROOM_FLAGS(destination), ROOM_AIRY))
+    return (1);
+  
   return (0);
 }
 
@@ -503,7 +507,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /* Underwater Room: Does lack of underwater breathing prevent movement? */
   if ((SECT(was_in) == SECT_UNDERWATER) ||
           (SECT(going_to) == SECT_UNDERWATER)) {
-    if (!has_scuba(ch) && !IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
+    if (!has_scuba(ch, going_to) && (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))) {
       send_to_char(ch,
               "You need to be able to breathe water to go there!\r\n");
       return (0);
