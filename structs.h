@@ -649,7 +649,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_MAGE_FLAME       79  // light up an individual
 #define AFF_DARKVISION       80  // light up an individual
 #define AFF_BODYWEAPONRY     81  // light up an individual
-#define AFF_FARSEE     82  // light up an individual
+#define AFF_FARSEE           82  // light up an individual
 /** Total number of affect flags not including the don't use flag. */
 // don't forget to add to constants.c!
 #define AFF_WATER_BREATH     AFF_SCUBA  // just the more conventional name
