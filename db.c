@@ -1589,6 +1589,8 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   ECHO_SEQUENTIAL(mob_proto + i) = 0;
   CURRENT_ECHO(mob_proto + i) = 0;
   // ECHO_ENTRIES(mob_proto + i) = "";
+  
+  affect_total(mob_proto + i);
 }
 
 /* interpret_espec is the function that takes espec keywords and values and
