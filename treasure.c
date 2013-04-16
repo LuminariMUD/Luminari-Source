@@ -659,8 +659,8 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       obj->description = strdup(buf);
 
       GET_OBJ_VAL(obj, 0) = spell_level;
-      GET_OBJ_VAL(obj, 1) = dice(1, 10);
-      GET_OBJ_VAL(obj, 2) = 10;
+      GET_OBJ_VAL(obj, 1) = 10;
+      GET_OBJ_VAL(obj, 2) = dice(1, 10);
       GET_OBJ_VAL(obj, 3) = spell_num;
 
       GET_OBJ_COST(obj) = MIN(1000, 50 * spell_level);
@@ -686,8 +686,8 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       obj->description = strdup(buf);
 
       GET_OBJ_VAL(obj, 0) = spell_level;
-      GET_OBJ_VAL(obj, 1) = dice(1, 8);
-      GET_OBJ_VAL(obj, 2) = 8;
+      GET_OBJ_VAL(obj, 1) = 8;
+      GET_OBJ_VAL(obj, 2) = dice(1, 8);
       GET_OBJ_VAL(obj, 3) = spell_num;
 
       GET_OBJ_COST(obj) = MIN(1000, 110 * spell_level);
