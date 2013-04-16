@@ -2040,7 +2040,7 @@ ACMD(do_who) {
   struct descriptor_data *d;
   struct char_data *tch;
   int i, num_can_see = 0;
-  char name_search[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
+  char name_search[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH], class_list[MAX_INPUT_LENGTH];
   char mode;
   int low = 0, high = LVL_IMPL, localwho = 0, questwho = 0;
   int showclass = 0, short_list = 0, outlaws = 0;
@@ -2066,6 +2066,7 @@ ACMD(do_who) {
   strcpy(buf, argument); /* strcpy: OK (sizeof: argument == buf) */
   // first char of name_search is now NULL
   name_search[0] = '\0';
+  *class_list = '\0';
 
   // move along the buf array until '\0'
   while (*buf) {
@@ -2231,12 +2232,14 @@ ACMD(do_who) {
           for (inc = 0; inc < MAX_CLASSES; inc++) {
             if (CLASS_LEVEL(tch, inc)) {
               if (classCount)
-                send_to_char(ch, "/");
-              send_to_char(ch, "%-11.11s", class_abbrevs[inc]);
+                strcat(class_list, "/");
+                //send_to_char(ch, "/");
+              strcat(class_list, class_abbrevs[inc]);
               classCount++;
             }
           }
-          send_to_char(ch, "]");
+          send_to_char(ch, "%-11s]", class_list);
+          //send_to_char(ch, "]");
         }
 
         send_to_char(ch, " %s%s%s%s",
