@@ -2238,7 +2238,7 @@ ACMD(do_who) {
               classCount++;
             }
           }
-          send_to_char(ch, "%-11s]", class_list);
+          send_to_char(ch, "%-11s] wtf ", class_list);
           //send_to_char(ch, "]");
         }
 
