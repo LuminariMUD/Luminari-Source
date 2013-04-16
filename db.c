@@ -1655,162 +1655,158 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   /* leaving old saves for ease-of-conversion cases -zusuk */
   CASE("SavingPara") {
     RANGE(0, 100);
-    GET_SAVE(mob_proto + i, SAVING_FORT) = num_arg;
+    GET_REAL_SAVE(mob_proto + i, SAVING_FORT) = num_arg;
   }
 
   CASE("SavingFort") {
     RANGE(0, 100);
-    GET_SAVE(mob_proto + i, SAVING_FORT) = num_arg;
+    GET_REAL_SAVE(mob_proto + i, SAVING_FORT) = num_arg;
   }
 
   CASE("SavingRod") {
     RANGE(0, 100);
-    GET_SAVE(mob_proto + i, SAVING_REFL) = num_arg;
+    GET_REAL_SAVE(mob_proto + i, SAVING_REFL) = num_arg;
   }
 
   CASE("SavingRefl") {
     RANGE(0, 100);
-    GET_SAVE(mob_proto + i, SAVING_REFL) = num_arg;
+    GET_REAL_SAVE(mob_proto + i, SAVING_REFL) = num_arg;
   }
 
   CASE("SavingPetri") {
     RANGE(0, 100);
-    GET_SAVE(mob_proto + i, SAVING_WILL) = num_arg;
+    GET_REAL_SAVE(mob_proto + i, SAVING_WILL) = num_arg;
   }
 
   CASE("SavingWill") {
     RANGE(0, 100);
-    GET_SAVE(mob_proto + i, SAVING_WILL) = num_arg;
+    GET_REAL_SAVE(mob_proto + i, SAVING_WILL) = num_arg;
   }
 
   CASE("SavingBreath") {
     RANGE(0, 100);
-    GET_SAVE(mob_proto + i, SAVING_POISON) = num_arg;
+    GET_REAL_SAVE(mob_proto + i, SAVING_POISON) = num_arg;
   }
 
   CASE("SavingPoison") {
     RANGE(0, 100);
-    GET_SAVE(mob_proto + i, SAVING_POISON) = num_arg;
+    GET_REAL_SAVE(mob_proto + i, SAVING_POISON) = num_arg;
   }
 
   CASE("SavingSpell") {
     RANGE(0, 100);
-    GET_SAVE(mob_proto + i, SAVING_DEATH) = num_arg;
+    GET_REAL_SAVE(mob_proto + i, SAVING_DEATH) = num_arg;
   }
 
   CASE("SavingDeath") {
     RANGE(0, 100);
-    GET_SAVE(mob_proto + i, SAVING_DEATH) = num_arg;
+    GET_REAL_SAVE(mob_proto + i, SAVING_DEATH) = num_arg;
   }
+  
   /* end saving throws */
 
   /* damtype resistances */
   CASE("ResFire") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_FIRE) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_FIRE) = num_arg;
   }
 
   CASE("ResCold") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_COLD) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_COLD) = num_arg;
   }
 
   CASE("ResAir") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_AIR) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_AIR) = num_arg;
   }
 
   CASE("ResEarth") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_EARTH) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_EARTH) = num_arg;
   }
 
   CASE("ResAcid") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_ACID) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_ACID) = num_arg;
   }
 
   CASE("ResHoly") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_HOLY) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_HOLY) = num_arg;
   }
 
   CASE("ResElectric") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_ELECTRIC) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_ELECTRIC) = num_arg;
   }
 
   CASE("ResUnholy") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_UNHOLY) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_UNHOLY) = num_arg;
   }
 
   CASE("ResSlice") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_SLICE) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_SLICE) = num_arg;
   }
 
   CASE("ResPuncture") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_PUNCTURE) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_PUNCTURE) = num_arg;
   }
 
   CASE("ResForce") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_FORCE) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_FORCE) = num_arg;
   }
 
   CASE("ResSound") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_SOUND) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_SOUND) = num_arg;
   }
 
   CASE("ResPoison") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_POISON) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_POISON) = num_arg;
   }
 
   CASE("ResDisease") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_DISEASE) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_DISEASE) = num_arg;
   }
 
   CASE("ResNegative") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_NEGATIVE) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_NEGATIVE) = num_arg;
   }
 
   CASE("ResIllusion") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_ILLUSION) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_ILLUSION) = num_arg;
   }
 
   CASE("ResMental") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_MENTAL) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_MENTAL) = num_arg;
   }
 
   CASE("ResLight") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_LIGHT) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_LIGHT) = num_arg;
   }
 
   CASE("ResEnergy") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_ENERGY) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_ENERGY) = num_arg;
   }
 
   CASE("ResWater") {
     RANGE(-100, 100);
-    GET_RESISTANCES(mob_proto + i, DAM_WATER) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_WATER) = num_arg;
   }
 
   /* end damtype resisatnces */
-
-  CASE("SavingDeath") {
-    RANGE(0, 100);
-    GET_SAVE(mob_proto + i, SAVING_DEATH) = num_arg;
-  }
 
   CASE("Race") {
     RANGE(0, NUM_NPC_RACES);
@@ -1839,7 +1835,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("Size") {
     RANGE(0, NUM_SIZES - 1);
-    GET_SIZE(mob_proto + i) = num_arg;
+    GET_REAL_SIZE(mob_proto + i) = num_arg;
   }
 
   CASE("Walkin") {
@@ -1881,6 +1877,8 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     log("SYSERR: Warning: unrecognized espec keyword %s in mob #%d",
             keyword, nr);
   }
+  affect_total(mob_proto + i);
+  
 }
 
 #undef CASE

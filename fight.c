@@ -1685,6 +1685,16 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
             && !IS_NPC(ch->master))
       remember(victim, ch->master);
   }
+
+  /* set to hunting if applicable */
+  if (MOB_FLAGGED(victim, MOB_HUNTER) && CAN_SEE(victim, ch) &&
+          !HUNTING(victim)) {
+    if (!IS_NPC(ch)) {
+      HUNTING(victim) = ch;
+    } else if (IS_PET(ch) && ch->master && IN_ROOM(ch->master) == IN_ROOM(ch)
+            && !IS_NPC(ch->master))
+      HUNTING(victim) = ch->master;
+  }
   
   dam = damage_handling(ch, victim, dam, attacktype, dam_type); //modify damage
   if (dam == -1) // make sure message handling has been done!
