@@ -1271,7 +1271,7 @@ void mobile_activity(void) {
             continue;
 
           found = TRUE;
-          act("'!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
+          act("'!!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
           hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         }
       }

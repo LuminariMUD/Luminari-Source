@@ -211,11 +211,11 @@ void hunt_victim(struct char_data *ch) {
         if (IS_NPC(tmp) || !CAN_SEE(ch, tmp) || PRF_FLAGGED(tmp, PRF_NOHASSLE))
           continue;
 
-        for (names = MEMORY(ch); names && !found; names = names->next) {
+        for (names = MEMORY(ch); names && !mem_found; names = names->next) {
           if (names->id != GET_IDNUM(tmp))
             continue;
 
-          found = TRUE;
+          mem_found = TRUE;
           HUNTING(ch) = tmp;
           act("'bwargh!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
           break;
@@ -231,7 +231,7 @@ void hunt_victim(struct char_data *ch) {
       found = TRUE;
 
   if (!found) {
-    char actbuf[MAX_INPUT_LENGTH] = "!!!!";
+    char actbuf[MAX_INPUT_LENGTH] = "???";
 
     do_say(ch, actbuf, 0, 0);
     HUNTING(ch) = NULL;
@@ -245,8 +245,10 @@ void hunt_victim(struct char_data *ch) {
     HUNTING(ch) = NULL;
   } else {
     perform_move(ch, dir, 1);
-    if (IN_ROOM(ch) == IN_ROOM(HUNTING(ch)) && !IS_PET(ch))
+    if (IN_ROOM(ch) == IN_ROOM(HUNTING(ch)) && !IS_PET(ch)) {
+      act("'!!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
       hit(ch, HUNTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    }
   }
 }
 
