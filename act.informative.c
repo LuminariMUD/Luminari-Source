@@ -2039,7 +2039,7 @@ ACMD(do_weather) {
 ACMD(do_who) {
   struct descriptor_data *d;
   struct char_data *tch;
-  int i, num_can_see = 0;
+  int i, num_can_see = 0, class_len = 0;
   char name_search[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH], class_list[MAX_INPUT_LENGTH];
   char mode;
   int low = 0, high = LVL_IMPL, localwho = 0, questwho = 0;
@@ -2238,7 +2238,12 @@ ACMD(do_who) {
               classCount++;
             }
           }
-          send_to_char(ch, "%-11s] wtf ", class_list);
+          class_len = strlen(class_list) - count_color_chars(class_list);
+          while (class_len < 11) {
+            strcat(class_list, " ");
+            class_len++;
+          }
+          send_to_char(ch, "%s] ", class_list);
           //send_to_char(ch, "]");
         }
 
