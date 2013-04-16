@@ -2232,7 +2232,7 @@ ACMD(do_who) {
             if (CLASS_LEVEL(tch, inc)) {
               if (classCount)
                 send_to_char(ch, "/");
-              send_to_char(ch, "%s", class_abbrevs[inc]);
+              send_to_char(ch, "%-11s", class_abbrevs[inc]);
               classCount++;
             }
           }
