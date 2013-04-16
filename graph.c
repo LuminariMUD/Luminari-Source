@@ -245,7 +245,7 @@ void hunt_victim(struct char_data *ch) {
     HUNTING(ch) = NULL;
   } else {
     perform_move(ch, dir, 1);
-    if (IN_ROOM(ch) == IN_ROOM(HUNTING(ch)) && !IS_PET(ch)) {
+    if (IN_ROOM(ch) == IN_ROOM(HUNTING(ch)) && !IS_PET(ch) && !FIGHTING(ch)) {
       act("'!!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
       hit(ch, HUNTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
     }

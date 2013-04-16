@@ -537,56 +537,6 @@ void clearMemory(struct char_data *ch) {
 
 /* end memory routines */
 
-/* An aggressive mobile wants to attack something.  If they're under the 
- * influence of mind altering PC, then see if their master can talk them out 
- * of it, eye them down, or otherwise intimidate the slave. */
-/*
-static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data *master, struct char_data *attack) {
-  static int snarl_cmd = 0, sneer_cmd = 0;
-  int dieroll = 0;
-
-  if (!slave)
-    return FALSE;
-
-  if (!master || !AFF_FLAGGED(slave, AFF_CHARM))
-    return (FALSE);
-
-  if (!snarl_cmd)
-    snarl_cmd = find_command("snarl");
-  if (!sneer_cmd)
-    sneer_cmd = find_command("sneer");
-
-  // Sit. Down boy! HEEEEeeeel!
-  dieroll = rand_number(1, 20);
-  if (dieroll != 1 && (dieroll == 20 || dieroll > 10 -
-          GET_CHA_BONUS(master) + GET_WIS_BONUS(slave))) {
-    if (snarl_cmd > 0 && attack && !rand_number(0, 3)) {
-      char victbuf[MAX_NAME_LENGTH + 1];
-
-      strncpy(victbuf, GET_NAME(attack), sizeof (victbuf)); // strncpy: OK
-      victbuf[sizeof (victbuf) - 1] = '\0';
-
-      do_action(slave, victbuf, snarl_cmd, 0);
-    }
-
-    // Success! But for how long? Hehe
-    return (TRUE);
-  }
-
-  // indicator that he/she isn't happy!
-  if (snarl_cmd > 0 && attack) {
-    char victbuf[MAX_NAME_LENGTH + 1];
-
-    strncpy(victbuf, GET_NAME(attack), sizeof (victbuf)); // strncpy: OK
-    victbuf[sizeof (victbuf) - 1] = '\0';
-
-    do_action(slave, victbuf, sneer_cmd, 0);
-  }
-
-  return (FALSE);
-}
- */
-
 /* function encapsulating conditions that will stop the mobile from
  acting */
 int can_continue(struct char_data *ch, bool fighting) {
@@ -647,8 +597,6 @@ void npc_racial_behave(struct char_data *ch) {
       }
       break;
     case NPCRACE_DRAGON:
-      if (!HUNTING(ch))
-        HUNTING(ch) = vict;
 
       switch (rand_number(1, 4)) {
         case 1:
@@ -832,8 +780,6 @@ void npc_class_behave(struct char_data *ch) {
     return;
   if (!can_continue(ch, TRUE))
     return;
-  if (GET_LEVEL(ch) < 5)
-    return;
 
   //semi randomly choose vict, determine if can AoE
   for (AoE = world[IN_ROOM(ch)].people; AoE; AoE = AoE->next_in_room)
@@ -857,9 +803,6 @@ void npc_class_behave(struct char_data *ch) {
     case CLASS_BERSERKER:
       npc_berserker_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
-    case CLASS_WARRIOR:
-      npc_warrior_behave(ch, vict, GET_LEVEL(ch), engaged);
-      break;
     case CLASS_PALADIN:
       npc_paladin_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
@@ -872,7 +815,9 @@ void npc_class_behave(struct char_data *ch) {
     case CLASS_MONK:
       npc_monk_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
+    case CLASS_WARRIOR:
     default:
+      npc_warrior_behave(ch, vict, GET_LEVEL(ch), engaged);
       break;
   }
 }
@@ -1151,37 +1096,9 @@ void mobile_activity(void) {
       } else if (!rand_number(0, 8) && IS_NPC_CASTER(ch)) {
         /* not in combat */
         npc_spellup(ch);
-      }
-    }
-
-    /* return mobile to preferred (default) position if necessary */
-    if (GET_POS(ch) != GET_DEFAULT_POS(ch) && MOB_FLAGGED(ch, MOB_SENTINEL)) {
-      if (GET_DEFAULT_POS(ch) == POS_SITTING) {
-        do_sit(ch, NULL, 0, 0);
-      } else if (GET_DEFAULT_POS(ch) == POS_RECLINING) {
-        do_recline(ch, NULL, 0, 0);
-      } else if (GET_DEFAULT_POS(ch) == POS_RESTING) {
-        do_rest(ch, NULL, 0, 0);
-      } else if (GET_DEFAULT_POS(ch) == POS_STANDING) {
-        do_stand(ch, NULL, 0, 0);
-      } else if (GET_DEFAULT_POS(ch) == POS_SLEEPING) {
-        int go_to_sleep = FALSE;
-        do_rest(ch, NULL, 0, 0);
-
-        // only go back to sleep if no PCs in the room, and percentage
-        if (rand_number(1, 100) <= 10) {
-          go_to_sleep = TRUE;
-          for (tmp_char = world[ch->in_room].people; tmp_char; tmp_char = tmp_char->next_in_room) {
-            if (!IS_NPC(tmp_char) && CAN_SEE(ch, tmp_char)) {
-              // don't go to sleep
-              go_to_sleep = FALSE;
-              break;
-            }
-          }
-        }
-
-        if (go_to_sleep == TRUE)
-          do_sleep(ch, NULL, 0, 0);
+      } else if (!rand_number(0, 8) && !IS_NPC_CASTER(ch)) {
+        /* not in combat, non-caster */
+        ;  // this is where we'd put mob AI to use hide skill, etc
       }
     }
 
@@ -1214,7 +1131,7 @@ void mobile_activity(void) {
       }
 
     /* Mob Movement */
-    if (rand_number(0, 1)) //customize frequency
+    if (!rand_number(0, 2)) //customize frequency
       if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
               ((door = rand_number(0, 18)) < DIR_COUNT) && CAN_GO(ch, door) &&
               !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&
@@ -1260,7 +1177,7 @@ void mobile_activity(void) {
     }
 
     /* Mob Memory */
-    if (MOB_FLAGGED(ch, MOB_MEMORY) && MEMORY(ch)) {
+    if (MOB_FLAGGED(ch, MOB_MEMORY) && MEMORY(ch) && !FIGHTING(ch)) {
       found = FALSE;
       for (vict = world[IN_ROOM(ch)].people; vict && !found; vict = vict->next_in_room) {
         if (IS_NPC(vict) || !CAN_SEE(ch, vict) || PRF_FLAGGED(vict, PRF_NOHASSLE))
@@ -1271,26 +1188,13 @@ void mobile_activity(void) {
             continue;
 
           found = TRUE;
-          act("'!!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
+          act("'!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
           hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         }
       }
     }
 
-    /* NOTE - Deprecated by current system */
-    /* Charmed Mob Rebellion: In order to rebel, there need to be more charmed 
-     * monsters than the person can feasibly control at a time.  Then the
-     * mobiles have a chance based on the charisma of their leader. */
-    /*
-    if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master &&
-            num_followers_charmed(ch->master) > MAX(1, GET_CHA_BONUS(ch->master))) {
-      if (!aggressive_mob_on_a_leash(ch, ch->master, ch->master)) {
-        if (CAN_SEE(ch, ch->master) && !PRF_FLAGGED(ch->master, PRF_NOHASSLE))
-          hit(ch, ch->master, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-        stop_follower(ch);
-      }
-    }
-     */
+    /* NOTE old charmee rebellion - Deprecated by current system */
 
     /* Helper Mobs */
     if (MOB_FLAGGED(ch, MOB_HELPER) && (!AFF_FLAGGED(ch, AFF_BLIND) ||
@@ -1319,15 +1223,48 @@ void mobile_activity(void) {
     /* a function to move mobile back to its loadroom (if sentinel) */
     if (!HUNTING(ch) && !MEMORY(ch) && !ch->master &&
             MOB_FLAGGED(ch, MOB_SENTINEL) && !IS_PET(ch) &&
-            GET_MOB_LOADROOM(ch) != ch->in_room)
+            GET_MOB_LOADROOM(ch) != IN_ROOM(ch))
       hunt_loadroom(ch);
 
     /* pets return to their master */
-    if (GET_POS(ch) == POS_STANDING && IS_PET(ch) && ch->master->in_room !=
-            ch->in_room && !HUNTING(ch)) {
+    if (GET_POS(ch) == POS_STANDING && IS_PET(ch) && IN_ROOM(ch->master) !=
+            IN_ROOM(ch) && !HUNTING(ch)) {
       HUNTING(ch) = ch->master;
       hunt_victim(ch);
     }
+    
+    /* return mobile to preferred (default) position if necessary */
+    if (GET_POS(ch) != GET_DEFAULT_POS(ch) && MOB_FLAGGED(ch, MOB_SENTINEL) &&
+            GET_MOB_LOADROOM(ch) == IN_ROOM(ch)) {
+      if (GET_DEFAULT_POS(ch) == POS_SITTING) {
+        do_sit(ch, NULL, 0, 0);
+      } else if (GET_DEFAULT_POS(ch) == POS_RECLINING) {
+        do_recline(ch, NULL, 0, 0);
+      } else if (GET_DEFAULT_POS(ch) == POS_RESTING) {
+        do_rest(ch, NULL, 0, 0);
+      } else if (GET_DEFAULT_POS(ch) == POS_STANDING) {
+        do_stand(ch, NULL, 0, 0);
+      } else if (GET_DEFAULT_POS(ch) == POS_SLEEPING) {
+        int go_to_sleep = FALSE;
+        do_rest(ch, NULL, 0, 0);
+
+        // only go back to sleep if no PCs in the room, and percentage
+        if (rand_number(1, 100) <= 10) {
+          go_to_sleep = TRUE;
+          for (tmp_char = world[ch->in_room].people; tmp_char; tmp_char = tmp_char->next_in_room) {
+            if (!IS_NPC(tmp_char) && CAN_SEE(ch, tmp_char)) {
+              // don't go to sleep
+              go_to_sleep = FALSE;
+              break;
+            }
+          }
+        }
+
+        if (go_to_sleep == TRUE)
+          do_sleep(ch, NULL, 0, 0);
+      }
+    }
+
     /* Add new mobile actions here */
 
   } /* end for() */
