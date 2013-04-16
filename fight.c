@@ -1666,8 +1666,6 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     // vict -> ch
     if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL)) {
       set_fighting(victim, ch);
-      if (MOB_FLAGGED(victim, MOB_MEMORY) && !IS_NPC(ch))
-        remember(victim, ch);
     }
   }
   if (victim->master == ch) // pet leaves you
@@ -1679,6 +1677,15 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       dam = 0;
   }
 
+  /* add to memory if applicable */
+  if (MOB_FLAGGED(victim, MOB_MEMORY) && CAN_SEE(victim, ch)) {
+    if (!IS_NPC(ch)) {
+      remember(victim, ch);
+    } else if (IS_PET(ch) && ch->master && IN_ROOM(ch->master) == IN_ROOM(ch)
+            && !IS_NPC(ch->master))
+      remember(victim, ch->master);
+  }
+  
   dam = damage_handling(ch, victim, dam, attacktype, dam_type); //modify damage
   if (dam == -1) // make sure message handling has been done!
     return 0;
