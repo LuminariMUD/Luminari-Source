@@ -221,7 +221,8 @@ void hunt_victim(struct char_data *ch) {
           break;
         }
       }
-    }    
+    } else
+      return;
   }
   
   /* make sure the char still exists */
