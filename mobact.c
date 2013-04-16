@@ -81,7 +81,7 @@ bool mobai_summon(struct char_data *ch, struct char_data *victim) {
 
   return TRUE;
 }
-*/
+ */
 
 /* leaving this here to research more a teleporting mechanic for 
  * mobiles -zusuk */
@@ -142,7 +142,7 @@ bool mobai_track(struct char_data *ch, struct char_data *victim) {
   hunt_victim(ch);
   return TRUE;
 }
-*/
+ */
 
 /* leaving this here for now to research AI for switching opponents -zusuk */
 /*
@@ -203,7 +203,7 @@ bool mobai_switchopponents(struct char_data *ch) {
   }
   return FALSE;
 } 
-*/
+ */
 
 /***********/
 
@@ -366,6 +366,7 @@ int valid_offensive_spell[OFFENSIVE_SPELLS] = {
  */
 /* how many times will you loop group list to find rescue target cap */
 #define RESCUE_LOOP  20
+
 void npc_rescue(struct char_data *ch) {
   struct char_data *victim = NULL;
   int loop_counter = 0;
@@ -374,8 +375,7 @@ void npc_rescue(struct char_data *ch) {
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !rand_number(0, 1) &&
           (GET_MAX_HIT(ch) / GET_HIT(ch)) <= 2) {
     if (FIGHTING(ch->master)) {
-      do_npc_rescue(ch, ch->master);
-      SET_WAIT(ch, PULSE_VIOLENCE * 2);
+      perform_rescue(ch, ch->master);
       return;
     }
   }
@@ -391,8 +391,7 @@ void npc_rescue(struct char_data *ch) {
     } while (!victim || victim == ch);
 
     if (loop_counter < RESCUE_LOOP && FIGHTING(victim)) {
-      do_npc_rescue(ch, victim);
-      SET_WAIT(ch, PULSE_VIOLENCE * 2);
+      perform_rescue(ch, victim);
       return;
     }
   }
@@ -586,7 +585,7 @@ static bool aggressive_mob_on_a_leash(struct char_data *slave, struct char_data 
 
   return (FALSE);
 }
-*/
+ */
 
 /* function encapsulating conditions that will stop the mobile from
  acting */
@@ -679,8 +678,16 @@ void npc_racial_behave(struct char_data *ch) {
 /*** MELEE CLASSES ***/
 
 // monk behaviour, behave based on level
+
 void npc_monk_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
+
+  /* list of skills to use:
+   1) switch
+   2) springleap
+   3) stunning fist
+   4) switch opponents
+   */
 
   switch (rand_number(5, level)) {
     case 5: // level 1-4 mobs won't act
@@ -690,8 +697,16 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
   }
 }
 // rogue behaviour, behave based on level
+
 void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
+
+  /* list of skills to use:
+   1) trip
+   2) dirt kick
+   3) sap
+   4) backstab
+   */
 
   switch (rand_number(5, level)) {
     case 5: // level 1-4 mobs won't act
@@ -701,8 +716,16 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
   }
 }
 // bard behaviour, behave based on level
+
 void npc_bard_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
+
+  /* list of skills to use:
+   1) trip
+   2) dirt kick
+   3) perform
+   4) kick
+   */
 
   switch (rand_number(5, level)) {
     case 5: // level 1-4 mobs won't act
@@ -712,8 +735,16 @@ void npc_bard_behave(struct char_data *ch, struct char_data *vict,
   }
 }
 // warrior behaviour, behave based on circle
+
 void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
+
+  /* list of skills to use:
+   1) rescue
+   2) bash
+   3) shieldpunch
+   4) switch opponents
+   */
 
   /* first rescue friends/master */
   npc_rescue(ch);
@@ -726,8 +757,15 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
   }
 }
 // ranger behaviour, behave based on level
+
 void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
+
+  /* list of skills to use:
+   1) rescue
+   2) switch opponents
+   3) call companion
+   */
 
   /* first rescue friends/master */
   npc_rescue(ch);
@@ -740,8 +778,16 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
   }
 }
 // paladin behaviour, behave based on level
+
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
+
+  /* list of skills to use:
+   1) rescue
+   2) lay on hands
+   3) smite evil
+   4) switch opponents
+   */
 
   /* first rescue friends/master */
   npc_rescue(ch);
@@ -754,8 +800,16 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
   }
 }
 // berserk behaviour, behave based on level
+
 void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
         int level, int engaged) {
+
+  /* list of skills to use:
+   1) rescue
+   2) berserk
+   3) headbutt
+   4) switch opponents
+   */
 
   /* first rescue friends/master */
   npc_rescue(ch);
@@ -871,14 +925,12 @@ void npc_spellup(struct char_data *ch) {
         create_group(ch);
       cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_9);
       return;
-    }
-    else if (level >= spell_info[SPELL_SUMMON_CREATURE_8].min_level[GET_CLASS(ch)]) {
+    } else if (level >= spell_info[SPELL_SUMMON_CREATURE_8].min_level[GET_CLASS(ch)]) {
       if (!GROUP(ch))
         create_group(ch);
       cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_8);
       return;
-    }
-    else if (level >= spell_info[SPELL_SUMMON_CREATURE_7].min_level[GET_CLASS(ch)]) {
+    } else if (level >= spell_info[SPELL_SUMMON_CREATURE_7].min_level[GET_CLASS(ch)]) {
       if (!GROUP(ch))
         create_group(ch);
       cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_7);
@@ -898,8 +950,7 @@ void npc_spellup(struct char_data *ch) {
     if (level >= spell_info[SPELL_HEAL].min_level[GET_CLASS(ch)]) {
       cast_spell(ch, victim, NULL, SPELL_HEAL);
       return;
-    }
-    else if (level >= spell_info[SPELL_CURE_CRITIC].min_level[GET_CLASS(ch)]) {
+    } else if (level >= spell_info[SPELL_CURE_CRITIC].min_level[GET_CLASS(ch)]) {
       cast_spell(ch, victim, NULL, SPELL_CURE_CRITIC);
       return;
     }
@@ -956,6 +1007,15 @@ void npc_offensive_spells(struct char_data *ch) {
     case CLASS_BARD: // bards 33% will not cast
       if (!rand_number(0, 2)) {
         npc_class_behave(ch);
+        return;
+      }
+      break;
+      /* our 'healing' types will do another check for spellup */
+    case CLASS_DRUID:
+    case CLASS_CLERIC:
+      /* additional 25% of spellup instead of offensive spell */
+      if (!rand_number(0, 3)) {
+        npc_spellup(ch);
         return;
       }
       break;
@@ -1025,7 +1085,7 @@ void npc_offensive_spells(struct char_data *ch) {
   } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
           affected_by_spell(tch, spellnum));
 
-  if (loop_counter < (MAX_LOOPS / 2))
+  if (loop_counter < (MAX_LOOPS / 2) && spellnum != -1)
     // found a spell, cast it
     cast_spell(ch, tch, NULL, spellnum);
 
@@ -1038,7 +1098,7 @@ void npc_offensive_spells(struct char_data *ch) {
 void mobile_activity(void) {
   struct char_data *ch = NULL, *next_ch = NULL, *vict = NULL, *tmp_char = NULL;
   struct obj_data *obj = NULL, *best_obj = NULL;
-  int door = 0, found = 0, max = 0, where = -1;
+  int door = 0, found = FALSE, max = 0, where = -1;
   memory_rec *names = NULL;
 
   for (ch = character_list; ch; ch = next_ch) {
@@ -1088,7 +1148,7 @@ void mobile_activity(void) {
         else
           npc_class_behave(ch);
         continue;
-      } else if (!rand_number(0, 6) && IS_NPC_CASTER(ch)) {
+      } else if (!rand_number(0, 8) && IS_NPC_CASTER(ch)) {
         /* not in combat */
         npc_spellup(ch);
       }
@@ -1188,7 +1248,7 @@ void mobile_activity(void) {
         if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
                 (ch->next_in_room != vict && vict->next_in_room != ch))
           continue;
-        
+
         if (MOB_FLAGGED(ch, MOB_AGGRESSIVE) ||
                 (MOB_FLAGGED(ch, MOB_AGGR_EVIL) && IS_EVIL(vict)) ||
                 (MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(vict)) ||
@@ -1217,10 +1277,10 @@ void mobile_activity(void) {
       }
     }
 
+    /* NOTE - Deprecated by current system */
     /* Charmed Mob Rebellion: In order to rebel, there need to be more charmed 
      * monsters than the person can feasibly control at a time.  Then the
-     * mobiles have a chance based on the charisma of their leader.
-     * 1-4 = 0, 5-7 = 1, 8-10 = 2, 11-13 = 3, 14-16 = 4, 17-19 = 5, etc. */
+     * mobiles have a chance based on the charisma of their leader. */
     /*
     if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master &&
             num_followers_charmed(ch->master) > MAX(1, GET_CHA_BONUS(ch->master))) {
@@ -1230,8 +1290,8 @@ void mobile_activity(void) {
         stop_follower(ch);
       }
     }
-    */
-    
+     */
+
     /* Helper Mobs */
     if (MOB_FLAGGED(ch, MOB_HELPER) && (!AFF_FLAGGED(ch, AFF_BLIND) ||
             !AFF_FLAGGED(ch, AFF_CHARM))) {

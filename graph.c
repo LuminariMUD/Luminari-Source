@@ -195,11 +195,35 @@ ACMD(do_track) {
 void hunt_victim(struct char_data *ch) {
   int dir;
   byte found;
+  bool mem_found = FALSE;
   struct char_data *tmp;
+  memory_rec *names = NULL;
 
-  if (!ch || !HUNTING(ch) || FIGHTING(ch))
+  if (!ch || FIGHTING(ch))
     return;
 
+  /* if ch has memory, try finding a new hunting victim */
+  if (!HUNTING(ch)) {
+    if (MOB_FLAGGED(ch, MOB_MEMORY) && MEMORY(ch)) {
+      mem_found = FALSE;
+      for (mem_found = FALSE, tmp = character_list; tmp && !mem_found; 
+              tmp = tmp->next) {
+        if (IS_NPC(tmp) || !CAN_SEE(ch, tmp) || PRF_FLAGGED(tmp, PRF_NOHASSLE))
+          continue;
+
+        for (names = MEMORY(ch); names && !found; names = names->next) {
+          if (names->id != GET_IDNUM(tmp))
+            continue;
+
+          found = TRUE;
+          HUNTING(ch) = tmp;
+          act("'bwargh!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
+          break;
+        }
+      }
+    }    
+  }
+  
   /* make sure the char still exists */
   for (found = FALSE, tmp = character_list; tmp && !found; tmp = tmp->next)
     if (HUNTING(ch) == tmp)
@@ -215,7 +239,7 @@ void hunt_victim(struct char_data *ch) {
   if ((dir = find_first_step(IN_ROOM(ch), IN_ROOM(HUNTING(ch)))) < 0) {
     char buf[MAX_INPUT_LENGTH];
 
-    snprintf(buf, sizeof (buf), "!!!");
+    snprintf(buf, sizeof (buf), "!?!");
     do_say(ch, buf, 0, 0);
     HUNTING(ch) = NULL;
   } else {
