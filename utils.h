@@ -98,6 +98,7 @@ int num_obj_in_obj(struct obj_data *obj);
 bool ultra_blind(struct char_data *ch, room_rnum room_number);
 bool is_room_outdoors(room_rnum room_number);
 bool is_outdoors(struct char_data *ch);
+void set_mob_grouping(struct char_data *ch);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);

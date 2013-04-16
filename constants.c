@@ -479,7 +479,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Sense-Life",
   "Water-Walk",
   "Sanctuary",
-  "Groupped",
+  "OnLoad MobGroup",
   "Cursed",  //10
   "Infra-Vision",
   "Poison",

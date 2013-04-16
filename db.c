@@ -3054,8 +3054,9 @@ void reset_zone(zone_rnum zone) {
           mob = read_mobile(ZCMD.arg1, REAL);
           char_to_room(mob, ZCMD.arg3);
           load_mtrigger(mob);
+          set_mob_grouping(mob);
           tmob = mob;
-          GET_MOB_LOADROOM(mob) = mob->in_room;
+          GET_MOB_LOADROOM(mob) = IN_ROOM(mob);
           last_cmd = 1;
         } else
           last_cmd = 0;

@@ -29,11 +29,29 @@
 /* kavir's protocol */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
-
 /* Functions of a general utility nature
    Functions directly related to utils.h needs
  */
 
+
+/* this function in conjuction with the AFF_GROUP flag will cause mobs who
+   load in the same room to group up */
+void set_mob_grouping(struct char_data *ch) {
+  struct char_data *tch = NULL, *tch_next = NULL;
+
+  for (tch = world[ch->in_room].people; tch; tch = tch_next) {
+    tch_next = tch->next_in_room;
+    if (IS_NPC(tch) && IS_NPC(ch) && AFF_FLAGGED(ch, AFF_GROUP) && tch != ch &&
+            AFF_FLAGGED(tch, AFF_GROUP) && !tch->master) {
+      if (!GROUP(tch))
+        create_group(tch);
+      add_follower(ch, tch);
+      join_group(ch, GROUP(tch));
+      return;
+    }
+  }
+
+}
 
 /* identifies if room is outdoors or not (as opposed to room num) 
  used by:  ROOM_OUTSIDE() macro */
