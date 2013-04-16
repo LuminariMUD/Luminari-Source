@@ -83,8 +83,10 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
       for (qcom = quest->in; qcom; qcom = qcom->next) {
         switch (qcom->type) {
           case QUEST_COMMAND_ITEM:
-            if (NOTHING == real_object(qcom->value))
+            if (NOTHING == real_object(qcom->value)) {
+              send_to_char(ch, "\tCGIVE\tn <Missing Object>\r\n");
               break;
+            }
             sprintf(buf, "\tCGIVE\tn %s (%d)\r\n",
                     obj_proto[real_object(qcom->value)].short_description,
                     qcom->value);
@@ -100,8 +102,10 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
     for (qcom = quest->out; qcom; qcom = qcom->next) {
       switch (qcom->type) {
         case QUEST_COMMAND_ITEM:
-          if (NOTHING == real_object(qcom->value))
+          if (NOTHING == real_object(qcom->value)) {
+            send_to_char(ch, "\tcRECEIVE\tn <Missing Object>\r\n");
             break;
+          }
           sprintf(buf, "\tcRECEIVE\tn %s (%d)\r\n",
                   obj_proto[real_object(qcom->value)].short_description
                   , qcom->value);
@@ -112,8 +116,10 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_LOAD_OBJECT_INROOM:
-          if (NOTHING == real_object(qcom->value))
+          if (NOTHING == real_object(qcom->value)) {
+            send_to_char(ch, "\tcLOADOBJECT\tn <Missing Object>\r\n");
             break;
+          }
           sprintf(buf, "\tcLOADOBJECT\tn %s in %s\r\n",
                   obj_proto[ real_object(qcom->value)].short_description,
                   (qcom->location == 0 ? "CurrentRoom" :
@@ -121,14 +127,16 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_OPEN_DOOR:
-          if (NOWHERE == real_room(qcom->location))
+          if (NOWHERE == real_room(qcom->location)) {
+            send_to_char(ch, "\tcOPEN_DOOR\tn <Missing Room>\r\n");
             break;
+          }
           sprintf(buf, "\tcOPEN_DOOR\tn %s in %s(%d)\r\n", dirs[qcom->value],
                   world[real_room(qcom->location)].name, qcom->location);
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_FOLLOW:
-          send_to_char(ch, "\tcFOLLOW\tn playeStart following player\r\n");
+          send_to_char(ch, "\tcFOLLOW\tn questmob following player\r\n");
           break;
         case QUEST_COMMAND_CHURCH:
           sprintf(buf, "\tcSET_CHURCH\tn of player to of %s.\r\n",
@@ -142,8 +150,10 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_LOAD_MOB_INROOM:
-          if (NOWHERE == real_room(qcom->location))
+          if (NOBODY == real_mobile(qcom->value)) {
+            send_to_char(ch, "\tcLOADMOB\tn <Missing Mobile>\r\n");
             break;
+          }
           sprintf(buf, "\tcLOADMOB\tn %s in %s\r\n",
                   mob_proto[ real_mobile(qcom->value)].player.short_descr,
                   (qcom->location == 0 ? "CurrentRoom" :
@@ -527,6 +537,9 @@ void quest_give(struct char_data *ch, struct char_data *victim) {
                 fullfilled = FALSE;
               break;
             case QUEST_COMMAND_ITEM:
+              /* if object doesn't exist, we can't ask for it */
+              if (NOTHING == real_object(qcom->value))
+                continue;
               if (!get_obj_in_list_num(real_object(qcom->value),
                       victim->carrying))
                 fullfilled = FALSE;
