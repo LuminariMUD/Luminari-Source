@@ -2243,7 +2243,7 @@ ACMD(do_who) {
             strcat(class_list, " ");
             class_len++;
           }
-          send_to_char(ch, "%s] ", class_list);
+          send_to_char(ch, "%s]", class_list);
           //send_to_char(ch, "]");
         }
 
