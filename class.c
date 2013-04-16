@@ -277,8 +277,25 @@ int BAB(struct char_data *ch) {
   if (IS_AFFECTED(ch, AFF_TFORM))
     return (GET_LEVEL(ch));
 
-  if (IS_NPC(ch)) //npc's default to medium attack rolls
-    return ( (int) (GET_LEVEL(ch) * 3 / 4));
+  if (IS_NPC(ch)) {
+    switch (GET_CLASS(ch)) {
+      case CLASS_ROGUE:
+      case CLASS_CLERIC:
+      case CLASS_DRUID:
+      case CLASS_BARD:
+      case CLASS_MONK:
+        return ( (int) (GET_LEVEL(ch) * 3 / 4));
+      case CLASS_WARRIOR:
+      case CLASS_RANGER:
+      case CLASS_PALADIN:
+      case CLASS_BERSERKER:
+        return ( (int) (GET_LEVEL(ch)));
+      case CLASS_WIZARD:
+      case CLASS_SORCERER:
+      default:
+        return ( (int) (GET_LEVEL(ch) / 2));
+    }
+  }
 
   /* loop through all the possible classes the char could be */
   for (i = 0; i < MAX_CLASSES; i++) {
