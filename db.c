@@ -3048,13 +3048,13 @@ void reset_zone(zone_rnum zone) {
         break;
 
       case 'M': /* read a mobile (with percentage loads) */
-        //        if ((mob_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) && 
+        //if ((mob_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) && 
         if ((check_max_existing(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3) || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                 rand_number(1, 100) <= ZCMD.arg4) {
           mob = read_mobile(ZCMD.arg1, REAL);
           char_to_room(mob, ZCMD.arg3);
           load_mtrigger(mob);
-          set_mob_grouping(mob);
+          set_mob_grouping(mob);  //attempts to group AFF_GROUP mobs (utils.c)
           tmob = mob;
           GET_MOB_LOADROOM(mob) = IN_ROOM(mob);
           last_cmd = 1;
