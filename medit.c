@@ -705,7 +705,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d) {
           "(%s5%s) HP Addition: %s[%s%5d%s]%s    (%s8%s) DamRoll:      %s[%s%5d%s]%s\r\n"
           "%-*s(range %s%d%s to %s%d%s)\r\n\r\n"
 
-          "(%sA%s) Armor Class: %s[%s%4d%s]%s        (%sD%s) Hitroll:   %s[%s%5d%s]%s\r\n"
+          "(%sA%s) Armor Class: %s[%s%4d (%2d)%s]%s   (%sD%s) Hitroll:   %s[%s%5d%s]%s\r\n"
           "(%sB%s) Exp Points:  %s[%s%10d%s]%s  (%sE%s) Alignment: %s[%s%s%s]%s\r\n"
           "(%sC%s) Gold:        %s[%s%10d%s]%s\r\n\r\n",
           cyn, yel, OLC_NUM(d), cyn, nrm,
@@ -719,7 +719,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d) {
           yel, GET_NDD(mob) + GET_DAMROLL(mob), nrm,
           yel, (GET_NDD(mob) * GET_SDD(mob)) + GET_DAMROLL(mob), nrm,
 
-          cyn, nrm, cyn, yel, GET_AC(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_HITROLL(mob), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_AC(mob), ((GET_AC(mob) / -10) + 20), cyn, nrm, cyn, nrm, cyn, yel, GET_HITROLL(mob), cyn, nrm,
           cyn, nrm, cyn, yel, GET_EXP(mob), cyn, nrm, cyn, nrm, cyn, yel, get_align_by_num(GET_ALIGNMENT(mob)), cyn, nrm,
           cyn, nrm, cyn, yel, GET_GOLD(mob), cyn, nrm
           );
@@ -1834,6 +1834,11 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator) {
 }
 
 /* function to set a ch (mob) to correct stats */
+/* an important note about mobiles besides these values:
+   1)  their attack rotation will match their class/level 
+   2)  their BAB will match their class/level
+   3)  their saving-throws will match their class/level 
+ */
 void autoroll_mob(struct char_data *mob) {
   int level = 0, bonus = 0;
 
@@ -1841,20 +1846,50 @@ void autoroll_mob(struct char_data *mob) {
   level = GET_LEVEL(mob);
   level = GET_LEVEL(mob) = LIMIT(level, 1, LVL_IMPL);
 
-  /* hp, default warrior */
+  /* hit points roll */
+  GET_HIT(mob) = 1; /* number of hitpoint dice */
+  GET_MANA(mob) = dice(1, level); /* size of hitpoint dice   */
+  
+  /* damroll */
+  GET_DAMROLL(mob) = (level / 6) + 1; /* damroll (dam bonus) 1-6 */
+  
+  /* hitroll (remember that mobiles are using their class BAB already) */
+  GET_HITROLL(mob) = (level / 6) + 1;
+
+  /* armor class */
+  GET_AC(mob) = (100 - (level * 7)) + 10; /* AC 103 to -100 */
+  
+  /* exp and gold */
+  GET_EXP(mob) = (level * level * 75);
+  GET_GOLD(mob) = (level * 10);
+
+  /* hp, default */
   GET_MOVE(mob) = (level * level) + (level * 10);
+  
+  /* damage dice default */
+  GET_NDD(mob) = 1; /* number damage dice */
+  GET_SDD(mob) = level; /* size of damage dice */
+  
+  /* class modifications to base */
   switch(GET_CLASS(mob)) {
     case CLASS_WIZARD:
     case CLASS_SORCERER:
-      GET_MOVE(mob) = GET_MOVE(mob) * 2 / 5;
+      GET_MOVE(mob) = GET_MOVE(mob) * 2 / 5;  // remmber move = hps here 
+      GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
       break;
     case CLASS_ROGUE:
+      GET_MOVE(mob) = GET_MOVE(mob) * 3 / 5;
+      break;
     case CLASS_BARD:
+      GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
       GET_MOVE(mob) = GET_MOVE(mob) * 3 / 5;
       break;
     case CLASS_MONK:
+      GET_MOVE(mob) = GET_MOVE(mob) * 4 / 5;
+      break;
     case CLASS_CLERIC:
     case CLASS_DRUID:
+      GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
       GET_MOVE(mob) = GET_MOVE(mob) * 4 / 5;
       break;
     case CLASS_BERSERKER:
@@ -1867,50 +1902,13 @@ void autoroll_mob(struct char_data *mob) {
       break;
   }
     
-  /* hit points roll */
-  GET_HIT(mob) = 1; /* number of hitpoint dice */
-  GET_MANA(mob) = dice(1, level); /* size of hitpoint dice   */
-
-  /* damage dice */
-  GET_NDD(mob) = 1; /* number damage dice */
-  GET_SDD(mob) = level; /* size of damage dice */
-  switch(GET_CLASS(mob)) {
-    case CLASS_WIZARD:
-    case CLASS_SORCERER:
-      GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
-      break;
-    case CLASS_CLERIC:
-    case CLASS_DRUID:
-    case CLASS_BARD:
-      GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
-      break;
-    case CLASS_BERSERKER:
-    case CLASS_WARRIOR:
-    case CLASS_PALADIN:
-    case CLASS_RANGER:
-    case CLASS_ROGUE:
-    case CLASS_MONK:
-    default:
-      break;
-  }
   if (GET_SDD(mob) < 4)
     GET_SDD(mob) = 4;  //min. 4 (1d4)
   
-  /* damroll */
-  GET_DAMROLL(mob) = (level / 6) + 1; /* damroll (dam bonus) 1-6 */
-  
-  /* hitroll (remember that mobiles are using their class BAB already) */
-  GET_HITROLL(mob) = (level / 6) + 1;
-
-  /* armor class */
-  GET_AC(mob) = (100 - (level * 7)); /* AC 94 to -80            */
-  
-  /* exp and gold */
-  GET_EXP(mob) = (level * level * 75);
-  GET_GOLD(mob) = (level * 10);
-
   /* 'Advanced' stats are only rolled if advanced options are enabled */
   if (CONFIG_MEDIT_ADVANCED) {
+    
+    /* base stats */
     GET_STR(mob) = 10;
     GET_INT(mob) = 10;
     GET_WIS(mob) = 10;
