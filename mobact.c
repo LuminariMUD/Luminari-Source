@@ -202,7 +202,7 @@ struct char_data *npc_find_target(struct char_data *ch, int *num_targets) {
     if (!CAN_SEE(ch, tch))
       continue;
     
-    if (PRF_FLAGGED(tch, PRF_NOHASSLE))
+    if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_NOHASSLE))
       continue;
 
     /* in mobile memory? */
@@ -701,6 +701,7 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
 }
 
 // paladin behaviour, behave based on level
+// todo:  fix smite evil (perform_smite)
 
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
         int engaged) {
@@ -721,7 +722,8 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
   
-  perform_smite(ch, 600);
+  if (IS_EVIL(vict))
+    perform_smite(ch, 600);
   
   if (percent <= 25.0)
     perform_layonhands(ch, ch);

@@ -599,7 +599,6 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
   
   if (rand_number(1, 101) < prob) {
     damage(ch, vict, dice(2, GET_LEVEL(ch)), SKILL_HEADBUTT, DAM_FORCE, FALSE);
-    GET_POS(vict) = POS_RECLINING;
     
     if (!rand_number(0, 2)) {
       new_affect(&af);
@@ -612,6 +611,7 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
     }    
   } else {
     damage(ch, vict, 0, SKILL_HEADBUTT, DAM_FORCE, FALSE);
+    
   }
   
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
@@ -787,7 +787,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
     return FALSE;
   }
   
-  if (GET_SIZE(vict) - GET_SIZE(ch) >= 1) {
+  if (GET_SIZE(vict) - GET_SIZE(ch) > 1) {
     send_to_char(ch, "Your target is too large for this technique to be effective!\r\n");
     return FALSE;
   }
@@ -937,6 +937,8 @@ void perform_smite(struct char_data *ch, long cooldown) {
   affect_to_char(ch, &af);
   attach_mud_event(new_mud_event(eSMITE, ch, NULL), cooldown);
   send_to_char(ch, "You prepare to wreak vengeance upon your foe.\r\n");
+  act("The mighty force of $N's faith blasts $n out of existence!", FALSE, NULL,
+          NULL, ch, TO_NOTVICT);
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_SMITE);
