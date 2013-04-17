@@ -602,8 +602,11 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
         break;
       /* fallthrough */
     case 2:
-      if (perform_dirtkick(ch, vict))
+      if (perform_dirtkick(ch, vict)) {
+        send_to_char(ch, "Succeeded dirtkick\r\n");
         break;
+      } else
+        send_to_char(ch, "Failed dirtkick\r\n");
       /* fallthrough */
     default:
       if (perform_backstab(ch, vict))
