@@ -1875,6 +1875,10 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     ECHO_COUNT(mob_proto + i)++;
   }
 
+  CASE("Path") {
+    // handle paths here..
+  }
+  
   if (!matched) {
     log("SYSERR: Warning: unrecognized espec keyword %s in mob #%d",
             keyword, nr);
