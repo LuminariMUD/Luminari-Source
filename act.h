@@ -219,17 +219,20 @@ extern const char *cmd_door[];
  * Begin Functions and defines for act.offensive.c
  ****************************************************************************/
 /* functions */
+void perform_stunningfist(struct char_data *ch, struct char_data *vict);
 void perform_rescue(struct char_data *ch, struct char_data *vict);
-void perform_knockdown(struct char_data *ch, struct char_data *vict, 
+bool perform_knockdown(struct char_data *ch, struct char_data *vict, 
         int skill);
-void perform_shieldpunch(struct char_data *ch, struct char_data *vict);
+bool perform_shieldpunch(struct char_data *ch, struct char_data *vict);
 void perform_headbutt(struct char_data *ch, struct char_data *vict);
 void perform_sap(struct char_data *ch, struct char_data *vict);
-void perform_dirtkick(struct char_data *ch, struct char_data *vict);
+void perform_kick(struct char_data *ch, struct char_data *vict);
+bool perform_dirtkick(struct char_data *ch, struct char_data *vict);
 void perform_assist(struct char_data *ch, struct char_data *helpee);
 void perform_springleap(struct char_data *ch, struct char_data *vict);
-void perform_backstab(struct char_data *ch, struct char_data *vict);
-bool has_missile_in_quiver(struct char_data *ch, struct obj_data *obj, bool silent);
+bool perform_backstab(struct char_data *ch, struct char_data *vict);
+bool has_missile_in_quiver(struct char_data *ch, struct obj_data *obj, 
+        bool silent);
 bool can_fire_arrow(struct char_data *ch, bool silent);
 /* Functions with subcommands */
 /* do_hit */
@@ -288,6 +291,8 @@ void list_forms(struct char_data *ch);
 void perform_shapechange(struct char_data *ch, char *arg, int mode);
 int valid_align_by_class(int alignment, int class);
 void perform_wildshape(struct char_data *ch, int form_num, int spellnum);
+void perform_perform(struct char_data *ch);
+void perform_call(struct char_data *ch, int call_type, int level);
 /* do_gen_tog */
 ACMD(do_gen_tog);
 #define SCMD_NOSUMMON    0

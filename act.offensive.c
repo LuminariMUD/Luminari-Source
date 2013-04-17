@@ -140,6 +140,60 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
   return FALSE;
 }
 
+/* stunningfist engine */
+void perform_stunningfist(struct char_data *ch, struct char_data *vict) {
+  int percent, prob;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+  
+  if (char_has_mud_event(ch, eSTUNNINGFIST)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    return;
+  }
+  
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+  
+  if (char_has_mud_event(vict, eSTUNNED)) {
+    send_to_char(ch, "Your target is already stunned...\r\n");
+    return;
+  }
+
+  /* 101% is a complete failure */
+  percent = rand_number(1, 101);
+  if (IS_NPC(ch))
+    prob = 60;
+  else
+    prob = GET_SKILL(ch, SKILL_STUNNING_FIST);
+
+  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
+    percent += compute_ability(vict, ABILITY_DISCIPLINE);
+
+  if (percent > prob) {
+    damage(ch, vict, 0, SKILL_STUNNING_FIST, DAM_FORCE, FALSE);
+  } else {
+    damage(ch, vict, (dice(1, 8) + GET_DAMROLL(ch)), SKILL_STUNNING_FIST,
+            DAM_FORCE, FALSE);
+    attach_mud_event(new_mud_event(eSTUNNED, vict, NULL), 6 * PASSES_PER_SEC);
+  }
+  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), 150 * PASSES_PER_SEC);
+
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_STUNNING_FIST);
+  
+}
+
 /* rescue skill mechanic */
 void perform_rescue(struct char_data *ch, struct char_data *vict) {
   struct char_data *tmp_ch;
@@ -273,7 +327,7 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
 }
 
 /* engine for knockdown, used in bash/trip/etc */
-void perform_knockdown(struct char_data *ch, struct char_data *vict, 
+bool perform_knockdown(struct char_data *ch, struct char_data *vict, 
         int skill) {
   int percent = 0, prob = 0, dam = dice(1, 4);
   float rounds_wait = 1.75;
@@ -281,22 +335,22 @@ void perform_knockdown(struct char_data *ch, struct char_data *vict,
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
       ch->next_in_room != vict && vict->next_in_room != ch) {
     send_to_char(ch, "You simply can't reach that far.\r\n");
-    return;
+    return FALSE;
   }
   
   if (MOB_FLAGGED(vict, MOB_NOKILL)) {
     send_to_char(ch, "This mob is protected.\r\n");
-    return;
+    return FALSE;
   }
   
   if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2) {
     send_to_char(ch, "Your target is too small!\r\n");
-    return;
+    return FALSE;
   }
   
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
     send_to_char(ch, "Your target is too big!\r\n");
-    return;
+    return FALSE;
   }
 
   if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
@@ -304,7 +358,7 @@ void perform_knockdown(struct char_data *ch, struct char_data *vict,
     act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
     SET_WAIT(ch, PULSE_VIOLENCE);
-    return;
+    return FALSE;
   }
 
   switch (skill) {
@@ -322,7 +376,7 @@ void perform_knockdown(struct char_data *ch, struct char_data *vict,
     case SKILL_TRIP:
       if (AFF_FLAGGED(vict, AFF_FLYING)) {
         send_to_char(ch, "Impossible, your target is flying!\r\n");
-        return;
+        return FALSE;
       }
       if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_TRIP)) {
         increase_skill(ch, SKILL_IMPROVED_TRIP);
@@ -332,7 +386,7 @@ void perform_knockdown(struct char_data *ch, struct char_data *vict,
       break;
     default:
       log("Invalid skill sent to perform knockdown!\r\n");
-      return;
+      return FALSE;
   }
     
   percent += rand_number(1, 101); /* 101% is a complete failure */
@@ -370,9 +424,12 @@ void perform_knockdown(struct char_data *ch, struct char_data *vict,
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
   if (!IS_NPC(ch))
     increase_skill(ch, skill);
+  
+  return TRUE;
+  
 }
 
-void perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
+bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
   extern struct index_data *obj_index;
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
@@ -381,28 +438,28 @@ void perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
   
   if (!shield) {
     send_to_char(ch, "You need a shield to make it a success..\r\n");
-    return;
+    return FALSE;
   }
   
   if (!vict) {
     send_to_char(ch, "Shieldpunch who?\r\n");
-    return;
+    return FALSE;
   }
   
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
-    return;
+    return FALSE;
   }
   
   if (!CAN_SEE(ch, vict)) {
     send_to_char(ch, "You don't see well enough to attempt that.\r\n");
-    return;
+    return FALSE;
   }
 
   if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
     if (ch->next_in_room != vict && vict->next_in_room != ch) {
       send_to_char(ch, "You simply can't reach that far.\r\n");
-      return;
+      return FALSE;
     }
   }
   
@@ -437,6 +494,8 @@ void perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
   
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_SHIELD_PUNCH);
+  
+  return TRUE;
 }
 
 /* engine for headbutt skill */
@@ -615,44 +674,44 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
 }
 
 /* main engine for dirt-kick mechanic */
-void perform_dirtkick(struct char_data *ch, struct char_data *vict) {
+bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
   int dam = 0;
   int base_probability = 0;
 
   if (IN_ROOM(ch) != IN_ROOM(vict))
-    return;
+    return FALSE;
   
   if (!CAN_SEE(ch, vict)) {
     send_to_char(ch, "You don't see well enough to attempt that.\r\n");
-    return;
+    return FALSE;
   }
   
   if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
     if (ch->next_in_room != vict && vict->next_in_room != ch) {
       send_to_char(ch, "You simply can't reach that far.\r\n");
-      return;
+      return FALSE;
     }
   }
 
   if (AFF_FLAGGED(ch, AFF_IMMATERIAL)) {
     send_to_char(ch, "Its pretty hard to kick with immaterial legs.\r\n");
-    return;    
+    return FALSE;
   }
   
   if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOBLIND)) {
     damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
-    return;
+    return FALSE;
   }
   
   if (GET_SIZE(ch) - GET_SIZE(vict) <= 1) {
     send_to_char(ch, "Your target is too large for this technique to be effective!\r\n");
-    return;
+    return FALSE;
   }
   
   if (GET_SIZE(ch) - GET_SIZE(vict) >= 2) {
     send_to_char(ch, "Your target is too small for this technique to be effective!\r\n");
-    return;
+    return FALSE;
   }
   
   if (IS_NPC(ch))
@@ -681,6 +740,8 @@ void perform_dirtkick(struct char_data *ch, struct char_data *vict) {
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_DIRT_KICK);
+  
+  return TRUE;
 }
 
 /* main engine for assist mechanic */
@@ -777,7 +838,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
 }
 
 /* the primary engine for backstab */
-void perform_backstab(struct char_data *ch, struct char_data *vict) {
+bool perform_backstab(struct char_data *ch, struct char_data *vict) {
   int percent = -1, percent2 = -1, prob = -1, successful = 0;
   
   percent = rand_number(1, 101); /* 101% is a complete failure */
@@ -835,8 +896,11 @@ void perform_backstab(struct char_data *ch, struct char_data *vict) {
     if (!IS_NPC(ch))
       increase_skill(ch, SKILL_BACKSTAB);
     SET_WAIT(ch, 2 * PULSE_VIOLENCE);
+    return TRUE;
   } else
     send_to_char(ch, "You have no piercing weapon equipped.\r\n");  
+  
+  return FALSE;
 }
 
 /* this is the event function for whirlwind */
@@ -2025,19 +2089,9 @@ ACMD(do_whirlwind) {
 ACMD(do_stunningfist) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
-  int percent, prob;
 
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_STUNNING_FIST)) {
     send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-  
-  if (char_has_mud_event(ch, eSTUNNINGFIST)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
     return;
   }
   
@@ -2050,41 +2104,9 @@ ACMD(do_stunningfist) {
       return;
     }
   }
-  if (vict == ch) {
-    send_to_char(ch, "Aren't we funny today...\r\n");
-    return;
-  }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
-    send_to_char(ch, "You simply can't reach that far.\r\n");
-    return;
-  }
-  if (char_has_mud_event(vict, eSTUNNED)) {
-    send_to_char(ch, "Your target is already stunned...\r\n");
-    return;
-  }
-
-  /* 101% is a complete failure */
-  percent = rand_number(1, 101);
-  prob = GET_SKILL(ch, SKILL_STUNNING_FIST);
-
-  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
-    percent += compute_ability(vict, ABILITY_DISCIPLINE);
-
-  if (percent > prob) {
-    damage(ch, vict, 0, SKILL_STUNNING_FIST, DAM_FORCE, FALSE);
-  } else {
-    damage(ch, vict, (dice(1, 8) + GET_DAMROLL(ch)), SKILL_STUNNING_FIST,
-            DAM_FORCE, FALSE);
-    attach_mud_event(new_mud_event(eSTUNNED, vict, NULL), 6 * PASSES_PER_SEC);
-  }
-  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), 150 * PASSES_PER_SEC);
-
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_STUNNING_FIST);
   
-  /* after testing this seems unecessary with cooldown */
-  //SET_WAIT(ch, PULSE_VIOLENCE * 3);
+  perform_stunningfist(ch, vict);
+  
 }
 
 ACMD(do_smite) {
@@ -2127,31 +2149,17 @@ ACMD(do_smite) {
     increase_skill(ch, SKILL_SMITE);
 }
 
-ACMD(do_kick) {
-  char arg[MAX_INPUT_LENGTH] = {'\0'};
-  struct char_data *vict = NULL;
+/* kick engine */
+void perform_kick(struct char_data *ch, struct char_data *vict) {
   int percent = 0, prob = 0;
-
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_KICK)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-
-  one_argument(argument, arg);
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
-      vict = FIGHTING(ch);
-    } else {
-      send_to_char(ch, "Kick who?\r\n");
-      return;
-    }
-  }
+  
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
   
@@ -2171,7 +2179,10 @@ ACMD(do_kick) {
   
   /* 101% is a complete failure */
   percent = rand_number(1, 101);
-  prob = GET_SKILL(ch, SKILL_KICK);
+  if (IS_NPC(ch))
+    prob = 60;
+  else
+    prob = GET_SKILL(ch, SKILL_KICK);
 
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     percent += compute_ability(vict, ABILITY_DISCIPLINE);
@@ -2179,11 +2190,34 @@ ACMD(do_kick) {
   if (percent > prob) {
     damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
   } else
-    damage(ch, vict, GET_LEVEL(ch) * 2, SKILL_KICK, DAM_FORCE, FALSE);
+    damage(ch, vict, dice(1, GET_LEVEL(ch)), SKILL_KICK, DAM_FORCE, FALSE);
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_KICK);
   SET_WAIT(ch, PULSE_VIOLENCE * 3);
+  
+}
+
+ACMD(do_kick) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_KICK)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg);
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+      vict = FIGHTING(ch);
+    } else {
+      send_to_char(ch, "Kick who?\r\n");
+      return;
+    }
+  }
+  
+  perform_kick(ch, vict);
 }
 
 ACMD(do_hitall) {
