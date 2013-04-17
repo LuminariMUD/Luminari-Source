@@ -1292,7 +1292,7 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
       shop_index[top_shop].message_sell = read_shop_message(6, SHOP_NUM(top_shop), shop_f, buf2);
       read_line(shop_f, "%d", &SHOP_BROKE_TEMPER(top_shop));
       read_line(shop_f, "%ld", &SHOP_BITVECTOR(top_shop));
-      read_line(shop_f, "%hd", &SHOP_KEEPER(top_shop));
+      read_line(shop_f, "%d", &SHOP_KEEPER(top_shop));
       mudlog(NRM, LVL_IMMORT, TRUE, "SHOP #%d, KEEPER: %d", SHOP_NUM(top_shop), SHOP_KEEPER(top_shop));
       SHOP_KEEPER(top_shop) = real_mobile(SHOP_KEEPER(top_shop));
       read_line(shop_f, "%d", &SHOP_TRADE_WITH(top_shop));
