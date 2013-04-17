@@ -2181,6 +2181,7 @@ ACMD(do_who) {
       send_to_char(ch, "%s", rank[i].disp);
 
     for (d = descriptor_list; d; d = d->next) {
+      *class_list = '\0';
       if (d->original)
         tch = d->original;
       else if (!(tch = d->character))
