@@ -101,7 +101,7 @@ bool obj_should_fall(struct obj_data *obj) {
 
 /* this function will check whether a char should fall or not based on
    circumstances and whether the ch is flying */
-bool char_should_fall(struct char_data *ch) {
+bool char_should_fall(struct char_data *ch, bool silent) {
   int falling = FALSE;
   
   if (!ch)
@@ -111,12 +111,14 @@ bool char_should_fall(struct char_data *ch) {
     falling = TRUE;
   
   if (RIDING(ch) && AFF_FLAGGED(RIDING(ch), AFF_FLYING)) {
-    send_to_char(ch, "Your mount flies gracefully through the air...\r\n");
+    if (!silent)
+      send_to_char(ch, "Your mount flies gracefully through the air...\r\n");
     return FALSE;
   }
 
   if (AFF_FLAGGED(ch, AFF_FLYING)) {
-    send_to_char(ch, "You fly gracefully through the air...\r\n");
+    if (!silent)
+      send_to_char(ch, "You fly gracefully through the air...\r\n");
     return FALSE;
   }
   
@@ -189,7 +191,7 @@ EVENTFUNC(event_falling)
    * on a mount to fix his falling situation, so we gotta check if he's still
    * falling every event call
    *  */
-  if (char_should_fall(ch)) {
+  if (char_should_fall(ch, FALSE)) {
     send_to_char(ch, "You fall tumbling down!\r\n");
     act("$n drops from sight.", FALSE, ch, 0, 0, TO_ROOM);
     

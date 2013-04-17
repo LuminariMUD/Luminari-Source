@@ -573,7 +573,7 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
 
-  switch (rand_number(1, 3)) {
+  switch (rand_number(1, 2)) {
     case 1:
       perform_stunningfist(ch, vict);
       break;
@@ -596,7 +596,7 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
    4) backstab / circle
    */
 
-  switch (rand_number(1, 4)) {
+  switch (rand_number(1, 2)) {
     case 1:
       if (perform_knockdown(ch, vict, SKILL_TRIP))
         break;
@@ -605,13 +605,10 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
       if (perform_dirtkick(ch, vict))
         break;
       /* fallthrough */
-    case 3:
+    default:
       if (perform_backstab(ch, vict))
         break;
       /* fallthrough */
-      
-    default:
-      break;
   }
 }
 // bard behaviour, behave based on level
@@ -628,7 +625,7 @@ void npc_bard_behave(struct char_data *ch, struct char_data *vict,
   /* try to throw up song */
   perform_perform(ch);
 
-  switch (rand_number(1, 4)) {
+  switch (rand_number(1, 3)) {
     case 1:
       perform_knockdown(ch, vict, SKILL_TRIP);
       break;

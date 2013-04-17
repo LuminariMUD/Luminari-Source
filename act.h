@@ -153,7 +153,7 @@ void perform_remove(struct char_data *ch, int pos, bool forced);
 bool perform_give(struct char_data *ch, struct char_data *vict, struct obj_data *obj);
 void perform_wear(struct char_data *ch, struct obj_data *obj, int where);
 bool obj_should_fall(struct obj_data *obj);
-bool char_should_fall(struct char_data *ch);
+bool char_should_fall(struct char_data *ch, bool silent);
 
 /* functions with subcommands */
 /* do_drop */

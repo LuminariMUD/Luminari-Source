@@ -4045,8 +4045,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       case SPELL_GREATER_ANIMATION: //necromancy
         GET_LEVEL(mob) += MIN(mob_level, LVL_IMPL - GET_LEVEL(mob));
         GET_REAL_MAX_HIT(mob) += hp_bonus;
-        GET_REAL_DAMROLL(mob) += dam_bonus;
-        GET_REAL_HITROLL(mob) += hit_bonus;
+        GET_REAL_DAMROLL(mob) += MIN(15, dam_bonus);
+        GET_REAL_HITROLL(mob) += MIN(20, hit_bonus);
         affect_total(mob);
         break;
       case SPELL_CLONE:

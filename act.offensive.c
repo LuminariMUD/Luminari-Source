@@ -291,7 +291,7 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
   
   percent = rand_number(1, 101); /* 101% is a complete failure */
   if (IS_NPC(ch))
-    prob = 60;
+    prob = 70;
   else
     prob = GET_SKILL(ch, SKILL_RESCUE);
   if (percent > prob) {
@@ -314,7 +314,7 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
   set_fighting(tmp_ch, ch);
 
   SET_WAIT(ch, PULSE_VIOLENCE);
-  SET_WAIT(vict, 2 * PULSE_VIOLENCE);
+  SET_WAIT(vict, PULSE_VIOLENCE);
   
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_RESCUE);  
@@ -784,7 +784,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
     return FALSE;
   }
   
-  if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOBLIND)) {
+  if (MOB_FLAGGED(vict, MOB_NOBLIND)) {
     damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
     return FALSE;
   }
