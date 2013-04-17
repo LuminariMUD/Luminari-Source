@@ -252,7 +252,14 @@ int preferred_save[5][NUM_CLASSES] = {
 
 byte saving_throws(struct char_data *ch, int type) {
   int i, save = 1;
-
+  
+  if (IS_NPC(ch)) {
+    if (preferred_save[type][GET_CLASS(ch)])
+      return (GET_LEVEL(ch) / 2 + 1);
+    else
+      return (GET_LEVEL(ch) / 4 + 1);
+  }
+  
   for (i = 0; i < MAX_CLASSES; i++) {
     if (CLASS_LEVEL(ch, i)) { // found class and level
       if (preferred_save[type][i])

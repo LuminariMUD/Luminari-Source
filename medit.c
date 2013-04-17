@@ -698,7 +698,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d) {
   write_to_output(d,
           "-- Mob Number:  %s[%s%d%s]%s\r\n"
           "(%s1%s) Level:       %s[%s%4d%s]%s\r\n"
-          "(%s2%s) %sAuto Set Stats (based on level)%s\r\n\r\n"
+          "(%s2%s) %sAuto Set Stats (*set level/race/class first)%s\r\n\r\n"
           "Hit Points  (xdy+z):        Bare Hand Damage (xdy+z): \r\n"
           "(%s3%s) HP NumDice:  %s[%s%5d%s]%s    (%s6%s) BHD NumDice:  %s[%s%5d%s]%s\r\n"
           "(%s4%s) HP SizeDice: %s[%s%5d%s]%s    (%s7%s) BHD SizeDice: %s[%s%5d%s]%s\r\n"
@@ -1833,76 +1833,155 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator) {
   }
 }
 
-void medit_autoroll_stats(struct descriptor_data *d) {
-  int mob_lev;
+/* function to set a ch (mob) to correct stats */
+void autoroll_mob(struct char_data *mob) {
+  int level = 0, bonus = 0;
 
-  mob_lev = GET_LEVEL(OLC_MOB(d));
-  mob_lev = GET_LEVEL(OLC_MOB(d)) = LIMIT(mob_lev, 1, LVL_IMPL);
+  /* first cap level at LVL_IMPL */
+  level = GET_LEVEL(mob);
+  level = GET_LEVEL(mob) = LIMIT(level, 1, LVL_IMPL);
 
-  GET_MOVE(OLC_MOB(d)) = mob_lev * 10; /* hit point bonus (mobs don't use movement points */
-  if (mob_lev >= 10)
-    GET_MOVE(OLC_MOB(d)) += mob_lev;
-  if (mob_lev >= 15)
-    GET_MOVE(OLC_MOB(d)) += mob_lev * 2;
-  if (mob_lev >= 20)
-    GET_MOVE(OLC_MOB(d)) += mob_lev * 3;
-  if (mob_lev >= 25)
-    GET_MOVE(OLC_MOB(d)) += (mob_lev * 4 + 50);
-  if (mob_lev > 30)
-    GET_MOVE(OLC_MOB(d)) += (mob_lev * 5 + 100);
-  if (mob_lev == LVL_IMPL)
-    GET_MOVE(OLC_MOB(d)) += (mob_lev * 6 + 150);
-  GET_HIT(OLC_MOB(d)) = mob_lev / 5; /* number of hitpoint dice */
-  GET_MANA(OLC_MOB(d)) = mob_lev / 5; /* size of hitpoint dice   */
+  /* hp, default warrior */
+  GET_MOVE(mob) = (level * level) + (level * 10);
+  switch(GET_CLASS(mob)) {
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+      GET_MOVE(mob) = GET_MOVE(mob) * 2 / 5;
+      break;
+    case CLASS_ROGUE:
+    case CLASS_BARD:
+      GET_MOVE(mob) = GET_MOVE(mob) * 3 / 5;
+      break;
+    case CLASS_MONK:
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+      GET_MOVE(mob) = GET_MOVE(mob) * 4 / 5;
+      break;
+    case CLASS_BERSERKER:
+      GET_MOVE(mob) = GET_MOVE(mob) * 6 / 5;
+      break;
+    case CLASS_WARRIOR:
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+    default:
+      break;
+  }
+    
+  /* hit points roll */
+  GET_HIT(mob) = 1; /* number of hitpoint dice */
+  GET_MANA(mob) = dice(1, level); /* size of hitpoint dice   */
 
-  GET_NDD(OLC_MOB(d)) = MAX(1, mob_lev / 6); /* number damage dice 1-5  */
-  GET_SDD(OLC_MOB(d)) = MAX(2, mob_lev / 6); /* size of damage dice 2-5 */
-  GET_DAMROLL(OLC_MOB(d)) = mob_lev / 6; /* damroll (dam bonus) 0-5 */
-  if (mob_lev >= 20)
-    GET_DAMROLL(OLC_MOB(d))++;
-  if (mob_lev >= 25)
-    GET_DAMROLL(OLC_MOB(d))++;
-  if (mob_lev > 30)
-    GET_DAMROLL(OLC_MOB(d))++;
-  if (mob_lev == LVL_IMPL)
-    GET_DAMROLL(OLC_MOB(d))++;
+  /* damage dice */
+  GET_NDD(mob) = 1; /* number damage dice */
+  GET_SDD(mob) = level; /* size of damage dice */
+  switch(GET_CLASS(mob)) {
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+      GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+      break;
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_BARD:
+      GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
+      break;
+    case CLASS_BERSERKER:
+    case CLASS_WARRIOR:
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+    case CLASS_ROGUE:
+    case CLASS_MONK:
+    default:
+      break;
+  }
+  if (GET_SDD(mob) < 4)
+    GET_SDD(mob) = 4;  //min. 4 (1d4)
+  
+  /* damroll */
+  GET_DAMROLL(mob) = (level / 6) + 1; /* damroll (dam bonus) 1-6 */
+  
+  /* hitroll (remember that mobiles are using their class BAB already) */
+  GET_HITROLL(mob) = (level / 6) + 1;
 
-  GET_HITROLL(OLC_MOB(d)) = mob_lev / 3; /* hitroll 0-10            */
-  if (mob_lev >= 20)
-    GET_HITROLL(OLC_MOB(d))++;
-  if (mob_lev >= 25)
-    GET_HITROLL(OLC_MOB(d))++;
-  if (mob_lev > 30)
-    GET_HITROLL(OLC_MOB(d))++;
-  if (mob_lev == LVL_IMPL)
-    GET_HITROLL(OLC_MOB(d))++;
-  GET_EXP(OLC_MOB(d)) = (mob_lev * mob_lev * 75);
-  GET_GOLD(OLC_MOB(d)) = (mob_lev * 10);
-  GET_AC(OLC_MOB(d)) = (100 - (mob_lev * 6)); /* AC 94 to -80            */
-  if (mob_lev >= 20)
-    GET_AC(OLC_MOB(d)) -= 10;
-  if (mob_lev >= 25)
-    GET_AC(OLC_MOB(d)) -= 10;
-  if (mob_lev > 30)
-    GET_AC(OLC_MOB(d)) -= 10;
-  if (mob_lev == LVL_IMPL)
-    GET_AC(OLC_MOB(d)) -= 10;
+  /* armor class */
+  GET_AC(mob) = (100 - (level * 7)); /* AC 94 to -80            */
+  
+  /* exp and gold */
+  GET_EXP(mob) = (level * level * 75);
+  GET_GOLD(mob) = (level * 10);
 
   /* 'Advanced' stats are only rolled if advanced options are enabled */
   if (CONFIG_MEDIT_ADVANCED) {
-    /* 2/3 level within range 11 - 50 */
-    GET_STR(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
-    GET_INT(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
-    GET_WIS(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
-    GET_DEX(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
-    GET_CON(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
-    GET_CHA(OLC_MOB(d)) = LIMIT((mob_lev * 2) / 3, 11, 50);
-
-    GET_SAVE(OLC_MOB(d), SAVING_FORT) = mob_lev / 4; /* All Saving throws */
-    GET_SAVE(OLC_MOB(d), SAVING_REFL) = mob_lev / 4; /* set to a quarter  */
-    GET_SAVE(OLC_MOB(d), SAVING_WILL) = mob_lev / 4; /* of the mobs level */
-    GET_SAVE(OLC_MOB(d), SAVING_POISON) = mob_lev / 4;
-    GET_SAVE(OLC_MOB(d), SAVING_DEATH) = mob_lev / 4;
+    GET_STR(mob) = 10;
+    GET_INT(mob) = 10;
+    GET_WIS(mob) = 10;
+    GET_DEX(mob) = 10;
+    GET_CON(mob) = 10;
+    GET_CHA(mob) = 10;
+    
+    bonus = level / 2;
+    switch (GET_CLASS(mob)) {
+      case CLASS_WIZARD:
+        GET_INT(mob) += bonus;
+        GET_DEX(mob) += bonus;
+        break;
+      case CLASS_SORCERER:
+        GET_CHA(mob) += bonus;
+        GET_DEX(mob) += bonus;
+        break;
+      case CLASS_ROGUE:
+        GET_STR(mob) += bonus;
+        GET_DEX(mob) += bonus;
+        break;
+      case CLASS_BARD:
+        GET_CHA(mob) += bonus;
+        GET_DEX(mob) += bonus;
+        break;
+      case CLASS_MONK:
+        GET_WIS(mob) += bonus;
+        GET_DEX(mob) += bonus;
+        break;
+      case CLASS_CLERIC:
+        GET_STR(mob) += bonus;
+        GET_WIS(mob) += bonus;
+        break;
+      case CLASS_DRUID:
+        GET_WIS(mob) += bonus;
+        GET_DEX(mob) += bonus;
+        break;
+      case CLASS_BERSERKER:
+        GET_STR(mob) += bonus;
+        GET_CON(mob) += bonus;
+        break;
+      case CLASS_WARRIOR:
+        GET_STR(mob) += bonus;
+        GET_CON(mob) += bonus;
+        break;
+      case CLASS_PALADIN:
+        GET_STR(mob) += bonus;
+        GET_CHA(mob) += bonus;
+        break;
+      case CLASS_RANGER:
+        GET_STR(mob) += bonus;
+        GET_DEX(mob) += bonus;
+        break;
+      default:
+        break;
+    }
+    
+    /* saving throws (bonus) */
+    GET_SAVE(mob, SAVING_FORT) = level / 4;
+    GET_SAVE(mob, SAVING_REFL) = level / 4;
+    GET_SAVE(mob, SAVING_WILL) = level / 4;
+    GET_SAVE(mob, SAVING_POISON) = level / 4;
+    GET_SAVE(mob, SAVING_DEATH) = level / 4;
   }
-
+  
 }
+
+void medit_autoroll_stats(struct descriptor_data *d) {
+  
+  autoroll_mob(OLC_MOB(d));
+  
+}
+
+
