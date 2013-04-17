@@ -245,6 +245,7 @@ struct char_data *npc_find_target(struct char_data *ch, int *num_targets) {
 /* a very simplified switch opponents engine */
 bool npc_switch_opponents(struct char_data *ch, struct char_data *vict) {
 
+  mudlog(NRM, LVL_IMMORT, TRUE, "%s trying to switch opponents!", ch->player.short_descr);
   if (!ch || !vict)
     return FALSE;
   
