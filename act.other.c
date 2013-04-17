@@ -46,25 +46,22 @@ static void display_group_list(struct char_data * ch);
 
 
 #define BARD_AFFECTS 7
-
-ACMD(do_perform) {
+void perform_perform(struct char_data *ch) {
   struct affected_type af[BARD_AFFECTS];
   int level = 0, i = 0, duration = 0;
   struct char_data *tch = NULL;
   long cooldown;
-
-  if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_PERFORM)) {
-    send_to_char(ch, "You don't know how to perform.\r\n");
-    return;
-  }
-
+  
   if (char_has_mud_event(ch, ePERFORM)) {
     send_to_char(ch, "You must wait longer before you can use this ability "
             "again.\r\n");
     return;
   }
 
-  level = CLASS_LEVEL(ch, CLASS_BARD) + GET_CHA_BONUS(ch);
+  if (IS_NPC(ch))
+    level = GET_LEVEL(ch);
+  else
+    level = CLASS_LEVEL(ch, CLASS_BARD) + GET_CHA_BONUS(ch);
 
   duration = 14 + GET_CHA_BONUS(ch);
 
@@ -127,81 +124,27 @@ ACMD(do_perform) {
       affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
     act("A song from $n enhances you!", FALSE, ch, NULL, tch, TO_VICT);
   }
+  
+}
 
+ACMD(do_perform) {
+
+  if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_PERFORM)) {
+    send_to_char(ch, "You don't know how to perform.\r\n");
+    return;
+  }
+
+  perform_perform(ch);
 }
 #undef BARD_AFFECTS
 
 
 #define MOB_PALADIN_MOUNT 70
-
-ACMD(do_call) {
-  int call_type = -1, level = 0, i = 0;
+void perform_call(struct char_data *ch, int call_type, int level) {
+  int i = 0;
   struct follow_type *k = NULL, *next = NULL;
   struct char_data *mob = NULL;
   mob_vnum mob_num = NOBODY;
-  
-  skip_spaces(&argument);  
-
-  /* call types
-     MOB_C_ANIMAL -> animal companion
-     MOB_C_FAMILIAR -> familiar
-     MOB_C_MOUNT -> paladin mount 
-   */
-  if (!argument) {
-    send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
-    return;
-  } else if (is_abbrev(argument, "companion")) {
-    level = CLASS_LEVEL(ch, CLASS_DRUID);
-    if (CLASS_LEVEL(ch, CLASS_RANGER) >= 4)
-      level += CLASS_LEVEL(ch, CLASS_RANGER) - 3;
-
-    if (!GET_SKILL(ch, SKILL_ANIMAL_COMPANION)) {
-      send_to_char(ch, "You are not a high enough level Ranger/Druid to "
-              "use this ability!\r\n");
-      return;
-    }
-
-    if (level <= 0) {
-      send_to_char(ch, "You are not a high enough level Druid or Ranger to "
-              "use this ability!\r\n");
-      return;
-    }
-    call_type = MOB_C_ANIMAL;
-  } else if (is_abbrev(argument, "familiar")) {
-    level = CLASS_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_WIZARD);
-
-    if (!GET_SKILL(ch, SKILL_CALL_FAMILIAR)) {
-      send_to_char(ch, "You are not a high enough level caster to "
-              "use this ability!\r\n");
-      return;
-    }
-
-    if (level <= 0) {
-      send_to_char(ch, "You are not a high enough level Sorcerer or Wizard to "
-              "use this ability!\r\n");
-      return;
-    }
-    call_type = MOB_C_FAMILIAR;
-  } else if (is_abbrev(argument, "mount")) {
-    level = CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
-
-    if (!GET_SKILL(ch, SKILL_PALADIN_MOUNT)) {
-      send_to_char(ch, "You are not a high enough level Paladin to "
-              "use this ability!\r\n");
-      return;
-    }
-
-    if (level <= 0) {
-      send_to_char(ch, "You are not a high enough level Paladin to "
-              "use this ability!\r\n");
-      return;
-    }
-    call_type = MOB_C_MOUNT;
-  } else {
-    send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
-    return;
-  }
-
   /* tests for whether you can actually call a companion */
 
   /* companion here already ? */
@@ -226,7 +169,7 @@ ACMD(do_call) {
   switch (call_type) {
     case MOB_C_ANIMAL:
       /* do they even have a valid selection yet? */
-      if (GET_ANIMAL_COMPANION(ch) <= 0) {
+      if (!IS_NPC(ch) && GET_ANIMAL_COMPANION(ch) <= 0) {
         send_to_char(ch, "You have to select your companion via the 'study' "
                 "command.\r\n");
         return;
@@ -238,12 +181,14 @@ ACMD(do_call) {
         return;
       }
 
-      mob_num = GET_ANIMAL_COMPANION(ch);
+      /* todo:  seriously, fix this */
+      if (!(mob_num = GET_ANIMAL_COMPANION(ch)))
+        mob_num = 63;  // meant for npc's
 
       break;
     case MOB_C_FAMILIAR:
       /* do they even have a valid selection yet? */
-      if (GET_FAMILIAR(ch) <= 0) {
+      if (!IS_NPC(ch) && GET_FAMILIAR(ch) <= 0) {
         send_to_char(ch, "You have to select your companion via the 'study' "
                 "command.\r\n");
         return;
@@ -331,6 +276,75 @@ ACMD(do_call) {
     attach_mud_event(new_mud_event(eC_MOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
     increase_skill(ch, SKILL_PALADIN_MOUNT);
   }
+  
+}
+
+ACMD(do_call) {
+  int call_type = -1, level = 0;
+  
+  skip_spaces(&argument);  
+
+  /* call types
+     MOB_C_ANIMAL -> animal companion
+     MOB_C_FAMILIAR -> familiar
+     MOB_C_MOUNT -> paladin mount 
+   */
+  if (!argument) {
+    send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
+    return;
+  } else if (is_abbrev(argument, "companion")) {
+    level = CLASS_LEVEL(ch, CLASS_DRUID);
+    if (CLASS_LEVEL(ch, CLASS_RANGER) >= 4)
+      level += CLASS_LEVEL(ch, CLASS_RANGER) - 3;
+
+    if (!GET_SKILL(ch, SKILL_ANIMAL_COMPANION)) {
+      send_to_char(ch, "You are not a high enough level Ranger/Druid to "
+              "use this ability!\r\n");
+      return;
+    }
+
+    if (level <= 0) {
+      send_to_char(ch, "You are not a high enough level Druid or Ranger to "
+              "use this ability!\r\n");
+      return;
+    }
+    call_type = MOB_C_ANIMAL;
+  } else if (is_abbrev(argument, "familiar")) {
+    level = CLASS_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_WIZARD);
+
+    if (!GET_SKILL(ch, SKILL_CALL_FAMILIAR)) {
+      send_to_char(ch, "You are not a high enough level caster to "
+              "use this ability!\r\n");
+      return;
+    }
+
+    if (level <= 0) {
+      send_to_char(ch, "You are not a high enough level Sorcerer or Wizard to "
+              "use this ability!\r\n");
+      return;
+    }
+    call_type = MOB_C_FAMILIAR;
+  } else if (is_abbrev(argument, "mount")) {
+    level = CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
+
+    if (!GET_SKILL(ch, SKILL_PALADIN_MOUNT)) {
+      send_to_char(ch, "You are not a high enough level Paladin to "
+              "use this ability!\r\n");
+      return;
+    }
+
+    if (level <= 0) {
+      send_to_char(ch, "You are not a high enough level Paladin to "
+              "use this ability!\r\n");
+      return;
+    }
+    call_type = MOB_C_MOUNT;
+  } else {
+    send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
+    return;
+  }
+
+  perform_call(ch, call_type, level);
 }
 #undef MOB_PALADIN_MOUNT
 

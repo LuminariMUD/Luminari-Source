@@ -1,4 +1,4 @@
-/**************************************************************************
+     /**************************************************************************
  *  File: mobact.c                                          Part of tbaMUD *
  *  Usage: Functions for generating intelligent (?) behavior in mobiles.   *
  *                                                                         *
@@ -25,186 +25,6 @@
 #include "mud_event.h" /* for eSTUNNED */
 #include "modify.h"
 #include "mobact.h"
-
-/***********/
-
-/* leaving this here to research more a summoning mechanic for mobiles -zusuk */
-/*
-bool can_summon(struct char_data *ch) {
-  if (GET_CASTING(ch))
-    return FALSE;
-
-  if (AFF_FLAGGED(ch, AFF_BLIND))
-    return FALSE;
-
-  // dont track if hurt.
-  if ((100 * GET_HIT(ch)) / GET_MAX_HIT(ch) <= 80)
-    return FALSE;
-  if (ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF))
-    return FALSE;
-
-
-  if (ROOM_FLAGGED(ch->in_room, ROOM_NOSUMMON))
-    return FALSE;
-
-  if (GET_CLASS(ch) < 0)
-    return FALSE;
-
-  int moblevel;
-  moblevel = GET_LEVEL(ch);
-  if (moblevel > 50)
-    moblevel = 50;
-
-  if (moblevel < spell_info[SPELL_SUMMON].min_level[GET_CLASS(ch)])
-    return FALSE;
-
-  return TRUE;
-}
-bool mobai_summon(struct char_data *ch, struct char_data *victim) {
-
-  bool samezone;
-
-  if (victim->in_room == ch->in_room)
-    return FALSE;
-  samezone = (world[victim->in_room].zone == world[ch->in_room].zone);
-  if (!samezone)
-    return false;
-  if (!CAN_SEE(ch, victim))
-    return FALSE;
-  if (AFF_FLAGGED(victim, AFF_HIDE))
-    return FALSE;
-
-  if (AFF3_FLAGGED(victim, AFF3_NOSUMMON))
-    return FALSE;
-  if (ROOM_FLAGGED(ch->in_room, ROOM_NOSUMMON))
-    return FALSE;
-  cast_spell(ch, victim, 0, SPELL_SUMMON, FALSE);
-
-  return TRUE;
-}
- */
-
-/* leaving this here to research more a teleporting mechanic for 
- * mobiles -zusuk */
-/*
-bool mobai_track(struct char_data *ch, struct char_data *victim) {
-  act("Attempt to track $N", FALSE, ch, 0, victim, TO_CHAR);
-
-  if (GET_CASTING(ch))
-    return FALSE;
-
-  // dont track if hurt.
-  if ((100 * GET_HIT(ch)) / GET_MAX_HIT(ch) <= 12)
-    return FALSE;
-  if (AFF2_FLAGGED(ch, AFF2_MISLEAD))
-    return false;
-
-
-  bool samezone;
-  int moblevel;
-  moblevel = GET_LEVEL(ch);
-  if (moblevel > 50)
-    moblevel = 50;
-
-  if (victim->in_room == ch->in_room)
-    return FALSE;
-  samezone = (world[victim->in_room].zone == world[ch->in_room].zone);
-
-
-  if (MOB_FLAGGED(ch, MOB_STAY_ZONE) && !samezone)
-    return FALSE;
-
-  if (!ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
-
-
-    if (!ROOM_FLAGGED(ch->in_room, ROOM_NOTELEPORT) && !ROOM_FLAGGED(victim->in_room, ROOM_NOTELEPORT) &&
-            !AFF3_FLAGGED(ch, AFF3_NOTELEPORT)) {
-      if (!samezone && GET_CLASS(ch) > -1 && !AFF_FLAGGED(ch, AFF_GROUP)) {
-        if (moblevel >= spell_info[SPELL_RELOCATE].min_level[GET_CLASS(ch)]) {
-          act("We want to reloc to $N", FALSE, ch, 0, victim, TO_CHAR);
-          cast_spell(ch, victim, 0, SPELL_RELOCATE, FALSE);
-          return TRUE;
-        }
-      }
-
-
-      if (samezone && GET_CLASS(ch) > -1 && !AFF_FLAGGED(ch, AFF_GROUP)) {
-        if (moblevel >= spell_info[SPELL_DIMENSION_DOOR].min_level[GET_CLASS(ch)]) {
-          act("We want to dim to $N", FALSE, ch, 0, victim, TO_CHAR);
-
-          cast_spell(ch, victim, 0, SPELL_DIMENSION_DOOR, FALSE);
-          return TRUE;
-        }
-      }
-    }
-  }
-  HUNTING(ch) = victim;
-  act("We are tracking $N", FALSE, ch, 0, victim, TO_CHAR);
-  hunt_victim(ch);
-  return TRUE;
-}
- */
-
-/* leaving this here for now to research AI for switching opponents -zusuk */
-/*
-bool mobai_switchopponents(struct char_data *ch) {
-  struct char_data *homie = NULL;
-  struct char_data *switchvict = NULL;
-
-  if (IS_PET(ch))
-    return FALSE;
-
-  if (AFF_FLAGGED(ch, AFF_BLIND))
-    return FALSE;
-
-  if (GET_POS(ch) < POS_FIGHTING)
-    return FALSE;
-
-  int score = 10000;
-
-  if (AFF_FLAGGED(FIGHTING(ch), AFF_GROUP) || (FIGHTING(ch)->master && AFF_FLAGGED(FIGHTING(ch)->master, AFF_GROUP))) {
-    for (homie = world[ch->in_room].people; homie; homie = homie->next_in_room) {
-      if (is_grouped(FIGHTING(ch), homie) ||
-              (FIGHTING(ch)->master && is_grouped(homie, FIGHTING(ch)->master)) ||
-              homie == FIGHTING(ch)->master || GET_LEVEL(homie) > 30) {
-        if (!MOB_CAN_FIGHT(homie))
-          continue;
-        if (RIDER(homie))
-          continue;
-
-        if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
-          if (ch->next_in_room != homie && homie->next_in_room != ch)
-            continue;
-        }
-
-        int comp = GET_HIT(homie) + dice(1, 200);
-        if (GET_CASTING(homie))
-          comp -= 200;
-        switch (GET_CLASS(homie)) {
-          case CLASS_CLERIC:
-            comp -= 200;
-            break;
-        }
-
-        if (!switchvict || (comp < score)) {
-          if (CAN_SEE(ch, homie) && (!IS_NPC(homie) || !MOB_CAN_FIGHT(homie))) {
-            switchvict = homie;
-            score = comp;
-          }
-        }
-      }
-    }
-    if (switchvict && switchvict != FIGHTING(ch) && skill_test(ch, SKILL_SWITCH_OPPONENTS, 101, 0)) {
-      init_fight(ch, switchvict);
-      FIGHTING(ch) = switchvict;
-      act("&cC$n &cCswitches opponents!&c0", FALSE, ch, 0, 0, TO_ROOM);
-      WAIT_STATE(ch, PULSE_VIOLENCE * 2);
-      return TRUE;
-    }
-  }
-  return FALSE;
-} 
- */
 
 /***********/
 
@@ -446,7 +266,7 @@ bool npc_switch_opponents(struct char_data *ch, struct char_data *vict) {
   if (FIGHTING(ch))
     stop_fighting(ch);
   send_to_char(ch, "You switch opponents!\r\n");
-  act("$n switches opponents!", FALSE, ch, 0, vict, TO_ROOM);
+  act("$n switches opponents to $N!", FALSE, ch, 0, vict, TO_ROOM);
   set_fighting(ch, vict);
   FIGHTING(ch) = vict;
   
@@ -644,7 +464,7 @@ void forget(struct char_data *ch, struct char_data *victim) {
   free(curr);
 }
 
-/* erase ch's memory */
+/* erase ch's memory completely, also freeing memory */
 void clearMemory(struct char_data *ch) {
   memory_rec *curr = NULL, *next = NULL;
 
@@ -744,18 +564,21 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
         int engaged) {
 
   /* list of skills to use:
-   1) switch
+   1) switch opponents
    2) springleap
    3) stunning fist
-   4) switch opponents
    */
   
   /* switch opponents attempt */
-  if (FIGHTING(ch) != vict && !rand_number(0, 1))
-    ;  // switch!
+  if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
+    return;
 
-  switch (rand_number(1, 4)) {
-    
+  switch (rand_number(1, 3)) {
+    case 1:
+      perform_stunningfist(ch, vict);
+      break;
+    case 2:
+      perform_springleap(ch, vict);
       break;
     default:
       break;
@@ -769,11 +592,24 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
   /* list of skills to use:
    1) trip
    2) dirt kick
-   3) sap
-   4) backstab
+   3) sap  //todo
+   4) backstab / circle
    */
 
   switch (rand_number(1, 4)) {
+    case 1:
+      if (perform_knockdown(ch, vict, SKILL_TRIP))
+        break;
+      /* fallthrough */
+    case 2:
+      if (perform_dirtkick(ch, vict))
+        break;
+      /* fallthrough */
+    case 3:
+      if (perform_backstab(ch, vict))
+        break;
+      /* fallthrough */
+      
     default:
       break;
   }
@@ -789,8 +625,19 @@ void npc_bard_behave(struct char_data *ch, struct char_data *vict,
    3) perform
    4) kick
    */
+  /* try to throw up song */
+  perform_perform(ch);
 
   switch (rand_number(1, 4)) {
+    case 1:
+      perform_knockdown(ch, vict, SKILL_TRIP);
+      break;
+    case 2:
+      perform_dirtkick(ch, vict);
+      break;
+    case 3:
+      perform_kick(ch, vict);
+      break;
     default:
       break;
   }
@@ -811,7 +658,17 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
   if (npc_rescue(ch))
     return;
 
-  switch (rand_number(1, 4)) {
+  /* switch opponents attempt */
+  if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
+    return;
+
+  switch (rand_number(1, 2)) {
+    case 1:
+      if (perform_knockdown(ch, vict, SKILL_BASH))
+        break;
+    case 2:
+      if (perform_shieldpunch(ch, vict))
+        break;
     default:
       break;
   }
@@ -825,19 +682,24 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
    1) rescue
    2) switch opponents
    3) call companion
+   4) kick
    */
 
-  /* first rescue friends/master */
+  /* attempt to call companion */
+  perform_call(ch, MOB_C_ANIMAL, GET_LEVEL(ch));
+  
+  /* next rescue friends/master */
   if (npc_rescue(ch))
     return;
 
-  switch (rand_number(1, 4)) {
-    case 5: // level 1-4 mobs won't act
-      break;
-    default:
-      break;
-  }
+  /* switch opponents attempt */
+  if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
+    return;
+
+  perform_kick(ch, vict);
+  
 }
+
 // paladin behaviour, behave based on level
 
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
@@ -852,6 +714,10 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
 
   /* first rescue friends/master */
   if (npc_rescue(ch))
+    return;
+
+  /* switch opponents attempt */
+  if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
 
   switch (rand_number(1, 4)) {
@@ -877,9 +743,13 @@ void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
   if (npc_rescue(ch))
     return;
 
-  switch (rand_number(1, 4)) {
-    case 5: // level 1-4 mobs won't act
-      break;
+  /* switch opponents attempt */
+  if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
+    return;
+
+  switch (rand_number(1, 3)) {
+    case 1:
+    case 2:
     default:
       break;
   }
