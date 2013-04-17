@@ -245,22 +245,28 @@ struct char_data *npc_find_target(struct char_data *ch, int *num_targets) {
 /* a very simplified switch opponents engine */
 bool npc_switch_opponents(struct char_data *ch, struct char_data *vict) {
 
-  send_to_char(ch, "DEBUG");
   if (!ch || !vict)
     return FALSE;
   
   if (!CAN_SEE(ch, vict))
     return FALSE;
   
-  if (GET_POS(ch) <= POS_SITTING)
+  if (GET_POS(ch) <= POS_SITTING) {
+    send_to_char(ch, "You are in no position to switch opponents!\r\n");
     return FALSE;
+  }
   
-  if (FIGHTING(ch) == vict)
+  if (FIGHTING(ch) == vict) {
+    send_to_char(ch, "You can't switch opponents to an opponent you are "
+            "already fighting!\r\n");
     return FALSE;
+  }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
-    if (ch->next_in_room != vict && vict->next_in_room != ch)
+    if (ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char(ch, "You can't reach to switch opponents!\r\n");
       return FALSE;
+    }  
   }
   
   /* should be a valid opponent */
@@ -268,8 +274,7 @@ bool npc_switch_opponents(struct char_data *ch, struct char_data *vict) {
     stop_fighting(ch);
   send_to_char(ch, "You switch opponents!\r\n");
   act("$n switches opponents to $N!", FALSE, ch, 0, vict, TO_ROOM);
-  set_fighting(ch, vict);
-  FIGHTING(ch) = vict;
+  hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   
   return TRUE;
 }
