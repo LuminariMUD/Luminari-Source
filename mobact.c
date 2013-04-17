@@ -245,6 +245,7 @@ struct char_data *npc_find_target(struct char_data *ch, int *num_targets) {
 /* a very simplified switch opponents engine */
 bool npc_switch_opponents(struct char_data *ch, struct char_data *vict) {
 
+  send_to_char(ch, "DEBUG");
   if (!ch || !vict)
     return FALSE;
   
@@ -701,7 +702,6 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
 }
 
 // paladin behaviour, behave based on level
-// todo:  fix smite evil (perform_smite)
 
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
         int engaged) {
