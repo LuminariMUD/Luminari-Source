@@ -764,9 +764,6 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   int dam = 0;
   int base_probability = 0;
 
-  if (IN_ROOM(ch) != IN_ROOM(vict))
-    return FALSE;
-  
   if (!CAN_SEE(ch, vict)) {
     send_to_char(ch, "You don't see well enough to attempt that.\r\n");
     return FALSE;
@@ -785,6 +782,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   }
   
   if (MOB_FLAGGED(vict, MOB_NOBLIND)) {
+    send_to_char(ch, "Your technique is ineffective...  ");
     damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
     return FALSE;
   }
