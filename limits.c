@@ -220,7 +220,7 @@ void hazard_tick(struct char_data *ch) {
     flying = TRUE;
 
   /* falling */
-  if (char_should_fall(ch) && !char_has_mud_event(ch, eFALLING)) {
+  if (char_should_fall(ch, TRUE) && !char_has_mud_event(ch, eFALLING)) {
     /* the svariable value of 20 is just a rough number for feet */
     attach_mud_event(new_mud_event(eFALLING, ch, "20"), 5);
     send_to_char(ch, "Suddenly your realize you are falling!\r\n");
