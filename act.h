@@ -221,6 +221,9 @@ extern const char *cmd_door[];
 /* functions */
 void perform_stunningfist(struct char_data *ch, struct char_data *vict);
 void perform_rescue(struct char_data *ch, struct char_data *vict);
+void perform_smite(struct char_data *ch, long cooldown);
+void perform_rage(struct char_data *ch);
+void perform_layonhands(struct char_data *ch, struct char_data *vict);
 bool perform_knockdown(struct char_data *ch, struct char_data *vict, 
         int skill);
 bool perform_shieldpunch(struct char_data *ch, struct char_data *vict);

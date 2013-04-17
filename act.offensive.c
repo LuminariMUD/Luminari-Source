@@ -194,6 +194,64 @@ void perform_stunningfist(struct char_data *ch, struct char_data *vict) {
   
 }
 
+#define RAGE_AFFECTS 4
+
+/* rage (berserk) engine */
+void perform_rage(struct char_data *ch) {
+  struct affected_type af[RAGE_AFFECTS];
+  int bonus = 0, duration = 0, i = 0;
+  
+  if (char_has_mud_event(ch, eRAGE)) {
+    send_to_char(ch, "You must wait longer before you can use this ability "
+            "again.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_RAGE)) {
+    send_to_char(ch, "You are already raging!\r\n");
+    return;
+  }
+  
+  if (IS_NPC(ch) || IS_MORPHED(ch)) {
+    bonus = (GET_LEVEL(ch) / 3) + 3;
+  } else {
+    bonus = (CLASS_LEVEL(ch, CLASS_BERSERKER) / 3) + 3;
+  }
+  duration = 6 + GET_CON_BONUS(ch) * 2;
+
+  send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
+  act("$n goes into a \tRR\trA\tRG\trE\tn!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* init affect array */
+  for (i = 0; i < RAGE_AFFECTS; i++) {
+    new_affect(&(af[i]));
+    af[i].spell = SKILL_RAGE;
+    af[i].duration = duration;
+  }
+
+  af[0].location = APPLY_STR;
+  af[0].modifier = bonus;
+
+  af[1].location = APPLY_CON;
+  af[1].modifier = bonus;
+  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2; //little boost in current hps
+
+  af[2].location = APPLY_SAVING_WILL;
+  af[2].modifier = bonus;
+
+  //this is a penalty
+  af[3].location = APPLY_AC;
+  af[3].modifier = bonus * 5;
+
+  for (i = 0; i < RAGE_AFFECTS; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+  
+  attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
+
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_RAGE);
+}
+
 /* rescue skill mechanic */
 void perform_rescue(struct char_data *ch, struct char_data *vict) {
   struct char_data *tmp_ch;
@@ -562,6 +620,33 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
     increase_skill(ch, SKILL_HEADBUTT);
 }
 
+/* engine for layonhands skill */
+void perform_layonhands(struct char_data *ch, struct char_data *vict) {
+  if (char_has_mud_event(ch, eLAYONHANDS)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    return;
+  }
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
+  act("You are \tWhealed\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
+  act("$n \tWheals\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+
+  attach_mud_event(new_mud_event(eLAYONHANDS, ch, NULL), 2 * SECS_PER_MUD_DAY);
+  GET_HIT(vict) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch),
+          20 + GET_LEVEL(ch) +
+          (GET_CHA_BONUS(ch) * CLASS_LEVEL(ch, CLASS_PALADIN)));
+  update_pos(vict);
+
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_LAY_ON_HANDS);  
+}
+
 /* engine for sap skill */
 void perform_sap(struct char_data *ch, struct char_data *vict) {
   int dam = 0;
@@ -835,6 +920,29 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
 
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_SPRINGLEAP);
+}
+
+/* smite evil (eventually good?) engine */
+void perform_smite(struct char_data *ch, long cooldown) {
+  struct affected_type af;
+  
+  if (char_has_mud_event(ch, eSMITE)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    return;
+  }
+
+  new_affect(&af);
+
+  af.spell = SKILL_SMITE;
+  af.duration = 24;
+
+  affect_to_char(ch, &af);
+  attach_mud_event(new_mud_event(eSMITE, ch, NULL), cooldown);
+  send_to_char(ch, "You prepare to wreak vengeance upon your foe.\r\n");
+
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_SMITE);
+  
 }
 
 /* the primary engine for backstab */
@@ -1116,66 +1224,16 @@ ACMD(do_turnundead) {
     increase_skill(ch, SKILL_TURN_UNDEAD);
 }
 
-#define RAGE_AFFECTS 4
 /* rage skill (berserk) primarily for berserkers character class */
 ACMD(do_rage) {
-  struct affected_type af[RAGE_AFFECTS];
-  int bonus = 0, duration = 0, i = 0;
 
-  if (affected_by_spell(ch, SKILL_RAGE)) {
-    send_to_char(ch, "You are already raging!\r\n");
-    return;
-  }
   if (!IS_ANIMAL(ch)) {
     if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_RAGE)) {
       send_to_char(ch, "You don't know how to rage.\r\n");
       return;
     }
   }
-  if (char_has_mud_event(ch, eRAGE)) {
-    send_to_char(ch, "You must wait longer before you can use this ability "
-            "again.\r\n");
-    return;
-  }
-
-  if (IS_NPC(ch) || IS_MORPHED(ch)) {
-    bonus = (GET_LEVEL(ch) / 3) + 3;
-  } else {
-    bonus = (CLASS_LEVEL(ch, CLASS_BERSERKER) / 3) + 3;
-  }
-  duration = 6 + GET_CON_BONUS(ch) * 2;
-
-  send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
-  act("$n goes into a \tRR\trA\tRG\trE\tn!", FALSE, ch, 0, 0, TO_ROOM);
-
-  /* init affect array */
-  for (i = 0; i < RAGE_AFFECTS; i++) {
-    new_affect(&(af[i]));
-    af[i].spell = SKILL_RAGE;
-    af[i].duration = duration;
-  }
-
-  af[0].location = APPLY_STR;
-  af[0].modifier = bonus;
-
-  af[1].location = APPLY_CON;
-  af[1].modifier = bonus;
-  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2; //little boost in current hps
-
-  af[2].location = APPLY_SAVING_WILL;
-  af[2].modifier = bonus;
-
-  //this is a penalty
-  af[3].location = APPLY_AC;
-  af[3].modifier = bonus * 5;
-
-  for (i = 0; i < RAGE_AFFECTS; i++)
-    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
   
-  attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
-
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_RAGE);
 }
 #undef RAGE_AFFECTS
 
@@ -1923,34 +1981,13 @@ ACMD(do_layonhands) {
     return;
   }
 
-  if (char_has_mud_event(ch, eLAYONHANDS)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    return;
-  }
-  
   one_argument(argument, arg);
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     send_to_char(ch, "Whom do you want to lay hands on?\r\n");
     return;
   }
   
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
-    send_to_char(ch, "You simply can't reach that far.\r\n");
-    return;
-  }
-
-  send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
-  act("You are \tWhealed\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
-  act("$n \tWheals\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-
-  attach_mud_event(new_mud_event(eLAYONHANDS, ch, NULL), 2 * SECS_PER_MUD_DAY);
-  GET_HIT(vict) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch),
-          20 + GET_LEVEL(ch) +
-          (GET_CHA_BONUS(ch) * CLASS_LEVEL(ch, CLASS_PALADIN)));
-  update_pos(vict);
-
-  increase_skill(ch, SKILL_LAY_ON_HANDS);
+  perform_layonhands(ch, vict);
 }
 
 ACMD(do_crystalfist) {
@@ -2110,23 +2147,13 @@ ACMD(do_stunningfist) {
 }
 
 ACMD(do_smite) {
-  struct affected_type af;
   int cooldown = (3 * SECS_PER_MUD_DAY);
 
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_SMITE)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-
-  if (char_has_mud_event(ch, eSMITE)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    return;
-  }
-
+  
   if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 20)
     cooldown /= 5;
   else if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 15)
@@ -2136,17 +2163,7 @@ ACMD(do_smite) {
   else if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 5)
     cooldown /= 2;
 
-  new_affect(&af);
-
-  af.spell = SKILL_SMITE;
-  af.duration = 24;
-
-  affect_to_char(ch, &af);
-  attach_mud_event(new_mud_event(eSMITE, ch, NULL), cooldown);
-  send_to_char(ch, "You prepare to wreak vengeance upon your foe.\r\n");
-
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_SMITE);
+  perform_smite(ch, cooldown);
 }
 
 /* kick engine */

@@ -704,6 +704,7 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
 
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
         int engaged) {
+  float percent = ((float)GET_HIT(ch) / (float)GET_MAX_HIT(ch)) * 100.0;
 
   /* list of skills to use:
    1) rescue
@@ -719,14 +720,14 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
   /* switch opponents attempt */
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
-
-  switch (rand_number(1, 4)) {
-    case 5: // level 1-4 mobs won't act
-      break;
-    default:
-      break;
-  }
+  
+  perform_smite(ch, 600);
+  
+  if (percent <= 25.0)
+    perform_layonhands(ch, ch);
+  
 }
+     
 // berserk behaviour, behave based on level
 
 void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
@@ -747,12 +748,9 @@ void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
 
-  switch (rand_number(1, 3)) {
-    case 1:
-    case 2:
-    default:
-      break;
-  }
+  perform_rage(ch);
+  
+  perform_headbutt(ch, vict);
 }
 
 /* this is our non-caster's entry point in combat AI
