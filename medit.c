@@ -195,7 +195,7 @@ static void medit_setup_new(struct descriptor_data *d) {
    * don't assign a value, they will use the stock messages*/
   GET_WALKIN(mob) = strdup("$n enters from");
   GET_WALKOUT(mob) = strdup("$n leaves");
-  
+
   SCRIPT(mob) = NULL;
   mob->proto_script = OLC_SCRIPT(d) = NULL;
 
@@ -486,6 +486,7 @@ static void medit_disp_aff_flags(struct descriptor_data *d) {
 }
 
 // needs to be fixed/finished
+
 void delete_echo_entry(struct char_data *mob, int entry_num) {
   int i = 0;
 
@@ -498,10 +499,10 @@ void delete_echo_entry(struct char_data *mob, int entry_num) {
   //free(ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1]);
   //ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1] = NULL;
   ECHO_COUNT(mob)--;
-  
+
   //if (ECHO_COUNT(mob) == 0) {
-    //free(ECHO_ENTRIES(mob));
-    //ECHO_ENTRIES(mob) = NULL;
+  //free(ECHO_ENTRIES(mob));
+  //ECHO_ENTRIES(mob) = NULL;
   //}
 }
 
@@ -546,8 +547,8 @@ static void medit_disp_menu(struct descriptor_data *d) {
 
   sprintbitarray(MOB_FLAGS(mob), action_bits, AF_ARRAY_MAX, flags);
   sprintbitarray(AFF_FLAGS(mob), affected_bits, AF_ARRAY_MAX, flag2);
-          
-  write_to_output(d, 
+
+  write_to_output(d,
           "%s6%s) Position  : %s%s\r\n"
           "%s7%s) Default   : %s%s\r\n"
           "%s8%s) Attack    : %s%s\r\n"
@@ -562,7 +563,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
           "%sJ%s) Walk-In   : %s%s\r\n"
           "%sK%s) Walk-Out  : %s%s\r\n"
           "%sL%s) Echo Menu...\r\n"
-//          "%s-%s) Echo Menu : IS ZONE: %d FREQ: %d%% COUNT: %d Echo: %s\r\n"
+          //          "%s-%s) Echo Menu : IS ZONE: %d FREQ: %d%% COUNT: %d Echo: %s\r\n"
           "%sA%s) NPC Flags : %s%s\r\n"
           "%sB%s) AFF Flags : %s%s\r\n"
           "%sS%s) Script    : %s%s\r\n"
@@ -585,8 +586,8 @@ static void medit_disp_menu(struct descriptor_data *d) {
           grn, nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.",
           grn, nrm, yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.",
           grn, nrm,
- //         grn, nrm, ECHO_IS_ZONE(mob), ECHO_FREQ(mob), ECHO_AMOUNT(mob),
- //         (ECHO_ENTRIES(mob)[0] ? ECHO_ENTRIES(mob)[0] : "None."),
+          //         grn, nrm, ECHO_IS_ZONE(mob), ECHO_FREQ(mob), ECHO_AMOUNT(mob),
+          //         (ECHO_ENTRIES(mob)[0] ? ECHO_ENTRIES(mob)[0] : "None."),
           grn, nrm, cyn, flags,
           grn, nrm, cyn, flag2,
           grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
@@ -601,11 +602,11 @@ static void medit_disp_menu(struct descriptor_data *d) {
 static void medit_disp_echo_menu(struct descriptor_data *d) {
   struct char_data *mob;
   int i = 0;
-  
+
   mob = OLC_MOB(d);
   get_char_colors(d->character);
   clear_screen(d);
-  
+
   write_to_output(d, "Mobile Echos:\r\n");
   if (ECHO_COUNT(mob) > 0 && ECHO_ENTRIES(mob)) {
     //write_to_output(d, "debug: echo count: %d\r\n", ECHO_COUNT(mob));
@@ -625,11 +626,11 @@ static void medit_disp_echo_menu(struct descriptor_data *d) {
           "%sZ%s) Zone Echo: [%s%s%s]\r\n\r\n"
           "%sQ%s) Quit to main menu\r\n"
           "Enter choice : ", grn, nrm,
-          grn, nrm, grn, nrm, grn, nrm, ECHO_FREQ(mob), 
-          grn, nrm, cyn, ECHO_SEQUENTIAL(mob) ? "SEQUENTIAL" : "RANDOM", nrm, 
+          grn, nrm, grn, nrm, grn, nrm, ECHO_FREQ(mob),
+          grn, nrm, cyn, ECHO_SEQUENTIAL(mob) ? "SEQUENTIAL" : "RANDOM", nrm,
           grn, nrm, cyn, ECHO_IS_ZONE(mob) ? "YES" : "NO", nrm,
           grn, nrm);
-  
+
   OLC_MODE(d) = MEDIT_ECHO_MENU;
 }
 
@@ -640,40 +641,40 @@ static void medit_disp_resistances_menu(struct descriptor_data *d) {
   mob = OLC_MOB(d);
   get_char_colors(d->character);
   clear_screen(d);
-  
+
   write_to_output(d,
           "-- RESISTANCES -- Mob Number:  %s[%s%d%s]%s\r\n"
-            "(%sA%s) Fire:     %s[%s%4d%s]%s   (%sK%s) Force:    %s[%s%4d%s]%s\r\n"
-            "(%sB%s) Cold:     %s[%s%4d%s]%s   (%sL%s) Sound:    %s[%s%4d%s]%s\r\n"
-            "(%sC%s) Air:      %s[%s%4d%s]%s   (%sM%s) Poison:   %s[%s%4d%s]%s\r\n"
-            "(%sD%s) Earth:    %s[%s%4d%s]%s   (%sN%s) Disease:  %s[%s%4d%s]%s\r\n"
-            "(%sE%s) Acid:     %s[%s%4d%s]%s   (%sO%s) Negative: %s[%s%4d%s]%s\r\n"
-            "(%sF%s) Holy:     %s[%s%4d%s]%s   (%sP%s) Illusion: %s[%s%4d%s]%s\r\n"
-            "(%sG%s) Electric: %s[%s%4d%s]%s   (%sR%s) Mental:   %s[%s%4d%s]%s\r\n"
-            "(%sH%s) Unholy:   %s[%s%4d%s]%s   (%sS%s) Light:    %s[%s%4d%s]%s\r\n"
-            "(%sI%s) Slice:    %s[%s%4d%s]%s   (%sT%s) Energy:   %s[%s%4d%s]%s\r\n"
-            "(%sJ%s) Puncture: %s[%s%4d%s]%s   (%sU%s) Water:    %s[%s%4d%s]%s\r\n\r\n",
-            cyn, yel, OLC_NUM(d), cyn, nrm,
-            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 1), cyn, nrm, cyn, nrm, 
-                               cyn, yel, GET_RESISTANCES(mob, 11), cyn, nrm,
-            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 2), cyn, nrm, cyn, nrm, 
-                               cyn, yel, GET_RESISTANCES(mob, 12), cyn, nrm,
-            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 3), cyn, nrm, cyn, nrm, 
-                               cyn, yel, GET_RESISTANCES(mob, 13), cyn, nrm,
-            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 4), cyn, nrm, cyn, nrm, 
-                               cyn, yel, GET_RESISTANCES(mob, 14), cyn, nrm,
-            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 5), cyn, nrm, cyn, nrm, 
-                               cyn, yel, GET_RESISTANCES(mob, 15), cyn, nrm,
-            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 6), cyn, nrm, cyn, nrm, 
-                               cyn, yel, GET_RESISTANCES(mob, 16), cyn, nrm,
-            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 7), cyn, nrm, cyn, nrm, 
-                               cyn, yel, GET_RESISTANCES(mob, 17), cyn, nrm,
-            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 8), cyn, nrm, cyn, nrm, 
-                               cyn, yel, GET_RESISTANCES(mob, 18), cyn, nrm,
-            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 9), cyn, nrm, cyn, nrm, 
-                               cyn, yel, GET_RESISTANCES(mob, 19), cyn, nrm,
-            cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 10), cyn, nrm, cyn, nrm, 
-                               cyn, yel, GET_RESISTANCES(mob, 20), cyn, nrm          
+          "(%sA%s) Fire:     %s[%s%4d%s]%s   (%sK%s) Force:    %s[%s%4d%s]%s\r\n"
+          "(%sB%s) Cold:     %s[%s%4d%s]%s   (%sL%s) Sound:    %s[%s%4d%s]%s\r\n"
+          "(%sC%s) Air:      %s[%s%4d%s]%s   (%sM%s) Poison:   %s[%s%4d%s]%s\r\n"
+          "(%sD%s) Earth:    %s[%s%4d%s]%s   (%sN%s) Disease:  %s[%s%4d%s]%s\r\n"
+          "(%sE%s) Acid:     %s[%s%4d%s]%s   (%sO%s) Negative: %s[%s%4d%s]%s\r\n"
+          "(%sF%s) Holy:     %s[%s%4d%s]%s   (%sP%s) Illusion: %s[%s%4d%s]%s\r\n"
+          "(%sG%s) Electric: %s[%s%4d%s]%s   (%sR%s) Mental:   %s[%s%4d%s]%s\r\n"
+          "(%sH%s) Unholy:   %s[%s%4d%s]%s   (%sS%s) Light:    %s[%s%4d%s]%s\r\n"
+          "(%sI%s) Slice:    %s[%s%4d%s]%s   (%sT%s) Energy:   %s[%s%4d%s]%s\r\n"
+          "(%sJ%s) Puncture: %s[%s%4d%s]%s   (%sU%s) Water:    %s[%s%4d%s]%s\r\n\r\n",
+          cyn, yel, OLC_NUM(d), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 1), cyn, nrm, cyn, nrm,
+          cyn, yel, GET_RESISTANCES(mob, 11), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 2), cyn, nrm, cyn, nrm,
+          cyn, yel, GET_RESISTANCES(mob, 12), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 3), cyn, nrm, cyn, nrm,
+          cyn, yel, GET_RESISTANCES(mob, 13), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 4), cyn, nrm, cyn, nrm,
+          cyn, yel, GET_RESISTANCES(mob, 14), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 5), cyn, nrm, cyn, nrm,
+          cyn, yel, GET_RESISTANCES(mob, 15), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 6), cyn, nrm, cyn, nrm,
+          cyn, yel, GET_RESISTANCES(mob, 16), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 7), cyn, nrm, cyn, nrm,
+          cyn, yel, GET_RESISTANCES(mob, 17), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 8), cyn, nrm, cyn, nrm,
+          cyn, yel, GET_RESISTANCES(mob, 18), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 9), cyn, nrm, cyn, nrm,
+          cyn, yel, GET_RESISTANCES(mob, 19), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 10), cyn, nrm, cyn, nrm,
+          cyn, yel, GET_RESISTANCES(mob, 20), cyn, nrm
           );
 
   /* Quit to previous menu option */
@@ -705,7 +706,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d) {
           "(%s5%s) HP Addition: %s[%s%5d%s]%s    (%s8%s) DamRoll:      %s[%s%5d%s]%s\r\n"
           "%-*s(range %s%d%s to %s%d%s)\r\n\r\n"
 
-          "(%sA%s) Armor Class: %s[%s%4d (%2d)%s]%s   (%sD%s) Hitroll:   %s[%s%5d%s]%s\r\n"
+          "(%sA%s) Armor Class: %s[%s%4d (%2d) %s]%s   (%sD%s) Hitroll:   %s[%s%5d%s]%s\r\n"
           "(%sB%s) Exp Points:  %s[%s%10d%s]%s  (%sE%s) Alignment: %s[%s%s%s]%s\r\n"
           "(%sC%s) Gold:        %s[%s%10d%s]%s\r\n\r\n",
           cyn, yel, OLC_NUM(d), cyn, nrm,
@@ -740,7 +741,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d) {
             cyn, nrm, cyn, yel, GET_CON(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_POISON), cyn, nrm,
             cyn, nrm, cyn, yel, GET_CHA(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_DEATH), cyn, nrm
             );
-    
+
   }
 
   /* Quit to previous menu option */
@@ -961,37 +962,37 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         snprintf(buf, sizeof (buf), "%s", delete_doubledollar(arg));
         ECHO_ENTRIES(OLC_MOB(d))[ECHO_COUNT(OLC_MOB(d))++] = strdup(buf);
         OLC_VAL(d) = TRUE;
-      } 
+      }
 
       OLC_MODE(d) = MEDIT_ECHO_MENU;
       medit_disp_echo_menu(d);
       return;
-      
+
     case MEDIT_DELETE_ECHO:
       if ((j = atoi(arg)) <= 0 || j > ECHO_COUNT(OLC_MOB(d))) {
         OLC_MODE(d) = MEDIT_ECHO_MENU;
         medit_disp_echo_menu(d);
         return;
       }
-      
+
       OLC_VAL(d) = TRUE;
       delete_echo_entry(OLC_MOB(d), j);
       OLC_MODE(d) = MEDIT_ECHO_MENU;
       medit_disp_echo_menu(d);
       return;
-      
+
     case MEDIT_EDIT_ECHO:
       if ((j = atoi(arg)) <= 0 || j > ECHO_COUNT(OLC_MOB(d))) {
         OLC_MODE(d) = MEDIT_ECHO_MENU;
         medit_disp_echo_menu(d);
         return;
       }
-      
+
       OLC_VAL(d) = j;
       OLC_MODE(d) = MEDIT_EDIT_ECHO_TEXT;
       write_to_output(d, "\r\nEnter new text :\r\n] ");
       return;
-      
+
     case MEDIT_EDIT_ECHO_TEXT:
       smash_tilde(arg);
 
@@ -1012,7 +1013,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       OLC_VAL(d) = TRUE;
       medit_disp_echo_menu(d);
       return;
-      
+
     case MEDIT_ECHO_MENU:
       i = 0;
       switch (*arg) {
@@ -1834,13 +1835,14 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator) {
 }
 
 /* function to set a ch (mob) to correct stats */
+
 /* an important note about mobiles besides these values:
    1)  their attack rotation will match their class/level 
    2)  their BAB will match their class/level
    3)  their saving-throws will match their class/level 
  */
 void autoroll_mob(struct char_data *mob) {
-  int level = 0, bonus = 0;
+  int level = 0, bonus = 0, armor_class = 0;
 
   /* first cap level at LVL_IMPL */
   level = GET_LEVEL(mob);
@@ -1849,137 +1851,195 @@ void autoroll_mob(struct char_data *mob) {
   /* hit points roll */
   GET_HIT(mob) = 1; /* number of hitpoint dice */
   GET_MANA(mob) = dice(1, level); /* size of hitpoint dice   */
-  
+
   /* damroll */
   GET_DAMROLL(mob) = (level / 6) + 1; /* damroll (dam bonus) 1-6 */
-  
+
   /* hitroll (remember that mobiles are using their class BAB already) */
   GET_HITROLL(mob) = (level / 6) + 1;
 
-  /* armor class */
-  GET_AC(mob) = (100 - (level * 7)) + 10; /* AC 103 to -100 */
-  
+  /* saving throws (bonus) */
+  GET_SAVE(mob, SAVING_FORT) = level / 4;
+  GET_SAVE(mob, SAVING_REFL) = level / 4;
+  GET_SAVE(mob, SAVING_WILL) = level / 4;
+  GET_SAVE(mob, SAVING_POISON) = level / 4;
+  GET_SAVE(mob, SAVING_DEATH) = level / 4;
+
   /* exp and gold */
   GET_EXP(mob) = (level * level * 75);
   GET_GOLD(mob) = (level * 10);
 
+  /* stats, default */
+  GET_STR(mob) = 10;
+  GET_INT(mob) = 10;
+  GET_WIS(mob) = 10;
+  GET_DEX(mob) = 10;
+  GET_CON(mob) = 10;
+  GET_CHA(mob) = 10;
+  bonus = level / 2;  // bonus applied to stats
+
   /* hp, default */
   GET_MOVE(mob) = (level * level) + (level * 10);
-  
+
   /* damage dice default */
   GET_NDD(mob) = 1; /* number damage dice */
   GET_SDD(mob) = level; /* size of damage dice */
-  
+
+  /* armor class default, d20 system * 10 */
+  armor_class = 100 + level * 9; // 109 (10) - 370 (37)
+
   /* class modifications to base */
-  switch(GET_CLASS(mob)) {
+  // remmber move = hps here 
+  switch (GET_CLASS(mob)) {
     case CLASS_WIZARD:
-    case CLASS_SORCERER:
-      GET_MOVE(mob) = GET_MOVE(mob) * 2 / 5;  // remmber move = hps here 
+      GET_MOVE(mob) = GET_MOVE(mob) * 2 / 5; 
       GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+      armor_class -= 60;
+      GET_INT(mob) += bonus;
+      GET_DEX(mob) += bonus;
+      break;
+    case CLASS_SORCERER:
+      GET_CHA(mob) += bonus;
+      GET_DEX(mob) += bonus;
+      GET_MOVE(mob) = GET_MOVE(mob) * 2 / 5; // remmber move = hps here 
+      GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+      armor_class -= 60;
       break;
     case CLASS_ROGUE:
+      GET_STR(mob) += bonus;
+      GET_DEX(mob) += bonus;
       GET_MOVE(mob) = GET_MOVE(mob) * 3 / 5;
+      armor_class -= 50;
       break;
     case CLASS_BARD:
+      GET_CHA(mob) += bonus;
+      GET_DEX(mob) += bonus;
       GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
       GET_MOVE(mob) = GET_MOVE(mob) * 3 / 5;
+      armor_class -= 50;
       break;
     case CLASS_MONK:
+      GET_WIS(mob) += bonus;
+      GET_DEX(mob) += bonus;
       GET_MOVE(mob) = GET_MOVE(mob) * 4 / 5;
+      armor_class -= 60; // they will still get wis bonus
       break;
     case CLASS_CLERIC:
-    case CLASS_DRUID:
+      GET_STR(mob) += bonus;
+      GET_WIS(mob) += bonus;
       GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
       GET_MOVE(mob) = GET_MOVE(mob) * 4 / 5;
+      armor_class -= 10;
+      break;
+    case CLASS_DRUID:
+      GET_WIS(mob) += bonus;
+      GET_DEX(mob) += bonus;
+      GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
+      GET_MOVE(mob) = GET_MOVE(mob) * 4 / 5;
+      armor_class -= 50;
       break;
     case CLASS_BERSERKER:
+      GET_STR(mob) += bonus;
+      GET_CON(mob) += bonus;
       GET_MOVE(mob) = GET_MOVE(mob) * 6 / 5;
+      armor_class -= 40;
+      break;
+    case CLASS_RANGER:
+      GET_STR(mob) += bonus;
+      GET_DEX(mob) += bonus;
+      armor_class -= 50;
       break;
     case CLASS_WARRIOR:
+      GET_STR(mob) += bonus;
+      GET_CON(mob) += bonus;
+      break;
     case CLASS_PALADIN:
-    case CLASS_RANGER:
+      GET_STR(mob) += bonus;
+      GET_CHA(mob) += bonus;
+      break;
     default:
       break;
   }
-    
-  if (GET_SDD(mob) < 4)
-    GET_SDD(mob) = 4;  //min. 4 (1d4)
-  
-  /* 'Advanced' stats are only rolled if advanced options are enabled */
-  if (CONFIG_MEDIT_ADVANCED) {
-    
-    /* base stats */
-    GET_STR(mob) = 10;
-    GET_INT(mob) = 10;
-    GET_WIS(mob) = 10;
-    GET_DEX(mob) = 10;
-    GET_CON(mob) = 10;
-    GET_CHA(mob) = 10;
-    
-    bonus = level / 2;
-    switch (GET_CLASS(mob)) {
-      case CLASS_WIZARD:
-        GET_INT(mob) += bonus;
-        GET_DEX(mob) += bonus;
-        break;
-      case CLASS_SORCERER:
-        GET_CHA(mob) += bonus;
-        GET_DEX(mob) += bonus;
-        break;
-      case CLASS_ROGUE:
-        GET_STR(mob) += bonus;
-        GET_DEX(mob) += bonus;
-        break;
-      case CLASS_BARD:
-        GET_CHA(mob) += bonus;
-        GET_DEX(mob) += bonus;
-        break;
-      case CLASS_MONK:
-        GET_WIS(mob) += bonus;
-        GET_DEX(mob) += bonus;
-        break;
-      case CLASS_CLERIC:
-        GET_STR(mob) += bonus;
-        GET_WIS(mob) += bonus;
-        break;
-      case CLASS_DRUID:
-        GET_WIS(mob) += bonus;
-        GET_DEX(mob) += bonus;
-        break;
-      case CLASS_BERSERKER:
-        GET_STR(mob) += bonus;
-        GET_CON(mob) += bonus;
-        break;
-      case CLASS_WARRIOR:
-        GET_STR(mob) += bonus;
-        GET_CON(mob) += bonus;
-        break;
-      case CLASS_PALADIN:
-        GET_STR(mob) += bonus;
-        GET_CHA(mob) += bonus;
-        break;
-      case CLASS_RANGER:
-        GET_STR(mob) += bonus;
-        GET_DEX(mob) += bonus;
-        break;
-      default:
-        break;
-    }
-    
-    /* saving throws (bonus) */
-    GET_SAVE(mob, SAVING_FORT) = level / 4;
-    GET_SAVE(mob, SAVING_REFL) = level / 4;
-    GET_SAVE(mob, SAVING_WILL) = level / 4;
-    GET_SAVE(mob, SAVING_POISON) = level / 4;
-    GET_SAVE(mob, SAVING_DEATH) = level / 4;
+
+  /* racial mods */
+  switch (GET_RACE(mob)) {
+    case NPCRACE_HUMAN:
+      break;
+    case NPCRACE_UNDEAD:
+      break;
+    case NPCRACE_ANIMAL:
+      GET_INT(mob) -= 7;
+      GET_WIS(mob) -= 7;
+      GET_CHA(mob) -= 7;
+      GET_SAVE(mob, SAVING_FORT) += 4;
+      GET_SAVE(mob, SAVING_REFL) += 4;      
+      break;
+    case NPCRACE_DRAGON:
+      GET_STR(mob) += 6;
+      GET_CON(mob) += 6;
+      GET_DEX(mob) += 6;
+      GET_CHA(mob) += 6;
+      GET_INT(mob) += 6;
+      GET_WIS(mob) += 6;
+      GET_SAVE(mob, SAVING_FORT) += 4;
+      GET_SAVE(mob, SAVING_REFL) += 4;      
+      GET_SAVE(mob, SAVING_WILL) += 4;      
+      GET_SPELL_RES(mob) = 10 + level;      
+      break;
+    case NPCRACE_GIANT:
+      GET_STR(mob) += 4;
+      GET_CON(mob) += 4;
+      GET_DEX(mob) -= 7;
+      break;
+    case NPCRACE_ABERRATION:
+      GET_SAVE(mob, SAVING_WILL) += 4;
+      break;
+    case NPCRACE_CONSTRUCT:
+      GET_STR(mob) += 4;
+      GET_CON(mob) += 4;
+      GET_SAVE(mob, SAVING_WILL) -= 4;
+      GET_SAVE(mob, SAVING_FORT) -= 4;
+      GET_SAVE(mob, SAVING_REFL) -= 4;
+      break;
+    case NPCRACE_ELEMENTAL:
+      break;
+    case NPCRACE_FEY:
+      GET_SAVE(mob, SAVING_REFL) += 4;      
+      GET_SAVE(mob, SAVING_WILL) += 4;      
+      break;
+    case NPCRACE_MAG_BEAST:
+      GET_SAVE(mob, SAVING_FORT) += 4;
+      GET_SAVE(mob, SAVING_REFL) += 4;      
+      break;
+    case NPCRACE_MONSTER_HMN:
+      break;
+    case NPCRACE_OOZE:
+      GET_SAVE(mob, SAVING_WILL) -= 4;
+      GET_SAVE(mob, SAVING_FORT) -= 4;
+      GET_SAVE(mob, SAVING_REFL) -= 4;
+      break;
+    case NPCRACE_OUTSIDER:
+      break;
+    case NPCRACE_PLANT:
+      break;
+    case NPCRACE_VERMIN:
+    default:
+      break;
   }
-  
+
+  /* convert armor to old-school system and store */
+  GET_AC(mob) = (armor_class - 200) / -1; /* -default- AC 91 to -137 */
+
+  /* make sure mobs do at least 1d4 damage */
+  if (GET_SDD(mob) < 4)
+    GET_SDD(mob) = 4;
+
 }
 
 void medit_autoroll_stats(struct descriptor_data *d) {
-  
+
   autoroll_mob(OLC_MOB(d));
-  
+
 }
 
 
