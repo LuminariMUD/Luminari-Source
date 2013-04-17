@@ -4044,9 +4044,10 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       case SPELL_SUMMON_CREATURE_7: //conjuration    
       case SPELL_GREATER_ANIMATION: //necromancy
         GET_LEVEL(mob) += MIN(mob_level, LVL_IMPL - GET_LEVEL(mob));
-        GET_MAX_HIT(mob) += hp_bonus;
-        GET_DAMROLL(mob) += dam_bonus;
-        GET_HITROLL(mob) += hit_bonus;
+        GET_REAL_MAX_HIT(mob) += hp_bonus;
+        GET_REAL_DAMROLL(mob) += dam_bonus;
+        GET_REAL_HITROLL(mob) += hit_bonus;
+        affect_total(mob);
         break;
       case SPELL_CLONE:
         /* Don't mess up the prototype; use new string copies. */
