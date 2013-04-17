@@ -787,7 +787,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
     return FALSE;
   }
   
-  if (GET_SIZE(ch) - GET_SIZE(vict) <= 1) {
+  if (GET_SIZE(vict) - GET_SIZE(ch) >= 1) {
     send_to_char(ch, "Your target is too large for this technique to be effective!\r\n");
     return FALSE;
   }
