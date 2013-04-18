@@ -941,6 +941,7 @@ EVENTFUNC(event_casting) {
 int cast_spell(struct char_data *ch, struct char_data *tch,
         struct obj_data *tobj, int spellnum) {
   int position = GET_POS(ch);
+  int class = CLASS_WIZARD, clevel = 1;
 
   if (spellnum < 0 || spellnum > TOP_SPELL_DEFINE) {
     log("SYSERR: cast_spell trying to call spellnum %d/%d.", spellnum,
@@ -956,32 +957,26 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   //epic spell cooldown
   if (char_has_mud_event(ch, eMUMMYDUST) && spellnum == SPELL_MUMMY_DUST) {
     send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
     return 0;
   }
   if (char_has_mud_event(ch, eDRAGONKNIGHT) && spellnum == SPELL_DRAGON_KNIGHT) {
     send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
     return 0;
   }
   if (char_has_mud_event(ch, eGREATERRUIN) && spellnum == SPELL_GREATER_RUIN) {
     send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
     return 0;
   }
   if (char_has_mud_event(ch, eHELLBALL) && spellnum == SPELL_HELLBALL) {
     send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
     return 0;
   }
   if (char_has_mud_event(ch, eEPICMAGEARMOR) && spellnum == SPELL_EPIC_MAGE_ARMOR) {
     send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
     return 0;
   }
   if (char_has_mud_event(ch, eEPICWARDING) && spellnum == SPELL_EPIC_WARDING) {
     send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
     return 0;
   }
 
@@ -1012,7 +1007,8 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     return (0);
   }
 
-  if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == tch) && SINFO.violent) {
+  if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == tch) && 
+          (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
     send_to_char(ch, "You are afraid you might hurt your master!\r\n");
     return (0);
   }
@@ -1051,39 +1047,8 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     return (0);
   }
 
-  //default casting class will be the highest level casting class
-  int class = -1, clevel = -1;
-  if (IS_WIZARD(ch)) {
-    class = CLASS_WIZARD;
-    clevel = IS_WIZARD(ch);
-  }
-  if (IS_CLERIC(ch) > clevel) {
-    class = CLASS_CLERIC;
-    clevel = IS_CLERIC(ch);
-  }
-  if (IS_SORCERER(ch) > clevel) {
-    class = CLASS_SORCERER;
-    clevel = IS_SORCERER(ch);
-  }
-  if (IS_DRUID(ch) > clevel) {
-    class = CLASS_DRUID;
-    clevel = IS_DRUID(ch);
-  }
-  if (IS_BARD(ch) > clevel) {
-    class = CLASS_BARD;
-    clevel = IS_BARD(ch);
-  }
-  /* paladins cast at half their level strength */
-  if ((IS_PALADIN(ch) / 2) > clevel) {
-    class = CLASS_PALADIN;
-    clevel = (IS_PALADIN(ch) / 2);
-  }
-  /* rangers cast at half their level strength */
-  if ((IS_RANGER(ch) / 2) > clevel) {
-    class = CLASS_RANGER;
-    clevel = (IS_RANGER(ch) / 2);
-  }
-
+  /* doing to adjust memory and establish what class the character
+   will be using for casting this spell */
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
 
     class = forgetSpell(ch, spellnum, -1);
@@ -1097,12 +1062,16 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     if (class != CLASS_SORCERER && class != CLASS_BARD)
       addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
   }
+  
+  /* level to cast this particular spell as */
+  clevel = CLASS_LEVEL(ch, class);
 
-  SET_WAIT(ch, PULSE_VIOLENCE / 2);
-
+  /* handle spells with no casting time */
   if (SINFO.time <= 0) {
     send_to_char(ch, "%s", CONFIG_OK);
     say_spell(ch, spellnum, tch, tobj, FALSE);
+    /* mandatory wait-state for any spell */
+    SET_WAIT(ch, PULSE_VIOLENCE / 2);
     return (call_magic(ch, tch, tobj, spellnum, CASTER_LEVEL(ch), CAST_SPELL));
   }
 
@@ -1117,6 +1086,9 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   CASTING_CLASS(ch) = class;
   NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
 
+  /* mandatory wait-state for any spell */
+  SET_WAIT(ch, 10);
+  
   //this return value has to be checked -zusuk
   return (1);
 }
