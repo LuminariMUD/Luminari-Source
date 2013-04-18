@@ -123,6 +123,7 @@ static int mag_manacost(struct char_data *ch, int spellnum)
           SINFO.mana_min) / 2);
 }
  */
+
 /* calculates lowest possible level of a spell (spells can be different
  levels for different classes) */
 int lowest_spell_level(int spellnum) {
@@ -350,20 +351,20 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
   }
-  
+
   if (cvict && ROOM_FLAGGED(IN_ROOM(cvict), ROOM_NOMAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies.\r\n");
     act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
   }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(caster), ROOM_PEACEFUL) &&
           (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
     send_to_char(caster, "A flash of white light fills the room, dispelling your violent magic!\r\n");
     act("White light from no particular source suddenly fills the room, then vanishes.", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
   }
-  
+
   if (cvict && MOB_FLAGGED(cvict, MOB_NOKILL)) {
     send_to_char(caster, "This mob is protected.\r\n");
     return (0);
@@ -406,7 +407,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   /* globe of invulernability spell(s)
    * and spell mantles */
   if (cvict) {
-    int lvl = lowest_spell_level(spellnum);    
+    int lvl = lowest_spell_level(spellnum);
 
     /* minor globe */
     /* we're translating level to circle, so 4 = 2nd circle */
@@ -950,11 +951,43 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF)) {
     send_to_char(ch, "You can not even speak a single word!\r\n");
     return 0;
-  }  
+  }
   
+  //epic spell cooldown
+  if (char_has_mud_event(ch, eMUMMYDUST) && spellnum == SPELL_MUMMY_DUST) {
+    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
+    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
+    return 0;
+  }
+  if (char_has_mud_event(ch, eDRAGONKNIGHT) && spellnum == SPELL_DRAGON_KNIGHT) {
+    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
+    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
+    return 0;
+  }
+  if (char_has_mud_event(ch, eGREATERRUIN) && spellnum == SPELL_GREATER_RUIN) {
+    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
+    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
+    return 0;
+  }
+  if (char_has_mud_event(ch, eHELLBALL) && spellnum == SPELL_HELLBALL) {
+    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
+    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
+    return 0;
+  }
+  if (char_has_mud_event(ch, eEPICMAGEARMOR) && spellnum == SPELL_EPIC_MAGE_ARMOR) {
+    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
+    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
+    return 0;
+  }
+  if (char_has_mud_event(ch, eEPICWARDING) && spellnum == SPELL_EPIC_WARDING) {
+    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
+    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
+    return 0;
+  }
+
+  /* position check */
   if (FIGHTING(ch) && GET_POS(ch) > POS_STUNNED)
     position = POS_FIGHTING;
-
   if (position < SINFO.min_position) {
     switch (position) {
       case POS_SLEEPING:
@@ -979,7 +1012,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     return (0);
   }
 
-  if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == tch)) {
+  if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == tch) && SINFO.violent) {
     send_to_char(ch, "You are afraid you might hurt your master!\r\n");
     return (0);
   }
@@ -1011,11 +1044,15 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       send_to_char(ch, "This room is much too narrow to focus that magic in.\r\n");
       return 0;
     }
-  }  
+  }
+
+  if (char_has_mud_event(ch, eCASTING)) {
+    send_to_char(ch, "You are already attempting to cast!\r\n");
+    return (0);
+  }
 
   //default casting class will be the highest level casting class
   int class = -1, clevel = -1;
-
   if (IS_WIZARD(ch)) {
     class = CLASS_WIZARD;
     clevel = IS_WIZARD(ch);
@@ -1048,7 +1085,6 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   }
 
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
-    //      && spellnum != SPELL_ACID_SPLASH && spellnum != SPELL_RAY_OF_FROST) {
 
     class = forgetSpell(ch, spellnum, -1);
 
@@ -1062,17 +1098,15 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
   }
 
+  SET_WAIT(ch, PULSE_VIOLENCE / 2);
+
   if (SINFO.time <= 0) {
     send_to_char(ch, "%s", CONFIG_OK);
     say_spell(ch, spellnum, tch, tobj, FALSE);
     return (call_magic(ch, tch, tobj, spellnum, CASTER_LEVEL(ch), CAST_SPELL));
   }
 
-  //casting time entry point
-  if (char_has_mud_event(ch, eCASTING)) {
-    send_to_char(ch, "You are already attempting to cast!\r\n");
-    return (0);
-  }
+  /* casting time entry point */
   send_to_char(ch, "You begin casting your spell...\r\n");
   say_spell(ch, spellnum, tch, tobj, TRUE);
   IS_CASTING(ch) = TRUE;
@@ -1149,7 +1183,15 @@ ACMD(do_cast) {
     return;
   }
 
-  if (CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
+  if (GET_SKILL(ch, spellnum) == 0) {
+    send_to_char(ch, "You are unfamiliar with that spell.\r\n");
+    return;
+  }
+
+  /* this is the block to make sure they meet the min-level reqs */
+  if (isEpicSpell(spellnum))
+    ;
+  else if (CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
           CLASS_LEVEL(ch, CLASS_CLERIC) < SINFO.min_level[CLASS_CLERIC] &&
           CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
           CLASS_LEVEL(ch, CLASS_RANGER) < SINFO.min_level[CLASS_RANGER] &&
@@ -1161,18 +1203,16 @@ ACMD(do_cast) {
     return;
   }
 
-  if (GET_SKILL(ch, spellnum) == 0) {
-    send_to_char(ch, "You are unfamiliar with that spell.\r\n");
-    return;
-  }
-
+  /* check for spell preparation (memorization, spell-slots, etc) */
   if (!hasSpell(ch, spellnum) && !isEpicSpell(spellnum)) {
-    //       && spellnum != SPELL_ACID_SPLASH && spellnum != SPELL_RAY_OF_FROST) {
     send_to_char(ch, "You aren't ready to cast that spell... (help preparation)\r\n");
     return;
   }
 
-  /* further restrictions, this needs fixing! -zusuk */
+  /* further restrictions, this needs updating! 
+   * what we need to do is loop through the class-array to find the min. stat
+   * then compare to the classes - spell-level vs stat
+   * -zusuk */
   if (CLASS_LEVEL(ch, CLASS_WIZARD) && GET_INT(ch) < 10) {
     send_to_char(ch, "You are not smart enough to cast spells...\r\n");
     return;
@@ -1202,38 +1242,6 @@ ACMD(do_cast) {
     return;
   }
 
-  //epic spell cooldown
-  if (char_has_mud_event(ch, eMUMMYDUST) && spellnum == SPELL_MUMMY_DUST) {
-    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
-    return;
-  }
-  if (char_has_mud_event(ch, eDRAGONKNIGHT) && spellnum == SPELL_DRAGON_KNIGHT) {
-    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
-    return;
-  }
-  if (char_has_mud_event(ch, eGREATERRUIN) && spellnum == SPELL_GREATER_RUIN) {
-    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
-    return;
-  }
-  if (char_has_mud_event(ch, eHELLBALL) && spellnum == SPELL_HELLBALL) {
-    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
-    return;
-  }
-  if (char_has_mud_event(ch, eEPICMAGEARMOR) && spellnum == SPELL_EPIC_MAGE_ARMOR) {
-    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
-    return;
-  }
-  if (char_has_mud_event(ch, eEPICWARDING) && spellnum == SPELL_EPIC_WARDING) {
-    send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 9 minutes.\r\n");
-    return;
-  }
-
   /* Find the target */
   if (t != NULL) {
     char arg[MAX_INPUT_LENGTH];
@@ -1245,7 +1253,7 @@ ACMD(do_cast) {
     /* Copy target to global cast_arg2, for use in spells like locate object */
     strcpy(cast_arg2, t);
   }
-  
+
   if (IS_SET(SINFO.targets, TAR_IGNORE)) {
     target = TRUE;
   } else if (t != NULL && *t) {
@@ -1311,13 +1319,6 @@ ACMD(do_cast) {
     return;
   }
 
-  //maybe use this as a way to keep npc's in check
-  //  mana = mag_manacost(ch, spellnum);
-  //  if ((mana > 0) && (GET_MANA(ch) < mana) && (GET_LEVEL(ch) < LVL_IMMORT)) {
-  //    send_to_char(ch, "You haven't the energy to cast that spell!\r\n");
-  //    return;
-  //  }
-
   if (ROOM_AFFECTED(ch->in_room, RAFF_ANTI_MAGIC)) {
     send_to_char(ch, "Your magic fizzles out and dies!\r\n");
     act("$n's magic fizzles out and dies...", FALSE, ch, 0, 0, TO_ROOM);
@@ -1337,8 +1338,7 @@ ACMD(do_cast) {
     return;
   }
 
-  if (cast_spell(ch, tch, tobj, spellnum))
-    SET_WAIT(ch, PULSE_VIOLENCE / 2);
+  cast_spell(ch, tch, tobj, spellnum);
 }
 
 void spell_level(int spell, int chclass, int level) {
@@ -1454,6 +1454,7 @@ void unused_spell(int spl) {
 /* illusion */
 /* divination */
 /* abjuration */
+
 /* transmutation */
 
 void mag_assign_spells(void) {
@@ -1895,8 +1896,8 @@ void mag_assign_spells(void) {
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "Your greater magic fang wears off.", 4, 7, TRANSMUTATION, FALSE);
   spello(SPELL_SPIKE_GROWTH, "spike growth", 0, 0, 0, POS_STANDING,
-        TAR_IGNORE, FALSE, MAG_ROOM,
-        "The large spikes retract back into the earth.", 5, 8, TRANSMUTATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_ROOM,
+          "The large spikes retract back into the earth.", 5, 8, TRANSMUTATION, FALSE);
   //cunning - shared
   //wisdom - shared
   //charisma - shared
@@ -2044,7 +2045,7 @@ void mag_assign_spells(void) {
   spello(SPELL_FIRE_SEEDS, "fire seeds", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 7, 8, CONJURATION, FALSE);
   spello(SPELL_TRANSPORT_VIA_PLANTS, "transport via plants", 0, 0, 0, POS_STANDING,
-        TAR_OBJ_ROOM, FALSE, MAG_MANUAL, NULL, 8, 10, CONJURATION, FALSE);
+          TAR_OBJ_ROOM, FALSE, MAG_MANUAL, NULL, 8, 10, CONJURATION, FALSE);
   //summon creature 6 - shared
   /* necromancy */
   spello(SPELL_TRANSFORMATION, "transformation", 0, 0, 0, POS_FIGHTING,
@@ -2104,7 +2105,7 @@ void mag_assign_spells(void) {
           "You feel a cloak of blindness dissolve.", 6, 11, EVOCATION, FALSE);
   /* conjuration */
   spello(SPELL_CREEPING_DOOM, "creeping doom", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 10, 11, CONJURATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 10, 11, CONJURATION, FALSE);
   spello(SPELL_SUMMON_CREATURE_7, "summon creature vii", 0, 0, 0,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 10, 11, CONJURATION, FALSE);
   //control weather, enhances some spells (shared)
@@ -2544,7 +2545,7 @@ void mag_assign_spells(void) {
    spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
           NULL, 0, 0, NOSCHOOL, FALSE);
-  */
+   */
   spello(SPELL_INCENDIARY, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
           NULL, 0, 0, NOSCHOOL, FALSE);
@@ -2682,14 +2683,14 @@ void mag_assign_spells(void) {
   skillo(SKILL_TURN_UNDEAD, "turn undead", ACTIVE_SKILL); //515
   skillo(SKILL_WILDSHAPE, "wildshape", ACTIVE_SKILL); //516
   skillo(SKILL_SPELLBATTLE, "spellbattle", ACTIVE_SKILL); //517
-  skillo(SKILL_HITALL, "hitall", ACTIVE_SKILL);  //518
-  skillo(SKILL_CHARGE, "charge", ACTIVE_SKILL);  //519
-  skillo(SKILL_BODYSLAM, "bodyslam", ACTIVE_SKILL);  //520
-  skillo(SKILL_SPRINGLEAP, "spring leap", ACTIVE_SKILL);  //521
-  skillo(SKILL_HEADBUTT, "headbutt", ACTIVE_SKILL);  //522
-  skillo(SKILL_SHIELD_PUNCH, "shield punch", ACTIVE_SKILL);  //523
-  skillo(SKILL_DIRT_KICK, "dirt kick", ACTIVE_SKILL);  //524
-  skillo(SKILL_SAP, "sap", ACTIVE_SKILL);  //525
+  skillo(SKILL_HITALL, "hitall", ACTIVE_SKILL); //518
+  skillo(SKILL_CHARGE, "charge", ACTIVE_SKILL); //519
+  skillo(SKILL_BODYSLAM, "bodyslam", ACTIVE_SKILL); //520
+  skillo(SKILL_SPRINGLEAP, "spring leap", ACTIVE_SKILL); //521
+  skillo(SKILL_HEADBUTT, "headbutt", ACTIVE_SKILL); //522
+  skillo(SKILL_SHIELD_PUNCH, "shield punch", ACTIVE_SKILL); //523
+  skillo(SKILL_DIRT_KICK, "dirt kick", ACTIVE_SKILL); //524
+  skillo(SKILL_SAP, "sap", ACTIVE_SKILL); //525
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 
