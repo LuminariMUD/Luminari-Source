@@ -1960,7 +1960,41 @@ void autoroll_mob(struct char_data *mob) {
     default:
       break;
   }
-
+  /*
+  switch (GET_CLASS(mob)) {
+    case CLASS_WARRIOR:
+    case CLASS_BERSERKER;
+    case CLASS_PALADIN;
+    case CLASS_RANGER;
+      hp = level * 400;
+      damroll = 20;
+      hitroll = 25;
+      AC      = -120 (-12);
+      break;
+    case CLASS_WIZARD;
+    case CLASS_SORCERER;
+      hp = level * 100;
+      damroll = 5;
+      hitroll = 5;
+      AC      = 0;
+      break;
+    case CLASS_BARD;
+    case CLASS_ROGUE;
+      hp = level * 200;
+      damroll = 10;
+      hitroll = 15;
+      AC      = -80 (-8);
+      break;
+    case CLASS_CLERIC;
+    case CLASS_MONK;
+    case CLASS_DRUID;
+      hp = level * 300;
+      damroll = 10;
+      hitroll = 20;
+      AC      = -100 (-10);
+      break;
+  }  
+  */
   /* racial mods */
   switch (GET_RACE(mob)) {
     case NPCRACE_HUMAN:
