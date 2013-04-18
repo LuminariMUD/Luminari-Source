@@ -269,8 +269,9 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define ZEDIT_LEV_MAX              25
 #define ZEDIT_ZONE_CLAIM           26
 #define ZEDIT_ZONE_WEATHER         27
-#define ZEDIT_ARG4                      28
-#define ZEDIT_GR_QUERY                  29
+#define ZEDIT_ARG4                 28
+#define ZEDIT_GR_QUERY             29
+#define ZEDIT_CONFIRM_RESTAT       30
 
 /* Submodes of MEDIT connectedness. */
 #define MEDIT_MAIN_MENU            	0
@@ -519,6 +520,7 @@ void medit_parse(struct descriptor_data *d, char *arg);
 void medit_string_cleanup(struct descriptor_data *d, int terminator);
 ACMD(do_oasis_medit);
 void medit_autoroll_stats(struct descriptor_data *d);
+void autoroll_mob(struct char_data *mob);
 
 /* public functions from oedit.c */
 void oedit_setup_existing(struct descriptor_data *d, int rnum);
