@@ -32,9 +32,6 @@ static int extractions_pending = 0;
 static int apply_ac(struct char_data *ch, int eq_pos);
 static void update_object(struct obj_data *obj, int use);
 
-
-
-
 /* find the first word in a string buffer */
 char *fname(const char *namelist) {
   static char holder[READ_SIZE];
@@ -156,7 +153,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
     case APPLY_AC:
       GET_AC(ch) += mod;
       break;
-      
+
     case APPLY_AC_NEW: // new APPLY_AC for 3.5E armor class
       GET_AC(ch) += mod * -10;
       break;
@@ -257,7 +254,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
     case APPLY_RES_WATER:
       GET_RESISTANCES(ch, DAM_WATER) += mod;
       break;
-      
+
       /* Do Not Use. */
     case APPLY_AGE:
       //ch->player.time.birth -= (mod * SECS_PER_MUD_YEAR);
@@ -305,22 +302,23 @@ void affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[],
  to their 'real points' */
 void reset_char_points(struct char_data *ch) {
   int i = 0;
-  
-  ch->points.max_mana =  ch->real_points.max_mana; 
-  ch->points.max_hit =  ch->real_points.max_hit; 
-  ch->points.max_move =  ch->real_points.max_move; 
-  ch->points.armor =  ch->real_points.armor; 
-  ch->points.spell_res =  ch->real_points.spell_res; 
-  ch->points.hitroll =  ch->real_points.hitroll; 
-  ch->points.damroll =  ch->real_points.damroll; 
-  ch->points.size =  ch->real_points.size; 
+
+  ch->points.max_mana = ch->real_points.max_mana;
+  ch->points.max_hit = ch->real_points.max_hit;
+  ch->points.max_move = ch->real_points.max_move;
+  ch->points.armor = ch->real_points.armor;
+  ch->points.spell_res = ch->real_points.spell_res;
+  ch->points.hitroll = ch->real_points.hitroll;
+  ch->points.damroll = ch->real_points.damroll;
+  ch->points.size = ch->real_points.size;
   for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
-    ch->points.apply_saving_throw[i] =  ch->real_points.apply_saving_throw[i]; 
+    ch->points.apply_saving_throw[i] = ch->real_points.apply_saving_throw[i];
   for (i = 0; i < NUM_DAM_TYPES; i++)
-    ch->points.resistances[i] =  ch->real_points.resistances[i]; 
+    ch->points.resistances[i] = ch->real_points.resistances[i];
 }
 
 #define STAT_CAP 50
+
 /* This updates a character by subtracting everything he is affected by
  * restoring original abilities, and then affecting all again. */
 void affect_total(struct char_data *ch) {
@@ -343,14 +341,14 @@ void affect_total(struct char_data *ch) {
 
   /* any stats that are not an APPLY_ need to be stored */
   armor = GET_AC(ch);
-  
+
   /* reset stats - everything should be at 0 now */
   ch->aff_abils = ch->real_abils;
   reset_char_points(ch);
 
   /* restore stored stats */
   GET_AC(ch) = armor;
-  
+
   /* add gear back on */
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i))
@@ -376,7 +374,7 @@ void affect_total(struct char_data *ch) {
   /* make sure size is between valid values */
   GET_SIZE(ch) = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
   /* end absolute caps */
-  
+
   /* begin relative caps */
   /* end relative caps */
 }
@@ -464,6 +462,61 @@ void affect_join(struct char_data *ch, struct affected_type *af,
     affect_to_char(ch, af);
 }
 
+/* function to update number of lights in a room */
+void check_room_lighting(room_rnum room, struct char_data *ch, bool enter) {
+  int i, value = 0, val2 = 0;
+  struct obj_data *obj, *next_obj = NULL;
+
+  /* check for light items */
+  if (GET_EQ(ch, WEAR_LIGHT))
+    if (GET_OBJ_TYPE(GET_EQ(ch, WEAR_LIGHT)) == ITEM_LIGHT)
+      if (GET_OBJ_VAL(GET_EQ(ch, WEAR_LIGHT), 2)) /* Light ON */
+        value++;
+    
+  /* check for 'magic lights' on worn gear */  
+  for (i = 0; i < NUM_WEARS; i++) {
+    obj = GET_EQ(ch, i);
+    if (obj)
+      if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
+        value++;
+  }
+
+  /* check for 'magic lights' in inventory */  
+  for (obj = ch->carrying; obj; obj = next_obj) {
+    next_obj = obj->next_content;
+    if (obj)
+      if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
+        value++;
+  }
+
+  /* lit-up mobiles (like fire elementals) */
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_LIT))
+    value++;
+
+  /* magically lit individuals */
+  if (AFF_FLAGGED(ch, AFF_MAGE_FLAME))
+    value++;
+    
+  /* done with lights, check globes */
+  //  if (has_globe)
+  //    val2++;
+
+  /* modify lights in room */
+  if (value > 0) {
+    if (enter) {
+      world[room].light += value;
+      world[room].globe += val2;
+    } else {
+      world[room].light -= value;
+      world[room].globe -= val2;
+      if (world[room].light < 0)
+        world[room].light = 0;
+      if (world[room].globe < 0)
+        world[room].globe = 0;
+    }
+  }
+}
+
 /* move a player out of a room */
 void char_from_room(struct char_data *ch) {
   struct char_data *temp;
@@ -478,10 +531,8 @@ void char_from_room(struct char_data *ch) {
 
   char_from_furniture(ch);
 
-  if (GET_EQ(ch, WEAR_LIGHT) != NULL)
-    if (GET_OBJ_TYPE(GET_EQ(ch, WEAR_LIGHT)) == ITEM_LIGHT)
-      if (GET_OBJ_VAL(GET_EQ(ch, WEAR_LIGHT), 2)) /* Light is ON */
-        world[IN_ROOM(ch)].light--;
+  /* checks for light, globes of darkness, etc */
+  check_room_lighting(IN_ROOM(ch), ch, FALSE);
 
   REMOVE_FROM_LIST(ch, world[IN_ROOM(ch)].people, next_in_room);
   IN_ROOM(ch) = NOWHERE;
@@ -501,26 +552,24 @@ void char_to_room(struct char_data *ch, room_rnum room) {
     autoquest_trigger_check(ch, 0, 0, AQ_ROOM_FIND);
     autoquest_trigger_check(ch, 0, 0, AQ_MOB_FIND);
 
-    if (GET_EQ(ch, WEAR_LIGHT))
-      if (GET_OBJ_TYPE(GET_EQ(ch, WEAR_LIGHT)) == ITEM_LIGHT)
-        if (GET_OBJ_VAL(GET_EQ(ch, WEAR_LIGHT), 2)) /* Light ON */
-          world[room].light++;
+    /* checks for light, globes of darkness, etc */
+    check_room_lighting(room, ch, TRUE);
 
     /* Stop fighting now, if we left. */
     if (FIGHTING(ch) && IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))) {
       stop_fighting(FIGHTING(ch));
       stop_fighting(ch);
     }
-    
+
     /* falling */
     if (char_should_fall(ch, FALSE) && !char_has_mud_event(ch, eFALLING)) {
       /* the svariable value of 20 is just a rough number for feet */
-      attach_mud_event(new_mud_event(eFALLING, ch, "20"), 5);  
+      attach_mud_event(new_mud_event(eFALLING, ch, "20"), 5);
       send_to_char(ch, "Suddenly your realize you are falling!\r\n");
       act("$n has just realized $e has no visible means of support!",
               FALSE, ch, 0, 0, TO_ROOM);
     }
-    
+
   }
 }
 
@@ -828,10 +877,10 @@ void obj_to_room(struct obj_data *object, room_rnum room) {
     object->carried_by = NULL;
     if (ROOM_FLAGGED(room, ROOM_HOUSE))
       SET_BIT_AR(ROOM_FLAGS(room), ROOM_HOUSE_CRASH);
-    
+
     /* falling check */
     if (obj_should_fall(object))
-      ;  // fall event for objects
+      ; // fall event for objects
   }
 }
 
@@ -964,13 +1013,13 @@ void extract_obj(struct obj_data *obj) {
     extract_script(obj, OBJ_TRIGGER);
 
   if (obj->events != NULL) {
-	  if (obj->events->iSize > 0) {
-		struct event * pEvent;
+    if (obj->events->iSize > 0) {
+      struct event * pEvent;
 
-		while ((pEvent = simple_list(obj->events)) != NULL)
-		  event_cancel(pEvent);
-	  }
-	  free_list(obj->events);
+      while ((pEvent = simple_list(obj->events)) != NULL)
+        event_cancel(pEvent);
+    }
+    free_list(obj->events);
     obj->events = NULL;
   }
 
@@ -1082,7 +1131,7 @@ void extract_char_final(struct char_data *ch) {
     if (GUARDING(tch) == ch)
       GUARDING(tch) = NULL;
   }
-  
+
   /* transfer objects to room, if any */
   while (ch->carrying) {
     obj = ch->carrying;
@@ -1098,7 +1147,7 @@ void extract_char_final(struct char_data *ch) {
   /* stop any fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
-  
+
   for (k = combat_list; k; k = temp) {
     temp = k->next_fighting;
     if (FIGHTING(k) == ch)
@@ -1584,7 +1633,7 @@ struct group_data * create_group(struct char_data * leader) {
 
   /* Assign Data */
   SET_BIT(GROUP_FLAGS(new_group), GROUP_OPEN);
-  
+
   if (IS_NPC(leader))
     SET_BIT(GROUP_FLAGS(new_group), GROUP_NPC);
 
@@ -1602,7 +1651,7 @@ void free_group(struct group_data * group) {
             tch;
             tch = next_in_list(&Iterator))
       leave_group(tch);
-    
+
     remove_iterator(&Iterator);
   }
 
@@ -1620,7 +1669,7 @@ void leave_group(struct char_data *ch) {
   if ((group = ch->group) == NULL)
     return;
 
-//  if (group->members->iSize == 0)
+  //  if (group->members->iSize == 0)
   send_to_group(NULL, group, "%s has left the group.\r\n", GET_NAME(ch));
 
   remove_from_list(ch, group->members);
@@ -1631,7 +1680,7 @@ void leave_group(struct char_data *ch) {
             tch; tch = next_in_list(&Iterator))
       if (!IS_NPC(tch))
         found_pc = TRUE;
-    
+
     remove_iterator(&Iterator);
   }
 

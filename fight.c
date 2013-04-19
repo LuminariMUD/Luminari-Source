@@ -1683,7 +1683,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       remember(victim, ch);
     } else if (IS_PET(ch) && ch->master && IN_ROOM(ch->master) == IN_ROOM(ch)
             && !IS_NPC(ch->master))
-      remember(victim, ch->master);
+      remember(victim, ch->master);  // help curb pet-fodder methods
   }
 
   /* set to hunting if applicable */
@@ -1693,7 +1693,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       HUNTING(victim) = ch;
     } else if (IS_PET(ch) && ch->master && IN_ROOM(ch->master) == IN_ROOM(ch)
             && !IS_NPC(ch->master))
-      HUNTING(victim) = ch->master;
+      HUNTING(victim) = ch->master;  // help curb pet-fodder methods
   }
   
   dam = damage_handling(ch, victim, dam, attacktype, dam_type); //modify damage

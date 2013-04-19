@@ -336,7 +336,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MAX_ENEMIES  10
 
 // Memorization
-#define NUM_SLOTS	20  //theoretical max num slots per circle
+#define NUM_SLOTS	20  //conersative-value max num slots per circle
 #define NUM_CIRCLES	10  //max num circles
 /* how much space to reserve in the mem arrays */
 #define MAX_MEM		NUM_SLOTS * NUM_CIRCLES
@@ -496,11 +496,11 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MOB_C_MOUNT        28
 #define MOB_ELEMENTAL      29
 #define MOB_ANIMATED_DEAD  30
-/* below this line unfinished */
 #define MOB_GUARD          31  /* will protect citizen */
 #define MOB_CITIZEN	       32  /* will be protected by guard */
-#define MOB_HUNTER         33  /* will track down memory targets */
+#define MOB_HUNTER         33  /* will track down foes & memory targets */
 #define MOB_LISTEN         34  /* will enter room if hearing fighting */
+/* below this line unfinished */
 #define MOB_LIT            35  /* light up mob */
 #define MOB_PLANAR_ALLY    36  /* is a planar ally */
 #define MOB_NOSTEAL        37  /* Can't steal from mob*/
@@ -646,9 +646,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_IMMATERIAL       77  // no physical body (ghost-like)
 #define AFF_CAGE             78  // can't interact/be-interacted with
 #define AFF_MAGE_FLAME       79  // light up an individual
-#define AFF_DARKVISION       80  // light up an individual
-#define AFF_BODYWEAPONRY     81  // light up an individual
-#define AFF_FARSEE           82  // light up an individual
+#define AFF_DARKVISION       80  // perfect vision day/night
+#define AFF_BODYWEAPONRY     81  // martial arts
+#define AFF_FARSEE           82  // can see outside of room
 /** Total number of affect flags not including the don't use flag. */
 // don't forget to add to constants.c!
 #define AFF_WATER_BREATH     AFF_SCUBA  // just the more conventional name
@@ -781,8 +781,8 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAR_WIELD_2H  20  // two-hand weapons
 #define WEAR_HOLD_2H   21  // two-hand held
 #define WEAR_FACE      22  // equipment location face
-/* unfinished */
 #define WEAR_QUIVER     23      // quiver (for ranged weapons)
+/* unfinished */
 #define WEAR_EAR_R      24
 #define WEAR_EAR_L      25
 #define WEAR_EYES       26
