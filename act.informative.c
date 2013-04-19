@@ -2643,6 +2643,11 @@ ACMD(do_consider) {
     send_to_char(ch, "Would you like to borrow a cross and a shovel?\r\n");
     return;
   }
+  if (GET_LEVEL(victim) >= LVL_IMMORT) {
+    /* mobiles level 31+ are 'group-needed' generally */
+    send_to_char(ch, "Don't even think about it without some friends help!\r\n");
+    return;
+  }
   diff = (GET_LEVEL(victim) - GET_LEVEL(ch));
 
   if (diff <= -10)
