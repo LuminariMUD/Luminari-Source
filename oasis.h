@@ -515,6 +515,7 @@ ACMD(do_oasis);
 
 /* public functions from medit.c */
 void medit_setup_existing(struct descriptor_data *d, int rnum);
+void medit_setup_new(struct descriptor_data *d);
 void medit_save_internally(struct descriptor_data *d);
 void medit_parse(struct descriptor_data *d, char *arg);
 void medit_string_cleanup(struct descriptor_data *d, int terminator);
