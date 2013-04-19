@@ -1047,7 +1047,9 @@ void mobile_activity(void) {
         continue;
       } else if (!rand_number(0, 8) && IS_NPC_CASTER(ch)) {
         /* not in combat */
-        npc_spellup(ch);
+        /* another reduction in frequency */
+        if (!rand_number(0, 4))
+          npc_spellup(ch);
       } else if (!rand_number(0, 8) && !IS_NPC_CASTER(ch)) {
         /* not in combat, non-caster */
         ;  // this is where we'd put mob AI to use hide skill, etc
@@ -1082,19 +1084,6 @@ void mobile_activity(void) {
         }
       }
 
-    /* Mob Movement */
-    if (!rand_number(0, 2)) //customize frequency
-      if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
-              ((door = rand_number(0, 18)) < DIR_COUNT) && CAN_GO(ch, door) &&
-              !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&
-              !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_DEATH) &&
-              (!MOB_FLAGGED(ch, MOB_STAY_ZONE) ||
-              (world[EXIT(ch, door)->to_room].zone == world[IN_ROOM(ch)].zone))) {
-        /* If the mob is charmed, do not move the mob. */
-        if (ch->master == NULL)
-          perform_move(ch, door, 1);
-      }
-
     /* Aggressive Mobs */
     if (!MOB_FLAGGED(ch, MOB_HELPER) && (!AFF_FLAGGED(ch, AFF_BLIND) ||
             !AFF_FLAGGED(ch, AFF_CHARM))) {
@@ -1127,6 +1116,35 @@ void mobile_activity(void) {
         }
       }
     }
+
+    /* Mob Movement */
+
+    /* (mob-listen) is mob interested in fights nearby*/
+    if (MOB_FLAGGED(ch, MOB_LISTEN) && !ch->master) {
+      for (door = 0; door < DIR_COUNT; door++) {
+        if (!CAN_GO(ch, door))
+          continue;
+        for (vict = world[EXIT(ch, door)->to_room].people; vict; vict = vict->next_in_room) {
+          if (FIGHTING(vict) && !rand_number(0, 3) && !ROOM_FLAGGED(vict->in_room, ROOM_NOTRACK)) {
+            perform_move(ch, door, 1);
+            return;
+          }
+        }
+      }
+    }
+    
+    /* random movement */
+    if (!rand_number(0, 2)) //customize frequency
+      if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
+              ((door = rand_number(0, 18)) < DIR_COUNT) && CAN_GO(ch, door) &&
+              !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&
+              !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_DEATH) &&
+              (!MOB_FLAGGED(ch, MOB_STAY_ZONE) ||
+              (world[EXIT(ch, door)->to_room].zone == world[IN_ROOM(ch)].zone))) {
+        /* If the mob is charmed, do not move the mob. */
+        if (ch->master == NULL)
+          perform_move(ch, door, 1);
+      }
 
     /* Mob Memory */
     found = FALSE;
