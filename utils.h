@@ -38,6 +38,8 @@
 
 /* Public functions made available from utils.c. Documentation for all functions
  * are made available with the function definition. */
+#define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
+
 int convert_alignment(int align);
 void set_alignment(struct char_data *ch, int alignment);
 char *get_align_by_num_cnd(int align);

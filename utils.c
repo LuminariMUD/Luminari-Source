@@ -27,7 +27,8 @@
 #include "mud_event.h"  // for purgemob event
 
 /* kavir's protocol */
-#define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
+// moved this to utils.h
+//#define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
 /* Functions of a general utility nature
    Functions directly related to utils.h needs

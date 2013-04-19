@@ -1897,7 +1897,7 @@ static void parse_espec(char *buf, int i, int nr) {
 
   if ((ptr = strchr(buf, ':')) != NULL) {
     *(ptr++) = '\0';
-    while (isspace(*ptr))
+    while (isspace_ignoretabs(*ptr))
       ptr++;
   }
   interpret_espec(buf, ptr, i, nr);
