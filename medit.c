@@ -30,7 +30,6 @@
 #include "modify.h"      /* for smash_tilde */
 
 /* local functions */
-static void medit_setup_new(struct descriptor_data *d);
 static void init_mobile(struct char_data *mob);
 static void medit_save_to_disk(zone_vnum zone_num);
 static void medit_disp_positions(struct descriptor_data *d);
@@ -177,7 +176,7 @@ static void medit_save_to_disk(zone_vnum foo) {
   save_mobiles(real_zone(foo));
 }
 
-static void medit_setup_new(struct descriptor_data *d) {
+void medit_setup_new(struct descriptor_data *d) {
   struct char_data *mob;
 
   /* Allocate a scratch mobile structure. */
@@ -1835,7 +1834,9 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator) {
 }
 
 /* function to set a ch (mob) to correct stats */
-
+/* this define is to avoid confusion:  GET_MOVE() is actually hps for
+   all intents and purposes in this context */
+#define MOBS_HPS       GET_MOVE(mob) 
 /* an important note about mobiles besides these values:
    1)  their attack rotation will match their class/level 
    2)  their BAB will match their class/level
@@ -1879,7 +1880,7 @@ void autoroll_mob(struct char_data *mob) {
   bonus = level / 2;  // bonus applied to stats
 
   /* hp, default */
-  GET_MOVE(mob) = (level * level) + (level * 10);
+  MOBS_HPS = (level * level) + (level * 10);
 
   /* damage dice default */
   GET_NDD(mob) = 1; /* number damage dice */
@@ -1889,10 +1890,9 @@ void autoroll_mob(struct char_data *mob) {
   armor_class = 100 + level * 9; // 109 (10) - 370 (37)
 
   /* class modifications to base */
-  // remmber move = hps here 
   switch (GET_CLASS(mob)) {
     case CLASS_WIZARD:
-      GET_MOVE(mob) = GET_MOVE(mob) * 2 / 5; 
+      MOBS_HPS = MOBS_HPS * 2 / 5; 
       GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
       armor_class -= 60;
       GET_INT(mob) += bonus;
@@ -1901,47 +1901,47 @@ void autoroll_mob(struct char_data *mob) {
     case CLASS_SORCERER:
       GET_CHA(mob) += bonus;
       GET_DEX(mob) += bonus;
-      GET_MOVE(mob) = GET_MOVE(mob) * 2 / 5; // remmber move = hps here 
+      MOBS_HPS = MOBS_HPS * 2 / 5; // remmber move = hps here 
       GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
       armor_class -= 60;
       break;
     case CLASS_ROGUE:
       GET_STR(mob) += bonus;
       GET_DEX(mob) += bonus;
-      GET_MOVE(mob) = GET_MOVE(mob) * 3 / 5;
+      MOBS_HPS = MOBS_HPS * 3 / 5;
       armor_class -= 50;
       break;
     case CLASS_BARD:
       GET_CHA(mob) += bonus;
       GET_DEX(mob) += bonus;
       GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
-      GET_MOVE(mob) = GET_MOVE(mob) * 3 / 5;
+      MOBS_HPS = MOBS_HPS * 3 / 5;
       armor_class -= 50;
       break;
     case CLASS_MONK:
       GET_WIS(mob) += bonus;
       GET_DEX(mob) += bonus;
-      GET_MOVE(mob) = GET_MOVE(mob) * 4 / 5;
+      MOBS_HPS = MOBS_HPS * 4 / 5;
       armor_class -= 60; // they will still get wis bonus
       break;
     case CLASS_CLERIC:
       GET_STR(mob) += bonus;
       GET_WIS(mob) += bonus;
       GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
-      GET_MOVE(mob) = GET_MOVE(mob) * 4 / 5;
+      MOBS_HPS = MOBS_HPS * 4 / 5;
       armor_class -= 10;
       break;
     case CLASS_DRUID:
       GET_WIS(mob) += bonus;
       GET_DEX(mob) += bonus;
       GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
-      GET_MOVE(mob) = GET_MOVE(mob) * 4 / 5;
+      MOBS_HPS = MOBS_HPS * 4 / 5;
       armor_class -= 50;
       break;
     case CLASS_BERSERKER:
       GET_STR(mob) += bonus;
       GET_CON(mob) += bonus;
-      GET_MOVE(mob) = GET_MOVE(mob) * 6 / 5;
+      MOBS_HPS = MOBS_HPS * 6 / 5;
       armor_class -= 40;
       break;
     case CLASS_RANGER:
@@ -1960,41 +1960,15 @@ void autoroll_mob(struct char_data *mob) {
     default:
       break;
   }
-  /*
-  switch (GET_CLASS(mob)) {
-    case CLASS_WARRIOR:
-    case CLASS_BERSERKER;
-    case CLASS_PALADIN;
-    case CLASS_RANGER;
-      hp = level * 400;
-      damroll = 20;
-      hitroll = 25;
-      AC      = -120 (-12);
-      break;
-    case CLASS_WIZARD;
-    case CLASS_SORCERER;
-      hp = level * 100;
-      damroll = 5;
-      hitroll = 5;
-      AC      = 0;
-      break;
-    case CLASS_BARD;
-    case CLASS_ROGUE;
-      hp = level * 200;
-      damroll = 10;
-      hitroll = 15;
-      AC      = -80 (-8);
-      break;
-    case CLASS_CLERIC;
-    case CLASS_MONK;
-    case CLASS_DRUID;
-      hp = level * 300;
-      damroll = 10;
-      hitroll = 20;
-      AC      = -100 (-10);
-      break;
-  }  
-  */
+  
+  /* group-required mobiles will be levels 31-34 */
+  if (GET_LEVEL(mob) > 30) {
+    int bonus_level = GET_LEVEL(mob) - 30;
+    
+    MOBS_HPS *= (bonus_level * 2);
+    GET_DAMROLL(mob) += bonus_level;
+  }
+  
   /* racial mods */
   switch (GET_RACE(mob)) {
     case NPCRACE_HUMAN:
@@ -2024,6 +1998,8 @@ void autoroll_mob(struct char_data *mob) {
       GET_STR(mob) += 4;
       GET_CON(mob) += 4;
       GET_DEX(mob) -= 7;
+      if (GET_SIZE(mob) < SIZE_LARGE)
+        GET_SIZE(mob) = SIZE_LARGE;
       break;
     case NPCRACE_ABERRATION:
       GET_SAVE(mob, SAVING_WILL) += 4;
@@ -2069,6 +2045,7 @@ void autoroll_mob(struct char_data *mob) {
     GET_SDD(mob) = 4;
 
 }
+#undef MOBS_HPS
 
 void medit_autoroll_stats(struct descriptor_data *d) {
 

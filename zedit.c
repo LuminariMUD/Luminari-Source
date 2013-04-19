@@ -197,6 +197,7 @@ void perform_zone_restat(struct descriptor_data *d) {
   mob_rnum rmob;
 
   /* make sure mobiles aren't being editted in zone */
+  send_to_char(ch, "Checking medit state...\r\n");
   for (dat = descriptor_list; dat; dat = dat->next) {
     if (STATE(dat) == CON_MEDIT) {
       if (dat->olc && OLC_ZNUM(dat) == zone_num) {
@@ -206,16 +207,22 @@ void perform_zone_restat(struct descriptor_data *d) {
       }
     }
   }
+  send_to_char(ch, "Medit state OK...\r\n");
   
   /* cycle through all mobiles in zone, autostatting them */
   for (i = genolc_zone_bottom(zone_num); i <= zone_table[zone_num].top; i++) {
     if ((rmob = real_mobile(i)) == NOBODY)
       continue;
+    /*
     if (!(mob = read_mobile(rmob, REAL)))
       continue;
+    medit_setup_new(d);
     char_to_room(mob, real_room(1));
+    */
+    medit_setup_existing(d, rmob);
     autoroll_mob(mob);
-    save_mobiles(OLC_ZNUM(d)); 
+    save_mobiles(zone_num); 
+    //extract_char(mob);
   }
   
 }
@@ -465,7 +472,7 @@ static void zedit_disp_menu(struct descriptor_data *d) {
           "%sR%s) Reset Mode     : %s%s\r\n"
           "%sF%s) Zone Flags     : %s%s\r\n"
           "%sM%s) Level Range    : %s%s%s\r\n"
-          "%sA%s) Re-Stat all zone mobiles \r\n"
+          "%sA%s) Re-Stat all zone mobiles (unimplemented)\r\n"
           "[Command list]\r\n",
 
           cyn, OLC_NUM(d), nrm,
@@ -871,13 +878,15 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
             cleanup_olc(d, CLEANUP_ALL);
           }
           break;
+        /*
         case 'a':
         case 'A':
-          /* Restat all mobiles in the MUD? */
+          // Restat all mobiles in the MUD?
           write_to_output(d, "Confirm you want to restat all mobiles "
                   "in the zone (you can NOT undo this once done) :\r\n");
           OLC_MODE(d) = ZEDIT_CONFIRM_RESTAT;
           break;
+        */
         case 'n':
         case 'N':
           /* New entry. */
@@ -1397,8 +1406,9 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
       break;
 
       /*-------------------------------------------------------------------*/
+      /*
     case ZEDIT_CONFIRM_RESTAT:
-      /* this well be confirming to do a restat of all mobiles in zone */
+      // this will be confirming to do a restat of all mobiles in zone
       if (is_abbrev(arg, "yes")) {
         OLC_ZONE(d)->number = 1;
         perform_zone_restat(d);
@@ -1408,6 +1418,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
       
       zedit_disp_menu(d);
       break;
+      */
 
       /*-------------------------------------------------------------------*/
     case ZEDIT_ZONE_NAME:
