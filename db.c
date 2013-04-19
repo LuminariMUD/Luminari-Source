@@ -1871,7 +1871,6 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   }
 
   CASE("Echo") {
-    mudlog(CMP, LVL_IMPL, TRUE, "Echo: '%s'", value);
     ECHO_ENTRIES(mob_proto + i)[ECHO_COUNT(mob_proto + i)] = strdup(value);
     ECHO_COUNT(mob_proto + i)++;
   }
