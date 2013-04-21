@@ -339,6 +339,9 @@ bool move_on_path(struct char_data *ch) {
     PATH_DELAY(ch)--;
     return FALSE;
   }
+  
+  send_to_char(ch, "OK, I am in room %d (%d)", GET_ROOM_VNUM(IN_ROOM(ch)), 
+               IN_ROOM(ch));
 
   PATH_DELAY(ch) = PATH_RESET(ch);
 
@@ -346,26 +349,32 @@ bool move_on_path(struct char_data *ch) {
     PATH_INDEX(ch) = 0;
 
   next = GET_PATH(ch, PATH_INDEX(ch));
-  /* debug */
-  send_to_char(ch, "DEBUG:  Next (get-path):  %d, Path-Index:  %d, Real_Room(next):  %d\r\n",
-               next, PATH_INDEX(ch), real_room(next));
-  /* end debug */
   
+  send_to_char(ch, "PATH:  Path-Index:  %d, Next (get-path vnum):  %d (%d).\r\n",
+               next, PATH_INDEX(ch), real_room(next));
+
   dir = find_first_step(IN_ROOM(ch), real_room(next));
 
+  if (EXIT(ch, dir)->to_room != real_room(next)) {
+    send_to_char(ch, "Hrm, it appears I am off-path...\r\n");
+    send_to_char(ch, "I want to go %s, which is room %d, but I need to get to"
+            " room %d..\r\n", dirs[dir], GET_ROOM_VNUM(EXIT(ch, dir)->to_room),
+            next);
+  }
+          
   switch (dir) {
     case BFS_ERROR:
-      send_to_char(ch, "Hmm.. something seems to be wrong.\r\n");
+      send_to_char(ch, "Hmm.. something seems to be seriously wrong.\r\n");
       break;
     case BFS_ALREADY_THERE:
-      send_to_char(ch, "You're already in the right room!!\r\n");
+      send_to_char(ch, "I seem to be in the right room already!\r\n");
       break;
     case BFS_NO_PATH:
-      send_to_char(ch, "You can't sense a trail to %d from here.\r\n", 
-              real_room(next));
+      send_to_char(ch, "I can't sense a trail to %d (%d) from here.\r\n", 
+              next, real_room(next));
       break;
     default: /* Success! */
-      send_to_char(ch, "You sense a trail %s from here!\r\n", dirs[dir]);
+      send_to_char(ch, "I sense a trail %s from here!\r\n", dirs[dir]);
       perform_move(ch, dir, 1);
       break;
   }
