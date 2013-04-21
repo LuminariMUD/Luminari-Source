@@ -340,7 +340,7 @@ bool move_on_path(struct char_data *ch) {
     return FALSE;
   }
   
-  send_to_char(ch, "OK, I am in room %d (%d)", GET_ROOM_VNUM(IN_ROOM(ch)), 
+  send_to_char(ch, "OK, I am in room %d (%d)...  ", GET_ROOM_VNUM(IN_ROOM(ch)), 
                IN_ROOM(ch));
 
   PATH_DELAY(ch) = PATH_RESET(ch);
@@ -351,7 +351,7 @@ bool move_on_path(struct char_data *ch) {
   next = GET_PATH(ch, PATH_INDEX(ch));
   
   send_to_char(ch, "PATH:  Path-Index:  %d, Next (get-path vnum):  %d (%d).\r\n",
-               next, PATH_INDEX(ch), real_room(next));
+               PATH_INDEX(ch), next, real_room(next));
 
   dir = find_first_step(IN_ROOM(ch), real_room(next));
 
