@@ -1747,10 +1747,10 @@ void add_follower(struct char_data *ch, struct char_data *leader) {
  * returned in buf.
  * @param[in] fl The file to be read from.
  * @param[out] buf The next non-blank line read from the file. Buffer given must
- * be at least READ_SIZE (256) characters large.
+ * be at least READ_SIZE (512) characters large.
  * @retval int The number of lines advanced in the file. */
 int get_line(FILE *fl, char *buf) {
-  char temp[READ_SIZE];
+  char temp [READ_SIZE];
   int lines = 0;
   int sl;
 
@@ -1765,7 +1765,7 @@ int get_line(FILE *fl, char *buf) {
   while (sl > 0 && (temp[sl - 1] == '\n' || temp[sl - 1] == '\r'))
     temp[--sl] = '\0';
 
-  strcpy(buf, temp); /* strcpy: OK, if buf >= READ_SIZE (256) */
+  strcpy(buf, temp); /* strcpy: OK, if buf >= READ_SIZE (512) */
   return (lines);
 }
 
