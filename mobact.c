@@ -360,6 +360,8 @@ bool move_on_path(struct char_data *ch) {
     send_to_char(ch, "I want to go %s, which is room %d, but I need to get to"
             " room %d..\r\n", dirs[dir], GET_ROOM_VNUM(EXIT(ch, dir)->to_room),
             next);
+  } else {
+    send_to_char(ch, "... it looks like my path is perfect so far!\r\n");
   }
           
   switch (dir) {
