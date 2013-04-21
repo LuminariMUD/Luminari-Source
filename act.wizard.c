@@ -1030,7 +1030,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
     memory_rec *names;
     send_to_char(ch, "\tcMEMORY:\tC");
     for (names = MEMORY(k); names; names = names->next)
-      send_to_char(ch, "%d ", names->id);
+      send_to_char(ch, "%ld ", names->id);
     send_to_char(ch, "\tn\r\n");
   }
 
