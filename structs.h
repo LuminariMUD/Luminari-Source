@@ -1628,6 +1628,7 @@ struct char_special_data_saved {
   long idnum; /**< PC's idnum; -1 for mobiles. */
   int act[PM_ARRAY_MAX]; /**< act flags for NPC's; player flag for PC's */
   int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
+  int warding[MAX_WARDING]; //saved warding spells like stoneskin
 };
 
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */
@@ -1681,7 +1682,6 @@ struct player_special_data_saved {
   ubyte abilities[MAX_ABILITIES + 1]; //abilities
   ubyte morphed; //polymorphed and form
   byte class_level[MAX_CLASSES]; //multi class
-  int warding[MAX_WARDING]; //saved warding spells like stoneskin
   int spells_to_learn; //prac sessions left
   int abilities_to_learn; //training sessiosn left
   ubyte boosts; //stat boosts left

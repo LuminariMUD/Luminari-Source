@@ -166,7 +166,8 @@ lists.o: lists.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h dg_event.h
 magic.o: magic.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h handler.h db.h interpreter.h constants.h \
- dg_scripts.h class.h fight.h mud_event.h dg_event.h act.h mudlim.h
+ dg_scripts.h class.h fight.h mud_event.h dg_event.h act.h mudlim.h \
+ oasis.h
 mail.o: mail.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h interpreter.h handler.h mail.h modify.h mudlim.h
 medit.o: medit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \

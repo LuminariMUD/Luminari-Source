@@ -246,14 +246,18 @@ void perform_call(struct char_data *ch, int call_type, int level) {
   /* setting mob strength according to 'level' */
   GET_LEVEL(mob) = level;
   for (i = 0; i < level; i++)
-    GET_MAX_HIT(mob) += dice(2, 4) + 1;
-  GET_HIT(mob) = GET_MAX_HIT(mob);
-  GET_HITROLL(mob) += level / 4;
-  GET_DAMROLL(mob) += level / 4;
+    GET_REAL_MAX_HIT(mob) += dice(2, 4) + 1;
+  GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
+  GET_REAL_HITROLL(mob) += level / 4;
+  GET_REAL_DAMROLL(mob) += level / 4;
 
   /* make sure paladin mount is appropriate size to ride */
-  if (call_type == MOB_C_MOUNT)
+  if (call_type == MOB_C_MOUNT) {
     GET_SIZE(mob) = GET_SIZE(ch) + 1;
+    GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
+  }
+  
+  affect_total(mob);
 
   SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
   act("$n calls $N!", FALSE, ch, 0, mob, TO_ROOM);

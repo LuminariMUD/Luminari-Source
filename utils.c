@@ -35,6 +35,10 @@
  */
 
 
+/* checks for 'warding' on players/mobiles - the need for this function
+   is because players save this value, mobiles don't */
+
+
 /* this function in conjuction with the AFF_GROUP flag will cause mobs who
    load in the same room to group up */
 void set_mob_grouping(struct char_data *ch) {
