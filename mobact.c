@@ -341,7 +341,6 @@ bool move_on_path(struct char_data *ch) {
   }
 
   PATH_DELAY(ch) = PATH_RESET(ch);
-  PATH_INDEX(ch)++;
 
   if (PATH_INDEX(ch) >= PATH_SIZE(ch) || PATH_INDEX(ch) < 0)
     PATH_INDEX(ch) = 0;
@@ -371,6 +370,8 @@ bool move_on_path(struct char_data *ch) {
       break;
   }
 
+  PATH_INDEX(ch)++;
+  
   return TRUE;
 }
 
