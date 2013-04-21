@@ -803,9 +803,12 @@ do                                                              \
 #define CLOUDKILL(ch)    ((ch)->char_specials.cloudkill)
 
 //  spells / skills
-#define GET_WARDING(ch, slot)		(ch->player_specials->saved.warding[slot])
-#define GET_IMAGES(ch)		(ch->player_specials->saved.warding[MIRROR])
-#define GET_STONESKIN(ch)	(ch->player_specials->saved.warding[STONESKIN])
+#define GET_ALIGNMENT(ch) ((ch)->char_specials.saved.alignment)
+
+
+#define GET_WARDING(ch, slot)		((ch)->char_specials.saved.warding[slot])
+#define GET_IMAGES(ch)		((ch)->char_specials.saved.warding[MIRROR])
+#define GET_STONESKIN(ch)	((ch)->char_specials.saved.warding[STONESKIN])
 #define PARRY_LEFT(ch)		((ch)->char_specials.parryAttempts)
 #define IS_MORPHED(ch)		(ch->player_specials->saved.morphed)
 #define GET_SALVATION_NAME(ch)  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->salvation_name))

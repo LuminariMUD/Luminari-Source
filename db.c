@@ -3918,6 +3918,7 @@ void reset_char(struct char_data *ch) {
 
 /* clear ALL the working variables of a char; do NOT free any space alloc'ed */
 void clear_char(struct char_data *ch) {
+  int i = 0;
   memset((char *) ch, 0, sizeof (struct char_data));
 
   IN_ROOM(ch) = NOWHERE;
@@ -3927,6 +3928,10 @@ void clear_char(struct char_data *ch) {
   GET_POS(ch) = POS_STANDING;
   ch->mob_specials.default_pos = POS_STANDING;
   ch->events = NULL;
+  
+  /* worried about mobiles having junk-data for wards */
+  for (i = 0; i < MAX_WARDING; i++)
+    GET_WARDING(ch, i) = 0;
 
   GET_REAL_AC(ch) = 100; /* Basic Armor */
   if (GET_REAL_MAX_MANA(ch) < 100)
