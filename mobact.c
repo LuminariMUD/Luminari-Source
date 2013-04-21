@@ -347,10 +347,29 @@ bool move_on_path(struct char_data *ch) {
     PATH_INDEX(ch) = 0;
 
   next = GET_PATH(ch, PATH_INDEX(ch));
-  dir = find_first_step(ch->in_room, real_room(next));
+  /* debug */
+  send_to_char(ch, "DEBUG:  Next (get-path):  %d, Path-Index:  %d, Real_Room(next):  %d\r\n",
+               next, PATH_INDEX(ch), real_room(next));
+  /* end debug */
+  
+  dir = find_first_step(IN_ROOM(ch), real_room(next));
 
-  if (dir >= 0)
-    perform_move(ch, dir, 1);
+  switch (dir) {
+    case BFS_ERROR:
+      send_to_char(ch, "Hmm.. something seems to be wrong.\r\n");
+      break;
+    case BFS_ALREADY_THERE:
+      send_to_char(ch, "You're already in the right room!!\r\n");
+      break;
+    case BFS_NO_PATH:
+      send_to_char(ch, "You can't sense a trail to %d from here.\r\n", 
+              real_room(next));
+      break;
+    default: /* Success! */
+      send_to_char(ch, "You sense a trail %s from here!\r\n", dirs[dir]);
+      perform_move(ch, dir, 1);
+      break;
+  }
 
   return TRUE;
 }
@@ -1045,11 +1064,9 @@ void mobile_activity(void) {
         else
           npc_class_behave(ch);
         continue;
-      } else if (!rand_number(0, 8) && IS_NPC_CASTER(ch)) {
+      } else if (!rand_number(0, 9) && IS_NPC_CASTER(ch)) {
         /* not in combat */
-        /* another reduction in frequency */
-        if (!rand_number(0, 4))
-          npc_spellup(ch);
+        npc_spellup(ch);
       } else if (!rand_number(0, 8) && !IS_NPC_CASTER(ch)) {
         /* not in combat, non-caster */
         ;  // this is where we'd put mob AI to use hide skill, etc
