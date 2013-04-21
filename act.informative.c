@@ -676,11 +676,13 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
     return;
   }
   
+  /*
   if(!IS_DARK(target_room) && ULTRA_BLIND(ch, target_room)) {
     send_to_char(ch, "\tWIt is far too bright to see anything...\tn\r\n");
     return;
   }
-
+  */
+  
   // staff can see some extra details
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
     sprintbitarray(ROOM_FLAGS(IN_ROOM(ch)), room_bits, RF_ARRAY_MAX, buf);

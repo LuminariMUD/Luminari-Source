@@ -378,6 +378,7 @@ int save_mobiles(zone_rnum rznum)
 int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
 {
   int i = 0;
+  char buf[MAX_STRING_LENGTH] = { '\0' }, buf2[MAX_STRING_LENGTH] = { '\0' };
   
   if (GET_ATTACK(mob) != 0)
     fprintf(fd, "BareHandAttack: %d\n", GET_ATTACK(mob));
@@ -478,6 +479,17 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
       if (ECHO_ENTRIES(mob)[i] != NULL)
         fprintf(fd, "Echo: %s\n", ECHO_ENTRIES(mob)[i]);
   }
+  /* paths */
+  if (PATH_SIZE(mob)) {
+    sprintf(buf, "Path: %d:", PATH_RESET(mob));
+    for (i = 0; i < PATH_SIZE(mob); i++) {
+      sprintf(buf2, "%d ", GET_PATH(mob, i));
+      strcat(buf, buf2);
+    }
+    strcat(buf, "\n");
+    fprintf(fd, buf);
+  }
+  /* finalize */
   fputs("E\n", fd);
   return TRUE;
 }

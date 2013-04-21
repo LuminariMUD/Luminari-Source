@@ -1876,7 +1876,28 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   }
 
   CASE("Path") {
-    // handle paths here..
+    const char *temp = value;
+    
+    log("Path encountered in ESpec.");
+    PATH_SIZE(&mob_proto[i]) = 0;
+    PATH_RESET(&mob_proto[i]) = num_arg;
+    PATH_DELAY(&mob_proto[i]) = PATH_RESET(&mob_proto[i]);
+    // parse rest to add paths...    
+    while (*temp != ':' && *temp != 0)
+      temp++;
+
+    if (*temp == ':') // else we get a 0 at start...
+      temp++;
+    while (*temp != 0) {
+      room_vnum room = atoi(temp);
+      if (room) {
+        log("Path Index = %d  (Current Size %d)", room, PATH_SIZE(&mob_proto[i]));
+        GET_PATH(&mob_proto[i], PATH_SIZE(&mob_proto[i])++) = room;
+      }
+      temp++;
+      while (*temp != ' ' && *temp != 0)
+        temp++;
+    }
   }
   
   if (!matched) {
