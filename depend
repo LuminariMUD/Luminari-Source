@@ -178,7 +178,7 @@ memorize.o: memorize.c conf.h sysdep.h structs.h protocol.h lists.h \
  constants.h act.h handler.h spec_procs.h
 mobact.o: mobact.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h interpreter.h handler.h spells.h constants.h act.h \
- graph.h fight.h spec_procs.h mud_event.h dg_event.h modify.h
+ graph.h fight.h spec_procs.h mud_event.h dg_event.h modify.h mobact.h
 modify.o: modify.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h handler.h db.h comm.h spells.h mail.h boards.h \
  improved-edit.h oasis.h class.h dg_scripts.h modify.h quest.h ibt.h \
@@ -267,8 +267,8 @@ utils.o: utils.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 weather.o: weather.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h
 zedit.o: zedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
- race.h comm.h interpreter.h db.h constants.h genolc.h genzon.h oasis.h \
- dg_scripts.h
+ race.h comm.h interpreter.h db.h constants.h genolc.h genzon.h genmob.h \
+ oasis.h dg_scripts.h handler.h
 zmalloc.o: zmalloc.c
 zone_procs.o: zone_procs.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h act.h \

@@ -107,6 +107,7 @@
       <in>medit.c</in>
       <in>memorize.c</in>
       <in>mobact.c</in>
+      <in>mobact.h</in>
       <in>modify.c</in>
       <in>modify.h</in>
       <in>msgedit.c</in>

@@ -233,12 +233,12 @@ static void init_mobile(struct char_data *mob) {
   GET_WEIGHT(mob) = 200;
   GET_HEIGHT(mob) = 200;
 
-  GET_REAL_STR(mob) = 11;
-  GET_REAL_CON(mob) = 11;
-  GET_REAL_DEX(mob) = 11;
-  GET_REAL_INT(mob) = 11;
-  GET_REAL_WIS(mob) = 11;
-  GET_REAL_CHA(mob) = 11;
+  GET_REAL_STR(mob) = 10;
+  GET_REAL_CON(mob) = 10;
+  GET_REAL_DEX(mob) = 10;
+  GET_REAL_INT(mob) = 10;
+  GET_REAL_WIS(mob) = 10;
+  GET_REAL_CHA(mob) = 10;
   mob->aff_abils = mob->real_abils;
   reset_char_points(mob);
 
@@ -522,12 +522,25 @@ static void disp_align_menu(struct descriptor_data *d) {
 /* Display main menu. */
 static void medit_disp_menu(struct descriptor_data *d) {
   struct char_data *mob = NULL;
+  int i = 0;
   char flags[MAX_STRING_LENGTH] = {'\0'},
-  flag2[MAX_STRING_LENGTH] = {'\0'};
+       flag2[MAX_STRING_LENGTH] = {'\0'},
+       path[MAX_STRING_LENGTH] = {'\0'},
+       buf[MAX_STRING_LENGTH] = {'\0'};
 
   mob = OLC_MOB(d);
   get_char_colors(d->character);
   clear_screen(d);
+
+  if (PATH_SIZE(mob) == 0) {
+    strcpy(path, "No Path Defined");
+  } else {
+    sprintf(path, "Delay %d Path - ", PATH_RESET(mob));
+    for (i = 0; i < PATH_SIZE(mob); i++) {
+      sprintf(buf, "%d ", GET_PATH(mob, i));
+      strcat(path, buf);
+    }
+  }  
 
   write_to_output(d,
           "-- Mob Number:  [%s%d%s]\r\n"
@@ -566,6 +579,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
           "%sA%s) NPC Flags : %s%s\r\n"
           "%sB%s) AFF Flags : %s%s\r\n"
           "%sS%s) Script    : %s%s\r\n"
+          "%sV%s) Path Edit : %s%s%s\r\n"
           "%sW%s) Copy mob\r\n"
           "%sX%s) Delete mob\r\n"
           "%sQ%s) Quit\r\n"
@@ -590,6 +604,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
           grn, nrm, cyn, flags,
           grn, nrm, cyn, flag2,
           grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
+          grn, nrm, cyn, path, nrm,
           grn, nrm,
           grn, nrm,
           grn, nrm
@@ -926,6 +941,12 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         case 'X':
           write_to_output(d, "Are you sure you want to delete this mobile? ");
           OLC_MODE(d) = MEDIT_DELETE;
+          return;
+        case 'v':
+        case 'V':
+          OLC_MODE(d) = MEDIT_PATH_DELAY;
+          i++;
+          write_to_output(d, "Enter Path Delay Count > ");
           return;
         case 's':
         case 'S':
@@ -1788,6 +1809,24 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       GET_SIZE(OLC_MOB(d)) = LIMIT(i, 0, NUM_SIZES - 1);
       break;
 
+    case MEDIT_PATH_DELAY:
+      PATH_SIZE(OLC_MOB(d)) = 0;
+      PATH_RESET(OLC_MOB(d)) = atoi(arg);
+      PATH_DELAY(OLC_MOB(d)) = PATH_RESET(OLC_MOB(d));
+      write_to_output(d, "Begin path...\r\n");
+      OLC_MODE(d) = MEDIT_PATH_EDIT;
+      return;  /* this will jump immediately to path edit below */
+      break;
+      
+    case MEDIT_PATH_EDIT:
+      write_to_output(d, "Enter path (terminate with 0)\r\n");
+      if (atoi(arg) && PATH_SIZE(OLC_MOB(d)) < MAX_PATH - 1) {
+        GET_PATH(OLC_MOB(d), PATH_SIZE(OLC_MOB(d))++) = atoi(arg);
+        write_to_output(d, "Value received!  Continuing...\r\n");
+        return;
+      }
+      break;
+   
     case MEDIT_COPY:
       if ((i = real_mobile(atoi(arg))) != NOWHERE) {
         medit_setup_existing(d, i);
@@ -1905,7 +1944,7 @@ void autoroll_mob(struct char_data *mob) {
     case CLASS_SORCERER:
       GET_CHA(mob) += bonus;
       GET_DEX(mob) += bonus;
-      MOBS_HPS = MOBS_HPS * 2 / 5; // remmber move = hps here 
+      MOBS_HPS = MOBS_HPS * 2 / 5;
       GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
       armor_class -= 60;
       break;
