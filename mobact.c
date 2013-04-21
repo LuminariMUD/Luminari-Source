@@ -835,7 +835,7 @@ void npc_class_behave(struct char_data *ch) {
 /* this defines maximum amount of times the function will check the
  spellup array for a valid spell 
  note:  npc_offensive_spells() uses this define as well */
-#define MAX_LOOPS 10
+#define MAX_LOOPS 20
 
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
@@ -941,6 +941,7 @@ void npc_offensive_spells(struct char_data *ch) {
 
   if (!ch)
     return;
+  
   if (MOB_FLAGGED(ch, MOB_NOCLASS))
     return;
 
@@ -995,7 +996,7 @@ void npc_offensive_spells(struct char_data *ch) {
         break;
     } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)]);
 
-    if (loop_counter < (MAX_LOOPS / 2)) {
+    if (loop_counter < (MAX_LOOPS / 2) && spellnum != -1) {
       // found a spell, cast it
       cast_spell(ch, tch, NULL, spellnum);
       return;
@@ -1061,10 +1062,6 @@ void mobile_activity(void) {
 
     /* If the mob has no specproc, do the default actions */
 
-    /* follow set path for mobile (like patrols) */
-    if (move_on_path(ch))
-      continue;
-
     // entry point for npc race and class behaviour in combat -zusuk
     if (GET_LEVEL(ch) > NEWBIE_LEVEL) {
       if (FIGHTING(ch)) {
@@ -1076,7 +1073,7 @@ void mobile_activity(void) {
         else
           npc_class_behave(ch);
         continue;
-      } else if (!rand_number(0, 9) && IS_NPC_CASTER(ch)) {
+      } else if (!rand_number(0, 8) && IS_NPC_CASTER(ch)) {
         /* not in combat */
         npc_spellup(ch);
       } else if (!rand_number(0, 8) && !IS_NPC_CASTER(ch)) {
@@ -1087,9 +1084,6 @@ void mobile_activity(void) {
 
     /* send out mobile echos to room or zone */
     mobile_echos(ch);
-
-    /* hunt a victim, if applicable */
-    hunt_victim(ch);
 
     /* Scavenger (picking up objects) */
     if (MOB_FLAGGED(ch, MOB_SCAVENGER))
@@ -1146,35 +1140,6 @@ void mobile_activity(void) {
       }
     }
 
-    /* Mob Movement */
-
-    /* (mob-listen) is mob interested in fights nearby*/
-    if (MOB_FLAGGED(ch, MOB_LISTEN) && !ch->master) {
-      for (door = 0; door < DIR_COUNT; door++) {
-        if (!CAN_GO(ch, door))
-          continue;
-        for (vict = world[EXIT(ch, door)->to_room].people; vict; vict = vict->next_in_room) {
-          if (FIGHTING(vict) && !rand_number(0, 3) && !ROOM_FLAGGED(vict->in_room, ROOM_NOTRACK)) {
-            perform_move(ch, door, 1);
-            return;
-          }
-        }
-      }
-    }
-    
-    /* random movement */
-    if (!rand_number(0, 2)) //customize frequency
-      if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
-              ((door = rand_number(0, 18)) < DIR_COUNT) && CAN_GO(ch, door) &&
-              !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&
-              !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_DEATH) &&
-              (!MOB_FLAGGED(ch, MOB_STAY_ZONE) ||
-              (world[EXIT(ch, door)->to_room].zone == world[IN_ROOM(ch)].zone))) {
-        /* If the mob is charmed, do not move the mob. */
-        if (ch->master == NULL)
-          perform_move(ch, door, 1);
-      }
-
     /* Mob Memory */
     found = FALSE;
     /* loop through room, check if each person is in memory */
@@ -1218,6 +1183,42 @@ void mobile_activity(void) {
       if (found)
         continue;
     }
+    
+    /* Mob Movement */
+
+    /* follow set path for mobile (like patrols) */
+    if (move_on_path(ch))
+      continue;
+
+    /* hunt a victim, if applicable */
+    hunt_victim(ch);
+
+    /* (mob-listen) is mob interested in fights nearby*/
+    if (MOB_FLAGGED(ch, MOB_LISTEN) && !ch->master) {
+      for (door = 0; door < DIR_COUNT; door++) {
+        if (!CAN_GO(ch, door))
+          continue;
+        for (vict = world[EXIT(ch, door)->to_room].people; vict; vict = vict->next_in_room) {
+          if (FIGHTING(vict) && !rand_number(0, 3) && !ROOM_FLAGGED(vict->in_room, ROOM_NOTRACK)) {
+            perform_move(ch, door, 1);
+            return;
+          }
+        }
+      }
+    }
+    
+    /* random movement */
+    if (!rand_number(0, 2)) //customize frequency
+      if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
+              ((door = rand_number(0, 18)) < DIR_COUNT) && CAN_GO(ch, door) &&
+              !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&
+              !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_DEATH) &&
+              (!MOB_FLAGGED(ch, MOB_STAY_ZONE) ||
+              (world[EXIT(ch, door)->to_room].zone == world[IN_ROOM(ch)].zone))) {
+        /* If the mob is charmed, do not move the mob. */
+        if (ch->master == NULL)
+          perform_move(ch, door, 1);
+      }
 
     /* helping group members use to be here, now its in 
      * perform_violence() in fight.c */
