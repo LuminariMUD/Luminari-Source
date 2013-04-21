@@ -34,7 +34,7 @@
 #define log			basic_mud_log
 
 /** Standard line size, used for many string limits. */
-#define READ_SIZE	256
+#define READ_SIZE	512
 
 /* Public functions made available from utils.c. Documentation for all functions
  * are made available with the function definition. */
