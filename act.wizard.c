@@ -1017,6 +1017,22 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
       send_to_char(ch, "\r\n");
   }
 
+  if (PATH_SIZE(k)) {
+    send_to_char(ch, "Path Index: \tc%d\tn  Delay/Reset \tc%d/%d\tn\r\n",
+            PATH_INDEX(k), PATH_DELAY(k), PATH_RESET(k));
+    send_to_char(ch, "Path: \tc");
+    for (i = 0; i < PATH_SIZE(k); i++)
+      send_to_char(ch, "%d ", GET_PATH(k, i));
+    send_to_char(ch, "\tn\r\n");
+  }
+  
+  if (IS_NPC(k)) {
+    memory_rec *names;
+    send_to_char(ch, "\tcMEMORY:\tC");
+    for (names = MEMORY(k); names; names = names->next)
+      send_to_char(ch, "%d ", names->id);
+    send_to_char(ch, "\tn\r\n");
+  }
 
   send_to_char(ch,
           "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
