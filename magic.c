@@ -25,6 +25,7 @@
 #include "mud_event.h"
 #include "act.h"  //perform_wildshapes
 #include "mudlim.h"
+#include "oasis.h"  // mob autoroller
 
 //external
 extern struct raff_node *raff_list;
@@ -3724,14 +3725,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   struct char_data *mob = NULL;
   struct obj_data *tobj, *next_obj;
   int pfail = 0, msg = 0, fmsg = 0, num = 1, handle_corpse = FALSE, i;
-  int hp_bonus = 0, dam_bonus = 0, hit_bonus = 0;
   int mob_level = 0;
   mob_vnum mob_num = 0;
 
   if (ch == NULL)
     return;
-
-  mob_level = CASTER_LEVEL(ch) - 11;
 
   switch (spellnum) {
 
@@ -3785,19 +3783,24 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       handle_corpse = TRUE;
       msg = 12;
       fmsg = rand_number(2, 6); /* Random fail message. */
-      if (CASTER_LEVEL(ch) >= 30)
+      if (CASTER_LEVEL(ch) >= 30) {
         mob_num = MOB_WIGHT;
-      else if (CASTER_LEVEL(ch) >= 25)
+        mob_level = rand_number(MIN(CASTER_LEVEL(ch) -1, 24), 
+                CASTER_LEVEL(ch));
+      } else if (CASTER_LEVEL(ch) >= 25) {
         mob_num = MOB_BANSHEE;
-      else if (CASTER_LEVEL(ch) >= 20)
+        mob_level = rand_number(MIN(CASTER_LEVEL(ch) -1, 19), 
+                CASTER_LEVEL(ch));
+      } else if (CASTER_LEVEL(ch) >= 20) {
         mob_num = MOB_SPECTRE;
-      else
+        mob_level = rand_number(MIN(CASTER_LEVEL(ch) -1, 14), 
+                CASTER_LEVEL(ch));
+      } else {
         mob_num = MOB_GHOST;
+        mob_level = rand_number(MIN(CASTER_LEVEL(ch) -1, 9), 
+                CASTER_LEVEL(ch));
+      }
       pfail = 10; /* 10% failure, should vary in the future. */
-
-      hp_bonus += mob_level * 5;
-      dam_bonus += mob_level;
-      hit_bonus += mob_level;
 
       break;
 
@@ -3807,6 +3810,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       fmsg = rand_number(2, 6); /* Random fail message. */
       mob_num = MOB_MUMMY_LORD;
       pfail = 0;
+      mob_level = 30;
       break;
 
     case SPELL_DRAGON_KNIGHT: //epic
@@ -3815,6 +3819,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       fmsg = rand_number(2, 6); /* Random fail message. */
       mob_num = MOB_RED_DRAGON;
       pfail = 0;
+      mob_level = 30;
       break;
 
     case SPELL_ELEMENTAL_SWARM: // conjuration
@@ -3924,24 +3929,22 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       mob_num = MOB_BLADE_OF_DISASTER;
       pfail = 0;
       
-      hp_bonus += mob_level * 5;
-      dam_bonus += mob_level;
-      hit_bonus += mob_level;
+      mob_level = rand_number(MIN(CASTER_LEVEL(ch) -1, 14), 
+                MIN(CASTER_LEVEL(ch), 20));
       
       break;
 
     case SPELL_SUMMON_NATURES_ALLY_9:
     case SPELL_SUMMON_CREATURE_9: //conjuration
-      hp_bonus += mob_level * 5;
-      dam_bonus += 4;
-      hit_bonus += 5;
+      mob_level = MAX(18, CASTER_LEVEL(ch) - rand_number(0, 5));
     case SPELL_SUMMON_NATURES_ALLY_8:
     case SPELL_SUMMON_CREATURE_8: //conjuration
-      hp_bonus += mob_level * 5;
-      dam_bonus += 3;
-      hit_bonus += 4;
+      if (!mob_level)
+        mob_level = MAX(16, CASTER_LEVEL(ch) - rand_number(5, 10));
     case SPELL_SUMMON_NATURES_ALLY_7:
     case SPELL_SUMMON_CREATURE_7: //conjuration
+      if (!mob_level)
+        mob_level = MAX(16, CASTER_LEVEL(ch) - rand_number(5, 10));
       handle_corpse = FALSE;
       fmsg = rand_number(2, 6); /* Random fail message. */
       switch (dice(1, 4)) {
@@ -3962,10 +3965,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
           msg = 10;
           break;
       }
-      hp_bonus += mob_level * 5;
-      dam_bonus += mob_level;
-      hit_bonus += mob_level;
-      pfail = 0;
+      pfail = 10;
       break;
 
       /*
@@ -4002,6 +4002,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   /* new limit cap on certain mobiles */
   switch (spellnum) {
+    case SPELL_SUMMON_NATURES_ALLY_9:
+    case SPELL_SUMMON_NATURES_ALLY_8:
+    case SPELL_SUMMON_NATURES_ALLY_7:
     case SPELL_SUMMON_CREATURE_9: //conjuration
     case SPELL_SUMMON_CREATURE_8: //conjuration
     case SPELL_SUMMON_CREATURE_7: //conjuration
@@ -4039,15 +4042,16 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     /* give the mobile some bonuses */
     /* ALSO special handling for clone spell */
     switch (spellnum) {
+      case SPELL_SUMMON_NATURES_ALLY_9:
+      case SPELL_SUMMON_NATURES_ALLY_8:
+      case SPELL_SUMMON_NATURES_ALLY_7:
+      case SPELL_BLADE_OF_DISASTER:
       case SPELL_SUMMON_CREATURE_9: //conjuration
       case SPELL_SUMMON_CREATURE_8: //conjuration
       case SPELL_SUMMON_CREATURE_7: //conjuration    
       case SPELL_GREATER_ANIMATION: //necromancy
-        GET_LEVEL(mob) += MIN(mob_level, LVL_IMPL - GET_LEVEL(mob));
-        GET_REAL_MAX_HIT(mob) += hp_bonus;
-        GET_REAL_DAMROLL(mob) += MIN(15, dam_bonus);
-        GET_REAL_HITROLL(mob) += MIN(20, hit_bonus);
-        affect_total(mob);
+        GET_LEVEL(mob) = mob_level;
+        autoroll_mob(mob, TRUE);
         break;
       case SPELL_CLONE:
         /* Don't mess up the prototype; use new string copies. */

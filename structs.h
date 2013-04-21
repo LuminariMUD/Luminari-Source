@@ -342,7 +342,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MAX_MEM		NUM_SLOTS * NUM_CIRCLES
 
 // Races
-#define RACE_UNDEFINED    (-1) /*Race Undefined*/
+#define RACE_UNDEFINED       (-1) /*Race Undefined*/
 #define RACE_HUMAN           0 /* Race Human */
 #define RACE_ELF             1 /* Race Elf   */
 #define RACE_DWARF           2 /* Race Dwarf */
@@ -353,9 +353,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RACE_H_ORC           7  // half orc
 #define RACE_GNOME           8  // gnome
 #define RACE_TRELUX          9  // trelux (epic)
-#define RACE_ARCANA_GOLEM   10  // arcana golem (advanced)
+#define RACE_ARCANA_GOLEM    10  // arcana golem (advanced)
 /* Total Number of available PC Races*/
-#define NUM_RACES          11
+#define NUM_RACES            11
 
 // NPC races
 #define NPCRACE_UNDEFINED	(-1)	/*Race Undefined*/
@@ -383,7 +383,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MAX_SUBRACES          3
 
 // npc sub-race types
-#define SUBRACE_UNDEFINED	  (-1)	/*Race Undefined*/
+#define SUBRACE_UNDEFINED	   (-1)	/*Race Undefined*/
 #define SUBRACE_UNKNOWN          0
 #define SUBRACE_AIR              1
 #define SUBRACE_ANGEL            2
@@ -409,7 +409,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define NUM_SUB_RACES		   21
 
 // pc sub-race types, so far used for druid shapechange
-#define PC_SUBRACE_UNDEFINED       (-1)	/*Race Undefined*/
+#define PC_SUBRACE_UNDEFINED        (-1)	/*Race Undefined*/
 #define PC_SUBRACE_UNKNOWN          0
 #define PC_SUBRACE_BADGER           1
 #define PC_SUBRACE_PANTHER          2
@@ -450,19 +450,19 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define PLR_SITEOK        7   /**< Player has been site-cleared */
 #define PLR_NOSHOUT       8   /**< Player not allowed to shout/goss */
 #define PLR_NOTITLE       9   /**< Player not allowed to set title */
-#define PLR_DELETED      10   /**< Player deleted - space reusable */
-#define PLR_LOADROOM     11   /**< Player uses nonstandard loadroom */
-#define PLR_NOWIZLIST    12   /**< Player shouldn't be on wizlist */
-#define PLR_NODELETE     13   /**< Player shouldn't be deleted */
-#define PLR_INVSTART     14   /**< Player should enter game wizinvis */
-#define PLR_CRYO         15   /**< Player is cryo-saved (purge prog) */
-#define PLR_NOTDEADYET   16   /**< (R) Player being extracted */
-#define PLR_BUG          17   /**< Player is writing a bug */
-#define PLR_IDEA         18   /**< Player is writing an idea */
-#define PLR_TYPO         19   /**< Player is writing a typo */
-#define PLR_SALVATION    20   /* for salvation cleric spell */
+#define PLR_DELETED       10   /**< Player deleted - space reusable */
+#define PLR_LOADROOM      11   /**< Player uses nonstandard loadroom */
+#define PLR_NOWIZLIST     12   /**< Player shouldn't be on wizlist */
+#define PLR_NODELETE      13   /**< Player shouldn't be deleted */
+#define PLR_INVSTART      14   /**< Player should enter game wizinvis */
+#define PLR_CRYO          15   /**< Player is cryo-saved (purge prog) */
+#define PLR_NOTDEADYET    16   /**< (R) Player being extracted */
+#define PLR_BUG           17   /**< Player is writing a bug */
+#define PLR_IDEA          18   /**< Player is writing an idea */
+#define PLR_TYPO          19   /**< Player is writing a typo */
+#define PLR_SALVATION     20   /* for salvation cleric spell */
 /***************/
-#define NUM_PLR_BITS	21
+#define NUM_PLR_BITS      21
 
 /* Mobile flags: used by char_data.char_specials.act */
 #define MOB_SPEC            0   /**< Mob has a callable spec-proc */
@@ -500,8 +500,8 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MOB_CITIZEN	       32  /* will be protected by guard */
 #define MOB_HUNTER         33  /* will track down foes & memory targets */
 #define MOB_LISTEN         34  /* will enter room if hearing fighting */
-/* below this line unfinished */
 #define MOB_LIT            35  /* light up mob */
+/* below this line unfinished */
 #define MOB_PLANAR_ALLY    36  /* is a planar ally */
 #define MOB_NOSTEAL        37  /* Can't steal from mob*/
 

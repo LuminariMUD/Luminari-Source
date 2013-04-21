@@ -220,7 +220,7 @@ void perform_zone_restat(struct descriptor_data *d) {
     char_to_room(mob, real_room(1));
     */
     medit_setup_existing(d, rmob);
-    autoroll_mob(mob);
+    autoroll_mob(mob, FALSE);
     save_mobiles(zone_num); 
     //extract_char(mob);
   }

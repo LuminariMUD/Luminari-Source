@@ -1886,7 +1886,7 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator) {
    2)  their BAB will match their class/level
    3)  their saving-throws will match their class/level 
  */
-void autoroll_mob(struct char_data *mob) {
+void autoroll_mob(struct char_data *mob, bool realmode) {
   int level = 0, bonus = 0, armor_class = 0;
 
   /* first cap level at LVL_IMPL */
@@ -1909,10 +1909,6 @@ void autoroll_mob(struct char_data *mob) {
   GET_SAVE(mob, SAVING_WILL) = level / 4;
   GET_SAVE(mob, SAVING_POISON) = level / 4;
   GET_SAVE(mob, SAVING_DEATH) = level / 4;
-
-  /* exp and gold */
-  GET_EXP(mob) = (level * level * 75);
-  GET_GOLD(mob) = (level * 10);
 
   /* stats, default */
   GET_STR(mob) = 10;
@@ -2005,14 +2001,6 @@ void autoroll_mob(struct char_data *mob) {
       break;
   }
   
-  /* group-required mobiles will be levels 31-34 */
-  if (GET_LEVEL(mob) > 30) {
-    int bonus_level = GET_LEVEL(mob) - 30;
-    
-    MOBS_HPS *= (bonus_level * 2);
-    GET_DAMROLL(mob) += bonus_level;
-  }
-  
   /* racial mods */
   switch (GET_RACE(mob)) {
     case NPCRACE_HUMAN:
@@ -2080,7 +2068,19 @@ void autoroll_mob(struct char_data *mob) {
     default:
       break;
   }
-
+  
+  /* exp and gold */
+  GET_EXP(mob) = (level * level * 75);
+  GET_GOLD(mob) = (level * 10);
+  
+  /* group-required mobiles will be levels 31-34 */
+  if (GET_LEVEL(mob) > 30) {
+    int bonus_level = GET_LEVEL(mob) - 30;
+    
+    MOBS_HPS *= (bonus_level * 2);
+    GET_DAMROLL(mob) += bonus_level;
+  }
+  
   /* convert armor to old-school system and store */
   GET_AC(mob) = (armor_class - 200) / -1; /* -default- AC 91 to -137 */
 
@@ -2088,12 +2088,37 @@ void autoroll_mob(struct char_data *mob) {
   if (GET_SDD(mob) < 4)
     GET_SDD(mob) = 4;
 
+  /* we're auto-statting a live mob */
+  if (realmode) {
+    GET_REAL_DAMROLL(mob) = GET_DAMROLL(mob);
+    GET_REAL_HITROLL(mob) = GET_HITROLL(mob);
+    GET_REAL_SAVE(mob, SAVING_FORT) = GET_SAVE(mob, SAVING_FORT);
+    GET_REAL_SAVE(mob, SAVING_REFL) = GET_SAVE(mob, SAVING_REFL);
+    GET_REAL_SAVE(mob, SAVING_WILL) = GET_SAVE(mob, SAVING_WILL);
+    GET_REAL_SAVE(mob, SAVING_POISON) = GET_SAVE(mob, SAVING_POISON);
+    GET_REAL_SAVE(mob, SAVING_DEATH) = GET_SAVE(mob, SAVING_DEATH);
+    GET_REAL_AC(mob) = GET_AC(mob);
+    GET_REAL_MAX_HIT(mob) = GET_HIT(mob) = MOBS_HPS;
+    GET_REAL_STR(mob) = GET_STR(mob);
+    GET_REAL_INT(mob) = GET_INT(mob);
+    GET_REAL_WIS(mob) = GET_WIS(mob);
+    GET_REAL_DEX(mob) = GET_DEX(mob);
+    GET_REAL_CON(mob) = GET_CON(mob);
+    GET_REAL_CHA(mob) = GET_CHA(mob);    
+    GET_REAL_SIZE(mob) = GET_SIZE(mob);
+    GET_REAL_SPELL_RES(mob) = GET_SPELL_RES(mob);
+
+    /* so far realmode is only for mobiles that shouldn't give xp/gold */
+    GET_EXP(mob) = 0;
+    GET_GOLD(mob) = 0;
+    affect_total(mob);
+  }  
 }
 #undef MOBS_HPS
 
 void medit_autoroll_stats(struct descriptor_data *d) {
 
-  autoroll_mob(OLC_MOB(d));
+  autoroll_mob(OLC_MOB(d), FALSE);
 
 }
 
