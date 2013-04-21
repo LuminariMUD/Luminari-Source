@@ -1814,12 +1814,13 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       PATH_RESET(OLC_MOB(d)) = atoi(arg);
       PATH_DELAY(OLC_MOB(d)) = PATH_RESET(OLC_MOB(d));
       write_to_output(d, "Begin path...\r\n");
+      write_to_output(d, "Enter value for path (room vnum to move mobile)\r\n");
       OLC_MODE(d) = MEDIT_PATH_EDIT;
       return;  /* this will jump immediately to path edit below */
       break;
       
     case MEDIT_PATH_EDIT:
-      write_to_output(d, "Enter path (terminate with 0)\r\n");
+      write_to_output(d, "Enter next value for path (terminate with 0)\r\n");
       if (atoi(arg) && PATH_SIZE(OLC_MOB(d)) < MAX_PATH - 1) {
         GET_PATH(OLC_MOB(d), PATH_SIZE(OLC_MOB(d))++) = atoi(arg);
         write_to_output(d, "Value received!  Continuing...\r\n");
