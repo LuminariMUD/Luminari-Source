@@ -958,6 +958,8 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         char buf[MAX_INPUT_LENGTH];
         if (!ECHO_ENTRIES(OLC_MOB(d)))
           CREATE(ECHO_ENTRIES(OLC_MOB(d)), char *, 1);
+        else
+          RECREATE(ECHO_ENTRIES(OLC_MOB(d)), char *, ECHO_COUNT(OLC_MOB(d)) + 1);
         snprintf(buf, sizeof (buf), "%s", delete_doubledollar(arg));
         ECHO_ENTRIES(OLC_MOB(d))[ECHO_COUNT(OLC_MOB(d))++] = strdup(buf);
         OLC_VAL(d) = TRUE;
@@ -998,7 +1000,9 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       if (arg && *arg) {
         char buf[MAX_INPUT_LENGTH];
         snprintf(buf, sizeof (buf), "%s", delete_doubledollar(arg));
-        free(ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1]);
+        if (ECHO_ENTRIES(OLC_MOB(d)) && ECHO_ENTRIES(OLC_MOB(d)) != NULL && \
+                ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1])
+          free(ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1]);
         ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1] = strdup(buf);
       } else
         delete_echo_entry(OLC_MOB(d), OLC_VAL(d));
