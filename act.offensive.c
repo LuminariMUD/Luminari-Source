@@ -411,7 +411,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict,
     return FALSE;
   }
 
-  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+  if (IS_INCORPOREAL(vict)) {
     act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
@@ -584,7 +584,7 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+  if (IS_INCORPOREAL(vict)) {
     act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
@@ -682,7 +682,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
     return;
   }
   
-  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+  if (IS_INCORPOREAL(vict)) {
     send_to_char(ch, "There is simply nothing solid there to sap.\r\n");
     return;
   }
@@ -884,7 +884,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
     }
   }
   
-  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+  if (IS_INCORPOREAL(vict)) {
     act("You sprawl completely through $N as you try to springleap them!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n sprawls completely through $N as $e tries to springleap $M.", FALSE, ch, 0, vict, TO_ROOM);
     SET_WAIT(ch, PULSE_VIOLENCE);
@@ -1876,7 +1876,7 @@ ACMD(do_tailsweep) {
 
     if (vict == ch)
       continue;
-    if (AFF_FLAGGED(vict, AFF_IMMATERIAL))
+    if (IS_INCORPOREAL(vict))
       continue;
 
     // pass -2 as spellnum to handle tailsweep
@@ -2186,7 +2186,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
     return;
   }
   
-  if (AFF_FLAGGED(vict, AFF_IMMATERIAL)) {
+  if (IS_INCORPOREAL(vict)) {
     act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
