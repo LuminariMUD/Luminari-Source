@@ -747,6 +747,9 @@ ACMD(do_give) {
   struct char_data *vict = NULL;
   struct obj_data *obj = NULL, *next_obj = NULL;
 
+  if (!ch)
+    return;
+  
   argument = one_argument(argument, arg);
 
   if (!*arg)
@@ -804,9 +807,12 @@ ACMD(do_give) {
         }
     }
   }
-  quest_give(ch, vict);
-  save_char(ch, 0);   
-  save_char(vict, 0);   
+  
+  if (ch && vict) {
+    quest_give(ch, vict);
+    save_char(ch, 0);   
+    save_char(vict, 0);
+  }
 }
 
 void weight_change_object(struct obj_data *obj, int weight) {

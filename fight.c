@@ -482,7 +482,7 @@ void stop_fighting(struct char_data *ch) {
   REMOVE_FROM_LIST(ch, combat_list, next_fighting);
   ch->next_fighting = NULL;
   FIGHTING(ch) = NULL;
-  if (GET_POS(ch) != POS_SITTING)
+  if (GET_POS(ch) > POS_SITTING)
     GET_POS(ch) = POS_STANDING;
   update_pos(ch);
 }
@@ -2604,14 +2604,14 @@ void hit(struct char_data *ch, struct char_data *victim,
     /* vampiric curse will do some minor healing to attacker */
     if (!IS_UNDEAD(victim) && IS_AFFECTED(victim, AFF_VAMPIRIC_CURSE)) {
       send_to_char(ch, "\tWYou feel slightly better as you land an attack!\r\n");
-      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + dice(1, 10));
+      GET_HIT(ch) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch), dice(1, 10));
     }
 
     /* vampiric touch will do some healing to attacker */
     if (dam > 0 && !IS_UNDEAD(victim) && IS_AFFECTED(ch, AFF_VAMPIRIC_TOUCH)) {
       send_to_char(ch, "\tWYou feel \tRvampiric\tn \tWenergy heal you as you "
               "land an attack!\r\n");
-      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + dam);
+      GET_HIT(ch) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch), dam);
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_VAMPIRIC_TOUCH);
     }
 
