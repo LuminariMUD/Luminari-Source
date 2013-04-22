@@ -591,7 +591,6 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
       break;
     case ITEM_FOOD:
       oedit_disp_spells_menu(d);
-      write_to_output(d, "Spell number (0 for none) : ");
       /* Values 2 and 3 are unused, jump to 4...Odd. */
       //    oedit_disp_val4_menu(d);
       break;
