@@ -160,6 +160,16 @@ EVENTFUNC(event_falling)
   
   /* can we continue this fall? */
   if (!ROOM_FLAGGED(ch->in_room, ROOM_FLY_NEEDED) || !CAN_GO(ch, DOWN)) {
+    
+    if (AFF_FLAGGED(ch, AFF_SAFEFALL)) {
+      send_to_char(ch, "Moments before slamming into the ground, a 'safefall'"
+              " enchantment stops you!\r\n");
+      act("Moments before $n slams into the ground, some sort of magical force"
+              " force stops $s from the impact.", FALSE, ch, 0, 0, TO_ROOM);
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SAFEFALL);
+      return 0;
+    }
+    
     int dam = dice((height_fallen/5), 6) + 20;
     send_to_char(ch, "You fall headfirst to the ground!  OUCH!\r\n");
     act("$n crashes into the ground headfirst, OUCH!", FALSE, ch, 0, 0, TO_ROOM);
@@ -335,9 +345,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
    * when checking for specials */
   char spec_proc_args[MAX_INPUT_LENGTH] = {'\0'};
   /* The room the character is currently in and will move from... */
-  room_rnum was_in = IN_ROOM(ch);
+  room_rnum was_in = NOWHERE;
   /* ... and the room the character will move into. */
-  room_rnum going_to = EXIT(ch, dir)->to_room;
+  room_rnum going_to = NOWHERE; 
   /* How many movement points are required to travel from was_in to going_to.
    * We redefine this later when we need it. */
   int need_movement = 0;
@@ -351,7 +361,27 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   struct char_data *other;
   struct char_data **prev;
   bool was_top = TRUE;
+  
+  /* added some dummy checks to deal with a fairly mysterious crash */
+  if (!ch)
+    return 0;
+  
+  if (IN_ROOM(ch) == NOWHERE)
+    return 0;
+  
+  if (dir < 0 || dir >= NUM_OF_DIRS)
+    return 0;
+  
+  /* dummy check */
+  if (world[IN_ROOM(ch)].dir_option[dir])
+    going_to = EXIT(ch, dir)->to_room;
 
+  if (going_to == NOWHERE)
+    return 0;
+  
+  was_in = IN_ROOM(ch); 
+  /* end dummy checks */
+  
   /*---------------------------------------------------------------------*/
   /* End Local variable definitions */
 

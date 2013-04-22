@@ -501,8 +501,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MOB_HUNTER         33  /* will track down foes & memory targets */
 #define MOB_LISTEN         34  /* will enter room if hearing fighting */
 #define MOB_LIT            35  /* light up mob */
-/* below this line unfinished */
-#define MOB_PLANAR_ALLY    36  /* is a planar ally */
+#define MOB_PLANAR_ALLY    36  /* is a planar ally (currently unused) */
 #define MOB_NOSTEAL        37  /* Can't steal from mob*/
 
 /**********************/
@@ -634,12 +633,12 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_DIM_LOCK         66 //locked to current plane (can't teleport)
 #define AFF_DEATH_WARD       67
 #define AFF_SPELLBATTLE      68
-/* works in progress -zusuk (don't forget vampiric-curse (21) */
 #define AFF_VAMPIRIC_TOUCH   69  // will make next attack vampiric
 #define AFF_BLACKMANTLE      70  // stop normal regen, reduce healing
 #define AFF_DANGERSENSE      71  // sense aggro in surround rooms
 #define AFF_SAFEFALL         72  // reduce damage from falling
-#define AFF_TOWER_OF_IRON_WILL 73  // reduce psionic damage
+/* works in progress -zusuk (don't forget vampiric-curse (21) */
+#define AFF_TOWER_OF_IRON_WILL 73  // reduce psionic damage (no effect yet)
 #define AFF_INERTIAL_BARRIER 74  // absorb damage based on mana
 #define AFF_NOTELEPORT       75  // make target not reachable via teleport
 #define AFF_MAX_DAMAGE       76  // enhance next attack/spell/etc

@@ -1497,6 +1497,7 @@ ACMD(do_steal) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
+  
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
@@ -1526,8 +1527,14 @@ ACMD(do_steal) {
 
   /* No stealing if not allowed. If it is no stealing from Imm's or Shopkeepers. */
   if (GET_LEVEL(vict) >= LVL_IMMORT || pcsteal || GET_MOB_SPEC(vict) == shop_keeper)
-    percent = 35; /* Failure */
+    percent = 99; /* Failure */
 
+  if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOSTEAL)) {
+    send_to_char(ch, "Something about this victim makes it clear this will "
+            "not work...\r\n");
+    percent = 99;
+  }
+  
   if (str_cmp(obj_name, "coins") && str_cmp(obj_name, "gold")) {
 
     if (!(obj = get_obj_in_list_vis(ch, obj_name, NULL, vict->carrying))) {
