@@ -77,7 +77,7 @@ struct iterator_data *create_iterator(void)
 void free_list(struct list_data *pList) {
   void *pContent = NULL;
 
-  clear_simple_list();
+  simple_list(NULL);  
 
   if (pList && pList->iSize)
     while ((pContent = simple_list(pList)))
