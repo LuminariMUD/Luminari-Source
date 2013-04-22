@@ -368,37 +368,37 @@ char *node_sdesc(int material) {
 char *node_desc(int material) {
   switch (material) {
     case MATERIAL_STEEL:
-      return strdup("A vein of iron ore is here (\tYharvest\tn).");
+      return strdup("A vein of iron ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_COLD_IRON:
-      return strdup("A vein of cold iron ore is here (\tYharvest\tn).");
+      return strdup("A vein of cold iron ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_MITHRIL:
-      return strdup("A vein of mithril ore is here (\tYharvest\tn).");
+      return strdup("A vein of mithril ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_ADAMANTINE:
-      return strdup("A vein of adamantine ore is here (\tYharvest\tn).");
+      return strdup("A vein of adamantine ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_SILVER:
-      return strdup("A vein of copper and silver ore is here (\tYharvest\tn).");
+      return strdup("A vein of copper and silver ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_GOLD:
-      return strdup("A vein of gold and platinum ore is here (\tYharvest\tn).");
+      return strdup("A vein of gold and platinum ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_WOOD:
-      return strdup("A fallen tree is here (\tYharvest\tn).");
+      return strdup("A fallen tree is here. \tn(\tYharvest\tn)");
     case MATERIAL_DARKWOOD:
-      return strdup("A fallen darkwood tree is here (\tYharvest\tn).");
+      return strdup("A fallen darkwood tree is here. \tn(\tYharvest\tn)");
     case MATERIAL_LEATHER:
-      return strdup("The corpse of some freshly killed game is here (\tYharvest\tn).");
+      return strdup("The corpse of some freshly killed game is here. \tn(\tYharvest\tn)");
     case MATERIAL_DRAGONHIDE:
-      return strdup("The corpse of a freshly killed baby wyvern is here (\tYharvest\tn).");
+      return strdup("The corpse of a freshly killed baby wyvern is here. \tn(\tYharvest\tn)");
     case MATERIAL_HEMP:
-      return strdup("A patch of hemp plants is here (\tYharvest\tn).");
+      return strdup("A patch of hemp plants is here. \tn(\tYharvest\tn)");
     case MATERIAL_COTTON:
-      return strdup("A patch of cotton plants is here (\tYharvest\tn).");
+      return strdup("A patch of cotton plants is here. \tn(\tYharvest\tn)");
     case MATERIAL_WOOL:
-      return strdup("An abandoned cache of cloth is here (\tYharvest\tn).");
+      return strdup("An abandoned cache of cloth is here. \tn(\tYharvest\tn)");
     case MATERIAL_VELVET:
-      return strdup("An abandoned cache of cloth is here (\tYharvest\tn).");
+      return strdup("An abandoned cache of cloth is here. \tn(\tYharvest\tn)");
     case MATERIAL_SATIN:
-      return strdup("An abandoned cache of cloth is here (\tYharvest\tn).");
+      return strdup("An abandoned cache of cloth is here. \tn(\tYharvest\tn)");
     case MATERIAL_SILK:
-      return strdup("A large family of silkworms is here (\tYharvest\tn).");
+      return strdup("A large family of silkworms is here. \tn(\tYharvest\tn)");
   }
   return strdup("A harvesting node is here.  Please inform an imm, this is an error.");
 }
