@@ -1175,6 +1175,8 @@ void mobile_activity(void) {
           continue;
         if (MOB_FLAGGED(ch, MOB_GUARD) && !MOB_FLAGGED(ch, MOB_HELPER) && !MOB_FLAGGED(vict, MOB_CITIZEN))
           continue;
+        if (MOB_FLAGGED(ch, MOB_HELPER) && IS_ANIMAL(vict))
+          continue;
 
         act("$n jumps to the aid of $N!", FALSE, ch, 0, vict, TO_ROOM);
         hit(ch, FIGHTING(vict), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);

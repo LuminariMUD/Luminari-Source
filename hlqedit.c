@@ -927,7 +927,10 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       number = atoi(arg);
       if (number < 1 || NULL == (quest = getquest(d, number)))
         send_to_char(d->character, "No such quest!\r\n");
-      else {
+      else if (quest->approved == TRUE) {
+        quest->approved = FALSE;
+        send_to_char(d->character, "\r\nQUEST UN-APPROVED!\r\n");
+      } else {
         quest->approved = TRUE;
         send_to_char(d->character, "\r\nQUEST APPROVED!\r\n");
       }
