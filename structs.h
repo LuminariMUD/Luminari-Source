@@ -197,8 +197,12 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define SECT_UD_NOSWIM	    23  // water, boat needed, in the underdark
 #define SECT_UD_NOGROUND     24  // chasm in the underdark (Flying)
 #define SECT_LAVA	         25  // lava (damaging)
+#define SECT_D_ROAD_NS	    26  // dirt road
+#define SECT_D_ROAD_EW	    27  // dirt road
+#define SECT_D_ROAD_INT	    28  // dirt road
+#define SECT_CAVE	         29  // cave
 /** The total number of room Sector Types */
-#define NUM_ROOM_SECTORS     26
+#define NUM_ROOM_SECTORS     30
 
 /* homeland conversion reference */
 /*
@@ -637,11 +641,11 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_BLACKMANTLE      70  // stop normal regen, reduce healing
 #define AFF_DANGERSENSE      71  // sense aggro in surround rooms
 #define AFF_SAFEFALL         72  // reduce damage from falling
-/* works in progress -zusuk (don't forget vampiric-curse (21) */
 #define AFF_TOWER_OF_IRON_WILL 73  // reduce psionic damage (no effect yet)
 #define AFF_INERTIAL_BARRIER 74  // absorb damage based on mana
 #define AFF_NOTELEPORT       75  // make target not reachable via teleport
-#define AFF_MAX_DAMAGE       76  // enhance next attack/spell/etc
+/* works in progress */
+#define AFF_MAX_DAMAGE       76  // enhance next attack/spell/etc (no affect yet)
 #define AFF_IMMATERIAL       77  // no physical body (ghost-like)
 #define AFF_CAGE             78  // can't interact/be-interacted with
 #define AFF_MAGE_FLAME       79  // light up an individual

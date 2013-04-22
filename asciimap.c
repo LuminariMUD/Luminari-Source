@@ -132,6 +132,11 @@ static struct map_info_type map_info[] ={
   { SECT_UD_NOSWIM, "\tc[\tM\t==\tn\tc]\tn"},
   { SECT_UD_NOGROUND, "\tc[\tm^\tc]\tn"},
   { SECT_LAVA, "\tc[\tR.\tc]\tn"},  //25  
+  { SECT_D_ROAD_NS, "\tc[\ty|\tc]\tn"}, 
+  { SECT_D_ROAD_EW, "\tc[\ty-\tc]\tn"}, 
+  { SECT_D_ROAD_INT, "\tc[\ty+\tc]\tn"},
+  { SECT_CAVE, "\tc[\tD\t=C\tc]\tn"},
+  
   { -1, ""},  /* RESERVED, NUM_ROOM_SECTORS */
   { SECT_EMPTY, "   "}, /* NUM_ROOM_SECTORS + 1 */
   { SECT_STRANGE, "\tc[\tR?\tc]\tn"},
@@ -165,6 +170,11 @@ static struct map_info_type world_map_info[] ={
   { SECT_UD_NOSWIM, "\tM\t==\tn\tn"},
   { SECT_UD_NOGROUND, "\tm^\tn"},
   { SECT_LAVA, "\tR.\tc]\tn"},  //25  
+  { SECT_D_ROAD_NS, "\ty|\tn"}, 
+  { SECT_D_ROAD_EW, "\ty-\tn"}, 
+  { SECT_D_ROAD_INT, "\ty+\tn"},
+  { SECT_CAVE, "\tD\t=C\tn"},
+  
   { -1, ""},  /* RESERVED, NUM_ROOM_SECTORS */
   { SECT_EMPTY, " "},
   { SECT_STRANGE, "\tR?\tn"},
@@ -544,6 +554,10 @@ void perform_map(struct char_data *ch, char *argument, bool worldmap) {
   count += sprintf(buf + count, "\tn%s UD D Water\\\\", map_info[SECT_UD_NOSWIM].disp);
   count += sprintf(buf + count, "\tn%s UD Air\\\\", map_info[SECT_UD_NOGROUND].disp);
   count += sprintf(buf + count, "\tn%s Lava\\\\", map_info[SECT_LAVA].disp);
+  count += sprintf(buf + count, "\tn%s D Rd N-S\\\\", map_info[SECT_D_ROAD_NS].disp);
+  count += sprintf(buf + count, "\tn%s D Rd E-W\\\\", map_info[SECT_D_ROAD_EW].disp);
+  count += sprintf(buf + count, "\tn%s D Inters\\\\", map_info[SECT_D_ROAD_INT].disp);
+  count += sprintf(buf + count, "\tn%s Cave\\\\", map_info[SECT_CAVE].disp);
   
   strcpy(buf, strfrmt(buf, LEGEND_WIDTH, CANVAS_HEIGHT + 2, FALSE, TRUE, TRUE));
 

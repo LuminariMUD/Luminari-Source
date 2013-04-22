@@ -1531,6 +1531,20 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "\tR<oDR:%d>\tn", damage_reduction);
     }
 
+    /* inertial barrier - damage absorption using mana */
+    if (AFF_FLAGGED(victim, AFF_INERTIAL_BARRIER) && dam && !rand_number(0,1)) {
+      send_to_char(ch, "\twYour attack is absorbed by some manner of "
+              "invisible barrier.\tn\r\n");
+      GET_MANA(victim) -= (1 + (dam / 5));
+      if (GET_MANA(victim) <= 0) {
+        //affect_from_char(victim, SPELL_INERTIAL_BARRIER);
+        REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_INERTIAL_BARRIER);    
+        send_to_char(victim, "Your mind can not maintain the barrier "
+                "anymore.\r\n");
+      }
+      dam = 0;
+    }
+    
     /* Cut damage in half if victim has sanct, to a minimum 1 */
     if (AFF_FLAGGED(victim, AFF_SANCTUARY) && dam >= 2) {
       dam /= 2;
