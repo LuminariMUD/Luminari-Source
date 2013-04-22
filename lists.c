@@ -285,9 +285,10 @@ void *simple_list(struct list_data *pList) {
     return NULL;
   }
   
-  /* Ripley suggested this */
+  /* Ripley suggested this
   if (pList->pFirstItem == NULL)
     return NULL;
+  */ 
 
   if (!loop || pLastList != pList) {
     if (loop && pLastList != pList)
