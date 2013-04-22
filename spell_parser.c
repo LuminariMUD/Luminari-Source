@@ -1799,6 +1799,9 @@ void mag_assign_spells(void) {
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "Your magical gears fade away.", 7, 7, EVOCATION, FALSE);
   /* conjuration */
+  spello(SPELL_SUMMON_NATURES_ALLY_3, "natures ally iii", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_SUMMONS,
+          NULL, 5, 8, CONJURATION, FALSE);
   //summon creature 3 - shared
   spello(SPELL_PHANTOM_STEED, "phantom steed", 95, 80, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
@@ -1890,6 +1893,9 @@ void mag_assign_spells(void) {
           TAR_IGNORE, FALSE, MAG_ROOM,
           "You watch as the thick billowing cloud dissipates.", 7, 8,
           CONJURATION, FALSE);
+  spello(SPELL_SUMMON_NATURES_ALLY_4, "natures ally iv", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_SUMMONS,
+          NULL, 6, 9, CONJURATION, FALSE);
   //summon creature 4 - shared
   /* necromancy */
   //curse - shared
@@ -1952,6 +1958,9 @@ void mag_assign_spells(void) {
   spello(SPELL_WALL_OF_FORCE, "wall of force", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 6, 9, EVOCATION, FALSE);
   /* conjuration */
+  spello(SPELL_SUMMON_NATURES_ALLY_5, "natures ally v", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_SUMMONS,
+          NULL, 7, 9, CONJURATION, FALSE);
   spello(SPELL_CLOUDKILL, "cloudkill", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 9, CONJURATION, FALSE);
   spello(SPELL_INSECT_PLAGUE, "insect plague", 0, 0, 0, POS_FIGHTING,
@@ -2010,6 +2019,9 @@ void mag_assign_spells(void) {
   spello(SPELL_FREEZING_SPHERE, "freezing sphere", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 5, 10, EVOCATION, FALSE);
   /* conjuration */
+  spello(SPELL_SUMMON_NATURES_ALLY_6, "natures ally vi", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_SUMMONS,
+          NULL, 8, 10, CONJURATION, FALSE);
   spello(SPELL_ACID_FOG, "acid fog", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_ROOM,
           "You watch as the acid fog dissipates.", 7, 8,
@@ -2076,6 +2088,9 @@ void mag_assign_spells(void) {
           POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS | MAG_ROOM,
           "You feel a cloak of blindness dissolve.", 6, 11, EVOCATION, FALSE);
   /* conjuration */
+  spello(SPELL_SUMMON_NATURES_ALLY_7, "natures ally vii", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_SUMMONS,
+          NULL, 9, 12, CONJURATION, FALSE);
   spello(SPELL_CREEPING_DOOM, "creeping doom", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 10, 11, CONJURATION, FALSE);
   spello(SPELL_SUMMON_CREATURE_7, "summon creature vii", 0, 0, 0,
@@ -2138,6 +2153,9 @@ void mag_assign_spells(void) {
   spello(SPELL_WHIRLWIND, "whirlwind", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 12, EVOCATION, FALSE);
   /* conjuration */
+  spello(SPELL_SUMMON_NATURES_ALLY_8, "natures ally viii", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_SUMMONS,
+          NULL, 10, 13, CONJURATION, FALSE);
   spello(SPELL_INCENDIARY_CLOUD, "incendiary cloud", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 9, 12, CONJURATION, FALSE);
   spello(SPELL_SUMMON_CREATURE_8, "summon creature viii", 0, 0, 0,
@@ -2198,6 +2216,9 @@ void mag_assign_spells(void) {
   spello(SPELL_BLADE_OF_DISASTER, "blade of disaster", 0, 0, 0,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 14, 13, EVOCATION, FALSE);
   /* conjuration */
+  spello(SPELL_SUMMON_NATURES_ALLY_9, "natures ally ix", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_SUMMONS,
+          NULL, 11, 14, CONJURATION, FALSE);
   spello(SPELL_ELEMENTAL_SWARM, "elemental swarm", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
           FALSE, MAG_SUMMONS, NULL, 12, 13, CONJURATION, FALSE);
   spello(SPELL_GATE, "gate", 51, 36, 1, POS_FIGHTING, TAR_IGNORE, FALSE,
