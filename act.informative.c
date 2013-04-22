@@ -929,7 +929,7 @@ ACMD(do_help) {
     mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
             "%s tried to get help on %s", GET_NAME(ch), argument);
     for (i = 0; i < top_of_helpt; i++) {
-      if (help_table[i].min_level > GET_LEVEL(ch))
+      if (help_table[i].min_level > GET_LEVEL(ch)) 
         continue;
       /* To help narrow down results, if they don't start with the same letters, move on. */
       if (*argument != *help_table[i].keywords)

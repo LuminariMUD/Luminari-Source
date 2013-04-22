@@ -262,7 +262,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "links", "lin", POS_STANDING, do_links, LVL_STAFF, 0, TRUE},
   { "lock", "loc", POS_SITTING, do_gen_door, 0, SCMD_LOCK, FALSE},
   { "load", "load", POS_DEAD, do_load, LVL_BUILDER, 0, TRUE},
-  { "lore", "lore", POS_FIGHTING, do_lore, 1, 0, FALSE},
+  { "lore", "lore", POS_RESTING, do_lore, 1, 0, FALSE},
   { "land", "land", POS_FIGHTING, do_land, 1, 0, FALSE},
   { "loadmagic", "loadmagic", POS_DEAD, do_loadmagic, LVL_IMMORT, 0, TRUE},
 
@@ -690,9 +690,18 @@ void command_interpreter(struct char_data *ch, char *argument) {
           ) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...\r\n");
-  } else if (char_has_mud_event(ch, eCRAFTING) && !is_abbrev(complete_cmd_info[cmd].command, "gossip")
-          && !is_abbrev(complete_cmd_info[cmd].command, "chat"))
-    send_to_char(ch, "You are too busy crafting [you can 'gossip' or 'chat']...\r\n");
+  } else if (char_has_mud_event(ch, eCRAFTING) && 
+          !is_abbrev(complete_cmd_info[cmd].command, "gossip") && 
+          !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "look") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "score") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "group") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "say") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "help") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "tell")
+          )
+    send_to_char(ch, "You are too busy crafting. [Available commands: gossip/"
+            "chat/look/score/group/say/tell/help]\r\n");
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
     switch (GET_POS(ch)) {
       case POS_DEAD:

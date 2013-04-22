@@ -1929,6 +1929,10 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
   /* armor class default, d20 system * 10 */
   armor_class = 100 + level * 9; // 109 (10) - 370 (37)
 
+  /* exp and gold */
+  GET_EXP(mob) = (level * level * 75);
+  GET_GOLD(mob) = (level * 10);
+  
   /* class modifications to base */
   switch (GET_CLASS(mob)) {
     case CLASS_WIZARD:
@@ -2013,6 +2017,7 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
       GET_CHA(mob) -= 7;
       GET_SAVE(mob, SAVING_FORT) += 4;
       GET_SAVE(mob, SAVING_REFL) += 4;      
+      GET_GOLD(mob) = 0;
       break;
     case NPCRACE_DRAGON:
       GET_STR(mob) += 6;
@@ -2063,15 +2068,14 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
     case NPCRACE_OUTSIDER:
       break;
     case NPCRACE_PLANT:
+      GET_GOLD(mob) = 0;
       break;
     case NPCRACE_VERMIN:
+      GET_GOLD(mob) = 0;
+      break;
     default:
       break;
   }
-  
-  /* exp and gold */
-  GET_EXP(mob) = (level * level * 75);
-  GET_GOLD(mob) = (level * 10);
   
   /* group-required mobiles will be levels 31-34 */
   if (GET_LEVEL(mob) > 30) {
@@ -2079,6 +2083,8 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
     
     MOBS_HPS *= (bonus_level * 2);
     GET_DAMROLL(mob) += bonus_level;
+    GET_EXP(mob) += (bonus_level * 5000);
+    GET_GOLD(mob) += (bonus_level * 50);
   }
   
   /* convert armor to old-school system and store */
