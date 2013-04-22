@@ -283,6 +283,10 @@ const char *sector_types[NUM_ROOM_SECTORS + 1] = {
   "Underdark - Water (No Swim)",
   "Underdark - In Flight",
   "Lava",  //25
+  "Dirt Road North-South",
+  "Dirt Road East-West",
+  "Dirt Road Intersection",
+  "Cave",
   "\n"
 };
 
@@ -316,6 +320,10 @@ int movement_loss[NUM_ROOM_SECTORS] =
   3,	// ud noswim
   1,	// ud flying
   6,	// lava  25
+  2,	// dirt road
+  2,	// dirt road
+  2,	// dirt road
+  3,	// caves
 };
 
 /** PC and NPC sex.

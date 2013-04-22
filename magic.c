@@ -4519,15 +4519,18 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
         send_to_char(ch, "Spell failed!  You have no target!\r\n");
         return;
       }
-      if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOSUMMON)) {
+      
+      if (AFF_FLAGGED(vict, AFF_NOTELEPORT)) {
         send_to_char(ch, "The portal begins to open, then shuts suddenly!\r\n");
         return;
       }
+      
       if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), FALSE) || 
           !valid_mortal_tele_dest(ch, IN_ROOM(vict), FALSE)) {
         send_to_char(ch, "Your magic is not working!\r\n");
         return;
       }
+      
       /* no portaling on the outter planes */
       if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL) ||
           ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) ||

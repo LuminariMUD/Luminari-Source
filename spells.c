@@ -1448,7 +1448,7 @@ ASPELL(spell_teleport) {
     victim = ch;
   }
 
-  if (IS_NPC(victim) && MOB_FLAGGED(victim, MOB_NOSUMMON)) {
+  if (AFF_FLAGGED(victim, AFF_NOTELEPORT)) {
     send_to_char(ch, "Your spell fails to target that victim!\r\n");
     return;
   }
