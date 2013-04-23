@@ -1825,9 +1825,11 @@ ACMD(do_score) {
           compute_concealment(ch));
 
   send_to_char(ch, "\tCWeapon Proficiency Used:\tn  %s\r\n", 
-          item_profs[proficiency_worn(ch, TRUE)]);
+          item_profs[proficiency_worn(ch, WEAPON_PROFICIENCY)]);
   send_to_char(ch, "\tCArmor Proficiency Used:\tn  %s\r\n", 
-          item_profs[proficiency_worn(ch, FALSE)]);
+          item_profs[proficiency_worn(ch, ARMOR_PROFICIENCY)]);
+  send_to_char(ch, "\tCArmor Proficiency Used:\tn  %s\r\n", 
+          item_profs[proficiency_worn(ch, SHIELD_PROFICIENCY)]);
   
   send_to_char(ch, "\tCLoad carried/max:\tn %d/%d \tClbs\tn\r\n", IS_CARRYING_W(ch),
           CAN_CARRY_W(ch));
