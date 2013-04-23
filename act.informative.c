@@ -1828,7 +1828,7 @@ ACMD(do_score) {
           item_profs[proficiency_worn(ch, WEAPON_PROFICIENCY)]);
   send_to_char(ch, "\tCArmor Proficiency Used:\tn  %s\r\n", 
           item_profs[proficiency_worn(ch, ARMOR_PROFICIENCY)]);
-  send_to_char(ch, "\tCArmor Proficiency Used:\tn  %s\r\n", 
+  send_to_char(ch, "\tCShield Proficiency Used:\tn  %s\r\n", 
           item_profs[proficiency_worn(ch, SHIELD_PROFICIENCY)]);
   
   send_to_char(ch, "\tCLoad carried/max:\tn %d/%d \tClbs\tn\r\n", IS_CARRYING_W(ch),
