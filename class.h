@@ -34,6 +34,7 @@ int proficiency_worn(struct char_data *ch, bool weapon);
 int compute_gear_penalty_check(struct char_data *ch);
 int determine_gear_weight(struct char_data *ch, int type);
 int compute_gear_arcane_fail(struct char_data *ch);
+int compute_gear_max_dex(struct char_data *ch);
 
 /* Global variables */
 
