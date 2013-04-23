@@ -3497,7 +3497,11 @@ int proficiency_worn(struct char_data *ch, bool weapon) {
         if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
           prof = GET_OBJ_PROF(GET_EQ(ch, i));
         }
-      } if (!weapon) {
+      } else if (!weapon && (
+              i != WEAR_WIELD_1 &&
+              i != WEAR_WIELD_2 &&
+              i != WEAR_WIELD_2H
+              )) {
         if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
           prof = GET_OBJ_PROF(GET_EQ(ch, i));
         }        
