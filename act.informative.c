@@ -1961,7 +1961,12 @@ ACMD(do_inventory) {
 ACMD(do_equipment) {
   int i, found = 0;
   int mxp_type = 2;
+  char dex_max[10] = "None";
+  int j = compute_gear_max_dex(ch);
 
+  if (j != 99)
+    sprintf(dex_max, "%d", j);
+  
   send_to_char(ch, "You are using:\r\n");
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i)) {
@@ -1978,11 +1983,10 @@ ACMD(do_equipment) {
   if (!found)
     send_to_char(ch, " Nothing.\r\n");
   
-  send_to_char(ch, "\tCArmor/Shield Wt: %d/%d, Penalty: %d, Arcane Failure:"
+  send_to_char(ch, "\tCArmor/Shield Wt: %d/%d, Penalty: %d, Max Dex: %s, Spell Fail:"
           " %d.\r\n", determine_gear_weight(ch, ARMOR_PROFICIENCY),
           determine_gear_weight(ch, SHIELD_PROFICIENCY),
-          compute_gear_penalty_check(ch),
-          compute_gear_arcane_fail(ch));
+          compute_gear_penalty_check(ch), dex_max, compute_gear_arcane_fail(ch));
   
   if (ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
     send_to_char(ch, "\r\n\t<send href='inventory'>View inventory\t</send>\r\n");
