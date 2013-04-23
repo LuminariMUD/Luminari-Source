@@ -3465,6 +3465,8 @@ const char *titles(int chclass, int level) {
   return "the Classless";
 }
 
+/* Proficiency Related Functions */
+
 /*
 #define ITEM_PROF_NONE		0	// no proficiency required
 #define ITEM_PROF_MINIMAL	1	//  "Minimal Weapon Proficiency"
@@ -3534,8 +3536,123 @@ int proficiency_worn(struct char_data *ch, int type) {
   return prof;
 }
 
+int determine_gear_weight(struct char_data *ch, int type) {
+  int i = 0, weight = 0;
+  
+  for (i = 0; i < NUM_WEARS; i++) {
+    if (GET_EQ(ch, i)) {
+      if (type == WEAPON_PROFICIENCY && (
+              i == WEAR_WIELD_1 ||
+              i == WEAR_WIELD_2 ||
+              i == WEAR_WIELD_2H
+              )) {
+          weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
+      } else if (type == SHIELD_PROFICIENCY && (
+              i == WEAR_SHIELD
+              )) {
+          weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
+      } else if (type == ARMOR_PROFICIENCY && (
+              i == WEAR_HEAD ||
+              i == WEAR_BODY ||
+              i == WEAR_ARMS ||
+              i == WEAR_LEGS
+              )) {
+          weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
+      }
+    }
+  }
+  
+  return weight;
+}
+
+/* this function will determine the penalty (or lack of) created
+ by the gear the character is wearing - this penalty is mostly in
+ regards to rogue-like skills such as sneak/hide */
+int compute_gear_penalty_check(struct char_data *ch) {
+  int factor = determine_gear_weight(ch, ARMOR_PROFICIENCY);
+  factor += determine_gear_weight(ch, SHIELD_PROFICIENCY);
+
+  if (factor > 51)
+    return -8;
+  if (factor >= 45)
+    return -6;
+  if (factor >= 40)
+    return -5;
+  if (factor >= 35)
+    return -4;
+  if (factor >= 30)
+    return -3;
+  if (factor >= 25)
+    return -2;
+  if (factor >= 20)
+    return -1;
+
+  return 0;  //should be less than 10  
+}
+
+/* this function will determine the % penalty created by the
+   gear the char is wearing - this penalty is unique to
+   arcane casting only (sorc, wizard, bard, etc) */
+int compute_gear_arcane_fail(struct char_data *ch) {
+  int factor = determine_gear_weight(ch, ARMOR_PROFICIENCY);
+  factor += determine_gear_weight(ch, SHIELD_PROFICIENCY);
+  
+  if (factor > 51)
+    return 50;
+  if (factor >= 45)
+    return 40;
+  if (factor >= 40)
+    return 35;
+  if (factor >= 35)
+    return 30;
+  if (factor >= 30)
+    return 25;
+  if (factor >= 25)
+    return 20;
+  if (factor >= 20)
+    return 15;
+  if (factor >= 15)
+    return 10;
+  if (factor >= 10)
+    return 5;
+
+  return 0;  //should be less than 10
+  
+}
+
+/* this function will determine the max-dex created by the
+   gear the char is wearing  */
+int compute_gear_max_dex(struct char_data *ch) {
+  int factor = determine_gear_weight(ch, ARMOR_PROFICIENCY);
+  int shields = determine_gear_weight(ch, SHIELD_PROFICIENCY);
+
+  if (shields > factor)
+    factor = shields;
+
+  if (factor > 51)
+    return 0;
+  if (factor >= 45)
+    return 1;
+  if (factor >= 40)
+    return 2;
+  if (factor >= 35)
+    return 3;
+  if (factor >= 30)
+    return 5;
+  if (factor >= 25)
+    return 7;
+  if (factor >= 20)
+    return 10;
+  if (factor >= 15)
+    return 13;
+  if (factor >= 10)
+    return 17;
+
+  return 99;  //should be less than 10
+}
+
 /* our simple little function to make sure our monk
-   is following his order's requirements for gear */
+   is following his martial-arts requirements for gear */
 bool monk_gear_ok(struct char_data *ch) {
   int i = 0;
 
