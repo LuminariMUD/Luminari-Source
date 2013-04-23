@@ -1402,7 +1402,7 @@ static int hands_needed(struct char_data *ch, struct obj_data *obj) {
   return 1;
 }
 
-bool is_wielding_type(struct char_data *ch) {
+int is_wielding_type(struct char_data *ch) {
   
   if (GET_EQ(ch, WEAR_WIELD_1))
     return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_1));
@@ -1435,7 +1435,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
   }
 
   /* check to make sure you don't mix melee/ranged */
-  if (where == WEAR_WIELD_1) {
+  if (where == WEAR_WIELD_1 && is_wielding_type(ch) != -1) {
     if (GET_OBJ_TYPE(obj) == ITEM_WEAPON &&
             is_wielding_type(ch) != ITEM_WEAPON) {
       send_to_char(ch, "You can't mix-and-match ranged/melee weapons.\r\n");
