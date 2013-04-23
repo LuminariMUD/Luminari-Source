@@ -686,7 +686,7 @@ const char *equipment_types[NUM_WEARS + 1] = {
 
 // labels for item proficiency category
 const char *item_profs[NUM_ITEM_PROFS + 1] = {
-  "None Required",
+  "None",
   "Minimal Weapon Proficiency",
   "Basic Weapon Proficiency",
   "Advanced Weapon Proficiency",

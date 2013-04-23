@@ -3478,22 +3478,33 @@ const char *titles(int chclass, int level) {
 #define ITEM_PROF_SHIELDS	9	// shield prof
 #define ITEM_PROF_T_SHIELDS	10	// tower shield prof
 */
+
 /* a function to check the -highest- level of proficiency of gear
    worn on a character
  * in:  requires character (pc only)
  * out:  value of highest proficiency worn
  *  */
-int proficiency_worn(struct char_data *ch) {
+int proficiency_worn(struct char_data *ch, bool weapon) {
   int prof = ITEM_PROF_NONE, i = 0;
 
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i)) {
-      if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
-        prof = GET_OBJ_PROF(GET_EQ(ch, i));
+      if (weapon && (
+              i == WEAR_WIELD_1 ||
+              i == WEAR_WIELD_2 ||
+              i == WEAR_WIELD_2H
+              )) {
+        if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
+          prof = GET_OBJ_PROF(GET_EQ(ch, i));
+        }
+      } if (!weapon) {
+        if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
+          prof = GET_OBJ_PROF(GET_EQ(ch, i));
+        }        
       }
     }
-  }  
-  
+  }
+
   return prof;
 }
 

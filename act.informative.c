@@ -1781,10 +1781,10 @@ ACMD(do_score) {
       break;
   }
 
-  send_to_char(ch, "\tCPlaying time:\tn %d \tCdays /\tn %d \tChours\tn",
+  send_to_char(ch, "\tCPlaying time:\tn %d days / %d hrs\tn",
           playing_time.day, playing_time.hours);
 
-  send_to_char(ch, "    \tCSize:\tn  %s\r\n", size_names[GET_SIZE(ch)]);
+  send_to_char(ch, "      \tCSize:\tn  %s\r\n", size_names[GET_SIZE(ch)]);
   
   send_to_char(ch, "\tCHit points:\tn %d(%d)   \tCMoves:\tn %d(%d)   \tCMana:\tn %d(%d)\r\n",
           GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch),
@@ -1800,8 +1800,7 @@ ACMD(do_score) {
   send_to_char(ch, "\tCAge:\tn %d \tCyrs\tn / %d \tCmths\tn",
           age(ch)->year, age(ch)->month);
 
-  send_to_char(ch, "    \tCProficiency Used:\tn  %s\r\n", 
-          item_profs[proficiency_worn(ch)]);
+  send_to_char(ch, "\tCAlignment:\tn %13s\r\n", get_align_by_num(GET_ALIGNMENT(ch)));
   
   send_to_char(ch,
           "\tC---------------------------------------------------------\tn\r\n");
@@ -1825,8 +1824,12 @@ ACMD(do_score) {
           compute_damage_reduction(ch, -1),
           compute_concealment(ch));
 
-  send_to_char(ch, "\tCAlignment:\tn %13s", get_align_by_num(GET_ALIGNMENT(ch)));
-  send_to_char(ch, "    \tCLoad carried/max:\tn %d/%d \tClbs\tn\r\n", IS_CARRYING_W(ch),
+  send_to_char(ch, "\tCWeapon Proficiency Used:\tn  %s\r\n", 
+          item_profs[proficiency_worn(ch, TRUE)]);
+  send_to_char(ch, "\tCArmor Proficiency Used:\tn  %s\r\n", 
+          item_profs[proficiency_worn(ch, FALSE)]);
+  
+  send_to_char(ch, "\tCLoad carried/max:\tn %d/%d \tClbs\tn\r\n", IS_CARRYING_W(ch),
           CAN_CARRY_W(ch));
 
   send_to_char(ch,
