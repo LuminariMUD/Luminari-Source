@@ -1964,7 +1964,7 @@ ACMD(do_equipment) {
   char dex_max[10] = "None";
   int j = compute_gear_max_dex(ch);
 
-  if (j != 99)
+  if (j != 99)  // 99 is our signal for no max dex
     sprintf(dex_max, "%d", j);
   
   send_to_char(ch, "You are using:\r\n");
