@@ -26,18 +26,15 @@
 #include "spec_procs.h"  // for compute_ability
 #include "mud_event.h"  // for purgemob event
 
-/* kavir's protocol */
-// moved this to utils.h
-//#define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
+/* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
+
+
+
+
 
 /* Functions of a general utility nature
    Functions directly related to utils.h needs
  */
-
-
-/* checks for 'warding' on players/mobiles - the need for this function
-   is because players save this value, mobiles don't */
-
 
 /* this function in conjuction with the AFF_GROUP flag will cause mobs who
    load in the same room to group up */

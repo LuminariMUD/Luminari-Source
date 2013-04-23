@@ -2116,6 +2116,8 @@ int backstab_mult(struct char_data *ch) {
 // used by handler.c
 
 int invalid_class(struct char_data *ch, struct obj_data *obj) {
+  /* this is all deprecated by the proficiency system */
+  /*
   if (OBJ_FLAGGED(obj, ITEM_ANTI_WIZARD) && IS_WIZARD(ch))
     return TRUE;
 
@@ -2148,7 +2150,8 @@ int invalid_class(struct char_data *ch, struct obj_data *obj) {
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_ROGUE) && IS_ROGUE(ch))
     return TRUE;
-
+  */
+  
   return FALSE;
 }
 
@@ -2217,7 +2220,6 @@ void init_spell_levels(void) {
   spell_level(SPELL_DETECT_INVIS, CLASS_WIZARD, 3);
   spell_level(SPELL_DETECT_MAGIC, CLASS_WIZARD, 3);
   spell_level(SPELL_DARKNESS, CLASS_WIZARD, 3);
-  spell_level(SPELL_I_DARKNESS, CLASS_WIZARD, 3);
   spell_level(SPELL_RESIST_ENERGY, CLASS_WIZARD, 3);
   spell_level(SPELL_ENERGY_SPHERE, CLASS_WIZARD, 3);
   spell_level(SPELL_ENDURANCE, CLASS_WIZARD, 3); //shared
@@ -3461,6 +3463,38 @@ const char *titles(int chclass, int level) {
 
   /* Default title for classes which do not have titles defined */
   return "the Classless";
+}
+
+/*
+#define ITEM_PROF_NONE		0	// no proficiency required
+#define ITEM_PROF_MINIMAL	1	//  "Minimal Weapon Proficiency"
+#define ITEM_PROF_BASIC		2	//  "Basic Weapon Proficiency"
+#define ITEM_PROF_ADVANCED	3	//  "Advanced Weapon Proficiency"
+#define ITEM_PROF_MASTER 	4	//  "Master Weapon Proficiency"
+#define ITEM_PROF_EXOTIC 	5	//  "Exotic Weapon Proficiency"
+#define ITEM_PROF_LIGHT_A	6	// light armor prof
+#define ITEM_PROF_MEDIUM_A	7	// medium armor prof
+#define ITEM_PROF_HEAVY_A	8	// heavy armor prof
+#define ITEM_PROF_SHIELDS	9	// shield prof
+#define ITEM_PROF_T_SHIELDS	10	// tower shield prof
+*/
+/* a function to check the -highest- level of proficiency of gear
+   worn on a character
+ * in:  requires character (pc only)
+ * out:  value of highest proficiency worn
+ *  */
+int proficiency_worn(struct char_data *ch) {
+  int prof = ITEM_PROF_NONE, i = 0;
+
+  for (i = 0; i < NUM_WEARS; i++) {
+    if (GET_EQ(ch, i)) {
+      if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
+        prof = GET_OBJ_PROF(GET_EQ(ch, i));
+      }
+    }
+  }  
+  
+  return prof;
 }
 
 /* our simple little function to make sure our monk
