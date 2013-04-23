@@ -1402,6 +1402,20 @@ static int hands_needed(struct char_data *ch, struct obj_data *obj) {
   return 1;
 }
 
+bool is_wielding_type(struct char_data *ch) {
+  
+  if (GET_EQ(ch, WEAR_WIELD_1))
+    return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_1));
+  
+  if (GET_EQ(ch, WEAR_WIELD_2))
+    return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_2));
+
+  if (GET_EQ(ch, WEAR_WIELD_2H))
+    return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_2H));
+  
+  return -1;
+}
+
 void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
   int handsNeeded = hands_needed(ch, obj);
 
@@ -1420,6 +1434,20 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
     return;
   }
 
+  /* check to make sure you don't mix melee/ranged */
+  if (where == WEAR_WIELD_1) {
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON &&
+            is_wielding_type(ch) != ITEM_WEAPON) {
+      send_to_char(ch, "You can't mix-and-match ranged/melee weapons.\r\n");
+      return;
+    }
+    if (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON &&
+            is_wielding_type(ch) != ITEM_FIREWEAPON) {
+      send_to_char(ch, "You can't mix-and-match ranged/melee weapons.\r\n");
+      return;
+    }
+  }
+  
   // TAKE is used for objects that don't require special bits, ex. HOLD
   int wear_bitvectors[] = {
     ITEM_WEAR_TAKE, ITEM_WEAR_FINGER, ITEM_WEAR_FINGER, ITEM_WEAR_NECK,
@@ -1492,7 +1520,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
   }
 
   // code for gear with 2 possible slots, and next to each other in array
-  if ((where == WEAR_FINGER_R) || (where == WEAR_NECK_1) || (where == WEAR_WRIST_R))
+  if ((where == WEAR_FINGER_R) || (where == WEAR_NECK_1) || 
+          (where == WEAR_WRIST_R) || (where == WEAR_EAR_R))
     if (GET_EQ(ch, where))
       where++;
 
@@ -1571,7 +1600,7 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg) {
     "face",
     "quiver",
     "ear",
-    "!RESERVED!",  //25
+    "!RESERVED!",  //25 (2nd ear)
     "eyes",
     "badge",
     "\n"

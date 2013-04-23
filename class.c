@@ -3481,15 +3481,15 @@ const char *titles(int chclass, int level) {
 
 /* a function to check the -highest- level of proficiency of gear
    worn on a character
- * in:  requires character (pc only)
+ * in:  requires character (pc only), type is either weapon/armor/shield
  * out:  value of highest proficiency worn
  *  */
-int proficiency_worn(struct char_data *ch, bool weapon) {
+int proficiency_worn(struct char_data *ch, int type) {
   int prof = ITEM_PROF_NONE, i = 0;
 
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i)) {
-      if (weapon && (
+      if (type == WEAPON_PROFICIENCY && (
               i == WEAR_WIELD_1 ||
               i == WEAR_WIELD_2 ||
               i == WEAR_WIELD_2H
@@ -3497,10 +3497,17 @@ int proficiency_worn(struct char_data *ch, bool weapon) {
         if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
           prof = GET_OBJ_PROF(GET_EQ(ch, i));
         }
-      } else if (!weapon && (
+      } else if (type == SHIELD_PROFICIENCY && (
+              i == WEAR_SHIELD
+              )) {
+        if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
+          prof = GET_OBJ_PROF(GET_EQ(ch, i));
+        }
+      } else if (type == ARMOR_PROFICIENCY && (
               i != WEAR_WIELD_1 &&
               i != WEAR_WIELD_2 &&
-              i != WEAR_WIELD_2H
+              i != WEAR_WIELD_2H &&
+              i != WEAR_SHIELD
               )) {
         if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
           prof = GET_OBJ_PROF(GET_EQ(ch, i));
@@ -3509,6 +3516,21 @@ int proficiency_worn(struct char_data *ch, bool weapon) {
     }
   }
 
+  switch (type) {
+    case WEAPON_PROFICIENCY:
+      if (prof < 0 || prof >= NUM_WEAPON_PROFS)
+        return ITEM_PROF_NONE;
+      break;
+    case ARMOR_PROFICIENCY:
+      if (prof < NUM_WEAPON_PROFS || prof >= NUM_ARMOR_PROFS)
+        return ITEM_PROF_NONE;
+      break;
+    case SHIELD_PROFICIENCY:
+      if (prof < NUM_ARMOR_PROFS || prof >= NUM_SHIELD_PROFS)
+        return ITEM_PROF_NONE;
+      break;
+  }
+  
   return prof;
 }
 

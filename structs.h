@@ -876,22 +876,35 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_PET         33  // ?                -> ITEM_OTHER (12)
 */
 
-/* Item profs: used by obj_data.obj_flags.prof_flag constants.c = item_profs */
+
+/* Item profs: used by obj_data.obj_flags.prof_flag 
+ * constants.c = item_profs */
+/* categories */
+#define WEAPON_PROFICIENCY    0
+#define ARMOR_PROFICIENCY     1
+#define SHIELD_PROFICIENCY    2
+/* weapons */
 #define ITEM_PROF_NONE		0	// no proficiency required
 #define ITEM_PROF_MINIMAL	1	//  "Minimal Weapon Proficiency"
 #define ITEM_PROF_BASIC		2	//  "Basic Weapon Proficiency"
 #define ITEM_PROF_ADVANCED	3	//  "Advanced Weapon Proficiency"
 #define ITEM_PROF_MASTER 	4	//  "Master Weapon Proficiency"
 #define ITEM_PROF_EXOTIC 	5	//  "Exotic Weapon Proficiency"
+#define NUM_WEAPON_PROFS      6
+/* armor */
 #define ITEM_PROF_LIGHT_A	6	// light armor prof
 #define ITEM_PROF_MEDIUM_A	7	// medium armor prof
 #define ITEM_PROF_HEAVY_A	8	// heavy armor prof
+#define NUM_ARMOR_PROFS       3 + NUM_WEAPON_PROFS
+/* shields */
 #define ITEM_PROF_SHIELDS	9	// shield prof
 #define ITEM_PROF_T_SHIELDS	10	// tower shield prof
+#define NUM_SHIELD_PROFS      2 + NUM_ARMOR_PROFS
 /** Total number of item profs.*/
 #define NUM_ITEM_PROFS        11
 
-/* Item profs: used by obj_data.obj_flags.material 
+
+/* Item materials: used by obj_data.obj_flags.material 
  * constants.c = material_name 
  */
 #define MATERIAL_UNDEFINED       0 
