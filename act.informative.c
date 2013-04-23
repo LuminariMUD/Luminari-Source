@@ -1781,9 +1781,11 @@ ACMD(do_score) {
       break;
   }
 
-  send_to_char(ch, "\tCPlaying time:\tn %d \tCdays /\tn %d \tChours\tn\r\n",
+  send_to_char(ch, "\tCPlaying time:\tn %d \tCdays /\tn %d \tChours\tn",
           playing_time.day, playing_time.hours);
 
+  send_to_char(ch, "    \tCSize:\tn  %s\r\n", size_names[GET_SIZE(ch)]);
+  
   send_to_char(ch, "\tCHit points:\tn %d(%d)   \tCMoves:\tn %d(%d)   \tCMana:\tn %d(%d)\r\n",
           GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch),
           GET_MANA(ch), GET_MAX_MANA(ch));
@@ -1797,9 +1799,10 @@ ACMD(do_score) {
 
   send_to_char(ch, "\tCAge:\tn %d \tCyrs\tn / %d \tCmths\tn",
           age(ch)->year, age(ch)->month);
-  send_to_char(ch, "    \tCCharacter Size Category:\tn  %s\r\n",
-          size_names[GET_SIZE(ch)]);
 
+  send_to_char(ch, "    \tCProficiency Used:\tn  %s\r\n", 
+          item_profs[proficiency_worn(ch)]);
+  
   send_to_char(ch,
           "\tC---------------------------------------------------------\tn\r\n");
 
