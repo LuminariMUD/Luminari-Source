@@ -678,7 +678,7 @@ do                                                              \
 /** Current dexterity of ch. */
 #define GET_REAL_DEX(ch)     	((ch)->real_abils.dex)
 #define GET_DEX(ch)		((ch)->aff_abils.dex)
-#define GET_DEX_BONUS(ch)	(((ch)->aff_abils.dex - 10) / 2)
+#define GET_DEX_BONUS(ch)	(MIN(compute_gear_max_dex(ch), ((ch)->aff_abils.dex - 10) / 2))
 
 /** Current intelligence of ch. */
 #define GET_REAL_INT(ch)     	((ch)->real_abils.intel)

@@ -804,6 +804,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
   switch (abilityNum) {
     case ABILITY_TUMBLE:
       value += GET_DEX_BONUS(ch);
+      value += compute_gear_penalty_check(ch);
       return value;
     case ABILITY_HIDE:
       value += GET_DEX_BONUS(ch);
@@ -815,6 +816,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 15;
       if (IS_MORPHED(ch) && SUBRACE(ch) == PC_SUBRACE_PANTHER)
         value += 4;
+      value += compute_gear_penalty_check(ch);
       return value;
     case ABILITY_SNEAK:
       value += GET_DEX_BONUS(ch);
@@ -826,6 +828,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 15;
       if (IS_MORPHED(ch) && SUBRACE(ch) == PC_SUBRACE_PANTHER)
         value += 4;
+      value += compute_gear_penalty_check(ch);
       return value;
     case ABILITY_SPOT:
       value += GET_WIS_BONUS(ch);
@@ -869,6 +872,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       return value;
     case ABILITY_PARRY:
       value += GET_DEX_BONUS(ch);
+      value += compute_gear_penalty_check(ch);
       return value;
     case ABILITY_LORE:
       if (GET_RACE(ch) == RACE_H_ELF)
@@ -880,9 +884,11 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       return value;
     case ABILITY_PICK_LOCK:
       value += GET_DEX_BONUS(ch);
+      value += compute_gear_penalty_check(ch);
       return value;
     case ABILITY_STEAL:
       value += GET_DEX_BONUS(ch);
+      value += compute_gear_penalty_check(ch);
       return value;
     default: return -1;
   }
