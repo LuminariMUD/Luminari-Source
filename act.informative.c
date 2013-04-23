@@ -1978,6 +1978,12 @@ ACMD(do_equipment) {
   if (!found)
     send_to_char(ch, " Nothing.\r\n");
   
+  send_to_char(ch, "\tCArmor/Shield Wt: %d/%d, Penalty: %d, Arcane Failure:"
+          " %d.\r\n", determine_gear_weight(ch, ARMOR_PROFICIENCY),
+          determine_gear_weight(ch, SHIELD_PROFICIENCY),
+          compute_gear_penalty_check(ch),
+          compute_gear_arcane_fail(ch));
+  
   if (ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
     send_to_char(ch, "\r\n\t<send href='inventory'>View inventory\t</send>\r\n");
 }
