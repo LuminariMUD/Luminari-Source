@@ -24,6 +24,7 @@
 #include "constants.h"
 #include "mud_event.h"
 #include "spec_procs.h"
+#include "class.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -369,6 +370,12 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     send_to_char(caster, "This mob is protected.\r\n");
     return (0);
   }
+  
+  if (!IS_NPC(caster) && rand_number(1, 100) > compute_gear_arcane_fail(caster)) {
+    send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
+    act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
+    return 0;
+  }
 
   //attach event for epic spells, increase skill
   switch (spellnum) {
@@ -654,8 +661,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
  * For reference, object values 0-3:
  * staff  - [0]	level	[1] max charges	[2] num charges	[3] spell num
  * wand   - [0]	level	[1] max charges	[2] num charges	[3] spell num
- * scroll - [0]	level	[1] spell num	[2] spell num	[3] spell num
- * potion - [0] level	[1] spell num	[2] spell num	[3] spell num
+ * scroll - [0]	level	[1] spell num	     [2] spell num	     [3] spell num
+ * potion - [0]     level	[1] spell num   	[2] spell num   	[3] spell num
  * Staves and wands will default to level 14 if the level is not specified; the
  * DikuMUD format did not specify staff and wand levels in the world files */
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
