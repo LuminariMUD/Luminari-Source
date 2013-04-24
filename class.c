@@ -1081,25 +1081,20 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99);
       SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99);
       SET_SKILL(ch, SPELL_MAGIC_MISSILE, 99);
-
       SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
-
 
       //2nd circle
       SET_SKILL(ch, SPELL_SUMMON_CREATURE_2, 99);
       SET_SKILL(ch, SPELL_DEAFNESS, 99);
       SET_SKILL(ch, SPELL_HIDEOUS_LAUGHTER, 99);
       SET_SKILL(ch, SPELL_MIRROR_IMAGE, 99);
-      SET_SKILL(ch, SPELL_BLUR, 99);
       SET_SKILL(ch, SPELL_DETECT_INVIS, 99);
       SET_SKILL(ch, SPELL_DETECT_MAGIC, 99);
       SET_SKILL(ch, SPELL_INVISIBLE, 99);
       SET_SKILL(ch, SPELL_ENDURANCE, 99);
       SET_SKILL(ch, SPELL_STRENGTH, 99);
       SET_SKILL(ch, SPELL_GRACE, 99);
-
       SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
-
 
       //3rd circle
       SET_SKILL(ch, SPELL_SUMMON_CREATURE_3, 99);
@@ -1111,20 +1106,15 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_CUNNING, 99);
       SET_SKILL(ch, SPELL_WISDOM, 99);
       SET_SKILL(ch, SPELL_CHARISMA, 99);
-
       SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
-
 
       //4th circle
       SET_SKILL(ch, SPELL_SUMMON_CREATURE_4, 99);
       SET_SKILL(ch, SPELL_GREATER_INVIS, 99);
       SET_SKILL(ch, SPELL_RAINBOW_PATTERN, 99);
       SET_SKILL(ch, SPELL_REMOVE_CURSE, 99); //shared
-      SET_SKILL(ch, SPELL_STONESKIN, 99);
       SET_SKILL(ch, SPELL_ICE_STORM, 99);
-
       SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
-
 
       //5th circle
       SET_SKILL(ch, SPELL_SUMMON_CREATURE_5, 99);
@@ -1132,19 +1122,14 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_CONE_OF_COLD, 99);
       SET_SKILL(ch, SPELL_NIGHTMARE, 99);
       SET_SKILL(ch, SPELL_MIND_FOG, 99);
-
       SET_SKILL(ch, SPELL_MASS_CURE_LIGHT, 99);
-
 
       //6th circle
       SET_SKILL(ch, SPELL_SUMMON_CREATURE_7, 99);
       SET_SKILL(ch, SPELL_FREEZING_SPHERE, 99);
-      SET_SKILL(ch, SPELL_TRUE_SEEING, 99);
-      SET_SKILL(ch, SPELL_GREATER_DISPELLING, 99);
       SET_SKILL(ch, SPELL_GREATER_HEROISM, 99);
-
       SET_SKILL(ch, SPELL_MASS_CURE_MODERATE, 99);
-
+      SET_SKILL(ch, SPELL_STONESKIN, 99);
 
       // skill init    
       if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
@@ -1523,25 +1508,31 @@ void init_class(struct char_data *ch, int class, int level) {
       //spell init
       //1st circle
       SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
-      SET_SKILL(ch, SPELL_ENDURANCE, 99);
-      SET_SKILL(ch, SPELL_ARMOR, 99);
-      SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99);
+      SET_SKILL(ch, SPELL_CHARM_ANIMAL, 99);
+      SET_SKILL(ch, SPELL_FAERIE_FIRE, 99);
+      SET_SKILL(ch, SPELL_JUMP, 99);
+      SET_SKILL(ch, SPELL_MAGIC_FANG, 99);
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_1, 99);
       //2nd circle
-      SET_SKILL(ch, SPELL_CREATE_FOOD, 99);
-      SET_SKILL(ch, SPELL_CREATE_WATER, 99);
-      SET_SKILL(ch, SPELL_DETECT_POISON, 99);
-      SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99);
+      SET_SKILL(ch, SPELL_ENDURANCE, 99);
+      SET_SKILL(ch, SPELL_BARKSKIN, 99);
+      SET_SKILL(ch, SPELL_GRACE, 99);
+      SET_SKILL(ch, SPELL_HOLD_ANIMAL, 99);
+      SET_SKILL(ch, SPELL_WISDOM, 99);
+      SET_SKILL(ch, SPELL_STRENGTH, 99);
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_2, 99);
       //3rd circle
-      SET_SKILL(ch, SPELL_DETECT_ALIGN, 99);
-      SET_SKILL(ch, SPELL_CURE_BLIND, 99);
-      SET_SKILL(ch, SPELL_BLESS, 99);
-      SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99);
+      SET_SKILL(ch, SPELL_SPIKE_GROWTH, 99);
+      SET_SKILL(ch, SPELL_GREATER_MAGIC_FANG, 99);
+      SET_SKILL(ch, SPELL_CONTAGION, 99);
+      SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_3, 99);
       //4th circle
-      SET_SKILL(ch, SPELL_INFRAVISION, 99);
-      SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
-      SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
-      SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
-
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_4, 99);
+      SET_SKILL(ch, SPELL_FREE_MOVEMENT, 99);
+      SET_SKILL(ch, SPELL_DISPEL_MAGIC, 99);
+      SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
+      
       //skill init
       if (!GET_SKILL(ch, SKILL_FAVORED_ENEMY))
         SET_SKILL(ch, SKILL_FAVORED_ENEMY, 75);
