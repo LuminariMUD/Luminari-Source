@@ -370,12 +370,29 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     send_to_char(caster, "This mob is protected.\r\n");
     return (0);
   }
-  
-  if (!IS_NPC(caster) && rand_number(1, 100) > compute_gear_arcane_fail(caster)) {
-    send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
-    act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
-    return 0;
-  }
+
+  /* armor arcane failure check, these functions can be found in class.c */
+  if (!IS_NPC(caster))
+    switch (CASTING_CLASS(caster)) {
+      case CLASS_BARD:
+        /* bards can wear light armor and cast unpenalized (bard spells) */
+        if (proficiency_worn(caster, ARMOR_PROFICIENCY) > ITEM_PROF_LIGHT_A ||
+                proficiency_worn(caster, SHIELD_PROFICIENCY) > ITEM_PROF_SHIELDS)
+          if (rand_number(1, 100) <= compute_gear_arcane_fail(caster)) {
+            send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
+            act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
+            return 0;
+          }
+        break;
+      case CLASS_SORCERER:
+      case CLASS_WIZARD:
+        if (rand_number(1, 100) <= compute_gear_arcane_fail(caster)) {
+          send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
+          act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
+          return 0;
+        }
+        break;
+    }
 
   //attach event for epic spells, increase skill
   switch (spellnum) {
@@ -960,7 +977,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     send_to_char(ch, "You can not even speak a single word!\r\n");
     return 0;
   }
-  
+
   //epic spell cooldown
   if (char_has_mud_event(ch, eMUMMYDUST) && spellnum == SPELL_MUMMY_DUST) {
     send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
@@ -1014,7 +1031,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     return (0);
   }
 
-  if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == tch) && 
+  if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == tch) &&
           (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
     send_to_char(ch, "You are afraid you might hurt your master!\r\n");
     return (0);
@@ -1069,9 +1086,10 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     if (class != CLASS_SORCERER && class != CLASS_BARD)
       addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
   }
-  
+
   /* level to cast this particular spell as */
   clevel = CLASS_LEVEL(ch, class);
+  CASTING_CLASS(ch) = class;
 
   /* handle spells with no casting time */
   if (SINFO.time <= 0) {
@@ -1090,12 +1108,11 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   CASTING_TCH(ch) = tch;
   CASTING_TOBJ(ch) = tobj;
   CASTING_SPELLNUM(ch) = spellnum;
-  CASTING_CLASS(ch) = class;
   NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   /* mandatory wait-state for any spell */
   SET_WAIT(ch, 10);
-  
+
   //this return value has to be checked -zusuk
   return (1);
 }
@@ -2695,7 +2712,6 @@ void mag_assign_spells(void) {
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 
 }
-
 
 /* must be at end of file */
 #undef SINFO
