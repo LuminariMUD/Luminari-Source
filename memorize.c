@@ -323,7 +323,7 @@ ACMD(do_scribe) {
       return;
     }
 
-    if (!hasSpell(ch, spellnum)) {
+    if (hasSpell(ch, spellnum) != CLASS_WIZARD) {
       send_to_char(ch, "You must have the spell committed to memory before "
               "you can scribe it!\r\n");
       return;
@@ -1130,17 +1130,18 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
         }
       }
     } /* we found nothing so far*/
+    
     /* check sorc-type arrays */
     if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
       /* got a free slot? */
-      if (hasSpell(ch, spellnum)) {
+      if (hasSpell(ch, spellnum) == CLASS_SORCERER) {
         addSpellMemming(ch, spellnum, 0, CLASS_SORCERER);
         return CLASS_SORCERER;
       }
     }
     if (CLASS_LEVEL(ch, CLASS_BARD)) {
       /* got a free slot? */
-      if (hasSpell(ch, spellnum)) {
+      if (hasSpell(ch, spellnum) == CLASS_BARD) {
         addSpellMemming(ch, spellnum, 0, CLASS_BARD);
         return CLASS_BARD;
       }
@@ -1277,12 +1278,13 @@ int sorc_add_known(struct char_data *ch, int spellnum, int class) {
 }
 
 
-// for SORCERER types:  returns TRUE if they know the spell AND if they
+// for SORCERER types:  returns <class> if they know the spell AND if they
 //   got free slots
-// for WIZARD types:  returns TRUE if the character has the spell memorized
+// for WIZARD types:  returns <class> if the character has the spell memorized
 //   returns FALSE if the character doesn't
+// -1 will be returned if its not found at all
 
-bool hasSpell(struct char_data *ch, int spellnum) {
+int hasSpell(struct char_data *ch, int spellnum) {
   int slot, x;
 
   // could check to see what classes ch has to speed up this search
@@ -1296,7 +1298,7 @@ bool hasSpell(struct char_data *ch, int spellnum) {
       continue;
     for (slot = 0; slot < MAX_MEM; slot++) {
       if (PRAYED(ch, slot, classArray(x)) == spellnum)
-        return TRUE;
+        return x;
     }
   }
 
@@ -1309,9 +1311,10 @@ bool hasSpell(struct char_data *ch, int spellnum) {
       // take total slots for the correct circle and subtract from used
       if ((comp_slots(ch, circle, CLASS_SORCERER) -
               numSpells(ch, circle, CLASS_SORCERER)) > 0)
-        return TRUE;
+        return CLASS_SORCERER;
     }
   }
+  
   if (CLASS_LEVEL(ch, CLASS_BARD)) {
     // is this one of the "known" spells?
     if (sorcKnown(ch, spellnum, CLASS_BARD)) {
@@ -1320,12 +1323,12 @@ bool hasSpell(struct char_data *ch, int spellnum) {
       // take total slots for the correct circle and subtract from used
       if ((comp_slots(ch, circle, CLASS_BARD) -
               numSpells(ch, circle, CLASS_BARD)) > 0)
-        return TRUE;
+        return CLASS_BARD;
     }
   }
 
-
-  return FALSE;
+  /* can return -1 for no class char has, has this spell */
+  return -1;
 }
 
 
