@@ -1311,7 +1311,8 @@ bool hasSpell(struct char_data *ch, int spellnum) {
               numSpells(ch, circle, CLASS_SORCERER)) > 0)
         return TRUE;
     }
-  } else if (CLASS_LEVEL(ch, CLASS_BARD)) {
+  }
+  if (CLASS_LEVEL(ch, CLASS_BARD)) {
     // is this one of the "known" spells?
     if (sorcKnown(ch, spellnum, CLASS_BARD)) {
       int circle = spellCircle(CLASS_BARD, spellnum);
