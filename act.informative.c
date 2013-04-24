@@ -1800,7 +1800,7 @@ ACMD(do_score) {
   send_to_char(ch, "\tCAge:\tn %d \tCyrs\tn / %d \tCmths\tn",
           age(ch)->year, age(ch)->month);
 
-  send_to_char(ch, "\tCAlignment:\tn %13s\r\n", get_align_by_num(GET_ALIGNMENT(ch)));
+  send_to_char(ch, "     \tCAlignment:\tn %13s\r\n", get_align_by_num(GET_ALIGNMENT(ch)));
   
   send_to_char(ch,
           "\tC---------------------------------------------------------\tn\r\n");
