@@ -1984,7 +1984,7 @@ ACMD(do_equipment) {
     send_to_char(ch, " Nothing.\r\n");
   
   send_to_char(ch, "\tCArmor/Shield Wt: %d/%d, Penalty: %d, Max Dex: %s, Spell Fail:"
-          " %d.\r\n", determine_gear_weight(ch, ARMOR_PROFICIENCY),
+          " %d.\tn\r\n", determine_gear_weight(ch, ARMOR_PROFICIENCY),
           determine_gear_weight(ch, SHIELD_PROFICIENCY),
           compute_gear_penalty_check(ch), dex_max, compute_gear_arcane_fail(ch));
   
