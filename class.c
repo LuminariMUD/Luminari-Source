@@ -2597,7 +2597,6 @@ void init_spell_levels(void) {
   spell_level(SPELL_DEAFNESS, CLASS_BARD, 5);
   spell_level(SPELL_HIDEOUS_LAUGHTER, CLASS_BARD, 5);
   spell_level(SPELL_MIRROR_IMAGE, CLASS_BARD, 5);
-  spell_level(SPELL_BLUR, CLASS_BARD, 5);
   spell_level(SPELL_DETECT_INVIS, CLASS_BARD, 5);
   spell_level(SPELL_DETECT_MAGIC, CLASS_BARD, 5);
   spell_level(SPELL_INVISIBLE, CLASS_BARD, 5);
@@ -2627,7 +2626,6 @@ void init_spell_levels(void) {
   spell_level(SPELL_GREATER_INVIS, CLASS_BARD, 11);
   spell_level(SPELL_RAINBOW_PATTERN, CLASS_BARD, 11);
   spell_level(SPELL_REMOVE_CURSE, CLASS_BARD, 11);
-  spell_level(SPELL_STONESKIN, CLASS_BARD, 11);
   spell_level(SPELL_ICE_STORM, CLASS_BARD, 11);
 
   spell_level(SPELL_CURE_CRITIC, CLASS_BARD, 11);
@@ -2646,9 +2644,8 @@ void init_spell_levels(void) {
   //6th circle
   spell_level(SPELL_SUMMON_CREATURE_7, CLASS_BARD, 17);
   spell_level(SPELL_FREEZING_SPHERE, CLASS_BARD, 17);
-  spell_level(SPELL_TRUE_SEEING, CLASS_BARD, 17);
-  spell_level(SPELL_GREATER_DISPELLING, CLASS_BARD, 17);
   spell_level(SPELL_GREATER_HEROISM, CLASS_BARD, 17);
+  spell_level(SPELL_STONESKIN, CLASS_BARD, 11);
 
   spell_level(SPELL_MASS_CURE_MODERATE, CLASS_BARD, 17);
 
@@ -2685,26 +2682,35 @@ void init_spell_levels(void) {
 
   // rangers
   //1st circle
+  spell_level(SPELL_CHARM_ANIMAL, CLASS_RANGER, 6);
   spell_level(SPELL_CURE_LIGHT, CLASS_RANGER, 6);
-  spell_level(SPELL_ENDURANCE, CLASS_RANGER, 6); //shared
-  spell_level(SPELL_ARMOR, CLASS_RANGER, 6);
-  spell_level(SPELL_CAUSE_LIGHT_WOUNDS, CLASS_RANGER, 6);
-  //2nd circle
-  spell_level(SPELL_CREATE_FOOD, CLASS_RANGER, 10);
-  spell_level(SPELL_CREATE_WATER, CLASS_RANGER, 10);
-  spell_level(SPELL_DETECT_POISON, CLASS_RANGER, 10); //shared
-  spell_level(SPELL_CAUSE_MODERATE_WOUNDS, CLASS_RANGER, 10);
-  //3rd circle
-  spell_level(SPELL_DETECT_ALIGN, CLASS_RANGER, 12);
-  spell_level(SPELL_CURE_BLIND, CLASS_RANGER, 12);
-  spell_level(SPELL_BLESS, CLASS_RANGER, 12);
-  spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_RANGER, 12);
-  //4th circle
-  spell_level(SPELL_INFRAVISION, CLASS_RANGER, 15); //shared
-  spell_level(SPELL_REMOVE_CURSE, CLASS_RANGER, 15); //shared
-  spell_level(SPELL_CAUSE_CRITICAL_WOUNDS, CLASS_RANGER, 15);
-  spell_level(SPELL_CURE_CRITIC, CLASS_RANGER, 15);
+  spell_level(SPELL_FAERIE_FIRE, CLASS_RANGER, 6);
+  spell_level(SPELL_JUMP, CLASS_RANGER, 6);
+  spell_level(SPELL_MAGIC_FANG, CLASS_RANGER, 6);
+  spell_level(SPELL_SUMMON_NATURES_ALLY_1, CLASS_RANGER, 6);
 
+  //2nd circle
+  spell_level(SPELL_BARKSKIN, CLASS_RANGER, 10);
+  spell_level(SPELL_ENDURANCE, CLASS_RANGER, 10);
+  spell_level(SPELL_GRACE, CLASS_RANGER, 10);
+  spell_level(SPELL_HOLD_ANIMAL, CLASS_RANGER, 10);
+  spell_level(SPELL_WISDOM, CLASS_RANGER, 10);
+  spell_level(SPELL_STRENGTH, CLASS_RANGER, 10);
+  spell_level(SPELL_SUMMON_NATURES_ALLY_2, CLASS_RANGER, 10);
+
+  //3rd circle
+  spell_level(SPELL_CURE_MODERATE, CLASS_RANGER, 12);
+  spell_level(SPELL_CONTAGION, CLASS_RANGER, 12);
+  spell_level(SPELL_GREATER_MAGIC_FANG, CLASS_RANGER, 12);
+  spell_level(SPELL_SPIKE_GROWTH, CLASS_RANGER, 12);
+  spell_level(SPELL_SUMMON_NATURES_ALLY_3, CLASS_RANGER, 12);
+
+  //4th circle
+  spell_level(SPELL_CURE_SERIOUS, CLASS_RANGER, 15);
+  spell_level(SPELL_DISPEL_MAGIC, CLASS_RANGER, 15);
+  spell_level(SPELL_FREE_MOVEMENT, CLASS_RANGER, 15);
+  spell_level(SPELL_SUMMON_NATURES_ALLY_4, CLASS_RANGER, 15);
+  
 
   // clerics
   //1st circle
@@ -3620,6 +3626,37 @@ int compute_gear_arcane_fail(struct char_data *ch) {
   
 }
 
+/* this function will determine the dam-reduc created by the
+   gear the char is wearing  */
+int compute_gear_dam_reduc(struct char_data *ch) {
+  int factor = determine_gear_weight(ch, ARMOR_PROFICIENCY);
+  int shields = determine_gear_weight(ch, SHIELD_PROFICIENCY);
+
+  if (shields > factor)
+    factor = shields;
+
+  if (factor > 51)
+    return 6;
+  if (factor >= 45)
+    return 4;
+  if (factor >= 40)
+    return 4;
+  if (factor >= 35)
+    return 3;
+  if (factor >= 30)
+    return 3;
+  if (factor >= 25)
+    return 2;
+  if (factor >= 20)
+    return 2;
+  if (factor >= 15)
+    return 1;
+  if (factor >= 10)
+    return 1;
+
+  return 0;  //should be less than 10
+}
+
 /* this function will determine the max-dex created by the
    gear the char is wearing  */
 int compute_gear_max_dex(struct char_data *ch) {
@@ -3638,17 +3675,20 @@ int compute_gear_max_dex(struct char_data *ch) {
   if (factor >= 35)
     return 3;
   if (factor >= 30)
-    return 5;
+    return 4;
   if (factor >= 25)
-    return 7;
+    return 5;
   if (factor >= 20)
-    return 10;
+    return 7;
   if (factor >= 15)
-    return 13;
+    return 9;
   if (factor >= 10)
-    return 17;
+    return 11;
 
-  return 99;  //should be less than 10
+  if (factor >= 1)
+    return 13;
+  else
+    return 99;  // wearing no weight!
 }
 
 /* our simple little function to make sure our monk
