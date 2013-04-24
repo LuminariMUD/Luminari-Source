@@ -1520,9 +1520,8 @@ ACMD(do_flee) {
       return;
     }
   }
-  // half a second for non newbies
-  if (GET_LEVEL(ch) <= LEVEL_NEWBIE)
-  SET_WAIT(ch, 50);
+  /* trying without delay */
+  //SET_WAIT(ch, 10);
 }
 
 
