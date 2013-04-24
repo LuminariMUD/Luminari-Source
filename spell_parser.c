@@ -1200,7 +1200,7 @@ ACMD(do_cast) {
   }
 
   /* check for spell preparation (memorization, spell-slots, etc) */
-  if (!hasSpell(ch, spellnum) && !isEpicSpell(spellnum)) {
+  if (hasSpell(ch, spellnum) == -1 && !isEpicSpell(spellnum)) {
     send_to_char(ch, "You aren't ready to cast that spell... (help preparation)\r\n");
     return;
   }
