@@ -2656,23 +2656,14 @@ void hit(struct char_data *ch, struct char_data *victim,
      3 - epic two weapon fighting
  */
 int is_dual_weapons(struct char_data *ch, int mode) {
-  int i = 0;
 
   // we already checked if this is a NPC coming in
   if (CLASS_LEVEL(ch, CLASS_RANGER) < 2)
     return 0;
 
   // wearing light enough armor?
-  for (i = 0; i < NUM_WEARS; i++) {
-    if (GET_EQ(ch, i)) {
-      if (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS ||
-              i == WEAR_ARMS) {
-        if (GET_OBJ_PROF(GET_EQ(ch, i)) > ITEM_PROF_LIGHT_A) {
-          return 0;
-        }
-      }
-    }
-  }
+  if (proficiency_worn(ch, ARMOR_PROFICIENCY) > ITEM_PROF_LIGHT_A)
+    return 0;
 
   if (mode == 1) { // already qualifies for ambidexterity
     increase_skill(ch, SKILL_DUAL_WEAPONS);
