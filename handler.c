@@ -108,24 +108,19 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
     case APPLY_STR:
       GET_STR(ch) += mod;
       break;
-
     case APPLY_DEX:
       GET_DEX(ch) += mod;
       break;
-
     case APPLY_INT:
       GET_INT(ch) += mod;
       break;
-
     case APPLY_WIS:
       GET_WIS(ch) += mod;
       break;
-
     case APPLY_CON:
       GET_CON(ch) += mod;
       GET_MAX_HIT(ch) += (mod / 2) * GET_LEVEL(ch);
       break;
-
     case APPLY_CHA:
       GET_CHA(ch) += mod;
       break;
@@ -133,7 +128,6 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
     case APPLY_CHAR_WEIGHT:
       GET_WEIGHT(ch) += mod;
       break;
-
     case APPLY_CHAR_HEIGHT:
       GET_HEIGHT(ch) += mod;
       break;
@@ -141,11 +135,9 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
     case APPLY_MANA:
       GET_MAX_MANA(ch) += mod;
       break;
-
     case APPLY_HIT:
       GET_MAX_HIT(ch) += mod;
       break;
-
     case APPLY_MOVE:
       GET_MAX_MOVE(ch) += mod;
       break;
@@ -153,7 +145,6 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
     case APPLY_AC:
       GET_AC(ch) += mod;
       break;
-
     case APPLY_AC_NEW: // new APPLY_AC for 3.5E armor class
       GET_AC(ch) += mod * -10;
       break;
@@ -161,7 +152,6 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
     case APPLY_HITROLL:
       GET_HITROLL(ch) += mod;
       break;
-
     case APPLY_DAMROLL:
       GET_DAMROLL(ch) += mod;
       break;
@@ -177,19 +167,15 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
     case APPLY_SAVING_FORT:
       GET_SAVE(ch, SAVING_FORT) += mod;
       break;
-
     case APPLY_SAVING_REFL:
       GET_SAVE(ch, SAVING_REFL) += mod;
       break;
-
     case APPLY_SAVING_WILL:
       GET_SAVE(ch, SAVING_WILL) += mod;
       break;
-
     case APPLY_SAVING_POISON:
       GET_SAVE(ch, SAVING_POISON) += mod;
       break;
-
     case APPLY_SAVING_DEATH:
       GET_SAVE(ch, SAVING_DEATH) += mod;
       break;
@@ -319,6 +305,147 @@ void reset_char_points(struct char_data *ch) {
 
 #define STAT_CAP 50
 
+#define BASE_STAT_CAP 8
+#define HP_CAP 200
+#define MANA_CAP 300
+#define MOVE_CAP 999
+#define HITDAM_CAP 10
+#define AC_CAP -140
+#define SAVE_CAP 10
+#define RESIST_CAP 100
+void compute_char_cap(struct char_data *ch) {
+  int hp_cap, mana_cap, move_cap, hitdam_cap, ac_cap,
+          save_cap, resist_cap, class, class_level = 0;
+  int str_cap, dex_cap, con_cap, wis_cap, int_cap, cha_cap;
+
+  /* values are between 1..stat-cap, not < 1 and not > stat-cap */
+  GET_DEX(ch) = MAX(1, MIN(GET_DEX(ch), STAT_CAP));
+  GET_INT(ch) = MAX(1, MIN(GET_INT(ch), STAT_CAP));
+  GET_WIS(ch) = MAX(1, MIN(GET_WIS(ch), STAT_CAP));
+  GET_CON(ch) = MAX(1, MIN(GET_CON(ch), STAT_CAP));
+  GET_CHA(ch) = MAX(1, MIN(GET_CHA(ch), STAT_CAP));
+  GET_STR(ch) = MAX(1, MIN(GET_STR(ch), STAT_CAP));
+
+  GET_SIZE(ch) = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
+  
+  /* can add more restrictions to npc's above this if we like */
+  if (IS_NPC(ch))
+    return;
+
+  /*****************/
+  /* PC Cap System */
+  
+  /* start with base */
+  str_cap = dex_cap = con_cap = wis_cap = int_cap = cha_cap = BASE_STAT_CAP;
+  hp_cap = HP_CAP;
+  mana_cap = MANA_CAP;
+  move_cap = MOVE_CAP;
+  hitdam_cap = HITDAM_CAP;
+  ac_cap = AC_CAP;
+  save_cap = SAVE_CAP;
+  resist_cap = RESIST_CAP;
+
+  /* here for reference
+  "Wizard"     int, dex, wis
+  "Cleric"     wis, str, cha
+  "Rogue"      dex,           hitroll, damroll, (str / int)
+  "Warrior"    str, con,      hitroll, damroll
+  "Monk"       wis, dex,      hitroll, damroll
+  "Druid"      wis, str, dex
+  "Berserker"  str, con,      hitroll, damroll
+  "Sorcerer"   cha, dex, int
+  "Paladin"    cha, str,      hitroll, damroll
+  "Ranger"     dex,           hitroll, damroll, (str / wis)
+  "Bard"       cha, dex,      (hitroll, damroll, str, int)
+   */
+          
+  for (class = 0; class < MAX_CLASSES; class++) {
+    if ((CLASS_LEVEL(ch, class) = class_level) > 0) {
+      switch (class) {
+        case CLASS_WIZARD:
+          int_cap += class_level / 4 + 1;
+          dex_cap += class_level / 4 + 1;
+          wis_cap += class_level / 4 + 1;
+          break;
+        case CLASS_CLERIC:
+          str_cap += class_level / 4 + 1;
+          cha_cap += class_level / 4 + 1;
+          wis_cap += class_level / 4 + 1;
+          break;
+        case CLASS_ROGUE:
+          str_cap += class_level / 8 + 1;
+          dex_cap += class_level / 4 + 1;
+          int_cap += class_level / 8 + 1;
+          hitdam_cap += class_level / 3;
+          break;
+        case CLASS_WARRIOR:
+          str_cap += class_level / 4 + 1;
+          con_cap += class_level / 4 + 1;
+          hitdam_cap += class_level / 3;
+          break;
+        case CLASS_MONK:
+          wis_cap += class_level / 4 + 1;
+          dex_cap += class_level / 4 + 1;
+          hitdam_cap += class_level / 3;
+          break;
+        case CLASS_DRUID:
+          str_cap += class_level / 4 + 1;
+          dex_cap += class_level / 4 + 1;
+          wis_cap += class_level / 4 + 1;
+          break;
+        case CLASS_BERSERKER:
+          str_cap += class_level / 4 + 1;
+          con_cap += class_level / 4 + 1;
+          hitdam_cap += class_level / 3;
+          break;
+        case CLASS_SORCERER:
+          int_cap += class_level / 4 + 1;
+          dex_cap += class_level / 4 + 1;
+          cha_cap += class_level / 4 + 1;
+          break;
+        case CLASS_PALADIN:
+          str_cap += class_level / 4 + 1;
+          cha_cap += class_level / 4 + 1;
+          hitdam_cap += class_level / 3;
+          break;
+        case CLASS_RANGER:
+          dex_cap += class_level / 4 + 1;
+          wis_cap += class_level / 8 + 1;
+          str_cap += class_level / 8 + 1;
+          hitdam_cap += class_level / 3;
+          break;
+        case CLASS_BARD:
+          dex_cap += class_level / 4 + 1;
+          cha_cap += class_level / 4 + 1;
+          str_cap += class_level / 8 + 1;
+          int_cap += class_level / 8 + 1;
+          hitdam_cap += class_level / 4;
+          break;
+      }
+    }
+  }
+
+  /* cap stats according to adjustments */
+  GET_DEX(ch) = MIN(GET_REAL_DEX(ch) + dex_cap, GET_DEX(ch));
+  GET_INT(ch) = MIN(GET_REAL_INT(ch) + int_cap, GET_INT(ch));
+  GET_WIS(ch) = MIN(GET_REAL_WIS(ch) + wis_cap, GET_WIS(ch));
+  GET_CON(ch) = MIN(GET_REAL_CON(ch) + con_cap, GET_CON(ch));
+  GET_CHA(ch) = MIN(GET_REAL_CHA(ch) + cha_cap, GET_CHA(ch));
+  GET_STR(ch) = MIN(GET_REAL_STR(ch) + str_cap, GET_STR(ch));
+  
+  GET_HITROLL(ch) = MIN(GET_REAL_HITROLL(ch) + hitdam_cap, GET_HITROLL(ch));
+  GET_DAMROLL(ch) = MIN(GET_REAL_DAMROLL(ch) + hitdam_cap, GET_DAMROLL(ch));
+}
+#undef STAT_CAP
+#undef BASE_STAT_CAP
+#undef HP_CAP
+#undef MANA_CAP
+#undef MOVE_CAP
+#undef HITDAM_CAP
+#undef AC_CAP
+#undef SAVE_CAP
+#undef RESIST_CAP
+
 /* This updates a character by subtracting everything he is affected by
  * restoring original abilities, and then affecting all again. */
 void affect_total(struct char_data *ch) {
@@ -362,23 +489,9 @@ void affect_total(struct char_data *ch) {
   for (af = ch->affected; af; af = af->next)
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
 
-  /* absolute caps */
-  /* Make certain values are between 1..50, not < 1 and not > 50! */
-  GET_DEX(ch) = MAX(0, MIN(GET_DEX(ch), STAT_CAP));
-  GET_INT(ch) = MAX(0, MIN(GET_INT(ch), STAT_CAP));
-  GET_WIS(ch) = MAX(0, MIN(GET_WIS(ch), STAT_CAP));
-  GET_CON(ch) = MAX(0, MIN(GET_CON(ch), STAT_CAP));
-  GET_CHA(ch) = MAX(0, MIN(GET_CHA(ch), STAT_CAP));
-  GET_STR(ch) = MAX(0, MIN(GET_STR(ch), STAT_CAP));
-
-  /* make sure size is between valid values */
-  GET_SIZE(ch) = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
-  /* end absolute caps */
-
-  /* begin relative caps */
-  /* end relative caps */
+  /* cap character */
+  compute_char_cap(ch);
 }
-#undef STAT_CAP
 
 /* Insert an affect_type in a char_data structure. Automatically sets
  * apropriate bits and apply's */
