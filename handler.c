@@ -360,7 +360,7 @@ void compute_char_cap(struct char_data *ch) {
    */
           
   for (class = 0; class < MAX_CLASSES; class++) {
-    if ((CLASS_LEVEL(ch, class) = class_level) > 0) {
+    if ((class_level = CLASS_LEVEL(ch, class)) > 0) {
       switch (class) {
         case CLASS_WIZARD:
           int_cap += class_level / 4 + 1;
