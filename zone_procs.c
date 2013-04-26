@@ -818,4 +818,120 @@ SPECIAL(jerry)
 /*  END KINGS CASTLE */
 /******************************************************************/
 
+/*********/
+/* ABYSS */
+/*********/
+#define ABYSS_ZONE_VNUM   1423
+
+int calc_room_num(int value) {
+  return (ABYSS_ZONE_VNUM * 100) + value;
+}
+
+SPECIAL(abyss_randomizer) {
+  struct char_data *i = NULL;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+
+  if (cmd)
+    return 0;
+
+  if (rand_number(0, 10))
+    return 0;
+
+  int room, temp1, temp2;
+
+  for (room = calc_room_num(1); room <= calc_room_num(18); room++) {
+
+    /* Swapping North and South */
+    if (world[real_room(room)].dir_option[NORTH] && world[real_room(room)].dir_option[NORTH]->to_room != NOWHERE)
+      temp1 = world[real_room(room)].dir_option[NORTH]->to_room;
+    else
+      temp1 = NOWHERE;
+    if (world[real_room(room)].dir_option[SOUTH] && world[real_room(room)].dir_option[SOUTH]->to_room != NOWHERE)
+      temp2 = world[real_room(room)].dir_option[SOUTH]->to_room;
+    else
+      temp2 = NOWHERE;
+    if (temp2 != NOWHERE) {
+      if (!world[real_room(room)].dir_option[NORTH])
+        CREATE(world[real_room(room)].dir_option[NORTH], struct room_direction_data, 1);
+      world[real_room(room)].dir_option[NORTH]->to_room = temp2;
+    } else if (world[real_room(room)].dir_option[NORTH]) {
+      free(world[real_room(room)].dir_option[NORTH]);
+      world[real_room(room)].dir_option[NORTH] = NULL;
+    }
+    if (temp1 != NOWHERE) {
+      if (!world[real_room(room)].dir_option[SOUTH])
+        CREATE(world[real_room(room)].dir_option[SOUTH], struct room_direction_data, 1);
+      world[real_room(room)].dir_option[SOUTH]->to_room = temp1;
+    } else if (world[real_room(room)].dir_option[SOUTH]) {
+      free(world[real_room(room)].dir_option[SOUTH]);
+      world[real_room(room)].dir_option[SOUTH] = NULL;
+    }
+
+    /* Swapping East and West */
+    if (world[real_room(room)].dir_option[EAST] && world[real_room(room)].dir_option[EAST]->to_room != NOWHERE)
+      temp1 = world[real_room(room)].dir_option[EAST]->to_room;
+    else
+      temp1 = NOWHERE;
+    if (world[real_room(room)].dir_option[WEST] && world[real_room(room)].dir_option[WEST]->to_room != NOWHERE)
+      temp2 = world[real_room(room)].dir_option[WEST]->to_room;
+    else
+      temp2 = NOWHERE;
+    if (temp2 != NOWHERE) {
+      if (!world[real_room(room)].dir_option[EAST])
+        CREATE(world[real_room(room)].dir_option[EAST], struct room_direction_data, 1);
+      world[real_room(room)].dir_option[EAST]->to_room = temp2;
+    } else if (world[real_room(room)].dir_option[EAST]) {
+      free(world[real_room(room)].dir_option[EAST]);
+      world[real_room(room)].dir_option[EAST] = NULL;
+    }
+    if (temp1 != NOWHERE) {
+      if (!world[real_room(room)].dir_option[WEST])
+        CREATE(world[real_room(room)].dir_option[WEST], struct room_direction_data, 1);
+      world[real_room(room)].dir_option[WEST]->to_room = temp1;
+    } else if (world[real_room(room)].dir_option[WEST]) {
+      free(world[real_room(room)].dir_option[WEST]);
+      world[real_room(room)].dir_option[WEST] = NULL;
+    }
+
+    /* Swapping Up and Down */
+    if (world[real_room(room)].dir_option[UP] && world[real_room(room)].dir_option[UP]->to_room != NOWHERE)
+      temp1 = world[real_room(room)].dir_option[UP]->to_room;
+    else
+      temp1 = NOWHERE;
+    if (world[real_room(room)].dir_option[DOWN] && world[real_room(room)].dir_option[DOWN]->to_room != NOWHERE)
+      temp2 = world[real_room(room)].dir_option[DOWN]->to_room;
+    else
+      temp2 = NOWHERE;
+    if (temp2 != NOWHERE) {
+      if (!world[real_room(room)].dir_option[UP])
+        CREATE(world[real_room(room)].dir_option[UP], struct room_direction_data, 1);
+      world[real_room(room)].dir_option[UP]->to_room = temp2;
+    } else if (world[real_room(room)].dir_option[UP]) {
+      free(world[real_room(room)].dir_option[UP]);
+      world[real_room(room)].dir_option[UP] = NULL;
+    }
+    if (temp1 != NOWHERE) {
+      if (!world[real_room(room)].dir_option[DOWN])
+        CREATE(world[real_room(room)].dir_option[DOWN], struct room_direction_data, 1);
+      world[real_room(room)].dir_option[DOWN]->to_room = temp1;
+    } else if (world[real_room(room)].dir_option[DOWN]) {
+      free(world[real_room(room)].dir_option[DOWN]);
+      world[real_room(room)].dir_option[DOWN] = NULL;
+    }
+  }
+
+  sprintf(buf, "\tpThe world seems to shift.\tn\r\n");
+
+  for (i = character_list; i; i = i->next)
+    if (world[ch->in_room].zone == world[i->in_room].zone)
+      send_to_char(i, buf);
+
+  return 0;
+}
+
+
+/*************/
+/* End Abyss */
+/*************/
+
 /* put new zone procs here */

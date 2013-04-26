@@ -1322,7 +1322,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           break;
         case ITEM_KEY:
           min_val = 0;
-          max_val = 65099;
+          max_val = 400000000;
           break;
         case ITEM_PORTAL:
           min_val = 1;

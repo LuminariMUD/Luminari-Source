@@ -65,8 +65,10 @@ void assign_mobiles(void)
 {
   assign_kings_castle();
 
+  /* cryogenicist */
   ASSIGNMOB(3095, cryogenicist);
 
+  /* guildmasters */
   ASSIGNMOB(120, guild);
   ASSIGNMOB(121, guild);
   ASSIGNMOB(122, guild);
@@ -109,8 +111,10 @@ void assign_mobiles(void)
   ASSIGNMOB(31639, guild);
   ASSIGNMOB(31641, guild);
 
+  /* mayors */
   ASSIGNMOB(3105, mayor);
 
+  /* postmasters */
   ASSIGNMOB(110, postmaster);
   ASSIGNMOB(1201, postmaster);
   ASSIGNMOB(3010, postmaster);
@@ -123,16 +127,23 @@ void assign_mobiles(void)
   ASSIGNMOB(31510, postmaster);
   ASSIGNMOB(103010, postmaster);
 
+  /* receptionists */
   ASSIGNMOB(1200, receptionist);
   ASSIGNMOB(3005, receptionist);
   ASSIGNMOB(5404, receptionist);
   ASSIGNMOB(27713, receptionist);
   ASSIGNMOB(27730, receptionist);
   
+  /* walls */
   ASSIGNMOB(47, wall);
   ASSIGNMOB(90, wall);
 
+  /* hounds */
   ASSIGNMOB(49, hound);
+
+  /* abyss randomizer */
+  ASSIGNMOB(142300, abyss_randomizer);
+
 }
 
 /* assign special procedures to objects */
