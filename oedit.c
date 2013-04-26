@@ -904,7 +904,8 @@ static void oedit_disp_menu(struct descriptor_data *d) {
 
 /* main loop (of sorts).. basically interpreter throws all input to here. */
 void oedit_parse(struct descriptor_data *d, char *arg) {
-  int number, max_val, min_val;
+  int number, min_val;
+  long max_val;
   char *oldtext = NULL;
 
   switch (OLC_MODE(d)) {
@@ -1322,6 +1323,10 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case ITEM_KEY:
           min_val = 0;
           max_val = 65099;
+          break;
+        case ITEM_PORTAL:
+          min_val = 1;
+          max_val = 400000000;
           break;
         default:
           min_val = -65000;
