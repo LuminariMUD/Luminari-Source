@@ -1791,6 +1791,9 @@ struct mob_special_data {
   int path_reset;
   int path_size;
   int path[MAX_PATH];
+  /* a (generally) boolean macro that marks whether a proc fired, general use is
+     for zone-procs */
+  int proc_fired;
 };
 
 /** An affect structure. */

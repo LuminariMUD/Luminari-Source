@@ -1013,6 +1013,10 @@ do                                                              \
 /* mobile load room */
 #define GET_MOB_LOADROOM(ch)    ((ch)->mob_specials.loadroom)
 
+/* a (generally) boolean macro that marks whether a proc fired, general use is
+ for zone-procs */
+#define PROC_FIRED(ch)		((ch)->mob_specials.proc_fired)
+
 /* a function to check if a mobile is a 'pet' */
 #define IS_PET(ch)		(IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
 /* new system:

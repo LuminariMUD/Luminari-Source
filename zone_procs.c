@@ -18,12 +18,6 @@
 #include "spec_procs.h" /**< zone_procs.c is part of the spec_procs module */
 #include "fight.h"
 
-/*  Defines  */
-
-/* IMPORTANT! The below defined number is the zone number of the Kings Castle.
- * Change it to apply to your chosen zone number.
- * */
-#define Z_KINGS_C 150
 
 /* local, file scope restricted functions */
 
@@ -42,8 +36,17 @@ static int castle_cleaner(struct char_data *ch, int cmd, int gripe);
 static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum, const char *twinname);
 static void castle_mob_spec(mob_vnum mobnum, SPECIAL(*specproc));
 
-/* Special procedures for Kings Castle by Pjotr. Coded by Sapowox. */
+/* end head of file */
 
+
+
+
+
+/******************************************************************/
+/*  KINGS CASTLE */
+/******************************************************************/
+
+/* Special procedures for Kings Castle by Pjotr. Coded by Sapowox. */
 SPECIAL(CastleGuard);
 SPECIAL(James);
 SPECIAL(cleaning);
@@ -55,11 +58,10 @@ SPECIAL(training_master);
 SPECIAL(peter);
 SPECIAL(jerry);
 
-/* end head of file */
-
-/******************************************************************/
-/*  KINGS CASTLE, zone# defined above */
-/******************************************************************/
+/* IMPORTANT! The below defined number is the zone number of the Kings Castle.
+ * Change it to apply to your chosen zone number.
+ * */
+#define Z_KINGS_C 150
 
 /* Assign castle special procedures. NOTE: The mobile number isn't fully 
  * specified. It's only an offset from the zone's base. */
@@ -821,10 +823,11 @@ SPECIAL(jerry)
 /*********/
 /* ABYSS */
 /*********/
-#define ABYSS_ZONE_VNUM   1423
+
+#define ZONE_VNUM   1423
 
 int calc_room_num(int value) {
-  return (ABYSS_ZONE_VNUM * 100) + value;
+  return (ZONE_VNUM * 100) + value;
 }
 
 SPECIAL(abyss_randomizer) {
@@ -929,9 +932,106 @@ SPECIAL(abyss_randomizer) {
   return 0;
 }
 
+#undef ZONE_VNUM
 
 /*************/
 /* End Abyss */
 /*************/
+
+/*****************/
+/* Crimson Flame */
+/*****************/
+
+#define ZONE_VNUM   1060
+
+SPECIAL(cf_trainingmaster) {
+  struct char_data *i = NULL;
+  struct char_data *enemy = NULL;
+
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  enemy = FIGHTING(ch);
+
+  if (!enemy)
+    PROC_FIRED(ch) = FALSE;
+
+  if (FIGHTING(ch) && !ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
+    if (enemy->master && enemy->master->in_room == enemy->in_room)
+      enemy = enemy->master;
+    act("$n waves $s hand slightly.", FALSE, ch, 0, 0, TO_ROOM);
+    for (i = character_list; i; i = i->next) {
+      if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == calc_room_num(32) ||
+              GET_MOB_VNUM(i) == calc_room_num(33) || GET_MOB_VNUM(i) == calc_room_num(34) ||
+              GET_MOB_VNUM(i) == calc_room_num(35) || GET_MOB_VNUM(i) == calc_room_num(36) ||
+              GET_MOB_VNUM(i) == calc_room_num(37) || GET_MOB_VNUM(i) == calc_room_num(38) ||
+              GET_MOB_VNUM(i) == calc_room_num(39)) && ch != i) {
+        if (ch->in_room != i->in_room) {
+          HUNTING(i) = enemy;
+          hunt_victim(i);
+        } else
+          hit(ch, enemy, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+    }  // for loop
+    
+    PROC_FIRED(ch) = TRUE;
+    return 1;
+  }
+  
+  return 0;
+}
+
+SPECIAL(cf_alathar) {
+  struct char_data *mob;
+
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  if (!FIGHTING(ch))
+    return 0;
+
+  if (PROC_FIRED(ch))
+    return FALSE;
+
+  send_to_room(IN_ROOM(ch),
+          "\tDLord Alathar thrusts his hands out and makes a sweeping gesture\tn\r\n"
+          "\tDwhile uttering words in an unknown tongue. The \tRcrimson colored\tn\r\n"
+          "\tRflames \tDin the huge black brazier blaze even brighter than before\tn\r\n"
+          "\tDproducing a great and \tRblinding red radiance \tDthroughout the\tn\r\n"
+          "\tDarea. Dark shadows are summoned and swirl into view then swarm to\tn\r\n"
+          "\tDLord Alathar's aid.\tn");
+
+  mob = read_mobile(6050, VIRTUAL);
+  char_to_room(mob, ch->in_room);
+  add_follower(mob, ch);
+  mob = read_mobile(6051, VIRTUAL);
+  char_to_room(mob, ch->in_room);
+  add_follower(mob, ch);
+  mob = read_mobile(6052, VIRTUAL);
+  char_to_room(mob, ch->in_room);
+  add_follower(mob, ch);
+  mob = read_mobile(6053, VIRTUAL);
+  char_to_room(mob, ch->in_room);
+  add_follower(mob, ch);
+  mob = read_mobile(6054, VIRTUAL);
+  char_to_room(mob, ch->in_room);
+  add_follower(mob, ch);
+  mob = read_mobile(6055, VIRTUAL);
+  char_to_room(mob, ch->in_room);
+  add_follower(mob, ch);
+  mob = read_mobile(6056, VIRTUAL);
+  char_to_room(mob, ch->in_room);
+  add_follower(mob, ch);
+
+  PROC_FIRED(ch) = TRUE;
+
+  return TRUE;
+}   
+
+#undef ZONE_VNUM
+
+/*********************/
+/* End Crimson Flame */
+/*********************/
 
 /* put new zone procs here */

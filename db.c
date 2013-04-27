@@ -3932,6 +3932,9 @@ void clear_char(struct char_data *ch) {
   /* worried about mobiles having junk-data for wards */
   for (i = 0; i < MAX_WARDING; i++)
     GET_WARDING(ch, i) = 0;
+  
+  if (IS_NPC(ch))
+    PROC_FIRED(ch) = 0;
 
   GET_REAL_AC(ch) = 100; /* Basic Armor */
   if (GET_REAL_MAX_MANA(ch) < 100)
