@@ -119,7 +119,6 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       break;
     case APPLY_CON:
       GET_CON(ch) += mod;
-      GET_MAX_HIT(ch) += (mod / 2) * GET_LEVEL(ch);
       break;
     case APPLY_CHA:
       GET_CHA(ch) += mod;
@@ -314,7 +313,7 @@ void reset_char_points(struct char_data *ch) {
 #define SAVE_CAP 10
 #define RESIST_CAP 100
 void compute_char_cap(struct char_data *ch) {
-  int hp_cap, mana_cap, move_cap, hitdam_cap, ac_cap,
+  int hp_cap, mana_cap, move_cap, hit_cap, dam_cap, ac_cap,
           save_cap, resist_cap, class, class_level = 0;
   int str_cap, dex_cap, con_cap, wis_cap, int_cap, cha_cap;
 
@@ -336,14 +335,20 @@ void compute_char_cap(struct char_data *ch) {
   /* PC Cap System */
   
   /* start with base */
-  str_cap = dex_cap = con_cap = wis_cap = int_cap = cha_cap = BASE_STAT_CAP;
-  hp_cap = HP_CAP;
-  mana_cap = MANA_CAP;
-  move_cap = MOVE_CAP;
-  hitdam_cap = HITDAM_CAP;
+  str_cap = BASE_STAT_CAP + GET_REAL_STR(ch);
+  dex_cap = BASE_STAT_CAP + GET_REAL_DEX(ch);
+  con_cap = BASE_STAT_CAP + GET_REAL_CON(ch);
+  wis_cap = BASE_STAT_CAP + GET_REAL_WIS(ch);
+  int_cap = BASE_STAT_CAP + GET_REAL_INT(ch);
+  cha_cap = BASE_STAT_CAP + GET_REAL_CHA(ch);
+  hp_cap = HP_CAP + GET_REAL_MAX_HIT(ch);
+  mana_cap = MANA_CAP + GET_REAL_MAX_MANA(ch);
+  move_cap = MOVE_CAP + GET_REAL_MAX_MOVE(ch);
+  hit_cap = HITDAM_CAP + GET_REAL_HITROLL(ch);
+  dam_cap = HITDAM_CAP + GET_REAL_DAMROLL(ch);
+  resist_cap = RESIST_CAP + GET_REAL_SPELL_RES(ch);
   ac_cap = AC_CAP;
   save_cap = SAVE_CAP;
-  resist_cap = RESIST_CAP;
 
   /* here for reference
   "Wizard"     int, dex, wis
@@ -376,17 +381,20 @@ void compute_char_cap(struct char_data *ch) {
           str_cap += class_level / 8 + 1;
           dex_cap += class_level / 4 + 1;
           int_cap += class_level / 8 + 1;
-          hitdam_cap += class_level / 3;
+          hit_cap += class_level / 3;
+          dam_cap += class_level / 3;
           break;
         case CLASS_WARRIOR:
           str_cap += class_level / 4 + 1;
           con_cap += class_level / 4 + 1;
-          hitdam_cap += class_level / 3;
+          hit_cap += class_level / 3;
+          dam_cap += class_level / 3;
           break;
         case CLASS_MONK:
           wis_cap += class_level / 4 + 1;
           dex_cap += class_level / 4 + 1;
-          hitdam_cap += class_level / 3;
+          hit_cap += class_level / 3;
+          dam_cap += class_level / 3;
           break;
         case CLASS_DRUID:
           str_cap += class_level / 4 + 1;
@@ -396,7 +404,8 @@ void compute_char_cap(struct char_data *ch) {
         case CLASS_BERSERKER:
           str_cap += class_level / 4 + 1;
           con_cap += class_level / 4 + 1;
-          hitdam_cap += class_level / 3;
+          hit_cap += class_level / 3;
+          dam_cap += class_level / 3;
           break;
         case CLASS_SORCERER:
           int_cap += class_level / 4 + 1;
@@ -406,35 +415,41 @@ void compute_char_cap(struct char_data *ch) {
         case CLASS_PALADIN:
           str_cap += class_level / 4 + 1;
           cha_cap += class_level / 4 + 1;
-          hitdam_cap += class_level / 3;
+          hit_cap += class_level / 3;
+          dam_cap += class_level / 3;
           break;
         case CLASS_RANGER:
           dex_cap += class_level / 4 + 1;
           wis_cap += class_level / 8 + 1;
           str_cap += class_level / 8 + 1;
-          hitdam_cap += class_level / 3;
+          hit_cap += class_level / 3;
+          dam_cap += class_level / 3;
           break;
         case CLASS_BARD:
           dex_cap += class_level / 4 + 1;
           cha_cap += class_level / 4 + 1;
           str_cap += class_level / 8 + 1;
           int_cap += class_level / 8 + 1;
-          hitdam_cap += class_level / 4;
+          hit_cap += class_level / 4;
+          dam_cap += class_level / 4;
           break;
       }
     }
   }
 
   /* cap stats according to adjustments */
-  GET_DEX(ch) = MIN(GET_REAL_DEX(ch) + dex_cap, GET_DEX(ch));
-  GET_INT(ch) = MIN(GET_REAL_INT(ch) + int_cap, GET_INT(ch));
-  GET_WIS(ch) = MIN(GET_REAL_WIS(ch) + wis_cap, GET_WIS(ch));
-  GET_CON(ch) = MIN(GET_REAL_CON(ch) + con_cap, GET_CON(ch));
-  GET_CHA(ch) = MIN(GET_REAL_CHA(ch) + cha_cap, GET_CHA(ch));
-  GET_STR(ch) = MIN(GET_REAL_STR(ch) + str_cap, GET_STR(ch));
+  GET_DEX(ch) = MIN(dex_cap, GET_DEX(ch));
+  GET_INT(ch) = MIN(int_cap, GET_INT(ch));
+  GET_WIS(ch) = MIN(wis_cap, GET_WIS(ch));
+  GET_CON(ch) = MIN(con_cap, GET_CON(ch));
+  GET_CHA(ch) = MIN(cha_cap, GET_CHA(ch));
+  GET_STR(ch) = MIN(str_cap, GET_STR(ch));
   
-  GET_HITROLL(ch) = MIN(GET_REAL_HITROLL(ch) + hitdam_cap, GET_HITROLL(ch));
-  GET_DAMROLL(ch) = MIN(GET_REAL_DAMROLL(ch) + hitdam_cap, GET_DAMROLL(ch));
+  GET_HITROLL(ch) = MIN(hit_cap, GET_HITROLL(ch));
+  GET_DAMROLL(ch) = MIN(dam_cap, GET_DAMROLL(ch));
+  
+  /* any dynamic stats need to be modified? (example, con -> hps) */
+  GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) * GET_LEVEL(ch));
 }
 #undef STAT_CAP
 #undef BASE_STAT_CAP
@@ -462,7 +477,7 @@ void affect_total(struct char_data *ch) {
               GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
   }
 
-  /* modify affects based on 'nekked' char */
+  /* remove affects based on 'nekked' char */
   for (af = ch->affected; af; af = af->next)
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
 
@@ -485,7 +500,7 @@ void affect_total(struct char_data *ch) {
               GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
   }
 
-  /* modify affects based on 'regeared' char */
+  /* re-apply affects based on 'regeared' char */
   for (af = ch->affected; af; af = af->next)
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
 
