@@ -102,6 +102,7 @@ int isname(const char *str, const char *namelist) {
   return 0;
 }
 
+/* modify a character's given apply-type (loc) by value */
 void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
   switch (loc) {
 
@@ -364,6 +365,7 @@ void compute_char_cap(struct char_data *ch) {
   "Bard"       cha, dex,      (hitroll, damroll, str, int)
    */
           
+  /* here is the actual class modifiers */
   for (class = 0; class < MAX_CLASSES; class++) {
     if ((class_level = CLASS_LEVEL(ch, class)) > 0) {
       switch (class) {
@@ -430,8 +432,8 @@ void compute_char_cap(struct char_data *ch) {
           cha_cap += class_level / 4 + 1;
           str_cap += class_level / 8 + 1;
           int_cap += class_level / 8 + 1;
-          hit_cap += class_level / 4;
-          dam_cap += class_level / 4;
+          hit_cap += class_level / 6;
+          dam_cap += class_level / 6;
           break;
       }
     }
@@ -505,7 +507,7 @@ void affect_total(struct char_data *ch) {
   compute_char_cap(ch);
   
   /* any dynamic stats need to be modified? (example, con -> hps) */
-  GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) * GET_LEVEL(ch));
+  GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) / 2 * GET_LEVEL(ch));
 }
 
 /* Insert an affect_type in a char_data structure. Automatically sets
