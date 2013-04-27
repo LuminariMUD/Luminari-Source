@@ -17,6 +17,7 @@
 #include "act.h"
 #include "spec_procs.h" /**< zone_procs.c is part of the spec_procs module */
 #include "fight.h"
+#include "graph.h"
 
 
 /* local, file scope restricted functions */
