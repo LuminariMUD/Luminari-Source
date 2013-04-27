@@ -373,14 +373,14 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
           log("quest_log : %s failed to do a kitquest.(Not right race)",
                   GET_NAME(ch));
         } else if (GET_LEVEL(ch) < 10) {
-          send_to_char(ch, "You are to low level to do this now.\r\n");
+          send_to_char(ch, "You are too low level to do this now.\r\n");
           log("quest_log : %s failed to do a kitquest.(too low level)",
                   GET_NAME(ch));
           give_back_items(victim, ch, quest);
 
         } else if (GET_LEVEL(ch) < (LVL_IMMORT - 1) &&
                 qcom->value == CLASS_LICH) {
-          send_to_char(ch, "You are to low level to do this now.\r\n");
+          send_to_char(ch, "You are too low level to do this now.\r\n");
           log("quest_log : %s failed to do a kitquest.(too low level)",
                   GET_NAME(ch));
           give_back_items(victim, ch, quest);
