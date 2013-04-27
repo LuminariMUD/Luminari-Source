@@ -446,10 +446,7 @@ void compute_char_cap(struct char_data *ch) {
   GET_STR(ch) = MIN(str_cap, GET_STR(ch));
   
   GET_HITROLL(ch) = MIN(hit_cap, GET_HITROLL(ch));
-  GET_DAMROLL(ch) = MIN(dam_cap, GET_DAMROLL(ch));
-  
-  /* any dynamic stats need to be modified? (example, con -> hps) */
-  GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) * GET_LEVEL(ch));
+  GET_DAMROLL(ch) = MIN(dam_cap, GET_DAMROLL(ch));  
 }
 #undef STAT_CAP
 #undef BASE_STAT_CAP
@@ -506,6 +503,9 @@ void affect_total(struct char_data *ch) {
 
   /* cap character */
   compute_char_cap(ch);
+  
+  /* any dynamic stats need to be modified? (example, con -> hps) */
+  GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) * GET_LEVEL(ch));
 }
 
 /* Insert an affect_type in a char_data structure. Automatically sets
