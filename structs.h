@@ -1399,7 +1399,7 @@ struct weapon_spells {
 
 // Spellbooks
 /* maximum # spells in a spellbook */
-#define SPELLBOOK_SIZE    50
+#define SPELLBOOK_SIZE    200
 
 /* the spellbook struct */
 struct obj_spellbook_spell {
