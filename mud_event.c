@@ -76,12 +76,18 @@ void init_events(void) {
  * now access their skill again.
  */
 EVENTFUNC(event_countdown) {
-  struct mud_event_data * pMudEvent = NULL;
-  struct char_data * ch = NULL;
-  struct room_data * room = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+  struct char_data *ch = NULL;
+  struct room_data *room = NULL;
   room_rnum rnum = NOWHERE;
 
   pMudEvent = (struct mud_event_data *) event_obj;
+  
+  if (!pMudEvent)
+    return 0;
+  
+  if (!pMudEvent->iId)
+    return 0;
 
   switch (mud_event_index[pMudEvent->iId].iEvent_Type) {
     case EVENT_CHAR:
