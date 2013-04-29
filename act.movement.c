@@ -1705,6 +1705,11 @@ ACMD(do_enter) {
           return;
           break;
       }
+      
+      if (real_room(portal_dest) == NOWHERE) {
+        send_to_char(ch, "The portal appears to be a vacuum!\r\n");
+        return;
+      }
 
       /* All checks passed, except checking the destination, so let's do that now */
       /* this function needs a vnum, not rnum */
