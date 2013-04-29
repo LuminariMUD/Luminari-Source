@@ -132,7 +132,7 @@ void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int
 }
 
 void perform_obj_type_list(struct char_data * ch, char *arg) {
-  int num, itemtype, v1, v2, v3, found = 0, len = 0, tmp_len = 0;
+  int num, itemtype, v1, v2 = -1, v3 = -1, found = 0, len = 0, tmp_len = 0;
   obj_vnum ov;
   obj_rnum r_num;
   char buf[MAX_STRING_LENGTH];
@@ -238,6 +238,15 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                     QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM, QYEL, v1, QNRM);
             break;
 
+          case ITEM_PORTAL:
+            if (v1 < 0 || v1 > NUM_PORTAL_TYPES) {
+              tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s (%s INVALID %s)\r\n",
+                    QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM, QYEL, QNRM);
+              break;
+            }
+            tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s (%s%s/To: %d-%d%s)\r\n",
+                    QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM, QYEL, portal_types[v1], v2, v3, QNRM);
+            break;
             /* The 'normal' items - don't provide extra info */
           case ITEM_TREASURE:
           case ITEM_TRASH:
