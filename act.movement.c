@@ -1688,12 +1688,12 @@ ACMD(do_enter) {
             do {
               portal_dest =
                       (portal->obj_flags.value[2]) + rand_number(0, diff);
-            } while ((real_room(portal_dest) == NOWHERE) && (++count < 20));
+            } while ((real_room(portal_dest) == NOWHERE) && (++count < 150));
           } else {
             diff = portal->obj_flags.value[2] - portal->obj_flags.value[1];
             do {
               portal_dest = (portal->obj_flags.value[1]) + rand_number(0, diff);
-            } while ((real_room(portal_dest) == NOWHERE) && (++count < 20));
+            } while ((real_room(portal_dest) == NOWHERE) && (++count < 150));
           }
 
           log("Random Portal: Sending %s to vnum %d", GET_NAME(ch), portal_dest);

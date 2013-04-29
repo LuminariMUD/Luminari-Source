@@ -460,13 +460,12 @@ void compute_char_cap(struct char_data *ch) {
 #undef SAVE_CAP
 #undef RESIST_CAP
 
-/* This updates a character by subtracting everything he is affected by
- * restoring original abilities, and then affecting all again. */
-void affect_total(struct char_data *ch) {
+/* this is just affect-total, the 'subtracting' portion of the function */
+/* returns armor class of character after unaffected */
+int affect_total_sub(struct char_data *ch) {
   struct affected_type *af;
-  int i, j;
-  int armor = 100;
-
+  int i, j, at_armor = 100;
+  
   /* subtract affects with gear */
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i))
@@ -481,14 +480,22 @@ void affect_total(struct char_data *ch) {
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
 
   /* any stats that are not an APPLY_ need to be stored */
-  armor = GET_AC(ch);
+  at_armor = GET_AC(ch);
 
   /* reset stats - everything should be at 0 now */
   ch->aff_abils = ch->real_abils;
   reset_char_points(ch);
+  
+  return at_armor;
+}
 
+/* this is just affect-total, the 're-adding' portion of the function */
+void affect_total_plus(struct char_data *ch, int at_armor) {
+  struct affected_type *af;
+  int i, j;
+  
   /* restore stored stats */
-  GET_AC(ch) = armor;
+  GET_AC(ch) = at_armor;
 
   /* add gear back on */
   for (i = 0; i < NUM_WEARS; i++) {
@@ -507,7 +514,20 @@ void affect_total(struct char_data *ch) {
   compute_char_cap(ch);
   
   /* any dynamic stats need to be modified? (example, con -> hps) */
-  GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) / 2 * GET_LEVEL(ch));
+  GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) / 2 * GET_LEVEL(ch));  
+}
+
+/* This updates a character by subtracting everything he is affected by
+ * restoring original abilities, and then affecting all again. */
+void affect_total(struct char_data *ch) {
+  int at_armor = 100;
+
+  /* this will subtract all affects and reset stats 
+     at_armor stores character's AC after being unaffected (like armor-apply) */
+  at_armor = affect_total_sub(ch);
+
+  /* this will re-add all affects, cap the char, and modify any dynamics */
+  affect_total_plus(ch, at_armor);
 }
 
 /* Insert an affect_type in a char_data structure. Automatically sets

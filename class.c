@@ -1703,43 +1703,43 @@ void init_start_char(struct char_data *ch) {
   //racial inits
   switch (GET_RACE(ch)) {
     case RACE_HUMAN:
-      GET_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
       practices++;
       trains += 3;
       break;
     case RACE_ELF:
-      GET_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
       SET_SKILL(ch, SKILL_PROF_BASIC, 75);
       GET_REAL_DEX(ch) += 2;
       GET_REAL_CON(ch) -= 2;
       break;
     case RACE_DWARF:
-      GET_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
       GET_REAL_CON(ch) += 2;
       GET_REAL_CHA(ch) -= 2;
       break;
     case RACE_HALFLING:
-      GET_SIZE(ch) = SIZE_SMALL;
+      GET_REAL_SIZE(ch) = SIZE_SMALL;
       GET_REAL_STR(ch) -= 2;
       GET_REAL_DEX(ch) += 2;
       break;
     case RACE_H_ELF:
-      GET_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
       SET_SKILL(ch, SKILL_PROF_BASIC, 75);
       break;
     case RACE_H_ORC:
-      GET_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
       GET_REAL_INT(ch) -= 2;
       GET_REAL_CHA(ch) -= 2;
       GET_REAL_STR(ch) += 2;
       break;
     case RACE_GNOME:
-      GET_SIZE(ch) = SIZE_SMALL;
+      GET_REAL_SIZE(ch) = SIZE_SMALL;
       GET_REAL_CON(ch) += 2;
       GET_REAL_STR(ch) -= 2;
       break;
     case RACE_TROLL:
-      GET_SIZE(ch) = SIZE_LARGE;
+      GET_REAL_SIZE(ch) = SIZE_LARGE;
       GET_REAL_CON(ch) += 2;
       GET_REAL_STR(ch) += 2;
       GET_REAL_DEX(ch) += 2;
@@ -1748,7 +1748,7 @@ void init_start_char(struct char_data *ch) {
       GET_REAL_CHA(ch) -= 4;
       break;
     case RACE_CRYSTAL_DWARF:
-      GET_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
       GET_REAL_CON(ch) += 8;
       GET_REAL_STR(ch) += 2;
       GET_REAL_CHA(ch) += 2;
@@ -1756,14 +1756,14 @@ void init_start_char(struct char_data *ch) {
       GET_MAX_HIT(ch) += 10;
       break;
     case RACE_TRELUX:
-      GET_SIZE(ch) = SIZE_SMALL;
+      GET_REAL_SIZE(ch) = SIZE_SMALL;
       GET_REAL_STR(ch) += 2;
       GET_REAL_DEX(ch) += 8;
       GET_REAL_CON(ch) += 4;
       GET_MAX_HIT(ch) += 10;
       break;
     case RACE_ARCANA_GOLEM:
-      GET_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
       GET_REAL_CON(ch) -= 2;
       GET_REAL_STR(ch) -= 2;
       GET_REAL_INT(ch) += 2;
@@ -1771,7 +1771,7 @@ void init_start_char(struct char_data *ch) {
       GET_REAL_CHA(ch) += 2;
       break;
     default:
-      GET_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
       break;
   }
 
@@ -1821,24 +1821,13 @@ void do_start(struct char_data *ch) {
 }
 
 void advance_level(struct char_data *ch, int class) {
-  int add_hp = GET_CON_BONUS(ch),
-          add_mana = 0, add_move = 0, k, trains = 0, i, j, practices = 0;
-  struct affected_type *af = NULL;
+  int add_hp = GET_CON_BONUS(ch), at_armor = 100,
+          add_mana = 0, add_move = 0, k, trains = 0, practices = 0;
 
-  //**because con items / spells are affecting based on level, we have to unaffect
-  //**before we level up -zusuk
-  /*********  unaffect ********/
-  for (i = 0; i < NUM_WEARS; i++) {
-    if (GET_EQ(ch, i))
-      for (j = 0; j < MAX_OBJ_AFFECT; j++)
-        affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
-              GET_EQ(ch, i)->affected[j].modifier,
-              GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
-  }
-  for (af = ch->affected; af; af = af->next)
-    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
-  ch->aff_abils = ch->real_abils;
-  /******  end unaffect ******/
+  /**because con items / spells are affecting based on level, we have to 
+  unaffect before we level up -zusuk */
+  at_armor = affect_total_sub(ch);  /* at_armor stores ac */
+  /* done unaffecting */
 
   /* first level in a class?  might have some inits to do! */
   if (CLASS_LEVEL(ch, class) == 1) {
@@ -1858,7 +1847,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = rand_number(0, 2);
 
-      trains += MAX(1, (2 + (int) (GET_INT_BONUS(ch))));
+      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
       if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) < 20)
         practices++;
@@ -1873,7 +1862,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = rand_number(0, 2);
 
-      trains += MAX(1, (2 + (int) (GET_INT_BONUS(ch))));
+      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
       if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) < 20)
         practices++;
@@ -1888,7 +1877,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = rand_number(0, 2);
 
-      trains += MAX(1, (2 + (int) (GET_INT_BONUS(ch))));
+      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
@@ -1901,7 +1890,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = rand_number(2, 4);
 
-      trains += MAX(1, (8 + (int) (GET_INT_BONUS(ch))));
+      trains += MAX(1, (8 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20)
@@ -1914,7 +1903,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = rand_number(2, 4);
 
-      trains += MAX(1, (6 + (int) (GET_INT_BONUS(ch))));
+      trains += MAX(1, (6 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
@@ -1927,7 +1916,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = rand_number(2, 4);
 
-      trains += MAX(1, (4 + (int) (GET_INT_BONUS(ch))));
+      trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) >= 20)
@@ -1940,7 +1929,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = rand_number(2, 6);
 
-      trains += MAX(1, (4 + (int) (GET_INT_BONUS(ch))));
+      trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20)
@@ -1953,7 +1942,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = rand_number(4, 8);
 
-      trains += MAX(1, (4 + (int) (GET_INT_BONUS(ch))));
+      trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20)
@@ -1966,7 +1955,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = rand_number(4, 8);
 
-      trains += MAX(1, (2 + (int) (GET_INT_BONUS(ch))));
+      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
@@ -1979,7 +1968,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = 1;
 
-      trains += MAX(1, (2 + (int) (GET_INT_BONUS(ch))));
+      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
@@ -1992,7 +1981,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = rand_number(1, 2);
 
-      trains += MAX(1, (2 + (int) (GET_INT_BONUS(ch))));
+      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
       if (!(CLASS_LEVEL(ch, class) % 2))
         practices++;
@@ -2023,9 +2012,6 @@ void advance_level(struct char_data *ch, int class) {
     send_to_char(ch, "\tMYou gain a boost (to stats) point!\tn\r\n");
   }
 
-  //remember, GET_CON(ch) is adjusted con,
-  //ch->real_abils.con is natural con -zusuk
-
   /* miscellaneous level-based bonuses */
   if (GET_SKILL(ch, SKILL_TOUGHNESS))
     add_hp++;
@@ -2050,23 +2036,8 @@ void advance_level(struct char_data *ch, int class) {
   /*******/
 
   /**** reaffect ****/
-  for (i = 0; i < NUM_WEARS; i++) {
-    if (GET_EQ(ch, i))
-      for (j = 0; j < MAX_OBJ_AFFECT; j++)
-        affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
-              GET_EQ(ch, i)->affected[j].modifier,
-              GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
-  }
-  for (af = ch->affected; af; af = af->next)
-    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
-  i = 50;
-  GET_DEX(ch) = MAX(0, MIN(GET_DEX(ch), i));
-  GET_INT(ch) = MAX(0, MIN(GET_INT(ch), i));
-  GET_WIS(ch) = MAX(0, MIN(GET_WIS(ch), i));
-  GET_CON(ch) = MAX(0, MIN(GET_CON(ch), i));
-  GET_CHA(ch) = MAX(0, MIN(GET_CHA(ch), i));
-  GET_STR(ch) = MAX(0, MIN(GET_STR(ch), i));
-  /*******  end reaffect  *****/
+  affect_total_plus(ch, at_armor);
+  /* end reaffecting */
 
   /* give immorts some goodies */
   if (GET_LEVEL(ch) >= LVL_IMMORT) {

@@ -622,9 +622,9 @@ do                                                              \
                                  CLASS_LEVEL(ch, CLASS_BARD) + \
                                  (compute_arcana_golem_level(ch)) -\
                                  (SPELLBATTLE(ch)/2)) )
-#define CASTER_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
+#define CASTER_LEVEL(ch)	(MIN(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) - \
-                                 (compute_arcana_golem_level(ch)))
+                                 (compute_arcana_golem_level(ch)), LVL_IMMORT-1))
 
 
 
@@ -684,6 +684,7 @@ do                                                              \
 #define GET_REAL_INT(ch)     	((ch)->real_abils.intel)
 #define GET_INT(ch)		((ch)->aff_abils.intel)
 #define GET_INT_BONUS(ch)	(((ch)->aff_abils.intel - 10) / 2)
+#define GET_REAL_INT_BONUS(ch)	(((ch)->real_abils.intel - 10) / 2)
 
 /** Current wisdom of ch. */
 #define GET_REAL_WIS(ch)     	((ch)->real_abils.wis)
