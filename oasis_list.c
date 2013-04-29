@@ -239,6 +239,8 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
             break;
 
           case ITEM_PORTAL:
+            v2 = (obj_proto[num].obj_flags.value[1]);
+            v3 = (obj_proto[num].obj_flags.value[2]);
             if (v1 < 0 || v1 > NUM_PORTAL_TYPES) {
               tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s (%s INVALID %s)\r\n",
                     QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM, QYEL, QNRM);
