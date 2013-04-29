@@ -4050,7 +4050,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       case SPELL_SUMMON_CREATURE_8: //conjuration
       case SPELL_SUMMON_CREATURE_7: //conjuration    
       case SPELL_GREATER_ANIMATION: //necromancy
-        GET_LEVEL(mob) = mob_level;
+        GET_LEVEL(mob) = MIN(CASTER_LEVEL(ch), mob_level);
         autoroll_mob(mob, TRUE);
         break;
       case SPELL_CLONE:
