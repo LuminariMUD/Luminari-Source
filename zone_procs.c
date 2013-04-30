@@ -943,7 +943,11 @@ SPECIAL(abyss_randomizer) {
 /* Crimson Flame */
 /*****************/
 
-#define ZONE_VNUM   1060
+#define CF_VNUM   1060
+
+int cf_converter(int value) {
+  return (CF_VNUM * 100) + value;
+}
 
 SPECIAL(cf_trainingmaster) {
   struct char_data *i = NULL;
@@ -962,11 +966,11 @@ SPECIAL(cf_trainingmaster) {
       enemy = enemy->master;
     act("$n waves $s hand slightly.", FALSE, ch, 0, 0, TO_ROOM);
     for (i = character_list; i; i = i->next) {
-      if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == calc_room_num(32) ||
-              GET_MOB_VNUM(i) == calc_room_num(33) || GET_MOB_VNUM(i) == calc_room_num(34) ||
-              GET_MOB_VNUM(i) == calc_room_num(35) || GET_MOB_VNUM(i) == calc_room_num(36) ||
-              GET_MOB_VNUM(i) == calc_room_num(37) || GET_MOB_VNUM(i) == calc_room_num(38) ||
-              GET_MOB_VNUM(i) == calc_room_num(39)) && ch != i) {
+      if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == cf_converter(32) ||
+              GET_MOB_VNUM(i) == cf_converter(33) || GET_MOB_VNUM(i) == cf_converter(34) ||
+              GET_MOB_VNUM(i) == cf_converter(35) || GET_MOB_VNUM(i) == cf_converter(36) ||
+              GET_MOB_VNUM(i) == cf_converter(37) || GET_MOB_VNUM(i) == cf_converter(38) ||
+              GET_MOB_VNUM(i) == cf_converter(39)) && ch != i) {
         if (ch->in_room != i->in_room) {
           HUNTING(i) = enemy;
           hunt_victim(i);
@@ -1008,7 +1012,7 @@ SPECIAL(cf_alathar) {
     create_group(ch);
       
   for (i = 50; i < 57; i++) {
-    mob = read_mobile(calc_room_num(i), VIRTUAL);
+    mob = read_mobile(cf_converter(i), VIRTUAL);
     if (mob) {
       char_to_room(mob, ch->in_room);
       add_follower(mob, ch);
@@ -1021,7 +1025,7 @@ SPECIAL(cf_alathar) {
   return TRUE;
 }   
 
-#undef ZONE_VNUM
+#undef CF_VNUM
 
 /*********************/
 /* End Crimson Flame */
