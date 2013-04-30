@@ -3818,28 +3818,32 @@ ACMD(do_links) {
 #define MAX_OBJ_GOLD_ALLOWED       1000000
 
 /* Armor class limits*/
-#define TOTAL_WEAR_CHECKS  (NUM_ITEM_WEARS)  /* (removed the-2, to allow face also) minus Wield and Take*/
+#define TOTAL_WEAR_CHECKS  (NUM_ITEM_WEARS - 1)  /* no take flag */
 
 struct zcheck_armor {
   bitvector_t bitvector; /* from Structs.h                       */
   int ac_allowed; /* Max. AC allowed for this body part  */
   char *message; /* phrase for error message            */
-} zarmor[] = {
-  {ITEM_WEAR_FINGER, 10, "Ring"},
+} zarmor[TOTAL_WEAR_CHECKS] = {
+  {ITEM_WEAR_FINGER, 10, "Ring"},  //0
   {ITEM_WEAR_NECK, 10, "Necklace"},
   {ITEM_WEAR_BODY, 10, "Body armor"},
   {ITEM_WEAR_HEAD, 10, "Head gear"},
   {ITEM_WEAR_LEGS, 10, "Legwear"},
-  {ITEM_WEAR_FEET, 10, "Footwear"},
+  {ITEM_WEAR_FEET, 10, "Footwear"},  //5
   {ITEM_WEAR_HANDS, 10, "Glove"},
   {ITEM_WEAR_ARMS, 10, "Armwear"},
   {ITEM_WEAR_SHIELD, 10, "Shield"},
   {ITEM_WEAR_ABOUT, 10, "Cloak"},
-  {ITEM_WEAR_WAIST, 10, "Belt"},
+  {ITEM_WEAR_WAIST, 10, "Belt"},  //10
   {ITEM_WEAR_WRIST, 10, "Wristwear"},
   {ITEM_WEAR_WIELD, 10, "Weapon"},
   {ITEM_WEAR_HOLD, 10, "Held item"},
-  {ITEM_WEAR_FACE, 10, "Face"}
+  {ITEM_WEAR_FACE, 10, "Face"},
+  {ITEM_WEAR_QUIVER, 10, "Quiver"},  //15
+  {ITEM_WEAR_EAR, 10, "Earring"},
+  {ITEM_WEAR_EYES, 10, "Eyewear"},
+  {ITEM_WEAR_BADGE, 10, "Badge"}  //18
 };
 
 /*These are strictly boolean*/
