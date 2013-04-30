@@ -143,6 +143,10 @@ void assign_mobiles(void)
 
   /* abyss randomizer */
   ASSIGNMOB(142300, abyss_randomizer);
+  
+  /* crimson flame zone mob specs */
+  ASSIGNMOB(106040, cf_trainingmaster);  // training master
+  ASSIGNMOB(106000, cf_alathar);  // lord alathar
 
 }
 
