@@ -1541,8 +1541,8 @@ ACMD(do_gen_door) {
 ACMD(do_enter) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int door = 0, portal_type = 0, count = 0, diff = 0;
-  room_vnum portal_dest = NOWHERE;
-  room_rnum was_in = 0;
+  room_vnum portal_dest = 1;
+  room_rnum was_in = NOWHERE, real_dest = NOWHERE;
   struct follow_type *k = NULL;
   struct obj_data *portal = NULL;
   //room_vnum vClanhall = NOWHERE; 
@@ -1706,7 +1706,7 @@ ACMD(do_enter) {
           break;
       }
       
-      if (real_room(portal_dest) == NOWHERE) {
+      if ((real_dest = real_room(portal_dest)) == NOWHERE) {
         send_to_char(ch, "The portal appears to be a vacuum!\r\n");
         return;
       }
@@ -1719,25 +1719,25 @@ ACMD(do_enter) {
         return;
       }
 
-      if (ROOM_FLAGGED(real_room(portal_dest), ROOM_PRIVATE)) {
+      if (ROOM_FLAGGED(real_dest, ROOM_PRIVATE)) {
         send_to_char(ch, "As you try to enter the portal, it flares "
                 "brightly, pushing you back!!\r\n");
         return;
       }
 
-      if (ROOM_FLAGGED(real_room(portal_dest), ROOM_DEATH)) {
+      if (ROOM_FLAGGED(real_dest, ROOM_DEATH)) {
         send_to_char(ch, "As you try to enter the portal, it flares "
                 "brightly, pushing you back!!!\r\n");
         return;
       }
 
-      if (ROOM_FLAGGED(real_room(portal_dest), ROOM_STAFFROOM)) {
+      if (ROOM_FLAGGED(real_dest, ROOM_STAFFROOM)) {
         send_to_char(ch, "As you try to enter the portal, it flares "
                 "brightly, pushing you back!!!!\r\n");
         return;
       }
 
-      if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(portal_dest)), ZONE_CLOSED)) {
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_CLOSED)) {
         send_to_char(ch, "As you try to enter the portal, it flares "
                 "brightly, pushing you back!!!!!\r\n");
         return;
@@ -1748,7 +1748,7 @@ ACMD(do_enter) {
       act("$n enters $p, and vanishes!", FALSE, ch, portal, 0, TO_ROOM);
       act("You enter $p, and you are transported elsewhere.", FALSE, ch, portal, 0, TO_CHAR);
       char_from_room(ch);
-      char_to_room(ch, real_room(portal_dest));
+      char_to_room(ch, real_dest);
       look_at_room(ch, 0);
       act("$n appears from thin air!", FALSE, ch, 0, 0, TO_ROOM);
 
@@ -1759,7 +1759,7 @@ ACMD(do_enter) {
           act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR);
           act("$n enters $p, and vanishes!", FALSE, k->follower, portal, 0, TO_ROOM);
           char_from_room(k->follower);
-          char_to_room(k->follower, real_room(portal_dest));
+          char_to_room(k->follower, real_dest);
           look_at_room(k->follower, 0);
           act("$n appears from thin air!", FALSE, k->follower, 0, 0, TO_ROOM);
         }
