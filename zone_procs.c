@@ -838,7 +838,7 @@ SPECIAL(abyss_randomizer) {
   if (cmd)
     return 0;
 
-  if (rand_number(0, 10))
+  if (rand_number(0, 9))
     return 0;
 
   int room, temp1, temp2;
@@ -982,8 +982,10 @@ SPECIAL(cf_trainingmaster) {
   return 0;
 }
 
+
 SPECIAL(cf_alathar) {
-  struct char_data *mob;
+  struct char_data *mob = NULL;
+  int i = 0;
 
   if (cmd || GET_POS(ch) == POS_DEAD)
     return 0;
@@ -1002,27 +1004,17 @@ SPECIAL(cf_alathar) {
           "\tDarea. Dark shadows are summoned and swirl into view then swarm to\tn\r\n"
           "\tDLord Alathar's aid.\tn");
 
-  mob = read_mobile(6050, VIRTUAL);
-  char_to_room(mob, ch->in_room);
-  add_follower(mob, ch);
-  mob = read_mobile(6051, VIRTUAL);
-  char_to_room(mob, ch->in_room);
-  add_follower(mob, ch);
-  mob = read_mobile(6052, VIRTUAL);
-  char_to_room(mob, ch->in_room);
-  add_follower(mob, ch);
-  mob = read_mobile(6053, VIRTUAL);
-  char_to_room(mob, ch->in_room);
-  add_follower(mob, ch);
-  mob = read_mobile(6054, VIRTUAL);
-  char_to_room(mob, ch->in_room);
-  add_follower(mob, ch);
-  mob = read_mobile(6055, VIRTUAL);
-  char_to_room(mob, ch->in_room);
-  add_follower(mob, ch);
-  mob = read_mobile(6056, VIRTUAL);
-  char_to_room(mob, ch->in_room);
-  add_follower(mob, ch);
+  if (!GROUP(ch))
+    create_group(ch);
+      
+  for (i = 50; i < 57; i++) {
+    mob = read_mobile(calc_room_num(i), VIRTUAL);
+    if (mob) {
+      char_to_room(mob, ch->in_room);
+      add_follower(mob, ch);
+      join_group(mob, GROUP(ch));
+    }
+  }
 
   PROC_FIRED(ch) = TRUE;
 
@@ -1034,5 +1026,10 @@ SPECIAL(cf_alathar) {
 /*********************/
 /* End Crimson Flame */
 /*********************/
+
+
+
+
+
 
 /* put new zone procs here */
