@@ -3801,10 +3801,10 @@ ACMD(do_links) {
 
 /* Zone Checker Code below */
 /*mob limits*/
-#define MAX_DAMROLL_ALLOWED      MAX(GET_LEVEL(mob)/5, 1)
-#define MAX_HITROLL_ALLOWED      MAX(GET_LEVEL(mob)/3, 1)
-#define MAX_MOB_GOLD_ALLOWED     GET_LEVEL(mob)*3000
-#define MAX_EXP_ALLOWED          GET_LEVEL(mob)*GET_LEVEL(mob) * 120
+#define MAX_DAMROLL_ALLOWED      MAX(GET_LEVEL(mob) / 5, 1)
+#define MAX_HITROLL_ALLOWED      MAX(GET_LEVEL(mob) / 3, 1)
+#define MAX_MOB_GOLD_ALLOWED     GET_LEVEL(mob)*20
+#define MAX_EXP_ALLOWED          GET_LEVEL(mob) * GET_LEVEL(mob) * 120
 #define MAX_LEVEL_ALLOWED        LVL_IMPL
 #define GET_OBJ_AVG_DAM(obj)     (((GET_OBJ_VAL(obj, 2) + 1) / 2.0) * GET_OBJ_VAL(obj, 1))
 /* arbitrary limit for per round dam */
@@ -3815,7 +3815,7 @@ ACMD(do_links) {
 /*item limits*/
 #define MAX_DAM_ALLOWED            50    /* for weapons  - avg. dam*/
 #define MAX_AFFECTS_ALLOWED        3
-#define MAX_OBJ_GOLD_ALLOWED       1000000
+#define MAX_OBJ_GOLD_ALLOWED       10000
 
 /* Armor class limits*/
 #define TOTAL_WEAR_CHECKS  (NUM_ITEM_WEARS - 1)  /* no take flag */
@@ -3825,25 +3825,25 @@ struct zcheck_armor {
   int ac_allowed; /* Max. AC allowed for this body part  */
   char *message; /* phrase for error message            */
 } zarmor[TOTAL_WEAR_CHECKS] = {
-  {ITEM_WEAR_FINGER, 10, "Ring"},  //0
-  {ITEM_WEAR_NECK, 10, "Necklace"},
-  {ITEM_WEAR_BODY, 10, "Body armor"},
-  {ITEM_WEAR_HEAD, 10, "Head gear"},
-  {ITEM_WEAR_LEGS, 10, "Legwear"},
-  {ITEM_WEAR_FEET, 10, "Footwear"},  //5
-  {ITEM_WEAR_HANDS, 10, "Glove"},
-  {ITEM_WEAR_ARMS, 10, "Armwear"},
-  {ITEM_WEAR_SHIELD, 10, "Shield"},
-  {ITEM_WEAR_ABOUT, 10, "Cloak"},
-  {ITEM_WEAR_WAIST, 10, "Belt"},  //10
-  {ITEM_WEAR_WRIST, 10, "Wristwear"},
-  {ITEM_WEAR_WIELD, 10, "Weapon"},
-  {ITEM_WEAR_HOLD, 10, "Held item"},
-  {ITEM_WEAR_FACE, 10, "Face"},
-  {ITEM_WEAR_QUIVER, 10, "Quiver"},  //15
-  {ITEM_WEAR_EAR, 10, "Earring"},
-  {ITEM_WEAR_EYES, 10, "Eyewear"},
-  {ITEM_WEAR_BADGE, 10, "Badge"}  //18
+  {ITEM_WEAR_FINGER, 1, "Ring"},  //0
+  {ITEM_WEAR_NECK, 1, "Necklace"},
+  {ITEM_WEAR_BODY, 35, "Body armor"},
+  {ITEM_WEAR_HEAD, 15, "Head gear"},
+  {ITEM_WEAR_LEGS, 15, "Legwear"},
+  {ITEM_WEAR_FEET, 1, "Footwear"},  //5
+  {ITEM_WEAR_HANDS, 1, "Glove"},
+  {ITEM_WEAR_ARMS, 15, "Armwear"},
+  {ITEM_WEAR_SHIELD, 40, "Shield"},
+  {ITEM_WEAR_ABOUT, 1, "Cloak"},
+  {ITEM_WEAR_WAIST, 1, "Belt"},  //10
+  {ITEM_WEAR_WRIST, 1, "Wristwear"},
+  {ITEM_WEAR_WIELD, 1, "Weapon"},
+  {ITEM_WEAR_HOLD, 1, "Held item"},
+  {ITEM_WEAR_FACE, 1, "Face"},
+  {ITEM_WEAR_QUIVER, 1, "Quiver"},  //15
+  {ITEM_WEAR_EAR, 1, "Earring"},
+  {ITEM_WEAR_EYES, 1, "Eyewear"},
+  {ITEM_WEAR_BADGE, 1, "Badge"}  //18
 };
 
 /*These are strictly boolean*/
@@ -3859,37 +3859,61 @@ struct zcheck_affs {
   int min_aff; /*min. allowed value*/
   int max_aff; /*max. allowed value*/
   char *message; /*phrase for error message*/
-} zaffs[] = {
-  {APPLY_NONE, 0, -99, "unused0"},
-  {APPLY_STR, -5, 3, "strength"},
-  {APPLY_DEX, -5, 3, "dexterity"},
-  {APPLY_INT, -5, 3, "intelligence"},
-  {APPLY_WIS, -5, 3, "wisdom"},
-  {APPLY_CON, -5, 3, "constitution"},
-  {APPLY_CHA, -5, 3, "charisma"},
+} zaffs[NUM_APPLIES] = {
+  {APPLY_NONE, 0, -99, "unused0"},  //0
+  {APPLY_STR, -5, 9, "strength"},
+  {APPLY_DEX, -5, 9, "dexterity"},
+  {APPLY_INT, -5, 9, "intelligence"},
+  {APPLY_WIS, -5, 9, "wisdom"},
+  {APPLY_CON, -5, 9, "constitution"},  //5
+  {APPLY_CHA, -5, 9, "charisma"},
   {APPLY_CLASS, 0, 0, "class"},
   {APPLY_LEVEL, 0, 0, "level"},
-  {APPLY_AGE, -10, 10, "age"},
-  {APPLY_CHAR_WEIGHT, -50, 50, "character weight"},
-  {APPLY_CHAR_HEIGHT, -50, 50, "character height"},
-  {APPLY_MANA, -50, 50, "mana"},
-  {APPLY_HIT, -50, 50, "hit points"},
-  {APPLY_MOVE, -50, 50, "movement"},
-  {APPLY_GOLD, 0, 0, "gold"},
+  {APPLY_AGE, 0, 0, "age"},
+  {APPLY_CHAR_WEIGHT, 0, 0, "character weight"},  //10
+  {APPLY_CHAR_HEIGHT, 0, 0, "character height"},
+  {APPLY_MANA, -90, 120, "mana"},
+  {APPLY_HIT, -90, 120, "hit points"},
+  {APPLY_MOVE, -90, 120, "movement"},
+  {APPLY_GOLD, 0, 0, "gold"},  //15
   {APPLY_EXP, 0, 0, "experience"},
-  {APPLY_AC, -10, 10, "magical AC"},
+  {APPLY_AC, -10, 10, "magical AC (obsolete)"},
   {APPLY_HITROLL, 0, -99, "hitroll"}, /* Handled seperately below */
   {APPLY_DAMROLL, 0, -99, "damroll"}, /* Handled seperately below */
-  {APPLY_SAVING_FORT, -2, 2, "saving throw (fortitude)"},
-  {APPLY_SAVING_REFL, -2, 2, "saving throw (reflex)"},
-  {APPLY_SAVING_WILL, -2, 2, "saving throw (willpower)"},
-  {APPLY_SAVING_POISON, -2, 2, "saving throw (poison)"},
-  {APPLY_SAVING_DEATH, -2, 2, "saving throw (death)"}
+  {APPLY_SAVING_FORT, -5, 9, "saving throw (fortitude)"},  //20
+  {APPLY_SAVING_REFL, -5, 9, "saving throw (reflex)"},
+  {APPLY_SAVING_WILL, -5, 9, "saving throw (willpower)"},
+  {APPLY_SAVING_POISON, -5, 9, "saving throw (poison)"},
+  {APPLY_SAVING_DEATH, -5, 9, "saving throw (death)"},
+  {APPLY_SPELL_RES, -90, 99, "spell resistance"},  //25
+  {APPLY_SIZE, -1, 1, "size mod"},
+  {APPLY_AC_NEW, -2, 2, "magical AC (new)"},
+
+  {APPLY_RES_FIRE, -20, 20, "fire resistance"},
+  {APPLY_RES_COLD, -20, 20, "cold resistance"},
+  {APPLY_RES_AIR, -20, 20, "air resistance"},  //30
+  {APPLY_RES_EARTH, -20, 20, "earth resistance"},
+  {APPLY_RES_ACID, -20, 20, "acid resistance"},
+  {APPLY_RES_HOLY, -20, 20, "holy resistance"},
+  {APPLY_RES_ELECTRIC, -20, 20, "electric resistance"},
+  {APPLY_RES_UNHOLY, -20, 20, "unholy resistance"},  //35
+  {APPLY_RES_SLICE, -20, 20, "slice resistance"},
+  {APPLY_RES_PUNCTURE, -20, 20, "puncture resistance"},
+  {APPLY_RES_FORCE, -20, 20, "force resistance"},
+  {APPLY_RES_SOUND, -20, 20, "sound resistance"},
+  {APPLY_RES_POISON, -20, 20, "poison resistance"},  //40
+  {APPLY_RES_DISEASE, -20, 20, "disease resistance"},
+  {APPLY_RES_NEGATIVE, -20, 20, "negative resistance"},
+  {APPLY_RES_ILLUSION, -20, 20, "illusion resistance"},
+  {APPLY_RES_MENTAL, -20, 20, "mental resistance"},
+  {APPLY_RES_LIGHT, -20, 20, "light resistance"},  //45
+  {APPLY_RES_ENERGY, -20, 20, "energy resistance"},
+  {APPLY_RES_WATER, -20, 20, "water resistance"}
 };
 
 /* These are ABS() values. */
-#define MAX_APPLY_HITROLL_TOTAL   5
-#define MAX_APPLY_DAMROLL_TOTAL   5
+#define MAX_APPLY_HITROLL_TOTAL   11
+#define MAX_APPLY_DAMROLL_TOTAL   11
 
 /*room limits*/
 /* Off limit zones are any zones a player should NOT be able to walk to (ex. Limbo) */
