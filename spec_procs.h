@@ -63,5 +63,7 @@ SPECIAL(crafting_quest);
 SPECIAL(wall);
 SPECIAL(hound);
 SPECIAL(abyss_randomizer);
+SPECIAL(cf_trainingmaster);
+SPECIAL(cf_alathar);
 
 #endif /* _SPEC_PROCS_H_ */
