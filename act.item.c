@@ -1702,6 +1702,35 @@ ACMD(do_wear) {
   }
 }
 
+/* the actual engine for wielding an object
+   returns TRUE for success, FALSE for failure 
+   the not_silent variable indicates if this function is vocal or not */
+bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent) {
+  if (!CAN_WEAR(obj, ITEM_WEAR_WIELD)) {
+    if (not_silent)
+      send_to_char(ch, "You can't wield that.\r\n");
+  } else if (OBJ_FLAGGED(obj, ITEM_MOLD)) {
+    if (not_silent)
+      send_to_char(ch, "You can't wield an object mold!\r\n");
+  } else if (GET_OBJ_WEIGHT(obj) > str_app[GET_STR(ch)].wield_w) {
+    if (not_silent)
+      send_to_char(ch, "It's too heavy for you to use.\r\n");
+  } else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj)) {
+    if (not_silent)
+      send_to_char(ch, "You are not experienced enough to use that.\r\n");
+  } else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
+          (GET_CLAN(ch) == NO_CLAN || GET_OBJ_VAL(obj, 2) != GET_CLAN(ch))) {
+    if (not_silent)
+      send_to_char(ch, "You are not in the right clan to use that.\r\n");
+  } else {
+    perform_wear(ch, obj, WEAR_WIELD_1);
+    return TRUE;
+  }
+  
+  return FALSE;
+}
+
+/* entry point for the 'wield' command */
 ACMD(do_wield) {
   char arg[MAX_INPUT_LENGTH];
   struct obj_data *obj;
@@ -1713,19 +1742,7 @@ ACMD(do_wield) {
   else if (!(obj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
     send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
   else {
-    if (!CAN_WEAR(obj, ITEM_WEAR_WIELD))
-      send_to_char(ch, "You can't wield that.\r\n");
-    else if (OBJ_FLAGGED(obj, ITEM_MOLD))
-      send_to_char(ch, "You can't wield an object mold!\r\n");
-    else if (GET_OBJ_WEIGHT(obj) > str_app[GET_STR(ch)].wield_w)
-      send_to_char(ch, "It's too heavy for you to use.\r\n");
-    else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
-      send_to_char(ch, "You are not experienced enough to use that.\r\n");
-    else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
-            (GET_CLAN(ch) == NO_CLAN || GET_OBJ_VAL(obj, 2) != GET_CLAN(ch)))
-      send_to_char(ch, "You are not in the right clan to use that.\r\n");
-    else
-      perform_wear(ch, obj, WEAR_WIELD_1);
+    perform_wield(ch, obj, TRUE);
   }
 }
 

@@ -18,6 +18,7 @@
 #include "spec_procs.h" /**< zone_procs.c is part of the spec_procs module */
 #include "fight.h"
 #include "graph.h"
+#include "mud_event.h"
 
 
 /* local, file scope restricted functions */
@@ -827,10 +828,12 @@ SPECIAL(jerry)
 
 #define ZONE_VNUM   1423
 
+/* just made this to help facilitate switching of zone vnums if needed */
 int calc_room_num(int value) {
   return (ZONE_VNUM * 100) + value;
 }
 
+/* this proc swaps exits in the rooms in a given area */
 SPECIAL(abyss_randomizer) {
   struct char_data *i = NULL;
   char buf[MAX_INPUT_LENGTH] = { '\0' };
@@ -945,10 +948,13 @@ SPECIAL(abyss_randomizer) {
 
 #define CF_VNUM   1060
 
+/* just made this to help facilitate switching of zone vnums if needed */
 int cf_converter(int value) {
   return (CF_VNUM * 100) + value;
 }
 
+/* this proc will cause the training master to sick all his minions to track
+   whoever he is fighting - will fire one time and that's it */
 SPECIAL(cf_trainingmaster) {
   struct char_data *i = NULL;
   struct char_data *enemy = NULL;
@@ -986,7 +992,7 @@ SPECIAL(cf_trainingmaster) {
   return 0;
 }
 
-
+/* this is lord alathar's proc to summon his bodyguards to him */
 SPECIAL(cf_alathar) {
   struct char_data *mob = NULL;
   int i = 0;
@@ -1031,8 +1037,762 @@ SPECIAL(cf_alathar) {
 /* End Crimson Flame */
 /*********************/
 
+/*****************/
+/* Jot           */
+/*****************/
+
+#define JOT_VNUM   1960
+
+#define MAX_FG 60  // fire giants
+#define MAX_SB 20  // smoking beard batallion
+#define MAX_EM 20  // efreeti mercenaries
+#define MAX_FROST 65  // frost giants
+
+bool jot_inv_check = false;
+
+ACMD(do_say);
 
 
+/* just made this to help facilitate switching of zone vnums if needed */
+int jot_converter(int value) {
+  return (JOT_VNUM * 100) + value;
+}
+
+/* currently unused */
+void jot_invasion() {
+  if (jot_inv_check)
+    return;
+  
+  jot_inv_check = true;
+  
+  if (rand_number(0, 99) <= 2)
+    return;
+}
+
+/* load rooms for fire giants */
+int fg_pos[MAX_FG] = {
+  295, 295, 295, 295, 295,
+  295, 295, 295, 295, 295,
+  295, 295, 295, 295, 295,
+  295, 295, 295, 295, 295,
+  295, 295, 295, 295, 295,
+  295, 295, 295, 295, 295,
+  295, 295, 295, 295, 295,
+  295, 295, 295, 295, 295,
+  215, 215, 215, 215, 215,
+  212, 218, 222, 207, 188,
+  204, 204, 204, 204, 196,
+  204, 204, 204, 204, 196
+};
+
+/* load rooms for smoking beard batallion */
+int sb_pos[MAX_SB] = {
+  295, 295, 295, 295, 295, 
+  295, 295, 295, 295, 295, 
+  295, 295, 295, 215, 215, 
+  188, 188, 217, 206, 206
+};
+
+/* load rooms for frost giants */
+int frost_pos[MAX_FROST] = {
+  286, 286, 282, 283, 284,
+  285, 285, 285, 286, 286,
+  273, 273, 270, 270, 269,
+  273, 273, 270, 270, 269,
+  266, 266, 267, 264, 264,
+  266, 266, 267, 264, 264,
+  265, 272, 272, 271, 271,
+  228, 240, 240, 233, 233,
+  233, 235, 235, 235, 251,
+  251, 252, 252, 253, 253,
+  251, 252, 252, 253, 253,
+  244, 244, 255, 255, 254,
+  254, 256, 256, 243, 243
+};
+
+
+/* spec proc for loading the jot invasion */
+SPECIAL(jot_invasion_loader) {
+  struct char_data *tch = NULL, *chmove = NULL, 
+          *glammad = NULL, *leader = NULL, *mob = NULL;
+  int i = 0;
+  int where = -1;
+  struct obj_data *obj = NULL, *obj2 = NULL;
+  obj_rnum objrnum = NOTHING;
+  room_rnum roomrnum = NOWHERE;
+  mob_rnum mobrnum = NOWHERE;
+
+  if (cmd || PROC_FIRED(ch) == TRUE)
+    return 0;
+
+  /* moving these special mobiles from their storage room to jot */
+  for (tch = world[ch->in_room].people; tch; tch = chmove) {
+    chmove = tch->next_in_room;
+    /* glammad */
+    if (GET_MOB_VNUM(tch) == jot_converter(80)) {
+      if ((roomrnum = real_room(jot_converter(204))) != NOWHERE) {
+        glammad = tch;  /* going to use this to form a group */
+        char_from_room(glammad);
+        char_to_room(glammad, roomrnum);
+        if (!GROUP(glammad))
+          create_group(glammad);
+      }
+    }
+    /* fire giant captain(s) */
+    if (GET_MOB_VNUM(tch) == jot_converter(81)) {
+      if ((roomrnum = real_room(jot_converter(204))) != NOWHERE) {
+        char_from_room(tch);
+        char_to_room(tch, roomrnum);
+      }
+    }
+    /* sirthon quilen */
+    if (GET_MOB_VNUM(tch) == jot_converter(83)) {
+      if ((roomrnum = real_room(jot_converter(115))) != NOWHERE) {
+        char_from_room(tch);
+        char_to_room(tch, roomrnum);
+      }
+    }
+  }
+  
+  /* soldiers to glammad */
+  for (i = 0; i < 2; i++) {
+    mob = read_mobile(jot_converter(78), VIRTUAL);
+    obj = read_object(jot_converter(17), VIRTUAL);
+    if (obj && mob) {
+      obj_to_char(obj, mob);
+      perform_wield(mob, obj, TRUE);
+      if ((roomrnum = real_room(jot_converter(204))) != NOWHERE) {
+        char_to_room(mob, roomrnum);
+        SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
+        REMOVE_BIT_AR(MOB_FLAGS(mob), MOB_LISTEN);
+        if (glammad) {
+          add_follower(mob, glammad);
+          join_group(mob, GROUP(glammad));
+        }
+      }
+    }
+  }
+  
+  /* twilight to treasure room */
+  if ((objrnum = real_object(jot_converter(90))) != NOWHERE) {
+    if ((obj = read_object(objrnum, REAL)) != NULL) {
+      if ((roomrnum = real_room(jot_converter(296))) != NOWHERE) {
+        obj_to_room(obj, roomrnum);
+      }
+    }
+  }
+  /* fire giant crown to treasure room */
+  if ((objrnum = real_object(jot_converter(82))) != NOWHERE) {
+    if ((obj = read_object(objrnum, REAL)) != NULL) {
+      if ((roomrnum = real_room(jot_converter(296))) != NOWHERE) {
+        obj_to_room(obj, roomrnum);
+      }
+    }
+  }
+
+  /* extra jarls to deal with */
+  for (i = 0; i < 2; i++) {  /* treasure room */
+    if ((mobrnum = real_mobile(jot_converter(39))) != NOBODY) {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL) {
+        if ((roomrnum = real_room(jot_converter(296))) != NOWHERE) {
+          char_to_room(mob, roomrnum);
+        }
+      }
+    }
+  }
+  for (i = 0; i < 3; i++) {  /* uthgard loki throne room */
+    if ((mobrnum = real_mobile(jot_converter(39))) != NOBODY) {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL) {
+        if ((roomrnum = real_room(jot_converter(287))) != NOWHERE) {
+          char_to_room(mob, roomrnum);
+        }
+      }
+    }
+  }
+  
+  /* heavily guarded gatehouse, frost giant mage is leading this group */
+  if ((mobrnum = real_mobile(jot_converter(90))) != NOBODY) {
+    if ((leader = read_mobile(mobrnum, REAL)) != NULL) {
+      if ((roomrnum = real_room(jot_converter(266))) != NOWHERE) {
+        char_to_room(leader, roomrnum);
+        if (!GROUP(leader))
+          create_group(leader);
+      }      
+    }
+  }
+  /* 2nd mage in group */
+  if ((mobrnum = real_mobile(jot_converter(90))) != NOBODY) {
+    if ((mob = read_mobile(mobrnum, REAL)) != NULL) {
+      if ((roomrnum = real_room(jot_converter(266))) != NOWHERE) {
+        char_to_room(mob, roomrnum);
+        if (leader) {
+          add_follower(mob, leader);
+          join_group(mob, GROUP(leader));
+        }
+      }      
+    }
+  }
+  /* citadel guards join the group */
+  if (roomrnum != NOWHERE) {
+    for (i = 0; i < 8; i++) {
+      mob = read_mobile(jot_converter(33), VIRTUAL);
+      obj = read_object(jot_converter(28), VIRTUAL);
+      if (mob && obj) {
+        obj_to_char(obj, mob);
+        perform_wield(mob, obj, TRUE);
+      }
+      if ((obj2 = read_object(jot_converter(41), VIRTUAL)) != NULL) {
+        obj_to_char(obj2, mob);
+        where = find_eq_pos(mob, obj2, 0);
+        perform_wear(mob, obj2, where);
+      }
+      char_to_room(mob, roomrnum);
+      if (leader) {
+        add_follower(mob, leader);
+        join_group(mob, GROUP(leader));
+      }
+    }
+  }
+  
+  /* large gatehouse group, led by a mage again */
+  if ((mobrnum = real_mobile(jot_converter(90))) != NOBODY) {
+    if ((leader = read_mobile(mobrnum, REAL)) != NULL) {
+      if ((roomrnum = real_room(jot_converter(252))) != NOWHERE) {
+        char_to_room(leader, roomrnum);
+        if (!GROUP(leader))
+          create_group(leader);        
+      }
+    }
+  }
+  /* 2nd mage in group */
+  if ((mobrnum = real_mobile(jot_converter(90))) != NOBODY) {
+    if ((mob = read_mobile(mobrnum, REAL)) != NULL) {
+      if ((roomrnum = real_room(jot_converter(252))) != NOWHERE) {
+        char_to_room(mob, roomrnum);
+        if (leader) {
+          add_follower(mob, leader);
+          join_group(mob, GROUP(leader));
+        }
+      }      
+    }
+  }
+  /* citadel guards join the group */
+  if (roomrnum != NOWHERE) {
+    for (i = 0; i < 5; i++) {
+      mob = read_mobile(jot_converter(33), VIRTUAL);
+      obj = read_object(jot_converter(28), VIRTUAL);
+      if (mob && obj) {
+        obj_to_char(obj, mob);
+        perform_wield(mob, obj, TRUE);
+      }
+      if ((obj2 = read_object(jot_converter(40), VIRTUAL)) != NULL) {
+        obj_to_char(obj2, mob);
+        where = find_eq_pos(mob, obj2, 0);
+        perform_wear(mob, obj2, where);
+      }
+      char_to_room(mob, roomrnum);
+      if (leader) {
+        add_follower(mob, leader);
+        join_group(mob, GROUP(leader));
+      }
+    }
+  }
+
+  /* load up some firegiants, then equip them */
+  for (i = 0; i < MAX_FG; i++) {
+    if ((roomrnum = real_room(jot_converter(fg_pos[i]))) != NOWHERE) {
+      if ((mob = read_mobile(jot_converter(78), VIRTUAL)) != NULL) {
+        if ((obj = read_object(jot_converter(17), VIRTUAL)) != NULL) {
+          obj_to_char(obj, mob);
+          perform_wield(mob, obj, TRUE);          
+        }
+        char_to_room(mob, roomrnum);
+      }
+    }
+  }
+
+  /* load up smoking beard batallion */
+  for (i = 0; i < MAX_SB; i++) {
+    if ((roomrnum = real_room(jot_converter(sb_pos[i]))) != NOWHERE) {
+      if ((mob = read_mobile(jot_converter(79), VIRTUAL)) != NULL) {
+        char_to_room(mob, roomrnum);
+      }
+    }
+  }
+
+  /* efreeti mercenary */
+  for (i = 0; i < MAX_EM; i++) {
+    if ((roomrnum = real_room(jot_converter(295))) != NOWHERE) {
+      if ((mob = read_mobile(jot_converter(84), VIRTUAL)) != NULL) {
+        char_to_room(mob, roomrnum);
+      }
+    }
+  }
+
+  /* Extra frost giants */
+  for (i = 0; i < MAX_FROST; i++) {
+    if ((roomrnum = real_room(jot_converter(frost_pos[i]))) != NOWHERE) {
+      if ((mob = read_mobile(jot_converter(85), VIRTUAL)) != NULL) {
+        if ((obj = read_object(jot_converter(28), VIRTUAL)) != NULL) {
+          obj_to_char(obj, mob);
+          perform_wield(mob, obj, TRUE);          
+        }
+        char_to_room(mob, roomrnum);
+      }
+    }
+  }
+
+  /* Valkyrie */
+  if ((roomrnum = real_room(jot_converter(4))) != NOWHERE) {
+    if ((mob = read_mobile(jot_converter(82), VIRTUAL)) != NULL) {
+      char_to_room(mob, roomrnum);
+    }
+  }
+
+  /* Remove Brunnhilde */
+  for (mob = character_list; mob; mob = mob->next)
+    if (GET_MOB_VNUM(mob) == jot_converter(68))
+      extract_char(mob);
+
+  PROC_FIRED(ch) = TRUE;
+  return 1;
+}
+
+/*
+SPECIAL(thrym) {
+  struct char_data *vict = FIGHTING(ch);
+  struct affected_type af;
+
+  if (!ch || cmd || !vict || rand_number(0, 8))
+    return 0;
+
+  act("&cCThrym touches you with a chilling hand, freezing you in place.&c0", FALSE, vict, 0, ch, TO_CHAR);
+  act("&cCThrym touches $n&cC, freezing $m in place.&c0", FALSE, vict, 0, ch, TO_ROOM);
+  af.duration = 30;
+  af.type = SPELL_HOLD_PERSON;
+  affect_join(vict, &af, FALSE, FALSE, TRUE, FALSE);
+
+  return 1;
+}
+*/
+
+/*
+SPECIAL(ymir) {
+  if (!ch || cmd)
+    return 0;
+
+  if (FIGHTING(ch) && !rand_number(0, 4)) {
+    call_magic(ch, FIGHTING(ch), 0, SPELL_FROST_BREATHE, GET_LEVEL(ch), CAST_BREATH);
+    return 1;
+  }
+
+  return 0;
+}
+*/
+
+/*
+SPECIAL(planetar) {
+  if (!ch || cmd)
+    return 0;
+
+  if (FIGHTING(ch) && !rand_number(0, 5)) {
+    call_magic(ch, FIGHTING(ch), 0, SPELL_LIGHTNING_BREATHE, GET_LEVEL(ch), CAST_BREATH);
+    return 1;
+  }
+
+  return 0;
+}
+*/
+
+/*
+SPECIAL(gatehouse_guard) {
+  struct char_data *mob = (struct char_data *) me;
+
+  if (!IS_MOVE(cmd) || AFF_FLAGGED(mob, AFF_BLIND) || AFF_FLAGGED(mob, AFF_SLEEP) ||
+          AFF_FLAGGED(mob, AFF_PARALYZED) || AFF_FLAGGED(mob, AFF_GRAPPLED) ||
+          AFF_FLAGGED(mob, AFF_GRAPPLED) || HAS_WAIT(mob))
+    return FALSE;
+
+  if (cmd == SCMD_EAST && (!IS_NPC(ch) || IS_PET(ch)) && GET_LEVEL(ch) < 51) {
+    act("$N &cwblocks your way!&c0\r\n", FALSE, ch, 0, mob, TO_CHAR);
+    act("$N &cwblocks $n's&cw way!&c0\r\n", FALSE, ch, 0, mob, TO_ROOM);
+    return TRUE;
+  }
+
+  return 0;
+}
+*/
+
+/* end mobile specs, start object specs for jot */
+
+/* special cloak object proc */
+/*
+SPECIAL(ymir_cloak) {
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char("Invoke ice storm by saying 'icicle storm'.\r\nOnce per day.\r\n", ch);
+    return 1;
+  }
+
+  struct obj_data *obj = (struct obj_data *) me;
+
+  skip_spaces(&argument);
+  if (!is_wearing(ch, 96059)) return 0;
+  if (!strcmp(argument, "icicle storm") && cmd_info[cmd].command_pointer == do_say) {
+    //if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
+    if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
+      send_to_char("&ccAs you say '&cCicicle storm&cc' to your &cWa cloak of glittering icicles&cc, nothing happens.&c0\r\n", ch);
+      return 1;
+    }
+
+    weapon_spell("&cBAs you say '&cwicicle storm&cB' to $p &cBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.&c0",
+            "&cBAs $n &cBmutters something under his breath  to $p &cBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.&c0",
+            "&cBAs $n &cBmutters something under his breath  to $p &cBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.&c0",
+            ch, 0, (struct obj_data *) me, SPELL_ICE_STORM);
+
+    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    return 1;
+  }
+  return 0;
+}
+*/
+
+/* mistweave mace object proc */
+/*
+SPECIAL(mistweave) {
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char("Invoke blindness by saying 'mistweave'. Once per day.\r\n", ch);
+    return 1;
+  }
+
+  struct obj_data *obj = (struct obj_data *) me;
+  struct char_data *vict = FIGHTING(ch);
+
+  skip_spaces(&argument);
+  if (!is_wearing(ch, 96012)) return 0;
+  if (!strcmp(argument, "mistweave") && cmd_info[cmd].command_pointer == do_say) {
+    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
+      if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
+        send_to_char("&cpAs you say '&cwmistweave&cp' to your a huge adamantium mace enshrouded with &cWmist&cp, nothing happens.&c0\r\n", ch);
+        return 1;
+      }
+
+      act("&cLAs you say, '&c0mistweave&cL', "
+              "&cLa thick vapor issues forth from $p&cL, "
+              "&cLenshrouding the eyes of $N&cL.&c0",
+              FALSE, ch, obj, vict, TO_CHAR);
+      act("&cLAs $n &cLmutters something under his breath, "
+              "&cLa thick vapor issues forth from $p&cL, "
+              "&cLenshrouding the eyes of $N.",
+              FALSE, ch, obj, vict, TO_ROOM);
+
+      call_magic(ch, FIGHTING(ch), 0, SPELL_BLINDNESS, 10000, CAST_PROC);
+
+      GET_OBJ_SPECTIMER(obj, 0) = 24;
+      return 1;
+    } else return 0;
+  }
+  return 0;
+}
+*/
+
+/* frostbite axe proc */
+/*
+SPECIAL(frostbite) {
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char("Invoke cone of cold  by saying 'frostbite'. Once per day.\r\n", ch);
+    return 1;
+  }
+
+  struct obj_data *obj = (struct obj_data *) me;
+  struct char_data *vict = FIGHTING(ch);
+  int pct;
+
+  skip_spaces(&argument);
+  if (!is_wearing(ch, 96000)) return 0;
+  if (!strcmp(argument, "frostbite") && cmd_info[cmd].command_pointer == do_say) {
+    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
+      if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
+        send_to_char("&ccAs you say '&cwfrostbite&cc' to your a &cLa great iron axe &cCrimmed &cLwith &cWfrost&cc, nothing happens.&c0\r\n", ch);
+        return 1;
+      }
+
+      act("&cCAs you say, '&cwfrostbite&cC',\n\r"
+              "&cCa swirling gale of pounding ice emanates forth from\n\r"
+              "$p &cCpelting your foes.&c0",
+              FALSE, ch, obj, 0, TO_CHAR);
+      act("&cCAs $n &cCmutters something under his breath,\n\r"
+              "&cCa swirling gale of pounding ice emanates forth from\n\r"
+              "$p &cCpelting $n's &cCfoes.&c0",
+              FALSE, ch, obj, 0, TO_ROOM);
+
+      pct = number(0, 99);
+      if (pct < 55)
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 35, CAST_PROC);
+      else if (pct < 85)
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 50, CAST_PROC);
+      else {
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 50, CAST_PROC);
+        call_magic(ch, vict, 0, SPELL_MAJOR_PARA, 50, CAST_PROC);
+      }
+
+      GET_OBJ_SPECTIMER(obj, 0) = 24;
+      return 1;
+    } else return 0;
+  }
+  return 0;
+}
+*/
+
+/* special claws gear with proc */
+/*
+SPECIAL(vaprak_claws) {
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char("Invoke Fury of Vaprak by saying 'vaprak'. Once per day.\r\nWorks only for Trolls and Ogres.\r\n", ch);
+    return 1;
+  }
+
+  if (GET_RACE(ch) != RACE_OGRE && GET_RACE(ch) != RACE_TROLL)
+    return 0;
+
+  struct obj_data *obj = (struct obj_data *) me;
+
+  skip_spaces(&argument);
+  if (!is_wearing(ch, 96062)) return 0;
+  if (!strcmp(argument, "vaprak") && cmd_info[cmd].command_pointer == do_say) {
+    //if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
+    if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
+      send_to_char("&crAs you say '&cwvaprak&cr' to your claws &cLof the destroyer&cr, nothing happens.&c0\r\n", ch);
+      return 1;
+    }
+
+    weapon_spell("&cLAs you say '&cwvaprak&cL' to $p&cL, an evil warmth fills your body.&c0",
+            0,
+            "&cr$n &crmutters something under his breath.&c0",
+            ch, ch, (struct obj_data *) me, SPELL_FURY_OF_VAPRAK);
+
+    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    return 1;
+  }
+  return 0;
+}
+*/
+
+/* a fake twilight proc (large sword) */
+/*
+SPECIAL(fake_twilight) {
+
+  struct char_data *vict = FIGHTING(ch);
+  struct affected_type af;
+  struct affected_type *af2;
+
+  if (!ch || cmd || !vict || number(0, 18))
+    return 0;
+
+  for (af2 = ch->affected; af2; af2 = af2->next) {
+    if (af2->type == PROC_TWILIGHT)
+      return 0;
+    if (af2->type == PROC_MALEVOLENCE)
+      return 0;
+  }
+
+  weapon_spell("&cLA glimmer of insanity crosses your face as your\r\n"
+          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
+          "&cLA glimmer of insanity crosses $n&cL's face as $s\r\n"
+          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
+          "&cLA glimmer of insanity crosses $n&cL's face as $s\r\n"
+          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
+          ch, vict, (struct obj_data *) me, 0);
+
+  af.location = APPLY_DAMROLL;
+  af.duration = 2;
+  af.modifier = GET_DAMROLL(ch);
+  af.bitvector = 0;
+  af.bitvector2 = 0;
+  af.bitvector3 = 0;
+  af.type = PROC_TWILIGHT;
+  affect_join(ch, &af, FALSE, FALSE, TRUE, FALSE);
+  af.location = APPLY_HITROLL;
+  af.duration = 2;
+  af.modifier = GET_HITROLL(ch);
+  af.bitvector = 0;
+  af.bitvector2 = 0;
+  af.bitvector3 = 0;
+  af.type = PROC_TWILIGHT;
+  affect_join(ch, &af, FALSE, FALSE, TRUE, FALSE);
+
+  return 1;
+}
+*/
+
+/* a twilight proc (large sword) */
+/*
+SPECIAL(twilight) {
+
+  struct char_data *vict = FIGHTING(ch);
+  struct affected_type af;
+  struct affected_type *af2;
+
+  if (!ch || cmd || !vict || number(0, 16))
+    return 0;
+
+  for (af2 = ch->affected; af2; af2 = af2->next) {
+    if (af2->type == PROC_TWILIGHT)
+      return 0;
+    if (af2->type == PROC_MALEVOLENCE)
+      return 0;
+  }
+
+  weapon_spell("&cLA glimmer of insanity crosses your face as &crTwilight's\r\n"
+          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
+          "&cLA glimmer of insanity crosses $n&cL's face as &crTwilight's\r\n"
+          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
+          "&cLA glimmer of insanity crosses $n&cL's face as &crTwilight's\r\n"
+          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
+          ch, vict, (struct obj_data *) me, 0);
+
+  af.location = APPLY_DAMROLL;
+  af.duration = 2;
+  af.modifier = GET_DAMROLL(ch);
+  af.bitvector = 0;
+  af.bitvector2 = 0;
+  af.bitvector3 = 0;
+  af.type = PROC_TWILIGHT;
+  affect_join(ch, &af, FALSE, FALSE, TRUE, FALSE);
+  af.location = APPLY_HITROLL;
+  af.duration = 2;
+  af.modifier = GET_HITROLL(ch);
+  af.bitvector = 0;
+  af.bitvector2 = 0;
+  af.bitvector3 = 0;
+  af.type = PROC_TWILIGHT;
+  affect_join(ch, &af, FALSE, FALSE, TRUE, FALSE);
+
+  return 1;
+}
+*/
+
+/*
+SPECIAL(valkyrie_sword) {
+
+  if (!ch || cmd)
+    return 0;
+
+  if (GET_SEX(ch) != SEX_FEMALE && !IS_NPC(ch)) {
+    damage(ch, ch, number(10, 20), TYPE_UNDEFINED, DAMBIT_PHYSICAL);
+    send_to_char("&cwYou are &cYburned &cwby holy light.&c0\r\n", ch);
+    act("&cw$n is &cYburned &cwby holy light.&c0", FALSE, ch, 0, ch, TO_ROOM);
+  }
+
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!is_wearing(ch, 96056) || !vict || number(0, 20))
+    return 0;
+
+  weapon_spell("&cWYou score a CRITICAL HIT!!!!!\r\n"
+          "&cYStreaks of flames issue forth from $p\n\r"
+          "&cYengulfing your foe.&c0",
+          "&cYYou are engulfed by the flames issuing forth from $p.",
+          "&cYStreaks of flames issue forth from $p\n\r"
+          "&cYengulfing $n's &cYfoe.", ch, vict, (struct obj_data *) me, 0);
+
+  call_magic(ch, vict, 0, SPELL_BURNING_HANDS, 35, CAST_PROC);
+
+  return 1;
+}
+*/
+
+/*
+SPECIAL(planetar_sword) {
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!ch || cmd || !vict || number(0, 27))
+    return 0;
+  switch (number(0, 1)) {
+    case 1:
+      weapon_spell("&cWA nimbus of holy light surrounds your sword, bathing you in its radiance&c0",
+              0,
+              "&cWA nimbus of holy light surrounds $n's&cW sword, bathing $m in its radiance.", ch, ch, (struct obj_data *) me, SPELL_CURE_CRITIC);
+      call_magic(ch, ch, 0, SPELL_CURE_CRITIC, GET_LEVEL(ch), CAST_PROC);
+      return 1;
+    case 2:
+      weapon_spell("&cWA glowing nimbus of light emanates forth blasting the foul evil in its presence.&c0",
+              "&cWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its presence.&c0",
+              "&cWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its presence.&c0", ch, vict, (struct obj_data *) me, SPELL_DISPEL_EVIL);
+      return 1;
+    default:
+      return 0;
+  }
+
+  return 1;
+}
+*/
+
+/*
+SPECIAL(giantslayer) {
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char("Invoke giant hamstring attack by saying 'hamstring'. Once per day.\r\nWorks only for Giantslayers.\r\n", ch);
+    return 1;
+  }
+
+  if (GET_CLASS(ch) != CLASS_GIANTSLAYER)
+    return 0;
+
+  struct obj_data *obj = (struct obj_data *) me;
+
+  skip_spaces(&argument);
+  if (!is_wearing(ch, 96066)) return 0;
+  if (!strcmp(argument, "hamstring") && cmd_info[cmd].command_pointer == do_say) {
+    if (FIGHTING(ch) && race_table[GET_RACE(FIGHTING(ch))].category & CATEGORY_GIANT && (FIGHTING(ch)->in_room == ch->in_room)) {
+      if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
+        send_to_char("&cYAs you say '&cwhamstring&cY' to your &cLa double-bladed dwarvish axe of &cYgiantslaying, nothing happens.&c0\r\n", ch);
+        return 1;
+      }
+
+      act("&cyAs you say, '&cLhamstring&cy' to $p&cy,\n\r"
+              "&cyit twirls forth from your hand, arcing through the air to "
+              "hamstring\n\r$N &cybefore returning to your grasp.&c0",
+              FALSE, ch, obj, FIGHTING(ch), TO_CHAR);
+      act("&cyAs $n &cymutters something under his breath to $p&cy,\n\r"
+              "&cyit twirls forth from $s hand, arcing through the air to "
+              "hamstring\n\r$N &cybefore returning to your grasp.&c0",
+              FALSE, ch, obj, FIGHTING(ch), TO_ROOM);
+      // We hamstring the foe
+      act("$N falls to $S knees before you!",
+              FALSE, ch, obj, FIGHTING(ch), TO_CHAR);
+      act("$N falls to $S knees before $n!",
+              FALSE, ch, obj, FIGHTING(ch), TO_NOTVICT);
+      act("You fall to your knees in agony!",
+              FALSE, ch, obj, FIGHTING(ch), TO_VICT);
+      WAIT_STATE(FIGHTING(ch), PULSE_VIOLENCE * 2);
+      GET_POS(FIGHTING(ch)) = POS_SITTING;
+      GET_HIT(FIGHTING(ch)) -= 100;
+
+      GET_OBJ_SPECTIMER(obj, 0) = 24;
+      return 1; // end for
+    } else {
+      send_to_char("&cYAs you say '&cwhamstring&cY' to your &cLa double-bladed dwarvish axe of &cYgiantslaying, nothing happens.&c0\r\n", ch);
+      return 1;
+    }
+    return 0;
+  }
+  return 0;
+}
+*/
+
+#undef JOT_VNUM 
+#undef MAX_FG   // fire giants
+#undef MAX_SB   // smoking beard batallion
+#undef MAX_EM  // efreeti mercenaries
+#undef MAX_FROST   // frost giants
+
+/*****************/
+/* End Jot       */
+/*****************/
 
 
 

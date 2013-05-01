@@ -65,5 +65,6 @@ SPECIAL(hound);
 SPECIAL(abyss_randomizer);
 SPECIAL(cf_trainingmaster);
 SPECIAL(cf_alathar);
+SPECIAL(jot_invasion_loader);
 
 #endif /* _SPEC_PROCS_H_ */

@@ -148,6 +148,10 @@ void assign_mobiles(void)
   ASSIGNMOB(106040, cf_trainingmaster);  // training master
   ASSIGNMOB(106000, cf_alathar);  // lord alathar
 
+  /* jot */
+  ASSIGNMOB(196200, jot_invasion_loader);  // this will load invasion
+
+
 }
 
 /* assign special procedures to objects */
