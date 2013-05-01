@@ -313,11 +313,11 @@
 #define SPELL_SUMMON_SWARM              268
 #define SPELL_CONTAGION                 269
 #define SPELL_GREATER_MAGIC_FANG        270
-#define SPELL_UNUSED271                 271
+#define SPELL_FROST_BREATHE             271  //done, [not spell]
 #define SPELL_SPIKE_GROWTH              272
 #define SPELL_BLIGHT                    273
 #define SPELL_REINCARNATE               274
-#define SPELL_UNUSED275                 275
+#define SPELL_LIGHTNING_BREATHE         275  //done, [not spell]
 #define SPELL_SPIKE_STONES              276
 #define SPELL_BALEFUL_POLYMORPH         277
 #define SPELL_DEATH_WARD                278

@@ -47,8 +47,8 @@ bool valid_item_spell(int spellnum) {
     case SPELL_DEATHCLOUD:
     case SPELL_ACID:
     case SPELL_INCENDIARY:
-    case SPELL_UNUSED271:
-    case SPELL_UNUSED275:
+    case SPELL_FROST_BREATHE:
+    case SPELL_LIGHTNING_BREATHE:
     case SPELL_UNUSED285:
     case SPELL_ANIMATE_DEAD:
     case SPELL_GREATER_ANIMATION:
