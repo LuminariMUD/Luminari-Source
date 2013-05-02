@@ -2963,7 +2963,7 @@ void zone_update(void) {
     if (zone_table[update_u->zone_to_reset].reset_mode == 2 ||
             is_empty(update_u->zone_to_reset)) {
       reset_zone(update_u->zone_to_reset);
-      mudlog(CMP, LVL_IMPL, FALSE, "Auto zone reset: %s (Zone %d)",
+      mudlog(CMP, LVL_IMPL, FALSE, "\tnAuto zone reset: %s (Zone %d)",
               zone_table[update_u->zone_to_reset].name, zone_table[update_u->zone_to_reset].number);
       /* dequeue */
       if (update_u == reset_q.head)
