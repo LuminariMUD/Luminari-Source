@@ -2454,7 +2454,7 @@ ACMD(do_zreset) {
       for (i = 0; i <= top_of_zone_table; i++)
         reset_zone(i);
       send_to_char(ch, "Reset world.\r\n");
-      mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s reset entire world.", GET_NAME(ch));
+      mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, "\tn(GC) %s reset entire world.", GET_NAME(ch));
       return;
     }
   } else if (*arg == '.' || !*arg)
@@ -2467,10 +2467,14 @@ ACMD(do_zreset) {
   }
   if (i <= top_of_zone_table && (can_edit_zone(ch, i) || GET_LEVEL(ch) > LVL_IMMORT)) {
     reset_zone(i);
-    send_to_char(ch, "Reset zone #%d: %s.\r\n", zone_table[i].number, zone_table[i].name);
-    mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s reset zone %d (%s)", GET_NAME(ch), zone_table[i].number, zone_table[i].name);
+    send_to_char(ch, "\tnReset zone #%d: %s.\r\n", zone_table[i].number, 
+            zone_table[i].name);
+    mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, 
+            "\tn(GC) %s reset zone %d (%s)", GET_NAME(ch), 
+            zone_table[i].number, zone_table[i].name);
   } else
-    send_to_char(ch, "You do not have permission to reset this zone. Try %d.\r\n", GET_OLC_ZONE(ch));
+    send_to_char(ch, "You do not have permission to reset this zone. Try %d.\r\n", 
+            GET_OLC_ZONE(ch));
 }
 
 /*  General fn for wizcommands of the sort: cmd <player> */
@@ -2495,7 +2499,7 @@ ACMD(do_wizutil) {
       case SCMD_REROLL:
         send_to_char(ch, "Rerolled...\r\n");
         roll_real_abils(vict);
-        log("(GC) %s has rerolled %s.", GET_NAME(ch), GET_NAME(vict));
+        log("\tn(GC) %s has rerolled %s.", GET_NAME(ch), GET_NAME(vict));
         send_to_char(ch, "New stats: Str %d/%d, Int %d, Wis %d, Dex %d, Con %d, Cha %d\r\n",
                 GET_STR(vict), GET_ADD(vict), GET_INT(vict), GET_WIS(vict),
                 GET_DEX(vict), GET_CON(vict), GET_CHA(vict));
@@ -2509,19 +2513,19 @@ ACMD(do_wizutil) {
         REMOVE_BIT_AR(PLR_FLAGS(vict), PLR_KILLER);
         send_to_char(ch, "Pardoned.\r\n");
         send_to_char(vict, "You have been pardoned by the Gods!\r\n");
-        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s pardoned by %s", GET_NAME(vict), GET_NAME(ch));
+        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "\tn(GC) %s pardoned by %s", GET_NAME(vict), GET_NAME(ch));
         break;
       case SCMD_NOTITLE:
         result = PLR_TOG_CHK(vict, PLR_NOTITLE);
-        mudlog(NRM, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) Notitle %s for %s by %s.",
+        mudlog(NRM, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "\tn(GC) Notitle %s for %s by %s.",
                 ONOFF(result), GET_NAME(vict), GET_NAME(ch));
-        send_to_char(ch, "(GC) Notitle %s for %s by %s.\r\n", ONOFF(result), GET_NAME(vict), GET_NAME(ch));
+        send_to_char(ch, "\tn(GC) Notitle %s for %s by %s.\r\n", ONOFF(result), GET_NAME(vict), GET_NAME(ch));
         break;
       case SCMD_MUTE:
         result = PLR_TOG_CHK(vict, PLR_NOSHOUT);
         mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) Mute %s for %s by %s.",
                 ONOFF(result), GET_NAME(vict), GET_NAME(ch));
-        send_to_char(ch, "(GC) Mute %s for %s by %s.\r\n", ONOFF(result), GET_NAME(vict), GET_NAME(ch));
+        send_to_char(ch, "\tn(GC) Mute %s for %s by %s.\r\n", ONOFF(result), GET_NAME(vict), GET_NAME(ch));
         break;
       case SCMD_FREEZE:
         if (ch == vict) {
@@ -2537,7 +2541,7 @@ ACMD(do_wizutil) {
         send_to_char(vict, "A bitter wind suddenly rises and drains every erg of heat from your body!\r\nYou feel frozen!\r\n");
         send_to_char(ch, "Frozen.\r\n");
         act("A sudden cold wind conjured from nowhere freezes $n!", FALSE, vict, 0, 0, TO_ROOM);
-        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s frozen by %s.", GET_NAME(vict), GET_NAME(ch));
+        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "\tn(GC) %s frozen by %s.", GET_NAME(vict), GET_NAME(ch));
         break;
       case SCMD_THAW:
         if (!PLR_FLAGGED(vict, PLR_FROZEN)) {
@@ -2545,15 +2549,15 @@ ACMD(do_wizutil) {
           return;
         }
         if (GET_FREEZE_LEV(vict) > GET_LEVEL(ch)) {
-          send_to_char(ch, "Sorry, a level %d God froze %s... you can't unfreeze %s.\r\n",
+          send_to_char(ch, "\tnSorry, a level %d God froze %s... you can't unfreeze %s.\r\n",
                   GET_FREEZE_LEV(vict), GET_NAME(vict), HMHR(vict));
           return;
         }
-        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s un-frozen by %s.", GET_NAME(vict), GET_NAME(ch));
+        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "\tn(GC) %s un-frozen by %s.", GET_NAME(vict), GET_NAME(ch));
         REMOVE_BIT_AR(PLR_FLAGS(vict), PLR_FROZEN);
         send_to_char(vict, "A fireball suddenly explodes in front of you, melting the ice!\r\nYou feel thawed.\r\n");
         send_to_char(ch, "Thawed.\r\n");
-        act("A sudden fireball conjured from nowhere thaws $n!", FALSE, vict, 0, 0, TO_ROOM);
+        act("\tnA sudden fireball conjured from nowhere thaws $n!", FALSE, vict, 0, 0, TO_ROOM);
         break;
       case SCMD_UNAFFECT:
         if (vict->affected || AFF_FLAGS(vict)) {
@@ -2569,7 +2573,7 @@ ACMD(do_wizutil) {
         }
         break;
       default:
-        log("SYSERR: Unknown subcmd %d passed to do_wizutil (%s)", subcmd, __FILE__);
+        log("\tnSYSERR: Unknown subcmd %d passed to do_wizutil (%s)", subcmd, __FILE__);
         /*  SYSERR_DESC: This is the same as the unhandled case in do_gen_ps(),
          *  but this function handles 'reroll', 'pardon', 'freeze', etc. */
         break;
