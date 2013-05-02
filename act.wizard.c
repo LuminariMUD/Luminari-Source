@@ -2454,7 +2454,7 @@ ACMD(do_zreset) {
       for (i = 0; i <= top_of_zone_table; i++)
         reset_zone(i);
       send_to_char(ch, "Reset world.\r\n");
-      mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, "\tn(GC) %s reset entire world.", GET_NAME(ch));
+      mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s\tc reset entire world.", GET_NAME(ch));
       return;
     }
   } else if (*arg == '.' || !*arg)
@@ -2467,10 +2467,10 @@ ACMD(do_zreset) {
   }
   if (i <= top_of_zone_table && (can_edit_zone(ch, i) || GET_LEVEL(ch) > LVL_IMMORT)) {
     reset_zone(i);
-    send_to_char(ch, "\tnReset zone #%d: %s.\r\n", zone_table[i].number, 
+    send_to_char(ch, "\tcReset zone #%d: %s.\tn\r\n", zone_table[i].number, 
             zone_table[i].name);
     mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, 
-            "\tn(GC) %s reset zone %d (%s)", GET_NAME(ch), 
+            "(GC) %s reset zone %d (%s)", GET_NAME(ch), 
             zone_table[i].number, zone_table[i].name);
   } else
     send_to_char(ch, "You do not have permission to reset this zone. Try %d.\r\n", 
@@ -2499,7 +2499,7 @@ ACMD(do_wizutil) {
       case SCMD_REROLL:
         send_to_char(ch, "Rerolled...\r\n");
         roll_real_abils(vict);
-        log("\tn(GC) %s has rerolled %s.", GET_NAME(ch), GET_NAME(vict));
+        log("(GC) %s \tchas rerolled %s\tc.\tn", GET_NAME(ch), GET_NAME(vict));
         send_to_char(ch, "New stats: Str %d/%d, Int %d, Wis %d, Dex %d, Con %d, Cha %d\r\n",
                 GET_STR(vict), GET_ADD(vict), GET_INT(vict), GET_WIS(vict),
                 GET_DEX(vict), GET_CON(vict), GET_CHA(vict));
@@ -2513,19 +2513,19 @@ ACMD(do_wizutil) {
         REMOVE_BIT_AR(PLR_FLAGS(vict), PLR_KILLER);
         send_to_char(ch, "Pardoned.\r\n");
         send_to_char(vict, "You have been pardoned by the Gods!\r\n");
-        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "\tn(GC) %s pardoned by %s", GET_NAME(vict), GET_NAME(ch));
+        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s \tcpardoned by %s", GET_NAME(vict), GET_NAME(ch));
         break;
       case SCMD_NOTITLE:
         result = PLR_TOG_CHK(vict, PLR_NOTITLE);
-        mudlog(NRM, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "\tn(GC) Notitle %s for %s by %s.",
+        mudlog(NRM, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) Notitle %s \tcfor %s \tcby %s\tc.",
                 ONOFF(result), GET_NAME(vict), GET_NAME(ch));
-        send_to_char(ch, "\tn(GC) Notitle %s for %s by %s.\r\n", ONOFF(result), GET_NAME(vict), GET_NAME(ch));
+        send_to_char(ch, "(GC) Notitle %s \tcfor %s \tcby %s\tc.\r\n", ONOFF(result), GET_NAME(vict), GET_NAME(ch));
         break;
       case SCMD_MUTE:
         result = PLR_TOG_CHK(vict, PLR_NOSHOUT);
-        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) Mute %s for %s by %s.",
+        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) Mute %s \tcfor %s \tcby %s\tc.",
                 ONOFF(result), GET_NAME(vict), GET_NAME(ch));
-        send_to_char(ch, "\tn(GC) Mute %s for %s by %s.\r\n", ONOFF(result), GET_NAME(vict), GET_NAME(ch));
+        send_to_char(ch, "\tc(GC) Mute %s \tcfor %s \tcby %s\tc.\tn\r\n", ONOFF(result), GET_NAME(vict), GET_NAME(ch));
         break;
       case SCMD_FREEZE:
         if (ch == vict) {
@@ -2541,7 +2541,7 @@ ACMD(do_wizutil) {
         send_to_char(vict, "A bitter wind suddenly rises and drains every erg of heat from your body!\r\nYou feel frozen!\r\n");
         send_to_char(ch, "Frozen.\r\n");
         act("A sudden cold wind conjured from nowhere freezes $n!", FALSE, vict, 0, 0, TO_ROOM);
-        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "\tn(GC) %s frozen by %s.", GET_NAME(vict), GET_NAME(ch));
+        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s \tcfrozen by %s\tc.", GET_NAME(vict), GET_NAME(ch));
         break;
       case SCMD_THAW:
         if (!PLR_FLAGGED(vict, PLR_FROZEN)) {
@@ -2553,7 +2553,7 @@ ACMD(do_wizutil) {
                   GET_FREEZE_LEV(vict), GET_NAME(vict), HMHR(vict));
           return;
         }
-        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "\tn(GC) %s un-frozen by %s.", GET_NAME(vict), GET_NAME(ch));
+        mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s \tcun-frozen by %s\tc.", GET_NAME(vict), GET_NAME(ch));
         REMOVE_BIT_AR(PLR_FLAGS(vict), PLR_FROZEN);
         send_to_char(vict, "A fireball suddenly explodes in front of you, melting the ice!\r\nYou feel thawed.\r\n");
         send_to_char(ch, "Thawed.\r\n");

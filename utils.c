@@ -1382,11 +1382,11 @@ void mudlog(int type, int level, int file, const char *str, ...) {
   if (level < 0)
     return;
 
-  strcpy(buf, "[ "); /* strcpy: OK */
+  strcpy(buf, "\tc[ "); /* strcpy: OK */
   va_start(args, str);
   vsnprintf(buf + 2, sizeof (buf) - 6, str, args);
   va_end(args);
-  strcat(buf, " ]\r\n"); /* strcat: OK */
+  strcat(buf, " \tc]\tn\r\n"); /* strcat: OK */
 
   for (i = descriptor_list; i; i = i->next) {
     if (STATE(i) != CON_PLAYING || IS_NPC(i->character)) /* switch */
