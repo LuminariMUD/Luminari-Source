@@ -1382,11 +1382,11 @@ void mudlog(int type, int level, int file, const char *str, ...) {
   if (level < 0)
     return;
 
-  strcpy(buf, "\tc[ "); /* strcpy: OK */
+  strcpy(buf, "[ "); /* strcpy: OK */
   va_start(args, str);
   vsnprintf(buf + 2, sizeof (buf) - 6, str, args);
   va_end(args);
-  strcat(buf, " \tc]\tn\r\n"); /* strcat: OK */
+  strcat(buf, " ]\tn\r\n"); /* strcat: OK */
 
   for (i = descriptor_list; i; i = i->next) {
     if (STATE(i) != CON_PLAYING || IS_NPC(i->character)) /* switch */
@@ -1398,7 +1398,7 @@ void mudlog(int type, int level, int file, const char *str, ...) {
     if (type > (PRF_FLAGGED(i->character, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(i->character, PRF_LOG2) ? 2 : 0))
       continue;
 
-    send_to_char(i->character, "%s%s%s", CCGRN(i->character, C_NRM), buf, CCNRM(i->character, C_NRM));
+    send_to_char(i->character, "%s%s%s", CCNRM(i->character, C_NRM), buf, CCNRM(i->character, C_NRM));
   }
 }
 
