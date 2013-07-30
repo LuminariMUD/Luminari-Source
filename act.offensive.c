@@ -1226,14 +1226,73 @@ ACMD(do_turnundead) {
 
 /* rage skill (berserk) primarily for berserkers character class */
 ACMD(do_rage) {
+  
+  struct affected_type af, aftwo, afthree, affour;
 
+  int bonus = 0, duration = 0;
+  
+  if (affected_by_spell(ch, SKILL_RAGE)) {
+    send_to_char(ch, "You are already raging!\r\n");
+    return;
+  }
   if (!IS_ANIMAL(ch)) {
     if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_RAGE)) {
       send_to_char(ch, "You don't know how to rage.\r\n");
       return;
     }
   }
+  if (char_has_mud_event(ch, eRAGE)) {
+    send_to_char(ch, "You must wait longer before you can use this ability "
+                     "again.\r\n");
+    return;
+  }
+
+  if (IS_NPC(ch) || IS_MORPHED(ch)) {
+    bonus = (GET_LEVEL(ch) / 3) + 3;
+  } else {
+    bonus = (CLASS_LEVEL(ch, CLASS_BERSERKER) / 3) + 3;
+  }
+  duration = 6 + GET_CON_BONUS(ch) * 2;
   
+  send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
+  act("$n goes into a \tRR\trA\tRG\trE\tn!", FALSE, ch, 0, 0, TO_ROOM);
+
+  new_affect(&af);
+  new_affect(&aftwo);
+  new_affect(&afthree);
+  new_affect(&affour);
+
+  af.spell = SKILL_RAGE;
+  af.duration = duration;
+  af.location = APPLY_STR;
+  af.modifier = bonus;
+
+  aftwo.spell = SKILL_RAGE;
+  aftwo.duration = duration;
+  aftwo.location = APPLY_CON;
+  aftwo.modifier = bonus;
+  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2;  //little boost in current hps
+
+  afthree.spell = SKILL_RAGE;
+  afthree.duration = duration;
+  afthree.location = APPLY_SAVING_WILL;
+  afthree.modifier = bonus;
+
+  //this is a penalty
+  affour.spell = SKILL_RAGE;
+  affour.duration = duration;
+  affour.location = APPLY_AC;
+  affour.modifier = bonus * 5;
+
+  affect_to_char(ch, &af);
+  affect_to_char(ch, &aftwo);
+  affect_to_char(ch, &afthree);
+  affect_to_char(ch, &affour);
+  attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
+  
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_RAGE);  
+ 
 }
 #undef RAGE_AFFECTS
 
