@@ -173,7 +173,7 @@ const char *shape_types[] = {
    "badger",
    "panther",
    "bear",
-   "crocodile, giant"
+   "crocodile"
 };
 //5 (number of types)
 
