@@ -1614,6 +1614,9 @@ ACMD(do_steal) {
 
   if (ohoh && IS_NPC(vict) && AWAKE(vict))
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+
+  /* Add wait state, stealing isn't free! */
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
 }
 
 
