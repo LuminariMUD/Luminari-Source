@@ -1485,7 +1485,8 @@ SPECIAL(guild_guard) {
       continue;
 
     /* Allow the people of the guild through. */
-    if (!IS_NPC(ch) && GET_CLASS(ch) == guild_info[i].pc_class)
+    /* Can't use GET_CLASS anymore, need CLASS_LEVEL(ch, i)!!  - 04/08/2013 Ornir */
+    if (!IS_NPC(ch) && (CLASS_LEVEL(ch, guild_info[i].pc_class) > 0))
       continue;
 
     send_to_char(ch, "%s", buf);
