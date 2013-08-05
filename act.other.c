@@ -1889,6 +1889,9 @@ ACMD(do_group) {
     } else if (!GROUP(vict)) {
       send_to_char(ch, "They are not a part of a group!\r\n");
       return;
+    } else if (IS_NPC(vict)) {
+      send_to_char(ch, "You can't join that group!\r\n");
+      return;
     } else if (!IS_SET(GROUP_FLAGS(GROUP(vict)), GROUP_OPEN)) {
       send_to_char(ch, "That group isn't accepting members.\r\n");
       return;
