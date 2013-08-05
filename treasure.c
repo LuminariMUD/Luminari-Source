@@ -137,7 +137,7 @@ int random_apply_value(void) {
 
   switch (dice(1, 16)) {
     case 1:
-      val = APPLY_AC;
+      val = APPLY_AC_NEW;
       break;
     case 2:
       val = APPLY_HITROLL;
@@ -258,8 +258,8 @@ int random_bonus_value(int apply_value, int level, int mod) {
     case APPLY_HIT:
       bonus *= 12;
       break;
-    case APPLY_AC:
-      bonus *= -5;
+    case APPLY_AC_NEW:
+      bonus *= 2;
       break;
     case APPLY_HITROLL:
     case APPLY_DAMROLL:
