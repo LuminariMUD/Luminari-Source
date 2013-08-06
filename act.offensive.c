@@ -638,7 +638,7 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict) {
   act("$n \tWheals\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
 
   attach_mud_event(new_mud_event(eLAYONHANDS, ch, NULL), 2 * SECS_PER_MUD_DAY);
-  GET_HIT(vict) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch),
+  GET_HIT(vict) += MIN(GET_MAX_HIT(vict) - GET_HIT(vict),
           20 + GET_LEVEL(ch) +
           (GET_CHA_BONUS(ch) * CLASS_LEVEL(ch, CLASS_PALADIN)));
   update_pos(vict);
