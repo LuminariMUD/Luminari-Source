@@ -2608,7 +2608,7 @@ void hit(struct char_data *ch, struct char_data *victim,
     /* trelux natural ability to poison with their claws */
     if (GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
             && !rand_number(0, 5)) {
-      call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_SPELL);
+      call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_INNATE);
     }
 
     /* weapon spells */
