@@ -22,6 +22,7 @@
 #define CAST_WAND        2
 #define CAST_STAFF       3
 #define CAST_SCROLL      4
+#define CAST_INNATE      5 /* For innate abilities */
 
 #define MAG_DAMAGE        (1 << 0)
 #define MAG_AFFECTS       (1 << 1)
