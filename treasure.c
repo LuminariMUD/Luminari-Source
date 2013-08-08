@@ -1225,13 +1225,13 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   }*/
   current_cp = ((level - 10) * 72.5);
   
-  send_to_char(ch, "\tyArmor created, level: %d CP: %d\tn\r\n", level, current_cp);  
-  
   /* Add bonus CP and slots for rarity */
   current_cp += rare_grade * 100;
   if (rare_grade >= 2) 
     max_slots += 1;
-  
+ 
+  send_to_char(ch, "\tyArmor created, level: %d CP: %d\tn\r\n", level, current_cp);  
+ 
   /* Add bonuses, one bonus to each slot. */
   while (current_slot <= max_slots) {
     /* Determine bonus. */
