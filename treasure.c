@@ -1493,7 +1493,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
         current_cp -= (bonus_value - 1)*150 +100;
       
         obj->affected[current_slot - 1].location = bonus_location;
-        obj->affected[current_slot - 1].modifier = bonus_value;
+        obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
       }
     }
     current_slot++;
@@ -2045,7 +2045,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
         current_cp -= (bonus_value - 1)*150 +100;
       
         obj->affected[current_slot - 1].location = bonus_location;
-        obj->affected[current_slot - 1].modifier = bonus_value;
+        obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
       }
     }
     current_slot++;
@@ -2427,7 +2427,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
         current_cp -= (bonus_value - 1)*150 +100;
       
         obj->affected[current_slot - 1].location = bonus_location;
-        obj->affected[current_slot - 1].modifier = bonus_value;
+        obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
       }
     }
     current_slot++;
