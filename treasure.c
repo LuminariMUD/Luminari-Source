@@ -137,6 +137,7 @@ int choose_cloth_material(void) {
   }
 }
 
+
 /* returns random apply value 
    from a list of values staff approved */
 int random_apply_value(void) {
@@ -148,7 +149,7 @@ int random_apply_value(void) {
    * armor will get ac_apply_new bonus (the +).   
    */
 
-  switch (dice(1, 14)) {
+  switch (dice(1, 15)) {
     case 1:
       val = APPLY_AC_NEW;
       break;
@@ -186,6 +187,124 @@ int random_apply_value(void) {
       val = APPLY_SAVING_REFL;
       break;
     case 13:
+      val = APPLY_SAVING_WILL;
+      break;
+    case 14:
+      val = APPLY_HIT;
+      break;
+    default:
+      switch (rand_number(1, 20)) {
+        case 1:
+          val = APPLY_RES_FIRE;
+          break;
+        case 2:
+          val = APPLY_RES_COLD;
+          break;
+        case 3:
+          val = APPLY_RES_AIR;
+          break;
+        case 4:
+          val = APPLY_RES_EARTH;
+          break;
+        case 5:
+          val = APPLY_RES_ACID;
+          break;
+        case 6:
+          val = APPLY_RES_HOLY;
+          break;
+        case 7:
+          val = APPLY_RES_ELECTRIC;
+          break;
+        case 8:
+          val = APPLY_RES_UNHOLY;
+          break;
+        case 9:
+          val = APPLY_RES_SLICE;
+          break;
+        case 10:
+          val = APPLY_RES_PUNCTURE;
+          break;
+        case 11:
+          val = APPLY_RES_FORCE;
+          break;
+        case 12:
+          val = APPLY_RES_SOUND;
+          break;
+        case 13:
+          val = APPLY_RES_POISON;
+          break;
+        case 14:
+          val = APPLY_RES_DISEASE;
+          break;
+        case 15:
+          val = APPLY_RES_NEGATIVE;
+          break;
+        case 16:
+          val = APPLY_RES_ILLUSION;
+          break;
+        case 17:
+          val = APPLY_RES_MENTAL;
+          break;
+        case 18:
+          val = APPLY_RES_LIGHT;
+          break;
+        case 19:
+          val = APPLY_RES_ENERGY;
+          break;
+        case 20:
+          val = APPLY_RES_WATER;
+          break;
+      }
+  }
+
+  return val;
+}
+/* Return apply value for armor
+   from a list of values staff approved */
+int random_armor_apply_value(void) {
+  int val = APPLY_NONE;
+
+  switch (dice(1, 15)) {
+    case 1:
+      val = APPLY_AC_NEW;
+      break;
+    case 2:
+      val = APPLY_HITROLL;
+      break;
+    case 3:
+      val = APPLY_DAMROLL;
+      break;
+    case 4:
+      val = APPLY_STR;
+      break;
+    case 5:
+      val = APPLY_CON;
+      break;
+    case 6:
+      val = APPLY_DEX;
+      break;
+    case 7:
+      val = APPLY_INT;
+      break;
+    case 8:
+      val = APPLY_WIS;
+      break;
+    case 9:
+      val = APPLY_CHA;
+      break;
+    case 10:
+      val = APPLY_MOVE;
+      break;
+    case 11:
+      val = APPLY_HIT;
+      break;
+    case 12:
+      val = APPLY_SAVING_FORT;
+      break;
+    case 13:
+      val = APPLY_SAVING_REFL;
+      break;
+    case 14:
       val = APPLY_SAVING_WILL;
       break;
     default:
@@ -255,42 +374,153 @@ int random_apply_value(void) {
 
   return val;
 }
+/* Returns apply value for weapons
+   from a list of values staff approved */
+int random_weapon_apply_value(void) {
+  int val = APPLY_NONE;
 
+  switch (dice(1, 13)) {
+    case 1:
+      val = APPLY_AC_NEW;
+      break;
+    case 2:
+      val = APPLY_HITROLL;
+      break;
+    case 3:
+      val = APPLY_DAMROLL;
+      break;
+    case 4:
+      val = APPLY_STR;
+      break;
+    case 5:
+      val = APPLY_CON;
+      break;
+    case 6:
+      val = APPLY_DEX;
+      break;
+    case 7:
+      val = APPLY_INT;
+      break;
+    case 8:
+      val = APPLY_WIS;
+      break;
+    case 9:
+      val = APPLY_CHA;
+      break;
+    case 10:
+      val = APPLY_SAVING_FORT;
+      break;
+    case 11:
+      val = APPLY_SAVING_REFL;
+      break;
+    case 12:
+      val = APPLY_SAVING_WILL;
+      break;
+    default:
+      switch (rand_number(1, 20)) {
+        case 1:
+          val = APPLY_RES_FIRE;
+          break;
+        case 2:
+          val = APPLY_RES_COLD;
+          break;
+        case 3:
+          val = APPLY_RES_AIR;
+          break;
+        case 4:
+          val = APPLY_RES_EARTH;
+          break;
+        case 5:
+          val = APPLY_RES_ACID;
+          break;
+        case 6:
+          val = APPLY_RES_HOLY;
+          break;
+        case 7:
+          val = APPLY_RES_ELECTRIC;
+          break;
+        case 8:
+          val = APPLY_RES_UNHOLY;
+          break;
+        case 9:
+          val = APPLY_RES_SLICE;
+          break;
+        case 10:
+          val = APPLY_RES_PUNCTURE;
+          break;
+        case 11:
+          val = APPLY_RES_FORCE;
+          break;
+        case 12:
+          val = APPLY_RES_SOUND;
+          break;
+        case 13:
+          val = APPLY_RES_POISON;
+          break;
+        case 14:
+          val = APPLY_RES_DISEASE;
+          break;
+        case 15:
+          val = APPLY_RES_NEGATIVE;
+          break;
+        case 16:
+          val = APPLY_RES_ILLUSION;
+          break;
+        case 17:
+          val = APPLY_RES_MENTAL;
+          break;
+        case 18:
+          val = APPLY_RES_LIGHT;
+          break;
+        case 19:
+          val = APPLY_RES_ENERGY;
+          break;
+        case 20:
+          val = APPLY_RES_WATER;
+          break;
+      }
+  }
+
+  return val;
+}
 /* added this because the apply_X bonus is capped, stop it before
    it causes problems */
 #define RANDOM_BONUS_CAP  127
 
-/* function that returns bonus value based on apply-value and level */
-int random_bonus_value(int apply_value, int level, int mod) {
-  int bonus = MAX(1, (level / BONUS_FACTOR) + mod);
+/* function to adjust the bonus value based on the apply location */
+int adjust_bonus_value(int apply_location, int bonus) {
 
-  switch (apply_value) {
+  int adjusted_bonus = bonus;
+
+  switch (apply_location) {
     case APPLY_HIT:
-      bonus *= 12;
-      break;
-    case APPLY_HITROLL:
-    case APPLY_DAMROLL:
-      bonus += 2;
-      break;
     case APPLY_MOVE:
-      bonus *= 12;
+      bonus *= 10;
       break;
     /* no modifications */
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
     case APPLY_AC_NEW:
     case APPLY_STR:
-    case APPLY_CON:
-    case APPLY_DEX:
+    case APPLY_CON: 
+    case APPLY_DEX: 
     case APPLY_INT:
-    case APPLY_WIS:
-    case APPLY_CHA:
-    case APPLY_SAVING_FORT:
+    case APPLY_WIS: 
+    case APPLY_CHA: 
+    case APPLY_SAVING_FORT: 
     case APPLY_SAVING_REFL:
     case APPLY_SAVING_WILL:
     default:
       break;
   }
 
-  return MIN(RANDOM_BONUS_CAP, bonus);
+  return MIN(RANDOM_BONUS_CAP, adjusted_bonus);
+}
+
+/* function that returns bonus value based on apply-value and level */
+int random_bonus_value(int apply_value, int level, int mod) {
+  int bonus = MAX(1, (level / BONUS_FACTOR) + mod);
+  return adjust_bonus_value(apply_value, bonus);
 }
 
 /* when groupped, determine random recipient from group */
@@ -1214,48 +1444,57 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   int max_bonus_cp_cost = 0;
   int bonus_location = 0;
   int bonus_value = 0;
-  int i = level;
+  int i = 0;
+  bool duplicate_affect = FALSE;
+ 
 
   GET_OBJ_LEVEL(obj) = level;
 
   /* Get the base CP for the item based on the level. */
-  /*current_cp = get_obj_creation_points(level);*/
-  /*for(i = level;i > 11;i -= 1) {
-    current_cp += ((i - 11)%2)*50 + (i - 11)*50;
-  }*/
-  /*current_cp = ((level - 10) * 72.5);*/
   current_cp = ((level - 11) * 80.6);
   
   /* Add bonus CP and slots for rarity */
   current_cp += rare_grade * 100;
   if (rare_grade >= 2) 
     max_slots += 1;
- 
+
+  /* DEBUG */ 
   send_to_char(ch, "\tyArmor created, level: %d CP: %d\tn\r\n", level, current_cp);  
  
   /* Add bonuses, one bonus to each slot. */
   while (current_slot <= max_slots) {
     /* Determine bonus. */
-
-    bonus_location = random_apply_value();
-
-    /* Based on CP remaining, how HIGH a bonus can we get here? */
-    max_bonus = 10; /* MAKE THIS A DEFINE! */
-    max_bonus_cp_cost = (max_bonus - 1)*150 + 100;  /* MAKE THIS A DEFINE! */
-
-    while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
-      max_bonus--;
-      max_bonus_cp_cost = (max_bonus - 1)*150 +100;
-    } 
-
-    /* If we CAN apply a bonus, based on CP, then determine value. */
-    if (max_bonus > 0) {    
-      /* Choose a bonus value from 1 to that bonus amount. */
-      bonus_value = rand_number(1, max_bonus);
-      current_cp -= (bonus_value - 1)*150 +100;
+    bonus_location = random_armor_apply_value();
     
-      obj->affected[current_slot - 1].location = bonus_location;
-      obj->affected[current_slot - 1].modifier = bonus_value;
+    /* Check for duplicate affects */
+    duplicate_affect = FALSE;
+    for(i=0;i > MAX_OBJ_AFFECT;i++){
+      if(obj->affected[i].location == bonus_location){
+        duplicate_affect = TRUE;
+        break;
+      }        
+    }
+    /* Only add the affect if it is not a duplicate affect location! */
+    if(duplicate_affect != TRUE) {
+
+      /* Based on CP remaining, how HIGH a bonus can we get here? */
+      max_bonus = 10; /* MAKE THIS A DEFINE! */
+      max_bonus_cp_cost = (max_bonus - 1)*150 + 100;  /* MAKE THIS A DEFINE! */
+
+      while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
+        max_bonus--;
+        max_bonus_cp_cost = (max_bonus - 1)*150 +100;
+      } 
+
+      /* If we CAN apply a bonus, based on CP, then determine value. */
+      if (max_bonus > 0) {    
+        /* Choose a bonus value from 1 to that bonus amount. */
+        bonus_value = rand_number(1, max_bonus);
+        current_cp -= (bonus_value - 1)*150 +100;
+      
+        obj->affected[current_slot - 1].location = bonus_location;
+        obj->affected[current_slot - 1].modifier = bonus_value;
+      }
     }
     current_slot++;
   }
@@ -1749,10 +1988,74 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   /* object is fully described 
    base object is taken care of including material, now set random stats, etc */
 
-  obj->affected[0].location = random_apply_value();
+  /* Here is where the significant changes start - Ornir */
+  int max_slots = 3;
+  int current_slot = 1;
+  int current_cp = 0;
+  int max_bonus = 0;
+  int max_bonus_cp_cost = 0;
+  int bonus_location = 0;
+  int bonus_value = 0;
+  int i = 0;
+  bool duplicate_affect = FALSE;
+ 
+
+  GET_OBJ_LEVEL(obj) = level;
+
+  /* Get the base CP for the item based on the level. */
+  current_cp = ((level - 11) * 80.6);
+  
+  /* Add bonus CP and slots for rarity */
+  current_cp += rare_grade * 100;
+  if (rare_grade >= 2) 
+    max_slots += 1;
+
+  /* DEBUG */ 
+  send_to_char(ch, "\tyWeapon created, level: %d CP: %d\tn\r\n", level, current_cp);  
+ 
+  /* Add bonuses, one bonus to each slot. */
+  while (current_slot <= max_slots) {
+    /* Determine bonus. */
+    bonus_location = random_weapon_apply_value();
+    
+    /* Check for duplicate affects */
+    duplicate_affect = FALSE;
+    for(i=0;i > MAX_OBJ_AFFECT;i++){
+      if(obj->affected[i].location == bonus_location){
+        duplicate_affect = TRUE;
+        break;
+      }        
+    }
+    /* Only add the affect if it is not a duplicate affect location! */
+    if(duplicate_affect != TRUE) {
+
+      /* Based on CP remaining, how HIGH a bonus can we get here? */
+      max_bonus = 10; /* MAKE THIS A DEFINE! */
+      max_bonus_cp_cost = (max_bonus - 1)*150 + 100;  /* MAKE THIS A DEFINE! */
+
+      while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
+        max_bonus--;
+        max_bonus_cp_cost = (max_bonus - 1)*150 +100;
+      } 
+
+      /* If we CAN apply a bonus, based on CP, then determine value. */
+      if (max_bonus > 0) {    
+        /* Choose a bonus value from 1 to that bonus amount. */
+        bonus_value = rand_number(1, max_bonus);
+        current_cp -= (bonus_value - 1)*150 +100;
+      
+        obj->affected[current_slot - 1].location = bonus_location;
+        obj->affected[current_slot - 1].modifier = bonus_value;
+      }
+    }
+    current_slot++;
+  }
+
+/*  obj->affected[0].location = random_weapon_apply_value();
   obj->affected[0].modifier =
           random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR), 0);
   GET_OBJ_LEVEL(obj) = level;
+*/
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
 
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
@@ -2061,10 +2364,76 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   }
 
   /* level, bonus and cost */
-  GET_OBJ_LEVEL(obj) = level;
+/*  GET_OBJ_LEVEL(obj) = level;
   obj->affected[0].location = random_apply_value();
   obj->affected[0].modifier =
           random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR), 0);
+*/
+
+  /* Here is where the significant changes start - Ornir */
+  int max_slots = 3;
+  int current_slot = 1;
+  int current_cp = 0;
+  int max_bonus = 0;
+  int max_bonus_cp_cost = 0;
+  int bonus_location = 0;
+  int bonus_value = 0;
+  int i = 0;
+  bool duplicate_affect = FALSE;
+ 
+
+  GET_OBJ_LEVEL(obj) = level;
+
+  /* Get the base CP for the item based on the level. */
+  current_cp = ((level - 11) * 80.6);
+  
+  /* Add bonus CP and slots for rarity */
+  current_cp += rare_grade * 100;
+  if (rare_grade >= 2) 
+    max_slots += 1;
+
+  /* DEBUG */ 
+  send_to_char(ch, "\tyItem created, level: %d CP: %d\tn\r\n", level, current_cp);  
+ 
+  /* Add bonuses, one bonus to each slot. */
+  while (current_slot <= max_slots) {
+    /* Determine bonus. */
+    bonus_location = random_apply_value();
+    
+    /* Check for duplicate affects */
+    duplicate_affect = FALSE;
+    for(i=0;i > MAX_OBJ_AFFECT;i++){
+      if(obj->affected[i].location == bonus_location){
+        duplicate_affect = TRUE;
+        break;
+      }        
+    }
+    /* Only add the affect if it is not a duplicate affect location! */
+    if(duplicate_affect != TRUE) {
+
+      /* Based on CP remaining, how HIGH a bonus can we get here? */
+      max_bonus = 10; /* MAKE THIS A DEFINE! */
+      max_bonus_cp_cost = (max_bonus - 1)*150 + 100;  /* MAKE THIS A DEFINE! */
+
+      while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
+        max_bonus--;
+        max_bonus_cp_cost = (max_bonus - 1)*150 +100;
+      } 
+
+      /* If we CAN apply a bonus, based on CP, then determine value. */
+      if (max_bonus > 0) {    
+        /* Choose a bonus value from 1 to that bonus amount. */
+        bonus_value = rand_number(1, max_bonus);
+        current_cp -= (bonus_value - 1)*150 +100;
+      
+        obj->affected[current_slot - 1].location = bonus_location;
+        obj->affected[current_slot - 1].modifier = bonus_value;
+      }
+    }
+    current_slot++;
+  }
+
+
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
 
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
