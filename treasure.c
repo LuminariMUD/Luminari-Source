@@ -2,7 +2,14 @@
  *   File: treasure.c                                 Part of LuminariMUD *
  *  Usage: functions for random treasure objects                           *
  *  Author: d20mud, ported to tba/luminari by Zusuk                        *
- ************************************************************************* */
+ ************************************************************************* *
+ * 
+ * This code is going through a rewrite, to make a more consistent system 
+ * across the mud for magic item generation (crafting, random treasure, 
+ * etc.)
+ *
+ * Changes by Ornir.
+ *************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -135,7 +142,13 @@ int choose_cloth_material(void) {
 int random_apply_value(void) {
   int val = APPLY_NONE;
 
-  switch (dice(1, 16)) {
+  /* There will be different groupings based on
+   * item type and wear location, for example
+   * weapons will get hit/dam bonus (the +) and 
+   * armor will get ac_apply_new bonus (the +).   
+   */
+
+  switch (dice(1, 14)) {
     case 1:
       val = APPLY_AC_NEW;
       break;
@@ -174,9 +187,6 @@ int random_apply_value(void) {
       break;
     case 13:
       val = APPLY_SAVING_WILL;
-      break;
-    case 14:
-      val = APPLY_HIT;
       break;
     default:
       switch (rand_number(1, 20)) {
@@ -258,9 +268,6 @@ int random_bonus_value(int apply_value, int level, int mod) {
     case APPLY_HIT:
       bonus *= 12;
       break;
-    case APPLY_AC_NEW:
-      bonus *= 2;
-      break;
     case APPLY_HITROLL:
     case APPLY_DAMROLL:
       bonus += 2;
@@ -268,7 +275,8 @@ int random_bonus_value(int apply_value, int level, int mod) {
     case APPLY_MOVE:
       bonus *= 12;
       break;
-      /* no modifications */
+    /* no modifications */
+    case APPLY_AC_NEW:
     case APPLY_STR:
     case APPLY_CON:
     case APPLY_DEX:
@@ -1197,10 +1205,57 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   obj->description = strdup(desc);
 
   /* level, bonus and cost */
+
+  /* Here is where the significant changes start - Ornir */
+  int max_slots = 3;
+  int current_slot = 1;
+  int current_cp = 0;
+  int max_bonus = 0;
+  int max_bonus_cp_cost = 0;
+  int bonus_location = 0;
+  int bonus_value = 0;
+  int i = level;
+
   GET_OBJ_LEVEL(obj) = level;
-  obj->affected[0].location = random_apply_value();
-  obj->affected[0].modifier =
-          random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR), 0);
+
+  /* Get the base CP for the item based on the level. */
+  /*current_cp = get_obj_creation_points(level);*/
+  for(i = level;level > 0;level--) {
+    current_cp += ((level - 11)%2)*50 + (level - 11)*50;
+  }
+  
+  /* Add bonus CP and slots for rarity */
+  current_cp += rare_grade * 100;
+  if (rare_grade >= 2) 
+    max_slots += 1;
+  
+  /* Add bonuses, one bonus to each slot. */
+  while (current_slot <= max_slots) {
+    /* Determine bonus. */
+
+    bonus_location = random_apply_value();
+
+    /* Based on CP remaining, how HIGH a bonus can we get here? */
+    max_bonus = 10; /* MAKE THIS A DEFINE! */
+    max_bonus_cp_cost = (max_bonus - 1)*150 + 100;  /* MAKE THIS A DEFINE! */
+
+    while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
+      max_bonus--;
+      max_bonus_cp_cost = (max_bonus - 1)*150 +100;
+    } 
+
+    /* If we CAN apply a bonus, based on CP, then determine value. */
+    if (max_bonus > 0) {    
+      /* Choose a bonus value from 1 to that bonus amount. */
+      bonus_value = rand_number(1, max_bonus);
+      current_cp -= (bonus_value - 1)*150 +100;
+    
+      obj->affected[current_slot - 1].location = bonus_location;
+      obj->affected[current_slot - 1].modifier = bonus_value;
+    }
+    current_slot++;
+  }
+
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
 
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
