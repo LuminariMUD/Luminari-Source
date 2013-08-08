@@ -1223,7 +1223,8 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   /*for(i = level;i > 11;i -= 1) {
     current_cp += ((i - 11)%2)*50 + (i - 11)*50;
   }*/
-  current_cp = ((level - 10) * 72.5);
+  /*current_cp = ((level - 10) * 72.5);*/
+  current_cp = (((level - 11) * 80.5) +1);
   
   /* Add bonus CP and slots for rarity */
   current_cp += rare_grade * 100;
