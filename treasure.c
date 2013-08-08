@@ -1220,9 +1220,12 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
 
   /* Get the base CP for the item based on the level. */
   /*current_cp = get_obj_creation_points(level);*/
-  for(i = level;level > 0;level--) {
-    current_cp += ((level - 11)%2)*50 + (level - 11)*50;
-  }
+  /*for(i = level;i > 11;i -= 1) {
+    current_cp += ((i - 11)%2)*50 + (i - 11)*50;
+  }*/
+  current_cp = ((level - 10) * 72.5);
+  
+  send_to_char(ch, "\tyArmor created, level: %d CP: %d\tn\r\n", level, current_cp);  
   
   /* Add bonus CP and slots for rarity */
   current_cp += rare_grade * 100;
