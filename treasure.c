@@ -264,47 +264,44 @@ int random_apply_value(void) {
 int random_armor_apply_value(void) {
   int val = APPLY_NONE;
 
-  switch (dice(1, 15)) {
+  switch (dice(1, 14)) {
     case 1:
-      val = APPLY_AC_NEW;
-      break;
-    case 2:
       val = APPLY_HITROLL;
       break;
-    case 3:
+    case 2:
       val = APPLY_DAMROLL;
       break;
-    case 4:
+    case 3:
       val = APPLY_STR;
       break;
-    case 5:
+    case 4:
       val = APPLY_CON;
       break;
-    case 6:
+    case 5:
       val = APPLY_DEX;
       break;
-    case 7:
+    case 6:
       val = APPLY_INT;
       break;
-    case 8:
+    case 7:
       val = APPLY_WIS;
       break;
-    case 9:
+    case 8:
       val = APPLY_CHA;
       break;
-    case 10:
+    case 9:
       val = APPLY_MOVE;
       break;
-    case 11:
+    case 10:
       val = APPLY_HIT;
       break;
-    case 12:
+    case 11:
       val = APPLY_SAVING_FORT;
       break;
-    case 13:
+    case 12:
       val = APPLY_SAVING_REFL;
       break;
-    case 14:
+    case 13:
       val = APPLY_SAVING_WILL;
       break;
     default:
@@ -379,41 +376,35 @@ int random_armor_apply_value(void) {
 int random_weapon_apply_value(void) {
   int val = APPLY_NONE;
 
-  switch (dice(1, 13)) {
+  switch (dice(1, 11)) {
     case 1:
       val = APPLY_AC_NEW;
       break;
     case 2:
-      val = APPLY_HITROLL;
-      break;
-    case 3:
-      val = APPLY_DAMROLL;
-      break;
-    case 4:
       val = APPLY_STR;
       break;
-    case 5:
+    case 3:
       val = APPLY_CON;
       break;
-    case 6:
+    case 4:
       val = APPLY_DEX;
       break;
-    case 7:
+    case 5:
       val = APPLY_INT;
       break;
-    case 8:
+    case 6:
       val = APPLY_WIS;
       break;
-    case 9:
+    case 7:
       val = APPLY_CHA;
       break;
-    case 10:
+    case 8:
       val = APPLY_SAVING_FORT;
       break;
-    case 11:
+    case 9:
       val = APPLY_SAVING_REFL;
       break;
-    case 12:
+    case 10:
       val = APPLY_SAVING_WILL;
       break;
     default:
@@ -976,7 +967,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
  * 1)  determine armor
  * 2)  determine material
  * 3)  assign description
- * 4)  determine modifier (if applicable)
+ * 4)  determine modifiers (if applicable)
  * 5)  determine amount (if applicable)
  */
 void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
@@ -1460,11 +1451,15 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
 
   /* DEBUG */ 
   send_to_char(ch, "\tyArmor created, level: %d CP: %d\tn\r\n", level, current_cp);  
- 
+  
   /* Add bonuses, one bonus to each slot. */
   while (current_slot <= max_slots) {
-    /* Determine bonus. */
-    bonus_location = random_armor_apply_value();
+
+    /* Determine bonus location - Since this is armor, the first bonus is ALWAYS AC */
+    if(current_slot == 1)
+      bonus_location = APPLY_AC_NEW;
+    else
+      bonus_location = random_armor_apply_value();
     
     /* Check for duplicate affects */
     duplicate_affect = FALSE;
@@ -1989,7 +1984,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
    base object is taken care of including material, now set random stats, etc */
 
   /* Here is where the significant changes start - Ornir */
-  int max_slots = 3;
+  int max_slots = 4;  /* Weapons get 4 slots!  TOHIT/TODAM takes 2! */
   int current_slot = 1;
   int current_cp = 0;
   int max_bonus = 0;
@@ -2015,9 +2010,13 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
  
   /* Add bonuses, one bonus to each slot. */
   while (current_slot <= max_slots) {
-    /* Determine bonus. */
-    bonus_location = random_weapon_apply_value();
-    
+
+    /* Determine bonus location - Since this is a weapon, the first 2 bonuses are TOHIT and TODAM */
+    if(current_slot == 1)
+      bonus_location = APPLY_HITROLL; /* We Apply TODAM later... */
+    else
+      bonus_location = random_weapon_apply_value();
+
     /* Check for duplicate affects */
     duplicate_affect = FALSE;
     for(i=0;i > MAX_OBJ_AFFECT;i++){
@@ -2046,6 +2045,13 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
       
         obj->affected[current_slot - 1].location = bonus_location;
         obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
+        
+        if(bonus_location == APPLY_HITROLL) {
+          /* In this case, we need to add APPLY_DAMROLL as well. */
+          current_slot++; /* Increment the slot, APPLY_DAMROLL goes in the second slot. */
+          obj->affected[current_slot - 1].location = APPLY_DAMROLL;
+          obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
+        }
       }
     }
     current_slot++;
