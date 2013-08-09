@@ -488,6 +488,8 @@ int adjust_bonus_value(int apply_location, int bonus) {
       bonus = MIN(1, bonus/2);
       break;
     case APPLY_HIT:
+      bonus = bonus * 10;
+      break;
     case APPLY_MOVE:
       bonus = bonus * 10;
       break;
