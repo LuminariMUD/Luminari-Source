@@ -485,13 +485,11 @@ int adjust_bonus_value(int apply_location, int bonus) {
 
   switch (apply_location) {
     case APPLY_AC_NEW:
-      bonus = MIN(1, bonus/2);
+      adjusted_bonus = MIN(1, bonus/2);
       break;
     case APPLY_HIT:
-      bonus = bonus * 10;
-      break;
     case APPLY_MOVE:
-      bonus = bonus * 10;
+      adjusted_bonus = bonus * 10;
       break;
     /* no modifications */
     case APPLY_HITROLL:
