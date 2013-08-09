@@ -484,6 +484,9 @@ int adjust_bonus_value(int apply_location, int bonus) {
   int adjusted_bonus = bonus;
 
   switch (apply_location) {
+    case APPLY_AC_NEW:
+      bonus = MIN(1, bonus/2);
+      break;
     case APPLY_HIT:
     case APPLY_MOVE:
       bonus *= 10;
@@ -491,7 +494,6 @@ int adjust_bonus_value(int apply_location, int bonus) {
     /* no modifications */
     case APPLY_HITROLL:
     case APPLY_DAMROLL:
-    case APPLY_AC_NEW:
     case APPLY_STR:
     case APPLY_CON: 
     case APPLY_DEX: 
@@ -967,12 +969,21 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
 /* give away random magic armor */
 
 /*
- method:
+ * Old method:
  * 1)  determine armor
  * 2)  determine material
  * 3)  assign description
  * 4)  determine modifiers (if applicable)
  * 5)  determine amount (if applicable)
+ *
+ * New method (Ornir):
+ * 1)  determine armor type
+ * 2)  determine material
+ * 3)  determine rarity
+ * 3)  determine Creation Points
+ * 4)  determine AC bonus (Always first stat...)
+ * 5)  craft description based on object and bonuses
+ *
  */
 void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   struct obj_data *obj = NULL;
@@ -1371,6 +1382,8 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   }
   GET_OBJ_MATERIAL(obj) = material;
 
+  /* BEGIN DESCRIPTION SECTION */
+
   /* first assign two random colors for usage */
   color1 = rand_number(0, NUM_A_COLORS);
   color2 = rand_number(0, NUM_A_COLORS);
@@ -1429,7 +1442,9 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   sprintf(desc, "%s is lying here.", desc);
   obj->description = strdup(desc);
 
-  /* level, bonus and cost */
+
+  /* END DESCRIPTION SECTION */
+  /* BEGIN BONUS SECTION */
 
   /* Here is where the significant changes start - Ornir */
   int max_slots = 3;
@@ -1499,6 +1514,8 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   }
 
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
+
+  /* END BONUS SECTION */
 
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
   if (grade > GRADE_MUNDANE)
