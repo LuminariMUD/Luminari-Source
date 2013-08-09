@@ -515,14 +515,18 @@ int random_bonus_value(int apply_value, int level, int mod) {
 }
 
 /* when groupped, determine random recipient from group */
+/* This is just OH SO BROKEN! - Ornir
+ * If you are grouped with a player, you don't even need to be in the same
+ * room, the loot just comes flowing in! */
 struct char_data *find_treasure_recipient(struct char_data *ch) {
-  struct group_data *group = NULL;
+/*  struct group_data *group = NULL; */
 
   /* assign group data */
-  if ((group = ch->group) == NULL)
+/*  if ((group = ch->group) == NULL)*/
     return ch;
 
-  return ((struct char_data *) (random_from_list(group->members)));
+/*  return ((struct char_data *) (random_from_list(group->members))); */
+
 }
 
 
