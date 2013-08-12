@@ -92,11 +92,12 @@ room_rnum add_room(struct room_data *room)
       case 'G':
       case 'P':
       case 'E':
+      case 'J':
       case '*':
 	/* Known zone entries we don't care about. */
         break;
       default:
-        mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: GenOLC: add_room: Unknown zone entry found!");
+        mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: GenOLC: add_room: Unknown zone entry found! Zone: %d CMD: %c", i, ZCMD(i, j).command);
       }
 
   /* Update the loadroom table. Adds 1 or 0. */
