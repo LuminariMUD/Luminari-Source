@@ -27,6 +27,7 @@
 #include "dg_event.h"
 #include "act.h"
 #include "ban.h"
+#include "treasure.h"
 #include "spec_procs.h"
 #include "genzon.h"
 #include "genolc.h"
@@ -2406,7 +2407,7 @@ static void load_zones(FILE *fl, char *zonename) {
    * a new zone command is added to reset_zone(), this string will need to be
    * updated to suit. - ae. */
   while (get_line(fl, buf))
-    if ((strchr("MOPGERDTVJ", buf[0]) && buf[1] == ' ') || (buf[0] == 'S' && buf[1] == '\0'))
+    if ((strchr("MOPGERDTVJIL", buf[0]) && buf[1] == ' ') || (buf[0] == 'S' && buf[1] == '\0'))
       num_of_cmds++;
 
   rewind(fl);
@@ -2520,7 +2521,7 @@ static void load_zones(FILE *fl, char *zonename) {
       break;
     }
     error = 0;
-    if (strchr("MOGEPDTVJ", ZCMD.command) == NULL) { /* a 3-arg command */
+    if (strchr("MOGEPDTVJL", ZCMD.command) == NULL) { /* a 3-arg command */
       if (sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2) != 3)
         error = 1;
     } else if (ZCMD.command == 'V') { /* a string-arg command */
@@ -2533,6 +2534,16 @@ static void load_zones(FILE *fl, char *zonename) {
       }
     } else {
       switch (ZCMD.command) {
+        case 'I': /* Load random treasure on mobile */
+          arg_count = sscanf(ptr, " %d %d ", &tmp, &ZCMD.arg1);
+          if (arg_count != 2)
+            error = 1;
+          break;
+        case 'L': /* Load random treasure in container */
+          arg_count = sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2);
+          if (arg_count != 3)
+            error = 1;
+          break;
         case 'J':
           arg_count = sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2);
           if (arg_count == 2)
@@ -3147,6 +3158,20 @@ void reset_zone(zone_rnum zone) {
         tmob = NULL;
         break;
 
+      case 'I': /* random treasure to mobile (with percentage loads) */
+        if (!mob) {
+          char error[MAX_INPUT_LENGTH];
+          snprintf(error, sizeof (error), "attempt to give random treasure to non-existant mob, command disabled");
+          ZONE_ERROR(error);
+          ZCMD.command = '*';
+          break;
+        }
+        if (rand_number(1, 100) <= ZCMD.arg1) 
+          load_treasure(mob);          
+        break;
+      case 'L': /* random treasure to container (with percentage loads) */
+        last_cmd = 0;
+        break;
       case 'E': /* object to equipment list (with percentage loads) */
         if (!mob) {
           char error[MAX_INPUT_LENGTH];

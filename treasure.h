@@ -202,6 +202,16 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel);
 // determines bonus modifiers to apply_value
 int random_bonus_value(int apply_value, int level, int mod);
 
+/* Procedures for loading mobs with items, rather than simply handing them out
+ * automaticalyl after death.  Used with random treasure load resets. 
+ *
+ * The gear loaded will be based on the mob data passed in, and the level of the
+ * items should not surpass the level of the mob.
+ *
+ * This is a work in progress. */
+void load_treasure(struct char_data *mob);
+
+
 // staff tool to load random items
 ACMD(do_loadmagic);
 

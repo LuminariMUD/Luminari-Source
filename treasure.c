@@ -604,30 +604,45 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
 /* character should get treasure, roll dice for what items to give out */
 void award_magic_item(int number, struct char_data *ch, int level, int grade) {
   int i = 0;
-
+  int roll = 0;
   if (number <= 0)
     number = 1;
 
   if (number >= 50)
     number = 50;
 
+/*
+ * crystals drop 5% of the time.
+ * scrolls/wands/potions/staves drop 40% of the time. (each 10%)
+ * trinkets (bracelets, rings, etc. including cloaks, boots and gloves) drop 20% of the time.
+ * armor (head, arms, legs, body) drop 25% of the time.
+ * weapons drop 10% of the time.
+ */
   for (i = 0; i < number; i++) {
-    if (dice(1, 100) <= 40)
-      award_expendable_item(ch, grade, TYPE_SCROLL);
-    if (dice(1, 100) <= 30)
-      award_expendable_item(ch, grade, TYPE_POTION);
-    if (dice(1, 100) <= 20)
-      award_expendable_item(ch, grade, TYPE_WAND);
-    if (dice(1, 100) <= 10)
-      award_expendable_item(ch, grade, TYPE_STAFF);
-    if (dice(1, 100) <= 20)
-      award_misc_magic_item(ch, grade, level);
-    if (dice(1, 100) <= 20)
-      award_magic_armor(ch, grade, level);
-    if (dice(1, 100) <= 10)
+    roll = dice(1, 100);
+    if (roll <= 5)
+      award_random_crystal(ch, level);      
+    else if (roll <= 15)
       award_magic_weapon(ch, grade, level);
-    if (dice(1, 100) <= 5)
-      award_random_crystal(ch, level);
+    else if (roll <= 55) { 
+      switch (dice(1,4)) {
+        case 1:
+          award_expendable_item(ch, grade, TYPE_SCROLL);
+          break;
+        case 2:
+          award_expendable_item(ch, grade, TYPE_POTION);
+          break;
+        case 3:
+          award_expendable_item(ch, grade, TYPE_WAND);
+          break;
+        case 4:
+          award_expendable_item(ch, grade, TYPE_STAFF);
+          break;
+      }
+    } else if (roll <= 75)
+        award_misc_magic_item(ch, grade, level);
+      else 
+        award_magic_armor(ch, grade, level);
   }
 }
 
@@ -2474,6 +2489,59 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
 #undef SHORT_STRING
+
+/* Load treasure on a mob. */
+void load_treasure(char_data *mob) {
+
+  int roll = dice(1, 100);
+  int level = 0;
+  int grade = GRADE_MUNDANE;
+
+  if (!IS_NPC(mob))
+    return;
+
+  level = GET_LEVEL(mob);
+
+  if (level >= 20) {
+    grade = GRADE_MAJOR;
+  } else if (level >= 16) {
+    if (roll >= 61)
+      grade = GRADE_MAJOR;
+    else
+      grade = GRADE_MEDIUM;
+  } else if (level >= 12) {
+    if (roll >= 81)
+      grade = GRADE_MAJOR;
+    else if (roll >= 11)
+      grade = GRADE_MEDIUM;
+    else
+      grade = GRADE_MINOR;
+  } else if (level >= 8) {
+    if (roll >= 96)
+      grade = GRADE_MAJOR;
+    else if (roll >= 31)
+      grade = GRADE_MEDIUM;
+    else
+      grade = GRADE_MINOR;
+  } else if (level >= 4) {
+    if (roll >= 76)
+      grade = GRADE_MEDIUM;
+    else if (roll >= 16)
+      grade = GRADE_MINOR;
+    else
+      grade = GRADE_MUNDANE;
+  } else {
+    if (roll >= 96)
+      grade = GRADE_MEDIUM;
+    else if (roll >= 41)
+      grade = GRADE_MINOR;
+    else
+      grade = GRADE_MUNDANE;
+  }
+
+    /* Give the mob one magic item. */
+    award_magic_item(1, mob, level, grade);
+}
 
 /* staff tool to load random items */
 ACMD(do_loadmagic) {
