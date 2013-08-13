@@ -1090,6 +1090,11 @@ void increase_skill(struct char_data *ch, int skillnum) {
         GET_SKILL(ch, skillnum)++;
       }
       break;
+    case SKILL_CRIP_STRIKE:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
     default:
       log("SYSERR: increase_skill() missing skill call:  %s",
               spell_info[skillnum].name);
