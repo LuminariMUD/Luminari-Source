@@ -3170,7 +3170,18 @@ void reset_zone(zone_rnum zone) {
           load_treasure(mob);          
         break;
       case 'L': /* random treasure to container (with percentage loads) */
-        last_cmd = 0;
+/*       if (rand_number(1, 100) <= ZCMD.arg2) {
+          if (!(obj_to = get_obj_num(ZCMD.arg3))) {
+            ZONE_ERROR("target obj not found, command disabled");
+            ZCMD.command = '*';
+            break;
+          }
+          load_treasure_in_obj(obj_to);
+          last_cmd = 1;
+        } else
+          last_cmd = 0;
+*/
+        last_cmd = 0; /* Disable this for now... */
         break;
       case 'E': /* object to equipment list (with percentage loads) */
         if (!mob) {
