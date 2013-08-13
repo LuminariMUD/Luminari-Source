@@ -730,9 +730,10 @@ void raw_kill_old(struct char_data *ch, struct char_data *killer) {
   update_pos(ch);
 
   /* random treasure drop */
-  if (killer && ch)
+/*  MOVED TO MOB RESET!
+    if (killer && ch)
     determine_treasure(find_treasure_recipient(killer), ch);
-
+*/
   make_corpse(ch);
 
   /* this was commented out for some reason, undid that to make sure
