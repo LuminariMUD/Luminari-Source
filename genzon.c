@@ -414,10 +414,26 @@ int save_zone(zone_rnum zone_num) {
    * T (Trigger) Trig-type  Trig-Vnum Room-Vnum
    * V (Var)     Trig-type  Context   Room-Vnum Varname Value
    * J (Jump)    # of lines to jump over
+   * I (GiveRnd) % Load 
+   * L (RndCont) Target-Obj-Vnum %Load
    * ------------------------------------------------- */
 
   for (subcmd = 0; ZCMD(zone_num, subcmd).command != 'S'; subcmd++) {
     switch (ZCMD(zone_num, subcmd).command) {
+      case 'I':
+        arg1 = ZCMD(zone_num, subcmd).arg1;
+        arg2 = -1;
+        arg3 = -1;
+        arg4 = -1;
+        comment = "RandomGive";
+        break;
+      case 'L':
+        arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
+        arg2 = ZCMD(zone_num, subcmd).arg2;
+        arg3 = -1;
+        arg4 = -1;
+        comment = "RandomCont";
+        break;
       case 'J':
         arg1 = ZCMD(zone_num, subcmd).arg1;
         arg2 = ZCMD(zone_num, subcmd).arg2;

@@ -93,6 +93,8 @@ room_rnum add_room(struct room_data *room)
       case 'P':
       case 'E':
       case 'J':
+      case 'I':
+      case 'L':
       case '*':
 	/* Known zone entries we don't care about. */
         break;
