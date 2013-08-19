@@ -501,7 +501,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MOB_ELEMENTAL      29
 #define MOB_ANIMATED_DEAD  30
 #define MOB_GUARD          31  /* will protect citizen */
-#define MOB_CITIZEN	       32  /* will be protected by guard */
+#define MOB_CITIZEN	   32  /* will be protected by guard */
 #define MOB_HUNTER         33  /* will track down foes & memory targets */
 #define MOB_LISTEN         34  /* will enter room if hearing fighting */
 #define MOB_LIT            35  /* light up mob */
@@ -514,9 +514,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 /* keeping this temporarily for homeland-port reference */
 /*
 #define MOB_AGGR_EVILRACE    MOB_AGGR_EVIL     (8)
-#define MOB_AGGR_GOODRACE    MOB_AGGR_EVIL     (9)
-#define MOB_MENTAL	         MOB_ELEMENTAL     (29)
-#define MOB_FAMILIAR	    MOB_C_FAMILIAR    (27)
+#define MOB_AGGR_GOODRACE    MOB_AGGR_GOOD     (9)
+#define MOB_MENTAL	     MOB_ELEMENTAL     (29)
+#define MOB_FAMILIAR	     MOB_C_FAMILIAR    (27)
 #define MOB_NORMAL_PET       MOB_C_ANIMAL      (26)
 #define MOB_CLASS_MOUNT      MOB_C_MOUNT       (28)
 #define MOB_AGGR_NEUTRACE    MOB_AGGR_NEUTRAL  (10)
@@ -1117,7 +1117,6 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 /** Total number of applies */
 #define NUM_APPLIES            48
 
-
 /* Equals the total number of SAVING_* defines in spells.h */
 #define NUM_OF_SAVING_THROWS  5
 
@@ -1362,6 +1361,8 @@ struct extra_descr_data {
  * more configurability per object type, and shouldn't break anything.
  * DO NOT LOWER from the default value of 4. */
 #define NUM_OBJ_VAL_POSITIONS 4
+/* Same thing, but for Special Abilities for weapons, armor and shields. */
+#define NUM_SPECAB_VAL_POSITIONS 4
 
 /** object flags used in obj_data. These represent the instance values for
  * a real object, values that can change during gameplay. */
@@ -1395,6 +1396,15 @@ struct weapon_spells {
   int level;  // level at which it will cast spellnum
   int percent;  // chance spellnum will fire per round
   int inCombat;  // will spellnum fire only in combat?
+};
+
+/* For special abilities for weapons, armor and 'wonderous items' - Ornir */
+struct obj_special_ability {
+  int ability;             /* Which ability does this object have? */
+  int level;               /* The 'Caster Level' of the affect. */
+  int activation_method;   /* Command word, wearing/wielding, Hitting, On Critical, etc. */
+  char* command_word;      /* Only if the activation_method is ACTTYPE_COMMAND_WORD, NULL otherwise. */ 
+  int value[NUM_SPECAB_VAL_POSITIONS];	/* Values for the special ability, see specab.c/specab.h for a list. */
 };
 
 // Spellbooks
@@ -1442,6 +1452,8 @@ struct obj_data {
   struct obj_spellbook_spell *sbinfo; /* For spellbook info */
   
   struct list_data *events;      /**< Used for object events */  
+  
+  struct list_data *special_abilities; /**< Used to store special abilities */
   
   long missile_id;  //non saving variable to id missiles
 };
