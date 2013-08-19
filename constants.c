@@ -882,6 +882,7 @@ const char *extra_bits[NUM_ITEM_FLAGS + 1] = {
   "No-Burn",
   "Transient",
   "Auto-Proc",
+  "Flaming",  //45
   "\n"
 };
 

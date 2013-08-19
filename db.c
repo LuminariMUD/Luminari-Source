@@ -2869,6 +2869,7 @@ struct obj_data *create_obj(void) {
   object_list = obj;
 
   obj->events = NULL;
+  obj->special_abilities = NULL; /* Ornir 19/08/2013 */
 
   GET_ID(obj) = max_obj_id++;
   /* find_obj helper */
@@ -2895,7 +2896,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
   object_list = obj;
 
   obj->events = NULL;
-
+ 
   obj_index[i].number++;
 
   GET_ID(obj) = max_obj_id++;

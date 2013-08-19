@@ -1047,10 +1047,12 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_NOLOCATE             41  // item can not be located via spells
 #define ITEM_NOBURN               42  // item can not be disintegrated by spells
 #define ITEM_TRANSIENT            43  // item will crumble and fade when dropped
-#define ITEM_AUTOPROC	         44  // item can be called by proc_update()
+#define ITEM_AUTOPROC	          44  // item can be called by proc_update()
+/* Flags dealing with special abilities. */
+#define ITEM_FLAMING              45  /* Item is ON FIRE! Used to toggle special ability.*/
 /**/
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            45
+#define NUM_ITEM_FLAGS            46
 
 /* homeland-port */
 /*
