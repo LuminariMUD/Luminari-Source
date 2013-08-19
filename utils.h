@@ -524,8 +524,8 @@ do                                                              \
 /** 1 if flag is set in the extra bits of obj, 0 if not. */
 #define OBJ_FLAGGED(obj, flag) (IS_SET_AR(GET_OBJ_EXTRA(obj), (flag)))
 
-
-
+#define SET_OBJ_FLAG(obj, flag) (SET_BIT_AR(GET_OBJ_EXTRA(obj), (flag)))
+#define REMOVE_OBJ_FLAG(obj, flag) (REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), (flag)))
 
 /** 1 if spl has a flag set in routines, 0 if not. */
 #define HAS_SPELL_ROUTINE(spl, flag) (IS_SET(SPELL_ROUTINES(spl), (flag)))

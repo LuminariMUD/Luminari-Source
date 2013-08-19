@@ -2110,6 +2110,39 @@ ACMD(do_use) {
   mag_objectmagic(ch, mag_item, buf);
 }
 
+/* Activate a magic item with a COMMAND WORD! */
+ACMD(do_utter) {
+  int i = 0;  
+  bool found = FALSE;
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  struct obj_data *mag_item = NULL;
+
+  skip_spaces(&argument);
+
+  if(!*argument) {
+    send_to_char(ch, "Utter what?\r\n");
+    return;
+  } else {
+    send_to_char(ch, "You utter '%s'.\r\n", argument);
+    act("$n utters a command word, too quietly to hear.", TRUE, ch, 0, 0, TO_ROOM);
+  }
+
+  /* Check all worn/wielded items and see if they have a command word. */
+  for (i = 0; i < NUM_WEARS; i++) {
+      mag_item = GET_EQ(ch, i);
+      if(mag_item != NULL){
+        /* Traverse the list of special abilities, if any, and check for command words. */
+        /* Compare the argument with the command word. */
+        /* Activate the special ability! */
+        found = TRUE;
+      }
+  }
+  if(found == FALSE)
+    send_to_char(ch, "Nothing happens.\r\n");
+
+ 
+}
+
 ACMD(do_display) {
   size_t i;
 

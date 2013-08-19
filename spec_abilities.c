@@ -108,5 +108,38 @@ void initialize_special_abilities(void) {
 
   add_weapon_special_ability( WEAPON_SPECAB_ANARCHIC, "Anarchic", 7, POS_RECLINING,
     TAR_IGNORE, FALSE, 0, EVOCATION, 2);
-   
+
+  add_weapon_special_ability( WEAPON_SPECAB_FLAMING, "Flaming", 10, POS_RECLINING,
+    TAR_IGNORE, FALSE, 0, EVOCATION, 1);
+
 }
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_flaming) {
+  /* 
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+
+  /* Activate the flaming ability.
+   *  - Set the FLAMING bit on the weapon (this affects the display, 
+   *    and is used to toggle the effect.)
+   */
+  if(OBJ_FLAGGED(weapon, ITEM_FLAMING)) {
+    /* Flaming is on, turn it off. */
+    send_to_char(ch, "The magical flames wreathing $n's $o vanish.\r\n");
+    act("The magical flames wreathing your $o vanish.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+    REMOVE_OBJ_FLAG(weapon, ITEM_FLAMING);
+  } else {
+    /* FLAME ON! */
+    send_to_char(ch, "Magical flames spread down the length of your $o!\r\n");
+    act("Magical flames spread down the length of $n's $o!", FALSE, ch, weapon, NULL, TO_ROOM);
+
+    SET_OBJ_FLAG(weapon, ITEM_FLAMING);
+  }
+}
+
+

@@ -435,6 +435,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "uptime", "uptime", POS_DEAD, do_date, LVL_STAFF, SCMD_UPTIME, TRUE},
   { "use", "use", POS_SITTING, do_use, 1, SCMD_USE, FALSE},
   { "users", "users", POS_DEAD, do_users, LVL_STAFF, 0, TRUE},
+  { "utter", "ut", POS_RECLINING, do_utter, 0, 0, FALSE},
   { "unadjure", "unadjure", POS_RECLINING, do_gen_forget, 0, SCMD_UNADJURE, FALSE},
 
   { "value", "val", POS_STANDING, do_not_here, 0, 0, FALSE},

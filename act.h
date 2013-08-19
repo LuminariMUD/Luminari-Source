@@ -344,6 +344,8 @@ ACMD(do_use);
 #define SCMD_USE  0
 #define SCMD_QUAFF  1
 #define SCMD_RECITE 2
+/* do_utter */
+ACMD(do_utter);
 /* do_diplomacy */
 ACMD(do_diplomacy);
 #define SCMD_MURMUR     0
