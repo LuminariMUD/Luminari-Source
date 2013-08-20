@@ -40,6 +40,7 @@
 #include "craft.h"
 #include "hlquest.h"
 #include "mudlim.h"
+#include "spec_abilities.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -600,6 +601,7 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j) {
   struct extra_descr_data *desc;
   char buf[MAX_STRING_LENGTH];
   struct char_data *tempch;
+  struct obj_special_ability *specab;
 
   send_to_char(ch, "Name: '%s%s%s', Keywords: %s\r\n", CCYEL(ch, C_NRM),
           j->short_description ? j->short_description : "<None>",
@@ -669,7 +671,13 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j) {
     case ITEM_WEAPON:
       send_to_char(ch, "Todam: %dd%d, Avg Damage: %.1f. Message type: %s\r\n",
               GET_OBJ_VAL(j, 1), GET_OBJ_VAL(j, 2), ((GET_OBJ_VAL(j, 2) + 1) / 2.0) * GET_OBJ_VAL(j, 1), attack_hit_text[GET_OBJ_VAL(j, 3)].singular);
+      for(specab = j->special_abilities; specab != NULL;specab = specab->next) {
+        send_to_char(ch, "Special Abilities:\r\n");
+        send_to_char(ch, "  %s, %s\r\n", weapon_special_ability_info[specab->ability].name, 
+                                         specab->command_word);
+      }
       break;
+
     case ITEM_ARMOR:
       send_to_char(ch, "AC-apply: [%d]\r\n", GET_OBJ_VAL(j, 0));
       break;
