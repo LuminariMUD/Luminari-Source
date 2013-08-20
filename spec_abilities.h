@@ -22,6 +22,14 @@
 #ifndef _SPEC_ABILITIES_H_
 #define _SPEC_ABILITIES_H_
 
+/* Activation methods */
+#define ACTMTD_NONE                    0       /* No activation required. */
+#define ACTMTD_WEAR                    1       /* Activates when worn. */
+#define ACTMTD_USE                     2       /* Activates when 'use'd. */
+#define ACTMTD_COMMAND_WORD            3       /* Activates when command word is 'utter'ed */
+#define ACTMTD_ON_HIT                  4       /* Activates on a successful hit. */
+#define ACTMTD_ON_CRIT                 5       /* Activates on a successful crit. */
+
 /* Special abilities for weapons, armor and shields. - 19/08/2013 Ornir                      
  * These abilities have been taken from the d20srd, 
  * augmented by other sourcebooks. */
@@ -122,5 +130,11 @@ void abilityname(int level, struct obj_data *armor, \
 
 #define ACTIVATE_ARMOR_SPECIAL_ABILITY(abilityname) \
   abilityname(level, armor, wearer, cvict, ovict)
+
+
+void initialize_special_abilities(void);
+
+/* Prototypes for weapon special abilities */
+WEAPON_SPECIAL_ABILITY(weapon_specab_flaming);
 
 #endif

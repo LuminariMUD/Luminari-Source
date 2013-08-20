@@ -38,6 +38,7 @@
 #include "craft.h"
 #include "treasure.h"
 #include "mudlim.h"
+#include "spec_abilities.h"
 
 /* Local defined utility functions */
 /* do_group utility functions */
@@ -2116,6 +2117,7 @@ ACMD(do_utter) {
   bool found = FALSE;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *mag_item = NULL;
+  struct obj_special_ability *specab;
 
   skip_spaces(&argument);
 
@@ -2132,9 +2134,15 @@ ACMD(do_utter) {
       mag_item = GET_EQ(ch, i);
       if(mag_item != NULL){
         /* Traverse the list of special abilities, if any, and check for command words. */
-        /* Compare the argument with the command word. */
-        /* Activate the special ability! */
-        found = TRUE;
+        for(specab = mag_item->special_abilities;specab != NULL;specab = specab->next) {
+          if(specab->activation_method == ACTMTD_COMMAND_WORD) {
+            /* Compare the argument with the command word. */
+            if(strcmp(argument, specab->command_word) == 0) {
+              /* Activate the special ability! */
+              found = TRUE;
+            }
+          }          
+        }
       }
   }
   if(found == FALSE)

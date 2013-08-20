@@ -45,6 +45,8 @@
 #include "craft.h"
 #include "hlquest.h"
 #include "mudlim.h"
+#include "spec_abilities.h"
+
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -697,6 +699,9 @@ void boot_db(void) {
 
   log("Loading spell definitions.");
   mag_assign_spells();
+
+  log("Loading weapon and armor special ability definitions.");
+  initialize_special_abilities();  
 
   boot_world();
 
@@ -2098,6 +2103,7 @@ char *parse_object(FILE *obj_f, int nr) {
   char f5[READ_SIZE], f6[READ_SIZE], f7[READ_SIZE], f8[READ_SIZE];
   char f9[READ_SIZE], f10[READ_SIZE], f11[READ_SIZE], f12[READ_SIZE];
   struct extra_descr_data *new_descr;
+  struct obj_special_ability *new_specab;
 
   obj_index[i].vnum = nr;
   obj_index[i].number = 0;
@@ -2280,7 +2286,7 @@ char *parse_object(FILE *obj_f, int nr) {
         }
 
         if ((retval = sscanf(line, " %d %d ", t, t + 1)) != 2) {
-          log("SYSERR: Format error in 'S' field, %s\n"
+          log("SYSERR: Format error in 'B' field, %s\n"
                   "...expecting 2 numeric arguments, got %d\n"
                   "...offending line: '%s'", buf2, retval, line);
           exit(1);
@@ -2294,6 +2300,43 @@ char *parse_object(FILE *obj_f, int nr) {
         obj_proto[i].sbinfo[j].spellname = t[0];
         obj_proto[i].sbinfo[j].pages = t[1];
         j++;
+        break;
+      case 'C': /* Special abilities */
+
+        CREATE(new_specab, struct obj_special_ability, 1);
+
+        if (!get_line(obj_f, line)) {
+          log("SYSERR: Format error in 'C' field, %s\n"
+                  "...expecting 3 numeric constants but file ended!", buf2);
+          exit(1);
+        }
+        if ((retval = sscanf(line, " %d %d %d ", &new_specab->ability, 
+                                                 &new_specab->level, 
+                                                 &new_specab->activation_method)) != 3) {
+          log("SYSERR: Format error in 'C' field, %s\n"
+                  "...expecting 3 numeric arguments, got %d\n"
+                  "...offending line: '%s'", buf2, retval, line);
+          exit(1);
+        }
+        if (!get_line(obj_f, line)) {
+          log("SYSERR: Format error in 'C' field, %s\n"
+                  "...expecting 4 numeric constants but file ended!", buf2);
+          exit(1);
+        }
+
+        if ((retval = sscanf(line, " %d %d %d %d ", new_specab->value, 
+                                                    new_specab->value + 1, 
+                                                    new_specab->value + 2,
+                                                    new_specab->value + 3)) != 4) { 
+          log("SYSERR: Format error in 'C' field, %s\n"
+                  "...expecting 4 numeric arguments, got %d\n"
+                  "...offending line: '%s'", buf2, retval, line);
+          exit(1); 
+        }
+
+        new_specab->command_word = fread_string(obj_f, buf2);
+        new_specab->next = obj_proto[i].special_abilities;
+        obj_proto[i].special_abilities = new_specab;
         break;
       case 'E':
         CREATE(new_descr, struct extra_descr_data, 1);
@@ -2881,6 +2924,7 @@ struct obj_data *create_obj(void) {
 /* create a new object from a prototype */
 struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
   struct obj_data *obj;
+  struct obj_special_ability *proto_specab, *specab_list;
   int j;
   obj_rnum i = type == VIRTUAL ? real_object(nr) : nr;
 
@@ -2903,6 +2947,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
   /* find_obj helper */
   add_to_lookup_table(GET_ID(obj), (void *) obj);
 
+  /* Copy the spellbook information - Uses pointer math to access and array...*/
   if (obj_proto[i].sbinfo) {
     CREATE(obj->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
     memset((char *) obj->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
@@ -2910,6 +2955,24 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
       obj->sbinfo[j].spellname = obj_proto[i].sbinfo[j].spellname;
       obj->sbinfo[j].pages = obj_proto[i].sbinfo[j].pages;
     }
+  }
+
+  /* Copy the special ability information. */
+  for(proto_specab = obj_proto[i].special_abilities;
+      proto_specab != NULL; 
+      proto_specab = proto_specab->next) {
+    
+    CREATE(specab_list, struct obj_special_ability, 1);
+
+    /* Populate the node. */
+    specab_list = proto_specab;
+
+    /* Copy the command word (pointer, not copied above. */
+    if(proto_specab->command_word != NULL)
+      specab_list->command_word = strdup(proto_specab->command_word);
+
+    /* Put the new node on the list. */
+    specab_list->next = obj->special_abilities;
   }
 
   /* going to put some caps here -zusuk */
