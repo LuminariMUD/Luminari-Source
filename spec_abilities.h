@@ -22,6 +22,8 @@
 #ifndef _SPEC_ABILITIES_H_
 #define _SPEC_ABILITIES_H_
 
+
+
 /* Activation methods */
 #define ACTMTD_NONE                    0       /* No activation required. */
 #define ACTMTD_WEAR                    1       /* Activates when worn. */
@@ -99,6 +101,8 @@
 
 #define NUM_ARMOR_SPECABS            23       /* Number of Special Abilities for weapons and armor. */
 
+
+
 /* Structure to hold ability data. */
 struct special_ability_info_type {  
   byte min_position; /* Position for user */
@@ -111,6 +115,8 @@ struct special_ability_info_type {
   int cost; /* Enhancement Bonus cost. */  
 };
 
+struct special_ability_info_type weapon_special_ability_info[NUM_WEAPON_SPECABS];
+struct special_ability_info_type armor_special_ability_info[NUM_ARMOR_SPECABS];
 
 /* Macros for defining the actual abilities */
 #define WEAPON_SPECIAL_ABILITY(abilityname) \

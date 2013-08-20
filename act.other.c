@@ -2137,9 +2137,10 @@ ACMD(do_utter) {
         for(specab = mag_item->special_abilities;specab != NULL;specab = specab->next) {
           if(specab->activation_method == ACTMTD_COMMAND_WORD) {
             /* Compare the argument with the command word. */
-            if(strcmp(argument, specab->command_word) == 0) {
+            if(!strcmp(argument, specab->command_word)) {
               /* Activate the special ability! */
               found = TRUE;
+              weapon_specab_flaming(specab->level, mag_item, ch, NULL, NULL);
             }
           }          
         }
