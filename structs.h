@@ -1407,6 +1407,8 @@ struct obj_special_ability {
   int activation_method;   /* Command word, wearing/wielding, Hitting, On Critical, etc. */
   char* command_word;      /* Only if the activation_method is ACTTYPE_COMMAND_WORD, NULL otherwise. */ 
   int value[NUM_SPECAB_VAL_POSITIONS];	/* Values for the special ability, see specab.c/specab.h for a list. */
+  
+  struct obj_special_ability *next; /* This is a list of abilities. */
 };
 
 // Spellbooks
@@ -1455,7 +1457,7 @@ struct obj_data {
   
   struct list_data *events;      /**< Used for object events */  
   
-  struct list_data *special_abilities; /**< Used to store special abilities */
+  struct obj_special_ability *special_abilities; /**< List used to store special abilities */
   
   long missile_id;  //non saving variable to id missiles
 };

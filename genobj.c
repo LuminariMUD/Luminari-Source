@@ -189,6 +189,7 @@ int save_objects(zone_rnum zone_num) {
   FILE *fp;
   struct obj_data *obj;
   struct extra_descr_data *ex_desc;
+  struct obj_special_ability *specab;
 
 #if CIRCLE_UNSIGNED_INDEX
   if (zone_num == NOWHERE || zone_num > top_of_zone_table) {
@@ -279,7 +280,18 @@ int save_objects(zone_rnum zone_num) {
           continue;
         }
       }
-
+      /* C:  Do we have Special Abilities? */
+      if (obj->special_abilities) { /* Yes, save them too. */       
+        for(specab = obj->special_abilities; specab != NULL; specab = specab->next) {
+          fprintf(fp, "C\n"
+                      "%d %d %d\n"
+                      "%d %d %d %d\n"
+                      "%s~\n", 
+                      specab->ability, specab->level, specab->activation_method,
+                      specab->value[0], specab->value[1], specab->value[2], specab->value[3],
+                      (specab->command_word && *specab->command_word) ? specab->command_word : "undefined");                          
+        }
+      }   
       /* E:  Do we have extra descriptions? */
       if (obj->ex_description) { /* Yes, save them too. */
         for (ex_desc = obj->ex_description; ex_desc; ex_desc = ex_desc->next) {
