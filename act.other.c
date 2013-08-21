@@ -2114,9 +2114,8 @@ ACMD(do_use) {
 /* Activate a magic item with a COMMAND WORD! */
 ACMD(do_utter) {
   int i = 0;  
-  bool found = FALSE;
+  int found = 0;
   struct obj_data *mag_item = NULL;
-  struct obj_special_ability *specab;
 
   skip_spaces(&argument);
 
@@ -2133,19 +2132,31 @@ ACMD(do_utter) {
       mag_item = GET_EQ(ch, i);
       if(mag_item != NULL){
         /* Traverse the list of special abilities, if any, and check for command words. */
-        for(specab = mag_item->special_abilities;specab != NULL;specab = specab->next) {
-          if(specab->activation_method == ACTMTD_COMMAND_WORD) {
+ //       for(specab = mag_item->special_abilities;specab != NULL;specab = specab->next) {
+ //         if(specab->activation_method == ACTMTD_COMMAND_WORD) {
             /* Compare the argument with the command word. */
-            if(!strcmp(argument, specab->command_word)) {
+ //           if(!strcmp(argument, specab->command_word)) {
               /* Activate the special ability! */
-              found = TRUE;
-              weapon_specab_flaming(specab->level, mag_item, ch, NULL, NULL);
-            }
-          }          
-        }
+ //             found = TRUE;
+ //             weapon_specab_flaming(specab->level, mag_item, ch, NULL, NULL);
+ //
+ //           }
+ //           
+ //         }          
+        
+ //        }
+        switch(i) { /* Different procedures for weapons and armors. */
+          case WEAR_WIELD_1:
+          case WEAR_WIELD_2:
+          case WEAR_WIELD_2H:
+            found += process_weapon_abilities(mag_item, ch, NULL, ACTMTD_COMMAND_WORD, argument);
+            break;
+          default:
+            break;
+        }    
       }
   }
-  if(found == FALSE)
+  if(found == 0)
     send_to_char(ch, "Nothing happens.\r\n");
 
  

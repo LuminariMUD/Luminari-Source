@@ -560,6 +560,10 @@
 /* New skills may be added here up to MAX_SKILLS (600) */
 #define NUM_SKILLS                      526
 
+/* Special Abilities for weapons */
+
+#define TYPE_SPECAB_FLAMING 		600 
+
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the
  * intended use is for spells and skills associated with objects (such as
@@ -637,6 +641,7 @@
 
 
 /* other attack types */
+
 #define TYPE_CSHIELD      796
 #define TYPE_FSHIELD      797
 #define TYPE_ASHIELD      798
