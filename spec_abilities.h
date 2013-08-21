@@ -142,5 +142,4 @@ void initialize_special_abilities(void);
 
 /* Prototypes for weapon special abilities */
 WEAPON_SPECIAL_ABILITY(weapon_specab_flaming);
-
 #endif

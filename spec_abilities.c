@@ -109,9 +109,23 @@ void initialize_special_abilities(void) {
   add_weapon_special_ability( WEAPON_SPECAB_ANARCHIC, "Anarchic", 7, POS_RECLINING,
     TAR_IGNORE, FALSE, 0, EVOCATION, 2);
 
+  add_weapon_special_ability( WEAPON_SPECAB_AXIOMATIC, "Axiomatic", 7, POS_RECLINING,
+    TAR_IGNORE, FALSE, 0, EVOCATION, 2);
+
+  add_weapon_special_ability( WEAPON_SPECAB_BANE, "Bane", 8, POS_FIGHTING, 
+    TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1);
+
   add_weapon_special_ability( WEAPON_SPECAB_FLAMING, "Flaming", 10, POS_RECLINING,
     TAR_IGNORE, FALSE, 0, EVOCATION, 1);
 
+}
+
+void activate_weapon_special_ability( struct obj_special_ability *specab, /* The ability to activate. */
+                                      struct obj_data *weapon,            /* The weapon the ability is attached to. */
+                                      struct char_data *ch,               /* The wielder of the weapon. */
+                                      struct char_data *victim,           /* The victim of the ability, if it is targeted. */
+                                      struct obj_data  *obj               /* Object target of the ability. */
+                                    ) {  
 }
 
 WEAPON_SPECIAL_ABILITY(weapon_specab_flaming) {
