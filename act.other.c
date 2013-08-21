@@ -2115,7 +2115,6 @@ ACMD(do_use) {
 ACMD(do_utter) {
   int i = 0;  
   bool found = FALSE;
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *mag_item = NULL;
   struct obj_special_ability *specab;
 
