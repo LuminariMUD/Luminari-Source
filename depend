@@ -29,7 +29,7 @@ act.wizard.o: act.wizard.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h house.h \
  screen.h constants.h oasis.h dg_scripts.h shop.h act.h genzon.h class.h \
  genolc.h genobj.h fight.h modify.h quest.h ban.h mud_event.h dg_event.h \
- clan.h craft.h hlquest.h mudlim.h
+ clan.h craft.h hlquest.h mudlim.h spec_abilities.h
 aedit.o: aedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h handler.h comm.h db.h oasis.h screen.h constants.h \
  genolc.h act.h
@@ -70,7 +70,8 @@ db.o: db.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  db.h comm.h handler.h spells.h mail.h interpreter.h house.h constants.h \
  oasis.h dg_scripts.h dg_event.h act.h ban.h treasure.h spec_procs.h \
  genzon.h genolc.h genobj.h config.h fight.h modify.h shop.h quest.h \
- ibt.h mud_event.h class.h clan.h msgedit.h craft.h hlquest.h mudlim.h
+ ibt.h mud_event.h class.h clan.h msgedit.h craft.h hlquest.h mudlim.h \
+ spec_abilities.h
 dg_comm.o: dg_comm.c conf.h sysdep.h structs.h protocol.h lists.h \
  dg_scripts.h utils.h race.h comm.h handler.h db.h constants.h
 dg_db_scripts.o: dg_db_scripts.c conf.h sysdep.h structs.h protocol.h \
@@ -109,7 +110,7 @@ dg_wldcmd.o: dg_wldcmd.c conf.h sysdep.h structs.h protocol.h lists.h \
 fight.o: fight.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h interpreter.h db.h spells.h screen.h constants.h \
  dg_scripts.h act.h class.h fight.h shop.h quest.h mud_event.h dg_event.h \
- spec_procs.h clan.h treasure.h mudlim.h
+ spec_procs.h clan.h treasure.h mudlim.h spec_abilities.h
 genmob.o: genmob.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h shop.h handler.h genolc.h genmob.h genzon.h dg_olc.h \
  dg_scripts.h spells.h
@@ -206,7 +207,7 @@ oasis_list.o: oasis_list.c conf.h sysdep.h structs.h protocol.h lists.h \
  modify.h spells.h genzon.h class.h
 objsave.o: objsave.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h db.h interpreter.h spells.h act.h class.h \
- config.h modify.h genolc.h craft.h
+ config.h modify.h genolc.h craft.h spec_abilities.h
 oedit.o: oedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h spells.h db.h boards.h constants.h shop.h \
  genolc.h genobj.h genzon.h oasis.h improved-edit.h dg_olc.h dg_scripts.h \

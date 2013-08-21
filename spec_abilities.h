@@ -25,12 +25,12 @@
 
 
 /* Activation methods */
-#define ACTMTD_NONE                    0       /* No activation required. */
-#define ACTMTD_WEAR                    1       /* Activates when worn. */
-#define ACTMTD_USE                     2       /* Activates when 'use'd. */
-#define ACTMTD_COMMAND_WORD            3       /* Activates when command word is 'utter'ed */
-#define ACTMTD_ON_HIT                  4       /* Activates on a successful hit. */
-#define ACTMTD_ON_CRIT                 5       /* Activates on a successful crit. */
+#define ACTMTD_NONE                    (1 << 0)       /* No activation required. */
+#define ACTMTD_WEAR                    (1 << 1)       /* Activates when worn. */
+#define ACTMTD_USE                     (1 << 2)       /* Activates when 'use'd. */
+#define ACTMTD_COMMAND_WORD            (1 << 3)       /* Activates when command word is 'utter'ed */
+#define ACTMTD_ON_HIT                  (1 << 4)       /* Activates on a successful hit. */
+#define ACTMTD_ON_CRIT                 (1 << 5)       /* Activates on a successful crit. */
 
 /* Special abilities for weapons, armor and shields. - 19/08/2013 Ornir                      
  * These abilities have been taken from the d20srd, 
@@ -101,7 +101,13 @@
 
 #define NUM_ARMOR_SPECABS            23       /* Number of Special Abilities for weapons and armor. */
 
-
+#define SPECAB_PROC_DEF( specab_proc ) \
+                        void (*specab_proc)\
+                             (struct obj_special_ability *specab, /* The ability structure, to get values. */\
+                              struct obj_data *obj,               /* The item with the ability. */\
+                              struct char_data *ch,               /* The wearer/wielder of the item. */\
+                              struct char_data *victim,           /* The target of the ability. */\
+                              int    actmtd)                      /* The activation method triggered. */
 
 /* Structure to hold ability data. */
 struct special_ability_info_type {  
@@ -113,6 +119,8 @@ struct special_ability_info_type {
   int time; /* Time required to process the ability */
   int school; /* School of magic, necessary for detect magic. */
   int cost; /* Enhancement Bonus cost. */  
+
+  SPECAB_PROC_DEF(special_ability_proc);
 };
 
 struct special_ability_info_type weapon_special_ability_info[NUM_WEAPON_SPECABS];
@@ -120,26 +128,30 @@ struct special_ability_info_type armor_special_ability_info[NUM_ARMOR_SPECABS];
 
 /* Macros for defining the actual abilities */
 #define WEAPON_SPECIAL_ABILITY(abilityname) \
-void abilityname(int level, struct obj_data *weapon, \
-                            struct char_data *ch, \
-                            struct char_data *victim, \
-                            struct obj_data *obj)
+void abilityname( struct obj_special_ability *specab, \
+                  struct obj_data *weapon, \
+                  struct char_data *ch, \
+                  struct char_data *victim, \
+                  int    actmtd)
 
 #define ARMOR_SPECIAL_ABILITY(abilityname) \
-void abilityname(int level, struct obj_data *armor, \
-                            struct char_data *ch, \
-                            struct char_data *victim, \
-                            struct obj_data *obj)
-
-#define ACTIVATE_WEAPON_SPECIAL_ABILITY(abilityname) \
-  abilityname(level, weapon, wielder, cvict, ovict)
-
-#define ACTIVATE_ARMOR_SPECIAL_ABILITY(abilityname) \
-  abilityname(level, armor, wearer, cvict, ovict)
-
+void abilityname( struct obj_special_ability *specab, \
+                  struct obj_data *armor, \
+                  struct char_data *ch, \
+                  struct char_data *victim, \
+                  int    actmtd)
 
 void initialize_special_abilities(void);
 
+/* Process weapon abilities for the specified activation method. */
+int  process_weapon_abilities(struct obj_data  *weapon, /* The weapon to check for special abilities. */
+                              struct char_data *ch,     /* The wielder of the weapon. */
+                              struct char_data *victim, /* The target of the ability (either fighting or 
+                                                         * specified explicitly. */
+                              int    actmtd,            /* Activation method */
+                              char   *cmdword);          /* Command word (optional, NULL if none. */
+
 /* Prototypes for weapon special abilities */
 WEAPON_SPECIAL_ABILITY(weapon_specab_flaming);
+
 #endif

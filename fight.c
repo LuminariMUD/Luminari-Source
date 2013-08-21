@@ -32,6 +32,7 @@
 #include "clan.h"
 #include "treasure.h"
 #include "mudlim.h"
+#include "spec_abilities.h"
 
 /* local global */
 struct obj_data *last_missile = NULL;
@@ -2615,6 +2616,10 @@ void hit(struct char_data *ch, struct char_data *victim,
     /* weapon spells */
     if (ch && victim && wielded)
       weapon_spells(ch, victim, wielded);
+
+    /* Weapon special abilities that trigger on hit. */
+    if (ch && victim && wielded)
+      process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL); 
 
     /* vampiric curse will do some minor healing to attacker */
     if (!IS_UNDEAD(victim) && IS_AFFECTED(victim, AFF_VAMPIRIC_CURSE)) {
