@@ -2302,39 +2302,36 @@ char *parse_object(FILE *obj_f, int nr) {
         j++;
         break;
       case 'C': /* Special abilities */
-
         CREATE(new_specab, struct obj_special_ability, 1);
 
         if (!get_line(obj_f, line)) {
           log("SYSERR: Format error in 'C' field, %s\n"
-                  "...expecting 3 numeric constants but file ended!", buf2);
+                  "...expecting 7 numeric constants but file ended!", buf2);
           exit(1);
         }
-        if ((retval = sscanf(line, " %d %d %d ", &new_specab->ability, 
-                                                 &new_specab->level, 
-                                                 &new_specab->activation_method)) != 3) {
+        if ((retval = sscanf(line, "%d %d %d %d %d %d %d %s", t, 
+                                                              t + 1, 
+                                                              t + 2,
+							      t + 3,
+							      t + 4,
+                                                              t + 5,
+                                                              t + 6,
+                                                              f1 )) < 7) {
           log("SYSERR: Format error in 'C' field, %s\n"
-                  "...expecting 3 numeric arguments, got %d\n"
+                  "...expecting 7 numeric arguments, got %d\n"
                   "...offending line: '%s'", buf2, retval, line);
           exit(1);
         }
-        if (!get_line(obj_f, line)) {
-          log("SYSERR: Format error in 'C' field, %s\n"
-                  "...expecting 4 numeric constants but file ended!", buf2);
-          exit(1);
-        }
 
-        if ((retval = sscanf(line, " %d %d %d %d ", new_specab->value, 
-                                                    new_specab->value + 1, 
-                                                    new_specab->value + 2,
-                                                    new_specab->value + 3)) != 4) { 
-          log("SYSERR: Format error in 'C' field, %s\n"
-                  "...expecting 4 numeric arguments, got %d\n"
-                  "...offending line: '%s'", buf2, retval, line);
-          exit(1); 
-        }
-
-        new_specab->command_word = fread_string(obj_f, buf2);
+        new_specab->ability           = t[0];
+        new_specab->level             = t[1];
+        new_specab->activation_method = t[2];
+        new_specab->value[0]          = t[3];
+        new_specab->value[1]          = t[4];
+        new_specab->value[2]          = t[5];
+        new_specab->value[3]          = t[6];
+        new_specab->command_word      = (retval == 8 ? strdup(f1) : NULL);
+       
         new_specab->next = obj_proto[i].special_abilities;
         obj_proto[i].special_abilities = new_specab;
         break;
@@ -2956,16 +2953,17 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
       obj->sbinfo[j].pages = obj_proto[i].sbinfo[j].pages;
     }
   }
-
+ 
+  obj->special_abilities = NULL;
+ 
   /* Copy the special ability information. */
   for(proto_specab = obj_proto[i].special_abilities;
-      proto_specab != NULL; 
+      proto_specab != NULL;
       proto_specab = proto_specab->next) {
-    
-    CREATE(specab_list, struct obj_special_ability, 1);
 
+    CREATE(specab_list, struct obj_special_ability, 1);
     /* Populate the node. */
-    specab_list = proto_specab;
+    *specab_list = *proto_specab;
 
     /* Copy the command word (pointer, not copied above. */
     if(proto_specab->command_word != NULL)
@@ -2973,6 +2971,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
 
     /* Put the new node on the list. */
     specab_list->next = obj->special_abilities;
+    obj->special_abilities = specab_list;
   }
 
   /* going to put some caps here -zusuk */
@@ -4056,6 +4055,7 @@ void clear_object(struct obj_data *obj) {
   obj->worn_on = -1;
   GET_OBJ_SIZE(obj) = SIZE_MEDIUM;
   MISSILE_ID(obj) = 0;
+  obj->special_abilities = NULL;
 }
 
 /* Called during character creation after picking character class (and then

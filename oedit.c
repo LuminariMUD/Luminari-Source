@@ -26,6 +26,7 @@
 #include "modify.h"
 #include "clan.h"
 #include "craft.h"
+#include "spec_abilities.h"
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);
@@ -51,6 +52,8 @@ static void oedit_disp_menu(struct descriptor_data *d);
 static void oedit_disp_perm_menu(struct descriptor_data *d);
 static void oedit_save_to_disk(int zone_num);
 static void oedit_disp_spellbook_menu(struct descriptor_data *d);
+static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d);
+static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d);
 
 /* handy macro */
 #define S_PRODUCT(s, i) ((s)->producing[(i)])
@@ -198,6 +201,7 @@ static void oedit_setup_new(struct descriptor_data *d) {
   GET_OBJ_SIZE(OLC_OBJ(d)) = SIZE_MEDIUM;
   SCRIPT(OLC_OBJ(d)) = NULL;
   OLC_OBJ(d)->proto_script = OLC_SCRIPT(d) = NULL;
+  OLC_SPECAB(d) = NULL;
 }
 
 void oedit_setup_existing(struct descriptor_data *d, int real_num) {
@@ -306,7 +310,6 @@ void oedit_disp_weapon_spells(struct descriptor_data *d) {
   send_to_char(d->character, "Enter spell to edit : ");
 }
 
-
 /* Menu functions */
 
 /* For container flags. */
@@ -414,6 +417,130 @@ void oedit_disp_spellbook_menu(struct descriptor_data *d)
   write_to_output(d, "\r\nEnter spell number (0 is no spell) : ");
   OLC_MODE(d) = OEDIT_SPELLBOOK;
 }
+
+static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d) {
+  struct obj_special_ability *specab;
+  bool found = FALSE;
+  char actmtds[MAX_STRING_LENGTH];
+  int counter = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+  write_to_output(d,
+          "Weapon special abilities menu\r\n");
+
+  for (specab = OLC_OBJ(d)->special_abilities;specab != NULL;specab = specab->next) {
+    counter++;
+    found = TRUE;
+    sprintbit(specab->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
+    write_to_output(d, 
+          "%s%d%s) Ability: %s%s%s Level: %s%d%s\r\n" 
+          "   Activation Methods: %s%s%s\r\n"
+          "   CommandWord: %s%s%s\r\n"
+          "   Values: [%s%d%s] [%s%d%s] [%s%d%s] [%s%d%s]\r\n",
+          grn, counter, nrm, yel, weapon_special_ability_info[specab->ability].name, nrm, yel, specab->level, nrm,
+          yel, actmtds, nrm,
+          yel, (specab->command_word == NULL ? "Not set." : specab->command_word), nrm,
+          yel, specab->value[0], nrm,
+          yel, specab->value[1], nrm,
+          yel, specab->value[2], nrm,
+          yel, specab->value[3], nrm);
+  }
+  if(!found)
+    write_to_output(d, "No weapon special abilities assigned.\r\n");
+  
+  write_to_output(d,
+          "\r\n"
+          "%sN%s) Assign a new ability\r\n"
+          "%sE%s) Edit an assigned ability\r\n"
+          "%sD%s) Delete an assigned ability\r\n"
+          "%sQ%s) Quit\r\n"
+          "Enter choice : ",
+
+          grn, nrm,
+          grn, nrm,
+          grn, nrm,
+          grn, nrm);
+
+  OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
+}
+
+static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d) {
+  
+  struct obj_special_ability *specab;  
+  char actmtds[MAX_STRING_LENGTH];
+
+  specab = OLC_SPECAB(d);
+  if (specab == NULL) {
+    write_to_output(d, "Could not retrieve new weapon special ability.  Exiting.\r\n");
+    oedit_disp_menu(d);
+    return;
+  }
+  	
+  get_char_colors(d->character);
+  clear_screen(d);
+  write_to_output(d,
+          "Weapon special abilities menu\r\n");
+
+    sprintbit(OLC_SPECAB(d)->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
+  
+    write_to_output(d,
+          "%sA%s) Ability: %s%s%s\r\n"
+          "%sL%s) Level: %s%d%s\r\n"
+          "%sM%s) Activation Methods: %s%s%s\r\n"
+          "%sC%s) Command Word: %s%s%s\r\n"
+          "%sV%s) Values: [%s%d%s] [%s%d%s] [%s%d%s] [%s%d%s]\r\n"
+          "%sQ%s) Quit\r\n"
+          "Enter Choice : ",
+          grn, nrm, yel, weapon_special_ability_info[specab->ability].name, nrm, 
+          grn, nrm, yel, specab->level, nrm,
+          grn, nrm, yel, actmtds, nrm,
+          grn, nrm, yel, (specab->command_word == NULL ? "Not set." : specab->command_word), nrm,
+          grn, nrm, yel, specab->value[0], nrm,
+                    yel, specab->value[1], nrm,
+                    yel, specab->value[2], nrm,
+                    yel, specab->value[3], nrm,
+	  grn, nrm);
+  
+  
+  OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
+}
+
+static void oedit_weapon_specab(struct descriptor_data *d) {
+  const char *specab_names[NUM_WEAPON_SPECABS - 1]; /* We are ignoring the first, 0 value. */
+  int i = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+ 
+  /* we want to use column_list here, but we don't have a pre made list
+   * of string values.  Make one, and make sure it is in order. */
+  for (i = 0; i < NUM_WEAPON_SPECABS - 1 ; i++) {
+    specab_names[i] = weapon_special_ability_info[i + 1].name;
+  }
+ 
+  column_list(d->character, 0, specab_names, NUM_WEAPON_SPECABS - 1, TRUE);
+  write_to_output(d, "\r\n%sEnter weapon special ability : ", nrm);
+  OLC_MODE(d) = OEDIT_WEAPON_SPECAB;
+}
+
+static void oedit_disp_specab_activation_method_menu(struct descriptor_data *d) {
+  char bits[MAX_STRING_LENGTH];
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 0; counter < NUM_ACTIVATION_METHODS; counter++) { /* added the -3 to prevent eyes/ears/badge */
+    write_to_output(d, "%s%d%s) %-20.20s %s", grn, counter + 1, nrm,
+            activation_methods[counter], !(++columns % 2) ? "\r\n" : "");
+  }
+
+  sprintbit(OLC_SPECAB(d)->activation_method, activation_methods, bits, MAX_STRING_LENGTH);
+  write_to_output(d, "\r\nActivation Methods: %s%s%s\r\n"
+          "Enter Activation Method, 0 to quit : ", cyn, bits, nrm);
+}
+
 
 /* Ask for liquid type. */
 static void oedit_liquid_type(struct descriptor_data *d) {
@@ -819,6 +946,53 @@ static void oedit_disp_wear_menu(struct descriptor_data *d) {
           "Enter wear flag, 0 to quit : ", cyn, bits, nrm);
 }
 
+bool remove_special_ability(struct obj_data *obj, int number) {
+  bool deleted = FALSE;
+  int i;
+  struct obj_special_ability *specab, *prev_specab;    
+ 
+  specab = obj->special_abilities;
+  prev_specab = NULL;  
+
+  for(i = 1;(i < number) && (specab != NULL);i++) {
+    prev_specab = specab;
+    specab = specab->next;
+  }         
+  /* Check to see if we found the ability. */
+  if((i == number)&&(specab != NULL)) {
+
+    deleted = TRUE;
+    
+    /* Remove it from the list. */
+    if(prev_specab == NULL)
+      obj->special_abilities = specab->next;
+    else
+      prev_specab->next = specab->next;	      
+
+    /* Free up the memory. */
+    if(specab->command_word != NULL)
+      free(specab->command_word);
+    free(specab);
+  }
+
+  return deleted;
+}
+
+struct obj_special_ability* get_specab_by_position(struct obj_data *obj, int position) {
+  int i;
+  struct obj_special_ability *specab, *prev_specab;
+
+  specab = obj->special_abilities;
+  prev_specab = NULL;
+  
+  for(i = 1;(i < position) && (specab != NULL);i++) {
+    prev_specab = specab;
+    specab = specab->next;
+  }
+
+  return specab;  
+}
+
 /* Display main menu. */
 static void oedit_disp_menu(struct descriptor_data *d) {
   char buf1[MAX_STRING_LENGTH];
@@ -831,6 +1005,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
 
   /* Build buffers for first part of menu. */
   sprinttype(GET_OBJ_TYPE(obj), item_types, buf1, sizeof (buf1));
+
   sprintbitarray(GET_OBJ_EXTRA(obj), extra_bits, EF_ARRAY_MAX, buf2);
 
   /* Build first half of menu. */
@@ -869,6 +1044,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           "%sD%s) Applies menu\r\n"
           "%sE%s) Extra descriptions menu: %s%s%s\r\n"
           "%sF%s) Weapon Spells          : %s%s\r\n"
+	  "%sJ%s) Special Abilities      : %s%s\r\n"
           "%sM%s) Min Level              : %s%d\r\n"
           "%sP%s) Perm Affects           : %s%s\r\n"
           "%sS%s) Script                 : %s%s\r\n"
@@ -891,6 +1067,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           GET_OBJ_VAL(obj, 3),
           grn, nrm, grn, nrm, cyn, obj->ex_description ? "Set." : "Not Set.", grn,
           grn, nrm, cyn, HAS_SPELLS(obj) ? "Set." : "Not set.",
+          grn, nrm, cyn, HAS_SPECIAL_ABILITIES(obj) ? "Set." : "Not Set.",
           grn, nrm, cyn, GET_OBJ_LEVEL(obj),
           grn, nrm, cyn, buf2,
           grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
@@ -1077,6 +1254,11 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case 'F':
           oedit_disp_weapon_spells(d);
           OLC_MODE(d) = OEDIT_WEAPON_SPELL_MENU;
+          break;
+        case 'j':
+        case 'J':
+          oedit_disp_weapon_special_abilities_menu(d);
+          OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
           break;
         default:
           oedit_disp_menu(d);
@@ -1635,7 +1817,163 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         oedit_disp_prompt_spellbook_menu(d);
       }
       return;
-    
+    case OEDIT_WEAPON_SPECAB_MENU:
+      switch(*arg) {
+        case 'N':
+        case 'n':
+          /* Create a new special ability and assign it to the list. */
+          CREATE(OLC_SPECAB(d), struct obj_special_ability, 1);
+          OLC_SPECAB(d)->next = OLC_OBJ(d)->special_abilities;
+          OLC_OBJ(d)->special_abilities = OLC_SPECAB(d);
+          
+          OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
+	  OLC_VAL(d) = 1;
+          oedit_disp_assign_weapon_specab_menu(d);
+          break;
+        case 'E':
+        case 'e':
+          write_to_output(d, "Edit which ability? : ");          
+          OLC_MODE(d) = OEDIT_EDIT_WEAPON_SPECAB;
+	  OLC_VAL(d) = 1;
+          break;
+        case 'D':
+        case 'd':
+          write_to_output(d, "Delete which ability? (-1 to cancel) : ");
+          OLC_MODE(d) = OEDIT_DELETE_WEAPON_SPECAB;
+          break;
+        case 'Q':
+        case 'q':
+          OLC_MODE(d) = OEDIT_MAIN_MENU;
+          oedit_disp_menu(d);
+          break;
+        default:
+          write_to_output(d, "Invalid choice, try again : \r\n");
+          break;
+      }
+      return;
+    case OEDIT_EDIT_WEAPON_SPECAB:
+      /* Editing is the same as assign - just load the chosen specab. */
+      number = atoi(arg);
+      OLC_SPECAB(d) = get_specab_by_position(OLC_OBJ(d), number);
+
+      if(OLC_SPECAB(d) == NULL) {
+        write_to_output(d, "Invalid special ability number. \r\n");
+        OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
+        oedit_disp_weapon_special_abilities_menu(d);
+
+      } else {
+        OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
+        oedit_disp_assign_weapon_specab_menu(d);
+      }
+      return;    
+    case OEDIT_ASSIGN_WEAPON_SPECAB_MENU:
+      switch(*arg) {
+        case 'A':
+        case 'a':
+          /* Choose ability. */
+          oedit_weapon_specab(d);
+          break;
+        case 'L':
+        case 'l':
+          /* Set ability level */
+          write_to_output(d, "Enter special ability level (1-34) : ");
+          OLC_MODE(d) = OEDIT_WEAPON_SPECAB_LEVEL;
+          OLC_VAL(d) = 1;
+          break;
+        case 'M':
+        case 'm':
+          /* Set activation methods */
+          oedit_disp_specab_activation_method_menu(d);
+          OLC_MODE(d) = OEDIT_WEAPON_SPECAB_ACTMTD;
+          OLC_VAL(d) = 1;
+          break;
+        case 'C':
+        case 'c':
+          /* Set command word */
+          write_to_output(d, "Enter command word : ");
+          OLC_MODE(d) = OEDIT_WEAPON_SPECAB_CMDWD;
+          OLC_VAL(d) = 1;
+          break;
+        case 'V':
+        case 'v':
+          /* Go into value setting questions */
+          break;
+        case 'Q':
+        case 'q':
+          OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
+          oedit_disp_weapon_special_abilities_menu(d);
+          break;
+        default:
+          write_to_output(d, "Invalid choice, try again : \r\n");
+          break;
+      }
+      return;
+    case OEDIT_DELETE_WEAPON_SPECAB:
+      if ((number = atoi(arg)) == -1) {
+        oedit_disp_weapon_special_abilities_menu(d);
+        OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
+        OLC_VAL(d) = 1;
+        return;
+      }
+      OLC_SPECAB(d) = NULL;
+
+      if(remove_special_ability(OLC_OBJ(d), number))
+        write_to_output(d, "Ability deleted.\r\n");
+      else
+        write_to_output(d, "That ability does not exist!\r\n");
+      
+      oedit_disp_weapon_special_abilities_menu(d);
+      OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
+      return;
+    case OEDIT_WEAPON_SPECAB:
+      /* The user has chosen a special ability for this weapon. */
+      number = atoi(arg); /* No need to decrement number, we adjusted it already. */
+      if ((number < 0) || (number >= NUM_WEAPON_SPECABS)) {
+        write_to_output(d, "Invalid choice, try again : ");   
+        return;
+      }
+      
+      OLC_SPECAB(d)->ability = number;
+      OLC_SPECAB(d)->level   = weapon_special_ability_info[number].level;
+
+      OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
+      oedit_disp_assign_weapon_specab_menu(d);
+      return;
+    case OEDIT_WEAPON_SPECAB_LEVEL:
+      number = atoi(arg);
+      if((number < 1) || (number > 34)) {
+        write_to_output(d, "Invalid level, try again : ");
+        return;
+      }
+ 
+      OLC_SPECAB(d)->level = number;
+
+      oedit_disp_weapon_special_abilities_menu(d);
+      OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
+ 
+      return;
+    case OEDIT_WEAPON_SPECAB_CMDWD:
+      OLC_SPECAB(d)->command_word = strdup(arg);
+      OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
+      oedit_disp_assign_weapon_specab_menu(d);
+      return;
+    case OEDIT_WEAPON_SPECAB_ACTMTD:
+      number = atoi(arg);
+      if ((number < 0) || (number > NUM_ACTIVATION_METHODS)) { // added -3 to prevent eyes, ears, badge
+        write_to_output(d, "That's not a valid choice!\r\n");
+        oedit_disp_specab_activation_method_menu(d);
+        return;
+      } else if (number == 0) {
+        /* Quit. */
+        OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
+        oedit_disp_assign_weapon_specab_menu(d);
+        return;
+      } else {
+        SET_BIT(OLC_SPECAB(d)->activation_method, (1 << (number - 1)));
+        oedit_disp_specab_activation_method_menu(d);
+        return;
+      }
+ 
     default:
       mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: Reached default case in oedit_parse()!");
       write_to_output(d, "Oops...\r\n");

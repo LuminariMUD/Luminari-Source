@@ -36,6 +36,13 @@ struct special_ability_info_type armor_special_ability_info[NUM_ARMOR_SPECABS];
 
 const char *unused_specabname = "!UNUSED!"; /* So we can get &unused_specabname */
 
+const char *activation_methods[NUM_ACTIVATION_METHODS + 1] = { "None", 
+                                                               "On Wear", 
+                                                               "On Use", 
+                                                               "Command Word",
+                                                               "On Hit", 
+                                                               "On Crit", 
+                                                               "\n" };
 
 /* Procedures for loading and managing the special abilities on boot. */
 static void add_weapon_special_ability(int specab, const char *name, int level, int minpos, int targets, int violent, int time, int school, int cost, SPECAB_PROC_DEF(specab_proc)) {
@@ -165,7 +172,8 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming) {
    * obj
    */
   switch(actmtd) {
-    case ACTMTD_COMMAND_WORD:
+    case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+    case ACTMTD_USE:          /* User USEs the item. */ 
       /* Activate the flaming ability.
        *  - Set the FLAMING bit on the weapon (this affects the display, 
        *    and is used to toggle the effect.)
@@ -184,13 +192,17 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming) {
         SET_OBJ_FLAG(weapon, ITEM_FLAMING);
       }
       break;
-    case ACTMTD_ON_HIT: /* Do extra damage on hit, if flame is on! */
+    case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
       if(OBJ_FLAGGED(weapon, ITEM_FLAMING))  /* Burn 'em. */
         if (victim) {
           damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
         }
       break;
-
+    case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+    case ACTMTD_WEAR: /* Called whenever the item is worn. */
+    default:
+      /* Do nothing. */
+      break;
   }
 }
 
