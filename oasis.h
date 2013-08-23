@@ -97,6 +97,7 @@ struct oasis_olc_data {
   struct config_data *config; /* used for 'cedit'         */
   struct aq_data *quest; /* used for 'qedit'         */
   struct extra_descr_data *desc; /* used in '[r|o|m]edit'    */
+  struct obj_special_ability *specab; /* used in 'oedit' */
   struct social_messg *action; /* Aedit uses this one      */
   struct trig_data *trig;
   struct prefs_data *prefs; /* used for 'prefedit'      */
@@ -134,6 +135,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OLC_MOB(d)     (OLC(d)->mob)      /**< Mob structure.	*/
 #define OLC_SHOP(d)    (OLC(d)->shop)     /**< Shop structure.	*/
 #define OLC_DESC(d)    (OLC(d)->desc)     /**< Extra description.	*/
+#define OLC_SPECAB(d)  (OLC(d)->specab)   /**< Weapon special ability */
 #define OLC_CONFIG(d)  (OLC(d)->config)   /**< Config structure.	*/
 #define OLC_TRIG(d)    (OLC(d)->trig)     /**< Trigger structure.   */
 #define OLC_QUEST(d)   (OLC(d)->quest)    /**< Quest structure      */
@@ -223,6 +225,15 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OEDIT_MATERIAL                  36
 #define OEDIT_SPELLBOOK                 37
 #define OEDIT_PROMPT_SPELLBOOK          38
+#define OEDIT_WEAPON_SPECAB_MENU        39
+#define OEDIT_ASSIGN_WEAPON_SPECAB_MENU 40
+#define OEDIT_EDIT_WEAPON_SPECAB        41
+#define OEDIT_DELETE_WEAPON_SPECAB      42
+#define OEDIT_WEAPON_SPECAB             43 /* Chose a weapon special ability */
+#define OEDIT_WEAPON_SPECAB_LEVEL       44
+#define OEDIT_WEAPON_SPECAB_CMDWD       45
+#define OEDIT_WEAPON_SPECAB_ACTMTD_MENU 46
+#define OEDIT_WEAPON_SPECAB_ACTMTD      47
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 		1

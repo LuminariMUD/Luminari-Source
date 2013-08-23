@@ -24,6 +24,8 @@
 
 
 
+#define HAS_SPECIAL_ABILITIES( obj ) (obj->special_abilities == NULL ? FALSE : TRUE)
+
 /* Activation methods */
 #define ACTMTD_NONE                    (1 << 0)       /* No activation required. */
 #define ACTMTD_WEAR                    (1 << 1)       /* Activates when worn. */
@@ -31,6 +33,10 @@
 #define ACTMTD_COMMAND_WORD            (1 << 3)       /* Activates when command word is 'utter'ed */
 #define ACTMTD_ON_HIT                  (1 << 4)       /* Activates on a successful hit. */
 #define ACTMTD_ON_CRIT                 (1 << 5)       /* Activates on a successful crit. */
+
+#define NUM_ACTIVATION_METHODS         6
+
+extern const char* activation_methods[];
 
 /* Special abilities for weapons, armor and shields. - 19/08/2013 Ornir                      
  * These abilities have been taken from the d20srd, 

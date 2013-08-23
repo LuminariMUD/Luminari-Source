@@ -177,7 +177,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
   
   /* Special Abilities */
   for(specab = obj->special_abilities; specab != NULL; specab = specab->next) {
-     fprintf(fp, "SpcA: %d %d %d %d %d %d %d %s", specab->ability,
+     fprintf(fp, "SpcA: %d %d %d %d %d %d %d %s\n", specab->ability,
                                                   specab->level,
                                                   specab->activation_method,
                                                   specab->value[0],

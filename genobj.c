@@ -284,12 +284,10 @@ int save_objects(zone_rnum zone_num) {
       if (obj->special_abilities) { /* Yes, save them too. */       
         for(specab = obj->special_abilities; specab != NULL; specab = specab->next) {
           fprintf(fp, "C\n"
-                      "%d %d %d\n"
-                      "%d %d %d %d\n"
-                      "%s~\n", 
+                      "%d %d %d %d %d %d %d %s\n", 
                       specab->ability, specab->level, specab->activation_method,
                       specab->value[0], specab->value[1], specab->value[2], specab->value[3],
-                      (specab->command_word && *specab->command_word) ? specab->command_word : "undefined");                          
+                      (specab->command_word && *specab->command_word) ? specab->command_word : "");                          
         }
       }   
       /* E:  Do we have extra descriptions? */
