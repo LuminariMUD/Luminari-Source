@@ -175,7 +175,8 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
     }
   }
   
-  /* Special Abilities */
+  /* Special Abilities */  
+/*
   for(specab = obj->special_abilities; specab != NULL; specab = specab->next) {
      fprintf(fp, "SpcA: %d %d %d %d %d %d %d %s\n", specab->ability,
                                                   specab->level,
@@ -184,9 +185,9 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
                                                   specab->value[1],
                                                   specab->value[2],
                                                   specab->value[3],
-                (specab->command_word && *specab->command_word) ? specab->command_word : "undefined");
+                (specab->command_word && *specab->command_word) ? specab->command_word : "");
   }  
-
+*/
   fprintf(fp, "\n");
 
   extract_obj(temp);
@@ -1225,7 +1226,9 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
             temp->sbinfo[j].pages = t[1];
             j++;
           }
-        } else if (!strcmp(tag, "SpcA")) {
+        }
+/*
+        else if (!strcmp(tag, "SpcA")) {
           char command_word[MAX_STRING_LENGTH];
           CREATE(specab, struct obj_special_ability, 1);
           sscanf(line, "%d %d %d %d %d %d %d %s", &specab->ability, 
@@ -1241,8 +1244,10 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
           temp->special_abilities = specab;
   
 
-        }        
+        } 
+
         break;
+*/
       case 'T':
         if (!strcmp(tag, "Type"))
           GET_OBJ_TYPE(temp) = num;
