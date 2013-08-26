@@ -2070,12 +2070,17 @@ int isCriticalHit(struct char_data *ch, int diceroll) {
 // (same reason we bring diceroll)
 // mode is for info purposes, 2 = mainhand, 3 = offhand
 
-int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
+int hit_dam_bonus(struct char_data *ch, struct char_data *victim, struct obj_data *wielded,
         int dam, int diceroll, int mode) {
 
   if (mode == 0) {
     //critical hit!  improved crit increases crit chance by 5%, epic 10%
     if (isCriticalHit(ch, diceroll) && !(IS_NPC(victim) && GET_RACE(victim) == NPCRACE_UNDEAD)) {
+    
+      /* Process any special abilities for weapons that trigger on crit. */
+      if (wielded)
+        process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_CRIT, NULL);     
+
       /* overwhelming crit is going to be yellow to inflicter
        * and dark red to the victim */
       send_to_char(ch, "\tW");
@@ -2090,6 +2095,7 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "[crit!]\tn");
       send_to_char(victim, "[crit!]\tn");
       dam *= 2;
+
     }
 
     //dirty fighting bonus damage
@@ -2109,7 +2115,7 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim,
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_CRITICAL))
       send_to_char(ch, "[IC] ");
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_OVERWHELMING_CRIT))
-      send_to_char(ch, "[OC] ");
+send_to_char(ch, "[OC] ");
     send_to_char(ch, "\r\n\r\n");
   }
   return dam;
@@ -2157,7 +2163,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       default: break;
     }
     /* throw in melee bonus skills such as dirty fighting and critical */
-    dam = hit_dam_bonus(ch, victim, dam, diceroll, mode);
+    dam = hit_dam_bonus(ch, victim, wielded, dam, diceroll, mode);
 
     /* calculate damage with either mainhand (2) or offhand (3)
        weapon for _display_ purposes */
@@ -2170,7 +2176,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     if (mode == 4)
       dam -= GET_STR_BONUS(ch);
     /* throw in melee bonus such as dirty-fighting and critical */
-    hit_dam_bonus(ch, ch, dam, 0, mode);
+    hit_dam_bonus(ch, ch, wielded, dam, 0, mode);
   }
 
   return MAX(1, dam); //min damage of 1

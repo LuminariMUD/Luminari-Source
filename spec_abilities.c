@@ -130,8 +130,32 @@ void initialize_special_abilities(void) {
   add_weapon_special_ability( WEAPON_SPECAB_BANE, "Bane", 8, POS_FIGHTING, 
     TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1, NULL);
 
+  add_weapon_special_ability( WEAPON_SPECAB_BRILLIANT_ENERGY, "Brilliant Energy", 16, POS_RECLINING,
+    TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
+
+  add_weapon_special_ability( WEAPON_SPECAB_DANCING, "Dancing", 15, POS_RECLINING,
+    TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
+
+  add_weapon_special_ability( WEAPON_SPECAB_DEFENDING, "Defending", 8, POS_RECLINING,
+    TAR_IGNORE, FALSE, 0, ABJURATION, 1, NULL);
+
+  add_weapon_special_ability( WEAPON_SPECAB_DISRUPTION, "Disruption", 14,  POS_RECLINING,
+    TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
+
+  add_weapon_special_ability( WEAPON_SPECAB_DISTANCE, "Distance", 6, POS_RECLINING,
+    TAR_IGNORE, FALSE, 0, DIVINATION, 1, NULL);
+
   add_weapon_special_ability( WEAPON_SPECAB_FLAMING, "Flaming", 10, POS_RECLINING,
     TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_flaming);
+
+  add_weapon_special_ability( WEAPON_SPECAB_FLAMING_BURST, "Flaming Burst", 12, POS_RECLINING,
+    TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_flaming_burst);
+
+  add_weapon_special_ability( WEAPON_SPECAB_FROST, "Frost", 8, POS_RECLINING,
+    TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
+
+  add_weapon_special_ability( WEAPON_SPECAB_GHOST_TOUCH, "Ghost Touch", 9, POS_RECLINING,
+    TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
 
 }
 
@@ -153,6 +177,10 @@ int  process_weapon_abilities(struct obj_data  *weapon, /* The weapon to check f
       if(actmtd == ACTMTD_COMMAND_WORD) { /* check the command word */
         if(strcmp(specab->command_word, cmdword)) /* No Match */
           continue; /* Skip this ability, no match. */
+      }
+      if(weapon_special_ability_info[specab->ability].special_ability_proc == NULL) {
+        log("SYSERR: PROCESS_WEAPON_ABILITIES: ability '%s' has no callback function!", weapon_special_ability_info[specab->ability].name);
+        continue;
       }
       activated_abilities++;
       (*weapon_special_ability_info[specab->ability].special_ability_proc) (specab, weapon, ch, victim, actmtd);
@@ -199,6 +227,63 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming) {
         }
       break;
     case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+    case ACTMTD_WEAR: /* Called whenever the item is worn. */
+    default:
+      /* Do nothing. */
+      break;
+  }
+}
+
+/* A weapon with Flaming burst functions as a flaming weapon, except on critical hits it
+ * performs a flame burst for 1d10 extra damage. */
+WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst) {
+  /* 
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch(actmtd) {
+    case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+    case ACTMTD_USE:          /* User USEs the item. */
+      /* Activate the flaming ability.
+       *  - Set the FLAMING bit on the weapon (this affects the display, 
+       *    and is used to toggle the effect.)
+       */
+      if(OBJ_FLAGGED(weapon, ITEM_FLAMING)) {
+        /* Flaming is on, turn it off. */
+        send_to_char(ch,"The magical flames wreathing your weapon vanish.\r\n");
+        act("The magical flames wreathing $n's $o vanish.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+        REMOVE_OBJ_FLAG(weapon, ITEM_FLAMING);
+      } else {
+        /* FLAME ON! */
+        send_to_char(ch, "Magical flames spread down the length of your weapon!\r\n");
+        act("Magical flames spread down the length of $n's $o!", FALSE, ch, weapon, NULL, TO_ROOM);
+
+        SET_OBJ_FLAG(weapon, ITEM_FLAMING);
+      }
+      break;
+    case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
+      if(OBJ_FLAGGED(weapon, ITEM_FLAMING))  /* Burn 'em. */
+        if (victim) {
+          /*send_to_char(ch, "\tr[spcab]\tn");*/
+          damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+        }
+      break;
+    case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+      /* We don't care if the flaming property is active, it bursts anyway! */
+      /*
+      act("\tRMagical fire \tYexplodes\tR from your $o, searing $N!", FALSE, ch, weapon, victim, TO_CHAR);
+      act("\tRMagical fire \tYexplodes\tR from $n's $o, searing you!", FALSE, ch, weapon, victim, TO_VICT);
+      act("\tRMagical fire \tYexplodes\tR from $n's $o, searing $N!", FALSE, ch, weapon, victim, TO_NOTVICT);
+      */
+      if(victim) {
+        /* send_to_char(ch,"\tr[burst]\tn");*/
+        damage(ch, victim, dice(1, 10), TYPE_SPECAB_FLAMING_BURST, DAM_FIRE, FALSE);
+      }
+      break;
     case ACTMTD_WEAR: /* Called whenever the item is worn. */
     default:
       /* Do nothing. */

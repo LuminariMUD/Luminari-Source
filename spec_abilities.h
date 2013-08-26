@@ -159,5 +159,6 @@ int  process_weapon_abilities(struct obj_data  *weapon, /* The weapon to check f
 
 /* Prototypes for weapon special abilities */
 WEAPON_SPECIAL_ABILITY(weapon_specab_flaming);
+WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst);
 
 #endif
