@@ -288,7 +288,7 @@ const char *morph_to_char[] = {
   /* Construct */
 " ",
   /* Elemental */
-"You burst into fire, then becomes living flame as your form shifts to that "
+"You burst into fire, then become living flame as your form shifts to that "
 "of a \tRfire elemental\tn.",
   /* Fey */
 " ",

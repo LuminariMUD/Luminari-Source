@@ -541,6 +541,32 @@ static void oedit_disp_specab_activation_method_menu(struct descriptor_data *d) 
           "Enter Activation Method, 0 to quit : ", cyn, bits, nrm);
 }
 
+void oedit_disp_specab_bane_race(struct descriptor_data *d) {
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 0; counter < NUM_NPC_RACES; counter++) {
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+            npc_race_types[counter], !(++columns % 3) ? "\r\n" : "");
+  }
+  write_to_output(d, "\r\n%sEnter race number : ", nrm);
+}
+
+void oedit_disp_specab_bane_subrace(struct descriptor_data *d) {
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 0; counter < NUM_SUB_RACES; counter++) {
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+            npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
+  }
+  write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
+}
+
 
 /* Ask for liquid type. */
 static void oedit_liquid_type(struct descriptor_data *d) {
@@ -837,6 +863,31 @@ static void oedit_disp_val4_menu(struct descriptor_data *d) {
       oedit_disp_menu(d);
   }
 }
+
+static void oedit_disp_specab_val1_menu(struct descriptor_data *d) {
+  OLC_MODE(d) = OEDIT_SPECAB_VALUE_1;
+  switch(OLC_SPECAB(d)->ability) {
+    case WEAPON_SPECAB_BANE:
+      oedit_disp_specab_bane_race(d);
+      break;
+    default:
+      OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
+      oedit_disp_assign_weapon_specab_menu(d);     
+  }
+}
+
+static void oedit_disp_specab_val2_menu(struct descriptor_data *d) {
+  OLC_MODE(d) = OEDIT_SPECAB_VALUE_2;
+  switch(OLC_SPECAB(d)->ability) {
+    case WEAPON_SPECAB_BANE:
+      oedit_disp_specab_bane_subrace(d);
+      break;
+    default:
+      OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
+      oedit_disp_assign_weapon_specab_menu(d);
+  }
+}
+
 
 /* Object type. */
 static void oedit_disp_type_menu(struct descriptor_data *d) {
@@ -1897,6 +1948,8 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case 'V':
         case 'v':
           /* Go into value setting questions */
+          oedit_disp_specab_val1_menu(d);
+          OLC_VAL(d) = 1;          
           break;
         case 'Q':
         case 'q':
@@ -1935,6 +1988,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       
       OLC_SPECAB(d)->ability = number;
       OLC_SPECAB(d)->level   = weapon_special_ability_info[number].level;
+      OLC_SPECAB(d)->activation_method = weapon_special_ability_info[number].activation_method;
 
       OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
       oedit_disp_assign_weapon_specab_menu(d);
@@ -1973,7 +2027,57 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         oedit_disp_specab_activation_method_menu(d);
         return;
       }
- 
+    case OEDIT_SPECAB_VALUE_1:
+      switch(OLC_SPECAB(d)->ability) {
+        case WEAPON_SPECAB_BANE: /* Val 1: NPC RACE */
+          number = atoi(arg);          
+          if((number < 0) || (number >= NUM_NPC_RACES)) {
+            /* Value out of range. */
+            write_to_output(d, "Invalid choice, try again : ");
+            return;
+          }
+          OLC_SPECAB(d)->value[0] = number;       
+          OLC_MODE(d) = OEDIT_SPECAB_VALUE_2;
+          oedit_disp_specab_val2_menu(d);
+          return;                  
+        case WEAPON_SPECAB_SPELL_STORING: /* Val 1: SPELL NUMBER */              
+        ;
+        default:
+        ;
+      }
+    case OEDIT_SPECAB_VALUE_2:
+      switch(OLC_SPECAB(d)->ability) {
+        case WEAPON_SPECAB_BANE: /* Val 2: NPC SUBRACE */
+         number = atoi(arg);
+          if((number < 0) || (number >= NUM_SUB_RACES)) {
+            /* Value out of range. */
+            write_to_output(d, "Invalid choice, try again : ");
+            return;
+          }  
+          OLC_SPECAB(d)->value[1] = number;
+          /* Finished. */
+          OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
+          oedit_disp_assign_weapon_specab_menu(d);
+
+          return; 
+        case WEAPON_SPECAB_SPELL_STORING: /* Val 2: SPELL LEVEL */
+        ;
+        default:
+        ;
+      }
+
+    case OEDIT_SPECAB_VALUE_3:
+      switch(OLC_SPECAB(d)->ability) {        
+        default:
+        ;
+      }
+
+    case OEDIT_SPECAB_VALUE_4:
+      switch(OLC_SPECAB(d)->ability) {
+        default:
+        ;
+      }
+      
     default:
       mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: Reached default case in oedit_parse()!");
       write_to_output(d, "Oops...\r\n");
