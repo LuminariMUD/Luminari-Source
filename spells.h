@@ -563,6 +563,7 @@
 /* Special Abilities for weapons */
 
 #define TYPE_SPECAB_FLAMING 		600 
+#define TYPE_SPECAB_FLAMING_BURST       601
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the
