@@ -1847,10 +1847,10 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 /* this function will take ch who is attacking victim with a bonus
    to ch += type
    with this info it will calculate ch's modified BAB and return
-   it */
+   it. 
+*/
 int compute_bab(struct char_data *ch, struct char_data *victim, int type) {
   int calc_bab = BAB(ch); //base attack bonus
-
   // strength (or dex) bonus
   if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_FINESSE))
     calc_bab += GET_DEX_BONUS(ch);
@@ -2164,6 +2164,36 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     }
     /* throw in melee bonus skills such as dirty fighting and critical */
     dam = hit_dam_bonus(ch, victim, wielded, dam, diceroll, mode);
+
+    /* Add additional damage dice from weapon special abilities. - Ornir */
+    if (wielded) {
+      if((obj_has_special_ability(wielded, WEAPON_SPECAB_ANARCHIC))
+         && ((IS_LG(victim)) ||
+             (IS_LN(victim)) ||
+             (IS_LE(victim)) || 
+             (IS_NPC(victim) || HAS_SUBRACE(victim, SUBRACE_LAWFUL)))) {
+        /* Do 2d6 more damage. */
+        dam += dice(2, 6);
+      }
+      if((obj_has_special_ability(wielded, WEAPON_SPECAB_AXIOMATIC))
+         && ((IS_CG(victim)) ||
+             (IS_CN(victim)) ||
+             (IS_CE(victim)) ||
+             (IS_NPC(victim) || HAS_SUBRACE(victim, SUBRACE_CHAOTIC)))) {
+        /* Do 2d6 more damage. */
+        dam += dice(2, 6);
+      }
+      if((obj_has_special_ability(wielded, WEAPON_SPECAB_BANE))) {
+        /* Check the values in the special ability record for the NPCRACE and SUBRACE. */
+        int *value = get_obj_special_ability(wielded, WEAPON_SPECAB_BANE)->value;
+        if((GET_RACE(victim) == value[0]) && (HAS_SUBRACE(victim, value[1]))) {
+          /*send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");*/
+          dam += dice(2, 6);        
+        }
+      } 
+            
+    }
+
 
     /* calculate damage with either mainhand (2) or offhand (3)
        weapon for _display_ purposes */
@@ -2485,6 +2515,8 @@ void hit(struct char_data *ch, struct char_data *victim,
     else
       w_type = TYPE_HIT;
   }
+
+  /* Get modifiers from weapon special abilities. */
 
   // attack rolls:  1 = stumble, 20 = crit
   calc_bab = compute_bab(ch, victim, w_type) + penalty;

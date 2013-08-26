@@ -34,7 +34,7 @@
 #define ACTMTD_ON_HIT                  (1 << 4)       /* Activates on a successful hit. */
 #define ACTMTD_ON_CRIT                 (1 << 5)       /* Activates on a successful crit. */
 
-#define NUM_ACTIVATION_METHODS         6
+#define NUM_ACTIVATION_METHODS        6 
 
 extern const char* activation_methods[];
 
@@ -107,6 +107,9 @@ extern const char* activation_methods[];
 
 #define NUM_ARMOR_SPECABS            23       /* Number of Special Abilities for weapons and armor. */
 
+bool obj_has_special_ability(struct obj_data *obj, int ability); 
+struct obj_special_ability* get_obj_special_ability(struct obj_data *obj, int ability);
+
 #define SPECAB_PROC_DEF( specab_proc ) \
                         void (*specab_proc)\
                              (struct obj_special_ability *specab, /* The ability structure, to get values. */\
@@ -117,7 +120,7 @@ extern const char* activation_methods[];
 
 /* Structure to hold ability data. */
 struct special_ability_info_type {  
-  byte min_position; /* Position for user */
+  int activation_method;
   int level;
   byte violent;
   int targets; /* See below for use with TAR_XXX  */
@@ -160,5 +163,6 @@ int  process_weapon_abilities(struct obj_data  *weapon, /* The weapon to check f
 /* Prototypes for weapon special abilities */
 WEAPON_SPECIAL_ABILITY(weapon_specab_flaming);
 WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst);
+WEAPON_SPECIAL_ABILITY(weapon_specab_bane);
 
 #endif

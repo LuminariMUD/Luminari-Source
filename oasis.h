@@ -234,6 +234,11 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OEDIT_WEAPON_SPECAB_CMDWD       45
 #define OEDIT_WEAPON_SPECAB_ACTMTD_MENU 46
 #define OEDIT_WEAPON_SPECAB_ACTMTD      47
+#define OEDIT_SPECAB_VALUE_1            48
+#define OEDIT_SPECAB_VALUE_2            49
+#define OEDIT_SPECAB_VALUE_3            50
+#define OEDIT_SPECAB_VALUE_4            51
+
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 		1
