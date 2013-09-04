@@ -587,6 +587,10 @@ do                                                              \
 /** What room was PC/NPC previously in? */
 #define GET_WAS_IN(ch)	((ch)->was_in_room)
 
+/** What WILDERNESS coordinates is the player at? */
+#define X_LOC(ch)     ((ch)->coords[0])
+#define Y_LOC(ch)     ((ch)->coords[1])
+
 /** How old is PC/NPC, at last recorded time? */
 #define GET_AGE(ch)     (age(ch)->year)
 

@@ -19,7 +19,7 @@ BINDIR = ../bin
 
 CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE)
 
-LIBS =  -lcrypt 
+LIBS =  -lcrypt -lgd -lm
 
 SRCFILES := $(wildcard *.c)
 OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))  

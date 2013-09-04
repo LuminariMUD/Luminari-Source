@@ -204,6 +204,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "get", "g", POS_RECLINING, do_get, 0, 0, FALSE},
   { "gecho", "gecho", POS_DEAD, do_gecho, LVL_STAFF, 0, TRUE},
   { "gemote", "gem", POS_SLEEPING, do_gen_comm, 0, SCMD_GEMOTE, TRUE},
+  { "genmap", "genmap", POS_SLEEPING, do_genmap, LVL_STAFF, 0, TRUE},
   { "give", "giv", POS_RECLINING, do_give, 0, 0, FALSE},
   { "goto", "go", POS_SLEEPING, do_goto, LVL_IMMORT, 0, TRUE},
   { "gold", "gol", POS_RECLINING, do_gold, 0, 0, TRUE},

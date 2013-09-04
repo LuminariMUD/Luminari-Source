@@ -63,6 +63,7 @@ typedef enum {
   eTURN_UNDEAD, // turn undead
   eSPELLBATTLE, // spellbattle
   eFALLING, // char falling
+  eCHECK_OCCUPIED, // Event to check that a room is occupied (for wilderness);
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
@@ -93,6 +94,7 @@ struct mud_event_data *new_mud_event(event_id iId, void *pStruct, char *sVariabl
 void attach_mud_event(struct mud_event_data *pMudEvent, long time);
 void free_mud_event(struct mud_event_data *pMudEvent);
 struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId);
+struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId); // Ornir
 void clear_char_event_list(struct char_data *ch);
 void change_event_duration(struct char_data *ch, event_id iId, long time);
 
@@ -111,5 +113,6 @@ EVENTFUNC(event_implode);
 EVENTFUNC(event_ice_storm);
 EVENTFUNC(event_chain_lightning);
 EVENTFUNC(event_falling);;
+EVENTFUNC(event_check_occupied);
 
 #endif /* _MUD_EVENT_H_ */

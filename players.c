@@ -59,6 +59,7 @@ static void load_favored_enemy(FILE *fl, struct char_data *ch);
 static void load_spec_abil(FILE *fl, struct char_data *ch);
 static void load_warding(FILE *fl, struct char_data *ch);
 static void load_class_level(FILE *fl, struct char_data *ch);
+static void load_coord_location(FILE *fl, struct char_data *ch);
 static void load_praying(FILE *fl, struct char_data *ch);
 static void load_prayed(FILE *fl, struct char_data *ch);
 static void load_praytimes(FILE *fl, struct char_data *ch);
@@ -410,6 +411,7 @@ int load_char(const char *name, struct char_data *ch) {
           if (!strcmp(tag, "Cha ")) GET_REAL_CHA(ch) = atoi(line);
           else if (!strcmp(tag, "Clas")) GET_CLASS(ch) = atoi(line);
           else if (!strcmp(tag, "Con ")) GET_REAL_CON(ch) = atoi(line);
+          else if (!strcmp(tag, "CLoc")) load_coord_location(fl, ch); 
           else if (!strcmp(tag, "CLvl")) load_class_level(fl, ch);
           else if (!strcmp(tag, "Cln ")) GET_CLAN(ch) = atoi(line);
           else if (!strcmp(tag, "Clrk")) GET_CLANRANK(ch) = atoi(line);
@@ -919,6 +921,10 @@ void save_char(struct char_data * ch, int mode) {
   }
   fprintf(fl, "-1 -1\n");
 
+  //coordinate location
+  fprintf(fl, "CLoc:\n");
+  fprintf(fl, "%d %d\n", ch->coords[0], ch->coords[1]);
+
   //warding
   fprintf(fl, "Ward:\n");
   for (i = 0; i < MAX_WARDING; i++) {
@@ -1272,6 +1278,13 @@ static void load_class_level(FILE *fl, struct char_data *ch) {
     if (num != -1)
       CLASS_LEVEL(ch, num) = num2;
   } while (num != -1);
+}
+
+static void load_coord_location(FILE *fl, struct char_data *ch) {
+  char line[MAX_INPUT_LENGTH + 1];
+
+  get_line(fl, line);
+  sscanf(line, "%d %d", ch->coords, ch->coords + 1);
 }
 
 static void load_warding(FILE *fl, struct char_data *ch) {

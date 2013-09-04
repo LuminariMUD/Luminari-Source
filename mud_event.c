@@ -15,6 +15,7 @@
 #include "comm.h"  /* For access to the game pulse */
 #include "mud_event.h"
 #include "handler.h"
+#include "wilderness.h"
 
 /* Global List */
 struct list_data * world_events = NULL;
@@ -61,7 +62,8 @@ struct mud_event_list mud_event_index[] = {
   { "Wait", event_countdown, EVENT_CHAR}, /* eWAIT */
   { "Turn Undead", event_countdown, EVENT_CHAR}, /* eTURN_UNDEAD */
   { "SpellBattle", event_countdown, EVENT_CHAR}, /* eSPELLBATTLE */
-  { "Falling", event_falling, EVENT_CHAR} /* eFALLING */
+  { "Falling", event_falling, EVENT_CHAR}, /* eFALLING */
+  { "Check Occupued", event_check_occupied, EVENT_ROOM} /* eCHECK_OCCUPIED */
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -285,7 +287,7 @@ void free_mud_event(struct mud_event_data *pMudEvent) {
       room = (struct room_data *) pMudEvent->pStruct;
       remove_from_list(pMudEvent->pEvent, room->events);
 
-      if (room->events->iSize == 0) {
+      if (room->events && room->events->iSize == 0) {  /* Added the null check here. - Ornir*/
         free_list(room->events);
         room->events = NULL;
       }
@@ -324,6 +326,37 @@ struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId) 
 
   simple_list(NULL);
   
+  if (found)
+    return (pMudEvent);
+
+  return NULL;
+}
+
+struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId) {
+  struct event * pEvent = NULL;
+  struct mud_event_data * pMudEvent = NULL;
+  bool found = FALSE;
+
+  if (rm->events == NULL)
+    return NULL;
+
+  if (rm->events->iSize == 0)
+    return NULL;
+
+  simple_list(NULL);
+
+  while ((pEvent = (struct event *) simple_list(rm->events)) != NULL) {
+    if (!pEvent->isMudEvent)
+      continue;
+    pMudEvent = (struct mud_event_data *) pEvent->event_obj;
+    if (pMudEvent->iId == iId) {
+      found = TRUE;
+      break;
+    }
+  }
+
+  simple_list(NULL);
+
   if (found)
     return (pMudEvent);
 

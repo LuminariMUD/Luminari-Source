@@ -46,6 +46,8 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
+#include "perlin.h"
+#include "wilderness.h"
 
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
@@ -475,6 +477,12 @@ void boot_world(void) {
 
   log("Loading Homeland quests.");
   index_boot(DB_BOOT_HLQST);
+
+  log("Initializing perlin noise generator.");
+  init_perlin(WILDERNESS_SEED);
+
+  log("Writing wilderness map image.");
+  save_map_to_file("luminari_wilderness.png", 1024, 1024);
 
 }
 
@@ -1310,6 +1318,10 @@ void parse_room(FILE *fl, int virtual_nr) {
       exit(1);
     }
     switch (*line) {
+      case 'C': /* Coordinates. */
+        get_line(fl, line);
+        sscanf(line, "%d %d", world[room_nr].coords, world[room_nr].coords + 1);
+        break;
       case 'D':
         setup_dir(fl, room_nr, atoi(line + 1));
         break;
@@ -3152,6 +3164,12 @@ void reset_zone(zone_rnum zone) {
         if ((check_max_existing(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3) || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                 rand_number(1, 100) <= ZCMD.arg4) {
           mob = read_mobile(ZCMD.arg1, REAL);
+
+          if(ZONE_FLAGGED(GET_ROOM_ZONE(ZCMD.arg3), ZONE_WILDERNESS)) {
+            X_LOC(mob) = world[ZCMD.arg3].coords[0];
+            Y_LOC(mob) = world[ZCMD.arg3].coords[1];
+          }
+ 
           char_to_room(mob, ZCMD.arg3);
           load_mtrigger(mob);
           set_mob_grouping(mob);  //attempts to group AFF_GROUP mobs (utils.c)
