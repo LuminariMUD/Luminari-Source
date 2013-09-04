@@ -509,4 +509,6 @@ ACMD(do_zunlock);
 ACMD(do_afflist); 
 ACMD(do_typelist);
 
+ACMD(do_genmap);
+
 #endif /* _ACT_H_ */

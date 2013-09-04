@@ -112,10 +112,15 @@
 #define ROOM_NOFLY         26  /* can't fly in this room */
 #define ROOM_FOG           27  /* fogged (hamper vision/stops daylight) */
 #define ROOM_AIRY          28  /* airy (breathe underwater) */
+
+#define ROOM_OCCUPIED      29  /* Used only in wilderness zones, if set the 
+                                  room will be kept and used for the set 
+                                  coordinates. */
+
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS     29
+#define NUM_ROOM_FLAGS     30
 
 /* homeland-port reference */
 /*
@@ -158,8 +163,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define ZONE_ASTRAL_PLANE   8 /* astral plane */
 #define ZONE_ETH_PLANE      9 /* ethereal plane */
 #define ZONE_ELEMENTAL      10 /* elemental plane */
+#define ZONE_WILDERNESS     11
 /** The total number of Zone Flags */
-#define NUM_ZONE_FLAGS      11
+#define NUM_ZONE_FLAGS      12
 
 /* Exit info: used in room_data.dir_option.exit_info */
 #define EX_ISDOOR    (1 << 0) /**< Exit is a door */
@@ -1531,6 +1537,7 @@ struct raff_node {
 struct room_data {
   room_vnum number; /**< Rooms number (vnum) */
   zone_rnum zone; /**< Room zone (for resetting) */
+  int coords[2];  /**< Room coordinates (for wilderness) */
   int sector_type; /**< sector type (move/hide) */
   int room_flags[RF_ARRAY_MAX]; /**< INDOORS, DARK, etc */
   long room_affections; /* bitvector for spells/skills */
@@ -1834,6 +1841,7 @@ struct follow_type {
 struct char_data {
   int pfilepos; /**< PC playerfile pos and id number */
   mob_rnum nr; /**< NPC real instance number */
+  int coords[2]; /**< Current coordinate location, used in wilderness. */
   room_rnum in_room; /**< Current location (real room number) */
   room_rnum was_in_room; /**< Previous location for linkdead people  */
   int wait; /**< wait for how many loops before taking action. */

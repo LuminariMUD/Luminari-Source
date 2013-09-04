@@ -341,6 +341,12 @@ ACMD(do_mload) {
       mob_log(ch, "mload: bad mob vnum");
       return;
     }
+
+    if(ZONE_FLAGGED(GET_ROOM_ZONE(rnum), ZONE_WILDERNESS)) {
+      X_LOC(mob) = world[rnum].coords[0];
+      Y_LOC(mob) = world[rnum].coords[1];
+    }
+
     char_to_room(mob, rnum);
     if (SCRIPT(ch)) { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH];
@@ -499,6 +505,12 @@ ACMD(do_mgoto) {
     stop_fighting(ch);
 
   char_from_room(ch);
+
+  if(ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS)) {
+    X_LOC(ch) = world[location].coords[0];
+    Y_LOC(ch) = world[location].coords[1];
+  }
+
   char_to_room(ch, location);
   enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
 }
@@ -507,6 +519,7 @@ ACMD(do_mgoto) {
 ACMD(do_mat) {
   char arg[MAX_INPUT_LENGTH];
   room_rnum location, original;
+  int orig_x, orig_y;
 
   if (!MOB_OR_IMPL(ch)) {
     send_to_char(ch, "Huh?!?\r\n");
@@ -529,13 +542,26 @@ ACMD(do_mat) {
   }
 
   original = IN_ROOM(ch);
+  orig_x = X_LOC(ch);
+  orig_y = Y_LOC(ch);
+
   char_from_room(ch);
+
+  if(ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS)) {
+    X_LOC(ch) = world[location].coords[0];
+    Y_LOC(ch) = world[location].coords[1];
+  }
+
   char_to_room(ch, location);
   command_interpreter(ch, argument);
 
   /* See if 'ch' still exists before continuing! Handles 'at XXXX quit' case. */
   if (IN_ROOM(ch) == location) {
     char_from_room(ch);
+    
+    X_LOC(ch) = orig_x;
+    Y_LOC(ch) = orig_y;
+
     char_to_room(ch, original);
   }
 }
@@ -580,6 +606,12 @@ ACMD(do_mteleport) {
 
       if (valid_dg_target(vict, DG_ALLOW_STAFFS)) {
         char_from_room(vict);
+
+      if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
+        X_LOC(vict) = world[target].coords[0];
+        Y_LOC(vict) = world[target].coords[1];
+      }
+
         char_to_room(vict, target);
         enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
       }
@@ -597,6 +629,12 @@ ACMD(do_mteleport) {
 
     if (valid_dg_target(ch, DG_ALLOW_STAFFS)) {
       char_from_room(vict);
+
+      if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
+        X_LOC(vict) = world[target].coords[0];
+        Y_LOC(vict) = world[target].coords[1];
+      }
+
       char_to_room(vict, target);
       enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
     }
@@ -896,6 +934,11 @@ ACMD(do_mtransform) {
         obj[pos] = unequip_char(ch, pos);
       else
         obj[pos] = NULL;
+    }
+
+    if(ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+      X_LOC(m) = world[IN_ROOM(ch)].coords[0];
+      Y_LOC(m) = world[IN_ROOM(ch)].coords[1];
     }
 
     /* put the mob in the same room as ch so extract will work */

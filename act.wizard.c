@@ -41,6 +41,8 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
+#include "wilderness.h"
+#include "perlin.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -209,7 +211,8 @@ room_rnum find_target_room(struct char_data *ch, char *rawroomstr) {
 
 ACMD(do_at) {
   char command[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
-  room_rnum location, original_loc;
+  room_rnum location, original_loc; 
+  int orig_x, orig_y;  /* Needed if 'at'ing in the wilderness. */
 
   half_chop(argument, buf, command);
   if (!*buf) {
@@ -227,23 +230,39 @@ ACMD(do_at) {
 
   /* a location has been found. */
   original_loc = IN_ROOM(ch);
+
+  orig_x = X_LOC(ch);
+  orig_y = Y_LOC(ch);
+
   char_from_room(ch);
+
+  if(ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS)) {
+    X_LOC(ch) = world[location].coords[0];
+    Y_LOC(ch) = world[location].coords[1];
+  }
+
   char_to_room(ch, location);
   command_interpreter(ch, command);
 
   /* check if the char is still there */
   if (IN_ROOM(ch) == location) {
     char_from_room(ch);
+   
+    X_LOC(ch) = orig_x;
+    Y_LOC(ch) = orig_y;
+
     char_to_room(ch, original_loc);
   }
 }
 
 ACMD(do_goto) {
   char buf[MAX_STRING_LENGTH];
+  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   room_rnum location;
 
   if ((location = find_target_room(ch, argument)) == NOWHERE)
     return;
+   
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_NOIMMORT) && (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRSTAFF)) {
     send_to_char(ch, "Sorry, that zone is off-limits for immortals!");
@@ -253,7 +272,14 @@ ACMD(do_goto) {
   snprintf(buf, sizeof (buf), "$n %s", POOFOUT(ch) ? POOFOUT(ch) : "disappears in a puff of smoke.");
   act(buf, TRUE, ch, 0, 0, TO_ROOM);
 
+
   char_from_room(ch);
+
+  if(ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS)) {
+    X_LOC(ch) = world[location].coords[0];
+    Y_LOC(ch) = world[location].coords[1];
+  }
+
   char_to_room(ch, location);
 
   snprintf(buf, sizeof (buf), "$n %s", POOFIN(ch) ? POOFIN(ch) : "appears with an ear-splitting bang.");
@@ -283,6 +309,12 @@ ACMD(do_trans) {
       }
       act("$n disappears in a mushroom cloud.", FALSE, victim, 0, 0, TO_ROOM);
       char_from_room(victim);
+
+      if(ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+        X_LOC(victim) = world[IN_ROOM(ch)].coords[0];
+        Y_LOC(victim) = world[IN_ROOM(ch)].coords[1];
+      }
+
       char_to_room(victim, IN_ROOM(ch));
       act("$n arrives from a puff of smoke.", FALSE, victim, 0, 0, TO_ROOM);
       act("$n has transferred you!", FALSE, ch, 0, victim, TO_VICT);
@@ -334,6 +366,12 @@ ACMD(do_teleport) {
     send_to_char(ch, "%s", CONFIG_OK);
     act("$n disappears in a puff of smoke.", FALSE, victim, 0, 0, TO_ROOM);
     char_from_room(victim);
+
+    if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
+      X_LOC(victim) = world[target].coords[0];
+      Y_LOC(victim) = world[target].coords[1];
+    }
+
     char_to_room(victim, target);
     act("$n arrives from a puff of smoke.", FALSE, victim, 0, 0, TO_ROOM);
     act("$n has teleported you!", FALSE, ch, 0, (char *) victim, TO_VICT);
@@ -518,7 +556,7 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm) {
   send_to_char(ch, "Zone: [%3d], VNum: [%s%5d%s], RNum: [%5d], IDNum: [%5ld], Type: %s\r\n",
           zone_table[rm->zone].number, CCGRN(ch, C_NRM), rm->number,
           CCNRM(ch, C_NRM), real_room(rm->number), (long) rm->number + ROOM_ID_BASE, buf2);
-
+  send_to_char(ch, "Coordinate Location (Wilderness only): (%d, %d)\r\n", rm->coords[0], rm->coords[1]);
   sprintbitarray(rm->room_flags, room_bits, RF_ARRAY_MAX, buf2);
   send_to_char(ch, "SpecProc: %s, Flags: %s\r\n", rm->func == NULL ? "None" : get_spec_func_name(rm->func), buf2);
 
@@ -804,7 +842,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
           buf, (!IS_NPC(k) ? "PC" : (!IS_MOB(k) ? "NPC" : "MOB")),
           GET_NAME(k), IS_NPC(k) ? GET_ID(k) : GET_IDNUM(k),
           GET_ROOM_VNUM(IN_ROOM(k)), IS_NPC(k) ? NOWHERE : GET_LOADROOM(k));
-
+  send_to_char(ch, "\tCCoordinate Location (Wilderness only): (\tn%d\tC, \tn%d\tC)\r\n", k->coords[0], k->coords[1]);
   if (IS_MOB(k)) {
     send_to_char(ch, "\tCKeyword:\tn %s\tC, VNum: [\tn%5d\tC], RNum: [\tn%5d\tC]\r\n",
             k->player.name, GET_MOB_VNUM(k), GET_MOB_RNUM(k));
@@ -1475,6 +1513,12 @@ ACMD(do_load) {
     }
     for (i = 0; i < n; i++) {
       mob = read_mobile(r_num, REAL);
+
+      if(ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+        X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+        Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+      }
+
       char_to_room(mob, IN_ROOM(ch));
 
       act("$n makes a quaint, magical gesture with one hand.", TRUE, ch, 0, 0, TO_ROOM);
@@ -3485,6 +3529,12 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       }
       if (IN_ROOM(vict) != NOWHERE)
         char_from_room(vict);
+
+      if(ZONE_FLAGGED(GET_ROOM_ZONE(rnum), ZONE_WILDERNESS)) {
+        X_LOC(vict) = world[rnum].coords[0];
+        Y_LOC(vict) = world[rnum].coords[1];
+      }
+
       char_to_room(vict, rnum);
       break;
     case 46: /* screenwidth */
@@ -5637,5 +5687,64 @@ ACMD(do_singlefile) {
       send_to_char(ch, buf);
     }
   }
+}
+
+/* Test command to display a map, radius 4, generated using noise. */
+ACMD(do_genmap) {
+  double **map;
+  int x, y;
+  int i;
+
+  x = 10;
+  y = 10;
+
+  int xsize = 31;
+  int ysize = 31;
+ 
+  double *data = malloc(sizeof(double) * xsize * ysize);
+
+  map = malloc(sizeof(double*) * xsize);
+    for (i = 0; i < xsize; i++) {
+        map[i] = data + (i*ysize);
+  }
+
+  get_map(xsize, ysize, x, y, map);
+
+  send_to_char(ch, "*********** Generated Map **********\r\n");
+  for(y = ysize - 1; y >= 0 ; y--) {
+    for(x = 0; x < xsize; x++) {
+      if((x == ((xsize -1)/2)) && (y == ((ysize -1)/2)))
+        send_to_char(ch, "\tM*\t");
+      else {
+//      send_to_char(ch, "%s", terrain_translation[(int)(9*map[x][y])]); 
+        send_to_char(ch, "%s", terrain_by_elevation(255*map[x][y]));
+//      send_to_char(ch, "%s[%3d]\tn",(255*map[x][y] <= waterline ? "\tb" : "\tn"), (255*map[x][y]));
+//      send_to_char(ch, "[%f]\tn",map[x][y]);
+      }
+    }
+    send_to_char(ch, "\r\n");
+  }
+
+  send_to_char(ch, "************************************\r\n");
+
+  double max_elevation = 0.0;
+  double min_elevation = 0.0;
+  double current = 0.0;
+
+  for(y = 0; y<1024;y++) {
+    for(x = 0; x<1024;x++) {
+      current = get_point(x, y);
+      if (current > max_elevation)
+        max_elevation = current;
+      if (current < min_elevation)
+        min_elevation = current;
+    }
+  }
+  send_to_char(ch, " Max elevation over map: %f\r\n", max_elevation);
+  send_to_char(ch, " Min elevation over map: %f\r\n", min_elevation);
+
+  if (map[0]) free(map[0]);
+  free(map);
+
 }
 

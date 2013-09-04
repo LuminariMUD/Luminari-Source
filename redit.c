@@ -21,6 +21,7 @@
 #include "dg_olc.h"
 #include "constants.h"
 #include "modify.h"
+#include "wilderness.h"
 
 /* local functions */
 static void redit_setup_new(struct descriptor_data *d);
@@ -156,6 +157,11 @@ static void redit_setup_new(struct descriptor_data *d)
   OLC_ROOM(d)->description = strdup("You are in an unfinished room.\r\n");
   OLC_ROOM(d)->number = NOWHERE;
   OLC_ITEM_TYPE(d) = WLD_TRIGGER;
+
+  /* Initialize the coordinates. Used only in wilderness. */
+  OLC_ROOM(d)->coords[0] = 0;
+  OLC_ROOM(d)->coords[1] = 0; 
+
   OLC_ROOM(d)->proto_script = OLC_SCRIPT(d) = NULL;
 
   OLC_VAL(d) = 0;
@@ -492,7 +498,8 @@ static void redit_disp_menu(struct descriptor_data *d)
       "%sA%s) Exit down   : %s%d\r\n"
       "%sF%s) Extra descriptions menu\r\n"
       "%sS%s) Script      : %s%s\r\n"
-       "%sW%s) Copy Room\r\n"
+      "%sG%s) Coordinates : (%s%d%s, %s%d%s)\r\n"
+      "%sW%s) Copy Room\r\n"
       "%sX%s) Delete Room\r\n"
       "%sQ%s) Quit\r\n"
       "Enter choice : ",
@@ -503,8 +510,9 @@ static void redit_disp_menu(struct descriptor_data *d)
       room->dir_option[DOWN] && room->dir_option[DOWN]->to_room != NOWHERE ?
       world[room->dir_option[DOWN]->to_room].number : -1,
       grn, nrm,
-          grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
-          grn, nrm,
+      grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
+      grn, nrm, cyn, room->coords[0], nrm, cyn, room->coords[1], nrm,
+      grn, nrm,
       grn, nrm,
       grn, nrm
       );
@@ -652,6 +660,12 @@ void redit_parse(struct descriptor_data *d, char *arg)
 	CREATE(OLC_ROOM(d)->ex_description, struct extra_descr_data, 1);
       OLC_DESC(d) = OLC_ROOM(d)->ex_description;
       redit_disp_extradesc_menu(d);
+      break;
+    case 'g':
+    case 'G':
+      /* Set the ioordinate location for this room. */
+      write_to_output(d, "Enter new x-coordinate :");
+      OLC_MODE(d) = REDIT_X_COORD;
       break;
     case 'w':
     case 'W':
@@ -908,6 +922,34 @@ void redit_parse(struct descriptor_data *d, char *arg)
 
     break;
 
+  case REDIT_X_COORD:
+    number = atoi(arg);
+//    if((number <= WILD_X_SIZE) &&
+//       (number >= -WILD_X_SIZE)) {
+       
+
+      OLC_ROOM(d)->coords[0] = number;
+      OLC_VAL(d) = 1;
+
+      write_to_output(d, "Enter new y-coordinate :");
+      OLC_MODE(d) = REDIT_Y_COORD;
+      return;
+
+//    } else {
+//      write_to_output(d, "Invalid x-coordinate, try again : ");
+//      break;
+//    }
+   
+  case REDIT_Y_COORD:
+    number = atoi(arg);
+//    if((number <= WILD_Y_SIZE) &&
+//       (number >= -WILD_Y_SIZE)) {
+      OLC_ROOM(d)->coords[1] = number;
+      break;   
+//    } else {
+//      write_to_output(d, "Invalid y-coordinate, try again : ");
+//      break;
+//    }
   default:
     /* We should never get here. */
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: Reached default case in parse_redit");

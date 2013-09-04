@@ -201,6 +201,7 @@ const char *room_bits[NUM_ROOM_FLAGS + 1] = {
   "No-Fly",
   "Fogged",
   "Airy",
+  "Occupied",
   "\n"
 };
 
@@ -238,6 +239,7 @@ const char *zone_bits[NUM_ZONE_FLAGS + 1] = {
   "Astral-Plane",
   "Ethereal-Plane",
   "Elemental-Plane",
+  "Wilderness",
   "\n"
 };
 

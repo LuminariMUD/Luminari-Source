@@ -2748,12 +2748,24 @@ ACMD(do_fire) {
   /* a location has been found. */
   original_loc = IN_ROOM(ch);
   char_from_room(ch);
+
+  if(ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_WILDERNESS)) {
+    X_LOC(ch) = world[room].coords[0];
+    Y_LOC(ch) = world[room].coords[1];
+  }
+
   char_to_room(ch, room);
   vict = get_char_room_vis(ch, arg1, NULL);
 
   /* check if the char is still there */
   if (IN_ROOM(ch) == room) {
     char_from_room(ch);
+
+    if(ZONE_FLAGGED(GET_ROOM_ZONE(original_loc), ZONE_WILDERNESS)) {
+      X_LOC(ch) = world[original_loc].coords[0];
+      Y_LOC(ch) = world[original_loc].coords[1];
+    }
+
     char_to_room(ch, original_loc);
   }  
   

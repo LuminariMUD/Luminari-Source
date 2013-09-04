@@ -27,6 +27,7 @@
 #include "mud_event.h"
 #include "hlquest.h"
 #include "mudlim.h"
+#include "wilderness.h" /* Wilderness! */
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
@@ -362,6 +363,10 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   struct char_data **prev;
   bool was_top = TRUE;
   
+  /* Wilderness variables */
+  int new_x = 0, new_y = 0;
+
+
   /* added some dummy checks to deal with a fairly mysterious crash */
   if (!ch)
     return 0;
@@ -371,10 +376,53 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   
   if (dir < 0 || dir >= NUM_OF_DIRS)
     return 0;
-  
   /* dummy check */
-  if (world[IN_ROOM(ch)].dir_option[dir])
+  /* The following is to support the wilderness code. */
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) && (EXIT(ch, dir)->to_room == real_room(1000000))) {
+      new_x = X_LOC(ch); //world[IN_ROOM(ch)].coords[0];
+      new_y = Y_LOC(ch); //world[IN_ROOM(ch)].coords[1];
+
+      /* This is a wilderness movement!  Find out which coordinates we need
+       * to check, based on the dir and local coordinates. */
+      switch(dir) {
+        case NORTH:
+          new_y++;
+          break;
+        case SOUTH:
+          new_y--;
+          break;
+        case EAST:
+          new_x++;
+          break;
+        case WEST:
+          new_x--;
+          break;
+	default:
+          /* Bad direction for wilderness travel.*/
+          return 0;         
+      }
+      going_to = find_room_by_coordinates(new_x, new_y);
+      if (going_to == NOWHERE) {
+        going_to = find_available_wilderness_room();
+        if(going_to == NOWHERE) {
+          log("SYSERR: Wilderness movement failed from (%d, %d) to (%d, %d)", X_LOC(ch), Y_LOC(ch), new_x, new_y);
+          return 0;
+        }
+        /* Must set the coords, etc in the going_to room. */
+       
+        assign_wilderness_room(going_to, new_x, new_y);
+      }
+      
+    } else if (world[IN_ROOM(ch)].dir_option[dir]) {
+    
     going_to = EXIT(ch, dir)->to_room;
+
+    /* Since we are in non-wilderness moving to wilderness, set up the coords. */
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(going_to), ZONE_WILDERNESS)) {
+      new_x = world[going_to].coords[0];
+      new_y = world[going_to].coords[1];
+    }
+  }
 
   if (going_to == NOWHERE)
     return 0;
@@ -974,14 +1022,27 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
   /* the actual technical moving of the char */
   char_from_room(ch);
+
+  X_LOC(ch) = new_x;
+  Y_LOC(ch) = new_y;
+
   char_to_room(ch, going_to);
 
   /* move the mount too */
   if (riding && same_room && RIDING(ch)->in_room != ch->in_room) {
     char_from_room(RIDING(ch));
+
+    X_LOC(RIDING(ch)) = new_x;
+    Y_LOC(RIDING(ch)) = new_y;
+
     char_to_room(RIDING(ch), ch->in_room);
+
   } else if (ridden_by && same_room && RIDDEN_BY(ch)->in_room != ch->in_room) {
     char_from_room(RIDDEN_BY(ch));
+
+    X_LOC(RIDDEN_BY(ch)) = new_x;
+    Y_LOC(RIDDEN_BY(ch)) = new_y;
+ 
     char_to_room(RIDDEN_BY(ch), ch->in_room);
   }
   /*---------------------------------------------------------------------*/
@@ -996,13 +1057,32 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
    * job to provide a message to the original was_in room. */
   if (!entry_mtrigger(ch) || !enter_wtrigger(&world[going_to], ch, dir)) {
     char_from_room(ch);
+    
+    if(ZONE_FLAGGED(GET_ROOM_ZONE(was_in), ZONE_WILDERNESS)) {
+        X_LOC(ch) = world[was_in].coords[0];
+        Y_LOC(ch) = world[was_in].coords[1];
+    }
+
     char_to_room(ch, was_in);
     if (riding && same_room && RIDING(ch)->in_room != ch->in_room) {
       char_from_room(RIDING(ch));
+
+      if(ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS)) {
+        X_LOC(RIDING(ch)) = world[ch->in_room].coords[0];
+        Y_LOC(RIDING(ch)) = world[ch->in_room].coords[1];
+      }
+
       char_to_room(RIDING(ch), ch->in_room);
+
     } else if (ridden_by && same_room &&
             RIDDEN_BY(ch)->in_room != ch->in_room) {
       char_from_room(RIDDEN_BY(ch));
+
+      if(ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS)) {
+        X_LOC(RIDDEN_BY(ch)) = world[ch->in_room].coords[0];
+        Y_LOC(RIDDEN_BY(ch)) = world[ch->in_room].coords[1];
+      }
+
       char_to_room(RIDDEN_BY(ch), ch->in_room);
     }
     return 0;
@@ -1194,6 +1274,13 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
   if (!greet_mtrigger(ch, dir)) {
     char_from_room(ch);
+
+    if(ZONE_FLAGGED(GET_ROOM_ZONE(was_in), ZONE_WILDERNESS)) {
+      X_LOC(ch) = world[was_in].coords[0];
+      Y_LOC(ch) = world[was_in].coords[1];
+    }
+
+
     char_to_room(ch, was_in);
     look_at_room(ch, 0);
 
@@ -1748,6 +1835,12 @@ ACMD(do_enter) {
       act("$n enters $p, and vanishes!", FALSE, ch, portal, 0, TO_ROOM);
       act("You enter $p, and you are transported elsewhere.", FALSE, ch, portal, 0, TO_CHAR);
       char_from_room(ch);
+
+      if(ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_WILDERNESS)) {
+        X_LOC(ch) = world[real_dest].coords[0];
+        Y_LOC(ch) = world[real_dest].coords[1];
+      }
+
       char_to_room(ch, real_dest);
       look_at_room(ch, 0);
       act("$n appears from thin air!", FALSE, ch, 0, 0, TO_ROOM);
@@ -1759,6 +1852,12 @@ ACMD(do_enter) {
           act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR);
           act("$n enters $p, and vanishes!", FALSE, k->follower, portal, 0, TO_ROOM);
           char_from_room(k->follower);
+
+          if(ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_WILDERNESS)) {
+            X_LOC(ch) = world[real_dest].coords[0];
+            Y_LOC(ch) = world[real_dest].coords[1];
+          }
+
           char_to_room(k->follower, real_dest);
           look_at_room(k->follower, 0);
           act("$n appears from thin air!", FALSE, k->follower, 0, 0, TO_ROOM);

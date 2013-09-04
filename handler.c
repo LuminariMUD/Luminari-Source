@@ -24,6 +24,7 @@
 #include "fight.h"
 #include "quest.h"
 #include "mud_event.h"
+#include "wilderness.h"
 
 /* local file scope variables */
 static int extractions_pending = 0;
@@ -689,15 +690,70 @@ void char_from_room(struct char_data *ch) {
   ch->next_in_room = NULL;
 }
 
+/* place a char at the specified coord location in the wilderness specified. */
+void char_to_coords(struct char_data *ch, int x, int y, int wilderness) {
+  room_rnum room = NOWHERE;
+
+  if (ch == NULL)
+    log("SYSERR: Illegal value(s) passed to char_to_coords. ((x, y): (%d,%d) Ch: %p)",
+      x, y, ch);
+  else {
+    room = find_room_by_coordinates(x, y);
+    if (room == NOWHERE) {
+      room = find_available_wilderness_room();
+      if(room == NOWHERE) {
+        return ;
+      }
+      /* Must set the coords, etc in the going_to room. */
+      assign_wilderness_room(room, x, y);
+    }
+  }
+
+  X_LOC(ch) = x;
+  Y_LOC(ch) = y;
+
+  char_to_room(ch, room); 
+  
+}
+
 /* place a character in a room */
 void char_to_room(struct char_data *ch, room_rnum room) {
+
   if (ch == NULL || room == NOWHERE || room > top_of_world)
-    log("SYSERR: Illegal value(s) passed to char_to_room. (Room: %d/%d Ch: %p",
-          room, top_of_world, ch);
+    log("SYSERR: Illegal value(s) passed to char_to_room. (Room: %d/%d Ch: %p)",
+          room, top_of_world, ch); 
   else {
+
+    /* If this is a wilderness room, set coords. */
+    if(ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_WILDERNESS)) {
+      if((X_LOC(ch) != world[room].coords[0]) || (Y_LOC(ch) != world[room].coords[1])) {
+//      if(IN_ROOM(ch) == NOWHERE) { /* We should really go to our coords instead! */
+//        char_to_coords(struct char_data *ch, ch->coords[0], int ch->coords[1], WILD_MATERIAL_PLANE);
+//        send_to_char(ch, "\tRMOVING FROM %d\tn\r\n", (IN_ROOM(ch) == NOWHERE ? -1 : IN_ROOM(ch));
+        send_to_char(ch, "COORDS DON'T MATCH, ADJUSTING!\n");
+
+        room = find_room_by_coordinates(X_LOC(ch), Y_LOC(ch));
+        if (room == NOWHERE) {
+          room = find_available_wilderness_room();
+          if(room == NOWHERE) {
+            return ;
+          }
+          /* Must set the coords, etc in the going_to room. */
+          assign_wilderness_room(room, X_LOC(ch), Y_LOC(ch));
+        }
+
+      }      
+      /* Set occupied flag. */
+      SET_BIT_AR(ROOM_FLAGS(room), ROOM_OCCUPIED);
+      /* Create the event to clear the flag, if it is not already set. */
+      if(!room_has_mud_event(&world[room], eCHECK_OCCUPIED))
+        NEW_EVENT(eCHECK_OCCUPIED, &world[room], NULL, 10 RL_SEC);
+    }
+
     ch->next_in_room = world[room].people;
     world[room].people = ch;
     IN_ROOM(ch) = room;
+    
 
     autoquest_trigger_check(ch, 0, 0, AQ_ROOM_FIND);
     autoquest_trigger_check(ch, 0, 0, AQ_MOB_FIND);

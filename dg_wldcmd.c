@@ -308,6 +308,12 @@ WCMD(do_wteleport)
             if (!valid_dg_target(ch, DG_ALLOW_STAFFS))
               continue;
             char_from_room(ch);
+
+           if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
+             X_LOC(ch) = world[target].coords[0];
+             Y_LOC(ch) = world[target].coords[1];
+           }
+
             char_to_room(ch, target);
             enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
         }
@@ -318,6 +324,12 @@ WCMD(do_wteleport)
         if ((ch = get_char_by_room(room, arg1))) {
           if (valid_dg_target(ch, DG_ALLOW_STAFFS)) {
             char_from_room(ch);
+  
+            if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
+              X_LOC(ch) = world[target].coords[0];
+              Y_LOC(ch) = world[target].coords[1];
+          }
+
             char_to_room(ch, target);
             enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
           }
@@ -455,6 +467,12 @@ WCMD(do_wload)
         wld_log(room, "mload: bad mob vnum");
         return;
       }
+
+      if(ZONE_FLAGGED(GET_ROOM_ZONE(rnum), ZONE_WILDERNESS)) {
+        X_LOC(mob) = world[rnum].coords[0];
+        Y_LOC(mob) = world[rnum].coords[1];
+      }
+
       char_to_room(mob, rnum);
       if (SCRIPT(room)) { /* It _should_ have, but it might be detached. */
         char buf[MAX_INPUT_LENGTH];

@@ -30,6 +30,7 @@
 #include "spells.h"
 #include "clan.h"
 #include "craft.h"  // auto crafting quest
+#include "wilderness.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -714,8 +715,10 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
     send_to_char(ch, "\tBLarge bubbles of air float through the water\tn\r\n");  
 
   /* worldmap room/zone? */
-  if (ROOM_FLAGGED(target_room, ROOM_WORLDMAP) ||
-          ZONE_FLAGGED(zn, ZONE_WORLDMAP)) {
+//  if (ROOM_FLAGGED(target_room, ROOM_WORLDMAP) ||
+//          ZONE_FLAGGED(zn, ZONE_WORLDMAP)) {
+//    world_map = TRUE;
+  if (ZONE_FLAGGED(zn, ZONE_WILDERNESS)) {
     world_map = TRUE;
     /* if you want clear screen, uncomment this */
     //    send_to_char(ch, "\033[H\033[J");
@@ -735,7 +738,8 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
 
   /* if we are on the worldmap (and can actually see it), then show it */
   if ((!room_dark || can_infra_in_dark) && world_map) {
-    perform_map(ch, "", show_worldmap(ch));
+//    perform_map(ch, "", show_worldmap(ch));
+    show_wilderness_map(ch, 21,ch->coords[0], ch->coords[1]);
     
   /* we are not looking at worldmap, or we can't see the worldmap */
   } else if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF) && !can_infra_in_dark) 

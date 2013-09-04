@@ -95,6 +95,7 @@ room_rnum add_room(struct room_data *room)
       case 'J':
       case 'I':
       case 'L':
+      case 'C':
       case '*':
 	/* Known zone entries we don't care about. */
         break;
@@ -232,6 +233,7 @@ int delete_room(room_rnum rnum)
       case 'G':
       case 'P':
       case 'E':
+      case 'C':
       case '*':
         /* Known zone entries we don't care about. */
         break;
@@ -368,7 +370,12 @@ int save_rooms(zone_rnum rzone)
 			"%s~\n", xdesc->keyword, buf);
 	}
       }
-      fprintf(sf, "S\n");
+
+      /* Save coordinates, used in wilderness code. */
+      fprintf(sf, "C\n"
+                  "%d %d\n", room->coords[0], room->coords[1]);
+      
+      fprintf(sf, "S\n"); /* Always the last. */
       script_save_to_disk(sf, room, WLD_TRIGGER);
     }
   }
