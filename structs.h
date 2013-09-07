@@ -207,8 +207,18 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define SECT_D_ROAD_EW	    27  // dirt road
 #define SECT_D_ROAD_INT	    28  // dirt road
 #define SECT_CAVE	         29  // cave
+
+/* The following were added with the wilderness system - Ornir */
+#define SECT_JUNGLE         30  // jungle, wet, mid elevations, hot. 
+#define SECT_TUNDRA         31  // tundra, dry, high elevations, extreme cold.
+#define SECT_TAIGA          32  // boreal forest, higher elevations, cold.
+#define SECT_BEACH          33  // beach, borders low areas and water.
+
+/* End wilderness sectors. These can (and should!) be used in zones too! */
+
 /** The total number of room Sector Types */
-#define NUM_ROOM_SECTORS     30
+#define NUM_ROOM_SECTORS     34
+
 
 /* homeland conversion reference */
 /*
