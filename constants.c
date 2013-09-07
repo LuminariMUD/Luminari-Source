@@ -289,6 +289,10 @@ const char *sector_types[NUM_ROOM_SECTORS + 1] = {
   "Dirt Road East-West",
   "Dirt Road Intersection",
   "Cave",
+  "Jungle",
+  "Tundra",
+  "Taiga",
+  "Beach",
   "\n"
 };
 

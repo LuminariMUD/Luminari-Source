@@ -5691,60 +5691,6 @@ ACMD(do_singlefile) {
 
 /* Test command to display a map, radius 4, generated using noise. */
 ACMD(do_genmap) {
-  double **map;
-  int x, y;
-  int i;
-
-  x = 10;
-  y = 10;
-
-  int xsize = 31;
-  int ysize = 31;
- 
-  double *data = malloc(sizeof(double) * xsize * ysize);
-
-  map = malloc(sizeof(double*) * xsize);
-    for (i = 0; i < xsize; i++) {
-        map[i] = data + (i*ysize);
-  }
-
-  get_map(xsize, ysize, x, y, map);
-
-  send_to_char(ch, "*********** Generated Map **********\r\n");
-  for(y = ysize - 1; y >= 0 ; y--) {
-    for(x = 0; x < xsize; x++) {
-      if((x == ((xsize -1)/2)) && (y == ((ysize -1)/2)))
-        send_to_char(ch, "\tM*\t");
-      else {
-//      send_to_char(ch, "%s", terrain_translation[(int)(9*map[x][y])]); 
-        send_to_char(ch, "%s", terrain_by_elevation(255*map[x][y]));
-//      send_to_char(ch, "%s[%3d]\tn",(255*map[x][y] <= waterline ? "\tb" : "\tn"), (255*map[x][y]));
-//      send_to_char(ch, "[%f]\tn",map[x][y]);
-      }
-    }
-    send_to_char(ch, "\r\n");
-  }
-
-  send_to_char(ch, "************************************\r\n");
-
-  double max_elevation = 0.0;
-  double min_elevation = 0.0;
-  double current = 0.0;
-
-  for(y = 0; y<1024;y++) {
-    for(x = 0; x<1024;x++) {
-      current = get_point(x, y);
-      if (current > max_elevation)
-        max_elevation = current;
-      if (current < min_elevation)
-        min_elevation = current;
-    }
-  }
-  send_to_char(ch, " Max elevation over map: %f\r\n", max_elevation);
-  send_to_char(ch, " Min elevation over map: %f\r\n", min_elevation);
-
-  if (map[0]) free(map[0]);
-  free(map);
 
 }
 
