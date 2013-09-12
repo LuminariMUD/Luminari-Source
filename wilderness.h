@@ -40,6 +40,10 @@
 #define NOISE_MATERIAL_PLANE_ELEV_SEED         27023//113//93932//->27023//823852//24242//300 //242423 //Yang //3743
 #define NOISE_MATERIAL_PLANE_MOISTURE_SEED     3//6737
 #define NOISE_MATERIAL_PLANE_ELEV_DIST_SEED    1
+
+
+extern struct kdtree* kd_wilderness_rooms;
+
 void get_map(int xsize, int ysize, int center_x, int center_y, int **map);
 
 room_rnum find_available_wilderness_room();         /* Get the next empty room in the dynamic room pool. */
@@ -47,8 +51,9 @@ room_rnum find_room_by_coordinates(int x, int y);   /* Get the room at coordinat
 void assign_wilderness_room(room_rnum room, int x, int y); /* Assign the room to the provided coordinates, adjusting
                                                             * descriptions, etc. */
 int get_sector_type(int elevation, int temperature, int moisture);
-const char* terrain_by_elevation(int elevation);
 void show_wilderness_map(struct char_data *ch, int size, int x, int y);
 void save_map_to_file(const char *fn, int xsize, int ysize);
 void save_noise_to_file(int idx, const char* fn, int xsize, int ysize);
+
+void initialize_wilderness_lists();
 #endif

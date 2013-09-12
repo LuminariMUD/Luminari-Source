@@ -41,8 +41,7 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
-#include "wilderness.h"
-#include "perlin.h"
+
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -5689,8 +5688,32 @@ ACMD(do_singlefile) {
   }
 }
 
+#include "wilderness.h"
+#include "kdtree.h"
+
 /* Test command to display a map, radius 4, generated using noise. */
 ACMD(do_genmap) {
+  
+  void *set;
+  double pos[2], point[2];
+  room_rnum *room;
+  
+
+  point[0] = 0;
+  point[1] = 0;
+  set = kd_nearest_range(kd_wilderness_rooms, point, 2048);
+  send_to_char(ch, "range query returned %d items.\r\n", kd_res_size(set));
+
+  while( !kd_res_end( set ) ) {
+    /* get the data and position of the current result item */
+    room = (room_rnum *)kd_res_item( set, pos );
+    send_to_char(ch, " (%.3f, %.3f) is room vnum: %d\r\n", pos[0], pos[1], world[*room].number);
+
+    /* go to the next entry */
+    kd_res_next( set );
+  }
+
+  kd_res_free(set);
 
 }
 

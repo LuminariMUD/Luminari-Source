@@ -483,6 +483,9 @@ void boot_world(void) {
   init_perlin(NOISE_MATERIAL_PLANE_MOISTURE, NOISE_MATERIAL_PLANE_MOISTURE_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
 
+  log("Indexing wilderness rooms.");
+  initialize_wilderness_lists();
+
   log("Writing wilderness map image.");
   save_map_to_file("luminari_wilderness.png", 1024, 1024);
   save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev.png", 1024, 1024);

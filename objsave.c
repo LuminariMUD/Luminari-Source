@@ -58,7 +58,6 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
   struct extra_descr_data *ex_desc;
   char buf1[MAX_STRING_LENGTH + 1];
   struct obj_data *temp = NULL;
-  struct obj_special_ability *specab;
 
   if (GET_OBJ_VNUM(obj) != NOTHING)
     temp = read_object(GET_OBJ_VNUM(obj), VIRTUAL);
@@ -175,19 +174,6 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
     }
   }
   
-  /* Special Abilities */  
-/*
-  for(specab = obj->special_abilities; specab != NULL; specab = specab->next) {
-     fprintf(fp, "SpcA: %d %d %d %d %d %d %d %s\n", specab->ability,
-                                                  specab->level,
-                                                  specab->activation_method,
-                                                  specab->value[0],
-                                                  specab->value[1],
-                                                  specab->value[2],
-                                                  specab->value[3],
-                (specab->command_word && *specab->command_word) ? specab->command_word : "");
-  }  
-*/
   fprintf(fp, "\n");
 
   extract_obj(temp);
@@ -1031,7 +1017,6 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
   char f1[128], f2[128], f3[128], f4[128], line[READ_SIZE];
   int t[4], i, j = 0, nr;
   struct obj_data *temp;
-  struct obj_special_ability *specab;
 
   CREATE(current, obj_save_data, 1);
   head = current;
@@ -1227,27 +1212,6 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
             j++;
           }
         }
-/*
-        else if (!strcmp(tag, "SpcA")) {
-          char command_word[MAX_STRING_LENGTH];
-          CREATE(specab, struct obj_special_ability, 1);
-          sscanf(line, "%d %d %d %d %d %d %d %s", &specab->ability, 
-                                                  &specab->level, 
-                                                  &specab->activation_method,
-                                                  specab->value, 
-                                                  specab->value + 1, 
-                                                  specab->value + 2, 
-                                                  specab->value + 3,
-                                                  command_word);
-          specab->command_word = strdup(command_word);          
-          specab->next = temp->special_abilities;
-          temp->special_abilities = specab;
-  
-
-        } 
-
-        break;
-*/
       case 'T':
         if (!strcmp(tag, "Type"))
           GET_OBJ_TYPE(temp) = num;
