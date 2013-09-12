@@ -18,7 +18,7 @@
 #include "shop.h"
 #include "dg_olc.h"
 #include "mud_event.h"
-
+#include "wilderness.h"
 
 /* This function will copy the strings so be sure you free your own copies of 
  * the description, title, and such. */
@@ -71,6 +71,11 @@ room_rnum add_room(struct room_data *room)
   if (!found) {
     world[0] = *room;	/* Last place, in front. */
     copy_room_strings(&world[0], room);
+  }
+
+  /* Reindex the wilderness index if this is a wilderness room. */
+  if(ZONE_FLAGGED(GET_ROOM_ZONE(real_room(room->number)), ZONE_WILDERNESS)) {
+    initialize_wilderness_lists();
   }
 
   log("GenOLC: add_room: Added room %d at index #%d.", room->number, found);
@@ -263,6 +268,12 @@ int delete_room(room_rnum rnum)
   top_of_world--;
   RECREATE(world, struct room_data, top_of_world + 1);
 
+  /* Reindex the wilderness index if this is a wilderness room. */
+  if(ZONE_FLAGGED(GET_ROOM_ZONE(real_room(rnum)), ZONE_WILDERNESS)) {
+    initialize_wilderness_lists();
+  }
+
+
   return TRUE;
 }
 
@@ -392,6 +403,12 @@ int save_rooms(zone_rnum rzone)
 
   if (in_save_list(zone_table[rzone].number, SL_WLD))
     remove_from_save_list(zone_table[rzone].number, SL_WLD);
+
+  /* Reindex the wilderness index if this is a wilderness room. */
+  if(ZONE_FLAGGED(rzone, ZONE_WILDERNESS)) {
+    initialize_wilderness_lists();
+  }
+
   return TRUE;
 }
 

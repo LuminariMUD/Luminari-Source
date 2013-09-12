@@ -10,9 +10,11 @@
 #include "constants.h"
 #include "mud_event.h"
 #include "wilderness.h"
+#include "kdtree.h"
 
 #include <gd.h>
 
+struct kdtree* kd_wilderness_rooms = NULL;
 
 struct wild_map_info_type {
   int sector_type;
@@ -58,6 +60,26 @@ static struct wild_map_info_type wild_map_info[] ={
   { -1, ""},  /* RESERVED, NUM_ROOM_SECTORS */
 };
 
+void initialize_wilderness_lists() {
+  int i;
+  double loc[2];
+  room_vnum * rm;
+
+  if (kd_wilderness_rooms != NULL)
+    kd_free(kd_wilderness_rooms);
+
+  kd_wilderness_rooms = kd_create(2);
+
+  for(i = WILD_ROOM_VNUM_START; i< WILD_DYNAMIC_ROOM_VNUM_START; i++) {
+    if(real_room(i) != NOWHERE) {
+      CREATE(rm, room_vnum, 1);
+      *rm = real_room(i);
+      loc[0] = world[real_room(i)].coords[0];
+      loc[1] = world[real_room(i)].coords[1];
+      kd_insert(kd_wilderness_rooms, loc, rm);
+    }
+  }
+}
 
 double get_radial_gradient(int x, int y) {
   int cx, cy;
@@ -105,19 +127,12 @@ double get_radial_gradient(int x, int y) {
   dist = (double)(dist/300.0);
 
   return (dist*9+distrec)/10.0;  
-//  return (dist + distrec)/2.0;
-//
-//    return distrec;
-
-//  return (dist + distrec)/2;
-
 }
 
 
 int get_elevation(int map, int x, int y) {
   double trans_x;
   double trans_y;
-  double orig_result;
   double result;
   double dist;
 
@@ -129,9 +144,9 @@ int get_elevation(int map, int x, int y) {
 
   result = PerlinNoise2D(map, trans_x, trans_y, 1.5, 2.0, 16);
   
-  /* elip the data a little, makes better mountains. */
-  result = (result > .8 ? result = .8 : result);
-  result = (result < -.8 ? result = -.8 : result);
+  /* Compress the data a little, makes better mountains. */
+  result = (result > .8 ? .8 : result);
+  result = (result < -.8 ? -.8 : result);
 
   /* Normalize between -1 and 1 */
   result = (result)/.8;
@@ -146,9 +161,9 @@ int get_elevation(int map, int x, int y) {
   /* get the distortion. HACKS! */
   dist = PerlinNoise2D(NOISE_MATERIAL_PLANE_ELEV_DIST, trans_x, trans_y, 2.0, 2.0, 16);
 
-  /* Clip the data a little, makes better mountains. */
-  dist = (dist > .8 ? dist = .8 : dist);
-  dist = (dist < -.8 ? dist = -.8 : dist);
+  /* Compress the data a little, makes better mountains. */
+  dist = (dist > .8 ? .8 : dist);
+  dist = (dist < -.8 ? -.8 : dist);
 
   /* Normalize between -1 and 1 */
   dist = (dist)/.8;
@@ -172,21 +187,16 @@ int get_moisture(int map, int x, int y) {
   trans_y = y/(double)(WILD_Y_SIZE/4.0);
 
   result = PerlinNoise2D(map, trans_x, trans_y, 1.5, 2, 4);
-/*  if (result < -.7)
-    result = -.7;
-  else if (result > .7)
-    result = .7;
 
-  result = (result + .7)/1.4;
-*/
-
+  /* Normalize over 0..1 */
   result = ( result + 1 ) / 2.0;
+
   return 255*result;
 
 }
 
 int get_temperature(int map, int x, int y) {
-   /* This is basically a gradient in the y direction, modified
+   /* This is a gradient in the y direction, modified
     * by terrain height. */
 
    int max_temp =  35;
@@ -210,7 +220,12 @@ int get_temperature(int map, int x, int y) {
 void get_map(int xsize, int ysize, int center_x, int center_y, int **map) {
   int x, y;
   int x_offset, y_offset;
-  double trans_x, trans_y;
+  int trans_x, trans_y;
+
+  /* Below is for looking up static rooms. */
+  room_rnum* room; 
+  double loc[2], pos[2];
+  void* set;
 
   x_offset = (center_x - ((xsize-1)/2));
   y_offset = (center_y - ((ysize-1)/2));
@@ -223,88 +238,28 @@ void get_map(int xsize, int ysize, int center_x, int center_y, int **map) {
                                   get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
     }
   }
-}
 
+  /* use the kd_wilderness_rooms kd-tree index to look up the nearby rooms */
+  loc[0] = center_x;
+  loc[1] = center_y;
+  log("Checking nearby rooms...");
+  set = kd_nearest_range(kd_wilderness_rooms, loc, ((xsize-1)/2) + 1);
 
-/* Helper function to choose terrain type, for maps. Elevation is 0-255. */
-const char* terrain_by_elevation(int elevation) {
-  int waterline = WATERLINE;
+  while( !kd_res_end( set ) ) {
+    room = (room_rnum *)kd_res_item( set, pos);
+    log(" (%.3f, %.3f) is room: %d\r\n", pos[0], pos[1], *room);
+    
+    /* Sanity check. */
+    trans_x = MAX(0, MIN((int)pos[0] - x_offset, xsize)); 
+    trans_y = MAX(0, MIN((int)pos[1] - y_offset, ysize));
 
-  if (elevation < waterline)
-  {
-    if (elevation > waterline - SHALLOW_WATER_THRESHOLD)
-    {
-        return TERRAIN_TILE_TYPE_SHALLOW_WATER;
-    }
-    else
-    {
-      return TERRAIN_TILE_TYPE_DEEP_WATER;
-    }
+    map[trans_x][trans_y] = world[*room].sector_type;
+
+    /* go to the next entry */
+    kd_res_next( set );
   }
-  else
-  {
-    if (elevation < waterline + COASTLINE_THRESHOLD)
-    {
-      return TERRAIN_TILE_TYPE_COASTLINE;
-    }
-    else if (elevation < waterline + PLAINS_THRESHOLD)
-    {
-      return TERRAIN_TILE_TYPE_PLAINS;
-    }
-    else if (elevation > 255 - MOUNTAIN_THRESHOLD)
-    {
-      return TERRAIN_TILE_TYPE_MOUNTAIN;
-    }
-    else if (elevation > 255 - HILL_THRESHOLD)
-    {
-      return TERRAIN_TILE_TYPE_HILL;
-    }
-    else
-    {
-      return TERRAIN_TILE_TYPE_FOREST;
-    }
-  }
-}
 
-int sector_type_by_elevation(int elevation) {
-  int waterline = WATERLINE;
-
-  // Modified this to use moisture map and a temperature gradient.
-
-  if (elevation < waterline)
-  {
-    if (elevation > waterline - SHALLOW_WATER_THRESHOLD)
-    {
-        return SECT_WATER_SWIM; //TERRAIN_TILE_TYPE_SHALLOW_WATER;
-    }
-    else
-    {
-      return SECT_OCEAN; //TERRAIN_TILE_TYPE_DEEP_WATER;
-    }
-  }
-  else
-  {
-    if (elevation < waterline + COASTLINE_THRESHOLD)
-    {
-      return SECT_BEACH; //TERRAIN_TILE_TYPE_COASTLINE;
-    }
-    else if (elevation < waterline + PLAINS_THRESHOLD)
-    {
-      return SECT_FIELD; //TERRAIN_TILE_TYPE_PLAINS;
-    }
-    else if (elevation > 255 - MOUNTAIN_THRESHOLD)
-    {
-      return SECT_MOUNTAIN; //TERRAIN_TILE_TYPE_MOUNTAIN;
-    }
-    else if (elevation > 255 - HILL_THRESHOLD)
-    {
-      return SECT_HILLS; //TERRAIN_TILE_TYPE_HILL;
-    }
-    else
-    {
-      return SECT_FOREST; //TERRAIN_TILE_TYPE_FOREST;
-    }
-  }
+  kd_res_free(set);
 }
 
 /* Get the sector type based on the three variables - 
@@ -313,20 +268,19 @@ int sector_type_by_elevation(int elevation) {
  *   moisture - given by the moisture map
  */
 int get_sector_type(int elevation, int temperature, int moisture) {
+
   int waterline = WATERLINE;
 
-  // Modified this to use moisture map and a temperature gradient.
- 
   /* Water */
   if (elevation < waterline)
   {
     if (elevation > waterline - SHALLOW_WATER_THRESHOLD)
     {
-        return SECT_WATER_SWIM; //TERRAIN_TILE_TYPE_SHALLOW_WATER;
+        return SECT_WATER_SWIM; 
     }
     else
     {
-      return SECT_OCEAN; //TERRAIN_TILE_TYPE_DEEP_WATER;
+      return SECT_OCEAN; 
     }
   }
   else
@@ -337,7 +291,7 @@ int get_sector_type(int elevation, int temperature, int moisture) {
       if (( moisture > 180 ) && (temperature > 8))
         return SECT_MARSHLAND;
       else
-        return SECT_BEACH; //TERRAIN_TILE_TYPE_COASTLINE;
+        return SECT_BEACH;
 
     } 
     else if (elevation < waterline + PLAINS_THRESHOLD)
@@ -349,7 +303,7 @@ int get_sector_type(int elevation, int temperature, int moisture) {
       else if (( temperature > 15 ) && (moisture < 100))
         return SECT_DESERT;
       else
-        return SECT_FIELD; //TERRAIN_TILE_TYPE_PLAINS;
+        return SECT_FIELD; 
     }
     else if (elevation > 255 - HIGH_MOUNTAIN_THRESHOLD)
     {
@@ -357,14 +311,14 @@ int get_sector_type(int elevation, int temperature, int moisture) {
     }
     else if (elevation > 255 - MOUNTAIN_THRESHOLD)
     {      
-     return SECT_MOUNTAIN; //TERRAIN_TILE_TYPE_MOUNTAIN;
+     return SECT_MOUNTAIN; 
     }
     else if (elevation > 255 - HILL_THRESHOLD)
     {
       if((temperature < 10) && (moisture > 128)) 
         return SECT_TAIGA;
       else
-        return SECT_HILLS; //TERRAIN_TILE_TYPE_HILL;
+        return SECT_HILLS; 
     }
     else
     { 
@@ -373,24 +327,27 @@ int get_sector_type(int elevation, int temperature, int moisture) {
       else if ((temperature > 18) && (moisture > 128))
         return SECT_JUNGLE;
       else
-        return SECT_FOREST; //TERRAIN_TILE_TYPE_FOREST;
+        return SECT_FOREST; 
     }
   }
 
 }
 
 room_rnum find_static_room_by_coordinates(int x, int y) {
+  double loc[2], pos[2];
+  void* set; 
+  room_rnum* room;
 
   int i = 0;
 
-  /* Check the list of wilderness rooms for the coordinates. Two loops because there are gaps between. */
-  for(i = WILD_ROOM_VNUM_START; (i< WILD_DYNAMIC_ROOM_VNUM_START) && (real_room(i) != NOWHERE); i++) {
-    if((world[real_room(i)].coords[X_COORD] == x) && (world[real_room(i)].coords[Y_COORD] == y)) {
-      /* Match! */
-      return real_room(i);
-    }
+  /* use the kd_wilderness_rooms kd-tree index to look up the room at (x, y) */
+  loc[0] = x;
+  loc[1] = y;
+  set = kd_nearest_range(kd_wilderness_rooms, loc, 0);
+  while( !kd_res_end( set ) ) {
+    room = (room_rnum *)kd_res_item( set, pos);
+    return *room;
   }
-
   return NOWHERE;
 }
 
@@ -436,7 +393,9 @@ room_rnum find_available_wilderness_room() {
   return NOWHERE;
 }
 
-void assign_wilderness_room(room_rnum room, int x, int y) {
+void assign_wilderness_room(room_rnum room, int x, int y) {  
+  double loc[2];
+  room_vnum *rm;
 
   if (room == NOWHERE) {/* This is not a room! */
     log("SYSERR: Attempted to assign NOWHERE as a new wilderness location at (%d, %d)", x, y);
@@ -461,7 +420,6 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
   int i, j;
   room_rnum room = NOWHERE; 
 
- 
   int xsize = size;
   int ysize = size;
   int centerx = ((xsize-1)/2);
@@ -481,9 +439,6 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
       if(sqrt((centerx - i)*(centerx - i) + (centery - j)*(centery - j)) <= (((size-1)/2)+1 )) {
         if((i == centerx) && (j == centery)) {
           send_to_char(ch, "\tM*\t");
-        } else if ((room = find_static_room_by_coordinates(x + (i-centerx), y + (j-centery))) != NOWHERE ) { 
-          /* There is a prebuilt room at these coords! */
-          send_to_char(ch, "%s", wild_map_info[world[room].sector_type].disp);
         } else {
           send_to_char(ch, "%s", wild_map_info[map[i][j]].disp);
         }
@@ -537,8 +492,12 @@ EVENTFUNC(event_check_occupied) {
    */
   if((room->room_affections == 0) &&
      (room->contents == NULL) &&
-     (room->people  == NULL)) {
+     (room->people  == NULL) &&
+     ((room->events == NULL) || 
+      (room->events && room->events->iSize == 0))) {
     REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_OCCUPIED);
+
+
     return 0; /* No need to continue checking! */
   } else {
     return 10 RL_SEC; /* Keep checking every 10 seconds. */
