@@ -4351,15 +4351,12 @@ region_rnum real_region(region_vnum vnum) {
   bot = 0;
   top = top_of_region_table;
 
-log(" real_region %d %d", bot, top_of_region_table);
-log("   %d %d vnum: %d", region_table[top].vnum, region_table[bot].vnum, vnum);
   if (region_table[bot].vnum > vnum || region_table[top].vnum < vnum)
     return (NOWHERE);
 
   /* perform binary search on zone-table */
   while (bot <= top) {
     mid = (bot + top) / 2;
-    log("  mid : %d vnum: %d", mid, (region_table + mid)->vnum);
     if ((region_table + mid)->vnum == vnum)
       return (mid);
     if ((region_table + mid)->vnum > vnum)
