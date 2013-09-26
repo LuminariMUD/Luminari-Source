@@ -196,7 +196,6 @@ void load_regions() {
     exit(1);
   }
 
- log("Numregions: %d", (int)mysql_num_rows(result));
  if ( (numrows = mysql_num_rows(result)) < 1) 
    return;
  else {
@@ -222,8 +221,6 @@ void load_regions() {
     vtx = 0;
 
     for(it=tokens; it && *it; ++it) {
-      log(" - %s",*it);      
-
       sscanf(*it, "%d %d", &(region_table[i].vertices[vtx].x), &(region_table[i].vertices[vtx].y));
       vtx++;
       free(*it);
@@ -245,7 +242,6 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
  
   char buf[1024];
  
-  log("INFO: Checking for enclosing regions in MySQL");
   sprintf(buf, "SELECT vnum "
                "  from region_data "
                "  where zone_vnum = %d "
@@ -254,8 +250,6 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
  
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
-
-  log("INFO: QUERY is : %s", buf);
 
   if (mysql_query(conn, buf)) {
     log("SYSERR: Unable to SELECT from region_data: %s", mysql_error(conn));
@@ -271,8 +265,6 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
  
     /* Allocate memory for the region data. */
     CREATE(new_node, struct region_list, 1);
-    log("  Returned ROW : %s", row[0]);
-    log("  %d %d", atoi(row[0]), real_region(atoi(row[0])));
     new_node->rnum = real_region(atoi(row[0]));
     new_node->next = regions;
     regions = new_node;
