@@ -63,7 +63,8 @@ typedef enum {
   eTURN_UNDEAD, // turn undead
   eSPELLBATTLE, // spellbattle
   eFALLING, // char falling
-  eCHECK_OCCUPIED, // Event to check that a room is occupied (for wilderness);
+  eCHECK_OCCUPIED, // Event to check that a room is occupied (for wilderness)
+  eTRACKS, // Tracks in the room, decay on event processing.
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
@@ -114,5 +115,6 @@ EVENTFUNC(event_ice_storm);
 EVENTFUNC(event_chain_lightning);
 EVENTFUNC(event_falling);;
 EVENTFUNC(event_check_occupied);
+EVENTFUNC(event_tracks);
 
 #endif /* _MUD_EVENT_H_ */

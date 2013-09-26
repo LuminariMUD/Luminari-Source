@@ -136,7 +136,11 @@ static struct map_info_type map_info[] ={
   { SECT_D_ROAD_EW, "\tc[\ty-\tc]\tn"}, 
   { SECT_D_ROAD_INT, "\tc[\ty+\tc]\tn"},
   { SECT_CAVE, "\tc[\tD\t=C\tc]\tn"},
-  
+  { SECT_JUNGLE, "\tg&\tn"},
+  { SECT_TUNDRA, "\tW.\tn"},
+  { SECT_TAIGA, "\tgA\tn"},
+  { SECT_BEACH, "\ty:\tn"},
+ 
   { -1, ""},  /* RESERVED, NUM_ROOM_SECTORS */
   { SECT_EMPTY, "   "}, /* NUM_ROOM_SECTORS + 1 */
   { SECT_STRANGE, "\tc[\tR?\tc]\tn"},
@@ -174,6 +178,10 @@ static struct map_info_type world_map_info[] ={
   { SECT_D_ROAD_EW, "\ty-\tn"}, 
   { SECT_D_ROAD_INT, "\ty+\tn"},
   { SECT_CAVE, "\tD\t=C\tn"},
+  { SECT_JUNGLE, "\tg&\tn"},
+  { SECT_TUNDRA, "\tW.\tn"},
+  { SECT_TAIGA, "\tgA\tn"},
+  { SECT_BEACH, "\ty:\tn"},
   
   { -1, ""},  /* RESERVED, NUM_ROOM_SECTORS */
   { SECT_EMPTY, " "},

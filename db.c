@@ -48,6 +48,7 @@
 #include "spec_abilities.h"
 #include "perlin.h"
 #include "wilderness.h"
+#include "mysql.h"
 
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
@@ -70,6 +71,9 @@ obj_rnum top_of_objt = 0; /* top of object index table	 */
 
 struct zone_data *zone_table = NULL; /* zone table      */
 zone_rnum top_of_zone_table = 0; /* top element of zone tab   */
+
+struct region_data *region_table = NULL; /* Region table */
+region_rnum top_of_region_table = 0; /* top element of region tab */
 
 /* begin previously located in players.c */
 struct player_index_element *player_table = NULL; /* index to plr file   */
@@ -435,6 +439,9 @@ ACMD(do_reboot) {
 void boot_world(void) {
   int x = 0;
 
+  /* Initialize the db connection. */
+  connect_to_mysql();
+
   log("Loading zone table.");
   index_boot(DB_BOOT_ZON);
 
@@ -443,6 +450,10 @@ void boot_world(void) {
 
   log("Loading rooms.");
   index_boot(DB_BOOT_WLD);
+
+  log("Loading regions. (MySQL)");
+  load_regions();
+
 
   log("Renumbering rooms.");
   renum_world();
@@ -485,12 +496,12 @@ void boot_world(void) {
 
   log("Indexing wilderness rooms.");
   initialize_wilderness_lists();
-
+  
   log("Writing wilderness map image.");
-  save_map_to_file("luminari_wilderness.png", 1024, 1024);
-  save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev.png", 1024, 1024);
-//  save_noise_to_file(NOISE_MATERIAL_PLANE_MOISTURE, "luminari_wild_noise_mois.png", 1024, 1024);
+//  save_map_to_file("luminari_wilderness.png", WILD_X_SIZE, WILD_Y_SIZE);
 
+  //save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 0);
+  //save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 1);
 }
 
 static void free_extra_descriptions(struct extra_descr_data *edesc) {
@@ -4326,6 +4337,32 @@ zone_rnum real_zone(zone_vnum vnum) {
     if ((zone_table + mid)->number == vnum)
       return (mid);
     if ((zone_table + mid)->number > vnum)
+      top = mid - 1;
+    else
+      bot = mid + 1;
+  }
+  return (NOWHERE);
+}
+
+/* returns the real number of the region with given virtual number */
+region_rnum real_region(region_vnum vnum) {
+  region_rnum bot, top, mid;
+
+  bot = 0;
+  top = top_of_region_table;
+
+log(" real_region %d %d", bot, top_of_region_table);
+log("   %d %d vnum: %d", region_table[top].vnum, region_table[bot].vnum, vnum);
+  if (region_table[bot].vnum > vnum || region_table[top].vnum < vnum)
+    return (NOWHERE);
+
+  /* perform binary search on zone-table */
+  while (bot <= top) {
+    mid = (bot + top) / 2;
+    log("  mid : %d vnum: %d", mid, (region_table + mid)->vnum);
+    if ((region_table + mid)->vnum == vnum)
+      return (mid);
+    if ((region_table + mid)->vnum > vnum)
       top = mid - 1;
     else
       bot = mid + 1;

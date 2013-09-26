@@ -727,11 +727,6 @@ void char_to_room(struct char_data *ch, room_rnum room) {
     /* If this is a wilderness room, set coords. */
     if(ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_WILDERNESS)) {
       if((X_LOC(ch) != world[room].coords[0]) || (Y_LOC(ch) != world[room].coords[1])) {
-//      if(IN_ROOM(ch) == NOWHERE) { /* We should really go to our coords instead! */
-//        char_to_coords(struct char_data *ch, ch->coords[0], int ch->coords[1], WILD_MATERIAL_PLANE);
-//        send_to_char(ch, "\tRMOVING FROM %d\tn\r\n", (IN_ROOM(ch) == NOWHERE ? -1 : IN_ROOM(ch));
-        send_to_char(ch, "COORDS DON'T MATCH, ADJUSTING!\n");
-
         room = find_room_by_coordinates(X_LOC(ch), Y_LOC(ch));
         if (room == NOWHERE) {
           room = find_available_wilderness_room();

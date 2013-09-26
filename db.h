@@ -270,6 +270,7 @@ zone_rnum real_zone(zone_vnum vnum);
 room_rnum real_room(room_vnum vnum);
 mob_rnum real_mobile(mob_vnum vnum);
 obj_rnum real_object(obj_vnum vnum);
+region_rnum real_region(region_vnum vnum);
 
 /* Public Procedures from objsave.c */
 void  Crash_save_all(void);
@@ -379,6 +380,9 @@ extern room_rnum top_of_world;
 
 extern struct zone_data *zone_table;
 extern zone_rnum top_of_zone_table;
+
+extern struct region_data *region_table;
+extern region_rnum top_of_region_table;
 
 extern struct raff_node *raff_list;	// list of room affections
 

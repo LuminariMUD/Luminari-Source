@@ -3641,3 +3641,123 @@ ACMD(do_exits) {
   if (!len)
     send_to_char(ch, " None.\r\n");
 }
+
+ACMD(do_track) {
+  struct event * pEvent = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+  char arg[MAX_INPUT_LENGTH];
+
+  char creator_race[20]; /* The RACE of what created the tracks. */
+  char creator_name[20]; /* The NAME of what created the tracks. */
+  int  track_age = 0;    /* The AGE of this set of tracks. */
+  char track_dir[6];    /* The direction the track leads. */
+
+  const char* track_age_names[7] = { "extremely old",
+                                    "very old",
+                                    "old",
+                                    "fairly recent",
+                                    "recent",
+                                    "fairly fresh",
+                                    "fresh" };
+
+  /* The character must have the track skill. */
+  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_TRACK)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg);
+
+  send_to_char(ch, "You search the area for tracks...\r\n");
+
+  /* Check if there are any tracks to see. */
+  /* Need to iterate over all of this room's events, picking out the tracking ones. 
+   * What a PAIN, this really should be easier. */
+
+//  for( pMudEvent = room_has_mud_event(world[IN_ROOM(ch)], eTRACKS);
+//       pMudEvent != NULL;
+//       pMudEvent = room_has_mud_event(world[IN_ROOM(ch)], eTRACKS)) {
+
+  if((!room_has_mud_event(&world[IN_ROOM(ch)], eTRACKS)) || 
+     ((world[IN_ROOM(ch)].events == NULL) || (world[IN_ROOM(ch)].events->iSize == 0))) {
+    send_to_char(ch, "You can't find any tracks.\r\n");
+    return;
+  }
+ 
+  simple_list(NULL);
+
+  while ((pEvent = (struct event *) simple_list(world[IN_ROOM(ch)].events)) != NULL) {
+    if (!pEvent->isMudEvent)
+      continue;
+
+    pMudEvent = (struct mud_event_data *) pEvent->event_obj;
+
+    if (pMudEvent->iId == eTRACKS) {
+
+      /* Get the track information from the sVariables. */
+      if ( pMudEvent->sVariables )
+        sscanf(pMudEvent->sVariables, "%d \"%19[^\"]\" \"%19[^\"]\" %s", &track_age, creator_race, creator_name, track_dir);
+
+      /* Skill check. */
+
+//      send_to_char(ch, "%s\r\n", pMudEvent->sVariables);
+//      send_to_char(ch, "%d %s %s %s\r\n", track_age, creator_race, creator_name, track_dir);
+
+      if (*arg && isname(arg, creator_name) ) {
+        /* Found our victim's tracks. */      
+        send_to_char(ch, "  You find %s tracks of %s leading %s.\r\n", track_age_names[track_age],
+                                                                       creator_name,
+                                                                       track_dir);
+
+      } else if ((!*arg) || (*arg && isname(arg, creator_race))) {
+        send_to_char(ch, "  You find %s tracks of %s %s leading %s.\r\n", track_age_names[track_age], 
+                                                                          a_or_an(creator_race), 
+                                                                          creator_race,
+                                                                          track_dir);
+      }    
+    }
+  } 
+}
+
+/* Event function for tracks, causing decay and eventual removal. */
+EVENTFUNC(event_tracks) {
+  struct mud_event_data *pMudEvent = NULL;
+  struct room_data *room = NULL;
+  room_rnum rnum = NOWHERE;
+  char buf[128];
+
+  char creator_race[20]; /* The RACE of what created the tracks. */
+  char creator_name[20]; /* The NAME of what created the tracks. */
+  int  track_age = 0;    /* The AGE of this set of tracks. */
+  char track_dir[6];    /* The direction the track leads. */
+
+
+  /* Unpack the mud data. */
+  pMudEvent = (struct mud_event_data *) event_obj;
+
+  if (!pMudEvent)
+    return 0;
+
+  if (!pMudEvent->iId)
+    return 0;
+
+  room = (struct room_data *) pMudEvent->pStruct;
+  rnum = real_room(room->number);
+
+  /* Get the track information from the sVariables. */
+  if ( pMudEvent->sVariables )
+    sscanf(pMudEvent->sVariables, "%d \"%19[^\"]\" \"%19[^\"]\" %s", &track_age, creator_race, creator_name, track_dir);
+
+  if ( track_age == 0 ) /* Time for this track to disappear. */
+    return 0;
+  else 
+    track_age--; /* Age the track. */
+
+  /* Now change the age in the sVariables, and resubmit the tracks. */
+//  free(pMudEvent->sVariables);
+  sprintf(buf, "%d \"%s\" \"%s\" %s", track_age, creator_race, creator_name, track_dir);
+  pMudEvent->sVariables = strdup(buf);
+
+  return 60 RL_SEC; /* Decay tracks every 60 seconds, subject to change :) */  
+}
+

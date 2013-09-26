@@ -30,7 +30,7 @@
 
 /* external declarations and prototypes */
 
-/** direct all log() references to basic_mud_log() function. */
+/** direct all mlog() references to basic_mud_log() function. */
 #define log			basic_mud_log
 
 /** Standard line size, used for many string limits. */

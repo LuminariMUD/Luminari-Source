@@ -1346,6 +1346,7 @@ typedef IDXTYPE shop_vnum; /**< vnum specifically for shop */
 typedef IDXTYPE trig_vnum; /**< vnum specifically for triggers */
 typedef IDXTYPE qst_vnum; /**< vnum specifically for quests */
 typedef IDXTYPE clan_vnum; /**< vnum specifically for clans */
+typedef IDXTYPE region_vnum; /**< vnum specifically for regions */
 
 /* Various real (array-reference) number types. */
 typedef IDXTYPE room_rnum; /**< references an instance of a room */
@@ -1356,6 +1357,7 @@ typedef IDXTYPE shop_rnum; /**< references an instance of a shop */
 typedef IDXTYPE trig_rnum; /**< references an instance of a trigger */
 typedef IDXTYPE qst_rnum; /**< references an instance of a quest */
 typedef IDXTYPE clan_rnum; /**< references an instance of a clan */
+typedef IDXTYPE region_rnum; /**< references an instance of a region */
 
 /** Bitvector type for 32 bit unsigned long bitvectors. 'unsigned long long'
  * will give you at least 64 bits if you have GCC. You'll have to search
