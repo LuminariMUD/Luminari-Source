@@ -1022,13 +1022,14 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /*****/
 
   /* Leave tracks, if not riding. */
-  if (!riding) {
+/*  if (!riding) {
     sprintf(buf3, "%d \"%s\" \"%s\" %s", 6, 
                                  (IS_NPC(ch) ? npc_race_types[GET_NPC_RACE(ch)] : pc_race_types[GET_RACE(ch)]), 
                                  GET_NAME(ch),
                                  dirs[dir]);
     NEW_EVENT(eTRACKS, &world[IN_ROOM(ch)],buf3, 60 RL_SEC);
   }
+*/
   /* the actual technical moving of the char */
   char_from_room(ch);
 

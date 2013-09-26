@@ -243,7 +243,7 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
   char buf[1024];
  
   sprintf(buf, "SELECT vnum "
-               "  from region_data "
+               "  from region_index "
                "  where zone_vnum = %d "
                "  and GISWithin(GeomFromText('POINT(%d %d)'), region_polygon)",
                zone_table[zone].number, x, y);
@@ -252,12 +252,12 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
   mysql_ping(conn);
 
   if (mysql_query(conn, buf)) {
-    log("SYSERR: Unable to SELECT from region_data: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
     exit(1);
   }
  
   if (!(result = mysql_store_result(conn))) {
-    log("SYSERR: Unable to SELECT from region_data: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
     exit(1);
   }
   
