@@ -273,12 +273,10 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
   /* use the kd_wilderness_rooms kd-tree index to look up the nearby rooms */
   loc[0] = center_x;
   loc[1] = center_y;
-  log("Checking nearby rooms...");
   set = kd_nearest_range(kd_wilderness_rooms, loc, ((xsize-1)/2) + 1);
 
   while( !kd_res_end( set ) ) {
     room = (room_rnum *)kd_res_item( set, pos);
-    log(" (%.3f, %.3f) is room: %d\r\n", pos[0], pos[1], *room);
     
     /* Sanity check. */
     trans_x = MAX(0, MIN((int)pos[0] - x_offset, xsize)); 
@@ -453,7 +451,6 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   }
 //  world[room].description = "The wilderness.\r\n";
 
-  log("REGIONS: %d", (regions == NULL ? -1 : regions->rnum)); 
   world[room].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
                             get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
                             get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
