@@ -1,5 +1,8 @@
 /* LuminariMUD Procedurally generated wilderness. */
 
+#include <math.h>
+#include <gd.h>
+
 #include "perlin.h"
 #include "conf.h"
 #include "sysdep.h"
@@ -12,9 +15,11 @@
 #include "wilderness.h"
 #include "kdtree.h"
 
-#include <gd.h>
+#include "mysql.h"
 
 struct kdtree* kd_wilderness_rooms = NULL;
+
+int wild_waterline = 128;
 
 struct wild_map_info_type {
   int sector_type;
@@ -70,7 +75,9 @@ void initialize_wilderness_lists() {
 
   kd_wilderness_rooms = kd_create(2);
 
-  for(i = WILD_ROOM_VNUM_START; i< WILD_DYNAMIC_ROOM_VNUM_START; i++) {
+  /* The +1 for the initializer is so that the 'magic' room is not 
+   * included in the index. */ 
+  for(i = WILD_ROOM_VNUM_START + 1; i< WILD_DYNAMIC_ROOM_VNUM_START; i++) {
     if(real_room(i) != NOWHERE) {
       CREATE(rm, room_vnum, 1);
       *rm = real_room(i);
@@ -86,47 +93,63 @@ double get_radial_gradient(int x, int y) {
   int xsize = WILD_X_SIZE;
   int ysize = WILD_Y_SIZE;
   int xdist, ydist;
-  double dist, distrec;
-
-  /* Trying a different way, a rectangular radial gradient :) */
-  /* Distance to the closest border... */
-  xdist = (x < (xsize - x) ? x : (xsize - x));
-  ydist = (y < (ysize - y) ? y : (ysize - y));
-
-  dist = MIN(xdist, ydist);
-
-  /* So we want a gradient from 300 to 0. */
-  /* Invert dist */
-  dist = 128 - dist;
-
-  if (dist < 0)
-    dist = 0;
-
-  /* Add some noise */
-  dist *= ((PerlinNoise1D(NOISE_MATERIAL_PLANE_ELEV, dist/128.0, 2, 2, 1) + 1)/2);
-
-  distrec = (double)(dist/128.0);
-      
-  cx = xsize/2;
-  cy = ysize/2;
-
-  dist = sqrt((x - cx)*(x - cx) + (y - cy)*(y - cy));  
-
-  if (dist > 512.0) 
-    dist = 512.0;  
+  double dist = WILD_X_SIZE;
+  double distrec = WILD_X_SIZE;
 
 
-  dist = dist - 300.0;
+  int box;
+ 
+  /* Find the gradiant at point (x,y) on the wilderness map.
+   * (x,y) can be from (-WILD_X_SIZE, -WILD_Y_SIZE) to 
+   * (WILD_X_SIZE, WILD_Y_SIZE).  This region is divided up into
+   * several bounding boxes that determine where the continents should 
+   * roughly appear. */
 
-  if (dist < 0)
-    dist = 0; 
+  /* Bounding boxes are stored as [ll_x, lly, ur_x, ur_y] arrays. */
+  int bounding_boxes[1][4] = { {-1024, -1024, 1024, 1024}};
 
-  /* Add some noise */
-  dist *= ((PerlinNoise1D(NOISE_MATERIAL_PLANE_ELEV, dist/256.0, 2, 2, 1) + .7)/1.4);
+  for (box = 0; box < 1; box++) {
+    if( ((x > bounding_boxes[box][0]) && (x <= bounding_boxes[box][2])) &&
+        ((y > bounding_boxes[box][1]) && (y <= bounding_boxes[box][3]))) {
+      /* We are within this bounding box. */
+      xsize = (bounding_boxes[box][2] - bounding_boxes[box][0]);
+      ysize = (bounding_boxes[box][3] - bounding_boxes[box][1]);
 
-  dist = (double)(dist/300.0);
 
-  return (dist*9+distrec)/10.0;  
+      /* Get distance to the edges of the bounding box. */
+      xdist = MIN(x - bounding_boxes[box][0], bounding_boxes[box][2] - x);
+      ydist = MIN(y - bounding_boxes[box][1], bounding_boxes[box][3] - y);
+
+      dist = MIN(xdist, ydist);
+
+      /* Invert dist */
+      dist = xsize/8 - dist;
+
+      if (dist < 0)
+        dist = 0;
+
+      /* Add some noise */
+//      dist *= ((PerlinNoise1D(NOISE_MATERIAL_PLANE_ELEV, dist/128.0, 2, 2, 1) + 1)/2);
+
+      distrec = (double)(dist/(xsize/8.0)); //dist/2048.0);
+     
+      cx = (bounding_boxes[box][0] + bounding_boxes[box][2])/2;
+      cy = (bounding_boxes[box][1] + bounding_boxes[box][3])/2;
+  
+      dist = sqrt((x - cx)*(x - cx) + (y - cy)*(y - cy));  
+
+      dist = dist -(xsize/2.0 - (xsize/16.0));
+      if (dist < 0)
+        dist = 0; 
+
+      /* Add some noise */
+      dist *= ((PerlinNoise1D(NOISE_MATERIAL_PLANE_ELEV, dist/256.0, 2, 2, 1)+ 1)/2.0);
+  
+      dist = (double)(dist/(xsize/16.0));
+      return 1.0 - ((dist+2*distrec)/3.0);  
+    }
+  }
+  return 0;
 }
 
 
@@ -136,13 +159,13 @@ int get_elevation(int map, int x, int y) {
   double result;
   double dist;
 
-  trans_x = x/(double)(WILD_X_SIZE/4.0);
-  trans_y = y/(double)(WILD_Y_SIZE/4.0);
+  trans_x = x/(double)(WILD_X_SIZE/2.0);
+  trans_y = y/(double)(WILD_Y_SIZE/2.0);
 
 //  result = PerlinNoise2D(map, trans_x, trans_y, 1.5, 2, 16);
 //  result = ( result + 1.0 ) / 2.0;
 
-  result = PerlinNoise2D(map, trans_x, trans_y, 1.5, 2.0, 16);
+  result = PerlinNoise2D(map, trans_x, trans_y, 2.0, 2.0, 16);
   
   /* Compress the data a little, makes better mountains. */
   result = (result > .8 ? .8 : result);
@@ -157,23 +180,27 @@ int get_elevation(int map, int x, int y) {
 
   /* Attenuate. */
   result *= result;
+  result *= result;
 
-  /* get the distortion. HACKS! */
-  dist = PerlinNoise2D(NOISE_MATERIAL_PLANE_ELEV_DIST, trans_x, trans_y, 2.0, 2.0, 16);
+  trans_x = x/(double)(WILD_X_SIZE/8.0);
+  trans_y = y/(double)(WILD_Y_SIZE/8.0);
+
+
+  /* get the distortion */
+  dist = PerlinNoise2D(NOISE_MATERIAL_PLANE_ELEV_DIST, trans_x, trans_y, 1.5, 2.0, 16);
 
   /* Compress the data a little, makes better mountains. */
-  dist = (dist > .8 ? .8 : dist);
-  dist = (dist < -.8 ? -.8 : dist);
+//  dist = (dist > .8 ? .8 : dist);
+//  dist = (dist < -.8 ? -.8 : dist);
 
   /* Normalize between -1 and 1 */
-  dist = (dist)/.8;
+//  dist = (dist)/.8;
 
-  /* Take a weighted average. */
-  result = result + dist;
-  result = (result + 1)/3.0;
- 
+  /* Take a weighted average, normalize over [0..1] */
+  result = ((result +  dist) + 1)/3.0;
+
   /* Apply the radial gradient. */
-  result -= 1.5*(get_radial_gradient(x, y))*result;
+  result *= get_radial_gradient(x, y);
 
   return 255*result;
 }
@@ -183,10 +210,10 @@ int get_moisture(int map, int x, int y) {
   double trans_y;
   double result;
 
-  trans_x = x/(double)(WILD_X_SIZE/4.0);
-  trans_y = y/(double)(WILD_Y_SIZE/4.0);
+  trans_x = x/(double)(WILD_X_SIZE/8.0);
+  trans_y = y/(double)(WILD_Y_SIZE/8.0);
 
-  result = PerlinNoise2D(map, trans_x, trans_y, 1.5, 2, 4);
+  result = PerlinNoise2D(map, trans_x, trans_y, 1.5, 2.0, 8);
 
   /* Normalize over 0..1 */
   result = ( result + 1 ) / 2.0;
@@ -196,28 +223,31 @@ int get_moisture(int map, int x, int y) {
 }
 
 int get_temperature(int map, int x, int y) {
-   /* This is a gradient in the y direction, modified
-    * by terrain height. */
+  /* This is a gradient in the y direction, modified
+   * by terrain height. */
 
-   int max_temp =  35;
-   int min_temp = -20;
-   int dist = 0;
-   int equator = 256; /* Y coord of the equator */
+  int max_temp =  35;
+  int min_temp = -30;
+  int dist = 0;
+  int equator = 0; /* Y coord of the equator */
+  int temp;
+
+  double pct; /* percentage value, used to calulate gradient. */
+
+  /* Find the absolute value of the distance of y to the equator. */
+  dist = abs(y - equator);
    
-   double pct; /* percentage value, used to calulate gradient. */
+  /* calculate the gradiant. */
+  pct = (double)(dist/(double)(WILD_Y_SIZE - equator));    
 
-   /* Find the absolute value of the distance of y to the equator. */
-   dist = abs(y - equator);
+  /* Return the temp. */
+  temp = (max_temp - (max_temp - min_temp)*pct) - (MAX(1.5*get_elevation(map, x, y) - WATERLINE, 0))/10;
    
-   /* calculate the gradiant. */
-   pct = (double)(dist/(double)(WILD_Y_SIZE - equator));    
-
-   /* Return the temp. */
-   return (max_temp - (max_temp - min_temp)*pct) - (MAX(get_elevation(map, x, y) - WATERLINE, 0))/10;
+  return temp;
 }
 
 /* Generate a height map centered on center_x and center_y. */
-void get_map(int xsize, int ysize, int center_x, int center_y, int **map) {
+void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_tile **map) {
   int x, y;
   int x_offset, y_offset;
   int trans_x, trans_y;
@@ -233,9 +263,10 @@ void get_map(int xsize, int ysize, int center_x, int center_y, int **map) {
   /* map MUST be big enough! */
   for(y = 0; y < ysize; y++) {
     for(x = 0; x < xsize; x++) {
-      map[x][y] = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV,    x + x_offset, y + y_offset),
-                                  get_temperature(NOISE_MATERIAL_PLANE_ELEV,  x + x_offset, y + y_offset),
-                                  get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
+      map[x][y].vis = 0;
+      map[x][y].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV,    x + x_offset, y + y_offset),
+                              get_temperature(NOISE_MATERIAL_PLANE_ELEV,  x + x_offset, y + y_offset),
+                              get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
     }
   }
 
@@ -253,7 +284,8 @@ void get_map(int xsize, int ysize, int center_x, int center_y, int **map) {
     trans_x = MAX(0, MIN((int)pos[0] - x_offset, xsize)); 
     trans_y = MAX(0, MIN((int)pos[1] - y_offset, ysize));
 
-    map[trans_x][trans_y] = world[*room].sector_type;
+    if((trans_x < xsize) && (trans_y < ysize))
+      map[trans_x][trans_y].sector_type = world[*room].sector_type;
 
     /* go to the next entry */
     kd_res_next( set );
@@ -269,8 +301,8 @@ void get_map(int xsize, int ysize, int center_x, int center_y, int **map) {
  */
 int get_sector_type(int elevation, int temperature, int moisture) {
 
-  int waterline = WATERLINE;
-
+  int waterline = wild_waterline;
+  
   /* Water */
   if (elevation < waterline)
   {
@@ -285,7 +317,8 @@ int get_sector_type(int elevation, int temperature, int moisture) {
   }
   else
   {
-    
+
+    /* Do we have marshes along the water or beach? */    
     if (elevation < waterline + COASTLINE_THRESHOLD)
     {
       if (( moisture > 180 ) && (temperature > 8))
@@ -300,7 +333,7 @@ int get_sector_type(int elevation, int temperature, int moisture) {
         return SECT_MARSHLAND;
       else if ( temperature < 8)
         return SECT_TUNDRA;
-      else if (( temperature > 15 ) && (moisture < 100))
+      else if (( temperature > 25 ) && (moisture < 80))
         return SECT_DESERT;
       else
         return SECT_FIELD; 
@@ -324,7 +357,7 @@ int get_sector_type(int elevation, int temperature, int moisture) {
     { 
       if (temperature < 10)
         return SECT_TAIGA;
-      else if ((temperature > 18) && (moisture > 128))
+      else if ((temperature > 18) && (moisture > 180))
         return SECT_JUNGLE;
       else
         return SECT_FOREST; 
@@ -337,8 +370,6 @@ room_rnum find_static_room_by_coordinates(int x, int y) {
   double loc[2], pos[2];
   void* set; 
   room_rnum* room;
-
-  int i = 0;
 
   /* use the kd_wilderness_rooms kd-tree index to look up the room at (x, y) */
   loc[0] = x;
@@ -372,8 +403,13 @@ room_rnum find_room_by_coordinates(int x, int y) {
     }
   } 
   
-  /* No rooms assigned to (x,y) */
-  return NOWHERE; 
+  /* No rooms currently allocated for (x,y), so allocate one. */
+//  if((room = find_available_wilderness_room()) == NOWHERE)
+//    return NOWHERE; /* No rooms available. */
+
+//  assign_wilderness_room(room, x, y);
+
+  return room;  
 }
 
 room_rnum find_available_wilderness_room() {
@@ -394,8 +430,8 @@ room_rnum find_available_wilderness_room() {
 }
 
 void assign_wilderness_room(room_rnum room, int x, int y) {  
-  double loc[2];
-  room_vnum *rm;
+
+  struct region_list *regions;
 
   if (room == NOWHERE) {/* This is not a room! */
     log("SYSERR: Attempted to assign NOWHERE as a new wilderness location at (%d, %d)", x, y);
@@ -405,42 +441,116 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   /* Here we will set the coordinates, build the descriptions, set the exits, sector type, etc. */
   world[room].coords[0]=x;
   world[room].coords[1]=y;
+ 
+  /* Get the enclosing regions. */
+  regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
 
-  /* The following will be dynamically generated. */
-//  world[room].name = "The Wilderness";
+  //free(world[room].name);
+  if(regions) {
+    if (world[room].name)
+      free(world[room].name);
+    world[room].name = strdup(region_table[regions->rnum].name);
+  }
 //  world[room].description = "The wilderness.\r\n";
+
+  log("REGIONS: %d", (regions == NULL ? -1 : regions->rnum)); 
   world[room].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
                             get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
                             get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
 }
 
+void line_vis(struct wild_map_tile **map, int x,int y,int x2, int y2) {
+  int i = 0;
+  int visibility = 10;
+  int orig_x = x, orig_y = y;
+
+  int w = x2 - x ;
+  int h = y2 - y ;
+  int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0 ;
+  if (w<0) dx1 = -1 ; else if (w>0) dx1 = 1 ;
+  if (h<0) dy1 = -1 ; else if (h>0) dy1 = 1 ;
+  if (w<0) dx2 = -1 ; else if (w>0) dx2 = 1 ;
+  int longest = abs(w) ;
+  int shortest = abs(h) ;
+  if (!(longest>shortest)) {
+      longest = abs(h) ;
+      shortest = abs(w) ;
+      if (h<0) dy2 = -1 ; else if (h>0) dy2 = 1 ;
+      dx2 = 0 ;            
+  } 
+  int numerator = longest >> 1 ;
+  for (i=0;i<=longest;i++) {
+    /* Here is where we check transparency. */
+      switch (map[x][y].sector_type) {
+        case SECT_MOUNTAIN:
+          visibility -= 3;
+          break;
+        case SECT_HIGH_MOUNTAIN:
+          visibility = 1;
+          break;
+        case SECT_JUNGLE:
+          visibility -= 2;
+          break;
+        case SECT_FOREST:
+        case SECT_TAIGA:
+          visibility -= 1;
+          break;
+        case SECT_HILLS:
+          visibility -= 3;
+          break;
+      }
+//      if (visibility > 0) map[x][y].vis = 1;
+    if (round(sqrt(((double)x - (double)orig_x) * ((double)x - (double)orig_x) + ((double)y - (double)orig_y) * ((double)y - (double)orig_y))) <= (visibility + 1))
+      map[x][y].vis = 1; 
+    numerator += shortest ;
+    if (!(numerator<longest)) {
+      numerator -= longest ;
+      x += dx1 ;
+      y += dy1 ;
+    } else {
+      x += dx2 ;
+      y += dy2 ;
+    }
+  }
+}
+
 /* Print a map with size 'size', centered on (x,y) */
 void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
-  int **map;
+  struct wild_map_tile **map;
   int i, j;
-  room_rnum room = NOWHERE; 
 
   int xsize = size;
   int ysize = size;
   int centerx = ((xsize-1)/2);
   int centery = ((ysize-1)/2);
 
-  int *data = malloc(sizeof(double) * xsize * ysize);
-
-  map = malloc(sizeof(int*) * xsize);
+  struct wild_map_tile *data = malloc(sizeof(struct wild_map_tile) * xsize * ysize);
+ 
+  map = malloc(sizeof(struct wild_map_tile*) * xsize);
+ 
   for (i = 0; i < xsize; i++) {
         map[i] = data + (i*ysize);
   }
 
   get_map(xsize, ysize, x, y, map);
+
+  /* TEST: Line of Sight. */
+  for(i = 0; i < xsize; i++) {
+    line_vis(map, centerx, centery, i, 0);
+    line_vis(map, centerx, centery, i, ysize - 1);
+  }
+  for(i = 0; i < ysize; i ++) {
+    line_vis(map, centerx, centery, 0, i);
+    line_vis(map, centerx, centery, xsize - 1, i);
+  }
  
   for(j = ysize - 1; j >= 0 ; j--) {
     for(i = 0; i < xsize; i++) {
       if(sqrt((centerx - i)*(centerx - i) + (centery - j)*(centery - j)) <= (((size-1)/2)+1 )) {
         if((i == centerx) && (j == centery)) {
-          send_to_char(ch, "\tM*\t");
+          send_to_char(ch, "\tM*\tn");
         } else {
-          send_to_char(ch, "%s", wild_map_info[map[i][j]].disp);
+          send_to_char(ch, "%s", (map[i][j].vis == 0 ? " " : wild_map_info[map[i][j].sector_type].disp));
         }
       } else {
         send_to_char(ch, " ");
@@ -452,11 +562,13 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
   send_to_char(ch, " Current Location  : (\tC%d\tn, \tC%d\tn)\r\n" 
                    " Current Elevation : %.3d   "
                    " Current Moisture  : %d\r\n"
+                   " Gradient          : %f   "
                    " Current Temp.     : %d\r\n"
                    " Current Sector    : %s\r\n",  
                    x, y, 
                    get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
                    get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y),
+                   get_radial_gradient(x, y),
                    get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
                    sector_types[world[IN_ROOM(ch)].sector_type]);
 
@@ -493,12 +605,11 @@ EVENTFUNC(event_check_occupied) {
   if((room->room_affections == 0) &&
      (room->contents == NULL) &&
      (room->people  == NULL) &&
-     ((room->events == NULL) || 
-      (room->events && room->events->iSize == 0))) {
+     (room->events && room->events->iSize == 1)) {
+  
     REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_OCCUPIED);
-
-
     return 0; /* No need to continue checking! */
+    
   } else {
     return 10 RL_SEC; /* Keep checking every 10 seconds. */
   }
@@ -539,16 +650,16 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
     gray[i] = gdImageColorAllocate(im, i,i,i);
   }
 
-  for(y = 0; y < ysize; y++) {
-    for(x = 0; x < xsize; x++) {
+  for(y = (-ysize/2); y < ysize/2; y++) {
+    for(x = (-xsize/2); x < xsize/2; x++) {
  
-      sector_color = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, ysize - y),
-                                  get_temperature(NOISE_MATERIAL_PLANE_ELEV,  x, ysize - y),
-                                  get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, ysize - y));
+      sector_color = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, -y),
+                                  get_temperature(NOISE_MATERIAL_PLANE_ELEV,  x, -y),
+                                  get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, -y));
       if (sector_color == SECT_HIGH_MOUNTAIN) 
-        gdImageSetPixel(im, x, y, gray[get_elevation(NOISE_MATERIAL_PLANE_ELEV, x,ysize-y)]);
+        gdImageSetPixel(im, x + xsize/2, ysize/2 - y, gray[get_elevation(NOISE_MATERIAL_PLANE_ELEV, x,-y)]);
       else
-        gdImageSetPixel(im, x, y, color_by_sector[sector_color]);
+        gdImageSetPixel(im, x + xsize/2, ysize/2 - y, color_by_sector[sector_color]);
 
     }
   }
@@ -559,7 +670,7 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
   gdImageDestroy(im);
 }
 
-void save_noise_to_file(int idx, const char* fn, int xsize, int ysize) {
+void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom) {
 
   gdImagePtr im; //declaration of the image
   FILE *out;     //output file
@@ -568,8 +679,13 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize) {
   double pixel;
   double dist;
   double trans_x, trans_y;
- 
-  im = gdImageCreate(xsize,ysize); //create an image   
+  
+//  int canvas_x = (zoom == 0 ? xsize : xsize/(2*zoom));
+//  int canvas_y = (zoom == 0 ? ysize : ysize/(2*zoom));
+  int canvas_x = xsize;
+  int canvas_y = ysize;
+
+  im = gdImageCreate(canvas_x,canvas_y); //create an image   
  
   white = gdImageColorAllocate(im, 255, 255, 255);
   black = gdImageColorAllocate(im, 0, 0, 0);
@@ -580,24 +696,24 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize) {
     gray[i] = gdImageColorAllocate(im, i,i,i);
   }
  
-  for(y = 0; y <= ysize; y++) {
-    for(x = 0; x <= xsize; x++) {
+  for(y = 0; y <= canvas_x; y++) {
+    for(x = 0; x <= canvas_y; x++) {
 
-      trans_x = x/((double)(xsize/4.0));
-      trans_y = y/((double)(ysize/4.0));
+      trans_x = x/(double)((xsize/4.0) * (zoom == 0 ? 1 : 0.5*zoom));
+      trans_y = y/(double)((ysize/4.0) * (zoom == 0 ? 1 : 0.5*zoom));
 
 
       pixel = PerlinNoise2D(idx, trans_x, trans_y, 2.0, 2.0, 16);
 
- 
-      pixel =1.0 -  (pixel < 0 ? -pixel : pixel);
-      pixel *= pixel;   
+      pixel = (pixel + 1)/2.0; 
+//      pixel =1.0 -  (pixel < 0 ? -pixel : pixel);
+//      pixel *= pixel;   
 
-      dist = PerlinNoise2D(idx+1, trans_x, trans_y, 2.0, 2.0, 16);
+//      dist = PerlinNoise2D(idx+1, trans_x, trans_y, 2.0, 2.0, 16);
 
-      pixel = pixel + 2.0*dist;
+//      pixel = pixel + 2.0*dist;
 
-      pixel = (pixel + 1.6)/4.0; 
+//      pixel = (pixel + 1.6)/4.0; 
       
       gdImageSetPixel(im, x, y, gray[(int)(255*pixel)]);
 
@@ -610,3 +726,4 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize) {
   gdImageDestroy(im);
   
 }
+

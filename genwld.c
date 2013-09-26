@@ -286,6 +286,7 @@ int save_rooms(zone_rnum rzone)
   char buf[MAX_STRING_LENGTH];
   char buf1[MAX_STRING_LENGTH];
   char buf2[MAX_STRING_LENGTH];
+  bool occupied = FALSE;
 
 #if CIRCLE_UNSIGNED_INDEX
   if (rzone == NOWHERE || rzone > top_of_zone_table) {
@@ -317,6 +318,12 @@ int save_rooms(zone_rnum rzone)
       strncpy(buf, room->description ? room->description : "Empty room.", sizeof(buf)-1 );
       strip_cr(buf);
 
+      /* Never save the ROOM_OCCUPIED flag. */
+      if (ROOM_FLAGGED(rnum, ROOM_OCCUPIED)) {
+        occupied = TRUE;
+        REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_OCCUPIED);
+      }
+
       /* Save the numeric and string section of the file. */
       sprintf(buf2, 	"#%d\n"
 			"%s%c\n"
@@ -329,6 +336,12 @@ int save_rooms(zone_rnum rzone)
 	  room->room_flags[3], room->sector_type 
       );
 
+      /* Done saving, reset the flag. */
+      if (occupied) {
+        occupied = FALSE;
+        SET_BIT_AR(ROOM_FLAGS(rnum), ROOM_OCCUPIED);
+      }
+     
   fprintf(sf, convert_from_tabs(buf2), 0);
 
       /* Now you write out the exits for the room. */

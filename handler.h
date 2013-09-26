@@ -64,6 +64,7 @@ struct char_data *get_char_num(mob_rnum nr);
 
 void	char_from_room(struct char_data *ch);
 void	char_to_room(struct char_data *ch, room_rnum room);
+void char_to_coords(struct char_data *ch, int x, int y, int wilderness);
 void	extract_char(struct char_data *ch);
 void	extract_char_final(struct char_data *ch);
 void	extract_pending_chars(void);

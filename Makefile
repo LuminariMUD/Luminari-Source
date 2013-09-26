@@ -19,9 +19,9 @@ BINDIR = ../bin
 
 CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE)
 
-LIBS =  -lcrypt -lgd -lm
+LIBS =  -lcrypt -lgd -lm -lmysqlclient
 
-SRCFILES := $(wildcard *.c)
+SRCFILES := $(wildcard *.c) $(wildcard rtree/*.c)
 OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))  
 
 default: all

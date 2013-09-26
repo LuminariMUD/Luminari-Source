@@ -130,6 +130,8 @@ int find_first_step(room_rnum src, room_rnum target) {
 
   return (BFS_NO_PATH);
 }
+#undef FOOBAR
+#ifdef FOOBAR
 
 /* Functions and Commands which use the above functions. */
 ACMD(do_track) {
@@ -191,6 +193,8 @@ ACMD(do_track) {
       break;
   }
 }
+
+#endif
 
 void hunt_victim(struct char_data *ch) {
   int dir;

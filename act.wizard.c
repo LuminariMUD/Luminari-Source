@@ -41,7 +41,7 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
-
+#include "wilderness.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -259,9 +259,22 @@ ACMD(do_goto) {
   char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   room_rnum location;
 
-  if ((location = find_target_room(ch, argument)) == NOWHERE)
-    return;
-   
+  two_arguments(argument, arg, arg2);
+
+  if(!*arg2) {
+    if ((location = find_target_room(ch, argument)) == NOWHERE)
+      return;
+  } else {
+    /* Have two args, that means coordinates (potentially) */
+    if ((location = find_room_by_coordinates(atoi(arg), atoi(arg2))) == NOWHERE) {
+      if((location = find_available_wilderness_room()) == NOWHERE) {
+        return;
+      } else {
+        /* Must set the coords, etc in the going_to room. */
+        assign_wilderness_room(location, atoi(arg), atoi(arg2));
+      }
+    }
+  }
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_NOIMMORT) && (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRSTAFF)) {
     send_to_char(ch, "Sorry, that zone is off-limits for immortals!");
@@ -275,6 +288,7 @@ ACMD(do_goto) {
   char_from_room(ch);
 
   if(ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS)) {
+//    char_to_coords(ch, world[location].coords[0], world[location].coords[1], 0);
     X_LOC(ch) = world[location].coords[0];
     Y_LOC(ch) = world[location].coords[1];
   }
@@ -2649,12 +2663,16 @@ ACMD(do_wizutil) {
    code 3 times ... -je, 4/6/93 FIXME: overflow possible */
 static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int listall) {
   size_t tmp;
+  double avglvl = 0;
+  int mcount = 0;
+  mob_rnum mrnum;
 
   if (listall) {
     int i, j, k, l, m, n, o;
     char buf[MAX_STRING_LENGTH];
 
     sprintbitarray(zone_table[zone].zone_flags, zone_bits, ZN_ARRAY_MAX, buf);
+
 
     tmp = snprintf(bufptr, left,
             "%3d %-30.30s%s By: %-10.10s%s Age: %3d; Reset: %3d (%s);Show Weather %d; Range: %5d-%5d\r\n",
@@ -2706,10 +2724,19 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
     return tmp;
   }
 
+  for(mrnum = 0; mrnum <= top_of_mobt; mrnum++) {
+    if(mob_index[mrnum].vnum >= zone_table[zone].bot && mob_index[mrnum].vnum <= zone_table[zone].top) {
+      avglvl += mob_proto[mrnum].player.level;
+      mcount++;
+    }
+  }
+
+  avglvl = avglvl/(double)mcount;
+
   return snprintf(bufptr, left,
-          "%3d %-*s%s By: %-10.10s%s Range: %5d-%5d\r\n", zone_table[zone].number,
+          "%3d %-*s%s By: %-10.10s%s Range: %5d-%5d AvgLvl: ,%2.3f\r\n", zone_table[zone].number,
           count_color_chars(zone_table[zone].name) + 30, zone_table[zone].name, KNRM,
-          zone_table[zone].builders, KNRM, zone_table[zone].bot, zone_table[zone].top);
+          zone_table[zone].builders, KNRM, zone_table[zone].bot, zone_table[zone].top, avglvl);
 }
 
 ACMD(do_show) {
@@ -5691,13 +5718,16 @@ ACMD(do_singlefile) {
 #include "wilderness.h"
 #include "kdtree.h"
 
+#include "mysql.h"
+#include "rtree/rTreeIndex.h"
+
 /* Test command to display a map, radius 4, generated using noise. */
 ACMD(do_genmap) {
   
   void *set;
   double pos[2], point[2];
   room_rnum *room;
-  
+  int j = 0; 
 
   point[0] = 0;
   point[1] = 0;

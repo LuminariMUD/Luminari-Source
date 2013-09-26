@@ -279,6 +279,29 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
   page_string(ch->desc, buf, TRUE);
 }
 
+void perform_obj_worn_list(struct char_data *ch, char *arg) {
+  int num, wearloc, found = 0, len = 0, tmp_len = 0;
+  obj_vnum ov;
+  char buf[MAX_STRING_LENGTH];
+
+  wearloc = atoi(arg);
+
+  len = snprintf(buf, sizeof (buf), "Listing all objects with wear location %s[%s]%s\r\n",
+          QYEL, wear_bits[wearloc], QNRM);
+  
+  for (num = 0; num <= top_of_objt; num++) {
+    if (IS_SET_AR(obj_proto[num].obj_flags.wear_flags, wearloc)) {
+      /* Display this object. */
+      ov = obj_index[num].vnum;
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s\r\n",
+                         QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[num].short_description, QNRM);
+      len += tmp_len;    
+    }
+  }
+  page_string(ch->desc, buf, TRUE);
+  return;
+}
+
 void perform_obj_aff_list(struct char_data * ch, char *arg) {
   int num, i, apply, v1 = 0, found = 0, len = 0, tmp_len = 0;
   struct obj_list_item lst[MAX_OBJ_LIST];
@@ -463,9 +486,10 @@ ACMD(do_oasis_list) {
         send_to_char(ch, "       %solist <name>%s        - List all named objects with count\r\n", QYEL, QNRM);
         send_to_char(ch, "       %solist type <num>%s    - List all objects of a specified type\r\n", QYEL, QNRM);
         send_to_char(ch, "       %solist affect <num>%s  - List top %d objects with affect\r\n", QYEL, QNRM, MAX_OBJ_LIST);
-        send_to_char(ch, "Just type %solist affect%s or %solist type%s to view available options\r\n", QYEL, QNRM, QYEL, QNRM);
+        send_to_char(ch, "       %solist worn <num>%s    - List all objects worn in the specified location.\r\n", QYEL, QNRM);
+        send_to_char(ch, "Just type %solist affect%s, %solist type%s or %solist worn%s to view available options\r\n", QYEL, QNRM, QYEL, QNRM, QYEL, QNRM);
         return;
-      } else if (is_abbrev(arg, "type") || is_abbrev(arg, "affect")) {
+      } else if (is_abbrev(arg, "type") || is_abbrev(arg, "affect") || is_abbrev(arg, "worn")) {
         if (is_abbrev(arg, "type")) {
           if (!*arg2) {
             send_to_char(ch, "Which object type do you want to list?\r\n");
@@ -480,6 +504,20 @@ ACMD(do_oasis_list) {
             return;
           }
           perform_obj_type_list(ch, arg2);
+        } else if (is_abbrev(arg, "worn")) {
+          if (!*arg2) {
+            send_to_char(ch, "Which object wear location do you want to list?\r\n");
+            for(i = 1; i < NUM_ITEM_WEARS; i++) {
+              send_to_char(ch, "%s%2d%s-%s%-14s%s", QNRM, i, QNRM, QYEL, wear_bits[i], QNRM);
+              if (!(i%4)) send_to_char(ch, "\r\n");
+            }
+            send_to_char(ch, "\r\n");
+            send_to_char(ch, "Usage: %solist worn <num>%s\r\n", QYEL, QNRM);
+            send_to_char(ch, "Displays objects worn in the selected location.\r\n");
+
+            return;
+          }
+          perform_obj_worn_list(ch, arg2);
         } else { /* Assume arg = affect */
           if (!*arg2) {
             send_to_char(ch, "Which object affect do you want to list?\r\n");

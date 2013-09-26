@@ -25,6 +25,12 @@ act.other.o: act.other.c conf.h sysdep.h structs.h protocol.h lists.h \
 act.social.o: act.social.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h screen.h spells.h \
  act.h
+act.wizard.o: act.wizard.c conf.h sysdep.h structs.h protocol.h lists.h \
+ utils.h race.h comm.h interpreter.h handler.h db.h spells.h house.h \
+ screen.h constants.h oasis.h dg_scripts.h shop.h act.h genzon.h class.h \
+ genolc.h genobj.h fight.h modify.h quest.h ban.h mud_event.h dg_event.h \
+ clan.h craft.h hlquest.h mudlim.h spec_abilities.h wilderness.h kdtree.h \
+ mysql.h rtree/rTreeIndex.h
 aedit.o: aedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h handler.h comm.h db.h oasis.h screen.h constants.h \
  genolc.h act.h
@@ -66,7 +72,7 @@ db.o: db.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  oasis.h dg_scripts.h dg_event.h act.h ban.h treasure.h spec_procs.h \
  genzon.h genolc.h genobj.h config.h fight.h modify.h shop.h quest.h \
  ibt.h mud_event.h class.h clan.h msgedit.h craft.h hlquest.h mudlim.h \
- spec_abilities.h perlin.h wilderness.h
+ spec_abilities.h perlin.h wilderness.h mysql.h
 dg_comm.o: dg_comm.c conf.h sysdep.h structs.h protocol.h lists.h \
  dg_scripts.h utils.h race.h comm.h handler.h db.h constants.h
 dg_db_scripts.o: dg_db_scripts.c conf.h sysdep.h structs.h protocol.h \
@@ -188,6 +194,8 @@ msgedit.o: msgedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 mud_event.o: mud_event.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h db.h dg_event.h constants.h comm.h mud_event.h handler.h \
  wilderness.h
+mysql.o: mysql.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
+ race.h db.h comm.h modify.h mysql.h wilderness.h
 oasis.o: oasis.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h comm.h db.h shop.h genolc.h genmob.h genshp.h \
  genzon.h genwld.h genobj.h oasis.h screen.h dg_olc.h dg_scripts.h act.h \
@@ -274,7 +282,7 @@ weather.o: weather.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h
 wilderness.o: wilderness.c perlin.h conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h db.h constants.h mud_event.h dg_event.h \
- wilderness.h kdtree.h
+ wilderness.h kdtree.h mysql.h
 zedit.o: zedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h db.h constants.h genolc.h genzon.h genmob.h \
  oasis.h dg_scripts.h handler.h

@@ -63,7 +63,8 @@ struct mud_event_list mud_event_index[] = {
   { "Turn Undead", event_countdown, EVENT_CHAR}, /* eTURN_UNDEAD */
   { "SpellBattle", event_countdown, EVENT_CHAR}, /* eSPELLBATTLE */
   { "Falling", event_falling, EVENT_CHAR}, /* eFALLING */
-  { "Check Occupued", event_check_occupied, EVENT_ROOM} /* eCHECK_OCCUPIED */
+  { "Check Occupued", event_check_occupied, EVENT_ROOM}, /* eCHECK_OCCUPIED */
+  { "Tracks", event_tracks, EVENT_ROOM} /* eTRACKS */
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -196,7 +197,6 @@ EVENTFUNC(event_countdown) {
       send_to_char(ch, "You are able to use spellbattle again.\r\n");
       SPELLBATTLE(ch) = 0;
       break;
-
     default:
       break;
   }
