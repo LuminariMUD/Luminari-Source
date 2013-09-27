@@ -444,7 +444,7 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
 
   //free(world[room].name);
-  if (world[room].name)
+  if (world[room].name && *world[room].name)
     free(world[room].name);
 
   if(regions) {

@@ -208,6 +208,9 @@ EVENTFUNC(event_falling)
     
     /* are we falling more?  then we gotta increase the heigh fallen */
     sprintf(buf, "%d", height_fallen);
+    /* Need to free th ememory, if we are going to change it. */
+    if(pMudEvent->sVariables)
+      free(pMudEvent->sVariables);
     pMudEvent->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);
   } else {  // stop falling!
