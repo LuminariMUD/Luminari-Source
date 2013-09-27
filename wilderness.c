@@ -444,13 +444,14 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
 
   //free(world[room].name);
-  if (world[room].name && *world[room].name)
-    free(world[room].name);
+//  if (world[room].name)
+//    free(world[room].name);
 
   if(regions) {
-    world[room].name = strdup(region_table[regions->rnum].name);
+    strcpy(world[room].name, region_table[regions->rnum].name);//strdup(region_table[regions->rnum].name);
   } else {
-    world[room].name = "The Wilderness of Luminari";
+//    world[room].name = "The Wilderness of Luminari";
+    strcpy(world[room].name, "The Wilderness of Luminari");
   }
 
 //  world[room].description = "The wilderness.\r\n";
