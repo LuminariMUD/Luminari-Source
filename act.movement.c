@@ -1334,6 +1334,12 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check) {
     else
       send_to_char(ch, "It seems to be closed.\r\n");
   } else {
+
+    /* This was tricky - buildwalk for normal rooms is only activated above.  
+     * for wilderness rooms we need to activate it here. */
+    if(ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+      buildwalk(ch, dir);
+
     if (!ch->followers)
       return (do_simple_move(ch, dir, need_specials_check));
 
