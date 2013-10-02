@@ -23,6 +23,7 @@
 #include "improved-edit.h"
 #include "constants.h"
 #include "dg_scripts.h"
+#include "wilderness.h"
 
 /* Local, filescope function prototypes */
 /* Utility function for buildwalk */
@@ -291,8 +292,20 @@ ACMD(do_dig)
 /* For buildwalk. Finds the next free vnum in the zone */
 static room_vnum redit_find_new_vnum(zone_rnum zone)
 {
-  room_vnum vnum = genolc_zone_bottom(zone);
-  room_rnum rnum = real_room(vnum);
+  room_vnum vnum;
+  room_vnum top;
+  room_rnum rnum;
+
+  /* Handle wilderness limits differently. */
+  if(ZONE_FLAGGED(zone, ZONE_WILDERNESS)) {
+    vnum = WILD_ROOM_VNUM_START;
+    top = WILD_ROOM_VNUM_END;  
+  } else {
+    vnum = genolc_zone_bottom(zone);
+    top = zone_table[zone].top;
+  }
+
+  rnum = real_room(vnum);
 
   if (rnum == NOWHERE)
     return vnum;
@@ -310,6 +323,7 @@ static room_vnum redit_find_new_vnum(zone_rnum zone)
 
 int buildwalk(struct char_data *ch, int dir)
 {
+  int new_x = 0, new_y = 0;
   char buf[MAX_INPUT_LENGTH];
   room_vnum vnum;
   room_rnum rnum;
@@ -318,6 +332,33 @@ int buildwalk(struct char_data *ch, int dir)
       GET_LEVEL(ch) >= LVL_BUILDER) {
 
     get_char_colors(ch);
+
+    /* If this is a wilderness zone, set the coordinates */
+    if(ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS)) {
+
+      new_x = X_LOC(ch);
+      new_y = Y_LOC(ch);
+
+      switch(dir) {
+        case NORTH:
+          new_y++;
+          break;
+        case SOUTH:
+          new_y--;
+          break;
+        case EAST:
+          new_x++;
+          break;
+        case WEST:
+          new_x--;
+          break;
+        default:
+          /* Bad direction for wilderness travel.*/
+          send_to_char(ch, "Invalid direction for wilderness buildwalk.\r\n");
+          return 0;
+      }
+    }
+
 
     if (!can_edit_zone(ch, world[IN_ROOM(ch)].zone)) {
       send_to_char(ch, "You do not have build permissions in this zone.\r\n");
@@ -342,22 +383,46 @@ int buildwalk(struct char_data *ch, int dir)
       OLC_ROOM(d)->description = strdup(buf);
       OLC_ROOM(d)->zone = OLC_ZNUM(d);
       OLC_ROOM(d)->number = NOWHERE;
-	  OLC_ROOM(d)->sector_type = GET_BUILDWALK_SECTOR(ch);
+      OLC_ROOM(d)->sector_type = GET_BUILDWALK_SECTOR(ch);
+
+      /* If this is a wilderness zone, set the coordinates */
+      if(ZONE_FLAGGED(OLC_ZNUM(d), ZONE_WILDERNESS)) {
+        OLC_ROOM(d)->coords[0] = new_x;
+        OLC_ROOM(d)->coords[1] = new_y;      
+      }
 	  
       /* Save the new room to memory. redit_save_internally handles adding the 
        * room in the right place, etc. */
       redit_save_internally(d);
       OLC_VAL(d) = 0;
-
+      
       /* Link rooms */
       rnum = real_room(vnum);
-      CREATE(EXIT(ch, dir), struct room_direction_data, 1);
-      EXIT(ch, dir)->to_room = rnum;
-      CREATE(world[rnum].dir_option[rev_dir[dir]], struct room_direction_data, 1);
-      world[rnum].dir_option[rev_dir[dir]]->to_room = IN_ROOM(ch);
 
-      /* Report room creation to user */
-      send_to_char(ch, "%sRoom #%d created by BuildWalk.%s\r\n", yel, vnum, nrm);
+      if(ZONE_FLAGGED(GET_ROOM_ZONE(rnum), ZONE_WILDERNESS)) {
+        /* Wilderness exits default to the 'link' vnum. */
+        CREATE(world[rnum].dir_option[NORTH], struct room_direction_data, 1);
+        CREATE(world[rnum].dir_option[SOUTH], struct room_direction_data, 1);
+        CREATE(world[rnum].dir_option[EAST], struct room_direction_data, 1);
+        CREATE(world[rnum].dir_option[WEST], struct room_direction_data, 1);
+
+        world[rnum].dir_option[NORTH]->to_room = real_room(1000000);
+        world[rnum].dir_option[SOUTH]->to_room = real_room(1000000);
+        world[rnum].dir_option[EAST]->to_room = real_room(1000000);
+        world[rnum].dir_option[WEST]->to_room = real_room(1000000);
+
+        send_to_char(ch, "%sWilderness Room #%d created by BuildWalk.%s\r\n", yel, vnum, nrm);
+      } else {
+
+        CREATE(EXIT(ch, dir), struct room_direction_data, 1);
+        EXIT(ch, dir)->to_room = rnum;
+        CREATE(world[rnum].dir_option[rev_dir[dir]], struct room_direction_data, 1);
+        world[rnum].dir_option[rev_dir[dir]]->to_room = IN_ROOM(ch);
+   
+        /* Report room creation to user */
+        send_to_char(ch, "%sRoom #%d created by BuildWalk.%s\r\n", yel, vnum, nrm);
+      }
+
       cleanup_olc(d, CLEANUP_STRUCTS);
 
       return (1);

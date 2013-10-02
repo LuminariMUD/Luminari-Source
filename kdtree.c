@@ -532,7 +532,7 @@ static kdres *kd_nearest_n(struct kdtree *kd, const double *pos, int num)
 struct kdres *kd_nearest_range(struct kdtree *kd, const double *pos, double range)
 {
         int ret;
-        struct kdres *rset;
+	struct kdres *rset= NULL;
 
         if(!(rset = malloc(sizeof *rset))) {
                 return 0;
