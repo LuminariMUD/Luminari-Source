@@ -2613,8 +2613,8 @@ void hit(struct char_data *ch, struct char_data *victim,
         damage(ch, victim, dam * backstab_mult(ch),
                 SKILL_BACKSTAB, dam_type, offhand);
         /* crippling strike */
-        if (dam && GET_SKILL(ch, SKILL_CRIP_STRIKE) &&
-                !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
+        if (dam && (GET_POS(victim) != POS_DEAD) && GET_SKILL(ch, SKILL_CRIP_STRIKE) &&
+            !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
           new_affect(&af);
 
           af.spell = SKILL_CRIP_STRIKE;
@@ -2646,7 +2646,7 @@ void hit(struct char_data *ch, struct char_data *victim,
     }
 
     /* trelux natural ability to poison with their claws */
-    if (GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
+    if ( (GET_POS(victim) != POS_DEAD) && GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
             && !rand_number(0, 5)) {
       call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_INNATE);
     }
