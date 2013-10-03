@@ -14,6 +14,10 @@
 #define WILD_DYNAMIC_ROOM_VNUM_START 1004000 /* The start of the vnums for the dynamic room pool. */
 #define WILD_DYNAMIC_ROOM_VNUM_END   1005999 /* The end of the vnums for the dynamic room pool. */
 
+/* Utility macros */
+#define IS_DYNAMIC(rnum) ((world[rnum].number >= WILD_DYNAMIC_ROOM_VNUM_START) && \
+                          (world[rnum].number <= WILD_DYNAMIC_ROOM_VNUM_END))
+
 #define WATERLINE               138
 #define SHALLOW_WATER_THRESHOLD  20 
 #define COASTLINE_THRESHOLD      10
@@ -127,6 +131,7 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
 void initialize_wilderness_lists();
 room_rnum find_available_wilderness_room(); /* Get the next empty room in the pool. */
 room_rnum find_room_by_coordinates(int x, int y); /* Get the room at coordinates (x,y) */
+room_rnum find_static_room_by_coordinates(int x, int y);
 void assign_wilderness_room(room_rnum room, int x, int y); /* Assign the room to the provided coordinates, adjusting descriptions, etc. */
 
 

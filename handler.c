@@ -738,11 +738,15 @@ void char_to_room(struct char_data *ch, room_rnum room) {
         }
 
       }      
-      /* Set occupied flag. */
-      SET_BIT_AR(ROOM_FLAGS(room), ROOM_OCCUPIED);
-      /* Create the event to clear the flag, if it is not already set. */
-      if(!room_has_mud_event(&world[room], eCHECK_OCCUPIED))
-        NEW_EVENT(eCHECK_OCCUPIED, &world[room], NULL, 10 RL_SEC);
+      /* Set occupied flag */
+
+      if ( IS_DYNAMIC(room) ) {
+        SET_BIT_AR(ROOM_FLAGS(room), ROOM_OCCUPIED);
+        /* Create the event to clear the flag, if it is not already set. */
+        if(!room_has_mud_event(&world[room], eCHECK_OCCUPIED))
+          NEW_EVENT(eCHECK_OCCUPIED, &world[room], NULL, 10 RL_SEC);
+      } else {
+      }
     }
 
     ch->next_in_room = world[room].people;
