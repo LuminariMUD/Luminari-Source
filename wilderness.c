@@ -77,13 +77,15 @@ void initialize_wilderness_lists() {
 
   /* The +1 for the initializer is so that the 'magic' room is not 
    * included in the index. */ 
-  for(i = WILD_ROOM_VNUM_START + 1; i< WILD_DYNAMIC_ROOM_VNUM_START; i++) {
+  for(i = WILD_ROOM_VNUM_START + 1; i< WILD_DYNAMIC_ROOM_VNUM_START; i++) {   
     if(real_room(i) != NOWHERE) {
-      CREATE(rm, room_vnum, 1);
+      CREATE(rm, room_rnum, 1);
       *rm = real_room(i);
       loc[0] = world[real_room(i)].coords[0];
       loc[1] = world[real_room(i)].coords[1];
+
       kd_insert(kd_wilderness_rooms, loc, rm);
+
     }
   }
 }
@@ -369,10 +371,12 @@ room_rnum find_static_room_by_coordinates(int x, int y) {
   void* set; 
   room_rnum* room;
 
+
   /* use the kd_wilderness_rooms kd-tree index to look up the room at (x, y) */
-  loc[0] = x;
-  loc[1] = y;
-  set = kd_nearest_range(kd_wilderness_rooms, loc, 0);
+  loc[0] = (double)x;
+  loc[1] = (double)y;
+
+  set = kd_nearest_range(kd_wilderness_rooms, loc, 0.5);
   while( !kd_res_end( set ) ) {
     room = (room_rnum *)kd_res_item( set, pos);
     return *room;
@@ -388,9 +392,9 @@ room_rnum find_room_by_coordinates(int x, int y) {
   int i = 0;
   room_rnum room = NOWHERE;
 
-  if((room = find_static_room_by_coordinates(x, y)) != NOWHERE)
+  if((room = find_static_room_by_coordinates(x, y)) != NOWHERE) {
     return room;
-  
+  }
   /* Check the dynamic rooms. */
   for(i = WILD_DYNAMIC_ROOM_VNUM_START; (i <= WILD_DYNAMIC_ROOM_VNUM_END) && (real_room(i) != NOWHERE); i++) {
     if((ROOM_FLAGGED(real_room(i), ROOM_OCCUPIED)) && 

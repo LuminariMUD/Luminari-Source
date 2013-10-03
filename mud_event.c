@@ -349,7 +349,7 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId) {
     if (!pEvent->isMudEvent)
       continue;
     pMudEvent = (struct mud_event_data *) pEvent->event_obj;
-    if (pMudEvent->iId == iId) {
+    if ((pMudEvent) && (pMudEvent->iId == iId)) {
       found = TRUE;
       break;
     }
