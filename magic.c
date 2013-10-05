@@ -161,9 +161,12 @@ const char *save_names[] = {"Fort", "Refl", "Will", "", ""};
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
         int type, int modifier) {
   int challenge = 10, // 10 is base DC
-          diceroll = dice(1, 20),
-          savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
+  diceroll = dice(1, 20),
+  savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
 
+  if (GET_POS(vict) == POS_DEAD)
+    return (FALSE); /* Guess you failed, since you are DEAD. */
+  
   //can add challenge bonus/penalties here (ch)
   challenge += (DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch)) / 2;
   if (DIVINE_LEVEL(ch) > MAGIC_LEVEL(ch))

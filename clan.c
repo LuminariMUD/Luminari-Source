@@ -2965,7 +2965,8 @@ ACMD(do_clantalk)
     send_to_char(ch, "What do you want to tell your clan?\r\n");
     return;
   }
-  snprintf(buf, sizeof(buf), "%s[Clan] \"%s\"%s", QBCYN, (argument+1), QNRM );
+  /* Removed the +1 from argument...No idea why they did that. -Ornir */
+  snprintf(buf, sizeof(buf), "%s[Clan] \"%s\"%s", QBCYN, (argument), QNRM );
   msg = act(buf, TRUE, ch, 0, ch, TO_VICT);
   add_history(ch, msg, HIST_CLANTALK);
 
@@ -3007,9 +3008,10 @@ ACMD(do_clantalk)
     if ((i->character) == ch)
       continue;
 
+    /* Again, removed the +1 from argument. */
     snprintf(buf, sizeof(buf), "[Clantalk] %s$n \"%s\"%s",
             CCMAG(i->character, C_NRM),
-            (argument+1), CCNRM(i->character, C_NRM) );
+            (argument), CCNRM(i->character, C_NRM) );
 
     if (imm) {
       snprintf(buf2, sizeof(buf2), "[%sClan %d - %s %s] %s",
