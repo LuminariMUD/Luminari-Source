@@ -433,6 +433,8 @@ room_rnum find_available_wilderness_room() {
 
 void assign_wilderness_room(room_rnum room, int x, int y) {  
 
+  static char *wilderness_name = "The Wilderness of Luminari";
+  static char *wilderness_desc = "The wilderness extends in all directions.";
   struct region_list *regions;
 
   if (room == NOWHERE) {/* This is not a room! */
@@ -451,14 +453,18 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
 //  if (world[room].name)
 //    free(world[room].name);
 
-  if(regions) {
-    strcpy(world[room].name, region_table[regions->rnum].name);//strdup(region_table[regions->rnum].name);
-  } else {
-//    world[room].name = "The Wilderness of Luminari";
-    strcpy(world[room].name, "The Wilderness of Luminari");
-  }
+  if (world[room].name && world[room].name != wilderness_name)
+    free(world[room].name);
+  if (world[room].description && world[room].description != wilderness_desc)
+    free(world[room].description);
 
-//  world[room].description = "The wilderness.\r\n";
+  world[room].description = wilderness_desc;
+
+  if(regions) {
+    world[room].name = strdup(region_table[regions->rnum].name);
+  } else {
+    world[room].name = wilderness_name;
+  }
 
   world[room].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
                             get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
@@ -520,6 +526,38 @@ void line_vis(struct wild_map_tile **map, int x,int y,int x2, int y2) {
   }
 }
 
+
+static char* wilderness_map_to_string (struct wild_map_tile ** map, int size) {
+  static char strmap[32768];
+  char* mp =strmap;
+  int x, y;
+
+  int centerx = ((size - 1)/2);
+  int centery = ((size - 1)/2);
+
+  for ( y = size - 1; y >= 0; y--) {
+    for ( x = 0; x < size; x++) {
+     if(sqrt((centerx - x)*(centerx - x) + (centery - y)*(centery - y)) <= (((size-1)/2)+1 )) {
+        if((x == centerx) && (y == centery)) {
+          strcpy(mp, "\tM*\tn");
+          mp += strlen("\tM*\tn"); 
+        } else {
+          strcpy(mp, (map[x][y].vis == 0 ? " " : wild_map_info[map[x][y].sector_type].disp));
+          mp += strlen((map[x][y].vis == 0 ? " " : wild_map_info[map[x][y].sector_type].disp));
+        }
+      } else {
+        strcpy(mp, " ");
+        mp += 1;
+      }
+    }  
+    strcpy(mp, "\r\n");
+    mp += 2;
+  }
+
+  *mp = '\0';
+  return strmap;
+} 
+
 /* Print a map with size 'size', centered on (x,y) */
 void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
   struct wild_map_tile **map;
@@ -540,7 +578,6 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
 
   get_map(xsize, ysize, x, y, map);
 
-  /* TEST: Line of Sight. */
   for(i = 0; i < xsize; i++) {
     line_vis(map, centerx, centery, i, 0);
     line_vis(map, centerx, centery, i, ysize - 1);
@@ -549,22 +586,11 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
     line_vis(map, centerx, centery, 0, i);
     line_vis(map, centerx, centery, xsize - 1, i);
   }
- 
-  for(j = ysize - 1; j >= 0 ; j--) {
-    for(i = 0; i < xsize; i++) {
-      if(sqrt((centerx - i)*(centerx - i) + (centery - j)*(centery - j)) <= (((size-1)/2)+1 )) {
-        if((i == centerx) && (j == centery)) {
-          send_to_char(ch, "\tM*\tn");
-        } else {
-          send_to_char(ch, "%s", (map[i][j].vis == 0 ? " " : wild_map_info[map[i][j].sector_type].disp));
-        }
-      } else {
-        send_to_char(ch, " ");
-      }
-    }  
-    send_to_char(ch, "\r\n");
-  }  
 
+//  send_to_char(ch, "%s", wilderness_map_to_string(map, size));
+
+send_to_char(ch, "%s", strpaste(wilderness_map_to_string(map, size), strfrmt(world[IN_ROOM(ch)].description, GET_SCREEN_WIDTH(ch) - size,size, FALSE, TRUE, TRUE), " \tn"));
+/*
   send_to_char(ch, " Current Location  : (\tC%d\tn, \tC%d\tn)\r\n" 
                    " Current Elevation : %.3d   "
                    " Current Moisture  : %d\r\n"
@@ -577,7 +603,7 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
                    get_radial_gradient(x, y),
                    get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
                    sector_types[world[IN_ROOM(ch)].sector_type]);
-
+*/
 
   if (map[0]) free(map[0]);
   free(map);
