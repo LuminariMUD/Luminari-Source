@@ -2672,7 +2672,7 @@ ACMD(do_consider) {
   }
   if (GET_LEVEL(victim) >= LVL_IMMORT) {
     /* mobiles level 31+ are 'group-needed' generally */
-    send_to_char(ch, "Don't even think about it without some friends help!\r\n");
+    send_to_char(ch, "Don't even think about it without some help!\r\n");
     return;
   }
   diff = (GET_LEVEL(victim) - GET_LEVEL(ch));
