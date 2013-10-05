@@ -2945,6 +2945,7 @@ ACMD(do_clantalk)
       if (real_clan(c_arg) != NO_CLAN) {
         c_id = (clan_vnum)c_arg;
         argument = arg2;  /* Skip the arg */
+        skip_spaces(&argument); /* Strip spaces. */
       } else {
         send_to_char(ch, "Invalid clan ID.\r\n");
         return;
