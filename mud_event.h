@@ -97,6 +97,7 @@ void free_mud_event(struct mud_event_data *pMudEvent);
 struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId);
 struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId); // Ornir
 void clear_char_event_list(struct char_data *ch);
+void clear_room_event_list(struct room_data *rm);
 void change_event_duration(struct char_data *ch, event_id iId, long time);
 
 #define HAS_WAIT(ch)            char_has_mud_event(ch, eWAIT)

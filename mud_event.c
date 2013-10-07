@@ -63,7 +63,7 @@ struct mud_event_list mud_event_index[] = {
   { "Turn Undead", event_countdown, EVENT_CHAR}, /* eTURN_UNDEAD */
   { "SpellBattle", event_countdown, EVENT_CHAR}, /* eSPELLBATTLE */
   { "Falling", event_falling, EVENT_CHAR}, /* eFALLING */
-  { "Check Occupued", event_check_occupied, EVENT_ROOM}, /* eCHECK_OCCUPIED */
+  { "Check Occupied", event_check_occupied, EVENT_ROOM}, /* eCHECK_OCCUPIED */
   { "Tracks", event_tracks, EVENT_ROOM} /* eTRACKS */
 };
 
@@ -82,6 +82,7 @@ EVENTFUNC(event_countdown) {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
   struct room_data *room = NULL;
+  room_vnum *rvnum;
   room_rnum rnum = NOWHERE;
 
   pMudEvent = (struct mud_event_data *) event_obj;
@@ -97,8 +98,9 @@ EVENTFUNC(event_countdown) {
       ch = (struct char_data *) pMudEvent->pStruct;
       break;
     case EVENT_ROOM:
-      room = (struct room_data *) pMudEvent->pStruct;
-      rnum = real_room(room->number);
+      rvnum = (room_vnum *) pMudEvent->pStruct;
+      rnum = real_room(*rvnum);
+      room = &world[real_room(rnum)];
       break;
     default:
       break;
@@ -214,6 +216,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
   struct descriptor_data * d = NULL;
   struct char_data * ch = NULL;
   struct room_data * room = NULL;
+  room_vnum *rvnum = NULL;
 
   pEvent = event_create(mud_event_index[pMudEvent->iId].func, pMudEvent, time);
   pEvent->isMudEvent = TRUE;
@@ -236,7 +239,13 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
       add_to_list(pEvent, ch->events);
       break;
     case EVENT_ROOM:
-      room = (struct room_data *) pMudEvent->pStruct;
+
+      CREATE(rvnum, room_vnum, 1);
+      *rvnum = *((room_vnum *) pMudEvent->pStruct);
+      pMudEvent->pStruct = rvnum;
+      room = &world[real_room(*rvnum)];
+
+      log("[DEBUG] Adding Event %s to room %d",mud_event_index[pMudEvent->iId].event_name, room->number);
 
       if (room->events == NULL)
         room->events = create_list();
@@ -265,6 +274,7 @@ void free_mud_event(struct mud_event_data *pMudEvent) {
   struct descriptor_data * d = NULL;
   struct char_data * ch = NULL;
   struct room_data * room = NULL;
+  room_vnum *rvnum = NULL;
 
   switch (mud_event_index[pMudEvent->iId].iEvent_Type) {
     case EVENT_WORLD:
@@ -284,9 +294,20 @@ void free_mud_event(struct mud_event_data *pMudEvent) {
       }
       break;
     case EVENT_ROOM:
-      room = (struct room_data *) pMudEvent->pStruct;
-      remove_from_list(pMudEvent->pEvent, room->events);
+      /* Due to OLC changes, if rooms were deleted then the room we have in the event might be 
+       * invalid.  This entire system needs to be re-evaluated!  We should really use RNUM
+       * and just get the room data ourselves.  Storing the room_data struct is asking for bad
+       * news. */  
+      rvnum = (room_vnum *) pMudEvent->pStruct;
 
+      room = &world[real_room(*rvnum)];
+
+      log("[DEBUG] Removing Event %s from room %d, which has %d events.",mud_event_index[pMudEvent->iId].event_name, room->number, (room->events == NULL ? 0 : room->events->iSize));
+      
+      free(pMudEvent->pStruct);
+
+      remove_from_list(pMudEvent->pEvent, room->events);
+      
       if (room->events && room->events->iSize == 0) {  /* Added the null check here. - Ornir*/
         free_list(room->events);
         room->events = NULL;
@@ -349,7 +370,7 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId) {
     if (!pEvent->isMudEvent)
       continue;
     pMudEvent = (struct mud_event_data *) pEvent->event_obj;
-    if ((pMudEvent) && (pMudEvent->iId == iId)) {
+    if (pMudEvent->iId == iId) {
       found = TRUE;
       break;
     }
@@ -379,6 +400,25 @@ void clear_char_event_list(struct char_data * ch) {
   }
 
   simple_list(NULL);
+}
+
+void clear_room_event_list(struct room_data *rm) {
+  struct event * pEvent = NULL;
+
+  if (rm->events == NULL)
+    return;
+
+  if (rm->events->iSize == 0)
+    return;
+
+  simple_list(NULL);
+
+  while ((pEvent = (struct event *) simple_list(rm->events)) != NULL) {
+    event_cancel(pEvent);
+  }
+
+  simple_list(NULL);
+
 }
 
 /* ripley's version of change_event_duration 
