@@ -130,11 +130,17 @@ room_rnum add_room(struct room_data *room)
 
 int delete_room(room_rnum rnum)
 {
+  bool is_wilderness = FALSE;
   room_rnum i;
   int j;
   struct char_data *ppl, *next_ppl;
   struct obj_data *obj, *next_obj;
   struct room_data *room;
+
+  /* Is this is a wilderness room? */
+  if(ZONE_FLAGGED(GET_ROOM_ZONE(rnum), ZONE_WILDERNESS)) {
+    is_wilderness = TRUE;
+  }
 
   if (rnum <= 0 || rnum > top_of_world)	/* Can't delete void yet. */
     return FALSE;
@@ -177,16 +183,7 @@ int delete_room(room_rnum rnum)
     extract_script(room, WLD_TRIGGER);
   free_proto_script(room, WLD_TRIGGER);
 
-  if (room->events != NULL) {
-	  if (room->events->iSize > 0) {
-		struct event * pEvent;
-
-		while ((pEvent = simple_list(room->events)) != NULL)
-		  event_cancel(pEvent);
-	  }
-	  free_list(room->events);
-    room->events = NULL;
-  }
+  clear_room_event_list(room);
   
   /* Change any exit going to this room to go the void. Also fix all the exits 
    * pointing to rooms above this. */
@@ -239,6 +236,9 @@ int delete_room(room_rnum rnum)
       case 'P':
       case 'E':
       case 'C':
+      case 'J':
+      case 'I':
+      case 'L':
       case '*':
         /* Known zone entries we don't care about. */
         break;
@@ -268,11 +268,9 @@ int delete_room(room_rnum rnum)
   top_of_world--;
   RECREATE(world, struct room_data, top_of_world + 1);
 
-  /* Reindex the wilderness index if this is a wilderness room. */
-  if(ZONE_FLAGGED(GET_ROOM_ZONE(real_room(rnum)), ZONE_WILDERNESS)) {
+  /* Rebuild the index if the deleted room was a wilderness room. */
+  if ( is_wilderness )
     initialize_wilderness_lists();
-  }
-
 
   return TRUE;
 }

@@ -4846,7 +4846,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
   /* first check if this is a room event */
   if (IdNum != -1) {
     /* note, as of now we are setting the room flag in the switch() above */
-    NEW_EVENT(IdNum, &world[rnum], NULL, rounds * PULSE_VIOLENCE);
+    NEW_EVENT(IdNum, &world[rnum].number, NULL, rounds * PULSE_VIOLENCE);
   }
   /* ok, must be a room affection */
   else if (aff != -1) {

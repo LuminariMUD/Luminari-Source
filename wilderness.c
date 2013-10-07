@@ -613,6 +613,7 @@ send_to_char(ch, "%s", strpaste(wilderness_map_to_string(map, size), strfrmt(wor
 EVENTFUNC(event_check_occupied) {
   struct mud_event_data *pMudEvent = NULL;
   struct room_data *room = NULL;
+  room_vnum rvnum = NOWHERE;
   room_rnum rnum = NOWHERE;
 
   pMudEvent = (struct mud_event_data *) event_obj;
@@ -623,11 +624,13 @@ EVENTFUNC(event_check_occupied) {
   if (!pMudEvent->iId)
     return 0;
 
-   room = (struct room_data *) pMudEvent->pStruct;
-   rnum = real_room(room->number);
+   rvnum = *((room_vnum *) pMudEvent->pStruct);
+   rnum = real_room(rvnum);
 
   if(rnum == NOWHERE)
     return 0;
+  else 
+    room = &world[rnum];
 
   /* Check to see if the room is occupied.  Check the following: 
    * - Characters (Players/Mobiles)
