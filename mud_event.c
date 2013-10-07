@@ -245,7 +245,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
       pMudEvent->pStruct = rvnum;
       room = &world[real_room(*rvnum)];
 
-      log("[DEBUG] Adding Event %s to room %d",mud_event_index[pMudEvent->iId].event_name, room->number);
+//      log("[DEBUG] Adding Event %s to room %d",mud_event_index[pMudEvent->iId].event_name, room->number);
 
       if (room->events == NULL)
         room->events = create_list();
@@ -302,7 +302,7 @@ void free_mud_event(struct mud_event_data *pMudEvent) {
 
       room = &world[real_room(*rvnum)];
 
-      log("[DEBUG] Removing Event %s from room %d, which has %d events.",mud_event_index[pMudEvent->iId].event_name, room->number, (room->events == NULL ? 0 : room->events->iSize));
+//      log("[DEBUG] Removing Event %s from room %d, which has %d events.",mud_event_index[pMudEvent->iId].event_name, room->number, (room->events == NULL ? 0 : room->events->iSize));
       
       free(pMudEvent->pStruct);
 
