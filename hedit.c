@@ -84,7 +84,7 @@ ACMD(do_oasis_hedit)
   
   OLC_ZNUM(d) = search_help(OLC_STORAGE(d), LVL_IMPL);
 
-  if (help_table[OLC_ZNUM(d)].duplicate) {
+  if ((OLC_ZNUM(d) != NOWHERE) && help_table[OLC_ZNUM(d)].duplicate) {
     for (i = 0; i < top_of_helpt; i++)
       if (help_table[i].duplicate == 0 && help_table[i].entry == help_table[OLC_ZNUM(d)].entry) {
         OLC_ZNUM(d) = i;
