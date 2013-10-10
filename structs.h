@@ -168,13 +168,19 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define NUM_ZONE_FLAGS      12
 
 /* Exit info: used in room_data.dir_option.exit_info */
-#define EX_ISDOOR    (1 << 0) /**< Exit is a door */
-#define EX_CLOSED    (1 << 1) /**< The door is closed */
-#define EX_LOCKED    (1 << 2) /**< The door is locked */
-#define EX_PICKPROOF (1 << 3) /**< Lock can't be picked */
-#define EX_HIDDEN    (1 << 4) /**< Exit is hidden, secret */
+#define EX_ISDOOR    	 (1 << 0) /**< Exit is a door */
+#define EX_CLOSED    	 (1 << 1) /**< The door is closed */
+#define EX_LOCKED        EX_LOCKED_EASY | EX_LOCKED_MEDIUM | EX_LOCKED_HARD
+#define EX_PICKPROOF 	 (1 << 3) /**< Lock can't be picked */
+#define EX_HIDDEN_EASY   (1 << 4) /**< Exit is hidden, easy difficulty to find. */
+#define EX_HIDDEN_MEDIUM (1 << 5) /**< Exit is hidden, medium difficulty to find. */
+#define EX_HIDDEN_HARD   (1 << 6) /**< Exit is hidden, hard difficulty to find. */
+#define EX_HIDDEN    	 EX_HIDDEN_EASY | EX_HIDDEN_MEDIUM | EX_HIDDEN_HARD
+#define EX_LOCKED_EASY   (1 << 2) /**< The door is locked, easy to pick */
+#define EX_LOCKED_MEDIUM (1 << 7) /**< The door is locked, medium difficulty to pick. */
+#define EX_LOCKED_HARD   (1 << 8) /**< The door is locked, hard difficulty to pick. */
 /** The total number of Exit Bits */
-#define NUM_EXIT_BITS  5
+#define NUM_EXIT_BITS 9 
 
 /* Sector types: used in room_data.sector_type */
 #define SECT_INSIDE          0  /**< Indoors, connected to SECT macro. */
@@ -1533,6 +1539,8 @@ struct room_direction_data {
   sh_int /*bitvector_t*/ exit_info; /**< Door, and what type? */
   obj_vnum key; /**< Key's vnum (-1 for no key) */
   room_rnum to_room; /**< Where direction leads, or NOWHERE if not defined */
+
+  /* Extra door flags. */
 };
 
 struct raff_node {
