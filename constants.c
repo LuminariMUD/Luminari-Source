@@ -249,9 +249,13 @@ const char *zone_bits[NUM_ZONE_FLAGS + 1] = {
 const char *exit_bits[NUM_EXIT_BITS + 1] = {
   "Door",
   "Closed",
-  "Locked",
+  "Locked (easy)",
   "Pickproof",
-  "Hidden",
+  "Hidden (easy)",
+  "Hidden (medium)",
+  "Hidden (hard)",
+  "Locked (medium)",
+  "Locked (hard)"
   "\n"
 };
 

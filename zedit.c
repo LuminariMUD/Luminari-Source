@@ -449,7 +449,7 @@ bool zedit_get_levels(struct descriptor_data *d, char *buf) {
 /* the main menu */
 static void zedit_disp_menu(struct descriptor_data *d) {
   int subcmd = 0, room, counter = 0, maxcount;
-  char buf1[MAX_STRING_LENGTH], lev_string[50];
+  char buf1[MAX_STRING_LENGTH], lev_string[50], door_reset_string[50];
   bool levels_set = FALSE;
 
   get_char_colors(d->character);
@@ -578,10 +578,65 @@ static void zedit_disp_menu(struct descriptor_data *d) {
                 );
         break;
       case 'D':
+        /* Build the string for the reset - There are many possibilities. */
+        switch (MYCMD.arg3) {
+          case 0:
+            sprintf(door_reset_string, "open");
+            break;
+          case 1:
+            sprintf(door_reset_string, "closed");
+            break;
+          case 2:
+            sprintf(door_reset_string, "locked (easy)");
+            break;
+          case 3:
+            sprintf(door_reset_string, "locked (easy) and hidden (easy)");
+            break;
+          case 4:
+            sprintf(door_reset_string, "locked (easy) and hidden (medium)");
+            break;
+          case 5:
+            sprintf(door_reset_string, "locked (easy) and hidden (hard)");
+            break;
+          case 6:
+            sprintf(door_reset_string, "closed and hidden (easy)");
+            break;
+          case 7:
+            sprintf(door_reset_string, "closed and hidden (medium)");
+            break;
+          case 8:
+            sprintf(door_reset_string, "closed and hidden (hard)");
+            break;
+          case 9:
+            sprintf(door_reset_string,"locked (medium) and hidden (easy)");
+            break;
+          case 10:
+            sprintf(door_reset_string, "locked (medium) and hidden (medium)");
+            break;
+          case 11:
+            sprintf(door_reset_string, "locked (medium) and hidden (hard)");
+            break;
+          case 12:
+            sprintf(door_reset_string, "locked (medium)");
+            break;
+          case 13:
+            sprintf(door_reset_string, "locked (hard) and hidden (easy)");
+            break;
+          case 14:
+            sprintf(door_reset_string, "locked (hard) and hidden (medium)");
+            break;
+          case 15:
+            sprintf(door_reset_string, "locked (hard) and hidden (hard)");
+            break;
+          case 16:
+            sprintf(door_reset_string, "locked (hard)");
+            break;
+        }   
+
         write_to_output(d, "%sSet door %s as %s.",
                 buf1, // MYCMD.if_flag ? " then " : "",
-                dirs[MYCMD.arg2],
-                MYCMD.arg3 ? ((MYCMD.arg3 == 1) ? "closed" : "locked") : "open"
+                dirs[MYCMD.arg2], door_reset_string
+//                MYCMD.arg3 ? ((MYCMD.arg3 == 1) ? "closed" : "locked") : "open"
                 );
         break;
       case 'T':
@@ -760,8 +815,22 @@ static void zedit_disp_arg3(struct descriptor_data *d) {
       break;
     case 'D':
       write_to_output(d, "0)  Door open\r\n"
-              "1)  Door closed\r\n"
-              "2)  Door locked\r\n"
+              " 1)  Door closed\r\n"
+              " 2)  Door locked\r\n"
+              " 3)  Door locked (easy) and hidden (easy)\r\n"
+              " 4)  Door locked (easy) and hidden (medium)\r\n"
+              " 5)  Door locked (easy) and hidden (hard)\r\n"
+              " 6)  Door closed and hidden (easy)\r\n"
+              " 7)  Door closed and hidden (medium)\r\n"
+              " 8)  Door closed and hidden (hard)\r\n"
+              " 9)  Door locked (medium) and hidden (easy)\r\n"
+              "10)  Door locked (medium) and hidden (medium)\r\n"
+              "11)  Door locked (medium) and hidden (hard)\r\n"
+              "12)  Door locked (medium)\r\n"
+              "13)  Door locked (hard) and hidden (easy)\r\n"
+              "14)  Door locked (hard) and hidden (medium)\r\n"
+              "15)  Door locked (hard) and hidden (hard)\r\n"
+              "16)  Door locked (hard)\r\n"
               "Enter state of the door : ");
       break;
     case 'G':

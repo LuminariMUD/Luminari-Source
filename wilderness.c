@@ -24,47 +24,60 @@ int wild_waterline = 128;
 struct wild_map_info_type {
   int sector_type;
   char disp[20];
+  
 };
 
+/* \t= changes a color to be BACKGROUND. */
 static struct wild_map_info_type wild_map_info[] ={
-  { SECT_INSIDE, "\tn.\tn"}, /* 0 */
-  { SECT_CITY, "\twC\tn"},
-  { SECT_FIELD, "\tg,\tn"},
-  { SECT_FOREST, "\tG\t=Y\tn"},
-  { SECT_HILLS, "\tyn\tn"},
-  { SECT_MOUNTAIN, "\tw^\tn"}, /* 5 */
-  { SECT_WATER_SWIM, "\tB\t=~\tn"},
-  { SECT_WATER_NOSWIM, "\tb\t==\tn"},
-  { SECT_FLYING, "\tC^\tn"},
-  { SECT_UNDERWATER, "\tbU\tn"},
-  { SECT_ZONE_START, "\tRX\tn"}, /* 10 */
-  { SECT_ROAD_NS, "\tD|\tn"}, /* 11 */
-  { SECT_ROAD_EW, "\tD-\tn"}, /* 12 */
-  { SECT_ROAD_INT, "\tD+\tn"}, /* 13 */
-  { SECT_DESERT, "\tY.\tn"}, /* 14 */
-  { SECT_OCEAN, "\tb\t=~\tn"}, /* 15 */
-  { SECT_MARSHLAND, "\tM,\tn"}, /* 16 */
-  { SECT_HIGH_MOUNTAIN, "\tW^\tn"}, /* 17 */
-  { SECT_PLANES, "\tM.\tn"}, /* 18 */
-  { SECT_UD_WILD, "\tM\t=Y\tn"},
-  { SECT_UD_CITY, "\tmC\tn"},  // 20
-  { SECT_UD_INSIDE, "\tm.\tn"},
-  { SECT_UD_WATER, "\tm\t=~\tn\tn"},
-  { SECT_UD_NOSWIM, "\tM\t==\tn\tn"},
-  { SECT_UD_NOGROUND, "\tm^\tn"},
-  { SECT_LAVA, "\tR.\tc]\tn"},  //25  
-  { SECT_D_ROAD_NS, "\ty|\tn"},
-  { SECT_D_ROAD_EW, "\ty-\tn"},
-  { SECT_D_ROAD_INT, "\ty+\tn"},
-  { SECT_CAVE, "\tD\t=C\tn"},
-  { SECT_JUNGLE, "\tg&\tn"},
-  { SECT_TUNDRA, "\tW.\tn"},
-  { SECT_TAIGA, "\tgA\tn"},
-  { SECT_BEACH, "\ty:\tn"},
+  /* 0 */
+  { SECT_INSIDE, 	"\tn.\tn"}, 
+  { SECT_CITY, 		"\twC\tn"},
+  { SECT_FIELD, 	"\tg,\tn"},
+  { SECT_FOREST, 	"\tG\t=Y\tn"},
+  { SECT_HILLS, 	"\tyn\tn"},
+  /* 5 */
+  { SECT_MOUNTAIN, 	"\tw^\tn"}, 
+  { SECT_WATER_SWIM, 	"\tB\t=~\tn"},
+  { SECT_WATER_NOSWIM, 	"\tb\t==\tn"},
+  { SECT_FLYING, 	"\tC^\tn"},
+  { SECT_UNDERWATER, 	"\tbU\tn"},
+  /* 10 */
+  { SECT_ZONE_START, 	"\tRX\tn"}, 
+  { SECT_ROAD_NS, 	"\tD|\tn"},
+  { SECT_ROAD_EW, 	"\tD-\tn"},
+  { SECT_ROAD_INT, 	"\tD+\tn"},
+  { SECT_DESERT, 	"\tY.\tn"},
+  /* 15 */
+  { SECT_OCEAN, 	"\tb\t=~\tn"},
+  { SECT_MARSHLAND, 	"\tM,\tn"},
+  { SECT_HIGH_MOUNTAIN, "\tW^\tn"}, 
+  { SECT_PLANES, 	"\tM.\tn"}, 
+  { SECT_UD_WILD, 	"\tM\t=Y\tn"},
+  /* 20 */
+  { SECT_UD_CITY, 	"\tmC\tn"}, 
+  { SECT_UD_INSIDE, 	"\tm.\tn"},
+  { SECT_UD_WATER, 	"\tm\t=~\tn\tn"},
+  { SECT_UD_NOSWIM, 	"\tM\t==\tn\tn"},
+  { SECT_UD_NOGROUND, 	"\tm^\tn"},
+  /* 25 */
+  { SECT_LAVA, 		"\tR.\tc]\tn"},  
+  { SECT_D_ROAD_NS, 	"\ty|\tn"},
+  { SECT_D_ROAD_EW, 	"\ty-\tn"},
+  { SECT_D_ROAD_INT, 	"\ty+\tn"},
+  { SECT_CAVE, 		"\tD\t=C\tn"},
+  /* 30 */
+  { SECT_JUNGLE, 	"\tg&\tn"},
+  { SECT_TUNDRA, 	"\tW.\tn"},
+  { SECT_TAIGA, 	"\tgA\tn"},
+  { SECT_BEACH, 	"\ty:\tn"},
 
   { -1, ""},  /* RESERVED, NUM_ROOM_SECTORS */
 };
 
+/* Initialize the kd-tree that indexes the static rooms of the wilderness.
+ * This procedure can be used to do whatever initialization is needed, 
+ * but be aweare that it is run whenever a room is added or deleted from 
+ * the wilderness zone. */
 void initialize_wilderness_lists() {
   int i;
   double loc[2];
@@ -90,6 +103,7 @@ void initialize_wilderness_lists() {
   }
 }
 
+/* Get the value of the radial/box gradient at the specified (x,y) coordinate. */
 double get_radial_gradient(int x, int y) {
   int cx, cy;
   int xsize = WILD_X_SIZE;
@@ -130,10 +144,7 @@ double get_radial_gradient(int x, int y) {
       if (dist < 0)
         dist = 0;
 
-      /* Add some noise */
-//      dist *= ((PerlinNoise1D(NOISE_MATERIAL_PLANE_ELEV, dist/128.0, 2, 2, 1) + 1)/2);
-
-      distrec = (double)(dist/(xsize/8.0)); //dist/2048.0);
+      distrec = (double)(dist/(xsize/8.0)); 
      
       cx = (bounding_boxes[box][0] + bounding_boxes[box][2])/2;
       cy = (bounding_boxes[box][1] + bounding_boxes[box][3])/2;
@@ -164,8 +175,6 @@ int get_elevation(int map, int x, int y) {
   trans_x = x/(double)(WILD_X_SIZE/2.0);
   trans_y = y/(double)(WILD_Y_SIZE/2.0);
 
-//  result = PerlinNoise2D(map, trans_x, trans_y, 1.5, 2, 16);
-//  result = ( result + 1.0 ) / 2.0;
 
   result = PerlinNoise2D(map, trans_x, trans_y, 2.0, 2.0, 16);
   
@@ -190,13 +199,6 @@ int get_elevation(int map, int x, int y) {
 
   /* get the distortion */
   dist = PerlinNoise2D(NOISE_MATERIAL_PLANE_ELEV_DIST, trans_x, trans_y, 1.5, 2.0, 16);
-
-  /* Compress the data a little, makes better mountains. */
-//  dist = (dist > .8 ? .8 : dist);
-//  dist = (dist < -.8 ? -.8 : dist);
-
-  /* Normalize between -1 and 1 */
-//  dist = (dist)/.8;
 
   /* Take a weighted average, normalize over [0..1] */
   result = ((result +  dist) + 1)/3.0;
@@ -250,6 +252,7 @@ int get_temperature(int map, int x, int y) {
 
 /* Generate a height map centered on center_x and center_y. */
 void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_tile **map) {
+
   int x, y;
   int x_offset, y_offset;
   int trans_x, trans_y;
@@ -449,10 +452,6 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   /* Get the enclosing regions. */
   regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
 
-  //free(world[room].name);
-//  if (world[room].name)
-//    free(world[room].name);
-
   if (world[room].name && world[room].name != wilderness_name)
     free(world[room].name);
   if (world[room].description && world[room].description != wilderness_desc)
@@ -511,7 +510,7 @@ void line_vis(struct wild_map_tile **map, int x,int y,int x2, int y2) {
           visibility -= 3;
           break;
       }
-//      if (visibility > 0) map[x][y].vis = 1;
+
     if (round(sqrt(((double)x - (double)orig_x) * ((double)x - (double)orig_x) + ((double)y - (double)orig_y) * ((double)y - (double)orig_y))) <= (visibility + 1))
       map[x][y].vis = 1; 
     numerator += shortest ;

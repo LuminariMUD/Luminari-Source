@@ -3347,15 +3347,118 @@ void reset_zone(zone_rnum zone) {
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_CLOSED);
               REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                      EX_LOCKED);
+                      EX_LOCKED_EASY);
               break;
             case 2:
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                      EX_LOCKED);
+                      EX_LOCKED_EASY);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              break;
+            case 3:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED_EASY);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_HIDDEN_EASY);
+              break;
+            case 4:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED_EASY);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_HIDDEN_MEDIUM);
+              break;
+            case 5:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                     EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED_EASY);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_HIDDEN_HARD);
+              break;
+            case 6:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_HIDDEN_EASY);
+              break;
+            case 7:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_HIDDEN_MEDIUM);
+              break;
+            case 8:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_HIDDEN_HARD);
+              break;
+            case 9:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                     EX_LOCKED_MEDIUM);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_HIDDEN_EASY);
+              break;
+            case 10:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                        EX_LOCKED_MEDIUM);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_HIDDEN_MEDIUM);
+              break;
+            case 11:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED_MEDIUM);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                     EX_HIDDEN_HARD);
+              break;
+            case 12:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED_MEDIUM);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              break;
+            case 13:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                         EX_LOCKED_HARD);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_HIDDEN_EASY);
+              break;
+            case 14:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED_HARD);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_HIDDEN_MEDIUM);
+              break;
+            case 15:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_CLOSED);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                         EX_LOCKED_HARD);
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_HIDDEN_HARD);
+              break;
+            case 16:
+              SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
+                      EX_LOCKED_HARD);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_CLOSED);
               break;
           }
+       
         last_cmd = 1;
         tmob = NULL;
         tobj = NULL;

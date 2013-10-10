@@ -251,7 +251,6 @@ cpp_extern const struct command_info cmd_info[] = {
 
   { "kill", "k", POS_FIGHTING, do_kill, 0, 0, FALSE},
   { "kick", "ki", POS_FIGHTING, do_kick, 1, 0, FALSE},
-  { "kitquests", "kitquests", POS_DEAD, do_kitquests, LVL_BUILDER, 0, TRUE},
   
   { "look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE},
   { "layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE},
@@ -330,7 +329,6 @@ cpp_extern const struct command_info cmd_info[] = {
   { "qui", "qui", POS_DEAD, do_quit, 0, 0, TRUE},
   { "quit", "quit", POS_DEAD, do_quit, 0, SCMD_QUIT, TRUE},
   { "qsay", "qsay", POS_RECLINING, do_qcomm, 0, SCMD_QSAY, TRUE},
-  { "qinfo", "qinfo", POS_DEAD, do_qinfo, LVL_BUILDER, 0, TRUE},
   { "qref", "qref", POS_DEAD, do_qref, LVL_BUILDER, 0, TRUE},
   { "qview", "qview", POS_DEAD, do_qview, LVL_BUILDER, 0, TRUE},
   
