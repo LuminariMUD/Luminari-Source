@@ -890,6 +890,13 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       value += GET_DEX_BONUS(ch);
       value += compute_gear_penalty_check(ch);
       return value;
+    case ABILITY_SEARCH:
+      value += GET_INT_BONUS(ch);
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_ELF) 
+        value += 2;
+      else if (!IS_NPC(ch) && GET_RACE(ch) == RACE_H_ELF)
+        value += 1;
+      return value;
     default: return -1;
   }
 }

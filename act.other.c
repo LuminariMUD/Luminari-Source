@@ -1398,6 +1398,10 @@ ACMD(do_fly) {
   //call_magic(ch, ch, NULL, SPELL_FLY, GET_LEVEL(ch), CAST_SPELL);
 }
 
+ACMD(do_search) {
+
+}
+
 /* entry point for sneak, the command just flips the flag */
 ACMD(do_sneak) {
   

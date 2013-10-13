@@ -226,6 +226,7 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
   { NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA}, //16
   { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA, CC}, //17 pick locks
   { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA, CC}, //18 steal
+  { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA, NA}, //19 search
 };
 #undef NA
 #undef CC
