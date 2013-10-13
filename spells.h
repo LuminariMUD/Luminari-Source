@@ -662,7 +662,7 @@
 #define ABILITY_TAUNT			7  // taunt
 #define ABILITY_CONCENTRATION		8  // concentration
 #define ABILITY_SPELLCRAFT		9  // spellcraft
-#define ABILITY_APPRAISE	          10 // appraise
+#define ABILITY_APPRAISE	        10 // appraise
 #define ABILITY_DISCIPLINE		11 // discipline
 #define ABILITY_PARRY			12 // parry
 #define ABILITY_LORE			13 // lore
@@ -671,8 +671,9 @@
 #define ABILITY_FREE16			16 // use to be taming
 #define ABILITY_PICK_LOCK		17 // open locks
 #define ABILITY_STEAL			18 // pick pockets
+#define ABILITY_SEARCH                  19 // search
 
-#define NUM_ABILITIES			19 /* Number of defined abilities */
+#define NUM_ABILITIES			20 /* Number of defined abilities */
 /*	MAX_ABILITIES = 200 */
 /*-------------------------------------------------------------------------*/
 

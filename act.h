@@ -378,6 +378,7 @@ ACMD(do_not_here);
 ACMD(do_practice);
 ACMD(do_report);
 ACMD(do_save);
+ACMD(do_search);
 ACMD(do_sneak);
 ACMD(do_spelllist);
 ACMD(do_spells);

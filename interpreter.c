@@ -368,6 +368,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "save", "sav", POS_SLEEPING, do_save, 0, 0, TRUE},
   { "saveall", "saveall", POS_DEAD, do_saveall, LVL_BUILDER, 0, TRUE},
   //  { "savemobs"  , "savemobs" , POS_DEAD    , do_savemobs  , LVL_IMPL, 0, FALSE},
+  { "search", "sea", POS_STANDING, do_search, 1, 0, FALSE},
   { "sell", "sell", POS_STANDING, do_not_here, 0, 0, FALSE},
   { "sedit", "sedit", POS_DEAD, do_oasis_sedit, LVL_BUILDER, 0, TRUE},
   { "send", "send", POS_SLEEPING, do_send, LVL_STAFF, 0, TRUE},

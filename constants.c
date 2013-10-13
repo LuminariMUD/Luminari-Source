@@ -1794,7 +1794,8 @@ const char *ability_names[] = {
   "<under construction>",
   "<under construction>",
   "Pick Locks",
-  "Steal"
+  "Steal",
+  "Search"
 };
 
 
