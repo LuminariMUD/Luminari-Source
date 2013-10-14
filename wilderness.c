@@ -589,15 +589,15 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
 //  send_to_char(ch, "%s", wilderness_map_to_string(map, size));
 
 send_to_char(ch, "%s", strpaste(wilderness_map_to_string(map, size), strfrmt(world[IN_ROOM(ch)].description, GET_SCREEN_WIDTH(ch) - size,size, FALSE, TRUE, TRUE), " \tn"));
-/*
-  send_to_char(ch, " Current Location  : (\tC%d\tn, \tC%d\tn)\r\n" 
-                   " Current Elevation : %.3d   "
+
+  send_to_char(ch, " Current Location  : (\tC%d\tn, \tC%d\tn)\r\n", 
+/*                   " Current Elevation : %.3d   "
                    " Current Moisture  : %d\r\n"
                    " Gradient          : %f   "
                    " Current Temp.     : %d\r\n"
-                   " Current Sector    : %s\r\n",  
-                   x, y, 
-                   get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
+                   " Current Sector    : %s\r\n",  */
+                   x, y);
+/*                   get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
                    get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y),
                    get_radial_gradient(x, y),
                    get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
