@@ -1234,7 +1234,7 @@ ASPELL(spell_refuge) // illusion (also divine)
 
 ASPELL(spell_salvation) // divination
 {  
-  sh_int load_broom;
+  room_vnum load_broom;
 
   if (!PLR_FLAGGED(ch, PLR_SALVATION) ||
           !GET_SALVATION_NAME(ch) ||

@@ -1806,7 +1806,7 @@ struct player_special_data {
   int buildwalk_sector; /**< Default sector type for buildwalk */
 
   /* salvation spell */
-  int salvation_room;
+  room_vnum salvation_room;
   char *salvation_name;
 };
 

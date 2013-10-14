@@ -46,6 +46,7 @@ char *get_align_by_num_cnd(int align);
 char *get_align_by_num(int align);
 bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict);
 bool can_see_hidden(struct char_data *ch, const struct char_data *vict);
+int skill_check(struct char_data *ch, int skill, int dc);
 void increase_skill(struct char_data *ch, int skillnum);
 int convert_material_vnum(int obj_vnum);
 void basic_mud_log(const char *format, ...) __attribute__((format(printf, 1, 2)));

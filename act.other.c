@@ -1398,9 +1398,49 @@ ACMD(do_fly) {
   //call_magic(ch, ch, NULL, SPELL_FLY, GET_LEVEL(ch), CAST_SPELL);
 }
 
+/* Helper function for 'search' command. 
+ * Returns the DC of the search attempt to find the specified door. */
+int get_hidden_door_dc(struct char_data *ch, int door) {
+
+/* (Taken from the d&d 3.5e SRD)
+ * Task	                                                Search DC
+ * -----------------------------------------------------------------------
+ * Ransack a chest full of junk to find a certain item	   10
+ * Notice a typical secret door or a simple trap	   20
+ * Find a difficult nonmagical trap (rogue only)1	21 or higher
+ * Find a magic trap (rogue only)(1)             	25 + lvl of spell 
+ *                                                     used to create trap
+ * Find a footprint	                                 Varies(2)                                                     
+ * Notice a well-hidden secret door                        30
+ * -----------------------------------------------------------------------
+ * (1) Dwarves (even if they are not rogues) can use Search to find traps built
+ *     into or out of stone.
+ * (2) A successful Search check can find a footprint or similar sign of a 
+ *     creature's passage, but it won't let you find or follow a trail. See the 
+ *     Track feat for the appropriate DC. */
+
+  if(EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_EASY))
+    return 10;
+  if(EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_MEDIUM))
+    return 20;
+  if(EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_HARD))
+    return 30;
+
+  /* If we get here, the door is not hidden. */
+  return 0;
+}
+
 /* 'search' command, uses the rogue's search skill, if available, although
  * the command is available to all.  */
 ACMD(do_search) {
+  int door, val, found = FALSE;
+  struct char_data *i; /* for player/mob */
+  struct char_data *list = world[ch->in_room].people; /* for player/mob */
+  struct obj_data *objlist = world[ch->in_room].contents;
+  struct obj_data *obj = NULL;
+  struct obj_data *cont = NULL;
+  struct obj_data *next_obj = NULL;
+  int search_dc = 0;
 
   if (FIGHTING(ch)) {
     send_to_char(ch, "You can't do that in combat!\r\n");
@@ -1412,9 +1452,85 @@ ACMD(do_search) {
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_BLIND)) {
+  if (!LIGHT_OK(ch)) {
     send_to_char(ch, "You can't see a thing!\r\n");
+    return;
   }
+
+  
+  skip_spaces(&argument);
+
+  if (!*argument) {
+/*
+    for (obj = objlist; obj; obj = obj->next_content) {
+      if (OBJ_FLAGGED(obj, ITEM_HIDDEN)) {
+        SET_BIT(GET_OBJ_SAVED(obj), SAVE_OBJ_EXTRA);
+        REMOVE_BIT(obj->obj_flags.extra_flags, ITEM_HIDDEN);
+        act("You find $P.", FALSE, ch, 0, obj, TO_CHAR);
+        act("$n finds $P.", FALSE, ch, 0, obj, TO_NOTVICT);
+        found = TRUE;
+        break;
+      }
+    }*/
+    /* find a player/mob */
+/*    if(!found) {
+      for (i = list; i; i = i->next_in_room) {
+        if ((ch != i) && AFF_FLAGGED(i, AFF_HIDE) && (val < ochance)) {
+          affect_from_char(i, SPELL_VACANCY);
+          affect_from_char(i, SPELL_MIRAGE_ARCANA);
+          affect_from_char(i, SPELL_STONE_BLEND);
+          REMOVE_BIT(AFF_FLAGS(i), AFF_HIDE);
+          act("You find $N lurking here!", FALSE, ch, 0, i, TO_CHAR);
+          act("$n finds $N lurking here!", FALSE, ch, 0, i, TO_NOTVICT);
+          act("You have been spotted by $n!", FALSE, ch, 0, i, TO_VICT);
+          found = TRUE;
+          break;
+        }
+      }
+    }
+*/
+    if (!found) {
+      /* find a hidden door */
+      for (door = 0; door < NUM_OF_DIRS && found == FALSE; door++) {
+        if (EXIT(ch, door) && EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN)) {
+          /* Get the DC */
+          search_dc = get_hidden_door_dc(ch, door);
+          /* Roll the dice... */
+          if(skill_check(ch, ABILITY_SEARCH, search_dc)) {
+            act("You find a secret entrance!", FALSE, ch, 0, 0, TO_CHAR);
+            act("$n finds a secret entrance!", FALSE, ch, 0, 0, TO_ROOM);
+            REMOVE_BIT(EXIT(ch, door)->exit_info, EX_HIDDEN);
+            found = TRUE;
+          }
+        }
+      }
+    }
+  } /*else {
+    generic_find(argument, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &i, &cont);
+    if(cont) {
+      for (obj = cont->contains; obj; obj = next_obj) {
+        next_obj = obj->next_content;
+        if (IS_OBJ_STAT(obj, ITEM_HIDDEN) && (val < ochance)) {
+          SET_BIT(GET_OBJ_SAVED(obj), SAVE_OBJ_EXTRA);
+          REMOVE_BIT(obj->obj_flags.extra_flags, ITEM_HIDDEN);
+          act("You find $P.", FALSE, ch, 0, obj, TO_CHAR);
+          act("$n finds $P.", FALSE, ch, 0, obj, TO_NOTVICT);
+          found = TRUE;
+          break;
+        }
+      }
+    } else {
+      send_to_char("Search what?!?!?!?\r\n", ch);
+      found = TRUE;
+    }
+  } */
+
+  if (!found)
+  {
+    send_to_char(ch, "You don't find anything you didn't see before.\r\n");
+  }
+
+  WAIT_STATE(ch, 1 RL_SEC );
 }
 
 /* entry point for sneak, the command just flips the flag */
