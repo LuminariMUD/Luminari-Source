@@ -1398,8 +1398,23 @@ ACMD(do_fly) {
   //call_magic(ch, ch, NULL, SPELL_FLY, GET_LEVEL(ch), CAST_SPELL);
 }
 
+/* 'search' command, uses the rogue's search skill, if available, although
+ * the command is available to all.  */
 ACMD(do_search) {
 
+  if (FIGHTING(ch)) {
+    send_to_char(ch, "You can't do that in combat!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
+    send_to_char(ch, "You are unable to move to make your attempt!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_BLIND)) {
+    send_to_char(ch, "You can't see a thing!\r\n");
+  }
 }
 
 /* entry point for sneak, the command just flips the flag */
