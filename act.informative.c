@@ -3566,25 +3566,32 @@ ACMD(do_scan) {
 
   for (door = 0; door < DIR_COUNT; door++) {
     send_to_char(ch, "Scanning %s:\r\n", dirs[door]);
-    look_in_direction(ch, door);
+
+    if(world[scanned_room].dir_option[door] &&
+       !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN))   
+      look_in_direction(ch, door);
+    
     for (range = 1; range <= maxrange; range++) {
       if (world[scanned_room].dir_option[door] && 
               world[scanned_room].dir_option[door]->to_room != NOWHERE &&
-              !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_CLOSED) &&
-              !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN)) {
-        scanned_room = world[scanned_room].dir_option[door]->to_room;
-        if (IS_DARK(scanned_room) && !CAN_SEE_IN_DARK(ch)) {
-          if (world[scanned_room].people)
-            send_to_char(ch, "%s: It's too dark to see, but you can hear shuffling.\r\n", dirs[door]);
-          else
-            send_to_char(ch, "%s: It is too dark to see anything.\r\n", dirs[door]);
-          found = TRUE;
-        } else {
-          if (world[scanned_room].people) {
-            list_scanned_chars(world[scanned_room].people, ch, range - 1, door);
+              !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN) &&
+              !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_CLOSED)) {
+
+          scanned_room = world[scanned_room].dir_option[door]->to_room;
+
+          if (IS_DARK(scanned_room) && !CAN_SEE_IN_DARK(ch)) {
+            if (world[scanned_room].people)
+              send_to_char(ch, "%s: It's too dark to see, but you can hear shuffling.\r\n", dirs[door]);
+            else
+              send_to_char(ch, "%s: It is too dark to see anything.\r\n", dirs[door]);
             found = TRUE;
+          } else {
+            if (world[scanned_room].people) {
+              list_scanned_chars(world[scanned_room].people, ch, range - 1, door);
+              found = TRUE;
+            }
           }
-        }
+        
       } else
         break;
     } // end of range
