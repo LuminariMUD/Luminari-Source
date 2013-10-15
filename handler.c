@@ -1003,7 +1003,8 @@ int get_number(char **name) {
 
   if ((ppos = strchr(*name, '.')) != NULL) {
     *ppos++ = '\0';
-    strlcpy(number, *name, sizeof (number));
+    strcpy(number, *name);
+//    strlcpy(number, *name, sizeof (number));
     strcpy(*name, ppos); /* strcpy: OK (always smaller) */
 
     for (i = 0; *(number + i); i++)
@@ -1567,11 +1568,15 @@ struct obj_data *get_obj_in_list_vis(struct char_data *ch, char *name, int *numb
   struct obj_data *i;
   int num;
 
+send_to_char(ch, "%s\r\n", name); 
+
   if (!number) {
     number = &num;
     num = get_number(&name);
   }
 
+
+send_to_char(ch, "%d %s\r\n", *number, name); 
   if (*number == 0)
     return (NULL);
 
@@ -1581,6 +1586,7 @@ struct obj_data *get_obj_in_list_vis(struct char_data *ch, char *name, int *numb
         if (--(*number) == 0)
           return (i);
 
+send_to_char(ch, "%d %s\r\n", *number, name); 
   return (NULL);
 }
 

@@ -1659,6 +1659,7 @@ ACMD(do_enter) {
 
   one_argument(argument, buf);
 
+
   /* an argument was supplied, search for door keyword */
   if (*buf) {
     /* Portals first */
