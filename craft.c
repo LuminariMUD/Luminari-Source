@@ -848,6 +848,11 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
     }
   }
 
+  if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
+    send_to_char(ch, "You cannot restring spellbooks.\r\n");
+    return 1;
+  }
+
   if (GET_OBJ_MATERIAL(obj)) {
     if (!strstr(argument, material_name[GET_OBJ_MATERIAL(obj)])) {
       send_to_char(ch, "You must include the material name, '%s', in the object "

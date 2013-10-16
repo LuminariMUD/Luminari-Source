@@ -1077,7 +1077,7 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
           temp = NULL;
         }
       } else
-        continue;
+        continue;   
 
       /* we have the number, check it, load obj. */
       if (nr == NOTHING) { /* then it is unique */
@@ -1093,6 +1093,10 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
           log("Nonexistent object %d found in rent file.", nr);
         }
       }
+
+      /* Reset the counter for spellbooks. */
+      j = 0;
+
       /* go read next line - nothing more to see here. */
       continue;
     }
