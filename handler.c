@@ -995,25 +995,33 @@ struct obj_data *unequip_char(struct char_data *ch, int pos) {
 }
 
 int get_number(char **name) {
-  int i;
-  char *ppos;
+  int i, retval;
+  char *ppos, *namebuf;
   char number[MAX_INPUT_LENGTH];
 
   *number = '\0';
 
-  if ((ppos = strchr(*name, '.')) != NULL) {
+  retval = 1; /* Default is '1' */
+
+  /* Make a working copy of name */
+  namebuf = strdup(*name);
+
+  if ((ppos = strchr(namebuf, '.')) != NULL) {    
+
     *ppos++ = '\0';
-    strcpy(number, *name);
-//    strlcpy(number, *name, sizeof (number));
+    strlcpy(number, namebuf, sizeof (number));
     strcpy(*name, ppos); /* strcpy: OK (always smaller) */
-
+    
     for (i = 0; *(number + i); i++)
-      if (!isdigit(*(number + i)))
-        return (0);
+      if (!isdigit(*(number + i))) 
+        retval = 0;
 
-    return (atoi(number));
+    retval = atoi(number);
   }
-  return (1);
+  
+  free(namebuf);
+
+  return retval;
 }
 
 /* Search a given list for an object number, and return a ptr to that obj */
@@ -1568,15 +1576,11 @@ struct obj_data *get_obj_in_list_vis(struct char_data *ch, char *name, int *numb
   struct obj_data *i;
   int num;
 
-send_to_char(ch, "%s\r\n", name); 
-
   if (!number) {
     number = &num;
     num = get_number(&name);
   }
 
-
-send_to_char(ch, "%d %s\r\n", *number, name); 
   if (*number == 0)
     return (NULL);
 
@@ -1586,7 +1590,6 @@ send_to_char(ch, "%d %s\r\n", *number, name);
         if (--(*number) == 0)
           return (i);
 
-send_to_char(ch, "%d %s\r\n", *number, name); 
   return (NULL);
 }
 
