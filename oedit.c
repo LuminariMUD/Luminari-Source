@@ -1091,7 +1091,8 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           "%s9%s) Cost        : %s%d\r\n"
           "%sA%s) Cost/Day    : %s%d\r\n"
           "%sB%s) Timer       : %s%d\r\n"
-          "%sC%s) Values      : %s%d %d %d %d\r\n"
+          "%sC%s) Values      : %s%d %d %d %d %d %d %d %d\r\n"
+          "                 %d %d %d %d %d %d %d %d\r\n"
           "%sD%s) Applies menu\r\n"
           "%sE%s) Extra descriptions menu: %s%s%s\r\n"
           "%sF%s) Weapon Spells          : %s%s\r\n"
@@ -1112,10 +1113,11 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           grn, nrm, cyn, GET_OBJ_COST(obj),
           grn, nrm, cyn, GET_OBJ_RENT(obj),
           grn, nrm, cyn, GET_OBJ_TIMER(obj),
-          grn, nrm, cyn, GET_OBJ_VAL(obj, 0),
-          GET_OBJ_VAL(obj, 1),
-          GET_OBJ_VAL(obj, 2),
-          GET_OBJ_VAL(obj, 3),
+          grn, nrm, cyn, 
+          GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3),
+          GET_OBJ_VAL(obj, 4), GET_OBJ_VAL(obj, 5), GET_OBJ_VAL(obj, 6), GET_OBJ_VAL(obj, 7),
+          GET_OBJ_VAL(obj, 8), GET_OBJ_VAL(obj, 9), GET_OBJ_VAL(obj, 10), GET_OBJ_VAL(obj, 11),
+          GET_OBJ_VAL(obj, 12), GET_OBJ_VAL(obj, 13), GET_OBJ_VAL(obj, 14), GET_OBJ_VAL(obj, 15),
           grn, nrm, grn, nrm, cyn, obj->ex_description ? "Set." : "Not Set.", grn,
           grn, nrm, cyn, HAS_SPELLS(obj) ? "Set." : "Not set.",
           grn, nrm, cyn, HAS_SPECIAL_ABILITIES(obj) ? "Set." : "Not Set.",

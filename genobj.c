@@ -249,15 +249,17 @@ int save_objects(zone_rnum zone_num) {
       sprintascii(pbuf4, GET_OBJ_PERM(obj)[3]);
 
       fprintf(fp, "%d %s %s %s %s %s %s %s %s %s %s %s %s\n"
-              "%d %d %d %d\n"
+              "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n"
               "%d %d %d %d %d\n",
 
               GET_OBJ_TYPE(obj),
               ebuf1, ebuf2, ebuf3, ebuf4,
               wbuf1, wbuf2, wbuf3, wbuf4,
               pbuf1, pbuf2, pbuf3, pbuf4,
-              GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1),
-              GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3),
+              GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3),
+              GET_OBJ_VAL(obj, 4), GET_OBJ_VAL(obj, 5), GET_OBJ_VAL(obj, 6), GET_OBJ_VAL(obj, 7),
+              GET_OBJ_VAL(obj, 8), GET_OBJ_VAL(obj, 9), GET_OBJ_VAL(obj, 10), GET_OBJ_VAL(obj, 11),
+              GET_OBJ_VAL(obj, 12), GET_OBJ_VAL(obj, 13), GET_OBJ_VAL(obj, 14), GET_OBJ_VAL(obj, 15),
               GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj),
               GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj), GET_OBJ_TIMER(obj)
               );

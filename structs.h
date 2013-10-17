@@ -1386,7 +1386,7 @@ struct extra_descr_data {
 /**< Number of elements in the object value array. Raising this will provide
  * more configurability per object type, and shouldn't break anything.
  * DO NOT LOWER from the default value of 4. */
-#define NUM_OBJ_VAL_POSITIONS 4
+#define NUM_OBJ_VAL_POSITIONS 16 
 /* Same thing, but for Special Abilities for weapons, armor and shields. */
 #define NUM_SPECAB_VAL_POSITIONS 4
 
