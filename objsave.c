@@ -79,13 +79,37 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
   if (GET_OBJ_VAL(obj, 0) != GET_OBJ_VAL(temp, 0) ||
           GET_OBJ_VAL(obj, 1) != GET_OBJ_VAL(temp, 1) ||
           GET_OBJ_VAL(obj, 2) != GET_OBJ_VAL(temp, 2) ||
-          GET_OBJ_VAL(obj, 3) != GET_OBJ_VAL(temp, 3))
+          GET_OBJ_VAL(obj, 3) != GET_OBJ_VAL(temp, 3) ||
+          GET_OBJ_VAL(obj, 4) != GET_OBJ_VAL(temp, 4) ||
+          GET_OBJ_VAL(obj, 5) != GET_OBJ_VAL(temp, 5) ||
+          GET_OBJ_VAL(obj, 6) != GET_OBJ_VAL(temp, 6) ||
+          GET_OBJ_VAL(obj, 7) != GET_OBJ_VAL(temp, 7) ||
+          GET_OBJ_VAL(obj, 8) != GET_OBJ_VAL(temp, 8) ||
+          GET_OBJ_VAL(obj, 9) != GET_OBJ_VAL(temp, 9) ||
+          GET_OBJ_VAL(obj, 10) != GET_OBJ_VAL(temp, 10) ||
+          GET_OBJ_VAL(obj, 11) != GET_OBJ_VAL(temp, 11) ||
+          GET_OBJ_VAL(obj, 12) != GET_OBJ_VAL(temp, 12) ||
+          GET_OBJ_VAL(obj, 13) != GET_OBJ_VAL(temp, 13) ||
+          GET_OBJ_VAL(obj, 14) != GET_OBJ_VAL(temp, 14) ||
+          GET_OBJ_VAL(obj, 15) != GET_OBJ_VAL(temp, 15))
     fprintf(fp,
-          "Vals: %d %d %d %d\n",
+          "Vals: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
           GET_OBJ_VAL(obj, 0),
           GET_OBJ_VAL(obj, 1),
           GET_OBJ_VAL(obj, 2),
-          GET_OBJ_VAL(obj, 3)
+          GET_OBJ_VAL(obj, 3),
+          GET_OBJ_VAL(obj, 4),
+          GET_OBJ_VAL(obj, 5),
+          GET_OBJ_VAL(obj, 6),
+          GET_OBJ_VAL(obj, 7),
+          GET_OBJ_VAL(obj, 8),
+          GET_OBJ_VAL(obj, 9),
+          GET_OBJ_VAL(obj, 10),
+          GET_OBJ_VAL(obj, 11),
+          GET_OBJ_VAL(obj, 12),
+          GET_OBJ_VAL(obj, 13),
+          GET_OBJ_VAL(obj, 14),
+          GET_OBJ_VAL(obj, 15)
           );
   if (GET_OBJ_EXTRA(obj) != GET_OBJ_EXTRA(temp))
     fprintf(fp, "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0], GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
@@ -1015,7 +1039,7 @@ void Crash_save_all(void) {
 obj_save_data *objsave_parse_objects(FILE *fl) {
   obj_save_data *head, *current, *tempsave;
   char f1[128], f2[128], f3[128], f4[128], line[READ_SIZE];
-  int t[4], i, j = 0, nr;
+  int t[NUM_OBJ_VAL_POSITIONS], i, j = 0, nr;
   struct obj_data *temp;
 
   CREATE(current, obj_save_data, 1);
@@ -1232,7 +1256,12 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
         break;
       case 'V':
         if (!strcmp(tag, "Vals")) {
-          sscanf(line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
+          /* Initialize the values. */
+          for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
+            t[i] = 0;
+          sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", 
+            &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7],
+            &t[8], &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15]);
           for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
             GET_OBJ_VAL(temp, i) = t[i];
         }

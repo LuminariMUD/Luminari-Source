@@ -2128,7 +2128,7 @@ void parse_mobile(FILE *mob_f, int nr) {
 char *parse_object(FILE *obj_f, int nr) {
   static int i = 0;
   static char line[READ_SIZE];
-  int t[10], j, retval, wsplnum;
+  int t[16], j, retval, wsplnum;
   char *tmpptr, buf2[128], f1[READ_SIZE], f2[READ_SIZE], f3[READ_SIZE], f4[READ_SIZE];
   char f5[READ_SIZE], f6[READ_SIZE], f7[READ_SIZE], f8[READ_SIZE];
   char f9[READ_SIZE], f10[READ_SIZE], f11[READ_SIZE], f12[READ_SIZE];
@@ -2225,14 +2225,37 @@ char *parse_object(FILE *obj_f, int nr) {
     log("SYSERR: Expecting second numeric line of %s, but file ended!", buf2);
     exit(1);
   }
-  if ((retval = sscanf(line, "%d %d %d %d", t, t + 1, t + 2, t + 3)) != 4) {
-    log("SYSERR: Format error in second numeric line (expecting 4 args, got %d), %s", retval, buf2);
-    exit(1);
+
+  /* Initialize the t array. */
+  for(j = 0; j < NUM_OBJ_VAL_POSITIONS; j++)
+    t[j] = 0;
+
+  if ((retval = sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", 
+    &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7], &t[8], 
+    &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15])) != 4) {
+    if (retval != 16) {
+      log("SYSERR: Format error in second numeric line (expecting 4 or 16 args, got %d), %s", retval, buf2);
+      exit(1);
+    }
+    log("INFO: Loaded old file version, converting from 4 to 16 object values.");
   }
+
   GET_OBJ_VAL(obj_proto + i, 0) = t[0];
   GET_OBJ_VAL(obj_proto + i, 1) = t[1];
   GET_OBJ_VAL(obj_proto + i, 2) = t[2];
   GET_OBJ_VAL(obj_proto + i, 3) = t[3];
+  GET_OBJ_VAL(obj_proto + i, 4) = t[4];
+  GET_OBJ_VAL(obj_proto + i, 5) = t[5];
+  GET_OBJ_VAL(obj_proto + i, 6) = t[6];
+  GET_OBJ_VAL(obj_proto + i, 7) = t[7];
+  GET_OBJ_VAL(obj_proto + i, 8) = t[8];
+  GET_OBJ_VAL(obj_proto + i, 9) = t[9];
+  GET_OBJ_VAL(obj_proto + i, 10) = t[10];
+  GET_OBJ_VAL(obj_proto + i, 11) = t[11];
+  GET_OBJ_VAL(obj_proto + i, 12) = t[12];
+  GET_OBJ_VAL(obj_proto + i, 13) = t[13];
+  GET_OBJ_VAL(obj_proto + i, 14) = t[14];
+  GET_OBJ_VAL(obj_proto + i, 15) = t[15];
 
   if (!get_line(obj_f, line)) {
     log("SYSERR: Expecting third numeric line of %s, but file ended!", buf2);
