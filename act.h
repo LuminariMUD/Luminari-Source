@@ -137,13 +137,21 @@ ACMD(do_track);
 		(SET_BIT(EXITN(room, door)->exit_info, EX_CLOSED)))
 #define LOCK_DOOR(room, obj, door)	((obj) ?\
 		(SET_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) :\
-		(SET_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))
+		(SET_BIT(EXITN(room, door)->exit_info, EX_LOCKED_EASY)))
 #define UNLOCK_DOOR(room, obj, door)	((obj) ?\
 		(REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) :\
 		(REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))
+
+/* HACK: Had to change this with the new lock strengths from homeland... */
+
 #define TOGGLE_LOCK(room, obj, door)	((obj) ?\
 		(TOGGLE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) :\
-		(TOGGLE_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))
+		(IS_SET(EXITN(room, door)->exit_info, EX_LOCKED) ?\
+                  UNLOCK_DOOR(room, obj, door) :\
+                  LOCK_DOOR(room, obj, door)))
+
+/*(TOGGLE_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))*/
+
 /* Utility Functions */
 /** @todo Compare with needs of find_eq_pos_script. */
 int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg);

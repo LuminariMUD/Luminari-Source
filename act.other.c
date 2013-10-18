@@ -1040,7 +1040,9 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
       af[0].location = APPLY_STR;
       af[0].modifier = 8;
       af[1].location = APPLY_CON;
-      af[1].modifier = 8;
+      af[1].modifier = 6;
+      af[2].location = APPLY_HIT;
+      af[2].modifier = 60;
       break;
     case PC_SUBRACE_G_CROCODILE:
       SET_BIT_AR(af[0].bitvector, AFF_SCUBA);
