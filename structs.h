@@ -1171,6 +1171,112 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 /** Total number of liquid types */
 #define NUM_LIQ_TYPES     16
 
+#define ARMOR_TYPE_NONE     0
+#define ARMOR_TYPE_LIGHT    1
+#define ARMOR_TYPE_MEDIUM   2
+#define ARMOR_TYPE_HEAVY    3
+#define ARMOR_TYPE_SHIELD   4
+
+#define MAX_ARMOR_TYPES     4
+
+/* Armor Types */
+#define SPEC_ARMOR_TYPE_PADDED    	1
+#define SPEC_ARMOR_TYPE_LEATHER   	2
+#define SPEC_ARMOR_TYPE_STUDDED_LEATHER 3
+#define SPEC_ARMOR_TYPE_LIGHT_CHAIN 	4
+#define SPEC_ARMOR_TYPE_HIDE    	5
+#define SPEC_ARMOR_TYPE_SCALE   	6
+#define SPEC_ARMOR_TYPE_CHAINMAIL 	7
+#define SPEC_ARMOR_TYPE_PIECEMEAL 	8
+#define SPEC_ARMOR_TYPE_SPLINT    	9
+#define SPEC_ARMOR_TYPE_BANDED    	10
+#define SPEC_ARMOR_TYPE_HALF_PLATE  	11
+#define SPEC_ARMOR_TYPE_FULL_PLATE  	12
+#define SPEC_ARMOR_TYPE_BUCKLER   	13
+#define SPEC_ARMOR_TYPE_SMALL_SHIELD  	14
+#define SPEC_ARMOR_TYPE_LARGE_SHIELD  	15
+#define SPEC_ARMOR_TYPE_TOWER_SHIELD  	16
+
+#define NUM_SPEC_ARMOR_TYPES   		17
+
+/* Weapon Types */
+#define WEAPON_TYPE_UNDEFINED       0
+#define WEAPON_TYPE_UNARMED         1
+/* Simple Weapons */
+#define WEAPON_TYPE_DAGGER          2
+#define WEAPON_TYPE_LIGHT_MACE      3
+#define WEAPON_TYPE_SICKLE          4
+#define WEAPON_TYPE_CLUB            5
+#define WEAPON_TYPE_HEAVY_MACE      6
+#define WEAPON_TYPE_MORNINGSTAR     7
+#define WEAPON_TYPE_SHORTSPEAR      8
+#define WEAPON_TYPE_LONGSPEAR       9
+#define WEAPON_TYPE_QUARTERSTAFF    10
+#define WEAPON_TYPE_SPEAR           11
+/* Ranged - thrown and crossbows */
+#define WEAPON_TYPE_HEAVY_CROSSBOW  12
+#define WEAPON_TYPE_LIGHT_CROSSBOW  13
+#define WEAPON_TYPE_DART            14
+#define WEAPON_TYPE_JAVELIN         15
+#define WEAPON_TYPE_SLING           16
+/* Martial Weapons */
+/* Melee */
+#define WEAPON_TYPE_THROWING_AXE    17
+#define WEAPON_TYPE_LIGHT_HAMMER    18
+#define WEAPON_TYPE_HAND_AXE        19
+#define WEAPON_TYPE_KUKRI           20
+#define WEAPON_TYPE_LIGHT_PICK      21
+#define WEAPON_TYPE_SAP             22
+#define WEAPON_TYPE_SHORT_SWORD     23
+#define WEAPON_TYPE_BATTLE_AXE      24
+#define WEAPON_TYPE_FLAIL           25
+#define WEAPON_TYPE_LONG_SWORD      26
+#define WEAPON_TYPE_HEAVY_PICK      27
+#define WEAPON_TYPE_RAPIER          28
+#define WEAPON_TYPE_SCIMITAR        29
+#define WEAPON_TYPE_TRIDENT         30
+#define WEAPON_TYPE_WARHAMMER       31
+#define WEAPON_TYPE_FALCHION        32
+#define WEAPON_TYPE_GLAIVE          33
+#define WEAPON_TYPE_GREAT_AXE       34
+#define WEAPON_TYPE_GREAT_CLUB      35
+#define WEAPON_TYPE_HEAVY_FLAIL     36
+#define WEAPON_TYPE_GREAT_SWORD     37
+#define WEAPON_TYPE_GUISARME        38
+#define WEAPON_TYPE_HALBERD         39
+#define WEAPON_TYPE_LANCE           40
+#define WEAPON_TYPE_RANSEUR         41
+#define WEAPON_TYPE_SCYTHE          42
+/* Ranged */
+#define WEAPON_TYPE_LONG_BOW        43
+#define WEAPON_TYPE_SHORT_BOW       44
+#define WEAPON_TYPE_COMPOSITE_LONGBOW   45
+#define WEAPON_TYPE_COMPOSITE_SHORTBOW  46
+/* Exotic Weapons */
+/* Melee */
+#define WEAPON_TYPE_KAMA            47
+#define WEAPON_TYPE_NUNCHAKU        48
+#define WEAPON_TYPE_SAI             49
+#define WEAPON_TYPE_SIANGHAM        50
+#define WEAPON_TYPE_BASTARD_SWORD   51
+#define WEAPON_TYPE_DWARVEN_WAR_AXE 52
+#define WEAPON_TYPE_WHIP            53
+#define WEAPON_TYPE_SPIKED_CHAIN    54
+/* Double Weapons */
+#define WEAPON_TYPE_DOUBLE_AXE      55
+#define WEAPON_TYPE_DIRE_FLAIL      56
+#define WEAPON_TYPE_HOOKED_HAMMER   57
+#define WEAPON_TYPE_2_BLADED_SWORD  58
+#define WEAPON_TYPE_DWARVEN_URGOSH  59
+/* Ranged */
+#define WEAPON_TYPE_HAND_CROSSBOW   60
+#define WEAPON_TYPE_HEAVY_REP_XBOW  61
+#define WEAPON_TYPE_LIGHT_REP_XBOW  62
+#define WEAPON_TYPE_BOLA            63
+#define WEAPON_TYPE_NET             64
+#define WEAPON_TYPE_SHURIKEN        65
+
+#define NUM_WEAPON_TYPES            66 
 
 /* Player conditions */
 #define DRUNK        0  /**< Player drunk condition */
