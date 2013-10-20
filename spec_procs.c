@@ -27,10 +27,14 @@
 #include "house.h"
 #include "clan.h"
 #include "mudlim.h"
+#include "graph.h"
+#include "dg_scripts.h" /* for send_to_zone() */
+
 
 /* locally defined functions of local (file) scope */
 static int compare_spells(const void *x, const void *y);
 static void npc_steal(struct char_data *ch, struct char_data *victim);
+void zone_yell(struct char_data *ch, char buf[256]);
 
 /* Special procedures for mobiles. */
 int spell_sort_info[MAX_SKILLS + 1];
@@ -972,6 +976,86 @@ void process_skill(struct char_data *ch, int skillnum) {
   return;
 }
 
+/********************************************************************/
+/******************** Mobile Procs    *******************************/
+/********************************************************************/
+
+/**** General special procedures for mobiles. ****/
+
+static void npc_steal(struct char_data *ch, struct char_data *victim) {
+  int gold;
+
+  if (IS_NPC(victim))
+    return;
+  if (GET_LEVEL(victim) >= LVL_IMMORT)
+    return;
+  if (!CAN_SEE(ch, victim))
+    return;
+
+  if (AWAKE(victim) && (rand_number(0, GET_LEVEL(ch)) == 0)) {
+    act("You discover that $n has $s hands in your wallet.", FALSE, ch, 0, victim, TO_VICT);
+    act("$n tries to steal gold from $N.", TRUE, ch, 0, victim, TO_NOTVICT);
+  } else {
+    /* Steal some gold coins */
+    gold = (GET_GOLD(victim) * rand_number(1, 10)) / 100;
+    if (gold > 0) {
+      increase_gold(ch, gold);
+      decrease_gold(victim, gold);
+    }
+  }
+}
+
+/* this function will cause basically all the mobiles in the same zone
+   to hunt someone down */
+void zone_yell(struct char_data *ch, char buf[256]) {
+  struct char_data *i;
+  struct char_data *vict;
+
+  for (i = character_list; i; i = i->next) {
+    if (world[ch->in_room].zone == world[i->in_room].zone) {
+
+      if (PROC_FIRED(ch) == FALSE) {
+        send_to_char(i, buf);
+      }
+
+      if (i == ch || !IS_NPC(i))
+        continue;
+
+      if (((IS_EVIL(ch) && IS_EVIL(i)) || (IS_GOOD(ch) && IS_GOOD(i))) && 
+              MOB_FLAGGED(i, MOB_HELPER)) {
+        if (i->in_room == ch->in_room && !FIGHTING(i)) {
+          for (vict = world[i->in_room].people; vict; vict = vict->next_in_room)
+            if (FIGHTING(vict) == ch) {
+              act("$n jumps to the aid of $N!", FALSE, i, 0, ch, TO_ROOM);
+              hit(i, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+              break;
+            }
+        } else {
+          HUNTING(i) = ch;
+          hunt_victim(i);
+        }
+      }
+    }
+  }
+  PROC_FIRED(ch) = TRUE;
+}
+
+/* another hl port, checks if object with given vnum is being worn */
+bool is_wearing(struct char_data *ch, obj_vnum vnum) {
+  int i;
+
+  for (i = 0; i < NUM_WEARS; i++) {
+    if (GET_EQ(ch, i))
+      if (GET_OBJ_VNUM(GET_EQ(ch, i)) == vnum)
+        return TRUE;
+  }
+  return FALSE;
+}
+
+/******* end general procedures for mobile procs ****/
+
+/** begin actual mob procs **/
+
 SPECIAL(guild) {
   int skill_num, percent;
 
@@ -1175,38 +1259,6 @@ SPECIAL(guild) {
 
 }
 
-SPECIAL(dump) {
-  struct obj_data *k;
-  int value = 0;
-
-  for (k = world[IN_ROOM(ch)].contents; k; k = world[IN_ROOM(ch)].contents) {
-    act("$p vanishes in a puff of smoke!", FALSE, 0, k, 0, TO_ROOM);
-    extract_obj(k);
-  }
-
-  if (!CMD_IS("drop"))
-    return (FALSE);
-
-  do_drop(ch, argument, cmd, SCMD_DROP);
-
-  for (k = world[IN_ROOM(ch)].contents; k; k = world[IN_ROOM(ch)].contents) {
-    act("$p vanishes in a puff of smoke!", FALSE, 0, k, 0, TO_ROOM);
-    value += MAX(1, MIN(50, GET_OBJ_COST(k) / 10));
-    extract_obj(k);
-  }
-
-  if (value) {
-    send_to_char(ch, "You are awarded for outstanding performance.\r\n");
-    act("$n has been awarded for being a good citizen.", TRUE, ch, 0, 0, TO_ROOM);
-
-    if (GET_LEVEL(ch) < 3)
-      gain_exp(ch, value);
-    else
-      increase_gold(ch, value);
-  }
-  return (TRUE);
-}
-
 SPECIAL(mayor) {
   char actbuf[MAX_INPUT_LENGTH];
 
@@ -1296,31 +1348,6 @@ SPECIAL(mayor) {
 
   path_index++;
   return (FALSE);
-}
-
-/* General special procedures for mobiles. */
-
-static void npc_steal(struct char_data *ch, struct char_data *victim) {
-  int gold;
-
-  if (IS_NPC(victim))
-    return;
-  if (GET_LEVEL(victim) >= LVL_IMMORT)
-    return;
-  if (!CAN_SEE(ch, victim))
-    return;
-
-  if (AWAKE(victim) && (rand_number(0, GET_LEVEL(ch)) == 0)) {
-    act("You discover that $n has $s hands in your wallet.", FALSE, ch, 0, victim, TO_VICT);
-    act("$n tries to steal gold from $N.", TRUE, ch, 0, victim, TO_NOTVICT);
-  } else {
-    /* Steal some gold coins */
-    gold = (GET_GOLD(victim) * rand_number(1, 10)) / 100;
-    if (gold > 0) {
-      increase_gold(ch, gold);
-      decrease_gold(victim, gold);
-    }
-  }
 }
 
 /* Quite lethal to low-level characters. */
@@ -1448,7 +1475,6 @@ SPECIAL(wizard) {
   return (TRUE);
 }
 
-/* Special procedures for mobiles. */
 SPECIAL(wall) {
   if (!IS_MOVE(cmd))
     return (FALSE);
@@ -1631,112 +1657,6 @@ SPECIAL(cityguard) {
   return (FALSE);
 }
 
-#define PET_PRICE(pet) (GET_LEVEL(pet) * 300)
-
-SPECIAL(pet_shops) {
-  char buf[MAX_STRING_LENGTH], pet_name[MEDIUM_STRING];
-  room_rnum pet_room;
-  struct char_data *pet;
-
-  /* Gross. */
-  pet_room = IN_ROOM(ch) + 1;
-
-  if (CMD_IS("list")) {
-    send_to_char(ch, "Available pets are:\r\n");
-    for (pet = world[pet_room].people; pet; pet = pet->next_in_room) {
-      /* No, you can't have the Implementor as a pet if he's in there. */
-      if (!IS_NPC(pet))
-        continue;
-      send_to_char(ch, "%8d - %s\r\n", PET_PRICE(pet), GET_NAME(pet));
-    }
-    return (TRUE);
-  } else if (CMD_IS("buy")) {
-
-    two_arguments(argument, buf, pet_name);
-
-    if (!(pet = get_char_room(buf, NULL, pet_room)) || !IS_NPC(pet)) {
-      send_to_char(ch, "There is no such pet!\r\n");
-      return (TRUE);
-    }
-    if (GET_GOLD(ch) < PET_PRICE(pet)) {
-      send_to_char(ch, "You don't have enough gold!\r\n");
-      return (TRUE);
-    }
-    decrease_gold(ch, PET_PRICE(pet));
-
-    pet = read_mobile(GET_MOB_RNUM(pet), REAL);
-    GET_EXP(pet) = 0;
-    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
-
-    if (*pet_name) {
-      snprintf(buf, sizeof (buf), "%s %s", pet->player.name, pet_name);
-      /* free(pet->player.name); don't free the prototype! */
-      pet->player.name = strdup(buf);
-
-      snprintf(buf, sizeof (buf), "%sA small sign on a chain around the neck says 'My name is %s'\r\n",
-              pet->player.description, pet_name);
-      /* free(pet->player.description); don't free the prototype! */
-      pet->player.description = strdup(buf);
-    }
-    char_to_room(pet, IN_ROOM(ch));
-    add_follower(pet, ch);
-
-    /* Be certain that pets can't get/carry/use/wield/wear items */
-    IS_CARRYING_W(pet) = 1000;
-    IS_CARRYING_N(pet) = 100;
-
-    send_to_char(ch, "May you enjoy your pet.\r\n");
-    act("$n buys $N as a pet.", FALSE, ch, 0, pet, TO_ROOM);
-
-    return (TRUE);
-  }
-
-  /* All commands except list and buy */
-  return (FALSE);
-}
-
-/* Special procedures for objects. */
-SPECIAL(bank) {
-  int amount;
-
-  if (CMD_IS("balance")) {
-    if (GET_BANK_GOLD(ch) > 0)
-      send_to_char(ch, "Your current balance is %d coins.\r\n", GET_BANK_GOLD(ch));
-    else
-      send_to_char(ch, "You currently have no money deposited.\r\n");
-    return (TRUE);
-  } else if (CMD_IS("deposit")) {
-    if ((amount = atoi(argument)) <= 0) {
-      send_to_char(ch, "How much do you want to deposit?\r\n");
-      return (TRUE);
-    }
-    if (GET_GOLD(ch) < amount) {
-      send_to_char(ch, "You don't have that many coins!\r\n");
-      return (TRUE);
-    }
-    decrease_gold(ch, amount);
-    increase_bank(ch, amount);
-    send_to_char(ch, "You deposit %d coins.\r\n", amount);
-    act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
-    return (TRUE);
-  } else if (CMD_IS("withdraw")) {
-    if ((amount = atoi(argument)) <= 0) {
-      send_to_char(ch, "How much do you want to withdraw?\r\n");
-      return (TRUE);
-    }
-    if (GET_BANK_GOLD(ch) < amount) {
-      send_to_char(ch, "You don't have that many coins deposited!\r\n");
-      return (TRUE);
-    }
-    increase_gold(ch, amount);
-    decrease_bank(ch, amount);
-    send_to_char(ch, "You withdraw %d coins.\r\n", amount);
-    act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
-    return (TRUE);
-  } else
-    return (FALSE);
-}
-
 SPECIAL(clan_cleric) {
   int i;
   char buf[MAX_STRING_LENGTH];
@@ -1862,6 +1782,691 @@ SPECIAL(clan_guard) {
   return FALSE;
 }
 
+/* from homeland */
+SPECIAL(shar_heart) {
+  struct char_data *vict = FIGHTING(ch);
+  struct affected_type af;
+  int dam = 0;
+
+  if (!ch || cmd || !vict)
+    return 0;
+
+  if (rand_number(0, 15))
+    return 0;
+
+  act("\tmThe \tMHeart of Shar \tn\tmpulses erratically in\r\n"
+          "your hand before striking $N \tmwith a beam of\r\n"
+          "\tLmalevolent light\tn\tm, bathing and filling $M with\r\n"
+          "the virulence of the \tLL\tMady of \tLL\tMoss.\tn"
+          , FALSE, ch, 0, vict, TO_CHAR);
+
+  act("\tmThe amethyst orb wielded by \tL$n \tn\tmpulses\r\n"
+          "erratically before a beam of \tLmalevolent light\r\n"
+          "\tn\tmshoots from it, striking you in the chest!\tn"
+          , FALSE, ch, 0, vict, TO_VICT);
+
+  act("\tL$n \tn\tmis bathed in an amethyst radiance as $s\r\n"
+          "\tMHeart of Shar \tn\tmpulses erratically.  Suddenly a\r\n"
+          "sickly beam of \tLmalevolent light \tn\tmblazes\r\n"
+          "towards $N\tm, filling $S body with the \tLvirulence\r\n"
+          "\tn\tmof the \tLL\tMady of \tLL\tMoss.\tn"
+          , FALSE, ch, 0, vict, TO_ROOM);
+
+  af.duration = 5;
+  af.modifier = -4;
+  af.location = APPLY_STR;
+  af.spell = SPELL_POISON;
+  affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+
+  dam = dice(6, 3) + 4;
+  GET_HIT(vict) -= dam;
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(shar_statue) {
+  struct char_data *mob;
+  
+  if (!FIGHTING(ch))
+    return FALSE;
+  if (cmd)
+    return FALSE;
+
+  if (!rand_number(0, 8) || !PROC_FIRED(ch)) {
+    PROC_FIRED(ch) = TRUE;
+    send_to_room(ch->in_room,
+            "\tLThe statue raises her ebon arms, screaming out to\r\n"
+            "her deity in a booming voice, '\tn\tmLady of loss,\r\n"
+            "mistress of the night, smite those who befoul your\r\n"
+            "house.  Send forth your faithful to quench the light\r\n"
+            "of their moon!\tL'\tn\r\n");
+
+    if (dice(1, 100) < 50)
+      mob = read_mobile(106241, VIRTUAL);
+    else
+      mob = read_mobile(106240, VIRTUAL);
+
+    if (!mob)
+      return FALSE;
+      
+    char_to_room(mob, ch->in_room);
+    add_follower(mob, ch);
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/* from homeland */
+SPECIAL(dog) {
+  int random = 0;
+  struct affected_type af;
+  struct char_data *pet = (struct char_data *) me;
+
+  if (!argument)
+    return 0;
+  if (!cmd)
+    return 0;
+
+  skip_spaces(&argument);
+
+  if (!isname(argument, GET_NAME(pet)))
+    return 0;
+
+  if (CMD_IS("pet") || CMD_IS("pat")) {
+    random = dice(1, 3);
+    switch (random) {
+      case 3:
+        act("$n tries to lick your hand as you pet $m.", FALSE, pet, 0, ch, TO_VICT);
+        act("$n tries to lick the hand of $N as $E pet $m.", FALSE, pet, 0, ch, TO_NOTVICT);
+        break;
+      case 2:
+        act("$n looks at you with adoring eyes as you pet $m.", FALSE, pet, 0, ch, TO_VICT);
+        act("$n looks at $N with adoring eyes as $E pet $m.", FALSE, pet, 0, ch, TO_NOTVICT);
+        break;
+      case 1:
+      default:
+        act("$n wags $s tail happily, as you pet $m.", FALSE, pet, 0, ch, TO_VICT);
+        act("$n wags $s tail happily, as $N pets $m.", FALSE, pet, 0, ch, TO_NOTVICT);
+        break;
+    }
+    
+    if (GET_LEVEL(pet) < 2 && ch->followers == 0 && ch->master == 0 && pet->master == 0 && !circle_follow(pet, ch)) {
+      add_follower(pet, ch);
+      af.spell = SPELL_CHARM;
+      af.duration = 24000;
+      af.modifier = 0;
+      af.location = 0;
+      SET_BIT_AR(af.bitvector, AFF_CHARM);
+      affect_to_char(pet, &af);
+    }
+    return 1;
+  }
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(illithid_gguard) {
+  const char *buf = "$N \tLsteps in front of you, blocking you from accessing the gate.\tn";
+  const char *buf2 = "$N \tLsteps in front of $n\tL, blocking access the gate.\tn";
+
+  if (!IS_MOVE(cmd))
+    return FALSE;
+
+  //if (cmd == SCMD_EAST && GET_RACE(ch) != RACE_ILLITHID) {
+  if (cmd == SCMD_EAST) {
+    act(buf, FALSE, ch, 0, (struct char_data *) me, TO_CHAR);
+    act(buf2, FALSE, ch, 0, (struct char_data *) me, TO_ROOM);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/* from homeland */
+SPECIAL(duergar_guard) {
+  const char *buf = "$N steps into the opening and blocks your path.\r\n";
+  const char *buf2 = "$N steps into the opening blocking it.";
+
+  if (!IS_MOVE(cmd))
+    return FALSE;
+
+  if (cmd == SCMD_DOWN) {
+    act(buf, FALSE, ch, 0, (struct char_data *) me, TO_CHAR);
+    act(buf2, FALSE, ch, 0, (struct char_data *) me, TO_ROOM);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/* from homeland */
+SPECIAL(bandit_guard) {
+  const char *buf = "$N blocks your access into the castle.\r\n";
+  const char *buf2 = "$N blocks $n's access into the castle..";
+
+  if (!IS_MOVE(cmd))
+    return FALSE;
+
+  if (GET_LEVEL(ch) < 12)
+    return FALSE;
+
+  if (cmd == SCMD_EAST || cmd == SCMD_SOUTH || cmd == SCMD_WEST) {
+    act(buf, FALSE, ch, 0, (struct char_data *) me, TO_CHAR);
+    act(buf2, FALSE, ch, 0, (struct char_data *) me, TO_ROOM);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/* from homeland */
+SPECIAL(secomber_guard) {
+  const char *buf = "\tLThe doorguard steps before you, blocking your way with an upraised hand.\tn\r\n";
+  const char *buf2 = "\tLThe doorguard blocks \tn$n\tL's way, placing one meaty hand on $s chest.\tn";
+
+  if (!IS_MOVE(cmd))
+    return FALSE;
+
+  if (cmd == SCMD_EAST) {
+    send_to_char(ch, buf);
+    act(buf2, FALSE, ch, 0, 0, TO_ROOM);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/* from homeland */
+/*
+SPECIAL(guild_golem) {
+  bool found = TRUE;
+  const char *msg1 = "The golem humiliates you, and blocks your way.\r\n";
+  const char *msg2 = "The golem humiliates $n, and blocks $s way.";
+
+  if (!IS_MOVE(cmd))
+    return FALSE;
+
+  int i = cmd - 1;
+  
+  if (i < 0) {
+    send_to_char("Index error in guild golem\r\n", ch);
+    return FALSE;
+  }
+
+  if (!EXIT(ch, i))
+    found = FALSE;
+  else {
+    int room_number = world[ch->in_room].dir_option[i]->to_room;
+    if (world[room_number].guild_index) {
+      if (GET_GUILD(ch) != world[room_number].guild_index && GET_ALT(ch) != world[room_number].guild_index)
+        found = FALSE;
+    }
+  }
+
+  if (!found) {
+    send_to_char(msg1, ch);
+    act(msg2, FALSE, ch, 0, 0, TO_ROOM);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+*/
+
+/* from Homeland */
+/*
+SPECIAL(guild_guard) {
+  int i;
+  bool found = TRUE;
+  const char *buf = "The guard humiliates you, and blocks your way.\r\n";
+  const char *buf2 = "The guard humiliates $n, and blocks $s way.";
+
+  if (!IS_MOVE(cmd))
+    return FALSE;
+
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return FALSE;
+
+  for (i = 0; guild_info[i][0] != -1; i++) {
+    if (GET_ROOM_VNUM(IN_ROOM(ch)) == guild_info[i][1] &&
+            cmd == guild_info[i][2]) {
+      if (IS_NPC(ch) || GET_CLASS(ch) != guild_info[i][0]) {
+        found = FALSE;
+      } else {
+        found = TRUE;
+        break;
+      }
+    }
+  }
+
+  if (!found) {
+    send_to_char(buf, ch);
+    act(buf2, FALSE, ch, 0, 0, TO_ROOM);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+*/
+
+/* from Homeland */
+//doesnt work properly if multiple instances.. :) -V
+SPECIAL(practice_dummy) {
+  int rounddam = 0;
+  static int round_count;
+  static int max_hit;
+  char buf[MAX_INPUT_LENGTH];
+
+  if (cmd)
+    return 0;
+
+  if (!FIGHTING(ch)) {
+    GET_MAX_HIT(ch) = 20000;
+    GET_HIT(ch) = 20000;
+    max_hit = 0;
+    round_count = 0;
+  } else {
+    rounddam = GET_MAX_HIT(ch) - GET_HIT(ch);
+    max_hit += rounddam;
+    round_count++;
+
+    sprintf(buf, "\tP%d damage last round!\tn  \tc(total: %d rounds: %d)\tn\r\n", 
+            rounddam, max_hit, round_count);
+    send_to_room(ch->in_room, buf);
+    GET_HIT(ch) = GET_MAX_HIT(ch);
+    return 1;
+  }
+  return 0;
+}
+
+/* from Homeland */
+SPECIAL(wraith) {
+  if (cmd)
+    return 0;
+
+  if (GET_POS(ch) == POS_DEAD || !ch->master) {
+    act("With a loud shriek, $n crumbles into dust.", FALSE, ch, NULL, 0, TO_ROOM);
+    extract_char(ch);
+    return 1;
+  }
+  
+  if (ch->master && ch->in_room == ch->master->in_room)
+    if (FIGHTING(ch->master) && rand_number(0, 1)) {
+      perform_assist(ch, ch->master);
+      return 1;
+    }
+
+  return 0;
+}
+
+/* from Homeland */
+SPECIAL(skeleton_zombie) {
+  if (cmd)
+    return 0;
+
+  if (GET_POS(ch) == POS_DEAD || !ch->master) {
+    act("With a loud shriek, $n crumbles into dust.", FALSE, ch, NULL, 0, TO_ROOM);
+    extract_char(ch);
+    return 1;
+  }
+
+  if (ch->master && ch->in_room == ch->master->in_room)
+    if (FIGHTING(ch->master) && !rand_number(0, 2)) {
+      perform_assist(ch, ch->master);
+      return 1;
+    }
+
+  return 0;
+}
+
+/* from Homeland */
+SPECIAL(vampire) {
+  struct char_data *vict;
+
+  if (cmd)
+    return 0;
+
+  if (GET_POS(ch) == POS_DEAD || !ch->master) {
+    act("With a loud shriek, $n crumbles into dust.", FALSE, ch, NULL, 0, TO_ROOM);
+    extract_char(ch);
+    return 1;
+  }
+
+  if (ch->master && ch->in_room == ch->master->in_room) {
+    for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room) {
+      if (FIGHTING(vict) == ch->master && !rand_number(0, 1)) {
+        perform_rescue(ch, ch->master);
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
+/* from Homeland */
+SPECIAL(totemanimal) {
+  if (cmd)
+    return 0;
+  if (!ch->master)
+    return 0;
+
+  if (ch->master && ch->in_room == ch->master->in_room)
+    if (FIGHTING(ch->master))
+      perform_assist(ch, ch->master);
+  return 0;
+}
+
+/* from Homeland */
+SPECIAL(shades) {
+  if (cmd)
+    return 0;
+
+  if (GET_MAX_HIT(ch) > 1 && GET_HIT(ch) > 1) {
+    GET_MAX_HIT(ch) = 1;
+    GET_HIT(ch) = 1;
+  }
+
+  if (GET_POS(ch) == POS_DEAD)
+    return 0;
+  if (GET_HIT(ch) < GET_MAX_HIT(ch) || !ch->master) {
+    act("A shade evaporates into thin air.", FALSE, ch, NULL, 0, TO_ROOM);
+    extract_char(ch);
+    return 1;
+  }
+
+  if (ch->in_room != ch->master->in_room) {
+    HUNTING(ch) = ch->master;
+    hunt_victim(ch);
+    return 1;
+  }
+  return 0;
+}
+
+/* from Homeland */
+SPECIAL(solid_elemental) {
+  struct char_data *vict;
+
+  if (cmd)
+    return 0;
+
+  if (GET_POS(ch) == POS_DEAD || (!ch->master && !MOB_FLAGGED(ch, MOB_MEMORY))) {
+    act("With a loud shriek, $n returns to $s home plane.", FALSE, ch, NULL, 0, TO_ROOM);
+    extract_char(ch);
+    return 1;
+  }
+
+  if (GET_HIT(ch) > 0) {
+    if (ch->master && ch->in_room == ch->master->in_room && !rand_number(0, 1)) {
+      for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room) {
+        if (FIGHTING(vict) == ch->master) {
+          perform_rescue(ch, ch->master);
+          return 1;
+        }
+      }
+    }
+
+
+    if (!FIGHTING(ch) && ch->master && FIGHTING(ch->master) && ch->in_room == ch->master->in_room) {
+      perform_assist(ch, ch->master);
+      return 1;
+    }
+  }
+
+  // auto stand if down
+  if (GET_POS(ch) < POS_FIGHTING && GET_POS(ch) >= POS_STUNNED) {
+    GET_POS(ch) = POS_STANDING;
+    act("$n clambers to $s feet.\r\n", FALSE, ch, 0, 0, TO_ROOM);
+    return 1;
+  }
+
+  // we're fighting something we dont want to fight...
+  if (!ch->master && FIGHTING(ch) && IS_NPC(FIGHTING(ch)) && !IS_PET(FIGHTING(ch)))
+    do_flee(ch, 0, 0, 0);
+
+  return 0;
+}
+
+/* from Homeland */
+SPECIAL(wraith_elemental) {
+  struct char_data *vict;
+
+  if (cmd)
+    return 0;
+
+  if (GET_POS(ch) == POS_DEAD || (!ch->master && !MOB_FLAGGED(ch, MOB_MEMORY))) {
+    act("With a loud shriek, $n returns to $s home plane.", FALSE, ch, NULL, 0, TO_ROOM);
+    extract_char(ch);
+    return 1;
+  }
+
+  if (GET_HIT(ch) > 0) {
+    if (ch->master && ch->in_room == ch->master->in_room && !rand_number(0, 1)) {
+      for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room) {
+        if (FIGHTING(vict) == ch->master) {
+          perform_rescue(ch, ch->master);
+          return 1;
+        }
+      }
+    }
+
+    if (!FIGHTING(ch) && ch->master && FIGHTING(ch->master) && ch->in_room == ch->master->in_room) {
+      perform_assist(ch, ch->master);
+      return 1;
+    }
+  }
+  
+  // auto stand if down
+  if (GET_POS(ch) < POS_FIGHTING && GET_POS(ch) >= POS_STUNNED) {
+    GET_POS(ch) = POS_STANDING;
+    act("$n clambers to $s feet.\r\n", FALSE, ch, 0, 0, TO_ROOM);
+    return 1;
+  }
+
+  // we're fighting something we dont want to fight...
+  if (!ch->master && FIGHTING(ch) && IS_NPC(FIGHTING(ch)) && !IS_PET(FIGHTING(ch)))
+    do_flee(ch, 0, 0, 0);
+
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(planewalker) {
+  if (cmd)
+    return 0;
+
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
+    act("$n looks around in panic when he realizes that his spells\r\n"
+            "would fizzle. He reaches down into his pockets and pulls out an ancient\r\n"
+            "rod. He taps the rod and suddenly disappears!", FALSE
+            , ch, 0, 0, TO_ROOM);
+    call_magic(ch, 0, 0, SPELL_TELEPORT, 30, CAST_WAND);
+    return 1;
+  }
+  if (!FIGHTING(ch) && GET_HIT(ch) < GET_MAX_HIT(ch)) {
+    act("$n checks on his wounds, and grabs a potion from his pockets."
+            , FALSE, ch, 0, 0, TO_ROOM);
+    call_magic(ch, ch, 0, SPELL_HEAL, 30, CAST_POTION);
+    return 1;
+  }
+  return 0;
+}
+
+/********************************************************************/
+/******************** Room Procs      *******************************/
+/********************************************************************/
+
+
+SPECIAL(dump) {
+  struct obj_data *k;
+  int value = 0;
+
+  for (k = world[IN_ROOM(ch)].contents; k; k = world[IN_ROOM(ch)].contents) {
+    act("$p vanishes in a puff of smoke!", FALSE, 0, k, 0, TO_ROOM);
+    extract_obj(k);
+  }
+
+  if (!CMD_IS("drop"))
+    return (FALSE);
+
+  do_drop(ch, argument, cmd, SCMD_DROP);
+
+  for (k = world[IN_ROOM(ch)].contents; k; k = world[IN_ROOM(ch)].contents) {
+    act("$p vanishes in a puff of smoke!", FALSE, 0, k, 0, TO_ROOM);
+    value += MAX(1, MIN(50, GET_OBJ_COST(k) / 10));
+    extract_obj(k);
+  }
+
+  if (value) {
+    send_to_char(ch, "You are awarded for outstanding performance.\r\n");
+    act("$n has been awarded for being a good citizen.", TRUE, ch, 0, 0, TO_ROOM);
+
+    if (GET_LEVEL(ch) < 3)
+      gain_exp(ch, value);
+    else
+      increase_gold(ch, value);
+  }
+  return (TRUE);
+}
+
+
+#define PET_PRICE(pet) (GET_LEVEL(pet) * 300)
+
+SPECIAL(pet_shops) {
+  char buf[MAX_STRING_LENGTH], pet_name[MEDIUM_STRING];
+  room_rnum pet_room;
+  struct char_data *pet;
+
+  /* Gross. */
+  pet_room = IN_ROOM(ch) + 1;
+
+  if (CMD_IS("list")) {
+    send_to_char(ch, "Available pets are:\r\n");
+    for (pet = world[pet_room].people; pet; pet = pet->next_in_room) {
+      /* No, you can't have the Implementor as a pet if he's in there. */
+      if (!IS_NPC(pet))
+        continue;
+      send_to_char(ch, "%8d - %s\r\n", PET_PRICE(pet), GET_NAME(pet));
+    }
+    return (TRUE);
+  } else if (CMD_IS("buy")) {
+
+    two_arguments(argument, buf, pet_name);
+
+    if (!(pet = get_char_room(buf, NULL, pet_room)) || !IS_NPC(pet)) {
+      send_to_char(ch, "There is no such pet!\r\n");
+      return (TRUE);
+    }
+    if (GET_GOLD(ch) < PET_PRICE(pet)) {
+      send_to_char(ch, "You don't have enough gold!\r\n");
+      return (TRUE);
+    }
+    decrease_gold(ch, PET_PRICE(pet));
+
+    pet = read_mobile(GET_MOB_RNUM(pet), REAL);
+    GET_EXP(pet) = 0;
+    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+
+    if (*pet_name) {
+      snprintf(buf, sizeof (buf), "%s %s", pet->player.name, pet_name);
+      /* free(pet->player.name); don't free the prototype! */
+      pet->player.name = strdup(buf);
+
+      snprintf(buf, sizeof (buf), "%sA small sign on a chain around the neck says 'My name is %s'\r\n",
+              pet->player.description, pet_name);
+      /* free(pet->player.description); don't free the prototype! */
+      pet->player.description = strdup(buf);
+    }
+    char_to_room(pet, IN_ROOM(ch));
+    add_follower(pet, ch);
+
+    /* Be certain that pets can't get/carry/use/wield/wear items */
+    IS_CARRYING_W(pet) = 1000;
+    IS_CARRYING_N(pet) = 100;
+
+    send_to_char(ch, "May you enjoy your pet.\r\n");
+    act("$n buys $N as a pet.", FALSE, ch, 0, pet, TO_ROOM);
+
+    return (TRUE);
+  }
+
+  /* All commands except list and buy */
+  return (FALSE);
+}
+
+
+
+/********************************************************************/
+/******************** Object Procs    *******************************/
+/********************************************************************/
+
+/****  object procs general functions ****/
+
+
+/* NOTE to be confused with the weapon-spells code used in OLC, etc */
+/*  This was ported to accomodate the HL objects that were imported */
+void weapons_spells(char *to_ch, char *to_vict, char *to_room,
+        struct char_data *ch, struct char_data *vict,
+        struct obj_data *obj, int spl) {
+  int level;
+
+  level = GET_LEVEL(ch);
+  
+  if (level > 30)
+    level = 30;
+
+  act(to_ch, FALSE, ch, obj, vict, TO_CHAR);
+  act(to_vict, FALSE, ch, obj, vict, TO_VICT);
+  act(to_room, FALSE, ch, obj, vict, TO_NOTVICT);
+  call_magic(ch, vict, 0, spl, level, CAST_WAND);
+}
+
+
+
+/*** end object procs general functions ***/
+
+SPECIAL(bank) {
+  int amount;
+
+  if (CMD_IS("balance")) {
+    if (GET_BANK_GOLD(ch) > 0)
+      send_to_char(ch, "Your current balance is %d coins.\r\n", GET_BANK_GOLD(ch));
+    else
+      send_to_char(ch, "You currently have no money deposited.\r\n");
+    return (TRUE);
+  } else if (CMD_IS("deposit")) {
+    if ((amount = atoi(argument)) <= 0) {
+      send_to_char(ch, "How much do you want to deposit?\r\n");
+      return (TRUE);
+    }
+    if (GET_GOLD(ch) < amount) {
+      send_to_char(ch, "You don't have that many coins!\r\n");
+      return (TRUE);
+    }
+    decrease_gold(ch, amount);
+    increase_bank(ch, amount);
+    send_to_char(ch, "You deposit %d coins.\r\n", amount);
+    act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
+    return (TRUE);
+  } else if (CMD_IS("withdraw")) {
+    if ((amount = atoi(argument)) <= 0) {
+      send_to_char(ch, "How much do you want to withdraw?\r\n");
+      return (TRUE);
+    }
+    if (GET_BANK_GOLD(ch) < amount) {
+      send_to_char(ch, "You don't have that many coins deposited!\r\n");
+      return (TRUE);
+    }
+    increase_gold(ch, amount);
+    decrease_bank(ch, amount);
+    send_to_char(ch, "You withdraw %d coins.\r\n", amount);
+    act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
+    return (TRUE);
+  } else
+    return (FALSE);
+}
+
 /*
    Portal that will jump to a player's clanhall
    Exit depends on which clan player belongs to
@@ -1937,5 +2542,159 @@ SPECIAL(clanportal) {
   }
   return TRUE;
 }
+/*
+SPECIAL(hellfire) {
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char("Invoke haste and fireshield on armor by saying 'Hellfire'.\r\n", ch);
+    return 1;
+  }
 
+  if (!cmd)
+    return 0;
+  if (!ch)
+    return 0;
+  if (!argument)
+    return 0;
+
+  skip_spaces(&argument);
+  if (!is_wearing(ch, 132102))
+    return 0;
+  if (!strcmp(argument, "hellfire") && cmd_info[cmd].command_pointer == do_say) {
+    if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
+      send_to_char("Nothing happens.\r\n", ch);
+      return 1;
+    }
+
+    act("\tLThe pure flames of your $p\tL is invoked.\tn\r\n"
+            "\tLThe flames rise and protects YOU!\tn\r\n",
+            FALSE, ch, (struct obj_data *) me, 0, TO_CHAR);
+    act("\tLThe pure flames of $n\tL's $p\tL is invoked.\tn\r\n"
+            "\tLThe flames rise and protects $m!\tn\r\n",
+            FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
+
+    call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 26, CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_HASTE, 26, CAST_POTION);
+
+    GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 12;
+    return 1;
+  }
+  return 0;
+}
+*/
+/*
+SPECIAL(angel_leggings) {
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char("Invoke fly by keyword 'Elysium'.\r\n", ch);
+    return 1;
+  }
+
+  if (!cmd)
+    return 0;
+  if (!ch)
+    return 0;
+  if (!argument)
+    return 0;
+  skip_spaces(&argument);
+  if (!is_wearing(ch, 6021))
+    return 0;
+  if (!strcmp(argument, "elysium") && cmd_info[cmd].command_pointer ==
+          do_say) {
+    if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
+      send_to_char("Nothing happens.\r\n", ch);
+      return 1;
+    }
+
+    act("\tWThe power of $p\tW is invoked.\tn\r\n"
+            "\tcYour feet slowly raise off the ground.\tn\r\n",
+            FALSE, ch, (struct obj_data *) me, 0, TO_CHAR);
+    act("\tWThe power of $n\tW's $p\tW is invoked.\tn\r\n"
+            "\tw$s feet slowly raise of the ground!\tn\r\n",
+            FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
+
+
+    call_magic(ch, ch, 0, SPELL_FLY, 35, CAST_POTION);
+
+
+
+
+    GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 168;
+    return 1;
+  }
+  return 0;
+}
+*/
+
+/*
+SPECIAL(bought_pet) {
+  struct char_data *pet;
+  if (cmd)
+    return 0;
+
+  struct obj_data *obj = (struct obj_data*) me;
+  if (obj->carried_by == 0)
+    return 0;
+
+  if (IS_NPC(obj->carried_by))
+    return 0;
+
+  pet = read_mobile(GET_OBJ_VNUM(obj), VIRTUAL);
+  if (pet) {
+    char_to_room(pet, obj->carried_by->in_room);
+    add_follower(pet, obj->carried_by);
+    SET_BIT(AFF_FLAGS(pet), AFF_CHARM);
+    GET_MAX_MOVE(pet) = 150 + dice(GET_LEVEL(pet), 5);
+    GET_MOVE(pet) = GET_MAX_MOVE(pet);
+
+    extract_obj(obj);
+    return 1;
+  }
+  return 0;
+}
+*/
+
+/*
+SPECIAL(storage_chest) {
+  if (cmd)
+    return 0;
+  struct obj_data *chest = (struct obj_data*) me;
+  if (GET_OBJ_VAL(chest, 3) != 0)
+    return 0;
+  ch = chest->carried_by;
+  if (!ch) {
+    REMOVE_BIT(GET_OBJ_EXTRA(chest), ITEM_INVISIBLE);
+    return 0;
+  }
+  if (IS_NPC(ch) || IS_PET(ch))
+    return 0;
+
+  sprintf(buf2, "chest storage %s", GET_NAME(ch));
+  chest->name = str_dup(buf2);
+
+  if (GET_OBJ_VNUM(chest) == 1291) {
+    sprintf(buf2, "\tLAn ornate \tcmithril\tL chest owned by \tw%s\tL rests here.\tn", GET_NAME(ch));
+    chest->description = str_dup(buf2);
+    sprintf(buf2, "\tLan ornate \tcmithril\tL chest owned by \tw%s\tn", GET_NAME(ch));
+    chest->short_description = str_dup(buf2);
+
+  } else {
+    sprintf(buf2, "\tLA storage chest owned by \tW%s\tL is standing here.\tn", GET_NAME(ch));
+    chest->description = str_dup(buf2);
+    sprintf(buf2, "\tLa chest owned by \tW%s\tn", GET_NAME(ch));
+    chest->short_description = str_dup(buf2);
+  }
+  GET_OBJ_VAL(chest, 3) = -GET_IDNUM(ch);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_VALUES);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_NAME);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_DESC);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_SHORT);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_TYPE);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_WEAR);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_EXTRA);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_TIMER);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_WEIGHT);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_COST);
+  save_chests();
+  return 1;
+}
+*/
 

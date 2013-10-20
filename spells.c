@@ -1589,6 +1589,12 @@ ASPELL(spell_wall_of_force) {
 ASPELL(spell_wizard_eye) {
   struct char_data *eye = read_mobile(WIZARD_EYE, VIRTUAL);
 
+  //dummy check
+  if (!eye) {
+    send_to_char(ch, "You don't quite remember how to create that.\r\n");
+    return;
+  }
+  
   //first load the eye
   char_to_room(eye, IN_ROOM(ch));
   IS_CARRYING_W(eye) = 0;

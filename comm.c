@@ -971,6 +971,22 @@ void game_loop(socket_t local_mother_desc)
   }
 }
 
+/*  This was ported to accomodate the HL objects that were imported */
+void proc_update() {
+  struct obj_data *obj = NULL;
+
+  for (obj = object_list; obj; obj = obj->next) {
+
+    //start_fall_object_event(obj);
+    if (!OBJ_FLAGGED(obj, ITEM_AUTOPROC) || (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0))
+      continue;
+
+    if (obj_index[GET_OBJ_RNUM(obj)].func != NULL)
+      if (!(obj_index[GET_OBJ_RNUM(obj)].func)(obj->worn_by, obj, 0, ""))
+        (obj_index[GET_OBJ_RNUM(obj)].func)(obj->carried_by, obj, 0, "");
+  }
+}
+
 /* here she is, heartbeat function - called every 1/10th of a second */
 void heartbeat(int heart_pulse)
 {
@@ -992,8 +1008,10 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % PULSE_IDLEPWD))		/* 15 seconds */
     check_idle_passwords();
 
-  if (!(heart_pulse % PULSE_MOBILE))
+  if (!(heart_pulse % PULSE_MOBILE)) {
     mobile_activity();
+    proc_update();
+  }
 
   if (!(heart_pulse % PULSE_VIOLENCE)) {
     perform_violence();
