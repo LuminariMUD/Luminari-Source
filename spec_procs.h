@@ -41,7 +41,7 @@ void sort_spells(void);
 void list_skills(struct char_data *ch);
 void list_spells(struct char_data *ch, int mode, int class);
 void list_abilities(struct char_data *ch);
-
+bool is_wearing(struct char_data *ch, obj_vnum vnum);
 int compute_ability(struct char_data *ch, int abilityNum);
 
 /* Special functions */

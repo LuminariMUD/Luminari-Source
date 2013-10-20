@@ -203,7 +203,7 @@ oasis.o: oasis.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 oasis_copy.o: oasis_copy.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h shop.h genshp.h \
  genolc.h genzon.h genwld.h oasis.h improved-edit.h constants.h \
- dg_scripts.h
+ dg_scripts.h wilderness.h
 oasis_delete.o: oasis_delete.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h handler.h db.h genolc.h \
  oasis.h improved-edit.h
@@ -256,7 +256,8 @@ spec_assign.o: spec_assign.c conf.h sysdep.h structs.h protocol.h lists.h \
  mail.h
 spec_procs.o: spec_procs.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h constants.h \
- act.h spec_procs.h class.h fight.h modify.h house.h clan.h mudlim.h
+ act.h spec_procs.h class.h fight.h modify.h house.h clan.h mudlim.h \
+ graph.h dg_scripts.h
 spell_parser.o: spell_parser.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h interpreter.h spells.h handler.h comm.h db.h \
  dg_scripts.h fight.h constants.h mud_event.h dg_event.h spec_procs.h \
