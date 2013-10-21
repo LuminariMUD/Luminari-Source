@@ -773,6 +773,7 @@ void check_idling(struct char_data *ch) {
 void point_update(void) {
   struct char_data *i = NULL, *next_char = NULL;
   struct obj_data *j = NULL, *next_thing, *jj = NULL, *next_thing2 = NULL;
+  int valyoo = 0;
 
   /** general **/
   /* Take 1 from the happy-hour tick counter, and end happy-hour if zero */
@@ -816,6 +817,12 @@ void point_update(void) {
     if (!j)
       continue;
 
+    /* from homeland */
+    for (valyoo = 0; valyoo < SPEC_TIMER_MAX; valyoo++) {
+      if (GET_OBJ_SPECTIMER(j, valyoo) > 0)
+        GET_OBJ_SPECTIMER(j, valyoo)--;
+    }
+    
     /** portals that fade **/
     if (IS_DECAYING_PORTAL(j)) {
       /* timer count down */

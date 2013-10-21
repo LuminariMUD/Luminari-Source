@@ -1143,6 +1143,8 @@ do                                                              \
 #define VALID_OBJ_RNUM(obj)	(GET_OBJ_RNUM(obj) <= top_of_objt && \
 				 GET_OBJ_RNUM(obj) != NOTHING)
 
+/** from homeland, used for object specs/procs **/
+#define GET_OBJ_SPECTIMER(obj, val)  ((obj)->obj_flags.spec_timer[(val)])
 
 /** Level of obj. */
 #define GET_OBJ_LEVEL(obj)      ((obj)->obj_flags.level)

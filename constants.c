@@ -571,6 +571,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Dark-Vision",  //80
   "Body-Weaponry",
   "Farsee",
+  "Menz-Choker",
   "\n"
 };
 
