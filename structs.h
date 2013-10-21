@@ -674,10 +674,11 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_DARKVISION       80  // perfect vision day/night
 #define AFF_BODYWEAPONRY     81  // martial arts
 #define AFF_FARSEE           82  // can see outside of room
+#define AFF_MENZOCHOKER      83  // special object affect
 /** Total number of affect flags not including the don't use flag. */
 // don't forget to add to constants.c!
 #define AFF_WATER_BREATH     AFF_SCUBA  // just the more conventional name
-#define NUM_AFF_FLAGS        83
+#define NUM_AFF_FLAGS        84
 
 /* homeland-port reference */
 /*
@@ -1496,6 +1497,9 @@ struct extra_descr_data {
 /* Same thing, but for Special Abilities for weapons, armor and shields. */
 #define NUM_SPECAB_VAL_POSITIONS 4
 
+/* maximum amount of timrs on a single object, imported from homeland */
+#define SPEC_TIMER_MAX 4
+
 /** object flags used in obj_data. These represent the instance values for
  * a real object, values that can change during gameplay. */
 struct obj_flag_data {
@@ -1513,6 +1517,8 @@ struct obj_flag_data {
 
   byte material;  // what material is the item made of?
   int size;  // how big is the object?
+  
+  int spec_timer[SPEC_TIMER_MAX];   /* For timed procs - from homeland*/
 };
 
 /** Used in obj_file_elem. DO NOT CHANGE if you are using binary object files
