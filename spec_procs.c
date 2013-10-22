@@ -3571,6 +3571,199 @@ void weapons_spells(char *to_ch, char *to_vict, char *to_room,
 /*** end object procs general functions ***/
 
 /* from homeland */
+SPECIAL(tormblade) {
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc only vs Evil:  Dispel Magic randomly on hit.\r\n"
+            "                    Torms Protection of Evil on critical hits.\r\n");
+    return 1;
+  }
+  
+  struct char_data *vict;
+  struct affected_type af;
+  
+  if (!ch || cmd)
+    return 0;
+
+  vict = FIGHTING(ch);
+  if (!vict)
+    return 0;
+  if (!IS_EVIL(vict))
+    return 0;
+
+  if (argument) {
+    skip_spaces(&argument);
+    if (!strcmp(argument, "critical")) {
+      //okies, we assume its a crit then.
+      act("$n's $p shines as it protects $m.", FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
+      act("Your $p shines as it protects you.", FALSE, ch, (struct obj_data *) me, 0, TO_CHAR);
+      new_affect(&af);
+      af.spell = SPELL_PROT_FROM_EVIL;
+      af.modifier = -20;
+      af.location = APPLY_AC;
+      af.duration = dice(1, 4);
+      affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
+      return 1;
+    }
+  }
+  if (!rand_number(0, 30)) {
+    act("$n's $p hums loudly.", FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
+    act("Your $p hums loudly.", FALSE, ch, (struct obj_data *) me, 0, TO_CHAR);
+    call_magic(ch, vict, 0, SPELL_DISPEL_MAGIC, GET_LEVEL(ch), CAST_WAND);
+    return 1;
+  }
+
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(witherdirk) {
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: Contagion\r\n");
+    return 1;
+  }
+  
+  struct char_data *vict;
+  
+  if (!ch || cmd)
+    return 0;
+  vict = FIGHTING(ch);
+  if (!vict)
+    return 0;
+
+  if (rand_number(0, 30))
+    return 0;
+
+  weapons_spells(
+          "\tLThe dirk \trwrithes\tL and \twtwists\tL as it bites deep into $N\tL's skin,\tn\r\n"
+          "\tgputrid\tr blo\tro\trd\tL wells up in $S eyes, causing great pain and discomfort.\tn",
+          "\tLThe dirk \trwrithes\tL and \twtwists\tL as it bites deep into YOUR skin,\tn\r\n"
+          "\tgputrid\tr blo\tro\trd\tL wells up in YOUR eyes, causing great pain and discomfort.\tn",
+          "\tLThe dirk \trwrithes\tL and \twtwists\tL as it bites deep into $N\tL's skin,\tn\r\n"
+          "\tgputrid\tr blo\tro\trd\tL wells up in $S eyes, causing great pain and discomfort.\tn",
+          ch, vict, (struct obj_data *) me, SPELL_CONTAGION);
+  
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(air_sphere) {
+  int dam = 0;
+  struct char_data *vict;
+  struct affected_type af;
+  if (!ch)
+    return 0;
+
+  if (!cmd && FIGHTING(ch) && !rand_number(0, 25)) {
+    vict = FIGHTING(ch);
+    dam = 20 + dice(2, 8);
+    act("\tbYour \tBsphere of lighting \tYglows bright\tb as electricity\r\n"
+            "\tbc\tBr\tbackl\tBe\tbs \tball about its surface.\tn\r\n"
+            "\tbSuddenly the \tYglow \tWintensifies\tb and a \tB\tfbolt of lightning\tn\r\n"
+            "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn", 
+            FALSE, ch, 0, vict, TO_CHAR);
+
+    act("$n's \tBsphere of lighting \tYglows bright\tb as electricity\tn\r\n"
+            "\tbc\tBr\tbackl\tBe\tbs \tball about its surface.\tn\r\n"
+            "\tbSuddenly the \tYglow \tWintensifies\tb and a \tB\tfbolt of lightning\r\n"
+            "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn", 
+            FALSE, ch, 0, vict, TO_ROOM);
+    damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); //type -1 = no message
+    return 1;
+  }
+
+  // haste/chain once a day on command
+  if (cmd && argument && CMD_IS("say")) {
+    if (!is_wearing(ch, 136100))
+      return 0;
+
+    skip_spaces(&argument);
+    if (!strcmp(argument, "storm")) {
+      if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
+        send_to_char(ch, "Nothing happens.\r\n");
+        return 1;
+      }
+
+      act("\tcAs you speak to your \tbsphere of lightning\tc, it begins to \tWglow\tc and fill with violent\tn\r\n"
+              "\tcenergy.  The energy builds until it \tba\twrc\tbs and \tBc\tbrackle\tBs\tc all over the sphere before\tn\r\n"
+              "\tcit lets loose in a violent \tblightning storm\tc.  As the energy from the storm begins\tn\r\n"
+              "\tcto fade, a jolt of \tYelectricity\tc flows up through your arms, causing your heart to\tn\r\n"
+              "\tcrace really fast!\tn", FALSE, ch, 0, 0, TO_CHAR);
+
+      act("\tcAs $n \tcspeaks a word of power to $s \tbsphere of lightning\tc,\tn\r\n"
+              "\tcit \tWglows brightly\tc and violent energy begins to fill it. The sphere\tn\r\n"
+              "\tba\twrc\tbs\tc and \tBc\tbrackle\tBs\tc before it lets loose a violent \tblightning\tn\r\n"
+              "\tbstorm\tc.  The energy begins to fade, but before this can happen a jolt of \tYelectricity\tn\r\n"
+              "\tcflows up $n's\tc arms and causes $s heart to race really fast!", 
+              FALSE, ch, 0, 0, TO_ROOM);
+
+      new_affect(&af);
+      af.spell = SPELL_HASTE;
+      af.duration = 100;
+      SET_BIT_AR(af.bitvector, AFF_HASTE);
+      affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
+      
+      call_magic(ch, 0, 0, SPELL_CHAIN_LIGHTNING, 20, CAST_POTION);
+      
+      GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
+      return 1;
+    }
+  }
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(bolthammer) {
+  int dam;
+  struct char_data *vict = FIGHTING(ch);
+  
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc:  Lightning bolt.\r\n");
+    return 1;
+  }
+
+  if (!ch || cmd || !vict || rand_number(0, 18))
+    return 0;
+
+  dam = 25 + dice(1, 30);
+
+  if (dam < GET_HIT(vict)) {
+    weapons_spells(
+            "\tLYour\tn $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
+            "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
+            "\tLfrom the head of the warhammer and strikes\tn $N \tLwith full force.\tn",
+
+            "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+            "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes you\tn\r\n"
+            "\tlwith full force.\tn",
+
+            "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
+            "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
+            "\tLfrom the head of the warhammer and strikes $N \tLwith full force.\tn",
+            ch, vict, (struct obj_data *) me, 0);
+  } else {
+    dam += 20;
+    weapons_spells(
+            "\tLYour\tn $p \tLstarts to \twth\tWr\twob \tLviolently and the sound of th\tYun\tLder can be\tn\r\n"
+            "\tLheard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn\r\n"
+            "$N \tLwith full force. When the flash is gone\r\n"
+
+            "\tL you see the corpse of\tn $N \tLstill twitching on the ground.\tn",
+            "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+            "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn\r\n"
+            "\tLyou with full force. You twitch a few times before your body goes still forever.\tn",
+
+            "$n's�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+            "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn \tn\r\n"
+            "$N \tLwith full force. When the flash is gone you see\r\n"
+            "\tLthe corpse of\tn $N \tLstill twitching on the ground.\tn",
+            ch, vict, (struct obj_data *) me, 0);
+  }
+
+  damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); //type -1 = no message
+  return 1;
+}
+
+/* from homeland */
 SPECIAL(rughnark) {
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: magical damage 25+10d4 for monk.\r\n");

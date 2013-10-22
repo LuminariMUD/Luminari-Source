@@ -795,6 +795,7 @@ ASPELL(spell_identify) // divination
 {
   int i, found;
   size_t len;
+  int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
 
   if (obj) {
     char bitbuf[MAX_STRING_LENGTH];
@@ -899,6 +900,12 @@ ASPELL(spell_identify) // divination
         send_to_char(ch, "   Affects: %s By %d\r\n", bitbuf, obj->affected[i].modifier);
       }
     }
+
+    //code to support proc information..
+    name = obj_index[GET_OBJ_RNUM(obj)].func;
+    if (name)
+      (name)(ch, obj, 0, "identify");
+    
   } else if (victim) { /* victim */
     send_to_char(ch, "Name: %s\r\n", GET_NAME(victim));
     if (!IS_NPC(victim))
