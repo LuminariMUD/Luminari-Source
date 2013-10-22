@@ -3571,6 +3571,213 @@ void weapons_spells(char *to_ch, char *to_vict, char *to_room,
 /*** end object procs general functions ***/
 
 /* from homeland */
+SPECIAL(bloodaxe) {
+  int dam;
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc:  Bite.\r\n");
+    return 1;
+  }
+
+  if (!ch || cmd || !vict || rand_number(0, 16))
+    return 0;
+
+  dam = rand_number(8, 8);
+
+  GET_HIT(vict) -= dam;
+
+  if (dam < GET_HIT(vict)) {
+    weapons_spells(
+            "\tLYour $p \tLstarts \trhumming \tLlouder and louder. Suddenly "
+            "the axehead reshapes into a powerful maw and bites $N\tL in the throat.\tRBlood \tLflows "
+            "between the the canine jaws and spills to the ground and $N\tL howls in pain. With "
+            "a satisfied grin the maw reverts back to an axehead.\tn",
+            "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly "
+            "the axehead reshapes into a powerful maw and bites you in the throat. \tRBlood \tLflows "
+            "between the canine jaws and spills to the ground and you howl in pain. With "
+            "a satisfied grin the maw reverts back to an axehead.\tn",
+            "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly "
+            "the axehead reshapes into a powerful maw and bites $N\tL in the throat. \tRBlood \tLflows "
+            "between the the canine jaws and spills to the ground and $N\tL howls in pain. With "
+            "a satisfied grin the maw reverts back to an axehead.\tn", ch, vict, (struct obj_data *) me, 0);
+  }
+  else {
+    weapons_spells("\tLYour $p \tLstarts \trhumming \tLlouder and louder. Suddenly the "
+            "axehead reshapes into a powerful maw and bites $N\tL in the throat. $N\tL "
+            "looks at the \tRblood \tLflowing freely from the wound, then $S\tL eyes "
+            "\twglazes \tLover and $E falls to the ground, \trDEAD\tL. With a "
+            "satisfied grin the maw reverts back to an axehead.\tn",
+            "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly the axehead "
+            "reshapes into a powerful maw and bites'you in the throat. You look at "
+            "the \tRblood \tLflowing freely from the wound, then your eyes \twglazes "
+            "\tLover and you fall to the ground, \trDEAD\tL.\tn",
+            "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly the axehead "
+            "reshapes into a powerful maw and bites $N\tL in the throat. $N\tL looks at the "
+            "\tRblood \tLflowing freely from the wound, then $S eyes \twglazes "
+            "\tLover and $E falls to the ground, \trDEAD\tL. With a satisfied grin "
+            "the maw reverts back to an axehead.\tn", ch, vict, (struct obj_data *) me, 0);
+    GET_HIT(vict) = -100;
+  }
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(skullsmasher) {
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!ch || cmd || !vict)
+    return 0;
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc:  Knockdown.\r\n");
+    return 1;
+  }
+  
+  int power = 25;
+    
+  if (GET_OBJ_VNUM(((struct obj_data *) me)) == 101850)
+    power = 15;
+  if (rand_number(0, power))
+    return 0;
+  if (MOB_FLAGGED(vict, MOB_NOBASH))
+    return 0;
+  if (AFF_FLAGGED(vict, AFF_IMMATERIAL))
+    return 0;
+
+  weapons_spells(
+          "\tLAs you swing your maul at $N \tLit connects with $S head\tn\r\n"
+          "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A look of overwhelming \trpain\tL shows on\tn\r\n"
+          "\tL$S face as $E slowly slumps to the ground.\tn",
+
+          "\tLAs $n \tLswings $s maul at you it connects with your head\tn\r\n"
+          "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A feeling of overwhelming \trpain\tL courses\tn\r\n"
+          "\tLthrough your body, and you feel yourself slump to the ground.\tn",
+
+          "\tLAs $n \tLswings $s maul at $N \tLit connects with $S head\tn\r\n"
+          "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A look of overwhelming \trpain \tLshows on\tn\r\n"
+          "\tL$S face as $E slowly slumps to the ground.\tn",
+          ch, vict, (struct obj_data *) me, 0);
+  GET_POS(vict) = POS_SITTING;
+  WAIT_STATE(vict, PULSE_VIOLENCE);
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(acidsword) {
+  int dam;
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc:  Acid corrosion.\r\n");
+    return 1;
+  }
+
+  if (!ch || cmd || !vict || rand_number(0, 16))
+    return 0;
+
+  dam = dice(4, 3);
+
+  GET_HIT(vict) -= dam;
+  if (GET_HIT(vict) > -9) {
+    weapons_spells(
+            "\tLYour\tn $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+            "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+            "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+            "$N\tL, hissing as it starts to corrode.\tn",
+            "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+            "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+            "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+            "you\tL, hissing as it starts to corrode.\tn",
+            "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+            "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+            "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\r\n"
+            "$N, hissing as it starts to corrode.\tn", ch, vict, (struct obj_data *) me, 0);
+  } else {
+    weapons_spells(
+            "\tLYour\tn $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+            "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+            "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+            "$N\tL, hissing as it melts\tn $N \tLto o\twoz\tLing pulp.\tn",
+            "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+            "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+            "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+            "$N\tL, hissing as it melts\tn $N \tLto o\twoz\tLing pulp.\tn",
+            "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+            "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+            "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\r\n"
+            "you, hissing as it melts you to o\twoz\tLing pulp.\tn", ch, vict, (struct obj_data *) me, 0);
+    GET_HIT(vict) = -50;
+  }
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(snakewhip) {
+  //struct affected_type af;
+  struct char_data *vict = FIGHTING(ch);
+  struct obj_data *weepan = (struct obj_data *) me;
+  int dam;
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc:  Drow-only, Snake-Bite.\r\n");
+    return 1;
+    
+  }  if (!ch || cmd || !vict || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  if ((GET_RACE(ch) != RACE_ELF || GET_SEX(ch) != SEX_FEMALE) && is_wearing(ch, 135500)) {
+  //if ((GET_RACE(ch) != RACE_DROW || GET_SEX(ch) != SEX_FEMALE) && is_wearing(ch, 135500)) {
+    if (GET_HIT(ch) > 0) {
+      act(    "\tLYour $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against you.\r\n"
+              "All three snakeheads suddenly lunges forwardand sink their fangs in you throat. \r\n"
+              "You barely have time to feel the terrible pain before you fall over with \tRbl\tro\tRod\r\n"
+              "\tLflowing freely from the wounds in your neck.\tn", FALSE, ch, 
+              weepan, 0, TO_CHAR);
+
+      act(    "$n's $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against $n\tL. \r\n"
+              "All three snakeheads suddenly lunges forward and sink their fangs in $n's \tLthroat.\r\n"
+              "$n \tLbarely have time to feel the terrible pain before falling over with \tRbl\tro\tRod\r\n"
+              "\tLflowing freely from the wounds in the neck.\tn", FALSE, ch, 
+              weepan, 0, TO_ROOM);
+      GET_HIT(ch) = -5;
+      GET_POS(ch) = POS_INCAP;
+    }
+    return 1;
+  }
+  if (rand_number(0, 15))
+    return 0;
+
+  dam = dice(GET_LEVEL(ch), 3);
+
+  GET_HIT(vict) -= dam;
+
+  if (GET_HIT(vict) > -9) {
+    weapons_spells(
+            "\tLYour $p \tLh\tYi\tLss\tYe\tLs with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
+            "Their fangs sink deep into the \tRfl\tre\tRsh \tLand $N \tLcries out in pain.\tn",
+            "$n's $p \tLh\tYi\tLss\tYe\tLs\r\nwith fury as all three snakeheads suddenly lunges for you.\r\n"
+            "Their fangs sink deep into the \tRfl\tre\tRsh \tLand you cry out in pain.\tn",
+            "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
+            "Their fangs sink deep into the \tRfl\tre\tRsh \tLand $N \tLcries out in pain.\tn", 
+            ch, vict, (struct obj_data *) me, 0);
+  } else {
+    weapons_spells(
+            "\tLYour $p \tLh\tYi\tLss\tYe\tLs with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
+            "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away the remaining life of $N \tLwho\r\n"
+            "falls over dead.\tn",
+            "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for you.\r\n"
+            "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away your remaining life and\r\n"
+            "you fall over dead.\tn",
+            "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
+            "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away the remaining life of $N \tLwho\r\n"
+            "falls over dead.\tn", ch, vict, (struct obj_data *) me, 0);
+    GET_HIT(vict) = -50;
+  }
+  return 1;
+}
+
+/* from homeland */
 SPECIAL(tormblade) {
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc only vs Evil:  Dispel Magic randomly on hit.\r\n"
