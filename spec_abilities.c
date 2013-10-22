@@ -57,6 +57,7 @@ static void add_weapon_special_ability(int specab, const char *name, int level, 
   weapon_special_ability_info[specab].special_ability_proc = specab_proc;
 }
 
+/*
 static void add_armor_special_ability(int specab, const char *name, int level, int actmtd, int targets, int violent, int time, int school, int cost, SPECAB_PROC_DEF(specab_proc)) {
   armor_special_ability_info[specab].level = level;
   armor_special_ability_info[specab].activation_method = actmtd;
@@ -69,6 +70,7 @@ static void add_armor_special_ability(int specab, const char *name, int level, i
   armor_special_ability_info[specab].special_ability_proc = specab_proc;
   
 }
+ */
 
 static void add_unused_weapon_special_ability(int specab) {
   weapon_special_ability_info[specab].level = 0;

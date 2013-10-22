@@ -560,7 +560,8 @@ static char* wilderness_map_to_string (struct wild_map_tile ** map, int size) {
 /* Print a map with size 'size', centered on (x,y) */
 void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
   struct wild_map_tile **map;
-  int i, j;
+  int i;
+//  int j;
 
   int xsize = size;
   int ysize = size;
@@ -711,7 +712,7 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
   int white, black, gray[255];
   int i, x, y;
   double pixel;
-  double dist;
+//  double dist;
   double trans_x, trans_y;
   
 //  int canvas_x = (zoom == 0 ? xsize : xsize/(2*zoom));

@@ -1949,6 +1949,7 @@ struct mob_special_data {
   /* a (generally) boolean macro that marks whether a proc fired, general use is
      for zone-procs */
   int proc_fired;
+  room_rnum temp_room_data;  /* for homeland, for storing temporary room data */
 };
 
 /** An affect structure. */
