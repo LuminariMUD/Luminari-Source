@@ -1435,13 +1435,14 @@ int get_hidden_door_dc(struct char_data *ch, int door) {
 /* 'search' command, uses the rogue's search skill, if available, although
  * the command is available to all.  */
 ACMD(do_search) {
-  int door, val, found = FALSE;
-  struct char_data *i; /* for player/mob */
-  struct char_data *list = world[ch->in_room].people; /* for player/mob */
-  struct obj_data *objlist = world[ch->in_room].contents;
-  struct obj_data *obj = NULL;
-  struct obj_data *cont = NULL;
-  struct obj_data *next_obj = NULL;
+  int door, found = FALSE;
+//  int val;
+//  struct char_data *i; // for player/mob
+//  struct char_data *list = world[ch->in_room].people; // for player/mob
+//  struct obj_data *objlist = world[ch->in_room].contents;
+//  struct obj_data *obj = NULL;
+//  struct obj_data *cont = NULL;
+//  struct obj_data *next_obj = NULL;
   int search_dc = 0;
 
   if (FIGHTING(ch)) {

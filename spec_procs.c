@@ -1053,7 +1053,6 @@ bool is_wearing(struct char_data *ch, obj_vnum vnum) {
 }
 
 /* from homeland */
-/*
 bool yan_yell(struct char_data *ch) {
   struct char_data *i;
   struct char_data *vict;
@@ -1091,7 +1090,7 @@ bool yan_yell(struct char_data *ch) {
           case 136113:
             if (i->in_room == ch->in_room) {
               act("$n jumps to the aid of $N!", FALSE, i, 0, ch, TO_ROOM);
-              hit(i, vict, TYPE_UNDEFINED, TRUE);
+              hit(i, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
             } else {
               HUNTING(i) = ch;
               hunt_victim(i);
@@ -1109,7 +1108,6 @@ bool yan_yell(struct char_data *ch) {
 
   return FALSE;
 }
-*/
 
 /* from homeland */
 void yan_maelstrom(struct char_data *ch) {
@@ -1190,11 +1188,10 @@ void yan_windgust(struct char_data *ch) {
 }
 
 /* from homeland */
-/*
 bool chan_yell(struct char_data *ch) {
   struct char_data *i;
   struct char_data *vict;
-  Descriptor *d;
+  struct descriptor_data *d;
   room_rnum room = 0;
   int zone = world[ch->in_room].zone;
   room_rnum start = 0;
@@ -1205,55 +1202,600 @@ bool chan_yell(struct char_data *ch) {
     return FALSE;
 
   // show yan-s yell message.
-  if (YELLED(ch) == false) {
+  if (PROC_FIRED(ch) == false) {
     for (d = descriptor_list; d; d = d->next) {
       if (STATE(d) == CON_PLAYING && d->character != NULL && zone == world[d->character->in_room].zone) {
-        send_to_char(
-                "\tCChan, the Elemental Princess of Good Air\tw shouts, '\tcI have been attacked! Come to me my friends!\tw'\tn\r\n"
-                , d->character);
+        send_to_char(d->character,
+                "\tCChan, the Elemental Princess of Good Air\tw shouts, '\tcI have been attacked! Come to me my friends!\tw'\tn\r\n");
       }
     }
   }
 
-
-
-  start = real_room(36100);
-  end = real_room(36224);
+  start = real_room(136100);
+  end = real_room(136224);
 
   for (room = start; room <= end; room++) {
     for (i = world[room].people; i; i = i->next_in_room) {
       if (IS_NPC(i) && !FIGHTING(i)) {
         switch (GET_MOB_VNUM(i)) {
-          case 36115:
-          case 36116:
-          case 36117:
-          case 36118:
+          case 136115:
+          case 136116:
+          case 136117:
+          case 136118:
             if (i->in_room == ch->in_room) {
               act("$n jumps to the aid of $N!", FALSE, i, 0, ch, TO_ROOM);
-              hit(i, vict, TYPE_UNDEFINED, TRUE);
+              hit(i, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
             } else {
               HUNTING(i) = ch;
               hunt_victim(i);
             }
-
             break;
         }
       }
     }
   }
 
-  if (YELLED(ch) == FALSE) {
-    YELLED(ch) = TRUE;
+  if (PROC_FIRED(ch) == FALSE) {
+    PROC_FIRED(ch) = TRUE;
     return TRUE;
   }
 
   return FALSE;
 }
-*/
 
 /******* end general procedures for mobile procs ****/
 
 /** begin actual mob procs **/
+
+/* from homeland */
+SPECIAL(imix) {
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  if (!FIGHTING(ch))
+    PROC_FIRED(ch) = FALSE;
+
+  if (FIGHTING(ch)) {
+    zone_yell(ch, "\r\n\tMImix \tnshouts, '\tRYou DARE attack me?!? Minions... to me now!!!\tn'\r\n");
+  }
+
+  if (!rand_number(0, 3) && FIGHTING(ch)) {
+    call_magic(ch, FIGHTING(ch), 0, SPELL_FIRE_BREATHE, GET_LEVEL(ch), CAST_SPELL);
+    return TRUE;
+  }
+
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(olhydra) {
+  struct char_data *vict;
+  struct char_data *next_vict;
+
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  if (!FIGHTING(ch))
+    PROC_FIRED(ch) = FALSE;
+
+  if (FIGHTING(ch)) {
+    zone_yell(ch, "\r\n\tBOlhydra \tnshouts, '\tCYou DARE attack me?!? Minions... to me now!!!\tn'\r\n");
+  }
+
+  if (!rand_number(0, 3) && FIGHTING(ch)) {
+    act("$n \tLopens $s mouth and let stream forth a \tBwave of water.\tn",
+            FALSE, ch, 0, 0, TO_ROOM);
+
+    for (vict = world[ch->in_room].people; vict; vict = next_vict) {
+      next_vict = vict->next_in_room;
+      if (IS_NPC(vict) && !IS_PET(vict))
+        continue;
+      if (ch == vict)
+        continue;
+
+      if ((dice(1, 20) + 21) < GET_DEX(vict)) {
+        act("\tbThe wave hits \tCYOU\tb, knocking you backwards.\tn",
+                FALSE, ch, 0, vict, TO_VICT);
+        act("\tbThe wave hits $N\tb, knocking $M backwards.\tn",
+                FALSE, ch, 0, vict, TO_NOTVICT);
+        WAIT_STATE(vict, PULSE_VIOLENCE);
+      } else {
+        act("\tbThe wave hits \tCYOU\tb with full \tBforce\tb, knocking you down.\tn",
+                FALSE, ch, 0, vict, TO_VICT);
+        act("\tbThe wave hits $N\tb with full \tBforce\tb, knocking $M down.\tn",
+                FALSE, ch, 0, vict, TO_NOTVICT);
+        GET_POS(vict) = POS_SITTING;
+        WAIT_STATE(vict, PULSE_VIOLENCE * 2);
+      }
+    }
+    return 1;
+  }
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(banshee) {
+  struct char_data *vict;
+
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  if (!FIGHTING(ch)) // heheh  && GET_HIT(ch) == GET_MAX_HIT(ch))
+    PROC_FIRED(ch) = FALSE;
+
+  if (FIGHTING(ch) && !rand_number(0, 40) && PROC_FIRED(ch) != TRUE) {
+    act("\tW$n \tWlets out a piercing shriek so horrible that it makes your ears \trBLEED\tW!\tn",
+            FALSE, ch, 0, 0, TO_ROOM);
+    for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room)
+      if (!IS_NPC(vict) && !mag_savingthrow(ch, vict, SAVING_WILL, -4)) {
+        act("\tRThe brutal scream tears away at your life force,\r\n"
+                "causing you to fall to your knees with pain!\tn", FALSE, vict, 0, 0, TO_CHAR);
+        act("$n grabs $s ears and tumbles to the ground in pain!", FALSE, vict, 0, 0, TO_ROOM);
+        GET_HIT(vict) = 1;
+      }
+
+    PROC_FIRED(ch) = TRUE;
+    return 1;
+  }
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(quicksand) {
+  struct affected_type af;
+
+  if (cmd)
+    return 0;
+
+  if (IS_NPC(ch) && !IS_PET(ch))
+    return 0;
+
+  if (AFF_FLAGGED(ch, AFF_FLYING))
+    return 0;
+  if (GET_LEVEL(ch) > LVL_IMMORT)
+    return 0;
+
+  if (GET_DEX(ch) > dice(1, 20) + 12) {
+    act("\tyYou avoid getting stuck in the quicksand.\tn",
+            FALSE, ch, 0, 0, TO_CHAR);
+    act("\tn$n\ty avoids getting stuck in the quicksand.\tn",
+            FALSE, ch, 0, 0, TO_ROOM);
+    return 0;
+  }
+
+  act("\tyThe marsh \tgla\tynd of the \twm\tye\tgr\tye opens up suddenly revealing quicksand!\tn\r\n"
+          "\tnYou get sucked down.\tn",
+          FALSE, ch, 0, 0, TO_CHAR);
+  act("\tn$n\ty gets stuck in the quicksand of the marsh \tgla\tynd of the \twm\tye\tgr\tye.\tn",
+          FALSE, ch, 0, 0, TO_ROOM);
+
+  new_affect(&af);
+  af.spell = SPELL_HOLD_PERSON;
+  SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+  af.duration = 5;
+  affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
+    
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(kt_kenjin) {
+  struct affected_type af;
+  struct char_data *vict = 0;
+  struct char_data *tch = 0;
+  int val = 0;
+  
+  if (cmd)
+    return 0;
+  if (!FIGHTING(ch))
+    return 0;
+
+  if (GET_POS(ch) < POS_FIGHTING)
+    return 0;
+
+  for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room) {
+    if (!IS_NPC(tch) || IS_PET(tch)) {
+      if (!vict || !rand_number(0, 2)) {
+        vict = tch;
+      }
+    }
+  }
+
+  val = dice(1, 3);
+
+  //turns you into stone
+  if (val == 1) {
+    act("$n\tc whips out a \tWbone-white\tn wand, and waves it in the air.\tn\r\n"
+            "\tcSuddenly $e points it at \tn$N\tc, who slowly turns to stone.", FALSE,
+            ch, 0, vict, TO_ROOM);
+    new_affect(&af);
+    af.spell = SPELL_HOLD_PERSON;
+    SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+    af.duration = rand_number(2, 3);
+    affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+    return 1;
+  }
+
+  //teleports you to the bottom of the shaft.
+  if (val == 2) {
+    act("$n\tc whips out a \trfiery red\tn wand, and waves it in the air.\tn\r\n"
+            "\tcSuddenly $e points it at \tn$N\tc, who fades away suddenly.", FALSE,
+            ch, 0, vict, TO_ROOM);
+    char_from_room(vict);
+    char_to_room(vict, real_room(132908));
+    look_at_room(vict, 0);
+    return 1;
+  }
+
+  //loads a new mob in 132919 :)
+  if (val == 3) {
+    act("$n\tc whips out a \tYgolden\tn wand, and waves it in the air.\tn\r\n"
+            "\tcSuddenly $e taps in the air, and you see \tLshadow\tc coalesce behind you.", FALSE,
+            ch, 0, vict, TO_ROOM);
+    tch = read_mobile(132902, VIRTUAL);
+    if (!tch)
+      return 0;
+    char_to_room(tch, real_room(132919));
+    return 1;
+  }
+
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(kt_twister) {
+  struct char_data *mob;
+  char l_name[256];
+  char s_name[256];
+  int temp;
+
+  if (cmd)
+    return 0;
+
+  if (IS_NPC(ch) && !IS_PET(ch))
+    return 0;
+
+  temp = world[real_room(132901)].dir_option[0]->to_room;
+  world[real_room(32901)].dir_option[0]->to_room =
+
+          world[real_room(132901)].dir_option[1]->to_room;
+  world[real_room(32901)].dir_option[1]->to_room =
+
+          world[real_room(132901)].dir_option[2]->to_room;
+  world[real_room(32901)].dir_option[2]->to_room =
+
+          world[real_room(132901)].dir_option[3]->to_room;
+  world[real_room(32901)].dir_option[3]->to_room = temp;
+
+  send_to_room(real_room(132901), "\tCThe world seems to turn.\tn\r\n");
+
+  mob = read_mobile(132901, VIRTUAL);
+
+  if (!mob)
+    return 0;
+  
+  char_to_room(mob, real_room(132906));
+
+  sprintf(l_name, "\tLThe shadow of \tw%s\tL stands here.\tn  ", GET_NAME(ch));
+  sprintf(s_name, "\tLa shadow of \tw%s\tn", GET_NAME(ch));
+
+  mob->player.short_descr = strdup(s_name);
+  mob->player.name = strdup("shadow");
+  mob->player.long_descr = strdup(l_name);
+
+  GET_LEVEL(mob) = GET_LEVEL(ch);
+  GET_MAX_HIT(mob) = 1000 + GET_LEVEL(mob) * 50;
+  GET_HIT(mob) = GET_MAX_HIT(mob);
+  GET_CLASS(mob) = GET_CLASS(ch);
+
+  send_to_char(ch, "You somehow feel \tWsplit\tn in half.\r\n");
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(hive_death) {
+  if (cmd)
+    return 0;
+  if (!ch)
+    return 0;
+
+  send_to_char(ch, 
+          "\trAs you enter through the curtain, your body is ripped into two pieces, as your link\tn\r\n"
+          "\trthrough the ethereal plane is severed.  You suddenly realise that your physical body\tn\r\n"
+          "\tris at one place, and your mind in another part.\tn\r\n\r\n");
+  char_from_room(ch);
+  char_to_room(ch, real_room(129500));
+  //make_corpse(ch, 0);
+  send_to_char(ch, "\tWYou feel the link snap completely, leaving you body behind completely!\tn\r\n\r\n");
+  look_at_room(ch, 0);
+  char_from_room(ch);
+  send_to_char(ch, "\tLYou focus your eyes back on the present.\tn\r\n\r\n");
+  char_to_room(ch, real_room(139328));
+  look_at_room(ch, 0);
+
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(feybranche) {
+  struct char_data *i = NULL;
+  char buf[MAX_INPUT_LENGTH];
+  
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  struct char_data *enemy = FIGHTING(ch);
+
+  if (!enemy)
+    PROC_FIRED(ch) = FALSE;
+  
+  if (FIGHTING(ch) && !ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
+    if (enemy->master && enemy->master->in_room == enemy->in_room)
+      enemy = enemy->master;
+    sprintf(buf, "%s\tL shouts, '\tmCome to me!!' Fey-Branche is under attack!\tn\r\n",
+            ch->player.short_descr);
+    for (i = character_list; i; i = i->next) {
+      if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == 135535 ||
+              GET_MOB_VNUM(i) == 135536 || GET_MOB_VNUM(i) == 135537 ||
+              GET_MOB_VNUM(i) == 135538 || GET_MOB_VNUM(i) == 135539 ||
+              GET_MOB_VNUM(i) == 135540) && ch != i) {
+        if (FIGHTING(ch)->in_room != i->in_room) {
+          if (GET_MOB_VNUM(i) != 135536) {
+            HUNTING(i) = enemy;
+            hunt_victim(i);
+          } else
+            cast_spell(i, enemy, 0, SPELL_TELEPORT);
+        } else
+          hit(i, enemy, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+
+      if (world[ch->in_room].zone == world[i->in_room].zone && !PROC_FIRED(ch))
+        send_to_char(i, buf);
+    }
+    PROC_FIRED(ch) = TRUE;
+    return 1;
+  }
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(abyssal_vortex) {
+  int temp;
+
+  if (cmd)
+    return 0;
+
+  if (IS_NPC(ch) && !IS_PET(ch))
+    return 0;
+
+  if (!rand_number(0, 7)) {
+    temp = world[ch->in_room].dir_option[0]->to_room;
+    world[ch->in_room].dir_option[0]->to_room = world[ch->in_room].dir_option[1]->to_room;
+    world[ch->in_room].dir_option[1]->to_room = world[ch->in_room].dir_option[4]->to_room;
+    world[ch->in_room].dir_option[4]->to_room = world[ch->in_room].dir_option[3]->to_room;
+    world[ch->in_room].dir_option[3]->to_room = world[ch->in_room].dir_option[5]->to_room;
+    world[ch->in_room].dir_option[5]->to_room = world[ch->in_room].dir_option[2]->to_room;
+    world[ch->in_room].dir_option[2]->to_room = temp;
+
+    send_to_room(ch->in_room, "\tLThe reality seems to \tCshift\tL as madness descends in the \tcvortex\tn\r\n");
+
+    return 1;
+  }
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(agrachdyrr) {
+  struct char_data *i = NULL;
+  char buf[MAX_INPUT_LENGTH];
+
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  struct char_data *enemy = FIGHTING(ch);
+
+  if (!enemy)
+    PROC_FIRED(ch) = FALSE;
+
+  if (FIGHTING(ch) && !ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
+
+    if (!rand_number(0, 4) && !ch->followers) {
+      act("$n\tL looks to be extremely disspleased at being\r\n"
+              "forced to fight such inferior beings in her own mansion. She raises her\r\n"
+              "arms and cries out, '\tmAid me Lloth!\tL'",
+              FALSE, ch, 0, 0, TO_ROOM);
+
+      struct char_data *mob = read_mobile(135523, VIRTUAL);
+      if (!mob)
+        return 0;
+      char_to_room(mob, ch->in_room);
+      add_follower(mob, ch);
+      return 1;
+    }
+
+    if (enemy->master && enemy->master->in_room == enemy->in_room)
+      enemy = enemy->master;
+    
+    sprintf(buf, "%s\tL shouts, '\twTo me, \tcAgrach-Dyrr\tw is under attack!'\tn\r\n",
+            ch->player.short_descr);
+    for (i = character_list; i; i = i->next) {
+      if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == 135521 ||
+              GET_MOB_VNUM(i) == 135522 || GET_MOB_VNUM(i) == 135510 ||
+              GET_MOB_VNUM(i) == 135524 || GET_MOB_VNUM(i) == 135525 ||
+              GET_MOB_VNUM(i) == 135512) && ch != i) {
+        if (FIGHTING(ch)->in_room != i->in_room) {
+          if (GET_MOB_VNUM(i) != 135522) {
+            HUNTING(i) = enemy;
+            hunt_victim(i);
+          } else
+            cast_spell(i, enemy, 0, SPELL_TELEPORT);
+        } else
+          hit(i, enemy, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+
+      if (world[ch->in_room].zone == world[i->in_room].zone && !PROC_FIRED(ch))
+        send_to_char(i, buf);
+    }
+    PROC_FIRED(ch) = TRUE;
+    return 1;
+  } // for loop
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(shobalar) {
+  struct char_data *i = NULL;
+  char buf[MAX_INPUT_LENGTH];
+
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  struct char_data *enemy = FIGHTING(ch);
+
+  if (!enemy)
+    PROC_FIRED(ch) = FALSE;
+
+  if (FIGHTING(ch) && !ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
+    if (enemy->master && enemy->master->in_room == enemy->in_room)
+      enemy = enemy->master;
+    sprintf(buf, "%s\tL shouts, '\twTo me, \tmShobalar\tw is under attack!'\tn\r\n",
+            ch->player.short_descr);
+    for (i = character_list; i; i = i->next) {
+      if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == 135506 ||
+              GET_MOB_VNUM(i) == 135500 || GET_MOB_VNUM(i) == 135504 ||
+              GET_MOB_VNUM(i) == 135507) && ch != i) {
+        if (FIGHTING(ch)->in_room != i->in_room) {
+          if (GET_MOB_VNUM(i) != 135506) {
+            HUNTING(i) = enemy;
+            hunt_victim(i);
+          } else
+            cast_spell(i, enemy, NULL, SPELL_TELEPORT);
+        } else
+          hit(i, enemy, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+
+      if (world[ch->in_room].zone == world[i->in_room].zone && !PROC_FIRED(ch))
+        send_to_char(i, buf);
+    }
+    PROC_FIRED(ch) = TRUE;
+    return 1;
+  } // for loop
+
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(ogremoch) {
+  struct char_data *i;
+  struct char_data *vict;
+  struct descriptor_data *d;
+  room_rnum room = 0;
+  int zone = world[ch->in_room].zone;
+  room_rnum start = 0;
+  room_rnum end = 0;
+
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  if (!FIGHTING(ch))
+    PROC_FIRED(ch) = FALSE;
+
+  vict = FIGHTING(ch);
+  if (!vict)
+    return 0;
+
+  // show yell message.
+  if (PROC_FIRED(ch) == false) {
+    for (d = descriptor_list; d; d = d->next) {
+      if (STATE(d) == CON_PLAYING && d->character != NULL && zone == world[d->character->in_room].zone) {
+        send_to_char(d->character, "\tLOgremoch \tw shouts, '\tLI have been "
+                "attacked! Come to me minions!\tw'\tn\r\n");
+      }
+    }
+  }
+
+  start = real_room(136700);
+  end = real_room(136802);
+
+  for (room = start; room <= end; room++) {
+    for (i = world[room].people; i; i = i->next_in_room) {
+      if (IS_NPC(i) && !FIGHTING(i)) {
+        switch (GET_MOB_VNUM(i)) {
+          case 136703:
+          case 136704:
+          case 136705:
+          case 136706:
+          case 136707:
+          case 136708:
+          case 136709:
+            if (i->in_room == ch->in_room) {
+              act("$n jumps to the aid of $N!", FALSE, i, 0, ch, TO_ROOM);
+              hit(i, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+            } else {
+              //either melt in directly or track
+              if (dice(1, 10) < 2) {
+                act("$n jumps into the pure rock, as $s lord calls for $m.", 
+                        FALSE, i, 0, 0, TO_ROOM);
+                char_from_room(i);
+                char_to_room(i, ch->in_room);
+                act("$n comes out from the rock, to help $s lord.", FALSE, i, 
+                        0, 0, TO_ROOM);
+              } else {
+                HUNTING(i) = ch;
+                hunt_victim(i);
+              }
+            }
+            break;
+        }
+      }
+    }
+  }
+  PROC_FIRED(ch) = TRUE;
+
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(yan) {
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  if (!FIGHTING(ch))
+    PROC_FIRED(ch) = FALSE;
+
+  if (FIGHTING(ch)) {
+    if (yan_yell(ch))
+      return 1;
+    if (!rand_number(0, 50)) {
+      yan_maelstrom(ch);
+      return 1;
+    }
+    if (!rand_number(0, 3)) {
+      yan_windgust(ch);
+      return 1;
+    }
+  }
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(chan) {
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  if (!FIGHTING(ch))
+    PROC_FIRED(ch) = FALSE;
+
+  if (FIGHTING(ch)) {
+    if (chan_yell(ch))
+      return 1;
+    if (!rand_number(0, 3)) {
+      yan_windgust(ch);
+      return 1;
+    }
+  }
+  return 0;
+}
 
 SPECIAL(guild) {
   int skill_num, percent;
@@ -1542,7 +2084,6 @@ SPECIAL(mayor) {
     case '.':
       move = FALSE;
       break;
-
   }
 
   path_index++;
@@ -2406,7 +2947,6 @@ SPECIAL(solid_elemental) {
       }
     }
 
-
     if (!FIGHTING(ch) && ch->master && FIGHTING(ch->master) && ch->in_room == ch->master->in_room) {
       perform_assist(ch, ch->master);
       return 1;
@@ -2706,7 +3246,6 @@ SPECIAL(mereshaman) {
 }
 
 /* from homeland */
-/*
 SPECIAL(willowisp) {
   room_rnum room = real_room(126899);
   
@@ -2718,7 +3257,7 @@ SPECIAL(willowisp) {
 
   if (ch->in_room != room && weather_info.sunlight == SUN_LIGHT) {
     act("$n fades away in the sunlight!", FALSE, ch, 0, 0, TO_ROOM);
-    ch->mob_specials.temp_data = ch->in_room;
+    ch->mob_specials.temp_room_data = ch->in_room;
     char_from_room(ch);
     char_to_room(ch, room);
 
@@ -2727,14 +3266,14 @@ SPECIAL(willowisp) {
 
   if (ch->in_room == room && weather_info.sunlight != SUN_LIGHT) {
     char_from_room(ch);
-    char_to_room(ch, ch->mob_specials.temp_data);
+    char_to_room(ch, ch->mob_specials.temp_room_data);
     act("$n appears with the dark of the night!", FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
 
   return 0;
 }
-*/
+
 
 /* from homeland */
 SPECIAL(naga_golem) {
@@ -2755,7 +3294,6 @@ SPECIAL(naga_golem) {
 }
 
 /* from homeland */
-/*
 SPECIAL(naga) {
   struct char_data *tch = 0;
   struct char_data *vict = 0;
@@ -2769,7 +3307,7 @@ SPECIAL(naga) {
     return 0;
   
   for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room) {
-    if ((!IS_NPC(tch) || IS_PET(tch)) && !AFF_FLAGGED(tch, AFF_NOSLEEP)) {
+    if ((!IS_NPC(tch) || IS_PET(tch)) && !MOB_FLAGGED(tch, MOB_NOSLEEP)) {
       if (!vict || !rand_number(0, 3)) {
         vict = tch;
       }
@@ -2778,8 +3316,9 @@ SPECIAL(naga) {
   if (!vict)
     return 0;
   
-  if (AFF_FLAGGED(vict, AFF_NOSLEEP))
+  if (MOB_FLAGGED(vict, MOB_NOSLEEP))
     return 0;
+  
   act(    "$n\tL thrusts its powerful barbed tail-stinger into your flesh causing\tn\r\n"
           "\tLyou to scream in agony.  As it snaps back its tail, poison oozes into the large\tn\r\n"
           "\tLwound that is opened.  You begin to fall into a drug induced "
@@ -2803,7 +3342,6 @@ SPECIAL(naga) {
   WAIT_STATE(vict, PULSE_VIOLENCE * 2);
   return 1;
 }
- */
 
 /* from homeland */
 SPECIAL(ethereal_pet) {
@@ -3030,9 +3568,176 @@ void weapons_spells(char *to_ch, char *to_vict, char *to_room,
   call_magic(ch, vict, 0, spl, level, CAST_WAND);
 }
 
-
-
 /*** end object procs general functions ***/
+
+/* from homeland */
+SPECIAL(rughnark) {
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: magical damage 25+10d4 for monk.\r\n");
+    return 1;
+  }
+
+  int dam = 0;
+  struct char_data *vict = 0;
+
+  if (cmd)
+    return 0;
+  if (!ch)
+    return 0;
+
+  if (!FIGHTING(ch))
+    return 0;
+
+  if (dice(1, 40) < 39)
+    return 0;
+
+  if (IS_GOOD(ch) && dice(1, 10) > 5)
+    return 0;
+
+  if (CLASS_LEVEL(ch, CLASS_MONK) < 20 && !IS_NPC(ch))
+    return 0;
+
+  vict = FIGHTING(ch);
+  dam = 25 + dice(10, 4);
+  if (dam > GET_HIT(vict))
+    dam = GET_HIT(vict);
+  if (dam < 50)
+    return 0;
+
+  weapons_spells(
+          "\tLAs you make contact with your opponent, the twin \tWmithril\tL blades rip apart\tn\r\n"
+          "\tLthe flesh in a gory display of blood, tearing huge chunks of meat out of your\tn\r\n"
+          "\tLopponent as $E screams in agony and pain.\tn",
+
+          "\tLAs $n make contact with you, the twin \tWmithril\tL blades rip apart\tn\r\n"
+          "\tLyour flesh in a gory display of blood, tearing huge chunks of meat out of your\tn\r\n"
+          "\tLown body as you scream in agony.\tn",
+
+          "\tLAs $n makes contact with $s opponent, the twin \tWmithril\tL blades rip apart\tn\r\n"
+          "\tLthe flesh in a gory display of blood, tearing huge chunks of meat out of $s\tn\r\n"
+          "\tLopponent as $E screams in agony and pain.\tn",
+          ch, vict, (struct obj_data *) me, 0);
+  damage(ch, vict, dam, -1, DAM_SLICE, FALSE); //type -1 = no message
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(magma) {
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: magmaburst (fire damage for monk.)\r\n");
+    return 1;
+  }
+
+  int dam = 0;
+  struct char_data *vict = 0;
+
+  if (cmd)
+    return 0;
+  if (!ch)
+    return 0;
+
+  if (!FIGHTING(ch))
+    return 0;
+
+  if (dice(1, 40) < 39)
+    return 0;
+
+  if (CLASS_LEVEL(ch, CLASS_MONK) < 20 && !IS_NPC(ch))
+    return 0;
+
+  vict = FIGHTING(ch);
+  dam = 50 + dice(30, 5);
+  if (dam > GET_HIT(vict))
+    dam = GET_HIT(vict);
+  if (dam < 50)
+    return 0;
+  weapons_spells(
+          "\tLAs your hands \twimpact\tL with your opponent, the \trflowing m\tRagm\tra\tn\r\n"
+          "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
+          "\tLAs $n\tL's hands \twimpact\tL with YOU, the \trflowing m\tRagm\tra\tn\r\n"
+          "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
+          "\tLAs $n\tL's hands \twimpact\tL with $s opponent, the \trflowing m\tRagm\tra\tn\r\n"
+          "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
+          ch, vict, (struct obj_data *) me, 0);
+  damage(ch, vict, dam, -1, DAM_FIRE, FALSE); //type -1 = no message
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(halberd) {
+  struct char_data *vict = FIGHTING(ch);
+  struct affected_type af;
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc:  blur, stun, slow.\r\n");
+    return 1;
+  }
+  if (!ch || cmd || !vict)
+    return 0;
+
+  switch (rand_number(0, 30)) {
+    case 27:
+      // A slight chance to stun
+      weapons_spells(
+              "\tcYour\tn $p \tcreverberates loudly as it sends\tn\r\n"
+              "\tcforth a \tWthunderous blast \tcat \tn$N\tc.  $E is knocked backwards as the\tn\r\n"
+              "\tcfull brunt of the blast hits $M squarely.\tn",
+              "\tc$n\tn $p \tcreverberates loudly as it sends\tn\r\n"
+              "\tcforth a \tWthunderous blast \tcat YOU.  You are knocked backwards as the\tn\r\n"
+              "\tcfull brunt of the blast hits YOU squarely.\tn",
+              "\tc$n\tn $p \tcreverberates loudly as it sends\tn\r\n"
+              "\tcforth a \tWthunderous blast \tcat $N.  $E is knocked backwards as the\tn\r\n"
+              "\tcfull brunt of the blast hits $M squarely.\tn",
+              ch, vict, (struct obj_data *) me, 0);
+      new_affect(&af);
+      af.spell = SKILL_CHARGE;
+      SET_BIT_AR(af.bitvector, AFF_STUN);
+      af.duration = dice(1, 4);
+      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+      return 1;
+      break;
+
+    case 21:
+      // blur
+      weapons_spells(
+              "\tcAs your\tn $p \tctumultuously resonates, a strange \twm\tWi\twst \tcemanates from\tn\r\n"
+              "\tcit quickly enshrouding you.  The \twm\tWi\twst \tcinduces you into a deep trance as your\tn\r\n"
+              "\tctrance as your body melds with your\tn $p. \r\n\tcYou begin to \tCmove "
+              "\tCat a \tcrapid\tCly in\tccreas\tCing sp\tceed \tCblurring out of focus.\tn\tn",
+
+              "\tcAs $n\tn $p \tctumultuously resonates, a strange \twm\tWi\twst \tcemanates from\tn\r\n"
+              "\tcit quickly enshrouding $m.  The \twm\tWi\twst \tcinduces $m into a deep\tn\r\n"
+              "\tctrance as $m body melds with $s\tn $p.  \r\n\tc$e begins to \tCmove \tn"
+              "\tCat a \tcrapid\tCly in\tccreas\tCing sp\tceed then $e \tCblurs out of focus.\tn",
+
+              "\tcAs $n\tn $p \tctumultuously resonates, a strange \twm\tWi\twst \tcemanates from\tn\r\n"
+              "\tcit quickly enshrouding $m.  The \twm\tWi\twst \tcinduces $m into a deep\tn\r\n"
+              "\tctrance as $m body melds with $s\tn $p.  \r\n\tc$e begins to \tCmove \tn"
+              "\tCat a \tcrapid\tCly in\tccreas\tCing sp\tceed then $e \tCblurs out of focus.\tn",
+              ch, vict, (struct obj_data *) me, 0);
+      return 1;
+      break;
+
+    case 17:
+    case 16:
+      // damage, and a chance to slow.
+      weapons_spells(
+              "\tcYour\tn $p \tcravenously slashes deep into \tn$N\tn\r\n"
+              "\tcinflicting life-threatening wounds causing $M to convulse and \tRbleed profusely.\tn",
+              "\tc$n\tn $p \tMravenously slashes deep into YOU inflicting\tn\r\n"
+              "\tclife-threatening wounds causing YOU to convulse and \tRbleed profusely.\tn",
+              "\tc$n\tn $p \tcravenously slashes deep into \tn$N\tc\r\n"
+              "\tcinflicting life-threatening wounds causing $M to convulse and \tRbleed profusely.\tn",
+              ch, vict, (struct obj_data *) me, SPELL_SLOW);
+      damage(ch, vict, 10 + dice(2, 4), -1, DAM_POISON, FALSE); //type -1 = no message
+      return 1;
+      break;
+
+    default:
+      return 0;
+  }
+  return 0;
+}
 
 SPECIAL(bank) {
   int amount;

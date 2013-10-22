@@ -5727,7 +5727,7 @@ ACMD(do_genmap) {
   void *set;
   double pos[2], point[2];
   room_rnum *room;
-  int j = 0; 
+//  int j = 0; 
 
   point[0] = 0;
   point[1] = 0;
