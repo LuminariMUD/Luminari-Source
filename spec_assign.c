@@ -176,6 +176,8 @@ void assign_objects(void)
   ASSIGNOBJ(25758, bank);
 
   ASSIGNOBJ(3118, crafting_kit);
+
+  ASSIGNOBJ(136100, air_sphere);
 }
 
 /* assign special procedures to rooms */
