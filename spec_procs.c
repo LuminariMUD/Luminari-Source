@@ -1052,6 +1052,205 @@ bool is_wearing(struct char_data *ch, obj_vnum vnum) {
   return FALSE;
 }
 
+/* from homeland */
+/*
+bool yan_yell(struct char_data *ch) {
+  struct char_data *i;
+  struct char_data *vict;
+  struct descriptor_data *d;
+  int room = 0;
+  int zone = world[ch->in_room].zone;
+  room_rnum start = 0;
+  room_rnum end = 0;
+  vict = FIGHTING(ch);
+  
+  if (!vict)
+    return FALSE;
+
+  // show yan-s yell message.
+  if (PROC_FIRED(ch) == false) {
+    for (d = descriptor_list; d; d = d->next) {
+      if (STATE(d) == CON_PLAYING && d->character != NULL && 
+              zone == world[d->character->in_room].zone) {
+        send_to_char(d->character, "\tcYan-C-Bin the Master of Evil Air\tw shouts, '\tcI "
+                "have been attacked! Come to me minions!\tw'\tn\r\n");
+      }
+    }
+  }
+
+  start = real_room(136100);
+  end = real_room(136224);
+
+  for (room = start; room <= end; room++) {
+    for (i = world[room].people; i; i = i->next_in_room) {
+      if (IS_NPC(i) && !FIGHTING(i)) {
+        switch (GET_MOB_VNUM(i)) {
+          case 136110:
+          case 136111:
+          case 136112:
+          case 136113:
+            if (i->in_room == ch->in_room) {
+              act("$n jumps to the aid of $N!", FALSE, i, 0, ch, TO_ROOM);
+              hit(i, vict, TYPE_UNDEFINED, TRUE);
+            } else {
+              HUNTING(i) = ch;
+              hunt_victim(i);
+            }
+            break;
+        }
+      }
+    }
+  }
+
+  if (PROC_FIRED(ch) == FALSE) {
+    PROC_FIRED(ch) = TRUE;
+    return TRUE;
+  }
+
+  return FALSE;
+}
+*/
+
+/* from homeland */
+void yan_maelstrom(struct char_data *ch) {
+  struct char_data *vict;
+  struct char_data *next_vict;
+  int dam = 0;
+
+  act("$N \tcbegins to spin in a circular motion, gathering speed at an alarming pace.\tn\r\n"
+          "\tcAs the pace quickens, $E begins to gain in height as well, until $E forms into\tn\r\n"
+          "\tcan eighty-foot tall whirlwind \tcof \tCs\tcw\twi\tcr\tCl\tci\twn\tCg \tcchaos.\tn",
+          FALSE, ch, 0, ch, TO_ROOM);
+
+  for (vict = world[ch->in_room].people; vict; vict = next_vict) {
+    next_vict = vict->next_in_room;
+    if (IS_NPC(vict) && !IS_PET(vict))
+      continue;
+    dam = 150 + dice(10, 20);
+    if (GET_LEVEL(vict) < 20)
+      dam = GET_MAX_HIT(vict);
+    if (dam >= GET_HIT(vict)) {
+      dam += 25;
+      act("\twAs you are spun about by $n's \twmaelstrom, your body is damaged beyond repair.\tn",
+              FALSE, ch, 0, vict, TO_VICT);
+      act("\twAs $N is spun about by $n's \twmaelstrom, $M body is damaged beyond repair.\tn",
+              FALSE, ch, 0, vict, TO_NOTVICT);
+
+    } else {
+      act("\twYou are enveloped in $n's \tCs\tcw\twi\tcr\tCl\tci\twn\tCg \tcmaelstrom\tw, your body pelted by \twgusts\tc of wind.\tn"
+              , FALSE, ch, 0, vict, TO_VICT);
+      act("\tw$N is enveloped in $n's \tCs\tcw\twi\tcr\tCl\tci\twn\tCg \tcmaelstrom\tw, $S body pelted by \twgusts\tc of wind.\tn",
+              FALSE, ch, 0, vict, TO_NOTVICT);
+    }
+    damage(ch, vict, dam, TYPE_BLUDGEON, DAM_AIR, FALSE);
+  }
+}
+
+/* from homeland */
+void yan_windgust(struct char_data *ch) {
+  struct char_data *vict;
+  struct char_data *next_vict;
+  int dam = 0;
+  struct affected_type af;
+  
+  act("\tc$n\tc opens $s cavernous maw and sends forth a \tCpowerful \twgust\tc of air.\tn",
+          FALSE, ch, 0, 0, TO_ROOM);
+
+  for (vict = world[ch->in_room].people; vict; vict = next_vict) {
+    next_vict = vict->next_in_room;
+    if (IS_NPC(vict) && !IS_PET(vict))
+      continue;
+
+    dam = 30 + dice(3, 30);
+    if (dam > GET_HIT(vict)) {
+      dam += 25;
+
+      act("\twAs you are hit by the \tcgust\tw of wind sent by $n, \twyou feel your\r\n"
+              "\twlife slip away.\tn",
+              FALSE, ch, 0, vict, TO_VICT);
+      act("\tw$N is blasted by $n's \tcgust\tw of wind, and suddenly keels over from\r\n"
+              "\twthe damage.\tn",
+              FALSE, ch, 0, vict, TO_NOTVICT);
+      damage(ch, vict, dam, TYPE_BLUDGEON, DAM_AIR, FALSE);
+    } else {
+      act("\twYou are blasted by a \tCf\tci\twer\tcc\tCe\tc gust\tw of wind hurled by $n.\tn",
+              FALSE, ch, 0, vict, TO_VICT);
+      act("\tw$N is blasted by a \tCf\tci\twer\tcc\tCe\tc gust\tw of wind hurled by $n.\tn",
+              FALSE, ch, 0, vict, TO_NOTVICT);
+      damage(ch, vict, dam, TYPE_BLUDGEON, DAM_AIR, FALSE);
+      if (dice(1, 40) > GET_CON(vict)) {
+        new_affect(&af);
+        af.spell = SKILL_CHARGE;
+        SET_BIT_AR(af.bitvector, AFF_STUN);
+        af.duration = dice(2, 4) + 1;
+        affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+      }
+    }
+  }
+}
+
+/* from homeland */
+/*
+bool chan_yell(struct char_data *ch) {
+  struct char_data *i;
+  struct char_data *vict;
+  Descriptor *d;
+  room_rnum room = 0;
+  int zone = world[ch->in_room].zone;
+  room_rnum start = 0;
+  room_rnum end = 0;
+
+  vict = FIGHTING(ch);
+  if (!vict)
+    return FALSE;
+
+  // show yan-s yell message.
+  if (YELLED(ch) == false) {
+    for (d = descriptor_list; d; d = d->next) {
+      if (STATE(d) == CON_PLAYING && d->character != NULL && zone == world[d->character->in_room].zone) {
+        send_to_char(
+                "\tCChan, the Elemental Princess of Good Air\tw shouts, '\tcI have been attacked! Come to me my friends!\tw'\tn\r\n"
+                , d->character);
+      }
+    }
+  }
+
+
+
+  start = real_room(36100);
+  end = real_room(36224);
+
+  for (room = start; room <= end; room++) {
+    for (i = world[room].people; i; i = i->next_in_room) {
+      if (IS_NPC(i) && !FIGHTING(i)) {
+        switch (GET_MOB_VNUM(i)) {
+          case 36115:
+          case 36116:
+          case 36117:
+          case 36118:
+            if (i->in_room == ch->in_room) {
+              act("$n jumps to the aid of $N!", FALSE, i, 0, ch, TO_ROOM);
+              hit(i, vict, TYPE_UNDEFINED, TRUE);
+            } else {
+              HUNTING(i) = ch;
+              hunt_victim(i);
+            }
+
+            break;
+        }
+      }
+    }
+  }
+
+  if (YELLED(ch) == FALSE) {
+    YELLED(ch) = TRUE;
+    return TRUE;
+  }
+
+  return FALSE;
+}
+*/
+
 /******* end general procedures for mobile procs ****/
 
 /** begin actual mob procs **/
@@ -2604,7 +2803,103 @@ SPECIAL(naga) {
   WAIT_STATE(vict, PULSE_VIOLENCE * 2);
   return 1;
 }
-*/
+ */
+
+/* from homeland */
+SPECIAL(ethereal_pet) {
+
+  if (cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+  if (FIGHTING(ch))
+    return 0;
+
+  if (ch->desc == 0) {
+    extract_char(ch);
+    return 1;
+  }
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(fp_invoker) {
+  struct char_data *victim;
+
+  if (!ch)
+    return 0;
+  if (FIGHTING(ch))
+    return 0;
+  if (!IS_NPC(ch) && cmd && CMD_IS("cast") && GET_POS(ch) >= POS_FIGHTING) {
+    victim = ch;
+    ch = (struct char_data*) me;
+    act("$n screams in rage, 'How DARE you cast a spell in my tower'", FALSE, ch, 0, 0, TO_ROOM);
+    call_magic(ch, victim, 0, SPELL_MISSILE_STORM, 30, CAST_SPELL);
+    return 0;
+  }
+  return 0;
+
+}
+
+/* from homeland */
+static bool gr_stalled = FALSE;
+SPECIAL(gromph) {
+  struct char_data *victim;
+  int dir = -1;
+
+  if (!ch)
+    return 0;
+  if (FIGHTING(ch))
+    return 0;
+  
+  if (!IS_NPC(ch) && cmd && CMD_IS("cast")) {
+    victim = ch;
+    ch = (struct char_data*) me;
+    act("$n sighs at YOU and mutters, 'You insolent worm!'", FALSE, ch, 0, victim, TO_VICT);
+    act("$n sighs at $N, 'You insolent worm!'", FALSE, ch, 0, victim, TO_NOTVICT);
+    call_magic(ch, victim, 0, SPELL_MISSILE_STORM, 30, CAST_SPELL);
+    return 1;
+  }
+
+  if (PATH_DELAY(ch) > 0)
+    PATH_DELAY(ch)--;
+  PATH_DELAY(ch) = 4;
+
+  if (cmd)
+    return 0;
+
+  {
+    switch (PROC_FIRED(ch)) {
+      case 0:
+        //move to sorcere
+        dir = find_first_step(ch->in_room, real_room(135250));
+        if (dir < 0)
+          PROC_FIRED(ch) = 1;
+        break;
+      case 1:
+        // move to narbondel
+        dir = find_first_step(ch->in_room, real_room(135353));
+
+        if (dir < 0) {
+          if (time_info.hours == 0 && gr_stalled == TRUE) {
+            send_to_zone(
+                    "\tLSuddenly the base of the gigantic rockpillar known as \trNar\tRbon\trdel\tL\r\n"
+                    "\tLlights up with intense \trheat\tL, as Gromph Baenre uses his magic to relit it to\r\n"
+                    "\tLmark the start of a new day in the city.\tn\r\n", ch->in_room);
+            gr_stalled = FALSE;
+            PROC_FIRED(ch) = 0;
+          } else
+            gr_stalled = TRUE;
+        }
+        break;
+    }
+    if (dir >= 0)
+      perform_move(ch, dir, 1);
+    return 1;
+
+  }
+  return 0;
+}
+
+/* end mobile procedures */
 
 /********************************************************************/
 /******************** Room Procs      *******************************/
@@ -2708,7 +3003,7 @@ SPECIAL(pet_shops) {
   return (FALSE);
 }
 
-
+/* end room procedures */
 
 /********************************************************************/
 /******************** Object Procs    *******************************/
@@ -3152,3 +3447,4 @@ SPECIAL(menzo_chokers) {
   return 0;
 }
 
+/* end object procedures */
