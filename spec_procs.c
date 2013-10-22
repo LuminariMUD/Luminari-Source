@@ -3653,6 +3653,12 @@ SPECIAL(air_sphere) {
   if (!ch)
     return 0;
 
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: Electric Shock, on saying 'storm', haste and "
+            "chain lightning.\r\n");
+    return 1;
+  }
+  
   if (!cmd && FIGHTING(ch) && !rand_number(0, 25)) {
     vict = FIGHTING(ch);
     dam = 20 + dice(2, 8);
