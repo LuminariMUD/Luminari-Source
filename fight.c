@@ -2398,6 +2398,22 @@ void idle_weapon_spells(struct char_data *ch) {
   }
 }
 
+/* weapon spell function for random weapon procs,
+ *  modified from original source - Iyachtu */
+int weapon_special(struct obj_data *wpn, struct char_data *ch, char *hit_msg) {
+  if (!wpn)
+    return 0;
+
+  extern struct index_data *obj_index;
+  int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
+
+  name = obj_index[GET_OBJ_RNUM(wpn)].func;
+
+  if (!name)
+    return 0;
+
+  return (name) (ch, wpn, 0, hit_msg);
+}
 
 /* primary function for a single melee attack 
    ch -> attacker
@@ -2420,6 +2436,7 @@ void hit(struct char_data *ch, struct char_data *victim,
   bool same_room = FALSE;
   struct obj_data *quiver = GET_EQ(ch, WEAR_QUIVER);
   struct obj_data *missile = NULL;
+  char *hit_msg = "";
 
   // check if ranged attack
   if (offhand == 2) {
@@ -2524,6 +2541,7 @@ void hit(struct char_data *ch, struct char_data *victim,
   diceroll = rand_number(1, 20);
   if (isCriticalHit(ch, diceroll)) {
     dam = TRUE;
+    hit_msg = "critical";  //for weapon procs, from homeland
   } else if (!AWAKE(victim)) {
     send_to_char(ch, "\tW[down!]\tn");
     send_to_char(victim, "\tR[down!]\tn");
@@ -2659,6 +2677,12 @@ void hit(struct char_data *ch, struct char_data *victim,
     if (ch && victim && wielded)
       process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL); 
 
+    /* special weapon (or gloves for monk) procedures */
+    if (ch && victim && wielded)
+      weapon_special(wielded, ch, hit_msg);
+    else if (ch && victim && GET_EQ(ch, WEAR_HANDS))
+      weapon_special(GET_EQ(ch, WEAR_HANDS), ch, hit_msg);
+    
     /* vampiric curse will do some minor healing to attacker */
     if (!IS_UNDEAD(victim) && IS_AFFECTED(victim, AFF_VAMPIRIC_CURSE)) {
       send_to_char(ch, "\tWYou feel slightly better as you land an attack!\r\n");
