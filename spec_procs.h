@@ -66,5 +66,7 @@ SPECIAL(abyss_randomizer);
 SPECIAL(cf_trainingmaster);
 SPECIAL(cf_alathar);
 SPECIAL(jot_invasion_loader);
+/* new batch - 10/20/13 */
+SPECIAL(air_sphere);
 
 #endif /* _SPEC_PROCS_H_ */
