@@ -361,7 +361,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   int same_room = 0, riding = 0, ridden_by = 0;
   /* extra buffers */
   char buf2[MAX_STRING_LENGTH] = {'\0'};
-  char buf3[MAX_STRING_LENGTH] = {'\0'};
+//  char buf3[MAX_STRING_LENGTH] = {'\0'};
   /* singlefile variables */
   struct char_data *other;
   struct char_data **prev;
