@@ -3079,7 +3079,7 @@ void perform_violence(void) {
             GET_SKILL(ch, SKILL_COURAGE)) {
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
       send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
-      act("$n \tWovercomes the \tDfear\tW with courage!\tn\tn",
+      act("$n \tWis bolstered by $s courage and overcomes $s \tDfear!\tn\tn",
               TRUE, ch, 0, 0, TO_ROOM);
       increase_skill(ch, SKILL_COURAGE);
       return;
