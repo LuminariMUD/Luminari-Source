@@ -3623,7 +3623,7 @@ void move_ship(struct obj_data *ship, int dir) {
   obj_to_room(ship, new_room);
 
   sprintf(buf2, "The ship moves %s.\r\n", dirs[dir]);
-  if (world[ship->in_room].sector_type != SECT_ZONE_START)
+  if (world[ship->in_room].sector_type == SECT_ZONE_START)
     msg = "Your ship docks here.\r\n";
 
   for (i = 0; i < NUM_OF_SHIPS; i++) {
