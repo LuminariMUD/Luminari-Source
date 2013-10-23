@@ -1575,6 +1575,8 @@ ACMD(do_look) {
       look_in_direction(ch, look_type);
     else if (is_abbrev(arg, "at"))
       look_at_target(ch, arg2);
+    else if (is_abbrev(arg, "out"))
+      ship_lookout(ch);
     else if (is_abbrev(arg, "around")) {
       struct extra_descr_data *i;
 
