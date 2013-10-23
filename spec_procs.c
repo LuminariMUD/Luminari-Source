@@ -1140,7 +1140,7 @@ void yan_maelstrom(struct char_data *ch) {
       act("\tw$N is enveloped in $n's \tCs\tcw\twi\tcr\tCl\tci\twn\tCg \tcmaelstrom\tw, $S body pelted by \twgusts\tc of wind.\tn",
               FALSE, ch, 0, vict, TO_NOTVICT);
     }
-    damage(ch, vict, dam, TYPE_BLUDGEON, DAM_AIR, FALSE);
+    damage(ch, vict, dam, -1, DAM_AIR, FALSE);  //type -1 = no dam msg
   }
 }
 
@@ -1169,13 +1169,13 @@ void yan_windgust(struct char_data *ch) {
       act("\tw$N is blasted by $n's \tcgust\tw of wind, and suddenly keels over from\r\n"
               "\twthe damage.\tn",
               FALSE, ch, 0, vict, TO_NOTVICT);
-      damage(ch, vict, dam, TYPE_BLUDGEON, DAM_AIR, FALSE);
+      damage(ch, vict, dam, -1, DAM_AIR, FALSE);  // type -1 = no dam msg
     } else {
       act("\twYou are blasted by a \tCf\tci\twer\tcc\tCe\tc gust\tw of wind hurled by $n.\tn",
               FALSE, ch, 0, vict, TO_VICT);
       act("\tw$N is blasted by a \tCf\tci\twer\tcc\tCe\tc gust\tw of wind hurled by $n.\tn",
               FALSE, ch, 0, vict, TO_NOTVICT);
-      damage(ch, vict, dam, TYPE_BLUDGEON, DAM_AIR, FALSE);
+      damage(ch, vict, dam, -1, DAM_AIR, FALSE);  //-1 type = no dam mess
       if (dice(1, 40) > GET_CON(vict)) {
         new_affect(&af);
         af.spell = SKILL_CHARGE;
@@ -3706,6 +3706,384 @@ ACMD(do_disembark) {
 }
 
 /*** end object procs general functions ***/
+
+/* from homeland */
+/*
+SPECIAL(spikeshield) {
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!ch || !argument || cmd || !vict)
+    return 0;
+
+  //blocking
+  if (argument[0] == 0 && !rand_number(0, 3)) {
+    GET_HIT(vict) -= 5;
+    alter_hit(ch, -dice(2, 3), FALSE);
+
+    act("\tLYour \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn\r\n"
+            "\tLfrom $N \tLand transfers it back to you.\tn",
+            FALSE, ch, (struct obj_data *) me, vict, TO_CHAR);
+
+
+    act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn\r\n"
+            "\tLfrom $N\tL.\tn",
+            FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
+
+    act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn\r\n"
+            "\tLfrom you and transfers it back to $m.\tn",
+            FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
+    return 1;
+  }
+  if (!strcmp(argument, "shieldpunch")) {
+
+    act("\tLYou slam your \tcshield \tLinto $N\tL\tn\r\n"
+            "\tLcausing the rows of\tr spikes \tLto drive into $S body.\tn",
+            FALSE, ch, (struct obj_data *) me, vict, TO_CHAR);
+
+
+    act("$n \tLslams $s \tcshield\tL into $N\tL\tn\r\n"
+            "\tLcausing the rows of \trspikes\tL to drive into $S body.\tn",
+            FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
+
+
+    act("$n \tLslams $s \tcshield\tL into you\tn\r\n"
+            "\tLcausing the rows of \trspikes\tL to drive into your body.\tn",
+            FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
+
+    GET_HIT(vict) -= 40 + dice(5, 20);
+    return 1;
+  }
+  return 0;
+}
+*/
+
+/* from homeland */
+SPECIAL(dragonbone_hammer) {
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: Ice Dagger.\r\n");
+    return 1;
+  }
+  
+  if (!ch || cmd || !vict || rand_number(0, 10))
+    return 0;
+
+  weapons_spells(
+          "Your $p \tCvibrates violently!\tn",
+          "$n's $p \tCvibrates violently!\tn",
+          "$n's $p \tCvibrates violently!\tn",
+          ch, vict, (struct obj_data *) me, SPELL_ICE_DAGGER);
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(prismorb) {
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: Prismatic Spray.\r\n");
+    return 1;
+  }
+  
+  if (!ch || cmd || !vict || rand_number(0, 25))
+    return 0;
+
+  weapons_spells(
+          "\tWYour \tn$p \tWpulsates violently.\tn",
+          "\tW$n\tW's \tn$p \tWpulsates violently.\tn",
+          "\tW$n\tW's \tn$p \tWpulsates violently.\tn",
+          ch, vict, (struct obj_data *) me, SPELL_PRISMATIC_SPRAY);
+
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(dorfaxe) {
+  struct char_data *vict = FIGHTING(ch);
+  int num = 18;
+  int dam = 0;
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc vs Evil: Clangeddins Wrath.\r\n");
+    return 1;
+  }
+  
+  if (!ch || cmd || !vict)
+    return 0;
+
+  if (GET_RACE(ch) == RACE_DWARF)
+    num = 12;
+
+  if (!IS_GOOD(ch))
+    return 0;
+  if (!IS_EVIL(vict))
+    return 0;
+  if (rand_number(0, num))
+    return 0;
+
+  dam = rand_number(6, 12);
+
+  if (dam > GET_HIT(vict))
+    dam = GET_HIT(vict);
+
+  weapons_spells(
+          "\tWAs $p impacts with \tn$N\tW, a mortal enemy of\r\n"
+          "\tWany righteous dwarf, the great god \tYClangeddin\tW infuses it,\r\n"
+          "\tWand strikes with great power into \tn$M.\tn",
+
+          "\tWAs $p impacts with YOU, a mortal enemy of\r\n"
+          "\tWany righteous dwarf, the great god \tYClangeddin\tW infuses it,\r\n"
+          "\tWand strikes with great power into YOU!\tn",
+
+          "\tWAs $p impacts with \tn$N\tW, a mortal enemy of\r\n"
+          "\tWany righteous dwarf, the great god \tYClangeddin\tW infuses it,\r\n"
+          "\tWand strikes with great power into \tn$M.\tn",
+          ch, vict, (struct obj_data *) me, 0);
+
+  damage(ch, vict, dam, -1, DAM_HOLY, FALSE);  // type -1 = no dam message
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(acidstaff) {
+  struct char_data *victim;
+  
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: Acid Arrow.\r\n");
+    return 1;
+  }
+  
+  if (!ch)
+    return 0;
+  
+  victim = FIGHTING(ch);
+  
+  if (!victim || cmd)
+    return 0;
+
+  if (rand_number(0, 15))
+    return 0;
+  
+  weapons_spells(
+          "\tLYour staff vibrates and hums then glows \tGbright green\tL.\tn\r\n"
+          "\tLThe tiny black dragons on your staff come alive and roar loudly\tn\r\n"
+          "\tLthen spew forth vile \tgacid\tL at $N.\tn",
+
+
+          "\tL$n\tL's staff vibrates and hums then glows \tGbright green\tL.\tn\r\n"
+          "\tLThe tiny black dragons on $s staff come alive and roar loudly\tn\r\n"
+          "\tLthen spew forth vile \tgacid\tL at you.\tn",
+
+
+          "\tL$n\tL's staff vibrates and hums then glows \tGbright green\tL.\tn\r\n"
+          "\tLThe tiny black dragons on $s staff come alive and roar loudly\tn\r\n"
+          "\tLthen spew forth vile \tgacid\tL at \tn$N.\tn"
+          , ch, victim, (struct obj_data *) me, SPELL_ACID_ARROW);
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(sarn) {
+  struct char_data *vict = FIGHTING(ch);
+  int num = 18;
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: Harm.\r\n");
+    return 1;
+  }
+  
+  if (!ch || cmd || !vict)
+    return 0;
+
+  //if (GET_RACE(ch) == RACE_DUERGAR)
+  if (GET_RACE(ch) == RACE_DWARF)
+    num = 12;
+
+  if (!IS_EVIL(ch))
+    return 0;
+  if (rand_number(0, num))
+    return 0;
+
+  weapons_spells(
+          "\tLThe power of \twLad\tWu\twgu\tWe\twr\tL guides thine hand and \trstr\tRe\trngth\tRe\trns\tL it.\tn\r\n"
+          "\tLAs the \traxe\tL impacts with \tn$N\tL, \twd\tWi\twv\tWi\twne\tL power is unleashed.\tn",
+
+          "\tLThe power of \twLad\tWu\twgu\tWe\twr\tL guides $n's hand and \trstr\tRe\trngth\tRe\trns\tL it.\tn\r\n"
+          "\tLAs the \traxe\tL impacts with YOU, \twd\tWi\twv\tWi\twne\tL power is unleashed.\tn",
+
+          "\tLThe power of \twLad\tWu\twgu\tWe\twr\tL guides \tn$n\tL's hand and \trstr\tRe\trngth\tRe\trns\tL it.\tn\r\n"
+          "\tLAs the \traxe\tL impacts with \tn$N\tL, \twd\tWi\twv\tWi\twne\tL power is unleashed.\tn",
+          ch, vict, (struct obj_data *) me, SPELL_HARM);
+
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(purity) {
+  int dam = 0;
+  struct char_data *vict = FIGHTING(ch);
+  
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc:  Holy Light.\r\n");
+    return 1;
+  }
+
+  if (!ch || cmd || !vict || rand_number(0, 20))
+    return 0;
+
+  dam = dice(2, 24);
+  if (dam < GET_HIT(vict) + 10) {
+    act(    "\twThe head of your $p starts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+            "A beam of concetrated \tWholiness \twshoots towards $N.\r\n"
+            "The \tWlightbeam \twsurrounds $N who howls in pain and fear.\tn"
+            , FALSE, ch, (struct obj_data *) me, vict, TO_CHAR);
+    act(    "$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+            "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
+            "The \tWlightbeam \twsurrounds $N who howls in pain and fear.\tn"
+            , FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
+    act(    "$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+            "A beam of concentrated \tWholiness \twshoots towards you.\r\n"
+            "The \tWlightbeam \twsurrounds you and you howl in pain and fear.\tn"
+            , FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
+  } else {
+    act(    "\twThe head of your $p starts to \tYglow \twwith a \tWbright white light\t.w\r\n"
+            "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
+            "The \tWlightbeam \twburns a hole right through $N who falls lifeless to the ground.\tn"
+            , FALSE, ch, (struct obj_data *) me, vict, TO_CHAR);
+    act(    "$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+            "A beam of concentrated \tWholiness \twshoots towards you.\r\n"
+            "The \tWlightbeam \twburns a hole right through you and you fall lifeless to the ground.\tn"
+            , FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
+    act(    "$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+            "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
+            "The \tWlightbeam \twburns a hole right through $N who falls lifeless to the ground.\tn"
+            , FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
+
+    call_magic(ch, vict, 0, SPELL_BLINDNESS, GET_LEVEL(ch), CAST_SPELL);
+  }
+  damage(ch, vict, dam, -1, DAM_HOLY, FALSE);  // type -1 = no dam message
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(etherealness) {
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc:  Slow.\r\n");
+    return 1;
+  }
+
+  if (!ch || cmd || !vict || rand_number(0, 15))
+    return 0;
+  
+  weapons_spells(
+          "\twWaves of \tWghostly \twenergy starts to flow from your $p.",
+          "\twWaves of \tWghostly \twenergy starts to flow from $n's $p.",
+          "\twWaves of \tWghostly \twenergy starts to flow from $n's $p.",
+          ch, vict, (struct obj_data *) me, SPELL_SLOW);
+  
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(greatsword) {
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc:  Silver Flames.\r\n");
+    return 1;
+  }
+
+  if (!ch || cmd || !vict || rand_number(0, 20))
+    return 0;
+
+  int dam = 30 + dice(5, 5);
+  
+  if (dam > GET_HIT(vict))
+    dam = GET_HIT(vict);
+  
+  if (dam < 21)
+    return 0;
+  
+  weapons_spells(
+          "\tCSilvery flames shoots from your $p\tC towards $N\tC.\r\nThe flames sear and burn $N\tC who screams in pain.\tn",
+          "\tCSilvery flames shoot from $n's $p\tC towards you\tC.\r\nThe flames sear and burn you and you scream in pain.\tn",
+          "\tCSilvery flames shoot from $n's $p\tC towards $N\tC.\r\nThe flames sear and burn $N\tC who screams in pain.\tn",
+          ch, vict, (struct obj_data *) me, 0);
+  damage(ch, vict, dam, -1, DAM_ENERGY, FALSE);  // type -1 = no dam message
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(fog_dagger) {
+  struct char_data *i, *vict;
+  struct affected_type af;
+  struct affected_type af2;
+
+  if (!is_wearing(ch, 115003))
+    return 0;
+
+  if (!ch || !cmd)
+    return 0;
+
+  skip_spaces(&argument);
+
+  // First check if they whispered haze
+  if (!strcmp(argument, "haze") && CMD_IS("whisper") && (vict = FIGHTING(ch))) {
+    if ((GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0)) {
+      act("\tLYou whisper a word to your\tn $p,\tL and nothing happens.\tn", FALSE, ch,
+              (struct obj_data *) me, 0, TO_CHAR);
+      return 1;
+    } else {
+      weapons_spells(
+              "\tLA hazy cloud is emitted from your\tn $p\tL, and enshrouds \tn$N \tLin a dark mist!\tn",
+              "\tLA hazy cloud is emitted from $n's\tn $p\tL, and enshrouds \tn$N \tLin a dark mist!\tn",
+              "\tLA hazy cloud is emitted from $n's\tn $p\tL, and enshrouds you in a dark mist!\tn",
+              ch, vict, (struct obj_data *) me, 0);
+
+      // Sets the vict blind for 1-3 rounds
+      if (!AFF_FLAGGED(vict, AFF_BLIND)) {
+        new_affect(&af);
+        af.spell = SPELL_BLINDNESS;
+        SET_BIT_AR(af.bitvector, AFF_BLIND);
+        af.duration = dice(1, 3);
+        affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+      }
+      for (i = world[vict->in_room].people; i; i = i->next_in_room) {
+        if (FIGHTING(i) == vict) {
+          stop_fighting(i);
+          act("\tLThe haze around \tn$N \tLprevents you from touching \tn$M",
+                  FALSE, i, 0, vict, TO_CHAR);
+        }
+      }
+
+      stop_fighting(vict);
+      clearMemory(vict);
+
+      GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
+      return 1;
+    }
+    // Now check if they are trying to backstab
+  } else if (CMD_IS("backstab") && 
+          (vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM))) {
+    if (perform_backstab(ch, vict)) {
+      if (FIGHTING(ch) == vict &&
+              !AFF_FLAGGED(vict, AFF_PARALYZED) &&
+              !rand_number(0, 9)) {
+        new_affect(&af2);
+        af2.spell = SPELL_HOLD_PERSON;
+        SET_BIT_AR(af2.bitvector, AFF_PARALYZED);
+        af2.duration = dice(1, 2);
+        affect_join(vict, &af2, 1, FALSE, FALSE, FALSE);
+      }
+    }
+    return 1;
+  }
+  
+  return 0;
+}
 
 /* from homeland */
 SPECIAL(tyrantseye) {
