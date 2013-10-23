@@ -274,13 +274,17 @@ ACMD(do_mecho) {
 
 ACMD(do_mgecho)
 {
+  char *p;
 
-  skip_spaces(&argument);
-
-  if (!*argument)
+  if (!*argument) {
     mob_log(ch, "mgecho called with no args");
-  else
-    send_to_world(argument);
+    return;
+  }
+
+  p = argument;
+  skip_spaces(&p);
+
+  send_to_world(p);
 }
 
 
