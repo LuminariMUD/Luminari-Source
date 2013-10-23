@@ -204,3 +204,16 @@ void send_to_zone(char *messg, zone_rnum zone)
       write_to_output(i, "%s", messg);
 }
 
+void send_to_world(char *messg)
+{
+  struct descriptor_data *pt;
+
+  if (!messg || !*messg)
+    return;
+
+  for (pt = descriptor_list; pt; pt = pt->next)
+    if (IS_PLAYING(pt) && pt->character)
+      send_to_char(pt->character, "%s\r\n", messg);
+ 
+}
+

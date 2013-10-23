@@ -253,6 +253,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
 
   char *send_cmd[] = {"msend ", "osend ", "wsend "};
   char *echo_cmd[] = {"mecho ", "oecho ", "wecho "};
+  char *gecho_cmd[] = {"mgecho", "ogecho", "wgecho"};
   char *echoaround_cmd[] = {"mechoaround ", "oechoaround ", "wechoaround "};
   char *door[] = {"mdoor ", "odoor ", "wdoor "};
   char *force[] = {"mforce ", "oforce ", "wforce "};
@@ -321,6 +322,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         snprintf(str, slen, "%s", send_cmd[type]);
       else if (!str_cmp(var, "echo"))
         snprintf(str, slen, "%s", echo_cmd[type]);
+      else if (!str_cmp(var, "gecho"))
+        snprintf(str, slen, "%s", gecho_cmd[type]);
       else if (!str_cmp(var, "echoaround"))
         snprintf(str, slen, "%s", echoaround_cmd[type]);
       else if (!str_cmp(var, "zoneecho"))

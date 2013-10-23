@@ -43,6 +43,7 @@ WCMD(do_wasound);
 WCMD(do_wecho);
 WCMD(do_wsend);
 WCMD(do_wzoneecho);
+WCMD(do_wgecho);
 WCMD(do_wrecho);
 WCMD(do_wdoor);
 WCMD(do_wteleport);
@@ -112,6 +113,18 @@ WCMD(do_wecho)
 
     else
         act_to_room(argument, room);
+}
+
+WCMD(do_wgecho)
+{
+  struct descriptor_data *pt;
+
+  skip_spaces(&argument);
+   
+  if (!*argument)
+    wld_log(room, "wgecho called with no args");
+
+  send_to_world(argument);
 }
 
 WCMD(do_wsend)
@@ -641,6 +654,7 @@ const struct wld_command_info wld_cmd_info[] = {
     { "wsend "      , do_wsend     , SCMD_WSEND },
     { "wteleport "  , do_wteleport , 0 },
     { "wzoneecho "  , do_wzoneecho , 0 },
+    { "wgecho "     , do_wgecho    , 0 },
     { "wdamage "    , do_wdamage,    0 },
     { "wat "        , do_wat,        0 },
     { "wmove "      , do_wmove     , 0 },
