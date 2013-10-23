@@ -369,6 +369,7 @@ ACMD(do_mat);
 ACMD(do_mdamage);
 ACMD(do_mdoor);
 ACMD(do_mecho);
+ACMD(do_mgecho);
 ACMD(do_mechoaround);
 ACMD(do_mfollow);
 ACMD(do_mforce);
