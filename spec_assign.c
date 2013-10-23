@@ -150,8 +150,6 @@ void assign_mobiles(void)
 
   /* jot */
   ASSIGNMOB(196200, jot_invasion_loader);  // this will load invasion
-
-
 }
 
 /* assign special procedures to objects */

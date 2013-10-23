@@ -178,6 +178,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "dismiss", "dismiss", POS_FIGHTING, do_dismiss, 0, 0, FALSE},
   { "disenchant", "disenchant", POS_STANDING, do_not_here, 1, 0, FALSE},
   { "dirtkick", "dirtkick", POS_FIGHTING, do_dirtkick, 1, 0, FALSE},
+  { "disembark", "disembark", POS_STANDING, do_disembark, 0, 0, FALSE},
 
   { "eat", "ea", POS_RECLINING, do_eat, 0, SCMD_EAT, FALSE},
   { "echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE},
