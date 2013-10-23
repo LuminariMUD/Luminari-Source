@@ -149,6 +149,8 @@ bool circle_follow(struct char_data *ch, struct char_data *victim);
 /* in act.informative.c */
 void look_at_room(struct char_data *ch, int mode);
 void add_history(struct char_data *ch, char *msg, int type);
+void look_at_room_number(struct char_data * ch, int ignore_brief, 
+        long room_number);
 
 /* in act.movmement.c */
 int do_simple_move(struct char_data *ch, int dir, int following);

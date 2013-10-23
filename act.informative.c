@@ -640,6 +640,81 @@ static void do_auto_exits(struct char_data *ch) {
   send_to_char(ch, "%s]%s\r\n", slen ? "" : "None!", CCNRM(ch, C_NRM));
 }
 
+/* Kel: Function used by farseeing characters (later clair, wizeye) to 
+  look in a room, takes on the real room number, NOT vnum (from homeland) */
+void look_at_room_number(struct char_data * ch, int ignore_brief, long room_number) {
+  char buf[MAX_INPUT_LENGTH];
+  char buf2[MAX_INPUT_LENGTH];
+  
+  if (!ch->desc)
+    return;
+  if (room_number < 0)
+    return;
+  if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG)) {
+    send_to_char(ch, "A fog makes it impossible to look far.\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(room_number, ROOM_MAGICDARK) ||
+          (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION))) {
+    send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
+    return;
+  }
+  if (ROOM_FLAGGED(ch->in_room, ROOM_MAGICDARK) ||
+          (IS_DARK(ch->in_room) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION))) {
+    send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
+    return;
+  }
+  if (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION)) {
+    send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
+    list_char_to_char(world[room_number].people, ch);
+    return;
+  } else if (AFF_FLAGGED(ch, AFF_BLIND)) {
+    send_to_char(ch, "You're blind, you can't see anything!\r\n");
+    if (AFF_FLAGGED(ch, AFF_SENSE_LIFE))
+      list_char_to_char(world[room_number].people, ch);
+    return;
+  } else if (IS_DARK(room_number) && AFF_FLAGGED(ch, AFF_INFRAVISION)) {
+    send_to_char(ch, world[room_number].name);
+    send_to_char(ch, "\r\n");
+    //do_auto_exits(ch, room_number);
+    list_char_to_char(world[room_number].people, ch);
+    return;
+  } else if (!IS_DARK(ch->in_room) && ultra_blind(ch, room_number)) {
+    send_to_char(ch, "\tWIt is far too bright to see anything...\tn\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
+    sprintbitarray(ROOM_FLAGS(room_number), room_bits, RF_ARRAY_MAX, buf);
+    sprintf(buf2, "\tc[%5d]\tn %s \tc[ %s] %s\tn",
+            GET_ROOM_VNUM(room_number),
+            world[room_number].name, buf,
+            sector_types[(world[room_number].sector_type)]);
+    send_to_char(ch, buf2);
+  } else
+    send_to_char(ch, world[room_number].name);
+  //if (is_water_room(room_number))
+    //send_to_char(" \tw(\tBWater\tw)\tn", ch);
+
+  send_to_char(ch, "\r\n");
+  if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG))
+    send_to_char(ch, "\tLA hazy \tWfog\tL enshrouds the area.\tn\r\n");
+
+  if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF)) || ignore_brief ||
+          ROOM_FLAGGED(room_number, ROOM_DEATH))
+    send_to_char(ch, world[room_number].description);
+
+  /* autoexits */
+  //if (!IS_NPC(ch) && !IS_SET(ROOM_FLAGS(room_number), ROOM_FOG))
+    //do_auto_exits(ch, room_number);
+
+  /* now list characters & objects */
+  list_obj_to_char(world[room_number].contents, ch, SHOW_OBJ_LONG, FALSE, 0);
+  list_char_to_char(world[room_number].people, ch);
+}
+/* End of Kel's look_at_room_number function */ 
+
 void look_at_room(struct char_data *ch, int ignore_brief) {
   trig_data *t;
   struct room_data *rm = &world[IN_ROOM(ch)];

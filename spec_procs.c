@@ -3549,7 +3549,6 @@ SPECIAL(pet_shops) {
 
 /****  object procs general functions ****/
 
-
 /* NOTE to be confused with the weapon-spells code used in OLC, etc */
 /*  This was ported to accomodate the HL objects that were imported */
 void weapons_spells(char *to_ch, char *to_vict, char *to_room,
@@ -3568,7 +3567,343 @@ void weapons_spells(char *to_ch, char *to_vict, char *to_room,
   call_magic(ch, vict, 0, spl, level, CAST_WAND);
 }
 
+/* very simple ship code system */
+#define NUM_OF_SHIPS	4
+
+//shiproom, shipobject, room_seq_start, roomseq_end
+int ship_info[NUM_OF_SHIPS][4] = {
+  //chionthar ferry
+  { 104072, 104072, 104262, 104266},
+  { 104073, 104072, 104262, 104266},
+
+  //alanthor ferry
+  { 126429, 126429, 126423, 126428},
+
+  //md carpet
+  { 120013, 120010, 120036, 120040},
+};
+
+struct obj_data *find_ship(int room) {
+  int i, j;
+  struct obj_data *obj;
+  for (i = 0; i < NUM_OF_SHIPS; i++) {
+    if (room == real_room(ship_info[i][0])) {
+      for (j = ship_info[i][2]; j <= ship_info[i][3]; j++) {
+        for (obj = world[real_room(j)].contents; obj; obj = obj->next_content) {
+          if (GET_OBJ_VNUM(obj) == ship_info[i][1])
+            return obj;
+        }
+      }
+      return 0;
+    }
+  }
+  return 0;
+}
+
+void move_ship(struct obj_data *ship, int dir) {
+  int new_room = 0;
+  char *msg = 0;
+  int i;
+  char buf2[MAX_INPUT_LENGTH];
+
+  if (dir < 0 || dir >= 6)
+    return;
+
+  if (!world[ship->in_room].dir_option[dir])
+    return;
+  new_room = world[ship->in_room].dir_option[dir]->to_room;
+
+  if (new_room == 0)
+    return;
+
+  sprintf(buf2, "$p floats %s.", dirs[dir]);
+  act(buf2, TRUE, 0, ship, 0, TO_ROOM);
+
+  obj_from_room(ship);
+  obj_to_room(ship, new_room);
+
+  sprintf(buf2, "The ship moves %s.\r\n", dirs[dir]);
+  if (world[ship->in_room].sector_type != SECT_ZONE_START)
+    msg = "Your ship docks here.\r\n";
+
+  for (i = 0; i < NUM_OF_SHIPS; i++) {
+    if (GET_OBJ_VNUM(ship) == ship_info[i][1]) {
+      send_to_room(real_room(ship_info[i][0]), buf2);
+      if (msg)
+        send_to_room(real_room(ship_info[i][0]), msg);
+    }
+  }
+  sprintf(buf2, "$p floats in from the %s.", dirs[rev_dir[dir]]);
+  act(buf2, TRUE, 0, ship, 0, TO_ROOM);
+}
+
+// use timer for count.
+// weight is wether towards start or end.
+void update_ship(struct obj_data *ship, int start, int end, int movedelay, int waitdelay) {
+  int dest = real_room(end);
+  
+  if (!ship->obj_flags.weight)
+    dest = real_room(start);
+
+  ship->obj_flags.timer--;
+  if (ship->obj_flags.timer >= 0)
+    return;
+
+  ship->obj_flags.timer = movedelay;
+
+  if (dest != ship->in_room)
+    move_ship(ship, find_first_step(ship->in_room, dest));
+
+  if (ship->in_room == dest) {
+    //turn around ship
+    ship->obj_flags.weight = !ship->obj_flags.weight;
+    ship->obj_flags.timer = waitdelay;
+    return;
+  }
+}
+
+void ship_lookout(struct char_data *ch) {
+  struct obj_data *ship = find_ship(ch->in_room);
+  if (ship == 0) {
+    send_to_char(ch, "But you are not at a ship to look out from!\r\n");
+    return;
+  }
+  look_at_room_number(ch, 1, ship->in_room);
+}
+
+ACMD(do_disembark) {
+  struct obj_data *ship;
+  ship = find_ship(ch->in_room);
+
+  if (!ship) {
+    send_to_char(ch, "But you are not on any ship.\r\n");
+    return;
+  }
+  if (world[ship->in_room].sector_type == SECT_ZONE_START) {
+    send_to_char(ch, "You can only disembark when the ship is docked.\r\n");
+    return;
+  }
+
+  //int was_in = ch->in_room;
+  act("$n disembarks.", TRUE, ch, 0, 0, TO_ROOM);
+  char_from_room(ch);
+  char_to_room(ch, ship->in_room);
+  act("$n disembarks from $p.", TRUE, ch, ship, 0, TO_ROOM);
+  look_at_room(ch, 0);
+}
+
 /*** end object procs general functions ***/
+
+/* from homeland */
+SPECIAL(chionthar_ferry) {
+  if (cmd)
+    return 0;
+
+  update_ship((struct obj_data *) me, 104262, 104266, 1, 4);
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(alandor_ferry) {
+  if (cmd)
+    return 0;
+
+  update_ship((struct obj_data *) me, 126423, 126428, 1, 4);
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(md_carpet) {
+  if (cmd)
+    return 0;
+
+  update_ship((struct obj_data *) me, 120036, 120040, 3, 10);
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(floating_teleport) {
+  int door;
+  struct obj_data *obj = (struct obj_data *) me;
+  room_rnum roomnum;
+
+  if (cmd)
+    return 0;
+
+  if (((door = rand_number(0, 30)) < NUM_OF_DIRS) && CAN_GO(obj, door) &&
+          (world[EXIT(obj, door)->to_room].zone == world[obj->in_room].zone)) {
+    roomnum = EXIT(obj, door)->to_room;
+    act("$p floats away.", FALSE, 0, obj, 0, TO_ROOM);
+    obj_from_room(obj);
+    obj_to_room(obj, roomnum);
+    act("$p floats in.", FALSE, 0, obj, 0, TO_ROOM);
+    return 1;
+  }
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(vengeance) {
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!ch || cmd || !vict)
+    return 0;
+
+  int power = 10;
+  if (GET_OBJ_VNUM(((struct obj_data *) me)) == 101199)
+    power = 5;
+  if (rand_number(0, power))
+    return 0;
+
+  if (GET_HIT(ch) < GET_MAX_HIT(ch) && rand_number(0, 4)) {
+    weapons_spells(
+            "\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its healing powers into you.\tn",
+            "\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its healing powers into you.\tn",
+            "$n's \tWsword begings to \tphum \tWloudly and then \tCglow\tW as it pours its healing powers into $m\tW.\tn",
+            ch, vict, (struct obj_data *) me, 0);
+    call_magic(ch, 0, 0, SPELL_MASS_CURE_LIGHT, GET_LEVEL(ch), CAST_WAND);
+    return 1;
+  }
+  weapons_spells(
+          "\tWYour blade starts to shake violently, nearly tearing itself from your grip,\tn\r\n"
+          "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
+          "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
+
+          "\tW$n's\tW blade starts to shake violently, nearly tearing itself from $s grip,\tn\r\n"
+          "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
+          "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
+
+          "\tW$n's\tW blade starts to shake violently, nearly tearing itself from $s grip,\tn\r\n"
+          "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
+          "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
+          ch, vict, (struct obj_data *) me, SPELL_WORD_OF_FAITH);
+  return 1;
+}
+
+/* from homeland */
+SPECIAL(neverwinter_button_control) {
+  struct obj_data *dummy = NULL;
+  struct obj_data *obj = (struct obj_data *) me;
+  struct char_data *i = NULL;
+  bool change = FALSE;
+
+  if (cmd)
+    return 0;
+
+  if (!CAN_GO(obj, EAST) && !CAN_GO(obj, SOUTH) && !CAN_GO(obj, WEST)) {
+    if (IS_CLOSED(real_room(123637), DOWN)) {
+      OPEN_DOOR(real_room(123637), dummy, DOWN);
+      OPEN_DOOR(real_room(123641), dummy, UP);
+      change = TRUE;
+    }
+  }
+
+  if (change && GET_OBJ_SPECTIMER(obj, 0) == 0) {
+    for (i = character_list; i; i = i->next)
+      if (world[obj->in_room].zone == world[i->in_room].zone)
+        send_to_char(i, "\tLYou hear a slight rumbling.\tn\r\n");
+    GET_OBJ_SPECTIMER(obj, 0) = 9999;
+  }
+
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(neverwinter_valve_control) {
+  /* A- North
+     B- East
+     C- South
+     D- West
+   */
+  struct char_data *i = NULL;
+  struct obj_data *dummy = 0;
+  struct obj_data *obj = (struct obj_data *) me;
+  bool avalve = FALSE, bvalve = FALSE, cvalve = FALSE, dvalve = FALSE, change = FALSE;
+
+  if (cmd)
+    return 0;
+
+  if (!CAN_GO(obj, NORTH))
+    avalve = TRUE;
+
+  if (!CAN_GO(obj, EAST))
+    bvalve = TRUE;
+
+  if (!CAN_GO(obj, SOUTH))
+    cvalve = TRUE;
+
+  if (!CAN_GO(obj, WEST))
+    dvalve = TRUE;
+
+  if (avalve && bvalve && !cvalve && dvalve) {
+    if (!IS_CLOSED(real_room(123440), EAST))
+      OPEN_DOOR(real_room(123440), dummy, EAST);
+    if (!IS_CLOSED(real_room(123441), WEST))
+      OPEN_DOOR(real_room(123441), dummy, WEST);
+    if (!IS_CLOSED(real_room(123469), EAST))
+      OPEN_DOOR(real_room(123469), dummy, EAST);
+    if (!IS_CLOSED(real_room(123470), WEST))
+      OPEN_DOOR(real_room(123470), dummy, WEST);
+    if (IS_CLOSED(real_room(123533), EAST)) {
+      OPEN_DOOR(real_room(123533), dummy, EAST);
+      change = TRUE;
+    }
+    if (IS_CLOSED(real_room(123534), WEST))
+      OPEN_DOOR(real_room(123534), dummy, WEST);
+  }
+  else if (avalve && !bvalve && cvalve && !dvalve) {
+    if (IS_CLOSED(real_room(123440), EAST)) {
+      OPEN_DOOR(real_room(123440), dummy, EAST);
+      change = TRUE;
+    }
+    if (IS_CLOSED(real_room(123441), WEST))
+      OPEN_DOOR(real_room(123441), dummy, WEST);
+    if (!IS_CLOSED(real_room(123469), EAST))
+      OPEN_DOOR(real_room(123469), dummy, EAST);
+    if (!IS_CLOSED(real_room(123470), WEST))
+      OPEN_DOOR(real_room(123470), dummy, WEST);
+    if (!IS_CLOSED(real_room(123533), EAST))
+      OPEN_DOOR(real_room(123533), dummy, EAST);
+    if (!IS_CLOSED(real_room(123534), WEST))
+      OPEN_DOOR(real_room(123534), dummy, WEST);
+  }
+  else if (!avalve && bvalve && cvalve && dvalve) {
+    if (!IS_CLOSED(real_room(123440), EAST))
+      OPEN_DOOR(real_room(123440), dummy, EAST);
+    if (!IS_CLOSED(real_room(123441), WEST))
+      OPEN_DOOR(real_room(123441), dummy, WEST);
+    if (IS_CLOSED(real_room(123469), EAST)) {
+      OPEN_DOOR(real_room(123469), dummy, EAST);
+      change = TRUE;
+    }
+    if (IS_CLOSED(real_room(123470), WEST))
+      OPEN_DOOR(real_room(123470), dummy, WEST);
+    if (!IS_CLOSED(real_room(123533), EAST))
+      OPEN_DOOR(real_room(123533), dummy, EAST);
+    if (!IS_CLOSED(real_room(123534), WEST))
+      OPEN_DOOR(real_room(123534), dummy, WEST);
+  } else {
+    if (!IS_CLOSED(real_room(123440), EAST))
+      OPEN_DOOR(real_room(123440), dummy, EAST);
+    if (!IS_CLOSED(real_room(123441), WEST))
+      OPEN_DOOR(real_room(123441), dummy, WEST);
+    if (!IS_CLOSED(real_room(123469), EAST))
+      OPEN_DOOR(real_room(123469), dummy, EAST);
+    if (!IS_CLOSED(real_room(123470), WEST))
+      OPEN_DOOR(real_room(123470), dummy, WEST);
+    if (!IS_CLOSED(real_room(123533), EAST))
+      OPEN_DOOR(real_room(123533), dummy, EAST);
+    if (!IS_CLOSED(real_room(123534), WEST))
+      OPEN_DOOR(real_room(123534), dummy, WEST);
+  }
+
+  if (change)
+    for (i = character_list; i; i = i->next)
+      if (world[obj->in_room].zone == world[i->in_room].zone)
+        send_to_char(i, "\tgYou hear the flow of rushing sewage somewhere.\tn\r\n");
+
+  return 0;
+}
 
 /* from homeland */
 SPECIAL(bloodaxe) {
