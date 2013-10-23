@@ -3679,7 +3679,7 @@ ACMD(do_disembark) {
     send_to_char(ch, "But you are not on any ship.\r\n");
     return;
   }
-  if (world[ship->in_room].sector_type == SECT_ZONE_START) {
+  if (world[ship->in_room].sector_type != SECT_ZONE_START) {
     send_to_char(ch, "You can only disembark when the ship is docked.\r\n");
     return;
   }
