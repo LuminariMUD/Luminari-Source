@@ -272,6 +272,18 @@ ACMD(do_mecho) {
   sub_write(p, ch, TRUE, TO_CHAR);
 }
 
+ACMD(do_mgecho)
+{
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+    mob_log(ch, "mgecho called with no args");
+  else
+    send_to_world(argument);
+}
+
+
 ACMD(do_mzoneecho) {
   int zone;
   char room_number[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH], *msg;

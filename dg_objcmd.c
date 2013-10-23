@@ -30,6 +30,7 @@
 static void obj_log(obj_data *obj, const char *format, ...);
 static room_rnum find_obj_target_room(obj_data *obj, char *rawroomstr);
 static OCMD(do_oecho);
+static OCMD(do_ogecho);
 static OCMD(do_oforce);
 static OCMD(do_ozoneecho);
 static OCMD(do_osend);
@@ -153,6 +154,18 @@ static OCMD(do_oecho)
     else
         obj_log(obj, "oecho called by object in NOWHERE");
 }
+
+static OCMD(do_ogecho)
+{
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+    obj_log(obj, "ogecho called with no args");
+  else
+    send_to_world(argument);
+}
+
 
 static OCMD(do_oforce)
 {
@@ -794,6 +807,7 @@ const struct obj_command_info obj_cmd_info[] = {
     { "odoor "      , do_odoor    , 0 },
     { "odamage "    , do_odamage,   0 },
     { "oecho "      , do_oecho    , 0 },
+    { "ogecho "     , do_ogecho   , 0 },
     { "oechoaround ", do_osend    , SCMD_OECHOAROUND },
     { "oforce "     , do_oforce   , 0 },
     { "oload "      , do_dgoload  , 0 },

@@ -117,14 +117,13 @@ WCMD(do_wecho)
 
 WCMD(do_wgecho)
 {
-  struct descriptor_data *pt;
 
   skip_spaces(&argument);
    
   if (!*argument)
     wld_log(room, "wgecho called with no args");
-
-  send_to_world(argument);
+  else
+    send_to_world(argument);
 }
 
 WCMD(do_wsend)
