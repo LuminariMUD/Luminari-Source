@@ -2334,6 +2334,19 @@ SPECIAL(janitor) {
   return (FALSE);
 }
 
+/* from homeland */
+SPECIAL(fzoul) {
+  if (!ch && !cmd)
+    return 0;
+
+
+  if (cmd && CMD_IS("kneel")) {
+    send_to_char(ch, "\tLFzoul tells you, '\tgSee how easy it is to kneel before the beauty of our god.\tL'\tn\r\n");
+    return 1;
+  }
+  return 0;
+}
+
 SPECIAL(cityguard) {
   struct char_data *tch, *evil, *spittle;
   int max_evil, min_cha;
@@ -3693,6 +3706,138 @@ ACMD(do_disembark) {
 }
 
 /*** end object procs general functions ***/
+
+/* from homeland */
+SPECIAL(tyrantseye) {
+  struct char_data *vict = FIGHTING(ch), *i = NULL, *in = NULL;
+
+  if (!ch || cmd || !vict)
+    return 0;
+
+  if (!IS_NPC(ch)) {
+    act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into $n from above!\tn", 
+            FALSE, ch, 0, 0, TO_ROOM);
+    act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into you from above!\tn", 
+            FALSE, ch, 0, 0, TO_CHAR);
+    die(ch, ch);
+  }
+
+  switch (rand_number(0, 35)) {
+    case 0:
+    case 1:
+      weapons_spells(
+              "IF YOU SEE THIS, TALK TO A STAFF MEMBER",
+              "\tgFzoul \tLturns his wicked gaze toward's you and utters arcane "
+              "words to his \tgscepter\tL. You are blinded by a brilliant \tWFLASH\tn "
+              "\tLas a \tpbolt\tL of crackling \tGgreen energy\tL is hurled toward you!\tn",
+              "\tgFzoul \tLturns his wicked gaze toward's $N \tLand utters arcane "
+              "words to his \tgscepter\tL. $N \tLis blinded by a brilliant \tWFLASH\tn "
+              "\tLas a \tpbolt\tL of crackling \tGgreen energy\tL is hurled toward $M!\tn",
+              ch, vict, (struct obj_data *) me, 0);
+      call_magic(ch, vict, 0, SPELL_MISSILE_STORM, 30, CAST_SPELL);
+      call_magic(ch, vict, 0, SPELL_BLINDNESS, 30, CAST_SPELL);
+      call_magic(ch, vict, 0, SPELL_SLOW, 30, CAST_SPELL);
+      return 1;
+    case 10:
+      weapons_spells(
+              "\tGIF YOU SEE THIS TALK TO A GOD",
+              "\tGFzoul's \tLscepter springs to life in a \tWFLASH\tL, bathing your "
+              "party in a misty \tGgreen glow! \tLYou scream in agony as you "
+              "begin to lose control of your body!\tn",
+              "\tGFzoul's \tLscepter springs to life in a \tWFLASH\tL, bathing the "
+              "room in a misty \tGgreen glow! \tLYou scream in agony as you "
+              "begin to lose control of your body!\tn",
+              ch, vict, (struct obj_data *) me, 0);
+
+      for (i = character_list; i; i = in) {
+        in = i->next;
+        if (!IS_NPC(i) || IS_PET(i)) {
+          call_magic(ch, i, 0, SPELL_CURSE, 30, CAST_SPELL);
+          call_magic(ch, i, 0, SPELL_POISON, 30, CAST_SPELL);
+        }
+        return 1;
+      }
+    default:
+      return 0;
+  }
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(spiderdagger) {
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Procs darkfire in combat and by Invoking Lloth she protects any drow.\r\n");
+    return 1;
+  }
+
+  struct char_data *vict;
+  if (!ch)
+    return 0;
+
+  vict = FIGHTING(ch);
+
+  if (!cmd && vict && !rand_number(0, 9)) {
+    //proc darkfire
+    weapons_spells(
+            "\tLYour $p\tL starts to \tcglow\tL as it pierces \tn$N!",
+            "$n\tL's $p\tL starts to \tcglow\tL as it pierces YOU!",
+            "$n\tL's $p\tL starts to \tcglow\tL as it pierces \tn$N!",
+            ch, vict, (struct obj_data *) me, SPELL_NEGATIVE_ENERGY_RAY);
+    return 1;
+  }
+  // cloak of dark power once day on command
+  if (cmd && argument && cmd_info[cmd].command_pointer == do_say) {
+    if (!is_wearing(ch, 135535))
+      return 0;
+
+    skip_spaces(&argument);
+    if (!strcmp(argument, "lloth")) {
+      if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
+        send_to_char(ch, "Nothing happens.\r\n");
+        return 1;
+      }
+      //if (GET_RACE(ch) != RACE_DROW) {
+      if (GET_RACE(ch) != RACE_ELF) {
+        send_to_char(ch, "Nothing happens.\r\n");
+        return 1;
+      }
+      send_to_char(ch, "\tLYou invoke \tmLloth\tw.\tn\r\n");
+      act("\tw$n raises $s $p \tw high and calls on \tmLloth.\tn",
+              FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
+      call_magic(ch, ch, 0, SPELL_NON_DETECTION, 30, CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_CIRCLE_A_GOOD, 30, CAST_POTION);
+
+      GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+/* from homeland */
+SPECIAL(sparksword) {
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: Shock damage.\r\n");
+    return 1;
+  }
+  if (!ch || cmd || !vict || rand_number(0, 20))
+    return 0;
+
+  weapons_spells(
+          "\twYour $p\tw's blade \tWsparks\tw as you hit $N "
+          "\twwith your slash, causing $M to shudder violently from the \tYshock\tw!\tn",
+          "$n\tw's $p\tw's blade \tWsparks\tw as $e hits you "
+          "with $s slash, causing you to shudder violently from the \tYshock\tw!\tn",
+          "$n\tw's $p\tw's blade \tWsparks\tw as $e hits $N "
+          "\twwith $s slash, causing $M to shudder violently from the \tYshock\tw!\tn",
+          ch, vict, (struct obj_data *) me, 0);
+  damage(ch, vict, dice(9, 3), -1, DAM_ELECTRIC, FALSE);
+
+  return 1;
+}
 
 /* from homeland */
 SPECIAL(nutty_bracer) {
