@@ -352,6 +352,7 @@ void update_wait_events(struct room_data *to, struct room_data *from);
 char *any_one_name(char *argument, char *first_arg);
 void sub_write(char *arg, char_data *ch, byte find_invis, int targets);
 void send_to_zone(char *messg, zone_rnum zone);
+void send_to_world(char *messg);
 
 /* from dg_misc.c */
 void do_dg_cast(void *go, struct script_data *sc, trig_data *trig,
