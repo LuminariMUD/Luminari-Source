@@ -178,6 +178,8 @@ void assign_objects(void)
   ASSIGNOBJ(3118, crafting_kit);
 
   ASSIGNOBJ(136100, air_sphere);
+  
+  ASSIGNOBJ(104072, chionthar_ferry);
 }
 
 /* assign special procedures to rooms */

@@ -141,6 +141,7 @@ ACMD(do_track);
 #define UNLOCK_DOOR(room, obj, door)	((obj) ?\
 		(REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) :\
 		(REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))
+#define IS_CLOSED(x, y) (EXIT_FLAGGED(world[(x)].dir_option[(y)], EX_CLOSED))
 
 /* HACK: Had to change this with the new lock strengths from homeland... */
 
@@ -209,6 +210,7 @@ ACMD(do_gen_door);
 #define SCMD_LOCK       3
 #define SCMD_PICK       4
 /* Functions without subcommands */
+ACMD(do_disembark);
 ACMD(do_enter);
 ACMD(do_follow);
 ACMD(do_leave);
