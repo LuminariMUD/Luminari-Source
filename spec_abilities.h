@@ -164,7 +164,7 @@ int  process_weapon_abilities(struct obj_data  *weapon, /* The weapon to check f
 WEAPON_SPECIAL_ABILITY(weapon_specab_bane);
 WEAPON_SPECIAL_ABILITY(weapon_specab_flaming);
 WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst);
-//WEAPON_SPECIAL_ABILITY(weapon_specab_frost);
+WEAPON_SPECIAL_ABILITY(weapon_specab_frost);
 //WEAPON_SPECIAL_ABILITY(weapon_specab_icy_burst);
 //WEAPON_SPECIAL_ABILITY(weapon_specab_shock);
 //WEAPON_SPECIAL_ABILITY(weapon_specab_shocking_burst);

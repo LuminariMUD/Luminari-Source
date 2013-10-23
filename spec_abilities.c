@@ -153,8 +153,8 @@ void initialize_special_abilities(void) {
   add_weapon_special_ability( WEAPON_SPECAB_FLAMING_BURST, "Flaming Burst", 12, ACTMTD_ON_HIT|ACTMTD_ON_CRIT|ACTMTD_COMMAND_WORD,
     TAR_IGNORE, FALSE, 0, EVOCATION, 2, weapon_specab_flaming_burst);
 
-  add_weapon_special_ability( WEAPON_SPECAB_FROST, "Frost", 8, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
+  add_weapon_special_ability( WEAPON_SPECAB_FROST, "Frost", 8, ACTMTD_ON_HIT|ACTMTD_ON_CRIT|ACTMTD_COMMAND_WORD,
+    TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_frost);
 
   add_weapon_special_ability( WEAPON_SPECAB_GHOST_TOUCH, "Ghost Touch", 9, ACTMTD_NONE,
     TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
@@ -389,6 +389,51 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bane) {
     }
     break;
     default: 
+      /* Do nothing. */
+      break;
+  }
+}
+
+/* A weapon with the frost special ability generates cold, becoming encrusted with frost and dealing
+ * cold damage on a regular hit. */
+WEAPON_SPECIAL_ABILITY(weapon_specab_frost) {
+  /* 
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch(actmtd) {
+    case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+    case ACTMTD_USE:          /* User USEs the item. */
+      /* Activate the flaming ability.
+       *  - Set the FROST bit on the weapon (this affects the display, 
+       *    and is used to toggle the effect.)
+       */
+      if(OBJ_FLAGGED(weapon, ITEM_FROST)) {
+        /* Flaming is on, turn it off. */
+        send_to_char(ch,"The magical frost sheathing your weapon vanishes.\r\n");
+        act("The magical frost sheathing $n's $o vanishes.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+        REMOVE_OBJ_FLAG(weapon, ITEM_FROST);
+      } else {
+        /* FROST ON! */
+        send_to_char(ch, "Magical frost spreads down the length of your weapon!\r\n");
+        act("Magical frost spreads down the length of $n's $o!", FALSE, ch, weapon, NULL, TO_ROOM);
+
+        SET_OBJ_FLAG(weapon, ITEM_FROST);
+      }
+      break;
+    case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
+      if(OBJ_FLAGGED(weapon, ITEM_FROST))  /* Burn 'em. */
+        if (victim) {
+          damage(ch, victim, dice(1, 6), TYPE_SPECAB_FROST, DAM_COLD, FALSE);
+        }
+      break;
+    case ACTMTD_ON_CRIT:  /* Called whenever a weapon hits critically. */
+    case ACTMTD_WEAR:     /* Called whenever the item is worn. */
+    default:
       /* Do nothing. */
       break;
   }

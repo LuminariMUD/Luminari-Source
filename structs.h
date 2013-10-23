@@ -1073,9 +1073,10 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_AUTOPROC	          44  // item can be called by proc_update()
 /* Flags dealing with special abilities. */
 #define ITEM_FLAMING              45  /* Item is ON FIRE! Used to toggle special ability.*/
+#define ITEM_FROST                46  /* Item is sheathed in magical FROST! SPECAB toggle. */
 /**/
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            46
+#define NUM_ITEM_FLAGS            47
 
 /* homeland-port */
 /*
