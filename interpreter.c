@@ -488,6 +488,7 @@ const struct mob_script_command_t mob_script_commands[] = {
   { "mdamage", do_mdamage, 0},
   { "mdoor", do_mdoor, 0},
   { "mecho", do_mecho, 0},
+  { "mgecho", do_mgecho, 0},
   { "mrecho", do_mrecho, 0},
   { "mechoaround", do_mechoaround, 0},
   { "msend", do_msend, 0},
