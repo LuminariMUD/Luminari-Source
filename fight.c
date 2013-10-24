@@ -2603,8 +2603,24 @@ void hit(struct char_data *ch, struct char_data *victim,
             dam_type, offhand);
     if (is_ranged)
       obj_to_room(missile, IN_ROOM(victim));
+    else { //non ranged weapon can possibly set off shield block proc (for now)
+      struct obj_data *shield = GET_EQ(victim, WEAR_SHIELD);
 
-    /* OK, attack should be a success at this stage */
+      if (shield) {
+      int (*name)(struct char_data *victim, void *me, int cmd, char *argument);
+
+        name = obj_index[GET_OBJ_RNUM(shield)].func;
+
+        if (name) {
+          /* currently no actual shield block, so no shield block message */
+          //damage(ch, victim, 0, SKILL_SHIELD_BLOCK, DAMBIT_PHYSICAL);
+          if ((name) (victim, shield, 0, ""))
+            ;
+        }
+      }
+    }
+
+  /* OK, attack should be a success at this stage */
   } else {
 
     if (affected_by_spell(ch, SPELL_TRUE_STRIKE)) {
