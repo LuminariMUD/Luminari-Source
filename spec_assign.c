@@ -162,6 +162,14 @@ void assign_objects(void)
   ASSIGNOBJ(3097, gen_board);	/* freeze board */
   ASSIGNOBJ(3098, gen_board);	/* immortal board */
   ASSIGNOBJ(3099, gen_board);	/* mortal board */
+  ASSIGNOBJ(100400, gen_board);   /* quest board */
+  ASSIGNOBJ(103093, gen_board);   /* ashenport market board */
+  ASSIGNOBJ(103094, gen_board);   /* forger board */
+  ASSIGNOBJ(103095, gen_board);   /* areas board */
+  ASSIGNOBJ(103096, gen_board);	/* social board */
+  ASSIGNOBJ(103097, gen_board);	/* freeze board */
+  ASSIGNOBJ(103098, gen_board);	/* immortal board */
+  ASSIGNOBJ(103099, gen_board);	/* mortal board */
 
   ASSIGNOBJ(115, bank);
   ASSIGNOBJ(334, bank);	        /* atm */
@@ -173,11 +181,36 @@ void assign_objects(void)
   ASSIGNOBJ(10751, bank);
   ASSIGNOBJ(25758, bank);
 
+  /* homeland - need to be converted to objects */
+  /*
+  ASSIGNOBJ(102536, bank);
+  ASSIGNOBJ(103007, bank);
+  ASSIGNOBJ(105039, bank);
+  ASSIGNOBJ(105807, bank); 
+  ASSIGNOBJ(108181, bank);
+  ASSIGNOBJ(108198, bank);
+  ASSIGNOBJ(110421, bank);
+  ASSIGNOBJ(111374, bank);
+  ASSIGNOBJ(113010, bank); 
+  ASSIGNOBJ(119102, bank);
+  ASSIGNOBJ(121475, bank); 
+  ASSIGNOBJ(121825, bank);
+  ASSIGNOBJ(122685, bank); 
+  ASSIGNOBJ(125088, bank);
+  ASSIGNOBJ(125984, bank);
+  ASSIGNOBJ(126906, bank);
+  ASSIGNOBJ(127618, bank);   
+  ASSIGNOBJ(135051, bank);
+  ASSIGNOBJ(138809, bank);
+  */
+  
   ASSIGNOBJ(3118, crafting_kit);
-
-  ASSIGNOBJ(136100, air_sphere);
   
   ASSIGNOBJ(104072, chionthar_ferry);
+  
+  ASSIGNOBJ(128150, spikeshield);
+  
+  ASSIGNOBJ(136100, air_sphere);
 }
 
 /* assign special procedures to rooms */

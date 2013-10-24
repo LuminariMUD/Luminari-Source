@@ -68,7 +68,8 @@ SPECIAL(cf_alathar);
 SPECIAL(jot_invasion_loader);
 
 /* new batch - 10/20/13 */
-SPECIAL(air_sphere);
-SPECIAL(chionthar_ferry);
+SPECIAL(air_sphere);  //weapon
+SPECIAL(chionthar_ferry);  //transport
+SPECIAL(spikeshield);  //shield
 
 #endif /* _SPEC_PROCS_H_ */
