@@ -3876,7 +3876,7 @@ SPECIAL(viperdagger) {
   if (AFF_FLAGGED(victim, AFF_SLOW))
     spellnum = SPELL_HARM;
 
-  if (number(0, 23))
+  if (rand_number(0, 23))
     return 0;
 
   weapons_spells(
@@ -3906,8 +3906,8 @@ SPECIAL(ches) {
     return 0;
 
   if (!cmd && !strcmp(argument, "identify")) {
-    send_to_char("Invoke haste by keyword 'ches' once per day.  Procs shock "
-            "on critical.\r\n", ch);
+    send_to_char(ch, "Invoke haste by keyword 'ches' once per day.  Procs shock "
+            "on critical.\r\n");
     return 1;
   }
 
@@ -3949,7 +3949,7 @@ SPECIAL(ches) {
     skip_spaces(&argument);
     if (!strcmp(argument, "ches")) {
       if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
-        send_to_char("Nothing happens.\r\n", ch);
+        send_to_char(ch, "Nothing happens.\r\n");
         return 1;
       }
       act(    "\tcAs you quietly speak the word of power to your stiletto\tn\r\n"
