@@ -3848,7 +3848,7 @@ SPECIAL(spikeshield) {
     act("$n \tLslams $s \tcshield\tL into you\tn\r\n"
             "\tLcausing the rows of \trspikes\tL to drive into your body.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
-    damage(ch, vict, (dice(3, 8) + 4), SKILL_SHIELD_PUNCH, DAM_PUNCTURE, 
+    damage(ch, vict, (dice(3, 8) + 4), -1, DAM_PUNCTURE, 
             FALSE);  // type -1 = no dam message
     return 1;
   }
