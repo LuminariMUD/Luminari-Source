@@ -529,13 +529,11 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
   if (rand_number(1, 101) >= prob) {
     damage(ch, vict, 0, SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
   } else {
+    damage(ch, vict, GET_DAMROLL(ch) + GET_SKILL(ch, SKILL_SHIELD_PUNCH) / 2,
+              SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
     name = obj_index[GET_OBJ_RNUM(shield)].func;
     if (name)
       (name)(ch, shield, 0, "shieldpunch");
-    else {
-      damage(ch, vict, GET_DAMROLL(ch) + GET_SKILL(ch, SKILL_SHIELD_PUNCH) / 2,
-              SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
-    }
     
     if (rand_number(0, 60) < GET_LEVEL(ch)) {
       new_affect(&af);
