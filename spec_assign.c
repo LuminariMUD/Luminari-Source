@@ -206,11 +206,13 @@ void assign_objects(void)
   
   ASSIGNOBJ(3118, crafting_kit);
   
-  ASSIGNOBJ(104072, chionthar_ferry);
+  ASSIGNOBJ(104072, chionthar_ferry);  //transport
   
-  ASSIGNOBJ(128150, spikeshield);
+  ASSIGNOBJ(128106, ches);  //weapon
   
-  ASSIGNOBJ(136100, air_sphere);
+  ASSIGNOBJ(128150, spikeshield);  //shield
+  
+  ASSIGNOBJ(136100, air_sphere);  //weapon (lightning)
 }
 
 /* assign special procedures to rooms */

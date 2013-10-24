@@ -894,6 +894,7 @@ const char *extra_bits[NUM_ITEM_FLAGS + 1] = {
   "Transient",
   "Auto-Proc",
   "Flaming",  //45
+  "Frosty",
   "\n"
 };
 
