@@ -3823,7 +3823,7 @@ SPECIAL(spikeshield) {
     return 0;
 
   //blocking
-  if (argument[0] == 0 && !rand_number(0, 3)) {
+  if (argument[0] == 0 && !rand_number(0, 6)) {
     act("\tLYour \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn\r\n"
             "\tLfrom $N \tLand transfers it back to you.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_CHAR);
@@ -3856,136 +3856,119 @@ SPECIAL(spikeshield) {
   return 0;
 }
 
-/*
-SPECIAL(viperdagger)
-{
+/* from homeland */
+SPECIAL(viperdagger) {
   struct char_data *victim;
+  int spellnum = SPELL_SLOW;
 
- if( !cmd && !strcmp(argument, "identify") )
- {
-   send_to_char("Proc: Slowness or Harm.\r\n", ch);
-   return 1;
- }
- int spellnum = SPELL_SLOWNESS;
-  if( !ch )    
-        return 0;
-   victim  = FIGHTING(ch); 
-  if( !victim || cmd )
-   return 0;
-  if( AFF2_FLAGGED(victim, AFF2_SLOWNESS) )
-   spellnum = SPELL_HARM;
+  if (!ch)
+    return 0;
+  
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: Slowness or Harm.\r\n");
+    return 1;
+  }
+  
+  victim = FIGHTING(ch);
+  if (!victim || cmd)
+    return 0;
+  
+  if (AFF_FLAGGED(victim, AFF_SLOW))
+    spellnum = SPELL_HARM;
 
-  if( number(0,23) )
-     return 0;
+  if (number(0, 23))
+    return 0;
 
-  weapon_spell(
-"\tLThe jeweled eyes on your dagger glow \tRred \tLas it comes alive, writhes and\tn\r\n"
-"\tLforms into a \tYgolden viper\tL.  As it coils in your hand, its mouth opens wide\tn\r\n"
-"\tLas \tWhuge fangs \tLthrust out.  It strikes out violently and bites into \tn$N\tn\r\n"
-"\tLinjecting $M with venom then recoils and transforms back into a dagger.\tn",
+  weapons_spells(
+          "\tLThe jeweled eyes on your dagger glow \tRred \tLas it comes alive, writhes and\tn\r\n"
+          "\tLforms into a \tYgolden viper\tL.  As it coils in your hand, its mouth opens wide\tn\r\n"
+          "\tLas \tWhuge fangs \tLthrust out.  It strikes out violently and bites into \tn$N\tn\r\n"
+          "\tLinjecting $M with venom then recoils and transforms back into a dagger.\tn",
 
-"\tLThe jeweled eyes on $n's dagger glow \tRred \tLas it comes alive, writhes and\tn\r\n"
-"\tLforms into a \tYgolden viper\tL.  As it coils in $s hand, its mouth opens wide\tn\r\n"
-"\tLas \tWhuge fangs \tLthrust out.  It strikes out violently and bites into you\tn\r\n"
-"\tLinjecting you with venom then recoils and transforms back into a dagger.\tn",
+          "\tLThe jeweled eyes on $n's dagger glow \tRred \tLas it comes alive, writhes and\tn\r\n"
+          "\tLforms into a \tYgolden viper\tL.  As it coils in $s hand, its mouth opens wide\tn\r\n"
+          "\tLas \tWhuge fangs \tLthrust out.  It strikes out violently and bites into you\tn\r\n"
+          "\tLinjecting you with venom then recoils and transforms back into a dagger.\tn",
 
-
-"\tLThe jeweled eyes on $n\tL's dagger glow \tRred \tLas it comes alive, writhes and\tn\r\n"
-"\tLforms into a \tYgolden viper\tL.  As it coils in $s hand, its mouth opens wide\tn\r\n"
-"\tLas \tWhuge fangs \tLthrust out.  It strikes out violently and bites into \tn$N\tn\r\n"
-"\tLinjecting $M with venom then recoils and transforms back into a dagger.\tn",
-
-               ch, victim, (struct obj_data *) me, spellnum);
+          "\tLThe jeweled eyes on $n\tL's dagger glow \tRred \tLas it comes alive, writhes and\tn\r\n"
+          "\tLforms into a \tYgolden viper\tL.  As it coils in $s hand, its mouth opens wide\tn\r\n"
+          "\tLas \tWhuge fangs \tLthrust out.  It strikes out violently and bites into \tn$N\tn\r\n"
+          "\tLinjecting $M with venom then recoils and transforms back into a dagger.\tn",
+          ch, victim, (struct obj_data *) me, spellnum);
   return 1;
 }
-*/
 
-/*
-SPECIAL(ches)
-{
- if( !cmd && !strcmp(argument, "identify") )
- {
-   send_to_char("Invoke haste by keyword once per day.\r\n", ch);
-   return 1;
- }
-
-
+/* from homeland */
+SPECIAL(ches) {
   struct char_data *vict;
-  if( !ch )
-          return 0;
-  
-	vict=FIGHTING(ch);
+
+  if (!ch)
+    return 0;
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char("Invoke haste by keyword 'ches' once per day.  Procs shock "
+            "on critical.\r\n", ch);
+    return 1;
+  }
+
+  vict = FIGHTING(ch);
 
   // proc on critical  
-  if( !cmd && FIGHTING(ch) && argument )
-  {
-      skip_spaces(&argument);
-      if (!strcmp(argument, "critical") )
-      { 
-         
-     act("\tLAs your \tcstiletto \tLplunges deep into $N,\tn\r\n" 
-     "\tcs\tCp\tcar\tCk\tcs \tLbegin to \tYcrackle\tL about the hilt.  Suddenly a\tn\r\n"
-     "\tBbolt of lightning \tLraces down from above to meet up\tn\r\n" 
-     "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n"
-     "\tLflows through the weapon into $N\tn\r\n"
-     "\tLcausing $S hair to stand on end.\tn",
-         FALSE, ch, (struct obj_data *)me, vict, TO_CHAR );
-
-     act("\tLAs $n's \tcstiletto \tLplunges deep into your body,\tn\r\n" 
-     "\tcs\tCp\tcar\tCk\tcs \tLbegin to \tYcrackle\tL about the hilt.  Suddenly a\tn\r\n"
-     "\tBbolt of lightning \tLraces down from above to meet up\tn\r\n" 
-     "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n" 
-     "\tLflows through the weapon into you, \tLcausing your hair to stand on end.\tn\r\n",
-         FALSE, ch, (struct obj_data *)me, vict, TO_VICT );
-
-     act("\tLAs $n's \tcstiletto \tLplunges deep into $N, \tn\r\n"
-     "\tcs\tCp\tcar\tCk\tcs \tLbegin to \tYcrackle\tL about the hilt.  Suddenly a\tn\r\n"
-     "\tBbolt of lightning \tLraces down from above to meet up\tn\r\n" 
-     "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n" 
-     "\tLflows through the weapon into $N \tn\r\n"
-     "\tLcausing $S hair to stand on end.\tn\tn\r\n",
-           FALSE, ch, (struct obj_data *)me, vict, TO_NOTVICT );
-       GET_HIT(vict)-=50+dice(5,20);
-           return 1;
-      }
+  if (!cmd && FIGHTING(ch) && argument) {
+    skip_spaces(&argument);
+    if (!strcmp(argument, "critical")) {
+      act("\tLAs your \tcstiletto \tLplunges deep into $N,\tn\r\n"
+              "\tcs\tCp\tcar\tCk\tcs \tLbegin to \tYcrackle\tL about the hilt.  Suddenly a\tn\r\n"
+              "\tBbolt of lightning \tLraces down from above to meet up\tn\r\n"
+              "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n"
+              "\tLflows through the weapon into $N\tn\r\n"
+              "\tLcausing $S hair to stand on end.\tn",
+              FALSE, ch, (struct obj_data *) me, vict, TO_CHAR);
+      act("\tLAs $n's \tcstiletto \tLplunges deep into your body,\tn\r\n"
+              "\tcs\tCp\tcar\tCk\tcs \tLbegin to \tYcrackle\tL about the hilt.  Suddenly a\tn\r\n"
+              "\tBbolt of lightning \tLraces down from above to meet up\tn\r\n"
+              "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n"
+              "\tLflows through the weapon into you, \tLcausing your hair to stand on end.\tn\r\n",
+              FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
+      act("\tLAs $n's \tcstiletto \tLplunges deep into $N, \tn\r\n"
+              "\tcs\tCp\tcar\tCk\tcs \tLbegin to \tYcrackle\tL about the hilt.  Suddenly a\tn\r\n"
+              "\tBbolt of lightning \tLraces down from above to meet up\tn\r\n"
+              "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n"
+              "\tLflows through the weapon into $N \tn\r\n"
+              "\tLcausing $S hair to stand on end.\tn\tn\r\n",
+              FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
+      damage(ch, vict, 20 + dice(2, 8), -1, DAM_ELECTRIC, FALSE);  // type -1 = no dam message
+      return 1;
+    }
   }
 
   // haste once a day on command
-  if( cmd && argument && cmd_info[cmd].command_pointer == do_say)
-  {
-    if (!is_wearing(ch, 28106))
-         return 0;
-        
+  if (cmd && argument && cmd_info[cmd].command_pointer == do_say) {
+    if (!is_wearing(ch, 128106))
+      return 0;
     skip_spaces(&argument);
-    if (!strcmp(argument, "ches") )
-    { 
-        if(GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0)
-         {
-                send_to_char("Nothing happens.\r\n", ch );
-                return 1;
-         }
+    if (!strcmp(argument, "ches")) {
+      if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
+        send_to_char("Nothing happens.\r\n", ch);
+        return 1;
+      }
+      act(    "\tcAs you quietly speak the word of power to your stiletto\tn\r\n"
+              "\tcthe aquamarine on the hilt begins to fizzle and pop. The\tn\r\n"
+              "\tcnoise continues to culminate until there is a loud crack.\tn\r\n"
+              "\tcThe hilt flashes bright for a split second before a sharp\tn\r\n"
+              "\tcelectric shock flows up your hand into your body.  You\tn\r\n"
+              "\tcsuddenly feel your heart begin to race REALLY fast!\tn",
+              FALSE, ch, (struct obj_data *) me, 0, TO_CHAR);
+      act("\tC$n whispers to $s $p",
+              FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
 
-          act(
-	"\tcAs you quietly speak the word of power to your stiletto\tn\r\n"
-	"\tcthe aquamarine on the hilt begins to fizzle and pop. The\tn\r\n"
-	"\tcnoise continues to culminate until there is a loud crack.\tn\r\n"
-	"\tcThe hilt flashes bright for a split second before a sharp\tn\r\n"
-	"\tcelectric shock flows up your hand into your body.  You\tn\r\n" 
-	"\tcsuddenly feel your heart begin to race REALLY fast!\tn",
-                   FALSE, ch, (struct obj_data *)me, 0, TO_CHAR );
-
-          act("\tC$n whispers to $s $p",
-                  FALSE, ch, (struct obj_data *)me, 0, TO_ROOM );
-          
-         call_magic(ch, ch, 0, SPELL_HASTE, 36, CAST_POTION);
-       
+      call_magic(ch, ch, 0, SPELL_HASTE, 30, CAST_POTION);
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 12;
       return 1;
-     }
+    }
   }
   return 0;
 }
-*/
 
 /*
 SPECIAL(courage)
