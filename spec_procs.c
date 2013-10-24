@@ -3808,10 +3808,10 @@ ACMD(do_disembark) {
 
 /* from homeland */
 SPECIAL(spikeshield) {
-  struct char_data *vict = FIGHTING(ch);
-
   if (!ch)
     return 0;
+
+  struct char_data *vict = FIGHTING(ch);
   
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "On shieldpunch, procs 'spikes', on shieldblock procs "
