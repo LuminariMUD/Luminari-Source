@@ -367,6 +367,7 @@ bool move_on_path(struct char_data *ch) {
   switch (dir) {
     case BFS_ERROR:
       send_to_char(ch, "Hmm.. something seems to be seriously wrong.\r\n");
+      log("PATH ERROR: Mob %s, in room %d, trying to get to %d", GET_NAME(ch), world[IN_ROOM(ch)].number, next);
       break;
     case BFS_ALREADY_THERE:
       send_to_char(ch, "I seem to be in the right room already!\r\n");
@@ -374,6 +375,7 @@ bool move_on_path(struct char_data *ch) {
     case BFS_NO_PATH:
       send_to_char(ch, "I can't sense a trail to %d (%d) from here.\r\n", 
               next, real_room(next));
+      log("NO PATH: Mob %s, in room %d, trying to get to %d", GET_NAME(ch), world[IN_ROOM(ch)].number, next);
       break;
     default: /* Success! */
       send_to_char(ch, "I sense a trail %s from here!\r\n", dirs[dir]);
@@ -1226,11 +1228,11 @@ void mobile_activity(void) {
      * perform_violence() in fight.c */
 
     /* a function to move mobile back to its loadroom (if sentinel) */
-    if (!HUNTING(ch) && !MEMORY(ch) && !ch->master &&
+/*    if (!HUNTING(ch) && !MEMORY(ch) && !ch->master &&
             MOB_FLAGGED(ch, MOB_SENTINEL) && !IS_PET(ch) &&
             GET_MOB_LOADROOM(ch) != IN_ROOM(ch))
       hunt_loadroom(ch);
-
+*/
     /* pets return to their master */
     if (GET_POS(ch) == POS_STANDING && IS_PET(ch) && IN_ROOM(ch->master) !=
             IN_ROOM(ch) && !HUNTING(ch)) {
