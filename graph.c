@@ -96,6 +96,12 @@ int find_first_step(room_rnum src, room_rnum target) {
     log("SYSERR: Illegal value %d or %d passed to find_first_step. (%s)", src, target, __FILE__);
     return (BFS_ERROR);
   }
+
+  if(GET_ROOM_ZONE(src) != GET_ROOM_ZONE(target)) {
+    log("INFO: Attempt to path across zones, vnum %d (%d) to vnum %d (%d).", world[src].number, src, world[target].number, target);
+    return(BFS_NO_PATH);
+  }
+
   if (src == target)
     return (BFS_ALREADY_THERE);
 
