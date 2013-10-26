@@ -2551,6 +2551,12 @@ void mag_assign_spells(void) {
   spello(SPELL_FIRE_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
           NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(SPELL_FROST_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(SPELL_LIGHTNING_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS,
+          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_FSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AFFECTS,
           NULL, 0, 0, NOSCHOOL, FALSE);
