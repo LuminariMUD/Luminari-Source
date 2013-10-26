@@ -1358,7 +1358,6 @@ SPECIAL(jot_invasion_loader) {
   return 1;
 }
 
-/*
 SPECIAL(thrym) {
   struct char_data *vict = FIGHTING(ch);
   struct affected_type af;
@@ -1366,45 +1365,42 @@ SPECIAL(thrym) {
   if (!ch || cmd || !vict || rand_number(0, 8))
     return 0;
 
-  act("&cCThrym touches you with a chilling hand, freezing you in place.&c0", FALSE, vict, 0, ch, TO_CHAR);
-  act("&cCThrym touches $n&cC, freezing $m in place.&c0", FALSE, vict, 0, ch, TO_ROOM);
-  af.duration = 30;
-  af.type = SPELL_HOLD_PERSON;
-  affect_join(vict, &af, FALSE, FALSE, TRUE, FALSE);
+  act("\tCThrym touches you with a chilling hand, freezing you in place.\tn", FALSE, vict, 0, ch, TO_CHAR);
+  act("\tCThrym touches $n\tC, freezing $m in place.\tn", FALSE, vict, 0, ch, TO_ROOM);
 
+  new_affect(&af);
+  af.spell = SPELL_HOLD_PERSON;
+  SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+  af.duration = 30;
+  affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+  
   return 1;
 }
-*/
 
-/*
 SPECIAL(ymir) {
   if (!ch || cmd)
     return 0;
 
   if (FIGHTING(ch) && !rand_number(0, 4)) {
-    call_magic(ch, FIGHTING(ch), 0, SPELL_FROST_BREATHE, GET_LEVEL(ch), CAST_BREATH);
+    call_magic(ch, FIGHTING(ch), 0, SPELL_FROST_BREATHE, GET_LEVEL(ch), CAST_SPELL);
     return 1;
   }
 
   return 0;
 }
-*/
 
-/*
 SPECIAL(planetar) {
   if (!ch || cmd)
     return 0;
 
   if (FIGHTING(ch) && !rand_number(0, 5)) {
-    call_magic(ch, FIGHTING(ch), 0, SPELL_LIGHTNING_BREATHE, GET_LEVEL(ch), CAST_BREATH);
+    call_magic(ch, FIGHTING(ch), 0, SPELL_LIGHTNING_BREATHE, GET_LEVEL(ch), CAST_SPELL);
     return 1;
   }
 
   return 0;
 }
-*/
 
-/*
 SPECIAL(gatehouse_guard) {
   struct char_data *mob = (struct char_data *) me;
 
@@ -1413,41 +1409,42 @@ SPECIAL(gatehouse_guard) {
           AFF_FLAGGED(mob, AFF_GRAPPLED) || HAS_WAIT(mob))
     return FALSE;
 
-  if (cmd == SCMD_EAST && (!IS_NPC(ch) || IS_PET(ch)) && GET_LEVEL(ch) < 51) {
-    act("$N &cwblocks your way!&c0\r\n", FALSE, ch, 0, mob, TO_CHAR);
-    act("$N &cwblocks $n's&cw way!&c0\r\n", FALSE, ch, 0, mob, TO_ROOM);
+  if (cmd == SCMD_EAST && (!IS_NPC(ch) || IS_PET(ch)) && GET_LEVEL(ch) < 31) {
+    act("$N \twblocks your way!\tn\r\n", FALSE, ch, 0, mob, TO_CHAR);
+    act("$N \twblocks $n's\tw way!\tn\r\n", FALSE, ch, 0, mob, TO_ROOM);
     return TRUE;
   }
 
   return 0;
 }
-*/
 
+/************************************************/
 /* end mobile specs, start object specs for jot */
+/************************************************/
 
 /* special cloak object proc */
-/*
 SPECIAL(ymir_cloak) {
+  if (!ch)
+    return 0;
 
   if (!cmd && !strcmp(argument, "identify")) {
-    send_to_char("Invoke ice storm by saying 'icicle storm'.\r\nOnce per day.\r\n", ch);
+    send_to_char(ch, "Invoke ice storm by saying 'icicle storm'.\r\nOnce per day.\r\n");
     return 1;
   }
 
   struct obj_data *obj = (struct obj_data *) me;
 
   skip_spaces(&argument);
-  if (!is_wearing(ch, 96059)) return 0;
+  if (!is_wearing(ch, 196059)) return 0;
   if (!strcmp(argument, "icicle storm") && cmd_info[cmd].command_pointer == do_say) {
-    //if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
     if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
-      send_to_char("&ccAs you say '&cCicicle storm&cc' to your &cWa cloak of glittering icicles&cc, nothing happens.&c0\r\n", ch);
+      send_to_char(ch, "\tcAs you say '\tCicicle storm\tc' to your \tWa cloak of glittering icicles\tc, nothing happens.\tn\r\n");
       return 1;
     }
 
-    weapon_spell("&cBAs you say '&cwicicle storm&cB' to $p &cBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.&c0",
-            "&cBAs $n &cBmutters something under his breath  to $p &cBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.&c0",
-            "&cBAs $n &cBmutters something under his breath  to $p &cBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.&c0",
+    weapons_spells("\tBAs you say '\twicicle storm\tB' to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
+            "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
+            "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
             ch, 0, (struct obj_data *) me, SPELL_ICE_STORM);
 
     GET_OBJ_SPECTIMER(obj, 0) = 24;
@@ -1455,14 +1452,13 @@ SPECIAL(ymir_cloak) {
   }
   return 0;
 }
-*/
-
 /* mistweave mace object proc */
-/*
 SPECIAL(mistweave) {
-
+  if (!ch)
+    return 0;
+  
   if (!cmd && !strcmp(argument, "identify")) {
-    send_to_char("Invoke blindness by saying 'mistweave'. Once per day.\r\n", ch);
+    send_to_char(ch, "Invoke blindness by saying 'mistweave'. Once per day.\r\n");
     return 1;
   }
 
@@ -1470,24 +1466,24 @@ SPECIAL(mistweave) {
   struct char_data *vict = FIGHTING(ch);
 
   skip_spaces(&argument);
-  if (!is_wearing(ch, 96012)) return 0;
+  if (!is_wearing(ch, 196012)) return 0;
   if (!strcmp(argument, "mistweave") && cmd_info[cmd].command_pointer == do_say) {
     if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
       if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
-        send_to_char("&cpAs you say '&cwmistweave&cp' to your a huge adamantium mace enshrouded with &cWmist&cp, nothing happens.&c0\r\n", ch);
+        send_to_char(ch, "\tpAs you say '\twmistweave\tp' to your a huge adamantium mace enshrouded with \tWmist\tp, nothing happens.\tn\r\n");
         return 1;
       }
 
-      act("&cLAs you say, '&c0mistweave&cL', "
-              "&cLa thick vapor issues forth from $p&cL, "
-              "&cLenshrouding the eyes of $N&cL.&c0",
+      act("\tLAs you say, '\tnmistweave\tL', "
+              "\tLa thick vapor issues forth from $p\tL, "
+              "\tLenshrouding the eyes of $N\tL.\tn",
               FALSE, ch, obj, vict, TO_CHAR);
-      act("&cLAs $n &cLmutters something under his breath, "
-              "&cLa thick vapor issues forth from $p&cL, "
-              "&cLenshrouding the eyes of $N.",
+      act("\tLAs $n \tLmutters something under his breath, "
+              "\tLa thick vapor issues forth from $p\tL, "
+              "\tLenshrouding the eyes of $N.",
               FALSE, ch, obj, vict, TO_ROOM);
 
-      call_magic(ch, FIGHTING(ch), 0, SPELL_BLINDNESS, 10000, CAST_PROC);
+      call_magic(ch, FIGHTING(ch), 0, SPELL_BLINDNESS, 30, CAST_SPELL);
 
       GET_OBJ_SPECTIMER(obj, 0) = 24;
       return 1;
@@ -1495,47 +1491,52 @@ SPECIAL(mistweave) {
   }
   return 0;
 }
-*/
 
 /* frostbite axe proc */
-/*
 SPECIAL(frostbite) {
+  if (!ch)
+    return 0;
 
   if (!cmd && !strcmp(argument, "identify")) {
-    send_to_char("Invoke cone of cold  by saying 'frostbite'. Once per day.\r\n", ch);
+    send_to_char(ch, "Invoke cone of cold  by saying 'frostbite'. Once per day.\r\n");
     return 1;
   }
 
   struct obj_data *obj = (struct obj_data *) me;
   struct char_data *vict = FIGHTING(ch);
   int pct;
+  struct affected_type af;
 
   skip_spaces(&argument);
-  if (!is_wearing(ch, 96000)) return 0;
+  if (!is_wearing(ch, 196000)) return 0;
   if (!strcmp(argument, "frostbite") && cmd_info[cmd].command_pointer == do_say) {
     if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
       if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
-        send_to_char("&ccAs you say '&cwfrostbite&cc' to your a &cLa great iron axe &cCrimmed &cLwith &cWfrost&cc, nothing happens.&c0\r\n", ch);
+        send_to_char(ch, "\tcAs you say '\twfrostbite\tc' to your a \tLa great iron axe \tCrimmed \tLwith \tWfrost\tc, nothing happens.\tn\r\n");
         return 1;
       }
 
-      act("&cCAs you say, '&cwfrostbite&cC',\n\r"
-              "&cCa swirling gale of pounding ice emanates forth from\n\r"
-              "$p &cCpelting your foes.&c0",
+      act("\tCAs you say, '\twfrostbite\tC',\n\r"
+              "\tCa swirling gale of pounding ice emanates forth from\n\r"
+              "$p \tCpelting your foes.\tn",
               FALSE, ch, obj, 0, TO_CHAR);
-      act("&cCAs $n &cCmutters something under his breath,\n\r"
-              "&cCa swirling gale of pounding ice emanates forth from\n\r"
-              "$p &cCpelting $n's &cCfoes.&c0",
+      act("\tCAs $n \tCmutters something under his breath,\n\r"
+              "\tCa swirling gale of pounding ice emanates forth from\n\r"
+              "$p \tCpelting $n's \tCfoes.\tn",
               FALSE, ch, obj, 0, TO_ROOM);
 
-      pct = number(0, 99);
+      pct = rand_number(0, 99);
       if (pct < 55)
-        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 35, CAST_PROC);
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 20, CAST_SPELL);
       else if (pct < 85)
-        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 50, CAST_PROC);
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 30, CAST_SPELL);
       else {
-        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 50, CAST_PROC);
-        call_magic(ch, vict, 0, SPELL_MAJOR_PARA, 50, CAST_PROC);
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 30, CAST_SPELL);
+        new_affect(&af);
+        af.spell = SPELL_HOLD_PERSON;
+        SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+        af.duration = dice(2, 4);
+        affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       }
 
       GET_OBJ_SPECTIMER(obj, 0) = 24;
@@ -1544,14 +1545,18 @@ SPECIAL(frostbite) {
   }
   return 0;
 }
-*/
 
 /* special claws gear with proc */
-/*
+#define VAP_AFFECTS 3
 SPECIAL(vaprak_claws) {
+  struct affected_type af[VAP_AFFECTS];
+  int duration = 0, i = 0;
+  
+  if (!ch)
+    return 0;
 
   if (!cmd && !strcmp(argument, "identify")) {
-    send_to_char("Invoke Fury of Vaprak by saying 'vaprak'. Once per day.\r\nWorks only for Trolls and Ogres.\r\n", ch);
+    send_to_char(ch, "Invoke Fury of Vaprak by saying 'vaprak'. Once per day.\r\nWorks only for Trolls and Ogres.\r\n");
     return 1;
   }
 
@@ -1561,167 +1566,216 @@ SPECIAL(vaprak_claws) {
   struct obj_data *obj = (struct obj_data *) me;
 
   skip_spaces(&argument);
-  if (!is_wearing(ch, 96062)) return 0;
+  if (!is_wearing(ch, 196062)) return 0;
   if (!strcmp(argument, "vaprak") && cmd_info[cmd].command_pointer == do_say) {
     //if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
     if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
-      send_to_char("&crAs you say '&cwvaprak&cr' to your claws &cLof the destroyer&cr, nothing happens.&c0\r\n", ch);
+      send_to_char(ch, "\trAs you say '\twvaprak\tr' to your claws \tLof the destroyer\tr, nothing happens.\tn\r\n");
+      return 1;
+    }
+    if (affected_by_spell(ch, SKILL_RAGE)) {
+      send_to_char(ch, "You are already raging!\r\n");
       return 1;
     }
 
-    weapon_spell("&cLAs you say '&cwvaprak&cL' to $p&cL, an evil warmth fills your body.&c0",
+    weapons_spells("\tLAs you say '\twvaprak\tL' to $p\tL, an evil warmth fills your body.\tn",
             0,
-            "&cr$n &crmutters something under his breath.&c0",
-            ch, ch, (struct obj_data *) me, SPELL_FURY_OF_VAPRAK);
+            "\tr$n \trmutters something under his breath.\tn",
+            ch, ch, (struct obj_data *) me, 0);
 
+    duration = GET_LEVEL(ch);
+    /* init affect array */
+    for (i = 0; i < VAP_AFFECTS; i++) {
+      new_affect(&(af[i]));
+      af[i].spell = SKILL_RAGE;
+      af[i].duration = duration;
+    }
+
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 3;
+
+    af[1].location = APPLY_DAMROLL;
+    af[1].modifier = 3;
+
+    SET_BIT_AR(af[2].bitvector, AFF_HASTE);
+    af[2].location = APPLY_SAVING_WILL;
+    af[2].modifier = 3;
+
+    for (i = 0; i < VAP_AFFECTS; i++)
+      affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
     GET_OBJ_SPECTIMER(obj, 0) = 24;
     return 1;
   }
   return 0;
 }
-*/
+#undef VAP_AFFECTS
 
 /* a fake twilight proc (large sword) */
-/*
+#define TWI_AFFECTS 2
+
 SPECIAL(fake_twilight) {
+  struct affected_type af[TWI_AFFECTS];
+  struct char_data *vict;
+  int duration = 0, i = 0;
 
-  struct char_data *vict = FIGHTING(ch);
-  struct affected_type af;
-  struct affected_type *af2;
-
-  if (!ch || cmd || !vict || number(0, 18))
+  if (!ch)
+    return 0;
+  
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Twilight Rage\r\n");
+    return 1;
+  }
+  
+  vict = FIGHTING(ch);
+        
+  if (affected_by_spell(ch, SPELL_BATTLETIDE)) {
+    return 0;
+  }
+  
+  if (cmd || !vict || rand_number(0, 18))
     return 0;
 
-  for (af2 = ch->affected; af2; af2 = af2->next) {
-    if (af2->type == PROC_TWILIGHT)
-      return 0;
-    if (af2->type == PROC_MALEVOLENCE)
-      return 0;
-  }
-
-  weapon_spell("&cLA glimmer of insanity crosses your face as your\r\n"
-          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
-          "&cLA glimmer of insanity crosses $n&cL's face as $s\r\n"
-          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
-          "&cLA glimmer of insanity crosses $n&cL's face as $s\r\n"
-          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
+  weapons_spells("\tLA glimmer of insanity crosses your face as your\r\n"
+          "\tLblade starts glowing with a strong \tpmagenta\tL sheen.\tn",
+          "\tLA glimmer of insanity crosses $n\tL's face as $s\r\n"
+          "\tLblade starts glowing with a strong \tpmagenta\tL sheen.\tn",
+          "\tLA glimmer of insanity crosses $n\tL's face as $s\r\n"
+          "\tLblade starts glowing with a strong \tpmagenta\tL sheen.\tn",
           ch, vict, (struct obj_data *) me, 0);
 
-  af.location = APPLY_DAMROLL;
-  af.duration = 2;
-  af.modifier = GET_DAMROLL(ch);
-  af.bitvector = 0;
-  af.bitvector2 = 0;
-  af.bitvector3 = 0;
-  af.type = PROC_TWILIGHT;
-  affect_join(ch, &af, FALSE, FALSE, TRUE, FALSE);
-  af.location = APPLY_HITROLL;
-  af.duration = 2;
-  af.modifier = GET_HITROLL(ch);
-  af.bitvector = 0;
-  af.bitvector2 = 0;
-  af.bitvector3 = 0;
-  af.type = PROC_TWILIGHT;
-  affect_join(ch, &af, FALSE, FALSE, TRUE, FALSE);
+  duration = GET_LEVEL(ch) / 5;
+  /* init affect array */
+  for (i = 0; i < TWI_AFFECTS; i++) {
+    new_affect(&(af[i]));
+    af[i].spell = SPELL_BATTLETIDE;
+    af[i].duration = duration;
+  }
+
+  af[0].location = APPLY_HITROLL;
+  af[0].modifier = GET_STR_BONUS(ch);
+
+  af[1].location = APPLY_DAMROLL;
+  af[1].modifier = GET_STR_BONUS(ch);
+
+  for (i = 0; i < TWI_AFFECTS; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
 
   return 1;
 }
-*/
 
 /* a twilight proc (large sword) */
-/*
 SPECIAL(twilight) {
+  struct affected_type af[TWI_AFFECTS];
+  struct char_data *vict;
+  int duration = 0, i = 0;
 
-  struct char_data *vict = FIGHTING(ch);
-  struct affected_type af;
-  struct affected_type *af2;
-
-  if (!ch || cmd || !vict || number(0, 16))
+  if (!ch)
+    return 0;
+  
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Twilight Rage\r\n");
+    return 1;
+  }
+  
+  vict = FIGHTING(ch);
+        
+  if (affected_by_spell(ch, SPELL_BATTLETIDE)) {
+    return 0;
+  }
+  
+  if (cmd || !vict || rand_number(0, 16))
     return 0;
 
-  for (af2 = ch->affected; af2; af2 = af2->next) {
-    if (af2->type == PROC_TWILIGHT)
-      return 0;
-    if (af2->type == PROC_MALEVOLENCE)
-      return 0;
-  }
-
-  weapon_spell("&cLA glimmer of insanity crosses your face as &crTwilight's\r\n"
-          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
-          "&cLA glimmer of insanity crosses $n&cL's face as &crTwilight's\r\n"
-          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
-          "&cLA glimmer of insanity crosses $n&cL's face as &crTwilight's\r\n"
-          "&cLblade starts glowing with a strong &cpmagenta&cL sheen.&c0",
+  weapons_spells("\tLA glimmer of insanity crosses your face as your\r\n"
+          "\tLblade starts glowing with a strong \tpmagenta\tL sheen.\tn",
+          "\tLA glimmer of insanity crosses $n\tL's face as $s\r\n"
+          "\tLblade starts glowing with a strong \tpmagenta\tL sheen.\tn",
+          "\tLA glimmer of insanity crosses $n\tL's face as $s\r\n"
+          "\tLblade starts glowing with a strong \tpmagenta\tL sheen.\tn",
           ch, vict, (struct obj_data *) me, 0);
 
-  af.location = APPLY_DAMROLL;
-  af.duration = 2;
-  af.modifier = GET_DAMROLL(ch);
-  af.bitvector = 0;
-  af.bitvector2 = 0;
-  af.bitvector3 = 0;
-  af.type = PROC_TWILIGHT;
-  affect_join(ch, &af, FALSE, FALSE, TRUE, FALSE);
-  af.location = APPLY_HITROLL;
-  af.duration = 2;
-  af.modifier = GET_HITROLL(ch);
-  af.bitvector = 0;
-  af.bitvector2 = 0;
-  af.bitvector3 = 0;
-  af.type = PROC_TWILIGHT;
-  affect_join(ch, &af, FALSE, FALSE, TRUE, FALSE);
+  duration = GET_LEVEL(ch) / 5 + 1;
+  /* init affect array */
+  for (i = 0; i < TWI_AFFECTS; i++) {
+    new_affect(&(af[i]));
+    af[i].spell = SPELL_BATTLETIDE;
+    af[i].duration = duration;
+  }
+
+  af[0].location = APPLY_HITROLL;
+  af[0].modifier = GET_STR_BONUS(ch);
+
+  af[1].location = APPLY_DAMROLL;
+  af[1].modifier = GET_STR_BONUS(ch);
+
+  for (i = 0; i < TWI_AFFECTS; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
 
   return 1;
 }
-*/
+#undef TWI_AFFECTS
 
-/*
 SPECIAL(valkyrie_sword) {
 
   if (!ch || cmd)
     return 0;
 
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Female Only - Proc Burning Hands\r\n");
+    return 1;
+  }
+  
   if (GET_SEX(ch) != SEX_FEMALE && !IS_NPC(ch)) {
-    damage(ch, ch, number(10, 20), TYPE_UNDEFINED, DAMBIT_PHYSICAL);
-    send_to_char("&cwYou are &cYburned &cwby holy light.&c0\r\n", ch);
-    act("&cw$n is &cYburned &cwby holy light.&c0", FALSE, ch, 0, ch, TO_ROOM);
+    damage(ch, ch, dice(5, 4), -1, DAM_HOLY, FALSE);
+    send_to_char(ch, "\twYou are \tYburned \twby holy light.\tn\r\n");
+    act("\tw$n is \tYburned \twby holy light.\tn", FALSE, ch, 0, ch, TO_ROOM);
+    return 1;
   }
 
   struct char_data *vict = FIGHTING(ch);
 
-  if (!is_wearing(ch, 96056) || !vict || number(0, 20))
+  if (!is_wearing(ch, 196056) || !vict || rand_number(0, 20))
     return 0;
 
-  weapon_spell("&cWYou score a CRITICAL HIT!!!!!\r\n"
-          "&cYStreaks of flames issue forth from $p\n\r"
-          "&cYengulfing your foe.&c0",
-          "&cYYou are engulfed by the flames issuing forth from $p.",
-          "&cYStreaks of flames issue forth from $p\n\r"
-          "&cYengulfing $n's &cYfoe.", ch, vict, (struct obj_data *) me, 0);
+  weapons_spells(
+          "\tYStreaks of flames issue forth from $p\n\r"
+          "\tYengulfing your foe.\tn",
+          "\tYYou are engulfed by the flames issuing forth from $p.",
+          "\tYStreaks of flames issue forth from $p\n\r"
+          "\tYengulfing $n's \tYfoe.", ch, vict, (struct obj_data *) me, 0);
 
-  call_magic(ch, vict, 0, SPELL_BURNING_HANDS, 35, CAST_PROC);
+  call_magic(ch, vict, 0, SPELL_BURNING_HANDS, 30, CAST_SPELL);
 
   return 1;
 }
-*/
 
-/*
 SPECIAL(planetar_sword) {
+  if (!ch)
+    return 0;
+  
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc Cure Critic and Dispel Evil\r\n");
+    return 1;
+  }
+  
   struct char_data *vict = FIGHTING(ch);
 
-  if (!ch || cmd || !vict || number(0, 27))
+  if (cmd || !vict || rand_number(0, 27))
     return 0;
-  switch (number(0, 1)) {
+    
+  switch (rand_number(0, 1)) {
     case 1:
-      weapon_spell("&cWA nimbus of holy light surrounds your sword, bathing you in its radiance&c0",
+      weapons_spells("\tWA nimbus of holy light surrounds your sword, bathing you in its radiance\tn",
               0,
-              "&cWA nimbus of holy light surrounds $n's&cW sword, bathing $m in its radiance.", ch, ch, (struct obj_data *) me, SPELL_CURE_CRITIC);
-      call_magic(ch, ch, 0, SPELL_CURE_CRITIC, GET_LEVEL(ch), CAST_PROC);
+              "\tWA nimbus of holy light surrounds $n's\tW sword, bathing $m in its radiance.", 
+              ch, ch, (struct obj_data *) me, SPELL_CURE_CRITIC);
+      call_magic(ch, ch, 0, SPELL_CURE_CRITIC, GET_LEVEL(ch), CAST_SPELL);
       return 1;
     case 2:
-      weapon_spell("&cWA glowing nimbus of light emanates forth blasting the foul evil in its presence.&c0",
-              "&cWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its presence.&c0",
-              "&cWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its presence.&c0", ch, vict, (struct obj_data *) me, SPELL_DISPEL_EVIL);
+      weapons_spells("\tWA glowing nimbus of light emanates forth blasting the foul evil in its presence.\tn",
+              "\tWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its presence.\tn",
+              "\tWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its presence.\tn", 
+              ch, vict, (struct obj_data *) me, SPELL_DISPEL_EVIL);
       return 1;
     default:
       return 0;
@@ -1729,60 +1783,64 @@ SPECIAL(planetar_sword) {
 
   return 1;
 }
-*/
 
-/*
 SPECIAL(giantslayer) {
+  if (!ch)
+    return 0;
 
   if (!cmd && !strcmp(argument, "identify")) {
-    send_to_char("Invoke giant hamstring attack by saying 'hamstring'. Once per day.\r\nWorks only for Giantslayers.\r\n", ch);
+    send_to_char(ch, "Invoke giant hamstring attack by saying 'hamstring'. Once per day.\r\nWorks only for Dwarves.\r\n");
     return 1;
   }
 
-  if (GET_CLASS(ch) != CLASS_GIANTSLAYER)
+  if (GET_RACE(ch) != RACE_DWARF)
     return 0;
 
   struct obj_data *obj = (struct obj_data *) me;
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!vict)
+    return 0;
 
   skip_spaces(&argument);
-  if (!is_wearing(ch, 96066)) return 0;
+  if (!is_wearing(ch, 196066)) return 0;
   if (!strcmp(argument, "hamstring") && cmd_info[cmd].command_pointer == do_say) {
-    if (FIGHTING(ch) && race_table[GET_RACE(FIGHTING(ch))].category & CATEGORY_GIANT && (FIGHTING(ch)->in_room == ch->in_room)) {
+    if (IS_NPC(vict) && GET_RACE(vict) == NPCRACE_GIANT &&
+            (vict->in_room == ch->in_room)) {
       if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
-        send_to_char("&cYAs you say '&cwhamstring&cY' to your &cLa double-bladed dwarvish axe of &cYgiantslaying, nothing happens.&c0\r\n", ch);
+        send_to_char(ch, "\tYAs you say '\twhamstring\tY' to your \tLa double-bladed dwarvish axe of \tYgiantslaying, nothing happens.\tn\r\n");
         return 1;
       }
 
-      act("&cyAs you say, '&cLhamstring&cy' to $p&cy,\n\r"
-              "&cyit twirls forth from your hand, arcing through the air to "
-              "hamstring\n\r$N &cybefore returning to your grasp.&c0",
-              FALSE, ch, obj, FIGHTING(ch), TO_CHAR);
-      act("&cyAs $n &cymutters something under his breath to $p&cy,\n\r"
-              "&cyit twirls forth from $s hand, arcing through the air to "
-              "hamstring\n\r$N &cybefore returning to your grasp.&c0",
-              FALSE, ch, obj, FIGHTING(ch), TO_ROOM);
+      act("\tyAs you say, '\tLhamstring\ty' to $p\ty,\n\r"
+              "\tyit twirls forth from your hand, arcing through the air to "
+              "hamstring\n\r$N \tybefore returning to your grasp.\tn",
+              FALSE, ch, obj, vict, TO_CHAR);
+      act("\tyAs $n \tymutters something under his breath to $p\ty,\n\r"
+              "\tyit twirls forth from $s hand, arcing through the air to "
+              "hamstring\n\r$N \tybefore returning to your grasp.\tn",
+              FALSE, ch, obj, vict, TO_ROOM);
       // We hamstring the foe
       act("$N falls to $S knees before you!",
-              FALSE, ch, obj, FIGHTING(ch), TO_CHAR);
+              FALSE, ch, obj, vict, TO_CHAR);
       act("$N falls to $S knees before $n!",
-              FALSE, ch, obj, FIGHTING(ch), TO_NOTVICT);
+              FALSE, ch, obj, vict, TO_NOTVICT);
       act("You fall to your knees in agony!",
-              FALSE, ch, obj, FIGHTING(ch), TO_VICT);
-      WAIT_STATE(FIGHTING(ch), PULSE_VIOLENCE * 2);
-      GET_POS(FIGHTING(ch)) = POS_SITTING;
-      GET_HIT(FIGHTING(ch)) -= 100;
+              FALSE, ch, obj, vict, TO_VICT);
+      WAIT_STATE(vict, PULSE_VIOLENCE * 2);
+      GET_POS(vict) = POS_SITTING;
+      GET_HIT(vict) -= 100;
 
       GET_OBJ_SPECTIMER(obj, 0) = 24;
       return 1; // end for
     } else {
-      send_to_char("&cYAs you say '&cwhamstring&cY' to your &cLa double-bladed dwarvish axe of &cYgiantslaying, nothing happens.&c0\r\n", ch);
+      send_to_char(ch, "\tYAs you say '\twhamstring\tY' to your \tLa double-bladed dwarvish axe of \tYgiantslaying, nothing happens.\tn\r\n");
       return 1;
     }
     return 0;
   }
   return 0;
 }
-*/
 
 #undef JOT_VNUM 
 #undef MAX_FG   // fire giants

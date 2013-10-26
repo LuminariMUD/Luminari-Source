@@ -382,6 +382,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RACE_ARCANA_GOLEM    10  // arcana golem (advanced)
 #define RACE_DROW            11  // not yet implemented
 #define RACE_DUERGAR         12  // not yet implemented
+#define RACE_OGRE            13  // not yet implemented
 /* Total Number of available PC Races*/
 #define NUM_RACES            11
 
