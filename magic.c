@@ -895,7 +895,38 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
       /* trying to keep the AOE together */
       /****************************************\
-      || ------------ AoE SPELLS ------------ ||
+      || -------- NPC AoE SPELLS ------------ ||
+      \****************************************/
+      
+    case SPELL_FIRE_BREATHE:
+      //AoE
+      save = SAVING_REFL;
+      mag_resist = FALSE;
+      element = DAM_FIRE;
+      num_dice = GET_LEVEL(ch);
+      size_dice = 12;
+      break;
+      
+    case SPELL_FROST_BREATHE:
+      //AoE
+      save = SAVING_REFL;
+      mag_resist = FALSE;
+      element = DAM_COLD;
+      num_dice = GET_LEVEL(ch);
+      size_dice = 12;
+      break;
+      
+    case SPELL_LIGHTNING_BREATHE:
+      //AoE
+      save = SAVING_REFL;
+      mag_resist = FALSE;
+      element = DAM_ELECTRIC;
+      num_dice = GET_LEVEL(ch);
+      size_dice = 12;
+      break;
+      
+      /****************************************\
+      || --------Magic AoE SPELLS------------ ||
       \****************************************/
 
     case SPELL_ACID: //acid fog (conjuration)
@@ -906,16 +937,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       num_dice = magic_level;
       size_dice = 2;
       bonus = 10;
-      break;
-
-    case SPELL_BLADES: //blade barrier damage (divine spell)
-      //AoE
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_SLICE;
-      num_dice = divine_level;
-      size_dice = 6;
-      bonus = 2;
       break;
 
     case SPELL_CHAIN_LIGHTNING: //evocation
@@ -997,15 +1018,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = magic_level;
       break;
 
-    case SPELL_INSECT_PLAGUE: // conjuration
-      mag_resist = FALSE;
-      save = -1;
-      element = DAM_NEGATIVE;
-      num_dice = MIN(divine_level / 3, 6);
-      size_dice = 6;
-      bonus = divine_level;
-      break;
-      
     case SPELL_METEOR_SWARM:
       //AoE
       save = SAVING_REFL;
@@ -1024,15 +1036,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       num_dice = MIN(26, magic_level);
       size_dice = 4;
       bonus = 0;
-      break;
-
-    case SPELL_SUMMON_SWARM: // conjuration
-      mag_resist = FALSE;
-      save = -1;
-      element = DAM_NEGATIVE;
-      num_dice = 1;
-      size_dice = 6;
-      bonus = MAX(divine_level, 5);
       break;
 
     case SPELL_SUNBEAM: // evocation [light]
@@ -1086,18 +1089,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = magic_level + 10;
       break;
       
-    case SPELL_WHIRLWIND: // evocation
-      save = SAVING_REFL;
-      mag_resist = TRUE;
-      element = DAM_AIR;
-      num_dice = 3 * dice(1, 3);
-      size_dice = 6;
-      bonus = divine_level;
-      break;
-
       /***********************************************\
       || ------------ DIVINE AoE SPELLS ------------ ||
       \***********************************************/
+
+    case SPELL_BLADES: //blade barrier damage (divine spell)
+      //AoE
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_SLICE;
+      num_dice = divine_level;
+      size_dice = 6;
+      bonus = 2;
+      break;
 
     case SPELL_EARTHQUAKE:
       //AoE
@@ -1108,6 +1112,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       size_dice = 8;
       bonus = num_dice + 30;
       break;
+      
     case SPELL_FIRE_STORM:
       // AoE
       save = SAVING_REFL;
@@ -1118,6 +1123,33 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = 0;
       break;
 
+    case SPELL_INSECT_PLAGUE: // conjuration
+      mag_resist = FALSE;
+      save = -1;
+      element = DAM_NEGATIVE;
+      num_dice = MIN(divine_level / 3, 6);
+      size_dice = 6;
+      bonus = divine_level;
+      break;
+      
+    case SPELL_SUMMON_SWARM: // conjuration
+      mag_resist = FALSE;
+      save = -1;
+      element = DAM_NEGATIVE;
+      num_dice = 1;
+      size_dice = 6;
+      bonus = MAX(divine_level, 5);
+      break;
+
+    case SPELL_WHIRLWIND: // evocation
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_AIR;
+      num_dice = 3 * dice(1, 3);
+      size_dice = 6;
+      bonus = divine_level;
+      break;
+      
   } /* switch(spellnum) */
 
   dam = dice(num_dice, size_dice) + bonus;
@@ -3574,6 +3606,19 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     case SPELL_WHIRLWIND:
       to_char = "You call down a rip-roaring cyclone on the area!";
       to_room = "$n calls down a rip-roaring cyclone on the area!";
+      break;
+    /** NPC **/
+    case SPELL_FIRE_BREATHE:
+      to_char = "You exhale breathing out fire!";
+      to_room = "$n exhales breathing fire!";
+      break;
+    case SPELL_FROST_BREATHE:
+      to_char = "You exhale breathing out frost!";
+      to_room = "$n exhales breathing frost!";
+      break;
+    case SPELL_LIGHTNING_BREATHE:
+      to_char = "You exhale breathing out lightning!";
+      to_room = "$n exhales breathing lightning!";
       break;
   }
 

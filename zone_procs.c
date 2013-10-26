@@ -1371,7 +1371,7 @@ SPECIAL(thrym) {
   new_affect(&af);
   af.spell = SPELL_HOLD_PERSON;
   SET_BIT_AR(af.bitvector, AFF_PARALYZED);
-  af.duration = 30;
+  af.duration = 8;
   affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
   
   return 1;
