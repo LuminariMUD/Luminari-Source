@@ -149,6 +149,12 @@ void assign_mobiles(void)
   ASSIGNMOB(106000, cf_alathar);  // lord alathar
 
   /* jot */
+  /* Jotunheim */
+  ASSIGNMOB(196027, thrym);
+  ASSIGNMOB(196077, planetar);
+  ASSIGNMOB(196070, ymir);
+  ASSIGNMOB(196033, gatehouse_guard);
+  ASSIGNMOB(196032, gatehouse_guard);
   ASSIGNMOB(196200, jot_invasion_loader);  // this will load invasion
 }
 
@@ -206,7 +212,6 @@ void assign_objects(void)
   
   ASSIGNOBJ(3118, crafting_kit);
   
-/*
   ASSIGNOBJ(104072, chionthar_ferry);  //transport
 
   ASSIGNOBJ(128106, ches);  //weapon
@@ -214,7 +219,6 @@ void assign_objects(void)
   ASSIGNOBJ(128150, spikeshield);  //shield
   
   ASSIGNOBJ(136100, air_sphere);  //weapon (lightning)
-*/  
 
 }
 
