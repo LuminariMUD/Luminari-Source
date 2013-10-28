@@ -49,6 +49,7 @@
 #include "perlin.h"
 #include "wilderness.h"
 #include "mysql.h"
+#include "feats.h"
 
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
@@ -488,6 +489,16 @@ void boot_world(void) {
 
   log("Loading Homeland quests.");
   index_boot(DB_BOOT_HLQST);
+
+  log("Loading Weapons.");
+  load_weapons();
+
+  log("Loading Armor.");
+  load_armor();
+
+  log("Loading feats.");
+  assign_feats();
+  sort_feats();
 
   log("Initializing perlin noise generator.");
   init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);

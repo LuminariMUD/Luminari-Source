@@ -44,6 +44,7 @@
 #include "clan.h"
 #include "craft.h"
 #include "treasure.h"
+#include "feats.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -191,6 +192,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "expertise", "expertise", POS_FIGHTING, do_expertise, 1, 0, FALSE},
   { "export", "export", POS_DEAD, do_export_zone, LVL_IMPL, 0, TRUE},
 
+  { "feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE},
   { "force", "force", POS_SLEEPING, do_force, LVL_STAFF, 0, TRUE},
   { "fill", "fil", POS_STANDING, do_pour, 0, SCMD_FILL, FALSE},
   { "file", "file", POS_SLEEPING, do_file, LVL_IMMORT, 0, TRUE},
