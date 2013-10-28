@@ -148,7 +148,6 @@ void assign_mobiles(void)
   ASSIGNMOB(106040, cf_trainingmaster);  // training master
   ASSIGNMOB(106000, cf_alathar);  // lord alathar
 
-  /* jot */
   /* Jotunheim */
   ASSIGNMOB(196027, thrym);
   ASSIGNMOB(196077, planetar);
