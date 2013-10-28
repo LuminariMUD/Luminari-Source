@@ -219,6 +219,16 @@ void assign_objects(void)
   
   ASSIGNOBJ(136100, air_sphere);  //weapon (lightning)
 
+  /* JOTUNHEIM EQ */
+  ASSIGNOBJ(196012, mistweave);
+  ASSIGNOBJ(196000, frostbite);
+  ASSIGNOBJ(196059, ymir_cloak);
+  ASSIGNOBJ(196062, vaprak_claws);
+  ASSIGNOBJ(196056, valkyrie_sword);
+  ASSIGNOBJ(196081, twilight);
+  ASSIGNOBJ(196090, fake_twilight);
+  ASSIGNOBJ(196066, giantslayer);
+  ASSIGNOBJ(196073, planetar_sword);
 }
 
 /* assign special procedures to rooms */
