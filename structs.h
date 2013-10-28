@@ -1176,6 +1176,76 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 /** Total number of liquid types */
 #define NUM_LIQ_TYPES     16
 
+/* WEAPON and ARMOR defines */
+
+/* Weapon head types */
+
+#define HEAD_TYPE_UNDEFINED 0
+#define HEAD_TYPE_BLADE     1
+#define HEAD_TYPE_HEAD      2
+#define HEAD_TYPE_POINT     3
+#define HEAD_TYPE_BOW       4
+#define HEAD_TYPE_POUCH     5
+#define HEAD_TYPE_CORD      6
+#define HEAD_TYPE_MESH      7
+#define HEAD_TYPE_CHAIN     8
+#define HEAD_TYPE_FIST      9
+
+/* weapon handle types */
+
+#define HANDLE_TYPE_UNDEFINED 0
+#define HANDLE_TYPE_SHAFT     1
+#define HANDLE_TYPE_HILT      2
+#define HANDLE_TYPE_STRAP     3
+#define HANDLE_TYPE_STRING    4
+#define HANDLE_TYPE_GRIP      5
+#define HANDLE_TYPE_HANDLE    6
+#define HANDLE_TYPE_GLOVE     7
+
+// weapon flags
+
+#define WEAPON_FLAG_SIMPLE      (1 << 0)
+#define WEAPON_FLAG_MARTIAL     (1 << 1)
+#define WEAPON_FLAG_EXOTIC      (1 << 2)
+#define WEAPON_FLAG_RANGED      (1 << 3)
+#define WEAPON_FLAG_THROWN      (1 << 4)
+#define WEAPON_FLAG_REACH       (1 << 5)
+#define WEAPON_FLAG_ENTANGLE    (1 << 6)
+#define WEAPON_FLAG_TRIP        (1 << 7)
+#define WEAPON_FLAG_DOUBLE      (1 << 8)
+#define WEAPON_FLAG_DISARM      (1 << 9)
+#define WEAPON_FLAG_NONLETHAL   (1 << 10)
+#define WEAPON_FLAG_SLOW_RELOAD (1 << 11)
+#define WEAPON_FLAG_BALANCED    (1 << 12)
+#define WEAPON_FLAG_CHARGE      (1 << 13)
+#define WEAPON_FLAG_REPEATING   (1 << 14)
+#define WEAPON_FLAG_TWO_HANDED  (1 << 15)
+
+#define NUM_WEAPON_FLAGS        16
+
+// weapon families
+
+#define WEAPON_FAMILY_MONK             0
+#define WEAPON_FAMILY_SMALL_BLADE      1
+#define WEAPON_FAMILY_CLUB             2
+#define WEAPON_FAMILY_FLAIL            3
+#define WEAPON_FAMILY_SPEAR            4
+#define WEAPON_FAMILY_DOUBLE           5
+#define WEAPON_FAMILY_CROSSBOW         6
+#define WEAPON_FAMILY_THROWN           7
+#define WEAPON_FAMILY_AXE              8
+#define WEAPON_FAMILY_HAMMER           9
+#define WEAPON_FAMILY_PICK             10
+#define WEAPON_FAMILY_MEDIUM_BLADE     11
+#define WEAPON_FAMILY_LARGE_BLADE      12
+#define WEAPON_FAMILY_POLEARM          13
+#define WEAPON_FAMILY_BOW              14
+#define WEAPON_FAMILY_WHIP             15
+
+#define NUM_WEAPON_FAMILIES            16 
+
+/* Armor types */
+
 #define ARMOR_TYPE_NONE     0
 #define ARMOR_TYPE_LIGHT    1
 #define ARMOR_TYPE_MEDIUM   2
@@ -1185,24 +1255,26 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define MAX_ARMOR_TYPES     4
 
 /* Armor Types */
-#define SPEC_ARMOR_TYPE_PADDED    	1
-#define SPEC_ARMOR_TYPE_LEATHER   	2
-#define SPEC_ARMOR_TYPE_STUDDED_LEATHER 3
-#define SPEC_ARMOR_TYPE_LIGHT_CHAIN 	4
-#define SPEC_ARMOR_TYPE_HIDE    	5
-#define SPEC_ARMOR_TYPE_SCALE   	6
-#define SPEC_ARMOR_TYPE_CHAINMAIL 	7
-#define SPEC_ARMOR_TYPE_PIECEMEAL 	8
-#define SPEC_ARMOR_TYPE_SPLINT    	9
-#define SPEC_ARMOR_TYPE_BANDED    	10
-#define SPEC_ARMOR_TYPE_HALF_PLATE  	11
-#define SPEC_ARMOR_TYPE_FULL_PLATE  	12
-#define SPEC_ARMOR_TYPE_BUCKLER   	13
-#define SPEC_ARMOR_TYPE_SMALL_SHIELD  	14
-#define SPEC_ARMOR_TYPE_LARGE_SHIELD  	15
-#define SPEC_ARMOR_TYPE_TOWER_SHIELD  	16
+#define SPEC_ARMOR_TYPE_UNDEFINED       0
+#define SPEC_ARMOR_TYPE_CLOTHING        1
+#define SPEC_ARMOR_TYPE_PADDED    	2
+#define SPEC_ARMOR_TYPE_LEATHER   	3
+#define SPEC_ARMOR_TYPE_STUDDED_LEATHER 4
+#define SPEC_ARMOR_TYPE_LIGHT_CHAIN 	5
+#define SPEC_ARMOR_TYPE_HIDE    	6
+#define SPEC_ARMOR_TYPE_SCALE   	7
+#define SPEC_ARMOR_TYPE_CHAINMAIL 	8
+#define SPEC_ARMOR_TYPE_PIECEMEAL 	9
+#define SPEC_ARMOR_TYPE_SPLINT    	10
+#define SPEC_ARMOR_TYPE_BANDED    	11
+#define SPEC_ARMOR_TYPE_HALF_PLATE  	12
+#define SPEC_ARMOR_TYPE_FULL_PLATE  	13
+#define SPEC_ARMOR_TYPE_BUCKLER   	14
+#define SPEC_ARMOR_TYPE_SMALL_SHIELD  	15
+#define SPEC_ARMOR_TYPE_LARGE_SHIELD  	16
+#define SPEC_ARMOR_TYPE_TOWER_SHIELD  	17
 
-#define NUM_SPEC_ARMOR_TYPES   		17
+#define NUM_SPEC_ARMOR_TYPES   		18
 
 /* Weapon Types */
 #define WEAPON_TYPE_UNDEFINED       0
@@ -1281,7 +1353,26 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAPON_TYPE_NET             64
 #define WEAPON_TYPE_SHURIKEN        65
 
-#define NUM_WEAPON_TYPES            66 
+#define NUM_WEAPON_TYPES            66
+
+/* Weapon damage types, used in the weapon definitions
+ * and to give the TYPE of damage done by the weapon.
+ * Some weapons give multiple damage types, while only
+ * having one damage message. */
+#define DAMAGE_TYPE_BLUDGEONING        (1 << 0)
+#define DAMAGE_TYPE_SLASHING           (1 << 1)
+#define DAMAGE_TYPE_PIERCING           (1 << 2)
+#define DAMAGE_TYPE_NONLETHAL          (1 << 3)
+
+#define NUM_DAMAGE_TYPES               4
+
+
+/* Critical hit types */
+#define CRIT_X2   0
+#define CRIT_X3   1
+#define CRIT_X4   2
+#define CRIT_X5   3
+#define MAX_CRIT_TYPE CRIT_X5
 
 /* Player conditions */
 #define DRUNK        0  /**< Player drunk condition */
