@@ -1465,14 +1465,15 @@ SPECIAL(mistweave) {
   struct obj_data *obj = (struct obj_data *) me;
   struct char_data *vict = FIGHTING(ch);
 
-  skip_spaces(&argument);
-  
-  if (!is_wearing(ch, 196012)) 
-    return 0;
-  
   if (cmd && argument && CMD_IS("say")) {
+    if (!is_wearing(ch, 196012)) 
+      return 0;
+  
+    skip_spaces(&argument);
+    
     if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room) && 
-            !strcmp(argument, "storm")) {
+            !strcmp(argument, "mistweave")) {
+      
       if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
         send_to_char(ch, "\tpAs you say '\twmistweave\tp' to your a huge adamantium mace enshrouded with \tWmist\tp, nothing happens.\tn\r\n");
         return 1;
@@ -1509,15 +1510,19 @@ SPECIAL(frostbite) {
   int pct;
   struct affected_type af;
 
-  skip_spaces(&argument);
-  if (!is_wearing(ch, 196000)) return 0;
-  if (!strcmp(argument, "frostbite") && cmd_info[cmd].command_pointer == do_say) {
-    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
+  if (cmd && argument && CMD_IS("say")) {
+    if (!is_wearing(ch, 196000)) 
+      return 0;
+  
+    skip_spaces(&argument);
+    
+    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room) && 
+            !strcmp(argument, "frostbite")) {
+      
       if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
         send_to_char(ch, "\tcAs you say '\twfrostbite\tc' to your a \tLa great iron axe \tCrimmed \tLwith \tWfrost\tc, nothing happens.\tn\r\n");
         return 1;
       }
-
       act("\tCAs you say, '\twfrostbite\tC',\n\r"
               "\tCa swirling gale of pounding ice emanates forth from\n\r"
               "$p \tCpelting your foes.\tn",
