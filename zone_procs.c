@@ -1466,14 +1466,17 @@ SPECIAL(mistweave) {
   struct char_data *vict = FIGHTING(ch);
 
   skip_spaces(&argument);
-  if (!is_wearing(ch, 196012)) return 0;
-  if (!strcmp(argument, "mistweave") && cmd_info[cmd].command_pointer == do_say) {
-    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
+  
+  if (!is_wearing(ch, 196012)) 
+    return 0;
+  
+  if (cmd && argument && CMD_IS("say")) {
+    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room) && 
+            !strcmp(argument, "storm")) {
       if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
         send_to_char(ch, "\tpAs you say '\twmistweave\tp' to your a huge adamantium mace enshrouded with \tWmist\tp, nothing happens.\tn\r\n");
         return 1;
       }
-
       act("\tLAs you say, '\tnmistweave\tL', "
               "\tLa thick vapor issues forth from $p\tL, "
               "\tLenshrouding the eyes of $N\tL.\tn",
@@ -1484,7 +1487,6 @@ SPECIAL(mistweave) {
               FALSE, ch, obj, vict, TO_ROOM);
 
       call_magic(ch, FIGHTING(ch), 0, SPELL_BLINDNESS, 30, CAST_SPELL);
-
       GET_OBJ_SPECTIMER(obj, 0) = 24;
       return 1;
     } else return 0;
