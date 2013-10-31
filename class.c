@@ -1956,7 +1956,7 @@ void advance_level(struct char_data *ch, int class) {
       add_mana = 0;
       add_move = rand_number(4, 8);
 
-      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
+      trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
