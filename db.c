@@ -1655,6 +1655,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
 
 static void interpret_espec(const char *keyword, const char *value, int i, int nr) {
   int num_arg = 0, matched = FALSE;
+  int num, num2;
 
   /* If there isn't a colon, there is no value.  While Boolean options are
    * possible, we don't actually have any.  Feel free to make some. */
@@ -1880,6 +1881,11 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("Class") {
     RANGE(0, NUM_CLASSES);
     GET_CLASS(mob_proto + i) = num_arg;
+  }
+
+  CASE("Feat") {
+    sscanf(value, "%d %d", &num, &num2);
+    SET_FEAT(mob_proto + i, num, num2);
   }
 
   CASE("Size") {

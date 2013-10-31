@@ -2025,7 +2025,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         oedit_disp_assign_weapon_specab_menu(d);
         return;
       } else {
-        SET_BIT(OLC_SPECAB(d)->activation_method, (1 << (number - 1)));
+        TOGGLE_BIT(OLC_SPECAB(d)->activation_method, (1 << (number - 1)));
         oedit_disp_specab_activation_method_menu(d);
         return;
       }

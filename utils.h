@@ -102,6 +102,10 @@ bool ultra_blind(struct char_data *ch, room_rnum room_number);
 bool is_room_outdoors(room_rnum room_number);
 bool is_outdoors(struct char_data *ch);
 void set_mob_grouping(struct char_data *ch);
+int find_armor_type(int specType);
+
+/* Feats */
+int get_feat_value(struct char_data *ch, int featnum);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
@@ -617,6 +621,10 @@ do                                                              \
 #define GET_LEVEL(ch)   ((ch)->player.level)
 #define CLASS_LEVEL(ch, class)	(ch->player_specials->saved.class_level[class])
 
+#define IS_EPIC_LEVEL(ch)       (GET_LEVEL(ch) >= 20)
+#define IS_EPIC(ch)             (IS_EPIC_LEVEL(ch))
+
+
 #define SPELLBATTLE(ch)        (ch->player_specials->saved.spec_abil[AG_SPELLBATTLE])
 #define DIVINE_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  ( CLASS_LEVEL(ch, CLASS_CLERIC) + \
@@ -634,10 +642,9 @@ do                                                              \
 #define CASTER_LEVEL(ch)	(MIN(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) - \
                                  (compute_arcana_golem_level(ch)), LVL_IMMORT-1))
+#define IS_SPELLCASTER(ch)      (CASTER_LEVEL(ch) > 0)
 
-
-
-/** Password of PC. */
+/* Password of PC. */
 #define GET_PASSWD(ch)	((ch)->player.passwd)
 
 /** The player file position of PC. */
@@ -959,7 +966,24 @@ do                                                              \
 /** Copy the current ability level i of ch to pct. */
 #define SET_ABILITY(ch, i, pct)	do { CHECK_PLAYER_SPECIAL((ch), (ch)->player_specials->saved.abilities[i]) = pct; } while(0)
 
+/* Feats */
+#define GET_FEAT_POINTS(ch)         (ch->player_specials->saved.feat_points)
+#define GET_EPIC_FEAT_POINTS(ch)    (ch->player_specials->saved.epic_feat_points)
+#define GET_CLASS_FEATS(ch,cl)      (ch->player_specials->saved.class_feat_points[cl])
+#define GET_EPIC_CLASS_FEATS(ch,cl) (ch->player_specials->saved.epic_class_feat_points[cl])
 
+#define IS_EPIC_FEAT(featnum) (feat_list[featnum].epic == TRUE)
+
+#define HAS_REAL_FEAT(ch, i)    ((ch)->char_specials.saved.feats[i])
+#define HAS_FEAT(ch, i)         (get_feat_value((ch), i))
+#define SET_FEAT(ch, i, j)      ((ch)->char_specials.saved.feats[i] = j)
+#define MOB_FEATS(ch)           ((ch)->char_specials.saved.feats[i])
+#define MOB_HAS_FEAT(ch, i)     (HAS_FEAT(ch, i))
+#define MOB_SET_FEAT(ch, i)     (SET_FEAT(ch, i))
+#define HAS_COMBAT_FEAT(ch,i,j) (IS_SET_AR((ch)->char_specials.saved.combat_feats[i], j))
+#define SET_COMBAT_FEAT(ch,i,j) (SET_BIT_AR((ch)->char_specials.saved.combat_feats[(i)], (j)))
+#define HAS_SCHOOL_FEAT(ch,i,j) (IS_SET((ch)->char_specials.saved.school_feats[(i)], (j)))
+#define SET_SCHOOL_FEAT(ch,i,j) (SET_BIT((ch)->char_specials.saved.school_feats[(i)], (j)))
 
 
 /** The player's default sector type when buildwalking */

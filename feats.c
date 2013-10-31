@@ -20,27 +20,32 @@
 #include "dg_scripts.h"
 #include "modify.h"
 #include "feats.h"
+#include "class.h"
 
 #undef COMPILE_D20_FEATS
 
 /* Local Functions */
-void list_class_feats(struct char_data *ch);
+//void list_class_feats(struct char_data *ch);
 void assign_feats(void);
 void feato(int featnum, char *name, int in_game, int can_learn, int can_stack, char *prerequisites, char *description);
-/*
+
 void list_feats_known(struct char_data *ch, char *arg); 
 void list_feats_available(struct char_data *ch, char *arg); 
 void list_feats_complete(struct char_data *ch, char *arg); 
+
 int compare_feats(const void *x, const void *y);
 void sort_feats(void);	
 int find_feat_num(char *name);
-*/
+int feat_to_subfeat(int feat);
+
 void load_weapons(void);
 void load_armor(void);
 /*
 void display_levelup_feats(struct char_data *ch);
+*/
 int has_combat_feat(struct char_data *ch, int i, int j);
 int has_feat(struct char_data *ch, int featnum);
+/*
 void set_feat(struct char_data *ch, int i, int j);
 void display_levelup_weapons(struct char_data *ch);
 int has_weapon_feat(struct char_data *ch, int i, int j);
@@ -48,7 +53,7 @@ int has_weapon_feat_full(struct char_data *ch, int i, int j, int display);
 */
 
 /* Global Variables and Structures */
-struct feat_info feat_list[NUM_FEATS_DEFINED];
+struct feat_info feat_list[NUM_FEATS];
 int feat_sort_info[MAX_FEATS];
 char buf3[MAX_STRING_LENGTH];
 char buf4[MAX_STRING_LENGTH];
@@ -102,7 +107,7 @@ void assign_feats(void)
 
   // Initialize the list of feats.
 
-  for (i = 0; i <= NUM_FEATS_DEFINED; i++) {
+  for (i = 0; i <= NUM_FEATS; i++) {
     feat_list[i].name = "Unused Feat";
     feat_list[i].in_game = FALSE;
     feat_list[i].can_learn = FALSE;
@@ -513,13 +518,12 @@ epicfeat(FEAT_AUTOMATIC_QUICKEN_SPELL);
 epicfeat(FEAT_LAST_FEAT);
 }
 
-#ifdef COMPILE_D20_FEATS
 // The follwing function is used to check if the character satisfies the various prerequisite(s) (if any)
 // of a feat in order to learn it.
 
 int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
 {
-  if (featnum > NUM_FEATS_DEFINED)
+  if (featnum > NUM_FEATS)
     return FALSE;
 
   if (feat_list[featnum].epic == TRUE && !IS_EPIC(ch))
@@ -603,13 +607,13 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     if (ch->real_abils.dex < 30)
       return FALSE;
     return TRUE;
-
+*/
 
   case FEAT_ARMOR_SKIN:
-    if (ch->armor_skin_feats >= 5)
-      return FALSE;
+/*    if (ch->armor_skin_feats >= 5)
+      return FALSE; */
     return TRUE;    
-
+/*
   case FEAT_COMBAT_CHALLENGE:
     if (GET_SKILL_RANKS(ch, SKILL_DIPLOMACY) < 5 &&
         GET_SKILL_RANKS(ch, SKILL_INTIMIDATE) < 5 &&
@@ -619,7 +623,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
 
   case FEAT_BLEEDING_ATTACK:
   case FEAT_POWERFUL_SNEAK:
-    if (GET_CLASS_RANKS(ch, CLASS_ROGUE) > 1)
+    if (CLASS_LEVEL(ch, CLASS_ROGUE) > 1)
       return TRUE;
     return FALSE;
 
@@ -654,14 +658,14 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     if (!HAS_REAL_FEAT(ch, FEAT_GREATER_COMBAT_CHALLENGE))
       return false;
     return true;
-
+*/
   case FEAT_NATURAL_SPELL:
       if (ch->real_abils.wis < 13)
           return false;
       if (!has_feat(ch, FEAT_WILD_SHAPE))
           return false;
       return true;
-
+/*
   case FEAT_EPIC_DODGE:
     if (ch->real_abils.dex >= 25 && has_feat(ch, FEAT_DODGE) && has_feat(ch, FEAT_DEFENSIVE_ROLL) && GET_SKILL(ch, SKILL_TUMBLE) >= 30)
       return TRUE;
@@ -710,10 +714,10 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
   case FEAT_CRIPPLING_STRIKE:
   case FEAT_DEFENSIVE_ROLL:
   case FEAT_OPPORTUNIST:
-    if (GET_CLASS_RANKS(ch, CLASS_ROGUE) < 10)
+    if (CLASS_LEVEL(ch, CLASS_ROGUE) < 10)
       return FALSE;
     return TRUE;
-
+*/
   case FEAT_EMPOWERED_MAGIC:
   case FEAT_ENHANCED_SPELL_DAMAGE:
     if (IS_SPELLCASTER(ch))
@@ -721,10 +725,10 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     return FALSE;
 
   case FEAT_AUGMENT_SUMMONING:
-    if (IS_DRUID(ch) || IS_WIZARD(ch) || IS_CLERIC(ch) || IS_FAVORED_SOUL(ch) || IS_SORCERER(ch))
+    if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_subfeat(FEAT_SPELL_FOCUS), CONJURATION))
       return true;
     return false;
-
+/*
   case FEAT_FASTER_MEMORIZATION:
     if (IS_MEM_BASED_CASTER(ch))
       return TRUE;
@@ -743,18 +747,18 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     if (!is_proficient_with_weapon(ch, iarg))
       return FALSE;
     return TRUE;
-
+*/
   case FEAT_LAST_FEAT:
     return FALSE;
-
+/*
   case FEAT_SLIPPERY_MIND:
-    if (GET_CLASS_RANKS(ch, CLASS_ROGUE) >= 11)
+    if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 11)
       return TRUE;
     return FALSE;
 
   case FEAT_LINGERING_SONG:
   case FEAT_EXTRA_MUSIC:
-    if (GET_CLASS_RANKS(ch, CLASS_BARD) > 0)
+    if (CLASS_LEVEL(ch, CLASS_BARD) > 0)
       return TRUE;
     return FALSE;
 
@@ -773,7 +777,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     return FALSE;
 
   case FEAT_IMPROVED_NATURAL_WEAPON:
-    if (GET_BAB(ch) < 4)
+    if (BAB(ch) < 4)
       return FALSE;
     if (GET_RACE(ch) == RACE_MINOTAUR)
       return TRUE;
@@ -798,7 +802,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
   	if (GET_SKILL(ch, SKILL_BLUFF) < 10)
   		return FALSE;
   	return TRUE;  	  	
-
+*/
   case FEAT_TWO_WEAPON_DEFENSE:
   	if (!has_feat(ch, FEAT_TWO_WEAPON_FIGHTING))
   		return FALSE;
@@ -810,7 +814,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
   	if (ch->real_abils.intel < 13)
   		return false;
     return true;
-    
+/*    
   case FEAT_IMPROVED_FEINT:
   	if (!has_feat(ch, FEAT_COMBAT_EXPERTISE))
   		return false;
@@ -818,50 +822,50 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     	
 
   case FEAT_AURA_OF_GOOD:
-    if (GET_CLASS_RANKS(ch, CLASS_PALADIN))
+    if (CLASS_LEVEL(ch, CLASS_PALADIN))
       return true;
     return false;
 
   case FEAT_DETECT_EVIL:
-    if (GET_CLASS_RANKS(ch, CLASS_PALADIN))
+    if (CLASS_LEVEL(ch, CLASS_PALADIN))
       return true;
     return false;
 
   case FEAT_SMITE_EVIL:
-    if (GET_CLASS_RANKS(ch, CLASS_PALADIN))
+    if (CLASS_LEVEL(ch, CLASS_PALADIN))
       return true;
     return false;
 
   case FEAT_DIVINE_GRACE:
-    if (GET_CLASS_RANKS(ch, CLASS_PALADIN) > 1)
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) > 1)
       return true;
     return false;
 
   case FEAT_LAYHANDS:
-    if (GET_CLASS_RANKS(ch, CLASS_PALADIN) > 1)
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) > 1)
       return true;
     return false;
 
   case FEAT_AURA_OF_COURAGE:
-    if (GET_CLASS_RANKS(ch, CLASS_PALADIN) > 2)
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) > 2)
       return true;
     return false;
 
   case FEAT_DIVINE_HEALTH:
-    if (GET_CLASS_RANKS(ch, CLASS_PALADIN) > 2)
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) > 2)
       return true;
     return false;
 
   case FEAT_TURN_UNDEAD:
-    if (GET_CLASS_RANKS(ch, CLASS_PALADIN) > 3 || GET_CLASS_RANKS(ch, CLASS_CLERIC))
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) > 3 || CLASS_LEVEL(ch, CLASS_CLERIC))
       return true;
     return false;
 
   case FEAT_REMOVE_DISEASE:
-    if (GET_CLASS_RANKS(ch, CLASS_PALADIN) > 5)
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) > 5)
       return true;
     return false;
-
+*/
   case FEAT_ARMOR_PROFICIENCY_HEAVY:
     if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
       return TRUE;
@@ -881,17 +885,21 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     if (has_feat(ch, FEAT_DODGE))
       return TRUE;
     return FALSE;
-
+/*
   case FEAT_WEAPON_PROFICIENCY_BASTARD_SWORD:
-    if (GET_BAB(ch) >= 1)
+    if (BAB(ch) >= 1)
+      return TRUE;
+    return FALSE;
+*/
+  case FEAT_IMPROVED_DISARM:
+    if (has_feat(ch, FEAT_COMBAT_EXPERTISE))
       return TRUE;
     return FALSE;
 
-  case FEAT_IMPROVED_DISARM:
-    return TRUE;
-
   case FEAT_IMPROVED_TRIP:
-    return TRUE;
+    if (has_feat(ch, FEAT_COMBAT_EXPERTISE))
+      return TRUE;
+    return FALSE;
 
   case FEAT_WHIRLWIND_ATTACK:
     if (!HAS_REAL_FEAT(ch, FEAT_DODGE))
@@ -904,14 +912,14 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       return FALSE;
     if (ch->real_abils.dex < 13)
       return FALSE;
-    if (GET_BAB(ch) < 4)
+    if (BAB(ch) < 4)
       return FALSE;
     return TRUE;
 
   case FEAT_STUNNING_FIST:
-    if (has_feat(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.str >= 13 && ch->real_abils.dex >= 13 && GET_BAB(ch) >= 8)
+    if (has_feat(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.str >= 13 && ch->real_abils.dex >= 13 && BAB(ch) >= 8)
       return TRUE;
-    if (GET_CLASS_RANKS(ch, CLASS_MONK) > 0)
+    if (CLASS_LEVEL(ch, CLASS_MONK) > 0)
       return TRUE;
     return FALSE;
   
@@ -924,48 +932,48 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     if (has_feat(ch, FEAT_POWER_ATTACK))
       return TRUE;
     return FALSE;
-
+/*
   case FEAT_SUNDER:
     if (has_feat(ch, FEAT_POWER_ATTACK))
       return TRUE;
     return FALSE;
-
+*/
   case FEAT_TWO_WEAPON_FIGHTING:
     if (ch->real_abils.dex >= 15)
       return TRUE;
     return FALSE;
 
   case FEAT_IMPROVED_TWO_WEAPON_FIGHTING:
-    if (ch->real_abils.dex >= 17 && has_feat(ch, FEAT_TWO_WEAPON_FIGHTING) && GET_BAB(ch) >= 6)
+    if (ch->real_abils.dex >= 17 && has_feat(ch, FEAT_TWO_WEAPON_FIGHTING) && BAB(ch) >= 6)
       return TRUE;
     return FALSE;
    
   case FEAT_GREATER_TWO_WEAPON_FIGHTING:
-    if (ch->real_abils.dex >= 19 && has_feat(ch, FEAT_TWO_WEAPON_FIGHTING) && has_feat(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) && GET_BAB(ch) >= 11)
+    if (ch->real_abils.dex >= 19 && has_feat(ch, FEAT_TWO_WEAPON_FIGHTING) && has_feat(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) && BAB(ch) >= 11)
       return TRUE;
     return FALSE;  	
-
+/*
   case FEAT_PERFECT_TWO_WEAPON_FIGHTING:
     if (ch->real_abils.dex >= 25 && has_feat(ch, FEAT_GREATER_TWO_WEAPON_FIGHTING))
       return TRUE;
     return FALSE;
-
+*/
   case FEAT_IMPROVED_CRITICAL:
-    if (GET_BAB(ch) < 8)
+    if (BAB(ch) < 8)
       return FALSE;
     if (!iarg || is_proficient_with_weapon(ch, iarg))
       return TRUE;
     return FALSE;
-
+/*
   case FEAT_POWER_CRITICAL:
-    if (GET_BAB(ch) < 4)
+    if (BAB(ch) < 4)
       return FALSE;
     if (!iarg || has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
       return TRUE;
     return FALSE;
 
   case FEAT_WEAPON_MASTERY:
-    if (GET_BAB(ch) < 8)
+    if (BAB(ch) < 8)
       return FALSE;
     if (!iarg)
       return TRUE;
@@ -978,7 +986,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     return TRUE;
 
   case FEAT_WEAPON_FLURRY:
-    if (GET_BAB(ch) < 14)
+    if (BAB(ch) < 14)
       return FALSE;
     if (!iarg)
       return TRUE;
@@ -993,7 +1001,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     return TRUE;
 
   case FEAT_WEAPON_SUPREMACY:
-    if (GET_CLASS_RANKS(ch, CLASS_FIGHTER) < 17)
+    if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 17)
       return FALSE;
     if (!iarg)
       return TRUE;
@@ -1014,65 +1022,62 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
   case FEAT_ROBILARS_GAMBIT:
     if (!HAS_REAL_FEAT(ch, FEAT_COMBAT_REFLEXES))
       return FALSE;
-    if (GET_BAB(ch) < 12)
+    if (BAB(ch) < 12)
       return FALSE;
     return TRUE;
 
   case FEAT_KNOCKDOWN:
     if (!HAS_REAL_FEAT(ch, FEAT_IMPROVED_TRIP))
       return FALSE;
-    if (GET_BAB(ch) < 4)
+    if (BAB(ch) < 4)
       return FALSE;
     return TRUE;
 
   case FEAT_ARMOR_SPECIALIZATION_LIGHT:
     if (!HAS_REAL_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
       return FALSE;
-    if (GET_BAB(ch) < 12)
+    if (BAB(ch) < 12)
       return FALSE;
     return TRUE;
 
   case FEAT_ARMOR_SPECIALIZATION_MEDIUM:
     if (!HAS_REAL_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
       return FALSE;
-    if (GET_BAB(ch) < 12)
+    if (BAB(ch) < 12)
       return FALSE;
     return TRUE;
 
   case FEAT_ARMOR_SPECIALIZATION_HEAVY:
     if (!HAS_REAL_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
       return FALSE;
-    if (GET_BAB(ch) < 12)
+    if (BAB(ch) < 12)
       return FALSE;
     return TRUE;
-
-
-
-
+*/
   case FEAT_WEAPON_FINESSE:
   case FEAT_WEAPON_FOCUS:
-    if (GET_BAB(ch) < 1)
+    if (BAB(ch) < 1)
       return FALSE;
     if (!iarg || is_proficient_with_weapon(ch, iarg))
       return TRUE;
     return FALSE;
 
   case FEAT_WEAPON_SPECIALIZATION:
-    if (GET_BAB(ch) < 4 || !GET_CLASS_RANKS(ch, CLASS_FIGHTER))
+    if (BAB(ch) < 4 || CLASS_LEVEL(ch, CLASS_WARRIOR) < 4)
       return FALSE;
     if (!iarg || is_proficient_with_weapon(ch, iarg))
       return TRUE;
     return FALSE;
 
   case FEAT_GREATER_WEAPON_FOCUS:
-    if (GET_CLASS_RANKS(ch, CLASS_FIGHTER) < 8)
+    if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 8)
       return FALSE;
     if (!iarg)
       return TRUE;
     if (is_proficient_with_weapon(ch, iarg) && has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
       return TRUE;
     return FALSE;
-    
+/*    
   case FEAT_EPIC_SKILL_FOCUS:
     if (!iarg)
       return TRUE;
@@ -1083,7 +1088,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
   case  FEAT_IMPROVED_WEAPON_FINESSE:
   	if (!has_feat(ch, FEAT_WEAPON_FINESSE))
   	  return FALSE;
-  	if (GET_BAB(ch) < 4)
+  	if (BAB(ch) < 4)
   		return FALSE;
         if (!iarg)
           return TRUE;
@@ -1093,9 +1098,9 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
           return FALSE;
 
   	return TRUE;
-
+*/
   case FEAT_GREATER_WEAPON_SPECIALIZATION:
-    if (GET_CLASS_RANKS(ch, CLASS_FIGHTER) < 12)
+    if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 12)
       return FALSE;
     if (!iarg)
       return TRUE;
@@ -1107,7 +1112,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     return FALSE;
 
   case FEAT_SPELL_FOCUS:
-    if (GET_CLASS_RANKS(ch, CLASS_WIZARD))
+    if (CLASS_LEVEL(ch, CLASS_WIZARD))
       return TRUE;
     return FALSE;
 
@@ -1157,7 +1162,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     return FALSE;
 
   case FEAT_HEIGHTEN_SPELL:
-    if (GET_CLASS_RANKS(ch, CLASS_WIZARD))
+    if (CLASS_LEVEL(ch, CLASS_WIZARD))
       return TRUE;
     return FALSE;
 
@@ -1168,32 +1173,33 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     return FALSE;
 
   case FEAT_QUICKEN_SPELL:
-    if (GET_CLASS_RANKS(ch, CLASS_WIZARD))
+    if (CLASS_LEVEL(ch, CLASS_WIZARD))
       return TRUE;
     return FALSE;
 
   case FEAT_SILENT_SPELL:
-    if (GET_CLASS_RANKS(ch, CLASS_WIZARD))
+    if (CLASS_LEVEL(ch, CLASS_WIZARD))
       return TRUE;
     return FALSE;
 
   case FEAT_STILL_SPELL:
-    if (GET_CLASS_RANKS(ch, CLASS_WIZARD))
+    if (CLASS_LEVEL(ch, CLASS_WIZARD))
       return TRUE;
     return FALSE;
 
   case FEAT_EXTRA_TURNING:
-    if (GET_CLASS_RANKS(ch, CLASS_CLERIC))
+    if (CLASS_LEVEL(ch, CLASS_CLERIC))
       return TRUE;
     return FALSE;
 
   case FEAT_SPELL_MASTERY:
-    if (GET_CLASS_RANKS(ch, CLASS_WIZARD))
+    if (CLASS_LEVEL(ch, CLASS_WIZARD))
       return TRUE;
     return FALSE;
-*/
+
   default:
-    return TRUE;
+/*    return TRUE;*/
+    return FALSE;
 
   }
 }
@@ -1248,30 +1254,30 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
       IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_MARTIAL))
     return TRUE;
 
-  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, WEAPON_DAMAGE_TYPE_SLASHING) &&
+  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_SLASHING) &&
       IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_EXOTIC) &&
       IS_SET(weapon_list[weapon_type].damageTypes, DAMAGE_TYPE_SLASHING)) {
     return TRUE;
   }
 
-  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, WEAPON_DAMAGE_TYPE_PIERCING) &&
+  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_PIERCING) &&
       IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_EXOTIC) &&
       IS_SET(weapon_list[weapon_type].damageTypes, DAMAGE_TYPE_PIERCING)) {
     return TRUE;
   }
 
-  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, WEAPON_DAMAGE_TYPE_BLUDGEONING) &&
+  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_BLUDGEONING) &&
       IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_EXOTIC) &&
       IS_SET(weapon_list[weapon_type].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
     return TRUE;
   }
 
 
-  if (GET_CLASS_RANKS(ch, CLASS_MONK) && 
+  if (CLASS_LEVEL(ch, CLASS_MONK) && 
       weapon_list[weapon_type].weaponFamily == WEAPON_FAMILY_MONK)
     return TRUE;
 
-  if (has_feat((char_data *) ch, FEAT_WEAPON_PROFICIENCY_DRUID) || GET_CLASS_RANKS(ch, CLASS_DRUID) > 0) {
+  if (has_feat((char_data *) ch, FEAT_WEAPON_PROFICIENCY_DRUID) || CLASS_LEVEL(ch, CLASS_DRUID) > 0) {
     switch (weapon_type) {
       case WEAPON_TYPE_CLUB:
       case WEAPON_TYPE_DAGGER:
@@ -1286,7 +1292,7 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
     }
   }
 
-  if (GET_CLASS_RANKS(ch, CLASS_BARD) > 0) {
+  if (CLASS_LEVEL(ch, CLASS_BARD) > 0) {
     switch (weapon_type) {
       case WEAPON_TYPE_LONG_SWORD:
       case WEAPON_TYPE_RAPIER:
@@ -1298,7 +1304,7 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
     }
   }
 
-  if (HAS_FEAT((struct char_data *) ch, FEAT_WEAPON_PROFICIENCY_ROGUE) || GET_CLASS_RANKS(ch, CLASS_ROGUE) > 0) {
+  if (HAS_FEAT((struct char_data *) ch, FEAT_WEAPON_PROFICIENCY_ROGUE) || CLASS_LEVEL(ch, CLASS_ROGUE) > 0) {
     switch (weapon_type) {
       case WEAPON_TYPE_HAND_CROSSBOW:
       case WEAPON_TYPE_RAPIER:
@@ -1309,7 +1315,7 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
     }
   }
 
-  if (HAS_FEAT((struct char_data *)ch, FEAT_WEAPON_PROFICIENCY_WIZARD) || GET_CLASS_RANKS(ch, CLASS_WIZARD) > 0) {
+  if (HAS_FEAT((struct char_data *)ch, FEAT_WEAPON_PROFICIENCY_WIZARD) || CLASS_LEVEL(ch, CLASS_WIZARD) > 0) {
     switch (weapon_type) {
       case WEAPON_TYPE_DAGGER:
       case WEAPON_TYPE_QUARTERSTAFF:
@@ -1327,7 +1333,6 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
       case WEAPON_TYPE_LONG_BOW:
       case WEAPON_TYPE_COMPOSITE_LONGBOW:
       case WEAPON_TYPE_SHORT_BOW:
-      case WEAPON_TYPE_CURVE_BLADE:
       case WEAPON_TYPE_COMPOSITE_SHORTBOW:
         return TRUE;
     }
@@ -1344,7 +1349,6 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
   return FALSE;
 
 }
-#endif
   
 /* Helper function for t sort_feats function - not very robust and should not be reused. 
  * SCARY pointer stuff! */
@@ -1361,13 +1365,12 @@ void sort_feats(void)
   int a;
 
   /* initialize array, avoiding reserved. */
-  for (a = 1; a < NUM_FEATS_DEFINED; a++)
+  for (a = 1; a < NUM_FEATS; a++)
     feat_sort_info[a] = a;
 
-  qsort(&feat_sort_info[1], NUM_FEATS_DEFINED, sizeof(int), compare_feats);
+  qsort(&feat_sort_info[1], NUM_FEATS, sizeof(int), compare_feats);
 }
 
-#ifdef COMPILE_D20_FEATS
 void list_feats_known(struct char_data *ch, char *arg) 
 {
   int i, sortpos, j;
@@ -1399,7 +1402,7 @@ void list_feats_known(struct char_data *ch, char *arg)
 
   strcpy(buf2, buf);
 
-  for (sortpos = 1; sortpos <= NUM_FEATS_DEFINED; sortpos++) {
+  for (sortpos = 1; sortpos <= NUM_FEATS; sortpos++) {
 
     if (strlen(buf2) > MAX_STRING_LENGTH -32)
       break;
@@ -1407,16 +1410,16 @@ void list_feats_known(struct char_data *ch, char *arg)
     i = feat_sort_info[sortpos];
     if (HAS_FEAT(ch, i)  && feat_list[i].in_game) {
       if (i == FEAT_WEAPON_FOCUS) {
-        for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_FOCUS, j) || has_weapon_feat_full(ch, FEAT_WEAPON_FOCUS, j, FALSE)) {
+        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_FOCUS, j)) { // || has_weapon_feat_full(ch, FEAT_WEAPON_FOCUS, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1431,16 +1434,16 @@ void list_feats_known(struct char_data *ch, char *arg)
           }	  
         }
       } else if (i == FEAT_WEAPON_MASTERY) {
-        for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_MASTERY, j) || has_weapon_feat_full(ch, FEAT_WEAPON_MASTERY, j, FALSE)) {
+        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_MASTERY, j)) { // || has_weapon_feat_full(ch, FEAT_WEAPON_MASTERY, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1455,16 +1458,16 @@ void list_feats_known(struct char_data *ch, char *arg)
           }	  
         }
       } else if (i == FEAT_WEAPON_FLURRY) {
-        for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_FLURRY, j) || has_weapon_feat_full(ch, FEAT_WEAPON_FLURRY, j, FALSE)) {
+        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_FLURRY, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_FLURRY, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1479,16 +1482,16 @@ void list_feats_known(struct char_data *ch, char *arg)
           }	  
         }
       } else if (i == FEAT_WEAPON_SUPREMACY) {
-        for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_SUPREMACY, j) || has_weapon_feat_full(ch, FEAT_WEAPON_SUPREMACY, j, FALSE)) {
+        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_SUPREMACY, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_SUPREMACY, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1503,16 +1506,16 @@ void list_feats_known(struct char_data *ch, char *arg)
           }	  
         }
       } else if (i == FEAT_POWER_CRITICAL) {
-        for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-          if (HAS_COMBAT_FEAT(ch, CFEAT_POWER_CRITICAL, j) || has_weapon_feat_full(ch, FEAT_POWER_CRITICAL, j, FALSE)) {
+        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+          if (HAS_COMBAT_FEAT(ch, CFEAT_POWER_CRITICAL, j)) {// || has_weapon_feat_full(ch, FEAT_POWER_CRITICAL, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1527,16 +1530,16 @@ void list_feats_known(struct char_data *ch, char *arg)
           }	  
         }
       } else if (i == FEAT_GREATER_WEAPON_FOCUS) {
-      for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_GREATER_WEAPON_FOCUS, j) || has_weapon_feat_full(ch, FEAT_GREATER_WEAPON_FOCUS, j, FALSE)) {
+      for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+        if (HAS_COMBAT_FEAT(ch, CFEAT_GREATER_WEAPON_FOCUS, j)) {// || has_weapon_feat_full(ch, FEAT_GREATER_WEAPON_FOCUS, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1551,7 +1554,7 @@ void list_feats_known(struct char_data *ch, char *arg)
         }
       }
       } else if (i == FEAT_FAVORED_ENEMY) {
-      for (j = 1; j < NUM_RACE_TYPES; j++) {
+/*      for (j = 1; j < NUM_RACE_TYPES; j++) {
         if (HAS_COMBAT_FEAT(ch, CFEAT_FAVORED_ENEMY, j)) {
             if (mode == 1) {
               sprintf(buf3, "%s (%s):", feat_list[i].name, race_types[j]);
@@ -1574,17 +1577,17 @@ void list_feats_known(struct char_data *ch, char *arg)
 
         }
       }
-      } else if (i == FEAT_WEAPON_SPECIALIZATION) {
-      for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_SPECIALIZATION, j) || has_weapon_feat_full(ch, FEAT_WEAPON_SPECIALIZATION, j, FALSE)) {
+*/      } else if (i == FEAT_WEAPON_SPECIALIZATION) {
+      for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+        if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_SPECIALIZATION, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_SPECIALIZATION, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1599,16 +1602,16 @@ void list_feats_known(struct char_data *ch, char *arg)
         }
       }
       } else if (i == FEAT_GREATER_WEAPON_SPECIALIZATION) {
-      for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_GREATER_WEAPON_SPECIALIZATION, j) || has_weapon_feat_full(ch, FEAT_GREATER_WEAPON_SPECIALIZATION, j, FALSE)) {
+      for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+        if (HAS_COMBAT_FEAT(ch, CFEAT_GREATER_WEAPON_SPECIALIZATION, j)) {// || has_weapon_feat_full(ch, FEAT_GREATER_WEAPON_SPECIALIZATION, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1616,16 +1619,16 @@ void list_feats_known(struct char_data *ch, char *arg)
         }
       }
       } else if (i == FEAT_IMPROVED_CRITICAL) {
-        for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_IMPROVED_CRITICAL, j) || has_weapon_feat_full(ch, FEAT_IMPROVED_CRITICAL, j, FALSE)) {
+        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+        if (HAS_COMBAT_FEAT(ch, CFEAT_IMPROVED_CRITICAL, j)) {// || has_weapon_feat_full(ch, FEAT_IMPROVED_CRITICAL, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1640,16 +1643,16 @@ void list_feats_known(struct char_data *ch, char *arg)
         }
         }
       } else if (i == FEAT_IMPROVED_WEAPON_FINESSE) {
-        for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_IMPROVED_WEAPON_FINESSE, j) || has_weapon_feat_full(ch, FEAT_WEAPON_FINESSE, j, FALSE)) {
+        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+        if (HAS_COMBAT_FEAT(ch, CFEAT_IMPROVED_WEAPON_FINESSE, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_FINESSE, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1664,16 +1667,16 @@ void list_feats_known(struct char_data *ch, char *arg)
         }
         }
       } else if (i == FEAT_EXOTIC_WEAPON_PROFICIENCY) {
-        for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, j) || has_weapon_feat_full(ch, FEAT_EXOTIC_WEAPON_PROFICIENCY, j, FALSE)) {
+        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+        if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, j)) {// || has_weapon_feat_full(ch, FEAT_EXOTIC_WEAPON_PROFICIENCY, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1688,16 +1691,16 @@ void list_feats_known(struct char_data *ch, char *arg)
         }
         }
       } else if (i == FEAT_MONKEY_GRIP) {
-        for (j = MIN_WEAPON_DAMAGE_TYPES; j <= MAX_WEAPON_DAMAGE_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_MONKEY_GRIP, j) || has_weapon_feat_full(ch, FEAT_MONKEY_GRIP, j, FALSE)) {
+        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+        if (HAS_COMBAT_FEAT(ch, CFEAT_MONKEY_GRIP, j)) {// || has_weapon_feat_full(ch, FEAT_MONKEY_GRIP, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_damage_types[j-MIN_WEAPON_DAMAGE_TYPES]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1712,8 +1715,8 @@ void list_feats_known(struct char_data *ch, char *arg)
         }
         }
       } else if (i == FEAT_SKILL_FOCUS) {
-        for (j = SKILL_LOW_SKILL; j < SKILL_HIGH_SKILL; j++) {
-        if (ch->player_specials->skill_focus[j-SKILL_LOW_SKILL] > 0) {
+        for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++) {
+        if (ch->player_specials->saved.skill_focus[j-MAX_SPELLS + 1] > 0) {
             if (mode == 1) {
               sprintf(buf3, "%s (%s):", feat_list[i].name, spell_info[j].name);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
@@ -1736,8 +1739,8 @@ void list_feats_known(struct char_data *ch, char *arg)
         }
         }
       } else if (i == FEAT_EPIC_SKILL_FOCUS) {
-        for (j = SKILL_LOW_SKILL; j < SKILL_HIGH_SKILL; j++) {
-        if (ch->player_specials->skill_focus[j-SKILL_LOW_SKILL] > 1) {
+        for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++) {
+        if (ch->player_specials->saved.skill_focus[j-MAX_SPELLS + 1] > 1) {
             if (mode == 1) {
               sprintf(buf3, "%s (%s):", feat_list[i].name, spell_info[j].name);
               sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
@@ -1812,7 +1815,7 @@ void list_feats_known(struct char_data *ch, char *arg)
           strcat(buf2, buf);
           none_shown = FALSE;
       } else if (i == FEAT_DEITY_WEAPON_PROFICIENCY) {
-          if (mode == 1) {
+/*          if (mode == 1) {
             sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[deity_list[GET_DEITY(ch)].favored_weapon].name);
             sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
@@ -1824,7 +1827,7 @@ void list_feats_known(struct char_data *ch, char *arg)
           }
           strcat(buf2, buf);
           none_shown = FALSE;
-      } else if (i == FEAT_HASTE) {
+*/      } else if (i == FEAT_HASTE) {
           if (mode == 1) {
             sprintf(buf3, "%s (3x/day):", feat_list[i].name);
             sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
@@ -2240,7 +2243,7 @@ void list_feats_available(struct char_data *ch, char *arg)
     mode = 2;
   }
   else if (*arg && (is_abbrev(arg, "classfeats") || is_abbrev(arg, "class-feats"))) {
-    list_class_feats(ch);
+//    list_class_feats(ch);
     return;
   }
 
@@ -2259,7 +2262,7 @@ void list_feats_available(struct char_data *ch, char *arg)
 
   strcpy(buf2, buf);
 
-  for (sortpos = 1; sortpos <= NUM_FEATS_DEFINED; sortpos++) {
+  for (sortpos = 1; sortpos <= NUM_FEATS; sortpos++) {
     i = feat_sort_info[sortpos];
     if (strlen(buf2) >= MAX_STRING_LENGTH - 32) {
       strcat(buf2, "**OVERFLOW**\r\n"); 
@@ -2304,6 +2307,7 @@ void list_feats_available(struct char_data *ch, char *arg)
   page_string(ch->desc, buf2, 1);
 }
 
+#ifdef COMPILE_D20_FEATS
 void list_class_feats(struct char_data *ch)
 {
 
@@ -2322,7 +2326,7 @@ void list_class_feats(struct char_data *ch)
     send_to_char(ch, "\r\n");
 
 
-  for (sortpos = 1; sortpos <= NUM_FEATS_DEFINED; sortpos++) {
+  for (sortpos = 1; sortpos <= NUM_FEATS; sortpos++) {
     i = feat_sort_info[sortpos];
     if (feat_is_available(ch, i, 0, NULL) && feat_list[i].in_game && feat_list[i].can_learn) {
       featMarker = 1;
@@ -2388,7 +2392,7 @@ void list_feats_complete(struct char_data *ch, char *arg)
 
   strcpy(buf2, buf);
 
-  for (sortpos = 1; sortpos <= NUM_FEATS_DEFINED; sortpos++) {
+  for (sortpos = 1; sortpos <= NUM_FEATS; sortpos++) {
     i = feat_sort_info[sortpos];
     if (strlen(buf2) >= MAX_STRING_LENGTH - 32) {
       strcat(buf2, "**OVERFLOW**\r\n"); 
@@ -2441,7 +2445,7 @@ int find_feat_num(char *name)
   char *temp, *temp2;
   char first[256], first2[256];
    
-  for (index = 1; index <= NUM_FEATS_DEFINED; index++) {
+  for (index = 1; index <= NUM_FEATS; index++) {
     if (is_abbrev(name, feat_list[index].name))
       return (index);
     
@@ -2472,17 +2476,16 @@ ACMD(do_feats)
   two_arguments(argument, arg, arg2);
 
   if (is_abbrev(arg, "known") || !*arg) {
-//    list_feats_known(ch, arg2);
-    send_to_char(ch, "Not Implemented.\r\n");
+    list_feats_known(ch, arg2);
+//    send_to_char(ch, "Not Implemented.\r\n");
   } else if (is_abbrev(arg, "available")) {
-//    list_feats_available(ch, arg2);
-    send_to_char(ch, "Not Implemented.\r\n");
+    list_feats_available(ch, arg2);
+//    send_to_char(ch, "Not Implemented.\r\n");
   } else if (is_abbrev(arg, "complete")) {
     list_feats_complete(ch, arg2);
   }
 }
 
-#ifdef COMPILE_D20_FEATS
 int feat_to_subfeat(int feat)
 {
   switch (feat) {
@@ -2524,7 +2527,6 @@ int feat_to_subfeat(int feat)
     return -1;
   }
 }
-#endif
 
 void setweapon( int type, char *name, int numDice, int diceSize, int critRange, int critMult, 
 int weaponFlags, int cost, int damageTypes, int weight, int range, int weaponFamily, int size, 
@@ -2881,7 +2883,7 @@ void display_levelup_feats(struct char_data *ch) {
 			"Number Available: Normal (%d) Class (%d) Epic (%d) Epic CLass (%d)\r\n\r\n",
 			ch->levelup->feat_points, ch->levelup->num_class_feats, ch->levelup->epic_feat_points, ch->levelup->num_epic_class_feats);
 
-	  for (sortpos = 1; sortpos <= NUM_FEATS_DEFINED; sortpos++) {
+	  for (sortpos = 1; sortpos <= NUM_FEATS; sortpos++) {
 	    i = feat_sort_info[sortpos];
 	    classfeat = FALSE;
 
@@ -2914,13 +2916,14 @@ void display_levelup_feats(struct char_data *ch) {
 	  send_to_char(ch, "To select a feat, type the number beside it.  Class feats are in 	Ccyan	n and marked with a (C).  When done type -1: ");
 
 }
+#endif
 
 int has_feat(struct char_data *ch, int featnum) {
-
+/*
 	if (ch->desc && ch->levelup && STATE(ch->desc) >= CON_LEVELUP_START && STATE(ch->desc) <= CON_LEVELUP_END) {
 		return (HAS_FEAT(ch, featnum) + ch->levelup->feats[featnum]);
 	}
-/*
+
   struct obj_data *obj;
   int i = 0, j = 0;
 
@@ -2937,18 +2940,19 @@ int has_feat(struct char_data *ch, int featnum) {
 }
 
 int has_combat_feat(struct char_data *ch, int i, int j) {
-
+/*
 	if (ch->desc && ch->levelup && STATE(ch->desc) >= CON_LEVELUP_START && STATE(ch->desc) <= CON_LEVELUP_END) {
 		if ((IS_SET_AR((ch)->levelup->combat_feats[(i)], (j))))
 			return TRUE;
 	}
-
-	if ((IS_SET_AR((ch)->combat_feats[(i)], (j))))
+*/
+	if ((IS_SET_AR((ch)->char_specials.saved.combat_feats[(i)], (j))))
 		return TRUE;
 
 	return FALSE;
 }
 
+#ifdef COMPILE_D20_FEATS
 int has_weapon_feat(struct char_data *ch, int i, int j) {
   return has_weapon_feat_full(ch, i, j, TRUE);
 }
@@ -2959,17 +2963,17 @@ int has_weapon_feat_full(struct char_data *ch, int i, int j, int display) {
   int k = 0;
 
   if (obj) {
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), WEAPON_DAMAGE_TYPE_SLASHING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_SLASHING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_SLASHING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_SLASHING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_SLASHING))
       return TRUE;
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), WEAPON_DAMAGE_TYPE_BLUDGEONING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_BLUDGEONING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_BLUDGEONING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_BLUDGEONING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_BLUDGEONING))
       return TRUE;
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), WEAPON_DAMAGE_TYPE_PIERCING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_PIERCING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_PIERCING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_PIERCING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_PIERCING))
@@ -3004,17 +3008,17 @@ int has_weapon_feat_full(struct char_data *ch, int i, int j, int display) {
   obj = GET_EQ(ch, WEAR_HOLD);
 
   if (obj) {
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), WEAPON_DAMAGE_TYPE_SLASHING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_SLASHING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_SLASHING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_SLASHING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_SLASHING))
       return TRUE;
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), WEAPON_DAMAGE_TYPE_BLUDGEONING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_BLUDGEONING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_BLUDGEONING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_BLUDGEONING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_BLUDGEONING))
       return TRUE;
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), WEAPON_DAMAGE_TYPE_PIERCING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_PIERCING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_PIERCING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_PIERCING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_PIERCING))
