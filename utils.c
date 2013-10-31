@@ -2816,4 +2816,81 @@ char *get_align_by_num(int align) {
   return "Unknown";
 }
 
+/* Feats */
+int get_feat_value(struct char_data *ch, int featnum)
+{
+
+  int i = 0, j = 0, k = 0;
+  int featval = HAS_REAL_FEAT(ch, featnum);
+  int found = FALSE;
+  /* Check the character for worn APPLY_FEAT equipment. */
+/*
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (GET_EQ(ch, i))
+    {
+      for (j = 0; j < MAX_OBJ_AFFECT; j++)
+      {
+        if (!GET_EQ(ch, i) || !GET_EQ(ch, i)->affected)
+          continue;
+        if (GET_EQ(ch, i)->affected[j].location == APPLY_FEAT && GET_EQ(ch, i)->affected[j].specific == featnum)
+        {
+          while (level_feats[k][4] != FEAT_UNDEFINED)
+          {
+            if (level_feats[k][4] == featnum)
+            {
+              found = TRUE;
+              if (GET_CLASS(ch) == level_feats[k][0] && level_feats[k][1] == RACE_UNDEFINED &&
+                  GET_CLASS_RANKS(ch, level_feats[k][0]) <= level_feats[k][3])
+              {
+                featval += GET_EQ(ch, i)->affected[j].modifier;
+                break;
+              }
+            }
+            k++;
+          }
+          if (!found)
+            featval += GET_EQ(ch, i)->affected[j].modifier;
+        }
+      }
+    }
+  }
+*/
+  return featval;
+
+}
+
+
+int find_armor_type(int specType)
+{
+
+  switch (specType) {
+
+  case SPEC_ARMOR_TYPE_PADDED:
+  case SPEC_ARMOR_TYPE_LEATHER:
+  case SPEC_ARMOR_TYPE_STUDDED_LEATHER:
+  case SPEC_ARMOR_TYPE_LIGHT_CHAIN:
+    return ARMOR_TYPE_LIGHT;
+
+  case SPEC_ARMOR_TYPE_HIDE:
+  case SPEC_ARMOR_TYPE_SCALE:
+  case SPEC_ARMOR_TYPE_CHAINMAIL:
+  case SPEC_ARMOR_TYPE_PIECEMEAL:
+    return ARMOR_TYPE_MEDIUM;
+
+  case SPEC_ARMOR_TYPE_SPLINT:
+  case SPEC_ARMOR_TYPE_BANDED:
+  case SPEC_ARMOR_TYPE_HALF_PLATE:
+  case SPEC_ARMOR_TYPE_FULL_PLATE:
+    return ARMOR_TYPE_HEAVY;
+
+  case SPEC_ARMOR_TYPE_BUCKLER:
+  case SPEC_ARMOR_TYPE_SMALL_SHIELD:
+  case SPEC_ARMOR_TYPE_LARGE_SHIELD:
+  case SPEC_ARMOR_TYPE_TOWER_SHIELD:
+    return ARMOR_TYPE_SHIELD;	
+  }
+  return ARMOR_TYPE_LIGHT;
+}
+
 

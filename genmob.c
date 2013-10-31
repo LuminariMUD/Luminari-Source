@@ -489,6 +489,10 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     strcat(buf, "\n");
     fprintf(fd, buf);
   }
+  for (i = 0; i < NUM_FEATS; i++)
+    if (HAS_FEAT(mob, i))
+      fprintf(fd, "E\nFeat: %d %d\n", i, HAS_FEAT(mob, i));
+
   /* finalize */
   fputs("E\n", fd);
   return TRUE;

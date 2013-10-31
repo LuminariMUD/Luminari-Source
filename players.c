@@ -54,6 +54,8 @@ long top_idnum = 0;
 static void load_events(FILE *fl, struct char_data *ch);
 static void load_affects(FILE *fl, struct char_data *ch);
 static void load_skills(FILE *fl, struct char_data *ch);
+static void load_feats(FILE *fl, struct char_data *ch);
+static void load_skill_focus(FILE *fl, struct char_data *ch);
 static void load_abilities(FILE *fl, struct char_data *ch);
 static void load_favored_enemy(FILE *fl, struct char_data *ch);
 static void load_spec_abil(FILE *fl, struct char_data *ch);
@@ -259,7 +261,7 @@ char *get_name_by_id(long id) {
 /* New load_char reads ASCII Player Files. Load a char, TRUE if loaded, FALSE
  * if not. */
 int load_char(const char *name, struct char_data *ch) {
-  int id, i;
+  int id, i, j;
   FILE *fl;
   char filename[40];
   char buf[128], buf2[128], line[MAX_INPUT_LENGTH + 1], tag[6];
@@ -291,6 +293,17 @@ int load_char(const char *name, struct char_data *ch) {
       GET_SKILL(ch, i) = 0;
     for (i = 1; i <= MAX_ABILITIES; i++)
       GET_ABILITY(ch, i) = 0;
+    for (i = 0; i < NUM_FEATS; i++)
+      SET_FEAT(ch, i, 0);
+    for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++)
+      ch->player_specials->saved.skill_focus[i - MAX_SPELLS + 1] = 0;
+    for (i = 0; i < NUM_CFEATS; i++) 
+      for (j = 0; j < FT_ARRAY_MAX; j++)
+        ch->char_specials.saved.combat_feats[i][j] = 0;
+    
+    for (i = 0; i < NUM_SFEATS; i++)
+      ch->char_specials.saved.school_feats[i] = 0;
+
     init_spell_slots(ch);
     GET_REAL_SIZE(ch) = PFDEF_SIZE;
     IS_MORPHED(ch) = PFDEF_MORPHED;
@@ -408,7 +421,19 @@ int load_char(const char *name, struct char_data *ch) {
           break;
 
         case 'C':
-          if (!strcmp(tag, "Cha ")) GET_REAL_CHA(ch) = atoi(line);
+          if (!strcmp(tag, "CbFt")) {
+            sscanf(line, "%d %s %s %s %s", &i, f1, f2, f3, f4);
+            if (i < 0 || i >= NUM_CFEATS) {
+              log("load_char: %s combat feat record out of range: %s", GET_NAME(ch), line);
+              break;
+            }
+            ch->char_specials.saved.combat_feats[i][0] = asciiflag_conv(f1);
+            ch->char_specials.saved.combat_feats[i][1] = asciiflag_conv(f2);
+            ch->char_specials.saved.combat_feats[i][2] = asciiflag_conv(f3);
+            ch->char_specials.saved.combat_feats[i][3] = asciiflag_conv(f4);
+          }
+
+          else if (!strcmp(tag, "Cha ")) GET_REAL_CHA(ch) = atoi(line);
           else if (!strcmp(tag, "Clas")) GET_CLASS(ch) = atoi(line);
           else if (!strcmp(tag, "Con ")) GET_REAL_CON(ch) = atoi(line);
           else if (!strcmp(tag, "CLoc")) load_coord_location(fl, ch); 
@@ -444,6 +469,7 @@ int load_char(const char *name, struct char_data *ch) {
         case 'F':
           if (!strcmp(tag, "Frez")) GET_FREEZE_LEV(ch) = atoi(line);
           else if (!strcmp(tag, "FaEn")) load_favored_enemy(fl, ch);
+          else if (!strcmp(tag, "Feat"))  load_feats(fl, ch);
           break;
 
         case 'G':
@@ -544,8 +570,17 @@ int load_char(const char *name, struct char_data *ch) {
 
         case 'S':
           if (!strcmp(tag, "Sex ")) GET_SEX(ch) = atoi(line);
+          else if (!strcmp(tag, "SclF")) {
+            sscanf(line, "%d %s", &i, f1);
+            if (i < 0 || i >= NUM_SFEATS) {
+              log("load_char: %s school feat record out of range: %s", GET_NAME(ch), line);
+              break;
+            }
+            ch->char_specials.saved.school_feats[i] = asciiflag_conv(f1);
+          }
           else if (!strcmp(tag, "ScrW")) GET_SCREEN_WIDTH(ch) = atoi(line);
           else if (!strcmp(tag, "Skil")) load_skills(fl, ch);
+          else if (!strcmp(tag, "SklF"))  load_skill_focus(fl, ch);
           else if (!strcmp(tag, "SpAb")) load_spec_abil(fl, ch);
           else if (!strcmp(tag, "SpRs")) GET_REAL_SPELL_RES(ch) = atoi(line);
           else if (!strcmp(tag, "Size")) GET_REAL_SIZE(ch) = atoi(line);
@@ -883,6 +918,37 @@ void save_char(struct char_data * ch, int mode) {
     }
     fprintf(fl, "0 0\n");
   }
+
+  /* Save Combat Feats */
+  for (i = 0; i < NUM_CFEATS; i++) {
+    sprintascii(bits, ch->char_specials.saved.combat_feats[i][0]);
+    sprintascii(bits2, ch->char_specials.saved.combat_feats[i][1]);
+    sprintascii(bits3, ch->char_specials.saved.combat_feats[i][2]);
+    sprintascii(bits4, ch->char_specials.saved.combat_feats[i][3]);
+    fprintf(fl, "CbFt: %d %s %s %s %s\n", i, bits, bits2, bits3, bits4);
+  }
+
+  /* Save School Feats */
+  for (i = 0; i < NUM_SFEATS; i++) {
+    sprintascii(bits, ch->char_specials.saved.school_feats[i]);
+    fprintf(fl, "SclF: %d %s\n", i, bits);
+  }
+
+  /* Save Skill Foci */
+  fprintf(fl, "SklF:\n");
+  for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++) {
+    for (j = 0; j < ch->player_specials->saved.skill_focus[i-MAX_SPELLS + 1]; j++)
+      fprintf(fl, "%d\n", i);
+  }
+  fprintf(fl, "0\n");
+                   
+  /* Save feats */
+  fprintf(fl, "Feat:\n");
+  for (i = 1; i <= NUM_FEATS; i++) {
+    if (HAS_FEAT(ch, i))
+      fprintf(fl, "%d %d\n", i, HAS_FEAT(ch, i));
+  }
+  fprintf(fl, "0 0\n");
 
   // Save memorizing list of prayers, prayed list and times
   fprintf(fl, "Pryg:\n");
@@ -1344,6 +1410,32 @@ static void load_skills(FILE *fl, struct char_data *ch) {
     sscanf(line, "%d %d", &num, &num2);
     if (num != 0)
       GET_SKILL(ch, num) = num2;
+  } while (num != 0);
+}
+
+void load_feats(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+      if (num != 0)
+        SET_FEAT(ch, num, num2);
+  } while (num != 0);
+}
+
+void load_skill_focus(FILE *fl, struct char_data *ch)
+{
+  int num = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != 0)
+      ch->player_specials->saved.skill_focus[num - MAX_SPELLS + 1] += 1;
   } while (num != 0);
 }
 
