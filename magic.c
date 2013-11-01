@@ -2021,7 +2021,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         af[0].modifier = 2;
       else
         af[0].modifier = 1;
-      af[0].duration = 5 * magic_level;
+      af[0].duration = 5 * divine_level;
 
       accum_duration = TRUE;
       to_room = "$n is now affected by magic fang!";
@@ -2288,7 +2288,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       af[0].location = APPLY_HITROLL;
       af[0].modifier = 1;
-      af[0].duration = magic_level;
+      af[0].duration = divine_level;
 
       accum_duration = TRUE;
       to_room = "$n is now affected by magic fang!";
