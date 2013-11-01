@@ -2125,7 +2125,7 @@ send_to_char(ch, "[OC] ");
 //mode = 0	Normal damage calculating in hit()
 //mode = 2	Display damage info primary
 //mode = 3	Display damage info offhand
-//mode = 4     Display damage info ranged
+//mode = 4      Display damage info ranged
 
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         struct obj_data *wielded, int w_type, int diceroll, int mode) {
@@ -2203,8 +2203,10 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     /* modifiers to melee damage */
     dam += compute_damage_bonus(ch, ch, 0, 0, mode);
     /* ranged combat -> mode = 4 */
-    if (mode == 4)
+    if (mode == 4) {
       dam -= GET_STR_BONUS(ch);
+      dam += GET_DEX_BONUS(ch);
+    }
     /* throw in melee bonus such as dirty-fighting and critical */
     hit_dam_bonus(ch, ch, wielded, dam, 0, mode);
   }
@@ -2635,9 +2637,6 @@ void hit(struct char_data *ch, struct char_data *victim,
 
     //calculate damage, modify by melee warding
     dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
-    /* deduct strength bonus if ranged attack */
-    if (is_ranged)
-      dam -= GET_STR_BONUS(ch);
     if ((dam = handle_warding(ch, victim, dam)) == -1)
       return;
 
@@ -2672,9 +2671,13 @@ void hit(struct char_data *ch, struct char_data *victim,
         if (GET_RACE(ch) == RACE_TRELUX)
           damage(ch, victim, dam, TYPE_CLAW, dam_type, offhand);
         else {
-          damage(ch, victim, dam, w_type, dam_type, offhand);
-          if (is_ranged)
+          if (is_ranged) {
             obj_to_char(missile, victim);
+            if (GET_STR_BONUS(ch) >= 1 && (dam - GET_STR_BONUS(ch)) >= 1)
+              dam -= GET_STR_BONUS(ch);
+            dam += GET_DEX_BONUS(ch);
+          }
+          damage(ch, victim, dam, w_type, dam_type, offhand);
         }
         break;
     }
