@@ -3773,7 +3773,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   struct char_data *mob = NULL;
   struct obj_data *tobj, *next_obj;
   int pfail = 0, msg = 0, fmsg = 0, num = 1, handle_corpse = FALSE, i;
-  int mob_level = 0;
+  int mob_level = 0, temp_level = 0;
   mob_vnum mob_num = 0;
 
   if (ch == NULL)
@@ -4098,8 +4098,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       case SPELL_SUMMON_CREATURE_8: //conjuration
       case SPELL_SUMMON_CREATURE_7: //conjuration    
       case SPELL_GREATER_ANIMATION: //necromancy
-        GET_LEVEL(mob) = MIN(CASTER_LEVEL(ch), mob_level);
+        /* (Zusuk) Temporary variable for capping elementals, etc */
+        temp_level = MIN(CASTER_LEVEL(ch), mob_level);
+        GET_LEVEL(mob) = MIN(20, temp_level);
         autoroll_mob(mob, TRUE);
+        GET_LEVEL(mob) = temp_level;
         break;
       case SPELL_CLONE:
         /* Don't mess up the prototype; use new string copies. */
