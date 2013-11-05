@@ -20,9 +20,15 @@
 #include "modify.h"
 #include "spells.h"
 
-
+#undef NEWGAINREADY
+#ifdef NEWGAINREADY
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
+
+/* New procedures for GAIN process - Ornir */
+static void class_disp_menu(struct descriptor_data *d);
+static void feat_disp_menu(struct descriptor_data *d);
+static void skill_disp_menu(struct descriptor_data *d);
 
 static void druid_disp_menu(struct descriptor_data *d);
 static void sorc_disp_menu(struct descriptor_data *d);
@@ -1203,4 +1209,4 @@ void study_parse(struct descriptor_data *d, char *arg) {
 #undef F_HELLHOUND     
 
 
-
+#endif

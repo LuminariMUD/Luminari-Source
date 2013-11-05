@@ -2425,6 +2425,9 @@ struct player_special_data {
   /* salvation spell */
   room_vnum salvation_room;
   char *salvation_name;
+
+  /* Levelup data for the level gain process */
+  struct level_data *levelup;
 };
 
 /** Special data used by NPCs, not PCs */
@@ -2466,6 +2469,64 @@ struct affected_type {
   int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
 
   struct affected_type *next; /**< The next affect in the list of affects. */
+};
+
+/* Structure and defines for the 'levelup' data and process borrowed from d20mud
+ * and CWG. */
+#define LEVELTYPE_CLASS 1
+#define LEVELTYPE_RACE  2
+struct level_learn_entry {
+  struct level_learn_entry *next;
+  ubyte location;
+  ubyte specific;
+  byte value;
+};
+
+struct levelup_data {
+  struct levelup_data *next;  /* Form a linked list     */
+  struct levelup_data *prev;  /* Form a linked list     */
+  byte type;      /* LEVELTYPE_ value     */
+  byte spec;      /* Specific class or race   */
+  byte level;     /* Level ir HD # for that class or race */
+  byte hp_roll;     /* Straight die-roll value with no mods */
+  byte mana_roll;   /* Straight die-roll value with no mods */
+  byte ki_roll;     /* Straight die-roll value with no mods */
+  byte move_roll;   /* Straight die-roll value with no mods */
+  byte accuracy;    /* Hit accuracy change      */
+  byte fort;      /* Fortitude change     */
+  byte reflex;      /* Reflex change      */
+  byte will;      /* Will change        */
+  byte add_skill;   /* Total added skill points   */
+  byte add_gen_feats;   /* General feat points      */
+  byte add_epic_feats;    /* General epic feat points   */
+  byte add_class_feats;   /* Class feat points      */
+  byte add_class_epic_feats;  /* Epic class feat points   */
+  struct level_learn_entry *skills; /* Head of linked list    */
+  struct level_learn_entry *feats;  /* Head of linked list    */
+  struct level_data *level_extra;
+};
+
+/* Structure for levelup data */
+struct level_data {
+        struct level_data *next;
+        struct level_data *prev;
+        ubyte level;
+        ubyte class;
+        ubyte feats[NUM_FEATS];
+        int combat_feats[NUM_CFEATS][FT_ARRAY_MAX];
+        ubyte trains[6];
+        ubyte skills[MAX_SKILLS+1];
+        ubyte feat_points;
+        ubyte practices;
+        ubyte num_trains;
+        unsigned short int tempFeat;
+        ubyte num_class_feats;
+        ubyte epic_feat_points;
+        ubyte num_epic_class_feats;
+        unsigned short int feat_weapons[NUM_FEATS];
+        unsigned short int feat_skills[NUM_FEATS];
+/*        sh_int spells_known[NUM_SPELLS];*/
+        byte spell_slots[10];
 };
 
 /** The list element that makes up a list of characters following this

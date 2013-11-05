@@ -1548,11 +1548,14 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
     
     /* Cut damage in half if victim has sanct, to a minimum 1 */
+    /* Zusuk - Too imbalancing for clerics, also definitely not according to SRD */
+    /*
     if (AFF_FLAGGED(victim, AFF_SANCTUARY) && dam >= 2) {
       dam /= 2;
       send_to_char(victim, "\tW<sanc:%d>\tn", dam);
       send_to_char(ch, "\tR<oSanc:%d>\tn", dam);
     }
+    */
   }
 
   /* this spell is also supposed to injure victims who fail reflex save
