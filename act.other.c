@@ -889,7 +889,7 @@ ACMD(do_gain) {
   one_argument(argument, arg);
 
   if (!*arg) {
-    send_to_char(ch, "You need to select a class, here are your options:\r\n");
+    send_to_char(ch, "You need to select a class, here are your options:\r\n\r\n");
     list_valid_classes(ch);
     return;
   } else {
@@ -916,8 +916,38 @@ ACMD(do_gain) {
       send_to_char(ch, "Please select one of the classes you already have!\r\n");
       return;
     }
+    if ((GET_PRACTICES(ch) != 0) ||
+        (GET_TRAINS(ch) != 0)    ||
+        (GET_BOOSTS(ch) != 0)    ||
+        ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
+         (CLASS_LEVEL(ch, CLASS_WIZARD)   && !IS_WIZ_LEARNED(ch))  ||
+         (CLASS_LEVEL(ch, CLASS_BARD)     && !IS_BARD_LEARNED(ch)) ||
+         (CLASS_LEVEL(ch, CLASS_DRUID)    && !IS_DRUID_LEARNED(ch))||
+         (CLASS_LEVEL(ch, CLASS_RANGER)   && !IS_RANG_LEARNED(ch)))) {
+    
+      /* The last level has not been completely gained yet - The player must
+       * use all trains, pracs, boosts and choose spells and other benefits
+       * vis 'study' before they can gain a level. */
+      if (GET_PRACTICES(ch) != 0) 
+        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
+      if (GET_TRAINS(ch) != 0)
+        send_to_char(ch, "You must use all trains before gaining another level.  You have %d train%s remaining.\r\n", GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
+      if (GET_BOOSTS(ch) != 0)
+        send_to_char(ch, "You must use all boosts before gaining another level.  You have %d boost%s remaining.\r\n", GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
+      if(CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch))
+        send_to_char(ch, "You must 'study sorcerer' before gaining another level.\r\n");
+      if(CLASS_LEVEL(ch, CLASS_WIZARD) && !IS_WIZ_LEARNED(ch))
+        send_to_char(ch, "You must 'study wizard' before gaining another level.\r\n"); 
+      if(CLASS_LEVEL(ch, CLASS_BARD) && !IS_BARD_LEARNED(ch))
+        send_to_char(ch, "You must 'study bard' before gaining another level.\r\n"); 
+      if(CLASS_LEVEL(ch, CLASS_DRUID) && !IS_DRUID_LEARNED(ch))
+        send_to_char(ch, "You must 'study druid' before gaining another level.\r\n"); 
+      if(CLASS_LEVEL(ch, CLASS_RANGER) && !IS_RANG_LEARNED(ch))
+        send_to_char(ch, "You must 'study ranger' before gaining another level.\r\n"); 
 
-    if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
+      return;
+
+    } else if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
             GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1)) {
       GET_LEVEL(ch) += 1;
       CLASS_LEVEL(ch, class)++;
