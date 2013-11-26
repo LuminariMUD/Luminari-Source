@@ -48,6 +48,8 @@ extern int prac_params[][NUM_CLASSES];
 extern struct guild_info_type guild_info[];
 extern int class_ability[NUM_ABILITIES][NUM_CLASSES];
 
+extern const int *class_bonus_feats[NUM_CLASSES];
+
 #endif /* __CLASS_C__ */
 
 #endif /* _CLASS_H_*/

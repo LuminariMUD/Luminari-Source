@@ -2638,6 +2638,16 @@ void hit(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "[SMITE]  ");
     }
 
+    if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
+      if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS))) {
+        send_to_char(ch, "[STUNNING-FIST]  ");
+        if (!char_has_mud_event(victim, eSTUNNED)) {        
+          attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC); 
+        }
+        affect_from_char(ch, SKILL_STUNNING_FIST);     
+      }
+    }
+        
     //calculate damage, modify by melee warding
     dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
     if ((dam = handle_warding(ch, victim, dam)) == -1)
@@ -2825,6 +2835,7 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
 
 int perform_attacks(struct char_data *ch, int mode) {
   int i = 0, penalty = 0, numAttacks = 0, bonusAttacks = 0;
+  int attacks_at_max_bab = 1; /* First attack always MAX BAB */
   int monkMode = FALSE, ranged_attacks = 2;
   bool dual = FALSE;
 
@@ -2850,14 +2861,22 @@ int perform_attacks(struct char_data *ch, int mode) {
   }
   /* ranged get extra attacks */
   ranged_attacks += bonusAttacks;
-  if (AFF_FLAGGED(ch, AFF_HASTE))
+  if (AFF_FLAGGED(ch, AFF_HASTE)) {
     ranged_attacks++;
+    attacks_at_max_bab++;
+  }
+
+  /* Rapidshot mode gives an extra attack, but with a penalty. */
+  if (AFF_FLAGGED(ch, AFF_RAPID_SHOT)) {
+    penalty -= 2;
+    ranged_attacks++;
+    attacks_at_max_bab++;
+  }
 
   // ranged combat
   if (FIRING(ch) && mode == 0) {
-    if (is_tanking(ch)) {
-      send_to_char(ch, "You are too busy defending yourself to fire any "
-              "ammo.\r\n");
+    if (is_tanking(ch) && !(HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))) {
+      send_to_char(ch, "You are too close to use your ranged weapon.\r\n");
       FIRING(ch) = FALSE;
     } else {
       while (ranged_attacks > 0) {
@@ -2882,7 +2901,12 @@ int perform_attacks(struct char_data *ch, int mode) {
       send_to_char(ch, "Ranged Attack Bonus:  %d; ",
               compute_bab(ch, ch, 0) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 4);
-      penalty -= 3;
+
+      if(attacks_at_max_bab != 0)
+        attacks_at_max_bab--;
+      else
+        penalty -= 3;
+
       ranged_attacks--;
     }
     return 0;

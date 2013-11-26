@@ -19,30 +19,29 @@
 #include "interpreter.h"
 #include "modify.h"
 #include "spells.h"
-
+#include "feats.h"
+#include "class.h"
+#include "constants.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
 
-static void druid_disp_menu(struct descriptor_data *d);
-static void sorc_disp_menu(struct descriptor_data *d);
-static void bard_disp_menu(struct descriptor_data *d);
-static void wizard_disp_menu(struct descriptor_data *d);
-static void ranger_disp_menu(struct descriptor_data *d);
 static void sorc_study_menu(struct descriptor_data *d, int circle);
 static void bard_study_menu(struct descriptor_data *d, int circle);
 static void favored_enemy_submenu(struct descriptor_data *d, int favored);
 static void favored_enemy_menu(struct descriptor_data *d);
 static void animal_companion_menu(struct descriptor_data *d);
 static void familiar_menu(struct descriptor_data *d);
+
+static void display_main_menu(struct descriptor_data *d);
+static void generic_main_disp_menu(struct descriptor_data *d);
+static void main_feat_disp_menu(struct descriptor_data *d);
+
+void init_study(struct descriptor_data *d, int class);
+void finalize_study(struct descriptor_data *d);
 /*-------------------------------------------------------------------*/
 
-// global
-int global_circle = -1; // keep track of circle as we navigate menus
-int global_class = -1; // keep track of class as we navigate menus
-int favored_slot = -1;
-
-/*-------------------------------------------------------------------*/
+#define MENU_OPT(i) ((i) ? grn : "\tD"), ((i) ? nrm : "\tD") 
 
 /* list of possible animal companions, use in-game vnums for this */
 #define C_BEAR    60
@@ -176,113 +175,201 @@ const char *familiar_names[] = {
   utility functions
  \*-------------------------------------------------------------------*/
 
-ACMD(do_study) {
-  struct descriptor_data *d = NULL;
-  int class = -1;
-
-  skip_spaces(&argument);
-
-  if (!argument) {
-    send_to_char(ch, "Specify a class to edit known spells.\r\n");
-    return;
-  } else if (is_abbrev(argument, "sorcerer")) {
-    if (IS_SORC_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
-      send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
-              "(You can also RESPEC to reset your character)\r\n");
-      return;
-    }
-    if (!CLASS_LEVEL(ch, CLASS_SORCERER)) {
-      send_to_char(ch, "How?  You are not a sorcerer!\r\n");
-      return;
-    }
-    class = CLASS_SORCERER;
-  } else if (is_abbrev(argument, "bard")) {
-    if (IS_BARD_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
-      send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
-              "(You can also RESPEC to reset your character)\r\n");
-      return;
-    }
-    if (!CLASS_LEVEL(ch, CLASS_BARD)) {
-      send_to_char(ch, "How?  You are not a bard!\r\n");
-      return;
-    }
-    class = CLASS_BARD;
-  } else if (is_abbrev(argument, "druid")) {
-    if (IS_DRUID_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
-      send_to_char(ch, "You can only modify your 'known' list once per level.\r\n"
-              "(You can also RESPEC to reset your character)\r\n");
-      return;
-    }
-    if (!CLASS_LEVEL(ch, CLASS_DRUID)) {
-      send_to_char(ch, "How?  You are not a druid!\r\n");
-      return;
-    }
-    class = CLASS_DRUID;
-  } else if (is_abbrev(argument, "ranger")) {
-    if (IS_RANG_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
-      send_to_char(ch, "You already adjusted your ranger "
-              "skills this level.\r\n");
-      return;
-    }
-    if (!CLASS_LEVEL(ch, CLASS_RANGER)) {
-      send_to_char(ch, "How?  You are not a ranger!\r\n");
-      return;
-    }
-    class = CLASS_RANGER;
-  } else if (is_abbrev(argument, "wizard")) {
-    if (IS_WIZ_LEARNED(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
-      send_to_char(ch, "You already adjusted your wizard "
-              "skills this level.\r\n");
-      return;
-    }
-    if (!CLASS_LEVEL(ch, CLASS_WIZARD)) {
-      send_to_char(ch, "How?  You are not a wizard!\r\n");
-      return;
-    }
-    class = CLASS_WIZARD;
-  } else {
-    send_to_char(ch, "Usage:  study <class name>\r\n");
-    return;
-  }
-
-  if (class == -1) {
-    send_to_char(ch, "Invalid class!\r\n");
-    return;
-  }
-
-  d = ch->desc;
+void init_study(struct descriptor_data *d, int class) {
+  struct char_data *ch = d->character;
+  int i = 0, j = 0;
 
   if (d->olc) {
     mudlog(BRF, LVL_IMMORT, TRUE,
             "SYSERR: do_study: Player already had olc structure.");
     free(d->olc);
   }
-
+ 
   CREATE(d->olc, struct oasis_olc_data, 1);
-
-  STATE(d) = CON_STUDY;
-
-  act("$n starts adjust studying $s skill-set.",
-          TRUE, d->character, 0, 0, TO_ROOM);
-  SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
-
-  if (class == CLASS_SORCERER) {
-    global_class = CLASS_SORCERER;
-    sorc_disp_menu(d);
-  } else if (class == CLASS_BARD) {
-    global_class = CLASS_BARD;
-    bard_disp_menu(d);
-  } else if (class == CLASS_RANGER) {
-    global_class = CLASS_RANGER;
-    ranger_disp_menu(d);
-  } else if (class == CLASS_DRUID) {
-    global_class = CLASS_DRUID;
-    druid_disp_menu(d);
-  } else if (class == CLASS_WIZARD) {
-    global_class = CLASS_WIZARD;
-    wizard_disp_menu(d);
+ 
+  if (LEVELUP(ch)) {
+    mudlog(BRF, LVL_IMMORT, TRUE,
+            "SYSERR: do_study: Player already had levelup structure.");
+    free(LEVELUP(ch));
   }
 
+  CREATE(LEVELUP(ch), struct level_data, 1);
+ 
+  STATE(d) = CON_STUDY;
+
+  /* Now copy the player's data to the levelup structure - a scratch area
+   * used during the study process. */
+  LEVELUP(ch)->class = class;
+  LEVELUP(ch)->level = CLASS_LEVEL(ch, class);
+  LEVELUP(ch)->feat_points  = GET_FEAT_POINTS(ch);
+  LEVELUP(ch)->class_feat_points = GET_CLASS_FEATS(ch, class);
+  LEVELUP(ch)->epic_feat_points = GET_EPIC_FEAT_POINTS(ch);
+  LEVELUP(ch)->epic_class_feat_points = GET_EPIC_CLASS_FEATS(ch, class);
+  LEVELUP(ch)->practices = GET_PRACTICES(ch);
+  LEVELUP(ch)->trains = GET_TRAINS(ch);
+  LEVELUP(ch)->num_boosts = GET_BOOSTS(ch);
+
+  send_to_char(ch, "%d %d %d %d\r\n", LEVELUP(ch)->feat_points, 
+                                  LEVELUP(ch)->class_feat_points, 
+                                  LEVELUP(ch)->epic_feat_points, 
+                                  LEVELUP(ch)->epic_class_feat_points);
+
+  /* The following data elements are used to store the player's choices during the
+   * study process - Just initialize these values. */
+  LEVELUP(ch)->spell_circle = -1;
+  LEVELUP(ch)->favored_slot = -1;
+
+  LEVELUP(ch)->tempFeat = 0;
+
+  for (i = 0; i < 6; i++) 
+    LEVELUP(ch)->boosts[i] = 0;
+  for (i = 0; i < NUM_FEATS; i++) {
+    LEVELUP(ch)->feats[i] = 0;
+    LEVELUP(ch)->feat_weapons[i] = 0;
+    LEVELUP(ch)->feat_skills[i] = 0;
+  }
+  for (i = 0; i < NUM_CFEATS; i++)
+    for (j = 0; j < FT_ARRAY_MAX; j++)
+      LEVELUP(ch)->combat_feats[i][j] = 0;
+  for (i = 0; i < NUM_SKFEATS; i++)
+    for (j = 0; j < MAX_ABILITIES + 1; j++)
+      LEVELUP(ch)->skill_focus[i][j] = 0;
+  for (i = 0; i < NUM_SFEATS; i ++)
+    LEVELUP(ch)->school_feats[i] = 0;
+
+  /* Finished with initialization - Now determine what the player can study. */
+
+}
+
+void finalize_study(struct descriptor_data *d) {
+
+  struct char_data *ch = d->character;
+  int i = 0, j = 0, subfeat = 0;
+
+  /* Finalize the chosen data, applying the levelup structure to 
+   * the character structure. */
+  GET_FEAT_POINTS(ch) = LEVELUP(ch)->feat_points;
+  GET_CLASS_FEATS(ch, LEVELUP(ch)->class) = LEVELUP(ch)->class_feat_points;
+  GET_EPIC_FEAT_POINTS(ch) = LEVELUP(ch)->epic_feat_points;
+  GET_EPIC_CLASS_FEATS(ch, LEVELUP(ch)->class) = LEVELUP(ch)->epic_class_feat_points;
+  GET_PRACTICES(ch) = LEVELUP(ch)->practices;
+  GET_TRAINS(ch) = LEVELUP(ch)->trains;
+  GET_BOOSTS(ch) = LEVELUP(ch)->num_boosts;
+
+/*
+  for (i = 0; i < 6; i++) 
+    LEVELUP(ch)->boosts[i] = 0;
+*/
+  
+  for (i = 0; i < NUM_FEATS; i++) {
+    if (LEVELUP(ch)->feats[i]) {
+      SET_FEAT(ch, i, LEVELUP(ch)->feats[i]);
+      if ((subfeat = feat_to_skfeat(i)) != -1) {
+        for (j = 0; j < MAX_ABILITIES + 1; j++) 
+          if (LEVELUP(ch)->skill_focus[subfeat][j]) 
+            GET_SKILL_FEAT(ch, i, j) += LEVELUP(ch)->skill_focus[subfeat][j];        
+      }
+      if ((subfeat = feat_to_cfeat(i)) != -1) {
+        for (j = 0; j < NUM_WEAPON_TYPES; j++) 
+          if (HAS_LEVELUP_COMBAT_FEAT(ch, subfeat, j)) 
+            SET_COMBAT_FEAT(ch, subfeat, j);
+      }
+      if ((subfeat = feat_to_sfeat(i)) != -1) {
+        for (j = 1; j < NUM_SCHOOLS; j++)
+          if (HAS_LEVELUP_SCHOOL_FEAT(ch, subfeat, j))
+            SET_SCHOOL_FEAT(ch, subfeat, j);
+      }
+    }
+  }
+
+  /* Set to learned. */
+  
+}
+
+ACMD(do_study) {
+  struct descriptor_data *d = ch->desc;
+
+  init_study(d, GET_CLASS(ch));
+
+  act("$n starts adjusting $s skill-set.",
+          TRUE, d->character, 0, 0, TO_ROOM);
+  SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
+  
+  display_main_menu(d);
+}
+
+#define FEAT_TYPE_NORMAL                1
+#define FEAT_TYPE_NORMAL_CLASS          2
+#define FEAT_TYPE_EPIC                  3
+#define FEAT_TYPE_EPIC_CLASS            4
+
+bool add_levelup_feat(struct descriptor_data *d, int feat) {
+
+  struct char_data *ch = d->character;
+  int feat_type = 0;
+
+  if (HAS_FEAT(ch, feat) && !feat_list[feat].can_stack) {
+    write_to_output(d, "You already have this feat.\r\n");
+    return FALSE;
+  }
+
+  if (feat_list[feat].epic == TRUE) { /* This is an epic feat! */
+    if (is_class_feat(feat, LEVELUP(ch)->class))
+      feat_type = FEAT_TYPE_EPIC_CLASS;
+    else
+      feat_type = FEAT_TYPE_EPIC;
+  } else {
+    if (is_class_feat(feat, LEVELUP(ch)->class))
+      feat_type = FEAT_TYPE_NORMAL_CLASS;
+    else
+      feat_type = FEAT_TYPE_NORMAL;
+  }
+
+  if ((feat_type == FEAT_TYPE_EPIC) && (LEVELUP(ch)->epic_feat_points < 1)) {
+    write_to_output(d, "You do not have enough epic feat points to gain that feat.\r\n");
+    return FALSE;
+  }
+  if ((feat_type == FEAT_TYPE_EPIC_CLASS) && 
+      ((LEVELUP(ch)->epic_feat_points < 1) &&
+       (LEVELUP(ch)->epic_class_feat_points < 1))) {
+    write_to_output(d, "You do not have enough epic class feat points to gain that feat.\r\n");
+    return FALSE;
+  }
+  if ((feat_type == FEAT_TYPE_NORMAL_CLASS) && 
+      ((LEVELUP(ch)->class_feat_points < 1) &&
+       (LEVELUP(ch)->feat_points < 1))) {
+    write_to_output(d, "You do not have enough class feat points to gain that feat.\r\n");
+    return FALSE;
+  }
+  if ((feat_type == FEAT_TYPE_NORMAL) && (LEVELUP(ch)->feat_points < 1)) {
+    write_to_output(d, "You do not have enough feat points to gain that feat.\r\n");
+    return FALSE;
+  }
+
+  /* If we are here, then we can add the feat! */
+  switch(feat_type) {
+    case FEAT_TYPE_EPIC:
+      LEVELUP(ch)->epic_feat_points--;
+      break;
+    case FEAT_TYPE_EPIC_CLASS:
+      if (LEVELUP(ch)->epic_class_feat_points > 0)
+        LEVELUP(ch)->epic_class_feat_points--;
+      else
+        LEVELUP(ch)->epic_feat_points--;
+      break;
+    case FEAT_TYPE_NORMAL_CLASS:
+      if (LEVELUP(ch)->class_feat_points > 0)
+        LEVELUP(ch)->class_feat_points--;
+      else
+        LEVELUP(ch)->feat_points--;
+      break;
+    case FEAT_TYPE_NORMAL:
+      LEVELUP(ch)->feat_points--;
+      break;
+  }
+
+  LEVELUP(ch)->feats[feat]++;
+  return TRUE;
 }
 
 /*-------------------------------------------------------------------*/
@@ -293,9 +380,11 @@ ACMD(do_study) {
 
 /*-------------------------------------------------------------------*/
 
-/*. Display main menu, Sorcerer . */
+static void display_main_menu(struct descriptor_data *d) {
+      generic_main_disp_menu(d);
+}
 
-static void sorc_disp_menu(struct descriptor_data *d) {
+static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
 
@@ -312,12 +401,7 @@ static void sorc_disp_menu(struct descriptor_data *d) {
           "%s 8%s) 8th Circle     : %s%d\r\n"
           "%s 9%s) 9th Circle     : %s%d\r\n"
           "\r\n"
-          "%s A%s) Familiar Selection\r\n"
-          "\r\n"
           "%s Q%s) Quit\r\n"
-          "\r\n"
-          "%sWhen you quit it finalizes all changes%s\r\n"
-          "%sYour 'known spells' can only be modified once per level%s\r\n"
           "\r\n"
           "Enter Choice : ",
 
@@ -340,22 +424,16 @@ static void sorc_disp_menu(struct descriptor_data *d) {
           count_sorc_known(d->character, 8, CLASS_SORCERER),
           grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
           count_sorc_known(d->character, 9, CLASS_SORCERER),
-          grn, nrm,
-          grn, nrm,
-          mgn, nrm,
-          mgn, nrm
+          grn, nrm
           );
 
-  OLC_MODE(d) = SORC_MAIN_MENU;
+  OLC_MODE(d) = STUDY_SORC_KNOWN_SPELLS_MENU;
 }
-
-/* the menu for each circle, sorcerer */
-
 
 void sorc_study_menu(struct descriptor_data *d, int circle) {
   int counter, columns = 0;
 
-  global_circle = circle;
+  LEVELUP(d->character)->spell_circle = circle;
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -380,13 +458,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   OLC_MODE(d) = STUDY_SPELLS;
 }
 
-/***********************end sorcerer******************************************/
-
-/*-------------------------------------------------------------------*/
-
-/*. Display main menu, Bard . */
-
-static void bard_disp_menu(struct descriptor_data *d) {
+static void bard_known_spells_disp_menu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
 
@@ -401,9 +473,6 @@ static void bard_disp_menu(struct descriptor_data *d) {
           "%s 6%s) 6th Circle     : %s%d\r\n"
           "\r\n"
           "%s Q%s) Quit\r\n"
-          "\r\n"
-          "%sWhen you quit it finalizes all changes%s\r\n"
-          "%sYour 'known spells' can only be modified once per level%s\r\n"
           "\r\n"
           "Enter Choice : ",
 
@@ -420,12 +489,10 @@ static void bard_disp_menu(struct descriptor_data *d) {
           count_sorc_known(d->character, 5, CLASS_BARD),
           grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][5] -
           count_sorc_known(d->character, 6, CLASS_BARD),
-          grn, nrm,
-          grn, nrm,
-          mgn, nrm
+          grn, nrm
           );
 
-  OLC_MODE(d) = BARD_MAIN_MENU;
+  OLC_MODE(d) = STUDY_BARD_KNOWN_SPELLS_MENU;
 }
 
 /* the menu for each circle, sorcerer */
@@ -434,7 +501,7 @@ static void bard_disp_menu(struct descriptor_data *d) {
 void bard_study_menu(struct descriptor_data *d, int circle) {
   int counter, columns = 0;
 
-  global_circle = circle;
+  LEVELUP(d->character)->spell_circle = circle;
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -443,7 +510,7 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
     if (spellCircle(CLASS_BARD, counter) == circle) {
       if (sorcKnown(d->character, counter, CLASS_BARD))
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
-              spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
@@ -461,47 +528,6 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
 
 /***********************end bard******************************************/
 
-/***************************/
-/* main menu for ranger */
-
-/***************************/
-static void ranger_disp_menu(struct descriptor_data *d) {
-  get_char_colors(d->character);
-  clear_screen(d);
-
-  write_to_output(d,
-          "\r\n-- %sRanger Skill Menu\r\n"
-          "\r\n"
-          "\r\n"
-          "%s 1%s) Favored Enemy Menu\r\n"
-          "\r\n"
-          "%s 2%s) Animal Companion Menu\r\n"
-          "\r\n"
-          "\r\n"
-          "%s Q%s) Quit\r\n"
-          "\r\n"
-          "%sWhen you quit it finalizes all changes%s\r\n"
-          "%sYour ranger skills can only be modified once per level%s\r\n"
-          "\r\n"
-          "Enter Choice : ",
-
-          mgn,
-          /* empty line */
-          /* empty line */
-          grn, nrm,
-          /* empty line */
-          grn, nrm,
-          /* empty line */
-          /* empty line */
-          grn, nrm,
-          mgn, nrm,
-          mgn, nrm
-          );
-
-  OLC_MODE(d) = RANG_MAIN_MENU;
-}
-
-/* ranger study sub-sub-menu:  select list of favored enemies (sub) */
 static void favored_enemy_submenu(struct descriptor_data *d, int favored) {
   get_char_colors(d->character);
   clear_screen(d);
@@ -532,14 +558,12 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored) {
   OLC_MODE(d) = FAVORED_ENEMY_SUB;
 }
 
-/* ranger study sub-menu:  select list of favored enemies */
 static void favored_enemy_menu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
 
   write_to_output(d,
           "\r\n-- %sRanger Favored Enemy Menu%s\r\n"
-          "\r\n"
           "\r\n"
           "%s 0%s) Favored Enemy #1  (Min. Level  1):  %s%s\r\n"
           "%s 1%s) Favored Enemy #2  (Min. Level  5):  %s%s\r\n"
@@ -576,7 +600,6 @@ static void favored_enemy_menu(struct descriptor_data *d) {
   OLC_MODE(d) = FAVORED_ENEMY;
 }
 
-/* druid/ranger study sub-menu:  adjust animal companion */
 static void animal_companion_menu(struct descriptor_data *d) {
   int i = 1, found = 0;
 
@@ -616,87 +639,6 @@ static void animal_companion_menu(struct descriptor_data *d) {
   OLC_MODE(d) = ANIMAL_COMPANION;
 }
 
-/*********************** end ranger ****************************************/
-
-/***************************/
-/* main menu for druid */
-
-/***************************/
-static void druid_disp_menu(struct descriptor_data *d) {
-  get_char_colors(d->character);
-  clear_screen(d);
-
-  write_to_output(d,
-          "\r\n-- %sDruid Skill Menu\r\n"
-          "\r\n"
-          "\r\n"
-          "%s 1%s) Animal Companion Menu\r\n"
-          "\r\n"
-          "\r\n"
-          "%s Q%s) Quit\r\n"
-          "\r\n"
-          "%sWhen you quit it finalizes all changes%s\r\n"
-          "%sYour druid skills can only be modified once per level%s\r\n"
-          "\r\n"
-          "Enter Choice : ",
-
-          mgn,
-          /* empty line */
-          /* empty line */
-          grn, nrm,
-          /* empty line */
-          /* empty line */
-          grn, nrm,
-          mgn, nrm,
-          mgn, nrm
-          );
-
-  OLC_MODE(d) = DRUID_MAIN_MENU;
-}
-
-/* animal companion is under ranger section */
-
-/*********************** end druid ****************************************/
-
-/*********************** wizard ******************************************/
-
-/***************************/
-/* main menu for wizard    */
-
-/***************************/
-static void wizard_disp_menu(struct descriptor_data *d) {
-  get_char_colors(d->character);
-  clear_screen(d);
-
-  write_to_output(d,
-          "\r\n-- %sWizard Skill Menu\r\n"
-          "\r\n"
-          "\r\n"
-          "%s 1%s) Familiar Menu\r\n"
-          "\r\n"
-          "\r\n"
-          "%s Q%s) Quit\r\n"
-          "\r\n"
-          "%sWhen you quit it finalizes all changes%s\r\n"
-          "%sYour wizard skills can only be modified once per level%s\r\n"
-          "\r\n"
-          "Enter Choice : ",
-
-          mgn,
-          /* empty line */
-          /* empty line */
-          grn, nrm,
-          /* empty line */
-          /* empty line */
-          grn, nrm,
-          mgn, nrm,
-          mgn, nrm
-          );
-
-  OLC_MODE(d) = WIZ_MAIN_MENU;
-}
-
-/* wizard study sub-menu:  adjust familiar */
 static void familiar_menu(struct descriptor_data *d) {
   int i = 1, found = 0;
 
@@ -737,36 +679,404 @@ static void familiar_menu(struct descriptor_data *d) {
   OLC_MODE(d) = FAMILIAR_MENU;
 }
 
+static void main_feat_disp_menu(struct descriptor_data *d) {
+  struct char_data *ch = d->character;
+
+  get_char_colors(ch);
+  clear_screen(d);
+
+ write_to_output(d,
+          "\r\n-- %sFeat Menu\r\n"
+          "\r\n"
+          "%s 1%s) Choose Feats\r\n"
+          "\r\n"
+
+          "%s Q%s) Quit\r\n"
+          "\r\n"
+          "Enter Choice : ",
+
+          mgn,
+          MENU_OPT(CAN_STUDY_FEATS(ch)),
+          grn, nrm
+          );
+
+
+  OLC_MODE(d) = STUDY_MAIN_FEAT_MENU;
+}
+
+static void display_study_feats(struct descriptor_data *d) {
+
+  struct char_data *ch = d->character;
+  int i = 0, j = 0, feat_marker = 0, feat_counter = 0, sortpos = 0;
+  int count = 0;
+  bool class_feat = FALSE;
+
+  for (sortpos = 1; sortpos < NUM_FEATS; sortpos++) {
+
+    i = feat_sort_info[sortpos];
+    feat_marker = 1;
+    feat_counter = 0;
+    class_feat = FALSE;
+
+    while (feat_marker != 0) {
+      feat_marker = class_bonus_feats[LEVELUP(ch)->class][feat_counter];
+      if (feat_marker == i) {
+        class_feat = TRUE;
+      }
+      feat_counter++;
+    }
+    
+    j = 0;
+
+    if (feat_is_available(ch, i, 0, NULL) && 
+        feat_list[i].in_game &&
+        feat_list[i].can_learn &&
+        (!HAS_FEAT(ch, i) || feat_list[i].can_stack)) {
+
+      write_to_output(d, "%s%s%3d%s) %-40s%s", class_feat ? "\tC(C) " : "\ty(N)", grn, i, nrm, feat_list[i].name, nrm);
+      count++;
+
+      if (count % 2 == 0)
+        write_to_output(d, "\r\n");
+    }
+  }
+  
+  if (count %2 != 0)
+    write_to_output(d, "\r\n");
+
+  write_to_output(d, "\r\n");
+
+  write_to_output(d, "To select a feat, type the number beside it.  Class feats are in \tCcyan\tn and marked with a (C).\r\n");
+  write_to_output(d, "Feat Points: General (%s%d%s) Class (%s%d%s) Epic (%s%d%s) Epic Class (%s%d%s)\r\n",
+                        (LEVELUP(ch)->feat_points > 0 ? grn : red), LEVELUP(ch)->feat_points, nrm,
+                        (LEVELUP(ch)->class_feat_points > 0 ? grn : red), LEVELUP(ch)->class_feat_points, nrm,
+                        (LEVELUP(ch)->epic_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_feat_points, nrm, 
+                        (LEVELUP(ch)->epic_class_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_class_feat_points, nrm);
+
+  write_to_output(d, "Your choice? (type -1 to exit) : ");
+
+}
+
+static void gen_feat_disp_menu(struct descriptor_data *d) {
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+          "\r\n-- %sFeats%s\r\n"
+          "\r\n",
+          mgn, nrm);
+
+  display_study_feats(d);
+
+
+  OLC_MODE(d) = STUDY_GEN_FEAT_MENU;
+}
+
+static void generic_main_disp_menu(struct descriptor_data *d) {
+  struct char_data *ch = d->character;
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+          "\r\n-- %sStudy Menu\r\n"
+          "\r\n"
+          "%s 1%s) Feats\r\n"
+          "%s 2%s) Known Spells\r\n"
+          "%s 3%s) Choose Familiar\r\n"       
+          "%s 4%s) Animal Companion\r\n"
+          "%s 5%s) Favored Enemy\r\n"
+          "\r\n"
+          "%s Q%s) Quit\r\n"
+          "\r\n"
+          "Enter Choice : ",
+
+          mgn,
+          grn, nrm, 
+          MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)),
+          MENU_OPT(CAN_STUDY_FAMILIAR(ch)),
+          MENU_OPT(CAN_STUDY_COMPANION(ch)),
+          MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)),
+          grn, nrm
+          );
+
+  OLC_MODE(d) = STUDY_GEN_MAIN_MENU;
+}
+
+
+static void cfeat_disp_menu(struct descriptor_data *d) { 
+  const char *feat_weapons[NUM_WEAPON_TYPES - 1];
+  int i = 0;
+  
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  /* we want to use column_list here, but we don't have a pre made list
+   * of string values (without undefined).  Make one, and make sure it is in order. */
+  for (i = 0; i < NUM_WEAPON_TYPES - 1 ; i++) {
+    feat_weapons[i] = weapon_list[i + 1].name;
+  }
+
+  column_list(d->character, 3, feat_weapons, NUM_WEAPON_TYPES - 1, TRUE);
+
+  write_to_output(d, "\r\n%sChoose weapon type for the %s feat : ", nrm, feat_list[LEVELUP(d->character)->tempFeat].name);
+
+  OLC_MODE(d) = STUDY_CFEAT_MENU;
+}
+
+static void sfeat_disp_menu(struct descriptor_data *d) {
+  int i=0;
+
+  get_char_colors(d->character); 
+  clear_screen(d);
+
+  for(i = 1; i < NUM_SCHOOLS; i++)
+    write_to_output(d, "%d) %s\r\n", i, spell_schools[i]);
+
+  write_to_output(d, "\r\n%sChoose a spell school for the %s feat : ", nrm, feat_list[LEVELUP(d->character)->tempFeat].name);
+
+  OLC_MODE(d) = STUDY_SFEAT_MENU;
+}
+
+static void skfeat_disp_menu(struct descriptor_data *d) {
+  get_char_colors(d->character); 
+  clear_screen(d);
+
+  OLC_MODE(d) = STUDY_SKFEAT_MENU;
+}
+
 /**************************************************************************
   The handler
  **************************************************************************/
 
 
 void study_parse(struct descriptor_data *d, char *arg) {
+  struct char_data *ch = d->character;
   int number = -1;
   int counter;
 
   switch (OLC_MODE(d)) {
+    case STUDY_CONFIRM_SAVE:
+      switch (*arg) {
+        case 'y':
+        case 'Y':
+          /* Save the temporary values in LEVELUP(d->character) to the 
+           * character, print a message, free the structures and exit. */
+          write_to_output(d, "Your choices have been finalized!\r\n\r\n");
+          finalize_study(d);
+          save_char(d->character, 0);
+          cleanup_olc(d, CLEANUP_ALL);
+          free(LEVELUP(d->character));
+          LEVELUP(d->character) = NULL;
+          break;
+        case 'n':
+        case 'N':
+          /* Discard the changes and exit. */
+          write_to_output(d, "Your choices were NOT finalized.\r\n\r\n");
+          cleanup_olc(d, CLEANUP_ALL);
+          free(LEVELUP(d->character));
+          LEVELUP(d->character) = NULL;
+          break;
+        default: 
+          write_to_output(d, "Invalid choice!\r\nDo you wish to save your changes ? : ");
+          break;
+      }
+      return;
 
-      /******* start sorcerer **********/
-
-      /* familiar menu is shared with wizard and can
-       * be found in 'wizard' section of choices  */
-
-    case SORC_MAIN_MENU:
+    case STUDY_GEN_MAIN_MENU:
       switch (*arg) {
         case 'q':
         case 'Q':
-          write_to_output(d, "Your choices have been finalized!\r\n\r\n");
-          if (global_class == CLASS_SORCERER)
-            IS_SORC_LEARNED(d->character) = 1;
-          save_char(d->character, 0);
-          cleanup_olc(d, CLEANUP_ALL);
-          return;
-        case 'a': // familiar choices
-        case 'A':
-          familiar_menu(d);
-          OLC_MODE(d) = FAMILIAR_MENU;
+          write_to_output(d, "If you save your changes, you will not be able to study again until your next level.\r\n");
+          write_to_output(d, "Do you wish to save your changes? : ");
+          OLC_MODE(d) = STUDY_CONFIRM_SAVE;
+          break;
+        case '1':
+          main_feat_disp_menu(d);    
+          break;
+        case '2':
+          if (CAN_STUDY_KNOWN_SPELLS(ch)) {
+            if (LEVELUP(ch)->class == CLASS_SORCERER)
+              sorc_known_spells_disp_menu(d);
+            if (LEVELUP(ch)->class == CLASS_BARD)
+              bard_known_spells_disp_menu(d);
+          }    else {
+            write_to_output(d, "That is an invalid choice!\r\n");
+            generic_main_disp_menu(d);
+          }
+          break;
+        case '3':
+          if (CAN_STUDY_FAMILIAR(ch))
+            familiar_menu(d);
+          else {
+            write_to_output(d, "That is an invalid choice!\r\n");
+            generic_main_disp_menu(d);
+          }
+          break;
+        case '4':
+          if (CAN_STUDY_COMPANION(ch))
+            animal_companion_menu(d);
+          else {
+            write_to_output(d, "That is an invalid choice!\r\n");
+            generic_main_disp_menu(d);
+          }
+          break;
+        case '5':
+          if (CAN_STUDY_FAVORED_ENEMY(ch))
+            favored_enemy_menu(d);
+          else {
+            write_to_output(d, "That is an invalid choice!\r\n");
+            generic_main_disp_menu(d);
+          }        
+        default:
+          write_to_output(d, "That is an invalid choice!\r\n");
+          display_main_menu(d);
+          break;
+
+      }
+      break;
+    case STUDY_MAIN_FEAT_MENU:
+      /* This is the menu where the player chooses feats - This menu is actually a
+       * 'master menu' that drives the process. */
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          display_main_menu(d);
+          break;
+        case '1': /* Choose Feats */
+         if (CAN_STUDY_FEATS(ch))
+            gen_feat_disp_menu(d);
+          else {
+            write_to_output(d, "That is an invalid choice!\r\n");
+            main_feat_disp_menu(d);
+          }
+          break;
+        default:
+          write_to_output(d, "That is an invalid choice!\r\n");
+          main_feat_disp_menu(d);
+          break;
+
+      }
+      break;
+  
+    case STUDY_GEN_FEAT_MENU:
+      number = atoi(arg);
+      if (number == -1) {
+        main_feat_disp_menu(d);
+        break;
+      }
+
+      /* Check if the feat is available. */
+      if ((number < 1) ||
+          (number >= NUM_FEATS) ||
+          (!feat_is_available(d->character, number, 0, NULL))) {
+        write_to_output(d, "Invalid feat, try again.\r\n");
+        gen_feat_disp_menu(d);
+        break;           
+      }
+
+      /* Store the feat number in the work area in the data structure. */
+      LEVELUP(d->character)->tempFeat = number;
+
+     /* Display the description of the feat, and give the player an option. */
+      write_to_output(d, "%s%s%s: %s\r\n\r\n"
+                         "Choose this feat? (y/n) : ",
+                         nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description);
+
+      OLC_MODE(d) = STUDY_CONFIRM_ADD_FEAT;
+      break;
+
+    case STUDY_CONFIRM_ADD_FEAT:
+      switch(*arg) {
+        case 'n':
+        case 'N':
+          gen_feat_disp_menu(d);
+          break;
+        case 'y':
+        case 'Y':     
+          /* Check to see if this feat has a subfeat - If so, then display the 
+           * approptiate menus. */
+          if(feat_to_cfeat(LEVELUP(ch)->tempFeat) != -1) {
+            /* Combat feat - Need to choose weapon type. */
+            cfeat_disp_menu(d);
+            break;        
+          }
+          if(feat_to_sfeat(LEVELUP(ch)->tempFeat) != -1) {
+            /* Spell school feat - Need to choose spell school. */
+            sfeat_disp_menu(d);
+            break;
+          }
+          if(feat_to_skfeat(LEVELUP(ch)->tempFeat) != -1) {
+            /* Skill feat - Need to choose a skill (ability) */
+            skfeat_disp_menu(d);
+            break;
+          }
+
+          if (add_levelup_feat(d, LEVELUP(ch)->tempFeat))
+            write_to_output(d, "Feat %s chosen!\r\n", feat_list[LEVELUP(ch)->tempFeat].name);
+          gen_feat_disp_menu(d);
+          break;
+      }
+      break;      
+    /* Combat feats require the selection of a weapon type. */
+    case STUDY_CFEAT_MENU:
+      number = atoi(arg);
+      if (number == -1) {
+        LEVELUP(d->character)->tempFeat = -1;
+        gen_feat_disp_menu(d);
+        break;
+      }
+      if ((number < 1) || (number >= NUM_WEAPON_TYPES)) {
+        write_to_output(d, "That is an invalid choice!\r\n");
+        cfeat_disp_menu(d);
+        break;
+      }
+      /* Now we have the weapon type - set it in the structure. */
+      if (add_levelup_feat(d, LEVELUP(d->character)->tempFeat)) {
+        SET_LEVELUP_COMBAT_FEAT(d->character, feat_to_cfeat(LEVELUP(d->character)->tempFeat), number);
+
+        write_to_output(d, "Feat %s (%s) chosen!\r\n", feat_list[LEVELUP(d->character)->tempFeat].name, weapon_list[number].name);
+        
+      } else {
+        LEVELUP(d->character)->tempFeat = -1;
+      }
+      gen_feat_disp_menu(d);
+
+      break;
+
+    /* School feats require the selection of a spell school. */
+    case STUDY_SFEAT_MENU:
+      number = atoi(arg);
+      if (number == -1) {
+        LEVELUP(d->character)->tempFeat = -1;
+        gen_feat_disp_menu(d);
+        break; 
+      }
+      if ((number < 1) || (number >= NUM_SCHOOLS)) {
+        write_to_output(d, "That is an invalid choice!\r\n");
+        cfeat_disp_menu(d); 
+        break;
+      }
+      /* Now we have the spell school. */
+      if (add_levelup_feat(d, LEVELUP(d->character)->tempFeat)) {
+        SET_LEVELUP_SCHOOL_FEAT(d->character, feat_to_sfeat(LEVELUP(d->character)->tempFeat), number);
+ 
+        write_to_output(d, "Feat %s (%s) chosen!\r\n", feat_list[LEVELUP(d->character)->tempFeat].name, spell_schools[number]);
+      } else {
+        LEVELUP(d->character)->tempFeat = -1;
+      } 
+      gen_feat_disp_menu(d); 
+      break;
+
+    /* Skill feats require the selection of a skill. */
+    case STUDY_SKFEAT_MENU:
+      break;
+
+    /******* start sorcerer **********/
+    case STUDY_SORC_KNOWN_SPELLS_MENU:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          display_main_menu(d);          
           break;
           /* here are our spell levels for 'spells known' */
         case '1':
@@ -783,7 +1093,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           break;
         default:
           write_to_output(d, "That is an invalid choice!\r\n");
-          sorc_disp_menu(d);
+          sorc_known_spells_disp_menu(d);
           break;
       }
       break;
@@ -792,15 +1102,15 @@ void study_parse(struct descriptor_data *d, char *arg) {
       switch (*arg) {
         case 'q':
         case 'Q':
-          sorc_disp_menu(d);
-          return;
+          sorc_known_spells_disp_menu(d);
+          break;
 
         default:
           number = atoi(arg);
 
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
-              if (spellCircle(CLASS_SORCERER, counter) == global_circle) {
+              if (spellCircle(CLASS_SORCERER, counter) == LEVELUP(d->character)->spell_circle) {
                 if (sorcKnown(d->character, counter, CLASS_SORCERER))
                   sorc_extract_known(d->character, counter, CLASS_SORCERER);
                 else if (!sorc_add_known(d->character, counter, CLASS_SORCERER))
@@ -808,8 +1118,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
               }
             }
           }
-          OLC_MODE(d) = SORC_MAIN_MENU;
-          sorc_study_menu(d, global_circle);
+          sorc_study_menu(d, LEVELUP(d->character)->spell_circle);
           break;
       }
       break;
@@ -818,16 +1127,13 @@ void study_parse(struct descriptor_data *d, char *arg) {
 
       /******* start bard **********/
 
-    case BARD_MAIN_MENU:
+    case STUDY_BARD_KNOWN_SPELLS_MENU:
       switch (*arg) {
         case 'q':
         case 'Q':
-          write_to_output(d, "Your choices have been finalized!\r\n\r\n");
-          if (global_class == CLASS_BARD)
-            IS_BARD_LEARNED(d->character) = 1;
-          save_char(d->character, 0);
-          cleanup_olc(d, CLEANUP_ALL);
-          return;
+          display_main_menu(d);          
+          break;
+
           /* here are our spell levels for 'spells known' */
         case '1':
         case '2':
@@ -836,11 +1142,10 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case '5':
         case '6':
           bard_study_menu(d, atoi(arg));
-          OLC_MODE(d) = BARD_STUDY_SPELLS;
           break;
         default:
           write_to_output(d, "That is an invalid choice!\r\n");
-          bard_disp_menu(d);
+          bard_known_spells_disp_menu(d);
           break;
       }
       break;
@@ -849,15 +1154,15 @@ void study_parse(struct descriptor_data *d, char *arg) {
       switch (*arg) {
         case 'q':
         case 'Q':
-          bard_disp_menu(d);
-          return;
+          bard_known_spells_disp_menu(d);
+          break;
 
         default:
           number = atoi(arg);
 
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
-              if (spellCircle(CLASS_BARD, counter) == global_circle) {
+              if (spellCircle(CLASS_BARD, counter) == LEVELUP(d->character)->spell_circle) {
                 if (sorcKnown(d->character, counter, CLASS_BARD))
                   sorc_extract_known(d->character, counter, CLASS_BARD);
                 else if (!sorc_add_known(d->character, counter, CLASS_BARD))
@@ -865,76 +1170,18 @@ void study_parse(struct descriptor_data *d, char *arg) {
               }
             }
           }
-          OLC_MODE(d) = BARD_MAIN_MENU;
-          bard_study_menu(d, global_circle);
+          bard_study_menu(d, LEVELUP(d->character)->spell_circle);
           break;
       }
       break;
       /******* end bard **********/
-
-
-      /******* start druid **********/
-
-    case DRUID_MAIN_MENU:
-      switch (*arg) {
-        case 'q':
-        case 'Q':
-          write_to_output(d, "Your choices have been finalized!\r\n\r\n");
-          if (global_class == CLASS_DRUID)
-            IS_DRUID_LEARNED(d->character) = 1;
-          save_char(d->character, 0);
-          cleanup_olc(d, CLEANUP_ALL);
-          return;
-        case '1': // animal companion choice
-          animal_companion_menu(d);
-          OLC_MODE(d) = ANIMAL_COMPANION;
-          break;
-        default:
-          write_to_output(d, "That is an invalid choice!\r\n");
-          ranger_disp_menu(d);
-          break;
-      }
-      break;
       
-      /* animal companion is under ranger section */
-      
-      
-      /******* end druid **********/
-      
-      /******* start ranger **********/
-
-    case RANG_MAIN_MENU:
-      switch (*arg) {
-        case 'q':
-        case 'Q':
-          write_to_output(d, "Your choices have been finalized!\r\n\r\n");
-          if (global_class == CLASS_RANGER)
-            IS_RANG_LEARNED(d->character) = 1;
-          save_char(d->character, 0);
-          cleanup_olc(d, CLEANUP_ALL);
-          return;
-        case '1': // favored enemy choice
-          favored_enemy_menu(d);
-          OLC_MODE(d) = FAVORED_ENEMY;
-          break;
-        case '2': // animal companion choice
-          animal_companion_menu(d);
-          OLC_MODE(d) = ANIMAL_COMPANION;
-          break;
-        default:
-          write_to_output(d, "That is an invalid choice!\r\n");
-          ranger_disp_menu(d);
-          break;
-      }
-      break;
-
     case FAVORED_ENEMY:
       switch (*arg) {
         case 'q':
-        case 'Q':
-          ranger_disp_menu(d);
-          OLC_MODE(d) = RANG_MAIN_MENU;
-          return;
+        case 'Q':                 
+          display_main_menu(d);
+          break;
 
         default:
           number = atoi(arg);
@@ -943,15 +1190,15 @@ void study_parse(struct descriptor_data *d, char *arg) {
           switch (number) {
             case 0:
               if (ranger_level) {
-                favored_slot = number;
+                LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                return;
+                break;
               }
               break;
             case 1:
               if (ranger_level >= 5) {
-                favored_slot = number;
+                LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
                 return;
@@ -962,10 +1209,10 @@ void study_parse(struct descriptor_data *d, char *arg) {
               break;
             case 2:
               if (ranger_level >= 10) {
-                favored_slot = number;
+                LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                return;
+                break;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
                         "modify this slot!\r\n");
@@ -973,10 +1220,10 @@ void study_parse(struct descriptor_data *d, char *arg) {
               break;
             case 3:
               if (ranger_level >= 15) {
-                favored_slot = number;
+                LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                return;
+                break;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
                         "modify this slot!\r\n");
@@ -984,10 +1231,10 @@ void study_parse(struct descriptor_data *d, char *arg) {
               break;
             case 4:
               if (ranger_level >= 20) {
-                favored_slot = number;
+                LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                return;
+                break;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
                         "modify this slot!\r\n");
@@ -995,10 +1242,10 @@ void study_parse(struct descriptor_data *d, char *arg) {
               break;
             case 5:
               if (ranger_level >= 25) {
-                favored_slot = number;
+                LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                return;
+                break;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
                         "modify this slot!\r\n");
@@ -1006,10 +1253,10 @@ void study_parse(struct descriptor_data *d, char *arg) {
               break;
             case 6:
               if (ranger_level >= 30) {
-                favored_slot = number;
+                LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                return;
+                break;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
                         "modify this slot!\r\n");
@@ -1036,7 +1283,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case 'Q':
           favored_enemy_menu(d);
           OLC_MODE(d) = FAVORED_ENEMY;
-          return;
+          break;
 
         default:
           number = atoi(arg);
@@ -1044,35 +1291,24 @@ void study_parse(struct descriptor_data *d, char *arg) {
           if (number < 0 || number >= NUM_NPC_RACES)
             write_to_output(d, "Invalid race!\r\n");
           else {
-            GET_FAVORED_ENEMY(d->character, favored_slot) =
+            GET_FAVORED_ENEMY(d->character, LEVELUP(d->character)->favored_slot) =
                     number;
             favored_enemy_menu(d);
             OLC_MODE(d) = FAVORED_ENEMY;
             return;
           }
 
-          OLC_MODE(d) = FAVORED_ENEMY_SUB;
-          favored_enemy_submenu(d, favored_slot);
+          favored_enemy_submenu(d, LEVELUP(d->character)->favored_slot);
           break;
       }
-      OLC_MODE(d) = FAVORED_ENEMY_SUB;
       break;
 
-      /* shared with druid */
     case ANIMAL_COMPANION:
       switch (*arg) {
         case 'q':
         case 'Q':
-          if (global_class == CLASS_RANGER) {
-            ranger_disp_menu(d);
-            OLC_MODE(d) = RANG_MAIN_MENU;            
-          }
-          if (global_class == CLASS_DRUID) {
-            druid_disp_menu(d);
-            OLC_MODE(d) = DRUID_MAIN_MENU;            
-          }
-          return;
-
+          display_main_menu(d);     
+          break;
         default:
           number = atoi(arg);
 
@@ -1087,52 +1323,17 @@ void study_parse(struct descriptor_data *d, char *arg) {
                     animal_names[number]);
           }
 
-          OLC_MODE(d) = ANIMAL_COMPANION;
           animal_companion_menu(d);
           break;
       }
-      OLC_MODE(d) = ANIMAL_COMPANION;
-      break;
-      /******* end ranger **********/
-
-      /******* wizard **********/
-
-    case WIZ_MAIN_MENU:
-      switch (*arg) {
-        case 'q':
-        case 'Q':
-          write_to_output(d, "Your choices have been finalized!\r\n\r\n");
-          if (global_class == CLASS_WIZARD)
-            IS_WIZ_LEARNED(d->character) = 1;
-          save_char(d->character, 0);
-          cleanup_olc(d, CLEANUP_ALL);
-          return;
-        case '1': // familiar choice
-          familiar_menu(d);
-          OLC_MODE(d) = FAMILIAR_MENU;
-          break;
-        default:
-          write_to_output(d, "That is an invalid choice!\r\n");
-          wizard_disp_menu(d);
-          break;
-      }
       break;
 
-      /* shared with sorcerer */
     case FAMILIAR_MENU:
       switch (*arg) {
         case 'q':
         case 'Q':
-          if (global_class == CLASS_WIZARD) {
-            wizard_disp_menu(d);
-            OLC_MODE(d) = WIZ_MAIN_MENU;
-          }
-          if (global_class == CLASS_SORCERER) {
-            sorc_disp_menu(d);
-            OLC_MODE(d) = SORC_MAIN_MENU;
-          }
-          return;
-
+          display_main_menu(d);          
+          break;
         default:
           number = atoi(arg);
 
@@ -1147,19 +1348,16 @@ void study_parse(struct descriptor_data *d, char *arg) {
                     familiar_names[number]);
           }
 
-          OLC_MODE(d) = FAMILIAR_MENU;
           familiar_menu(d);
           break;
       }
-      OLC_MODE(d) = FAMILIAR_MENU;
       break;
-
-      /**** end wizard ******/
-
 
       /* We should never get here, but just in case... */
     default:
       cleanup_olc(d, CLEANUP_CONFIG);
+      free(LEVELUP(d->character));
+      LEVELUP(d->character) = NULL;
       mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: study_parse(): Reached default case!");
       write_to_output(d, "Oops...\r\n");
       break;
@@ -1202,5 +1400,5 @@ void study_parse(struct descriptor_data *d, char *arg) {
 #undef F_PSEUDO_DRAGON     
 #undef F_HELLHOUND     
 
-
+#undef MENU_OPT
 

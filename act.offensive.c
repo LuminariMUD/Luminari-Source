@@ -27,7 +27,6 @@
 #include "class.h"
 #include "mudlim.h"
 
-
 /**** Utility functions *******/
 
 /* ranged combat (archery, etc)
@@ -141,57 +140,20 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
 }
 
 /* stunningfist engine */
-void perform_stunningfist(struct char_data *ch, struct char_data *vict) {
-  int percent, prob;
+/* The stunning fist is reliant on a successful UNARMED attack (or an attack with a KI_STRIKE weapon) */
+void perform_stunningfist(struct char_data *ch, long cooldown) {
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-  
-  if (char_has_mud_event(ch, eSTUNNINGFIST)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    return;
-  }
-  
-  if (vict == ch) {
-    send_to_char(ch, "Aren't we funny today...\r\n");
-    return;
-  }
-  
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
-    send_to_char(ch, "You simply can't reach that far.\r\n");
-    return;
-  }
-  
-  if (char_has_mud_event(vict, eSTUNNED)) {
-    send_to_char(ch, "Your target is already stunned...\r\n");
-    return;
-  }
+  struct affected_type af;
 
-  /* 101% is a complete failure */
-  percent = rand_number(1, 101);
-  if (IS_NPC(ch))
-    prob = 60;
-  else
-    prob = GET_SKILL(ch, SKILL_STUNNING_FIST);
+  new_affect(&af);
+  af.spell = SKILL_STUNNING_FIST;
+  af.duration = 24;
 
-  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
-    percent += compute_ability(vict, ABILITY_DISCIPLINE);
+  affect_to_char(ch, &af);
 
-  if (percent > prob) {
-    damage(ch, vict, 0, SKILL_STUNNING_FIST, DAM_FORCE, FALSE);
-  } else {
-    damage(ch, vict, (dice(1, 8) + GET_DAMROLL(ch)), SKILL_STUNNING_FIST,
-            DAM_FORCE, FALSE);
-    attach_mud_event(new_mud_event(eSTUNNED, vict, NULL), 6 * PASSES_PER_SEC);
-  }
-  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), 150 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), cooldown);
+  send_to_char(ch, "You focus your Ki energies and prepare a disabling unarmed attack.\r\n");
 
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_STUNNING_FIST);
-  
 }
 
 #define RAGE_AFFECTS 4
@@ -1686,13 +1648,13 @@ ACMD(do_spellbattle) {
 #undef SPELLBATTLE_AFFECTS
 
 ACMD(do_expertise) {
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_EXPERTISE)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_COMBAT_EXPERTISE)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
 
   if (AFF_FLAGGED(ch, AFF_SPELLBATTLE)) {
-    send_to_char(ch, "You can't enter this mode while in spellbattle!\r\n");
+    send_to_char(ch, "You can't use combat expertise while in spellbattle!\r\n");
     return;
   }
 
@@ -1715,7 +1677,7 @@ ACMD(do_parry) {
   }
 
   if (AFF_FLAGGED(ch, AFF_SPELLBATTLE)) {
-    send_to_char(ch, "You can't enter this mode while in spellbattle!\r\n");
+    send_to_char(ch, "You can't enter parry mode while in spellbattle!\r\n");
     return;
   }
 
@@ -1732,13 +1694,13 @@ ACMD(do_parry) {
 }
 
 ACMD(do_powerattack) {
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_POWER_ATTACK)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_POWER_ATTACK)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
 
   if (AFF_FLAGGED(ch, AFF_SPELLBATTLE)) {
-    send_to_char(ch, "You can't enter this mode while in spellbattle!\r\n");
+    send_to_char(ch, "You can't enter power attack mode while in spellbattle!\r\n");
     return;
   }
 
@@ -1752,6 +1714,25 @@ ACMD(do_powerattack) {
 
   SET_BIT_AR(AFF_FLAGS(ch), AFF_POWER_ATTACK);
   SET_WAIT(ch, 10);
+}
+
+ACMD(do_rapidshot)
+{
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_RAPID_SHOT)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+    
+  if (!AFF_FLAGGED(ch, AFF_RAPID_SHOT)) {
+    send_to_char(ch, "You are now in 'rapid shot' mode.\r\n");
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_RAPID_SHOT);
+  }
+  else {
+    send_to_char(ch, "You leave 'rapid shot' mode.\r\n");
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_RAPID_SHOT);
+  }
+
+  return; 
 }
 
 ACMD(do_disengage) {
@@ -1858,7 +1839,7 @@ ACMD(do_frightful) {
     next_vict = vict->next_in_room;
 
     if (aoeOK(ch, vict, -1) &&
-            (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_COURAGE))) {
+            (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_AURA_OF_COURAGE))) {
       send_to_char(ch, "You roar at %s.\r\n", GET_NAME(vict));
       send_to_char(vict, "A mighty roar from %s is directed at you!\r\n",
               GET_NAME(ch));
@@ -2032,7 +2013,7 @@ ACMD(do_layonhands) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_LAY_ON_HANDS)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_LAYHANDS)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -2180,10 +2161,34 @@ ACMD(do_whirlwind) {
 }
 
 ACMD(do_stunningfist) {
-  char arg[MAX_INPUT_LENGTH];
+  int cooldown = 0, uses_per_day = 0;
+
+  if (!HAS_FEAT(ch, FEAT_STUNNING_FIST)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eSTUNNINGFIST)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    return;
+  }
+
+  uses_per_day += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK))/4;
+
+  if (uses_per_day <= 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  cooldown = (SECS_PER_MUD_DAY/uses_per_day) RL_SEC;
+
+  perform_stunningfist(ch, cooldown);
+  
+  
+/*  char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_STUNNING_FIST)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_STUNNING_FIST)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -2199,6 +2204,7 @@ ACMD(do_stunningfist) {
   }
   
   perform_stunningfist(ch, vict);
+*/
   
 }
 
@@ -2800,7 +2806,8 @@ ACMD(do_fire) {
       stop_fighting(ch);
     else
       FIRING(ch) = TRUE;      
-    SET_WAIT(ch, PULSE_VIOLENCE);
+
+      SET_WAIT(ch, PULSE_VIOLENCE);
   }
 }
 

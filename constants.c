@@ -572,6 +572,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Body-Weaponry",
   "Farsee",
   "Menz-Choker",
+  "Mode-RapidShot",
   "\n"
 };
 
@@ -895,6 +896,7 @@ const char *extra_bits[NUM_ITEM_FLAGS + 1] = {
   "Auto-Proc",
   "Flaming",  //45
   "Frosty",
+  "Ki-Focus",
   "\n"
 };
 
@@ -1079,6 +1081,19 @@ const char *portal_types[] =
    "\n" 
 }; 
 
+const char *spell_schools[NUM_SCHOOLS + 1] =
+{
+  "None",
+  "Abjuration",
+  "Conjuration",
+  "Divination",
+  "Enchantment",
+  "Evocation",
+  "Illusion",
+  "Necromancy",
+  "Transmutation",
+  "\n"
+};
 
 int spell_bonus[51][10] = {
   // 1     2    3    4    5    6    7    8    9    10

@@ -30,6 +30,7 @@
 #include "spells.h"
 #include "mud_event.h"
 #include "mudlim.h"
+#include "feats.h"
 
 int *free_start_feats[];
 
@@ -568,7 +569,6 @@ int level_feats[][6] = {
 int epic_level_feats[][7] =
 {
 
-/* Needs adaptation! 
   { CLASS_ROGUE, 0, 2, 1, TRUE, FEAT_SNEAK_ATTACK, 1},
   { CLASS_ROGUE, 0, 4, 0, TRUE, FEAT_TRAP_SENSE, 1},
   { CLASS_BERSERKER, 0, 3, 0, TRUE, FEAT_TRAP_SENSE, 1},
@@ -578,7 +578,6 @@ int epic_level_feats[][7] =
   { CLASS_PALADIN, 0, 5, 0, TRUE, FEAT_SMITE_EVIL, 1},
   { CLASS_PALADIN, 0, 3, 0, TRUE, FEAT_REMOVE_DISEASE, 1},
   { CLASS_RANGER, 0, 5, 0, TRUE, FEAT_FAVORED_ENEMY_AVAILABLE, 1},
-*/
 
   // This is always the last one
   { CLASS_UNDEFINED, 0, 0, 0, TRUE, FEAT_UNDEFINED, 0}
@@ -794,7 +793,7 @@ const int no_class_feats[] = {
   FEAT_UNDEFINED
 };
 
-/* This array collectds all of the information about class feats
+/* This array collects all of the information about class feats
  * and is used during level gain to show the allowed feats. 
  * SEE NOTE FOR ROGUE FEATS */
 const int *class_bonus_feats[NUM_CLASSES] = {
@@ -1416,12 +1415,22 @@ void monk_skills(struct char_data *ch, int level) {
 }
 
 void init_class(struct char_data *ch, int class, int level) {
+  int i, j;  
+  
+  /* Init Feats - Each class gets a set of free starting feats. */
+  for(i = 0; (j = free_start_feats[class][i]); i++) {
+    if (!HAS_REAL_FEAT(ch, j)) {
+      send_to_char(ch, "You have learned the %s feat!\r\n", feat_list[j].name);
+      SET_FEAT(ch, j, 1);
+    }
+  }
+
   switch (class) {
 
     case CLASS_WIZARD:
       if (!GET_SKILL(ch, SKILL_SCRIBE)) {
         SET_SKILL(ch, SKILL_SCRIBE, 75);
-        send_to_char(ch, "\tMYou have learned 'Scribe'\tn\r\n");
+        send_to_char(ch, "\tMYou have learned 'Scribe'\r\n");
       }
       /* SWITCH FALL THROUGH */
     case CLASS_SORCERER:
@@ -2149,7 +2158,7 @@ void init_class(struct char_data *ch, int class, int level) {
 
 /* not to be confused with init_char, this is exclusive right now for do_start */
 void init_start_char(struct char_data *ch) {
-  int trains = 0, practices = 0, i = 0;
+  int trains = 0, practices = 0, i = 0, j = 0;
 
   /* clear immortal flags */
   if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
@@ -2205,6 +2214,14 @@ void init_start_char(struct char_data *ch) {
   GET_PRACTICES(ch) = 0;
   GET_TRAINS(ch) = 0;
   GET_BOOSTS(ch) = 4; //freebies
+  GET_FEAT_POINTS(ch) = 0;
+  GET_EPIC_FEAT_POINTS(ch) = 0;
+
+  for (i = 0; i < NUM_CLASSES; i++) { 
+    GET_CLASS_FEATS(ch, i) = 0;
+    GET_EPIC_CLASS_FEATS(ch, i) = 0;
+  }
+
   GET_REAL_SPELL_RES(ch) = 0;
 
   /* reset skills/abilities */
@@ -2212,6 +2229,17 @@ void init_start_char(struct char_data *ch) {
     SET_SKILL(ch, i, 0);
   for (i = 1; i <= NUM_ABILITIES; i++)
     SET_ABILITY(ch, i, 0);
+  for (i = 1; i < NUM_FEATS; i++)
+    SET_FEAT(ch, i, 0);
+  for (i = 0; i < NUM_CFEATS; i++)
+    for (j = 0; j < FT_ARRAY_MAX; j++)
+      (ch)->char_specials.saved.combat_feats[(i)][j] = 0;
+  for (i = 0; i < NUM_SFEATS; i++)
+    (ch)->char_specials.saved.school_feats[(i)] = 0; 
+  for (i = 0; i < NUM_SKFEATS; i++)
+    for (j = 0; j > NUM_ABILITIES; j++)
+      (ch)->player_specials->saved.skill_focus[(i)][j] = 0; 
+
 
   /* initialize mem data, allow adjustment of spells known */
   init_spell_slots(ch);
@@ -2263,11 +2291,14 @@ void init_start_char(struct char_data *ch) {
    */
 
 
+
+
   //racial inits
   switch (GET_RACE(ch)) {
     case RACE_HUMAN:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
       practices++;
+      GET_FEAT_POINTS(ch)++;
       trains += 3;
       break;
     case RACE_ELF:
@@ -2342,7 +2373,7 @@ void init_start_char(struct char_data *ch) {
   switch (GET_CLASS(ch)) {
     case CLASS_WARRIOR:
       practices++; // bonus skill
-    case CLASS_SORCERER:
+      GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
     case CLASS_WIZARD:
     case CLASS_CLERIC:
       trains += MAX(1, (2 + (int) (GET_INT_BONUS(ch))) * 3);
@@ -2363,8 +2394,11 @@ void init_start_char(struct char_data *ch) {
 
   /* finalize */
   practices++;
+  GET_FEAT_POINTS(ch)++; /* 1st level feat. */
   GET_PRACTICES(ch) += practices;
   send_to_char(ch, "%d \tMPractice sessions gained.\tn\r\n", practices);
+  send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", GET_FEAT_POINTS(ch));
+  send_to_char(ch, "%d \tMClass Feat points gained.\tn\r\n", GET_CLASS_FEATS(ch, GET_CLASS(ch)));
   GET_TRAINS(ch) += trains;
   send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
 }
@@ -2383,9 +2417,105 @@ void do_start(struct char_data *ch) {
     SET_BIT_AR(PLR_FLAGS(ch), PLR_SITEOK);
 }
 
+void process_level_feats(struct char_data *ch, int class) {
+  char featbuf[MAX_STRING_LENGTH];
+  int i = 0;
+
+  sprintf(featbuf, "\tM");
+
+  while (level_feats[i][4] != FEAT_UNDEFINED) {
+    if (level_feats[i][0] == class && 
+        level_feats[i][1] == RACE_UNDEFINED && 
+        CLASS_LEVEL(ch, level_feats[i][0]) >= level_feats[i][3]) {
+
+      if (!(
+            (!HAS_REAL_FEAT(ch, level_feats[i][4]) && 
+             CLASS_LEVEL(ch, level_feats[i][0]) > level_feats[i][3] &&
+             CLASS_LEVEL(ch, level_feats[i][0]) > 0) ||
+           CLASS_LEVEL(ch, level_feats[i][0]) == level_feats[i][3]
+           )
+         ) {
+        i++;
+        continue;
+      }
+
+      if (level_feats[i][4] == FEAT_SNEAK_ATTACK)
+        sprintf(featbuf, "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
+/*      if (level_feats[i][4] == FEAT_DAMAGE_REDUCTION) {
+        for (reduct = ch->damreduct; reduct; reduct = reduct->next) {
+          if (reduct->feat == FEAT_DAMAGE_REDUCTION) {
+            REMOVE_FROM_LIST(reduct, ch->damreduct, next);
+          }
+        }
+        CREATE(ptr, struct damreduct_type, 1);
+        ptr->next = ch->damreduct;
+        ch->damreduct = ptr;
+        ptr->spell = 0;
+        ptr->feat = FEAT_DAMAGE_REDUCTION;
+        ptr->mod = HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) + 1;
+        ptr->duration = -1;
+        ptr->max_damage = -1;
+        for (q = 0; q < MAX_DAMREDUCT_MULTI; q++)
+          /"ptr->damstyle[q] = ptr->damstyleval[q] = 0;
+        ptr->damstyle[0] = DR_NONE;
+      }
+      else */
+
+      if (level_feats[i][4] == FEAT_STRENGTH_BOOST) {
+        ch->real_abils.str += 2;
+        sprintf(featbuf, "%s\tMYour natural strength has increased by +2!\r\n", featbuf);
+      }
+      else if (level_feats[i][4] == FEAT_CHARISMA_BOOST) {
+        ch->real_abils.cha += 2;
+        sprintf(featbuf, "%s\tMYour natural charisma has increased by +2!\r\n", featbuf);
+      }
+      else if (level_feats[i][4] == FEAT_CONSTITUTION_BOOST) {
+        ch->real_abils.con += 2;
+        sprintf(featbuf, "%s\tMYour natural constitution has increased by +2!\r\n", featbuf);
+      }
+      else if (level_feats[i][4] == FEAT_INTELLIGENCE_BOOST) {
+        ch->real_abils.intel += 2;
+        sprintf(featbuf, "%s\tMYour natural intelligence has increased by +2!\r\n", featbuf);
+      }
+      else {
+        if (HAS_FEAT(ch, level_feats[i][4]))
+          sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
+        else
+          sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
+      }
+      SET_FEAT(ch, level_feats[i][4], HAS_REAL_FEAT(ch, level_feats[i][4]) + 1);
+    }
+    else if (level_feats[i][0] == CLASS_UNDEFINED && level_feats[i][1] == GET_RACE(ch) && !HAS_FEAT(ch, level_feats[i][4])) {
+      if (level_feats[i][2] == TRUE) {
+        if (i == FEAT_TWO_WEAPON_FIGHTING && GET_CLASS(ch) == CLASS_RANGER)
+          //if (!HAS_FEAT(ch, FEAT_RANGER_TWO_WEAPON_STYLE))
+          continue;
+      }
+      if (HAS_FEAT(ch, level_feats[i][4]))
+        sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
+      else
+        sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
+      SET_FEAT(ch, level_feats[i][4], HAS_REAL_FEAT(ch, level_feats[i][4]) + 1);
+    }
+    else if (GET_CLASS(ch) == level_feats[i][0] && level_feats[i][1] == GET_RACE(ch) && CLASS_LEVEL(ch, level_feats[i][0]) == level_feats[i][3]) {
+      if (HAS_FEAT(ch, level_feats[i][4]))
+        sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
+      else
+        sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
+      SET_FEAT(ch, level_feats[i][4], HAS_REAL_FEAT(ch, level_feats[i][4]) + 1);
+    }
+
+    i++;
+  }
+  
+  send_to_char(ch, "%s", featbuf);
+
+}
+
 void advance_level(struct char_data *ch, int class) {
   int add_hp = GET_CON_BONUS(ch), at_armor = 100,
           add_mana = 0, add_move = 0, k, trains = 0, practices = 0;
+  int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
 
   /**because con items / spells are affecting based on level, we have to 
   unaffect before we level up -zusuk */
@@ -2394,7 +2524,7 @@ void advance_level(struct char_data *ch, int class) {
 
   /* first level in a class?  might have some inits to do! */
   if (CLASS_LEVEL(ch, class) == 1) {
-    send_to_char(ch, "\tMInititializing class:  ");
+    send_to_char(ch, "\tMInitializing class:  \r\n");
     init_class(ch, class, CLASS_LEVEL(ch, class));
     send_to_char(ch, "\r\n");
   }
@@ -2411,13 +2541,17 @@ void advance_level(struct char_data *ch, int class) {
       add_move = rand_number(0, 2);
 
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
-
-      if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) < 20)
+/*
+      if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) < 20){
         practices++;
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
+        feats++;
+      }
+*/
+      //epic      
+      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         practices++;
-
+        epic_class_feats++;
+      }
       break;
     case CLASS_WIZARD:
       wizard_skills(ch, CLASS_LEVEL(ch, CLASS_WIZARD));
@@ -2427,11 +2561,15 @@ void advance_level(struct char_data *ch, int class) {
 
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
-      if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) < 20)
+      if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) < 20) {
         practices++;
+        class_feats++;
+      }
       //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
+      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         practices++;
+        epic_class_feats++;
+      }
 
       break;
     case CLASS_CLERIC:
@@ -2443,9 +2581,10 @@ void advance_level(struct char_data *ch, int class) {
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
+      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20){
         practices++;
-
+        epic_class_feats++;
+      }
       break;
     case CLASS_ROGUE:
       rogue_skills(ch, CLASS_LEVEL(ch, CLASS_ROGUE));
@@ -2456,8 +2595,10 @@ void advance_level(struct char_data *ch, int class) {
       trains += MAX(1, (8 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
-      if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20)
+      if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
         practices++;
+        epic_class_feats++;
+      }
 
       break;
     case CLASS_BARD:
@@ -2469,9 +2610,10 @@ void advance_level(struct char_data *ch, int class) {
       trains += MAX(1, (6 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
+      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         practices++;
-
+        epic_class_feats++;
+      }
       break;
     case CLASS_MONK:
       monk_skills(ch, CLASS_LEVEL(ch, CLASS_MONK));
@@ -2482,8 +2624,10 @@ void advance_level(struct char_data *ch, int class) {
       trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
-      if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) >= 20)
+      if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) >= 20) {
         practices++;
+        epic_class_feats++;
+      }
 
       break;
     case CLASS_BERSERKER:
@@ -2495,8 +2639,10 @@ void advance_level(struct char_data *ch, int class) {
       trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
-      if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20)
+      if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
         practices++;
+        epic_class_feats++;
+      }
 
       break;
     case CLASS_DRUID:
@@ -2508,8 +2654,10 @@ void advance_level(struct char_data *ch, int class) {
       trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
-      if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20)
+      if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
         practices++;
+        epic_class_feats++;
+      }
 
       break;
     case CLASS_RANGER:
@@ -2521,8 +2669,10 @@ void advance_level(struct char_data *ch, int class) {
       trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
+      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         practices++;
+        epic_class_feats++;
+      }
 
       break;
     case CLASS_PALADIN:
@@ -2534,8 +2684,10 @@ void advance_level(struct char_data *ch, int class) {
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20)
+      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         practices++;
+        epic_class_feats++;
+      }
 
       break;
     case CLASS_WARRIOR:
@@ -2546,11 +2698,18 @@ void advance_level(struct char_data *ch, int class) {
 
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
-      if (!(CLASS_LEVEL(ch, class) % 2))
+      if (!(CLASS_LEVEL(ch, class) % 2) &&  !IS_EPIC(ch)) {
         practices++;
+        class_feats++;
+      }
+      if (!(CLASS_LEVEL(ch, class) % 2) && IS_EPIC(ch)) {
+        epic_class_feats++;
+      }
 
       break;
   }
+
+  process_level_feats(ch, class);
 
   //Racial Bonuses
   switch (GET_RACE(ch)) {
@@ -2568,8 +2727,14 @@ void advance_level(struct char_data *ch, int class) {
   }
 
   //base practice / boost improvement
-  if (!(GET_LEVEL(ch) % 3))
+  if (!(GET_LEVEL(ch) % 3) && !IS_EPIC(ch)) {    
     practices++;
+    feats++;
+  }
+  if (!(GET_LEVEL(ch) %3) && IS_EPIC(ch)) {
+    practices++;
+    epic_feats++;
+  }
   if (!(GET_LEVEL(ch) % 4)) {
     GET_BOOSTS(ch)++;
     send_to_char(ch, "\tMYou gain a boost (to stats) point!\tn\r\n");
@@ -2592,6 +2757,18 @@ void advance_level(struct char_data *ch, int class) {
   }
   GET_PRACTICES(ch) += practices;
   send_to_char(ch, "%d \tMPractice sessions gained.\tn\r\n", practices);
+  GET_FEAT_POINTS(ch) += feats;
+  GET_CLASS_FEATS(ch, GET_CLASS(ch)) += class_feats;
+  GET_EPIC_FEAT_POINTS(ch) += epic_feats;
+  GET_EPIC_CLASS_FEATS(ch, GET_CLASS(ch)) += epic_class_feats;
+  if (feats)
+    send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", feats);
+  if (class_feats) 
+    send_to_char(ch, "%d \tMClass feat points gained.\tn\r\n", class_feats);
+  if (epic_feats)
+    send_to_char(ch, "%d \tMEpic feat points gained.\tn\r\n", feats);
+  if (epic_class_feats)
+    send_to_char(ch, "%d \tMEpic class feat points gained.\tn\r\n", feats);
   GET_TRAINS(ch) += trains;
   send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
   /*******/
@@ -2613,6 +2790,7 @@ void advance_level(struct char_data *ch, int class) {
     SET_BIT_AR(PRF_FLAGS(ch), PRF_SHOWVNUMS);
     send_to_char(ch, "Setting \tRSHOWVNUMS\tn on.\r\n");
   }
+
 
   /* make sure you aren't snooping someone you shouldn't with new level */
   snoop_check(ch);

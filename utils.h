@@ -104,6 +104,9 @@ bool is_outdoors(struct char_data *ch);
 void set_mob_grouping(struct char_data *ch);
 int find_armor_type(int specType);
 
+/* Saving Throws */
+int savingthrow(struct char_data *ch, int save, int modifier, int dc);
+
 /* Feats */
 int get_feat_value(struct char_data *ch, int featnum);
 
@@ -966,6 +969,9 @@ do                                                              \
 /** Copy the current ability level i of ch to pct. */
 #define SET_ABILITY(ch, i, pct)	do { CHECK_PLAYER_SPECIAL((ch), (ch)->player_specials->saved.abilities[i]) = pct; } while(0)
 
+/* Levelup - data storage for study command. */
+#define LEVELUP(ch) (ch->player_specials->levelup)
+
 /* Feats */
 #define GET_FEAT_POINTS(ch)         (ch->player_specials->saved.feat_points)
 #define GET_EPIC_FEAT_POINTS(ch)    (ch->player_specials->saved.epic_feat_points)
@@ -982,9 +988,36 @@ do                                                              \
 #define MOB_SET_FEAT(ch, i)     (SET_FEAT(ch, i))
 #define HAS_COMBAT_FEAT(ch,i,j) (IS_SET_AR((ch)->char_specials.saved.combat_feats[i], j))
 #define SET_COMBAT_FEAT(ch,i,j) (SET_BIT_AR((ch)->char_specials.saved.combat_feats[(i)], (j)))
-#define HAS_SCHOOL_FEAT(ch,i,j) (IS_SET((ch)->char_specials.saved.school_feats[(i)], (j)))
-#define SET_SCHOOL_FEAT(ch,i,j) (SET_BIT((ch)->char_specials.saved.school_feats[(i)], (j)))
+#define HAS_SCHOOL_FEAT(ch,i,j) (IS_SET((ch)->char_specials.saved.school_feats[(i)], (1 << (j))))
+#define SET_SCHOOL_FEAT(ch,i,j) (SET_BIT((ch)->char_specials.saved.school_feats[(i)], (1 << (j))))
 
+/* Macros to check LEVELUP feats. */
+#define HAS_LEVELUP_FEAT(ch, i)         (get_feat_value((ch), i))
+#define SET_LEVELUP_FEAT(ch, i, j)      (LEVELUP(ch)->feats[i] = j)
+#define HAS_LEVELUP_COMBAT_FEAT(ch,i,j) (IS_SET_AR(LEVELUP(ch)->combat_feats[i], j))
+#define SET_LEVELUP_COMBAT_FEAT(ch,i,j) (SET_BIT_AR(LEVELUP(ch)->combat_feats[(i)], (j)))
+#define HAS_LEVELUP_SCHOOL_FEAT(ch,i,j) (IS_SET(LEVELUP(ch)->school_feats[(i)], (1 << (j))))
+#define SET_LEVELUP_SCHOOL_FEAT(ch,i,j) (SET_BIT(LEVELUP(ch)->school_feats[(i)], (1 << (j))))
+
+#define GET_LEVELUP_FEAT_POINTS(ch)         (LEVELUP(ch)->feat_points)
+#define GET_LEVELUP_EPIC_FEAT_POINTS(ch)    (LEVELUP(ch)->epic_feat_points)
+#define GET_LEVELUP_CLASS_FEATS(ch)      (LEVELUP(ch)->class_feat_points)
+#define GET_LEVELUP_EPIC_CLASS_FEATS(ch) (LEVELUP(ch)->epic_class_feat_points)
+
+#define GET_SKILL_FEAT(ch,feat,skill)  ((ch)->player_specials->saved.skill_focus[feat][skill])
+
+/* MACROs for the study system */
+#define CAN_STUDY_FEATS(ch)  ((GET_LEVELUP_FEAT_POINTS(ch) + \
+                               GET_LEVELUP_CLASS_FEATS(ch) + \
+                               GET_LEVELUP_EPIC_FEAT_POINTS(ch) + \
+                               GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
+ 
+#define CAN_STUDY_KNOWN_SPELLS(ch) ((LEVELUP(ch)->class == CLASS_SORCERER) || \
+                           (LEVELUP(ch)->class == CLASS_BARD) ? 1 : 0)
+
+#define CAN_STUDY_FAMILIAR(ch) (HAS_FEAT(ch, FEAT_SUMMON_FAMILIAR) ? 1 : 0)
+#define CAN_STUDY_COMPANION(ch) (HAS_FEAT(ch, FEAT_ANIMAL_COMPANION) ? 1 : 0)
+#define CAN_STUDY_FAVORED_ENEMY(ch) (HAS_FEAT(ch, FEAT_FAVORED_ENEMY_AVAILABLE) ? 1 : 0)
 
 /** The player's default sector type when buildwalking */
 #define GET_BUILDWALK_SECTOR(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_sector))

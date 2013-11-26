@@ -614,7 +614,7 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
 
   switch (rand_number(1, 2)) {
     case 1:
-      perform_stunningfist(ch, vict);
+      perform_stunningfist(ch, 3);
       break;
     case 2:
       perform_springleap(ch, vict);

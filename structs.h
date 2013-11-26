@@ -681,7 +681,8 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 /** Total number of affect flags not including the don't use flag. */
 // don't forget to add to constants.c!
 #define AFF_WATER_BREATH     AFF_SCUBA  // just the more conventional name
-#define NUM_AFF_FLAGS        84
+#define AFF_RAPID_SHOT       84 /* Rapid Shot Mode (FEAT_RAPID_SHOT) */
+#define NUM_AFF_FLAGS        85
 
 /* homeland-port reference */
 /*
@@ -1233,7 +1234,8 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 
 // Skill feats that apply to a specific skill
 #define SKFEAT_SKILL_FOCUS 0
-#define NUM_SKFEATS 1
+#define SKFEAT_EPIC_SKILL_FOCUS 1
+#define NUM_SKFEATS 2
 
 /* object-related defines */
 /* Item types: used by obj_data.obj_flags.type_flag */
@@ -1470,9 +1472,10 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 /* Flags dealing with special abilities. */
 #define ITEM_FLAMING              45  /* Item is ON FIRE! Used to toggle special ability.*/
 #define ITEM_FROST                46  /* Item is sheathed in magical FROST! SPECAB toggle. */
+#define ITEM_KI_FOCUS             47
 /**/
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            47
+#define NUM_ITEM_FLAGS            48
 
 /* homeland-port */
 /*
@@ -2354,7 +2357,7 @@ struct player_special_data_saved {
   byte class_feat_points[NUM_CLASSES];      /* How many class feats you can take  */
   byte epic_class_feat_points[NUM_CLASSES]; /* How many epic class feats    */
   
-  int skill_focus[MAX_SKILLS + 1]; /* Data for FEAT_SKILL_FOCUS */
+  int skill_focus[NUM_SKFEATS][MAX_ABILITIES + 1]; /* Data for FEAT_SKILL_FOCUS */
 
   ubyte morphed; //polymorphed and form
   byte class_level[MAX_CLASSES]; //multi class
@@ -2426,8 +2429,8 @@ struct player_special_data {
   room_vnum salvation_room;
   char *salvation_name;
 
-  /* Levelup data for the level gain process */
-  struct level_data *levelup;
+  /* levelup data structure - Saved data for study process. */
+  struct level_data* levelup;
 };
 
 /** Special data used by NPCs, not PCs */
@@ -2471,62 +2474,38 @@ struct affected_type {
   struct affected_type *next; /**< The next affect in the list of affects. */
 };
 
-/* Structure and defines for the 'levelup' data and process borrowed from d20mud
- * and CWG. */
-#define LEVELTYPE_CLASS 1
-#define LEVELTYPE_RACE  2
-struct level_learn_entry {
-  struct level_learn_entry *next;
-  ubyte location;
-  ubyte specific;
-  byte value;
-};
+/* Structure for levelup data - Used as a temporary storage area during 'study' command 
+ * Ascess via the LEVELUP(ch) macro. */
 
-struct levelup_data {
-  struct levelup_data *next;  /* Form a linked list     */
-  struct levelup_data *prev;  /* Form a linked list     */
-  byte type;      /* LEVELTYPE_ value     */
-  byte spec;      /* Specific class or race   */
-  byte level;     /* Level ir HD # for that class or race */
-  byte hp_roll;     /* Straight die-roll value with no mods */
-  byte mana_roll;   /* Straight die-roll value with no mods */
-  byte ki_roll;     /* Straight die-roll value with no mods */
-  byte move_roll;   /* Straight die-roll value with no mods */
-  byte accuracy;    /* Hit accuracy change      */
-  byte fort;      /* Fortitude change     */
-  byte reflex;      /* Reflex change      */
-  byte will;      /* Will change        */
-  byte add_skill;   /* Total added skill points   */
-  byte add_gen_feats;   /* General feat points      */
-  byte add_epic_feats;    /* General epic feat points   */
-  byte add_class_feats;   /* Class feat points      */
-  byte add_class_epic_feats;  /* Epic class feat points   */
-  struct level_learn_entry *skills; /* Head of linked list    */
-  struct level_learn_entry *feats;  /* Head of linked list    */
-  struct level_data *level_extra;
-};
-
-/* Structure for levelup data */
 struct level_data {
-        struct level_data *next;
-        struct level_data *prev;
-        ubyte level;
-        ubyte class;
-        ubyte feats[NUM_FEATS];
-        int combat_feats[NUM_CFEATS][FT_ARRAY_MAX];
-        ubyte trains[6];
-        ubyte skills[MAX_SKILLS+1];
-        ubyte feat_points;
-        ubyte practices;
-        ubyte num_trains;
-        unsigned short int tempFeat;
-        ubyte num_class_feats;
-        ubyte epic_feat_points;
-        ubyte num_epic_class_feats;
-        unsigned short int feat_weapons[NUM_FEATS];
-        unsigned short int feat_skills[NUM_FEATS];
-/*        sh_int spells_known[NUM_SPELLS];*/
-        byte spell_slots[10];
+  int level;
+  int class;
+  int feats[NUM_FEATS];
+  int combat_feats[NUM_CFEATS][FT_ARRAY_MAX];
+  int school_feats[NUM_SFEATS];
+  int boosts[6];
+  int skill_focus[NUM_SKFEATS][MAX_ABILITIES+1];
+
+  /* Feat point information */
+  int feat_points;
+  int class_feat_points;
+  int epic_feat_points;
+  int epic_class_feat_points;
+  
+  /* Ability, skill, boost information */
+  int practices;
+  int trains;
+  int num_boosts;
+
+  int spell_circle;
+  int favored_slot;
+
+  int tempFeat;
+  int feat_weapons[NUM_FEATS];
+  int feat_skills[NUM_FEATS];
+/*        int spells_known[NUM_SPELLS];*/
+  int spell_slots[10];
+
 };
 
 /** The list element that makes up a list of characters following this
