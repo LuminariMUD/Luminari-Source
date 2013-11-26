@@ -952,15 +952,25 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
     /* replace spellnum with its circle */
     spellnum = spellCircle(class, spellnum);
     /* replace time with slot-mem-time */
-    time = SORC_TIME_FACTOR * spellnum;
+//    time = SORC_TIME_FACTOR * spellnum;
   }
   else if (class == CLASS_BARD) {
     /* replace spellnum with its circle */
     spellnum = spellCircle(class, spellnum);
     /* replace time with slot-mem-time */
-    time = BARD_TIME_FACTOR * spellnum;
-  }
+//    time = BARD_TIME_FACTOR * spellnum;
+  }    
 
+  switch (class) {
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+      time = MAX(2, (spellnum * 2 + spellnum + 4) - GET_CHA_BONUS(ch));
+      break;
+    default:
+      /* Wizard */
+      time = MAX(2, (spellnum * 2 + spellnum + 4) - GET_INT_BONUS(ch));
+      break;
+  }
 
   /* wizard type system */
   for (slot = 0; slot < MAX_MEM; slot++) {
@@ -982,19 +992,16 @@ void resetMemtimes(struct char_data *ch, int class) {
     if (PRAYING(ch, slot, classArray(class)) == TERMINATE)
       break;
 
-    /* the formula for metime for sorcs is just factor*circle
-     * which is conveniently equal to the corresponding PRAYING()
-     * slot
-     */
-    if (class == CLASS_SORCERER)
-      PRAYTIME(ch, slot, classArray(class)) =
-            PRAYING(ch, slot, classArray(class)) * SORC_TIME_FACTOR;
-    else if (class == CLASS_BARD)
-      PRAYTIME(ch, slot, classArray(class)) =
-            PRAYING(ch, slot, classArray(class)) * BARD_TIME_FACTOR;
-    else
-      PRAYTIME(ch, slot, classArray(class)) =
-            spell_info[PRAYING(ch, slot, classArray(class))].memtime;
+    switch (class) {
+      case CLASS_SORCERER:
+      case CLASS_BARD:
+        PRAYTIME(ch, slot, classArray(class)) = MAX(2, (slot * 2 + slot + 4) - GET_CHA_BONUS(ch));
+        break;
+      default:
+        /* Wizard */
+        PRAYTIME(ch, slot, classArray(class)) = MAX(2, (slot * 2 + slot + 4) - GET_INT_BONUS(ch));
+        break;
+    }
   }
 }
 
@@ -1419,7 +1426,8 @@ void updateMemming(struct char_data *ch, int class) {
 
   //calaculate memtime bonus based on concentration
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_CONCENTRATION)) {
-    bonus = MAX(1, compute_ability(ch, ABILITY_CONCENTRATION) / 2 - 3);
+    if(dice(1, 100) >= compute_ability(ch, ABILITY_CONCENTRATION))
+      bonus++;
   }
 
   //if you aren't resting, can't mem; same with fighting

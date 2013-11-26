@@ -36,7 +36,6 @@ void list_feats_complete(struct char_data *ch, char *arg);
 int compare_feats(const void *x, const void *y);
 void sort_feats(void);	
 int find_feat_num(char *name);
-int feat_to_subfeat(int feat);
 
 void load_weapons(void);
 void load_armor(void);
@@ -190,7 +189,7 @@ feato(FEAT_SILENT_SPELL, "silent spell", FALSE, FALSE, FALSE, "ask staff", "ask 
 feato(FEAT_SIMPLE_WEAPON_PROFICIENCY, "simple weapon proficiency", TRUE, TRUE, FALSE, "none", "may use all simple weappons");
 feato(FEAT_SKILL_FOCUS, "skill focus", TRUE, TRUE, TRUE, "none", "+3 in chosen skill");
 feato(FEAT_EPIC_SKILL_FOCUS, "epic skill focus", TRUE, TRUE, TRUE, "20 ranks in the skill", "+10 in chosen skill");
-feato(FEAT_SPELL_FOCUS, "spell focus", FALSE, FALSE, FALSE, "1st level caster", "+1 to all spell dcs for all spells in school/domain");
+feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, "1st level caster", "+1 to all spell dcs for all spells in school/domain");
 feato(FEAT_SPELL_MASTERY, "spell mastery", FALSE, FALSE, FALSE, "ask staff", "ask staff");
 feato(FEAT_SPELL_PENETRATION, "spell penetration", FALSE, FALSE, FALSE, "ask staff", "ask staff");
 feato(FEAT_SPIRITED_CHARGE, "spirited charge", FALSE, FALSE, FALSE, "ask staff", "ask staff");
@@ -725,7 +724,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     return FALSE;
 
   case FEAT_AUGMENT_SUMMONING:
-    if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_subfeat(FEAT_SPELL_FOCUS), CONJURATION))
+    if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), CONJURATION))
       return true;
     return false;
 /*
@@ -1239,46 +1238,46 @@ int is_proficient_with_armor(const struct char_data *ch, int armor_type)
   return FALSE;
 }
 
-int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
+int is_proficient_with_weapon(const struct char_data *ch, int weapon)
 {
 
   /* Adapt this - Focus on an aspect of the divine, not a deity. */
-/*  if (has_feat((char_data *) ch, FEAT_DEITY_WEAPON_PROFICIENCY) && weapon_type == deity_list[GET_DEITY(ch)].favored_weapon)
+/*  if (has_feat((char_data *) ch, FEAT_DEITY_WEAPON_PROFICIENCY) && weapon == deity_list[GET_DEITY(ch)].favored_weapon)
     return TRUE;
 */  
   if (has_feat((char_data *) ch, FEAT_SIMPLE_WEAPON_PROFICIENCY) &&
-      IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_SIMPLE))
+      IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_SIMPLE))
     return TRUE;
 
   if (has_feat((char_data *) ch, FEAT_MARTIAL_WEAPON_PROFICIENCY) &&
-      IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_MARTIAL))
+      IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_MARTIAL))
     return TRUE;
 
   if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_SLASHING) &&
-      IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_EXOTIC) &&
-      IS_SET(weapon_list[weapon_type].damageTypes, DAMAGE_TYPE_SLASHING)) {
+      IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC) &&
+      IS_SET(weapon_list[weapon].damageTypes, DAMAGE_TYPE_SLASHING)) {
     return TRUE;
   }
 
   if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_PIERCING) &&
-      IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_EXOTIC) &&
-      IS_SET(weapon_list[weapon_type].damageTypes, DAMAGE_TYPE_PIERCING)) {
+      IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC) &&
+      IS_SET(weapon_list[weapon].damageTypes, DAMAGE_TYPE_PIERCING)) {
     return TRUE;
   }
 
   if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_BLUDGEONING) &&
-      IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_EXOTIC) &&
-      IS_SET(weapon_list[weapon_type].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
+      IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC) &&
+      IS_SET(weapon_list[weapon].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
     return TRUE;
   }
 
 
   if (CLASS_LEVEL(ch, CLASS_MONK) && 
-      weapon_list[weapon_type].weaponFamily == WEAPON_FAMILY_MONK)
+      weapon_list[weapon].weaponFamily == WEAPON_FAMILY_MONK)
     return TRUE;
 
   if (has_feat((char_data *) ch, FEAT_WEAPON_PROFICIENCY_DRUID) || CLASS_LEVEL(ch, CLASS_DRUID) > 0) {
-    switch (weapon_type) {
+    switch (weapon) {
       case WEAPON_TYPE_CLUB:
       case WEAPON_TYPE_DAGGER:
       case WEAPON_TYPE_QUARTERSTAFF:
@@ -1293,7 +1292,7 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
   }
 
   if (CLASS_LEVEL(ch, CLASS_BARD) > 0) {
-    switch (weapon_type) {
+    switch (weapon) {
       case WEAPON_TYPE_LONG_SWORD:
       case WEAPON_TYPE_RAPIER:
       case WEAPON_TYPE_SAP:
@@ -1305,7 +1304,7 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
   }
 
   if (HAS_FEAT((struct char_data *) ch, FEAT_WEAPON_PROFICIENCY_ROGUE) || CLASS_LEVEL(ch, CLASS_ROGUE) > 0) {
-    switch (weapon_type) {
+    switch (weapon) {
       case WEAPON_TYPE_HAND_CROSSBOW:
       case WEAPON_TYPE_RAPIER:
       case WEAPON_TYPE_SAP:
@@ -1316,7 +1315,7 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
   }
 
   if (HAS_FEAT((struct char_data *)ch, FEAT_WEAPON_PROFICIENCY_WIZARD) || CLASS_LEVEL(ch, CLASS_WIZARD) > 0) {
-    switch (weapon_type) {
+    switch (weapon) {
       case WEAPON_TYPE_DAGGER:
       case WEAPON_TYPE_QUARTERSTAFF:
       case WEAPON_TYPE_CLUB:
@@ -1327,7 +1326,7 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
   }
 
   if (HAS_FEAT((struct char_data *)ch, FEAT_WEAPON_PROFICIENCY_ELF) || IS_ELF(ch)) {
-    switch (weapon_type) {
+    switch (weapon) {
       case WEAPON_TYPE_LONG_SWORD:
       case WEAPON_TYPE_RAPIER:
       case WEAPON_TYPE_LONG_BOW:
@@ -1339,7 +1338,7 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon_type)
   }
 
   if (IS_DWARF(ch) && HAS_FEAT((struct char_data *)ch, FEAT_MARTIAL_WEAPON_PROFICIENCY)) {
-    switch (weapon_type) {
+    switch (weapon) {
       case WEAPON_TYPE_DWARVEN_WAR_AXE:
       case WEAPON_TYPE_DWARVEN_URGOSH:
         return TRUE;
@@ -1378,10 +1377,12 @@ void list_feats_known(struct char_data *ch, char *arg)
   int mode = 0;
   char buf [MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH], buf3[150];
   int count = 0;
+  int subfeat;
 
   if (*arg && is_abbrev(arg, "descriptions")) {
     mode = 1;
   }
+
   else if (*arg && is_abbrev(arg, "requisites")) {
     mode = 2;
   }
@@ -1396,8 +1397,8 @@ void list_feats_known(struct char_data *ch, char *arg)
     
   // Display Headings
   sprintf(buf + strlen(buf), "\r\n");
-  sprintf(buf + strlen(buf), "	WFeats Known	n\r\n");
-  sprintf(buf + strlen(buf), "	B~	R~	B~	R~	B~	R~	B~	R~	B~	R~	B~	n\r\n");
+  sprintf(buf + strlen(buf), "\tWFeats Known\tn\r\n");
+  sprintf(buf + strlen(buf), "\tB~\tR~\tB~\tR~\tB~\tR~\tB~\tR~\tB~\tR~\tB~\tn\r\n");
   sprintf(buf + strlen(buf), "\r\n");
 
   strcpy(buf2, buf);
@@ -1409,17 +1410,43 @@ void list_feats_known(struct char_data *ch, char *arg)
 
     i = feat_sort_info[sortpos];
     if (HAS_FEAT(ch, i)  && feat_list[i].in_game) {
+      if ((subfeat = feat_to_sfeat(i)) != -1) {
+        /* This is a 'school feat' */
+        send_to_char(ch, "SCHOOL_FEATS! %d\r\n", ch->char_specials.saved.school_feats[subfeat]);
+        for (j = 1; j < NUM_SCHOOLS; j++) {         
+          if (HAS_SCHOOL_FEAT(ch, subfeat, j)) {
+            if (mode == 1) { /* description mode */
+              sprintf(buf3, "%s (%s):", feat_list[i].name, spell_schools[j]);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
+            } else if (mode == 2) { /* prereq. mode */
+              sprintf(buf3, "%s (%s):", feat_list[i].name, spell_schools[j]);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            } else {
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, spell_schools[j]);
+              sprintf(buf, "%-40s ", buf3);
+            }
+            strcat(buf2, buf);
+            none_shown = FALSE;
+  
+            if (!mode) {
+              count++;
+              if (count %2 == 1)
+                strcat(buf2, "\r\n");
+            }
+          }
+        }
+      } else 
       if (i == FEAT_WEAPON_FOCUS) {
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
           if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_FOCUS, j)) { // || has_weapon_feat_full(ch, FEAT_WEAPON_FOCUS, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1437,13 +1464,13 @@ void list_feats_known(struct char_data *ch, char *arg)
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
           if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_MASTERY, j)) { // || has_weapon_feat_full(ch, FEAT_WEAPON_MASTERY, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1461,13 +1488,13 @@ void list_feats_known(struct char_data *ch, char *arg)
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
           if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_FLURRY, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_FLURRY, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1485,13 +1512,13 @@ void list_feats_known(struct char_data *ch, char *arg)
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
           if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_SUPREMACY, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_SUPREMACY, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1509,13 +1536,13 @@ void list_feats_known(struct char_data *ch, char *arg)
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
           if (HAS_COMBAT_FEAT(ch, CFEAT_POWER_CRITICAL, j)) {// || has_weapon_feat_full(ch, FEAT_POWER_CRITICAL, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1533,13 +1560,13 @@ void list_feats_known(struct char_data *ch, char *arg)
       for (j = 1; j < NUM_WEAPON_TYPES; j++) {
         if (HAS_COMBAT_FEAT(ch, CFEAT_GREATER_WEAPON_FOCUS, j)) {// || has_weapon_feat_full(ch, FEAT_GREATER_WEAPON_FOCUS, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1581,13 +1608,13 @@ void list_feats_known(struct char_data *ch, char *arg)
       for (j = 1; j < NUM_WEAPON_TYPES; j++) {
         if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_SPECIALIZATION, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_SPECIALIZATION, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1605,13 +1632,13 @@ void list_feats_known(struct char_data *ch, char *arg)
       for (j = 1; j < NUM_WEAPON_TYPES; j++) {
         if (HAS_COMBAT_FEAT(ch, CFEAT_GREATER_WEAPON_SPECIALIZATION, j)) {// || has_weapon_feat_full(ch, FEAT_GREATER_WEAPON_SPECIALIZATION, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1622,13 +1649,13 @@ void list_feats_known(struct char_data *ch, char *arg)
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
         if (HAS_COMBAT_FEAT(ch, CFEAT_IMPROVED_CRITICAL, j)) {// || has_weapon_feat_full(ch, FEAT_IMPROVED_CRITICAL, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1646,13 +1673,13 @@ void list_feats_known(struct char_data *ch, char *arg)
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
         if (HAS_COMBAT_FEAT(ch, CFEAT_IMPROVED_WEAPON_FINESSE, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_FINESSE, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1670,13 +1697,13 @@ void list_feats_known(struct char_data *ch, char *arg)
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
         if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, j)) {// || has_weapon_feat_full(ch, FEAT_EXOTIC_WEAPON_PROFICIENCY, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1694,13 +1721,13 @@ void list_feats_known(struct char_data *ch, char *arg)
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
         if (HAS_COMBAT_FEAT(ch, CFEAT_MONKEY_GRIP, j)) {// || has_weapon_feat_full(ch, FEAT_MONKEY_GRIP, j, FALSE)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_type[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_type[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
           strcat(buf2, buf);
@@ -1716,13 +1743,13 @@ void list_feats_known(struct char_data *ch, char *arg)
         }
       } else if (i == FEAT_SKILL_FOCUS) {
         for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++) {
-        if (ch->player_specials->saved.skill_focus[j-MAX_SPELLS + 1] > 0) {
+        if (ch->player_specials->saved.skill_focus[i][j-MAX_SPELLS + 1] > 0) {
             if (mode == 1) {
               sprintf(buf3, "%s (%s):", feat_list[i].name, spell_info[j].name);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
               sprintf(buf3, "%s (%s):", feat_list[i].name, spell_info[j].name);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
               sprintf(buf3, "%s (%s)", feat_list[i].name, spell_info[j].name);
               sprintf(buf, "%-40s ", buf3);
@@ -1740,13 +1767,13 @@ void list_feats_known(struct char_data *ch, char *arg)
         }
       } else if (i == FEAT_EPIC_SKILL_FOCUS) {
         for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++) {
-        if (ch->player_specials->saved.skill_focus[j-MAX_SPELLS + 1] > 1) {
+        if (ch->player_specials->saved.skill_focus[i][j-MAX_SPELLS + 1] > 1) {
             if (mode == 1) {
               sprintf(buf3, "%s (%s):", feat_list[i].name, spell_info[j].name);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
             } else if (mode == 2) {
               sprintf(buf3, "%s (%s):", feat_list[i].name, spell_info[j].name);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
             } else {
               sprintf(buf3, "%s (%s)", feat_list[i].name, spell_info[j].name);
               sprintf(buf, "%-40s ", buf3);
@@ -1765,10 +1792,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_FAST_HEALING) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d hp/round):", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_HEALING) * 3);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d hp/round):", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_HEALING) * 3);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d hp/round)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_HEALING) * 3);
             sprintf(buf, "%-40s ", buf3);
@@ -1778,10 +1805,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_DAMAGE_REDUCTION) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d/-):", feat_list[i].name, HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (%d/-):", feat_list[i].name, HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
             sprintf(buf, "%-40s ", buf3);
@@ -1791,10 +1818,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_ARMOR_SKIN) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d natural ac):", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_SKIN));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d natural ac):", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_SKIN));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d natural ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_SKIN));
             sprintf(buf, "%-40s ", buf3);
@@ -1804,10 +1831,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_ENERGY_RESISTANCE) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d/-):", feat_list[i].name, HAS_FEAT(ch, FEAT_ENERGY_RESISTANCE) * 3);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (%d/-):", feat_list[i].name, HAS_FEAT(ch, FEAT_ENERGY_RESISTANCE) * 3);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENERGY_RESISTANCE) * 3);
             sprintf(buf, "%-40s ", buf3);
@@ -1830,10 +1857,10 @@ void list_feats_known(struct char_data *ch, char *arg)
 */      } else if (i == FEAT_HASTE) {
           if (mode == 1) {
             sprintf(buf3, "%s (3x/day):", feat_list[i].name);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (3x/day):", feat_list[i].name);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (3x/day)", feat_list[i].name);
             sprintf(buf, "%-40s ", buf3);
@@ -1843,10 +1870,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_SACRED_FLAMES) {
           if (mode == 1) {
             sprintf(buf3, "%s (3x/day):", feat_list[i].name);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (3x/day):", feat_list[i].name);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (3x/day)", feat_list[i].name);
             sprintf(buf, "%-40s ", buf3);
@@ -1856,10 +1883,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_DRAGON_MOUNT_BREATH) {
           if (mode == 1) {
             sprintf(buf3, "%s (%dx/day):", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BREATH));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (%dx/day):", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BREATH));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BREATH));
             sprintf(buf, "%-40s ", buf3);
@@ -1869,10 +1896,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_DRAGON_MOUNT_BOOST) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BOOST));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BOOST));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BOOST));
             sprintf(buf, "%-40s ", buf3);
@@ -1882,10 +1909,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_DAMAGE_REDUCTION_FS) {
           if (mode == 1) {
             sprintf(buf3, "%s (10/cold iron):", feat_list[i].name);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (10/cold iron):", feat_list[i].name);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (10/cold iron):", feat_list[i].name);
             sprintf(buf, "%-40s ", buf3);
@@ -1895,10 +1922,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_BREATH_WEAPON) {
           if (mode == 1) {
             sprintf(buf3, "%s (%dd8 dmg|%dx/day):", feat_list[i].name, HAS_FEAT(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (%dd8 dmg|%dx/day):", feat_list[i].name, HAS_FEAT(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (%dd8 dmg|%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
             sprintf(buf, "%-40s ", buf3);
@@ -1908,10 +1935,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_LEADERSHIP) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d%% group exp):", feat_list[i].name, 5 * (1 + HAS_FEAT(ch, FEAT_LEADERSHIP)));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d%% group exp):", feat_list[i].name, 5 * (1 + HAS_FEAT(ch, FEAT_LEADERSHIP)));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d%% group exp)", feat_list[i].name, 5 * (1 + HAS_FEAT(ch, FEAT_LEADERSHIP)));
             sprintf(buf, "%-40s ", buf3);
@@ -1921,10 +1948,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_RAGE) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d / day):", feat_list[i].name, HAS_FEAT(ch, FEAT_RAGE));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (%d / day):", feat_list[i].name, HAS_FEAT(ch, FEAT_RAGE));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_RAGE));
             sprintf(buf, "%-40s ", buf3);
@@ -1934,10 +1961,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_STRENGTH_OF_HONOR) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d / day):", feat_list[i].name, HAS_FEAT(ch, FEAT_STRENGTH_OF_HONOR));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (%d / day):", feat_list[i].name, HAS_FEAT(ch, FEAT_STRENGTH_OF_HONOR));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_STRENGTH_OF_HONOR));
             sprintf(buf, "%-40s ", buf3);
@@ -1947,10 +1974,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_DEFENSIVE_STANCE) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d / day):", feat_list[i].name, HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (%d / day):", feat_list[i].name, HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE));
             sprintf(buf, "%-40s ", buf3);
@@ -1960,10 +1987,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_ENHANCED_SPELL_DAMAGE) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d dam / die):", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d dam / die):", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d dam / die)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE));
             sprintf(buf, "%-40s ", buf3);
@@ -1973,10 +2000,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_FASTER_MEMORIZATION) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d ranks):", feat_list[i].name, HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d ranks):", feat_list[i].name, HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION));
             sprintf(buf, "%-40s ", buf3);
@@ -1986,10 +2013,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_EMPOWERED_MAGIC) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d to dcs):", feat_list[i].name, HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d to dcs):", feat_list[i].name, HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d to dcs)", feat_list[i].name, HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC));
             sprintf(buf, "%-40s ", buf3);
@@ -1999,10 +2026,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_ENHANCE_SPELL) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d dam dice):", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_SPELL) * 5);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d dam dice):", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_SPELL) * 5);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d dam dice)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_SPELL) * 5);
             sprintf(buf, "%-40s ", buf3);
@@ -2012,10 +2039,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_NATURAL_ARMOR_INCREASE) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d natural ac):", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ARMOR_INCREASE));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d natural ac):", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ARMOR_INCREASE));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d natural ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ARMOR_INCREASE));
             sprintf(buf, "%-40s ", buf3);
@@ -2025,10 +2052,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_GREAT_STRENGTH) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_STRENGTH));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_STRENGTH));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_STRENGTH));
             sprintf(buf, "%-40s ", buf3);
@@ -2038,10 +2065,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_GREAT_DEXTERITY) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_DEXTERITY));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_DEXTERITY));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_DEXTERITY));
             sprintf(buf, "%-40s ", buf3);
@@ -2051,10 +2078,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_GREAT_CONSTITUTION) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CONSTITUTION));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CONSTITUTION));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CONSTITUTION));
             sprintf(buf, "%-40s ", buf3);
@@ -2064,10 +2091,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_GREAT_INTELLIGENCE) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_INTELLIGENCE));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_INTELLIGENCE));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_INTELLIGENCE));
             sprintf(buf, "%-40s ", buf3);
@@ -2077,10 +2104,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_GREAT_WISDOM) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_WISDOM));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_WISDOM));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_WISDOM));
             sprintf(buf, "%-40s ", buf3);
@@ -2090,10 +2117,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_GREAT_CHARISMA) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CHARISMA));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CHARISMA));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CHARISMA));
             sprintf(buf, "%-40s ", buf3);
@@ -2103,10 +2130,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_POISON_SAVE_BONUS) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS));
             sprintf(buf, "%-40s ", buf3);
@@ -2116,10 +2143,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_SNEAK_ATTACK) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%dd6):", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%dd6):", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
             sprintf(buf, "%-40s ", buf3);
@@ -2129,10 +2156,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_SELF_CONCEALMENT) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d%% miss):", feat_list[i].name, HAS_FEAT(ch, FEAT_SELF_CONCEALMENT) * 10);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (%d%% miss):", feat_list[i].name, HAS_FEAT(ch, FEAT_SELF_CONCEALMENT) * 10);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (%d%% miss)", feat_list[i].name, HAS_FEAT(ch, FEAT_SELF_CONCEALMENT) * 10);
             sprintf(buf, "%-40s ", buf3);
@@ -2142,10 +2169,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_ENHANCE_ARROW_MAGIC) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d):", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
             sprintf(buf, "%-40s ", buf3);
@@ -2155,10 +2182,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_FAST_CRAFTER) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d%% less time):", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_CRAFTER) * 10);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (-%d seconds):", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_CRAFTER) * 10);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (-%d seconds)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_CRAFTER) * 10);
             sprintf(buf, "%-40s ", buf3);
@@ -2168,10 +2195,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_PROFICIENT_CRAFTER) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d to checks):", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_CRAFTER));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d to checks):", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_CRAFTER));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_CRAFTER));
             sprintf(buf, "%-40s ", buf3);
@@ -2181,10 +2208,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else if (i == FEAT_PROFICIENT_HARVESTER) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d to checks):", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_HARVESTER));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
           } else if (mode == 2) {
             sprintf(buf3, "%s (+%d to checks):", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_HARVESTER));
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
           } else {
             sprintf(buf3, "%-20s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_HARVESTER));
             sprintf(buf, "%-40s ", buf3);
@@ -2194,10 +2221,10 @@ void list_feats_known(struct char_data *ch, char *arg)
       } else {
         if (mode == 1) {
           sprintf(buf3, "%s:", feat_list[i].name);
-          sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+          sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
         } else if (mode == 2) {
           sprintf(buf3, "%s:", feat_list[i].name);
-          sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+          sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
         } else {
           sprintf(buf, "%-40s ", feat_list[i].name);
         }
@@ -2343,6 +2370,7 @@ void list_class_feats(struct char_data *ch)
     }  
   }
 }
+#endif
 
 int is_class_feat(int featnum, int class) {
 
@@ -2358,7 +2386,6 @@ int is_class_feat(int featnum, int class) {
   return FALSE;
 
 }
-#endif
 
 void list_feats_complete(struct char_data *ch, char *arg) 
 {
@@ -2486,13 +2513,8 @@ ACMD(do_feats)
   }
 }
 
-int feat_to_subfeat(int feat)
-{
+int feat_to_cfeat(int feat) {
   switch (feat) {
-  case FEAT_SKILL_FOCUS:
-    return CFEAT_SKILL_FOCUS;
-  case FEAT_EPIC_SKILL_FOCUS:
-    return CFEAT_EPIC_SKILL_FOCUS;
   case FEAT_IMPROVED_CRITICAL:
     return CFEAT_IMPROVED_CRITICAL;
   case FEAT_POWER_CRITICAL:
@@ -2507,10 +2529,6 @@ int feat_to_subfeat(int feat)
     return CFEAT_GREATER_WEAPON_FOCUS;
   case FEAT_GREATER_WEAPON_SPECIALIZATION:
     return CFEAT_GREATER_WEAPON_SPECIALIZATION;
-  case FEAT_SPELL_FOCUS:
-    return SFEAT_SPELL_FOCUS;
-  case FEAT_GREATER_SPELL_FOCUS:
-    return SFEAT_GREATER_SPELL_FOCUS;
   case FEAT_IMPROVED_WEAPON_FINESSE:
     return CFEAT_IMPROVED_WEAPON_FINESSE;
   case FEAT_EXOTIC_WEAPON_PROFICIENCY:
@@ -2527,12 +2545,33 @@ int feat_to_subfeat(int feat)
     return -1;
   }
 }
+int feat_to_sfeat(int feat) {
+  switch (feat) {
+  case FEAT_SPELL_FOCUS:
+    return SFEAT_SPELL_FOCUS;
+  case FEAT_GREATER_SPELL_FOCUS:
+    return SFEAT_GREATER_SPELL_FOCUS;
+  default:
+    return -1;
+  }
+}
+
+int feat_to_skfeat(int feat) {
+  switch (feat) {
+  case FEAT_SKILL_FOCUS:
+    return SKFEAT_SKILL_FOCUS;
+  case FEAT_EPIC_SKILL_FOCUS:
+    return SKFEAT_EPIC_SKILL_FOCUS;
+  default:
+    return -1;
+  }
+}
 
 void setweapon( int type, char *name, int numDice, int diceSize, int critRange, int critMult, 
 int weaponFlags, int cost, int damageTypes, int weight, int range, int weaponFamily, int size, 
 int material, int handle_type, int head_type) {
 
-  weapon_type[type] = name;
+  weapon_type[type] = strdup(name);
   weapon_list[type].name = name;
   weapon_list[type].numDice = numDice;
   weapon_list[type].diceSize = diceSize;
@@ -2919,11 +2958,12 @@ void display_levelup_feats(struct char_data *ch) {
 #endif
 
 int has_feat(struct char_data *ch, int featnum) {
-/*
-	if (ch->desc && ch->levelup && STATE(ch->desc) >= CON_LEVELUP_START && STATE(ch->desc) <= CON_LEVELUP_END) {
-		return (HAS_FEAT(ch, featnum) + ch->levelup->feats[featnum]);
-	}
 
+  if (ch->desc && LEVELUP(ch)) {
+    return (HAS_FEAT(ch, featnum) + LEVELUP(ch)->feats[featnum]);
+  } 
+
+/*
   struct obj_data *obj;
   int i = 0, j = 0;
 
@@ -2936,16 +2976,16 @@ int has_feat(struct char_data *ch, int featnum) {
     }
   }
 */
-	return HAS_FEAT(ch, featnum);
+  return HAS_FEAT(ch, featnum);
 }
 
 int has_combat_feat(struct char_data *ch, int i, int j) {
-/*
-	if (ch->desc && ch->levelup && STATE(ch->desc) >= CON_LEVELUP_START && STATE(ch->desc) <= CON_LEVELUP_END) {
-		if ((IS_SET_AR((ch)->levelup->combat_feats[(i)], (j))))
+
+	if (ch->desc && LEVELUP(ch)) {
+		if ((IS_SET_AR(LEVELUP(ch)->combat_feats[(i)], (j))))
 			return TRUE;
 	}
-*/
+
 	if ((IS_SET_AR((ch)->char_specials.saved.combat_feats[(i)], (j))))
 		return TRUE;
 
@@ -2963,24 +3003,24 @@ int has_weapon_feat_full(struct char_data *ch, int i, int j, int display) {
   int k = 0;
 
   if (obj) {
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_SLASHING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_cfeat(i), DAMAGE_TYPE_SLASHING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_SLASHING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_SLASHING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_SLASHING))
       return TRUE;
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_BLUDGEONING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_cfeat(i), DAMAGE_TYPE_BLUDGEONING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_BLUDGEONING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_BLUDGEONING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_BLUDGEONING))
       return TRUE;
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_PIERCING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_cfeat(i), DAMAGE_TYPE_PIERCING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_PIERCING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_PIERCING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_PIERCING))
       return TRUE;
 
     for (k = 0; k < NUM_WEAPON_TYPES; k++) {
-      if (HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), k) && display &&
+      if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(i), k) && display &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, weapon_list[k].damageTypes) ||
           IS_SET(weapon_list[k].damageTypes, weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == weapon_list[k].damageTypes))
@@ -3008,23 +3048,23 @@ int has_weapon_feat_full(struct char_data *ch, int i, int j, int display) {
   obj = GET_EQ(ch, WEAR_HOLD);
 
   if (obj) {
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_SLASHING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_cfeat(i), DAMAGE_TYPE_SLASHING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_SLASHING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_SLASHING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_SLASHING))
       return TRUE;
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_BLUDGEONING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_cfeat(i), DAMAGE_TYPE_BLUDGEONING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_BLUDGEONING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_BLUDGEONING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_BLUDGEONING))
       return TRUE;
-    if (display && HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), DAMAGE_TYPE_PIERCING) &&
+    if (display && HAS_COMBAT_FEAT(ch, feat_to_cfeat(i), DAMAGE_TYPE_PIERCING) &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_PIERCING) ||
           IS_SET(weapon_list[k].damageTypes, DAMAGE_TYPE_PIERCING) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == DAMAGE_TYPE_PIERCING))
       return TRUE;
     for (k = 0; k < NUM_WEAPON_TYPES; k++) {
-      if (HAS_COMBAT_FEAT(ch, feat_to_subfeat(i), k) && display &&
+      if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(i), k) && display &&
          (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, weapon_list[k].damageTypes) ||
           IS_SET(weapon_list[k].damageTypes, weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes) ||
           weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes == weapon_list[k].damageTypes))

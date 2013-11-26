@@ -50,6 +50,7 @@ extern const char *color_liquid[];
 extern const char *fullness[];
 extern const char *weekdays[];
 extern const char *month_name[];
+extern const char *spell_schools[];
 extern int spell_bonus[51][10];
 extern const struct str_app_type str_app[];
 extern const struct dex_skill_type dex_app_skill[];

@@ -345,6 +345,11 @@ static int same_obj(struct obj_data *obj1, struct obj_data *obj2)
   if (GET_OBJ_RNUM(obj1) != GET_OBJ_RNUM(obj2))
     return (FALSE);
 
+  /* We have a bug where items shops are suppose to produce (unlimited) are only
+     showing up as a single item for sale, at least a temporary fix to that issue
+     was commenting the code below this line  (11/26/2013 Zusuk)
+  */
+  /*
   if (GET_OBJ_COST(obj1) != GET_OBJ_COST(obj2))
     return (FALSE);
 
@@ -352,6 +357,7 @@ static int same_obj(struct obj_data *obj1, struct obj_data *obj2)
     if ((obj1->affected[aindex].location != obj2->affected[aindex].location) ||
 	(obj1->affected[aindex].modifier != obj2->affected[aindex].modifier))
       return (FALSE);
+  */
 
   return (TRUE);
 }

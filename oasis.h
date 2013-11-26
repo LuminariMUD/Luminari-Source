@@ -513,18 +513,24 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 
 
 /* study Submodes of connectedness. */
-#define SORC_MAIN_MENU         0
 #define STUDY_SPELLS           1
-#define RANG_MAIN_MENU         2
-#define FAVORED_ENEMY          3
-#define ANIMAL_COMPANION       4
-#define FAVORED_ENEMY_SUB      5
-#define ANIMAL_COMPANION_SUB   6
-#define WIZ_MAIN_MENU          7
-#define FAMILIAR_MENU          8
-#define BARD_MAIN_MENU         9
-#define BARD_STUDY_SPELLS      10
-#define DRUID_MAIN_MENU        11
+#define FAVORED_ENEMY          2 
+#define ANIMAL_COMPANION       3
+#define FAVORED_ENEMY_SUB      4
+#define ANIMAL_COMPANION_SUB   5
+#define FAMILIAR_MENU          6
+#define BARD_STUDY_SPELLS      7
+#define STUDY_MAIN_FEAT_MENU   8
+#define STUDY_GEN_FEAT_MENU    9
+#define STUDY_CFEAT_MENU       10
+#define STUDY_SFEAT_MENU       11
+#define STUDY_SKFEAT_MENU      12
+#define STUDY_CONFIRM_SAVE     13
+#define STUDY_GEN_MAIN_MENU    14
+#define STUDY_EPIC_CLASS_FEAT_MENU 15
+#define STUDY_SORC_KNOWN_SPELLS_MENU 16
+#define STUDY_BARD_KNOWN_SPELLS_MENU 17
+#define STUDY_CONFIRM_ADD_FEAT 18
 
 int save_config(IDXTYPE nowhere);
 

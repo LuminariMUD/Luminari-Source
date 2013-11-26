@@ -55,6 +55,8 @@ static void load_events(FILE *fl, struct char_data *ch);
 static void load_affects(FILE *fl, struct char_data *ch);
 static void load_skills(FILE *fl, struct char_data *ch);
 static void load_feats(FILE *fl, struct char_data *ch);
+static void load_class_feat_points(FILE *fl, struct char_data *ch);
+static void load_epic_class_feat_points(FILE *fl, struct char_data *ch);
 static void load_skill_focus(FILE *fl, struct char_data *ch);
 static void load_abilities(FILE *fl, struct char_data *ch);
 static void load_favored_enemy(FILE *fl, struct char_data *ch);
@@ -295,15 +297,22 @@ int load_char(const char *name, struct char_data *ch) {
       GET_ABILITY(ch, i) = 0;
     for (i = 0; i < NUM_FEATS; i++)
       SET_FEAT(ch, i, 0);
-    for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++)
-      ch->player_specials->saved.skill_focus[i - MAX_SPELLS + 1] = 0;
+    for (i = 0; i < NUM_SKFEATS; i++)
+      for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++)
+        ch->player_specials->saved.skill_focus[i][j - MAX_SPELLS + 1] = 0;
     for (i = 0; i < NUM_CFEATS; i++) 
       for (j = 0; j < FT_ARRAY_MAX; j++)
         ch->char_specials.saved.combat_feats[i][j] = 0;
-    
+   
     for (i = 0; i < NUM_SFEATS; i++)
       ch->char_specials.saved.school_feats[i] = 0;
 
+    for (i = 0; i < NUM_CLASSES; i++) {
+      GET_CLASS_FEATS(ch, i) = 0;
+      GET_EPIC_CLASS_FEATS(ch, i) = 0;
+    }
+    GET_FEAT_POINTS(ch) = 0;
+    GET_EPIC_FEAT_POINTS(ch) = 0;
     init_spell_slots(ch);
     GET_REAL_SIZE(ch) = PFDEF_SIZE;
     IS_MORPHED(ch) = PFDEF_MORPHED;
@@ -371,6 +380,8 @@ int load_char(const char *name, struct char_data *ch) {
     GET_SALVATION_ROOM(ch) = NOWHERE;
     GET_SALVATION_NAME(ch) = NULL;
     GUARDING(ch) = NULL;
+    
+    LEVELUP(ch) = NULL;
 
     GET_DIPTIMER(ch) = PFDEF_DIPTIMER;
     GET_CLAN(ch) = PFDEF_CLAN;
@@ -432,7 +443,7 @@ int load_char(const char *name, struct char_data *ch) {
             ch->char_specials.saved.combat_feats[i][2] = asciiflag_conv(f3);
             ch->char_specials.saved.combat_feats[i][3] = asciiflag_conv(f4);
           }
-
+          else if (!strcmp(tag, "Cfpt")) load_class_feat_points(fl, ch);
           else if (!strcmp(tag, "Cha ")) GET_REAL_CHA(ch) = atoi(line);
           else if (!strcmp(tag, "Clas")) GET_CLASS(ch) = atoi(line);
           else if (!strcmp(tag, "Con ")) GET_REAL_CON(ch) = atoi(line);
@@ -464,12 +475,16 @@ int load_char(const char *name, struct char_data *ch) {
         case 'E':
           if (!strcmp(tag, "Exp ")) GET_EXP(ch) = atoi(line);
           else if (!strcmp(tag, "Evnt")) load_events(fl, ch);
+          else if (!strcmp(tag, "Ecfp")) load_epic_class_feat_points(fl, ch);
+          else if (!strcmp(tag, "Efpt")) GET_EPIC_FEAT_POINTS(ch) = atoi(line);
           break;
 
         case 'F':
           if (!strcmp(tag, "Frez")) GET_FREEZE_LEV(ch) = atoi(line);
           else if (!strcmp(tag, "FaEn")) load_favored_enemy(fl, ch);
           else if (!strcmp(tag, "Feat"))  load_feats(fl, ch);
+          else if (!strcmp(tag, "Ftpt")) GET_FEAT_POINTS(ch) = atoi(line);
+
           break;
 
         case 'G':
@@ -651,7 +666,7 @@ void save_char(struct char_data * ch, int mode) {
   char filename[40] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'},
   bits[127] = {'\0'}, bits2[127] = {'\0'},
   bits3[127] = {'\0'}, bits4[127] = {'\0'};
-  int i = 0, j = 0, id = 0, save_index = FALSE;
+  int i = 0, j = 0, k = 0, id = 0, save_index = FALSE;
   struct affected_type *aff = NULL;
   struct affected_type tmp_aff[MAX_AFFECT] = {
     {0}
@@ -837,6 +852,21 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_TRAINS(ch) != PFDEF_TRAINS) fprintf(fl, "Trns: %d\n", GET_TRAINS(ch));
   if (GET_BOOSTS(ch) != PFDEF_BOOSTS) fprintf(fl, "Bost: %d\n", GET_BOOSTS(ch));
 
+  if (GET_FEAT_POINTS(ch) != 0) fprintf(fl, "Ftpt: %d\n", GET_FEAT_POINTS(ch));
+
+  fprintf(fl, "Cfpt:\n");  
+  for(i = 0; i < NUM_CLASSES; i++)
+    if (GET_CLASS_FEATS(ch, i) != 0) fprintf(fl, "%d %d\n", i, GET_CLASS_FEATS(ch, i));
+  fprintf(fl, "0\n");
+
+  if (GET_EPIC_FEAT_POINTS(ch) != 0) fprintf(fl, "Efpt: %d\n", GET_EPIC_FEAT_POINTS(ch));
+
+  fprintf(fl, "Ecfp:\n");
+  for(i = 0; i < NUM_CLASSES; i++) 
+    if (GET_EPIC_CLASS_FEATS(ch, i) != 0) fprintf(fl, "%d %d\n", i, GET_EPIC_CLASS_FEATS(ch, i));
+  fprintf(fl, "0\n");
+  
+
   if (GET_COND(ch, HUNGER) != PFDEF_HUNGER && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Hung: %d\n", GET_COND(ch, HUNGER));
   if (GET_COND(ch, THIRST) != PFDEF_THIRST && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Thir: %d\n", GET_COND(ch, THIRST));
   if (GET_COND(ch, DRUNK) != PFDEF_DRUNK && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Drnk: %d\n", GET_COND(ch, DRUNK));
@@ -936,9 +966,10 @@ void save_char(struct char_data * ch, int mode) {
 
   /* Save Skill Foci */
   fprintf(fl, "SklF:\n");
-  for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++) {
-    for (j = 0; j < ch->player_specials->saved.skill_focus[i-MAX_SPELLS + 1]; j++)
-      fprintf(fl, "%d\n", i);
+  for (i = 0; i < NUM_SKFEATS; i++)
+    for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++) {
+      for (k = 0; k < ch->player_specials->saved.skill_focus[i][j-MAX_SPELLS + 1]; k++) 
+        fprintf(fl, "%d %d\n", i, j);
   }
   fprintf(fl, "0\n");
                    
@@ -1426,17 +1457,59 @@ void load_feats(FILE *fl, struct char_data *ch)
   } while (num != 0);
 }
 
-void load_skill_focus(FILE *fl, struct char_data *ch)
+void load_class_feat_points(FILE *fl, struct char_data *ch)
 {
-  int num = 0;
+
+  int cls = 0, pts = 0, num_fields = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
     get_line(fl, line);
-    sscanf(line, "%d", &num);
-    if (num != 0)
-      ch->player_specials->saved.skill_focus[num - MAX_SPELLS + 1] += 1;
-  } while (num != 0);
+
+    if((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
+      return;
+    GET_CLASS_FEATS(ch, cls) = pts;    
+  } while(1);
+
+}
+
+void load_epic_class_feat_points(FILE *fl, struct char_data *ch)
+{
+  
+  int cls = 0, pts = 0, num_fields = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do {
+    get_line(fl, line);
+    
+    if((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
+      return;
+    GET_EPIC_CLASS_FEATS(ch, cls) = pts;
+  } while(1);
+
+} 
+
+void load_skill_focus(FILE *fl, struct char_data *ch)
+{
+  int num_fields = 0;
+  int skfeat = 0, skill = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do {
+    get_line(fl, line);
+    if((num_fields = sscanf(line, "%d %d", &skfeat, &skill)) == 1) {
+      if(skfeat == 0)
+        /* exit condition */
+        return;
+      
+      /* Old version. */
+      skill = skfeat;
+      skfeat = 0;
+    }
+
+    ch->player_specials->saved.skill_focus[skfeat][skill - MAX_SPELLS + 1] = 1;
+
+  } while (1);
 }
 
 void load_quests(FILE *fl, struct char_data *ch) {

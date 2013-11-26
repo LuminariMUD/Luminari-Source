@@ -372,7 +372,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   }
 
   /* armor arcane failure check, these functions can be found in class.c */ 
- if ((casttype != CAST_INNATE) && !IS_NPC(caster))
+ if ((casttype != CAST_INNATE) && 
+     (casttype != CAST_POTION) &&
+     (casttype != CAST_WAND)   && !IS_NPC(caster))
     switch (CASTING_CLASS(caster)) {
       case CLASS_BARD:
         /* bards can wear light armor and cast unpenalized (bard spells) */

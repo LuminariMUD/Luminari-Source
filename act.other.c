@@ -888,9 +888,16 @@ ACMD(do_gain) {
 
   one_argument(argument, arg);
 
+  if (!(GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
+            GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))) {
+    send_to_char(ch, "You are not experienced enough to gain a level.\r\n");
+    return;
+  }
+
   if (!*arg) {
-    send_to_char(ch, "You need to select a class, here are your options:\r\n\r\n");
+    send_to_char(ch, "You may gain a level in one of the following classes:\r\n\r\n");
     list_valid_classes(ch);
+    send_to_char(ch, "Type 'gain <classname>' to gain a level in the chosen class.\r\n");
     return;
   } else {
     class = get_class_by_name(arg);

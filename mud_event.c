@@ -425,7 +425,7 @@ void clear_room_event_list(struct room_data *rm) {
  * a function to adjust the event time of a given event
  */
 void change_event_duration(struct char_data * ch, event_id iId, long time) {
-  struct event *pEvent;
+  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
@@ -493,6 +493,4 @@ void change_event_duration(struct char_data * ch, event_id iId, long time) {
   
 }
  */
-
-
 

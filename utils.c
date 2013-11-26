@@ -337,6 +337,7 @@ int skill_check(struct char_data *ch, int skill, int dc) {
     return 1;
 }
 
+
 /* simple function to increase skills
    takes character structure and skillnum, based on chance, can
    increase skill permanently up to cap */
@@ -2893,4 +2894,41 @@ int find_armor_type(int specType)
   return ARMOR_TYPE_LIGHT;
 }
 
+int savingthrow(struct char_data *ch, int save, int modifier, int dc)
+{
+  int roll = dice(1, 20);
+ 
+  /* 1 is an automatic failure. */
+  if (roll == 1)
+    return FALSE;
+
+  /* 20 is an automatic success. */
+  if (roll == 20)
+    return TRUE;
+
+  roll += compute_mag_saves(ch, save, modifier) + dice(1, 20);
+
+  if(roll >= dc)
+    return TRUE;
+  else
+    return FALSE;
+
+}
+
+/* Utilities for managing daily use abilities for players. */
+
+/* Function to create an event, based on the mud_event passed in, that will either:
+ * 1.) Create a new event with the proper sVariables
+ * 2.) Update an existing event with a new sVariable value 
+ *
+ * Returns the current number of uses on cooldown. */
+
+int activate_daily_use(struct char_data *ch, event_id iId) {
+
+}
+
+/* Function to return the number of daily uses remaining for a particular ability. */
+int daily_uses_available(struct char_data *ch, event_id iId) {
+
+} 
 
