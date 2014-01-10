@@ -65,6 +65,8 @@ typedef enum {
   eFALLING, // char falling
   eCHECK_OCCUPIED, // Event to check that a room is occupied (for wilderness)
   eTRACKS, // Tracks in the room, decay on event processing.
+  eWILD_SHAPE, // Wild shape event
+  eSHIELD_RECOVERY, // Recovery from shield punch
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
@@ -105,6 +107,7 @@ void change_event_duration(struct char_data *ch, event_id iId, long time);
 
 /* Events */
 EVENTFUNC(event_countdown);
+EVENTFUNC(event_daily_use_cooldown);
 EVENTFUNC(get_protocols);
 EVENTFUNC(event_whirlwind);
 EVENTFUNC(event_casting);

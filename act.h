@@ -231,9 +231,9 @@ extern const char *cmd_door[];
  * Begin Functions and defines for act.offensive.c
  ****************************************************************************/
 /* functions */
-void perform_stunningfist(struct char_data *ch, long cooldown);
+void perform_stunningfist(struct char_data *ch);
 void perform_rescue(struct char_data *ch, struct char_data *vict);
-void perform_smite(struct char_data *ch, long cooldown);
+void perform_smite(struct char_data *ch);
 void perform_rage(struct char_data *ch);
 void perform_layonhands(struct char_data *ch, struct char_data *vict);
 bool perform_knockdown(struct char_data *ch, struct char_data *vict, 
@@ -265,6 +265,8 @@ ACMD(do_bodyslam);
 ACMD(do_springleap);
 ACMD(do_headbutt);
 ACMD(do_shieldpunch);
+ACMD(do_shieldcharge);
+ACMD(do_shieldslam);
 ACMD(do_dirtkick);
 ACMD(do_sap);
 ACMD(do_assist);

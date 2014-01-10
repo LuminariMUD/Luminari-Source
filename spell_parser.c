@@ -839,7 +839,7 @@ int castingCheckOk(struct char_data *ch) {
           (CASTING_TOBJ(ch) && CASTING_TOBJ(ch)->in_room != ch->in_room &&
           !IS_SET(SINFO.targets, TAR_OBJ_WORLD | TAR_OBJ_INV)) ||
           (CASTING_TCH(ch) && CASTING_TCH(ch)->in_room != ch->in_room && SINFO.violent)) {
-    act("A spell from $n is aborted!", FALSE, ch, 0, 0,
+    act("$n is unable to continue $s spell!", FALSE, ch, 0, 0,
             TO_ROOM);
     send_to_char(ch, "You are unable to continue your spell!\r\n");
     resetCastingData(ch);
@@ -852,7 +852,7 @@ int castingCheckOk(struct char_data *ch) {
     resetCastingData(ch);
     return (0);
   }
-  if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
+  if (AFF_FLAGGED(ch, AFF_DAZED) || AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
           char_has_mud_event(ch, eSTUNNED)) {
     send_to_char(ch, "You are unable to continue casting!\r\n");
     act("$n seems to be unable to continue casting!",

@@ -692,7 +692,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
     //able to flee away with tumble check?
     if (!IS_NPC(ch)) { //player
-      if ((GET_SKILL(ch, SKILL_MOBILITY) ||
+      if (((HAS_FEAT(ch, FEAT_MOBILITY)) ||
               dice(1, 20) + compute_ability(ch, ABILITY_TUMBLE) > 15) &&
               cantFlee <= 0) {
         send_to_char(ch, "\tW*Tumble Success\tn*");
@@ -752,7 +752,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
 
   /* chance of being thrown off mount */
-  if (riding && compute_ability(ch, ABILITY_MOUNT) <
+  if (riding && compute_ability(ch, ABILITY_RIDE) <
           rand_number(1, GET_LEVEL(RIDING(ch))) - rand_number(-4, need_movement)) {
     act("$N rears backwards, throwing you to the ground.",
             FALSE, ch, 0, RIDING(ch), TO_CHAR);
@@ -1561,7 +1561,7 @@ static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scm
     return (1);
 
   percent = rand_number(1, 35);
-  skill_lvl = compute_ability(ch, ABILITY_PICK_LOCK);
+  skill_lvl = compute_ability(ch, ABILITY_SLEIGHT_OF_HAND);
 
   if (keynum == NOTHING)
     send_to_char(ch, "Odd - you can't seem to find a keyhole.\r\n");

@@ -21,6 +21,8 @@ extern const char *admin_level_names[]; // for imp prefix
 extern const char *item_profs[];
 extern const char *material_name[];
 extern const char *size_names[];
+extern const int  size_modifiers[];
+extern const int  grapple_size_modifiers[];
 extern const char *room_affections[];
 extern const char *tbamud_version;
 extern const char *damtype_display[];

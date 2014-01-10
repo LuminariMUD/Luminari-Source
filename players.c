@@ -380,6 +380,7 @@ int load_char(const char *name, struct char_data *ch) {
     GET_SALVATION_ROOM(ch) = NOWHERE;
     GET_SALVATION_NAME(ch) = NULL;
     GUARDING(ch) = NULL;
+    GET_TOTAL_AOO(ch) = 0;
     
     LEVELUP(ch) = NULL;
 

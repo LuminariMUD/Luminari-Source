@@ -100,7 +100,7 @@ dg_scripts.o: dg_scripts.c conf.h sysdep.h structs.h protocol.h lists.h \
  db.h screen.h constants.h spells.h oasis.h genzon.h act.h modify.h
 dg_triggers.o: dg_triggers.c conf.h sysdep.h structs.h protocol.h lists.h \
  dg_scripts.h utils.h race.h comm.h interpreter.h handler.h db.h oasis.h \
- constants.h spells.h act.h
+ constants.h spells.h act.h modify.h
 dg_variables.o: dg_variables.c conf.h sysdep.h structs.h protocol.h \
  lists.h dg_scripts.h utils.h race.h comm.h interpreter.h handler.h \
  dg_event.h db.h fight.h screen.h constants.h spells.h oasis.h class.h \
@@ -110,11 +110,11 @@ dg_wldcmd.o: dg_wldcmd.c conf.h sysdep.h structs.h protocol.h lists.h \
  constants.h genzon.h fight.h
 feats.o: feats.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h handler.h db.h constants.h interpreter.h \
- dg_scripts.h modify.h feats.h class.h
+ dg_scripts.h modify.h feats.h class.h mud_event.h dg_event.h
 fight.o: fight.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h interpreter.h db.h spells.h screen.h constants.h \
  dg_scripts.h act.h class.h fight.h shop.h quest.h mud_event.h dg_event.h \
- spec_procs.h clan.h treasure.h mudlim.h spec_abilities.h
+ spec_procs.h clan.h treasure.h mudlim.h spec_abilities.h feats.h
 gain.o: gain.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h oasis.h screen.h interpreter.h modify.h spells.h
 genmob.o: genmob.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
@@ -284,7 +284,7 @@ treasure_const.o: treasure_const.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h interpreter.h treasure.h
 utils.o: utils.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h modify.h screen.h spells.h handler.h interpreter.h \
- class.h spec_procs.h mud_event.h dg_event.h
+ class.h spec_procs.h mud_event.h dg_event.h feats.h
 weather.o: weather.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h
 wilderness.o: wilderness.c perlin.h conf.h sysdep.h structs.h protocol.h \

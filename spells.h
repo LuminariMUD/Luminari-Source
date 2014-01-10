@@ -556,9 +556,11 @@
 #define SKILL_SHIELD_PUNCH              523
 #define SKILL_DIRT_KICK                 524
 #define SKILL_SAP                       525
+#define SKILL_SHIELD_SLAM               526
+#define SKILL_SHIELD_CHARGE             527
 
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      526
+#define NUM_SKILLS                      528
 
 /* Special Abilities for weapons */
 
@@ -655,27 +657,88 @@
 /*---------------------------ABILITIES-------------------------------------*/
 
 /* PLAYER ABILITIES -- Numbered from 1 to MAX_ABILITIES */
+#define START_GENERAL_ABILITIES         1
 #define ABILITY_TUMBLE			1  // tumble
 #define ABILITY_HIDE			2  // hide
-#define ABILITY_SNEAK			3  // sneak
+#define ABILITY_MOVE_SILENTLY		3  // move silently (was sneak)
 #define ABILITY_SPOT			4  // spot
 #define ABILITY_LISTEN			5  // listen
-#define ABILITY_TREAT_INJURY		6  // treat injuries
-#define ABILITY_TAUNT			7  // taunt
+#define ABILITY_HEAL 			6  // heal (was treat injury)
+#define ABILITY_INTIMIDATE      	7  // intimidate (was taunt)
 #define ABILITY_CONCENTRATION		8  // concentration
 #define ABILITY_SPELLCRAFT		9  // spellcraft
 #define ABILITY_APPRAISE	        10 // appraise
 #define ABILITY_DISCIPLINE		11 // discipline
 #define ABILITY_PARRY			12 // parry
 #define ABILITY_LORE			13 // lore
-#define ABILITY_MOUNT			14 // mounts
-#define ABILITY_FREE15			15 // use to be riding
-#define ABILITY_FREE16			16 // use to be taming
-#define ABILITY_PICK_LOCK		17 // open locks
-#define ABILITY_STEAL			18 // pick pockets
+#define ABILITY_RIDE			14 // ride
+#define ABILITY_BALANCE			15 // balance
+#define ABILITY_CLIMB			16 // climb
+#define ABILITY_OPEN_LOCK		17 // open locks
+#define ABILITY_SLEIGHT_OF_HAND		18 // sleight of hand
 #define ABILITY_SEARCH                  19 // search
+#define ABILITY_BLUFF                   20 
+#define ABILITY_DECIPHER_SCRIPT         21
+#define ABILITY_DIPLOMACY               22
+#define ABILITY_DISABLE_DEVICE          23
+#define ABILITY_DISGUISE                24
+#define ABILITY_ESCAPE_ARTIST           25
+#define ABILITY_HANDLE_ANIMAL           26
+#define ABILITY_JUMP                    27
+#define ABILITY_SENSE_MOTIVE            28
+#define ABILITY_SURVIVAL                29
+#define ABILITY_SWIM                    30
+#define ABILITY_USE_MAGIC_DEVICE        31
+#define ABILITY_USE_ROPE                32
+#define ABILITY_PERFORM                 33 // perform
+#define END_GENERAL_ABILITIES           33
 
-#define NUM_ABILITIES			20 /* Number of defined abilities */
+/* Start Crafting Abilities */
+#define START_CRAFT_ABILITIES           34
+
+#define ABILITY_CRAFT_WOODWORKING       34
+#define ABILITY_CRAFT_WEAVING           35
+#define ABILITY_CRAFT_ALCHEMY           36
+#define ABILITY_CRAFT_ARMORSMITHING     37
+#define ABILITY_CRAFT_WEAPONSMITHING    38
+#define ABILITY_CRAFT_BOWMAKING         39
+#define ABILITY_CRAFT_GEMCUTTING        40
+#define ABILITY_CRAFT_LEATHERWORKING    41
+#define ABILITY_CRAFT_TRAPMAKING        42
+#define ABILITY_CRAFT_POISONMAKING      43
+#define ABILITY_CRAFT_METALWORKING      44
+
+#define END_CRAFT_ABILITIES             44
+/* End Crafting Abilities */
+
+/* Start Knowledge Abilities */
+#define START_KNOWLEDGE_ABILITIES       45
+
+#define ABILITY_KNOWLEDGE_ARCANA        45
+#define ABILITY_KNOWLEDGE_ENGINEERING   46
+#define ABILITY_KNOWLEDGE_DUNGEONEERING 47
+#define ABILITY_KNOWLEDGE_GEOGRAPHY     48
+#define ABILITY_KNOWLEDGE_HISTORY       49
+#define ABILITY_KNOWLEDGE_LOCAL         50
+#define ABILITY_KNOWLEDGE_NATURE        51
+#define ABILITY_KNOWLEDGE_NOBILITY      52
+#define ABILITY_KNOWLEDGE_RELIGION      53
+#define ABILITY_KNOWLEDGE_PLANES        54
+
+#define END_KNOWLEDGE_ABILITIES         54
+
+/* The abilities below have 'subabilities', basically
+ * the skill is broken down into many many sub skills
+ * each of which can be chosen for a train. Not yet
+ * Implemented. */
+/*
+#define ABILITY_CRAFT                   29
+#define ABILITY_KNOWLEDGE               30
+#define ABILITY_PROFESSION              32
+#define ABILITY_SPEAK_LANGUAGE          33
+*/
+
+#define NUM_ABILITIES			55 /* Number of defined abilities */
 /*	MAX_ABILITIES = 200 */
 /*-------------------------------------------------------------------------*/
 

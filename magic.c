@@ -47,17 +47,13 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 
   //adjustments passed to mag_resistance
   resist += modifier;
+
   //additional adjustmenets
-  if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_SPELL_RESIST_1))
-    resist += 2;
-  if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_SPELL_RESIST_2))
-    resist += 2;
-  if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_SPELL_RESIST_3))
-    resist += 2;
-  if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_SPELL_RESIST_4))
-    resist += 2;
-  if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_SPELL_RESIST_5))
-    resist += 2;
+  if (HAS_FEAT(vict, FEAT_DIAMOND_SOUL))
+    resist += 10 + CLASS_LEVEL(vict, CLASS_MONK);
+
+  if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE))
+    resist += 2 * HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE);
   if (affected_by_spell(vict, SPELL_PROTECT_FROM_SPELLS))
     resist += 10;
   if (IS_AFFECTED(vict, AFF_SPELL_RESISTANT))
@@ -71,19 +67,19 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier) {
   int challenge = dice(1, 20),
-          resist = compute_spell_res(ch, vict, modifier);
+      resist = compute_spell_res(ch, vict, modifier);
 
   // should be modified - zusuk
   challenge += CASTER_LEVEL(ch);
 
   //insert challenge bonuses here (ch)
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SPELLPENETRATE))
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_SPELL_PENETRATION))
     challenge += 2;
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SPELLPENETRATE_2))
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_SPELL_PENETRATION))
     challenge += 2;
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SPELLPENETRATE_3))
-    challenge += 4;
-
+/*  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
+    challenge += 2;
+*/
   //success?
   if (resist > challenge) {
     send_to_char(vict, "\tW*(%d>%d)you resist*\tn", resist, challenge);
@@ -106,21 +102,21 @@ int compute_mag_saves(struct char_data *vict,
   switch (type) {
     case SAVING_FORT:
       saves += GET_CON_BONUS(vict);
-      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_GREAT_FORTITUDE))
+      if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_GREAT_FORTITUDE))
         saves += 2;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_FORTITUDE))
         saves += 3;
       break;
     case SAVING_REFL:
       saves += GET_DEX_BONUS(vict);
-      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LIGHTNING_REFLEXES))
+      if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_LIGHTNING_REFLEXES))
         saves += 2;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_REFLEXES))
         saves += 3;
       break;
     case SAVING_WILL:
       saves += GET_WIS_BONUS(vict);
-      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_IRON_WILL))
+      if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IRON_WILL))
         saves += 2;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_WILL))
         saves += 3;
@@ -132,8 +128,7 @@ int compute_mag_saves(struct char_data *vict,
     saves++;
   if (!IS_NPC(vict) && GET_RACE(vict) == RACE_HALFLING)
     saves++;
-  if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_GRACE)) {
-    increase_skill(vict, SKILL_GRACE);
+  if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_GRACE)) {
     /* this might need capping */
     saves += GET_CHA_BONUS(vict);
   }
@@ -1178,18 +1173,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     //saving throw for half damage if applies  
     if (mag_savingthrow(ch, victim, save, race_bonus)) {
       if ((!IS_NPC(victim)) && save == SAVING_REFL && // evasion
-              (GET_SKILL(victim, SKILL_EVASION) ||
-              GET_SKILL(victim, SKILL_IMP_EVASION)))
+              (HAS_FEAT(victim, FEAT_EVASION) ||
+              (HAS_FEAT(victim, FEAT_IMPROVED_EVASION))))
         dam /= 2;
       dam /= 2;
     } else if ((!IS_NPC(victim)) && save == SAVING_REFL && // evasion
-            (GET_SKILL(victim, SKILL_IMP_EVASION)))
+            (HAS_FEAT(victim, FEAT_IMPROVED_EVASION)))
       dam /= 2;
-
-    if (!IS_NPC(victim) && GET_SKILL(victim, SKILL_EVASION))
-      increase_skill(victim, SKILL_EVASION);
-    if (!IS_NPC(victim) && GET_SKILL(victim, SKILL_IMP_EVASION))
-      increase_skill(victim, SKILL_IMP_EVASION);
   }
 
   if (!element) //want to make sure all spells have some sort of damage cat
@@ -2729,6 +2719,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_SCARE: //illusion
+      if (HAS_FEAT(victim, FEAT_AURA_OF_COURAGE)) {
+        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+        send_to_char(victim, "Your divine courage protects you!\r\n");
+        return;
+      }
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
@@ -3072,6 +3067,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_WAIL_OF_THE_BANSHEE: //necromancy (does damage too)
+      if (HAS_FEAT(victim, FEAT_AURA_OF_COURAGE)) {
+        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+        send_to_char(victim, "Your divine courage protects you!\r\n");
+        return;
+      }
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
@@ -3178,8 +3178,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   /* slippery mind */
   if (is_mind_affect && !IS_NPC(victim) &&
-          GET_SKILL(victim, SKILL_SLIPPERY_MIND)) {
-    increase_skill(victim, SKILL_SLIPPERY_MIND);
+      HAS_FEAT(victim, FEAT_SLIPPERY_MIND)) {
     send_to_char(victim, "\tW*Slippery Mind*\tn  ");
     if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
       return;

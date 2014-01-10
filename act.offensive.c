@@ -141,7 +141,7 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
 
 /* stunningfist engine */
 /* The stunning fist is reliant on a successful UNARMED attack (or an attack with a KI_STRIKE weapon) */
-void perform_stunningfist(struct char_data *ch, long cooldown) {
+void perform_stunningfist(struct char_data *ch) {
 
   struct affected_type af;
 
@@ -151,7 +151,10 @@ void perform_stunningfist(struct char_data *ch, long cooldown) {
 
   affect_to_char(ch, &af);
 
-  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), cooldown);
+//  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), cooldown);
+  if(!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
   send_to_char(ch, "You focus your Ki energies and prepare a disabling unarmed attack.\r\n");
 
 }
@@ -209,15 +212,11 @@ void perform_rage(struct char_data *ch) {
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
   
   attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
-
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_RAGE);
 }
 
 /* rescue skill mechanic */
 void perform_rescue(struct char_data *ch, struct char_data *vict) {
   struct char_data *tmp_ch;
-  int percent, prob;
   
   if (vict == ch) {
     send_to_char(ch, "What about fleeing instead?\r\n");
@@ -250,18 +249,13 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
     act("But nobody is fighting $M!", FALSE, ch, 0, vict, TO_CHAR);
     return;
   }
-  
-  percent = rand_number(1, 101); /* 101% is a complete failure */
-  if (IS_NPC(ch))
-    prob = 70;
-  else
-    prob = GET_SKILL(ch, SKILL_RESCUE);
-  if (percent > prob) {
+ 
+  if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, FALSE, 1) <= 0) {
     send_to_char(ch, "You fail the rescue!\r\n");
     return;
   }
   
-  send_to_char(ch, "Banzai!  To the rescue...\r\n");
+  act("You place yourself between $N and $S opponent, rescuing $M!", FALSE, ch, 0, vict, TO_CHAR);
   act("You are rescued by $N, you are confused!", FALSE, vict, 0, ch, TO_CHAR);
   act("$n heroically rescues $N!", FALSE, ch, 0, vict, TO_NOTVICT);
 
@@ -277,9 +271,6 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
 
   SET_WAIT(ch, PULSE_VIOLENCE);
   SET_WAIT(vict, PULSE_VIOLENCE);
-  
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_RESCUE);  
 }
 
 /* charge mechanic */
@@ -287,7 +278,6 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
   extern struct index_data *mob_index;
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
-  int prob = 0;
   
   if (!RIDING(ch)) {
     send_to_char(ch, "You must be mounted to charge.\r\n");
@@ -316,19 +306,16 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
     }
   }
 
-  if (IS_NPC(ch))
-    prob = 60;
-  else
-    prob = GET_SKILL(ch, SKILL_CHARGE);
-  
-  if (rand_number(1, 101) >= prob) {
+  /* This must be reworked - done like this in interest of time. */
+
+  if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, FALSE, 1) <= 0) {
     damage(ch, vict, 0, SKILL_CHARGE, DAM_FORCE, FALSE);
   } else {
     name = mob_index[GET_MOB_RNUM(RIDING(ch))].func;
     if (name)
       (name)(ch, RIDING(ch), 0, "charge");
     else
-      damage(ch, vict, GET_DAMROLL(ch) + GET_SKILL(ch, SKILL_CHARGE) / 2,
+      damage(ch, vict, dice(3, 12),
             SKILL_CHARGE, DAM_FORCE, FALSE);
     if (rand_number(0, 100) < GET_LEVEL(ch)) {
       new_affect(&af);
@@ -342,14 +329,15 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
       WAIT_STATE(vict, 1 RL_SEC);
   }
   
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
-  
+  SET_WAIT(ch, PULSE_VIOLENCE * 2); 
 }
 
 /* engine for knockdown, used in bash/trip/etc */
-bool perform_knockdown(struct char_data *ch, struct char_data *vict, 
-        int skill) {
-  int percent = 0, prob = 0, dam = dice(1, 4);
+bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) {
+
+  int penalty = 0;
+  bool success = FALSE, counter_success = FALSE;
+  int attack_check = 0, defense_check = 0;
   float rounds_wait = 1.75;
   
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
@@ -383,81 +371,211 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict,
 
   switch (skill) {
     case SKILL_BASH:
-      if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_BASH)) {
-        increase_skill(ch, SKILL_IMPROVED_BASH);
-        prob += GET_SKILL(ch, SKILL_IMPROVED_BASH) / 5;
-        dam *= 2;
-      }
-      break;
     case SKILL_BODYSLAM:
-      dam *= 4;
-      rounds_wait = rounds_wait + 1.0;
+    case SKILL_SHIELD_CHARGE:
       break;
     case SKILL_TRIP:
       if (AFF_FLAGGED(vict, AFF_FLYING)) {
         send_to_char(ch, "Impossible, your target is flying!\r\n");
-        return FALSE;
+        return FALSE;     
       }
-      if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_TRIP)) {
-        increase_skill(ch, SKILL_IMPROVED_TRIP);
-        prob += GET_SKILL(ch, SKILL_IMPROVED_TRIP) / 6;
-        dam *= 2;
-      }
+      if (!HAS_FEAT(ch, FEAT_IMPROVED_TRIP))
+        attack_of_opportunity(vict, ch, 0);     
       break;
     default:
       log("Invalid skill sent to perform knockdown!\r\n");
       return FALSE;
   }
     
-  percent += rand_number(1, 101); /* 101% is a complete failure */
-  if (IS_NPC(ch))
-    prob += 60;
-  else
-    prob += GET_SKILL(ch, skill);
 
   if (MOB_FLAGGED(vict, MOB_NOBASH)) {
     send_to_char(ch, "You realize you will probably not succeed:  ");
-    percent = 101;
+    penalty = -100;
   }
   
   if (GET_POS(vict) == POS_SITTING) {
     send_to_char(ch, "It is difficult to knock down something already down:  ");
-    percent += 75;
+    penalty = -4;
   }
 
-  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
-    percent += compute_ability(vict, ABILITY_DISCIPLINE);
 
-  if (GET_RACE(ch) == RACE_DWARF ||
-          GET_RACE(ch) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
-    percent += 4;
+  /* Perform the unarmed touch attack */
+  if ((attack_roll(ch, vict, ATTACK_TYPE_UNARMED, TRUE, 1) + penalty) > 0) {
+    /* Successful unarmed touch attacks. */
+   
+ 
+    /* Perform strength check. */
+    attack_check = (dice(1, 20) + GET_STR_BONUS(ch) + (GET_SIZE(ch)-GET_SIZE(vict))*4);
+    defense_check = (dice(1, 20) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)));
 
-  if (percent > prob) {
-    GET_POS(ch) = POS_SITTING;
-    damage(ch, vict, 0, skill, DAM_FORCE, FALSE);
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP)) { 
+      /* You do not provoke an attack of opportunity when you attempt to trip an opponent while you are unarmed. 
+       * You also gain a +4 bonus on your Strength check to trip your opponent.
+       *
+       * If you trip an opponent in melee combat, you immediately get a melee attack against that opponent as if 
+       * you hadn't used your attack for the trip attempt.
+       *
+       * Normal:
+       * Without this feat, you provoke an attack of opportunity when you attempt to trip an opponent while you 
+       * are unarmed. */
+
+      attack_check += 4;
+    }      
+
+    if (GET_RACE(vict) == RACE_DWARF ||
+        GET_RACE(vict) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
+      defense_check += 4;
+
+    send_to_char(ch, "attack check: %d, defense_check: %d\r\n", attack_check, defense_check);
+    if (attack_check >= defense_check) {
+      if(attack_check == defense_check) {
+        /* Check the bonuses. */
+        if((GET_STR_BONUS(ch) + (GET_SIZE(ch)-GET_SIZE(vict))*4) >= (MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict))))
+          success = TRUE;
+        else 
+          success = FALSE;    
+      } else {
+        success = TRUE;
+      }
+    }
+
+    if (success == TRUE) {
+      /* Messages for shield charge */
+      if (skill == SKILL_SHIELD_CHARGE) {
+        act("\tyYou knock $N to the ground!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+        act("\ty$n knocks you to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
+        act("\ty$n knocks $N to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);       
+      } else {
+        /* Messages for successful trip */
+        act("\tyYou grab and overpower $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+        act("\ty$n grabs and overpowers you, throwing you to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
+        act("\ty$n grabs and overpowers $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+      }
+
+    } else {
+      /* Messages for shield charge */
+      if (skill == SKILL_SHIELD_CHARGE) {
+/*
+        if (GET_STR_BONUS(vict) >= GET_DEX_BONUS(vict)) {
+          act("\tyYou charge into $N with your shield, but $E doesn't budge!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+          act("\ty$n charges into you, but you stand your ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
+          act("\ty$n charges into $N, but $E doesn't budge!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);      
+        } else {
+          act("\tyYou charge into $N with your shield, but $E regains $S footing!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+          act("\ty$n charges into you, but you regain your footing!\tn", FALSE, ch, NULL, vict, TO_VICT);
+          act("\ty$n charges into $N, but $E regains $S footing!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);     
+        }      
+*/
+      } else {
+        /* Messages for failed trip */
+        if (GET_STR_BONUS(vict) >= GET_DEX_BONUS(vict)) {
+          act("\tyYou grab $N but $E tears out of your grasp!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+          act("\ty$n grabs you but you tear yourself from $s grasp!\tn", FALSE, ch, NULL, vict, TO_VICT);
+          act("\ty$n grabs $N but $E tears out of $s grasp!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+        } else {
+          act("\tyYou grab $N but $E deftly turns away from your attack!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+          act("\ty$n grabs you and you deftly turn away from $s attack!\tn", FALSE, ch, NULL, vict, TO_VICT);
+          act("\ty$n grabs $N but $E deftly turns away from $s attack!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+        }         
+      }
+
+      if (skill != SKILL_SHIELD_CHARGE) {    
+        /* Victim gets a chance to countertrip */      
+        attack_check = (dice(1, 20) + GET_STR_BONUS(vict) + (GET_SIZE(vict)-GET_SIZE(ch))*4);
+        defense_check = (dice(1, 20) + MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch)));
+  
+        if (GET_RACE(ch) == RACE_DWARF ||
+            GET_RACE(ch) == RACE_CRYSTAL_DWARF) /* Dwarves get a stability bonus. */
+          defense_check += 4;
+  
+        send_to_char(ch, "counterattack check: %d, defense_check: %d\r\n", attack_check, defense_check);
+  
+        if (attack_check >= defense_check) {
+          if(attack_check == defense_check) {
+            /* Check the bonuses. */        
+            if((GET_STR_BONUS(vict) + (GET_SIZE(vict)-GET_SIZE(ch))*4) >= (MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch))))
+              counter_success = TRUE;
+            else
+              counter_success = FALSE;
+          } else {
+            counter_success = TRUE;
+          }
+        }         
+  
+        if (counter_success == TRUE) {
+          /* Messages for successful counter-trip */
+          act("\tyTaking advantage of your failed attack, $N throws you to the ground!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+          act("\tyTaking advantage of $n's failed attack, you throw $m to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
+          act("\tyTaking advantage of $n's failed attack, $N throws $m to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+        } else {
+          /* Messages for failed coutner-trip */
+          if (GET_STR_BONUS(ch) >= GET_DEX_BONUS(ch)) {
+            act("\tyYou resist $N's attempt to take advantage of your failed attack.\tn", FALSE, ch, NULL, vict, TO_CHAR);
+            act("\ty$n resists your attempt to take advantage of $s failed attack.\tn", FALSE, ch, NULL, vict, TO_VICT);
+            act("\ty$n resists $N's attempt to take advantage of $s failed attack.\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+          } else {
+            act("\tyYou twist away from $N's attempt to take advantage of your failed attack.\tn", FALSE, ch, NULL, vict, TO_CHAR);
+            act("\ty$n twists away from your attempt to take advantage of $s failed attack.\tn", FALSE, ch, NULL, vict, TO_VICT);
+            act("\ty$n twists away from $N's attempt to take advantage of $s failed attack.\t\n", FALSE, ch, NULL, vict, TO_NOTVICT);
+          }
+        }
+      }
+    }             
+  } else {
+    /* Messages for a missed unarmed touch attack. */
+    if (skill == SKILL_SHIELD_CHARGE) {
+/*
+      act("\ty$N rolls off of your shield, avoiding your charge!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+      act("\ty$n tries to charge you with $s shield, but you dodge easily away!\tn", FALSE, ch, NULL, vict, TO_VICT);
+      act("\ty$n tries to charge $N with $s shield, but $N dodges easily away!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+*/
+    } else {    
+      act("\tyYou are unable to grab $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+      act("\ty$n tries to grab you, but you dodge easily away!\tn", FALSE, ch, NULL, vict, TO_VICT);
+      act("\ty$n tries to grab $N, but $N dodges easily away!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+    }
+  }
+
+  if (!success) {
+    if (counter_success) {
+      GET_POS(ch) = POS_SITTING;
+    }
   } else {
     GET_POS(vict) = POS_SITTING;
-    if (damage(ch, vict, dam, skill, DAM_FORCE, FALSE) > 0)
-      SET_WAIT(vict, PULSE_VIOLENCE * rounds_wait);
+    SET_WAIT(vict, PULSE_VIOLENCE * rounds_wait);
+    if ((skill == SKILL_TRIP) ||
+        (skill == SKILL_SHIELD_CHARGE)) {
+      /* Successful trip. */
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP)) {
+        /* You get a free swing on the tripped opponent. */
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+    }
+  }
+  if (vict != ch) {
+    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) 
+      set_fighting(ch, vict);
+    if (GET_POS(vict) > POS_STUNNED && (FIGHTING(vict) == NULL)) {
+      set_fighting(vict, ch);
+    }
   }
 
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
-  if (!IS_NPC(ch))
-    increase_skill(ch, skill);
   
   return TRUE;
-  
+
 }
 
+/* shieldpunch engine :
+ * Perform the shield punch, check for proficiency and the required 
+ * equipment, also check for any enhancing feats. */
 bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
-  struct affected_type af;
   extern struct index_data *obj_index;
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
-  int prob = 0;
   
   if (!shield) {
-    send_to_char(ch, "You need a shield to make it a success..\r\n");
+    send_to_char(ch, "You need a shield to do that.\r\n");
     return FALSE;
   }
   
@@ -482,44 +600,169 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
       return FALSE;
     }
   }
-  
-  if (IS_NPC(ch))
-    prob = 60;
-  else
-    prob = GET_SKILL(ch, SKILL_SHIELD_PUNCH);
 
-  if (rand_number(1, 101) >= prob) {
+  if (!HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_SHIELD)) {
+    send_to_char(ch, "You are not proficient enough in the use of your shield to shieldpunch.\r\n");
+    return FALSE;
+  }
+
+  if (!HAS_FEAT(ch, FEAT_IMPROVED_SHIELD_BASH)) {
+    /* Remove shield bonus from ac. */
+    attach_mud_event(new_mud_event(eSHIELD_RECOVERY, ch, NULL), PULSE_VIOLENCE);    
+  }
+
+  /*  Use an attack mechanic to determine success. */
+  if (attack_roll(ch, vict, ATTACK_TYPE_OFFHAND, FALSE, 1) <= 0) {
     damage(ch, vict, 0, SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
   } else {
-    damage(ch, vict, GET_DAMROLL(ch) + GET_SKILL(ch, SKILL_SHIELD_PUNCH) / 2,
-              SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
+    damage(ch, vict, dice(1,6), SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
     name = obj_index[GET_OBJ_RNUM(shield)].func;
     if (name)
       (name)(ch, shield, 0, "shieldpunch");
     
-    if (rand_number(0, 60) < GET_LEVEL(ch)) {
-      new_affect(&af);
-      af.spell = SKILL_SHIELD_PUNCH;
-      SET_BIT_AR(af.bitvector, AFF_STUN);
-      af.duration = dice(1, 4) + 1;
-      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
-      act("You slam $p into $N, stunning $E!", FALSE, ch, shield, vict, TO_CHAR);
-      act("$n slams $p into $N, stunning $E!", FALSE, ch, shield, vict, TO_ROOM);
-    } else
       WAIT_STATE(vict, 1 RL_SEC);
   }
+
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
   
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_SHIELD_PUNCH);
-  
+  return TRUE;
+}
+
+/* shieldcharge engine :
+ * Perform the shield punch, check for proficiency and the required 
+ * equipment, also check for any enhancing feats. Perform a trip attack 
+ * on success */
+bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
+  extern struct index_data *obj_index;
+  int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
+  struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
+
+  if (!shield) {
+    send_to_char(ch, "You need a shield to do that.\r\n");
+    return FALSE;
+  }
+
+  if (!vict) {
+    send_to_char(ch, "Shieldpunch who?\r\n");
+    return FALSE;
+  }
+
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return FALSE;
+  }
+
+  if (!CAN_SEE(ch, vict)) {
+    send_to_char(ch, "You don't see well enough to attempt that.\r\n");
+    return FALSE;
+  }
+
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+    if (ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char(ch, "You simply can't reach that far.\r\n");
+      return FALSE;
+    }
+  }
+
+  if (!HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_SHIELD)) {
+    send_to_char(ch, "You are not proficient enough in the use of your shield to shieldpunch.\r\n");
+    return FALSE;
+  }
+
+  /*  Use an attack mechanic to determine success. */
+  if (attack_roll(ch, vict, ATTACK_TYPE_OFFHAND, FALSE, 1) <= 0) {
+    damage(ch, vict, 0, SKILL_SHIELD_CHARGE, DAM_FORCE, FALSE);
+  } else {
+    damage(ch, vict, dice(1,6), SKILL_SHIELD_CHARGE, DAM_FORCE, FALSE);
+    name = obj_index[GET_OBJ_RNUM(shield)].func;
+    if (name)
+      (name)(ch, shield, 0, "shieldcharge");
+
+    WAIT_STATE(vict, 1 RL_SEC);
+    perform_knockdown(ch, vict, SKILL_SHIELD_CHARGE);
+  }
+
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+
+  return TRUE;
+}
+
+
+/* shieldslam engine :
+ * Perform the shield slam, check for proficiency and the required 
+ * equipment, also check for any enhancing feats. */
+bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
+  struct affected_type af;
+  extern struct index_data *obj_index;
+  int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
+  struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
+
+  if (!shield) {
+    send_to_char(ch, "You need a shield to do that.\r\n");
+    return FALSE;
+  }
+
+  if (!HAS_FEAT(ch, FEAT_SHIELD_SLAM)) {
+    send_to_char(ch, "You don't know how to do that.\r\n");
+    return FALSE;
+  }
+
+  if (!vict) {
+    send_to_char(ch, "Shieldslam who?\r\n");
+    return FALSE;
+  }
+
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return FALSE;
+  }
+
+  if (!CAN_SEE(ch, vict)) {
+    send_to_char(ch, "You don't see well enough to attempt that.\r\n");
+    return FALSE;
+  }
+
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
+    if (ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char(ch, "You simply can't reach that far.\r\n");
+      return FALSE;
+    }
+  }
+
+  if (!HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_SHIELD)) {
+    send_to_char(ch, "You are not proficient enough in the use of your shield to shieldslam.\r\n");
+    return FALSE;
+  }
+
+  /*  Use an attack mechanic to determine success. */
+  if (attack_roll(ch, vict, ATTACK_TYPE_OFFHAND, FALSE, 1) <= 0) {
+    damage(ch, vict, 0, SKILL_SHIELD_SLAM, DAM_FORCE, FALSE);
+  } else {
+    damage(ch, vict, dice(1,6), SKILL_SHIELD_SLAM, DAM_FORCE, FALSE);
+    name = obj_index[GET_OBJ_RNUM(shield)].func;
+    if (name)
+      (name)(ch, shield, 0, "shieldslam");
+   
+    if (savingthrow(ch, SAVING_FORT, 0, (10 + (GET_LEVEL(ch)/2) + GET_STR_BONUS(ch)))) {
+      new_affect(&af);
+      af.spell = SKILL_SHIELD_SLAM;
+      SET_BIT_AR(af.bitvector, AFF_DAZED);
+      af.duration = 1; /* One round */
+      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+      act("$N appears to be dazed by your blow!", FALSE, ch, shield, vict, TO_CHAR);
+      act("$N appears to be dazed by the blow!", FALSE, ch, shield, vict, TO_ROOM);
+    } else 
+      WAIT_STATE(vict, 1 RL_SEC);
+  }
+
+  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+
   return TRUE;
 }
 
 /* engine for headbutt skill */
 void perform_headbutt(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
-  int prob = 0;
   
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
@@ -552,19 +795,14 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  if (IS_NPC(ch))
-    prob = 60;
-  else
-    prob = GET_SKILL(ch, SKILL_HEADBUTT);
-  
-  if (rand_number(1, 101) < prob) {
-    damage(ch, vict, dice(2, GET_LEVEL(ch)), SKILL_HEADBUTT, DAM_FORCE, FALSE);
+  if (attack_roll(ch, vict, ATTACK_TYPE_UNARMED, FALSE, 1) > 0) {
+    damage(ch, vict, dice((HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE) ? 2 : 1), 8), SKILL_HEADBUTT, DAM_FORCE, FALSE);
     
-    if (!rand_number(0, 2)) {
+    if (!rand_number(0, 4)) {
       new_affect(&af);
       af.spell = SKILL_HEADBUTT;
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
-      af.duration = rand_number(1, 3);
+      af.duration = 1;
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       act("You slam your head into $N with \tRVICIOUS\tn force!", FALSE, ch, 0, vict, TO_CHAR);
       act("$n slams $s head into $N with \tRVICIOUS\tn force!", FALSE, ch, 0, vict, TO_ROOM);
@@ -575,9 +813,6 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
   }
   
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
-  
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_HEADBUTT);
 }
 
 /* engine for layonhands skill */
@@ -602,9 +837,6 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict) {
           20 + GET_LEVEL(ch) +
           (GET_CHA_BONUS(ch) * CLASS_LEVEL(ch, CLASS_PALADIN)));
   update_pos(vict);
-
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_LAY_ON_HANDS);  
 }
 
 /* engine for sap skill */
@@ -679,11 +911,9 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
     send_to_char(ch, "You need a bludgeon weapon to make this a success...\r\n");
     return;
   }
-  
-  if (IS_NPC(ch))
-    prob += 30;
-  else
-    prob += GET_SKILL(ch, SKILL_SAP) / 2;
+ 
+  /* Redo this.  Figure out what to do with it.  */ 
+  prob += 30;
   prob += GET_DEX(ch);
   prob -= GET_CON(vict);
   
@@ -713,9 +943,6 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
   }
   
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
-  
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_SAP);
 }
 
 /* main engine for dirt-kick mechanic */
@@ -757,17 +984,14 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
     return FALSE;
   }
   
-  if (IS_NPC(ch))
-    base_probability = 60;  //flate rate 60% right now
-  else
-    base_probability = GET_SKILL(ch, SKILL_DIRT_KICK);
+  base_probability = 60;  //flate rate 60% right now
   
   base_probability -= GET_LEVEL(vict) / 2;
   base_probability -= GET_DEX(vict);
   
   if (dice(1, 101) < base_probability) {
     dam = 2 + dice(1, GET_LEVEL(ch));
-    damage(ch, vict, dam, SKILL_DIRT_KICK, 0, FALSE);
+    damage(ch, vict, dam, dice(1,4), 0, FALSE);
     
     new_affect(&af);
     af.spell = SKILL_DIRT_KICK;
@@ -781,9 +1005,6 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
 
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_DIRT_KICK);
-  
   return TRUE;
 }
 
@@ -851,10 +1072,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  if (IS_NPC(ch))
-    prob = 60;
-  else
-    prob = GET_SKILL(ch, SKILL_SPRINGLEAP);
+  prob = 60;
   
   if (rand_number(0, 100) < prob) {
     dam = dice(6, (GET_LEVEL(ch) / 5) + 2);
@@ -876,18 +1094,11 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
   GET_POS(ch) = POS_STANDING;
   SET_WAIT(ch, PULSE_VIOLENCE * 2);
 
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_SPRINGLEAP);
 }
 
 /* smite evil (eventually good?) engine */
-void perform_smite(struct char_data *ch, long cooldown) {
+void perform_smite(struct char_data *ch) {
   struct affected_type af;
-  
-  if (char_has_mud_event(ch, eSMITE)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    return;
-  }
 
   new_affect(&af);
 
@@ -895,13 +1106,13 @@ void perform_smite(struct char_data *ch, long cooldown) {
   af.duration = 24;
 
   affect_to_char(ch, &af);
-  attach_mud_event(new_mud_event(eSMITE, ch, NULL), cooldown);
-  send_to_char(ch, "You prepare to wreak vengeance upon your foe.\r\n");
-  act("The mighty force of $N's faith blasts $n out of existence!", FALSE, NULL,
-          NULL, ch, TO_NOTVICT);
 
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_SMITE);
+  if(!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SMITE_EVIL);
+
+  send_to_char(ch, "You prepare to wreak vengeance upon your foe.\r\n");
+//  act("The mighty force of $N's faith blasts $n out of existence!", FALSE, NULL,
+//          NULL, ch, TO_NOTVICT);
   
 }
 
@@ -911,10 +1122,8 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict) {
   
   percent = rand_number(1, 101); /* 101% is a complete failure */
   percent2 = rand_number(1, 101); /* 101% is a complete failure */
-  if (IS_NPC(ch))
-    prob = 60;  // flat 60% success rate for now
-  else
-    prob = GET_SKILL(ch, SKILL_BACKSTAB);
+
+  prob = 60;  // flat 60% success rate for now
   
   if (AFF_FLAGGED(ch, AFF_HIDE))
     prob += 4; //minor bonus for being hidden
@@ -961,8 +1170,6 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict) {
   }
 
   if (successful) {
-    if (!IS_NPC(ch))
-      increase_skill(ch, SKILL_BACKSTAB);
     SET_WAIT(ch, 2 * PULSE_VIOLENCE);
     return TRUE;
   } else
@@ -1015,13 +1222,9 @@ EVENTFUNC(event_whirlwind) {
     return 0;
   }
 
-  if (GET_HIT(ch) < 1)
+  if (GET_HIT(ch) < 1) { 
     return 0;
 
-  if (!IS_NPC(ch)) {
-    increase_skill(ch, SKILL_WHIRLWIND);
-    if (GET_SKILL(ch, SKILL_IMPROVED_WHIRL))
-      increase_skill(ch, SKILL_IMPROVED_WHIRL);
   }
 
   /* We spit out some ugly colour, making use of the new colour options,
@@ -1041,12 +1244,10 @@ EVENTFUNC(event_whirlwind) {
   /* The "return" of the event function is the time until the event is called
    * again. If we return 0, then the event is freed and removed from the list, but
    * any other numerical response will be the delay until the next call */
-  if (GET_SKILL(ch, SKILL_WHIRLWIND) < rand_number(1, 101)) {
+  if (20 < rand_number(1, 101)) {
     send_to_char(ch, "You stop spinning.\r\n");
     return 0;
-  } else if (GET_SKILL(ch, SKILL_IMPROVED_WHIRL))
-    return 1.5 * PASSES_PER_SEC;
-  else
+  } else
     return 4 * PASSES_PER_SEC;
 }
 
@@ -1055,7 +1256,7 @@ EVENTFUNC(event_whirlwind) {
 /* turn undead skill (clerics, paladins, etc) */
 ACMD(do_turnundead) {
   struct char_data *vict = NULL;
-  int turn_level = 0, percent = 0;
+  int turn_level = 0;
   int turn_difference = 0, turn_result = 0, turn_roll = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -1064,7 +1265,7 @@ ACMD(do_turnundead) {
   turn_level += CLASS_LEVEL(ch, CLASS_CLERIC);
 
   if (turn_level <= 0) {
-    send_to_char(ch, "You do not possess the divine favor!\r\n");
+    send_to_char(ch, "You do not possess divine favor!\r\n");
     return;
   }
 
@@ -1090,16 +1291,8 @@ ACMD(do_turnundead) {
     return;
   }
 
-  percent = GET_SKILL(ch, SKILL_TURN_UNDEAD);
-
-  if (!percent) {
-    send_to_char(ch, "You lost your concentration!\r\n");
-    return;
-  }
-
   /* add cooldown, increase skill */
   attach_mud_event(new_mud_event(eTURN_UNDEAD, ch, NULL), 120 * PASSES_PER_SEC);
-  increase_skill(ch, SKILL_TURN_UNDEAD);
 
   /* too powerful */
   if (GET_LEVEL(vict) >= LVL_IMMORT) {
@@ -1179,9 +1372,6 @@ ACMD(do_turnundead) {
       dam_killed_vict(ch, vict);
       break;
   }
-
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_TURN_UNDEAD);
 }
 
 /* rage skill (berserk) primarily for berserkers character class */
@@ -1189,21 +1379,21 @@ ACMD(do_rage) {
   
   struct affected_type af, aftwo, afthree, affour;
 
-  int bonus = 0, duration = 0;
+  int bonus = 0, duration = 0, uses_remaining = 0;
   
   if (affected_by_spell(ch, SKILL_RAGE)) {
     send_to_char(ch, "You are already raging!\r\n");
     return;
   }
   if (!IS_ANIMAL(ch)) {
-    if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_RAGE)) {
+    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_RAGE)) {
       send_to_char(ch, "You don't know how to rage.\r\n");
       return;
     }
   }
-  if (char_has_mud_event(ch, eRAGE)) {
-    send_to_char(ch, "You must wait longer before you can use this ability "
-                     "again.\r\n");
+
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_RAGE)) == 0)) {
+    send_to_char(ch, "You must recover before you can go into a rage.\r\n");
     return;
   }
 
@@ -1248,10 +1438,9 @@ ACMD(do_rage) {
   affect_to_char(ch, &aftwo);
   affect_to_char(ch, &afthree);
   affect_to_char(ch, &affour);
-  attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
-  
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_RAGE);  
+
+ if(!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_RAGE);  
  
 }
 #undef RAGE_AFFECTS
@@ -1308,11 +1497,11 @@ ACMD(do_hit) {
       check_killer(ch, vict);
     /* already fighting */
     if (!FIGHTING(ch)) {
-      if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_INITIATIVE))
-        chInitiative += 8;
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE))
+        chInitiative += 4;
       chInitiative += GET_DEX(ch);
-      if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_INITIATIVE))
-        victInitiative += 8;
+      if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE))
+        victInitiative += 4;
       victInitiative += GET_DEX(vict);
       if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING)
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */
@@ -1322,7 +1511,7 @@ ACMD(do_hit) {
                 "\tyYour opponents superior \tYinitiative\ty grants the first strike!\tn\r\n");
         hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); // victim is first 
         update_pos(ch);
-        if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_INITIATIVE) &&
+        if (!IS_NPC(vict) && HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE) &&
                 GET_POS(ch) > POS_DEAD) {
           send_to_char(vict, "\tYYour superior initiative grants another attack!\tn\r\n");
           hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -1400,7 +1589,7 @@ ACMD(do_backstab) {
   char buf[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_BACKSTAB)) {
+  if (IS_NPC(ch) || (CLASS_LEVEL(ch, CLASS_ROGUE) < 1)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
@@ -1512,10 +1701,10 @@ ACMD(do_flee) {
 
   if (!*arg) {
     perform_flee(ch);
-  } else if ((*arg && !IS_NPC(ch) && !GET_SKILL(ch, SKILL_SPRING_ATTACK))) {
+  } else if (*arg && !IS_NPC(ch) && !HAS_FEAT(ch, FEAT_SPRING_ATTACK)) {
     perform_flee(ch);
   } else {// there is an argument, check if its valid
-    if (!GET_SKILL(ch, SKILL_SPRING_ATTACK)) {
+    if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK)) {
       send_to_char(ch, "You don't have the option to choose which way to flee!\r\n");
       return;
     }
@@ -1641,8 +1830,6 @@ ACMD(do_spellbattle) {
   attach_mud_event(new_mud_event(eSPELLBATTLE, ch, NULL),
           1 * SECS_PER_REAL_HOUR);
   
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_SPELLBATTLE);
 }
 #undef SPELLBATTLE_CAP
 #undef SPELLBATTLE_AFFECTS
@@ -1766,7 +1953,7 @@ ACMD(do_taunt) {
 
   one_argument(argument, arg);
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_TAUNT)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_INTIMIDATE)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -1799,7 +1986,7 @@ ACMD(do_taunt) {
     return;
   }
 
-  attempt += compute_ability(ch, ABILITY_TAUNT);
+  attempt += compute_ability(ch, ABILITY_INTIMIDATE);
   if (!IS_NPC(vict))
     resist += compute_ability(vict, ABILITY_CONCENTRATION);
   else
@@ -1820,9 +2007,20 @@ ACMD(do_taunt) {
   attach_mud_event(new_mud_event(eTAUNT, ch, NULL), 8 * PASSES_PER_SEC);
 }
 
+/* do_frightful - Perform an AoE attack that terrifies the victims, causign them to flee.
+ * Currently this is limited to dragons, but really it should be doable by any fear-inspiring
+ * creature.  Don't tell me the tarrasque isn't scary! :) 
+ * This ability SHOULD be able to be resisted with a successful save.
+ * The paladin ability AURA OF COURAGE should give a +4 bonus to all saves against fear,
+ * usually will saves. */
 ACMD(do_frightful) {
-  struct char_data *vict, *next_vict;
+  struct char_data *vict, *next_vict, *tch;
+  int modifier = 0;
 
+  /*  DC for the will save is = the level of the creature generating the effect. */
+  int dc = GET_LEVEL(ch);
+
+  /*  Only dragons can do this. */
   if (!IS_DRAGON(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
@@ -1835,21 +2033,44 @@ ACMD(do_frightful) {
   send_to_char(ch, "You ROAR!\r\n");
   act("$n lets out a mighty ROAR!", FALSE, ch, 0, 0, TO_ROOM);
 
+
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict) {
     next_vict = vict->next_in_room;
 
-    if (aoeOK(ch, vict, -1) &&
-            (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_AURA_OF_COURAGE))) {
+    /* Check to see if the victim is affected by an AURA OF COURAGE */
+    if(GROUP(ch) != NULL) {
+      while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
+        if (IN_ROOM(tch) != IN_ROOM(ch))
+          continue;
+        if (HAS_FEAT(tch, FEAT_AURA_OF_COURAGE)) {
+          modifier += 4;
+          /* Can only have one morale bonus. */
+          break;
+        }
+      }
+    }
+   
+    if (aoeOK(ch, vict, -1)) {
       send_to_char(ch, "You roar at %s.\r\n", GET_NAME(vict));
       send_to_char(vict, "A mighty roar from %s is directed at you!\r\n",
               GET_NAME(ch));
       act("$n roars at $N!", FALSE, ch, 0, vict,
               TO_NOTVICT);
 
-      perform_flee(vict);
-      perform_flee(vict);
-      perform_flee(vict);
-      SET_WAIT(vict, PULSE_VIOLENCE * 3);
+      /* Check the save. */
+      if (HAS_FEAT(vict, FEAT_AURA_OF_COURAGE))
+        send_to_char(vict, "You are unaffected!\r\n");
+      else if (savingthrow(vict, SAVING_WILL, modifier, dc)) {
+        /* Lucky you, you saved! */
+        send_to_char(vict, "You stand your ground!\r\n");
+      } else {
+        /* Failed save, tough luck. */
+        send_to_char(vict, "You PANIC!\r\n");
+        perform_flee(vict);
+        perform_flee(vict);
+        perform_flee(vict);
+        SET_WAIT(vict, PULSE_VIOLENCE * 3);
+      }
     }
   }
 
@@ -1956,10 +2177,6 @@ ACMD(do_bash) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_BASH)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
@@ -1987,10 +2204,10 @@ ACMD(do_trip) {
 
   one_argument(argument, arg);
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_TRIP)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+//  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_TRIP)) {
+//    send_to_char(ch, "You have no idea how.\r\n");
+//    return;
+//  }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
@@ -2028,41 +2245,49 @@ ACMD(do_layonhands) {
 }
 
 ACMD(do_crystalfist) {
-  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
+  int uses_remaining = 0;
+
+//  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
+  if(!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_CRYSTAL_FIST)) {
     send_to_char(ch, "How do you plan on doing that?\r\n");
     return;
   }
 
-  if (char_has_mud_event(ch, eCRYSTALFIST)) {
-    send_to_char(ch, "You must wait longer before you can use "
-            "this ability again.\r\n");
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CRYSTAL_FIST)) == 0 ) {
+    send_to_char(ch, "You are too exhausted to use crystal fist.\r\n");
     return;
   }
 
   send_to_char(ch, "\tCYour hands and harms grow LARGE crystals!\tn\r\n");
   act("\tCYou watch as $n's arms and hands grow LARGE crystals!\tn",
           FALSE, ch, 0, 0, TO_NOTVICT);
-  attach_mud_event(new_mud_event(eCRYSTALFIST, ch, NULL),
-          (8 * SECS_PER_MUD_HOUR));
+
+  if(!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_CRYSTAL_FIST);  
 }
 
 ACMD(do_crystalbody) {
-  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
+  int uses_remaining = 0;
+
+//  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
+  if(!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_CRYSTAL_BODY)) {
     send_to_char(ch, "How do you plan on doing that?\r\n");
     return;
   }
 
-  if (char_has_mud_event(ch, eCRYSTALBODY)) {
-    send_to_char(ch, "You must wait longer before you can use "
-            "this ability again.\r\n");
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CRYSTAL_BODY)) == 0 ) {
+    send_to_char(ch, "You are too exhausted to harden your body.\r\n");
     return;
   }
 
   send_to_char(ch, "\tCYour crystal-like body becomes harder!\tn\r\n");
   act("\tCYou watch as $n's crystal-like body becomes harder!\tn",
           FALSE, ch, 0, 0, TO_NOTVICT);
-  attach_mud_event(new_mud_event(eCRYSTALBODY, ch, NULL),
-          (8 * SECS_PER_MUD_HOUR));
+
+  if(!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_CRYSTAL_BODY);
+
 }
 
 ACMD(do_treatinjury) {
@@ -2098,18 +2323,13 @@ ACMD(do_treatinjury) {
   attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL),
           (6 * SECS_PER_MUD_HOUR));
   GET_HIT(vict) += MIN((GET_MAX_HIT(vict) - GET_HIT(vict)),
-          (10 + (compute_ability(ch, ABILITY_TREAT_INJURY) * 2)));
+          (10 + (compute_ability(ch, ABILITY_HEAL) * 2)));
   update_pos(vict);
 }
 
 ACMD(do_rescue) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
-
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_RESCUE)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
 
   one_argument(argument, arg);
 
@@ -2126,7 +2346,7 @@ ACMD(do_rescue) {
 /*TODO:  definitely needs more balance tweaking and dummy checks for usage */
 ACMD(do_whirlwind) {
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_WHIRLWIND)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_WHIRLWIND_ATTACK)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -2161,71 +2381,50 @@ ACMD(do_whirlwind) {
 }
 
 ACMD(do_stunningfist) {
-  int cooldown = 0, uses_per_day = 0;
-
-  if (!HAS_FEAT(ch, FEAT_STUNNING_FIST)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (char_has_mud_event(ch, eSTUNNINGFIST)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    return;
-  }
-
-  uses_per_day += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK))/4;
-
-  if (uses_per_day <= 0) {
-    send_to_char(ch, "You are not experienced enough.\r\n");
-    return;
-  }
-
-  cooldown = (SECS_PER_MUD_DAY/uses_per_day) RL_SEC;
-
-  perform_stunningfist(ch, cooldown);
-  
-  
-/*  char arg[MAX_INPUT_LENGTH];
-  struct char_data *vict;
+  int uses_remaining = 0;
 
   if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_STUNNING_FIST)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
-  
-  one_argument(argument, arg);
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
-      vict = FIGHTING(ch);
-    } else {
-      send_to_char(ch, "Use your stunning fist on who?\r\n");
-      return;
-    }
+
+  if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
+    send_to_char(ch, "You have already focused your ki!\r\n");
+    return;
   }
-  
-  perform_stunningfist(ch, vict);
-*/
-  
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_STUNNING_FIST)) == 0 ) {
+    send_to_char(ch, "You must recover before you can focus your ki in this way again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  perform_stunningfist(ch);
 }
 
 ACMD(do_smite) {
-  int cooldown = (3 * SECS_PER_MUD_DAY);
+  int uses_remaining = 0;
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_SMITE)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SMITE_EVIL)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
   
-  if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 20)
-    cooldown /= 5;
-  else if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 15)
-    cooldown /= 4;
-  else if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 10)
-    cooldown /= 3;
-  else if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 5)
-    cooldown /= 2;
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_SMITE_EVIL)) == 0 ) {
+    send_to_char(ch, "You must recover the divine energy required to smite evil.\r\n");
+    return;
+  }
 
-  perform_smite(ch, cooldown);
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  perform_smite(ch);
 }
 
 /* kick engine */
@@ -2259,10 +2458,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
   
   /* 101% is a complete failure */
   percent = rand_number(1, 101);
-  if (IS_NPC(ch))
-    prob = 60;
-  else
-    prob = GET_SKILL(ch, SKILL_KICK);
+  prob = 60;
 
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     percent += compute_ability(vict, ABILITY_DISCIPLINE);
@@ -2272,8 +2468,6 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
   } else
     damage(ch, vict, dice(1, GET_LEVEL(ch)), SKILL_KICK, DAM_FORCE, FALSE);
 
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_KICK);
   SET_WAIT(ch, PULSE_VIOLENCE * 3);
   
 }
@@ -2282,7 +2476,7 @@ ACMD(do_kick) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_KICK)) {
+  if (IS_NPC(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -2308,7 +2502,7 @@ ACMD(do_hitall) {
   if (!MOB_CAN_FIGHT(ch))
     return;
 
-  if ((IS_NPC(ch) || !GET_SKILL(ch, SKILL_HITALL)) && (!IS_PET(ch) || IS_FAMILIAR(ch))) {
+  if ((IS_NPC(ch) || !HAS_FEAT(ch, FEAT_WHIRLWIND_ATTACK)) && (!IS_PET(ch) || IS_FAMILIAR(ch))) {
     send_to_char(ch, "But you do not know how to do that.\r\n");
     return;
   }
@@ -2330,7 +2524,7 @@ ACMD(do_hitall) {
             IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_MAGICDARK))) {
       count++;
       
-      if (rand_number(0, 111) < GET_SKILL(ch, SKILL_HITALL) ||
+      if (rand_number(0, 111) < 20 ||
               (IS_PET(ch) && rand_number(0, 101) > GET_LEVEL(ch)))
         lag++;
 
@@ -2354,7 +2548,7 @@ ACMD(do_circle) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_BACKSTAB)) {
+  if (IS_NPC(ch) || (CLASS_LEVEL(ch, CLASS_ROGUE) < 1)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
@@ -2408,10 +2602,8 @@ ACMD(do_bodyslam) {
 
   one_argument(argument, buf);
 
-  if (!GET_SKILL(ch, SKILL_BODYSLAM)) {
-    send_to_char(ch, "You have no idea how!\r\n");
-    return;
-  }
+  send_to_char(ch, "Unimplemented.\r\n");
+  return;
 
   if (IS_NPC(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -2454,7 +2646,7 @@ ACMD(do_headbutt) {
   one_argument(argument, arg);
 
   if (!IS_NPC(ch))
-    if (!GET_SKILL(ch, SKILL_HEADBUTT)) {
+    if (!(HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE))) {
       send_to_char(ch, "You have no idea how.\r\n");
       return;
     }
@@ -2483,7 +2675,7 @@ ACMD(do_sap) {
   
   one_argument(argument, buf);
 
-  if (!GET_SKILL(ch, SKILL_SAP)) {
+  if (CLASS_LEVEL(ch, CLASS_ROGUE) < 10) {
     send_to_char(ch, "But you do not know how?\r\n");
     return;
   }
@@ -2522,11 +2714,6 @@ ACMD(do_guard) {
     return;
   }
 
-  if (!GET_SKILL(ch, SKILL_RESCUE)) {
-    send_to_char(ch, "But you have no idea how!\r\n");
-    return;
-  }
-  
   if (!(vict = get_char_room_vis(ch, arg, NULL))) {
     send_to_char(ch, "Whom do you want to guard?\r\n");
     return;
@@ -2554,7 +2741,7 @@ ACMD(do_dirtkick) {
   
   one_argument(argument, arg);
 
-  if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_DIRT_KICK)) {
+  if (!IS_NPC(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -2596,7 +2783,7 @@ ACMD(do_springleap) {
 
   one_argument(argument, arg);
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_SPRINGLEAP)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SPRING_ATTACK)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -2624,7 +2811,13 @@ ACMD(do_springleap) {
   perform_springleap(ch, vict);
 }
 
-/* 
+/* Shieldpunch :
+ * 
+ * Use your shield as a weapon, bashing out with it and doing a 
+ * small amount of damage.  The feat FEAT_IMPROVED_SHIELD_BASH allows
+ * you to retain the AC of your shield when you perform a shield punch.
+ *
+ * (old comment) 
  * Vhaerun:  A warrior skill to Stun !BASH mobs. 
  */
 ACMD(do_shieldpunch) {
@@ -2633,10 +2826,6 @@ ACMD(do_shieldpunch) {
 
   one_argument(argument, arg);
 
-  if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_SHIELD_PUNCH)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
 
   if (GET_POS(ch) <= POS_SITTING) {
     send_to_char(ch, "You need to get on your feet to shieldpunch.\r\n");
@@ -2662,7 +2851,88 @@ ACMD(do_shieldpunch) {
   perform_shieldpunch(ch, vict);
 }
 
+/* Shieldcharge :
+ * 
+ * Use your shield as a weapon, bashing out with it and doing a 
+ * small amount of damage, also attempts to trip the opponent, if 
+ * possible.  
+ *
+ * Requires FEAT_SHIELD_CHARGE
+ *
+ * (old comment) 
+ * Vhaerun:  A warrior skill to Stun !BASH mobs. 
+ */
+ACMD(do_shieldcharge) {
+  struct char_data *vict = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
+  one_argument(argument, arg);
+
+
+  if (GET_POS(ch) <= POS_SITTING) {
+    send_to_char(ch, "You need to get on your feet to shieldcharge.\r\n");
+    return;
+  }
+
+  if (!GET_EQ(ch, WEAR_SHIELD)) {
+    send_to_char(ch, "You need to wear a shield to be able to shieldcharge.\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if (!*arg) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  } else
+    vict = get_char_room_vis(ch, arg, NULL);
+
+  perform_shieldcharge(ch, vict);
+}
+
+/* Shieldslam :
+ * 
+ * Use your shield as a weapon, bashing out with it and doing a 
+ * small amount of damage, also daze the opponent on a failed fort save..  
+ *
+ * Requires FEAT_SHIELD_SLAM
+ *
+ * (old comment) 
+ * Vhaerun:  A warrior skill to Stun !BASH mobs. 
+ */
+ACMD(do_shieldslam) {
+  struct char_data *vict = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+
+  one_argument(argument, arg);
+
+
+  if (GET_POS(ch) <= POS_SITTING) {
+    send_to_char(ch, "You need to get on your feet to shieldslam.\r\n");
+    return;
+  }
+
+  if (!GET_EQ(ch, WEAR_SHIELD)) {
+    send_to_char(ch, "You need to wear a shield to be able to shieldslam.\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if (!*arg) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  } else
+    vict = get_char_room_vis(ch, arg, NULL);
+
+  perform_shieldslam(ch, vict);
+}
 
 /*
  * Vhaerun:  Charging when mounted
@@ -2673,11 +2943,6 @@ ACMD(do_charge) {
 
   one_argument(argument, arg);
 
-  if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_CHARGE)) {
-    send_to_char(ch, "You do not know how to charge.\r\n");
-    return;
-  }
-  
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;

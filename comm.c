@@ -2861,7 +2861,7 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
 	i = PERS(ch, to);
 	break;
       case 'N':
-	CHECK_NULL(vict_obj, PERS((const struct char_data *) vict_obj, to));
+	CHECK_NULL(vict_obj, PERS((struct char_data *) vict_obj, to));
 	dg_victim = (struct char_data *) vict_obj;
 	break;
       case 'm':
@@ -3205,7 +3205,7 @@ static void msdp_update( void )
       MSDPSetNumber( d, eMSDP_MONEY, GET_GOLD(ch) );
       MSDPSetNumber( d, eMSDP_MOVEMENT, GET_MOVE(ch) );
       MSDPSetNumber( d, eMSDP_MOVEMENT_MAX, GET_MAX_MOVE(ch) );
-      MSDPSetNumber( d, eMSDP_AC, compute_armor_class(NULL, ch) );
+      MSDPSetNumber( d, eMSDP_AC, compute_armor_class(NULL, ch, FALSE) );
 
       /* This would be better moved elsewhere */
       if ( pOpponent != NULL )

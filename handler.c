@@ -30,7 +30,6 @@
 static int extractions_pending = 0;
 
 /* local file scope functions */
-static int apply_ac(struct char_data *ch, int eq_pos);
 static void update_object(struct obj_data *obj, int use);
 
 /* find the first word in a string buffer */
@@ -817,7 +816,7 @@ void obj_from_char(struct obj_data *object) {
 }
 
 /* Return the effect of a piece of armor in position eq_pos */
-static int apply_ac(struct char_data *ch, int eq_pos) {
+int apply_ac(struct char_data *ch, int eq_pos) {
   int factor = 1;
 
   if (GET_EQ(ch, eq_pos) == NULL) {

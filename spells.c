@@ -184,8 +184,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
 
   } else {
     /* slippery mind gives a second save */
-    if (!IS_NPC(victim) && GET_SKILL(victim, SKILL_SLIPPERY_MIND)) {
-      increase_skill(victim, SKILL_SLIPPERY_MIND);
+    if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_SLIPPERY_MIND)) {
       send_to_char(victim, "\tW*Slippery Mind*\tn  ");
       if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
         return;
@@ -915,7 +914,7 @@ ASPELL(spell_identify) // divination
     send_to_char(ch, "Alignment: %d.\r\n", GET_ALIGNMENT(victim));
     send_to_char(ch, "Height %d cm, Weight %d pounds\r\n", GET_HEIGHT(victim), GET_WEIGHT(victim));
     send_to_char(ch, "Level: %d, Hits: %d, Mana: %d\r\n", GET_LEVEL(victim), GET_HIT(victim), GET_MANA(victim));
-    send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n", compute_armor_class(NULL, victim), GET_HITROLL(victim), GET_DAMROLL(victim));
+    send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n", compute_armor_class(NULL, victim, FALSE),GET_HITROLL(victim), GET_DAMROLL(victim));
     send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n",
             GET_STR(victim), GET_ADD(victim), GET_INT(victim),
             GET_WIS(victim), GET_DEX(victim), GET_CON(victim), GET_CHA(victim));
