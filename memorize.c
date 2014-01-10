@@ -224,7 +224,7 @@ ACMD(do_scribe) {
     send_to_char(ch, "Usually you scribe SOMETHING.\r\n");
     return;
   }
-  if (!GET_SKILL(ch, SKILL_SCRIBE)) {
+  if (!HAS_FEAT(ch, FEAT_SCRIBE_SCROLL)) {
     send_to_char(ch, "You really aren't qualified to do that...\r\n");
     return;
   }
@@ -352,7 +352,6 @@ ACMD(do_scribe) {
     forgetSpell(ch, spellnum, -1);
   }
 
-  increase_skill(ch, SKILL_SCRIBE);
 
 }
 
@@ -946,31 +945,20 @@ int comp_slots(struct char_data *ch, int circle, int class) {
 
 void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
   int slot;
-
-  /* sorcerer type system */
-  if (class == CLASS_SORCERER) {
-    /* replace spellnum with its circle */
-    spellnum = spellCircle(class, spellnum);
-    /* replace time with slot-mem-time */
-//    time = SORC_TIME_FACTOR * spellnum;
-  }
-  else if (class == CLASS_BARD) {
-    /* replace spellnum with its circle */
-    spellnum = spellCircle(class, spellnum);
-    /* replace time with slot-mem-time */
-//    time = BARD_TIME_FACTOR * spellnum;
-  }    
+  int circle = spellCircle(class, spellnum);
 
   switch (class) {
     case CLASS_SORCERER:
     case CLASS_BARD:
-      time = MAX(2, (spellnum * 2 + spellnum + 4) - GET_CHA_BONUS(ch));
+      time = MAX(2, (circle * 2 + circle + 4) - GET_CHA_BONUS(ch));
       break;
     default:
       /* Wizard */
-      time = MAX(2, (spellnum * 2 + spellnum + 4) - GET_INT_BONUS(ch));
+      time = MAX(2, (circle * 2 + circle + 4) - GET_INT_BONUS(ch));
       break;
   }
+
+  
 
   /* wizard type system */
   for (slot = 0; slot < MAX_MEM; slot++) {
@@ -987,19 +975,22 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
 
 void resetMemtimes(struct char_data *ch, int class) {
   int slot;
+  int circle;
 
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PRAYING(ch, slot, classArray(class)) == TERMINATE)
       break;
 
+    circle = spellCircle(class, PRAYING(ch, slot, classArray(class)));
+
     switch (class) {
       case CLASS_SORCERER:
       case CLASS_BARD:
-        PRAYTIME(ch, slot, classArray(class)) = MAX(2, (slot * 2 + slot + 4) - GET_CHA_BONUS(ch));
+        PRAYTIME(ch, slot, classArray(class)) = MAX(2, (circle * 2 + circle + 4) - GET_CHA_BONUS(ch));
         break;
       default:
         /* Wizard */
-        PRAYTIME(ch, slot, classArray(class)) = MAX(2, (slot * 2 + slot + 4) - GET_INT_BONUS(ch));
+        PRAYTIME(ch, slot, classArray(class)) = MAX(2, (circle * 2 + circle + 4) - GET_INT_BONUS(ch));
         break;
     }
   }

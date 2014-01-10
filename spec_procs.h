@@ -36,11 +36,15 @@ void assign_rooms(void);
 /*****************************************************************************
  * Begin Functions and defines for spec_procs.c 
  ****************************************************************************/
+#define ABILITY_TYPE_ALL       0
+#define ABILITY_TYPE_GENERAL   1
+#define ABILITY_TYPE_CRAFT     2
+#define ABILITY_TYPE_KNOWLEDGE 3
 /* Utility functions */
 void sort_spells(void);
 void list_skills(struct char_data *ch);
 void list_spells(struct char_data *ch, int mode, int class);
-void list_abilities(struct char_data *ch);
+void list_abilities(struct char_data *ch, int ability_type);
 bool is_wearing(struct char_data *ch, obj_vnum vnum);
 int compute_ability(struct char_data *ch, int abilityNum);
 void weapons_spells(char *to_ch, char *to_vict, char *to_room,

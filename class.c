@@ -224,28 +224,63 @@ int class_max_ranks[NUM_CLASSES] = {
 #define		CC	1	//cross class
 #define		CA	2	//class ability
 int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
-  //  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA  BA
+//  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA  BA
   { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //0 - reserved
 
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //1 - Tumble 
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA}, //2 - hide
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA}, //3 sneak
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA}, //3 move silently
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CC}, //4 spot
   { CC, CC, CA, CC, CA, CC, CA, CC, CC, CA, CA}, //5 listen
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //6 treat injury
-  { CC, CC, CC, CC, CC, CC, CA, CC, CA, CC, CA}, //7 taunt
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //6 heal
+  { CC, CC, CC, CC, CC, CC, CA, CC, CA, CC, CA}, //7 intimidate
   { CA, CA, CC, CA, CA, CA, CC, CA, CA, CA, CA}, //8 concentration
   { CA, CA, CC, CC, CC, CA, CC, CA, CC, CC, CA}, //9 spellcraft
   { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //10 appraise
   { CC, CC, CC, CA, CC, CC, CA, CC, CA, CA, CA}, //11 discipline
   { CC, CA, CA, CA, CA, CA, CA, CC, CA, CA, CA}, //12 parry
   { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //13 lore
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //14 mount
-  { NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA}, //15
-  { NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA}, //16
-  { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA, CC}, //17 pick locks
-  { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA, CC}, //18 steal
-  { NA, NA, CA, NA, NA, NA, NA, NA, NA, NA, NA}, //19 search
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //14 ride
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CC}, //15 balance
+  { CC, CC, CA, CA, CA, CC, CA, CC, CC, CA, CA}, //16 climb
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CC}, //17 open lock
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //18 sleight of hand
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CA, CC}, //19 search
+  { CC, CC, CA, CC, CC, CC, CC, CA, CC, CC, CA}, //20 bluff
+  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //21 decipher script
+  { CC, CA, CA, CC, CA, CA, CC, CC, CA, CC, CA}, //22 diplomacy
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CC}, //23 disable device
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //24 disguise
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //25 escape artist
+  { CC, CC, CC, CA, CC, CA, CA, CC, CA, CA, CC}, //26 handle animal
+  { CC, CC, CA, CA, CA, CC, CA, CC, CC, CA, CA}, //27 jump
+  { CC, CC, CA, CC, CA, CC, CC, CC, CA, CC, CA}, //28 sense motive
+  { CC, CC, CC, CC, CC, CA, CA, CC, CC, CA, CC}, //29 survival
+  { CC, CC, CA, CA, CA, CA, CA, CC, CC, CA, CA}, //30 swim
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //31 use magic device
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CA, CC}, //32 use rope
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //33 perform
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //34 Craft (woodworking)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //35 Craft (weaving)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //36 Craft (alchemy)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //37 Craft (armorsmithing)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //38 Craft (weaponsmithing)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //39 Craft (bowmaking)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //40 Craft (gemcutting)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //41 Craft (leatherworking)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //42 Craft (trapmaking)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //43 Craft (poisonmaking)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //44 Craft (metalworking)
+  { CA, CA, CC, CC, CA, CC, CC, CA, CC, CC, CA}, //46 Knowledge (arcana)
+  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CC, CA}, //47 Knowledge (engineering)
+  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CA}, //48 Knowledge (dungeoneering)
+  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CA}, //49 Knowledge (geography)
+  { CA, CA, CC, CC, CC, CC, CC, CC, CC, CC, CA}, //50 Knowledge (history)
+  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //51 Knowledge (local)
+  { CA, CC, CC, CC, CC, CA, CC, CC, CC, CA, CA}, //52 Knowledge (nature)
+  { CA, CC, CC, CC, CC, CC, CC, CC, CA, CC, CA}, //53 Knowledge (nobility)
+  { CA, CA, CC, CC, CA, CC, CC, CC, CA, CC, CA}, //54 Knowledge (religion)
+  { CA, CA, CC, CC, CC, CC, CC, CC, CC, CC, CA}, //55 Knowledge (the planes)
 };
 #undef NA
 #undef CC
@@ -561,6 +596,9 @@ int level_feats[][6] = {
         /* Racial feats */
         {CLASS_UNDEFINED, RACE_ELF,       FALSE,  1, FEAT_LOW_LIGHT_VISION, TRUE},
         {CLASS_UNDEFINED, RACE_ELF,       FALSE,  1, FEAT_WEAPON_PROFICIENCY_ELF, TRUE},
+     
+        {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_BODY, TRUE},
+        {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_FIST, TRUE},
 
         /* This is always the last array element */
         {CLASS_UNDEFINED, RACE_UNDEFINED,      FALSE,   1, FEAT_UNDEFINED, FALSE}
@@ -710,6 +748,8 @@ const int class_feats_fighter[] = {
   FEAT_IMPROVED_OVERRUN,
   FEAT_IMPROVED_PRECISE_SHOT,
   FEAT_IMPROVED_SHIELD_BASH,
+  FEAT_SHIELD_CHARGE,
+  FEAT_SHIELD_SLAM,
   FEAT_IMPROVED_SUNDER,
   FEAT_IMPROVED_TRIP,
   FEAT_IMPROVED_TWO_WEAPON_FIGHTING,
@@ -1100,11 +1140,6 @@ void newbieEquipment(struct char_data *ch) {
  */
 void berserker_skills(struct char_data *ch, int level) {
   switch (level) {
-    case 2:
-      if (!GET_SKILL(ch, SKILL_RAGE))
-        SET_SKILL(ch, SKILL_RAGE, 75);
-      send_to_char(ch, "\tMYou have learned 'Rage'\tn\r\n");
-      break;
     default:
       break;
   }
@@ -1115,59 +1150,12 @@ void berserker_skills(struct char_data *ch, int level) {
  * i.e free skills  ;  make sure to set in spec_procs too
  */
 void bard_skills(struct char_data *ch, int level) {
-  IS_BARD_LEARNED(ch) = 0;
-  send_to_char(ch,
-          "\tnType \tDstudy bard\tn to adjust your known spells.\r\n");
-
-  switch (level) {
-    case 2:
-      if (!GET_SKILL(ch, SKILL_PERFORM))
-        SET_SKILL(ch, SKILL_PERFORM, 75);
-      send_to_char(ch, "\tMYou have learned 'Perform'\tn\r\n");
-      break;
-    case 3:
-      if (!GET_SKILL(ch, SKILL_SCRIBE))
-        SET_SKILL(ch, SKILL_SCRIBE, 75);
-      send_to_char(ch, "\tMYou have learned 'Scribe'\tn\r\n");
-      break;
-    default:
-      break;
-  }
-  return;
 }
 
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
  */
 void ranger_skills(struct char_data *ch, int level) {
-  IS_RANG_LEARNED(ch) = 0;
-  send_to_char(ch, "\tnType \tDstudy ranger\tn to adjust your skills.\r\n");
-
-  switch (level) {
-    case 2:
-      if (!GET_SKILL(ch, SKILL_DUAL_WEAPONS))
-        SET_SKILL(ch, SKILL_DUAL_WEAPONS, 75);
-      send_to_char(ch, "\tMYou have learned 'Dual Weapons'\tn\r\n");
-      break;
-    case 3:
-      if (!GET_SKILL(ch, SKILL_NATURE_STEP))
-        SET_SKILL(ch, SKILL_NATURE_STEP, 75);
-      send_to_char(ch, "\tMYou have learned 'Natures Step'\tn\r\n");
-      break;
-    case 4:
-      if (!GET_SKILL(ch, SKILL_ANIMAL_COMPANION))
-        SET_SKILL(ch, SKILL_ANIMAL_COMPANION, 75);
-      send_to_char(ch, "\tMYou have learned 'Animal Companion'\tn\r\n");
-      break;
-    case 5:
-      if (!GET_SKILL(ch, SKILL_TRACK))
-        SET_SKILL(ch, SKILL_TRACK, 75);
-      send_to_char(ch, "\tMYou have learned 'Track'\tn\r\n");
-      break;
-    default:
-      break;
-  }
-  return;
 }
 
 /* init spells for a class as they level up
@@ -1176,51 +1164,6 @@ void ranger_skills(struct char_data *ch, int level) {
 #define MOB_PALADIN_MOUNT 70
 
 void paladin_skills(struct char_data *ch, int level) {
-  switch (level) {
-    case 2:
-      if (!GET_SKILL(ch, SKILL_GRACE))
-        SET_SKILL(ch, SKILL_GRACE, 75);
-      send_to_char(ch, "\tMYou have learned 'Divine Grace'\tn\r\n");
-      break;
-    case 3:
-      if (!GET_SKILL(ch, SKILL_DIVINE_HEALTH))
-        SET_SKILL(ch, SKILL_DIVINE_HEALTH, 75);
-      send_to_char(ch, "\tMYou have learned 'Divine Health'\tn\r\n");
-      if (!GET_SKILL(ch, SKILL_TURN_UNDEAD))
-        SET_SKILL(ch, SKILL_TURN_UNDEAD, 60);
-      send_to_char(ch, "\tMYou have learned 'Turn Undead'\tn\r\n");
-      break;
-    case 4:
-      if (!GET_SKILL(ch, SKILL_COURAGE))
-        SET_SKILL(ch, SKILL_COURAGE, 75);
-      send_to_char(ch, "\tMYou have learned 'Paladin's Courage'\tn\r\n");
-      break;
-    case 5:
-      if (!GET_SKILL(ch, SKILL_SMITE))
-        SET_SKILL(ch, SKILL_SMITE, 75);
-      send_to_char(ch, "\tMYou have learned 'Smite Evil'\tn\r\n");
-      break;
-    case 6:
-      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
-        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
-      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
-      break;
-    case 7:
-      if (!GET_SKILL(ch, SKILL_REMOVE_DISEASE))
-        SET_SKILL(ch, SKILL_REMOVE_DISEASE, 75);
-      send_to_char(ch, "\tMYou have learned 'Purify'\tn\r\n");
-      break;
-    case 8:
-      if (!GET_SKILL(ch, SKILL_PALADIN_MOUNT))
-        SET_SKILL(ch, SKILL_PALADIN_MOUNT, 75);
-      send_to_char(ch, "\tMYou have learned 'Paladin Mount'\tn\r\n");
-      GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
-      break;
-
-    default:
-      break;
-  }
-  return;
 }
 #undef MOB_PALADIN_MOUNT
 
@@ -1228,25 +1171,6 @@ void paladin_skills(struct char_data *ch, int level) {
  * i.e free skills  ;  make sure to set in spec_procs too
  */
 void sorc_skills(struct char_data *ch, int level) {
-  IS_SORC_LEARNED(ch) = 0;
-  send_to_char(ch,
-          "\tnType \tDstudy sorcerer\tn to adjust your known spells.\r\n");
-
-  switch (level) {
-    case 2:
-      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
-        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
-      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
-      break;
-    case 3:
-      if (!GET_SKILL(ch, SKILL_SCRIBE))
-        SET_SKILL(ch, SKILL_SCRIBE, 75);
-      send_to_char(ch, "\tMYou have learned 'Scribe'\tn\r\n");
-      break;
-    default:
-      break;
-  }
-  return;
 }
 
 /* init spells for a class as they level up
@@ -1258,13 +1182,6 @@ void wizard_skills(struct char_data *ch, int level) {
           "\tnType \tDstudy wizard\tn to adjust your wizard skills.\r\n");
 
   switch (level) {
-    case 2:
-      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
-        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
-      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
-      break;
-    case 3:
-      break;
     default:
       break;
   }
@@ -1275,20 +1192,6 @@ void wizard_skills(struct char_data *ch, int level) {
  * i.e free skills  ;  make sure to set in spec_procs too
  */
 void cleric_skills(struct char_data *ch, int level) {
-  switch (level) {
-    case 2:
-      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
-        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
-      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
-      break;
-    case 3:
-      if (!GET_SKILL(ch, SKILL_TURN_UNDEAD))
-        SET_SKILL(ch, SKILL_TURN_UNDEAD, 75);
-      send_to_char(ch, "\tMYou have learned 'Turn Undead'\tn\r\n");
-    default:
-      break;
-  }
-  return;
 }
 
 /* init spells for a class as they level up
@@ -1308,21 +1211,6 @@ void warrior_skills(struct char_data *ch, int level) {
 void druid_skills(struct char_data *ch, int level) {
   IS_DRUID_LEARNED(ch) = 0;
   switch (level) {
-    case 2:
-      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
-        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
-      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
-      break;
-    case 4:
-      if (!GET_SKILL(ch, SKILL_NATURE_STEP))
-        SET_SKILL(ch, SKILL_NATURE_STEP, 75);
-      send_to_char(ch, "\tMYou have learned 'Natures Step'\tn\r\n");
-      break;
-    case 6:
-      if (!GET_SKILL(ch, SKILL_WILDSHAPE))
-        SET_SKILL(ch, SKILL_WILDSHAPE, 75);
-      send_to_char(ch, "\tMYou have learned 'Shapechange'\tn\r\n");
-      break;
     default:
       break;
   }
@@ -1334,59 +1222,6 @@ void druid_skills(struct char_data *ch, int level) {
  */
 void rogue_skills(struct char_data *ch, int level) {
   switch (level) {
-    case 2:
-      if (!GET_SKILL(ch, SKILL_MOBILITY))
-        SET_SKILL(ch, SKILL_MOBILITY, 75);
-      send_to_char(ch, "\tMYou have learned 'Mobility'\tn\r\n");
-      if (!GET_SKILL(ch, SKILL_STEALTHY))
-        SET_SKILL(ch, SKILL_STEALTHY, 75);
-      send_to_char(ch, "\tMYou have learned 'Stealthy'\tn\r\n");
-      break;
-    case 3:
-      if (!GET_SKILL(ch, SKILL_TRACK))
-        SET_SKILL(ch, SKILL_TRACK, 75);
-      send_to_char(ch, "\tMYou have learned 'Track'\tn\r\n");
-      break;
-    case 4:
-      if (!GET_SKILL(ch, SKILL_DIRTY_FIGHTING))
-        SET_SKILL(ch, SKILL_DIRTY_FIGHTING, 75);
-      send_to_char(ch, "\tMYou have learned 'Dirty Fighting'\tn\r\n");
-      break;
-    case 6:
-      if (!GET_SKILL(ch, SKILL_SPRING_ATTACK))
-        SET_SKILL(ch, SKILL_SPRING_ATTACK, 75);
-      send_to_char(ch, "\tMYou have learned 'Spring Attack'\tn\r\n");
-      break;
-    case 8:
-      if (!GET_SKILL(ch, SKILL_EVASION))
-        SET_SKILL(ch, SKILL_EVASION, 75);
-      send_to_char(ch, "\tMYou have learned 'Evasion'\tn\r\n");
-      break;
-    case 9:
-      if (!GET_SKILL(ch, SKILL_USE_MAGIC))
-        SET_SKILL(ch, SKILL_USE_MAGIC, 75);
-      send_to_char(ch, "\tMYou have learned 'Use Magic'\tn\r\n");
-      break;
-    case 12:
-      if (!GET_SKILL(ch, SKILL_CRIP_STRIKE))
-        SET_SKILL(ch, SKILL_CRIP_STRIKE, 75);
-      send_to_char(ch, "\tMYou have learned 'Crippling Strike'\tn\r\n");
-      break;
-    case 15:
-      if (!GET_SKILL(ch, SKILL_SLIPPERY_MIND))
-        SET_SKILL(ch, SKILL_SLIPPERY_MIND, 75);
-      send_to_char(ch, "\tMYou have learned 'Slippery Mind'\tn\r\n");
-      break;
-    case 18:
-      if (!GET_SKILL(ch, SKILL_DEFENSE_ROLL))
-        SET_SKILL(ch, SKILL_DEFENSE_ROLL, 75);
-      send_to_char(ch, "\tMYou have learned 'Defensive Roll'\tn\r\n");
-      break;
-    case 21:
-      if (!GET_SKILL(ch, SKILL_IMP_EVASION))
-        SET_SKILL(ch, SKILL_IMP_EVASION, 75);
-      send_to_char(ch, "\tMYou have learned 'Improved Evasion'\tn\r\n");
-      break;
     default:
       break;
   }
@@ -1397,20 +1232,6 @@ void rogue_skills(struct char_data *ch, int level) {
  * i.e free skills  ;  make sure to set in spec_procs too
  */
 void monk_skills(struct char_data *ch, int level) {
-  switch (level) {
-    case 2:
-      if (!GET_SKILL(ch, SKILL_STUNNING_FIST))
-        SET_SKILL(ch, SKILL_STUNNING_FIST, 75);
-      send_to_char(ch, "\tMYou have learned 'Stunning Fist'\tn\r\n");
-      break;
-    case 6:
-      if (!GET_SKILL(ch, SKILL_SPRINGLEAP))
-        SET_SKILL(ch, SKILL_SPRINGLEAP, 75);
-      send_to_char(ch, "\tMYou have learned 'Spring Leap'\tn\r\n");
-      break;
-    default:
-      break;
-  }
   return;
 }
 
@@ -1428,10 +1249,6 @@ void init_class(struct char_data *ch, int class, int level) {
   switch (class) {
 
     case CLASS_WIZARD:
-      if (!GET_SKILL(ch, SKILL_SCRIBE)) {
-        SET_SKILL(ch, SKILL_SCRIBE, 75);
-        send_to_char(ch, "\tMYou have learned 'Scribe'\r\n");
-      }
       /* SWITCH FALL THROUGH */
     case CLASS_SORCERER:
       //spell init
@@ -1627,12 +1444,6 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_POLYMORPH, 99);
       SET_SKILL(ch, SPELL_MASS_ENHANCE, 99);
 
-      // skill init    
-      if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
-        SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-      if (!GET_SKILL(ch, SKILL_CALL_FAMILIAR))
-        SET_SKILL(ch, SKILL_CALL_FAMILIAR, 75);
-
       // wizard/sorc innate cantrips
       /*
       SET_SKILL(ch, SPELL_ACID_SPLASH, 99);
@@ -1702,16 +1513,6 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_GREATER_HEROISM, 99);
       SET_SKILL(ch, SPELL_MASS_CURE_MODERATE, 99);
       SET_SKILL(ch, SPELL_STONESKIN, 99);
-
-      // skill init    
-      if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
-        SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_BASIC))
-        SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
-        SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
-        SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
 
       // bard innate cantrips
       /*
@@ -1844,21 +1645,6 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_REFUGE, 99);
       SET_SKILL(ch, SPELL_GROUP_SUMMON, 99);
 
-      // skill init
-      if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
-        SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_BASIC))
-        SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
-        SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
-        SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_HEAVY_A))
-        SET_SKILL(ch, SKILL_PROF_HEAVY_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
-        SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
-      if (!GET_SKILL(ch, SKILL_TURN_UNDEAD))
-        SET_SKILL(ch, SKILL_TURN_UNDEAD, 75);
 
       send_to_char(ch, "Cleric Done.\tn\r\n");
       break;
@@ -1967,24 +1753,6 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_STORM_OF_VENGEANCE, 99);
       SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_9, 99);
 
-      // skill init
-      if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
-        SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_BASIC))
-        SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
-        SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
-        SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
-        SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
-        SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
-      
-      if (!GET_SKILL(ch, SKILL_ANIMAL_COMPANION))
-        SET_SKILL(ch, SKILL_ANIMAL_COMPANION, 75);
-      send_to_char(ch, "\tMYou have learned 'Animal Companion'\tn\r\n");
-      
       send_to_char(ch, "Druid Done.\tn\r\n");
       break;
 
@@ -2012,67 +1780,15 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
       SET_SKILL(ch, SPELL_HOLY_SWORD, 99);
 
-      // skill init
-      if (!GET_SKILL(ch, SKILL_LAY_ON_HANDS))
-        SET_SKILL(ch, SKILL_LAY_ON_HANDS, 75);
-
-      if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
-        SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_BASIC))
-        SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
-        SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_MASTER))
-        SET_SKILL(ch, SKILL_PROF_MASTER, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
-        SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
-        SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_HEAVY_A))
-        SET_SKILL(ch, SKILL_PROF_HEAVY_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
-        SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
       send_to_char(ch, "Paladin Done.\tn\r\n");
       break;
 
     case CLASS_ROGUE:
-      if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
-        SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_BASIC))
-        SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
-        SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
-        SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
-
-      if (!GET_SKILL(ch, SKILL_BACKSTAB))
-        SET_SKILL(ch, SKILL_BACKSTAB, 75);
-      if (!GET_SKILL(ch, SKILL_TRACK))
-        SET_SKILL(ch, SKILL_TRACK, 75);
-
       send_to_char(ch, "Rogue Done.\tn\r\n");
       break;
 
 
     case CLASS_WARRIOR:
-      if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
-        SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_BASIC))
-        SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
-        SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_MASTER))
-        SET_SKILL(ch, SKILL_PROF_MASTER, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
-        SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
-        SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_HEAVY_A))
-        SET_SKILL(ch, SKILL_PROF_HEAVY_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
-        SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_T_SHIELDS))
-        SET_SKILL(ch, SKILL_PROF_T_SHIELDS, 75);
       send_to_char(ch, "Warrior Done.\tn\r\n");
       break;
 
@@ -2105,48 +1821,14 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_DISPEL_MAGIC, 99);
       SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
       
-      //skill init
-      if (!GET_SKILL(ch, SKILL_FAVORED_ENEMY))
-        SET_SKILL(ch, SKILL_FAVORED_ENEMY, 75);
-
-      if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
-        SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_BASIC))
-        SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
-        SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_MASTER))
-        SET_SKILL(ch, SKILL_PROF_MASTER, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
-        SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
-        SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
-        SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
       send_to_char(ch, "Ranger Done.\tn\r\n");
       break;
 
     case CLASS_BERSERKER:
-      if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
-        SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_BASIC))
-        SET_SKILL(ch, SKILL_PROF_BASIC, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_ADVANCED))
-        SET_SKILL(ch, SKILL_PROF_ADVANCED, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_MASTER))
-        SET_SKILL(ch, SKILL_PROF_MASTER, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_LIGHT_A))
-        SET_SKILL(ch, SKILL_PROF_LIGHT_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_MEDIUM_A))
-        SET_SKILL(ch, SKILL_PROF_MEDIUM_A, 75);
-      if (!GET_SKILL(ch, SKILL_PROF_SHIELDS))
-        SET_SKILL(ch, SKILL_PROF_SHIELDS, 75);
       send_to_char(ch, "Berserker Done.\tn\r\n");
       break;
 
     case CLASS_MONK:
-      if (!GET_SKILL(ch, SKILL_PROF_MINIMAL))
-        SET_SKILL(ch, SKILL_PROF_MINIMAL, 75);
       send_to_char(ch, "Monk Done.\tn\r\n");
       break;
 
@@ -2158,7 +1840,7 @@ void init_class(struct char_data *ch, int class, int level) {
 
 /* not to be confused with init_char, this is exclusive right now for do_start */
 void init_start_char(struct char_data *ch) {
-  int trains = 0, practices = 0, i = 0, j = 0;
+  int trains = 0, i = 0, j = 0;
 
   /* clear immortal flags */
   if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
@@ -2254,56 +1936,14 @@ void init_start_char(struct char_data *ch) {
   GET_COND(ch, THIRST) = -1;
 
   /* universal skills */
-  if (!GET_SKILL(ch, SKILL_KICK))
-    SET_SKILL(ch, SKILL_KICK, 75);
-
-  if (!GET_SKILL(ch, SKILL_MINING))
-    SET_SKILL(ch, SKILL_MINING, 20);
-  if (!GET_SKILL(ch, SKILL_HUNTING))
-    SET_SKILL(ch, SKILL_HUNTING, 20);
-  if (!GET_SKILL(ch, SKILL_FORESTING))
-    SET_SKILL(ch, SKILL_FORESTING, 20);
-  if (!GET_SKILL(ch, SKILL_KNITTING))
-    SET_SKILL(ch, SKILL_KNITTING, 20);
-  if (!GET_SKILL(ch, SKILL_CHEMISTRY))
-    SET_SKILL(ch, SKILL_CHEMISTRY, 20);
-  if (!GET_SKILL(ch, SKILL_ARMOR_SMITHING))
-    SET_SKILL(ch, SKILL_ARMOR_SMITHING, 20);
-  if (!GET_SKILL(ch, SKILL_WEAPON_SMITHING))
-    SET_SKILL(ch, SKILL_WEAPON_SMITHING, 20);
-  if (!GET_SKILL(ch, SKILL_JEWELRY_MAKING))
-    SET_SKILL(ch, SKILL_JEWELRY_MAKING, 20);
-  if (!GET_SKILL(ch, SKILL_LEATHER_WORKING))
-    SET_SKILL(ch, SKILL_LEATHER_WORKING, 20);
-  if (!GET_SKILL(ch, SKILL_FAST_CRAFTER))
-    SET_SKILL(ch, SKILL_FAST_CRAFTER, 20);
-  /*
-  if (!GET_SKILL(ch, SKILL_BONE_ARMOR))
-    SET_SKILL(ch, SKILL_BONE_ARMOR, 5);
-  if (!GET_SKILL(ch, SKILL_ELVEN_CRAFTING))
-    SET_SKILL(ch, SKILL_ELVEN_CRAFTING, 5);
-  if (!GET_SKILL(ch, SKILL_MASTERWORK_CRAFTING))
-    SET_SKILL(ch, SKILL_MASTERWORK_CRAFTING, 5);  
-  if (!GET_SKILL(ch, SKILL_DRACONIC_CRAFTING))
-    SET_SKILL(ch, SKILL_DRACONIC_CRAFTING, 5);
-  if (!GET_SKILL(ch, SKILL_DWARVEN_CRAFTING))
-    SET_SKILL(ch, SKILL_DWARVEN_CRAFTING, 5);
-   */
-
-
-
-
-  //racial inits
   switch (GET_RACE(ch)) {
     case RACE_HUMAN:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      practices++;
       GET_FEAT_POINTS(ch)++;
       trains += 3;
       break;
     case RACE_ELF:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      SET_SKILL(ch, SKILL_PROF_BASIC, 75);
       GET_REAL_DEX(ch) += 2;
       GET_REAL_CON(ch) -= 2;
       break;
@@ -2319,7 +1959,6 @@ void init_start_char(struct char_data *ch) {
       break;
     case RACE_H_ELF:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      SET_SKILL(ch, SKILL_PROF_BASIC, 75);
       break;
     case RACE_H_ORC:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
@@ -2372,7 +2011,6 @@ void init_start_char(struct char_data *ch) {
   //class-related inits
   switch (GET_CLASS(ch)) {
     case CLASS_WARRIOR:
-      practices++; // bonus skill
       GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
     case CLASS_WIZARD:
     case CLASS_CLERIC:
@@ -2393,10 +2031,7 @@ void init_start_char(struct char_data *ch) {
   }
 
   /* finalize */
-  practices++;
   GET_FEAT_POINTS(ch)++; /* 1st level feat. */
-  GET_PRACTICES(ch) += practices;
-  send_to_char(ch, "%d \tMPractice sessions gained.\tn\r\n", practices);
   send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", GET_FEAT_POINTS(ch));
   send_to_char(ch, "%d \tMClass Feat points gained.\tn\r\n", GET_CLASS_FEATS(ch, GET_CLASS(ch)));
   GET_TRAINS(ch) += trains;
@@ -2513,14 +2148,17 @@ void process_level_feats(struct char_data *ch, int class) {
 }
 
 void advance_level(struct char_data *ch, int class) {
-  int add_hp = GET_CON_BONUS(ch), at_armor = 100,
-          add_mana = 0, add_move = 0, k, trains = 0, practices = 0;
+  int add_hp = 0, at_armor = 100,
+          add_mana = 0, add_move = 0, k, trains = 0;
   int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
+  int i = 0;
 
   /**because con items / spells are affecting based on level, we have to 
   unaffect before we level up -zusuk */
   at_armor = affect_total_sub(ch);  /* at_armor stores ac */
   /* done unaffecting */
+
+  add_hp = GET_CON_BONUS(ch);
 
   /* first level in a class?  might have some inits to do! */
   if (CLASS_LEVEL(ch, class) == 1) {
@@ -2541,15 +2179,9 @@ void advance_level(struct char_data *ch, int class) {
       add_move = rand_number(0, 2);
 
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
-/*
-      if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) < 20){
-        practices++;
-        feats++;
-      }
-*/
+
       //epic      
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        practices++;
         epic_class_feats++;
       }
       break;
@@ -2562,12 +2194,10 @@ void advance_level(struct char_data *ch, int class) {
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
       if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) < 20) {
-        practices++;
         class_feats++;
       }
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        practices++;
         epic_class_feats++;
       }
 
@@ -2582,7 +2212,6 @@ void advance_level(struct char_data *ch, int class) {
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20){
-        practices++;
         epic_class_feats++;
       }
       break;
@@ -2596,7 +2225,6 @@ void advance_level(struct char_data *ch, int class) {
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
-        practices++;
         epic_class_feats++;
       }
 
@@ -2611,7 +2239,6 @@ void advance_level(struct char_data *ch, int class) {
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        practices++;
         epic_class_feats++;
       }
       break;
@@ -2625,7 +2252,6 @@ void advance_level(struct char_data *ch, int class) {
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) >= 20) {
-        practices++;
         epic_class_feats++;
       }
 
@@ -2640,7 +2266,6 @@ void advance_level(struct char_data *ch, int class) {
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
-        practices++;
         epic_class_feats++;
       }
 
@@ -2655,7 +2280,6 @@ void advance_level(struct char_data *ch, int class) {
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
-        practices++;
         epic_class_feats++;
       }
 
@@ -2670,7 +2294,6 @@ void advance_level(struct char_data *ch, int class) {
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        practices++;
         epic_class_feats++;
       }
 
@@ -2685,7 +2308,6 @@ void advance_level(struct char_data *ch, int class) {
 
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        practices++;
         epic_class_feats++;
       }
 
@@ -2697,9 +2319,9 @@ void advance_level(struct char_data *ch, int class) {
       add_move = rand_number(1, 2);
 
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
-
+      if (CLASS_LEVEL(ch, class) == 1)
+        class_feats++;
       if (!(CLASS_LEVEL(ch, class) % 2) &&  !IS_EPIC(ch)) {
-        practices++;
         class_feats++;
       }
       if (!(CLASS_LEVEL(ch, class) % 2) && IS_EPIC(ch)) {
@@ -2728,11 +2350,9 @@ void advance_level(struct char_data *ch, int class) {
 
   //base practice / boost improvement
   if (!(GET_LEVEL(ch) % 3) && !IS_EPIC(ch)) {    
-    practices++;
     feats++;
   }
   if (!(GET_LEVEL(ch) %3) && IS_EPIC(ch)) {
-    practices++;
     epic_feats++;
   }
   if (!(GET_LEVEL(ch) % 4)) {
@@ -2741,10 +2361,16 @@ void advance_level(struct char_data *ch, int class) {
   }
 
   /* miscellaneous level-based bonuses */
-  if (GET_SKILL(ch, SKILL_TOUGHNESS))
-    add_hp++;
-  if (GET_SKILL(ch, SKILL_EPIC_TOUGHNESS))
-    add_hp++;
+  if (HAS_FEAT(ch, FEAT_TOUGHNESS)) { 
+    /* SRD has this as +3 hp.  More fun as +1 per level. */
+    for ( i = HAS_FEAT(ch, FEAT_TOUGHNESS); i > 0; i--) 
+      add_hp++;
+  }
+  if (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS)) {
+    /* SRD has this listed as +30 hp.  More fun to do it by level perhaps. */
+    for ( i = HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS); i > 0; i--)
+      add_hp += 3;
+  }
 
   /* adjust final and report changes! */
   GET_REAL_MAX_HIT(ch) += MAX(1, add_hp);
@@ -2755,8 +2381,6 @@ void advance_level(struct char_data *ch, int class) {
     GET_REAL_MAX_MANA(ch) += add_mana;
     send_to_char(ch, "\tMTotal Mana:\tn %d\r\n", add_mana);
   }
-  GET_PRACTICES(ch) += practices;
-  send_to_char(ch, "%d \tMPractice sessions gained.\tn\r\n", practices);
   GET_FEAT_POINTS(ch) += feats;
   GET_CLASS_FEATS(ch, GET_CLASS(ch)) += class_feats;
   GET_EPIC_FEAT_POINTS(ch) += epic_feats;

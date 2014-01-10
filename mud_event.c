@@ -39,7 +39,7 @@ struct mud_event_list mud_event_index[] = {
   { "Epic warding", event_countdown, EVENT_CHAR}, // eEPICWARDING
   { "Memorizing", event_memorizing, EVENT_CHAR}, //eMEMORIZING 
   { "Stunned", event_countdown, EVENT_CHAR}, //eSTUNNED
-  { "Stunning fist", event_countdown, EVENT_CHAR}, //eSTUNNINGFIST 
+  { "Stunning fist", event_daily_use_cooldown, EVENT_CHAR}, //eSTUNNINGFIST 
   { "Crafting", event_crafting, EVENT_CHAR}, //eCRAFTING
   { "Crystal fist", event_countdown, EVENT_CHAR}, //eCRYSTALFIST
   { "Crystal body", event_countdown, EVENT_CHAR}, //eCRYRSTALBODY
@@ -64,7 +64,9 @@ struct mud_event_list mud_event_index[] = {
   { "SpellBattle", event_countdown, EVENT_CHAR}, /* eSPELLBATTLE */
   { "Falling", event_falling, EVENT_CHAR}, /* eFALLING */
   { "Check Occupied", event_check_occupied, EVENT_ROOM}, /* eCHECK_OCCUPIED */
-  { "Tracks", event_tracks, EVENT_ROOM} /* eTRACKS */
+  { "Tracks", event_tracks, EVENT_ROOM}, /* eTRACKS */
+  { "Wild Shape", event_daily_use_cooldown, EVENT_CHAR}, /* eWILD_SHAPE */
+  { "Shield Recovery", event_countdown, EVENT_CHAR} /* eSHIELD_RECOVERY */
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -204,6 +206,69 @@ EVENTFUNC(event_countdown) {
   }
 
   return 0;
+}
+
+EVENTFUNC(event_daily_use_cooldown) {
+  struct mud_event_data *pMudEvent = NULL;
+  struct char_data *ch = NULL;
+  int cooldown = 0;
+  int uses = 0;
+  int featnum = 0;
+  char buf[128];
+
+  pMudEvent = (struct mud_event_data *) event_obj;
+
+  if (!pMudEvent)
+    return 0;
+
+  if (!pMudEvent->iId)
+    return 0;
+
+  switch (mud_event_index[pMudEvent->iId].iEvent_Type) {
+    case EVENT_CHAR:
+      ch = (struct char_data *) pMudEvent->pStruct;
+      break;
+    default:
+      return 0;
+  }
+
+  if (pMudEvent->sVariables == NULL) {
+    /* This is odd - This field should always be populated for daily-use abilities,
+     * maybe some legacy code or bad id. */
+    log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", pMudEvent->iId);
+  } else {
+    if(sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
+      log("SYSERR: In daily_uses_remaining, bad sVariables for dauly-use-cooldown-event: %d", pMudEvent->iId);
+      uses = 0;
+    } 
+  }
+  
+  switch (pMudEvent->iId) {
+    case eSTUNNINGFIST:
+      featnum = FEAT_STUNNING_FIST;
+      send_to_char(ch, "You are now able to strike with your stunning fist again.\r\n");
+      break;
+    case eWILD_SHAPE:
+      featnum = FEAT_WILD_SHAPE;
+      send_to_char(ch, "You may assume your wild shape again.\r\n");
+      break;
+    default:
+      break;
+  }
+ 
+  uses -= 1;
+  if (uses > 0) {
+    if(pMudEvent->sVariables != NULL) 
+      free(pMudEvent->sVariables);
+
+    sprintf(buf, "uses:%d", uses);
+    pMudEvent->sVariables = strdup(buf);
+    cooldown = (SECS_PER_MUD_DAY/get_daily_uses(ch, featnum)) RL_SEC;
+  }
+ 
+  
+  return cooldown;
+
 }
 
 /* As of 3.63, there are only global, descriptor, and character events. This

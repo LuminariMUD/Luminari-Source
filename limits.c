@@ -145,7 +145,7 @@ void affliction_tick(struct char_data *ch) {
 
   /* disease */
   if (IS_AFFECTED(ch, AFF_DISEASE)) {
-    if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DIVINE_HEALTH)) {
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DIVINE_HEALTH)) {
       if (affected_by_spell(ch, SPELL_EYEBITE))
         affect_from_char(ch, SPELL_EYEBITE);
       if (affected_by_spell(ch, SPELL_CONTAGION))
@@ -155,7 +155,6 @@ void affliction_tick(struct char_data *ch) {
       send_to_char(ch, "The \tYdisease\tn you have fades away!\r\n");
       act("$n glows bright \tWwhite\tn and the \tYdisease\tn $e had "
               "fades away!", TRUE, ch, 0, NULL, TO_ROOM);
-      increase_skill(ch, SKILL_DIVINE_HEALTH);
     } else if (GET_HIT(ch) > (GET_MAX_HIT(ch)*3 / 5)) {
       send_to_char(ch, "The \tYdisease\tn you have causes you to suffer!\r\n");
       act("$n suffers from a \tYdisease\tn!", TRUE, ch, 0, NULL,
@@ -166,12 +165,11 @@ void affliction_tick(struct char_data *ch) {
 
   /* fear -> skill-courage*/
   if (AFF_FLAGGED(ch, AFF_FEAR) && (!IS_NPC(ch) &&
-          GET_SKILL(ch, SKILL_COURAGE))) {
+          HAS_FEAT(ch, FEAT_AURA_OF_COURAGE))) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
     send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
     act("$n \tWovercomes the \tDfear\tW with courage!\tn\tn",
             TRUE, ch, 0, 0, TO_ROOM);
-    increase_skill(ch, SKILL_COURAGE);
     return;
   }
 
@@ -179,7 +177,7 @@ void affliction_tick(struct char_data *ch) {
   if (AFF_FLAGGED(ch, AFF_FEAR) && AFF_FLAGGED(ch, AFF_BRAVERY)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
     send_to_char(ch, "Your bravery overcomes the fear!\r\n");
-    act("$n \tWovercomes the \tDfear\tW with braveru!\tn\tn",
+    act("$n \tWovercomes the \tDfear\tW with bravery!\tn\tn",
             TRUE, ch, 0, 0, TO_ROOM);
     return;
   }

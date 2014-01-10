@@ -83,23 +83,28 @@ void smash_tilde(char *str)
 void strip_colors(char *str)
 {
   char *p = str;
+  char *n = str;
 
-  for (; *p; p++) {
+  while (p && *p) {
+
     if (*p == '@') {
       if (*(p+1) != '@') {
-        *p = ' ';
-        *(p + 1) = ' ';
-      } else
+        p += 2;
+      } else {
         p++;
-    }
-    if (*p == '\t') {
+        *n++ = *p++;
+      }
+    } else if (*p == '\t') {
       if (*(p+1) != '\t') {
-        *p = ' ';
-        *(p + 1) = ' ';
-     }  else
+        p += 2;
+      } else {
         p++;
+        *n++ = *p++;
+      }
+    } else {
+      *n++ = *p++;
     }
-  }
+  }  
 }
 
 

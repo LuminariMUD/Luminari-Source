@@ -190,18 +190,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       if (GET_REAL_DEX(ch) >= 21 && GET_LEVEL(ch) >= 20)
         return TRUE;
       else return FALSE;
-    case SKILL_EPIC_TOUGHNESS:
-      if (GET_LEVEL(ch) >= 20)
-        return TRUE;
-      else return FALSE;
-    case SKILL_EPIC_PROWESS:
-      if (GET_LEVEL(ch) >= 20 && GET_SKILL(ch, SKILL_PROWESS))
-        return TRUE;
-      else return FALSE;
-    case SKILL_SPELLPENETRATE_3:
-      if (GET_LEVEL(ch) >= 20 && GET_SKILL(ch, SKILL_SPELLPENETRATE_2))
-        return TRUE;
-      else return FALSE;
     case SKILL_SPELL_RESIST_4:
       if (GET_LEVEL(ch) >= 20 && GET_SKILL(ch, SKILL_SPELL_RESIST_3))
         return TRUE;
@@ -240,10 +228,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       if (GET_LEVEL(ch) >= 20)
         return TRUE;
       else return FALSE;
-    case SKILL_EPIC_2_WEAPON:
-      if (GET_REAL_DEX(ch) >= 21 && GET_SKILL(ch, SKILL_TWO_WEAPON_FIGHT))
-        return TRUE;
-      else return FALSE;
     case SKILL_IMPROVED_TRIP:
       if (GET_SKILL(ch, SKILL_TRIP) && GET_LEVEL(ch) >= 20)
         return TRUE;
@@ -259,26 +243,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       if (GET_REAL_DEX(ch) >= 13)
         return TRUE;
       else return FALSE;
-    case SKILL_TWO_WEAPON_FIGHT:
-      if (GET_REAL_DEX(ch) >= 17 && GET_SKILL(ch, SKILL_AMBIDEXTERITY))
-        return TRUE;
-      else return FALSE;
-    case SKILL_FINESSE:
-      if (GET_REAL_DEX(ch) >= 13)
-        return TRUE;
-      else return FALSE;
-    case SKILL_POWER_ATTACK:
-      if (GET_REAL_STR(ch) >= 13)
-        return TRUE;
-      else return FALSE;
-    case SKILL_EXPERTISE:
-      if (GET_REAL_INT(ch) >= 13)
-        return TRUE;
-      else return FALSE;
-    case SKILL_INITIATIVE:
-      if (GET_REAL_DEX(ch) >= 13)
-        return TRUE;
-      else return FALSE;
     case SKILL_BASH:
       if (GET_REAL_STR(ch) >= 13)
         return TRUE;
@@ -288,13 +252,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
         return TRUE;
       else return FALSE;
     case SKILL_WHIRLWIND:
-      if (GET_SKILL(ch, SKILL_SPRING_ATTACK))
-        return TRUE;
-      else return FALSE;
-    case SKILL_DODGE:
-      if (GET_REAL_DEX(ch) >= 13)
-        return TRUE;
-      else return FALSE;
     case SKILL_DAMAGE_REDUC_1:
       if (GET_REAL_CON(ch) >= 15)
         return TRUE;
@@ -317,14 +274,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       else return FALSE;
       
       /* more caster related */
-    case SKILL_SPELLPENETRATE:
-      if (GET_LEVEL(ch) >= 5 && IS_CASTER(ch))
-        return TRUE;
-      else return FALSE;
-    case SKILL_SPELLPENETRATE_2:
-      if (GET_LEVEL(ch) >= 9 && GET_SKILL(ch, SKILL_SPELLPENETRATE))
-        return TRUE;
-      else return FALSE;
     case SKILL_SPELL_RESIST_1:
       if (GET_LEVEL(ch) >= 5)
         return TRUE;
@@ -338,10 +287,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
         return TRUE;
       else return FALSE;
     case SKILL_QUICK_CHANT:
-      if (CASTER_LEVEL(ch))
-        return TRUE;
-      else return FALSE;
-    case SKILL_SCRIBE:
       if (CASTER_LEVEL(ch))
         return TRUE;
       else return FALSE;
@@ -365,17 +310,8 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
               (GET_WIS(ch) + GET_INT(ch) >= 28))
         return TRUE;
       else return FALSE;
-    case SKILL_MOBILITY: /* shared, free for rogues */
-      if (GET_SKILL(ch, SKILL_DODGE) || (CLASS_LEVEL(ch, CLASS_ROGUE) >= 2))
-        return TRUE;
-      else return FALSE;
-    case SKILL_SPRING_ATTACK: /* shared, free for rogues */
-      if (GET_SKILL(ch, SKILL_MOBILITY) ||
-              (CLASS_LEVEL(ch, CLASS_ROGUE) >= 6))
-        return TRUE;
-      else return FALSE;
     case SKILL_CHARGE:
-      if (GET_ABILITY(ch, ABILITY_MOUNT) >= 10)
+      if (GET_ABILITY(ch, ABILITY_RIDE) >= 10)
         return TRUE;
       else return FALSE;
     case SKILL_HITALL:
@@ -393,22 +329,9 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
 
 
       /* ranger */
-    case SKILL_FAVORED_ENEMY:
-      if (CLASS_LEVEL(ch, CLASS_RANGER))
-        return TRUE;
-      else return FALSE;
-    case SKILL_DUAL_WEAPONS:
-      if (CLASS_LEVEL(ch, CLASS_RANGER) >= 2)
-        return TRUE;
-      else return FALSE;
     case SKILL_NATURE_STEP: //shared with druid
       if (CLASS_LEVEL(ch, CLASS_RANGER) >= 3 ||
               CLASS_LEVEL(ch, CLASS_DRUID) >= 6)
-        return TRUE;
-      else return FALSE;
-    case SKILL_ANIMAL_COMPANION: //shared with druid
-      if (CLASS_LEVEL(ch, CLASS_RANGER) >= 4 ||
-              CLASS_LEVEL(ch, CLASS_DRUID))
         return TRUE;
       else return FALSE;
 
@@ -417,10 +340,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       // nature step - level 6 (shared with ranger)
 
       /* warrior */
-    case SKILL_WEAPON_SPECIALIST:  // not a free skill
-      if (CLASS_LEVEL(ch, CLASS_WARRIOR) >= 4)
-        return TRUE;
-      else return FALSE;
     case SKILL_SHIELD_SPECIALIST:  // not a free skill
       if (CLASS_LEVEL(ch, CLASS_WARRIOR) >= 6)
         return TRUE;
@@ -443,35 +362,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       else return FALSE;
 
       /* paladin */
-    case SKILL_LAY_ON_HANDS:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN))
-        return TRUE;
-      else return FALSE;
-    case SKILL_GRACE:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 2)
-        return TRUE;
-      else return FALSE;
-    case SKILL_DIVINE_HEALTH:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 3)
-        return TRUE;
-      else return FALSE;
-    case SKILL_COURAGE:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 4)
-        return TRUE;
-      else return FALSE;
-    case SKILL_SMITE:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 5)
-        return TRUE;
-      else return FALSE;
-    case SKILL_REMOVE_DISEASE:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 7)
-        return TRUE;
-      else return FALSE;
-    case SKILL_PALADIN_MOUNT:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 8)
-        return TRUE;
-      else return FALSE;
-
       /* rogue */
     case SKILL_BACKSTAB:
       if (CLASS_LEVEL(ch, CLASS_ROGUE))
@@ -481,16 +371,8 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 4)
         return TRUE;
       else return FALSE;
-    case SKILL_EVASION:
-      if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 8)
-        return TRUE;
-      else return FALSE;
      case SKILL_SAP:  // not a free skill
       if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 10)
-        return TRUE;
-      else return FALSE;
-   case SKILL_CRIP_STRIKE:
-      if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 12)
         return TRUE;
       else return FALSE;
     case SKILL_SLIPPERY_MIND:
@@ -499,10 +381,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       else return FALSE;
     case SKILL_DEFENSE_ROLL:
       if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 18)
-        return TRUE;
-      else return FALSE;
-    case SKILL_IMP_EVASION:
-      if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 21)
         return TRUE;
       else return FALSE;
     case SKILL_DIRT_KICK:
@@ -520,17 +398,12 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       /*** no reqs ***/
     case SKILL_RESCUE:
     case SKILL_LUCK_OF_HEROES:
-    case SKILL_TOUGHNESS:
     case SKILL_KICK:
     case SKILL_IMPROVED_CRITICAL:
     case SKILL_PROWESS:
     case SKILL_PROF_MINIMAL:
     case SKILL_PROF_SHIELDS:
     case SKILL_PROF_LIGHT_A:
-    case SKILL_IRON_WILL:
-    case SKILL_GREAT_FORTITUDE:
-    case SKILL_LIGHTNING_REFLEXES:
-    case SKILL_STEALTHY:
     case SKILL_MINING:
     case SKILL_HUNTING:
     case SKILL_FORESTING:
@@ -794,8 +667,15 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     value += 4;
   if (affected_by_spell(ch, SKILL_PERFORM))
     value += SONG_AFF_VAL(ch);
+  if (HAS_FEAT(ch, FEAT_ABLE_LEARNER))
+    value += 1;
 
   // try to avoid sending NPC's here, but just in case:
+  /* Not on this:  More and more it seems necessary to have some
+   * sort of NPC skill system in place, either an actual set
+   * of SKILLS or some way to translate level, race and class into 
+   * an appropriate set of skills, mostly for intellignet, humanoid 
+   * NPCs. For now, just use the level, although that will be difficult. */
   if (IS_NPC(ch))
     value += GET_LEVEL(ch);
   else
@@ -805,10 +685,14 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     case ABILITY_TUMBLE:
       value += GET_DEX_BONUS(ch);
       value += compute_gear_penalty_check(ch);
+      if (HAS_FEAT(ch, FEAT_ACROBATIC)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       return value;
     case ABILITY_HIDE:
       value += GET_DEX_BONUS(ch);
-      if (GET_SKILL(ch, SKILL_STEALTHY))
+      if (HAS_FEAT(ch, FEAT_STEALTHY))
         value += 2;
       if (GET_RACE(ch) == RACE_HALFLING)
         value += 2;
@@ -818,9 +702,9 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 4;
       value += compute_gear_penalty_check(ch);
       return value;
-    case ABILITY_SNEAK:
+    case ABILITY_MOVE_SILENTLY:
       value += GET_DEX_BONUS(ch);
-      if (GET_SKILL(ch, SKILL_STEALTHY))
+      if (HAS_FEAT(ch, FEAT_STEALTHY))
         value += 2;
       if (GET_RACE(ch) == RACE_HALFLING)
         value += 2;
@@ -834,6 +718,10 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       value += GET_WIS_BONUS(ch);
       if (GET_RACE(ch) == RACE_ELF)
         value += 2;
+      if (HAS_FEAT(ch, FEAT_ALERTNESS)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       return value;
     case ABILITY_LISTEN:
       value += GET_WIS_BONUS(ch);
@@ -841,12 +729,24 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 2;
       if (GET_RACE(ch) == RACE_ELF)
         value += 2;
+      if (HAS_FEAT(ch, FEAT_ALERTNESS)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       return value;
-    case ABILITY_TREAT_INJURY:
+    case ABILITY_HEAL:
       value += GET_WIS_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_SELF_SUFFICIENT)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       return value;
-    case ABILITY_TAUNT:
+    case ABILITY_INTIMIDATE:
       value += GET_CHA_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_PERSUASIVE)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       return value;
     case ABILITY_CONCENTRATION:
       if (GET_RACE(ch) == RACE_GNOME)
@@ -861,11 +761,19 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_ARCANA_GOLEM) {
         value += GET_LEVEL(ch) / 6;
       }
+      if (HAS_FEAT(ch, FEAT_MAGICAL_APTITUDE)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       return value;
     case ABILITY_APPRAISE:
       value += GET_INT_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_DILIGENT)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       return value;
-    case ABILITY_DISCIPLINE:
+    case ABILITY_DISCIPLINE: /* NOT SRD! */
       if (GET_RACE(ch) == RACE_H_ELF)
         value += 2;
       value += GET_STR_BONUS(ch);
@@ -874,21 +782,50 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       value += GET_DEX_BONUS(ch);
       value += compute_gear_penalty_check(ch);
       return value;
-    case ABILITY_LORE:
+    case ABILITY_LORE: /* NOT SRD! */
+      if (HAS_FEAT(ch, FEAT_INVESTIGATOR))
+        value += 2;
       if (GET_RACE(ch) == RACE_H_ELF)
         value += 2;
       value += GET_INT_BONUS(ch);
       return value;
-    case ABILITY_MOUNT:
+    case ABILITY_RIDE:
       value += GET_DEX_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_ANIMAL_AFFINITY)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       return value;
-    case ABILITY_PICK_LOCK:
+    case ABILITY_BALANCE:
       value += GET_DEX_BONUS(ch);
       value += compute_gear_penalty_check(ch);
+      if (HAS_FEAT(ch, FEAT_AGILE)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       return value;
-    case ABILITY_STEAL:
+    case ABILITY_CLIMB:
+      value += GET_STR_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_ATHLETIC)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      value += compute_gear_penalty_check(ch);
+      return value;
+    case ABILITY_OPEN_LOCK:
+      value += GET_DEX_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_NIMBLE_FINGERS)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_SLEIGHT_OF_HAND:
       value += GET_DEX_BONUS(ch);
       value += compute_gear_penalty_check(ch);
+      if (HAS_FEAT(ch, FEAT_DEFT_HANDS)) {
+        /* Unnamed bonus */
+        value += 2;
+      } 
       return value;
     case ABILITY_SEARCH:
       value += GET_INT_BONUS(ch);
@@ -896,7 +833,109 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 2;
       else if (!IS_NPC(ch) && GET_RACE(ch) == RACE_H_ELF)
         value += 1;
+      if (HAS_FEAT(ch, FEAT_INVESTIGATOR)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       return value;
+    case ABILITY_BLUFF:
+      value += GET_CHA_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_PERSUASIVE)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_DECIPHER_SCRIPT:
+      value += GET_INT_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_DILIGENT)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_DIPLOMACY:
+      value += GET_CHA_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_NEGOTIATOR)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_DISABLE_DEVICE:
+      value += GET_INT_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_NIMBLE_FINGERS)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_DISGUISE:
+      value += GET_CHA_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_DECEITFUL)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_ESCAPE_ARTIST:
+      value += GET_DEX_BONUS(ch);
+      value += compute_gear_penalty_check(ch);
+      if (HAS_FEAT(ch, FEAT_AGILE)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_HANDLE_ANIMAL:
+      value += GET_CHA_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_ANIMAL_AFFINITY)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_JUMP:
+      value += GET_STR_BONUS(ch);
+      value += compute_gear_penalty_check(ch);
+      if (HAS_FEAT(ch, FEAT_ACROBATIC)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_SENSE_MOTIVE:
+      value += GET_WIS_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_NEGOTIATOR)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_SURVIVAL:
+      value += GET_WIS_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_SELF_SUFFICIENT)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;    
+    case ABILITY_SWIM:
+      value += GET_STR_BONUS(ch);
+      value += (2 * compute_gear_penalty_check(ch));
+      if (HAS_FEAT(ch, FEAT_ATHLETIC)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_USE_MAGIC_DEVICE:
+      value += GET_CHA_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_MAGICAL_APTITUDE)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value;
+    case ABILITY_USE_ROPE:
+      value += GET_DEX_BONUS(ch);
+      if (HAS_FEAT(ch, FEAT_DEFT_HANDS)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
+      return value; 
+
+    case ABILITY_PERFORM:
+      value += GET_CHA_BONUS(ch);
+       
     default: return -1;
   }
 }
@@ -908,8 +947,32 @@ const char *cross_names[] = {
   "\tWClass Ability\tn"
 };
 
-void list_abilities(struct char_data *ch) {
-  int i;
+void list_abilities(struct char_data *ch, int ability_type) {
+
+  int i, start_ability, end_ability;
+
+  switch (ability_type) {
+    case ABILITY_TYPE_ALL:
+      start_ability = 1;
+      end_ability = NUM_ABILITIES;
+      break;
+    case ABILITY_TYPE_GENERAL:
+      start_ability = START_GENERAL_ABILITIES;
+      end_ability = END_GENERAL_ABILITIES + 1;
+      break;
+    case ABILITY_TYPE_CRAFT:
+      start_ability = START_CRAFT_ABILITIES;
+      end_ability = END_CRAFT_ABILITIES + 1;
+      break;
+    case ABILITY_TYPE_KNOWLEDGE:
+      start_ability = START_KNOWLEDGE_ABILITIES;
+      end_ability = END_KNOWLEDGE_ABILITIES + 1;
+      break;
+    default:
+      log("SYSERR: list_abilities called with invalid ability_type: %d", ability_type);
+      start_ability = 1;
+      end_ability = NUM_ABILITIES;
+  }
 
   if (IS_NPC(ch))
     return;
@@ -918,8 +981,8 @@ void list_abilities(struct char_data *ch) {
           "You know of the following abilities:\tn\r\n", GET_TRAINS(ch),
           GET_TRAINS(ch) == 1 ? "" : "s");
 
-  for (i = 1; i < NUM_ABILITIES; i++) {
-    send_to_char(ch, "%-20s [%d] \tC[%d]\tn %s\r\n",
+  for (i = start_ability; i < end_ability; i++) {
+    send_to_char(ch, "%-28s [%d] \tC[%d]\tn %s\r\n",
             ability_names[i], GET_ABILITY(ch, i), compute_ability(ch, i),
             cross_names[class_ability[i][GET_CLASS(ch)]]);
   }
@@ -928,17 +991,11 @@ void list_abilities(struct char_data *ch) {
 //further expansion -zusuk
 void process_skill(struct char_data *ch, int skillnum) {
   switch (skillnum) {
-    case SKILL_EPIC_TOUGHNESS:
-      GET_REAL_MAX_HIT(ch) += GET_LEVEL(ch);
-      send_to_char(ch, "\tMYou gained %d hp!\tn\r\n", GET_LEVEL(ch));
-      return;
-    case SKILL_TOUGHNESS:
-      GET_REAL_MAX_HIT(ch) += GET_LEVEL(ch);
-      send_to_char(ch, "\tMYou gained %d hp!\tn\r\n", GET_LEVEL(ch));
-      return;
-
       // epic spells
 
+
+    /* Epic spells we need a way to learn them that is NOT based in the trainer.
+     * Questing comes to mind. */
     case SKILL_MUMMY_DUST:
       send_to_char(ch, "\tMYou gained Epic Spell:  Mummy Dust!\tn\r\n");
       SET_SKILL(ch, SPELL_MUMMY_DUST, 99);
@@ -1904,7 +1961,7 @@ SPECIAL(guild) {
     //training code
 
     if (!*argument) {
-      list_abilities(ch);
+      list_abilities(ch, ABILITY_TYPE_GENERAL);
       return (TRUE);
     }
 

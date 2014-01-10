@@ -682,7 +682,31 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 // don't forget to add to constants.c!
 #define AFF_WATER_BREATH     AFF_SCUBA  // just the more conventional name
 #define AFF_RAPID_SHOT       84 /* Rapid Shot Mode (FEAT_RAPID_SHOT) */
-#define NUM_AFF_FLAGS        85
+#define AFF_DAZED            85 /* Dazed*/
+#define NUM_AFF_FLAGS        86
+
+/* Bonus types */
+#define	BONUS_TYPE_UNDEFINED     0 /* Undefined bonus type (stacks) */
+#define BONUS_TYPE_ALCHEMICAL    1 /* Alchemical bonus : potion/food/chemical */
+#define BONUS_TYPE_ARMOR         2 /* Armor bonus : +/- AC */
+#define BONUS_TYPE_CIRCUMSTANCE  3 /* Circumstance Bonus (stacks) */
+#define BONUS_TYPE_COMPETENCE    4 /* Competence bonus : skills, etc. */
+#define BONUS_TYPE_DEFLECTION    5 /* Deflection bonus : + AC usually */
+#define BONUS_TYPE_DODGE         6 /* Dodge bonus : + AC usually */
+#define BONUS_TYPE_ENHANCEMENT   7 /* Enhancement bonus : weapon/armor */
+#define BONUS_TYPE_INHERENT      8 /* Inherent bonus : powerful magic */
+#define BONUS_TYPE_INSIGHT       9 /* Insight bonus */
+#define BONUS_TYPE_LUCK         10 /* Luck bonus */
+#define BONUS_TYPE_MORALE       11 /* Morale bonus */
+#define BONUS_TYPE_NATURALARMOR 12 /* Natural Armor bonus : + AC */
+#define BONUS_TYPE_PROFANE      13 /* Profane bonus : evil */
+#define BONUS_TYPE_RACIAL       14 /* Racial bonus */
+#define BONUS_TYPE_RESISTANCE   15 /* Resistance bonus : saves */
+#define BONUS_TYPE_SACRED       16 /* Sacred Bonus */
+#define BONUS_TYPE_SHIELD       17 /* Shield bonus */
+#define BONUS_TYPE_SIZE         18 /* Size bonus */
+
+#define NUM_BONUS_TYPES         19
 
 /* homeland-port reference */
 /*
@@ -1203,8 +1227,15 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_FINANCIAL_EXPERT 364
 #define FEAT_THEORY_TO_PRACTICE 365
 #define FEAT_RUTHLESS_NEGOTIATOR 366
-#define FEAT_LAST_FEAT           367
-#define NUM_FEATS                368
+#define FEAT_CRYSTAL_FIST        367
+#define FEAT_CRYSTAL_BODY        368
+#define FEAT_IMPROVED_SPELL_RESISTANCE 369
+#define FEAT_SHIELD_CHARGE       370
+#define FEAT_SHIELD_SLAM         371
+
+#define FEAT_LAST_FEAT           372
+#define NUM_FEATS                373
+
 #define MAX_FEATS                750
 
 /* Combat feats that apply to a specific weapon type */
@@ -1616,8 +1647,8 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAPON_FLAG_CHARGE      (1 << 13)
 #define WEAPON_FLAG_REPEATING   (1 << 14)
 #define WEAPON_FLAG_TWO_HANDED  (1 << 15)
-
-#define NUM_WEAPON_FLAGS        16
+#define WEAPON_FLAG_LIGHT       (1 << 16)
+#define NUM_WEAPON_FLAGS        17
 
 // weapon families
 
@@ -1762,6 +1793,10 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 
 #define NUM_DAMAGE_TYPES               4
 
+#define ATTACK_TYPE_PRIMARY   0
+#define ATTACK_TYPE_OFFHAND   1
+#define ATTACK_TYPE_RANGED    2
+#define ATTACK_TYPE_UNARMED   3
 
 /* Critical hit types */
 #define CRIT_X2   0
@@ -2309,6 +2344,11 @@ struct char_special_data {
   ubyte cloudkill; //how many more bursts of cloudkill left
   struct char_data *guarding;  //target for 'guard' ability
   bool firing;  //is char firing missile weapon?
+
+  /* Combat related, reset each combat round. We do not use events for these because
+   * the timing needs to be perfect - They should be reset in accordance with the
+   * initiation of auto-attacks in each round. */
+  int attacks_of_opportunity; /* The number of AOO performed this round. */
 
   /* furniture */
   struct obj_data *furniture; /**< Object being sat on/in; else NULL */

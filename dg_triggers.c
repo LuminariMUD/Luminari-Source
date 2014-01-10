@@ -25,6 +25,7 @@
 #include "constants.h"
 #include "spells.h"  /* for skill_name() */
 #include "act.h"    /* for cmd_door[] */
+#include "modify.h" /* For strip_colors() */
 
 /* General functions used by several triggers. */
 
@@ -355,6 +356,16 @@ void act_mtrigger(const char_data *ch, char *str, char_data *actor,
         obj_data *target, char *arg) {
   trig_data *t;
   char buf[MAX_INPUT_LENGTH];
+
+  /* Strip color codes. - Ornir */
+  if (str) 
+    strip_colors(str);
+  if (arg)
+    strip_colors(arg);
+
+/*   send_to_char(actor, "str : %s\r\n", str);
+ *   send_to_char(actor, "arg : %s\r\n", arg);
+ */
 
   if (SCRIPT_CHECK(ch, MTRIG_ACT) && !AFF_FLAGGED(ch, AFF_CHARM) &&
           (actor != ch))

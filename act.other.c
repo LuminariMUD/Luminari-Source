@@ -100,9 +100,6 @@ void perform_perform(struct char_data *ch) {
   cooldown = (2 * SECS_PER_MUD_DAY) - (level * 100);
   attach_mud_event(new_mud_event(ePERFORM, ch, NULL), cooldown);
 
-  if (!IS_NPC(ch))
-    increase_skill(ch, SKILL_PERFORM);
-
   if (!GROUP(ch)) {
     if (affected_by_spell(ch, SKILL_PERFORM))
       return;
@@ -130,7 +127,7 @@ void perform_perform(struct char_data *ch) {
 
 ACMD(do_perform) {
 
-  if (!IS_NPC(ch) && !GET_SKILL(ch, SKILL_PERFORM)) {
+  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_BARDIC_MUSIC)) {
     send_to_char(ch, "You don't know how to perform.\r\n");
     return;
   }
@@ -287,15 +284,12 @@ void perform_call(struct char_data *ch, int call_type, int level) {
   /* finally attach cooldown, approximately 14 minutes right now */
   if (call_type == MOB_C_ANIMAL) {
     attach_mud_event(new_mud_event(eC_ANIMAL, ch, NULL), 4 * SECS_PER_MUD_DAY);
-    increase_skill(ch, SKILL_ANIMAL_COMPANION);
   }
   if (call_type == MOB_C_FAMILIAR) {
     attach_mud_event(new_mud_event(eC_FAMILIAR, ch, NULL), 4 * SECS_PER_MUD_DAY);
-    increase_skill(ch, SKILL_CALL_FAMILIAR);
   }
   if (call_type == MOB_C_MOUNT) {
     attach_mud_event(new_mud_event(eC_MOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
-    increase_skill(ch, SKILL_PALADIN_MOUNT);
   }
   
 }
@@ -318,47 +312,43 @@ ACMD(do_call) {
     if (CLASS_LEVEL(ch, CLASS_RANGER) >= 4)
       level += CLASS_LEVEL(ch, CLASS_RANGER) - 3;
 
-    if (!GET_SKILL(ch, SKILL_ANIMAL_COMPANION)) {
-      send_to_char(ch, "You are not a high enough level Ranger/Druid to "
-              "use this ability!\r\n");
+    if (!HAS_FEAT(ch, FEAT_ANIMAL_COMPANION)) {
+      send_to_char(ch, "You do not have an animal companion.\r\n");
       return;
     }
 
     if (level <= 0) {
-      send_to_char(ch, "You are not a high enough level Druid or Ranger to "
-              "use this ability!\r\n");
+      send_to_char(ch, "You are too inexperienced to use this ability!\r\n");
       return;
     }
     call_type = MOB_C_ANIMAL;
   } else if (is_abbrev(argument, "familiar")) {
     level = CLASS_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_WIZARD);
 
-    if (!GET_SKILL(ch, SKILL_CALL_FAMILIAR)) {
-      send_to_char(ch, "You are not a high enough level caster to "
-              "use this ability!\r\n");
+    if (!HAS_FEAT(ch, FEAT_SUMMON_FAMILIAR)) {
+      send_to_char(ch, "You do not have a familiar.\r\n");
       return;
     }
 
     if (level <= 0) {
-      send_to_char(ch, "You are not a high enough level Sorcerer or Wizard to "
-              "use this ability!\r\n");
+      send_to_char(ch, "You are too inexperienced to use this ability!\r\n");
       return;
     }
+
     call_type = MOB_C_FAMILIAR;
   } else if (is_abbrev(argument, "mount")) {
     level = CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
 
-    if (!GET_SKILL(ch, SKILL_PALADIN_MOUNT)) {
-      send_to_char(ch, "You are not a high enough level Paladin to "
-              "use this ability!\r\n");
+    if (!HAS_FEAT(ch, FEAT_CALL_MOUNT)) {
+      send_to_char(ch, "You do not have a mount that you can call.\r\n");
       return;
     }
 
     if (level <= 0) {
-      send_to_char(ch, "You are not a high enough level Paladin to "
-              "use this ability!\r\n");
+      send_to_char(ch, "You are too inexperienced to use this ability!\r\n");
       return;
     }
+
     call_type = MOB_C_MOUNT;
   } else {
     send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
@@ -372,8 +362,9 @@ ACMD(do_call) {
 ACMD(do_purify) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
+  int uses_remaining = 0;
 
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_REMOVE_DISEASE)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_REMOVE_DISEASE)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -385,9 +376,8 @@ ACMD(do_purify) {
     return;
   }
 
-  if (char_has_mud_event(ch, ePURIFY)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    send_to_char(ch, "OOC:  The cooldown is approximately 6 minutes.\r\n");
+   if ((uses_remaining = daily_uses_remaining(ch, FEAT_REMOVE_DISEASE)) == 0 ) {
+    send_to_char(ch, "You must recover the divine energy required to remove disease.\r\n");
     return;
   }
 
@@ -406,10 +396,11 @@ ACMD(do_purify) {
     REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_DISEASE);
 
 
-  attach_mud_event(new_mud_event(ePURIFY, ch, NULL), 2 * SECS_PER_MUD_DAY);
+  if(!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_REMOVE_DISEASE);
+
   update_pos(vict);
 
-  increase_skill(ch, SKILL_REMOVE_DISEASE);
 }
 
 /* this is a temporary command, a simple cheesy way
@@ -493,7 +484,7 @@ ACMD(do_recharge) {
   struct obj_data *obj = NULL;
   int maxcharge = 0, mincharge = 0, chargeval = 0;
 
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_RECHARGE))
+  if (!IS_NPC(ch))
     ;
   else {
     send_to_char(ch, "You don't know how to do that!\r\n");
@@ -513,6 +504,14 @@ ACMD(do_recharge) {
     return;
   }
 
+  if (((GET_OBJ_TYPE(obj) == ITEM_STAFF) && !HAS_FEAT(ch, FEAT_CRAFT_STAFF)) ||
+      ((GET_OBJ_TYPE(obj) == ITEM_WAND) && !HAS_FEAT(ch, FEAT_CRAFT_WAND))) {
+    send_to_char(ch, "You don't know how to recharge that.\r\n");
+    return;
+  }
+ 
+
+
   if (GET_GOLD(ch) < 5000) {
     send_to_char(ch, "You don't have enough gold on hand!\r\n");
     return;
@@ -525,10 +524,10 @@ ACMD(do_recharge) {
     chargeval = maxcharge - mincharge;
     GET_OBJ_VAL(obj, 2) += chargeval;
     GET_GOLD(ch) -= 5000;
-    send_to_char(ch, "Shazzzaaaam!\r\n");
+    send_to_char(ch, "The %s glows blue for a moment.\r\n", (GET_OBJ_TYPE(obj) == ITEM_STAFF ? "staff": "wand"));
     sprintf(buf, "The item now has %d charges remaining.\r\n", maxcharge);
     send_to_char(ch, buf);
-    act("$n with a flash recharges $p.",
+    act("$p glows with a subtle blue light as $n recharges it.",
             FALSE, ch, obj, 0, TO_ROOM);
   } else {
     send_to_char(ch, "The item does not need recharging.\r\n");
@@ -560,7 +559,7 @@ ACMD(do_mount) {
   } else if (GET_LEVEL(ch) < LVL_IMMORT && IS_NPC(vict) && !MOB_FLAGGED(vict, MOB_MOUNTABLE)) {
     send_to_char(ch, "You can't mount that!\r\n");
     return;
-  } else if (!GET_ABILITY(ch, ABILITY_MOUNT)) {
+  } else if (!GET_ABILITY(ch, ABILITY_RIDE)) {
     send_to_char(ch, "First you need to learn *how* to mount.\r\n");
     return;
   } else if (GET_SIZE(vict) < (GET_SIZE(ch) + 1)) {
@@ -569,7 +568,7 @@ ACMD(do_mount) {
   } else if (GET_SIZE(vict) > (GET_SIZE(ch) + 2)) {
     send_to_char(ch, "The mount is too large for you!\r\n");
     return;
-  } else if ((compute_ability(ch, ABILITY_MOUNT) + 1) <= rand_number(1, GET_LEVEL(vict))) {
+  } else if ((compute_ability(ch, ABILITY_RIDE) + 1) <= rand_number(1, GET_LEVEL(vict))) {
     act("You try to mount $N, but slip and fall off.", FALSE, ch, 0, vict, TO_CHAR);
     act("$n tries to mount you, but slips and falls off.", FALSE, ch, 0, vict, TO_VICT);
     act("$n tries to mount $N, but slips and falls off.", TRUE, ch, 0, vict, TO_NOTVICT);
@@ -583,7 +582,7 @@ ACMD(do_mount) {
   mount_char(ch, vict);
 
   if (IS_NPC(vict) && !AFF_FLAGGED(vict, AFF_TAMED) &&
-          compute_ability(ch, ABILITY_MOUNT) <= rand_number(1, GET_LEVEL(vict))) {
+          compute_ability(ch, ABILITY_RIDE) <= rand_number(1, GET_LEVEL(vict))) {
     act("$N suddenly bucks upwards, throwing you violently to the ground!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n is thrown to the ground as $N violently bucks!", TRUE, ch, 0, vict, TO_NOTVICT);
     act("You buck violently and throw $n to the ground.", FALSE, ch, 0, vict, TO_VICT);
@@ -649,19 +648,19 @@ ACMD(do_tame) {
   } else if (GET_LEVEL(ch) < LVL_IMMORT && IS_NPC(vict) && !MOB_FLAGGED(vict, MOB_MOUNTABLE)) {
     send_to_char(ch, "You can't do that to them.\r\n");
     return;
-  } else if (!GET_ABILITY(ch, ABILITY_MOUNT)) {
+  } else if (!GET_ABILITY(ch, ABILITY_RIDE)) {
     send_to_char(ch, "You don't even know how to tame something.\r\n");
     return;
   } else if (!IS_NPC(vict) && GET_LEVEL(ch) < LVL_IMMORT) {
     send_to_char(ch, "You can't do that.\r\n");
     return;
-  } else if (GET_SKILL(ch, ABILITY_MOUNT) <= rand_number(1, GET_LEVEL(vict))) {
+  } else if (GET_SKILL(ch, ABILITY_RIDE) <= rand_number(1, GET_LEVEL(vict))) {
     send_to_char(ch, "You fail to tame it.\r\n");
     return;
   }
 
   new_affect(&af);
-  af.duration = 50 + compute_ability(ch, ABILITY_MOUNT) * 4;
+  af.duration = 50 + compute_ability(ch, ABILITY_RIDE) * 4;
   SET_BIT_AR(af.bitvector, AFF_TAMED);
   affect_to_char(vict, &af);
 
@@ -925,23 +924,23 @@ ACMD(do_gain) {
     }
     if ((GET_PRACTICES(ch) != 0) ||
         (GET_TRAINS(ch) != 0)    ||
-        (GET_BOOSTS(ch) != 0)    ||
-        ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
+        (GET_BOOSTS(ch) != 0)) {//    ||
+/*         ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
          (CLASS_LEVEL(ch, CLASS_WIZARD)   && !IS_WIZ_LEARNED(ch))  ||
          (CLASS_LEVEL(ch, CLASS_BARD)     && !IS_BARD_LEARNED(ch)) ||
          (CLASS_LEVEL(ch, CLASS_DRUID)    && !IS_DRUID_LEARNED(ch))||
          (CLASS_LEVEL(ch, CLASS_RANGER)   && !IS_RANG_LEARNED(ch)))) {
-    
+*/    
       /* The last level has not been completely gained yet - The player must
        * use all trains, pracs, boosts and choose spells and other benefits
        * vis 'study' before they can gain a level. */
-      if (GET_PRACTICES(ch) != 0) 
-        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
+//      if (GET_PRACTICES(ch) != 0) 
+//        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
       if (GET_TRAINS(ch) != 0)
         send_to_char(ch, "You must use all trains before gaining another level.  You have %d train%s remaining.\r\n", GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
       if (GET_BOOSTS(ch) != 0)
         send_to_char(ch, "You must use all boosts before gaining another level.  You have %d boost%s remaining.\r\n", GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
-      if(CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch))
+/*       if(CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch))
         send_to_char(ch, "You must 'study sorcerer' before gaining another level.\r\n");
       if(CLASS_LEVEL(ch, CLASS_WIZARD) && !IS_WIZ_LEARNED(ch))
         send_to_char(ch, "You must 'study wizard' before gaining another level.\r\n"); 
@@ -951,7 +950,7 @@ ACMD(do_gain) {
         send_to_char(ch, "You must 'study druid' before gaining another level.\r\n"); 
       if(CLASS_LEVEL(ch, CLASS_RANGER) && !IS_RANG_LEARNED(ch))
         send_to_char(ch, "You must 'study ranger' before gaining another level.\r\n"); 
-
+*/
       return;
 
     } else if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
@@ -1094,36 +1093,34 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
   for (i = 0; i < SHAPE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
 
-  if (spellnum == SKILL_WILDSHAPE) {
-    GET_SHAPECHANGES(ch)--;
-    increase_skill(ch, SKILL_WILDSHAPE);
-  }
   IS_MORPHED(ch) = NPCRACE_ANIMAL;
 
   act(shape_to_char[SUBRACE(ch)], TRUE, ch, 0, 0, TO_CHAR);
   act(shape_to_room[SUBRACE(ch)], TRUE, ch, 0, 0, TO_ROOM);
+
+  if (!IS_NPC(ch) && (spellnum == SKILL_WILDSHAPE)) 
+    start_daily_use_cooldown(ch, FEAT_WILD_SHAPE);
 }
 
 /* a trivial shapechange code for druids */
 ACMD(do_shapechange) {
-  int form_num = -1, i = 0;
+  int form_num = -1, i = 0, uses_remaining = 0;
 
   if (!ch->desc || IS_NPC(ch))
     return;
 
   skip_spaces(&argument);
 
-  if (CLASS_LEVEL(ch, CLASS_DRUID) < 5 && *argument) {
-    send_to_char(ch, "You are not a high enough level druid to do this...\r\n");
+  if(!HAS_FEAT(ch, FEAT_WILD_SHAPE)) {
+    send_to_char(ch, "You do not have a wild shape.\r\n");
     return;
   }
   
-  if (GET_SHAPECHANGES(ch) <= 0 && *argument) {
-    send_to_char(ch, "You are too exhausted to do that, wait for your skill "
-            "to refresh!\r\n");
+  if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) && *argument) {
+    send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
     return;
-  }
-  
+  }  
+
   if (!*argument) {
     if (CLASS_LEVEL(ch, CLASS_DRUID) < 10)
       form_num = 1;
@@ -1391,7 +1388,7 @@ ACMD(do_lore) {
     send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
     send_to_char(ch, "Height %d cm, Weight %d pounds\r\n", GET_HEIGHT(tch), GET_WEIGHT(tch));
     send_to_char(ch, "Level: %d, Hits: %d, Mana: %d\r\n", GET_LEVEL(tch), GET_HIT(tch), GET_MANA(tch));
-    send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n", compute_armor_class(NULL, tch), GET_HITROLL(tch), GET_DAMROLL(tch));
+    send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n", compute_armor_class(NULL, tch, FALSE), GET_HITROLL(tch), GET_DAMROLL(tch));
     send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n",
             GET_STR(tch), GET_ADD(tch), GET_INT(tch),
             GET_WIS(tch), GET_DEX(tch), GET_CON(tch), GET_CHA(tch));
@@ -1588,7 +1585,7 @@ ACMD(do_sneak) {
     return;
   }
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_SNEAK)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_MOVE_SILENTLY)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
@@ -1602,7 +1599,6 @@ ACMD(do_sneak) {
   send_to_char(ch, "Okay, you'll try to move silently for a while.\r\n");
 
   SET_BIT_AR(AFF_FLAGS(ch), AFF_SNEAK);
-  increase_skill(ch, SKILL_STEALTHY);
 }
 
 /* entry point for hide, the command just flips the flag */
@@ -1631,7 +1627,6 @@ ACMD(do_hide) {
 
   send_to_char(ch, "You attempt to hide yourself.\r\n");
   SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);\
-  increase_skill(ch, SKILL_STEALTHY);
 }
 
 /* listen-mode, similar to search - try to find hidden/sneaking targets */
@@ -1685,7 +1680,7 @@ ACMD(do_steal) {
   char vict_name[MAX_INPUT_LENGTH], obj_name[MAX_INPUT_LENGTH];
   int percent, gold, eq_pos, pcsteal = 0, ohoh = 0;
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_STEAL)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_SLEIGHT_OF_HAND)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
@@ -1760,7 +1755,7 @@ ACMD(do_steal) {
 
       percent += GET_OBJ_WEIGHT(obj); /* Make heavy harder */
 
-      if (percent > compute_ability(ch, ABILITY_STEAL)) {
+      if (percent > compute_ability(ch, ABILITY_SLEIGHT_OF_HAND)) {
         ohoh = TRUE;
         send_to_char(ch, "Oops..\r\n");
         act("$n tried to steal something from you!", FALSE, ch, 0, vict, TO_VICT);
@@ -1782,7 +1777,7 @@ ACMD(do_steal) {
       }
     }
   } else { /* Steal some coins */
-    if (AWAKE(vict) && (percent > compute_ability(ch, ABILITY_STEAL))) {
+    if (AWAKE(vict) && (percent > compute_ability(ch, ABILITY_SLEIGHT_OF_HAND))) {
       ohoh = TRUE;
       send_to_char(ch, "Oops..\r\n");
       act("You discover that $n has $s hands in your wallet.", FALSE, ch, 0, vict, TO_VICT);
@@ -1945,10 +1940,16 @@ ACMD(do_train) {
 
   one_argument(argument, arg);
 
-  if (*arg)
+  if (*arg && is_abbrev(arg, "knowledge")) {
+    /* Display knowledge abilities. */
+    list_abilities(ch, ABILITY_TYPE_KNOWLEDGE);
+  } else if (*arg && is_abbrev(arg, "craft")) {
+    /* Display craft abilities. */
+    list_abilities(ch, ABILITY_TYPE_CRAFT);
+  } else if (*arg)
     send_to_char(ch, "You can only train abilities in your guild.\r\n");
   else
-    list_abilities(ch);
+    list_abilities(ch, ABILITY_TYPE_GENERAL);
 
   send_to_char(ch, "\tDType 'practice' to see your skills\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
@@ -2296,9 +2297,6 @@ ACMD(do_use) {
     }
   }
 
-  if (GET_SKILL(ch, SKILL_USE_MAGIC))
-    increase_skill(ch, SKILL_USE_MAGIC);
-
   mag_objectmagic(ch, mag_item, buf);
 }
 
@@ -2322,20 +2320,6 @@ ACMD(do_utter) {
   for (i = 0; i < NUM_WEARS; i++) {
       mag_item = GET_EQ(ch, i);
       if(mag_item != NULL){
-        /* Traverse the list of special abilities, if any, and check for command words. */
- //       for(specab = mag_item->special_abilities;specab != NULL;specab = specab->next) {
- //         if(specab->activation_method == ACTMTD_COMMAND_WORD) {
-            /* Compare the argument with the command word. */
- //           if(!strcmp(argument, specab->command_word)) {
-              /* Activate the special ability! */
- //             found = TRUE;
- //             weapon_specab_flaming(specab->level, mag_item, ch, NULL, NULL);
- //
- //           }
- //           
- //         }          
-        
- //        }
         switch(i) { /* Different procedures for weapons and armors. */
           case WEAR_WIELD_1:
           case WEAR_WIELD_2:

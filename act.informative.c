@@ -1327,6 +1327,10 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Turn Undead - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSPELLBATTLE)))
     send_to_char(ch, "Spellbattle - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eWILD_SHAPE)))
+    send_to_char(ch, "Wild Shape - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSHIELD_RECOVERY)))
+    send_to_char(ch, "Shield Recovery - Duration %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
 
   send_to_char(ch,
           "\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
@@ -1896,7 +1900,7 @@ ACMD(do_score) {
           GET_CHA(ch), GET_CHA_BONUS(ch));
 
   send_to_char(ch, "\tCArmorClass:\tn %d   \tCBAB:\tn %d   \tCSpell Resist:\tn %d\r\n",
-          compute_armor_class(NULL, ch), calc_bab,
+          compute_armor_class(NULL, ch, FALSE), calc_bab,
           compute_spell_res(NULL, ch, 0));
 
   send_to_char(ch, "\tCHitroll:\tn %d      \tCDamroll:\tn %d      \tC# of Attacks:\tn %d\r\n",

@@ -614,7 +614,7 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
 
   switch (rand_number(1, 2)) {
     case 1:
-      perform_stunningfist(ch, 3);
+      perform_stunningfist(ch);
       break;
     case 2:
       perform_springleap(ch, vict);
@@ -761,7 +761,7 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
     return;
   
   if (IS_EVIL(vict))
-    perform_smite(ch, 600);
+    perform_smite(ch);
   
   if (percent <= 25.0)
     perform_layonhands(ch, ch);
@@ -1038,7 +1038,7 @@ void mobile_activity(void) {
     if (!IS_MOB(ch))
       continue;
 
-    if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
+    if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) || AFF_FLAGGED(ch, AFF_DAZED) ||
             char_has_mud_event(ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED)) {
       send_to_char(ch, "You are unable to move!\r\n");
       continue;

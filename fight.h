@@ -28,7 +28,7 @@ void perform_flee(struct char_data *ch);
 void appear(struct char_data *ch, bool forced);
 void check_killer(struct char_data *ch, struct char_data *vict);
 int perform_attacks(struct char_data *ch, int mode);
-int compute_armor_class(struct char_data *attacker, struct char_data *ch);
+int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is_touch);
 int compute_damage_reduction(struct char_data *ch, int dam_type);
 int compute_concealment(struct char_data *ch);
 int compute_bab(struct char_data *ch, struct char_data *victim, int attktype);
@@ -41,10 +41,12 @@ void die(struct char_data * ch, struct char_data * killer);
 void free_messages(void);
 int dam_killed_vict(struct char_data *ch, struct char_data *victim);
 void update_pos(struct char_data *victim);
+int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch, int attack_number);
+int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int penalty);
 /*
  * dualwield = is this a dual wield attack?
  */
-void hit(struct char_data *ch, struct char_data *victim,
+int hit(struct char_data *ch, struct char_data *victim,
 	int type, int dam_type, int penalty, int dualwield);
 void load_messages(void);
 void perform_violence(void);

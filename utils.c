@@ -25,6 +25,7 @@
 #include "race.h"
 #include "spec_procs.h"  // for compute_ability
 #include "mud_event.h"  // for purgemob event
+#include "feats.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -259,7 +260,7 @@ char * a_or_an(char *string) {
 /* function for sneak-check
  * ch = listener (challenge), vict = sneaker (DC)
  */
-bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict) {
+bool can_hear_sneaking(struct char_data *ch, struct char_data *vict) {
   /* free passes */
   if (!AFF_FLAGGED(vict, AFF_SNEAK))
     return TRUE;
@@ -277,10 +278,9 @@ bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict) {
 
   //hider bonus/penalties (vict)
   if (!IS_NPC(vict)) {
-    dc += compute_ability((struct char_data *) vict, ABILITY_SNEAK);
-    if (IN_NATURE(vict) && GET_SKILL(vict, SKILL_NATURE_STEP)) {
+    dc += compute_ability((struct char_data *) vict, ABILITY_MOVE_SILENTLY);
+    if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_TRACKLESS_STEP)) {
       dc += 4;
-      increase_skill((struct char_data *) vict, SKILL_NATURE_STEP);
     }
   } else
     dc += GET_LEVEL(vict);
@@ -295,7 +295,7 @@ bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict) {
 /* function for hide-check
  * ch = spotter (challenge), vict = hider (DC)
  */
-bool can_see_hidden(struct char_data *ch, const struct char_data *vict) {
+bool can_see_hidden(struct char_data *ch, struct char_data *vict) {
   /* free passes */
   if (!AFF_FLAGGED(vict, AFF_HIDE) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
     return TRUE;
@@ -314,9 +314,8 @@ bool can_see_hidden(struct char_data *ch, const struct char_data *vict) {
   //hider bonus/penalties (vict)
   if (!IS_NPC(vict)) {
     dc += compute_ability((struct char_data *) vict, ABILITY_HIDE);
-    if (IN_NATURE(vict) && GET_SKILL(vict, SKILL_NATURE_STEP)) {
+    if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_TRACKLESS_STEP)) {
       dc += 4;
-      increase_skill((struct char_data *) vict, SKILL_NATURE_STEP);
     }
   } else
     dc += GET_LEVEL(vict);
@@ -367,746 +366,7 @@ void increase_skill(struct char_data *ch, int skillnum) {
   int pass = rand_number(0, PASS);
 
   switch (skillnum) {
-
-    case SKILL_HITALL:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_CHARGE:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_BODYSLAM:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SPRINGLEAP:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_HEADBUTT:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SHIELD_PUNCH:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DIRT_KICK:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SAP:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-      
-    case SKILL_WILDSHAPE:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_TURN_UNDEAD:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-
-      /* crafting skills */
-    case SKILL_MINING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_HUNTING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_FORESTING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_KNITTING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_CHEMISTRY:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_ARMOR_SMITHING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_WEAPON_SMITHING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_JEWELRY_MAKING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_LEATHER_WORKING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_FAST_CRAFTER:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_BONE_ARMOR:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_ELVEN_CRAFTING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_MASTERWORK_CRAFTING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DRACONIC_CRAFTING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DWARVEN_CRAFTING:
-      if (!craft_skill) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-      /* end crafting */
-
-    case SKILL_PERFORM:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PALADIN_MOUNT:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_CALL_FAMILIAR:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_FAVORED_ENEMY:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DUAL_WEAPONS:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_ANIMAL_COMPANION:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_NATURE_STEP:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_STEALTHY:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_RECHARGE:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_GRACE:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DIVINE_HEALTH:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_LAY_ON_HANDS:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_COURAGE:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SMITE:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_REMOVE_DISEASE:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_EVASION:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_IMP_EVASION:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_BACKSTAB:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_BASH:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SCRIBE:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_MUMMY_DUST:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_KICK:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_WEAPON_SPECIALIST:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_USE_MAGIC:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_WHIRLWIND:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_RESCUE:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DRAGON_KNIGHT:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_LUCK_OF_HEROES:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_TRACK:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_QUICK_CHANT:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_AMBIDEXTERITY:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DIRTY_FIGHTING:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DODGE:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_IMPROVED_CRITICAL:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_MOBILITY:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SPRING_ATTACK:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_TOUGHNESS:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_TWO_WEAPON_FIGHT:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_FINESSE:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_ARMOR_SKIN:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_BLINDING_SPEED:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DAMAGE_REDUC_1:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DAMAGE_REDUC_2:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_DAMAGE_REDUC_3:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_EPIC_TOUGHNESS:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_OVERWHELMING_CRIT:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SELF_CONCEAL_1:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SELF_CONCEAL_2:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SELF_CONCEAL_3:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_TRIP:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_IMPROVED_WHIRL:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_CLEAVE:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_GREAT_CLEAVE:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SPELLPENETRATE:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SPELLPENETRATE_2:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROWESS:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_EPIC_PROWESS:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_EPIC_2_WEAPON:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SPELLPENETRATE_3:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SPELL_RESIST_1:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SPELL_RESIST_2:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SPELL_RESIST_3:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SPELL_RESIST_4:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SPELL_RESIST_5:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_INITIATIVE:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_EPIC_CRIT:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_IMPROVED_BASH:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_IMPROVED_TRIP:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_POWER_ATTACK:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_EXPERTISE:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_GREATER_RUIN:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_HELLBALL:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_EPIC_MAGE_ARMOR:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_EPIC_WARDING:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_RAGE:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROF_MINIMAL:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROF_BASIC:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROF_ADVANCED:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROF_MASTER:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROF_EXOTIC:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROF_LIGHT_A:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROF_MEDIUM_A:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROF_HEAVY_A:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROF_SHIELDS:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROF_T_SHIELDS:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_MURMUR:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_PROPAGANDA:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_LOBBY:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_STUNNING_FIST:
-      if (!use) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_LIGHTNING_REFLEXES:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_GREAT_FORTITUDE:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_IRON_WILL:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_EPIC_REFLEXES:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_EPIC_FORTITUDE:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_EPIC_WILL:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_SHIELD_SPECIALIST:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
-      break;
-    case SKILL_CRIP_STRIKE:
-      if (!pass) {
-        notched = TRUE;
-        GET_SKILL(ch, skillnum)++;
-      }
     default:
-      log("SYSERR: increase_skill() missing skill call:  %s",
-              spell_info[skillnum].name);
       return;
   }
 
@@ -1115,6 +375,7 @@ void increase_skill(struct char_data *ch, int skillnum) {
           spell_info[skillnum].name);
   return;
 }
+
 #undef USE
 #undef PASS
 #undef C_SKILL
@@ -2821,44 +2082,15 @@ char *get_align_by_num(int align) {
 int get_feat_value(struct char_data *ch, int featnum)
 {
 
-  int i = 0, j = 0, k = 0;
-  int featval = HAS_REAL_FEAT(ch, featnum);
-  int found = FALSE;
-  /* Check the character for worn APPLY_FEAT equipment. */
-/*
-  for (i = 0; i < NUM_WEARS; i++)
-  {
-    if (GET_EQ(ch, i))
-    {
-      for (j = 0; j < MAX_OBJ_AFFECT; j++)
-      {
-        if (!GET_EQ(ch, i) || !GET_EQ(ch, i)->affected)
-          continue;
-        if (GET_EQ(ch, i)->affected[j].location == APPLY_FEAT && GET_EQ(ch, i)->affected[j].specific == featnum)
-        {
-          while (level_feats[k][4] != FEAT_UNDEFINED)
-          {
-            if (level_feats[k][4] == featnum)
-            {
-              found = TRUE;
-              if (GET_CLASS(ch) == level_feats[k][0] && level_feats[k][1] == RACE_UNDEFINED &&
-                  GET_CLASS_RANKS(ch, level_feats[k][0]) <= level_feats[k][3])
-              {
-                featval += GET_EQ(ch, i)->affected[j].modifier;
-                break;
-              }
-            }
-            k++;
-          }
-          if (!found)
-            featval += GET_EQ(ch, i)->affected[j].modifier;
-        }
-      }
-    }
+  if ((featnum < 0) || (featnum > NUM_FEATS)) {
+    log("SYSERR: get_feat_value called with invalid featnum: %d", featnum);
+    return 0;
   }
-*/
-  return featval;
 
+  /* Check for the feat. */
+  int featval = HAS_REAL_FEAT(ch, featnum);
+
+  return featval;
 }
 
 
@@ -2917,18 +2149,119 @@ int savingthrow(struct char_data *ch, int save, int modifier, int dc)
 
 /* Utilities for managing daily use abilities for players. */
 
+int get_daily_uses(struct char_data *ch, int featnum){
+  int daily_uses = 0;
+
+  switch (featnum) {
+    case FEAT_STUNNING_FIST:
+      daily_uses += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK))/4;
+      break;
+    case FEAT_LAYHANDS:  
+      daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) * GET_CHA_BONUS(ch);
+      break;
+    case FEAT_TURN_UNDEAD:
+      daily_uses += 3 + GET_CHA_BONUS(ch) + HAS_FEAT(ch, FEAT_EXTRA_TURNING) * 2;
+      break;
+    case FEAT_BARDIC_MUSIC:
+      daily_uses += CLASS_LEVEL(ch, CLASS_BARD);
+      break;
+    case FEAT_REMOVE_DISEASE: 
+      daily_uses += HAS_FEAT(ch, FEAT_REMOVE_DISEASE);
+      break;
+    case FEAT_CRYSTAL_FIST:
+    case FEAT_CRYSTAL_BODY:
+      daily_uses = 3;
+    case FEAT_SMITE_EVIL:
+    case FEAT_RAGE:
+    case FEAT_WILD_SHAPE:
+      daily_uses += HAS_FEAT(ch, featnum);
+      break; 
+  }
+
+  return daily_uses;
+}
+
+
 /* Function to create an event, based on the mud_event passed in, that will either:
  * 1.) Create a new event with the proper sVariables
  * 2.) Update an existing event with a new sVariable value 
  *
  * Returns the current number of uses on cooldown. */
+int start_daily_use_cooldown(struct char_data *ch, int featnum) {
+  struct mud_event_data * pMudEvent = NULL;
+  int uses = 0, daily_uses = 0;
+  char buf[128];
+  event_id iId = 0;
 
-int activate_daily_use(struct char_data *ch, event_id iId) {
+  /* Transform the feat number to the event id for that ability. */
+  if((iId = feat_list[featnum].event) == eNULL) {
+    log("SYSERR: in start_daily_use_cooldown, no cooldown event defined for %s!", feat_list[featnum].name);
+    return (0); 
+  }
+   
+  if ((daily_uses = get_daily_uses(ch, featnum)) < 1) {
+    /* ch has no uses of this ability at all!  Error! */
+    log("SYSERR: in start_daily_use_cooldown, cooldown initiated for invalid ability!");
+    return (0);
+  }
 
+  if ((pMudEvent = char_has_mud_event(ch, iId))) {
+    /* Player is on cooldown for this ability - just update the event. */
+    /* The number of uses is stored in the pMudEvent->sVariables field. */
+    if (pMudEvent->sVariables == NULL) {
+      /* This is odd - This field should always be populated for daily-use abilities,
+       * maybe some legacy code or bad id. */
+      log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+    } else {
+
+      if(sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
+        log("SYSERR: In start_daily_use_cooldown, bad sVariables for dauly-use-cooldown-event: %d", iId); 
+        uses = 0;
+      }
+      free(pMudEvent->sVariables);
+    }
+    uses++;
+ 
+    if (uses > daily_uses)
+      log("SYSERR: Dauly uses exceeed maximum for %s, feat %s", GET_NAME(ch), feat_list[featnum].name);
+
+    sprintf(buf, "uses:%d", uses);
+    pMudEvent->sVariables = strdup(buf);
+  } else {
+    /* No event - so attach one. */
+    uses = 1;
+    attach_mud_event(new_mud_event(iId, ch, "uses:1"), (SECS_PER_MUD_DAY/daily_uses) RL_SEC);
+  }  
+
+  return uses;       
 }
 
-/* Function to return the number of daily uses remaining for a particular ability. */
-int daily_uses_available(struct char_data *ch, event_id iId) {
+/* Function to return the number of daily uses remaining for a particular ability. 
+ * Returns the number of daily uses available or -1 if the feat is not a daily-use feat. */
+int daily_uses_remaining(struct char_data *ch, int featnum) {
+  struct mud_event_data * pMudEvent = NULL; 
+  int uses = 0;
+  int uses_per_day = 0;
+  event_id iId = 0;
 
+  if ((iId = feat_list[featnum].event) == eNULL) 
+    return -1;
+
+  if ((pMudEvent = char_has_mud_event(ch, iId))) {
+    if (pMudEvent->sVariables == NULL) {
+      /* This is odd - This field should always be populated for daily-use abilities,
+       * maybe some legacy code or bad id. */
+      log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+    } else {
+      if(sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
+        log("SYSERR: In daily_uses_remaining, bad sVariables for dauly-use-cooldown-event: %d", iId);
+        uses = 0;    
+      }
+    }
+  } 
+
+  uses_per_day = get_daily_uses(ch, featnum);
+
+  return uses_per_day - uses;
 } 
 

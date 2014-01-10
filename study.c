@@ -1030,6 +1030,12 @@ void study_parse(struct descriptor_data *d, char *arg) {
         cfeat_disp_menu(d);
         break;
       }
+      if(HAS_COMBAT_FEAT(ch, feat_to_cfeat(LEVELUP(d->character)->tempFeat), number) ||
+         HAS_LEVELUP_COMBAT_FEAT(ch, feat_to_cfeat(LEVELUP(ch)->tempFeat), number)) {
+        write_to_output(d, "You already have that weapon type selected for this feat!\r\n\r\n");
+        cfeat_disp_menu(d);
+        break;
+      }
       /* Now we have the weapon type - set it in the structure. */
       if (add_levelup_feat(d, LEVELUP(d->character)->tempFeat)) {
         SET_LEVELUP_COMBAT_FEAT(d->character, feat_to_cfeat(LEVELUP(d->character)->tempFeat), number);
@@ -1056,6 +1062,13 @@ void study_parse(struct descriptor_data *d, char *arg) {
         cfeat_disp_menu(d); 
         break;
       }
+      if(HAS_SCHOOL_FEAT(ch, feat_to_sfeat(LEVELUP(d->character)->tempFeat), number) ||
+         HAS_LEVELUP_SCHOOL_FEAT(ch, feat_to_sfeat(LEVELUP(d->character)->tempFeat), number)) {
+        write_to_output(d, "You already have that school selected for this feat!\r\n\r\n");
+        cfeat_disp_menu(d);
+        break;
+      }
+
       /* Now we have the spell school. */
       if (add_levelup_feat(d, LEVELUP(d->character)->tempFeat)) {
         SET_LEVELUP_SCHOOL_FEAT(d->character, feat_to_sfeat(LEVELUP(d->character)->tempFeat), number);

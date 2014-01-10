@@ -310,7 +310,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "parry", "parry", POS_FIGHTING, do_parry, 1, 0, FALSE},
   { "peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE},
   { "pick", "pi", POS_STANDING, do_gen_door, 1, SCMD_PICK, FALSE},
-  { "practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE},
+/*  { "practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE},*/
   { "page", "pag", POS_DEAD, do_page, 1, 0, FALSE},
   { "pardon", "pardon", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_PARDON, TRUE},
   { "plist", "plist", POS_DEAD, do_plist, LVL_STAFF, 0, TRUE},
@@ -405,7 +405,9 @@ cpp_extern const struct command_info cmd_info[] = {
   { "spellquests", "spellquests", POS_DEAD, do_spellquests, LVL_BUILDER, 0, TRUE},
   { "singlefile", "singlefile", POS_DEAD, do_singlefile, LVL_BUILDER, 0, TRUE},
   { "sap", "sap", POS_FIGHTING, do_sap, 1, 0, FALSE},
-  { "shieldpunch", "shieldpunch", POS_FIGHTING, do_shieldpunch, 1, 0, FALSE},
+  { "shieldpunch", "shieldp", POS_FIGHTING, do_shieldpunch, 1, 0, FALSE},
+  { "shieldcharge", "shieldc", POS_FIGHTING, do_shieldcharge, 1, 0, FALSE},
+  { "shieldslam", "shields", POS_FIGHTING, do_shieldslam, 1, 0, FALSE},
   { "springleap", "springleap", POS_SITTING, do_springleap, 1, 0, FALSE},
   
   { "tell", "t", POS_DEAD, do_tell, 0, 0, TRUE},
@@ -656,6 +658,8 @@ void command_interpreter(struct char_data *ch, char *argument) {
   } else if ((AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) || 
           char_has_mud_event(ch, eSTUNNED)))
     send_to_char(ch, "You try, but you are unable to move!\r\n");
+  else if (AFF_FLAGGED(ch, AFF_DAZED))
+    send_to_char(ch, "You are too dazed to do anything!\r\n");
   else if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_FROZEN) && GET_LEVEL(ch) < LVL_IMPL)
     send_to_char(ch, "You try, but the mind-numbing cold prevents you...\r\n");
   else if (complete_cmd_info[cmd].command_pointer == NULL)
@@ -1833,6 +1837,7 @@ void nanny(struct descriptor_data *d, char *arg) {
           write_to_output(d, "\r\nCommand not understood.\r\n");
           return;
       }
+      write_to_output(d, "Do you want to select this race? (y/n) : ");
       STATE(d) = CON_QRACE_HELP;
       break;
 
@@ -1843,6 +1848,7 @@ void nanny(struct descriptor_data *d, char *arg) {
         write_to_output(d, "\r\nClass Confirmed!\r\n");
       else if (UPPER(*arg) != 'N') {
         write_to_output(d, "\r\nY)es to confirm N)o to reselect.\r\n");
+        write_to_output(d, "Do you want to select this race? (y/n) : ");   
         STATE(d) = CON_QRACE_HELP;
         return;
       } else {
@@ -1904,7 +1910,7 @@ void nanny(struct descriptor_data *d, char *arg) {
           write_to_output(d, "\r\nCommand not understood.\r\n");
           return;
       }
-
+      write_to_output(d, "Do you want to select this class? (y/n) : ");
       STATE(d) = CON_QCLASS_HELP;
       break;
 
@@ -1915,6 +1921,7 @@ void nanny(struct descriptor_data *d, char *arg) {
         write_to_output(d, "\r\nClass Confirmed!\r\n");
       else if (UPPER(*arg) != 'N') {
         write_to_output(d, "\r\nY)es to confirm N)o to reselect.\r\n");
+        write_to_output(d, "Do you want to select this race? (y/n) : ");
         STATE(d) = CON_QCLASS_HELP;
         return;
       } else {

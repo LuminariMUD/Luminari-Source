@@ -44,8 +44,8 @@ int convert_alignment(int align);
 void set_alignment(struct char_data *ch, int alignment);
 char *get_align_by_num_cnd(int align);
 char *get_align_by_num(int align);
-bool can_hear_sneaking(struct char_data *ch, const struct char_data *vict);
-bool can_see_hidden(struct char_data *ch, const struct char_data *vict);
+bool can_hear_sneaking(struct char_data *ch, struct char_data *vict);
+bool can_see_hidden(struct char_data *ch, struct char_data *vict);
 int skill_check(struct char_data *ch, int skill, int dc);
 void increase_skill(struct char_data *ch, int skillnum);
 int convert_material_vnum(int obj_vnum);
@@ -104,6 +104,10 @@ bool is_outdoors(struct char_data *ch);
 void set_mob_grouping(struct char_data *ch);
 int find_armor_type(int specType);
 
+int get_daily_uses(struct char_data *ch, int featnum);
+int start_daily_use_cooldown(struct char_data *ch, int featnum);
+int daily_uses_remaining(struct char_data *ch, int featnum);
+  
 /* Saving Throws */
 int savingthrow(struct char_data *ch, int save, int modifier, int dc);
 
@@ -646,6 +650,8 @@ do                                                              \
                                  DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) - \
                                  (compute_arcana_golem_level(ch)), LVL_IMMORT-1))
 #define IS_SPELLCASTER(ch)      (CASTER_LEVEL(ch) > 0)
+#define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
+                                
 
 /* Password of PC. */
 #define GET_PASSWD(ch)	((ch)->player.passwd)
@@ -1006,7 +1012,14 @@ do                                                              \
 
 #define GET_SKILL_FEAT(ch,feat,skill)  ((ch)->player_specials->saved.skill_focus[feat][skill])
 
-/* MACROs for the study system */
+/* MACRO to get a weapon's type. */
+#define GET_WEAPON_TYPE(obj) ((OBJ_FLAGGED(obj, ITEM_WEAPON) || OBJ_FLAGGED(obj, ITEM_FIREWEAPON) ? GET_OBJ_VAL(obj, 0) : 0)) 
+#define IS_LIGHT_WEAPON_TYPE(type) (IS_SET(weapon_list[type].weaponFlags, WEAPON_FLAG_LIGHT))
+#define HAS_WEAPON_FLAG(obj, flag)  ((OBJ_FLAGGED(obj, ITEM_WEAPON) || OBJ_FLAGGED(obj, ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].weaponFlags, flag) : 0))
+
+#define GET_ENHANCEMENT_BONUS(obj) ((OBJ_FLAGGED(obj, ITEM_WEAPON) || OBJ_FLAGGED(obj, ITEM_FIREWEAPON) || OBJ_FLAGGED(obj, ITEM_ARMOR) ? GET_OBJ_VAL(obj, 4) : 0))
+
+/* MACROS for the study system */
 #define CAN_STUDY_FEATS(ch)  ((GET_LEVELUP_FEAT_POINTS(ch) + \
                                GET_LEVELUP_CLASS_FEATS(ch) + \
                                GET_LEVELUP_EPIC_FEAT_POINTS(ch) + \
@@ -1018,6 +1031,9 @@ do                                                              \
 #define CAN_STUDY_FAMILIAR(ch) (HAS_FEAT(ch, FEAT_SUMMON_FAMILIAR) ? 1 : 0)
 #define CAN_STUDY_COMPANION(ch) (HAS_FEAT(ch, FEAT_ANIMAL_COMPANION) ? 1 : 0)
 #define CAN_STUDY_FAVORED_ENEMY(ch) (HAS_FEAT(ch, FEAT_FAVORED_ENEMY_AVAILABLE) ? 1 : 0)
+
+/* Attacks of Opportunity (AOO) */
+#define GET_TOTAL_AOO(ch) (ch->char_specials.attacks_of_opportunity)
 
 /** The player's default sector type when buildwalking */
 #define GET_BUILDWALK_SECTOR(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_sector))
