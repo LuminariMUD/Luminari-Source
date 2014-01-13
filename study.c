@@ -218,6 +218,7 @@ void init_study(struct descriptor_data *d, int class) {
    * study process - Just initialize these values. */
   LEVELUP(ch)->spell_circle = -1;
   LEVELUP(ch)->favored_slot = -1;
+  LEVELUP(ch)->feat_type = -1;
 
   LEVELUP(ch)->tempFeat = 0;
 
@@ -679,24 +680,51 @@ static void familiar_menu(struct descriptor_data *d) {
   OLC_MODE(d) = FAMILIAR_MENU;
 }
 
+/* Helper function for the below menu */
+bool can_study_feat_type(struct char_data *ch, int feat_type) {
+  int i = 0;
+  bool result = FALSE;
+
+  if(!CAN_STUDY_FEATS(ch))
+    return FALSE;
+
+  /*  Feat types divide the huge mess of feats into categories for the purpose
+   *  of making the learning process easier. */
+  
+  for (i = 0; i < NUM_FEATS; i++) {
+    if(feat_list[i].in_game &&
+       (feat_list[i].feat_type == feat_type)) {
+      if(feat_is_available(ch, i, 0, NULL)) 
+        result = TRUE;     
+    }
+  }
+  return result;
+}
+
 static void main_feat_disp_menu(struct descriptor_data *d) {
+  int i;
+  bool can_study = FALSE;
   struct char_data *ch = d->character;
 
   get_char_colors(ch);
   clear_screen(d);
 
- write_to_output(d,
-          "\r\n-- %sFeat Menu\r\n"
-          "\r\n"
-          "%s 1%s) Choose Feats\r\n"
-          "\r\n"
+  LEVELUP(ch)->feat_type = -1;
 
+  write_to_output(d,
+          "\r\n-- %sFeat Menu\r\n"
+          "\r\n", mgn);
+  for (i = 1; i < NUM_LEARNABLE_FEAT_TYPES; i++) {
+    can_study = can_study_feat_type(ch, i);
+    write_to_output(d,
+          "%s %d%s) %s Feats\r\n",
+          (can_study ? grn : "\tD"), i, (can_study ? nrm : "\tD"), feat_types[i]);
+  }          
+  write_to_output(d,
+          "\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
           "Enter Choice : ",
-
-          mgn,
-          MENU_OPT(CAN_STUDY_FEATS(ch)),
           grn, nrm
           );
 
@@ -728,12 +756,13 @@ static void display_study_feats(struct descriptor_data *d) {
     
     j = 0;
 
-    if (feat_is_available(ch, i, 0, NULL) && 
+    if (((feat_list[i].feat_type == LEVELUP(ch)->feat_type) &&
+        feat_is_available(ch, i, 0, NULL) && 
         feat_list[i].in_game &&
         feat_list[i].can_learn &&
-        (!HAS_FEAT(ch, i) || feat_list[i].can_stack)) {
+        (!HAS_FEAT(ch, i) || feat_list[i].can_stack))) {
 
-      write_to_output(d, "%s%s%3d%s) %-40s%s", class_feat ? "\tC(C) " : "\ty(N)", grn, i, nrm, feat_list[i].name, nrm);
+      write_to_output(d, "%s%s%3d%s) %-40s%s", class_feat ? "\tC(C)" : "   ", grn, i, nrm, feat_list[i].name, nrm);
       count++;
 
       if (count % 2 == 0)
@@ -791,7 +820,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           "Enter Choice : ",
 
           mgn,
-          grn, nrm, 
+          MENU_OPT(CAN_STUDY_FEATS(ch)),
           MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)),
           MENU_OPT(CAN_STUDY_FAMILIAR(ch)),
           MENU_OPT(CAN_STUDY_COMPANION(ch)),
@@ -942,25 +971,22 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case 'Q':
           display_main_menu(d);
           break;
-        case '1': /* Choose Feats */
-         if (CAN_STUDY_FEATS(ch))
-            gen_feat_disp_menu(d);
-          else {
-            write_to_output(d, "That is an invalid choice!\r\n");
+        default: /* Choose Feats */
+         number = atoi(arg);
+          if(!CAN_STUDY_FEATS(ch) || (number < 1) || (number >= NUM_LEARNABLE_FEAT_TYPES) || !can_study_feat_type(ch, number)) {
+           write_to_output(d, "That is an invalid choice!\r\n");
             main_feat_disp_menu(d);
+            break;
           }
+          LEVELUP(d->character)->feat_type = number;         
+          gen_feat_disp_menu(d);
           break;
-        default:
-          write_to_output(d, "That is an invalid choice!\r\n");
-          main_feat_disp_menu(d);
-          break;
-
       }
       break;
   
     case STUDY_GEN_FEAT_MENU:
       number = atoi(arg);
-      if (number == -1) {
+      if (number == -1) {       
         main_feat_disp_menu(d);
         break;
       }

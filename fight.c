@@ -281,11 +281,14 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   if (is_touch)
     armorclass = 10;
 
+  /* Determine if the ch loses their dex bonus to armor class. */
   if (AWAKE(ch) && 
+      ((attacker != NULL) && (CAN_SEE(ch, attacker) || HAS_FEAT(ch, FEAT_BLIND_FIGHT))) &&       
       !(AFF_FLAGGED(ch, AFF_STUN) || 
         AFF_FLAGGED(ch, AFF_PARALYZED) ||
         char_has_mud_event(ch, eSTUNNED)))     
     armorclass += GET_DEX_BONUS(ch);
+
   if (attacker) {
     if (AFF_FLAGGED(ch, AFF_PROTECT_GOOD) && IS_GOOD(attacker))
       armorclass += 2;
@@ -2106,9 +2109,11 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 
 /* simple test for testing critical hit */
 int isCriticalHit(struct char_data *ch, int diceroll) {
-  if ((!IS_NPC(ch) && GET_SKILL(ch, SKILL_EPIC_CRIT) && diceroll >= 18) ||
-          (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_CRITICAL) && diceroll >= 19)
-          || diceroll == 20)
+  /*  TODO: Here is where we need to put in code for checking the weapon type and
+   *  it's threat rating - But that means we need to know what weapon is being 
+   *  used as well, but that shoul dbe easy enough, just pass it in. */
+  if ((HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL) && diceroll >= 19)
+      || diceroll == 20)
     return 1;
   return 0;
 }
@@ -2573,6 +2578,25 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   bonuses[BONUS_TYPE_SIZE] = MAX(bonuses[BONUS_TYPE_SIZE], size_modifiers[GET_SIZE(ch)]);
 
   /* Unnamed bonus (stacks) */
+
+  if (HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
+    if (wielded) {
+      if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded)) )
+        bonuses[BONUS_TYPE_UNDEFINED] += 1; 
+    } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED))
+      bonuses[BONUS_TYPE_UNDEFINED] += 1;
+  }
+
+  if (HAS_FEAT(ch, FEAT_GREATER_WEAPON_FOCUS)) {
+    if (wielded) {
+      if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded)))
+        bonuses[BONUS_TYPE_UNDEFINED] += 1;
+    } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_FOCUS), WEAPON_TYPE_UNARMED))
+      bonuses[BONUS_TYPE_UNDEFINED] += 1;
+  }
+
+  if (!CAN_SEE(victim, ch) && !HAS_FEAT(victim, FEAT_BLIND_FIGHT))
+    bonuses[BONUS_TYPE_UNDEFINED] += 2; 
 
   if (affected_by_spell(ch, SKILL_SMITE)) {
     bonuses[BONUS_TYPE_UNDEFINED] += GET_CHA_BONUS(ch);

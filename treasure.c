@@ -1462,7 +1462,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   /* BEGIN BONUS SECTION */
 
   /* Here is where the significant changes start - Ornir */
-  int max_slots = 3;
+  int max_slots = 1;
   int current_slot = 1;
   int current_cp = 0;
   int max_bonus = 0;
@@ -1507,7 +1507,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
     if(duplicate_affect != TRUE) {
 
       /* Based on CP remaining, how HIGH a bonus can we get here? */
-      max_bonus = 10; /* MAKE THIS A DEFINE! */
+      max_bonus = 5; /* MAKE THIS A DEFINE! */
       max_bonus_cp_cost = (max_bonus - 1)*150 + 100;  /* MAKE THIS A DEFINE! */
 
       while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {

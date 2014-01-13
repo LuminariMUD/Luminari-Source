@@ -1024,6 +1024,9 @@ do                                                              \
                                GET_LEVELUP_CLASS_FEATS(ch) + \
                                GET_LEVELUP_EPIC_FEAT_POINTS(ch) + \
                                GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
+
+#define CAN_STUDY_CLASS_FEATS(ch) (CAN_STUDY_FEATS(ch) || (GET_LEVELUP_CLASS_FEATS(ch) + \
+                                                           GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
  
 #define CAN_STUDY_KNOWN_SPELLS(ch) ((LEVELUP(ch)->class == CLASS_SORCERER) || \
                            (LEVELUP(ch)->class == CLASS_BARD) ? 1 : 0)

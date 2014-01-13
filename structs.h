@@ -2540,6 +2540,7 @@ struct level_data {
   int spell_circle;
   int favored_slot;
 
+  int feat_type;
   int tempFeat;
   int feat_weapons[NUM_FEATS];
   int feat_skills[NUM_FEATS];

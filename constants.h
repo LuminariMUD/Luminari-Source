@@ -70,6 +70,7 @@ extern const char *otrig_types[];
 extern const char *wtrig_types[];
 extern const char *history_types[];
 extern const char *ibt_bits[];
+extern const char *feat_types[];
 extern const char *ability_names[];
 extern size_t room_bits_count;
 extern size_t action_bits_count;

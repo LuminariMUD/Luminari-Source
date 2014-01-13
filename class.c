@@ -2319,8 +2319,6 @@ void advance_level(struct char_data *ch, int class) {
       add_move = rand_number(1, 2);
 
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
-      if (CLASS_LEVEL(ch, class) == 1)
-        class_feats++;
       if (!(CLASS_LEVEL(ch, class) % 2) &&  !IS_EPIC(ch)) {
         class_feats++;
       }
