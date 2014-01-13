@@ -140,12 +140,14 @@ void assign_feats(void)
  */
 
 /* Combat feats */
+feato(FEAT_WEAPON_FOCUS,"weapon focus",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficient in weapon, base attack of +1","+1 to hit rolls for selected weapon");
+feato(FEAT_GREATER_WEAPON_FOCUS,"greater weapon focus",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency in weapon,  weapon focus in weapon, 8th level fighter","additional +1 to hit rolls with weapon (stacks)");
 feato(FEAT_SPIRITED_CHARGE,"spirited charge",TRUE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ride 1 rank, mounted combat, ride-by attack","When mounted and using the charge action, you deal double damage with a melee weapon (or triple damage with a lance).");
-feato(FEAT_BLIND_FIGHT,"blind fighting",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"none","reduced penalties when fighting blind oragainst invisible opponents ");
+feato(FEAT_BLIND_FIGHT,"blind fighting",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"none","when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
 feato(FEAT_CLEAVE,"cleave",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"str 13, power attack","extra initial attack against opponent after killing another opponent in same room");
 feato(FEAT_COMBAT_EXPERTISE,"combat expertise",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"int 13","When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC");
 feato(FEAT_COMBAT_REFLEXES,"combat reflexes",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"none","can make a number of attacks of opportunity equal to dex bonus");
-feato(FEAT_DODGE,"dodge",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 13","+1 bonus to ac against one opponent per round ");
+feato(FEAT_DODGE,"dodge",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 13","+1 dodge bonus to ac");
 feato(FEAT_EPIC_PROWESS,"epic prowess",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"epic level","+1 to all attacks per rank");
 feato(FEAT_IMPROVED_CRITICAL,"improved critical",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficient with weapon chosen, base attack bonus of +8 or higher","doubled critical threat rating for weapon chosen");
 feato(FEAT_IMPROVED_INITIATIVE,"improved initiative",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"none","+4 to initiative checks to see who attacks first each round");
@@ -235,7 +237,6 @@ feato(FEAT_EXTEND_RAGE,"extend rage",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"rage","E
 feato(FEAT_GREAT_SMITING,"great smiting",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"epic level","For each rank in this feat you add your level in damage to all smite attacks");
 feato(FEAT_GREATER_COMBAT_CHALLENGE,"greater combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"15 ranks in diplomacy, intimidate or bluff, improved combat challenge","as improved combat challenge, but regular challenge is a minor action & challenge all is a move action");
 feato(FEAT_GREATER_TWO_WEAPON_FIGHTING,"greater two weapon fighting",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 19, base attack bonus 11+,Two weapon & improved two weapon fighting","gives an additional offhand weapon attack");
-feato(FEAT_GREATER_WEAPON_FOCUS,"greater weapon focus",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency in weapon,  weapon focus in weapon, 8th level fighter","additional +1 to hit rolls with weapon (stacks)");
 feato(FEAT_GREATER_WEAPON_SPECIALIZATION,"greater weapon specialization",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency, weapon focus, greater weapon focus, weapon specialization (all in same weapon), 12th level fighter","additional +2 dam with weapon (stacks)");
 feato(FEAT_IMPROVED_COMBAT_CHALLENGE,"improved combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"10 ranks in diplomacy, intimidate or bluff, combat challenge","allows you to make all mobs focus their attention on you");
 feato(FEAT_IMPROVED_FEINT,"improved feint",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"int 13, combat expertise","can feint and make one attack per round (or sneak attack if they have it)");
@@ -257,7 +258,6 @@ feato(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY,"sneak attack of opportunity",FALSE,TRUE,
 feato(FEAT_SWARM_OF_ARROWS,"swarm of arrows",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 23, point blank shot, rapid shot, weapon focus","allows you to make a single ranged attack against everyone in range.");
 feato(FEAT_TWO_WEAPON_DEFENSE,"two weapon defense",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 15,Two weapon fighting","when wielding two weapons receive +1 shield ac bonus");
 feato(FEAT_WEAPON_FLURRY,"weapon flurry",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency, weapon focus, weapon specialization, weapon mastery in specific weapon, base attack bonus +14","2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action");
-feato(FEAT_WEAPON_FOCUS,"weapon focus",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficient in weapon, base attack of +1","+1 to hit rolls for selected weapon");
 feato(FEAT_WEAPON_SPECIALIZATION,"weapon specialization",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency with weapon, weapon focus in weapon, 4th level fighter","+2 to dam rolls with weapon");
 feato(FEAT_WEAPON_SUPREMACY,"weapon supremacy",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency, weapon focus, weapon specialization, weapon master, greater weapon focus, greater weapon specialization in specific weapon,Fighter level 18","+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon");
 feato(FEAT_BRANDING,"branding",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"Artisan level 3","All items made carry the artisan's brand");
@@ -356,7 +356,7 @@ feato(FEAT_ENHANCED_SPELL_DAMAGE,"enhanced spell damage",FALSE,TRUE,FALSE,FEAT_T
 feato(FEAT_EPIC_SPELLCASTING,"epic spellcasting",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"lore 24, spellcraft 24","allows you to cast epic spells");
 feato(FEAT_FASTER_MEMORIZATION,"faster memorization",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"memorization based spellcaster level 1","decreases spell memorization time");
 feato(FEAT_SPELL_FOCUS,"spell focus",FALSE,TRUE,TRUE,FEAT_TYPE_SPELLCASTING,"1st level caster","+1 to all spell dcs for all spells in school/domain");
-feato(FEAT_FAST_HEALER,"fast healer",FALSE,TRUE,FALSE,FEAT_TYPE_TRAIT,"Can only be taken at level 1","+2 hp healed per round");
+feato(FEAT_FAST_HEALER,"fast healer",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"Can only be taken at level 1","+2 hp healed per round");
 feato(FEAT_NATURAL_SPELL,"natural spell",FALSE,TRUE,FALSE,FEAT_TYPE_WILD,"wis 13+, ability to wild shape","allows casting of spells while wild shaped.");
 feato(FEAT_LAST_FEAT,"do not take me",FALSE,FALSE,FALSE,FEAT_TYPE_NONE,"placeholder feat","placeholder feat");
 
@@ -971,6 +971,14 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     if (has_feat(ch, FEAT_POWER_ATTACK))
       return TRUE;
     return FALSE;
+
+  case FEAT_GREAT_CLEAVE:
+    if (has_feat(ch, FEAT_POWER_ATTACK) && 
+        has_feat(ch, FEAT_CLEAVE) &&
+        (BAB(ch) >= 4) &&
+        (ch->real_abils.str >= 13))
+      return TRUE;
+    else return FALSE;
 
   case FEAT_SUNDER:
     if (has_feat(ch, FEAT_POWER_ATTACK))
@@ -2362,10 +2370,10 @@ void list_feats_available(struct char_data *ch, char *arg)
     if (feat_is_available(ch, i, 0, NULL) && feat_list[i].in_game && feat_list[i].can_learn) {
         if (mode == 1) {
           sprintf(buf3, "%s:", feat_list[i].name);
-          sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
+          sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
         } else if (mode == 2) {
           sprintf(buf3, "%s:", feat_list[i].name);
-          sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
+          sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
         } else {
           sprintf(buf, "%-25s ", feat_list[i].name);
         }
@@ -2393,7 +2401,7 @@ void list_feats_available(struct char_data *ch, char *arg)
     strcat(buf2, buf);
   }
 
-  strcat(buf2, "	WSyntax: feats <known|available|complete> <description|requisites|classfeats> (both arguments optional)	n\r\n");
+  strcat(buf2, "\tWSyntax: feats <known|available|complete> <description|requisites|classfeats> (both arguments optional)	n\r\n");
    
   page_string(ch->desc, buf2, 1);
 }
@@ -2410,8 +2418,8 @@ void list_class_feats(struct char_data *ch)
     send_to_char(ch, "\r\n");
     send_to_char(ch, "\tC-- \tWClass Feats Available\tC -----------------------------------\tn\r\n");
     send_to_char(ch, "\r\n");
-    send_to_char(ch, "	W%-30s	n %s\r\n", "Feat Name", "Feat Description");
-    send_to_char(ch, "	W%-30s	n %s\r\n", " ", "Feat Prerequisites");
+    send_to_char(ch, "\tW%-30s\tn %s\r\n", "Feat Name", "Feat Description");
+    send_to_char(ch, "\tW%-30s\tn %s\r\n", " ", "Feat Prerequisites");
     send_to_char(ch, "\r\n");
 
 
@@ -2424,8 +2432,8 @@ void list_class_feats(struct char_data *ch)
         featMarker = class_bonus_feats[GET_CLASS(ch)][featCounter];
         if (i == featMarker) {
           sprintf(buf3, "%s:", feat_list[i].name);
-          send_to_char(ch, "	W%-30s	n %s\r\n", buf3, feat_list[featMarker].description);
-          send_to_char(ch, "	W%-30s	n %s\r\n", " ", feat_list[featMarker].prerequisites);
+          send_to_char(ch, "\tW%-30s\tn %s\r\n", buf3, feat_list[featMarker].description);
+          send_to_char(ch, "\tW%-30s\tn %s\r\n", " ", feat_list[featMarker].prerequisites);
         }
         featCounter++;
       }

@@ -727,6 +727,7 @@
 
 #define END_KNOWLEDGE_ABILITIES         54
 
+
 /* The abilities below have 'subabilities', basically
  * the skill is broken down into many many sub skills
  * each of which can be chosen for a train. Not yet

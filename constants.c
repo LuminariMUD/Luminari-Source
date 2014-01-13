@@ -1816,7 +1816,20 @@ const char *ibt_bits[] = {
   "\n"
 };
 
-/** ability defines corresponding names **/
+/* Feat types  */
+const char *feat_types[] = {
+  "RESERVED",
+  "General",
+  "Combat",
+  "Spellcasting",
+  "Metamagic",
+  "Craft",
+  "Wild",
+  "Divine",
+  "Class Ability",
+  "Innate Ability"
+};
+
 const char *ability_names[] = {
   "RESERVED",
   "Tumble",
