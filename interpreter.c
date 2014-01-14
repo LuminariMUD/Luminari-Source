@@ -295,6 +295,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "notitle", "notitle", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_NOTITLE, TRUE},
   { "nowiz", "nowiz", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_NOWIZ, TRUE},
 
+  { "oconvert", "oconvert", POS_DEAD, do_oconvert, LVL_IMPL, 0, TRUE},
   { "open", "o", POS_SITTING, do_gen_door, 0, SCMD_OPEN, FALSE},
   { "order", "ord", POS_RECLINING, do_order, 1, 0, FALSE},
   { "offer", "off", POS_STANDING, do_not_here, 1, 0, FALSE},

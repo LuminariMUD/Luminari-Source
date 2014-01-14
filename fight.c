@@ -259,6 +259,31 @@ int compute_size_bonus(int sizeA, int sizeB) {
   return ((sizeB - sizeA) * 2);
 }
 
+/*  has_dex_bonus_to_ac(attacker, ch)
+ *  Helper function to determine if a char can apply his dexterity bonus to his AC. */
+bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
+  if (AWAKE(ch) &&
+      ((attacker != NULL) && (CAN_SEE(ch, attacker) || HAS_FEAT(ch, FEAT_BLIND_FIGHT))) &&
+      !((AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_UNCANNY_DODGE)) ||
+        AFF_FLAGGED(ch, AFF_STUN) ||
+        AFF_FLAGGED(ch, AFF_PARALYZED) ||
+        char_has_mud_event(ch, eSTUNNED))) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+} 
+
+bool is_flanked(struct char_data *attacker, struct char_data *ch) {
+  if ((FIGHTING(attacker) && FIGHTING(FIGHTING(attacker)) != ch) &&
+      ((!HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE)) ||
+       (HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE) &&
+        ((CLASS_LEVEL(attacker, CLASS_ROGUE) - CLASS_LEVEL(ch, CLASS_BERSERKER)) > 3))))
+    return TRUE;
+  else
+    return FALSE;
+}
+
 /* this function will go through all the tests for modifying
    a given ch's AC under the circumstances of being attacked 
  * by 'attacker' */
@@ -282,12 +307,13 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     armorclass = 10;
 
   /* Determine if the ch loses their dex bonus to armor class. */
-  if (AWAKE(ch) && 
-      ((attacker != NULL) && (CAN_SEE(ch, attacker) || HAS_FEAT(ch, FEAT_BLIND_FIGHT))) &&       
-      !(AFF_FLAGGED(ch, AFF_STUN) || 
-        AFF_FLAGGED(ch, AFF_PARALYZED) ||
-        char_has_mud_event(ch, eSTUNNED)))     
-    armorclass += GET_DEX_BONUS(ch);
+  if (has_dex_bonus_to_ac(attacker, ch)) {     
+ 
+   armorclass += GET_DEX_BONUS(ch);
+ 
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DODGE))
+      armorclass += 1;
+  }
 
   if (attacker) {
     if (AFF_FLAGGED(ch, AFF_PROTECT_GOOD) && IS_GOOD(attacker))
@@ -299,8 +325,6 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     armorclass += MIN(5, (int) (compute_ability(ch, ABILITY_TUMBLE) / 5));
   if (AFF_FLAGGED(ch, AFF_EXPERTISE))
     armorclass += 5;
-  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DODGE))
-    armorclass += 1;
   if (!is_touch && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_ARMOR_SKIN))
     armorclass += HAS_FEAT(ch, FEAT_ARMOR_SKIN);
   if (!is_touch && !IS_NPC(ch) && GET_EQ(ch, WEAR_SHIELD) &&
@@ -485,6 +509,8 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
   if (AFF_FLAGGED(ch, AFF_SLEEP))
     affect_from_char(ch, SPELL_SLEEP);
 
+  /*  The char is flat footed until they take an action */
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);  
   FIGHTING(ch) = vict;
   //  GET_POS(ch) = POS_FIGHTING;
 
@@ -508,6 +534,7 @@ void stop_fighting(struct char_data *ch) {
 
   /* Reset the combat data */
   GET_TOTAL_AOO(ch) = 0;
+  REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
 }
 
 /* function for creating corpses */
@@ -2676,6 +2703,9 @@ int attack_roll(struct char_data *ch,           /* Attacker */
  * amount of damage dealt. */
 int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int penalty) {
 
+  if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_COMBAT_REFLEXES))
+    return 0;
+
   if (GET_TOTAL_AOO(ch) < (!HAS_FEAT(ch, FEAT_COMBAT_REFLEXES) ? 1 : GET_DEX_BONUS(ch))) {
     GET_TOTAL_AOO(ch)++;
     return hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
@@ -2699,7 +2729,7 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
 int hit(struct char_data *ch, struct char_data *victim,
         int type, int dam_type, int penalty, int offhand) {
   struct obj_data *wielded = NULL;
-  int w_type = 0, victim_ac = 0, calc_bab = 0, dam = 0, diceroll = 0;
+  int w_type = 0, victim_ac = 0, calc_bab = 0, dam = 0, diceroll = 0, sneakdam = 0;
   struct affected_type af; /* for crippling strike */
   char buf[DAM_MES_LENGTH] = {'\0'};
   char buf1[DAM_MES_LENGTH] = {'\0'};
@@ -2897,29 +2927,41 @@ int hit(struct char_data *ch, struct char_data *victim,
   } else {
 
     if (affected_by_spell(ch, SPELL_TRUE_STRIKE)) {
-      send_to_char(ch, "[\tWTRUE-STRIKE\tn]  ");
+      send_to_char(ch, "[\tWTRUE-STRIKE\tn] ");
       affect_from_char(ch, SPELL_TRUE_STRIKE);
     }
 
     if (affected_by_spell(ch, SKILL_SMITE)) {
       if (IS_EVIL(victim))
-        send_to_char(ch, "[SMITE]  ");
+        send_to_char(ch, "[SMITE] ");
     }
 
     if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
-      if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS))) {
-        send_to_char(ch, "[STUNNING-FIST]  ");
+      if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
+        send_to_char(ch, "[STUNNING-FIST] ");
         if (!char_has_mud_event(victim, eSTUNNED)) {        
           attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC); 
         }
         affect_from_char(ch, SKILL_STUNNING_FIST);     
       }
     }
+
+    if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
+       ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED))  /* Flat-footed */
+          || !(has_dex_bonus_to_ac(ch, victim)) /* No dex bonus to ac */     
+          || is_flanked(ch, victim)             /* Flanked */
+       )) {
+      sneakdam = dice(HAS_FEAT(ch, FEAT_SNEAK_ATTACK), 6);
+      if (sneakdam)
+        send_to_char(ch, "[\tDSNEAK\tn] ");
+    }
         
     //calculate damage, modify by melee warding
     dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
     if ((dam = handle_warding(ch, victim, dam)) == -1)
       return (HIT_MISS);
+
+    dam += sneakdam;
 
     /* if the 'type' of hit() requires special handling, do it here */
     switch (type) {
@@ -3415,6 +3457,7 @@ void perform_violence(void) {
 
     /* Reset combat data */
     GET_TOTAL_AOO(ch) = 0;
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
 
     if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
             HAS_FEAT(ch, FEAT_AURA_OF_COURAGE)) {

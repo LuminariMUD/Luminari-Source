@@ -525,5 +525,5 @@ ACMD(do_afflist);
 ACMD(do_typelist);
 
 ACMD(do_genmap);
-
+ACMD(do_oconvert);
 #endif /* _ACT_H_ */
