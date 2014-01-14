@@ -27,6 +27,7 @@
 #include "clan.h"
 #include "craft.h"
 #include "spec_abilities.h"
+#include "feats.h"
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);
@@ -656,6 +657,20 @@ static void oedit_disp_spells_menu(struct descriptor_data *d) {
   write_to_output(d, "\r\n%sEnter spell choice (-1 for none) : ", nrm);
 }
 
+static void oedit_disp_weapon_type_menu(struct descriptor_data *d) {
+  const char *weapon_types[NUM_WEAPON_TYPES - 1];
+  int i = 0;
+
+  /* we want to use column_list here, but we don't have a pre made list
+   * of string values (without undefined).  Make one, and make sure it is in order. */
+  for (i = 0; i < NUM_WEAPON_TYPES - 1 ; i++) {
+    weapon_types[i] = weapon_list[i + 1].name;
+  }
+
+  column_list(d->character, 3, weapon_types, NUM_WEAPON_TYPES - 1, TRUE);
+
+}
+
 /* Object value #1 */
 static void oedit_disp_val1_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_1;
@@ -671,8 +686,9 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
       write_to_output(d, "Spell level : ");
       break;
     case ITEM_WEAPON:
-      /* This doesn't seem to be used if I remember right. */
-      write_to_output(d, "Modifier to Hitroll <Do Not Use, Select 0> : ");
+      /* Weapon Type - Onir */
+      oedit_disp_weapon_type_menu(d);
+      write_to_output(d, "\r\nChoose a weapon type : ");
       break;
     case ITEM_ARMOR:
     case ITEM_CLANARMOR:
@@ -1453,7 +1469,8 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           }
           break;
         case ITEM_WEAPON:
-          //GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), -50), 50);
+          /* Weapon Type */
+          GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_WEAPON_TYPES - 1);
           break;
         case ITEM_FIREWEAPON:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_WEAPONS - 1);

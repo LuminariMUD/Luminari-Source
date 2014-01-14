@@ -683,7 +683,8 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_WATER_BREATH     AFF_SCUBA  // just the more conventional name
 #define AFF_RAPID_SHOT       84 /* Rapid Shot Mode (FEAT_RAPID_SHOT) */
 #define AFF_DAZED            85 /* Dazed*/
-#define NUM_AFF_FLAGS        86
+#define AFF_FLAT_FOOTED      86
+#define NUM_AFF_FLAGS        87
 
 /* Bonus types */
 #define	BONUS_TYPE_UNDEFINED     0 /* Undefined bonus type (stacks) */

@@ -42,6 +42,7 @@
 #include "mudlim.h"
 #include "spec_abilities.h"
 #include "wilderness.h"
+#include "feats.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -5747,3 +5748,81 @@ ACMD(do_genmap) {
 
 }
 
+/* do_oconvert - Command to convert existing objects to the new (Jan 13, 2014)
+ * weapon type and feat system.  This command should be executed once, or can be 
+ * executed mltiple times to clean up bad building. Uses a very simple system
+ * to identify weapons that match certain weapon types - This will require help
+ * via manual touching up/conversions over the course of months or years... */
+ACMD(do_oconvert) {
+  struct object_data *obj = NULL;
+  int i = 0, j = 0;
+  int hitroll = 0, damroll = 0;
+  int num, found = 0, total = 0;
+  obj_vnum ov;
+  char buf[MAX_STRING_LENGTH];
+
+  char arg[MAX_STRING_LENGTH], arg2[MAX_STRING_LENGTH];
+  int iarg;
+
+  if (argument == NULL) {
+    send_to_char(ch, "Usage: oconvert <weapon_type> <keyword>\r\n");
+    return;
+  }
+
+  two_arguments(argument, arg, arg2);
+  iarg = atoi(arg);
+
+  send_to_char(ch, "%d %s\r\n", iarg, arg2);
+
+  char *weapon_type_keywords[NUM_WEAPON_TYPES];
+
+  /* Initialize the weapon keyword array. */
+  for (i = 0; i < NUM_WEAPON_TYPES; i++)
+    weapon_type_keywords[i] = NULL;
+
+  weapon_type_keywords[WEAPON_TYPE_DAGGER] = "dagger"; 
+
+//  for (i = 0; i < NUM_WEAPON_TYPES; i++) {
+    /* Skip weapon types for which we have no keywords. */
+//    if (weapon_type_keywords[i] == NULL)  
+//      continue;
+
+    found = 0;    
+    send_to_char(ch, "- Converting type %d : %s ... ", iarg, weapon_list[iarg].name);
+
+    i = iarg;
+
+    for (num = 0; num <= top_of_objt; num++) {
+      /* init */
+      hitroll = 0;
+      damroll = 0;
+
+      if (is_name(arg2, obj_proto[num].name)) {
+      
+        GET_OBJ_VAL(&obj_proto[num], 0) = i; /* Weapon type */
+        GET_OBJ_VAL(&obj_proto[num], 1) = weapon_list[i].numDice; /* Number of dice */
+        GET_OBJ_VAL(&obj_proto[num], 2) = weapon_list[i].diceSize; /* Type of dice */
+
+        for (j = 0; j < MAX_OBJ_AFFECT; j++) {
+          if (obj_proto[num].affected[j].modifier) {
+            if (obj_proto[num].affected[j].location == APPLY_HITROLL) 
+              hitroll = obj_proto[num].affected[j].modifier;
+            else if (obj_proto[num].affected[j].location == APPLY_DAMROLL)
+              damroll = obj_proto[num].affected[j].modifier;
+            
+          }
+        }        
+        
+        GET_OBJ_VAL(&obj_proto[num], 4) =  MAX(hitroll, damroll);
+
+        if (GET_OBJ_VAL(&obj_proto[num], 4) > 5)
+          GET_OBJ_VAL(&obj_proto[num], 4) = 5;
+       
+        found++;
+      }   
+    }
+    total += found;
+    send_to_char(ch, "%d converted.\r\n", found);
+//  }
+  send_to_char(ch, "Total of %d objects converted.\r\n", total);
+}

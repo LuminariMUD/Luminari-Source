@@ -598,6 +598,8 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Farsee",
   "Menz-Choker",
   "Mode-RapidShot",
+  "Dazed",
+  "Flat-footed",
   "\n"
 };
 
