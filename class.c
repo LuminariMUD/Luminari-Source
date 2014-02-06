@@ -50,6 +50,21 @@ const char *class_abbrevs[] = {
   "\n"
 };
 
+const char *class_abbrevs_no_color[] = {
+  "Wiz",
+  "Cle",
+  "Rog",
+  "War",
+  "Mon",
+  "Dru",
+  "Bes",
+  "Sor",
+  "Pal",
+  "Ran",
+  "Bar",
+  "\n"
+};
+
 const char *pc_class_types[] = {
   "Wizard",
   "Cleric",
@@ -337,7 +352,6 @@ int free_start_feats_warrior[] = {
   FEAT_ARMOR_PROFICIENCY_LIGHT,
   FEAT_ARMOR_PROFICIENCY_MEDIUM,
   FEAT_ARMOR_PROFICIENCY_SHIELD,
-  FEAT_MARTIAL_WEAPON_PROFICIENCY,
   FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD,
   0
 };

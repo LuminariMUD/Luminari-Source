@@ -681,6 +681,8 @@ int compute_ability(struct char_data *ch, int abilityNum) {
   else
     value += GET_ABILITY(ch, abilityNum);
 
+  /* Check for armor proficiency */
+  
   switch (abilityNum) {
     case ABILITY_TUMBLE:
       value += GET_DEX_BONUS(ch);
@@ -935,7 +937,34 @@ int compute_ability(struct char_data *ch, int abilityNum) {
 
     case ABILITY_PERFORM:
       value += GET_CHA_BONUS(ch);
-       
+      return value;
+
+    /* Knowledge Skills */       
+    case ABILITY_CRAFT_WOODWORKING:
+    case ABILITY_CRAFT_TAILORING:
+    case ABILITY_CRAFT_ALCHEMY:      
+    case ABILITY_CRAFT_ARMORSMITHING:
+    case ABILITY_CRAFT_WEAPONSMITHING:
+    case ABILITY_CRAFT_BOWMAKING:
+    case ABILITY_CRAFT_GEMCUTTING:
+    case ABILITY_CRAFT_LEATHERWORKING:
+    case ABILITY_CRAFT_TRAPMAKING:
+    case ABILITY_CRAFT_POISONMAKING:
+    case ABILITY_CRAFT_METALWORKING:
+      value += GET_INT_BONUS(ch);
+      return value;
+    case ABILITY_KNOWLEDGE_ARCANA:
+    case ABILITY_KNOWLEDGE_ENGINEERING:
+    case ABILITY_KNOWLEDGE_DUNGEONEERING:
+    case ABILITY_KNOWLEDGE_GEOGRAPHY:
+    case ABILITY_KNOWLEDGE_HISTORY:
+    case ABILITY_KNOWLEDGE_LOCAL:
+    case ABILITY_KNOWLEDGE_NATURE:
+    case ABILITY_KNOWLEDGE_NOBILITY:
+    case ABILITY_KNOWLEDGE_RELIGION:
+    case ABILITY_KNOWLEDGE_PLANES:    
+      value += GET_INT_BONUS(ch);
+      return value;
     default: return -1;
   }
 }
@@ -1889,6 +1918,8 @@ SPECIAL(chan) {
 
 SPECIAL(guild) {
   int skill_num, percent;
+  char arg[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
+  char *ability_name = NULL;
 
   if (IS_NPC(ch) || (!CMD_IS("practice") && !CMD_IS("train") && !CMD_IS("boosts")))
     return (FALSE);
@@ -1970,7 +2001,31 @@ SPECIAL(guild) {
       return (TRUE);
     }
 
-    skill_num = find_ability_num(argument);
+    /* Parse argument and check for 'knowledge' or 'craft' as a first arg- */
+    ability_name = one_argument(argument, arg);
+    skip_spaces(&ability_name);
+    
+    if (is_abbrev(arg, "craft")) {
+ 
+      if (!strcmp(ability_name, "")) {
+        list_abilities(ch, ABILITY_TYPE_CRAFT);
+        return (TRUE);
+      }
+      /* Crafting skill */
+      sprintf(buf, "Craft (%s", ability_name);
+      skill_num = find_ability_num(buf);
+    } else if (is_abbrev(arg, "knowledge")) {
+
+      if (!strcmp(ability_name, "")) {
+        list_abilities(ch, ABILITY_TYPE_KNOWLEDGE);
+        return (TRUE);
+      }
+      /* Knowledge skill */
+      sprintf(buf, "Knowledge (%s", ability_name);
+      skill_num = find_ability_num(buf);
+    } else {
+      skill_num = find_ability_num(argument);
+    }
 
     if (skill_num < 1) {
       send_to_char(ch, "You do not know of that ability.\r\n");

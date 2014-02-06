@@ -928,7 +928,10 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
     log("SYSERR: EQUIP: Obj is in_room when equip.");
     return;
   }
-  if (invalid_align(ch, obj) || invalid_class(ch, obj) || invalid_prof(ch, obj)) {
+  /*  Changed this - proficiencies are handles in the places where they apply penalties.  
+   *  You can wear whatever you want. - Ornir */
+/* if (invalid_align(ch, obj) || invalid_class(ch, obj) || invalid_prof(ch, obj)) { */
+  if (invalid_align(ch, obj) || invalid_class(ch, obj)) { 
     act("You try to use $p, but fumble it and let go.", FALSE, ch, obj, 0, TO_CHAR);
     act("$n tries to use $p, but can't seem to and lets go.", FALSE, ch, obj, 0, TO_ROOM);
     /* Changed to drop in inventory instead of the ground. */

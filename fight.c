@@ -275,13 +275,24 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
 } 
 
 bool is_flanked(struct char_data *attacker, struct char_data *ch) {
-  if ((FIGHTING(attacker) && FIGHTING(FIGHTING(attacker)) != ch) &&
+
+  if ((FIGHTING(attacker) && FIGHTING(FIGHTING(attacker)) != attacker) &&
       ((!HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE)) ||
        (HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE) &&
         ((CLASS_LEVEL(attacker, CLASS_ROGUE) - CLASS_LEVEL(ch, CLASS_BERSERKER)) > 3))))
     return TRUE;
   else
     return FALSE;
+}
+
+int roll_initiative(struct char_data *ch) {
+  int initiative = 0;
+
+  initiative = dice(1, 20) + GET_DEX_BONUS(ch) + 4 * HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE);
+  //initiative += 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION);
+  //initiative += HAS_FEAT(ch, FEAT_HEROIC_INITIATIVE);
+
+  return initiative;
 }
 
 /* this function will go through all the tests for modifying
@@ -495,6 +506,8 @@ void check_killer(struct char_data *ch, struct char_data *vict) {
 
 /* a function that sets ch fighting victim */
 void set_fighting(struct char_data *ch, struct char_data *vict) {
+  struct char_data *current = NULL, *previous = NULL;
+  
   if (ch == vict)
     return;
 
@@ -503,8 +516,30 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  ch->next_fighting = combat_list;
-  combat_list = ch;
+  GET_INITIATIVE(ch) = roll_initiative(ch);
+
+  if (combat_list == NULL) {
+    ch->next_fighting = combat_list;
+    combat_list = ch;
+  } else {
+    for (current = combat_list; current != NULL; current = current->next_fighting) {
+      if ((GET_INITIATIVE(ch) > GET_INITIATIVE(current)) ||
+          ((GET_INITIATIVE(ch) == GET_INITIATIVE(current)) &&
+          (GET_DEX_BONUS(ch) < GET_DEX_BONUS(current)))) {
+        previous = current;
+        continue;
+      }
+      break;     
+    }  
+    if (previous == NULL) {
+      /* First. */
+      ch->next_fighting = combat_list;
+      combat_list = ch; 
+    } else {
+      ch->next_fighting = current;
+      previous->next_fighting = ch;
+    }    
+  }
 
   if (AFF_FLAGGED(ch, AFF_SLEEP))
     affect_from_char(ch, SPELL_SLEEP);
@@ -2006,13 +2041,22 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += compute_size_bonus(GET_SIZE(ch), GET_SIZE(vict));
 
   // weapon specialist
-  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_SPECIALIZATION)) {
+  if (HAS_FEAT(ch, FEAT_WEAPON_SPECIALIZATION)) {
     /* Check the weapon type, make sure it matches. */
     
     if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_SPECIALIZATION), GET_WEAPON_TYPE(wielded))) ||
        ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_SPECIALIZATION), WEAPON_TYPE_UNARMED)))
       dambonus += 2;
   }
+
+  if (HAS_FEAT(ch, FEAT_GREATER_WEAPON_SPECIALIZATION)) {
+    /* Check the weapon type, make sure it matches. */
+
+    if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), GET_WEAPON_TYPE(wielded))) ||
+       ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), WEAPON_TYPE_UNARMED)))
+      dambonus += 2;
+  }
+
   //damroll (should be mostly just gear)
   dambonus += GET_DAMROLL(ch);
 
@@ -2652,6 +2696,16 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
     bonuses[BONUS_TYPE_UNDEFINED] -= SPELLBATTLE(ch);
 
+  /*  Check armor/weapon proficiency
+   *  If not proficient with worn armor, armor check penalty applies to attack roll.
+   *  If not proficient with weapon, -4 penalty applies. */
+  if (wielded)
+    if (!is_proficient_with_weapon(ch, GET_WEAPON_TYPE(wielded))) {
+      send_to_char(ch, "NOT PROFICIENT\r\n"); 
+      calc_bab -= 4;
+    }
+  /*  Add armor prof here */
+
   /* Add up all the bonuses */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
     calc_bab += bonuses[i];
@@ -2681,8 +2735,10 @@ int attack_roll(struct char_data *ch,           /* Attacker */
 
   int attack_bonus = compute_attack_bonus(ch, victim, attack_type);
   int victim_ac = compute_armor_class(ch, victim, is_touch);
+
   int diceroll = rand_number(1, 20);
   int result = ((attack_bonus + diceroll) - victim_ac);
+
 //  if (attack_type == ATTACK_TYPE_RANGED) {
     /* 1d20 + base attack bonus + Dexterity modifier + size modifier + range penalty */
     /* Range penalty - only if victim is in a different room. */
@@ -2692,7 +2748,7 @@ int attack_roll(struct char_data *ch,           /* Attacker */
     /* 1d20 + base attack bonus + Strength modifier + size modifier */
 //  }
 
-  send_to_char(ch, "DEBUG: attack bonus: %d, diceroll: %d, victim_ac: %d, result: %d\r\n", attack_bonus, diceroll, victim_ac, result);
+//  send_to_char(ch, "DEBUG: attack bonus: %d, diceroll: %d, victim_ac: %d, result: %d\r\n", attack_bonus, diceroll, victim_ac, result);
   return result;  
 }
 
@@ -2708,7 +2764,7 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
 
   if (GET_TOTAL_AOO(ch) < (!HAS_FEAT(ch, FEAT_COMBAT_REFLEXES) ? 1 : GET_DEX_BONUS(ch))) {
     GET_TOTAL_AOO(ch)++;
-    return hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
+    return hit(ch, victim, TYPE_ATTACK_OF_OPPORTUNITY, DAM_RESERVED_DBC, penalty, FALSE);
   } else {
     return 0; /* No attack, out of AOOs for this round. */
   }
@@ -2841,6 +2897,11 @@ int hit(struct char_data *ch, struct char_data *victim,
   // attack rolls:  1 = stumble, 20 = crit
   calc_bab = compute_bab(ch, victim, w_type) + penalty;
   victim_ac = compute_armor_class(ch, victim, FALSE);
+
+  if(type == TYPE_ATTACK_OF_OPPORTUNITY)
+    if (HAS_FEAT(victim, FEAT_MOBILITY) && has_dex_bonus_to_ac(ch, victim))
+      victim_ac += 4;
+
   diceroll = rand_number(1, 20);
   if (isCriticalHit(ch, diceroll)) {
     dam = TRUE;
@@ -2947,10 +3008,21 @@ int hit(struct char_data *ch, struct char_data *victim,
     }
 
     if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
+        (compute_concealment(victim) == 0) &&
        ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED))  /* Flat-footed */
           || !(has_dex_bonus_to_ac(ch, victim)) /* No dex bonus to ac */     
           || is_flanked(ch, victim)             /* Flanked */
        )) {
+
+      send_to_char(ch, "[");
+      if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
+        send_to_char(ch, "FF");
+      if (!has_dex_bonus_to_ac(ch, victim))
+        send_to_char(ch,"Dx");
+      if (is_flanked(ch, victim))
+        send_to_char(ch, "Fk");
+      send_to_char(ch, "]");
+
       sneakdam = dice(HAS_FEAT(ch, FEAT_SNEAK_ATTACK), 6);
       if (sneakdam)
         send_to_char(ch, "[\tDSNEAK\tn] ");
@@ -2961,6 +3033,8 @@ int hit(struct char_data *ch, struct char_data *victim,
     if ((dam = handle_warding(ch, victim, dam)) == -1)
       return (HIT_MISS);
 
+    /* This comes after computing the other damage since sneak attack damage 
+     * is not affected by crit multipliers. */
     dam += sneakdam;
 
     /* if the 'type' of hit() requires special handling, do it here */
@@ -3209,7 +3283,8 @@ int perform_attacks(struct char_data *ch, int mode) {
   } else if (mode == 2 && can_fire_arrow(ch, TRUE)) {
     while (ranged_attacks > 0) {
       send_to_char(ch, "Ranged Attack Bonus:  %d; ",
-              compute_bab(ch, ch, 0) + penalty);
+//              compute_bab(ch, ch, 0) + penalty);
+                   compute_attack_bonus(ch, ch, ATTACK_TYPE_RANGED) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 4);
 
       if(attacks_at_max_bab != 0)
@@ -3249,10 +3324,12 @@ int perform_attacks(struct char_data *ch, int mode) {
                 penalty * 2, TRUE);
     } else if (mode == 2) { //display attack routine
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
-              compute_bab(ch, ch, 0) + penalty);
+//              compute_bab(ch, ch, 0) + penalty);
+                   compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
       send_to_char(ch, "Offhand, Attack Bonus:  %d; ",
-              compute_bab(ch, ch, 0) + penalty * 2);
+//              compute_bab(ch, ch, 0) + penalty * 2);
+                   compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + penalty * 2);               
       compute_hit_damage(ch, ch, NULL, 0, 0, 3);
     }
   } else { // not dual wielding
@@ -3265,7 +3342,8 @@ int perform_attacks(struct char_data *ch, int mode) {
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
     } else if (mode == 2) { //display attack routine
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
-              compute_bab(ch, ch, 0) + penalty);
+//              compute_bab(ch, ch, 0) + penalty);
+                   compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
     }
   }
@@ -3281,7 +3359,8 @@ int perform_attacks(struct char_data *ch, int mode) {
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
     } else if (mode == 2) { //display attack routine
       send_to_char(ch, "Mainhand (Haste), Attack Bonus:  %d; ",
-              compute_bab(ch, ch, 0) + penalty);
+//              compute_bab(ch, ch, 0) + penalty);
+                   compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
     }
   }
@@ -3303,7 +3382,9 @@ int perform_attacks(struct char_data *ch, int mode) {
       }
     } else if (mode == 2) { //display attack routine
       send_to_char(ch, "Mainhand Bonus %d, Attack Bonus:  %d; ",
-              i + 1, compute_bab(ch, ch, 0) + penalty);
+              i + 1, 
+//              compute_bab(ch, ch, 0) + penalty);
+                   compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);              
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
     }
   }
@@ -3320,7 +3401,8 @@ int perform_attacks(struct char_data *ch, int mode) {
                   TWO_WPN_PNLTY, TRUE);
       } else if (mode == 2) { //display attack routine
         send_to_char(ch, "Offhand (2 Weapon Fighting), Attack Bonus:  %d; ",
-                compute_bab(ch, ch, 0) + TWO_WPN_PNLTY);
+//                compute_bab(ch, ch, 0) + TWO_WPN_PNLTY);
+                     compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + TWO_WPN_PNLTY);
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
       }
     }
@@ -3334,7 +3416,8 @@ int perform_attacks(struct char_data *ch, int mode) {
                   EPIC_TWO_PNLY, TRUE);
       } else if (mode == 2) { //display attack routine
         send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",
-                compute_bab(ch, ch, 0) + EPIC_TWO_PNLY);
+//                compute_bab(ch, ch, 0) + EPIC_TWO_PNLY);
+                     compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + EPIC_TWO_PNLY);
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
       }
     }

@@ -795,18 +795,20 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define CON_PREFEDIT     29 /**< OLC mode - preference edit */
 #define CON_IBTEDIT      30 /**< OLC mode - idea/bug/typo edit */
 #define CON_GET_PROTOCOL 31 /**< Used at log-in while attempting to get protocols > */
-#define CON_QRACE        32 /* Choose character race*/
-#define CON_CLANEDIT     33 /** OLC mode - clan edit */
+#define CON_QRACE        32 /**< Choose character race */
+#define CON_CLANEDIT     33 /**< OLC mode - clan edit */
 #define CON_MSGEDIT      34 /**< OLC mode - message editor */
 #define CON_STUDY        35 /**< OLC mode - sorc-spells-known editor */
-#define CON_QCLASS_HELP  36 /* help info during char creation */
-#define CON_QALIGN       37 /* alignment selection in char creation */
-#define CON_QRACE_HELP   38 /* help info (race) during char creation */
-#define CON_HLQEDIT      39 /* homeland-port quest editor */
+#define CON_QCLASS_HELP  36 /**< help info during char creation */
+#define CON_QALIGN       37 /**< alignment selection in char creation */
+#define CON_QRACE_HELP   38 /**< help info (race) during char creation */
+#define CON_HLQEDIT      39 /**< homeland-port quest editor */
+#define CON_QSTATS       40 /**< Point-buy system for stats */
+
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT     /**< The first CON_ state that is an OLC */
 #define LAST_OLC_STATE  CON_HLQEDIT    /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES	40
+#define NUM_CON_STATES	41
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
@@ -2339,12 +2341,16 @@ struct char_special_data_saved {
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */
 struct char_special_data {
   /* combat related */
+  int initiative; /* What is this char's initiative score? */
   struct char_data *fighting; /**< Target of fight; else NULL */
   struct char_data *hunting; /**< Target of NPC hunt; else NULL */
   int parryAttempts; // how many parry attempts left in the round
   ubyte cloudkill; //how many more bursts of cloudkill left
   struct char_data *guarding;  //target for 'guard' ability
   bool firing;  //is char firing missile weapon?
+
+  /* Mode Data */
+  int power_attack; /* Bonus/penalty for power attack. */
 
   /* Combat related, reset each combat round. We do not use events for these because
    * the timing needs to be perfect - They should be reset in accordance with the

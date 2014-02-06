@@ -107,7 +107,14 @@ int find_armor_type(int specType);
 int get_daily_uses(struct char_data *ch, int featnum);
 int start_daily_use_cooldown(struct char_data *ch, int featnum);
 int daily_uses_remaining(struct char_data *ch, int featnum);
-  
+
+/* ASCII output formatting */
+char* line_string(int length, char first, char second);
+char* text_line_string(char *text, int length, char first, char second);
+void draw_line(struct char_data *ch, int length, char first, char second);
+void text_line(struct char_data *ch, char *text, int length, char first, char second);
+
+
 /* Saving Throws */
 int savingthrow(struct char_data *ch, int save, int modifier, int dc);
 
@@ -778,6 +785,8 @@ do                                                              \
 #define IS_CARRYING_W(ch) ((ch)->char_specials.carry_weight)
 /** Number of items carried by ch. */
 #define IS_CARRYING_N(ch) ((ch)->char_specials.carry_items)
+/** ch's Initiative */
+#define GET_INITIATIVE(ch) ((ch)->char_specials.initiative)
 /** Who or what ch is fighting. */
 #define FIGHTING(ch)	  ((ch)->char_specials.fighting)
 /** Who or what the ch is hunting. */
@@ -786,6 +795,10 @@ do                                                              \
 #define GUARDING(ch)	  ((ch)->char_specials.guarding)
 /** Is ch firing a missile weapon? */
 #define FIRING(ch)	  ((ch)->char_specials.firing)
+
+/* Mode data  */
+/* Power attack level */
+#define POWER_ATTACK(ch) ((ch)->char_specials.power_attack)
 
 /** Unique ID of ch. */
 #define GET_IDNUM(ch)	  ((ch)->char_specials.saved.idnum)
@@ -1013,11 +1026,11 @@ do                                                              \
 #define GET_SKILL_FEAT(ch,feat,skill)  ((ch)->player_specials->saved.skill_focus[feat][skill])
 
 /* MACRO to get a weapon's type. */
-#define GET_WEAPON_TYPE(obj) ((OBJ_FLAGGED(obj, ITEM_WEAPON) || OBJ_FLAGGED(obj, ITEM_FIREWEAPON) ? GET_OBJ_VAL(obj, 0) : 0)) 
+#define GET_WEAPON_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? GET_OBJ_VAL(obj, 0) : 0) 
 #define IS_LIGHT_WEAPON_TYPE(type) (IS_SET(weapon_list[type].weaponFlags, WEAPON_FLAG_LIGHT))
-#define HAS_WEAPON_FLAG(obj, flag)  ((OBJ_FLAGGED(obj, ITEM_WEAPON) || OBJ_FLAGGED(obj, ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].weaponFlags, flag) : 0))
+#define HAS_WEAPON_FLAG(obj, flag)  ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].weaponFlags, flag) : 0)
 
-#define GET_ENHANCEMENT_BONUS(obj) ((OBJ_FLAGGED(obj, ITEM_WEAPON) || OBJ_FLAGGED(obj, ITEM_FIREWEAPON) || OBJ_FLAGGED(obj, ITEM_ARMOR) ? GET_OBJ_VAL(obj, 4) : 0))
+#define GET_ENHANCEMENT_BONUS(obj) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) || (GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 4) : 0)
 
 /* MACROS for the study system */
 #define CAN_STUDY_FEATS(ch)  ((GET_LEVELUP_FEAT_POINTS(ch) + \

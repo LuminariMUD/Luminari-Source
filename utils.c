@@ -2265,3 +2265,74 @@ int daily_uses_remaining(struct char_data *ch, int featnum) {
   return uses_per_day - uses;
 } 
 
+/* line_string()
+ * Generate and return a string, alternating between first and second for length characters.
+ */
+char* line_string(int length, char first, char second) {
+  static char buf[MAX_STRING_LENGTH]; /* Note - static! */
+  int i = 0;
+  while (i < length) 
+    if((i % 2) == 0)
+      buf[i++] = first;
+    else
+      buf[i++] = second;
+
+  buf[i++] = '\r';
+  buf[i++] = '\n';
+  buf[i]   = '\0'; /* String terminator */
+
+  return buf;
+}
+
+void draw_line(struct char_data *ch, int length, char first, char second) {
+  send_to_char(ch, "%s", line_string(length, first, second));
+}
+
+/*  text_line_string()
+ *  Generate and return a string, as above, with text centered.
+ */
+char* text_line_string(char *text, int length, char first, char second) {
+  int text_length, text_print_length, pre_length;  
+  int i = 0, j = 0;
+  static char buf[MAX_STRING_LENGTH]; /* Note - static! */
+    
+  text_length = strlen(text);
+  text_print_length = count_non_protocol_chars(text);
+
+  pre_length = (length - (text_print_length))/2; /* (length - (text length + '[  ]'))/2 */
+//  pre_length = (length - (text_length + 4))/2; /* (length - (text length + '[  ]'))/2 */
+//  pre_length = 2;
+
+  while (i < pre_length) {
+    if((i % 2) == 0)
+      buf[i] = first;
+    else
+      buf[i] = second;
+    i++;
+  }
+//  buf[i++] = '[';
+//  buf[i++] = ' ';
+
+  while (j < text_length) 
+    buf[i++] = text[j++];
+
+//  buf[i++] = ' ';
+//  buf[i++] = ']';
+
+  while (i < length + (text_length - text_print_length)) /* Have to include the non printables */ 
+    if((i % 2) == 0)
+      buf[i++] = first;
+    else
+      buf[i++] = second;
+  buf[i++] = '\r';
+  buf[i++] = '\n';
+  buf[i]   = '\0';    /* Terminate the string. */
+
+  return buf;
+}
+
+void text_line(struct char_data *ch, char *text, int length, char first, char second) {
+  send_to_char(ch, "%s", text_line_string(text, length, first, second));
+}
+
+

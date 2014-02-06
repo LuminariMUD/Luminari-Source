@@ -569,6 +569,10 @@
 #define TYPE_SPECAB_FROST 		602
 #define TYPE_SPECAB_ICY_BURST		603
 
+/* Attack types */
+
+#define TYPE_ATTACK_OF_OPPORTUNITY      650
+
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the
  * intended use is for spells and skills associated with objects (such as
@@ -697,7 +701,7 @@
 #define START_CRAFT_ABILITIES           34
 
 #define ABILITY_CRAFT_WOODWORKING       34
-#define ABILITY_CRAFT_WEAVING           35
+#define ABILITY_CRAFT_TAILORING         35
 #define ABILITY_CRAFT_ALCHEMY           36
 #define ABILITY_CRAFT_ARMORSMITHING     37
 #define ABILITY_CRAFT_WEAPONSMITHING    38

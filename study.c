@@ -831,7 +831,8 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
   OLC_MODE(d) = STUDY_GEN_MAIN_MENU;
 }
 
-
+/*  This does not work for all cfeats -exotc weapon proficiency is a special
+ *  case and needs special handling. */
 static void cfeat_disp_menu(struct descriptor_data *d) { 
   const char *feat_weapons[NUM_WEAPON_TYPES - 1];
   int i = 0;

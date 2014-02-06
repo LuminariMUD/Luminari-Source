@@ -30,13 +30,19 @@ void list_class_feats(struct char_data *ch);
 void assign_feats(void);
 void feato(int featnum, char *name, int in_game, int can_learn, int can_stack, int feat_type, char *prerequisites, char *description);
 
-void list_feats_known(struct char_data *ch, char *arg); 
-void list_feats_available(struct char_data *ch, char *arg); 
-void list_feats_complete(struct char_data *ch, char *arg); 
+void list_feats(struct char_data *ch, char *arg, int list_type); 
 
 int compare_feats(const void *x, const void *y);
 void sort_feats(void);	
 int find_feat_num(char *name);
+
+/*  Prerequisite definition procedures */
+void feat_prereq_attribute(int featnum, int attribute, int value);
+void feat_prereq_class_level(int featnum, int cl, int level);
+void feat_prereq_feat(int featnum, int pfeatnum, int ranks);
+void feat_prereq_ability(int featnum, int ability, int ranks);
+void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int circle);
+void feat_prereq_race(int featnum, int race);
 
 void load_weapons(void);
 void load_armor(void);
@@ -82,6 +88,7 @@ void feato(int featnum, char *name, int in_game, int can_learn, int can_stack, i
   feat_list[featnum].feat_type = feat_type;
   feat_list[featnum].prerequisites = prerequisites;
   feat_list[featnum].description = description;
+  feat_list[featnum].prerequisite_list = NULL;
 }
 
 void epicfeat(int featnum)
@@ -97,6 +104,176 @@ void combatfeat(int featnum)
 void dailyfeat(int featnum, event_id event)
 {
   feat_list[featnum].event = event;
+}
+
+struct feat_prerequisite* create_prerequisite(int prereq_type, int val1, int val2, int val3) {
+  struct feat_prerequisite *prereq = NULL; 
+  CREATE(prereq, struct feat_prerequisite, 1);
+  prereq->prerequisite_type =  prereq_type;
+  prereq->values[0] = val1;
+  prereq->values[1] = val2;
+  prereq->values[2] = val3;
+
+  return prereq;
+}
+
+/*  The following procedures are used to define feat prerequisites.
+ *  These prerequisites are automatically checked, if they exist. 
+ *  Dynamically assigning prerequisites also allows us to create 
+ *  dynamic 'help' and easier to read presentations of feat lists. */
+
+void feat_prereq_attribute(int featnum, int attribute, int value) {
+  struct feat_prerequisite *prereq = NULL;
+  char buf[80];
+ 
+  const char* attribute_abbr[7] = { "None",
+                                   "Str",
+                                   "Dex",
+                                   "Int",
+                                   "Wis",
+                                   "Con",
+                                   "Cha"
+                                 };
+ 
+  prereq = create_prerequisite(FEAT_PREREQ_ATTRIBUTE, attribute, value, 0);
+
+  /* Generate the description. */  
+  sprintf(buf, "%s : %d", attribute_abbr[attribute], value);
+  prereq->description = strdup(buf);
+
+  /*  Link it up. */
+  prereq->next = feat_list[featnum].prerequisite_list;
+  feat_list[featnum].prerequisite_list = prereq;
+}
+
+void feat_prereq_class_level(int featnum, int cl, int level) {
+  struct feat_prerequisite *prereq = NULL;
+  char buf[80];
+  
+  prereq = create_prerequisite(FEAT_PREREQ_CLASS_LEVEL, cl, level, 0);
+
+  /* Generate the description. */ 
+  sprintf(buf, "%s level %d", pc_class_types[cl], level);
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = feat_list[featnum].prerequisite_list;
+  feat_list[featnum].prerequisite_list = prereq;
+}
+
+void feat_prereq_feat(int featnum, int feat, int ranks) {
+  struct feat_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prerequisite(FEAT_PREREQ_FEAT, feat, ranks, 0);
+
+  /* Generate the description. */
+  if (ranks > 1)
+    sprintf(buf, "%s (%d ranks)", feat_list[feat].name, ranks);
+  else
+    sprintf(buf, "%s", feat_list[feat].name);
+
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = feat_list[featnum].prerequisite_list;
+  feat_list[featnum].prerequisite_list = prereq;
+}
+
+void feat_prereq_cfeat(int featnum, int feat) {
+  struct feat_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prerequisite(FEAT_PREREQ_CFEAT, feat, 0, 0);
+
+  sprintf(buf, "%s (in same weapon)", feat_list[feat].name);
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = feat_list[featnum].prerequisite_list;
+  feat_list[featnum].prerequisite_list = prereq;
+}
+
+void feat_prereq_ability(int featnum, int ability, int ranks) {
+  struct feat_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prerequisite(FEAT_PREREQ_ABILITY, ability, ranks, 0);
+
+  sprintf(buf, "%d ranks in %s", ranks, ability_names[ability]);
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = feat_list[featnum].prerequisite_list;
+  feat_list[featnum].prerequisite_list = prereq;
+}
+
+void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int circle) {
+  struct feat_prerequisite *prereq = NULL;
+  char buf[80];
+
+  const char *casting_types[4] = { "None",
+                                   "Arcane",
+                                   "Divine",
+                                   "Any" 
+                                 };
+
+  const char *spell_preparation_types[4] = { "None",
+                                             "Prepared",
+                                             "Spontaneous",
+                                             "Any"
+                                           };
+
+  prereq = create_prerequisite(FEAT_PREREQ_SPELLCASTING, casting_type, prep_type, circle);
+
+  sprintf(buf, "Ability to cast %s %s spells", casting_types[casting_type], spell_preparation_types[prep_type]);
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = feat_list[featnum].prerequisite_list;
+  feat_list[featnum].prerequisite_list = prereq;
+}
+
+void feat_prereq_race(int featnum, int race) {
+  struct feat_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prerequisite(FEAT_PREREQ_RACE, race, 0, 0);
+
+  sprintf(buf, "Race : %s", pc_race_types[race]);
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = feat_list[featnum].prerequisite_list;
+  feat_list[featnum].prerequisite_list = prereq;
+}
+
+void feat_prereq_bab(int featnum, int bab) {
+  struct feat_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prerequisite(FEAT_PREREQ_BAB, bab, 0, 0);
+
+  sprintf(buf, "BAB +%d", bab);
+  prereq->description = strdup(buf);
+
+  /* Link it up */ 
+  prereq->next = feat_list[featnum].prerequisite_list;
+  feat_list[featnum].prerequisite_list = prereq;
+}
+
+void feat_prereq_weapon_proficiency(int featnum) {
+  struct feat_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prerequisite(FEAT_PREREQ_WEAPON_PROFICIENCY, 0, 0, 0);
+
+  sprintf(buf, "Proficiency in same weapon");
+  prereq->description = strdup(buf);
+
+  /*  Link it up */
+  prereq->next = feat_list[featnum].prerequisite_list;
+  feat_list[featnum].prerequisite_list = prereq;
 }
 
 void free_feats(void)
@@ -121,6 +298,7 @@ void assign_feats(void)
     feat_list[i].description = "ask staff";
     feat_list[i].epic = FALSE;
     feat_list[i].combat_feat = FALSE;
+    feat_list[i].prerequisite_list = NULL;
   }
 
 /* 
@@ -140,70 +318,182 @@ void assign_feats(void)
  */
 
 /* Combat feats */
-feato(FEAT_WEAPON_FOCUS,"weapon focus",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficient in weapon, base attack of +1","+1 to hit rolls for selected weapon");
-feato(FEAT_GREATER_WEAPON_FOCUS,"greater weapon focus",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency in weapon,  weapon focus in weapon, 8th level fighter","additional +1 to hit rolls with weapon (stacks)");
-feato(FEAT_SPIRITED_CHARGE,"spirited charge",TRUE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ride 1 rank, mounted combat, ride-by attack","When mounted and using the charge action, you deal double damage with a melee weapon (or triple damage with a lance).");
-feato(FEAT_BLIND_FIGHT,"blind fighting",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"none","when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
-feato(FEAT_CLEAVE,"cleave",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"str 13, power attack","extra initial attack against opponent after killing another opponent in same room");
-feato(FEAT_COMBAT_EXPERTISE,"combat expertise",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"int 13","When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC");
-feato(FEAT_COMBAT_REFLEXES,"combat reflexes",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"none","can make a number of attacks of opportunity equal to dex bonus");
-feato(FEAT_DODGE,"dodge",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 13","+1 dodge bonus to ac");
-feato(FEAT_EPIC_PROWESS,"epic prowess",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"epic level","+1 to all attacks per rank");
-feato(FEAT_IMPROVED_CRITICAL,"improved critical",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficient with weapon chosen, base attack bonus of +8 or higher","doubled critical threat rating for weapon chosen");
-feato(FEAT_IMPROVED_INITIATIVE,"improved initiative",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"none","+4 to initiative checks to see who attacks first each round");
-feato(FEAT_IMPROVED_SHIELD_BASH,"improved shield bash",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"shield proficiency","retain your shield's AC bonus when you shield punch");
-feato(FEAT_IMPROVED_TRIP,"improved trip",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"int 13, combat expertise","no attack of opportunity when tripping, +4 to trip check, attack immediately on successful trip.");
-feato(FEAT_IMPROVED_UNARMED_STRIKE,"improved unarmed strike",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"none","unarmed attacks do not provoke attacks of opportunity, and do 1d6 damage");
-feato(FEAT_POINT_BLANK_SHOT,"point blank shot",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"none","+1 to hit and dam rolls with ranged weapons in the same room");
-feato(FEAT_POWER_ATTACK,"power attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"str 13","subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
-feato(FEAT_RAPID_SHOT,"rapid shot",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 13, point blank shot","can make extra attack per round with ranged weapon at -2 to all attacks");
-feato(FEAT_SHIELD_CHARGE,"shield charge",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"improved shield bash, bab +3","make a trip attack when you bash with your shield");
-feato(FEAT_SHIELD_SLAM,"shield slam",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"shield charge, improved shield bash, bab +6","Daze an opponent of any size by slamming them with your shield.");
-feato(FEAT_SPRING_ATTACK,"spring attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dodge, mobility, base attack +4, dex 13+","free attack of opportunity against combat abilities (ie. kick,Trip)");
-feato(FEAT_STUNNING_FIST,"stunning fist",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 13, wis 13, improved unarmoed strike, base attack bonus +8","may make unarmed attack to stun opponent for one round");
-feato(FEAT_TWO_WEAPON_FIGHTING,"two weapon fighting",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 15","attacks with offhand weapons done at reduced penalties");
-feato(FEAT_WEAPON_FINESSE,"weapon finesse",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"base attack of +1","use dex for hit roll of weapons smaller than wielder or rapier, whip, spiked chain");
-feato(FEAT_WHIRLWIND_ATTACK,"whirlwind attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 13, int 13, combat expertise, dodge, mobility, spring attack, base attack bonus +4","allows you to attack everyone in the room or everyone you are fighting (with contain) as a standard action");
-feato(FEAT_GREAT_CLEAVE,"great cleave",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
+feato(FEAT_POWER_ATTACK,"power attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
+feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
+  
+feato(FEAT_WEAPON_FOCUS,"weapon focus",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+1 to hit rolls for selected weapon");
+feat_prereq_bab(FEAT_WEAPON_FOCUS, 1);
+feat_prereq_weapon_proficiency(FEAT_WEAPON_FOCUS);
+
+feato(FEAT_GREATER_WEAPON_FOCUS,"greater weapon focus",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+1 to hit rolls with weapon");
+feat_prereq_cfeat(FEAT_GREATER_WEAPON_FOCUS, FEAT_WEAPON_FOCUS);
+feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_FOCUS);
+feat_prereq_class_level(FEAT_GREATER_WEAPON_FOCUS, CLASS_WARRIOR, 8);
+
+feato(FEAT_SPIRITED_CHARGE,"spirited charge",TRUE,FALSE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","When mounted and using the charge action, you deal double damage with a melee weapon (or triple damage with a lance).");
+feat_prereq_ability(FEAT_SPIRITED_CHARGE, ABILITY_RIDE, 1);
+feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_MOUNTED_COMBAT, 1);
+feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_RIDE_BY_ATTACK, 1);
+
+feato(FEAT_BLIND_FIGHT,"blind fighting",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
+
+feato(FEAT_CLEAVE,"cleave",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","extra initial attack against opponent after killing another opponent in same room");
+feat_prereq_attribute(FEAT_CLEAVE, AB_STR, 13);
+feat_prereq_feat(FEAT_CLEAVE, FEAT_POWER_ATTACK, 1);
+
+feato(FEAT_COMBAT_EXPERTISE,"combat expertise",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC");
+feat_prereq_attribute(FEAT_COMBAT_EXPERTISE, AB_INT, 13);
+
+feato(FEAT_COMBAT_REFLEXES,"combat reflexes",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","can make a number of attacks of opportunity equal to dex bonus");
+
+feato(FEAT_DODGE,"dodge",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+1 dodge bonus to ac");
+feat_prereq_attribute(FEAT_DODGE, AB_DEX, 13);
+
+feato(FEAT_MOBILITY,"mobility",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+4 dodge ac bonus against attacks of opportunity");
+feat_prereq_attribute(FEAT_MOBILITY, AB_DEX, 13);
+feat_prereq_feat(FEAT_MOBILITY, FEAT_DODGE, 1);
+
+feato(FEAT_EPIC_PROWESS,"epic prowess",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+1 to all attacks per rank");
+
+feato(FEAT_IMPROVED_CRITICAL,"improved critical",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"!UNDEFINED!","doubled critical threat rating for weapon chosen");
+feat_prereq_weapon_proficiency(FEAT_IMPROVED_CRITICAL);
+feat_prereq_bab(FEAT_IMPROVED_CRITICAL, 8);
+
+feato(FEAT_IMPROVED_INITIATIVE,"improved initiative",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+4 to initiative checks to see who attacks first each round");
+
+feato(FEAT_IMPROVED_SHIELD_BASH,"improved shield bash",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","retain your shield's AC bonus when you shield punch");
+feat_prereq_feat(FEAT_IMPROVED_SHIELD_BASH, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
+
+feato(FEAT_IMPROVED_TRIP,"improved trip",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","no attack of opportunity when tripping, +4 to trip check, attack immediately on successful trip.");
+feat_prereq_attribute(FEAT_IMPROVED_TRIP, AB_INT, 13);
+feat_prereq_feat(FEAT_IMPROVED_TRIP, FEAT_COMBAT_EXPERTISE, 1);
+
+feato(FEAT_IMPROVED_UNARMED_STRIKE,"improved unarmed strike",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","unarmed attacks do not provoke attacks of opportunity, and do 1d6 damage");
+
+feato(FEAT_POINT_BLANK_SHOT,"point blank shot",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+1 to hit and dam rolls with ranged weapons in the same room");
+
+
+feato(FEAT_RAPID_SHOT,"rapid shot",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","can make extra attack per round with ranged weapon at -2 to all attacks");
+feat_prereq_attribute(FEAT_RAPID_SHOT, AB_DEX, 13);
+feat_prereq_feat(FEAT_RAPID_SHOT, FEAT_POINT_BLANK_SHOT, 1);
+
+feato(FEAT_SHIELD_CHARGE,"shield charge",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","make a trip attack when you bash with your shield");
+feat_prereq_bab(FEAT_SHIELD_CHARGE, 3);
+feat_prereq_feat(FEAT_SHIELD_CHARGE, FEAT_IMPROVED_SHIELD_BASH, 1);
+
+feato(FEAT_SHIELD_SLAM,"shield slam",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","Daze an opponent of any size by slamming them with your shield.");
+feat_prereq_bab(FEAT_SHIELD_SLAM, 6);
+feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_SHIELD_CHARGE, 1);
+feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_IMPROVED_SHIELD_BASH, 1);
+
+feato(FEAT_SPRING_ATTACK,"spring attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","free attack of opportunity against combat abilities (ie. kick,Trip)");
+feat_prereq_bab(FEAT_SPRING_ATTACK, 4);
+feat_prereq_attribute(FEAT_SPRING_ATTACK, AB_DEX, 13);
+feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_DODGE, 1);
+feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_MOBILITY, 1);
+
+feato(FEAT_STUNNING_FIST,"stunning fist",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","may make unarmed attack to stun opponent for one round");
+feat_prereq_attribute(FEAT_STUNNING_FIST, AB_DEX, 13);
+feat_prereq_attribute(FEAT_STUNNING_FIST, AB_WIS, 13);
+feat_prereq_feat(FEAT_STUNNING_FIST, FEAT_IMPROVED_UNARMED_STRIKE, 1);
+feat_prereq_bab(FEAT_STUNNING_FIST, 8);
+
+feato(FEAT_TWO_WEAPON_FIGHTING,"two weapon fighting",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","attacks with offhand weapons done at reduced penalties");
+feat_prereq_attribute(FEAT_TWO_WEAPON_FIGHTING, AB_DEX, 15);
+
+feato(FEAT_WEAPON_FINESSE,"weapon finesse",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","use dex for hit roll of weapons smaller than wielder or rapier, whip, spiked chain");
+feat_prereq_bab(FEAT_WEAPON_FINESSE, 1);
+
+feato(FEAT_WHIRLWIND_ATTACK,"whirlwind attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","allows you to attack everyone in the room or everyone you are fighting (with contain) as a standard action");
+feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_DEX, 13);
+feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_INT, 13);
+feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_COMBAT_EXPERTISE, 1);
+feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_DODGE, 1);
+feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_MOBILITY, 1);
+feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_SPRING_ATTACK, 1);
+feat_prereq_bab(FEAT_WHIRLWIND_ATTACK, 4);
+
+feato(FEAT_GREAT_CLEAVE,"great cleave",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","ask staff");
+feat_prereq_feat(FEAT_GREAT_CLEAVE, FEAT_CLEAVE, 1);
+feat_prereq_feat(FEAT_GREAT_CLEAVE, FEAT_POWER_ATTACK, 1);
+feat_prereq_attribute(FEAT_GREAT_CLEAVE, AB_STR, 13);
+feat_prereq_bab(FEAT_GREAT_CLEAVE, 4);
+
+feato(FEAT_WEAPON_SPECIALIZATION, "weapon specialization", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, "!UNDEFINED!", "+2 to dam rolls with weapon");
+feat_prereq_weapon_proficiency(FEAT_WEAPON_SPECIALIZATION);
+feat_prereq_cfeat(FEAT_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
+feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 4);
+
+feato(FEAT_GREATER_WEAPON_SPECIALIZATION,"greater weapon specialization",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"!UNDEFINED!","additional +2 dam with weapon (stacks)");
+feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_SPECIALIZATION);
+feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
+feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_FOCUS);
+feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_SPECIALIZATION);
+feat_prereq_class_level(FEAT_GREATER_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 12);
+
 
 /* General feats */
 
-feato(FEAT_ABLE_LEARNER,"able learner",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+1 to all skills");
-feato(FEAT_ACROBATIC,"acrobatic",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to jump and tumble skill checks");
-feato(FEAT_AGILE,"agile",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to balance and escape artist skill checks");
-feato(FEAT_ALERTNESS,"alertness",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to spot and listen skill checks ");
-feato(FEAT_ANIMAL_AFFINITY,"animal affinity",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to handle animal and ride skill checks");
-feato(FEAT_ARMOR_PROFICIENCY_HEAVY,"heavy armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"armor proficiency light and medium","allows unpenalized use of heavy armor ");
-feato(FEAT_ARMOR_PROFICIENCY_LIGHT,"light armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","allows unpenalized use of light armor ");
-feato(FEAT_ARMOR_PROFICIENCY_MEDIUM,"medium armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"armor proficiency light","allows unpenalized use of medium armor ");
-feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD,"tower shield proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","can use tower shields without penalties");
-feato(FEAT_ARMOR_SKIN,"armor skin",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"epic level","Increases natural armor by 1");
-feato(FEAT_ATHLETIC,"athletic",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to swim and climb skill checks");
-feato(FEAT_DECEITFUL,"deceitful",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to disguise and forgery skill checks");
-feato(FEAT_DEFT_HANDS,"deft hands",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to sleight of hand and use rope skill checks");
-feato(FEAT_DILIGENT,"diligent",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 bonus to appraise and decipher script skill checks");
-feato(FEAT_EPIC_TOUGHNESS,"epic toughness",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"epic level","You gain +1 hp per level");
-feato(FEAT_EXOTIC_WEAPON_PROFICIENCY,"exotic weapon proficiency",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"base attack bonus +1","can use exotic weapon of type chosen without penalties");
-feato(FEAT_EXTRA_TURNING,"extra turning",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"cleric or paladin","2 extra turn attempts per day");
-feato(FEAT_GREAT_FORTITUDE,"great fortitude",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to all fortitude saving throw checks");
-feato(FEAT_IMPROVED_SPELL_RESISTANCE,"improved spell resistance",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"epic level, diamond soul","+2 to spell resistance");
-feato(FEAT_INVESTIGATOR,"investigator",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to lore and search checks");
-feato(FEAT_IRON_WILL,"iron will",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to all willpower saving throw checks");
-feato(FEAT_LIGHTNING_REFLEXES,"lightning reflexes",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to all reflex saving throw checks");
-feato(FEAT_MAGICAL_APTITUDE,"magical aptitude",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to spellcraft and use magical device skill checks");
-feato(FEAT_NEGOTIATOR,"negotiator",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to diplomacy and sense motive skills");
-feato(FEAT_NIMBLE_FINGERS,"nimble fingers",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to open lock and disable device skill checks");
-feato(FEAT_PERSUASIVE,"persuasive",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to bluff and intimidate skill checks");
-feato(FEAT_SELF_SUFFICIENT,"self sufficient",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to heal and survival skill checks");
-feato(FEAT_SIMPLE_WEAPON_PROFICIENCY,"simple weapon proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","may use all simple weappons");
-feato(FEAT_STEALTHY,"stealthy",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to hide and move silently skill checks");
-feato(FEAT_TOUGHNESS,"toughness",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+1 hp per level, +(level) hp upon taking");
-feato(FEAT_ARMOR_PROFICIENCY_SHIELD,"shield armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","able to use bucklers, light and heavy shields without penalty ");
+feato(FEAT_ABLE_LEARNER,"able learner",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+1 to all skills");
+feato(FEAT_ACROBATIC,"acrobatic",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to jump and tumble skill checks");
+feato(FEAT_AGILE,"agile",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to balance and escape artist skill checks");
+feato(FEAT_ALERTNESS,"alertness",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED","+2 to spot and listen skill checks ");
+feato(FEAT_ANIMAL_AFFINITY,"animal affinity",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to handle animal and ride skill checks");
+feato(FEAT_ARMOR_PROFICIENCY_HEAVY,"heavy armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","allows unpenalized use of heavy armor ");
+feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
+
+feato(FEAT_ARMOR_PROFICIENCY_LIGHT,"light armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","allows unpenalized use of light armor ");
+feato(FEAT_ARMOR_PROFICIENCY_MEDIUM,"medium armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","allows unpenalized use of medium armor ");
+feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_MEDIUM, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+
+feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD,"tower shield proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","can use tower shields without penalties");
+
+feato(FEAT_ARMOR_SKIN,"armor skin",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"!UNDEFINED!","Increases natural armor by 1"); /* Epic */
+feato(FEAT_ATHLETIC,"athletic",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to swim and climb skill checks");
+feato(FEAT_DECEITFUL,"deceitful",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to disguise and forgery skill checks");
+feato(FEAT_DEFT_HANDS,"deft hands",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to sleight of hand and use rope skill checks");
+feato(FEAT_DILIGENT,"diligent",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 bonus to appraise and decipher script skill checks");
+feato(FEAT_EPIC_TOUGHNESS,"epic toughness",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"!UNDEFINED!","You gain +1 hp per level"); /* Epic */
+feato(FEAT_EXOTIC_WEAPON_PROFICIENCY,"exotic weapon proficiency",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"!UNDEFINED!","can use exotic weapon of type chosen without penalties");
+feat_prereq_bab(FEAT_EXOTIC_WEAPON_PROFICIENCY, 1);
+
+feato(FEAT_EXTRA_TURNING,"extra turning",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","2 extra turn attempts per day");
+feat_prereq_feat(FEAT_EXTRA_TURNING, FEAT_TURN_UNDEAD, 1);
+
+feato(FEAT_GREAT_FORTITUDE,"great fortitude",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to all fortitude saving throw checks");
+
+feato(FEAT_IMPROVED_SPELL_RESISTANCE,"improved spell resistance",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to spell resistance"); /* Epic */
+feat_prereq_feat(FEAT_IMPROVED_SPELL_RESISTANCE, FEAT_DIAMOND_SOUL, 1);
+
+feato(FEAT_INVESTIGATOR,"investigator",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to lore and search checks");
+feato(FEAT_IRON_WILL,"iron will",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to all willpower saving throw checks");
+feato(FEAT_LIGHTNING_REFLEXES,"lightning reflexes",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to all reflex saving throw checks");
+feato(FEAT_MAGICAL_APTITUDE,"magical aptitude",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to spellcraft and use magical device skill checks");
+feato(FEAT_NEGOTIATOR,"negotiator",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to diplomacy and sense motive skills");
+feato(FEAT_NIMBLE_FINGERS,"nimble fingers",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to open lock and disable device skill checks");
+feato(FEAT_PERSUASIVE,"persuasive",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to bluff and intimidate skill checks");
+feato(FEAT_SELF_SUFFICIENT,"self sufficient",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to heal and survival skill checks");
+feato(FEAT_SIMPLE_WEAPON_PROFICIENCY,"simple weapon proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","may use all simple weappons");
+feato(FEAT_STEALTHY,"stealthy",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to hide and move silently skill checks");
+feato(FEAT_TOUGHNESS,"toughness",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+1 hp per level, +(level) hp upon taking");
+feato(FEAT_ARMOR_PROFICIENCY_SHIELD,"shield armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","able to use bucklers, light and heavy shields without penalty ");
+feato(FEAT_MARTIAL_WEAPON_PROFICIENCY,"martial weapon proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","able to use all martial weapons");
 
 /* Spellcasting feats */
 
-feato(FEAT_GREATER_SPELL_PENETRATION,"greater spell penetration",TRUE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"spell penetration","+2 to caster level checks to defeat spell resistance");
-feato(FEAT_SPELL_PENETRATION,"spell penetration",TRUE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"none","+2 bonus on caster level checks to defeat spell resistance");
+feato(FEAT_GREATER_SPELL_PENETRATION,"greater spell penetration",TRUE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"!UNDEFINED!","+2 to caster level checks to defeat spell resistance");
+feat_prereq_feat(FEAT_GREATER_SPELL_PENETRATION, FEAT_SPELL_PENETRATION, 1);
+
+feato(FEAT_SPELL_PENETRATION,"spell penetration",TRUE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"!UNDEFINED!","+2 bonus on caster level checks to defeat spell resistance");
+
+/* Crafting feats */
+
+feato(FEAT_DRACONIC_CRAFTING,"draconic crafting",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"!UNDEFINED!","All magical items created gain higher bonuses w/o increasing level");
+feato(FEAT_DWARVEN_CRAFTING,"dwarven crafting",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"!UNDEFINED!","All weapons and armor made have higher bonuses");
+feato(FEAT_ELVEN_CRAFTING,"elven crafting",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"!UNDEFINED!","All equipment made is 50% weight and uses 50% materials");
+feato(FEAT_FAST_CRAFTER,"fast crafter",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"!UNDEFINED","Reduces crafting time");
+
 
 /* Disabled Feats */
 
@@ -237,7 +527,6 @@ feato(FEAT_EXTEND_RAGE,"extend rage",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"rage","E
 feato(FEAT_GREAT_SMITING,"great smiting",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"epic level","For each rank in this feat you add your level in damage to all smite attacks");
 feato(FEAT_GREATER_COMBAT_CHALLENGE,"greater combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"15 ranks in diplomacy, intimidate or bluff, improved combat challenge","as improved combat challenge, but regular challenge is a minor action & challenge all is a move action");
 feato(FEAT_GREATER_TWO_WEAPON_FIGHTING,"greater two weapon fighting",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 19, base attack bonus 11+,Two weapon & improved two weapon fighting","gives an additional offhand weapon attack");
-feato(FEAT_GREATER_WEAPON_SPECIALIZATION,"greater weapon specialization",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency, weapon focus, greater weapon focus, weapon specialization (all in same weapon), 12th level fighter","additional +2 dam with weapon (stacks)");
 feato(FEAT_IMPROVED_COMBAT_CHALLENGE,"improved combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"10 ranks in diplomacy, intimidate or bluff, combat challenge","allows you to make all mobs focus their attention on you");
 feato(FEAT_IMPROVED_FEINT,"improved feint",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"int 13, combat expertise","can feint and make one attack per round (or sneak attack if they have it)");
 feato(FEAT_IMPROVED_NATURAL_WEAPON,"improved natural weapons",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"natural weapon or improved unarmed strike","increase damage dice by one category for natural weapons");
@@ -246,7 +535,6 @@ feato(FEAT_IMPROVED_TAUNTING,"improved taunting",FALSE,TRUE,FALSE,FEAT_TYPE_COMB
 feato(FEAT_IMPROVED_TWO_WEAPON_FIGHTING,"improved two weapon fighting",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 17,Two weapon fighting, base attack bonus of +6 or more","extra attack with offhand weapon at -5 penalty");
 feato(FEAT_IMPROVED_WEAPON_FINESSE,"improved weapon finesse",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"weapon finesse, weapon focus, base attack bonus of 4+","add dex bonus to damage instead of str for light weapons");
 feato(FEAT_KNOCKDOWN,"knockdown",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"improved trip","when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target");
-feato(FEAT_MOBILITY,"mobility",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 13, dodge","+4 dodge ac bonus against attacks of opportunity");
 feato(FEAT_MOUNTED_COMBAT,"mounted combat",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"ride rank 1","once per round rider may negate a hit against him with a successful ride vs attack roll check");
 feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING,"perfect two weapon fighting",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 25, greater two weapon fighting","Extra attack with offhand weapon");
 feato(FEAT_POWER_CRITICAL,"power critical",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"weapon focus in chosen weapon, base attack bonus +4 or higher","+4 to rolls to confirm critical hits.");
@@ -258,7 +546,6 @@ feato(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY,"sneak attack of opportunity",FALSE,TRUE,
 feato(FEAT_SWARM_OF_ARROWS,"swarm of arrows",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 23, point blank shot, rapid shot, weapon focus","allows you to make a single ranged attack against everyone in range.");
 feato(FEAT_TWO_WEAPON_DEFENSE,"two weapon defense",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 15,Two weapon fighting","when wielding two weapons receive +1 shield ac bonus");
 feato(FEAT_WEAPON_FLURRY,"weapon flurry",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency, weapon focus, weapon specialization, weapon mastery in specific weapon, base attack bonus +14","2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action");
-feato(FEAT_WEAPON_SPECIALIZATION,"weapon specialization",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency with weapon, weapon focus in weapon, 4th level fighter","+2 to dam rolls with weapon");
 feato(FEAT_WEAPON_SUPREMACY,"weapon supremacy",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency, weapon focus, weapon specialization, weapon master, greater weapon focus, greater weapon specialization in specific weapon,Fighter level 18","+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon");
 feato(FEAT_BRANDING,"branding",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"Artisan level 3","All items made carry the artisan's brand");
 feato(FEAT_BREW_POTION,"brew potion",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"3rd level caster","can create magical potions ");
@@ -267,10 +554,6 @@ feato(FEAT_CRAFT_ROD,"craft rod",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"9th level ca
 feato(FEAT_CRAFT_STAFF,"craft staff",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"12th level caster","can create magical staves ");
 feato(FEAT_CRAFT_WAND,"craft wand",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"5th level caster","can create magical wands ");
 feato(FEAT_CRAFT_WONDEROUS_ITEM,"craft wonderous item",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"3rd level caster","can crate miscellaneous magical items ");
-feato(FEAT_DRACONIC_CRAFTING,"draconic crafting",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"Artisan level 20","All magical items created gain higher bonuses w/o increasing level");
-feato(FEAT_DWARVEN_CRAFTING,"dwarven crafting",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"Artisan level 15","All weapons and armor made have higher bonuses");
-feato(FEAT_ELVEN_CRAFTING,"elven crafting",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"Artisan level 11","All equipment made is 50% weight and uses 50% materials");
-feato(FEAT_FAST_CRAFTER,"fast crafter",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"Artisan level 1","Reduces crafting time");
 feato(FEAT_FORGE_RING,"forge ring",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"ask staff","ask staff ");
 feato(FEAT_MASTERWORK_CRAFTING,"masterwork crafting",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"Artisan level 6","All equipment made is masterwork");
 feato(FEAT_SCRIBE_SCROLL,"scribe scroll",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"1st level caster","can scribe spells from memory onto scrolls");
@@ -315,7 +598,6 @@ feato(FEAT_IMPROVED_INSTIGATION,"improved instigation",FALSE,TRUE,FALSE,FEAT_TYP
 feato(FEAT_IMPROVED_INTIMIDATION,"improved intimidation",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
 feato(FEAT_LEADERSHIP,"leadership",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"level 6 character","can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses");
 feato(FEAT_LINGERING_SONG,"lingering song",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"bard level 1","5 extra rounds for bard songs");
-feato(FEAT_MARTIAL_WEAPON_PROFICIENCY,"martial weapon proficiency",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","able to use all martial weapons");
 feato(FEAT_MONKEY_GRIP,"monkey grip",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"none","can wield weapons one size larger than wielder in one hand with -2 to attacks.");
 feato(FEAT_POWERFUL_SNEAK,"powerful sneak",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"rogue talent","opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2");
 feato(FEAT_RUN,"run",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
@@ -362,93 +644,92 @@ feato(FEAT_LAST_FEAT,"do not take me",FALSE,FALSE,FALSE,FEAT_TYPE_NONE,"placehol
 
 /* Class ability feats */
 /* Paladin */
-feato(FEAT_AURA_OF_COURAGE,"aura of courage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","Immunity to fear attacks, +4 bonus to fear saves for group members");
-feato(FEAT_SMITE_EVIL,"smite evil",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","add level to hit roll and charisma bonus to damage");
-feato(FEAT_DETECT_EVIL,"detect evil",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","able to detect evil alignments");
-feato(FEAT_TURN_UNDEAD,"turn undead",TRUE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","can cause fear in or destroy undead based on class level and charisma bonus");
-feato(FEAT_AURA_OF_GOOD,"aura of good",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","+10 ac to all group members");
-feato(FEAT_DIVINE_HEALTH,"divine health",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","immune to disease");
-feato(FEAT_LAYHANDS,"lay on hands",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","Powerful divine healing ability usable a limited number of times a day");
-feato(FEAT_REMOVE_DISEASE,"remove disease",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","can cure diseases");
-feato(FEAT_CALL_MOUNT,"call mount",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Paladin level 5","Allows you to call a paladin mount");
+feato(FEAT_AURA_OF_COURAGE,"aura of courage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Immunity to fear attacks, +4 bonus to fear saves for group members");
+feato(FEAT_SMITE_EVIL,"smite evil",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","add level to hit roll and charisma bonus to damage");
+feato(FEAT_DETECT_EVIL,"detect evil",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","able to detect evil alignments");
+feato(FEAT_TURN_UNDEAD,"turn undead",TRUE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can cause fear in or destroy undead based on class level and charisma bonus");
+feato(FEAT_AURA_OF_GOOD,"aura of good",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+10 ac to all group members");
+feato(FEAT_DIVINE_HEALTH,"divine health",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","immune to disease");
+feato(FEAT_LAYHANDS,"lay on hands",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Powerful divine healing ability usable a limited number of times a day");
+feato(FEAT_REMOVE_DISEASE,"remove disease",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can cure diseases");
+feato(FEAT_CALL_MOUNT,"call mount",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Allows you to call a paladin mount");
 
 /* Rogue */
-feato(FEAT_CRIPPLING_STRIKE,"crippling strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Rogue level 10","Chance to do 2 strength damage with a sneak attack.");
-feato(FEAT_IMPROVED_EVASION,"improved evasion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"rogue level 11","as evasion but half damage of failed save");
-feato(FEAT_EVASION,"evasion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","on successful reflex save no damage from spells and effects");
-feato(FEAT_TRAPFINDING,"trapfinding",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_DEFENSIVE_ROLL,"defensive roll",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"rogue level 10","can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead");
-feato(FEAT_SLIPPERY_MIND,"slippery mind",TRUE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Rogue level 11+","extra chance for will saves");
+feato(FEAT_CRIPPLING_STRIKE,"crippling strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Chance to do 2 strength damage with a sneak attack.");
+feato(FEAT_IMPROVED_EVASION,"improved evasion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","as evasion but half damage of failed save");
+feato(FEAT_EVASION,"evasion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","on successful reflex save no damage from spells and effects");
+feato(FEAT_TRAPFINDING,"trapfinding",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can use the Search skill to locate difficult to find traps");
+feato(FEAT_DEFENSIVE_ROLL,"defensive roll",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead");
+feato(FEAT_SLIPPERY_MIND,"slippery mind",TRUE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","extra chance for will saves");
 
 /* Rogue/Barbarian */
-feato(FEAT_UNCANNY_DODGE,"uncanny dodge",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","retains dex bonus when flat footed or against invis opponents");
+feato(FEAT_UNCANNY_DODGE,"uncanny dodge",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","retains dex bonus when flat footed or against invis opponents");
 
 /* Ranger */
-feato(FEAT_FAVORED_ENEMY_AVAILABLE,"available favored enemy choice(s)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_FAVORED_ENEMY,"favored enemy",TRUE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"varies","Gain bonuses when fighting against a particular type of enemy");
-feato(FEAT_CAMOUFLAGE,"camouflage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_COMBAT_STYLE,"combat style",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_IMPROVED_COMBAT_STYLE,"improved combat style",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_COMBAT_STYLE_MASTERY,"combat style master",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_HIDE_IN_PLAIN_SIGHT,"hide in plain sight",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_SWIFT_TRACKER,"swift tracker",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
+feato(FEAT_FAVORED_ENEMY_AVAILABLE,"available favored enemy choice(s)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can choose an enemy type as a favored enemy");
+feato(FEAT_FAVORED_ENEMY,"favored enemy",TRUE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Gain bonuses when fighting against a particular type of enemy");
+feato(FEAT_CAMOUFLAGE,"camouflage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can use the Hide skill in any sort of natural terrain, even if the terrain doesn't grant cover or concealment.");
+feato(FEAT_COMBAT_STYLE,"combat style",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.");
+feato(FEAT_IMPROVED_COMBAT_STYLE,"improved combat style",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.");
+feato(FEAT_COMBAT_STYLE_MASTERY,"combat style master",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.");
+feato(FEAT_HIDE_IN_PLAIN_SIGHT,"hide in plain sight",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","While in any sort of natural terrain, can use the Hide skill without displaying a message.");
+feato(FEAT_SWIFT_TRACKER,"swift tracker",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","No penalty while autotracking.");
 
 /* Ranger/Druid */
-feato(FEAT_ANIMAL_COMPANION,"animal companion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_WILD_EMPATHY,"wild empathy",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_WOODLAND_STRIDE,"woodland stride",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
+feato(FEAT_ANIMAL_COMPANION,"animal companion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can call a loyal companion animal that accompanies the adventurer.");
+feato(FEAT_WILD_EMPATHY,"wild empathy",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","The adventurer can improve the attitude of an animal.");
+feato(FEAT_WOODLAND_STRIDE,"woodland stride",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Reduced movement penalty when moving through woodland areas.");
 
 /* Druid */
-feato(FEAT_NATURE_SENSE,"nature sense",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"druid level 1","+2 to lore and survival skills");
-feato(FEAT_RESIST_NATURES_LURE,"resist nature's lure",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"druid level 4","+4 to spells and spell like abilities from fey creatures");
-feato(FEAT_THOUSAND_FACES,"a thousand faces",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_TRACKLESS_STEP,"trackless step",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"druid level 3","cannot be tracked");
-feato(FEAT_WILD_SHAPE,"wild shape",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_WILD_SHAPE_ELEMENTAL,"wild shape (elemental)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_WILD_SHAPE_HUGE,"wild shape (huge)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_WILD_SHAPE_HUGE_ELEMENTAL,"wild shape (huge elemental)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_WILD_SHAPE_LARGE,"wild shape (large)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_WILD_SHAPE_PLANT,"wild shape (plant)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_WILD_SHAPE_TINY,"wild shape (tiny)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
+feato(FEAT_NATURE_SENSE,"nature sense",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+2 to lore and survival skills");
+feato(FEAT_RESIST_NATURES_LURE,"resist nature's lure",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+4 to spells and spell like abilities from fey creatures");
+feato(FEAT_THOUSAND_FACES,"a thousand faces",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"1UNDEFINED!","Can alter one's physical appearance, giving +10 to disguise checks.");
+feato(FEAT_TRACKLESS_STEP,"trackless step",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Do not leave tracks in natural areas (including the wilderness.)");
+feato(FEAT_WILD_SHAPE,"wild shape",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Gain the ability to shapechange into a selection of animals with unique abilities.");
+feato(FEAT_WILD_SHAPE_ELEMENTAL,"wild shape (elemental)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume elemental form.");
+feato(FEAT_WILD_SHAPE_HUGE,"wild shape (huge)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume the shape of a huge animal.");
+feato(FEAT_WILD_SHAPE_HUGE_ELEMENTAL,"wild shape (huge elemental)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume the shape of a huge elemental.");
+feato(FEAT_WILD_SHAPE_LARGE,"wild shape (large)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume the shape of a large animal.");
+feato(FEAT_WILD_SHAPE_PLANT,"wild shape (plant)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume plant-like forms.");
+feato(FEAT_WILD_SHAPE_TINY,"wild shape (tiny)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume the shape of tiny animals.");
 
 /* Druid/Monk */
-feato(FEAT_TIMELESS_BODY,"timeless body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","immune to negative aging effects");
+feato(FEAT_TIMELESS_BODY,"timeless body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","immune to negative aging effects");
 
 /* Monk */
-feato(FEAT_UNARMED_STRIKE,"unarmed strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_KI_STRIKE,"ki strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","unarmed attack considered a magical weapon");
-feato(FEAT_STILL_MIND,"still mind",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_WHOLENESS_OF_BODY,"wholeness of body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","can heal class level *2 hp to self");
-feato(FEAT_SLOW_FALL,"slow fall",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","no damage for falling 10 ft/feat rank");
-feato(FEAT_ABUNDANT_STEP,"abundant step",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"monk level 12","magically move between tight spaces, as the spell dimension door, once per day");
-feato(FEAT_DIAMOND_BODY,"diamond body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","immune to disease");
-feato(FEAT_DIAMOND_SOUL,"diamond soul",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","spell resistance equal to class level + 10");
-feato(FEAT_EMPTY_BODY,"empty body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","50% concealment for 1 round/monk level per day");
-feato(FEAT_FLURRY_OF_BLOWS,"flurry of blows",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","extra attack when fighting unarmed at -2 to all attacks");
-feato(FEAT_PERFECT_SELF,"perfect self",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","10/magic damage reduction");
-feato(FEAT_PURITY_OF_BODY,"purity of body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","immune to poison");
-feato(FEAT_QUIVERING_PALM,"quivering palm",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","chance to kill on strike with unarmed attack");
-feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON,"tongue of the sun and the moon",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","can speak any language");
+feato(FEAT_UNARMED_STRIKE,"unarmed strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Unarmed attacks are considered to be weapons.");
+feato(FEAT_KI_STRIKE,"ki strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","unarmed attack considered a magical weapon");
+feato(FEAT_STILL_MIND,"still mind",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+2 bonus on saving throws vs. Enchantments");
+feato(FEAT_WHOLENESS_OF_BODY,"wholeness of body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can heal class level*2 hp to self");
+feato(FEAT_SLOW_FALL,"slow fall",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","no damage for falling 1 room/feat rank");
+feato(FEAT_ABUNDANT_STEP,"abundant step",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","magically move between tight spaces, as the spell dimension door");
+feato(FEAT_DIAMOND_BODY,"diamond body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","immune to disease");
+feato(FEAT_DIAMOND_SOUL,"diamond soul",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","spell resistance equal to class level + 10");
+feato(FEAT_EMPTY_BODY,"empty body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","50% concealment for 1 round/monk level per day");
+feato(FEAT_FLURRY_OF_BLOWS,"flurry of blows",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","extra attack when fighting unarmed at -2 to all attacks");
+feato(FEAT_PERFECT_SELF,"perfect self",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Gain 10/magic damage reduction");
+feato(FEAT_PURITY_OF_BODY,"purity of body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","immune to poison");
+feato(FEAT_QUIVERING_PALM,"quivering palm",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","chance to kill on strike with unarmed attack");
+feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON,"tongue of the sun and the moon",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can speak any language");
 
 /* Bard */
-feato(FEAT_BARDIC_KNOWLEDGE,"bardic knowledge",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_BARDIC_MUSIC,"bardic music",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_COUNTERSONG,"countersong",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_FASCINATE,"fascinate",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_INSPIRE_COMPETENCE,"inspire competence",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_INSPIRE_GREATNESS,"inspire greatness",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_INSPIRE_HEROICS,"inspire heroics",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_MASS_SUGGESTION,"mass suggestion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_SONG_OF_FREEDOM,"song of freedom",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_SUGGESTION,"suggestion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_INSPIRE_COURAGE,"inspire courage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_INSPIRE_GREATNESS,"inspire greatness",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
+feato(FEAT_BARDIC_KNOWLEDGE,"bardic knowledge",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+Int modifier bonus on knowledge checks.");
+feato(FEAT_BARDIC_MUSIC,"bardic music",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Use Perform skill to create various magical effects.");
+feato(FEAT_COUNTERSONG,"countersong",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Boost group members' resistance to sonic attacks.");
+feato(FEAT_FASCINATE,"fascinate",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Fascinate one opponent plus one additional  for every three bard levels beyond first.");
+feato(FEAT_INSPIRE_COMPETENCE,"inspire competence",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Group members gain a +2 competence bonus on skills.");
+feato(FEAT_INSPIRE_GREATNESS,"inspire greatness",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Grant allies better fighting capability.");
+feato(FEAT_INSPIRE_HEROICS,"inspire heroics",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Grant allies a +4 morale bonus on saving throws and a +4 dodge bonus to AC.");
+feato(FEAT_MASS_SUGGESTION,"mass suggestion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Compel a group of opponents to perform an action.");
+feato(FEAT_SONG_OF_FREEDOM,"song of freedom",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Break an enchantment on a single target other than yourself.");
+feato(FEAT_SUGGESTION,"suggestion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Compel a single opponent to perform an action.");
+feato(FEAT_INSPIRE_COURAGE,"inspire courage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Bolster group members against fear attacks and improve their combat ability.");
 
 /* Berserker */
-feato(FEAT_RAGE,"rage",TRUE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"none","+4 bonus to con and str for several rounds");
+feato(FEAT_RAGE,"rage",TRUE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+4 bonus to con and str for several rounds");
 
 /* Sorcerer/Wizard */
-feato(FEAT_SUMMON_FAMILIAR,"summon familiar",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","summon a magical pet");
+feato(FEAT_SUMMON_FAMILIAR,"summon familiar",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","summon a magical pet");
 
 /* Disabled/Unimplemented */
 feato(FEAT_ENHANCED_MOBILITY,"enhanced mobility",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
@@ -529,12 +810,12 @@ feato(FEAT_OPPORTUNIST,"opportunist",FALSE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"R
 
 /* Racial ability feats */
 /* Crystal Dwarf */
-feato(FEAT_CRYSTAL_BODY,"crystal body",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"race crystal dwarf","Allows you to harden your crystal-like body for a short time. (Damage reduction 3/-)");
-feato(FEAT_CRYSTAL_FIST,"crystal fist",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"race crystal dwarf","Allows you to innately grow jagged and sharp crystals on your arms and legs to enhance damage in melee. (+3 damage)");
+feato(FEAT_CRYSTAL_BODY,"crystal body",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"!UNDEFINED!","Allows you to harden your crystal-like body for a short time. (Damage reduction 3/-)");
+feato(FEAT_CRYSTAL_FIST,"crystal fist",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"!UNDEFINED!","Allows you to innately grow jagged and sharp crystals on your arms and legs to enhance damage in melee. (+3 damage)");
 
 /* Various */
-feato(FEAT_DARKVISION,"darkvision",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"ask staff","ask staff");
-feato(FEAT_LOW_LIGHT_VISION,"low light vision",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"none","can see in the dark outside only");
+feato(FEAT_DARKVISION,"darkvision",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"!UNDEFINED!","ask staff");
+feato(FEAT_LOW_LIGHT_VISION,"low light vision",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"!UNDEFINED!","can see in the dark outside only");
 
 /* End Racial ability feats */
 
@@ -588,11 +869,156 @@ epicfeat(FEAT_LAST_FEAT);
 
 }
 
+/* bool meets_prerequisite(ch, prereq)
+ * Check to see if ch meets the provided feat prerequisite. */
+bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, int iarg) {
+
+  switch (prereq->prerequisite_type) {
+    case FEAT_PREREQ_NONE:
+      /* This is a NON-prereq. */
+      break;
+    case FEAT_PREREQ_ATTRIBUTE:
+      switch (prereq->values[0]) {
+        case AB_STR:
+          if (ch->real_abils.str < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_DEX:
+          if (ch->real_abils.dex < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_CON:
+          if (ch->real_abils.con < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_WIS:
+          if (ch->real_abils.wis < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_INT:
+          if (ch->real_abils.intel < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_CHA:
+          if (ch->real_abils.cha < prereq->values[1])
+            return FALSE;
+          break;
+        default:
+          log("SYSERR: meets_prerequisite() - Bad Attribute prerequisite %d", prereq->values[0]);
+          return FALSE;
+      }
+    case FEAT_PREREQ_CLASS_LEVEL:
+      if (CLASS_LEVEL(ch, prereq->values[0]) < prereq->values[1])
+        return FALSE;
+      break;
+    case FEAT_PREREQ_FEAT:
+      if (HAS_FEAT(ch, prereq->values[0]) < prereq->values[1])
+        return FALSE;
+      break;
+    case FEAT_PREREQ_ABILITY:
+      if (GET_ABILITY(ch, prereq->values[0]) < prereq->values[1])
+        return FALSE;
+      break;
+    case FEAT_PREREQ_SPELLCASTING:
+      switch (prereq->values[0]) {
+        case CASTING_TYPE_NONE:
+          if (IS_SPELLCASTER(ch))
+            return FALSE;
+          break;
+        case CASTING_TYPE_ARCANE:
+          if(!(IS_WIZARD(ch) ||
+               IS_SORCERER(ch) ||
+               IS_BARD(ch)))
+            return FALSE;
+/* This stuff is all messed up - fix. */
+          if (prereq->values[2] > 0) {
+            if (!(comp_slots(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
+                  comp_slots(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
+                  comp_slots(ch, CLASS_BARD, prereq->values[2]) == 0))
+              return FALSE;
+          }
+          break;
+        case CASTING_TYPE_DIVINE:
+          if(!(IS_CLERIC(ch) ||
+               IS_DRUID(ch) ||
+               IS_PALADIN(ch) ||
+               IS_RANGER(ch)))
+            return FALSE;
+         if (prereq->values[2] > 0) {
+            if (!(comp_slots(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
+                  comp_slots(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
+                  comp_slots(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
+                  comp_slots(ch, CLASS_RANGER, prereq->values[2]) == 0))
+              return FALSE;
+          }
+          break;
+        case CASTING_TYPE_ANY:
+          if(!IS_SPELLCASTER(ch))
+            return FALSE;
+          if (prereq->values[2] > 0) {
+            if (!(comp_slots(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
+                  comp_slots(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
+                  comp_slots(ch, CLASS_BARD, prereq->values[2]) == 0 ||
+                  comp_slots(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
+                  comp_slots(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
+                  comp_slots(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
+                  comp_slots(ch, CLASS_RANGER, prereq->values[2]) == 0))
+             return FALSE;
+          }
+          break;
+        default:
+          log("SYSERR: meets_prerequisite() - Bad Casting Type prerequisite %d", prereq->values[0]);
+          return FALSE;
+      }
+
+      switch (prereq->values[1]) {
+        case PREP_TYPE_NONE:
+          return FALSE;
+        case PREP_TYPE_PREPARED:
+          if (!IS_MEM_BASED_CASTER(ch))
+            return FALSE;
+          break;
+        case PREP_TYPE_SPONTANEOUS:
+          if (IS_MEM_BASED_CASTER(ch))
+            return FALSE;
+          break;
+        case PREP_TYPE_ANY:
+          break;
+        default:
+          log("SYSERR: meets_prerequisite() - Bad Preparation type prerequisite %d", prereq->values[1]);
+          return FALSE;
+      }
+    case FEAT_PREREQ_RACE:
+      if (!IS_NPC(ch) && GET_RACE(ch) != prereq->values[0])
+        return FALSE;
+      break;
+    case FEAT_PREREQ_BAB:
+      if (BAB(ch) < prereq->values[0])
+        return FALSE;
+      break;
+    case FEAT_PREREQ_CFEAT:
+      /*  SPECIAL CASE - You must have a feat, and it must be the cfeat for the chosen weapon. */
+      if (iarg && !has_combat_feat(ch, feat_to_cfeat(prereq->values[0]), iarg))
+        return FALSE;
+      break;
+    case FEAT_PREREQ_WEAPON_PROFICIENCY:
+      if (iarg && !is_proficient_with_weapon(ch, iarg))
+        return FALSE;
+      break;
+    default:
+      log("SYSERR: meets_prerequisite() - Bad prerequisite type %d", prereq->prerequisite_type);
+      return FALSE;
+  }
+
+  return TRUE;
+}
+
 // The follwing function is used to check if the character satisfies the various prerequisite(s) (if any)
 // of a feat in order to learn it.
-
 int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
 {
+  struct feat_prerequisite *prereq = NULL;
+
   if (featnum > NUM_FEATS)
     return FALSE;
 
@@ -601,6 +1027,14 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
 
   if (has_feat(ch, featnum) && !feat_list[featnum].can_stack)
     return FALSE;
+
+  if (feat_list[featnum].prerequisite_list != NULL) {
+    /*  This feat has prerequisites. Traverse the list and check. */
+    for(prereq = feat_list[featnum].prerequisite_list; prereq != NULL; prereq = prereq->next) {    
+      if(meets_prerequisite(ch, prereq, iarg) == FALSE)
+        return FALSE;
+    }
+  } else {
 
   switch (featnum) {
 
@@ -849,11 +1283,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
   		return FALSE;
   	return TRUE;
 
-  case FEAT_COMBAT_EXPERTISE:
-  	if (ch->real_abils.intel < 13)
-  		return false;
-    return true;
-    
   case FEAT_IMPROVED_FEINT:
     if (!has_feat(ch, FEAT_COMBAT_EXPERTISE))
       return false;
@@ -1105,21 +1534,21 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     if (BAB(ch) < 1)
       return FALSE;
     return TRUE;
-
+/* 
   case FEAT_WEAPON_FOCUS:
     if (BAB(ch) < 1)
       return FALSE;
     if (!iarg || is_proficient_with_weapon(ch, iarg))
       return TRUE;
     return FALSE;
-
+*/
   case FEAT_WEAPON_SPECIALIZATION:
     if (BAB(ch) < 4 || CLASS_LEVEL(ch, CLASS_WARRIOR) < 4)
       return FALSE;
     if (!iarg || is_proficient_with_weapon(ch, iarg))
       return TRUE;
     return FALSE;
-
+/*
   case FEAT_GREATER_WEAPON_FOCUS:
     if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 8)
       return FALSE;
@@ -1128,7 +1557,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     if (is_proficient_with_weapon(ch, iarg) && has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
       return TRUE;
     return FALSE;
-/*    
+    
   case FEAT_EPIC_SKILL_FOCUS:
     if (!iarg)
       return TRUE;
@@ -1275,6 +1704,8 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     return TRUE;
 
   }
+  }
+  return TRUE;
 }
 
 int is_proficient_with_armor(const struct char_data *ch, int armor_type)
@@ -1444,7 +1875,34 @@ void sort_feats(void)
   qsort(&feat_sort_info[1], NUM_FEATS, sizeof(int), compare_feats);
 }
 
-void list_feats_known(struct char_data *ch, char *arg) 
+/*
+ *  --------------------------------Known Feats-------------------------------------
+ *  Heavy Armor Proficiency       : You are proficient with heavy armor.
+ *  Light Armor Proficiency       : You are proficient with light armor.
+ *  Medium Armor Proficiency      : You are proficient with medium armor.
+ *  Simple Weapon Proficiency     : You are proficient with simple weapons.
+ *  Martial Weapon Proficiency    : You are proficient with martial weapons.
+ *  Shield Proficiency            : You are proficient with shields and bucklers.
+ *  Tower Shield Proficiency      : You are proficient with tower shields.
+ *  Power Attack                  : You can make exceptionally powerful attacks.
+ *  Cleave                        : You can follow through with powerful blows.
+ *  Great Cleave                  : You can slay multiple enemies with each strike.
+ *  Tongue of the Sun and the Moon: You can speak any language.
+ *  Stacking Feat                 : This feat stacks.
+ *  Stacking Feat                 : This feat stacks.
+ *  --------------------------------------------------------------------------------
+ *
+ *  The short description of the feats must not be longer than 47 characters.
+ *
+ *  --------------------------------Known Feats-------------------------------------
+ *  Heavy Armor Proficiency             Simple Weapon Proficiency  
+ *  Light Armor Proficiency             Martial Weapon Proficiency 
+ *  Medium Armor Proficiency            Shield Proficiency
+ *  Shield Proficiency                  Stackable Feat
+ *  Stackable Feat                      Weapon Focus (Greatsword) 
+ *  -------------------------------------------------------------------------------- 
+ */
+void list_feats(struct char_data *ch, char *arg, int list_type) 
 {
   int i, sortpos, j;
   int none_shown = TRUE;
@@ -1453,26 +1911,19 @@ void list_feats_known(struct char_data *ch, char *arg)
   int count = 0;
   int subfeat;
 
+  int line_length = 80; /* Width of the display. */
+
   if (*arg && is_abbrev(arg, "descriptions")) {
     mode = 1;
   }
-
-  else if (*arg && is_abbrev(arg, "requisites")) {
-    mode = 2;
-  }
-
-  if (!GET_FEAT_POINTS(ch))
-    strcpy(buf, "\r\nYou cannot learn any feats right now.\r\n");
-  else
-    sprintf(buf, "\r\nYou can learn %d feat%s and %d class feat%s right now.\r\n",
-            GET_FEAT_POINTS(ch), (GET_FEAT_POINTS(ch) == 1 ? "" : "s"), GET_CLASS_FEATS(ch, GET_CLASS(ch)), 
-	    (GET_CLASS_FEATS(ch, GET_CLASS(ch)) == 1 ? "" : "s"));
-
-    
-  // Display Headings
-  sprintf(buf + strlen(buf), "\r\n");
-  sprintf(buf + strlen(buf), "\tC-- \tWFeats Known\tC ---------------------------------------------\tn\r\n");
-  sprintf(buf + strlen(buf), "\r\n");
+  
+  /* Header bar */
+  if (list_type == LIST_FEATS_KNOWN)
+    sprintf(buf + strlen(buf), "\tC%s\tn", text_line_string("\tYKnown Feats\tC", line_length, '-', '-'));
+  if (list_type == LIST_FEATS_AVAILABLE)
+    sprintf(buf + strlen(buf), "\tC%s\tn", text_line_string("\tYAvailable Feats\tC", line_length, '-', '-'));
+  if (list_type == LIST_FEATS_ALL)
+    sprintf(buf + strlen(buf), "\tC%s\tn", text_line_string("\tYAll Feats\tC", line_length, '-', '-'));
 
   strcpy(buf2, buf);
 
@@ -1482,18 +1933,19 @@ void list_feats_known(struct char_data *ch, char *arg)
       break;
 
     i = feat_sort_info[sortpos];
-    if (has_feat(ch, i)  && feat_list[i].in_game) {
+    /*  Print the feat, depending on the type of list. */
+    if ((list_type == LIST_FEATS_KNOWN     && (has_feat(ch, i)  && feat_list[i].in_game)) ||
+        (list_type == LIST_FEATS_AVAILABLE && (feat_is_available(ch, i, 0, NULL) && feat_list[i].in_game && feat_list[i].can_learn)) ||
+        (list_type == LIST_FEATS_ALL       && (feat_list[i].in_game)))
+        
+    {
       if ((subfeat = feat_to_sfeat(i)) != -1) {
         /* This is a 'school feat' */
-        send_to_char(ch, "SCHOOL_FEATS! %d\r\n", ch->char_specials.saved.school_feats[subfeat]);
         for (j = 1; j < NUM_SCHOOLS; j++) {         
           if (HAS_SCHOOL_FEAT(ch, subfeat, j)) {
             if (mode == 1) { /* description mode */
-              sprintf(buf3, "%s (%s):", feat_list[i].name, spell_schools[j]);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) { /* prereq. mode */
-              sprintf(buf3, "%s (%s):", feat_list[i].name, spell_schools[j]);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s)", feat_list[i].name, spell_schools[j]);
+              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
             } else {
               sprintf(buf3, "%s (%s) ", feat_list[i].name, spell_schools[j]);
               sprintf(buf, "%-40s ", buf3);
@@ -1501,374 +1953,45 @@ void list_feats_known(struct char_data *ch, char *arg)
             strcat(buf2, buf);
             none_shown = FALSE;
   
-            if (!mode) {
-              count++;
-              if (count %2 == 1)
-                strcat(buf2, "\r\n");
-            }
           }
         }
       } else 
-      if (i == FEAT_WEAPON_FOCUS) {
+      if ((subfeat = feat_to_cfeat(i)) != -1) {
+        /* This is a 'combat feat' */
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_FOCUS, j)) { // || has_weapon_feat_full(ch, FEAT_WEAPON_FOCUS, j, FALSE)) {
+          if (HAS_COMBAT_FEAT(ch, subfeat, j)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
             } else {
               sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
             none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-          }	  
+            
+          }
         }
-      } else if (i == FEAT_WEAPON_MASTERY) {
-        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_MASTERY, j)) { // || has_weapon_feat_full(ch, FEAT_WEAPON_MASTERY, j, FALSE)) {
+      } else
+      if ((subfeat = feat_to_skfeat(i)) != -1) {
+        /* This is a 'skill' feat */
+        for (j = 1; j < NUM_ABILITIES; j++) {
+          if (ch->player_specials->saved.skill_focus[i][j] > 0) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+              sprintf(buf3, "%s (%s)", feat_list[i].name, ability_names[j]);
+              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf3, "%s (%s)", feat_list[i].name, ability_names[j]);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
             none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-          }	  
-        }
-      } else if (i == FEAT_WEAPON_FLURRY) {
-        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_FLURRY, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_FLURRY, j, FALSE)) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-            strcat(buf2, buf);
-            none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-          }	  
-        }
-      } else if (i == FEAT_WEAPON_SUPREMACY) {
-        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-          if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_SUPREMACY, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_SUPREMACY, j, FALSE)) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-            strcat(buf2, buf);
-            none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-          }	  
-        }
-      } else if (i == FEAT_POWER_CRITICAL) {
-        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-          if (HAS_COMBAT_FEAT(ch, CFEAT_POWER_CRITICAL, j)) {// || has_weapon_feat_full(ch, FEAT_POWER_CRITICAL, j, FALSE)) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-            strcat(buf2, buf);
-            none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-          }	  
-        }
-      } else if (i == FEAT_GREATER_WEAPON_FOCUS) {
-      for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_GREATER_WEAPON_FOCUS, j)) {// || has_weapon_feat_full(ch, FEAT_GREATER_WEAPON_FOCUS, j, FALSE)) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-          strcat(buf2, buf);
-          none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-        }
-      }
-      } else if (i == FEAT_FAVORED_ENEMY) {
-/*      for (j = 1; j < NUM_RACE_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_FAVORED_ENEMY, j)) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, race_types[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, race_types[j]);
-              sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s)", feat_list[i].name, race_types[j]);
-              sprintf(buf, "%-40s ", buf3);
-            }
-          strcat(buf2, buf);
-          none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-        }
-      }
-*/      } else if (i == FEAT_WEAPON_SPECIALIZATION) {
-      for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_WEAPON_SPECIALIZATION, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_SPECIALIZATION, j, FALSE)) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-          strcat(buf2, buf);
-          none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-        }
-      }
-      } else if (i == FEAT_GREATER_WEAPON_SPECIALIZATION) {
-      for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_GREATER_WEAPON_SPECIALIZATION, j)) {// || has_weapon_feat_full(ch, FEAT_GREATER_WEAPON_SPECIALIZATION, j, FALSE)) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-          strcat(buf2, buf);
-          none_shown = FALSE;
-        }
-      }
-      } else if (i == FEAT_IMPROVED_CRITICAL) {
-        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_IMPROVED_CRITICAL, j)) {// || has_weapon_feat_full(ch, FEAT_IMPROVED_CRITICAL, j, FALSE)) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-          strcat(buf2, buf);
-          none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-        }
-        }
-      } else if (i == FEAT_IMPROVED_WEAPON_FINESSE) {
-        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_IMPROVED_WEAPON_FINESSE, j)) {// || has_weapon_feat_full(ch, FEAT_WEAPON_FINESSE, j, FALSE)) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-          strcat(buf2, buf);
-          none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-        }
-        }
-      } else if (i == FEAT_EXOTIC_WEAPON_PROFICIENCY) {
-        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, j)) {// || has_weapon_feat_full(ch, FEAT_EXOTIC_WEAPON_PROFICIENCY, j, FALSE)) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-          strcat(buf2, buf);
-          none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-        }
-        }
-      } else if (i == FEAT_MONKEY_GRIP) {
-        for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-        if (HAS_COMBAT_FEAT(ch, CFEAT_MONKEY_GRIP, j)) {// || has_weapon_feat_full(ch, FEAT_MONKEY_GRIP, j, FALSE)) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-          strcat(buf2, buf);
-          none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-        }
-        }
-      } else if (i == FEAT_SKILL_FOCUS) {
-        for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++) {
-        if (ch->player_specials->saved.skill_focus[i][j-MAX_SPELLS + 1] > 0) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, spell_info[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, spell_info[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s)", feat_list[i].name, spell_info[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-          strcat(buf2, buf);
-          none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-        }
-        }
-      } else if (i == FEAT_EPIC_SKILL_FOCUS) {
-        for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++) {
-        if (ch->player_specials->saved.skill_focus[i][j-MAX_SPELLS + 1] > 1) {
-            if (mode == 1) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, spell_info[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-            } else if (mode == 2) {
-              sprintf(buf3, "%s (%s):", feat_list[i].name, spell_info[j].name);
-              sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-            } else {
-              sprintf(buf3, "%s (%s)", feat_list[i].name, spell_info[j].name);
-              sprintf(buf, "%-40s ", buf3);
-            }
-          strcat(buf2, buf);
-          none_shown = FALSE;
-
-            if (!mode) {
-              count++;
-              if (count % 2 == 1)
-               strcat(buf2, "\r\n");
-            }
-
-        }
+          }
         }
       } else if (i == FEAT_FAST_HEALING) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d hp/round):", feat_list[i].name, has_feat(ch, FEAT_FAST_HEALING) * 3);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d hp/round):", feat_list[i].name, has_feat(ch, FEAT_FAST_HEALING) * 3);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d hp/round)", feat_list[i].name, has_feat(ch, FEAT_FAST_HEALING) * 3);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d hp/round)", feat_list[i].name, has_feat(ch, FEAT_FAST_HEALING) * 3);
             sprintf(buf, "%-40s ", buf3);
@@ -1877,11 +2000,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_DAMAGE_REDUCTION) {
           if (mode == 1) {
-            sprintf(buf3, "%s (%d/-):", feat_list[i].name, has_feat(ch, FEAT_DAMAGE_REDUCTION));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (%d/-):", feat_list[i].name, has_feat(ch, FEAT_DAMAGE_REDUCTION));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_DAMAGE_REDUCTION));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_DAMAGE_REDUCTION));
             sprintf(buf, "%-40s ", buf3);
@@ -1890,50 +2010,28 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_ARMOR_SKIN) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d natural ac):", feat_list[i].name, has_feat(ch, FEAT_ARMOR_SKIN));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d natural ac):", feat_list[i].name, has_feat(ch, FEAT_ARMOR_SKIN));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_ARMOR_SKIN));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
-            sprintf(buf3, "%s (+%d natural ac)", feat_list[i].name, has_feat(ch, FEAT_ARMOR_SKIN));
+            sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_ARMOR_SKIN));
             sprintf(buf, "%-40s ", buf3);
           }
           strcat(buf2, buf);
           none_shown = FALSE;
       } else if (i == FEAT_ENERGY_RESISTANCE) {
           if (mode == 1) {
-            sprintf(buf3, "%s (%d/-):", feat_list[i].name, has_feat(ch, FEAT_ENERGY_RESISTANCE) * 3);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (%d/-):", feat_list[i].name, has_feat(ch, FEAT_ENERGY_RESISTANCE) * 3);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_ENERGY_RESISTANCE) * 3);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_ENERGY_RESISTANCE) * 3);
             sprintf(buf, "%-40s ", buf3);
           }
           strcat(buf2, buf);
           none_shown = FALSE;
-      } else if (i == FEAT_DEITY_WEAPON_PROFICIENCY) {
-/*          if (mode == 1) {
-            sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[deity_list[GET_DEITY(ch)].favored_weapon].name);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (%s):", feat_list[i].name, weapon_list[deity_list[GET_DEITY(ch)].favored_weapon].name);
-            sprintf(buf, "	W%-30s	n %s\r\n", buf3, feat_list[i].prerequisites);
-          } else {
-            sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[deity_list[GET_DEITY(ch)].favored_weapon].name);
-            sprintf(buf, "%-40s ", buf3);
-          }
-          strcat(buf2, buf);
-          none_shown = FALSE;
-*/      } else if (i == FEAT_HASTE) {
+      } else if (i == FEAT_HASTE) {
           if (mode == 1) {
-            sprintf(buf3, "%s (3x/day):", feat_list[i].name);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (3x/day):", feat_list[i].name);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (3x/day)", feat_list[i].name);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (3x/day)", feat_list[i].name);
             sprintf(buf, "%-40s ", buf3);
@@ -1942,11 +2040,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_SACRED_FLAMES) {
           if (mode == 1) {
-            sprintf(buf3, "%s (3x/day):", feat_list[i].name);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (3x/day):", feat_list[i].name);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (3x/day)", feat_list[i].name);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (3x/day)", feat_list[i].name);
             sprintf(buf, "%-40s ", buf3);
@@ -1955,11 +2050,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_DRAGON_MOUNT_BREATH) {
           if (mode == 1) {
-            sprintf(buf3, "%s (%dx/day):", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BREATH));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (%dx/day):", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BREATH));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (%dx/day)", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BREATH));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (%dx/day)", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BREATH));
             sprintf(buf, "%-40s ", buf3);
@@ -1968,37 +2060,18 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_DRAGON_MOUNT_BOOST) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BOOST));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BOOST));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BOOST));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BOOST));
             sprintf(buf, "%-40s ", buf3);
           }
           strcat(buf2, buf);
           none_shown = FALSE;
-      } else if (i == FEAT_DAMAGE_REDUCTION_FS) {
-          if (mode == 1) {
-            sprintf(buf3, "%s (10/cold iron):", feat_list[i].name);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (10/cold iron):", feat_list[i].name);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-          } else {
-            sprintf(buf3, "%s (10/cold iron):", feat_list[i].name);
-            sprintf(buf, "%-40s ", buf3);
-          }
-          strcat(buf2, buf);
-          none_shown = FALSE;
       } else if (i == FEAT_BREATH_WEAPON) {
           if (mode == 1) {
-            sprintf(buf3, "%s (%dd8 dmg|%dx/day):", feat_list[i].name, has_feat(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (%dd8 dmg|%dx/day):", feat_list[i].name, has_feat(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (%dd8 dmg|%dx/day)", feat_list[i].name, has_feat(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (%dd8 dmg|%dx/day)", feat_list[i].name, has_feat(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
             sprintf(buf, "%-40s ", buf3);
@@ -2007,11 +2080,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_LEADERSHIP) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d%% group exp):", feat_list[i].name, 5 * (1 + has_feat(ch, FEAT_LEADERSHIP)));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d%% group exp):", feat_list[i].name, 5 * (1 + has_feat(ch, FEAT_LEADERSHIP)));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d%% group exp)", feat_list[i].name, 5 * (1 + has_feat(ch, FEAT_LEADERSHIP)));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d%% group exp)", feat_list[i].name, 5 * (1 + has_feat(ch, FEAT_LEADERSHIP)));
             sprintf(buf, "%-40s ", buf3);
@@ -2020,37 +2090,18 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_RAGE) {
           if (mode == 1) {
-            sprintf(buf3, "%s (%d / day):", feat_list[i].name, has_feat(ch, FEAT_RAGE));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (%d / day):", feat_list[i].name, has_feat(ch, FEAT_RAGE));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (%d / day)", feat_list[i].name, has_feat(ch, FEAT_RAGE));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (%d / day)", feat_list[i].name, has_feat(ch, FEAT_RAGE));
             sprintf(buf, "%-40s ", buf3);
           }
           strcat(buf2, buf);
           none_shown = FALSE;
-      } else if (i == FEAT_STRENGTH_OF_HONOR) {
-          if (mode == 1) {
-            sprintf(buf3, "%s (%d / day):", feat_list[i].name, has_feat(ch, FEAT_STRENGTH_OF_HONOR));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (%d / day):", feat_list[i].name, has_feat(ch, FEAT_STRENGTH_OF_HONOR));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
-          } else {
-            sprintf(buf3, "%s (%d / day)", feat_list[i].name, has_feat(ch, FEAT_STRENGTH_OF_HONOR));
-            sprintf(buf, "%-40s ", buf3);
-          }
-          strcat(buf2, buf);
-          none_shown = FALSE;
       } else if (i == FEAT_DEFENSIVE_STANCE) {
           if (mode == 1) {
-            sprintf(buf3, "%s (%d / day):", feat_list[i].name, has_feat(ch, FEAT_DEFENSIVE_STANCE));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (%d / day):", feat_list[i].name, has_feat(ch, FEAT_DEFENSIVE_STANCE));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (%d / day)", feat_list[i].name, has_feat(ch, FEAT_DEFENSIVE_STANCE));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (%d / day)", feat_list[i].name, has_feat(ch, FEAT_DEFENSIVE_STANCE));
             sprintf(buf, "%-40s ", buf3);
@@ -2059,11 +2110,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_ENHANCED_SPELL_DAMAGE) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d dam / die):", feat_list[i].name, has_feat(ch, FEAT_ENHANCED_SPELL_DAMAGE));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d dam / die):", feat_list[i].name, has_feat(ch, FEAT_ENHANCED_SPELL_DAMAGE));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d dam / die)", feat_list[i].name, has_feat(ch, FEAT_ENHANCED_SPELL_DAMAGE));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d dam / die)", feat_list[i].name, has_feat(ch, FEAT_ENHANCED_SPELL_DAMAGE));
             sprintf(buf, "%-40s ", buf3);
@@ -2072,11 +2120,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_FASTER_MEMORIZATION) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d ranks):", feat_list[i].name, has_feat(ch, FEAT_FASTER_MEMORIZATION));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d ranks):", feat_list[i].name, has_feat(ch, FEAT_FASTER_MEMORIZATION));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_FASTER_MEMORIZATION));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_FASTER_MEMORIZATION));
             sprintf(buf, "%-40s ", buf3);
@@ -2085,11 +2130,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_EMPOWERED_MAGIC) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d to dcs):", feat_list[i].name, has_feat(ch, FEAT_EMPOWERED_MAGIC));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d to dcs):", feat_list[i].name, has_feat(ch, FEAT_EMPOWERED_MAGIC));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d to dcs)", feat_list[i].name, has_feat(ch, FEAT_EMPOWERED_MAGIC));
+            sprintf(buf, "\tW%-30s\tC:\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d to dcs)", feat_list[i].name, has_feat(ch, FEAT_EMPOWERED_MAGIC));
             sprintf(buf, "%-40s ", buf3);
@@ -2098,11 +2140,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_ENHANCE_SPELL) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d dam dice):", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_SPELL) * 5);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d dam dice):", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_SPELL) * 5);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d dam dice)", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_SPELL) * 5);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d dam dice)", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_SPELL) * 5);
             sprintf(buf, "%-40s ", buf3);
@@ -2111,24 +2150,18 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_NATURAL_ARMOR_INCREASE) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d natural ac):", feat_list[i].name, has_feat(ch, FEAT_NATURAL_ARMOR_INCREASE));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d natural ac):", feat_list[i].name, has_feat(ch, FEAT_NATURAL_ARMOR_INCREASE));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_NATURAL_ARMOR_INCREASE));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
-            sprintf(buf3, "%s (+%d natural ac)", feat_list[i].name, has_feat(ch, FEAT_NATURAL_ARMOR_INCREASE));
+            sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_NATURAL_ARMOR_INCREASE));
             sprintf(buf, "%-40s ", buf3);
           }
           strcat(buf2, buf);
           none_shown = FALSE;
       } else if (i == FEAT_GREAT_STRENGTH) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_STRENGTH));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_STRENGTH));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_STRENGTH));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_STRENGTH));
             sprintf(buf, "%-40s ", buf3);
@@ -2137,11 +2170,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_GREAT_DEXTERITY) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_DEXTERITY));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_DEXTERITY));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_DEXTERITY));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_DEXTERITY));
             sprintf(buf, "%-40s ", buf3);
@@ -2150,11 +2180,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_GREAT_CONSTITUTION) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_CONSTITUTION));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_CONSTITUTION));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_CONSTITUTION));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_CONSTITUTION));
             sprintf(buf, "%-40s ", buf3);
@@ -2163,11 +2190,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_GREAT_INTELLIGENCE) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_INTELLIGENCE));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_INTELLIGENCE));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_INTELLIGENCE));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_INTELLIGENCE));
             sprintf(buf, "%-40s ", buf3);
@@ -2176,11 +2200,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_GREAT_WISDOM) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_WISDOM));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_WISDOM));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_WISDOM));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_WISDOM));
             sprintf(buf, "%-40s ", buf3);
@@ -2189,11 +2210,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_GREAT_CHARISMA) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_CHARISMA));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_GREAT_CHARISMA));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_CHARISMA));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_CHARISMA));
             sprintf(buf, "%-40s ", buf3);
@@ -2202,11 +2220,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_POISON_SAVE_BONUS) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_POISON_SAVE_BONUS));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_POISON_SAVE_BONUS));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_POISON_SAVE_BONUS));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_POISON_SAVE_BONUS));
             sprintf(buf, "%-40s ", buf3);
@@ -2215,11 +2230,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_SNEAK_ATTACK) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%dd6):", feat_list[i].name, has_feat(ch, FEAT_SNEAK_ATTACK));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%dd6):", feat_list[i].name, has_feat(ch, FEAT_SNEAK_ATTACK));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%dd6)", feat_list[i].name, has_feat(ch, FEAT_SNEAK_ATTACK));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%dd6)", feat_list[i].name, has_feat(ch, FEAT_SNEAK_ATTACK));
             sprintf(buf, "%-40s ", buf3);
@@ -2228,11 +2240,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_SELF_CONCEALMENT) {
           if (mode == 1) {
-            sprintf(buf3, "%s (%d%% miss):", feat_list[i].name, has_feat(ch, FEAT_SELF_CONCEALMENT) * 10);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (%d%% miss):", feat_list[i].name, has_feat(ch, FEAT_SELF_CONCEALMENT) * 10);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (%d%% miss)", feat_list[i].name, has_feat(ch, FEAT_SELF_CONCEALMENT) * 10);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (%d%% miss)", feat_list[i].name, has_feat(ch, FEAT_SELF_CONCEALMENT) * 10);
             sprintf(buf, "%-40s ", buf3);
@@ -2241,11 +2250,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_ENHANCE_ARROW_MAGIC) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_ARROW_MAGIC));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d):", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_ARROW_MAGIC));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_ARROW_MAGIC));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_ARROW_MAGIC));
             sprintf(buf, "%-40s ", buf3);
@@ -2254,11 +2260,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_FAST_CRAFTER) {
           if (mode == 1) {
-            sprintf(buf3, "%s (%d%% less time):", feat_list[i].name, has_feat(ch, FEAT_FAST_CRAFTER) * 10);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (-%d seconds):", feat_list[i].name, has_feat(ch, FEAT_FAST_CRAFTER) * 10);
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (%d%% less time)", feat_list[i].name, has_feat(ch, FEAT_FAST_CRAFTER) * 10);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (-%d seconds)", feat_list[i].name, has_feat(ch, FEAT_FAST_CRAFTER) * 10);
             sprintf(buf, "%-40s ", buf3);
@@ -2267,11 +2270,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_PROFICIENT_CRAFTER) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d to checks):", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_CRAFTER));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d to checks):", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_CRAFTER));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_CRAFTER));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_CRAFTER));
             sprintf(buf, "%-40s ", buf3);
@@ -2280,11 +2280,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else if (i == FEAT_PROFICIENT_HARVESTER) {
           if (mode == 1) {
-            sprintf(buf3, "%s (+%d to checks):", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_HARVESTER));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-          } else if (mode == 2) {
-            sprintf(buf3, "%s (+%d to checks):", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_HARVESTER));
-            sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+            sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_HARVESTER));
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
           } else {
             sprintf(buf3, "%-20s (+%d to checks)", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_HARVESTER));
             sprintf(buf, "%-40s ", buf3);
@@ -2293,11 +2290,8 @@ void list_feats_known(struct char_data *ch, char *arg)
           none_shown = FALSE;
       } else {
         if (mode == 1) {
-          sprintf(buf3, "%s:", feat_list[i].name);
-          sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].description);
-        } else if (mode == 2) {
-          sprintf(buf3, "%s:", feat_list[i].name);
-          sprintf(buf, "\tW%-30s\tn %s\r\n", buf3, feat_list[i].prerequisites);
+          sprintf(buf3, "%s", feat_list[i].name);
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
         } else {
           sprintf(buf, "%-40s ", feat_list[i].name);
         }
@@ -2306,24 +2300,23 @@ void list_feats_known(struct char_data *ch, char *arg)
       }
       if (!mode) {
         count++;
-        if (count % 2 == 1)
+        if (count % 2 == 0)
          strcat(buf2, "\r\n");
       }
     }
   }
 
-  if (!mode) {
-    if (count % 2 != 1)
-      strcat(buf2, "\r\n");
-  }
-  strcat(buf2, "\r\n");
-
   if (none_shown) {
     sprintf(buf, "You do not know any feats at this time.\r\n");
     strcat(buf2, buf);
   }
-   
-  strcat(buf2, "	WSyntax: feats <known|available|complete> <description|requisites|classfeats> (both arguments optional)	n\r\n");
+
+  if (count %2 == 1) /* Only one feat on last row */
+    strcat(buf2, "\r\n");
+
+  strcat(buf2, "\tC");
+  strcat(buf2, line_string(line_length, '-', '-'));
+  strcat(buf2, "\tDSyntax: feats <known|available|all|descriptions>\tn\r\n");
 
   page_string(ch->desc, buf2, 1);
 }
@@ -2524,7 +2517,6 @@ void list_feats_complete(struct char_data *ch, char *arg)
   page_string(ch->desc, buf2, 1);
 }
 
-#ifdef COMPILE_D20_FEATS
 int find_feat_num(char *name)
 {  
   int index, ok;
@@ -2552,21 +2544,174 @@ int find_feat_num(char *name)
     
   return (-1);
 }
-#endif
 
+/* display_feat_info()
+ *
+ * Show information about a particular feat, dynamically
+ * generated to tailor the output to a particular player.
+ *
+ * Example feat info :
+ * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ * Feat    : Cleave
+ * Type    : Combat
+ * ---------------------------------------------------
+ * Prerequisites : Power Attack, Str:13
+ * Required for  : Greater Cleave
+ * ---------------------------------------------------
+ * Benefit : If you deal a creature enough damage to 
+ * make it drop (typically by dropping it to below 0 
+ * hit points or killing it), you get an immediate, 
+ * extra melee attack against another engaged 
+ * creature.  The extra attack is with the 
+ * same weapon and at the same bonus as the attack 
+ * that dropped the previous creature.  You can use 
+ * this ability once per round.
+ *
+ * Normal : (none)
+ *
+ * Special : A fighter may select Cleave as one of his
+ * fighter bonus feats.
+ * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= 
+ *
+ * (NOTE: The headers of the sections above will be colored
+ * differently, making them stand out.) */
+
+void display_feat_info(struct char_data *ch, char *featname) {
+  int feat = -1;
+  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  
+//  static int line_length = 57;
+  static int line_length = 80;
+
+  skip_spaces(&featname);
+  
+  if (!strcmp(featname, "")) {
+    send_to_char(ch, "You must provide the name of a feat.\r\n");
+    return;
+  }
+
+  feat = find_feat_num(featname);
+
+  if (feat == -1 || feat_list[feat].in_game == FALSE) {
+    /* Not found - Maybe put in a soundex list here? */
+    send_to_char(ch, "Could not find that feat.\r\n");
+    return;
+  }
+
+  /* We found the feat, and the feat number is stored in 'feat'. */
+  
+  /* Display the feat info, formatted. */
+  send_to_char(ch, "\tC\r\n");
+//  draw_line(ch, line_length, '=', '-');
+//  draw_line(ch, line_length, '-', '-');
+  text_line(ch, "Feat Information", line_length, '-', '-');
+//  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tcFeat    : \tn%s\r\n"
+                   "\tcType    : \tn%s\r\n",
+//                   "\tcCommand : \tn%s\r\n",
+                   feat_list[feat].name,
+                   feat_types[feat_list[feat].feat_type]
+                   );
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  
+  /*  Here display the prerequisites */
+  if (feat_list[feat].prerequisite_list == NULL) {
+    sprintf(buf, "\tCPrerequisites : \tnnone\r\n");
+  } else {
+    bool first = TRUE;
+    struct feat_prerequisite *prereq;
+
+    for(prereq = feat_list[feat].prerequisite_list; prereq != NULL; prereq = prereq->next) {
+      if (first) {
+        first = FALSE;
+        sprintf(buf, "\tcPrerequisites : %s%s%s", 
+                         (meets_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
+      } else {
+        sprintf(buf2, ", %s%s%s", 
+                         (meets_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
+        strcat(buf, buf2);
+      }
+    }
+  }
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  /* This we will need to buffer and wrap so that it will fit in the space provided. */
+  sprintf(buf, "\tcDescription : \tn%s\r\n",
+//                   "\tcNormal : \tn%s\r\n"
+//                   "\r\n"
+//                   "\tcSpecial : \tn%s\r\n",
+                   feat_list[feat].description
+//                   "(undefined)",
+//                   "(undefined)"
+                   );
+  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn\r\n");             
+                
+}
+
+/*  do_feats
+ *  Overarching command for getting information out of the Luminari Feat system.
+ *
+ *  feats | feats known  - List all known (learnable) feats 
+ *  feat info <featname> - Show detailed information about a partcular feat.
+ *  feat all             - List all feats.
+ *  feat available       - List all feats for which you qualify
+ *  feat category <category name> - List all feats in a specific category
+ *
+ *  Sample output : 
+ *
+ *  feats known
+ *
+ *  --------------------------------Known Feats-------------------------------------
+ *  Heavy Armor Proficiency       : You are proficient with heavy armor.
+ *  Light Armor Proficiency       : You are proficient with light armor.
+ *  Medium Armor Proficiency      : You are proficient with medium armor.
+ *  Simple Weapon Proficiency     : You are proficient with simple weapons.
+ *  Martial Weapon Proficiency    : You are proficient with martial weapons.
+ *  Shield Proficiency            : You are proficient with shields and bucklers.
+ *  Tower Shield Proficiency      : You are proficient with tower shields.
+ *  Power Attack                  : You can make exceptionally powerful attacks.
+ *  Cleave                        : You can follow through with powerful blows.
+ *  Great Cleave                  : You can slay multiple enemies with each strike.
+ *  Tongue of the Sun and the Moon: You can speak any language.
+ *  --------------------------------------------------------------------------------
+ *
+ *  --------------------------------Known Feats-------------------------------------
+ *  Heavy Armor Proficiency             Simple Weapon Proficiency  
+ *  Light Armor Proficiency             Martial Weapon Proficiency 
+ *  Medium Armor Proficiency            Shield Proficiency
+ *  Shield Proficiency                  Stackable Feat
+ *  Stackable Feat     
+ *  --------------------------------------------------------------------------------
+ *
+ *  Use the same format for the other listings, other than info.
+ *
+ *  */
 ACMD(do_feats)
 {
   char arg[80];
   char arg2[80];
-
-  two_arguments(argument, arg, arg2);
-
+  char *featname;
+  
+  /*  Have to process arguments like this
+   *  because of the syntax - feat info <featname> */
+  featname = one_argument(argument, arg);
+  one_argument(featname, arg2);
+  
   if (is_abbrev(arg, "known") || !*arg) {
-    list_feats_known(ch, arg2);
+    list_feats(ch, arg2, LIST_FEATS_KNOWN);
+  } else if (is_abbrev(arg, "info")) {
+    display_feat_info(ch, featname);
   } else if (is_abbrev(arg, "available")) {
-    list_feats_available(ch, arg2);
-  } else if (is_abbrev(arg, "complete")) {
-    list_feats_complete(ch, arg2);
+    list_feats(ch, arg2, LIST_FEATS_AVAILABLE);
+  } else if (is_abbrev(arg, "all")) {
+    list_feats(ch, arg2, LIST_FEATS_ALL);
   }
 }
 
@@ -2769,14 +2914,12 @@ SIZE_SMALL, MATERIAL_STEEL, HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
 	setweapon(WEAPON_TYPE_SCIMITAR, "scimitar", 1, 6, 2, 2, WEAPON_FLAG_MARTIAL, 1500, 
 DAMAGE_TYPE_SLASHING, 40, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL, 
 HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
-/*
- 	setweapon(WEAPON_TYPE_KHOPESH, "khopesh", 1, 8, 2, 2, WEAPON_FLAG_EXOTIC, 2500, 
+/*  	setweapon(WEAPON_TYPE_KHOPESH, "khopesh", 1, 8, 2, 2, WEAPON_FLAG_EXOTIC, 2500, 
 DAMAGE_TYPE_SLASHING, 40, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL, 
 HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
 	setweapon(WEAPON_TYPE_CURVE_BLADE, "elven curve blade", 1, 10, 2, 2, WEAPON_FLAG_EXOTIC, 6000, 
 DAMAGE_TYPE_SLASHING, 70, 0, WEAPON_FAMILY_LARGE_BLADE, SIZE_LARGE, MATERIAL_STEEL, 
-HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
-*/
+HANDLE_TYPE_HILT, HEAD_TYPE_BLADE); */
 	setweapon(WEAPON_TYPE_TRIDENT, "trident", 1, 8, 0, 2, WEAPON_FLAG_MARTIAL | 
 WEAPON_FLAG_THROWN, 1500, DAMAGE_TYPE_PIERCING, 40, 0, WEAPON_FAMILY_SPEAR, SIZE_MEDIUM, 
 MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
@@ -2801,11 +2944,9 @@ HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
 	setweapon(WEAPON_TYPE_GREAT_SWORD, "great sword", 2, 6, 1, 2, WEAPON_FLAG_MARTIAL, 
 5000, DAMAGE_TYPE_SLASHING, 80, 0, WEAPON_FAMILY_LARGE_BLADE, SIZE_LARGE, MATERIAL_STEEL, 
 HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
-/*
-	setweapon(WEAPON_TYPE_FULLBLADE, "fullblade", 2, 8, 1, 2, WEAPON_FLAG_EXOTIC, 
+/*	setweapon(WEAPON_TYPE_FULLBLADE, "fullblade", 2, 8, 1, 2, WEAPON_FLAG_EXOTIC, 
 6000, DAMAGE_TYPE_SLASHING, 100, 0, WEAPON_FAMILY_LARGE_BLADE, SIZE_LARGE, MATERIAL_STEEL, 
-HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
-*/
+HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);*/
 	setweapon(WEAPON_TYPE_GUISARME, "guisarme", 2, 4, 0, 3, WEAPON_FLAG_MARTIAL | 
 WEAPON_FLAG_REACH, 900, DAMAGE_TYPE_SLASHING, 120, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE, 
 MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
@@ -2827,11 +2968,9 @@ MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
 	setweapon(WEAPON_TYPE_COMPOSITE_LONGBOW, "composite long bow", 1, 8, 0, 3, 
 WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 10000, DAMAGE_TYPE_PIERCING, 30, 110, 
 WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
-/*
-	setweapon(WEAPON_TYPE_GREATBOW, "great bow", 1, 12, 0, 3, 
+/*	setweapon(WEAPON_TYPE_GREATBOW, "great bow", 1, 12, 0, 3, 
 WEAPON_FLAG_EXOTIC | WEAPON_FLAG_RANGED, 10000, DAMAGE_TYPE_PIERCING, 30, 200, 
-WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
-*/
+WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);*/
 	setweapon(WEAPON_TYPE_SHORT_BOW, "short bow", 1, 6, 0, 3, WEAPON_FLAG_MARTIAL | 
 WEAPON_FLAG_RANGED, 3000, DAMAGE_TYPE_PIERCING, 20, 60, WEAPON_FAMILY_BOW, SIZE_SMALL, 
 MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);

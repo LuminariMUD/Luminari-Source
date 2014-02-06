@@ -20,6 +20,7 @@
 #include "interpreter.h"	/* alias_data */
 #include "spells.h"
 #include "craft.h"
+#include "feats.h"
 
 /** Current tbaMUD version.
  * @todo defined with _TBAMUD so we don't have multiple constants to change.
@@ -1868,7 +1869,7 @@ const char *ability_names[] = {
   "Use Rope",
   "Perform",
   "Craft (woodworking)",
-  "Craft (weaving)",
+  "Craft (tailoring)",
   "Craft (alchemy)",
   "Craft (armorsmithing)",
   "Craft (weaponsmithing)",
