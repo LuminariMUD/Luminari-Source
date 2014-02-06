@@ -1922,7 +1922,7 @@ void nanny(struct descriptor_data *d, char *arg) {
         write_to_output(d, "\r\nClass Confirmed!\r\n");
       else if (UPPER(*arg) != 'N') {
         write_to_output(d, "\r\nY)es to confirm N)o to reselect.\r\n");
-        write_to_output(d, "Do you want to select this race? (y/n) : ");
+        write_to_output(d, "Do you want to select this class? (y/n) : ");
         STATE(d) = CON_QCLASS_HELP;
         return;
       } else {
@@ -1930,7 +1930,64 @@ void nanny(struct descriptor_data *d, char *arg) {
         STATE(d) = CON_QCLASS;
         return;
       }
+#define CHARGEN_NO_STATISTICS
+#ifndef CHARGEN_NO_STATISTICS
+      int stat_points = 25;
 
+      /* Next step: Assign base ability scores */
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Please select your base ability scores :\r\n"
+                         "Str: %d%s Dex: %d%s Con: %d%s Int: %d%s Wis: %d%s Cha: %d%s\r\n",
+                         GET_STR(d->character), "",
+                         GET_DEX(d->character), "",
+                         GET_CON(d->character), "",
+                         GET_INT(d->character), "",
+                         GET_WIS(d->character), "",
+                         GET_CHA(d->character), ""
+                         );
+      write_to_output(d, "[%d points left] Enter ability score, Q (done) or ? for help : ", stat_points);
+     
+
+    case CON_QSTATS:
+      /* This is displayed when the player has changed an ability score,
+       * so we need to capture the changed score and apply changes, then
+       * display the remaining points.  
+       *
+       * Formula is : Start at 8, 1:1 to 14, 1:2 to 16, 1:3 to 18
+       * Standard point buy is 25.
+       *
+       * If the value is '?' then we need to get help.  If the value is 'Q' 
+       * then we get confirmation and then move on to the next step. */
+      if (UPPER(*arg) == 'Q')
+        write_to_output(d, "\r\nBase ability scores set!\r\n");
+      else if (UPPER(*arg) == '?') {
+        perform_help(d, "point-buy");
+        break;
+      } else {        
+        /* Here is where we check for ability names, etc. */
+        if (is_abbrev(arg, "str")) {
+          /* Calculate the maximum we can set this stat to (based on points) and display 
+           * that to the player. Don't forget the racial bonuses! */
+        }
+        if (is_abbrev(arg, "dex")) {
+
+        }
+        if (is_abbrev(arg, "con")) {
+
+        }
+        if (is_abbrev(arg, "int")) {
+
+        }
+        if (is_abbrev(arg, "wis")) {
+
+        }
+        if (is_abbrev(arg, "cha")) {
+
+        }
+
+
+      }
+#endif
       /* start initial alignment selection code */
       write_to_output(d, "\r\nSelect Alignment\r\n");
       for (i = 0; i < NUM_ALIGNMENTS; i++) {
@@ -1940,7 +1997,7 @@ void nanny(struct descriptor_data *d, char *arg) {
       write_to_output(d, "\r\n");
 
       STATE(d) = CON_QALIGN;
-      break;
+      break;    
 
     case CON_QALIGN:
 

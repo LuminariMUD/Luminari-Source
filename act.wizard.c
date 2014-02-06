@@ -657,14 +657,16 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j) {
 
   send_to_char(ch, "Name: '%s%s%s', Keywords: %s\r\n", CCYEL(ch, C_NRM),
           j->short_description ? j->short_description : "<None>",
-          CCNRM(ch, C_NRM), j->name);
-
+          CCNRM(ch, C_NRM), j->name);  
   vnum = GET_OBJ_VNUM(j);
   sprinttype(GET_OBJ_TYPE(j), item_types, buf, sizeof (buf));
   send_to_char(ch, "VNum: [%s%5d%s], RNum: [%5d], Idnum: [%5ld], Type: %s, SpecProc: %s\r\n",
           CCGRN(ch, C_NRM), vnum, CCNRM(ch, C_NRM), GET_OBJ_RNUM(j), GET_ID(j), buf,
           GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
 
+  if (GET_OBJ_TYPE(j) == ITEM_WEAPON || GET_OBJ_TYPE(j) == ITEM_FIREWEAPON )
+    send_to_char(ch, "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n", 
+          weapon_list[GET_WEAPON_TYPE(j)].name, GET_WEAPON_TYPE(j), GET_ENHANCEMENT_BONUS(j));
   send_to_char(ch, "L-Desc: '%s%s%s'\r\n", CCYEL(ch, C_NRM),
           j->description ? j->description : "<None>",
           CCNRM(ch, C_NRM));
@@ -678,7 +680,7 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j) {
     for (desc = j->ex_description; desc; desc = desc->next)
       send_to_char(ch, " [%s]", desc->keyword);
     send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM));
-  }
+  }  
 
   sprintbitarray(GET_OBJ_WEAR(j), wear_bits, TW_ARRAY_MAX, buf);
   send_to_char(ch, "Can be worn on: %s\r\n", buf);
@@ -5749,10 +5751,16 @@ ACMD(do_genmap) {
 }
 
 /* do_oconvert - Command to convert existing objects to the new (Jan 13, 2014)
- * weapon type and feat system.  This command should be executed once, or can be 
+ * weapon/armor type and feat system.  This command should be executed once, or can be 
  * executed mltiple times to clean up bad building. Uses a very simple system
  * to identify weapons that match certain weapon types - This will require help
- * via manual touching up/conversions over the course of months or years... */
+ * via manual touching up/conversions over the course of months or years... 
+ *
+ * Syntax :
+ *
+ *   oconvert armor|weapon <armortype|weapontype> <keyword>
+ *
+ * */
 ACMD(do_oconvert) {
   struct object_data *obj = NULL;
   int i = 0, j = 0;

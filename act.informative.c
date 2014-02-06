@@ -1815,12 +1815,40 @@ ACMD(do_attacks) {
   perform_attacks(ch, 2);
 }
 
+/*
+-------------------------------Score Information--------------------------------
+Name      : Leonidas             Title   : the distracted do-gooder
+Alignment : Lawful Good          Classes : 1 War / 1 Pal               
+Race      : Humn                 Sex     : Male      
+Age       : 18 yrs / 0 mths      Played  : 1 days / 0 hrs      
+Size      : Medium               Load    : 41/920 lbs
+--------------------------------------------------------------------------------    
+Hit points: 38(38)    Moves: 84(84)    Mana: 100(100)    
+----------------------------------Experience------------------------------------
+Level: 2                          CstrLvl : 0   DivLvl: 0   MgcLvl: 0
+Exp  : 2000                       ExpTNL  : 9000 
+-------------Ability Scores--------------------------Saving Throws--------------
+Str: 16[ 3]  Dex: 12[ 1]  Con: 12[ 1]  |  Fort    : 2    Will    : 2
+Int: 12[ 1]  Wis: 12[ 1]  Cha: 12[ 1]  |  Reflex  : 2
+-------------------------------------Combat-------------------------------------
+ArmorClass   : 10   Spell Resist : 0   Wimpy        : 0   Position : Standing
+BAB          : 2    # of Attacks : 1   Concealment  : 0   Modes : [     ]
+-------------Proficiencies------------------------------Quests------------------
+Weapon Proficiency Used :  Martial     | Quests completed : 0
+Armor Proficiency Used  :  None        | Quest points     : 0
+Shield Proficiency Used :  None        | On quest         : None
+--------------------------------------------------------------------------------    
+Gold: 999615                      Gold in Bank : 0          
+--------------------------------------------------------------------------------
+*/
 ACMD(do_score) {
   char buf[MAX_INPUT_LENGTH];
   struct time_info_data playing_time;
   int calc_bab = MIN(MAX_BAB, BAB(ch)), w_type, i = 0, counter = 0;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   float height = GET_HEIGHT(ch);
+  
+  int line_length = 80;
 
   // get some initial info before score display
   if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
@@ -1833,16 +1861,17 @@ ACMD(do_score) {
   }
   playing_time = *real_time_passed((time(0) - ch->player.time.logon) +
           ch->player.time.played, 0);
+
   height *= 0.393700787402;
 
-  //score display
-  send_to_char(ch, "                \t[f451]Score information for\tn %s\r\n",
-          GET_NAME(ch));
-  send_to_char(ch,
-          "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
+  send_to_char(ch, "\tC");
+  text_line(ch, "\tYScore Information\tC", line_length, '-', '-');
+  send_to_char(ch, "\tcName : \tn%-20s \tcTitle   : \tn%s\r\n", 
+               GET_NAME(ch), GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
 
-  send_to_char(ch, "\tCTitle:\tn %s\r\n", GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
+  send_to_char(ch, "\tcRace : \tn%-20s ", pc_race_types[GET_RACE(ch)]);
 
+  /* Build the string of class names and levels */
   *buf = '\0';
   if (!IS_NPC(ch)) {
     for (i = 0; i < MAX_CLASSES; i++) {
@@ -1855,96 +1884,43 @@ ACMD(do_score) {
     }
   } else
     strcpy(buf, CLASS_ABBR(ch));
-  send_to_char(ch, "\tCClass%s:\tn %s", (counter == 1 ? "" : "es"), buf);
+  send_to_char(ch, "\tcClass%s : \tn%s\r\n", (counter == 1 ? "  " : "es"), buf);
 
-  send_to_char(ch, "\r\n\tCLevel:\tn %d  \tCRace:\tn %s "
-          "(\tDType 'innates'\tn)  \tCSex:\tn ",
-          GET_LEVEL(ch), RACE_ABBR(ch));
-  switch (GET_SEX(ch)) {
-    case SEX_MALE: send_to_char(ch, "Male\r\n");
-      break;
-    case SEX_FEMALE: send_to_char(ch, "Female\r\n");
-      break;
-    default: send_to_char(ch, "Neutral\r\n");
-      break;
-  }
+  send_to_char(ch, "\tcSex  : \tn%-20s ",
+                   (GET_SEX(ch) == SEX_MALE ? "Male" : (GET_SEX(ch) == SEX_FEMALE ? "Female" : "Neutral")));;
 
-  send_to_char(ch, "\tCPlaying time:\tn %d days / %d hrs\tn",
-          playing_time.day, playing_time.hours);
+  send_to_char(ch, "\tcAlignment : \tn%s\r\n", get_align_by_num(GET_ALIGNMENT(ch)));
 
-  send_to_char(ch, "      \tCSize:\tn  %s\r\n", size_names[GET_SIZE(ch)]);
-  
-  send_to_char(ch, "\tCHit points:\tn %d(%d)   \tCMoves:\tn %d(%d)   \tCMana:\tn %d(%d)\r\n",
-          GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch),
-          GET_MANA(ch), GET_MAX_MANA(ch));
+  send_to_char(ch, "\tcAge  : \tn%-3d \tcyrs / \tn%2d \tcmths    \tcPlayed  : \tn%d days / %d hrs\r\n",
+               age(ch)->year, age(ch)->month, playing_time.day, playing_time.hours);
+  send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs\r\n",
+               size_names[GET_SIZE(ch)], IS_CARRYING_W(ch), CAN_CARRY_W(ch));
+  send_to_char(ch, "\tC");  
+  draw_line(ch, line_length, '-', '-');
 
-  // with sizes, this seems unnecessary now
-  /*
-     \tCHeight:\tn %d'%d\"  \tCWeight:\tn %d \tClbs\tn\r\n",
-                (int)(height / 12.0),
-               ((int)(height) % 12), GET_WEIGHT(ch));
-   */
+  send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)\r\n",
+          GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch));
 
-  send_to_char(ch, "\tCAge:\tn %d \tCyrs\tn / %d \tCmths\tn",
-          age(ch)->year, age(ch)->month);
+  send_to_char(ch, "\tC");  
+  text_line(ch, "\tyExperience\tC", line_length, '-', '-');
+  send_to_char(ch, "\tcLevel : \tn%-2d                       \tcCstrLvl : \tn%-2d  \tcDivLvl : \tn%-2d  \tcMgcLvl : \tn%-2d\r\n"
+                   "\tcExp   : \tn%-24d \tcExpTNL  : \tn%d\r\n" 
+                   "\tC-------------\tyAbility Scores\tC--------------------------\tySaving Throws\tC--------------\r\n"
+                   "\tcStr:\tn %2d[%2d]  \tcDex:\tn %2d[%2d]  \tcCon:\tn %2d[%2d]  \tC|  \tcFort    : \tn%-2d  \tcWill    : \tn%-2d\tn\r\n"  
+                   "\tcInt:\tn %2d[%2d]  \tcWis:\tn %2d[%2d]  \tcCha:\tn %2d[%2d]  \tC|  \tcReflex  : \tn%-2d\tn\r\n",
+          GET_LEVEL(ch), CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch),
+          GET_EXP(ch), (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) -GET_EXP(ch)),
+          GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch), 
+          compute_mag_saves(ch, SAVING_FORT, 0), compute_mag_saves(ch, SAVING_WILL, 0),
+          GET_INT(ch), GET_INT_BONUS(ch), GET_WIS(ch), GET_WIS_BONUS(ch), GET_CHA(ch), GET_CHA_BONUS(ch), compute_mag_saves(ch, SAVING_REFL, 0)
+          );
+  send_to_char(ch, "\tC");
+  text_line(ch, "\tyCombat\tC", line_length, '-', '-');
 
-  send_to_char(ch, "     \tCAlignment:\tn %13s\r\n", get_align_by_num(GET_ALIGNMENT(ch)));
-  
-  send_to_char(ch,
-          "\tC---------------------------------------------------------\tn\r\n");
+  /* Begin combat section */
+  send_to_char(ch, "\tcArmorClass : \tn%-4d \tcSpell Resist : \tn%-3d \tcWimpy        : \tn%-3d \tcPos   : \tn",
+                   compute_armor_class(NULL, ch, FALSE), compute_spell_res(NULL, ch, 0), GET_WIMP_LEV(ch));
 
-  send_to_char(ch, "\tCStr:\tn %2d[%2d]      \tCInt:\tn %2d[%2d]      \tCWis:\tn %2d[%2d]\r\n"
-          "\tCDex:\tn %2d[%2d]      \tCCon:\tn %2d[%2d]      \tCCha:\tn %2d[%2d]\r\n",
-          GET_STR(ch), GET_STR_BONUS(ch), GET_INT(ch), GET_INT_BONUS(ch), GET_WIS(ch),
-          GET_WIS_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch),
-          GET_CHA(ch), GET_CHA_BONUS(ch));
-
-  send_to_char(ch, "\tCArmorClass:\tn %d   \tCBAB:\tn %d   \tCSpell Resist:\tn %d\r\n",
-          compute_armor_class(NULL, ch, FALSE), calc_bab,
-          compute_spell_res(NULL, ch, 0));
-
-  send_to_char(ch, "\tCHitroll:\tn %d      \tCDamroll:\tn %d      \tC# of Attacks:\tn %d\r\n",
-          compute_bab(ch, NULL, w_type) - calc_bab,
-          compute_damage_bonus(ch, NULL, w_type, 0, 0),
-          perform_attacks(ch, 1));
-
-  send_to_char(ch, "\tCDamage Reduction:\tn %d      \tCConcealment:\tn %d\r\n",
-          compute_damage_reduction(ch, -1),
-          compute_concealment(ch));
-
-  send_to_char(ch, "\tCWeapon Proficiency Used:\tn  %s\r\n", 
-          item_profs[proficiency_worn(ch, WEAPON_PROFICIENCY)]);
-  send_to_char(ch, "\tCArmor Proficiency Used:\tn  %s\r\n", 
-          item_profs[proficiency_worn(ch, ARMOR_PROFICIENCY)]);
-  send_to_char(ch, "\tCShield Proficiency Used:\tn  %s\r\n", 
-          item_profs[proficiency_worn(ch, SHIELD_PROFICIENCY)]);
-  
-  send_to_char(ch, "\tCLoad carried/max:\tn %d/%d \tClbs\tn\r\n", IS_CARRYING_W(ch),
-          CAN_CARRY_W(ch));
-
-  send_to_char(ch,
-          "\tCSaving Throws:  Fortitude[\tn%d\tC] Reflex[\tn%d\tC] Will[\tn%d\tC]\tn\r\n",
-          compute_mag_saves(ch, SAVING_FORT, 0),
-          compute_mag_saves(ch, SAVING_REFL, 0),
-          compute_mag_saves(ch, SAVING_WILL, 0));
-
-  send_to_char(ch,
-          "\tC---------------------------------------------------------\tn\r\n");
-
-  if (!IS_NPC(ch))
-    send_to_char(ch, "\tCWimpy:\tn %d  ", GET_WIMP_LEV(ch));
-  send_to_char(ch, "\tCDivLvl:\tn %d  \tCMgcLvl:\tn %d"
-          "  \tCCstrLvl:\tn %d\r\n",
-          DIVINE_LEVEL(ch), MAGIC_LEVEL(ch), CASTER_LEVEL(ch));
-
-  send_to_char(ch, "\tCExp:\tn %d   \tCExpTNL:\tn: ", GET_EXP(ch));
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
-    send_to_char(ch, "N/A   ");
-  else
-    send_to_char(ch, "%d   ",
-          level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
-
-  send_to_char(ch, "\tCStatus:\tn ");
   if (FIGHTING(ch))
     send_to_char(ch, "(Fighting) - ");
   switch (GET_POS(ch)) {
@@ -1978,48 +1954,70 @@ ACMD(do_score) {
       break;
   }
 
-  if (!IS_NPC(ch)) {
-    send_to_char(ch, "\tCQuests completed:\tn %d   \tCQuestPoints:\tn %d   \tCOn Quest:\tn",
-            GET_NUM_QUESTS(ch), GET_QUESTPOINTS(ch));
-    if (GET_QUEST(ch) == NOTHING)
-      send_to_char(ch, " None\r\n");
-    else
-      send_to_char(ch, " %d\r\n",
-            GET_QUEST(ch) == NOTHING ? -1 : GET_QUEST(ch));
 
-    if (GET_AUTOCQUEST_VNUM(ch))
-      send_to_char(ch, "\tCOn Crafting Job: (%d) %s, using: %s.\r\n",
+  send_to_char(ch, "\tcBAB        : \tn%-4d \tc# of Attacks : \tn%-3d \tcConcealment  : \tn%-3d \tcModes : \tn[     ]\r\n",
+                  calc_bab, perform_attacks(ch, 1), compute_concealment(ch));
+
+  send_to_char(ch, "\tC----------------\tyProficiencies\tC-----------------------------------\tyQuests\tC----------\tn\r\n"
+                   "\tcWeapon Proficiency Used : \tn%-25s \tC| \tcQuests completed : \tn%d\r\n"
+                   "\tcArmor Proficiency Used  : \tn%-25s \tC| \tcQuest points     : \tn%d\r\n"
+                   "\tcShield Proficiency Used : \tn%-25s \tC| \tcOn quest         : \tn",
+                   item_profs[proficiency_worn(ch, WEAPON_PROFICIENCY)], (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),  
+                   item_profs[proficiency_worn(ch, ARMOR_PROFICIENCY)], (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0),
+                   item_profs[proficiency_worn(ch, SHIELD_PROFICIENCY)]);
+
+ if (!IS_NPC(ch) && GET_QUEST(ch) != NOTHING) 
+     send_to_char(ch, "%d\r\n", GET_QUEST(ch) == NOTHING ? -1 : GET_QUEST(ch));
+ else
+   send_to_char(ch, "None\r\n");
+
+ if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch))
+      send_to_char(ch, "                                                    \tC| \tcOn Crafting Job: (\tn%d\tc) \tn%s\tc, using: \tn%s\r\n",
             GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
             material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
-  }
+            
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
 
-  send_to_char(ch, "\tYGold:\tn %d            \tYGold in Bank:\tn %d\r\n",
+  send_to_char(ch, "\tcGold:\tn %d                \tcGold in Bank:\tn %d\r\n",
           GET_GOLD(ch), GET_BANK_GOLD(ch));
+
+  send_to_char(ch, "\tC"); 
+  draw_line(ch, line_length, '-', '-');
 
   if (GET_LEVEL(ch) >= LVL_IMMORT) {
     if (POOFIN(ch))
-      send_to_char(ch, "%sPOOFIN:  %s%s %s%s\r\n", QYEL, QCYN, GET_NAME(ch), POOFIN(ch), QNRM);
+      send_to_char(ch, "%sPOOFIN : %s%s %s%s\r\n", QCYN, QNRM, GET_NAME(ch), POOFIN(ch), QNRM);
     else
-      send_to_char(ch, "%sPOOFIN:  %s%s appears with an ear-splitting bang.%s\r\n", QYEL, QCYN, GET_NAME(ch), QNRM);
+      send_to_char(ch, "%sPOOFIN : %s%s appears with an ear-splitting bang.%s\r\n", QCYN, QNRM, GET_NAME(ch), QNRM);
     if (POOFOUT(ch))
-      send_to_char(ch, "%sPOOFOUT: %s%s %s%s\r\n", QYEL, QCYN, GET_NAME(ch), POOFOUT(ch), QNRM);
+      send_to_char(ch, "%sPOOFOUT: %s%s %s%s\r\n", QCYN, QNRM, GET_NAME(ch), POOFOUT(ch), QNRM);
     else
-      send_to_char(ch, "%sPOOFOUT: %s%s disappears in a puff of smoke.%s\r\n", QYEL, QCYN, GET_NAME(ch), QNRM);
-    send_to_char(ch, "\tyYour current zone:\tn %s%d%s\r\n", CCCYN(ch, C_NRM), GET_OLC_ZONE(ch), CCNRM(ch, C_NRM));
+      send_to_char(ch, "%sPOOFOUT: %s%s disappears in a puff of smoke.%s\r\n", QCYN, QNRM, GET_NAME(ch), QNRM);
+    send_to_char(ch, "\tcYour current zone:\tn %s%d%s\r\n", CCCYN(ch, C_NRM), GET_OLC_ZONE(ch), CCNRM(ch, C_NRM));
+    send_to_char(ch, "\tC");
+    draw_line(ch, line_length, '-', '-');
   }
 
   if (!IS_NPC(ch)) {
+    send_to_char(ch, "\tc");
     if (GET_COND(ch, DRUNK) > 10)
       send_to_char(ch, "You are intoxicated.\r\n");
+    else
+      send_to_char(ch, "You are sober.\r\n");
     if (GET_COND(ch, HUNGER) == 0)
       send_to_char(ch, "You are hungry.\r\n");
     if (GET_COND(ch, THIRST) == 0)
       send_to_char(ch, "You are thirsty.\r\n");
     if (PRF_FLAGGED(ch, PRF_SUMMONABLE))
-      send_to_char(ch, "\r\nYou are summonable by other players.\r\n");
+      send_to_char(ch, "You are summonable by other players.\r\n");
+    else
+      send_to_char(ch, "You are NOT summonable by other players.\r\n");
+    send_to_char(ch, "\tC");
+    draw_line(ch, line_length, '-', '-');
   }
-  send_to_char(ch,
-          "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
+
+
   send_to_char(ch, "\tDType 'attacks' to see your attack rotation\tn\r\n");
   send_to_char(ch, "\tDType 'affects' to see what you are affected by\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_WIZARD))

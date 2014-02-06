@@ -936,7 +936,7 @@ ACMD(do_gain) {
        * vis 'study' before they can gain a level. */
 //      if (GET_PRACTICES(ch) != 0) 
 //        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
-      if (GET_TRAINS(ch) != 0)
+      if (GET_TRAINS(ch) > 0)
         send_to_char(ch, "You must use all trains before gaining another level.  You have %d train%s remaining.\r\n", GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
       if (GET_BOOSTS(ch) != 0)
         send_to_char(ch, "You must use all boosts before gaining another level.  You have %d boost%s remaining.\r\n", GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
@@ -1835,7 +1835,7 @@ ACMD(do_spells) {
     }
   }
 
-  send_to_char(ch, "\tDType 'practice' to see your skills\tn\r\n");
+  send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   send_to_char(ch, "\tDType 'spelllist <classname>' to see all your class spells\tn\r\n");
@@ -1870,7 +1870,7 @@ ACMD(do_spelllist) {
     }
   }
 
-  send_to_char(ch, "\tDType 'practice' to see your skills\tn\r\n");
+  send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   send_to_char(ch, "\tDType 'spells <classname>' to see your currently known spells\tn\r\n");
@@ -1901,7 +1901,7 @@ ACMD(do_boosts) {
           "\r\n",
           GET_BOOSTS(ch));
 
-  send_to_char(ch, "\tDType 'practice' to see your skills\tn\r\n");
+  send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   send_to_char(ch, "\tDType 'spells <classname>' to see your currently known spells\tn\r\n");
@@ -1922,6 +1922,7 @@ ACMD(do_practice) {
   else
     list_skills(ch);
 
+  send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   if (IS_CASTER(ch)) {
@@ -1951,7 +1952,8 @@ ACMD(do_train) {
   else
     list_abilities(ch, ABILITY_TYPE_GENERAL);
 
-  send_to_char(ch, "\tDType 'practice' to see your skills\tn\r\n");
+  send_to_char(ch, "\tDType 'train knowledge' to see your knowledge abilities\tn\r\n");
+  send_to_char(ch, "\tDType 'train craft' to see your crafting abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   if (IS_CASTER(ch)) {
     send_to_char(ch, "\tDType 'spells' to see your spells\tn\r\n");

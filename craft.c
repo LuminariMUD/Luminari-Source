@@ -32,6 +32,7 @@
 #include "modify.h" // for parse_at()
 #include "treasure.h"
 #include "mudlim.h"
+#include "spec_procs.h" /* For compute_ability() */
 
 /* global variables */
 int mining_nodes = 0;
@@ -599,7 +600,7 @@ void reset_harvesting_rooms(void) {
 int augment(struct obj_data *kit, struct char_data *ch) {
   struct obj_data *obj = NULL, *crystal_one = NULL, *crystal_two = NULL;
   int num_objs = 0, cost = 0, bonus = 0, bonus2 = 0;
-  int skill_type = SKILL_CHEMISTRY; // change this to change the skill used
+  int skill_type = ABILITY_CRAFT_ALCHEMY; // change this to change the skill used
   char buf[MAX_INPUT_LENGTH];
 
   // Cycle through contents and categorize
@@ -655,11 +656,11 @@ int augment(struct obj_data *kit, struct char_data *ch) {
     return 1;
   }
 
-  if (bonus > (GET_SKILL(ch, skill_type) / 3)) { // high enough skill?
+  if (bonus > compute_ability(ch, skill_type)) { // high enough skill?
     send_to_char(ch, "The crystal level is %d but your %s skill is "
             "only capable of creating level %d crystals.\r\n",
-            bonus, spell_info[skill_type].name,
-            (GET_SKILL(ch, skill_type) / 3));
+            bonus, ability_names[skill_type],
+            (compute_ability(ch, skill_type) / 3));
     return 1;
   }
 
@@ -690,12 +691,12 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   crystal_one->description = strdup(buf);
 
   send_to_char(ch, "It cost you %d coins in supplies to "
-          "augment this crytsal.\r\n", cost);
+          "augment this crystal.\r\n", cost);
   GET_GOLD(ch) -= cost;
 
   GET_CRAFTING_TYPE(ch) = SCMD_AUGMENT;
   GET_CRAFTING_TICKS(ch) = 5; // add code here to modify speed of crafting
-  GET_CRAFTING_TICKS(ch) -= MIN(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25));
+  GET_CRAFTING_TICKS(ch) -= MIN(4, (HAS_FEAT(ch, FEAT_FAST_CRAFTER)));
   GET_CRAFTING_OBJ(ch) = crystal_one;
   send_to_char(ch, "You begin to augment %s.\r\n",
           crystal_one->short_description);
@@ -708,9 +709,6 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   obj_to_char(crystal_one, ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
-  if (!IS_NPC(ch))
-    increase_skill(ch, skill_type);
-  
   return 1;
 }
 
@@ -796,7 +794,7 @@ int convert(struct obj_data *kit, struct char_data *ch) {
   GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(new_mat));
   GET_CRAFTING_TYPE(ch) = SCMD_CONVERT;
   GET_CRAFTING_TICKS(ch) = 11; // adding time-takes here
-  GET_CRAFTING_TICKS(ch) -= MIN(10, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 10));
+  GET_CRAFTING_TICKS(ch) -= MIN(10, (HAS_FEAT(ch, FEAT_FAST_CRAFTER)));
   GET_CRAFTING_OBJ(ch) = new_mat;
   GET_CRAFTING_REPEAT(ch) = MAX(0, (num_mats / 10) + 1);
 
@@ -879,7 +877,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
   obj->description = strdup(buf);
   GET_CRAFTING_TYPE(ch) = SCMD_RESTRING;
   GET_CRAFTING_TICKS(ch) = 5; // here you'd add tick calculator
-  GET_CRAFTING_TICKS(ch) -= MIN(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25));
+  GET_CRAFTING_TICKS(ch) -= MIN(4, (HAS_FEAT(ch, FEAT_FAST_CRAFTER)));
   GET_CRAFTING_OBJ(ch) = obj;
 
   send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n",
@@ -958,7 +956,7 @@ int autocraft(struct obj_data *kit, struct char_data *ch) {
 
   GET_CRAFTING_TYPE(ch) = SCMD_SUPPLYORDER;
   GET_CRAFTING_TICKS(ch) = 5;
-  GET_CRAFTING_TICKS(ch) -= MAX(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25));
+  GET_CRAFTING_TICKS(ch) -= MAX(4, (HAS_FEAT(ch, FEAT_FAST_CRAFTER)));
   GET_AUTOCQUEST_GOLD(ch) += GET_LEVEL(ch) * GET_LEVEL(ch);
   send_to_char(ch, "You begin a supply order for %s.\r\n",
           GET_AUTOCQUEST_DESC(ch));
@@ -1066,7 +1064,7 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
   GET_CRAFTING_OBJ(ch) = obj;
   GET_CRAFTING_TYPE(ch) = SCMD_RESIZE;
   GET_CRAFTING_TICKS(ch) = 5;
-  GET_CRAFTING_TICKS(ch) -= MAX(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25));
+  GET_CRAFTING_TICKS(ch) -= MIN(4, (HAS_FEAT(ch, FEAT_FAST_CRAFTER)));
 
   obj_to_char(obj, ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
@@ -1102,7 +1100,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
     return 1;
   }
 
-  if (obj && GET_OBJ_LEVEL(obj) > (GET_SKILL(ch, SKILL_CHEMISTRY)/3)) {
+  if (obj && GET_OBJ_LEVEL(obj) > (compute_ability(ch, ABILITY_CRAFT_ALCHEMY))) {
     send_to_char(ch, "Your chemistry skill isn't high enough to disenchant that item.\r\n");
     return 1;
   }
@@ -1110,11 +1108,10 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   /* award crystal for item */
   award_random_crystal(ch, GET_OBJ_LEVEL(obj));
   
-  increase_skill(ch, SKILL_CHEMISTRY);
 
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
   GET_CRAFTING_TICKS(ch) = 5;
-  GET_CRAFTING_TICKS(ch) -= MAX(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25));
+  GET_CRAFTING_TICKS(ch) -= MAX(4, (HAS_FEAT(ch, FEAT_FAST_CRAFTER)));
 
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
   act("$n begins to disenchant $p.", FALSE, ch, obj, 0, TO_ROOM);
@@ -1148,7 +1145,7 @@ int create(char *argument, struct obj_data *kit,
   char buf[MAX_INPUT_LENGTH] = { '\0' };  
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
           *material = NULL, *essence = NULL;
-  int num_mats = 0, obj_level = 1, skill = SKILL_WEAPON_SMITHING,
+  int num_mats = 0, obj_level = 1, skill = ABILITY_CRAFT_WEAPONSMITHING,
           crystal_value = -1, mats_needed = 12345, found = 0, i = 0, bonus = 0;
 
   /* sort through our kit and check if we got everything we need */
@@ -1233,7 +1230,7 @@ int create(char *argument, struct obj_data *kit,
   }
 
   /* right material? */
-  if (GET_SKILL(ch, SKILL_BONE_ARMOR) &&
+  if (HAS_FEAT(ch, FEAT_BONE_ARMOR) &&
           GET_OBJ_MATERIAL(material) == MATERIAL_BONE) {
     send_to_char(ch, "You use your mastery in bone-crafting to substitutue "
             "bone for the normal material needed...\r\n");
@@ -1269,7 +1266,7 @@ int create(char *argument, struct obj_data *kit,
   mats_needed = MAX(MIN_MATS, (GET_OBJ_WEIGHT(mold) / WEIGHT_FACTOR));
 
   /* elvent crafting reduces material needed */
-  if (GET_SKILL(ch, SKILL_ELVEN_CRAFTING))
+  if (HAS_FEAT(ch, FEAT_ELVEN_CRAFTING))
     mats_needed = MAX(MIN_ELF_MATS, mats_needed / 2);
   
   if (num_mats < mats_needed) {
@@ -1325,19 +1322,19 @@ int create(char *argument, struct obj_data *kit,
               "craft! (+%d)@n\r\n", mod);
     }
     
-    if (GET_SKILL(ch, SKILL_MASTERWORK_CRAFTING)) {
+    if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING)) {
       send_to_char(ch, "Your masterwork-crafting skill increases the quality of "
               "the item.\r\n");
       mod++;
     }
     
-    if (GET_SKILL(ch, SKILL_DWARVEN_CRAFTING)) {
+    if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING)) {
       send_to_char(ch, "Your dwarven-crafting skill increases the quality of "
               "the item.\r\n");
       mod++;
     }
     
-    if (GET_SKILL(ch, SKILL_DRACONIC_CRAFTING)) {
+    if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING)) {
       send_to_char(ch, "Your draconic-crafting skill increases the quality of "
               "the item.\r\n");
       mod++;
@@ -1354,7 +1351,7 @@ int create(char *argument, struct obj_data *kit,
           CAN_WEAR(mold, ITEM_WEAR_NECK) ||
           CAN_WEAR(mold, ITEM_WEAR_HOLD)
           ) {
-    skill = SKILL_JEWELRY_MAKING;
+    skill = ABILITY_CRAFT_GEMCUTTING;
   }
     /* body armor pieces: either armor-smith/leather-worker/or knitting */
   else if (CAN_WEAR(mold, ITEM_WEAR_BODY) ||
@@ -1367,25 +1364,25 @@ int create(char *argument, struct obj_data *kit,
           CAN_WEAR(mold, ITEM_WEAR_WAIST)
           ) {
     if (IS_HARD_METAL(GET_OBJ_MATERIAL(mold)))
-      skill = SKILL_ARMOR_SMITHING;
+      skill = ABILITY_CRAFT_ARMORSMITHING;
     else if (IS_LEATHER(GET_OBJ_MATERIAL(mold)))
-      skill = SKILL_LEATHER_WORKING;
+      skill = ABILITY_CRAFT_LEATHERWORKING;
     else
-      skill = SKILL_KNITTING;
+      skill = ABILITY_CRAFT_TAILORING;
   }
     /* about body */
   else if (CAN_WEAR(mold, ITEM_WEAR_ABOUT)) {
-    skill = SKILL_KNITTING;
+    skill = ABILITY_CRAFT_TAILORING;
   }
     /* weapon-smithing:  weapons and shields */
   else if (CAN_WEAR(mold, ITEM_WEAR_WIELD) ||
           CAN_WEAR(mold, ITEM_WEAR_SHIELD)
           ) {
-    skill = SKILL_WEAPON_SMITHING;
+    skill = ABILITY_CRAFT_WEAPONSMITHING;
   }
 
   /* skill restriction */
-  if ((GET_SKILL(ch, skill) / 3) < obj_level) {
+  if ((compute_ability(ch, skill)) < obj_level) {
     send_to_char(ch, "Your skill in %s is too low to create that item.\r\n",
             spell_info[skill].name);
     return 1;
@@ -1406,7 +1403,7 @@ int create(char *argument, struct obj_data *kit,
     send_to_char(ch, "The item will be level: %d.\r\n", obj_level);
     send_to_char(ch, "It will make use of your %s skill, which has a value "
             "of %d.\r\n",
-            spell_info[skill].name, GET_SKILL(ch, skill));
+            ability_names[skill], compute_ability(ch, skill));
     send_to_char(ch, "This crafting session will take 60 seconds.\r\n");
     send_to_char(ch, "You need %d gold on hand to make this item.\r\n", cost);
     return 1;
@@ -1449,7 +1446,7 @@ int create(char *argument, struct obj_data *kit,
     obj_from_obj(mold); /* extracting this causes issues, solution? */
     GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
     GET_CRAFTING_TICKS(ch) = 11;
-    GET_CRAFTING_TICKS(ch) -= MAX(4, (GET_SKILL(ch, SKILL_FAST_CRAFTER) / 25));
+    GET_CRAFTING_TICKS(ch) -= MAX(4, (HAS_FEAT(ch, FEAT_FAST_CRAFTER)));
     int kit_obj_vnum = GET_OBJ_VNUM(kit);
     obj_from_room(kit);
     extract_obj(kit);
@@ -1720,9 +1717,6 @@ EVENTFUNC(event_crafting) {
 
     GET_CRAFTING_TICKS(ch)--;
     
-    /* skill notch */
-    increase_skill(ch, SKILL_FAST_CRAFTER);
-    
     if (GET_LEVEL(ch) >= LVL_IMMORT)
       return 1;
     else
@@ -1752,35 +1746,29 @@ EVENTFUNC(event_crafting) {
         }
         break;
       case SCMD_MINE:
-        skill = SKILL_MINING;
         sprintf(buf, "You mine $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n mines $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_HUNT:
-        skill = SKILL_FORESTING;
         sprintf(buf, "You find $p from your hunting.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n finds $p from $s hunting.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_KNIT:
-        skill = SKILL_KNITTING;
-        sprintf(buf, "You knit $p.  Success!!!");
+        sprintf(buf, "You tailor $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-        sprintf(buf, "$n knits $p.");
+        sprintf(buf, "$n tailors $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_FOREST:
-        skill = SKILL_FORESTING;
-        sprintf(buf, "You forest $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n forests $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_DISENCHANT:
-        skill = SKILL_CHEMISTRY;
         sprintf(buf, "You complete the disenchantment process.  Success!!!");
         act(buf, false, ch, 0, 0, TO_CHAR);
         sprintf(buf, "$n finishes the disenchanting process.");
@@ -1790,7 +1778,6 @@ EVENTFUNC(event_crafting) {
         // synthesizing here
         break;
       case SCMD_CRAFT:
-        // skill notch is done in create command
         if (GET_CRAFTING_REPEAT(ch)) {
           sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
           for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++) {
@@ -1812,7 +1799,6 @@ EVENTFUNC(event_crafting) {
         break;
       case SCMD_AUGMENT:
         // use to be part of crafting
-        skill = SKILL_CHEMISTRY;
         if (GET_CRAFTING_REPEAT(ch)) {
           sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
           for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++) {
@@ -1829,7 +1815,6 @@ EVENTFUNC(event_crafting) {
         break;
       case SCMD_CONVERT:
         // use to be part of crafting
-        skill = SKILL_CHEMISTRY;
         if (GET_CRAFTING_REPEAT(ch)) {
           sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
           for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++) {
@@ -1846,7 +1831,6 @@ EVENTFUNC(event_crafting) {
         break;
       case SCMD_RESTRING:
         // no skill association
-        // use to be part of crafting
         sprintf(buf2, "\tn");
         sprintf(buf, "You rename $p%s.  Success!!!", buf2);
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
@@ -1854,23 +1838,6 @@ EVENTFUNC(event_crafting) {
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_SUPPLYORDER:
-        /* picking a random trade to notch */
-        roll = dice(1, 4);
-        switch (dice(1,4)) {
-          case 1:
-            skill = SKILL_ARMOR_SMITHING;
-            break;
-          case 2:
-            skill = SKILL_WEAPON_SMITHING;
-            break;
-          case 3:
-            skill = SKILL_JEWELRY_MAKING;
-            break;
-          default:
-            skill = SKILL_LEATHER_WORKING;
-            break;
-        }
-        
         GET_AUTOCQUEST_MAKENUM(ch)--;
         if (GET_AUTOCQUEST_MAKENUM(ch) <= 0) {
           sprintf(buf, "$n completes an item for a supply order.");
@@ -1891,9 +1858,6 @@ EVENTFUNC(event_crafting) {
         return 0;
     }
 
-    /* notch skills */
-    if (skill != -1)
-      increase_skill(ch, skill);
     reset_craft(ch);
     return 0; //done with the event
   }
@@ -1904,7 +1868,7 @@ EVENTFUNC(event_crafting) {
 /* the 'harvest' command */
 ACMD(do_harvest) {
   struct obj_data *obj = NULL, *node = NULL;
-  int roll = 0, skillnum = SKILL_MINING, material = -1, minskill = 0;
+  int roll = 0, skillnum = 0, material = -1, minskill = 0;
   char arg[MAX_INPUT_LENGTH] = { '\0' };
   char buf[MEDIUM_STRING] = { '\0' };
   int sub_command = SCMD_CRAFT_UNDF;
@@ -1934,16 +1898,12 @@ ACMD(do_harvest) {
   material = GET_OBJ_MATERIAL(node);
 
   if (IS_WOOD(material)) {
-    skillnum = SKILL_FORESTING;
     sub_command = SCMD_FOREST;
   } else if (IS_LEATHER(material)) {
-    skillnum = SKILL_HUNTING;
     sub_command = SCMD_HUNT;
   } else if (IS_CLOTH(material)) {
-    skillnum = SKILL_KNITTING;
     sub_command = SCMD_KNIT;
   } else {
-    skillnum = SKILL_MINING;
     sub_command = SCMD_MINE;
   }
 
@@ -2176,11 +2136,11 @@ ACMD(do_harvest) {
     return;
   }
 
-  if (GET_SKILL(ch, skillnum) < minskill) {
-    send_to_char(ch, "You need a minimum %s skill of %d, while yours is only %d.\r\n",
-            spell_info[skillnum].name, minskill, GET_SKILL(ch, skillnum));
-    return;
-  }
+//  if (GET_SKILL(ch, skillnum) < minskill) {
+//    send_to_char(ch, "You need a minimum %s skill of %d, while yours is only %d.\r\n",
+//            spell_info[skillnum].name, minskill, GET_SKILL(ch, skillnum));
+//    return;
+//  }
 
   GET_CRAFTING_TYPE(ch) = sub_command;
   GET_CRAFTING_TICKS(ch) = 5;
@@ -2198,12 +2158,15 @@ ACMD(do_harvest) {
     GET_OBJ_VAL(node, 0)--;
 
   if (node && GET_OBJ_VAL(node, 0) <= 0) {
-    switch (skillnum) {
-      case SKILL_MINING:
+    switch (sub_command) {
+      case SCMD_MINE:
         mining_nodes--;
         break;
-      case SKILL_KNITTING:
+      case SCMD_KNIT:
         farming_nodes--;
+        break;
+      case SCMD_HUNT:
+        hunting_nodes--;
         break;
       default:
         foresting_nodes--;
@@ -2219,11 +2182,6 @@ ACMD(do_harvest) {
   obj_to_char(obj, ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
   
-  if (!IS_NPC(ch))
-    increase_skill(ch, skillnum);
-
   return;
 }
-
-
 

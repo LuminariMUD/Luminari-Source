@@ -1503,15 +1503,26 @@ ACMD(do_hit) {
       if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE))
         victInitiative += 4;
       victInitiative += GET_DEX(vict);
-      if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING)
-        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */
+      if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING) { 
+
+        /* ch is taking an action so loses the Flat-footed flag */
+        if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED)) 
+          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
+
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */       
+      }
       else {
         send_to_char(vict, "\tYYour superior initiative grants the first strike!\tn\r\n");
         send_to_char(ch,
                 "\tyYour opponents superior \tYinitiative\ty grants the first strike!\tn\r\n");
+
+       /* vict is taking an action so loses the Flat-footed flag */
+        if (AFF_FLAGGED(vict, AFF_FLAT_FOOTED))  
+          REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_FLAT_FOOTED); 
+
         hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); // victim is first 
         update_pos(ch);
-        if (!IS_NPC(vict) && HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE) &&
+        if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE) &&
                 GET_POS(ch) > POS_DEAD) {
           send_to_char(vict, "\tYYour superior initiative grants another attack!\tn\r\n");
           hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -1881,7 +1892,14 @@ ACMD(do_parry) {
 }
 
 ACMD(do_powerattack) {
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_POWER_ATTACK)) {
+
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int number = -1;
+  
+  if (argument)
+    one_argument(argument, arg);
+ 
+  if (!HAS_FEAT(ch, FEAT_POWER_ATTACK)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
@@ -1891,14 +1909,36 @@ ACMD(do_powerattack) {
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK)) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POWER_ATTACK);
-    send_to_char(ch, "You leave 'power attack' mode.\r\n");
+  /* No argument, trying to turn off powerattack mode? */
+  if (!*arg) {
+    if (AFF_FLAGGED(ch, AFF_POWER_ATTACK)) {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POWER_ATTACK);
+      send_to_char(ch, "You leave 'power attack' mode.\r\n");
+      POWER_ATTACK(ch) = -1;
+      return;
+    } else {
+      send_to_char(ch, "You must specify an argument when entering 'power attack' mode.\r\n");
+      return;
+    }
+  }
+
+  if (IS_NPC(ch)) {
+    number = 5;
+  } else if (is_number(arg))
+    number = atoi(arg);
+  else {
+    send_to_char(ch, "The argument must be a number!\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch) && number > BAB(ch)) {
+    send_to_char(ch, "The maximum you can specify for power attack is %d.\r\n", BAB(ch));
     return;
   }
 
   send_to_char(ch, "You are now in 'power attack' mode.\r\n");
 
+  POWER_ATTACK(ch) = number;
   SET_BIT_AR(AFF_FLAGS(ch), AFF_POWER_ATTACK);
   SET_WAIT(ch, 10);
 }
