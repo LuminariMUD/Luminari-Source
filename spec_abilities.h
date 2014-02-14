@@ -153,12 +153,18 @@ void abilityname( struct obj_special_ability *specab, \
 void initialize_special_abilities(void);
 
 /* Process weapon abilities for the specified activation method. */
-int  process_weapon_abilities(struct obj_data  *weapon, /* The weapon to check for special abilities. */
-                              struct char_data *ch,     /* The wielder of the weapon. */
-                              struct char_data *victim, /* The target of the ability (either fighting or 
-                                                         * specified explicitly. */
-                              int    actmtd,            /* Activation method */
-                              char   *cmdword);          /* Command word (optional, NULL if none. */
+int process_weapon_abilities(struct obj_data  *weapon, /* The weapon to check for special abilities. */
+                             struct char_data *ch,     /* The wielder of the weapon. */
+                             struct char_data *victim, /* The target of the ability (either fighting or 
+                                                        * specified explicitly. */
+                             int    actmtd,            /* Activation method */
+                             char   *cmdword);          /* Command word (optional, NULL if none. */
+
+/* Function that deactivates the specified weapon special ability. */
+//int deactivate_weapon_ability(struct obj_data *weapon, /* The weapon to check. */
+//                               struct char_data *ch,    /* The wielder of the weapon. */
+//                               int    ability);         /* The ability to check. */
+
 
 /* Prototypes for weapon special abilities */
 WEAPON_SPECIAL_ABILITY(weapon_specab_bane);
