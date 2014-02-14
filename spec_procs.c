@@ -2132,7 +2132,7 @@ SPECIAL(guild) {
             "\r\n",
             GET_BOOSTS(ch));
     affect_total(ch);
-    send_to_char(ch, "\tDType 'practice' to see your skills\tn\r\n");
+    send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
     send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
     send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
     send_to_char(ch, "\tDType 'spells <classname>' to see your currently known spells\tn\r\n");

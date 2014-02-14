@@ -313,7 +313,6 @@ void assign_feats(void)
  *   Seventh parameter defines the displayable prerequisites.
  *   Eighth parameter is the description of the feat
  *
- * These statements are generated and pasted in this file.
  *
  */
 
