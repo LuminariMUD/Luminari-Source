@@ -79,14 +79,15 @@ int count_metamagic_feats(struct char_data *ch);
 int find_armor_type(int specType);
 */
 
-void feato(int featnum, char *name, int in_game, int can_learn, int can_stack, int feat_type, char *prerequisites, char *description)
+void feato(int featnum, char *name, int in_game, int can_learn, int can_stack, int feat_type, char *short_description, char *description)
 {
   feat_list[featnum].name = name;
   feat_list[featnum].in_game = in_game;
   feat_list[featnum].can_learn = can_learn;
   feat_list[featnum].can_stack = can_stack;
-  feat_list[featnum].feat_type = feat_type;
-  feat_list[featnum].prerequisites = prerequisites;
+  feat_list[featnum].feat_type = feat_type;  
+  feat_list[featnum].short_description = short_description;
+
   feat_list[featnum].description = description;
   feat_list[featnum].prerequisite_list = NULL;
 }
@@ -294,7 +295,8 @@ void assign_feats(void)
     feat_list[i].can_learn = FALSE;
     feat_list[i].can_stack = FALSE;
     feat_list[i].feat_type = FEAT_TYPE_NONE;
-    feat_list[i].prerequisites = "ask staff";
+    feat_list[i].prerequisites = "!UNDEFINED!";
+    feat_list[i].short_description = "ask staff";
     feat_list[i].description = "ask staff";
     feat_list[i].epic = FALSE;
     feat_list[i].combat_feat = FALSE;
@@ -310,100 +312,100 @@ void assign_feats(void)
  *     a feat given automatically to certain classes or races.
  *   Fifth parameter determines wether the feat can stack with itself.
  *   Sixth parameter determines the feat type, for organization in the selection menu
- *   Seventh parameter defines the displayable prerequisites.
- *   Eighth parameter is the description of the feat
+ *   Seventh parameter is the short description of the feat.
+ *   Eighth parameter is the long description of the feat.
  *
  *
  */
 
 /* Combat feats */
-feato(FEAT_POWER_ATTACK,"power attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
+feato(FEAT_POWER_ATTACK,"power attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead","subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
 feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
   
-feato(FEAT_WEAPON_FOCUS,"weapon focus",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+1 to hit rolls for selected weapon");
+feato(FEAT_WEAPON_FOCUS,"weapon focus",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"+1 to hit rolls for selected weapon","+1 to hit rolls for selected weapon");
 feat_prereq_bab(FEAT_WEAPON_FOCUS, 1);
 feat_prereq_weapon_proficiency(FEAT_WEAPON_FOCUS);
 
-feato(FEAT_GREATER_WEAPON_FOCUS,"greater weapon focus",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+1 to hit rolls with weapon");
+feato(FEAT_GREATER_WEAPON_FOCUS,"greater weapon focus",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"+1 to hit rolls with weapon","+1 to hit rolls with weapon");
 feat_prereq_cfeat(FEAT_GREATER_WEAPON_FOCUS, FEAT_WEAPON_FOCUS);
 feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_FOCUS);
 feat_prereq_class_level(FEAT_GREATER_WEAPON_FOCUS, CLASS_WARRIOR, 8);
 
-feato(FEAT_SPIRITED_CHARGE,"spirited charge",TRUE,FALSE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","When mounted and using the charge action, you deal double damage with a melee weapon (or triple damage with a lance).");
+feato(FEAT_SPIRITED_CHARGE,"spirited charge",TRUE,FALSE,FALSE,FEAT_TYPE_COMBAT,"When mounted and using the charge action, you deal double damage with a melee weapon (or triple damage with a lance).","When mounted and using the charge action, you deal double damage with a melee weapon (or triple damage with a lance).");
 feat_prereq_ability(FEAT_SPIRITED_CHARGE, ABILITY_RIDE, 1);
 feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_MOUNTED_COMBAT, 1);
 feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_RIDE_BY_ATTACK, 1);
 
-feato(FEAT_BLIND_FIGHT,"blind fighting",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
+feato(FEAT_BLIND_FIGHT,"blind fighting",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.","when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
 
-feato(FEAT_CLEAVE,"cleave",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","extra initial attack against opponent after killing another opponent in same room");
+feato(FEAT_CLEAVE,"cleave",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"extra initial attack against opponent after killing another opponent in same room","extra initial attack against opponent after killing another opponent in same room");
 feat_prereq_attribute(FEAT_CLEAVE, AB_STR, 13);
 feat_prereq_feat(FEAT_CLEAVE, FEAT_POWER_ATTACK, 1);
 
-feato(FEAT_COMBAT_EXPERTISE,"combat expertise",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC");
+feato(FEAT_COMBAT_EXPERTISE,"combat expertise",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC","When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC");
 feat_prereq_attribute(FEAT_COMBAT_EXPERTISE, AB_INT, 13);
 
-feato(FEAT_COMBAT_REFLEXES,"combat reflexes",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","can make a number of attacks of opportunity equal to dex bonus");
+feato(FEAT_COMBAT_REFLEXES,"combat reflexes",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"can make a number of attacks of opportunity equal to dex bonus","can make a number of attacks of opportunity equal to dex bonus");
 
-feato(FEAT_DODGE,"dodge",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+1 dodge bonus to ac");
+feato(FEAT_DODGE,"dodge",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"+1 dodge bonus to ac","+1 dodge bonus to ac");
 feat_prereq_attribute(FEAT_DODGE, AB_DEX, 13);
 
-feato(FEAT_MOBILITY,"mobility",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+4 dodge ac bonus against attacks of opportunity");
+feato(FEAT_MOBILITY,"mobility",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"+4 dodge ac bonus against attacks of opportunity","+4 dodge ac bonus against attacks of opportunity");
 feat_prereq_attribute(FEAT_MOBILITY, AB_DEX, 13);
 feat_prereq_feat(FEAT_MOBILITY, FEAT_DODGE, 1);
 
-feato(FEAT_EPIC_PROWESS,"epic prowess",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+1 to all attacks per rank");
+feato(FEAT_EPIC_PROWESS,"epic prowess",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"+1 to all attacks per rank","+1 to all attacks per rank");
 
-feato(FEAT_IMPROVED_CRITICAL,"improved critical",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"!UNDEFINED!","doubled critical threat rating for weapon chosen");
+feato(FEAT_IMPROVED_CRITICAL,"improved critical",TRUE,TRUE,TRUE,FEAT_TYPE_COMBAT,"doubled critical threat rating for weapon chosen","doubled critical threat rating for weapon chosen");
 feat_prereq_weapon_proficiency(FEAT_IMPROVED_CRITICAL);
 feat_prereq_bab(FEAT_IMPROVED_CRITICAL, 8);
 
-feato(FEAT_IMPROVED_INITIATIVE,"improved initiative",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+4 to initiative checks to see who attacks first each round");
+feato(FEAT_IMPROVED_INITIATIVE,"improved initiative",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"+4 to initiative checks to see who attacks first each round","+4 to initiative checks to see who attacks first each round");
 
-feato(FEAT_IMPROVED_SHIELD_BASH,"improved shield bash",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","retain your shield's AC bonus when you shield punch");
+feato(FEAT_IMPROVED_SHIELD_BASH,"improved shield bash",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"retain your shield's AC bonus when you shield punch","retain your shield's AC bonus when you shield punch");
 feat_prereq_feat(FEAT_IMPROVED_SHIELD_BASH, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
 
-feato(FEAT_IMPROVED_TRIP,"improved trip",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","no attack of opportunity when tripping, +4 to trip check, attack immediately on successful trip.");
+feato(FEAT_IMPROVED_TRIP,"improved trip",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"no attack of opportunity when tripping, +4 to trip check, attack immediately on successful trip.","no attack of opportunity when tripping, +4 to trip check, attack immediately on successful trip.");
 feat_prereq_attribute(FEAT_IMPROVED_TRIP, AB_INT, 13);
 feat_prereq_feat(FEAT_IMPROVED_TRIP, FEAT_COMBAT_EXPERTISE, 1);
 
-feato(FEAT_IMPROVED_UNARMED_STRIKE,"improved unarmed strike",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","unarmed attacks do not provoke attacks of opportunity, and do 1d6 damage");
+feato(FEAT_IMPROVED_UNARMED_STRIKE,"improved unarmed strike",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"unarmed attacks do not provoke attacks of opportunity, and do 1d6 damage","unarmed attacks do not provoke attacks of opportunity, and do 1d6 damage");
 
-feato(FEAT_POINT_BLANK_SHOT,"point blank shot",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","+1 to hit and dam rolls with ranged weapons in the same room");
+feato(FEAT_POINT_BLANK_SHOT,"point blank shot",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"+1 to hit and dam rolls with ranged weapons in the same room","+1 to hit and dam rolls with ranged weapons in the same room");
 
 
-feato(FEAT_RAPID_SHOT,"rapid shot",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","can make extra attack per round with ranged weapon at -2 to all attacks");
+feato(FEAT_RAPID_SHOT,"rapid shot",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"can make extra attack per round with ranged weapon at -2 to all attacks","can make extra attack per round with ranged weapon at -2 to all attacks");
 feat_prereq_attribute(FEAT_RAPID_SHOT, AB_DEX, 13);
 feat_prereq_feat(FEAT_RAPID_SHOT, FEAT_POINT_BLANK_SHOT, 1);
 
-feato(FEAT_SHIELD_CHARGE,"shield charge",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","make a trip attack when you bash with your shield");
+feato(FEAT_SHIELD_CHARGE,"shield charge",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"make a trip attack when you bash with your shield","make a trip attack when you bash with your shield");
 feat_prereq_bab(FEAT_SHIELD_CHARGE, 3);
 feat_prereq_feat(FEAT_SHIELD_CHARGE, FEAT_IMPROVED_SHIELD_BASH, 1);
 
-feato(FEAT_SHIELD_SLAM,"shield slam",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","Daze an opponent of any size by slamming them with your shield.");
+feato(FEAT_SHIELD_SLAM,"shield slam",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"Daze an opponent of any size by slamming them with your shield.","Daze an opponent of any size by slamming them with your shield.");
 feat_prereq_bab(FEAT_SHIELD_SLAM, 6);
 feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_SHIELD_CHARGE, 1);
 feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_IMPROVED_SHIELD_BASH, 1);
 
-feato(FEAT_SPRING_ATTACK,"spring attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","free attack of opportunity against combat abilities (ie. kick,Trip)");
+feato(FEAT_SPRING_ATTACK,"spring attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"free attack of opportunity against combat abilities (ie. kick,Trip)","free attack of opportunity against combat abilities (ie. kick,Trip)");
 feat_prereq_bab(FEAT_SPRING_ATTACK, 4);
 feat_prereq_attribute(FEAT_SPRING_ATTACK, AB_DEX, 13);
 feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_DODGE, 1);
 feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_MOBILITY, 1);
 
-feato(FEAT_STUNNING_FIST,"stunning fist",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","may make unarmed attack to stun opponent for one round");
+feato(FEAT_STUNNING_FIST,"stunning fist",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"may make unarmed attack to stun opponent for one round","may make unarmed attack to stun opponent for one round");
 feat_prereq_attribute(FEAT_STUNNING_FIST, AB_DEX, 13);
 feat_prereq_attribute(FEAT_STUNNING_FIST, AB_WIS, 13);
 feat_prereq_feat(FEAT_STUNNING_FIST, FEAT_IMPROVED_UNARMED_STRIKE, 1);
 feat_prereq_bab(FEAT_STUNNING_FIST, 8);
 
-feato(FEAT_TWO_WEAPON_FIGHTING,"two weapon fighting",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","attacks with offhand weapons done at reduced penalties");
+feato(FEAT_TWO_WEAPON_FIGHTING,"two weapon fighting",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"attacks with offhand weapons done at reduced penalties","attacks with offhand weapons done at reduced penalties");
 feat_prereq_attribute(FEAT_TWO_WEAPON_FIGHTING, AB_DEX, 15);
 
-feato(FEAT_WEAPON_FINESSE,"weapon finesse",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","use dex for hit roll of weapons smaller than wielder or rapier, whip, spiked chain");
+feato(FEAT_WEAPON_FINESSE,"weapon finesse",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"use dex for hit roll of weapons smaller than wielder or rapier, whip, spiked chain","use dex for hit roll of weapons smaller than wielder or rapier, whip, spiked chain");
 feat_prereq_bab(FEAT_WEAPON_FINESSE, 1);
 
-feato(FEAT_WHIRLWIND_ATTACK,"whirlwind attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","allows you to attack everyone in the room or everyone you are fighting (with contain) as a standard action");
+feato(FEAT_WHIRLWIND_ATTACK,"whirlwind attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"allows you to attack everyone in the room or everyone you are fighting (with contain) as a standard action","allows you to attack everyone in the room or everyone you are fighting (with contain) as a standard action");
 feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_DEX, 13);
 feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_INT, 13);
 feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_COMBAT_EXPERTISE, 1);
@@ -412,18 +414,18 @@ feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_MOBILITY, 1);
 feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_SPRING_ATTACK, 1);
 feat_prereq_bab(FEAT_WHIRLWIND_ATTACK, 4);
 
-feato(FEAT_GREAT_CLEAVE,"great cleave",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"!UNDEFINED!","ask staff");
+feato(FEAT_GREAT_CLEAVE,"great cleave",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
 feat_prereq_feat(FEAT_GREAT_CLEAVE, FEAT_CLEAVE, 1);
 feat_prereq_feat(FEAT_GREAT_CLEAVE, FEAT_POWER_ATTACK, 1);
 feat_prereq_attribute(FEAT_GREAT_CLEAVE, AB_STR, 13);
 feat_prereq_bab(FEAT_GREAT_CLEAVE, 4);
 
-feato(FEAT_WEAPON_SPECIALIZATION, "weapon specialization", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, "!UNDEFINED!", "+2 to dam rolls with weapon");
+feato(FEAT_WEAPON_SPECIALIZATION, "weapon specialization", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+2 to dam rolls with chosen weapon", "Choose one type of weapon, such as greataxe, for which you have already selected the Weapon Focus feat. You can also choose unarmed strike as your weapon for purposes of this feat. You gain a +2 bonus on damage using the selected weapon.");
 feat_prereq_weapon_proficiency(FEAT_WEAPON_SPECIALIZATION);
 feat_prereq_cfeat(FEAT_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
 feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 4);
 
-feato(FEAT_GREATER_WEAPON_SPECIALIZATION,"greater weapon specialization",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"!UNDEFINED!","additional +2 dam with weapon (stacks)");
+feato(FEAT_GREATER_WEAPON_SPECIALIZATION,"greater weapon specialization",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"additional +2 dam with weapon (stacks)","additional +2 dam with weapon (stacks)");
 feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_SPECIALIZATION);
 feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
 feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_FOCUS);
@@ -433,175 +435,175 @@ feat_prereq_class_level(FEAT_GREATER_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 12);
 
 /* General feats */
 
-feato(FEAT_ABLE_LEARNER,"able learner",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+1 to all skills");
-feato(FEAT_ACROBATIC,"acrobatic",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to jump and tumble skill checks");
-feato(FEAT_AGILE,"agile",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to balance and escape artist skill checks");
-feato(FEAT_ALERTNESS,"alertness",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED","+2 to spot and listen skill checks ");
-feato(FEAT_ANIMAL_AFFINITY,"animal affinity",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to handle animal and ride skill checks");
-feato(FEAT_ARMOR_PROFICIENCY_HEAVY,"heavy armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","allows unpenalized use of heavy armor ");
+feato(FEAT_ABLE_LEARNER,"able learner",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+1 to all skills","+1 to all skills");
+feato(FEAT_ACROBATIC,"acrobatic",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to jump and tumble skill checks","+2 to jump and tumble skill checks");
+feato(FEAT_AGILE,"agile",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to balance and escape artist skill checks","+2 to balance and escape artist skill checks");
+feato(FEAT_ALERTNESS,"alertness",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to spot and listen skill checks ","+2 to spot and listen skill checks ");
+feato(FEAT_ANIMAL_AFFINITY,"animal affinity",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to handle animal and ride skill checks","+2 to handle animal and ride skill checks");
+feato(FEAT_ARMOR_PROFICIENCY_HEAVY,"heavy armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"allows unpenalized use of heavy armor ","allows unpenalized use of heavy armor ");
 feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
 feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
 
-feato(FEAT_ARMOR_PROFICIENCY_LIGHT,"light armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","allows unpenalized use of light armor ");
-feato(FEAT_ARMOR_PROFICIENCY_MEDIUM,"medium armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","allows unpenalized use of medium armor ");
+feato(FEAT_ARMOR_PROFICIENCY_LIGHT,"light armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"allows unpenalized use of light armor ","allows unpenalized use of light armor ");
+feato(FEAT_ARMOR_PROFICIENCY_MEDIUM,"medium armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"allows unpenalized use of medium armor ","allows unpenalized use of medium armor ");
 feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_MEDIUM, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
 
-feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD,"tower shield proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","can use tower shields without penalties");
+feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD,"tower shield proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"can use tower shields without penalties","can use tower shields without penalties");
 
-feato(FEAT_ARMOR_SKIN,"armor skin",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"!UNDEFINED!","Increases natural armor by 1"); /* Epic */
-feato(FEAT_ATHLETIC,"athletic",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to swim and climb skill checks");
-feato(FEAT_DECEITFUL,"deceitful",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to disguise and forgery skill checks");
-feato(FEAT_DEFT_HANDS,"deft hands",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to sleight of hand and use rope skill checks");
-feato(FEAT_DILIGENT,"diligent",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 bonus to appraise and decipher script skill checks");
-feato(FEAT_EPIC_TOUGHNESS,"epic toughness",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"!UNDEFINED!","You gain +1 hp per level"); /* Epic */
-feato(FEAT_EXOTIC_WEAPON_PROFICIENCY,"exotic weapon proficiency",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"!UNDEFINED!","can use exotic weapon of type chosen without penalties");
+feato(FEAT_ARMOR_SKIN,"armor skin",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"Increases natural armor by 1","Increases natural armor by 1"); /* Epic */
+feato(FEAT_ATHLETIC,"athletic",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to swim and climb skill checks","+2 to swim and climb skill checks");
+feato(FEAT_DECEITFUL,"deceitful",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to disguise and forgery skill checks","+2 to disguise and forgery skill checks");
+feato(FEAT_DEFT_HANDS,"deft hands",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to sleight of hand and use rope skill checks","+2 to sleight of hand and use rope skill checks");
+feato(FEAT_DILIGENT,"diligent",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 bonus to appraise and decipher script skill checks","+2 bonus to appraise and decipher script skill checks");
+feato(FEAT_EPIC_TOUGHNESS,"epic toughness",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"You gain +1 hp per level","You gain +1 hp per level"); /* Epic */
+feato(FEAT_EXOTIC_WEAPON_PROFICIENCY,"exotic weapon proficiency",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"can use exotic weapon of type chosen without penalties","can use exotic weapon of type chosen without penalties");
 feat_prereq_bab(FEAT_EXOTIC_WEAPON_PROFICIENCY, 1);
 
-feato(FEAT_EXTRA_TURNING,"extra turning",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","2 extra turn attempts per day");
+feato(FEAT_EXTRA_TURNING,"extra turning",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"2 extra turn attempts per day","2 extra turn attempts per day");
 feat_prereq_feat(FEAT_EXTRA_TURNING, FEAT_TURN_UNDEAD, 1);
 
-feato(FEAT_GREAT_FORTITUDE,"great fortitude",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to all fortitude saving throw checks");
+feato(FEAT_GREAT_FORTITUDE,"great fortitude",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to all fortitude saving throw checks","+2 to all fortitude saving throw checks");
 
-feato(FEAT_IMPROVED_SPELL_RESISTANCE,"improved spell resistance",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to spell resistance"); /* Epic */
+feato(FEAT_IMPROVED_SPELL_RESISTANCE,"improved spell resistance",TRUE,TRUE,TRUE,FEAT_TYPE_GENERAL,"+2 to spell resistance","+2 to spell resistance"); /* Epic */
 feat_prereq_feat(FEAT_IMPROVED_SPELL_RESISTANCE, FEAT_DIAMOND_SOUL, 1);
 
-feato(FEAT_INVESTIGATOR,"investigator",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to lore and search checks");
-feato(FEAT_IRON_WILL,"iron will",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to all willpower saving throw checks");
-feato(FEAT_LIGHTNING_REFLEXES,"lightning reflexes",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to all reflex saving throw checks");
-feato(FEAT_MAGICAL_APTITUDE,"magical aptitude",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to spellcraft and use magical device skill checks");
-feato(FEAT_NEGOTIATOR,"negotiator",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to diplomacy and sense motive skills");
-feato(FEAT_NIMBLE_FINGERS,"nimble fingers",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to open lock and disable device skill checks");
-feato(FEAT_PERSUASIVE,"persuasive",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to bluff and intimidate skill checks");
-feato(FEAT_SELF_SUFFICIENT,"self sufficient",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to heal and survival skill checks");
-feato(FEAT_SIMPLE_WEAPON_PROFICIENCY,"simple weapon proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","may use all simple weappons");
-feato(FEAT_STEALTHY,"stealthy",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+2 to hide and move silently skill checks");
-feato(FEAT_TOUGHNESS,"toughness",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","+1 hp per level, +(level) hp upon taking");
-feato(FEAT_ARMOR_PROFICIENCY_SHIELD,"shield armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","able to use bucklers, light and heavy shields without penalty ");
-feato(FEAT_MARTIAL_WEAPON_PROFICIENCY,"martial weapon proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"!UNDEFINED!","able to use all martial weapons");
+feato(FEAT_INVESTIGATOR,"investigator",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to lore and search checks","+2 to lore and search checks");
+feato(FEAT_IRON_WILL,"iron will",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to all willpower saving throw checks","+2 to all willpower saving throw checks");
+feato(FEAT_LIGHTNING_REFLEXES,"lightning reflexes",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to all reflex saving throw checks","+2 to all reflex saving throw checks");
+feato(FEAT_MAGICAL_APTITUDE,"magical aptitude",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to spellcraft and use magical device skill checks","+2 to spellcraft and use magical device skill checks");
+feato(FEAT_NEGOTIATOR,"negotiator",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to diplomacy and sense motive skills","+2 to diplomacy and sense motive skills");
+feato(FEAT_NIMBLE_FINGERS,"nimble fingers",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to open lock and disable device skill checks","+2 to open lock and disable device skill checks");
+feato(FEAT_PERSUASIVE,"persuasive",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to bluff and intimidate skill checks","+2 to bluff and intimidate skill checks");
+feato(FEAT_SELF_SUFFICIENT,"self sufficient",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to heal and survival skill checks","+2 to heal and survival skill checks");
+feato(FEAT_SIMPLE_WEAPON_PROFICIENCY,"simple weapon proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"may use all simple weappons","may use all simple weappons");
+feato(FEAT_STEALTHY,"stealthy",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to hide and move silently skill checks","+2 to hide and move silently skill checks");
+feato(FEAT_TOUGHNESS,"toughness",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+1 hp per level, +(level) hp upon taking","+1 hp per level, +(level) hp upon taking");
+feato(FEAT_ARMOR_PROFICIENCY_SHIELD,"shield armor proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"able to use bucklers, light and heavy shields without penalty ","able to use bucklers, light and heavy shields without penalty ");
+feato(FEAT_MARTIAL_WEAPON_PROFICIENCY,"martial weapon proficiency",TRUE,TRUE,FALSE,FEAT_TYPE_GENERAL,"able to use all martial weapons","able to use all martial weapons");
 
 /* Spellcasting feats */
 
-feato(FEAT_GREATER_SPELL_PENETRATION,"greater spell penetration",TRUE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"!UNDEFINED!","+2 to caster level checks to defeat spell resistance");
+feato(FEAT_GREATER_SPELL_PENETRATION,"greater spell penetration",TRUE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"+2 to caster level checks to defeat spell resistance","+2 to caster level checks to defeat spell resistance");
 feat_prereq_feat(FEAT_GREATER_SPELL_PENETRATION, FEAT_SPELL_PENETRATION, 1);
 
-feato(FEAT_SPELL_PENETRATION,"spell penetration",TRUE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"!UNDEFINED!","+2 bonus on caster level checks to defeat spell resistance");
+feato(FEAT_SPELL_PENETRATION,"spell penetration",TRUE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"+2 bonus on caster level checks to defeat spell resistance","+2 bonus on caster level checks to defeat spell resistance");
 
 /* Crafting feats */
 
-feato(FEAT_DRACONIC_CRAFTING,"draconic crafting",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"!UNDEFINED!","All magical items created gain higher bonuses w/o increasing level");
-feato(FEAT_DWARVEN_CRAFTING,"dwarven crafting",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"!UNDEFINED!","All weapons and armor made have higher bonuses");
-feato(FEAT_ELVEN_CRAFTING,"elven crafting",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"!UNDEFINED!","All equipment made is 50% weight and uses 50% materials");
-feato(FEAT_FAST_CRAFTER,"fast crafter",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"!UNDEFINED","Reduces crafting time");
+feato(FEAT_DRACONIC_CRAFTING,"draconic crafting",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"All magical items created gain higher bonuses w/o increasing level","All magical items created gain higher bonuses w/o increasing level");
+feato(FEAT_DWARVEN_CRAFTING,"dwarven crafting",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"All weapons and armor made have higher bonuses","All weapons and armor made have higher bonuses");
+feato(FEAT_ELVEN_CRAFTING,"elven crafting",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"All equipment made is 50% weight and uses 50% materials","All equipment made is 50% weight and uses 50% materials");
+feato(FEAT_FAST_CRAFTER,"fast crafter",TRUE,FALSE,FALSE,FEAT_TYPE_CRAFT,"Reduces crafting time","Reduces crafting time");
 
 
 /* Disabled Feats */
 
-feato(FEAT_ACROBATIC_CHARGE,"acrobatic charge",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"none","can charge in situations when others cannot");
-feato(FEAT_CANNY_DEFENSE,"canny defense",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"none","add int bonus (max class level) to ac when useing one light weapon and no shield");
-feato(FEAT_ELABORATE_PARRY,"elaborate parry",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"none","when fighting defensively or total defense, gains +1 dodge ac per class level");
+feato(FEAT_ACROBATIC_CHARGE,"acrobatic charge",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"can charge in situations when others cannot","can charge in situations when others cannot");
+feato(FEAT_CANNY_DEFENSE,"canny defense",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"add int bonus (max class level) to ac when useing one light weapon and no shield","add int bonus (max class level) to ac when useing one light weapon and no shield");
+feato(FEAT_ELABORATE_PARRY,"elaborate parry",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"when fighting defensively or total defense, gains +1 dodge ac per class level","when fighting defensively or total defense, gains +1 dodge ac per class level");
 feato(FEAT_FAR_SHOT,"far shot",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
-feato(FEAT_GREATER_FLURRY,"greater flurry",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"none","extra unarmed attack when using flurry of blows at -5 penalty");
-feato(FEAT_GREATER_RAGE,"greater rage",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"none","+6 to str and con when raging");
-feato(FEAT_IMPROVED_DISARM,"improved disarm",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff ");
+feato(FEAT_GREATER_FLURRY,"greater flurry",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"extra unarmed attack when using flurry of blows at -5 penalty","extra unarmed attack when using flurry of blows at -5 penalty");
+feato(FEAT_GREATER_RAGE,"greater rage",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"+6 to str and con when raging","+6 to str and con when raging");
+feato(FEAT_IMPROVED_DISARM,"improved disarm",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ask staff ","ask staff ");
 feato(FEAT_IMPROVED_GRAPPLE,"improved grapple",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
 feato(FEAT_IMPROVED_OVERRUN,"improved overrun",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
-feato(FEAT_IMPROVED_PRECISE_SHOT,"improved precise shot",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ranger level 11","+1 to hit on all ranged attacks");
-feato(FEAT_IMPROVED_UNCANNY_DODGE,"improved uncanny dodge",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"none","cannot be flanked (or sneak attacked");
-feato(FEAT_MANYSHOT,"manyshot",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ranger level 6","extra ranged attack when rapid shot turned on");
-feato(FEAT_MIGHTY_RAGE,"mighty rage",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"str 21, con 21, greater rage, rage 5/day","+8 str and con and +4 to will saves when raging");
+feato(FEAT_IMPROVED_PRECISE_SHOT,"improved precise shot",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"+1 to hit on all ranged attacks","+1 to hit on all ranged attacks");
+feato(FEAT_IMPROVED_UNCANNY_DODGE,"improved uncanny dodge",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"cannot be flanked (or sneak attacked","cannot be flanked (or sneak attacked");
+feato(FEAT_MANYSHOT,"manyshot",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"extra ranged attack when rapid shot turned on","extra ranged attack when rapid shot turned on");
+feato(FEAT_MIGHTY_RAGE,"mighty rage",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"+8 str and con and +4 to will saves when raging","+8 str and con and +4 to will saves when raging");
 feato(FEAT_MOUNTED_ARCHERY,"mounted archery",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
-feato(FEAT_PRECISE_STRIKE,"precise strike",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"none","+1d6 damage when using only one weapon and no shield");
+feato(FEAT_PRECISE_STRIKE,"precise strike",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"+1d6 damage when using only one weapon and no shield","+1d6 damage when using only one weapon and no shield");
 feato(FEAT_QUICK_DRAW,"quick draw",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
 feato(FEAT_RAPID_RELOAD,"rapid reload",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
 feato(FEAT_RIDE_BY_ATTACK,"ride by attack",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
 feato(FEAT_SHOT_ON_THE_RUN,"shot on the run",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
-feato(FEAT_TIRELESS_RAGE,"tireless rage",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"none","no fatigue after raging");
+feato(FEAT_TIRELESS_RAGE,"tireless rage",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"no fatigue after raging","no fatigue after raging");
 feato(FEAT_WEAPON_TOUCH,"weapon touch",FALSE,FALSE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
-feato(FEAT_WEAPON_MASTERY,"weapon mastery",FALSE,FALSE,TRUE,FEAT_TYPE_COMBAT,"proficiency, weapon focus, weapon specialization in specific weapon, Base Attack Bonus +8","+2 to hit and damage with that weapon");
-feato(FEAT_COMBAT_CHALLENGE,"combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"5 ranks in diplomacy, intimidate or bluff","allows you to make a mob focus their attention on you");
-feato(FEAT_DEFLECT_ARROWS,"deflect arrows",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 13, improved unarmed strike","can deflect one ranged attack per round ");
-feato(FEAT_EPIC_COMBAT_CHALLENGE,"epic combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"20 ranks in diplomacy, intimidate or bluff, greater combat challenge","as improved combat challenge, but both regular challenges and challenge all are minor actions");
-feato(FEAT_EPIC_DODGE,"epic dodge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 25, dodge,Tumble 30, improved evasion, defensive roll","automatically dodge first attack against you each round");
-feato(FEAT_EXTEND_RAGE,"extend rage",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"rage","Each of the uses of your rage or frenzy ability lasts an additional 5 rounds beyond its normal duration.");
-feato(FEAT_GREAT_SMITING,"great smiting",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"epic level","For each rank in this feat you add your level in damage to all smite attacks");
-feato(FEAT_GREATER_COMBAT_CHALLENGE,"greater combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"15 ranks in diplomacy, intimidate or bluff, improved combat challenge","as improved combat challenge, but regular challenge is a minor action & challenge all is a move action");
-feato(FEAT_GREATER_TWO_WEAPON_FIGHTING,"greater two weapon fighting",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 19, base attack bonus 11+,Two weapon & improved two weapon fighting","gives an additional offhand weapon attack");
-feato(FEAT_IMPROVED_COMBAT_CHALLENGE,"improved combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"10 ranks in diplomacy, intimidate or bluff, combat challenge","allows you to make all mobs focus their attention on you");
-feato(FEAT_IMPROVED_FEINT,"improved feint",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"int 13, combat expertise","can feint and make one attack per round (or sneak attack if they have it)");
-feato(FEAT_IMPROVED_NATURAL_WEAPON,"improved natural weapons",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"natural weapon or improved unarmed strike","increase damage dice by one category for natural weapons");
-feato(FEAT_IMPROVED_SNEAK_ATTACK,"improved sneak attack",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"sneak attack 1d6 or more","each rank gives +5% chance per attack, per rank to be a sneak attack.");
+feato(FEAT_WEAPON_MASTERY,"weapon mastery",FALSE,FALSE,TRUE,FEAT_TYPE_COMBAT,"+2 to hit and damage with that weapon","+2 to hit and damage with that weapon");
+feato(FEAT_COMBAT_CHALLENGE,"combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"allows you to make a mob focus their attention on you","allows you to make a mob focus their attention on you");
+feato(FEAT_DEFLECT_ARROWS,"deflect arrows",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"can deflect one ranged attack per round ","can deflect one ranged attack per round ");
+feato(FEAT_EPIC_COMBAT_CHALLENGE,"epic combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"as improved combat challenge, but both regular challenges and challenge all are minor actions","as improved combat challenge, but both regular challenges and challenge all are minor actions");
+feato(FEAT_EPIC_DODGE,"epic dodge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"automatically dodge first attack against you each round","automatically dodge first attack against you each round");
+feato(FEAT_EXTEND_RAGE,"extend rage",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"Each of the uses of your rage or frenzy ability lasts an additional 5 rounds beyond its normal duration.","Each of the uses of your rage or frenzy ability lasts an additional 5 rounds beyond its normal duration.");
+feato(FEAT_GREAT_SMITING,"great smiting",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"For each rank in this feat you add your level in damage to all smite attacks","For each rank in this feat you add your level in damage to all smite attacks");
+feato(FEAT_GREATER_COMBAT_CHALLENGE,"greater combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"as improved combat challenge, but regular challenge is a minor action & challenge all is a move action","as improved combat challenge, but regular challenge is a minor action & challenge all is a move action");
+feato(FEAT_GREATER_TWO_WEAPON_FIGHTING,"greater two weapon fighting",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"gives an additional offhand weapon attack","gives an additional offhand weapon attack");
+feato(FEAT_IMPROVED_COMBAT_CHALLENGE,"improved combat challenge",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"allows you to make all mobs focus their attention on you","allows you to make all mobs focus their attention on you");
+feato(FEAT_IMPROVED_FEINT,"improved feint",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"can feint and make one attack per round (or sneak attack if they have it)","can feint and make one attack per round (or sneak attack if they have it)");
+feato(FEAT_IMPROVED_NATURAL_WEAPON,"improved natural weapons",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"increase damage dice by one category for natural weapons","increase damage dice by one category for natural weapons");
+feato(FEAT_IMPROVED_SNEAK_ATTACK,"improved sneak attack",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"each rank gives +5% chance per attack, per rank to be a sneak attack.","each rank gives +5% chance per attack, per rank to be a sneak attack.");
 feato(FEAT_IMPROVED_TAUNTING,"improved taunting",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"ask staff","ask staff");
-feato(FEAT_IMPROVED_TWO_WEAPON_FIGHTING,"improved two weapon fighting",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 17,Two weapon fighting, base attack bonus of +6 or more","extra attack with offhand weapon at -5 penalty");
-feato(FEAT_IMPROVED_WEAPON_FINESSE,"improved weapon finesse",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"weapon finesse, weapon focus, base attack bonus of 4+","add dex bonus to damage instead of str for light weapons");
-feato(FEAT_KNOCKDOWN,"knockdown",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"improved trip","when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target");
-feato(FEAT_MOUNTED_COMBAT,"mounted combat",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"ride rank 1","once per round rider may negate a hit against him with a successful ride vs attack roll check");
-feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING,"perfect two weapon fighting",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 25, greater two weapon fighting","Extra attack with offhand weapon");
-feato(FEAT_POWER_CRITICAL,"power critical",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"weapon focus in chosen weapon, base attack bonus +4 or higher","+4 to rolls to confirm critical hits.");
-feato(FEAT_PRECISE_SHOT,"precise shot",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"point blank shot","You may shoot in melee without the standard -4 to hit penalty");
-feato(FEAT_ROBILARS_GAMBIT,"robilars gambit",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"combat reflexes, base attack bonus +12","when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.");
-feato(FEAT_SELF_CONCEALMENT,"self concealment",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"stealth 30 ranks, dex 30,Tumble 30 ranks","10% miss chance for attacks against you per rank");
-feato(FEAT_SNEAK_ATTACK,"sneak attack",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"as epic feat: sneak attack +8d6","+1d6 to damage when flanking");
-feato(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY,"sneak attack of opportunity",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"sneak attack +8d6, opportunist feat","makes all opportunity attacks sneak attacks");
-feato(FEAT_SWARM_OF_ARROWS,"swarm of arrows",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 23, point blank shot, rapid shot, weapon focus","allows you to make a single ranged attack against everyone in range.");
-feato(FEAT_TWO_WEAPON_DEFENSE,"two weapon defense",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"dex 15,Two weapon fighting","when wielding two weapons receive +1 shield ac bonus");
-feato(FEAT_WEAPON_FLURRY,"weapon flurry",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency, weapon focus, weapon specialization, weapon mastery in specific weapon, base attack bonus +14","2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action");
-feato(FEAT_WEAPON_SUPREMACY,"weapon supremacy",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"proficiency, weapon focus, weapon specialization, weapon master, greater weapon focus, greater weapon specialization in specific weapon,Fighter level 18","+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon");
-feato(FEAT_BRANDING,"branding",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"Artisan level 3","All items made carry the artisan's brand");
-feato(FEAT_BREW_POTION,"brew potion",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"3rd level caster","can create magical potions ");
-feato(FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR,"craft magical arms and armor",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"5th level caster","can create magical weapons and armor ");
-feato(FEAT_CRAFT_ROD,"craft rod",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"9th level caster","can crate magical rods");
-feato(FEAT_CRAFT_STAFF,"craft staff",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"12th level caster","can create magical staves ");
-feato(FEAT_CRAFT_WAND,"craft wand",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"5th level caster","can create magical wands ");
-feato(FEAT_CRAFT_WONDEROUS_ITEM,"craft wonderous item",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"3rd level caster","can crate miscellaneous magical items ");
-feato(FEAT_FORGE_RING,"forge ring",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"ask staff","ask staff ");
-feato(FEAT_MASTERWORK_CRAFTING,"masterwork crafting",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"Artisan level 6","All equipment made is masterwork");
-feato(FEAT_SCRIBE_SCROLL,"scribe scroll",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"1st level caster","can scribe spells from memory onto scrolls");
-feato(FEAT_DIVINE_MIGHT,"divine might",FALSE,TRUE,FALSE,FEAT_TYPE_DIVINE,"turn undead, power attack, cha 13, str 13","Add cha bonus to damage for number of rounds equal to cha bonus");
-feato(FEAT_DIVINE_SHIELD,"divine shield",FALSE,TRUE,FALSE,FEAT_TYPE_DIVINE,"turn undead, power attack, cha 13, str 13","Add cha bonus to armor class for number of rounds equal to cha bonus");
-feato(FEAT_DIVINE_VENGEANCE,"divine vengeance",FALSE,TRUE,FALSE,FEAT_TYPE_DIVINE,"turn undead, extra turning","Add 2d6 damage against undead for number of rounds equal to cha bonus");
-feato(FEAT_EXCEPTIONAL_TURNING,"exceptional turning",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"sun cleric domain","+1d10 hit dice of undead turned");
-feato(FEAT_HEROIC_INITIATIVE,"heroic initiative",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"none","bonus to initiative checks");
+feato(FEAT_IMPROVED_TWO_WEAPON_FIGHTING,"improved two weapon fighting",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"extra attack with offhand weapon at -5 penalty","extra attack with offhand weapon at -5 penalty");
+feato(FEAT_IMPROVED_WEAPON_FINESSE,"improved weapon finesse",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"add dex bonus to damage instead of str for light weapons","add dex bonus to damage instead of str for light weapons");
+feato(FEAT_KNOCKDOWN,"knockdown",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target","when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target");
+feato(FEAT_MOUNTED_COMBAT,"mounted combat",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"once per round rider may negate a hit against him with a successful ride vs attack roll check","once per round rider may negate a hit against him with a successful ride vs attack roll check");
+feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING,"perfect two weapon fighting",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"Extra attack with offhand weapon","Extra attack with offhand weapon");
+feato(FEAT_POWER_CRITICAL,"power critical",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"+4 to rolls to confirm critical hits.","+4 to rolls to confirm critical hits.");
+feato(FEAT_PRECISE_SHOT,"precise shot",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"You may shoot in melee without the standard -4 to hit penalty","You may shoot in melee without the standard -4 to hit penalty");
+feato(FEAT_ROBILARS_GAMBIT,"robilars gambit",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.","when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.");
+feato(FEAT_SELF_CONCEALMENT,"self concealment",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"10% miss chance for attacks against you per rank","10% miss chance for attacks against you per rank");
+feato(FEAT_SNEAK_ATTACK,"sneak attack",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"+1d6 to damage when flanking","+1d6 to damage when flanking");
+feato(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY,"sneak attack of opportunity",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"makes all opportunity attacks sneak attacks","makes all opportunity attacks sneak attacks");
+feato(FEAT_SWARM_OF_ARROWS,"swarm of arrows",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"allows you to make a single ranged attack against everyone in range.","allows you to make a single ranged attack against everyone in range.");
+feato(FEAT_TWO_WEAPON_DEFENSE,"two weapon defense",FALSE,TRUE,FALSE,FEAT_TYPE_COMBAT,"when wielding two weapons receive +1 shield ac bonus","when wielding two weapons receive +1 shield ac bonus");
+feato(FEAT_WEAPON_FLURRY,"weapon flurry",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action","2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action");
+feato(FEAT_WEAPON_SUPREMACY,"weapon supremacy",FALSE,TRUE,TRUE,FEAT_TYPE_COMBAT,"+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon","+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon");
+feato(FEAT_BRANDING,"branding",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"All items made carry the artisan's brand","All items made carry the artisan's brand");
+feato(FEAT_BREW_POTION,"brew potion",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"can create magical potions ","can create magical potions ");
+feato(FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR,"craft magical arms and armor",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"can create magical weapons and armor ","can create magical weapons and armor ");
+feato(FEAT_CRAFT_ROD,"craft rod",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"can crate magical rods","can crate magical rods");
+feato(FEAT_CRAFT_STAFF,"craft staff",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"can create magical staves ","can create magical staves ");
+feato(FEAT_CRAFT_WAND,"craft wand",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"can create magical wands ","can create magical wands ");
+feato(FEAT_CRAFT_WONDEROUS_ITEM,"craft wonderous item",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"can crate miscellaneous magical items ","can crate miscellaneous magical items ");
+feato(FEAT_FORGE_RING,"forge ring",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"ask staff ","ask staff ");
+feato(FEAT_MASTERWORK_CRAFTING,"masterwork crafting",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"All equipment made is masterwork","All equipment made is masterwork");
+feato(FEAT_SCRIBE_SCROLL,"scribe scroll",FALSE,FALSE,FALSE,FEAT_TYPE_CRAFT,"can scribe spells from memory onto scrolls","can scribe spells from memory onto scrolls");
+feato(FEAT_DIVINE_MIGHT,"divine might",FALSE,TRUE,FALSE,FEAT_TYPE_DIVINE,"Add cha bonus to damage for number of rounds equal to cha bonus","Add cha bonus to damage for number of rounds equal to cha bonus");
+feato(FEAT_DIVINE_SHIELD,"divine shield",FALSE,TRUE,FALSE,FEAT_TYPE_DIVINE,"Add cha bonus to armor class for number of rounds equal to cha bonus","Add cha bonus to armor class for number of rounds equal to cha bonus");
+feato(FEAT_DIVINE_VENGEANCE,"divine vengeance",FALSE,TRUE,FALSE,FEAT_TYPE_DIVINE,"Add 2d6 damage against undead for number of rounds equal to cha bonus","Add 2d6 damage against undead for number of rounds equal to cha bonus");
+feato(FEAT_EXCEPTIONAL_TURNING,"exceptional turning",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"+1d10 hit dice of undead turned","+1d10 hit dice of undead turned");
+feato(FEAT_HEROIC_INITIATIVE,"heroic initiative",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"bonus to initiative checks","bonus to initiative checks");
 feato(FEAT_IMPROVED_BULL_RUSH,"improved bull rush",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
-feato(FEAT_IMPROVED_REACTION,"improved reaction",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"none","+2 bonus to initiative checks (+4 at 8th class level)");
+feato(FEAT_IMPROVED_REACTION,"improved reaction",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"+2 bonus to initiative checks (+4 at 8th class level)","+2 bonus to initiative checks (+4 at 8th class level)");
 feato(FEAT_IMPROVED_SUNDER,"improved sunder",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
 feato(FEAT_IMPROVED_TURNING,"improved turning",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
 feato(FEAT_INDOMITABLE_WILL,"indomitable will",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
 feato(FEAT_NATURAL_ARMOR_INCREASE,"natural armor increase",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
 feato(FEAT_SUNDER,"sunder",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
-feato(FEAT_TRACK,"track",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"none","use survival skill to track others");
+feato(FEAT_TRACK,"track",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"use survival skill to track others","use survival skill to track others");
 feato(FEAT_WEAPON_PROFICIENCY_DRUID,"weapon proficiency - druids",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
 feato(FEAT_WEAPON_PROFICIENCY_ELF,"weapon proficiency - elves",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
 feato(FEAT_WEAPON_PROFICIENCY_MONK,"weapon proficiency - monks",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
 feato(FEAT_WEAPON_PROFICIENCY_ROGUE,"weapon proficiency - rogues",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
 feato(FEAT_WEAPON_PROFICIENCY_WIZARD,"weapon proficiency - wizards",FALSE,FALSE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
-feato(FEAT_ARMOR_SPECIALIZATION_HEAVY,"armor specialization (heavy)",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"proficient with heavy armor, Base Attack Bonus +12","DR 2/- when wearing heavy armor");
-feato(FEAT_ARMOR_SPECIALIZATION_LIGHT,"armor specialization (light)",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"proficient with light armor, Base Attack Bonus +12","DR 2/- when wearing light armor");
-feato(FEAT_ARMOR_SPECIALIZATION_MEDIUM,"armor specialization (medium)",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"proficient with medium armor, Base Attack Bonus +12","DR 2/- when wearing medium armor");
-feato(FEAT_DAMAGE_REDUCTION,"damage reduction",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"none","1/- damage reduction per rank of feat, 3/- for epic");
-feato(FEAT_DIEHARD,"diehard",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"endurance","will stay alive and conscious until -10 hp or lower");
-feato(FEAT_DIVINE_GRACE,"divine grace",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","charisma bonus added to all saving throw checks");
-feato(FEAT_ENDURANCE,"endurance",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+4 to con and skill checks made to resist fatigue and 1 extra move point per level ");
-feato(FEAT_ENERGY_RESISTANCE,"energy resistance",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"none","reduces all energy related damage by 3 per rank");
-feato(FEAT_EPIC_SKILL_FOCUS,"epic skill focus",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"20 ranks in the skill","+10 in chosen skill");
-feato(FEAT_EXTRA_MUSIC,"extra music",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"bard level 1","4 extra bard music uses per day");
+feato(FEAT_ARMOR_SPECIALIZATION_HEAVY,"armor specialization (heavy)",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"DR 2/- when wearing heavy armor","DR 2/- when wearing heavy armor");
+feato(FEAT_ARMOR_SPECIALIZATION_LIGHT,"armor specialization (light)",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"DR 2/- when wearing light armor","DR 2/- when wearing light armor");
+feato(FEAT_ARMOR_SPECIALIZATION_MEDIUM,"armor specialization (medium)",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"DR 2/- when wearing medium armor","DR 2/- when wearing medium armor");
+feato(FEAT_DAMAGE_REDUCTION,"damage reduction",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"1/- damage reduction per rank of feat, 3/- for epic","1/- damage reduction per rank of feat, 3/- for epic");
+feato(FEAT_DIEHARD,"diehard",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"will stay alive and conscious until -10 hp or lower","will stay alive and conscious until -10 hp or lower");
+feato(FEAT_DIVINE_GRACE,"divine grace",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"charisma bonus added to all saving throw checks","charisma bonus added to all saving throw checks");
+feato(FEAT_ENDURANCE,"endurance",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+4 to con and skill checks made to resist fatigue and 1 extra move point per level ","+4 to con and skill checks made to resist fatigue and 1 extra move point per level ");
+feato(FEAT_ENERGY_RESISTANCE,"energy resistance",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"reduces all energy related damage by 3 per rank","reduces all energy related damage by 3 per rank");
+feato(FEAT_EPIC_SKILL_FOCUS,"epic skill focus",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"+10 in chosen skill","+10 in chosen skill");
+feato(FEAT_EXTRA_MUSIC,"extra music",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"4 extra bard music uses per day","4 extra bard music uses per day");
 feato(FEAT_EXTRA_RAGE,"extra rage",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
-feato(FEAT_FAST_HEALING,"fast healing",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"epic level, con 25","Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds");
-feato(FEAT_GREAT_CHARISMA,"great charisma",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"epic level","Increases Wisdom by 1");
-feato(FEAT_GREAT_CONSTITUTION,"great constitution",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"epic level","Increases Constitution by 1");
-feato(FEAT_GREAT_DEXTERITY,"great dexterity",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"epic level","Increases Dexterity by 1");
-feato(FEAT_GREAT_INTELLIGENCE,"great intelligence",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"epic level","Increases Intelligence by 1");
-feato(FEAT_GREAT_STRENGTH,"great strength",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"epic level","Increases Strength by 1");
-feato(FEAT_GREAT_WISDOM,"great wisdom",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"epic level","Increases Wisdom by 1");
-feato(FEAT_HONORBOUND,"honorbound",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"none","+2 to saving throws against fear or compulsion effects, +2 to sense motive checks");
+feato(FEAT_FAST_HEALING,"fast healing",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds","Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds");
+feato(FEAT_GREAT_CHARISMA,"great charisma",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"Increases Wisdom by 1","Increases Wisdom by 1");
+feato(FEAT_GREAT_CONSTITUTION,"great constitution",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"Increases Constitution by 1","Increases Constitution by 1");
+feato(FEAT_GREAT_DEXTERITY,"great dexterity",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"Increases Dexterity by 1","Increases Dexterity by 1");
+feato(FEAT_GREAT_INTELLIGENCE,"great intelligence",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"Increases Intelligence by 1","Increases Intelligence by 1");
+feato(FEAT_GREAT_STRENGTH,"great strength",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"Increases Strength by 1","Increases Strength by 1");
+feato(FEAT_GREAT_WISDOM,"great wisdom",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"Increases Wisdom by 1","Increases Wisdom by 1");
+feato(FEAT_HONORBOUND,"honorbound",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 to saving throws against fear or compulsion effects, +2 to sense motive checks","+2 to saving throws against fear or compulsion effects, +2 to sense motive checks");
 feato(FEAT_IMPROVED_INSTIGATION,"improved instigation",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
 feato(FEAT_IMPROVED_INTIMIDATION,"improved intimidation",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
-feato(FEAT_LEADERSHIP,"leadership",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"level 6 character","can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses");
-feato(FEAT_LINGERING_SONG,"lingering song",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"bard level 1","5 extra rounds for bard songs");
-feato(FEAT_MONKEY_GRIP,"monkey grip",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"none","can wield weapons one size larger than wielder in one hand with -2 to attacks.");
-feato(FEAT_POWERFUL_SNEAK,"powerful sneak",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"rogue talent","opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2");
+feato(FEAT_LEADERSHIP,"leadership",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses","can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses");
+feato(FEAT_LINGERING_SONG,"lingering song",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"5 extra rounds for bard songs","5 extra rounds for bard songs");
+feato(FEAT_MONKEY_GRIP,"monkey grip",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"can wield weapons one size larger than wielder in one hand with -2 to attacks.","can wield weapons one size larger than wielder in one hand with -2 to attacks.");
+feato(FEAT_POWERFUL_SNEAK,"powerful sneak",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2","opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2");
 feato(FEAT_RUN,"run",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
-feato(FEAT_SKILL_FOCUS,"skill focus",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"none","+3 in chosen skill");
-feato(FEAT_STEADFAST_DETERMINATION,"steadfast determination",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"endurance feat","allows you to use your con bonus instead of your wis bonus for will saves");
+feato(FEAT_SKILL_FOCUS,"skill focus",FALSE,TRUE,TRUE,FEAT_TYPE_GENERAL,"+3 in chosen skill","+3 in chosen skill");
+feato(FEAT_STEADFAST_DETERMINATION,"steadfast determination",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"allows you to use your con bonus instead of your wis bonus for will saves","allows you to use your con bonus instead of your wis bonus for will saves");
 feato(FEAT_WEAPON_PROFICIENCY_BASTARD_SWORD,"weapon proficiency - bastard sword",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"ask staff","ask staff");
 feato(FEAT_BLINDSENSE,"blindsense",FALSE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"ask staff","ask staff");
 feato(FEAT_BREATH_WEAPON,"breath weapon",FALSE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"ask staff","ask staff");
@@ -613,208 +615,208 @@ feato(FEAT_SLEEP_PARALYSIS_IMMUNITY,"sleep & paralysis immunity",FALSE,FALSE,FAL
 feato(FEAT_STRENGTH_BOOST,"strength boost",FALSE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"ask staff","ask staff");
 feato(FEAT_TRAMPLE,"trample",FALSE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"ask staff","ask staff");
 feato(FEAT_WINGS,"wings",FALSE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"ask staff","ask staff");
-feato(FEAT_ENLARGE_SPELL,"enlarge spell",FALSE,FALSE,FALSE,FEAT_TYPE_METAMAGIC,"ask staff","ask staff ");
-feato(FEAT_HEIGHTEN_SPELL,"heighten spell",FALSE,FALSE,FALSE,FEAT_TYPE_METAMAGIC,"ask staff","ask staff ");
+feato(FEAT_ENLARGE_SPELL,"enlarge spell",FALSE,FALSE,FALSE,FEAT_TYPE_METAMAGIC,"ask staff ","ask staff ");
+feato(FEAT_HEIGHTEN_SPELL,"heighten spell",FALSE,FALSE,FALSE,FEAT_TYPE_METAMAGIC,"ask staff ","ask staff ");
 feato(FEAT_SILENT_SPELL,"silent spell",FALSE,FALSE,FALSE,FEAT_TYPE_METAMAGIC,"ask staff","ask staff");
 feato(FEAT_STILL_SPELL,"still spell",FALSE,FALSE,FALSE,FEAT_TYPE_METAMAGIC,"ask staff","ask staff");
 feato(FEAT_WIDEN_SPELL,"widen spell",FALSE,FALSE,FALSE,FEAT_TYPE_METAMAGIC,"ask staff","ask staff");
-feato(FEAT_AUTOMATIC_QUICKEN_SPELL,"automatic quicken spell",FALSE,TRUE,TRUE,FEAT_TYPE_METAMAGIC,"epic level, spellcraft 30 ranks, ability to cast level 9 arcane or divine spells","You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.");
-feato(FEAT_EMPOWER_SPELL,"empower spell",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"1st level caster","all variable numerical effects of a spell are increased by one half ");
-feato(FEAT_EMPOWERED_MAGIC,"empowered magic",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"spellcaster level 1","+1 to all spell dcs");
-feato(FEAT_ENHANCE_SPELL,"increase spell damage",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"epic spellcaster","increase max number of damage dice for certain damage based spell by 5");
-feato(FEAT_EXTEND_SPELL,"extend spell",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"can cast spells","durations of spells are 50% longer when enabled ");
-feato(FEAT_INTENSIFY_SPELL,"intensify spell",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"empower spell, maximize spell, spellcraft 30 ranks, ability ro cast lvl 9 arcane or divine spells","maximizes damage/healing and then doubles it.");
-feato(FEAT_MAXIMIZE_SPELL,"maximize spell",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"can cast spells","all spells cast while maximised enabled do maximum effect.");
-feato(FEAT_QUICKEN_SPELL,"quicken spell",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"can cast spells","allows you to cast spell as a move action instead of standard action");
+feato(FEAT_AUTOMATIC_QUICKEN_SPELL,"automatic quicken spell",FALSE,TRUE,TRUE,FEAT_TYPE_METAMAGIC,"You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.","You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.");
+feato(FEAT_EMPOWER_SPELL,"empower spell",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"all variable numerical effects of a spell are increased by one half ","all variable numerical effects of a spell are increased by one half ");
+feato(FEAT_EMPOWERED_MAGIC,"empowered magic",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"+1 to all spell dcs","+1 to all spell dcs");
+feato(FEAT_ENHANCE_SPELL,"increase spell damage",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"increase max number of damage dice for certain damage based spell by 5","increase max number of damage dice for certain damage based spell by 5");
+feato(FEAT_EXTEND_SPELL,"extend spell",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"durations of spells are 50% longer when enabled ","durations of spells are 50% longer when enabled ");
+feato(FEAT_INTENSIFY_SPELL,"intensify spell",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"maximizes damage/healing and then doubles it.","maximizes damage/healing and then doubles it.");
+feato(FEAT_MAXIMIZE_SPELL,"maximize spell",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"all spells cast while maximised enabled do maximum effect.","all spells cast while maximised enabled do maximum effect.");
+feato(FEAT_QUICKEN_SPELL,"quicken spell",FALSE,TRUE,FALSE,FEAT_TYPE_METAMAGIC,"allows you to cast spell as a move action instead of standard action","allows you to cast spell as a move action instead of standard action");
 feato(FEAT_ESCHEW_MATERIALS,"eschew materials",FALSE,FALSE,FALSE,FEAT_TYPE_SPELLCASTING,"ask staff","ask staff");
 feato(FEAT_GREATER_SPELL_FOCUS,"greater spell focus",FALSE,FALSE,TRUE,FEAT_TYPE_SPELLCASTING,"ask staff","ask staff");
 feato(FEAT_IMPROVED_COUNTERSPELL,"improved counterspell",FALSE,FALSE,FALSE,FEAT_TYPE_SPELLCASTING,"ask staff","ask staff");
 feato(FEAT_IMPROVED_FAMILIAR,"improved familiar",FALSE,FALSE,FALSE,FEAT_TYPE_SPELLCASTING,"ask staff","ask staff");
 feato(FEAT_SPELL_MASTERY,"spell mastery",FALSE,FALSE,FALSE,FEAT_TYPE_SPELLCASTING,"ask staff","ask staff");
-feato(FEAT_AUGMENT_SUMMONING,"augment summoning",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"none","gives all creatures you have from summoning spells +4 to strength and constitution");
-feato(FEAT_COMBAT_CASTING,"combat casting",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"none","+4 to concentration checks made in combat or when grappled ");
-feato(FEAT_ENHANCED_SPELL_DAMAGE,"enhanced spell damage",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"spellcaster level 1","+1 spell damage per die rolled");
-feato(FEAT_EPIC_SPELLCASTING,"epic spellcasting",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"lore 24, spellcraft 24","allows you to cast epic spells");
-feato(FEAT_FASTER_MEMORIZATION,"faster memorization",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"memorization based spellcaster level 1","decreases spell memorization time");
-feato(FEAT_SPELL_FOCUS,"spell focus",FALSE,TRUE,TRUE,FEAT_TYPE_SPELLCASTING,"1st level caster","+1 to all spell dcs for all spells in school/domain");
-feato(FEAT_FAST_HEALER,"fast healer",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"Can only be taken at level 1","+2 hp healed per round");
-feato(FEAT_NATURAL_SPELL,"natural spell",FALSE,TRUE,FALSE,FEAT_TYPE_WILD,"wis 13+, ability to wild shape","allows casting of spells while wild shaped.");
+feato(FEAT_AUGMENT_SUMMONING,"augment summoning",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"gives all creatures you have from summoning spells +4 to strength and constitution","gives all creatures you have from summoning spells +4 to strength and constitution");
+feato(FEAT_COMBAT_CASTING,"combat casting",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"+4 to concentration checks made in combat or when grappled ","+4 to concentration checks made in combat or when grappled ");
+feato(FEAT_ENHANCED_SPELL_DAMAGE,"enhanced spell damage",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"+1 spell damage per die rolled","+1 spell damage per die rolled");
+feato(FEAT_EPIC_SPELLCASTING,"epic spellcasting",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"allows you to cast epic spells","allows you to cast epic spells");
+feato(FEAT_FASTER_MEMORIZATION,"faster memorization",FALSE,TRUE,FALSE,FEAT_TYPE_SPELLCASTING,"decreases spell memorization time","decreases spell memorization time");
+feato(FEAT_SPELL_FOCUS,"spell focus",FALSE,TRUE,TRUE,FEAT_TYPE_SPELLCASTING,"+1 to all spell dcs for all spells in school/domain","+1 to all spell dcs for all spells in school/domain");
+feato(FEAT_FAST_HEALER,"fast healer",FALSE,TRUE,FALSE,FEAT_TYPE_GENERAL,"+2 hp healed per round","+2 hp healed per round");
+feato(FEAT_NATURAL_SPELL,"natural spell",FALSE,TRUE,FALSE,FEAT_TYPE_WILD,"allows casting of spells while wild shaped.","allows casting of spells while wild shaped.");
 feato(FEAT_LAST_FEAT,"do not take me",FALSE,FALSE,FALSE,FEAT_TYPE_NONE,"placeholder feat","placeholder feat");
 
 /* Class ability feats */
 /* Paladin */
-feato(FEAT_AURA_OF_COURAGE,"aura of courage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Immunity to fear attacks, +4 bonus to fear saves for group members");
-feato(FEAT_SMITE_EVIL,"smite evil",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","add level to hit roll and charisma bonus to damage");
-feato(FEAT_DETECT_EVIL,"detect evil",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","able to detect evil alignments");
-feato(FEAT_TURN_UNDEAD,"turn undead",TRUE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can cause fear in or destroy undead based on class level and charisma bonus");
-feato(FEAT_AURA_OF_GOOD,"aura of good",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+10 ac to all group members");
-feato(FEAT_DIVINE_HEALTH,"divine health",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","immune to disease");
-feato(FEAT_LAYHANDS,"lay on hands",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Powerful divine healing ability usable a limited number of times a day");
-feato(FEAT_REMOVE_DISEASE,"remove disease",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can cure diseases");
-feato(FEAT_CALL_MOUNT,"call mount",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Allows you to call a paladin mount");
+feato(FEAT_AURA_OF_COURAGE,"aura of courage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Immunity to fear attacks, +4 bonus to fear saves for group members","Immunity to fear attacks, +4 bonus to fear saves for group members");
+feato(FEAT_SMITE_EVIL,"smite evil",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"add level to hit roll and charisma bonus to damage","add level to hit roll and charisma bonus to damage");
+feato(FEAT_DETECT_EVIL,"detect evil",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"able to detect evil alignments","able to detect evil alignments");
+feato(FEAT_TURN_UNDEAD,"turn undead",TRUE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"can cause fear in or destroy undead based on class level and charisma bonus","can cause fear in or destroy undead based on class level and charisma bonus");
+feato(FEAT_AURA_OF_GOOD,"aura of good",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"+10 ac to all group members","+10 ac to all group members");
+feato(FEAT_DIVINE_HEALTH,"divine health",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"immune to disease","immune to disease");
+feato(FEAT_LAYHANDS,"lay on hands",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Powerful divine healing ability usable a limited number of times a day","Powerful divine healing ability usable a limited number of times a day");
+feato(FEAT_REMOVE_DISEASE,"remove disease",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"can cure diseases","can cure diseases");
+feato(FEAT_CALL_MOUNT,"call mount",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Allows you to call a paladin mount","Allows you to call a paladin mount");
 
 /* Rogue */
-feato(FEAT_CRIPPLING_STRIKE,"crippling strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Chance to do 2 strength damage with a sneak attack.");
-feato(FEAT_IMPROVED_EVASION,"improved evasion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","as evasion but half damage of failed save");
-feato(FEAT_EVASION,"evasion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","on successful reflex save no damage from spells and effects");
-feato(FEAT_TRAPFINDING,"trapfinding",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can use the Search skill to locate difficult to find traps");
-feato(FEAT_DEFENSIVE_ROLL,"defensive roll",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead");
-feato(FEAT_SLIPPERY_MIND,"slippery mind",TRUE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","extra chance for will saves");
+feato(FEAT_CRIPPLING_STRIKE,"crippling strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Chance to do 2 strength damage with a sneak attack.","Chance to do 2 strength damage with a sneak attack.");
+feato(FEAT_IMPROVED_EVASION,"improved evasion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"as evasion but half damage of failed save","as evasion but half damage of failed save");
+feato(FEAT_EVASION,"evasion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"on successful reflex save no damage from spells and effects","on successful reflex save no damage from spells and effects");
+feato(FEAT_TRAPFINDING,"trapfinding",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"can use the Search skill to locate difficult to find traps","can use the Search skill to locate difficult to find traps");
+feato(FEAT_DEFENSIVE_ROLL,"defensive roll",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead","can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead");
+feato(FEAT_SLIPPERY_MIND,"slippery mind",TRUE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"extra chance for will saves","extra chance for will saves");
 
 /* Rogue/Barbarian */
-feato(FEAT_UNCANNY_DODGE,"uncanny dodge",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","retains dex bonus when flat footed or against invis opponents");
+feato(FEAT_UNCANNY_DODGE,"uncanny dodge",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"retains dex bonus when flat footed or against invis opponents","retains dex bonus when flat footed or against invis opponents");
 
 /* Ranger */
-feato(FEAT_FAVORED_ENEMY_AVAILABLE,"available favored enemy choice(s)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can choose an enemy type as a favored enemy");
-feato(FEAT_FAVORED_ENEMY,"favored enemy",TRUE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Gain bonuses when fighting against a particular type of enemy");
-feato(FEAT_CAMOUFLAGE,"camouflage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can use the Hide skill in any sort of natural terrain, even if the terrain doesn't grant cover or concealment.");
-feato(FEAT_COMBAT_STYLE,"combat style",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.");
-feato(FEAT_IMPROVED_COMBAT_STYLE,"improved combat style",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.");
-feato(FEAT_COMBAT_STYLE_MASTERY,"combat style master",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.");
-feato(FEAT_HIDE_IN_PLAIN_SIGHT,"hide in plain sight",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","While in any sort of natural terrain, can use the Hide skill without displaying a message.");
-feato(FEAT_SWIFT_TRACKER,"swift tracker",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","No penalty while autotracking.");
+feato(FEAT_FAVORED_ENEMY_AVAILABLE,"favored enemy available",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"can choose an enemy type as a favored enemy","can choose an enemy type as a favored enemy");
+feato(FEAT_FAVORED_ENEMY,"favored enemy",TRUE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"Gain bonuses when fighting against a particular type of enemy","Gain bonuses when fighting against a particular type of enemy");
+feato(FEAT_CAMOUFLAGE,"camouflage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Can use the Hide skill in any sort of natural terrain, even if the terrain doesn't grant cover or concealment.","Can use the Hide skill in any sort of natural terrain, even if the terrain doesn't grant cover or concealment.");
+feato(FEAT_COMBAT_STYLE,"combat style",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.","Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.");
+feato(FEAT_IMPROVED_COMBAT_STYLE,"improved combat style",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.","Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.");
+feato(FEAT_COMBAT_STYLE_MASTERY,"combat style master",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.","Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.");
+feato(FEAT_HIDE_IN_PLAIN_SIGHT,"hide in plain sight",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"While in any sort of natural terrain, can use the Hide skill without displaying a message.","While in any sort of natural terrain, can use the Hide skill without displaying a message.");
+feato(FEAT_SWIFT_TRACKER,"swift tracker",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"No penalty while autotracking.","No penalty while autotracking.");
 
 /* Ranger/Druid */
-feato(FEAT_ANIMAL_COMPANION,"animal companion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can call a loyal companion animal that accompanies the adventurer.");
-feato(FEAT_WILD_EMPATHY,"wild empathy",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","The adventurer can improve the attitude of an animal.");
-feato(FEAT_WOODLAND_STRIDE,"woodland stride",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Reduced movement penalty when moving through woodland areas.");
+feato(FEAT_ANIMAL_COMPANION,"animal companion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Can call a loyal companion animal that accompanies the adventurer.","Can call a loyal companion animal that accompanies the adventurer.");
+feato(FEAT_WILD_EMPATHY,"wild empathy",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"The adventurer can improve the attitude of an animal.","The adventurer can improve the attitude of an animal.");
+feato(FEAT_WOODLAND_STRIDE,"woodland stride",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Reduced movement penalty when moving through woodland areas.","Reduced movement penalty when moving through woodland areas.");
 
 /* Druid */
-feato(FEAT_NATURE_SENSE,"nature sense",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+2 to lore and survival skills");
-feato(FEAT_RESIST_NATURES_LURE,"resist nature's lure",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+4 to spells and spell like abilities from fey creatures");
-feato(FEAT_THOUSAND_FACES,"a thousand faces",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"1UNDEFINED!","Can alter one's physical appearance, giving +10 to disguise checks.");
-feato(FEAT_TRACKLESS_STEP,"trackless step",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Do not leave tracks in natural areas (including the wilderness.)");
-feato(FEAT_WILD_SHAPE,"wild shape",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Gain the ability to shapechange into a selection of animals with unique abilities.");
-feato(FEAT_WILD_SHAPE_ELEMENTAL,"wild shape (elemental)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume elemental form.");
-feato(FEAT_WILD_SHAPE_HUGE,"wild shape (huge)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume the shape of a huge animal.");
-feato(FEAT_WILD_SHAPE_HUGE_ELEMENTAL,"wild shape (huge elemental)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume the shape of a huge elemental.");
-feato(FEAT_WILD_SHAPE_LARGE,"wild shape (large)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume the shape of a large animal.");
-feato(FEAT_WILD_SHAPE_PLANT,"wild shape (plant)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume plant-like forms.");
-feato(FEAT_WILD_SHAPE_TINY,"wild shape (tiny)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Can assume the shape of tiny animals.");
+feato(FEAT_NATURE_SENSE,"nature sense",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"+2 to lore and survival skills","+2 to lore and survival skills");
+feato(FEAT_RESIST_NATURES_LURE,"resist nature's lure",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"+4 to spells and spell like abilities from fey creatures","+4 to spells and spell like abilities from fey creatures");
+feato(FEAT_THOUSAND_FACES,"a thousand faces",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Can alter one's physical appearance, giving +10 to disguise checks.","Can alter one's physical appearance, giving +10 to disguise checks.");
+feato(FEAT_TRACKLESS_STEP,"trackless step",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Do not leave tracks in natural areas (including the wilderness.)","Do not leave tracks in natural areas (including the wilderness.)");
+feato(FEAT_WILD_SHAPE,"wild shape",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Gain the ability to shapechange into a selection of animals with unique abilities.","Gain the ability to shapechange into a selection of animals with unique abilities.");
+feato(FEAT_WILD_SHAPE_ELEMENTAL,"wild shape (elemental)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Can assume elemental form.","Can assume elemental form.");
+feato(FEAT_WILD_SHAPE_HUGE,"wild shape (huge)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Can assume the shape of a huge animal.","Can assume the shape of a huge animal.");
+feato(FEAT_WILD_SHAPE_HUGE_ELEMENTAL,"wild shape (huge elemental)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Can assume the shape of a huge elemental.","Can assume the shape of a huge elemental.");
+feato(FEAT_WILD_SHAPE_LARGE,"wild shape (large)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Can assume the shape of a large animal.","Can assume the shape of a large animal.");
+feato(FEAT_WILD_SHAPE_PLANT,"wild shape (plant)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Can assume plant-like forms.","Can assume plant-like forms.");
+feato(FEAT_WILD_SHAPE_TINY,"wild shape (tiny)",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Can assume the shape of tiny animals.","Can assume the shape of tiny animals.");
 
 /* Druid/Monk */
-feato(FEAT_TIMELESS_BODY,"timeless body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","immune to negative aging effects");
+feato(FEAT_TIMELESS_BODY,"timeless body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"immune to negative aging effects","immune to negative aging effects");
 
 /* Monk */
-feato(FEAT_UNARMED_STRIKE,"unarmed strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Unarmed attacks are considered to be weapons.");
-feato(FEAT_KI_STRIKE,"ki strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","unarmed attack considered a magical weapon");
-feato(FEAT_STILL_MIND,"still mind",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+2 bonus on saving throws vs. Enchantments");
-feato(FEAT_WHOLENESS_OF_BODY,"wholeness of body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can heal class level*2 hp to self");
-feato(FEAT_SLOW_FALL,"slow fall",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","no damage for falling 1 room/feat rank");
-feato(FEAT_ABUNDANT_STEP,"abundant step",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","magically move between tight spaces, as the spell dimension door");
-feato(FEAT_DIAMOND_BODY,"diamond body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","immune to disease");
-feato(FEAT_DIAMOND_SOUL,"diamond soul",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","spell resistance equal to class level + 10");
-feato(FEAT_EMPTY_BODY,"empty body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","50% concealment for 1 round/monk level per day");
-feato(FEAT_FLURRY_OF_BLOWS,"flurry of blows",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","extra attack when fighting unarmed at -2 to all attacks");
-feato(FEAT_PERFECT_SELF,"perfect self",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Gain 10/magic damage reduction");
-feato(FEAT_PURITY_OF_BODY,"purity of body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","immune to poison");
-feato(FEAT_QUIVERING_PALM,"quivering palm",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","chance to kill on strike with unarmed attack");
-feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON,"tongue of the sun and the moon",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","can speak any language");
+feato(FEAT_UNARMED_STRIKE,"unarmed strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Unarmed attacks are considered to be weapons.","Unarmed attacks are considered to be weapons.");
+feato(FEAT_KI_STRIKE,"ki strike",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"unarmed attack considered a magical weapon","unarmed attack considered a magical weapon");
+feato(FEAT_STILL_MIND,"still mind",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"+2 bonus on saving throws vs. Enchantments","+2 bonus on saving throws vs. Enchantments");
+feato(FEAT_WHOLENESS_OF_BODY,"wholeness of body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"can heal class level*2 hp to self","can heal class level*2 hp to self");
+feato(FEAT_SLOW_FALL,"slow fall",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"no damage for falling 1 room/feat rank","no damage for falling 1 room/feat rank");
+feato(FEAT_ABUNDANT_STEP,"abundant step",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"magically move between tight spaces, as the spell dimension door","magically move between tight spaces, as the spell dimension door");
+feato(FEAT_DIAMOND_BODY,"diamond body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"immune to disease","immune to disease");
+feato(FEAT_DIAMOND_SOUL,"diamond soul",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"spell resistance equal to class level + 10","spell resistance equal to class level + 10");
+feato(FEAT_EMPTY_BODY,"empty body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"50% concealment for 1 round/monk level per day","50% concealment for 1 round/monk level per day");
+feato(FEAT_FLURRY_OF_BLOWS,"flurry of blows",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"extra attack when fighting unarmed at -2 to all attacks","extra attack when fighting unarmed at -2 to all attacks");
+feato(FEAT_PERFECT_SELF,"perfect self",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Gain 10/magic damage reduction","Gain 10/magic damage reduction");
+feato(FEAT_PURITY_OF_BODY,"purity of body",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"immune to poison","immune to poison");
+feato(FEAT_QUIVERING_PALM,"quivering palm",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"chance to kill on strike with unarmed attack","chance to kill on strike with unarmed attack");
+feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON,"tongue of the sun and the moon",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"can speak any language","can speak any language");
 
 /* Bard */
-feato(FEAT_BARDIC_KNOWLEDGE,"bardic knowledge",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+Int modifier bonus on knowledge checks.");
-feato(FEAT_BARDIC_MUSIC,"bardic music",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Use Perform skill to create various magical effects.");
-feato(FEAT_COUNTERSONG,"countersong",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Boost group members' resistance to sonic attacks.");
-feato(FEAT_FASCINATE,"fascinate",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Fascinate one opponent plus one additional  for every three bard levels beyond first.");
-feato(FEAT_INSPIRE_COMPETENCE,"inspire competence",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Group members gain a +2 competence bonus on skills.");
-feato(FEAT_INSPIRE_GREATNESS,"inspire greatness",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Grant allies better fighting capability.");
-feato(FEAT_INSPIRE_HEROICS,"inspire heroics",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Grant allies a +4 morale bonus on saving throws and a +4 dodge bonus to AC.");
-feato(FEAT_MASS_SUGGESTION,"mass suggestion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Compel a group of opponents to perform an action.");
-feato(FEAT_SONG_OF_FREEDOM,"song of freedom",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Break an enchantment on a single target other than yourself.");
-feato(FEAT_SUGGESTION,"suggestion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Compel a single opponent to perform an action.");
-feato(FEAT_INSPIRE_COURAGE,"inspire courage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","Bolster group members against fear attacks and improve their combat ability.");
+feato(FEAT_BARDIC_KNOWLEDGE,"bardic knowledge",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"+Int modifier bonus on knowledge checks.","+Int modifier bonus on knowledge checks.");
+feato(FEAT_BARDIC_MUSIC,"bardic music",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Use Perform skill to create various magical effects.","Use Perform skill to create various magical effects.");
+feato(FEAT_COUNTERSONG,"countersong",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Boost group members' resistance to sonic attacks.","Boost group members' resistance to sonic attacks.");
+feato(FEAT_FASCINATE,"fascinate",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Fascinate one opponent plus one additional  for every three bard levels beyond first.","Fascinate one opponent plus one additional  for every three bard levels beyond first.");
+feato(FEAT_INSPIRE_COMPETENCE,"inspire competence",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Group members gain a +2 competence bonus on skills.","Group members gain a +2 competence bonus on skills.");
+feato(FEAT_INSPIRE_GREATNESS,"inspire greatness",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Grant allies better fighting capability.","Grant allies better fighting capability.");
+feato(FEAT_INSPIRE_HEROICS,"inspire heroics",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Grant allies a +4 morale bonus on saving throws and a +4 dodge bonus to AC.","Grant allies a +4 morale bonus on saving throws and a +4 dodge bonus to AC.");
+feato(FEAT_MASS_SUGGESTION,"mass suggestion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Compel a group of opponents to perform an action.","Compel a group of opponents to perform an action.");
+feato(FEAT_SONG_OF_FREEDOM,"song of freedom",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Break an enchantment on a single target other than yourself.","Break an enchantment on a single target other than yourself.");
+feato(FEAT_SUGGESTION,"suggestion",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Compel a single opponent to perform an action.","Compel a single opponent to perform an action.");
+feato(FEAT_INSPIRE_COURAGE,"inspire courage",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Bolster group members against fear attacks and improve their combat ability.","Bolster group members against fear attacks and improve their combat ability.");
 
 /* Berserker */
-feato(FEAT_RAGE,"rage",TRUE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","+4 bonus to con and str for several rounds");
+feato(FEAT_RAGE,"rage",TRUE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"+4 bonus to con and str for several rounds","+4 bonus to con and str for several rounds");
 
 /* Sorcerer/Wizard */
-feato(FEAT_SUMMON_FAMILIAR,"summon familiar",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"!UNDEFINED!","summon a magical pet");
+feato(FEAT_SUMMON_FAMILIAR,"summon familiar",TRUE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"summon a magical pet","summon a magical pet");
 
 /* Disabled/Unimplemented */
 feato(FEAT_ENHANCED_MOBILITY,"enhanced mobility",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_GRACE,"grace",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_VENOM_IMMUNITY,"venom immunity",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_HONORABLE_WILL,"honorable will",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_ANIMATE_DEAD,"animate dead",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"death master level 2","allows innate use of animate dead spell 3x per day.");
-feato(FEAT_ARMORED_MOBILITY,"armored mobility",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","heavy armor is treated as medium armor");
+feato(FEAT_ANIMATE_DEAD,"animate dead",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows innate use of animate dead spell 3x per day.","allows innate use of animate dead spell 3x per day.");
+feato(FEAT_ARMORED_MOBILITY,"armored mobility",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"heavy armor is treated as medium armor","heavy armor is treated as medium armor");
 feato(FEAT_ARMORED_SPELLCASTING,"armored spellcasting",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_AURA_OF_EVIL,"aura of evil",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_AURA_OF_TERROR,"aura of terror",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_BONE_ARMOR,"bone armor",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"death master level 1","allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.");
+feato(FEAT_BONE_ARMOR,"bone armor",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.","allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.");
 feato(FEAT_COSMIC_UNDERSTANDING,"cosmic understanding",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_CRIPPLING_CRITICAL,"crippling critical",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"duelist level 10","allows your criticals to have random additional effects");
+feato(FEAT_CRIPPLING_CRITICAL,"crippling critical",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows your criticals to have random additional effects","allows your criticals to have random additional effects");
 feato(FEAT_CROWN_OF_KNIGHTHOOD,"crown of knighthood",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_DAMAGE_REDUCTION_FS,"damage reduction",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"favored soul level 20","reduces damage by 10 unless dealt by cold iron weapon");
+feato(FEAT_DAMAGE_REDUCTION_FS,"damage reduction",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"reduces damage by 10 unless dealt by cold iron weapon","reduces damage by 10 unless dealt by cold iron weapon");
 feato(FEAT_DARK_BLESSING,"dark blessing",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_DEATH_ATTACK,"death attack",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Assassin level 1","Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.");
-feato(FEAT_DEFENSIVE_STANCE,"defensive stance",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Dwarven Defender level 1","Allows you to fight defensively with bonuses to ac and stats.");
-feato(FEAT_DEITY_WEAPON_PROFICIENCY,"deity's weapon proficiency",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"favored soul level 1","allows you to use the weapon of your deity");
+feato(FEAT_DEATH_ATTACK,"death attack",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.","Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.");
+feato(FEAT_DEFENSIVE_STANCE,"defensive stance",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Allows you to fight defensively with bonuses to ac and stats.","Allows you to fight defensively with bonuses to ac and stats.");
+feato(FEAT_DEITY_WEAPON_PROFICIENCY,"deity's weapon proficiency",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows you to use the weapon of your deity","allows you to use the weapon of your deity");
 feato(FEAT_DEMORALIZE,"demoralize",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_DETECT_GOOD,"detect good",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_DISCERN_LIES,"discern lies",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_DIVINE_BOND,"divine bond",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"paladin level 5","bonuses to attack and damage rolls when active");
+feato(FEAT_DIVINE_BOND,"divine bond",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"bonuses to attack and damage rolls when active","bonuses to attack and damage rolls when active");
 feato(FEAT_DIVINER,"diviner",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_DRAGON_APOTHEOSIS,"dragon apotheosis",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_DRAGON_MOUNT_BOOST,"dragon mount boost",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"dragon rider prestige class","gives +18 hp, +10 ac, +1 hit and +1 damage per rank in the feat");
-feato(FEAT_DRAGON_MOUNT_BREATH,"dragon mount breath",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"dragon rider prestige class","allows you to use your dragon mount's breath weapon once per rank, per 10 minutes.");
+feato(FEAT_DRAGON_MOUNT_BOOST,"dragon mount boost",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"gives +18 hp, +10 ac, +1 hit and +1 damage per rank in the feat","gives +18 hp, +10 ac, +1 hit and +1 damage per rank in the feat");
+feato(FEAT_DRAGON_MOUNT_BREATH,"dragon mount breath",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows you to use your dragon mount's breath weapon once per rank, per 10 minutes.","allows you to use your dragon mount's breath weapon once per rank, per 10 minutes.");
 feato(FEAT_ELEMENTAL_IMMUNITY,"elemental immunity",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_ENHANCE_ARROW_ALIGNED,"enhance arrow (aligned)",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"arcane archer level 10","+1d6 holy/unholy damage with bows against different aligned creatures.");
-feato(FEAT_ENHANCE_ARROW_DISTANCE,"enhance arrow (distance)",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"arcane archer level 6","doubles range increment on weapon.");
-feato(FEAT_ENHANCE_ARROW_ELEMENTAL,"enhance arrow (elemental)",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"arcane archer level 4","+1d6 elemental damage with bows");
-feato(FEAT_ENHANCE_ARROW_ELEMENTAL_BURST,"enhance arrow (elemental burst)",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"arcane archer level 8","+2d10 on critical hits with bows");
-feato(FEAT_ENHANCE_ARROW_MAGIC,"enhance arrow (magic)",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"arcane archer level 1","+1 to hit and damage with bows per rank");
-feato(FEAT_ESSENCE_OF_UNDEATH,"essence of undeath",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"death master","gives immunity to poison, disease, sneak attack and critical hits");
-feato(FEAT_FAST_MOVEMENT,"fast movement",FALSE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"none","10ft bonus to speed in light or medium armor");
+feato(FEAT_ENHANCE_ARROW_ALIGNED,"enhance arrow (aligned)",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"+1d6 holy/unholy damage with bows against different aligned creatures.","+1d6 holy/unholy damage with bows against different aligned creatures.");
+feato(FEAT_ENHANCE_ARROW_DISTANCE,"enhance arrow (distance)",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"doubles range increment on weapon.","doubles range increment on weapon.");
+feato(FEAT_ENHANCE_ARROW_ELEMENTAL,"enhance arrow (elemental)",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"+1d6 elemental damage with bows","+1d6 elemental damage with bows");
+feato(FEAT_ENHANCE_ARROW_ELEMENTAL_BURST,"enhance arrow (elemental burst)",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"+2d10 on critical hits with bows","+2d10 on critical hits with bows");
+feato(FEAT_ENHANCE_ARROW_MAGIC,"enhance arrow (magic)",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"+1 to hit and damage with bows per rank","+1 to hit and damage with bows per rank");
+feato(FEAT_ESSENCE_OF_UNDEATH,"essence of undeath",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"gives immunity to poison, disease, sneak attack and critical hits","gives immunity to poison, disease, sneak attack and critical hits");
+feato(FEAT_FAST_MOVEMENT,"fast movement",FALSE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"10ft bonus to speed in light or medium armor","10ft bonus to speed in light or medium armor");
 feato(FEAT_FAVOR_OF_DARKNESS,"favor of darkness",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_FINAL_STAND,"final stand",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_HASTE,"haste",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"favored soul level 17","can cast haste 3x per day");
-feato(FEAT_INCREASED_MULTIPLIER,"increased multiplier",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Weapon Master level 3","Weapons of choice have +1 to their critical multiplier");
-feato(FEAT_KI_CRITICAL,"ki critical",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Weapon Master level 7","Weapons of choice have +1 to threat range per rank");
-feato(FEAT_KI_DAMAGE,"ki damage",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Weapon Master level 1","Weapons of Choice have 5 percent chance to deal max damage");
+feato(FEAT_HASTE,"haste",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"can cast haste 3x per day","can cast haste 3x per day");
+feato(FEAT_INCREASED_MULTIPLIER,"increased multiplier",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Weapons of choice have +1 to their critical multiplier","Weapons of choice have +1 to their critical multiplier");
+feato(FEAT_KI_CRITICAL,"ki critical",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Weapons of choice have +1 to threat range per rank","Weapons of choice have +1 to threat range per rank");
+feato(FEAT_KI_DAMAGE,"ki damage",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Weapons of Choice have 5 percent chance to deal max damage","Weapons of Choice have 5 percent chance to deal max damage");
 feato(FEAT_KNIGHTHOODS_FLOWER,"knighthood's flower",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_KNIGHTLY_COURAGE,"knightly courage",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"none","bonus to fear checks");
+feato(FEAT_KNIGHTLY_COURAGE,"knightly courage",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"bonus to fear checks","bonus to fear checks");
 feato(FEAT_LEADERSHIP_BONUS,"improved leadership",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_LEARNED_CRAFTER,"learned crafter",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Artisan level 1","Artisan gains exp for crafting items and harvesting");
+feato(FEAT_LEARNED_CRAFTER,"learned crafter",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Artisan gains exp for crafting items and harvesting","Artisan gains exp for crafting items and harvesting");
 feato(FEAT_MIGHT_OF_HONOR,"might of honor",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_MOBILE_DEFENSE,"mobile defense",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Dwarven Defender level 8","Allows one to move while in defensive stance");
-feato(FEAT_NO_RETREAT,"no retreat",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"duelist level 9","allows you to gain an attack of opportunity against retreating opponents");
+feato(FEAT_MOBILE_DEFENSE,"mobile defense",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Allows one to move while in defensive stance","Allows one to move while in defensive stance");
+feato(FEAT_NO_RETREAT,"no retreat",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows you to gain an attack of opportunity against retreating opponents","allows you to gain an attack of opportunity against retreating opponents");
 feato(FEAT_ONE_THOUGHT,"one thought",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_PARRY,"parry",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"duelist level 2","allows you to parry incoming attacks");
+feato(FEAT_PARRY,"parry",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows you to parry incoming attacks","allows you to parry incoming attacks");
 feato(FEAT_POISON_SAVE_BONUS, "poison save bonus",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Assassin level 2","Bonus to all saves against poison.");
-feato(FEAT_POISON_USE,"poison use",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Assassin level 1","Trained use in poisons without risk of poisoning self.");
-feato(FEAT_PROFICIENT_CRAFTER,"proficient crafter",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Artisan level 2","Increases all crafting skills");
-feato(FEAT_PROFICIENT_HARVESTER,"proficient harvester",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Artisan level 4","Increases all harvesting skills");
+feato(FEAT_POISON_USE,"poison use",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Trained use in poisons without risk of poisoning self.","Trained use in poisons without risk of poisoning self.");
+feato(FEAT_PROFICIENT_CRAFTER,"proficient crafter",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Increases all crafting skills","Increases all crafting skills");
+feato(FEAT_PROFICIENT_HARVESTER,"proficient harvester",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Increases all harvesting skills","Increases all harvesting skills");
 feato(FEAT_RALLYING_CRY,"rallying cry",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_READ_OMENS,"read omens",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_READ_PORTENTS,"read portents",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_RIPOSTE,"riposte",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"duelist level 5","allows you to gain an attack of opportunity after a successful parry");
-feato(FEAT_SACRED_FLAMES,"sacred flames",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"sacred fist level 5","allows you to use innate 'flame weapon' 3 times per 10 minutes");
-feato(FEAT_SCAVENGE,"scavenge",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Artisan level 5","Can find materials on corpses");
+feato(FEAT_RIPOSTE,"riposte",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows you to gain an attack of opportunity after a successful parry","allows you to gain an attack of opportunity after a successful parry");
+feato(FEAT_SACRED_FLAMES,"sacred flames",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows you to use innate 'flame weapon' 3 times per 10 minutes","allows you to use innate 'flame weapon' 3 times per 10 minutes");
+feato(FEAT_SCAVENGE,"scavenge",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Can find materials on corpses","Can find materials on corpses");
 feato(FEAT_SMITE_GOOD,"smite good",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_SOUL_OF_KNIGHTHOOD,"soul of knighthood",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_STRENGTH_OF_HONOR,"strength of honor",FALSE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"none","+4 to strength for several rounds");
-feato(FEAT_SUMMON_GREATER_UNDEAD,"summon greater undead",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"death master","allows innate use of summon greater undead spell 3x per day");
-feato(FEAT_SUMMON_UNDEAD,"summon undead",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"death master","allows innate use of summon undead spell 3x per day");
-feato(FEAT_SUPERIOR_WEAPON_FOCUS,"superior weapon focus",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Weapon Master level 5","Weapons of choice have +1 to hit");
-feato(FEAT_TOUCH_OF_UNDEATH,"touch of undeath",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"death master","allows for paralytic or instant death touch");
+feato(FEAT_STRENGTH_OF_HONOR,"strength of honor",FALSE,FALSE,TRUE,FEAT_TYPE_CLASS_ABILITY,"+4 to strength for several rounds","+4 to strength for several rounds");
+feato(FEAT_SUMMON_GREATER_UNDEAD,"summon greater undead",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows innate use of summon greater undead spell 3x per day","allows innate use of summon greater undead spell 3x per day");
+feato(FEAT_SUMMON_UNDEAD,"summon undead",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows innate use of summon undead spell 3x per day","allows innate use of summon undead spell 3x per day");
+feato(FEAT_SUPERIOR_WEAPON_FOCUS,"superior weapon focus",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Weapons of choice have +1 to hit","Weapons of choice have +1 to hit");
+feato(FEAT_TOUCH_OF_UNDEATH,"touch of undeath",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows for paralytic or instant death touch","allows for paralytic or instant death touch");
 feato(FEAT_TRAP_SENSE,"trap sense",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
 feato(FEAT_UNBREAKABLE_WILL,"unbreakable will",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_UNDEAD_FAMILIAR,"undead familiar",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"death master level 3","allows for undead familiars");
-feato(FEAT_WEAPON_OF_CHOICE,"weapons of choice",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Weapon Master level 1","All weapons with weapon focus gain special abilities");
+feato(FEAT_UNDEAD_FAMILIAR,"undead familiar",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"allows for undead familiars","allows for undead familiars");
+feato(FEAT_WEAPON_OF_CHOICE,"weapons of choice",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"All weapons with weapon focus gain special abilities","All weapons with weapon focus gain special abilities");
 feato(FEAT_WISDOM_OF_THE_MEASURE,"wisdom of the measure",FALSE,FALSE,FALSE,FEAT_TYPE_CLASS_ABILITY,"ask staff","ask staff");
-feato(FEAT_BLEEDING_ATTACK,"bleeding attack",FALSE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"rogue talent","causes bleed damage on living targets who are hit by sneak attack.");
-feato(FEAT_OPPORTUNIST,"opportunist",FALSE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"Rogue level 10","once per round the rogue may make an attack of opportunity against a foe an ally just struck");
+feato(FEAT_BLEEDING_ATTACK,"bleeding attack",FALSE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"causes bleed damage on living targets who are hit by sneak attack.","causes bleed damage on living targets who are hit by sneak attack.");
+feato(FEAT_OPPORTUNIST,"opportunist",FALSE,TRUE,FALSE,FEAT_TYPE_CLASS_ABILITY,"once per round the rogue may make an attack of opportunity against a foe an ally just struck","once per round the rogue may make an attack of opportunity against a foe an ally just struck");
 
 /* End Class ability Feats */
 
 /* Racial ability feats */
 /* Crystal Dwarf */
-feato(FEAT_CRYSTAL_BODY,"crystal body",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"!UNDEFINED!","Allows you to harden your crystal-like body for a short time. (Damage reduction 3/-)");
-feato(FEAT_CRYSTAL_FIST,"crystal fist",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"!UNDEFINED!","Allows you to innately grow jagged and sharp crystals on your arms and legs to enhance damage in melee. (+3 damage)");
+feato(FEAT_CRYSTAL_BODY,"crystal body",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"Allows you to harden your crystal-like body for a short time. (Damage reduction 3/-)","Allows you to harden your crystal-like body for a short time. (Damage reduction 3/-)");
+feato(FEAT_CRYSTAL_FIST,"crystal fist",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"Allows you to innately grow jagged and sharp crystals on your arms and legs to enhance damage in melee. (+3 damage)","Allows you to innately grow jagged and sharp crystals on your arms and legs to enhance damage in melee. (+3 damage)");
 
 /* Various */
-feato(FEAT_DARKVISION,"darkvision",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"!UNDEFINED!","ask staff");
-feato(FEAT_LOW_LIGHT_VISION,"low light vision",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"!UNDEFINED!","can see in the dark outside only");
+feato(FEAT_DARKVISION,"darkvision",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"ask staff","ask staff");
+feato(FEAT_LOW_LIGHT_VISION,"low light vision",TRUE,FALSE,FALSE,FEAT_TYPE_INNATE_ABILITY,"can see in the dark outside only","can see in the dark outside only");
 
 /* End Racial ability feats */
 
@@ -1933,18 +1935,15 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
 
     i = feat_sort_info[sortpos];
     /*  Print the feat, depending on the type of list. */
-    if ((list_type == LIST_FEATS_KNOWN     && (has_feat(ch, i)  && feat_list[i].in_game)) ||
-        (list_type == LIST_FEATS_AVAILABLE && (feat_is_available(ch, i, 0, NULL) && feat_list[i].in_game && feat_list[i].can_learn)) ||
-        (list_type == LIST_FEATS_ALL       && (feat_list[i].in_game)))
-        
+    if (feat_list[i].in_game && (list_type == LIST_FEATS_KNOWN && (has_feat(ch, i))))
     {
       if ((subfeat = feat_to_sfeat(i)) != -1) {
         /* This is a 'school feat' */
-        for (j = 1; j < NUM_SCHOOLS; j++) {         
-          if (HAS_SCHOOL_FEAT(ch, subfeat, j)) {
+        for (j = 1; j < NUM_SCHOOLS; j++) {    
+          if (HAS_SCHOOL_FEAT(ch, subfeat, j)) {            
             if (mode == 1) { /* description mode */
               sprintf(buf3, "%s (%s)", feat_list[i].name, spell_schools[j]);
-              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
               sprintf(buf3, "%s (%s) ", feat_list[i].name, spell_schools[j]);
               sprintf(buf, "%-40s ", buf3);
@@ -1961,7 +1960,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
           if (HAS_COMBAT_FEAT(ch, subfeat, j)) {
             if (mode == 1) {
               sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
               sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
@@ -1978,7 +1977,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
           if (ch->player_specials->saved.skill_focus[i][j] > 0) {
             if (mode == 1) {
               sprintf(buf3, "%s (%s)", feat_list[i].name, ability_names[j]);
-              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
               sprintf(buf3, "%s (%s)", feat_list[i].name, ability_names[j]);
               sprintf(buf, "%-40s ", buf3);
@@ -1990,7 +1989,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_FAST_HEALING) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d hp/round)", feat_list[i].name, has_feat(ch, FEAT_FAST_HEALING) * 3);
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d hp/round)", feat_list[i].name, has_feat(ch, FEAT_FAST_HEALING) * 3);
             sprintf(buf, "%-40s ", buf3);
@@ -2000,7 +1999,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_DAMAGE_REDUCTION) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_DAMAGE_REDUCTION));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_DAMAGE_REDUCTION));
             sprintf(buf, "%-40s ", buf3);
@@ -2010,7 +2009,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_ARMOR_SKIN) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_ARMOR_SKIN));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_ARMOR_SKIN));
             sprintf(buf, "%-40s ", buf3);
@@ -2020,7 +2019,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_ENERGY_RESISTANCE) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_ENERGY_RESISTANCE) * 3);
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_ENERGY_RESISTANCE) * 3);
             sprintf(buf, "%-40s ", buf3);
@@ -2030,7 +2029,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_HASTE) {
           if (mode == 1) {
             sprintf(buf3, "%s (3x/day)", feat_list[i].name);
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (3x/day)", feat_list[i].name);
             sprintf(buf, "%-40s ", buf3);
@@ -2040,7 +2039,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_SACRED_FLAMES) {
           if (mode == 1) {
             sprintf(buf3, "%s (3x/day)", feat_list[i].name);
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (3x/day)", feat_list[i].name);
             sprintf(buf, "%-40s ", buf3);
@@ -2050,7 +2049,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_DRAGON_MOUNT_BREATH) {
           if (mode == 1) {
             sprintf(buf3, "%s (%dx/day)", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BREATH));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (%dx/day)", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BREATH));
             sprintf(buf, "%-40s ", buf3);
@@ -2060,7 +2059,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_DRAGON_MOUNT_BOOST) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BOOST));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BOOST));
             sprintf(buf, "%-40s ", buf3);
@@ -2070,7 +2069,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_BREATH_WEAPON) {
           if (mode == 1) {
             sprintf(buf3, "%s (%dd8 dmg|%dx/day)", feat_list[i].name, has_feat(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (%dd8 dmg|%dx/day)", feat_list[i].name, has_feat(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
             sprintf(buf, "%-40s ", buf3);
@@ -2080,7 +2079,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_LEADERSHIP) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d%% group exp)", feat_list[i].name, 5 * (1 + has_feat(ch, FEAT_LEADERSHIP)));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d%% group exp)", feat_list[i].name, 5 * (1 + has_feat(ch, FEAT_LEADERSHIP)));
             sprintf(buf, "%-40s ", buf3);
@@ -2090,7 +2089,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_RAGE) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d / day)", feat_list[i].name, has_feat(ch, FEAT_RAGE));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (%d / day)", feat_list[i].name, has_feat(ch, FEAT_RAGE));
             sprintf(buf, "%-40s ", buf3);
@@ -2100,7 +2099,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_DEFENSIVE_STANCE) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d / day)", feat_list[i].name, has_feat(ch, FEAT_DEFENSIVE_STANCE));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (%d / day)", feat_list[i].name, has_feat(ch, FEAT_DEFENSIVE_STANCE));
             sprintf(buf, "%-40s ", buf3);
@@ -2110,7 +2109,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_ENHANCED_SPELL_DAMAGE) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d dam / die)", feat_list[i].name, has_feat(ch, FEAT_ENHANCED_SPELL_DAMAGE));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d dam / die)", feat_list[i].name, has_feat(ch, FEAT_ENHANCED_SPELL_DAMAGE));
             sprintf(buf, "%-40s ", buf3);
@@ -2120,7 +2119,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_FASTER_MEMORIZATION) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_FASTER_MEMORIZATION));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_FASTER_MEMORIZATION));
             sprintf(buf, "%-40s ", buf3);
@@ -2130,7 +2129,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_EMPOWERED_MAGIC) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d to dcs)", feat_list[i].name, has_feat(ch, FEAT_EMPOWERED_MAGIC));
-            sprintf(buf, "\tW%-30s\tC:\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d to dcs)", feat_list[i].name, has_feat(ch, FEAT_EMPOWERED_MAGIC));
             sprintf(buf, "%-40s ", buf3);
@@ -2140,7 +2139,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_ENHANCE_SPELL) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d dam dice)", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_SPELL) * 5);
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d dam dice)", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_SPELL) * 5);
             sprintf(buf, "%-40s ", buf3);
@@ -2150,7 +2149,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_NATURAL_ARMOR_INCREASE) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_NATURAL_ARMOR_INCREASE));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_NATURAL_ARMOR_INCREASE));
             sprintf(buf, "%-40s ", buf3);
@@ -2160,7 +2159,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_GREAT_STRENGTH) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_STRENGTH));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_STRENGTH));
             sprintf(buf, "%-40s ", buf3);
@@ -2170,7 +2169,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_GREAT_DEXTERITY) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_DEXTERITY));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_DEXTERITY));
             sprintf(buf, "%-40s ", buf3);
@@ -2180,7 +2179,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_GREAT_CONSTITUTION) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_CONSTITUTION));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_CONSTITUTION));
             sprintf(buf, "%-40s ", buf3);
@@ -2190,7 +2189,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_GREAT_INTELLIGENCE) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_INTELLIGENCE));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_INTELLIGENCE));
             sprintf(buf, "%-40s ", buf3);
@@ -2200,7 +2199,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_GREAT_WISDOM) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_WISDOM));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_WISDOM));
             sprintf(buf, "%-40s ", buf3);
@@ -2210,7 +2209,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_GREAT_CHARISMA) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_CHARISMA));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_CHARISMA));
             sprintf(buf, "%-40s ", buf3);
@@ -2220,7 +2219,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_POISON_SAVE_BONUS) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_POISON_SAVE_BONUS));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_POISON_SAVE_BONUS));
             sprintf(buf, "%-40s ", buf3);
@@ -2230,7 +2229,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_SNEAK_ATTACK) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%dd6)", feat_list[i].name, has_feat(ch, FEAT_SNEAK_ATTACK));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%dd6)", feat_list[i].name, has_feat(ch, FEAT_SNEAK_ATTACK));
             sprintf(buf, "%-40s ", buf3);
@@ -2240,7 +2239,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_SELF_CONCEALMENT) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d%% miss)", feat_list[i].name, has_feat(ch, FEAT_SELF_CONCEALMENT) * 10);
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (%d%% miss)", feat_list[i].name, has_feat(ch, FEAT_SELF_CONCEALMENT) * 10);
             sprintf(buf, "%-40s ", buf3);
@@ -2250,7 +2249,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_ENHANCE_ARROW_MAGIC) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_ARROW_MAGIC));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_ARROW_MAGIC));
             sprintf(buf, "%-40s ", buf3);
@@ -2260,7 +2259,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_FAST_CRAFTER) {
           if (mode == 1) {
             sprintf(buf3, "%s (%d%% less time)", feat_list[i].name, has_feat(ch, FEAT_FAST_CRAFTER) * 10);
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (-%d seconds)", feat_list[i].name, has_feat(ch, FEAT_FAST_CRAFTER) * 10);
             sprintf(buf, "%-40s ", buf3);
@@ -2270,7 +2269,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_PROFICIENT_CRAFTER) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_CRAFTER));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_CRAFTER));
             sprintf(buf, "%-40s ", buf3);
@@ -2280,7 +2279,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else if (i == FEAT_PROFICIENT_HARVESTER) {
           if (mode == 1) {
             sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_HARVESTER));
-            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+            sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
           } else {
             sprintf(buf3, "%-20s (+%d to checks)", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_HARVESTER));
             sprintf(buf, "%-40s ", buf3);
@@ -2290,18 +2289,42 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       } else {
         if (mode == 1) {
           sprintf(buf3, "%s", feat_list[i].name);
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].description);
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
           sprintf(buf, "%-40s ", feat_list[i].name);
         }
         strcat(buf2, buf);        /* The above, ^ should always be safe to do. */
         none_shown = FALSE;
       }
+
       if (!mode) {
         count++;
-        if (count % 2 == 0)
+        strcat(buf2, buf3);
+        if (count % 2 == 0)         
          strcat(buf2, "\r\n");
       }
+    } else if (feat_list[i].in_game && 
+               ((list_type == LIST_FEATS_ALL) || 
+                (list_type == LIST_FEATS_AVAILABLE && (feat_is_available(ch, i, 0, NULL) && feat_list[i].can_learn)))) 
+    {
+   
+      /* Display a simple list of all feats. */
+      if (mode == 1) {
+          sprintf(buf3, "%s", feat_list[i].name);
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+      } else {
+        sprintf(buf, "%-40s ", feat_list[i].name);
+      }
+
+      strcat(buf2, buf);        /* The above, ^ should always be safe to do. */
+      none_shown = FALSE;
+
+      if (!mode) {
+        count++;
+        strcat(buf2, buf3);
+        if (count % 2 == 0)
+         strcat(buf2, "\r\n");
+      }        
     }
   }
 
@@ -2315,7 +2338,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
 
   strcat(buf2, "\tC");
   strcat(buf2, line_string(line_length, '-', '-'));
-  strcat(buf2, "\tDSyntax: feats <known|available|all|descriptions>\tn\r\n");
+  strcat(buf2, "\tDSyntax: feats <known|available|all <description>>\tn\r\n");
 
   page_string(ch->desc, buf2, 1);
 }
