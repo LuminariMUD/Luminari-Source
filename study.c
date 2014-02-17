@@ -43,39 +43,43 @@ void finalize_study(struct descriptor_data *d);
 
 #define MENU_OPT(i) ((i) ? grn : "\tD"), ((i) ? nrm : "\tD") 
 
-/* list of possible animal companions, use in-game vnums for this */
-#define C_BEAR    60
+/* list of possible animal companions, use in-game vnums for this 
+ * These lists should actually be redesigned to be dynamic, settable
+ * via an in-game OLC.  The results should be stored in the database
+ * and retrieved when needed. */
+#define C_BEAR      60
 #define C_BOAR      61
 #define C_LION      62
-#define C_CROCODILE    63
-#define C_HYENA      64
-#define C_SNOW_LEOPARD     65
-#define C_SKULL_SPIDER     66
-#define C_FIRE_BEETLE     67
-#define C_CAYHOUND        68
-#define C_DRACAVES        69
+#define C_CROCODILE 63
+#define C_HYENA     64
+#define C_SNOW_LEOPARD 65
+#define C_SKULL_SPIDER 66
+#define C_FIRE_BEETLE  67
+#define C_CAYHOUND     68
+#define C_DRACAVES     69
+
 /*--- paladin mount(s) -----*/
 #define C_W_WARHORSE   70
 #define C_B_DESTRIER   71
-#define C_STALLION   72
+#define C_STALLION     72
 #define C_A_DESTRIER   73
 #define C_G_WARHORSE   74
 #define C_P_WARHORSE   75
 #define C_C_DESTRIER   76
-#define C_WARDOG   77
-#define C_WARPONY   78
-#define C_GRIFFON   79
+#define C_WARDOG       77
+#define C_WARPONY      78
+#define C_GRIFFON      79
 /*--- familiars -----*/
-#define F_HUNTER    80
+#define F_HUNTER       80
 #define F_PANTHER      81
-#define F_MOUSE      82
-#define F_EAGLE    83
-#define F_RAVEN      84
-#define F_IMP     85
-#define F_PIXIE     86
-#define F_FAERIE_DRAGON     87
-#define F_PSEUDO_DRAGON     88
-#define F_HELLHOUND     89
+#define F_MOUSE        82
+#define F_EAGLE        83
+#define F_RAVEN        84
+#define F_IMP          85
+#define F_PIXIE        86
+#define F_FAERIE_DRAGON 87
+#define F_PSEUDO_DRAGON 88
+#define F_HELLHOUND    89
 
 /* make a list of vnums corresponding in order, first animals  */
 int animal_vnums[] = {
@@ -170,6 +174,12 @@ const char *familiar_names[] = {
   "8) Faerie Dragon",
   "\n" /* end with this */
 };
+
+/* NOTE: The above static menus should be converted to dynamic menus.
+ * All familiars/companions/etc. are not available to all characters.
+ * Additionally, there could be some quest-based familiar/companion
+ * choices that might have prerequisites that must be fullfilled prior
+ * to their selection. */
 
 /*-------------------------------------------------------------------*\
   utility functions
