@@ -1812,7 +1812,7 @@ ACMD(do_affects) {
 }
 
 ACMD(do_attacks) {
-  perform_attacks(ch, 2);
+  perform_attacks(ch, 2, 0);
 }
 
 /*
@@ -1956,7 +1956,7 @@ ACMD(do_score) {
 
 
   send_to_char(ch, "\tcBAB        : \tn%-4d \tc# of Attacks : \tn%-3d \tcConcealment  : \tn%-3d \tcModes : \tn[     ]\r\n",
-                  calc_bab, perform_attacks(ch, 1), compute_concealment(ch));
+                  calc_bab, perform_attacks(ch, 1, 0), compute_concealment(ch));
 
   send_to_char(ch, "\tC----------------\tyProficiencies\tC-----------------------------------\tyQuests\tC----------\tn\r\n"
                    "\tcWeapon Proficiency Used : \tn%-25s \tC| \tcQuests completed : \tn%d\r\n"
