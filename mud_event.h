@@ -67,6 +67,7 @@ typedef enum {
   eTRACKS, // Tracks in the room, decay on event processing.
   eWILD_SHAPE, // Wild shape event
   eSHIELD_RECOVERY, // Recovery from shield punch
+  eCOMBAT_ROUND, // Combat round
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
@@ -120,5 +121,6 @@ EVENTFUNC(event_chain_lightning);
 EVENTFUNC(event_falling);;
 EVENTFUNC(event_check_occupied);
 EVENTFUNC(event_tracks);
+EVENTFUNC(event_combat_round);
 
 #endif /* _MUD_EVENT_H_ */

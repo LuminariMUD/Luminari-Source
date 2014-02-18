@@ -66,7 +66,8 @@ struct mud_event_list mud_event_index[] = {
   { "Check Occupied", event_check_occupied, EVENT_ROOM}, /* eCHECK_OCCUPIED */
   { "Tracks", event_tracks, EVENT_ROOM}, /* eTRACKS */
   { "Wild Shape", event_daily_use_cooldown, EVENT_CHAR}, /* eWILD_SHAPE */
-  { "Shield Recovery", event_countdown, EVENT_CHAR} /* eSHIELD_RECOVERY */
+  { "Shield Recovery", event_countdown, EVENT_CHAR}, /* eSHIELD_RECOVERY */
+  { "Combat Round", event_combat_round, EVENT_CHAR} /* eCOMBAT_ROUND */
 };
 
 /* init_events() is the ideal function for starting global events. This

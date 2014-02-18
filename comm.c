@@ -1014,7 +1014,8 @@ void heartbeat(int heart_pulse)
   }
 
   if (!(heart_pulse % PULSE_VIOLENCE)) {
-    perform_violence();
+/* Next line removed as part of conversion from pulse to event-based combat */
+//    perform_violence();
     affect_update();  //affect updates transformed into "rounds"
   }
 
