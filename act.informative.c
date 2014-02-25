@@ -3030,7 +3030,8 @@ ACMD(do_toggle) {
             "  Exits Display: %-3s\r\n"
 
             "   Room Display: %-3s    "
-            "Memtime Display: %-3s\r\n",
+            "Memtime Display: %-3s"
+            "Actions Display: %-3s\r\n",
 
 
             ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
@@ -3074,7 +3075,8 @@ ACMD(do_toggle) {
             ONOFF(PRF_FLAGGED(ch, PRF_DISPEXITS)),
 
             ONOFF(PRF_FLAGGED(ch, PRF_DISPROOM)),
-            ONOFF(PRF_FLAGGED(ch, PRF_DISPMEMTIME))
+            ONOFF(PRF_FLAGGED(ch, PRF_DISPMEMTIME)),
+            ONOFF(PRF_FLAGGED(ch, PRF_DISPACTIONS))
             /*end*/);
     return;
   }

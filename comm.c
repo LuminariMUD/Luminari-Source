@@ -88,6 +88,8 @@
 #include "mail.h" /* has_mail() */
 #include "screen.h"
 #include "mudlim.h"
+#include "actions.h"
+#include "actionqueues.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -459,7 +461,7 @@ void copyover_recover()
     new_mobile_data(d->character);
     /* Allocate mobile event list */
     //d->character->events = create_list();
-    
+
     d->character->desc = d;
 
     if ((player_i = load_char(name, d->character)) >= 0) {
@@ -865,38 +867,43 @@ void game_loop(socket_t local_mother_desc)
           continue;
       }
 
-      if (!get_from_q(&d->input, comm, &aliased))
-        continue;
+      if (get_from_q(&d->input, comm, &aliased)) {
+        if (d->character) {
+          /* Reset the idle timer & pull char back from void if necessary */
+  	  d->character->char_specials.timer = 0;
+  	  if (STATE(d) == CON_PLAYING && GET_WAS_IN(d->character) != NOWHERE) {
+  	    if (IN_ROOM(d->character) != NOWHERE)
+	      char_from_room(d->character);
+	    char_to_room(d->character, GET_WAS_IN(d->character));
+	    GET_WAS_IN(d->character) = NOWHERE;
+  	    act("$n has returned.", TRUE, d->character, 0, 0, TO_ROOM);
+	  }
+          GET_WAIT_STATE(d->character) = 1;
+        }
+        d->has_prompt = FALSE;
 
-      if (d->character) {
-	/* Reset the idle timer & pull char back from void if necessary */
-	d->character->char_specials.timer = 0;
-	if (STATE(d) == CON_PLAYING && GET_WAS_IN(d->character) != NOWHERE) {
-	  if (IN_ROOM(d->character) != NOWHERE)
-	    char_from_room(d->character);
-	  char_to_room(d->character, GET_WAS_IN(d->character));
-	  GET_WAS_IN(d->character) = NOWHERE;
-	  act("$n has returned.", TRUE, d->character, 0, 0, TO_ROOM);
-	}
-        GET_WAIT_STATE(d->character) = 1;
+        if (d->showstr_count) /* Reading something w/ pager */
+ 	  show_string(d, comm);
+        else if (d->str)		/* Writing boards, mail, etc. */
+	  string_add(d, comm);
+        else if (STATE(d) != CON_PLAYING) /* In menus, etc. */
+	  nanny(d, comm);
+        else {			/* else: we're playing normally. */
+	  if (aliased)		/* To prevent recursive aliases. */
+	    d->has_prompt = TRUE;	/* To get newline before next cmd output. */
+	  else if (perform_alias(d, comm, sizeof(comm)))    /* Run it through aliasing system */
+	    get_from_q(&d->input, comm, &aliased);
+	  command_interpreter(d->character, comm); /* Send it to interpreter */
+        }
       }
-      d->has_prompt = FALSE;
-
-      if (d->showstr_count) /* Reading something w/ pager */
-	show_string(d, comm);
-      else if (d->str)		/* Writing boards, mail, etc. */
-	string_add(d, comm);
-      else if (STATE(d) != CON_PLAYING) /* In menus, etc. */
-	nanny(d, comm);
-      else {			/* else: we're playing normally. */
-	if (aliased)		/* To prevent recursive aliases. */
-	  d->has_prompt = TRUE;	/* To get newline before next cmd output. */
-	else if (perform_alias(d, comm, sizeof(comm)))    /* Run it through aliasing system */
-	  get_from_q(&d->input, comm, &aliased);
-	command_interpreter(d->character, comm); /* Send it to interpreter */
+      else if (d->character && STATE(d) == CON_PLAYING && 
+               pending_actions(d->character) &&
+               !d->showstr_count &&
+               !d->str) {
+        d->has_prompt = TRUE;
+        execute_next_action(d->character);
       }
     }
-
     /* Send queued output out to the operating system (ultimately to user). */
     for (d = descriptor_list; d; d = next_d) {
       next_d = d->next;
@@ -1276,6 +1283,15 @@ static char *make_prompt(struct descriptor_data *d)
           len += count;
       }
       
+      // autoprompt display available actions.
+      if (PRF_FLAGGED(d->character, PRF_DISPACTIONS) && len < sizeof(prompt)) {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "[%s%s] ",
+                (is_action_available(d->character, atSTANDARD, FALSE) ? "s" : "-"),
+                (is_action_available(d->character, atMOVE, FALSE)     ? "m" : "-"));
+        if (count >= 0)
+          len += count;   
+      }
+ 
       // autoprompt display exits
       if (PRF_FLAGGED(d->character, PRF_DISPEXITS) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",

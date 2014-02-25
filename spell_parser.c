@@ -25,6 +25,7 @@
 #include "mud_event.h"
 #include "spec_procs.h"
 #include "class.h"
+#include "actions.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -709,7 +710,9 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         act("Nothing seems to happen.", FALSE, ch, obj, 0, TO_ROOM);
       } else {
         GET_OBJ_VAL(obj, 2)--;
-        SET_WAIT(ch, PULSE_VIOLENCE);
+//        SET_WAIT(ch, PULSE_VIOLENCE);
+        USE_STANDARD_ACTION(ch);
+        
         /* Level to cast spell at. */
         k = GET_OBJ_VAL(obj, 0) ? GET_OBJ_VAL(obj, 0) : DEFAULT_STAFF_LVL;
 
@@ -762,7 +765,10 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         return;
       }
       GET_OBJ_VAL(obj, 2)--;
-      SET_WAIT(ch, PULSE_VIOLENCE);
+
+//      SET_WAIT(ch, PULSE_VIOLENCE);
+      USE_STANDARD_ACTION(ch);
+
       if (GET_OBJ_VAL(obj, 0))
         call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3),
               GET_OBJ_VAL(obj, 0), CAST_WAND);
@@ -780,13 +786,19 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       } else
         tch = ch;
 
+      /* AOO */
+      if(FIGHTING(ch))
+        attack_of_opportunity(FIGHTING(ch), ch, 0);
+
       act("You recite $p which dissolves.", TRUE, ch, obj, 0, TO_CHAR);
       if (obj->action_description)
         act(obj->action_description, FALSE, ch, obj, tch, TO_ROOM);
       else
         act("$n recites $p.", FALSE, ch, obj, NULL, TO_ROOM);
 
-      SET_WAIT(ch, PULSE_VIOLENCE);
+//      SET_WAIT(ch, PULSE_VIOLENCE);
+      USE_STANDARD_ACTION(ch);
+      
       for (i = 1; i <= 3; i++)
         if (call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, i),
                 GET_OBJ_VAL(obj, 0), CAST_SCROLL) <= 0)
@@ -798,6 +810,10 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
     case ITEM_POTION:
       tch = ch;
 
+      /*  AOO */
+      if(FIGHTING(ch))
+        attack_of_opportunity(FIGHTING(ch), ch, 0);
+
       if (!consume_otrigger(obj, ch, OCMD_QUAFF)) /* check trigger */
         return;
 
@@ -807,7 +823,9 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       else
         act("$n quaffs $p.", TRUE, ch, obj, NULL, TO_ROOM);
 
-      SET_WAIT(ch, PULSE_VIOLENCE);
+//      SET_WAIT(ch, PULSE_VIOLENCE);
+      USE_MOVE_ACTION(ch);
+
       for (i = 1; i <= 3; i++)
         if (call_magic(ch, ch, NULL, GET_OBJ_VAL(obj, i),
                 GET_OBJ_VAL(obj, 0), CAST_POTION) <= 0)

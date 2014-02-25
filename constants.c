@@ -506,6 +506,7 @@ const char *preference_bits[NUM_PRF_FLAGS + 1] = {
   "Display-Exits",
   "Display-Room",
   "Display-Memtime",
+  "Display-Actions",
   "\n"
 };
 

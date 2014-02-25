@@ -1040,6 +1040,10 @@ ACMD(do_drink) {
       GET_OBJ_VAL(temp, 3) = 0;
     }
   }
+
+  /* Use a move action, but regen in half a round. */
+  start_action_cooldown(ch, atMOVE, 3 RL_SEC);
+
   return;
 }
 

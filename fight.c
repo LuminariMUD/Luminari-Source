@@ -34,6 +34,8 @@
 #include "mudlim.h"
 #include "spec_abilities.h"
 #include "feats.h"
+#include "actions.h"
+#include "actionqueues.h"
 
 /* local global */
 struct obj_data *last_missile = NULL;
@@ -153,6 +155,8 @@ void perform_flee(struct char_data *ch) {
     return;
   }
 
+  USE_MOVE_ACTION(ch);
+
   //first find which directions are fleeable
   for (i = 0; i < DIR_COUNT; i++) {
     if (CAN_GO(ch, i)) {
@@ -196,7 +200,6 @@ void perform_flee(struct char_data *ch) {
       act("$n failed to flee the battle!", TRUE, ch, 0, 0, TO_ROOM);
     }
   }
-
 }
 
 /* a function for removing sneak/hide/invisibility on a ch
@@ -2907,9 +2910,12 @@ int hit(struct char_data *ch, struct char_data *victim,
   calc_bab = compute_bab(ch, victim, w_type) + penalty;
   victim_ac = compute_armor_class(ch, victim, FALSE);
 
-  if(type == TYPE_ATTACK_OF_OPPORTUNITY)
+  if(type == TYPE_ATTACK_OF_OPPORTUNITY) {
     if (HAS_FEAT(victim, FEAT_MOBILITY) && has_dex_bonus_to_ac(ch, victim))
       victim_ac += 4;
+    send_to_char(ch, "\tW[\tRAOO\tW]\tn");
+    send_to_char(victim, "\tW[\tRAOO\tW]\tn");
+  }
 
   diceroll = rand_number(1, 20);
   if (isCriticalHit(ch, diceroll)) {
@@ -3246,6 +3252,11 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
  *   Phase 2 - Attack once.
  *   Phase 3 - Attack once.
  *
+ * Actions:
+ *   Full attack requires you to have a Standard and a Move action.
+ *   If you only have a standard action, you only perform one attack in phase 1.
+ *   If you do not have a standard action, you do not attack at all.
+ *
  *   */
 int perform_attacks(struct char_data *ch, int mode, int phase) {
   int i = 0, penalty = 0, numAttacks = 0, bonusAttacks = 0;
@@ -3253,6 +3264,15 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   int monkMode = FALSE, ranged_attacks = 2;
   bool dual = FALSE;
   bool perform_attack = FALSE;
+
+  /*  If we have no standard action (and are using regular attack mode.)
+   *  Do not attack at all. 
+   *  If we have no move action (and are in regular attack mode) skip all
+   *  phases but the first. */
+  if ((mode == 0) && !is_action_available(ch, atSTANDARD, FALSE)) 
+    return (0);
+  else if ((mode == 0) && (phase != 1) && !is_action_available(ch, atMOVE, FALSE))
+    return (0);
 
   // check guard skill
   guard_check(ch, FIGHTING(ch));
@@ -3685,6 +3705,8 @@ EVENTFUNC(event_combat_round) {
 
   if ((!IS_NPC(ch) && !IS_PLAYING(ch->desc)) || (FIGHTING(ch) == NULL))
     return 0;
+
+  execute_next_action(ch);
 
   perform_violence(ch, (pMudEvent->sVariables != NULL && is_number(pMudEvent->sVariables) ? atoi(pMudEvent->sVariables) : 0));
   

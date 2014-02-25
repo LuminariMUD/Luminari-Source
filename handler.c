@@ -25,6 +25,7 @@
 #include "quest.h"
 #include "mud_event.h"
 #include "wilderness.h"
+#include "actionqueues.h"
 
 /* local file scope variables */
 static int extractions_pending = 0;
@@ -1368,6 +1369,9 @@ void extract_char_final(struct char_data *ch) {
     if (FIGHTING(k) == ch)
       stop_fighting(k);
   }
+
+  /* Clear the action queue */
+  clear_action_queue(GET_QUEUE(ch));
 
   /* Wipe character from the memory of hunters and other intelligent NPCs... */
   for (temp = character_list; temp; temp = temp->next) {

@@ -62,6 +62,8 @@ struct command_info {
    sh_int minimum_level;
    int	subcmd;
    sh_int ignore_wait; // set to TRUE if the command can be performed during wait event
+   int actions_required;
+   int action_cooldowns[NUM_ACTIONS];
 };
 
 struct mob_script_command_t {

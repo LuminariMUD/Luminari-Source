@@ -39,6 +39,7 @@
 #include "treasure.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
+#include "actions.h"
 
 /* Local defined utility functions */
 /* do_group utility functions */
@@ -93,6 +94,8 @@ void perform_perform(struct char_data *ch) {
 
   af[6].location = APPLY_HIT;
   af[6].modifier = 10 + level;
+
+  USE_STANDARD_ACTION(ch);
 
   act("$n sings a rousing tune!", FALSE, ch, NULL, NULL, TO_ROOM);
   act("You sing a rousing tune!", FALSE, ch, NULL, NULL, TO_CHAR);
@@ -581,6 +584,8 @@ ACMD(do_mount) {
   act("$n mounts $N.", TRUE, ch, 0, vict, TO_NOTVICT);
   mount_char(ch, vict);
 
+  USE_MOVE_ACTION(ch);
+
   if (IS_NPC(vict) && !AFF_FLAGGED(vict, AFF_TAMED) &&
           compute_ability(ch, ABILITY_RIDE) <= rand_number(1, GET_LEVEL(vict))) {
     act("$N suddenly bucks upwards, throwing you violently to the ground!", FALSE, ch, 0, vict, TO_CHAR);
@@ -660,7 +665,7 @@ ACMD(do_tame) {
   }
 
   new_affect(&af);
-  af.duration = 50 + compute_ability(ch, ABILITY_RIDE) * 4;
+  af.duration = 50 + compute_ability(ch, ABILITY_HANDLE_ANIMAL) * 4;
   SET_BIT_AR(af.bitvector, AFF_TAMED);
   affect_to_char(vict, &af);
 
@@ -1100,6 +1105,8 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
 
   if (!IS_NPC(ch) && (spellnum == SKILL_WILDSHAPE)) 
     start_daily_use_cooldown(ch, FEAT_WILD_SHAPE);
+
+  USE_STANDARD_ACTION(ch);
 }
 
 /* a trivial shapechange code for druids */
@@ -1569,7 +1576,8 @@ ACMD(do_search) {
     send_to_char(ch, "You don't find anything you didn't see before.\r\n");
   }
 
-  WAIT_STATE(ch, 1 RL_SEC );
+  //WAIT_STATE(ch, 1 RL_SEC );
+  USE_FULL_ROUND_ACTION(ch);
 }
 
 /* entry point for sneak, the command just flips the flag */
@@ -2300,6 +2308,7 @@ ACMD(do_use) {
   }
 
   mag_objectmagic(ch, mag_item, buf);
+
 }
 
 /* Activate a magic item with a COMMAND WORD! */
@@ -2335,7 +2344,8 @@ ACMD(do_utter) {
   }
   if(found == 0)
     send_to_char(ch, "Nothing happens.\r\n");
-
+  else
+    USE_STANDARD_ACTION(ch); 
  
 }
 

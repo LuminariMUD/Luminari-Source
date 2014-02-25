@@ -588,8 +588,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define PRF_DISPEXITS    37  // autoprompt exits display
 #define PRF_DISPROOM     38  // display room name and/or #
 #define PRF_DISPMEMTIME  39  // display memtimes
+#define PRF_DISPACTIONS  40
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS    40
+#define NUM_PRF_FLAGS    41
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -2388,6 +2389,8 @@ struct char_special_data {
   int prayin[NUM_CASTERS]; //memorization
   byte position; /**< Standing, fighting, sleeping, etc. */
   int timer; /**< Timer for update */
+  
+  struct queue_type *action_queue; /**< Action command queue */
 
   struct char_special_data_saved saved; /**< Constants saved for PCs. */
 };
@@ -2940,5 +2943,17 @@ struct config_data {
 #ifdef MEMORY_DEBUG
 #include "zmalloc.h"
 #endif
+
+/* Action types */
+typedef enum {
+  atSTANDARD,
+  atMOVE
+} action_type;
+
+#define NUM_ACTIONS 2
+
+#define ACTION_NONE     0
+#define ACTION_STANDARD (1 << 0)
+#define ACTION_MOVE     (1 << 1)
 
 #endif /* _STRUCTS_H_ */
