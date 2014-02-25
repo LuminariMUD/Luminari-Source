@@ -103,14 +103,15 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
   /* Set up the required variables and strings */
   vict = PREFEDIT_GET_CHAR;
 
-  sprintf(prompt_string, "%s%s%s%s%s%s%s",
+  sprintf(prompt_string, "%s%s%s%s%s%s%s%s",
           PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
           PREFEDIT_FLAGGED(PRF_DISPMANA) ? "M" : "",
           PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
           PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
-          PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : ""
+          PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
+          PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : ""
           );
 
   sprintf(color_string, "%s", multi_types[(PREFEDIT_FLAGGED(PRF_COLOR_1) ? 1 : 0) + (PREFEDIT_FLAGGED(PRF_COLOR_2) ? 2 : 0)]);
@@ -322,14 +323,15 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
   if (PREFEDIT_FLAGGED(PRF_DISPAUTO))
     sprintf(prompt_string, "<Auto>");
   else
-    sprintf(prompt_string, "%s%s%s%s%s%s%s",
+    sprintf(prompt_string, "%s%s%s%s%s%s%s%s",
           PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
           PREFEDIT_FLAGGED(PRF_DISPMANA) ? "M" : "",
           PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
           PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
-          PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : ""
+          PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
+          PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : ""
           );
   
   send_to_char(d->character, "%sPrompt Settings\r\n"
@@ -341,10 +343,12 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
                              "%s6%s) Toggle Exits\r\n"
                              "%s7%s) Toggle Rooms\r\n"
                              "%s8%s) Toggle Memtimes\r\n"
+                             "%s9%s) Toggle Actions\r\n"
                              "\r\n"
                              "%sCurrent Prompt: %s%s%s\r\n\r\n"
                              "%s0%s) Quit (to main menu)\r\n",
                              CBWHT(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+                             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
@@ -802,7 +806,12 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
             REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMEMTIME);
           else
             SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMEMTIME);
-        }
+        } else if (number == 9) {
+          if (PREFEDIT_FLAGGED(PRF_DISPACTIONS))
+            REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPACTIONS);
+          else
+            SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPACTIONS);
+        } 
         prefedit_disp_prompt_menu(d);
       }
     }
@@ -868,6 +877,10 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
   /* PRF_DISPMEMTIME   - On */
   if (!PREFEDIT_FLAGGED(PRF_DISPMEMTIME))
      SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMEMTIME);
+  
+  /* PRF_SIAPACTIONS - On */
+  if (!PREFEDIT_FLAGGED(PRF_DISPACTIONS))
+     SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPACTIONS);
 
   /* PRF_AUTOEXIT   - On */
   if (!PREFEDIT_FLAGGED(PRF_AUTOEXIT))

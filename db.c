@@ -50,6 +50,7 @@
 #include "wilderness.h"
 #include "mysql.h"
 #include "feats.h"
+#include "actionqueues.h"
 
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
@@ -2893,6 +2894,8 @@ struct char_data *create_char(void) {
 void new_mobile_data(struct char_data *ch) {
   ch->events = NULL;
   ch->group = NULL;
+
+  GET_QUEUE(ch) = create_action_queue();
 }
 
 /* create a new mobile from a prototype */
@@ -3947,6 +3950,10 @@ void free_char(struct char_data *ch) {
       GET_ALIASES(ch) = (GET_ALIASES(ch))->next;
       free_alias(a);
     }
+    /* Free the action queue */
+    if(GET_QUEUE(ch))
+      free_action_queue(GET_QUEUE(ch));
+
     if (ch->player_specials->poofin)
       free(ch->player_specials->poofin);
     if (ch->player_specials->poofout)
@@ -4271,6 +4278,9 @@ void init_char(struct char_data *ch) {
   GET_NUM_QUESTS(ch) = 0;
   ch->player_specials->saved.completed_quests = NULL;
   GET_QUEST(ch) = NOTHING;
+
+  /* Create the action queue */
+  GET_QUEUE(ch) = create_action_queue();
 
   ch->player.time.birth = time(0);
   ch->player.time.logon = time(0);

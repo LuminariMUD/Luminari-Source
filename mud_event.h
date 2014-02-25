@@ -68,6 +68,8 @@ typedef enum {
   eWILD_SHAPE, // Wild shape event
   eSHIELD_RECOVERY, // Recovery from shield punch
   eCOMBAT_ROUND, // Combat round
+  eSTANDARDACTION, // Standard action cooldown
+  eMOVEACTION, // Move action cooldown
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
@@ -122,5 +124,5 @@ EVENTFUNC(event_falling);;
 EVENTFUNC(event_check_occupied);
 EVENTFUNC(event_tracks);
 EVENTFUNC(event_combat_round);
-
+EVENTFUNC(event_action_cooldown);
 #endif /* _MUD_EVENT_H_ */

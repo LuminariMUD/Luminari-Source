@@ -26,6 +26,7 @@
 #include "spec_procs.h"
 #include "class.h"
 #include "mudlim.h"
+#include "actions.h"
 
 /**** Utility functions *******/
 
@@ -212,6 +213,8 @@ void perform_rage(struct char_data *ch) {
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
   
   attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
+
+  USE_STANDARD_ACTION(ch);
 }
 
 /* rescue skill mechanic */
@@ -269,8 +272,10 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
   set_fighting(ch, tmp_ch);
   set_fighting(tmp_ch, ch);
 
-  SET_WAIT(ch, PULSE_VIOLENCE);
-  SET_WAIT(vict, PULSE_VIOLENCE);
+  //SET_WAIT(ch, PULSE_VIOLENCE);
+  //SET_WAIT(vict, PULSE_VIOLENCE);
+  USE_STANDARD_ACTION(ch);
+  start_action_cooldown(vict, atSTANDARD, 6 RL_SEC);
 }
 
 /* charge mechanic */
@@ -325,11 +330,13 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       act("You charge into $N, stunning $E!", FALSE, ch, 0, vict, TO_CHAR);
       act("$n charges into $N, stunning $E!", FALSE, ch, 0, vict, TO_ROOM);
-    } else
-      WAIT_STATE(vict, 1 RL_SEC);
+    }  
   }
   
-  SET_WAIT(ch, PULSE_VIOLENCE * 2); 
+  //SET_WAIT(ch, PULSE_VIOLENCE * 2); 
+  USE_STANDARD_ACTION(ch);
+  USE_MOVE_ACTION(ch);
+
 }
 
 /* engine for knockdown, used in bash/trip/etc */
@@ -560,8 +567,8 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     }
   }
 
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
-  
+  //SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  USE_STANDARD_ACTION(ch); 
   return TRUE;
 
 }
@@ -623,7 +630,8 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
       WAIT_STATE(vict, 1 RL_SEC);
   }
 
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  //SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  USE_STANDARD_ACTION(ch);
   
   return TRUE;
 }
@@ -682,7 +690,9 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
     perform_knockdown(ch, vict, SKILL_SHIELD_CHARGE);
   }
 
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  //SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  USE_STANDARD_ACTION(ch);
+  USE_MOVE_ACTION(ch);
 
   return TRUE;
 }
@@ -755,7 +765,9 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
       WAIT_STATE(vict, 1 RL_SEC);
   }
 
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  //SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  USE_STANDARD_ACTION(ch);
+  USE_MOVE_ACTION(ch);
 
   return TRUE;
 }
@@ -812,7 +824,8 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
     
   }
   
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  //SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  USE_STANDARD_ACTION(ch);
 }
 
 /* engine for layonhands skill */
@@ -837,6 +850,8 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict) {
           20 + GET_LEVEL(ch) +
           (GET_CHA_BONUS(ch) * CLASS_LEVEL(ch, CLASS_PALADIN)));
   update_pos(vict);
+
+  USE_STANDARD_ACTION(ch);
 }
 
 /* engine for sap skill */
@@ -942,7 +957,9 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
     damage(ch, vict, 0, SKILL_SAP, DAM_FORCE, FALSE);    
   }
   
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+//  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  USE_STANDARD_ACTION(ch);
+  USE_MOVE_ACTION(ch);  
 }
 
 /* main engine for dirt-kick mechanic */
@@ -1003,7 +1020,8 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   } else
     damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
   
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+//  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  USE_STANDARD_ACTION(ch);  
 
   return TRUE;
 }
@@ -1092,8 +1110,9 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
   }
 
   GET_POS(ch) = POS_STANDING;
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
-
+//  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  start_action_cooldown(ch, atSTANDARD, 6);
+  start_action_cooldown(ch, atMOVE, 6);
 }
 
 /* smite evil (eventually good?) engine */
@@ -1170,7 +1189,9 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict) {
   }
 
   if (successful) {
-    SET_WAIT(ch, 2 * PULSE_VIOLENCE);
+//    SET_WAIT(ch, 2 * PULSE_VIOLENCE);
+    USE_STANDARD_ACTION(ch);
+    USE_STANDARD_ACTION(ch);
     return TRUE;
   } else
     send_to_char(ch, "You have no piercing weapon equipped.\r\n");  
@@ -1372,6 +1393,9 @@ ACMD(do_turnundead) {
       dam_killed_vict(ch, vict);
       break;
   }
+
+  /* Actions */
+  USE_STANDARD_ACTION(ch);
 }
 
 /* rage skill (berserk) primarily for berserkers character class */
@@ -1439,9 +1463,11 @@ ACMD(do_rage) {
   affect_to_char(ch, &afthree);
   affect_to_char(ch, &affour);
 
- if(!IS_NPC(ch))
+  if(!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_RAGE);  
- 
+
+  USE_STANDARD_ACTION(ch);
+
 }
 #undef RAGE_AFFECTS
 
@@ -1531,30 +1557,24 @@ ACMD(do_hit) {
       SET_WAIT(ch, PULSE_VIOLENCE);
       /* not fighting, so switch opponents */
     } else {
-      stop_fighting(ch);
+      stop_fighting(ch);     
       send_to_char(ch, "You switch opponents!\r\n");
       act("$n switches opponents!", FALSE, ch, 0, vict, TO_ROOM);
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-      SET_WAIT(ch, PULSE_VIOLENCE);
 
       //everyone gets a free shot at you unless you make a tumble check
       //15 is DC
       vict = FIGHTING(ch);
       if (FIGHTING(ch) && FIGHTING(vict)) {
-        if (!IS_NPC(ch) && dice(1, 20) + compute_ability(ch, ABILITY_TUMBLE) <= 15) {
-          send_to_char(ch, "\tR*Opponent Attack Opportunity*\tn");
-          send_to_char(vict, "\tW*Attack Opportunity*\tn");
-          hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-          update_pos(ch);
-          update_pos(vict);
-        } else {
-          send_to_char(ch, "\tW*Tumble Success*\tn");
-          send_to_char(vict, "\tR*Tumbled vs AoO*\tn");
-        }
+        if(!skill_check(ch, ABILITY_TUMBLE, 15))
+          attack_of_opportunity(vict, ch, 0);
       }
 
     }
+    
+    USE_STANDARD_ACTION(ch);
   }
+
 }
 
 ACMD(do_kill) {
@@ -2365,6 +2385,9 @@ ACMD(do_treatinjury) {
   GET_HIT(vict) += MIN((GET_MAX_HIT(vict) - GET_HIT(vict)),
           (10 + (compute_ability(ch, ABILITY_HEAL) * 2)));
   update_pos(vict);
+
+  /* Actions */
+  USE_STANDARD_ACTION(ch);
 }
 
 ACMD(do_rescue) {
@@ -2508,7 +2531,8 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
   } else
     damage(ch, vict, dice(1, GET_LEVEL(ch)), SKILL_KICK, DAM_FORCE, FALSE);
 
-  SET_WAIT(ch, PULSE_VIOLENCE * 3);
+  //SET_WAIT(ch, PULSE_VIOLENCE * 3);
+  USE_STANDARD_ACTION(ch);
   
 }
 
@@ -2576,7 +2600,8 @@ ACMD(do_hitall) {
   if (lag > 4)
     lag = 4;
 
-  SET_WAIT(ch, lag * PULSE_VIOLENCE);
+  //SET_WAIT(ch, lag * PULSE_VIOLENCE);
+  USE_FULL_ROUND_ACTION(ch);
 }
 
 
