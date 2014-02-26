@@ -3030,7 +3030,7 @@ ACMD(do_toggle) {
             "  Exits Display: %-3s\r\n"
 
             "   Room Display: %-3s    "
-            "Memtime Display: %-3s"
+            "Memtime Display: %-3s    "
             "Actions Display: %-3s\r\n",
 
 

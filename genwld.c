@@ -73,10 +73,8 @@ room_rnum add_room(struct room_data *room)
     copy_room_strings(&world[0], room);
   }
 
-  /* Reindex the wilderness index if this is a wilderness room. */
-  if(ZONE_FLAGGED(GET_ROOM_ZONE(real_room(room->number)), ZONE_WILDERNESS)) {
-    initialize_wilderness_lists();
-  }
+  /* Reindex the wilderness index. */
+  initialize_wilderness_lists();
 
   log("GenOLC: add_room: Added room %d at index #%d.", room->number, found);
   /* found is equal to the array index where we added the room. */
@@ -268,9 +266,8 @@ int delete_room(room_rnum rnum)
   top_of_world--;
   RECREATE(world, struct room_data, top_of_world + 1);
 
-  /* Rebuild the index if the deleted room was a wilderness room. */
-  if ( is_wilderness )
-    initialize_wilderness_lists();
+  /* Rebuild the wilderness index. */
+  initialize_wilderness_lists();
 
   return TRUE;
 }
