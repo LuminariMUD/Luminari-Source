@@ -90,7 +90,7 @@ void initialize_wilderness_lists() {
 
   /* The +1 for the initializer is so that the 'magic' room is not 
    * included in the index. */ 
-  for(i = WILD_ROOM_VNUM_START + 1; i< WILD_DYNAMIC_ROOM_VNUM_START; i++) {   
+  for(i = WILD_ROOM_VNUM_START + 1; i < WILD_DYNAMIC_ROOM_VNUM_START; i++) {   
     if(real_room(i) != NOWHERE) {
       CREATE(rm, room_rnum, 1);
       *rm = real_room(i);
