@@ -1945,6 +1945,10 @@ ACMD(do_stand) {
       char_from_furniture(ch);
       /* Will be sitting after a successful bash and may still be fighting. */
       GET_POS(ch) = FIGHTING(ch) ? POS_FIGHTING : POS_STANDING;
+
+      if (FIGHTING(ch))
+        attack_of_opportunity(FIGHTING(ch), ch, 0);
+
       break;
     case POS_RESTING:
       send_to_char(ch, "You stop resting, and stand up.\r\n");
@@ -1952,6 +1956,10 @@ ACMD(do_stand) {
       GET_POS(ch) = POS_STANDING;
       /* Were they sitting in something. */
       char_from_furniture(ch);
+
+      if (FIGHTING(ch))
+        attack_of_opportunity(FIGHTING(ch), ch, 0);
+
       break;
     case POS_RECLINING:
       send_to_char(ch, "You stop reclining, and stand up.\r\n");
@@ -1959,6 +1967,10 @@ ACMD(do_stand) {
       GET_POS(ch) = POS_STANDING;
       /* Were they sitting in something. */
       char_from_furniture(ch);
+
+      if (FIGHTING(ch))
+        attack_of_opportunity(FIGHTING(ch), ch, 0);
+
       break;
     case POS_SLEEPING:
       send_to_char(ch, "You have to wake up first!\r\n");
