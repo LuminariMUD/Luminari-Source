@@ -24,6 +24,7 @@
 #include "mud_event.h"
 #include "mudlim.h"
 #include "act.h"
+#include "actions.h"
 
 /* added this for falling event, general dummy check */
 bool death_check(struct char_data *ch) {
@@ -65,7 +66,7 @@ void room_aff_tick(struct raff_node *raff) {
           if (!mag_savingthrow(caster, caster, SAVING_FORT, 0)) {
             send_to_char(caster, "You are bogged down by the billowing cloud!\r\n");
             act("$n is bogged down by the billowing cloud.", TRUE, caster, 0, NULL, TO_ROOM);
-            SET_WAIT(caster, PULSE_VIOLENCE);
+            USE_MOVE_ACTION(caster);
           }
         }
       }

@@ -1810,4 +1810,6 @@ do                                                              \
 
 /* Action queues */
 #define GET_QUEUE(ch) ((ch)->char_specials.action_queue)
+#define GET_ATTACK_QUEUE(ch) ((ch)->char_specials.attack_queue)
+
 #endif /* _UTILS_H_ */

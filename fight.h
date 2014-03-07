@@ -14,6 +14,7 @@
 #define _FIGHT_H_
 
 /* Structures and defines */
+
 /* Attacktypes with grammar */
 struct attack_hit_type {
    const char *singular;
@@ -43,6 +44,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim);
 void update_pos(struct char_data *victim);
 int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch, int attack_number);
 int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int penalty);
+void attacks_of_opportunity(struct char_data *victim, int penalty);
 /*
  * dualwield = is this a dual wield attack?
  */

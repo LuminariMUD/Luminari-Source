@@ -881,33 +881,34 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
     case FEAT_PREREQ_ATTRIBUTE:
       switch (prereq->values[0]) {
         case AB_STR:
-          if (ch->real_abils.str < prereq->values[1])
+          if (GET_REAL_STR(ch)< prereq->values[1])
             return FALSE;
           break;
         case AB_DEX:
-          if (ch->real_abils.dex < prereq->values[1])
+          if (GET_REAL_DEX(ch) < prereq->values[1])
             return FALSE;
           break;
         case AB_CON:
-          if (ch->real_abils.con < prereq->values[1])
+          if (GET_REAL_CON(ch) < prereq->values[1])
             return FALSE;
           break;
         case AB_WIS:
-          if (ch->real_abils.wis < prereq->values[1])
+          if (GET_REAL_WIS(ch) < prereq->values[1])
             return FALSE;
           break;
         case AB_INT:
-          if (ch->real_abils.intel < prereq->values[1])
+          if (GET_REAL_INT(ch) < prereq->values[1])
             return FALSE;
           break;
         case AB_CHA:
-          if (ch->real_abils.cha < prereq->values[1])
+          if (GET_REAL_CHA(ch) < prereq->values[1])
             return FALSE;
           break;
         default:
           log("SYSERR: meets_prerequisite() - Bad Attribute prerequisite %d", prereq->values[0]);
           return FALSE;
       }
+      break;
     case FEAT_PREREQ_CLASS_LEVEL:
       if (CLASS_LEVEL(ch, prereq->values[0]) < prereq->values[1])
         return FALSE;
@@ -1945,7 +1946,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
               sprintf(buf3, "%s (%s)", feat_list[i].name, spell_schools[j]);
               sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, spell_schools[j]);
+              sprintf(buf3, "%s (%s)", feat_list[i].name, spell_schools[j]);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1953,8 +1954,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
   
           }
         }
-      } else 
-      if ((subfeat = feat_to_cfeat(i)) != -1) {
+      } else if ((subfeat = feat_to_cfeat(i)) != -1) {
         /* This is a 'combat feat' */
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
           if (HAS_COMBAT_FEAT(ch, subfeat, j)) {
@@ -1962,7 +1962,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
               sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -1970,8 +1970,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
             
           }
         }
-      } else
-      if ((subfeat = feat_to_skfeat(i)) != -1) {
+      } else if ((subfeat = feat_to_skfeat(i)) != -1) {
         /* This is a 'skill' feat */
         for (j = 1; j < NUM_ABILITIES; j++) {
           if (ch->player_specials->saved.skill_focus[i][j] > 0) {
@@ -1979,7 +1978,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
               sprintf(buf3, "%s (%s)", feat_list[i].name, ability_names[j]);
               sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
-              sprintf(buf3, "%s (%s)", feat_list[i].name, ability_names[j]);
+              sprintf(buf3, "%s (%s) ", feat_list[i].name, ability_names[j]);
               sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
@@ -2296,10 +2295,9 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
         strcat(buf2, buf);        /* The above, ^ should always be safe to do. */
         none_shown = FALSE;
       }
-
+      /*  If we are not in description mode, split the output up in columns. */
       if (!mode) {
         count++;
-        strcat(buf2, buf3);
         if (count % 2 == 0)         
          strcat(buf2, "\r\n");
       }
@@ -2319,9 +2317,9 @@ void list_feats(struct char_data *ch, char *arg, int list_type)
       strcat(buf2, buf);        /* The above, ^ should always be safe to do. */
       none_shown = FALSE;
 
+      /*  If we are not in description mode, split the output up in columns. */
       if (!mode) {
         count++;
-        strcat(buf2, buf3);
         if (count % 2 == 0)
          strcat(buf2, "\r\n");
       }        

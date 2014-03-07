@@ -7,7 +7,7 @@ act.informative.o: act.informative.c conf.h sysdep.h structs.h protocol.h \
  class.h fight.h modify.h asciimap.h clan.h craft.h wilderness.h
 actionqueues.o: actionqueues.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h db.h comm.h interpreter.h actionqueues.h \
- mud_event.h dg_event.h
+ mud_event.h dg_event.h actions.h
 actions.o: actions.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h interpreter.h screen.h modify.h handler.h spells.h \
  mud_event.h dg_event.h actions.h

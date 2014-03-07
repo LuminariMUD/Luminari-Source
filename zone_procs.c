@@ -19,7 +19,7 @@
 #include "fight.h"
 #include "graph.h"
 #include "mud_event.h"
-
+#include "actions.h"
 
 /* local, file scope restricted functions */
 
@@ -1834,7 +1834,7 @@ SPECIAL(giantslayer) {
               FALSE, ch, obj, vict, TO_NOTVICT);
       act("You fall to your knees in agony!",
               FALSE, ch, obj, vict, TO_VICT);
-      WAIT_STATE(vict, PULSE_VIOLENCE * 2);
+      USE_MOVE_ACTION(vict);
       GET_POS(vict) = POS_SITTING;
       GET_HIT(vict) -= 100;
 

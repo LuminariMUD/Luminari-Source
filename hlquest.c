@@ -20,7 +20,7 @@
 #include "act.h"
 #include "constants.h"
 #include "mud_event.h"
-
+#include "actions.h"
 
 /*-----------------------------------*/
 /* utility functions */
@@ -314,7 +314,6 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         break;
       case QUEST_COMMAND_ATTACK_QUESTOR:
         hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-        SET_WAIT(victim, PULSE_VIOLENCE * 2);
         break;
       case QUEST_COMMAND_OPEN_DOOR:
         quest_open_door(real_room(qcom->location), qcom->value);

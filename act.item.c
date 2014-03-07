@@ -28,6 +28,7 @@
 #include "hlquest.h"
 #include "fight.h"
 #include "mudlim.h"
+#include "actions.h" 
 
 /* local function prototypes */
 /* do_get utility functions */

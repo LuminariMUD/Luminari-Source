@@ -105,6 +105,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "astat", "ast", POS_DEAD, do_astat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "attach", "attach", POS_DEAD, do_attach, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}},
   { "attacks", "attacks", POS_DEAD, do_attacks, 0, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "attackqueue", "attackq", POS_DEAD, do_queue, 0, SCMD_ATTACK_QUEUE , FALSE, ACTION_NONE, {0, 0}},
   { "auction", "auc", POS_SLEEPING, do_gen_comm, 0, SCMD_AUCTION, TRUE, ACTION_NONE, {0, 0}},
   { "augment", "augment", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "autoexits", "autoex", POS_DEAD, do_gen_tog, 0, SCMD_AUTOEXIT, TRUE, ACTION_NONE, {0, 0}},
@@ -242,7 +243,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "harvest", "harvest", POS_STANDING, do_harvest, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "hlqedit", "hlqedit", POS_DEAD, do_hlqedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "hlqlist", "hlqlist", POS_DEAD, do_hlqlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
-  { "headbutt", "headbutt", POS_FIGHTING, do_headbutt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "headbutt", "headbutt", POS_FIGHTING, do_process_attack, 1, AA_HEADBUTT, FALSE, ACTION_NONE, {0, 0}},
   { "hitall", "hitall", POS_FIGHTING, do_hitall, 1, 0, FALSE, ACTION_NONE, {0, 0}},
 
   { "inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -257,7 +258,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}},
 
   { "kill", "k", POS_FIGHTING, do_kill, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
-  { "kick", "ki", POS_FIGHTING, do_kick, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "kick", "ki", POS_FIGHTING, do_process_attack, 1, AA_KICK, FALSE, ACTION_NONE, {6, 0}},
   
   { "look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE, ACTION_NONE, {0, 0}},
   { "layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
@@ -328,11 +329,11 @@ cpp_extern const struct command_info cmd_info[] = {
   { "purge", "purge", POS_DEAD, do_purge, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "prayer", "prayer", POS_RECLINING, do_gen_memorize, 0, SCMD_PRAY, FALSE, ACTION_NONE, {0, 0}},
   { "perform", "perform", POS_FIGHTING, do_perform, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
-
+  
+  { "queue", "q", POS_DEAD, do_queue, 0, SCMD_ACTION_QUEUE, FALSE, ACTION_NONE, {0, 0}},
   { "qedit", "qedit", POS_DEAD, do_oasis_qedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "qlist", "qlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_QLIST, TRUE, ACTION_NONE, {0, 0}},
   { "quaff", "qua", POS_RECLINING, do_use, 0, SCMD_QUAFF, FALSE, ACTION_MOVE, {0, 6}},
-  { "queue", "q", POS_DEAD, do_queue, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "qecho", "qec", POS_DEAD, do_qcomm, LVL_STAFF, SCMD_QECHO, TRUE, ACTION_NONE, {0, 0}},
   { "quest", "que", POS_DEAD, do_quest, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "qui", "qui", POS_DEAD, do_quit, 0, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -430,7 +431,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "train", "tr", POS_RECLINING, do_train, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "transfer", "transfer", POS_SLEEPING, do_trans, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "treatinjury", "treatinjury", POS_RECLINING, do_treatinjury, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
-  { "trip", "trip", POS_FIGHTING, do_trip, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {0, 0}},
+  { "trip", "trip", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}},
+//  { "_trip", "_trip", POS_FIGHTING, do_trip, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "trigedit", "trigedit", POS_DEAD, do_oasis_trigedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "turnundead", "turnundead", POS_FIGHTING, do_turnundead, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "typo", "typo", POS_DEAD, do_ibt, 0, SCMD_TYPO, TRUE, ACTION_NONE, {0, 0}},
@@ -764,8 +766,6 @@ void command_interpreter(struct char_data *ch, char *argument) {
       }
     } else if (no_specials || !special(ch, cmd, line)) {
       ((*complete_cmd_info[cmd].command_pointer) (ch, line, cmd, complete_cmd_info[cmd].subcmd));
-      /* nashak's set_wait debugger */
-      //      SET_WAIT(ch, 50);
     }
 }
 

@@ -2381,7 +2381,7 @@ void advance_level(struct char_data *ch, int class) {
   if (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS)) {
     /* SRD has this listed as +30 hp.  More fun to do it by level perhaps. */
     for ( i = HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS); i > 0; i--)
-      add_hp += 3;
+      add_hp += 1;
   }
 
   /* adjust final and report changes! */
