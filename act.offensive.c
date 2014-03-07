@@ -27,6 +27,7 @@
 #include "class.h"
 #include "mudlim.h"
 #include "actions.h"
+#include "actionqueues.h"
 
 /**** Utility functions *******/
 
@@ -139,6 +140,9 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
 
   return FALSE;
 }
+
+/*  End utility */
+
 
 /* stunningfist engine */
 /* The stunning fist is reliant on a successful UNARMED attack (or an attack with a KI_STRIKE weapon) */
@@ -272,8 +276,6 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
   set_fighting(ch, tmp_ch);
   set_fighting(tmp_ch, ch);
 
-  //SET_WAIT(ch, PULSE_VIOLENCE);
-  //SET_WAIT(vict, PULSE_VIOLENCE);
   USE_STANDARD_ACTION(ch);
   start_action_cooldown(vict, atSTANDARD, 6 RL_SEC);
 }
@@ -333,7 +335,6 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
     }  
   }
   
-  //SET_WAIT(ch, PULSE_VIOLENCE * 2); 
   USE_STANDARD_ACTION(ch);
   USE_MOVE_ACTION(ch);
 
@@ -372,7 +373,6 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
-    SET_WAIT(ch, PULSE_VIOLENCE);
     return FALSE;
   }
 
@@ -401,8 +401,8 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
   }
   
   if (GET_POS(vict) == POS_SITTING) {
-    send_to_char(ch, "It is difficult to knock down something already down:  ");
-    penalty = -4;
+    send_to_char(ch, "You can't knock down something already down!\r\n");
+    return FALSE;
   }
 
 
@@ -433,7 +433,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
         GET_RACE(vict) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
       defense_check += 4;
 
-    send_to_char(ch, "attack check: %d, defense_check: %d\r\n", attack_check, defense_check);
+//    send_to_char(ch, "attack check: %d, defense_check: %d\r\n", attack_check, defense_check);
     if (attack_check >= defense_check) {
       if(attack_check == defense_check) {
         /* Check the bonuses. */
@@ -495,7 +495,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
             GET_RACE(ch) == RACE_CRYSTAL_DWARF) /* Dwarves get a stability bonus. */
           defense_check += 4;
   
-        send_to_char(ch, "counterattack check: %d, defense_check: %d\r\n", attack_check, defense_check);
+//        send_to_char(ch, "counterattack check: %d, defense_check: %d\r\n", attack_check, defense_check);
   
         if (attack_check >= defense_check) {
           if(attack_check == defense_check) {
@@ -549,7 +549,6 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     }
   } else {
     GET_POS(vict) = POS_SITTING;
-    SET_WAIT(vict, PULSE_VIOLENCE * rounds_wait);
     if ((skill == SKILL_TRIP) ||
         (skill == SKILL_SHIELD_CHARGE)) {
       /* Successful trip. */
@@ -567,8 +566,6 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     }
   }
 
-  //SET_WAIT(ch, PULSE_VIOLENCE * 2);
-  USE_STANDARD_ACTION(ch); 
   return TRUE;
 
 }
@@ -626,20 +623,20 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
     name = obj_index[GET_OBJ_RNUM(shield)].func;
     if (name)
       (name)(ch, shield, 0, "shieldpunch");
-    
-      WAIT_STATE(vict, 1 RL_SEC);
   }
 
-  //SET_WAIT(ch, PULSE_VIOLENCE * 2);
   USE_STANDARD_ACTION(ch);
   
   return TRUE;
 }
 
 /* shieldcharge engine :
- * Perform the shield punch, check for proficiency and the required 
+ * Perform the shieldcharge, check for proficiency and the required 
  * equipment, also check for any enhancing feats. Perform a trip attack 
- * on success */
+ * on success 
+ *
+ * Note - Charging gives +2 to your attack
+ */
 bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
   extern struct index_data *obj_index;
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
@@ -677,8 +674,9 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
     return FALSE;
   }
 
-  /*  Use an attack mechanic to determine success. */
-  if (attack_roll(ch, vict, ATTACK_TYPE_OFFHAND, FALSE, 1) <= 0) {
+  /*  Use an attack mechanic to determine success.
+   *  Add 2 for the charge bonus!  */
+  if (attack_roll(ch, vict, ATTACK_TYPE_OFFHAND, FALSE, 1) + 2 <= 0) {
     damage(ch, vict, 0, SKILL_SHIELD_CHARGE, DAM_FORCE, FALSE);
   } else {
     damage(ch, vict, dice(1,6), SKILL_SHIELD_CHARGE, DAM_FORCE, FALSE);
@@ -686,11 +684,9 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
     if (name)
       (name)(ch, shield, 0, "shieldcharge");
 
-    WAIT_STATE(vict, 1 RL_SEC);
     perform_knockdown(ch, vict, SKILL_SHIELD_CHARGE);
   }
 
-  //SET_WAIT(ch, PULSE_VIOLENCE * 2);
   USE_STANDARD_ACTION(ch);
   USE_MOVE_ACTION(ch);
 
@@ -761,11 +757,9 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       act("$N appears to be dazed by your blow!", FALSE, ch, shield, vict, TO_CHAR);
       act("$N appears to be dazed by the blow!", FALSE, ch, shield, vict, TO_ROOM);
-    } else 
-      WAIT_STATE(vict, 1 RL_SEC);
+    } 
   }
 
-  //SET_WAIT(ch, PULSE_VIOLENCE * 2);
   USE_STANDARD_ACTION(ch);
   USE_MOVE_ACTION(ch);
 
@@ -795,7 +789,6 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
 
   if (GET_SIZE(ch) != GET_SIZE(vict)) {
     send_to_char(ch, "Its too difficult to headbutt that target due to size!\r\n");
-    SET_WAIT(ch, PULSE_VIOLENCE);
     return;
   }
 
@@ -803,7 +796,6 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
     act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
-    SET_WAIT(ch, PULSE_VIOLENCE);
     return;
   }
 
@@ -824,8 +816,6 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
     
   }
   
-  //SET_WAIT(ch, PULSE_VIOLENCE * 2);
-  USE_STANDARD_ACTION(ch);
 }
 
 /* engine for layonhands skill */
@@ -938,7 +928,6 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
   if (percent < prob) {
     dam = 5 + dice(GET_LEVEL(ch), 3);
     damage(ch, vict, dam, SKILL_SAP, DAM_FORCE, FALSE);
-    SET_WAIT(vict, PULSE_VIOLENCE * 2);
     GET_POS(vict) = POS_RECLINING;
     
     /* success!  critical? */
@@ -957,7 +946,6 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
     damage(ch, vict, 0, SKILL_SAP, DAM_FORCE, FALSE);    
   }
   
-//  SET_WAIT(ch, PULSE_VIOLENCE * 2);
   USE_STANDARD_ACTION(ch);
   USE_MOVE_ACTION(ch);  
 }
@@ -1020,7 +1008,6 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   } else
     damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
   
-//  SET_WAIT(ch, PULSE_VIOLENCE * 2);
   USE_STANDARD_ACTION(ch);  
 
   return TRUE;
@@ -1086,7 +1073,6 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
   if (IS_INCORPOREAL(vict)) {
     act("You sprawl completely through $N as you try to springleap them!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n sprawls completely through $N as $e tries to springleap $M.", FALSE, ch, 0, vict, TO_ROOM);
-    SET_WAIT(ch, PULSE_VIOLENCE);
     return;
   }
 
@@ -1095,7 +1081,6 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
   if (rand_number(0, 100) < prob) {
     dam = dice(6, (GET_LEVEL(ch) / 5) + 2);
     damage(ch, vict, dam, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
-    SET_WAIT(vict, PULSE_VIOLENCE);
     
     new_affect(&af);
     af.spell = SKILL_SPRINGLEAP;
@@ -1110,9 +1095,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
   }
 
   GET_POS(ch) = POS_STANDING;
-//  SET_WAIT(ch, PULSE_VIOLENCE * 2);
-  start_action_cooldown(ch, atSTANDARD, 6);
-  start_action_cooldown(ch, atMOVE, 6);
+  USE_FULL_ROUND_ACTION(ch);
 }
 
 /* smite evil (eventually good?) engine */
@@ -1189,9 +1172,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict) {
   }
 
   if (successful) {
-//    SET_WAIT(ch, 2 * PULSE_VIOLENCE);
-    USE_STANDARD_ACTION(ch);
-    USE_STANDARD_ACTION(ch);
+    USE_FULL_ROUND_ACTION(ch);
     return TRUE;
   } else
     send_to_char(ch, "You have no piercing weapon equipped.\r\n");  
@@ -1534,7 +1515,7 @@ ACMD(do_hit) {
         /* ch is taking an action so loses the Flat-footed flag */
         if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED)) 
           REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
-
+        set_fighting(ch, vict);
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */       
       }
       else {
@@ -1546,6 +1527,8 @@ ACMD(do_hit) {
         if (AFF_FLAGGED(vict, AFF_FLAT_FOOTED))  
           REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_FLAT_FOOTED); 
 
+        set_fighting(vict, ch);
+
         hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); // victim is first 
         update_pos(ch);
         if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE) &&
@@ -1554,25 +1537,25 @@ ACMD(do_hit) {
           hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         }
       }
-      SET_WAIT(ch, PULSE_VIOLENCE);
       /* not fighting, so switch opponents */
     } else {
       stop_fighting(ch);     
       send_to_char(ch, "You switch opponents!\r\n");
       act("$n switches opponents!", FALSE, ch, 0, vict, TO_ROOM);
+
+      set_fighting(ch, vict);
+
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
       //everyone gets a free shot at you unless you make a tumble check
       //15 is DC
-      vict = FIGHTING(ch);
       if (FIGHTING(ch) && FIGHTING(vict)) {
         if(!skill_check(ch, ABILITY_TUMBLE, 15))
-          attack_of_opportunity(vict, ch, 0);
+          attacks_of_opportunity(ch, 0);
       }
 
     }
     
-    USE_STANDARD_ACTION(ch);
   }
 
 }
@@ -1759,8 +1742,6 @@ ACMD(do_flee) {
       return;
     }
   }
-  /* trying without delay */
-  //SET_WAIT(ch, 10);
 }
 
 
@@ -1885,7 +1866,6 @@ ACMD(do_expertise) {
   send_to_char(ch, "You are now in 'expertise' mode.\r\n");
 
   SET_BIT_AR(AFF_FLAGS(ch), AFF_EXPERTISE);
-  SET_WAIT(ch, 10);
 }
 
 ACMD(do_parry) {
@@ -1908,7 +1888,6 @@ ACMD(do_parry) {
   send_to_char(ch, "You are now in 'parry' mode.\r\n");
 
   SET_BIT_AR(AFF_FLAGS(ch), AFF_PARRY);
-  SET_WAIT(ch, 10);
 }
 
 ACMD(do_powerattack) {
@@ -1960,7 +1939,6 @@ ACMD(do_powerattack) {
 
   POWER_ATTACK(ch) = number;
   SET_BIT_AR(AFF_FLAGS(ch), AFF_POWER_ATTACK);
-  SET_WAIT(ch, 10);
 }
 
 ACMD(do_rapidshot)
@@ -2002,7 +1980,6 @@ ACMD(do_disengage) {
     send_to_char(ch, "You disengage from the fight.\r\n");
     act("$n disengages from the fight.", FALSE, ch, 0, 0, TO_ROOM);
 
-    SET_WAIT(ch, PULSE_VIOLENCE);
   }
 }
 
@@ -2128,13 +2105,9 @@ ACMD(do_frightful) {
         send_to_char(vict, "You PANIC!\r\n");
         perform_flee(vict);
         perform_flee(vict);
-        perform_flee(vict);
-        SET_WAIT(vict, PULSE_VIOLENCE * 3);
       }
     }
   }
-
-  SET_WAIT(ch, PULSE_VIOLENCE * 3);
 }
 
 ACMD(do_breathe) {
@@ -2156,7 +2129,6 @@ ACMD(do_breathe) {
     next_vict = vict->next_in_room;
 
     if (aoeOK(ch, vict, SPELL_FIRE_BREATHE)) {
-      SET_WAIT(vict, PULSE_VIOLENCE * 1);
       if (GET_LEVEL(ch) <= 15)
         damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_FIRE_BREATHE, DAM_FIRE,
               FALSE);
@@ -2165,8 +2137,7 @@ ACMD(do_breathe) {
               FALSE);
     }
   }
-
-  SET_WAIT(ch, PULSE_VIOLENCE * 3);
+  USE_STANDARD_ACTION(ch);
 }
 
 ACMD(do_tailsweep) {
@@ -2210,7 +2181,6 @@ ACMD(do_tailsweep) {
                 TO_NOTVICT);
       } else {
         GET_POS(vict) = POS_SITTING;
-        SET_WAIT(vict, PULSE_VIOLENCE * 2);
 
         send_to_char(ch, "You knock over %s.\r\n", GET_NAME(vict));
         send_to_char(vict, "You were knocked down by a tailsweep from %s.\r\n",
@@ -2229,8 +2199,7 @@ ACMD(do_tailsweep) {
 
     }
   }
-
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  USE_STANDARD_ACTION(ch);
 }
 
 ACMD(do_bash) {
@@ -2440,7 +2409,7 @@ ACMD(do_whirlwind) {
    * This function below adds a new event of "eWHIRLWIND", to "ch", and passes "NULL" as
    * additional data. The event will be called in "3 * PASSES_PER_SEC" or 3 seconds */
   NEW_EVENT(eWHIRLWIND, ch, NULL, 3 * PASSES_PER_SEC);
-  SET_WAIT(ch, PULSE_VIOLENCE * 3);
+  USE_FULL_ROUND_ACTION(ch);
 }
 
 ACMD(do_stunningfist) {
@@ -2515,7 +2484,6 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
     act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
-    SET_WAIT(ch, PULSE_VIOLENCE);
     return;
   }
   
@@ -2530,10 +2498,6 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
     damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
   } else
     damage(ch, vict, dice(1, GET_LEVEL(ch)), SKILL_KICK, DAM_FORCE, FALSE);
-
-  //SET_WAIT(ch, PULSE_VIOLENCE * 3);
-  USE_STANDARD_ACTION(ch);
-  
 }
 
 ACMD(do_kick) {
@@ -2600,7 +2564,6 @@ ACMD(do_hitall) {
   if (lag > 4)
     lag = 4;
 
-  //SET_WAIT(ch, lag * PULSE_VIOLENCE);
   USE_FULL_ROUND_ACTION(ch);
 }
 
@@ -3136,8 +3099,7 @@ ACMD(do_fire) {
       stop_fighting(ch);
     else
       FIRING(ch) = TRUE;      
-
-      SET_WAIT(ch, PULSE_VIOLENCE);
+    USE_STANDARD_ACTION(ch);
   }
 }
 
@@ -3191,7 +3153,7 @@ ACMD(do_autofire) {
   if (can_fire_arrow(ch, FALSE)) {
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);  // 2 in last arg indicates ranged
     FIRING(ch) = TRUE;
-    SET_WAIT(ch, PULSE_VIOLENCE);
+    USE_STANDARD_ACTION(ch);
   }
 }
 
@@ -3313,9 +3275,51 @@ ACMD(do_disarm) {
     act("You failed to disarm $N.", FALSE, ch, 0, vict, TO_CHAR);
   }
 
-  WAIT_STATE(ch, 3 * PULSE_VIOLENCE);
 }
 */
+
+/* do_process_attack()
+ *
+ * This is the Luminari Attack engine - All attack actions go through this function.
+ * When an attack is processed, it is sent to the attack queue and a hit command is generated
+ * based on the character's combat status and any supplied arguments.
+ *
+ * This is a KEY part of the Luminari Action system.
+ */
+ACMD(do_process_attack) {
+
+  bool fail = FALSE;
+  struct attack_action_data *attack = NULL;
+  const char *fail_msg = "You have no idea how to";
+
+  /* Check if ch can perform the attack... */
+  switch (subcmd) {
+    case AA_HEADBUTT:
+      if (!HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE)) {
+        fail = TRUE;
+      }    
+      break;        
+  }
+
+  if(fail == TRUE) {
+    send_to_char(ch, "%s %s.\r\n", fail_msg, complete_cmd_info[cmd].command);
+    return;
+  } 
+
+  CREATE(attack, struct attack_action_data, 1);
+  attack->command     = cmd; 
+  attack->attack_type = subcmd;
+  attack->argument    = strdup(argument);
+
+  enqueue_attack(GET_ATTACK_QUEUE(ch), attack);
+
+  if(FIGHTING(ch) || (!FIGHTING(ch) && (strcmp(argument, "") == 0)))
+    send_to_char(ch, "Attack queued.\r\n");
+
+  if(!FIGHTING(ch) && (strcmp(argument, "") != 0)) {
+    do_hit(ch, argument, cmd, subcmd);
+  }
+}
 
 
 

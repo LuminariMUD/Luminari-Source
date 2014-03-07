@@ -2895,7 +2895,9 @@ void new_mobile_data(struct char_data *ch) {
   ch->events = NULL;
   ch->group = NULL;
 
+  /* Set up the action queues. */
   GET_QUEUE(ch) = create_action_queue();
+  GET_ATTACK_QUEUE(ch) = create_attack_queue();
 }
 
 /* create a new mobile from a prototype */
@@ -3953,6 +3955,8 @@ void free_char(struct char_data *ch) {
     /* Free the action queue */
     if(GET_QUEUE(ch))
       free_action_queue(GET_QUEUE(ch));
+    if(GET_ATTACK_QUEUE(ch))
+      free_attack_queue(GET_ATTACK_QUEUE(ch));
 
     if (ch->player_specials->poofin)
       free(ch->player_specials->poofin);
@@ -4279,8 +4283,9 @@ void init_char(struct char_data *ch) {
   ch->player_specials->saved.completed_quests = NULL;
   GET_QUEST(ch) = NOTHING;
 
-  /* Create the action queue */
+  /* Create the action queues */
   GET_QUEUE(ch) = create_action_queue();
+  GET_ATTACK_QUEUE(ch) = create_attack_queue();
 
   ch->player.time.birth = time(0);
   ch->player.time.logon = time(0);

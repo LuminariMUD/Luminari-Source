@@ -290,6 +290,17 @@ void finalize_study(struct descriptor_data *d) {
           if (HAS_LEVELUP_SCHOOL_FEAT(ch, subfeat, j))
             SET_SCHOOL_FEAT(ch, subfeat, j);
       }
+      /* Handle specific feats here: */
+      switch(i) {
+        case FEAT_TOUGHNESS:
+          for (j = 0; j < GET_LEVEL(ch); j++)
+            GET_REAL_MAX_HIT(ch) += LEVELUP(ch)->feats[i];
+          break;
+        case FEAT_EPIC_TOUGHNESS:
+          for (j = 0; j < GET_LEVEL(ch); j++)
+            GET_REAL_MAX_HIT(ch) += LEVELUP(ch)->feats[i];
+          break;
+      }
     }
   }
 

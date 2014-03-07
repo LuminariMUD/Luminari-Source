@@ -253,6 +253,8 @@ bool can_fire_arrow(struct char_data *ch, bool silent);
 /* do_hit */
 ACMD(do_hit);
 #define SCMD_HIT    0
+ACMD(do_process_attack);
+
 /* Functions without subcommands */
 ACMD(do_fire);
 ACMD(do_autofire);

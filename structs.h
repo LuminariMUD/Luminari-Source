@@ -2391,6 +2391,7 @@ struct char_special_data {
   int timer; /**< Timer for update */
   
   struct queue_type *action_queue; /**< Action command queue */
+  struct queue_type *attack_queue; /**< Attack action queue */
 
   struct char_special_data_saved saved; /**< Constants saved for PCs. */
 };

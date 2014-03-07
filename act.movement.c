@@ -28,6 +28,7 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "wilderness.h" /* Wilderness! */
+#include "actions.h"
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
@@ -1536,7 +1537,7 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
       if (back)
         TOGGLE_LOCK(other_room, obj, rev_dir[door]);
       send_to_char(ch, "The lock quickly yields to your skills.\r\n");
-      len = strlcpy(buf, "$n skillfully picks the lock on ", sizeof (buf));
+      len = strlcpy(buf, "$n skillfully picks the lock on ", sizeof (buf));      
       break;
   }
 
@@ -1552,6 +1553,9 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
     send_to_room(EXIT(ch, door)->to_room, "The %s is %s%s from the other side.\r\n",
           back->keyword ? fname(back->keyword) : "door", cmd_door[scmd],
           scmd == SCMD_CLOSE ? "d" : "ed");
+
+  /* Door actions are a move action. */
+  USE_MOVE_ACTION(ch);
 }
 
 static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd) {
@@ -1933,6 +1937,7 @@ ACMD(do_leave) {
   }
 }
 
+/* Stand - Standing costs a move action. */
 ACMD(do_stand) {
   switch (GET_POS(ch)) {
     case POS_STANDING:
@@ -1945,9 +1950,10 @@ ACMD(do_stand) {
       char_from_furniture(ch);
       /* Will be sitting after a successful bash and may still be fighting. */
       GET_POS(ch) = FIGHTING(ch) ? POS_FIGHTING : POS_STANDING;
+      USE_MOVE_ACTION(ch);
 
       if (FIGHTING(ch))
-        attack_of_opportunity(FIGHTING(ch), ch, 0);
+        attacks_of_opportunity(ch, 0);
 
       break;
     case POS_RESTING:
@@ -1956,9 +1962,10 @@ ACMD(do_stand) {
       GET_POS(ch) = POS_STANDING;
       /* Were they sitting in something. */
       char_from_furniture(ch);
+      USE_MOVE_ACTION(ch);
 
       if (FIGHTING(ch))
-        attack_of_opportunity(FIGHTING(ch), ch, 0);
+        attacks_of_opportunity(ch, 0);
 
       break;
     case POS_RECLINING:
@@ -1967,9 +1974,10 @@ ACMD(do_stand) {
       GET_POS(ch) = POS_STANDING;
       /* Were they sitting in something. */
       char_from_furniture(ch);
+      USE_MOVE_ACTION(ch);
 
       if (FIGHTING(ch))
-        attack_of_opportunity(FIGHTING(ch), ch, 0);
+        attacks_of_opportunity(ch, 0);
 
       break;
     case POS_SLEEPING:
@@ -1984,7 +1992,7 @@ ACMD(do_stand) {
               TRUE, ch, 0, 0, TO_ROOM);
       GET_POS(ch) = POS_STANDING;
       break;
-  }
+  }  
 }
 
 ACMD(do_sit) {

@@ -732,7 +732,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
         act("A wave of telekinetic energy originating from $n knocks $N to "
                 "the ground!", FALSE, ch, 0, victim, TO_NOTVICT);
         GET_POS(victim) = POS_SITTING;
-        SET_WAIT(victim, PULSE_VIOLENCE);
       }
       break;
 
@@ -2988,7 +2987,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (!mag_savingthrow(ch, victim, SAVING_REFL, 0) &&
               !mag_resistance(ch, victim, 0)) {
         GET_POS(victim) = POS_SITTING;
-        SET_WAIT(victim, PULSE_VIOLENCE * 1);
 
         act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
         act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);

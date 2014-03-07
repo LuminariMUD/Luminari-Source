@@ -28,7 +28,8 @@
 #include "mudlim.h"
 #include "graph.h"
 #include "dg_scripts.h" /* for send_to_zone() */
-
+#include "mud_event.h"
+#include "actions.h"
 
 /* locally defined functions of local (file) scope */
 static int compare_spells(const void *x, const void *y);
@@ -1417,14 +1418,14 @@ SPECIAL(olhydra) {
                 FALSE, ch, 0, vict, TO_VICT);
         act("\tbThe wave hits $N\tb, knocking $M backwards.\tn",
                 FALSE, ch, 0, vict, TO_NOTVICT);
-        WAIT_STATE(vict, PULSE_VIOLENCE);
+        USE_MOVE_ACTION(vict);
       } else {
         act("\tbThe wave hits \tCYOU\tb with full \tBforce\tb, knocking you down.\tn",
                 FALSE, ch, 0, vict, TO_VICT);
         act("\tbThe wave hits $N\tb with full \tBforce\tb, knocking $M down.\tn",
                 FALSE, ch, 0, vict, TO_NOTVICT);
         GET_POS(vict) = POS_SITTING;
-        WAIT_STATE(vict, PULSE_VIOLENCE * 2);
+        USE_FULL_ROUND_ACTION(ch);
       }
     }
     return 1;
@@ -3269,7 +3270,7 @@ SPECIAL(lichdrain) {
   if (GET_HIT(ch) + dam < GET_MAX_HIT(ch))
     GET_HIT(ch) += dam;
   GET_HIT(vict) -= dam;
-  WAIT_STATE(vict, PULSE_VIOLENCE);
+  USE_FULL_ROUND_ACTION(vict); 
   return 1;
 }
 
@@ -3555,7 +3556,8 @@ SPECIAL(naga) {
   GET_HIT(vict) -= dam;
   stop_fighting(vict);
   GET_POS(vict) = POS_SLEEPING;
-  WAIT_STATE(vict, PULSE_VIOLENCE * 2);
+  /* Would be best to make this an affect that affects your ability to wake up, lasting a couple rounds. */
+  USE_FULL_ROUND_ACTION(vict);
   return 1;
 }
 
@@ -4449,7 +4451,7 @@ SPECIAL(xvim_normal) {
             GET_POS(vict) = POS_SITTING;
           }
           for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
-            WAIT_STATE(tch, PULSE_VIOLENCE * 1);
+            USE_MOVE_ACTION(tch);
           return 1;
         }
         return 0;
@@ -4541,7 +4543,7 @@ SPECIAL(xvim_artifact) {
             GET_POS(vict) = POS_SITTING;
           }
           for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
-            WAIT_STATE(tch, PULSE_VIOLENCE * 1);
+            USE_MOVE_ACTION(tch);
           return 1;
         }
         return 0;
@@ -5537,7 +5539,7 @@ SPECIAL(skullsmasher) {
           "\tL$S face as $E slowly slumps to the ground.\tn",
           ch, vict, (struct obj_data *) me, 0);
   GET_POS(vict) = POS_SITTING;
-  WAIT_STATE(vict, PULSE_VIOLENCE);
+  USE_FULL_ROUND_ACTION(vict);
   return 1;
 }
 

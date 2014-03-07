@@ -1278,7 +1278,7 @@ ACMD(do_lore) {
   }
 
   send_to_char(ch, "You attempt to utilize your vast knowledge of lore...\r\n");
-  SET_WAIT(ch, PULSE_VIOLENCE);
+  USE_STANDARD_ACTION(ch);
 
   if (tobj && GET_OBJ_COST(tobj) > lore_app[(compute_ability(ch, ABILITY_LORE)
           + CLASS_LEVEL(ch, CLASS_BARD))]) {
@@ -1576,7 +1576,6 @@ ACMD(do_search) {
     send_to_char(ch, "You don't find anything you didn't see before.\r\n");
   }
 
-  //WAIT_STATE(ch, 1 RL_SEC );
   USE_FULL_ROUND_ACTION(ch);
 }
 
@@ -1811,7 +1810,7 @@ ACMD(do_steal) {
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
   /* Add wait state, stealing isn't free! */
-  SET_WAIT(ch, PULSE_VIOLENCE * 2);
+  USE_STANDARD_ACTION(ch);
 }
 
 
