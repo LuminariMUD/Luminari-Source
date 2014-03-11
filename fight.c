@@ -3992,6 +3992,7 @@ void perform_violence(struct char_data *ch, int phase) {
         GET_MOB_WAIT(ch) = 0;
         if (GET_POS(ch) < POS_FIGHTING) {
           GET_POS(ch) = POS_FIGHTING;
+          attacks_of_opportunity(ch, 0);   
           send_to_char(ch, "You scramble to your feet!\r\n");
           act("$n scrambles to $s feet!", TRUE, ch, 0, 0, TO_ROOM);
         }
