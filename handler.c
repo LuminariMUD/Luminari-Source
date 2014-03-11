@@ -1437,7 +1437,8 @@ void extract_char(struct char_data *ch) {
      IS_PLAYING() or the event will not continue ...  the positive
      side effect of my solution is this:  saving events becomes a lot
      easier task */
-  //clear_char_event_list(ch);
+  if(IS_NPC(ch))
+    clear_char_event_list(ch);
 
   if (IS_NPC(ch))
     SET_BIT_AR(MOB_FLAGS(ch), MOB_NOTDEADYET);
