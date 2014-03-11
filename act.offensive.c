@@ -3220,52 +3220,74 @@ ACMD(do_collect) {
 
 
 /* unfinished */
-/*
-ACMD(do_disarm) {
-  struct char_data *vict = FIGHTING(ch);
-  int pos;
-  struct obj_data *wielded = 0;
-  int mod = 0;
 
-  if (!GET_SKILL(ch, SKILL_DISARM)) {
-    send_to_char(ch, "But you do not know how.\r\n");
-    return;
-  }
-
-
-  if (AFF2_FLAGGED(ch, AFF2_MAJOR_PARA) || AFF2_FLAGGED(ch, AFF2_MINOR_PARA)) {
-    send_to_char(ch, "You are paralysed to the bone.\r\n");
-    return;
-  }
+int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
+  int pos, aoo_dam;
+  struct obj_data *wielded = NULL;
 
   if (!vict) {
     send_to_char(ch, "You can only try to disarm the opponent you are fighting.\r\n");
-    return;
+    return -1;
   }
 
+  if (ch == vict) {
+    send_to_char(ch, "You can just remove your weapon instead.\r\n");
+    return -1;
+  }
+  
   if (!CAN_SEE(ch, vict)) {
-    send_to_char(ch, "You don't see well enough to attempt that.\r\n");
-    return;
+    send_to_char(ch, "You can't see well enough to attempt that.\r\n");
+    return -1;
   }
 
+  /* Determine what we are going to disarm. Check for a 2H weapon first. */
   if (GET_EQ(vict, WEAR_WIELD_2H)) {
     wielded = GET_EQ(vict, WEAR_WIELD_2H);
     pos = WEAR_WIELD_2H;
-    mod = -25;
   } else {
-    wielded = GET_EQ(vict, WEAR_WIELD_P);
-    pos = WEAR_WIELD_P;
+    /* Check for a 1h weapon, primary hand. */
+    wielded = GET_EQ(vict, WEAR_WIELD_1);
+    pos = WEAR_WIELD_1;
   }
+  /*  If neither of those was successful, check for a 1H weapon in the secondary hand. */
   if (!wielded) {
-    wielded = GET_EQ(vict, WEAR_WIELD_S);
-    pos = WEAR_WIELD_S;
+    wielded = GET_EQ(vict, WEAR_WIELD_2);
+    pos = WEAR_WIELD_2;
   }
+
+  /* If wielded is NULL, then the victim is weilding no weapon! */
   if (!wielded) {
     act("But $N is not wielding anything.", FALSE, ch, 0, vict, TO_CHAR);
-    return;
+    return -1;
   }
 
+  /* Trigger AOO, save damage for modifying the CMD roll. */
+  if (!HAS_FEAT(ch, FEAT_IMPROVED_DISARM)) 
+    aoo_dam = attack_of_opportunity(vict, ch, 0);
 
+  /* Check to see what we are wielding. */
+  if ((GET_EQ(ch, WEAR_WIELD_2H) == NULL) && 
+      (GET_EQ(ch, WEAR_WIELD_1) == NULL) &&
+      (GET_EQ(ch, WEAR_WIELD_2) == NULL) &&
+      (!HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE))) {
+    /* Trying an unarmed disarm, -4. */
+    mod -= 4;
+  }  
+  
+  /*  Set up the calculations to perform the disarm, using CMB and CMD. */
+//  int result = (dice(1, 20) + compute_cmb(ch) + mod) - compute_cmd(vict);
+//  if (result >= 0) {
+    /* Success! */
+//  } else {
+    /* Failure! */
+//    if (result <= -10) {
+      /* Failed by more than 10, critical fail. Disarm ch. */
+      
+//    }
+
+//  }
+    
+  /* 
   if (skill_test(ch, SKILL_DISARM, 500, mod + GET_R_DEX(ch) / 10 - GET_R_STR(vict) / 15) && !IS_OBJ_STAT(wielded, ITEM_NODROP)) {
     act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict, TO_ROOM);
     act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict, TO_CHAR);
@@ -3274,9 +3296,10 @@ ACMD(do_disarm) {
     act("$n failed to disarm $N.", FALSE, ch, 0, vict, TO_ROOM);
     act("You failed to disarm $N.", FALSE, ch, 0, vict, TO_CHAR);
   }
+  */
 
 }
-*/
+
 
 /* do_process_attack()
  *
