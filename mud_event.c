@@ -454,6 +454,8 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId) {
 
 void clear_char_event_list(struct char_data * ch) {
   struct event * pEvent = NULL;
+  struct iterator_data it;
+
 
   if (ch->events == NULL)
     return;
@@ -463,7 +465,9 @@ void clear_char_event_list(struct char_data * ch) {
 
   simple_list(NULL);
 
-  while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
+  for( pEvent = (struct event *) merge_iterator(&it, ch->events);
+       pEvent != NULL;
+       pEvent = (struct event *) merge_iterator(&it, ch->events)) {
     if(event_is_queued(pEvent))
       event_cancel(pEvent);
   }
