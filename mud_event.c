@@ -463,16 +463,13 @@ void clear_char_event_list(struct char_data * ch) {
   if (ch->events->iSize == 0)
     return;
 
-  simple_list(NULL);
-
   for( pEvent = (struct event *) merge_iterator(&it, ch->events);
        pEvent != NULL;
-       pEvent = (struct event *) merge_iterator(&it, ch->events)) {
+       pEvent = (ch->events == NULL ? NULL : (struct event *) merge_iterator(&it, ch->events))) {
     if(event_is_queued(pEvent))
       event_cancel(pEvent);
   }
 
-  simple_list(NULL);
 }
 
 void clear_room_event_list(struct room_data *rm) {
