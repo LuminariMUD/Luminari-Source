@@ -464,7 +464,8 @@ void clear_char_event_list(struct char_data * ch) {
   simple_list(NULL);
 
   while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
-    event_cancel(pEvent);
+    if(event_is_queued(pEvent))
+      event_cancel(pEvent);
   }
 
   simple_list(NULL);
@@ -482,7 +483,8 @@ void clear_room_event_list(struct room_data *rm) {
   simple_list(NULL);
 
   while ((pEvent = (struct event *) simple_list(rm->events)) != NULL) {
-    event_cancel(pEvent);
+    if (event_is_queued(pEvent))
+      event_cancel(pEvent);
   }
 
   simple_list(NULL);
@@ -520,7 +522,8 @@ void change_event_duration(struct char_data * ch, event_id iId, long time) {
   if (found) {
     /* So we found the offending event, now build a new one, with the new time */
     attach_mud_event(new_mud_event(iId, pMudEvent->pStruct, pMudEvent->sVariables), time);
-    event_cancel(pEvent);
+    if (event_is_queued(pEvent))
+      event_cancel(pEvent);
   }
 
 }
