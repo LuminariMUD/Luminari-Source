@@ -463,13 +463,16 @@ void clear_char_event_list(struct char_data * ch) {
   if (ch->events->iSize == 0)
     return;
 
+  /* This uses iterators because we might be in the middle of another
+   * function using simple_list, and that method requires that we do not use simple_list again 
+   * on another list -> It generates unpredictable results.  Iterators are safe. */  
   for( pEvent = (struct event *) merge_iterator(&it, ch->events);
        pEvent != NULL;
        pEvent = (ch->events == NULL ? NULL : (struct event *) merge_iterator(&it, ch->events))) {
     if(event_is_queued(pEvent))
       event_cancel(pEvent);
   }
-
+  remove_iterator(&it);
 }
 
 void clear_room_event_list(struct room_data *rm) {
