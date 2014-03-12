@@ -3875,7 +3875,7 @@ EVENTFUNC(event_combat_round) {
   pMudEvent = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) pMudEvent->pStruct;
 
-  if ((!IS_NPC(ch) && !IS_PLAYING(ch->desc)) || (FIGHTING(ch) == NULL))
+  if ((!IS_NPC(ch) && (ch->desc != NULL && !IS_PLAYING(ch->desc))) || (FIGHTING(ch) == NULL))
     return 0;
 
   execute_next_action(ch);
@@ -3898,8 +3898,6 @@ void perform_violence(struct char_data *ch, int phase) {
   struct list_data *room_list = NULL;
 
 
-//  for (ch = combat_list; ch; ch = next_combat_list) {
-    next_combat_list = ch->next_fighting;
 
     /* Reset combat data */
     GET_TOTAL_AOO(ch) = 0;
