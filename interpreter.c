@@ -175,7 +175,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "dig", "dig", POS_DEAD, do_dig, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
-  { "disengage", "disen", POS_STANDING, do_disengage, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
+  { "disengage", "disen", POS_STANDING, do_disengage, 1, 0, FALSE, ACTION_STANDARD, {0, 6}},
   { "display", "disp", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "donate", "don", POS_RECLINING, do_drop, 0, SCMD_DONATE, FALSE, ACTION_NONE, {0, 0}},
   { "drink", "dri", POS_RECLINING, do_drink, 0, SCMD_DRINK, FALSE, ACTION_MOVE, {0, 6}},

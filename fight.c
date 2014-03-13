@@ -562,7 +562,9 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
   else
     delay = 4 RL_SEC;
 
-  if (!char_has_mud_event(ch, eCOMBAT_ROUND))
+  send_to_char(ch, "DEBUG: SETTING FIGHT EVENT!\r\n");
+
+//  if (!char_has_mud_event(ch, eCOMBAT_ROUND))
     attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, strdup("1")), delay);
 }
 
@@ -2715,7 +2717,7 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   if (wielded)
     if (!is_proficient_with_weapon(ch, GET_WEAPON_TYPE(wielded))) {
       send_to_char(ch, "NOT PROFICIENT\r\n"); 
-      calc_bab -= 4;
+      //calc_bab -= 4;
     }
   /*  Add armor prof here */
 
@@ -3875,8 +3877,11 @@ EVENTFUNC(event_combat_round) {
   pMudEvent = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) pMudEvent->pStruct;
 
-  if ((!IS_NPC(ch) && (ch->desc != NULL && !IS_PLAYING(ch->desc))) || (FIGHTING(ch) == NULL))
+  if ((!IS_NPC(ch) && (ch->desc != NULL && !IS_PLAYING(ch->desc))) || (FIGHTING(ch) == NULL)){
+    send_to_char(ch, "DEBUG: RETURNING 0 FROM COMBAT EVENT.\r\n");
+    stop_fighting(ch);
     return 0;
+  }
 
   execute_next_action(ch);
 
@@ -3891,7 +3896,7 @@ EVENTFUNC(event_combat_round) {
 
 
 /* control the fights going on.
- * Called every PULSE_VIOLENCE seconds from comm.c. */
+ * Called from combat round event. */
 void perform_violence(struct char_data *ch, int phase) {
 //  struct char_data *ch, *tch = NULL, *charmee;
   struct char_data *tch = NULL, *charmee;
@@ -4081,17 +4086,17 @@ void perform_violence(struct char_data *ch, int phase) {
       while ((tch = (struct char_data *) simple_list(GROUP(ch)->members))
               != NULL) {
         if (tch == ch)
-          return;
+          continue;
         if (!IS_NPC(tch) && !PRF_FLAGGED(tch, PRF_AUTOASSIST))
-          return;
+          continue;
         if (IN_ROOM(ch) != IN_ROOM(tch))
-          return;
+          continue;
         if (FIGHTING(tch))
-          return;
+          continue;;
         if (GET_POS(tch) != POS_STANDING)
-          return;
+          continue;
         if (!CAN_SEE(tch, ch))
-          return;
+          continue;
 
         perform_assist(tch, ch);
       }

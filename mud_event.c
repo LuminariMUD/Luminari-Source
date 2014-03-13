@@ -468,7 +468,10 @@ void clear_char_event_list(struct char_data * ch) {
    * on another list -> It generates unpredictable results.  Iterators are safe. */  
   for( pEvent = (struct event *) merge_iterator(&it, ch->events);
        pEvent != NULL;
-       pEvent = (ch->events == NULL ? NULL : (struct event *) merge_iterator(&it, ch->events))) {
+       pEvent = next_in_list(&it)) {
+    /* Here we have an issue - If we are currently executing an event, and it results in a char
+     * having their events cleared (death) then we must be sure that we don't clear the executing
+     * event!  Doing so will crash the event system. */
 
     if(event_is_queued(pEvent)) 
       event_cancel(pEvent);   

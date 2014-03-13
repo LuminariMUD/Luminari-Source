@@ -1044,7 +1044,9 @@ void perform_assist(struct char_data *ch, struct char_data *helpee) {
     send_to_char(ch, "You join the fight!\r\n");
     act("$N assists you!", 0, helpee, 0, ch, TO_CHAR);
     act("$n assists $N.", FALSE, ch, 0, helpee, TO_NOTVICT);
-    hit(ch, opponent, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    set_fighting(ch, opponent);
+
+    //hit(ch, opponent, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }  
 }
 
@@ -1976,6 +1978,7 @@ ACMD(do_disengage) {
       return;
     }
 
+    USE_STANDARD_ACTION(ch);
     stop_fighting(ch);
     send_to_char(ch, "You disengage from the fight.\r\n");
     act("$n disengages from the fight.", FALSE, ch, 0, 0, TO_ROOM);

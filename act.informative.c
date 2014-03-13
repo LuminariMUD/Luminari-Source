@@ -978,8 +978,12 @@ void perform_help(struct descriptor_data *d, char *argument) {
 
   if ((mid = search_help(argument, LVL_IMPL)) == NOWHERE)
     return;
-
-  page_string(d, help_table[mid].entry, 0);
+  /* Disable paging for character creation. */
+  if ((STATE(d) == CON_QRACE) ||
+      (STATE(d) == CON_QCLASS))
+    send_to_char(d->character, help_table[mid].entry);
+  else 
+    page_string(d, help_table[mid].entry, 0);
 }
 
 ACMD(do_help) {

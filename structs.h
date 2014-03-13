@@ -1895,7 +1895,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 /** Controls when mobile (NPC) actions and updates will occur. */
 #define PULSE_MOBILE    (6 RL_SEC)
 /** Controls the time between turns of combat. */
-#define PULSE_VIOLENCE  ( 4 RL_SEC)
+#define PULSE_VIOLENCE  (6 RL_SEC)
 
 // controls some new luminari calls from comm.c
 #define PULSE_LUMINARI  ( 5 RL_SEC)

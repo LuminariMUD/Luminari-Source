@@ -4363,6 +4363,7 @@ void init_char(struct char_data *ch) {
     }
   SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
   SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
 
   // automap toggled on -zusuk
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOMAP);
