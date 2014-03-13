@@ -469,8 +469,11 @@ void clear_char_event_list(struct char_data * ch) {
   for( pEvent = (struct event *) merge_iterator(&it, ch->events);
        pEvent != NULL;
        pEvent = (ch->events == NULL ? NULL : (struct event *) merge_iterator(&it, ch->events))) {
-    if(event_is_queued(pEvent))
-      event_cancel(pEvent);
+
+    if(event_is_queued(pEvent)) 
+      event_cancel(pEvent);   
+    else if (ch->events->iSize == 1)    
+      break;
   }
   remove_iterator(&it);
 }
