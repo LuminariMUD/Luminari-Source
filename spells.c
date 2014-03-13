@@ -194,6 +194,10 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     if (victim->master)
       stop_follower(victim);
 
+    if (FIGHTING(ch) == victim)
+      stop_fighting(ch);
+
+    stop_fighting(victim);
     add_follower(victim, ch);
 
     new_affect(&af);
