@@ -1656,7 +1656,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
         case ITEM_WEAPON:
           min_val = 0;
-          max_val = (GET_OBJ_LEVEL(OLC_OBJ(d)) > 20 ? 10 : 5);
+          max_val = 10;
           break;
         default:
           min_val = -65000;
