@@ -412,7 +412,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "spellquests", "spellquests", POS_DEAD, do_spellquests, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "singlefile", "singlefile", POS_DEAD, do_singlefile, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "sap", "sap", POS_FIGHTING, do_sap, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
-  { "shieldpunch", "shieldp", POS_FIGHTING, do_shieldpunch, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "shieldpunch", "shieldp", POS_FIGHTING, do_process_attack, 1, AA_SHIELDPUNCH, FALSE, ACTION_NONE, {6, 0}},
   { "shieldcharge", "shieldc", POS_FIGHTING, do_shieldcharge, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "shieldslam", "shields", POS_FIGHTING, do_shieldslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "springleap", "springleap", POS_SITTING, do_springleap, 1, 0, FALSE, ACTION_MOVE, {0, 6}},

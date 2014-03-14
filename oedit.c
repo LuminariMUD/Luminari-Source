@@ -44,6 +44,7 @@ static void oedit_disp_val1_menu(struct descriptor_data *d);
 static void oedit_disp_val2_menu(struct descriptor_data *d);
 static void oedit_disp_val3_menu(struct descriptor_data *d);
 static void oedit_disp_val4_menu(struct descriptor_data *d);
+static void oedit_disp_val5_menu(struct descriptor_data *d);
 static void oedit_disp_prof_menu(struct descriptor_data *d);
 static void oedit_disp_mats_menu(struct descriptor_data *d);
 static void oedit_disp_type_menu(struct descriptor_data *d);
@@ -749,9 +750,11 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
     case ITEM_STAFF:
       write_to_output(d, "Max number of charges : ");
       break;
-    case ITEM_WEAPON:
-      write_to_output(d, "Number of damage dice : ");
+    /* Changed to use standard values for weapons. */
+    /*case ITEM_WEAPON:
+      write_to_output(d, "Number of damage dice (%d) : ", GET_OBJ_VAL(OLC_OBJ(d), 1));
       break;
+    */
     case ITEM_FIREWEAPON:
       write_to_output(d, "Number of damage dice : ");
       break;
@@ -817,9 +820,12 @@ static void oedit_disp_val3_menu(struct descriptor_data *d) {
     case ITEM_STAFF:
       write_to_output(d, "Number of charges remaining : ");
       break;
+    /* Use standard values for weapons */
+    /* 
     case ITEM_WEAPON:
       write_to_output(d, "Size of damage dice : ");
       break;
+    */
     case ITEM_FIREWEAPON:
       write_to_output(d, "Breaking probability : ");
       break;
@@ -879,6 +885,19 @@ static void oedit_disp_val4_menu(struct descriptor_data *d) {
       oedit_disp_menu(d);
   }
 }
+
+/* Object value #5 */
+static void oedit_disp_val5_menu(struct descriptor_data *d) {
+  OLC_MODE(d) = OEDIT_VALUE_5;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+    case ITEM_WEAPON:
+      write_to_output(d, "Enhancement bonus : ");
+      break;
+    default:
+      oedit_disp_menu(d);
+  }
+}
+
 
 static void oedit_disp_specab_val1_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_SPECAB_VALUE_1;
@@ -1471,7 +1490,12 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case ITEM_WEAPON:
           /* Weapon Type */
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_WEAPON_TYPES - 1);
-          break;
+          /* Set damdice  and size based on weapon type. */
+          GET_OBJ_VAL(OLC_OBJ(d), 1) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].numDice;
+          GET_OBJ_VAL(OLC_OBJ(d), 2) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].diceSize;      
+          /*  Skip the next two. */
+          oedit_disp_val4_menu(d);
+          return;
         case ITEM_FIREWEAPON:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_WEAPONS - 1);
           break;
@@ -1624,7 +1648,26 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           break;
       }
       GET_OBJ_VAL(OLC_OBJ(d), 3) = LIMIT(number, min_val, max_val);
+      oedit_disp_val5_menu(d);
+      return;
+
+    case OEDIT_VALUE_5:
+      number = atoi(arg);
+      switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+        case ITEM_WEAPON:
+          min_val = 0;
+          max_val = (GET_OBJ_LEVEL(OLC_OBJ(d)) > 20 ? 10 : 5);
+          break;
+        default:
+          min_val = -65000;
+          max_val = 65000;
+          break;
+      }
+      GET_OBJ_VAL(OLC_OBJ(d), 4) = LIMIT(number, min_val, max_val);
       break;
+
+//    }
+//  }
 
     case OEDIT_PROMPT_APPLY:
       if ((number = atoi(arg)) == 0)

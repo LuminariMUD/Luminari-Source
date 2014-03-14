@@ -625,7 +625,6 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
       (name)(ch, shield, 0, "shieldpunch");
   }
 
-  USE_STANDARD_ACTION(ch);
   
   return TRUE;
 }
