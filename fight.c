@@ -562,7 +562,7 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
   else
     delay = 4 RL_SEC;
 
-  send_to_char(ch, "DEBUG: SETTING FIGHT EVENT!\r\n");
+//  send_to_char(ch, "DEBUG: SETTING FIGHT EVENT!\r\n");
 
 //  if (!char_has_mud_event(ch, eCOMBAT_ROUND))
     attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, strdup("1")), delay);
@@ -3878,7 +3878,7 @@ EVENTFUNC(event_combat_round) {
   ch = (struct char_data *) pMudEvent->pStruct;
 
   if ((!IS_NPC(ch) && (ch->desc != NULL && !IS_PLAYING(ch->desc))) || (FIGHTING(ch) == NULL)){
-    send_to_char(ch, "DEBUG: RETURNING 0 FROM COMBAT EVENT.\r\n");
+//    send_to_char(ch, "DEBUG: RETURNING 0 FROM COMBAT EVENT.\r\n");
     stop_fighting(ch);
     return 0;
   }
