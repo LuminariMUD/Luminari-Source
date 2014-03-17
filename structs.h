@@ -2351,7 +2351,7 @@ struct char_special_data {
   bool firing;  //is char firing missile weapon?
 
   /* Mode Data */
-  int power_attack; /* Bonus/penalty for power attack. */
+  int mode_value; /* Bonus/penalty for power attack and combat expertise. */
 
   /* Combat related, reset each combat round. We do not use events for these because
    * the timing needs to be perfect - They should be reset in accordance with the

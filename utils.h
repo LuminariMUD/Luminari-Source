@@ -797,8 +797,10 @@ do                                                              \
 #define FIRING(ch)	  ((ch)->char_specials.firing)
 
 /* Mode data  */
-/* Power attack level */
-#define POWER_ATTACK(ch) ((ch)->char_specials.power_attack)
+/* Power attack level and Combat expertise level are stored in the same place*/
+#define POWER_ATTACK(ch) ((ch)->char_specials.mode_value)
+#define COMBAT_EXPERTISE(ch) ((ch)->char_specials.mode_value)
+
 
 /** Unique ID of ch. */
 #define GET_IDNUM(ch)	  ((ch)->char_specials.saved.idnum)
