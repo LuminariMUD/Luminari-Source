@@ -31,7 +31,8 @@ void  (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
   do_smite,        /* AA_SMITE */
   do_stunningfist, /* AA_STUNNINGFIST */
   do_headbutt,     /* AA_HEDABUTT */
-  do_kick          /* AA_KICK */
+  do_kick,         /* AA_KICK */
+  do_shieldpunch   /* AA_SHIELDPUNCH */
 };
 
 

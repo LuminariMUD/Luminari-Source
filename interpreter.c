@@ -343,7 +343,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "qview", "qview", POS_DEAD, do_qview, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   
   { "rapidshot", "rapidshot", POS_FIGHTING, do_rapidshot, 1, 0, FALSE, ACTION_NONE, {0, 0}},
-  { "rest", "res", POS_RECLINING, do_rest, 0, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "rest", "re", POS_RECLINING, do_rest, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "reply", "r", POS_SLEEPING, do_reply, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}},
   { "reload", "reload", POS_DEAD, do_reboot, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
