@@ -798,6 +798,8 @@ do                                                              \
 
 /* Mode data  */
 /* Power attack level and Combat expertise level are stored in the same place*/
+#define COMBAT_MODE_VALUE(ch) ((ch)->char_specials.mode_value)
+
 #define POWER_ATTACK(ch) ((ch)->char_specials.mode_value)
 #define COMBAT_EXPERTISE(ch) ((ch)->char_specials.mode_value)
 

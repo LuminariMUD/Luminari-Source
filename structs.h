@@ -685,7 +685,13 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_RAPID_SHOT       84 /* Rapid Shot Mode (FEAT_RAPID_SHOT) */
 #define AFF_DAZED            85 /* Dazed*/
 #define AFF_FLAT_FOOTED      86
-#define NUM_AFF_FLAGS        87
+
+#define AFF_DUAL_WIELD       87 /* Dual wield mode */
+#define AFF_FLURRY_OF_BLOWS  88 /* Flurry of blows mode */
+#define AFF_COUNTERSPELL     89 /* Counterspell mode */
+#define AFF_DEFENSIVE_CASTING 90 /* Defensive casting mode */
+
+#define NUM_AFF_FLAGS        91
 
 /* Bonus types */
 #define	BONUS_TYPE_UNDEFINED     0 /* Undefined bonus type (stacks) */
@@ -1236,9 +1242,10 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_IMPROVED_SPELL_RESISTANCE 369
 #define FEAT_SHIELD_CHARGE       370
 #define FEAT_SHIELD_SLAM         371
+#define FEAT_SPELLBATTLE         372
 
-#define FEAT_LAST_FEAT           372
-#define NUM_FEATS                373
+#define FEAT_LAST_FEAT           373
+#define NUM_FEATS                374
 
 #define MAX_FEATS                750
 
