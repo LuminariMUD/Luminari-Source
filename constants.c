@@ -602,6 +602,10 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Mode-RapidShot",
   "Dazed",
   "Flat-footed",
+  "Dual-wield",
+  "Flurry-of-Blows",
+  "Counterspell",
+  "Defensive-Casting", 
   "\n"
 };
 

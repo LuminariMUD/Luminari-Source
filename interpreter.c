@@ -47,6 +47,8 @@
 #include "feats.h"
 #include "actions.h"
 #include "actionqueues.h"
+#include "combat_modes.h"
+
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
 static struct alias_data *find_alias(struct alias_data *alias_list, char *str);
@@ -194,7 +196,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "equipment", "eq", POS_SLEEPING, do_equipment, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "exits", "ex", POS_RECLINING, do_exits, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "examine", "exa", POS_RECLINING, do_examine, 0, 0, FALSE, ACTION_NONE, {0, 0}},
-  { "expertise", "expertise", POS_FIGHTING, do_expertise, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "expertise", "expertise", POS_FIGHTING, do_mode, 1, MODE_COMBAT_EXPERTISE, FALSE, ACTION_NONE, {0, 0}},
   { "export", "export", POS_DEAD, do_export_zone, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}},
@@ -313,7 +315,7 @@ cpp_extern const struct command_info cmd_info[] = {
   //{ "objlist", "objlist", POS_DEAD, do_objlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   
   { "put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}},
-  { "parry", "parry", POS_FIGHTING, do_parry, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "parry", "parry", POS_FIGHTING, do_mode, 1, MODE_PARRY, FALSE, ACTION_NONE, {0, 0}},
   { "peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "pick", "pi", POS_STANDING, do_gen_door, 1, SCMD_PICK, FALSE, ACTION_NONE, {0, 0}},
 /*  { "practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}},*/
@@ -322,7 +324,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "plist", "plist", POS_DEAD, do_plist, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "policy", "pol", POS_DEAD, do_gen_ps, 0, SCMD_POLICIES, TRUE, ACTION_NONE, {0, 0}},
   { "pour", "pour", POS_STANDING, do_pour, 0, SCMD_POUR, FALSE, ACTION_NONE, {0, 0}},
-  { "powerattack", "powerattack", POS_FIGHTING, do_powerattack, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "powerattack", "powerattack", POS_FIGHTING, do_mode, 1, MODE_POWER_ATTACK, FALSE, ACTION_NONE, {0, 0}},
   { "prompt", "pro", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "prefedit", "pre", POS_DEAD, do_oasis_prefedit, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "purify", "purify", POS_FIGHTING, do_purify, 1, 0, FALSE, ACTION_NONE, {0, 0}},
@@ -342,7 +344,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "qref", "qref", POS_DEAD, do_qref, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "qview", "qview", POS_DEAD, do_qview, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   
-  { "rapidshot", "rapidshot", POS_FIGHTING, do_rapidshot, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "rapidshot", "rapidshot", POS_FIGHTING, do_mode, 1, MODE_RAPID_SHOT, FALSE, ACTION_NONE, {0, 0}},
   { "rest", "re", POS_RECLINING, do_rest, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "reply", "r", POS_SLEEPING, do_reply, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}},
