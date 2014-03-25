@@ -978,6 +978,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
             write_to_output(d, "That is an invalid choice!\r\n");
             generic_main_disp_menu(d);
           }        
+          break;
         default:
           write_to_output(d, "That is an invalid choice!\r\n");
           display_main_menu(d);
