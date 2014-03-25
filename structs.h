@@ -2400,6 +2400,7 @@ struct char_special_data {
   struct queue_type *action_queue; /**< Action command queue */
   struct queue_type *attack_queue; /**< Attack action queue */
 
+
   struct char_special_data_saved saved; /**< Constants saved for PCs. */
 };
 
@@ -2530,6 +2531,36 @@ struct affected_type {
   int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
 
   struct affected_type *next; /**< The next affect in the list of affects. */
+};
+
+/* The Maximum number of types that can be required to bypass DR. */
+#define MAX_DR_BYPASS 5
+
+#define DR_BYPASS_CAT_NONE     0 /* */
+#define DR_BYPASS_CAT_MATERIAL 1 /* */
+#define DR_BYPASS_CAT_MAGIC    2 /* */
+#define DR_BYPASS_CAT_DAMTYPE  3 /* */
+
+struct dr_bypass_type {
+
+  int bypass_cat; /* Category of bypass */
+  int bypass;     /* The bypass value (based on category) */
+
+  struct dr_bypass_type *next;      /* AND bypass types */
+  struct dr_bypass_type *alternate; /* OR bypass types  */
+
+};
+
+/** A damage reduction structure. */
+struct damage_reduction_type {
+  int duration; /* The duration of this DR effect. */
+  int amount;   /* The amount of DR. */
+  int spell;    /* Spell granting this DR. */
+  int feat;     /* Feat granting this DR. */
+  
+  struct dr_bypass_type *bypass; /* List of bypass types. If NULL this is 'DR X/--' */
+
+  struct damage_reduction_type *next;
 };
 
 /* Structure for levelup data - Used as a temporary storage area during 'study' command 

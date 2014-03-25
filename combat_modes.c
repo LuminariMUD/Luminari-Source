@@ -183,32 +183,6 @@ ACMD(do_mode) {
   enable_combat_mode(ch, mode, number);
 }
 
-ACMD(do_powerattack) {
-  
-}
-
-ACMD(do_expertise) {
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_COMBAT_EXPERTISE)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_SPELLBATTLE)) {
-    send_to_char(ch, "You can't use combat expertise while in spellbattle!\r\n");
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_EXPERTISE)) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_EXPERTISE);
-    send_to_char(ch, "You leave 'expertise' mode.\r\n");
-    return;
-  }
-
-  send_to_char(ch, "You are now in 'expertise' mode.\r\n");
-
-  SET_BIT_AR(AFF_FLAGS(ch), AFF_EXPERTISE);
-}
-
 #define SPELLBATTLE_CAP  12
 #define SPELLBATTLE_AFFECTS 4
 
@@ -310,44 +284,4 @@ ACMD(do_spellbattle) {
 #undef SPELLBATTLE_CAP
 #undef SPELLBATTLE_AFFECTS
 
-ACMD(do_parry) {
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_PARRY)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_SPELLBATTLE)) {
-    send_to_char(ch, "You can't enter parry mode while in spellbattle!\r\n");
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_PARRY)) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_PARRY);
-    send_to_char(ch, "You leave 'parry' mode.\r\n");
-    return;
-  }
-
-  send_to_char(ch, "You are now in 'parry' mode.\r\n");
-
-  SET_BIT_AR(AFF_FLAGS(ch), AFF_PARRY);
-}
-
-ACMD(do_rapidshot)
-{
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_RAPID_SHOT)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
-
-  if (!AFF_FLAGGED(ch, AFF_RAPID_SHOT)) {
-    send_to_char(ch, "You are now in 'rapid shot' mode.\r\n");
-    SET_BIT_AR(AFF_FLAGS(ch), AFF_RAPID_SHOT);
-  }
-  else {
-    send_to_char(ch, "You leave 'rapid shot' mode.\r\n");
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_RAPID_SHOT);
-  }
-
-  return;
-}
 
