@@ -1248,7 +1248,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
         default:
           number = atoi(arg);
           int ranger_level = CLASS_LEVEL(d->character, CLASS_RANGER);
-
+          number--; /* Need to match this to menu options */
           switch (number) {
             case 0:
               if (ranger_level) {
