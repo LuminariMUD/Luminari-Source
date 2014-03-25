@@ -1273,7 +1273,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                 LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                break;
+                return;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
                         "modify this slot!\r\n");
@@ -1284,7 +1284,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                 LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                break;
+                return;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
                         "modify this slot!\r\n");
@@ -1295,7 +1295,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                 LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                break;
+                return;;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
                         "modify this slot!\r\n");
@@ -1306,7 +1306,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                 LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                break;
+                return;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
                         "modify this slot!\r\n");
@@ -1317,7 +1317,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                 LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                break;
+                return;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
                         "modify this slot!\r\n");
