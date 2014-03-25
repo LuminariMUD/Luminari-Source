@@ -1248,14 +1248,13 @@ void study_parse(struct descriptor_data *d, char *arg) {
         default:
           number = atoi(arg);
           int ranger_level = CLASS_LEVEL(d->character, CLASS_RANGER);
-          number--; /* Need to match this to menu options */
           switch (number) {
             case 0:
               if (ranger_level) {
                 LEVELUP(d->character)->favored_slot = number;
                 favored_enemy_submenu(d, number);
                 OLC_MODE(d) = FAVORED_ENEMY_SUB;
-                break;
+                return;
               }
               break;
             case 1:
@@ -1336,7 +1335,6 @@ void study_parse(struct descriptor_data *d, char *arg) {
           favored_enemy_menu(d);
           break;
       }
-      OLC_MODE(d) = FAVORED_ENEMY;
       break;
 
     case FAVORED_ENEMY_SUB:
