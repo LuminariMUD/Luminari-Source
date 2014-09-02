@@ -1959,7 +1959,7 @@ ACMD(do_score) {
   }
 
 
-  send_to_char(ch, "\tcBAB        : \tn%-4d \tc# of Attacks : \tn%-3d \tcConcealment  : \tn%-3d \tcModes : \tn[     ]\r\n",
+  send_to_char(ch, "\tcBAB        : \tn%-4d \tc# of Attacks : \tn%-3d \tcConcealment  : \tn%-3d\r\n",
                   calc_bab, perform_attacks(ch, 1, 0), compute_concealment(ch));
 
   send_to_char(ch, "\tC----------------\tyProficiencies\tC-----------------------------------\tyQuests\tC----------\tn\r\n"
