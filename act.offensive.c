@@ -1083,7 +1083,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
     dam = dice(6, (GET_LEVEL(ch) / 5) + 2);
     damage(ch, vict, dam, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
     
-    new_affect(&af);
+/*    new_affect(&af);
     af.spell = SKILL_SPRINGLEAP;
     if (!rand_number(0, 5))
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
@@ -1091,6 +1091,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
       SET_BIT_AR(af.bitvector, AFF_STUN);
     af.duration = dice(1, 2);
     affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+*/
   } else {
     damage(ch, vict, 0, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
   }

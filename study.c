@@ -1276,7 +1276,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                 return;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
-                        "modify this slot!\r\n");
+                        " modify this slot!\r\n");
               }
               break;
             case 3:
@@ -1287,7 +1287,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                 return;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
-                        "modify this slot!\r\n");
+                        " modify this slot!\r\n");
               }
               break;
             case 4:
@@ -1298,7 +1298,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                 return;;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
-                        "modify this slot!\r\n");
+                        " modify this slot!\r\n");
               }
               break;
             case 5:
@@ -1309,7 +1309,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                 return;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
-                        "modify this slot!\r\n");
+                        " modify this slot!\r\n");
               }
               break;
             case 6:
@@ -1320,7 +1320,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                 return;
               } else {
                 write_to_output(d, "You are not a high enough level ranger to"
-                        "modify this slot!\r\n");
+                        " modify this slot!\r\n");
               }
               break;
             case 7:
