@@ -945,20 +945,21 @@ int comp_slots(struct char_data *ch, int circle, int class) {
 
 void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
   int slot;
-  int circle = spellCircle(class, spellnum);
 
-  switch (class) {
-    case CLASS_SORCERER:
-    case CLASS_BARD:
-      time = MAX(2, (circle * 2 + circle + 4) - GET_CHA_BONUS(ch));
-      break;
-    default:
-      /* Wizard */
-      time = MAX(2, (circle * 2 + circle + 4) - GET_INT_BONUS(ch));
-      break;
+  /* sorcerer type system */
+  if (class == CLASS_SORCERER) {
+    /* replace spellnum with its circle */
+    spellnum = spellCircle(class, spellnum);
+    /* replace time with slot-mem-time */
+    time = SORC_TIME_FACTOR * spellnum;
+  }
+  else if (class == CLASS_BARD) {
+    /* replace spellnum with its circle */
+    spellnum = spellCircle(class, spellnum);
+    /* replace time with slot-mem-time */
+    time = BARD_TIME_FACTOR * spellnum;
   }
 
-  
 
   /* wizard type system */
   for (slot = 0; slot < MAX_MEM; slot++) {
@@ -970,9 +971,58 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
   }
 }
 
+/* Ornir's Version */
+/*
+void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
+  int slot;
+  int circle = spellCircle(class, spellnum);
+
+  switch (class) {
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+      time = MAX(2, (circle * 2 + circle + 4) - GET_CHA_BONUS(ch));
+      break;
+    default:
+      // Wizard
+      time = MAX(2, (circle * 2 + circle + 4) - GET_INT_BONUS(ch));
+      break;
+
+  // wizard type system 
+  for (slot = 0; slot < MAX_MEM; slot++) {
+    if (PRAYING(ch, slot, classArray(class)) == TERMINATE) {
+      PRAYING(ch, slot, classArray(class)) = spellnum;
+      PRAYTIME(ch, slot, classArray(class)) = time;
+      break;
+    }
+  }
+}
+*/
 
 // resets the memtimes for character (in case of aborted studies)
 
+void resetMemtimes(struct char_data *ch, int class) {
+  int slot;
+
+  for (slot = 0; slot < MAX_MEM; slot++) {
+    if (PRAYING(ch, slot, classArray(class)) == TERMINATE)
+      break;
+
+    /* the formula for metime for sorcs is just factor*circle
+     * which is conveniently equal to the corresponding PRAYING()
+     * slot
+     */
+    if (class == CLASS_SORCERER)
+      PRAYTIME(ch, slot, classArray(class)) =
+            PRAYING(ch, slot, classArray(class)) * SORC_TIME_FACTOR;
+    else if (class == CLASS_BARD)
+      PRAYTIME(ch, slot, classArray(class)) =
+            PRAYING(ch, slot, classArray(class)) * BARD_TIME_FACTOR;
+    else
+      PRAYTIME(ch, slot, classArray(class)) =
+            spell_info[PRAYING(ch, slot, classArray(class))].memtime;
+  }
+}/* Ornir's Version */
+/*
 void resetMemtimes(struct char_data *ch, int class) {
   int slot;
   int circle;
@@ -989,12 +1039,13 @@ void resetMemtimes(struct char_data *ch, int class) {
         PRAYTIME(ch, slot, classArray(class)) = MAX(2, (circle * 2 + circle + 4) - GET_CHA_BONUS(ch));
         break;
       default:
-        /* Wizard */
+        // Wizard
         PRAYTIME(ch, slot, classArray(class)) = MAX(2, (circle * 2 + circle + 4) - GET_INT_BONUS(ch));
         break;
     }
   }
 }
+*/
 
 
 // adds <spellnum> to the next available slot in the characters
