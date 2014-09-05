@@ -1277,8 +1277,8 @@ static char *make_prompt(struct descriptor_data *d)
       // autoprompt display memtime
       if (PRF_FLAGGED(d->character, PRF_DISPMEMTIME) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "MEM: %d/%d/%d/%d ",
-		PRAYTIME(ch, 0, 0), PRAYTIME(ch, 0, 1),
-                PRAYTIME(ch, 0, 2), PRAYTIME(ch, 0, 3));
+		PREP_TIME(ch, 0, 0), PREP_TIME(ch, 0, 1),
+                PREP_TIME(ch, 0, 2), PREP_TIME(ch, 0, 3));
         if (count >= 0)
           len += count;
       }

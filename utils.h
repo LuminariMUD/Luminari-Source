@@ -836,11 +836,15 @@ do                                                              \
 #define CASTING_CLASS(ch)	((ch)->char_specials.castingClass)
 
 // memorization
-#define PRAYING(ch, slot, cc)	(ch->player_specials->saved.praying[slot][cc])
-#define PRAYTIME(ch, slot, cc)	(ch->player_specials->saved.praytimes[slot][cc])
-#define PRAYED(ch, slot, cc)	(ch->player_specials->saved.prayed[slot][cc])
+/* this refers to items in the list of spells the ch is trying to prepare */
+#define PREPARATION_QUEUE(ch, slot, cc)	(ch->player_specials->saved.praying[slot][cc])
+/* this refers to preparation-time in a list that parallels the preparation_queue */
+#define PREP_TIME(ch, slot, cc)	(ch->player_specials->saved.praytimes[slot][cc])
+/* this refers to items in the list of spells the ch already has prepared */
+#define PREPARED_SPELLS(ch, slot, cc)	(ch->player_specials->saved.prayed[slot][cc])
 
-#define IS_PRAYING(ch, cc)		((ch)->char_specials.prayin[cc])
+/* boolean indicating whether someone is in the process of preparation of a spell or not */
+#define IS_PREPARING(ch, cc)		((ch)->char_specials.prayin[cc])
 
 // how many bursts of cloudkill left
 #define CLOUDKILL(ch)    ((ch)->char_specials.cloudkill)

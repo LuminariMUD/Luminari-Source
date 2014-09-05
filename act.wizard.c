@@ -1063,7 +1063,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch, "\tCMemming? \tn%d\tC, Praying? \tn%d\tC, Communing? \tn%d\tC,"
           " Meditating? \tn%d\tn\r\n",
-          IS_PRAYING(k, 2), IS_PRAYING(k, 0), IS_PRAYING(k, 1), IS_PRAYING(k, 3));
+          IS_PREPARING(k, 2), IS_PREPARING(k, 0), IS_PREPARING(k, 1), IS_PREPARING(k, 3));
 
   if (!IS_NPC(k))
     send_to_char(ch, "\tCWimpy:\tn %d  ", GET_WIMP_LEV(k));

@@ -987,7 +987,7 @@ void save_char(struct char_data * ch, int mode) {
   for (i = 0; i < MAX_MEM; i++) {
     fprintf(fl, "%d ", i);
     for (j = 0; j < NUM_CASTERS; j++) {
-      fprintf(fl, "%d ", PRAYING(ch, i, j));
+      fprintf(fl, "%d ", PREPARATION_QUEUE(ch, i, j));
     }
     fprintf(fl, "\n");
   }
@@ -996,7 +996,7 @@ void save_char(struct char_data * ch, int mode) {
   for (i = 0; i < MAX_MEM; i++) {
     fprintf(fl, "%d ", i);
     for (j = 0; j < NUM_CASTERS; j++) {
-      fprintf(fl, "%d ", PRAYED(ch, i, j));
+      fprintf(fl, "%d ", PREPARED_SPELLS(ch, i, j));
     }
     fprintf(fl, "\n");
   }
@@ -1005,7 +1005,7 @@ void save_char(struct char_data * ch, int mode) {
   for (i = 0; i < MAX_MEM; i++) {
     fprintf(fl, "%d ", i);
     for (j = 0; j < NUM_CASTERS; j++) {
-      fprintf(fl, "%d ", PRAYTIME(ch, i, j));
+      fprintf(fl, "%d ", PREP_TIME(ch, i, j));
     }
     fprintf(fl, "\n");
   }
@@ -1295,13 +1295,13 @@ static void load_praytimes(FILE *fl, struct char_data *ch) {
     sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5,
             &num6, &num7, &num8);
     if (num != -1) {
-      PRAYTIME(ch, num, 0) = num2;
-      PRAYTIME(ch, num, 1) = num3;
-      PRAYTIME(ch, num, 2) = num4;
-      PRAYTIME(ch, num, 3) = num5;
-      PRAYTIME(ch, num, 4) = num6;
-      PRAYTIME(ch, num, 5) = num7;
-      PRAYTIME(ch, num, 6) = num8;
+      PREP_TIME(ch, num, 0) = num2;
+      PREP_TIME(ch, num, 1) = num3;
+      PREP_TIME(ch, num, 2) = num4;
+      PREP_TIME(ch, num, 3) = num5;
+      PREP_TIME(ch, num, 4) = num6;
+      PREP_TIME(ch, num, 5) = num7;
+      PREP_TIME(ch, num, 6) = num8;
     }
   } while (num != -1);
 }
@@ -1325,13 +1325,13 @@ static void load_prayed(FILE *fl, struct char_data *ch) {
     sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5,
             &num6, &num7, &num8);
     if (num != -1) {
-      PRAYED(ch, num, 0) = num2;
-      PRAYED(ch, num, 1) = num3;
-      PRAYED(ch, num, 2) = num4;
-      PRAYED(ch, num, 3) = num5;
-      PRAYED(ch, num, 4) = num6;
-      PRAYED(ch, num, 5) = num7;
-      PRAYED(ch, num, 6) = num8;
+      PREPARED_SPELLS(ch, num, 0) = num2;
+      PREPARED_SPELLS(ch, num, 1) = num3;
+      PREPARED_SPELLS(ch, num, 2) = num4;
+      PREPARED_SPELLS(ch, num, 3) = num5;
+      PREPARED_SPELLS(ch, num, 4) = num6;
+      PREPARED_SPELLS(ch, num, 5) = num7;
+      PREPARED_SPELLS(ch, num, 6) = num8;
     }
   } while (num != -1);
 }
@@ -1355,13 +1355,13 @@ static void load_praying(FILE *fl, struct char_data *ch) {
     sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5,
             &num6, &num7, &num8);
     if (num != -1) {
-      PRAYING(ch, num, 0) = num2;
-      PRAYING(ch, num, 1) = num3;
-      PRAYING(ch, num, 2) = num4;
-      PRAYING(ch, num, 3) = num5;
-      PRAYING(ch, num, 4) = num6;
-      PRAYING(ch, num, 5) = num7;
-      PRAYING(ch, num, 6) = num8;
+      PREPARATION_QUEUE(ch, num, 0) = num2;
+      PREPARATION_QUEUE(ch, num, 1) = num3;
+      PREPARATION_QUEUE(ch, num, 2) = num4;
+      PREPARATION_QUEUE(ch, num, 3) = num5;
+      PREPARATION_QUEUE(ch, num, 4) = num6;
+      PREPARATION_QUEUE(ch, num, 5) = num7;
+      PREPARATION_QUEUE(ch, num, 6) = num8;
     }
   } while (num != -1);
 }

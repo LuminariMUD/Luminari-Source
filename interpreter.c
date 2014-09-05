@@ -2144,7 +2144,7 @@ void nanny(struct descriptor_data *d, char *arg) {
           /* being extra careful, init memming status */
           int x;
           for (x = 0; x < NUM_CASTERS; x++)
-            IS_PRAYING(d->character, x) = FALSE;
+            IS_PREPARING(d->character, x) = FALSE;
           break;
 
         case '2':
