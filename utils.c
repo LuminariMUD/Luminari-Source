@@ -361,9 +361,9 @@ void increase_skill(struct char_data *ch, int skillnum) {
   if (GET_SKILL(ch, skillnum) <= 0 || GET_SKILL(ch, skillnum) >= 99)
     return;
 
-  int craft_skill = rand_number(0, C_SKILL);
-  int use = rand_number(0, USE);
-  int pass = rand_number(0, PASS);
+  //int craft_skill = rand_number(0, C_SKILL);
+  //int use = rand_number(0, USE);
+  //int pass = rand_number(0, PASS);
 
   switch (skillnum) {
     default:

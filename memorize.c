@@ -760,7 +760,7 @@ int isOccupied(struct char_data *ch) {
   int i;
 
   for (i = 0; i < NUM_CASTERS; i++)
-    if (PRAYIN(ch, i))
+    if (IS_PRAYING(ch, i))
       return TRUE;
 
   return FALSE;
@@ -784,7 +784,7 @@ void init_spell_slots(struct char_data *ch) {
     }
   }
   for (x = 0; x < NUM_CASTERS; x++)
-    PRAYIN(ch, x) = FALSE;
+    IS_PRAYING(ch, x) = FALSE;
 }
 
 
@@ -1501,13 +1501,13 @@ void updateMemming(struct char_data *ch, int class) {
         break;
     }
     resetMemtimes(ch, class);
-    PRAYIN(ch, classArray(class)) = FALSE;
+    IS_PRAYING(ch, classArray(class)) = FALSE;
     return;
   }
 
   // no mem list
   if (PRAYING(ch, 0, classArray(class)) == TERMINATE) {
-    PRAYIN(ch, classArray(class)) = FALSE;
+    IS_PRAYING(ch, classArray(class)) = FALSE;
     return;
   }
 
@@ -1517,7 +1517,7 @@ void updateMemming(struct char_data *ch, int class) {
           ) {
     send_to_char(ch, "You don't seem to have that spell in your spellbook!\r\n");
     resetMemtimes(ch, class);
-    PRAYIN(ch, classArray(class)) = FALSE;
+    IS_PRAYING(ch, classArray(class)) = FALSE;
     return;
   }
 
@@ -1592,7 +1592,7 @@ void updateMemming(struct char_data *ch, int class) {
           act("$n completes $s studies.", FALSE, ch, 0, 0, TO_ROOM);
           break;
       }
-      PRAYIN(ch, classArray(class)) = FALSE;
+      IS_PRAYING(ch, classArray(class)) = FALSE;
       return;
     }
   }
@@ -1613,7 +1613,7 @@ EVENTFUNC(event_memorizing) {
   for (x = 0; x < NUM_CLASSES; x++) {
     if (classArray(x) == -1)
       continue;
-    if (PRAYIN(ch, classArray(x))) {
+    if (IS_PRAYING(ch, classArray(x))) {
       updateMemming(ch, x);
       return 0;
     }
@@ -1763,7 +1763,7 @@ void display_memming(struct char_data *ch, int class) {
 
   /*** Display memorizing spells ***/
   if (PRAYING(ch, 0, classArray(class)) != 0) {
-    if (PRAYIN(ch, classArray(class))) {
+    if (IS_PRAYING(ch, classArray(class))) {
       switch (class) {
         case CLASS_DRUID:
           send_to_char(ch, "\r\n\tCYou are currently communing for:\r\n");
@@ -1997,7 +1997,7 @@ ACMD(do_gen_forget) {
                   "memorize.\r\n");
           break;
       }
-      PRAYIN(ch, classArray(class)) = FALSE;
+      IS_PRAYING(ch, classArray(class)) = FALSE;
       return;
     } else if (PRAYED(ch, 0, classArray(class))) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
@@ -2022,7 +2022,7 @@ ACMD(do_gen_forget) {
           send_to_char(ch, "You forget everything you had memorized.\r\n");
           break;
       }
-      PRAYIN(ch, classArray(class)) = FALSE;
+      IS_PRAYING(ch, classArray(class)) = FALSE;
       return;
     } else {
       switch (class) {
@@ -2194,7 +2194,7 @@ ACMD(do_gen_memorize) {
             act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
             break;
         }
-        PRAYIN(ch, classArray(class)) = TRUE;
+        IS_PRAYING(ch, classArray(class)) = TRUE;
         NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
       }
     }
@@ -2249,7 +2249,7 @@ ACMD(do_gen_memorize) {
       }
       addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
       if (!isOccupied(ch)) {
-        PRAYIN(ch, classArray(class)) = TRUE;
+        IS_PRAYING(ch, classArray(class)) = TRUE;
         NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
         switch (class) {
           case CLASS_DRUID:
