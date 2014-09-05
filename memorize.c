@@ -760,7 +760,7 @@ int isOccupied(struct char_data *ch) {
   int i;
 
   for (i = 0; i < NUM_CASTERS; i++)
-    if (IS_PRAYING(ch, i))
+    if (IS_PREPARING(ch, i))
       return TRUE;
 
   return FALSE;
@@ -778,13 +778,13 @@ void init_spell_slots(struct char_data *ch) {
 
   for (slot = 0; slot < MAX_MEM; slot++) {
     for (x = 0; x < NUM_CASTERS; x++) {
-      PRAYING(ch, slot, x) = 0;
-      PRAYED(ch, slot, x) = 0;
-      PRAYTIME(ch, slot, x) = 0;
+      PREPARATION_QUEUE(ch, slot, x) = 0;
+      PREPARED_SPELLS(ch, slot, x) = 0;
+      PREP_TIME(ch, slot, x) = 0;
     }
   }
   for (x = 0; x < NUM_CASTERS; x++)
-    IS_PRAYING(ch, x) = FALSE;
+    IS_PREPARING(ch, x) = FALSE;
 }
 
 
@@ -963,9 +963,9 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
 
   /* wizard type system */
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PRAYING(ch, slot, classArray(class)) == TERMINATE) {
-      PRAYING(ch, slot, classArray(class)) = spellnum;
-      PRAYTIME(ch, slot, classArray(class)) = time;
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == TERMINATE) {
+      PREPARATION_QUEUE(ch, slot, classArray(class)) = spellnum;
+      PREP_TIME(ch, slot, classArray(class)) = time;
       break;
     }
   }
@@ -989,9 +989,9 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
 
   // wizard type system 
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PRAYING(ch, slot, classArray(class)) == TERMINATE) {
-      PRAYING(ch, slot, classArray(class)) = spellnum;
-      PRAYTIME(ch, slot, classArray(class)) = time;
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == TERMINATE) {
+      PREPARATION_QUEUE(ch, slot, classArray(class)) = spellnum;
+      PREP_TIME(ch, slot, classArray(class)) = time;
       break;
     }
   }
@@ -1004,22 +1004,22 @@ void resetMemtimes(struct char_data *ch, int class) {
   int slot;
 
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PRAYING(ch, slot, classArray(class)) == TERMINATE)
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == TERMINATE)
       break;
 
     /* the formula for metime for sorcs is just factor*circle
-     * which is conveniently equal to the corresponding PRAYING()
+     * which is conveniently equal to the corresponding PREPARATION_QUEUE()
      * slot
      */
     if (class == CLASS_SORCERER)
-      PRAYTIME(ch, slot, classArray(class)) =
-            PRAYING(ch, slot, classArray(class)) * SORC_TIME_FACTOR;
+      PREP_TIME(ch, slot, classArray(class)) =
+            PREPARATION_QUEUE(ch, slot, classArray(class)) * SORC_TIME_FACTOR;
     else if (class == CLASS_BARD)
-      PRAYTIME(ch, slot, classArray(class)) =
-            PRAYING(ch, slot, classArray(class)) * BARD_TIME_FACTOR;
+      PREP_TIME(ch, slot, classArray(class)) =
+            PREPARATION_QUEUE(ch, slot, classArray(class)) * BARD_TIME_FACTOR;
     else
-      PRAYTIME(ch, slot, classArray(class)) =
-            spell_info[PRAYING(ch, slot, classArray(class))].memtime;
+      PREP_TIME(ch, slot, classArray(class)) =
+            spell_info[PREPARATION_QUEUE(ch, slot, classArray(class))].memtime;
   }
 }/* Ornir's Version */
 /*
@@ -1028,19 +1028,19 @@ void resetMemtimes(struct char_data *ch, int class) {
   int circle;
 
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PRAYING(ch, slot, classArray(class)) == TERMINATE)
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == TERMINATE)
       break;
 
-    circle = spellCircle(class, PRAYING(ch, slot, classArray(class)));
+    circle = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)));
 
     switch (class) {
       case CLASS_SORCERER:
       case CLASS_BARD:
-        PRAYTIME(ch, slot, classArray(class)) = MAX(2, (circle * 2 + circle + 4) - GET_CHA_BONUS(ch));
+        PREP_TIME(ch, slot, classArray(class)) = MAX(2, (circle * 2 + circle + 4) - GET_CHA_BONUS(ch));
         break;
       default:
         // Wizard
-        PRAYTIME(ch, slot, classArray(class)) = MAX(2, (circle * 2 + circle + 4) - GET_INT_BONUS(ch));
+        PREP_TIME(ch, slot, classArray(class)) = MAX(2, (circle * 2 + circle + 4) - GET_INT_BONUS(ch));
         break;
     }
   }
@@ -1055,14 +1055,14 @@ void addSpellMemmed(struct char_data *ch, int spellnum, int class) {
   int slot;
 
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PRAYED(ch, slot, classArray(class)) == 0) {
-      PRAYED(ch, slot, classArray(class)) = spellnum;
+    if (PREPARED_SPELLS(ch, slot, classArray(class)) == 0) {
+      PREPARED_SPELLS(ch, slot, classArray(class)) = spellnum;
       return;
     }
   }
 }
 
-// SORCERER types:  just clears top of PRAYING() list
+// SORCERER types:  just clears top of PREPARATION_QUEUE() list
 // WIZARD types:  finds the first instance of <spellnum> in the characters
 //   memorizing spells, forgets it, then updates the memorizing list
 
@@ -1076,48 +1076,48 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class) {
   if (class == CLASS_SORCERER) {
     // iterate until we find 0 (terminate) or end of array
     for (slot = 0;
-            (PRAYING(ch, slot, classArray(class)) || slot < (MAX_MEM - 1));
+            (PREPARATION_QUEUE(ch, slot, classArray(class)) || slot < (MAX_MEM - 1));
             slot++) {
       // shift everything over
-      PRAYING(ch, slot, classArray(class)) =
-              PRAYING(ch, slot + 1, classArray(class));
-      PRAYTIME(ch, slot, classArray(class)) =
-              PRAYTIME(ch, slot + 1, classArray(class));
+      PREPARATION_QUEUE(ch, slot, classArray(class)) =
+              PREPARATION_QUEUE(ch, slot + 1, classArray(class));
+      PREP_TIME(ch, slot, classArray(class)) =
+              PREP_TIME(ch, slot + 1, classArray(class));
     }
     return;
   } else if (class == CLASS_BARD) {
     // iterate until we find 0 (terminate) or end of array
     for (slot = 0;
-            (PRAYING(ch, slot, classArray(class)) || slot < (MAX_MEM - 1));
+            (PREPARATION_QUEUE(ch, slot, classArray(class)) || slot < (MAX_MEM - 1));
             slot++) {
       // shift everything over
-      PRAYING(ch, slot, classArray(class)) =
-              PRAYING(ch, slot + 1, classArray(class));
-      PRAYTIME(ch, slot, classArray(class)) =
-              PRAYTIME(ch, slot + 1, classArray(class));
+      PREPARATION_QUEUE(ch, slot, classArray(class)) =
+              PREPARATION_QUEUE(ch, slot + 1, classArray(class));
+      PREP_TIME(ch, slot, classArray(class)) =
+              PREP_TIME(ch, slot + 1, classArray(class));
     }
     return;
   }
 
   /* wizard-types */
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PRAYING(ch, slot, classArray(class)) == spellnum) { //found the spell
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == spellnum) { //found the spell
       /* is there more in the memming list? */
-      if (PRAYING(ch, slot + 1, classArray(class)) != TERMINATE) {
+      if (PREPARATION_QUEUE(ch, slot + 1, classArray(class)) != TERMINATE) {
         for (nextSlot = slot; nextSlot < MAX_MEM - 1; nextSlot++) {
           //go through rest of list and shift everything
-          PRAYING(ch, nextSlot, classArray(class)) =
-                  PRAYING(ch, nextSlot + 1, classArray(class));
-          PRAYTIME(ch, nextSlot, classArray(class)) =
-                  PRAYTIME(ch, nextSlot + 1, classArray(class));
+          PREPARATION_QUEUE(ch, nextSlot, classArray(class)) =
+                  PREPARATION_QUEUE(ch, nextSlot + 1, classArray(class));
+          PREP_TIME(ch, nextSlot, classArray(class)) =
+                  PREP_TIME(ch, nextSlot + 1, classArray(class));
         }
         // tag end of list with 'terminate'
-        PRAYING(ch, nextSlot, classArray(class)) = TERMINATE;
-        PRAYTIME(ch, nextSlot, classArray(class)) = TERMINATE;
+        PREPARATION_QUEUE(ch, nextSlot, classArray(class)) = TERMINATE;
+        PREP_TIME(ch, nextSlot, classArray(class)) = TERMINATE;
       } else {
         // must be the spell found was last in list
-        PRAYING(ch, slot, classArray(class)) = TERMINATE;
-        PRAYTIME(ch, slot, classArray(class)) = TERMINATE;
+        PREPARATION_QUEUE(ch, slot, classArray(class)) = TERMINATE;
+        PREP_TIME(ch, slot, classArray(class)) = TERMINATE;
       }
       return;
     }
@@ -1136,17 +1136,17 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
 
   /* we know the class */
   if (class != -1) {
-    if (PRAYED(ch, 0, classArray(class))) {
+    if (PREPARED_SPELLS(ch, 0, classArray(class))) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
-        if (PRAYED(ch, slot, classArray(class)) == spellnum) {
-          if (PRAYED(ch, slot + 1, classArray(class)) != 0) {
+        if (PREPARED_SPELLS(ch, slot, classArray(class)) == spellnum) {
+          if (PREPARED_SPELLS(ch, slot + 1, classArray(class)) != 0) {
             for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
-              PRAYED(ch, nextSlot, classArray(class)) =
-                      PRAYED(ch, nextSlot + 1, classArray(class));
+              PREPARED_SPELLS(ch, nextSlot, classArray(class)) =
+                      PREPARED_SPELLS(ch, nextSlot + 1, classArray(class));
             }
-            PRAYED(ch, nextSlot, classArray(class)) = 0;
+            PREPARED_SPELLS(ch, nextSlot, classArray(class)) = 0;
           } else {
-            PRAYED(ch, slot, classArray(class)) = 0;
+            PREPARED_SPELLS(ch, slot, classArray(class)) = 0;
           }
           return class;
         }
@@ -1162,17 +1162,17 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
         continue;
       if (classArray(x) == -1) /* not caster */
         continue;
-      if (PRAYED(ch, 0, classArray(x))) {
+      if (PREPARED_SPELLS(ch, 0, classArray(x))) {
         for (slot = 0; slot < (MAX_MEM); slot++) {
-          if (PRAYED(ch, slot, classArray(x)) == spellnum) {
-            if (PRAYED(ch, slot + 1, classArray(x)) != 0) {
+          if (PREPARED_SPELLS(ch, slot, classArray(x)) == spellnum) {
+            if (PREPARED_SPELLS(ch, slot + 1, classArray(x)) != 0) {
               for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
-                PRAYED(ch, nextSlot, classArray(x)) =
-                        PRAYED(ch, nextSlot + 1, classArray(x));
+                PREPARED_SPELLS(ch, nextSlot, classArray(x)) =
+                        PREPARED_SPELLS(ch, nextSlot + 1, classArray(x));
               }
-              PRAYED(ch, nextSlot, classArray(x)) = 0;
+              PREPARED_SPELLS(ch, nextSlot, classArray(x)) = 0;
             } else {
-              PRAYED(ch, slot, classArray(x)) = 0;
+              PREPARED_SPELLS(ch, slot, classArray(x)) = 0;
             }
             return x;
           }
@@ -1213,20 +1213,20 @@ int numSpells(struct char_data *ch, int circle, int class) {
   /* sorc types */
   if (class == CLASS_SORCERER) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYING(ch, slot, classArray(class)) == circle)
+      if (PREPARATION_QUEUE(ch, slot, classArray(class)) == circle)
         num++;
     }
   } else if (class == CLASS_BARD) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYING(ch, slot, classArray(class)) == circle)
+      if (PREPARATION_QUEUE(ch, slot, classArray(class)) == circle)
         num++;
     }
   } else {
     /* wizard-types */
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (spellCircle(class, PRAYED(ch, slot, classArray(class))) == circle)
+      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class))) == circle)
         num++;
-      if (spellCircle(class, PRAYING(ch, slot, classArray(class))) == circle)
+      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class))) == circle)
         num++;
     }
   }
@@ -1241,11 +1241,11 @@ int count_sorc_known(struct char_data *ch, int circle, int class) {
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (class == CLASS_SORCERER) {
       if (spellCircle(CLASS_SORCERER,
-              PRAYED(ch, slot, classArray(CLASS_SORCERER))) == circle)
+              PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER))) == circle)
         num++;
     } else if (class == CLASS_BARD) {
       if (spellCircle(CLASS_BARD,
-              PRAYED(ch, slot, classArray(CLASS_BARD))) == circle)
+              PREPARED_SPELLS(ch, slot, classArray(CLASS_BARD))) == circle)
         num++;
     }
 
@@ -1265,10 +1265,10 @@ bool sorcKnown(struct char_data *ch, int spellnum, int class) {
 
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (class == CLASS_SORCERER) {
-      if (PRAYED(ch, slot, classArray(CLASS_SORCERER)) == spellnum)
+      if (PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)) == spellnum)
         return TRUE;
     } else if (class == CLASS_BARD) {
-      if (PRAYED(ch, slot, classArray(CLASS_BARD)) == spellnum)
+      if (PREPARED_SPELLS(ch, slot, classArray(CLASS_BARD)) == spellnum)
         return TRUE;
     }
 
@@ -1281,19 +1281,19 @@ void sorc_extract_known(struct char_data *ch, int spellnum, int class) {
   int slot, nextSlot;
 
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PRAYED(ch, slot, classArray(class)) == spellnum) { //found the spell
+    if (PREPARED_SPELLS(ch, slot, classArray(class)) == spellnum) { //found the spell
       /* is there more in the list? */
-      if (PRAYED(ch, slot + 1, classArray(class)) != TERMINATE) {
+      if (PREPARED_SPELLS(ch, slot + 1, classArray(class)) != TERMINATE) {
         for (nextSlot = slot; nextSlot < MAX_MEM - 1; nextSlot++) {
           //go through rest of list and shift everything
-          PRAYED(ch, nextSlot, classArray(class)) =
-                  PRAYED(ch, nextSlot + 1, classArray(class));
+          PREPARED_SPELLS(ch, nextSlot, classArray(class)) =
+                  PREPARED_SPELLS(ch, nextSlot + 1, classArray(class));
         }
         // tag end of list with 'terminate'
-        PRAYED(ch, nextSlot, classArray(class)) = TERMINATE;
+        PREPARED_SPELLS(ch, nextSlot, classArray(class)) = TERMINATE;
       } else {
         // must be the spell found was last in list
-        PRAYED(ch, slot, classArray(class)) = TERMINATE;
+        PREPARED_SPELLS(ch, slot, classArray(class)) = TERMINATE;
       }
       return;
     }
@@ -1316,9 +1316,9 @@ int sorc_add_known(struct char_data *ch, int spellnum, int class) {
     return FALSE;
 
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PRAYED(ch, slot, classArray(class)) == TERMINATE) {
+    if (PREPARED_SPELLS(ch, slot, classArray(class)) == TERMINATE) {
       /* found an empty slot! */
-      PRAYED(ch, slot, classArray(class)) = spellnum;
+      PREPARED_SPELLS(ch, slot, classArray(class)) = spellnum;
       return TRUE;
     }
   }
@@ -1346,7 +1346,7 @@ int hasSpell(struct char_data *ch, int spellnum) {
     if (x == CLASS_BARD)
       continue;
     for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PRAYED(ch, slot, classArray(x)) == spellnum)
+      if (PREPARED_SPELLS(ch, slot, classArray(x)) == spellnum)
         return x;
     }
   }
@@ -1501,67 +1501,67 @@ void updateMemming(struct char_data *ch, int class) {
         break;
     }
     resetMemtimes(ch, class);
-    IS_PRAYING(ch, classArray(class)) = FALSE;
+    IS_PREPARING(ch, classArray(class)) = FALSE;
     return;
   }
 
   // no mem list
-  if (PRAYING(ch, 0, classArray(class)) == TERMINATE) {
-    IS_PRAYING(ch, classArray(class)) = FALSE;
+  if (PREPARATION_QUEUE(ch, 0, classArray(class)) == TERMINATE) {
+    IS_PREPARING(ch, classArray(class)) = FALSE;
     return;
   }
 
   // wizard spellbook requirement
   if (class == CLASS_WIZARD &&
-          !spellbook_ok(ch, PRAYING(ch, 0, classArray(class)), CLASS_WIZARD, FALSE)
+          !spellbook_ok(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), CLASS_WIZARD, FALSE)
           ) {
     send_to_char(ch, "You don't seem to have that spell in your spellbook!\r\n");
     resetMemtimes(ch, class);
-    IS_PRAYING(ch, classArray(class)) = FALSE;
+    IS_PREPARING(ch, classArray(class)) = FALSE;
     return;
   }
 
   // continue memorizing
-  PRAYTIME(ch, 0, classArray(class)) -= bonus;
-  if (PRAYTIME(ch, 0, classArray(class)) <= 0) {
+  PREP_TIME(ch, 0, classArray(class)) -= bonus;
+  if (PREP_TIME(ch, 0, classArray(class)) <= 0) {
     switch (class) {
       case CLASS_CLERIC:
         sprintf(buf, "You finish praying for %s.\r\n",
-                spell_info[PRAYING(ch, 0, classArray(class))].name);
-        addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
+                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
         break;
       case CLASS_RANGER:
         sprintf(buf, "You finish adjuring for %s.\r\n",
-                spell_info[PRAYING(ch, 0, classArray(class))].name);
-        addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
+                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
         break;
       case CLASS_PALADIN:
         sprintf(buf, "You finish chanting for %s.\r\n",
-                spell_info[PRAYING(ch, 0, classArray(class))].name);
-        addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
+                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
         break;
       case CLASS_DRUID:
         sprintf(buf, "You finish communing for %s.\r\n",
-                spell_info[PRAYING(ch, 0, classArray(class))].name);
-        addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
+                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
         break;
       case CLASS_SORCERER:
         sprintf(buf, "You have recovered a spell slot: %d.\r\n",
-                PRAYING(ch, 0, classArray(class)));
+                PREPARATION_QUEUE(ch, 0, classArray(class)));
         break;
       case CLASS_BARD:
         sprintf(buf, "You have recovered a compose slot: %d.\r\n",
-                PRAYING(ch, 0, classArray(class)));
+                PREPARATION_QUEUE(ch, 0, classArray(class)));
         break;
       default: // wizard
         sprintf(buf, "You finish memorizing %s.\r\n",
-                spell_info[PRAYING(ch, 0, classArray(class))].name);
-        addSpellMemmed(ch, PRAYING(ch, 0, classArray(class)), class);
+                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
         break;
     }
     send_to_char(ch, buf);
-    removeSpellMemming(ch, PRAYING(ch, 0, classArray(class)), class);
-    if (PRAYING(ch, 0, classArray(class)) == TERMINATE) {
+    removeSpellMemming(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
+    if (PREPARATION_QUEUE(ch, 0, classArray(class)) == TERMINATE) {
       switch (class) {
         case CLASS_SORCERER:
           send_to_char(ch, "Your meditations are complete.\r\n");
@@ -1592,7 +1592,7 @@ void updateMemming(struct char_data *ch, int class) {
           act("$n completes $s studies.", FALSE, ch, 0, 0, TO_ROOM);
           break;
       }
-      IS_PRAYING(ch, classArray(class)) = FALSE;
+      IS_PREPARING(ch, classArray(class)) = FALSE;
       return;
     }
   }
@@ -1613,7 +1613,7 @@ EVENTFUNC(event_memorizing) {
   for (x = 0; x < NUM_CLASSES; x++) {
     if (classArray(x) == -1)
       continue;
-    if (IS_PRAYING(ch, classArray(x))) {
+    if (IS_PREPARING(ch, classArray(x))) {
       updateMemming(ch, x);
       return 0;
     }
@@ -1648,10 +1648,10 @@ void display_sorc(struct char_data *ch, int class) {
               numSpells(ch, slot, CLASS_SORCERER));
     }
     send_to_char(ch, "\tn\r\n\r\n");
-    if (PRAYING(ch, 0, classArray(CLASS_SORCERER)))
+    if (PREPARATION_QUEUE(ch, 0, classArray(CLASS_SORCERER)))
       send_to_char(ch, "\tCTime left for next slot to recover:"
             "  \tn%d\tC seconds.\tn\r\n",
-            PRAYTIME(ch, 0, classArray(CLASS_SORCERER)));
+            PREP_TIME(ch, 0, classArray(CLASS_SORCERER)));
   } else if (class == CLASS_BARD) {
     for (slot = 1; slot <= getCircle(ch, CLASS_BARD); slot++) {
       send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_BARD));
@@ -1666,10 +1666,10 @@ void display_sorc(struct char_data *ch, int class) {
               numSpells(ch, slot, CLASS_BARD));
     }
     send_to_char(ch, "\tn\r\n\r\n");
-    if (PRAYING(ch, 0, classArray(CLASS_BARD)))
+    if (PREPARATION_QUEUE(ch, 0, classArray(CLASS_BARD)))
       send_to_char(ch, "\tCTime left for next slot to recover:"
             "  \tn%d\tC seconds.\tn\r\n",
-            PRAYTIME(ch, 0, classArray(CLASS_BARD)));
+            PREP_TIME(ch, 0, classArray(CLASS_BARD)));
   }
 
 }
@@ -1691,14 +1691,14 @@ void display_memmed(struct char_data*ch, int class) {
   //increment the respective spellnum slot in array
   //according to # of spells memmed
   for (slot = 0; slot < (MAX_MEM); slot++) {
-    if (PRAYED(ch, slot, classArray(class)) == TERMINATE)
+    if (PREPARED_SPELLS(ch, slot, classArray(class)) == TERMINATE)
       break;
     else
-      num[PRAYED(ch, slot, classArray(class))]++;
+      num[PREPARED_SPELLS(ch, slot, classArray(class))]++;
   }
 
   /***  display memorized spells ***/
-  if (PRAYED(ch, 0, classArray(class)) != 0) {
+  if (PREPARED_SPELLS(ch, 0, classArray(class)) != 0) {
     switch (class) {
       case CLASS_DRUID:
         send_to_char(ch, "\r\n\tGYou have communed for the following"
@@ -1724,23 +1724,23 @@ void display_memmed(struct char_data*ch, int class) {
     for (slot = getCircle(ch, class); slot > 0; slot--) {
       printed = FALSE;
       for (memSlot = 0; memSlot < (MAX_MEM); memSlot++) {
-        if (PRAYED(ch, memSlot, classArray(class)) != 0 &&
-                spellCircle(class, PRAYED(ch, memSlot, classArray(class))) ==
+        if (PREPARED_SPELLS(ch, memSlot, classArray(class)) != 0 &&
+                spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class))) ==
                 slot) {
-          if (num[PRAYED(ch, memSlot, classArray(class))] != 0) {
+          if (num[PREPARED_SPELLS(ch, memSlot, classArray(class))] != 0) {
             if (!printed) {
               send_to_char(ch, "[Circle: %d]          %2d - %s\r\n",
-                      slot, num[PRAYED(ch, memSlot, classArray(class))],
-                      spell_info[PRAYED(ch, memSlot,
+                      slot, num[PREPARED_SPELLS(ch, memSlot, classArray(class))],
+                      spell_info[PREPARED_SPELLS(ch, memSlot,
                       classArray(class))].name);
               printed = TRUE;
-              num[PRAYED(ch, memSlot, classArray(class))] = 0;
+              num[PREPARED_SPELLS(ch, memSlot, classArray(class))] = 0;
             } else {
               send_to_char(ch, "                     %2d - %s\r\n",
-                      num[PRAYED(ch, memSlot, classArray(class))],
-                      spell_info[PRAYED(ch, memSlot,
+                      num[PREPARED_SPELLS(ch, memSlot, classArray(class))],
+                      spell_info[PREPARED_SPELLS(ch, memSlot,
                       classArray(class))].name);
-              num[PRAYED(ch, memSlot, classArray(class))] = 0;
+              num[PREPARED_SPELLS(ch, memSlot, classArray(class))] = 0;
             }
           }
         }
@@ -1762,8 +1762,8 @@ void display_memming(struct char_data *ch, int class) {
     return;
 
   /*** Display memorizing spells ***/
-  if (PRAYING(ch, 0, classArray(class)) != 0) {
-    if (IS_PRAYING(ch, classArray(class))) {
+  if (PREPARATION_QUEUE(ch, 0, classArray(class)) != 0) {
+    if (IS_PREPARING(ch, classArray(class))) {
       switch (class) {
         case CLASS_DRUID:
           send_to_char(ch, "\r\n\tCYou are currently communing for:\r\n");
@@ -1806,13 +1806,13 @@ void display_memming(struct char_data *ch, int class) {
       }
     }
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PRAYING(ch, slot, classArray(class)) != 0) {
-        spellLevel = spellCircle(class, PRAYING(ch, slot, classArray(class)));
+      if (PREPARATION_QUEUE(ch, slot, classArray(class)) != 0) {
+        spellLevel = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)));
         send_to_char(ch, "  %s [%d%s] with %d seconds remaining.\r\n",
-                spell_info[PRAYING(ch, slot, classArray(class))].name,
+                spell_info[PREPARATION_QUEUE(ch, slot, classArray(class))].name,
                 spellLevel, spellLevel == 1 ? "st" : spellLevel == 2 ?
                 "nd" : spellLevel == 3 ? "rd" : "th",
-                PRAYTIME(ch, slot, classArray(class)));
+                PREP_TIME(ch, slot, classArray(class)));
       }
     }
   }
@@ -1971,9 +1971,9 @@ ACMD(do_gen_forget) {
   }
 
   if (!strcmp(arg, "all")) {
-    if (PRAYING(ch, 0, classArray(class))) {
+    if (PREPARATION_QUEUE(ch, 0, classArray(class))) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
-        PRAYING(ch, slot, classArray(class)) = 0;
+        PREPARATION_QUEUE(ch, slot, classArray(class)) = 0;
       }
       switch (class) {
         case CLASS_DRUID:
@@ -1997,11 +1997,11 @@ ACMD(do_gen_forget) {
                   "memorize.\r\n");
           break;
       }
-      IS_PRAYING(ch, classArray(class)) = FALSE;
+      IS_PREPARING(ch, classArray(class)) = FALSE;
       return;
-    } else if (PRAYED(ch, 0, classArray(class))) {
+    } else if (PREPARED_SPELLS(ch, 0, classArray(class))) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
-        PRAYED(ch, slot, classArray(class)) = 0;
+        PREPARED_SPELLS(ch, slot, classArray(class)) = 0;
       }
       switch (class) {
         case CLASS_DRUID:
@@ -2022,7 +2022,7 @@ ACMD(do_gen_forget) {
           send_to_char(ch, "You forget everything you had memorized.\r\n");
           break;
       }
-      IS_PRAYING(ch, classArray(class)) = FALSE;
+      IS_PREPARING(ch, classArray(class)) = FALSE;
       return;
     } else {
       switch (class) {
@@ -2053,7 +2053,7 @@ ACMD(do_gen_forget) {
 
   // are we memorizing it?
   for (slot = 0; slot < (MAX_MEM); slot++) {
-    if (PRAYING(ch, slot, classArray(class)) == spellnum) {
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == spellnum) {
       removeSpellMemming(ch, spellnum, class);
       switch (class) {
         case CLASS_DRUID:
@@ -2078,7 +2078,7 @@ ACMD(do_gen_forget) {
 
   // is it memmed?
   for (slot = 0; slot < (MAX_MEM); slot++) {
-    if (PRAYED(ch, slot, classArray(class)) == spellnum) {
+    if (PREPARED_SPELLS(ch, slot, classArray(class)) == spellnum) {
       forgetSpell(ch, spellnum, class);
       switch (class) {
         case CLASS_DRUID:
@@ -2163,7 +2163,7 @@ ACMD(do_gen_memorize) {
   if (class == CLASS_SORCERER || class == CLASS_BARD || !*argument) {
     printMemory(ch, class);
     if (GET_POS(ch) == POS_RESTING && !FIGHTING(ch)) {
-      if (!isOccupied(ch) && PRAYING(ch, 0, classArray(class)) != 0) {
+      if (!isOccupied(ch) && PREPARATION_QUEUE(ch, 0, classArray(class)) != 0) {
         switch (class) {
           case CLASS_DRUID:
             send_to_char(ch, "You continue your communion.\r\n");
@@ -2194,7 +2194,7 @@ ACMD(do_gen_memorize) {
             act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
             break;
         }
-        IS_PRAYING(ch, classArray(class)) = TRUE;
+        IS_PREPARING(ch, classArray(class)) = TRUE;
         NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
       }
     }
@@ -2249,7 +2249,7 @@ ACMD(do_gen_memorize) {
       }
       addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
       if (!isOccupied(ch)) {
-        IS_PRAYING(ch, classArray(class)) = TRUE;
+        IS_PREPARING(ch, classArray(class)) = TRUE;
         NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
         switch (class) {
           case CLASS_DRUID:
