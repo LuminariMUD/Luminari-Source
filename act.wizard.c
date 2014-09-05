@@ -1063,7 +1063,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch, "\tCMemming? \tn%d\tC, Praying? \tn%d\tC, Communing? \tn%d\tC,"
           " Meditating? \tn%d\tn\r\n",
-          PRAYIN(k, 2), PRAYIN(k, 0), PRAYIN(k, 1), PRAYIN(k, 3));
+          IS_PRAYING(k, 2), IS_PRAYING(k, 0), IS_PRAYING(k, 1), IS_PRAYING(k, 3));
 
   if (!IS_NPC(k))
     send_to_char(ch, "\tCWimpy:\tn %d  ", GET_WIMP_LEV(k));
@@ -5762,12 +5762,12 @@ ACMD(do_genmap) {
  *
  * */
 ACMD(do_oconvert) {
-  struct object_data *obj = NULL;
+  //struct object_data *obj = NULL;
   int i = 0, j = 0;
   int hitroll = 0, damroll = 0;
   int num, found = 0, total = 0;
-  obj_vnum ov;
-  char buf[MAX_STRING_LENGTH];
+  //obj_vnum ov;
+  //char buf[MAX_STRING_LENGTH];
 
   char arg[MAX_STRING_LENGTH], arg2[MAX_STRING_LENGTH];
   int iarg;

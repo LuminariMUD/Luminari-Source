@@ -346,7 +346,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
   int penalty = 0;
   bool success = FALSE, counter_success = FALSE;
   int attack_check = 0, defense_check = 0;
-  float rounds_wait = 1.75;
+  //float rounds_wait = 1.75;
   
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
       ch->next_in_room != vict && vict->next_in_room != ch) {
@@ -1051,7 +1051,7 @@ void perform_assist(struct char_data *ch, struct char_data *helpee) {
 
 /* the primary engine for springleap */
 void perform_springleap(struct char_data *ch, struct char_data *vict) {
-  struct affected_type af;
+  //struct affected_type af;
   int dam = 0, prob = 0;
   
   if (vict == ch) {
@@ -3007,7 +3007,7 @@ ACMD(do_collect) {
 
 
 /* unfinished */
-
+/*
 int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
   int pos, aoo_dam;
   struct obj_data *wielded = NULL;
@@ -3027,54 +3027,53 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
     return -1;
   }
 
-  /* Determine what we are going to disarm. Check for a 2H weapon first. */
+  // Determine what we are going to disarm. Check for a 2H weapon first.
   if (GET_EQ(vict, WEAR_WIELD_2H)) {
     wielded = GET_EQ(vict, WEAR_WIELD_2H);
     pos = WEAR_WIELD_2H;
   } else {
-    /* Check for a 1h weapon, primary hand. */
+    // Check for a 1h weapon, primary hand.
     wielded = GET_EQ(vict, WEAR_WIELD_1);
     pos = WEAR_WIELD_1;
   }
-  /*  If neither of those was successful, check for a 1H weapon in the secondary hand. */
+  //  If neither of those was successful, check for a 1H weapon in the secondary hand.
   if (!wielded) {
     wielded = GET_EQ(vict, WEAR_WIELD_2);
     pos = WEAR_WIELD_2;
   }
 
-  /* If wielded is NULL, then the victim is weilding no weapon! */
+  // If wielded is NULL, then the victim is weilding no weapon! 
   if (!wielded) {
     act("But $N is not wielding anything.", FALSE, ch, 0, vict, TO_CHAR);
     return -1;
   }
 
-  /* Trigger AOO, save damage for modifying the CMD roll. */
+  // Trigger AOO, save damage for modifying the CMD roll.
   if (!HAS_FEAT(ch, FEAT_IMPROVED_DISARM)) 
     aoo_dam = attack_of_opportunity(vict, ch, 0);
 
-  /* Check to see what we are wielding. */
+  // Check to see what we are wielding.
   if ((GET_EQ(ch, WEAR_WIELD_2H) == NULL) && 
       (GET_EQ(ch, WEAR_WIELD_1) == NULL) &&
       (GET_EQ(ch, WEAR_WIELD_2) == NULL) &&
       (!HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE))) {
-    /* Trying an unarmed disarm, -4. */
+    // Trying an unarmed disarm, -4.
     mod -= 4;
   }  
   
-  /*  Set up the calculations to perform the disarm, using CMB and CMD. */
+  //  Set up the calculations to perform the disarm, using CMB and CMD.
 //  int result = (dice(1, 20) + compute_cmb(ch) + mod) - compute_cmd(vict);
 //  if (result >= 0) {
-    /* Success! */
+    // Success!
 //  } else {
-    /* Failure! */
+    // Failure!
 //    if (result <= -10) {
-      /* Failed by more than 10, critical fail. Disarm ch. */
+      // Failed by more than 10, critical fail. Disarm ch.
       
 //    }
 
 //  }
     
-  /* 
   if (skill_test(ch, SKILL_DISARM, 500, mod + GET_R_DEX(ch) / 10 - GET_R_STR(vict) / 15) && !IS_OBJ_STAT(wielded, ITEM_NODROP)) {
     act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict, TO_ROOM);
     act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict, TO_CHAR);
@@ -3083,10 +3082,8 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
     act("$n failed to disarm $N.", FALSE, ch, 0, vict, TO_ROOM);
     act("You failed to disarm $N.", FALSE, ch, 0, vict, TO_CHAR);
   }
-  */
-
 }
-
+*/
 
 /* do_process_attack()
  *

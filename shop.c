@@ -337,7 +337,7 @@ static int trade_with(struct obj_data *item, int shop_nr)
 
 static int same_obj(struct obj_data *obj1, struct obj_data *obj2)
 {
-  int aindex;
+  //int aindex;
 
   if (!obj1 || !obj2)
     return (obj1 == obj2);

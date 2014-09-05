@@ -2859,8 +2859,9 @@ int hit(struct char_data *ch, struct char_data *victim,
   */
   char *hit_msg = "";
   
-  int hit_result = HIT_MISS; /* hit() returns an int to allow us to detect success or failure. */
-
+  /* hit() returns an int to allow us to detect success or failure. */
+  //int hit_result = HIT_MISS; 
+  
   struct obj_data *wielded = NULL; /* Wielded weapon for this hand (uses offhand) */
   
   /* 2nd place where offhand gets used.  What weapon are we weildign for this attack? */

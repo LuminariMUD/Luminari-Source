@@ -840,7 +840,7 @@ do                                                              \
 #define PRAYTIME(ch, slot, cc)	(ch->player_specials->saved.praytimes[slot][cc])
 #define PRAYED(ch, slot, cc)	(ch->player_specials->saved.prayed[slot][cc])
 
-#define PRAYIN(ch, cc)		((ch)->char_specials.prayin[cc])
+#define IS_PRAYING(ch, cc)		((ch)->char_specials.prayin[cc])
 
 // how many bursts of cloudkill left
 #define CLOUDKILL(ch)    ((ch)->char_specials.cloudkill)

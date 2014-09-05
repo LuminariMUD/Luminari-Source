@@ -1677,7 +1677,8 @@ EVENTFUNC(event_crafting) {
   struct mud_event_data *pMudEvent;
   struct obj_data *obj2 = NULL;
   char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
-  int exp = 0, skill = -1, roll = -1;
+  int exp = 0;
+  //int skill = -1, roll = -1;
 
   //initialize everything and dummy checks
   if (event_obj == NULL) return 0;
@@ -1868,7 +1869,8 @@ EVENTFUNC(event_crafting) {
 /* the 'harvest' command */
 ACMD(do_harvest) {
   struct obj_data *obj = NULL, *node = NULL;
-  int roll = 0, skillnum = 0, material = -1, minskill = 0;
+  int roll = 0, material = -1, minskill = 0;
+  //int skillnum = 0;
   char arg[MAX_INPUT_LENGTH] = { '\0' };
   char buf[MEDIUM_STRING] = { '\0' };
   int sub_command = SCMD_CRAFT_UNDF;
