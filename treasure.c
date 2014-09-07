@@ -25,17 +25,13 @@
 #include "treasure.h"
 #include "craft.h"
 
-/***************************************************************/
 /***  utility functions ***/
 
 /* some spells are not appropriate for expendable items, this simple
  function returns TRUE if the spell is OK, FALSE if not */
 bool valid_item_spell(int spellnum) {
-
-  /* just list exceptions */
-  /* NOTE if you add any exception here, better make
-   sure wizards have another way of getting the spell
-   */
+  /* just list exceptions NOTE if you add any exception here, better make
+   sure wizards have another way of getting the spell */
   switch (spellnum) {
     case SPELL_VENTRILOQUATE:
     case SPELL_MUMMY_DUST:
@@ -67,9 +63,7 @@ bool valid_item_spell(int spellnum) {
   return TRUE;
 }
 
-/* simple function to give a random metal type */
-
-/* (currently unused) */
+/* simple function to give a random metal type (currently unused) */
 int choose_metal_material(void) {
   switch (dice(1, 12)) {
     case 1:
@@ -92,9 +86,7 @@ int choose_metal_material(void) {
   }
 }
 
-/* simple function to give a random precious metal type */
-
-/* (currently unused) */
+/* simple function to give a random precious metal type (currently unused) */
 int choose_precious_metal_material(void) {
   switch (dice(1, 9)) {
     case 1:
@@ -112,9 +104,7 @@ int choose_precious_metal_material(void) {
   }
 }
 
-/* simple function to give a random cloth type */
-
-/* (currently unused) */
+/* simple function to give a random cloth type (currently unused) */
 int choose_cloth_material(void) {
   switch (dice(1, 12)) {
     case 1:
@@ -137,18 +127,13 @@ int choose_cloth_material(void) {
   }
 }
 
-
-/* returns random apply value 
-   from a list of values staff approved */
+/* returns random apply value from a list of values staff approved */
 int random_apply_value(void) {
   int val = APPLY_NONE;
 
-  /* There will be different groupings based on
-   * item type and wear location, for example
-   * weapons will get hit/dam bonus (the +) and 
-   * armor will get ac_apply_new bonus (the +).   
-   */
-
+  /* There will be different groupings based on item type and wear location, 
+   * for example weapons will get hit/dam bonus (the +) and armor will get 
+   * ac_apply_new bonus (the +). */
   switch (dice(1, 15)) {
     case 1:
       val = APPLY_AC_NEW;
@@ -256,11 +241,10 @@ int random_apply_value(void) {
           break;
       }
   }
-
   return val;
 }
-/* Return apply value for armor
-   from a list of values staff approved */
+
+/* Return apply value for armor from a list of values staff approved */
 int random_armor_apply_value(void) {
   int val = APPLY_NONE;
 
@@ -368,11 +352,10 @@ int random_armor_apply_value(void) {
           break;
       }
   }
-
   return val;
 }
-/* Returns apply value for weapons
-   from a list of values staff approved */
+
+/* Returns apply value for weapons from a list of values staff approved */
 int random_weapon_apply_value(void) {
   int val = APPLY_NONE;
 
@@ -471,16 +454,15 @@ int random_weapon_apply_value(void) {
           break;
       }
   }
-
   return val;
 }
+
 /* added this because the apply_X bonus is capped, stop it before
    it causes problems */
 #define RANDOM_BONUS_CAP  127
 
 /* function to adjust the bonus value based on the apply location */
 int adjust_bonus_value(int apply_location, int bonus) {
-
   int adjusted_bonus = bonus;
 
   switch (apply_location) {
@@ -517,22 +499,24 @@ int random_bonus_value(int apply_value, int level, int mod) {
 }
 
 /* when groupped, determine random recipient from group */
-/* This is just OH SO BROKEN! - Ornir
- * If you are grouped with a player, you don't even need to be in the same
- * room, the loot just comes flowing in! */
 struct char_data *find_treasure_recipient(struct char_data *ch) {
-/*  struct group_data *group = NULL; */
+  struct group_data *group = NULL;
+  struct char_data *target = NULL;
 
   /* assign group data */
-/*  if ((group = ch->group) == NULL)*/
+  if ((group = ch->group) == NULL)
     return ch;
+  
+  /* pick random group member */
+  target = random_from_list(group->members);
+  
+  /* same room? */
+  if (IN_ROOM(ch) != IN_ROOM(target))
+    target = ch;
 
-/*  return ((struct char_data *) (random_from_list(group->members))); */
-
+  return (target);
 }
 
-
-/***************************************************************/
 /***  primary functions ***/
 
 /* this function determines whether the character will get treasure or not
@@ -598,7 +582,6 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
     GET_GOLD(ch) += gold;
     /* does not split this gold, maybe change later */
   }
-
 }
 
 /* character should get treasure, roll dice for what items to give out */
@@ -611,13 +594,11 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
   if (number >= 50)
     number = 50;
 
-/*
- * crystals drop 5% of the time.
+ /* crystals drop 5% of the time.
  * scrolls/wands/potions/staves drop 40% of the time. (each 10%)
  * trinkets (bracelets, rings, etc. including cloaks, boots and gloves) drop 20% of the time.
  * armor (head, arms, legs, body) drop 25% of the time.
- * weapons drop 10% of the time.
- */
+ * weapons drop 10% of the time. */
   for (i = 0; i < number; i++) {
     roll = dice(1, 100);
     if (roll <= 5)
@@ -731,13 +712,11 @@ void award_random_crystal(struct char_data *ch, int level) {
 }
 
 /* awards potions or scroll or wand or staff */
-
 /* reminder, stock:
    obj value 0:  spell level
    obj value 1:  potion/scroll - spell #1; staff/wand - max charges
    obj value 2:  potion/scroll - spell #2; staff/wand - charges remaining
-   obj value 3:  potion/scroll - spell #3; staff/wand - spell #1
- */
+   obj value 3:  potion/scroll - spell #3; staff/wand - spell #1 */
 void award_expendable_item(struct char_data *ch, int grade, int type) {
   int class = CLASS_UNDEFINED, spell_level = 1, spell_num = SPELL_RESERVED_DBC;
   int color1 = 0, color2 = 0, desc = 0, roll = dice(1, 100), i = 0;
@@ -1457,7 +1436,6 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   sprintf(desc, "%s is lying here.", desc);
   obj->description = strdup(desc);
 
-
   /* END DESCRIPTION SECTION */
   /* BEGIN BONUS SECTION */
 
@@ -1472,7 +1450,6 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   int i = 0;
   bool duplicate_affect = FALSE;
  
-
   GET_OBJ_LEVEL(obj) = level;
 
   /* Get the base CP for the item based on the level. */
@@ -1528,10 +1505,9 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
     current_slot++;
   }
 
-  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
-
   /* END BONUS SECTION */
-
+  
+  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
   if (grade > GRADE_MUNDANE)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
@@ -1564,7 +1540,6 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   char special[SHORT_STRING] = {'\0'};
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-
   /* determine if rare or not */
   roll = dice(1, 100);
   if (roll == 1) {
@@ -1584,7 +1559,6 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
    * and last but not least, give appropriate start of description
    *  */
   switch (dice(1, NUM_WEAPON_MOLDS)) {
-
       /* simple */
       /* light */
     case 1:
@@ -2030,7 +2004,6 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   int i = 0;
   bool duplicate_affect = FALSE;
  
-
   GET_OBJ_LEVEL(obj) = level;
 
   /* Get the base CP for the item based on the level. */
@@ -2112,10 +2085,8 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
 }
 #undef SHORT_STRING
 
-
 /* give away random magic armor (not:  body/head/legs/arms)
  * includes:  neck, about, waist, wrist, hands, rings, feet */
-
 /*
  method:
  * 1)  determine item
@@ -2490,9 +2461,8 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
 }
 #undef SHORT_STRING
 
-/* Load treasure on a mob. */
+/* Load treasure on a mob. -Ornir */
 void load_treasure(char_data *mob) {
-
   int roll = dice(1, 100);
   int level = 0;
   int grade = GRADE_MUNDANE;
@@ -2539,8 +2509,8 @@ void load_treasure(char_data *mob) {
       grade = GRADE_MUNDANE;
   }
 
-    /* Give the mob one magic item. */
-    award_magic_item(1, mob, level, grade);
+  /* Give the mob one magic item. */
+  award_magic_item(1, mob, level, grade);
 }
 
 /* staff tool to load random items */
