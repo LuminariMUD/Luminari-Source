@@ -3239,10 +3239,12 @@ void reset_zone(zone_rnum zone) {
           tmob = mob;
           GET_MOB_LOADROOM(mob) = IN_ROOM(mob);
 
-	  /* Calculate random treasure for the mobile. */
+	     /* Calculate random treasure for the mobile. -Ornir */
+          /*
           if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE)) {
             load_treasure(mob);
           }
+          */
 
           last_cmd = 1;
         } else
