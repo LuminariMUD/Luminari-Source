@@ -26,9 +26,9 @@
 #include "spec_procs.h"  // for compute_ability
 
 /* local, global variables, defines */
-
 char buf[MAX_INPUT_LENGTH] = {'\0'};
 #define	TERMINATE	0
+
 
 /* =============================================== */
 /* ==================Spellbooks=================== */
@@ -160,7 +160,6 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
         }
         continue;
       }
-      
     }
 
     /* for-loop for gear */
@@ -751,11 +750,9 @@ int druidSlots[LVL_IMPL + 1][10] = {
 };
 
 
-/*** Utility Functions needed for memorization ***/
+/*** Utility Functions needed for spell preparation ***/
 
-
-// is character currently occupied with memming of some sort?
-
+/* is character currently occupied with preparing spells? */
 int isOccupied(struct char_data *ch) {
   int i;
 
@@ -766,9 +763,7 @@ int isOccupied(struct char_data *ch) {
   return FALSE;
 }
 
-
-// initialize all the spell slots of the character
-
+/* initialize all the preparation slots of the character to 0 */
 void init_spell_slots(struct char_data *ch) {
   int slot, x;
 
@@ -787,9 +782,7 @@ void init_spell_slots(struct char_data *ch) {
     IS_PREPARING(ch, x) = FALSE;
 }
 
-
-// given class and spellnum, returns spells circle
-
+/* given class and spellnum, returns spells circle */
 int spellCircle(int class, int spellnum) {
   switch (class) {
     case CLASS_BARD:
@@ -824,7 +817,7 @@ int spellCircle(int class, int spellnum) {
       return 1;
     case CLASS_SORCERER:
       return ((MAX(1, (spell_info[spellnum].min_level[class]) / 2)));
-      /* can get confusing, just check out class.c to see what level
+      /* pally can get confusing, just check out class.c to see what level
          they get their circles at in the spell_level function */
     case CLASS_PALADIN:
       switch (spell_info[spellnum].min_level[class]) {
@@ -851,7 +844,7 @@ int spellCircle(int class, int spellnum) {
           return 99;
       }
       return 1;
-      /* can get confusing, just check out class.c to see what level
+      /* rangers can get confusing, just check out class.c to see what level
          they get their circles at in the spell_level function */
     case CLASS_RANGER:
       switch (spell_info[spellnum].min_level[class]) {
@@ -884,46 +877,48 @@ int spellCircle(int class, int spellnum) {
   }
 }
 
-// *note remember in both constant arrays, value 0 is circle 1
-// and probably should eventually change that for uniformity
-// returns # of total slots based on level, class and stat bonus
-// of given circle
+/* *note remember in both constant arrays, value 0 is circle 1
+   and probably should eventually change that for uniformity  */
 
+/* returns # of total slots based on level, class and stat bonus
+   of given circle */
 int comp_slots(struct char_data *ch, int circle, int class) {
   int spellSlots = 0;
 
   /* they don't even have access to this circle */
   if (getCircle(ch, class) < circle)
     return 0;
+  
+  circle--;
 
   switch (class) {
     case CLASS_RANGER:
-      spellSlots += spell_bonus[GET_WIS(ch)][circle - 1];
-      spellSlots += rangerSlots[CLASS_LEVEL(ch, class)][circle - 1];
+      spellSlots += spell_bonus[GET_WIS(ch)][circle];
+      spellSlots += rangerSlots[CLASS_LEVEL(ch, class)][circle];
       break;
     case CLASS_PALADIN:
-      spellSlots += spell_bonus[GET_WIS(ch)][circle - 1];
-      spellSlots += paladinSlots[CLASS_LEVEL(ch, class)][circle - 1];
+      spellSlots += spell_bonus[GET_WIS(ch)][circle];
+      spellSlots += paladinSlots[CLASS_LEVEL(ch, class)][circle];
       break;
     case CLASS_CLERIC:
-      spellSlots += spell_bonus[GET_WIS(ch)][circle - 1];
-      spellSlots += clericSlots[CLASS_LEVEL(ch, class)][circle - 1];
+      spellSlots += spell_bonus[GET_WIS(ch)][circle];
+      spellSlots += clericSlots[CLASS_LEVEL(ch, class)][circle];
       break;
     case CLASS_DRUID:
-      spellSlots += spell_bonus[GET_WIS(ch)][circle - 1];
-      spellSlots += druidSlots[CLASS_LEVEL(ch, class)][circle - 1];
+      spellSlots += spell_bonus[GET_WIS(ch)][circle];
+      spellSlots += druidSlots[CLASS_LEVEL(ch, class)][circle];
       break;
     case CLASS_WIZARD:
-      spellSlots += spell_bonus[GET_INT(ch)][circle - 1];
-      spellSlots += wizardSlots[CLASS_LEVEL(ch, class)][circle - 1];
+      spellSlots += spell_bonus[GET_INT(ch)][circle];
+      spellSlots += wizardSlots[CLASS_LEVEL(ch, class)][circle];
       break;
     case CLASS_SORCERER:
-      spellSlots += spell_bonus[GET_CHA(ch)][circle - 1];
-      spellSlots += sorcererSlots[CLASS_LEVEL(ch, class)][circle - 1];
+      spellSlots += spell_bonus[GET_CHA(ch)][circle];
+      spellSlots += sorcererSlots[CLASS_LEVEL(ch, class)][circle];
       break;
     case CLASS_BARD:
-      spellSlots += spell_bonus[GET_CHA(ch)][circle - 1];
-      spellSlots += bardSlots[CLASS_LEVEL(ch, class)][circle - 1];
+      spellSlots += spell_bonus[GET_CHA(ch)][circle];
+      spellSlots += bardSlots[CLASS_LEVEL(ch, class)][circle];
       break;
     default:
       if (GET_LEVEL(ch) < LVL_IMMORT) {
@@ -936,17 +931,17 @@ int comp_slots(struct char_data *ch, int circle, int class) {
 }
 
 
-// SORCERER types:   this will add circle-slot to the mem list
-//   and the corresponding memtime in memtime list
-// WIZARD types:  adds <spellnum> to the characters memorizing list, and
-//   places the corresponding memtime in memtime list
+/* SORCERER types:   this will add the "circle slot" to the prep-list
+   and the corresponding prep-time in  prep-time list
+   WIZARD types:  adds <spellnum> to the characters prep-list, and
+   places the corresponding prep-time in prep-time list  */
 #define SORC_TIME_FACTOR  10
 #define BARD_TIME_FACTOR  12
-
 void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
   int slot;
 
-  /* sorcerer type system */
+  /* sorcerer type system, we are not storing a spellnum to the prep-list, we
+   * are just storing the spellnum's circle */
   if (class == CLASS_SORCERER) {
     /* replace spellnum with its circle */
     spellnum = spellCircle(class, spellnum);
@@ -960,8 +955,7 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
     time = BARD_TIME_FACTOR * spellnum;
   }
 
-
-  /* wizard type system */
+  /* if you are not a "sorc type" spellnum will carry through to here */
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PREPARATION_QUEUE(ch, slot, classArray(class)) == TERMINATE) {
       PREPARATION_QUEUE(ch, slot, classArray(class)) = spellnum;
@@ -970,7 +964,6 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
     }
   }
 }
-
 /* Ornir's Version */
 /*
 void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
@@ -998,8 +991,7 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
 }
 */
 
-// resets the memtimes for character (in case of aborted studies)
-
+/* resets the prep-times for character (in case of aborted preparation) */
 void resetMemtimes(struct char_data *ch, int class) {
   int slot;
 
@@ -1007,9 +999,9 @@ void resetMemtimes(struct char_data *ch, int class) {
     if (PREPARATION_QUEUE(ch, slot, classArray(class)) == TERMINATE)
       break;
 
-    /* the formula for metime for sorcs is just factor*circle
+    /* the formula for prep-time for sorcs is just factor*circle
      * which is conveniently equal to the corresponding PREPARATION_QUEUE()
-     * slot
+     * slot (the addspellmemming forumula above)
      */
     if (class == CLASS_SORCERER)
       PREP_TIME(ch, slot, classArray(class)) =
@@ -1021,7 +1013,8 @@ void resetMemtimes(struct char_data *ch, int class) {
       PREP_TIME(ch, slot, classArray(class)) =
             spell_info[PREPARATION_QUEUE(ch, slot, classArray(class))].memtime;
   }
-}/* Ornir's Version */
+}
+/* Ornir's Version */
 /*
 void resetMemtimes(struct char_data *ch, int class) {
   int slot;
@@ -1047,10 +1040,8 @@ void resetMemtimes(struct char_data *ch, int class) {
 }
 */
 
-
-// adds <spellnum> to the next available slot in the characters
-// memorized list
-
+/* adds <spellnum> to the next available slot in the characters
+   preparation list */
 void addSpellMemmed(struct char_data *ch, int spellnum, int class) {
   int slot;
 
@@ -1062,10 +1053,9 @@ void addSpellMemmed(struct char_data *ch, int spellnum, int class) {
   }
 }
 
-// SORCERER types:  just clears top of PREPARATION_QUEUE() list
-// WIZARD types:  finds the first instance of <spellnum> in the characters
-//   memorizing spells, forgets it, then updates the memorizing list
-
+/* SORCERER types:  just clears top of PREPARATION_QUEUE() list
+   WIZARD types:  finds the first instance of <spellnum> in the characters
+   preparation list, clears it, then updates the preparation list */
 void removeSpellMemming(struct char_data *ch, int spellnum, int class) {
   int slot, nextSlot;
 
@@ -1124,13 +1114,13 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class) {
   }
 }
 
-
-// finds the first instance of <spellnum> in the characters
-//   memorized spells, forgets it, then updates the memorized list
-// *for now it has to do - will extract a wizard spell first
-//   if you can't find it in wizard, then take it out of cleric, etc
-// *returns class
-
+/* finds the first instance of <spellnum> in the characters
+   prepared spells, forgets it, then updates the preparation list
+   +returns class
+   problem:  how do we know which class to extract the spell from for multi
+   class characters?  for now, will extract a wizard spell first
+   if you can't find it there, go down the list until it is found;
+   sorc-type system must go last */
 int forgetSpell(struct char_data *ch, int spellnum, int class) {
   int slot, nextSlot, x = 0;
 
@@ -1153,14 +1143,14 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
       }
     }
   } else { /* class == -1 */
+    
     /* we don't know the class, so search all the arrays */
-
     for (x = 0; x < NUM_CLASSES; x++) {
-      if (x == CLASS_SORCERER) /* checking this separately */
-        continue;
-      if (x == CLASS_BARD) /* checking this separately */
-        continue;
       if (classArray(x) == -1) /* not caster */
+        continue;
+      if (x == CLASS_SORCERER) /* checking this separately, last */
+        continue;
+      if (x == CLASS_BARD) /* checking this separately, last */
         continue;
       if (PREPARED_SPELLS(ch, 0, classArray(x))) {
         for (slot = 0; slot < (MAX_MEM); slot++) {
@@ -1202,11 +1192,10 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
   return -1;
 }
 
-
-// wizard-types:  returns total spells in both MEMORIZED and MEMORIZING of a
-//   given circle
-// sorc-types:  returns total spell slots used in a given circle
-
+/* wizard-types:  returns total spells in both prepared-list and preparation-
+   queue of a given circle
+   sorc-types:  given circle, returns number of spells of that circle that
+   are in the preparation-queue */
 int numSpells(struct char_data *ch, int circle, int class) {
   int num = 0, slot;
 
@@ -1257,11 +1246,9 @@ int count_sorc_known(struct char_data *ch, int circle, int class) {
 bool sorcKnown(struct char_data *ch, int spellnum, int class) {
   int slot;
 
-  // for zusuk testing
-  /*
+  /* for zusuk testing
   if (GET_LEVEL(ch) == LVL_IMPL)
-    return TRUE;
-   */
+    return TRUE; */
 
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (class == CLASS_SORCERER) {
@@ -1302,10 +1289,8 @@ void sorc_extract_known(struct char_data *ch, int spellnum, int class) {
   return;
 }
 
-
 /* For Sorc-types:  adds spellnum to their known list */
-
-/* returns 0 failure, returns 1 success*/
+/* returns 0 failure, returns 1 success */
 int sorc_add_known(struct char_data *ch, int spellnum, int class) {
   int slot, circle;
 
@@ -1326,18 +1311,15 @@ int sorc_add_known(struct char_data *ch, int spellnum, int class) {
   return FALSE;
 }
 
-
-// for SORCERER types:  returns <class> if they know the spell AND if they
-//   got free slots
-// for WIZARD types:  returns <class> if the character has the spell memorized
-//   returns FALSE if the character doesn't
-// -1 will be returned if its not found at all
-
+/* for SORCERER types:  returns <class> if they know the spell AND if they
+   got free slots
+   for WIZARD types:  returns <class> if the character has the spell memorized
+   returns FALSE if the character doesn't
+   -1 will be returned if its not found at all */
 int hasSpell(struct char_data *ch, int spellnum) {
   int slot, x;
 
-  // could check to see what classes ch has to speed up this search
-
+  /* could check to see what classes ch has to speed up this search */
   for (x = 0; x < NUM_CLASSES; x++) {
     if (classArray(x) == -1)
       continue;
@@ -1380,16 +1362,14 @@ int hasSpell(struct char_data *ch, int spellnum) {
   return -1;
 }
 
-
-// returns the characters highest circle access in a given class
-
+/* returns the characters highest circle access in a given class */
 int getCircle(struct char_data *ch, int class) {
-  // npc's default to best chart
+  /* npc's default to best chart */
   if (IS_NPC(ch)) {
     return (MAX(1, MIN(9, (GET_LEVEL(ch) + 1) / 2)));
   }
 
-  // if pc has no caster classes, he/she has no business here
+  /* if pc has no caster classes, he/she has no business here */
   if (!IS_CASTER(ch)) {
     return (-1);
   }
@@ -1450,29 +1430,25 @@ int getCircle(struct char_data *ch, int class) {
 
 }
 
-
 /********** end utility ***************/
-
 
 /*********** Event Engine ************/
 
-
-// updates the characters memorizing list/memtime, and
-// memorizes the spell upon completion
-
+/* updates the characters memorizing list/memtime, and
+   memorizes the spell upon completion */
 void updateMemming(struct char_data *ch, int class) {
   int bonus = 1;
 
   if (classArray(class) == -1)
     return;
 
-  //calaculate memtime bonus based on concentration
+  /* calaculate memtime bonus based on concentration */
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_CONCENTRATION)) {
     if(dice(1, 100) >= compute_ability(ch, ABILITY_CONCENTRATION))
       bonus++;
   }
 
-  //if you aren't resting, can't mem; same with fighting
+  /* if you aren't resting, can't mem; same with fighting */
   if (GET_POS(ch) != POS_RESTING || FIGHTING(ch)) {
     switch (class) {
       case CLASS_SORCERER:
@@ -1505,13 +1481,13 @@ void updateMemming(struct char_data *ch, int class) {
     return;
   }
 
-  // no mem list
+  /* no mem list */
   if (PREPARATION_QUEUE(ch, 0, classArray(class)) == TERMINATE) {
     IS_PREPARING(ch, classArray(class)) = FALSE;
     return;
   }
 
-  // wizard spellbook requirement
+  /* wizard spellbook requirement */
   if (class == CLASS_WIZARD &&
           !spellbook_ok(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), CLASS_WIZARD, FALSE)
           ) {
@@ -1521,7 +1497,7 @@ void updateMemming(struct char_data *ch, int class) {
     return;
   }
 
-  // continue memorizing
+  /* continue memorizing */
   PREP_TIME(ch, 0, classArray(class)) -= bonus;
   if (PREP_TIME(ch, 0, classArray(class)) <= 0) {
     switch (class) {
@@ -1597,7 +1573,6 @@ void updateMemming(struct char_data *ch, int class) {
     }
   }
   NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
-
 }
 
 EVENTFUNC(event_memorizing) {
@@ -1624,11 +1599,9 @@ EVENTFUNC(event_memorizing) {
 
 /*************  end event engine ***************/
 
-
 /************ display functions ***************/
 
-// display sorc interface
-
+/* display sorc interface */
 void display_sorc(struct char_data *ch, int class) {
   int slot;
 
@@ -1674,9 +1647,7 @@ void display_sorc(struct char_data *ch, int class) {
 
 }
 
-
-// display memmed or prayed list
-
+/* display memmed or prayed list */
 void display_memmed(struct char_data*ch, int class) {
   int slot, memSlot, num[MAX_SPELLS];
   bool printed;
@@ -1684,12 +1655,12 @@ void display_memmed(struct char_data*ch, int class) {
   if (classArray(class) == -1)
     return;
 
-  //initialize an array size of MAX_SPELLS
+  /* initialize an array size of MAX_SPELLS */
   for (slot = 0; slot < MAX_SPELLS; slot++)
     num[slot] = 0;
 
-  //increment the respective spellnum slot in array
-  //according to # of spells memmed
+  /* increment the respective spellnum slot in array according
+     to # of spells memmed */
   for (slot = 0; slot < (MAX_MEM); slot++) {
     if (PREPARED_SPELLS(ch, slot, classArray(class)) == TERMINATE)
       break;
@@ -1751,9 +1722,7 @@ void display_memmed(struct char_data*ch, int class) {
   send_to_char(ch, "\tn");
 }
 
-
-// displays current memming list
-
+/* displays current memming list */
 void display_memming(struct char_data *ch, int class) {
   int slot = 0;
   int spellLevel = 0;
@@ -1820,9 +1789,7 @@ void display_memming(struct char_data *ch, int class) {
   send_to_char(ch, "\tn");
 }
 
-
-// display how many available slots you have left for spells
-
+/* display how many available slots you have left for spells */
 void display_slots(struct char_data *ch, int class) {
   int slot, memSlot, empty[10], last = 0;
   bool printed, spells = FALSE;
@@ -1831,7 +1798,7 @@ void display_slots(struct char_data *ch, int class) {
   printed = FALSE;
   memSlot = 0;
 
-  //fill our empty[] with # available slots
+  /* fill our empty[] with # available slots */
   for (slot = 0; slot < getCircle(ch, class); slot++) {
     spells = FALSE;
 
@@ -1882,9 +1849,7 @@ void display_slots(struct char_data *ch, int class) {
           empty[last] == 1 ? "" : "s");
 }
 
-
-// entry point: lists ch spells, both memorized, memtimes, slots and memorizing
-
+/* entry point: lists ch spells, both memorized, memtimes, slots and memorizing */
 void printMemory(struct char_data *ch, int class) {
 
   //sorc types, just seperated their interface
@@ -1931,13 +1896,12 @@ void printMemory(struct char_data *ch, int class) {
       break;
   }
 }
-/************  end display functions **************/
 
+/************  end display functions **************/
 
 /*************  command functions *****************/
 
-// forget command for players
-
+/* "forget" command for players */
 ACMD(do_gen_forget) {
   int spellnum, slot, class = -1;
   char arg[MAX_INPUT_LENGTH];
@@ -2130,9 +2094,7 @@ ACMD(do_gen_forget) {
   }
 }
 
-
-// memorize command for players
-
+/* memorize command for players */
 ACMD(do_gen_memorize) {
   int spellnum, class = -1, num_spells;
 
@@ -2280,10 +2242,7 @@ ACMD(do_gen_memorize) {
     }
   } else
     log("ERR:  Reached end of do_gen_memorize.");
-
 }
 
 /***  end command functions ***/
 #undef	TERMINATE
-
-
