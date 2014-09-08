@@ -39,7 +39,6 @@ extern const char *head_types[];
 #define CP_COST(bonus)       ((bonus - 1) * 150 + 100)
 #define CP_BASE_VALUE(level) ((level - 1 + MIN_LEVEL_FOR_BONUS) * 80.6)
 
-
 #define CP_TYPE_ARMOR        1
 #define CP_TYPE_WEAPON       2
 #define CP_TYPE_MISC         3
