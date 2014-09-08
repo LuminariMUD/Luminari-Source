@@ -962,8 +962,8 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
 
 /* Here is where the significant changes start - Ornir */
 void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
-        int rare_grade, int level) {
-  int max_slots = 1;
+        int rare_grade, int level, int cp_type) {
+  int max_slots = 0;
   int current_slot = 1;
   int current_cp = 0;
   int max_bonus = 0;
@@ -972,9 +972,24 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   int bonus_value = 0;
   int i = 0;
   bool duplicate_affect = FALSE;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  
+  switch (cp_type) {
+    case CP_TYPE_MISC:
+      max_slots = 3; /* Trinkets gets 3 slots! */
+      break;
+    case CP_TYPE_ARMOR:
+      max_slots = 2; /* Armor gets 2 slot!  AC takes 1! */
+      break;
+    case CP_TYPE_WEAPON:
+      max_slots = 4; /* Weapons get 4 slots!  TOHIT/TODAM takes 2! */
+      break;
+    default:
+      break;
+  }
  
   /* Get the base CP for the item based on the level. */
-  current_cp = ((level - 11) * 80.6);
+  current_cp = CP_BASE_VALUE(level);
   
   /* Add bonus CP and slots for rarity */
   current_cp += rare_grade * 100;
@@ -983,20 +998,35 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   /* DEBUG */
   if (GET_LEVEL(ch) >= LVL_IMMORTAL)
-    send_to_char(ch, "\tyArmor created, level: %d CP: %d\tn\r\n", level, current_cp);  
+    send_to_char(ch, "\tyItem created, level: %d CP: %d\tn\r\n", level, current_cp);  
   
   /* Add bonuses, one bonus to each slot. */
   while (current_slot <= max_slots) {
 
-    /* Determine bonus location - Since this is armor, the first bonus is ALWAYS AC */
-    if(current_slot == 1)
-      bonus_location = APPLY_AC_NEW;
-    else
-      bonus_location = random_armor_apply_value();
+    /* Determine bonus location, check if first bonus too */
+    switch (cp_type) {
+      case CP_TYPE_ARMOR:
+      /* Since this is armor, the first bonus is ALWAYS AC */
+        if(current_slot == 1)
+          bonus_location = APPLY_AC_NEW;
+        else
+          bonus_location = random_armor_apply_value();
+        break;
+      case CP_TYPE_WEAPON:
+      /* Since this is a weapon, the first 2 bonuses are TOHIT and TODAM */
+        if(current_slot == 1)
+          bonus_location = APPLY_HITROLL; /* We Apply TODAM later... */
+        else
+          bonus_location = random_weapon_apply_value();
+        break;
+      default: /* misc types */
+        bonus_location = random_apply_value();        
+        break;
+    }
     
     /* Check for duplicate affects */
     duplicate_affect = FALSE;
-    for(i=0;i > MAX_OBJ_AFFECT;i++){
+    for(i = 0; i > MAX_OBJ_AFFECT; i++){
       if(obj->affected[i].location == bonus_location){
         duplicate_affect = TRUE;
         break;
@@ -1006,8 +1036,15 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     if(duplicate_affect != TRUE) {
 
       /* Based on CP remaining, how HIGH a bonus can we get here? */
-      max_bonus = CP_MAX_BONUS;
-      max_bonus_cp_cost = CP_MAX_BONUS_CP_COST;
+      switch (cp_type) {
+        case CP_TYPE_ARMOR:
+          max_bonus = CP_MAX_BONUS;
+          break;
+        default:
+          max_bonus = CP_MAX_BONUS + 5;
+          break;
+      }
+      max_bonus_cp_cost = CP_CURRENT(max_bonus);
 
       while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
         max_bonus--;
@@ -1022,21 +1059,34 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
       
         obj->affected[current_slot - 1].location = bonus_location;
         obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
+        
+        /* tag damroll bonus too for weapons */
+        if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_HITROLL) {
+          /* In this case, we need to add APPLY_DAMROLL as well. */
+          current_slot++; /* Increment the slot, APPLY_DAMROLL goes in the second slot. */
+          obj->affected[current_slot - 1].location = APPLY_DAMROLL;
+          obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);          
+        }
       }
     }
     current_slot++;
   } /* end while */
 
+  GET_OBJ_LEVEL(obj) = level;
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  /* set value */
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  /* make sure not mold */
   if (level >= 10)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  /* add magic tag */
 
   obj_to_char(obj, ch); /* deliver object */
+  
+  send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
+  sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
+  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
 
-/* Give away random magic armor
- * New method (Ornir):
+/* Give away random magic armor, new method by Ornir
+ * (includes:  body/head/legs/arms)
  * 1)  determine armor type
  * 2)  determine material
  * 3)  determine rarity
@@ -1049,8 +1099,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   int vnum = -1, material = MATERIAL_BRONZE, roll = 0, crest_num = 0;
   int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
-  char buf[MAX_STRING_LENGTH] = {'\0'}, keywords[MEDIUM_STRING] = {'\0'};
-
+  char keywords[MEDIUM_STRING] = {'\0'};
 
   /* determine if rare or not */
   roll = dice(1, 100);
@@ -1070,7 +1119,6 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
    * and last but not least, give appropriate start of description
    *  */
   switch (dice(1, NUM_ARMOR_MOLDS)) {
-
       /* body pieces */
     case 1:
       vnum = PLATE_BODY;
@@ -1434,13 +1482,12 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
       break;
   }
 
-  /* ok load object, set material and level */
+  /* ok load object, set material */
   if ((obj = read_object(vnum, VIRTUAL)) == NULL) {
     log("SYSERR: award_magic_armor created NULL object");
     return;
   }
   GET_OBJ_MATERIAL(obj) = material;
-  GET_OBJ_LEVEL(obj) = level;
 
   /* BEGIN DESCRIPTION SECTION */
 
@@ -1505,18 +1552,11 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, rare_grade, level);
+  cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_ARMOR);
   /* END BONUS SECTION */
-  
-  send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
-  sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
-  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
 
-/* give away random magic weapon */
-
-/*
- method:
+/* give away random magic weapon, method:
  * 1)  determine weapon
  * 2)  determine material
  * 3)  assign description
@@ -1524,7 +1564,6 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
  * 5)  determine amount (if applicable)
  */
 #define SHORT_STRING 80
-
 void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE, roll = 0, size = SIZE_MEDIUM;
@@ -1986,103 +2025,13 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
 
   /* object is fully described 
    base object is taken care of including material, now set random stats, etc */
-
-  /* Here is where the significant changes start - Ornir */
-  int max_slots = 4;  /* Weapons get 4 slots!  TOHIT/TODAM takes 2! */
-  int current_slot = 1;
-  int current_cp = 0;
-  int max_bonus = 0;
-  int max_bonus_cp_cost = 0;
-  int bonus_location = 0;
-  int bonus_value = 0;
-  int i = 0;
-  bool duplicate_affect = FALSE;
- 
-  GET_OBJ_LEVEL(obj) = level;
-
-  /* Get the base CP for the item based on the level. */
-  current_cp = ((level - 11) * 80.6);
-  
-  /* Add bonus CP and slots for rarity */
-  current_cp += rare_grade * 100;
-  if (rare_grade >= 2) 
-    max_slots += 1;
-
-  /* DEBUG */ 
-  send_to_char(ch, "\tyWeapon created, level: %d CP: %d\tn\r\n", level, current_cp);  
- 
-  /* Add bonuses, one bonus to each slot. */
-  while (current_slot <= max_slots) {
-
-    /* Determine bonus location - Since this is a weapon, the first 2 bonuses are TOHIT and TODAM */
-    if(current_slot == 1)
-      bonus_location = APPLY_HITROLL; /* We Apply TODAM later... */
-    else
-      bonus_location = random_weapon_apply_value();
-
-    /* Check for duplicate affects */
-    duplicate_affect = FALSE;
-    for(i=0;i > MAX_OBJ_AFFECT;i++){
-      if(obj->affected[i].location == bonus_location){
-        duplicate_affect = TRUE;
-        break;
-      }        
-    }
-    /* Only add the affect if it is not a duplicate affect location! */
-    if(duplicate_affect != TRUE) {
-
-      /* Based on CP remaining, how HIGH a bonus can we get here? */
-      max_bonus = 10; /* MAKE THIS A DEFINE! */
-      max_bonus_cp_cost = (max_bonus - 1)*150 + 100;  /* MAKE THIS A DEFINE! */
-
-      while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
-        max_bonus--;
-        max_bonus_cp_cost = (max_bonus - 1)*150 +100;
-      } 
-
-      /* If we CAN apply a bonus, based on CP, then determine value. */
-      if (max_bonus > 0) {    
-        /* Choose a bonus value from 1 to that bonus amount. */
-        bonus_value = rand_number(1, max_bonus);
-        current_cp -= (bonus_value - 1)*150 +100;
-      
-        obj->affected[current_slot - 1].location = bonus_location;
-        obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
-        
-        if(bonus_location == APPLY_HITROLL) {
-          /* In this case, we need to add APPLY_DAMROLL as well. */
-          current_slot++; /* Increment the slot, APPLY_DAMROLL goes in the second slot. */
-          obj->affected[current_slot - 1].location = APPLY_DAMROLL;
-          obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
-        }
-      }
-    }
-    current_slot++;
-  }
-
-/*  obj->affected[0].location = random_weapon_apply_value();
-  obj->affected[0].modifier =
-          random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR), 0);
-  GET_OBJ_LEVEL(obj) = level;
-*/
-  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
-
-  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
-  if (grade > GRADE_MUNDANE)
-    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
-
-  obj_to_char(obj, ch);
-
-  send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
-  sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
-  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
+  cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_WEAPON);
 }
 #undef SHORT_STRING
 
-/* give away random magic armor (not:  body/head/legs/arms)
- * includes:  neck, about, waist, wrist, hands, rings, feet */
-/*
- method:
+/* give away random misc item
+ * includes:  neck, about, waist, wrist, hands, rings, feet
+ * method:
  * 1)  determine item
  * 2)  determine material
  * 3)  assign description
@@ -2090,13 +2039,12 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
  * 5)  determine amount (if applicable)
  */
 #define SHORT_STRING    80
-
 void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE, roll = 0;
   int rare_grade = 0, level = 0;
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
-  char buf[MAX_STRING_LENGTH] = {'\0'}, keywords[MEDIUM_STRING] = {'\0'};
+  char keywords[MEDIUM_STRING] = {'\0'};
   char desc2[SHORT_STRING] = {'\0'}, desc3[SHORT_STRING] = {'\0'};
 
   /* determine if rare or not */
@@ -2371,87 +2319,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   }
 
   /* level, bonus and cost */
-/*  GET_OBJ_LEVEL(obj) = level;
-  obj->affected[0].location = random_apply_value();
-  obj->affected[0].modifier =
-          random_bonus_value(obj->affected[0].location, level + (rare_grade * BONUS_FACTOR), 0);
-*/
-
-  /* Here is where the significant changes start - Ornir */
-  int max_slots = 3;
-  int current_slot = 1;
-  int current_cp = 0;
-  int max_bonus = 0;
-  int max_bonus_cp_cost = 0;
-  int bonus_location = 0;
-  int bonus_value = 0;
-  int i = 0;
-  bool duplicate_affect = FALSE;
- 
-
-  GET_OBJ_LEVEL(obj) = level;
-
-  /* Get the base CP for the item based on the level. */
-  current_cp = ((level - 11) * 80.6);
-  
-  /* Add bonus CP and slots for rarity */
-  current_cp += rare_grade * 100;
-  if (rare_grade >= 2) 
-    max_slots += 1;
-
-  /* DEBUG */ 
-  send_to_char(ch, "\tyItem created, level: %d CP: %d\tn\r\n", level, current_cp);  
- 
-  /* Add bonuses, one bonus to each slot. */
-  while (current_slot <= max_slots) {
-    /* Determine bonus. */
-    bonus_location = random_apply_value();
-    
-    /* Check for duplicate affects */
-    duplicate_affect = FALSE;
-    for(i=0;i > MAX_OBJ_AFFECT;i++){
-      if(obj->affected[i].location == bonus_location){
-        duplicate_affect = TRUE;
-        break;
-      }        
-    }
-    /* Only add the affect if it is not a duplicate affect location! */
-    if(duplicate_affect != TRUE) {
-
-      /* Based on CP remaining, how HIGH a bonus can we get here? */
-      max_bonus = 10; /* MAKE THIS A DEFINE! */
-      max_bonus_cp_cost = (max_bonus - 1)*150 + 100;  /* MAKE THIS A DEFINE! */
-
-      while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
-        max_bonus--;
-        max_bonus_cp_cost = (max_bonus - 1)*150 +100;
-      } 
-
-      /* If we CAN apply a bonus, based on CP, then determine value. */
-      if (max_bonus > 0) {    
-        /* Choose a bonus value from 1 to that bonus amount. */
-        bonus_value = rand_number(1, max_bonus);
-        current_cp -= (bonus_value - 1)*150 +100;
-      
-        obj->affected[current_slot - 1].location = bonus_location;
-        obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
-      }
-    }
-    current_slot++;
-  }
-
-
-  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
-
-  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
-  if (grade > GRADE_MUNDANE)
-    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
-
-  obj_to_char(obj, ch);
-
-  send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
-  sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
-  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
+  cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_MISC);
 }
 #undef SHORT_STRING
 
