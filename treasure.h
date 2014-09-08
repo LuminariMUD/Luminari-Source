@@ -32,11 +32,13 @@ extern const char *head_types[];
 
 /* defines */
 
-/* Ornir CP System Defines */
-/* we manually add +5 to cp_max_bonus in the code */
-#define CP_MAX_BONUS         5
-#define CP_CURRENT(value)    ((value - 1) * 150 + 100)
-#define CP_BASE_VALUE(level) ((level - 11) * 80.6)
+/* Ornir CP System Defines, CP = creation points*/
+/* we manually add +X to cp_max_bonus in the code */
+#define TREASURE_MAX_BONUS   5
+#define MIN_LEVEL_FOR_BONUS  10
+#define CP_COST(bonus)       ((bonus - 1) * 150 + 100)
+#define CP_BASE_VALUE(level) ((level - 1 + MIN_LEVEL_FOR_BONUS) * 80.6)
+
 
 #define CP_TYPE_ARMOR        1
 #define CP_TYPE_WEAPON       2

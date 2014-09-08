@@ -1,14 +1,11 @@
 /* *************************************************************************
- *   File: treasure.c                                 Part of LuminariMUD *
- *  Usage: functions for random treasure objects                           *
+ *  File:   treasure.c                                 Part of LuminariMUD *
+ *  Usage:  functions for random treasure objects                          *
  *  Author: d20mud, ported to tba/luminari by Zusuk                        *
  ************************************************************************* *
- * 
  * This code is going through a rewrite, to make a more consistent system 
  * across the mud for magic item generation (crafting, random treasure, 
- * etc.)
- *
- * Changes by Ornir.
+ * etc.)  Changes by Ornir.
  *************************************************************************/
 
 #include "conf.h"
@@ -960,7 +957,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
   act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
 
-/* Here is where the significant changes start - Ornir */
+/* Here is where the significant changes start (cp = Creation Points) - Ornir */
 void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         int rare_grade, int level, int cp_type) {
   int max_slots = 0;
@@ -1038,24 +1035,24 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
       /* Based on CP remaining, how HIGH a bonus can we get here? */
       switch (cp_type) {
         case CP_TYPE_ARMOR:
-          max_bonus = CP_MAX_BONUS;
+          max_bonus = TREASURE_MAX_BONUS;
           break;
         default:
-          max_bonus = CP_MAX_BONUS + 5;
+          max_bonus = TREASURE_MAX_BONUS + 5;
           break;
       }
-      max_bonus_cp_cost = CP_CURRENT(max_bonus);
+      max_bonus_cp_cost = CP_COST(max_bonus);
 
       while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
         max_bonus--;
-        max_bonus_cp_cost = CP_CURRENT(max_bonus);
+        max_bonus_cp_cost = CP_COST(max_bonus);
       } 
 
       /* If we CAN apply a bonus, based on CP, then determine value. */
       if (max_bonus > 0) {    
         /* Choose a bonus value from 1 to that bonus amount. */
         bonus_value = rand_number(1, max_bonus);
-        current_cp -= CP_CURRENT(bonus_value);
+        current_cp -= CP_COST(bonus_value);
       
         obj->affected[current_slot - 1].location = bonus_location;
         obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
