@@ -1863,6 +1863,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define LVL_GRSTAFF   33  /**< Level of Greater Gods */
 #define LVL_STAFF     32  /**< Level of Gods */
 #define LVL_IMMORT    31  /**< Level of Immortals */
+#define LVL_IMMORTAL  LVL_IMMORT
 
 /* this level and lower is classified as newbie */
 #define NEWBIE_LEVEL 6

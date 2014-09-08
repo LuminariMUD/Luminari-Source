@@ -1369,12 +1369,13 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
       break;
   }
 
-  /* ok load object, set material */
+  /* ok load object, set material and level */
   if ((obj = read_object(vnum, VIRTUAL)) == NULL) {
     log("SYSERR: award_magic_armor created NULL object");
     return;
   }
   GET_OBJ_MATERIAL(obj) = material;
+  GET_OBJ_LEVEL(obj) = level;
 
   /* BEGIN DESCRIPTION SECTION */
 
@@ -1450,8 +1451,6 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   int i = 0;
   bool duplicate_affect = FALSE;
  
-  GET_OBJ_LEVEL(obj) = level;
-
   /* Get the base CP for the item based on the level. */
   current_cp = ((level - 11) * 80.6);
   
@@ -1460,8 +1459,9 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   if (rare_grade >= 2) 
     max_slots += 1;
 
-  /* DEBUG */ 
-  send_to_char(ch, "\tyArmor created, level: %d CP: %d\tn\r\n", level, current_cp);  
+  /* DEBUG */
+  if (GET_LEVEL(ch) >= LVL_IMMORTAL)
+    send_to_char(ch, "\tyArmor created, level: %d CP: %d\tn\r\n", level, current_cp);  
   
   /* Add bonuses, one bonus to each slot. */
   while (current_slot <= max_slots) {
@@ -1484,8 +1484,8 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
     if(duplicate_affect != TRUE) {
 
       /* Based on CP remaining, how HIGH a bonus can we get here? */
-      max_bonus = 5; /* MAKE THIS A DEFINE! */
-      max_bonus_cp_cost = (max_bonus - 1)*150 + 100;  /* MAKE THIS A DEFINE! */
+      max_bonus = CP_MAX_BONUS;
+      max_bonus_cp_cost = CP_MAX_BONUS_CP_COST;
 
       while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
         max_bonus--;
@@ -1503,7 +1503,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
       }
     }
     current_slot++;
-  }
+  } /* end while */
 
   /* END BONUS SECTION */
   
