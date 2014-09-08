@@ -1011,14 +1011,14 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
       while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
         max_bonus--;
-        max_bonus_cp_cost = (max_bonus - 1)*150 +100;
+        max_bonus_cp_cost = CP_CURRENT(max_bonus);
       } 
 
       /* If we CAN apply a bonus, based on CP, then determine value. */
       if (max_bonus > 0) {    
         /* Choose a bonus value from 1 to that bonus amount. */
         bonus_value = rand_number(1, max_bonus);
-        current_cp -= (bonus_value - 1)*150 +100;
+        current_cp -= CP_CURRENT(bonus_value);
       
         obj->affected[current_slot - 1].location = bonus_location;
         obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
@@ -1029,7 +1029,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  /* set value */
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  /* make sure not mold */
-  if (grade > GRADE_MUNDANE)
+  if (level >= 10)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  /* add magic tag */
 
   obj_to_char(obj, ch); /* deliver object */
