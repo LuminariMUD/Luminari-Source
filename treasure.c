@@ -457,7 +457,6 @@ int random_weapon_apply_value(void) {
 /* added this because the apply_X bonus is capped, stop it before
    it causes problems */
 #define RANDOM_BONUS_CAP  127
-
 /* function to adjust the bonus value based on the apply location */
 int adjust_bonus_value(int apply_location, int bonus) {
   int adjusted_bonus = bonus;
@@ -973,13 +972,13 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   
   switch (cp_type) {
     case CP_TYPE_MISC:
-      max_slots = 3; /* Trinkets gets 3 slots! */
+      max_slots = 1; /* Trinkets */
       break;
     case CP_TYPE_ARMOR:
-      max_slots = 2; /* Armor gets 2 slot!  AC takes 1! */
+      max_slots = 2; /* AC_APPLY takes 1! */
       break;
     case CP_TYPE_WEAPON:
-      max_slots = 4; /* Weapons get 4 slots!  TOHIT/TODAM takes 2! */
+      max_slots = 3; /* TOHIT/TODAM takes 2! */
       break;
     default:
       break;
@@ -1003,14 +1002,14 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     /* Determine bonus location, check if first bonus too */
     switch (cp_type) {
       case CP_TYPE_ARMOR:
-      /* Since this is armor, the first bonus is ALWAYS AC */
+        /* Since this is armor, the first bonus is ALWAYS AC */
         if(current_slot == 1)
           bonus_location = APPLY_AC_NEW;
         else
           bonus_location = random_armor_apply_value();
         break;
       case CP_TYPE_WEAPON:
-      /* Since this is a weapon, the first 2 bonuses are TOHIT and TODAM */
+        /* Since this is a weapon, the first 2 bonuses are TOHIT and TODAM */
         if(current_slot == 1)
           bonus_location = APPLY_HITROLL; /* We Apply TODAM later... */
         else
@@ -1062,7 +1061,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
           /* In this case, we need to add APPLY_DAMROLL as well. */
           current_slot++; /* Increment the slot, APPLY_DAMROLL goes in the second slot. */
           obj->affected[current_slot - 1].location = APPLY_DAMROLL;
-          obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);          
+          obj->affected[current_slot - 1].modifier = adjust_bonus_value(APPLY_DAMROLL, bonus_value);          
         }
       }
     }
@@ -1083,14 +1082,13 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 }
 
 /* Give away random magic armor, new method by Ornir
- * (includes:  body/head/legs/arms)
+ * (includes:  body/head/legs/arms/shield)
  * 1)  determine armor type
  * 2)  determine material
  * 3)  determine rarity
  * 3)  determine Creation Points
  * 4)  determine AC bonus (Always first stat...)
- * 5)  craft description based on object and bonuses
- */
+ * 5)  craft description based on object and bonuses */
 void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE, roll = 0, crest_num = 0;
