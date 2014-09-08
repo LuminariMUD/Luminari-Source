@@ -33,9 +33,14 @@ extern const char *head_types[];
 /* defines */
 
 /* Ornir CP System Defines */
-#define CP_MAX_BONUS      5
-#define CP_MAX_BONUS_CP_COST ((CP_MAX_BONUS - 1) * 150 + 100)
+/* we manually add +5 to cp_max_bonus in the code */
+#define CP_MAX_BONUS         5
 #define CP_CURRENT(value)    ((value - 1) * 150 + 100)
+#define CP_BASE_VALUE(level) ((level - 11) * 80.6)
+
+#define CP_TYPE_ARMOR        1
+#define CP_TYPE_WEAPON       2
+#define CP_TYPE_MISC         3
 
 /* percentage chance of random treasure drop */
 /* DO NOT MAKE OVER 98 (because of happyhour settings) */
