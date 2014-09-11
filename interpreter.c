@@ -95,6 +95,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
   /* now, the main list */
   { "abort", "abort", POS_FIGHTING, do_abort, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "acconvert", "acconvert", POS_DEAD, do_acconvert, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
   { "at", "at", POS_DEAD, do_at, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "advance", "adv", POS_DEAD, do_advance, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "aedit", "aed", POS_DEAD, do_oasis_aedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -302,8 +303,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "notitle", "notitle", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_NOTITLE, TRUE, ACTION_NONE, {0, 0}},
   { "nowiz", "nowiz", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_NOWIZ, TRUE, ACTION_NONE, {0, 0}},
 
-  { "oconvert", "oconvert", POS_DEAD, do_oconvert, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
   { "open", "o", POS_SITTING, do_gen_door, 0, SCMD_OPEN, FALSE, ACTION_MOVE, {0, 6}},
+  { "oconvert", "oconvert", POS_DEAD, do_oconvert, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
   { "order", "ord", POS_RECLINING, do_order, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "offer", "off", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "olc", "olc", POS_DEAD, do_show_save_list, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},

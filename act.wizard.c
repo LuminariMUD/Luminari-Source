@@ -5750,6 +5750,23 @@ ACMD(do_genmap) {
 
 }
 
+/* do_acconvert - Commant to convert exising armor to the new (Sept 9, 2014) 
+ * AC system.  ONLY USE THIS ONE TIME! */
+ACMD(do_acconvert) {
+  int num, found = 0, total = 0;
+
+  for (num = 0; num <= top_of_objt; num++) {
+
+      if (GET_OBJ_TYPE(&obj_proto[num]) != ITEM_ARMOR)
+        continue;
+
+      GET_OBJ_VAL(&obj_proto[num], 0) = (GET_OBJ_VAL(&obj_proto[num], 0)/10) + (GET_OBJ_VAL(&obj_proto[num], 0) % 10 != 0);
+      found++;
+  }
+  total += found;
+  send_to_char(ch, "%d converted.\r\n", found);
+}
+
 /* do_oconvert - Command to convert existing objects to the new (Jan 13, 2014)
  * weapon/armor type and feat system.  This command should be executed once, or can be 
  * executed mltiple times to clean up bad building. Uses a very simple system

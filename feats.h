@@ -1,10 +1,11 @@
 /***********************************************************************
- ** FEATS.H                                                            **
- ** Header file for the Gates of Krynn Feat System.                    **
- ** Initial code by Paladine (Stephen Squires)                         **
- ** Created Thursday, September 5, 2002; ported by Ornir for Luminari  **
- **                                                                    **
- ***********************************************************************/
+** FEATS.H                                                            **
+** Header file for the Gates of Krynn Feat System.                    **
+** Initial code by Paladine (Stephen Squires)                         **
+** Created Thursday, September 5, 2002                                **
+** Ported to Luminari by Ornir                                        **
+**                                                                    **
+***********************************************************************/
 
 #ifndef _FEATS_H_
 #define _FEATS_H_
@@ -12,36 +13,39 @@
 /* Below is the structure for a feat */
 
 struct feat_info {
-  char *name; /* The name of the feat to be displayed to players */
-  sbyte in_game; /* TRUE or FALSE, is the feat in the game yet? */
-  sbyte can_learn; /* TRUE or FALSE, can the feat be learned or is it an automatic feat? */
-  sbyte can_stack; /* TRUE or FALSE, can the feat be learned more than once? */
-  int feat_type; /* The type of feat (see defines) for organization in the selection menu. */
-  char *prerequisites; /* Obsolete! */
+
+  char *name;              /* The name of the feat to be displayed to players */
+  sbyte in_game;           /* TRUE or FALSE, is the feat in the game yet? */
+  sbyte can_learn;         /* TRUE or FALSE, can the feat be learned or is it an automatic feat? */
+  sbyte can_stack;         /* TRUE or FALSE, can the feat be learned more than once? */
+  int feat_type;           /* The type of feat (see defines) for organization in the selection menu. */
+  char *prerequisites;     /* Obsolete! */
   char *short_description; /* The line displayed in the feat xxxx desc command display. */
-  char *description; /* Long description of the feat, displayed in 'feat info' */
-  sbyte epic; /* Is this an epic feat? */
-  sbyte combat_feat; /* Is this a combat feat? */
-  int event; /* The event_id of the cooldown event, used for daily use active feats. */
+  char *description;       /* Long description of the feat, displayed in 'feat info' */
+  sbyte epic;              /* Is this an epic feat? */
+  sbyte combat_feat;       /* Is this a combat feat? */
+  int event;               /* The event_id of the cooldown event, used for daily use active feats. */  
 
   struct feat_prerequisite *prerequisite_list; /* A list of prerequisite sctructures */
 };
 
 struct feat_prerequisite {
   /* FEAT_PREREQ_* values determine the type */
-  int prerequisite_type;
+  int  prerequisite_type;
   char *description; /* Generated string value describing prerequisite. */
 
-  /* 0: ability score, class, feat, race, casting type, BAB
+  /* 0: ability score, class, feat, race, casting type, BAB 
    * 1: ability score value, class, feat, race, prep type, min BAB
    * 2: N/A, class level, feat ranks, N/A, minimum circle, N/A */
-  int values[3];
+  int values[3];  
 
   /* Linked list */
   struct feat_prerequisite *next;
 };
 
-struct weapon_table {
+struct weapon_table
+{
+
   char *name;
   sbyte numDice;
   ubyte diceSize;
@@ -63,7 +67,8 @@ struct weapon_table {
   ush_int ammo;
 };
 
-struct armor_table {
+struct armor_table
+{
   char *name;
   ubyte armorType;
   ush_int cost;
@@ -89,6 +94,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg);
 int is_class_feat(int featnum, int class);
 
 /*int find_feat_num(char *name);*/
+
 int feat_to_cfeat(int feat);
 int feat_to_sfeat(int feat);
 int feat_to_skfeat(int feat);
@@ -109,7 +115,7 @@ extern const char *weapon_type[NUM_WEAPON_TYPES];
 #define FEAT_TYPE_SPELLCASTING   3
 #define FEAT_TYPE_METAMAGIC      4
 #define FEAT_TYPE_CRAFT          5
-#define FEAT_TYPE_WILD           6
+#define FEAT_TYPE_WILD           6 
 #define FEAT_TYPE_DIVINE         7
 
 #define NUM_LEARNABLE_FEAT_TYPES 8
@@ -131,7 +137,7 @@ extern const char *weapon_type[NUM_WEAPON_TYPES];
 #define FEAT_PREREQ_FEAT         3
 #define FEAT_PREREQ_ABILITY      4
 #define FEAT_PREREQ_SPELLCASTING 5
-#define FEAT_PREREQ_RACE         6
+#define FEAT_PREREQ_RACE         6 
 #define FEAT_PREREQ_BAB          7
 #define FEAT_PREREQ_CFEAT        8
 #define FEAT_PREREQ_WEAPON_PROFICIENCY 9
