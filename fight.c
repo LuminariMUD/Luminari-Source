@@ -304,9 +304,12 @@ int roll_initiative(struct char_data *ch) {
  * by 'attacker' */
 int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is_touch) {
 
-  //hack to translate old D&D to 3.5 Edition
-  int armorclass = GET_AC(ch) / (-10);
-  armorclass += 20;
+  /* hack to translate old D&D to 3.5 Edition
+   * Modified 09/09/2014 : Ornir
+   * Changed this to use the AC as-is.  AC has been modified on gear. */ 
+  //int armorclass = GET_AC(ch) / (-10);
+  //armorclass += 20;
+  int armorclass = GET_AC(ch);
 
   if (char_has_mud_event(ch, eSHIELD_RECOVERY)) {
     if (GET_EQ(ch, WEAR_SHIELD))
