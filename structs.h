@@ -2304,7 +2304,7 @@ struct char_ability_data {
 
 /* make sure this matches spells.h define */
 #define NUM_DAM_TYPES  21
-/** Character 'points', or health statistics. */
+/* Character 'points', or health statistics. (we have points and real_points) */
 struct char_point_data {
   sh_int mana; /**< Current mana level  */
   sh_int max_mana; /**< Max mana level */

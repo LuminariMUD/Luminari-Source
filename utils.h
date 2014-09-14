@@ -736,6 +736,8 @@ do                                                              \
 /** Experience points of ch. */
 #define GET_EXP(ch)	  ((ch)->points.exp)
 /** Armor class of ch. */
+/* Note that this system is basically inspired by d20, but by a factor of
+   10.  So naked AC = 10 in d20, or in our system 100 */
 #define GET_REAL_AC(ch)        ((ch)->real_points.armor)
 #define GET_AC(ch)        ((ch)->points.armor)
 /** Current hit points (health) of ch. */

@@ -3266,7 +3266,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   }
   switch (mode) {
     case 0: /* ac */
-      GET_REAL_AC(vict) = RANGE(-100, 100);
+      GET_REAL_AC(vict) = RANGE(0, 300); /* 0-30AC */
       affect_total(vict);
       break;
     case 1: /* afk */

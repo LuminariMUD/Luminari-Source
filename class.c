@@ -1901,7 +1901,7 @@ void init_start_char(struct char_data *ch) {
 
   /* reset stats */
   roll_real_abils(ch);
-  GET_REAL_AC(ch) = 100;
+  GET_REAL_AC(ch) = 100; /* base AC of 10 */
   GET_REAL_HITROLL(ch) = 0;
   GET_REAL_DAMROLL(ch) = 0;
   GET_REAL_MAX_HIT(ch) = 20;
