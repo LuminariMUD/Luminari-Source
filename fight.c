@@ -272,9 +272,9 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
         AFF_FLAGGED(ch, AFF_STUN) ||
         AFF_FLAGGED(ch, AFF_PARALYZED) ||
         char_has_mud_event(ch, eSTUNNED))) {
-    return TRUE;
-  } else {
     return FALSE;
+  } else {
+    return TRUE;
   }
 } 
 
