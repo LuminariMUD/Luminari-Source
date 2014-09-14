@@ -307,18 +307,12 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   /* hack to translate old D&D to 3.5 Edition
    * Modified 09/09/2014 : Ornir
    * Changed this to use the AC as-is.  AC has been modified on gear. */ 
-  //int armorclass = GET_AC(ch) / (-10);
-  //armorclass += 20;
-  int armorclass = GET_AC(ch);
+  int armorclass = GET_AC(ch) / 10;
 
   if (char_has_mud_event(ch, eSHIELD_RECOVERY)) {
     if (GET_EQ(ch, WEAR_SHIELD))
       armorclass -= apply_ac(ch, WEAR_SHIELD);
   }
-
-  /* moving armor spell to here so it can legitimately be +2 armor */
-  //if (affected_by_spell(ch, SPELL_ARMOR))
-  //    armorclass += 2;
 
   /* Hack to make touch attacks REALLY work. */
   if (is_touch)
@@ -339,21 +333,29 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     if (AFF_FLAGGED(ch, AFF_PROTECT_EVIL) && IS_EVIL(attacker))
       armorclass += 2;
   }
+  
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_TUMBLE)) //caps at 5
     armorclass += MIN(5, (int) (compute_ability(ch, ABILITY_TUMBLE) / 5));
+  
   if (AFF_FLAGGED(ch, AFF_EXPERTISE))
     armorclass += 5;
+  
   if (!is_touch && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_ARMOR_SKIN))
     armorclass += HAS_FEAT(ch, FEAT_ARMOR_SKIN);
+  
   if (!is_touch && !IS_NPC(ch) && GET_EQ(ch, WEAR_SHIELD) &&
           GET_SKILL(ch, SKILL_SHIELD_SPECIALIST))
     armorclass += 2;
+  
   if (char_has_mud_event(ch, eTAUNTED))
     armorclass -= 6;
-  if (char_has_mud_event(ch, eSTUNNED))
+  
+  if (char_has_mud_event(ch, eSTUNNED)) /* POS_STUNNED below in case statement */
     armorclass -= 2;
+  
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
     armorclass -= 2;
+  
   if (attacker) { /* racial bonus vs. larger opponents */
     if ((GET_RACE(ch) == RACE_DWARF ||
             GET_RACE(ch) == RACE_CRYSTAL_DWARF ||
@@ -364,6 +366,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     else
       armorclass += compute_size_bonus(GET_SIZE(attacker), GET_SIZE(ch));
   }
+  
   /* favored enemy */
   if (attacker && CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
@@ -372,6 +375,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     else if (IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, GET_RACE(attacker)))
       armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
   }
+  
   /* Monk armor bonus is effective vs touch attacks... */ 
   if (CLASS_LEVEL(ch, CLASS_MONK) && monk_gear_ok(ch)) {
     armorclass += GET_WIS_BONUS(ch);
@@ -388,6 +392,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     if (CLASS_LEVEL(ch, CLASS_MONK) >= 30)
       armorclass++;
   }
+  
   /* ...but Trelux carapace is not effective vs touch attacks! */
   if (!is_touch && GET_RACE(ch) == RACE_TRELUX) {
     if (GET_LEVEL(ch) >= 5)
@@ -403,6 +408,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     if (GET_LEVEL(ch) >= 30)
       armorclass++;
   }
+  
   /* arcana golem */
   if (GET_RACE(ch) == RACE_ARCANA_GOLEM)
     armorclass -= 2;

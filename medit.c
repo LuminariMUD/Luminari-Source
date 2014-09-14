@@ -734,7 +734,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d) {
           yel, GET_NDD(mob) + GET_DAMROLL(mob), nrm,
           yel, (GET_NDD(mob) * GET_SDD(mob)) + GET_DAMROLL(mob), nrm,
 
-          cyn, nrm, cyn, yel, GET_AC(mob), ((GET_AC(mob) / -10) + 20), cyn, nrm, cyn, nrm, cyn, yel, GET_HITROLL(mob), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_AC(mob), compute_armor_class(NULL, mob, FALSE), cyn, nrm, cyn, nrm, cyn, yel, GET_HITROLL(mob), cyn, nrm,
           cyn, nrm, cyn, yel, GET_EXP(mob), cyn, nrm, cyn, nrm, cyn, yel, get_align_by_num(GET_ALIGNMENT(mob)), cyn, nrm,
           cyn, nrm, cyn, yel, GET_GOLD(mob), cyn, nrm
           );
@@ -1540,7 +1540,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       return;
 
     case MEDIT_AC:
-      GET_AC(OLC_MOB(d)) = LIMIT(i, -200, 200);
+      GET_AC(OLC_MOB(d)) = LIMIT(i, 0, 600);
       OLC_VAL(d) = TRUE;
       medit_disp_stats_menu(d);
       return;
@@ -1887,7 +1887,8 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator) {
    3)  their saving-throws will match their class/level 
  */
 void autoroll_mob(struct char_data *mob, bool realmode) {
-  int level = 0, bonus = 0, armor_class = 0;
+  int level = 0, bonus = 0;
+  int armor_class = 100; /* base 10 AC */
 
   /* first cap level at LVL_IMPL */
   level = GET_LEVEL(mob);
@@ -1927,7 +1928,7 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
   GET_SDD(mob) = level; /* size of damage dice */
 
   /* armor class default, d20 system * 10 */
-  armor_class = 100 + level * 9; // 109 (10) - 370 (37)
+  armor_class += level * 10; // 110 (11) - 400 (40)
 
   /* exp and gold */
   GET_EXP(mob) = (level * level * 75);
@@ -2087,8 +2088,7 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
     GET_GOLD(mob) += (bonus_level * 50);
   }
   
-  /* convert armor to old-school system and store */
-  GET_AC(mob) = (armor_class - 200) / -1; /* -default- AC 91 to -137 */
+  GET_AC(mob) = armor_class;
 
   /* make sure mobs do at least 1d4 damage */
   if (GET_SDD(mob) < 4)

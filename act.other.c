@@ -266,7 +266,7 @@ void perform_call(struct char_data *ch, int call_type, int level) {
   GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
   GET_REAL_HITROLL(mob) += level / 3;
   GET_REAL_DAMROLL(mob) += level / 3;
-  GET_REAL_AC(mob) -= (level * 2);
+  GET_REAL_AC(mob) += (level * 4); /* 12 ac at level 30 */
 
   /* make sure paladin mount is appropriate size to ride */
   if (call_type == MOB_C_MOUNT) {

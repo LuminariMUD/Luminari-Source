@@ -146,8 +146,8 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
     case APPLY_AC:
       GET_AC(ch) += mod;
       break;
-    case APPLY_AC_NEW: // new APPLY_AC for 3.5E armor class
-      GET_AC(ch) += mod * -10;
+    case APPLY_AC_NEW: // new APPLY_AC for 3.5E armor class -Nashak
+      GET_AC(ch) += mod * 10;
       break;
 
     case APPLY_HITROLL:

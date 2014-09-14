@@ -533,7 +533,13 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
       AFF_FLAGS(mob)[2], AFF_FLAGS(mob)[3],
       GET_ALIGNMENT(mob),
           /* line 2 */
-      GET_LEVEL(mob), 20 - GET_HITROLL(mob), GET_AC(mob) / 10, GET_HIT(mob),
+          /* AC -> we are doing a two-fold conversion here (HACK ALERT)
+             (1) reduce factor by 10
+             (2) 20 - 3rd edition DnD = 2nd edition DnD AC
+             WHY?!  Because all of our old mobile files are saved as
+             2nd edition DnD AC!
+           * this is the opposite of what is done in db.c's parse_simple_mob */
+      GET_LEVEL(mob), 20 - GET_HITROLL(mob), (20 - (GET_AC(mob) / 10)), GET_HIT(mob),
       GET_MANA(mob), GET_MOVE(mob), GET_NDD(mob), GET_SDD(mob),
       GET_DAMROLL(mob));
 

@@ -41,6 +41,8 @@
 #define PFDEF_HITROLL		0
 #define PFDEF_DAMROLL		0
 #define PFDEF_SPELL_RES		0
+/* this probably really should be 100 (10 AC), but we don't want to mess up
+ * the ASCII pfiles */
 #define PFDEF_AC		0
 #define PFDEF_STR		0
 #define PFDEF_STRADD		0
@@ -77,7 +79,7 @@
 #define PFDEF_AUTOCQUEST_QP        0
 #define PFDEF_AUTOCQUEST_EXP       0
 #define PFDEF_AUTOCQUEST_GOLD      0
-#define PFDEF_AUTOCQUEST_DESC      NULL
-#define PFDEF_AUTOCQUEST_MATERIAL  0
+#define PFDEF_AUTOCQUEST_DESC         NULL
+#define PFDEF_AUTOCQUEST_MATERIAL     0
     
 #endif /* _PFDEFAULTS_H_ */

@@ -1558,7 +1558,13 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
 
   GET_LEVEL(mob_proto + i) = t[0];
   GET_REAL_HITROLL(mob_proto + i) = 20 - t[1];
-  GET_REAL_AC(mob_proto + i) = 10 * t[2];
+  
+  /* hack to convert old school dnd AC to d20 
+     the AC is saved to file as a factor of 10 of the old school system
+     we have to convert to d20, then multiply the factor back in
+   * this is the opposite of what is done in genmob.c's write_mobile_record */
+  /* GET_REAL_AC(mob_proto + i) = 10 * (t[2]); */
+  GET_REAL_AC(mob_proto + i) = 10 * (20 - t[2]);
 
   /* max hit = 0 is a flag that H, M, V is xdy+z */
   //  GET_REAL_MAX_HIT(mob_proto + i) = 0;
@@ -4234,7 +4240,7 @@ void clear_char(struct char_data *ch) {
   if (IS_NPC(ch))
     PROC_FIRED(ch) = 0;
 
-  GET_REAL_AC(ch) = 100; /* Basic Armor */
+  GET_REAL_AC(ch) = 100; /* Basic Armor of 10 */
   if (GET_REAL_MAX_MANA(ch) < 100)
     GET_REAL_MAX_MANA(ch) = 100;
 }
@@ -4293,7 +4299,7 @@ void init_char(struct char_data *ch) {
   ch->player.time.logon = time(0);
   ch->player.time.played = 0;
 
-  GET_REAL_AC(ch) = 100;
+  GET_REAL_AC(ch) = 100; /* basic armor of 10 */
   GET_REAL_SPELL_RES(ch) = 0;
 
   /* Bias the height and weight of the character depending on what gender
