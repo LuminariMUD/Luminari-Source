@@ -89,8 +89,8 @@ void perform_perform(struct char_data *ch) {
   af[4].location = APPLY_SAVING_REFL;
   af[4].modifier = MAX(1, level / 5);
 
-  af[5].location = APPLY_AC;
-  af[5].modifier = -20 - level;
+  af[5].location = APPLY_AC_NEW;
+  af[5].modifier = 2 + (level / 10);
 
   af[6].location = APPLY_HIT;
   af[6].modifier = 10 + level;

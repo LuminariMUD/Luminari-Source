@@ -1547,7 +1547,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define APPLY_MOVE             14	/**< Apply to max move points	*/
 #define APPLY_GOLD             15	/**< Reserved			*/
 #define APPLY_EXP              16	/**< Reserved			*/
-#define APPLY_AC               17	/**< Apply to Armor Class		*/
+#define APPLY_AC               17	/**< AC (deprecated, used as tags for spells, etc) */
 #define APPLY_HITROLL          18	/**< Apply to hitroll		*/
 #define APPLY_DAMROLL          19	/**< Apply to damage roll		*/
 #define APPLY_SAVING_FORT      20	// save fortitude
@@ -1557,7 +1557,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define APPLY_SAVING_DEATH     24	// save death
 #define APPLY_SPELL_RES        25	// spell resistance
 #define APPLY_SIZE             26	// char size
-#define APPLY_AC_NEW           27      // apply to armor class (post conversion)
+#define APPLY_AC_NEW           27  // apply to armor class (post conversion)
 /* dam_types (resistances/vulnerabilties) */
 #define APPLY_RES_FIRE         28  //1        
 #define APPLY_RES_COLD         29
