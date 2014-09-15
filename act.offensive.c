@@ -204,14 +204,14 @@ void perform_rage(struct char_data *ch) {
 
   af[1].location = APPLY_CON;
   af[1].modifier = bonus;
-  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2; //little boost in current hps
+  GET_HIT(ch) += GET_LEVEL(ch) * bonus; //little boost in current hps
 
   af[2].location = APPLY_SAVING_WILL;
   af[2].modifier = bonus;
 
   //this is a penalty
-  af[3].location = APPLY_AC;
-  af[3].modifier = bonus * 5;
+  af[3].location = APPLY_AC_NEW;
+  af[3].modifier = -(bonus / 2);
 
   for (i = 0; i < RAGE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
@@ -1438,8 +1438,8 @@ ACMD(do_rage) {
   //this is a penalty
   affour.spell = SKILL_RAGE;
   affour.duration = duration;
-  affour.location = APPLY_AC;
-  affour.modifier = bonus * 5;
+  affour.location = APPLY_AC_NEW;
+  affour.modifier = -(bonus / 2);
 
   affect_to_char(ch, &af);
   affect_to_char(ch, &aftwo);

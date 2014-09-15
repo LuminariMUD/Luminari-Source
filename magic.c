@@ -1411,7 +1411,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
       
     case SPELL_BLUR: //illusion
-      af[0].location = APPLY_AC;
+      af[0].location = APPLY_AC; /* this is just a tag */
       af[0].modifier = -1;
       af[0].duration = 300;
       to_room = "$n's images becomes blurry!.";
@@ -1709,7 +1709,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_DISPLACEMENT: //illusion
-      af[0].location = APPLY_AC;
+      af[0].location = APPLY_AC; /* this is just a tag */
       af[0].modifier = -1;
       af[0].duration = 100;
       to_room = "$n's images becomes displaced!";
@@ -1790,7 +1790,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "A magical ward is already in effect on target.\r\n");
         return;
       }
-      af[0].location = APPLY_AC;
+      af[0].location = APPLY_AC; /* this is just a tag */
       af[0].modifier = -1;
       af[0].duration = 600;
       to_room = "$n becomes surrounded by a powerful magical ward!";
@@ -2023,7 +2023,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "You already have mirror images!\r\n");
         return;
       }
-      af[0].location = APPLY_AC;
+      af[0].location = APPLY_AC; /* this is just a tag */
       af[0].modifier = -1;
       af[0].duration = 300;
       to_room = "$n grins as multiple images pop up and smile!";
@@ -2230,7 +2230,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "A magical ward is already in effect on target.\r\n");
         return;
       }
-      af[0].location = APPLY_AC;
+      af[0].location = APPLY_AC; /* this is just a tag */
       af[0].modifier = -1;
       af[0].duration = 600;
       to_room = "$n's skin takes on the texture of iron!";
@@ -2437,7 +2437,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "You already have mirror images!\r\n");
         return;
       }
-      af[0].location = APPLY_AC;
+      af[0].location = APPLY_AC; /* this is just a tag */
       af[0].modifier = -1;
       af[0].duration = 300;
       to_room = "$n grins as multiple images pop up and smile!";
@@ -2904,7 +2904,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "A magical ward is already in effect on target.\r\n");
         return;
       }
-      af[0].location = APPLY_AC;
+      af[0].location = APPLY_AC; /* this is just a tag */
       af[0].modifier = -1;
       af[0].duration = 600;
       to_room = "$n's skin becomes hard as rock!";

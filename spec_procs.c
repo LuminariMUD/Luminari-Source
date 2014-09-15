@@ -5694,8 +5694,8 @@ SPECIAL(tormblade) {
       act("Your $p shines as it protects you.", FALSE, ch, (struct obj_data *) me, 0, TO_CHAR);
       new_affect(&af);
       af.spell = SPELL_PROT_FROM_EVIL;
-      af.modifier = -20;
-      af.location = APPLY_AC;
+      af.modifier = 2;
+      af.location = APPLY_AC_NEW;
       af.duration = dice(1, 4);
       affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
       return 1;
