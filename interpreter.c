@@ -432,7 +432,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "toggle", "toggle", POS_DEAD, do_toggle, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "track", "track", POS_STANDING, do_track, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "train", "tr", POS_RECLINING, do_train, 1, 0, FALSE, ACTION_NONE, {0, 0}},
-  { "transfer", "transfer", POS_SLEEPING, do_trans, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "transfer", "transfer", POS_SLEEPING, do_trans, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "treatinjury", "treatinjury", POS_RECLINING, do_treatinjury, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "trip", "trip", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}},
 //  { "_trip", "_trip", POS_FIGHTING, do_trip, 1, 0, FALSE, ACTION_NONE, {0, 0}},
