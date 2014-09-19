@@ -89,7 +89,7 @@ void assign_mobiles(void)
   ASSIGNMOB(5402, guild);
   ASSIGNMOB(5403, guild);
   ASSIGNMOB(11518, guild);
-  ASSIGNMOB(23473, guild);  /* female newbie trainer newbie school */
+  ASSIGNMOB(23411, guild);  /* female newbie trainer newbie school */
   ASSIGNMOB(25720, guild);
   ASSIGNMOB(25721, guild);
   ASSIGNMOB(25722, guild);
@@ -111,7 +111,7 @@ void assign_mobiles(void)
   ASSIGNMOB(31611, guild);
   ASSIGNMOB(31639, guild);
   ASSIGNMOB(31641, guild);
-  ASSIGNMOB(145201, guild);  /* female newbie trainer mosswood village */
+  ASSIGNMOB(145333, guild);  /* female newbie trainer mosswood village */
 
   /* mayors */
   ASSIGNMOB(3105, mayor);
