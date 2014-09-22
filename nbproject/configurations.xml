@@ -138,7 +138,6 @@
       <in>mudlim.h</in>
       <in>mysql.c</in>
       <in>mysql.h</in>
-      <in>newfile.c</in>
       <in>oasis.c</in>
       <in>oasis.h</in>
       <in>oasis_copy.c</in>
