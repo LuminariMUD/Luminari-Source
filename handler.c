@@ -978,7 +978,7 @@ struct obj_data *unequip_char(struct char_data *ch, int pos) {
   obj->worn_on = -1;
 
   if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
-    GET_AC(ch) += apply_ac(ch, pos);
+    GET_AC(ch) -= apply_ac(ch, pos);
 
   if (IN_ROOM(ch) != NOWHERE) {
     if (pos == WEAR_LIGHT && GET_OBJ_TYPE(obj) == ITEM_LIGHT)

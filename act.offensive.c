@@ -377,10 +377,10 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
   }
 
   switch (skill) {
-    case SKILL_BASH:
     case SKILL_BODYSLAM:
     case SKILL_SHIELD_CHARGE:
       break;
+    case SKILL_BASH:
     case SKILL_TRIP:
       if (AFF_FLAGGED(vict, AFF_FLYING)) {
         send_to_char(ch, "Impossible, your target is flying!\r\n");
@@ -550,6 +550,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
   } else {
     GET_POS(vict) = POS_SITTING;
     if ((skill == SKILL_TRIP) ||
+        (skill == SKILL_BASH) ||
         (skill == SKILL_SHIELD_CHARGE)) {
       /* Successful trip. */
       if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP)) {
