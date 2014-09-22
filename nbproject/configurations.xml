@@ -138,6 +138,7 @@
       <in>mudlim.h</in>
       <in>mysql.c</in>
       <in>mysql.h</in>
+      <in>newfile.c</in>
       <in>oasis.c</in>
       <in>oasis.h</in>
       <in>oasis_copy.c</in>
@@ -223,8 +224,6 @@
       </makefileType>
       <item path="act.comm.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="act.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="act.informative.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="act.item.c" ex="true" tool="0" flavor="0">
@@ -242,8 +241,6 @@
       <item path="actionqueues.h" ex="true" tool="3" flavor="0">
       </item>
       <item path="actions.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="actions.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="aedit.c" ex="true" tool="0" flavor="0">
       </item>
@@ -267,13 +264,9 @@
       </item>
       <item path="clan.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="clan.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="clan_edit.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="class.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="class.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="combat_modes.c" ex="true" tool="0" flavor="0">
       </item>
@@ -281,17 +274,11 @@
       </item>
       <item path="comm.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="comm.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="conf.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="config.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="config.h" ex="true" tool="3" flavor="0">
       </item>
       <item path="constants.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="constants.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="craft.c" ex="true" tool="0" flavor="0">
       </item>
@@ -299,15 +286,11 @@
       </item>
       <item path="db.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="db.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="dg_comm.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="dg_db_scripts.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="dg_event.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="dg_event.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="dg_handler.c" ex="true" tool="0" flavor="0">
       </item>
@@ -323,13 +306,9 @@
       </item>
       <item path="dg_scripts.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="dg_scripts.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="dg_triggers.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="fight.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="fight.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="gain.c" ex="true" tool="0" flavor="0">
       </item>
@@ -338,8 +317,6 @@
       <item path="genmob.h" ex="true" tool="3" flavor="0">
       </item>
       <item path="genobj.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="genobj.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="genolc.c" ex="true" tool="0" flavor="0">
       </item>
@@ -357,15 +334,11 @@
       </item>
       <item path="genzon.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="genzon.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="graph.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="graph.h" ex="true" tool="3" flavor="0">
       </item>
       <item path="handler.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="handler.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="hedit.c" ex="true" tool="0" flavor="0">
       </item>
@@ -375,21 +348,13 @@
       </item>
       <item path="hlquest.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="hlquest.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="house.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="house.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="ibt.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="ibt.h" ex="true" tool="3" flavor="0">
       </item>
-      <item path="improved-edit.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="interpreter.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="interpreter.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="kdtree.c" ex="true" tool="0" flavor="0">
       </item>
@@ -398,8 +363,6 @@
       <item path="limits.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="lists.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="lists.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="magic.c" ex="true" tool="0" flavor="0">
       </item>
@@ -417,25 +380,17 @@
       </item>
       <item path="modify.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="modify.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="msgedit.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="msgedit.h" ex="true" tool="3" flavor="0">
       </item>
       <item path="mud_event.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="mud_event.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="mudlim.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="mysql.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="mysql.h" ex="true" tool="3" flavor="0">
       </item>
       <item path="oasis.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="oasis.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="oasis_copy.c" ex="true" tool="0" flavor="0">
       </item>
@@ -461,17 +416,11 @@
       </item>
       <item path="protocol.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="protocol.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="qedit.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="quest.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="quest.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="race.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="race.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="random.c" ex="true" tool="0" flavor="0">
       </item>
@@ -493,8 +442,6 @@
       </item>
       <item path="rtree/split_l.h" ex="true" tool="3" flavor="0">
       </item>
-      <item path="screen.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="sedit.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="shop.c" ex="true" tool="0" flavor="0">
@@ -509,19 +456,11 @@
       </item>
       <item path="spec_procs.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="spec_procs.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="spell_parser.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="spells.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="spells.h" ex="false" tool="3" flavor="0">
-      </item>
-      <item path="structs.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="study.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="sysdep.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="tedit.c" ex="true" tool="0" flavor="0">
       </item>
@@ -559,13 +498,9 @@
       </item>
       <item path="utils.c" ex="true" tool="0" flavor="0">
       </item>
-      <item path="utils.h" ex="false" tool="3" flavor="0">
-      </item>
       <item path="weather.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="wilderness.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="wilderness.h" ex="false" tool="3" flavor="0">
       </item>
       <item path="zedit.c" ex="true" tool="0" flavor="0">
       </item>
