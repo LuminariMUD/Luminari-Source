@@ -1115,8 +1115,12 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   if (SINFO.time <= 0) {
     send_to_char(ch, "%s", CONFIG_OK);
     say_spell(ch, spellnum, tch, tobj, FALSE);
-    /* mandatory wait-state for any spell */
-    SET_WAIT(ch, PULSE_VIOLENCE / 2);
+    
+    /* temporary code to prevent spamming of spells, the line below is
+     * Nashak's updated SET_WAIT code that is being phased out by Ornir */
+    WAIT_STATE(ch, PULSE_VIOLENCE / 2);
+    /* SET_WAIT(ch, PULSE_VIOLENCE / 2); */
+    
     return (call_magic(ch, tch, tobj, spellnum, CASTER_LEVEL(ch), CAST_SPELL));
   }
 
