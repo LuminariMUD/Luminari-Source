@@ -303,12 +303,12 @@ void generic_complete_quest(struct char_data *ch) {
       happy_qp = MAX(happy_qp, 0);
       GET_QUESTPOINTS(ch) += happy_qp;
       send_to_char(ch,
-              "%s\r\nYou have been awarded %d quest points for your service.\r\n",
+              "%s\r\nYou have been awarded %d @Cquest points@n for your service.\r\n\r\n",
               QST_DONE(rnum), happy_qp);
     } else {
       GET_QUESTPOINTS(ch) += QST_POINTS(rnum);
       send_to_char(ch,
-              "%s\r\nYou have been awarded %d quest points for your service.\r\n",
+              "%s\r\nYou have been awarded %d @Cquest points@n for your service.\r\n\r\n",
               QST_DONE(rnum), QST_POINTS(rnum));
     }
     if (QST_GOLD(rnum)) {
@@ -317,12 +317,12 @@ void generic_complete_quest(struct char_data *ch) {
         happy_gold = MAX(happy_gold, 0);
         increase_gold(ch, happy_gold);
         send_to_char(ch,
-                "You have been awarded %d gold coins for your service.\r\n",
+                "You have been awarded %d @Ygold coins@n for your service.\r\n\r\n",
                 happy_gold);
       } else {
         increase_gold(ch, QST_GOLD(rnum));
         send_to_char(ch,
-                "You have been awarded %d gold coins for your service.\r\n",
+                "You have been awarded %d @Ygold coins@n for your service.\r\n\r\n",
                 QST_GOLD(rnum));
       }
     }
@@ -332,11 +332,11 @@ void generic_complete_quest(struct char_data *ch) {
         happy_exp = (int) (QST_EXP(rnum) * (((float) (100 + HAPPY_EXP)) / (float) 100));
         happy_exp = MAX(happy_exp, 0);
         send_to_char(ch,
-                "You have been awarded %d experience for your service.\r\n",
+                "You have been awarded %d @Bexperience@n for your service.\r\n\r\n",
                 happy_exp);
       } else {
         send_to_char(ch,
-                "You have been awarded %d experience points for your service.\r\n",
+                "You have been awarded %d @Bexperience@n points for your service.\r\n\r\n",
                 QST_EXP(rnum));
       }
     }
@@ -344,7 +344,7 @@ void generic_complete_quest(struct char_data *ch) {
       if (real_object(QST_OBJ(rnum)) != NOTHING) {
         if ((new_obj = read_object((QST_OBJ(rnum)), VIRTUAL)) != NULL) {
           obj_to_char(new_obj, ch);
-          send_to_char(ch, "You have been presented with %s%s for your service.\r\n",
+          send_to_char(ch, "You have been presented with %s%s for your service.\r\n\r\n",
                   GET_OBJ_SHORT(new_obj), CCNRM(ch, C_NRM));
         }
       }
@@ -358,11 +358,11 @@ void generic_complete_quest(struct char_data *ch) {
       rnum = real_quest(QST_NEXT(rnum));
       set_quest(ch, rnum);
       send_to_char(ch,
-              "The next stage of your quest awaits:\r\n%s",
+              "@MThe next stage of your quest awaits:@n\r\n\r\n%s\r\n",
               QST_INFO(rnum));
     }
   } else {
-    send_to_char(ch, "You still have to achieve %d out of %d goals for the quest.\r\n",
+    send_to_char(ch, "You still have to achieve @m%d@n out of @M%d@n goals for the quest.\r\n\r\n",
             GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
     save_char(ch, 0);
   }
