@@ -5683,8 +5683,18 @@ ACMD(do_hlqlist) {
         /* Large buf can't hold that much memory so cut off list */        
         if (len > sizeof(buf))
           break;
+        
+      } else {
+        /* debug */
+        send_to_char(ch, "NO QUEST\r\n");
       }
-    }    
+      /* end has-quest check */
+      
+    } else {
+      /* debug */
+      send_to_char(ch, "NOBODY\r\n");
+    }
+    /* end NOBODY check */
   }
   /* end of qlist */
 
