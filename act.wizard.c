@@ -5676,14 +5676,15 @@ ACMD(do_hlqlist) {
             temp_num++;
         }
 
+        /* DEBUG */
+        /*
         send_to_char(ch, "[%5d] %-40s %d/%d\r\n", i,
                 mob_proto[realnum].player.short_descr, temp_num, num_found);
-        
-        /*
+        */
+
         len += snprintf(buf + len, sizeof (buf) - len,
                 "[%5d] %-40s %d/%d\r\n", i,
                 mob_proto[realnum].player.short_descr, temp_num, num_found);
-        */
         
         /* Large buf can't hold that much memory so cut off list */        
         if (len > sizeof(buf))
@@ -5691,13 +5692,13 @@ ACMD(do_hlqlist) {
         
       } else {
         /* debug */
-        send_to_char(ch, "NO QUEST\r\n");
+        //send_to_char(ch, "NO QUEST\r\n");
       }
       /* end has-quest check */
       
     } else {
       /* debug */
-      send_to_char(ch, "NOBODY\r\n");
+      //send_to_char(ch, "NOBODY\r\n");
     }
     /* end NOBODY check */
   }
