@@ -5676,9 +5676,14 @@ ACMD(do_hlqlist) {
             temp_num++;
         }
 
+        send_to_char(ch, "[%5d] %-40s %d/%d\r\n", i,
+                mob_proto[realnum].player.short_descr, temp_num, num_found);
+        
+        /*
         len += snprintf(buf + len, sizeof (buf) - len,
                 "[%5d] %-40s %d/%d\r\n", i,
                 mob_proto[realnum].player.short_descr, temp_num, num_found);
+        */
         
         /* Large buf can't hold that much memory so cut off list */        
         if (len > sizeof(buf))
