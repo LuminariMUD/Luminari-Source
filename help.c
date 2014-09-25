@@ -45,7 +45,7 @@ struct help_entry_list * search_help(const char *argument, int level) {
 
   sprintf(buf, "SELECT keyword, alternate_keywords, entry, min_level, last_updated "
                "  from help_entries "
-               "  where (lower(keyword) like lower('%%%s%%') "
+               "  where (lower(keyword) like lower('%s%%') "
                "  or lower(alternate_keywords) like lower('%%%s%%')) and min_level <= %d",
                argument, escaped_arg, level);
  

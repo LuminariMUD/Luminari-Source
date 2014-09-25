@@ -80,6 +80,8 @@ void get_char_colors(struct char_data *ch)
  * descriptor, sets all flags back to how they should be. */
 void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
 {
+  struct help_entry_list *tmp;
+
   /* Clean up WHAT? */
   if (d->olc == NULL)
     return;
@@ -168,10 +170,15 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
   if (OLC_HELP(d))  {
     switch(cleanup_type)  {
       case CLEANUP_ALL:
-        free_help(OLC_HELP(d));
-        break;
       case CLEANUP_STRUCTS:
-        free(OLC_HELP(d));
+        while (OLC_HELP(d) != NULL) {
+          tmp = OLC_HELP(d);
+          OLC_HELP(d) = OLC_HELP(d)->next;
+          if (tmp->keyword != NULL) free(tmp->keyword);
+          if (tmp->alternate_keywords != NULL) free(tmp->alternate_keywords);
+          if (tmp->entry != NULL) free(tmp->entry);
+          free(tmp);
+        }
         break;
       default:
  	break;

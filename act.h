@@ -66,7 +66,6 @@ char *find_exdesc(char *word, struct extra_descr_data *list);
 /** @todo Move to a mud centric string utility library */
 void space_to_minus(char *str);
 /** @todo Move to a help module? */
-int search_help(const char *argument, int level);
 void game_info(const char *format, ...);
 void free_history(struct char_data *ch, int type);
 void free_recent_players(void);

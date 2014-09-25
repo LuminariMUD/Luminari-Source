@@ -13,6 +13,7 @@
 #define _OASIS_H_
 
 #include "utils.h" /* for ACMD macro */
+#include "help.h" /* for help_entry_list */
 
 #define _OASISOLC	0x206   /* 2.0.6 */
 
@@ -115,7 +116,7 @@ struct oasis_olc_data {
   int trigger_position;
   int item_type;
   struct trig_proto_list *script; /* for assigning triggers in [r|o|m]edit*/
-  struct help_index_element*help; /* Hedit uses this */
+  struct help_entry_list *help; /* Hedit uses this */
 };
 
 /* Exported globals. */
@@ -472,9 +473,9 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define HEDIT_CONFIRM_ADD               2
 #define HEDIT_MAIN_MENU                 3
 #define HEDIT_ENTRY                     4
-#define HEDIT_KEYWORDS                  5
+#define HEDIT_KEYWORD                   5
 #define HEDIT_MIN_LEVEL                 6
-
+#define HEDIT_ALT_KEYWORDS              7
 
 /* Clanedit Submodes of connectedness. */
 #define CLANEDIT_CONFIRM_SAVESTRING    0    /**< Submode for quit option, does player want to save? */
