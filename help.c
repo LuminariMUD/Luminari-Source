@@ -188,7 +188,7 @@ ACMD(do_help) {
                              line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
                              entries->entry,
                              line_string(GET_SCREEN_WIDTH(ch), '-', '-'));                            
-  page_string(ch->desc, help_entry_buffer, 0);
+  page_string(ch->desc, help_entry_buffer, 1);
 
   while (entries != NULL) {
     tmp = entries;
