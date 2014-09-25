@@ -1,0 +1,201 @@
+/* 
+ * This file is part of Luminari MUD
+ * 
+ * File: help.c
+ * Author: Ornir (Jamie McLaughlin)
+ */
+#include "conf.h"
+#include "sysdep.h"
+#include "structs.h"
+#include "utils.h"
+#include "modify.h"
+#include "comm.h"
+#include "interpreter.h"
+#include "db.h"
+#include "mysql.h"
+#include "lists.h"
+#include "help.h"
+
+/* puts -'s instead of spaces */
+void space_to_minus(char *str) {
+  while ((str = strchr(str, ' ')) != NULL)
+    *str = '-';
+}
+
+/* Name: search_help
+ * Author: Ornir (Jamie McLaughlin)
+ * 
+ * Original function hevaily modified (rewritten!) to use the help database
+ * instead of the in-memory help structure.  
+ * The consumer of the return value is responsible for freeing the memory!
+ * YOU HAVE BEEN WARNED.  */
+struct help_entry_list * search_help(const char *argument, int level) {
+
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  
+  struct help_entry_list *help_entries = NULL, *new_help_entry = NULL, *cur = NULL;
+   
+  char buf[1024], escaped_arg[MAX_STRING_LENGTH];
+
+  /*  Check the connection, reconnect if necessary. */
+  mysql_ping(conn);
+
+  mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
+
+  sprintf(buf, "SELECT keyword, alternate_keywords, entry, min_level, last_updated "
+               "  from help_entries "
+               "  where (lower(keyword) like lower('%%%s%%') "
+               "  or lower(alternate_keywords) like lower('%%%s%%')) and min_level <= %d",
+               argument, escaped_arg, level);
+ 
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to SELECT from help_entries: %s", mysql_error(conn));
+    return NULL;
+  }
+ 
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to SELECT from help_entries: %s", mysql_error(conn));
+    return NULL;
+  }
+  
+  while ((row = mysql_fetch_row(result))) {
+ 
+    /* Allocate memory for the region data. */
+    CREATE(new_help_entry, struct help_entry_list, 1);
+    new_help_entry->keyword = strdup(row[0]);
+    new_help_entry->alternate_keywords = strdup(row[1]);
+    new_help_entry->entry   = strdup(row[2]);
+    new_help_entry->min_level = atoi(row[3]);
+    new_help_entry->last_updated = strdup(row[4]);
+
+    if (help_entries == NULL) {
+      help_entries = new_help_entry;
+      cur = new_help_entry;
+    } else {
+      cur->next = new_help_entry;
+      cur = new_help_entry;
+    }
+//    new_help_entry->next = help_entries;
+//    help_entries = new_help_entry;
+    new_help_entry = NULL; 
+  }
+  
+  mysql_free_result(result);
+
+  return help_entries;
+}
+
+/* this is used for char creation help */
+
+/* make sure arg doesn't have spaces */
+void perform_help(struct descriptor_data *d, char *argument) {
+  struct help_entry_list *mid = NULL, *tmp = NULL;
+
+  if (!*argument)
+    return;
+
+  if ((mid = search_help(argument, LVL_IMPL)) == NULL)
+    return;
+  
+  /* Disable paging for character creation. */
+  if ((STATE(d) == CON_QRACE) ||
+      (STATE(d) == CON_QCLASS))
+    send_to_char(d->character, mid->entry);
+  else 
+    page_string(d, mid->entry, 0);
+  
+  while (mid != NULL) {
+      tmp = mid;
+      mid = mid->next;
+      free(tmp);
+  }
+  
+}
+
+ACMD(do_help) {
+  struct help_entry_list *entries = NULL, *tmp = NULL;
+  char help_entry_buffer[MAX_STRING_LENGTH];
+
+  if (!ch->desc)
+    return;
+
+  skip_spaces(&argument);
+
+  if (!*argument) {
+    if (GET_LEVEL(ch) < LVL_IMMORT)
+      page_string(ch->desc, help, 0);
+    else
+      page_string(ch->desc, ihelp, 0);
+    return;
+  }
+
+  space_to_minus(argument);
+
+  if ((entries = search_help(argument, GET_LEVEL(ch))) == NULL) {
+    send_to_char(ch, "There is no help on that word.\r\n");
+    mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
+            "%s tried to get help on %s", GET_NAME(ch), argument);
+/*  Implement later...
+     for (i = 0; i < top_of_helpt; i++) {
+      if (help_table[i].min_level > GET_LEVEL(ch)) 
+        continue;
+
+ */
+      /* To help narrow down results, if they don't start with the same letters, move on. */
+/*      if (*argument != *help_table[i].keywords)
+        continue;
+      if (levenshtein_distance(argument, help_table[i].keywords) <= 2) {
+        if (!found) {
+          send_to_char(ch, "\r\nDid you mean:\r\n");
+          found = 1;
+        }
+        send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
+                help_table[i].keywords, help_table[i].keywords);
+      }
+    }
+    send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
+*/
+    return;
+  }
+ 
+  /* Help entry format:
+   *  -------------------------------Help Entry-----------------------------------
+   *  Help Entry    : <Entry Name>
+   *  Help Keywords : <Keywords>
+   *  Help Category : <Category>
+   *  Related Help  : <Related Help entries>
+   *  Last Updated  : <Update date>
+   *  ----------------------------------------------------------------------------
+   *  <HELP ENTRY TEXT>
+   *  ----------------------------------------------------------------------------
+   *  */
+  sprintf(help_entry_buffer, "\tC%s\tn"
+                             "\tcHelp Entry    : \tn%s\r\n"
+                             "\tcHelp Keywords : \tn%s %s\r\n"
+                            // "\tcHelp Category : \tn%s\r\n"
+                            // "\tcRelated Help  : \tn%s\r\n"
+                             "\tcLast Updated  : \tn%s\r\n"
+                             "\tC%s"
+                             "\tn%s\r\n"
+                             "\tC%s",
+                             line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
+                             entries->keyword,
+                             entries->keyword, entries->alternate_keywords,
+                            // "<N/I>",
+                            // "<N/I>",
+                             entries->last_updated,
+                             line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
+                             entries->entry,
+                             line_string(GET_SCREEN_WIDTH(ch), '-', '-'));                            
+  page_string(ch->desc, help_entry_buffer, 0);
+
+  while (entries != NULL) {
+    tmp = entries;
+    entries = entries->next;
+    free(tmp);
+  }
+}
+//  send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
+
+
