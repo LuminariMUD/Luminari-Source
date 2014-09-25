@@ -25,11 +25,14 @@
 #include "hedit.h"
 #include "modify.h"
 
+#include "mysql.h"
+
 /* local functions */
 static void hedit_disp_menu(struct descriptor_data *);
 static void hedit_setup_new(struct descriptor_data *);
 static void hedit_setup_existing(struct descriptor_data *, int);
 static void hedit_save_to_disk(struct descriptor_data *);
+static void hedit_save_to_db(struct descriptor_data *);
 static void hedit_save_internally(struct descriptor_data *);
 
 
@@ -179,11 +182,41 @@ static void hedit_save_to_disk(struct descriptor_data *d)
   fprintf(fp, "$~\n");
   fclose(fp);
 
+  /* Save to the database as well.  */
+  hedit_save_to_db(d);
+
   remove_from_save_list(HEDIT_PERMISSION, SL_HLP);
 
   /* Reboot the help files. */
   free_help_table();     
   index_boot(DB_BOOT_HLP);
+}
+
+static void hedit_save_to_db(struct descriptor_data *d)
+{
+  char buf1[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH]; /* Buffers for DML query. */
+  int i = 0;
+  
+  if (mysql_query(conn, "DELETE FROM help_topics")) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to DELETE from help_topics: %s", mysql_error(conn));
+    return;
+  }
+
+
+  for (i = 0; i < top_of_helpt; i++) {
+    if (help_table[i].duplicate)
+      continue;
+    strncpy(buf1, help_table[i].entry ? help_table[i].entry : "Empty\r\n", sizeof(buf1) -1);
+    strip_cr(buf1);
+    mysql_real_escape_string(conn, buf2, buf1, strlen(buf1));
+
+    sprintf(buf, "INSERT INTO help_topics (topic, min_level) VALUES ('%s', %d)",
+      buf2, help_table[i].min_level);
+
+    if (mysql_query(conn, buf)) {
+      mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to INSERT in help_topics: %s", mysql_error(conn));
+    }
+  }  
 }
 
 /* The main menu. */
