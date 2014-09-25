@@ -10,6 +10,8 @@
 
 #include <mysql/mysql.h> /* System headerfile for mysql. */
 
+extern MYSQL *conn;
+
 void connect_to_mysql();
 void disconnect_from_mysql();
 
