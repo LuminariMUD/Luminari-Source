@@ -266,12 +266,12 @@ int compute_size_bonus(int sizeA, int sizeB) {
 /*  has_dex_bonus_to_ac(attacker, ch)
  *  Helper function to determine if a char can apply his dexterity bonus to his AC. */
 bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
-  if (AWAKE(ch) &&
-      ((attacker != NULL) && (CAN_SEE(ch, attacker) || HAS_FEAT(ch, FEAT_BLIND_FIGHT))) &&
-      !((AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_UNCANNY_DODGE)) ||
-        AFF_FLAGGED(ch, AFF_STUN) ||
-        AFF_FLAGGED(ch, AFF_PARALYZED) ||
-        char_has_mud_event(ch, eSTUNNED))) {
+  if (!AWAKE(ch) ||
+      ((attacker != NULL) && !(CAN_SEE(ch, attacker) && !HAS_FEAT(ch, FEAT_BLIND_FIGHT))) ||
+      (AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_UNCANNY_DODGE)) ||
+      AFF_FLAGGED(ch, AFF_STUN) ||
+      AFF_FLAGGED(ch, AFF_PARALYZED) ||
+      char_has_mud_event(ch, eSTUNNED)) {
     return FALSE;
   } else {
     return TRUE;
