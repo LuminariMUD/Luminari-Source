@@ -171,6 +171,8 @@ static void hedit_save_to_db(struct descriptor_data *d)
   if (mysql_query(conn, buf)) {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to INSERT in help_topics: %s", mysql_error(conn));
   }
+
+  /* help_keywords insert goes here */
 }
 
 /* The main menu. */

@@ -71,12 +71,12 @@ struct help_entry_list * search_help(const char *argument, int level) {
  
     /* Allocate memory for the help entry data. */
     CREATE(new_help_entry, struct help_entry_list, 1);
-    new_help_entry->tag = strdup(row[5]);
-    new_help_entry->keyword = strdup(row[0]);
+    new_help_entry->tag                = strdup(row[5]);
+    new_help_entry->keyword            = strdup(row[0]);
     new_help_entry->alternate_keywords = strdup(row[1]);
-    new_help_entry->entry   = strdup(row[2]);
-    new_help_entry->min_level = atoi(row[3]);
-    new_help_entry->last_updated = strdup(row[4]);
+    new_help_entry->entry              = strdup(row[2]);
+    new_help_entry->min_level          = atoi(row[3]);
+    new_help_entry->last_updated       = strdup(row[4]);
 
     if (help_entries == NULL) {
       help_entries = new_help_entry;
@@ -92,6 +92,64 @@ struct help_entry_list * search_help(const char *argument, int level) {
 
   return help_entries;
 }
+
+struct help_keyword_list* soundex_search_help_keywords(const char *argument, int level) {
+
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+
+  struct help_keyword_list *keywords = NULL, *new_keyword = NULL, *cur = NULL;
+
+  char buf[1024], escaped_arg[MAX_STRING_LENGTH];
+
+  /*   Check the connection, reconnect if necessary. */
+  mysql_ping(conn);
+
+  mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
+
+  sprintf(buf, "SELECT hk.help_tag "
+               "       hk.keyword "
+               "FROM help_entries he, "
+               "     help_keywords hk "
+               "WHERE he.tag = hk.help_tag "
+               "  and lower(hk.keyword) SOUNDS LIKE '%s' "
+               "  and he.min_level <= %d "
+               "ORDER BY length(hk.keyword) asc",
+               argument, level);
+
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
+    return NULL;
+  }
+ 
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
+    return NULL;
+  }
+
+  while ((row = mysql_fetch_row(result))) {
+
+    /* Allocate memory for the help entry data. */
+    CREATE(new_keyword, struct help_keyword_list, 1);
+    new_keyword->tag     = strdup(row[0]);
+    new_keyword->keyword = strdup(row[1]);
+
+    if (keywords == NULL) {
+      keywords = new_keyword;
+      cur = new_keyword;
+    } else {
+      cur->next = new_keyword;
+      cur = new_keyword;
+    }
+    new_keyword = NULL;
+  }
+
+  mysql_free_result(result);
+
+  return keywords;
+}
+
+
 
 /* this is used for char creation help */
 
@@ -110,7 +168,7 @@ void perform_help(struct descriptor_data *d, char *argument) {
       (STATE(d) == CON_QCLASS))
     send_to_char(d->character, mid->entry);
   else 
-    page_string(d, mid->entry, 0);
+    page_string(d, mid->entry, 1);
   
   while (mid != NULL) {
       tmp = mid;
@@ -122,6 +180,8 @@ void perform_help(struct descriptor_data *d, char *argument) {
 
 ACMD(do_help) {
   struct help_entry_list *entries = NULL, *tmp = NULL;
+  struct help_keyword_list *keywords = NULL, *tmp_keyword = NULL;
+
   char help_entry_buffer[MAX_STRING_LENGTH];
   char immo_data_buffer[1024];
 
@@ -144,33 +204,30 @@ ACMD(do_help) {
     send_to_char(ch, "There is no help on that word.\r\n");
     mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
             "%s tried to get help on %s", GET_NAME(ch), argument);
-/*  Implement later...
-     for (i = 0; i < top_of_helpt; i++) {
-      if (help_table[i].min_level > GET_LEVEL(ch)) 
-        continue;
 
- */
-      /* To help narrow down results, if they don't start with the same letters, move on. */
-/*      if (*argument != *help_table[i].keywords)
-        continue;
-      if (levenshtein_distance(argument, help_table[i].keywords) <= 2) {
-        if (!found) {
-          send_to_char(ch, "\r\nDid you mean:\r\n");
-          found = 1;
-        }
+    /* Implement 'SOUNDS LIKE' search here... */    
+    if ((keywords = soundex_search_help_keywords(argument, GET_LEVEL(ch))) != NULL) {
+      send_to_char(ch, "\r\nDid you mean:\r\n");
+      tmp_keyword = keywords;
+      while (tmp_keyword != NULL) {
         send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
-                help_table[i].keywords, help_table[i].keywords);
+                tmp_keyword->keyword, tmp_keyword->keyword);
+        tmp_keyword = tmp_keyword->next;
       }
-    }
-    send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
-*/
+      send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
+      while (keywords != NULL) {
+        tmp_keyword = keywords->next; 
+        free(keywords);
+        keywords = tmp_keyword;
+        tmp_keyword = NULL;
+      }
+    } 
     return;
   }
  
   /* Help entry format:
    *  -------------------------------Help Entry-----------------------------------
    *  Help tag      : <tag> (immortal only)
-   *  Help Entry    : <Entry Name>
    *  Help Keywords : <Keywords>
    *  Help Category : <Category>
    *  Related Help  : <Related Help entries>
@@ -183,8 +240,7 @@ ACMD(do_help) {
                              entries->tag);
   sprintf(help_entry_buffer, "\tC%s\tn"
                              "%s"
-                             "\tcHelp Entry    : \tn%s\r\n"
-                             "\tcHelp Keywords : \tn%s %s\r\n"
+                             "\tcHelp Keywords : \tn%s, %s\r\n"
                             // "\tcHelp Category : \tn%s\r\n"
                             // "\tcRelated Help  : \tn%s\r\n"
                              "\tcLast Updated  : \tn%s\r\n"
@@ -193,7 +249,6 @@ ACMD(do_help) {
                              "\tC%s",
                              line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
                              (IS_IMMORTAL(ch) ? immo_data_buffer : ""),
-                             entries->keyword,
                              entries->keyword, entries->alternate_keywords,
                             // "<N/I>",
                             // "<N/I>",
