@@ -280,8 +280,8 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
 
 bool is_flanked(struct char_data *attacker, struct char_data *ch) {
 
-  if ((FIGHTING(attacker) && FIGHTING(FIGHTING(attacker)) != attacker) &&
-      ((!HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE)) ||
+  if ((FIGHTING(ch) && (FIGHTING(ch) != attacker)) &&
+      (!HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE) ||
        (HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE) &&
         ((CLASS_LEVEL(attacker, CLASS_ROGUE) - CLASS_LEVEL(ch, CLASS_BERSERKER)) > 3))))
     return TRUE;
