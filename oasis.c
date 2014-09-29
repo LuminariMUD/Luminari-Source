@@ -174,6 +174,7 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
         while (OLC_HELP(d) != NULL) {
           tmp = OLC_HELP(d);
           OLC_HELP(d) = OLC_HELP(d)->next;
+          if (tmp->tag != NULL) free(tmp->tag);
           if (tmp->keyword != NULL) free(tmp->keyword);
           if (tmp->alternate_keywords != NULL) free(tmp->alternate_keywords);
           if (tmp->entry != NULL) free(tmp->entry);

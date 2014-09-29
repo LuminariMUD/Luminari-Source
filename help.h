@@ -9,6 +9,7 @@
 #define	HELP_H
 
 struct help_entry_list {
+  char *tag;
   char *keyword;
   char *alternate_keywords;
   char *entry;
