@@ -107,12 +107,12 @@ struct help_keyword_list* soundex_search_help_keywords(const char *argument, int
 
   mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
 
-  sprintf(buf, "SELECT hk.help_tag "
+  sprintf(buf, "SELECT hk.help_tag, "
                "       hk.keyword "
                "FROM help_entries he, "
                "     help_keywords hk "
                "WHERE he.tag = hk.help_tag "
-               "  and lower(hk.keyword) SOUNDS LIKE '%s' "
+               "  and hk.keyword sounds like '%s' "
                "  and he.min_level <= %d "
                "ORDER BY length(hk.keyword) asc",
                argument, level);
