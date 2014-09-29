@@ -558,10 +558,10 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
   if (AFF_FLAGGED(ch, AFF_SLEEP))
     affect_from_char(ch, SPELL_SLEEP);
 
-  /*  The char is flat footed until they take an action */
-  SET_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);  
+  /*  The char is flat footed until they take an action,
+   *  but only if they are not currently fighting.  */
+  if (!FIGHTING(ch)) SET_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);  
   FIGHTING(ch) = vict;
-  //  GET_POS(ch) = POS_FIGHTING;
 
   if (!CONFIG_PK_ALLOWED)
     check_killer(ch, vict);
