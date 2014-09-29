@@ -43,11 +43,19 @@ struct help_entry_list * search_help(const char *argument, int level) {
 
   mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
 
-  sprintf(buf, "SELECT keyword, alternate_keywords, entry, min_level, last_updated "
-               "  from help_entries "
-               "  where (lower(keyword) like lower('%s%%') "
-               "  or lower(alternate_keywords) like lower('%%%s%%')) and min_level <= %d",
-               argument, escaped_arg, level);
+  sprintf(buf, "SELECT distinct he.keyword,"
+               "                he.alternate_keywords,"
+               "                he.entry,"
+               "                he.min_level,"
+               "                he.last_updated,"
+               "                he.tag "
+               "FROM `help_entries` he, "
+               "     `help_keywords` hk "
+               "WHERE he.tag = hk.help_tag "
+               "  and lower(hk.keyword) like '%s%%' "
+               "  and he.min_level <= %d "
+               "ORDER BY length(hk.keyword) asc",
+               argument, level);
  
   if (mysql_query(conn, buf)) {
     log("SYSERR: Unable to SELECT from help_entries: %s", mysql_error(conn));
@@ -61,8 +69,9 @@ struct help_entry_list * search_help(const char *argument, int level) {
   
   while ((row = mysql_fetch_row(result))) {
  
-    /* Allocate memory for the region data. */
+    /* Allocate memory for the help entry data. */
     CREATE(new_help_entry, struct help_entry_list, 1);
+    new_help_entry->tag = strdup(row[5]);
     new_help_entry->keyword = strdup(row[0]);
     new_help_entry->alternate_keywords = strdup(row[1]);
     new_help_entry->entry   = strdup(row[2]);
@@ -76,8 +85,6 @@ struct help_entry_list * search_help(const char *argument, int level) {
       cur->next = new_help_entry;
       cur = new_help_entry;
     }
-//    new_help_entry->next = help_entries;
-//    help_entries = new_help_entry;
     new_help_entry = NULL; 
   }
   
@@ -116,6 +123,7 @@ void perform_help(struct descriptor_data *d, char *argument) {
 ACMD(do_help) {
   struct help_entry_list *entries = NULL, *tmp = NULL;
   char help_entry_buffer[MAX_STRING_LENGTH];
+  char immo_data_buffer[1024];
 
   if (!ch->desc)
     return;
@@ -161,6 +169,7 @@ ACMD(do_help) {
  
   /* Help entry format:
    *  -------------------------------Help Entry-----------------------------------
+   *  Help tag      : <tag> (immortal only)
    *  Help Entry    : <Entry Name>
    *  Help Keywords : <Keywords>
    *  Help Category : <Category>
@@ -170,7 +179,10 @@ ACMD(do_help) {
    *  <HELP ENTRY TEXT>
    *  ----------------------------------------------------------------------------
    *  */
+  sprintf(immo_data_buffer,  "\tcHelp Tag      : \tn%s\r\n",
+                             entries->tag);
   sprintf(help_entry_buffer, "\tC%s\tn"
+                             "%s"
                              "\tcHelp Entry    : \tn%s\r\n"
                              "\tcHelp Keywords : \tn%s %s\r\n"
                             // "\tcHelp Category : \tn%s\r\n"
@@ -180,6 +192,7 @@ ACMD(do_help) {
                              "\tn%s\r\n"
                              "\tC%s",
                              line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
+                             (IS_IMMORTAL(ch) ? immo_data_buffer : ""),
                              entries->keyword,
                              entries->keyword, entries->alternate_keywords,
                             // "<N/I>",
