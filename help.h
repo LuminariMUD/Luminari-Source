@@ -8,21 +8,6 @@
 #ifndef HELP_H
 #define	HELP_H
 
-/* Data structure to hold a list of help entries.
- * This is used whenever we are retreiving help entry data
- * from the database, and is also used by the oasis OLC
- * HEDIT. */
-struct help_entry_list {
-  char *tag;
-  char *keyword;
-  char *alternate_keywords;
-  char *entry;
-  int  min_level;
-  char *last_updated;
-
-  struct help_entry_list *next;
-};
-
 /* Data structure to hold a keyword list
  * for help entries for both display and storage. */
 struct help_keyword_list {
@@ -31,6 +16,21 @@ struct help_keyword_list {
 
   struct help_keyword_list *next;
 };
+
+/* Data structure to hold a list of help entries.
+ * This is used whenever we are retreiving help entry data
+ * from the database, and is also used by the oasis OLC
+ * HEDIT. */
+struct help_entry_list {
+  char *tag;
+  char *keywords;
+  char *entry;
+  int  min_level;
+  char *last_updated;
+
+  struct help_entry_list *next;
+};
+
 
 /* This is the MAIN search function - all help requests go through 
  * this function. */

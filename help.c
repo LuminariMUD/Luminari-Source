@@ -43,18 +43,10 @@ struct help_entry_list * search_help(const char *argument, int level) {
 
   mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
 
-  sprintf(buf, "SELECT distinct he.keyword,"
-               "                he.alternate_keywords,"
-               "                he.entry,"
-               "                he.min_level,"
-               "                he.last_updated,"
-               "                he.tag "
-               "FROM `help_entries` he, "
-               "     `help_keywords` hk "
-               "WHERE he.tag = hk.help_tag "
-               "  and lower(hk.keyword) like '%s%%' "
-               "  and he.min_level <= %d "
-               "ORDER BY length(hk.keyword) asc",
+  sprintf(buf, "SELECT distinct he.tag, he.entry, he.min_level, he.last_updated, group_concat(distinct hk2.keyword separator ', ')"
+               " FROM `help_entries` he, `help_keywords` hk, `help_keywords` hk2"
+               " WHERE he.tag = hk.help_tag and hk.help_tag = hk2.help_tag and lower(hk.keyword) like '%s%%' and he.min_level <= %d"
+               " group by hk.help_tag ORDER BY length(hk.keyword) asc",
                argument, level);
  
   if (mysql_query(conn, buf)) {
@@ -71,12 +63,11 @@ struct help_entry_list * search_help(const char *argument, int level) {
  
     /* Allocate memory for the help entry data. */
     CREATE(new_help_entry, struct help_entry_list, 1);
-    new_help_entry->tag                = strdup(row[5]);
-    new_help_entry->keyword            = strdup(row[0]);
-    new_help_entry->alternate_keywords = strdup(row[1]);
-    new_help_entry->entry              = strdup(row[2]);
-    new_help_entry->min_level          = atoi(row[3]);
-    new_help_entry->last_updated       = strdup(row[4]);
+    new_help_entry->tag                = strdup(row[0]);
+    new_help_entry->entry              = strdup(row[1]);
+    new_help_entry->min_level          = atoi(row[2]);
+    new_help_entry->last_updated       = strdup(row[3]);
+    new_help_entry->keywords           = strdup(row[4]);
 
     if (help_entries == NULL) {
       help_entries = new_help_entry;
@@ -240,7 +231,7 @@ ACMD(do_help) {
                              entries->tag);
   sprintf(help_entry_buffer, "\tC%s\tn"
                              "%s"
-                             "\tcHelp Keywords : \tn%s, %s\r\n"
+                             "\tcHelp Keywords : \tn%s\r\n"
                             // "\tcHelp Category : \tn%s\r\n"
                             // "\tcRelated Help  : \tn%s\r\n"
                              "\tcLast Updated  : \tn%s\r\n"
@@ -249,7 +240,7 @@ ACMD(do_help) {
                              "\tC%s",
                              line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
                              (IS_IMMORTAL(ch) ? immo_data_buffer : ""),
-                             entries->keyword, entries->alternate_keywords,
+                             entries->keywords,
                             // "<N/I>",
                             // "<N/I>",
                              entries->last_updated,
