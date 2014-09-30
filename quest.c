@@ -510,9 +510,20 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   
   /* argument equal to number in history */
   if ((rnum = real_quest(ch->player_specials->saved.completed_quests[num_arg])) != NOTHING) {
-    send_to_char(ch, "\r\nShow quest here: real-num %d, vnum %d\r\n", rnum, QST_NUM(rnum));
+
+    send_to_char(ch,
+            "Name  : \ty%s\tn\r\n"
+            "Desc  : \ty%s\tn\r\n"
+            "Accept Message:\r\n\tc%s\tn"
+            "Completion Message:\r\n\tc%s\tn",
+            QST_NAME(rnum), QST_DESC(rnum),
+            QST_INFO(rnum), QST_DONE(rnum)
+            )
+  
   } else {
-    send_to_char(ch, "\r\nNot valid input.\r\n");
+    send_to_char(ch, "\r\nNot valid input, please either use no input to view "
+            "your complete history or type history <nn> to view the details of "
+            "a completed quest.\r\n");
   }
 }
 
