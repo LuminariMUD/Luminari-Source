@@ -54,10 +54,10 @@ static const char *quest_cmd[] = {
 };
 
 static const char *quest_mort_usage =
-        "Usage: quest list | history | progress | join <nn> | leave | view";
+        "Usage: quest  list | history <optional nn> | progress | join <nn> | leave";
 
 static const char *quest_imm_usage =
-        "Usage: quest list | history | progress | join <nn> | leave | view | status <vnum>";
+        "Usage: quest  list | history <optional nn> | progress | join <nn> | leave | status <vnum>";
 
 /*--------------------------------------------------------------------------*/
 /* Utility Functions                                                        */
@@ -512,10 +512,10 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   if ((rnum = real_quest(ch->player_specials->saved.completed_quests[num_arg])) != NOTHING) {
 
     send_to_char(ch,
-            "Name  : \ty%s\tn\r\n"
-            "Desc  : \ty%s\tn\r\n"
-            "Accept Message:\r\n\tc%s\tn"
-            "Completion Message:\r\n\tc%s\tn",
+            "\tmName  :\tn \ty%s\tn\r\n"
+            "\tmDesc  :\tn \ty%s\tn\r\n"
+            "\tmAccept Message:\tn\r\n%s"
+            "\tmCompletion Message:\tn\r\n%s",
             QST_NAME(rnum), QST_DESC(rnum),
             QST_INFO(rnum), QST_DONE(rnum)
             );
