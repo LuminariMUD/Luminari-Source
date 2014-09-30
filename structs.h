@@ -532,9 +532,35 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MOB_LIT            35  /* light up mob */
 #define MOB_PLANAR_ALLY    36  /* is a planar ally (currently unused) */
 #define MOB_NOSTEAL        37  /* Can't steal from mob*/
+#define MOB_UNUSED_1       38
+#define MOB_UNUSED_2       39
+#define MOB_UNUSED_3       40
+#define MOB_UNUSED_4       41
+#define MOB_UNUSED_5       42
+#define MOB_UNUSED_6       43
+#define MOB_UNUSED_7       44
+#define MOB_UNUSED_8       45
+#define MOB_UNUSED_9       46
+#define MOB_UNUSED_10      47
+#define MOB_UNUSED_11      48
+#define MOB_UNUSED_12      49
+#define MOB_UNUSED_13      50
+#define MOB_UNUSED_14      51
+#define MOB_UNUSED_15      52
+#define MOB_UNUSED_16      53
+#define MOB_UNUSED_17      54
+#define MOB_UNUSED_18      55
+#define MOB_UNUSED_19      56
+#define MOB_UNUSED_20      57
+#define MOB_UNUSED_21      58
+#define MOB_UNUSED_22      59
+#define MOB_UNUSED_23      60
+#define MOB_UNUSED_24      61
+#define MOB_UNUSED_25      62
+#define MOB_UNUSED_26      63
 
 /**********************/
-#define NUM_MOB_FLAGS      38
+#define NUM_MOB_FLAGS      64
 
 /* keeping this temporarily for homeland-port reference */
 /*

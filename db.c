@@ -1938,7 +1938,8 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("Path") {
     const char *temp = value;
     
-    log("Path encountered in ESpec.");
+    /* i'm commenting this out, it just creates spam in the log file -zusuk */
+    //log("Path encountered in ESpec.");
     PATH_SIZE(&mob_proto[i]) = 0;
     PATH_RESET(&mob_proto[i]) = num_arg;
     PATH_DELAY(&mob_proto[i]) = PATH_RESET(&mob_proto[i]);
@@ -1951,7 +1952,8 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     while (*temp != 0) {
       room_vnum room = atoi(temp);
       if (room) {
-        log("Path Index = %d  (Current Size %d)", room, PATH_SIZE(&mob_proto[i]));
+        /* too much spam in log file -zusuk */
+        //log("Path Index = %d  (Current Size %d)", room, PATH_SIZE(&mob_proto[i]));
         GET_PATH(&mob_proto[i], PATH_SIZE(&mob_proto[i])++) = room;
       }
       temp++;
@@ -2261,7 +2263,8 @@ char *parse_object(FILE *obj_f, int nr) {
       log("SYSERR: Format error in second numeric line (expecting 4 or 16 args, got %d), %s", retval, buf2);
       exit(1);
     }
-    log("INFO: Loaded old file version, converting from 4 to 16 object values.");
+    /* this is just creating tons of spam -zusuk */
+    //log("INFO: Loaded old file version, converting from 4 to 16 object values.");
   }
 
   GET_OBJ_VAL(obj_proto + i, 0) = t[0];
