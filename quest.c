@@ -510,7 +510,7 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   
   /* argument equal to number in history */
   if ((rnum = real_quest(ch->player_specials->saved.completed_quests[atoi(argument)])) != NOTHING) {
-    send_to_char(ch, "\r\nShow quest here: %d\r\n", rnum);
+    send_to_char(ch, "\r\nShow quest here: real-num %d, vnum %d\r\n", rnum, QST_NUM(rnum));
   } else {
     send_to_char(ch, "\r\nNot valid input.\r\n");
   }
