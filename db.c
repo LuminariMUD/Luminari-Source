@@ -508,9 +508,9 @@ void boot_world(void) {
 
   log("Indexing wilderness rooms.");
   initialize_wilderness_lists();
-  
+
   log("Writing wilderness map image.");
-//  save_map_to_file("luminari_wilderness.png", WILD_X_SIZE, WILD_Y_SIZE);
+  //  save_map_to_file("luminari_wilderness.png", WILD_X_SIZE, WILD_Y_SIZE);
 
   //save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 0);
   //save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 1);
@@ -739,7 +739,7 @@ void boot_db(void) {
   mag_assign_spells();
 
   log("Loading weapon and armor special ability definitions.");
-  initialize_special_abilities();  
+  initialize_special_abilities();
 
   boot_world();
 
@@ -1428,7 +1428,7 @@ void setup_dir(FILE *fl, int room, int dir) {
 
   world[room].dir_option[dir]->key = ((t[1] == -1 || t[1] == 65535) ? NOTHING :
           t[1]);
-  world[room].dir_option[dir]->to_room = ((t[2] == -1 || t[2] == 0 || 
+  world[room].dir_option[dir]->to_room = ((t[2] == -1 || t[2] == 0 ||
           t[2] == 65535) ? NOWHERE : t[2]);
 }
 
@@ -1558,7 +1558,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
 
   GET_LEVEL(mob_proto + i) = t[0];
   GET_REAL_HITROLL(mob_proto + i) = 20 - t[1];
-  
+
   /* hack to convert old school dnd AC to d20 
      the AC is saved to file as a factor of 10 of the old school system
      we have to convert to d20, then multiply the factor back in
@@ -1643,7 +1643,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   ECHO_SEQUENTIAL(mob_proto + i) = 0;
   CURRENT_ECHO(mob_proto + i) = 0;
   // ECHO_ENTRIES(mob_proto + i) = "";
-  
+
   affect_total(mob_proto + i);
 }
 
@@ -1759,7 +1759,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     RANGE(0, 100);
     GET_REAL_SAVE(mob_proto + i, SAVING_DEATH) = num_arg;
   }
-  
+
   /* end saving throws */
 
   /* damtype resistances */
@@ -1937,7 +1937,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("Path") {
     const char *temp = value;
-    
+
     /* i'm commenting this out, it just creates spam in the log file -zusuk */
     //log("Path encountered in ESpec.");
     PATH_SIZE(&mob_proto[i]) = 0;
@@ -1961,13 +1961,13 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
         temp++;
     }
   }
-  
+
   if (!matched) {
     log("SYSERR: Warning: unrecognized espec keyword %s in mob #%d",
             keyword, nr);
   }
   affect_total(mob_proto + i);
-  
+
 }
 
 #undef CASE
@@ -2253,12 +2253,12 @@ char *parse_object(FILE *obj_f, int nr) {
   }
 
   /* Initialize the t array. */
-  for(j = 0; j < NUM_OBJ_VAL_POSITIONS; j++)
+  for (j = 0; j < NUM_OBJ_VAL_POSITIONS; j++)
     t[j] = 0;
 
-  if ((retval = sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", 
-    &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7], &t[8], 
-    &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15])) != 4) {
+  if ((retval = sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+          &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7], &t[8],
+          &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15])) != 4) {
     if (retval != 16) {
       log("SYSERR: Format error in second numeric line (expecting 4 or 16 args, got %d), %s", retval, buf2);
       exit(1);
@@ -2389,29 +2389,29 @@ char *parse_object(FILE *obj_f, int nr) {
                   "...expecting 7 numeric constants but file ended!", buf2);
           exit(1);
         }
-        if ((retval = sscanf(line, "%d %d %d %d %d %d %d %s", t, 
-                                                              t + 1, 
-                                                              t + 2,
-							      t + 3,
-							      t + 4,
-                                                              t + 5,
-                                                              t + 6,
-                                                              f1 )) < 7) {
+        if ((retval = sscanf(line, "%d %d %d %d %d %d %d %s", t,
+                t + 1,
+                t + 2,
+                t + 3,
+                t + 4,
+                t + 5,
+                t + 6,
+                f1)) < 7) {
           log("SYSERR: Format error in 'C' field, %s\n"
                   "...expecting 7 numeric arguments, got %d\n"
                   "...offending line: '%s'", buf2, retval, line);
           exit(1);
         }
 
-        new_specab->ability           = t[0];
-        new_specab->level             = t[1];
+        new_specab->ability = t[0];
+        new_specab->level = t[1];
         new_specab->activation_method = t[2];
-        new_specab->value[0]          = t[3];
-        new_specab->value[1]          = t[4];
-        new_specab->value[2]          = t[5];
-        new_specab->value[3]          = t[6];
-        new_specab->command_word      = (retval == 8 ? strdup(f1) : NULL);
-       
+        new_specab->value[0] = t[3];
+        new_specab->value[1] = t[4];
+        new_specab->value[2] = t[5];
+        new_specab->value[3] = t[6];
+        new_specab->command_word = (retval == 8 ? strdup(f1) : NULL);
+
         new_specab->next = obj_proto[i].special_abilities;
         obj_proto[i].special_abilities = new_specab;
         break;
@@ -2539,10 +2539,10 @@ static void load_zones(FILE *fl, char *zonename) {
     CREATE(Z.cmd, struct reset_com, num_of_cmds);
 
   line_num += get_line(fl, buf);
-/* vnum expansion */
-//  if (sscanf(buf, "#%hd", &Z.number) != 1) {
-  if (sscanf(buf, "#%d", &Z.number) != 1) { 
-  log("SYSERR: Format error in %s, line %d", zname, line_num);
+  /* vnum expansion */
+  //  if (sscanf(buf, "#%hd", &Z.number) != 1) {
+  if (sscanf(buf, "#%d", &Z.number) != 1) {
+    log("SYSERR: Format error in %s, line %d", zname, line_num);
     exit(1);
   }
   snprintf(buf2, sizeof (buf2), "beginning of zone #%d", Z.number);
@@ -2564,16 +2564,15 @@ static void load_zones(FILE *fl, char *zonename) {
 
   // had to change this block -zusuk
   line_num += get_line(fl, buf);
-  
+
   /* vnum expansion 
   if (sscanf(buf, " %hd %hd %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top, &Z.lifespan,
           &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
           &Z.show_weather) != 11) {
-  */
-  if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top, 
-      &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, 
-      &Z.max_level, &Z.show_weather) != 11) 
-   {     
+   */
+  if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top,
+          &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
+          &Z.max_level, &Z.show_weather) != 11) {
     // not 11 values, lets try 10
     if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d", &Z.bot, &Z.top, &Z.lifespan,
             &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level) != 10) {
@@ -3021,7 +3020,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
   object_list = obj;
 
   obj->events = NULL;
- 
+
   obj_index[i].number++;
 
   GET_ID(obj) = max_obj_id++;
@@ -3037,20 +3036,20 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
       obj->sbinfo[j].pages = obj_proto[i].sbinfo[j].pages;
     }
   }
- 
+
   obj->special_abilities = NULL;
- 
+
   /* Copy the special ability information. */
-  for(proto_specab = obj_proto[i].special_abilities;
-      proto_specab != NULL;
-      proto_specab = proto_specab->next) {
+  for (proto_specab = obj_proto[i].special_abilities;
+          proto_specab != NULL;
+          proto_specab = proto_specab->next) {
 
     CREATE(specab_list, struct obj_special_ability, 1);
     /* Populate the node. */
     *specab_list = *proto_specab;
 
     /* Copy the command word (pointer, not copied above. */
-    if(proto_specab->command_word != NULL)
+    if (proto_specab->command_word != NULL)
       specab_list->command_word = strdup(proto_specab->command_word);
 
     /* Put the new node on the list. */
@@ -3122,7 +3121,7 @@ void zone_update(void) {
             is_empty(update_u->zone_to_reset)) {
       reset_zone(update_u->zone_to_reset);
       mudlog(CMP, LVL_IMPL, FALSE, "\tnAuto zone reset: %s (Zone %d)",
-              zone_table[update_u->zone_to_reset].name, 
+              zone_table[update_u->zone_to_reset].name,
               zone_table[update_u->zone_to_reset].number);
       /* dequeue */
       if (update_u == reset_q.head)
@@ -3237,23 +3236,23 @@ void reset_zone(zone_rnum zone) {
                 rand_number(1, 100) <= ZCMD.arg4) {
           mob = read_mobile(ZCMD.arg1, REAL);
 
-          if(ZONE_FLAGGED(GET_ROOM_ZONE(ZCMD.arg3), ZONE_WILDERNESS)) {
+          if (ZONE_FLAGGED(GET_ROOM_ZONE(ZCMD.arg3), ZONE_WILDERNESS)) {
             X_LOC(mob) = world[ZCMD.arg3].coords[0];
             Y_LOC(mob) = world[ZCMD.arg3].coords[1];
           }
- 
+
           char_to_room(mob, ZCMD.arg3);
           load_mtrigger(mob);
-          set_mob_grouping(mob);  //attempts to group AFF_GROUP mobs (utils.c)
+          set_mob_grouping(mob); //attempts to group AFF_GROUP mobs (utils.c)
           tmob = mob;
           GET_MOB_LOADROOM(mob) = IN_ROOM(mob);
 
-	     /* Calculate random treasure for the mobile. -Ornir */
+          /* Calculate random treasure for the mobile. -Ornir */
           /*
           if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE)) {
             load_treasure(mob);
           }
-          */
+           */
 
           last_cmd = 1;
         } else
@@ -3327,21 +3326,21 @@ void reset_zone(zone_rnum zone) {
           ZCMD.command = '*';
           break;
         }
-        if (rand_number(1, 100) <= ZCMD.arg1) 
-          load_treasure(mob);          
+        if (rand_number(1, 100) <= ZCMD.arg1)
+          load_treasure(mob);
         break;
       case 'L': /* random treasure to container (with percentage loads) */
-/*       if (rand_number(1, 100) <= ZCMD.arg2) {
-          if (!(obj_to = get_obj_num(ZCMD.arg3))) {
-            ZONE_ERROR("target obj not found, command disabled");
-            ZCMD.command = '*';
-            break;
-          }
-          load_treasure_in_obj(obj_to);
-          last_cmd = 1;
-        } else
-          last_cmd = 0;
-*/
+        /*       if (rand_number(1, 100) <= ZCMD.arg2) {
+                  if (!(obj_to = get_obj_num(ZCMD.arg3))) {
+                    ZONE_ERROR("target obj not found, command disabled");
+                    ZCMD.command = '*';
+                    break;
+                  }
+                  load_treasure_in_obj(obj_to);
+                  last_cmd = 1;
+                } else
+                  last_cmd = 0;
+         */
         last_cmd = 0; /* Disable this for now... */
         break;
       case 'E': /* object to equipment list (with percentage loads) */
@@ -3429,7 +3428,7 @@ void reset_zone(zone_rnum zone) {
               break;
             case 5:
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                     EX_CLOSED);
+                      EX_CLOSED);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_LOCKED_EASY);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
@@ -3457,7 +3456,7 @@ void reset_zone(zone_rnum zone) {
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_CLOSED);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                     EX_LOCKED_MEDIUM);
+                      EX_LOCKED_MEDIUM);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_HIDDEN_EASY);
               break;
@@ -3465,7 +3464,7 @@ void reset_zone(zone_rnum zone) {
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_CLOSED);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                        EX_LOCKED_MEDIUM);
+                      EX_LOCKED_MEDIUM);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_HIDDEN_MEDIUM);
               break;
@@ -3475,7 +3474,7 @@ void reset_zone(zone_rnum zone) {
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_LOCKED_MEDIUM);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                     EX_HIDDEN_HARD);
+                      EX_HIDDEN_HARD);
               break;
             case 12:
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
@@ -3487,7 +3486,7 @@ void reset_zone(zone_rnum zone) {
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_CLOSED);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                         EX_LOCKED_HARD);
+                      EX_LOCKED_HARD);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_HIDDEN_EASY);
               break;
@@ -3503,7 +3502,7 @@ void reset_zone(zone_rnum zone) {
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_CLOSED);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                         EX_LOCKED_HARD);
+                      EX_LOCKED_HARD);
               SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
                       EX_HIDDEN_HARD);
               break;
@@ -3514,7 +3513,7 @@ void reset_zone(zone_rnum zone) {
                       EX_CLOSED);
               break;
           }
-       
+
         last_cmd = 1;
         tmob = NULL;
         tobj = NULL;
@@ -3964,9 +3963,9 @@ void free_char(struct char_data *ch) {
       free_alias(a);
     }
     /* Free the action queue */
-    if(GET_QUEUE(ch))
+    if (GET_QUEUE(ch))
       free_action_queue(GET_QUEUE(ch));
-    if(GET_ATTACK_QUEUE(ch))
+    if (GET_ATTACK_QUEUE(ch))
       free_attack_queue(GET_ATTACK_QUEUE(ch));
 
     if (ch->player_specials->poofin)
@@ -4235,11 +4234,11 @@ void clear_char(struct char_data *ch) {
   GET_POS(ch) = POS_STANDING;
   ch->mob_specials.default_pos = POS_STANDING;
   ch->events = NULL;
-  
+
   /* worried about mobiles having junk-data for wards */
   for (i = 0; i < MAX_WARDING; i++)
     GET_WARDING(ch, i) = 0;
-  
+
   if (IS_NPC(ch))
     PROC_FIRED(ch) = 0;
 
@@ -4564,17 +4563,27 @@ static int check_object(struct obj_data *obj) {
       char onealias[MAX_INPUT_LENGTH], *space = strrchr(obj->name, ' ');
 
       strlcpy(onealias, space ? space + 1 : obj->name, sizeof (onealias));
-      if (search_block(onealias, drinknames, TRUE) < 0 && (error = TRUE))
+      
+      /* i don't see why this is an issue, I turned off the reporting since
+       it fills our logs with errors -zusuk */
+      if (search_block(onealias, drinknames, TRUE) < 0 && (error = TRUE)) {
+        /*
         log("SYSERR: Object #%d (%s) doesn't have drink type as last keyword. (%s)",
               GET_OBJ_VNUM(obj), obj->short_description, obj->name);
+        */
+      }
     }
       /* Fall through. */
     case ITEM_FOUNTAIN:
       if ((GET_OBJ_VAL(obj, 0) > 0) && (GET_OBJ_VAL(obj, 1) > GET_OBJ_VAL(obj, 0)
-              && (error = TRUE)))
+              && (error = TRUE))) {
+        /* commented out to reduce spam -zusuk */
+        /*
         log("SYSERR: Object #%d (%s) contains (%d) more than maximum (%d).",
               GET_OBJ_VNUM(obj), obj->short_description,
               GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 0));
+        */
+      }
       break;
     case ITEM_SCROLL:
     case ITEM_POTION:
@@ -4598,8 +4607,12 @@ static int check_object(struct obj_data *obj) {
         next_name = any_one_arg(obj->name, onealias);
         do {
           if (find_exdesc(onealias, obj->ex_description) && (error = TRUE)) {
+            
+            /* I am not sure why this is a problem, removed to reduce log spam -Zusuk */
+            /*
             log("SYSERR: Object #%d (%s) is type NOTE and has extra description with same name. (%s)",
                     GET_OBJ_VNUM(obj), obj->short_description, obj->name);
+            */
           }
           next_name = any_one_arg(next_name, onealias);
         } while (*onealias);
