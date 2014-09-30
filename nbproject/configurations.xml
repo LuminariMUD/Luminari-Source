@@ -106,6 +106,8 @@
       <in>handler.h</in>
       <in>hedit.c</in>
       <in>hedit.h</in>
+      <in>help.c</in>
+      <in>help.h</in>
       <in>hlqedit.c</in>
       <in>hlquest.c</in>
       <in>hlquest.h</in>
