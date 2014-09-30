@@ -24,10 +24,10 @@
 #include "act.h" /* for do_tell */
 #include "mudlim.h"
 
-
 /*--------------------------------------------------------------------------
  * Exported global variables
  *--------------------------------------------------------------------------*/
+
 const char *quest_types[] = {
   "Object",
   "Room",
@@ -43,10 +43,10 @@ const char *aq_flags[] = {
   "\n"
 };
 
-
 /*--------------------------------------------------------------------------
  * Local (file scope) global variables
  *--------------------------------------------------------------------------*/
+
 static int cmd_tell;
 
 static const char *quest_cmd[] = {
@@ -61,7 +61,6 @@ static const char *quest_imm_usage =
 
 /*--------------------------------------------------------------------------*/
 /* Utility Functions                                                        */
-
 /*--------------------------------------------------------------------------*/
 
 /* given a quest virtual number, return its real-number */
@@ -99,9 +98,9 @@ qst_vnum find_quest_by_qmnum(struct char_data *ch, mob_vnum qm, int num) {
 
 /*--------------------------------------------------------------------------*/
 /* Quest Loading and Unloading Functions                                    */
-
 /*--------------------------------------------------------------------------*/
 
+/* completely wipe/free the aquest table */
 void destroy_quests(void) {
   qst_rnum rnum = 0;
 
@@ -118,6 +117,7 @@ void destroy_quests(void) {
   return;
 }
 
+/* count how many quests between two vnums */
 int count_quests(qst_vnum low, qst_vnum high) {
   int i, j;
 
@@ -131,11 +131,13 @@ int count_quests(qst_vnum low, qst_vnum high) {
   return j;
 }
 
+/* read quest from file and load it into memory */
 void parse_quest(FILE *quest_f, int nr) {
   static char line[MEDIUM_STRING];
   static int i = 0, j;
   int retval = 0, t[7];
   char f1[128], buf2[MAX_STRING_LENGTH];
+  
   aquest_table[i].vnum = nr;
   aquest_table[i].qm = NOBODY;
   aquest_table[i].name = NULL;
@@ -211,8 +213,9 @@ void parse_quest(FILE *quest_f, int nr) {
         break;
     }
   }
-} /* parse_quest */
+} /* end parse_quest */
 
+/* assign the quests to their questmasters */
 void assign_the_quests(void) {
   qst_rnum rnum;
   mob_rnum mrnum;
@@ -237,8 +240,9 @@ void assign_the_quests(void) {
 
 /*--------------------------------------------------------------------------*/
 /* Quest Completion Functions                                               */
-
 /*--------------------------------------------------------------------------*/
+
+/* assign a quest to given ch */
 void set_quest(struct char_data *ch, qst_rnum rnum) {
   GET_QUEST(ch) = QST_NUM(rnum);
   GET_QUEST_TIME(ch) = QST_TIME(rnum);
@@ -247,6 +251,7 @@ void set_quest(struct char_data *ch, qst_rnum rnum) {
   return;
 }
 
+/* clear a ch of his quest */
 void clear_quest(struct char_data *ch) {
   GET_QUEST(ch) = NOTHING;
   GET_QUEST_TIME(ch) = -1;
@@ -255,6 +260,7 @@ void clear_quest(struct char_data *ch) {
   return;
 }
 
+/* add a completed quest to the saved quest list of the ch (history) */
 void add_completed_quest(struct char_data *ch, qst_vnum vnum) {
   qst_vnum *temp;
   int i;
@@ -271,6 +277,7 @@ void add_completed_quest(struct char_data *ch, qst_vnum vnum) {
   ch->player_specials->saved.completed_quests = temp;
 }
 
+/* */
 void remove_completed_quest(struct char_data *ch, qst_vnum vnum) {
   qst_vnum *temp;
   int i, j = 0;
@@ -448,9 +455,7 @@ void check_timed_quests(void) {
 
 /*--------------------------------------------------------------------------*/
 /* Quest Command Helper Functions                                           */
-
 /*--------------------------------------------------------------------------*/
-
 void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum vmax) {
   qst_rnum rnum;
   qst_vnum bottom, top;
@@ -477,7 +482,7 @@ void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum v
 }
 
 void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
-  int i = 0, counter = 0;
+  int i = 0, counter = 0, num_arg = -1;
   qst_rnum rnum = NOTHING;
 
   /* no argument, just do a general listing of history */
@@ -496,12 +501,18 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
     if (!counter)
       send_to_char(ch, "You haven't completed any quests yet.\r\n");
     
-    /* argument equal to number in history */
-  } else if ((rnum = real_quest(ch->player_specials->saved.completed_quests[atoi(argument)])) != NOTHING) {
-    send_to_char(ch, "\r\nShow quest here.\r\n");
+    return;
+  }
+  
+  /* convert argument to a integer */
+  num_arg = atoi(argument);
+  num_arg++;
+  
+  /* argument equal to number in history */
+  if ((rnum = real_quest(ch->player_specials->saved.completed_quests[atoi(argument)])) != NOTHING) {
+    send_to_char(ch, "\r\nShow quest here: %d\r\n", rnum);
   } else {
     send_to_char(ch, "\r\nNot valid input.\r\n");
-    
   }
 }
 
@@ -757,12 +768,9 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   }
 }
 
-
 /*--------------------------------------------------------------------------*/
 /* Quest Command Processing Function and Questmaster Special                */
-
 /*--------------------------------------------------------------------------*/
-
 ACMD(do_quest) {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int tp;
