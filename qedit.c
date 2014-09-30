@@ -36,10 +36,12 @@ static void qedit_save_to_disk(int num);
 
 /*-------------------------------------------------------------------*/
 
+/* from genqst.c - saving a quest to memory */
 static void qedit_save_internally(struct descriptor_data *d) {
   add_quest(OLC_QUEST(d));
 }
 
+/* from genqst.c - saving a quest to disk */
 static void qedit_save_to_disk(int num) {
   save_quests(num);
 }
@@ -48,6 +50,7 @@ static void qedit_save_to_disk(int num) {
   utility functions
  \*-------------------------------------------------------------------*/
 
+/* the qedit command */
 ACMD(do_oasis_qedit) {
   int save = 0;
   qst_rnum real_num;
@@ -186,6 +189,7 @@ ACMD(do_oasis_qedit) {
           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
+/* initialize a blank quest for usage */
 static void qedit_setup_new(struct descriptor_data *d) {
   struct aq_data *quest;
 
@@ -224,6 +228,7 @@ static void qedit_setup_new(struct descriptor_data *d) {
 
 /*-------------------------------------------------------------------*/
 
+/* edit a quest that already exists */
 static void qedit_setup_existing(struct descriptor_data *d, qst_rnum r_num) {
   /*. Alloc some quest shaped space . */
   CREATE(OLC_QUEST(d), struct aq_data, 1);
@@ -240,7 +245,6 @@ static void qedit_setup_existing(struct descriptor_data *d, qst_rnum r_num) {
 /*-------------------------------------------------------------------*/
 
 /*. Display main menu . */
-
 static void qedit_disp_menu(struct descriptor_data *d) {
   struct aq_data *quest;
   char quest_flags[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
@@ -367,7 +371,6 @@ void qedit_disp_flag_menu(struct descriptor_data *d) {
 /**************************************************************************
   The GARGANTUAN event handler
  **************************************************************************/
-
 void qedit_parse(struct descriptor_data *d, char *arg) {
   int number = atoi(arg);
   char *oldtext = NULL;
@@ -728,6 +731,7 @@ void qedit_parse(struct descriptor_data *d, char *arg) {
   qedit_disp_menu(d);
 }
 
+/* doesn't really do much */
 void qedit_string_cleanup(struct descriptor_data *d, int terminator) {
   switch (OLC_MODE(d)) {
     case QEDIT_INFO:
