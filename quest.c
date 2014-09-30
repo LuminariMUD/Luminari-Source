@@ -518,7 +518,7 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
             "Completion Message:\r\n\tc%s\tn",
             QST_NAME(rnum), QST_DESC(rnum),
             QST_INFO(rnum), QST_DONE(rnum)
-            )
+            );
   
   } else {
     send_to_char(ch, "\r\nNot valid input, please either use no input to view "
