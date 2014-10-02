@@ -81,6 +81,7 @@ void get_char_colors(struct char_data *ch)
 void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
 {
   struct help_entry_list *tmp;
+  struct help_keyword_list *tmp_keyword;
 
   /* Clean up WHAT? */
   if (d->olc == NULL)
@@ -177,6 +178,11 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
           if (tmp->tag != NULL) free(tmp->tag);
           if (tmp->keywords != NULL) free(tmp->keywords);
           if (tmp->entry != NULL) free(tmp->entry);
+          while(tmp->keyword_list != NULL) {
+            tmp_keyword = tmp->keyword_list->next;
+            free(tmp->keyword_list);
+            tmp->keyword_list = tmp_keyword;
+          }
           free(tmp);
         }
         break;
