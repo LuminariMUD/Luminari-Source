@@ -43,7 +43,7 @@ struct help_entry_list * search_help(const char *argument, int level) {
 
   mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
 
-  sprintf(buf, "SELECT distinct he.tag, he.entry, he.min_level, he.last_updated, group_concat(distinct hk2.keyword separator ', ')"
+  sprintf(buf, "SELECT distinct he.tag, he.entry, he.min_level, he.last_updated, group_concat(distinct CONCAT(UCASE(LEFT(hk2.keyword, 1)), LCASE(SUBSTRING(hk2.keyword, 2))) separator ', ')"
                " FROM `help_entries` he, `help_keywords` hk, `help_keywords` hk2"
                " WHERE he.tag = hk.help_tag and hk.help_tag = hk2.help_tag and lower(hk.keyword) like '%s%%' and he.min_level <= %d"
                " group by hk.help_tag ORDER BY length(hk.keyword) asc",
@@ -95,7 +95,7 @@ struct help_keyword_list* get_help_keywords(const char *tag) {
   char buf[1024];
 
   /* Get keywords for this entry. */
-  sprintf(buf, "select help_tag, keyword from help_keywords where help_tag = '%s'", tag);
+  sprintf(buf, "select help_tag, CONCAT(UCASE(LEFT(keyword, 1)), LCASE(SUBSTRING(keyword, 2))) from help_keywords where help_tag = '%s'", tag);
   if (mysql_query(conn, buf)) {
     log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
     return NULL;
