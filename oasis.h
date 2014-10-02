@@ -473,9 +473,12 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define HEDIT_CONFIRM_ADD               2
 #define HEDIT_MAIN_MENU                 3
 #define HEDIT_ENTRY                     4
-#define HEDIT_KEYWORD                   5
+#define HEDIT_TAG                       5
 #define HEDIT_MIN_LEVEL                 6
-#define HEDIT_ALT_KEYWORDS              7
+#define HEDIT_KEYWORD_MENU              7
+#define HEDIT_NEW_KEYWORD               8
+#define HEDIT_DEL_KEYWORD               9
+#define HEDIT_CONFIRM_DELETE           10
 
 /* Clanedit Submodes of connectedness. */
 #define CLANEDIT_CONFIRM_SAVESTRING    0    /**< Submode for quit option, does player want to save? */

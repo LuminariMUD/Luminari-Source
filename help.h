@@ -23,10 +23,13 @@ struct help_keyword_list {
  * HEDIT. */
 struct help_entry_list {
   char *tag;
-  char *keywords;
+  char *keywords;  /* Comma seperated list of keywords, used in the help display. */
   char *entry;
   int  min_level;
   char *last_updated;
+
+  /* Structure to hold keyword data */
+  struct help_keyword_list *keyword_list;
 
   struct help_entry_list *next;
 };
@@ -35,6 +38,7 @@ struct help_entry_list {
 /* This is the MAIN search function - all help requests go through 
  * this function. */
 struct help_entry_list * search_help(const char *argument, int level);
+struct help_keyword_list* get_help_keywords(const char *tag);
 
 /* Used during character creation, does not show all of the header information
  * shown by the do_help function, as players do not have access to the entire

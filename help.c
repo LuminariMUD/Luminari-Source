@@ -60,7 +60,7 @@ struct help_entry_list * search_help(const char *argument, int level) {
   }
   
   while ((row = mysql_fetch_row(result))) {
- 
+
     /* Allocate memory for the help entry data. */
     CREATE(new_help_entry, struct help_entry_list, 1);
     new_help_entry->tag                = strdup(row[0]);
@@ -68,6 +68,8 @@ struct help_entry_list * search_help(const char *argument, int level) {
     new_help_entry->min_level          = atoi(row[2]);
     new_help_entry->last_updated       = strdup(row[3]);
     new_help_entry->keywords           = strdup(row[4]);
+
+    new_help_entry->keyword_list = get_help_keywords(new_help_entry->tag);
 
     if (help_entries == NULL) {
       help_entries = new_help_entry;
@@ -82,6 +84,43 @@ struct help_entry_list * search_help(const char *argument, int level) {
   mysql_free_result(result);
 
   return help_entries;
+}
+
+struct help_keyword_list* get_help_keywords(const char *tag) {
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+
+  struct help_keyword_list *keywords = NULL, *new_keyword = NULL, *cur = NULL;
+
+  char buf[1024];
+
+  /* Get keywords for this entry. */
+  sprintf(buf, "select help_tag, keyword from help_keywords where help_tag = '%s'", tag);
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
+    return NULL;
+  }
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
+    return NULL;
+  }
+  while ((row = mysql_fetch_row(result))) {
+    CREATE(new_keyword, struct help_keyword_list, 1);
+    new_keyword->tag = strdup(row[0]);
+    new_keyword->keyword  = strdup(row[1]);
+    new_keyword->next = NULL;
+
+    if (keywords == NULL) {
+      keywords = new_keyword;
+      cur = new_keyword;
+    } else {
+      cur->next = new_keyword;
+      cur = new_keyword;
+    }
+  }
+
+  mysql_free_result(result);
+  return keywords;
 }
 
 struct help_keyword_list* soundex_search_help_keywords(const char *argument, int level) {
@@ -252,9 +291,17 @@ ACMD(do_help) {
   while (entries != NULL) {
     tmp = entries;
     entries = entries->next;
+
+    while(tmp->keyword_list != NULL) {
+      tmp_keyword = tmp->keyword_list->next;
+      free(tmp->keyword_list);
+      tmp->keyword_list = tmp_keyword;    
+    }
+
     free(tmp);
   }
 }
+
 //  send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
 
 
