@@ -276,8 +276,7 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
   set_fighting(ch, tmp_ch);
   set_fighting(tmp_ch, ch);
 
-  USE_STANDARD_ACTION(ch);
-  start_action_cooldown(vict, atSTANDARD, 6 RL_SEC);
+  USE_FULL_ROUND_ACTION(ch);
 }
 
 /* charge mechanic */
@@ -509,7 +508,10 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
           }
         }         
   
-        if (counter_success == TRUE) {
+        /* No tripping someone already on the ground. */
+        if(GET_POS(ch) == POS_SITTING) {        
+          act("\tyYou can't counter-trip someone who is already down!\tn", FALSE, ch, NULL, vict, TO_VICT);
+        } else if (counter_success == TRUE) {
           /* Messages for successful counter-trip */
           act("\tyTaking advantage of your failed attack, $N throws you to the ground!\tn", FALSE, ch, NULL, vict, TO_CHAR);
           act("\tyTaking advantage of $n's failed attack, you throw $m to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
@@ -1542,7 +1544,8 @@ ACMD(do_hit) {
       }
       /* not fighting, so switch opponents */
     } else {
-      stop_fighting(ch);     
+      USE_STANDARD_ACTION(ch);
+      stop_fighting(ch);
       send_to_char(ch, "You switch opponents!\r\n");
       act("$n switches opponents!", FALSE, ch, 0, vict, TO_ROOM);
 
@@ -1763,7 +1766,7 @@ ACMD(do_disengage) {
       return;
     }
 
-    USE_STANDARD_ACTION(ch);
+    USE_MOVE_ACTION(ch);
     stop_fighting(ch);
     send_to_char(ch, "You disengage from the fight.\r\n");
     act("$n disengages from the fight.", FALSE, ch, 0, 0, TO_ROOM);
@@ -1806,10 +1809,10 @@ ACMD(do_taunt) {
     send_to_char(ch, "Your target is already taunted...\r\n");
     return;
   }
-  if (char_has_mud_event(ch, eTAUNT)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    return;
-  }
+//  if (char_has_mud_event(ch, eTAUNT)) {
+//    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+//    return;
+//  }
 
   attempt += compute_ability(ch, ABILITY_INTIMIDATE);
   if (!IS_NPC(vict))
@@ -1817,11 +1820,12 @@ ACMD(do_taunt) {
   else
     resist += (GET_LEVEL(vict) / 2);
 
+  /* Should last one round, plus one second for every point over the resist */
   if (attempt >= resist) {
     send_to_char(ch, "You taunt your opponent!\r\n");
     act("You are \tRtaunted\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
     act("$n \tWtaunts\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-    attach_mud_event(new_mud_event(eTAUNTED, vict, NULL), 4 * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eTAUNTED, vict, NULL), 6 * PASSES_PER_SEC + (attempt - resist));
   } else {
     send_to_char(ch, "You fail to taunt your opponent!\r\n");
     act("$N fails to \tRtaunt\tn you...", FALSE, vict, 0, ch, TO_CHAR);
@@ -1829,7 +1833,9 @@ ACMD(do_taunt) {
   }
   if (!FIGHTING(vict))
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  attach_mud_event(new_mud_event(eTAUNT, ch, NULL), 8 * PASSES_PER_SEC);
+//  attach_mud_event(new_mud_event(eTAUNT, ch, NULL), 8 * PASSES_PER_SEC);
+
+  USE_STANDARD_ACTION(ch);
 }
 
 /* do_frightful - Perform an AoE attack that terrifies the victims, causign them to flee.
@@ -2517,7 +2523,7 @@ ACMD(do_guard) {
   }
   
   if (AFF_FLAGGED(ch, AFF_BLIND)) {
-    send_to_char(ch, "You are blind, and couldn't rescue a mouse.\r\n");
+    send_to_char(ch, "You can't see well enough to guard anywone!.\r\n");
     return;
   }
 

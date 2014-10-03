@@ -1230,6 +1230,9 @@ do                                                              \
 			(to_sleeping || AWAKE(ch)) && \
 			!PLR_FLAGGED((ch), PLR_WRITING))
 
+/*#define SENDOK(ch)    (((ch)->desc || SCRIPT_CHECK((ch), MTRIG_ACT)) && \
+                      (to_sleeping || AWAKE(ch)))
+*/
 /* deaf flag maybe isn't a good idea to have here */
 /*
 #define SENDOK(ch)	(((ch)->desc || SCRIPT_CHECK((ch), MTRIG_ACT)) && \

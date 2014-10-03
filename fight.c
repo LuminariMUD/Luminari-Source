@@ -125,7 +125,7 @@ void guard_check(struct char_data *ch, struct char_data *vict) {
         act("$N fails to guard you.", FALSE, vict, 0, tch, TO_CHAR);
         act("You fail to guard $n.", FALSE, vict, 0, tch, TO_VICT);
       } else {
-        act("$N comes to your protection.", FALSE, vict, 0, tch, TO_CHAR);
+        act("$N protects you from attack!", FALSE, vict, 0, tch, TO_CHAR);
         act("$N guards $n succesfully.", FALSE, vict, 0, tch, TO_NOTVICT);
         act("You guard $n succesfully.", FALSE, vict, 0, tch, TO_VICT);
 
@@ -3447,6 +3447,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   int monkMode = FALSE, ranged_attacks = 2;
   bool dual = FALSE;
   bool perform_attack = FALSE;
+
+  /* Check position. */
+//  if (GET_POS(ch) < POS_STUNNED) 
+  if (GET_POS(ch) == POS_DEAD)
+    return(0); 
 
   /*  If we have no standard action (and are using regular attack mode.)
    *  Do not attack at all. 
