@@ -827,6 +827,8 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
    called after striking the mortal blow to ch via instant kill
  * like staff 'kill' command or the die() function */
 void raw_kill_old(struct char_data *ch, struct char_data *killer) {
+  struct char_data *k;
+
   if (FIGHTING(ch))
     stop_fighting(ch);
 
@@ -841,8 +843,18 @@ void raw_kill_old(struct char_data *ch, struct char_data *killer) {
   } else
     death_cry(ch);
 
-  if (killer)
-    autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
+  if (killer && GROUP(killer)) {
+    /* Added quest completion for all group members if they are in the room.
+     * Oct 6, 2014 - Ornir. */
+     while ((k = (struct char_data *) simple_list(GROUP(killer)->members)) != NULL) {
+       if (IS_PET(k))
+         continue;
+       if (IN_ROOM(k) == IN_ROOM(ch))
+         autoquest_trigger_check(k, ch, NULL, AQ_MOB_KILL);
+     }
+  } else if (killer) {
+         autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
+  }
 
   update_pos(ch);
 
