@@ -777,7 +777,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   if (killer && GROUP(killer)) {
     /* Added quest completion for all group members if they are in the room.
      * Oct 6, 2014 - Ornir. */
-     while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
+     while ((k = (struct char_data *) simple_list(GROUP(killer)->members)) != NULL) {
        if (IS_PET(k))
          continue;
        if (IN_ROOM(k) == IN_ROOM(ch))
