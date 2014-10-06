@@ -716,8 +716,8 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_FLURRY_OF_BLOWS  88 /* Flurry of blows mode */
 #define AFF_COUNTERSPELL     89 /* Counterspell mode */
 #define AFF_DEFENSIVE_CASTING 90 /* Defensive casting mode */
-
-#define NUM_AFF_FLAGS        91
+#define AFF_WHIRLWIND_ATTACK 91 /*  Whirlwind attack mode */
+#define NUM_AFF_FLAGS        92
 
 /* Bonus types */
 #define	BONUS_TYPE_UNDEFINED     0 /* Undefined bonus type (stacks) */

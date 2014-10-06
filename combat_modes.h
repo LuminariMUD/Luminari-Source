@@ -25,7 +25,8 @@
 #define MODE_RAPID_SHOT          7
 #define MODE_COUNTERSPELL        8
 #define MODE_DEFENSIVE_CASTING   9
-#define MAX_MODES               10
+#define MODE_WHIRLWIND_ATTACK   10
+#define MAX_MODES               11
 
 #define MODE_GROUP_NONE          0
 #define MODE_GROUP_1             1
@@ -50,5 +51,6 @@ ACMD(do_rapidshot);
 ACMD(do_parry);
 ACMD(do_spellbattle);
 ACMD(do_flurry);
+ACMD(do_whirlwind);
 
 #endif

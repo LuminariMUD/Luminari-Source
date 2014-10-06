@@ -66,7 +66,8 @@ struct combat_mode_data combat_mode_info[] = {
   {"rapid shot"         , AFF_RAPID_SHOT         , FEAT_RAPID_SHOT     , FALSE, MODE_GROUP_2},
   /* No Group */
   {"counterspell"     , AFF_COUNTERSPELL     , FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
-  {"defensive casting", AFF_DEFENSIVE_CASTING, FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE}
+  {"defensive casting", AFF_DEFENSIVE_CASTING, FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
+  {"whirlwind attack" , AFF_WHIRLWIND_ATTACK, FEAT_WHIRLWIND_ATTACK, MODE_GROUP_NONE}
 };
     
 /* Unified combat mode management */

@@ -35,6 +35,8 @@ int compute_concealment(struct char_data *ch);
 int compute_bab(struct char_data *ch, struct char_data *victim, int attktype);
 int compute_damage_bonus(struct char_data *ch, struct char_data *victim,
 	int attktype, int mod, int mode);
+int compute_cmb(struct char_data *ch, struct char_data *victim, int attack_type);
+int compute_cmd(struct char_data *attacker, struct char_data *ch);
 int damage(struct char_data *ch, struct char_data *victim,
 	int dam, int attacktype, int dam_type, int dualwield);
 void death_cry(struct char_data *ch);
