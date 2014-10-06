@@ -731,29 +731,30 @@ void death_message(struct char_data *ch) {
 void kill_quest_completion_check(struct char_data *killer, struct char_data *ch) {
   struct group_data *group = NULL;
   struct char_data *k = NULL;
-  
+
   /* dummy checks */
   if (!killer)
     return;
   if (!ch)
     return;
-  
+
   /* check for killer first */
   autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
 
   /* check for all group members next */
-  if (GROUP(killer)) {
-    group = GROUP(killer);
-        
-     while ((k = simple_list(group->members)) != NULL) {
-       if (k == killer) /* should not need this */
-         continue;
-       if (IS_PET(k))
-         continue;
-       if (IN_ROOM(k) == IN_ROOM(killer))
-         autoquest_trigger_check(k, ch, NULL, AQ_MOB_KILL);
-     }
-  }  
+  group = GROUP(killer);
+  if (group != NULL) {
+    while ((k = simple_list(group->members)) != NULL) {
+      if (k == killer) /* should not need this */
+        continue;
+      if (IS_PET(k))
+        continue;
+      if (IN_ROOM(k) == IN_ROOM(killer))
+        autoquest_trigger_check(k, ch, NULL, AQ_MOB_KILL);
+      send_to_char(killer, "%s", GET_NAME(k));
+    }
+  }
+
 }
 
 // we're not extracting anybody anymore, just penalize them xp
