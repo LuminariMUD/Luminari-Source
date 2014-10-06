@@ -726,10 +726,38 @@ void death_message(struct char_data *ch) {
   send_to_char(ch, "\r\n");
 }
 
+/* Added quest completion for all group members if they are in the room.
+ * Oct 6, 2014 - Ornir. */
+void kill_quest_completion_check(struct char_data *killer, struct char_data *ch) {
+  struct group_data *group = NULL;
+  struct char_data *k = NULL;
+  
+  /* dummy checks */
+  if (!killer)
+    return;
+  if (!ch)
+    return;
+  
+  /* check for killer first */
+  autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
+
+  /* check for all group members next */
+  if (GROUP(killer)) {
+    group = GROUP(killer);
+        
+     while ((k = simple_list(group->members)) != NULL) {
+       if (k == killer) /* should not need this */
+         continue;
+       if (IS_PET(k))
+         continue;
+       if (IN_ROOM(k) == IN_ROOM(killer))
+         autoquest_trigger_check(k, ch, NULL, AQ_MOB_KILL);
+     }
+  }  
+}
 
 // we're not extracting anybody anymore, just penalize them xp
 // and move them back to the starting room -zusuk
-
 /* we will consider changing this back to corpse creation and dump
    but only on the condition of corpse-saving code */
 void raw_kill(struct char_data *ch, struct char_data *killer) {
@@ -743,6 +771,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
     if (FIGHTING(k) == ch)
       stop_fighting(k);
   }
+  
   /* Wipe character from the memory of hunters and other intelligent NPCs... */
   for (temp = character_list; temp; temp = temp->next) {
     /* PCs can't use MEMORY, and don't use HUNTING() */
@@ -756,6 +785,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
     if (!IS_NPC(ch) && MEMORY(temp))
       forget(temp, ch); /* forget() is safe to use without a check. */
   }
+  
   if (ch->followers || ch->master) // handle followers
     die_follower(ch);
 
@@ -774,18 +804,10 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
       death_cry(ch);
   } else
     death_cry(ch);
-  if (killer && GROUP(killer)) {
-    /* Added quest completion for all group members if they are in the room.
-     * Oct 6, 2014 - Ornir. */
-     while ((k = (struct char_data *) simple_list(GROUP(killer)->members)) != NULL) {
-       if (IS_PET(k))
-         continue;
-       if (IN_ROOM(k) == IN_ROOM(ch))
-         autoquest_trigger_check(k, ch, NULL, AQ_MOB_KILL);
-     }
-  } else if (killer) {
-         autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
-  }
+
+  /* make sure group gets credit for kill if ch involved in quest */
+  kill_quest_completion_check(killer, ch);
+
   update_pos(ch);
 
   //this replaces extraction
@@ -827,9 +849,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
    called after striking the mortal blow to ch via instant kill
  * like staff 'kill' command or the die() function */
 void raw_kill_old(struct char_data *ch, struct char_data *killer) {
-  struct char_data *k = NULL;
-  struct group_data *group = NULL;
-
   if (FIGHTING(ch))
     stop_fighting(ch);
 
@@ -844,20 +863,8 @@ void raw_kill_old(struct char_data *ch, struct char_data *killer) {
   } else
     death_cry(ch);
 
-  if (killer && GROUP(killer)) {
-    /* Added quest completion for all group members if they are in the room.
-     * Oct 6, 2014 - Ornir. */
-    group = GROUP(killer);
-        
-     while ((k = simple_list(group->members)) != NULL) {
-       if (IS_PET(k))
-         continue;
-       if (IN_ROOM(k) == IN_ROOM(killer))
-         autoquest_trigger_check(k, ch, NULL, AQ_MOB_KILL);
-     }
-  } else if (killer) {
-         autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
-  }
+  /* make sure group gets credit for kill if ch involved in quest */
+  kill_quest_completion_check(killer, ch);
 
   update_pos(ch);
 
