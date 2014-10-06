@@ -326,7 +326,7 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
         location = LOC_INVENTORY;
     }
 
-    mudlog(BRF, LVL_IMMORT, TRUE, "DEBUG: autoeq for %s: %s worn in position %d.", GET_NAME(ch),obj->name, location);
+//    mudlog(BRF, LVL_IMMORT, TRUE, "DEBUG: autoeq for %s: %s worn in position %d.", GET_NAME(ch),obj->name, location);
 
     if (location > 0) { /* Wearable. */
       if (!GET_EQ(ch, j)) {
