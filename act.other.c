@@ -48,12 +48,13 @@ static void display_group_list(struct char_data * ch);
 
 
 #define BARD_AFFECTS 7
+
 void perform_perform(struct char_data *ch) {
   struct affected_type af[BARD_AFFECTS];
   int level = 0, i = 0, duration = 0;
   struct char_data *tch = NULL;
   long cooldown;
-  
+
   if (char_has_mud_event(ch, ePERFORM)) {
     send_to_char(ch, "You must wait longer before you can use this ability "
             "again.\r\n");
@@ -125,7 +126,7 @@ void perform_perform(struct char_data *ch) {
       affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
     act("A song from $n enhances you!", FALSE, ch, NULL, tch, TO_VICT);
   }
-  
+
 }
 
 ACMD(do_perform) {
@@ -141,6 +142,7 @@ ACMD(do_perform) {
 
 
 #define MOB_PALADIN_MOUNT 70
+
 void perform_call(struct char_data *ch, int call_type, int level) {
   int i = 0;
   struct follow_type *k = NULL, *next = NULL;
@@ -159,7 +161,7 @@ void perform_call(struct char_data *ch, int call_type, int level) {
       } else {
         char_from_room(k->follower);
 
-        if(ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
           X_LOC(k->follower) = world[IN_ROOM(ch)].coords[0];
           Y_LOC(k->follower) = world[IN_ROOM(ch)].coords[1];
         }
@@ -191,7 +193,7 @@ void perform_call(struct char_data *ch, int call_type, int level) {
 
       /* todo:  seriously, fix this */
       if (!(mob_num = GET_ANIMAL_COMPANION(ch)))
-        mob_num = 63;  // meant for npc's
+        mob_num = 63; // meant for npc's
 
       break;
     case MOB_C_FAMILIAR:
@@ -248,9 +250,9 @@ void perform_call(struct char_data *ch, int call_type, int level) {
     return;
   }
 
-  if(ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
-        X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
-        Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+    X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+    Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
   }
 
 
@@ -262,7 +264,7 @@ void perform_call(struct char_data *ch, int call_type, int level) {
   GET_LEVEL(mob) = level;
   GET_REAL_MAX_HIT(mob) += 20;
   for (i = 0; i < level; i++)
-    GET_REAL_MAX_HIT(mob) += dice(3, 12) + 1;  
+    GET_REAL_MAX_HIT(mob) += dice(3, 12) + 1;
   GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
   GET_REAL_HITROLL(mob) += level / 3;
   GET_REAL_DAMROLL(mob) += level / 3;
@@ -273,7 +275,7 @@ void perform_call(struct char_data *ch, int call_type, int level) {
     GET_SIZE(mob) = GET_SIZE(ch) + 1;
     GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
   }
-  
+
   affect_total(mob);
 
   SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
@@ -294,13 +296,13 @@ void perform_call(struct char_data *ch, int call_type, int level) {
   if (call_type == MOB_C_MOUNT) {
     attach_mud_event(new_mud_event(eC_MOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
   }
-  
+
 }
 
 ACMD(do_call) {
   int call_type = -1, level = 0;
-  
-  skip_spaces(&argument);  
+
+  skip_spaces(&argument);
 
   /* call types
      MOB_C_ANIMAL -> animal companion
@@ -379,7 +381,7 @@ ACMD(do_purify) {
     return;
   }
 
-   if ((uses_remaining = daily_uses_remaining(ch, FEAT_REMOVE_DISEASE)) == 0 ) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_REMOVE_DISEASE)) == 0) {
     send_to_char(ch, "You must recover the divine energy required to remove disease.\r\n");
     return;
   }
@@ -399,7 +401,7 @@ ACMD(do_purify) {
     REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_DISEASE);
 
 
-  if(!IS_NPC(ch))
+  if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_REMOVE_DISEASE);
 
   update_pos(vict);
@@ -508,11 +510,11 @@ ACMD(do_recharge) {
   }
 
   if (((GET_OBJ_TYPE(obj) == ITEM_STAFF) && !HAS_FEAT(ch, FEAT_CRAFT_STAFF)) ||
-      ((GET_OBJ_TYPE(obj) == ITEM_WAND) && !HAS_FEAT(ch, FEAT_CRAFT_WAND))) {
+          ((GET_OBJ_TYPE(obj) == ITEM_WAND) && !HAS_FEAT(ch, FEAT_CRAFT_WAND))) {
     send_to_char(ch, "You don't know how to recharge that.\r\n");
     return;
   }
- 
+
 
 
   if (GET_GOLD(ch) < 5000) {
@@ -527,7 +529,7 @@ ACMD(do_recharge) {
     chargeval = maxcharge - mincharge;
     GET_OBJ_VAL(obj, 2) += chargeval;
     GET_GOLD(ch) -= 5000;
-    send_to_char(ch, "The %s glows blue for a moment.\r\n", (GET_OBJ_TYPE(obj) == ITEM_STAFF ? "staff": "wand"));
+    send_to_char(ch, "The %s glows blue for a moment.\r\n", (GET_OBJ_TYPE(obj) == ITEM_STAFF ? "staff" : "wand"));
     sprintf(buf, "The item now has %d charges remaining.\r\n", maxcharge);
     send_to_char(ch, buf);
     act("$p glows with a subtle blue light as $n recharges it.",
@@ -893,7 +895,7 @@ ACMD(do_gain) {
   one_argument(argument, arg);
 
   if (!(GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
-            GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))) {
+          GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))) {
     send_to_char(ch, "You are not experienced enough to gain a level.\r\n");
     return;
   }
@@ -928,34 +930,34 @@ ACMD(do_gain) {
       return;
     }
     if ((GET_PRACTICES(ch) != 0) ||
-        (GET_TRAINS(ch) != 0)    ||
-        (GET_BOOSTS(ch) != 0)) {//    ||
-/*         ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
-         (CLASS_LEVEL(ch, CLASS_WIZARD)   && !IS_WIZ_LEARNED(ch))  ||
-         (CLASS_LEVEL(ch, CLASS_BARD)     && !IS_BARD_LEARNED(ch)) ||
-         (CLASS_LEVEL(ch, CLASS_DRUID)    && !IS_DRUID_LEARNED(ch))||
-         (CLASS_LEVEL(ch, CLASS_RANGER)   && !IS_RANG_LEARNED(ch)))) {
-*/    
+            (GET_TRAINS(ch) != 0) ||
+            (GET_BOOSTS(ch) != 0)) {//    ||
+      /*         ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
+               (CLASS_LEVEL(ch, CLASS_WIZARD)   && !IS_WIZ_LEARNED(ch))  ||
+               (CLASS_LEVEL(ch, CLASS_BARD)     && !IS_BARD_LEARNED(ch)) ||
+               (CLASS_LEVEL(ch, CLASS_DRUID)    && !IS_DRUID_LEARNED(ch))||
+               (CLASS_LEVEL(ch, CLASS_RANGER)   && !IS_RANG_LEARNED(ch)))) {
+       */
       /* The last level has not been completely gained yet - The player must
        * use all trains, pracs, boosts and choose spells and other benefits
        * vis 'study' before they can gain a level. */
-//      if (GET_PRACTICES(ch) != 0) 
-//        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
+      //      if (GET_PRACTICES(ch) != 0) 
+      //        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
       if (GET_TRAINS(ch) > 0)
         send_to_char(ch, "You must use all trains before gaining another level.  You have %d train%s remaining.\r\n", GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
       if (GET_BOOSTS(ch) != 0)
         send_to_char(ch, "You must use all boosts before gaining another level.  You have %d boost%s remaining.\r\n", GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
-/*       if(CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch))
-        send_to_char(ch, "You must 'study sorcerer' before gaining another level.\r\n");
-      if(CLASS_LEVEL(ch, CLASS_WIZARD) && !IS_WIZ_LEARNED(ch))
-        send_to_char(ch, "You must 'study wizard' before gaining another level.\r\n"); 
-      if(CLASS_LEVEL(ch, CLASS_BARD) && !IS_BARD_LEARNED(ch))
-        send_to_char(ch, "You must 'study bard' before gaining another level.\r\n"); 
-      if(CLASS_LEVEL(ch, CLASS_DRUID) && !IS_DRUID_LEARNED(ch))
-        send_to_char(ch, "You must 'study druid' before gaining another level.\r\n"); 
-      if(CLASS_LEVEL(ch, CLASS_RANGER) && !IS_RANG_LEARNED(ch))
-        send_to_char(ch, "You must 'study ranger' before gaining another level.\r\n"); 
-*/
+      /*       if(CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch))
+              send_to_char(ch, "You must 'study sorcerer' before gaining another level.\r\n");
+            if(CLASS_LEVEL(ch, CLASS_WIZARD) && !IS_WIZ_LEARNED(ch))
+              send_to_char(ch, "You must 'study wizard' before gaining another level.\r\n"); 
+            if(CLASS_LEVEL(ch, CLASS_BARD) && !IS_BARD_LEARNED(ch))
+              send_to_char(ch, "You must 'study bard' before gaining another level.\r\n"); 
+            if(CLASS_LEVEL(ch, CLASS_DRUID) && !IS_DRUID_LEARNED(ch))
+              send_to_char(ch, "You must 'study druid' before gaining another level.\r\n"); 
+            if(CLASS_LEVEL(ch, CLASS_RANGER) && !IS_RANG_LEARNED(ch))
+              send_to_char(ch, "You must 'study ranger' before gaining another level.\r\n"); 
+       */
       return;
 
     } else if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
@@ -998,7 +1000,6 @@ ACMD(do_gain) {
 void list_forms(struct char_data *ch) {
   send_to_char(ch, "%s\r\n", npc_race_menu);
 }
-
 
 /*    FIRST version of shapechange/wildshape
  *  shapechange function
@@ -1044,10 +1045,11 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode) {
    to use the engine for spells (like 'animal shapes')
  */
 #define SHAPE_AFFECTS   3
+
 void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
   struct affected_type af[SHAPE_AFFECTS];
   int i = 0;
-  
+
   /* some dummy checks */
   if (!ch)
     return;
@@ -1067,7 +1069,7 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
     else
       af[i].duration = 100;
   }
-  
+
   /* determine stat bonuses, etc */
   SUBRACE(ch) = form_num;
   switch (SUBRACE(ch)) {
@@ -1103,7 +1105,7 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
   act(shape_to_char[SUBRACE(ch)], TRUE, ch, 0, 0, TO_CHAR);
   act(shape_to_room[SUBRACE(ch)], TRUE, ch, 0, 0, TO_ROOM);
 
-  if (!IS_NPC(ch) && (spellnum == SKILL_WILDSHAPE)) 
+  if (!IS_NPC(ch) && (spellnum == SKILL_WILDSHAPE))
     start_daily_use_cooldown(ch, FEAT_WILD_SHAPE);
 
   USE_STANDARD_ACTION(ch);
@@ -1118,15 +1120,15 @@ ACMD(do_shapechange) {
 
   skip_spaces(&argument);
 
-  if(!HAS_FEAT(ch, FEAT_WILD_SHAPE)) {
+  if (!HAS_FEAT(ch, FEAT_WILD_SHAPE)) {
     send_to_char(ch, "You do not have a wild shape.\r\n");
     return;
   }
-  
+
   if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) && *argument) {
     send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
     return;
-  }  
+  }
 
   if (!*argument) {
     if (CLASS_LEVEL(ch, CLASS_DRUID) < 10)
@@ -1143,27 +1145,27 @@ ACMD(do_shapechange) {
       send_to_char(ch, "\r\n");
     }
     send_to_char(ch, "\r\nYou can return to your normal form by typing:  "
-              "shapechange normal\r\n");
+            "shapechange normal\r\n");
     return;
   }
 
-  /* should be OK at this point */  
+  /* should be OK at this point */
   if (is_abbrev(argument, shape_types[1])) {
     /* badger */
     form_num = PC_SUBRACE_BADGER;
-    
+
   } else if (is_abbrev(argument, shape_types[2])) {
     /* panther */
     form_num = PC_SUBRACE_PANTHER;
-    
+
   } else if (is_abbrev(argument, shape_types[3])) {
     /* bear */
     form_num = PC_SUBRACE_BEAR;
-    
+
   } else if (is_abbrev(argument, shape_types[4])) {
     /* giant crocodile */
     form_num = PC_SUBRACE_G_CROCODILE;
-    
+
   } else if (is_abbrev(argument, "normal")) {
     /* return to normal form */
     SUBRACE(ch) = 0;
@@ -1172,20 +1174,21 @@ ACMD(do_shapechange) {
       affect_from_char(ch, SKILL_WILDSHAPE);
     send_to_char(ch, "You return to your normal form..\r\n");
     return;
-    
+
   } else {
     /* invalid */
     send_to_char(ch, "This is not a valid form to shapechange into!\r\n");
     return;
-    
+
   }
 
-  perform_wildshape(ch, form_num, SKILL_WILDSHAPE);  
+  perform_wildshape(ch, form_num, SKILL_WILDSHAPE);
 }
 #undef SHAPE_AFFECTS
 
 /*****************************/
 /* end shapechange functions */
+
 /*****************************/
 
 
@@ -1447,28 +1450,28 @@ ACMD(do_fly) {
  * Returns the DC of the search attempt to find the specified door. */
 int get_hidden_door_dc(struct char_data *ch, int door) {
 
-/* (Taken from the d&d 3.5e SRD)
- * Task	                                                Search DC
- * -----------------------------------------------------------------------
- * Ransack a chest full of junk to find a certain item	   10
- * Notice a typical secret door or a simple trap	   20
- * Find a difficult nonmagical trap (rogue only)1	21 or higher
- * Find a magic trap (rogue only)(1)             	25 + lvl of spell 
- *                                                     used to create trap
- * Find a footprint	                                 Varies(2)                                                     
- * Notice a well-hidden secret door                        30
- * -----------------------------------------------------------------------
- * (1) Dwarves (even if they are not rogues) can use Search to find traps built
- *     into or out of stone.
- * (2) A successful Search check can find a footprint or similar sign of a 
- *     creature's passage, but it won't let you find or follow a trail. See the 
- *     Track feat for the appropriate DC. */
+  /* (Taken from the d&d 3.5e SRD)
+   * Task	                                                Search DC
+   * -----------------------------------------------------------------------
+   * Ransack a chest full of junk to find a certain item	   10
+   * Notice a typical secret door or a simple trap	   20
+   * Find a difficult nonmagical trap (rogue only)1	21 or higher
+   * Find a magic trap (rogue only)(1)             	25 + lvl of spell 
+   *                                                     used to create trap
+   * Find a footprint	                                 Varies(2)                                                     
+   * Notice a well-hidden secret door                        30
+   * -----------------------------------------------------------------------
+   * (1) Dwarves (even if they are not rogues) can use Search to find traps built
+   *     into or out of stone.
+   * (2) A successful Search check can find a footprint or similar sign of a 
+   *     creature's passage, but it won't let you find or follow a trail. See the 
+   *     Track feat for the appropriate DC. */
 
-  if(EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_EASY))
+  if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_EASY))
     return 10;
-  if(EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_MEDIUM))
+  if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_MEDIUM))
     return 20;
-  if(EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_HARD))
+  if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_HARD))
     return 30;
 
   /* If we get here, the door is not hidden. */
@@ -1479,13 +1482,13 @@ int get_hidden_door_dc(struct char_data *ch, int door) {
  * the command is available to all.  */
 ACMD(do_search) {
   int door, found = FALSE;
-//  int val;
-//  struct char_data *i; // for player/mob
-//  struct char_data *list = world[ch->in_room].people; // for player/mob
-//  struct obj_data *objlist = world[ch->in_room].contents;
-//  struct obj_data *obj = NULL;
-//  struct obj_data *cont = NULL;
-//  struct obj_data *next_obj = NULL;
+  //  int val;
+  //  struct char_data *i; // for player/mob
+  //  struct char_data *list = world[ch->in_room].people; // for player/mob
+  //  struct obj_data *objlist = world[ch->in_room].contents;
+  //  struct obj_data *obj = NULL;
+  //  struct obj_data *cont = NULL;
+  //  struct obj_data *next_obj = NULL;
   int search_dc = 0;
 
   if (FIGHTING(ch)) {
@@ -1503,38 +1506,38 @@ ACMD(do_search) {
     return;
   }
 
-  
+
   skip_spaces(&argument);
 
   if (!*argument) {
-/*
-    for (obj = objlist; obj; obj = obj->next_content) {
-      if (OBJ_FLAGGED(obj, ITEM_HIDDEN)) {
-        SET_BIT(GET_OBJ_SAVED(obj), SAVE_OBJ_EXTRA);
-        REMOVE_BIT(obj->obj_flags.extra_flags, ITEM_HIDDEN);
-        act("You find $P.", FALSE, ch, 0, obj, TO_CHAR);
-        act("$n finds $P.", FALSE, ch, 0, obj, TO_NOTVICT);
-        found = TRUE;
-        break;
-      }
-    }*/
+    /*
+        for (obj = objlist; obj; obj = obj->next_content) {
+          if (OBJ_FLAGGED(obj, ITEM_HIDDEN)) {
+            SET_BIT(GET_OBJ_SAVED(obj), SAVE_OBJ_EXTRA);
+            REMOVE_BIT(obj->obj_flags.extra_flags, ITEM_HIDDEN);
+            act("You find $P.", FALSE, ch, 0, obj, TO_CHAR);
+            act("$n finds $P.", FALSE, ch, 0, obj, TO_NOTVICT);
+            found = TRUE;
+            break;
+          }
+        }*/
     /* find a player/mob */
-/*    if(!found) {
-      for (i = list; i; i = i->next_in_room) {
-        if ((ch != i) && AFF_FLAGGED(i, AFF_HIDE) && (val < ochance)) {
-          affect_from_char(i, SPELL_VACANCY);
-          affect_from_char(i, SPELL_MIRAGE_ARCANA);
-          affect_from_char(i, SPELL_STONE_BLEND);
-          REMOVE_BIT(AFF_FLAGS(i), AFF_HIDE);
-          act("You find $N lurking here!", FALSE, ch, 0, i, TO_CHAR);
-          act("$n finds $N lurking here!", FALSE, ch, 0, i, TO_NOTVICT);
-          act("You have been spotted by $n!", FALSE, ch, 0, i, TO_VICT);
-          found = TRUE;
-          break;
+    /*    if(!found) {
+          for (i = list; i; i = i->next_in_room) {
+            if ((ch != i) && AFF_FLAGGED(i, AFF_HIDE) && (val < ochance)) {
+              affect_from_char(i, SPELL_VACANCY);
+              affect_from_char(i, SPELL_MIRAGE_ARCANA);
+              affect_from_char(i, SPELL_STONE_BLEND);
+              REMOVE_BIT(AFF_FLAGS(i), AFF_HIDE);
+              act("You find $N lurking here!", FALSE, ch, 0, i, TO_CHAR);
+              act("$n finds $N lurking here!", FALSE, ch, 0, i, TO_NOTVICT);
+              act("You have been spotted by $n!", FALSE, ch, 0, i, TO_VICT);
+              found = TRUE;
+              break;
+            }
+          }
         }
-      }
-    }
-*/
+     */
     if (!found) {
       /* find a hidden door */
       for (door = 0; door < NUM_OF_DIRS && found == FALSE; door++) {
@@ -1542,7 +1545,7 @@ ACMD(do_search) {
           /* Get the DC */
           search_dc = get_hidden_door_dc(ch, door);
           /* Roll the dice... */
-          if(skill_check(ch, ABILITY_SEARCH, search_dc)) {
+          if (skill_check(ch, ABILITY_SEARCH, search_dc)) {
             act("You find a secret entrance!", FALSE, ch, 0, 0, TO_CHAR);
             act("$n finds a secret entrance!", FALSE, ch, 0, 0, TO_ROOM);
             REMOVE_BIT(EXIT(ch, door)->exit_info, EX_HIDDEN);
@@ -1571,8 +1574,7 @@ ACMD(do_search) {
     }
   } */
 
-  if (!found)
-  {
+  if (!found) {
     send_to_char(ch, "You don't find anything you didn't see before.\r\n");
   }
 
@@ -1581,12 +1583,12 @@ ACMD(do_search) {
 
 /* entry point for sneak, the command just flips the flag */
 ACMD(do_sneak) {
-  
+
   if (FIGHTING(ch)) {
     send_to_char(ch, "You can't do that in combat!\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
@@ -1615,7 +1617,7 @@ ACMD(do_hide) {
     send_to_char(ch, "You can't do that in combat!\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
@@ -1633,7 +1635,8 @@ ACMD(do_hide) {
   }
 
   send_to_char(ch, "You attempt to hide yourself.\r\n");
-  SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);\
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
+\
 }
 
 /* listen-mode, similar to search - try to find hidden/sneaking targets */
@@ -1691,7 +1694,7 @@ ACMD(do_steal) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
@@ -1728,7 +1731,7 @@ ACMD(do_steal) {
             "not work...\r\n");
     percent = 99;
   }
-  
+
   if (str_cmp(obj_name, "coins") && str_cmp(obj_name, "gold")) {
 
     if (!(obj = get_obj_in_list_vis(ch, obj_name, NULL, vict->carrying))) {
@@ -2312,13 +2315,13 @@ ACMD(do_use) {
 
 /* Activate a magic item with a COMMAND WORD! */
 ACMD(do_utter) {
-  int i = 0;  
+  int i = 0;
   int found = 0;
   struct obj_data *mag_item = NULL;
 
   skip_spaces(&argument);
 
-  if(!*argument) {
+  if (!*argument) {
     send_to_char(ch, "Utter what?\r\n");
     return;
   } else {
@@ -2328,24 +2331,24 @@ ACMD(do_utter) {
 
   /* Check all worn/wielded items and see if they have a command word. */
   for (i = 0; i < NUM_WEARS; i++) {
-      mag_item = GET_EQ(ch, i);
-      if(mag_item != NULL){
-        switch(i) { /* Different procedures for weapons and armors. */
-          case WEAR_WIELD_1:
-          case WEAR_WIELD_2:
-          case WEAR_WIELD_2H:
-            found += process_weapon_abilities(mag_item, ch, NULL, ACTMTD_COMMAND_WORD, argument);
-            break;
-          default:
-            break;
-        }    
+    mag_item = GET_EQ(ch, i);
+    if (mag_item != NULL) {
+      switch (i) { /* Different procedures for weapons and armors. */
+        case WEAR_WIELD_1:
+        case WEAR_WIELD_2:
+        case WEAR_WIELD_2H:
+          found += process_weapon_abilities(mag_item, ch, NULL, ACTMTD_COMMAND_WORD, argument);
+          break;
+        default:
+          break;
       }
+    }
   }
-  if(found == 0)
+  if (found == 0)
     send_to_char(ch, "Nothing happens.\r\n");
   else
-    USE_STANDARD_ACTION(ch); 
- 
+    USE_STANDARD_ACTION(ch);
+
 }
 
 ACMD(do_display) {
@@ -2741,7 +2744,7 @@ ACMD(do_happyhour) {
   } else if (is_abbrev(arg, "treasure")) {
     num = MIN(MAX((atoi(val)), TREASURE_PERCENT + 1), 99 - TREASURE_PERCENT);
     HAPPY_TREASURE = num;
-    send_to_char(ch, "Happy Hour Treasure drop-rate set to +%d%%\r\n", 
+    send_to_char(ch, "Happy Hour Treasure drop-rate set to +%d%%\r\n",
             HAPPY_TREASURE);
   } else if ((is_abbrev(arg, "gold")) || (is_abbrev(arg, "coins"))) {
     num = MIN(MAX((atoi(val)), 0), 1000);
@@ -2774,7 +2777,7 @@ ACMD(do_happyhour) {
     HAPPY_TIME = 48;
     game_info("A Happyhour has started!");
   } else {
-    send_to_char(ch, 
+    send_to_char(ch,
             "Usage: %shappyhour                 %s- show usage (this info)\r\n"
             "       %shappyhour show            %s- display current settings (what mortals see)\r\n"
             "       %shappyhour time <ticks>    %s- set happyhour time and start timer\r\n"
