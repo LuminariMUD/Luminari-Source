@@ -439,7 +439,6 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   return (MIN(MAX_AC, armorclass));
 }
 
-
 // the whole update_pos system probably needs to be rethought -zusuk
 
 void update_pos_dam(struct char_data *victim) {
@@ -775,9 +774,18 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
       death_cry(ch);
   } else
     death_cry(ch);
-  if (killer)
-    autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
-
+  if (killer && GROUP(killer)) {
+    /* Added quest completion for all group members if they are in the room.
+     * Oct 6, 2014 - Ornir. */
+     while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
+       if (IS_PET(k))
+         continue;
+       if (IN_ROOM(k) == IN_ROOM(ch))
+         autoquest_trigger_check(k, ch, NULL, AQ_MOB_KILL);
+     }
+  } else if (killer) {
+         autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
+  }
   update_pos(ch);
 
   //this replaces extraction
@@ -2734,6 +2742,18 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
     calc_bab += bonuses[i];
 
   return (MIN(MAX_BAB, calc_bab));  
+}
+
+int compute_cmb (struct char_data *ch,              /*  Attacker */
+                          struct char_data *victim, /*  Defender */
+                          int attack_type)          /*  Type of attack  */
+{
+  return compute_attack_bonus(ch, victim, attack_type);
+}
+
+int compute_cmd(struct char_data *attacker, struct char_data *ch) 
+{
+  return compute_armor_class(attacker, ch, TRUE) + GET_STR_BONUS(ch);
 }
 
 /*

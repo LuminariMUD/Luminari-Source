@@ -631,6 +631,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Flurry-of-Blows",
   "Counterspell",
   "Defensive-Casting", 
+  "Whirlwind-Attack",
   "\n"
 };
 

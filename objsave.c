@@ -326,13 +326,16 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
         location = LOC_INVENTORY;
     }
 
+    mudlog(BRF, LVL_IMMORT, TRUE, "DEBUG: autoeq for %s: %s worn in position %d.", GET_NAME(ch),obj->name, location);
+
     if (location > 0) { /* Wearable. */
       if (!GET_EQ(ch, j)) {
         /* Check the characters's alignment to prevent them from being zapped
          * through the auto-equipping. */
-        if (invalid_align(ch, obj) || invalid_class(ch, obj) || invalid_prof(ch, obj))
-          location = LOC_INVENTORY;
-        else
+//        if (invalid_align(ch, obj) || invalid_class(ch, obj) || invalid_prof(ch, obj))
+       
+//          location = LOC_INVENTORY;
+//        else
           equip_char(ch, obj, j);
       } else { /* Oops, saved a player with double equipment? */
         mudlog(BRF, LVL_IMMORT, TRUE,

@@ -991,7 +991,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
     return FALSE;
   }
   
-  base_probability = 60;  //flate rate 60% right now
+  base_probability = 60;  //flat rate 60% right now
   
   base_probability -= GET_LEVEL(vict) / 2;
   base_probability -= GET_DEX(vict);
