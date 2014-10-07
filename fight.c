@@ -942,11 +942,6 @@ static void perform_group_gain(struct char_data *ch, int base,
     gain_exp(ch, share);
   }
 
-  if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
-          GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
-    send_to_char(ch,
-          "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
-
   change_alignment(ch, victim);
 }
 
@@ -1016,10 +1011,6 @@ static void solo_gain(struct char_data *ch, struct char_data *victim) {
 
   change_alignment(ch, victim);
 
-  if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
-          GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
-    send_to_char(ch,
-          "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
 }
 
 /* this function replaces the #w or #W with an appropriate weapon
