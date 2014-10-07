@@ -779,8 +779,8 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
   }
 
   len = strlcpy(buf,
-          "Index VNum    # D Object Name                                  Object Type\r\n"
-          "----- ------- - - -------------------------------------------- ----------------\r\n",
+          "Index VNum    #  D Object Name                                  Object Type\r\n"
+          "----- ------- -- - -------------------------------------------- ----------------\r\n",
           sizeof (buf));
 
   if (!top_of_objt)
@@ -800,7 +800,7 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
         }
       }
 
-      len += snprintf(buf + len, sizeof (buf) - len, "%s%4d%s) %s%-7d%s %d %s %s%-*s %s[%s]%s%s\r\n",
+      len += snprintf(buf + len, sizeof (buf) - len, "%s%4d%s) %s%-7d%s %2d %s %s%-*s %s[%s]%s%s\r\n",
               QGRN, counter, QNRM, QGRN, obj_index[i].vnum, QNRM, num_found,
               (!obj_proto[i].ex_description ? "\tRN\tn" : "\tWY\tn"),
               QCYN, count_color_chars(obj_proto[i].short_description) + 44,
