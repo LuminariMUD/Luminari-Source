@@ -743,11 +743,14 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
 
   /* check for all group members next */
   group = GROUP(killer);
-
+ 
+  send_to_char(killer, "DEBUG: Group has %d members.\r\n", group->members->iSize);
+  
   /* Initialize the iterator */
   simple_list(NULL);
   if (group != NULL) {
-    while ((k = simple_list(group->members)) != NULL) {
+    while ((k = (struct char_data *) simple_list(group->members)) != NULL) {
+
       mudlog(BRF, LVL_IMMORT, TRUE, "DEBUG: %s considered for quest rewards.", GET_NAME(k));
       
       if (k == killer) /* should not need this */
@@ -756,7 +759,6 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
         continue;
       if (IN_ROOM(k) == IN_ROOM(killer))
         autoquest_trigger_check(k, ch, NULL, AQ_MOB_KILL);
-      send_to_char(killer, "%s", GET_NAME(k));
     }
   }
   /* Be kind, rewind. */
