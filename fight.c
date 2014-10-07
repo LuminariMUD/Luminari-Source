@@ -748,6 +748,8 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
   simple_list(NULL);
   if (group != NULL) {
     while ((k = simple_list(group->members)) != NULL) {
+      mudlog(BRF, LVL_IMMORT, TRUE, "DEBUG: %s considered for quest rewards.", GET_NAME(k));
+      
       if (k == killer) /* should not need this */
         continue;
       if (IS_PET(k))
