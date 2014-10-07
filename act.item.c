@@ -251,7 +251,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
     is_clan = TRUE;
 
   if (mode == FIND_OBJ_INV || can_take_obj(ch, obj)) {
-    if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
+    if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch) && GET_OBJ_TYPE(obj) != ITEM_MONEY)
       act("$p: you can't hold any more items.", FALSE, ch, obj, 0, TO_CHAR);
     else if (get_otrigger(obj, ch)) {
       /* if this is getting money from a coprse, check for clan taxes */
