@@ -731,6 +731,7 @@ void death_message(struct char_data *ch) {
 void kill_quest_completion_check(struct char_data *killer, struct char_data *ch) {
   struct group_data *group = NULL;
   struct char_data *k = NULL;
+  struct iterator_data it;
 
   /* dummy checks */
   if (!killer)
@@ -746,10 +747,10 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
  
   send_to_char(killer, "DEBUG: Group has %d members.\r\n", group->members->iSize);
   
-  /* Initialize the iterator */
-  simple_list(NULL);
   if (group != NULL) {
-    while ((k = (struct char_data *) simple_list(group->members)) != NULL) {
+    /* Initialize the iterator */
+
+    for (k = (struct char_data *)merge_iterator(&it, group->members); k != NULL; k = (struct char_data *)next_in_list(&it)) {
 
       mudlog(BRF, LVL_IMMORT, TRUE, "DEBUG: %s considered for quest rewards.", GET_NAME(k));
       
@@ -760,9 +761,9 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
       if (IN_ROOM(k) == IN_ROOM(killer))
         autoquest_trigger_check(k, ch, NULL, AQ_MOB_KILL);
     }
+    /* Be kind, rewind. */
+    remove_iterator(&it);
   }
-  /* Be kind, rewind. */
-  simple_list(NULL);
 }
 
 // we're not extracting anybody anymore, just penalize them xp

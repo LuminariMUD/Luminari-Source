@@ -185,24 +185,24 @@ struct help_keyword_list* soundex_search_help_keywords(const char *argument, int
 
 /* make sure arg doesn't have spaces */
 void perform_help(struct descriptor_data *d, char *argument) {
-  struct help_entry_list *mid = NULL, *tmp = NULL;
+  struct help_entry_list *entry = NULL, *tmp = NULL;
 
   if (!*argument)
     return;
 
-  if ((mid = search_help(argument, LVL_IMPL)) == NULL)
+  if ((entry = search_help(argument, LVL_IMPL)) == NULL)
     return;
   
   /* Disable paging for character creation. */
   if ((STATE(d) == CON_QRACE) ||
       (STATE(d) == CON_QCLASS))
-    send_to_char(d->character, mid->entry);
+    send_to_char(d->character, entry->entry);
   else 
-    page_string(d, mid->entry, 1);
+    page_string(d, entry->entry, 1);
   
-  while (mid != NULL) {
-      tmp = mid;
-      mid = mid->next;
+  while (entry != NULL) {
+      tmp = entry;
+      entry = entry->next;
       free(tmp);
   }
   
