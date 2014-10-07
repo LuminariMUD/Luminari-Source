@@ -745,15 +745,11 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
   /* check for all group members next */
   group = GROUP(killer);
  
-  send_to_char(killer, "DEBUG: Group has %d members.\r\n", group->members->iSize);
-  
   if (group != NULL) {
     /* Initialize the iterator */
 
     for (k = (struct char_data *)merge_iterator(&it, group->members); k != NULL; k = (struct char_data *)next_in_list(&it)) {
 
-      mudlog(BRF, LVL_IMMORT, TRUE, "DEBUG: %s considered for quest rewards.", GET_NAME(k));
-      
       if (k == killer) /* should not need this */
         continue;
       if (IS_PET(k))
