@@ -764,11 +764,11 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
 
 /* List all objects in a zone. */
 static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax) {
-  obj_rnum i;
-  obj_vnum bottom, top;
+  obj_rnum i = 0;
+  obj_vnum bottom = 0, top = 0;
   char buf[MAX_STRING_LENGTH];
-  int counter = 0;
-  int len;
+  int counter = 0, num_found = 0, len = 0;
+  struct obj_data *l = NULL;
 
   if (rnum != NOWHERE) {
     bottom = zone_table[rnum].bot;
@@ -779,20 +779,32 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
   }
 
   len = strlcpy(buf,
-          "Index VNum    Object Name                                  Object Type\r\n"
-          "----- ------- -------------------------------------------- ----------------\r\n",
+          "Index VNum    # D Object Name                                  Object Type\r\n"
+          "----- ------- - - -------------------------------------------- ----------------\r\n",
           sizeof (buf));
 
   if (!top_of_objt)
     return;
 
+  /* "i" will be the real-number */
   for (i = 0; i <= top_of_objt; i++) {
+
+    /* establish our range */
     if (obj_index[i].vnum >= bottom && obj_index[i].vnum <= top) {
       counter++;
+      
+      /* find how many of the same objects are in the game currently */
+      for (num_found = 0, l = object_list; l; l = l->next) {
+        if (CAN_SEE_OBJ(ch, l) && GET_OBJ_RNUM(l) == i) {
+          num_found++;
+        }
+      }
 
-      len += snprintf(buf + len, sizeof (buf) - len, "%s%4d%s) [%s%-5d%s] %s%-*s %s[%s]%s%s\r\n",
-              QGRN, counter, QNRM, QGRN, obj_index[i].vnum, QNRM,
-              QCYN, count_color_chars(obj_proto[i].short_description) + 44, obj_proto[i].short_description, QYEL,
+      len += snprintf(buf + len, sizeof (buf) - len, "%s%4d%s) %s%-5d%s %d %s %s%-*s %s[%s]%s%s\r\n",
+              QGRN, counter, QNRM, QGRN, obj_index[i].vnum, QNRM, num_found,
+              (!obj_proto[i].ex_description ? "N" : "Y"),
+              QCYN, count_color_chars(obj_proto[i].short_description) + 44,
+              obj_proto[i].short_description, QYEL,
               item_types[obj_proto[i].obj_flags.type_flag], QNRM,
               obj_proto[i].proto_script ? " [TRIG]" : ""
               );
