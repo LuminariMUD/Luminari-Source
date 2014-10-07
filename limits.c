@@ -32,7 +32,7 @@ bool death_check(struct char_data *ch) {
   if (GET_HIT(ch) <= -12) {
     /* we're just making sure damage() is called if he should be dead */
     damage(ch, ch, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
-    return TRUE;  // dead for sure now!
+    return TRUE; // dead for sure now!
   }
 
   return FALSE;
@@ -118,8 +118,7 @@ void affliction_tick(struct char_data *ch) {
       act("The cloud of death following $n dissipates!", TRUE, ch, 0, NULL,
               TO_ROOM);
     }
-  }
-    //end cloudkill
+  }    //end cloudkill
 
     /* creeping doom */
   else if (DOOM(ch)) {
@@ -130,7 +129,7 @@ void affliction_tick(struct char_data *ch) {
       act("The creeping swarm of centipedes following $n dissipates!", TRUE, ch, 0, NULL,
               TO_ROOM);
     }
-  }    //end creeping doom
+  }//end creeping doom
 
     /* incendiary cloud */
   else if (INCENDIARY(ch)) {
@@ -268,13 +267,13 @@ void pulse_luminari() {
   for (i = character_list; i; i = i->next) {
 
     /* dummy check + added for falling event */
-    if(death_check(i))
-      continue;  // i is dead
+    if (death_check(i))
+      continue; // i is dead
 
     /* 04/07/13 - added position check since pos_fighting is deprecated */
     if (GET_POS(i) == POS_FIGHTING && !FIGHTING(i))
       GET_POS(i) = POS_STANDING;
-    
+
     /* a function meant to check for room-based hazards, like
        falling, drowning, lava, etc */
     hazard_tick(i);
@@ -345,7 +344,7 @@ void regen_update(struct char_data *ch) {
       return;
     }
   }
-  
+
   found = 0;
   tch = NULL;
   if (GET_POS(ch) == POS_MORTALLYW) {
@@ -361,7 +360,7 @@ void regen_update(struct char_data *ch) {
     update_pos(ch);
     return;
   }
-  
+
   //50% chance you'll continue dying when incapacitated
   found = 0;
   tch = NULL;
@@ -656,6 +655,11 @@ int gain_exp(struct char_data *ch, int gain) {
   if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
     run_autowiz();
 
+  if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
+          GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
+    send_to_char(ch,
+          "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
+
   return gain;
 }
 
@@ -692,6 +696,12 @@ void gain_exp_regardless(struct char_data *ch, int gain) {
   }
   if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
     run_autowiz();
+
+  if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
+          GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
+    send_to_char(ch,
+          "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
+
 }
 
 void gain_condition(struct char_data *ch, int condition, int value) {
@@ -821,7 +831,7 @@ void point_update(void) {
       if (GET_OBJ_SPECTIMER(j, valyoo) > 0)
         GET_OBJ_SPECTIMER(j, valyoo)--;
     }
-    
+
     /** portals that fade **/
     if (IS_DECAYING_PORTAL(j)) {
       /* timer count down */

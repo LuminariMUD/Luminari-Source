@@ -36,14 +36,14 @@
  */
 bool has_missile_in_quiver(struct char_data *ch, struct obj_data *wielded, bool silent) {
   struct obj_data *quiver = GET_EQ(ch, WEAR_QUIVER);
-  
+
   if (!quiver) {
     if (!silent)
       send_to_char(ch, "You have no ammo pouch!\r\n");
     FIRING(ch) = FALSE;
     return FALSE;
   }
-  
+
   if (!quiver->contains) {
     if (!silent)
       send_to_char(ch, "Your ammo pouch is empty!\r\n");
@@ -57,14 +57,14 @@ bool has_missile_in_quiver(struct char_data *ch, struct obj_data *wielded, bool 
     FIRING(ch) = FALSE;
     return FALSE;
   }
-  
+
   if (GET_OBJ_VAL(wielded, 0) != GET_OBJ_VAL(quiver->contains, 0)) {
     if (!silent)
       act("Your $p does not fit your weapon.", FALSE, ch, quiver->contains, NULL, TO_CHAR);
     FIRING(ch) = FALSE;
     return FALSE;
   }
-  
+
   return TRUE;
 }
 
@@ -79,33 +79,33 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
     FIRING(ch) = FALSE;
     return FALSE;
   }
-  
+
   struct obj_data *obj = GET_EQ(ch, WEAR_WIELD_2H);
-  
+
   if (!obj)
     obj = GET_EQ(ch, WEAR_WIELD_1);
-  
+
   if (!obj) {
     if (!silent)
       send_to_char(ch, "You are not wielding anything!");
     FIRING(ch) = FALSE;
     return FALSE;
   }
-  
+
   if (GET_OBJ_TYPE(obj) != ITEM_FIREWEAPON) {
     if (!silent)
       send_to_char(ch, "But you are not wielding a ranged weapon.\r\n");
     FIRING(ch) = FALSE;
-    return FALSE;    
+    return FALSE;
   }
-  
+
   if (!has_missile_in_quiver(ch, obj, TRUE)) {
     if (!silent)
       send_to_char(ch, "You have no ammo!\r\n");
     FIRING(ch) = FALSE;
     return FALSE;
   }
-  
+
   /* ok! */
   return TRUE;
 }
@@ -115,6 +115,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
    wield == 2  --  off hand weapon
    wield == 3  --  two hand weapon
  */
+
 /* NOTE - this is probably deprecated by the IS_PIERCE() macro */
 bool has_piercing_weapon(struct char_data *ch, int wield) {
   if (!ch)
@@ -145,6 +146,7 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
 
 
 /* stunningfist engine */
+
 /* The stunning fist is reliant on a successful UNARMED attack (or an attack with a KI_STRIKE weapon) */
 void perform_stunningfist(struct char_data *ch) {
 
@@ -156,8 +158,8 @@ void perform_stunningfist(struct char_data *ch) {
 
   affect_to_char(ch, &af);
 
-//  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), cooldown);
-  if(!IS_NPC(ch))
+  //  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), cooldown);
+  if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 
   send_to_char(ch, "You focus your Ki energies and prepare a disabling unarmed attack.\r\n");
@@ -170,7 +172,7 @@ void perform_stunningfist(struct char_data *ch) {
 void perform_rage(struct char_data *ch) {
   struct affected_type af[RAGE_AFFECTS];
   int bonus = 0, duration = 0, i = 0;
-  
+
   if (char_has_mud_event(ch, eRAGE)) {
     send_to_char(ch, "You must wait longer before you can use this ability "
             "again.\r\n");
@@ -181,7 +183,7 @@ void perform_rage(struct char_data *ch) {
     send_to_char(ch, "You are already raging!\r\n");
     return;
   }
-  
+
   if (IS_NPC(ch) || IS_MORPHED(ch)) {
     bonus = (GET_LEVEL(ch) / 3) + 3;
   } else {
@@ -215,7 +217,7 @@ void perform_rage(struct char_data *ch) {
 
   for (i = 0; i < RAGE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
-  
+
   attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
 
   USE_STANDARD_ACTION(ch);
@@ -224,23 +226,23 @@ void perform_rage(struct char_data *ch) {
 /* rescue skill mechanic */
 void perform_rescue(struct char_data *ch, struct char_data *vict) {
   struct char_data *tmp_ch;
-  
+
   if (vict == ch) {
     send_to_char(ch, "What about fleeing instead?\r\n");
     return;
   }
-  
+
   if (FIGHTING(ch) == vict) {
     send_to_char(ch, "How can you rescue someone you are trying to kill?\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
+          ch->next_in_room != vict && vict->next_in_room != ch) {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
-  
+
   for (tmp_ch = world[IN_ROOM(ch)].people; tmp_ch &&
           (FIGHTING(tmp_ch) != vict); tmp_ch = tmp_ch->next_in_room);
 
@@ -256,12 +258,12 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
     act("But nobody is fighting $M!", FALSE, ch, 0, vict, TO_CHAR);
     return;
   }
- 
+
   if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, FALSE, 1) <= 0) {
     send_to_char(ch, "You fail the rescue!\r\n");
     return;
   }
-  
+
   act("You place yourself between $N and $S opponent, rescuing $M!", FALSE, ch, 0, vict, TO_CHAR);
   act("You are rescued by $N, you are confused!", FALSE, vict, 0, ch, TO_CHAR);
   act("$n heroically rescues $N!", FALSE, ch, 0, vict, TO_NOTVICT);
@@ -284,7 +286,7 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
   extern struct index_data *mob_index;
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
-  
+
   if (!RIDING(ch)) {
     send_to_char(ch, "You must be mounted to charge.\r\n");
     return;
@@ -294,12 +296,12 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
     send_to_char(ch, "Charge who?\r\n");
     return;
   }
-  
+
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
-  
+
   if (!CAN_SEE(ch, vict)) {
     send_to_char(ch, "You don't see well enough to attempt that.\r\n");
     return;
@@ -331,9 +333,9 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       act("You charge into $N, stunning $E!", FALSE, ch, 0, vict, TO_CHAR);
       act("$n charges into $N, stunning $E!", FALSE, ch, 0, vict, TO_ROOM);
-    }  
+    }
   }
-  
+
   USE_STANDARD_ACTION(ch);
   USE_MOVE_ACTION(ch);
 
@@ -346,23 +348,23 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
   bool success = FALSE, counter_success = FALSE;
   int attack_check = 0, defense_check = 0;
   //float rounds_wait = 1.75;
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
+          ch->next_in_room != vict && vict->next_in_room != ch) {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return FALSE;
   }
-  
+
   if (MOB_FLAGGED(vict, MOB_NOKILL)) {
     send_to_char(ch, "This mob is protected.\r\n");
     return FALSE;
   }
-  
+
   if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2) {
     send_to_char(ch, "Your target is too small!\r\n");
     return FALSE;
   }
-  
+
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
     send_to_char(ch, "Your target is too big!\r\n");
     return FALSE;
@@ -383,22 +385,22 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     case SKILL_TRIP:
       if (AFF_FLAGGED(vict, AFF_FLYING)) {
         send_to_char(ch, "Impossible, your target is flying!\r\n");
-        return FALSE;     
+        return FALSE;
       }
       if (!HAS_FEAT(ch, FEAT_IMPROVED_TRIP))
-        attack_of_opportunity(vict, ch, 0);     
+        attack_of_opportunity(vict, ch, 0);
       break;
     default:
       log("Invalid skill sent to perform knockdown!\r\n");
       return FALSE;
   }
-    
+
 
   if (MOB_FLAGGED(vict, MOB_NOBASH)) {
     send_to_char(ch, "You realize you will probably not succeed:  ");
     penalty = -100;
   }
-  
+
   if (GET_POS(vict) == POS_SITTING) {
     send_to_char(ch, "You can't knock down something already down!\r\n");
     return FALSE;
@@ -408,13 +410,13 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
   /* Perform the unarmed touch attack */
   if ((attack_roll(ch, vict, ATTACK_TYPE_UNARMED, TRUE, 1) + penalty) > 0) {
     /* Successful unarmed touch attacks. */
-   
- 
+
+
     /* Perform strength check. */
-    attack_check = (dice(1, 20) + GET_STR_BONUS(ch) + (GET_SIZE(ch)-GET_SIZE(vict))*4);
+    attack_check = (dice(1, 20) + GET_STR_BONUS(ch) + (GET_SIZE(ch) - GET_SIZE(vict))*4);
     defense_check = (dice(1, 20) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)));
 
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP)) { 
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP)) {
       /* You do not provoke an attack of opportunity when you attempt to trip an opponent while you are unarmed. 
        * You also gain a +4 bonus on your Strength check to trip your opponent.
        *
@@ -426,20 +428,20 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
        * are unarmed. */
 
       attack_check += 4;
-    }      
+    }
 
     if (GET_RACE(vict) == RACE_DWARF ||
-        GET_RACE(vict) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
+            GET_RACE(vict) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
       defense_check += 4;
 
-//    send_to_char(ch, "attack check: %d, defense_check: %d\r\n", attack_check, defense_check);
+    //    send_to_char(ch, "attack check: %d, defense_check: %d\r\n", attack_check, defense_check);
     if (attack_check >= defense_check) {
-      if(attack_check == defense_check) {
+      if (attack_check == defense_check) {
         /* Check the bonuses. */
-        if((GET_STR_BONUS(ch) + (GET_SIZE(ch)-GET_SIZE(vict))*4) >= (MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict))))
+        if ((GET_STR_BONUS(ch) + (GET_SIZE(ch) - GET_SIZE(vict))*4) >= (MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict))))
           success = TRUE;
-        else 
-          success = FALSE;    
+        else
+          success = FALSE;
       } else {
         success = TRUE;
       }
@@ -450,7 +452,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
       if (skill == SKILL_SHIELD_CHARGE) {
         act("\tyYou knock $N to the ground!\tn", FALSE, ch, NULL, vict, TO_CHAR);
         act("\ty$n knocks you to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
-        act("\ty$n knocks $N to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);       
+        act("\ty$n knocks $N to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
       } else {
         /* Messages for successful trip */
         act("\tyYou grab and overpower $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_CHAR);
@@ -461,17 +463,17 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     } else {
       /* Messages for shield charge */
       if (skill == SKILL_SHIELD_CHARGE) {
-/*
-        if (GET_STR_BONUS(vict) >= GET_DEX_BONUS(vict)) {
-          act("\tyYou charge into $N with your shield, but $E doesn't budge!\tn", FALSE, ch, NULL, vict, TO_CHAR);
-          act("\ty$n charges into you, but you stand your ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
-          act("\ty$n charges into $N, but $E doesn't budge!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);      
-        } else {
-          act("\tyYou charge into $N with your shield, but $E regains $S footing!\tn", FALSE, ch, NULL, vict, TO_CHAR);
-          act("\ty$n charges into you, but you regain your footing!\tn", FALSE, ch, NULL, vict, TO_VICT);
-          act("\ty$n charges into $N, but $E regains $S footing!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);     
-        }      
-*/
+        /*
+                if (GET_STR_BONUS(vict) >= GET_DEX_BONUS(vict)) {
+                  act("\tyYou charge into $N with your shield, but $E doesn't budge!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+                  act("\ty$n charges into you, but you stand your ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
+                  act("\ty$n charges into $N, but $E doesn't budge!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);      
+                } else {
+                  act("\tyYou charge into $N with your shield, but $E regains $S footing!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+                  act("\ty$n charges into you, but you regain your footing!\tn", FALSE, ch, NULL, vict, TO_VICT);
+                  act("\ty$n charges into $N, but $E regains $S footing!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);     
+                }      
+         */
       } else {
         /* Messages for failed trip */
         if (GET_STR_BONUS(vict) >= GET_DEX_BONUS(vict)) {
@@ -482,34 +484,34 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
           act("\tyYou grab $N but $E deftly turns away from your attack!\tn", FALSE, ch, NULL, vict, TO_CHAR);
           act("\ty$n grabs you and you deftly turn away from $s attack!\tn", FALSE, ch, NULL, vict, TO_VICT);
           act("\ty$n grabs $N but $E deftly turns away from $s attack!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
-        }         
+        }
       }
 
-      if (skill != SKILL_SHIELD_CHARGE) {    
-        /* Victim gets a chance to countertrip */      
-        attack_check = (dice(1, 20) + GET_STR_BONUS(vict) + (GET_SIZE(vict)-GET_SIZE(ch))*4);
+      if (skill != SKILL_SHIELD_CHARGE) {
+        /* Victim gets a chance to countertrip */
+        attack_check = (dice(1, 20) + GET_STR_BONUS(vict) + (GET_SIZE(vict) - GET_SIZE(ch))*4);
         defense_check = (dice(1, 20) + MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch)));
-  
+
         if (GET_RACE(ch) == RACE_DWARF ||
-            GET_RACE(ch) == RACE_CRYSTAL_DWARF) /* Dwarves get a stability bonus. */
+                GET_RACE(ch) == RACE_CRYSTAL_DWARF) /* Dwarves get a stability bonus. */
           defense_check += 4;
-  
-//        send_to_char(ch, "counterattack check: %d, defense_check: %d\r\n", attack_check, defense_check);
-  
+
+        //        send_to_char(ch, "counterattack check: %d, defense_check: %d\r\n", attack_check, defense_check);
+
         if (attack_check >= defense_check) {
-          if(attack_check == defense_check) {
-            /* Check the bonuses. */        
-            if((GET_STR_BONUS(vict) + (GET_SIZE(vict)-GET_SIZE(ch))*4) >= (MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch))))
+          if (attack_check == defense_check) {
+            /* Check the bonuses. */
+            if ((GET_STR_BONUS(vict) + (GET_SIZE(vict) - GET_SIZE(ch))*4) >= (MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch))))
               counter_success = TRUE;
             else
               counter_success = FALSE;
           } else {
             counter_success = TRUE;
           }
-        }         
-  
+        }
+
         /* No tripping someone already on the ground. */
-        if(GET_POS(ch) == POS_SITTING) {        
+        if (GET_POS(ch) == POS_SITTING) {
           act("\tyYou can't counter-trip someone who is already down!\tn", FALSE, ch, NULL, vict, TO_VICT);
         } else if (counter_success == TRUE) {
           /* Messages for successful counter-trip */
@@ -529,16 +531,16 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
           }
         }
       }
-    }             
+    }
   } else {
     /* Messages for a missed unarmed touch attack. */
     if (skill == SKILL_SHIELD_CHARGE) {
-/*
-      act("\ty$N rolls off of your shield, avoiding your charge!\tn", FALSE, ch, NULL, vict, TO_CHAR);
-      act("\ty$n tries to charge you with $s shield, but you dodge easily away!\tn", FALSE, ch, NULL, vict, TO_VICT);
-      act("\ty$n tries to charge $N with $s shield, but $N dodges easily away!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
-*/
-    } else {    
+      /*
+            act("\ty$N rolls off of your shield, avoiding your charge!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+            act("\ty$n tries to charge you with $s shield, but you dodge easily away!\tn", FALSE, ch, NULL, vict, TO_VICT);
+            act("\ty$n tries to charge $N with $s shield, but $N dodges easily away!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+       */
+    } else {
       act("\tyYou are unable to grab $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
       act("\ty$n tries to grab you, but you dodge easily away!\tn", FALSE, ch, NULL, vict, TO_VICT);
       act("\ty$n tries to grab $N, but $N dodges easily away!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
@@ -552,8 +554,8 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
   } else {
     GET_POS(vict) = POS_SITTING;
     if ((skill == SKILL_TRIP) ||
-        (skill == SKILL_BASH) ||
-        (skill == SKILL_SHIELD_CHARGE)) {
+            (skill == SKILL_BASH) ||
+            (skill == SKILL_SHIELD_CHARGE)) {
       /* Successful trip. */
       if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP)) {
         /* You get a free swing on the tripped opponent. */
@@ -562,7 +564,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     }
   }
   if (vict != ch) {
-    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) 
+    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))
       set_fighting(ch, vict);
     if (GET_POS(vict) > POS_STUNNED && (FIGHTING(vict) == NULL)) {
       set_fighting(vict, ch);
@@ -580,22 +582,22 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
   extern struct index_data *obj_index;
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
-  
+
   if (!shield) {
     send_to_char(ch, "You need a shield to do that.\r\n");
     return FALSE;
   }
-  
+
   if (!vict) {
     send_to_char(ch, "Shieldpunch who?\r\n");
     return FALSE;
   }
-  
+
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return FALSE;
   }
-  
+
   if (!CAN_SEE(ch, vict)) {
     send_to_char(ch, "You don't see well enough to attempt that.\r\n");
     return FALSE;
@@ -615,20 +617,20 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
 
   if (!HAS_FEAT(ch, FEAT_IMPROVED_SHIELD_BASH)) {
     /* Remove shield bonus from ac. */
-    attach_mud_event(new_mud_event(eSHIELD_RECOVERY, ch, NULL), PULSE_VIOLENCE);    
+    attach_mud_event(new_mud_event(eSHIELD_RECOVERY, ch, NULL), PULSE_VIOLENCE);
   }
 
   /*  Use an attack mechanic to determine success. */
   if (attack_roll(ch, vict, ATTACK_TYPE_OFFHAND, FALSE, 1) <= 0) {
     damage(ch, vict, 0, SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
   } else {
-    damage(ch, vict, dice(1,6), SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
+    damage(ch, vict, dice(1, 6), SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
     name = obj_index[GET_OBJ_RNUM(shield)].func;
     if (name)
       (name)(ch, shield, 0, "shieldpunch");
   }
 
-  
+
   return TRUE;
 }
 
@@ -681,7 +683,7 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
   if (attack_roll(ch, vict, ATTACK_TYPE_OFFHAND, FALSE, 1) + 2 <= 0) {
     damage(ch, vict, 0, SKILL_SHIELD_CHARGE, DAM_FORCE, FALSE);
   } else {
-    damage(ch, vict, dice(1,6), SKILL_SHIELD_CHARGE, DAM_FORCE, FALSE);
+    damage(ch, vict, dice(1, 6), SKILL_SHIELD_CHARGE, DAM_FORCE, FALSE);
     name = obj_index[GET_OBJ_RNUM(shield)].func;
     if (name)
       (name)(ch, shield, 0, "shieldcharge");
@@ -694,7 +696,6 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
 
   return TRUE;
 }
-
 
 /* shieldslam engine :
  * Perform the shield slam, check for proficiency and the required 
@@ -746,12 +747,12 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
   if (attack_roll(ch, vict, ATTACK_TYPE_OFFHAND, FALSE, 1) <= 0) {
     damage(ch, vict, 0, SKILL_SHIELD_SLAM, DAM_FORCE, FALSE);
   } else {
-    damage(ch, vict, dice(1,6), SKILL_SHIELD_SLAM, DAM_FORCE, FALSE);
+    damage(ch, vict, dice(1, 6), SKILL_SHIELD_SLAM, DAM_FORCE, FALSE);
     name = obj_index[GET_OBJ_RNUM(shield)].func;
     if (name)
       (name)(ch, shield, 0, "shieldslam");
-   
-    if (savingthrow(ch, SAVING_FORT, 0, (10 + (GET_LEVEL(ch)/2) + GET_STR_BONUS(ch)))) {
+
+    if (savingthrow(ch, SAVING_FORT, 0, (10 + (GET_LEVEL(ch) / 2) + GET_STR_BONUS(ch)))) {
       new_affect(&af);
       af.spell = SKILL_SHIELD_SLAM;
       SET_BIT_AR(af.bitvector, AFF_DAZED);
@@ -759,7 +760,7 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       act("$N appears to be dazed by your blow!", FALSE, ch, shield, vict, TO_CHAR);
       act("$N appears to be dazed by the blow!", FALSE, ch, shield, vict, TO_ROOM);
-    } 
+    }
   }
 
   USE_STANDARD_ACTION(ch);
@@ -771,12 +772,12 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
 /* engine for headbutt skill */
 void perform_headbutt(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
-  
+
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
     if (ch->next_in_room != vict && vict->next_in_room != ch) {
       send_to_char(ch, "You simply can't reach that far.\r\n");
@@ -803,7 +804,7 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
 
   if (attack_roll(ch, vict, ATTACK_TYPE_UNARMED, FALSE, 1) > 0) {
     damage(ch, vict, dice((HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE) ? 2 : 1), 8), SKILL_HEADBUTT, DAM_FORCE, FALSE);
-    
+
     if (!rand_number(0, 4)) {
       new_affect(&af);
       af.spell = SKILL_HEADBUTT;
@@ -812,12 +813,12 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       act("You slam your head into $N with \tRVICIOUS\tn force!", FALSE, ch, 0, vict, TO_CHAR);
       act("$n slams $s head into $N with \tRVICIOUS\tn force!", FALSE, ch, 0, vict, TO_ROOM);
-    }    
+    }
   } else {
     damage(ch, vict, 0, SKILL_HEADBUTT, DAM_FORCE, FALSE);
-    
+
   }
-  
+
 }
 
 /* engine for layonhands skill */
@@ -826,9 +827,9 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict) {
     send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
+          ch->next_in_room != vict && vict->next_in_room != ch) {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
@@ -852,35 +853,35 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
   int percent = rand_number(1, 101), prob = 0;
   struct affected_type af;
   struct obj_data *wep = NULL;
-  
+
   if (vict == ch) {
     send_to_char(ch, "How can you sneak up on yourself?\r\n");
     return;
   }
-  
+
   if (ch->in_room != vict->in_room) {
     send_to_char(ch, "That would be a bit hard.\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
     if (ch->next_in_room != vict && vict->next_in_room != ch) {
       send_to_char(ch, "You simply can't reach that far.\r\n");
       return;
     }
   }
-  
+
   if (!AFF_FLAGGED(ch, AFF_HIDE) || !AFF_FLAGGED(ch, AFF_SNEAK)) {
     send_to_char(ch, "You have to be hidden and sneaking before you can sap "
             "anyone.\r\n");
     return;
   }
-  
+
   if (IS_INCORPOREAL(vict)) {
     send_to_char(ch, "There is simply nothing solid there to sap.\r\n");
     return;
@@ -890,48 +891,48 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
     send_to_char(ch, "You can't reach that high.\r\n");
     return;
   }
-  
+
   if (GET_SIZE(ch) - GET_SIZE(vict) >= 2) {
     send_to_char(ch, "The target is too small.\r\n");
     return;
   }
-  
+
   /* 2h bludgeon */
   if (GET_EQ(ch, WEAR_WIELD_2H) && IS_BLUNT(GET_EQ(ch, WEAR_WIELD_2H))) {
     prob += 30;
     wep = GET_EQ(ch, WEAR_WIELD_2H);
   }
-          
+
   /* 1h bludgeon off-hand */
   if (GET_EQ(ch, WEAR_WIELD_2) && IS_BLUNT(GET_EQ(ch, WEAR_WIELD_2))) {
     prob += 10;
-    wep = GET_EQ(ch, WEAR_WIELD_2);    
+    wep = GET_EQ(ch, WEAR_WIELD_2);
   }
-  
+
   /* 1h bludgeon primary */
   if (GET_EQ(ch, WEAR_WIELD_1) && IS_BLUNT(GET_EQ(ch, WEAR_WIELD_1))) {
     prob += 10;
-    wep = GET_EQ(ch, WEAR_WIELD_1);    
+    wep = GET_EQ(ch, WEAR_WIELD_1);
   }
-  
+
   if (!prob) {
     send_to_char(ch, "You need a bludgeon weapon to make this a success...\r\n");
     return;
   }
- 
-  /* Redo this.  Figure out what to do with it.  */ 
+
+  /* Redo this.  Figure out what to do with it.  */
   prob += 30;
   prob += GET_DEX(ch);
   prob -= GET_CON(vict);
-  
+
   if (!CAN_SEE(vict, ch))
     prob += 50;
-  
+
   if (percent < prob) {
     dam = 5 + dice(GET_LEVEL(ch), 3);
     damage(ch, vict, dam, SKILL_SAP, DAM_FORCE, FALSE);
     GET_POS(vict) = POS_RECLINING;
-    
+
     /* success!  critical? */
     if (prob - percent >= 20) {
       /* critical! */
@@ -940,16 +941,16 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
       af.spell = SKILL_SAP;
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
       af.duration = 2;
-      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);      
+      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       act("You \tYsavagely\tn beat $N with $p!", FALSE, ch, wep, vict, TO_CHAR);
       act("$n \tYsavagely\tn beats $N with $p!!", FALSE, ch, wep, vict, TO_ROOM);
     }
   } else {
-    damage(ch, vict, 0, SKILL_SAP, DAM_FORCE, FALSE);    
+    damage(ch, vict, 0, SKILL_SAP, DAM_FORCE, FALSE);
   }
-  
+
   USE_STANDARD_ACTION(ch);
-  USE_MOVE_ACTION(ch);  
+  USE_MOVE_ACTION(ch);
 }
 
 /* main engine for dirt-kick mechanic */
@@ -962,7 +963,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
     send_to_char(ch, "You don't see well enough to attempt that.\r\n");
     return FALSE;
   }
-  
+
   if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
     if (ch->next_in_room != vict && vict->next_in_room != ch) {
       send_to_char(ch, "You simply can't reach that far.\r\n");
@@ -974,43 +975,43 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
     send_to_char(ch, "Its pretty hard to kick with immaterial legs.\r\n");
     return FALSE;
   }
-  
+
   if (MOB_FLAGGED(vict, MOB_NOBLIND)) {
     send_to_char(ch, "Your technique is ineffective...  ");
     damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
     return FALSE;
   }
-  
+
   if (GET_SIZE(vict) - GET_SIZE(ch) > 1) {
     send_to_char(ch, "Your target is too large for this technique to be effective!\r\n");
     return FALSE;
   }
-  
+
   if (GET_SIZE(ch) - GET_SIZE(vict) >= 2) {
     send_to_char(ch, "Your target is too small for this technique to be effective!\r\n");
     return FALSE;
   }
-  
-  base_probability = 60;  //flat rate 60% right now
-  
+
+  base_probability = 60; //flat rate 60% right now
+
   base_probability -= GET_LEVEL(vict) / 2;
   base_probability -= GET_DEX(vict);
-  
+
   if (dice(1, 101) < base_probability) {
     dam = 2 + dice(1, GET_LEVEL(ch));
-    damage(ch, vict, dam, dice(1,4), 0, FALSE);
-    
+    damage(ch, vict, dam, dice(1, 4), 0, FALSE);
+
     new_affect(&af);
     af.spell = SKILL_DIRT_KICK;
     SET_BIT_AR(af.bitvector, AFF_BLIND);
     af.modifier = -4;
     af.duration = dice(1, GET_LEVEL(ch) / 5);
     af.location = APPLY_HITROLL;
-    affect_join(vict, &af, 1, FALSE, FALSE, FALSE);    
+    affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
   } else
     damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
-  
-  USE_STANDARD_ACTION(ch);  
+
+  USE_STANDARD_ACTION(ch);
 
   return TRUE;
 }
@@ -1018,11 +1019,11 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
 /* main engine for assist mechanic */
 void perform_assist(struct char_data *ch, struct char_data *helpee) {
   struct char_data *opponent = NULL;
-  
+
   if (!ch)
     return;
-  
-  /* hit same opponent as person you are helping */  
+
+  /* hit same opponent as person you are helping */
   if (FIGHTING(helpee))
     opponent = FIGHTING(helpee);
   else
@@ -1039,9 +1040,9 @@ void perform_assist(struct char_data *ch, struct char_data *helpee) {
     send_to_char(ch, "You cannot kill other players.\r\n");
   else if (!MOB_CAN_FIGHT(ch)) {
     send_to_char(ch, "You can't fight!\r\n");
-  } else  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-              ch->next_in_room != opponent && opponent->next_in_room != ch) {
-      send_to_char(ch, "You simply can't reach that far.\r\n");
+  } else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+          ch->next_in_room != opponent && opponent->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
   } else {
     send_to_char(ch, "You join the fight!\r\n");
     act("$N assists you!", 0, helpee, 0, ch, TO_CHAR);
@@ -1049,14 +1050,14 @@ void perform_assist(struct char_data *ch, struct char_data *helpee) {
     set_fighting(ch, opponent);
 
     //hit(ch, opponent, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  }  
+  }
 }
 
 /* the primary engine for springleap */
 void perform_springleap(struct char_data *ch, struct char_data *vict) {
   //struct affected_type af;
   int dam = 0, prob = 0;
-  
+
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
@@ -1073,7 +1074,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
       return;
     }
   }
-  
+
   if (IS_INCORPOREAL(vict)) {
     act("You sprawl completely through $N as you try to springleap them!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n sprawls completely through $N as $e tries to springleap $M.", FALSE, ch, 0, vict, TO_ROOM);
@@ -1081,20 +1082,20 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
   }
 
   prob = 60;
-  
+
   if (rand_number(0, 100) < prob) {
     dam = dice(6, (GET_LEVEL(ch) / 5) + 2);
     damage(ch, vict, dam, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
-    
-/*    new_affect(&af);
-    af.spell = SKILL_SPRINGLEAP;
-    if (!rand_number(0, 5))
-      SET_BIT_AR(af.bitvector, AFF_PARALYZED);
-    else
-      SET_BIT_AR(af.bitvector, AFF_STUN);
-    af.duration = dice(1, 2);
-    affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
-*/
+
+    /*    new_affect(&af);
+        af.spell = SKILL_SPRINGLEAP;
+        if (!rand_number(0, 5))
+          SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+        else
+          SET_BIT_AR(af.bitvector, AFF_STUN);
+        af.duration = dice(1, 2);
+        affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+     */
   } else {
     damage(ch, vict, 0, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
   }
@@ -1114,30 +1115,30 @@ void perform_smite(struct char_data *ch) {
 
   affect_to_char(ch, &af);
 
-  if(!IS_NPC(ch))
+  if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_SMITE_EVIL);
 
   send_to_char(ch, "You prepare to wreak vengeance upon your foe.\r\n");
-//  act("The mighty force of $N's faith blasts $n out of existence!", FALSE, NULL,
-//          NULL, ch, TO_NOTVICT);
-  
+  //  act("The mighty force of $N's faith blasts $n out of existence!", FALSE, NULL,
+  //          NULL, ch, TO_NOTVICT);
+
 }
 
 /* the primary engine for backstab */
 bool perform_backstab(struct char_data *ch, struct char_data *vict) {
   int percent = -1, percent2 = -1, prob = -1, successful = 0;
-  
+
   percent = rand_number(1, 101); /* 101% is a complete failure */
   percent2 = rand_number(1, 101); /* 101% is a complete failure */
 
-  prob = 60;  // flat 60% success rate for now
-  
+  prob = 60; // flat 60% success rate for now
+
   if (AFF_FLAGGED(ch, AFF_HIDE))
     prob += 4; //minor bonus for being hidden
   if (AFF_FLAGGED(ch, AFF_SNEAK))
     prob += 4; //minor bonus for being sneaky
 
-  if ((!IS_NPC(ch)&& GET_RACE(ch) == RACE_TRELUX) || (GET_EQ(ch, WEAR_WIELD_1)
+  if ((!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX) || (GET_EQ(ch, WEAR_WIELD_1)
           && IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1)))) {
     if (AWAKE(vict) && (percent > prob)) {
       damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, FALSE);
@@ -1180,8 +1181,8 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict) {
     USE_FULL_ROUND_ACTION(ch);
     return TRUE;
   } else
-    send_to_char(ch, "You have no piercing weapon equipped.\r\n");  
-  
+    send_to_char(ch, "You have no piercing weapon equipped.\r\n");
+
   return FALSE;
 }
 
@@ -1207,7 +1208,7 @@ EVENTFUNC(event_whirlwind) {
     send_to_char(ch, "You simply can't reach in this area.\r\n");
     return 0;
   }
-  
+
   /* When using a list, we have to make sure to allocate the list as it
    * uses dynamic memory */
   room_list = create_list();
@@ -1229,7 +1230,7 @@ EVENTFUNC(event_whirlwind) {
     return 0;
   }
 
-  if (GET_HIT(ch) < 1) { 
+  if (GET_HIT(ch) < 1) {
     return 0;
 
   }
@@ -1386,11 +1387,11 @@ ACMD(do_turnundead) {
 
 /* rage skill (berserk) primarily for berserkers character class */
 ACMD(do_rage) {
-  
+
   struct affected_type af, aftwo, afthree, affour;
 
   int bonus = 0, duration = 0, uses_remaining = 0;
-  
+
   if (affected_by_spell(ch, SKILL_RAGE)) {
     send_to_char(ch, "You are already raging!\r\n");
     return;
@@ -1413,7 +1414,7 @@ ACMD(do_rage) {
     bonus = (CLASS_LEVEL(ch, CLASS_BERSERKER) / 3) + 3;
   }
   duration = 6 + GET_CON_BONUS(ch) * 2;
-  
+
   send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
   act("$n goes into a \tRR\trA\tRG\trE\tn!", FALSE, ch, 0, 0, TO_ROOM);
 
@@ -1431,7 +1432,7 @@ ACMD(do_rage) {
   aftwo.duration = duration;
   aftwo.location = APPLY_CON;
   aftwo.modifier = bonus;
-  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2;  //little boost in current hps
+  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2; //little boost in current hps
 
   afthree.spell = SKILL_RAGE;
   afthree.duration = duration;
@@ -1449,8 +1450,8 @@ ACMD(do_rage) {
   affect_to_char(ch, &afthree);
   affect_to_char(ch, &affour);
 
-  if(!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_RAGE);  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_RAGE);
 
   USE_STANDARD_ACTION(ch);
 
@@ -1501,10 +1502,9 @@ ACMD(do_hit) {
   } else if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == vict))
     act("$N is just such a good friend, you simply can't hit $M.", FALSE, ch, 0, vict, TO_CHAR);
   else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
-        send_to_char(ch, "You simply can't reach that far.\r\n");
-  }
-  else {
+          ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+  } else {
     if (!CONFIG_PK_ALLOWED && !IS_NPC(vict) && !IS_NPC(ch))
       check_killer(ch, vict);
     /* already fighting */
@@ -1515,22 +1515,25 @@ ACMD(do_hit) {
       if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE))
         victInitiative += 4;
       victInitiative += GET_DEX(vict);
-      if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING) { 
+      if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING) {
 
         /* ch is taking an action so loses the Flat-footed flag */
-        if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED)) 
+        if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED))
           REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
         set_fighting(ch, vict);
-        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */       
-      }
-      else {
-        send_to_char(vict, "\tYYour superior initiative grants the first strike!\tn\r\n");
-        send_to_char(ch,
-                "\tyYour opponents superior \tYinitiative\ty grants the first strike!\tn\r\n");
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */
+      } else {
 
-       /* vict is taking an action so loses the Flat-footed flag */
-        if (AFF_FLAGGED(vict, AFF_FLAT_FOOTED))  
-          REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_FLAT_FOOTED); 
+        /* this is just to avoid silly messages in peace rooms -zusuk */
+        if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL) && !ROOM_FLAGGED(IN_ROOM(vict), ROOM_PEACEFUL)) {
+          send_to_char(vict, "\tYYour superior initiative grants the first strike!\tn\r\n");
+          send_to_char(ch,
+                  "\tyYour opponents superior \tYinitiative\ty grants the first strike!\tn\r\n");
+        }
+        
+        /* vict is taking an action so loses the Flat-footed flag */
+        if (AFF_FLAGGED(vict, AFF_FLAT_FOOTED))
+          REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_FLAT_FOOTED);
 
         set_fighting(vict, ch);
 
@@ -1556,12 +1559,12 @@ ACMD(do_hit) {
       //everyone gets a free shot at you unless you make a tumble check
       //15 is DC
       if (FIGHTING(ch) && FIGHTING(vict)) {
-        if(!skill_check(ch, ABILITY_TUMBLE, 15))
+        if (!skill_check(ch, ABILITY_TUMBLE, 15))
           attacks_of_opportunity(ch, 0);
       }
 
     }
-    
+
   }
 
 }
@@ -1631,7 +1634,7 @@ ACMD(do_backstab) {
     return;
   }
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
+          ch->next_in_room != vict && vict->next_in_room != ch) {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
@@ -1648,7 +1651,7 @@ ACMD(do_backstab) {
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
     return;
   }
-  
+
   perform_backstab(ch, vict);
 }
 
@@ -1809,10 +1812,10 @@ ACMD(do_taunt) {
     send_to_char(ch, "Your target is already taunted...\r\n");
     return;
   }
-//  if (char_has_mud_event(ch, eTAUNT)) {
-//    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-//    return;
-//  }
+  //  if (char_has_mud_event(ch, eTAUNT)) {
+  //    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+  //    return;
+  //  }
 
   attempt += compute_ability(ch, ABILITY_INTIMIDATE);
   if (!IS_NPC(vict))
@@ -1833,7 +1836,7 @@ ACMD(do_taunt) {
   }
   if (!FIGHTING(vict))
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-//  attach_mud_event(new_mud_event(eTAUNT, ch, NULL), 8 * PASSES_PER_SEC);
+  //  attach_mud_event(new_mud_event(eTAUNT, ch, NULL), 8 * PASSES_PER_SEC);
 
   USE_STANDARD_ACTION(ch);
 }
@@ -1859,7 +1862,7 @@ ACMD(do_frightful) {
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
-  }  
+  }
 
   send_to_char(ch, "You ROAR!\r\n");
   act("$n lets out a mighty ROAR!", FALSE, ch, 0, 0, TO_ROOM);
@@ -1869,7 +1872,7 @@ ACMD(do_frightful) {
     next_vict = vict->next_in_room;
 
     /* Check to see if the victim is affected by an AURA OF COURAGE */
-    if(GROUP(ch) != NULL) {
+    if (GROUP(ch) != NULL) {
       while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
         if (IN_ROOM(tch) != IN_ROOM(ch))
           continue;
@@ -1880,7 +1883,7 @@ ACMD(do_frightful) {
         }
       }
     }
-   
+
     if (aoeOK(ch, vict, -1)) {
       send_to_char(ch, "You roar at %s.\r\n", GET_NAME(vict));
       send_to_char(vict, "A mighty roar from %s is directed at you!\r\n",
@@ -2004,7 +2007,7 @@ ACMD(do_bash) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-  
+
   one_argument(argument, arg);
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
@@ -2027,10 +2030,10 @@ ACMD(do_trip) {
 
   one_argument(argument, arg);
 
-//  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_TRIP)) {
-//    send_to_char(ch, "You have no idea how.\r\n");
-//    return;
-//  }
+  //  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_TRIP)) {
+  //    send_to_char(ch, "You have no idea how.\r\n");
+  //    return;
+  //  }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
@@ -2063,21 +2066,21 @@ ACMD(do_layonhands) {
     send_to_char(ch, "Whom do you want to lay hands on?\r\n");
     return;
   }
-  
+
   perform_layonhands(ch, vict);
 }
 
 ACMD(do_crystalfist) {
   int uses_remaining = 0;
 
-//  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
-  if(!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_CRYSTAL_FIST)) {
+  //  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
+  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_CRYSTAL_FIST)) {
     send_to_char(ch, "How do you plan on doing that?\r\n");
     return;
   }
 
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CRYSTAL_FIST)) == 0 ) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CRYSTAL_FIST)) == 0) {
     send_to_char(ch, "You are too exhausted to use crystal fist.\r\n");
     return;
   }
@@ -2086,20 +2089,20 @@ ACMD(do_crystalfist) {
   act("\tCYou watch as $n's arms and hands grow LARGE crystals!\tn",
           FALSE, ch, 0, 0, TO_NOTVICT);
 
-  if(!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_CRYSTAL_FIST);  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_CRYSTAL_FIST);
 }
 
 ACMD(do_crystalbody) {
   int uses_remaining = 0;
 
-//  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
-  if(!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_CRYSTAL_BODY)) {
+  //  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
+  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_CRYSTAL_BODY)) {
     send_to_char(ch, "How do you plan on doing that?\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CRYSTAL_BODY)) == 0 ) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CRYSTAL_BODY)) == 0) {
     send_to_char(ch, "You are too exhausted to harden your body.\r\n");
     return;
   }
@@ -2108,7 +2111,7 @@ ACMD(do_crystalbody) {
   act("\tCYou watch as $n's crystal-like body becomes harder!\tn",
           FALSE, ch, 0, 0, TO_NOTVICT);
 
-  if(!IS_NPC(ch))
+  if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_CRYSTAL_BODY);
 
 }
@@ -2133,7 +2136,7 @@ ACMD(do_treatinjury) {
             "ability again.\r\n");
     return;
   }
-  
+
   if (FIGHTING(ch) && GET_POS(ch) < POS_FIGHTING) {
     send_to_char(ch, "You need to be in a better position in combat in order"
             " to use this ability!\r\n");
@@ -2169,6 +2172,7 @@ ACMD(do_rescue) {
 
 /* built initially by vatiken as an illustration of event/lists systems 
  * of TBA, adapted to Luminari mechanics */
+
 /*TODO:  definitely needs more balance tweaking and dummy checks for usage */
 ACMD(do_whirlwind) {
 
@@ -2185,7 +2189,7 @@ ACMD(do_whirlwind) {
     send_to_char(ch, "It is too narrow to try that here.\r\n");
     return;
   }
-  
+
   /* First thing we do is check to make sure the character is not in the middle
    * of a whirl wind attack.
    * 
@@ -2219,7 +2223,7 @@ ACMD(do_stunningfist) {
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_STUNNING_FIST)) == 0 ) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_STUNNING_FIST)) == 0) {
     send_to_char(ch, "You must recover before you can focus your ki in this way again.\r\n");
     return;
   }
@@ -2239,8 +2243,8 @@ ACMD(do_smite) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
-  
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_SMITE_EVIL)) == 0 ) {
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_SMITE_EVIL)) == 0) {
     send_to_char(ch, "You must recover the divine energy required to smite evil.\r\n");
     return;
   }
@@ -2256,23 +2260,23 @@ ACMD(do_smite) {
 /* kick engine */
 void perform_kick(struct char_data *ch, struct char_data *vict) {
   int percent = 0, prob = 0;
-  
+
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
+          ch->next_in_room != vict && vict->next_in_room != ch) {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
-  
+
   if (IS_INCORPOREAL(vict)) {
     /* Change this so GHOST_TOUCH boots will kick incorporeal creatures. */
     act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
@@ -2280,7 +2284,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
     GET_POS(ch) = POS_SITTING;
     return;
   }
-  
+
   /* 101% is a complete failure */
   percent = rand_number(1, 101);
   prob = 60;
@@ -2312,7 +2316,7 @@ ACMD(do_kick) {
       return;
     }
   }
-  
+
   perform_kick(ch, vict);
 }
 
@@ -2320,7 +2324,7 @@ ACMD(do_hitall) {
   int lag = 1;
   int count = 0;
   struct char_data *vict, *next_vict;
-  
+
   if (!MOB_CAN_FIGHT(ch))
     return;
 
@@ -2333,19 +2337,19 @@ ACMD(do_hitall) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
     send_to_char(ch, "It is too narrow to try that here.\r\n");
     return;
   }
-  
+
   for (vict = world[ch->in_room].people; vict; vict = next_vict) {
     next_vict = vict->next_in_room;
-    if (IS_NPC(vict) && !IS_PET(vict) && 
-            (CAN_SEE(ch, vict) || 
+    if (IS_NPC(vict) && !IS_PET(vict) &&
+            (CAN_SEE(ch, vict) ||
             IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_MAGICDARK))) {
       count++;
-      
+
       if (rand_number(0, 111) < 20 ||
               (IS_PET(ch) && rand_number(0, 101) > GET_LEVEL(ch)))
         lag++;
@@ -2360,7 +2364,6 @@ ACMD(do_hitall) {
 
   USE_FULL_ROUND_ACTION(ch);
 }
-
 
 /* 
  * Original by Vhaerun, a neat skill for rogues to get an additional attack 
@@ -2384,14 +2387,14 @@ ACMD(do_circle) {
     send_to_char(ch, "You are too busy defending yourself to try that.\r\n");
     return;
   }
-  
+
   if (GET_RACE(ch) == RACE_TRELUX)
     ;
   else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2) && !GET_EQ(ch, WEAR_WIELD_2H)) {
     send_to_char(ch, "You need to wield a weapon to make it a success.\r\n");
     return;
   }
-  
+
   one_argument(argument, buf);
   if (!*buf && FIGHTING(ch))
     vict = FIGHTING(ch);
@@ -2404,13 +2407,13 @@ ACMD(do_circle) {
     send_to_char(ch, "Do not be ridiculous!\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch) {
+          ch->next_in_room != vict && vict->next_in_room != ch) {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
-  
+
   perform_backstab(ch, vict);
 }
 
@@ -2447,7 +2450,7 @@ ACMD(do_bodyslam) {
     send_to_char(ch, "Bodyslam who?\r\n");
     return;
   }
-  
+
   if (!(vict = get_char_room_vis(ch, buf, NULL))) {
     send_to_char(ch, "Bodyslam who?\r\n");
     return;
@@ -2457,7 +2460,7 @@ ACMD(do_bodyslam) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
-  
+
   perform_knockdown(ch, vict, SKILL_BODYSLAM);
 }
 
@@ -2472,7 +2475,7 @@ ACMD(do_headbutt) {
       send_to_char(ch, "You have no idea how.\r\n");
       return;
     }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
@@ -2482,19 +2485,19 @@ ACMD(do_headbutt) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
       vict = FIGHTING(ch);
   }
-  
+
   if (!vict) {
     send_to_char(ch, "Headbutt who?\r\n");
     return;
   }
-  
+
   perform_headbutt(ch, vict);
 }
 
 ACMD(do_sap) {
   struct char_data *vict = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
-  
+
   one_argument(argument, buf);
 
   if (CLASS_LEVEL(ch, CLASS_ROGUE) < 10) {
@@ -2506,7 +2509,7 @@ ACMD(do_sap) {
     send_to_char(ch, "Sap who?\r\n");
     return;
   }
-  
+
   perform_sap(ch, vict);
 }
 
@@ -2521,7 +2524,7 @@ ACMD(do_guard) {
     send_to_char(ch, "All you want is BLOOD!\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_BLIND)) {
     send_to_char(ch, "You can't see well enough to guard anywone!.\r\n");
     return;
@@ -2540,7 +2543,7 @@ ACMD(do_guard) {
     send_to_char(ch, "Whom do you want to guard?\r\n");
     return;
   }
-  
+
   if (IS_NPC(vict) && !IS_PET(vict)) {
     send_to_char(ch, "Not even funny..\r\n");
     return;
@@ -2560,7 +2563,7 @@ ACMD(do_guard) {
 ACMD(do_dirtkick) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-  
+
   one_argument(argument, arg);
 
   if (!IS_NPC(ch)) {
@@ -2576,12 +2579,12 @@ ACMD(do_dirtkick) {
     send_to_char(ch, "You got no material feet to dirtkick with.\r\n");
     return;
   }
-  
+
   if (!*arg || !(vict = get_char_room_vis(ch, arg, NULL))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
       vict = FIGHTING(ch);
   }
-  
+
   if (!vict) {
     send_to_char(ch, "Dirtkick who?\r\n");
     return;
@@ -2591,7 +2594,7 @@ ACMD(do_dirtkick) {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
-  
+
   perform_dirtkick(ch, vict);
 }
 
@@ -2622,8 +2625,7 @@ ACMD(do_springleap) {
   if (!*arg) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
       vict = FIGHTING(ch);
-  }
-  else
+  } else
     vict = get_char_room_vis(ch, arg, NULL);
 
   if (!vict) {
@@ -2774,7 +2776,7 @@ ACMD(do_charge) {
     send_to_char(ch, "You need to stand in the stirrups to charge!\r\n");
     return;
   }
-  
+
   if (!*arg) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
       vict = FIGHTING(ch);
@@ -2789,8 +2791,8 @@ ACMD(do_charge) {
  */
 ACMD(do_fire) {
   struct char_data *vict = NULL, *tch = NULL;
-  char arg1[MAX_INPUT_LENGTH] = { '\0' };
-  char arg2[MAX_INPUT_LENGTH] = { '\0' };
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum room = NOWHERE;
   int direction = -1, original_loc = NOWHERE;
 
@@ -2798,14 +2800,14 @@ ACMD(do_fire) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-  
+
   two_arguments(argument, arg1, arg2);
-  
+
   /* no 2nd argument?  target room has to be same room */
   if (!*arg2) {
     room = IN_ROOM(ch);
@@ -2822,25 +2824,25 @@ ACMD(do_fire) {
     }
     room = EXIT(ch, direction)->to_room;
   }
-  
+
   /* since we could possible no longer be in room, check if combat is ok
    in new room */
   if (ROOM_FLAGGED(room, ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-  
+
   /* no arguments?  no go! */
   if (!*arg1) {
     send_to_char(ch, "Fire at who?\r\n");
     return;
   }
-  
+
   /* a location has been found. */
   original_loc = IN_ROOM(ch);
   char_from_room(ch);
 
-  if(ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_WILDERNESS)) {
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_WILDERNESS)) {
     X_LOC(ch) = world[room].coords[0];
     Y_LOC(ch) = world[room].coords[1];
   }
@@ -2852,14 +2854,14 @@ ACMD(do_fire) {
   if (IN_ROOM(ch) == room) {
     char_from_room(ch);
 
-    if(ZONE_FLAGGED(GET_ROOM_ZONE(original_loc), ZONE_WILDERNESS)) {
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(original_loc), ZONE_WILDERNESS)) {
       X_LOC(ch) = world[original_loc].coords[0];
       Y_LOC(ch) = world[original_loc].coords[1];
     }
 
     char_to_room(ch, original_loc);
-  }  
-  
+  }
+
   if (!vict) {
     send_to_char(ch, "Fire at who?\r\n");
     return;
@@ -2882,17 +2884,17 @@ ACMD(do_fire) {
       }
     }
   }
-  
+
   /* maybe its your pet?  so assist */
   if (IS_PET(vict) && vict->master == ch && room == IN_ROOM(ch))
     vict = FIGHTING(vict);
-  
+
   if (can_fire_arrow(ch, FALSE)) {
-    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);  // 2 in last arg indicates ranged
+    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
     if (IN_ROOM(ch) != IN_ROOM(vict))
       stop_fighting(ch);
     else
-      FIRING(ch) = TRUE;      
+      FIRING(ch) = TRUE;
     USE_STANDARD_ACTION(ch);
   }
 }
@@ -2902,7 +2904,7 @@ ACMD(do_fire) {
  * sets FIRING()
  */
 ACMD(do_autofire) {
-  char arg[MAX_INPUT_LENGTH] = { '\0' };  
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL, *tch = NULL;
 
   one_argument(argument, arg);
@@ -2916,12 +2918,12 @@ ACMD(do_autofire) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-  
+
   if (!*arg) {
     send_to_char(ch, "Fire at who?\r\n");
     return;
   }
-  
+
   vict = get_char_room_vis(ch, arg, NULL);
 
   while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
@@ -2933,7 +2935,7 @@ ACMD(do_autofire) {
       break;
     }
   }
-  
+
   if (!vict) {
     send_to_char(ch, "Fire at who?\r\n");
     return;
@@ -2945,7 +2947,7 @@ ACMD(do_autofire) {
   }
 
   if (can_fire_arrow(ch, FALSE)) {
-    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);  // 2 in last arg indicates ranged
+    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
     FIRING(ch) = TRUE;
     USE_STANDARD_ACTION(ch);
   }
@@ -2960,8 +2962,8 @@ ACMD(do_collect) {
   struct obj_data *next_obj = NULL;
   int ammo = 0;
   bool fit = TRUE;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };  
-  
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+
   if (!quiver) {
     send_to_char(ch, "But you don't have an ammo pouch to collect to.\r\n");
     return;
@@ -3090,7 +3092,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
     act("You failed to disarm $N.", FALSE, ch, 0, vict, TO_CHAR);
   }
 }
-*/
+ */
 
 /* do_process_attack()
  *
@@ -3111,26 +3113,26 @@ ACMD(do_process_attack) {
     case AA_HEADBUTT:
       if (!HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE)) {
         fail = TRUE;
-      }    
-      break;        
+      }
+      break;
   }
 
-  if(fail == TRUE) {
+  if (fail == TRUE) {
     send_to_char(ch, "%s %s.\r\n", fail_msg, complete_cmd_info[cmd].command);
     return;
-  } 
+  }
 
   CREATE(attack, struct attack_action_data, 1);
-  attack->command     = cmd; 
+  attack->command = cmd;
   attack->attack_type = subcmd;
-  attack->argument    = strdup(argument);
+  attack->argument = strdup(argument);
 
   enqueue_attack(GET_ATTACK_QUEUE(ch), attack);
 
-  if(FIGHTING(ch) || (!FIGHTING(ch) && (strcmp(argument, "") == 0)))
+  if (FIGHTING(ch) || (!FIGHTING(ch) && (strcmp(argument, "") == 0)))
     send_to_char(ch, "Attack queued.\r\n");
 
-  if(!FIGHTING(ch) && (strcmp(argument, "") != 0)) {
+  if (!FIGHTING(ch) && (strcmp(argument, "") != 0)) {
     do_hit(ch, argument, cmd, subcmd);
   }
 }
