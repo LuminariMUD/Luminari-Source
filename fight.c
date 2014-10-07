@@ -743,6 +743,9 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
 
   /* check for all group members next */
   group = GROUP(killer);
+
+  /* Initialize the iterator */
+  simple_list(NULL);
   if (group != NULL) {
     while ((k = simple_list(group->members)) != NULL) {
       if (k == killer) /* should not need this */
@@ -754,7 +757,8 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
       send_to_char(killer, "%s", GET_NAME(k));
     }
   }
-
+  /* Be kind, rewind. */
+  simple_list(NULL);
 }
 
 // we're not extracting anybody anymore, just penalize them xp
