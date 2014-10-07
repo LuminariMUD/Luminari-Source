@@ -2109,7 +2109,12 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   //damroll (should be mostly just gear)
   dambonus += GET_DAMROLL(ch);
-
+  
+  /* weapon enhancement bonus, the 12 is arbitrary at this stage,
+     needs some work */
+  if (wielded)
+    dambonus += MAX(12, GET_ENHANCEMENT_BONUS(wielded));
+  
   // power attack
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
     dambonus += 5;
