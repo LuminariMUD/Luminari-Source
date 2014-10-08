@@ -256,7 +256,7 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
 
 /*
  * Our current list of materials distributed in this manner:
- * METALS (hard)
+ METALS (hard)
  * bronze
  * iron
  * steel
@@ -264,19 +264,19 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
  * alchemal silver
  * mithril
  * adamantine
- * METALS (precious)
+ METALS (precious)
  * copper
  * brass
  * silver
  * gold
  * platinum
- * LEATHERS
+ LEATHERS
  * leather
  * dragonhide
- * WOODS
+ WOODS
  * wood
  * darkwood
- * CLOTH
+ CLOTH
  * burlap
  * hemp
  * cotton
@@ -307,9 +307,9 @@ char *node_keywords(int material) {
     case MATERIAL_DARKWOOD:
       return strdup("tree darkwood fallen");
     case MATERIAL_LEATHER:
-      return strdup("game freshly killed");
+      return strdup("game freshly killed corpse");
     case MATERIAL_DRAGONHIDE:
-      return strdup("wyvern freshly killed");
+      return strdup("wyvern freshly killed corpse");
     case MATERIAL_HEMP:
       return strdup("hemp plants");
     case MATERIAL_COTTON:
