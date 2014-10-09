@@ -40,6 +40,7 @@
 #include "mudlim.h"
 #include "spec_abilities.h"
 #include "actions.h"
+#include "feats.h"
 
 /* Local defined utility functions */
 /* do_group utility functions */
@@ -1366,7 +1367,8 @@ ACMD(do_lore) {
       case ITEM_WEAPON:
         send_to_char(ch, "Damage Dice is '%dD%d' for an average per-round damage of %.1f.\r\n",
                 GET_OBJ_VAL(tobj, 1), GET_OBJ_VAL(tobj, 2), ((GET_OBJ_VAL(tobj, 2) + 1) / 2.0) * GET_OBJ_VAL(tobj, 1));
-        send_to_char(ch, "Weapon Type: %s\r\n", attack_hit_text[GET_OBJ_VAL(tobj, 3)].singular);
+        send_to_char(ch, "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n",
+          weapon_list[GET_WEAPON_TYPE(tobj)].name, GET_WEAPON_TYPE(tobj), GET_ENHANCEMENT_BONUS(tobj));
         send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(tobj)]);
         break;
       case ITEM_SPELLBOOK:

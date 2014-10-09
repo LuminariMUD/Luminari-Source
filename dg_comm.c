@@ -177,7 +177,7 @@ void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
   *s = '\0';
   tokens[++i] = NULL;
 
-  if (IS_SET(targets, TO_CHAR) && SENDOK(ch))
+  if (IS_SET(targets, TO_CHAR))// && SENDOK(ch))
     sub_write_to_char(ch, tokens, otokens, type);
 
   /* unknown issue with teleporter, sloppy attempt to fix - zusuk */

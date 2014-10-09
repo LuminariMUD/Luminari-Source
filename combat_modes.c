@@ -108,12 +108,12 @@ bool can_enable_mode(struct char_data *ch, const int mode) {
 }
 
 void enable_combat_mode(struct char_data *ch, const int mode, const int value) {
-  if ( can_enable_mode(ch, mode) ) {
+//  if ( can_enable_mode(ch, mode) ) {
     SET_BIT_AR(AFF_FLAGS(ch), combat_mode_info[mode].affect_flag);
     if ( combat_mode_info[mode].has_value ) {
       COMBAT_MODE_VALUE(ch) = value;
     }
-  }
+//  } 
 }
 
 void disable_combat_mode(struct char_data *ch, int mode) {
@@ -170,6 +170,10 @@ ACMD(do_mode) {
     }
     if ( !IS_NPC(ch) && number > BAB(ch) ) {
       send_to_char(ch, "The maximum value you can specify for %s is %d.\r\n", combat_mode_info[mode].name, BAB(ch));
+      return;
+    }
+    if (number < 1) {
+      send_to_char(ch, "The minimum value you can sepcify for %s is 1.\r\n", combat_mode_info[mode].name);
       return;
     }
   }

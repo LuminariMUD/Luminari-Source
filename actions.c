@@ -108,6 +108,7 @@ bool is_action_available(struct char_data * ch, action_type act_type, bool msg_t
 
 	return result;
 };
+
 /* Start cooldowns for a specific command. Read cooldown length from command table. */
 void start_cmd_cooldown(struct char_data *ch, int cmd)
 {
