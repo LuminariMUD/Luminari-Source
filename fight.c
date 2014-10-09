@@ -118,6 +118,10 @@ void guard_check(struct char_data *ch, struct char_data *vict) {
       continue;
     if (AFF_FLAGGED(tch, AFF_BLIND))
       continue;
+    /*  Require full round action availability to guard.  */
+    if (!is_action_available(tch, atSTANDARD, FALSE) ||
+        !is_action_available(tch, atMOVE, FALSE))
+      continue;
     if (GUARDING(tch) == vict) {
       /* This MUST be changed.  Skills are obsolete. 
          Set to a flat 70% chance for now. */
@@ -131,13 +135,6 @@ void guard_check(struct char_data *ch, struct char_data *vict) {
 
         perform_rescue(tch, vict);
         return;
-
-        /*
-        if (!FIGHTING(tch))
-          set_fighting(tch, ch);
-        FIGHTING(ch) = tch;
-        return;
-         */
       }
     }
   }
@@ -338,7 +335,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     armorclass += MIN(5, (int) (compute_ability(ch, ABILITY_TUMBLE) / 5));
   
   if (AFF_FLAGGED(ch, AFF_EXPERTISE))
-    armorclass += 5;
+    armorclass += COMBAT_MODE_VALUE(ch);
   
   if (!is_touch && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_ARMOR_SKIN))
     armorclass += HAS_FEAT(ch, FEAT_ARMOR_SKIN);
@@ -2033,10 +2030,9 @@ int compute_bab(struct char_data *ch, struct char_data *victim, int type) {
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_PROWESS))
     calc_bab += HAS_FEAT(ch, FEAT_EPIC_PROWESS);
 
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
-    calc_bab -= 5;
-  if (AFF_FLAGGED(ch, AFF_EXPERTISE))
-    calc_bab -= 5;
+  /* These modes subtract their value from the attack roll. */
+  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE))
+    calc_bab -= COMBAT_MODE_VALUE(ch);
   //fatigued
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
     calc_bab -= 2;
@@ -2117,7 +2113,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   
   // power attack
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
-    dambonus += 5;
+    dambonus += COMBAT_MODE_VALUE(ch);
 
   // crystal fist
   if (char_has_mud_event(ch, eCRYSTALFIST))
@@ -2733,10 +2729,8 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
     bonuses[BONUS_TYPE_UNDEFINED] += HAS_FEAT(ch, FEAT_EPIC_PROWESS);
 
   /* Modify this to store a player-chosen number for power attack and expertise */
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
-    bonuses[BONUS_TYPE_UNDEFINED] -= 5;
-  if (AFF_FLAGGED(ch, AFF_EXPERTISE))
-    bonuses[BONUS_TYPE_UNDEFINED] -= 5;
+  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE))
+    bonuses[BONUS_TYPE_UNDEFINED] -= COMBAT_MODE_VALUE(ch);
 
   /* favored enemy - Needs work */
   if (victim && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
