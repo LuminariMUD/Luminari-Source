@@ -332,7 +332,7 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
       }
 
       /* sending a carrier return */
-      tmp_len = snprintf(buf + len, sizeof (buf) - len, "\t\n");
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "\r\n");
       len += tmp_len;
       
     }
