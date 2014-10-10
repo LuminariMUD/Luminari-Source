@@ -285,6 +285,11 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
   char buf[MAX_STRING_LENGTH];
 
   wearloc = atoi(arg);
+  
+  if (wearloc > (NUM_ITEM_WEARS + 1)) {
+    send_to_char(ch, "Out of bounds\r\n");
+    return;
+  }
 
   len = snprintf(buf, sizeof (buf), "Listing all objects with wear location %s[%s]%s\r\n",
           QYEL, wear_bits[wearloc], QNRM);
@@ -293,8 +298,10 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
     if (IS_SET_AR(obj_proto[num].obj_flags.wear_flags, wearloc)) {
       /* Display this object. */
       ov = obj_index[num].vnum;
-      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s\r\n",
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s] %35s%s",
                          QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[num].short_description, QNRM);
+      len += tmp_len;    
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s\r\n", QNRM);
       len += tmp_len;    
     }
   }
