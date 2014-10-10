@@ -345,7 +345,9 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
     return;
   }
   
-  page_string(ch->desc, buf, TRUE);
+  send_to_char(ch, "len = %d", len);
+  
+  //page_string(ch->desc, buf, TRUE);
   return;
 }
 
