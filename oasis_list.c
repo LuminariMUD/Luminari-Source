@@ -339,6 +339,12 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
       
     }
   }
+  
+  if (len >= (MAX_STRING_LENGTH-1)) {
+    send_to_char(ch, "Overloaded buffer!\r\n");
+    return;
+  }
+  
   page_string(ch->desc, buf, TRUE);
   return;
 }
