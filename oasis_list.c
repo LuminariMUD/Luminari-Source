@@ -300,6 +300,9 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
   for (num = 0; num <= top_of_objt; num++) {
     /* set obj to the address of the proto */
     obj = &obj_proto[num];
+    
+    if (!obj) /* dummy check */
+      break;
 
     if (IS_SET_AR(obj_proto[num].obj_flags.wear_flags, wearloc)) {
       /* Display this object. */
