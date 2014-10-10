@@ -281,7 +281,7 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
 
 /* this function is ran for doing:  olist worn <slot> */
 void perform_obj_worn_list(struct char_data *ch, char *arg) {
-  int num, wearloc, found = 0, len = 0, tmp_len = 0, i = 0;
+  int num, wearloc, found = 0, len = 0, tmp_len = 0, i = 0, count = 0;
   obj_vnum ov;
   char buf[MAX_STRING_LENGTH], bitbuf[MEDIUM_STRING];
   struct obj_data *obj = NULL;
@@ -341,16 +341,17 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
       len += tmp_len;
       
     }
+    
+    /* another dummy check */
+    count++;
+    if (count >= 700) {
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "**OVERLOADED BUFF***\r\n");
+      len += tmp_len;
+      break;
+    }
   }
   
-  if (len >= (MAX_STRING_LENGTH-1)) {
-    send_to_char(ch, "Overloaded buffer!\r\n");
-    return;
-  }
-  
-  send_to_char(ch, "len = %d", len);
-  
-  //page_string(ch->desc, buf, TRUE);
+  page_string(ch->desc, buf, TRUE);
   return;
 }
 
