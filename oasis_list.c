@@ -279,11 +279,13 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
   page_string(ch->desc, buf, TRUE);
 }
 
+/* this function is ran for doing:  olist worn <slot> */
 void perform_obj_worn_list(struct char_data *ch, char *arg) {
-  int num, wearloc, found = 0, len = 0, tmp_len = 0;
+  int num, wearloc, found = 0, len = 0, tmp_len = 0, i = 0;
   obj_vnum ov;
-  char buf[MAX_STRING_LENGTH];
-
+  char buf[MAX_STRING_LENGTH], bitbuf[MEDIUM_STRING];
+  struct obj_data *obj = NULL;
+  
   wearloc = atoi(arg);
   
   /* 0 = takeable */
@@ -296,13 +298,33 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
           QYEL, wear_bits[wearloc], QNRM);
   
   for (num = 0; num <= top_of_objt; num++) {
+    /* set obj to the address of the proto */
+    obj = &obj_proto[num];
+
     if (IS_SET_AR(obj_proto[num].obj_flags.wear_flags, wearloc)) {
       /* Display this object. */
       ov = obj_index[num].vnum;
+      
       /* display index, vnum */
       tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d %7d ",
                          QNRM, ++found, ov);
       len += tmp_len;
+
+      /* has affects? */
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s ",
+                         GET_OBJ_AFFECT(obj) ? "Y" : "N");
+      len += tmp_len;
+
+      /* has affect locations? */
+      for (i = 0; i < MAX_OBJ_AFFECT; i++) {
+        if ((obj->affected[i].location != APPLY_NONE) &&
+                (obj->affected[i].modifier != 0)) {
+          sprinttype(obj->affected[i].location, apply_types, bitbuf, sizeof (bitbuf));
+          tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s %d ", bitbuf, obj->affected[i].modifier);
+          len += tmp_len;
+        }
+      }
+      
       /* display short descrip last */
       tmp_len = snprintf(buf + len, sizeof (buf) - len, "%-35s%s\r\n", obj_proto[num].short_description, QNRM);
       len += tmp_len;    
