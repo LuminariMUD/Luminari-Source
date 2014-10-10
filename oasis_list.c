@@ -318,7 +318,9 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
       */
 
       /* display short descrip */
-      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%-35s%s | ", obj_proto[num].short_description, QNRM);
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%-*s%s | ",
+              32 + count_color_chars(obj_proto[num].short_description), 
+              obj_proto[num].short_description, QNRM);
       len += tmp_len;    
       
       /* has affect locations? */
