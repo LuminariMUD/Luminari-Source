@@ -906,8 +906,8 @@ int BAB(struct char_data *ch) {
       case CLASS_CLERIC:
       case CLASS_DRUID:
       case CLASS_BARD:
+      case CLASS_MONK:    
         return ( (int) (GET_LEVEL(ch) * 3 / 4));
-      case CLASS_MONK:    /* Changed 10.10.2014 Ornir */
       case CLASS_WARRIOR:
       case CLASS_RANGER:
       case CLASS_PALADIN:
