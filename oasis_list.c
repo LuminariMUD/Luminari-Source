@@ -311,10 +311,16 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
       len += tmp_len;
 
       /* has affects? */
+      /*
       tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s ",
                          GET_OBJ_AFFECT(obj) ? "Y" : "N");
       len += tmp_len;
+      */
 
+      /* display short descrip */
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%-35s%s | ", obj_proto[num].short_description, QNRM);
+      len += tmp_len;    
+      
       /* has affect locations? */
       for (i = 0; i < MAX_OBJ_AFFECT; i++) {
         if ((obj->affected[i].location != APPLY_NONE) &&
@@ -324,10 +330,11 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
           len += tmp_len;
         }
       }
+
+      /* sending a carrier return */
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "\t\n");
+      len += tmp_len;
       
-      /* display short descrip last */
-      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%-35s%s\r\n", obj_proto[num].short_description, QNRM);
-      len += tmp_len;    
     }
   }
   page_string(ch->desc, buf, TRUE);
