@@ -286,7 +286,8 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
 
   wearloc = atoi(arg);
   
-  if (wearloc > NUM_ITEM_WEARS || wearloc < 0) {
+  /* 0 = takeable */
+  if (wearloc >= NUM_ITEM_WEARS || wearloc <= 0) {
     send_to_char(ch, "Out of bounds\r\n");
     return;
   }
