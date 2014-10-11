@@ -199,6 +199,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "examine", "exa", POS_RECLINING, do_examine, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "expertise", "expertise", POS_FIGHTING, do_mode, 1, MODE_COMBAT_EXPERTISE, FALSE, ACTION_NONE, {0, 0}},
   { "export", "export", POS_DEAD, do_export_zone, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "eqrating", "eqrating", POS_SLEEPING, do_eqrating, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "force", "force", POS_SLEEPING, do_force, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
