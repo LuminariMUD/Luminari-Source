@@ -5990,11 +5990,12 @@ int get_eq_score(obj_rnum a) {
 
 /* a command meant to view the top end equipment of the game -zusuk */
 ACMD(do_eqrating) {
-  char arg1[MAX_INPUT_LENGTH] = { '\0' };
-  char arg2[MAX_INPUT_LENGTH] = { '\0' };
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
-  char buf1[MAX_INPUT_LENGTH] = { '\0' };
-  char buf2[MAX_INPUT_LENGTH] = { '\0' };
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  char buf1[MAX_INPUT_LENGTH] = {'\0'};
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
+  //char bitbuf[MEDIUM_STRING] = {'\0'};
   int i = 0;
   int mask = 0;
   int *index = NULL;
@@ -6027,7 +6028,6 @@ ACMD(do_eqrating) {
     end_of_zone = zone_table[i].top;
   }
 
-  /* 0 = takeable, so starting with 1 */
   for (i = 1; i < NUM_ITEM_WEARS; i++) {
     if (!str_cmp(wear_bits[i], arg1))
       mask = 1 << i;
@@ -6038,7 +6038,6 @@ ACMD(do_eqrating) {
     return;
   }
   
-  /* allocate some memory for our two int pointers */
   CREATE(index, int, top_of_objt);
   CREATE(score, int, top_of_objt);
 
@@ -6081,30 +6080,35 @@ ACMD(do_eqrating) {
     send_to_char(ch, buf);
   }
   
-  /*show the table*/
+  /* show the table */
   buf[0] = 0;
   for (i = 0; i < max; i++) {
+    
     a = index[i];
+    
     sprintf(buf1, "[%5ld] (%5d pts) %-70s ", (long int)obj_index[a].vnum, get_eq_score(a), obj_proto[a].short_description);
     strcat(buf, buf1);
+    
     if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_WEAPON) {
       sprintf(buf1, "%dd%d "
               , GET_OBJ_VAL(&obj_proto[a], 1)
               , GET_OBJ_VAL(&obj_proto[a], 2));
       strcat(buf, buf1);
     }
+    
     if (CAN_WEAR(&obj_proto[a], ITEM_WEAR_SHIELD)) {
       sprintf(buf1, "wt %d ", GET_OBJ_WEIGHT(&obj_proto[a]));
       strcat(buf, buf1);
     }
+    
     if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_ARMOR) {
       sprintf(buf1, "AC %d ", GET_OBJ_VAL(&obj_proto[a], 0));
       strcat(buf, buf1);
-
     }
-    sprintbit((long)obj_proto[a].obj_flags.bitvector, affected_bits, buf1, sizeof (buf1));
+    
+    sprintbit((long)obj_proto[a].obj_flags.bitvector, affected_bits, buf1, sizeof (buf1));    
     if (strncmp("NOBIT", buf1, 4))
-      strcat(buf, buf1);
+      strcat(buf, buf1);    
 
     found = 0;
     for (b = 0; b < MAX_OBJ_AFFECT; b++) {
@@ -6123,3 +6127,6 @@ ACMD(do_eqrating) {
   free(index);
   free(score);
 }
+
+/* EOF */
+
