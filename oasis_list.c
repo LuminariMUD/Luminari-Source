@@ -346,6 +346,7 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
     if (found >= 700) {
       tmp_len = snprintf(buf + len, sizeof (buf) - len, "**OVERLOADED BUFF***\r\n");
       len += tmp_len;
+      
       break;
     }
   }
