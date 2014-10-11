@@ -5990,18 +5990,18 @@ int get_eq_score(obj_rnum a) {
 
 /* a command meant to view the top end equipment of the game -zusuk */
 ACMD(do_eqrating) {
-  char arg1[MAX_INPUT_LENGTH];
-  char arg2[MAX_INPUT_LENGTH];
-  char buf[MAX_INPUT_LENGTH];
-  char buf1[MAX_INPUT_LENGTH];
-  char buf2[MAX_INPUT_LENGTH];
-  int i;
+  char arg1[MAX_INPUT_LENGTH] = { '\0' };
+  char arg2[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf1[MAX_INPUT_LENGTH] = { '\0' };
+  char buf2[MAX_INPUT_LENGTH] = { '\0' };
+  int i = 0;
   int mask = 0;
-  int *index;
-  int *score;
+  int *index = NULL;
+  int *score = NULL;
   int max = 0;
-  int a, b;
-  int found;
+  int a = 0, b = 0;
+  int found = 0;
   int zone = 0;
   room_vnum start_of_zone = 0, end_of_zone = 0;
 
