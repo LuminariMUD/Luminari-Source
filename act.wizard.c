@@ -5989,78 +5989,103 @@ int get_eq_score(obj_rnum a) {
 }
 
 /* a command meant to view the top end equipment of the game -zusuk */
+
+/* takes one or two arguments, 2nd argument being optional:
+   arg 1:  item slot
+   arg 2:  zone
+ */
 ACMD(do_eqrating) {
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-  char buf1[MAX_INPUT_LENGTH] = {'\0'};
-  char buf2[MAX_INPUT_LENGTH] = {'\0'};
-  //char bitbuf[MEDIUM_STRING] = {'\0'};
-  int i = 0;
-  int mask = 0;
-  int *index = NULL;
-  int *score = NULL;
-  int max = 0;
-  int a = 0, b = 0;
-  int found = 0;
-  int zone = 0;
-  room_vnum start_of_zone = 0, end_of_zone = 0;
+  char buf[MAX_STRING_LENGTH] = {'\0'}, bitbuf[MEDIUM_STRING] = {'\0'};
+
+  int *index = NULL; /* one of two tables */
+  int *score = NULL; /* one of two tables */
+
+  int i = 0, j = 0; /* counter */
+  int a = 0, b = 0; /* used for sorting */
+  int len = 0, tmp_len = 0; /* string length */
+  int wearloc = 0; /* the wear-location of item */
+  
+  zone_vnum zone = 0; /* zone vnum to restrict search */
+  room_vnum start_of_zone = 0, end_of_zone = 0; /* bottom/top of zone vnums */
+  
+  struct obj_data *obj = NULL;
+  
 
   two_arguments(argument, arg1, arg2);
-  
+
   if (!*arg1) {
-    send_to_char(ch, "List eq worn at which position?\r\n");
+    send_to_char(ch, "Which object wear location do you want to list?\r\n");
+    for (i = 1; i < NUM_ITEM_WEARS; i++) {
+      send_to_char(ch, "%s%2d%s-%s%-14s%s", QNRM, i, QNRM, QYEL, wear_bits[i], QNRM);
+      if (!(i % 4)) send_to_char(ch, "\r\n");
+    }
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "Usage: %seqrating <num> <optionally zone>%s\r\n", QYEL, QNRM);
+    send_to_char(ch, "Displays objects worn in the selected location sorted by rating.\r\n");
+
     return;
   }
 
+  wearloc = atoi(arg1);
+
+  /* dummy check:  0 = takeable */
+  if (wearloc >= NUM_ITEM_WEARS || wearloc <= 0) {
+    send_to_char(ch, "Invalid slot!\r\n");
+    return;
+  }
+
+  /* we now have a valid wear location, was a zone number also submitted? */
   if (isdigit(*arg2)) {
+
     zone = atoi(arg2);
+
     for (i = 0; i <= top_of_zone_table; i++) {
-      if (zone_table[i].number == zone)
+      if (zone_table[i].number == zone) /* found a matching zone? */
         break;
     }
+
     if (i <= 0 || i > top_of_zone_table) {
-      sprintf(buf, "Zone %d does not exist.\r\n", zone);
-      send_to_char(ch, buf);
+      send_to_char(ch, "Zone %d does not exist.\r\n", zone);
       return;
     }
-    start_of_zone = zone * 100;
+
+    start_of_zone = zone_table[i].bot;
     end_of_zone = zone_table[i].top;
   }
 
-  for (i = 1; i < NUM_ITEM_WEARS; i++) {
-    if (!str_cmp(wear_bits[i], arg1))
-      mask = 1 << i;
-  }
-  
-  if (!mask) {
-    send_to_char(ch, "Unknown slot!\r\n");
-    return;
-  }
-  
+  /* allocate memory for our tables */
   CREATE(index, int, top_of_objt);
   CREATE(score, int, top_of_objt);
 
-  /* Create a table of eq worn at that slot*/
+  /* Create tables of eq worn at that slot, with rating */
+
+  /* the table index is going to be "j", the object real-num "i" will be
+   * stored in the index-table along with the score in the score-table */
   for (i = 0; i <= top_of_objt; i++) {
-    if (CAN_WEAR(&obj_proto[i], mask)) {
-      if (zone) {
+    if (IS_SET_AR(obj_proto[i].obj_flags.wear_flags, wearloc)) {
+      if (zone) { /* zone values */
         if (obj_index[i].vnum >= start_of_zone &&
                 obj_index[i].vnum <= end_of_zone) {
-          score[max] = get_eq_score(i);
-          index[max++] = i;
+          score[j] = get_eq_score(i);
+          index[j] = i;
+          j++;
         }
-      } else {
-        score[max] = get_eq_score(i);
-        index[max++] = i;
+      } else { /* full list */
+        score[j] = get_eq_score(i);
+        index[j] = i;
+        j++;
       }
     }
   }
-  
-  if (max > 1) {
+
+  /* variable note, "i" is being used as a temporary storage value here,
+   not a counter like before */
+  if (j > 1) {
     /* Sort the table, so that the best eq is at top*/
-    for (a = 0; a < max - 1; a++) {
-      for (b = a + 1; b < max; b++) {
+    for (a = 0; a < j - 1; a++) {
+      for (b = a + 1; b < j; b++) {
         if (score[a] < score[b]) {
           i = score[a];
           score[a] = score[b];
@@ -6072,54 +6097,67 @@ ACMD(do_eqrating) {
       }
     }
   }
-  
-  if (zone) {
-    sprintf(buf, "Showing equipment listings for the \'%s\' slot.\r\n"
-            "Objects in the range %ld - %ld.\r\n", arg1,
-            (long int)start_of_zone, (long int)end_of_zone);
-    send_to_char(ch, buf);
-  }
-  
-  /* show the table */
-  buf[0] = 0;
-  for (i = 0; i < max; i++) {
-    
-    a = index[i];
-    
-    sprintf(buf1, "[%5ld] (%5d pts) %-70s ", (long int)obj_index[a].vnum, get_eq_score(a), obj_proto[a].short_description);
-    strcat(buf, buf1);
-    
-    if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_WEAPON) {
-      sprintf(buf1, "%dd%d "
-              , GET_OBJ_VAL(&obj_proto[a], 1)
-              , GET_OBJ_VAL(&obj_proto[a], 2));
-      strcat(buf, buf1);
-    }
-    
-    if (CAN_WEAR(&obj_proto[a], ITEM_WEAR_SHIELD)) {
-      sprintf(buf1, "wt %d ", GET_OBJ_WEIGHT(&obj_proto[a]));
-      strcat(buf, buf1);
-    }
-    
-    if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_ARMOR) {
-      sprintf(buf1, "AC %d ", GET_OBJ_VAL(&obj_proto[a], 0));
-      strcat(buf, buf1);
-    }
-    
-    sprintbit((long)obj_proto[a].obj_flags.bitvector, affected_bits, buf1, sizeof (buf1));    
-    if (strncmp("NOBIT", buf1, 4))
-      strcat(buf, buf1);    
 
-    found = 0;
+  if (zone) {
+    send_to_char(ch, "Objects in the range %ld - %ld.\r\n",
+            (long int) start_of_zone, (long int) end_of_zone);
+  }
+
+  /* show the table */
+  len = snprintf(buf, sizeof (buf), "Listing all objects with wear location %s[%s]%s\r\n",
+          QYEL, wear_bits[wearloc], QNRM);
+  for (i = 0; i < j; i++) {
+
+    /* a will refer to our "i'th" value in the table */
+    a = index[i];
+
+    /* start building our string, being with listing vnum, score, and short
+     description */
+    tmp_len = snprintf(buf + len, sizeof (buf) - len, "[%5ld] (%5d pts) %-70s ",
+            (long int) obj_index[a].vnum, get_eq_score(a), obj_proto[a].short_description);
+    len += tmp_len;
+
+    /* now, if we have a weapon, display dice */
+    if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_WEAPON) {
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%dd%d ",
+              GET_OBJ_VAL(&obj_proto[a], 1),
+              GET_OBJ_VAL(&obj_proto[a], 2));
+      len += tmp_len;
+    }
+
+    if (CAN_WEAR(&obj_proto[a], ITEM_WEAR_SHIELD)) { /* shield weight */
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "wt %d ",
+              GET_OBJ_WEIGHT(&obj_proto[a]));
+      len += tmp_len;
+    }
+
+    if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_ARMOR) { /* ac-apply */
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "AC %d ",
+              GET_OBJ_VAL(&obj_proto[a], 0));
+      len += tmp_len;
+    }
+
+    if (GET_OBJ_AFFECT(&obj_proto[a])) { /* perm affects */
+      sprintbitarray(GET_OBJ_AFFECT(&obj_proto[a]), affected_bits, AF_ARRAY_MAX, bitbuf);
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s ",
+              bitbuf);
+      len += tmp_len;
+    }
+
+    *bitbuf = '\0';
+
+    /* has affect locations? */
     for (b = 0; b < MAX_OBJ_AFFECT; b++) {
-      if (obj_proto[a].affected[b].modifier) {
-        sprinttype(obj_proto[a].affected[b].location, apply_types, buf2, sizeof (buf2));
-        sprintf(buf1, "%s %+d to %s", found++ ? "," : "",
-                obj_proto[a].affected[b].modifier, buf2);
-        strcat(buf, buf1);
+      if ((obj->affected[b].location != APPLY_NONE) &&
+              (obj->affected[b].modifier != 0)) {
+        sprinttype(obj->affected[b].location, apply_types, bitbuf, sizeof (bitbuf));
+        tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s %d ", bitbuf, obj->affected[b].modifier);
+        len += tmp_len;
       }
     }
-    strcat(buf, "\r\n");
+
+    tmp_len = snprintf(buf + len, sizeof (buf) - len, "\r\n");
+    len += tmp_len;
   }
 
   page_string(ch->desc, buf, TRUE);
