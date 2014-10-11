@@ -104,6 +104,8 @@ bool is_outdoors(struct char_data *ch);
 void set_mob_grouping(struct char_data *ch);
 int find_armor_type(int specType);
 
+int calculate_cp(struct obj_data *obj);
+
 int get_daily_uses(struct char_data *ch, int featnum);
 int start_daily_use_cooldown(struct char_data *ch, int featnum);
 int daily_uses_remaining(struct char_data *ch, int featnum);
