@@ -5867,3 +5867,252 @@ ACMD(do_oconvert) {
 //  }
   send_to_char(ch, "Total of %d objects converted.\r\n", total);
 }
+
+
+/* a function to "score" the value of equipment -zusuk */
+int get_eq_score(obj_rnum a) {
+  int b, i;
+  int score = 0;
+  //int race = NUM_RACES;
+  struct obj_data *obj = NULL;
+  
+  obj = &obj_proto[a];
+  
+  if (!obj)
+    return -1;
+  
+  if (CAN_WEAR(obj, ITEM_WEAR_SHIELD))
+    score += GET_OBJ_WEIGHT(obj);
+
+  /* first go through and score all the permanent affects */
+  for (i = 0; i < NUM_AFF_FLAGS; i++) {
+    switch (i) {
+      case AFF_FLYING:
+        score += 25;
+        break;
+      default:
+        score += 20;
+        break;
+    }
+  }
+  /* unfinished list */
+
+  /* the "item" flags, rate them next */
+  if (OBJ_FLAGGED(obj, ITEM_AUTOPROC))
+    score += 20;
+  if (OBJ_FLAGGED(obj, ITEM_NORENT))
+    score -= 30;
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_EVIL))
+    score -= 5;
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_GOOD))
+    score -= 5;
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_NEUTRAL))
+    score -= 5;
+  if (OBJ_FLAGGED(obj, ITEM_NOLOCATE))
+    score -= 5;
+  if (OBJ_FLAGGED(obj, ITEM_TRANSIENT))
+    score -= 5;
+  /* unfinished list */
+  
+  /* decrease value for race restrictions */
+  /*
+  for (i = 1; i < NUM_PC_RACES + 1; i++) {
+    if (obj_proto[a].obj_flags.race_restricts & (1 << i))
+      race--;
+  }
+  if (race < 2)
+    score -= 25;
+  if (race < 3)
+    score -= 16;
+  if (race < 4)
+    score -= 8;
+  if (race < 5)
+    score -= 5;
+  */
+  /* unfinished list */
+  
+  /* ac-apply value */
+  if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+    score += (2 * GET_OBJ_VAL(obj, 0)) / 3;
+
+  /* weapon dice value */
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+    score += GET_OBJ_VAL(obj, 1) * GET_OBJ_VAL(obj, 2);
+
+  /* now add up score for object affects (modifiers) */
+  for (b = 0; b < MAX_OBJ_AFFECT; b++) {
+    if (obj_proto[a].affected[b].modifier) {
+      switch (obj_proto[a].affected[b].location) {
+        case APPLY_CLASS:
+        case APPLY_LEVEL:
+        case APPLY_GOLD:
+        case APPLY_EXP:
+          /* these are not supposed to be used, so add them insane numbers */
+          score += obj_proto[a].affected[b].modifier * 9999;
+          break;
+        case APPLY_AGE:
+        case APPLY_CHAR_WEIGHT:
+        case APPLY_CHAR_HEIGHT:
+        case APPLY_MOVE:
+        case APPLY_MANA:
+          /* these are not worth so much*/
+          score += obj_proto[a].affected[b].modifier / 10;
+          break;
+        case APPLY_HIT:
+          score += (4 * obj_proto[a].affected[b].modifier) / 5;
+          break;
+        case APPLY_HITROLL:
+          score += 5 * obj_proto[a].affected[b].modifier;
+          break;
+        case APPLY_DAMROLL:
+          score += 10 * obj_proto[a].affected[b].modifier;
+          break;
+        case APPLY_AC:
+          score -= (obj_proto[a].affected[b].modifier * 2) / 3;
+          break;
+        case APPLY_STR:
+        case APPLY_DEX:
+        case APPLY_INT:
+        case APPLY_WIS:
+        case APPLY_CON:
+        case APPLY_CHA:
+          score += obj_proto[a].affected[b].modifier / 2;
+          break;
+
+        default:
+          score += obj_proto[a].affected[b].modifier;
+          break;
+      }
+    }
+  }
+  return score;
+}
+
+/* a command meant to view the top end equipment of the game -zusuk */
+ACMD(do_eqrating) {
+  char arg1[MAX_INPUT_LENGTH];
+  char arg2[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH];
+  char buf1[MAX_INPUT_LENGTH];
+  char buf2[MAX_INPUT_LENGTH];
+  int i;
+  int mask = 0;
+  int *index;
+  int *score;
+  int max = 0;
+  int a, b;
+  int found;
+  int zone = 0;
+  room_vnum start_of_zone = 0, end_of_zone = 0;
+
+
+  two_arguments(argument, arg1, arg2);
+  if (!*arg1) {
+    send_to_char(ch, "List eq worn at which position?\r\n");
+    return;
+  }
+
+  if (isdigit(*arg2)) {
+    zone = atoi(arg2);
+    for (i = 0; i <= top_of_zone_table; i++) {
+      if (zone_table[i].number == zone)
+        break;
+    }
+    if (i <= 0 || i > top_of_zone_table) {
+      sprintf(buf, "Zone %d does not exist.\r\n", zone);
+      send_to_char(ch, buf);
+      return;
+    }
+    start_of_zone = zone * 100;
+    end_of_zone = zone_table[i].top;
+  }
+
+  for (i = 1; i < 22; i++) {
+    if (!str_cmp(wear_bits[i], arg1))
+      mask = 1 << i;
+  }
+  if (!mask) {
+    send_to_char(ch, "Unknown slot!\r\n");
+    return;
+  }
+  CREATE(index, int, top_of_objt);
+  CREATE(score, int, top_of_objt);
+
+  /* Create a table of eq worn at that slot*/
+  for (i = 0; i <= top_of_objt; i++) {
+    if (CAN_WEAR(&obj_proto[i], mask)) {
+      if (zone) {
+        if (obj_index[i].vnum >= start_of_zone &&
+                obj_index[i].vnum <= end_of_zone) {
+          score[max] = get_eq_score(i);
+          index[max++] = i;
+        }
+      } else {
+        score[max] = get_eq_score(i);
+        index[max++] = i;
+      }
+    }
+  }
+  if (max > 1) {
+    /* Sort the table, so that the best eq is at top*/
+    for (a = 0; a < max - 1; a++) {
+      for (b = a + 1; b < max; b++) {
+        if (score[a] < score[b]) {
+          i = score[a];
+          score[a] = score[b];
+          score[b] = i;
+          i = index[a];
+          index[a] = index[b];
+          index[b] = i;
+        }
+      }
+    }
+  }
+  if (zone) {
+    sprintf(buf, "Showing equipment listings for the \'%s\' slot.\r\n"
+            "Objects in the range %ld - %ld.\r\n", arg1,
+            (long int)start_of_zone, (long int)end_of_zone);
+    send_to_char(ch, buf);
+  }
+  /*show the table*/
+  buf[0] = 0;
+  for (i = 0; i < max; i++) {
+    a = index[i];
+    sprintf(buf1, "[%5ld] (%5d pts) %-70s ", (long int)obj_index[a].vnum, get_eq_score(a), obj_proto[a].short_description);
+    strcat(buf, buf1);
+    if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_WEAPON) {
+      sprintf(buf1, "%dd%d "
+              , GET_OBJ_VAL(&obj_proto[a], 1)
+              , GET_OBJ_VAL(&obj_proto[a], 2));
+      strcat(buf, buf1);
+    }
+    if (CAN_WEAR(&obj_proto[a], ITEM_WEAR_SHIELD)) {
+      sprintf(buf1, "wt %d ", GET_OBJ_WEIGHT(&obj_proto[a]));
+      strcat(buf, buf1);
+    }
+    if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_ARMOR) {
+      sprintf(buf1, "AC %d ", GET_OBJ_VAL(&obj_proto[a], 0));
+      strcat(buf, buf1);
+
+    }
+    sprintbit((long)obj_proto[a].obj_flags.bitvector, affected_bits, buf1, sizeof (buf1));
+    if (strncmp("NOBIT", buf1, 4))
+      strcat(buf, buf1);
+
+    found = 0;
+    for (b = 0; b < MAX_OBJ_AFFECT; b++) {
+      if (obj_proto[a].affected[b].modifier) {
+        sprinttype(obj_proto[a].affected[b].location, apply_types, buf2, sizeof (buf2));
+        sprintf(buf1, "%s %+d to %s", found++ ? "," : "",
+                obj_proto[a].affected[b].modifier, buf2);
+        strcat(buf, buf1);
+      }
+    }
+    strcat(buf, "\r\n");
+  }
+
+  page_string(ch->desc, buf, TRUE);
+
+  free(index);
+  free(score);
+}

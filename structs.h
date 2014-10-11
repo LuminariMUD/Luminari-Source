@@ -639,6 +639,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_NOTRACK          16   /**< Char can't be tracked */
 #define AFF_FLYING           17   /**< Char is flying */
 #define AFF_SCUBA            18  // waterbreathe
+#define AFF_WATER_BREATH     AFF_SCUBA  // just the more conventional name
 #define AFF_SNEAK            19   /**< Char can move quietly */
 #define AFF_HIDE             20   /**< Char is hidden */
 #define AFF_VAMPIRIC_CURSE   21   // hit victim heals attacker
@@ -707,7 +708,6 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_MENZOCHOKER      83  // special object affect
 /** Total number of affect flags not including the don't use flag. */
 // don't forget to add to constants.c!
-#define AFF_WATER_BREATH     AFF_SCUBA  // just the more conventional name
 #define AFF_RAPID_SHOT       84 /* Rapid Shot Mode (FEAT_RAPID_SHOT) */
 #define AFF_DAZED            85 /* Dazed*/
 #define AFF_FLAT_FOOTED      86

@@ -262,7 +262,7 @@ int has_flight(struct char_data *ch) {
 
   /* Non-wearable flying items in inventory will do it. */
   for (obj = ch->carrying; obj; obj = obj->next_content)
-    if (OBJAFF_FLAGGED(obj, AFF_FLYING) && OBJAFF_FLAGGED(obj, AFF_FLYING))
+    if (OBJAFF_FLAGGED(obj, AFF_FLYING) && (find_eq_pos(ch, obj, NULL) < 0))
       return (1);
 
   /* Any equipped objects with AFF_FLYING will do it too. */
