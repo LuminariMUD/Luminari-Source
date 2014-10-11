@@ -26,6 +26,7 @@
 #include "spec_procs.h"  // for compute_ability
 #include "mud_event.h"  // for purgemob event
 #include "feats.h"
+#include "spec_abilities.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -2335,4 +2336,29 @@ void text_line(struct char_data *ch, char *text, int length, char first, char se
   send_to_char(ch, "%s", text_line_string(text, length, first, second));
 }
 
+/* Name:   calculate_cp
+ * Author: Ornir 
+ * Param:  Object to calculate cp for
+ * Return: cp value for the given object. */
+int calculate_cp(struct obj_data *obj) {
+  int current_cp = 0;
+  struct obj_special_ability *specab;
 
+  if (!obj)
+    return 0;
+
+  switch (GET_OBJ_TYPE(obj)) {
+    case ITEM_WEAPON: /* obj is a weapon, use the cp calc for weapons. */
+      current_cp += GET_ENHANCEMENT_BONUS(obj) * GET_ENHANCEMENT_BONUS(obj) * 2000;
+  
+      for(specab = obj->special_abilities; specab != NULL;specab = specab->next) {
+        current_cp += (weapon_special_ability_info[specab->ability].cost * weapon_special_ability_info[specab->ability].cost * 2000);
+      }
+
+      break;
+    default: /* No idea what this is. */
+      break;
+  }
+ 
+  return 0;
+}
