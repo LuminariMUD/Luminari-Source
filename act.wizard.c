@@ -6005,8 +6005,8 @@ ACMD(do_eqrating) {
   int zone = 0;
   room_vnum start_of_zone = 0, end_of_zone = 0;
 
-
   two_arguments(argument, arg1, arg2);
+  
   if (!*arg1) {
     send_to_char(ch, "List eq worn at which position?\r\n");
     return;
@@ -6027,14 +6027,18 @@ ACMD(do_eqrating) {
     end_of_zone = zone_table[i].top;
   }
 
-  for (i = 1; i < 22; i++) {
+  /* 0 = takeable, so starting with 1 */
+  for (i = 1; i < NUM_ITEM_WEARS; i++) {
     if (!str_cmp(wear_bits[i], arg1))
       mask = 1 << i;
   }
+  
   if (!mask) {
     send_to_char(ch, "Unknown slot!\r\n");
     return;
   }
+  
+  /* allocate some memory for our two int pointers */
   CREATE(index, int, top_of_objt);
   CREATE(score, int, top_of_objt);
 
@@ -6053,6 +6057,7 @@ ACMD(do_eqrating) {
       }
     }
   }
+  
   if (max > 1) {
     /* Sort the table, so that the best eq is at top*/
     for (a = 0; a < max - 1; a++) {
@@ -6068,12 +6073,14 @@ ACMD(do_eqrating) {
       }
     }
   }
+  
   if (zone) {
     sprintf(buf, "Showing equipment listings for the \'%s\' slot.\r\n"
             "Objects in the range %ld - %ld.\r\n", arg1,
             (long int)start_of_zone, (long int)end_of_zone);
     send_to_char(ch, buf);
   }
+  
   /*show the table*/
   buf[0] = 0;
   for (i = 0; i < max; i++) {
