@@ -6163,7 +6163,7 @@ ACMD(do_eqrating) {
     
     /* yeah we have to cap things, wish i had a better solution at this stage!
      -zusuk */
-    if (i >= 700) {
+    if (i >= 600) {
       tmp_len = snprintf(buf + len, sizeof (buf) - len, "**OVERLOADED BUFF***\r\n");
       len += tmp_len;
       break;
