@@ -6147,6 +6147,8 @@ ACMD(do_eqrating) {
     *bitbuf = '\0';
 
     /* has affect locations? */
+    obj = &obj_proto[a];
+    if (!obj) return; /* super dummy check */
     for (b = 0; b < MAX_OBJ_AFFECT; b++) {
       if ((obj->affected[b].location != APPLY_NONE) &&
               (obj->affected[b].modifier != 0)) {
