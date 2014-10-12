@@ -6160,6 +6160,13 @@ ACMD(do_eqrating) {
 
     tmp_len = snprintf(buf + len, sizeof (buf) - len, "\r\n");
     len += tmp_len;
+    
+    if (j >= 700) {
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "**OVERLOADED BUFF***\r\n");
+      len += tmp_len;
+      
+      break;
+    }
   }
 
   page_string(ch->desc, buf, TRUE);
