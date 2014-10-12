@@ -1302,11 +1302,11 @@ SPECIAL(jot_invasion_loader) {
   for (i = 0; i < MAX_FG; i++) {
     if ((roomrnum = real_room(jot_converter(fg_pos[i]))) != NOWHERE) {
       if ((mob = read_mobile(jot_converter(78), VIRTUAL)) != NULL) {
+        char_to_room(mob, roomrnum);
         if ((obj = read_object(jot_converter(17), VIRTUAL)) != NULL) {
           obj_to_char(obj, mob);
           perform_wield(mob, obj, TRUE);          
         }
-        char_to_room(mob, roomrnum);
       }
     }
   }
@@ -1333,11 +1333,11 @@ SPECIAL(jot_invasion_loader) {
   for (i = 0; i < MAX_FROST; i++) {
     if ((roomrnum = real_room(jot_converter(frost_pos[i]))) != NOWHERE) {
       if ((mob = read_mobile(jot_converter(85), VIRTUAL)) != NULL) {
+        char_to_room(mob, roomrnum);
         if ((obj = read_object(jot_converter(28), VIRTUAL)) != NULL) {
           obj_to_char(obj, mob);
           perform_wield(mob, obj, TRUE);          
         }
-        char_to_room(mob, roomrnum);
       }
     }
   }
