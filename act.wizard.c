@@ -5870,6 +5870,22 @@ ACMD(do_oconvert) {
 
 
 /* a function to "score" the value of equipment -zusuk */
+/* what to take into consideration?
+ 1)  restrictions
+ 2)  perm-affects
+ 3)  type [object values]
+ 4)  weapon spells
+ 5)  special abilities
+ 6)  procs [have to be manually determined]
+ 7)  affection modifiers (applies)
+ 8)  level
+ 9)  weight
+10)  cost?
+11)  material
+12)  size
+13)  wear-slot
+14)  extra-flags
+15)  */
 int get_eq_score(obj_rnum a) {
   int b, i;
   int score = 0;
