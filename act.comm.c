@@ -175,7 +175,7 @@ static int is_tell_ok(struct char_data *ch, struct char_data *vict)
     send_to_char(ch, "The walls seem to absorb your words.\r\n");
   else if (!IS_NPC(vict) && !vict->desc)        /* linkless */
     act("$E's linkless at the moment.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
-  else if (PLR_FLAGGED(vict, PLR_WRITING))
+  else if (!IS_NPC(ch) && PLR_FLAGGED(vict, PLR_WRITING))
     act("$E's writing a message right now; try again later.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
   else if ((!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_NOTELL)) || (ROOM_FLAGGED(IN_ROOM(vict), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF)))
     act("$E can't hear you.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
