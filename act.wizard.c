@@ -6337,20 +6337,20 @@ ACMD(do_eqrating) {
     }
 
     if (CAN_WEAR(&obj_proto[a], ITEM_WEAR_SHIELD)) { /* shield weight */
-      tmp_len = snprintf(buf + len, sizeof (buf) - len, "wt %d |",
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "wt %d | ",
               GET_OBJ_WEIGHT(&obj_proto[a]));
       len += tmp_len;
     }
 
     if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_ARMOR) { /* ac-apply */
-      tmp_len = snprintf(buf + len, sizeof (buf) - len, "AC %d |",
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "AC %d | ",
               GET_OBJ_VAL(&obj_proto[a], 0));
       len += tmp_len;
     }
 
     if (GET_OBJ_AFFECT(&obj_proto[a])) { /* perm affects */
       sprintbitarray(GET_OBJ_AFFECT(&obj_proto[a]), affected_bits, AF_ARRAY_MAX, bitbuf);
-      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s ",
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s | ",
               bitbuf);
       len += tmp_len;
     }
