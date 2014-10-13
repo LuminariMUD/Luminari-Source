@@ -2657,7 +2657,10 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
 
   if ((attack_type == ATTACK_TYPE_RANGED) ||
       (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_FINESSE))) {
-    calc_bab += GET_DEX_BONUS(ch);
+    if (GET_DEX_BONUS(ch) >= GET_STR_BONUS(ch))
+      calc_bab += GET_DEX_BONUS(ch);
+    else
+      calc_bab += GET_STR_BONUS(ch);
   } else {
     calc_bab += GET_STR_BONUS(ch);
   }
