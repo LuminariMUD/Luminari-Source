@@ -6324,26 +6324,26 @@ ACMD(do_eqrating) {
 
     /* start building our string, begin with listing vnum, score, and short
      description */
-    tmp_len = snprintf(buf + len, sizeof (buf) - len, "[%5ld] (%5d pts) %-70s ",
+    tmp_len = snprintf(buf + len, sizeof (buf) - len, "%7ld | %5d | %-45s | ",
             (long int) obj_index[a].vnum, get_eq_score(a), obj_proto[a].short_description);
     len += tmp_len;
 
     /* now, if we have a weapon, display dice */
     if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_WEAPON) {
-      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%dd%d ",
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "%dD%d | ",
               GET_OBJ_VAL(&obj_proto[a], 1),
               GET_OBJ_VAL(&obj_proto[a], 2));
       len += tmp_len;
     }
 
     if (CAN_WEAR(&obj_proto[a], ITEM_WEAR_SHIELD)) { /* shield weight */
-      tmp_len = snprintf(buf + len, sizeof (buf) - len, "wt %d ",
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "wt %d |",
               GET_OBJ_WEIGHT(&obj_proto[a]));
       len += tmp_len;
     }
 
     if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_ARMOR) { /* ac-apply */
-      tmp_len = snprintf(buf + len, sizeof (buf) - len, "AC %d ",
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "AC %d |",
               GET_OBJ_VAL(&obj_proto[a], 0));
       len += tmp_len;
     }
@@ -6369,13 +6369,13 @@ ACMD(do_eqrating) {
       }
     }
 
-    tmp_len = snprintf(buf + len, sizeof (buf) - len, "\r\n");
+    tmp_len = snprintf(buf + len, sizeof (buf) - len, "|\r\n");
     len += tmp_len;
     
     /* yeah we have to cap things, wish i had a better solution at this stage!
      -zusuk */
     if (i >= 350) {
-      tmp_len = snprintf(buf + len, sizeof (buf) - len, "**OVERLOADED BUFF***\r\n");
+      tmp_len = snprintf(buf + len, sizeof (buf) - len, "\r\n**OVERLOADED BUFF***\r\n");
       len += tmp_len;
       break;
     }
