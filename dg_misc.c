@@ -274,7 +274,7 @@ void send_char_pos(struct char_data *ch, int dam) {
 int valid_dg_target(struct char_data *ch, int bitvector) {
   if (IS_NPC(ch))
     return TRUE; /* all npcs are allowed as targets */
-  else if (ch->desc && (STATE(ch->desc) != CON_PLAYING))
+  else if (ch->desc && ((STATE(ch->desc) != CON_PLAYING) && (STATE(ch->desc) != CON_STUDY)))
     return FALSE; /* Only PC's who are playing can be targetted */
   else if (GET_LEVEL(ch) < LVL_IMMORT)
     return TRUE; /* as well as all mortals */
