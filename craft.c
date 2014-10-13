@@ -1382,7 +1382,7 @@ int create(char *argument, struct obj_data *kit,
   }
 
   /* skill restriction */
-  if ((compute_ability(ch, skill)) < obj_level) {
+  if ((compute_ability(ch, skill) + 5) < obj_level) {
     send_to_char(ch, "Your skill in %s is too low to create that item.\r\n",
              ability_names[skill]);
     return 1;
