@@ -126,7 +126,8 @@ void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
   char_data *to;
   obj_data *obj;
   int i, tmp;
-  int to_sleeping = 1; /* mainly for windows compiles */
+  /* mainly for windows compiles */
+  //int to_sleeping = 1; 
 
   if (!arg)
     return;

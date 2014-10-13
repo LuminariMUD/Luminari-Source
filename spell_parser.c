@@ -2738,6 +2738,8 @@ void mag_assign_spells(void) {
   skillo(SKILL_SHIELD_PUNCH, "shield punch", ACTIVE_SKILL); //523
   skillo(SKILL_DIRT_KICK, "dirt kick", ACTIVE_SKILL); //524
   skillo(SKILL_SAP, "sap", ACTIVE_SKILL); //525
+  skillo(SKILL_SHIELD_SLAM, "shield slam", ACTIVE_SKILL); //526
+  skillo(SKILL_SHIELD_CHARGE, "shield charge", ACTIVE_SKILL); //527
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 
