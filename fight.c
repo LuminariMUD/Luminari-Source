@@ -1562,6 +1562,10 @@ bool ok_damage_handling(int attacktype) {
       return FALSE;
     case SKILL_SHIELD_PUNCH:
       return FALSE;
+    case SKILL_SHIELD_CHARGE:
+      return FALSE;
+    case SKILL_SHIELD_SLAM:
+      return FALSE;
     case SKILL_DIRT_KICK:
       return FALSE;
     case SKILL_SAP:

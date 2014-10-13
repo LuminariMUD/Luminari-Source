@@ -652,7 +652,7 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
   }
 
   if (!vict) {
-    send_to_char(ch, "Shieldpunch who?\r\n");
+    send_to_char(ch, "Shieldcharge who?\r\n");
     return FALSE;
   }
 
