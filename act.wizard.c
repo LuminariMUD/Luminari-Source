@@ -5890,7 +5890,9 @@ int get_eq_score(obj_rnum a) {
   int b, i;
   int score = 0;
   //int race = NUM_RACES;
+
   struct obj_data *obj = NULL;
+  struct obj_special_ability *specab;
   
   obj = &obj_proto[a];
   
@@ -5901,7 +5903,7 @@ int get_eq_score(obj_rnum a) {
     score += GET_OBJ_WEIGHT(obj);
 
   /* first go through and score all the permanent affects */
-  for (i = 0; i < NUM_AFF_FLAGS; i++) {
+/*  for (i = 0; i < NUM_AFF_FLAGS; i++) {
     switch (i) {
       case AFF_FLYING:
         score += 25;
@@ -5911,23 +5913,26 @@ int get_eq_score(obj_rnum a) {
         break;
     }
   }
+*/
   /* unfinished list */
 
   /* the "item" flags, rate them next */
   if (OBJ_FLAGGED(obj, ITEM_AUTOPROC))
-    score += 20;
+    score += 100;
   if (OBJ_FLAGGED(obj, ITEM_NORENT))
     score -= 30;
   if (OBJ_FLAGGED(obj, ITEM_ANTI_EVIL))
-    score -= 5;
+    score -= 50;
   if (OBJ_FLAGGED(obj, ITEM_ANTI_GOOD))
-    score -= 5;
+    score -= 50;
   if (OBJ_FLAGGED(obj, ITEM_ANTI_NEUTRAL))
-    score -= 5;
+    score -= 50;
   if (OBJ_FLAGGED(obj, ITEM_NOLOCATE))
-    score -= 5;
+    score += 50;
   if (OBJ_FLAGGED(obj, ITEM_TRANSIENT))
-    score -= 5;
+    score -= 50;
+  if (OBJ_FLAGGED(obj, ITEM_KI_FOCUS))
+    score += 100;
   /* unfinished list */
   
   /* decrease value for race restrictions */
@@ -5949,11 +5954,17 @@ int get_eq_score(obj_rnum a) {
   
   /* ac-apply value */
   if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
-    score += (2 * GET_OBJ_VAL(obj, 0)) / 3;
+    score += GET_OBJ_VAL(obj, 0) * 10;
 
-  /* weapon dice value */
-  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
-    score += GET_OBJ_VAL(obj, 1) * GET_OBJ_VAL(obj, 2);
+  /* weapons */
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON) {
+    score += (GET_WEAPON_TYPE(obj) != 0 ? 0 : GET_OBJ_VAL(obj, 1) * GET_OBJ_VAL(obj, 2));
+    score += (GET_ENHANCEMENT_BONUS(obj) <= 5 ? GET_ENHANCEMENT_BONUS(obj) * 100: 9999);
+ 
+    for(specab = obj->special_abilities; specab != NULL;specab = specab->next) {
+      score += weapon_special_ability_info[specab->ability].cost * 100;
+    }
+  }
 
   /* now add up score for object affects (modifiers) */
   for (b = 0; b < MAX_OBJ_AFFECT; b++) {
@@ -5972,35 +5983,71 @@ int get_eq_score(obj_rnum a) {
         case APPLY_MOVE:
         case APPLY_MANA:
           /* these are not worth so much*/
-          score += obj_proto[a].affected[b].modifier / 10;
+          score += obj_proto[a].affected[b].modifier;
           break;
         case APPLY_HIT:
-          score += (4 * obj_proto[a].affected[b].modifier) / 5;
+          score += obj_proto[a].affected[b].modifier * 10;
           break;
         case APPLY_HITROLL:
-          score += 5 * obj_proto[a].affected[b].modifier;
+//          score += 10 * obj_proto[a].affected[b].modifier;
+          score += obj_proto[a].affected[b].modifier * 50;
           break;
         case APPLY_DAMROLL:
-          score += 10 * obj_proto[a].affected[b].modifier;
+//          score += 10 * obj_proto[a].affected[b].modifier;
+          score += obj_proto[a].affected[b].modifier * 50;
           break;
         case APPLY_AC:
-          score -= (obj_proto[a].affected[b].modifier * 2) / 3;
+          score += obj_proto[a].affected[b].modifier * 10;
           break;
+        case APPLY_AC_NEW:
+          score += obj_proto[a].affected[b].modifier * 100;
         case APPLY_STR:
         case APPLY_DEX:
+        case APPLY_CON:
+          //score += obj_proto[a].affected[b].modifier / 2;
+          score += obj_proto[a].affected[b].modifier * 150;
+          break;
         case APPLY_INT:
         case APPLY_WIS:
-        case APPLY_CON:
         case APPLY_CHA:
-          score += obj_proto[a].affected[b].modifier / 2;
+          score += obj_proto[a].affected[b].modifier * 100;
           break;
-
+        case APPLY_SAVING_FORT:
+        case APPLY_SAVING_WILL:
+        case APPLY_SAVING_REFL:
+        case APPLY_SAVING_POISON:
+        case APPLY_SAVING_DEATH:
+          score += obj_proto[a].affected[b].modifier * 50;
+          break;
+        case APPLY_SPELL_RES:
+        case APPLY_RES_FIRE:
+        case APPLY_RES_COLD:
+        case APPLY_RES_AIR:
+        case APPLY_RES_EARTH:
+        case APPLY_RES_ACID: 
+        case APPLY_RES_HOLY: 
+        case APPLY_RES_ELECTRIC:
+        case APPLY_RES_UNHOLY:
+        case APPLY_RES_PUNCTURE:
+        case APPLY_RES_SLICE: 
+        case APPLY_RES_FORCE:
+        case APPLY_RES_SOUND:
+        case APPLY_RES_POISON:
+        case APPLY_RES_DISEASE: 
+        case APPLY_RES_NEGATIVE:
+        case APPLY_RES_ILLUSION:
+        case APPLY_RES_MENTAL:
+        case APPLY_RES_LIGHT:
+        case APPLY_RES_ENERGY:
+          score += obj_proto[a].affected[b].modifier * 20;
+          break;
         default:
           score += obj_proto[a].affected[b].modifier;
           break;
       }
     }
   }
+
   return score;
 }
 
