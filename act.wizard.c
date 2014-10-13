@@ -5871,86 +5871,227 @@ ACMD(do_oconvert) {
 
 /* a function to "score" the value of equipment -zusuk */
 /* what to take into consideration?
- 1)  restrictions
- 2)  perm-affects
- 3)  type [object values]
- 4)  weapon spells
- 5)  special abilities
- 6)  procs [have to be manually determined]
- 7)  affection modifiers (applies)
- 8)  level
- 9)  weight
-10)  cost?
-11)  material
-12)  size
-13)  wear-slot
-14)  extra-flags
-15)  */
+  type [object values]
+  weapon spells
+  procs [have to be manually determined]
+  weight
+  cost?
+  material
+  size
+  wear-slot
+  misc
+*/
 int get_eq_score(obj_rnum a) {
   int b, i;
   int score = 0;
-  //int race = NUM_RACES;
-
   struct obj_data *obj = NULL;
-  struct obj_special_ability *specab;
-  
-  obj = &obj_proto[a];
-  
+  struct obj_special_ability *specab = NULL;
+
+  /* simplify life, and dummy check */
+  obj = &obj_proto[a];  
   if (!obj)
     return -1;
-  
-  if (CAN_WEAR(obj, ITEM_WEAR_SHIELD))
-    score += GET_OBJ_WEIGHT(obj);
 
-  /* first go through and score all the permanent affects */
-/*  for (i = 0; i < NUM_AFF_FLAGS; i++) {
-    switch (i) {
-      case AFF_FLYING:
-        score += 25;
-        break;
-      default:
-        score += 20;
-        break;
+  /* first go through and score all the permanent affects, very powerful
+   * either bonus OR penalty to the item score
+   */
+  for (i = 0; i < NUM_AFF_FLAGS; i++) {
+    if (OBJAFF_FLAGGED(obj, i)) {
+      switch (i) {
+        case AFF_REGEN:            
+        case AFF_NOTRACK:
+        case AFF_INVISIBLE:
+        case AFF_HASTE:
+        case AFF_FREE_MOVEMENT:
+          score += 350;
+          break;
+        case AFF_VAMPIRIC_TOUCH:
+        case AFF_SNEAK: 
+        case AFF_HIDE: 
+        case AFF_BLUR: 
+          score += 300;
+          break;
+        case AFF_DISPLACE:         
+        case AFF_SPELL_MANTLE:     
+        case AFF_TRUE_SIGHT:       
+        case AFF_FLYING:            
+        case AFF_POWER_ATTACK: 
+        case AFF_EXPERTISE:  
+        case AFF_PARRY:  
+        case AFF_ELEMENT_PROT:
+        case AFF_INERTIAL_BARRIER:
+        case AFF_NOTELEPORT:
+        case AFF_DARKVISION:
+          score += 250;
+          break;
+        case AFF_SENSE_LIFE: 
+        case AFF_DETECT_INVIS:
+        case AFF_ULTRAVISION:  
+        case AFF_CLIMB: 
+        case AFF_NON_DETECTION:    
+        case AFF_FSHIELD:
+        case AFF_CSHIELD:
+        case AFF_MINOR_GLOBE:
+        case AFF_ASHIELD:          
+        case AFF_SIZECHANGED:      
+        case AFF_SPOT:             
+        case AFF_DANGERSENSE:
+        case AFF_RAPID_SHOT:
+        case AFF_FARSEE:
+          score += 200;
+          break;
+        case AFF_TFORM:               
+        case AFF_GLOBE_OF_INVULN:  
+        case AFF_LISTEN:           
+        case AFF_REFUGE:           
+        case AFF_SPELL_TURNING:    
+        case AFF_MIND_BLANK:       
+        case AFF_SHADOW_SHIELD:    
+        case AFF_TIME_STOPPED:     
+        case AFF_BRAVERY:          
+        case AFF_BATTLETIDE:       
+        case AFF_SPELL_RESISTANT:
+        case AFF_DETECT_ALIGN: 
+        case AFF_DETECT_MAGIC:  
+        case AFF_WATERWALK: 
+        case AFF_SANCTUARY:  
+        case AFF_INFRAVISION: 
+        case AFF_PROTECT_EVIL: 
+        case AFF_PROTECT_GOOD:
+        case AFF_SCUBA: /* includes AFF_WATERBREATH */
+        case AFF_SPELLBATTLE:
+        case AFF_TOWER_OF_IRON_WILL:
+        case AFF_MAX_DAMAGE:
+        case AFF_MAGE_FLAME:
+          score += 150;
+          break;
+          
+        /* no value */
+        case AFF_DONTUSE:
+        case AFF_GROUP:
+          break;
+          
+        /* negative affections */
+        case AFF_CONFUSED:
+        case AFF_FAERIE_FIRE:
+        case AFF_DEATH_WARD:
+        case AFF_DIM_LOCK:
+        case AFF_BLACKMANTLE:
+        case AFF_SAFEFALL:
+        case AFF_BLIND:
+        case AFF_CURSE:
+        case AFF_POISON:
+        case AFF_VAMPIRIC_CURSE:
+        case AFF_NAUSEATED:
+        case AFF_SLOW:
+        case AFF_FATIGUED:
+        case AFF_DISEASE:
+        case AFF_TAMED:
+        case AFF_GRAPPLED:
+        case AFF_DEAF:
+        case AFF_FEAR:
+        case AFF_STUN:
+        case AFF_PARALYZED:
+        case AFF_CHARM:
+        case AFF_SLEEP:
+        case AFF_DAZED:
+        case AFF_FLAT_FOOTED:
+          score -= 150;
+          break;
+                    
+        /* we are trying to handle every case */
+        default:
+          score += 9999;
+          break;
+      }
     }
   }
-*/
-  /* unfinished list */
 
   /* the "item" flags, rate them next */
-  if (OBJ_FLAGGED(obj, ITEM_AUTOPROC))
-    score += 100;
-  if (OBJ_FLAGGED(obj, ITEM_NORENT))
-    score -= 30;
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_EVIL))
-    score -= 50;
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_GOOD))
-    score -= 50;
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_NEUTRAL))
-    score -= 50;
-  if (OBJ_FLAGGED(obj, ITEM_NOLOCATE))
-    score += 50;
-  if (OBJ_FLAGGED(obj, ITEM_TRANSIENT))
-    score -= 50;
-  if (OBJ_FLAGGED(obj, ITEM_KI_FOCUS))
-    score += 100;
-  /* unfinished list */
-  
-  /* decrease value for race restrictions */
-  /*
-  for (i = 1; i < NUM_PC_RACES + 1; i++) {
-    if (obj_proto[a].obj_flags.race_restricts & (1 << i))
-      race--;
+  for (i = 0; i < NUM_ITEM_FLAGS; i++) {
+    if (OBJ_FLAGGED(obj, i)) {
+      switch (i) {
+        /* item can't have any real value in this state! */
+        case ITEM_MOLD:
+          score -= 9999;
+          break;
+          
+        /* autoprocs have to be manually added later based on the item proc */  
+        case ITEM_AUTOPROC:
+          score += 300;
+          break;
+        case ITEM_KI_FOCUS:
+        case ITEM_FLAMING:
+        case ITEM_FROST:
+          score += 100;
+          break;
+        case ITEM_MAGLIGHT:
+        case ITEM_MAGIC:
+        case ITEM_BLESS:
+        case ITEM_FLOAT:
+        case ITEM_NOBURN:
+          score += 50;
+          break;
+        case ITEM_GLOW:
+        case ITEM_HUM:
+        case ITEM_QUEST:
+        case ITEM_NOINVIS:
+          score += 10;
+          break;
+          
+        /* reduce value of items below */       
+        case ITEM_INVISIBLE:
+        case ITEM_NODONATE:
+        case ITEM_NOLOCATE:
+        case ITEM_HIDDEN:
+        case ITEM_NOSELL:
+          score -= 10;
+          break;          
+        case ITEM_ANTI_HUMAN:
+        case ITEM_ANTI_ELF:
+        case ITEM_ANTI_DWARF:
+        case ITEM_ANTI_TROLL:
+        case ITEM_ANTI_MONK:
+        case ITEM_ANTI_DRUID:
+        case ITEM_ANTI_WIZARD:
+        case ITEM_ANTI_CLERIC:
+        case ITEM_ANTI_ROGUE:
+        case ITEM_ANTI_WARRIOR:
+        case ITEM_ANTI_CRYSTAL_DWARF:
+        case ITEM_ANTI_HALFLING:
+        case ITEM_ANTI_H_ELF:
+        case ITEM_ANTI_H_ORC:
+        case ITEM_ANTI_GNOME:
+        case ITEM_ANTI_BERSERKER:
+        case ITEM_ANTI_TRELUX:
+        case ITEM_ANTI_SORCERER:
+        case ITEM_ANTI_PALADIN:
+        case ITEM_ANTI_RANGER:
+        case ITEM_ANTI_BARD:
+        case ITEM_ANTI_ARCANA_GOLEM:
+          score -= 15;
+          break;
+        case ITEM_ANTI_GOOD:
+        case ITEM_ANTI_EVIL:
+        case ITEM_ANTI_NEUTRAL:
+          score -= 40;
+          break;
+        case ITEM_TRANSIENT:
+        case ITEM_NODROP:
+          score -= 75;
+          break;
+        case ITEM_NORENT:
+        case ITEM_DECAY:
+          score -= 150;
+          break;
+          
+        /* we are attempting to handle every case */
+        default:
+          score += 9999;
+          break;          
+      }
+    }
   }
-  if (race < 2)
-    score -= 25;
-  if (race < 3)
-    score -= 16;
-  if (race < 4)
-    score -= 8;
-  if (race < 5)
-    score -= 5;
-  */
-  /* unfinished list */
   
   /* ac-apply value */
   if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
@@ -5970,13 +6111,6 @@ int get_eq_score(obj_rnum a) {
   for (b = 0; b < MAX_OBJ_AFFECT; b++) {
     if (obj_proto[a].affected[b].modifier) {
       switch (obj_proto[a].affected[b].location) {
-        case APPLY_CLASS:
-        case APPLY_LEVEL:
-        case APPLY_GOLD:
-        case APPLY_EXP:
-          /* these are not supposed to be used, so add them insane numbers */
-          score += obj_proto[a].affected[b].modifier * 9999;
-          break;
         case APPLY_AGE:
         case APPLY_CHAR_WEIGHT:
         case APPLY_CHAR_HEIGHT:
@@ -5985,15 +6119,14 @@ int get_eq_score(obj_rnum a) {
           /* these are not worth so much*/
           score += obj_proto[a].affected[b].modifier;
           break;
+          
         case APPLY_HIT:
-          score += obj_proto[a].affected[b].modifier * 10;
+          score += obj_proto[a].affected[b].modifier * 8;
           break;
         case APPLY_HITROLL:
-//          score += 10 * obj_proto[a].affected[b].modifier;
           score += obj_proto[a].affected[b].modifier * 50;
           break;
         case APPLY_DAMROLL:
-//          score += 10 * obj_proto[a].affected[b].modifier;
           score += obj_proto[a].affected[b].modifier * 50;
           break;
         case APPLY_AC:
@@ -6001,10 +6134,10 @@ int get_eq_score(obj_rnum a) {
           break;
         case APPLY_AC_NEW:
           score += obj_proto[a].affected[b].modifier * 100;
+          break;
         case APPLY_STR:
         case APPLY_DEX:
         case APPLY_CON:
-          //score += obj_proto[a].affected[b].modifier / 2;
           score += obj_proto[a].affected[b].modifier * 150;
           break;
         case APPLY_INT:
@@ -6041,13 +6174,28 @@ int get_eq_score(obj_rnum a) {
         case APPLY_RES_ENERGY:
           score += obj_proto[a].affected[b].modifier * 20;
           break;
+          
+        /* these are not supposed to be used, so add them insane numbers */
+        case APPLY_CLASS:
+        case APPLY_LEVEL:
+        case APPLY_GOLD:
+        case APPLY_EXP:
         default:
-          score += obj_proto[a].affected[b].modifier;
+          score += 9999;
           break;
       }
     }
   }
 
+  /* misc */
+  
+  /* unimplemented, but maybe shield weight offers bonus to shieldslam? */
+  /*
+  if (CAN_WEAR(obj, ITEM_WEAR_SHIELD))
+    score += GET_OBJ_WEIGHT(obj);
+  */
+  
+  /* DONE! */
   return score;
 }
 
@@ -6174,7 +6322,7 @@ ACMD(do_eqrating) {
     /* a will refer to our "i'th" value in the table */
     a = index[i];
 
-    /* start building our string, being with listing vnum, score, and short
+    /* start building our string, begin with listing vnum, score, and short
      description */
     tmp_len = snprintf(buf + len, sizeof (buf) - len, "[%5ld] (%5d pts) %-70s ",
             (long int) obj_index[a].vnum, get_eq_score(a), obj_proto[a].short_description);
