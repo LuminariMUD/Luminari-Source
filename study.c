@@ -783,7 +783,7 @@ static void display_study_feats(struct descriptor_data *d) {
         feat_list[i].can_learn &&
         (!HAS_FEAT(ch, i) || feat_list[i].can_stack))) {
 
-      write_to_output(d, "%s%s%3d%s) %-40s%s", class_feat ? "\tC(C)" : "   ", grn, i, nrm, feat_list[i].name, nrm);
+      write_to_output(d, "%s%s%3d%s) %-30s%s", class_feat ? "\tC(C)" : "   ", grn, i, nrm, feat_list[i].name, nrm);
       count++;
 
       if (count % 2 == 0)
