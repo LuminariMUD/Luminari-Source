@@ -402,7 +402,7 @@ feat_prereq_bab(FEAT_STUNNING_FIST, 8);
 feato(FEAT_TWO_WEAPON_FIGHTING,"two weapon fighting",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"attacks with offhand weapons done at reduced penalties","attacks with offhand weapons done at reduced penalties");
 feat_prereq_attribute(FEAT_TWO_WEAPON_FIGHTING, AB_DEX, 15);
 
-feato(FEAT_WEAPON_FINESSE,"weapon finesse",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"use dex for hit roll of weapons smaller than wielder or rapier, whip, spiked chain","use dex for hit roll of weapons smaller than wielder or rapier, whip, spiked chain");
+feato(FEAT_WEAPON_FINESSE,"weapon finesse",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"use dex for hit roll of weapons","use dex for hit roll of weapons");
 feat_prereq_bab(FEAT_WEAPON_FINESSE, 1);
 
 feato(FEAT_WHIRLWIND_ATTACK,"whirlwind attack",TRUE,TRUE,FALSE,FEAT_TYPE_COMBAT,"allows you to attack everyone in the room or everyone you are fighting (with contain) as a standard action","allows you to attack everyone in the room or everyone you are fighting (with contain) as a standard action");
