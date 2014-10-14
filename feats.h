@@ -4,7 +4,6 @@
 ** Initial code by Paladine (Stephen Squires)                         **
 ** Created Thursday, September 5, 2002                                **
 ** Ported to Luminari by Ornir                                        **
-**                                                                    **
 ***********************************************************************/
 
 #ifndef _FEATS_H_
@@ -13,13 +12,11 @@
 /* Below is the structure for a feat */
 
 struct feat_info {
-
   char *name;              /* The name of the feat to be displayed to players */
   sbyte in_game;           /* TRUE or FALSE, is the feat in the game yet? */
   sbyte can_learn;         /* TRUE or FALSE, can the feat be learned or is it an automatic feat? */
   sbyte can_stack;         /* TRUE or FALSE, can the feat be learned more than once? */
   int feat_type;           /* The type of feat (see defines) for organization in the selection menu. */
-  char *prerequisites;     /* Obsolete! */
   char *short_description; /* The line displayed in the feat xxxx desc command display. */
   char *description;       /* Long description of the feat, displayed in 'feat info' */
   sbyte epic;              /* Is this an epic feat? */
@@ -45,7 +42,6 @@ struct feat_prerequisite {
 
 struct weapon_table
 {
-
   char *name;
   sbyte numDice;
   ubyte diceSize;
