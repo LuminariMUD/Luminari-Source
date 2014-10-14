@@ -2160,7 +2160,11 @@ void process_level_feats(struct char_data *ch, int class) {
     }
     
     /* feat doesn't match our class or we don't meet the min-level (from if above) */
-    else if (GET_CLASS(ch) == level_feats[i][LF_CLASS] && level_feats[i][LF_RACE] == GET_RACE(ch) && CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) == level_feats[i][LF_MIN_LVL]) {
+    /* matches class or doesn't match race or has feat (from if above) */
+    /* class matches and race matches and meet min level */
+    else if (GET_CLASS(ch) == level_feats[i][LF_CLASS] &&
+            level_feats[i][LF_RACE] == GET_RACE(ch) &&
+            CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) == level_feats[i][LF_MIN_LVL]) {
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
         sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
       else
