@@ -1999,28 +1999,28 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     if (!wielded)
       wielded = GET_EQ(ch, WEAR_WIELD_2H);
   }
-  else if (mode == 3)
+  else if (mode == 3) /* offhand */
     wielded = GET_EQ(ch, WEAR_WIELD_2);
  
-  //strength
-  //
-  if (GET_EQ(ch, WEAR_WIELD_2H))
+  /* strength */
+  if (GET_EQ(ch, WEAR_WIELD_2H)) /* 2-hand weapons get 3/2 str bonus */
     dambonus += GET_STR_BONUS(ch) * 3 / 2;
-  else
+  else if (mode == 3) /* offhand gets half strength bonus */
+    dambonus += GET_STR_BONUS(ch) / 2;
+  else /* normal */
     dambonus += GET_STR_BONUS(ch);
 
-  //fatigued
+  /* fatigued */
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
     dambonus -= 2;
 
-  //size
+  /* size */
   if (vict)
     dambonus += compute_size_bonus(GET_SIZE(ch), GET_SIZE(vict));
 
-  // weapon specialist
+  /* weapon specialist */
   if (HAS_FEAT(ch, FEAT_WEAPON_SPECIALIZATION)) {
     /* Check the weapon type, make sure it matches. */
-    
     if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_SPECIALIZATION), GET_WEAPON_TYPE(wielded))) ||
        ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_SPECIALIZATION), WEAPON_TYPE_UNARMED)))
       dambonus += 2;
@@ -2028,29 +2028,27 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   if (HAS_FEAT(ch, FEAT_GREATER_WEAPON_SPECIALIZATION)) {
     /* Check the weapon type, make sure it matches. */
-
     if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), GET_WEAPON_TYPE(wielded))) ||
        ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), WEAPON_TYPE_UNARMED)))
       dambonus += 2;
   }
 
-  //damroll (should be mostly just gear)
+  /* damroll (should be mostly just gear) */
   dambonus += GET_DAMROLL(ch);
   
-  /* weapon enhancement bonus, the 12 is arbitrary at this stage,
-     needs some work */
+  /* weapon enhancement bonus, might need some work */
   if (wielded)
-    dambonus += MAX(12, GET_ENHANCEMENT_BONUS(wielded));
+    dambonus += GET_ENHANCEMENT_BONUS(wielded);
   
-  // power attack
+  /* power attack */
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
     dambonus += COMBAT_MODE_VALUE(ch);
 
-  // crystal fist
+  /* crystal fist */
   if (char_has_mud_event(ch, eCRYSTALFIST))
     dambonus += 3;
 
-  // smite evil (remove after one attack)
+  /* smite evil (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE) && vict && IS_EVIL(vict)) {
     dambonus += CLASS_LEVEL(ch, CLASS_PALADIN);
     affect_from_char(ch, SKILL_SMITE);
@@ -2069,7 +2067,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   if (mode == 2 || mode == 3) {
     send_to_char(ch, "Dam Bonus:  %d, ", dambonus);
   }
-  return dambonus;
+
+  return (MIN(MAX_DAM_BONUS, dambonus));  
 }
 
 /* computes damage dice based on bare-hands, weapon, class (monk), or
