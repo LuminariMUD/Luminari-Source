@@ -490,6 +490,7 @@ void assign_feats(void) {
   feato(FEAT_LAYHANDS, "lay on hands", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Powerful divine healing ability usable a limited number of times a day", "Powerful divine healing ability usable a limited number of times a day");
   feato(FEAT_REMOVE_DISEASE, "remove disease", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can cure diseases", "can cure diseases");
   feato(FEAT_CALL_MOUNT, "call mount", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Allows you to call a paladin mount", "Allows you to call a paladin mount");
+  feato(FEAT_DIVINE_BOND, "divine bond", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "bonuses to attack and damage rolls when active", "bonuses to attack and damage rolls when active");
 
   /* Rogue */
   feato(FEAT_CRIPPLING_STRIKE, "crippling strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Chance to do 2 strength damage with a sneak attack.", "Chance to do 2 strength damage with a sneak attack.");
@@ -590,7 +591,6 @@ void assign_feats(void) {
   feato(FEAT_DEMORALIZE, "demoralize", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_DETECT_GOOD, "detect good", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_DISCERN_LIES, "discern lies", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DIVINE_BOND, "divine bond", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "bonuses to attack and damage rolls when active", "bonuses to attack and damage rolls when active");
   feato(FEAT_DIVINER, "diviner", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_DRAGON_APOTHEOSIS, "dragon apotheosis", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_DRAGON_MOUNT_BOOST, "dragon mount boost", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "gives +18 hp, +10 ac, +1 hit and +1 damage per rank in the feat", "gives +18 hp, +10 ac, +1 hit and +1 damage per rank in the feat");

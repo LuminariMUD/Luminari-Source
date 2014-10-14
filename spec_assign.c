@@ -89,6 +89,7 @@ void assign_mobiles(void)
   ASSIGNMOB(5402, guild);
   ASSIGNMOB(5403, guild);
   ASSIGNMOB(11518, guild);
+  ASSIGNMOB(14105, guild);
   ASSIGNMOB(23411, guild);  /* female newbie trainer newbie school */
   ASSIGNMOB(25720, guild);
   ASSIGNMOB(25721, guild);
