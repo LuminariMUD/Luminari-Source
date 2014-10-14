@@ -15,6 +15,13 @@
 
 /* defines */
 #define NUM_CHURCHES 13
+
+#define LF_CLASS    0
+#define LF_RACE     1
+#define LF_STACK    2
+#define LF_MIN_LVL  3
+#define LF_FEAT     4
+#define LEVEL_FEATS 5
 /* end defines */
 
 /* Functions available through class.c */
@@ -30,7 +37,7 @@ byte saving_throws(struct char_data *, int type);
 int BAB(struct char_data *ch);
 const char *titles(int chclass, int level);
 bool monk_gear_ok(struct char_data *ch);
-int proficiency_worn(struct char_data *ch, bool weapon);
+int proficiency_worn(struct char_data *ch, int type);
 int compute_gear_penalty_check(struct char_data *ch);
 int determine_gear_weight(struct char_data *ch, int type);
 int compute_gear_arcane_fail(struct char_data *ch);

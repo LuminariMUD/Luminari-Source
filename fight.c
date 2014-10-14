@@ -2078,6 +2078,11 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict)))
       dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
   }
+  
+  /* paladin's divine bond */
+  if (HAS_FEAT(ch, FEAT_DIVINE_BOND)) {
+    dambonus += MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3));
+  }
 
   /**** display, keep mods above this *****/
   if (mode == 2 || mode == 3) {

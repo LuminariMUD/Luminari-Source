@@ -31,6 +31,7 @@
 #include "mud_event.h"
 #include "mudlim.h"
 #include "feats.h"
+#include "class.h"
 
 int *free_start_feats[];
 
@@ -100,20 +101,20 @@ const char *class_menu =
 
 /* homeland-port */
 const char *church_types[] = {
-	"Ao",
-	"Akadi",
-	"Chauntea",
-	"Cyric",
-	"Grumbar",
-	"Istishia",  //5
-	"Kelemvor",
-	"Kossuth",
-	"Lathander",
-	"Mystra",
-	"Oghma",  //10
-	"Shar",
-	"Silvanus",
-	"\n"
+  "Ao",
+  "Akadi",
+  "Chauntea",
+  "Cyric",
+  "Grumbar",
+  "Istishia", //5
+  "Kelemvor",
+  "Kossuth",
+  "Lathander",
+  "Mystra",
+  "Oghma", //10
+  "Shar",
+  "Silvanus",
+  "\n"
 };
 // 14
 
@@ -220,17 +221,17 @@ struct guild_info_type guild_info[] = {
  * -1 indicates no limit to the number of levels in this 
  *  class according to epic rules. */
 int class_max_ranks[NUM_CLASSES] = {
-/* Wizard    */ -1,
-/* Cleric    */ -1,
-/* Rogue     */ -1,
-/* Warrior   */ -1,
-/* Monk      */ -1,
-/* Druid     */ -1,
-/* Berserker */ -1,
-/* Sorcerer  */ -1,
-/* Paladin   */ -1,
-/* Ranger    */ -1,
-/* Bard      */ -1
+  /* Wizard    */ -1,
+  /* Cleric    */ -1,
+  /* Rogue     */ -1,
+  /* Warrior   */ -1,
+  /* Monk      */ -1,
+  /* Druid     */ -1,
+  /* Berserker */ -1,
+  /* Sorcerer  */ -1,
+  /* Paladin   */ -1,
+  /* Ranger    */ -1,
+  /* Bard      */ -1
 };
 
 /* This array determines whether an ability is cross-class or a class-ability
@@ -239,7 +240,7 @@ int class_max_ranks[NUM_CLASSES] = {
 #define		CC	1	//cross class
 #define		CA	2	//class ability
 int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
-//  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA  BA
+  //  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA  BA
   { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //0 - reserved
 
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //1 - Tumble 
@@ -328,7 +329,6 @@ int free_start_feats_wizard[] = {
 };
 /* Derived from the SRD under OGL, see ../doc/srd.txt for information */
 int free_start_feats_cleric[] = {
-
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_ARMOR_PROFICIENCY_HEAVY,
   FEAT_ARMOR_PROFICIENCY_LIGHT,
@@ -376,250 +376,257 @@ int free_start_feats_paladin[] = {
 };
 
 int free_start_feats_barbarian[] = {
-        FEAT_SIMPLE_WEAPON_PROFICIENCY,
-        FEAT_ARMOR_PROFICIENCY_LIGHT,
-        FEAT_ARMOR_PROFICIENCY_MEDIUM,
-        FEAT_ARMOR_PROFICIENCY_SHIELD,
-        FEAT_MARTIAL_WEAPON_PROFICIENCY,
-        FEAT_FAST_MOVEMENT,
-        FEAT_RAGE,
-        0
+  FEAT_SIMPLE_WEAPON_PROFICIENCY,
+  FEAT_ARMOR_PROFICIENCY_LIGHT,
+  FEAT_ARMOR_PROFICIENCY_MEDIUM,
+  FEAT_ARMOR_PROFICIENCY_SHIELD,
+  FEAT_MARTIAL_WEAPON_PROFICIENCY,
+  FEAT_FAST_MOVEMENT,
+  FEAT_RAGE,
+  0
 };
 int free_start_feats_druid[] = {
-        FEAT_SIMPLE_WEAPON_PROFICIENCY,
-        FEAT_ARMOR_PROFICIENCY_LIGHT,
-        FEAT_ARMOR_PROFICIENCY_MEDIUM,
-        FEAT_ARMOR_PROFICIENCY_SHIELD,
-        FEAT_ANIMAL_COMPANION,
-        FEAT_NATURE_SENSE,
-        FEAT_WILD_EMPATHY,
-        0
+  FEAT_SIMPLE_WEAPON_PROFICIENCY,
+  FEAT_ARMOR_PROFICIENCY_LIGHT,
+  FEAT_ARMOR_PROFICIENCY_MEDIUM,
+  FEAT_ARMOR_PROFICIENCY_SHIELD,
+  FEAT_ANIMAL_COMPANION,
+  FEAT_NATURE_SENSE,
+  FEAT_WILD_EMPATHY,
+  0
 };
 
 int free_start_feats_bard[] = {
-        FEAT_SIMPLE_WEAPON_PROFICIENCY,
-        FEAT_ARMOR_PROFICIENCY_LIGHT,
-        FEAT_ARMOR_PROFICIENCY_SHIELD,
-        0
+  FEAT_SIMPLE_WEAPON_PROFICIENCY,
+  FEAT_ARMOR_PROFICIENCY_LIGHT,
+  FEAT_ARMOR_PROFICIENCY_SHIELD,
+  0
 };
 
 int free_start_feats_sorcerer[] = {
-        FEAT_SIMPLE_WEAPON_PROFICIENCY,
-        FEAT_SUMMON_FAMILIAR,
-        0
+  FEAT_SIMPLE_WEAPON_PROFICIENCY,
+  FEAT_SUMMON_FAMILIAR,
+  0
 };
 
 int free_start_feats_ranger[] = {
-        FEAT_SIMPLE_WEAPON_PROFICIENCY,
-        FEAT_ARMOR_PROFICIENCY_LIGHT,
-        FEAT_ARMOR_PROFICIENCY_MEDIUM,
-        FEAT_ARMOR_PROFICIENCY_SHIELD,
-        FEAT_SIMPLE_WEAPON_PROFICIENCY,
-        FEAT_ARMOR_PROFICIENCY_LIGHT,
-        FEAT_MARTIAL_WEAPON_PROFICIENCY,
-
-        0
+  FEAT_SIMPLE_WEAPON_PROFICIENCY,
+  FEAT_ARMOR_PROFICIENCY_LIGHT,
+  FEAT_ARMOR_PROFICIENCY_MEDIUM,
+  FEAT_ARMOR_PROFICIENCY_SHIELD,
+  FEAT_SIMPLE_WEAPON_PROFICIENCY,
+  FEAT_ARMOR_PROFICIENCY_LIGHT,
+  FEAT_MARTIAL_WEAPON_PROFICIENCY,
+  0
 };
 
-int free_start_feats_none[] ={
-        0
+int free_start_feats_none[] = {
+  0
 };
 
 /* Derived from the SRD under OGL, see ../doc/srd.txt for information */
 int *free_start_feats[] = {
- /* CLASS_WIZARD        */ free_start_feats_wizard,
- /* CLASS_CLERIC        */ free_start_feats_cleric,
- /* CLASS_ROGUE         */ free_start_feats_rogue,
- /* CLASS_WARRIOR       */ free_start_feats_warrior,
- /* CLASS_MONK          */ free_start_feats_monk,
- /* CLASS_DRUID         */ free_start_feats_druid,
- /* CLASS_BERSERKER     */ free_start_feats_barbarian,
- /* CLASS_SORC          */ free_start_feats_sorcerer,
- /* CLASS_PALADIN       */ free_start_feats_paladin,
- /* CLASS_RANGER        */ free_start_feats_ranger,
- /* CLASS_BARD          */ free_start_feats_bard
+  /* CLASS_WIZARD        */ free_start_feats_wizard,
+  /* CLASS_CLERIC        */ free_start_feats_cleric,
+  /* CLASS_ROGUE         */ free_start_feats_rogue,
+  /* CLASS_WARRIOR       */ free_start_feats_warrior,
+  /* CLASS_MONK          */ free_start_feats_monk,
+  /* CLASS_DRUID         */ free_start_feats_druid,
+  /* CLASS_BERSERKER     */ free_start_feats_barbarian,
+  /* CLASS_SORC          */ free_start_feats_sorcerer,
+  /* CLASS_PALADIN       */ free_start_feats_paladin,
+  /* CLASS_RANGER        */ free_start_feats_ranger,
+  /* CLASS_BARD          */ free_start_feats_bard
 };
 
-int level_feats[][6] = {
+/* Information required for character leveling in regards to free feats 
+   1) required class
+   2) required race
+   3) stacks?
+   4) level received
+   5) feat name */
+int level_feats[][LEVEL_FEATS] = {
 
-        // This array contains the information required for when a character levels.
-        // The first field is the class the character must be or undefined if doesn't apply
-        // The second field is the race the character must be or undefined if doesn't apply
-        // The third field is the condition that must be met to receive the feat
-        // The fourth field is whether the feat stacks or not.
-        // The fifth field is the minimum level the character must be to receive the feat
-        // The sixed field is the feat itself to be received
+  /* wizard */
+  {CLASS_WIZARD, RACE_UNDEFINED, FALSE, 6, FEAT_SCRIBE_SCROLL},
 
-        {CLASS_WIZARD,    RACE_UNDEFINED,      TRUE,   6, FEAT_SCRIBE_SCROLL, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      FALSE,  1, FEAT_WEAPON_PROFICIENCY_ROGUE, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE,  1, FEAT_SMITE_EVIL, TRUE},
-        {CLASS_CLERIC,    RACE_UNDEFINED,      FALSE,  1, FEAT_TURN_UNDEAD, TRUE},
+  /* cleric */
+  {CLASS_CLERIC, RACE_UNDEFINED, FALSE, 1, FEAT_TURN_UNDEAD},
 
-        {CLASS_WARRIOR,   RACE_UNDEFINED,      FALSE,  1, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, TRUE},
+  /* warrior */
+  {CLASS_WARRIOR, RACE_UNDEFINED, FALSE, 1, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD},
 
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE,  2, FEAT_DIVINE_GRACE, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE,  2, FEAT_LAYHANDS, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE,  3, FEAT_AURA_OF_COURAGE, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE,  3, FEAT_DIVINE_HEALTH, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE,  3, FEAT_TURN_UNDEAD, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE,  5, FEAT_CALL_MOUNT, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE,  5, FEAT_DIVINE_BOND, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE,  5, FEAT_SMITE_EVIL, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE,  6, FEAT_REMOVE_DISEASE, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE,  9, FEAT_REMOVE_DISEASE, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE, 10, FEAT_SMITE_EVIL, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE, 12, FEAT_REMOVE_DISEASE, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE, 14, FEAT_REMOVE_DISEASE, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE, 15, FEAT_SMITE_EVIL, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE, 18, FEAT_REMOVE_DISEASE, TRUE},
-        {CLASS_PALADIN,   RACE_UNDEFINED,      FALSE, 20, FEAT_SMITE_EVIL, TRUE},
+  /* paladin */
+  {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 1, FEAT_SMITE_EVIL},
+  {CLASS_PALADIN, RACE_UNDEFINED, FALSE, 2, FEAT_DIVINE_GRACE},
+  {CLASS_PALADIN, RACE_UNDEFINED, FALSE, 2, FEAT_LAYHANDS},
+  {CLASS_PALADIN, RACE_UNDEFINED, FALSE, 3, FEAT_AURA_OF_COURAGE},
+  {CLASS_PALADIN, RACE_UNDEFINED, FALSE, 3, FEAT_DIVINE_HEALTH},
+  {CLASS_PALADIN, RACE_UNDEFINED, FALSE, 3, FEAT_TURN_UNDEAD},
+  {CLASS_PALADIN, RACE_UNDEFINED, FALSE, 5, FEAT_CALL_MOUNT},
+  {CLASS_PALADIN, RACE_UNDEFINED, FALSE, 5, FEAT_DIVINE_BOND},
+  {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 5, FEAT_SMITE_EVIL},
+  {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 6, FEAT_REMOVE_DISEASE},
+  {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 9, FEAT_REMOVE_DISEASE},
+  {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 10, FEAT_SMITE_EVIL},
+  {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 12, FEAT_REMOVE_DISEASE},
+  {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 14, FEAT_REMOVE_DISEASE},
+  {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 15, FEAT_SMITE_EVIL},
+  {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 18, FEAT_REMOVE_DISEASE},
+  {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 20, FEAT_SMITE_EVIL},
 
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   1, FEAT_SNEAK_ATTACK,TRUE},
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   1, FEAT_TRAPFINDING, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   2, FEAT_EVASION, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   3, FEAT_SNEAK_ATTACK, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   3, FEAT_TRAP_SENSE, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   4, FEAT_UNCANNY_DODGE, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   5, FEAT_SNEAK_ATTACK, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   6, FEAT_TRAP_SENSE, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   4, FEAT_UNCANNY_DODGE, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   5, FEAT_SNEAK_ATTACK, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   6, FEAT_TRAP_SENSE, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   7, FEAT_SNEAK_ATTACK, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   8, FEAT_IMPROVED_UNCANNY_DODGE, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   9, FEAT_SNEAK_ATTACK, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   9, FEAT_TRAP_SENSE, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,   11, FEAT_SNEAK_ATTACK, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,  12, FEAT_TRAP_SENSE, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,  13, FEAT_SNEAK_ATTACK, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,  15, FEAT_SNEAK_ATTACK, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,  15, FEAT_TRAP_SENSE, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,  17, FEAT_SNEAK_ATTACK, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,  18, FEAT_TRAP_SENSE, TRUE },
-        {CLASS_ROGUE,     RACE_UNDEFINED,      TRUE,  19, FEAT_SNEAK_ATTACK, TRUE },                               
+  /* rogue */
+  {CLASS_ROGUE, RACE_UNDEFINED, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ROGUE},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 1, FEAT_SNEAK_ATTACK},
+  {CLASS_ROGUE, RACE_UNDEFINED, FALSE, 1, FEAT_TRAPFINDING},
+  {CLASS_ROGUE, RACE_UNDEFINED, FALSE, 2, FEAT_EVASION},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 3, FEAT_SNEAK_ATTACK},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 3, FEAT_TRAP_SENSE},
+  {CLASS_ROGUE, RACE_UNDEFINED, FALSE, 4, FEAT_UNCANNY_DODGE},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 5, FEAT_SNEAK_ATTACK},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 6, FEAT_TRAP_SENSE},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 7, FEAT_SNEAK_ATTACK},
+  {CLASS_ROGUE, RACE_UNDEFINED, FALSE, 8, FEAT_IMPROVED_UNCANNY_DODGE},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 9, FEAT_SNEAK_ATTACK},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 9, FEAT_TRAP_SENSE},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 11, FEAT_SNEAK_ATTACK},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 12, FEAT_TRAP_SENSE},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 13, FEAT_SNEAK_ATTACK},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 15, FEAT_SNEAK_ATTACK},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 15, FEAT_TRAP_SENSE},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 17, FEAT_SNEAK_ATTACK},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 18, FEAT_TRAP_SENSE},
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 19, FEAT_SNEAK_ATTACK},
 
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  1, FEAT_WEAPON_PROFICIENCY_MONK, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  1, FEAT_FLURRY_OF_BLOWS, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  1, FEAT_UNARMED_STRIKE, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  2, FEAT_EVASION, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  3, FEAT_STILL_MIND, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  4, FEAT_KI_STRIKE, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  4, FEAT_SLOW_FALL, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  5, FEAT_SLOW_FALL, TRUE}, // Yes, twice =)
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE, 5, FEAT_PURITY_OF_BODY, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE, 6, FEAT_SLOW_FALL, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE, 7, FEAT_WHOLENESS_OF_BODY, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE, 8, FEAT_SLOW_FALL, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE, 9, FEAT_IMPROVED_EVASION, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE, 10, FEAT_KI_STRIKE, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE, 10, FEAT_SLOW_FALL, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE, 11, FEAT_DIAMOND_BODY, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE, 11, FEAT_GREATER_FLURRY, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE, 12, FEAT_ABUNDANT_STEP, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE, 12, FEAT_SLOW_FALL, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  13, FEAT_DIAMOND_SOUL, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  14, FEAT_SLOW_FALL, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  15, FEAT_QUIVERING_PALM, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  15, FEAT_KI_STRIKE, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  32, FEAT_SLOW_FALL, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  16, FEAT_TIMELESS_BODY, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  17, FEAT_TONGUE_OF_THE_SUN_AND_MOON, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  18, FEAT_SLOW_FALL, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  19, FEAT_EMPTY_BODY, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  20, FEAT_PERFECT_SELF, TRUE},
-        {CLASS_MONK,      RACE_UNDEFINED,      FALSE,  20, FEAT_SLOW_FALL, TRUE},
+  /* monk */
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 1, FEAT_WEAPON_PROFICIENCY_MONK},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 1, FEAT_FLURRY_OF_BLOWS},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 1, FEAT_UNARMED_STRIKE},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 1, FEAT_IMPROVED_UNARMED_STRIKE},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 2, FEAT_EVASION},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 3, FEAT_STILL_MIND},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 4, FEAT_KI_STRIKE},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 4, FEAT_SLOW_FALL},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 5, FEAT_SLOW_FALL}, // Yes, twice =)
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 5, FEAT_PURITY_OF_BODY},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 6, FEAT_SLOW_FALL},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 7, FEAT_WHOLENESS_OF_BODY},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 8, FEAT_SLOW_FALL},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 9, FEAT_IMPROVED_EVASION},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 10, FEAT_KI_STRIKE},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 10, FEAT_SLOW_FALL},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 11, FEAT_DIAMOND_BODY},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 11, FEAT_GREATER_FLURRY},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 12, FEAT_ABUNDANT_STEP},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 12, FEAT_SLOW_FALL},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 13, FEAT_DIAMOND_SOUL},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 14, FEAT_SLOW_FALL},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 15, FEAT_QUIVERING_PALM},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 15, FEAT_KI_STRIKE},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 16, FEAT_TIMELESS_BODY},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 17, FEAT_TONGUE_OF_THE_SUN_AND_MOON},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 18, FEAT_SLOW_FALL},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 19, FEAT_EMPTY_BODY},
+  {CLASS_MONK, RACE_UNDEFINED, FALSE, 20, FEAT_PERFECT_SELF},
+  {CLASS_MONK, RACE_UNDEFINED, TRUE, 20, FEAT_SLOW_FALL},
 
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  1, FEAT_RAGE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  2, FEAT_UNCANNY_DODGE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  3, FEAT_TRAP_SENSE, TRUE},                                  
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  4, FEAT_RAGE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  5, FEAT_IMPROVED_UNCANNY_DODGE, TRUE},                      
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  6, FEAT_TRAP_SENSE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  7, FEAT_DAMAGE_REDUCTION, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  8, FEAT_RAGE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  9, FEAT_TRAP_SENSE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  10, FEAT_DAMAGE_REDUCTION, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  11, FEAT_GREATER_RAGE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  11, FEAT_RAGE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  12, FEAT_TRAP_SENSE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  13, FEAT_DAMAGE_REDUCTION, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  14, FEAT_INDOMITABLE_WILL, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  15, FEAT_TRAP_SENSE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  15, FEAT_RAGE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  16, FEAT_DAMAGE_REDUCTION, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  17, FEAT_TIRELESS_RAGE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  18, FEAT_TRAP_SENSE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  19, FEAT_DAMAGE_REDUCTION, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  20, FEAT_RAGE, TRUE},
-        {CLASS_BERSERKER, RACE_UNDEFINED,      FALSE,  20, FEAT_MIGHTY_RAGE, TRUE},
+  /* berserker */
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 1, FEAT_RAGE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 2, FEAT_UNCANNY_DODGE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 3, FEAT_TRAP_SENSE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 4, FEAT_RAGE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 5, FEAT_IMPROVED_UNCANNY_DODGE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 6, FEAT_TRAP_SENSE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 7, FEAT_DAMAGE_REDUCTION},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 8, FEAT_RAGE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 9, FEAT_TRAP_SENSE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 10, FEAT_DAMAGE_REDUCTION},
+  {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 11, FEAT_GREATER_RAGE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 11, FEAT_RAGE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 12, FEAT_TRAP_SENSE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 13, FEAT_DAMAGE_REDUCTION},
+  {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 14, FEAT_INDOMITABLE_WILL},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 15, FEAT_TRAP_SENSE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 15, FEAT_RAGE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 16, FEAT_DAMAGE_REDUCTION},
+  {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 17, FEAT_TIRELESS_RAGE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 18, FEAT_TRAP_SENSE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 19, FEAT_DAMAGE_REDUCTION},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 20, FEAT_RAGE},
+  {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 20, FEAT_MIGHTY_RAGE},
 
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  1, FEAT_FAVORED_ENEMY_AVAILABLE, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  1, FEAT_TRACK, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  2, FEAT_WILD_EMPATHY, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  2, FEAT_TWO_WEAPON_FIGHTING, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  2, FEAT_RAPID_SHOT, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  3, FEAT_ENDURANCE, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  4, FEAT_ANIMAL_COMPANION, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  5, FEAT_FAVORED_ENEMY_AVAILABLE, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  6, FEAT_IMPROVED_TWO_WEAPON_FIGHTING, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  6, FEAT_MANYSHOT, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  7, FEAT_WOODLAND_STRIDE, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  8, FEAT_SWIFT_TRACKER, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  9, FEAT_EVASION, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  10, FEAT_FAVORED_ENEMY_AVAILABLE, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  11, FEAT_GREATER_TWO_WEAPON_FIGHTING, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  11, FEAT_IMPROVED_PRECISE_SHOT, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  13, FEAT_CAMOUFLAGE, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  15, FEAT_FAVORED_ENEMY_AVAILABLE, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  17, FEAT_HIDE_IN_PLAIN_SIGHT, TRUE},
-        {CLASS_RANGER,    RACE_UNDEFINED,      FALSE,  20, FEAT_FAVORED_ENEMY_AVAILABLE, TRUE},
+  /* ranger */
+  {CLASS_RANGER, RACE_UNDEFINED, TRUE, 1, FEAT_FAVORED_ENEMY_AVAILABLE},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 1, FEAT_TRACK},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 2, FEAT_WILD_EMPATHY},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 2, FEAT_TWO_WEAPON_FIGHTING},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 2, FEAT_RAPID_SHOT},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 3, FEAT_ENDURANCE},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 4, FEAT_ANIMAL_COMPANION},
+  {CLASS_RANGER, RACE_UNDEFINED, TRUE, 5, FEAT_FAVORED_ENEMY_AVAILABLE},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 6, FEAT_IMPROVED_TWO_WEAPON_FIGHTING},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 6, FEAT_MANYSHOT},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 7, FEAT_WOODLAND_STRIDE},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 8, FEAT_SWIFT_TRACKER},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 9, FEAT_EVASION},
+  {CLASS_RANGER, RACE_UNDEFINED, TRUE, 10, FEAT_FAVORED_ENEMY_AVAILABLE},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 11, FEAT_GREATER_TWO_WEAPON_FIGHTING},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 11, FEAT_IMPROVED_PRECISE_SHOT},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 13, FEAT_CAMOUFLAGE},
+  {CLASS_RANGER, RACE_UNDEFINED, TRUE, 15, FEAT_FAVORED_ENEMY_AVAILABLE},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 17, FEAT_HIDE_IN_PLAIN_SIGHT},
+  {CLASS_RANGER, RACE_UNDEFINED, TRUE, 20, FEAT_FAVORED_ENEMY_AVAILABLE},
 
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  1, FEAT_ANIMAL_COMPANION, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  1, FEAT_NATURE_SENSE, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  2, FEAT_WILD_EMPATHY, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  2, FEAT_WOODLAND_STRIDE, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  3, FEAT_TRACKLESS_STEP, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  4, FEAT_RESIST_NATURES_LURE, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  4, FEAT_WILD_SHAPE, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  6, FEAT_WILD_SHAPE, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  8, FEAT_WILD_SHAPE, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  9, FEAT_VENOM_IMMUNITY, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  10, FEAT_WILD_SHAPE, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  12, FEAT_WILD_SHAPE, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  13, FEAT_THOUSAND_FACES, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  14, FEAT_WILD_SHAPE, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  15, FEAT_TIMELESS_BODY, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  16, FEAT_WILD_SHAPE, TRUE},
-        {CLASS_DRUID,     RACE_UNDEFINED,      FALSE,  18, FEAT_WILD_SHAPE, TRUE},
+  /* druid */
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 1, FEAT_ANIMAL_COMPANION},
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 1, FEAT_NATURE_SENSE},
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 2, FEAT_WILD_EMPATHY},
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 2, FEAT_WOODLAND_STRIDE},
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 3, FEAT_TRACKLESS_STEP},
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 4, FEAT_RESIST_NATURES_LURE},
+  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 4, FEAT_WILD_SHAPE},
+  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 6, FEAT_WILD_SHAPE},
+  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 8, FEAT_WILD_SHAPE},
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 9, FEAT_VENOM_IMMUNITY},
+  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 10, FEAT_WILD_SHAPE},
+  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 12, FEAT_WILD_SHAPE},
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 13, FEAT_THOUSAND_FACES},
+  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 14, FEAT_WILD_SHAPE},
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 15, FEAT_TIMELESS_BODY},
+  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 16, FEAT_WILD_SHAPE},
+  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 18, FEAT_WILD_SHAPE},
 
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  1, FEAT_BARDIC_MUSIC, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  1, FEAT_BARDIC_KNOWLEDGE, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  1, FEAT_COUNTERSONG, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  1, FEAT_FASCINATE, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  1, FEAT_INSPIRE_COURAGE, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  3, FEAT_INSPIRE_COMPETENCE, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  6, FEAT_SUGGESTION, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  8, FEAT_INSPIRE_COURAGE, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  9, FEAT_INSPIRE_GREATNESS, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  12, FEAT_SONG_OF_FREEDOM, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  14, FEAT_INSPIRE_COURAGE, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  15, FEAT_INSPIRE_HEROICS, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  18, FEAT_MASS_SUGGESTION, TRUE},
-        {CLASS_BARD,      RACE_UNDEFINED,      FALSE,  20, FEAT_INSPIRE_COURAGE, TRUE},
+  /* bard */
+  {CLASS_BARD, RACE_UNDEFINED, FALSE, 1, FEAT_BARDIC_MUSIC},
+  {CLASS_BARD, RACE_UNDEFINED, FALSE, 1, FEAT_BARDIC_KNOWLEDGE},
+  {CLASS_BARD, RACE_UNDEFINED, FALSE, 1, FEAT_COUNTERSONG},
+  {CLASS_BARD, RACE_UNDEFINED, FALSE, 1, FEAT_FASCINATE},
+  {CLASS_BARD, RACE_UNDEFINED, TRUE, 1, FEAT_INSPIRE_COURAGE},
+  {CLASS_BARD, RACE_UNDEFINED, FALSE, 3, FEAT_INSPIRE_COMPETENCE},
+  {CLASS_BARD, RACE_UNDEFINED, FALSE, 6, FEAT_SUGGESTION},
+  {CLASS_BARD, RACE_UNDEFINED, TRUE, 8, FEAT_INSPIRE_COURAGE},
+  {CLASS_BARD, RACE_UNDEFINED, FALSE, 9, FEAT_INSPIRE_GREATNESS},
+  {CLASS_BARD, RACE_UNDEFINED, FALSE, 12, FEAT_SONG_OF_FREEDOM},
+  {CLASS_BARD, RACE_UNDEFINED, TRUE, 14, FEAT_INSPIRE_COURAGE},
+  {CLASS_BARD, RACE_UNDEFINED, FALSE, 15, FEAT_INSPIRE_HEROICS},
+  {CLASS_BARD, RACE_UNDEFINED, FALSE, 18, FEAT_MASS_SUGGESTION},
+  {CLASS_BARD, RACE_UNDEFINED, TRUE, 20, FEAT_INSPIRE_COURAGE},
 
-        /* Racial feats */
-        {CLASS_UNDEFINED, RACE_ELF,       FALSE,  1, FEAT_LOW_LIGHT_VISION, TRUE},
-        {CLASS_UNDEFINED, RACE_ELF,       FALSE,  1, FEAT_WEAPON_PROFICIENCY_ELF, TRUE},
-     
-        {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_BODY, TRUE},
-        {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_FIST, TRUE},
+  /* Racial feats */
 
-        /* This is always the last array element */
-        {CLASS_UNDEFINED, RACE_UNDEFINED,      FALSE,   1, FEAT_UNDEFINED, FALSE}
+  /* elf */
+  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_LOW_LIGHT_VISION},
+  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
+
+  /* crystal dwarf */
+  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_BODY},
+  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_FIST},
+
+  /* This is always the last array element */
+  {CLASS_UNDEFINED, RACE_UNDEFINED, FALSE, 1, FEAT_UNDEFINED}
 };
 
-int epic_level_feats[][7] =
-{
+int epic_level_feats[][7] = {
 
   { CLASS_ROGUE, 0, 2, 1, TRUE, FEAT_SNEAK_ATTACK, 1},
   { CLASS_ROGUE, 0, 4, 0, TRUE, FEAT_TRAP_SENSE, 1},
@@ -851,31 +858,29 @@ const int no_class_feats[] = {
  * and is used during level gain to show the allowed feats. 
  * SEE NOTE FOR ROGUE FEATS */
 const int *class_bonus_feats[NUM_CLASSES] = {
-/* Wizard    */ class_feats_wizard,
-/* Cleric    */ no_class_feats,
-/* Rogue     */ class_feats_rogue,
-/* Warrior   */ class_feats_fighter,
-/* Monk      */ class_feats_monk,
-/* Druid     */ class_feats_druid,
-/* Berserker */ class_feats_barbarian,
-/* Sorcerer  */ no_class_feats,
-/* Paladin   */ class_feats_paladin,
-/* Ranger    */ class_feats_ranger,
-/* Bard      */ no_class_feats
+  /* Wizard    */ class_feats_wizard,
+  /* Cleric    */ no_class_feats,
+  /* Rogue     */ class_feats_rogue,
+  /* Warrior   */ class_feats_fighter,
+  /* Monk      */ class_feats_monk,
+  /* Druid     */ class_feats_druid,
+  /* Berserker */ class_feats_barbarian,
+  /* Sorcerer  */ no_class_feats,
+  /* Paladin   */ class_feats_paladin,
+  /* Ranger    */ class_feats_ranger,
+  /* Bard      */ no_class_feats
 };
-
-
 
 byte saving_throws(struct char_data *ch, int type) {
   int i, save = 1;
-  
+
   if (IS_NPC(ch)) {
     if (preferred_save[type][GET_CLASS(ch)])
       return (GET_LEVEL(ch) / 2 + 1);
     else
       return (GET_LEVEL(ch) / 4 + 1);
   }
-  
+
   for (i = 0; i < MAX_CLASSES; i++) {
     if (CLASS_LEVEL(ch, i)) { // found class and level
       if (preferred_save[type][i])
@@ -906,7 +911,7 @@ int BAB(struct char_data *ch) {
       case CLASS_CLERIC:
       case CLASS_DRUID:
       case CLASS_BARD:
-      case CLASS_MONK:    
+      case CLASS_MONK:
         return ( (int) (GET_LEVEL(ch) * 3 / 4));
       case CLASS_WARRIOR:
       case CLASS_RANGER:
@@ -948,11 +953,11 @@ int BAB(struct char_data *ch) {
 
   if (bab == -1)
     log("ERROR:  BAB catching -1");
-  
+
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
-    bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));    
+    bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));
   }
-  
+
   return bab;
 }
 
@@ -982,6 +987,7 @@ void roll_real_abils(struct char_data *ch) {
 #define NOOB_ARROW         815
 
 #define NUM_NOOB_ARROWS    40
+
 void newbieEquipment(struct char_data *ch) {
   int objNums[] = {
     NOOB_TELEPORTER,
@@ -995,7 +1001,7 @@ void newbieEquipment(struct char_data *ch) {
     NOOB_BP,
     NOOB_CRAFTING_KIT,
     NOOB_BOW,
-    -1  //had to end with -1
+    -1 //had to end with -1
   };
   int x;
   struct obj_data *obj = NULL, *quiver = NULL;
@@ -1010,17 +1016,17 @@ void newbieEquipment(struct char_data *ch) {
       obj_to_char(obj, ch);
     }
   }
-  
+
   quiver = read_object(NOOB_QUIVER, VIRTUAL);
   if (quiver)
     obj_to_char(quiver, ch);
-  
+
   for (x = 0; x < NUM_NOOB_ARROWS; x++) {
     obj = read_object(NOOB_ARROW, VIRTUAL);
     if (quiver && obj)
-      obj_to_obj(obj, quiver);    
+      obj_to_obj(obj, quiver);
   }
-  
+
 
   switch (GET_CLASS(ch)) {
     case CLASS_PALADIN:
@@ -1148,7 +1154,6 @@ void newbieEquipment(struct char_data *ch) {
 #undef NOOB_QUIVER        
 #undef NOOB_ARROW         
 
-
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
  */
@@ -1250,10 +1255,10 @@ void monk_skills(struct char_data *ch, int level) {
 }
 
 void init_class(struct char_data *ch, int class, int level) {
-  int i, j;  
-  
+  int i, j;
+
   /* Init Feats - Each class gets a set of free starting feats. */
-  for(i = 0; (j = free_start_feats[class][i]); i++) {
+  for (i = 0; (j = free_start_feats[class][i]); i++) {
     if (!HAS_REAL_FEAT(ch, j)) {
       send_to_char(ch, "You have learned the %s feat!\r\n", feat_list[j].name);
       SET_FEAT(ch, j, 1);
@@ -1834,7 +1839,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_FREE_MOVEMENT, 99);
       SET_SKILL(ch, SPELL_DISPEL_MAGIC, 99);
       SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
-      
+
       send_to_char(ch, "Ranger Done.\tn\r\n");
       break;
 
@@ -1913,7 +1918,7 @@ void init_start_char(struct char_data *ch) {
   GET_FEAT_POINTS(ch) = 0;
   GET_EPIC_FEAT_POINTS(ch) = 0;
 
-  for (i = 0; i < NUM_CLASSES; i++) { 
+  for (i = 0; i < NUM_CLASSES; i++) {
     GET_CLASS_FEATS(ch, i) = 0;
     GET_EPIC_CLASS_FEATS(ch, i) = 0;
   }
@@ -1931,10 +1936,10 @@ void init_start_char(struct char_data *ch) {
     for (j = 0; j < FT_ARRAY_MAX; j++)
       (ch)->char_specials.saved.combat_feats[(i)][j] = 0;
   for (i = 0; i < NUM_SFEATS; i++)
-    (ch)->char_specials.saved.school_feats[(i)] = 0; 
+    (ch)->char_specials.saved.school_feats[(i)] = 0;
   for (i = 0; i < NUM_SKFEATS; i++)
     for (j = 0; j > NUM_ABILITIES; j++)
-      (ch)->player_specials->saved.skill_focus[(i)][j] = 0; 
+      (ch)->player_specials->saved.skill_focus[(i)][j] = 0;
 
 
   /* initialize mem data, allow adjustment of spells known */
@@ -2072,25 +2077,30 @@ void process_level_feats(struct char_data *ch, int class) {
 
   sprintf(featbuf, "\tM");
 
-  while (level_feats[i][4] != FEAT_UNDEFINED) {
-    if (level_feats[i][0] == class && 
-        level_feats[i][1] == RACE_UNDEFINED && 
-        CLASS_LEVEL(ch, level_feats[i][0]) >= level_feats[i][3]) {
+  /* increment through the list, FEAT_UNDEFINED is our terminator */
+  while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED) {
 
+    /* feat i matches our class, and we meet the min-level */
+    if (level_feats[i][LF_CLASS] == class &&
+            level_feats[i][LF_RACE] == RACE_UNDEFINED &&
+            CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) >= level_feats[i][LF_MIN_LVL]) {
+
+      /* skip this feat, we have it already? */
       if (!(
-            (!HAS_REAL_FEAT(ch, level_feats[i][4]) && 
-             CLASS_LEVEL(ch, level_feats[i][0]) > level_feats[i][3] &&
-             CLASS_LEVEL(ch, level_feats[i][0]) > 0) ||
-           CLASS_LEVEL(ch, level_feats[i][0]) == level_feats[i][3]
-           )
-         ) {
+              (!HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) &&
+              CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) > level_feats[i][LF_MIN_LVL] &&
+              CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) > 0) ||
+              CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) == level_feats[i][LF_MIN_LVL]
+              )
+              ) {
         i++;
         continue;
       }
 
-      if (level_feats[i][4] == FEAT_SNEAK_ATTACK)
+      if (level_feats[i][LF_FEAT] == FEAT_SNEAK_ATTACK)
         sprintf(featbuf, "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
-/*      if (level_feats[i][4] == FEAT_DAMAGE_REDUCTION) {
+      /*
+      if (level_feats[i][LF_FEAT] == FEAT_DAMAGE_REDUCTION) {
         for (reduct = ch->damreduct; reduct; reduct = reduct->next) {
           if (reduct->feat == FEAT_DAMAGE_REDUCTION) {
             REMOVE_FROM_LIST(reduct, ch->damreduct, next);
@@ -2105,60 +2115,62 @@ void process_level_feats(struct char_data *ch, int class) {
         ptr->duration = -1;
         ptr->max_damage = -1;
         for (q = 0; q < MAX_DAMREDUCT_MULTI; q++)
-          /"ptr->damstyle[q] = ptr->damstyleval[q] = 0;
-        ptr->damstyle[0] = DR_NONE;
-      }
-      else */
-
-      if (level_feats[i][4] == FEAT_STRENGTH_BOOST) {
+          / "ptr->damstyle[q] = ptr->damstyleval[q] = 0;
+          ptr->damstyle[0] = DR_NONE;
+      } else
+       */
+      if (level_feats[i][LF_FEAT] == FEAT_STRENGTH_BOOST) {
         ch->real_abils.str += 2;
         sprintf(featbuf, "%s\tMYour natural strength has increased by +2!\r\n", featbuf);
-      }
-      else if (level_feats[i][4] == FEAT_CHARISMA_BOOST) {
+      } else if (level_feats[i][LF_FEAT] == FEAT_CHARISMA_BOOST) {
         ch->real_abils.cha += 2;
         sprintf(featbuf, "%s\tMYour natural charisma has increased by +2!\r\n", featbuf);
-      }
-      else if (level_feats[i][4] == FEAT_CONSTITUTION_BOOST) {
+      } else if (level_feats[i][LF_FEAT] == FEAT_CONSTITUTION_BOOST) {
         ch->real_abils.con += 2;
         sprintf(featbuf, "%s\tMYour natural constitution has increased by +2!\r\n", featbuf);
-      }
-      else if (level_feats[i][4] == FEAT_INTELLIGENCE_BOOST) {
+      } else if (level_feats[i][LF_FEAT] == FEAT_INTELLIGENCE_BOOST) {
         ch->real_abils.intel += 2;
         sprintf(featbuf, "%s\tMYour natural intelligence has increased by +2!\r\n", featbuf);
-      }
-      else {
-        if (HAS_FEAT(ch, level_feats[i][4]))
-          sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
+      } else {
+        if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
+          sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
         else
-          sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
+          sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
       }
-      SET_FEAT(ch, level_feats[i][4], HAS_REAL_FEAT(ch, level_feats[i][4]) + 1);
-    }
-    else if (level_feats[i][0] == CLASS_UNDEFINED && level_feats[i][1] == GET_RACE(ch) && !HAS_FEAT(ch, level_feats[i][4])) {
-      if (level_feats[i][2] == TRUE) {
+      SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
+    } 
+
+    /* feat i doesnt matches our class or we don't meet the min-level (from if above) */
+    /* non-class, racial feat and don't have it yet */
+    else if (level_feats[i][LF_CLASS] == CLASS_UNDEFINED &&
+            level_feats[i][LF_RACE] == GET_RACE(ch) &&
+            !HAS_FEAT(ch, level_feats[i][LF_FEAT])) {
+      /*
+      if (level_feats[i][LF_STACK] == TRUE) {
         if (i == FEAT_TWO_WEAPON_FIGHTING && GET_CLASS(ch) == CLASS_RANGER)
           //if (!HAS_FEAT(ch, FEAT_RANGER_TWO_WEAPON_STYLE))
           continue;
       }
-      if (HAS_FEAT(ch, level_feats[i][4]))
-        sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
+      */
+      if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
+        sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
       else
-        sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
-      SET_FEAT(ch, level_feats[i][4], HAS_REAL_FEAT(ch, level_feats[i][4]) + 1);
+        sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
+      SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
     }
-    else if (GET_CLASS(ch) == level_feats[i][0] && level_feats[i][1] == GET_RACE(ch) && CLASS_LEVEL(ch, level_feats[i][0]) == level_feats[i][3]) {
-      if (HAS_FEAT(ch, level_feats[i][4]))
-        sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
+    
+    /* feat doesn't match our class or we don't meet the min-level (from if above) */
+    else if (GET_CLASS(ch) == level_feats[i][LF_CLASS] && level_feats[i][LF_RACE] == GET_RACE(ch) && CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) == level_feats[i][LF_MIN_LVL]) {
+      if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
+        sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
       else
-        sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][4]].name);
-      SET_FEAT(ch, level_feats[i][4], HAS_REAL_FEAT(ch, level_feats[i][4]) + 1);
+        sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
+      SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
     }
-
     i++;
   }
-  
-  send_to_char(ch, "%s", featbuf);
 
+  send_to_char(ch, "%s", featbuf);
 }
 
 void advance_level(struct char_data *ch, int class) {
@@ -2169,7 +2181,7 @@ void advance_level(struct char_data *ch, int class) {
 
   /**because con items / spells are affecting based on level, we have to 
   unaffect before we level up -zusuk */
-  at_armor = affect_total_sub(ch);  /* at_armor stores ac */
+  at_armor = affect_total_sub(ch); /* at_armor stores ac */
   /* done unaffecting */
 
   add_hp = GET_CON_BONUS(ch);
@@ -2225,7 +2237,7 @@ void advance_level(struct char_data *ch, int class) {
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
       //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20){
+      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
       }
       break;
@@ -2333,7 +2345,7 @@ void advance_level(struct char_data *ch, int class) {
       add_move = rand_number(1, 2);
 
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
-      if (!(CLASS_LEVEL(ch, class) % 2) &&  !IS_EPIC(ch)) {
+      if (!(CLASS_LEVEL(ch, class) % 2) && !IS_EPIC(ch)) {
         class_feats++;
       }
       if (!(CLASS_LEVEL(ch, class) % 2) && IS_EPIC(ch)) {
@@ -2361,10 +2373,10 @@ void advance_level(struct char_data *ch, int class) {
   }
 
   //base practice / boost improvement
-  if (!(GET_LEVEL(ch) % 3) && !IS_EPIC(ch)) {    
+  if (!(GET_LEVEL(ch) % 3) && !IS_EPIC(ch)) {
     feats++;
   }
-  if (!(GET_LEVEL(ch) %3) && IS_EPIC(ch)) {
+  if (!(GET_LEVEL(ch) % 3) && IS_EPIC(ch)) {
     epic_feats++;
   }
   if (!(GET_LEVEL(ch) % 4)) {
@@ -2373,14 +2385,14 @@ void advance_level(struct char_data *ch, int class) {
   }
 
   /* miscellaneous level-based bonuses */
-  if (HAS_FEAT(ch, FEAT_TOUGHNESS)) { 
+  if (HAS_FEAT(ch, FEAT_TOUGHNESS)) {
     /* SRD has this as +3 hp.  More fun as +1 per level. */
-    for ( i = HAS_FEAT(ch, FEAT_TOUGHNESS); i > 0; i--) 
+    for (i = HAS_FEAT(ch, FEAT_TOUGHNESS); i > 0; i--)
       add_hp++;
   }
   if (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS)) {
     /* SRD has this listed as +30 hp.  More fun to do it by level perhaps. */
-    for ( i = HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS); i > 0; i--)
+    for (i = HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS); i > 0; i--)
       add_hp += 1;
   }
 
@@ -2399,7 +2411,7 @@ void advance_level(struct char_data *ch, int class) {
   GET_EPIC_CLASS_FEATS(ch, GET_CLASS(ch)) += epic_class_feats;
   if (feats)
     send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", feats);
-  if (class_feats) 
+  if (class_feats)
     send_to_char(ch, "%d \tMClass feat points gained.\tn\r\n", class_feats);
   if (epic_feats)
     send_to_char(ch, "%d \tMEpic feat points gained.\tn\r\n", feats);
@@ -2489,8 +2501,8 @@ int invalid_class(struct char_data *ch, struct obj_data *obj) {
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_ROGUE) && IS_ROGUE(ch))
     return TRUE;
-  */
-  
+   */
+
   return FALSE;
 }
 
@@ -3049,7 +3061,7 @@ void init_spell_levels(void) {
   spell_level(SPELL_DISPEL_MAGIC, CLASS_RANGER, 15);
   spell_level(SPELL_FREE_MOVEMENT, CLASS_RANGER, 15);
   spell_level(SPELL_SUMMON_NATURES_ALLY_4, CLASS_RANGER, 15);
-  
+
 
   // clerics
   //1st circle
@@ -3824,7 +3836,7 @@ const char *titles(int chclass, int level) {
 #define ITEM_PROF_HEAVY_A	8	// heavy armor prof
 #define ITEM_PROF_SHIELDS	9	// shield prof
 #define ITEM_PROF_T_SHIELDS	10	// tower shield prof
-*/
+ */
 
 /* a function to check the -highest- level of proficiency of gear
    worn on a character
@@ -3858,7 +3870,7 @@ int proficiency_worn(struct char_data *ch, int type) {
               )) {
         if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
           prof = GET_OBJ_PROF(GET_EQ(ch, i));
-        }        
+        }
       }
     }
   }
@@ -3877,13 +3889,13 @@ int proficiency_worn(struct char_data *ch, int type) {
         return ITEM_PROF_NONE;
       break;
   }
-  
+
   return prof;
 }
 
 int determine_gear_weight(struct char_data *ch, int type) {
   int i = 0, weight = 0;
-  
+
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i)) {
       if (type == WEAPON_PROFICIENCY && (
@@ -3891,22 +3903,22 @@ int determine_gear_weight(struct char_data *ch, int type) {
               i == WEAR_WIELD_2 ||
               i == WEAR_WIELD_2H
               )) {
-          weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
+        weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
       } else if (type == SHIELD_PROFICIENCY && (
               i == WEAR_SHIELD
               )) {
-          weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
+        weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
       } else if (type == ARMOR_PROFICIENCY && (
               i == WEAR_HEAD ||
               i == WEAR_BODY ||
               i == WEAR_ARMS ||
               i == WEAR_LEGS
               )) {
-          weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
+        weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
       }
     }
   }
-  
+
   return weight;
 }
 
@@ -3932,7 +3944,7 @@ int compute_gear_penalty_check(struct char_data *ch) {
   if (factor >= 20)
     return -1;
 
-  return 0;  //should be less than 10  
+  return 0; //should be less than 10  
 }
 
 /* this function will determine the % penalty created by the
@@ -3941,7 +3953,7 @@ int compute_gear_penalty_check(struct char_data *ch) {
 int compute_gear_arcane_fail(struct char_data *ch) {
   int factor = determine_gear_weight(ch, ARMOR_PROFICIENCY);
   factor += determine_gear_weight(ch, SHIELD_PROFICIENCY);
-  
+
   if (factor > 51)
     return 50;
   if (factor >= 45)
@@ -3961,8 +3973,8 @@ int compute_gear_arcane_fail(struct char_data *ch) {
   if (factor >= 10)
     return 5;
 
-  return 0;  //should be less than 10
-  
+  return 0; //should be less than 10
+
 }
 
 /* this function will determine the dam-reduc created by the
@@ -3993,7 +4005,7 @@ int compute_gear_dam_reduc(struct char_data *ch) {
   if (factor >= 10)
     return 1;
 
-  return 0;  //should be less than 10
+  return 0; //should be less than 10
 }
 
 /* this function will determine the max-dex created by the
@@ -4027,7 +4039,7 @@ int compute_gear_max_dex(struct char_data *ch) {
   if (factor >= 1)
     return 13;
   else
-    return 99;  // wearing no weight!
+    return 99; // wearing no weight!
 }
 
 /* our simple little function to make sure our monk

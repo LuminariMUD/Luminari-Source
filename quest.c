@@ -223,7 +223,8 @@ void assign_the_quests(void) {
   cmd_tell = find_command("tell");
 
   for (rnum = 0; rnum < total_quests; rnum++) {
-    if (QST_MASTER(rnum) == NOBODY) {
+    if (QST_MASTER(rnum) == NOBODY ||
+        QST_MASTER(rnum) <= 0) {
       log("SYSERR: Quest #%d has no questmaster specified.", QST_NUM(rnum));
       continue;
     }
