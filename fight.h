@@ -32,7 +32,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase);
 int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is_touch);
 int compute_damage_reduction(struct char_data *ch, int dam_type);
 int compute_concealment(struct char_data *ch);
-int compute_bab(struct char_data *ch, struct char_data *victim, int attktype);
 int compute_damage_bonus(struct char_data *ch, struct char_data *victim,
 	int attktype, int mod, int mode);
 int compute_cmb(struct char_data *ch, struct char_data *victim, int attack_type);
@@ -47,9 +46,7 @@ void update_pos(struct char_data *victim);
 int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch, int attack_number);
 int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int penalty);
 void attacks_of_opportunity(struct char_data *victim, int penalty);
-/*
- * dualwield = is this a dual wield attack?
- */
+int compute_attack_bonus(struct char_data *ch, struct char_data *victim, int attack_type);
 int hit(struct char_data *ch, struct char_data *victim,
 	int type, int dam_type, int penalty, int dualwield);
 void load_messages(void);

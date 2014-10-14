@@ -1,15 +1,13 @@
 /*****************************************************************************
 ** FEATS.C                                                                  **
 ** Source code for the Gates of Krynn Feats System.                         **
-** Initial code by Paladine (Stephen Squires)                               **
+** Initial code by Paladine (Stephen Squires), Ported by Ornir of Luminari  **
 ** Created Thursday, September 5, 2002                                      **
-**                                                                          **
 *****************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
-//#include "deities.h"
 #include "utils.h"
 #include "comm.h"
 #include "spells.h"
