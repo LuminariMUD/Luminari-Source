@@ -22,39 +22,70 @@
 #include "mud_event.h"
 
 /* Local Functions */
-void list_class_feats(struct char_data *ch);
-void assign_feats(void);
-void feato(int featnum, char *name, int in_game, int can_learn, int can_stack, int feat_type, char *prerequisites, char *description);
-void list_feats(struct char_data *ch, char *arg, int list_type);
-int compare_feats(const void *x, const void *y);
-void sort_feats(void);
-int find_feat_num(char *name);
-
-/*  Prerequisite definition procedures */
-void feat_prereq_attribute(int featnum, int attribute, int value);
-void feat_prereq_class_level(int featnum, int cl, int level);
-void feat_prereq_feat(int featnum, int pfeatnum, int ranks);
-void feat_prereq_ability(int featnum, int ability, int ranks);
-void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int circle);
-void feat_prereq_race(int featnum, int race);
-
-void load_weapons(void);
-void load_armor(void);
-int has_combat_feat(struct char_data *ch, int i, int j);
-int has_feat(struct char_data *ch, int featnum);
-
+/* Prerequisite definition procedures */
 /* Global Variables and Structures */
-struct feat_info feat_list[NUM_FEATS];
-int feat_sort_info[MAX_FEATS];
-char buf3[MAX_STRING_LENGTH];
-char buf4[MAX_STRING_LENGTH];
 struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
-struct weapon_table weapon_list[NUM_WEAPON_TYPES];
-const char *weapon_type[NUM_WEAPON_TYPES];
+/* END */
 
+
+/* START */
+
+/* Helper function for t sort_feats function - not very robust and should not be reused. 
+ * SCARY pointer stuff! */
+int compare_feats(const void *x, const void *y) {
+  int a = *(const int *) x,
+          b = *(const int *) y;
+
+  return strcmp(feat_list[a].name, feat_list[b].name);
+}
+/* sort feats called at boot up */
+void sort_feats(void) {
+  int a;
+
+  /* initialize array, avoiding reserved. */
+  for (a = 1; a < NUM_FEATS; a++)
+    feat_sort_info[a] = a;
+
+  qsort(&feat_sort_info[1], NUM_FEATS, sizeof (int), compare_feats);
+}
 
 /* Nothing to do right now.  What, for shutdown maybe? */
 void free_feats(void) {
+}
+
+/* checks if the char has the feat either saved to file or in the process
+ of acquiring it in study */
+int has_feat(struct char_data *ch, int featnum) {
+  if (ch->desc && LEVELUP(ch)) { /* check if he's in study mode */
+    return (HAS_FEAT(ch, featnum) + LEVELUP(ch)->feats[featnum]);
+  }
+  /* // this is for the option of allowing feats on items
+    struct obj_data *obj;
+    int i = 0, j = 0;
+
+    for (j = 0; j < NUM_WEARS; j++) {
+      if ((obj = GET_EQ(ch, j)) == NULL)
+        continue;
+      for (i = 0; i < 6; i++) {
+        if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].specific == featnum)
+          return (has_feat(ch, featnum) + obj->affected[i].modifier);
+      }
+    }
+   */
+  return HAS_FEAT(ch, featnum);
+}
+
+/* checks if ch has feat (compare) as one of his/her combat feats (cfeat) */
+bool has_combat_feat(struct char_data *ch, int cfeat, int compare) {
+  if (ch->desc && LEVELUP(ch)) {
+    if ((IS_SET_AR(LEVELUP(ch)->combat_feats[(cfeat)], (compare))))
+      return TRUE;
+  }
+
+  if ((IS_SET_AR((ch)->char_specials.saved.combat_feats[(cfeat)], (compare))))
+    return TRUE;
+
+  return FALSE;
 }
 
 /* create/allocate memory for a pre-req struct, then assign the prereqs */
@@ -818,8 +849,8 @@ void assign_feats(void) {
   dailyfeat(FEAT_WILD_SHAPE, eWILD_SHAPE);
 }
 
-/* bool meets_prerequisite(ch, prereq)
- * Check to see if ch meets the provided feat prerequisite. */
+/* Check to see if ch meets the provided feat prerequisite. 
+   iarg is for external comparison */
 bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, int iarg) {
   switch (prereq->prerequisite_type) {
     case FEAT_PREREQ_NONE:
@@ -937,6 +968,7 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
           log("SYSERR: meets_prerequisite() - Bad Preparation type prerequisite %d", prereq->values[1]);
           return FALSE;
       }
+      break;
     case FEAT_PREREQ_RACE:
       if (!IS_NPC(ch) && GET_RACE(ch) != prereq->values[0])
         return FALSE;
@@ -967,13 +999,13 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
 int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
   struct feat_prerequisite *prereq = NULL;
 
-  if (featnum > NUM_FEATS)
+  if (featnum > NUM_FEATS) /* even valid featnum? */
     return FALSE;
 
-  if (feat_list[featnum].epic == TRUE && !IS_EPIC(ch))
+  if (feat_list[featnum].epic == TRUE && !IS_EPIC(ch)) /* epic only feat */
     return FALSE;
 
-  if (has_feat(ch, featnum) && !feat_list[featnum].can_stack)
+  if (has_feat(ch, featnum) && !feat_list[featnum].can_stack) /* stackable? */
     return FALSE;
 
   if (feat_list[featnum].prerequisite_list != NULL) {
@@ -982,7 +1014,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
       if (meets_prerequisite(ch, prereq, iarg) == FALSE)
         return FALSE;
     }
-  } else {
+  } else { /* no pre-requisites */
     switch (featnum) {
       case FEAT_AUTOMATIC_QUICKEN_SPELL:
         if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) < 30)
@@ -1651,6 +1683,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
   return TRUE;
 }
 
+/* simply checks if ch has proficiency with given armor_type */
 int is_proficient_with_armor(const struct char_data *ch, int armor_type) {
   int general_type = find_armor_type(armor_type);
 
@@ -1684,6 +1717,7 @@ int is_proficient_with_armor(const struct char_data *ch, int armor_type) {
   return FALSE;
 }
 
+/* simply checks if ch has proficiency with given weapon_type */
 int is_proficient_with_weapon(const struct char_data *ch, int weapon) {
   /* Adapt this - Focus on an aspect of the divine, not a deity. */
   /*  if (has_feat((char_data *) ch, FEAT_DEITY_WEAPON_PROFICIENCY) && weapon == deity_list[GET_DEITY(ch)].favored_weapon)
@@ -1789,25 +1823,6 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon) {
   }
 
   return FALSE;
-}
-
-/* Helper function for t sort_feats function - not very robust and should not be reused. 
- * SCARY pointer stuff! */
-int compare_feats(const void *x, const void *y) {
-  int a = *(const int *) x,
-          b = *(const int *) y;
-
-  return strcmp(feat_list[a].name, feat_list[b].name);
-}
-
-void sort_feats(void) {
-  int a;
-
-  /* initialize array, avoiding reserved. */
-  for (a = 1; a < NUM_FEATS; a++)
-    feat_sort_info[a] = a;
-
-  qsort(&feat_sort_info[1], NUM_FEATS, sizeof (int), compare_feats);
 }
 
 /*
@@ -2820,36 +2835,6 @@ void load_armor(void) {
   setarmor(SPEC_ARMOR_TYPE_TOWER_SHIELD, "tower shield", ARMOR_TYPE_SHIELD, 3000, 40, 2, -10, 50, 999, 999, 450, MATERIAL_WOOD);
 }
 
-int has_feat(struct char_data *ch, int featnum) {
-  if (ch->desc && LEVELUP(ch)) {
-    return (HAS_FEAT(ch, featnum) + LEVELUP(ch)->feats[featnum]);
-  }
-  /* // this is for the option of allowing feats on items
-    struct obj_data *obj;
-    int i = 0, j = 0;
 
-    for (j = 0; j < NUM_WEARS; j++) {
-      if ((obj = GET_EQ(ch, j)) == NULL)
-        continue;
-      for (i = 0; i < 6; i++) {
-        if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].specific == featnum)
-          return (has_feat(ch, featnum) + obj->affected[i].modifier);
-      }
-    }
-   */
-  return HAS_FEAT(ch, featnum);
-}
-
-int has_combat_feat(struct char_data *ch, int i, int j) {
-  if (ch->desc && LEVELUP(ch)) {
-    if ((IS_SET_AR(LEVELUP(ch)->combat_feats[(i)], (j))))
-      return TRUE;
-  }
-
-  if ((IS_SET_AR((ch)->char_specials.saved.combat_feats[(i)], (j))))
-    return TRUE;
-
-  return FALSE;
-}
 
 /* EOF */
