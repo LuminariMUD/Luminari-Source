@@ -24,10 +24,10 @@
 /* Local Functions */
 /* Prerequisite definition procedures */
 /* Global Variables and Structures */
-int feat_sort_info[MAX_FEATS + 1];
-struct feat_info feat_list[NUM_FEATS + 1];
+int feat_sort_info[MAX_FEATS];
+struct feat_info feat_list[NUM_FEATS];
 struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
-struct weapon_table weapon_list[NUM_WEAPON_TYPES + 1];
+struct weapon_table weapon_list[NUM_WEAPON_TYPES];
 /* END */
 
 
