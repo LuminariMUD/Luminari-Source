@@ -28,6 +28,7 @@ int feat_sort_info[MAX_FEATS];
 struct feat_info feat_list[NUM_FEATS];
 struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
 struct weapon_table weapon_list[NUM_WEAPON_TYPES];
+const char *weapon_type[NUM_WEAPON_TYPES];
 /* END */
 
 
