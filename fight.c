@@ -1985,82 +1985,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   return (dam);
 }
 
-
-// old skool thaco replaced by bab (base attack bonus)
-
-/*
- * Calcluate attack bonuses
- */
-int compute_bab(struct char_data *ch, struct char_data *victim, int type) {
-  int calc_bab = BAB(ch); //base attack bonus
-
-  // strength (or dex) bonus
-  // This is bad - because we need to add bonuses differently based on the type of attack.
-  // Also - The wielded variable will be needed to determine if we have a light weapon
-  // that is affected by FEAT_WEAPON_FINESSE.
-  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_FINESSE))// && IS_LIGHT_WEAPON_TYPE(type))     
-    calc_bab += GET_DEX_BONUS(ch);
-  else
-    calc_bab += GET_STR_BONUS(ch);
-
-  // smite evil
-  if (affected_by_spell(ch, SKILL_SMITE)) {
-    calc_bab += GET_CHA_BONUS(ch);
-  }
-  // position penalty
-  switch (GET_POS(ch)) {
-    case POS_SITTING:
-    case POS_RESTING:
-    case POS_SLEEPING:
-    case POS_STUNNED:
-    case POS_INCAP:
-    case POS_MORTALLYW:
-    case POS_DEAD:
-      calc_bab -= 2;
-      break;
-    case POS_FIGHTING:
-    case POS_STANDING:
-    default: break;
-  }
-
-  // hitroll bonus
-  calc_bab += GET_HITROLL(ch);
-
-  // all other bonuses (penalties)
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_PROWESS))
-    calc_bab++;
-
-  /* EPIC PROWESS feat stacks, +1 for each time the feat is taken. */
-  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_PROWESS))
-    calc_bab += HAS_FEAT(ch, FEAT_EPIC_PROWESS);
-
-  /* These modes subtract their value from the attack roll. */
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE))
-    calc_bab -= COMBAT_MODE_VALUE(ch);
-  //fatigued
-  if (AFF_FLAGGED(ch, AFF_FATIGUED))
-    calc_bab -= 2;
-  /* favored enemy */
-  if (victim && CLASS_LEVEL(ch, CLASS_RANGER)) {
-    // checking if we have humanoid favored enemies for PC victims
-    if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
-      calc_bab += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
-    else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)))
-      calc_bab += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
-  }
-
-  /* spellbattle */
-  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
-    calc_bab -= SPELLBATTLE(ch);
-
-  return (MIN(MAX_BAB, calc_bab));
-}
-
-
 // ch: focus person, vict: whoever hit()'s vict is,
 // type:  weapon type, mod: bonus/penalty to damage
 // mode:  whether should display or not; 2=mainhand 3=offhand
-
 int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         int type, int mod, int mode) {
   int dambonus = mod;
@@ -2655,6 +2582,7 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
     bonuses[i] = 0;
 
+  /* start with our base bonus of strength (or dex with feat) */
   if ((attack_type == ATTACK_TYPE_RANGED) ||
       (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_FINESSE))) {
     if (GET_DEX_BONUS(ch) >= GET_STR_BONUS(ch))
@@ -2664,9 +2592,14 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   } else {
     calc_bab += GET_STR_BONUS(ch);
   }
+  
+  /* NOTICE:  This may be something we phase out, but for basic
+   function of the game to date, it is still necessary
+   10/14/2014 Zusuk */
+  calc_bab += GET_HITROLL(ch);
+  /******/
  
   /* Circumstance bonus (stacks)*/
-
   switch (GET_POS(ch)) {
     case POS_SITTING:
     case POS_RESTING:
@@ -2889,7 +2822,7 @@ int hit(struct char_data *ch, struct char_data *victim,
   
   /* 
     The way ranged attacks are handled is very problematic.  Currently, it is set as a 
-     mode for this function, usign the offhand parameter.  This may not be the best way. 
+     mode for this function, using the offhand parameter.  This may not be the best way. 
      
      This is the first place where offhand comes into play. 
        If offhand = 0, we are using the primary hand.  
@@ -3070,11 +3003,27 @@ int hit(struct char_data *ch, struct char_data *victim,
 
   /* Get modifiers from weapon special abilities. ??? */
 
-  /* Get the important numbers : ch's Attack bonus and victim's AC */
-  // attack rolls:  1 = stumble, 20 = crit
-  calc_bab = compute_bab(ch, victim, w_type) + penalty;
+  /* Get the important numbers : ch's Attack bonus and victim's AC
+   * attack rolls: 1 = stumble, 20 = crit */
   victim_ac = compute_armor_class(ch, victim, FALSE);
-
+  switch (offhand) {
+    case 1: /* secondary or 'off' hand */
+      if (w_type == TYPE_HIT)
+        calc_bab = compute_attack_bonus(ch, victim, ATTACK_TYPE_UNARMED) + penalty;
+      else
+        calc_bab = compute_attack_bonus(ch, victim, ATTACK_TYPE_OFFHAND) + penalty;
+      break;
+    case 2: /* ranged weapon */
+      calc_bab = compute_attack_bonus(ch, victim, ATTACK_TYPE_RANGED) + penalty;
+      break;
+    case 0: /* primary hand and default */
+    default:
+      if (w_type == TYPE_HIT)
+        calc_bab = compute_attack_bonus(ch, victim, ATTACK_TYPE_UNARMED) + penalty;
+      else
+        calc_bab = compute_attack_bonus(ch, victim, ATTACK_TYPE_PRIMARY) + penalty;
+      break;
+  }
 
   if(type == TYPE_ATTACK_OF_OPPORTUNITY) {
     if (HAS_FEAT(victim, FEAT_MOBILITY) && has_dex_bonus_to_ac(ch, victim))
@@ -3657,11 +3606,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                   penalty * 2, TRUE);
     } else if (mode == 2) { //display attack routine
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
-//              compute_bab(ch, ch, 0) + penalty);
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
       send_to_char(ch, "Offhand, Attack Bonus:  %d; ",
-//              compute_bab(ch, ch, 0) + penalty * 2);
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + penalty * 2);               
       compute_hit_damage(ch, ch, NULL, 0, 0, 3);
     }
@@ -3676,7 +3623,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
     } else if (mode == 2) { //display attack routine
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
-//              compute_bab(ch, ch, 0) + penalty);
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
     }
@@ -3694,7 +3640,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
     } else if (mode == 2) { //display attack routine
       send_to_char(ch, "Mainhand (Haste), Attack Bonus:  %d; ",
-//              compute_bab(ch, ch, 0) + penalty);
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
     }
@@ -3783,7 +3728,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
               hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY, TRUE);
       } else if (mode == 2) { //display attack routine
         send_to_char(ch, "Offhand (2 Weapon Fighting), Attack Bonus:  %d; ",
-//                compute_bab(ch, ch, 0) + TWO_WPN_PNLTY);
                      compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + TWO_WPN_PNLTY);
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
       }
@@ -3810,7 +3754,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
               hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLY, TRUE);
       } else if (mode == 2) { //display attack routine
         send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",
-//                compute_bab(ch, ch, 0) + EPIC_TWO_PNLY);
                      compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + EPIC_TWO_PNLY);
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
       }

@@ -22,7 +22,7 @@ act.other.o: act.other.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h screen.h \
  house.h constants.h dg_scripts.h act.h spec_procs.h class.h fight.h \
  mail.h shop.h quest.h modify.h clan.h mud_event.h dg_event.h craft.h \
- treasure.h mudlim.h spec_abilities.h actions.h
+ treasure.h mudlim.h spec_abilities.h actions.h feats.h
 act.social.o: act.social.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h screen.h spells.h \
  act.h
@@ -301,7 +301,7 @@ treasure_const.o: treasure_const.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h interpreter.h treasure.h
 utils.o: utils.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h modify.h screen.h spells.h handler.h interpreter.h \
- class.h spec_procs.h mud_event.h dg_event.h feats.h
+ class.h spec_procs.h mud_event.h dg_event.h feats.h spec_abilities.h
 weather.o: weather.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h
 wilderness.o: wilderness.c perlin.h conf.h sysdep.h structs.h protocol.h \
