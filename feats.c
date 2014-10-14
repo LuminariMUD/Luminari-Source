@@ -104,7 +104,6 @@ struct feat_prerequisite* create_prerequisite(int prereq_type, int val1, int val
 
   return prereq;
 }
-
 /*  The following procedures are used to define feat prerequisites.
  *  These prerequisites are automatically checked, if they exist. 
  *  Dynamically assigning prerequisites also allows us to create 
@@ -1012,6 +1011,9 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
   if (has_feat(ch, featnum) && !feat_list[featnum].can_stack) /* stackable? */
     return FALSE;
 
+  if (feat_list[featnum].in_game == FALSE) /* feat in the game at all? */
+    return FALSE;
+  
   if (feat_list[featnum].prerequisite_list != NULL) {
     /*  This feat has prerequisites. Traverse the list and check. */
     for (prereq = feat_list[featnum].prerequisite_list; prereq != NULL; prereq = prereq->next) {
@@ -1680,6 +1682,8 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
           return FALSE;
         return TRUE;
 
+        /* we're going to assume at this stage that this feat truly has
+         no rerequisites */
       default:
         return TRUE;
     }
