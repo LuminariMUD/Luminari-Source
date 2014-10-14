@@ -2657,8 +2657,10 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
   }
 
+  if (victim) {
   if (!CAN_SEE(victim, ch) && !HAS_FEAT(victim, FEAT_BLIND_FIGHT))
     bonuses[BONUS_TYPE_UNDEFINED] += 2; 
+  }
 
   if (affected_by_spell(ch, SKILL_SMITE)) {
     bonuses[BONUS_TYPE_UNDEFINED] += GET_CHA_BONUS(ch);
