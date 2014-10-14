@@ -2010,6 +2010,22 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   else /* normal */
     dambonus += GET_STR_BONUS(ch);
 
+  /* Circumstance penalty */
+  switch (GET_POS(ch)) {
+    case POS_SITTING:
+    case POS_RESTING:
+    case POS_SLEEPING:
+    case POS_STUNNED:
+    case POS_INCAP:
+    case POS_MORTALLYW:
+    case POS_DEAD:
+      dambonus -= 2;
+      break;
+    case POS_FIGHTING:
+    case POS_STANDING:
+    default: break;
+  }
+
   /* fatigued */
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
     dambonus -= 2;
