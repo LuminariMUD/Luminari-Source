@@ -896,7 +896,7 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
         return FALSE;
       break;
     case FEAT_PREREQ_FEAT:
-      if (HAS_FEAT(ch, prereq->values[0]) < prereq->values[1])
+      if (has_feat(ch, prereq->values[0]) < prereq->values[1])
         return FALSE;
       break;
     case FEAT_PREREQ_ABILITY:
@@ -2380,7 +2380,8 @@ bool display_feat_info(struct char_data *ch, char *featname) {
   /* We found the feat, and the feat number is stored in 'feat'. */
   /* Display the feat info, formatted. */
   send_to_char(ch, "\tC\r\n");
-  text_line(ch, "Feat Information", line_length, '-', '-');
+  //text_line(ch, "Feat Information", line_length, '-', '-');
+  draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tcFeat    : \tn%s\r\n"
           "\tcType    : \tn%s\r\n",
           //                   "\tcCommand : \tn%s\r\n",
