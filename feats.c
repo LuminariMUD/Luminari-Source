@@ -426,14 +426,15 @@ void assign_feats(void) {
   feato(FEAT_AGILE, "agile", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to balance and escape artist skill checks", "+2 to balance and escape artist skill checks");
   feato(FEAT_ALERTNESS, "alertness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to spot and listen skill checks ", "+2 to spot and listen skill checks ");
   feato(FEAT_ANIMAL_AFFINITY, "animal affinity", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to handle animal and ride skill checks", "+2 to handle animal and ride skill checks");
-  feato(FEAT_ARMOR_PROFICIENCY_HEAVY, "heavy armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows unpenalized use of heavy armor ", "allows unpenalized use of heavy armor ");
-  feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
-  feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
 
   feato(FEAT_ARMOR_PROFICIENCY_LIGHT, "light armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows unpenalized use of light armor ", "allows unpenalized use of light armor ");
   feato(FEAT_ARMOR_PROFICIENCY_MEDIUM, "medium armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows unpenalized use of medium armor ", "allows unpenalized use of medium armor ");
   feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_MEDIUM, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
 
+  feato(FEAT_ARMOR_PROFICIENCY_HEAVY, "heavy armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows unpenalized use of heavy armor ", "allows unpenalized use of heavy armor ");
+  feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+  feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
+  
   feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, "tower shield proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "can use tower shields without penalties", "can use tower shields without penalties");
 
   feato(FEAT_ARMOR_SKIN, "armor skin", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Increases natural armor by 1", "Increases natural armor by 1"); /* Epic */
