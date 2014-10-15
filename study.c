@@ -330,7 +330,7 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
   struct char_data *ch = d->character;
   int feat_type = 0;
 
-  if (HAS_FEAT(ch, feat) && !feat_list[feat].can_stack) {
+  if (has_feat(ch, feat) && !feat_list[feat].can_stack) {
     write_to_output(d, "You already have this feat.\r\n");
     return FALSE;
   }
@@ -781,7 +781,7 @@ static void display_study_feats(struct descriptor_data *d) {
         feat_is_available(ch, i, 0, NULL) && 
         feat_list[i].in_game &&
         feat_list[i].can_learn &&
-        (!HAS_FEAT(ch, i) || feat_list[i].can_stack))) {
+        (!has_feat(ch, i) || feat_list[i].can_stack))) {
 
       write_to_output(d, "%s%s%3d%s) %-30s%s", class_feat ? "\tC(C)" : "   ", grn, i, nrm, feat_list[i].name, nrm);
       count++;
