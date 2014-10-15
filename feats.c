@@ -2361,7 +2361,7 @@ int find_feat_num(char *name) {
  *
  * (NOTE: The headers of the sections above will be colored
  * differently, making them stand out.) */
-void display_feat_info(struct char_data *ch, char *featname) {
+bool display_feat_info(struct char_data *ch, char *featname) {
   int feat = -1;
   char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
 
@@ -2369,18 +2369,12 @@ void display_feat_info(struct char_data *ch, char *featname) {
   static int line_length = 80;
 
   skip_spaces(&featname);
-
-  if (!strcmp(featname, "")) {
-    send_to_char(ch, "You must provide the name of a feat.\r\n");
-    return;
-  }
-
   feat = find_feat_num(featname);
 
   if (feat == -1 || feat_list[feat].in_game == FALSE) {
     /* Not found - Maybe put in a soundex list here? */
-    send_to_char(ch, "Could not find that feat.\r\n");
-    return;
+    //send_to_char(ch, "Could not find that feat.\r\n");
+    return FALSE;
   }
 
   /* We found the feat, and the feat number is stored in 'feat'. */
@@ -2428,6 +2422,8 @@ void display_feat_info(struct char_data *ch, char *featname) {
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn\r\n");
+
+  return TRUE;
 }
 
 /*  do_feats
@@ -2479,7 +2475,12 @@ ACMD(do_feats) {
   if (is_abbrev(arg, "known") || !*arg) {
     list_feats(ch, arg2, LIST_FEATS_KNOWN);
   } else if (is_abbrev(arg, "info")) {
-    display_feat_info(ch, featname);
+ 
+    if (!strcmp(featname, "")) {
+      send_to_char(ch, "You must provide the name of a feat.\r\n");
+    } else if(!display_feat_info(ch, featname)) {
+      send_to_char(ch, "Could not find that feat.\r\n");
+    }
   } else if (is_abbrev(arg, "available")) {
     list_feats(ch, arg2, LIST_FEATS_AVAILABLE);
   } else if (is_abbrev(arg, "all")) {

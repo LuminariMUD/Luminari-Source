@@ -15,6 +15,7 @@
 #include "mysql.h"
 #include "lists.h"
 #include "help.h"
+#include "feats.h"
 
 /* puts -'s instead of spaces */
 void space_to_minus(char *str) {
@@ -214,6 +215,7 @@ ACMD(do_help) {
 
   char help_entry_buffer[MAX_STRING_LENGTH];
   char immo_data_buffer[1024];
+  char *raw_argument;
 
   if (!ch->desc)
     return;
@@ -227,31 +229,36 @@ ACMD(do_help) {
       page_string(ch->desc, ihelp, 0);
     return;
   }
-
+  raw_argument = strdup(argument);
   space_to_minus(argument);
 
   if ((entries = search_help(argument, GET_LEVEL(ch))) == NULL) {
-    send_to_char(ch, "There is no help on that word.\r\n");
-    mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
-            "%s tried to get help on %s", GET_NAME(ch), argument);
-
-    /* Implement 'SOUNDS LIKE' search here... */    
-    if ((keywords = soundex_search_help_keywords(argument, GET_LEVEL(ch))) != NULL) {
-      send_to_char(ch, "\r\nDid you mean:\r\n");
-      tmp_keyword = keywords;
-      while (tmp_keyword != NULL) {
-        send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
-                tmp_keyword->keyword, tmp_keyword->keyword);
-        tmp_keyword = tmp_keyword->next;
-      }
-      send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
-      while (keywords != NULL) {
-        tmp_keyword = keywords->next; 
-        free(keywords);
-        keywords = tmp_keyword;
-        tmp_keyword = NULL;
+    /* Check feats for relevant entries! */
+    if (!display_feat_info(ch, raw_argument)) {
+    
+      send_to_char(ch, "There is no help on that word.\r\n");
+      mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
+              "%s tried to get help on %s", GET_NAME(ch), argument);
+  
+      /* Implement 'SOUNDS LIKE' search here... */    
+      if ((keywords = soundex_search_help_keywords(argument, GET_LEVEL(ch))) != NULL) {
+        send_to_char(ch, "\r\nDid you mean:\r\n");
+        tmp_keyword = keywords;
+        while (tmp_keyword != NULL) {
+          send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
+                  tmp_keyword->keyword, tmp_keyword->keyword);
+          tmp_keyword = tmp_keyword->next;
+        }
+        send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
+        while (keywords != NULL) {
+          tmp_keyword = keywords->next; 
+          free(keywords);
+          keywords = tmp_keyword;
+          tmp_keyword = NULL;
+        }
       }
     } 
+    free(raw_argument);
     return;
   }
  
@@ -288,6 +295,7 @@ ACMD(do_help) {
                              line_string(GET_SCREEN_WIDTH(ch), '-', '-'));                            
   page_string(ch->desc, help_entry_buffer, 1);
 
+  free(raw_argument);
   while (entries != NULL) {
     tmp = entries;
     entries = entries->next;
