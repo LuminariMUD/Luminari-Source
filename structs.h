@@ -1925,7 +1925,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define RL_SEC		* PASSES_PER_SEC
 
 /** Controls when a zone update will occur. */
-#define PULSE_ZONE      (10 RL_SEC)
+#define PULSE_ZONE      (3 RL_SEC)
 /** Controls when mobile (NPC) actions and updates will occur. */
 #define PULSE_MOBILE    (6 RL_SEC)
 /** Controls the time between turns of combat. */

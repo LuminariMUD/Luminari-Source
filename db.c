@@ -3114,7 +3114,7 @@ void zone_update(void) {
     }
   } /* end - one minute has passed */
 
-  /* Dequeue zones (if possible) and reset. This code is executed every 10
+  /* Dequeue zones (if possible) and reset. This code is executed every x
    * seconds (i.e. PULSE_ZONE). */
   for (update_u = reset_q.head; update_u; update_u = update_u->next)
     if (zone_table[update_u->zone_to_reset].reset_mode == 2 ||
