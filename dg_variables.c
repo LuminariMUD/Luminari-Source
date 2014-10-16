@@ -826,6 +826,15 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
               strcpy(str, "1");
             else
               strcpy(str, "0");
+          } else if (!str_cmp(field, "is_on_quest")) {
+            if (!IS_NPC(c) && subfield && *subfield) {
+              int q_num = atoi(subfield);
+              if (GET_QUEST(c) == q_num)
+                strcpy(str, "1");
+              else
+                strcpy(str, "0");
+            } else
+              strcpy(str, "0");
           } else if (!str_cmp(field, "is_thief")) {
             if (subfield && *subfield) {
               if (!str_cmp("on", subfield))
