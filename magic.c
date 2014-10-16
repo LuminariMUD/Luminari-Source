@@ -4366,7 +4366,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     REMOVE_BIT_AR(AFF_FLAGS(victim), affect);    
   
   /* one more case where the affection could still be around - scripts */
-  if (!affected_by_spell(victim, SPELL_DG_AFFECT) && AFF_FLAGGED(victim, affect))
+  if (affected_by_spell(victim, SPELL_DG_AFFECT) && AFF_FLAGGED(victim, affect))
     affect_from_char(victim, SPELL_DG_AFFECT);
   
   
