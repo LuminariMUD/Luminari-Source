@@ -88,6 +88,7 @@ void assign_feats(void);
 void sort_feats(void);
 int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg);
 int is_class_feat(int featnum, int class);
+int has_feat(struct char_data *ch, int featnum);
 
 /* For help system integration, */
 bool display_feat_info(struct char_data *ch, char *featname);
