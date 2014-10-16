@@ -74,6 +74,25 @@ const char *npc_race_short[] = {
 // for now full name for effect
 const char *npc_race_abbrevs[] = {
    "Unknown",
+   "\tWHmnd\tn",
+   "\tDUndd\tn",
+   "\tgAnml\tn",
+   "\trDrgn\tn",
+   "\tYGnt\tn",
+   "\tRAbrt\tn",
+   "\tcCnst\tn",
+   "\tRElem\tn",
+   "\tCFey\tn",
+   "\tmM\tgBst\tn",
+   "\tBM\tWHmn\tn",
+   "\tMOoze\tn",
+   "\tDOut\tws\tn",
+   "\tGPlnt\tn",
+   "\tyVrmn\tn"
+};
+/*
+const char *npc_race_abbrevs[] = {
+   "Unknown",
    "\tWHumanoid\tn",
    "\tDUndead\tn",
    "\tgAnimal\tn",
@@ -90,7 +109,7 @@ const char *npc_race_abbrevs[] = {
    "\tGPlant\tn",
    "\tyVermin\tn"
 };
-
+*/
 
 // npc subrace
 const char *npc_subrace_types[] = {
@@ -263,8 +282,6 @@ const char *morph_to_room[] = {
   /* Vermin */ 
 " "
 };
-//Zusuk's skin becomes translucent, his features drooping and finally flowing into the swirling form of a water elemental
-//zusuk's skin hardens and cracks, taking on a stony hue as he changes into the form of an earth elemental
 
 // shapechange morph messages to_char
 const char *morph_to_char[] = {
