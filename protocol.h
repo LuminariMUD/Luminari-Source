@@ -173,6 +173,7 @@ typedef enum
    eMSDP_OPPONENT_NAME, 
 
    /* World */
+   eMSDP_ROOM,
    eMSDP_AREA_NAME, 
    eMSDP_ROOM_EXITS, 
    eMSDP_ROOM_NAME, 

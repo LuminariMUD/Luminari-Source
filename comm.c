@@ -3197,6 +3197,7 @@ static void msdp_update( void )
   const char MsdpVal = (char)MSDP_VAL; 
   extern const char *pc_class_types[];
   extern const char *dirs[]; 
+  extern const char *sector_types[];
 
   struct descriptor_data *d;
   int PlayerCount = 0;
@@ -3228,7 +3229,24 @@ static void msdp_update( void )
       if ( IN_ROOM(ch) != NOWHERE && GET_ROOM_VNUM(IN_ROOM(ch)) != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt ) 
       { 
              
- 
+        /* Format for the room data is:
+         * ROOM
+         *   VNUM
+         *   NAME
+         *   AREA
+         *   COORDS
+         *     X
+         *     Y
+         *     Z
+         *   TERRAIN
+         *   EXITS
+         *     'n'
+         *       vnum for room to the north
+         *     's' 
+         *       vnum for room to the south
+         *     etc.
+         **/
+          
         for (door = 0; door < DIR_COUNT; door++) {
           if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
             continue;
@@ -3248,12 +3266,35 @@ static void msdp_update( void )
 //                !CAN_SEE_IN_DARK(ch) ? "Too dark to tell." : world[EXIT(ch, door)->to_room].name);
         }
 
-//        if ( GET_ROOM_ZONE(IN_ROOM(ch))->name != NULL ) 
+        /* Build the ROOM table.  */
+        sprintf(buf2, "%cVNUM%c%d%cNAME%c%s%cAREA%c%s%cCOORDS%c%c%cX%c%d%cY%c%d%cZ%c%d%c%cTERRAIN%c%s%cEXITS%c%c%s%c",
+                      MsdpVar, MsdpVal, 
+                      GET_ROOM_VNUM(IN_ROOM(ch)), 
+                      MsdpVar, MsdpVal, 
+                      world[IN_ROOM(ch)].name, 
+                      MsdpVar, MsdpVal, 
+                      zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name, 
+                      MsdpVar, MsdpVal, 
+                      MSDP_TABLE_OPEN,
+                      MsdpVar, MsdpVal, 
+                      0,         
+                      MsdpVar, MsdpVal,
+                      0,
+                      MsdpVar, MsdpVal, 
+                      0,
+                      MSDP_TABLE_CLOSE,
+                      MsdpVar, MsdpVal, 
+                      sector_types[world[IN_ROOM(ch)].sector_type],
+                      MsdpVar, MsdpVal,
+                      MSDP_TABLE_OPEN, 
+                      room_exits,
+                      MSDP_TABLE_CLOSE);
         MSDPSetString( d, eMSDP_AREA_NAME, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name ); 
 
         MSDPSetString( d, eMSDP_ROOM_NAME, world[IN_ROOM(ch)].name ); 
         MSDPSetTable( d, eMSDP_ROOM_EXITS, room_exits ); 
         MSDPSetNumber( d, eMSDP_ROOM_VNUM, GET_ROOM_VNUM(IN_ROOM(ch))); 
+        MSDPSetTable( d, eMSDP_ROOM, buf2 );
       }
 
       MSDPSetNumber( d, eMSDP_MANA, GET_MANA(ch) );
