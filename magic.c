@@ -4365,10 +4365,24 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   if (AFF_FLAGGED(victim, affect))
     REMOVE_BIT_AR(AFF_FLAGS(victim), affect);    
   
-  /* one more case where the affection could still be around - scripts */
-  if (affected_by_spell(victim, SPELL_DG_AFFECT) && AFF_FLAGGED(victim, affect))
-    affect_from_char(victim, SPELL_DG_AFFECT);
-  
+  /* one more case where the affection could still be around - scripts
+     interesting story, apparently there is no fuction for getting rid of
+     affects by flag in this scenario, so i created a new utility function
+     to handle it -Zusuk */
+  if (affected_by_spell(victim, SPELL_DG_AFFECT) && AFF_FLAGGED(victim, affect)) {
+    affect_type_from_char(victim, affect);
+  }
+    
+  /*
+  if (victim->affected || AFF_FLAGS(victim)) {
+    while (vict->affected)
+      affect_remove(vict, vict->affected);
+    for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
+      AFF_FLAGS(vict)[taeller] = 0;
+    send_to_char(vict, "There is a brief flash of light!\r\nYou feel slightly different.\r\n");
+    send_to_char(ch, "All spells removed.\r\n");
+  }
+  */
   
   if (to_notvict != NULL)
     act(to_notvict, TRUE, ch, 0, victim, TO_NOTVICT);
