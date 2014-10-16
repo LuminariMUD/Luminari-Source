@@ -563,13 +563,27 @@ void affect_remove(struct char_data *ch, struct affected_type *af) {
   affect_total(ch);
 }
 
-/* Call affect_remove with every affect from the spell "type" */
-void affect_from_char(struct char_data *ch, int type) {
+/* Call affect_remove with every affect from the bitvector "type" */
+void affect_type_from_char(struct char_data *ch, int type) {
+  struct affected_type *hjp, *next;
+  int i = 0;
+
+  for (hjp = ch->affected; hjp; hjp = next) {
+    next = hjp->next;
+    for (i = 0; i < AF_ARRAY_MAX; i++) {
+      if (hjp->bitvector[i] == type)
+        affect_remove(ch, hjp);      
+    }
+  }
+}
+
+/* Call affect_remove with every affect from the spell "spell" */
+void affect_from_char(struct char_data *ch, int spell) {
   struct affected_type *hjp, *next;
 
   for (hjp = ch->affected; hjp; hjp = next) {
     next = hjp->next;
-    if (hjp->spell == type)
+    if (hjp->spell == spell)
       affect_remove(ch, hjp);
   }
 }

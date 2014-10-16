@@ -61,7 +61,7 @@ clan_edit.o: clan_edit.c conf.h sysdep.h structs.h protocol.h lists.h \
  comm.h interpreter.h modify.h ibt.h clan.h
 class.o: class.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h spells.h interpreter.h constants.h act.h handler.h comm.h \
- mud_event.h dg_event.h mudlim.h feats.h
+ mud_event.h dg_event.h mudlim.h feats.h class.h
 combat_modes.o: combat_modes.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h feats.h comm.h interpreter.h handler.h db.h \
  spells.h class.h mud_event.h dg_event.h combat_modes.h
@@ -161,7 +161,7 @@ hedit.o: hedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h db.h boards.h oasis.h help.h genolc.h \
  genzon.h handler.h improved-edit.h act.h hedit.h modify.h mysql.h
 help.o: help.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
- race.h modify.h comm.h interpreter.h db.h mysql.h help.h
+ race.h modify.h comm.h interpreter.h db.h mysql.h help.h feats.h
 hlqedit.o: hlqedit.c conf.h sysdep.h structs.h protocol.h lists.h comm.h \
  utils.h race.h db.h boards.h handler.h oasis.h help.h interpreter.h \
  constants.h hlquest.h spells.h class.h genzon.h genolc.h genmob.h \
