@@ -3192,10 +3192,17 @@ static void handle_webster_file(void) {
 /* KaVir's plugin*/
 static void msdp_update( void )
 {
+
+  const char MsdpVar = (char)MSDP_VAR; 
+  const char MsdpVal = (char)MSDP_VAL; 
+  extern const char *pc_class_types[];
+  extern const char *dirs[]; 
+
   struct descriptor_data *d;
   int PlayerCount = 0;
-  char buf[MAX_STRING_LENGTH];
-  extern const char *pc_class_types[];
+  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  char room_exits[MAX_STRING_LENGTH];
+  int door;
 
   for (d = descriptor_list; d; d = d->next)
   {
@@ -3215,6 +3222,39 @@ static void msdp_update( void )
 
       sprinttype( ch->player.chclass, pc_class_types, buf, sizeof(buf) );
       MSDPSetString( d, eMSDP_CLASS, buf );
+
+      /* Location information */
+      /*  Only update room stuff if they've changed room */ 
+      if ( IN_ROOM(ch) != NOWHERE && GET_ROOM_VNUM(IN_ROOM(ch)) != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt ) 
+      { 
+             
+ 
+        for (door = 0; door < DIR_COUNT; door++) {
+          if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
+            continue;
+
+//        if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
+          buf2[0] = '\0';         
+          sprintf(buf2, "%c%s%c%d",MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room)); 
+          strcat(room_exits,buf2); 
+//          send_to_char(ch, "%-5s - [%5d]%s %s\r\n", dirs[door], GET_ROOM_VNUM(EXIT(ch, door)->to_room),
+//                EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " [HIDDEN]" : "", world[EXIT(ch, door)->to_room].name);
+//        else if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)) {
+//          send_to_char(ch, "%-5s - The %s is closed%s\r\n", dirs[door],
+//                  (EXIT(ch, door)->keyword) ? fname(EXIT(ch, door)->keyword) : "opening",
+//                  EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " and hidden." : ".");
+//        } else
+//          send_to_char(ch, "%-5s - %s\r\n", dirs[door], IS_DARK(EXIT(ch, door)->to_room) &&
+//                !CAN_SEE_IN_DARK(ch) ? "Too dark to tell." : world[EXIT(ch, door)->to_room].name);
+        }
+
+//        if ( GET_ROOM_ZONE(IN_ROOM(ch))->name != NULL ) 
+        MSDPSetString( d, eMSDP_AREA_NAME, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name ); 
+
+        MSDPSetString( d, eMSDP_ROOM_NAME, world[IN_ROOM(ch)].name ); 
+        MSDPSetTable( d, eMSDP_ROOM_EXITS, room_exits ); 
+        MSDPSetNumber( d, eMSDP_ROOM_VNUM, GET_ROOM_VNUM(IN_ROOM(ch))); 
+      }
 
       MSDPSetNumber( d, eMSDP_MANA, GET_MANA(ch) );
       MSDPSetNumber( d, eMSDP_MANA_MAX, GET_MAX_MANA(ch) );
