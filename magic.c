@@ -4360,6 +4360,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
 
   /* first remove spell affect */
   affect_from_char(victim, spell);
+  affect_type_from_char(victim, affect);
   
   /* then remove affect flag if it somehow is still around */
   if (AFF_FLAGGED(victim, affect))
@@ -4370,7 +4371,6 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
      affects by flag in this scenario, so i created a new utility function
      to handle it -Zusuk */
   if (affected_by_spell(victim, SPELL_DG_AFFECT) && AFF_FLAGGED(victim, affect)) {
-    affect_type_from_char(victim, affect);
   }
     
   /*
