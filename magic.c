@@ -4364,6 +4364,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   affect_type_from_char(victim, affect);
   if (affected_by_spell(victim, SPELL_DG_AFFECT) && AFF_FLAGGED(victim, affect)) {
     /* have to make sure this particular dg-affect is corresponding to the right AFF_ flag */
+    affect_from_char(victim, SPELL_DG_AFFECT);
   }
   
   /* then remove affect flag if it somehow is still around */
