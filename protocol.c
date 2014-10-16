@@ -170,6 +170,7 @@ static variable_name_t VariableNameTable[eMSDP_MAX+1] =
    { eMSDP_OPPONENT_NAME,    "OPPONENT_NAME",    STRING_READ_ONLY }, 
 
    /* World */
+   { eMSDP_ROOM,             "ROOM",             STRING_READ_ONLY },
    { eMSDP_AREA_NAME,        "AREA_NAME",        STRING_READ_ONLY }, 
    { eMSDP_ROOM_EXITS,       "ROOM_EXITS",       STRING_READ_ONLY }, 
    { eMSDP_ROOM_NAME,        "ROOM_NAME",        STRING_READ_ONLY }, 
