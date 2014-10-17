@@ -2496,22 +2496,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel protection from scrying.";
       break;
 
-    case SPELL_OBSCURING_MIST: // conjuration
-      /* so right now this spell is simply 20% concealment to 1 char, needs
-       * to be modified so that it actually creates an obscuring mist object in the room
-       * and sets a room flag, which the room flag will determine the effects of the spell.
-       * also, gust of wind, fireball, flamestrike, etc. will disperse the mist when cast,
-       * or even a strong wind in the weather...
-       */
-      if (SECT(ch->in_room) == SECT_UNDERWATER) {
-        send_to_char(ch, "The obscuring mist quickly disappears under the water.\r\n");
-        return;
-      }
-      
-      af[0].duration = divine_level;
-      to_room = "An obscuring mist suddenly fills the room!";
-      to_vict = "An obscruring mist suddenly surrounds you.";
-      break;
 
     case SPELL_POISON: //enchantment, shared
       if (mag_resistance(ch, victim, 0))
@@ -4834,6 +4818,22 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
       rounds = DIVINE_LEVEL(ch);
       break;
 
+    case SPELL_OBSCURING_MIST: // conjuration
+      /* so right now this spell is simply 20% concealment to everyone in room, needs
+       * I also think it needs some other affects
+       * also, gust of wind, fireball, flamestrike, etc. will disperse the mist when cast,
+       * or even a strong wind in the weather...
+       */
+      if (SECT(ch->in_room) == SECT_UNDERWATER) {
+        send_to_char(ch, "The obscuring mist quickly disappears under the water.\r\n");
+        return;
+      }
+      aff = RAFF_OBSCURING_MIST;      
+      rounds = DIVINE_LEVEL(ch);
+      to_char = "You create an obscuring mist that fills the room!";
+      to_room = "An obscuring mist suddenly fills the room from $n!";
+      break;
+    
     case SPELL_DARKNESS: //divination
       to_char = "You create a blanket of pitch black.";
       to_room = "$n creates a blanket of pitch black.";

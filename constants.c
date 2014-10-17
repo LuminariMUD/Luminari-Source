@@ -246,6 +246,7 @@ const char *room_affections[NUM_RAFF + 1] = {
   "Spike Stone",
   "Holy",
   "Unholy",
+  "Obscuring-Mist",
   "\n"
 };
 

@@ -136,20 +136,21 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 /* Room affects */
 /* Old room-affection system, could be replaced by room-events
    theoritically, but for the time being its still in usage */
-#define RAFF_FOG            (1 << 0)
-#define RAFF_DARKNESS       (1 << 1)
-#define RAFF_LIGHT          (1 << 2)
-#define RAFF_STINK          (1 << 3)
-#define RAFF_BILLOWING      (1 << 4)
-#define RAFF_ANTI_MAGIC     (1 << 5)
-#define RAFF_ACID_FOG       (1 << 6)
-#define RAFF_BLADE_BARRIER  (1 << 7)
-#define RAFF_SPIKE_GROWTH   (1 << 8)
-#define RAFF_SPIKE_STONES   (1 << 9)
-#define RAFF_HOLY           (1 << 10)
-#define RAFF_UNHOLY         (1 << 11)
+#define RAFF_FOG             (1 << 0)
+#define RAFF_DARKNESS        (1 << 1)
+#define RAFF_LIGHT           (1 << 2)
+#define RAFF_STINK           (1 << 3)
+#define RAFF_BILLOWING       (1 << 4)
+#define RAFF_ANTI_MAGIC      (1 << 5)
+#define RAFF_ACID_FOG        (1 << 6)
+#define RAFF_BLADE_BARRIER   (1 << 7)
+#define RAFF_SPIKE_GROWTH    (1 << 8)
+#define RAFF_SPIKE_STONES    (1 << 9)
+#define RAFF_HOLY            (1 << 10)
+#define RAFF_UNHOLY          (1 << 11)
+#define RAFF_OBSCURING_MIST  (1 << 12)
 /** The total number of Room Affections */
-#define NUM_RAFF            12
+#define NUM_RAFF             13
 
 /* Zone info: Used in zone_data.zone_flags */
 #define ZONE_CLOSED         0  /**< Zone is closed - players cannot enter */

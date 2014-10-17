@@ -1684,7 +1684,7 @@ void mag_assign_spells(void) {
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel less protected.", 4, 5,
           CONJURATION, FALSE);
   spello(SPELL_OBSCURING_MIST, "obscuring mist", 0, 0, 0, POS_FIGHTING,
-          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+          TAR_IGNORE, FALSE, MAG_ROOM,
           "The obscuring mist begins to dissipate.", 3, 5, CONJURATION, FALSE);
   spello(SPELL_SUMMON_NATURES_ALLY_1, "natures ally i", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 4, 5, CONJURATION, FALSE);
