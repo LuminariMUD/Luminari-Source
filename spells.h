@@ -988,6 +988,8 @@ void init_spell_levels(void);
 const char *skill_name(int num);
 int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool is_tele);
 
+/* spells.c */
+bool check_wall(struct char_data *victim, int dir);
 
 
 /* From magic.c */
