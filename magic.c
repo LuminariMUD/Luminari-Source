@@ -762,9 +762,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       element = DAM_FIRE;
       num_dice = 2;
       size_dice = 6;
-      bonus = magic_level + 10;
+      bonus = magic_level;
       if (bonus <= 10) /* this is both a divine and magic spell */
-        bonus = divine_level + 10;
+        bonus = divine_level;
       break;
 
       /*******************************************\
@@ -907,7 +907,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       element = DAM_EARTH;
       num_dice = 2;
       size_dice = 6;
-      bonus = divine_level + 10;
+      bonus = divine_level;
       break;
       
       /* trying to keep the AOE together */
