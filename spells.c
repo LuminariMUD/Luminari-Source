@@ -191,6 +191,10 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level) {
   else
     GET_OBJ_TIMER(wall) = wallinfo[type].duration;
 
+  /* make sure the wall fades eventually */
+  if (!OBJ_FLAGGED(wall, ITEM_DECAY))
+    TOGGLE_BIT_AR(GET_OBJ_EXTRA(wall), ITEM_DECAY);
+  
   /* set the correct type, direction blocking, level and identifier */
   GET_OBJ_VAL(wall, WALL_TYPE) = type;
   GET_OBJ_VAL(wall, WALL_DIR) = dir;
