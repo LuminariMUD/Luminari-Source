@@ -3193,20 +3193,23 @@ static void handle_webster_file(void) {
 static void msdp_update( void )
 {
 
-  const char MsdpVar = (char)MSDP_VAR; 
-  const char MsdpVal = (char)MSDP_VAL; 
+  const char MsdpVar =  (char)MSDP_VAR;
+  const char MsdpVal =  (char)MSDP_VAL;
+
   extern const char *pc_class_types[];
   extern const char *dirs[]; 
   extern const char *sector_types[];
 
   struct descriptor_data *d;
   int PlayerCount = 0;
-  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
-  char room_exits[MAX_STRING_LENGTH];
   int door;
 
   for (d = descriptor_list; d; d = d->next)
   {
+    char buf[MAX_STRING_LENGTH];
+    char buf2[MAX_STRING_LENGTH];
+    char room_exits[MAX_STRING_LENGTH];
+ 
     struct char_data *ch = d->character;
     if ( ch && !IS_NPC(ch) && d->connected == CON_PLAYING )
     {
@@ -3246,25 +3249,19 @@ static void msdp_update( void )
          *       vnum for room to the south
          *     etc.
          **/
-          
+        room_exits[0] = '\0';  
         for (door = 0; door < DIR_COUNT; door++) {
+          char buf3[MAX_STRING_LENGTH];
+
           if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
             continue;
 
-//        if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
-          buf2[0] = '\0';         
-          sprintf(buf2, "%c%s%c%d",MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room)); 
-          strcat(room_exits,buf2); 
-//          send_to_char(ch, "%-5s - [%5d]%s %s\r\n", dirs[door], GET_ROOM_VNUM(EXIT(ch, door)->to_room),
-//                EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " [HIDDEN]" : "", world[EXIT(ch, door)->to_room].name);
-//        else if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)) {
-//          send_to_char(ch, "%-5s - The %s is closed%s\r\n", dirs[door],
-//                  (EXIT(ch, door)->keyword) ? fname(EXIT(ch, door)->keyword) : "opening",
-//                  EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " and hidden." : ".");
-//        } else
-//          send_to_char(ch, "%-5s - %s\r\n", dirs[door], IS_DARK(EXIT(ch, door)->to_room) &&
-//                !CAN_SEE_IN_DARK(ch) ? "Too dark to tell." : world[EXIT(ch, door)->to_room].name);
+          sprintf(buf3, "%c%s%c%d%c",MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0'); 
+//          send_to_char(ch, "DEBUG: %s\r\n", buf3);
+          strcat(room_exits,buf3); 
         }
+
+//        send_to_char(ch, "DEBUG: %s\r\n", room_exits);
 
         /* Build the ROOM table.  */
         sprintf(buf2, "%cVNUM%c%d%cNAME%c%s%cAREA%c%s%cCOORDS%c%c%cX%c%d%cY%c%d%cZ%c%d%c%cTERRAIN%c%s%cEXITS%c%c%s%c",
@@ -3291,6 +3288,8 @@ static void msdp_update( void )
                       MSDP_TABLE_CLOSE);
 
         strip_colors(buf2);
+
+//        send_to_char(ch, "DEBUG: %s\r\n", buf2);
 
         MSDPSetString( d, eMSDP_AREA_NAME, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name ); 
 
