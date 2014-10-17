@@ -665,6 +665,10 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     send_to_char(ch, "You aren't godly enough to use that room!\r\n");
     return (0);
   }
+
+  /* check for magical walls, such as wall of force (also death from wall damage) */
+  if (check_wall(ch, dir)) /* true = wall stopped ch somehow */
+    return (0);
   
   /* a silly zusuk dummy check */
   update_pos(ch);
