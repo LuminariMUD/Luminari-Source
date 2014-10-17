@@ -101,7 +101,7 @@ bool check_wall(struct char_data *victim, int dir) {
   bool found_player = FALSE; /* you can pass through your own walls */
   int wall_spellnum = 0;
   
-  for (wall = world[ch->in_room].contents; wall; wall = wall->next_content) {
+  for (wall = world[victim->in_room].contents; wall; wall = wall->next_content) {
     if (GET_OBJ_TYPE(wall) == ITEM_WALL && GET_OBJ_VAL(wall, WALL_DIR) == dir) {
       
       /* find the wall spellnum */
