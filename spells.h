@@ -881,6 +881,25 @@ struct spell_info_type {
 #define SPELL_TYPE_STAFF   3
 #define SPELL_TYPE_SCROLL  4
 
+/* wall struct for wall spells, like wall of fire, force, thorns, etc */
+struct wall_information {
+  bool stops_movement;
+  int spell_num;
+  char *longname;
+  char *shortname;
+  char *keyword;
+  int duration;
+};
+/* wall types for wall spells, like wall of fire, wall of thorns, wall of etc */
+#define WALL_TYPE_INVALID  -1
+#define WALL_TYPE_FORCE    0
+#define WALL_TYPE_FIRE     1
+#define WALL_TYPE_THORNS   2
+#define WALL_TYPE_FOG      3
+#define WALL_TYPE_PRISM    4
+/******/
+#define NUM_WALL_TYPES     5
+
 
 /* manual spell header info */
 #define ASPELL(spellname) \
@@ -925,6 +944,8 @@ ASPELL(spell_storm_of_vengeance);
 ASPELL(spell_summon);
 ASPELL(spell_teleport);
 ASPELL(spell_transport_via_plants);
+ASPELL(spell_wall_of_fire);
+ASPELL(spell_wall_of_thorns);
 ASPELL(spell_wall_of_force);
 ASPELL(spell_wizard_eye);
 
