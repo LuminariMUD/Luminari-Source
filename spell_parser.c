@@ -1580,7 +1580,7 @@ void mag_assign_spells(void) {
           "You feel like you can hear again.", 3, 6,
           NECROMANCY, FALSE); //wiz2, cle3
   spello(SPELL_DISPEL_MAGIC, "dispel magic", 65, 50, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,
+          TAR_OBJ_ROOM | TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,
           NULL, 4, 7, DIVINATION, FALSE); //wiz3, cle3
   spello(SPELL_ANIMATE_DEAD, "animate dead", 72, 57, 1, POS_FIGHTING,
           TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
