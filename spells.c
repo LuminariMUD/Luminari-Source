@@ -113,7 +113,6 @@ bool check_wall(struct char_data *victim, int dir) {
         /* player probably logged out, so just use WALL_LEVEL to determine
          * damage */
         found_player = FALSE;
-        ch = victim;
         damage = GET_OBJ_VAL(wall, WALL_LEVEL);
       } else {
         damage = GET_LEVEL(ch);
@@ -131,15 +130,20 @@ bool check_wall(struct char_data *victim, int dir) {
           break;
       }
 
-      if (CONFIG_PK_ALLOWED || (IS_NPC(ch) && !IS_PET(ch))) {
+      if (CONFIG_PK_ALLOWED || (IS_NPC(victim) && !IS_PET(victim))) {
         /* we can add mag_effects, whatever we want here */
-        if (mag_damage(damage, ch, victim, NULL, wall_spellnum, SAVING_FORT) < 0)
+        
+        /* the "creator" or caster of the spell was determined above */
+        if (!found_player && mag_damage(damage, victim, victim, NULL, wall_spellnum, SAVING_FORT) < 0) {
+          return TRUE; /* couldn't find the creator, victim died! */
+        } else if (mag_damage(damage, ch, victim, NULL, wall_spellnum, SAVING_FORT) < 0) {
           return TRUE; /* he died! */
+        }
       }
       
       if (wallinfo[GET_OBJ_VAL(wall, WALL_TYPE)].stops_movement) {
-        act("You bump into $p.", FALSE, ch, wall, 0, TO_CHAR);
-        act("$n bumps into $p.", FALSE, ch, wall, 0, TO_ROOM);
+        act("You bump into $p.", FALSE, victim, wall, 0, TO_CHAR);
+        act("$n bumps into $p.", FALSE, victim, wall, 0, TO_ROOM);
         return TRUE;
       }
       
