@@ -653,6 +653,12 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       case SPELL_WALL_OF_FORCE:
         MANUAL_SPELL(spell_wall_of_force);
         break;
+      case SPELL_WALL_OF_FIRE:
+        MANUAL_SPELL(spell_wall_of_fire);
+        break;
+      case SPELL_WALL_OF_THORNS:
+        MANUAL_SPELL(spell_wall_of_thorns);
+        break;
       case SPELL_WIZARD_EYE:
         MANUAL_SPELL(spell_wizard_eye);
         break;
@@ -2002,7 +2008,7 @@ void mag_assign_spells(void) {
   spello(SPELL_UNHALLOW, "unhallow", 0, 0, 0, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_ROOM, NULL, 8, 9, EVOCATION, FALSE);
   spello(SPELL_WALL_OF_FIRE, "wall of fire", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 7, 9, EVOCATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 7, 9, EVOCATION, FALSE);
   spello(SPELL_WALL_OF_FORCE, "wall of force", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 6, 9, EVOCATION, FALSE);
   /* conjuration */
@@ -2017,7 +2023,7 @@ void mag_assign_spells(void) {
   spello(SPELL_SUMMON_CREATURE_5, "summon creature v", 95, 80, 1,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 9, CONJURATION, FALSE);
   spello(SPELL_WALL_OF_THORNS, "wall of thorns", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 7, 9, CONJURATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 7, 9, CONJURATION, FALSE);
   /* necromancy */
   spello(SPELL_DEATH_WARD, "death ward", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,

@@ -26,12 +26,177 @@
 #include "screen.h" /* for QNRM, etc */
 #include "craft.h"
 #include "mudlim.h"
+#include "string.h"
 
+#define WALL_ITEM 101220
+/* object values for walls */
+#define WALL_TYPE   0 /* type, effect */
+#define WALL_DIR    1 /* direction blocking */
+#define WALL_LEVEL  2 /* level of wall in case creator can't be found */
+#define WALL_IDNUM  3 /* creator's idnum */
+
+#define PRISMATIC_SPHERE    90
+#define WIZARD_EYE 	45
+
+#define SUMMON_FAIL "You failed.\r\n"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
 /************************************************************/
 
+/* Reference
+#define SPELL_WALL_OF_FORCE             147
+#define SPELL_WALL_OF_FIRE              282
+#define SPELL_WALL_OF_THORNS            283
+#define SPELL_WALL_OF_FOG               92
+#define SPELL_PRISMATIC_SPHERE          211
+| stops movement? | spellnum | long name | short name | keywords | duration |
+   duration = 0 is default: 1 + level / 10
+*/
+struct wall_information wallinfo[] = {
+  /* WALL_TYPE_FORCE 0 */
+  { TRUE,
+    SPELL_WALL_OF_FORCE,
+    "\tRA wall of force stands towards the %s.\tn",
+    "\tRa wall of force\tn",
+    "wall force", 
+    1 },
+  /* WALL_TYPE_FIRE 1 */
+  { FALSE,
+    SPELL_WALL_OF_FIRE,
+    "\trA wall of f\tRi\trre stands towards the %s.\tn",
+    "\tra wall of fire\tn",
+    "wall fire",
+    0 },
+  /* WALL_TYPE_THORNS 2 */
+  { FALSE,
+    SPELL_WALL_OF_THORNS,
+    "\tGA wall of thorns stands towards the %s.\tn",
+    "\tGa wall of thorns\tn",
+    "wall thorns",
+    0 },
+  /* WALL_TYPE_FOG 3 */
+  { FALSE,
+    SPELL_WALL_OF_FOG,
+    "\tCA foggy cloud forms a wall towards the %s.\tn",
+    "\tCa wall of fog\tn",
+    "wall fog",
+    0 },
+  /* WALL_TYPE_PRISM 4 */
+  { FALSE,
+    SPELL_PRISMATIC_SPHERE,
+    "\tnA \tRp\tYr\tBi\tMs\tWm\tn forms a wall towards the %s.\tn",
+    "\tna wall of \tRp\tYr\tBi\tMs\tWm\tn",
+    "wall prism",
+    0 },
+};
+
+/* called from movement, etc..  basically make the wall work - we will try
+   to identify the wall creator in this function, if no creator is found,
+   then we will use WALL_LEVEL plus the victim himself as the "creator" */
+bool check_wall(struct char_data *victim, int dir) {
+  struct obj_data *wall = NULL;
+  struct char_data *ch = NULL;
+  int damage = 0;
+  bool found_player = FALSE; /* you can pass through your own walls */
+  int wall_spellnum = 0;
+  
+  for (wall = world[ch->in_room].contents; wall; wall = wall->next_content) {
+    if (GET_OBJ_TYPE(wall) == ITEM_WALL && GET_OBJ_VAL(wall, WALL_DIR) == dir) {
+      
+      /* find the wall spellnum */
+      wall_spellnum = wallinfo[GET_OBJ_VAL(wall, WALL_TYPE)].spell_num; 
+      
+      /* lets see if we can find the wall creator! */
+      ch = find_char(GET_OBJ_VAL(wall, WALL_IDNUM));
+      if (!ch) {
+        /* player probably logged out, so just use WALL_LEVEL to determine
+         * damage */
+        found_player = FALSE;
+        ch = victim;
+        damage = GET_OBJ_VAL(wall, WALL_LEVEL);
+      } else {
+        damage = GET_LEVEL(ch);
+        found_player = TRUE;
+      }
+      
+      /* if we found the player, we can also check if this victim is a friend! */
+      if (found_player && !aoeOK(ch, victim, wall_spellnum))
+        continue; /* pass safely through the wall */
+            
+      /* determine special damage, etc based on the WALL_TYPE */
+      switch (GET_OBJ_VAL(wall, WALL_TYPE)) {
+        default: /* default damage is 2d6 + level (above) */
+          damage += dice(2, 6);
+          break;
+      }
+
+      if (CONFIG_PK_ALLOWED || (IS_NPC(ch) && !IS_PET(ch))) {
+        /* we can add mag_effects, whatever we want here */
+        if (mag_damage(damage, ch, victim, NULL, wall_spellnum, SAVING_FORT) < 0)
+          return TRUE; /* he died! */
+      }
+      
+      if (wallinfo[GET_OBJ_VAL(wall, WALL_TYPE)].stops_movement) {
+        act("You bump into $p.", FALSE, ch, wall, 0, TO_CHAR);
+        act("$n bumps into $p.", FALSE, ch, wall, 0, TO_ROOM);
+        return TRUE;
+      }
+      
+    } /* end check to see if this is a valid wall */
+  } /* end room search for walls */
+  
+  return FALSE;
+}
+
+/* this function will load the wall object, assign the appropriate values
+   to it and do a little basic dummy checking */
+void create_wall(struct char_data *ch, int room, int dir, int type, int level) {
+  struct obj_data *wall = NULL;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
+
+  for (wall = world[room].contents; wall; wall = wall->next_content) {
+    if (GET_OBJ_TYPE(wall) == ITEM_WALL && GET_OBJ_VAL(wall, WALL_DIR) == dir) {
+      send_to_char(ch, "There is already a wall in that direction.\r\n");
+      return;
+    }
+  }
+
+  if (!CAN_GO(ch, dir)) {
+    send_to_char(ch, "There is no open exit in that direction where you can put a wall in.\r\n");
+    return;
+  }
+
+  wall = read_object(WALL_ITEM, VIRTUAL);
+  if (!wall) { /* make sure we have the object */
+    send_to_char(ch, "Please Report Wall Bug To Staff\r\n");
+    return;
+  }
+  
+  wall->name = strdup(wallinfo[type].keyword); /* dump the keywords */
+  wall->short_description = strdup(wallinfo[type].shortname); /* short descrip */
+
+  /* create an item description */
+  sprintf(buf, wallinfo[type].longname, dirs[dir]);
+  wall->description = strdup(CAP(buf));
+
+  /* either use a default time of 1 + level/10 or set duration */
+  if (wallinfo[type].duration == 0)
+    GET_OBJ_TIMER(wall) = 1 + level / 10;
+  else
+    GET_OBJ_TIMER(wall) = wallinfo[type].duration;
+
+  /* set the correct type, direction blocking, level and identifier */
+  GET_OBJ_VAL(wall, WALL_TYPE) = type;
+  GET_OBJ_VAL(wall, WALL_DIR) = dir;
+  GET_OBJ_VAL(wall, WALL_LEVEL) = level; /* in case we can't find wall creator */
+  GET_OBJ_VAL(wall, WALL_IDNUM) = GET_IDNUM(ch);
+
+  /* all done!  drop the object in the room and let it wreak havoc! */
+  obj_to_room(wall, room);
+  sprintf(buf, "%s appears to the %s.\r\n", wallinfo[type].shortname, dirs[dir]);
+  send_to_room(room, buf);
+}
 
 /* this function takes a real number for a room and returns:
    FALSE - mortals shouldn't be able to teleport to this destination 
@@ -1145,7 +1310,6 @@ ASPELL(spell_polymorph) {
 }
 
 
-#define PRISMATIC_SPHERE    90
 ASPELL(spell_prismatic_sphere) {
   struct char_data *mob;
 
@@ -1166,7 +1330,6 @@ ASPELL(spell_prismatic_sphere) {
 
   load_mtrigger(mob);
 }
-#undef PRISMATIC_SPHERE
 
 
 ASPELL(spell_recall) {
@@ -1375,8 +1538,6 @@ ASPELL(spell_storm_of_vengeance) {
   NEW_EVENT(eCHAIN_LIGHTNING, ch, NULL, (12 * PASSES_PER_SEC));
 }
 
-
-#define SUMMON_FAIL "You failed.\r\n"
 ASPELL(spell_summon) {
   if (ch == NULL || victim == NULL)
     return;
@@ -1570,14 +1731,69 @@ ASPELL(spell_transport_via_plants) {
   }
 }
 
-
-#define WALL_OF_FORCE    47
-ASPELL(spell_wall_of_force) {
-  struct char_data *mob;
+ASPELL(spell_wall_of_thorns) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int dir = -1;
 
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
+  one_argument(cast_arg2, arg);
+  if (!*arg) {
+    send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
+    return;
+  }
+  
+  dir = search_block(arg, dirs, FALSE);
+  if (dir >= 0) {
+    create_wall(ch, ch->in_room, dir, WALL_TYPE_THORNS, GET_LEVEL(ch));
+  } else
+    send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
+}
+
+ASPELL(spell_wall_of_fire) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int dir = -1;
+
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+    return;
+
+  one_argument(cast_arg2, arg);
+  if (!*arg) {
+    send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
+    return;
+  }
+  
+  dir = search_block(arg, dirs, FALSE);
+  if (dir >= 0) {
+    create_wall(ch, ch->in_room, dir, WALL_TYPE_FIRE, GET_LEVEL(ch));
+  } else
+    send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
+}
+
+ASPELL(spell_wall_of_force) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int dir = -1;
+
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+    return;
+
+  one_argument(cast_arg2, arg);
+  if (!*arg) {
+    send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
+    return;
+  }
+  
+  dir = search_block(arg, dirs, FALSE);
+  if (dir >= 0) {
+    create_wall(ch, ch->in_room, dir, WALL_TYPE_FORCE, GET_LEVEL(ch));
+  } else
+    send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
+  
+  /* old wall of force */
+  /*
+  struct char_data *mob;
+   * 
   if (!(mob = read_mobile(WALL_OF_FORCE, VIRTUAL))) {
     send_to_char(ch, "You don't quite remember how to create that.\r\n");
     return;
@@ -1591,11 +1807,9 @@ ASPELL(spell_wall_of_force) {
   send_to_char(ch, "You conjure a wall of force!\r\n");
 
   load_mtrigger(mob);
+  */
 }
-#undef WALL_OF_FORCE
 
-
-#define WIZARD_EYE 	45
 ASPELL(spell_wizard_eye) {
   struct char_data *eye = read_mobile(WIZARD_EYE, VIRTUAL);
 
@@ -1619,4 +1833,13 @@ ASPELL(spell_wizard_eye) {
   eye->desc = ch->desc;
   ch->desc = NULL;
 }
+
 #undef WIZARD_EYE
+#undef PRISMATIC_SPHERE
+#undef SUMMON_FAIL
+
+#undef WALL_ITEM
+#undef WALL_TYPE
+#undef WALL_DIR
+#undef WALL_LEVEL
+#undef WALL_IDNUM
