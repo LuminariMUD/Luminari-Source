@@ -3271,7 +3271,7 @@ static void msdp_update( void )
                       MsdpVar, MsdpVal, 
                       GET_ROOM_VNUM(IN_ROOM(ch)), 
                       MsdpVar, MsdpVal, 
-                      world[IN_ROOM(ch)].name, 
+                      world[IN_ROOM(ch)].name,
                       MsdpVar, MsdpVal, 
                       zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name, 
                       MsdpVar, MsdpVal, 
@@ -3289,6 +3289,9 @@ static void msdp_update( void )
                       MSDP_TABLE_OPEN, 
                       room_exits,
                       MSDP_TABLE_CLOSE);
+
+        strip_colors(buf2);
+
         MSDPSetString( d, eMSDP_AREA_NAME, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name ); 
 
         MSDPSetString( d, eMSDP_ROOM_NAME, world[IN_ROOM(ch)].name ); 
