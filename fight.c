@@ -1530,7 +1530,7 @@ int compute_concealment(struct char_data *ch) {
     concealment += 10;
   if (AFF_FLAGGED(ch, AFF_BLUR))
     concealment += 20;
-  if (affected_by_spell(ch, SPELL_OBSCURING_MIST))
+  if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_OBSCURING_MIST))
     concealment += 20;
   if (AFF_FLAGGED(ch, AFF_DISPLACE))
     concealment += 50;
