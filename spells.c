@@ -173,6 +173,7 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level) {
     return;
   }
   
+  GET_OBJ_TYPE(wall) = ITEM_WALL; /* set type */
   wall->name = strdup(wallinfo[type].keyword); /* dump the keywords */
   wall->short_description = strdup(wallinfo[type].shortname); /* short descrip */
 
