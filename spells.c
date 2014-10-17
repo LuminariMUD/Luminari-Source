@@ -97,7 +97,7 @@ struct wall_information wallinfo[] = {
 bool check_wall(struct char_data *victim, int dir) {
   struct obj_data *wall = NULL;
   struct char_data *ch = NULL;
-  int damage = 0;
+  int level = 0;
   bool found_player = FALSE; /* you can pass through your own walls */
   int wall_spellnum = 0;
   
@@ -113,9 +113,9 @@ bool check_wall(struct char_data *victim, int dir) {
         /* player probably logged out, so just use WALL_LEVEL to determine
          * damage */
         found_player = FALSE;
-        damage = GET_OBJ_VAL(wall, WALL_LEVEL);
+        level = GET_OBJ_VAL(wall, WALL_LEVEL);
       } else {
-        damage = GET_LEVEL(ch);
+        level = GET_LEVEL(ch);
         found_player = TRUE;
       }
       
@@ -126,7 +126,7 @@ bool check_wall(struct char_data *victim, int dir) {
       /* determine special damage, etc based on the WALL_TYPE */
       switch (GET_OBJ_VAL(wall, WALL_TYPE)) {
         default: /* default damage is 2d6 + level (above) */
-          damage += dice(2, 6);
+          level += dice(2, 6);
           break;
       }
 
@@ -134,9 +134,9 @@ bool check_wall(struct char_data *victim, int dir) {
         /* we can add mag_effects, whatever we want here */
         
         /* the "creator" or caster of the spell was determined above */
-        if (!found_player && mag_damage(damage, victim, victim, NULL, wall_spellnum, SAVING_FORT) < 0) {
+        if (!found_player && mag_damage(level, victim, victim, NULL, wall_spellnum, SAVING_FORT) < 0) {
           return TRUE; /* couldn't find the creator, victim died! */
-        } else if (mag_damage(damage, ch, victim, NULL, wall_spellnum, SAVING_FORT) < 0) {
+        } else if (mag_damage(level, ch, victim, NULL, wall_spellnum, SAVING_FORT) < 0) {
           return TRUE; /* he died! */
         }
       }

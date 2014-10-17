@@ -1229,6 +1229,14 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /* end enter-room message code */
   /*****/
 
+  /* Maybe a wall will stop them? */
+  if (check_wall(ch, rev_dir[dir])) {
+    /* send them back! */
+    char_from_room(ch);
+    char_to_room(ch, was_in);
+    return 0;
+  }
+  
   /* spike growth damages upon entering the room */
   if (ROOM_AFFECTED(going_to, RAFF_SPIKE_STONES)) {
     /* only damage the character if they're not mounted (mount takes damage) */
@@ -1286,6 +1294,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
 
   /* At this point, the character is safe and in the room. */
+  
   /* Fire memory and greet triggers, check and see if the greet trigger
    * prevents movement, and if so, move the player back to the previous room. */
   entry_memory_mtrigger(ch);
@@ -1297,7 +1306,6 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
       X_LOC(ch) = world[was_in].coords[0];
       Y_LOC(ch) = world[was_in].coords[1];
     }
-
 
     char_to_room(ch, was_in);
     look_at_room(ch, 0);

@@ -410,8 +410,11 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (victim == NULL || ch == NULL)
     return (0);
 
-  magic_level = MAGIC_LEVEL(ch);
-  divine_level = DIVINE_LEVEL(ch);
+  magic_level = divine_level = level;
+  if (MAGIC_LEVEL(ch) > magic_level)
+    magic_level = MAGIC_LEVEL(ch);
+  if (DIVINE_LEVEL(ch) > divine_level)
+    divine_level = DIVINE_LEVEL(ch);
   if (wpn)
     if (HAS_SPELLS(wpn))
       magic_level = divine_level = level;
@@ -752,6 +755,17 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       size_dice = 12;
       bonus = magic_level + 10;
       break;
+      
+    case SPELL_WALL_OF_FIRE: //evocation
+      save = SAVING_FORT;
+      mag_resist = TRUE;
+      element = DAM_FIRE;
+      num_dice = 2;
+      size_dice = 6;
+      bonus = magic_level + 10;
+      if (bonus <= 10) /* this is both a divine and magic spell */
+        bonus = divine_level + 10;
+      break;
 
       /*******************************************\
       || ------------ DIVINE SPELLS ------------ ||
@@ -887,6 +901,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = num_dice;
       break;
 
+    case SPELL_WALL_OF_THORNS: //conjuration
+      save = SAVING_FORT;
+      mag_resist = FALSE;
+      element = DAM_EARTH;
+      num_dice = 2;
+      size_dice = 6;
+      bonus = divine_level + 10;
+      break;
+      
       /* trying to keep the AOE together */
       /****************************************\
       || -------- NPC AoE SPELLS ------------ ||
@@ -4616,6 +4639,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       obj_to_floor = TRUE;
       object_vnum = 805;
       break;
+    /* these have been made maual spells */
+    /*
     case SPELL_WALL_OF_FIRE:
       to_char = "You create $p.";
       to_room = "$n creates $p.";
@@ -4628,7 +4653,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       obj_to_floor = TRUE;
       object_vnum = 9403;
       break;
-
+    */
     default:
       send_to_char(ch, "Spell unimplemented, it would seem.\r\n");
       return;
