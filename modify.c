@@ -105,6 +105,7 @@ void strip_colors(char *str)
       *n++ = *p++;
     }
   }  
+  *n = '\0'; 
 }
 
 
