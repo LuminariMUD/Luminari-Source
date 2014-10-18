@@ -132,7 +132,7 @@ void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int
 }
 
 void perform_obj_type_list(struct char_data * ch, char *arg) {
-  int num, itemtype, v1, v2 = -1, v3 = -1, found = 0, len = 0, tmp_len = 0;
+  int num, itemtype, v1, v2 = -1, v3 = -1, v4 = -1, found = 0, len = 0, tmp_len = 0;
   obj_vnum ov;
   obj_rnum r_num;
   char buf[MAX_STRING_LENGTH];
@@ -150,6 +150,9 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
         /* Set default vals, which may be changed below */
         ov = obj_index[num].vnum;
         v1 = (obj_proto[num].obj_flags.value[0]);
+        v2 = (obj_proto[num].obj_flags.value[1]);
+        v3 = (obj_proto[num].obj_flags.value[2]);
+        v4 = (obj_proto[num].obj_flags.value[3]);
 
         switch (itemtype) {
           case ITEM_LIGHT:
@@ -176,6 +179,11 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
             v2 = (obj_proto[num].obj_flags.value[3]);
             tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s]%s (%dx%s) %s%s%s\r\n",
                     QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, skill_name(v2), QCYN, obj_proto[r_num].short_description, QNRM);
+            break;
+
+          case ITEM_POISON:
+            tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s%7d%s (Poison:%s%s|Level:%d|Applications:%d|Hits/App:%d) %s%s\r\n",
+                    QGRN, ++found, QNRM, QYEL, ov, QNRM, skill_name(v1), QNRM, v2, v3, v4, obj_proto[r_num].short_description, QNRM);
             break;
 
           case ITEM_WEAPON:

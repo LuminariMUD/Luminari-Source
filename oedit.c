@@ -691,6 +691,9 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
       oedit_disp_weapon_type_menu(d);
       write_to_output(d, "\r\nChoose a weapon type : ");
       break;
+    case ITEM_POISON:
+      oedit_disp_spells_menu(d);
+      break;      
     case ITEM_ARMOR:
     case ITEM_CLANARMOR:
       write_to_output(d, "Apply to AC : ");
@@ -745,6 +748,9 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
     case ITEM_SCROLL:
     case ITEM_POTION:
       oedit_disp_spells_menu(d);
+      break;
+    case ITEM_POISON:
+      write_to_output(d, "Level of poison : ");
       break;
     case ITEM_WAND:
     case ITEM_STAFF:
@@ -808,6 +814,9 @@ static void oedit_disp_val3_menu(struct descriptor_data *d) {
     case ITEM_LIGHT:
       write_to_output(d, "Number of hours (0 = burnt, -1 is infinite) : ");
       break;
+    case ITEM_POISON:
+      write_to_output(d, "Applications : ");
+      break;
     case ITEM_FOOD:
       /* val 3 is unused, jump to 4 */
       oedit_disp_val4_menu(d);
@@ -867,6 +876,9 @@ static void oedit_disp_val4_menu(struct descriptor_data *d) {
     case ITEM_WAND:
     case ITEM_STAFF:
       oedit_disp_spells_menu(d);
+      break;
+    case ITEM_POISON:
+      write_to_output(d, "Hits per Application : ");
       break;
     case ITEM_WEAPON:
       oedit_disp_weapon_menu(d);
