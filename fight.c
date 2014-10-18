@@ -2455,9 +2455,12 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
    system, and at that time i will re-work this -z */
 void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_data *wielded) {
 
+  /* start with the usual dummy checks */
   if (!ch)
     return;
   if (!victim)
+    return;
+  if (!wielded)
     return;
 
   if (!wielded->weapon_poison.poison) /* this weapon is not poisoned */
