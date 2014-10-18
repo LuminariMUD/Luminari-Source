@@ -1270,9 +1270,10 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_SHIELD_CHARGE       370
 #define FEAT_SHIELD_SLAM         371
 #define FEAT_SPELLBATTLE         372
+#define FEAT_APPLY_POISON        373
 
-#define FEAT_LAST_FEAT           373
-#define NUM_FEATS                374
+#define FEAT_LAST_FEAT           374
+#define NUM_FEATS                375
 
 #define MAX_FEATS                750
 
@@ -1925,7 +1926,9 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
  */
 #define RL_SEC		* PASSES_PER_SEC
 
-/** Controls when a zone update will occur. */
+/** Controls when a zone update will occur, notice changed from stock
+ * value of 10 RL_SEC because of the size of our MUD (the dequeue for zone
+ * resets was getting way backed up) */
 #define PULSE_ZONE      (3 RL_SEC)
 /** Controls when mobile (NPC) actions and updates will occur. */
 #define PULSE_MOBILE    (6 RL_SEC)
@@ -2124,13 +2127,21 @@ struct obj_spellbook_spell {
   ubyte pages; /* How many pages does it take up */
 };
 
+/* for weapons, the poison-data if poison is applied */
+struct obj_weapon_poison {
+  int poison; /* right now this is a spell (i.e. spellnum) */
+  int poison_level; /* level to cast above spell */
+  int poison_hits; /* how many times the poison will fire off the weapon */
+};
+
 /** The Object structure. */
 struct obj_data {
   obj_rnum item_number; /**< The unique id of this object instance. */
   room_rnum in_room; /**< What room is the object lying in, or -1? */
 
-  struct obj_flag_data obj_flags; /**< Object information            */
+  struct obj_flag_data obj_flags; /**< Object information */
   struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
+  struct obj_weapon_poison weapon_poison; /* for weapons, applied poison */
 
   char *name; /**< Keyword reference(s) for object. */
   char *description; /**< Shown when the object is lying in a room. */

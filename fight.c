@@ -2449,6 +2449,34 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
 #undef STONESKIN_ABSORB
 #undef EPIC_WARDING_ABSORB
 
+/* all weapon poison system is right now is just firing spells off our weapon
+   if the weapon has that given spell-num applied to it as a poison
+   i have ambitious plans in the future to completely re-work poison in our
+   system, and at that time i will re-work this -z */
+void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_data *wielded) {
+
+  if (!ch)
+    return;
+  if (!victim)
+    return;
+
+  if (!wielded->weapon_poison.poison) /* this weapon is not poisoned */
+    return;
+
+  /* 20% chance to fire currently */
+  if (rand_number(0, 5))
+    return;
+
+  act("The \tGpoison\tn from $p attaches to $n.",
+          FALSE, victim, wielded, 0, TO_ROOM);
+  call_magic(ch, victim, wielded, wielded->weapon_poison.poison, wielded->weapon_poison.poison_level,
+          CAST_POTION);
+  wielded->weapon_poison.poison_level -= wielded->weapon_poison.poison_level / 4;
+  wielded->weapon_poison.poison_hits--;
+  if (wielded->weapon_poison.poison_hits <= 0)
+    wielded->weapon_poison.poison = 0;
+}
+
 /* this function will call the spell-casting ability of the
    given weapon (wpn) attacker (ch) has when attacking vict 
    these are always 'violent' spells */
@@ -3296,7 +3324,7 @@ int hit(struct char_data *ch, struct char_data *victim,
       call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_INNATE);
     }
 
-    /* weapon spells - depecrated, although many weapons still have these.  Weapon Special Abilities supercede
+    /* weapon spells - deprecated, although many weapons still have these.  Weapon Special Abilities supercede
      * this implementation. */
     if (ch && victim && wielded)
       weapon_spells(ch, victim, wielded);
@@ -3305,7 +3333,10 @@ int hit(struct char_data *ch, struct char_data *victim,
     if (ch && victim && wielded)
       process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL); 
 
-    /* special weapon (or gloves for monk) procedures.  Need to implement somethign similar for the new system. */
+    /* our primitive weapon-poison system, needs some love */
+    weapon_poison(ch, victim, wielded);
+    
+    /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */
     if (ch && victim && wielded)
       weapon_special(wielded, ch, hit_msg);
     else if (ch && victim && GET_EQ(ch, WEAR_HANDS))

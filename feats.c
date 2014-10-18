@@ -306,6 +306,8 @@ void assign_feats(void) {
     feat_list[i].prerequisite_list = NULL;
   }
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
   /* Combat feats */
   feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead", "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
   feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
@@ -500,6 +502,7 @@ void assign_feats(void) {
   feato(FEAT_TRAPFINDING, "trapfinding", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can use the Search skill to locate difficult to find traps", "can use the Search skill to locate difficult to find traps");
   feato(FEAT_DEFENSIVE_ROLL, "defensive roll", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead", "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead");
   feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "extra chance for will saves", "extra chance for will saves");
+  feato(FEAT_APPLY_POISON, "apply poison", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can apply poison to weapons", "can apply poison to weapons (applypoison)");
 
   /* Rogue/Barbarian */
   feato(FEAT_UNCANNY_DODGE, "uncanny dodge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "retains dex bonus when flat footed or against invis opponents", "retains dex bonus when flat footed or against invis opponents");
