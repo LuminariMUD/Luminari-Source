@@ -104,11 +104,11 @@ ACMD(do_applypoison) {
     weapon->weapon_poison.poison_hits = GET_OBJ_VAL(poison, 3);
     weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
     weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);
-    act("$n applies some &cGpoison&c0 onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
-    act("You apply some &cGpoison&c0 onto $p.", FALSE, ch, weapon, 0, TO_CHAR);
+    act("$n applies some \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
+    act("You apply some \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_CHAR);
   } else {
-    act("$n fails to apply the &cGpoison&c0 onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
-    act("You fail to poison your $p.", FALSE, ch, weapon, 0, TO_CHAR);
+    act("$n fails to apply the \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
+    act("You fail to \tGpoison\tn your $p.", FALSE, ch, weapon, 0, TO_CHAR);
   }
   
   GET_OBJ_VAL(poison, 2) -= amount;
