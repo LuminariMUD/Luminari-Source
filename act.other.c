@@ -48,8 +48,74 @@ static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data * ch);
 
 
-#define BARD_AFFECTS 7
+ACMD(do_applypoison) {
+  char arg1[MAX_INPUT_LENGTH];
+  char arg2[MAX_INPUT_LENGTH];
+  struct obj_data *poison, *weapon;
+  int amount = 1;
 
+  two_arguments(argument, arg1, arg2);
+
+  if (!HAS_FEAT(ch, FEAT_APPLY_POISON)) {
+    send_to_char(ch, "You do not know how!\r\n");
+    return;
+  }
+
+  if (!*arg1) {
+    send_to_char(ch, "Apply what poison?\r\n");
+    return;
+  }
+  if (!*arg2) {
+    send_to_char(ch, "Apply on which weapon?\r\n");
+    return;
+  }
+
+  poison = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying);
+  if (!poison) {
+    send_to_char(ch, "You do not carry that poison!\r\n");
+    return;
+  }
+
+  weapon = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying);
+  if (!weapon) {
+    send_to_char(ch, "You do not carry that weapon!\r\n");
+    return;
+  }
+  
+  if (GET_OBJ_TYPE(poison) != ITEM_POISON) {
+    send_to_char(ch, "But that is not a poison!\r\n");
+    return;
+  }
+  if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON) {
+    send_to_char(ch, "But that is not a weapon!\r\n");
+    return;
+  }
+  if (GET_OBJ_VAL(poison, 2) <= 0) {
+    send_to_char(ch, "That vial is empty!\r\n");
+    return;
+  }
+  if (weapon->weapon_poison.poison) {
+    send_to_char(ch, "That weapon is already poisoned!\r\n");
+    return;
+  }
+
+  /* high chance of success, just random for now */
+  if (rand_number(0, 5)) {
+    weapon->weapon_poison.poison_hits = GET_OBJ_VAL(poison, 3);
+    weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
+    weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);
+    act("$n applies some &cGpoison&c0 onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
+    act("You apply some &cGpoison&c0 onto $p.", FALSE, ch, weapon, 0, TO_CHAR);
+  } else {
+    act("$n fails to apply the &cGpoison&c0 onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
+    act("You fail to poison your $p.", FALSE, ch, weapon, 0, TO_CHAR);
+  }
+  
+  GET_OBJ_VAL(poison, 2) -= amount;
+}
+
+
+#define BARD_AFFECTS 7
 void perform_perform(struct char_data *ch) {
   struct affected_type af[BARD_AFFECTS];
   int level = 0, i = 0, duration = 0;
