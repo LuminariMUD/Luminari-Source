@@ -258,6 +258,9 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch) {
   if (OBJ_FLAGGED(obj, ITEM_FLAMING))
     send_to_char(ch, " \tR(flaming)\tn");
 
+  if (obj->weapon_poison.poison)
+    send_to_char(ch, " \tG(poisoned)\tn");
+
   if (OBJ_FLAGGED(obj, ITEM_BLESS) && AFF_FLAGGED(ch, AFF_DETECT_ALIGN))
     send_to_char(ch, " \tn..It glows \tBblue\tn!");
 
