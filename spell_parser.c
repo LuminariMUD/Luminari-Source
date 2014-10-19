@@ -342,7 +342,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     return (0);
   }
 
-  if (cvict && ROOM_AFFECTED(cvict->in_room, RAFF_ANTI_MAGIC)) {
+  if (cvict && cvict->in_room && cvict->in_room != NOWHERE && ROOM_AFFECTED(cvict->in_room, RAFF_ANTI_MAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies!\r\n");
     act("$n's magic fizzles out and dies...", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
