@@ -93,6 +93,9 @@ ACMD(do_abundantstep) {
       
     } else /* value isn't a number, so we are moving just a single space */
       repeat = 1;
+
+    /* indication we haven't found a direction to move yet */
+    i = -1;
     
     if (isalpha(*p)) { /* ok found a letter, and repeat is set */
       
@@ -104,43 +107,52 @@ ACMD(do_abundantstep) {
       buf[i] = 0; /* placing a '0' in that last spot in this mini buf */
       
       for (i = 1; complete_cmd_info[i].command_pointer == do_move && strcmp(complete_cmd_info[i].sort_as, buf); i++)
-        ;
+        ; /* looking for a move command that matches our buf */
       
       if (complete_cmd_info[i].command_pointer == do_move) {
         i = complete_cmd_info[i].subcmd - 1;
       } else
         i = -1;
+      /* so now i is either our direction to move (define) or -1 */
       
       buf[j] = tc; /* replace the terminating character in this mini buff */
     }
     
-    if (i > -1)
-      while (repeat--) {
-        if (++steps > max)
+    if (i > -1) { /* we have a direction to move! */      
+      while (repeat > 0) {
+        repeat--;
+        
+        if (++steps > max) /* reached our limit of steps! */
           break;
-        if (!W_EXIT(room_tracker, i)) {
+        
+        if (!W_EXIT(room_tracker, i)) { /* is i a valid direction? */
           send_to_char(ch, "Invalid step. Skipping.\r\n");
           break;
         }
+        
         nextroom = W_EXIT(room_tracker, i)->to_room;
         if (nextroom == NOWHERE)
           break;
+        
         room_tracker = nextroom;
       }
+    }
     if (steps > max)
       break;
   } /* finished stepping through the string */
+
+  if (IN_ROOM(ch) != room_tracker) {
+    send_to_char(ch, "Your will bends reality as you travel through the ethereal plane.\r\n");
+    act("$n is suddenly absent.", TRUE, ch, 0, 0, TO_ROOM);
+
+    char_from_room(ch);
+    char_to_room(ch, room_tracker);
+
+    act("$n is suddenly present.", TRUE, ch, 0, 0, TO_ROOM);
+
+    look_at_room(ch, 0);
+  }
   
-  send_to_char(ch, "Your will bends reality as you travel through the ethereal plane.\r\n");
-  act("$n is suddenly absent.", TRUE, ch, 0, 0, TO_ROOM);
-
-  char_from_room(ch);
-  char_to_room(ch, room_tracker);
-
-  act("$n is suddenly present.", TRUE, ch, 0, 0, TO_ROOM);
-
-  look_at_room(ch, 0);
-
   return;
 }
 
