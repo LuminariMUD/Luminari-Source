@@ -116,6 +116,7 @@ ACMD(do_abundantstep) {
       /* so now i is either our direction to move (define) or -1 */
       
       buf[j] = tc; /* replace the terminating character in this mini buff */
+      send_to_char(ch, "i: %d\r\n", i);
     }
     
     if (i > -1) { /* we have a direction to move! */      
