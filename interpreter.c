@@ -694,8 +694,8 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "east") &&
           !is_abbrev(complete_cmd_info[cmd].command, "west") &&
           !is_abbrev(complete_cmd_info[cmd].command, "south") &&
-          !is_abbrev(complete_cmd_info[cmd].command, "get") &&
-          !is_abbrev(complete_cmd_info[cmd].command, "take") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "get") && /* maybe re-analyze this one */
+          !is_abbrev(complete_cmd_info[cmd].command, "take") && /* maybe re-analyze this one */
           !is_abbrev(complete_cmd_info[cmd].command, "group") &&
           !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
           !is_abbrev(complete_cmd_info[cmd].command, "gtell") &&
@@ -706,14 +706,18 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "hit") &&
           !is_abbrev(complete_cmd_info[cmd].command, "kill") &&
           !is_abbrev(complete_cmd_info[cmd].command, "sit") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "equipment") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "idea") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "bug") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "typo") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "inventory") &&
           !is_abbrev(complete_cmd_info[cmd].command, "stand") &&
           !is_abbrev(complete_cmd_info[cmd].command, "sap") &&
           !is_abbrev(complete_cmd_info[cmd].command, "scan") &&
           !is_abbrev(complete_cmd_info[cmd].command, "who") &&
           !is_abbrev(complete_cmd_info[cmd].command, "score") &&
           !is_abbrev(complete_cmd_info[cmd].command, "queue") &&
-          !is_abbrev(complete_cmd_info[cmd].command, "attackqueue") &&
-          !is_abbrev(complete_cmd_info[cmd].command, "affects")          
+          !is_abbrev(complete_cmd_info[cmd].command, "attackqueue")
           ) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...\r\n");
