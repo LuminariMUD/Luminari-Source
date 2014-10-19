@@ -110,7 +110,7 @@ ACMD(do_abundantstep) {
         ; /* looking for a move command that matches our buf */
       
       if (complete_cmd_info[i].command_pointer == do_move) {
-        i = complete_cmd_info[i].subcmd - 1;
+        i = complete_cmd_info[i].subcmd;
       } else
         i = -1;
       /* so now i is either our direction to move (define) or -1 */
