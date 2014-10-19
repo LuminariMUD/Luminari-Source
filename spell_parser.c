@@ -336,7 +336,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   if (!cast_mtrigger(caster, cvict, spellnum))
     return 0;
 
-  if (ROOM_AFFECTED(caster->in_room, RAFF_ANTI_MAGIC)) {
+  if (caster && caster->in_room && caster->in_room != NOWHERE && ROOM_AFFECTED(caster->in_room, RAFF_ANTI_MAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies!\r\n");
     act("$n's magic fizzles out and dies...", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
@@ -348,19 +348,19 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     return (0);
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(caster), ROOM_NOMAGIC)) {
+  if (caster && caster->in_room && caster->in_room != NOWHERE && ROOM_FLAGGED(IN_ROOM(caster), ROOM_NOMAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies.\r\n");
     act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
   }
 
-  if (cvict && ROOM_FLAGGED(IN_ROOM(cvict), ROOM_NOMAGIC)) {
+  if (cvict && cvict->in_room && cvict->in_room != NOWHERE && ROOM_FLAGGED(IN_ROOM(cvict), ROOM_NOMAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies.\r\n");
     act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(caster), ROOM_PEACEFUL) &&
+  if (caster && caster->in_room && caster->in_room != NOWHERE && ROOM_FLAGGED(IN_ROOM(caster), ROOM_PEACEFUL) &&
           (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
     send_to_char(caster, "A flash of white light fills the room, dispelling your violent magic!\r\n");
     act("White light from no particular source suddenly fills the room, then vanishes.", FALSE, caster, 0, 0, TO_ROOM);
