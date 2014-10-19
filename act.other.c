@@ -63,6 +63,11 @@ ACMD(do_abundantstep) {
     send_to_char(ch, "You can't focus enough in combat to use this martial art skill!\r\n");
     return;
   }
+  
+  if (GET_MOVE(ch) < 30) {
+    send_to_char(ch, "You are too tired to use this martial art skill!\r\n");
+    return;
+  }
 
   steps = 0;
   room_tracker = IN_ROOM(ch); /* start the room tracker in current location */
@@ -116,7 +121,7 @@ ACMD(do_abundantstep) {
       /* so now i is either our direction to move (define) or -1 */
       
       buf[j] = tc; /* replace the terminating character in this mini buff */
-      send_to_char(ch, "i: %d\r\n", i);
+      //send_to_char(ch, "i: %d\r\n", i);
     }
     
     if (i > -1) { /* we have a direction to move! */      
@@ -152,6 +157,10 @@ ACMD(do_abundantstep) {
     act("$n is suddenly present.", TRUE, ch, 0, 0, TO_ROOM);
 
     look_at_room(ch, 0);
+    GET_MOVE(ch) -= 30;
+    USE_MOVE_ACTION(ch);
+  } else {
+    send_to_char(ch, "You failed!\r\n");
   }
   
   return;
@@ -216,6 +225,8 @@ ACMD(do_applypoison) {
     weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);
     act("$n applies some \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
     act("You apply some \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_CHAR);
+    USE_STANDARD_ACTION(ch);
+    USE_MOVE_ACTION(ch);
   } else {
     act("$n fails to apply the \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
     act("You fail to \tGpoison\tn your $p.", FALSE, ch, weapon, 0, TO_CHAR);
