@@ -544,7 +544,11 @@ void assign_feats(void) {
   feato(FEAT_STILL_MIND, "still mind", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+2 bonus on saving throws vs. Enchantments", "+2 bonus on saving throws vs. Enchantments");
   feato(FEAT_WHOLENESS_OF_BODY, "wholeness of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can heal class level*2 hp to self", "can heal class level*2 hp to self");
   feato(FEAT_SLOW_FALL, "slow fall", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "no damage for falling 1 room/feat rank", "no damage for falling 1 room/feat rank");
-  feato(FEAT_ABUNDANT_STEP, "abundant step", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "magically move between tight spaces, as the spell dimension door", "magically move between tight spaces, as the spell dimension door");
+  feato(FEAT_ABUNDANT_STEP, "abundant step", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "magically move between tight spaces, as the spell dimension door",
+        "Magically move between tight spaces, as the spell dimension door.  You "
+          "can even go through doors.  To use, you must give directions from your "
+          "current location.  Examples:\r\nw w n n e\r\n2w n n e");
   feato(FEAT_DIAMOND_BODY, "diamond body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "immune to disease", "immune to disease");
   feato(FEAT_DIAMOND_SOUL, "diamond soul", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "spell resistance equal to class level + 10", "spell resistance equal to class level + 10");
   feato(FEAT_EMPTY_BODY, "empty body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "50% concealment for 1 round/monk level per day", "50% concealment for 1 round/monk level per day");
