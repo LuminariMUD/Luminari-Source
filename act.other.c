@@ -111,7 +111,7 @@ ACMD(do_abundantstep) {
       } else
         i = -1;
       
-      buf[j] = tc;
+      buf[j] = tc; /* replace the terminating character in this mini buff */
     }
     
     if (i > -1)
