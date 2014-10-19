@@ -290,6 +290,7 @@ ACMD(do_layonhands);
 ACMD(do_order);
 ACMD(do_perform);
 ACMD(do_applypoison);
+ACMD(do_abundantstep);
 ACMD(do_rescue);
 ACMD(do_taunt);
 ACMD(do_treatinjury);
