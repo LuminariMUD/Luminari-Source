@@ -48,6 +48,86 @@ static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data * ch);
 
 
+ACMD(do_abundantstep)
+{
+  int steps, i = 0, j, rep, max;
+  room_rnum r, nextroom;
+  char buf[MAX_INPUT_LENGTH], tc;
+  const char *p;
+
+  if (!HAS_FEAT(ch, FEAT_ABUNDANT_STEP)) {
+    send_to_char(ch, "You do not know that martial art skill!\r\n");
+    return;
+  }
+  
+  if (FIGHTING(ch)) {
+    send_to_char(ch, "You can't focus enough in combat to use this martial art skill!\r\n");
+    return;
+  }
+  
+  steps = 0;
+  r = IN_ROOM(ch);
+  p = argument;
+  max = 5 + CLASS_LEVEL(ch, CLASS_MONK) / 2;
+
+  while (p && *p && !isdigit(*p) && !isalpha(*p)) p++;
+
+  if (!p || !*p) {
+    send_to_char(ch, "You must give directions from your current location.  Examples:\r\n"
+                 "  w w n n e\r\n"
+                 "  2w n n e\r\n");
+    return;
+  }
+
+  while (*p) {
+    while (*p && !isdigit(*p) && !isalpha(*p)) p++;
+    if (isdigit(*p)) {
+      rep = atoi(p);
+      while (isdigit(*p)) p++;
+    } else
+      rep = 1;
+    if (isalpha(*p)) {
+      for (i = 0; isalpha(*p); i++, p++) buf[i] = LOWER(*p);
+      j = i;
+      tc = buf[i];
+      buf[i] = 0;
+      for (i = 1; complete_cmd_info[i].command_pointer == do_move && strcmp(complete_cmd_info[i].sort_as, buf); i++);
+      if (complete_cmd_info[i].command_pointer == do_move) {
+        i = complete_cmd_info[i].subcmd - 1;
+      } else
+        i = -1;
+      buf[j] = tc;
+    }
+    if (i > -1)
+      while (rep--) {
+        if (++steps > max)
+          break;
+        if (!W_EXIT(r, i)) {
+          send_to_char(ch, "Invalid step. Skipping.\r\n");
+          break;
+        }
+        nextroom = W_EXIT(r, i)->to_room;
+        if (nextroom == NOWHERE)
+          break;
+        r = nextroom;
+      }
+    if (steps > max)
+      break;
+  }
+  send_to_char(ch, "Your will bends reality as you travel through the ethereal plane.\r\n");
+  act("$n is suddenly absent.", TRUE, ch, 0, 0, TO_ROOM);
+
+  char_from_room(ch);
+  char_to_room(ch, r);
+
+  act("$n is suddenly present.", TRUE, ch, 0, 0, TO_ROOM);
+
+  look_at_room(ch, 0);
+
+  return;
+}
+
+/* apply poison to a weapon */
 ACMD(do_applypoison) {
   char arg1[MAX_INPUT_LENGTH];
   char arg2[MAX_INPUT_LENGTH];
