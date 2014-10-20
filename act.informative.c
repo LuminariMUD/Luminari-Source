@@ -1706,7 +1706,9 @@ ACMD(do_affects) {
 }
 
 ACMD(do_attacks) {
-  perform_attacks(ch, 2, 0);
+#define DISPLAY_ROUTINE_POTENTIAL 2
+  perform_attacks(ch, DISPLAY_ROUTINE_POTENTIAL, 0);
+#undef DISPLAY_ROUTINE_POTENTIAL
 }
 
 /*
@@ -1849,8 +1851,10 @@ ACMD(do_score) {
   }
 
 
+#define RETURN_NUM_ATTACKS 1
   send_to_char(ch, "\tcBAB        : \tn%-4d \tc# of Attacks : \tn%-3d \tcConcealment  : \tn%-3d\r\n",
-                  calc_bab, perform_attacks(ch, 1, 0), compute_concealment(ch));
+                  calc_bab, perform_attacks(ch, RETURN_NUM_ATTACKS, 0), compute_concealment(ch));
+#undef RETURN_NUM_ATTACKS
 
   send_to_char(ch, "\tC----------------\tyProficiencies\tC-----------------------------------\tyQuests\tC----------\tn\r\n"
                    "\tcWeapon Proficiency Used : \tn%-25s \tC| \tcQuests completed : \tn%d\r\n"

@@ -2092,12 +2092,58 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   return (MIN(MAX_DAM_BONUS, dambonus));  
 }
 
+void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo) {
+  if (!ch)
+    return;
+  
+  int monkLevel = CLASS_LEVEL(ch, CLASS_MONK);
+  
+  if (IS_NPC(ch)) {
+    diceOne = ch->mob_specials.damnodice;
+    diceTwo = ch->mob_specials.damsizedice;
+  } else {
+    if (monkLevel && monk_gear_ok(ch)) { // monk?
+      if (monkLevel < 4) {
+        diceOne = 1;
+        diceTwo = 6;
+      } else if (monkLevel < 8) {
+        diceOne = 1;
+        diceTwo = 8;
+      } else if (monkLevel < 12) {
+        diceOne = 1;
+        diceTwo = 10;
+      } else if (monkLevel < 16) {
+        diceOne = 2;
+        diceTwo = 6;
+      } else if (monkLevel < 20) {
+        diceOne = 4;
+        diceTwo = 4;
+      } else if (monkLevel < 25) {
+        diceOne = 4;
+        diceTwo = 5;
+      } else {
+        diceOne = 4;
+        diceTwo = 6;
+      }
+      if (GET_RACE(ch) == RACE_TRELUX)
+        diceOne++;
+    } else { // non-monk bare-hand damage
+      if (GET_RACE(ch) == RACE_TRELUX) {
+        diceOne = 2;
+        diceTwo = 6;
+      } else {
+        diceOne = 1;
+        diceTwo = 2;
+      }
+    }
+  }
+}
+
 /* computes damage dice based on bare-hands, weapon, class (monk), or
  npc's (which use special bare hand damage dice) */
 int compute_dam_dice(struct char_data *ch, struct char_data *victim,
         struct obj_data *wielded, int mode) {
-  int diceOne = 0, diceTwo = 0;
-  int monkLevel = CLASS_LEVEL(ch, CLASS_MONK);
+  int diceOne = 0, diceTwo = 0, result = 0;
 
   //just information mode
   if (mode == 2) {
@@ -2133,45 +2179,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
     diceOne = GET_OBJ_VAL(obj, 1);
     diceTwo = GET_OBJ_VAL(quiver->contains, 1);
   } else { //barehand
-    if (IS_NPC(ch)) {
-      diceOne = ch->mob_specials.damnodice;
-      diceTwo = ch->mob_specials.damsizedice;
-    } else {
-      if (monkLevel && monk_gear_ok(ch)) { // monk?
-        if (monkLevel < 4) {
-          diceOne = 1;
-          diceTwo = 6;
-        } else if (monkLevel < 8) {
-          diceOne = 1;
-          diceTwo = 8;
-        } else if (monkLevel < 12) {
-          diceOne = 1;
-          diceTwo = 10;
-        } else if (monkLevel < 16) {
-          diceOne = 2;
-          diceTwo = 6;
-        } else if (monkLevel < 20) {
-          diceOne = 4;
-          diceTwo = 4;
-        } else if (monkLevel < 25) {
-          diceOne = 4;
-          diceTwo = 5;
-        } else {
-          diceOne = 4;
-          diceTwo = 6;
-        }
-        if (GET_RACE(ch) == RACE_TRELUX)
-          diceOne++;
-      } else { // non-monk bare-hand damage
-        if (GET_RACE(ch) == RACE_TRELUX) {
-          diceOne = 2;
-          diceTwo = 6;
-        } else {
-          diceOne = 1;
-          diceTwo = 2;
-        }
-      }
-    }
+    compute_barehand_dam_dice(ch, &diceOne, &diceTwo);
   }
   if (mode == 2 || mode == 3 || mode == 4) {
     send_to_char(ch, "Damage Dice:  %dD%d, ", diceOne, diceTwo);
@@ -3602,18 +3610,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           } else
              stop_fighting(ch);              
         }
-/* 
-        if (can_fire_arrow(ch, FALSE) && FIGHTING(ch)) {
-          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
-                  penalty, 2); // 2 in last arg indicates ranged
-          penalty -= 3;
-        } else if (FIGHTING(ch)) {
-          send_to_char(ch, "\tWYou are out of ammunition!\tn\r\n");
-          stop_fighting(ch);
-          return 0;
-        } else
-          stop_fighting(ch);
-*/
       }
       return 0;
     }
@@ -3958,244 +3954,232 @@ EVENTFUNC(event_combat_round) {
   
 }
 
-
 /* control the fights going on.
  * Called from combat round event. */
 void perform_violence(struct char_data *ch, int phase) {
-//  struct char_data *ch, *tch = NULL, *charmee;
   struct char_data *tch = NULL, *charmee;
   struct list_data *room_list = NULL;
 
+  /* Reset combat data */
+  GET_TOTAL_AOO(ch) = 0;
+  REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
 
+  if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
+          HAS_FEAT(ch, FEAT_AURA_OF_COURAGE)) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+    send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
+    act("$n \tWis bolstered by $s courage and overcomes $s \tDfear!\tn\tn",
+            TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
 
-    /* Reset combat data */
-    GET_TOTAL_AOO(ch) = 0;
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
+  if (FIGHTING(ch) == NULL || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))) {
+    stop_fighting(ch);
+    return;
+  }
 
-    if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
-            HAS_FEAT(ch, FEAT_AURA_OF_COURAGE)) {
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
-      send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
-      act("$n \tWis bolstered by $s courage and overcomes $s \tDfear!\tn\tn",
+#define RETURN_NUM_ATTACKS 1
+  PARRY_LEFT(ch) = perform_attacks(ch, RETURN_NUM_ATTACKS, phase);
+#undef RETURN_NUM_ATTACKS
+
+  if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
+    if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_PARALYZED);
+      send_to_char(ch, "Your free movement breaks the paralysis!\r\n");
+      act("$n's free movement breaks the paralysis!",
+              TRUE, ch, 0, 0, TO_ROOM);
+    } else {
+      send_to_char(ch, "You are paralyzed and unable to react!\r\n");
+      act("$n seems to be paralyzed and unable to react!",
               TRUE, ch, 0, 0, TO_ROOM);
       return;
     }
+  }
 
-    if (FIGHTING(ch) == NULL || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))) {
-      stop_fighting(ch);
-      //continue;
-      return;
-    }
+  if (AFF_FLAGGED(ch, AFF_NAUSEATED)) {
+    send_to_char(ch, "You are too nauseated to fight!\r\n");
+    act("$n seems to be too nauseated to fight!",
+            TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
 
-    PARRY_LEFT(ch) = perform_attacks(ch, 1, phase);
+  if (AFF_FLAGGED(ch, AFF_DAZED)) {
+    send_to_char(ch, "You are too dazed to fight!\r\n");
+    act("$n seems too dazed to fight!", TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
 
-    if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
-      if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {
-        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_PARALYZED);
-        send_to_char(ch, "Your free movement breaks the paralysis!\r\n");
-        act("$n's free movement breaks the paralysis!",
-                TRUE, ch, 0, 0, TO_ROOM);
-      } else {
-        send_to_char(ch, "You are paralyzed and unable to react!\r\n");
-        act("$n seems to be paralyzed and unable to react!",
-                TRUE, ch, 0, 0, TO_ROOM);
-        //continue;
-        return;
-      }
-    }
-
-    if (AFF_FLAGGED(ch, AFF_NAUSEATED)) {
-      send_to_char(ch, "You are too nauseated to fight!\r\n");
-      act("$n seems to be too nauseated to fight!",
+  if (char_has_mud_event(ch, eSTUNNED)) {
+    if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {
+      change_event_duration(ch, eSTUNNED, 0);
+      send_to_char(ch, "Your free movement breaks the stun!\r\n");
+      act("$n's free movement breaks the stun!",
               TRUE, ch, 0, 0, TO_ROOM);
-      //continue;
+    } else {
+      send_to_char(ch, "You are stunned and unable to react!\r\n");
+      act("$n seems to be stunned and unable to react!",
+              TRUE, ch, 0, 0, TO_ROOM);
       return;
     }
+  }
 
-    if (AFF_FLAGGED(ch, AFF_DAZED)) {
-      send_to_char(ch, "You are too dazed to fight!\r\n");
-      act("$n seems too dazed to fight!", TRUE, ch, 0, 0 , TO_ROOM);
-      //continue;
-      return;
+  /* we'll break stun here if under free-movement affect */
+  if (AFF_FLAGGED(ch, AFF_STUN)) {
+    if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_STUN);
+      send_to_char(ch, "Your free movement breaks the stun!\r\n");
+      act("$n's free movement breaks the stun!",
+              TRUE, ch, 0, 0, TO_ROOM);
     }
+  }
 
-    if (char_has_mud_event(ch, eSTUNNED)) {
-      if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {
-        change_event_duration(ch, eSTUNNED, 0);
-        send_to_char(ch, "Your free movement breaks the stun!\r\n");
-        act("$n's free movement breaks the stun!",
-                TRUE, ch, 0, 0, TO_ROOM);
-      } else {
-        send_to_char(ch, "You are stunned and unable to react!\r\n");
-        act("$n seems to be stunned and unable to react!",
-                TRUE, ch, 0, 0, TO_ROOM);
-        //continue;
-        return;
+  /* make sure this goes after attack-stopping affects like paralyze */
+  if (!MOB_CAN_FIGHT(ch)) {
+    /* this should be called in hit() but need a copy here for !fight flag */
+    fight_mtrigger(ch); //fight trig
+    return;
+  }
+
+  if (IS_NPC(ch) && (phase == 1)) {
+    if (GET_MOB_WAIT(ch) > 0 || HAS_WAIT(ch)) {
+      GET_MOB_WAIT(ch) -= PULSE_VIOLENCE;
+    } else {
+      GET_MOB_WAIT(ch) = 0;
+      if ((GET_POS(ch) < POS_FIGHTING) && (GET_POS(ch) > POS_STUNNED)) {
+        GET_POS(ch) = POS_FIGHTING;
+        attacks_of_opportunity(ch, 0);
+        send_to_char(ch, "You scramble to your feet!\r\n");
+        act("$n scrambles to $s feet!", TRUE, ch, 0, 0, TO_ROOM);
       }
     }
-
-    /* we'll break stun here if under free-movement affect */
-    if (AFF_FLAGGED(ch, AFF_STUN)) {
-      if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {
-        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_STUN);
-        send_to_char(ch, "Your free movement breaks the stun!\r\n");
-        act("$n's free movement breaks the stun!",
-                TRUE, ch, 0, 0, TO_ROOM);
-      }
-    }
-
-    /* make sure this goes after attack-stopping affects like paralyze */
-    if (!MOB_CAN_FIGHT(ch)) {
-      /* this should be called in hit() but need a copy here for !fight flag */
-      fight_mtrigger(ch); //fight trig
-      //continue;
-      return;
-    }
-
-    if (IS_NPC(ch) && (phase == 1)) {
-      if (GET_MOB_WAIT(ch) > 0 || HAS_WAIT(ch)) {
-        GET_MOB_WAIT(ch) -= PULSE_VIOLENCE;
-      } else {
-        GET_MOB_WAIT(ch) = 0;
-        if ((GET_POS(ch) < POS_FIGHTING) && (GET_POS(ch) > POS_STUNNED)) {
-          GET_POS(ch) = POS_FIGHTING;
-          attacks_of_opportunity(ch, 0);   
-          send_to_char(ch, "You scramble to your feet!\r\n");
-          act("$n scrambles to $s feet!", TRUE, ch, 0, 0, TO_ROOM);
-        }
-      }
-    }
+  }
 
     /* Positions
-     POS_DEAD       0
-     POS_MORTALLYW	1
-     POS_INCAP      2
-     POS_STUNNED	3
-     POS_SLEEPING	4
-     POS_RESTING	5
-     POS_SITTING	6
-     POS_FIGHTING	7
-     POS_STANDING	8	*/
-    if (GET_POS(ch) < POS_SITTING) {
-      send_to_char(ch, "You are in no position to fight!!\r\n");
-      //continue;
-      return;
-    }
+   POS_DEAD       0
+   POS_MORTALLYW	1
+   POS_INCAP      2
+   POS_STUNNED	3
+   POS_SLEEPING	4
+   POS_RESTING	5
+   POS_SITTING	6
+   POS_FIGHTING	7
+   POS_STANDING	8	*/
+  if (GET_POS(ch) < POS_SITTING) {
+    send_to_char(ch, "You are in no position to fight!!\r\n");
+    return;
+  }
 
-    // confusion code
-    // 20% chance to act normal
-    if (AFF_FLAGGED(ch, AFF_CONFUSED) && rand_number(0, 4)) {
+  // confusion code
+  // 20% chance to act normal
+  if (AFF_FLAGGED(ch, AFF_CONFUSED) && rand_number(0, 4)) {
 
       // 30% to do nothing
-      if (rand_number(1, 100) <= 30) {
-        send_to_char(ch, "\tDConfusion\tc overcomes you and you stand dumbfounded!\tn  ");
-        act("$n \tcis overcome with \tDconfusion and stands dumbfounded\tc!\tn",
+    if (rand_number(1, 100) <= 30) {
+      send_to_char(ch, "\tDConfusion\tc overcomes you and you stand dumbfounded!\tn  ");
+      act("$n \tcis overcome with \tDconfusion and stands dumbfounded\tc!\tn",
                 TRUE, ch, 0, 0, TO_ROOM);
-        stop_fighting(ch);
-        USE_FULL_ROUND_ACTION(ch);
-        //continue;
-        return;
-      }// 20% to flee
-      else if (rand_number(1, 100) <= 20) {
-        send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");
-        act("$n \tcis overcome with \tDfear\tc!\tn",
+      stop_fighting(ch);
+      USE_FULL_ROUND_ACTION(ch);
+      return;
+    }// 20% to flee
+    else if (rand_number(1, 100) <= 20) {
+      send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");
+      act("$n \tcis overcome with \tDfear\tc!\tn",
                 TRUE, ch, 0, 0, TO_ROOM);
-        perform_flee(ch);
-        perform_flee(ch);
-        //continue;
+      perform_flee(ch);
+      perform_flee(ch);
+      return;
+    }// 30% to attack random
+    else {
+      /* allocate memory for list */
+      room_list = create_list();
+
+      /* dummy check */
+      if (!IN_ROOM(ch))
         return;
-      }// 30% to attack random
-      else {
-        /* allocate memory for list */
-        room_list = create_list();
 
-        /* dummy check */
-        if (!IN_ROOM(ch))
-          return;
+      /* build list */
+      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+        if (tch)
+          add_to_list(tch, room_list);
 
-        /* build list */
-        for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
-          if (tch)
-            add_to_list(tch, room_list);
-
-        /* If our list is empty or has "0" entries, we free it from memory
-         * and flee for the hills */
-        if (room_list->iSize == 0) {
-          free_list(room_list);
-          return;
-        }
-
-        /* ok we should have something in the list, pick randomly and switch
-           to our new target */
-        tch = random_from_list(room_list);
-        if (tch) {
-          stop_fighting(ch);
-          hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-          send_to_char(ch, "\tDConfusion\tc overcomes you and you lash out!\tn  ");
-          act("$n \tcis overcome with \tDconfusion and lashes out\tc!\tn",
-                  TRUE, ch, 0, 0, TO_ROOM);
-        }
-
-        /* we're done, free the list */
+      /* If our list is empty or has "0" entries, we free it from memory
+       * and flee for the hills */
+      if (room_list->iSize == 0) {
         free_list(room_list);
         return;
       }
-    }
 
-    /* group members will autoassist if
-     1)  npc or
-     2)  pref flagged autoassist
-     */
-    if (GROUP(ch)) {
-      while ((tch = (struct char_data *) simple_list(GROUP(ch)->members))
-              != NULL) {
-        if (tch == ch)
-          continue;
-        if (!IS_NPC(tch) && !PRF_FLAGGED(tch, PRF_AUTOASSIST))
-          continue;
-        if (IN_ROOM(ch) != IN_ROOM(tch))
-          continue;
-        if (FIGHTING(tch))
-          continue;;
-        if (GET_POS(tch) != POS_STANDING)
-          continue;
-        if (!CAN_SEE(tch, ch))
-          continue;
-
-        perform_assist(tch, ch);
+      /* ok we should have something in the list, pick randomly and switch
+         to our new target */
+      tch = random_from_list(room_list);
+      if (tch) {
+        stop_fighting(ch);
+        hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+        send_to_char(ch, "\tDConfusion\tc overcomes you and you lash out!\tn  ");
+        act("$n \tcis overcome with \tDconfusion and lashes out\tc!\tn",
+                TRUE, ch, 0, 0, TO_ROOM);
       }
+
+      /* we're done, free the list */
+      free_list(room_list);
+      return;
     }
+  }
 
-    //your charmee, even if not groupped, should assist
-    for (charmee = world[IN_ROOM(ch)].people; charmee;
-            charmee = charmee->next_in_room)
-      if (AFF_FLAGGED(charmee, AFF_CHARM) && charmee->master == ch &&
-              !FIGHTING(charmee) &&
-              GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch))
-        perform_assist(charmee, ch);
+  /* group members will autoassist if
+   1)  npc or
+   2)  pref flagged autoassist
+   */
+  if (GROUP(ch)) {
+    while ((tch = (struct char_data *) simple_list(GROUP(ch)->members))
+            != NULL) {
+      if (tch == ch)
+        continue;
+      if (!IS_NPC(tch) && !PRF_FLAGGED(tch, PRF_AUTOASSIST))
+        continue;
+      if (IN_ROOM(ch) != IN_ROOM(tch))
+        continue;
+      if (FIGHTING(tch))
+        continue;
+      if (GET_POS(tch) != POS_STANDING)
+        continue;
+      if (!CAN_SEE(tch, ch))
+        continue;
 
-    if (AFF_FLAGGED(ch, AFF_PARRY))
-      send_to_char(ch, "You continue the battle in defensive positioning!\r\n");
-
-    /* here is our entry point for melee attack rotation */
-    if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_PARRY))
-      perform_attacks(ch, 0, phase);
-
-    if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) &&
-            !MOB_FLAGGED(ch, MOB_NOTDEADYET)) {
-      char actbuf[MAX_INPUT_LENGTH] = "";
-      (GET_MOB_SPEC(ch)) (ch, ch, 0, actbuf);
+      perform_assist(tch, ch);
     }
+  }
 
-    //    autoDiagnose(ch);
+  //your charmee, even if not groupped, should assist
+  for (charmee = world[IN_ROOM(ch)].people; charmee;
+          charmee = charmee->next_in_room)
+    if (AFF_FLAGGED(charmee, AFF_CHARM) && charmee->master == ch &&
+            !FIGHTING(charmee) &&
+            GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch))
+      perform_assist(charmee, ch);
 
-    // the mighty awesome fear code
-    if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0, 2)) {
-      send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");
-      act("$n \tcis overcome with \tDfear\tc!\tn",
-              TRUE, ch, 0, 0, TO_ROOM);
-      perform_flee(ch);
-    }
+  if (AFF_FLAGGED(ch, AFF_PARRY))
+    send_to_char(ch, "You continue the battle in defensive positioning!\r\n");
 
-//  } //end for loop
+  /* here is our entry point for melee attack rotation */
+  if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_PARRY))
+#define NORMAL_ATTACK_ROUTINE 0
+    perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
+#undef NORMAL_ATTACK_ROUTINE
+
+  if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) &&
+          !MOB_FLAGGED(ch, MOB_NOTDEADYET)) {
+    char actbuf[MAX_INPUT_LENGTH] = "";
+    (GET_MOB_SPEC(ch)) (ch, ch, 0, actbuf);
+  }
+
+  // the mighty awesome fear code
+  if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0, 2)) {
+    send_to_char(ch, "\tDFear\tc overcomes you!\tn  ");
+    act("$n \tcis overcome with \tDfear\tc!\tn",
+            TRUE, ch, 0, 0, TO_ROOM);
+    perform_flee(ch);
+  }
+
 }

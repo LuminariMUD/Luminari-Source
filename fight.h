@@ -58,6 +58,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           int attacktype, int dualwield);
 void  stop_fighting(struct char_data *ch);
 bool is_tanking(struct char_data *ch);
+void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo);
 
 
 /* Global variables */
