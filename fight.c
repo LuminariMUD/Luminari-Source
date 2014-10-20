@@ -2099,41 +2099,41 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
   int monkLevel = CLASS_LEVEL(ch, CLASS_MONK);
   
   if (IS_NPC(ch)) {
-    diceOne = ch->mob_specials.damnodice;
-    diceTwo = ch->mob_specials.damsizedice;
+    *diceOne = ch->mob_specials.damnodice;
+    *diceTwo = ch->mob_specials.damsizedice;
   } else {
     if (monkLevel && monk_gear_ok(ch)) { // monk?
       if (monkLevel < 4) {
-        diceOne = 1;
-        diceTwo = 6;
+        *diceOne = 1;
+        *diceTwo = 6;
       } else if (monkLevel < 8) {
-        diceOne = 1;
-        diceTwo = 8;
+        *diceOne = 1;
+        *diceTwo = 8;
       } else if (monkLevel < 12) {
-        diceOne = 1;
-        diceTwo = 10;
+        *diceOne = 1;
+        *diceTwo = 10;
       } else if (monkLevel < 16) {
-        diceOne = 2;
-        diceTwo = 6;
+        *diceOne = 2;
+        *diceTwo = 6;
       } else if (monkLevel < 20) {
-        diceOne = 4;
-        diceTwo = 4;
+        *diceOne = 4;
+        *diceTwo = 4;
       } else if (monkLevel < 25) {
-        diceOne = 4;
-        diceTwo = 5;
+        *diceOne = 4;
+        *diceTwo = 5;
       } else {
-        diceOne = 4;
-        diceTwo = 6;
+        *diceOne = 4;
+        *diceTwo = 6;
       }
       if (GET_RACE(ch) == RACE_TRELUX)
-        diceOne++;
+        *diceOne = *diceOne + 1;
     } else { // non-monk bare-hand damage
       if (GET_RACE(ch) == RACE_TRELUX) {
-        diceOne = 2;
-        diceTwo = 6;
+        *diceOne = 2;
+        *diceTwo = 6;
       } else {
-        diceOne = 1;
-        diceTwo = 2;
+        *diceOne = 1;
+        *diceTwo = 2;
       }
     }
   }
@@ -2143,7 +2143,7 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
  npc's (which use special bare hand damage dice) */
 int compute_dam_dice(struct char_data *ch, struct char_data *victim,
         struct obj_data *wielded, int mode) {
-  int diceOne = 0, diceTwo = 0, result = 0;
+  int diceOne = 0, diceTwo = 0;
 
   //just information mode
   if (mode == 2) {
