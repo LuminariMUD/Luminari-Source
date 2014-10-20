@@ -346,7 +346,7 @@ int movement_loss[NUM_ROOM_SECTORS] =
   1,	// road east-west
   1,	// road intersection
   3,	// Desert
-  1,	// Ocean  15
+  11,	// Ocean  15
   5,	// Marshland
   10,	// High Mountain
   6,	// planes
@@ -357,10 +357,14 @@ int movement_loss[NUM_ROOM_SECTORS] =
   3,	// ud noswim
   1,	// ud flying
   6,	// lava  25
-  2,	// dirt road
-  2,	// dirt road
-  2,	// dirt road
-  3,	// caves
+  1,	// dirt road
+  1,	// dirt road
+  1,	// dirt road
+  3,	// caves 29
+  4, // jungle, wet, mid elevations, hot. 
+  4, // tundra, dry, high elevations, extreme cold.
+  4, // boreal forest, higher elevations, cold.
+  2, // beach, borders low areas and water. 33
 };
 
 /** PC and NPC sex.
