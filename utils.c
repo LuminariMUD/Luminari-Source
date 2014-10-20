@@ -2138,7 +2138,7 @@ int savingthrow(struct char_data *ch, int save, int modifier, int dc)
   if (roll == 20)
     return TRUE;
 
-  roll += compute_mag_saves(ch, save, modifier) + dice(1, 20);
+  roll += compute_mag_saves(ch, save, modifier);
 
   if(roll >= dc)
     return TRUE;

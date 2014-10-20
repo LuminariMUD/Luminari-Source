@@ -2396,7 +2396,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
   
   if (combat_maneuver_check(ch, vict, discipline_bonus)) {
     damage(ch, vict, dice(diceOne, diceTwo), SKILL_KICK, DAM_FORCE, FALSE);
-    if (!savingthrow(vict, SAVING_REFL, 0, dc))
+    if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc))
       USE_MOVE_ACTION(vict);
   } else
     damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
