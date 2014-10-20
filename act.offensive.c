@@ -31,6 +31,99 @@
 
 /**** Utility functions *******/
 
+/* just used for combat_maneuver_success to check size bonuses/penalty */
+int special_size_modifier(struct char_data *ch) {
+  if (!ch) {
+    log("ERR: special_size_modifier has no ch! (act.offensive.c)");
+    return 0;
+  }
+
+/* Fine –8, Diminutive –4, Tiny –2, Small –1, Medium +0, Large +1, Huge +2,
+ * Gargantuan +4, Colossal +8.*/  
+  switch (GET_SIZE(ch)) {
+    case SIZE_FINE:
+      return -8;
+    case SIZE_DIMINUTIVE:
+      return -4;
+    case SIZE_TINY:
+      return -2;
+    case SIZE_SMALL:
+      return -1;
+    case SIZE_MEDIUM:
+      return 0;
+    case SIZE_LARGE:
+      return 1;
+    case SIZE_HUGE:
+      return 2;
+    case SIZE_GARGANTUAN:
+      return 4;
+    case SIZE_COLOSSAL:
+      return 8;
+    default:
+      log("ERR: %s has an invalid size (special_size_modifier, act.offensive.c",
+              GET_NAME(ch));
+      return 0;
+  }
+}
+
+/* basic check for combat maneuver success, + incoming bonus (or negative value for penalty
+ * this returns the level of success or failure, which applies in cases such as bull rush 
+ * 1 or higher = success, 0 or lower = failure */
+int combat_maneuver_check(struct char_data *ch, struct char_data *vict, int bonus) {
+  int cm_bonus = bonus; /* combat maneuver bonus */
+  int cm_defense = 9; /* combat maneuver defense, should be 10 but if the difference is 0, then you failed your defense */
+  int result = 0;
+  int attack_roll = dice(1, 20);
+  
+  if (!ch) {
+    log("ERR: combat_maneuver_check has no ch! (act.offensive.c)");
+    return 0;
+  }
+  if (!vict) {
+    log("ERR: combat_maneuver_check has no vict! (act.offensive.c)");
+    return 0;
+  }
+    
+  /* CMB = Base attack bonus + Strength modifier + special size modifier */
+  cm_bonus += attack_roll;
+  cm_bonus += BAB(ch);
+  cm_bonus += GET_STR_BONUS(ch);
+  cm_bonus += special_size_modifier(ch);
+  /* misc here*/
+  
+  /***/
+  
+  /* CMD = 10 + Base attack bonus + Strength modifier + Dexterity modifier + special size modifier + miscellaneous modifiers */
+  cm_defense += BAB(vict);
+  cm_defense += GET_STR_BONUS(vict);
+  cm_defense += GET_DEX_BONUS(vict);
+  cm_defense += special_size_modifier(vict);
+  /* misc here */
+  /* should include: A creature can also add any circumstance,
+   * deflection, dodge, insight, luck, morale, profane, and sacred bonuses to
+   * AC to its CMD. Any penalties to a creature's AC also apply to its CMD.
+   * A flat-footed creature does not add its Dexterity bonus to its CMD.*/
+  
+  /***/
+
+  result = cm_bonus - cm_defense;
+  
+  /* FINALLY! */
+  /* easy outs:  natural 20 roll is success, natural 1 is failure */
+  if (attack_roll == 20) {
+    if (result > 1)
+      return result; /* big success? */
+    else
+      return 1;
+  } else if (attack_roll == 1) {
+    if (result < 0)
+      return result; /* big failure? */
+    else
+      return 0;
+  } else /* roll 2-19 */
+    return result;
+}
+
 /* ranged combat (archery, etc)
  * this function will check to make sure ammo is ready for firing
  */
@@ -752,7 +845,7 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
     if (name)
       (name)(ch, shield, 0, "shieldslam");
 
-    if (savingthrow(ch, SAVING_FORT, 0, (10 + (GET_LEVEL(ch) / 2) + GET_STR_BONUS(ch)))) {
+    if (savingthrow(vict, SAVING_FORT, 0, (10 + (GET_LEVEL(ch) / 2) + GET_STR_BONUS(ch)))) {
       new_affect(&af);
       af.spell = SKILL_SHIELD_SLAM;
       SET_BIT_AR(af.bitvector, AFF_DAZED);
@@ -2259,7 +2352,7 @@ ACMD(do_smite) {
 
 /* kick engine */
 void perform_kick(struct char_data *ch, struct char_data *vict) {
-  int percent = 0, prob = 0;
+  int discipline_bonus = 0, dc = 0, diceOne = 0, diceTwo = 0;
 
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
@@ -2285,17 +2378,28 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  /* 101% is a complete failure */
-  percent = rand_number(1, 101);
-  prob = 60;
-
+  /* maneuver bonus/penalty */
+  if (!IS_NPC(ch) && compute_ability(ch, ABILITY_DISCIPLINE))
+    discipline_bonus += compute_ability(ch, ABILITY_DISCIPLINE);  
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
-    percent += compute_ability(vict, ABILITY_DISCIPLINE);
-
-  if (percent > prob) {
-    damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
+    discipline_bonus -= compute_ability(vict, ABILITY_DISCIPLINE);
+  
+  /* saving throw dc */
+  dc = GET_LEVEL(ch) / 2 + GET_STR_BONUS(ch);
+  
+  /* monk damage? */
+  compute_barehand_dam_dice(ch, &diceOne, &diceTwo);
+  if (diceOne < 1)
+    diceOne = 1;
+  if (diceTwo < 2)
+    diceTwo = 2;
+  
+  if (combat_maneuver_check(ch, vict, discipline_bonus)) {
+    damage(ch, vict, dice(diceOne, diceTwo), SKILL_KICK, DAM_FORCE, FALSE);
+    if (!savingthrow(vict, SAVING_REFL, 0, dc))
+      USE_MOVE_ACTION(vict);
   } else
-    damage(ch, vict, dice(1, GET_LEVEL(ch)), SKILL_KICK, DAM_FORCE, FALSE);
+    damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
 }
 
 ACMD(do_kick) {
