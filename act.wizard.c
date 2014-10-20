@@ -1415,6 +1415,11 @@ ACMD(do_switch) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *victim;
 
+  /* temporarily disabled while adapting to wilderness */
+  /**/send_to_char(ch, "Under construction.\r\n");   /**/
+  /**/return;                                        /**/
+  /* temporarily disabled while adapting to wilderness */
+
   one_argument(argument, arg);
 
   if (ch->desc->original)
