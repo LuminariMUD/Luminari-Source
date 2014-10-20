@@ -2126,6 +2126,7 @@ int find_armor_type(int specType)
   return ARMOR_TYPE_LIGHT;
 }
 
+/* did CH successfully making his saving-throw? */
 int savingthrow(struct char_data *ch, int save, int modifier, int dc)
 {
   int roll = dice(1, 20);
