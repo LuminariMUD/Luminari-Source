@@ -3455,8 +3455,11 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
 
 // now returns # of attacks and has mode functionality -zusuk
 // mode = 0	normal attack routine
+#define NORMAL_ATTACK_ROUTINE 0
 // mode = 1	return # of attacks, nothing else
+#define RETURN_NUM_ATTACKS 1
 // mode = 2	display attack routine potential
+#define DISPLAY_ROUTINE_POTENTIAL 2
 /* this function will perform a character melee attack routine
    or in the case of modes 1 or 2, it will display what a char
    can do */
@@ -3507,9 +3510,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
    *  Do not attack at all. 
    *  If we have no move action (and are in regular attack mode) skip all
    *  phases but the first. */
-  if ((mode == 0) && !is_action_available(ch, atSTANDARD, FALSE)) 
+  if ((mode == NORMAL_ATTACK_ROUTINE) && !is_action_available(ch, atSTANDARD, FALSE)) 
     return (0);
-  else if ((mode == 0) && (phase != 1) && !is_action_available(ch, atMOVE, FALSE))
+  else if ((mode == NORMAL_ATTACK_ROUTINE) && (phase != 1) && !is_action_available(ch, atMOVE, FALSE))
     return (0);
 
   // check guard skill
@@ -3549,7 +3552,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   }
 
   /* Process ranged attacks ------------------------------------------------- */
-  if (FIRING(ch) && mode == 0) {
+  if (FIRING(ch) && mode == NORMAL_ATTACK_ROUTINE) {
     if (is_tanking(ch) && !(HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))) {
       send_to_char(ch, "You are too close to use your ranged weapon.\r\n");
       FIRING(ch) = FALSE;
@@ -3614,9 +3617,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       }
       return 0;
     }
-  } else if (mode == 1 && can_fire_arrow(ch, TRUE)) {
+  } else if (mode == RETURN_NUM_ATTACKS && can_fire_arrow(ch, TRUE)) {
     return ranged_attacks;
-  } else if (mode == 2 && can_fire_arrow(ch, TRUE)) {
+  } else if (mode == DISPLAY_ROUTINE_POTENTIAL && can_fire_arrow(ch, TRUE)) {
     while (ranged_attacks > 0) {
       send_to_char(ch, "Ranged Attack Bonus:  %d; ",
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_RANGED) + penalty);
@@ -3647,7 +3650,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       penalty -= 1;
     else
       penalty -= 4;
-    if (mode == 0) { //normal attack routine
+    if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                 IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
@@ -3660,7 +3663,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           if (phase == 0 || phase == 2)
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                   penalty * 2, TRUE);
-    } else if (mode == 2) { //display attack routine
+    } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
@@ -3671,13 +3674,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   } else { // not dual wielding
     //default of one attack for everyone
     numAttacks++;
-    if (mode == 0) { //normal attack routine
+    if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                 IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
           if (phase == 0 || phase == 1)
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
-    } else if (mode == 2) { //display attack routine
+    } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
@@ -3688,13 +3691,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   if (AFF_FLAGGED(ch, AFF_HASTE) ||
           (!IS_NPC(ch) && GET_SKILL(ch, SKILL_BLINDING_SPEED))) {
     numAttacks++;
-    if (mode == 0) { //normal attack routine
+    if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                 IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
           if (phase == 0 || ((phase == 2) && numAttacks == 2) || ((phase == 3) && numAttacks == 3))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
-    } else if (mode == 2) { //display attack routine
+    } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
       send_to_char(ch, "Mainhand (Haste), Attack Bonus:  %d; ",
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
@@ -3744,7 +3747,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       else
         penalty -= 5;
 
-      if (FIGHTING(ch) && mode == 0) { //normal attack routine
+      if (FIGHTING(ch) && mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
         update_pos(FIGHTING(ch));
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
             IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch)) {
@@ -3752,7 +3755,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
         }
       }
     }
-    if (mode == 2) { /* Display attack routine. */
+    if (mode == DISPLAY_ROUTINE_POTENTIAL) { /* Display attack routine. */
       send_to_char(ch, "Mainhand Bonus %d, Attack Bonus:  %d; ",
                    i + 1,
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
@@ -3765,7 +3768,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   if (dual) {
     if (!IS_NPC(ch) && is_skilled_dualer(ch, 2)) {
       numAttacks++;
-      if (mode == 0) { //normal attack routine
+      if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
         if (FIGHTING(ch))
           if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                   IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
@@ -3782,7 +3785,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                                                 (numAttacks == 9) ||
                                                 (numAttacks == 12))))
               hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY, TRUE);
-      } else if (mode == 2) { //display attack routine
+      } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
         send_to_char(ch, "Offhand (2 Weapon Fighting), Attack Bonus:  %d; ",
                      compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + TWO_WPN_PNLTY);
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
@@ -3790,7 +3793,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     }
     if (!IS_NPC(ch) && is_skilled_dualer(ch, 3)) {
       numAttacks++;
-      if (mode == 0) { //normal attack routine
+      if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
         if (FIGHTING(ch))
           if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                   IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
@@ -3808,7 +3811,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                                                 (numAttacks == 12))))
 
               hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLY, TRUE);
-      } else if (mode == 2) { //display attack routine
+      } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
         send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",
                      compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + EPIC_TWO_PNLY);
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
@@ -3822,6 +3825,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 #undef MONK_CAP
 #undef TWO_WPN_PNLTY
 #undef EPIC_TWO_PNLY
+#undef NORMAL_ATTACK_ROUTINE
+#undef RETURN_NUM_ATTACKS
+#undef DISPLAY_ROUTINE_POTENTIAL
 
 /* display condition of FIGHTING() target to ch */
 
