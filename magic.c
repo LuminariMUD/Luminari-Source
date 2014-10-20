@@ -156,18 +156,26 @@ const char *save_names[] = {"Fort", "Refl", "Will", "", ""};
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
         int type, int modifier) {
   int challenge = 10, // 10 is base DC
-  diceroll = dice(1, 20),
-  savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
+      diceroll = dice(1, 20),
+      stat_bonus = 0,
+      savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
+  
 
   if (GET_POS(vict) == POS_DEAD)
     return (FALSE); /* Guess you failed, since you are DEAD. */
   
   //can add challenge bonus/penalties here (ch)
-  challenge += (DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch)) / 2;
-  if (DIVINE_LEVEL(ch) > MAGIC_LEVEL(ch))
-    challenge += GET_WIS_BONUS(ch);
-  else
-    challenge += GET_INT_BONUS(ch);
+  if (ch) {
+  challenge += (DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch)) / 2; /* caster level */
+
+  stat_bonus = GET_WIS_BONUS(ch);
+  if (GET_CHA_BONUS(ch) > stat_bonus)
+    stat_bonus = GET_CHA_BONUS(ch);
+  if (GET_INT_BONUS(ch) > stat_bonus)
+    stat_bonus = GET_INT_BONUS(ch);
+  
+  challenge += stat_bonus;
+  }
 
   if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch))
     savethrow += 2;
