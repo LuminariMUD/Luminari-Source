@@ -431,51 +431,61 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
 
   USE_STANDARD_ACTION(ch);
   USE_MOVE_ACTION(ch);
-
 }
 
 /* engine for knockdown, used in bash/trip/etc */
 bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) {
-
-  int penalty = 0;
+  int penalty = 0, attack_check = 0, defense_check = 0;
   bool success = FALSE, counter_success = FALSE;
-  int attack_check = 0, defense_check = 0;
-  //float rounds_wait = 1.75;
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
           ch->next_in_room != vict && vict->next_in_room != ch) {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return FALSE;
   }
-
   if (MOB_FLAGGED(vict, MOB_NOKILL)) {
     send_to_char(ch, "This mob is protected.\r\n");
     return FALSE;
   }
-
   if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2) {
     send_to_char(ch, "Your target is too small!\r\n");
     return FALSE;
   }
-
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
     send_to_char(ch, "Your target is too big!\r\n");
     return FALSE;
   }
-
+  if (GET_POS(vict) == POS_SITTING) {
+    send_to_char(ch, "You can't knock down something that is already down!\r\n");
+    return FALSE;
+  }
   if (IS_INCORPOREAL(vict)) {
     act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
     return FALSE;
   }
+  if (MOB_FLAGGED(vict, MOB_NOBASH)) {
+    send_to_char(ch, "You realize you will probably not succeed:  ");
+    penalty = -100;
+  }
 
   switch (skill) {
     case SKILL_BODYSLAM:
     case SKILL_SHIELD_CHARGE:
+      attack_check = GET_STR_BONUS(ch);
       break;
     case SKILL_BASH:
+      attack_check = GET_STR_BONUS(ch);
+      if (AFF_FLAGGED(vict, AFF_FLYING)) {
+        send_to_char(ch, "Impossible, your target is flying!\r\n");
+        return FALSE;
+      }
+      if (!HAS_FEAT(ch, FEAT_IMPROVED_TRIP))
+        attack_of_opportunity(vict, ch, 0);
+      break;
     case SKILL_TRIP:
+      attack_check = GET_DEX_BONUS(ch);
       if (AFF_FLAGGED(vict, AFF_FLYING)) {
         send_to_char(ch, "Impossible, your target is flying!\r\n");
         return FALSE;
@@ -488,26 +498,13 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
       return FALSE;
   }
 
-
-  if (MOB_FLAGGED(vict, MOB_NOBASH)) {
-    send_to_char(ch, "You realize you will probably not succeed:  ");
-    penalty = -100;
-  }
-
-  if (GET_POS(vict) == POS_SITTING) {
-    send_to_char(ch, "You can't knock down something already down!\r\n");
-    return FALSE;
-  }
-
-
   /* Perform the unarmed touch attack */
   if ((attack_roll(ch, vict, ATTACK_TYPE_UNARMED, TRUE, 1) + penalty) > 0) {
     /* Successful unarmed touch attacks. */
 
-
     /* Perform strength check. */
-    attack_check = (dice(1, 20) + GET_STR_BONUS(ch) + (GET_SIZE(ch) - GET_SIZE(vict))*4);
-    defense_check = (dice(1, 20) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)));
+    attack_check += dice(1, 20) + special_size_modifier(ch); /* we added stat bonus above */
+    defense_check = dice(1, 20) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)) + special_size_modifier(vict);
 
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP)) {
       /* You do not provoke an attack of opportunity when you attempt to trip an opponent while you are unarmed. 
@@ -519,15 +516,14 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
        * Normal:
        * Without this feat, you provoke an attack of opportunity when you attempt to trip an opponent while you 
        * are unarmed. */
-
       attack_check += 4;
     }
 
     if (GET_RACE(vict) == RACE_DWARF ||
-            GET_RACE(vict) == RACE_CRYSTAL_DWARF) // dwarf dwarven stability
+            GET_RACE(vict) == RACE_CRYSTAL_DWARF) /* dwarven stability */
       defense_check += 4;
 
-    //    send_to_char(ch, "attack check: %d, defense_check: %d\r\n", attack_check, defense_check);
+    /*DEBUG*/ /*send_to_char(ch, "attack check: %d, defense_check: %d\r\n", attack_check, defense_check);*/
     if (attack_check >= defense_check) {
       if (attack_check == defense_check) {
         /* Check the bonuses. */
@@ -552,21 +548,10 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
         act("\ty$n grabs and overpowers you, throwing you to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
         act("\ty$n grabs and overpowers $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
       }
-
     } else {
       /* Messages for shield charge */
       if (skill == SKILL_SHIELD_CHARGE) {
-        /*
-                if (GET_STR_BONUS(vict) >= GET_DEX_BONUS(vict)) {
-                  act("\tyYou charge into $N with your shield, but $E doesn't budge!\tn", FALSE, ch, NULL, vict, TO_CHAR);
-                  act("\ty$n charges into you, but you stand your ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
-                  act("\ty$n charges into $N, but $E doesn't budge!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);      
-                } else {
-                  act("\tyYou charge into $N with your shield, but $E regains $S footing!\tn", FALSE, ch, NULL, vict, TO_CHAR);
-                  act("\ty$n charges into you, but you regain your footing!\tn", FALSE, ch, NULL, vict, TO_VICT);
-                  act("\ty$n charges into $N, but $E regains $S footing!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);     
-                }      
-         */
+        /* just moved this to damage-messages */
       } else {
         /* Messages for failed trip */
         if (GET_STR_BONUS(vict) >= GET_DEX_BONUS(vict)) {
@@ -579,7 +564,6 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
           act("\ty$n grabs $N but $E deftly turns away from $s attack!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
         }
       }
-
       if (skill != SKILL_SHIELD_CHARGE) {
         /* Victim gets a chance to countertrip */
         attack_check = (dice(1, 20) + GET_STR_BONUS(vict) + (GET_SIZE(vict) - GET_SIZE(ch))*4);
@@ -588,8 +572,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
         if (GET_RACE(ch) == RACE_DWARF ||
                 GET_RACE(ch) == RACE_CRYSTAL_DWARF) /* Dwarves get a stability bonus. */
           defense_check += 4;
-
-        //        send_to_char(ch, "counterattack check: %d, defense_check: %d\r\n", attack_check, defense_check);
+        /*DEBUG*/ /*send_to_char(ch, "counterattack check: %d, defense_check: %d\r\n", attack_check, defense_check);*/
 
         if (attack_check >= defense_check) {
           if (attack_check == defense_check) {
@@ -612,7 +595,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
           act("\tyTaking advantage of $n's failed attack, you throw $m to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
           act("\tyTaking advantage of $n's failed attack, $N throws $m to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
         } else {
-          /* Messages for failed coutner-trip */
+          /* Messages for failed counter-trip */
           if (GET_STR_BONUS(ch) >= GET_DEX_BONUS(ch)) {
             act("\tyYou resist $N's attempt to take advantage of your failed attack.\tn", FALSE, ch, NULL, vict, TO_CHAR);
             act("\ty$n resists your attempt to take advantage of $s failed attack.\tn", FALSE, ch, NULL, vict, TO_VICT);
@@ -628,11 +611,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
   } else {
     /* Messages for a missed unarmed touch attack. */
     if (skill == SKILL_SHIELD_CHARGE) {
-      /*
-            act("\ty$N rolls off of your shield, avoiding your charge!\tn", FALSE, ch, NULL, vict, TO_CHAR);
-            act("\ty$n tries to charge you with $s shield, but you dodge easily away!\tn", FALSE, ch, NULL, vict, TO_VICT);
-            act("\ty$n tries to charge $N with $s shield, but $N dodges easily away!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
-       */
+        /* just moved this to damage-messages */
     } else {
       act("\tyYou are unable to grab $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
       act("\ty$n tries to grab you, but you dodge easily away!\tn", FALSE, ch, NULL, vict, TO_VICT);
@@ -665,7 +644,6 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
   }
 
   return TRUE;
-
 }
 
 /* shieldpunch engine :
@@ -2395,7 +2373,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
     diceTwo = 2;
   
   if (combat_maneuver_check(ch, vict, discipline_bonus)) {
-    damage(ch, vict, dice(diceOne, diceTwo), SKILL_KICK, DAM_FORCE, FALSE);
+    damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_KICK, DAM_FORCE, FALSE);
     if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc))
       USE_MOVE_ACTION(vict);
   } else
