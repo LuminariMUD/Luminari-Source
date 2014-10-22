@@ -3389,15 +3389,12 @@ int hit(struct char_data *ch, struct char_data *victim,
 #undef HIT_MISS
 
 /* is given ch a ranger that is qualified for his/her dual-wield bonus? */
-
 /* mode comes from perform_attacks and is_skilled_dualer
      1 - ambidexterity
      2 - two weapon fighting
      3 - epic two weapon fighting
  */
-
 /* NEEDS REWRITE!!!! */
-
 int is_dual_weapons(struct char_data *ch, int mode) {
 
   // we already checked if this is a NPC coming in
@@ -3461,138 +3458,114 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
 }
 
 
-// now returns # of attacks and has mode functionality -zusuk
-// mode = 0	normal attack routine
-#define NORMAL_ATTACK_ROUTINE 0
-// mode = 1	return # of attacks, nothing else
-#define RETURN_NUM_ATTACKS 1
-// mode = 2	display attack routine potential
-#define DISPLAY_ROUTINE_POTENTIAL 2
-/* this function will perform a character melee attack routine
-   or in the case of modes 1 or 2, it will display what a char
-   can do */
-#define ATTACK_CAP	3  // # of BONUS attacks
-#define MONK_CAP	ATTACK_CAP + 2
+/* returns # of attacks and has mode functionality */
+#define ATTACK_CAP	3  /* MAX # of main-hand BONUS attacks */
+#define MONK_CAP	(ATTACK_CAP + 2) /* monks main-hand bonus attack cap */
 #define TWO_WPN_PNLTY	-5
 #define EPIC_TWO_PNLY	-7
-
+/* mode functionality */
+#define NORMAL_ATTACK_ROUTINE 0 /*mode = 0  normal attack routine*/
+#define RETURN_NUM_ATTACKS 1 /*mode = 1  return # of attacks, nothing else*/
+#define DISPLAY_ROUTINE_POTENTIAL 2 /*mode = 2  display attack routine potential*/
 /* Phase determines what part of the combat round we are currently 
  * in.  Each combat round is broken up into 3 2-second phases. 
  * Attacks are split among the phases (for a full-round-action) 
  * in the following pattern:
- *
  * For 1 attack:
  *   Phase 1 - Attack once.
  *   Phase 2 - Do Nothing.
  *   Phase 3 - Do Nothing.
- *
  * For 2 attacks:
  *   Phase 1 - Attack once.
  *   Phase 2 - Attack once.
  *   Phase 3 - Do Nothing.
- *
  * For 4 attacks:
  *   Phase 1 - Attack twice.
  *   Phase 2 - Attack once.
- *   Phase 3 - Attack once.
- *
- * Actions:
- *   Full attack requires you to have a Standard and a Move action.
- *   If you only have a standard action, you only perform one attack in phase 1.
- *   If you do not have a standard action, you do not attack at all.
- *
- *   */
+ *   Phase 3 - Attack once.  ...ETC... */
+#define PHASE_0 0
+#define PHASE_1 1
+#define PHASE_2 2
+#define PHASE_3 3
 int perform_attacks(struct char_data *ch, int mode, int phase) {
   int i = 0, penalty = 0, numAttacks = 0, bonusAttacks = 0;
   int attacks_at_max_bab = 1; /* First attack always MAX BAB */
-  int monkMode = FALSE, ranged_attacks = 2;
+  int ranged_attacks = 2;
   bool dual = FALSE;
   bool perform_attack = FALSE;
 
-  /* Check position. */
-//  if (GET_POS(ch) < POS_STUNNED) 
+  /* Check position..  we don't check < POS_STUNNED anymore? */
   if (GET_POS(ch) == POS_DEAD)
     return(0); 
 
   /*  If we have no standard action (and are using regular attack mode.)
-   *  Do not attack at all. 
-   *  If we have no move action (and are in regular attack mode) skip all
-   *  phases but the first. */
+   *  Do not attack at all. If we have no move action (and are in regular
+   *  attack mode) skip all phases but the first. */
   if ((mode == NORMAL_ATTACK_ROUTINE) && !is_action_available(ch, atSTANDARD, FALSE)) 
     return (0);
   else if ((mode == NORMAL_ATTACK_ROUTINE) && (phase != 1) && !is_action_available(ch, atMOVE, FALSE))
     return (0);
 
-  // check guard skill
-  guard_check(ch, FIGHTING(ch));
+  guard_check(ch, FIGHTING(ch)); /* this is the guard skill check */
 
-  //now level based bonus attacks
-  // note to self, do not forget to put armor restrictions! -zusuk
-  // you get an attack for every 5 points of BAB unless you are a monk
+  /* level based bonus attacks, which is BAB / 5 up to the ATTACK_CAP [note might need to add armor restrictions here?] */
   bonusAttacks = MIN((BAB(ch) - 1) / 5, ATTACK_CAP);
-  if (CLASS_LEVEL(ch, CLASS_MONK)) {
-    if (!GET_EQ(ch, WEAR_HOLD_1)
-            && !GET_EQ(ch, WEAR_WIELD_1)
-            && !GET_EQ(ch, WEAR_HOLD_2)
-            && !GET_EQ(ch, WEAR_WIELD_2)
-            && !GET_EQ(ch, WEAR_SHIELD)
-            && !GET_EQ(ch, WEAR_WIELD_2H)
-            ) {
-      // monks get an attack for every 3 points of BAB
-      bonusAttacks = MIN((BAB(ch) - 1) / 3, MONK_CAP);
-      monkMode = TRUE;
+  
+  /* monk flurry of blows */
+  if (CLASS_LEVEL(ch, CLASS_MONK) && monk_gear_ok(ch) &&
+          AFF_FLAGGED(ch, AFF_FLURRY_OF_BLOWS)) {
+    bonusAttacks++;
+    attacks_at_max_bab++;
+    if (CLASS_LEVEL(ch, CLASS_MONK) < 5)
+      penalty = -2; /* flurry penalty */
+    else if (CLASS_LEVEL(ch, CLASS_MONK) < 9)
+      penalty = -1; /* 9th level+, no more penalty to flurry! */
+    if (HAS_FEAT(ch, FEAT_GREATER_FLURRY)) { /* FEAT_GREATER_FLURRY */
+      bonusAttacks++;
+      attacks_at_max_bab++;
     }
   }
-  /* ranged get extra attacks */
-  ranged_attacks += bonusAttacks;
-
+  
   /* Haste gives one extra attack, ranged or melee, at max BAB. */
   if (AFF_FLAGGED(ch, AFF_HASTE)) {
     ranged_attacks++;
     attacks_at_max_bab++;
   }
 
+  /* Process ranged attacks ------------------------------------------------- */
+  bool drop_an_attack_at_max_bab = FALSE;
+  /* ranged get extra attacks */
+  ranged_attacks += bonusAttacks;
   /* Rapidshot mode gives an extra attack, but with a penalty to all attacks. */
   if (AFF_FLAGGED(ch, AFF_RAPID_SHOT)) {
     penalty -= 2;
     ranged_attacks++;
-    attacks_at_max_bab++;
+    attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
+    drop_an_attack_at_max_bab = TRUE;
   }
-
-  /* Process ranged attacks ------------------------------------------------- */
   if (FIRING(ch) && mode == NORMAL_ATTACK_ROUTINE) {
     if (is_tanking(ch) && !(HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))) {
       send_to_char(ch, "You are too close to use your ranged weapon.\r\n");
       FIRING(ch) = FALSE;
-    } else {
+    } else { /* FIRE! */
       for (i = 0; i < ranged_attacks; i++) {
         /* phase 1: 1 4 7 10
          * phase 2: 2 5 8 11
-         * phase 3: 3 6 9 12
-         */
+         * phase 3: 3 6 9 12 */
         perform_attack = FALSE;
         switch (i) {
-          case 1:
-          case 4: 
-          case 7:
-          case 10:
-            if (phase == 0 || phase == 1 ) {
+          case 1: case 4: case 7: case 10:
+            if (phase == PHASE_0 || phase == PHASE_1 ) {
               perform_attack = TRUE;
             } 
             break; 
-          case 2:
-          case 5:
-          case 8:
-          case 11:
-            if (phase == 0 || phase == 2 ) {
+          case 2: case 5: case 8: case 11:
+            if (phase == PHASE_0 || phase == PHASE_2 ) {
               perform_attack = TRUE;
             }      
             break;
-          case 3:
-          case 6:
-          case 9:
-          case 12:
-            if (phase == 0 || phase == 3 ) {
+          case 3: case 6: case 9: case 12:
+            if (phase == PHASE_0 || phase == PHASE_3 ) {
               perform_attack = TRUE;
             }      
             break;
@@ -3602,13 +3575,16 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           if (can_fire_arrow(ch, FALSE) && FIGHTING(ch)) {
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 penalty, 2); // 2 in last arg indicates ranged
-            penalty -= 3;
+            if (attacks_at_max_bab <= 0)
+              attacks_at_max_bab--;
+            else
+              penalty -= 3;
           } else if (FIGHTING(ch)) {
             send_to_char(ch, "\tWYou are out of ammunition!\tn\r\n");
             stop_fighting(ch);
             return 0;
           } else
-             stop_fighting(ch);              
+            stop_fighting(ch);              
         }
       }
       return 0;
@@ -3630,13 +3606,14 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     }
     return 0;
   }
+  if (drop_an_attack_at_max_bab)
+    attacks_at_max_bab--;
   /*  End ranged attacks ---------------------------------------------------- */
 
   //now lets determine base attack(s) and resulting possible penalty
   dual = is_skilled_dualer(ch, 0); // trelux or has off-hander equipped
 
-  //default of one offhand attack for everyone
-  if (dual) {
+  if (dual) { /*default of one offhand attack for everyone*/
     numAttacks += 2;
     if (GET_EQ(ch, WEAR_WIELD_2)) {
       if (GET_SIZE(ch) <= GET_OBJ_SIZE(GET_EQ(ch, WEAR_WIELD_2)))
@@ -3650,13 +3627,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                 IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-          if (phase == 0 || phase == 1)
+          if (phase == PHASE_0 || phase == PHASE_1)
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 penalty, FALSE);
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                 IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-          if (phase == 0 || phase == 2)
+          if (phase == PHASE_0 || phase == PHASE_2)
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                   penalty * 2, TRUE);
     } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
@@ -3668,13 +3645,12 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       compute_hit_damage(ch, ch, NULL, 0, 0, 3);
     }
   } else { // not dual wielding
-    //default of one attack for everyone
-    numAttacks++;
+    numAttacks++;  //default of one attack for everyone
     if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                 IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-          if (phase == 0 || phase == 1)
+          if (phase == PHASE_0 || phase == PHASE_1)
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
     } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
@@ -3688,10 +3664,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           (!IS_NPC(ch) && GET_SKILL(ch, SKILL_BLINDING_SPEED))) {
     numAttacks++;
     if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
+      attacks_at_max_bab--;      
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                 IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-          if (phase == 0 || ((phase == 2) && numAttacks == 2) || ((phase == 3) && numAttacks == 3))
+          if (phase == PHASE_0 || ((phase == PHASE_2) && numAttacks == 2) || ((phase == PHASE_3) && numAttacks == 3))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
     } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
       send_to_char(ch, "Mainhand (Haste), Attack Bonus:  %d; ",
@@ -3700,49 +3677,35 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     }
   }
 
-  int j = 0;
-
   //execute the calculated attacks from above
+  int j = 0;
   for (i = 0; i < bonusAttacks; i++) {
     numAttacks++;
     j = numAttacks + i;
-
     perform_attack = FALSE;
     switch (j) {
-      case 1:
-      case 4:
-      case 7:
-      case 10:
-        if (phase == 0 || phase == 1 ) {
+      case 1: case 4: case 7: case 10:
+        if (phase == PHASE_0 || phase == PHASE_1 ) {
           perform_attack = TRUE;
         }
         break;
-      case 2: 
-      case 5: 
-      case 8: 
-      case 11: 
-        if (phase == 0 || phase == 2 ) {
+      case 2: case 5: case 8: case 11: 
+        if (phase == PHASE_0 || phase == PHASE_2 ) {
           perform_attack = TRUE;
         }       
         break; 
-      case 3: 
-      case 6: 
-      case 9: 
-      case 12: 
-        if (phase == 0 || phase == 3 ) {
+      case 3: case 6: case 9: case 12: 
+        if (phase == PHASE_0 || phase == PHASE_3 ) {
           perform_attack = TRUE;
         }         
         break; 
-    } 
+    }
     if (perform_attack) {
-      // monks get accumulate -3 penalty per attack
-      
-      if (monkMode)
-        penalty -= 3;
-        // everyone else get accumulate -5 penalty per attack
+      if(attacks_at_max_bab != 0)
+        attacks_at_max_bab--; /* like monks flurry */
       else
-        penalty -= 5;
-
+        penalty -= 5;      /* everyone gets -5 penalty per bonus attack by mainhand */
+      
       if (FIGHTING(ch) && mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
         update_pos(FIGHTING(ch));
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
@@ -3757,10 +3720,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
     } 
-
   }
 
-  //additional off-hand attacks
+  /*additional off-hand attacks*/
   if (dual) {
     if (!IS_NPC(ch) && is_skilled_dualer(ch, 2)) {
       numAttacks++;
@@ -3768,15 +3730,15 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
         if (FIGHTING(ch))
           if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                   IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-            if (phase == 0 || ((phase == 1) && ((numAttacks == 1) ||
+            if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) ||
                                                 (numAttacks == 4) ||
                                                 (numAttacks == 7) ||
                                                 (numAttacks == 10))) ||
-                              ((phase == 2) && ((numAttacks == 2) ||
+                              ((phase == PHASE_2) && ((numAttacks == 2) ||
                                                 (numAttacks == 5) ||
                                                 (numAttacks == 8) ||
                                                 (numAttacks == 11))) ||
-                              ((phase == 1) && ((numAttacks == 3) ||
+                              ((phase == PHASE_1) && ((numAttacks == 3) ||
                                                 (numAttacks == 6) ||
                                                 (numAttacks == 9) ||
                                                 (numAttacks == 12))))
@@ -3787,21 +3749,21 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
       }
     }
-    if (!IS_NPC(ch) && is_skilled_dualer(ch, 3)) {
+    if (!IS_NPC(ch) && is_skilled_dualer(ch, 3)) { /* epic two weapon fighting */
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
         if (FIGHTING(ch))
           if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                   IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-            if (phase == 0 || ((phase == 1) && ((numAttacks == 1) ||
+            if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) ||
                                                 (numAttacks == 4) ||
                                                 (numAttacks == 7) ||
                                                 (numAttacks == 10))) ||
-                              ((phase == 2) && ((numAttacks == 2) ||
+                              ((phase == PHASE_2) && ((numAttacks == 2) ||
                                                 (numAttacks == 5) ||
                                                 (numAttacks == 8) ||
                                                 (numAttacks == 11))) ||
-                              ((phase == 1) && ((numAttacks == 3) ||
+                              ((phase == PHASE_1) && ((numAttacks == 3) ||
                                                 (numAttacks == 6) ||
                                                 (numAttacks == 9) ||
                                                 (numAttacks == 12))))
@@ -3814,7 +3776,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       }
     }
   }
-
   return numAttacks;
 }
 #undef ATTACK_CAP
@@ -3824,7 +3785,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 #undef NORMAL_ATTACK_ROUTINE
 #undef RETURN_NUM_ATTACKS
 #undef DISPLAY_ROUTINE_POTENTIAL
-
+#undef PHASE_1
+#undef PHASE_2
+#undef PHASE_3
 /* display condition of FIGHTING() target to ch */
 
 /* this is deprecated with the prompt changes */
