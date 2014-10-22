@@ -5921,6 +5921,7 @@ int get_eq_score(obj_rnum a) {
         case AFF_TRUE_SIGHT:       
         case AFF_FLYING:            
         case AFF_POWER_ATTACK: 
+        case AFF_FLURRY_OF_BLOWS: 
         case AFF_EXPERTISE:  
         case AFF_PARRY:  
         case AFF_ELEMENT_PROT:

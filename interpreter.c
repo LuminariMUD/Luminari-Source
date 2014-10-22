@@ -214,6 +214,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "frightful", "frightful", POS_FIGHTING, do_frightful, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "fly", "fly", POS_FIGHTING, do_fly, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "fire", "fire", POS_FIGHTING, do_fire, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "flurryofblows", "flurryofblows", POS_FIGHTING, do_mode, 1, MODE_FLURRY_OF_BLOWS, FALSE, ACTION_NONE, {0, 0}},
 
   { "get", "g", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "gecho", "gecho", POS_DEAD, do_gecho, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
