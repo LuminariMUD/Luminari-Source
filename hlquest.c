@@ -663,7 +663,7 @@ int quest_location_vnum(struct quest_command *qcom) {
 /*-----------------------------------*/
 
 /* loading the quests from disk */
-void boot_the_quests(FILE * quest_f, char *filename, int rec_count) {
+void boot_the_quests(FILE *quest_f, char *filename, int rec_count) {
   char str[256];
   char line[256];
   char inner[256];
