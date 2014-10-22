@@ -68,7 +68,9 @@ int special_size_modifier(struct char_data *ch) {
 
 /* basic check for combat maneuver success, + incoming bonus (or negative value for penalty
  * this returns the level of success or failure, which applies in cases such as bull rush 
- * 1 or higher = success, 0 or lower = failure */
+ * 1 or higher = success, 0 or lower = failure
+ * ##NOTE## an equivalent function(s) lie in fight.c made by Ornir, once we discuss/test
+ * more in depth we'll merge the functions (compute_cmd/compute_cmb)*/
 int combat_maneuver_check(struct char_data *ch, struct char_data *vict, int bonus) {
   int cm_bonus = bonus; /* combat maneuver bonus */
   int cm_defense = 9; /* combat maneuver defense, should be 10 but if the difference is 0, then you failed your defense */
@@ -415,9 +417,10 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
     name = mob_index[GET_MOB_RNUM(RIDING(ch))].func;
     if (name)
       (name)(ch, RIDING(ch), 0, "charge");
-    else
-      damage(ch, vict, dice(3, 12),
+    
+    damage(ch, vict, dice(3, 12),
             SKILL_CHARGE, DAM_FORCE, FALSE);
+    
     if (rand_number(0, 100) < GET_LEVEL(ch)) {
       new_affect(&af);
       af.spell = SKILL_CHARGE;
@@ -2372,7 +2375,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
   if (diceTwo < 2)
     diceTwo = 2;
   
-  if (combat_maneuver_check(ch, vict, discipline_bonus)) {
+  if (combat_maneuver_check(ch, vict, discipline_bonus) > 0) {
     damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_KICK, DAM_FORCE, FALSE);
     if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc))
       USE_MOVE_ACTION(vict);
