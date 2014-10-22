@@ -3489,7 +3489,7 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
 #define PHASE_3 3
 int perform_attacks(struct char_data *ch, int mode, int phase) {
   int i = 0, penalty = 0, numAttacks = 0, bonusAttacks = 0;
-  int attacks_at_max_bab = 1; /* First attack always MAX BAB */
+  int attacks_at_max_bab = 0;
   int ranged_attacks = 2;
   bool dual = FALSE;
   bool perform_attack = FALSE;
@@ -3575,7 +3575,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           if (can_fire_arrow(ch, FALSE) && FIGHTING(ch)) {
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 penalty, 2); // 2 in last arg indicates ranged
-            if (attacks_at_max_bab <= 0)
+            if (attacks_at_max_bab > 0)
               attacks_at_max_bab--;
             else
               penalty -= 3;
@@ -3597,7 +3597,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_RANGED) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 4);
 
-      if(attacks_at_max_bab != 0)
+      if(attacks_at_max_bab > 0)
         attacks_at_max_bab--;
       else
         penalty -= 3;
@@ -3701,7 +3701,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
         break; 
     }
     if (perform_attack) {
-      if(attacks_at_max_bab != 0)
+      if(attacks_at_max_bab > 0)
         attacks_at_max_bab--; /* like monks flurry */
       else
         penalty -= 5;      /* everyone gets -5 penalty per bonus attack by mainhand */
