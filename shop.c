@@ -1255,29 +1255,28 @@ static char *read_shop_message(int mnum, room_vnum shr, FILE *shop_f, const char
   return (tbuf);
 }
 
-void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
-{
+void boot_the_shops(FILE *shop_f, char *filename, int rec_count) {
   char *buf, buf2[MEDIUM_STRING];
   int temp, count, new_format = FALSE;
   struct shop_buy_data list[MAX_SHOP_OBJ + 1];
   int done = FALSE;
 
-  snprintf(buf2, sizeof(buf2), "beginning of shop file %s", filename);
+  snprintf(buf2, sizeof (buf2), "beginning of shop file %s", filename);
 
   while (!done) {
     buf = fread_string(shop_f, buf2);
-    if (*buf == '#') {		/* New shop */
+    if (*buf == '#') { /* New shop */
       sscanf(buf, "#%d\n", &temp);
-      snprintf(buf2, sizeof(buf2), "shop #%d in shop file %s", temp, filename);
-      free(buf);		/* Plug memory leak! */
+      snprintf(buf2, sizeof (buf2), "shop #%d in shop file %s", temp, filename);
+      free(buf); /* Plug memory leak! */
       top_shop++;
       if (!top_shop)
-	CREATE(shop_index, struct shop_data, rec_count);
+        CREATE(shop_index, struct shop_data, rec_count);
       SHOP_NUM(top_shop) = temp;
       temp = read_list(shop_f, list, new_format, MAX_PROD, LIST_PRODUCE);
       CREATE(shop_index[top_shop].producing, obj_vnum, temp);
       for (count = 0; count < temp; count++)
-	SHOP_PRODUCT(top_shop, count) = BUY_TYPE(list[count]);
+        SHOP_PRODUCT(top_shop, count) = BUY_TYPE(list[count]);
 
       read_line(shop_f, "%f", &SHOP_BUYPROFIT(top_shop));
       read_line(shop_f, "%f", &SHOP_SELLPROFIT(top_shop));
@@ -1285,8 +1284,8 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
       temp = read_type_list(shop_f, list, new_format, MAX_TRADE);
       CREATE(shop_index[top_shop].type, struct shop_buy_data, temp);
       for (count = 0; count < temp; count++) {
-	SHOP_BUYTYPE(top_shop, count) = BUY_TYPE(list[count]);
-	SHOP_BUYWORD(top_shop, count) = BUY_WORD(list[count]);
+        SHOP_BUYTYPE(top_shop, count) = BUY_TYPE(list[count]);
+        SHOP_BUYWORD(top_shop, count) = BUY_WORD(list[count]);
       }
 
       shop_index[top_shop].no_such_item1 = read_shop_message(0, SHOP_NUM(top_shop), shop_f, buf2);
@@ -1306,7 +1305,7 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
       temp = read_list(shop_f, list, new_format, 1, LIST_ROOM);
       CREATE(shop_index[top_shop].in_room, room_vnum, temp);
       for (count = 0; count < temp; count++)
-	SHOP_ROOM(top_shop, count) = BUY_TYPE(list[count]);
+        SHOP_ROOM(top_shop, count) = BUY_TYPE(list[count]);
 
       read_line(shop_f, "%d", &SHOP_OPEN1(top_shop));
       read_line(shop_f, "%d", &SHOP_CLOSE1(top_shop));
@@ -1317,11 +1316,11 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
       SHOP_SORT(top_shop) = 0;
       SHOP_FUNC(top_shop) = NULL;
     } else {
-      if (*buf == '$')		/* EOF */
-	done = TRUE;
-      else if (strstr(buf, VERSION3_TAG))	/* New format marker */
-	new_format = TRUE;
-      free(buf);		/* Plug memory leak! */
+      if (*buf == '$') /* EOF */
+        done = TRUE;
+      else if (strstr(buf, VERSION3_TAG)) /* New format marker */
+        new_format = TRUE;
+      free(buf); /* Plug memory leak! */
     }
   }
 }
