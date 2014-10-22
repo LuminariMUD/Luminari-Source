@@ -1115,7 +1115,7 @@ void index_boot(int mode) {
         boot_the_shops(db_file, buf2, rec_count);
         break;
       case DB_BOOT_HLQST:
-        boot_the_quests(db_file, buf2, rec_count);
+        //boot_the_quests(db_file, buf2, rec_count);
         break;
     }
 
