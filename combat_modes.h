@@ -46,6 +46,7 @@ extern struct combat_mode_data combat_mode_info[MAX_MODES];
 
 ACMD(do_mode);
 ACMD(do_powerattack);
+ACMD(do_flurryofblows);
 ACMD(do_expertise);
 ACMD(do_rapidshot);
 ACMD(do_parry);
