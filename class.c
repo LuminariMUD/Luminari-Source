@@ -139,6 +139,28 @@ int parse_class(char arg) {
   }
 }
 
+/* accept short descrip, return class */
+int parse_class_long(char *arg) {
+  int l = 0; /* string length */
+  
+  for (l = 0; *(arg + l); l++) /* convert to lower case */
+    *(arg + l) = LOWER(*(arg + l));
+
+  if (is_abbrev(arg, "wizard")) return CLASS_WIZARD;
+  if (is_abbrev(arg, "cleric")) return CLASS_CLERIC;
+  if (is_abbrev(arg, "warrior")) return CLASS_WARRIOR;
+  if (is_abbrev(arg, "rogue")) return CLASS_ROGUE;
+  if (is_abbrev(arg, "monk")) return CLASS_MONK;
+  if (is_abbrev(arg, "druid")) return CLASS_DRUID;
+  if (is_abbrev(arg, "berserker")) return CLASS_BERSERKER;
+  if (is_abbrev(arg, "sorcerer")) return CLASS_SORCERER;
+  if (is_abbrev(arg, "paladin")) return CLASS_PALADIN;
+  if (is_abbrev(arg, "rager")) return CLASS_RANGER;
+  if (is_abbrev(arg, "bard")) return CLASS_BARD;
+  
+  return CLASS_UNDEFINED;
+}
+
 /* bitvectors (i.e., powers of two) for each class, mainly for use in do_who
  * and do_users.  Add new classes at the end so that all classes use sequential
  * powers of two (1 << 0, 1 << 1, 1 << 2, 1 << 3, 1 << 4, 1 << 5, etc.) up to
@@ -2443,7 +2465,6 @@ void advance_level(struct char_data *ch, int class) {
     SET_BIT_AR(PRF_FLAGS(ch), PRF_SHOWVNUMS);
     send_to_char(ch, "Setting \tRSHOWVNUMS\tn on.\r\n");
   }
-
 
   /* make sure you aren't snooping someone you shouldn't with new level */
   snoop_check(ch);

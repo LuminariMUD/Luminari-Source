@@ -3149,70 +3149,75 @@ struct set_struct {
   { "class", LVL_BUILDER, BOTH, MISC},
   { "color", LVL_STAFF, PC, BINARY},
   { "con", LVL_BUILDER, BOTH, NUMBER},
-  { "damroll", LVL_BUILDER, BOTH, NUMBER}, /* 10 */
+  { "damroll", LVL_BUILDER, BOTH, NUMBER}, /* 12 */
   { "deleted", LVL_IMPL, PC, BINARY},
   { "dex", LVL_BUILDER, BOTH, NUMBER},
   { "drunk", LVL_BUILDER, BOTH, MISC},
   { "exp", LVL_STAFF, BOTH, NUMBER},
-  { "frozen", LVL_GRSTAFF, PC, BINARY}, /* 15 */
+  { "frozen", LVL_GRSTAFF, PC, BINARY}, /* 17 */
   { "gold", LVL_BUILDER, BOTH, NUMBER},
   { "height", LVL_BUILDER, BOTH, NUMBER},
   { "hitpoints", LVL_BUILDER, BOTH, NUMBER},
   { "hitroll", LVL_BUILDER, BOTH, NUMBER},
-  { "hunger", LVL_BUILDER, BOTH, MISC}, /* 20 */
+  { "hunger", LVL_BUILDER, BOTH, MISC}, /* 22 */
   { "int", LVL_BUILDER, BOTH, NUMBER},
   { "invis", LVL_STAFF, PC, NUMBER},
   { "invstart", LVL_BUILDER, PC, BINARY},
   { "killer", LVL_STAFF, PC, BINARY},
-  { "level", LVL_GRSTAFF, BOTH, NUMBER}, /* 25 */
+  { "level", LVL_GRSTAFF, BOTH, NUMBER}, /* 27 */
   { "loadroom", LVL_BUILDER, PC, MISC},
   { "mana", LVL_BUILDER, BOTH, NUMBER},
   { "maxhit", LVL_BUILDER, BOTH, NUMBER},
   { "maxmana", LVL_BUILDER, BOTH, NUMBER},
-  { "maxmove", LVL_BUILDER, BOTH, NUMBER}, /* 30 */
+  { "maxmove", LVL_BUILDER, BOTH, NUMBER}, /* 32 */
   { "move", LVL_BUILDER, BOTH, NUMBER},
   { "name", LVL_IMMORT, PC, MISC},
   { "nodelete", LVL_STAFF, PC, BINARY},
   { "nohassle", LVL_STAFF, PC, BINARY},
-  { "nosummon", LVL_BUILDER, PC, BINARY}, /* 35 */
+  { "nosummon", LVL_BUILDER, PC, BINARY}, /* 37 */
   { "nowizlist", LVL_GRSTAFF, PC, BINARY},
   { "olc", LVL_GRSTAFF, PC, MISC},
   { "password", LVL_GRSTAFF, PC, MISC},
   { "poofin", LVL_IMMORT, PC, MISC},
-  { "poofout", LVL_IMMORT, PC, MISC}, /* 40 */
+  { "poofout", LVL_IMMORT, PC, MISC}, /* 42 */
   { "practices", LVL_STAFF, PC, NUMBER},
   { "quest", LVL_STAFF, PC, BINARY},
   { "room", LVL_BUILDER, BOTH, NUMBER},
   { "screenwidth", LVL_STAFF, PC, NUMBER},
-  { "sex", LVL_STAFF, BOTH, MISC}, /* 45 */
+  { "sex", LVL_STAFF, BOTH, MISC}, /* 47 */
   { "showvnums", LVL_BUILDER, PC, BINARY},
   { "siteok", LVL_STAFF, PC, BINARY},
   { "str", LVL_BUILDER, BOTH, NUMBER},
   { "stradd", LVL_BUILDER, BOTH, NUMBER},
-  { "thief", LVL_STAFF, PC, BINARY}, /* 50 */
+  { "thief", LVL_STAFF, PC, BINARY}, /* 52 */
   { "thirst", LVL_BUILDER, BOTH, MISC},
   { "title", LVL_STAFF, PC, MISC},
   { "variable", LVL_GRSTAFF, PC, MISC},
   { "weight", LVL_BUILDER, BOTH, NUMBER},
-  { "wis", LVL_BUILDER, BOTH, NUMBER}, /* 55 */
+  { "wis", LVL_BUILDER, BOTH, NUMBER}, /* 57 */
   { "questpoints", LVL_STAFF, PC, NUMBER},
   { "questhistory", LVL_STAFF, PC, NUMBER},
-  { "trains", LVL_STAFF, PC, NUMBER}, /* 58 */
-  { "race", LVL_STAFF, PC, NUMBER}, /* 59 */
-  { "spellres", LVL_STAFF, PC, NUMBER}, /* 60 */
-  { "size", LVL_STAFF, PC, NUMBER}, /* 61 */
-  { "wizard", LVL_STAFF, PC, NUMBER}, /* 62 */
-  { "cleric", LVL_STAFF, PC, NUMBER}, /* 63 */
-  { "rogue", LVL_STAFF, PC, NUMBER}, /* 64 */
-  { "warrior", LVL_STAFF, PC, NUMBER}, /* 65 */
-  { "monk", LVL_STAFF, PC, NUMBER}, /* 66 */
-  { "druid", LVL_STAFF, PC, NUMBER}, /* 67 */
-  { "boost", LVL_STAFF, PC, NUMBER}, /* 68 */
-  { "berserker", LVL_STAFF, PC, NUMBER}, /* 69 */
-  { "sorcerer", LVL_STAFF, PC, NUMBER}, /* 70 */
-  { "paladin", LVL_STAFF, PC, NUMBER}, /* 71 */
-  { "ranger", LVL_STAFF, PC, NUMBER}, /* 72 */
-  { "bard", LVL_STAFF, PC, NUMBER}, /* 73 */
+  { "trains", LVL_STAFF, PC, NUMBER}, /* 60 */
+  { "race", LVL_STAFF, PC, NUMBER},
+  { "spellres", LVL_STAFF, PC, NUMBER}, /* 62 */
+  { "size", LVL_STAFF, PC, NUMBER}, /* 63 */
+  { "wizard", LVL_STAFF, PC, NUMBER}, /* 64 */
+  { "cleric", LVL_STAFF, PC, NUMBER}, /* 65 */
+  { "rogue", LVL_STAFF, PC, NUMBER}, /* 66 */
+  { "warrior", LVL_STAFF, PC, NUMBER}, /* 67 */
+  { "monk", LVL_STAFF, PC, NUMBER}, /* 68 */
+  { "druid", LVL_STAFF, PC, NUMBER}, /* 69 */
+  { "boost", LVL_STAFF, PC, NUMBER}, /* 70 */
+  { "berserker", LVL_STAFF, PC, NUMBER}, /* 71 */
+  { "sorcerer", LVL_STAFF, PC, NUMBER}, /* 72 */
+  { "paladin", LVL_STAFF, PC, NUMBER}, /* 73 */
+  { "ranger", LVL_STAFF, PC, NUMBER}, /* 74 */
+  { "bard", LVL_STAFF, PC, NUMBER}, /* 75 */
+  { "featpoints", LVL_STAFF, PC, NUMBER}, /* 76 */
+  { "epicfeatpoints", LVL_STAFF, PC, NUMBER}, /* 77 */
+  { "classfeats", LVL_STAFF, PC, MISC}, /* 78 */
+  { "epicclassfeats", LVL_STAFF, PC, MISC}, /* 79 */
+  
   { "\n", 0, BOTH, MISC}
 };
 
@@ -3234,7 +3239,9 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   int i, on = 0, off = 0, value = 0, qvnum;
   room_rnum rnum;
   room_vnum rvnum;
-
+  char arg1[MAX_INPUT_LENGTH] = { '\0' }, arg2[MAX_INPUT_LENGTH] = { '\0' };
+  int class = CLASS_UNDEFINED;
+  
   /* Check to make sure all the levels are correct */
   if (GET_LEVEL(ch) != LVL_IMPL) {
     if (!IS_NPC(vict) && GET_LEVEL(ch) <= GET_LEVEL(vict) && vict != ch) {
@@ -3712,6 +3719,34 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     case 75: // bard level
       CLASS_LEVEL(vict, CLASS_BARD) = RANGE(0, LVL_IMMORT - 1);
       affect_total(vict);
+      break;
+    case 76: /* featpoints */
+      GET_FEAT_POINTS(vict) = RANGE(0, 20);
+      break;
+    case 77: /* epicfeatpoints */
+      GET_EPIC_FEAT_POINTS(vict) = RANGE(0, 20);
+      break;
+    case 78: /* classfeats (points) */
+      two_arguments(val_arg, arg1, arg2); /* set classfeats <class> <#> */
+      class = parse_class_long(arg1);
+      if (class == CLASS_UNDEFINED) {
+        send_to_char(ch, "Invalid class! <example: set featclass warrior 2>\r\n");
+        return 0;
+      }
+      value = atoi(arg2);
+      GET_CLASS_FEATS(vict, class) = RANGE(0, 20);
+      send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1, value);
+      break;
+    case 79: /* epicclassfeats (points) */
+      two_arguments(val_arg, arg1, arg2); /* set epicclassfeats <class> <#> */
+      class = parse_class_long(arg1);
+      if (class == CLASS_UNDEFINED) {
+        send_to_char(ch, "Invalid class! <example: set featclass warrior 2>\r\n");
+        return 0;
+      }
+      value = atoi(arg2);
+      GET_EPIC_CLASS_FEATS(vict, class) = RANGE(0, 20);
+      send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1, value);
       break;
     default:
       send_to_char(ch, "Can't set that!\r\n");

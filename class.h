@@ -32,6 +32,7 @@ bitvector_t find_class_bitvector(const char *arg);
 int invalid_class(struct char_data *ch, struct obj_data *obj);
 int level_exp(struct char_data *ch, int level);
 int parse_class(char arg);
+int parse_class_long(char *arg);
 void roll_real_abils(struct char_data *ch);
 byte saving_throws(struct char_data *, int type);
 int BAB(struct char_data *ch);
