@@ -680,7 +680,8 @@ void assign_feats(void) {
   /* End Racial ability feats */
 
   /* Disabled Feats */
-  feato(FEAT_ACROBATIC_CHARGE, "acrobatic charge", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "can charge in situations when others cannot", "can charge in situations when others cannot");
+  /* changed name of acrobatic charge because of flaw in code with feats with the same name */
+  feato(FEAT_ACROBATIC_CHARGE, "dextrous charge", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "can charge in situations when others cannot", "can charge in situations when others cannot");
   feato(FEAT_CANNY_DEFENSE, "canny defense", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "add int bonus (max class level) to ac when useing one light weapon and no shield", "add int bonus (max class level) to ac when useing one light weapon and no shield");
   feato(FEAT_ELABORATE_PARRY, "elaborate parry", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "when fighting defensively or total defense, gains +1 dodge ac per class level", "when fighting defensively or total defense, gains +1 dodge ac per class level");
   feato(FEAT_FAR_SHOT, "far shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");

@@ -3959,15 +3959,17 @@ void perform_violence(struct char_data *ch, int phase) {
     return;
   }
 
+  if (phase == 1 || phase == 0) { /* make sure this doesn't happen more than once a round */
 #define RETURN_NUM_ATTACKS 1
-  PARRY_LEFT(ch) = perform_attacks(ch, RETURN_NUM_ATTACKS, phase);
+    PARRY_LEFT(ch) = perform_attacks(ch, RETURN_NUM_ATTACKS, phase);
 #undef RETURN_NUM_ATTACKS
-  
-  /* Once per round when your mount is hit in combat, you may attempt a Ride
-   * check (as an immediate action) to negate the hit. The hit is negated if
-   * your Ride check result is greater than the opponent's attack roll. */
-  if (RIDING(ch) && HAS_FEAT(ch, FEAT_MOUNTED_COMBAT))
-    MOUNTED_BLOCKS_LEFT(ch) = 1;
+
+    /* Once per round when your mount is hit in combat, you may attempt a Ride
+     * check (as an immediate action) to negate the hit. The hit is negated if
+     * your Ride check result is greater than the opponent's attack roll. */
+    if (RIDING(ch) && HAS_FEAT(ch, FEAT_MOUNTED_COMBAT))
+      MOUNTED_BLOCKS_LEFT(ch) = 1;
+  }
 
   if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {
