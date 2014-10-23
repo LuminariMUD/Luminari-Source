@@ -542,6 +542,7 @@ void assign_feats(void) {
   feato(FEAT_WILD_SHAPE_TINY, "wild shape (tiny)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can assume the shape of tiny animals.", "Can assume the shape of tiny animals.");
 
   /* Druid/Monk */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_TIMELESS_BODY, "timeless body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "immune to negative aging effects", "immune to negative aging effects");
 
   /* Monk */
@@ -558,7 +559,14 @@ void assign_feats(void) {
   feato(FEAT_DIAMOND_BODY, "diamond body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "immune to disease", "immune to disease");
   feato(FEAT_DIAMOND_SOUL, "diamond soul", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "spell resistance equal to class level + 10", "spell resistance equal to class level + 10");
   feato(FEAT_EMPTY_BODY, "empty body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "50% concealment for 1 round/monk level per day", "50% concealment for 1 round/monk level per day");
-  feato(FEAT_FLURRY_OF_BLOWS, "flurry of blows", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "extra attack when fighting unarmed at -2 to all attacks", "extra attack when fighting unarmed at -2 to all attacks");
+  feato(FEAT_FLURRY_OF_BLOWS, "flurry of blows", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  "extra attack when fighting unarmed at -2 to all attacks",
+  "Flurry of Blows is a special mode available to monks (type flurryofblows).  You get an extra attack "
+  "at full BAB, but at a penalty to -2 to all your attacks.  At level 5 the "
+  "penalty drops to -1, and at level 9 the penalty disappears completely. ");
+  feato(FEAT_GREATER_FLURRY, "greater flurry", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  "extra unarmed attack when using flurry of blows",
+  "extra unarmed attack when using flurry of blows");
   feato(FEAT_PERFECT_SELF, "perfect self", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Gain 10/magic damage reduction", "Gain 10/magic damage reduction");
   feato(FEAT_PURITY_OF_BODY, "purity of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "immune to poison", "immune to poison");
   feato(FEAT_QUIVERING_PALM, "quivering palm", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "chance to kill on strike with unarmed attack", "chance to kill on strike with unarmed attack");
@@ -676,7 +684,6 @@ void assign_feats(void) {
   feato(FEAT_CANNY_DEFENSE, "canny defense", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "add int bonus (max class level) to ac when useing one light weapon and no shield", "add int bonus (max class level) to ac when useing one light weapon and no shield");
   feato(FEAT_ELABORATE_PARRY, "elaborate parry", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "when fighting defensively or total defense, gains +1 dodge ac per class level", "when fighting defensively or total defense, gains +1 dodge ac per class level");
   feato(FEAT_FAR_SHOT, "far shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-  feato(FEAT_GREATER_FLURRY, "greater flurry", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "extra unarmed attack when using flurry of blows at -5 penalty", "extra unarmed attack when using flurry of blows at -5 penalty");
   feato(FEAT_GREATER_RAGE, "greater rage", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+6 to str and con when raging", "+6 to str and con when raging");
   feato(FEAT_IMPROVED_DISARM, "improved disarm", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff ", "ask staff ");
   feato(FEAT_IMPROVED_GRAPPLE, "improved grapple", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
