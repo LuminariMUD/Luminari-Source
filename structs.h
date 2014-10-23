@@ -1128,7 +1128,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_IMPROVED_GRAPPLE     227
 #define FEAT_IMPROVED_OVERRUN     228
 #define FEAT_IMPROVED_PRECISE_SHOT    229
-#define FEAT_IMPROVED_SHIELD_BASH   230
+#define FEAT_IMPROVED_SHIELD_PUNCH   230
 #define FEAT_IMPROVED_SUNDER      231
 #define FEAT_IMPROVED_TURNING     232
 #define FEAT_INVESTIGATOR     233
@@ -2396,6 +2396,7 @@ struct char_special_data {
   ubyte cloudkill; //how many more bursts of cloudkill left
   struct char_data *guarding;  //target for 'guard' ability
   bool firing;  //is char firing missile weapon?
+  int mounted_blocks_left; // how many mounted combat blocks left in the round
 
   /* Mode Data */
   int mode_value; /* Bonus/penalty for power attack and combat expertise. */
