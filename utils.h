@@ -861,6 +861,7 @@ do                                                              \
 #define GET_IMAGES(ch)		((ch)->char_specials.saved.warding[MIRROR])
 #define GET_STONESKIN(ch)	((ch)->char_specials.saved.warding[STONESKIN])
 #define PARRY_LEFT(ch)		((ch)->char_specials.parryAttempts)
+#define MOUNTED_BLOCKS_LEFT(ch)		((ch)->char_specials.mounted_blocks_left)
 #define IS_MORPHED(ch)		(ch->player_specials->saved.morphed)
 #define GET_SALVATION_NAME(ch)  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->salvation_name))
 #define GET_SALVATION_ROOM(ch)  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->salvation_room))

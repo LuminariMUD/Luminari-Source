@@ -3171,6 +3171,24 @@ int hit(struct char_data *ch, struct char_data *victim,
     }
   } /* End of parry */
   /* SNIP */
+  
+  /* Once per round when your mount is hit in combat, you may attempt a Ride
+   * check (as an immediate action) to negate the hit. The hit is negated if
+   * your Ride check result is greater than the opponent's attack roll.*/
+  if (RIDING(victim) && HAS_FEAT(victim, FEAT_MOUNTED_COMBAT) &&
+          MOUNTED_BLOCKS_LEFT(victim) > 0) {
+    int mounted_block_dc = calc_bab + diceroll;
+    int mounted_block_bonus = compute_ability(victim, ABILITY_RIDE) + dice(1, 20); 
+    if (mounted_block_dc <= mounted_block_bonus) {
+      send_to_char(victim, "You \tcmaneuver %s to block\tn the attack from %s!\r\n",
+              GET_NAME(RIDING(victim)), GET_NAME(ch));
+      send_to_char(ch, "%s \tCmaneuvers %s to block\tn your attack!\r\n", GET_NAME(victim), GET_NAME(RIDING(victim)));
+      act("$N \tDmaneuvers $S mount to block\tn an attack from $n!", FALSE, ch, 0, victim,
+              TO_NOTVICT);
+      MOUNTED_BLOCKS_LEFT(victim)--;
+      return (HIT_MISS);      
+    }    
+  } /* end mounted combat check */
 
   /* So if we have actually hit, then dam > 0.  This is how we process a miss. */
   if (!dam) { //miss
@@ -3944,6 +3962,12 @@ void perform_violence(struct char_data *ch, int phase) {
 #define RETURN_NUM_ATTACKS 1
   PARRY_LEFT(ch) = perform_attacks(ch, RETURN_NUM_ATTACKS, phase);
 #undef RETURN_NUM_ATTACKS
+  
+  /* Once per round when your mount is hit in combat, you may attempt a Ride
+   * check (as an immediate action) to negate the hit. The hit is negated if
+   * your Ride check result is greater than the opponent's attack roll. */
+  if (RIDING(ch) && HAS_FEAT(ch, FEAT_MOUNTED_COMBAT))
+    MOUNTED_BLOCKS_LEFT(ch) = 1;
 
   if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) {

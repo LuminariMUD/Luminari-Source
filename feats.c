@@ -352,8 +352,8 @@ void assign_feats(void) {
 
   feato(FEAT_IMPROVED_INITIATIVE, "improved initiative", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "+4 to initiative checks to see who attacks first each round", "+4 to initiative checks to see who attacks first each round");
 
-  feato(FEAT_IMPROVED_SHIELD_BASH, "improved shield bash", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "retain your shield's AC bonus when you shield punch", "retain your shield's AC bonus when you shield punch");
-  feat_prereq_feat(FEAT_IMPROVED_SHIELD_BASH, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
+  feato(FEAT_IMPROVED_SHIELD_PUNCH, "improved shield punch", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "retain your shield's AC bonus when you shield punch", "retain your shield's AC bonus when you shield punch");
+  feat_prereq_feat(FEAT_IMPROVED_SHIELD_PUNCH, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
 
   feato(FEAT_IMPROVED_TRIP, "improved trip", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "no attack of opportunity when tripping, +4 to trip check, attack immediately on successful trip.", "no attack of opportunity when tripping, +4 to trip check, attack immediately on successful trip.");
   feat_prereq_attribute(FEAT_IMPROVED_TRIP, AB_INT, 13);
@@ -367,14 +367,14 @@ void assign_feats(void) {
   feat_prereq_attribute(FEAT_RAPID_SHOT, AB_DEX, 13);
   feat_prereq_feat(FEAT_RAPID_SHOT, FEAT_POINT_BLANK_SHOT, 1);
 
-  feato(FEAT_SHIELD_CHARGE, "shield charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "make a trip attack when you bash with your shield", "make a trip attack when you bash with your shield");
+  feato(FEAT_SHIELD_CHARGE, "shield charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "make a knockdown attack when you bash with your shield", "make a knockdown attack when you bash with your shield");
   feat_prereq_bab(FEAT_SHIELD_CHARGE, 3);
-  feat_prereq_feat(FEAT_SHIELD_CHARGE, FEAT_IMPROVED_SHIELD_BASH, 1);
+  feat_prereq_feat(FEAT_SHIELD_CHARGE, FEAT_IMPROVED_SHIELD_PUNCH, 1);
 
   feato(FEAT_SHIELD_SLAM, "shield slam", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "Daze an opponent of any size by slamming them with your shield.", "Daze an opponent of any size by slamming them with your shield.");
   feat_prereq_bab(FEAT_SHIELD_SLAM, 6);
   feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_SHIELD_CHARGE, 1);
-  feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_IMPROVED_SHIELD_BASH, 1);
+  feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_IMPROVED_SHIELD_PUNCH, 1);
 
   feato(FEAT_SPRING_ATTACK, "spring attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "free attack of opportunity against combat abilities (ie. kick,Trip)", "free attack of opportunity against combat abilities (ie. kick,Trip)");
   feat_prereq_bab(FEAT_SPRING_ATTACK, 4);
@@ -421,7 +421,12 @@ void assign_feats(void) {
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_SPECIALIZATION);
   feat_prereq_class_level(FEAT_GREATER_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 12);
 
+  feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+  "once per round rider may negate a hit against him with a successful ride vs attack roll check",
+  "once per round rider may negate a hit against him with a successful ride vs attack roll check");
+
   /* General feats */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   feato(FEAT_ABLE_LEARNER, "able learner", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+1 to all skills", "+1 to all skills");
   feato(FEAT_ACROBATIC, "acrobatic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to jump and tumble skill checks", "+2 to jump and tumble skill checks");
@@ -471,10 +476,11 @@ void assign_feats(void) {
   feato(FEAT_MARTIAL_WEAPON_PROFICIENCY, "martial weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "able to use all martial weapons", "able to use all martial weapons");
 
   /* Spellcasting feats */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+2 bonus on caster level checks to defeat spell resistance", "+2 bonus on caster level checks to defeat spell resistance");
+  
   feato(FEAT_GREATER_SPELL_PENETRATION, "greater spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+2 to caster level checks to defeat spell resistance", "+2 to caster level checks to defeat spell resistance");
   feat_prereq_feat(FEAT_GREATER_SPELL_PENETRATION, FEAT_SPELL_PENETRATION, 1);
-
-  feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+2 bonus on caster level checks to defeat spell resistance", "+2 bonus on caster level checks to defeat spell resistance");
 
   /* Crafting feats */
   feato(FEAT_DRACONIC_CRAFTING, "draconic crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT, "All magical items created gain higher bonuses w/o increasing level", "All magical items created gain higher bonuses w/o increasing level");
@@ -578,6 +584,7 @@ void assign_feats(void) {
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "summon a magical pet", "summon a magical pet");
 
   /* Disabled/Unimplemented */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_ENHANCED_MOBILITY, "enhanced mobility", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_GRACE, "grace", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_VENOM_IMMUNITY, "venom immunity", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
@@ -703,7 +710,6 @@ void assign_feats(void) {
   feato(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, "improved two weapon fighting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "extra attack with offhand weapon at -5 penalty", "extra attack with offhand weapon at -5 penalty");
   feato(FEAT_IMPROVED_WEAPON_FINESSE, "improved weapon finesse", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "add dex bonus to damage instead of str for light weapons", "add dex bonus to damage instead of str for light weapons");
   feato(FEAT_KNOCKDOWN, "knockdown", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target", "when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target");
-  feato(FEAT_MOUNTED_COMBAT, "mounted combat", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "once per round rider may negate a hit against him with a successful ride vs attack roll check", "once per round rider may negate a hit against him with a successful ride vs attack roll check");
   feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING, "perfect two weapon fighting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "Extra attack with offhand weapon", "Extra attack with offhand weapon");
   feato(FEAT_POWER_CRITICAL, "power critical", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+4 to rolls to confirm critical hits.", "+4 to rolls to confirm critical hits.");
   feato(FEAT_PRECISE_SHOT, "precise shot", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "You may shoot in melee without the standard -4 to hit penalty", "You may shoot in melee without the standard -4 to hit penalty");
@@ -1672,20 +1678,20 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
           return TRUE;
         return FALSE;
 
-      case FEAT_IMPROVED_SHIELD_BASH:
+      case FEAT_IMPROVED_SHIELD_PUNCH:
         if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_SHIELD))
           return TRUE;
         return FALSE;
 
       case FEAT_SHIELD_CHARGE:
-        if (!has_feat(ch, FEAT_IMPROVED_SHIELD_BASH) ||
+        if (!has_feat(ch, FEAT_IMPROVED_SHIELD_PUNCH) ||
                 (BAB(ch) < 3))
           return FALSE;
         return TRUE;
 
       case FEAT_SHIELD_SLAM:
         if (!has_feat(ch, FEAT_SHIELD_CHARGE) ||
-                !has_feat(ch, FEAT_IMPROVED_SHIELD_BASH) ||
+                !has_feat(ch, FEAT_IMPROVED_SHIELD_PUNCH) ||
                 (BAB(ch) < 6))
           return FALSE;
         return TRUE;

@@ -689,7 +689,7 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
     return FALSE;
   }
 
-  if (!HAS_FEAT(ch, FEAT_IMPROVED_SHIELD_BASH)) {
+  if (!HAS_FEAT(ch, FEAT_IMPROVED_SHIELD_PUNCH)) {
     /* Remove shield bonus from ac. */
     attach_mud_event(new_mud_event(eSHIELD_RECOVERY, ch, NULL), PULSE_VIOLENCE);
   }
@@ -698,12 +698,11 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
   if (attack_roll(ch, vict, ATTACK_TYPE_OFFHAND, FALSE, 1) <= 0) {
     damage(ch, vict, 0, SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
   } else {
-    damage(ch, vict, dice(1, 6), SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
+    damage(ch, vict, dice(1, 6) + (GET_STR_BONUS(ch) / 2), SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
     name = obj_index[GET_OBJ_RNUM(shield)].func;
     if (name)
       (name)(ch, shield, 0, "shieldpunch");
   }
-
 
   return TRUE;
 }
@@ -757,7 +756,7 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
   if (attack_roll(ch, vict, ATTACK_TYPE_OFFHAND, FALSE, 1) + 2 <= 0) {
     damage(ch, vict, 0, SKILL_SHIELD_CHARGE, DAM_FORCE, FALSE);
   } else {
-    damage(ch, vict, dice(1, 6), SKILL_SHIELD_CHARGE, DAM_FORCE, FALSE);
+    damage(ch, vict, dice(1, 6) + GET_STR_BONUS(ch), SKILL_SHIELD_CHARGE, DAM_FORCE, FALSE);
     name = obj_index[GET_OBJ_RNUM(shield)].func;
     if (name)
       (name)(ch, shield, 0, "shieldcharge");
@@ -2725,13 +2724,9 @@ ACMD(do_springleap) {
 }
 
 /* Shieldpunch :
- * 
  * Use your shield as a weapon, bashing out with it and doing a 
- * small amount of damage.  The feat FEAT_IMPROVED_SHIELD_BASH allows
+ * small amount of damage.  The feat FEAT_IMPROVED_SHIELD_PUNCH allows
  * you to retain the AC of your shield when you perform a shield punch.
- *
- * (old comment) 
- * Vhaerun:  A warrior skill to Stun !BASH mobs. 
  */
 ACMD(do_shieldpunch) {
   struct char_data *vict = NULL;
