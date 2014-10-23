@@ -3538,7 +3538,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       penalty = -2; /* flurry penalty */
     else if (CLASS_LEVEL(ch, CLASS_MONK) < 9)
       penalty = -1; /* 9th level+, no more penalty to flurry! */
-    if (HAS_FEAT(ch, FEAT_GREATER_FLURRY)) { /* FEAT_GREATER_FLURRY */
+    if (HAS_FEAT(ch, FEAT_GREATER_FLURRY)) { /* FEAT_GREATER_FLURRY, 11th level */
       bonusAttacks++;
       attacks_at_max_bab++;
     }
