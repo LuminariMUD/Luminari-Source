@@ -419,7 +419,7 @@ void perform_charge(struct char_data *ch) {
     act("$n runs forward for a \tYcharge\tn!", FALSE, ch, NULL, NULL, TO_NOTVICT);
   }
 
-  USE_STANDARD_ACTION(ch);
+  USE_FULL_ROUND_ACTION(ch);
 }
 #undef CHARGE_AFFECTS
 

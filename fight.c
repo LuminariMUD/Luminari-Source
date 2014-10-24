@@ -2084,14 +2084,6 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3));
   }
 
-  /* mounted charging character using charging weapons, whether this goes up
-   * top or bottom of dam calculation can have a dramtic effect on this number */
-  if (wielded && AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch) &&
-          HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) {
-    dambonus *= 2;
-    send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");
-  }
-
   /**** display, keep mods above this *****/
   if (mode == 2 || mode == 3) {
     send_to_char(ch, "Dam Bonus:  %d, ", dambonus);
@@ -2332,10 +2324,15 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           /*send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");*/
           dam += dice(2, 6);        
         }
-      } 
-            
+      }
+      /* mounted charging character using charging weapons, whether this goes up
+       * top or bottom of dam calculation can have a dramtic effect on this number */
+      if (AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch) &&
+              HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) {
+        dam *= 2;
+        send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");
+      }
     }
-
 
     /* calculate damage with either mainhand (2) or offhand (3)
        weapon for _display_ purposes */
