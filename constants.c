@@ -489,6 +489,7 @@ const char *action_bits[NUM_MOB_FLAGS + 1] = {
   "unused",
   "unused",
   "unused", /* 63 */
+  "unused", /* 64 */
   "\n"
 };
 
@@ -637,6 +638,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Counterspell",
   "Defensive-Casting", 
   "Whirlwind-Attack",
+  "Charging!",
   "\n"
 };
 
