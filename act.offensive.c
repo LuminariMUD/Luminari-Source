@@ -377,64 +377,51 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
 }
 
 /* charge mechanic */
-void perform_charge(struct char_data *ch, struct char_data *vict) {
-  struct affected_type af;
+#define CHARGE_AFFECTS 3
+void perform_charge(struct char_data *ch) {
+  struct affected_type af[CHARGE_AFFECTS];
   extern struct index_data *mob_index;
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
-
-  if (!RIDING(ch)) {
-    send_to_char(ch, "You must be mounted to charge.\r\n");
+  int i = 0;
+  
+  if (AFF_FLAGGED(ch, AFF_CHARGING)) {
+    send_to_char(ch, "You are already charging!\r\n");
     return;
   }
-
-  if (!vict) {
-    send_to_char(ch, "Charge who?\r\n");
-    return;
+  
+  /* init affect array */
+  for (i = 0; i < CHARGE_AFFECTS; i++) {
+    new_affect(&(af[i]));
+    af[i].spell = SKILL_CHARGE;
+    af[i].duration = 1;
   }
+  
+  SET_BIT_AR(af[0].bitvector, AFF_CHARGING);
+    
+  af[1].location = APPLY_HITROLL; /* bonus */
+  af[1].modifier = 2;
 
-  if (vict == ch) {
-    send_to_char(ch, "Aren't we funny today...\r\n");
-    return;
-  }
-
-  if (!CAN_SEE(ch, vict)) {
-    send_to_char(ch, "You don't see well enough to attempt that.\r\n");
-    return;
-  }
-
-  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
-    if (ch->next_in_room != vict && vict->next_in_room != ch) {
-      send_to_char(ch, "You simply can't reach that far.\r\n");
-      return;
-    }
-  }
-
-  /* This must be reworked - done like this in interest of time. */
-
-  if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, FALSE, 1) <= 0) {
-    damage(ch, vict, 0, SKILL_CHARGE, DAM_FORCE, FALSE);
-  } else {
+  af[2].location = APPLY_AC; /* penalty */
+  af[2].modifier = -2;
+  
+  for (i = 0; i < CHARGE_AFFECTS; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+  
+  if (RIDING(ch)) {
+    act("You urge $N forward for a \tYcharge\tn!", FALSE, ch, NULL, RIDING(ch), TO_CHAR);
+    act("$n urges you forward for a \tYcharge\tn!", FALSE, ch, NULL, RIDING(ch), TO_VICT);
+    act("$n urges $N forward for a \tYcharge\tn!", FALSE, ch, NULL, RIDING(ch), TO_NOTVICT);
     name = mob_index[GET_MOB_RNUM(RIDING(ch))].func;
     if (name)
       (name)(ch, RIDING(ch), 0, "charge");
-    
-    damage(ch, vict, dice(3, 12),
-            SKILL_CHARGE, DAM_FORCE, FALSE);
-    
-    if (rand_number(0, 100) < GET_LEVEL(ch)) {
-      new_affect(&af);
-      af.spell = SKILL_CHARGE;
-      SET_BIT_AR(af.bitvector, AFF_STUN);
-      af.duration = dice(1, 4) + 2;
-      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
-      act("You charge into $N, stunning $E!", FALSE, ch, 0, vict, TO_CHAR);
-      act("$n charges into $N, stunning $E!", FALSE, ch, 0, vict, TO_ROOM);
-    }
+  } else {
+    act("You run forward for a \tYcharge\tn!", FALSE, ch, NULL, NULL, TO_CHAR);
+    act("$n runs forward for a \tYcharge\tn!", FALSE, ch, NULL, NULL, TO_NOTVICT);
   }
 
   USE_STANDARD_ACTION(ch);
-  USE_MOVE_ACTION(ch);
 }
+#undef CHARGE_AFFECTS
 
 /* engine for knockdown, used in bash/trip/etc */
 bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) {
@@ -2842,14 +2829,8 @@ ACMD(do_shieldslam) {
   perform_shieldslam(ch, vict);
 }
 
-/*
- * Vhaerun:  Charging when mounted
- */
+/* charging system for combat */
 ACMD(do_charge) {
-  struct char_data *vict = NULL;
-  char arg[MAX_INPUT_LENGTH] = {'\0'};
-
-  one_argument(argument, arg);
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
@@ -2857,17 +2838,11 @@ ACMD(do_charge) {
   }
 
   if (GET_POS(ch) <= POS_SITTING) {
-    send_to_char(ch, "You need to stand in the stirrups to charge!\r\n");
+    send_to_char(ch, "You need to stand to charge!\r\n");
     return;
   }
 
-  if (!*arg) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
-      vict = FIGHTING(ch);
-  } else
-    vict = get_char_room_vis(ch, arg, NULL);
-
-  perform_charge(ch, vict);
+  perform_charge(ch);
 }
 
 /* ranged-weapons combat, archery
