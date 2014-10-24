@@ -2086,9 +2086,10 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   /* mounted charging character using charging weapons, whether this goes up
    * top or bottom of dam calculation can have a dramtic effect on this number */
-  if (AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch) && HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) {
+  if (wielded && AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch) &&
+          HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) {
     dambonus *= 2;
-    send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance\r\n");
+    send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");
   }
 
   /**** display, keep mods above this *****/
