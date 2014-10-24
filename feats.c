@@ -321,10 +321,24 @@ void assign_feats(void) {
   feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_FOCUS);
   feat_prereq_class_level(FEAT_GREATER_WEAPON_FOCUS, CLASS_WARRIOR, 8);
 
-  feato(FEAT_SPIRITED_CHARGE, "spirited charge", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT, "When mounted and using the charge action, you deal double damage with a melee weapon (or triple damage with a lance).", "When mounted and using the charge action, you deal double damage with a melee weapon (or triple damage with a lance).");
+  /* here is our mounted combat feats */
+  feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+  "once per round rider may negate a hit against him with a successful ride vs attack roll check",
+  "once per round rider may negate a hit against him with a successful ride vs attack roll check");
+  
+  feato(FEAT_RIDE_BY_ATTACK, "ride by attack", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  "normally only receive on attack at charge bonus, now receive a full phase",
+  "normally only receive on attack at charge bonus, now receive a full phase");
+  feat_prereq_feat(FEAT_RIDE_BY_ATTACK, FEAT_MOUNTED_COMBAT, 1);
+  feat_prereq_ability(FEAT_RIDE_BY_ATTACK, ABILITY_RIDE, 1);
+  
+  feato(FEAT_SPIRITED_CHARGE, "spirited charge", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).",
+  "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).");
   feat_prereq_ability(FEAT_SPIRITED_CHARGE, ABILITY_RIDE, 1);
   feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_MOUNTED_COMBAT, 1);
   feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_RIDE_BY_ATTACK, 1);
+  /* end mounted combat feats */
 
   feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.", "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
 
@@ -420,10 +434,6 @@ void assign_feats(void) {
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_FOCUS);
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_SPECIALIZATION);
   feat_prereq_class_level(FEAT_GREATER_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 12);
-
-  feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-  "once per round rider may negate a hit against him with a successful ride vs attack roll check",
-  "once per round rider may negate a hit against him with a successful ride vs attack roll check");
 
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -697,7 +707,6 @@ void assign_feats(void) {
   feato(FEAT_PRECISE_STRIKE, "precise strike", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+1d6 damage when using only one weapon and no shield", "+1d6 damage when using only one weapon and no shield");
   feato(FEAT_QUICK_DRAW, "quick draw", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_RAPID_RELOAD, "rapid reload", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-  feato(FEAT_RIDE_BY_ATTACK, "ride by attack", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_SHOT_ON_THE_RUN, "shot on the run", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_TIRELESS_RAGE, "tireless rage", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "no fatigue after raging", "no fatigue after raging");
   feato(FEAT_WEAPON_TOUCH, "weapon touch", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");

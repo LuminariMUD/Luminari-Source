@@ -2325,14 +2325,23 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           dam += dice(2, 6);        
         }
       }
+
       /* mounted charging character using charging weapons, whether this goes up
        * top or bottom of dam calculation can have a dramtic effect on this number */
-      if (AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch) &&
-              HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) {
-        dam *= 2;
-        send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");
+      if (AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch)) {
+        if (HAS_FEAT(ch, FEAT_SPIRITED_CHARGE)) { /* mounted, charging with spirited charge feat */
+          if (HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* with lance too */
+            /*debug*//*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
+            dam *= 3;
+          } else
+            dam *= 2;
+        } else if (HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* mounted charging, no feat, but with lance */
+          /*debug*//*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
+          dam *= 2;
+        }
       }
-    }
+      
+    } /* end wielded */
 
     /* calculate damage with either mainhand (2) or offhand (3)
        weapon for _display_ purposes */
@@ -3341,14 +3350,20 @@ int hit(struct char_data *ch, struct char_data *victim,
             /* And what is this?  Adding DEX bonus to damage?  Preposterous! Ranged combat needs fixin'. */
             dam += GET_DEX_BONUS(ch);
           }
-          /* for fun adding a little message for charging */
+          /* charging combat maneuver */
           if (AFF_FLAGGED(ch, AFF_CHARGING)) {
             send_to_char(ch, "You \tYcharge\tn: ");
             send_to_char(victim, "%s \tYcharges\tn toward you: ", GET_NAME(ch));
             act("$n \tYcharges\tn toward $N!", FALSE, ch, NULL, victim, TO_NOTVICT);
           }
-          /* So do damage! We aren't trelux, so do it normally. */
+          /* So do damage! (We aren't trelux, so do it normally) */
           damage(ch, victim, dam, w_type, dam_type, offhand);
+          
+          if (AFF_FLAGGED(ch, AFF_CHARGING)) { /* only a single strike */
+            if (!HAS_FEAT(ch, FEAT_RIDE_BY_ATTACK)) {
+              affect_from_char(ch, SKILL_CHARGE);
+            }
+          }
         }
         break;
     }
