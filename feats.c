@@ -321,18 +321,19 @@ void assign_feats(void) {
   feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_FOCUS);
   feat_prereq_class_level(FEAT_GREATER_WEAPON_FOCUS, CLASS_WARRIOR, 8);
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* here is our mounted combat feats */
   feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
   "once per round rider may negate a hit against him with a successful ride vs attack roll check",
   "once per round rider may negate a hit against him with a successful ride vs attack roll check");
   
-  feato(FEAT_RIDE_BY_ATTACK, "ride by attack", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_RIDE_BY_ATTACK, "ride by attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
   "normally only receive on attack at charge bonus, now receive a full phase",
   "normally only receive on attack at charge bonus, now receive a full phase");
   feat_prereq_feat(FEAT_RIDE_BY_ATTACK, FEAT_MOUNTED_COMBAT, 1);
   feat_prereq_ability(FEAT_RIDE_BY_ATTACK, ABILITY_RIDE, 1);
   
-  feato(FEAT_SPIRITED_CHARGE, "spirited charge", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_SPIRITED_CHARGE, "spirited charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
   "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).",
   "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).");
   feat_prereq_ability(FEAT_SPIRITED_CHARGE, ABILITY_RIDE, 1);
