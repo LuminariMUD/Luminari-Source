@@ -2203,13 +2203,47 @@ ACMD(do_wholenessofbody) {
   send_to_char(ch, "Your body glows \tWwhite\tn as your wounds heal...\r\n");
   act("$n's body glows \tWwhite\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
   attach_mud_event(new_mud_event(eWHOLENESSOFBODY, ch, NULL),
-          (12 * SECS_PER_MUD_HOUR));
+          (9 * SECS_PER_MUD_HOUR));
   GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
           (20 + (CLASS_LEVEL(ch, CLASS_MONK) * 2)));
   update_pos(ch);
 
   /* Actions */
   USE_STANDARD_ACTION(ch);
+}
+
+ACMD(do_emptybody) {
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+  
+  if (!HAS_FEAT(ch, FEAT_EMPTY_BODY)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eEMPTYBODY)) {
+    send_to_char(ch, "You must wait longer before you can use this "
+            "ability again.\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch) && GET_POS(ch) < POS_FIGHTING) {
+    send_to_char(ch, "You need to be in a better position in combat in order"
+            " to use this ability!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You focus your Ki energy, drawing energy from the etheral plane to transition your body to an 'empty' state.\r\n");
+  act("$n briefly closes $s eyes in focus, and you watch as $s body phases partially out of the realm!", FALSE, ch, 0, NULL, TO_NOTVICT);
+  
+  attach_mud_event(new_mud_event(eEMPTYBODY, ch, NULL),
+          (1 * SECS_PER_MUD_DAY));
+
+  /* Actions */
+  USE_MOVE_ACTION(ch);
 }
 
 ACMD(do_treatinjury) {
@@ -2243,7 +2277,7 @@ ACMD(do_treatinjury) {
   act("Your injuries are \tWtreated\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
   act("$n \tWtreats\tn $N's injuries!", FALSE, ch, 0, vict, TO_NOTVICT);
   attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL),
-          (24 * SECS_PER_MUD_HOUR));
+          (18 * SECS_PER_MUD_HOUR));
   GET_HIT(vict) += MIN((GET_MAX_HIT(vict) - GET_HIT(vict)),
           (10 + (compute_ability(ch, ABILITY_HEAL) * 2)));
   update_pos(vict);
