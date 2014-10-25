@@ -572,7 +572,9 @@ void assign_feats(void) {
         "current location.  Example: abundantstep w w n n e 2w n n e");
   feato(FEAT_DIAMOND_BODY, "diamond body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "immune to disease", "immune to disease");
   feato(FEAT_DIAMOND_SOUL, "diamond soul", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "spell resistance equal to class level + 10", "spell resistance equal to class level + 10");
-  feato(FEAT_EMPTY_BODY, "empty body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "50% concealment for 1 round/monk level per day", "50% concealment for 1 round/monk level per day");
+  feato(FEAT_EMPTY_BODY, "empty body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  "50 percent concealment for 1 round/monk level per day",
+  "50 percent concealment for 1 round/monk level per day");
   feato(FEAT_FLURRY_OF_BLOWS, "flurry of blows", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
   "extra attack when fighting unarmed at -2 to all attacks",
   "Flurry of Blows is a special mode available to monks (type flurryofblows).  You get an extra attack "

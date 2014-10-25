@@ -244,7 +244,6 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
 
 /* The stunning fist is reliant on a successful UNARMED attack (or an attack with a KI_STRIKE weapon) */
 void perform_stunningfist(struct char_data *ch) {
-
   struct affected_type af;
 
   new_affect(&af);
@@ -2213,6 +2212,7 @@ ACMD(do_wholenessofbody) {
 }
 
 ACMD(do_emptybody) {
+  struct affected_type af;
 
   if (IS_NPC(ch)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
@@ -2236,11 +2236,19 @@ ACMD(do_emptybody) {
     return;
   }
 
-  send_to_char(ch, "You focus your Ki energy, drawing energy from the etheral plane to transition your body to an 'empty' state.\r\n");
+  send_to_char(ch, "You focus your Ki energy, drawing energy from the Ethereal plane to transition your body to an 'empty' state.\r\n");
   act("$n briefly closes $s eyes in focus, and you watch as $s body phases partially out of the realm!", FALSE, ch, 0, NULL, TO_NOTVICT);
   
   attach_mud_event(new_mud_event(eEMPTYBODY, ch, NULL),
-          (1 * SECS_PER_MUD_DAY));
+          (2 * SECS_PER_MUD_DAY));
+
+  new_affect(&af);
+
+  af.spell = SPELL_DISPLACEMENT;
+  af.duration = CLASS_LEVEL(ch, CLASS_MONK) + 2;
+  SET_BIT_AR(af.bitvector, AFF_DISPLACE);
+  
+  affect_to_char(ch, &af);
 
   /* Actions */
   USE_MOVE_ACTION(ch);

@@ -1534,8 +1534,6 @@ int compute_concealment(struct char_data *ch) {
     concealment += 20;
   if (AFF_FLAGGED(ch, AFF_DISPLACE))
     concealment += 50;
-  if (char_has_mud_event(ch, eEMPTYBODY))
-    concealment += 50;
   
   // concealment cap is 50%
   return (MIN(MAX_CONCEAL, concealment));
