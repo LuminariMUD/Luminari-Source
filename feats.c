@@ -555,7 +555,7 @@ void assign_feats(void) {
 
   /* Monk */
   feato(FEAT_UNARMED_STRIKE, "unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Unarmed attacks are considered to be weapons.", "Unarmed attacks are considered to be weapons.");
-  feato(FEAT_KI_STRIKE, "ki strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "unarmed attack considered a magical weapon", "unarmed attack considered a magical weapon");
+  feato(FEAT_KI_STRIKE, "ki strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented yet] unarmed attack considered a magical weapon", "[not implemented yet] unarmed attack considered a magical weapon");
   feato(FEAT_STILL_MIND, "still mind", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+2 bonus on saving throws vs. Enchantments", "+2 bonus on saving throws vs. Enchantments");
   feato(FEAT_WHOLENESS_OF_BODY, "wholeness of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can heal class level*2 hp to self", "can heal class level*2 hp to self");
   feato(FEAT_SLOW_FALL, "slow fall", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "no damage for falling 1 room/feat rank", "no damage for falling 1 room/feat rank");
