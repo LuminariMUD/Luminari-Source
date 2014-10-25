@@ -1250,7 +1250,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
   int i, j, magic_level = 0, divine_level = 0;
-  int elf_bonus = 0, gnome_bonus = 0, success = 0;
+  int enchantment_bonus = 0, illusion_bonus = 0, success = 0;
   bool is_mind_affect = FALSE;
 
   if (victim == NULL || ch == NULL)
@@ -1261,28 +1261,30 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[i].spell = spellnum;
   }
 
-  /* racial ch bonus/penalty */
-  /* added IS_NPC check to prevent NPCs from getting incorrect bonuses,
+  /* various bonus/penalty; added IS_NPC check to prevent NPCs from getting incorrect bonuses,
    * since NPCRACE_HUMAN = RACE_ELF, etc. -Nashak */
   if (!IS_NPC(ch)) {
-    switch (GET_RACE(ch)) {
+    if (HAS_FEAT(victim, FEAT_STILL_MIND))
+      enchantment_bonus += 2;
+    
+    switch (GET_RACE(ch)) { /* caster */
       case RACE_GNOME: // illusions
-        gnome_bonus -= 2;
+        illusion_bonus -= 2; /* opponent has penalty to check */
         break;
       default:
         break;
     }
     /* racial victim resistance */
-    switch (GET_RACE(victim)) {
+    switch (GET_RACE(victim)) { /* target */
       case RACE_H_ELF:
       case RACE_ELF: //enchantments
-        elf_bonus += 2;
+        enchantment_bonus += 2;
         break;
       case RACE_ARCANA_GOLEM: //enchantments, penalty
-        elf_bonus -= 2;
+        enchantment_bonus -= 2;
         break;
       case RACE_GNOME: // illusions
-        gnome_bonus += 2;
+        illusion_bonus += 2;
         break;
       default:
         break;
@@ -1511,7 +1513,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus)) {
         return;
       }
 
@@ -1625,7 +1627,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -1772,7 +1774,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (mag_resistance(ch, victim, 0))
         return;
 
-      if (mag_savingthrow(ch, victim, SAVING_FORT, (elf_bonus-4))) {
+      if (mag_savingthrow(ch, victim, SAVING_FORT, (enchantment_bonus-4))) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
@@ -1881,7 +1883,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_FEEBLEMIND: //enchantment
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -2146,7 +2148,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -2175,7 +2177,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus)) {
         return;
       }
 
@@ -2192,7 +2194,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus)) {
         return;
       }
 
@@ -2392,7 +2394,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_MASS_HOLD_PERSON: //enchantment
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus)) {
         return;
       }
 
@@ -2445,7 +2447,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_MIND_FOG: //illusion
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus)) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
@@ -2482,7 +2484,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_NIGHTMARE: //illusion
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, gnome_bonus))
+      if (mag_savingthrow(ch, victim, SAVING_FORT, illusion_bonus))
         return;
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
         send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
@@ -2604,7 +2606,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_PRISMATIC_SPRAY: //illusion, does damage too
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus)) {
         return;
       }
 
@@ -2676,7 +2678,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -2743,7 +2745,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, gnome_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -3026,7 +3028,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_TOUCH_OF_IDIOCY: //enchantment
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus)) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }

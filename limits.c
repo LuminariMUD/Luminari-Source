@@ -339,6 +339,7 @@ void regen_update(struct char_data *ch) {
         affect_from_char(ch, SPELL_POISON);
       if (IS_AFFECTED(ch, AFF_POISON))
         REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POISON);
+      return;
     }
     
     if (FIGHTING(ch) || dice(1, 2) == 2) {

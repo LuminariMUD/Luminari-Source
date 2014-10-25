@@ -485,6 +485,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "wizupdate", "wizupde", POS_DEAD, do_wizupdate, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "wizlock", "wizlock", POS_DEAD, do_wizlock, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
   { "write", "write", POS_STANDING, do_write, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "wholenessofbody", "wholenessofbody", POS_RECLINING, do_wholenessofbody, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "zreset", "zreset", POS_DEAD, do_zreset, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "zedit", "zedit", POS_DEAD, do_oasis_zedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},

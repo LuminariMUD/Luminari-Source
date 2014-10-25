@@ -2176,6 +2176,42 @@ ACMD(do_crystalbody) {
 
 }
 
+ACMD(do_wholenessofbody) {
+  
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+  
+  if (!HAS_FEAT(ch, FEAT_WHOLENESS_OF_BODY)) {
+    send_to_char(ch, "You have no idea how to do that!\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eWHOLENESSOFBODY)) {
+    send_to_char(ch, "You must wait longer before you can use this "
+            "ability again.\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch) && GET_POS(ch) < POS_FIGHTING) {
+    send_to_char(ch, "You need to be in a better position in combat in order"
+            " to use this ability!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Your body glows \tWwhite\tn as your wounds heal...\r\n");
+  act("$n's body glows \tWwhite\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
+  attach_mud_event(new_mud_event(eWHOLENESSOFBODY, ch, NULL),
+          (6 * SECS_PER_MUD_HOUR));
+  GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
+          (20 + (CLASS_LEVEL(ch, CLASS_MONK) * 2)));
+  update_pos(ch);
+
+  /* Actions */
+  USE_STANDARD_ACTION(ch);
+}
+
 ACMD(do_treatinjury) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;

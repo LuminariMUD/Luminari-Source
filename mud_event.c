@@ -69,7 +69,9 @@ struct mud_event_list mud_event_index[] = {
   { "Shield Recovery", event_countdown, EVENT_CHAR}, /* eSHIELD_RECOVERY */
   { "Combat Round", event_combat_round, EVENT_CHAR}, /* eCOMBAT_ROUND */
   { "Standard Action Cooldown", event_action_cooldown, EVENT_CHAR}, /* eSTANDARDACTION */
-  { "Move Action Cooldown", event_action_cooldown, EVENT_CHAR} /* eMOVEACTION */
+  { "Move Action Cooldown", event_action_cooldown, EVENT_CHAR}, /* eMOVEACTION */
+  { "Wholeness of Body", event_countdown, EVENT_CHAR}, // eWHOLENESSOFBODY
+
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -190,6 +192,9 @@ EVENTFUNC(event_countdown) {
       break;
     case eTAUNTED:
       send_to_char(ch, "You feel the effects of the taunt wear off.\r\n");
+      break;
+   case eWHOLENESSOFBODY:
+      send_to_char(ch, "You are now able to use Wholness of Body again.\r\n");
       break;
     case eTREATINJURY:
       send_to_char(ch, "You are now able to treat injuries again.\r\n");

@@ -299,11 +299,14 @@ int isname_obj(char *search, char *list) {
 void effect_charm(struct char_data *ch, struct char_data *victim,
         int spellnum) {
   struct affected_type af;
-  int elf_bonus = 0;
+  int bonus = 0;
 
+  /* resistance bonuses, etc */
   if (!IS_NPC(victim) && (GET_RACE(victim) == RACE_ELF || //elven enchantment resistance
           GET_RACE(victim) == RACE_H_ELF)) // added check for IS_NPC because NPCRACE_HUMAN == RACE_ELF and NPCRACE_ABERRATION == RACE_H_ELF
-    elf_bonus += 2;
+    bonus += 2;
+  if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_STILL_MIND))
+    bonus += 2;
 
   if (victim == ch)
     send_to_char(ch, "You like yourself even better!\r\n");
@@ -351,7 +354,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-  else if (mag_savingthrow(ch, victim, SAVING_WILL, elf_bonus)) {
+  else if (mag_savingthrow(ch, victim, SAVING_WILL, bonus)) {
     send_to_char(ch, "Your victim resists!\r\n");
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);

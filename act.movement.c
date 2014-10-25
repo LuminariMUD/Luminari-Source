@@ -176,7 +176,7 @@ EVENTFUNC(event_falling)
     int dam = dice((height_fallen/5), 6) + 20;
     
     /* check for slow-fall! */
-    if (HAS_FEAT(ch, FEAT_SLOW_FALL)) {
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_SLOW_FALL)) {
       dam -= 21;
       dam -= dice((HAS_FEAT(ch, FEAT_SLOW_FALL) * 4), 6);
     } 
