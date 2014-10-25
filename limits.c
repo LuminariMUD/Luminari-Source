@@ -330,6 +330,17 @@ void regen_update(struct char_data *ch) {
   // fighting in order that xp goes to the killer (who doesn't strike the last blow)
   // -zusuk
   if (AFF_FLAGGED(ch, AFF_POISON)) {
+    
+    /* purity of body feat */
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_PURITY_OF_BODY)) {
+      send_to_char(ch, "Your purity of body purges the poison!\r\n");
+      act("$n appears better as their body purges away some poison.", TRUE, ch, 0, 0, TO_ROOM);
+      if (affected_by_spell(ch, SPELL_POISON))
+        affect_from_char(ch, SPELL_POISON);
+      if (IS_AFFECTED(ch, AFF_POISON))
+        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POISON);
+    }
+    
     if (FIGHTING(ch) || dice(1, 2) == 2) {
       for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
         if (!IS_NPC(tch) && FIGHTING(tch) == ch) {
@@ -338,12 +349,14 @@ void regen_update(struct char_data *ch) {
           break;
         }
       }
+      
       if (!found)
         damage(ch, ch, 1, SPELL_POISON, DAM_POISON, FALSE);
       update_pos(ch);
       return;
     }
-  }
+    
+  } /* done dealing with poison */
 
   found = 0;
   tch = NULL;
