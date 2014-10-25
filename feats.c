@@ -555,15 +555,21 @@ void assign_feats(void) {
 
   /* Monk */
   feato(FEAT_UNARMED_STRIKE, "unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Unarmed attacks are considered to be weapons.", "Unarmed attacks are considered to be weapons.");
-  feato(FEAT_KI_STRIKE, "ki strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented yet] unarmed attack considered a magical weapon", "[not implemented yet] unarmed attack considered a magical weapon");
-  feato(FEAT_STILL_MIND, "still mind", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+2 bonus on saving throws vs. Enchantments", "+2 bonus on saving throws vs. Enchantments");
-  feato(FEAT_WHOLENESS_OF_BODY, "wholeness of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can heal class level*2 hp to self", "can heal class level*2 hp to self");
-  feato(FEAT_SLOW_FALL, "slow fall", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "no damage for falling 1 room/feat rank", "no damage for falling 1 room/feat rank");
+  /* not imped */feato(FEAT_KI_STRIKE, "ki strike [not impd]", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented yet] unarmed attack considered a magical weapon", "[not implemented yet] unarmed attack considered a magical weapon");
+  feato(FEAT_STILL_MIND, "still mind", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  "+2 bonus on saving throws vs. Enchantments",
+  "+2 bonus on saving throws vs. Enchantments");
+  feato(FEAT_WHOLENESS_OF_BODY, "wholeness of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  "can heal class level*2 + 20 hp to self",
+  "can heal class level*2 + 20 hp to self");
+  feato(FEAT_SLOW_FALL, "slow fall", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  "no damage for falling 1 room/feat rank",
+  "no damage for falling 1 room/feat rank");
   feato(FEAT_ABUNDANT_STEP, "abundant step", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "magically move between tight spaces, as the spell dimension door",
         "Magically move between tight spaces, as the spell dimension door.  You "
-          "can even go through doors.  To use, you must give directions from your "
-          "current location.  Examples:\r\nw w n n e\r\n2w n n e");
+        "can even go through doors.  To use, you must give directions from your "
+        "current location.  Example: abundantstep w w n n e 2w n n e");
   feato(FEAT_DIAMOND_BODY, "diamond body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "immune to disease", "immune to disease");
   feato(FEAT_DIAMOND_SOUL, "diamond soul", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "spell resistance equal to class level + 10", "spell resistance equal to class level + 10");
   feato(FEAT_EMPTY_BODY, "empty body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "50% concealment for 1 round/monk level per day", "50% concealment for 1 round/monk level per day");
@@ -576,9 +582,11 @@ void assign_feats(void) {
   "extra unarmed attack when using flurry of blows",
   "extra unarmed attack when using flurry of blows");
   feato(FEAT_PERFECT_SELF, "perfect self", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Gain 10/magic damage reduction", "Gain 10/magic damage reduction");
-  feato(FEAT_PURITY_OF_BODY, "purity of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "immune to poison", "immune to poison");
-  feato(FEAT_QUIVERING_PALM, "quivering palm", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "chance to kill on strike with unarmed attack", "chance to kill on strike with unarmed attack");
-  feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON, "tongue of the sun and the moon", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can speak any language", "can speak any language");
+  feato(FEAT_PURITY_OF_BODY, "purity of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  "immune to poison",
+  "immune to poison");
+  /* not imped */feato(FEAT_QUIVERING_PALM, "quivering palm", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "chance to kill on strike with unarmed attack", "chance to kill on strike with unarmed attack");
+  /* not imped */feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON, "tongue of the sun and the moon [not impd]", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented] can speak any language", "[not implemented] can speak any language");
 
   /* Bard */
   feato(FEAT_BARDIC_KNOWLEDGE, "bardic knowledge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+Int modifier bonus on knowledge checks.", "+Int modifier bonus on knowledge checks.");

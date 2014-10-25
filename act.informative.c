@@ -1187,6 +1187,8 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Crystal Body - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLAYONHANDS)))
     send_to_char(ch, "Lay on Hands - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eWHOLENESSOFBODY)))
+    send_to_char(ch, "Wholeness of Body - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTREATINJURY)))
     send_to_char(ch, "Treat Injuries - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMUMMYDUST)))
