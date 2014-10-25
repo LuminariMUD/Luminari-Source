@@ -53,9 +53,7 @@ void sort_feats(void) {
   qsort(&feat_sort_info[1], NUM_FEATS, sizeof (int), compare_feats);
 }
 
-/* Nothing to do right now.  What, for shutdown maybe? */
-void free_feats(void) {
-}
+void free_feats(void) {} /* Nothing to do right now.  What, for shutdown maybe? */
 
 /* checks if the char has the feat either saved to file or in the process
  of acquiring it in study */
@@ -307,7 +305,6 @@ void assign_feats(void) {
   }
   
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-
   /* Combat feats */
   feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead", "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
   feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
@@ -374,8 +371,7 @@ void assign_feats(void) {
   feat_prereq_attribute(FEAT_IMPROVED_TRIP, AB_INT, 13);
   feat_prereq_feat(FEAT_IMPROVED_TRIP, FEAT_COMBAT_EXPERTISE, 1);
 
-  feato(FEAT_IMPROVED_UNARMED_STRIKE, "improved unarmed strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "unarmed attacks do not provoke attacks of opportunity, and do 1d6 damage", "unarmed attacks do not provoke attacks of opportunity, and do 1d6 damage");
-
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_POINT_BLANK_SHOT, "point blank shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "+1 to hit and dam rolls with ranged weapons in the same room", "+1 to hit and dam rolls with ranged weapons in the same room");
 
   feato(FEAT_RAPID_SHOT, "rapid shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "can make extra attack per round with ranged weapon at -2 to all attacks", "can make extra attack per round with ranged weapon at -2 to all attacks");
@@ -455,6 +451,7 @@ void assign_feats(void) {
   
   feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, "tower shield proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "can use tower shields without penalties", "can use tower shields without penalties");
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_ARMOR_SKIN, "armor skin", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Increases natural armor by 1", "Increases natural armor by 1"); /* Epic */
   feato(FEAT_ATHLETIC, "athletic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to swim and climb skill checks", "+2 to swim and climb skill checks");
   feato(FEAT_DECEITFUL, "deceitful", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to disguise and forgery skill checks", "+2 to disguise and forgery skill checks");
@@ -655,6 +652,7 @@ void assign_feats(void) {
   feato(FEAT_POISON_SAVE_BONUS, "poison save bonus", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Assassin level 2", "Bonus to all saves against poison.");
   feato(FEAT_POISON_USE, "poison use", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Trained use in poisons without risk of poisoning self.", "Trained use in poisons without risk of poisoning self.");
   feato(FEAT_PROFICIENT_CRAFTER, "proficient crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Increases all crafting skills", "Increases all crafting skills");
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_PROFICIENT_HARVESTER, "proficient harvester", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Increases all harvesting skills", "Increases all harvesting skills");
   feato(FEAT_RALLYING_CRY, "rallying cry", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_READ_OMENS, "read omens", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
@@ -746,6 +744,7 @@ void assign_feats(void) {
   feato(FEAT_CRAFT_STAFF, "craft staff", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical staves ", "can create magical staves ");
   feato(FEAT_CRAFT_WAND, "craft wand", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical wands ", "can create magical wands ");
   feato(FEAT_CRAFT_WONDEROUS_ITEM, "craft wonderous item", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can crate miscellaneous magical items ", "can crate miscellaneous magical items ");
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_FORGE_RING, "forge ring", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "ask staff ", "ask staff ");
   feato(FEAT_MASTERWORK_CRAFTING, "masterwork crafting", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "All equipment made is masterwork", "All equipment made is masterwork");
   feato(FEAT_SCRIBE_SCROLL, "scribe scroll", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can scribe spells from memory onto scrolls", "can scribe spells from memory onto scrolls");

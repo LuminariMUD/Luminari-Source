@@ -172,28 +172,42 @@ EVENTFUNC(event_falling)
       return 0;
     }
     
+    /* potential damage */
     int dam = dice((height_fallen/5), 6) + 20;
-    send_to_char(ch, "You fall headfirst to the ground!  OUCH!\r\n");
-    act("$n crashes into the ground headfirst, OUCH!", FALSE, ch, 0, 0, TO_ROOM);
-    GET_POS(ch) = POS_RECLINING;
-    SET_WAIT(ch, 4 * PULSE_VIOLENCE);
     
-    /* we have a special situation if you die, the event will get cleared */
-    if (dam >= GET_HIT(ch) + 9) {
-      GET_HIT(ch) = -999;
-      send_to_char(ch, "You attempt to scream in horror as your skull slams "
-              "into the ground, the very brief sensation of absolute pain "
-              "strikes you as all your upper-body bones shatter and your "
-              "head splatters all over the area!\r\n");
-      act("$n attempts to scream in horror as $s skull slams "
-              "into the ground.  There is the sound like the cracking of a "
-              "ripe melon.  You watch as all of $s upper-body bones shatter and $s "
-              "head splatters all over the area!\r\n", 
-          FALSE, ch, 0, 0, TO_ROOM);
-      return 0;
-    } else {
-      damage(ch, ch, dam, TYPE_UNDEFINED, DAM_FORCE, FALSE);
-      return 0;  //end event
+    /* check for slow-fall! */
+    if (HAS_FEAT(ch, FEAT_SLOW_FALL)) {
+      dam -= 21;
+      dam -= dice((HAS_FEAT(ch, FEAT_SLOW_FALL) * 4), 6);
+    } 
+    
+    if (dam <= 0) { /* woo! avoided damage */
+      send_to_char(ch, "You gracefully land on your feet from your perilous fall!\r\n");
+      act("$n comes falling in from above, but at the last minute, pulls of an acrobatic flip and lands gracefully on $s feet!", FALSE, ch, 0, 0, TO_ROOM);      
+      return 0; //end event
+    } else { /* ok we know damage is going to be suffered at this stage */
+      send_to_char(ch, "You fall headfirst to the ground!  OUCH!\r\n");
+      act("$n crashes into the ground headfirst, OUCH!", FALSE, ch, 0, 0, TO_ROOM);
+      GET_POS(ch) = POS_RECLINING;
+      SET_WAIT(ch, 4 * PULSE_VIOLENCE);
+
+      /* we have a special situation if you die, the event will get cleared */
+      if (dam >= GET_HIT(ch) + 9) {
+        GET_HIT(ch) = -999;
+        send_to_char(ch, "You attempt to scream in horror as your skull slams "
+                "into the ground, the very brief sensation of absolute pain "
+                "strikes you as all your upper-body bones shatter and your "
+                "head splatters all over the area!\r\n");
+        act("$n attempts to scream in horror as $s skull slams "
+                "into the ground.  There is the sound like the cracking of a "
+                "ripe melon.  You watch as all of $s upper-body bones shatter and $s "
+                "head splatters all over the area!\r\n",
+                FALSE, ch, 0, 0, TO_ROOM);
+        return 0;
+      } else {
+        damage(ch, ch, dam, TYPE_UNDEFINED, DAM_FORCE, FALSE);
+        return 0; //end event
+      }
     }
   }
   
@@ -209,7 +223,7 @@ EVENTFUNC(event_falling)
     
     /* are we falling more?  then we gotta increase the heigh fallen */
     sprintf(buf, "%d", height_fallen);
-    /* Need to free th ememory, if we are going to change it. */
+    /* Need to free the memory, if we are going to change it. */
     if(pMudEvent->sVariables)
       free(pMudEvent->sVariables);
     pMudEvent->sVariables = strdup(buf);

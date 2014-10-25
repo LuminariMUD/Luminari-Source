@@ -5964,6 +5964,7 @@ int get_eq_score(obj_rnum a) {
         case AFF_INERTIAL_BARRIER:
         case AFF_NOTELEPORT:
         case AFF_DARKVISION:
+        case AFF_SAFEFALL:
           score += 250;
           break;
         case AFF_SENSE_LIFE: 
@@ -6019,7 +6020,6 @@ int get_eq_score(obj_rnum a) {
         case AFF_DEATH_WARD:
         case AFF_DIM_LOCK:
         case AFF_BLACKMANTLE:
-        case AFF_SAFEFALL:
         case AFF_BLIND:
         case AFF_CURSE:
         case AFF_POISON:
