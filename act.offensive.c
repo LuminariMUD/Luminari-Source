@@ -2203,7 +2203,7 @@ ACMD(do_wholenessofbody) {
   send_to_char(ch, "Your body glows \tWwhite\tn as your wounds heal...\r\n");
   act("$n's body glows \tWwhite\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
   attach_mud_event(new_mud_event(eWHOLENESSOFBODY, ch, NULL),
-          (6 * SECS_PER_MUD_HOUR));
+          (12 * SECS_PER_MUD_HOUR));
   GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
           (20 + (CLASS_LEVEL(ch, CLASS_MONK) * 2)));
   update_pos(ch);
@@ -2243,7 +2243,7 @@ ACMD(do_treatinjury) {
   act("Your injuries are \tWtreated\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
   act("$n \tWtreats\tn $N's injuries!", FALSE, ch, 0, vict, TO_NOTVICT);
   attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL),
-          (6 * SECS_PER_MUD_HOUR));
+          (24 * SECS_PER_MUD_HOUR));
   GET_HIT(vict) += MIN((GET_MAX_HIT(vict) - GET_HIT(vict)),
           (10 + (compute_ability(ch, ABILITY_HEAL) * 2)));
   update_pos(vict);
