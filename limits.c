@@ -145,7 +145,7 @@ void affliction_tick(struct char_data *ch) {
 
   /* disease */
   if (IS_AFFECTED(ch, AFF_DISEASE)) {
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DIVINE_HEALTH)) {
+    if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_DIVINE_HEALTH) || HAS_FEAT(ch, FEAT_DIAMOND_BODY))) {
       if (affected_by_spell(ch, SPELL_EYEBITE))
         affect_from_char(ch, SPELL_EYEBITE);
       if (affected_by_spell(ch, SPELL_CONTAGION))

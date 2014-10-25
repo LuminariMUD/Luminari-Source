@@ -71,6 +71,7 @@ struct mud_event_list mud_event_index[] = {
   { "Standard Action Cooldown", event_action_cooldown, EVENT_CHAR}, /* eSTANDARDACTION */
   { "Move Action Cooldown", event_action_cooldown, EVENT_CHAR}, /* eMOVEACTION */
   { "Wholeness of Body", event_countdown, EVENT_CHAR}, // eWHOLENESSOFBODY
+  { "Empty Body", event_countdown, EVENT_CHAR}, // eEMPTYBODY
 
 };
 
@@ -193,8 +194,11 @@ EVENTFUNC(event_countdown) {
     case eTAUNTED:
       send_to_char(ch, "You feel the effects of the taunt wear off.\r\n");
       break;
+   case eEMPTYBODY:
+      send_to_char(ch, "You are now able to use Empty Body again.\r\n");
+      break;
    case eWHOLENESSOFBODY:
-      send_to_char(ch, "You are now able to use Wholness of Body again.\r\n");
+      send_to_char(ch, "You are now able to use Wholeness of Body again.\r\n");
       break;
     case eTREATINJURY:
       send_to_char(ch, "You are now able to treat injuries again.\r\n");

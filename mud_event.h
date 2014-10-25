@@ -71,6 +71,7 @@ typedef enum {
   eSTANDARDACTION, // Standard action cooldown
   eMOVEACTION, // Move action cooldown
   eWHOLENESSOFBODY, /* Wholeness of Body, Monk Healing Feat */
+  eEMPTYBODY, /* Empty Body, Monk Concealment Feat */
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
