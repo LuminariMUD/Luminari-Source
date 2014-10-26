@@ -249,6 +249,8 @@ void assign_rooms(void)
   ASSIGNROOM(27616, pet_shops);
   ASSIGNROOM(31523, pet_shops);
 
+  ASSIGNROOM(145287, pet_shops); /* mosswood petshop */
+  
   if (CONFIG_DTS_ARE_DUMPS)
     for (i = 0; i <= top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_DEATH))
