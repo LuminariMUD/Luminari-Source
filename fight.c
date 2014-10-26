@@ -2765,8 +2765,8 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
    *  If not proficient with weapon, -4 penalty applies. */
   if (wielded)
     if (!is_proficient_with_weapon(ch, GET_WEAPON_TYPE(wielded))) {
-      send_to_char(ch, "NOT PROFICIENT\r\n"); 
-      //calc_bab -= 4;
+      /*debug*//*send_to_char(ch, "NOT PROFICIENT\r\n");*/
+      /*calc_bab -= 4;*/
     }
   /*  Add armor prof here */
 
