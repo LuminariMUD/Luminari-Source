@@ -1558,6 +1558,7 @@ SPECIAL(frostbite) {
 SPECIAL(vaprak_claws) {
   struct affected_type af[VAP_AFFECTS];
   int duration = 0, i = 0;
+  struct obj_data *obj = (struct obj_data *) me;
   
   if (!ch)
     return 0;
@@ -1573,12 +1574,11 @@ SPECIAL(vaprak_claws) {
   if (GET_RACE(ch) != RACE_OGRE && GET_RACE(ch) != RACE_TROLL)
     return 0;
 
-  struct obj_data *obj = (struct obj_data *) me;
-
+  if (!is_wearing(ch, 196062))
+    return 0;
+  
   skip_spaces(&argument);
-  
-  if (!is_wearing(ch, 196062)) return 0;
-  
+    
   if (!strcmp(argument, "vaprak") && CMD_IS("say")) {
     
     //if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
@@ -1605,15 +1605,16 @@ SPECIAL(vaprak_claws) {
       af[i].duration = duration;
     }
 
+    
     af[0].location = APPLY_HITROLL;
     af[0].modifier = 3;
 
     af[1].location = APPLY_DAMROLL;
     af[1].modifier = 3;
 
-    SET_BIT_AR(af[2].bitvector, AFF_HASTE);
     af[2].location = APPLY_SAVING_WILL;
     af[2].modifier = 3;
+    SET_BIT_AR(af[2].bitvector, AFF_HASTE);
 
     for (i = 0; i < VAP_AFFECTS; i++)
       affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
