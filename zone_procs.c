@@ -1567,19 +1567,26 @@ SPECIAL(vaprak_claws) {
     return 1;
   }
 
+  if (!argument)
+    return 0;
+  
   if (GET_RACE(ch) != RACE_OGRE && GET_RACE(ch) != RACE_TROLL)
     return 0;
 
   struct obj_data *obj = (struct obj_data *) me;
 
   skip_spaces(&argument);
+  
   if (!is_wearing(ch, 196062)) return 0;
-  if (!strcmp(argument, "vaprak") && cmd_info[cmd].command_pointer == do_say) {
+  
+  if (!strcmp(argument, "vaprak") && CMD_IS("say")) {
+    
     //if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
     if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
       send_to_char(ch, "\trAs you say '\twvaprak\tr' to your claws \tLof the destroyer\tr, nothing happens.\tn\r\n");
       return 1;
     }
+    
     if (affected_by_spell(ch, SKILL_RAGE)) {
       send_to_char(ch, "You are already raging!\r\n");
       return 1;
@@ -1611,8 +1618,9 @@ SPECIAL(vaprak_claws) {
     for (i = 0; i < VAP_AFFECTS; i++)
       affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
     GET_OBJ_SPECTIMER(obj, 0) = 24;
-    return 1;
+    return 1; /* success! */
   }
+  
   return 0;
 }
 #undef VAP_AFFECTS
