@@ -1563,8 +1563,9 @@ void nanny(struct descriptor_data *d, char *arg) {
       CREATE(d->account, struct account_data, 1);
       d->account->name = NULL;
       for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
-        d->account->character_names[i] = NULL;
+        d->account->character_names[i] = NULL;    
     }
+    d->character = NULL;
     if (!*arg)
       STATE(d) = CON_CLOSE;
     else {
@@ -1629,7 +1630,8 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
 
   case CON_ACCOUNT_MENU:
     ProtocolNoEcho(d, false); /* turn echo back on */
-
+    if(d->character)
+      free_char(d->character);
     d->character = NULL;
 
     if (d->character == NULL) {
