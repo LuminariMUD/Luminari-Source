@@ -555,40 +555,54 @@ void assign_feats(void) {
 
   /* Monk */
   feato(FEAT_UNARMED_STRIKE, "unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Unarmed attacks are considered to be weapons.", "Unarmed attacks are considered to be weapons.");
-  /* not imped */feato(FEAT_KI_STRIKE, "ki strike [not impd]", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented yet] unarmed attack considered a magical weapon", "[not implemented yet] unarmed attack considered a magical weapon");
+  /*unfinished*/feato(FEAT_KI_STRIKE, "ki strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "unarmed attack considered a magical weapon (unfinished)",
+    "unarmed attack considered a magical weapon [note: until fixed this feat "
+      "just gives a +1 to hitroll/damroll]");
   feato(FEAT_STILL_MIND, "still mind", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-  "+2 bonus on saving throws vs. Enchantments",
-  "+2 bonus on saving throws vs. Enchantments");
+    "+2 bonus on saving throws vs. Enchantments",
+    "+2 bonus on saving throws vs. Enchantments");
   feato(FEAT_WHOLENESS_OF_BODY, "wholeness of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-  "can heal class level*2 + 20 hp to self",
-  "can heal class level*2 + 20 hp to self");
+    "can heal class level*2 + 20 hp to self",
+    "can heal class level*2 + 20 hp to self");
   feato(FEAT_SLOW_FALL, "slow fall", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-  "no damage for falling 1 room/feat rank",
-  "no damage for falling 1 room/feat rank");
+    "no damage for falling 1 room/feat rank",
+    "no damage for falling 1 room/feat rank");
   feato(FEAT_ABUNDANT_STEP, "abundant step", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "magically move between tight spaces, as the spell dimension door",
-        "Magically move between tight spaces, as the spell dimension door.  You "
-        "can even go through doors.  To use, you must give directions from your "
-        "current location.  Example: abundantstep w w n n e 2w n n e");
-  feato(FEAT_DIAMOND_BODY, "diamond body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "immune to disease", "immune to disease");
+    "magically move between tight spaces, as the spell dimension door",
+    "Magically move between tight spaces, as the spell dimension door.  You "
+      "can even go through doors.  To use, you must give directions from your "
+      "current location.  Example: abundantstep w w n n e 2w n n e");
+  feato(FEAT_DIAMOND_BODY, "diamond body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "immune to disease",
+    "immune to disease");
   feato(FEAT_DIAMOND_SOUL, "diamond soul", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "spell resistance equal to class level + 10", "spell resistance equal to class level + 10");
   feato(FEAT_EMPTY_BODY, "empty body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-  "50 percent concealment for 1 round/monk level per day",
-  "50 percent concealment for 1 round/monk level per day");
+    "50 percent concealment for 1 round/monk level per day",
+    "50 percent concealment for 1 round/monk level per day");
   feato(FEAT_FLURRY_OF_BLOWS, "flurry of blows", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-  "extra attack when fighting unarmed at -2 to all attacks",
-  "Flurry of Blows is a special mode available to monks (type flurryofblows).  You get an extra attack "
-  "at full BAB, but at a penalty to -2 to all your attacks.  At level 5 the "
-  "penalty drops to -1, and at level 9 the penalty disappears completely. ");
+    "extra attack when fighting unarmed at -2 to all attacks",
+    "Flurry of Blows is a special mode available to monks (type flurryofblows).  You get an extra attack "
+      "at full BAB, but at a penalty to -2 to all your attacks.  At level 5 the "
+      "penalty drops to -1, and at level 9 the penalty disappears completely. ");
   feato(FEAT_GREATER_FLURRY, "greater flurry", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
-  "extra unarmed attack when using flurry of blows",
-  "extra unarmed attack when using flurry of blows");
-  feato(FEAT_PERFECT_SELF, "perfect self", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Gain 10/magic damage reduction", "Gain 10/magic damage reduction");
+    "extra unarmed attack when using flurry of blows",
+    "extra unarmed attack when using flurry of blows, at level 15 you get yet "
+      "another bonus attack at full BAB");
+  /*unfinished*/feato(FEAT_PERFECT_SELF, "perfect self", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Gain 10/magic damage reduction (unfinished)",
+    "Gain 10/magic damage reduction [note: until our damage reduction system is "
+      "changed, this feat will give a flat 3 damage reduction against ALL incoming attacks");
   feato(FEAT_PURITY_OF_BODY, "purity of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-  "immune to poison",
-  "immune to poison");
-  /* not imped */feato(FEAT_QUIVERING_PALM, "quivering palm", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "chance to kill on strike with unarmed attack", "chance to kill on strike with unarmed attack");
-  /* not imped */feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON, "tongue of the sun and the moon [not impd]", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented] can speak any language", "[not implemented] can speak any language");
+    "immune to poison",
+    "immune to poison");
+  feato(FEAT_QUIVERING_PALM, "quivering palm", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  "chance to kill on strike with unarmed attack",
+  "You will do your wisdom bonus as bonus damage to your next unarmed strike, "
+    "in addition, to opponents that are your level or lower, they have to make "
+    "a fortitude save vs DC: your monk level + your wisdom bonus + 10 in order "
+    "to survive your quivering palm attack");
+  /* not imped */feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON, "tongue of the sun and moon [not impd]", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented] can speak any language", "[not implemented] can speak any language");
 
   /* Bard */
   feato(FEAT_BARDIC_KNOWLEDGE, "bardic knowledge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+Int modifier bonus on knowledge checks.", "+Int modifier bonus on knowledge checks.");
@@ -891,6 +905,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_SMITE_EVIL, eSMITE);
   dailyfeat(FEAT_TURN_UNDEAD, eTURN_UNDEAD);
   dailyfeat(FEAT_WILD_SHAPE, eWILD_SHAPE);
+  dailyfeat(FEAT_QUIVERING_PALM, eQUIVERINGPALM);
 }
 
 /* Check to see if ch meets the provided feat prerequisite. 

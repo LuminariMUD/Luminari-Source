@@ -606,6 +606,7 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
    1) switch opponents
    2) springleap
    3) stunning fist
+   4) quivering palm
    */
   
   /* switch opponents attempt */
@@ -618,6 +619,9 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
       break;
     case 2:
       perform_springleap(ch, vict);
+      break;
+    case 3: /* hahah just kidding */
+      perform_quiveringpalm(ch);
       break;
     default:
       break;
@@ -639,18 +643,17 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
     case 1:
       if (perform_knockdown(ch, vict, SKILL_TRIP))
         break;
-      /* fallthrough */
+      break;
     case 2:
       if (perform_dirtkick(ch, vict)) {
         send_to_char(ch, "Succeeded dirtkick\r\n");
-        break;
       } else
         send_to_char(ch, "Failed dirtkick\r\n");
-      /* fallthrough */
+      break;
     default:
       if (perform_backstab(ch, vict))
         break;
-      /* fallthrough */
+      break;
   }
 }
 // bard behaviour, behave based on level

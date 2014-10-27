@@ -72,6 +72,7 @@ struct mud_event_list mud_event_index[] = {
   { "Move Action Cooldown", event_action_cooldown, EVENT_CHAR}, /* eMOVEACTION */
   { "Wholeness of Body", event_countdown, EVENT_CHAR}, // eWHOLENESSOFBODY
   { "Empty Body", event_countdown, EVENT_CHAR}, // eEMPTYBODY
+  { "Quivering Palm", event_daily_use_cooldown, EVENT_CHAR}, //eQUIVERINGPALM 
 
 };
 
@@ -188,6 +189,9 @@ EVENTFUNC(event_countdown) {
     case eSTUNNINGFIST:
       send_to_char(ch, "You are now able to strike with your stunning fist again.\r\n");
       break;
+    case eQUIVERINGPALM:
+      send_to_char(ch, "You are now able to strike with your quivering palm again.\r\n");
+      break;
     case eTAUNT:
       send_to_char(ch, "You are now able to taunt again.\r\n");
       break;
@@ -256,6 +260,10 @@ EVENTFUNC(event_daily_use_cooldown) {
   }
   
   switch (pMudEvent->iId) {
+    case eQUIVERINGPALM:
+      featnum = FEAT_QUIVERING_PALM;
+      send_to_char(ch, "You are now able to strike with your quivering palm again.\r\n");
+      break;
     case eSTUNNINGFIST:
       featnum = FEAT_STUNNING_FIST;
       send_to_char(ch, "You are now able to strike with your stunning fist again.\r\n");

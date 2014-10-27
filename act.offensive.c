@@ -240,8 +240,25 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
 /*  End utility */
 
 
-/* stunningfist engine */
+/* quivering palm engine: The quivering palm is reliant on a successful UNARMED
+ * attack (or an attack with a KI_STRIKE weapon) */
+void perform_quiveringpalm(struct char_data *ch) {
+  struct affected_type af;
 
+  new_affect(&af);
+  af.spell = SKILL_QUIVERING_PALM;
+  af.duration = 24;
+
+  affect_to_char(ch, &af);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_QUIVERING_PALM);
+
+  send_to_char(ch, "You beging to meditate and focus all your ki energy towards your palms...  \tBYour body begins to vibrate with massive amounts of \tYenergy\tB.\tn");
+  act("$n's body begins to \tBvibrate\tn with massive amounts of \tYenergy\tn!", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+/* stunningfist engine */
 /* The stunning fist is reliant on a successful UNARMED attack (or an attack with a KI_STRIKE weapon) */
 void perform_stunningfist(struct char_data *ch) {
   struct affected_type af;
@@ -257,7 +274,6 @@ void perform_stunningfist(struct char_data *ch) {
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 
   send_to_char(ch, "You focus your Ki energies and prepare a disabling unarmed attack.\r\n");
-
 }
 
 #define RAGE_AFFECTS 4
@@ -2346,6 +2362,32 @@ ACMD(do_whirlwind) {
    * additional data. The event will be called in "3 * PASSES_PER_SEC" or 3 seconds */
   NEW_EVENT(eWHIRLWIND, ch, NULL, 3 * PASSES_PER_SEC);
   USE_FULL_ROUND_ACTION(ch);
+}
+
+ACMD(do_quiveringpalm) {
+  int uses_remaining = 0;
+
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_QUIVERING_PALM)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
+    send_to_char(ch, "You have already focused your ki!\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_QUIVERING_PALM)) == 0) {
+    send_to_char(ch, "You must recover before you can focus your ki in this way again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  perform_quiveringpalm(ch);
 }
 
 ACMD(do_stunningfist) {
