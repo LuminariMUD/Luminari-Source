@@ -558,9 +558,10 @@
 #define SKILL_SAP                       525
 #define SKILL_SHIELD_SLAM               526
 #define SKILL_SHIELD_CHARGE             527
+#define SKILL_QUIVERING_PALM            528  //implemented
 
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      528
+#define NUM_SKILLS                      529
 
 /* Special Abilities for weapons */
 

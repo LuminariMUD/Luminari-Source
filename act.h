@@ -231,6 +231,7 @@ extern const char *cmd_door[];
  ****************************************************************************/
 /* functions */
 void perform_stunningfist(struct char_data *ch);
+void perform_quiveringpalm(struct char_data *ch);
 void perform_rescue(struct char_data *ch, struct char_data *vict);
 void perform_smite(struct char_data *ch);
 void perform_rage(struct char_data *ch);
@@ -283,6 +284,7 @@ ACMD(do_tailsweep);
 ACMD(do_backstab);
 ACMD(do_flee);
 ACMD(do_stunningfist);
+ACMD(do_quiveringpalm);
 ACMD(do_kick);
 ACMD(do_smite);
 ACMD(do_kill);

@@ -1512,6 +1512,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
     damage_reduction += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4;
   if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
     damage_reduction += 12;
+  if (HAS_FEAT(ch, FEAT_PERFECT_SELF)) /* temporary mechanic until we upgrade this system */
+    damage_reduction += 3;
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
@@ -2083,6 +2085,10 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   if (HAS_FEAT(ch, FEAT_DIVINE_BOND)) {
     dambonus += MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3));
   }
+  
+  /* temporary filler for ki-strike until we get it working right */
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
+    dambonus += HAS_FEAT(ch, FEAT_KI_STRIKE);
 
   /**** display, keep mods above this *****/
   if (mode == 2 || mode == 3) {
@@ -2743,6 +2749,10 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_PROWESS))
     bonuses[BONUS_TYPE_UNDEFINED] += HAS_FEAT(ch, FEAT_EPIC_PROWESS);
 
+  /* temporary filler for ki-strike until we get it working right */
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
+    bonuses[BONUS_TYPE_UNDEFINED] += HAS_FEAT(ch, FEAT_KI_STRIKE);
+  
   /* Modify this to store a player-chosen number for power attack and expertise */
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE))
     bonuses[BONUS_TYPE_UNDEFINED] -= COMBAT_MODE_VALUE(ch);
@@ -3269,6 +3279,30 @@ int hit(struct char_data *ch, struct char_data *victim,
       }
     }
     
+    int quivering_palm_dc = 10 + (CLASS_LEVEL(ch, CLASS_MONK) / 2) + GET_WIS_BONUS(ch);
+    if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
+      if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
+        send_to_char(ch, "[QUIVERING-PALM] ");
+        /* apply quivering palm affect, muahahahah */
+        if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
+                !savingthrow(victim, SAVING_FORT, 0, quivering_palm_dc)) {
+          /*GRAND SLAM!*/
+          act("$N \tRblows up into little pieces\tn as soon as you make contact with your palm!",
+                  FALSE, ch, wielded, victim, TO_CHAR);
+          act("You feel your body \tRblow up in to little pieces\tn as $n touches you!",
+                  FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
+          act("You watch as $N's body gets \tRblown into little pieces\tn from a single touch from $n!",
+                  FALSE, ch, wielded, victim, TO_NOTVICT);
+          dam_killed_vict(ch, victim);
+          return 0;
+        } else { /* quivering palm will still do damage */
+          dam += 1 + GET_WIS_BONUS(ch);
+        }
+        /* ok, now remove quivering palm */
+        affect_from_char(ch, SKILL_QUIVERING_PALM);     
+      }
+    }
+    
     /* Calculate sneak attack damage. */
     if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
         (compute_concealment(victim) == 0) &&
@@ -3566,6 +3600,10 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     if (HAS_FEAT(ch, FEAT_GREATER_FLURRY)) { /* FEAT_GREATER_FLURRY, 11th level */
       bonusAttacks++;
       attacks_at_max_bab++;
+      if (CLASS_LEVEL(ch, CLASS_MONK) >= 15) {
+        bonusAttacks++;
+        attacks_at_max_bab++;
+      }
     }
   }
   

@@ -26,13 +26,14 @@ void  (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
                                             char *argument,
                                             int cmd,
                                             int subcmd) = {
-  do_trip,         /* AA_TRIP */
-  do_charge,       /* AA_CHARGE */
-  do_smite,        /* AA_SMITE */
-  do_stunningfist, /* AA_STUNNINGFIST */
-  do_headbutt,     /* AA_HEDABUTT */
-  do_kick,         /* AA_KICK */
-  do_shieldpunch   /* AA_SHIELDPUNCH */
+  do_trip,          /* AA_TRIP */
+  do_charge,        /* AA_CHARGE */
+  do_smite,         /* AA_SMITE */
+  do_stunningfist,  /* AA_STUNNINGFIST */
+  do_headbutt,      /* AA_HEDABUTT */
+  do_kick,          /* AA_KICK */
+  do_shieldpunch,   /* AA_SHIELDPUNCH */
+  do_quiveringpalm, /* AA_QUIVERINGPALM */
 };
 
 

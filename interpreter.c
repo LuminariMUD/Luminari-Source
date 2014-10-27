@@ -349,6 +349,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "qsay", "qsay", POS_RECLINING, do_qcomm, 0, SCMD_QSAY, TRUE, ACTION_NONE, {0, 0}},
   { "qref", "qref", POS_DEAD, do_qref, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "qview", "qview", POS_DEAD, do_qview, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "quiveringpalm", "quiveringpalm", POS_FIGHTING, do_quiveringpalm, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   
   { "rapidshot", "rapidshot", POS_FIGHTING, do_mode, 1, MODE_RAPID_SHOT, FALSE, ACTION_NONE, {0, 0}},
   { "rest", "re", POS_RECLINING, do_rest, 0, 0, FALSE, ACTION_NONE, {0, 0}},

@@ -6,14 +6,17 @@
 #define _ACTIONS_H_
 
 /* Defines for attack actions */
-#define AA_TRIP         0
-#define AA_CHARGE       1
-#define AA_SMITE        2
-#define AA_STUNNINGFIST 3
-#define AA_HEADBUTT     4
-#define AA_KICK         5
-#define AA_SHIELDPUNCH  6
-#define NUM_ATTACK_ACTIONS 7
+#define AA_TRIP            0
+#define AA_CHARGE          1
+#define AA_SMITE           2
+#define AA_STUNNINGFIST    3
+#define AA_HEADBUTT        4
+#define AA_KICK            5
+#define AA_SHIELDPUNCH     6
+#define AA_QUIVERINGPALM   7
+/**/
+#define NUM_ATTACK_ACTIONS 8
+/**************************/
 
 #define USE_STANDARD_ACTION(ch)   start_action_cooldown(ch, atSTANDARD, 6 RL_SEC)
 #define USE_MOVE_ACTION(ch)       (is_action_available(ch, atMOVE, FALSE) ? start_action_cooldown(ch, atMOVE, 6 RL_SEC) : start_action_cooldown(ch, atSTANDARD, 6 RL_SEC))
