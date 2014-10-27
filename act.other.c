@@ -2117,9 +2117,9 @@ ACMD(do_practice) {
   one_argument(argument, arg);
 
   if (*arg)
-    send_to_char(ch, "You can only practice skills in your guild.\r\n");
+    send_to_char(ch, "Type 'practice' without an argument to view your crafting skills.\r\n");
   else
-    list_skills(ch);
+    list_crafting_skills(ch);
 
   send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");

@@ -325,7 +325,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "parry", "parry", POS_FIGHTING, do_mode, 1, MODE_PARRY, FALSE, ACTION_NONE, {0, 0}},
   { "peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "pick", "pi", POS_STANDING, do_gen_door, 1, SCMD_PICK, FALSE, ACTION_NONE, {0, 0}},
-/*  { "practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}},*/
+  { "practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "page", "pag", POS_DEAD, do_page, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "pardon", "pardon", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_PARDON, TRUE, ACTION_NONE, {0, 0}},
   { "plist", "plist", POS_DEAD, do_plist, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
