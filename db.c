@@ -169,6 +169,63 @@ static void free_extra_descriptions(struct extra_descr_data *edesc);
 static bitvector_t asciiflag_conv_aff(char *flag);
 static int hsort(const void *a, const void *b);
 
+/* Ils: Global result_q needed for init_result_q, push_result & test_result */
+struct {
+  int tail, size;
+  bool q[RQ_MAXSIZE];
+} result_q;
+/* init_result_q
+ * note: just prepares the result_q for usage */
+void init_result_q(void) {
+  result_q.size = 0;
+  result_q.tail = 0;
+}
+/* push_result
+ * Note: will push result into the result_q at head of queue.
+ * Queue will be treated as a fixed sized circular list, of 127 entries,
+ * new entries will overwrite the oldest entries after 127 results have
+ * been enqueued.
+ * note: result_q.tail is kept 1 ahead of valid results so that
+ *       result_q.tail - 1 = previous result */
+void push_result(byte result) {
+  result_q.q[result_q.tail] = result;
+  result_q.size++;
+  if (result_q.size > RQ_MAXSIZE)
+    result_q.size = RQ_MAXSIZE;
+  result_q.tail = (result_q.tail + 1) % RQ_MAXSIZE;
+}
+/* test_result
+ * returns - if offset is positive
+ *             TRUE if result stored at tail - abs(offset) is TRUE
+ *             FALSE if result stored at tail - abs(offset) is FALSE
+ *         - if offset is negative
+ *             FALSE if result stored at tail - abs(offset) is TRUE
+ *             TRUE if result stored at tail - abs(offset) is FALSE
+ *         - if offset is zero return TRUE
+ * note: a zero offset indicates the command does not depend on previous results
+ *       so it always returns TRUE.
+ * note: does not remove the value from the queue
+ * using a fixed sized queue as a way to make a circular list
+ * usage: TRUE should mean execute the command
+ *        FALSE should mean don't execute the command
+ * NOTE: Uses the ZONE_ERROR macro defined for reset_zone */
+sbyte test_result(sbyte offset) {
+  if (abs(offset) > result_q.size) {
+    log("ERR: out of bounds if-value in zone reset");
+    return FALSE;
+  }
+
+  if (offset == 0)
+    return TRUE;
+  
+  else if (offset > 0) 
+    return (result_q.q[((RQ_MAXSIZE - (abs(offset) - result_q.tail))
+            % RQ_MAXSIZE)]);
+  else
+    return !(result_q.q[((RQ_MAXSIZE - (abs(offset) - result_q.tail))
+             % RQ_MAXSIZE)]);
+}
+
 /* routines for booting the system */
 char *fread_action(FILE *fl, int nr) {
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -3184,12 +3241,15 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message) {
           ZCMD.command, zone_table[zone].number, ZCMD.line);
 }
 
+/*
 #define ZONE_ERROR(message) \
 	{ log_zone_error(zone, cmd_no, message); last_cmd = 0; }
+*/
+#define ZONE_ERROR(message) 	{ log_zone_error(zone, cmd_no, message); push_result(0); }
 
 /* execute the reset command table of a given zone */
 void reset_zone(zone_rnum zone) {
-  int cmd_no = 0, last_cmd = 0, jump = 0;
+  int cmd_no = 0, jump = 0;
   struct char_data *mob = NULL;
   struct obj_data *obj = NULL, *obj_to = NULL;
   room_vnum rvnum = 0;
@@ -3197,37 +3257,34 @@ void reset_zone(zone_rnum zone) {
   struct char_data *tmob = NULL; /* for trigger assignment */
   struct obj_data *tobj = NULL; /* for trigger assignment */
 
-  /* dummy check added by zusuk due to mysterious crash (03/31/2013) */
-  //if (zone_table && zone_table[zone].cmd) {
+  init_result_q();
+
   for (cmd_no = 0; ZCMD.command != 'S'; cmd_no++) {
     if (jump > 0) {
       jump--;
-      last_cmd = 0;
+      push_result(0);
       continue;
     }
 
-    // dependent on success of last command
-    if (ZCMD.if_flag > 0 && !last_cmd)
+    if (!test_result(ZCMD.if_flag)) {
+      push_result(0);
       continue;
-
-    // dependent on failure of last command
-    if (ZCMD.if_flag < 0 && last_cmd)
-      continue;
+    }
 
     /* This is the list of actual zone commands. If any new zone commands are
      * added to the game, be certain to update the list of commands in load_zone
      * () so that the counting will still be correct. - ae. */
     switch (ZCMD.command) {
       case '*': /* ignore command */
-        last_cmd = 0;
+        push_result(0);
         break;
 
       case 'J': /* jump over lines (with percentage chance) */
         if (rand_number(1, 100) <= ZCMD.arg2) {
           jump = ZCMD.arg1;
-          last_cmd = 1;
+          push_result(1);
         } else
-          last_cmd = 0;
+          push_result(0);
         break;
 
       case 'M': /* read a mobile (with percentage loads) */
@@ -3248,73 +3305,81 @@ void reset_zone(zone_rnum zone) {
           GET_MOB_LOADROOM(mob) = IN_ROOM(mob);
 
           /* Calculate random treasure for the mobile. -Ornir */
-          /*
-          if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE)) {
+          /*if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE)) {
             load_treasure(mob);
-          }
-           */
-
-          last_cmd = 1;
+          }*/
+          push_result(1);
         } else
-          last_cmd = 0;
+          push_result(0);
         tobj = NULL;
         break;
 
       case 'O': /* read an object (with percentage loads) */
-        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
+        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 ||
+                (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                 rand_number(1, 100) <= ZCMD.arg4) {
           if (ZCMD.arg3 != NOWHERE) {
             obj = read_object(ZCMD.arg1, REAL);
             obj_to_room(obj, ZCMD.arg3);
-            last_cmd = 1;
+            push_result(1);
             load_otrigger(obj);
             tobj = obj;
           } else {
             obj = read_object(ZCMD.arg1, REAL);
             IN_ROOM(obj) = NOWHERE;
-            last_cmd = 1;
+            push_result(1);
             tobj = obj;
           }
         } else
-          last_cmd = 0;
+          push_result(0);
         tmob = NULL;
         break;
 
       case 'P': /* object to object (with percentage loads) */
-        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
+        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 ||
+                (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                 rand_number(1, 100) <= ZCMD.arg4) {
           obj = read_object(ZCMD.arg1, REAL);
           if (!(obj_to = get_obj_num(ZCMD.arg3))) {
-            ZONE_ERROR("target obj not found, command disabled");
-            ZCMD.command = '*';
+            if (ZCMD.if_flag == 0) {
+              ZONE_ERROR("target obj not found");
+            } else {
+              push_result(0);
+            }
+            /*ZONE_ERROR("target obj not found, command disabled");
+           ZCMD.command = '*';*/
             break;
           }
           obj_to_obj(obj, obj_to);
-          last_cmd = 1;
+          push_result(1);
           load_otrigger(obj);
           tobj = obj;
         } else
-          last_cmd = 0;
+          push_result(0);
         tmob = NULL;
         break;
 
       case 'G': /* obj_to_char (with percentage loads) */
         if (!mob) {
-          char error[MAX_INPUT_LENGTH];
-          snprintf(error, sizeof (error), "attempt to give obj #%d to non-existant mob, command disabled", obj_index[ZCMD.arg1].vnum);
-          ZONE_ERROR(error);
-          ZCMD.command = '*';
+          if (ZCMD.if_flag == 0) {
+            char error[MAX_INPUT_LENGTH];
+            snprintf(error, sizeof (error), "attempt to give obj #%d to non-existant mob, command disabled", obj_index[ZCMD.arg1].vnum);
+            ZONE_ERROR(error);
+            /*ZCMD.command = '*';*/
+          } else
+            push_result(0);
           break;
         }
-        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
+        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 ||
+                (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                 rand_number(1, 100) <= ZCMD.arg3) {
           obj = read_object(ZCMD.arg1, REAL);
           obj_to_char(obj, mob);
-          last_cmd = 1;
+          push_result(1);
           load_otrigger(obj);
           tobj = obj;
         } else
-          last_cmd = 0;
+          push_result(0);
         tmob = NULL;
         break;
 
@@ -3330,18 +3395,18 @@ void reset_zone(zone_rnum zone) {
           load_treasure(mob);
         break;
       case 'L': /* random treasure to container (with percentage loads) */
-        /*       if (rand_number(1, 100) <= ZCMD.arg2) {
-                  if (!(obj_to = get_obj_num(ZCMD.arg3))) {
-                    ZONE_ERROR("target obj not found, command disabled");
-                    ZCMD.command = '*';
-                    break;
-                  }
-                  load_treasure_in_obj(obj_to);
-                  last_cmd = 1;
-                } else
-                  last_cmd = 0;
-         */
-        last_cmd = 0; /* Disable this for now... */
+        /*if (rand_number(1, 100) <= ZCMD.arg2) {
+          if (!(obj_to = get_obj_num(ZCMD.arg3))) {
+            ZONE_ERROR("target obj not found, command disabled");
+            ZCMD.command = '*';
+            break;
+          }
+          load_treasure_in_obj(obj_to);
+          push_result(1);
+        } else
+          push_result(0);*/
+        /* Disable this for now... */
+        push_result(0);
         break;
       case 'E': /* object to equipment list (with percentage loads) */
         if (!mob) {
@@ -3367,17 +3432,17 @@ void reset_zone(zone_rnum zone) {
             } else
               obj_to_char(obj, mob);
             tobj = obj;
-            last_cmd = 1;
+            push_result(1);
           }
         } else
-          last_cmd = 0;
+          push_result(0);
         tmob = NULL;
         break;
 
       case 'R': /* rem obj from room */
         if ((obj = get_obj_in_list_num(ZCMD.arg2, world[ZCMD.arg1].contents)) != NULL)
           extract_obj(obj);
-        last_cmd = 1;
+        push_result(1);
         tmob = NULL;
         tobj = NULL;
         break;
@@ -3514,7 +3579,7 @@ void reset_zone(zone_rnum zone) {
               break;
           }
 
-        last_cmd = 1;
+        push_result(1);
         tmob = NULL;
         tobj = NULL;
         break;
@@ -3524,12 +3589,12 @@ void reset_zone(zone_rnum zone) {
           if (!SCRIPT(tmob))
             CREATE(SCRIPT(tmob), struct script_data, 1);
           add_trigger(SCRIPT(tmob), read_trigger(ZCMD.arg2), -1);
-          last_cmd = 1;
+          push_result(1);
         } else if (ZCMD.arg1 == OBJ_TRIGGER && tobj) {
           if (!SCRIPT(tobj))
             CREATE(SCRIPT(tobj), struct script_data, 1);
           add_trigger(SCRIPT(tobj), read_trigger(ZCMD.arg2), -1);
-          last_cmd = 1;
+          push_result(1);
         } else if (ZCMD.arg1 == WLD_TRIGGER) {
           if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world) {
             ZONE_ERROR("Invalid room number in trigger assignment");
@@ -3537,7 +3602,7 @@ void reset_zone(zone_rnum zone) {
           if (!world[ZCMD.arg3].script)
             CREATE(world[ZCMD.arg3].script, struct script_data, 1);
           add_trigger(world[ZCMD.arg3].script, read_trigger(ZCMD.arg2), -1);
-          last_cmd = 1;
+          push_result(1);
         }
 
         break;
@@ -3549,14 +3614,14 @@ void reset_zone(zone_rnum zone) {
           } else
             add_var(&(SCRIPT(tmob)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
                   ZCMD.arg3);
-          last_cmd = 1;
+          push_result(1);
         } else if (ZCMD.arg1 == OBJ_TRIGGER && tobj) {
           if (!SCRIPT(tobj)) {
             ZONE_ERROR("Attempt to give variable to scriptless object");
           } else
             add_var(&(SCRIPT(tobj)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
                   ZCMD.arg3);
-          last_cmd = 1;
+          push_result(1);
         } else if (ZCMD.arg1 == WLD_TRIGGER) {
           if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world) {
             ZONE_ERROR("Invalid room number in variable assignment");
@@ -3566,7 +3631,7 @@ void reset_zone(zone_rnum zone) {
             } else
               add_var(&(world[ZCMD.arg3].script->global_vars),
                     ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg2);
-            last_cmd = 1;
+            push_result(1);
           }
         }
         break;

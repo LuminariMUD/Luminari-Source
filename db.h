@@ -148,8 +148,12 @@
 #define PINDEX_SELFDELETE	(1 << 2)	/* player is selfdeleting*/
 #define PINDEX_NOWIZLIST	(1 << 3)	/* Player shouldn't be on wizlist*/
 #define PINDEX_INCLAN           (1 << 4)        /* player is in a clan */
+
 #define REAL 0
 #define VIRTUAL 1
+
+/* Ils: how many reset commands to maintain in the queue */
+#define RQ_MAXSIZE      127
 
 /* structure for the reset commands */
 struct reset_com {
