@@ -1108,6 +1108,8 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   /* award crystal for item */
   award_random_crystal(ch, GET_OBJ_LEVEL(obj));
   
+  if (!IS_NPC(ch))
+    increase_skill(ch, SKILL_CHEMISTRY);
 
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
   GET_CRAFTING_TICKS(ch) = 5;
@@ -1717,6 +1719,9 @@ EVENTFUNC(event_crafting) {
             "left to go.\r\n", GET_CRAFTING_TICKS(ch) * 6);
 
     GET_CRAFTING_TICKS(ch)--;
+    
+    /* skill notch */
+    increase_skill(ch, SKILL_FAST_CRAFTER);
     
     if (GET_LEVEL(ch) >= LVL_IMMORT)
       return 1;
