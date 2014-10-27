@@ -843,10 +843,17 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define CON_HLQEDIT      39 /**< homeland-port quest editor */
 #define CON_QSTATS       40 /**< Point-buy system for stats */
 
+/* Account connection states - Ornir Oct 20, 2014 */
+#define CON_ACCOUNT_NAME         41
+#define CON_ACCOUNT_NAME_CONFIRM 42
+#define CON_ACCOUNT_MENU         43
+#define CON_ACCOUNT_ADD          44
+#define CON_ACCOUNT_ADD_PWD      45
+
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT     /**< The first CON_ state that is an OLC */
 #define LAST_OLC_STATE  CON_HLQEDIT    /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES	41
+#define NUM_CON_STATES	46
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
@@ -2511,6 +2518,8 @@ struct player_special_data_saved {
 
   time_t lastmotd; /**< Last time player read motd */
   time_t lastnews; /**< Last time player read news */
+
+  char *account_name; // The account stored with this character.
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -2745,6 +2754,8 @@ struct descriptor_data {
 
   protocol_t *pProtocol; /**< Kavir plugin */
   struct list_data *events;  // event system
+
+  struct account_data *account; /**< Account system */
 };
 
 /* other miscellaneous structures */
@@ -3039,5 +3050,35 @@ typedef enum {
 #define ACTION_NONE     0
 #define ACTION_STANDARD (1 << 0)
 #define ACTION_MOVE     (1 << 1)
+
+
+#define MAX_CHARS_PER_ACCOUNT         100
+
+/* Account data structure.  Account data is kept in the database,
+ * but loaded into this structure while the player is in-game. */
+struct account_data {
+
+        int id;
+        char *name;
+        char password[MAX_PWD_LENGTH+1];
+        sbyte bad_password_count;
+        char *character_names[MAX_CHARS_PER_ACCOUNT];
+        ush_int experience;
+//        ush_int gift_experience;
+//        sbyte level;
+//        int account_flags;
+//        time_t last_login;
+//        sbyte read_rules;
+//        char * websiteAccount;
+//        byte polls[100];
+//        char * web_password;
+//        int classes[MAX_UNLOCKED_CLASSES];
+//        int races[MAX_UNLOCKED_RACES];
+        char *email;
+//        int surveys[4];
+//        struct obj_data *item_bank;
+//        int item_bank_size;
+//        char *ignored[MAX_CHARS_PER_ACCOUNT];
+};
 
 #endif /* _STRUCTS_H_ */

@@ -381,7 +381,7 @@ int load_char(const char *name, struct char_data *ch) {
     GET_SALVATION_NAME(ch) = NULL;
     GUARDING(ch) = NULL;
     GET_TOTAL_AOO(ch) = 0;
-    
+    GET_ACCOUNT_NAME(ch) = NULL; 
     LEVELUP(ch) = NULL;
 
     GET_DIPTIMER(ch) = PFDEF_DIPTIMER;
@@ -403,6 +403,16 @@ int load_char(const char *name, struct char_data *ch) {
         case 'A':
           if (!strcmp(tag, "Ablt")) load_abilities(fl, ch);
           else if (!strcmp(tag, "Ac  ")) GET_REAL_AC(ch) = atoi(line);
+          else if (!strcmp(tag, "Acct"))  {
+            GET_ACCOUNT_NAME(ch) = strdup(line);
+            if (ch->desc && ch->desc->account == NULL) {
+             CREATE(ch->desc->account, struct account_data, 1);
+             for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
+               ch->desc->account->character_names[i] = NULL;
+
+             load_account(GET_ACCOUNT_NAME(ch), ch->desc->account);
+            }
+          }
           else if (!strcmp(tag, "Act ")) {
             if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4) {
               PLR_FLAGS(ch)[0] = asciiflag_conv(f1);
@@ -748,6 +758,11 @@ void save_char(struct char_data * ch, int mode) {
 
   if (GET_NAME(ch)) fprintf(fl, "Name: %s\n", GET_NAME(ch));
   if (GET_PASSWD(ch)) fprintf(fl, "Pass: %s\n", GET_PASSWD(ch));
+  if (ch->desc && ch->desc->account && ch->desc->account->name) {
+    fprintf(fl, "Acct: %s\n", ch->desc->account->name);
+//    fprintf(fl, "ActN: %s\n", ch->desc->account->name);
+  }
+
   if (GET_TITLE(ch)) fprintf(fl, "Titl: %s\n", GET_TITLE(ch));
   if (ch->player.description && *ch->player.description) {
     strcpy(buf, ch->player.description);
@@ -1169,6 +1184,21 @@ void save_char(struct char_data * ch, int mode) {
 
   if (player_table[id].flags != i || save_index)
     save_player_index();
+
+  /* Save account data */
+  if (ch->desc && ch->desc->account) {
+    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+      if (ch->desc->account->character_names[i] != NULL &&
+          !strcmp(ch->desc->account->character_names[i], GET_NAME(ch)))
+        break;
+      if (ch->desc->account->character_names[i] == NULL)
+        break;
+    }
+
+    if (i != MAX_CHARS_PER_ACCOUNT && !IS_SET_AR(PLR_FLAGS(ch), PLR_DELETED))
+      ch->desc->account->character_names[i] = strdup(GET_NAME(ch));
+    save_account(ch->desc->account);
+  }
 }
 
 /* Separate a 4-character id tag from the data it precedes */
@@ -1214,6 +1244,7 @@ void remove_player(int pfilepos) {
   remove_player_from_index(pfilepos);
 
   save_player_index();
+
 }
 
 void clean_pfiles(void) {

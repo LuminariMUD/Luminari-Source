@@ -40,6 +40,15 @@ int special(struct char_data *ch, int cmd, char *arg);
 void free_alias(struct alias_data *a);
 int perform_alias(struct descriptor_data *d, char *orig, size_t maxlen);
 int enter_player_game (struct descriptor_data *d);
+
+int     load_account(char *name, struct account_data *account);
+void    save_account(struct account_data *account);
+void    show_account_menu(struct descriptor_data *d);
+void    remove_char_from_account(struct char_data *ch, struct account_data *account);
+char    *get_char_account_name(char *name);
+
+ACMD(do_account);
+
 /* ACMDs available through interpreter.c */
 ACMD(do_alias);
 
