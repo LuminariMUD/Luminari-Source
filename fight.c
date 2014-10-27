@@ -3294,6 +3294,8 @@ int hit(struct char_data *ch, struct char_data *victim,
           act("You watch as $N's body gets \tRblown into little pieces\tn from a single touch from $n!",
                   FALSE, ch, wielded, victim, TO_NOTVICT);
           dam_killed_vict(ch, victim);
+          /* ok, now remove quivering palm */
+          affect_from_char(ch, SKILL_QUIVERING_PALM);     
           return 0;
         } else { /* quivering palm will still do damage */
           dam += 1 + GET_WIS_BONUS(ch);
