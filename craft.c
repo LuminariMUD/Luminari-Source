@@ -709,6 +709,9 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   obj_to_char(crystal_one, ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
+  if (!IS_NPC(ch))
+    increase_skill(ch, skill_type);
+  
   return 1;
 }
 
@@ -1680,7 +1683,7 @@ EVENTFUNC(event_crafting) {
   struct obj_data *obj2 = NULL;
   char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
   int exp = 0;
-  //int skill = -1, roll = -1;
+  int skill = -1, roll = -1;
 
   //initialize everything and dummy checks
   if (event_obj == NULL) return 0;
@@ -1752,30 +1755,35 @@ EVENTFUNC(event_crafting) {
         }
         break;
       case SCMD_MINE:
+        skill = SKILL_MINING;
         sprintf(buf, "You mine $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n mines $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_HUNT:
+        skill = SKILL_FORESTING;
         sprintf(buf, "You find $p from your hunting.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n finds $p from $s hunting.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_KNIT:
+        skill = SKILL_KNITTING;
         sprintf(buf, "You tailor $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n tailors $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_FOREST:
+        skill = SKILL_FORESTING;
         sprintf(buf, "You forest $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n forests $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_DISENCHANT:
+        skill = SKILL_CHEMISTRY;
         sprintf(buf, "You complete the disenchantment process.  Success!!!");
         act(buf, false, ch, 0, 0, TO_CHAR);
         sprintf(buf, "$n finishes the disenchanting process.");
@@ -1806,6 +1814,7 @@ EVENTFUNC(event_crafting) {
         break;
       case SCMD_AUGMENT:
         // use to be part of crafting
+        skill = SKILL_CHEMISTRY;
         if (GET_CRAFTING_REPEAT(ch)) {
           sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
           for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++) {
@@ -1821,6 +1830,7 @@ EVENTFUNC(event_crafting) {
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_CONVERT:
+        skill = SKILL_CHEMISTRY;
         // use to be part of crafting
         if (GET_CRAFTING_REPEAT(ch)) {
           sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
@@ -1845,6 +1855,22 @@ EVENTFUNC(event_crafting) {
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_SUPPLYORDER:
+        /* picking a random trade to notch */
+        roll = dice(1, 4);
+        switch (dice(1,4)) {
+          case 1:
+            skill = SKILL_ARMOR_SMITHING;
+            break;
+          case 2:
+            skill = SKILL_WEAPON_SMITHING;
+            break;
+          case 3:
+            skill = SKILL_JEWELRY_MAKING;
+            break;
+          default:
+            skill = SKILL_LEATHER_WORKING;
+            break;
+        }
         GET_AUTOCQUEST_MAKENUM(ch)--;
         if (GET_AUTOCQUEST_MAKENUM(ch) <= 0) {
           sprintf(buf, "$n completes an item for a supply order.");
@@ -1865,6 +1891,9 @@ EVENTFUNC(event_crafting) {
         return 0;
     }
 
+    /* notch skills */
+    if (skill != -1)
+      increase_skill(ch, skill);
     reset_craft(ch);
     return 0; //done with the event
   }
@@ -1876,7 +1905,7 @@ EVENTFUNC(event_crafting) {
 ACMD(do_harvest) {
   struct obj_data *obj = NULL, *node = NULL;
   int roll = 0, material = -1, minskill = 0;
-  //int skillnum = 0;
+  int skillnum = 0;
   char arg[MAX_INPUT_LENGTH] = { '\0' };
   char buf[MEDIUM_STRING] = { '\0' };
   int sub_command = SCMD_CRAFT_UNDF;
@@ -1906,12 +1935,16 @@ ACMD(do_harvest) {
   material = GET_OBJ_MATERIAL(node);
 
   if (IS_WOOD(material)) {
+    skillnum = SKILL_FORESTING;
     sub_command = SCMD_FOREST;
   } else if (IS_LEATHER(material)) {
+    skillnum = SKILL_HUNTING;
     sub_command = SCMD_HUNT;
   } else if (IS_CLOTH(material)) {
+    skillnum = SKILL_KNITTING;
     sub_command = SCMD_KNIT;
   } else {
+    skillnum = SKILL_MINING;
     sub_command = SCMD_MINE;
   }
 
@@ -2144,11 +2177,11 @@ ACMD(do_harvest) {
     return;
   }
 
-//  if (GET_SKILL(ch, skillnum) < minskill) {
-//    send_to_char(ch, "You need a minimum %s skill of %d, while yours is only %d.\r\n",
-//            spell_info[skillnum].name, minskill, GET_SKILL(ch, skillnum));
-//    return;
-//  }
+  if (GET_SKILL(ch, skillnum) < minskill) {
+    send_to_char(ch, "You need a minimum %s skill of %d, while yours is only %d.\r\n",
+            spell_info[skillnum].name, minskill, GET_SKILL(ch, skillnum));
+    return;
+  }
 
   GET_CRAFTING_TYPE(ch) = sub_command;
   GET_CRAFTING_TICKS(ch) = 5;
@@ -2189,6 +2222,9 @@ ACMD(do_harvest) {
   
   obj_to_char(obj, ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
+  
+  if (!IS_NPC(ch))
+    increase_skill(ch, skillnum);
   
   return;
 }

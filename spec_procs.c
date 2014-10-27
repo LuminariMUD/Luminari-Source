@@ -539,6 +539,27 @@ void list_spells(struct char_data *ch, int mode, int class) {
   page_string(ch->desc, buf2, TRUE);
 }
 
+void list_crafting_skills(struct char_data *ch) {
+  int i, printed = 0;
+
+  if (IS_NPC(ch))
+    return;
+  
+  /* Crafting Skills */
+  send_to_char(ch, "\tCCrafting Skills\tn\r\n\r\n");
+  for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++) {
+    if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
+            spell_info[i].schoolOfMagic == CRAFTING_SKILL) {
+      if (meet_skill_reqs(ch, i)) {
+        send_to_char(ch, "%-24s %d          ", spell_info[i].name, GET_SKILL(ch, i));
+        printed++;
+        if (!(printed % 2))
+          send_to_char(ch, "\r\n");
+      }
+    }
+  }
+  send_to_char(ch, "\r\n\r\n");}
+
 void list_skills(struct char_data *ch) {
   int i, printed = 0;
 
