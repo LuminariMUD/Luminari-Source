@@ -619,7 +619,8 @@ do                                                              \
 /** How old is PC/NPC, at last recorded time? */
 #define GET_AGE(ch)     (age(ch)->year)
 
-
+/** Account name. */
+#define GET_ACCOUNT_NAME(ch) ((ch)->player_specials->saved.account_name)
 
 /** Name of PC. */
 #define GET_PC_NAME(ch)	((ch)->player.name)

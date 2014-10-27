@@ -96,6 +96,7 @@ cpp_extern const struct command_info cmd_info[] = {
   /* now, the main list */
   { "abort", "abort", POS_FIGHTING, do_abort, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "acconvert", "acconvert", POS_DEAD, do_acconvert, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "account", "account", POS_DEAD, do_account, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "at", "at", POS_DEAD, do_at, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "advance", "adv", POS_DEAD, do_advance, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "aedit", "aed", POS_DEAD, do_oasis_aedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -1506,7 +1507,7 @@ EVENTFUNC(get_protocols) {
   write_to_output(d, buf, 0);
 
   write_to_output(d, GREETINGS, 0);
-  STATE(d) = CON_GET_NAME;
+  STATE(d) = CON_ACCOUNT_NAME; //CON_GET_NAME;
   return 0;
 }
 
@@ -1554,6 +1555,226 @@ void nanny(struct descriptor_data *d, char *arg) {
     case CON_GET_PROTOCOL:
       write_to_output(d, "Collecting Protocol Information... Please Wait.\r\n");
       return;
+      break;
+
+  case CON_ACCOUNT_NAME:
+    /* Initialize account data for this descriptor. */
+    if (d->account == NULL) {
+      CREATE(d->account, struct account_data, 1);
+      d->account->name = NULL;
+      for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
+        d->account->character_names[i] = NULL;
+    }
+    if (!*arg)
+      STATE(d) = CON_CLOSE;
+    else {
+      char buf[MAX_INPUT_LENGTH], tmp_name[MAX_INPUT_LENGTH];
+
+      if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
+          strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
+          fill_word(strcpy(buf, tmp_name)) || reserved_word(buf)) {     /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+        write_to_output(d, "Invalid account name, please try another.\r\nName: ");
+        return;
+      }
+
+      if ((load_account(tmp_name, d->account)) > -1) {
+        if (!valid_name(tmp_name)) {
+          write_to_output(d, "Invalid account name, please try another.\r\nName: ");
+          return;
+        }
+        write_to_output(d, "Password: ");
+        d->idle_tics = 0;
+        STATE(d) = CON_PASSWORD;
+        ProtocolNoEcho(d, true);
+      }
+      else {
+        if (!valid_name(tmp_name)) {
+          write_to_output(d, "Invalid account name, please try another.\r\nName: ");
+          return;
+        }
+        CREATE(d->account->name, char, strlen(tmp_name) + 1);
+        strcpy(d->account->name, CAP(tmp_name));        /* strcpy: OK (size checked above) */
+
+        write_to_output(d, "Did I get that right, %s (Y/N)?", tmp_name);
+        STATE(d) = CON_ACCOUNT_NAME_CONFIRM;
+      }
+    }
+    break;
+case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
+    if (UPPER(*arg) == 'Y') {
+      if (isbanned(d->host) >= BAN_NEW) {
+        mudlog(NRM, LVL_STAFF, true, "Request for new account %s denied from [%s] (siteban)", d->account->name, d->host);
+        write_to_output(d, "Your site (domain/IP address) has been denied access from making new characters.\r\nPlease contact"
+                           "ornir@luminarimud.com if you feel this should not apply to you.\r\n");
+        STATE(d) = CON_CLOSE;
+        return;
+      }
+      if (circle_restrict) {
+        write_to_output(d, "The game is currently closed to making new account.  Please check our website at "
+                           "http://www.luminarimud.com/\r\nfor more information.\r\n");
+        mudlog(NRM, LVL_STAFF, true, "Request for new account %s denied from [%s] (wizlock)", d->account->name, d->host);
+        STATE(d) = CON_CLOSE;
+        return;
+      }
+      write_to_output(d, "New Account.\r\nGive me a Password: ");
+      STATE(d) = CON_NEWPASSWD;
+    } else if (*arg == 'n' || *arg == 'N') {
+      write_to_output(d, "Okay, what IS it, then? ");
+      free(d->account->name);
+      d->account->name = NULL;
+      STATE(d) = CON_ACCOUNT_NAME;
+    } else
+      write_to_output(d, "Please type Yes or No: ");
+    break;
+
+  case CON_ACCOUNT_MENU:
+    ProtocolNoEcho(d, false); /* turn echo back on */
+
+    d->character = NULL;
+
+    if (d->character == NULL) {
+      CREATE(d->character, struct char_data, 1);
+      clear_char(d->character);
+      CREATE(d->character->player_specials, struct player_special_data, 1);
+
+      new_mobile_data(d->character);
+      GET_HOST(d->character) = strdup(d->host);
+      d->character->desc = d;
+    }
+    switch (*arg) {
+      case 'C':
+      case 'c': 
+        /* Create a new character */
+        write_to_output(d, "What will your new character be called? : ");
+        STATE(d) = CON_GET_NAME;
+        return;
+      case 'A':
+      case 'a':
+        /* Add an existing character to this account. */
+        write_to_output(d, "Which character you wish to add to this account? : ");
+        STATE(d) = CON_ACCOUNT_ADD;
+        return;
+      case 'q':
+      case 'Q': 
+        write_to_output(d, "Quitting.\r\n");
+        STATE(d) = CON_CLOSE;
+        return;
+      default:
+        if (atoi(arg) < 1 || atoi(arg) > (MAX_CHARS_PER_ACCOUNT)) {
+          write_to_output(d, "The number must be between 1 and %d.\r\n", MAX_CHARS_PER_ACCOUNT);
+          return;
+        }
+        else if (d->account->character_names[atoi(arg) - 1] == NULL) {
+          write_to_output(d, "That character doesn't exist.  Please choose another.  Your Choice: ");
+          return;
+        }
+        else if ((player_i = load_char(d->account->character_names[atoi(arg) - 1], d->character)) > -1) {
+          GET_PFILEPOS(d->character) = player_i;
+          if (PLR_FLAGGED(d->character, PLR_DELETED)) {
+            show_account_menu(d);
+            write_to_output(d, "This character has been deleted.  Please speak to an immortal about having the deleted flag removed.\r\n");
+            return;
+          } else {
+            GET_PFILEPOS(d->character) = player_i;
+            if (GET_LEVEL(d->character) < circle_restrict) {
+              write_to_output(d, "The game is temporarily open for staff members only.  Please refer to the website for more "
+                                 "intormation.\r\nhttp://www.luminarimud.com/\r\n");
+              STATE(d) = CON_CLOSE;
+              mudlog(NRM, LVL_STAFF, true, "Request for login denied for %s [%s] (wizlock)", GET_NAME(d->character), d->host);
+              return;
+            }
+
+            if (AddRecentPlayer(GET_NAME(d->character), d->host, FALSE, FALSE) == FALSE) {
+              mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "Failure to AddRecentPlayer (returned FALSE).");
+            }
+
+            /* undo it just in case they are set */
+            REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
+            REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_MAILING);
+            REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_CRYO);
+            d->idle_tics = 0;
+            write_to_output(d, "Character loaded.  Press enter to continue.\r\n");
+
+            /* check and make sure no other copies of this player are logged in */
+            if (perform_dupe_check(d))
+              return;
+
+            if (IS_IMMORTAL(d->character))
+              write_to_output(d, "%s\r\n *** PRESS RETURN ***", imotd);
+            else
+              write_to_output(d, "%s\r\n *** PRESS RETURN ***", motd);
+
+            if (GET_INVIS_LEV(d->character))
+              mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), true,
+              "%s [%s] has connected. (invis %d)", GET_NAME(d->character), d->host,
+              GET_INVIS_LEV(d->character));
+            else {
+          //    if (!PRF_FLAGGED(d->character, PRF_ANONYMOUS))
+          //      mudlog(BRF, LVL_STAFF, true, "%s has connected.", GET_NAME(d->character));
+                mudlog(BRF, LVL_IMMORT, true, "%s [%s] has connected.", GET_NAME(d->character), d->host);
+            }
+            STATE(d) = CON_RMOTD;
+          }
+        }
+      }
+    
+    break;
+    case CON_ACCOUNT_ADD: /* wait for input of char name to add to account */
+      if (d->character == NULL) {
+        CREATE(d->character, struct char_data, 1);
+        clear_char(d->character);
+        CREATE(d->character->player_specials, struct player_special_data, 1);
+
+        new_mobile_data(d->character);
+        /* Allocate mobile event list */
+        //d->character->events = create_list();
+
+        GET_HOST(d->character) = strdup(d->host);
+        d->character->desc = d;
+      }
+      if (!*arg)
+        STATE(d) = CON_CLOSE;
+      else {
+        char buf[MAX_INPUT_LENGTH], tmp_name[MAX_INPUT_LENGTH];
+        if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
+                strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
+                fill_word(strcpy(buf, tmp_name)) || reserved_word(buf)) { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "Invalid character name.\r\n");
+          STATE(d) = CON_ACCOUNT_MENU;
+          show_account_menu(d);
+          return;
+        }
+        if ((player_i = load_char(tmp_name, d->character)) > -1) {
+          /* Player found! */
+         char * acct_name = get_char_account_name(GET_NAME(d->character));
+         if (acct_name != NULL) {
+           if (!strcmp(acct_name, d->account->name))
+             write_to_output(d, "That character is already linked to your account!\r\n");
+           else
+             write_to_output(d, "That character is linked to another account.\r\n");
+           free(acct_name);
+           STATE(d) = CON_ACCOUNT_MENU;
+           show_account_menu(d);
+           return; 
+         }
+         if (PLR_FLAGGED(d->character, PLR_DELETED)) {
+           write_to_output(d, "That character has been deleted.\r\n");
+           STATE(d) = CON_ACCOUNT_MENU;
+           show_account_menu(d);
+           return;
+         }
+         /* Now challenge with the password. */
+         write_to_output(d, "Please enter the character password for %s : ", GET_NAME(d->character));
+         STATE(d) = CON_ACCOUNT_ADD_PWD;
+         ProtocolNoEcho(d, true);
+         return;  
+        } else {
+          write_to_output(d, "That character does not exist, please create a new character.\r\n");
+          STATE(d) = CON_ACCOUNT_MENU;
+          show_account_menu(d);
+          return;
+        }        
+      }
       break;
     case CON_GET_NAME: /* wait for input of name */
       if (d->character == NULL) {
@@ -1624,16 +1845,8 @@ void nanny(struct descriptor_data *d, char *arg) {
             write_to_output(d, "Did I get that right, %s (\t(Y\t)/\t(N\t))? ", tmp_name);
             STATE(d) = CON_NAME_CNFRM;
           } else {
-            /* undo it just in case they are set */
-            REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
-            REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_MAILING);
-            REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_CRYO);
-            d->character->player.time.logon = time(0);
-            write_to_output(d, "Password: ");
-            //echo_off(d);
-            ProtocolNoEcho(d, true);
-            d->idle_tics = 0;
-            STATE(d) = CON_PASSWORD;
+            write_to_output(d, "There is already a character by that name.  Please try another.\r\nName: ");
+            return;
           }
         } else {
           /* player unknown -- make new character */
@@ -1684,10 +1897,10 @@ void nanny(struct descriptor_data *d, char *arg) {
           return;          
         }
         
-        write_to_output(d, "New character.\r\nGive me a password for %s: ", GET_PC_NAME(d->character));
-        //echo_off(d);
-        ProtocolNoEcho(d, true);
-        STATE(d) = CON_NEWPASSWD;
+        write_to_output(d, "\r\nWhat is your sex (\t(M\t)/\t(F\t))? ");
+        STATE(d) = CON_QSEX;
+        break;
+
       } else if (*arg == 'n' || *arg == 'N') {
         write_to_output(d, "Okay, what IS it, then? ");
         free(d->character->player.name);
@@ -1696,7 +1909,30 @@ void nanny(struct descriptor_data *d, char *arg) {
       } else
         write_to_output(d, "Please type Yes or No: ");
       break;
+    case CON_ACCOUNT_ADD_PWD:
+      ProtocolNoEcho(d, true);
+      write_to_output(d, "\r\n");
 
+      if (!*arg || strncmp(CRYPT(arg, GET_NAME(d->character)), GET_PASSWD(d->character), MAX_PWD_LENGTH))
+        write_to_output(d, "Wrong password.\r\n");
+      else {
+        /* Success! */
+        //save_char(d->character, 0);
+
+        for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[i] != NULL);i++);
+        if (i == MAX_CHARS_PER_ACCOUNT) {
+          write_to_output(d, "You have reached the maximum number of characters on this account.\r\n"
+                             "Remove a character before adding a new one.\r\n");
+        } 
+        else {
+          d->account->character_names[i] = strdup(GET_NAME(d->character));
+          save_account(d->account);
+        }
+      }
+      free_char(d->character);
+      show_account_menu(d);
+      STATE(d) = CON_ACCOUNT_MENU;
+      break;
     case CON_PASSWORD: /* get pwd for known player      */
       /* To really prevent duping correctly, the player's record should be reloaded
        * from disk at this point (after the password has been typed).  However I'm
@@ -1715,10 +1951,10 @@ void nanny(struct descriptor_data *d, char *arg) {
       if (!*arg)
         STATE(d) = CON_CLOSE;
       else {
-        if (strncmp(CRYPT(arg, GET_PASSWD(d->character)), GET_PASSWD(d->character), MAX_PWD_LENGTH)) {
-          mudlog(BRF, LVL_STAFF, TRUE, "Bad PW: %s [%s]", GET_NAME(d->character), d->host);
-          GET_BAD_PWS(d->character)++;
-          save_char(d->character, 0);
+        if (strncmp(CRYPT(arg, d->account->name), d->account->password, MAX_PWD_LENGTH)) {
+          mudlog(BRF, LVL_STAFF, TRUE, "Bad PW: %s [%s]", d->account->name, d->host);
+          d->account->bad_password_count++;
+          //save_char(d->character, 0);
           if (++(d->bad_pws) >= CONFIG_MAX_BAD_PWS) { /* 3 strikes and you're out. */
             write_to_output(d, "Wrong password... disconnecting.\r\n");
             STATE(d) = CON_CLOSE;
@@ -1730,9 +1966,8 @@ void nanny(struct descriptor_data *d, char *arg) {
           return;
         }
 
-        /* Password was correct. */
-        load_result = GET_BAD_PWS(d->character);
-        GET_BAD_PWS(d->character) = 0;
+	/* Password was correct. */
+	load_result = d->account->bad_password_count;
         d->bad_pws = 0;
 
         if (isbanned(d->host) == BAN_SELECT &&
@@ -1742,13 +1977,19 @@ void nanny(struct descriptor_data *d, char *arg) {
           mudlog(NRM, LVL_STAFF, TRUE, "Connection attempt for %s denied from %s", GET_NAME(d->character), d->host);
           return;
         }
-        if (GET_LEVEL(d->character) < circle_restrict) {
-          write_to_output(d, "The game is temporarily restricted.. try again later.\r\n");
-          STATE(d) = CON_CLOSE;
-          mudlog(NRM, LVL_STAFF, TRUE, "Request for login denied for %s [%s] (wizlock)", GET_NAME(d->character), d->host);
-          return;
+
+        if (load_result) {
+          write_to_output(d, "\r\n\r\n\007\007\007"
+                  "\tR%d LOGIN FAILURE%s SINCE LAST SUCCESSFUL LOGIN.\tn\r\n",
+                  load_result,
+		  (load_result > 1) ? "S" : "");
+	  d->account->bad_password_count = 0;
         }
-        /* check and make sure no other copies of this player are logged in */
+
+        show_account_menu(d);
+        STATE(d) = CON_ACCOUNT_MENU;
+        break;
+/*  
         if (perform_dupe_check(d))
           return;
 
@@ -1761,9 +2002,9 @@ void nanny(struct descriptor_data *d, char *arg) {
           mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "%s has connected. (invis %d)", GET_NAME(d->character), GET_INVIS_LEV(d->character));
         else
           mudlog(BRF, LVL_IMMORT, TRUE, "%s has connected.", GET_NAME(d->character));
-
+*/
         /* Add to the list of 'recent' players (since last reboot) */
-        if (AddRecentPlayer(GET_NAME(d->character), d->host, FALSE, FALSE) == FALSE) {
+/*          if (AddRecentPlayer(GET_NAME(d->character), d->host, FALSE, FALSE) == FALSE) {
           mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "Failure to AddRecentPlayer (returned FALSE).");
         }
 
@@ -1776,18 +2017,19 @@ void nanny(struct descriptor_data *d, char *arg) {
         }
         write_to_output(d, "\r\n*** PRESS RETURN: ");
         STATE(d) = CON_RMOTD;
+*/
       }
       break;
 
     case CON_NEWPASSWD:
     case CON_CHPWD_GETNEW:
       if (!*arg || strlen(arg) > MAX_PWD_LENGTH || strlen(arg) < 3 ||
-              !str_cmp(arg, GET_PC_NAME(d->character))) {
+              !str_cmp(arg, d->account->name)) {
         write_to_output(d, "\r\nIllegal password.\r\nPassword: ");
         return;
       }
-      strncpy(GET_PASSWD(d->character), CRYPT(arg, GET_PC_NAME(d->character)), MAX_PWD_LENGTH); /* strncpy: OK (G_P:MAX_PWD_LENGTH+1) */
-      *(GET_PASSWD(d->character) + MAX_PWD_LENGTH) = '\0';
+      strncpy(d->account->password, CRYPT(arg, d->account->name), MAX_PWD_LENGTH); /* strncpy: OK (G_P:MAX_PWD_LENGTH+1) */
+      *(d->account->password + MAX_PWD_LENGTH) = '\0';
 
       write_to_output(d, "\r\nPlease retype password: ");
       if (STATE(d) == CON_NEWPASSWD)
@@ -1798,7 +2040,7 @@ void nanny(struct descriptor_data *d, char *arg) {
 
     case CON_CNFPASSWD:
     case CON_CHPWD_VRFY:
-      if (strncmp(CRYPT(arg, GET_PASSWD(d->character)), GET_PASSWD(d->character),
+      if (strncmp(CRYPT(arg, d->account->name), d->account->password,
               MAX_PWD_LENGTH)) {
         write_to_output(d, "\r\nPasswords don't match... start over.\r\nPassword: ");
         if (STATE(d) == CON_CNFPASSWD)
@@ -1811,6 +2053,16 @@ void nanny(struct descriptor_data *d, char *arg) {
       ProtocolNoEcho(d, false);
 
       if (STATE(d) == CON_CNFPASSWD) {
+        save_account(d->account);
+        show_account_menu(d);
+        STATE(d) = CON_ACCOUNT_MENU;
+      } else {
+        write_to_output(d, "\r\nDone.\r\n%s", CONFIG_MENU);
+        STATE(d) = CON_MENU;
+      }
+      break;
+/*  
+      if (STATE(d) == CON_CNFPASSWD) {
         write_to_output(d, "\r\nWhat is your sex (\t(M\t)/\t(F\t))? ");
         STATE(d) = CON_QSEX;
       } else {
@@ -1819,7 +2071,7 @@ void nanny(struct descriptor_data *d, char *arg) {
         STATE(d) = CON_MENU;
       }
       break;
-
+*/
     case CON_QSEX: /* query sex of new user         */
       switch (*arg) {
         case 'm':
@@ -2081,6 +2333,7 @@ void nanny(struct descriptor_data *d, char *arg) {
       /* Now GET_NAME() will work properly. */
       init_char(d->character);
       save_char(d->character, 0);
+      save_account(d->account);
       save_player_index();
 
       /* print message of the day to player */
@@ -2110,6 +2363,7 @@ void nanny(struct descriptor_data *d, char *arg) {
       }
       add_llog_entry(d->character, LAST_CONNECT);
       STATE(d) = CON_MENU;
+
       break;
 
     case CON_MENU:
@@ -2117,9 +2371,13 @@ void nanny(struct descriptor_data *d, char *arg) {
 
       switch (*arg) {
         case '0':
-          write_to_output(d, "Goodbye.\r\n");
+//          write_to_output(d, "Goodbye.\r\n");
           add_llog_entry(d->character, LAST_QUIT);
-          STATE(d) = CON_CLOSE;
+//          STATE(d) = CON_CLOSE;
+          STATE(d) = CON_ACCOUNT_MENU;
+          show_account_menu(d); 
+          save_char(d->character, 0);
+          free_char(d->character);
           break;
 
         case '1':
@@ -2201,7 +2459,7 @@ void nanny(struct descriptor_data *d, char *arg) {
     }
 
     case CON_CHPWD_GETOLD:
-      if (strncmp(CRYPT(arg, GET_PASSWD(d->character)), GET_PASSWD(d->character), MAX_PWD_LENGTH)) {
+      if (strncmp(CRYPT(arg, d->account->password), d->account->password, MAX_PWD_LENGTH)) {
         //echo_on(d);
         ProtocolNoEcho(d, false);
         write_to_output(d, "\r\nIncorrect password.\r\n%s", CONFIG_MENU);
@@ -2215,7 +2473,7 @@ void nanny(struct descriptor_data *d, char *arg) {
     case CON_DELCNF1:
       //echo_on(d);
       ProtocolNoEcho(d, false);
-      if (strncmp(CRYPT(arg, GET_PASSWD(d->character)), GET_PASSWD(d->character), MAX_PWD_LENGTH)) {
+      if (strncmp(CRYPT(arg, d->account->password), d->account->password, MAX_PWD_LENGTH)) {
         write_to_output(d, "\r\nIncorrect password.\r\n%s", CONFIG_MENU);
         STATE(d) = CON_MENU;
       } else {
@@ -2245,11 +2503,12 @@ void nanny(struct descriptor_data *d, char *arg) {
             SET_BIT(player_table[player_i].flags, PINDEX_SELFDELETE);
             remove_player(player_i);
           }
-
+        remove_char_from_account(d->character, d->account);
         delete_variables(GET_NAME(d->character));
-        write_to_output(d, "Character '%s' deleted! Goodbye.\r\n", GET_NAME(d->character));
+        write_to_output(d, "Character '%s' deleted!\r\n", GET_NAME(d->character));
         mudlog(NRM, LVL_STAFF, TRUE, "%s (lev %d) has self-deleted.", GET_NAME(d->character), GET_LEVEL(d->character));
-        STATE(d) = CON_CLOSE;
+        STATE(d) = CON_ACCOUNT_MENU;
+        show_account_menu(d);
         return;
       } else {
         write_to_output(d, "\r\nCharacter not deleted.\r\n%s", CONFIG_MENU);

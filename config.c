@@ -263,8 +263,8 @@ int use_new_socials = YES;
 
 const char *MENU =
 "\r\n"
-"    @C*** @bReal@cms o@Wf Lu@cmina@bri 3E @C***@n\r\n\r\n"
-"    @W0) @CExit the Realms.@n\r\n"
+"    @C*** @bReal@cms o@Wf Lu@cmina@bri @C***@n\r\n\r\n"
+"    @W0) @CReturn to the Account Menu.@n\r\n"
 "    @W1) @CEnter the game.@n\r\n"
 "    @W2) @CEnter character description.@n\r\n"
 "    @W3) @CRead the background story.@n\r\n"
@@ -275,7 +275,7 @@ const char *MENU =
 
 const char *WELC_MESSG =
 "\r\n"
-"Welcome to @bReal@cms o@Wf Lu@cmina@bri 3E@n!  May your visit here be... Enlightening"
+"Welcome to @bReal@cms o@Wf Lu@cmina@bri@n!  May your visit here be... Enlightening"
 "\r\n\r\n";
 
 const char *START_MESSG =

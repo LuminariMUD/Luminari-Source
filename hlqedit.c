@@ -314,7 +314,7 @@ void hlqedit_save_to_disk(int zone_num) {
               fprintf(fp, "O %c %d %d\n", hlqedit_command[qcom->type],
                     qcom->value, qcom->location);
             fprintf(fp, "S\n");
-          }
+         }
         }
       }
     }
