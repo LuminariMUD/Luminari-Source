@@ -2453,7 +2453,7 @@ ACMD(do_users) {
         sprintf(classname, "[%2d %s]", GET_LEVEL(d->character),
               CLASS_ABBR(d->character));
     } else
-      strcpy(classname, "   -   ");
+      strcpy(classname, "   -    ");
 
     timeptr = asctime(localtime(&d->login_time));
     timeptr += 11;
