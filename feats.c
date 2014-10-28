@@ -518,7 +518,7 @@ void assign_feats(void) {
   feato(FEAT_DEFENSIVE_ROLL, "defensive roll", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead", "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead");
   feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "extra chance for will saves", "extra chance for will saves");
   feato(FEAT_APPLY_POISON, "apply poison", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can apply poison to weapons", "can apply poison to weapons (applypoison)");
-  feato(FEAT_SNEAK_ATTACK, "sneak attack", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+  feato(FEAT_SNEAK_ATTACK, "sneak attack", TRUE, FALSE, TRUE, FEAT_TYPE_COMBAT,
     "+1d6 to damage when flanking",
     "+1d6/rank to damage when flanking, opponent is flat-footed, or opponent is without dexterity bonus");
   feat_prereq_class_level(FEAT_SNEAK_ATTACK, CLASS_ROGUE, 2);
