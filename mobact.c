@@ -590,9 +590,7 @@ void npc_racial_behave(struct char_data *ch) {
           break;
       }
       break;
-
   }
-
 }
 
 /*** MELEE CLASSES ***/
@@ -643,13 +641,14 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
     case 1:
       if (perform_knockdown(ch, vict, SKILL_TRIP))
         break;
-      break;
+      /* fallthrough */
     case 2:
       if (perform_dirtkick(ch, vict)) {
         send_to_char(ch, "Succeeded dirtkick\r\n");
+        break;
       } else
         send_to_char(ch, "Failed dirtkick\r\n");
-      break;
+      /* fallthrough */
     default:
       if (perform_backstab(ch, vict))
         break;

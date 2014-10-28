@@ -3272,6 +3272,9 @@ int hit(struct char_data *ch, struct char_data *victim,
     if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
       if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
         send_to_char(ch, "[STUNNING-FIST] ");
+        send_to_char(victim, "[\tRSTUNNING-FIST\tn] ");
+        act("$n performs a \tYstunning fist\tn attack on $N!",
+                  FALSE, ch, wielded, victim, TO_NOTVICT);
         if (!char_has_mud_event(victim, eSTUNNED)) {        
           attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC); 
         }
@@ -3283,6 +3286,9 @@ int hit(struct char_data *ch, struct char_data *victim,
     if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
       if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
         send_to_char(ch, "[QUIVERING-PALM] ");
+        send_to_char(victim, "[\tRQUIVERING-PALM\tn] ");
+        act("$n performs a \tYquivering palm\tn attack on $N!",
+                  FALSE, ch, wielded, victim, TO_NOTVICT);
         /* apply quivering palm affect, muahahahah */
         if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
                 !savingthrow(victim, SAVING_FORT, 0, quivering_palm_dc)) {

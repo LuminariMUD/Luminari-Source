@@ -1067,14 +1067,14 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
     return FALSE;
   }
 
-  base_probability = 60; //flat rate 60% right now
+  base_probability = 75; //flat rate 75% right now
 
   base_probability -= GET_LEVEL(vict) / 2;
   base_probability -= GET_DEX(vict);
 
   if (dice(1, 101) < base_probability) {
     dam = 2 + dice(1, GET_LEVEL(ch));
-    damage(ch, vict, dam, dice(1, 4), 0, FALSE);
+    damage(ch, vict, dam, SKILL_DIRT_KICK, 0, FALSE);
 
     new_affect(&af);
     af.spell = SKILL_DIRT_KICK;
