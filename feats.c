@@ -510,6 +510,7 @@ void assign_feats(void) {
   feato(FEAT_DIVINE_BOND, "divine bond", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "bonuses to attack and damage rolls when active", "bonuses to attack and damage rolls when active");
 
   /* Rogue */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_CRIPPLING_STRIKE, "crippling strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Chance to do 2 strength damage with a sneak attack.", "Chance to do 2 strength damage with a sneak attack.");
   feato(FEAT_IMPROVED_EVASION, "improved evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "as evasion but half damage of failed save", "as evasion but half damage of failed save");
   feato(FEAT_EVASION, "evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "on successful reflex save no damage from spells and effects", "on successful reflex save no damage from spells and effects");
@@ -517,6 +518,10 @@ void assign_feats(void) {
   feato(FEAT_DEFENSIVE_ROLL, "defensive roll", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead", "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead");
   feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "extra chance for will saves", "extra chance for will saves");
   feato(FEAT_APPLY_POISON, "apply poison", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can apply poison to weapons", "can apply poison to weapons (applypoison)");
+  feato(FEAT_SNEAK_ATTACK, "sneak attack", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "+1d6 to damage when flanking",
+    "+1d6/rank to damage when flanking, opponent is flat-footed, or opponent is without dexterity bonus");
+  feat_prereq_class_level(FEAT_SNEAK_ATTACK, CLASS_ROGUE, 2);
 
   /* Rogue/Barbarian */
   feato(FEAT_UNCANNY_DODGE, "uncanny dodge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "retains dex bonus when flat footed or against invis opponents", "retains dex bonus when flat footed or against invis opponents");
@@ -551,7 +556,10 @@ void assign_feats(void) {
 
   /* Druid/Monk */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_TIMELESS_BODY, "timeless body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "immune to negative aging effects", "immune to negative aging effects");
+  feato(FEAT_TIMELESS_BODY, "timeless body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  "immune to negative aging effects (unfinished)",
+  "immune to negative aging effects (unfinished) - currently gives a flat 25% "
+    "reduction to all incoming negative damage");
 
   /* Monk */
   feato(FEAT_UNARMED_STRIKE, "unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Unarmed attacks are considered to be weapons.", "Unarmed attacks are considered to be weapons.");
@@ -755,7 +763,6 @@ void assign_feats(void) {
   feato(FEAT_PRECISE_SHOT, "precise shot", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "You may shoot in melee without the standard -4 to hit penalty", "You may shoot in melee without the standard -4 to hit penalty");
   feato(FEAT_ROBILARS_GAMBIT, "robilars gambit", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.", "when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.");
   feato(FEAT_SELF_CONCEALMENT, "self concealment", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "10% miss chance for attacks against you per rank", "10% miss chance for attacks against you per rank");
-  feato(FEAT_SNEAK_ATTACK, "sneak attack", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+1d6 to damage when flanking", "+1d6 to damage when flanking");
   feato(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY, "sneak attack of opportunity", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "makes all opportunity attacks sneak attacks", "makes all opportunity attacks sneak attacks");
   feato(FEAT_SWARM_OF_ARROWS, "swarm of arrows", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a single ranged attack against everyone in range.", "allows you to make a single ranged attack against everyone in range.");
   feato(FEAT_TWO_WEAPON_DEFENSE, "two weapon defense", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when wielding two weapons receive +1 shield ac bonus", "when wielding two weapons receive +1 shield ac bonus");
