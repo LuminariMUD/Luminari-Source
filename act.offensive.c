@@ -274,6 +274,7 @@ void perform_stunningfist(struct char_data *ch) {
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 
   send_to_char(ch, "You focus your Ki energies and prepare a disabling unarmed attack.\r\n");
+  act("$n's focuses $s Ki, preparing a disabling unarmed attack!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
 #define RAGE_AFFECTS 4
