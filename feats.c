@@ -512,14 +512,23 @@ void assign_feats(void) {
   /* Rogue */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_TRAP_SENSE, "trap sense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  /*talent*/feato(FEAT_CRIPPLING_STRIKE, "crippling strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Chance to do 2 strength damage with a sneak attack.", "Chance to do 2 strength damage with a sneak attack.");
-  /*talent*/feato(FEAT_IMPROVED_EVASION, "improved evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "as evasion but half damage of failed save", "as evasion but half damage of failed save");
+  /*talent*/feato(FEAT_CRIPPLING_STRIKE, "crippling strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Chance to do strength damage with a sneak attack.",
+    "Chance to do strength damage with a sneak attack.");
+  /*talent*/feato(FEAT_IMPROVED_EVASION, "improved evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "as evasion but half damage of failed save",
+    "as evasion but half damage of failed save");
   feato(FEAT_EVASION, "evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "on successful reflex save no damage from spells and effects",
     "on successful reflex save no damage from spells and effects");
   feato(FEAT_TRAPFINDING, "trapfinding", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can use the Search skill to locate difficult to find traps", "can use the Search skill to locate difficult to find traps");
-  /*adv talent*/feato(FEAT_DEFENSIVE_ROLL, "defensive roll", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead", "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead");
-  /*talent*/feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "extra chance for will saves", "extra chance for will saves");
+  /*adv talent*/feato(FEAT_DEFENSIVE_ROLL, "defensive roll", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "can survive a potentially fatal blow",
+    "can survive a potentially fatal blow, has long cooldown before usable "
+      "again (automatic usage)");
+  /*talent*/feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "extra chance for will saves vs mind affecting spells",
+    "extra chance for will saves vs mind affecting spells");
   /*talent*/feato(FEAT_APPLY_POISON, "apply poison", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "can apply poison to weapons",
     "can apply poison to weapons (applypoison)");

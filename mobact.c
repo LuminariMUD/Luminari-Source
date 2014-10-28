@@ -611,14 +611,14 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
 
-  switch (rand_number(1, 2)) {
+  switch (rand_number(1, 6)) {
     case 1:
       perform_stunningfist(ch);
       break;
-    case 2:
+    case 2:case 3:case 4:case 5:case 6:
       perform_springleap(ch, vict);
       break;
-    case 3: /* hahah just kidding */
+    case 7: /* hahah just kidding */
       perform_quiveringpalm(ch);
       break;
     default:
