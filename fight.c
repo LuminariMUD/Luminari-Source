@@ -1459,6 +1459,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
     case DAM_NEGATIVE:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_TIMELESS_BODY))
+        damtype_reduction += 25;
       if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
         damtype_reduction += 100;
       break;
