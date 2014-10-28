@@ -511,18 +511,25 @@ void assign_feats(void) {
 
   /* Rogue */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_CRIPPLING_STRIKE, "crippling strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Chance to do 2 strength damage with a sneak attack.", "Chance to do 2 strength damage with a sneak attack.");
-  feato(FEAT_IMPROVED_EVASION, "improved evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "as evasion but half damage of failed save", "as evasion but half damage of failed save");
-  feato(FEAT_EVASION, "evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "on successful reflex save no damage from spells and effects", "on successful reflex save no damage from spells and effects");
+  feato(FEAT_TRAP_SENSE, "trap sense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  /*talent*/feato(FEAT_CRIPPLING_STRIKE, "crippling strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Chance to do 2 strength damage with a sneak attack.", "Chance to do 2 strength damage with a sneak attack.");
+  /*talent*/feato(FEAT_IMPROVED_EVASION, "improved evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "as evasion but half damage of failed save", "as evasion but half damage of failed save");
+  feato(FEAT_EVASION, "evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "on successful reflex save no damage from spells and effects",
+    "on successful reflex save no damage from spells and effects");
   feato(FEAT_TRAPFINDING, "trapfinding", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can use the Search skill to locate difficult to find traps", "can use the Search skill to locate difficult to find traps");
-  feato(FEAT_DEFENSIVE_ROLL, "defensive roll", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead", "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead");
-  feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "extra chance for will saves", "extra chance for will saves");
-  feato(FEAT_APPLY_POISON, "apply poison", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can apply poison to weapons", "can apply poison to weapons (applypoison)");
+  /*adv talent*/feato(FEAT_DEFENSIVE_ROLL, "defensive roll", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead", "can roll reflex save vs damage dealt when hp is to be reduced below 0 to take half damage instead");
+  /*talent*/feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "extra chance for will saves", "extra chance for will saves");
+  /*talent*/feato(FEAT_APPLY_POISON, "apply poison", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "can apply poison to weapons",
+    "can apply poison to weapons (applypoison)");
+            /*put dirt kick here*/
   feato(FEAT_SNEAK_ATTACK, "sneak attack", TRUE, FALSE, TRUE, FEAT_TYPE_COMBAT,
     "+1d6 to damage when flanking",
     "+1d6/rank to damage when flanking, opponent is flat-footed, or opponent is without dexterity bonus");
   feat_prereq_class_level(FEAT_SNEAK_ATTACK, CLASS_ROGUE, 2);
 
+  
   /* Rogue/Barbarian */
   feato(FEAT_UNCANNY_DODGE, "uncanny dodge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "retains dex bonus when flat footed or against invis opponents", "retains dex bonus when flat footed or against invis opponents");
 
@@ -699,7 +706,6 @@ void assign_feats(void) {
   feato(FEAT_SUMMON_UNDEAD, "summon undead", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows innate use of summon undead spell 3x per day", "allows innate use of summon undead spell 3x per day");
   feato(FEAT_SUPERIOR_WEAPON_FOCUS, "superior weapon focus", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of choice have +1 to hit", "Weapons of choice have +1 to hit");
   feato(FEAT_TOUCH_OF_UNDEATH, "touch of undeath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for paralytic or instant death touch", "allows for paralytic or instant death touch");
-  feato(FEAT_TRAP_SENSE, "trap sense", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_UNBREAKABLE_WILL, "unbreakable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_UNDEAD_FAMILIAR, "undead familiar", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for undead familiars", "allows for undead familiars");
   feato(FEAT_WEAPON_OF_CHOICE, "weapons of choice", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "All weapons with weapon focus gain special abilities", "All weapons with weapon focus gain special abilities");

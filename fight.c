@@ -1869,7 +1869,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
    * X = about 7 minutes with current settings
    */
   if (!IS_NPC(victim) && ((GET_HIT(victim) - dam) <= 0) &&
-          GET_SKILL(victim, SKILL_DEFENSE_ROLL) &&
+          HAS_FEAT(victim, FEAT_DEFENSIVE_ROLL) &&
           !char_has_mud_event(victim, eD_ROLL) && ch != victim) {
     act("\tWYou time a defensive roll perfectly and avoid the attack from"
             " \tn$N\tW!\tn", FALSE, victim, NULL, ch, TO_CHAR);
@@ -1879,7 +1879,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
             "from $N!\tn", FALSE, victim, NULL, ch, TO_NOTVICT);
     attach_mud_event(new_mud_event(eD_ROLL, victim, NULL),
             (2 * SECS_PER_MUD_DAY));
-    increase_skill(victim, SKILL_DEFENSE_ROLL);
+    //increase_skill(victim, SKILL_DEFENSE_ROLL);
     return 0;
   }
 
@@ -3357,25 +3357,7 @@ int hit(struct char_data *ch, struct char_data *victim,
          * needs a new place to live. */
         damage(ch, victim, sneakdam + (dam - sneakdam) * backstab_mult(ch),
                 SKILL_BACKSTAB, dam_type, offhand);
-        /* crippling strike */
-        if (dam && (GET_POS(victim) != POS_DEAD) && HAS_FEAT(ch, FEAT_CRIPPLING_STRIKE) &&
-            !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
-          new_affect(&af);
-
-          af.spell = SKILL_CRIP_STRIKE;
-          af.duration = 10;
-          af.location = APPLY_STR;
-          af.modifier = -(dice(2, 4));
-
-          affect_to_char(victim, &af);
-          act("Your well placed attack \tTcripples\tn $N!",
-                  FALSE, ch, wielded, victim, TO_CHAR);
-          act("A well placed attack from $n \tTcripples\tn you!",
-                  FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
-          act("A well placed attack from $n \tTcripples\tn $N!",
-                  FALSE, ch, wielded, victim, TO_NOTVICT);
-
-        }
+        
         break;
       default:
         /* Here we manage the racial specials, Treluk have claws and can not use weapons. */
@@ -3423,6 +3405,27 @@ int hit(struct char_data *ch, struct char_data *victim,
       call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_INNATE);
     }
 
+    /* crippling strike */
+    if (sneakdam) {
+      if (dam && (GET_POS(victim) != POS_DEAD) && HAS_FEAT(ch, FEAT_CRIPPLING_STRIKE) &&
+              !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
+        
+        new_affect(&af);
+        af.spell = SKILL_CRIP_STRIKE;
+        af.duration = 10;
+        af.location = APPLY_STR;
+        af.modifier = -(dice(2, 4));
+        affect_to_char(victim, &af);
+        
+        act("Your well placed attack \tTcripples\tn $N!",
+                FALSE, ch, wielded, victim, TO_CHAR);
+        act("A well placed attack from $n \tTcripples\tn you!",
+                FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
+        act("A well placed attack from $n \tTcripples\tn $N!",
+                FALSE, ch, wielded, victim, TO_NOTVICT);
+      }
+    }
+    
     /* weapon spells - deprecated, although many weapons still have these.  Weapon Special Abilities supercede
      * this implementation. */
     if (ch && victim && wielded)
