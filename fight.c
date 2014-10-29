@@ -277,7 +277,7 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
 
   /* ch unable to see attacker WITHOUT blind-fighting feat */
   if (attacker) {
-    if (!(CAN_SEE(ch, attacker) && !HAS_FEAT(ch, FEAT_BLIND_FIGHT))) {
+    if ( !CAN_SEE(ch, attacker) && !HAS_FEAT(ch, FEAT_BLIND_FIGHT) ) {
       if (FIGHTING(ch))
         send_to_char(ch, "has_dex_bonus_to_ac() - %s unable to see attacker  ", GET_NAME(ch));
       return FALSE;
