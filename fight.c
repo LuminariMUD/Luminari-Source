@@ -269,7 +269,7 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
   /* ch is sleeping */
   if (!AWAKE(ch)) {
     if (FIGHTING(ch))
-      send_to_char(ch, "has_dex_bonus_to_ac() - ch not awake  ");
+      send_to_char(ch, "has_dex_bonus_to_ac() - %s not awake  ", GET_NAME(ch));
     return FALSE;
   }
 
@@ -279,7 +279,7 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
   if (attacker) {
     if (!(CAN_SEE(ch, attacker) && !HAS_FEAT(ch, FEAT_BLIND_FIGHT))) {
       if (FIGHTING(ch))
-        send_to_char(ch, "has_dex_bonus_to_ac() - ch unable to see attacker  ");
+        send_to_char(ch, "has_dex_bonus_to_ac() - %s unable to see attacker  ", GET_NAME(ch));
       return FALSE;
     }
   }
@@ -287,26 +287,26 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
   /* ch is flat-footed WITHOUT uncanny dodge feat */
   if ((AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_UNCANNY_DODGE))) {
     if (FIGHTING(ch))
-      send_to_char(ch, "has_dex_bonus_to_ac() - ch flat-footed  ");
+      send_to_char(ch, "has_dex_bonus_to_ac() - %s flat-footed  ", GET_NAME(ch));
     return FALSE;
   }
 
   /* ch is stunned */
   if (AFF_FLAGGED(ch, AFF_STUN) || char_has_mud_event(ch, eSTUNNED)) {
     if (FIGHTING(ch))
-      send_to_char(ch, "has_dex_bonus_to_ac() - ch stunned  ");
+      send_to_char(ch, "has_dex_bonus_to_ac() - %s stunned  ", GET_NAME(ch));
     return FALSE;
   }
 
   /* ch is paralyzed */
   if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
     if (FIGHTING(ch))
-      send_to_char(ch, "has_dex_bonus_to_ac() - ch paralyzed  ");
+      send_to_char(ch, "has_dex_bonus_to_ac() - %s paralyzed  ", GET_NAME(ch));
     return FALSE;
   }
 
   if (FIGHTING(ch))
-    send_to_char(ch, "has_dex_bonus_to_ac() - ch retained dex bonus  ");
+    send_to_char(ch, "has_dex_bonus_to_ac() - %s retained dex bonus  ", GET_NAME(ch));
   return TRUE; /* ok, made it through, we DO have our dex bonus still */
 } 
 
