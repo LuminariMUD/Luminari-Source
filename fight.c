@@ -3224,6 +3224,16 @@ int hit(struct char_data *ch, struct char_data *victim,
      * get rid of the SKILL_ defined (and convert abilities to skills :)) */
     damage(ch, victim, 0, type == SKILL_BACKSTAB ? SKILL_BACKSTAB : w_type,
             dam_type, offhand);
+
+    /* stunning fist, quivering palm, etc need to be expended even if you miss */
+    if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
+      send_to_char(ch, "You fail to land your stunning fist attack!  ")
+      affect_from_char(ch, SKILL_STUNNING_FIST);
+    }
+    if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
+      send_to_char(ch, "You fail to land your quivering palm attack!  ")
+      affect_from_char(ch, SKILL_QUIVERING_PALM);
+    }
     
     /* Ranged miss */
     if (is_ranged)
@@ -3258,7 +3268,7 @@ int hit(struct char_data *ch, struct char_data *victim,
     /* Print descriptive tags - This needs some form of control, via a toggle
      * and also should be formatted in some standard way with standard colors. 
      *
-     * This section also implementes the effects of stunning fist, smite and true strike,
+     * This section also implement the effects of stunning fist, smite and true strike,
      * which is BAD.  These need to be moved outta here adn put into their own attack
      * routines, then called as an attack action. */
 
@@ -3268,8 +3278,12 @@ int hit(struct char_data *ch, struct char_data *victim,
     }
 
     if (affected_by_spell(ch, SKILL_SMITE)) {
-      if (IS_EVIL(victim))
+      if (IS_EVIL(victim)) {
         send_to_char(ch, "[SMITE] ");
+        send_to_char(victim, "[\tRSMITE\tn] ");
+        act("$n performs a \tYsmiting\tn attack on $N!",
+                  FALSE, ch, wielded, victim, TO_NOTVICT);
+      }
     }
 
     if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
@@ -3285,8 +3299,8 @@ int hit(struct char_data *ch, struct char_data *victim,
       }
     }
     
-    int quivering_palm_dc = 10 + (CLASS_LEVEL(ch, CLASS_MONK) / 2) + GET_WIS_BONUS(ch);
     if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
+      int quivering_palm_dc = 10 + (CLASS_LEVEL(ch, CLASS_MONK) / 2) + GET_WIS_BONUS(ch);
       if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
         send_to_char(ch, "[QUIVERING-PALM] ");
         send_to_char(victim, "[\tRQUIVERING-PALM\tn] ");
