@@ -3227,11 +3227,11 @@ int hit(struct char_data *ch, struct char_data *victim,
 
     /* stunning fist, quivering palm, etc need to be expended even if you miss */
     if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
-      send_to_char(ch, "You fail to land your stunning fist attack!  ")
+      send_to_char(ch, "You fail to land your stunning fist attack!  ");
       affect_from_char(ch, SKILL_STUNNING_FIST);
     }
     if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
-      send_to_char(ch, "You fail to land your quivering palm attack!  ")
+      send_to_char(ch, "You fail to land your quivering palm attack!  ");
       affect_from_char(ch, SKILL_QUIVERING_PALM);
     }
     
