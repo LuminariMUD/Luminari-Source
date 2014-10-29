@@ -498,7 +498,7 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
     for (i = 0; i < GET_NUM_QUESTS(ch); i++) {
       if ((rnum = real_quest(ch->player_specials->saved.completed_quests[i])) != NOTHING)
         send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty%s\tn\r\n",
-              ++counter, QST_DESC(rnum), (real_mobile(QST_MASTER(rnum)) == NOBODY) ? "Unknown" : GET_NAME(&mob_proto[(real_mobile(QST_MASTER(rnum)))]));
+              ++counter, QST_NAME(rnum), (real_mobile(QST_MASTER(rnum)) == NOBODY) ? "Unknown" : GET_NAME(&mob_proto[(real_mobile(QST_MASTER(rnum)))]));
       else
         send_to_char(ch,
               "\tg%4d\tn) \tcUnknown Quest (it no longer exists)\tn\r\n", ++counter);
@@ -653,7 +653,7 @@ void quest_progress(struct char_data *ch) {
     send_to_char(ch, "Your quest seems to no longer exist.\r\n");
   } else {
     send_to_char(ch, "You are on the following quest:\r\n%s\r\n%s",
-            QST_DESC(rnum), QST_INFO(rnum));
+            QST_NAME(rnum), QST_INFO(rnum));
     if (QST_QUANTITY(rnum) > 1)
       send_to_char(ch,
             "You still have to achieve %d out of %d goals for the quest.\r\n",
@@ -673,12 +673,12 @@ void quest_show(struct char_data *ch, mob_vnum qm) {
 
   send_to_char(ch,
           "The following quests are available:\r\n"
-          "Index Description                                          ( Vnum) Done?\r\n"
+          "Index Quest Name                                           ( Vnum) Done?\r\n"
           "----- ---------------------------------------------------- ------- -----\r\n");
   for (rnum = 0; rnum < total_quests; rnum++)
     if (qm == QST_MASTER(rnum))
       send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%5d)\tn \ty(%s)\tn\r\n",
-            ++counter, QST_DESC(rnum), QST_NUM(rnum),
+            ++counter, QST_NAME(rnum), QST_NUM(rnum),
             (is_complete(ch, QST_NUM(rnum)) ? "Yes" : "No "));
   if (!counter)
     send_to_char(ch, "There are no quests available here at the moment.\r\n");
