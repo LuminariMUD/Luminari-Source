@@ -263,17 +263,45 @@ int compute_size_bonus(int sizeA, int sizeB) {
 /*  has_dex_bonus_to_ac(attacker, ch)
  *  Helper function to determine if a char can apply his dexterity bonus to his AC. */
 bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
-  if (!AWAKE(ch) ||
-      /*under discussion*//*(GET_POS(ch) < POS_FIGHTING) ||*/
-      ((attacker != NULL) && !(CAN_SEE(ch, attacker) && !HAS_FEAT(ch, FEAT_BLIND_FIGHT))) ||
-      (AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_UNCANNY_DODGE)) ||
-      AFF_FLAGGED(ch, AFF_STUN) ||
-      AFF_FLAGGED(ch, AFF_PARALYZED) ||
-      char_has_mud_event(ch, eSTUNNED)) {
+
+  /* conditions for losing dex to ch */
+  
+  /* ch is sleeping */
+  if (!AWAKE(ch)) {
+    send_to_char(ch, "has_dex_bonus_to_ac() - ch not awake  ");
     return FALSE;
-  } else {
-    return TRUE;
   }
+  
+  /*under discussion*/ /*(GET_POS(ch) < POS_FIGHTING))*/
+  
+  /* ch unable to see attacker WITHOUT blind-fighting feat */
+  if (attacker) {
+    if (!(CAN_SEE(ch, attacker) && !HAS_FEAT(ch, FEAT_BLIND_FIGHT))) {
+      send_to_char(ch, "has_dex_bonus_to_ac() - ch unable to see attacker  ");
+      return FALSE;
+    }
+  }
+  
+  /* ch is flat-footed WITHOUT uncanny dodge feat */
+  if ((AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_UNCANNY_DODGE))) {
+    send_to_char(ch, "has_dex_bonus_to_ac() - ch flat-footed  ");
+    return FALSE;
+  }
+  
+  /* ch is stunned */
+  if (AFF_FLAGGED(ch, AFF_STUN) || char_has_mud_event(ch, eSTUNNED)) {
+    send_to_char(ch, "has_dex_bonus_to_ac() - ch stunned  ");
+    return FALSE;
+  }
+  
+  /* ch is paralyzed */
+  if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
+    send_to_char(ch, "has_dex_bonus_to_ac() - ch paralyzed  ");
+    return FALSE;
+  }
+    
+  send_to_char(ch, "has_dex_bonus_to_ac() - ch retained dex bonus  ");
+  return TRUE; /* ok, made it through, we DO have our dex bonus still */
 } 
 
 bool is_flanked(struct char_data *attacker, struct char_data *ch) {
