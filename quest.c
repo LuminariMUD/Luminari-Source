@@ -498,7 +498,7 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
     for (i = 0; i < GET_NUM_QUESTS(ch); i++) {
       if ((rnum = real_quest(ch->player_specials->saved.completed_quests[i])) != NOTHING)
         send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty%s\tn\r\n",
-              ++counter, QST_NAME(rnum), (real_mobile(QST_MASTER(rnum)) == NOBODY) ? "Unknown" : GET_NAME(&mob_proto[(real_mobile(QST_MASTER(rnum)))]));
+              ++counter, QST_DESC(rnum), (real_mobile(QST_MASTER(rnum)) == NOBODY) ? "Unknown" : GET_NAME(&mob_proto[(real_mobile(QST_MASTER(rnum)))]));
       else
         send_to_char(ch,
               "\tg%4d\tn) \tcUnknown Quest (it no longer exists)\tn\r\n", ++counter);
