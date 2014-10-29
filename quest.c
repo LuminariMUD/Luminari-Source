@@ -480,7 +480,7 @@ void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum v
   for (rnum = 0; rnum < total_quests; rnum++)
     if (QST_NUM(rnum) >= bottom && QST_NUM(rnum) <= top)
       send_to_char(ch, "\tg%4d\tn) [\tg%-5d\tn] \tc%-44.44s\tn \ty[%5d]\tn\r\n",
-            ++counter, QST_NUM(rnum), QST_NAME(rnum),
+            ++counter, QST_NUM(rnum), QST_DESC(rnum),
             QST_MASTER(rnum) == NOBODY ? 0 : QST_MASTER(rnum));
   if (!counter)
     send_to_char(ch, "None found.\r\n");
