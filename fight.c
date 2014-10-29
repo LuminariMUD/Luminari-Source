@@ -3220,11 +3220,6 @@ int hit(struct char_data *ch, struct char_data *victim,
   /* So if we have actually hit, then dam > 0.  This is how we process a miss. */
   if (!dam) { //miss
 
-    /* Display the flavorful backstab miss messages. This should be changed so we can
-     * get rid of the SKILL_ defined (and convert abilities to skills :)) */
-    damage(ch, victim, 0, type == SKILL_BACKSTAB ? SKILL_BACKSTAB : w_type,
-            dam_type, offhand);
-
     /* stunning fist, quivering palm, etc need to be expended even if you miss */
     if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
       send_to_char(ch, "You fail to land your stunning fist attack!  ");
@@ -3234,6 +3229,11 @@ int hit(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "You fail to land your quivering palm attack!  ");
       affect_from_char(ch, SKILL_QUIVERING_PALM);
     }
+    
+    /* Display the flavorful backstab miss messages. This should be changed so we can
+     * get rid of the SKILL_ defined (and convert abilities to skills :)) */
+    damage(ch, victim, 0, type == SKILL_BACKSTAB ? SKILL_BACKSTAB : w_type,
+            dam_type, offhand);
     
     /* Ranged miss */
     if (is_ranged)
