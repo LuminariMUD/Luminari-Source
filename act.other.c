@@ -2117,7 +2117,7 @@ ACMD(do_practice) {
   one_argument(argument, arg);
 
   if (*arg)
-    send_to_char(ch, "Type 'practice' without an argument to view your crafting skills.\r\n");
+    send_to_char(ch, "Type '\tYcraft\tn' without an argument to view your crafting skills.\r\n");
   else
     list_crafting_skills(ch);
 
@@ -2154,6 +2154,7 @@ ACMD(do_train) {
   send_to_char(ch, "\tDType 'train knowledge' to see your knowledge abilities\tn\r\n");
   /* as of 10/30/2014, we have decided to make sure crafting is an indepedent system */
   //send_to_char(ch, "\tDType 'train craft' to see your crafting abilities\tn\r\n");
+  send_to_char(ch, "\tDType 'craft' to see your crafting abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   if (IS_CASTER(ch)) {
     send_to_char(ch, "\tDType 'spells' to see your spells\tn\r\n");
