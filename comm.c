@@ -1171,7 +1171,7 @@ static char *make_prompt(struct descriptor_data *d)
   // Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h)
   if (d->showstr_count)
     snprintf(prompt, sizeof(prompt),
-      "[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (%d/%d) ]",
+      "\tn[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (%d/%d) ]\tn",
       d->showstr_page, d->showstr_count);
   else if (d->str)
     strcpy(prompt, "] ");	// strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3')
