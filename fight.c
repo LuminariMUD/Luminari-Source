@@ -372,8 +372,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
       armorclass += 2;
   }
   
-  if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_TUMBLE)) //caps at 5
-    armorclass += MIN(5, (int) (compute_ability(ch, ABILITY_TUMBLE) / 5));
+  if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_ACROBATICS)) //caps at 5
+    armorclass += MIN(5, (int) (compute_ability(ch, ABILITY_ACROBATICS) / 7));
   
   if (AFF_FLAGGED(ch, AFF_EXPERTISE))
     armorclass += COMBAT_MODE_VALUE(ch);

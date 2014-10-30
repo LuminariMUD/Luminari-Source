@@ -1632,10 +1632,10 @@ ACMD(do_hit) {
 
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
-      //everyone gets a free shot at you unless you make a tumble check
+      //everyone gets a free shot at you unless you make a acrobatics check
       //15 is DC
       if (FIGHTING(ch) && FIGHTING(vict)) {
-        if (!skill_check(ch, ABILITY_TUMBLE, 15))
+        if (!skill_check(ch, ABILITY_ACROBATICS, 15))
           attacks_of_opportunity(ch, 0);
       }
 

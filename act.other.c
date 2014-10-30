@@ -1734,7 +1734,7 @@ ACMD(do_search) {
           /* Get the DC */
           search_dc = get_hidden_door_dc(ch, door);
           /* Roll the dice... */
-          if (skill_check(ch, ABILITY_SEARCH, search_dc)) {
+          if (skill_check(ch, ABILITY_PERCEPTION, search_dc)) {
             act("You find a secret entrance!", FALSE, ch, 0, 0, TO_CHAR);
             act("$n finds a secret entrance!", FALSE, ch, 0, 0, TO_ROOM);
             REMOVE_BIT(EXIT(ch, door)->exit_info, EX_HIDDEN);
@@ -1783,7 +1783,7 @@ ACMD(do_sneak) {
     return;
   }
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_MOVE_SILENTLY)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_STEALTH)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
@@ -1812,7 +1812,7 @@ ACMD(do_hide) {
     return;
   }
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_HIDE)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_STEALTH)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
@@ -1835,7 +1835,7 @@ ACMD(do_listen) {
     return;
   }
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_LISTEN)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_PERCEPTION)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
@@ -1857,7 +1857,7 @@ ACMD(do_spot) {
     return;
   }
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_SPOT)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_PERCEPTION)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }

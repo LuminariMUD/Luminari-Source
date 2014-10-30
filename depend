@@ -1,3 +1,6 @@
+account.o: account.c conf.h sysdep.h structs.h protocol.h lists.h mysql.h \
+ utils.h race.h db.h handler.h feats.h dg_scripts.h comm.h interpreter.h \
+ genmob.h constants.h spells.h screen.h class.h
 act.comm.o: act.comm.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h screen.h \
  improved-edit.h dg_scripts.h act.h modify.h hlquest.h

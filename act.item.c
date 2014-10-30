@@ -96,11 +96,11 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
       if (FIGHTING(ch))
         update_pos(FIGHTING(ch));
       if (FIGHTING(ch) && GET_HIT(FIGHTING(ch)) >= 1) {
-        if (dice(1, 20) + compute_ability(ch, ABILITY_TUMBLE) <= 15) {
+        if (dice(1, 20) + compute_ability(ch, ABILITY_ACROBATICS) <= 15) {
           send_to_char(ch, "You fumble putting away the item:  ");
           USE_SWIFT_ACTION(ch);
         } else {
-          send_to_char(ch, "*Tumble Success*  ");
+          send_to_char(ch, "*Acrobatics Success*  ");
         }
       }
 
@@ -265,11 +265,11 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
       if (FIGHTING(ch))
         update_pos(FIGHTING(ch));
       if (FIGHTING(ch) && GET_HIT(FIGHTING(ch)) >= 1) {
-        if (dice(1, 20) + compute_ability(ch, ABILITY_TUMBLE) <= 15) {
+        if (dice(1, 20) + compute_ability(ch, ABILITY_ACROBATICS) <= 15) {
           send_to_char(ch, "You fumble putting away the item:  ");
           USE_SWIFT_ACTION(ch);
         } else {
-          send_to_char(ch, "*Tumble Success*  ");
+          send_to_char(ch, "*Acrobatics Success*  ");
         }
       }
 

@@ -267,7 +267,7 @@ bool can_hear_sneaking(struct char_data *ch, struct char_data *vict) {
 
   //challenger bonuses/penalty (ch)
   if (!IS_NPC(ch)) {
-    challenge += compute_ability(ch, ABILITY_LISTEN);
+    challenge += compute_ability(ch, ABILITY_STEALTH);
   } else
     challenge += GET_LEVEL(ch);
   if (AFF_FLAGGED(ch, AFF_LISTEN))
@@ -275,7 +275,7 @@ bool can_hear_sneaking(struct char_data *ch, struct char_data *vict) {
 
   //hider bonus/penalties (vict)
   if (!IS_NPC(vict)) {
-    dc += compute_ability((struct char_data *) vict, ABILITY_MOVE_SILENTLY);
+    dc += compute_ability((struct char_data *) vict, ABILITY_STEALTH);
     if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_TRACKLESS_STEP)) {
       dc += 4;
     }
@@ -302,7 +302,7 @@ bool can_see_hidden(struct char_data *ch, struct char_data *vict) {
 
   //challenger bonuses/penalty (ch)
   if (!IS_NPC(ch))
-    challenge += compute_ability(ch, ABILITY_SPOT);
+    challenge += compute_ability(ch, ABILITY_PERCEPTION);
   else
     challenge += GET_LEVEL(ch);
   if (AFF_FLAGGED(ch, AFF_SPOT))
@@ -310,7 +310,7 @@ bool can_see_hidden(struct char_data *ch, struct char_data *vict) {
 
   //hider bonus/penalties (vict)
   if (!IS_NPC(vict)) {
-    dc += compute_ability((struct char_data *) vict, ABILITY_HIDE);
+    dc += compute_ability((struct char_data *) vict, ABILITY_STEALTH);
     if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_TRACKLESS_STEP)) {
       dc += 4;
     }

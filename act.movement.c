@@ -697,7 +697,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     send_to_char(ch, "(OOC)  This zone is above your recommended level.\r\n");
   }
 
-  //tumble check
+  //acrobatics check
   int cantFlee = 0;
 
   if (affected_by_spell(ch, SPELL_EXPEDITIOUS_RETREAT))
@@ -709,28 +709,28 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
           GET_POS(ch) > POS_DEAD && FIGHTING(ch) &&
           IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)) && cantFlee >= 0) {
 
-    //able to flee away with tumble check?
+    //able to flee away with acrobatics check?
     if (!IS_NPC(ch)) { //player
       if (((HAS_FEAT(ch, FEAT_MOBILITY)) ||
-              dice(1, 20) + compute_ability(ch, ABILITY_TUMBLE) > 15) &&
+              dice(1, 20) + compute_ability(ch, ABILITY_ACROBATICS) > 15) &&
               cantFlee <= 0) {
-        send_to_char(ch, "\tW*Tumble Success\tn*");
-        send_to_char(FIGHTING(ch), "\tR*Opp Tumble Success*\tn");
+        send_to_char(ch, "\tW*Acrobatics Success\tn*");
+        send_to_char(FIGHTING(ch), "\tR*Opp Acrobatics Success*\tn");
       } else {
         // failed
-        send_to_char(ch, "\tR*Tumble Fail\tn*");
-        send_to_char(FIGHTING(ch), "\tW*Opp Tumble Fail*\tn");
+        send_to_char(ch, "\tR*Acrobatics Fail\tn*");
+        send_to_char(FIGHTING(ch), "\tW*Opp Acrobatics Fail*\tn");
         return 0;
       }
       //npc
     } else {
       if (dice(1, 20) > 10 && cantFlee <= 0) {
-        send_to_char(ch, "\tW*Tumble Success\tn*");
-        send_to_char(FIGHTING(ch), "\tR*Opp Tumble Success*\tn");
+        send_to_char(ch, "\tW*Acrobatics Success\tn*");
+        send_to_char(FIGHTING(ch), "\tR*Opp Acrobatics Success*\tn");
       } else {
         // failed
-        send_to_char(ch, "\tR*Tumble Fail\tn*");
-        send_to_char(FIGHTING(ch), "\tW*Opp Tumble Fail*\tn");
+        send_to_char(ch, "\tR*Acrobatics Fail\tn*");
+        send_to_char(FIGHTING(ch), "\tW*Opp Acrobatics Fail*\tn");
         return 0;
       }
     }
