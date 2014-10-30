@@ -496,14 +496,49 @@ static struct obj_data *get_purchase_obj(struct char_data *ch, char *arg, struct
    discount beyond the basic price.  That assumes they put a lot of points
    into charisma, because on the flip side they'd get 11% inflation by
    having a 3. */
+/* old code */
+/*
 static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *keeper, struct char_data *buyer)
 {
   return (int) (GET_OBJ_COST(obj) * SHOP_BUYPROFIT(shop_nr)
 	* (1 + (GET_CHA(keeper) - GET_CHA(buyer)) / (float)70));
 }
+*/
 
-/* When the shopkeeper is buying, we reverse the discount. Also make sure
-   we don't buy for more than we sell for, to prevent infinite money-making. */
+/*  added appraise, its going to behave exactly like charisma is behaving right now
+    except that mobiles (since they don't have abilities) will have a default value
+    based on their level of LEVEL/2   -zusuk */
+
+/*  very important note is that the difference between shop and customer can't be more than
+  this definition, so make sure to adjust appropriately based on stat scale / ability scale */
+#define FC	100
+/*  this value *10 has to be greater than the previous... it determins the factoring */
+#define FA	13
+static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *keeper, struct char_data *buyer)
+{
+  int price = 0, keeperVal = 0, buyerVal = 0;
+
+  if (!IS_NPC(keeper))  // don't think pc's can sell (yet)
+    keeperVal = MIN(50, compute_ability(keeper, ABILITY_APPRAISE));
+  else
+    keeperVal = GET_LEVEL(keeper) / 2;
+  keeperVal += GET_CHA(keeper);
+
+  if (!IS_NPC(buyer))  // yep, npc's can buy stuff -zusuk
+    buyerVal = MIN(50, compute_ability(buyer, ABILITY_APPRAISE));
+  else
+    buyerVal = GET_LEVEL(buyer) / 2;
+  buyerVal += GET_CHA(buyer);
+
+  price = keeperVal - buyerVal;
+  price = (int) (GET_OBJ_COST(obj) * SHOP_BUYPROFIT(shop_nr) *
+		((float)FA/10 + price / (float)FC));
+
+  return price;
+}
+
+/* original code */
+/*
 static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keeper, struct char_data *seller)
 {
   float sell_cost_modifier = SHOP_SELLPROFIT(shop_nr) * (1 - (GET_CHA(keeper) - GET_CHA(seller)) / (float)70);
@@ -513,6 +548,37 @@ static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keepe
     sell_cost_modifier = buy_cost_modifier;
 
   return (int) (GET_OBJ_COST(obj) * sell_cost_modifier);
+}
+*/
+
+  /* When the shopkeeper is buying, we reverse the discount. Also make sure
+   we don't buy for more than we sell for, to prevent infinite money-making. */
+static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keeper, struct char_data *seller)
+{
+  int sellPrice = 0, buyPrice = 0, keeperVal = 0, buyerVal = 0;
+
+  if (!IS_NPC(keeper))  // don't think pc's can sell (yet)
+    keeperVal = MIN(50, compute_ability(keeper, ABILITY_APPRAISE));
+  else
+    keeperVal = GET_LEVEL(keeper) / 2;
+  keeperVal += GET_CHA(keeper);
+
+  if (!IS_NPC(seller))  // yep, npc's can buy stuff -zusuk
+    buyerVal = MIN(50, compute_ability(seller, ABILITY_APPRAISE));
+  else
+    buyerVal = GET_LEVEL(seller) / 2;
+  buyerVal += GET_CHA(seller);
+
+  sellPrice = buyPrice = keeperVal - buyerVal;
+  buyPrice = (int) (GET_OBJ_COST(obj) * SHOP_BUYPROFIT(shop_nr) *
+		((float)FA/10 + buyPrice / (float)FC));
+  sellPrice = (int) (GET_OBJ_COST(obj) * SHOP_BUYPROFIT(shop_nr) *
+		((float)FA/10 - sellPrice / (float)FC));
+
+  if (sellPrice > buyPrice)
+    sellPrice = buyPrice;
+
+  return sellPrice;
 }
 
 static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
