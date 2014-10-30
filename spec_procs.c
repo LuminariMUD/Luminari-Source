@@ -710,15 +710,19 @@ int compute_ability(struct char_data *ch, int abilityNum) {
   /* Check for armor proficiency */
   
   switch (abilityNum) {
-    case ABILITY_TUMBLE:
+    case ABILITY_ACROBATICS:
       value += GET_DEX_BONUS(ch);
       value += compute_gear_penalty_check(ch);
+      if (HAS_FEAT(ch, FEAT_AGILE)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       if (HAS_FEAT(ch, FEAT_ACROBATIC)) {
         /* Unnamed bonus */
-        value += 2;
+        value += 3;
       }
       return value;
-    case ABILITY_HIDE:
+    case ABILITY_STEALTH:
       value += GET_DEX_BONUS(ch);
       if (HAS_FEAT(ch, FEAT_STEALTHY))
         value += 2;
@@ -730,19 +734,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 4;
       value += compute_gear_penalty_check(ch);
       return value;
-    case ABILITY_MOVE_SILENTLY:
-      value += GET_DEX_BONUS(ch);
-      if (HAS_FEAT(ch, FEAT_STEALTHY))
-        value += 2;
-      if (GET_RACE(ch) == RACE_HALFLING)
-        value += 2;
-      if (AFF_FLAGGED(ch, AFF_REFUGE))
-        value += 15;
-      if (IS_MORPHED(ch) && SUBRACE(ch) == PC_SUBRACE_PANTHER)
-        value += 4;
-      value += compute_gear_penalty_check(ch);
-      return value;
-    case ABILITY_SPOT:
+    case ABILITY_PERCEPTION:
       value += GET_WIS_BONUS(ch);
       if (GET_RACE(ch) == RACE_ELF)
         value += 2;
@@ -750,14 +742,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         /* Unnamed bonus */
         value += 2;
       }
-      return value;
-    case ABILITY_LISTEN:
-      value += GET_WIS_BONUS(ch);
-      if (GET_RACE(ch) == RACE_GNOME)
-        value += 2;
-      if (GET_RACE(ch) == RACE_ELF)
-        value += 2;
-      if (HAS_FEAT(ch, FEAT_ALERTNESS)) {
+      if (HAS_FEAT(ch, FEAT_INVESTIGATOR)) {
         /* Unnamed bonus */
         value += 2;
       }
@@ -824,14 +809,6 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 2;
       }
       return value;
-    case ABILITY_BALANCE:
-      value += GET_DEX_BONUS(ch);
-      value += compute_gear_penalty_check(ch);
-      if (HAS_FEAT(ch, FEAT_AGILE)) {
-        /* Unnamed bonus */
-        value += 2;
-      }
-      return value;
     case ABILITY_CLIMB:
       value += GET_STR_BONUS(ch);
       if (HAS_FEAT(ch, FEAT_ATHLETIC)) {
@@ -840,42 +817,17 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       }
       value += compute_gear_penalty_check(ch);
       return value;
-    case ABILITY_OPEN_LOCK:
-      value += GET_DEX_BONUS(ch);
-      if (HAS_FEAT(ch, FEAT_NIMBLE_FINGERS)) {
-        /* Unnamed bonus */
-        value += 2;
-      }
-      return value;
     case ABILITY_SLEIGHT_OF_HAND:
       value += GET_DEX_BONUS(ch);
       value += compute_gear_penalty_check(ch);
       if (HAS_FEAT(ch, FEAT_DEFT_HANDS)) {
         /* Unnamed bonus */
-        value += 2;
+        value += 3;
       } 
-      return value;
-    case ABILITY_SEARCH:
-      value += GET_INT_BONUS(ch);
-      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_ELF) 
-        value += 2;
-      else if (!IS_NPC(ch) && GET_RACE(ch) == RACE_H_ELF)
-        value += 1;
-      if (HAS_FEAT(ch, FEAT_INVESTIGATOR)) {
-        /* Unnamed bonus */
-        value += 2;
-      }
       return value;
     case ABILITY_BLUFF:
       value += GET_CHA_BONUS(ch);
       if (HAS_FEAT(ch, FEAT_PERSUASIVE)) {
-        /* Unnamed bonus */
-        value += 2;
-      }
-      return value;
-    case ABILITY_DECIPHER_SCRIPT:
-      value += GET_INT_BONUS(ch);
-      if (HAS_FEAT(ch, FEAT_DILIGENT)) {
         /* Unnamed bonus */
         value += 2;
       }
@@ -916,14 +868,6 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 2;
       }
       return value;
-    case ABILITY_JUMP:
-      value += GET_STR_BONUS(ch);
-      value += compute_gear_penalty_check(ch);
-      if (HAS_FEAT(ch, FEAT_ACROBATIC)) {
-        /* Unnamed bonus */
-        value += 2;
-      }
-      return value;
     case ABILITY_SENSE_MOTIVE:
       value += GET_WIS_BONUS(ch);
       if (HAS_FEAT(ch, FEAT_NEGOTIATOR)) {
@@ -952,15 +896,11 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         /* Unnamed bonus */
         value += 2;
       }
-      return value;
-    case ABILITY_USE_ROPE:
-      value += GET_DEX_BONUS(ch);
-      if (HAS_FEAT(ch, FEAT_DEFT_HANDS)) {
+      if (HAS_FEAT(ch, FEAT_DILIGENT)) {
         /* Unnamed bonus */
         value += 2;
       }
-      return value; 
-
+       return value;
     case ABILITY_PERFORM:
       value += GET_CHA_BONUS(ch);
       return value;

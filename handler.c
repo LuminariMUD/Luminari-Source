@@ -289,8 +289,8 @@ void affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[],
  to their 'real points' */
 void reset_char_points(struct char_data *ch) {
   int i = 0;
-  struct damage_reduction_type *damreduct;
-  struct dr_bypass_type *dr_bypass;
+  //struct damage_reduction_type *damreduct;
+  //struct dr_bypass_type *dr_bypass;
 
   ch->points.max_mana = ch->real_points.max_mana;
   ch->points.max_hit = ch->real_points.max_hit;

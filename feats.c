@@ -436,8 +436,8 @@ void assign_feats(void) {
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   feato(FEAT_ABLE_LEARNER, "able learner", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+1 to all skills", "+1 to all skills");
-  feato(FEAT_ACROBATIC, "acrobatic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to jump and tumble skill checks", "+2 to jump and tumble skill checks");
-  feato(FEAT_AGILE, "agile", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to balance and escape artist skill checks", "+2 to balance and escape artist skill checks");
+  feato(FEAT_ACROBATIC, "acrobatic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+3 to acrobatics skill checks", "+3 to acrobatics skill checks");
+  feato(FEAT_AGILE, "agile", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to acrobatics and escape artist skill checks", "+2 to acrobatics and escape artist skill checks");
   feato(FEAT_ALERTNESS, "alertness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to spot and listen skill checks ", "+2 to spot and listen skill checks ");
   feato(FEAT_ANIMAL_AFFINITY, "animal affinity", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to handle animal and ride skill checks", "+2 to handle animal and ride skill checks");
 
@@ -455,8 +455,8 @@ void assign_feats(void) {
   feato(FEAT_ARMOR_SKIN, "armor skin", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Increases natural armor by 1", "Increases natural armor by 1"); /* Epic */
   feato(FEAT_ATHLETIC, "athletic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to swim and climb skill checks", "+2 to swim and climb skill checks");
   feato(FEAT_DECEITFUL, "deceitful", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to disguise and forgery skill checks", "+2 to disguise and forgery skill checks");
-  feato(FEAT_DEFT_HANDS, "deft hands", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to sleight of hand and use rope skill checks", "+2 to sleight of hand and use rope skill checks");
-  feato(FEAT_DILIGENT, "diligent", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 bonus to appraise and decipher script skill checks", "+2 bonus to appraise and decipher script skill checks");
+  feato(FEAT_DEFT_HANDS, "deft hands", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+3 to sleight of hand checks", "+3 to sleight of hand skill checks");
+  feato(FEAT_DILIGENT, "diligent", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 bonus to appraise and use magical device skill checks", "+2 bonus to appraise and use magical device skill checks");
   feato(FEAT_EPIC_TOUGHNESS, "epic toughness", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL, "You gain +1 hp per level", "You gain +1 hp per level"); /* Epic */
   feato(FEAT_EXOTIC_WEAPON_PROFICIENCY, "exotic weapon proficiency", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL, "can use exotic weapon of type chosen without penalties", "can use exotic weapon of type chosen without penalties");
   feat_prereq_bab(FEAT_EXOTIC_WEAPON_PROFICIENCY, 1);
@@ -469,12 +469,12 @@ void assign_feats(void) {
   feato(FEAT_IMPROVED_SPELL_RESISTANCE, "improved spell resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL, "+2 to spell resistance", "+2 to spell resistance"); /* Epic */
   feat_prereq_feat(FEAT_IMPROVED_SPELL_RESISTANCE, FEAT_DIAMOND_SOUL, 1);
 
-  feato(FEAT_INVESTIGATOR, "investigator", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to lore and search checks", "+2 to lore and search checks");
+  feato(FEAT_INVESTIGATOR, "investigator", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to lore and perception checks", "+2 to lore and perception checks");
   feato(FEAT_IRON_WILL, "iron will", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to all willpower saving throw checks", "+2 to all willpower saving throw checks");
   feato(FEAT_LIGHTNING_REFLEXES, "lightning reflexes", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to all reflex saving throw checks", "+2 to all reflex saving throw checks");
   feato(FEAT_MAGICAL_APTITUDE, "magical aptitude", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to spellcraft and use magical device skill checks", "+2 to spellcraft and use magical device skill checks");
   feato(FEAT_NEGOTIATOR, "negotiator", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to diplomacy and sense motive skills", "+2 to diplomacy and sense motive skills");
-  feato(FEAT_NIMBLE_FINGERS, "nimble fingers", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to open lock and disable device skill checks", "+2 to open lock and disable device skill checks");
+  feato(FEAT_NIMBLE_FINGERS, "nimble fingers", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to disable device skill checks", "+2 to disable device skill checks");
   feato(FEAT_PERSUASIVE, "persuasive", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to bluff and intimidate skill checks", "+2 to bluff and intimidate skill checks");
   feato(FEAT_SELF_SUFFICIENT, "self sufficient", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to heal and survival skill checks", "+2 to heal and survival skill checks");
   feato(FEAT_SIMPLE_WEAPON_PROFICIENCY, "simple weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "may use all simple weappons", "may use all simple weappons");
@@ -1147,9 +1147,9 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return TRUE;
 
       case FEAT_SELF_CONCEALMENT:
-        if (GET_ABILITY(ch, ABILITY_HIDE) < 30)
+        if (GET_ABILITY(ch, ABILITY_STEALTH) < 30)
           return FALSE;
-        if (GET_ABILITY(ch, ABILITY_TUMBLE) < 30)
+        if (GET_ABILITY(ch, ABILITY_ACROBATICS) < 30)
           return FALSE;
         if (ch->real_abils.dex < 30)
           return FALSE;
@@ -1211,7 +1211,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return true;
 
       case FEAT_EPIC_DODGE:
-        if (ch->real_abils.dex >= 25 && has_feat(ch, FEAT_DODGE) && has_feat(ch, FEAT_DEFENSIVE_ROLL) && GET_ABILITY(ch, ABILITY_TUMBLE) >= 30)
+        if (ch->real_abils.dex >= 25 && has_feat(ch, FEAT_DODGE) && has_feat(ch, FEAT_DEFENSIVE_ROLL) && GET_ABILITY(ch, ABILITY_ACROBATICS) >= 30)
           return TRUE;
         return FALSE;
 

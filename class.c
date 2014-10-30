@@ -265,7 +265,7 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
   //  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA  BA
   { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //0 - reserved
 
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //1 - Tumble 
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //1 - Acrobatics 
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA}, //2 - hide
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA}, //3 move silently
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CC}, //4 spot
