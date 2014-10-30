@@ -716,7 +716,6 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         act("Nothing seems to happen.", FALSE, ch, obj, 0, TO_ROOM);
       } else {
         GET_OBJ_VAL(obj, 2)--;
-//        SET_WAIT(ch, PULSE_VIOLENCE);
         USE_STANDARD_ACTION(ch);
         
         /* Level to cast spell at. */
@@ -772,7 +771,6 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       }
       GET_OBJ_VAL(obj, 2)--;
 
-//      SET_WAIT(ch, PULSE_VIOLENCE);
       USE_STANDARD_ACTION(ch);
 
       if (GET_OBJ_VAL(obj, 0))
@@ -802,7 +800,6 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       else
         act("$n recites $p.", FALSE, ch, obj, NULL, TO_ROOM);
 
-//      SET_WAIT(ch, PULSE_VIOLENCE);
       USE_STANDARD_ACTION(ch);
       
       for (i = 1; i <= 3; i++)
@@ -829,7 +826,6 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       else
         act("$n quaffs $p.", TRUE, ch, obj, NULL, TO_ROOM);
 
-//      SET_WAIT(ch, PULSE_VIOLENCE);
       USE_MOVE_ACTION(ch);
 
       for (i = 1; i <= 3; i++)
@@ -1122,10 +1118,8 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     send_to_char(ch, "%s", CONFIG_OK);
     say_spell(ch, spellnum, tch, tobj, FALSE);
     
-    /* temporary code to prevent spamming of spells, the line below is
-     * Nashak's updated SET_WAIT code that is being phased out by Ornir */
-    WAIT_STATE(ch, PULSE_VIOLENCE / 2);
-    /* SET_WAIT(ch, PULSE_VIOLENCE / 2); */
+    /* prevents spell spamming */
+    USE_MOVE_ACTION(ch); /* todo: switch to swift action */
     
     return (call_magic(ch, tch, tobj, spellnum, CASTER_LEVEL(ch), CAST_SPELL));
   }
@@ -1141,7 +1135,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   /* mandatory wait-state for any spell */
-  SET_WAIT(ch, 10);
+  USE_MOVE_ACTION(ch); /* todo: switch to swift action */
 
   //this return value has to be checked -zusuk
   return (1);
