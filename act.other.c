@@ -2152,7 +2152,8 @@ ACMD(do_train) {
     list_abilities(ch, ABILITY_TYPE_GENERAL);
 
   send_to_char(ch, "\tDType 'train knowledge' to see your knowledge abilities\tn\r\n");
-  send_to_char(ch, "\tDType 'train craft' to see your crafting abilities\tn\r\n");
+  /* as of 10/30/2014, we have decided to make sure crafting is an indepedent system */
+  //send_to_char(ch, "\tDType 'train craft' to see your crafting abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   if (IS_CASTER(ch)) {
     send_to_char(ch, "\tDType 'spells' to see your spells\tn\r\n");
