@@ -98,7 +98,7 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
       if (FIGHTING(ch) && GET_HIT(FIGHTING(ch)) >= 1) {
         if (dice(1, 20) + compute_ability(ch, ABILITY_TUMBLE) <= 15) {
           send_to_char(ch, "You fumble putting away the item:  ");
-          SET_WAIT(ch, PULSE_VIOLENCE);
+          USE_MOVE_ACTION(ch); /* todo: switch to swift action */
         } else {
           send_to_char(ch, "*Tumble Success*  ");
         }
@@ -267,7 +267,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
       if (FIGHTING(ch) && GET_HIT(FIGHTING(ch)) >= 1) {
         if (dice(1, 20) + compute_ability(ch, ABILITY_TUMBLE) <= 15) {
           send_to_char(ch, "You fumble putting away the item:  ");
-          SET_WAIT(ch, PULSE_VIOLENCE);
+          USE_MOVE_ACTION(ch); /* todo: switch to swift action */
         } else {
           send_to_char(ch, "*Tumble Success*  ");
         }
@@ -467,7 +467,8 @@ static void perform_drop_gold(struct char_data *ch, int amount, byte mode, room_
     send_to_char(ch, "You don't have that many coins!\r\n");
   else {
     if (mode != SCMD_JUNK) {
-      SET_WAIT(ch, PULSE_VIOLENCE); /* to prevent coin-bombing */
+      /* to prevent coin-bombing */
+      USE_MOVE_ACTION(ch); /* todo: switch to swift action */
       obj = create_money(amount);
       if (mode == SCMD_DONATE) {
         send_to_char(ch, "You throw some gold into the air where it disappears in a puff of smoke!\r\n");

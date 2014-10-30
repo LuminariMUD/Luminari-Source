@@ -189,8 +189,8 @@ EVENTFUNC(event_falling)
       send_to_char(ch, "You fall headfirst to the ground!  OUCH!\r\n");
       act("$n crashes into the ground headfirst, OUCH!", FALSE, ch, 0, 0, TO_ROOM);
       GET_POS(ch) = POS_RECLINING;
-      SET_WAIT(ch, 4 * PULSE_VIOLENCE);
-
+      start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
+      
       /* we have a special situation if you die, the event will get cleared */
       if (dam >= GET_HIT(ch) + 9) {
         GET_HIT(ch) = -999;

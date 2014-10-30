@@ -886,7 +886,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   }
 
   /* "punishment" for death */
-  USE_FULL_ROUND_ACTION(ch);
+  start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
 }
 
 /* this is circle/tba stock raw_kill code

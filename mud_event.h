@@ -109,6 +109,7 @@ void clear_room_event_list(struct room_data *rm);
 void change_event_duration(struct char_data *ch, event_id iId, long time);
 
 #define HAS_WAIT(ch)            char_has_mud_event(ch, eWAIT)
+/* note: ornir has (temporarily?) disabled this event */
 #define SET_WAIT(ch, wait)      attach_mud_event(new_mud_event(eWAIT, ch, NULL), wait)
 
 /* Events */
