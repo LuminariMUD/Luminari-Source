@@ -4313,6 +4313,7 @@ void clear_char(struct char_data *ch) {
   GET_REAL_AC(ch) = 100; /* Basic Armor of 10 */
   if (GET_REAL_MAX_MANA(ch) < 100)
     GET_REAL_MAX_MANA(ch) = 100;
+  ch->points.damage_reduction = NULL;
 }
 
 void clear_object(struct obj_data *obj) {

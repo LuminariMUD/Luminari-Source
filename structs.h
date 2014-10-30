@@ -2376,6 +2376,8 @@ struct char_point_data {
   sh_int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
   sh_int resistances[NUM_DAM_TYPES];  // resistances (dam-types)
 
+  struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
+
   /* note - if you add something new here, make sure to check
    handler.c reset_char_points() to see if it needs to be added */
 };

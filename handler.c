@@ -289,6 +289,8 @@ void affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[],
  to their 'real points' */
 void reset_char_points(struct char_data *ch) {
   int i = 0;
+  struct damage_reduction_type *damreduct;
+  struct dr_bypass_type *dr_bypass;
 
   ch->points.max_mana = ch->real_points.max_mana;
   ch->points.max_hit = ch->real_points.max_hit;
@@ -302,6 +304,20 @@ void reset_char_points(struct char_data *ch) {
     ch->points.apply_saving_throw[i] = ch->real_points.apply_saving_throw[i];
   for (i = 0; i < NUM_DAM_TYPES; i++)
     ch->points.resistances[i] = ch->real_points.resistances[i];
+
+  /* Reset damage reduction */
+  for (damreduct = ch->points.damage_reduction;
+       damreduct != NULL;
+       damreduct = damreduct->next) 
+  {
+    /* We have a damage reduction record.  Clear it out. */
+    for (dr_bypass = damreduct->bypass;
+         dr_bypass != NULL;
+         dr_bypass = dr_bypass->next)
+    {
+
+    }       
+  }  
 }
 
 #define STAT_CAP 50
