@@ -977,6 +977,21 @@ void list_abilities(struct char_data *ch, int ability_type) {
           GET_TRAINS(ch) == 1 ? "" : "s");
 
   for (i = start_ability; i < end_ability; i++) {
+    /* we have some unused defines right now, we are going to skip over
+       them manaully */
+    switch (i) {
+      case ABILITY_UNUSED_1:
+      case ABILITY_UNUSED_2:
+      case ABILITY_UNUSED_3:
+      case ABILITY_UNUSED_4:
+      case ABILITY_UNUSED_5:
+      case ABILITY_UNUSED_6:
+      case ABILITY_UNUSED_7:
+      case ABILITY_UNUSED_8:
+        continue;
+      default:
+        break;
+    }
     send_to_char(ch, "%-28s [%d] \tC[%d]\tn %s\r\n",
             ability_names[i], GET_ABILITY(ch, i), compute_ability(ch, i),
             cross_names[class_ability[i][GET_CLASS(ch)]]);
