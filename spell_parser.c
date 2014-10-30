@@ -1119,8 +1119,8 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     say_spell(ch, spellnum, tch, tobj, FALSE);
     
     /* prevents spell spamming */
-    USE_MOVE_ACTION(ch); /* todo: switch to swift action */
-    
+    USE_SWIFT_ACTION(ch);
+
     return (call_magic(ch, tch, tobj, spellnum, CASTER_LEVEL(ch), CAST_SPELL));
   }
 
@@ -1135,7 +1135,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   /* mandatory wait-state for any spell */
-  USE_MOVE_ACTION(ch); /* todo: switch to swift action */
+  USE_SWIFT_ACTION(ch);
 
   //this return value has to be checked -zusuk
   return (1);
