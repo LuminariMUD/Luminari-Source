@@ -761,7 +761,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 2;
       }
       return value;
-    case ABILITY_CONCENTRATION:
+    case ABILITY_CONCENTRATION: /* not srd */
       if (GET_RACE(ch) == RACE_GNOME)
         value += 2;
       value += GET_CON_BONUS(ch);
@@ -791,7 +791,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 2;
       value += GET_STR_BONUS(ch);
       return value;
-    case ABILITY_PARRY:
+    case ABILITY_PARRY: /* not srd */
       value += GET_DEX_BONUS(ch);
       value += compute_gear_penalty_check(ch);
       return value;

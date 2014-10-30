@@ -337,7 +337,7 @@ static int trade_with(struct obj_data *item, int shop_nr)
 
 static int same_obj(struct obj_data *obj1, struct obj_data *obj2)
 {
-  //int aindex;
+  int aindex;
 
   if (!obj1 || !obj2)
     return (obj1 == obj2);
@@ -345,11 +345,6 @@ static int same_obj(struct obj_data *obj1, struct obj_data *obj2)
   if (GET_OBJ_RNUM(obj1) != GET_OBJ_RNUM(obj2))
     return (FALSE);
 
-  /* We have a bug where items shops are suppose to produce (unlimited) are only
-     showing up as a single item for sale, at least a temporary fix to that issue
-     was commenting the code below this line  (11/26/2013 Zusuk)
-  */
-  /*
   if (GET_OBJ_COST(obj1) != GET_OBJ_COST(obj2))
     return (FALSE);
 
@@ -357,7 +352,6 @@ static int same_obj(struct obj_data *obj1, struct obj_data *obj2)
     if ((obj1->affected[aindex].location != obj2->affected[aindex].location) ||
 	(obj1->affected[aindex].modifier != obj2->affected[aindex].modifier))
       return (FALSE);
-  */
 
   return (TRUE);
 }
@@ -486,80 +480,39 @@ static struct obj_data *get_purchase_obj(struct char_data *ch, char *arg, struct
   return (obj);
 }
 
-//  added appraise, its going to behave exactly like charisma is behaving right now
-//  except that mobiles (since they don't have abilities) will have a default value
-//  based on their level of LEVEL/2   -zusuk
-
-//  very important note is that the difference between shop and customer can't be more than
-//  this definition, so make sure to adjust appropriately based on stat scale / ability scale
-#define FC	100
-//  this value *10 has to be greater than the previous... it determins the factoring
-#define FA	13
-
+/* Shop purchase adjustment, based on charisma-difference from buyer to keeper.
+   for i in `seq 15 -15`; do printf " * %3d: %6.4f\n" $i \
+   `echo "scale=4; 1+$i/70" | bc`; done
+   Shopkeeper higher charisma (markup)
+   ^  15: 1.2142  14: 1.2000  13: 1.1857  12: 1.1714  11: 1.1571
+   |  10: 1.1428   9: 1.1285   8: 1.1142   7: 1.1000   6: 1.0857
+   |   5: 1.0714   4: 1.0571   3: 1.0428   2: 1.0285   1: 1.0142
+   +   0: 1.0000
+   |  -1: 0.9858  -2: 0.9715  -3: 0.9572  -4: 0.9429  -5: 0.9286
+   |  -6: 0.9143  -7: 0.9000  -8: 0.8858  -9: 0.8715 -10: 0.8572
+   v -11: 0.8429 -12: 0.8286 -13: 0.8143 -14: 0.8000 -15: 0.7858
+   Player higher charisma (discount)
+   Most mobiles have 11 charisma so an 18 charisma player would get a 10%
+   discount beyond the basic price.  That assumes they put a lot of points
+   into charisma, because on the flip side they'd get 11% inflation by
+   having a 3. */
 static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *keeper, struct char_data *buyer)
 {
-  int price = 0, keeperVal = 0, buyerVal = 0;
-
-  if (!IS_NPC(keeper))  // don't think pc's can sell (yet)
-    keeperVal = MIN(50, compute_ability(keeper, ABILITY_APPRAISE));
-  else
-    keeperVal = GET_LEVEL(keeper) / 2;
-  keeperVal += GET_CHA(keeper);
-
-  if (!IS_NPC(buyer))  // yep, npc's can buy stuff -zusuk
-    buyerVal = MIN(50, compute_ability(buyer, ABILITY_APPRAISE));
-  else
-    buyerVal = GET_LEVEL(buyer) / 2;
-  buyerVal += GET_CHA(buyer);
-
-  price = keeperVal - buyerVal;
-  price = (int) (GET_OBJ_COST(obj) * SHOP_BUYPROFIT(shop_nr) *
-		((float)FA/10 + price / (float)FC));
-
-  return price;
-
-  //old code
-//  return (int) (GET_OBJ_COST(obj) * SHOP_BUYPROFIT(shop_nr)
-//	* (1 + (GET_CHA(keeper) - GET_CHA(buyer)) / (float)70));
+  return (int) (GET_OBJ_COST(obj) * SHOP_BUYPROFIT(shop_nr)
+	* (1 + (GET_CHA(keeper) - GET_CHA(buyer)) / (float)70));
 }
 
 /* When the shopkeeper is buying, we reverse the discount. Also make sure
    we don't buy for more than we sell for, to prevent infinite money-making. */
 static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keeper, struct char_data *seller)
 {
-  int sellPrice = 0, buyPrice = 0, keeperVal = 0, buyerVal = 0;
+  float sell_cost_modifier = SHOP_SELLPROFIT(shop_nr) * (1 - (GET_CHA(keeper) - GET_CHA(seller)) / (float)70);
+  float buy_cost_modifier = SHOP_BUYPROFIT(shop_nr) * (1 + (GET_CHA(keeper) - GET_CHA(seller)) / (float)70);
 
-  if (!IS_NPC(keeper))  // don't think pc's can sell (yet)
-    keeperVal = MIN(50, compute_ability(keeper, ABILITY_APPRAISE));
-  else
-    keeperVal = GET_LEVEL(keeper) / 2;
-  keeperVal += GET_CHA(keeper);
+  if (sell_cost_modifier > buy_cost_modifier)
+    sell_cost_modifier = buy_cost_modifier;
 
-  if (!IS_NPC(seller))  // yep, npc's can buy stuff -zusuk
-    buyerVal = MIN(50, compute_ability(seller, ABILITY_APPRAISE));
-  else
-    buyerVal = GET_LEVEL(seller) / 2;
-  buyerVal += GET_CHA(seller);
-
-  sellPrice = buyPrice = keeperVal - buyerVal;
-  buyPrice = (int) (GET_OBJ_COST(obj) * SHOP_BUYPROFIT(shop_nr) *
-		((float)FA/10 + buyPrice / (float)FC));
-  sellPrice = (int) (GET_OBJ_COST(obj) * SHOP_BUYPROFIT(shop_nr) *
-		((float)FA/10 - sellPrice / (float)FC));
-
-  if (sellPrice > buyPrice)
-    sellPrice = buyPrice;
-
-  return sellPrice;
-
-
-//  float sell_cost_modifier = SHOP_SELLPROFIT(shop_nr) * (1 - (GET_CHA(keeper) - GET_CHA(seller)) / (float)70);
-//  float buy_cost_modifier = SHOP_BUYPROFIT(shop_nr) * (1 + (GET_CHA(keeper) - GET_CHA(seller)) / (float)70);
-
-//  if (sell_cost_modifier > buy_cost_modifier)
-//    sell_cost_modifier = buy_cost_modifier;
-
-//  return (int) (GET_OBJ_COST(obj) * sell_cost_modifier);
+  return (int) (GET_OBJ_COST(obj) * sell_cost_modifier);
 }
 
 static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
@@ -958,8 +911,7 @@ static char *list_object(struct obj_data *obj, int cnt, int aindex, int shop_nr,
 
   snprintf(result, sizeof(result), " %2d)  %9s   %-*s %6d%s\r\n",
       aindex, quantity, count_color_chars(itemname)+48, itemname,
-      buy_price(obj, shop_nr, keeper, ch), OBJ_FLAGGED(obj, ITEM_QUEST) ?
-        " qp" : "");
+      buy_price(obj, shop_nr, keeper, ch), OBJ_FLAGGED(obj, ITEM_QUEST) ? " qp" : "");
 
   return (result);
 }
@@ -1261,13 +1213,13 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count) {
   struct shop_buy_data list[MAX_SHOP_OBJ + 1];
   int done = FALSE;
 
-  snprintf(buf2, sizeof (buf2), "beginning of shop file %s", filename);
+  snprintf(buf2, sizeof(buf2), "beginning of shop file %s", filename);
 
   while (!done) {
     buf = fread_string(shop_f, buf2);
     if (*buf == '#') { /* New shop */
       sscanf(buf, "#%d\n", &temp);
-      snprintf(buf2, sizeof (buf2), "shop #%d in shop file %s", temp, filename);
+      snprintf(buf2, sizeof(buf2), "shop #%d in shop file %s", temp, filename);
       free(buf); /* Plug memory leak! */
       top_shop++;
       if (!top_shop)
