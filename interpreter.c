@@ -174,6 +174,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "charge", "charge", POS_FIGHTING, do_charge, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "circle", "circle", POS_FIGHTING, do_circle, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "collect", "collect", POS_STANDING, do_collect, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
+  /* we are just using the old do_practice function for crafting for now */
+  { "craft", "craft", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}},
 
   { "date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE, ACTION_NONE, {0, 0}},
   { "dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
