@@ -697,7 +697,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     value += 1;
 
   // try to avoid sending NPC's here, but just in case:
-  /* Not on this:  More and more it seems necessary to have some
+  /* Note on this:  More and more it seems necessary to have some
    * sort of NPC skill system in place, either an actual set
    * of SKILLS or some way to translate level, race and class into 
    * an appropriate set of skills, mostly for intellignet, humanoid 
