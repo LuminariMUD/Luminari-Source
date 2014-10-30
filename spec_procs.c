@@ -956,6 +956,9 @@ void list_abilities(struct char_data *ch, int ability_type) {
       end_ability = END_GENERAL_ABILITIES + 1;
       break;
     case ABILITY_TYPE_CRAFT:
+      /* as of 10/30/2014 we decided to make crafting indepdent of the skill/ability system */
+      send_to_char(ch, "\tRNOTE:\tn Type practice to see your crafting skills, "
+              "skills/abilities will no longer affect your crafting abilities.\r\n");
       start_ability = START_CRAFT_ABILITIES;
       end_ability = END_CRAFT_ABILITIES + 1;
       break;
