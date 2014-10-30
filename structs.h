@@ -3044,15 +3044,16 @@ struct config_data {
 /* Action types */
 typedef enum {
   atSTANDARD,
-  atMOVE
+  atMOVE,
+  atSWIFT
 } action_type;
 
-#define NUM_ACTIONS 2
+#define NUM_ACTIONS 3
 
 #define ACTION_NONE     0
 #define ACTION_STANDARD (1 << 0)
 #define ACTION_MOVE     (1 << 1)
-
+#define ACTION_SWIFT    (1 << 2)
 
 #define MAX_CHARS_PER_ACCOUNT         100
 

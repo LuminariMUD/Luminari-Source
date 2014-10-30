@@ -73,6 +73,7 @@ typedef enum {
   eWHOLENESSOFBODY, /* Wholeness of Body, Monk Healing Feat */
   eEMPTYBODY, /* Empty Body, Monk Concealment Feat */
   eQUIVERINGPALM, /* cooldown for quivering palm */
+  eSWIFTACTION, /* Swift action cooldown */
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:

@@ -77,6 +77,9 @@ EVENTFUNC(event_action_cooldown)
 	  if(!char_has_mud_event(ch, eMOVEACTION))
         send_to_char(ch, "You may perform another move action.%s\r\n", buf);
       break;
+    case eSWIFTACTION:
+      if(!char_has_mud_event(ch, eSWIFTACTION))
+        send_to_char(ch, "You may perform another swift action.%s\r\n", buf);
     default:
       break;
   }
@@ -105,8 +108,16 @@ bool is_action_available(struct char_data * ch, action_type act_type, bool msg_t
 			result = FALSE;
 		} else
 			result = TRUE;
-	}
-
+	} else if (act_type == atSWIFT) {
+                /* Is ch on swift action cooldown? */
+                if(char_has_mud_event(ch, eSWIFTACTION)) {
+                        if(msg_to_char)
+                                send_to_char(ch, "You don't have a swift action.");
+                        result = FALSE;
+                } else
+                        result = TRUE;
+ 
+        }
 	return result;
 };
 
@@ -148,4 +159,6 @@ void start_action_cooldown(struct char_data * ch, action_type act_type, int dura
 	  attach_mud_event(new_mud_event(eMOVEACTION, ch, svar), duration);
 	else if (act_type == atSTANDARD)
 	  attach_mud_event(new_mud_event(eSTANDARDACTION, ch, svar), duration);
+        else if (act_type == atSWIFT)
+	  attach_mud_event(new_mud_event(eSWIFTACTION, ch, svar), duration);
 };
