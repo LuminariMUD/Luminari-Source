@@ -131,47 +131,41 @@ int random_apply_value(void) {
   /* There will be different groupings based on item type and wear location, 
    * for example weapons will get hit/dam bonus (the +) and armor will get 
    * ac_apply_new bonus (the +). */
-  switch (dice(1, 15)) {
+  switch (dice(1, 13)) {
     case 1:
       val = APPLY_AC_NEW;
       break;
     case 2:
-      val = APPLY_HITROLL;
-      break;
-    case 3:
-      val = APPLY_DAMROLL;
-      break;
-    case 4:
       val = APPLY_STR;
       break;
-    case 5:
+    case 3:
       val = APPLY_CON;
       break;
-    case 6:
+    case 4:
       val = APPLY_DEX;
       break;
-    case 7:
+    case 5:
       val = APPLY_INT;
       break;
-    case 8:
+    case 6:
       val = APPLY_WIS;
       break;
-    case 9:
+    case 7:
       val = APPLY_CHA;
       break;
-    case 10:
+    case 8:
       val = APPLY_MOVE;
       break;
-    case 11:
+    case 9:
       val = APPLY_SAVING_FORT;
       break;
-    case 12:
+    case 10:
       val = APPLY_SAVING_REFL;
       break;
-    case 13:
+    case 11:
       val = APPLY_SAVING_WILL;
       break;
-    case 14:
+    case 12:
       val = APPLY_HIT;
       break;
     default:
@@ -245,44 +239,38 @@ int random_apply_value(void) {
 int random_armor_apply_value(void) {
   int val = APPLY_NONE;
 
-  switch (dice(1, 14)) {
+  switch (dice(1, 12)) {
     case 1:
-      val = APPLY_HITROLL;
-      break;
-    case 2:
-      val = APPLY_DAMROLL;
-      break;
-    case 3:
       val = APPLY_STR;
       break;
-    case 4:
+    case 2:
       val = APPLY_CON;
       break;
-    case 5:
+    case 3:
       val = APPLY_DEX;
       break;
-    case 6:
+    case 4:
       val = APPLY_INT;
       break;
-    case 7:
+    case 5:
       val = APPLY_WIS;
       break;
-    case 8:
+    case 6:
       val = APPLY_CHA;
       break;
-    case 9:
+    case 7:
       val = APPLY_MOVE;
       break;
-    case 10:
+    case 8:
       val = APPLY_HIT;
       break;
-    case 11:
+    case 9:
       val = APPLY_SAVING_FORT;
       break;
-    case 12:
+    case 10:
       val = APPLY_SAVING_REFL;
       break;
-    case 13:
+    case 11:
       val = APPLY_SAVING_WILL;
       break;
     default:
@@ -1071,7 +1059,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   GET_OBJ_LEVEL(obj) = level;
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  /* set value */
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  /* make sure not mold */
-  if (level >= 10)
+  if (level >= 5)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  /* add magic tag */
 
   obj_to_char(obj, ch); /* deliver object */

@@ -306,18 +306,18 @@ void reset_char_points(struct char_data *ch) {
     ch->points.resistances[i] = ch->real_points.resistances[i];
 
   /* Reset damage reduction */
-  for (damreduct = ch->points.damage_reduction;
-       damreduct != NULL;
-       damreduct = damreduct->next) 
-  {
+//  for (damreduct = ch->points.damage_reduction;
+//       damreduct != NULL;
+//       damreduct = damreduct->next) 
+//  {
     /* We have a damage reduction record.  Clear it out. */
-    for (dr_bypass = damreduct->bypass;
-         dr_bypass != NULL;
-         dr_bypass = dr_bypass->next)
-    {
+//    for (dr_bypass = damreduct->bypass;
+//         dr_bypass != NULL;
+//         dr_bypass = dr_bypass->next)
+//    {
 
-    }       
-  }  
+//    }       
+//  }  
 }
 
 #define STAT_CAP 50
