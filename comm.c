@@ -1285,9 +1285,10 @@ static char *make_prompt(struct descriptor_data *d)
       
       // autoprompt display available actions.
       if (PRF_FLAGGED(d->character, PRF_DISPACTIONS) && len < sizeof(prompt)) {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "[%s%s] ",
+        count = snprintf(prompt + len, sizeof(prompt) - len, "[%s%s%s] ",
                 (is_action_available(d->character, atSTANDARD, FALSE) ? "s" : "-"),
-                (is_action_available(d->character, atMOVE, FALSE)     ? "m" : "-"));
+                (is_action_available(d->character, atMOVE, FALSE)     ? "m" : "-"),
+                (is_action_available(d->character, atSWIFT, FALSE)    ? "w" : "-"));
         if (count >= 0)
           len += count;   
       }
