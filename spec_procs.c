@@ -891,16 +891,16 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       }
       return value;
     case ABILITY_USE_MAGIC_DEVICE:
-      value += GET_CHA_BONUS(ch);
       if (HAS_FEAT(ch, FEAT_MAGICAL_APTITUDE)) {
         /* Unnamed bonus */
-        value += 2;
+        value += (value >= 10 ? 4 : 2);
       }
       if (HAS_FEAT(ch, FEAT_DILIGENT)) {
         /* Unnamed bonus */
         value += 2;
       }
-       return value;
+      value += GET_CHA_BONUS(ch);
+      return value;
     case ABILITY_PERFORM:
       value += GET_CHA_BONUS(ch);
       return value;

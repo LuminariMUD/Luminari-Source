@@ -687,8 +687,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
  * For reference, object values 0-3:
  * staff  - [0]	level	[1] max charges	[2] num charges	[3] spell num
  * wand   - [0]	level	[1] max charges	[2] num charges	[3] spell num
- * scroll - [0]	level	[1] spell num	     [2] spell num	     [3] spell num
- * potion - [0]     level	[1] spell num   	[2] spell num   	[3] spell num
+ * scroll - [0]	level	[1] spell num   [2] spell num	[3] spell num
+ * potion - [0] level	[1] spell num   [2] spell num   [3] spell num
  * Staves and wands will default to level 14 if the level is not specified; the
  * DikuMUD format did not specify staff and wand levels in the world files */
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
