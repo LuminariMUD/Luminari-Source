@@ -2470,6 +2470,7 @@ ACMD(do_use) {
     }
   }
 
+  /* Check for object existence. */
   switch (subcmd) {
     case SCMD_QUAFF:
       if (GET_OBJ_TYPE(mag_item) != ITEM_POTION) {
@@ -2492,13 +2493,39 @@ ACMD(do_use) {
       break;
   }
 
+  /* Check if we can actually use the item in question... */
+  switch (subcmd) {
+    int dc = 10;
+    int check_result;
+
+    case SCMD_RECITE:
+
+      /* 1. Decipher Writing 
+       *    Spellcraft check: DC 20 + spell level */
+      
+      dc = 20 + GET_OBJ_VAL(mag_item, 0); 
+      if (!(check_result = skill_check(ch, ABILITY_SPELLCRAFT, dc))) {
+        send_to_char(ch, "You can't descipher the magical writings!\r\n");
+        return;
+      }      
+      /* 2. Activate the Spell */
+      /* 2.a. Check the spell type 
+       *      ARCANE - Wizard, Sorcerer, Bard
+       *      DIVINE - Cleric, Druid, Paladin, Ranger */
+      
+      /* 2.b. Check the spell is on class spell list */
+      /* 2.c. Check the relevant ability score */
+      /* 3. Check caster level */
+  }  
+
   /* has some ability to even use magical items? */
-  if (subcmd == SCMD_USE) {
+/*  if (subcmd == SCMD_USE) {
     if (!GET_SKILL(ch, SKILL_USE_MAGIC)) {
       send_to_char(ch, "You have no idea how to use magical items!\r\n");
       return;
     }
   }
+*/
 
   mag_objectmagic(ch, mag_item, buf);
 
