@@ -2497,6 +2497,7 @@ ACMD(do_use) {
   switch (subcmd) {
     int dc = 10;
     int check_result;
+    int spell;
 
     case SCMD_RECITE:
 
@@ -2505,17 +2506,82 @@ ACMD(do_use) {
       
       dc = 20 + GET_OBJ_VAL(mag_item, 0); 
       if (!(check_result = skill_check(ch, ABILITY_SPELLCRAFT, dc))) {
-        send_to_char(ch, "You can't descipher the magical writings!\r\n");
+        send_to_char(ch, "You are unable to decipher the magical writings!\r\n");
         return;
       }      
       /* 2. Activate the Spell */
       /* 2.a. Check the spell type 
        *      ARCANE - Wizard, Sorcerer, Bard
        *      DIVINE - Cleric, Druid, Paladin, Ranger */
-      
+      spell = GET_OBJ_VAL(mag_item, 1);
+      if(spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF ||
+         spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
+         spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF) 
+      {
+        if (!(CLASS_LEVEL(ch, CLASS_WIZARD)   > 0 ||
+            CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
+            CLASS_LEVEL(ch, CLASS_BARD)     > 0)) 
+        {
+          send_to_char(ch, "You must be able to use arcane magic to recite this scroll.\r\n");
+          return;
+        }
+      } else {
+        if(!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
+             CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
+             CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
+             CLASS_LEVEL(ch, CLASS_RANGER) > 0)) 
+        {
+          send_to_char(ch, "You must be able to cast divine magic to recite this scroll.\r\n");
+          return;
+        }
+      }
+
       /* 2.b. Check the spell is on class spell list */
+      if (!(((spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
+            ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
+            ((spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
+            ((spell_info[spell].min_level[CLASS_CLERIC]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+            ((spell_info[spell].min_level[CLASS_DRUID]    < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
+            ((spell_info[spell].min_level[CLASS_PALADIN]  < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
+            ((spell_info[spell].min_level[CLASS_RANGER]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0)))
+      {
+        send_to_char(ch, "The spell on the scroll is outside your realm of knowledge.\r\n");
+        return;
+      }
       /* 2.c. Check the relevant ability score */
+      bool passed = FALSE;
+      if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) 
+        passed = (GET_INT(ch) > (10 + spellCircle(CLASS_WIZARD, spell)) ? TRUE : passed); 
+      if (spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) 
+        passed = (GET_CHA(ch) > (10 + spellCircle(CLASS_SORCERER, spell)) ? TRUE : passed); 
+      if (spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) 
+        passed = (GET_CHA(ch) > (10 + spellCircle(CLASS_BARD, spell)) ? TRUE : passed); 
+      if (spell_info[spell].min_level[CLASS_CLERIC] < LVL_STAFF) 
+        passed = (GET_WIS(ch) > (10 + spellCircle(CLASS_CLERIC, spell)) ? TRUE : passed); 
+      if (spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) 
+        passed = (GET_WIS(ch) > (10 + spellCircle(CLASS_DRUID, spell)) ? TRUE : passed); 
+      if (spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) 
+        passed = (GET_CHA(ch) > (10 + spellCircle(CLASS_PALADIN, spell)) ? TRUE : passed); 
+      if (spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) 
+        passed = (GET_WIS(ch) > (10 + spellCircle(CLASS_RANGER, spell)) ? TRUE : passed); 
+      if (passed == FALSE)
+      {
+        send_to_char(ch, "You are physically incapable of casting the spell inscribed on the scroll.\r\n");
+      }
       /* 3. Check caster level */
+      if (!(CASTER_LEVEL(ch) >= GET_OBJ_VAL(mag_item, 0))) 
+      {
+        /* Perform caster level check */
+        dc = GET_OBJ_VAL(mag_item, 0) + 1;
+        if ((dice(1, 20) + CASTER_LEVEL(ch)) < dc) 
+        {
+          /* Fail */
+          send_to_char(ch, "You try, but the spell on the scroll is far to powerful for you to cast.\r\n");
+          return;
+        } else {
+          send_to_char(ch, "You release the powerful magics inscribed the scroll!\r\n");
+        }
+      }
   }  
 
   /* has some ability to even use magical items? */
@@ -2526,7 +2592,7 @@ ACMD(do_use) {
     }
   }
 */
-
+ 
   mag_objectmagic(ch, mag_item, buf);
 
 }
