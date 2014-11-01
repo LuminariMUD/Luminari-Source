@@ -26,6 +26,7 @@
         <in>webster.c</in>
         <in>wld2html.c</in>
       </df>
+      <in>account.c</in>
       <in>act.comm.c</in>
       <in>act.h</in>
       <in>act.informative.c</in>

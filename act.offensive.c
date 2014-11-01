@@ -2303,9 +2303,15 @@ ACMD(do_treatinjury) {
   act("$n \tWtreats\tn $N's injuries!", FALSE, ch, 0, vict, TO_NOTVICT);
   attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL),
           (18 * SECS_PER_MUD_HOUR));
-  GET_HIT(vict) += MIN((GET_MAX_HIT(vict) - GET_HIT(vict)),
-          (10 + (compute_ability(ch, ABILITY_HEAL) * 2)));
-  update_pos(vict);
+
+  /* first attempt to recover lost health */
+  if (GET_MAX_HIT(vict) != GET_HIT(vict)) {
+    GET_HIT(vict) += MIN((GET_MAX_HIT(vict) - GET_HIT(vict)),
+            (10 + compute_ability(ch, ABILITY_HEAL) + GET_WIS_BONUS(ch)));
+    update_pos(vict);
+  }
+  /* TODO: poison */
+  /* TODO: disease */
 
   /* Actions */
   USE_STANDARD_ACTION(ch);
