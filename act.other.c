@@ -1656,12 +1656,17 @@ int get_hidden_door_dc(struct char_data *ch, int door) {
    *     creature's passage, but it won't let you find or follow a trail. See the 
    *     Track feat for the appropriate DC. */
 
+  /* zusuk bumped up these values slightly from the commented, srd-values because
+   of the naturally much higher stats in our MUD world */
   if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_EASY))
-    return 10;
+    return 15;
+    //return 10;
   if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_MEDIUM))
-    return 20;
-  if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_HARD))
     return 30;
+    //return 20;
+  if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_HARD))
+    return 45;
+    //return 30;
 
   /* If we get here, the door is not hidden. */
   return 0;
@@ -1795,8 +1800,8 @@ ACMD(do_sneak) {
   }
 
   send_to_char(ch, "Okay, you'll try to move silently for a while.\r\n");
-
   SET_BIT_AR(AFF_FLAGS(ch), AFF_SNEAK);
+  USE_SWIFT_ACTION(ch); /*not really necessary honestly*/
 }
 
 /* entry point for hide, the command just flips the flag */
@@ -1825,6 +1830,7 @@ ACMD(do_hide) {
 
   send_to_char(ch, "You attempt to hide yourself.\r\n");
   SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
+  USE_MOVE_ACTION(ch); /*protect from sniping abuse*/
 \
 }
 
@@ -1835,11 +1841,14 @@ ACMD(do_listen) {
     return;
   }
 
+  /* note, you do not require training in perception to attempt */
+  /*
   if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_PERCEPTION)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-
+  */
+  
   if (AFF_FLAGGED(ch, AFF_LISTEN)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_LISTEN);
     send_to_char(ch, "You stop trying to listen...\r\n");
@@ -1857,10 +1866,13 @@ ACMD(do_spot) {
     return;
   }
 
+  /* note, you do not require training in perception to attempt */
+  /*
   if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_PERCEPTION)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
+  */
 
   if (AFF_FLAGGED(ch, AFF_SPOT)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPOT);
@@ -2567,6 +2579,7 @@ ACMD(do_use) {
       if (passed == FALSE)
       {
         send_to_char(ch, "You are physically incapable of casting the spell inscribed on the scroll.\r\n");
+        return;
       }
       /* 3. Check caster level */
       if (!(CASTER_LEVEL(ch) >= GET_OBJ_VAL(mag_item, 0))) 

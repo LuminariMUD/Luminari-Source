@@ -6242,7 +6242,6 @@ int get_eq_score(obj_rnum a) {
 }
 
 /* a command meant to view the top end equipment of the game -zusuk */
-
 /* takes one or two arguments, 2nd argument being optional:
    arg 1:  item slot
    arg 2:  zone
@@ -6361,7 +6360,7 @@ ACMD(do_eqrating) {
           QYEL, wear_bits[wearloc], QNRM);
   for (i = 0; i < j; i++) {
 
-    /* a will refer to our "i'th" value in the table */
+    /* 'a' will refer to our "i'th" value in the table */
     a = index[i];
 
     /* start building our string, begin with listing vnum, score, and short

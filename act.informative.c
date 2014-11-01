@@ -31,6 +31,7 @@
 #include "clan.h"
 #include "craft.h"  // auto crafting quest
 #include "wilderness.h"
+#include "quest.h" /* so you can identify questmaster mobiles */
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -479,6 +480,9 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
       else if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) && IS_GOOD(i))
         send_to_char(ch, "\tB(Blue Aura)\tn ");
     }
+
+    if (IS_NPC(i) && (GET_MOB_SPEC(i) == questmaster || i->mob_specials.quest))
+      send_to_char(ch, "(\tYQ\tn) ");
 
     send_to_char(ch, "%s", i->player.long_descr);
 
