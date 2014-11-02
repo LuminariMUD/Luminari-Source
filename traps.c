@@ -14,11 +14,144 @@
 #include "utils.h"
 #include "comm.h"
 #include "db.h"
+#include "handler.h"
+
+#include "mud_event.h"
+#include "actions.h"
+
+#include "spells.h"
 
 #include "traps.h"
 
+/* A trap in this version of the code is a special item that is loaded into
+   the room that will react to either entering rooms, opening doors, or
+   grabbing stuff from a container */
 
-/* trap project imported from HL */
+/* side note, if the GET_OBJ_RENT(trap) > 0, then the trap is detected in the original version */
+/* object value (0) is the trap-type */
+/* object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
+     or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
+/* object value (2) is the effect */
+/* object value (3) is the trap difficulty */
+/* object value (4) is whether this trap has been "detected" yet */
+
+/* start code */
+
+/* this function is ran to set off a trap, it creates and attaches the
+ event to the victim*/
+void set_off_trap(struct char_data *ch, struct obj_data *trap) {
+  struct trap_event *trap_event = NULL;
+
+  if (IS_NPC(ch) && !IS_PET(ch))
+    return;
+
+  send_to_char(ch, "Ooops, you must have triggered something.\r\n");
+  
+  CREATE(trap_event, struct trap_event, 1);
+  trap_event->ch = ch;
+  trap_event->effect = GET_OBJ_VAL(trap, 2);
+//  TRAP(ch) = event_create(perform_trap_effect, trap_event, 0);
+}
+
+/* checks the 5th value (4) to see if its set (which indicates detection) */
+bool is_trap_detected(struct obj_data *trap) {
+  return (GET_OBJ_VAL(trap, 4) > 0);
+}
+
+/* set the 5th value (4) to indicate it is detected */
+void set_trap_detected(struct obj_data *trap) {
+  GET_OBJ_VAL(trap, 4) = 1;
+}
+
+/* based on trap-type, see if it should fire or not! */
+bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *obj, int dir) {
+  struct obj_data *trap = NULL;
+  
+  /* check the room for any traps */
+  for (trap = world[room].contents; trap; trap = trap->next_content) {
+    
+    /* is this a trap? */
+    if (GET_OBJ_TYPE(trap) == ITEM_TRAP && GET_OBJ_VAL(trap, 0) == trap_type) {
+      switch (trap_type) {
+        case TRAP_TYPE_ENTER_ROOM:
+          break;
+        case TRAP_TYPE_OPEN_DOOR:
+        case TRAP_TYPE_UNLOCK_DOOR:
+          if (dir != GET_OBJ_VAL(trap, 1))
+            continue;
+          break;
+        case TRAP_TYPE_OPEN_CONTAINER:
+        case TRAP_TYPE_UNLOCK_CONTAINER:
+        case TRAP_TYPE_GET_OBJECT:
+          if (GET_OBJ_VNUM(obj) != GET_OBJ_VAL(trap, 1))
+            continue;
+          break;
+      }
+
+      /* bingo!  FIRE! */
+      set_off_trap(ch, trap);
+
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+
+ACMD(do_disabletrap) {
+  struct obj_data *trap = NULL;
+  int result = 0;
+  
+  if (!GET_ABILITY(ch, ABILITY_DISABLE_DEVICE)) {
+    send_to_char(ch, "But you do not know how.\r\n");
+    return;
+  }
+  
+  for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
+    if (GET_OBJ_TYPE(trap) == ITEM_TRAP && is_trap_detected(trap)) {
+      act("$n is trying to disable a trap", FALSE, ch, 0, 0, TO_ROOM);
+      act("You try to disable the trap", FALSE, ch, 0, 0, TO_CHAR);
+      if ((result = skill_check(ch, ABILITY_DISABLE_DEVICE, (GET_OBJ_VAL(trap, 3) / 3)))) {
+        act("And is Succesful!", FALSE, ch, 0, 0, TO_ROOM);
+        act("And are Succesful!", FALSE, ch, 0, 0, TO_CHAR);
+        extract_obj(trap);
+      } else {
+        act("But fails.", FALSE, ch, 0, 0, TO_ROOM);
+        act("But fail.", FALSE, ch, 0, 0, TO_CHAR);
+        if (result <= -5) /* fail your roll by 5 or more, BOOM! */
+          set_off_trap(ch, trap);
+      }
+      USE_FULL_ROUND_ACTION(ch);
+      return;
+    }
+  }
+  send_to_char(ch, "But there are no traps here than you can see.\r\n");
+}
+
+
+ACMD(do_detecttrap) {
+  struct obj_data *trap = NULL;
+  
+  if (!GET_ABILITY(ch, ABILITY_PERCEPTION)) {
+    send_to_char(ch, "But you do not know how.\r\n");
+    return;
+  }
+
+  USE_FULL_ROUND_ACTION(ch);
+  for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
+    if (GET_OBJ_TYPE(trap) == ITEM_TRAP && !is_trap_detected(trap)) {
+      if (skill_check(ch, ABILITY_PERCEPTION, (GET_OBJ_VAL(trap, 3) / 3))) {
+        act("$n has detected a trap!", FALSE, ch, 0, 0, TO_ROOM);
+        act("You have detected a trap!", FALSE, ch, 0, 0, TO_CHAR);
+        set_trap_detected(trap);
+        return;
+      }
+    }
+  }
+  act("$n is looking around for some traps, but can not find any.", FALSE, ch, 0, 0, TO_ROOM);
+  act("You do not seem to detect any traps.", FALSE, ch, 0, 0, TO_CHAR);
+}
+*/
 
 /*
 EVENTFUNC(perform_trap_effect) {
@@ -202,108 +335,6 @@ EVENTFUNC(perform_trap_effect) {
 }
  */
 
-void set_off_trap(struct char_data *ch, struct obj_data *trap) {
-  if (IS_NPC(ch) && !IS_PET(ch))
-    return;
-
-  send_to_char(ch, "Ooops, you must have triggered something.\r\n");
-  struct trap_event *trap_event;
-
-  CREATE(trap_event, struct trap_event, 1);
-  trap_event->ch = ch;
-  trap_event->effect = GET_OBJ_VAL(trap, 2);
-//  TRAP(ch) = event_create(perform_trap_effect, trap_event, 0);
-}
-
-bool is_trap_detected(struct obj_data *trap) {
-  return (GET_OBJ_RENT(trap) > 0);
-}
-
-void set_trap_detected(struct obj_data *trap) {
-  GET_OBJ_RENT(trap) = 1;
-}
-
-bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *obj, int dir) {
-  struct obj_data *trap;
-  for (trap = world[room].contents; trap; trap = trap->next_content) {
-    if (GET_OBJ_TYPE(trap) == ITEM_TRAP && GET_OBJ_VAL(trap, 0) == trap_type) {
-      switch (trap_type) {
-        case TRAP_TYPE_ENTER_ROOM:
-          break;
-        case TRAP_TYPE_OPEN_DOOR:
-        case TRAP_TYPE_UNLOCK_DOOR:
-          if (dir != GET_OBJ_VAL(trap, 1))
-            continue;
-          break;
-        case TRAP_TYPE_OPEN_CONTAINER:
-        case TRAP_TYPE_UNLOCK_CONTAINER:
-        case TRAP_TYPE_GET_OBJECT:
-          if (GET_OBJ_VNUM(obj) != GET_OBJ_VAL(trap, 1))
-            continue;
-          break;
-      }
-
-      set_off_trap(ch, trap);
-
-      return TRUE;
-    }
-  }
-  return FALSE;
-}
-
-/*
-ACMD(do_disabletrap) {
-  struct obj_data *trap;
-  if (!GET_ABILITY(ch, ABILITY_DISABLE_DEVICE)) {
-    send_to_char(ch, "But you do not know how.\r\n");
-    return;
-  }
-  for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
-    if (GET_OBJ_TYPE(trap) == ITEM_TRAP && is_trap_detected(trap)) {
-      act("$n is trying to disable a trap", FALSE, ch, 0, 0, TO_ROOM);
-      act("You try to disable the trap", FALSE, ch, 0, 0, TO_CHAR);
-      if (skill_check(ch, ABILITY_ACROBATICS, 15))
-      if (skill_check(ch, SKILL_DISABLE_TRAP, 101 + GET_OBJ_VAL(trap, 3), 0)) {
-        act("And is Succesful!", FALSE, ch, 0, 0, TO_ROOM);
-        act("And are Succesful!", FALSE, ch, 0, 0, TO_CHAR);
-        extract_obj(trap);
-      } else {
-        act("But fails.", FALSE, ch, 0, 0, TO_ROOM);
-        act("But fail.", FALSE, ch, 0, 0, TO_CHAR);
-        if (dice(1, 100) > GET_LUCK(ch))
-          set_off_trap(ch, trap);
-      }
-      WAIT_STATE(ch, PULSE_VIOLENCE * 4);
-      return;
-    }
-  }
-  send_to_char(ch, "But there are no traps here than you can see.\r\n");
-}
-*/
-
-/*
-ACMD(do_detecttrap) {
-  struct obj_data *trap;
-  if (!GET_SKILL(ch, SKILL_DETECT_TRAP)) {
-    send_to_char(ch, "But you do not know how.\r\n");
-    return;
-  }
-
-  WAIT_STATE(ch, PULSE_VIOLENCE * 2);
-  for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
-    if (GET_OBJ_TYPE(trap) == ITEM_TRAP && !is_trap_detected(trap)) {
-      if (skill_test(ch, SKILL_DETECT_TRAP, 101 + GET_OBJ_VAL(trap, 3), 0)) {
-        act("$n has detected a trap!", FALSE, ch, 0, 0, TO_ROOM);
-        act("You have detected a trap!", FALSE, ch, 0, 0, TO_CHAR);
-        set_trap_detected(trap);
-        return;
-      }
-    }
-  }
-  act("$n is looking around for some traps, but can not find any.", FALSE, ch, 0, 0, TO_ROOM);
-  act("You do not seem to detect any traps.", FALSE, ch, 0, 0, TO_CHAR);
-}
-*/
-/******* end trap project **********/
+/******* end of file **********/
 
 #endif	/* TRAPS_C */
