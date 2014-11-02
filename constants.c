@@ -45,7 +45,7 @@ const char *trap_type[MAX_TRAP_TYPES + 1] = {
 
 /* Trap-effects, add 1000 to this value to reference the proper values in
  act.item.c */
-const char *trap_effects[] = {
+const char *trap_effects[MAX_TRAP_EFFECTS + 1] = {
   "Wall of Flames",
   "Lightning Strike",
   "Impaling Spike",
