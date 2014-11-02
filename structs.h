@@ -94,6 +94,8 @@
 /******************************************/
 /* trap effects 
    if the effect is < 1000, its just suppose to cast a spell */
+#define TRAP_EFFECT_FIRST_VALUE         1000
+/**/
 #define TRAP_EFFECT_WALL_OF_FLAMES      1000
 #define TRAP_EFFECT_LIGHTNING_STRIKE    1001
 #define TRAP_EFFECT_IMPALING_SPIKE      1002
@@ -112,7 +114,7 @@
 #define TRAP_EFFECT_SPIDER_WEBS         1015
 /**/
 #define TOP_TRAP_EFFECTS                1016
-#define MAX_TRAP_EFFECTS                (TOP_TRAP_EFFECTS-1000)
+#define MAX_TRAP_EFFECTS                (TOP_TRAP_EFFECTS - TRAP_EFFECT_FIRST_VALUE)
 /******************************************/
 /*end traps*/
 

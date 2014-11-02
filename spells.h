@@ -416,6 +416,7 @@
 #define PSIONIC_INTERTIAL_BARRIER       366
 #define PSIONIC_PLANAR_RIFT             367
 /* end unfinished list */
+#define LAST_SPELL_DEFINE               368
 
 /* Other files to be aware of for new spells:
  * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c

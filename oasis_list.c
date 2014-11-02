@@ -167,10 +167,22 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                     QGRN, ++found, QNRM, ov);
               break;
             }
+            if (v3 <= 0 || v3 >= TOP_TRAP_EFFECTS) { /* invalid trap effects */
+              tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range)\r\n",
+                    QGRN, ++found, QNRM, ov);
+              break;              
+            }
+            if (v3 < TRAP_EFFECT_FIRST_VALUE && v3 >= LAST_SPELL_DEFINE) { /* invalid trap effects check 2 */
+              tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range-2)\r\n",
+                    QGRN, ++found, QNRM, ov);
+              break;                            
+            }
             switch (v1) {
               case TRAP_TYPE_ENTER_ROOM: /* display effect and difficulty */
-                tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | \r\n",
-                    QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM);
+                if (v2 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Trap effect: %s | Trap difficulty: %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_effects[1000-v3], v4);
+                }
                 break;
               case TRAP_TYPE_OPEN_DOOR:
                 /*fall through*/
