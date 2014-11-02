@@ -132,12 +132,12 @@ void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int
 }
 
 void perform_obj_type_list(struct char_data * ch, char *arg) {
-  int num, itemtype, v1, v2 = -1, v3 = -1, v4 = -1, found = 0, len = 0, tmp_len = 0;
+  int num, itemtype, v1, v2 = -1, v3 = -1, v4 = -1, v5 = -1, found = 0,
+          len = 0, tmp_len = 0;
   obj_vnum ov;
-  obj_rnum r_num;
+  obj_rnum r_num, target_obj = NOTHING;
   char buf[MAX_STRING_LENGTH];
   char buf2[256];
-  obj_rnum target_obj = NOTHING;
 
   *buf2 = '\0';
   itemtype = atoi(arg);
@@ -154,6 +154,7 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
         v2 = (obj_proto[num].obj_flags.value[1]);
         v3 = (obj_proto[num].obj_flags.value[2]);
         v4 = (obj_proto[num].obj_flags.value[3]);
+        v5 = (obj_proto[num].obj_flags.value[4]);
 
         switch (itemtype) {
           case ITEM_TRAP:
@@ -164,51 +165,52 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                  or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
             /* v3 - object value (2) is the effect */
             /* v4 - object value (3) is the trap difficulty */
+            /* v5 - object value (4) is whether this trap has been "detected" yet */
             
             /* check disqualifications */
             if (v1 < 0 || v1 >= MAX_TRAP_TYPES) { /* invalid trap types */
               tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (trap-type)\r\n",
                     QGRN, ++found, QNRM, ov);
-              continue;
+              break;
             }
             if (v3 <= 0 || v3 >= TOP_TRAP_EFFECTS) { /* invalid trap effects */
               tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range)\r\n",
                     QGRN, ++found, QNRM, ov);
-              continue;
+              break;
             }
             if (v3 < TRAP_EFFECT_FIRST_VALUE && v3 >= LAST_SPELL_DEFINE) { /* invalid trap effects check 2 */
               tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range-2)\r\n",
                     QGRN, ++found, QNRM, ov);
-              continue;
+              break;
             }
             if ((v1 == TRAP_TYPE_OPEN_CONTAINER || 
                  v1 == TRAP_TYPE_UNLOCK_CONTAINER ||
                  v1 == TRAP_TYPE_GET_OBJECT) && target_obj == NOTHING) {
               tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (object vnum)\r\n",
                     QGRN, ++found, QNRM, ov);
-              continue;
+              break;
             }
             /* end disqualifications */
             
             switch (v1) {
               case TRAP_TYPE_ENTER_ROOM: /* display effect and difficulty */
                 if (v3 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Trap effect: %s | Trap difficulty: %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_effects[v3-1000], v4);
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Trap effect: %s | Trap difficulty: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_effects[v3-1000], v4, v5);
                 } else { /* spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Trap spell: %s | Trap difficulty: %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, spell_info[v3].name, v4);                  
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Trap spell: %s | Trap difficulty: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, spell_info[v3].name, v4, v5);                  
                 }
                 break;
               case TRAP_TYPE_OPEN_DOOR:
                 /*fall through*/
               case TRAP_TYPE_UNLOCK_DOOR: /* display direction, effect, difficulty */
                 if (v3 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Trap effect: %s | Trap difficulty: %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, dirs[v2], trap_effects[v3-1000], v4);
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Trap effect: %s | Trap difficulty: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, dirs[v2], trap_effects[v3-1000], v4, v5);
                 } else { /* spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Trap spell: %s | Trap difficulty: %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, dirs[v2], spell_info[v3].name, v4);                  
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Trap spell: %s | Trap difficulty: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, dirs[v2], spell_info[v3].name, v4, v5);                  
                 }
                 break;
               case TRAP_TYPE_OPEN_CONTAINER:
@@ -217,11 +219,11 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                 /*fall through*/
               case TRAP_TYPE_GET_OBJECT: /* display vnum, effect, difficulty */
                 if (v3 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Trap effect: %s | Trap difficulty: %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, obj_proto[target_obj].short_description, trap_effects[v3-1000], v4);
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Trap effect: %s | Trap difficulty: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, obj_proto[target_obj].short_description, trap_effects[v3-1000], v4, v5);
                 } else { /* spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Trap spell: %s | Trap difficulty: %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, obj_proto[target_obj].short_description, spell_info[v3].name, v4);                  
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Trap spell: %s | Trap difficulty: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, obj_proto[target_obj].short_description, spell_info[v3].name, v4, v5);                  
                 }
                 break;
               default: /* invalid type! we checked this already above */

@@ -326,11 +326,15 @@ bool can_see_hidden(struct char_data *ch, struct char_data *vict) {
 
 /* function to perform a skill check */
 int skill_check(struct char_data *ch, int skill, int dc) {
-//  int result;
-  if ( dice(1, 20) + compute_ability(ch, skill) < dc ) 
-    return -1;
-  else
+  int result;
+
+  result = dice(1, 20); /* roll dice */
+  result += compute_ability(ch, skill); /* add your skill score */
+
+  if (result == dc) /* woo barely passed! */
     return 1;
+  else
+    return (result - dc);
 }
 
 
