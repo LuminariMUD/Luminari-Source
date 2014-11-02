@@ -137,6 +137,7 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
   obj_rnum r_num;
   char buf[MAX_STRING_LENGTH];
   char buf2[256];
+  obj_rnum target_obj = NOTHING;
 
   *buf2 = '\0';
   itemtype = atoi(arg);
@@ -156,12 +157,15 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
 
         switch (itemtype) {
           case ITEM_TRAP:
+            target_obj = real_object(v2);
             /* side note, if the GET_OBJ_RENT(trap) > 0, then the trap is detected */
             /* v1 - object value (0) is the trap-type */
             /* v2 - object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
                  or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
             /* v3 - object value (2) is the effect */
             /* v4 - object value (3) is the trap difficulty */
+            
+            /* check disqualifications */
             if (v1 < 0 || v1 >= MAX_TRAP_TYPES) { /* invalid trap types */
               tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (trap-type)\r\n",
                     QGRN, ++found, QNRM, ov);
@@ -177,6 +181,15 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                     QGRN, ++found, QNRM, ov);
               continue;
             }
+            if ((v1 == TRAP_TYPE_OPEN_CONTAINER || 
+                 v1 == TRAP_TYPE_UNLOCK_CONTAINER ||
+                 v1 == TRAP_TYPE_GET_OBJECT) && target_obj == NOTHING) {
+              tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (object vnum)\r\n",
+                    QGRN, ++found, QNRM, ov);
+              continue;
+            }
+            /* end disqualifications */
+            
             switch (v1) {
               case TRAP_TYPE_ENTER_ROOM: /* display effect and difficulty */
                 if (v3 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
@@ -203,6 +216,13 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
               case TRAP_TYPE_UNLOCK_CONTAINER:
                 /*fall through*/
               case TRAP_TYPE_GET_OBJECT: /* display vnum, effect, difficulty */
+                if (v3 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Trap effect: %s | Trap difficulty: %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, obj_proto[target_obj].short_description, trap_effects[v3-1000], v4);
+                } else { /* spell effect */
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Trap spell: %s | Trap difficulty: %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, obj_proto[target_obj].short_description, spell_info[v3].name, v4);                  
+                }
                 break;
               default: /* invalid type! we checked this already above */
                 break;
