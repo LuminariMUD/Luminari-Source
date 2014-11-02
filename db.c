@@ -4279,7 +4279,8 @@ void reset_char(struct char_data *ch) {
   CLOUDKILL(ch) = 0;
   DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
-
+  TRAP(ch) = NULL;
+  
   if (GET_HIT(ch) <= 0)
     GET_HIT(ch) = 1;
   if (GET_MOVE(ch) <= 0)
