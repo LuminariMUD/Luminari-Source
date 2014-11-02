@@ -179,9 +179,12 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
             }
             switch (v1) {
               case TRAP_TYPE_ENTER_ROOM: /* display effect and difficulty */
-                if (v2 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
+                if (v3 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
                   tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Trap effect: %s | Trap difficulty: %d\r\n",
                       QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_effects[1000-v3], v4);
+                } else { /* spell effect */
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Trap spell: %s | Trap difficulty: %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, spell_info[v3].name, v4);                  
                 }
                 break;
               case TRAP_TYPE_OPEN_DOOR:
