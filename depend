@@ -7,7 +7,7 @@ act.comm.o: act.comm.c conf.h sysdep.h structs.h protocol.h lists.h \
 act.informative.o: act.informative.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h handler.h db.h spells.h \
  screen.h constants.h dg_scripts.h mud_event.h dg_event.h mail.h act.h \
- class.h fight.h modify.h asciimap.h clan.h craft.h wilderness.h
+ class.h fight.h modify.h asciimap.h clan.h craft.h wilderness.h quest.h
 act.item.o: act.item.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h constants.h \
  dg_scripts.h oasis.h help.h act.h quest.h spec_procs.h clan.h \
