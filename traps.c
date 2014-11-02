@@ -151,7 +151,7 @@ ACMD(do_detecttrap) {
   act("$n is looking around for some traps, but can not find any.", FALSE, ch, 0, 0, TO_ROOM);
   act("You do not seem to detect any traps.", FALSE, ch, 0, 0, TO_CHAR);
 }
-*/
+
 
 /*
 EVENTFUNC(perform_trap_effect) {
