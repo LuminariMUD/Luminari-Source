@@ -2484,6 +2484,9 @@ struct char_special_data {
   struct obj_data *crafting_object;  // refers to obj crafting (deprecated)
   ubyte crafting_repeat; // multiple objects created in one session
   int crafting_bonus; // bonus for crafting the item
+
+  /* trap events */
+  struct event *trap_event;
   
   /* miscellaneous */
   int prayin[NUM_CASTERS]; //memorization
@@ -2492,7 +2495,6 @@ struct char_special_data {
   
   struct queue_type *action_queue; /**< Action command queue */
   struct queue_type *attack_queue; /**< Attack action queue */
-
 
   struct char_special_data_saved saved; /**< Constants saved for PCs. */
 };
@@ -2742,7 +2744,6 @@ struct char_data {
 
   struct list_data * events;
   
-  struct event *trap_event;
 };
 
 /** descriptor-related structures */
