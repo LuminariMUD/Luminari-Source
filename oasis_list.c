@@ -165,17 +165,17 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
             if (v1 < 0 || v1 >= MAX_TRAP_TYPES) { /* invalid trap types */
               tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (trap-type)\r\n",
                     QGRN, ++found, QNRM, ov);
-              break;
+              continue;
             }
             if (v3 <= 0 || v3 >= TOP_TRAP_EFFECTS) { /* invalid trap effects */
               tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range)\r\n",
                     QGRN, ++found, QNRM, ov);
-              break;              
+              continue;
             }
             if (v3 < TRAP_EFFECT_FIRST_VALUE && v3 >= LAST_SPELL_DEFINE) { /* invalid trap effects check 2 */
               tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range-2)\r\n",
                     QGRN, ++found, QNRM, ov);
-              break;                            
+              continue;
             }
             switch (v1) {
               case TRAP_TYPE_ENTER_ROOM: /* display effect and difficulty */
