@@ -32,6 +32,38 @@ cpp_extern const char *tbamud_version = "LuminariMUD 1.37 (tbaMUD 3.64)";
 /* strings corresponding to ordinals/bitvectors in structs.h */
 /* (Note: strings for class definitions in class.c instead of here) */
 
+/* What type of trap */
+const char *trap_type[MAX_TRAP_TYPES + 1] = {
+  "Enter Room",
+  "Open Door",
+  "Unlock Door",
+  "Open Container",
+  "Unlock Container",
+  "Get Object",
+  "\n"  
+}; 
+
+/* Trap-effects, add 1000 to this value to reference the proper values in
+ act.item.c */
+const char *trap_effects[] = {
+  "Wall of Flames",
+  "Lightning Strike",
+  "Impaling Spike",
+  "Dark Glyph",
+  "Spike Pit",
+  "Harmful Dart",
+  "Poison Gas",
+  "Dispel Magic",
+  "Dark Warrior Ambush",
+  "Boulder Drop",
+  "Wall Smash",
+  "Spider Horde",
+  "Harmful Gas",
+  "Freezing Conditions",
+  "Skeletal Hands",
+  "Spider Webs",
+  "\n"  
+}; 
 
 /* ranged weapon types (bows, etc) */
 const char *ranged_weapons[NUM_RANGED_WEAPONS + 1] = {
@@ -228,6 +260,7 @@ const char *room_bits[NUM_ROOM_FLAGS + 1] = {
   "Fogged",
   "Airy",
   "Occupied",
+  "Trapped",
   "\n"
 };
 

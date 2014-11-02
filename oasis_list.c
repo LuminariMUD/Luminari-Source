@@ -155,6 +155,38 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
         v4 = (obj_proto[num].obj_flags.value[3]);
 
         switch (itemtype) {
+          case ITEM_TRAP:
+            /* side note, if the GET_OBJ_RENT(trap) > 0, then the trap is detected */
+            /* v1 - object value (0) is the trap-type */
+            /* v2 - object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
+                 or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
+            /* v3 - object value (2) is the effect */
+            /* v4 - object value (3) is the trap difficulty */
+            if (v1 < 0 || v1 >= MAX_TRAP_TYPES) { /* invalid trap types */
+              tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (trap-type)\r\n",
+                    QGRN, ++found, QNRM, ov);
+              break;
+            }
+            switch (v1) {
+              case TRAP_TYPE_ENTER_ROOM: /* display effect and difficulty */
+                tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | \r\n",
+                    QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM);
+                break;
+              case TRAP_TYPE_OPEN_DOOR:
+                /*fall through*/
+              case TRAP_TYPE_UNLOCK_DOOR: /* display direction, effect, difficulty */
+                break;
+              case TRAP_TYPE_OPEN_CONTAINER:
+                /*fall through*/
+              case TRAP_TYPE_UNLOCK_CONTAINER:
+                /*fall through*/
+              case TRAP_TYPE_GET_OBJECT: /* display vnum, effect, difficulty */
+                break;
+              default: /* invalid type! we checked this already above */
+                break;
+            }
+            break;
+            
           case ITEM_LIGHT:
             v1 = (obj_proto[num].obj_flags.value[2]);
             if (v1 == -1)

@@ -164,6 +164,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where);
 bool obj_should_fall(struct obj_data *obj);
 bool char_should_fall(struct char_data *ch, bool silent);
 bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent);
+bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *obj, int dir);
 
 /* functions with subcommands */
 /* do_drop */
