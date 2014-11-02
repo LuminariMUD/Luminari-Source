@@ -29,6 +29,7 @@
 #include "mudlim.h"
 #include "wilderness.h" /* Wilderness! */
 #include "actions.h"
+#include "traps.h" /* for check_traps() */
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
