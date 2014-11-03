@@ -1659,6 +1659,13 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
       break;
 
     case SCMD_PICK:
+      if (obj) {
+        if (check_trap(ch, TRAP_TYPE_UNLOCK_CONTAINER, ch->in_room, obj, 0))
+          return;
+      } else {
+        if (check_trap(ch, TRAP_TYPE_UNLOCK_DOOR, ch->in_room, 0, door))
+          return;
+      }
       TOGGLE_LOCK(IN_ROOM(ch), obj, door);
       if (back)
         TOGGLE_LOCK(other_room, obj, rev_dir[door]);
