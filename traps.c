@@ -183,6 +183,7 @@ EVENTFUNC(perform_trap_effect) {
   af.location = APPLY_NONE;
   for (i = 0; i < AF_ARRAY_MAX; i++) af.bitvector[i] = AFF_DONTUSE;
 
+  /* check for valid effect */
   if (effect < TRAP_EFFECT_FIRST_VALUE) {
     if (effect >= LAST_SPELL_DEFINE) {
       log("SYSERR: perform_trap_effect event called with invalid spell effect!\r\n");
@@ -190,7 +191,9 @@ EVENTFUNC(perform_trap_effect) {
       /* CAST_STAFF?  Maybe should make a unique casttype for traps */
       call_magic(ch, ch, NULL, effect, (LVL_STAFF - 1), CAST_STAFF);
     }
+    
   } else {
+    /* ok so its not a spell and should be a valid value, lets handle it */
     switch (effect) {
       
       case TRAP_EFFECT_WALL_OF_FLAMES:
@@ -352,7 +355,7 @@ EVENTFUNC(perform_trap_effect) {
     /* handle anything left over */
     if (effect == TRAP_EFFECT_DISPEL_MAGIC) /* special handling */
       spell_dispel_magic(LVL_IMPL, ch, ch, NULL);
-    if (af.spell) /* has an affection to add? */
+    if (af.spell != TYPE_UNDEFINED) /* has an affection to add? */
       affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
     if (dam) /* has damage to process? */
       damage(ch, ch, dam, -1 /*attacktype*/, dam_type, -1 /*offhand*/);
