@@ -2502,7 +2502,8 @@ ACMD(do_use) {
       break;
     case SCMD_USE:
       if ((GET_OBJ_TYPE(mag_item) != ITEM_WAND) &&
-              (GET_OBJ_TYPE(mag_item) != ITEM_STAFF)) {
+          (GET_OBJ_TYPE(mag_item) != ITEM_STAFF)  &&
+          (GET_OBJ_TYPE(mag_item) != ITEM_WEAPON && )) {
         send_to_char(ch, "You can't seem to figure out how to use it.\r\n");
         return;
       }
@@ -2660,7 +2661,6 @@ ACMD(do_use) {
   }  
 
   mag_objectmagic(ch, mag_item, buf);
-
 }
 
 /* Activate a magic item with a COMMAND WORD! */
