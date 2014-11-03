@@ -44,6 +44,81 @@ static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof,
 
 /***** start file body *****/
 
+/* doorbash - unfinished */
+/*
+ACMD(do_doorbash) {
+  bool failure = FALSE;
+  int door;
+  struct room_direction_data *back = 0;
+  int other_room;
+  struct obj_data *obj = 0;
+
+  if (!INN_FLAGGED(ch, INNATE_DOORBASH)) {
+    send_to_char("But you are way too small to attempt that.\r\n", ch);
+    return;
+  }
+  one_argument(argument, arg);
+
+  if (!*arg) {
+    send_to_char("Doorbash which direction?\r\n", ch);
+    return;
+  }
+  door = search_block(arg, dirs, FALSE);
+  if (door < 0) {
+    send_to_char("That is not a direction!\r\n", ch);
+    return;
+  }
+
+  if (!EXIT(ch, door) || EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN)) {
+    send_to_char("There is nothing to doorbash in that direction.\r\n", ch);
+    return;
+  }
+
+  if (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)) {
+    send_to_char("But that direction does not need to be doorbashed.\r\n", ch);
+    return;
+  }
+
+
+  if ((other_room = EXIT(ch, door)->to_room) != NOWHERE) {
+    back = world[other_room].dir_option[rev_dir[door]];
+    if (back && back->to_room != ch->in_room)
+      back = 0;
+  }
+
+
+  if (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF) || dice(1, 300) > GET_R_STR(ch) + GET_LEVEL(ch)
+          || EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED2) || EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED3)
+          )
+    failure = TRUE;
+
+
+
+  act("$n charges straight into the door with $s entire body.", FALSE, ch, 0, 0, TO_ROOM);
+  act("You throw your entire body at the door.", FALSE, ch, 0, 0, TO_CHAR);
+
+  if (failure) {
+    act("But it holds steady against the onslaught.", FALSE, ch, 0, 0, TO_ROOM);
+    act("But it holds steady against the onslaught.", FALSE, ch, 0, 0, TO_CHAR);
+    return;
+  }
+  act("and it shatters into a million pieces!!", FALSE, ch, 0, 0, TO_ROOM);
+  act("and it shatters into a million pieces!!.", FALSE, ch, 0, 0, TO_CHAR);
+
+  UNLOCK_DOOR(ch->in_room, obj, door);
+  OPEN_DOOR(ch->in_room, obj, door);
+  if (back) {
+    UNLOCK_DOOR(other_room, obj, rev_dir[door]);
+    OPEN_DOOR(other_room, obj, rev_dir[door]);
+    REMOVE_BIT(back->exit_info, EX_HIDDEN);
+  }
+  WAIT_STATE(ch, 1 * PULSE_VIOLENCE);
+
+  check_trap(ch, TRAP_TYPE_OPEN_DOOR, ch->in_room, 0, door);
+
+  return;
+}
+*/
 
 /* checks if target ch is first-in-line in singlefile room */
 bool is_top_of_room_for_singlefile(struct char_data *ch, int dir) {
@@ -1535,6 +1610,13 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
 
   switch (scmd) {
     case SCMD_OPEN:
+      if (obj) {
+        if (check_trap(ch, TRAP_TYPE_OPEN_CONTAINER, ch->in_room, obj, 0))
+          return;
+      } else {
+        if (check_trap(ch, TRAP_TYPE_OPEN_DOOR, ch->in_room, 0, door))
+          return;
+      }
       OPEN_DOOR(IN_ROOM(ch), obj, door);
       if (back)
         OPEN_DOOR(other_room, obj, rev_dir[door]);
@@ -1542,6 +1624,13 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
       break;
 
     case SCMD_CLOSE:
+      if (obj) {
+        if (check_trap(ch, TRAP_TYPE_OPEN_CONTAINER, ch->in_room, obj, 0))
+          return;
+      } else {
+        if (check_trap(ch, TRAP_TYPE_OPEN_DOOR, ch->in_room, 0, door))
+          return;
+      }
       CLOSE_DOOR(IN_ROOM(ch), obj, door);
       if (back)
         CLOSE_DOOR(other_room, obj, rev_dir[door]);
@@ -1556,6 +1645,13 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
       break;
 
     case SCMD_UNLOCK:
+      if (obj) {
+        if (check_trap(ch, TRAP_TYPE_UNLOCK_CONTAINER, ch->in_room, obj, 0))
+          return;
+      } else {
+        if (check_trap(ch, TRAP_TYPE_UNLOCK_DOOR, ch->in_room, 0, door))
+          return;
+      }
       UNLOCK_DOOR(IN_ROOM(ch), obj, door);
       if (back)
         UNLOCK_DOOR(other_room, obj, rev_dir[door]);
