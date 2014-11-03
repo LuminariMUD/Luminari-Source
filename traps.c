@@ -111,7 +111,7 @@ ACMD(do_disabletrap) {
     if (GET_OBJ_TYPE(trap) == ITEM_TRAP && is_trap_detected(trap)) {
       act("$n is trying to disable a trap", FALSE, ch, 0, 0, TO_ROOM);
       act("You try to disable the trap", FALSE, ch, 0, 0, TO_CHAR);
-      if ((result = skill_check(ch, ABILITY_DISABLE_DEVICE, (GET_OBJ_VAL(trap, 3) / 3)))) {
+      if ((result = skill_check(ch, ABILITY_DISABLE_DEVICE, GET_OBJ_VAL(trap, 3)))) {
         act("And is Succesful!", FALSE, ch, 0, 0, TO_ROOM);
         act("And are Succesful!", FALSE, ch, 0, 0, TO_CHAR);
         extract_obj(trap);
@@ -140,7 +140,7 @@ ACMD(do_detecttrap) {
   USE_FULL_ROUND_ACTION(ch);
   for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
     if (GET_OBJ_TYPE(trap) == ITEM_TRAP && !is_trap_detected(trap)) {
-      if (skill_check(ch, ABILITY_PERCEPTION, (GET_OBJ_VAL(trap, 3) / 3))) {
+      if (skill_check(ch, ABILITY_PERCEPTION, GET_OBJ_VAL(trap, 3))) {
         act("$n has detected a trap!", FALSE, ch, 0, 0, TO_ROOM);
         act("You have detected a trap!", FALSE, ch, 0, 0, TO_CHAR);
         set_trap_detected(trap);
