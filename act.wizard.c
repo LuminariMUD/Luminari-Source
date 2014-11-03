@@ -654,6 +654,7 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j) {
   char buf[MAX_STRING_LENGTH];
   struct char_data *tempch;
   struct obj_special_ability *specab;
+  obj_rnum target_obj = NOTHING;
 
   send_to_char(ch, "Name: '%s%s%s', Keywords: %s\r\n", CCYEL(ch, C_NRM),
           j->short_description ? j->short_description : "<None>",
@@ -704,6 +705,46 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j) {
   send_to_char(ch, "Worn by: %s\r\n", j->worn_by ? GET_NAME(j->worn_by) : "Nobody");
 
   switch (GET_OBJ_TYPE(j)) {
+    case ITEM_TRAP:
+            /* object value (0) is the trap-type */
+            /* object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
+                 or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
+            /* object value (2) is the effect */
+            /* object value (3) is the trap difficulty */
+            /* object value (4) is whether this trap has been "detected" yet */
+      send_to_char(ch, "Trap type: %s\r\n", trap_type[GET_OBJ_VAL(j, 0)]);
+      switch (GET_OBJ_VAL(j, 0)) {
+        case TRAP_TYPE_ENTER_ROOM:
+          break;
+        case TRAP_TYPE_OPEN_DOOR:
+          /*fall-through*/
+        case TRAP_TYPE_UNLOCK_DOOR:
+          send_to_char(ch, "Direction: %s\r\n", dirs[GET_OBJ_VAL(j, 1)]);
+          break;
+        case TRAP_TYPE_OPEN_CONTAINER:
+          /*fall-through*/
+        case TRAP_TYPE_UNLOCK_CONTAINER:
+          /*fall-through*/
+        case TRAP_TYPE_GET_OBJECT:
+          target_obj = real_object(GET_OBJ_VAL(j, 1));
+          
+          send_to_char(ch, "Target Object: %s\r\n",
+                  (target_obj == NOTHING) ? "Nothing" :
+                  obj_proto[target_obj].short_description);
+          break;
+          
+      }
+      if (GET_OBJ_VAL(j, 2) <= 0 || GET_OBJ_VAL(j, 2) >= TOP_TRAP_EFFECTS) {
+        send_to_char(ch, "Invalid trap effect on this object [1]\r\n");
+      } else if (GET_OBJ_VAL(j, 2) < TRAP_EFFECT_FIRST_VALUE && GET_OBJ_VAL(j, 2) >= LAST_SPELL_DEFINE) {
+        send_to_char(ch, "Invalid trap effect on this object [2]\r\n");
+      } else if (GET_OBJ_VAL(j, 2) >= TRAP_EFFECT_FIRST_VALUE) {
+        send_to_char(ch, "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(j, 2)-1000]);
+      } else {
+        send_to_char(ch, "Spell effect: %s\r\n", spell_info[GET_OBJ_VAL(j, 2)].name);        
+      }      
+      send_to_char(ch, "Trap DC: %d\r\n", GET_OBJ_VAL(j, 3));
+      break;
     case ITEM_LIGHT:
       if (GET_OBJ_VAL(j, 2) == -1)
         send_to_char(ch, "Hours left: Infinite\r\n");
