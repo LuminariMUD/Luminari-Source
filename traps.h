@@ -75,5 +75,8 @@ ACMD(do_detecttrap);
 #define TRAP_DARK_WARRIOR_MOBILE  135600
 #define TRAP_SPIDER_MOBILE        180437
 
+EVENTFUNC(perform_trap_effect);
+
+
 #endif	/* TRAPS_H */
 
