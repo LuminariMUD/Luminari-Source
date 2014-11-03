@@ -51,7 +51,7 @@ void set_off_trap(struct char_data *ch, struct obj_data *trap) {
   CREATE(trap_event, struct trap_event, 1);
   trap_event->ch = ch;
   trap_event->effect = GET_OBJ_VAL(trap, 2);
-//  TRAP(ch) = event_create(perform_trap_effect, trap_event, 0);
+  TRAP(ch) = event_create(perform_trap_effect, trap_event, 0);
 }
 
 /* checks the 5th value (4) to see if its set (which indicates detection) */
