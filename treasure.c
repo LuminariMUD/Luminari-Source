@@ -876,6 +876,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       GET_OBJ_VAL(obj, 2) = dice(1, 10);
       GET_OBJ_VAL(obj, 3) = spell_num;
 
+      GET_OBJ_SIZE(obj) = SIZE_SMALL;
       GET_OBJ_COST(obj) = MIN(1000, 50 * spell_level);
       GET_OBJ_MATERIAL(obj) = MATERIAL_WOOD;
       GET_OBJ_TYPE(obj) = ITEM_WAND;
