@@ -195,22 +195,22 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
             switch (v1) {
               case TRAP_TYPE_ENTER_ROOM: /* display effect and difficulty */
                 if (v3 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Effect: %s | DC: %d | Detected? %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_effects[v3-1000], v4, v5);
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Type: %s | Effect: %s | DC: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], trap_effects[v3-1000], v4, v5);
                 } else { /* spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Spell: %s | DC: %d | Detected? %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, spell_info[v3].name, v4, v5);                  
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  Spell: %s | DC: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], spell_info[v3].name, v4, v5);                  
                 }
                 break;
               case TRAP_TYPE_OPEN_DOOR:
                 /*fall through*/
               case TRAP_TYPE_UNLOCK_DOOR: /* display direction, effect, difficulty */
                 if (v3 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Effect: %s | DC: %d | Detected? %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, dirs[v2], trap_effects[v3-1000], v4, v5);
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  Direction: %s | Effect: %s | DC: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], dirs[v2], trap_effects[v3-1000], v4, v5);
                 } else { /* spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Spell: %s | DC: %d | Detected? %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, dirs[v2], spell_info[v3].name, v4, v5);                  
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  Direction: %s | Spell: %s | DC: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], dirs[v2], spell_info[v3].name, v4, v5);                  
                 }
                 break;
               case TRAP_TYPE_OPEN_CONTAINER:
@@ -219,11 +219,11 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                 /*fall through*/
               case TRAP_TYPE_GET_OBJECT: /* display vnum, effect, difficulty */
                 if (v3 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | On Obj: %s | Effect: %s | DC: %d | Detected? %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, obj_proto[target_obj].short_description, trap_effects[v3-1000], v4, v5);
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  On Obj: %s | Effect: %s | DC: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], obj_proto[target_obj].short_description, trap_effects[v3-1000], v4, v5);
                 } else { /* spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | On Obj: %s | Spell: %s | DC: %d | Detected? %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, obj_proto[target_obj].short_description, spell_info[v3].name, v4, v5);                  
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  On Obj: %s | Spell: %s | DC: %d | Detected? %d\r\n",
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], obj_proto[target_obj].short_description, spell_info[v3].name, v4, v5);                  
                 }
                 break;
               default: /* invalid type! we checked this already above */
