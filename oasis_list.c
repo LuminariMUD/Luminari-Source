@@ -159,7 +159,6 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
         switch (itemtype) {
           case ITEM_TRAP:
             target_obj = real_object(v2);
-            /* side note, if the GET_OBJ_RENT(trap) > 0, then the trap is detected */
             /* v1 - object value (0) is the trap-type */
             /* v2 - object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
                  or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
