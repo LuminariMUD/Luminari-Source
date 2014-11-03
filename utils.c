@@ -330,7 +330,6 @@ int skill_check(struct char_data *ch, int skill, int dc) {
 
   result = dice(1, 20); /* roll dice */
   result += compute_ability(ch, skill); /* add your skill score */
-
   if (result == dc) /* woo barely passed! */
     return 1;
   else
