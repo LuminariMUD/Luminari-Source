@@ -964,47 +964,47 @@ int meet_class_reqs(struct char_data *ch, int class) {
   /* stat, and other restrictions */
   switch (class) {
     case CLASS_WIZARD:
-      if (GET_REAL_INT(ch) >= 11)
+      if (GET_REAL_INT(ch) >= 9)
         return 1;
       break;
     case CLASS_CLERIC:
-      if (GET_REAL_WIS(ch) >= 11)
+      if (GET_REAL_WIS(ch) >= 9)
         return 1;
       break;
     case CLASS_PALADIN:
-      if (GET_REAL_CHA(ch) >= 11)
+      if (GET_REAL_CHA(ch) >= 9)
         return 1;
       break;
     case CLASS_DRUID:
-      if (GET_REAL_WIS(ch) >= 11)
+      if (GET_REAL_WIS(ch) >= 9)
         return 1;
       break;
     case CLASS_ROGUE:
-      if (GET_REAL_DEX(ch) >= 11)
+      if (GET_REAL_DEX(ch) >= 9)
         return 1;
       break;
     case CLASS_WARRIOR:
-      if (GET_REAL_STR(ch) >= 11)
+      if (GET_REAL_STR(ch) >= 9)
         return 1;
       break;
     case CLASS_BERSERKER:
-      if (GET_REAL_CON(ch) >= 11)
+      if (GET_REAL_CON(ch) >= 9)
         return 1;
       break;
     case CLASS_SORCERER:
-      if (GET_REAL_CHA(ch) >= 11)
+      if (GET_REAL_CHA(ch) >= 9)
         return 1;
       break;
     case CLASS_BARD:
-      if (GET_REAL_CHA(ch) >= 11)
+      if (GET_REAL_CHA(ch) >= 9)
         return 1;
       break;
     case CLASS_RANGER:
-      if (GET_REAL_DEX(ch) >= 11 && GET_REAL_WIS(ch) >= 11)
+      if (GET_REAL_DEX(ch) >= 9 && GET_REAL_WIS(ch) >= 9)
         return 1;
       break;
     case CLASS_MONK:
-      if (GET_REAL_DEX(ch) >= 11 && GET_REAL_WIS(ch) >= 11)
+      if (GET_REAL_DEX(ch) >= 9 && GET_REAL_WIS(ch) >= 9)
         return 1;
       break;
   }

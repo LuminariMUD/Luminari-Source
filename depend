@@ -11,12 +11,12 @@ act.informative.o: act.informative.c conf.h sysdep.h structs.h protocol.h \
 act.item.o: act.item.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h constants.h \
  dg_scripts.h oasis.h help.h act.h quest.h spec_procs.h clan.h \
- mud_event.h dg_event.h hlquest.h fight.h mudlim.h actions.h
+ mud_event.h dg_event.h hlquest.h fight.h mudlim.h actions.h traps.h
 act.movement.o: act.movement.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h handler.h db.h spells.h \
  house.h constants.h dg_scripts.h act.h fight.h oasis.h help.h \
  spec_procs.h mud_event.h dg_event.h hlquest.h mudlim.h wilderness.h \
- actions.h
+ actions.h traps.h
 act.offensive.o: act.offensive.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h handler.h db.h spells.h \
  act.h fight.h mud_event.h dg_event.h constants.h spec_procs.h class.h \
@@ -297,6 +297,9 @@ study.o: study.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 tedit.o: tedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h comm.h db.h genolc.h oasis.h help.h improved-edit.h \
  modify.h
+traps.o: traps.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
+ race.h comm.h db.h handler.h mud_event.h dg_event.h actions.h fight.h \
+ spells.h traps.h
 treasure.o: treasure.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h constants.h \
  dg_scripts.h treasure.h craft.h
