@@ -2451,6 +2451,10 @@ ACMD(do_split) {
 ACMD(do_use) {
   char buf[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *mag_item = NULL;
+  int dc = 10;
+  int check_result;
+  int spell;
+  int umd_ability_score;
 
   half_chop(argument, arg, buf);
 
@@ -2507,10 +2511,6 @@ ACMD(do_use) {
 
   /* Check if we can actually use the item in question... */
   switch (subcmd) {
-    int dc = 10;
-    int check_result;
-    int spell;
-    int umd_ability_score;
 
     case SCMD_RECITE:
 
@@ -2603,6 +2603,60 @@ ACMD(do_use) {
           send_to_char(ch, "You release the powerful magics inscribed the scroll!\r\n");
         }
       }
+      break;
+    case SCMD_USE:
+      /* Check the item type */
+      switch (GET_OBJ_TYPE(mag_item)) {
+        case ITEM_WAND:
+        case ITEM_STAFF:
+          /* Check requirements for using a wand: Spell Trigger method */
+          /* 1. Class must be able to cast the spell stored in the wand. Use Magic Device can bluff this. */
+          spell = GET_OBJ_VAL(mag_item, 3);
+          dc = 20;
+          if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0)
+          {
+            if(spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF ||
+               spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
+               spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF)
+            {
+              if (!(CLASS_LEVEL(ch, CLASS_WIZARD)   > 0 ||
+                  CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
+                  CLASS_LEVEL(ch, CLASS_BARD)     > 0))
+              {
+                send_to_char(ch, "You must be able to use arcane magic to use this %s.\r\n",
+                             GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
+                return;
+              }
+            } else {
+              if(!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
+                   CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
+                   CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
+                   CLASS_LEVEL(ch, CLASS_RANGER) > 0))
+              {
+                send_to_char(ch, "You must be able to cast divine magic to use this %s.\r\n",
+                             GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
+                return;
+              }
+            }
+
+            /* 1.b. Check the spell is on class spell list */
+            if (!(((spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
+                  ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
+                  ((spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
+                  ((spell_info[spell].min_level[CLASS_CLERIC]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+                  ((spell_info[spell].min_level[CLASS_DRUID]    < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
+                  ((spell_info[spell].min_level[CLASS_PALADIN]  < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
+                  ((spell_info[spell].min_level[CLASS_RANGER]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0)))
+            {
+              send_to_char(ch, "The spell stored in the %s is outside your realm of knowledge.\r\n",
+                           GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
+              return;
+            }
+          }
+ 
+          break;
+      }
+      break;  
   }  
 
   mag_objectmagic(ch, mag_item, buf);
