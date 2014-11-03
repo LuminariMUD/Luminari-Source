@@ -661,6 +661,7 @@ static void oedit_disp_spells_menu(struct descriptor_data *d) {
 static void oedit_disp_trap_type(struct descriptor_data *d) {
   int counter = 0;
   
+  write_to_output(d, "\r\n");
   for (counter = 0; counter < MAX_TRAP_TYPES; counter++) {
     write_to_output(d, "%d) %s\r\n", counter, trap_type[counter]);
   }
@@ -671,6 +672,7 @@ static void oedit_disp_trap_type(struct descriptor_data *d) {
 static void oedit_disp_trap_effects(struct descriptor_data *d) {
   int counter = 0;
   
+  write_to_output(d, "\r\n");
   for (counter = TRAP_EFFECT_FIRST_VALUE; counter < TOP_TRAP_EFFECTS; counter++) {
     write_to_output(d, "%d) %s\r\n", counter, trap_effects[counter-1000]);
   }
@@ -682,6 +684,7 @@ static void oedit_disp_trap_effects(struct descriptor_data *d) {
 static void oedit_disp_trap_direction(struct descriptor_data *d) {
   int counter = 0;
   
+  write_to_output(d, "\r\n");
   for (counter = 0; counter < NUM_OF_INGAME_DIRS; counter++) {
     write_to_output(d, "%d) %s\r\n", counter, dirs[counter]);
   }
