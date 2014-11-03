@@ -2503,7 +2503,7 @@ ACMD(do_use) {
     case SCMD_USE:
       if ((GET_OBJ_TYPE(mag_item) != ITEM_WAND) &&
           (GET_OBJ_TYPE(mag_item) != ITEM_STAFF)  &&
-          (GET_OBJ_TYPE(mag_item) != ITEM_WEAPON && )) {
+          (GET_OBJ_TYPE(mag_item) != ITEM_WEAPON && HAS_SPECIAL_ABILITIES(mag_item))) {
         send_to_char(ch, "You can't seem to figure out how to use it.\r\n");
         return;
       }
@@ -2608,6 +2608,9 @@ ACMD(do_use) {
     case SCMD_USE:
       /* Check the item type */
       switch (GET_OBJ_TYPE(mag_item)) {
+        case ITEM_WEAPON:
+          /* Special Abilities */
+          break;
         case ITEM_WAND:
         case ITEM_STAFF:
           /* Check requirements for using a wand: Spell Trigger method */
