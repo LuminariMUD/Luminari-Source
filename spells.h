@@ -354,6 +354,7 @@
 #define SPELL_I_DARKNESS                306  // room event test spell
 #define SPELL_DOOM                      307  // creeping doom damage proc
 #define SPELL_WHIRLWIND                 308
+
 /* unfinished list (homeland-port) */
 #define SPELL_VIGORIZE_LIGHT            309
 #define SPELL_VIGORIZE_SERIOUS          310
@@ -422,7 +423,7 @@
  * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c
  * 2)  if you want this spell to be available as a npc nuke, mobact.c 
  */
-/** Total Number of defined spells (last spell define + 1) */
+/** Total Number of defined spells  */
 #define NUM_SPELLS                      309
 
 /* Insert new spells here, up to MAX_SPELLS */
