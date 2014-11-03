@@ -2510,6 +2510,7 @@ ACMD(do_use) {
     int dc = 10;
     int check_result;
     int spell;
+    int umd_ability_score;
 
     case SCMD_RECITE:
 
@@ -2517,9 +2518,9 @@ ACMD(do_use) {
        *    Spellcraft check: DC 20 + spell level */
       
       dc = 20 + GET_OBJ_VAL(mag_item, 0); 
-      if (((check_result = skill_check(ch, ABILITY_SPELLCRAFT, dc)) < 0) ||
+      if (((check_result = skill_check(ch, ABILITY_SPELLCRAFT, dc)) < 0) &&
           ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc + 5)) < 0))
-      {       
+      {      
         send_to_char(ch, "You are unable to decipher the magical writings!\r\n");
         return;
       }      
@@ -2566,28 +2567,29 @@ ACMD(do_use) {
         }
       }
       /* 2.c. Check the relevant ability score */
+      umd_ability_score = (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, 15));      
       bool passed = FALSE;
       if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) 
-        passed = (((GET_INT(ch) > check_result - 15) ? GET_INT(ch) : check_result - 15) > (10 + spellCircle(CLASS_WIZARD, spell)) ? TRUE : passed); 
+        passed = (((GET_INT(ch) > umd_ability_score) ? GET_INT(ch) : umd_ability_score) > (10 + spellCircle(CLASS_WIZARD, spell)) ? TRUE : passed); 
       if (spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) 
-        passed = (((GET_CHA(ch) > check_result - 15) ? GET_CHA(ch) : check_result - 15) > (10 + spellCircle(CLASS_SORCERER, spell)) ? TRUE : passed); 
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_SORCERER, spell)) ? TRUE : passed); 
       if (spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) 
-        passed = (((GET_CHA(ch) > check_result - 15) ? GET_CHA(ch) : check_result - 15) > (10 + spellCircle(CLASS_BARD, spell)) ? TRUE : passed); 
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_BARD, spell)) ? TRUE : passed); 
       if (spell_info[spell].min_level[CLASS_CLERIC] < LVL_STAFF) 
-        passed = (((GET_WIS(ch) > check_result - 15) ? GET_WIS(ch) : check_result - 15) > (10 + spellCircle(CLASS_CLERIC, spell)) ? TRUE : passed); 
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_CLERIC, spell)) ? TRUE : passed); 
       if (spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) 
-        passed = (((GET_WIS(ch) > check_result - 15) ? GET_WIS(ch) : check_result - 15) > (10 + spellCircle(CLASS_DRUID, spell)) ? TRUE : passed); 
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_DRUID, spell)) ? TRUE : passed); 
       if (spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) 
-        passed = (((GET_CHA(ch) > check_result - 15) ? GET_CHA(ch) : check_result - 15) > (10 + spellCircle(CLASS_PALADIN, spell)) ? TRUE : passed); 
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_PALADIN, spell)) ? TRUE : passed); 
       if (spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) 
-        passed = (((GET_WIS(ch) > check_result - 15) ? GET_WIS(ch) : check_result - 15) > (10 + spellCircle(CLASS_RANGER, spell)) ? TRUE : passed); 
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_RANGER, spell)) ? TRUE : passed); 
       if (passed == FALSE)
       {
         send_to_char(ch, "You are physically incapable of casting the spell inscribed on the scroll.\r\n");
         return;
       }
       /* 3. Check caster level */
-      if ((CASTER_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0)) ||
+      if ((CASTER_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0)) &&
           (check_result && GET_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0))) 
       {
         /* Perform caster level check */
