@@ -658,6 +658,38 @@ static void oedit_disp_spells_menu(struct descriptor_data *d) {
   write_to_output(d, "\r\n%sEnter spell choice (-1 for none) : ", nrm);
 }
 
+static void oedit_disp_trap_type(struct descriptor_data *d) {
+  int counter = 0;
+  
+  for (counter = 0; counter < MAX_TRAP_TYPES; counter++) {
+    write_to_output(d, "%d) %s\r\n", counter, trap_type[counter]);
+  }
+  
+  write_to_output(d, "\r\n%sEnter trap choice # : ", nrm);
+}
+
+static void oedit_disp_trap_effects(struct descriptor_data *d) {
+  int counter = 0;
+  
+  for (counter = TRAP_EFFECT_FIRST_VALUE; counter < TOP_TRAP_EFFECTS; counter++) {
+    write_to_output(d, "%d) %s\r\n", counter, trap_effects[counter-1000]);
+  }
+  
+  write_to_output(d, "\r\n%s(You can also choose any spellnum)\r\n", nrm);  
+  write_to_output(d, "%sEnter effect # : ", nrm);  
+}
+
+static void oedit_disp_trap_direction(struct descriptor_data *d) {
+  int counter = 0;
+  
+  for (counter = 0; counter < NUM_OF_INGAME_DIRS; counter++) {
+    write_to_output(d, "%d) %s\r\n", counter, dirs[counter]);
+  }
+  
+  write_to_output(d, "\r\n%sEnter direction # : ", nrm);  
+}
+
+
 static void oedit_disp_weapon_type_menu(struct descriptor_data *d) {
   const char *weapon_types[NUM_WEAPON_TYPES - 1];
   int i = 0;
@@ -676,6 +708,9 @@ static void oedit_disp_weapon_type_menu(struct descriptor_data *d) {
 static void oedit_disp_val1_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_1;
   switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+    case ITEM_TRAP:
+      oedit_disp_trap_type(d);
+      break;
     case ITEM_LIGHT:
       /* values 0 and 1 are unused.. jump to 2 */
       oedit_disp_val3_menu(d);
@@ -745,6 +780,23 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
 static void oedit_disp_val2_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_2;
   switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+    case ITEM_TRAP:
+      switch (GET_OBJ_VAL(OLC_OBJ(d), 0)) {
+          break;
+        case TRAP_TYPE_OPEN_DOOR:
+        case TRAP_TYPE_UNLOCK_DOOR:
+          oedit_disp_trap_direction(d);
+          break;
+        case TRAP_TYPE_OPEN_CONTAINER:
+        case TRAP_TYPE_UNLOCK_CONTAINER:
+        case TRAP_TYPE_GET_OBJECT:        
+          write_to_output(d, "VNUM of object trap should apply to : ");
+          break;
+        case TRAP_TYPE_ENTER_ROOM:
+        default:
+          break;
+      }
+      break;
     case ITEM_SCROLL:
     case ITEM_POTION:
       oedit_disp_spells_menu(d);
@@ -811,6 +863,9 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
 static void oedit_disp_val3_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_3;
   switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+    case ITEM_TRAP:
+      oedit_disp_trap_effects(d);
+      break;
     case ITEM_LIGHT:
       write_to_output(d, "Number of hours (0 = burnt, -1 is infinite) : ");
       break;
@@ -871,6 +926,13 @@ static void oedit_disp_val3_menu(struct descriptor_data *d) {
 static void oedit_disp_val4_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_4;
   switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+    case ITEM_TRAP:
+      write_to_output(d, "Recommendations\r\n");
+      write_to_output(d, "DC = 20 + level-of-trap for a normal trap\r\n");
+      write_to_output(d, "DC = 30 + level-of-trap for a hard trap\r\n");
+      write_to_output(d, "DC = 40 + level-of-trap for an epic trap\r\n");
+      write_to_output(d, "Enter trap difficulty class (DC) : ");
+      break;
     case ITEM_SCROLL:
     case ITEM_POTION:
     case ITEM_WAND:

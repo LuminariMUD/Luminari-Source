@@ -80,6 +80,7 @@
  * sure you change every other direction and movement based item that this will
  * impact. */
 #define NUM_OF_DIRS    10
+#define NUM_OF_INGAME_DIRS 6
 
 /* TRAPS */
 /* trap types */
