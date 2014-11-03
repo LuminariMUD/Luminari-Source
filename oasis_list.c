@@ -219,10 +219,10 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                 /*fall through*/
               case TRAP_TYPE_GET_OBJECT: /* display vnum, effect, difficulty */
                 if (v3 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Effect: %s | Difficulty: %d | Detected? %d\r\n",
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | On Obj: %s | Effect: %s | Difficulty: %d | Detected? %d\r\n",
                       QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, obj_proto[target_obj].short_description, trap_effects[v3-1000], v4, v5);
                 } else { /* spell effect */
-                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Direction: %s | Spell: %s | Difficulty: %d | Detected? %d\r\n",
+                  tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | On Obj: %s | Spell: %s | Difficulty: %d | Detected? %d\r\n",
                       QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, obj_proto[target_obj].short_description, spell_info[v3].name, v4, v5);                  
                 }
                 break;
