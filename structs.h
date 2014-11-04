@@ -2634,10 +2634,11 @@ struct affected_type {
 /* The Maximum number of types that can be required to bypass DR. */
 #define MAX_DR_BYPASS 5
 
-#define DR_BYPASS_CAT_NONE     0 /* */
-#define DR_BYPASS_CAT_MATERIAL 1 /* */
-#define DR_BYPASS_CAT_MAGIC    2 /* */
-#define DR_BYPASS_CAT_DAMTYPE  3 /* */
+#define DR_BYPASS_CAT_NONE     0 /* Nothing bypasses the DR */
+#define DR_BYPASS_CAT_MATERIAL 1 /* Materials that bypass the DR*/
+#define DR_BYPASS_CAT_MAGIC    2 /* Magical weapons bypass the DR */
+#define DR_BYPASS_CAT_DAMTYPE  3 /* Damage types that bypass the DR */
+#define DR_BYPASS_CAT_SPELL    4 /* Spells bypass the DR */
 
 struct dr_bypass_type {
 
@@ -2651,10 +2652,11 @@ struct dr_bypass_type {
 
 /** A damage reduction structure. */
 struct damage_reduction_type {
-  int duration; /* The duration of this DR effect. */
-  int amount;   /* The amount of DR. */
-  int spell;    /* Spell granting this DR. */
-  int feat;     /* Feat granting this DR. */
+  int duration;   /* The duration of this DR effect. */
+  int amount;     /* The amount of DR. */
+  int max_damage; /* The amount of damage this DR can take before it dissipates.  -1 is perm. */
+  int spell;      /* Spell granting this DR. */
+  int feat;       /* Feat granting this DR. */
   
   struct dr_bypass_type *bypass; /* List of bypass types. If NULL this is 'DR X/--' */
 
