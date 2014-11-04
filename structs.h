@@ -2416,8 +2416,6 @@ struct char_point_data {
   sh_int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
   sh_int resistances[NUM_DAM_TYPES];  // resistances (dam-types)
 
-//  struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
-
   /* note - if you add something new here, make sure to check
    handler.c reset_char_points() to see if it needs to be added */
 };
@@ -2431,6 +2429,8 @@ struct char_special_data_saved {
   int act[PM_ARRAY_MAX]; /**< act flags for NPC's; player flag for PC's */
   int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
   int warding[MAX_WARDING]; //saved warding spells like stoneskin
+
+  struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
 
   /* Feat data */
   int feats[NUM_FEATS];  /* Feats (value is the number of times each feat is taken) */
