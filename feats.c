@@ -325,8 +325,8 @@ void assign_feats(void) {
   "once per round rider may negate a hit against him with a successful ride vs attack roll check");
   
   feato(FEAT_RIDE_BY_ATTACK, "ride by attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-  "normally only receive on attack at charge bonus, now receive a full phase",
-  "normally only receive on attack at charge bonus, now receive a full phase");
+  "normally use full round action on charge, now use move action",
+  "normally use full round action on charge, now use move action");
   feat_prereq_feat(FEAT_RIDE_BY_ATTACK, FEAT_MOUNTED_COMBAT, 1);
   feat_prereq_ability(FEAT_RIDE_BY_ATTACK, ABILITY_RIDE, 1);
   

@@ -409,7 +409,7 @@ void perform_charge(struct char_data *ch) {
   for (i = 0; i < CHARGE_AFFECTS; i++) {
     new_affect(&(af[i]));
     af[i].spell = SKILL_CHARGE;
-    af[i].duration = 1;
+    af[i].duration = 2;
   }
   
   SET_BIT_AR(af[0].bitvector, AFF_CHARGING);
@@ -435,7 +435,10 @@ void perform_charge(struct char_data *ch) {
     act("$n runs forward for a \tYcharge\tn!", FALSE, ch, NULL, NULL, TO_NOTVICT);
   }
 
-  USE_FULL_ROUND_ACTION(ch);
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_RIDE_BY_ATTACK)) {
+    USE_MOVE_ACTION(ch);
+  } else 
+    USE_FULL_ROUND_ACTION(ch);
 }
 #undef CHARGE_AFFECTS
 
