@@ -781,6 +781,9 @@ do                                                              \
 #define GET_REAL_SAVE(ch, i)	  ((ch)->real_points.apply_saving_throw[i])
 #define GET_SAVE(ch, i)	  ((ch)->points.apply_saving_throw[i])
 
+/* Damage reduction structure for character ch */
+#define GET_DR(ch) ((ch)->char_specials.saved.damage_reduction)
+
 // ***  char_specials (there are others spread about utils.h file) *** //
 /** Current position (standing, sitting) of ch. */
 #define GET_POS(ch)	  ((ch)->char_specials.position)
