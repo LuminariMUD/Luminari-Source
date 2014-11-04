@@ -138,7 +138,9 @@ int perform_detecttrap(struct char_data *ch, bool silent) {
   struct obj_data *trap = NULL;
   int exp = 1, dc = 0;
   
-  USE_FULL_ROUND_ACTION(ch);
+  if (!silent)
+    USE_FULL_ROUND_ACTION(ch);
+  
   for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
     if (GET_OBJ_TYPE(trap) == ITEM_TRAP && !is_trap_detected(trap)) {
       dc = GET_OBJ_VAL(trap, 3);

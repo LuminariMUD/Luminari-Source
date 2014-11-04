@@ -180,6 +180,8 @@
       <in>sysdep.h</in>
       <in>tedit.c</in>
       <in>telnet.h</in>
+      <in>traps.c</in>
+      <in>traps.h</in>
       <in>treasure.c</in>
       <in>treasure.h</in>
       <in>treasure_const.c</in>
