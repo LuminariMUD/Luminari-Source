@@ -18,6 +18,7 @@
 
 #include "mud_event.h"
 #include "actions.h"
+#include "mudlim.h"
 
 #include "fight.h"
 #include "spells.h"
@@ -101,7 +102,7 @@ bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *
 
 ACMD(do_disabletrap) {
   struct obj_data *trap = NULL;
-  int result = 0;
+  int result = 0, exp = 1, dc = 0;
   
   if (!GET_ABILITY(ch, ABILITY_DISABLE_DEVICE)) {
     send_to_char(ch, "But you do not know how.\r\n");
@@ -112,9 +113,12 @@ ACMD(do_disabletrap) {
     if (GET_OBJ_TYPE(trap) == ITEM_TRAP && is_trap_detected(trap)) {
       act("$n is trying to disable a trap...", FALSE, ch, 0, 0, TO_ROOM);
       act("You try to disable the trap...", FALSE, ch, 0, 0, TO_CHAR);
-      if ((result = skill_check(ch, ABILITY_DISABLE_DEVICE, GET_OBJ_VAL(trap, 3)))) {
+      dc = GET_OBJ_VAL(trap, 3);
+      if ((result = skill_check(ch, ABILITY_DISABLE_DEVICE, dc))) {
         act("...and is successful!", FALSE, ch, 0, 0, TO_ROOM);
         act("...and are successful!", FALSE, ch, 0, 0, TO_CHAR);
+        exp = dc * dc * 100;
+        send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp));
         extract_obj(trap);
       } else {
         act("...but fails.", FALSE, ch, 0, 0, TO_ROOM);
@@ -131,6 +135,7 @@ ACMD(do_disabletrap) {
 
 
 ACMD(do_detecttrap) {
+  int exp = 1, dc = 0;
   struct obj_data *trap = NULL;
   
   if (!GET_ABILITY(ch, ABILITY_PERCEPTION)) {
@@ -141,10 +146,13 @@ ACMD(do_detecttrap) {
   USE_FULL_ROUND_ACTION(ch);
   for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
     if (GET_OBJ_TYPE(trap) == ITEM_TRAP && !is_trap_detected(trap)) {
-      if (skill_check(ch, ABILITY_PERCEPTION, GET_OBJ_VAL(trap, 3))) {
+      dc = GET_OBJ_VAL(trap, 3);
+      if (skill_check(ch, ABILITY_PERCEPTION, dc)) {
         act("$n has detected a trap!", FALSE, ch, 0, 0, TO_ROOM);
         act("You have detected a trap!", FALSE, ch, 0, 0, TO_CHAR);
         set_trap_detected(trap);
+        exp = dc * 100;
+        send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp));
         return;
       }
     }
