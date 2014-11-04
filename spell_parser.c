@@ -994,7 +994,15 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
             TOP_SPELL_DEFINE);
     return (0);
   }
-
+  
+  if (ch && IN_ROOM(ch) > top_of_world)
+    return 0;    
+  if (tch && IN_ROOM(tch) > top_of_world)
+    return 0;
+  if (tobj && tobj->in_room > top_of_world)
+    return 0;
+  
+    
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF)) {
     send_to_char(ch, "You can not even speak a single word!\r\n");
     return 0;
