@@ -3441,9 +3441,7 @@ int hit(struct char_data *ch, struct char_data *victim,
           damage(ch, victim, dam, w_type, dam_type, offhand);
           
           if (AFF_FLAGGED(ch, AFF_CHARGING)) { /* only a single strike */
-            if (!HAS_FEAT(ch, FEAT_RIDE_BY_ATTACK)) {
-              affect_from_char(ch, SKILL_CHARGE);
-            }
+            affect_from_char(ch, SKILL_CHARGE);
           }
         }
         break;
