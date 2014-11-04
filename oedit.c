@@ -797,6 +797,7 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
           break;
         case TRAP_TYPE_ENTER_ROOM:
         default:
+          write_to_output(d, "Press ENTER to continue.");
           break;
       }
       break;

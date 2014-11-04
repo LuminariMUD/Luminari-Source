@@ -217,6 +217,7 @@ EVENTFUNC(perform_trap_effect) {
         to_char = "\tLA large \tWspike\tL shoots up from the floor, and \trimpales\tL you upon it.\tn";
         to_room = "\tLSuddenly, a large \tWspike\tL impales \tn$n\tL as it shoots up from the floor.\tn";
         dam = dice(15, 20);
+        dam_type = DAM_PUNCTURE;
         break;
         
       case TRAP_EFFECT_DARK_GLYPH:
@@ -233,12 +234,14 @@ EVENTFUNC(perform_trap_effect) {
       case TRAP_EFFECT_SPIKE_PIT:
         to_char = "\tLYou stumble into a shallow hole, screaming out in pain as small spikes in the bottom pierce your foot.\tn";
         to_room = "\tn$n\tL stumbles, screaming as $s foot is impaled on tiny spikes in a shallow hole.\tn";
+        dam_type = DAM_PUNCTURE;
         dam = dice(2, 10);
         break;
 
       case TRAP_EFFECT_DAMAGE_DART:
         to_char = "\tLA tiny \tRdart\tL hits you with full force, piercing your skin.\tn";
         to_room = "\tn$n\tL shivers slightly as a tiny \tRdart\tL hits $m with full force.\tn";
+        dam_type = DAM_PUNCTURE;
         dam = 10 + dice(6, 6);
         break;
 
