@@ -133,32 +133,41 @@ ACMD(do_disabletrap) {
   send_to_char(ch, "But there are no traps here than you can see.\r\n");
 }
 
+/* engine for detecting traps, extracted it for trap-sense feat */
+int perform_detecttrap(struct char_data *ch, bool silent) {
+  struct obj_data *trap = NULL;
+  int exp = 1, dc = 0;
+  
+  USE_FULL_ROUND_ACTION(ch);
+  for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
+    if (GET_OBJ_TYPE(trap) == ITEM_TRAP && !is_trap_detected(trap)) {
+      dc = GET_OBJ_VAL(trap, 3);
+      if (skill_check(ch, ABILITY_PERCEPTION, dc)) {
+        act("$n has detected a \tRtrap\tn!", FALSE, ch, 0, 0, TO_ROOM);
+        act("You have detected a \tRtrap\tn!", FALSE, ch, 0, 0, TO_CHAR);
+        set_trap_detected(trap);
+        exp = dc * 100;
+        send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp));
+        return 1;
+      }
+    }
+  }
+
+  if (!silent) {
+    act("$n is looking around for some traps, but can not find any.", FALSE, ch, 0, 0, TO_ROOM);
+    act("You do not seem to detect any traps.", FALSE, ch, 0, 0, TO_CHAR);
+  }
+  return 0;
+}
 
 ACMD(do_detecttrap) {
-  int exp = 1, dc = 0;
-  struct obj_data *trap = NULL;
   
   if (!GET_ABILITY(ch, ABILITY_PERCEPTION)) {
     send_to_char(ch, "But you do not know how.\r\n");
     return;
   }
 
-  USE_FULL_ROUND_ACTION(ch);
-  for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
-    if (GET_OBJ_TYPE(trap) == ITEM_TRAP && !is_trap_detected(trap)) {
-      dc = GET_OBJ_VAL(trap, 3);
-      if (skill_check(ch, ABILITY_PERCEPTION, dc)) {
-        act("$n has detected a trap!", FALSE, ch, 0, 0, TO_ROOM);
-        act("You have detected a trap!", FALSE, ch, 0, 0, TO_CHAR);
-        set_trap_detected(trap);
-        exp = dc * 100;
-        send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp));
-        return;
-      }
-    }
-  }
-  act("$n is looking around for some traps, but can not find any.", FALSE, ch, 0, 0, TO_ROOM);
-  act("You do not seem to detect any traps.", FALSE, ch, 0, 0, TO_CHAR);
+  perform_detecttrap(ch, FALSE);
 }
 
 /* a reminder: int call_magic(struct char_data *caster, struct char_data *cvict,

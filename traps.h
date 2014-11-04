@@ -66,6 +66,7 @@ bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *
 void set_off_trap(struct char_data *ch, struct obj_data *trap);
 bool is_trap_detected(struct obj_data *trap);
 void set_trap_detected(struct obj_data *trap);
+int perform_detecttrap(struct char_data *ch, bool silent);
 
 /* ACMD */
 ACMD(do_disabletrap);
