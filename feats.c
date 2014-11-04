@@ -511,7 +511,6 @@ void assign_feats(void) {
 
   /* Rogue */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_TRAP_SENSE, "trap sense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   /*talent*/feato(FEAT_CRIPPLING_STRIKE, "crippling strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "Chance to do strength damage with a sneak attack.",
     "Chance to do strength damage with a sneak attack.");
@@ -540,6 +539,11 @@ void assign_feats(void) {
 
   
   /* Rogue/Barbarian */
+  feato(FEAT_TRAP_SENSE, "trap sense", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+     "auto-sense traps",
+     "Normally to find traps you have to actively try to detect them.  With "
+       "this feat you will make a perception check to detect traps automatically. "
+       "For every point you have in this feat your bonus to your check is increase by 1.");
   feato(FEAT_UNCANNY_DODGE, "uncanny dodge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "retains dex bonus when flat footed or against invis opponents", "retains dex bonus when flat footed or against invis opponents");
 
   /* Ranger */
