@@ -186,7 +186,7 @@ interpreter.o: interpreter.c conf.h sysdep.h structs.h protocol.h lists.h \
  constants.h act.h ban.h class.h graph.h hedit.h house.h config.h \
  modify.h quest.h hlquest.h asciimap.h prefedit.h ibt.h mud_event.h \
  dg_event.h clan.h craft.h treasure.h feats.h actions.h actionqueues.h \
- combat_modes.h
+ combat_modes.h traps.h
 kdtree.o: kdtree.c kdtree.h
 limits.o: limits.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h spells.h comm.h db.h handler.h interpreter.h dg_scripts.h class.h \
@@ -298,8 +298,8 @@ tedit.o: tedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h comm.h db.h genolc.h oasis.h help.h improved-edit.h \
  modify.h
 traps.o: traps.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
- race.h comm.h db.h handler.h mud_event.h dg_event.h actions.h fight.h \
- spells.h traps.h
+ race.h comm.h db.h handler.h mud_event.h dg_event.h actions.h mudlim.h \
+ fight.h spells.h traps.h
 treasure.o: treasure.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h constants.h \
  dg_scripts.h treasure.h craft.h
