@@ -1424,7 +1424,7 @@ ACMD(do_masterlist) {
     if (!strcmp(spell_info[i].name, "!UNUSED!"))
       continue;
     nlen = snprintf(buf2 + len, sizeof (buf2) - len,
-            "%d) %s\r\n", i, spell_info[i].name);
+            "%3d) %s\r\n", i, spell_info[i].name);
     if (len + nlen >= sizeof (buf2) || nlen < 0)
       break;
     len += nlen;    
