@@ -1037,6 +1037,9 @@ void mobile_activity(void) {
   for (ch = character_list; ch; ch = next_ch) {
     next_ch = ch->next;
 
+    if (IN_ROOM(ch) > top_of_world)
+      continue;
+    
     if (!IS_MOB(ch))
       continue;
 
