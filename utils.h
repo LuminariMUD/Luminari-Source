@@ -85,6 +85,7 @@ char *strpaste(char *str1, char *str2, char *joiner);
 struct char_data *is_playing(char *vict_name);
 char* add_commas(long X);
 void new_affect(struct affected_type *af);
+void free_affect(struct affected_type *af);
 int get_class_by_name(char *classname);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
