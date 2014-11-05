@@ -74,6 +74,7 @@ typedef enum {
   eEMPTYBODY, /* Empty Body, Monk Concealment Feat */
   eQUIVERINGPALM, /* cooldown for quivering palm */
   eSWIFTACTION, /* Swift action cooldown */
+  eTRAPTRIGGERED, /* Trap Triggered */
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
@@ -130,4 +131,5 @@ EVENTFUNC(event_check_occupied);
 EVENTFUNC(event_tracks);
 EVENTFUNC(event_combat_round);
 EVENTFUNC(event_action_cooldown);
+EVENTFUNC(event_trap_triggered);
 #endif /* _MUD_EVENT_H_ */

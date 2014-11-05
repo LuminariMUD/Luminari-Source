@@ -39,30 +39,22 @@
 
 /* start code */
 
-/* init a blank trap event */
-void init_trap_event(struct trap_event *trap_event) {
-  trap_event->ch = NULL;
-  trap_event->effect = TYPE_UNDEFINED;
-}
-
 /* this function is ran to set off a trap, it creates and attaches the
  event to the victim*/
 void set_off_trap(struct char_data *ch, struct obj_data *trap) {
   struct trap_event *trap_event = NULL;
+  char *buf[128];
 
   if (IS_NPC(ch) && !IS_PET(ch))
     return;
 
   send_to_char(ch, "Ooops, you must have triggered something.\r\n");
   
-  CREATE(trap_event, struct trap_event, 1);
+  /* Build the effect string */
+  sprintf(buf, "%d", GET_OBJ_VAL(trap, 2));
   
-  init_trap_event(trap_event);
-  TRAP(ch) = NULL;
-  
-  trap_event->ch = ch;
-  trap_event->effect = GET_OBJ_VAL(trap, 2);
-  TRAP(ch) = event_create(perform_trap_effect, trap_event, 0);
+  /* Add the event to the character.*/
+  NEW_EVENT(eTRAPTRIGGERED, ch, strdup(buf), 1);  
 }
 
 /* checks the 5th value (4) to see if its set (which indicates detection) */
@@ -190,10 +182,15 @@ ACMD(do_detecttrap) {
 void	spellname(int level, struct char_data *ch, \
 		  struct char_data *victim, struct obj_data *obj)
  *  */
-EVENTFUNC(perform_trap_effect) {
-  struct trap_event *trap_event = (struct trap_event *) event_obj;
-  struct char_data *ch = trap_event->ch;
-  int effect = trap_event->effect;
+EVENTFUNC(event_trap_triggered) {
+  struct mud_event_data *pMudEvent = NULL;
+  struct char_data *ch = NULL;
+  struct room_data *room = NULL;
+  room_vnum *rvnum;
+  room_rnum rnum = NOWHERE;
+
+  /* Non-event related variables.*/
+  int effect;
   int dam_type = DAM_FORCE;
   struct affected_type af;
   char *to_char = NULL;
@@ -202,198 +199,230 @@ EVENTFUNC(perform_trap_effect) {
   int count = 0;
   int i;
   
-  /* the trap event struct on character */
-  TRAP(ch) = NULL;
+  pMudEvent = (struct mud_event_data *) event_obj;
+  
+  if (!pMudEvent)
+    return 0;
+  
+  if (!pMudEvent->iId)
+    return 0;
 
-  /* init the af-struct */
-  af.spell = TYPE_UNDEFINED;
-  af.duration = 0;
-  af.modifier = 0;
-  af.location = APPLY_NONE;
-  for (i = 0; i < AF_ARRAY_MAX; i++) af.bitvector[i] = AFF_DONTUSE;
-
-  /* check for valid effect */
-  if (effect < TRAP_EFFECT_FIRST_VALUE) {
-    if (effect >= LAST_SPELL_DEFINE) {
-      log("SYSERR: perform_trap_effect event called with invalid spell effect!\r\n");
-    } else {
-      /* CAST_STAFF?  Maybe should make a unique casttype for traps */
-      call_magic(ch, ch, NULL, effect, (LVL_STAFF - 1), CAST_STAFF);
-    }
-    
-  } else {
-    /* ok so its not a spell and should be a valid value, lets handle it */
-    switch (effect) {
-      
-      case TRAP_EFFECT_WALL_OF_FLAMES:
-        to_char = "\tLThe air is sucked from your lungs as a wall of \tRflames\tL erupts at your feet\tn!";
-        to_room = "\tLYou watch in horror as \tn$n\tL is engulfed in a \tRwall \trof \tRflames!\tn";
-        dam = dice(20, 20);
-        dam_type = DAM_FIRE;
-        break;
-        
-      case TRAP_EFFECT_LIGHTNING_STRIKE:
-        to_char = "\twA brilliant light suddenly blinds you and the smell of your own \tLscorched flesh\tw fills your nostrils.\tn";
-        to_room = "\twA bright flash blinds you, striking \tn$n\tw and filling the room with the stench of \tLburnt flesh.\tn";
-        dam = dice(20, 30);
-        dam_type = DAM_ELECTRIC;
-        break;
-        
-      case TRAP_EFFECT_IMPALING_SPIKE:
-        af.spell = effect;
-        af.bitvector[0] = AFF_PARALYZED;
-        af.duration = 5;
-        to_char = "\tLA large \tWspike\tL shoots up from the floor, and \trimpales\tL you upon it.\tn";
-        to_room = "\tLSuddenly, a large \tWspike\tL impales \tn$n\tL as it shoots up from the floor.\tn";
-        dam = dice(15, 20);
-        dam_type = DAM_PUNCTURE;
-        break;
-        
-      case TRAP_EFFECT_DARK_GLYPH:
-        af.spell = SPELL_FEEBLEMIND;
-        af.modifier = -10;
-        af.location = APPLY_INT;
-        af.duration = 25;
-        to_char = "\tLA dark glyph \tYFLASHES\tL brightly as you walk through it, hurting your brain immensely.\tn";
-        to_room = "\tLAs \tn$n\tL walks through a dark glyph, it \tYflashes\tL brightly.\tn";
-        dam = 300 + dice(15, 20);
-        dam_type = DAM_MENTAL;
-        break;
-        
-      case TRAP_EFFECT_SPIKE_PIT:
-        to_char = "\tLYou stumble into a shallow hole, screaming out in pain as small spikes in the bottom pierce your foot.\tn";
-        to_room = "\tn$n\tL stumbles, screaming as $s foot is impaled on tiny spikes in a shallow hole.\tn";
-        dam_type = DAM_PUNCTURE;
-        dam = dice(2, 10);
-        break;
-
-      case TRAP_EFFECT_DAMAGE_DART:
-        to_char = "\tLA tiny \tRdart\tL hits you with full force, piercing your skin.\tn";
-        to_room = "\tn$n\tL shivers slightly as a tiny \tRdart\tL hits $m with full force.\tn";
-        dam_type = DAM_PUNCTURE;
-        dam = 10 + dice(6, 6);
-        break;
-
-      case TRAP_EFFECT_POISON_GAS:
-        af.spell = SPELL_POISON;
-        af.bitvector[0] = AFF_POISON;
-        af.duration = 25;
-        to_char = "\twAs you inhale the \tgacrid vapors\tn, you cough and choke and start to feel quite sick.\tn";
-        to_room = "\tn$n\tw takes a breath, and starts to sputter and cough, looking a little pale.\tn";
-        dam = 15 + dice(2, 15);
-        dam_type = DAM_POISON;
-        break;
-
-      case TRAP_EFFECT_DISPEL_MAGIC:
-        to_char = "\tCThere is a blinding flash of light which moves to surround you.  You feel all of your enchantments fade away.\tn";
-        to_room = "\tCThere is a blinding flash of light which moves to surround \tn$n\tC.  It disappears as quickly as it came.\tn";
-        break;
-
-      case TRAP_EFFECT_DARK_WARRIOR_AMBUSH:
-        to_char = "\tRYou are under ambush!\tn\r\n";
-        if (GET_LEVEL(ch) < 6)
-          count = 1;
-        else if (GET_LEVEL(ch) < 8)
-          count = 2;
-        else
-          count = 3;
-        for (i = 0; i < count; i++) {
-          struct char_data *mob = read_mobile(TRAP_DARK_WARRIOR_MOBILE, VIRTUAL);
-          if (mob) {
-            char_to_room(mob, ch->in_room);
-            remember(mob, ch);
-          } else {
-            log("SYSERR: perform_trap_effect event called with invalid dark warrior mobile!\r\n");
-          }
-        }
-        break;
-        
-      case TRAP_EFFECT_BOULDER_DROP:
-        dam = GET_HIT(ch) / 5;
-        to_char = "A \tyboulder\tn suddenly thunders down from somewhere high above, hitting you squarely.";
-        to_room = "A \tyboulder\tn falls from somewhere above, hitting $n squarely.";
-        break;
-        
-      case TRAP_EFFECT_WALL_SMASH:
-        dam = GET_HIT(ch) / 5;
-        to_char = "\tcA nearby wall suddenly shifts, pressing you against the hard stone.\tn";
-        to_room = "\tn$n \tcis suddenly slammed against the stone when an adjacent wall moves inward.\tn";
-        break;
-        
-      case TRAP_EFFECT_SPIDER_HORDE:
-        dam = GET_HIT(ch) / 6;
-        to_char = "A horde of \tmspiders\tn drops onto your head from above, the tiny creatures biting any exposed skin.";
-        to_room = "$n is suddenly covered in thousands of biting \tmspiders\tn.";
-        break;
-        
-      case TRAP_EFFECT_DAMAGE_GAS:
-        dam = GET_HIT(ch) / 4;
-        to_char = "A cloud of \tggas\tn surrounds you!";
-        to_room = "A cloud of \tggas\tn surrounds $n!";
-        dam_type = DAM_POISON;
-        break;
-        
-      case TRAP_EFFECT_FREEZING_CONDITIONS:
-        //cold damage..
-        dam = dice(10, 20);
-        dam_type = DAM_COLD;
-        to_char = "\tbThe bone-chilling cold bites deep into you, causing you to shudder uncontrollably.\tn";
-        to_room = "\tn$n \tbshudders as the icy cold bites deep into $s bones.\tn";
-        break;
-        
-      case TRAP_EFFECT_SKELETAL_HANDS:
-        //skeletal stuff.
-        if (dice(1, 10) < 5) {
-          dam = GET_MAX_HIT(ch) * 2;
-          to_char = "\twYou feel a bone-chilling \tCcold\tw as you are raked by \tWskeletal claws\tw thrusting up from the cold waters below.\tn";
-          to_room = "\twA gout of icy water washes over \tn$n\tw as hands reach up from below and drag $m under.\tn";
-        } else {
-          dam_type = DAM_COLD;
-          dam = dice(10, 40);
-          to_char = "\twSkeletal hands suddenly thrust up from the waters below, grasping at your feet in an effort to drag you under.\tn";
-          to_room = "\twSkeletal hands thrust up from the cold waters, slashing \tn$n\tw and causing $m to shudder with cold and pain.\tn";
-        }
-        break;
-        
-      case TRAP_EFFECT_SPIDER_WEBS:
-        af.spell = SPELL_WEB;
-        af.bitvector[0] = AFF_GRAPPLED;
-        af.duration = 20;
-        to_char = "\tLYou are suddenly entangled in sticky strands of \twspider silk\tL, held fast as spiders descend from above.\tn";
-        to_room = "\tn$n \tLis suddenly encased in a cocoon of silk, held fast as spiders descend on $m from all sides.\tn";
-
-        //spiders loading..
-        count = dice(1, 3);
-        for (i = 0; i < count; i++) {
-          struct char_data *mob = read_mobile(TRAP_SPIDER_MOBILE, VIRTUAL);
-          if (mob) {
-            char_to_room(mob, ch->in_room);
-            remember(mob, ch);
-          } else {
-            log("SYSERR: perform_trap_effect event called with invalid spider mobile!\r\n");            
-          }
-        }
-        break;
-
-      default:
-        log("SYSERR: perform_trap_effect event called with invalid trap-effect!\r\n");
-        return 0;
-    }
-    
-    /* send messages */
-    act(to_char, FALSE, ch, 0, 0, TO_CHAR);
-    act(to_room, FALSE, ch, 0, 0, TO_ROOM);
-    
-    /* handle anything left over */
-    if (effect == TRAP_EFFECT_DISPEL_MAGIC) /* special handling */
-      spell_dispel_magic(LVL_IMPL, ch, ch, NULL);
-    if (af.spell != TYPE_UNDEFINED) /* has an affection to add? */
-      affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
-    if (dam) /* has damage to process? */
-      damage(ch, ch, dam, -1 /*attacktype*/, dam_type, -1 /*offhand*/);
+  switch (mud_event_index[pMudEvent->iId].iEvent_Type) {
+    case EVENT_CHAR:
+      ch = (struct char_data *) pMudEvent->pStruct;
+      break;
+    case EVENT_ROOM:
+      rvnum = (room_vnum *) pMudEvent->pStruct;
+      rnum = real_room(*rvnum);
+      room = &world[real_room(rnum)];
+      break;
+    default:
+      break;
   }
   
-  free(event_obj); /* plug leak! */
+  if (pMudEvent->sVariables == NULL) {
+    /* This is odd - This field should always be populated for traps. */
+    log("SYSERR: sVariables field is NULL for event_trap_triggered: %d", pMudEvent->iId);
+    return 0;
+  } else {
+    effect = atoi(pMudEvent->sVariables);
+  }
+  
+  switch (pMudEvent->iId) {
+    case eTRAPTRIGGERED:
+      
+      /* init the af-struct */
+      af.spell = TYPE_UNDEFINED;
+      af.duration = 0;
+      af.modifier = 0;
+      af.location = APPLY_NONE;      
+      for (i = 0; i < AF_ARRAY_MAX; i++) af.bitvector[i] = AFF_DONTUSE;
+
+      /* check for valid effect */
+      if (effect < TRAP_EFFECT_FIRST_VALUE) {
+        if (effect >= LAST_SPELL_DEFINE) {
+          log("SYSERR: perform_trap_effect event called with invalid spell effect!\r\n");
+        } else {
+          /* CAST_STAFF?  Maybe should make a unique casttype for traps */
+          call_magic(ch, ch, NULL, effect, (LVL_STAFF - 1), CAST_STAFF);
+        }
+
+      } else {
+        /* ok so its not a spell and should be a valid value, lets handle it */
+        switch (effect) {
+
+          case TRAP_EFFECT_WALL_OF_FLAMES:
+            to_char = "\tLThe air is sucked from your lungs as a wall of \tRflames\tL erupts at your feet\tn!";
+            to_room = "\tLYou watch in horror as \tn$n\tL is engulfed in a \tRwall \trof \tRflames!\tn";
+            dam = dice(20, 20);
+            dam_type = DAM_FIRE;
+            break;
+
+          case TRAP_EFFECT_LIGHTNING_STRIKE:
+            to_char = "\twA brilliant light suddenly blinds you and the smell of your own \tLscorched flesh\tw fills your nostrils.\tn";
+            to_room = "\twA bright flash blinds you, striking \tn$n\tw and filling the room with the stench of \tLburnt flesh.\tn";
+            dam = dice(20, 30);
+            dam_type = DAM_ELECTRIC;
+            break;
+
+          case TRAP_EFFECT_IMPALING_SPIKE:
+            af.spell = effect;
+            af.bitvector[0] = AFF_PARALYZED;
+            af.duration = 5;
+            to_char = "\tLA large \tWspike\tL shoots up from the floor, and \trimpales\tL you upon it.\tn";
+            to_room = "\tLSuddenly, a large \tWspike\tL impales \tn$n\tL as it shoots up from the floor.\tn";
+            dam = dice(15, 20);
+            dam_type = DAM_PUNCTURE;
+            break;
+
+          case TRAP_EFFECT_DARK_GLYPH:
+            af.spell = SPELL_FEEBLEMIND;
+            af.modifier = -10;
+            af.location = APPLY_INT;
+            af.duration = 25;
+            to_char = "\tLA dark glyph \tYFLASHES\tL brightly as you walk through it, sending searing pain through your brain.\tn";
+            to_room = "\tLAs \tn$n\tL walks through a dark glyph, it \tYflashes\tL brightly.\tn";
+            dam = 300 + dice(15, 20);
+            dam_type = DAM_MENTAL;
+            break;
+
+          case TRAP_EFFECT_SPIKE_PIT:
+            to_char = "\tLYou stumble into a shallow hole, screaming out in pain as small spikes in the bottom pierce your foot.\tn";
+            to_room = "\tn$n\tL stumbles, screaming as $s foot is impaled on tiny spikes in a shallow hole.\tn";
+            dam_type = DAM_PUNCTURE;
+            dam = dice(2, 10);
+            break;
+
+          case TRAP_EFFECT_DAMAGE_DART:
+            to_char = "\tLA tiny \tRdart\tL hits you with full force, piercing your skin.\tn";
+            to_room = "\tn$n\tL shivers slightly as a tiny \tRdart\tL hits $m with full force.\tn";
+            dam_type = DAM_PUNCTURE;
+            dam = 10 + dice(6, 6);
+            break;
+
+          case TRAP_EFFECT_POISON_GAS:
+            af.spell = SPELL_POISON;
+            af.bitvector[0] = AFF_POISON;
+            af.duration = 25;
+            to_char = "\twAs you inhale the \tgacrid vapors\tn, you cough and choke and start to feel quite sick.\tn";
+            to_room = "\tn$n\tw takes a breath, and starts to sputter and cough, looking a little pale.\tn";
+            dam = 15 + dice(2, 15);
+            dam_type = DAM_POISON;
+            break;
+
+          case TRAP_EFFECT_DISPEL_MAGIC:
+            to_char = "\tCThere is a blinding flash of light which moves to surround you.  You feel all of your enchantments fade away.\tn";
+            to_room = "\tCThere is a blinding flash of light which moves to surround \tn$n\tC.  It disappears as quickly as it came.\tn";
+            break;
+
+          case TRAP_EFFECT_DARK_WARRIOR_AMBUSH:
+            to_char = "\tRYou are under ambush!\tn\r\n";
+            if (GET_LEVEL(ch) < 6)
+              count = 1;
+            else if (GET_LEVEL(ch) < 8)
+              count = 2;
+            else
+              count = 3;
+            for (i = 0; i < count; i++) {
+              struct char_data *mob = read_mobile(TRAP_DARK_WARRIOR_MOBILE, VIRTUAL);
+              if (mob) {
+                char_to_room(mob, ch->in_room);
+                remember(mob, ch);
+              } else {
+                log("SYSERR: perform_trap_effect event called with invalid dark warrior mobile!\r\n");
+              }
+            }
+            break;
+
+          case TRAP_EFFECT_BOULDER_DROP:
+            dam = GET_HIT(ch) / 5;
+            to_char = "A \tyboulder\tn suddenly thunders down from somewhere high above, striking you squarely.";
+            to_room = "A \tyboulder\tn falls from somewhere above, hitting $n squarely.";
+            break;
+
+          case TRAP_EFFECT_WALL_SMASH:
+            dam = GET_HIT(ch) / 5;
+            to_char = "\tcA nearby wall suddenly shifts, pressing you against the hard stone.\tn";
+            to_room = "\tn$n \tcis suddenly slammed against the stone when an adjacent wall moves inward.\tn";
+            break;
+
+          case TRAP_EFFECT_SPIDER_HORDE:
+            dam = GET_HIT(ch) / 6;
+            to_char = "A horde of \tmspiders\tn drops onto your head from above, the tiny creatures biting any exposed skin.";
+            to_room = "$n is suddenly covered in thousands of biting \tmspiders\tn.";
+            break;
+
+          case TRAP_EFFECT_DAMAGE_GAS:
+            dam = GET_HIT(ch) / 4;
+            to_char = "A cloud of \tggas\tn surrounds you!";
+            to_room = "A cloud of \tggas\tn surrounds $n!";
+            dam_type = DAM_POISON;
+            break;
+
+          case TRAP_EFFECT_FREEZING_CONDITIONS:
+            //cold damage..
+            dam = dice(10, 20);
+            dam_type = DAM_COLD;
+            to_char = "\tbThe bone-chilling cold bites deep into you, causing you to shudder uncontrollably.\tn";
+            to_room = "\tn$n \tbshudders as the icy cold bites deep into $s bones.\tn";
+            break;
+
+          case TRAP_EFFECT_SKELETAL_HANDS:
+            //skeletal stuff.
+            if (dice(1, 10) < 5) {
+              dam = GET_MAX_HIT(ch) * 2;
+              to_char = "\twYou feel a bone-chilling \tCcold\tw as you are raked by \tWskeletal claws\tw thrusting up from the cold waters below.\tn";
+              to_room = "\twA gout of icy water washes over \tn$n\tw as hands reach up from below and drag $m under.\tn";
+            } else {
+              dam_type = DAM_COLD;
+              dam = dice(10, 40);
+              to_char = "\twSkeletal hands suddenly thrust up from the waters below, grasping at your feet in an effort to drag you under.\tn";
+              to_room = "\twSkeletal hands thrust up from the cold waters, slashing \tn$n\tw and causing $m to shudder with cold and pain.\tn";
+            }
+            break;
+
+          case TRAP_EFFECT_SPIDER_WEBS:
+            af.spell = SPELL_WEB;
+            af.bitvector[0] = AFF_GRAPPLED;
+            af.duration = 20;
+            to_char = "\tLYou are suddenly entangled in sticky strands of \twspider silk\tL, held fast as spiders descend from above.\tn";
+            to_room = "\tn$n \tLis suddenly encased in a cocoon of silk, held fast as spiders descend on $m from all sides.\tn";
+
+            //spiders loading..
+            count = dice(1, 3);
+            for (i = 0; i < count; i++) {
+              struct char_data *mob = read_mobile(TRAP_SPIDER_MOBILE, VIRTUAL);
+              if (mob) {
+                char_to_room(mob, ch->in_room);
+                remember(mob, ch);
+              } else {
+                log("SYSERR: perform_trap_effect event called with invalid spider mobile!\r\n");            
+              }
+            }
+            break;
+
+          default:
+            log("SYSERR: perform_trap_effect event called with invalid trap-effect!\r\n");
+            return 0;
+        }
+
+        /* send messages */
+        act(to_char, FALSE, ch, 0, 0, TO_CHAR);
+        act(to_room, FALSE, ch, 0, 0, TO_ROOM);
+
+        /* handle anything left over */
+        if (effect == TRAP_EFFECT_DISPEL_MAGIC) /* special handling */
+          spell_dispel_magic(LVL_IMPL, ch, ch, NULL);
+        if (af.spell != TYPE_UNDEFINED) /* has an affection to add? */
+          affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
+        if (dam) /* has damage to process? */
+          damage(ch, ch, dam, -1 /*attacktype*/, dam_type, -1 /*offhand*/);
+      }
+
+    default:
+      log("SYSERR: event_trap_triggered called with invalid event id!\r\n");
+      break;
+  } 
   return 0;
 }
 
