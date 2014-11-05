@@ -2937,13 +2937,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       CREATE(new_dr, struct damage_reduction_type, 1);
       CREATE(new_bypass, struct dr_bypass_type, 2);
   
-      new_bypass[0]->bypass_cat = DR_BYPASS_CAT_MATERIAL;
-      new_bypass[0]->bypass     = MATERIAL_ADAMANTINE;
-      new_bypass[0]->alternate  = new_bypass[1];
-      new_bypass[1]->bypass_cat = DR_BYPASS_CAT_SPELL;
-      new_bypass[1]->bypass     = 0
+      new_bypass[0].bypass_cat = DR_BYPASS_CAT_MATERIAL;
+      new_bypass[0].bypass     = MATERIAL_ADAMANTINE;
+      new_bypass[0].alternate  = &new_bypass[1];
+      new_bypass[1].bypass_cat = DR_BYPASS_CAT_SPELL;
+      new_bypass[1].bypass     = 0
       
-      new_dr->bypass     = new_bypass[0];
+      new_dr->bypass     = new_bypass;
       new_dr->duration   = 600;
       new_dr->amount     = 10;
       new_dr->max_damage = MIN(150, level * 10);
