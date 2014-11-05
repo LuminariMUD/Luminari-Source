@@ -2484,7 +2484,7 @@ void free_affect(struct affected_type *af) {
     
   switch (af->location) {
       case APPLY_DR:
-          dr = (damage_reduction_type *)af->data;
+          dr = (struct damage_reduction_type *)af->data;
           if (dr->bypass != NULL) {
               struct dr_bypass_type *bypass = dr->bypass;
               struct dr_bypass_type *cur = NULL;
