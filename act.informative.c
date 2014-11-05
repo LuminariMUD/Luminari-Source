@@ -1135,7 +1135,7 @@ static void look_at_target(struct char_data *ch, char *arg) {
 void perform_affects(struct char_data *ch, struct char_data *k) {
   int i = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  char buf2[MAX_STRING_LENGTH] = {'\0'};
+  //char buf2[MAX_STRING_LENGTH] = {'\0'};
   struct affected_type *aff = NULL;
   struct mud_event_data *pMudEvent = NULL;
 
@@ -1177,7 +1177,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
  
             }
 */ 
-            send_to_char(ch, "DR %d/(???)", dr->amount);
+            send_to_char(ch, "DR %d/(xxx)", dr->amount);
           }                            
       } else if (aff->modifier)
         send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
