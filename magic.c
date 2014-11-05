@@ -2933,7 +2933,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       GET_STONESKIN(victim) = MIN(225, level * 15);
 
       struct damage_reduction_type *new_dr = NULL;
-      struct dr_bypass_type *new_bypass[2] = NULL;
+      struct dr_bypass_type *new_bypass;
       CREATE(new_dr, struct damage_reduction_type, 1);
       CREATE(new_bypass, struct dr_bypass_type, 2);
   
