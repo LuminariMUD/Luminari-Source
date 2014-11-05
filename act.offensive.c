@@ -2164,8 +2164,8 @@ ACMD(do_crystalfist) {
     return;
   }
 
-  send_to_char(ch, "\tCYour hands and harms grow LARGE crystals!\tn\r\n");
-  act("\tCYou watch as $n's arms and hands grow LARGE crystals!\tn",
+  send_to_char(ch, "\tCLarge, razor sharp crystals sprout from your hands and arms!\tn\r\n");
+  act("\tCYou watch as razor sharp crystals sprout from $n's arms and hands!\tn",
           FALSE, ch, 0, 0, TO_NOTVICT);
 
   if (!IS_NPC(ch))
@@ -2186,8 +2186,8 @@ ACMD(do_crystalbody) {
     return;
   }
 
-  send_to_char(ch, "\tCYour crystal-like body becomes harder!\tn\r\n");
-  act("\tCYou watch as $n's crystal-like body becomes harder!\tn",
+  send_to_char(ch, "\tCYour crystalline body becomes harder!\tn\r\n");
+  act("\tCYou watch as $n's crystalline body becomes harder!\tn",
           FALSE, ch, 0, 0, TO_NOTVICT);
 
   if (!IS_NPC(ch))
@@ -2315,6 +2315,7 @@ ACMD(do_treatinjury) {
   }
   /* TODO: poison */
   /* TODO: disease */
+                  
 
   /* Actions */
   USE_STANDARD_ACTION(ch);
