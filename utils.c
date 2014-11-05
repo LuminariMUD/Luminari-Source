@@ -2489,6 +2489,9 @@ void free_affect(struct affected_type *af) {
             if (dr->bypass != NULL) {
                 struct dr_bypass_type *bypass = dr->bypass;
                 struct dr_bypass_type *cur = NULL;
+                
+                dr->bypass = NULL;
+                
                 while (bypass != NULL) {
                     cur = bypass;
                     bypass = bypass->alternate;
