@@ -2994,7 +2994,9 @@ char *act(const char *str, int hide_invisible, struct char_data *ch,
   struct char_data *to = NULL;
   int to_sleeping = 0;
 
-  if (ch->in_room > top_of_world)
+  if (ch && ch->in_room > top_of_world)
+    return NULL; /* another zusuk dummy check */
+  if (obj && obj->in_room > top_of_world)
     return NULL; /* another zusuk dummy check */
   
   if (!str || !*str)
