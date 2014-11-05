@@ -3057,9 +3057,10 @@ char *act(const char *str, int hide_invisible, struct char_data *ch,
 
   if (ch && IN_ROOM(ch) != NOWHERE)
     to = world[IN_ROOM(ch)].people;
-  else if (obj && IN_ROOM(obj) != NOWHERE)
-    to = world[IN_ROOM(obj)].people;
-  else {
+  else if (obj && IN_ROOM(obj) != NOWHERE) {
+    if (obj->in_room <= top_of_world) /* zusuk dummy check */
+      to = world[IN_ROOM(obj)].people;
+  } else {
     log("SYSERR: no valid target to act()!");
     return NULL;
   }
