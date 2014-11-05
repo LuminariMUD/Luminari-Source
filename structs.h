@@ -2485,9 +2485,6 @@ struct char_special_data {
   struct obj_data *crafting_object;  // refers to obj crafting (deprecated)
   ubyte crafting_repeat; // multiple objects created in one session
   int crafting_bonus; // bonus for crafting the item
-
-  /* trap events */
-  struct event *trap_event;
   
   /* miscellaneous */
   int prayin[NUM_CASTERS]; //memorization

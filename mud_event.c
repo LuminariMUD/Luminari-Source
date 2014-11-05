@@ -74,6 +74,7 @@ struct mud_event_list mud_event_index[] = {
   { "Empty Body", event_countdown, EVENT_CHAR}, // eEMPTYBODY
   { "Quivering Palm", event_daily_use_cooldown, EVENT_CHAR}, //eQUIVERINGPALM 
   { "Swift Action Cooldown", event_action_cooldown, EVENT_CHAR}, // eSWIFTACTION
+  { "Trap Triggered", event_trap_triggered, EVENT_CHAR}, // eTRAPTRIGGERED */
 };
 
 /* init_events() is the ideal function for starting global events. This
