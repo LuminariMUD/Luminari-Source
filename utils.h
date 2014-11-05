@@ -1068,9 +1068,6 @@ do                                                              \
 /* Attacks of Opportunity (AOO) */
 #define GET_TOTAL_AOO(ch) (ch->char_specials.attacks_of_opportunity)
 
-/* Trap event attached to a character */
-#define TRAP(ch)                ((ch)->char_specials.trap_event)
-
 /** The player's default sector type when buildwalking */
 #define GET_BUILDWALK_SECTOR(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_sector))
 
