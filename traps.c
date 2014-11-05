@@ -39,6 +39,12 @@
 
 /* start code */
 
+/* init a blank trap event */
+void init_trap_event(struct trap_event *trap_event) {
+  trap_event->ch = NULL;
+  trap_event->effect = TYPE_UNDEFINED;
+}
+
 /* this function is ran to set off a trap, it creates and attaches the
  event to the victim*/
 void set_off_trap(struct char_data *ch, struct obj_data *trap) {
@@ -50,6 +56,10 @@ void set_off_trap(struct char_data *ch, struct obj_data *trap) {
   send_to_char(ch, "Ooops, you must have triggered something.\r\n");
   
   CREATE(trap_event, struct trap_event, 1);
+  
+  init_trap_event(trap_event);
+  TRAP(ch) = NULL;
+  
   trap_event->ch = ch;
   trap_event->effect = GET_OBJ_VAL(trap, 2);
   TRAP(ch) = event_create(perform_trap_effect, trap_event, 0);
