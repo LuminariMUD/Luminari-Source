@@ -2479,11 +2479,11 @@ void new_affect(struct affected_type *af) {
 
 /* Free an affect struct */
 void free_affect(struct affected_type *af) {
-    struct damage_reduction_type *dr;
+  //struct damage_reduction_type *dr;
   if (af == NULL) return;
     
   switch (af->location) {
-      case APPLY_DR:
+    /*  case APPLY_DR:
           if (af->data != NULL) {
             dr = (struct damage_reduction_type *)af->data;
             if (dr->bypass != NULL) {
@@ -2502,6 +2502,7 @@ void free_affect(struct affected_type *af) {
             af->data = NULL;
           }
           break;
+     */
   }
   free(af);
 }
