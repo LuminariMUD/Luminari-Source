@@ -2924,13 +2924,35 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "A magical ward is already in effect on target.\r\n");
         return;
       }
-      af[0].location = APPLY_AC; /* this is just a tag */
-      af[0].modifier = -1;
+      af[0].location = APPLY_DR; 
+      af[0].modifier = 0;
       af[0].duration = 600;
       to_room = "$n's skin becomes hard as rock!";
       to_vict = "Your skin becomes hard as stone.";
       /* using level variable here for weapon spells and druid compatibility */
       GET_STONESKIN(victim) = MIN(225, level * 15);
+
+      struct damage_reduction_type *new_dr = NULL;
+      struct dr_bypass_type *new_bypass[2] = NULL;
+      CREATE(new_dr, struct damage_reduction_type, 1);
+      CREATE(new_bypass, struct dr_bypass_type, 2);
+  
+      new_bypass[0]->bypass_cat = DR_BYPASS_CAT_MATERIAL;
+      new_bypass[0]->bypass     = MATERIAL_ADAMANTINE;
+      new_bypass[0]->alternate  = new_bypass[1];
+      new_bypass[1]->bypass_cat = DR_BYPASS_CAT_SPELL;
+      new_bypass[1]->bypass     = 0
+      
+      new_dr->bypass     = new_bypass[0];
+      new_dr->duration   = 600;
+      new_dr->amount     = 10;
+      new_dr->max_damage = MIN(150, level * 10);
+      new_dr->spell      = SPELL_STONESKIN;
+      new_dr->feat       = FEAT_NONE;
+      new_dr->next       = GET_DR(ch);
+      
+      GET_DR(ch) = new_dr;
+      
       break;
 
     case SPELL_STRENGTH: //transmutation
