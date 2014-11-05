@@ -42,7 +42,7 @@
 /* this function is ran to set off a trap, it creates and attaches the
  event to the victim*/
 void set_off_trap(struct char_data *ch, struct obj_data *trap) {
-  char *buf[128];
+  char buf[128];
 
   if (IS_NPC(ch) && !IS_PET(ch))
     return;
