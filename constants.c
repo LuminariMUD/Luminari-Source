@@ -1074,6 +1074,7 @@ const char *apply_types[NUM_APPLIES + 1] = {
   "Resist-Light",
   "Resist-Energy",
   "Resist-Water",
+  "Damage-Reduction",
   "\n"
 };
 
