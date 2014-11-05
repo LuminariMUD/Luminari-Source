@@ -2942,6 +2942,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       new_bypass[0].alternate  = &new_bypass[1];
       new_bypass[1].bypass_cat = DR_BYPASS_CAT_SPELL;
       new_bypass[1].bypass     = 0;
+      new_bypass[1].alternate  = NULL;
       
       new_dr->bypass     = new_bypass;
       new_dr->duration   = 600;
