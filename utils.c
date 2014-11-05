@@ -2472,7 +2472,33 @@ void new_affect(struct affected_type *af) {
   af->duration = 0;
   af->modifier = 0;
   af->location = APPLY_NONE;
+  af->data = NULL;
+  
   for (i = 0; i < AF_ARRAY_MAX; i++) af->bitvector[i] = 0;
+}
+
+/* Free an affect struct */
+void free_affect(struct affected_type *af) {
+    struct damage_reduction_type *dr;
+  if (af == NULL) return;
+    
+  switch (af->location) {
+      case APPLY_DR:
+          dr = (damage_reduction_type *)af->data;
+          if (dr->bypass != NULL) {
+              struct dr_bypass_type *bypass = dr->bypass;
+              struct dr_bypass_type *cur = NULL;
+              while (bypass != NULL) {
+                  cur = bypass;
+                  bypass = bypass->alternate;
+                  free(cur);
+              }          
+          }
+          free(dr);
+          af->data = NULL;
+          break;
+  }
+  free(af);
 }
 
 /* Handy function to get class ID number by name (abbreviations allowed) */

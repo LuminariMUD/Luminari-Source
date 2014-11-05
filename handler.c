@@ -575,7 +575,8 @@ void affect_remove(struct char_data *ch, struct affected_type *af) {
 
   affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
   REMOVE_FROM_LIST(af, ch->affected, next);
-  free(af);
+  
+  free_affect(af);
   affect_total(ch);
 }
 

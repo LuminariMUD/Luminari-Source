@@ -1135,6 +1135,7 @@ static void look_at_target(struct char_data *ch, char *arg) {
 void perform_affects(struct char_data *ch, struct char_data *k) {
   int i = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   struct affected_type *aff = NULL;
   struct mud_event_data *pMudEvent = NULL;
 
@@ -1162,8 +1163,23 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
         send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
       send_to_char(ch, "%s%-19s%s ",
               CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
-
-      if (aff->modifier)
+      if (aff->location == APPLY_DR) { /* Handle DR a bit differently */
+          struct damage_reduction_type *dr;
+          if(aff->data != NULL) {
+            dr = (struct damage_reduction_type *)aff->data;
+/*            if (dr->bypass != NULL) {
+              struct dr_bypass_type *bypass = dr->bypass;
+              switch (bypass->bypass_cat) {
+                  case DR_BYPASS_CAT_MATERIAL:
+                      strcat(buf2, material_name[bypass->bypass])
+              }
+              strcat(buf2, dr_bypass_names[dr->bypass])
+ 
+            }
+*/ 
+            send_to_char(ch, "DR %d/(???)", dr->amount);
+          }                            
+      } else if (aff->modifier)
         send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
 
       if (aff->bitvector[0] || aff->bitvector[1] ||
