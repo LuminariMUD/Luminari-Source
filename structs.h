@@ -2640,7 +2640,9 @@ struct affected_type {
 #define DR_BYPASS_CAT_MATERIAL 2 /* Materials that bypass the DR*/
 #define DR_BYPASS_CAT_MAGIC    3 /* Magical weapons bypass the DR */
 #define DR_BYPASS_CAT_DAMTYPE  4 /* Damage types that bypass the DR */
-#define DR_BYPASS_CAT_SPELL    5 /* Spells bypass the DR */
+
+/* Note that spells ALWAYS bypass DR! Resistances are for Spells, DR is for
+ * physical damage! */
 
 /** A damage reduction structure. */
 struct damage_reduction_type {
