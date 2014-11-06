@@ -2948,8 +2948,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       new_dr->max_damage = MIN(150, level * 10);
       new_dr->spell      = SPELL_STONESKIN;
       new_dr->feat       = FEAT_UNDEFINED;
-      new_dr->next       = GET_DR(ch);
-      GET_DR(ch) = new_dr;
+      new_dr->next       = GET_DR(vict);
+      GET_DR(vict) = new_dr;
         
       break;
 
