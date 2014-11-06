@@ -1187,9 +1187,6 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
                   case DR_BYPASS_CAT_MAGIC:
                     send_to_char(ch, "magic");
                     break;
-                  case DR_BYPASS_CAT_SPELL:
-                    send_to_char(ch, "spell");
-                    break;
                   case DR_BYPASS_CAT_DAMTYPE:
                     send_to_char(ch, "%s", damtypes[dr->bypass_val[i]]);
                   default:
