@@ -1170,29 +1170,34 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
           if (dr->spell == aff->spell) {
             /* Match! */
             send_to_char(ch, "DR %d/", dr->amount);
+            
             for (i = 0; i < MAX_DR_BYPASS; i++) {
               if (dr->bypass_cat[i] != DR_BYPASS_CAT_UNUSED) {
+                if (i > 0) {
+                  send_to_char(ch, " or ");
+                }
                 switch (dr->bypass_cat[i]) {
                   case DR_BYPASS_CAT_NONE:
                     /* Nothing bypasses this dr. */
-                    send_to_char(ch, "-\r\n");
+                    send_to_char(ch, "-");
                     break;
                   case DR_BYPASS_CAT_MATERIAL:
-                    send_to_char(ch, "%s\r\n", material_name[dr->bypass_val[i]]);
+                    send_to_char(ch, "%s", material_name[dr->bypass_val[i]]);
                     break;
                   case DR_BYPASS_CAT_MAGIC:
-                    send_to_char(ch, "magic\r\n");
+                    send_to_char(ch, "magic");
                     break;
                   case DR_BYPASS_CAT_SPELL:
-                    send_to_char(ch, "spell\r\n");
+                    send_to_char(ch, "spell");
                     break;
                   case DR_BYPASS_CAT_DAMTYPE:
-                    send_to_char(ch, "%s\r\n", damtypes[dr->bypass_val[i]]);
+                    send_to_char(ch, "%s", damtypes[dr->bypass_val[i]]);
                   default:
-                    send_to_char(ch, "???\r\n");
+                    send_to_char(ch, "???");
                 }
               }
             }
+            send_to_char(ch, "\r\n");
           }
           dr = dr->next;
         }
