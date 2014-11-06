@@ -1178,7 +1178,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
                         send_to_char(ch, "-\r\n");
                         break;
                       case DR_BYPASS_CAT_MATERIAL:
-                        send_to_char(ch, "%s\r\n", materials[dr->bypass_val[i]]);
+                        send_to_char(ch, "%s\r\n", material_name[dr->bypass_val[i]]);
                         break;
                       case DR_BYPASS_CAT_MAGIC:
                         send_to_char(ch, "magic\r\n");
