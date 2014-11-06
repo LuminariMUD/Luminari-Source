@@ -583,7 +583,7 @@ void affect_remove(struct char_data *ch, struct affected_type *af) {
     /* Remove the dr. */
     struct damage_reduction_type *temp, *dr; /* Used by REMOVE_FROM_LIST */    
     for(dr = GET_DR(ch); dr != NULL; dr = dr->next) {
-      if (dr->spell = af->spell) {
+      if (dr->spell == af->spell) {
         REMOVE_FROM_LIST(dr, GET_DR(ch), next);
       }        
     }
