@@ -411,43 +411,43 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
   clear_screen(d);
 
   write_to_output(d,
-          "\r\n-- %sSpells Known Menu\r\n"
-          "\r\n"
-          "%s 1%s) 1st Circle     : %s%d\r\n"
-          "%s 2%s) 2nd Circle     : %s%d\r\n"
-          "%s 3%s) 3rd Circle     : %s%d\r\n"
-          "%s 4%s) 4th Circle     : %s%d\r\n"
-          "%s 5%s) 5th Circle     : %s%d\r\n"
-          "%s 6%s) 6th Circle     : %s%d\r\n"
-          "%s 7%s) 7th Circle     : %s%d\r\n"
-          "%s 8%s) 8th Circle     : %s%d\r\n"
-          "%s 9%s) 9th Circle     : %s%d\r\n"
-          "\r\n"
-          "%s Q%s) Quit\r\n"
-          "\r\n"
-          "Enter Choice : ",
+                  "\r\n-- %sSpells Known Menu\r\n"
+                  "\r\n"
+                  "%s 1%s) 1st Circle     : %s%d\r\n"
+                  "%s 2%s) 2nd Circle     : %s%d\r\n"
+                  "%s 3%s) 3rd Circle     : %s%d\r\n"
+                  "%s 4%s) 4th Circle     : %s%d\r\n"
+                  "%s 5%s) 5th Circle     : %s%d\r\n"
+                  "%s 6%s) 6th Circle     : %s%d\r\n"
+                  "%s 7%s) 7th Circle     : %s%d\r\n"
+                  "%s 8%s) 8th Circle     : %s%d\r\n"
+                  "%s 9%s) 9th Circle     : %s%d\r\n"
+                  "\r\n"
+                  "%s Q%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
 
-          mgn,
-          grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][0] -
-          count_sorc_known(d->character, 1, CLASS_SORCERER),
-          grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][1] -
-          count_sorc_known(d->character, 2, CLASS_SORCERER),
-          grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][2] -
-          count_sorc_known(d->character, 3, CLASS_SORCERER),
-          grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][3] -
-          count_sorc_known(d->character, 4, CLASS_SORCERER),
-          grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][4] -
-          count_sorc_known(d->character, 5, CLASS_SORCERER),
-          grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][5] -
-          count_sorc_known(d->character, 6, CLASS_SORCERER),
-          grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][6] -
-          count_sorc_known(d->character, 7, CLASS_SORCERER),
-          grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][7] -
-          count_sorc_known(d->character, 8, CLASS_SORCERER),
-          grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
-          count_sorc_known(d->character, 9, CLASS_SORCERER),
-          grn, nrm
-          );
+                  mgn,
+                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][0] -
+                  count_sorc_known(d->character, 1, CLASS_SORCERER),
+                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][1] -
+                  count_sorc_known(d->character, 2, CLASS_SORCERER),
+                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][2] -
+                  count_sorc_known(d->character, 3, CLASS_SORCERER),
+                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][3] -
+                  count_sorc_known(d->character, 4, CLASS_SORCERER),
+                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][4] -
+                  count_sorc_known(d->character, 5, CLASS_SORCERER),
+                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][5] -
+                  count_sorc_known(d->character, 6, CLASS_SORCERER),
+                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][6] -
+                  count_sorc_known(d->character, 7, CLASS_SORCERER),
+                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][7] -
+                  count_sorc_known(d->character, 8, CLASS_SORCERER),
+                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
+                  count_sorc_known(d->character, 9, CLASS_SORCERER),
+                  grn, nrm
+                  );
 
   OLC_MODE(d) = STUDY_SORC_KNOWN_SPELLS_MENU;
 }
