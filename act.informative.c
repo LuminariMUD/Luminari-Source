@@ -77,9 +77,9 @@ void check_dangersense(struct char_data *ch, room_rnum room) {
       continue;
 
     if ((MOB_FLAGGED(tch, MOB_AGGRESSIVE)) ||
-            (MOB_FLAGGED(tch, MOB_AGGR_EVIL) && IS_EVIL(ch)) ||
-            (MOB_FLAGGED(tch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(ch)) ||
-            (MOB_FLAGGED(tch, MOB_AGGR_GOOD) && IS_GOOD(ch)))
+        (MOB_FLAGGED(tch, MOB_AGGR_EVIL) && IS_EVIL(ch)) ||
+        (MOB_FLAGGED(tch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(ch)) ||
+        (MOB_FLAGGED(tch, MOB_AGGR_GOOD) && IS_GOOD(ch)))
       danger = TRUE;
   }
   if (danger)
@@ -103,7 +103,7 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
   // maybe change these to defines in protocol.h or something
   // these will be used to give click options i.e. click an item in inventory
   // to equip it, or right click with context menu, to equip/drop/lore/etc.
-  
+
   if (!obj || !ch) {
     log("SYSERR: NULL pointer in show_obj_to_char(): obj=%p ch=%p", obj, ch);
     /*  SYSERR_DESC: Somehow a NULL pointer was sent to show_obj_to_char() in
@@ -122,7 +122,7 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
       }
       if (found) {
         send_to_char(ch, "You are %s upon %s.", GET_POS(ch) == POS_SITTING ? "sitting" :
-                "resting", obj->short_description);
+                     "resting", obj->short_description);
         goto end;
       }
     }
@@ -204,7 +204,7 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
             else
               strcpy(sendcmd, "hold");
             send_to_char(ch, "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s' hint='use/equip %s|drop %s|eat %s|hold %s|lore %s'>%s\t</send>", sendcmd, keyword,
-                    keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword, obj->short_description);
+                         keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword, obj->short_description);
             break;
           case 2: // equipment
             send_to_char(ch, "\t<send href='remove %s'>%s\t</send>", keyword, obj->short_description);
@@ -255,7 +255,7 @@ end:
 static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch) {
   if (OBJ_FLAGGED(obj, ITEM_INVISIBLE))
     send_to_char(ch, " \tw(invisible)\tn");
-  
+
   if (OBJ_FLAGGED(obj, ITEM_FLAMING))
     send_to_char(ch, " \tR(flaming)\tn");
 
@@ -275,8 +275,8 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch) {
     send_to_char(ch, " \tn..It emits a faint \tChumming\tn sound!");
 }
 
-static void list_obj_to_char(struct obj_data *list, struct char_data *ch, 
-        int mode, int show, int mxp_type) {
+static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
+                             int mode, int show, int mxp_type) {
   struct obj_data *i, *j, *display;
   bool found;
   int num;
@@ -290,7 +290,7 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
     /* Check the list to see if we've already counted this object */
     for (j = list; j != i; j = j->next_content)
       if ((j->short_description == i->short_description && j->name == i->name) ||
-              (!strcmp(j->short_description, i->short_description) && !strcmp(j->name, i->name)))
+          (!strcmp(j->short_description, i->short_description) && !strcmp(j->name, i->name)))
         break; /* found a matching object */
     if (j != i)
       continue; /* we counted object i earlier in the list */
@@ -299,8 +299,8 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
     for (display = j = i; j; j = j->next_content)
       /* This if-clause should be exactly the same as the one in the loop above */
       if ((j->short_description == i->short_description && j->name == i->name) ||
-              (!strcmp(j->short_description, i->short_description) && 
-              !strcmp(j->name, i->name)))
+          (!strcmp(j->short_description, i->short_description) &&
+           !strcmp(j->name, i->name)))
         if (CAN_SEE_OBJ(ch, j) /*|| (!AFF_FLAGGED(ch, AFF_BLIND) && OBJ_FLAGGED(j, ITEM_GLOW))*/) {
           /* added the ability for players to see glowing items in their inventory in the dark
            * as long as they are not blind! maybe add this to CAN_SEE_OBJ macro? */
@@ -312,7 +312,7 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
 
     /* When looking in room, hide objects starting with '.', except for holylight */
     if (num > 0 && (mode != SHOW_OBJ_LONG || *display->description != '.' ||
-            (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))) {
+                    (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))) {
       if (mode == SHOW_OBJ_LONG)
         send_to_char(ch, "%s", CCGRN(ch, C_NRM));
       if (num != 1)
@@ -355,21 +355,21 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch) {
 
   if (!IS_NPC(i))
     send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers), size_names[GET_SIZE(i)],
-          RACE_ABBR(i), diagnosis[ar_index].text);
+                 RACE_ABBR(i), diagnosis[ar_index].text);
   else if (IS_NPC(i) && GET_RACE(i) <= NPCRACE_UNKNOWN)
     send_to_char(ch, "%s %s\r\n", CAP(pers),
-          diagnosis[ar_index].text);
+                 diagnosis[ar_index].text);
   else if (IS_NPC(i) && GET_SUBRACE(i, 0) <= SUBRACE_UNKNOWN
-          && GET_SUBRACE(i, 1) <= SUBRACE_UNKNOWN
-          && GET_SUBRACE(i, 2) <= SUBRACE_UNKNOWN)
+           && GET_SUBRACE(i, 1) <= SUBRACE_UNKNOWN
+           && GET_SUBRACE(i, 2) <= SUBRACE_UNKNOWN)
     send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers),
-          size_names[GET_SIZE(i)], RACE_ABBR(i), diagnosis[ar_index].text);
+                 size_names[GET_SIZE(i)], RACE_ABBR(i), diagnosis[ar_index].text);
   else
     send_to_char(ch, "%s \tn[%s %s/%s/%s %s\tn] %s\r\n", CAP(pers),
-          size_names[GET_SIZE(i)], npc_subrace_abbrevs[GET_SUBRACE(i, 0)],
-          npc_subrace_abbrevs[GET_SUBRACE(i, 1)],
-          npc_subrace_abbrevs[GET_SUBRACE(i, 2)],
-          RACE_ABBR(i), diagnosis[ar_index].text);
+                 size_names[GET_SIZE(i)], npc_subrace_abbrevs[GET_SUBRACE(i, 0)],
+                 npc_subrace_abbrevs[GET_SUBRACE(i, 1)],
+                 npc_subrace_abbrevs[GET_SUBRACE(i, 2)],
+                 RACE_ABBR(i), diagnosis[ar_index].text);
 
   if (affected_by_spell(i, SPELL_BARKSKIN))
     act("$s skin appears to be made of bark.", FALSE, i, 0, ch, TO_VICT);
@@ -436,16 +436,16 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
   struct obj_data *furniture;
   char *short_descr;
   const char *positions[NUM_POSITIONS] = {
-    " is lying here, dead.",
-    " is lying here, mortally wounded.",
-    " is lying here, incapacitated.",
-    " is lying here, stunned.",
-    " is sleeping here.",
-    " is reclining here.",
-    " is resting here.",
-    " is sitting here.",
-    "!FIGHTING!",
-    " is standing here."
+                                          " is lying here, dead.",
+                                          " is lying here, mortally wounded.",
+                                          " is lying here, incapacitated.",
+                                          " is lying here, stunned.",
+                                          " is sleeping here.",
+                                          " is reclining here.",
+                                          " is resting here.",
+                                          " is sitting here.",
+                                          "!FIGHTING!",
+                                          " is standing here."
   };
 
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
@@ -462,15 +462,15 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
   if (!IS_NPC(i) && GROUP(i)) {
     if (GROUP(i) == GROUP(ch))
       send_to_char(ch, "(%s) ",
-            GROUP_LEADER(GROUP(i)) == i ? "leader" : "group");
+                   GROUP_LEADER(GROUP(i)) == i ? "leader" : "group");
     else
       send_to_char(ch, "%s(%s%s%s) ", CCNRM(ch, C_NRM), CBRED(ch, C_NRM),
-            GROUP_LEADER(GROUP(i)) == i ? "leader" : "group",
-            CCNRM(ch, C_NRM));
+                   GROUP_LEADER(GROUP(i)) == i ? "leader" : "group",
+                   CCNRM(ch, C_NRM));
   }
 
   if (IS_NPC(i) && i->player.long_descr && GET_POS(i) == GET_DEFAULT_POS(i) &&
-          !FIGHTING(i)) {
+      !FIGHTING(i)) {
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
 
@@ -527,7 +527,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     short_descr = NULL;
   } else
     send_to_char(ch, "\tn[%s] %s%s%s", RACE_ABBR(i), i->player.name,
-          *GET_TITLE(i) ? " " : "", GET_TITLE(i));
+                 *GET_TITLE(i) ? " " : "", GET_TITLE(i));
 
   if (AFF_FLAGGED(i, AFF_INVISIBLE))
     send_to_char(ch, " (invisible)");
@@ -557,9 +557,9 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     else {
       furniture = SITTING(i);
       send_to_char(ch, " is %s upon %s.", (GET_POS(i) == POS_SLEEPING ?
-                "sleeping" : (GET_POS(i) == POS_RECLINING ? "reclining" : 
-                (GET_POS(i) == POS_RESTING ? "resting" : "sitting"))),
-                OBJS(furniture, ch));
+                                           "sleeping" : (GET_POS(i) == POS_RECLINING ? "reclining" :
+                                                         (GET_POS(i) == POS_RESTING ? "resting" : "sitting"))),
+                   OBJS(furniture, ch));
     }
   } else {
     if (FIGHTING(i)) {
@@ -603,7 +603,7 @@ static void list_char_to_char(struct char_data *list, struct char_data *ch) {
     if (ch != i) {
       /* hide npcs whose description starts with a '.' from non-holylighted people - Idea from Elaseth of TBA */
       if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_HOLYLIGHT) &&
-              IS_NPC(i) && i->player.long_descr && *i->player.long_descr == '.')
+          IS_NPC(i) && i->player.long_descr && *i->player.long_descr == '.')
         continue;
       send_to_char(ch, "%s", CCYEL(ch, C_NRM));
       if (RIDDEN_BY(i) && RIDDEN_BY(i)->in_room == i->in_room)
@@ -613,10 +613,10 @@ static void list_char_to_char(struct char_data *list, struct char_data *ch) {
       else if (CAN_INFRA(ch, i) && !AFF_FLAGGED(i, AFF_HIDE))
         send_to_char(ch, "\tnYou see the \trred\tn outline of someone or something.\r\n");
       else if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch) &&
-              AFF_FLAGGED(i, AFF_INFRAVISION) && INVIS_OK(ch, i))
+               AFF_FLAGGED(i, AFF_INFRAVISION) && INVIS_OK(ch, i))
         send_to_char(ch, "You see a pair of glowing red eyes looking your way.\r\n");
       else if ((!IS_DARK(IN_ROOM(ch)) || CAN_SEE_IN_DARK(ch)) &&
-              AFF_FLAGGED(ch, AFF_SENSE_LIFE))
+               AFF_FLAGGED(ch, AFF_SENSE_LIFE))
         send_to_char(ch, "You sense a life-form.\r\n");
       send_to_char(ch, "%s", CCNRM(ch, C_NRM));
     }
@@ -633,14 +633,14 @@ static void do_auto_exits(struct char_data *ch) {
     if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) && !CONFIG_DISP_CLOSED_DOORS)
       continue;
     if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) &&
-            !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+        !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
       continue;
     if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
       send_to_char(ch, "%s(%s)%s ", EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ?
-            CCWHT(ch, C_NRM) : CCRED(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
+                   CCWHT(ch, C_NRM) : CCRED(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
     else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
       send_to_char(ch, "%s%s%s ", CCWHT(ch, C_NRM), autoexits[door],
-            CCCYN(ch, C_NRM));
+                   CCCYN(ch, C_NRM));
     else
       send_to_char(ch, "\t(%s\t) ", autoexits[door]);
     slen++;
@@ -654,7 +654,7 @@ static void do_auto_exits(struct char_data *ch) {
 void look_at_room_number(struct char_data * ch, int ignore_brief, long room_number) {
   char buf[MAX_INPUT_LENGTH];
   char buf2[MAX_INPUT_LENGTH];
-  
+
   if (!ch->desc)
     return;
   if (room_number < 0)
@@ -665,12 +665,12 @@ void look_at_room_number(struct char_data * ch, int ignore_brief, long room_numb
   }
 
   if (ROOM_FLAGGED(room_number, ROOM_MAGICDARK) ||
-          (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION))) {
+      (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION))) {
     send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
     return;
   }
   if (ROOM_FLAGGED(ch->in_room, ROOM_MAGICDARK) ||
-          (IS_DARK(ch->in_room) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION))) {
+      (IS_DARK(ch->in_room) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION))) {
     send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
     return;
   }
@@ -704,25 +704,26 @@ void look_at_room_number(struct char_data * ch, int ignore_brief, long room_numb
   } else
     send_to_char(ch, world[room_number].name);
   //if (is_water_room(room_number))
-    //send_to_char(" \tw(\tBWater\tw)\tn", ch);
+  //send_to_char(" \tw(\tBWater\tw)\tn", ch);
 
   send_to_char(ch, "\r\n");
   if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG))
     send_to_char(ch, "\tLA hazy \tWfog\tL enshrouds the area.\tn\r\n");
 
   if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF)) || ignore_brief ||
-          ROOM_FLAGGED(room_number, ROOM_DEATH))
+      ROOM_FLAGGED(room_number, ROOM_DEATH))
     send_to_char(ch, world[room_number].description);
 
   /* autoexits */
   //if (!IS_NPC(ch) && !IS_SET(ROOM_FLAGS(room_number), ROOM_FOG))
-    //do_auto_exits(ch, room_number);
+  //do_auto_exits(ch, room_number);
 
   /* now list characters & objects */
   list_obj_to_char(world[room_number].contents, ch, SHOW_OBJ_LONG, FALSE, 0);
   list_char_to_char(world[room_number].people, ch);
 }
-/* End of Kel's look_at_room_number function */ 
+
+/* End of Kel's look_at_room_number function */
 
 void look_at_room(struct char_data *ch, int ignore_brief) {
   trig_data *t;
@@ -741,7 +742,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   /* set up variables to establish light/dark situation */
   if (ROOM_FLAGGED(target_room, ROOM_MAGICDARK) || IS_DARK(target_room))
     room_dark = TRUE;
-  
+
   if (room_dark) {
     if (CAN_SEE_IN_DARK(ch))
       room_dark = FALSE;
@@ -763,14 +764,14 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
     send_to_char(ch, "Your view is obscured by a thick fog...\r\n");
     return;
   }
-  
+
   /*
   if(!IS_DARK(target_room) && ULTRA_BLIND(ch, target_room)) {
     send_to_char(ch, "\tWIt is far too bright to see anything...\tn\r\n");
     return;
   }
-  */
-  
+   */
+
   // staff can see some extra details
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
     sprintbitarray(ROOM_FLAGS(IN_ROOM(ch)), room_bits, RF_ARRAY_MAX, buf);
@@ -784,7 +785,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
         send_to_char(ch, " %d", GET_TRIG_VNUM(t));
       send_to_char(ch, "]");
     }
-  } else  // non-staffers just see the name
+  } else // non-staffers just see the name
     send_to_char(ch, "%s", world[IN_ROOM(ch)].name);
 
   // room affections
@@ -792,22 +793,22 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   send_to_char(ch, " ( %s)", buf);
 
   /* display some extra info about the room (special flags) */
-  send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM));  // CR
-  if(IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG))
-    send_to_char(ch, "\tDA hazy \tWfog\tD enshrouds the area.\tn\r\n");  
-  if(IS_SET_AR(ROOM_FLAGS(target_room), ROOM_AIRY))
-    send_to_char(ch, "\tBLarge bubbles of air float through the water\tn\r\n");  
+  send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM)); // CR
+  if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG))
+    send_to_char(ch, "\tDA hazy \tWfog\tD enshrouds the area.\tn\r\n");
+  if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_AIRY))
+    send_to_char(ch, "\tBLarge bubbles of air float through the water\tn\r\n");
 
   /* worldmap room/zone? */
-//  if (ROOM_FLAGGED(target_room, ROOM_WORLDMAP) ||
-//          ZONE_FLAGGED(zn, ZONE_WORLDMAP)) {
-//    world_map = TRUE;
+  //  if (ROOM_FLAGGED(target_room, ROOM_WORLDMAP) ||
+  //          ZONE_FLAGGED(zn, ZONE_WORLDMAP)) {
+  //    world_map = TRUE;
   if (ZONE_FLAGGED(zn, ZONE_WILDERNESS)) {
     world_map = TRUE;
     /* if you want clear screen, uncomment this */
     //    send_to_char(ch, "\033[H\033[J");
   }
-  
+
   /* scenarios:
      1)  worldmap,                               see worldmap
      2)  worldmap infra,                         can't see anything
@@ -822,12 +823,12 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
 
   /* if we are on the worldmap (and can actually see it), then show it */
   if ((!room_dark || can_infra_in_dark) && world_map) {
-//    perform_map(ch, "", show_worldmap(ch));
-    show_wilderness_map(ch, 21,ch->coords[0], ch->coords[1]);
-    
-  /* we are not looking at worldmap, or we can't see the worldmap */
-  } else if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF) && !can_infra_in_dark) 
-          || ignore_brief || ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH)) {
+    //    perform_map(ch, "", show_worldmap(ch));
+    show_wilderness_map(ch, 21, ch->coords[0], ch->coords[1]);
+
+    /* we are not looking at worldmap, or we can't see the worldmap */
+  } else if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF) && !can_infra_in_dark)
+             || ignore_brief || ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH)) {
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) && can_see_map(ch)) {
       str_and_map(world[target_room].description, ch, target_room);
     } else {
@@ -838,8 +839,8 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   }
 
   /* autoexits */
-  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOEXIT) && 
-          !IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG))
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOEXIT) &&
+      !IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG))
     do_auto_exits(ch);
 
   /* now list characters & objects */
@@ -852,7 +853,7 @@ static void look_in_direction(struct char_data *ch, int dir) {
     send_to_char(ch, "A fog makes it impossible to look far.\r\n");
     return;
   }
-  
+
   if (EXIT(ch, dir)) {
     if (EXIT(ch, dir)->general_description)
       send_to_char(ch, "%s", EXIT(ch, dir)->general_description);
@@ -877,20 +878,20 @@ static void look_in_obj(struct char_data *ch, char *arg) {
   if (!*arg)
     send_to_char(ch, "Look in what?\r\n");
   else if (!(bits = generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM |
-          FIND_OBJ_EQUIP, ch, &dummy, &obj))) {
+                                 FIND_OBJ_EQUIP, ch, &dummy, &obj))) {
     send_to_char(ch, "There doesn't seem to be %s %s here.\r\n", AN(arg), arg);
   } else if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
     display_spells(ch, obj);
   } else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL) {
     display_scroll(ch, obj);
   } else if ((GET_OBJ_TYPE(obj) != ITEM_DRINKCON) &&
-          (GET_OBJ_TYPE(obj) != ITEM_FOUNTAIN) &&
-          (GET_OBJ_TYPE(obj) != ITEM_QUIVER) &&
-          (GET_OBJ_TYPE(obj) != ITEM_CONTAINER))
+             (GET_OBJ_TYPE(obj) != ITEM_FOUNTAIN) &&
+             (GET_OBJ_TYPE(obj) != ITEM_QUIVER) &&
+             (GET_OBJ_TYPE(obj) != ITEM_CONTAINER))
     send_to_char(ch, "There's nothing inside that!\r\n");
   else {
     if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER ||
-            GET_OBJ_TYPE(obj) == ITEM_QUIVER) {
+        GET_OBJ_TYPE(obj) == ITEM_QUIVER) {
       if (OBJVAL_FLAGGED(obj, CONT_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
         send_to_char(ch, "It is closed.\r\n");
       else {
@@ -940,7 +941,6 @@ char *find_exdesc(char *word, struct extra_descr_data *list) {
   return (NULL);
 }
 
-
 static void perform_mortal_where(struct char_data *ch, char *arg) {
   struct char_data *i;
   struct descriptor_data *d;
@@ -976,7 +976,7 @@ static void perform_mortal_where(struct char_data *ch, char *arg) {
 }
 
 static void print_object_location(int num, struct obj_data *obj, struct char_data *ch,
-        int recur) {
+                                  int recur) {
   if (num > 0)
     send_to_char(ch, "O%3d. %-25s%s - ", num, obj->short_description, QNRM);
   else
@@ -1018,13 +1018,13 @@ static void perform_immort_where(struct char_data *ch, char *arg) {
         if (i && CAN_SEE(ch, i) && (IN_ROOM(i) != NOWHERE)) {
           if (d->original)
             send_to_char(ch, "%-8s%s - [%5d] %s%s (in %s%s)\r\n",
-                  GET_NAME(i), QNRM, GET_ROOM_VNUM(IN_ROOM(d->character)),
-                  world[IN_ROOM(d->character)].name, QNRM, GET_NAME(d->character), QNRM);
+                         GET_NAME(i), QNRM, GET_ROOM_VNUM(IN_ROOM(d->character)),
+                         world[IN_ROOM(d->character)].name, QNRM, GET_NAME(d->character), QNRM);
           else
             send_to_char(ch, "%-8s%s %s[%s%5d%s]%s %-*s%s %s%s\r\n", GET_NAME(i), QNRM,
-                  QCYN, QYEL, GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
-                  30 + count_color_chars(world[IN_ROOM(i)].name), world[IN_ROOM(i)].name, QNRM,
-                  zone_table[(world[IN_ROOM(i)].zone)].name, QNRM);
+                         QCYN, QYEL, GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
+                         30 + count_color_chars(world[IN_ROOM(i)].name), world[IN_ROOM(i)].name, QNRM,
+                         zone_table[(world[IN_ROOM(i)].zone)].name, QNRM);
         }
       }
   } else {
@@ -1032,7 +1032,7 @@ static void perform_immort_where(struct char_data *ch, char *arg) {
       if (CAN_SEE(ch, i) && IN_ROOM(i) != NOWHERE && isname(arg, i->player.name)) {
         found = 1;
         send_to_char(ch, "M%3d. %-25s%s - [%5d] %-25s%s", ++num, GET_NAME(i), QNRM,
-                GET_ROOM_VNUM(IN_ROOM(i)), world[IN_ROOM(i)].name, QNRM);
+                     GET_ROOM_VNUM(IN_ROOM(i)), world[IN_ROOM(i)].name, QNRM);
         if (SCRIPT(i) && TRIGGERS(SCRIPT(i))) {
           if (!TRIGGERS(SCRIPT(i))->next)
             send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(i))));
@@ -1070,7 +1070,7 @@ static void look_at_target(struct char_data *ch, char *arg) {
   }
 
   bits = generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP |
-          FIND_CHAR_ROOM, ch, &found_char, &found_obj);
+                      FIND_CHAR_ROOM, ch, &found_char, &found_obj);
 
   /* Is the target a character? */
   if (found_char != NULL) {
@@ -1140,17 +1140,17 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   struct mud_event_data *pMudEvent = NULL;
 
   send_to_char(ch,
-          "\tC---------------------------------------------------------\tn\r\n");
+               "\tC---------------------------------------------------------\tn\r\n");
   send_to_char(ch,
-          "\tC-------------- \tWAffected By\tC ------------------------------\tn\r\n");
+               "\tC-------------- \tWAffected By\tC ------------------------------\tn\r\n");
 
   /* Showing the bitvector */
   sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
   send_to_char(ch, "%s%s%s\r\n", CCYEL(ch, C_NRM),
-          buf, CCNRM(ch, C_NRM));
+               buf, CCNRM(ch, C_NRM));
 
   send_to_char(ch,
-          "\tC-------------- \tWSpell-Like Affects\tC -----------------------\tn\r\n");
+               "\tC-------------- \tWSpell-Like Affects\tC -----------------------\tn\r\n");
 
   /* Routine to show what spells a char is affected by */
   if (k->affected) {
@@ -1162,46 +1162,44 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
       else // rounds
         send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
       send_to_char(ch, "%s%-19s%s ",
-              CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
+                   CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       if (aff->location == APPLY_DR) { /* Handle DR a bit differently */
-          struct damage_reduction_type *dr;          
-            dr = GET_DR(ch);
-            while (dr != NULL) {
-              if (dr->spell == aff->spell)  {
-                /* Match! */    
-                send_to_char(ch, "DR %d/", dr->amount);
-                for (i = 0; i < MAX_DR_BYPASS; i++) {
-                  if (dr->bypass_cat[i] != DR_BYPASS_CAT_UNUSED) {
-                    switch (dr->bypass_cat[i]) {
-                      case DR_BYPASS_CAT_NONE:
-                        /* Nothing bypasses this dr. */
-                        send_to_char(ch, "-\r\n");
-                        break;
-                      case DR_BYPASS_CAT_MATERIAL:
-                        send_to_char(ch, "%s\r\n", material_name[dr->bypass_val[i]]);
-                        break;
-                      case DR_BYPASS_CAT_MAGIC:
-                        send_to_char(ch, "magic\r\n");
-                        break;
-                      case DR_BYPASS_CAT_SPELL:
-                        send_to_char(ch, "spell\r\n");
-                        break;
-                      case DR_BYPASS_CAT_DAMTYPE:
-                        send_to_char(ch, "%s\r\n", damtypes[dr->bypass_val[i]]);
-                      default:
-                        send_to_char(ch, "???\r\n");
-                    }  
-                  }
+        struct damage_reduction_type *dr;
+        dr = GET_DR(ch);
+        while (dr != NULL) {
+          if (dr->spell == aff->spell) {
+            /* Match! */
+            send_to_char(ch, "DR %d/", dr->amount);
+            for (i = 0; i < MAX_DR_BYPASS; i++) {
+              if (dr->bypass_cat[i] != DR_BYPASS_CAT_UNUSED) {
+                switch (dr->bypass_cat[i]) {
+                  case DR_BYPASS_CAT_NONE:
+                    /* Nothing bypasses this dr. */
+                    send_to_char(ch, "-\r\n");
+                    break;
+                  case DR_BYPASS_CAT_MATERIAL:
+                    send_to_char(ch, "%s\r\n", material_name[dr->bypass_val[i]]);
+                    break;
+                  case DR_BYPASS_CAT_MAGIC:
+                    send_to_char(ch, "magic\r\n");
+                    break;
+                  case DR_BYPASS_CAT_SPELL:
+                    send_to_char(ch, "spell\r\n");
+                    break;
+                  case DR_BYPASS_CAT_DAMTYPE:
+                    send_to_char(ch, "%s\r\n", damtypes[dr->bypass_val[i]]);
+                  default:
+                    send_to_char(ch, "???\r\n");
                 }
               }
-            }       
-            
-          }                            
+            }
+          }
+        }
       } else if (aff->modifier)
         send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
 
       if (aff->bitvector[0] || aff->bitvector[1] ||
-              aff->bitvector[2] || aff->bitvector[3]) {
+          aff->bitvector[2] || aff->bitvector[3]) {
         if (aff->modifier)
           send_to_char(ch, ", ");
         for (i = 0; i < NUM_AFF_FLAGS; i++) {
@@ -1214,7 +1212,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
     }
   }
   send_to_char(ch,
-          "\tC-------------- \tWCool Downs\tC -------------------------------\tn\r\n");
+               "\tC-------------- \tWCool Downs\tC -------------------------------\tn\r\n");
   if ((pMudEvent = char_has_mud_event(k, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRAGE)))
@@ -1271,7 +1269,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Shield Recovery - Duration %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
 
   send_to_char(ch,
-          "\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
+               "\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_CLERIC) >= 14) {
     if (PLR_FLAGGED(ch, PLR_SALVATION)) {
       if (GET_SALVATION_NAME(ch) != NULL) {
@@ -1295,16 +1293,16 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
 
   //location of our DAM_x  damtypes
   send_to_char(ch,
-          "\tC-------- \tWDamage Type Resistance / Vulnerability\tC ---------\tn\r\n");
+               "\tC-------- \tWDamage Type Resistance / Vulnerability\tC ---------\tn\r\n");
   for (i = 0; i < NUM_DAM_TYPES - 1; i++) {
     send_to_char(ch, "%-15s: %-4d%% (%-2d)   ", damtype_display[i + 1],
-            compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
+                 compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
     if (i % 2)
       send_to_char(ch, "\r\n");
   }
   send_to_char(ch, "\r\n");
   send_to_char(ch,
-          "\tC---------------------------------------------------------\tn\r\n");
+               "\tC---------------------------------------------------------\tn\r\n");
 }
 
 void free_history(struct char_data *ch, int type) {
@@ -1361,13 +1359,13 @@ void add_history(struct char_data *ch, char *str, int type) {
 }
 
 void list_scanned_chars(struct char_data * list, struct char_data * ch, int
-        distance, int door) {
+                        distance, int door) {
   char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
 
   const char *how_far[] = {
-    "close by",
-    "a ways off",
-    "far off to the"
+                           "close by",
+                           "a ways off",
+                           "far off to the"
   };
 
   struct char_data *i;
@@ -1420,20 +1418,20 @@ void list_scanned_chars(struct char_data * list, struct char_data * ch, int
 ACMD(do_masterlist) {
   size_t len = 0, nlen = 0;
   int bottom = 0, top = 0, counter = 0, i = 0;
-  char buf2[MAX_STRING_LENGTH] = { '\0' };
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   const char *overflow = "\r\n**OVERFLOW**\r\n";
   bool is_spells = FALSE;
 
   if (IS_NPC(ch))
     return;
-  
+
   skip_spaces(&argument);
 
   if (!argument || !*argument) {
     send_to_char(ch, "Specify 'spells' or 'skills' list.\r\n");
     return;
   }
- 
+
   if (is_abbrev(argument, "skills")) {
     bottom = 0;
     top = MAX_SKILLS - MAX_SPELLS + 1;
@@ -1444,29 +1442,29 @@ ACMD(do_masterlist) {
     is_spells = TRUE;
   } else {
     send_to_char(ch, "Specify 'spells' or 'skills' list.\r\n");
-    return;    
+    return;
   }
-  
+
   len = snprintf(buf2, sizeof (buf2), "\tCMaster List\tn\r\n");
-  
+
   for (; bottom < top; bottom++) {
     if (is_spells)
       i = sorted_spells[bottom];
     else
       i = sorted_skills[bottom];
-    
+
     if (!strcmp(spell_info[i].name, "!UNUSED!"))
       continue;
     nlen = snprintf(buf2 + len, sizeof (buf2) - len,
-            "%3d) %s\r\n", i, spell_info[i].name);
+                    "%3d) %s\r\n", i, spell_info[i].name);
     if (len + nlen >= sizeof (buf2) || nlen < 0)
       break;
-    len += nlen;    
+    len += nlen;
     counter++;
   }
   nlen = snprintf(buf2 + len, sizeof (buf2) - len,
-          "\r\n\tCTotal:\tn  %d\r\n", counter);
-  
+                  "\r\n\tCTotal:\tn  %d\r\n", counter);
+
   /* strcpy: OK */
   if (len >= sizeof (buf2))
     strcpy(buf2 + sizeof (buf2) - strlen(overflow) - 1, overflow);
@@ -1500,7 +1498,7 @@ ACMD(do_look) {
         send_to_char(ch, "Read what?\r\n");
       else {
         generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM |
-                FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
+                     FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
         if (tmp_object)
           look_at_target(ch, arg);
         else
@@ -1525,7 +1523,7 @@ ACMD(do_look) {
       for (i = world[IN_ROOM(ch)].ex_description; i; i = i->next) {
         if (*i->keyword != '.') {
           send_to_char(ch, "%s%s:\r\n%s",
-                  (found ? "\r\n" : ""), i->keyword, i->description);
+                       (found ? "\r\n" : ""), i->keyword, i->description);
           found = 1;
         }
       }
@@ -1552,13 +1550,13 @@ ACMD(do_examine) {
   look_at_target(ch, strcpy(tempsave, arg)); /* strcpy: OK */
 
   generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM |
-          FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
+               FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
 
   if (tmp_object) {
     if ((GET_OBJ_TYPE(tmp_object) == ITEM_DRINKCON) ||
-            (GET_OBJ_TYPE(tmp_object) == ITEM_FOUNTAIN) ||
-            (GET_OBJ_TYPE(tmp_object) == ITEM_QUIVER) ||
-            (GET_OBJ_TYPE(tmp_object) == ITEM_CONTAINER)) {
+        (GET_OBJ_TYPE(tmp_object) == ITEM_FOUNTAIN) ||
+        (GET_OBJ_TYPE(tmp_object) == ITEM_QUIVER) ||
+        (GET_OBJ_TYPE(tmp_object) == ITEM_CONTAINER)) {
       send_to_char(ch, "When you look inside, you see:\r\n");
       look_in_obj(ch, arg);
     }
@@ -1615,9 +1613,9 @@ ACMD(do_innates) {
         send_to_char(ch, "poison resist (+2 poison save)\r\n");
         send_to_char(ch, "stability (+4 resist bash/trip)\r\n");
         send_to_char(ch, "spell hardiness (+2 spell save vs. "
-                "damaging spells)\r\n");
+                     "damaging spells)\r\n");
         send_to_char(ch, "combat training versus giants "
-                "(+1 size bonus vs. larger opponents)\r\n");
+                     "(+1 size bonus vs. larger opponents)\r\n");
         break;
       case RACE_H_ELF:
         send_to_char(ch, "basic weapon proficiency (free skill)\r\n");
@@ -1639,7 +1637,7 @@ ACMD(do_innates) {
         send_to_char(ch, "lucky (+1 all saves)\r\n");
         send_to_char(ch, "infravision\r\n");
         send_to_char(ch, "combat training versus giants "
-                "(+1 size bonus vs. larger opponents)\r\n");
+                     "(+1 size bonus vs. larger opponents)\r\n");
         break;
       case RACE_GNOME:
         send_to_char(ch, "gnomish constitution (+2 con)\r\n");
@@ -1649,7 +1647,7 @@ ACMD(do_innates) {
         send_to_char(ch, "tinker focus (+2 concentration/listen)\r\n");
         send_to_char(ch, "infravision\r\n");
         send_to_char(ch, "combat training versus giants "
-                "(+1 size bonus vs. larger opponents)\r\n");
+                     "(+1 size bonus vs. larger opponents)\r\n");
         break;
       case RACE_HUMAN:
         send_to_char(ch, "diverse (+3 training sessions, 1st level)\r\n");
@@ -1690,7 +1688,7 @@ ACMD(do_innates) {
         send_to_char(ch, "crystalbody (help CRYSTALBODY)\r\n");
         send_to_char(ch, "crystalfist (help CRYSTALFIST)\r\n");
         send_to_char(ch, "combat training versus giants "
-                "(+1 size bonus vs. larger opponents)\r\n");
+                     "(+1 size bonus vs. larger opponents)\r\n");
         break;
       case RACE_TROLL:
         send_to_char(ch, "regeneration\r\n");
@@ -1708,16 +1706,16 @@ ACMD(do_innates) {
         break;
       case RACE_ARCANA_GOLEM:
         send_to_char(ch, "\tRarcana golem spell vulnerability "
-                "(-2 penalty against damaging spell saves)\tn\r\n");
+                     "(-2 penalty against damaging spell saves)\tn\r\n");
         send_to_char(ch, "\tRarcana golem enchantment vulnerability "
-                "(-2 penalty against enchantment saves)\tn\r\n");
+                     "(-2 penalty against enchantment saves)\tn\r\n");
         send_to_char(ch, "\tRarcana golem constitution (-2 con)\tn\r\n");
         send_to_char(ch, "\tRarcana golem strength (-2 str)\tn\r\n");
         send_to_char(ch, "arcana intelligence (+2 int)\r\n");
         send_to_char(ch, "arcana wisdom (+2 wis)\r\n");
         send_to_char(ch, "arcana charisma (+2 cha)\r\n");
         send_to_char(ch, "Magical Heritage (a 6th of level bonus to: "
-                "caster-level, concentration and spellcraft\r\n");        
+                     "caster-level, concentration and spellcraft\r\n");
         send_to_char(ch, "spellbattle (help SPELLBATTLE)\r\n");
         break;
       default:
@@ -1780,14 +1778,14 @@ Shield Proficiency Used :  None        | On quest         : None
 --------------------------------------------------------------------------------    
 Gold: 999615                      Gold in Bank : 0          
 --------------------------------------------------------------------------------
-*/
+ */
 ACMD(do_score) {
   char buf[MAX_INPUT_LENGTH];
   struct time_info_data playing_time;
   int calc_bab = MIN(MAX_BAB, BAB(ch)), w_type, i = 0, counter = 0;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   float height = GET_HEIGHT(ch);
-  
+
   int line_length = 80;
 
   // get some initial info before score display
@@ -1800,13 +1798,13 @@ ACMD(do_score) {
       w_type = TYPE_HIT;
   }
   playing_time = *real_time_passed((time(0) - ch->player.time.logon) +
-          ch->player.time.played, 0);
+                                   ch->player.time.played, 0);
 
   height *= 0.393700787402;
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tYScore Information\tC", line_length, '-', '-');
-  send_to_char(ch, "\tcName : \tn%-20s \tcTitle   : \tn%s\r\n", 
+  send_to_char(ch, "\tcName : \tn%-20s \tcTitle   : \tn%s\r\n",
                GET_NAME(ch), GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
 
   send_to_char(ch, "\tcRace : \tn%-20s ", pc_race_types[GET_RACE(ch)]);
@@ -1827,7 +1825,8 @@ ACMD(do_score) {
   send_to_char(ch, "\tcClass%s : \tn%s\r\n", (counter == 1 ? "  " : "es"), buf);
 
   send_to_char(ch, "\tcSex  : \tn%-20s ",
-                   (GET_SEX(ch) == SEX_MALE ? "Male" : (GET_SEX(ch) == SEX_FEMALE ? "Female" : "Neutral")));;
+               (GET_SEX(ch) == SEX_MALE ? "Male" : (GET_SEX(ch) == SEX_FEMALE ? "Female" : "Neutral")));
+  ;
 
   send_to_char(ch, "\tcAlignment : \tn%s\r\n", get_align_by_num(GET_ALIGNMENT(ch)));
 
@@ -1835,31 +1834,31 @@ ACMD(do_score) {
                age(ch)->year, age(ch)->month, playing_time.day, playing_time.hours);
   send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs\r\n",
                size_names[GET_SIZE(ch)], IS_CARRYING_W(ch), CAN_CARRY_W(ch));
-  send_to_char(ch, "\tC");  
+  send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
   send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)\r\n",
-          GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch));
+               GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch));
 
-  send_to_char(ch, "\tC");  
+  send_to_char(ch, "\tC");
   text_line(ch, "\tyExperience\tC", line_length, '-', '-');
   send_to_char(ch, "\tcLevel : \tn%-2d                       \tcCstrLvl : \tn%-2d  \tcDivLvl : \tn%-2d  \tcMgcLvl : \tn%-2d\r\n"
-                   "\tcExp   : \tn%-24d \tcExpTNL  : \tn%d\r\n" 
-                   "\tC-------------\tyAbility Scores\tC--------------------------\tySaving Throws\tC--------------\r\n"
-                   "\tcStr:\tn %2d[%2d]  \tcDex:\tn %2d[%2d]  \tcCon:\tn %2d[%2d]  \tC|  \tcFort    : \tn%-2d  \tcWill    : \tn%-2d\tn\r\n"  
-                   "\tcInt:\tn %2d[%2d]  \tcWis:\tn %2d[%2d]  \tcCha:\tn %2d[%2d]  \tC|  \tcReflex  : \tn%-2d\tn\r\n",
-          GET_LEVEL(ch), CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch),
-          GET_EXP(ch), (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) -GET_EXP(ch)),
-          GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch), 
-          compute_mag_saves(ch, SAVING_FORT, 0), compute_mag_saves(ch, SAVING_WILL, 0),
-          GET_INT(ch), GET_INT_BONUS(ch), GET_WIS(ch), GET_WIS_BONUS(ch), GET_CHA(ch), GET_CHA_BONUS(ch), compute_mag_saves(ch, SAVING_REFL, 0)
-          );
+               "\tcExp   : \tn%-24d \tcExpTNL  : \tn%d\r\n"
+               "\tC-------------\tyAbility Scores\tC--------------------------\tySaving Throws\tC--------------\r\n"
+               "\tcStr:\tn %2d[%2d]  \tcDex:\tn %2d[%2d]  \tcCon:\tn %2d[%2d]  \tC|  \tcFort    : \tn%-2d  \tcWill    : \tn%-2d\tn\r\n"
+               "\tcInt:\tn %2d[%2d]  \tcWis:\tn %2d[%2d]  \tcCha:\tn %2d[%2d]  \tC|  \tcReflex  : \tn%-2d\tn\r\n",
+               GET_LEVEL(ch), CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch),
+               GET_EXP(ch), (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)),
+               GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch),
+               compute_mag_saves(ch, SAVING_FORT, 0), compute_mag_saves(ch, SAVING_WILL, 0),
+               GET_INT(ch), GET_INT_BONUS(ch), GET_WIS(ch), GET_WIS_BONUS(ch), GET_CHA(ch), GET_CHA_BONUS(ch), compute_mag_saves(ch, SAVING_REFL, 0)
+               );
   send_to_char(ch, "\tC");
   text_line(ch, "\tyCombat\tC", line_length, '-', '-');
 
   /* Begin combat section */
   send_to_char(ch, "\tcArmorClass : \tn%-4d \tcSpell Resist : \tn%-3d \tcWimpy        : \tn%-3d \tcPos   : \tn",
-                   compute_armor_class(NULL, ch, FALSE), compute_spell_res(NULL, ch, 0), GET_WIMP_LEV(ch));
+               compute_armor_class(NULL, ch, FALSE), compute_spell_res(NULL, ch, 0), GET_WIMP_LEV(ch));
 
   if (FIGHTING(ch))
     send_to_char(ch, "(Fighting) - ");
@@ -1897,34 +1896,34 @@ ACMD(do_score) {
 
 #define RETURN_NUM_ATTACKS 1
   send_to_char(ch, "\tcBAB        : \tn%-4d \tc# of Attacks : \tn%-3d \tcConcealment  : \tn%-3d\r\n",
-                  calc_bab, perform_attacks(ch, RETURN_NUM_ATTACKS, 0), compute_concealment(ch));
+               calc_bab, perform_attacks(ch, RETURN_NUM_ATTACKS, 0), compute_concealment(ch));
 #undef RETURN_NUM_ATTACKS
 
   send_to_char(ch, "\tC----------------\tyProficiencies\tC-----------------------------------\tyQuests\tC----------\tn\r\n"
-                   "\tcWeapon Proficiency Used : \tn%-25s \tC| \tcQuests completed : \tn%d\r\n"
-                   "\tcArmor Proficiency Used  : \tn%-25s \tC| \tcQuest points     : \tn%d\r\n"
-                   "\tcShield Proficiency Used : \tn%-25s \tC| \tcOn quest         : \tn",
-                   item_profs[proficiency_worn(ch, WEAPON_PROFICIENCY)], (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),  
-                   item_profs[proficiency_worn(ch, ARMOR_PROFICIENCY)], (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0),
-                   item_profs[proficiency_worn(ch, SHIELD_PROFICIENCY)]);
+               "\tcWeapon Proficiency Used : \tn%-25s \tC| \tcQuests completed : \tn%d\r\n"
+               "\tcArmor Proficiency Used  : \tn%-25s \tC| \tcQuest points     : \tn%d\r\n"
+               "\tcShield Proficiency Used : \tn%-25s \tC| \tcOn quest         : \tn",
+               item_profs[proficiency_worn(ch, WEAPON_PROFICIENCY)], (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
+               item_profs[proficiency_worn(ch, ARMOR_PROFICIENCY)], (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0),
+               item_profs[proficiency_worn(ch, SHIELD_PROFICIENCY)]);
 
- if (!IS_NPC(ch) && GET_QUEST(ch) != NOTHING) 
-     send_to_char(ch, "%d\r\n", GET_QUEST(ch) == NOTHING ? -1 : GET_QUEST(ch));
- else
-   send_to_char(ch, "None\r\n");
+  if (!IS_NPC(ch) && GET_QUEST(ch) != NOTHING)
+    send_to_char(ch, "%d\r\n", GET_QUEST(ch) == NOTHING ? -1 : GET_QUEST(ch));
+  else
+    send_to_char(ch, "None\r\n");
 
- if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch))
-      send_to_char(ch, "                                                    \tC| \tcOn Crafting Job: (\tn%d\tc) \tn%s\tc, using: \tn%s\r\n",
-            GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
-            material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
-            
+  if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch))
+    send_to_char(ch, "                                                    \tC| \tcOn Crafting Job: (\tn%d\tc) \tn%s\tc, using: \tn%s\r\n",
+                 GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
+                 material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
+
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
   send_to_char(ch, "\tcGold:\tn %d                \tcGold in Bank:\tn %d\r\n",
-          GET_GOLD(ch), GET_BANK_GOLD(ch));
+               GET_GOLD(ch), GET_BANK_GOLD(ch));
 
-  send_to_char(ch, "\tC"); 
+  send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
   if (GET_LEVEL(ch) >= LVL_IMMORT) {
@@ -1981,7 +1980,7 @@ ACMD(do_score) {
 ACMD(do_inventory) {
   send_to_char(ch, "You are carrying:\r\n");
   list_obj_to_char(ch->carrying, ch, SHOW_OBJ_SHORT, TRUE, 1);
-  
+
   if (ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
     send_to_char(ch, "\r\n\t<send href='equipment'>View equipped items\t</send>\r\n");
 }
@@ -1992,16 +1991,16 @@ ACMD(do_equipment) {
   char dex_max[10] = "None";
   int j = compute_gear_max_dex(ch);
 
-  if (j != 99)  // 99 is our signal for no max dex
+  if (j != 99) // 99 is our signal for no max dex
     sprintf(dex_max, "%d", j);
-  
+
   send_to_char(ch, "You are using:\r\n");
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i)) {
       found = TRUE;
       if (CAN_SEE_OBJ(ch, GET_EQ(ch, i))) {
         send_to_char(ch, "%s", wear_where[i]);
-        show_obj_to_char(GET_EQ(ch, i), ch, SHOW_OBJ_SHORT, mxp_type); 
+        show_obj_to_char(GET_EQ(ch, i), ch, SHOW_OBJ_SHORT, mxp_type);
       } else {
         send_to_char(ch, "%s", wear_where[i]);
         send_to_char(ch, "Something.\r\n");
@@ -2010,12 +2009,12 @@ ACMD(do_equipment) {
   }
   if (!found)
     send_to_char(ch, " Nothing.\r\n");
-  
+
   send_to_char(ch, "\tCArmor/Shield Wt: %d/%d, Penalty: %d, Max Dex: %s, Spell Fail:"
-          " %d.\tn\r\n", determine_gear_weight(ch, ARMOR_PROFICIENCY),
-          determine_gear_weight(ch, SHIELD_PROFICIENCY),
-          compute_gear_penalty_check(ch), dex_max, compute_gear_arcane_fail(ch));
-  
+               " %d.\tn\r\n", determine_gear_weight(ch, ARMOR_PROFICIENCY),
+               determine_gear_weight(ch, SHIELD_PROFICIENCY),
+               compute_gear_penalty_check(ch), dex_max, compute_gear_arcane_fail(ch));
+
   if (ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
     send_to_char(ch, "\r\n\t<send href='inventory'>View inventory\t</send>\r\n");
 }
@@ -2031,8 +2030,8 @@ ACMD(do_time) {
   weekday = ((35 * time_info.month) + day) % 7;
 
   send_to_char(ch, "It is %d o'clock %s, on %s.\r\n",
-          (time_info.hours % 12 == 0) ? 12 : (time_info.hours % 12),
-          time_info.hours >= 12 ? "pm" : "am", weekdays[weekday]);
+               (time_info.hours % 12 == 0) ? 12 : (time_info.hours % 12),
+               time_info.hours >= 12 ? "pm" : "am", weekdays[weekday]);
 
   /* Peter Ajamian supplied the following as a fix for a bug introduced in the
    * ordinal display that caused 11, 12, and 13 to be incorrectly displayed as
@@ -2055,27 +2054,27 @@ ACMD(do_time) {
   }
 
   send_to_char(ch, "The %d%s Day of the %s, Year %d.\r\n",
-          day, suf, month_name[time_info.month], time_info.year);
+               day, suf, month_name[time_info.month], time_info.year);
 }
 
 ACMD(do_weather) {
   const char *sky_look[] = {
-    "cloudless",
-    "cloudy",
-    "rainy",
-    "lit by flashes of lightning"
+                            "cloudless",
+                            "cloudy",
+                            "rainy",
+                            "lit by flashes of lightning"
   };
 
   if (OUTSIDE(ch)) {
     send_to_char(ch, "The sky is %s and %s.\r\n", sky_look[weather_info.sky],
-            weather_info.change >= 0 ? "you feel a warm wind from south" :
-            "your foot tells you bad weather is due");
+                 weather_info.change >= 0 ? "you feel a warm wind from south" :
+                 "your foot tells you bad weather is due");
     if (GET_LEVEL(ch) >= LVL_STAFF)
       send_to_char(ch, "Pressure: %d (change: %d), Sky: %d (%s)\r\n",
-            weather_info.pressure,
-            weather_info.change,
-            weather_info.sky,
-            sky_look[weather_info.sky]);
+                   weather_info.pressure,
+                   weather_info.change,
+                   weather_info.sky,
+                   sky_look[weather_info.sky]);
   } else
     send_to_char(ch, "You have no feeling about the weather at all.\r\n");
 }
@@ -2189,7 +2188,7 @@ ACMD(do_who) {
 
     if (CAN_SEE(ch, tch) && IS_PLAYING(d)) {
       if (*name_search && str_cmp(GET_NAME(tch), name_search) &&
-              !strstr(GET_TITLE(tch), name_search))
+          !strstr(GET_TITLE(tch), name_search))
         continue;
       if (!CAN_SEE(ch, tch) || GET_LEVEL(tch) < low || GET_LEVEL(tch) > high)
         continue;
@@ -2240,7 +2239,7 @@ ACMD(do_who) {
       if (!IS_PLAYING(d))
         continue;
       if (*name_search && str_cmp(GET_NAME(tch), name_search) &&
-              !strstr(GET_TITLE(tch), name_search))
+          !strstr(GET_TITLE(tch), name_search))
         continue;
       if (!CAN_SEE(ch, tch) || GET_LEVEL(tch) < low || GET_LEVEL(tch) > high)
         continue;
@@ -2263,8 +2262,8 @@ ACMD(do_who) {
 
       if (short_list) {
         send_to_char(ch, "[%2d %8s] %-12.12s%s%s",
-                GET_LEVEL(tch), RACE_ABBR(tch), GET_NAME(tch),
-                CCNRM(ch, C_SPR), ((!(++num_can_see % 4)) ? "\r\n" : ""));
+                     GET_LEVEL(tch), RACE_ABBR(tch), GET_NAME(tch),
+                     CCNRM(ch, C_SPR), ((!(++num_can_see % 4)) ? "\r\n" : ""));
       } else {
         //num_can_see++;
         if (GET_LEVEL(tch) >= LVL_IMMORT) {
@@ -2273,7 +2272,7 @@ ACMD(do_who) {
         } else {
           mortals++;
           send_to_char(ch, "[%2d %8s ",
-                  GET_LEVEL(tch), RACE_ABBR(tch));
+                       GET_LEVEL(tch), RACE_ABBR(tch));
         }
 
         if (GET_LEVEL(tch) < LVL_IMMORT) {
@@ -2282,7 +2281,7 @@ ACMD(do_who) {
             if (CLASS_LEVEL(tch, inc)) {
               if (classCount)
                 strcat(class_list, "/");
-                //send_to_char(ch, "/");
+              //send_to_char(ch, "/");
               strcat(class_list, class_abbrevs[inc]);
               classCount++;
             }
@@ -2297,8 +2296,8 @@ ACMD(do_who) {
         }
 
         send_to_char(ch, " %s%s%s%s",
-                GET_NAME(tch), (*GET_TITLE(tch) ? " " : ""), GET_TITLE(tch),
-                CCNRM(ch, C_SPR));
+                     GET_NAME(tch), (*GET_TITLE(tch) ? " " : ""), GET_TITLE(tch),
+                     CCNRM(ch, C_SPR));
 
         if (IS_IN_CLAN(tch) && !(GET_CLANRANK(tch) == NO_CLANRANK)) {
           c_n = real_clan(GET_CLAN(tch));
@@ -2382,7 +2381,7 @@ ACMD(do_who) {
   if ((mortals + staff) > boot_high)
     boot_high = mortals + staff;
   send_to_char(ch, "Maximum visible players this boot: %d.\r\n", boot_high);
-  
+
   if (IS_HAPPYHOUR > 0) {
     send_to_char(ch, "\tWIt's a Happy Hour! Type \tRhappyhour\tW to see the current bonuses.\tn\r\n");
   }
@@ -2454,8 +2453,8 @@ ACMD(do_users) {
     }
   } /* end while (parser) */
   send_to_char(ch,
-          "Num Class    Name         State          Idl   Login\t*   Site\r\n"
-          "--- -------- ------------ -------------- ----- -------- ------------------------\r\n");
+               "Num Class    Name         State          Idl   Login\t*   Site\r\n"
+               "--- -------- ------------ -------------- ----- -------- ------------------------\r\n");
 
   one_argument(argument, arg);
 
@@ -2477,7 +2476,7 @@ ACMD(do_users) {
       if (!CAN_SEE(ch, tch) || GET_LEVEL(tch) < low || GET_LEVEL(tch) > high)
         continue;
       if (outlaws && !PLR_FLAGGED(tch, PLR_KILLER) &&
-              !PLR_FLAGGED(tch, PLR_THIEF))
+          !PLR_FLAGGED(tch, PLR_THIEF))
         continue;
       if (showclass && !(showclass & (1 << GET_CLASS(tch))))
         continue;
@@ -2486,10 +2485,10 @@ ACMD(do_users) {
 
       if (d->original)
         sprintf(classname, "[%2d %s]", GET_LEVEL(d->original),
-              CLASS_ABBR(d->original));
+                CLASS_ABBR(d->original));
       else
         sprintf(classname, "[%2d %s]", GET_LEVEL(d->character),
-              CLASS_ABBR(d->character));
+                CLASS_ABBR(d->character));
     } else
       strcpy(classname, "   -    ");
 
@@ -2504,7 +2503,7 @@ ACMD(do_users) {
 
     if (d->character && STATE(d) == CON_PLAYING)
       sprintf(idletime, "%5d", d->character->char_specials.timer *
-            SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
+              SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
     else
       strcpy(idletime, "     ");
 
@@ -2524,7 +2523,7 @@ ACMD(do_users) {
       strcpy(line, line2);
     }
     if (STATE(d) != CON_PLAYING ||
-            (STATE(d) == CON_PLAYING && CAN_SEE(ch, d->character))) {
+        (STATE(d) == CON_PLAYING && CAN_SEE(ch, d->character))) {
       send_to_char(ch, "%s", line);
       num_can_see++;
     }
@@ -2642,7 +2641,7 @@ ACMD(do_levels) {
 
   for (i = min_lev; i < max_lev; i++) {
     nlen = snprintf(buf + len, sizeof (buf) - len, "[%2d] %8d-%-8d : ", (int) i,
-            level_exp(ch, i), level_exp(ch, i + 1) - 1);
+                    level_exp(ch, i), level_exp(ch, i + 1) - 1);
     if (len + nlen >= sizeof (buf))
       break;
     len += nlen;
@@ -2668,7 +2667,7 @@ ACMD(do_levels) {
 
   if (len < sizeof (buf) && max_lev == LVL_IMMORT)
     snprintf(buf + len, sizeof (buf) - len, "[%2d] %8d          : Immortality\r\n",
-          LVL_IMMORT, level_exp(ch, LVL_IMMORT));
+             LVL_IMMORT, level_exp(ch, LVL_IMMORT));
   page_string(ch->desc, buf, TRUE);
 }
 
@@ -2753,137 +2752,137 @@ ACMD(do_toggle) {
     char *disable_msg;
     char *enable_msg;
   } tog_messages[] = {
-    /*0*/
+                      /*0*/
     {"summonable", PRF_SUMMONABLE, 0,
-      "You are now safe from summoning by other players.\r\n",
-      "You may now be summoned by other players.\r\n"},
-    /*1*/
+     "You are now safe from summoning by other players.\r\n",
+     "You may now be summoned by other players.\r\n"},
+                      /*1*/
     {"nohassle", PRF_NOHASSLE, LVL_IMMORT,
-      "Nohassle disabled.\r\n",
-      "Nohassle enabled.\r\n"},
-    /*2*/
+     "Nohassle disabled.\r\n",
+     "Nohassle enabled.\r\n"},
+                      /*2*/
     {"brief", PRF_BRIEF, 0,
-      "Brief mode off.\r\n",
-      "Brief mode on.\r\n"},
-    /*3*/
+     "Brief mode off.\r\n",
+     "Brief mode on.\r\n"},
+                      /*3*/
     {"compact", PRF_COMPACT, 0,
-      "Compact mode off.\r\n",
-      "Compact mode on.\r\n"},
-    /*4*/
+     "Compact mode off.\r\n",
+     "Compact mode on.\r\n"},
+                      /*4*/
     {"notell", PRF_NOTELL, 0,
-      "You can now hear tells.\r\n",
-      "You are now deaf to tells.\r\n"},
-    /*5*/
+     "You can now hear tells.\r\n",
+     "You are now deaf to tells.\r\n"},
+                      /*5*/
     {"noauction", PRF_NOAUCT, 0,
-      "You can now hear auctions.\r\n",
-      "You are now deaf to auctions.\r\n"},
-    /*6*/
+     "You can now hear auctions.\r\n",
+     "You are now deaf to auctions.\r\n"},
+                      /*6*/
     {"noshout", PRF_NOSHOUT, 0,
-      "You can now hear shouts.\r\n",
-      "You are now deaf to shouts.\r\n"},
-    /*7*/
+     "You can now hear shouts.\r\n",
+     "You are now deaf to shouts.\r\n"},
+                      /*7*/
     {"nogossip", PRF_NOGOSS, 0,
-      "You can now hear gossip.\r\n",
-      "You are now deaf to gossip.\r\n"},
-    /*8*/
+     "You can now hear gossip.\r\n",
+     "You are now deaf to gossip.\r\n"},
+                      /*8*/
     {"nograts", PRF_NOGRATZ, 0,
-      "You can now hear gratz.\r\n",
-      "You are now deaf to gratz.\r\n"},
-    /*9*/
+     "You can now hear gratz.\r\n",
+     "You are now deaf to gratz.\r\n"},
+                      /*9*/
     {"nowiz", PRF_NOWIZ, LVL_IMMORT,
-      "You can now hear the Wiz-channel.\r\n",
-      "You are now deaf to the Wiz-channel.\r\n"},
-    /*10*/
+     "You can now hear the Wiz-channel.\r\n",
+     "You are now deaf to the Wiz-channel.\r\n"},
+                      /*10*/
     {"quest", PRF_QUEST, 0,
-      "You are no longer part of the Quest.\r\n",
-      "Okay, you are part of the Quest.\r\n"},
-    /*11*/
+     "You are no longer part of the Quest.\r\n",
+     "Okay, you are part of the Quest.\r\n"},
+                      /*11*/
     {"showvnums", PRF_SHOWVNUMS, LVL_IMMORT,
-      "You will no longer see the vnums.\r\n",
-      "You will now see the vnums.\r\n"},
-    /*12*/
+     "You will no longer see the vnums.\r\n",
+     "You will now see the vnums.\r\n"},
+                      /*12*/
     {"norepeat", PRF_NOREPEAT, 0,
-      "You will now have your communication repeated.\r\n",
-      "You will no longer have your communication repeated.\r\n"},
-    /*13*/
+     "You will now have your communication repeated.\r\n",
+     "You will no longer have your communication repeated.\r\n"},
+                      /*13*/
     {"holylight", PRF_HOLYLIGHT, LVL_IMMORT,
-      "HolyLight mode off.\r\n",
-      "HolyLight mode on.\r\n"},
-    /*14*/
+     "HolyLight mode off.\r\n",
+     "HolyLight mode on.\r\n"},
+                      /*14*/
     {"slownameserver", 0, LVL_IMPL,
-      "Nameserver_is_slow changed to OFF; IP addresses will now be resolved.\r\n",
-      "Nameserver_is_slow changed to ON; sitenames will no longer be resolved.\r\n"},
-    /*15*/
+     "Nameserver_is_slow changed to OFF; IP addresses will now be resolved.\r\n",
+     "Nameserver_is_slow changed to ON; sitenames will no longer be resolved.\r\n"},
+                      /*15*/
     {"autoexits", PRF_AUTOEXIT, 0,
-      "Autoexits disabled.\r\n",
-      "Autoexits enabled.\r\n"},
-    /*16*/
+     "Autoexits disabled.\r\n",
+     "Autoexits enabled.\r\n"},
+                      /*16*/
     {"trackthru", 0, LVL_IMPL,
-      "Players can no longer track through doors.\r\n",
-      "Players can now track through doors.\r\n"},
-    /*17*/
+     "Players can no longer track through doors.\r\n",
+     "Players can now track through doors.\r\n"},
+                      /*17*/
     {"clsolc", PRF_CLS, LVL_BUILDER,
-      "You will no longer clear screen in OLC.\r\n",
-      "You will now clear screen in OLC.\r\n"},
-    /*18*/
+     "You will no longer clear screen in OLC.\r\n",
+     "You will now clear screen in OLC.\r\n"},
+                      /*18*/
     {"buildwalk", PRF_BUILDWALK, LVL_BUILDER,
-      "Buildwalk is now Off.\r\n",
-      "Buildwalk is now On.\r\n"},
-    /*19*/
+     "Buildwalk is now Off.\r\n",
+     "Buildwalk is now On.\r\n"},
+                      /*19*/
     {"afk", PRF_AFK, 0,
-      "AFK is now Off.\r\n",
-      "AFK is now On.\r\n"},
-    /*20*/
+     "AFK is now Off.\r\n",
+     "AFK is now On.\r\n"},
+                      /*20*/
     {"autoloot", PRF_AUTOLOOT, 0,
-      "Autoloot disabled.\r\n",
-      "Autoloot enabled.\r\n"},
-    /*21*/
+     "Autoloot disabled.\r\n",
+     "Autoloot enabled.\r\n"},
+                      /*21*/
     {"autogold", PRF_AUTOGOLD, 0,
-      "Autogold disabled.\r\n",
-      "Autogold enabled.\r\n"},
-    /*22*/
+     "Autogold disabled.\r\n",
+     "Autogold enabled.\r\n"},
+                      /*22*/
     {"autosplit", PRF_AUTOSPLIT, 0,
-      "Autosplit disabled.\r\n",
-      "Autosplit enabled.\r\n"},
-    /*23*/
+     "Autosplit disabled.\r\n",
+     "Autosplit enabled.\r\n"},
+                      /*23*/
     {"autosac", PRF_AUTOSAC, 0,
-      "Autosac disabled.\r\n",
-      "Autosac enabled.\r\n"},
-    /*24*/
+     "Autosac disabled.\r\n",
+     "Autosac enabled.\r\n"},
+                      /*24*/
     {"autoassist", PRF_AUTOASSIST, 0,
-      "Autoassist disabled.\r\n",
-      "Autoassist enabled.\r\n"},
-    /*25*/
+     "Autoassist disabled.\r\n",
+     "Autoassist enabled.\r\n"},
+                      /*25*/
     {"automap", PRF_AUTOMAP, 1,
-      "You will no longer see the mini-map.\r\n",
-      "You will now see a mini-map at the side of room descriptions.\r\n"},
-    /*26*/
+     "You will no longer see the mini-map.\r\n",
+     "You will now see a mini-map at the side of room descriptions.\r\n"},
+                      /*26*/
     {"autokey", PRF_AUTOKEY, 0,
-      "You will now have to unlock doors manually before opening.\r\n",
-      "You will now automatically unlock doors when opening them (if you have the key).\r\n"},
-    /*27*/
+     "You will now have to unlock doors manually before opening.\r\n",
+     "You will now automatically unlock doors when opening them (if you have the key).\r\n"},
+                      /*27*/
     {"autodoor", PRF_AUTODOOR, 0,
-      "You will now need to specify a door direction when opening, closing and unlocking.\r\n",
-      "You will now find the next available door when opening, closing or unlocking.\r\n"},
-    /*28*/
+     "You will now need to specify a door direction when opening, closing and unlocking.\r\n",
+     "You will now find the next available door when opening, closing or unlocking.\r\n"},
+                      /*28*/
     {"clantalk", PRF_NOCLANTALK, LVL_STAFF,
-      "You can now hear all clan's clantalk.\r\n",
-      "All clantalk will now be hidden.\r\n"},
-    /*29*/
+     "You can now hear all clan's clantalk.\r\n",
+     "All clantalk will now be hidden.\r\n"},
+                      /*29*/
     {"color", 0, 0, "\n", "\n"},
-    /*30*/
+                      /*30*/
     {"syslog", 0, LVL_IMMORT, "\n", "\n"},
-    /*31*/
+                      /*31*/
     {"wimpy", 0, 0, "\n", "\n"},
-    /*32*/
+                      /*32*/
     {"pagelength", 0, 0, "\n", "\n"},
-    /*33*/
+                      /*33*/
     {"screenwidth", 0, 0, "\n", "\n"},
-    /*34*/
+                      /*34*/
     {"autoscan", PRF_AUTOSCAN, 0,
-      "Autoscan disabled.\r\n",
-      "Autoscan enabled.\r\n"},
-    /*LAST*/
+     "Autoscan disabled.\r\n",
+     "Autoscan enabled.\r\n"},
+                      /*LAST*/
     {"\n", 0, -1, "\n", "\n"} /* must be last */
   };
 
@@ -2901,125 +2900,125 @@ ACMD(do_toggle) {
 
     if (GET_LEVEL(ch) == LVL_IMPL) {
       send_to_char(ch,
-              " SlowNameserver: %-3s   "
-              "                        "
-              " Trackthru Doors: %-3s\r\n",
+                   " SlowNameserver: %-3s   "
+                   "                        "
+                   " Trackthru Doors: %-3s\r\n",
 
-              ONOFF(CONFIG_NS_IS_SLOW),
-              ONOFF(CONFIG_TRACK_T_DOORS));
+                   ONOFF(CONFIG_NS_IS_SLOW),
+                   ONOFF(CONFIG_TRACK_T_DOORS));
     }
 
     if (GET_LEVEL(ch) >= LVL_IMMORT) {
       send_to_char(ch,
-              "      Buildwalk: %-3s    "
-              "          NoWiz: %-3s    "
-              "         ClsOLC: %-3s\r\n"
-              "       NoHassle: %-3s    "
-              "      Holylight: %-3s    "
-              "      ShowVnums: %-3s\r\n"
-              "     NoClanTalk: %-3s\r\n"
-              "         Syslog: %-3s\r\n",
+                   "      Buildwalk: %-3s    "
+                   "          NoWiz: %-3s    "
+                   "         ClsOLC: %-3s\r\n"
+                   "       NoHassle: %-3s    "
+                   "      Holylight: %-3s    "
+                   "      ShowVnums: %-3s\r\n"
+                   "     NoClanTalk: %-3s\r\n"
+                   "         Syslog: %-3s\r\n",
 
-              ONOFF(PRF_FLAGGED(ch, PRF_BUILDWALK)),
-              ONOFF(PRF_FLAGGED(ch, PRF_NOWIZ)),
-              ONOFF(PRF_FLAGGED(ch, PRF_CLS)),
-              ONOFF(PRF_FLAGGED(ch, PRF_NOHASSLE)),
-              ONOFF(PRF_FLAGGED(ch, PRF_HOLYLIGHT)),
-              ONOFF(PRF_FLAGGED(ch, PRF_SHOWVNUMS)),
-              ONOFF(PRF_FLAGGED(ch, PRF_NOCLANTALK)),
-              types[(PRF_FLAGGED(ch, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(ch, PRF_LOG2) ? 2 : 0)]);
+                   ONOFF(PRF_FLAGGED(ch, PRF_BUILDWALK)),
+                   ONOFF(PRF_FLAGGED(ch, PRF_NOWIZ)),
+                   ONOFF(PRF_FLAGGED(ch, PRF_CLS)),
+                   ONOFF(PRF_FLAGGED(ch, PRF_NOHASSLE)),
+                   ONOFF(PRF_FLAGGED(ch, PRF_HOLYLIGHT)),
+                   ONOFF(PRF_FLAGGED(ch, PRF_SHOWVNUMS)),
+                   ONOFF(PRF_FLAGGED(ch, PRF_NOCLANTALK)),
+                   types[(PRF_FLAGGED(ch, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(ch, PRF_LOG2) ? 2 : 0)]);
     }
 
     send_to_char(ch,
-            "Hit Pnt Display: %-3s    "
-            "          Brief: %-3s    "
-            "     Summonable: %-3s\r\n"
+                 "Hit Pnt Display: %-3s    "
+                 "          Brief: %-3s    "
+                 "     Summonable: %-3s\r\n"
 
-            "   Move Display: %-3s    "
-            "        Compact: %-3s    "
-            "          Quest: %-3s\r\n"
+                 "   Move Display: %-3s    "
+                 "        Compact: %-3s    "
+                 "          Quest: %-3s\r\n"
 
-            "   Mana Display: %-3s    "
-            "         NoTell: %-3s    "
-            "       NoRepeat: %-3s\r\n"
+                 "   Mana Display: %-3s    "
+                 "         NoTell: %-3s    "
+                 "       NoRepeat: %-3s\r\n"
 
-            "      AutoExits: %-3s    "
-            "        NoShout: %-3s    "
-            "          Wimpy: %-3s\r\n"
+                 "      AutoExits: %-3s    "
+                 "        NoShout: %-3s    "
+                 "          Wimpy: %-3s\r\n"
 
-            "       NoGossip: %-3s    "
-            "      NoAuction: %-3s    "
-            "        NoGrats: %-3s\r\n"
+                 "       NoGossip: %-3s    "
+                 "      NoAuction: %-3s    "
+                 "        NoGrats: %-3s\r\n"
 
-            "       AutoLoot: %-3s    "
-            "       AutoGold: %-3s    "
-            "      AutoSplit: %-3s\r\n"
+                 "       AutoLoot: %-3s    "
+                 "       AutoGold: %-3s    "
+                 "      AutoSplit: %-3s\r\n"
 
-            "        AutoSac: %-3s    "
-            "     AutoAssist: %-3s    "
-            "        AutoMap: %-3s\r\n"
+                 "        AutoSac: %-3s    "
+                 "     AutoAssist: %-3s    "
+                 "        AutoMap: %-3s\r\n"
 
-            "     Pagelength: %-3d    "
-            "    Screenwidth: %-3d    "
-            "            AFK: %-3s\r\n"
+                 "     Pagelength: %-3d    "
+                 "    Screenwidth: %-3d    "
+                 "            AFK: %-3s\r\n"
 
-            "        Autokey: %-3s    "
-            "       Autodoor: %-3s    "
-            "          Color: %s\r\n"
+                 "        Autokey: %-3s    "
+                 "       Autodoor: %-3s    "
+                 "          Color: %s\r\n"
 
-            "       Autoscan: %-3s    "
-            "    EXP Display: %-3s    "
-            "  Exits Display: %-3s\r\n"
+                 "       Autoscan: %-3s    "
+                 "    EXP Display: %-3s    "
+                 "  Exits Display: %-3s\r\n"
 
-            "   Room Display: %-3s    "
-            "Memtime Display: %-3s    "
-            "Actions Display: %-3s\r\n",
+                 "   Room Display: %-3s    "
+                 "Memtime Display: %-3s    "
+                 "Actions Display: %-3s\r\n",
 
 
-            ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
-            ONOFF(PRF_FLAGGED(ch, PRF_BRIEF)),
-            ONOFF(PRF_FLAGGED(ch, PRF_SUMMONABLE)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_BRIEF)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_SUMMONABLE)),
 
-            ONOFF(PRF_FLAGGED(ch, PRF_DISPMOVE)),
-            ONOFF(PRF_FLAGGED(ch, PRF_COMPACT)),
-            ONOFF(PRF_FLAGGED(ch, PRF_QUEST)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_DISPMOVE)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_COMPACT)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_QUEST)),
 
-            ONOFF(PRF_FLAGGED(ch, PRF_DISPMANA)),
-            ONOFF(PRF_FLAGGED(ch, PRF_NOTELL)),
-            ONOFF(PRF_FLAGGED(ch, PRF_NOREPEAT)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_DISPMANA)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_NOTELL)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_NOREPEAT)),
 
-            ONOFF(PRF_FLAGGED(ch, PRF_AUTOEXIT)),
-            ONOFF(PRF_FLAGGED(ch, PRF_NOSHOUT)),
-            buf2,
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOEXIT)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_NOSHOUT)),
+                 buf2,
 
-            ONOFF(PRF_FLAGGED(ch, PRF_NOGOSS)),
-            ONOFF(PRF_FLAGGED(ch, PRF_NOAUCT)),
-            ONOFF(PRF_FLAGGED(ch, PRF_NOGRATZ)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_NOGOSS)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_NOAUCT)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_NOGRATZ)),
 
-            ONOFF(PRF_FLAGGED(ch, PRF_AUTOLOOT)),
-            ONOFF(PRF_FLAGGED(ch, PRF_AUTOGOLD)),
-            ONOFF(PRF_FLAGGED(ch, PRF_AUTOSPLIT)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOLOOT)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOGOLD)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOSPLIT)),
 
-            ONOFF(PRF_FLAGGED(ch, PRF_AUTOSAC)),
-            ONOFF(PRF_FLAGGED(ch, PRF_AUTOASSIST)),
-            ONOFF(PRF_FLAGGED(ch, PRF_AUTOMAP)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOSAC)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOASSIST)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOMAP)),
 
-            GET_PAGE_LENGTH(ch),
-            GET_SCREEN_WIDTH(ch),
-            ONOFF(PRF_FLAGGED(ch, PRF_AFK)),
+                 GET_PAGE_LENGTH(ch),
+                 GET_SCREEN_WIDTH(ch),
+                 ONOFF(PRF_FLAGGED(ch, PRF_AFK)),
 
-            ONOFF(PRF_FLAGGED(ch, PRF_AUTOKEY)),
-            ONOFF(PRF_FLAGGED(ch, PRF_AUTODOOR)),
-            types[COLOR_LEV(ch)],
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOKEY)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTODOOR)),
+                 types[COLOR_LEV(ch)],
 
-            ONOFF(PRF_FLAGGED(ch, PRF_AUTOSCAN)),
-            ONOFF(PRF_FLAGGED(ch, PRF_DISPEXP)),
-            ONOFF(PRF_FLAGGED(ch, PRF_DISPEXITS)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOSCAN)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_DISPEXP)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_DISPEXITS)),
 
-            ONOFF(PRF_FLAGGED(ch, PRF_DISPROOM)),
-            ONOFF(PRF_FLAGGED(ch, PRF_DISPMEMTIME)),
-            ONOFF(PRF_FLAGGED(ch, PRF_DISPACTIONS))
-            /*end*/);
+                 ONOFF(PRF_FLAGGED(ch, PRF_DISPROOM)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_DISPMEMTIME)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_DISPACTIONS))
+                 /*end*/);
     return;
   }
 
@@ -3054,7 +3053,7 @@ ACMD(do_toggle) {
     case SCMD_SYSLOG:
       if (!*arg2) {
         send_to_char(ch, "Your syslog is currently %s.\r\n",
-                types[(PRF_FLAGGED(ch, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(ch, PRF_LOG2) ? 2 : 0)]);
+                     types[(PRF_FLAGGED(ch, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(ch, PRF_LOG2) ? 2 : 0)]);
         return;
       }
       if (((tp = search_block(arg2, types, FALSE)) == -1)) {
@@ -3089,10 +3088,10 @@ ACMD(do_toggle) {
         GET_BUILDWALK_SECTOR(ch) = i;
         send_to_char(ch, "Default sector type is %s\r\n", sector_types[i]);
         mudlog(CMP, GET_LEVEL(ch), TRUE,
-                "OLC: %s turned buildwalk on.  Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
+               "OLC: %s turned buildwalk on.  Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
       } else
         mudlog(CMP, GET_LEVEL(ch), TRUE,
-              "OLC: %s turned buildwalk off.  Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
+               "OLC: %s turned buildwalk off.  Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
       break;
     case SCMD_AFK:
       if ((result = PRF_TOG_CHK(ch, PRF_AFK)))
@@ -3221,8 +3220,8 @@ ACMD(do_commands) {
 
   /* cmd_num starts at 1, not 0, to remove 'RESERVED' */
   for (no = 0, cmd_num = 1;
-          complete_cmd_info[cmd_sort_info[cmd_num]].command[0] != '\n';
-          ++cmd_num) {
+       complete_cmd_info[cmd_sort_info[cmd_num]].command[0] != '\n';
+       ++cmd_num) {
 
     i = cmd_sort_info[cmd_num];
 
@@ -3333,7 +3332,7 @@ ACMD(do_whois) {
   /* We either have our victim from file or he's playing or function has returned. */
   sprinttype(GET_SEX(victim), genders, buf, sizeof (buf));
   send_to_char(ch, "Name: %s %s\r\nSex: %s\r\n", GET_NAME(victim),
-          (victim->player.title ? victim->player.title : ""), buf);
+               (victim->player.title ? victim->player.title : ""), buf);
 
   sprinttype(victim->player.chclass, pc_class_types, buf, sizeof (buf));
   send_to_char(ch, "Current Class: %s\r\n", buf);
@@ -3353,15 +3352,15 @@ ACMD(do_whois) {
 
   if (IS_MORPHED(victim))
     send_to_char(ch, "Race : %s\r\n",
-          npc_race_types[IS_MORPHED(victim)]);
+                 npc_race_types[IS_MORPHED(victim)]);
   else
     send_to_char(ch, "Race : %s\r\n",
-          pc_race_types[GET_RACE(victim)]);
+                 pc_race_types[GET_RACE(victim)]);
 
   send_to_char(ch, "Level: %d\r\n", GET_LEVEL(victim));
 
   if (!(GET_LEVEL(victim) < LVL_IMMORT) ||
-          (GET_LEVEL(ch) >= GET_LEVEL(victim))) {
+      (GET_LEVEL(ch) >= GET_LEVEL(victim))) {
     strcpy(buf, (char *) asctime(localtime(&(victim->player.time.logon))));
     buf[10] = '\0';
 
@@ -3369,7 +3368,7 @@ ACMD(do_whois) {
 
     if (!got_from_file) {
       send_to_char(ch, "Last Logon: They're playing now!  (Idle %d Minutes)",
-              victim->char_specials.timer * SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
+                   victim->char_specials.timer * SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
 
       if (!victim->desc)
         send_to_char(ch, "  (Linkless)\r\n");
@@ -3382,7 +3381,7 @@ ACMD(do_whois) {
       send_to_char(ch, "Last Logon: %s (%d days & %d hours ago.)\r\n", buf, hours / 24, hours % 24);
     else
       send_to_char(ch, "Last Logon: %s (0 hours & %d minutes ago.)\r\n",
-            buf, (int) (time(0) - victim->player.time.logon) / 60);
+                   buf, (int) (time(0) - victim->player.time.logon) / 60);
   }
 
   if (has_mail(GET_IDNUM(victim)))
@@ -3396,9 +3395,9 @@ ACMD(do_whois) {
   if (!got_from_file && victim->desc != NULL && GET_LEVEL(ch) >= LVL_STAFF) {
     protocol_t * prot = victim->desc->pProtocol;
     send_to_char(ch, "Client:  %s [%s]\r\n",
-            prot->pVariables[eMSDP_CLIENT_ID]->pValueString,
-            prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString ?
-            prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString : "Unknown");
+                 prot->pVariables[eMSDP_CLIENT_ID]->pValueString,
+                 prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString ?
+                 prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString : "Unknown");
     send_to_char(ch, "Color:   %s\r\n", prot->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt ? "Xterm" : (prot->pVariables[eMSDP_ANSI_COLORS]->ValueInt ? "Ansi" : "None"));
     send_to_char(ch, "MXP:     %s\r\n", prot->bMXP ? "Yes" : "No");
     send_to_char(ch, "Charset: %s\r\n", prot->bCHARSET ? "Yes" : "No");
@@ -3532,8 +3531,8 @@ ACMD(do_areas) {
       if (overlap) overlap_shown = TRUE;
       lev_set = get_zone_levels(i, lev_str);
       tmp_len = snprintf(buf + len, sizeof (buf) - len, "\tn(%3d) %s%-*s\tn %s%s\tn\r\n", ++zcount, overlap ? QRED : QCYN,
-              count_color_chars(zone_table[i].name) + 30, zone_table[i].name,
-              lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
+                         count_color_chars(zone_table[i].name) + 30, zone_table[i].name,
+                         lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
       len += tmp_len;
     }
   }
@@ -3557,7 +3556,7 @@ ACMD(do_scan) {
   int range;
   int maxrange = 3;
   room_rnum scanned_room = NOWHERE;
-  
+
   if (ch)
     scanned_room = IN_ROOM(ch);
   else
@@ -3579,42 +3578,42 @@ ACMD(do_scan) {
     send_to_char(ch, "Its too dark to see.\r\n");
     return;
   }
-  
+
   /*
   if (AFF_FLAGGED(ch, AFF_ULTRAVISION) && ultra_blind(ch, ch->in_room)) {
     send_to_char("Its too bright to see.\r\n", ch);
     return;
   }
-  */
+   */
 
   for (door = 0; door < DIR_COUNT; door++) {
     send_to_char(ch, "Scanning %s:\r\n", dirs[door]);
 
-    if(world[scanned_room].dir_option[door] &&
-       !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN))   
+    if (world[scanned_room].dir_option[door] &&
+        !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN))
       look_in_direction(ch, door);
-    
+
     for (range = 1; range <= maxrange; range++) {
-      if (world[scanned_room].dir_option[door] && 
-              world[scanned_room].dir_option[door]->to_room != NOWHERE &&
-              !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN) &&
-              !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_CLOSED)) {
+      if (world[scanned_room].dir_option[door] &&
+          world[scanned_room].dir_option[door]->to_room != NOWHERE &&
+          !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN) &&
+          !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_CLOSED)) {
 
-          scanned_room = world[scanned_room].dir_option[door]->to_room;
+        scanned_room = world[scanned_room].dir_option[door]->to_room;
 
-          if (IS_DARK(scanned_room) && !CAN_SEE_IN_DARK(ch)) {
-            if (world[scanned_room].people)
-              send_to_char(ch, "%s: It's too dark to see, but you can hear shuffling.\r\n", dirs[door]);
-            else
-              send_to_char(ch, "%s: It is too dark to see anything.\r\n", dirs[door]);
+        if (IS_DARK(scanned_room) && !CAN_SEE_IN_DARK(ch)) {
+          if (world[scanned_room].people)
+            send_to_char(ch, "%s: It's too dark to see, but you can hear shuffling.\r\n", dirs[door]);
+          else
+            send_to_char(ch, "%s: It is too dark to see anything.\r\n", dirs[door]);
+          found = TRUE;
+        } else {
+          if (world[scanned_room].people) {
+            list_scanned_chars(world[scanned_room].people, ch, range - 1, door);
             found = TRUE;
-          } else {
-            if (world[scanned_room].people) {
-              list_scanned_chars(world[scanned_room].people, ch, range - 1, door);
-              found = TRUE;
-            }
           }
-        
+        }
+
       } else
         break;
     } // end of range
@@ -3637,12 +3636,12 @@ ACMD(do_exits) {
     send_to_char(ch, "A fog makes any exits indistinguishable.\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_ULTRAVISION) && ULTRA_BLIND(ch, IN_ROOM(ch))) {
     send_to_char(ch, "Its too bright to see.\r\n");
     return;
   }
-  
+
   send_to_char(ch, "Obvious exits:\r\n");
 
   for (door = 0; door < DIR_COUNT; door++) {
@@ -3657,15 +3656,15 @@ ACMD(do_exits) {
 
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS) && !EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
       send_to_char(ch, "%-5s - [%5d]%s %s\r\n", dirs[door], GET_ROOM_VNUM(EXIT(ch, door)->to_room),
-            EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " [HIDDEN]" : "", world[EXIT(ch, door)->to_room].name);
+                   EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " [HIDDEN]" : "", world[EXIT(ch, door)->to_room].name);
     else if (CONFIG_DISP_CLOSED_DOORS && EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)) {
       /* But we tell them the door is closed */
       send_to_char(ch, "%-5s - The %s is closed%s\r\n", dirs[door],
-              (EXIT(ch, door)->keyword) ? fname(EXIT(ch, door)->keyword) : "opening",
-              EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " and hidden." : ".");
+                   (EXIT(ch, door)->keyword) ? fname(EXIT(ch, door)->keyword) : "opening",
+                   EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " and hidden." : ".");
     } else
       send_to_char(ch, "%-5s - %s\r\n", dirs[door], IS_DARK(EXIT(ch, door)->to_room) &&
-            !CAN_SEE_IN_DARK(ch) ? "Too dark to tell." : world[EXIT(ch, door)->to_room].name);
+                   !CAN_SEE_IN_DARK(ch) ? "Too dark to tell." : world[EXIT(ch, door)->to_room].name);
   }
 
   if (!len)
@@ -3679,16 +3678,16 @@ ACMD(do_track) {
 
   char creator_race[20]; /* The RACE of what created the tracks. */
   char creator_name[20]; /* The NAME of what created the tracks. */
-  int  track_age = 0;    /* The AGE of this set of tracks. */
-  char track_dir[6];    /* The direction the track leads. */
+  int track_age = 0; /* The AGE of this set of tracks. */
+  char track_dir[6]; /* The direction the track leads. */
 
-  const char* track_age_names[7] = { "extremely old",
+  const char* track_age_names[7] = {"extremely old",
                                     "very old",
                                     "old",
                                     "fairly recent",
                                     "recent",
                                     "fairly fresh",
-                                    "fresh" };
+                                    "fresh"};
 
   /* The character must have the track skill. */
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_TRACK)) {
@@ -3704,16 +3703,16 @@ ACMD(do_track) {
   /* Need to iterate over all of this room's events, picking out the tracking ones. 
    * What a PAIN, this really should be easier. */
 
-//  for( pMudEvent = room_has_mud_event(world[IN_ROOM(ch)], eTRACKS);
-//       pMudEvent != NULL;
-//       pMudEvent = room_has_mud_event(world[IN_ROOM(ch)], eTRACKS)) {
+  //  for( pMudEvent = room_has_mud_event(world[IN_ROOM(ch)], eTRACKS);
+  //       pMudEvent != NULL;
+  //       pMudEvent = room_has_mud_event(world[IN_ROOM(ch)], eTRACKS)) {
 
-  if((!room_has_mud_event(&world[IN_ROOM(ch)], eTRACKS)) || 
-     ((world[IN_ROOM(ch)].events == NULL) || (world[IN_ROOM(ch)].events->iSize == 0))) {
+  if ((!room_has_mud_event(&world[IN_ROOM(ch)], eTRACKS)) ||
+      ((world[IN_ROOM(ch)].events == NULL) || (world[IN_ROOM(ch)].events->iSize == 0))) {
     send_to_char(ch, "You can't find any tracks.\r\n");
     return;
   }
- 
+
   simple_list(NULL);
 
   while ((pEvent = (struct event *) simple_list(world[IN_ROOM(ch)].events)) != NULL) {
@@ -3725,28 +3724,28 @@ ACMD(do_track) {
     if (pMudEvent->iId == eTRACKS) {
 
       /* Get the track information from the sVariables. */
-      if ( pMudEvent->sVariables )
+      if (pMudEvent->sVariables)
         sscanf(pMudEvent->sVariables, "%d \"%19[^\"]\" \"%19[^\"]\" %s", &track_age, creator_race, creator_name, track_dir);
 
       /* Skill check. */
 
-//      send_to_char(ch, "%s\r\n", pMudEvent->sVariables);
-//      send_to_char(ch, "%d %s %s %s\r\n", track_age, creator_race, creator_name, track_dir);
+      //      send_to_char(ch, "%s\r\n", pMudEvent->sVariables);
+      //      send_to_char(ch, "%d %s %s %s\r\n", track_age, creator_race, creator_name, track_dir);
 
-      if (*arg && isname(arg, creator_name) ) {
-        /* Found our victim's tracks. */      
+      if (*arg && isname(arg, creator_name)) {
+        /* Found our victim's tracks. */
         send_to_char(ch, "  You find %s tracks of %s leading %s.\r\n", track_age_names[track_age],
-                                                                       creator_name,
-                                                                       track_dir);
+                     creator_name,
+                     track_dir);
 
       } else if ((!*arg) || (*arg && isname(arg, creator_race))) {
-        send_to_char(ch, "  You find %s tracks of %s %s leading %s.\r\n", track_age_names[track_age], 
-                                                                          a_or_an(creator_race), 
-                                                                          creator_race,
-                                                                          track_dir);
-      }    
+        send_to_char(ch, "  You find %s tracks of %s %s leading %s.\r\n", track_age_names[track_age],
+                     a_or_an(creator_race),
+                     creator_race,
+                     track_dir);
+      }
     }
-  } 
+  }
 }
 
 /* Event function for tracks, causing decay and eventual removal. */
@@ -3758,8 +3757,8 @@ EVENTFUNC(event_tracks) {
 
   char creator_race[20]; /* The RACE of what created the tracks. */
   char creator_name[20]; /* The NAME of what created the tracks. */
-  int  track_age = 0;    /* The AGE of this set of tracks. */
-  char track_dir[6];    /* The direction the track leads. */
+  int track_age = 0; /* The AGE of this set of tracks. */
+  char track_dir[6]; /* The direction the track leads. */
 
 
   /* Unpack the mud data. */
@@ -3775,19 +3774,19 @@ EVENTFUNC(event_tracks) {
   rnum = real_room(room->number);
 
   /* Get the track information from the sVariables. */
-  if ( pMudEvent->sVariables )
+  if (pMudEvent->sVariables)
     sscanf(pMudEvent->sVariables, "%d \"%19[^\"]\" \"%19[^\"]\" %s", &track_age, creator_race, creator_name, track_dir);
 
-  if ( track_age == 0 ) /* Time for this track to disappear. */
+  if (track_age == 0) /* Time for this track to disappear. */
     return 0;
-  else 
+  else
     track_age--; /* Age the track. */
 
   /* Now change the age in the sVariables, and resubmit the tracks. */
-//  free(pMudEvent->sVariables);
+  //  free(pMudEvent->sVariables);
   sprintf(buf, "%d \"%s\" \"%s\" %s", track_age, creator_race, creator_name, track_dir);
   pMudEvent->sVariables = strdup(buf);
 
-  return 60 RL_SEC; /* Decay tracks every 60 seconds, subject to change :) */  
+  return 60 RL_SEC; /* Decay tracks every 60 seconds, subject to change :) */
 }
 
