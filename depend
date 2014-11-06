@@ -130,7 +130,7 @@ fight.o: fight.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h interpreter.h db.h spells.h screen.h constants.h \
  dg_scripts.h act.h class.h fight.h shop.h quest.h mud_event.h dg_event.h \
  spec_procs.h clan.h treasure.h mudlim.h spec_abilities.h feats.h \
- actions.h actionqueues.h
+ actions.h actionqueues.h craft.h
 gain.o: gain.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h oasis.h help.h screen.h interpreter.h modify.h \
  spells.h

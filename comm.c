@@ -388,7 +388,7 @@ int main(int argc, char **argv)
 
   /* probably should free the entire config here.. */
   free(CONFIG_CONFFILE);
-  
+
   log("Done.");
 
 #ifdef MEMORY_DEBUG
@@ -424,8 +424,8 @@ void copyover_recover()
 
   /* read boot_time - first line in file */
   i = fscanf(fp, "%ld\n", (long *)&boot_time);
-  
-  if (i != 1) 
+
+  if (i != 1)
     log("SYSERR: Error reading boot time.");
 
   for (;;) {
@@ -457,7 +457,7 @@ void copyover_recover()
     CREATE(d->character, struct char_data, 1);
     clear_char(d->character);
     CREATE(d->character->player_specials, struct player_special_data, 1);
-    
+
     new_mobile_data(d->character);
     /* Allocate mobile event list */
     //d->character->events = create_list();
@@ -896,7 +896,7 @@ void game_loop(socket_t local_mother_desc)
 	  command_interpreter(d->character, comm); /* Send it to interpreter */
         }
       }
-      else if (d->character && STATE(d) == CON_PLAYING && 
+      else if (d->character && STATE(d) == CON_PLAYING &&
                pending_actions(d->character) &&
                !d->showstr_count &&
                !d->str) {
@@ -999,8 +999,8 @@ void heartbeat(int heart_pulse)
 {
   static int mins_since_crashsave = 0;
 
-  event_process(); 
-  
+  event_process();
+
   if (!(heart_pulse % PULSE_DG_SCRIPT))
     script_trigger_check();
 
@@ -1184,7 +1184,7 @@ static char *make_prompt(struct descriptor_data *d)
       if (count >= 0)
         len += count;
     }
-    
+
     // show only when below 25% (autoprompt)
     if (PRF_FLAGGED(d->character, PRF_DISPAUTO) && len < sizeof(prompt)) {
       struct char_data *ch = d->character;
@@ -1214,14 +1214,14 @@ static char *make_prompt(struct descriptor_data *d)
 
       /* display hit points */
       float hit_percent = (float)GET_HIT(d->character) /
-            (float)GET_MAX_HIT(d->character) * 100.0;        
-      
+            (float)GET_MAX_HIT(d->character) * 100.0;
+
       if (PRF_FLAGGED(d->character, PRF_DISPHP) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%d%s/%s%d%sH%s ",
 		hit_percent >= 100 ? CCWHT(ch, C_CMP) : hit_percent >= 90 ?
                   CBGRN(ch, C_CMP) : hit_percent >= 65 ? CCCYN(ch, C_CMP) :
                   hit_percent >= 25 ? CBYEL(ch, C_CMP) : CBRED(ch, C_CMP),
-          GET_HIT(d->character), CCNRM(d->character,C_NRM), 
+          GET_HIT(d->character), CCNRM(d->character,C_NRM),
 		hit_percent >= 100 ? CCWHT(ch, C_CMP) : hit_percent >= 90 ?
                   CBGRN(ch, C_CMP) : hit_percent >= 65 ? CCCYN(ch, C_CMP) :
                   hit_percent >= 25 ? CBYEL(ch, C_CMP) : CBRED(ch, C_CMP),
@@ -1239,8 +1239,8 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
-      
-      /* display move points */      
+
+      /* display move points */
       if (PRF_FLAGGED(d->character, PRF_DISPMOVE) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sV%s ",
 		GET_MOVE(d->character),GET_MAX_MOVE(d->character),
@@ -1248,17 +1248,17 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
-      
+
       // autoprompt display exp to next level
       if (PRF_FLAGGED(d->character, PRF_DISPEXP) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sXP:%s%d ",
 		CCYEL(d->character,C_NRM), CCNRM(d->character,C_NRM),
-                level_exp(d->character, GET_LEVEL(d->character) + 1) - 
+                level_exp(d->character, GET_LEVEL(d->character) + 1) -
                 GET_EXP(d->character));
         if (count >= 0)
           len += count;
       }
-      
+
       // autoprompt display rooms
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
@@ -1282,7 +1282,7 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
-      
+
       // autoprompt display available actions.
       if (PRF_FLAGGED(d->character, PRF_DISPACTIONS) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "[%s%s%s] ",
@@ -1290,31 +1290,31 @@ static char *make_prompt(struct descriptor_data *d)
                 (is_action_available(d->character, atMOVE, FALSE)     ? "m" : "-"),
                 (is_action_available(d->character, atSWIFT, FALSE)    ? "w" : "-"));
         if (count >= 0)
-          len += count;   
+          len += count;
       }
- 
+
       // autoprompt display exits
       if (PRF_FLAGGED(d->character, PRF_DISPEXITS) && len < sizeof(prompt)) {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
 		               CCYEL(d->character,C_NRM));
-        
+
         int isDark = 0, canSee = 0, canInfra = 0, seesExits = 1;
-        
+
         if (IS_DARK(IN_ROOM(ch)))
           isDark = 1;
         if ((isDark && CAN_SEE_IN_DARK(ch)) || !isDark)
           canSee = 1;
         if (isDark && !canSee && CAN_INFRA_IN_DARK(ch))
           canInfra = 1;
-        
+
         if (isDark && !CAN_SEE_IN_DARK(ch) && !CAN_INFRA_IN_DARK(ch)) {
           seesExits = 0;
         } else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT) {
           seesExits = 0;
         } else if (ROOM_AFFECTED(ch->in_room, RAFF_FOG)) {
           seesExits = 0;
-        }        
-        
+        }
+
         if (count >= 0)
           len += count;
         for (door = 0; door < DIR_COUNT; door++) {
@@ -1330,8 +1330,8 @@ static char *make_prompt(struct descriptor_data *d)
             continue;
           if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
             count = snprintf(prompt + len, sizeof(prompt) - len, "%s(%s)%s",
-                    EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? 
-                    CCWHT(ch, C_NRM) : CCRED(ch, C_NRM), 
+                    EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ?
+                    CCWHT(ch, C_NRM) : CCRED(ch, C_NRM),
                     autoexits[door], CCCYN(ch, C_NRM));
           else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
             count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s%s",
@@ -1347,7 +1347,7 @@ static char *make_prompt(struct descriptor_data *d)
                 slen ? "" : "None! ", CCNRM(ch, C_NRM));
         if (count >= 0)
           len += count;
-      }      
+      }
     } /* end prompt itself, start extra */
 
     if (HAS_WAIT(d->character) && len < sizeof(prompt)) {
@@ -1385,12 +1385,12 @@ static char *make_prompt(struct descriptor_data *d)
       if (count >= 0)
         len += count;
     }
-    
+
     /********* Auto Diagnose Code *************/
     struct char_data *char_fighting = NULL;
     struct char_data *tank = NULL;
     int percent = 0;
-    
+
     /* the prompt elements only active while fighting */
     char_fighting = FIGHTING(d->character);
     if (char_fighting && (d->character->in_room == char_fighting->in_room)
@@ -1401,7 +1401,7 @@ static char *make_prompt(struct descriptor_data *d)
 
       /* TANK elements only active if... */
       if ((tank = char_fighting->char_specials.fighting) &&
-              (d->character->in_room == tank->in_room) && 
+              (d->character->in_room == tank->in_room) &&
               len < sizeof(prompt)) {
         if (count >= 0)
           len += count;
@@ -1440,7 +1440,7 @@ static char *make_prompt(struct descriptor_data *d)
         }
         len += 30;  // just counting the strcat's above
       }  /* end tank elements */
-      
+
       /* enemy name */
       if (len < sizeof(prompt))
         count = sprintf(prompt + strlen(prompt), "> <\tRE:\tn %s",
@@ -1502,8 +1502,8 @@ static char *make_prompt(struct descriptor_data *d)
       if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)) {
         if (len < sizeof(prompt))
           count = snprintf(prompt + len, sizeof(prompt) - len, "%s(%s)%s",
-                    EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? 
-                    CCWHT(ch, C_NRM) : CCRED(ch, C_NRM), 
+                    EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ?
+                    CCWHT(ch, C_NRM) : CCRED(ch, C_NRM),
                     autoexits[door], CCCYN(ch, C_NRM));
       } else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN)) {
         if (len < sizeof(prompt))
@@ -1530,13 +1530,13 @@ static char *make_prompt(struct descriptor_data *d)
   }
 
   prompt_size = (int)len;
-  
+
   /* handy debug for prompt size
      our prompt has potential for some large numbers, with a little
      experimentation I was able to approach 350 - 02/02/2013
    */
   //send_to_char(d->character, "%d", prompt_size);
-      
+
   return ((char *)ProtocolOutput(d, prompt, &prompt_size));
 }
 
@@ -1794,7 +1794,7 @@ static void init_descriptor (struct descriptor_data *newd, int desc)
   newd->desc_num = last_desc;
   newd->pProtocol = ProtocolCreate(); /* KaVir's plugin*/
   newd->events = create_list();
-  
+
 }
 
 static int new_descriptor(socket_t s)
@@ -1806,7 +1806,7 @@ static int new_descriptor(socket_t s)
   struct descriptor_data *newd;
   struct sockaddr_in peer;
   struct hostent *from;
-  
+
   /* accept the new connection */
   i = sizeof(peer);
   if ((desc = accept(s, (struct sockaddr *) &peer, &i)) == INVALID_SOCKET) {
@@ -1867,7 +1867,7 @@ static int new_descriptor(socket_t s)
   descriptor_list = newd;
 
   if (CONFIG_PROTOCOL_NEGOTIATION) {
-    /* Attach Event */ 
+    /* Attach Event */
     NEW_EVENT(ePROTOCOLS, newd, NULL, 1.5 * PASSES_PER_SEC);
     /* KaVir's plugin*/
     write_to_output(newd, "Attempting to Detect Client, Please Wait...\r\n");
@@ -1906,7 +1906,7 @@ static int process_output(struct descriptor_data *t)
   /* add the extra CRLF if the person isn't in compact mode */
   if (STATE(t) == CON_PLAYING && t->character && !IS_NPC(t->character) &&
           !PRF_FLAGGED(t->character, PRF_COMPACT)) {
-    if ( !t->pProtocol->WriteOOB )     
+    if ( !t->pProtocol->WriteOOB )
       strcat(osb, "\r\n"); /* strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space) */
   }
 
@@ -2167,7 +2167,7 @@ static int process_input(struct descriptor_data *t)
           *write_point = NULL, *nl_pos = NULL;
   char tmp[MAX_INPUT_LENGTH] = { '\0' };
   static char read_buf[MAX_PROTOCOL_BUFFER] = { '\0' }; /* KaVir's plugin */
-  
+
   /* first, find the point where we left off reading data */
   buf_length = strlen(t->inbuf);
   read_point = t->inbuf + buf_length;
@@ -2186,7 +2186,7 @@ static int process_input(struct descriptor_data *t)
       read_buf[bytes_read] = '\0';
 
     /* Since we have received at least 1 byte of data from the socket, lets run
-     * it through ProtocolInput() and rip out anything that is Out Of Band */ 
+     * it through ProtocolInput() and rip out anything that is Out Of Band */
     if ( bytes_read > 0 )
       bytes_read = ProtocolInput( t, read_buf, bytes_read, t->inbuf );
 
@@ -2441,10 +2441,10 @@ void close_socket(struct descriptor_data *d)
     free(d->showstr_head);
   if (d->showstr_count)
     free(d->showstr_vector);
-  
+
   /* KaVir's plugin*/
   ProtocolDestroy( d->pProtocol );
- 
+
   /* Mud Events */
   if (d->events->iSize > 0) {
     struct event * pEvent;
@@ -2469,7 +2469,7 @@ void close_socket(struct descriptor_data *d)
     case CON_QEDIT:
     case CON_HLQEDIT:
     case CON_STUDY:
-    case CON_MSGEDIT:      
+    case CON_MSGEDIT:
       cleanup_olc(d, CLEANUP_ALL);
       break;
     default:
@@ -2815,10 +2815,10 @@ void send_to_group(struct char_data *ch, struct group_data *group, const char * 
 
   if (msg == NULL)
     return;
-    	
+
   while ((tch = (struct char_data *)simple_list(group->members)) != NULL) {
     if (tch != ch && !IS_NPC(tch) && tch->desc && STATE(tch->desc) == CON_PLAYING) {
-      write_to_output(tch->desc, "%s[%sGroup%s]%s ", 
+      write_to_output(tch->desc, "%s[%sGroup%s]%s ",
       CCGRN(tch, C_NRM), CBGRN(tch, C_NRM), CCGRN(tch, C_NRM), CCNRM(tch, C_NRM));
       va_start(args, msg);
       vwrite_to_output(tch->desc, msg, args);
@@ -2996,11 +2996,11 @@ char *act(const char *str, int hide_invisible, struct char_data *ch,
 
   /*
   if (ch && ch->in_room > top_of_world)
-    return NULL; 
+    return NULL;
   if (obj && obj->in_room > top_of_world)
     return NULL;
   */
-  
+
   if (!str || !*str)
     return NULL;
 
@@ -3056,11 +3056,11 @@ char *act(const char *str, int hide_invisible, struct char_data *ch,
   /* ASSUMPTION: at this point we know type must be TO_NOTVICT or TO_ROOM */
 
   if (ch && IN_ROOM(ch) != NOWHERE) {
-    if (ch->in_room <= top_of_world) /* zusuk dummy check */
-      to = world[IN_ROOM(ch)].people;
+    /*if (ch->in_room <= top_of_world)*/ /* zusuk dummy check */
+    to = world[IN_ROOM(ch)].people;
   } else if (obj && IN_ROOM(obj) != NOWHERE) {
-    if (obj->in_room <= top_of_world) /* zusuk dummy check */
-      to = world[IN_ROOM(obj)].people;
+    /*if (obj->in_room <= top_of_world)*/ /* zusuk dummy check */
+    to = world[IN_ROOM(obj)].people;
   } else {
     log("SYSERR: no valid target to act()!");
     return NULL;
@@ -3207,7 +3207,7 @@ static void msdp_update( void )
   const char MsdpVal =  (char)MSDP_VAL;
 
   extern const char *pc_class_types[];
-  extern const char *dirs[]; 
+  extern const char *dirs[];
   extern const char *sector_types[];
 
   struct descriptor_data *d;
@@ -3219,7 +3219,7 @@ static void msdp_update( void )
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
     char room_exits[MAX_STRING_LENGTH];
- 
+
     struct char_data *ch = d->character;
     if ( ch && !IS_NPC(ch) && d->connected == CON_PLAYING )
     {
@@ -3238,10 +3238,10 @@ static void msdp_update( void )
       MSDPSetString( d, eMSDP_CLASS, buf );
 
       /* Location information */
-      /*  Only update room stuff if they've changed room */ 
-      if ( IN_ROOM(ch) != NOWHERE && GET_ROOM_VNUM(IN_ROOM(ch)) != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt ) 
-      { 
-             
+      /*  Only update room stuff if they've changed room */
+      if ( IN_ROOM(ch) != NOWHERE && GET_ROOM_VNUM(IN_ROOM(ch)) != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt )
+      {
+
         /* Format for the room data is:
          * ROOM
          *   VNUM
@@ -3255,45 +3255,45 @@ static void msdp_update( void )
          *   EXITS
          *     'n'
          *       vnum for room to the north
-         *     's' 
+         *     's'
          *       vnum for room to the south
          *     etc.
          **/
-        room_exits[0] = '\0';  
+        room_exits[0] = '\0';
         for (door = 0; door < DIR_COUNT; door++) {
           char buf3[MAX_STRING_LENGTH];
 
           if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
             continue;
 
-          sprintf(buf3, "%c%s%c%d%c",MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0'); 
+          sprintf(buf3, "%c%s%c%d%c",MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
 //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
-          strcat(room_exits,buf3); 
+          strcat(room_exits,buf3);
         }
 
 //        send_to_char(ch, "DEBUG: %s\r\n", room_exits);
 
         /* Build the ROOM table.  */
         sprintf(buf2, "%cVNUM%c%d%cNAME%c%s%cAREA%c%s%cCOORDS%c%c%cX%c%d%cY%c%d%cZ%c%d%c%cTERRAIN%c%s%cEXITS%c%c%s%c",
-                      MsdpVar, MsdpVal, 
-                      GET_ROOM_VNUM(IN_ROOM(ch)), 
-                      MsdpVar, MsdpVal, 
+                      MsdpVar, MsdpVal,
+                      GET_ROOM_VNUM(IN_ROOM(ch)),
+                      MsdpVar, MsdpVal,
                       world[IN_ROOM(ch)].name,
-                      MsdpVar, MsdpVal, 
-                      zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name, 
-                      MsdpVar, MsdpVal, 
+                      MsdpVar, MsdpVal,
+                      zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name,
+                      MsdpVar, MsdpVal,
                       MSDP_TABLE_OPEN,
-                      MsdpVar, MsdpVal, 
-                      0,         
                       MsdpVar, MsdpVal,
                       0,
-                      MsdpVar, MsdpVal, 
+                      MsdpVar, MsdpVal,
+                      0,
+                      MsdpVar, MsdpVal,
                       0,
                       MSDP_TABLE_CLOSE,
-                      MsdpVar, MsdpVal, 
+                      MsdpVar, MsdpVal,
                       sector_types[world[IN_ROOM(ch)].sector_type],
                       MsdpVar, MsdpVal,
-                      MSDP_TABLE_OPEN, 
+                      MSDP_TABLE_OPEN,
                       room_exits,
                       MSDP_TABLE_CLOSE);
 
@@ -3301,11 +3301,11 @@ static void msdp_update( void )
 
 //        send_to_char(ch, "DEBUG: %s\r\n", buf2);
 
-        MSDPSetString( d, eMSDP_AREA_NAME, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name ); 
+        MSDPSetString( d, eMSDP_AREA_NAME, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name );
 
-        MSDPSetString( d, eMSDP_ROOM_NAME, world[IN_ROOM(ch)].name ); 
-        MSDPSetTable( d, eMSDP_ROOM_EXITS, room_exits ); 
-        MSDPSetNumber( d, eMSDP_ROOM_VNUM, GET_ROOM_VNUM(IN_ROOM(ch))); 
+        MSDPSetString( d, eMSDP_ROOM_NAME, world[IN_ROOM(ch)].name );
+        MSDPSetTable( d, eMSDP_ROOM_EXITS, room_exits );
+        MSDPSetNumber( d, eMSDP_ROOM_VNUM, GET_ROOM_VNUM(IN_ROOM(ch)));
         MSDPSetTable( d, eMSDP_ROOM, buf2 );
       }
 
@@ -3329,8 +3329,8 @@ static void msdp_update( void )
       else /* Clear the values */
       {
           MSDPSetNumber( d, eMSDP_OPPONENT_HEALTH, 0 );
-          MSDPSetNumber( d, eMSDP_OPPONENT_LEVEL, 0 ); 
-          MSDPSetString( d, eMSDP_OPPONENT_NAME, "" ); 
+          MSDPSetNumber( d, eMSDP_OPPONENT_LEVEL, 0 );
+          MSDPSetString( d, eMSDP_OPPONENT_NAME, "" );
       }
 
       MSDPUpdate( d );

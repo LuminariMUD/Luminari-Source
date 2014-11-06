@@ -124,7 +124,7 @@ void guard_check(struct char_data *ch, struct char_data *vict) {
         !is_action_available(tch, atMOVE, FALSE))
       continue;
     if (GUARDING(tch) == vict) {
-      /* This MUST be changed.  Skills are obsolete. 
+      /* This MUST be changed.  Skills are obsolete.
          Set to a flat 70% chance for now. */
       if (rand_number(1, 100) > 70) {
         act("$N fails to guard you.", FALSE, vict, 0, tch, TO_CHAR);
@@ -242,7 +242,7 @@ void appear(struct char_data *ch, bool forced) {
 }
 
 // computing size bonuses in AC/damage
-//  A attacking B 
+//  A attacking B
 // defense, the defender should get this 'bonus'
 // offense, the attack should get this 'bonus'
 
@@ -315,7 +315,7 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
   /*if (FIGHTING(ch))
     send_to_char(ch, "has_dex_bonus_to_ac() - %s retained dex bonus  ", GET_NAME(ch));*/
   return TRUE; /* ok, made it through, we DO have our dex bonus still */
-} 
+}
 
 bool is_flanked(struct char_data *attacker, struct char_data *ch) {
 
@@ -339,13 +339,13 @@ int roll_initiative(struct char_data *ch) {
 }
 
 /* this function will go through all the tests for modifying
-   a given ch's AC under the circumstances of being attacked 
+   a given ch's AC under the circumstances of being attacked
  * by 'attacker' */
 int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is_touch) {
 
   /* hack to translate old D&D to 3.5 Edition
    * Modified 09/09/2014 : Ornir
-   * Changed this to use the AC as-is.  AC has been modified on gear. */ 
+   * Changed this to use the AC as-is.  AC has been modified on gear. */
   int armorclass = GET_AC(ch) / 10;
 
   if (char_has_mud_event(ch, eSHIELD_RECOVERY)) {
@@ -358,10 +358,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     armorclass = 10;
 
   /* Determine if the ch loses their dex bonus to armor class. */
-  if (has_dex_bonus_to_ac(attacker, ch)) {     
- 
+  if (has_dex_bonus_to_ac(attacker, ch)) {
+
    armorclass += GET_DEX_BONUS(ch);
- 
+
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DODGE))
       armorclass += 1;
   }
@@ -372,29 +372,29 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     if (AFF_FLAGGED(ch, AFF_PROTECT_EVIL) && IS_EVIL(attacker))
       armorclass += 2;
   }
-  
+
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_ACROBATICS)) //caps at 5
     armorclass += MIN(5, (int) (compute_ability(ch, ABILITY_ACROBATICS) / 7));
-  
+
   if (AFF_FLAGGED(ch, AFF_EXPERTISE))
     armorclass += COMBAT_MODE_VALUE(ch);
-  
+
   if (!is_touch && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_ARMOR_SKIN))
     armorclass += HAS_FEAT(ch, FEAT_ARMOR_SKIN);
-  
+
   if (!is_touch && !IS_NPC(ch) && GET_EQ(ch, WEAR_SHIELD) &&
           GET_SKILL(ch, SKILL_SHIELD_SPECIALIST))
     armorclass += 2;
-  
+
   if (char_has_mud_event(ch, eTAUNTED))
     armorclass -= 6;
-  
+
   if (char_has_mud_event(ch, eSTUNNED)) /* POS_STUNNED below in case statement */
     armorclass -= 2;
-  
+
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
     armorclass -= 2;
-  
+
   if (attacker) { /* racial bonus vs. larger opponents */
     if ((GET_RACE(ch) == RACE_DWARF ||
             GET_RACE(ch) == RACE_CRYSTAL_DWARF ||
@@ -405,7 +405,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     else
       armorclass += compute_size_bonus(GET_SIZE(attacker), GET_SIZE(ch));
   }
-  
+
   /* favored enemy */
   if (attacker && CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
@@ -414,8 +414,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     else if (IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, GET_RACE(attacker)))
       armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
   }
-  
-  /* Monk armor bonus is effective vs touch attacks... */ 
+
+  /* Monk armor bonus is effective vs touch attacks... */
   if (CLASS_LEVEL(ch, CLASS_MONK) && monk_gear_ok(ch)) {
     armorclass += GET_WIS_BONUS(ch);
     if (CLASS_LEVEL(ch, CLASS_MONK) >= 5)
@@ -431,7 +431,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     if (CLASS_LEVEL(ch, CLASS_MONK) >= 30)
       armorclass++;
   }
-  
+
   /* ...but Trelux carapace is not effective vs touch attacks! */
   if (!is_touch && GET_RACE(ch) == RACE_TRELUX) {
     if (GET_LEVEL(ch) >= 5)
@@ -447,7 +447,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     if (GET_LEVEL(ch) >= 30)
       armorclass++;
   }
-  
+
   /* arcana golem */
   if (GET_RACE(ch) == RACE_ARCANA_GOLEM)
     armorclass -= 2;
@@ -581,16 +581,16 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
         previous = current;
         continue;
       }
-      break;     
-    }  
+      break;
+    }
     if (previous == NULL) {
       /* First. */
       ch->next_fighting = combat_list;
-      combat_list = ch; 
+      combat_list = ch;
     } else {
       ch->next_fighting = current;
       previous->next_fighting = ch;
-    }    
+    }
   }
 
   if (AFF_FLAGGED(ch, AFF_SLEEP))
@@ -598,7 +598,7 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
 
   /*  The char is flat footed until they take an action,
    *  but only if they are not currently fighting.  */
-  if (!FIGHTING(ch)) SET_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);  
+  if (!FIGHTING(ch)) SET_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
   FIGHTING(ch) = vict;
 
   if (!CONFIG_PK_ALLOWED)
@@ -783,7 +783,7 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
 
   /* check for all group members next */
   group = GROUP(killer);
- 
+
   if (group != NULL) {
     /* Initialize the iterator */
 
@@ -816,7 +816,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
     if (FIGHTING(k) == ch)
       stop_fighting(k);
   }
-  
+
   /* Wipe character from the memory of hunters and other intelligent NPCs... */
   for (temp = character_list; temp; temp = temp->next) {
     /* PCs can't use MEMORY, and don't use HUNTING() */
@@ -830,7 +830,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
     if (!IS_NPC(ch) && MEMORY(temp))
       forget(temp, ch); /* forget() is safe to use without a check. */
   }
-  
+
   if (ch->followers || ch->master) // handle followers
     die_follower(ch);
 
@@ -879,7 +879,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
 
   save_char(ch, 0);
   Crash_delete_crashfile(ch);
-  //end extraction replacement 
+  //end extraction replacement
 
   if (killer) {
     autoquest_trigger_check(killer, NULL, NULL, AQ_MOB_SAVE);
@@ -1213,7 +1213,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     act("WHIZZ, $n fires $p!", FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
     is_ranged = TRUE;
   }
-  
+
   /* damage message to onlookers */
   // note, we may have to add more info if we have some way to attack
   // someone that isn't in your room - zusuk
@@ -1253,14 +1253,14 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
     weap = GET_EQ(ch, WEAR_WIELD_2H);
   else if (GET_RACE(ch) == RACE_TRELUX)
     weap = read_object(TRELUX_CLAWS, VIRTUAL);
-  else if (dualing) 
+  else if (dualing)
     weap = GET_EQ(ch, WEAR_WIELD_2);
- 
+
   /* These attacks use a shield as a weapon. */
   if ((attacktype == SKILL_SHIELD_PUNCH)  ||
       (attacktype == SKILL_SHIELD_CHARGE) ||
       (attacktype == SKILL_SHIELD_SLAM))
-    weap = GET_EQ(ch, WEAR_SHIELD); 
+    weap = GET_EQ(ch, WEAR_SHIELD);
 
   for (i = 0; i < MAX_MESSAGES; i++) {
     if (fight_messages[i].a_type == attacktype) {
@@ -1539,7 +1539,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
   return damtype_reduction; //no cap as of yet
 }
 
-/* this is straight damage reduction, applies to ALL attacks 
+/* this is straight damage reduction, applies to ALL attacks
  (not melee exclusive damage reduction) */
 int compute_damage_reduction(struct char_data *ch, int dam_type) {
   int damage_reduction = 0;
@@ -1580,7 +1580,7 @@ int compute_concealment(struct char_data *ch) {
     concealment += 20;
   if (AFF_FLAGGED(ch, AFF_DISPLACE))
     concealment += 50;
-  
+
   // concealment cap is 50%
   return (MIN(MAX_CONCEAL, concealment));
 
@@ -1727,13 +1727,13 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       GET_MANA(victim) -= (1 + (dam / 5));
       if (GET_MANA(victim) <= 0) {
         //affect_from_char(victim, SPELL_INERTIAL_BARRIER);
-        REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_INERTIAL_BARRIER);    
+        REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_INERTIAL_BARRIER);
         send_to_char(victim, "Your mind can not maintain the barrier "
                 "anymore.\r\n");
       }
       dam = 0;
     }
-    
+
     /* Cut damage in half if victim has sanct, to a minimum 1 */
     /* Zusuk - Too imbalancing for clerics, also definitely not according to SRD */
     /*
@@ -1747,7 +1747,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
   /* this spell is also supposed to injure victims who fail reflex save
   if (attacktype == SPELL_SPIKE_GROWTH) {
-    
+
   }
    */
   return dam;
@@ -1833,7 +1833,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
   bool is_ranged = FALSE;
-  
+
   if (offhand == 2)
     is_ranged = TRUE;
 
@@ -1901,7 +1901,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
             && !IS_NPC(ch->master))
       HUNTING(victim) = ch->master;  // help curb pet-fodder methods
   }
-  
+
   dam = damage_handling(ch, victim, dam, attacktype, dam_type); //modify damage
   if (dam == -1) // make sure message handling has been done!
     return 0;
@@ -2039,7 +2039,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   int dambonus = mod;
 
   /* Get the currently wielded weapon (for this strike) */
-  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1); 
+  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
 
   if (mode == 2) /* Mainhand */ {
     if (!wielded)
@@ -2047,7 +2047,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   }
   else if (mode == 3) /* offhand */
     wielded = GET_EQ(ch, WEAR_WIELD_2);
- 
+
   /* strength */
   if (GET_EQ(ch, WEAR_WIELD_2H)) /* 2-hand weapons get 3/2 str bonus */
     dambonus += GET_STR_BONUS(ch) * 3 / 2;
@@ -2097,11 +2097,11 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   /* damroll (should be mostly just gear) */
   dambonus += GET_DAMROLL(ch);
-  
+
   /* weapon enhancement bonus, might need some work */
   if (wielded)
     dambonus += GET_ENHANCEMENT_BONUS(wielded);
-  
+
   /* power attack */
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
     dambonus += COMBAT_MODE_VALUE(ch);
@@ -2124,12 +2124,12 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict)))
       dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
   }
-  
+
   /* paladin's divine bond */
   if (HAS_FEAT(ch, FEAT_DIVINE_BOND)) {
     dambonus += MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3));
   }
-  
+
   /* temporary filler for ki-strike until we get it working right */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
     dambonus += HAS_FEAT(ch, FEAT_KI_STRIKE);
@@ -2139,15 +2139,15 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     send_to_char(ch, "Dam Bonus:  %d, ", dambonus);
   }
 
-  return (MIN(MAX_DAM_BONUS, dambonus));  
+  return (MIN(MAX_DAM_BONUS, dambonus));
 }
 
 void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo) {
   if (!ch)
     return;
-  
+
   int monkLevel = CLASS_LEVEL(ch, CLASS_MONK);
-  
+
   if (IS_NPC(ch)) {
     *diceOne = ch->mob_specials.damnodice;
     *diceTwo = ch->mob_specials.damsizedice;
@@ -2241,7 +2241,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 /* simple test for testing critical hit */
 int isCriticalHit(struct char_data *ch, int diceroll) {
   /*  TODO: Here is where we need to put in code for checking the weapon type and
-   *  it's threat rating - But that means we need to know what weapon is being 
+   *  it's threat rating - But that means we need to know what weapon is being
    *  used as well, but that shoul dbe easy enough, just pass it in. */
   if ((HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL) && diceroll >= 19)
       || diceroll == 20)
@@ -2260,10 +2260,10 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim, struct obj_dat
   if (mode == 0) {
     //critical hit!  improved crit increases crit chance by 5%, epic 10%
     if (isCriticalHit(ch, diceroll) && !(IS_NPC(victim) && GET_RACE(victim) == NPCRACE_UNDEAD)) {
-    
+
       /* Process any special abilities for weapons that trigger on crit. */
       if (wielded)
-        process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_CRIT, NULL);     
+        process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_CRIT, NULL);
 
       /* overwhelming crit is going to be yellow to inflicter
        * and dark red to the victim */
@@ -2354,7 +2354,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       if((obj_has_special_ability(wielded, WEAPON_SPECAB_ANARCHIC))
          && ((IS_LG(victim)) ||
              (IS_LN(victim)) ||
-             (IS_LE(victim)) || 
+             (IS_LE(victim)) ||
              (IS_NPC(victim) || HAS_SUBRACE(victim, SUBRACE_LAWFUL)))) {
         /* Do 2d6 more damage. */
         dam += dice(2, 6);
@@ -2372,7 +2372,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         int *value = get_obj_special_ability(wielded, WEAPON_SPECAB_BANE)->value;
         if((GET_RACE(victim) == value[0]) && (HAS_SUBRACE(victim, value[1]))) {
           /*send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");*/
-          dam += dice(2, 6);        
+          dam += dice(2, 6);
         }
       }
 
@@ -2390,7 +2390,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           dam *= 2;
         }
       }
-      
+
     } /* end wielded */
 
     /* calculate damage with either mainhand (2) or offhand (3)
@@ -2415,7 +2415,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
 /* this function takes ch (attacker) against victim (defender) who has
    inflicted dam damage and will reduce damage by X depending on the type
-   of 'ward' the defender has (such as stoneskin) 
+   of 'ward' the defender has (such as stoneskin)
    this will return the modified damage
  * -note- melee only */
 #define STONESKIN_ABSORB	16
@@ -2523,7 +2523,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
 
 bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *dr) {
   int passed = 0;
-  int i = 0; 
+  int i = 0;
 
   for (i = 0; i > MAX_DR_BYPASS; i++) {
     if (dr->bypass_cat[i] != DR_BYPASS_CAT_UNUSED) {
@@ -2554,10 +2554,11 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
 }
 
 int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struct obj_data *wielded, int dam) {
-  struct damage_reduction_type *dr, *cur, *temp;
-  int i = 0;
+  struct damage_reduction_type *dr, *cur;
+  //struct damage_reduction_type *temp;
+  //int i = 0;
   int reduction = 0;
-  
+
   /* No DR, just return dam.*/
   if (GET_DR(victim) == NULL)
     return dam;
@@ -2565,15 +2566,15 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
   dr = NULL;
   for (cur = GET_DR(victim); cur != NULL; cur = cur->next) {
     if (dr == NULL || (dr->amount < cur->amount && !(weapon_bypasses_dr(wielded, cur))))
-      dr = cur;    
+      dr = cur;
   }
-  
+
   /* Now dr is set to the 'best' DR for the incoming damage. */
   if (weapon_bypasses_dr(wielded, cur))
     reduction = 0;
   else
     reduction = dr->amount;
-  
+
   return MAX(-1, dam - reduction);
 }
 
@@ -2609,7 +2610,7 @@ void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_da
 }
 
 /* this function will call the spell-casting ability of the
-   given weapon (wpn) attacker (ch) has when attacking vict 
+   given weapon (wpn) attacker (ch) has when attacking vict
    these are always 'violent' spells */
 void weapon_spells(struct char_data *ch, struct char_data *vict,
         struct obj_data *wpn) {
@@ -2704,13 +2705,13 @@ int weapon_special(struct obj_data *wpn, struct char_data *ch, char *hit_msg) {
 
 
 /*
- * Return the wielded weapon based on the attack type.  
- * 
+ * Return the wielded weapon based on the attack type.
+ *
  * Valid attack_type(s) are:
  *   ATTACK_TYPE_PRIMARY : Primary hand attack.
- *   ATTACK_TYPE_OFFHAND : Offhand attack.  
- *   ATTACK_TYPE_RANGED  : Ranged attack. 
- */ 
+ *   ATTACK_TYPE_OFFHAND : Offhand attack.
+ *   ATTACK_TYPE_RANGED  : Ranged attack.
+ */
 struct obj_data* get_wielded(struct char_data *ch, /* Wielder */
                              int attack_type)      /* Type of attack. */
 {
@@ -2718,13 +2719,13 @@ struct obj_data* get_wielded(struct char_data *ch, /* Wielder */
   struct obj_data *wielded = NULL;
 
   /* Check the primary hand location. */
-  wielded = GET_EQ(ch, WEAR_WIELD_1);   
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
 
   if (!wielded && (attack_type == ATTACK_TYPE_RANGED)) {
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
   } else if (attack_type == ATTACK_TYPE_OFFHAND) {
     wielded = GET_EQ(ch, WEAR_WIELD_2);
-  } else if ((attack_type == ATTACK_TYPE_PRIMARY) && 
+  } else if ((attack_type == ATTACK_TYPE_PRIMARY) &&
               !wielded) {  // 2-hand weapon, primary hand
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
   }  // we either have wielded or NULL
@@ -2738,23 +2739,23 @@ struct obj_data* get_wielded(struct char_data *ch, /* Wielder */
  *
  * Valid attack_type(s) are:
  *   ATTACK_TYPE_PRIMARY : Primary hand attack.
- *   ATTACK_TYPE_OFFHAND : Offhand attack.  
+ *   ATTACK_TYPE_OFFHAND : Offhand attack.
  *   ATTACK_TYPE_RANGED  : Ranged attack.
  *   ATTACK_TYPE_UNARMED : Unarmed attack.
- */ 
+ */
 int compute_attack_bonus (struct char_data *ch,     /* Attacker */
                           struct char_data *victim, /* Defender */
                           int attack_type)          /* Type of attack  */
 {
   int i = 0;
-  int bonuses[NUM_BONUS_TYPES];  
+  int bonuses[NUM_BONUS_TYPES];
   int calc_bab = BAB(ch); /* Start with base attack bonus */
-  
+
   struct obj_data *wielded;
 
   if (attack_type == ATTACK_TYPE_UNARMED)
     wielded = NULL;
-  else 
+  else
     wielded = get_wielded(ch, attack_type);
 
   /* Initialize bonuses to 0 */
@@ -2771,13 +2772,13 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   } else {
     calc_bab += GET_STR_BONUS(ch);
   }
-  
+
   /* NOTICE:  This may be something we phase out, but for basic
    function of the game to date, it is still necessary
    10/14/2014 Zusuk */
   calc_bab += GET_HITROLL(ch);
   /******/
- 
+
   /* Circumstance bonus (stacks)*/
   switch (GET_POS(ch)) {
     case POS_SITTING:
@@ -2796,14 +2797,14 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
 
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
-  
+
   /* Competence bonus */
 
   /* Enhancement bonus */
   if (wielded)
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], GET_ENHANCEMENT_BONUS(wielded));
 
-  /* Insight bonus  */ 
+  /* Insight bonus  */
 
   /* Luck bonus */
 
@@ -2823,7 +2824,7 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   if (HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
     if (wielded) {
       if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded)) )
-        bonuses[BONUS_TYPE_UNDEFINED] += 1; 
+        bonuses[BONUS_TYPE_UNDEFINED] += 1;
     } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED))
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
   }
@@ -2838,7 +2839,7 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
 
   if (victim) {
   if (!CAN_SEE(victim, ch) && !HAS_FEAT(victim, FEAT_BLIND_FIGHT))
-    bonuses[BONUS_TYPE_UNDEFINED] += 2; 
+    bonuses[BONUS_TYPE_UNDEFINED] += 2;
   }
 
   if (affected_by_spell(ch, SKILL_SMITE)) {
@@ -2852,14 +2853,14 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   /* temporary filler for ki-strike until we get it working right */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
     bonuses[BONUS_TYPE_UNDEFINED] += HAS_FEAT(ch, FEAT_KI_STRIKE);
-  
+
   /* Modify this to store a player-chosen number for power attack and expertise */
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE))
     bonuses[BONUS_TYPE_UNDEFINED] -= COMBAT_MODE_VALUE(ch);
 
   /* favored enemy - Needs work */
   if (victim && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
-    // checking if we have humanoid favored enemies for PC victims   
+    // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
       bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
     else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)))
@@ -2884,7 +2885,7 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
     calc_bab += bonuses[i];
 
-  return (MIN(MAX_BAB, calc_bab));  
+  return (MIN(MAX_BAB, calc_bab));
 }
 
 int compute_cmb (struct char_data *ch,              /*  Attacker */
@@ -2894,29 +2895,29 @@ int compute_cmb (struct char_data *ch,              /*  Attacker */
   return compute_attack_bonus(ch, victim, attack_type);
 }
 
-int compute_cmd(struct char_data *attacker, struct char_data *ch) 
+int compute_cmd(struct char_data *attacker, struct char_data *ch)
 {
   return compute_armor_class(attacker, ch, TRUE) + GET_STR_BONUS(ch);
 }
 
 /*
  * Perform an attack, returns the difference of the attacker's roll and the defender's
- * AC.  This value can be negative, and will be on a miss.  Does not deal damage, only 
+ * AC.  This value can be negative, and will be on a miss.  Does not deal damage, only
  * checks to see if the attack was successful!
  *
  * Valid attack_type(s) are:
  *   ATTACK_TYPE_PRIMARY : Primary hand attack.
- *   ATTACK_TYPE_OFFHAND : Offhand attack.  
+ *   ATTACK_TYPE_OFFHAND : Offhand attack.
  *   ATTACK_TYPE_RANGED  : Ranged attack.
  *   ATTACK_TYPE_UNARMED : Unarmed attack.
  */
 int attack_roll(struct char_data *ch,           /* Attacker */
                 struct char_data *victim,       /* Defender */
-                int attack_type,                /* Type of attack */ 
+                int attack_type,                /* Type of attack */
                 int is_touch,                   /* TRUE/FALSE this is a touch attack? */
                 int attack_number)              /* Attack number, determines penalty. */
 {
-   
+
 //  struct obj_data *wielded = get_wielded(ch, attack_type);
 
   int attack_bonus = compute_attack_bonus(ch, victim, attack_type);
@@ -2935,14 +2936,14 @@ int attack_roll(struct char_data *ch,           /* Attacker */
 //  }
 
 //  send_to_char(ch, "DEBUG: attack bonus: %d, diceroll: %d, victim_ac: %d, result: %d\r\n", attack_bonus, diceroll, victim_ac, result);
-  return result;  
+  return result;
 }
 
-/* Perform an attack of opportunity (ch attacks victim).  
+/* Perform an attack of opportunity (ch attacks victim).
  * Very simple, single hit with applied penalty (or bonus!) from ch to victim.
  *
  * If return value is != 0, then attack was a success.  If < 0, victim died.  If > 0 then it is the
- * amount of damage dealt. 
+ * amount of damage dealt.
  */
 int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int penalty) {
 
@@ -2959,22 +2960,22 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
 
 /* Perform an attack of opportunity from every character engaged with ch. */
 void attacks_of_opportunity(struct char_data *victim, int penalty) {
-  struct char_data *ch;  
-  
+  struct char_data *ch;
+
   /* Check each char in the room, if it is engaged with victim, give it an AOO */
   for (ch = world[victim->in_room].people; ch; ch = ch->next_in_room) {
     /* Check engaged. */
     if (FIGHTING(ch) == victim) {
-      attack_of_opportunity(ch, victim, penalty);    
+      attack_of_opportunity(ch, victim, penalty);
     }
   }
 }
 
-/* primary function for a single melee attack 
+/* primary function for a single melee attack
    ch -> attacker
    victim -> defender
    type -> SKILL_  /  SPELL_  / TYPE_ / etc. (determined here)
-   dam_type -> DAM_FIRE / etc (not used here, passed to dam() function) 
+   dam_type -> DAM_FIRE / etc (not used here, passed to dam() function)
    penalty ->  (or bonus)  applied to hitroll, BAB multi-attack for example
    offhand -> is this a dual wielding attack?  ranged-attack = 2
 
@@ -2985,7 +2986,7 @@ void attacks_of_opportunity(struct char_data *victim, int penalty) {
 #define HIT_MISS 0
 
 /* We need to figure out what this REALLY does, and how we can split it up logically to
- * make it easier to handle.  Currently, it is a mess, and needs refactoring.  
+ * make it easier to handle.  Currently, it is a mess, and needs refactoring.
  * Notes below:
  *
  */
@@ -2998,61 +2999,61 @@ int hit(struct char_data *ch, struct char_data *victim,
       diceroll = 0,  /* ch's attack roll. */
       dam = 0,       /* Damage for the attack, with mods. */
       sneakdam = 0;  /* Additional sneak attack damage. */
-      
+
 
   struct affected_type af; /* for crippling strike */
 
   char buf[DAM_MES_LENGTH] = {'\0'};  /* Damage message buffers. */
   char buf1[DAM_MES_LENGTH] = {'\0'};
-  
-  /* 
-    The way ranged attacks are handled is very problematic.  Currently, it is set as a 
-     mode for this function, using the offhand parameter.  This may not be the best way. 
-     
-     This is the first place where offhand comes into play. 
-       If offhand = 0, we are using the primary hand.  
+
+  /*
+    The way ranged attacks are handled is very problematic.  Currently, it is set as a
+     mode for this function, using the offhand parameter.  This may not be the best way.
+
+     This is the first place where offhand comes into play.
+       If offhand = 0, we are using the primary hand.
        If offhand = 1, we are using the secondary (or 'off') hand.
-       If offhand = 2, we are using a ranged weapon. 
+       If offhand = 2, we are using a ranged weapon.
   */
   bool is_ranged = (offhand == 2 ? TRUE : FALSE); /* Translate the offhand param. */
   bool same_room = FALSE; /* Is the victim in the same room as ch? */
 
   struct obj_data *quiver = GET_EQ(ch, WEAR_QUIVER); /* For ranged combat. */
   struct obj_data *missile = NULL; /* For ranged combat. */
-  
+
   if (!ch || !victim) return (HIT_MISS); /* ch and victim exist? */
 
-  /* 
+  /*
     This is a bit of cruft from homeland code - It is used to activate a weapon 'special'
-    under certain circumstances.  This could be refactored into something else, but it may 
-    actually be best to refactor the entire homeland 'specials' system and include it into 
-    weapon special abilities. 
+    under certain circumstances.  This could be refactored into something else, but it may
+    actually be best to refactor the entire homeland 'specials' system and include it into
+    weapon special abilities.
   */
   char *hit_msg = "";
-  
-  /* hit() returns an int to allow us to detect success or failure. */
-  //int hit_result = HIT_MISS; 
-  
-  struct obj_data *wielded = NULL; /* Wielded weapon for this hand (uses offhand) */
-  
-  /* 2nd place where offhand gets used.  What weapon are we weildign for this attack? */
-  wielded = get_wielded(ch, offhand); 
 
-  /*  
+  /* hit() returns an int to allow us to detect success or failure. */
+  //int hit_result = HIT_MISS;
+
+  struct obj_data *wielded = NULL; /* Wielded weapon for this hand (uses offhand) */
+
+  /* 2nd place where offhand gets used.  What weapon are we weildign for this attack? */
+  wielded = get_wielded(ch, offhand);
+
+  /*
     First - check the attack queue.  If we have a queued attack, dispatch!
 
     The attack queue should be more tightly integrated into the combat system.  Basically,
     if there is no attack queued up, we perform the default: A standard melee attack.
-    The parameter 'penalty' allows an external procedure to call hit with a to hit modifier 
+    The parameter 'penalty' allows an external procedure to call hit with a to hit modifier
     of some kind - This need not be a penalty, but can rather be a bonus (due to a charge or some
     other buff or situation.)  It is not hit()'s job to determine these bonuses.'
   */
   if(pending_attacks(ch)) {
     /* Dequeue the pending attack action.*/
     struct attack_action_data *attack = dequeue_attack(GET_ATTACK_QUEUE(ch));
-    /* Execute the proper function pointer for that attack action. Notice the painfully bogus 
-      parameters.  THIS IS BAD. */        
-    ((*attack_actions[attack->attack_type]) (ch, attack->argument, -1, -1));    
+    /* Execute the proper function pointer for that attack action. Notice the painfully bogus
+      parameters.  THIS IS BAD. */
+    ((*attack_actions[attack->attack_type]) (ch, attack->argument, -1, -1));
     /* Currently no way to get a result from these kinds of actions, so return something bogus.
       THIS IS BAD. */
     return -1;
@@ -3061,22 +3062,22 @@ int hit(struct char_data *ch, struct char_data *victim,
   /* Begin Ranged section ---------------------------------------------------*/
   // check if ranged attack
   /* Ok, so here we have a check for a ranged attack.  There is some special set-up that needs
-    to occur when you have a ranged attack that is not necessary (or applicable!) when performing 
+    to occur when you have a ranged attack that is not necessary (or applicable!) when performing
     a melee attack. */
-  if (is_ranged == TRUE) {    
+  if (is_ranged == TRUE) {
     if (quiver)
       /* WHAT IS THIS?  This is a GREAT BIG RED FLAG!  If we need a global variable to make
-        some information available outside this function, then we might have a bit of an issue 
+        some information available outside this function, then we might have a bit of an issue
         with the design. */
       /* last_missile is a global variable used in case we want
-       the missile name or whatnot outside of the function */      
-      /* Set the current missile to the first missile in the quiver.  Quiver?  What about a pouch 
+       the missile name or whatnot outside of the function */
+      /* Set the current missile to the first missile in the quiver.  Quiver?  What about a pouch
         of stones?  I understand this was written with bows and arrows in mind, but there are more
         options available. */
       last_missile = missile = quiver->contains;
 
     if (!missile) {
-      /* Automatically miss if you don't have any ammunition available and you attempt to perform a 
+      /* Automatically miss if you don't have any ammunition available and you attempt to perform a
         ranged attack. */
       send_to_char(ch, "You have no ammo!\r\n");
       return (HIT_MISS);
@@ -3085,7 +3086,7 @@ int hit(struct char_data *ch, struct char_data *victim,
   /* End Rangedsection ------------------------------------------------------*/
 
   /* added this to perform_violence for mobs flagged !fight */
-  /* ^^ So this means that non fighting mobs with a fight trigger get their fight 
+  /* ^^ So this means that non fighting mobs with a fight trigger get their fight
     trigger executed if they are ever 'ch' in a run of perform_violence.  Ok.*/
 
   /* ACtivate any scripts on this mob OR PLAYER. */
@@ -3097,10 +3098,10 @@ int hit(struct char_data *ch, struct char_data *victim,
     return (HIT_MISS);
   }
 
-  /* If this is a melee attack, check if the target and the aggressor are in 
+  /* If this is a melee attack, check if the target and the aggressor are in
     the same room. */
-  if (!is_ranged && IN_ROOM(ch) != IN_ROOM(victim)) { 
-    /* Not in the same room, so stop fighting. */    
+  if (!is_ranged && IN_ROOM(ch) != IN_ROOM(victim)) {
+    /* Not in the same room, so stop fighting. */
     if (FIGHTING(ch) && FIGHTING(ch) == victim)
       stop_fighting(ch);
     /* Automatic miss. */
@@ -3113,7 +3114,7 @@ int hit(struct char_data *ch, struct char_data *victim,
 
   /* Make sure that ch and victim have an updated position. */
   update_pos(ch);
-  update_pos(victim); 
+  update_pos(victim);
 
   /* If ch is dead (or worse) or victim is dead (or worse), return an automatic miss. */
   if (GET_POS(ch) <= POS_DEAD || GET_POS(victim) <= POS_DEAD) return (HIT_MISS);
@@ -3165,7 +3166,7 @@ int hit(struct char_data *ch, struct char_data *victim,
          blasting arrows, whatever.  As long as builders are sane, it should be ok. */
       w_type = GET_OBJ_VAL(missile, 3) + TYPE_HIT;
 
-      /* ranged attacks don't get strength bonus, but if there is a str penalty, that applies. */      
+      /* ranged attacks don't get strength bonus, but if there is a str penalty, that applies. */
       if (GET_STR_BONUS(ch) < 0)
         penalty += GET_STR_BONUS(ch); /* Why is penalty positive...Side effects going on. */
 
@@ -3180,9 +3181,9 @@ int hit(struct char_data *ch, struct char_data *victim,
     w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT; /* Get the weapon attack type from the wielded weapon. */
   } else {
 
-    if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)      
+    if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
       w_type = ch->mob_specials.attack_type + TYPE_HIT; /* We are a mob, and we have an attack type, so use that. */
-    else      
+    else
       w_type = TYPE_HIT; /* Generic default. */
   }
 
@@ -3243,31 +3244,31 @@ int hit(struct char_data *ch, struct char_data *victim,
     send_to_char(ch, "AC:%d}\tn", victim_ac);
     */
   }
-  
+
   /* SNIP */
-  /* Parry calculation - 
-   * This only applies if the victim is in parry mode and is based on 
+  /* Parry calculation -
+   * This only applies if the victim is in parry mode and is based on
    * the parry 'skill'.  You can not parry if you are casting and you have
    * a number of parry attempts equal to the attacks granted by your BAB. */
   int parryDC = calc_bab + diceroll;
-  if (!IS_NPC(victim) && 
+  if (!IS_NPC(victim) &&
        compute_ability(victim, ABILITY_PARRY) &&
-       PARRY_LEFT(victim) && 
+       PARRY_LEFT(victim) &&
        AFF_FLAGGED(victim, AFF_PARRY) &&
-       !IS_CASTING(victim) && 
+       !IS_CASTING(victim) &&
        GET_POS(victim) >= POS_SITTING &&
        offhand != 2) {
-    
-    /* This is basically a parry skill check, but without the attribute bonus! 
+
+    /* This is basically a parry skill check, but without the attribute bonus!
      * That is silly, either it is a skill check, or not. */
-    int parryAttempt = compute_ability(victim, ABILITY_PARRY) + dice(1, 20); 
-    
-    /* Lose 2 parry attempts if you are sitting, basically.  You will never ever 
-     * get here if you are in a lower position than sitting, so the 'less than' is 
+    int parryAttempt = compute_ability(victim, ABILITY_PARRY) + dice(1, 20);
+
+    /* Lose 2 parry attempts if you are sitting, basically.  You will never ever
+     * get here if you are in a lower position than sitting, so the 'less than' is
      * redundant. */
     if (GET_POS(victim) <= POS_SITTING)
       parryAttempt -= 2;
-    
+
     if (parryDC > parryAttempt) {
       send_to_char(victim, "You failed to \tcparry\tn the attack from %s!  ",
               GET_NAME(ch));
@@ -3295,14 +3296,14 @@ int hit(struct char_data *ch, struct char_data *victim,
     }
   } /* End of parry */
   /* SNIP */
-  
+
   /* Once per round when your mount is hit in combat, you may attempt a Ride
    * check (as an immediate action) to negate the hit. The hit is negated if
    * your Ride check result is greater than the opponent's attack roll.*/
   if (RIDING(victim) && HAS_FEAT(victim, FEAT_MOUNTED_COMBAT) &&
           MOUNTED_BLOCKS_LEFT(victim) > 0) {
     int mounted_block_dc = calc_bab + diceroll;
-    int mounted_block_bonus = compute_ability(victim, ABILITY_RIDE) + dice(1, 20); 
+    int mounted_block_bonus = compute_ability(victim, ABILITY_RIDE) + dice(1, 20);
     if (mounted_block_dc <= mounted_block_bonus) {
       send_to_char(victim, "You \tcmaneuver %s to block\tn the attack from %s!\r\n",
               GET_NAME(RIDING(victim)), GET_NAME(ch));
@@ -3310,8 +3311,8 @@ int hit(struct char_data *ch, struct char_data *victim,
       act("$N \tDmaneuvers $S mount to block\tn an attack from $n!", FALSE, ch, 0, victim,
               TO_NOTVICT);
       MOUNTED_BLOCKS_LEFT(victim)--;
-      return (HIT_MISS);      
-    }    
+      return (HIT_MISS);
+    }
   } /* end mounted combat check */
 
   /* So if we have actually hit, then dam > 0.  This is how we process a miss. */
@@ -3326,27 +3327,27 @@ int hit(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "You fail to land your quivering palm attack!  ");
       affect_from_char(ch, SKILL_QUIVERING_PALM);
     }
-    
+
     /* Display the flavorful backstab miss messages. This should be changed so we can
      * get rid of the SKILL_ defined (and convert abilities to skills :)) */
     damage(ch, victim, 0, type == SKILL_BACKSTAB ? SKILL_BACKSTAB : w_type,
             dam_type, offhand);
-    
+
     /* Ranged miss */
     if (is_ranged)
       /* Drop the ammo to the ground.  Can add a breakage % chance here as well. */
-      obj_to_room(missile, IN_ROOM(victim)); 
-    else { 
-      /* non ranged weapon can possibly set off shield block proc (for now) 
+      obj_to_room(missile, IN_ROOM(victim));
+    else {
+      /* non ranged weapon can possibly set off shield block proc (for now)
        * There really should be some mechanic to determine when the shield is used,
-       * for example if the attack is a miss, but the attack roll would be a hit 
-       * vs AC - shield bonus, then it is a shield block, and we can print the shield 
+       * for example if the attack is a miss, but the attack roll would be a hit
+       * vs AC - shield bonus, then it is a shield block, and we can print the shield
        * block message, trigger procs, etc. */
       struct obj_data *shield = GET_EQ(victim, WEAR_SHIELD);
 
       if (shield) {
 
-      /* Maybe it would be better to make a typedef for this...*/        
+      /* Maybe it would be better to make a typedef for this...*/
       int (*name)(struct char_data *victim, void *me, int cmd, char *argument);
 
         name = obj_index[GET_OBJ_RNUM(shield)].func;
@@ -3363,7 +3364,7 @@ int hit(struct char_data *ch, struct char_data *victim,
   /* OK, attack should be a success at this stage */
   } else {
     /* Print descriptive tags - This needs some form of control, via a toggle
-     * and also should be formatted in some standard way with standard colors. 
+     * and also should be formatted in some standard way with standard colors.
      *
      * This section also implement the effects of stunning fist, smite and true strike,
      * which is BAD.  These need to be moved outta here adn put into their own attack
@@ -3389,13 +3390,13 @@ int hit(struct char_data *ch, struct char_data *victim,
         send_to_char(victim, "[\tRSTUNNING-FIST\tn] ");
         act("$n performs a \tYstunning fist\tn attack on $N!",
                   FALSE, ch, wielded, victim, TO_NOTVICT);
-        if (!char_has_mud_event(victim, eSTUNNED)) {        
-          attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC); 
+        if (!char_has_mud_event(victim, eSTUNNED)) {
+          attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC);
         }
-        affect_from_char(ch, SKILL_STUNNING_FIST);     
+        affect_from_char(ch, SKILL_STUNNING_FIST);
       }
     }
-    
+
     if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
       int quivering_palm_dc = 10 + (CLASS_LEVEL(ch, CLASS_MONK) / 2) + GET_WIS_BONUS(ch);
       if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
@@ -3415,24 +3416,24 @@ int hit(struct char_data *ch, struct char_data *victim,
                   FALSE, ch, wielded, victim, TO_NOTVICT);
           dam_killed_vict(ch, victim);
           /* ok, now remove quivering palm */
-          affect_from_char(ch, SKILL_QUIVERING_PALM);     
+          affect_from_char(ch, SKILL_QUIVERING_PALM);
           return 0;
         } else { /* quivering palm will still do damage */
           dam += 1 + GET_WIS_BONUS(ch);
         }
         /* ok, now remove quivering palm */
-        affect_from_char(ch, SKILL_QUIVERING_PALM);     
+        affect_from_char(ch, SKILL_QUIVERING_PALM);
       }
     }
-    
+
     /* Calculate sneak attack damage. */
     if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
         (compute_concealment(victim) == 0) &&
        ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED))  /* Flat-footed */
-          || !(has_dex_bonus_to_ac(ch, victim)) /* No dex bonus to ac */     
+          || !(has_dex_bonus_to_ac(ch, victim)) /* No dex bonus to ac */
           || is_flanked(ch, victim)             /* Flanked */
        )) {
-      
+
       /* Display why we are sneak attacking */
       send_to_char(ch, "[");
       if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
@@ -3444,22 +3445,22 @@ int hit(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "]");
 
       sneakdam = dice(HAS_FEAT(ch, FEAT_SNEAK_ATTACK), 6);
-      
+
       if (sneakdam)
         send_to_char(ch, "[\tDSNEAK\tn] ");
     }
-        
+
     /* Calculate damage for this hit */
     dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
 
-    /* This comes after computing the other damage since sneak attack damage 
+    /* This comes after computing the other damage since sneak attack damage
      * is not affected by crit multipliers. */
     dam += sneakdam;
-    
-    /* Melee warding modifies damage. */    
+
+    /* Melee warding modifies damage. */
     //if ((dam = handle_warding(ch, victim, dam)) == -1)
     //  return (HIT_MISS);
-   
+
     /* Apply Damage Reduction */
     if ((dam = apply_damage_reduction(ch, victim, wielded, dam)) == -1)
       return (HIT_MISS); /* This should be changed to something more reasonable */
@@ -3468,11 +3469,11 @@ int hit(struct char_data *ch, struct char_data *victim,
     switch (type) {
       /* More SKILL_ garbage - This needs a better mechanic.  */
       case SKILL_BACKSTAB:
-        /* What a horrible hack.  Backstab should pretty much go away anyway, and crippling strike 
+        /* What a horrible hack.  Backstab should pretty much go away anyway, and crippling strike
          * needs a new place to live. */
         damage(ch, victim, sneakdam + (dam - sneakdam) * backstab_mult(ch),
                 SKILL_BACKSTAB, dam_type, offhand);
-        
+
         break;
       default:
         /* Here we manage the racial specials, Treluk have claws and can not use weapons. */
@@ -3483,9 +3484,9 @@ int hit(struct char_data *ch, struct char_data *victim,
           if (is_ranged) {
             obj_to_char(missile, victim);
 
-            /* This is hackalicious.  We don't apply str bonus to dam for ranged weapons, but the 
+            /* This is hackalicious.  We don't apply str bonus to dam for ranged weapons, but the
              * damage calculation function does.  Here we remove it...But penalties stay. */
-            if (GET_STR_BONUS(ch) >= 1 && 
+            if (GET_STR_BONUS(ch) >= 1 &&
                 (dam - GET_STR_BONUS(ch)) >= 1)
               dam -= GET_STR_BONUS(ch);
 
@@ -3500,7 +3501,7 @@ int hit(struct char_data *ch, struct char_data *victim,
           }
           /* So do damage! (We aren't trelux, so do it normally) */
           damage(ch, victim, dam, w_type, dam_type, offhand);
-          
+
           if (AFF_FLAGGED(ch, AFF_CHARGING)) { /* only a single strike */
             affect_from_char(ch, SKILL_CHARGE);
           }
@@ -3508,12 +3509,12 @@ int hit(struct char_data *ch, struct char_data *victim,
         break;
     }
 
-    /* 20% chance to poison as a trelux. This could be made part of the general poison code, once that is 
+    /* 20% chance to poison as a trelux. This could be made part of the general poison code, once that is
      * implemented, also, shouldn't they be able to control if they poison or not?  Why not make them envenom
-     * their claws before an attack? */    
+     * their claws before an attack? */
     if ( (GET_POS(victim) != POS_DEAD) && GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
             && !rand_number(0, 5)) {
-      /* We are just using the poison spell for this...Maybe there would be a better way, some unique poison? 
+      /* We are just using the poison spell for this...Maybe there would be a better way, some unique poison?
        * Note the CAST_INNATE, this removes armor spell failure from the call. */
       call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_INNATE);
     }
@@ -3522,14 +3523,14 @@ int hit(struct char_data *ch, struct char_data *victim,
     if (sneakdam) {
       if (dam && (GET_POS(victim) != POS_DEAD) && HAS_FEAT(ch, FEAT_CRIPPLING_STRIKE) &&
               !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
-        
+
         new_affect(&af);
         af.spell = SKILL_CRIP_STRIKE;
         af.duration = 10;
         af.location = APPLY_STR;
         af.modifier = -(dice(2, 4));
         affect_to_char(victim, &af);
-        
+
         act("Your well placed attack \tTcripples\tn $N!",
                 FALSE, ch, wielded, victim, TO_CHAR);
         act("A well placed attack from $n \tTcripples\tn you!",
@@ -3538,7 +3539,7 @@ int hit(struct char_data *ch, struct char_data *victim,
                 FALSE, ch, wielded, victim, TO_NOTVICT);
       }
     }
-    
+
     /* weapon spells - deprecated, although many weapons still have these.  Weapon Special Abilities supercede
      * this implementation. */
     if (ch && victim && wielded)
@@ -3546,17 +3547,17 @@ int hit(struct char_data *ch, struct char_data *victim,
 
     /* Weapon special abilities that trigger on hit. */
     if (ch && victim && wielded)
-      process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL); 
+      process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
 
     /* our primitive weapon-poison system, needs some love */
     weapon_poison(ch, victim, wielded);
-    
+
     /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */
     if (ch && victim && wielded)
       weapon_special(wielded, ch, hit_msg);
     else if (ch && victim && GET_EQ(ch, WEAR_HANDS))
       weapon_special(GET_EQ(ch, WEAR_HANDS), ch, hit_msg);
-    
+
     /* vampiric curse will do some minor healing to attacker */
     if (!IS_UNDEAD(victim) && IS_AFFECTED(victim, AFF_VAMPIRIC_CURSE)) {
       send_to_char(ch, "\tWYou feel slightly better as you land an attack!\r\n");
@@ -3671,9 +3672,9 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
 #define NORMAL_ATTACK_ROUTINE 0 /*mode = 0  normal attack routine*/
 #define RETURN_NUM_ATTACKS 1 /*mode = 1  return # of attacks, nothing else*/
 #define DISPLAY_ROUTINE_POTENTIAL 2 /*mode = 2  display attack routine potential*/
-/* Phase determines what part of the combat round we are currently 
- * in.  Each combat round is broken up into 3 2-second phases. 
- * Attacks are split among the phases (for a full-round-action) 
+/* Phase determines what part of the combat round we are currently
+ * in.  Each combat round is broken up into 3 2-second phases.
+ * Attacks are split among the phases (for a full-round-action)
  * in the following pattern:
  * For 1 attack:
  *   Phase 1 - Attack once.
@@ -3700,12 +3701,12 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 
   /* Check position..  we don't check < POS_STUNNED anymore? */
   if (GET_POS(ch) == POS_DEAD)
-    return(0); 
+    return(0);
 
   /*  If we have no standard action (and are using regular attack mode.)
    *  Do not attack at all. If we have no move action (and are in regular
    *  attack mode) skip all phases but the first. */
-  if ((mode == NORMAL_ATTACK_ROUTINE) && !is_action_available(ch, atSTANDARD, FALSE)) 
+  if ((mode == NORMAL_ATTACK_ROUTINE) && !is_action_available(ch, atSTANDARD, FALSE))
     return (0);
   else if ((mode == NORMAL_ATTACK_ROUTINE) && (phase != 1) && !is_action_available(ch, atMOVE, FALSE))
     return (0);
@@ -3714,7 +3715,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 
   /* level based bonus attacks, which is BAB / 5 up to the ATTACK_CAP [note might need to add armor restrictions here?] */
   bonusAttacks = MIN((BAB(ch) - 1) / 5, ATTACK_CAP);
-  
+
   /* monk flurry of blows */
   if (CLASS_LEVEL(ch, CLASS_MONK) && monk_gear_ok(ch) &&
           AFF_FLAGGED(ch, AFF_FLURRY_OF_BLOWS)) {
@@ -3733,7 +3734,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       }
     }
   }
-  
+
   /* Haste gives one extra attack, ranged or melee, at max BAB. */
   if (AFF_FLAGGED(ch, AFF_HASTE)) {
     ranged_attacks++;
@@ -3765,17 +3766,17 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           case 1: case 4: case 7: case 10:
             if (phase == PHASE_0 || phase == PHASE_1 ) {
               perform_attack = TRUE;
-            } 
-            break; 
+            }
+            break;
           case 2: case 5: case 8: case 11:
             if (phase == PHASE_0 || phase == PHASE_2 ) {
               perform_attack = TRUE;
-            }      
+            }
             break;
           case 3: case 6: case 9: case 12:
             if (phase == PHASE_0 || phase == PHASE_3 ) {
               perform_attack = TRUE;
-            }      
+            }
             break;
         }
 
@@ -3792,7 +3793,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
             stop_fighting(ch);
             return 0;
           } else
-            stop_fighting(ch);              
+            stop_fighting(ch);
         }
       }
       return 0;
@@ -3849,7 +3850,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
       send_to_char(ch, "Offhand, Attack Bonus:  %d; ",
-                   compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + penalty * 2);               
+                   compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + penalty * 2);
       compute_hit_damage(ch, ch, NULL, 0, 0, 3);
     }
   } else { // not dual wielding
@@ -3872,7 +3873,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           (!IS_NPC(ch) && GET_SKILL(ch, SKILL_BLINDING_SPEED))) {
     numAttacks++;
     if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
-      attacks_at_max_bab--;      
+      attacks_at_max_bab--;
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                 IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
@@ -3897,23 +3898,23 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           perform_attack = TRUE;
         }
         break;
-      case 2: case 5: case 8: case 11: 
+      case 2: case 5: case 8: case 11:
         if (phase == PHASE_0 || phase == PHASE_2 ) {
           perform_attack = TRUE;
-        }       
-        break; 
-      case 3: case 6: case 9: case 12: 
+        }
+        break;
+      case 3: case 6: case 9: case 12:
         if (phase == PHASE_0 || phase == PHASE_3 ) {
           perform_attack = TRUE;
-        }         
-        break; 
+        }
+        break;
     }
     if (perform_attack) {
       if(attacks_at_max_bab > 0)
         attacks_at_max_bab--; /* like monks flurry */
       else
         penalty -= 5;      /* everyone gets -5 penalty per bonus attack by mainhand */
-      
+
       if (FIGHTING(ch) && mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
         update_pos(FIGHTING(ch));
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
@@ -3927,7 +3928,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                    i + 1,
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       compute_hit_damage(ch, ch, NULL, 0, 0, 2);
-    } 
+    }
   }
 
   /*additional off-hand attacks*/
@@ -4117,12 +4118,12 @@ EVENTFUNC(event_combat_round) {
   execute_next_action(ch);
 
   perform_violence(ch, (pMudEvent->sVariables != NULL && is_number(pMudEvent->sVariables) ? atoi(pMudEvent->sVariables) : 0));
-  
+
   if (pMudEvent->sVariables != NULL)
     sprintf(pMudEvent->sVariables, "%d", (atoi(pMudEvent->sVariables) < 3 ? atoi(pMudEvent->sVariables) + 1 : 1));
- 
+
   return 2 RL_SEC; /* 6 second rounds, hack! */
-  
+
 }
 
 /* control the fights going on.
