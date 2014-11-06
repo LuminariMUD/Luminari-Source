@@ -2633,23 +2633,14 @@ struct affected_type {
 };
 
 /* The Maximum number of types that can be required to bypass DR. */
-#define MAX_DR_BYPASS 5
+#define MAX_DR_BYPASS 3
 
-#define DR_BYPASS_CAT_NONE     0 /* Nothing bypasses the DR */
-#define DR_BYPASS_CAT_MATERIAL 1 /* Materials that bypass the DR*/
-#define DR_BYPASS_CAT_MAGIC    2 /* Magical weapons bypass the DR */
-#define DR_BYPASS_CAT_DAMTYPE  3 /* Damage types that bypass the DR */
-#define DR_BYPASS_CAT_SPELL    4 /* Spells bypass the DR */
-
-struct dr_bypass_type {
-
-  int bypass_cat; /* Category of bypass */
-  int bypass;     /* The bypass value (based on category) */
-
-  struct dr_bypass_type *next;      /* AND bypass types */
-  struct dr_bypass_type *alternate; /* OR bypass types  */
-
-};
+#define DR_BYPASS_CAT_UNUSED   0 /* Unused bypass - skip. */
+#define DR_BYPASS_CAT_NONE     1 /* Nothing bypasses the DR */
+#define DR_BYPASS_CAT_MATERIAL 2 /* Materials that bypass the DR*/
+#define DR_BYPASS_CAT_MAGIC    3 /* Magical weapons bypass the DR */
+#define DR_BYPASS_CAT_DAMTYPE  4 /* Damage types that bypass the DR */
+#define DR_BYPASS_CAT_SPELL    5 /* Spells bypass the DR */
 
 /** A damage reduction structure. */
 struct damage_reduction_type {
@@ -2659,8 +2650,25 @@ struct damage_reduction_type {
   int spell;      /* Spell granting this DR. */
   int feat;       /* Feat granting this DR. */
   
-  struct dr_bypass_type *bypass; /* List of bypass types. If NULL this is 'DR X/--' */
-
+  /* The following values can be a bit confusing - So a clarification
+   * is in order.  
+   * 
+   * 'bypass_cat' is an array of integer values (one of the above defines)
+   * 'bypass_val' is an array of integer values that expands upon the category.
+   * 
+   * 'bypass_val' only has values for the following categories:
+   *
+   * DR_BYPASS_CAT_MATERIAL - The value is the corresponding material.
+   * DR_BYPASS_CAT_DAMTYPE- The value is the corresponding damage type.
+   *
+   * MAX_DR_BYPASS sets the maximum number of bypasses that can be set
+   * on a particular DR.  For simplicity, bypasses are only 'OR' separated...
+   * meaning that if a dr 10 has two categories, for example magic and spell, it
+   * would be DR 10/(magic or spell)
+   */
+  int bypass_cat[MAX_DR_BYPASS]; /* Category of bypass */
+  int bypass_val[MAX_DR_BYPASS]; /* Value (required for certain categories) */
+   
   struct damage_reduction_type *next;
 };
 

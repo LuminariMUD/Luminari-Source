@@ -1164,20 +1164,38 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
       send_to_char(ch, "%s%-19s%s ",
               CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       if (aff->location == APPLY_DR) { /* Handle DR a bit differently */
-          struct damage_reduction_type *dr;
-          if(aff->data != NULL) {
-            dr = (struct damage_reduction_type *)aff->data;
-/*            if (dr->bypass != NULL) {
-              struct dr_bypass_type *bypass = dr->bypass;
-              switch (bypass->bypass_cat) {
-                  case DR_BYPASS_CAT_MATERIAL:
-                      strcat(buf2, material_name[bypass->bypass])
+          struct damage_reduction_type *dr;          
+            dr = GET_DR(ch);
+            while (dr != NULL) {
+              if (dr->spell == aff->spell)  {
+                /* Match! */    
+                send_to_char(ch, "DR %d/", dr->amount);
+                for (i = 0; i < MAX_DR_BYPASS; i++) {
+                  if (dr->bypass_cat[i] != DR_BYPASS_CAT_UNUSED) {
+                    switch (dr->bypass_cat[i]) {
+                      case DR_BYPASS_CAT_NONE:
+                        /* Nothing bypasses this dr. */
+                        send_to_char(ch, "-\r\n");
+                        break;
+                      case DR_BYPASS_CAT_MATERIAL:
+                        send_to_char(ch, "%s\r\n", materials[dr->bypass_val[i]]);
+                        break;
+                      case DR_BYPASS_CAT_MAGIC:
+                        send_to_char(ch, "magic\r\n");
+                        break;
+                      case DR_BYPASS_CAT_SPELL:
+                        send_to_char(ch, "spell\r\n");
+                        break;
+                      case DR_BYPASS_CAT_DAMTYPE:
+                        send_to_char(ch, "%s\r\n", damtypes[dr->bypass_val[i]]);
+                      default:
+                        send_to_char(ch, "???\r\n");
+                    }  
+                  }
+                }
               }
-              strcat(buf2, dr_bypass_names[dr->bypass])
- 
-            }
-*/ 
-            send_to_char(ch, "DR %d/(xxx)", dr->amount);
+            }       
+            
           }                            
       } else if (aff->modifier)
         send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);

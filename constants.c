@@ -167,6 +167,31 @@ const int grapple_size_modifiers[NUM_SIZES] = {
   16
 };
 
+const char *damtypes[NUM_DAM_TYPES + 1] = {
+  "RESERVED",
+  "fire",
+  "cold",
+  "air",
+  "earth",
+  "acid",
+  "holy",
+  "electric",
+  "unholy",
+  "slice",
+  "puncture",
+  "force",
+  "sound",
+  "poison",
+  "disease",
+  "negative",
+  "illusion",
+  "mental",
+  "light",
+  "energy",
+  "water",
+  "\n"
+};
+
 const char *damtype_display[NUM_DAM_TYPES + 1] = {
   "RESERVED",
   "Damage Fire",

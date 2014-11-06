@@ -12,6 +12,7 @@
 #ifndef _CONSTANTS_H_
 #define _CONSTANTS_H_
 
+extern const char *damtypes[]; 
 extern const char *trap_type[MAX_TRAP_TYPES + 1];
 extern const char *trap_effects[MAX_TRAP_EFFECTS + 1];
 extern const char *ranged_weapons[NUM_RANGED_WEAPONS + 1];
