@@ -2938,7 +2938,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
       new_dr->bypass_val[0] = MATERIAL_ADAMANTINE;
       
-      new_dr->bypass_cat[1] = DR_BYPASS_CAT_SPELL;
+      new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
       new_dr->bypass_val[1] = 0; /* Unused. */
       
       new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
