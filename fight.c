@@ -36,6 +36,7 @@
 #include "feats.h"
 #include "actions.h"
 #include "actionqueues.h"
+#include "craft.h"
 
 /* local global */
 struct obj_data *last_missile = NULL;
