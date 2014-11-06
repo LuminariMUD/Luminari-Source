@@ -167,6 +167,13 @@ const int grapple_size_modifiers[NUM_SIZES] = {
   16
 };
 
+const char *dr_damtypes[NUM_DR_DAMTYPES + 1] = {
+  "bludgeoning",
+  "slashing",
+  "piercing",
+  "\n"  
+};
+
 const char *damtypes[NUM_DAM_TYPES + 1] = {
   "RESERVED",
   "fire",

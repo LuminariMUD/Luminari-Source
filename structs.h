@@ -2639,7 +2639,12 @@ struct affected_type {
 #define DR_BYPASS_CAT_NONE     1 /* Nothing bypasses the DR */
 #define DR_BYPASS_CAT_MATERIAL 2 /* Materials that bypass the DR*/
 #define DR_BYPASS_CAT_MAGIC    3 /* Magical weapons bypass the DR */
-#define DR_BYPASS_CAT_DAMTYPE  4 /* Damage types that bypass the DR */
+#define DR_BYPASS_CAT_DAMTYPE  4 /* DR Damage types that bypass the DR */
+
+#define DR_DAMTYPE_BLUDGEONING 0 /* Bludgeoning damage bypasses the DR */
+#define DR_DAMTYPE_SLASHING    1 /* Slashing damage bypasses the DR */
+#define DR_DAMTYPE_PIERCING    2 /* Piercing damage bypasses the DR */
+#define NUM_DR_DAMTYPES 3
 
 /* Note that spells ALWAYS bypass DR! Resistances are for Spells, DR is for
  * physical damage! */
