@@ -1194,6 +1194,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
               }
             }
           }
+          dr = dr->next;
         }
       } else if (aff->modifier)
         send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
