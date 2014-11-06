@@ -2482,7 +2482,7 @@ void free_affect(struct affected_type *af) {
   //struct damage_reduction_type *dr;
   if (af == NULL) return;
 
-  switch (af->location) {
+//  switch (af->location) {
 //    case APPLY_DR:
 //      if (af->data != NULL) {
 //        dr = (struct damage_reduction_type *) af->data;
