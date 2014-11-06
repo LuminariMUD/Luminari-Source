@@ -2530,7 +2530,7 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
         case DR_BYPASS_CAT_NONE:
           break;
         case DR_BYPASS_CAT_MAGIC:
-          passed += (IS_MAGIC(weapon) ? 1 : 0);
+          passed += (IS_SET_AR(GET_OBJ_EXTRA(weapon), ITEM_MAGIC) ? 1 : 0);
           break;
         case DR_BYPASS_CAT_MATERIAL:
           passed += (weapon->material == dr->bypass_val[i] ? 1 : 0);
