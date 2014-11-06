@@ -577,6 +577,16 @@ void affect_remove(struct char_data *ch, struct affected_type *af) {
   }
 
   affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
+ 
+  /* Check if we have anything that is 'nonstandard' from this affect */
+  if (af->location == APPLY_DR) {
+    /* Remove the dr. */
+    struct damage_reduction_type *temp; /* Used by REMOVE_FROM_LIST */    
+    for(dr = GET_DR(ch); dr != NULL; dr = dr->next) {
+      if (dr->spell = af->spell)
+        REMOVE_FROM_LIST(df, GET_DR(ch), next);        
+    }
+  }
   REMOVE_FROM_LIST(af, ch->affected, next);
   
   free_affect(af);
