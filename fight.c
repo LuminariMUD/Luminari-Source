@@ -2520,6 +2520,62 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
 #undef STONESKIN_ABSORB
 #undef EPIC_WARDING_ABSORB
 
+bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *dr) {
+  int passed = 0;
+  int i = 0; 
+
+  for (i = 0; i > MAX_DR_BYPASS; i++) {
+    if (dr->bypass_cat[i] != DR_BYPASS_CAT_UNUSED) {
+      switch (dr->bypass_cat[i]) {
+        case DR_BYPASS_CAT_NONE:
+          break;
+        case DR_BYPASS_CAT_MAGIC:
+          passed += (IS_MAGIC(weapon) ? 1 : 0);
+          break;
+        case DR_BYPASS_CAT_MATERIAL:
+          passed += (weapon->material == dr->bypass_val[i] ? 1 : 0);
+          break;
+        case DR_BYPASS_CAT_DAMTYPE:
+          if ((dr->bypass_val[i] == DR_DAMTYPE_BLUDGEONING) &&
+              (HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_BLUDGEONING))
+              passed++;
+          else if ((dr->bypass_val[i] == DR_DAMTYPE_SLASHING) &&
+                   (HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_SLASHING))
+                   passed++;
+          else if ((dr->bypass_val[i] == DR_DAMTYPE_PIERCING) &&
+                   (HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_PIERCING))
+                   passed++;
+                   break;
+      }
+    }
+  }
+  return (passed > 0 ? TRUE : FALSE);
+}
+
+int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struct obj_data *wielded, int dam) {
+  struct damage_reduction_type *dr, *cur, *temp;
+  int i = 0;
+  int reduction = 0;
+  
+  /* No DR, just return dam.*/
+  if (GET_DR(victim) == NULL)
+    return dam;
+
+  dr = NULL;
+  for (cur = GET_DR(victim); cur != NULL; cur = cur->next) {
+    if (dr == NULL || (dr->amount < cur->amount && !(weapon_bypasses_dr(wielded, cur))))
+      dr = cur;    
+  }
+  
+  /* Now dr is set to the 'best' DR for the incoming damage. */
+  if (weapon_bypasses_dr(wielded, cur))
+    reduction = 0;
+  else
+    reduction = dr->amount;
+  
+  return MAX(-1, dam - reduction);
+}
+
 /* all weapon poison system is right now is just firing spells off our weapon
    if the weapon has that given spell-num applied to it as a poison
    i have ambitious plans in the future to completely re-work poison in our
@@ -3394,14 +3450,18 @@ int hit(struct char_data *ch, struct char_data *victim,
         
     /* Calculate damage for this hit */
     dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
-    
-    /* Melee warding modifies damage. */    
-    if ((dam = handle_warding(ch, victim, dam)) == -1)
-      return (HIT_MISS);
 
     /* This comes after computing the other damage since sneak attack damage 
      * is not affected by crit multipliers. */
     dam += sneakdam;
+    
+    /* Melee warding modifies damage. */    
+    //if ((dam = handle_warding(ch, victim, dam)) == -1)
+    //  return (HIT_MISS);
+   
+    /* Apply Damage Reduction */
+    if ((dam = apply_damage_reduction(ch, victim, wielded, dam)) == -1)
+      return (HIT_MISS); /* This should be changed to something more reasonable */
 
     /* if the 'type' of hit() requires special handling, do it here */
     switch (type) {
