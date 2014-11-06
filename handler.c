@@ -242,6 +242,9 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
     case APPLY_RES_WATER:
       GET_RESISTANCES(ch, DAM_WATER) += mod;
       break;
+    case APPLY_DR:
+      /* This needs to be updated. */
+      break;
       /* Do Not Use. */
     case APPLY_AGE:
       //ch->player.time.birth -= (mod * SECS_PER_MUD_YEAR);

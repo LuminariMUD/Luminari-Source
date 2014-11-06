@@ -1658,6 +1658,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define APPLY_RES_LIGHT        45
 #define APPLY_RES_ENERGY       46
 #define APPLY_RES_WATER        47  //20
+
 #define APPLY_DR               48
 /* end dam_types, make sure it matches NUM_DAM_TYPES */
 
