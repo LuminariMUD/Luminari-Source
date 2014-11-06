@@ -2573,8 +2573,18 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
   if (weapon_bypasses_dr(wielded, cur))
     reduction = 0;
   else
-    reduction = dr->amount;
+    reduction = MIN(dr->amount, dam);
 
+  if ((reduction > 0) &&
+      (dr->max_damage > 0)) {
+    /* Damage the DR...*/
+    d->max_damage -= reduction;
+    if (d->max_damage <= 0) {
+      /* The DR was destroyed!*/
+      
+    }
+    
+  }
   return MAX(-1, dam - reduction);
 }
 
