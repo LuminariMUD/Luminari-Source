@@ -2533,7 +2533,7 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
           passed += (IS_SET_AR(GET_OBJ_EXTRA(weapon), ITEM_MAGIC) ? 1 : 0);
           break;
         case DR_BYPASS_CAT_MATERIAL:
-          passed += (weapon->material == dr->bypass_val[i] ? 1 : 0);
+          passed += (GET_OBJ_MATERIAL(weapon) == dr->bypass_val[i] ? 1 : 0);
           break;
         case DR_BYPASS_CAT_DAMTYPE:
           if ((dr->bypass_val[i] == DR_DAMTYPE_BLUDGEONING) &&
