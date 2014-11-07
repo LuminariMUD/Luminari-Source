@@ -2522,7 +2522,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
 #undef EPIC_WARDING_ABSORB
 
 bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *dr) {
-  int passed = 0;
+  bool passed = FALSE;
   int i = 0;
 
   for (i = 0; i > MAX_DR_BYPASS; i++) {
@@ -2531,26 +2531,28 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
         case DR_BYPASS_CAT_NONE:
           break;
         case DR_BYPASS_CAT_MAGIC:
-          passed += (IS_SET_AR(GET_OBJ_EXTRA(weapon), ITEM_MAGIC) ? 1 : 0);
+          if (IS_SET_AR(GET_OBJ_EXTRA(weapon), ITEM_MAGIC)) 
+            passed = TRUE;
           break;
         case DR_BYPASS_CAT_MATERIAL:
-          passed += (GET_OBJ_MATERIAL(weapon) == dr->bypass_val[i] ? 1 : 0);
+          if (GET_OBJ_MATERIAL(weapon) == dr->bypass_val[i]) 
+            passed = TRUE;
           break;
         case DR_BYPASS_CAT_DAMTYPE:
           if ((dr->bypass_val[i] == DR_DAMTYPE_BLUDGEONING) &&
               (HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_BLUDGEONING))
-              passed++;
+              passed = TRUE;
           else if ((dr->bypass_val[i] == DR_DAMTYPE_SLASHING) &&
                    (HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_SLASHING))
-                   passed++;
+                   passed = TRUE;
           else if ((dr->bypass_val[i] == DR_DAMTYPE_PIERCING) &&
                    (HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_PIERCING))
-                   passed++;
+                   passed = TRUE;
                    break;
       }
     }
   }
-  return (passed > 0 ? TRUE : FALSE);
+  return passed;
 }
 
 int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struct obj_data *wielded, int dam) {
@@ -2569,9 +2571,9 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
       dr = cur;
   }
 
+  send_to_char(ch, "DR %s BYPASSED\r\n", (weapon_bypasses_dr(wielded, dr) ? "IS" : " IS NOT"));
   /* Now dr is set to the 'best' DR for the incoming damage. */
   if (weapon_bypasses_dr(wielded, dr)) {
-    send_to_char(ch, "DR BYPASSED\r\n");
     reduction = 0;
   } else
     reduction = MIN(dr->amount, dam);
