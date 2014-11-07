@@ -2570,10 +2570,10 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
   }
 
   /* Now dr is set to the 'best' DR for the incoming damage. */
-  if (weapon_bypasses_dr(wielded, dr))
+  if (weapon_bypasses_dr(wielded, dr)) {
     send_to_char(ch, "DR BYPASSED\r\n");
     reduction = 0;
-  else
+  } else
     reduction = MIN(dr->amount, dam);
 
   if ((reduction > 0) &&
