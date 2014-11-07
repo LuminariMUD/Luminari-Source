@@ -2481,28 +2481,6 @@ void new_affect(struct affected_type *af) {
 void free_affect(struct affected_type *af) {
   //struct damage_reduction_type *dr;
   if (af == NULL) return;
-
-//  switch (af->location) {
-//    case APPLY_DR:
-//      if (af->data != NULL) {
-//        dr = (struct damage_reduction_type *) af->data;
-//        if (dr->bypass != NULL) {
-//          struct dr_bypass_type *bypass = dr->bypass;
-//          struct dr_bypass_type *cur = NULL;
-//
-//          dr->bypass = NULL;
-//
-//          while (bypass != NULL) {
-//            cur = bypass;
-//            bypass = bypass->alternate;
-//            free(cur);
-//          }
-//        }
-//        free(dr);
-//        af->data = NULL;
-//      }
-//      break;
-//  }
   free(af);
 }
 
