@@ -2567,7 +2567,7 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
 
   dr = NULL;
   for (cur = GET_DR(victim); cur != NULL; cur = cur->next) {
-    if (dr == NULL || (dr->amount < cur->amount && !(weapon_bypasses_dr(wielded, cur))))
+    if (dr == NULL || (dr->amount < cur->amount && (weapon_bypasses_dr(wielded, cur) == FALSE)))
       dr = cur;    
   }
   
@@ -2577,11 +2577,11 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
   for (i = 0;i < MAX_DR_BYPASS; i++)
     send_to_char(ch, " - Bypass: %d, %d\r\n", dr->bypass_cat[i], dr->bypass_val[i]);
   
-  send_to_char(ch, "DR %s BYPASSED\r\n", (weapon_bypasses_dr(wielded, dr) ? "IS" : " IS NOT"));
+  send_to_char(ch, "DR %s BYPASSED\r\n", (weapon_bypasses_dr(wielded, dr) == TRUE ? "IS" : " IS NOT"));
   /* END DEBUG */
   
   /* Now dr is set to the 'best' DR for the incoming damage. */
-  if (weapon_bypasses_dr(wielded, dr)) {
+  if (weapon_bypasses_dr(wielded, dr) == TRUE) {
     reduction = 0;
   } else
     reduction = MIN(dr->amount, dam);
