@@ -2558,7 +2558,7 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
 int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struct obj_data *wielded, int dam) {
   struct damage_reduction_type *dr, *cur;
   //struct damage_reduction_type *temp;
-  //int i = 0;
+  int i = 0;
   int reduction = 0;
 
   /* No DR, just return dam.*/
@@ -2568,10 +2568,18 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
   dr = NULL;
   for (cur = GET_DR(victim); cur != NULL; cur = cur->next) {
     if (dr == NULL || (dr->amount < cur->amount && !(weapon_bypasses_dr(wielded, cur))))
-      dr = cur;
+      dr = cur;    
   }
-
+  
+  /* DEBUG */
+  send_to_char(ch, "DR : %d SPELL : %s", dr->amount, spell_info[dr->spell].name);
+  
+  for (i = 0;i < MAX_DR_BYPASS; i++)
+    send_to_char(ch, " - Bypass: %d, %d", dr->bypass_cat[i], dr->bypass_val[i]);
+  
   send_to_char(ch, "DR %s BYPASSED\r\n", (weapon_bypasses_dr(wielded, dr) ? "IS" : " IS NOT"));
+  /* END DEBUG */
+  
   /* Now dr is set to the 'best' DR for the incoming damage. */
   if (weapon_bypasses_dr(wielded, dr)) {
     reduction = 0;
