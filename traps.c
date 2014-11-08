@@ -417,7 +417,7 @@ EVENTFUNC(event_trap_triggered) {
         if (dam) /* has damage to process? */
           damage(ch, ch, dam, -1 /*attacktype*/, dam_type, -1 /*offhand*/);
       }
-
+      break;
     default:
       log("SYSERR: event_trap_triggered called with invalid event id!\r\n");
       break;
