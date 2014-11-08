@@ -2525,7 +2525,7 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
   bool passed = FALSE;
   int i = 0;
 
-  for (i = 0; i > MAX_DR_BYPASS; i++) {
+  for (i = 0; i < MAX_DR_BYPASS; i++) {
     if (dr->bypass_cat[i] != DR_BYPASS_CAT_UNUSED) {
       switch (dr->bypass_cat[i]) {
         case DR_BYPASS_CAT_NONE:
