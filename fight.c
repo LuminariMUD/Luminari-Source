@@ -2572,12 +2572,12 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
   }
   
   /* DEBUG */
-  send_to_char(ch, "DR : %d SPELL : %s WEAPON MATERIAL : %d\r\n", dr->amount, spell_info[dr->spell].name, GET_OBJ_MATERIAL(wielded));
-  
-  for (i = 0;i < MAX_DR_BYPASS; i++)
-    send_to_char(ch, " - Bypass: %d, %d\r\n", dr->bypass_cat[i], dr->bypass_val[i]);
-  
-  send_to_char(ch, "DR %s BYPASSED\r\n", (weapon_bypasses_dr(wielded, dr) == TRUE ? "IS" : " IS NOT"));
+//  send_to_char(ch, "DR : %d SPELL : %s WEAPON MATERIAL : %d\r\n", dr->amount, spell_info[dr->spell].name, GET_OBJ_MATERIAL(wielded));
+//  
+//  for (i = 0;i < MAX_DR_BYPASS; i++)
+//    send_to_char(ch, " - Bypass: %d, %d\r\n", dr->bypass_cat[i], dr->bypass_val[i]);
+//  
+//  send_to_char(ch, "DR %s BYPASSED\r\n", (weapon_bypasses_dr(wielded, dr) == TRUE ? "IS" : " IS NOT"));
   /* END DEBUG */
   
   /* Now dr is set to the 'best' DR for the incoming damage. */
@@ -2592,9 +2592,9 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
     dr->max_damage -= reduction;
     if (dr->max_damage <= 0) {
       /* The DR was destroyed!*/
-      
-    }
-    
+      if (affected_by_spell(ch, dr->spell))
+        affect_from_char(ch, dr->spell);
+    }    
   }
   return MAX(-1, dam - reduction);
 }
