@@ -2592,12 +2592,11 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
     dr->max_damage -= reduction;
     if (dr->max_damage <= 0) {
       /* The DR was destroyed!*/
-      if (affected_by_spell(ch, dr->spell)) {
-        affect_from_char(ch, dr->spell);
-        if (spell_info[af->spell].wear_off_msg)
-                       send_to_char(i, "%s\r\n", spell_info[af->spell].wear_off_msg);
-      }
-      
+      if (affected_by_spell(victim, dr->spell)) {
+        affect_from_char(victim, dr->spell);
+        if (spell_info[dr->spell].wear_off_msg)
+          send_to_char(victim, "%s\r\n", spell_info[dr->spell].wear_off_msg);
+      }      
     }    
   }
   return MAX(-1, dam - reduction);
