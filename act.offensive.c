@@ -39,7 +39,7 @@ int special_size_modifier(struct char_data *ch) {
   }
 
 /* Fine –8, Diminutive –4, Tiny –2, Small –1, Medium +0, Large +1, Huge +2,
- * Gargantuan +4, Colossal +8.*/  
+ * Gargantuan +4, Colossal +8.*/
   switch (GET_SIZE(ch)) {
     case SIZE_FINE:
       return -8;
@@ -67,7 +67,7 @@ int special_size_modifier(struct char_data *ch) {
 }
 
 /* basic check for combat maneuver success, + incoming bonus (or negative value for penalty
- * this returns the level of success or failure, which applies in cases such as bull rush 
+ * this returns the level of success or failure, which applies in cases such as bull rush
  * 1 or higher = success, 0 or lower = failure
  * ##NOTE## an equivalent function(s) lie in fight.c made by Ornir, once we discuss/test
  * more in depth we'll merge the functions (compute_cmd/compute_cmb)*/
@@ -76,7 +76,7 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict, int bonu
   int cm_defense = 9; /* combat maneuver defense, should be 10 but if the difference is 0, then you failed your defense */
   int result = 0;
   int attack_roll = dice(1, 20);
-  
+
   if (!ch) {
     log("ERR: combat_maneuver_check has no ch! (act.offensive.c)");
     return 0;
@@ -85,16 +85,16 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict, int bonu
     log("ERR: combat_maneuver_check has no vict! (act.offensive.c)");
     return 0;
   }
-    
+
   /* CMB = Base attack bonus + Strength modifier + special size modifier */
   cm_bonus += attack_roll;
   cm_bonus += BAB(ch);
   cm_bonus += GET_STR_BONUS(ch);
   cm_bonus += special_size_modifier(ch);
   /* misc here*/
-  
+
   /***/
-  
+
   /* CMD = 10 + Base attack bonus + Strength modifier + Dexterity modifier + special size modifier + miscellaneous modifiers */
   cm_defense += BAB(vict);
   cm_defense += GET_STR_BONUS(vict);
@@ -105,11 +105,11 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict, int bonu
    * deflection, dodge, insight, luck, morale, profane, and sacred bonuses to
    * AC to its CMD. Any penalties to a creature's AC also apply to its CMD.
    * A flat-footed creature does not add its Dexterity bonus to its CMD.*/
-  
+
   /***/
 
   result = cm_bonus - cm_defense;
-  
+
   /* FINALLY! */
   /* easy outs:  natural 20 roll is success, natural 1 is failure */
   if (attack_roll == 20) {
@@ -399,30 +399,30 @@ void perform_charge(struct char_data *ch) {
   extern struct index_data *mob_index;
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
   int i = 0;
-  
+
   if (AFF_FLAGGED(ch, AFF_CHARGING)) {
     send_to_char(ch, "You are already charging!\r\n");
     return;
   }
-  
+
   /* init affect array */
   for (i = 0; i < CHARGE_AFFECTS; i++) {
     new_affect(&(af[i]));
     af[i].spell = SKILL_CHARGE;
     af[i].duration = 2;
   }
-  
+
   SET_BIT_AR(af[0].bitvector, AFF_CHARGING);
-    
+
   af[1].location = APPLY_HITROLL; /* bonus */
   af[1].modifier = 2;
 
   af[2].location = APPLY_AC; /* penalty */
   af[2].modifier = -2;
-  
+
   for (i = 0; i < CHARGE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
-  
+
   if (RIDING(ch)) {
     act("You urge $N forward for a \tYcharge\tn!", FALSE, ch, NULL, RIDING(ch), TO_CHAR);
     act("$n urges you forward for a \tYcharge\tn!", FALSE, ch, NULL, RIDING(ch), TO_VICT);
@@ -437,7 +437,7 @@ void perform_charge(struct char_data *ch) {
 
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_RIDE_BY_ATTACK)) {
     USE_MOVE_ACTION(ch);
-  } else 
+  } else
     USE_FULL_ROUND_ACTION(ch);
 }
 #undef CHARGE_AFFECTS
@@ -516,14 +516,14 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     defense_check = dice(1, 20) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)) + special_size_modifier(vict);
 
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP)) {
-      /* You do not provoke an attack of opportunity when you attempt to trip an opponent while you are unarmed. 
+      /* You do not provoke an attack of opportunity when you attempt to trip an opponent while you are unarmed.
        * You also gain a +4 bonus on your Strength check to trip your opponent.
        *
-       * If you trip an opponent in melee combat, you immediately get a melee attack against that opponent as if 
+       * If you trip an opponent in melee combat, you immediately get a melee attack against that opponent as if
        * you hadn't used your attack for the trip attempt.
        *
        * Normal:
-       * Without this feat, you provoke an attack of opportunity when you attempt to trip an opponent while you 
+       * Without this feat, you provoke an attack of opportunity when you attempt to trip an opponent while you
        * are unarmed. */
       attack_check += 4;
     }
@@ -656,7 +656,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
 }
 
 /* shieldpunch engine :
- * Perform the shield punch, check for proficiency and the required 
+ * Perform the shield punch, check for proficiency and the required
  * equipment, also check for any enhancing feats. */
 bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
   extern struct index_data *obj_index;
@@ -714,9 +714,9 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
 }
 
 /* shieldcharge engine :
- * Perform the shieldcharge, check for proficiency and the required 
- * equipment, also check for any enhancing feats. Perform a trip attack 
- * on success 
+ * Perform the shieldcharge, check for proficiency and the required
+ * equipment, also check for any enhancing feats. Perform a trip attack
+ * on success
  *
  * Note - Charging gives +2 to your attack
  */
@@ -777,7 +777,7 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
 }
 
 /* shieldslam engine :
- * Perform the shield slam, check for proficiency and the required 
+ * Perform the shield slam, check for proficiency and the required
  * equipment, also check for any enhancing feats. */
 bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
@@ -1609,14 +1609,14 @@ ACMD(do_hit) {
           send_to_char(ch,
                   "\tyYour opponents superior \tYinitiative\ty grants the first strike!\tn\r\n");
         }
-        
+
         /* vict is taking an action so loses the Flat-footed flag */
         if (AFF_FLAGGED(vict, AFF_FLAT_FOOTED))
           REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_FLAT_FOOTED);
 
         set_fighting(vict, ch);
 
-        hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); // victim is first 
+        hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); // victim is first
         update_pos(ch);
         if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE) &&
                 GET_POS(ch) > POS_DEAD) {
@@ -1922,7 +1922,7 @@ ACMD(do_taunt) {
 
 /* do_frightful - Perform an AoE attack that terrifies the victims, causign them to flee.
  * Currently this is limited to dragons, but really it should be doable by any fear-inspiring
- * creature.  Don't tell me the tarrasque isn't scary! :) 
+ * creature.  Don't tell me the tarrasque isn't scary! :)
  * This ability SHOULD be able to be resisted with a successful save.
  * The paladin ability AURA OF COURAGE should give a +4 bonus to all saves against fear,
  * usually will saves. */
@@ -2174,8 +2174,8 @@ ACMD(do_crystalfist) {
 
 ACMD(do_crystalbody) {
   int uses_remaining = 0;
-  struct affected_type af;
-  
+  //struct affected_type af;
+
   //  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
   if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_CRYSTAL_BODY)) {
     send_to_char(ch, "How do you plan on doing that?\r\n");
@@ -2195,16 +2195,16 @@ ACMD(do_crystalbody) {
     start_daily_use_cooldown(ch, FEAT_CRYSTAL_BODY);
 
   /* Create the affect that gives the crystal body DR bonus. */
-  
+
 }
 
 ACMD(do_wholenessofbody) {
-  
+
   if (IS_NPC(ch)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-  
+
   if (!HAS_FEAT(ch, FEAT_WHOLENESS_OF_BODY)) {
     send_to_char(ch, "You have no idea how to do that!\r\n");
     return;
@@ -2241,7 +2241,7 @@ ACMD(do_emptybody) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-  
+
   if (!HAS_FEAT(ch, FEAT_EMPTY_BODY)) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
@@ -2261,7 +2261,7 @@ ACMD(do_emptybody) {
 
   send_to_char(ch, "You focus your Ki energy, drawing energy from the Ethereal plane to transition your body to an 'empty' state.\r\n");
   act("$n briefly closes $s eyes in focus, and you watch as $s body phases partially out of the realm!", FALSE, ch, 0, NULL, TO_NOTVICT);
-  
+
   attach_mud_event(new_mud_event(eEMPTYBODY, ch, NULL),
           (2 * SECS_PER_MUD_DAY));
 
@@ -2270,7 +2270,7 @@ ACMD(do_emptybody) {
   af.spell = SPELL_DISPLACEMENT;
   af.duration = CLASS_LEVEL(ch, CLASS_MONK) + 2;
   SET_BIT_AR(af.bitvector, AFF_DISPLACE);
-  
+
   affect_to_char(ch, &af);
 
   /* Actions */
@@ -2318,7 +2318,7 @@ ACMD(do_treatinjury) {
   }
   /* TODO: poison */
   /* TODO: disease */
-                  
+
 
   /* Actions */
   USE_STANDARD_ACTION(ch);
@@ -2338,7 +2338,7 @@ ACMD(do_rescue) {
   perform_rescue(ch, vict);
 }
 
-/* built initially by vatiken as an illustration of event/lists systems 
+/* built initially by vatiken as an illustration of event/lists systems
  * of TBA, adapted to Luminari mechanics */
 
 /*TODO:  definitely needs more balance tweaking and dummy checks for usage */
@@ -2360,7 +2360,7 @@ ACMD(do_whirlwind) {
 
   /* First thing we do is check to make sure the character is not in the middle
    * of a whirl wind attack.
-   * 
+   *
    * "char_had_mud_event() will sift through the character's event list to see if
    * an event of type "eWHIRLWIND" currently exists. */
   if (char_has_mud_event(ch, eWHIRLWIND)) {
@@ -2481,20 +2481,20 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
 
   /* maneuver bonus/penalty */
   if (!IS_NPC(ch) && compute_ability(ch, ABILITY_DISCIPLINE))
-    discipline_bonus += compute_ability(ch, ABILITY_DISCIPLINE);  
+    discipline_bonus += compute_ability(ch, ABILITY_DISCIPLINE);
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     discipline_bonus -= compute_ability(vict, ABILITY_DISCIPLINE);
-  
+
   /* saving throw dc */
   dc = GET_LEVEL(ch) / 2 + GET_STR_BONUS(ch);
-  
+
   /* monk damage? */
   compute_barehand_dam_dice(ch, &diceOne, &diceTwo);
   if (diceOne < 1)
     diceOne = 1;
   if (diceTwo < 2)
     diceTwo = 2;
-  
+
   if (combat_maneuver_check(ch, vict, discipline_bonus) > 0) {
     damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_KICK, DAM_FORCE, FALSE);
     if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc)) {
@@ -2574,9 +2574,9 @@ ACMD(do_hitall) {
   USE_FULL_ROUND_ACTION(ch);
 }
 
-/* 
- * Original by Vhaerun, a neat skill for rogues to get an additional attack 
- * while not tanking. 
+/*
+ * Original by Vhaerun, a neat skill for rogues to get an additional attack
+ * while not tanking.
  */
 ACMD(do_circle) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
@@ -2626,9 +2626,9 @@ ACMD(do_circle) {
   perform_backstab(ch, vict);
 }
 
-/* 
-Vhaerun: 
-    A rather useful type of bash for large humanoids to start a combat with. 
+/*
+Vhaerun:
+    A rather useful type of bash for large humanoids to start a combat with.
  */
 ACMD(do_bodyslam) {
   struct char_data *vict;
@@ -2807,9 +2807,9 @@ ACMD(do_dirtkick) {
   perform_dirtkick(ch, vict);
 }
 
-/* 
-Vhaerun: 
-  Monks gamble to take down a caster, if fail, they are down for quite a while. 
+/*
+Vhaerun:
+  Monks gamble to take down a caster, if fail, they are down for quite a while.
  */
 ACMD(do_springleap) {
   struct char_data *vict = NULL;
@@ -2845,7 +2845,7 @@ ACMD(do_springleap) {
 }
 
 /* Shieldpunch :
- * Use your shield as a weapon, bashing out with it and doing a 
+ * Use your shield as a weapon, bashing out with it and doing a
  * small amount of damage.  The feat FEAT_IMPROVED_SHIELD_PUNCH allows
  * you to retain the AC of your shield when you perform a shield punch.
  */
@@ -2881,15 +2881,15 @@ ACMD(do_shieldpunch) {
 }
 
 /* Shieldcharge :
- * 
- * Use your shield as a weapon, bashing out with it and doing a 
- * small amount of damage, also attempts to trip the opponent, if 
- * possible.  
+ *
+ * Use your shield as a weapon, bashing out with it and doing a
+ * small amount of damage, also attempts to trip the opponent, if
+ * possible.
  *
  * Requires FEAT_SHIELD_CHARGE
  *
- * (old comment) 
- * Vhaerun:  A warrior skill to Stun !BASH mobs. 
+ * (old comment)
+ * Vhaerun:  A warrior skill to Stun !BASH mobs.
  */
 ACMD(do_shieldcharge) {
   struct char_data *vict = NULL;
@@ -2923,14 +2923,14 @@ ACMD(do_shieldcharge) {
 }
 
 /* Shieldslam :
- * 
- * Use your shield as a weapon, bashing out with it and doing a 
- * small amount of damage, also daze the opponent on a failed fort save..  
+ *
+ * Use your shield as a weapon, bashing out with it and doing a
+ * small amount of damage, also daze the opponent on a failed fort save..
  *
  * Requires FEAT_SHIELD_SLAM
  *
- * (old comment) 
- * Vhaerun:  A warrior skill to Stun !BASH mobs. 
+ * (old comment)
+ * Vhaerun:  A warrior skill to Stun !BASH mobs.
  */
 ACMD(do_shieldslam) {
   struct char_data *vict = NULL;
@@ -3223,7 +3223,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
     send_to_char(ch, "You can just remove your weapon instead.\r\n");
     return -1;
   }
-  
+
   if (!CAN_SEE(ch, vict)) {
     send_to_char(ch, "You can't see well enough to attempt that.\r\n");
     return -1;
@@ -3244,25 +3244,25 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
     pos = WEAR_WIELD_2;
   }
 
-  // If wielded is NULL, then the victim is weilding no weapon! 
+  // If wielded is NULL, then the victim is weilding no weapon!
   if (!wielded) {
     act("But $N is not wielding anything.", FALSE, ch, 0, vict, TO_CHAR);
     return -1;
   }
 
   // Trigger AOO, save damage for modifying the CMD roll.
-  if (!HAS_FEAT(ch, FEAT_IMPROVED_DISARM)) 
+  if (!HAS_FEAT(ch, FEAT_IMPROVED_DISARM))
     aoo_dam = attack_of_opportunity(vict, ch, 0);
 
   // Check to see what we are wielding.
-  if ((GET_EQ(ch, WEAR_WIELD_2H) == NULL) && 
+  if ((GET_EQ(ch, WEAR_WIELD_2H) == NULL) &&
       (GET_EQ(ch, WEAR_WIELD_1) == NULL) &&
       (GET_EQ(ch, WEAR_WIELD_2) == NULL) &&
       (!HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE))) {
     // Trying an unarmed disarm, -4.
     mod -= 4;
-  }  
-  
+  }
+
   //  Set up the calculations to perform the disarm, using CMB and CMD.
 //  int result = (dice(1, 20) + compute_cmb(ch) + mod) - compute_cmd(vict);
 //  if (result >= 0) {
@@ -3271,11 +3271,11 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
     // Failure!
 //    if (result <= -10) {
       // Failed by more than 10, critical fail. Disarm ch.
-      
+
 //    }
 
 //  }
-    
+
   if (skill_test(ch, SKILL_DISARM, 500, mod + GET_R_DEX(ch) / 10 - GET_R_STR(vict) / 15) && !IS_OBJ_STAT(wielded, ITEM_NODROP)) {
     act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict, TO_ROOM);
     act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict, TO_CHAR);

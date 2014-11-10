@@ -142,7 +142,7 @@ int parse_class(char arg) {
 /* accept short descrip, return class */
 int parse_class_long(char *arg) {
   int l = 0; /* string length */
-  
+
   for (l = 0; *(arg + l); l++) /* convert to lower case */
     *(arg + l) = LOWER(*(arg + l));
 
@@ -157,7 +157,7 @@ int parse_class_long(char *arg) {
   if (is_abbrev(arg, "paladin")) return CLASS_PALADIN;
   if (is_abbrev(arg, "rager")) return CLASS_RANGER;
   if (is_abbrev(arg, "bard")) return CLASS_BARD;
-  
+
   return CLASS_UNDEFINED;
 }
 
@@ -239,8 +239,8 @@ struct guild_info_type guild_info[] = {
   { -1, NOWHERE, -1}
 };
 
-/* Maximum ranks that may be taken in each class. 
- * -1 indicates no limit to the number of levels in this 
+/* Maximum ranks that may be taken in each class.
+ * -1 indicates no limit to the number of levels in this
  *  class according to epic rules. */
 int class_max_ranks[NUM_CLASSES] = {
   /* Wizard    */ -1,
@@ -265,7 +265,7 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
   //  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA  BA
   { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //0 - reserved
 
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //1 - Acrobatics 
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //1 - Acrobatics
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA}, //2 - hide
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA}, //3 move silently
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CC}, //4 spot
@@ -461,7 +461,7 @@ int *free_start_feats[] = {
   /* CLASS_BARD          */ free_start_feats_bard
 };
 
-/* Information required for character leveling in regards to free feats 
+/* Information required for character leveling in regards to free feats
    1) required class
    2) required race
    3) stacks?
@@ -905,7 +905,7 @@ const int no_class_feats[] = {
 };
 
 /* This array collects all of the information about class feats
- * and is used during level gain to show the allowed feats. 
+ * and is used during level gain to show the allowed feats.
  * SEE NOTE FOR ROGUE FEATS */
 const int *class_bonus_feats[NUM_CLASSES] = {
   /* Wizard    */ class_feats_wizard,
@@ -1194,15 +1194,15 @@ void newbieEquipment(struct char_data *ch) {
       break;
   }
 }
-#undef NOOB_TELEPORTER    
-#undef NOOB_TORCH         
-#undef NOOB_RATIONS       
-#undef NOOB_WATERSKIN     
-#undef NOOB_BP            
-#undef NOOB_CRAFTING_KIT  
-#undef NOOB_BOW           
-#undef NOOB_QUIVER        
-#undef NOOB_ARROW         
+#undef NOOB_TELEPORTER
+#undef NOOB_TORCH
+#undef NOOB_RATIONS
+#undef NOOB_WATERSKIN
+#undef NOOB_BP
+#undef NOOB_CRAFTING_KIT
+#undef NOOB_BOW
+#undef NOOB_QUIVER
+#undef NOOB_ARROW
 
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
@@ -1700,7 +1700,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_DIMENSIONAL_LOCK, 99);
       SET_SKILL(ch, SPELL_SALVATION, 99);
       SET_SKILL(ch, SPELL_SPRING_OF_LIFE, 99);
-      //9th circle    
+      //9th circle
       SET_SKILL(ch, SPELL_SUNBURST, 99);
       SET_SKILL(ch, SPELL_ENERGY_DRAIN, 99);
       SET_SKILL(ch, SPELL_GROUP_HEAL, 99);
@@ -2122,7 +2122,8 @@ void do_start(struct char_data *ch) {
 
 void process_level_feats(struct char_data *ch, int class) {
   char featbuf[MAX_STRING_LENGTH];
-  int i = 0, j = 0;
+  int i = 0;
+  //int j = 0;
 
   sprintf(featbuf, "\tM");
 
@@ -2151,33 +2152,33 @@ void process_level_feats(struct char_data *ch, int class) {
 
       if (level_feats[i][LF_FEAT] == FEAT_SHRUG_DAMAGE) {
         struct damage_reduction_type *dr, *temp, *ptr;
-        
+
         for (dr = GET_DR(ch); dr != NULL; dr = dr->next) {
           if (dr->feat == FEAT_SHRUG_DAMAGE) {
             REMOVE_FROM_LIST(dr, GET_DR(ch), next);
           }
         }
-                
+
         CREATE(ptr, struct damage_reduction_type, 1);
-        
+
         ptr->spell = 0;
         ptr->feat = FEAT_SHRUG_DAMAGE;
         ptr->amount = HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
         ptr->max_damage = -1;
-                
+
         ptr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
-        ptr->bypass_val[0] = 0;      
+        ptr->bypass_val[0] = 0;
         ptr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
         ptr->bypass_val[1] = 0; /* Unused. */
         ptr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
         ptr->bypass_val[2] = 0; /* Unused. */
-      
+
         ptr->next = GET_DR(ch);
         GET_DR(ch) = ptr;
-      
+
         sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
-      }   
-                
+      }
+
       if (level_feats[i][LF_FEAT] == FEAT_STRENGTH_BOOST) {
         ch->real_abils.str += 2;
         sprintf(featbuf, "%s\tMYour natural strength has increased by +2!\r\n", featbuf);
@@ -2197,7 +2198,7 @@ void process_level_feats(struct char_data *ch, int class) {
           sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
       }
       SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
-    } 
+    }
 
     /* feat i doesnt matches our class or we don't meet the min-level (from if above) */
     /* non-class, racial feat and don't have it yet */
@@ -2210,14 +2211,14 @@ void process_level_feats(struct char_data *ch, int class) {
           //if (!HAS_FEAT(ch, FEAT_RANGER_TWO_WEAPON_STYLE))
           continue;
       }
-      */ 
+      */
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
         sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
       else
         sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
       SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
     }
-    
+
     /* feat doesn't match our class or we don't meet the min-level (from if above) */
     /* matches class or doesn't match race or has feat (from if above) */
     /* class matches and race matches and meet min level */
@@ -2242,7 +2243,7 @@ void advance_level(struct char_data *ch, int class) {
   int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
   int i = 0;
 
-  /**because con items / spells are affecting based on level, we have to 
+  /**because con items / spells are affecting based on level, we have to
   unaffect before we level up -zusuk */
   at_armor = affect_total_sub(ch); /* at_armor stores ac */
   /* done unaffecting */
@@ -2269,7 +2270,7 @@ void advance_level(struct char_data *ch, int class) {
 
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
-      //epic      
+      //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
       }
@@ -4006,7 +4007,7 @@ int compute_gear_penalty_check(struct char_data *ch) {
   if (factor >= 20)
     return -1;
 
-  return 0; //should be less than 10  
+  return 0; //should be less than 10
 }
 
 /* this function will determine the % penalty created by the

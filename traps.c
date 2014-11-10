@@ -48,12 +48,12 @@ void set_off_trap(struct char_data *ch, struct obj_data *trap) {
     return;
 
   send_to_char(ch, "Ooops, you must have triggered something.\r\n");
-  
+
   /* Build the effect string */
   sprintf(buf, "%d", GET_OBJ_VAL(trap, 2));
-  
+
   /* Add the event to the character.*/
-  NEW_EVENT(eTRAPTRIGGERED, ch, strdup(buf), 1);  
+  NEW_EVENT(eTRAPTRIGGERED, ch, strdup(buf), 1);
 }
 
 /* checks the 5th value (4) to see if its set (which indicates detection) */
@@ -69,10 +69,10 @@ void set_trap_detected(struct obj_data *trap) {
 /* based on trap-type, see if it should fire or not! */
 bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *obj, int dir) {
   struct obj_data *trap = NULL;
-  
+
   /* check the room for any traps */
   for (trap = world[room].contents; trap; trap = trap->next_content) {
-    
+
     /* is this a trap? */
     if (GET_OBJ_TYPE(trap) == ITEM_TRAP && GET_OBJ_VAL(trap, 0) == trap_type) {
       switch (trap_type) {
@@ -104,12 +104,12 @@ bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *
 ACMD(do_disabletrap) {
   struct obj_data *trap = NULL;
   int result = 0, exp = 1, dc = 0;
-  
+
   if (!GET_ABILITY(ch, ABILITY_DISABLE_DEVICE)) {
     send_to_char(ch, "But you do not know how.\r\n");
     return;
   }
-  
+
   for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
     if (GET_OBJ_TYPE(trap) == ITEM_TRAP && is_trap_detected(trap)) {
       act("$n is trying to disable a trap...", FALSE, ch, 0, 0, TO_ROOM);
@@ -138,10 +138,10 @@ ACMD(do_disabletrap) {
 int perform_detecttrap(struct char_data *ch, bool silent) {
   struct obj_data *trap = NULL;
   int exp = 1, dc = 0;
-  
+
   if (!silent)
     USE_FULL_ROUND_ACTION(ch);
-  
+
   for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
     if (GET_OBJ_TYPE(trap) == ITEM_TRAP && !is_trap_detected(trap)) {
       dc = GET_OBJ_VAL(trap, 3);
@@ -164,7 +164,7 @@ int perform_detecttrap(struct char_data *ch, bool silent) {
 }
 
 ACMD(do_detecttrap) {
-  
+
   if (!GET_ABILITY(ch, ABILITY_PERCEPTION)) {
     send_to_char(ch, "But you do not know how.\r\n");
     return;
@@ -197,12 +197,12 @@ EVENTFUNC(event_trap_triggered) {
   int dam = 0;
   int count = 0;
   int i;
-  
+
   pMudEvent = (struct mud_event_data *) event_obj;
-  
+
   if (!pMudEvent)
     return 0;
-  
+
   if (!pMudEvent->iId)
     return 0;
 
@@ -218,7 +218,7 @@ EVENTFUNC(event_trap_triggered) {
     default:
       break;
   }
-  
+
   if (pMudEvent->sVariables == NULL) {
     /* This is odd - This field should always be populated for traps. */
     log("SYSERR: sVariables field is NULL for event_trap_triggered: %d", pMudEvent->iId);
@@ -226,15 +226,15 @@ EVENTFUNC(event_trap_triggered) {
   } else {
     effect = atoi(pMudEvent->sVariables);
   }
-  
+
   switch (pMudEvent->iId) {
     case eTRAPTRIGGERED:
-      
+
       /* init the af-struct */
       af.spell = TYPE_UNDEFINED;
       af.duration = 0;
       af.modifier = 0;
-      af.location = APPLY_NONE;      
+      af.location = APPLY_NONE;
       for (i = 0; i < AF_ARRAY_MAX; i++) af.bitvector[i] = AFF_DONTUSE;
 
       /* check for valid effect */
@@ -395,7 +395,7 @@ EVENTFUNC(event_trap_triggered) {
                 char_to_room(mob, ch->in_room);
                 remember(mob, ch);
               } else {
-                log("SYSERR: perform_trap_effect event called with invalid spider mobile!\r\n");            
+                log("SYSERR: perform_trap_effect event called with invalid spider mobile!\r\n");
               }
             }
             break;
@@ -421,7 +421,7 @@ EVENTFUNC(event_trap_triggered) {
     default:
       log("SYSERR: event_trap_triggered called with invalid event id!\r\n");
       break;
-  } 
+  }
   return 0;
 }
 
