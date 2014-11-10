@@ -1301,7 +1301,8 @@ static void load_dr(FILE* f1, struct char_data *ch) {
   char line[MAX_INPUT_LENGTH + 1];
   
   i = 0;
-  do {    
+  num = 1;
+  while (num != 0) {    
     get_line(f1, line);
     n_vars = sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
     if (num > 0) {
@@ -1328,10 +1329,9 @@ static void load_dr(FILE* f1, struct char_data *ch) {
         GET_DR(ch) = dr;
       } else {
         log("SYSERR: Invalid dr in pfile (%s), expecting 5 values", GET_NAME(ch));
-      }
-      
+      }      
     } 
-  } while (num != 0);
+  } 
 }
 
 /* load_affects function now handles both 32-bit and
