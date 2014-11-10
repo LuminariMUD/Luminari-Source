@@ -2152,7 +2152,7 @@ void process_level_feats(struct char_data *ch, int class) {
       if (level_feats[i][LF_FEAT] == FEAT_SHRUG_DAMAGE) {
         struct damage_reduction_type *dr, *temp, *ptr;
         for (dr = GET_DR(ch); dr != NULL; dr = dr->next){
-          if (dr->feat = FEAT_SHRUG_DAMAGE)  
+          if (dr->feat == FEAT_SHRUG_DAMAGE)  
             REMOVE_FROM_LIST(reduct, ch->damreduct, next);
           CREATE(ptr, struct damage_reduction_type, 1);
           ptr->next = GET_DR(ch);
