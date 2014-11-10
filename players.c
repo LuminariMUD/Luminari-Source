@@ -1300,13 +1300,12 @@ static void load_dr(FILE* f1, struct char_data *ch) {
   int i, num, num2, num3, num4, num5, n_vars;
   char line[MAX_INPUT_LENGTH + 1];
 
-  num = 1;
-  while (num != 0) {    
+  do {    
     get_line(f1, line);
     n_vars = sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
     if (num > 0) {
       /* Set the DR data.*/
-      dr = CREATE(dr, struct damage_reduction_type, 1);
+      dr = CREATE(struct damage_reduction_type, dr, 1);
     
       if (n_vars == 5) {
         dr->amount     = num2;
@@ -1330,7 +1329,7 @@ static void load_dr(FILE* f1, struct char_data *ch) {
         log("SYSERR: Invalid dr in pfile (%s), expecting 5 values", GET_NAME(ch));
       }      
     } 
-  } 
+  } while (num != 0); 
 }
 
 /* load_affects function now handles both 32-bit and
