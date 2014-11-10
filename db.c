@@ -4121,6 +4121,17 @@ void free_char(struct char_data *ch) {
       free_list(ch->events);
   }
 
+  /* DR */
+  if (GET_DR(ch) != NULL) {
+    struct damage_reduction_type *dr, *tmp;
+    dr = GET_DR(ch);
+    while(dr != NULL) {      
+      tmp = dr;
+      dr = dr->next;
+      free(tmp);
+    }
+  }
+  
   /* new version of free_followers take the followers pointer as arg */
   free_followers(ch->followers);
 

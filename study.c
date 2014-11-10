@@ -300,6 +300,9 @@ void finalize_study(struct descriptor_data *d) {
           for (j = 0; j < GET_LEVEL(ch); j++)
             GET_REAL_MAX_HIT(ch) += LEVELUP(ch)->feats[i];
           break;
+        case FEAT_DAMAGE_REDUCTION:
+          /* Create the DR structure and attach it to the player. */
+          break;
       }
     }
   }
