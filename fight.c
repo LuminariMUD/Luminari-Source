@@ -1239,7 +1239,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
  *  damage on miss and death blows. */
 
 /* took out attacking-staff-messages -zusuk*/
-/* this is so trelux's natural attack reflects an actualy object */
+/* this is so trelux's natural attack reflects an actual object */
 #define TRELUX_CLAWS 800
 
 int skill_message(int dam, struct char_data *ch, struct char_data *vict,
@@ -1546,8 +1546,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
 
   if (char_has_mud_event(ch, eCRYSTALBODY))
     damage_reduction += 3;
-  if (CLASS_LEVEL(ch, CLASS_BERSERKER))
-    damage_reduction += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4;
+//  if (CLASS_LEVEL(ch, CLASS_BERSERKER))
+//    damage_reduction += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4;
   if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
     damage_reduction += 12;
   if (HAS_FEAT(ch, FEAT_PERFECT_SELF)) /* temporary mechanic until we upgrade this system */
