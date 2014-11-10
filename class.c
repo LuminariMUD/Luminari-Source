@@ -2168,11 +2168,11 @@ void process_level_feats(struct char_data *ch, int class) {
         ptr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
         ptr->bypass_val[0] = 0;
       
-        new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
-        new_dr->bypass_val[1] = 0; /* Unused. */
+        ptr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+        ptr->bypass_val[1] = 0; /* Unused. */
       
-        new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
-        new_dr->bypass_val[2] = 0; /* Unused. */
+        ptr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+        ptr->bypass_val[2] = 0; /* Unused. */
       
         ptr->next = GET_DR(ch);
         GET_DR(ch) = ptr;
