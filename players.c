@@ -51,6 +51,7 @@ long top_idnum = 0;
  */
 
 /* local functions */
+static void load_dr(FILE *fl, struct char_data *ch);
 static void load_events(FILE *fl, struct char_data *ch);
 static void load_affects(FILE *fl, struct char_data *ch);
 static void load_skills(FILE *fl, struct char_data *ch);
@@ -383,7 +384,7 @@ int load_char(const char *name, struct char_data *ch) {
     GET_TOTAL_AOO(ch) = 0;
     GET_ACCOUNT_NAME(ch) = NULL; 
     LEVELUP(ch) = NULL;
-
+    GET_DR(ch) = NULL;
     GET_DIPTIMER(ch) = PFDEF_DIPTIMER;
     GET_CLAN(ch) = PFDEF_CLAN;
     GET_CLANRANK(ch) = PFDEF_CLANRANK;
@@ -476,7 +477,8 @@ int load_char(const char *name, struct char_data *ch) {
           break;
 
         case 'D':
-          if (!strcmp(tag, "Desc")) ch->player.description = fread_string(fl, buf2);
+          if (!strcmp(tag, "DmgR")) load_dr(fl, ch);
+          else if (!strcmp(tag, "Desc")) ch->player.description = fread_string(fl, buf2);
           else if (!strcmp(tag, "Dex ")) GET_REAL_DEX(ch) = atoi(line);
           else if (!strcmp(tag, "Drnk")) GET_COND(ch, DRUNK) = atoi(line);
           else if (!strcmp(tag, "Drol")) GET_REAL_DAMROLL(ch) = atoi(line);
@@ -1127,7 +1129,22 @@ void save_char(struct char_data * ch, int mode) {
     }
     fprintf(fl, "0 0 0 0 0 0 0 0\n");
   }
-
+  
+  /* Save Damage Reduction */
+  if (GET_DR(ch) != NULL) {    
+    struct damage_reduction_type *dr;
+    int k = 0;
+    
+    fprintf(f1, "DmgR:\n");
+    
+    for(dr = GET_DR(ch); dr != NULL; dr = dr->next) {
+      fprintf(f1, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
+      for (k = 0; k < MAX_DR_BYPASS; k++) {
+        fprintf(f1, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k])
+      }      
+    }
+    fprintf("0");
+  }
   write_aliases_ascii(fl, ch);
   save_char_vars_ascii(fl, ch);
 
@@ -1277,7 +1294,44 @@ void clean_pfiles(void) {
   /* After everything is done, we should rebuild player_index and remove the
    * entries of the players that were just deleted. */
 }
+/* Load Damage Reduction - load_dr */
+static void load_dr(FILE* f1, struct char_data *ch) {
+  struct damage_reduction_type *dr;
+  int i = 0, num, num2, num3, num4, num5, n_vars;
+  char line[MAX_INPUT_LENGTH + 1];
 
+  do {    
+  get_line(f1, line);
+  n_vars = sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
+  if (num > 0) {
+    /* Set the DR data.*/
+    dr = CREATE(dr, struct damage_reduction_type, 1);
+    
+    if (n_vars == 5) {
+      dr->amount     = num2;
+      dr->max_damage = num3;
+      dr->spell      = num4;
+      dr->feat       = num5;
+      
+      for (i = 0; i < MAX_DR_BYPASS; i++) {
+        get_line(f1, line);
+        n_vars = sscanf(line, "%d %d", &num2, &num3);
+        if (n_vars == 2) {
+          dr->bypass_cat[i] = num2;
+          dr->bypass_val[i] = num3;
+        } else {
+          log("SYSERR: Invalid dr bypass in pfile (%s), expecting 2 values", GET_NAME(ch));
+        }        
+      }      
+      dr->next = GET_DR(ch);
+      GET_DR(ch) = dr;
+    } else {
+      log("SYSERR: Invalid dr in pfile (%s), expecting 5 values", GET_NAME(ch));
+    }
+    
+  } while (num != 0);
+}
+  
 /* load_affects function now handles both 32-bit and
    128-bit affect bitvectors for backward compatibility */
 static void load_affects(FILE *fl, struct char_data *ch) {
