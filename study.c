@@ -256,7 +256,8 @@ void finalize_study(struct descriptor_data *d) {
 
   struct char_data *ch = d->character;
   int i = 0, j = 0, subfeat = 0;
-
+  struct damage_reduction_type *dr;
+  
   /* Finalize the chosen data, applying the levelup structure to 
    * the character structure. */
   GET_FEAT_POINTS(ch) = LEVELUP(ch)->feat_points;
@@ -301,11 +302,11 @@ void finalize_study(struct descriptor_data *d) {
             GET_REAL_MAX_HIT(ch) += LEVELUP(ch)->feats[i];
           break;
         case FEAT_DAMAGE_REDUCTION:
-          /* Create the DR structure and attach it to the player. */
-          struct damage_reduction_type *dr, *temp;
-
+          
+          /* Create the DR structure and attach it to the player. */          
           for (dr = GET_DR(ch); dr != NULL; dr = dr->next) {
             if (dr->feat == FEAT_DAMAGE_REDUCTION) {
+              struct damage_reduction_type *temp;
               REMOVE_FROM_LIST(dr, GET_DR(ch), next);
             }
           }
