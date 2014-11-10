@@ -1329,8 +1329,8 @@ static void load_dr(FILE* f1, struct char_data *ch) {
         log("SYSERR: Invalid dr in pfile (%s), expecting 5 values", GET_NAME(ch));
       }
       
-    } while (num != 0);
-  }
+    } 
+  } while (num != 0);
 }
 
 /* load_affects function now handles both 32-bit and
