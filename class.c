@@ -2148,25 +2148,25 @@ void process_level_feats(struct char_data *ch, int class) {
 
       if (level_feats[i][LF_FEAT] == FEAT_SNEAK_ATTACK)
         sprintf(featbuf, "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
-      
+
       if (level_feats[i][LF_FEAT] == FEAT_SHRUG_DAMAGE) {
         struct damage_reduction_type *dr, *temp, *ptr;
-        for (dr = GET_DR(ch); dr != NULL; dr = dr->next){
-          if (dr->feat == FEAT_SHRUG_DAMAGE) {  
+        for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+          if (dr->feat == FEAT_SHRUG_DAMAGE) {
             REMOVE_FROM_LIST(dr, GET_DR(ch), next);
           }
-          CREATE(ptr, struct damage_reduction_type, 1);
-          ptr->next = GET_DR(ch);
-          GET_DR(ch) = ptr;
-          ptr->spell = 0;
-          ptr->feat = FEAT_SHRUG_DAMAGE;
-          ptr->amount = HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
-          ptr->max_damage = -1;
-          for (j = 0; j < MAX_DR_BYPASS; j++) {
-            ptr->bypass_cat[j] = DR_BYPASS_CAT_NONE;
-            ptr->bypass_val[j] = 0;
-          }
+        CREATE(ptr, struct damage_reduction_type, 1);
+        ptr->next = GET_DR(ch);
+        GET_DR(ch) = ptr;
+        ptr->spell = 0;
+        ptr->feat = FEAT_SHRUG_DAMAGE;
+        ptr->amount = HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
+        ptr->max_damage = -1;
+        for (j = 0; j < MAX_DR_BYPASS; j++) {
+          ptr->bypass_cat[j] = DR_BYPASS_CAT_NONE;
+          ptr->bypass_val[j] = 0;
         }
+
         sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
       }   
                 
