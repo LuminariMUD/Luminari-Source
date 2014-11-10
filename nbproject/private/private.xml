@@ -8,4 +8,27 @@
         <activeConfIndexElem>0</activeConfIndexElem>
     </data>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/mud_event.h</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/players.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/mud_event.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/structs.h</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/handler.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/traps.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/spell_parser.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/fight.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/comm.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/feats.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/constants.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/utils.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/feats.h</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/magic.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/utils.h</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/act.informative.c</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/spells.h</file>
+            <file>file:/D:/Users/jamclaug/Documents/NetBeansProjects/luminari/constants.h</file>
+        </group>
+    </open-files>
 </project-private>
