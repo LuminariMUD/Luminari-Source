@@ -742,9 +742,9 @@ void save_char(struct char_data * ch, int mode) {
     }
   }
 
-  /* Save off the dr since that is attached to the affects (i.e.) stoneskin will 
+  /* Save off the dr since that is attached to affects (i.e. stoneskin will 
    * create a dr structure that is loosely coupled to the affect for the spell.  
-   * If the spell affect is removed, however, the stoneskin dr is dropped. 
+   * If the spell affect is removed, however, the stoneskin dr is dropped.) 
    * This only counts for dr where spell is != 0. */
   for (cur_dr = GET_DR(ch); cur_dr != NULL; cur_dr = cur_dr->next) {
     if (cur_dr->spell != 0) {
@@ -1182,7 +1182,10 @@ void save_char(struct char_data * ch, int mode) {
   }
 
   /* Reapply dr.*/
-  GET_DR(ch) = tmp_dr;
+  if (tmp_dr != NULL) {
+    tmp_dr->next = GET_DR(ch);
+    GET_DR(ch) = tmp_dr;
+  }
   
   for (i = 0; i < NUM_WEARS; i++) {
     if (char_eq[i])
