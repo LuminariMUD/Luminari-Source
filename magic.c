@@ -1251,6 +1251,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   const char *to_vict = NULL, *to_room = NULL;
   int i, j, magic_level = 0, divine_level = 0;
   int enchantment_bonus = 0, illusion_bonus = 0, success = 0;
+  int damage_reduction_type *new_dr;
+  
   bool is_mind_affect = FALSE;
 
   if (victim == NULL || ch == NULL)
@@ -2800,7 +2802,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[1].modifier = 0;
       af[1].duration = magic_level * 5;
       
-      struct damage_reduction_type *new_dr = NULL;
       CREATE(new_dr, struct damage_reduction_type, 1);
         
       new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
@@ -2951,7 +2952,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n's skin becomes hard as rock!";
       to_vict = "Your skin becomes hard as stone.";
      
-      struct damage_reduction_type *new_dr = NULL;
       CREATE(new_dr, struct damage_reduction_type, 1);
         
       new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
