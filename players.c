@@ -1160,7 +1160,7 @@ void save_char(struct char_data * ch, int mode) {
         fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
       }      
     }
-    fprintf(fl, "0 0 0 0 0");
+    fprintf(fl, "0 0 0 0 0\n");
   }
 
   write_aliases_ascii(fl, ch);
