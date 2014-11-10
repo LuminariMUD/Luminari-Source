@@ -1245,11 +1245,14 @@ int isMagicArmored(struct char_data *victim) {
 #define MAX_SPELL_AFFECTS 6	/* change if more needed */
 
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *wpn, int spellnum, int savetype) {
+  struct obj_data *wpn, int spellnum, int savetype) {
   struct affected_type af[MAX_SPELL_AFFECTS];
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
   int i, j, magic_level = 0, divine_level = 0;
+  int enchantment_bonus = 0, illusion_bonus = 0, success = 0;
+  bool is_mind_affect = FALSE;
+  struct damage_reduction_type *new_dr = NULL;
 
   if (victim == NULL || ch == NULL)
     return;
