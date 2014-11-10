@@ -1165,7 +1165,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
       send_to_char(ch, "%s%-19s%s ",
                    CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       if (aff->location == APPLY_DR) { /* Handle DR a bit differently */
-        send_to_char(ch, "(see DR)");
+        send_to_char(ch, "(see DR) ");
       } else if (aff->modifier)
         send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
 
