@@ -1243,11 +1243,11 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   struct damage_reduction_type *dr;
   dr = GET_DR(ch);
   while (dr != NULL) {
-    if (spell != SPELL_UNDEFINED) {
+    if (dr->spell != SPELL_UNDEFINED) {
       /* This is from a spell */
       send_to_char(ch, "%s%-19s%s ",
                    CCCYN(ch, C_NRM), skill_name(dr->spell), CCNRM(ch, C_NRM));
-    } else if (feat != FEAT_UNDEFINED) {
+    } else if (dr->feat != FEAT_UNDEFINED) {
       /* This is from a feat */
       send_to_char(ch, "%s%-19s%s ",
                    CCCYN(ch, C_NRM), feat_list[dr->feat].name, CCNRM(ch, C_NRM));)
