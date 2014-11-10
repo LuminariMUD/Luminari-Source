@@ -1164,40 +1164,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
       send_to_char(ch, "%s%-19s%s ",
                    CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       if (aff->location == APPLY_DR) { /* Handle DR a bit differently */
-        struct damage_reduction_type *dr;
-        dr = GET_DR(ch);
-        while (dr != NULL) {
-          if (dr->spell == aff->spell) {
-            /* Match! */
-            send_to_char(ch, "DR %d/", dr->amount);
-            
-            for (i = 0; i < MAX_DR_BYPASS; i++) {
-              if (dr->bypass_cat[i] != DR_BYPASS_CAT_UNUSED) {
-                if (i > 0) {
-                  send_to_char(ch, " or ");
-                }
-                switch (dr->bypass_cat[i]) {
-                  case DR_BYPASS_CAT_NONE:
-                    /* Nothing bypasses this dr. */
-                    send_to_char(ch, "-");
-                    break;
-                  case DR_BYPASS_CAT_MATERIAL:
-                    send_to_char(ch, "%s", material_name[dr->bypass_val[i]]);
-                    break;
-                  case DR_BYPASS_CAT_MAGIC:
-                    send_to_char(ch, "magic");
-                    break;
-                  case DR_BYPASS_CAT_DAMTYPE:
-                    send_to_char(ch, "%s", damtypes[dr->bypass_val[i]]);
-                  default:
-                    send_to_char(ch, "???");
-                }
-              }
-            }
-            send_to_char(ch, "\r\n");
-          }
-          dr = dr->next;
-        }
+        send_to_char(ch, "(see DR)", )
       } else if (aff->modifier)
         send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
 
@@ -1271,6 +1238,49 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   if ((pMudEvent = char_has_mud_event(k, eSHIELD_RECOVERY)))
     send_to_char(ch, "Shield Recovery - Duration %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
 
+  send_to_char(ch,
+               "\tC-------------- \tWDamage Reduction\tC -------------------------\tn\r\n");
+  struct damage_reduction_type *dr;
+  dr = GET_DR(ch);
+  while (dr != NULL) {
+    if (spell != SPELL_UNDEFINED) {
+      /* This is from a spell */
+      send_to_char(ch, "%s%-19s%s ",
+                   CCCYN(ch, C_NRM), skill_name(dr->spell), CCNRM(ch, C_NRM));
+    } else if (feat != FEAT_UNDEFINED) {
+      /* This is from a feat */
+      send_to_char(ch, "%s%-19s%s ",
+                   CCCYN(ch, C_NRM), feat_list[dr->feat].name, CCNRM(ch, C_NRM));)
+    }
+    
+    send_to_char(ch, "DR %d/", dr->amount);
+
+    for (i = 0; i < MAX_DR_BYPASS; i++) {
+      if (dr->bypass_cat[i] != DR_BYPASS_CAT_UNUSED) {
+        if (i > 0) {
+          send_to_char(ch, " or ");
+        }
+        switch (dr->bypass_cat[i]) {
+          case DR_BYPASS_CAT_NONE:
+            /* Nothing bypasses this dr. */
+            send_to_char(ch, "-");
+            break;
+          case DR_BYPASS_CAT_MATERIAL:
+            send_to_char(ch, "%s", material_name[dr->bypass_val[i]]);
+            break;
+          case DR_BYPASS_CAT_MAGIC:
+            send_to_char(ch, "magic");
+            break;
+          case DR_BYPASS_CAT_DAMTYPE:
+            send_to_char(ch, "%s", damtypes[dr->bypass_val[i]]);
+          default:
+            send_to_char(ch, "???");
+        }
+      }
+    }
+    send_to_char(ch, "\r\n");
+    dr = dr->next;
+  }
   send_to_char(ch,
                "\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_CLERIC) >= 14) {
