@@ -1301,37 +1301,38 @@ static void load_dr(FILE* f1, struct char_data *ch) {
   char line[MAX_INPUT_LENGTH + 1];
 
   do {    
-  get_line(f1, line);
-  n_vars = sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
-  if (num > 0) {
-    /* Set the DR data.*/
-    dr = CREATE(dr, struct damage_reduction_type, 1);
+    get_line(f1, line);
+    n_vars = sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
+    if (num > 0) {
+      /* Set the DR data.*/
+      dr = CREATE(dr, struct damage_reduction_type, 1);
     
-    if (n_vars == 5) {
-      dr->amount     = num2;
-      dr->max_damage = num3;
-      dr->spell      = num4;
-      dr->feat       = num5;
+      if (n_vars == 5) {
+        dr->amount     = num2;
+        dr->max_damage = num3;
+        dr->spell      = num4;
+        dr->feat       = num5;
       
-      for (i = 0; i < MAX_DR_BYPASS; i++) {
-        get_line(f1, line);
-        n_vars = sscanf(line, "%d %d", &num2, &num3);
-        if (n_vars == 2) {
-          dr->bypass_cat[i] = num2;
-          dr->bypass_val[i] = num3;
-        } else {
-          log("SYSERR: Invalid dr bypass in pfile (%s), expecting 2 values", GET_NAME(ch));
-        }        
-      }      
-      dr->next = GET_DR(ch);
-      GET_DR(ch) = dr;
-    } else {
-      log("SYSERR: Invalid dr in pfile (%s), expecting 5 values", GET_NAME(ch));
-    }
-    
-  } while (num != 0);
+        for (i = 0; i < MAX_DR_BYPASS; i++) {
+          get_line(f1, line);
+          n_vars = sscanf(line, "%d %d", &num2, &num3);
+          if (n_vars == 2) {
+            dr->bypass_cat[i] = num2;
+            dr->bypass_val[i] = num3;
+          } else {
+            log("SYSERR: Invalid dr bypass in pfile (%s), expecting 2 values", GET_NAME(ch));
+          }        
+        }      
+        dr->next = GET_DR(ch);
+        GET_DR(ch) = dr;
+      } else {
+        log("SYSERR: Invalid dr in pfile (%s), expecting 5 values", GET_NAME(ch));
+      }
+      
+    } while (num != 0);
+  }
 }
-  
+
 /* load_affects function now handles both 32-bit and
    128-bit affect bitvectors for backward compatibility */
 static void load_affects(FILE *fl, struct char_data *ch) {
