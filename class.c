@@ -2163,7 +2163,7 @@ void process_level_feats(struct char_data *ch, int class) {
           ptr->amount = HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
           ptr->max_damage = -1;
           for (j = 0; j < MAX_DR_BYPASS; j++) {
-            ptr->bypass_cat[j] = DR_BYPASS_NONE;
+            ptr->bypass_cat[j] = DR_BYPASS_CAT_NONE;
             ptr->bypass_val[j] = 0;
           }
         }
