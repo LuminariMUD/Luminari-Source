@@ -291,7 +291,7 @@ void finalize_study(struct descriptor_data *d) {
             SET_SCHOOL_FEAT(ch, subfeat, j);
       }
       /* Handle specific feats here: */
-      switch(i) {
+      switch (i) {
         case FEAT_TOUGHNESS:
           for (j = 0; j < GET_LEVEL(ch); j++)
             GET_REAL_MAX_HIT(ch) += LEVELUP(ch)->feats[i];
@@ -302,6 +302,30 @@ void finalize_study(struct descriptor_data *d) {
           break;
         case FEAT_DAMAGE_REDUCTION:
           /* Create the DR structure and attach it to the player. */
+          struct damage_reduction_type *dr, *temp;
+
+          for (dr = GET_DR(ch); dr != NULL; dr = dr->next) {
+            if (dr->feat == FEAT_DAMAGE_REDUCTION) {
+              REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+            }
+          }
+
+          CREATE(dr, struct damage_reduction_type, 1);
+
+          dr->spell = 0;
+          dr->feat = FEAT_DAMAGE_REDUCTION;
+          dr->amount = HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) + 1;
+          dr->max_damage = -1;
+
+          dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+          dr->bypass_val[0] = 0;
+          dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+          dr->bypass_val[1] = 0; /* Unused. */
+          dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+          dr->bypass_val[2] = 0; /* Unused. */
+
+          dr->next = GET_DR(ch);
+          GET_DR(ch) = dr;
           break;
       }
     }

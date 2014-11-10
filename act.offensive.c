@@ -2174,7 +2174,8 @@ ACMD(do_crystalfist) {
 
 ACMD(do_crystalbody) {
   int uses_remaining = 0;
-
+  struct affected_type af;
+  
   //  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
   if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_CRYSTAL_BODY)) {
     send_to_char(ch, "How do you plan on doing that?\r\n");
@@ -2193,6 +2194,8 @@ ACMD(do_crystalbody) {
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_CRYSTAL_BODY);
 
+  /* Create the affect that gives the crystal body DR bonus. */
+  
 }
 
 ACMD(do_wholenessofbody) {

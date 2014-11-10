@@ -2210,7 +2210,7 @@ void process_level_feats(struct char_data *ch, int class) {
           //if (!HAS_FEAT(ch, FEAT_RANGER_TWO_WEAPON_STYLE))
           continue;
       }
-      */
+      */ 
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
         sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
       else
