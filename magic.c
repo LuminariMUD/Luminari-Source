@@ -2923,7 +2923,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
               affected_by_spell(victim, SPELL_IRONSKIN)) {
         send_to_char(ch, "A magical ward is already in effect on target.\r\n");
         return;
-      }
+      } 
       af[0].location = APPLY_DR; 
       af[0].modifier = 0;
       af[0].duration = 600;
