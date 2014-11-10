@@ -1299,8 +1299,7 @@ static void load_dr(FILE* f1, struct char_data *ch) {
   struct damage_reduction_type *dr;
   int i, num, num2, num3, num4, num5, n_vars;
   char line[MAX_INPUT_LENGTH + 1];
-  
-  i = 0;
+
   num = 1;
   while (num != 0) {    
     get_line(f1, line);
