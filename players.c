@@ -1140,7 +1140,7 @@ void save_char(struct char_data * ch, int mode) {
     for(dr = GET_DR(ch); dr != NULL; dr = dr->next) {
       fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++) {
-        fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k])
+        fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
       }      
     }
     fprintf("0");
