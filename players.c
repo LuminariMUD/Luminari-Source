@@ -1305,7 +1305,7 @@ static void load_dr(FILE* f1, struct char_data *ch) {
     n_vars = sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
     if (num > 0) {
       /* Set the DR data.*/
-      dr = CREATE(struct damage_reduction_type, dr, 1);
+      CREATE(dr, struct damage_reduction_type, 1);
     
       if (n_vars == 5) {
         dr->amount     = num2;
