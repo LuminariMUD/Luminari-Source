@@ -1148,14 +1148,21 @@ void save_char(struct char_data * ch, int mode) {
   }
   
   /* Save Damage Reduction */
-  if (tmp_dr != NULL) {    
+  if ((tmp_dr != NULL) || (GET_DR(ch) != NULL)) {    
     struct damage_reduction_type *dr;
     int k = 0;
     
     fprintf(fl, "DmgR:\n");
-    
+    /* DR from affects...*/
     for(dr = tmp_dr; dr != NULL; dr = dr->next) {
       fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
+      for (k = 0; k < MAX_DR_BYPASS; k++) {
+        fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
+      }      
+    }
+    /* Permanent DR. */
+    for(dr = GET_DR(ch); dr != NULL; dr = dr->next) {
+        fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++) {
         fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
       }      
