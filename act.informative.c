@@ -32,6 +32,7 @@
 #include "craft.h"  // auto crafting quest
 #include "wilderness.h"
 #include "quest.h" /* so you can identify questmaster mobiles */
+#include "feats.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
