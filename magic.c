@@ -1250,10 +1250,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
   int i, j, magic_level = 0, divine_level = 0;
-  int enchantment_bonus = 0, illusion_bonus = 0, success = 0;
-  struct damage_reduction_type *new_dr;
-  
-  bool is_mind_affect = FALSE;
 
   if (victim == NULL || ch == NULL)
     return;
@@ -2795,12 +2791,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_AC_NEW;
       af[0].modifier = 5;
       af[0].duration = magic_level * 5;
-
-      SET_BIT_AR(af[1].bitvector, AFF_SHADOW_SHIELD);
-      // this affect gives:  12 DR, 100% resist negative damage
-      af[1].location = APPLY_DR; 
-      af[1].modifier = 0;
+      af[1].location = APPLY_RES_NEGATIVE;
+      af[1].modifier = 100;
       af[1].duration = magic_level * 5;
+      
+      //SET_BIT_AR(af[2].bitvector, AFF_SHADOW_SHIELD);
+      // this affect gives:  12 DR, 100% resist negative damage
+      
+      af[2].location = APPLY_DR; 
+      af[2].modifier = 0;
+      af[2].duration = magic_level * 5;
       
       CREATE(new_dr, struct damage_reduction_type, 1);
         
@@ -2814,7 +2814,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       new_dr->bypass_val[2] = 0; /* Unused. */
       
       new_dr->amount     = 12;
-      //new_dr->max_damage = MIN(250, level * 10);
+      new_dr->max_damage = -1;
       new_dr->spell      = SPELL_SHADOW_SHIELD;
       new_dr->feat       = FEAT_UNDEFINED;
       new_dr->next       = GET_DR(victim);
