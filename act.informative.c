@@ -1251,7 +1251,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
     } else if (dr->feat != FEAT_UNDEFINED) {
       /* This is from a feat */
       send_to_char(ch, "%s%-19s%s ",
-                   CCCYN(ch, C_NRM), feat_list[dr->feat].name, CCNRM(ch, C_NRM));)
+                   CCCYN(ch, C_NRM), feat_list[dr->feat].name, CCNRM(ch, C_NRM));
     }
     
     send_to_char(ch, "DR %d/", dr->amount);
