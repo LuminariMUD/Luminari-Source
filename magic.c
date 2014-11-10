@@ -1251,7 +1251,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   const char *to_vict = NULL, *to_room = NULL;
   int i, j, magic_level = 0, divine_level = 0;
   int enchantment_bonus = 0, illusion_bonus = 0, success = 0;
-  int damage_reduction_type *new_dr;
+  struct damage_reduction_type *new_dr;
   
   bool is_mind_affect = FALSE;
 
