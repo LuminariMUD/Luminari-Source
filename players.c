@@ -684,6 +684,7 @@ void save_char(struct char_data * ch, int mode) {
   struct affected_type tmp_aff[MAX_AFFECT] = {
     {0}
   };
+  struct damage_reduction_type *tmp_dr = NULL, *cur_dr = NULL;
   struct obj_data * char_eq[NUM_WEARS] = {NULL};
   trig_data *t = NULL;
   struct mud_event_data *pMudEvent = NULL;
@@ -741,6 +742,22 @@ void save_char(struct char_data * ch, int mode) {
     }
   }
 
+  /* Save off the dr since that is attached to the affects (i.e.) stoneskin will 
+   * create a dr structure that is loosely coupled to the affect for the spell.  
+   * If the spell affect is removed, however, the stoneskin dr is dropped. 
+   * This only counts for dr where spell is != 0. */
+  for (cur_dr = GET_DR(ch); cur_dr != NULL; cur_dr = cur_dr->next) {
+    if (cur_dr->spell != 0) {
+      
+      struct damage_reduction_type *tmp;
+      
+      CREATE(tmp, struct damage_reduction_type, 1);
+      *tmp = *cur_dr;          
+      tmp->next = tmp_dr;        
+      tmp_dr = tmp;
+    }      
+  }
+  
   /* Remove the affections so that the raw values are stored; otherwise the
    * effects are doubled when the char logs back in. */
 
@@ -1131,13 +1148,13 @@ void save_char(struct char_data * ch, int mode) {
   }
   
   /* Save Damage Reduction */
-  if (GET_DR(ch) != NULL) {    
+  if (tmp_dr != NULL) {    
     struct damage_reduction_type *dr;
     int k = 0;
     
     fprintf(fl, "DmgR:\n");
     
-    for(dr = GET_DR(ch); dr != NULL; dr = dr->next) {
+    for(dr = tmp_dr; dr != NULL; dr = dr->next) {
       fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++) {
         fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
@@ -1145,6 +1162,7 @@ void save_char(struct char_data * ch, int mode) {
     }
     fprintf(fl, "0 0 0 0 0");
   }
+
   write_aliases_ascii(fl, ch);
   save_char_vars_ascii(fl, ch);
 
@@ -1156,6 +1174,9 @@ void save_char(struct char_data * ch, int mode) {
       affect_to_char(ch, &tmp_aff[i]);
   }
 
+  /* Reapply dr.*/
+  GET_DR(ch) = tmp_dr;
+  
   for (i = 0; i < NUM_WEARS; i++) {
     if (char_eq[i])
 #ifndef NO_EXTRANEOUS_TRIGGERS
