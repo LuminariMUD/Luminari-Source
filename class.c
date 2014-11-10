@@ -586,21 +586,21 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 4, FEAT_RAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 5, FEAT_IMPROVED_UNCANNY_DODGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 6, FEAT_TRAP_SENSE},
-  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 7, FEAT_DAMAGE_REDUCTION},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 7, FEAT_SHRUG_DAMAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 8, FEAT_RAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 9, FEAT_TRAP_SENSE},
-  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 10, FEAT_DAMAGE_REDUCTION},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 10, FEAT_SHRUG_DAMAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 11, FEAT_GREATER_RAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 11, FEAT_RAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 12, FEAT_TRAP_SENSE},
-  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 13, FEAT_DAMAGE_REDUCTION},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 13, FEAT_SHRUG_DAMAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 14, FEAT_INDOMITABLE_WILL},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 15, FEAT_TRAP_SENSE},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 15, FEAT_RAGE},
-  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 16, FEAT_DAMAGE_REDUCTION},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 16, FEAT_SHRUG_DAMAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 17, FEAT_TIRELESS_RAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 18, FEAT_TRAP_SENSE},
-  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 19, FEAT_DAMAGE_REDUCTION},
+  {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 19, FEAT_SHRUG_DAMAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 20, FEAT_RAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 20, FEAT_MIGHTY_RAGE},
 
@@ -680,7 +680,7 @@ int epic_level_feats[][7] = {
   { CLASS_ROGUE, 0, 2, 1, TRUE, FEAT_SNEAK_ATTACK, 1},
   { CLASS_ROGUE, 0, 4, 0, TRUE, FEAT_TRAP_SENSE, 1},
   { CLASS_BERSERKER, 0, 3, 0, TRUE, FEAT_TRAP_SENSE, 1},
-  { CLASS_BERSERKER, 0, 3, 1, TRUE, FEAT_DAMAGE_REDUCTION, 1},
+  { CLASS_BERSERKER, 0, 3, 1, TRUE, FEAT_SHRUG_DAMAGE, 1},
   { CLASS_BERSERKER, 0, 4, 0, FALSE, FEAT_RAGE, 1},
   { CLASS_DRUID, -2, 4, 0, TRUE, FEAT_WILD_SHAPE, 1},
   { CLASS_PALADIN, 0, 5, 0, TRUE, FEAT_SMITE_EVIL, 1},
@@ -2110,7 +2110,7 @@ void init_start_char(struct char_data *ch) {
 void do_start(struct char_data *ch) {
   init_start_char(ch);
 
-  //from level 0 -> level 1
+  //from level 0 -> level
   advance_level(ch, GET_CLASS(ch));
   GET_HIT(ch) = GET_MAX_HIT(ch);
   GET_MANA(ch) = GET_MAX_MANA(ch);
@@ -2122,7 +2122,7 @@ void do_start(struct char_data *ch) {
 
 void process_level_feats(struct char_data *ch, int class) {
   char featbuf[MAX_STRING_LENGTH];
-  int i = 0;
+  int i = 0, j = 0;
 
   sprintf(featbuf, "\tM");
 
@@ -2148,26 +2148,27 @@ void process_level_feats(struct char_data *ch, int class) {
 
       if (level_feats[i][LF_FEAT] == FEAT_SNEAK_ATTACK)
         sprintf(featbuf, "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
-      /*
-      if (level_feats[i][LF_FEAT] == FEAT_DAMAGE_REDUCTION) {
-        for (reduct = ch->damreduct; reduct; reduct = reduct->next) {
-          if (reduct->feat == FEAT_DAMAGE_REDUCTION) {
+      
+      if (level_feats[i][LF_FEAT] == FEAT_SHRUG_DAMAGE) {
+        struct damage_reduction_type *dr, *temp, *ptr;
+        for (dr = GET_DR(ch); dr != NULL; dr = dr->next){
+          if (dr->feat = FEAT_SHRUG_DAMAGE)  
             REMOVE_FROM_LIST(reduct, ch->damreduct, next);
+          CREATE(ptr, struct damage_reduction_type, 1);
+          ptr->next = GET_DR(ch);
+          GET_DR(ch) = ptr;
+          ptr->spell = 0;
+          ptr->feat = FEAT_SHRUG_DAMAGE;
+          ptr->amount = HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
+          ptr->max_damage = -1;
+          for (j = 0; j < MAX_DR_BYPASS; j++) {
+            ptr->bypass_cat[j] = DR_BYPASS_NONE;
+            ptr->bypass_val[j] = 0;
           }
         }
-        CREATE(ptr, struct damreduct_type, 1);
-        ptr->next = ch->damreduct;
-        ch->damreduct = ptr;
-        ptr->spell = 0;
-        ptr->feat = FEAT_DAMAGE_REDUCTION;
-        ptr->mod = HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) + 1;
-        ptr->duration = -1;
-        ptr->max_damage = -1;
-        for (q = 0; q < MAX_DAMREDUCT_MULTI; q++)
-          / "ptr->damstyle[q] = ptr->damstyleval[q] = 0;
-          ptr->damstyle[0] = DR_NONE;
-      } else
-       */
+        sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
+      }   
+                
       if (level_feats[i][LF_FEAT] == FEAT_STRENGTH_BOOST) {
         ch->real_abils.str += 2;
         sprintf(featbuf, "%s\tMYour natural strength has increased by +2!\r\n", featbuf);

@@ -1544,12 +1544,6 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 int compute_damage_reduction(struct char_data *ch, int dam_type) {
   int damage_reduction = 0;
 
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DAMAGE_REDUC_1))
-    damage_reduction += 3;
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DAMAGE_REDUC_2))
-    damage_reduction += 3;
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_DAMAGE_REDUC_3))
-    damage_reduction += 3;
   if (char_has_mud_event(ch, eCRYSTALBODY))
     damage_reduction += 3;
   if (CLASS_LEVEL(ch, CLASS_BERSERKER))
@@ -1707,6 +1701,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     damage_reduction = compute_damage_reduction(victim, dam_type);
+    
     dam -= MIN(dam, damage_reduction);
     if (!dam && (ch != victim)) {
       send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");

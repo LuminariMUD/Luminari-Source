@@ -647,7 +647,8 @@ void assign_feats(void) {
 
   /* Berserker */
   feato(FEAT_RAGE, "rage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "+4 bonus to con and str for several rounds", "+4 bonus to con and str for several rounds");
-
+  feato(FEAT_SHRUG_DAMAGE, "shrug damage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "Shrug off dmaage, grants damage reduction", "Your extensive training and violent lifestyle allow you to shrug off a portion of incoming dmaage.  This ability grants you DR 1/- for every 3 berserker levels, starting at level 7.");
+  
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "summon a magical pet", "summon a magical pet");
 
@@ -665,8 +666,7 @@ void assign_feats(void) {
   feato(FEAT_BONE_ARMOR, "bone armor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.", "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.");
   feato(FEAT_COSMIC_UNDERSTANDING, "cosmic understanding", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_CRIPPLING_CRITICAL, "crippling critical", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows your criticals to have random additional effects", "allows your criticals to have random additional effects");
-  feato(FEAT_CROWN_OF_KNIGHTHOOD, "crown of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DAMAGE_REDUCTION_FS, "damage reduction", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "reduces damage by 10 unless dealt by cold iron weapon", "reduces damage by 10 unless dealt by cold iron weapon");
+  feato(FEAT_CROWN_OF_KNIGHTHOOD, "crown of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");  
   feato(FEAT_DARK_BLESSING, "dark blessing", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_DEATH_ATTACK, "death attack", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.", "Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.");
   feato(FEAT_DEFENSIVE_STANCE, "defensive stance", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Allows you to fight defensively with bonuses to ac and stats.", "Allows you to fight defensively with bonuses to ac and stats.");
