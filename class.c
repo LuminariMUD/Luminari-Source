@@ -2167,7 +2167,7 @@ void process_level_feats(struct char_data *ch, int class) {
             ptr->bypass_val[j] = 0;
           }
         }
-        sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
+        sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
       }   
                 
       if (level_feats[i][LF_FEAT] == FEAT_STRENGTH_BOOST) {
