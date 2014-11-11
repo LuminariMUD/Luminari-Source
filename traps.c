@@ -269,7 +269,7 @@ EVENTFUNC(event_trap_triggered) {
 
           case TRAP_EFFECT_IMPALING_SPIKE:
             af.spell = effect;
-            af.bitvector[0] = AFF_PARALYZED;
+            SET_BIT_AR(af.bitvector, AFF_PARALYZED);;
             af.duration = 5;
             to_char = "\tLA large \tWspike\tL shoots up from the floor, and \trimpales\tL you upon it.\tn";
             to_room = "\tLSuddenly, a large \tWspike\tL impales \tn$n\tL as it shoots up from the floor.\tn";
@@ -304,14 +304,7 @@ EVENTFUNC(event_trap_triggered) {
 
           case TRAP_EFFECT_POISON_GAS:
             af.spell = SPELL_POISON;
-            af.bitvector[0] = AFF_POISON;
-            af.duration = 25;
-            to_char = "\twAs you inhale the \tgacrid vapors\tn, you cough and choke and start to feel quite sick.\tn";
-            to_room = "\tn$n\tw takes a breath, and starts to sputter and cough, looking a little pale.\tn";
-            dam = 15 + dice(2, 15);
-            dam_type = DAM_POISON;
-            break;
-
+            SET_BIT_AR(af.bitvector, AFF_POISON);
           case TRAP_EFFECT_DISPEL_MAGIC:
             to_char = "\tCThere is a blinding flash of light which moves to surround you.  You feel all of your enchantments fade away.\tn";
             to_room = "\tCThere is a blinding flash of light which moves to surround \tn$n\tC.  It disappears as quickly as it came.\tn";
@@ -385,7 +378,7 @@ EVENTFUNC(event_trap_triggered) {
 
           case TRAP_EFFECT_SPIDER_WEBS:
             af.spell = SPELL_WEB;
-            af.bitvector[0] = AFF_GRAPPLED;
+            SET_BIT_AR(af.bitvector, AFF_GRAPPLED);
             af.duration = 20;
             to_char = "\tLYou are suddenly entangled in sticky strands of \twspider silk\tL, held fast as spiders descend from above.\tn";
             to_room = "\tn$n \tLis suddenly encased in a cocoon of silk, held fast as spiders descend on $m from all sides.\tn";
