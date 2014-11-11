@@ -372,8 +372,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     return (0);
   }
 
-  /* armor arcane failure check, these functions can be found in class.c */ 
- if ((casttype != CAST_INNATE) && 
+  /* armor arcane failure check, these functions can be found in class.c */
+ if ((casttype != CAST_INNATE) &&
      (casttype != CAST_POTION) &&
      (casttype != CAST_WAND)   && !IS_NPC(caster))
     switch (CASTING_CLASS(caster)) {
@@ -717,7 +717,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       } else {
         GET_OBJ_VAL(obj, 2)--;
         USE_STANDARD_ACTION(ch);
-        
+
         /* Level to cast spell at. */
         k = GET_OBJ_VAL(obj, 0) ? GET_OBJ_VAL(obj, 0) : DEFAULT_STAFF_LVL;
 
@@ -801,7 +801,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         act("$n recites $p.", FALSE, ch, obj, NULL, TO_ROOM);
 
       USE_STANDARD_ACTION(ch);
-      
+
       for (i = 1; i <= 3; i++)
         if (call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, i),
                 GET_OBJ_VAL(obj, 0), CAST_SCROLL) <= 0)
@@ -854,17 +854,35 @@ void resetCastingData(struct char_data *ch) {
 int castingCheckOk(struct char_data *ch) {
   int spellnum = CASTING_SPELLNUM(ch);
 
-  if ((GET_POS(ch) != POS_STANDING &&
-          GET_POS(ch) != POS_FIGHTING) ||
-          (CASTING_TOBJ(ch) && CASTING_TOBJ(ch)->in_room != ch->in_room &&
-          !IS_SET(SINFO.targets, TAR_OBJ_WORLD | TAR_OBJ_INV)) ||
-          (CASTING_TCH(ch) && CASTING_TCH(ch)->in_room != ch->in_room && SINFO.violent)) {
-    act("$n is unable to continue $s spell!", FALSE, ch, 0, 0,
+  /* position check */
+  if (GET_POS(ch) <= POS_SITTING) {
+    act("$n is unable to continue $s spell in $s current position!", FALSE, ch, 0, 0,
             TO_ROOM);
-    send_to_char(ch, "You are unable to continue your spell!\r\n");
+    send_to_char(ch, "You are unable to continue your spell in your current position! (spell aborted)\r\n");
     resetCastingData(ch);
     return 0;
   }
+
+  /* target object available (room target) ? */
+  if (CASTING_TOBJ(ch) && CASTING_TOBJ(ch)->in_room != ch->in_room &&
+          !IS_SET(SINFO.targets, TAR_OBJ_WORLD | TAR_OBJ_INV)) {
+    act("$n is unable to continue $s spell!", FALSE, ch, 0, 0,
+            TO_ROOM);
+    send_to_char(ch, "You are unable to find the object for your spell! (spell aborted)\r\n");
+    resetCastingData(ch);
+    return 0;
+  }
+
+  /* target character available? */
+  if (CASTING_TCH(ch) && CASTING_TCH(ch)->in_room != ch->in_room &&
+          !IS_SET(SINFO.targets, TAR_CHAR_WORLD)) {
+    act("$n is unable to continue $s spell!", FALSE, ch, 0, 0,
+            TO_ROOM);
+    send_to_char(ch, "You are unable to find the target for your spell! (spell aborted)\r\n");
+    resetCastingData(ch);
+    return 0;
+  }
+
   if (AFF_FLAGGED(ch, AFF_NAUSEATED)) {
     send_to_char(ch, "You are too nauseated to continue casting!\r\n");
     act("$n seems to be too nauseated to continue casting!",
@@ -872,6 +890,7 @@ int castingCheckOk(struct char_data *ch) {
     resetCastingData(ch);
     return (0);
   }
+
   if (AFF_FLAGGED(ch, AFF_DAZED) || AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
           char_has_mud_event(ch, eSTUNNED)) {
     send_to_char(ch, "You are unable to continue casting!\r\n");
@@ -880,6 +899,8 @@ int castingCheckOk(struct char_data *ch) {
     resetCastingData(ch);
     return (0);
   }
+
+  /* made it! */
   return 1;
 }
 
@@ -961,7 +982,7 @@ EVENTFUNC(event_casting) {
         if (!castingCheckOk(ch))
           return 0;
 
-        finishCasting(ch);
+        finishCasting(ch);  /* we cleared all our casting checks! */
         return 0;
       } else
         return (7);
@@ -973,7 +994,7 @@ EVENTFUNC(event_casting) {
     //do all our checks
     if (!castingCheckOk(ch))
       return 0;
-    else {
+    else { /* we cleared all our casting checks! */
       finishCasting(ch);
       return 0;
     }
@@ -994,15 +1015,15 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
             TOP_SPELL_DEFINE);
     return (0);
   }
-  
+
   if (ch && IN_ROOM(ch) > top_of_world)
-    return 0;    
+    return 0;
   if (tch && IN_ROOM(tch) > top_of_world)
     return 0;
   if (tobj && tobj->in_room > top_of_world)
     return 0;
-  
-    
+
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF)) {
     send_to_char(ch, "You can not even speak a single word!\r\n");
     return 0;
@@ -1125,7 +1146,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   if (SINFO.time <= 0) {
     send_to_char(ch, "%s", CONFIG_OK);
     say_spell(ch, spellnum, tch, tobj, FALSE);
-    
+
     /* prevents spell spamming */
     USE_SWIFT_ACTION(ch);
 
@@ -1237,7 +1258,7 @@ ACMD(do_cast) {
     return;
   }
 
-  /* further restrictions, this needs updating! 
+  /* further restrictions, this needs updating!
    * what we need to do is loop through the class-array to find the min. stat
    * then compare to the classes - spell-level vs stat
    * -zusuk */
@@ -1464,12 +1485,12 @@ void unused_spell(int spl) {
  *  charm, curse), or is otherwise nasty.
  * routines:  A list of magic routines which are associated with this spell
  *  if the spell uses spell templates.  Also joined with bitwise OR ('|').
- * time:  casting time of the spell 
- * memtime:  memtime of the spell 
+ * time:  casting time of the spell
+ * memtime:  memtime of the spell
  * schoolOfMagic:  if magical spell, which school does it belong?
  * Note about - schoolOfMagic:  for skills this is used to categorize it
  * quest:  quest spell or not?  TRUE or FALSE
- * 
+ *
  * See the documentation for a more detailed description of these fields. You
  * only need a spello() call to define a new spell; to decide who gets to use
  * a spell or skill, look in class.c.  -JE */
@@ -1537,7 +1558,7 @@ void mag_assign_spells(void) {
   spello(SPELL_CHARISMA, "charisma", 30, 15, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "Your magical charisma has faded away.", 3, 7,
-          TRANSMUTATION, FALSE); // wizard 2, cleric 2  
+          TRANSMUTATION, FALSE); // wizard 2, cleric 2
   spello(SPELL_CONTROL_WEATHER, "control weather", 72, 57, 1, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_MANUAL,
           NULL, 14, 11, CONJURATION, FALSE); // wiz 7, cleric x
@@ -2596,7 +2617,7 @@ void mag_assign_spells(void) {
   spello(SPELL_I_DARKNESS, "!UNUSED!", 0, 0, 0, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_ROOM,
           "The cloak of darkness in the area dissolves.", 5, 6, NOSCHOOL, FALSE);
-  /*  
+  /*
    spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
           NULL, 0, 0, NOSCHOOL, FALSE);
