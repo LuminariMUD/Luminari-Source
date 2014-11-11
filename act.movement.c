@@ -1419,14 +1419,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
   /* trap sense will allow a rogue/barbarian to auto detect traps if they
    make a successful check vs DC xx (defined right below ) */
-//  if (!IS_NPC(ch)) {
-//    int trap_check = FALSE;
-//    int dc = 21;
-//    if ((trap_check = HAS_FEAT(ch, FEAT_TRAP_SENSE))) {
-//      if (skill_check(ch, ABILITY_PERCEPTION, (dc - trap_check)))
-//        perform_detecttrap(ch, TRUE); /* silent */
-//    }
-//  }
+  if (!IS_NPC(ch)) {
+    int trap_check = 0;
+    int dc = 21;
+    if ((trap_check = HAS_FEAT(ch, FEAT_TRAP_SENSE))) {
+      if (skill_check(ch, ABILITY_PERCEPTION, (dc - trap_check)))
+        send_to_char(ch, "CHECKING TRAPS, DC %d", (dc - trap_check));
+        //        perform_detecttrap(ch, TRUE); /* silent */
+    }
+  }
   
   return (1);
 }
