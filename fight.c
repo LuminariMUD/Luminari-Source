@@ -1502,8 +1502,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 20;
       if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_TIMELESS_BODY))
         damtype_reduction += 25;
-      if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
-        damtype_reduction += 100;
+//      if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
+//        damtype_reduction += 100;
       break;
     case DAM_ILLUSION:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
@@ -1548,8 +1548,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
     damage_reduction += 3;
 //  if (CLASS_LEVEL(ch, CLASS_BERSERKER))
 //    damage_reduction += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4;
-  if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
-    damage_reduction += 12;
+//  if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
+//    damage_reduction += 12;
   if (HAS_FEAT(ch, FEAT_PERFECT_SELF)) /* temporary mechanic until we upgrade this system */
     damage_reduction += 3;
 

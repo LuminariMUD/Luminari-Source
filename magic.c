@@ -2794,12 +2794,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_AC_NEW;
       af[0].modifier = 5;
       af[0].duration = magic_level * 5;
+      
       af[1].location = APPLY_RES_NEGATIVE;
       af[1].modifier = 100;
-      af[1].duration = magic_level * 5;
-      
-      //SET_BIT_AR(af[2].bitvector, AFF_SHADOW_SHIELD);
-      // this affect gives:  12 DR, 100% resist negative damage
+      af[1].duration = magic_level * 5;     
       
       af[2].location = APPLY_DR; 
       af[2].modifier = 0;
