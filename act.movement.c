@@ -1425,7 +1425,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     if ((trap_check = HAS_FEAT(ch, FEAT_TRAP_SENSE))) {
       if (skill_check(ch, ABILITY_PERCEPTION, (dc - trap_check)))
         send_to_char(ch, "CHECKING TRAPS, DC %d", (dc - trap_check));
-        //        perform_detecttrap(ch, TRUE); /* silent */
+          perform_detecttrap(ch, TRUE); /* silent */
     }
   }
   
