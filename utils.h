@@ -1167,8 +1167,9 @@ do                                                              \
 /** Return how much weight ch can carry. */
 #define CAN_CARRY_W(ch) (str_app[STRENGTH_APPLY_INDEX(ch)].carry_w)
 
-/** Return how many items ch can carry. */
-#define CAN_CARRY_N(ch) (5 + (GET_DEX(ch) >> 1) + (GET_LEVEL(ch) >> 1))
+/** Return how many items ch can carry. 
+ *  Increased this by 5 - Ornir */
+#define CAN_CARRY_N(ch) (10 + (GET_DEX(ch) >> 1) + (GET_LEVEL(ch) >> 1))
 
 /** Return whether or not ch is awake. */
 #define AWAKE(ch) (GET_POS(ch) > POS_SLEEPING)
