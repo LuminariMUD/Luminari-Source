@@ -135,12 +135,14 @@ ACMD(do_disabletrap) {
 }
 
 /* engine for detecting traps, extracted it for trap-sense feat */
+/* included a "silent" mode for the trap-sense feat */
 int perform_detecttrap(struct char_data *ch, bool silent) {
   struct obj_data *trap = NULL;
   int exp = 1, dc = 0;
 
-  if (!silent)
+  if (!silent) {
     USE_FULL_ROUND_ACTION(ch);
+  }
 
   for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
     if (GET_OBJ_TYPE(trap) == ITEM_TRAP && !is_trap_detected(trap)) {
@@ -160,6 +162,7 @@ int perform_detecttrap(struct char_data *ch, bool silent) {
     act("$n is looking around for some traps, but can not find any.", FALSE, ch, 0, 0, TO_ROOM);
     act("You do not seem to detect any traps.", FALSE, ch, 0, 0, TO_CHAR);
   }
+
   return 0;
 }
 
