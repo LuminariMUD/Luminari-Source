@@ -621,7 +621,7 @@ const char *bonus_types[NUM_BONUS_TYPES + 1] =
   "Insight",
   "Luck",
   "Morale",
-  "Natural Armor"
+  "Natural Armor",
   "Profane",
   "Racial",
   "Resistance",
