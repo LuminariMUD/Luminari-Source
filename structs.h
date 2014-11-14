@@ -2627,7 +2627,7 @@ struct affected_type {
   byte location; /**< Tells which ability to change(APPLY_XXX). */
   int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
 
-  void *data; /**< Extra data for various locations (e.g. APPLY_DR). */
+  int bonus_type; /**< What type of bonus (if this is a bonus) is this. */
   
   struct affected_type *next; /**< The next affect in the list of affects. */
 };
