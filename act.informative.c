@@ -1175,7 +1175,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
    * adding the affect descriptions to strings, one for each affect type, then concatenating 
    * them together for the final display.
    * 
-   * /
+   */
   /* Routine to show what spells a char is affected by */
   if (k->affected) {
     for (aff = k->affected; aff; aff = aff->next) {
