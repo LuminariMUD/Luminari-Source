@@ -2472,7 +2472,7 @@ void new_affect(struct affected_type *af) {
   af->duration = 0;
   af->modifier = 0;
   af->location = APPLY_NONE;
-  af->bonus_type = BONUS_TYPE_UNTYPED;
+  af->bonus_type = BONUS_TYPE_UNDEFINED;
   
   for (i = 0; i < AF_ARRAY_MAX; i++) af->bitvector[i] = 0;
 }
