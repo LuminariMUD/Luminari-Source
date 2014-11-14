@@ -1152,7 +1152,30 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch,
                "\tC-------------- \tWSpell-Like Affects\tC -----------------------\tn\r\n");
-
+  /* Bonus Type has been implemented for affects.  This has the following 
+   * ramifications - 
+   * - Bonuses of the same type (other than Untyped, Dodge, Circumstance and Racial bonus
+   *   types) OVERLAP.  They do not stack.  Effectively, the highest bonus is in 
+   *   effect at any one time.  If a bonus is NEGATIVE, that is, it is a penalty,
+   *   then that penalty DOES stack. 
+   * - Display of affects becomes a bit problematic, since the bonus type means so much.
+   *   It is important to display the bonus type, but we don't have a lot of room on the 
+   *   screen. 
+   *
+   * Solution: (?)
+   *   -----Spell-Like Affects---
+   *   [Deflection]
+   *   Affect name      +X to AC
+   *   Affect name      +Y to AC            Where X > Y.  This line is a muted color vs above.
+   *   [Enhancement Bonus]
+   *   Bull's Strength  +4 to Strength
+   *   Cat's Grace      +4 to Dexterity     These 2 lines are the same color since both apply.
+   * 
+   * In order to implement this, we have to change how we process the effects, potentially
+   * adding the affect descriptions to strings, one for each affect type, then concatenating 
+   * them together for the final display.
+   * 
+   * /
   /* Routine to show what spells a char is affected by */
   if (k->affected) {
     for (aff = k->affected; aff; aff = aff->next) {
@@ -1181,7 +1204,9 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
           }
         }
       }
-      send_to_char(ch, "\r\n");
+      /* Add the Bonus type. */
+      send_to_char(ch, "/tc[%s]\r\n", bonus_types[aff->bonus_type]);
+      //send_to_char(ch, "\r\n");
     }
   }
   send_to_char(ch,
