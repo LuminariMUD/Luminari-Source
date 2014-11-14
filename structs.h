@@ -659,6 +659,35 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 /** Total number of available PRF flags */
 #define NUM_PRF_FLAGS    41
 
+/* Bonus types: used in affects to store the bonus type granted by the affect. 
+ * defaults to BONUS_TYPE_UNTYPED (which stacks!).
+ * UNTYPED, DODGE bonuses, CIRCUMSTANCE bonuses and RACIAL bonuses stack,
+ * all others overlap. */
+#define BONUS_TYPE_UNDEFINED     0 
+#define BONUS_TYPE_UNTYPED       1
+#define BONUS_TYPE_ALCHEMICAL    2
+#define BONUS_TYPE_ARMOR         3
+#define BONUS_TYPE_CIRCUMSTANCE  4
+#define BONUS_TYPE_COMPETENCE    5
+#define BONUS_TYPE_DEFLECTION    6
+#define BONUS_TYPE_DODGE         7
+#define BONUS_TYPE_ENHANCEMENT   8
+#define BONUS_TYPE_INHERENT      9
+#define BONUS_TYPE_INSIGHT       10
+#define BONUS_TYPE_LUCK          11
+#define BONUS_TYPE_MORALE        12
+#define BONUS_TYPE_NATURAL_ARMOR 13
+#define BONUS_TYPE_PROFANE       14
+#define BONUS_TYPE_RACIAL        15
+#define BONUS_TYPE_RESISTANCE    16
+#define BONUS_TYPE_SACRED        17
+#define BONUS_TYPE_SHIELD        18
+#define BONUS_TYPE_SIZE          19
+#define BONUS_TYPE_TRAIT         20
+
+#define NUM_BONUS_TYPES          21
+
+
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
 #define AFF_DONTUSE          0   /**< DON'T USE! */
