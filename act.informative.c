@@ -1194,7 +1194,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Shield Recovery - Duration %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));  
   
   send_to_char(ch, "\tC");  
-  print_line(ch, 80, '-', '-');
+  draw_line(ch, 80, '-', '-');
 }
 
 void perform_resistances(struct char_data *ch, struct char_data *k) {
@@ -1258,7 +1258,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
     dr = dr->next;
   }
   send_to_char(ch, "\tC");  
-  print_line(ch, 80, '-', '-');
+  draw_line(ch, 80, '-', '-');
 }
 
 void perform_affects(struct char_data *ch, struct char_data *k) {
@@ -1362,7 +1362,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
 
   send_to_char(ch, "\tC");  
-  print_line(ch, 80, '-', '-');
+  draw_line(ch, 80, '-', '-');
 }
 
 void free_history(struct char_data *ch, int type) {
