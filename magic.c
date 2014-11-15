@@ -1321,29 +1321,35 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       
       af[0].location = APPLY_HITROLL;
-      af[0].modifier = 3;
+      af[0].modifier = 1;
       af[0].duration = 300;
+      af[0].bonus_type = BONUS_TYPE_MORALE;
 
-      af[1].location = APPLY_DAMROLL;
-      af[1].modifier = 3;
-      af[1].duration = 300;
-
+//      af[1].location = APPLY_DAMROLL;
+//      af[1].modifier = 3;
+//      af[1].duration = 300;
+//      af[1].bonus_type = BONUS_TYPE_MORALE;
+      
       af[2].location = APPLY_SAVING_WILL;
       af[2].modifier = 2;
       af[2].duration = 300;
-
-      af[3].location = APPLY_SAVING_FORT;
-      af[3].modifier = 2;
-      af[3].duration = 300;
-
-      af[4].location = APPLY_SAVING_REFL;
-      af[4].modifier = 2;
-      af[4].duration = 300;
-
+      af[2].bonus_type = BONUS_TYPE_MORALE;
+      
+//      af[3].location = APPLY_SAVING_FORT;
+//      af[3].modifier = 2;
+//      af[3].duration = 300;
+//      af[3].bonus_type = BONUS_TYPE_MORALE;
+//      
+//      af[4].location = APPLY_SAVING_REFL;
+//      af[4].modifier = 2;
+//      af[4].duration = 300;
+//      af[4].bonus_type = BONUS_TYPE_MORALE;
+      
       af[5].location = APPLY_HIT;
       af[5].modifier = dice(2, 6) + MAX(divine_level, 15);
       af[5].duration = 300;
-
+      af[5].bonus_type = BONUS_TYPE_MORALE;
+      
       accum_duration = TRUE;
       to_room = "$n is now divinely aided!";
       to_vict = "You feel divinely aided.";
@@ -1375,6 +1381,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       else
         af[0].modifier = 2;
       af[0].duration = (divine_level * 200); // divine level * 10, * 20 for minutes
+      af[0].bonus_type = BONUS_TYPE_NATURALARMOR;
       accum_affect = FALSE;
       accum_duration = FALSE;
       to_vict = "Your skin hardens to bark.";
@@ -1409,13 +1416,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       
       af[0].location = APPLY_HITROLL;
-      af[0].modifier = 2;
+      af[0].modifier = 1;
       af[0].duration = 300;
-
+      af[0].bonus_type = BONUS_TYPE_MORALE;
+      
       af[1].location = APPLY_SAVING_WILL;
       af[1].modifier = 1;
       af[1].duration = 300;
-
+      af[1].bonus_type = BONUS_TYPE_MORALE;
+      
       accum_duration = TRUE;
       to_room = "$n is now righteous!";
       to_vict = "You feel righteous.";
@@ -1448,8 +1457,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
       
     case SPELL_BLUR: //illusion
-      af[0].location = APPLY_AC; /* this is just a tag */
-      af[0].modifier = -1;
+      af[0].location = APPLY_NONE; /* this is just a tag */
+      af[0].modifier = 0;
       af[0].duration = 300;
       to_room = "$n's images becomes blurry!.";
       to_vict = "You observe as your image becomes blurry.";
@@ -1587,6 +1596,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_INT;
       af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = 4;
+      af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
       accum_duration = TRUE;
       to_vict = "You feel more intelligent!";
       to_room = "$n's intelligence increases!";
@@ -1746,8 +1756,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_DISPLACEMENT: //illusion
-      af[0].location = APPLY_AC; /* this is just a tag */
-      af[0].modifier = -1;
+      af[0].location = APPLY_NONE; /* this is just a tag */
+      af[0].modifier = 0;
       af[0].duration = 100;
       to_room = "$n's images becomes displaced!";
       to_vict = "You observe as your image becomes displaced!";
@@ -1759,6 +1769,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_CON;
       af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
       accum_duration = TRUE;
       to_vict = "You feel more hardy!";
       to_room = "$n begins to feel more hardy!";
@@ -1802,6 +1813,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_SIZE;
       af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = 1;
+      af[0].bonus_type = BONUS_TYPE_SIZE;
       to_vict = "You feel yourself growing!";
       to_room = "$n's begins to grow much larger!";
       break;
@@ -1811,11 +1823,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
 
       af[0].location = APPLY_AC_NEW;
-      af[0].modifier = 12;
+      af[0].modifier = 20;
       af[0].duration = 1200;
-      af[1].location = APPLY_DEX;
-      af[1].modifier = 7;
-      af[1].duration = 1200;
+      af[0].bonus_type = BONUS_TYPE_ARMOR;
+      
       accum_duration = FALSE;
       to_vict = "You feel magic protecting you.";
       to_room = "$n is surrounded by magical bands of armor!";
@@ -1839,6 +1850,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_MOVE;
       af[0].modifier = 20 + magic_level;
       af[0].duration = magic_level * 2;
+      af[0].bonus_type = BONUS_:TYPE_ENHANCEMENT;
       to_vict = "You feel expeditious.";
       to_room = "$n is now expeditious!";
       break;
@@ -2795,10 +2807,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_AC_NEW;
       af[0].modifier = 5;
       af[0].duration = magic_level * 5;
+      af[0].bonus_type = BONUS_TYPE_SHIELD;
       
       af[1].location = APPLY_RES_NEGATIVE;
       af[1].modifier = 100;
-      af[1].duration = magic_level * 5;     
+      af[1].duration = magic_level * 5;    
+      af[1].bonus_type = BONUS_TYPE_RESISTANCE;
       
       af[2].location = APPLY_DR; 
       af[2].modifier = 0;
