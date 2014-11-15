@@ -1850,7 +1850,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_MOVE;
       af[0].modifier = 20 + magic_level;
       af[0].duration = magic_level * 2;
-      af[0].bonus_type = BONUS_:TYPE_ENHANCEMENT;
+      af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
       to_vict = "You feel expeditious.";
       to_room = "$n is now expeditious!";
       break;
