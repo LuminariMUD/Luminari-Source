@@ -1137,7 +1137,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch, "\tC");
   text_line(ch, " \tWCooldowns\tC ", 80, '-', '-');
-
+  send_to_char(ch, "\tn");
+  
   if ((pMudEvent = char_has_mud_event(k, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRAGE)))
@@ -1195,6 +1196,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
   
   send_to_char(ch, "\tC");  
   draw_line(ch, 80, '-', '-');
+  send_to_char(ch, "\tn");
 }
 
 void perform_resistances(struct char_data *ch, struct char_data *k) {
@@ -1204,9 +1206,10 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch, "\tC");
   text_line(ch, " \tWDamage Type Resistance / Vulnerability\tC ", 80, '-', '-');
-
+  send_to_char(ch, "\tn");
+  
   for (i = 0; i < NUM_DAM_TYPES - 1; i++) {
-    send_to_char(ch, "%-15s: %-4d%% (%-2d)   ", damtype_display[i + 1],
+    send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
                  compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
     if (i % 2)
       send_to_char(ch, "\r\n");
@@ -1214,7 +1217,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
   
   send_to_char(ch, "\tC");
   text_line(ch, " \tWDamage Reduction\tC ", 80, '-', '-');
-
+  send_to_char(ch, "\tn");
   struct damage_reduction_type *dr;
   dr = GET_DR(ch);
   while (dr != NULL) {
@@ -1258,6 +1261,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
   }
   send_to_char(ch, "\tC");  
   draw_line(ch, 80, '-', '-');
+  send_to_char(ch, "\tn");
 }
 
 void perform_affects(struct char_data *ch, struct char_data *k) {
@@ -1269,7 +1273,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch, "\tC");
   text_line(ch, " \tWAffected By\tC ", 80, '-', '-');
-
+  send_to_char(ch, "\tn");
   /* Showing the bitvector */
   sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
   send_to_char(ch, "%s%s%s\r\n", CCYEL(ch, C_NRM),
@@ -1277,6 +1281,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch, "\tC");
   text_line(ch, " \tWSpell-like Affects\tC ", 80, '-', '-');
+  send_to_char(ch, "\tn");
   /* Bonus Type has been implemented for affects.  This has the following 
    * ramifications - 
    * - Bonuses of the same type (other than Untyped, Dodge, Circumstance and Racial bonus
@@ -1338,7 +1343,8 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch, "\tC");
   text_line(ch, " \tWOther Affects\tC ", 80, '-', '-');
-
+  send_to_char(ch, "\tn");
+  
   if (CLASS_LEVEL(ch, CLASS_CLERIC) >= 14) {
     if (PLR_FLAGGED(ch, PLR_SALVATION)) {
       if (GET_SALVATION_NAME(ch) != NULL) {
@@ -1362,6 +1368,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch, "\tC");  
   draw_line(ch, 80, '-', '-');
+  send_to_char(ch, "\tn");
 }
 
 void free_history(struct char_data *ch, int type) {
