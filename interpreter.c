@@ -102,7 +102,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "advance", "adv", POS_DEAD, do_advance, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "aedit", "aed", POS_DEAD, do_oasis_aedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "alias", "ali", POS_DEAD, do_alias, 0, 0, TRUE, ACTION_NONE, {0, 0}},
-  { "affects", "aff", POS_DEAD, do_affects, 0, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "affects", "aff", POS_DEAD, do_affects, 0, SCMD_AFFECTS, TRUE, ACTION_NONE, {0, 0}},
   { "afk", "afk", POS_DEAD, do_gen_tog, 0, SCMD_AFK, TRUE, ACTION_NONE, {0, 0}},
   { "areas", "are", POS_DEAD, do_areas, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "assist", "as", POS_FIGHTING, do_assist, 1, 0, FALSE, ACTION_NONE, {0, 0}},
