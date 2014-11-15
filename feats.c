@@ -662,8 +662,19 @@ void assign_feats(void) {
   /* uncanny dodge above (shared with rogue) */
   /* improved uncanny dodge above (shared with rogue) */
   /* trap sense above (shared with rogue) */
-  feato(FEAT_RAGE, "rage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "+4 bonus to con and str for several rounds", "+4 bonus to con and str for several rounds");
-  feato(FEAT_SHRUG_DAMAGE, "shrug damage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "Shrug off dmaage, grants damage reduction", "Your extensive training and violent lifestyle allow you to shrug off a portion of incoming dmaage.  This ability grants you DR 1/- for every 3 berserker levels, starting at level 7.");
+  feato(FEAT_RAGE, "rage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "+4 bonus to con and str for several rounds",
+    "+4 bonus to constitution and strength for several rounds");
+  feato(FEAT_SHRUG_DAMAGE, "shrug damage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "Shrug off damage, grants damage reduction",
+    "Your extensive training and violent lifestyle allow you to shrug off a "
+      "portion of incoming damage.  This ability grants you DR 1/- for every 3"
+      "berserker levels, starting at level 4.");
+  feato(FEAT_GREATER_RAGE, "greater rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+6 to str and con when raging", "+6 to str and con when raging");
+  feato(FEAT_INDOMITABLE_WILL, "indomitable will", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_TIRELESS_RAGE, "tireless rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "no fatigue after raging", "no fatigue after raging");
+  feato(FEAT_MIGHTY_RAGE, "mighty rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+8 str and con and +4 to will saves when raging", "+8 str and con and +4 to will saves when raging");
+  feato(FEAT_FAST_MOVEMENT, "fast movement", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "10ft bonus to speed in light or medium armor", "10ft bonus to speed in light or medium armor");
 
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "summon a magical pet", "summon a magical pet");
@@ -701,7 +712,6 @@ void assign_feats(void) {
   feato(FEAT_ENHANCE_ARROW_ELEMENTAL_BURST, "enhance arrow (elemental burst)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+2d10 on critical hits with bows", "+2d10 on critical hits with bows");
   feato(FEAT_ENHANCE_ARROW_MAGIC, "enhance arrow (magic)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1 to hit and damage with bows per rank", "+1 to hit and damage with bows per rank");
   feato(FEAT_ESSENCE_OF_UNDEATH, "essence of undeath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "gives immunity to poison, disease, sneak attack and critical hits", "gives immunity to poison, disease, sneak attack and critical hits");
-  feato(FEAT_FAST_MOVEMENT, "fast movement", FALSE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "10ft bonus to speed in light or medium armor", "10ft bonus to speed in light or medium armor");
   feato(FEAT_FAVOR_OF_DARKNESS, "favor of darkness", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_FINAL_STAND, "final stand", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_HASTE, "haste", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can cast haste 3x per day", "can cast haste 3x per day");
@@ -761,19 +771,16 @@ void assign_feats(void) {
   feato(FEAT_CANNY_DEFENSE, "canny defense", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "add int bonus (max class level) to ac when useing one light weapon and no shield", "add int bonus (max class level) to ac when useing one light weapon and no shield");
   feato(FEAT_ELABORATE_PARRY, "elaborate parry", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "when fighting defensively or total defense, gains +1 dodge ac per class level", "when fighting defensively or total defense, gains +1 dodge ac per class level");
   feato(FEAT_FAR_SHOT, "far shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-  feato(FEAT_GREATER_RAGE, "greater rage", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+6 to str and con when raging", "+6 to str and con when raging");
   feato(FEAT_IMPROVED_DISARM, "improved disarm", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff ", "ask staff ");
   feato(FEAT_IMPROVED_GRAPPLE, "improved grapple", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_OVERRUN, "improved overrun", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_PRECISE_SHOT, "improved precise shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+1 to hit on all ranged attacks", "+1 to hit on all ranged attacks");
   feato(FEAT_MANYSHOT, "manyshot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "extra ranged attack when rapid shot turned on", "extra ranged attack when rapid shot turned on");
-  feato(FEAT_MIGHTY_RAGE, "mighty rage", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+8 str and con and +4 to will saves when raging", "+8 str and con and +4 to will saves when raging");
   feato(FEAT_MOUNTED_ARCHERY, "mounted archery", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_PRECISE_STRIKE, "precise strike", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+1d6 damage when using only one weapon and no shield", "+1d6 damage when using only one weapon and no shield");
   feato(FEAT_QUICK_DRAW, "quick draw", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_RAPID_RELOAD, "rapid reload", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_SHOT_ON_THE_RUN, "shot on the run", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-  feato(FEAT_TIRELESS_RAGE, "tireless rage", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "no fatigue after raging", "no fatigue after raging");
   feato(FEAT_WEAPON_TOUCH, "weapon touch", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_WEAPON_MASTERY, "weapon mastery", FALSE, FALSE, TRUE, FEAT_TYPE_COMBAT, "+2 to hit and damage with that weapon", "+2 to hit and damage with that weapon");
   feato(FEAT_COMBAT_CHALLENGE, "combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a mob focus their attention on you", "allows you to make a mob focus their attention on you");
@@ -822,7 +829,6 @@ void assign_feats(void) {
   feato(FEAT_IMPROVED_REACTION, "improved reaction", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "+2 bonus to initiative checks (+4 at 8th class level)", "+2 bonus to initiative checks (+4 at 8th class level)");
   feato(FEAT_IMPROVED_SUNDER, "improved sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_TURNING, "improved turning", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_INDOMITABLE_WILL, "indomitable will", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_NATURAL_ARMOR_INCREASE, "natural armor increase", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_SUNDER, "sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_TRACK, "track", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "use survival skill to track others", "use survival skill to track others");
