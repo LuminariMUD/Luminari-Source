@@ -510,6 +510,9 @@ void assign_feats(void) {
   feato(FEAT_DIVINE_BOND, "divine bond", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "bonuses to attack and damage rolls when active", "bonuses to attack and damage rolls when active");
 
   /* Rogue */
+  /* trap sense below (shared with berserker) */
+  /* uncanny dodge below (shared with berserker) */
+  /* improved uncanny dodge below (shared with berserker) */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*talent*/feato(FEAT_CRIPPLING_STRIKE, "crippling strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "Chance to do strength damage with a sneak attack.",
@@ -520,7 +523,9 @@ void assign_feats(void) {
   feato(FEAT_EVASION, "evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "on successful reflex save no damage from spells and effects",
     "on successful reflex save no damage from spells and effects");
-  feato(FEAT_TRAPFINDING, "trapfinding", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can use the Search skill to locate difficult to find traps", "can use the Search skill to locate difficult to find traps");
+  feato(FEAT_TRAPFINDING, "trapfinding", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+4 to detecting traps",
+    "+4 to detecting traps (detecttrap)");
   /*adv talent*/feato(FEAT_DEFENSIVE_ROLL, "defensive roll", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "can survive a potentially fatal blow",
     "can survive a potentially fatal blow, has long cooldown before usable "
@@ -540,13 +545,19 @@ void assign_feats(void) {
   feat_prereq_class_level(FEAT_SNEAK_ATTACK, CLASS_ROGUE, 2);
 
 
-  /* Rogue/Barbarian */
+  /* Rogue / Barbarian */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_TRAP_SENSE, "trap sense", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
      "auto-sense traps",
      "Normally to find traps you have to actively try to detect them.  With "
        "this feat you will make a perception check to detect traps automatically. "
        "For every point you have in this feat your bonus to your check is increase by 1.");
-  feato(FEAT_UNCANNY_DODGE, "uncanny dodge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "retains dex bonus when flat footed or against invis opponents", "retains dex bonus when flat footed or against invis opponents");
+  feato(FEAT_UNCANNY_DODGE, "uncanny dodge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "retains dex bonus when flat footed",
+    "retains dexterity bonus when flat footed");
+  feato(FEAT_IMPROVED_UNCANNY_DODGE, "improved uncanny dodge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "cannot be flanked",
+    "cannot be flanked, unless opponents berserker/rogue levels are 4 or more");
 
   /* Ranger */
   feato(FEAT_FAVORED_ENEMY_AVAILABLE, "favored enemy available", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can choose an enemy type as a favored enemy", "can choose an enemy type as a favored enemy");
@@ -558,7 +569,7 @@ void assign_feats(void) {
   feato(FEAT_HIDE_IN_PLAIN_SIGHT, "hide in plain sight", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "While in any sort of natural terrain, can use the Hide skill without displaying a message.", "While in any sort of natural terrain, can use the Hide skill without displaying a message.");
   feato(FEAT_SWIFT_TRACKER, "swift tracker", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "No penalty while autotracking.", "No penalty while autotracking.");
 
-  /* Ranger/Druid */
+  /* Ranger / Druid */
   feato(FEAT_ANIMAL_COMPANION, "animal companion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can call a loyal companion animal that accompanies the adventurer.", "Can call a loyal companion animal that accompanies the adventurer.");
   feato(FEAT_WILD_EMPATHY, "wild empathy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "The adventurer can improve the attitude of an animal.", "The adventurer can improve the attitude of an animal.");
   feato(FEAT_WOODLAND_STRIDE, "woodland stride", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Reduced movement penalty when moving through woodland areas.", "Reduced movement penalty when moving through woodland areas.");
@@ -576,7 +587,7 @@ void assign_feats(void) {
   feato(FEAT_WILD_SHAPE_PLANT, "wild shape (plant)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can assume plant-like forms.", "Can assume plant-like forms.");
   feato(FEAT_WILD_SHAPE_TINY, "wild shape (tiny)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can assume the shape of tiny animals.", "Can assume the shape of tiny animals.");
 
-  /* Druid/Monk */
+  /* Druid / Monk */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_TIMELESS_BODY, "timeless body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
   "immune to negative aging effects (unfinished)",
@@ -648,6 +659,9 @@ void assign_feats(void) {
   feato(FEAT_INSPIRE_COURAGE, "inspire courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Bolster group members against fear attacks and improve their combat ability.", "Bolster group members against fear attacks and improve their combat ability.");
 
   /* Berserker */
+  /* uncanny dodge above (shared with rogue) */
+  /* improved uncanny dodge above (shared with rogue) */
+  /* trap sense above (shared with rogue) */
   feato(FEAT_RAGE, "rage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "+4 bonus to con and str for several rounds", "+4 bonus to con and str for several rounds");
   feato(FEAT_SHRUG_DAMAGE, "shrug damage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "Shrug off dmaage, grants damage reduction", "Your extensive training and violent lifestyle allow you to shrug off a portion of incoming dmaage.  This ability grants you DR 1/- for every 3 berserker levels, starting at level 7.");
 
@@ -752,7 +766,6 @@ void assign_feats(void) {
   feato(FEAT_IMPROVED_GRAPPLE, "improved grapple", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_OVERRUN, "improved overrun", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_PRECISE_SHOT, "improved precise shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+1 to hit on all ranged attacks", "+1 to hit on all ranged attacks");
-  feato(FEAT_IMPROVED_UNCANNY_DODGE, "improved uncanny dodge", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "cannot be flanked (or sneak attacked", "cannot be flanked (or sneak attacked");
   feato(FEAT_MANYSHOT, "manyshot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "extra ranged attack when rapid shot turned on", "extra ranged attack when rapid shot turned on");
   feato(FEAT_MIGHTY_RAGE, "mighty rage", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+8 str and con and +4 to will saves when raging", "+8 str and con and +4 to will saves when raging");
   feato(FEAT_MOUNTED_ARCHERY, "mounted archery", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
@@ -2036,6 +2049,16 @@ void list_feats(struct char_data *ch, char *arg, int list_type) {
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
           sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_DAMAGE_REDUCTION));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
+      } else if (i == FEAT_SHRUG_DAMAGE) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_SHRUG_DAMAGE));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_SHRUG_DAMAGE));
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);
