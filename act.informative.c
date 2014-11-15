@@ -1149,7 +1149,8 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
 
   //send_to_char(ch,
   //             "\tC-------------- \tWAffected By\tC ------------------------------\tn\r\n");
-  text_line(ch, "\tWAffected By", 80, "\tC-", "\tC-");
+  send_to_char(ch, "\tC");
+  text_line(ch, " \tWAffected By\tC ", 80, "-", "-");
 
   /* Showing the bitvector */
   sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
