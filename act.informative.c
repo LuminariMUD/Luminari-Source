@@ -1335,7 +1335,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
         }
       }
       /* Add the Bonus type. */
-      send_to_char(ch, " \tc[%s]\r\n", bonus_types[aff->bonus_type]);
+        send_to_char(ch, " \tc(%s)\tn\r\n", bonus_types[aff->bonus_type]);
       //send_to_char(ch, "\r\n");
     }
   }
