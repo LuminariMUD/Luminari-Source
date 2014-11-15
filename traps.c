@@ -147,6 +147,8 @@ int perform_detecttrap(struct char_data *ch, bool silent) {
   for (trap = world[ch->in_room].contents; trap; trap = trap->next_content) {
     if (GET_OBJ_TYPE(trap) == ITEM_TRAP && !is_trap_detected(trap)) {
       dc = GET_OBJ_VAL(trap, 3);
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_TRAPFINDING))
+        dc -= 4;
       if (skill_check(ch, ABILITY_PERCEPTION, dc)) {
         act("$n has detected a \tRtrap\tn!", FALSE, ch, 0, 0, TO_ROOM);
         act("You have detected a \tRtrap\tn!", FALSE, ch, 0, 0, TO_CHAR);

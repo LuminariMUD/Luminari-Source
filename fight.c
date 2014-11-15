@@ -317,15 +317,39 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
   return TRUE; /* ok, made it through, we DO have our dex bonus still */
 }
 
+/* our definition of flanking right now simply means the victim (ch's) target
+   is not the attacker */
 bool is_flanked(struct char_data *attacker, struct char_data *ch) {
 
-  if ((FIGHTING(ch) && (FIGHTING(ch) != attacker)) &&
-      (!HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE) ||
-       (HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE) &&
-        ((CLASS_LEVEL(attacker, CLASS_ROGUE) - CLASS_LEVEL(ch, CLASS_BERSERKER)) > 3))))
-    return TRUE;
-  else
+  /* some instant disqualifiers */
+  if (!attacker)
     return FALSE;
+  if (!ch)
+    return FALSE;
+
+  /* most common scenario */
+  if (FIGHTING(ch) && (FIGHTING(ch) != attacker) &&
+      !HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE))
+    return TRUE;
+
+  /* ok so ch is fighting AND it is not the attacker tanking, by default
+   * this is flanked, but we have to check for uncanny dodge */
+  if (FIGHTING(ch) && (FIGHTING(ch) != attacker) &&
+       HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE)) {
+
+    int attacker_level = CLASS_LEVEL(attacker, CLASS_BERSERKER) +
+                         CLASS_LEVEL(attacker, CLASS_ROGUE);
+    int ch_level = CLASS_LEVEL(ch, CLASS_BERSERKER) +
+                   CLASS_LEVEL(ch, CLASS_ROGUE);
+
+    /* 4 or more levels of berserker or rogue will trump imp. uncanny dodge*/
+    if (attacker_level >= (ch_level + 4))
+      return TRUE;
+
+    return FALSE; /* uncanny dodge WILL help */
+  }
+
+  return FALSE; /* default */
 }
 
 int roll_initiative(struct char_data *ch) {
@@ -1701,7 +1725,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     damage_reduction = compute_damage_reduction(victim, dam_type);
-    
+
     dam -= MIN(dam, damage_reduction);
     if (!dam && (ch != victim)) {
       send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");
@@ -2523,18 +2547,18 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
   /* TODO Change this to handle unarmed attacks! */
   if (weapon == NULL)
     return FALSE;
-  
+
   for (i = 0; i < MAX_DR_BYPASS; i++) {
     if (dr->bypass_cat[i] != DR_BYPASS_CAT_UNUSED) {
       switch (dr->bypass_cat[i]) {
         case DR_BYPASS_CAT_NONE:
           break;
         case DR_BYPASS_CAT_MAGIC:
-          if (IS_SET_AR(GET_OBJ_EXTRA(weapon), ITEM_MAGIC)) 
+          if (IS_SET_AR(GET_OBJ_EXTRA(weapon), ITEM_MAGIC))
             passed = TRUE;
           break;
         case DR_BYPASS_CAT_MATERIAL:
-          if (GET_OBJ_MATERIAL(weapon) == dr->bypass_val[i]) 
+          if (GET_OBJ_MATERIAL(weapon) == dr->bypass_val[i])
             passed = TRUE;
           break;
         case DR_BYPASS_CAT_DAMTYPE:
@@ -2566,9 +2590,9 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
   dr = NULL;
   for (cur = GET_DR(victim); cur != NULL; cur = cur->next) {
     if (dr == NULL || (dr->amount < cur->amount && (weapon_bypasses_dr(wielded, cur) == FALSE)))
-      dr = cur;    
+      dr = cur;
   }
-  
+
   /* Now dr is set to the 'best' DR for the incoming damage. */
   if (weapon_bypasses_dr(wielded, dr) == TRUE) {
     reduction = 0;
@@ -2585,8 +2609,8 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
         affect_from_char(victim, dr->spell);
         if (spell_info[dr->spell].wear_off_msg)
           send_to_char(victim, "%s\r\n", spell_info[dr->spell].wear_off_msg);
-      }      
-    }    
+      }
+    }
   }
   return MAX(-1, dam - reduction);
 }
