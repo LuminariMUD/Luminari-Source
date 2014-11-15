@@ -1141,10 +1141,19 @@ void save_char(struct char_data * ch, int mode) {
     for (i = 0; i < MAX_AFFECT; i++) {
       aff = &tmp_aff[i];
       if (aff->spell)
-        fprintf(fl, "%d %d %d %d %d %d %d %d\n", aff->spell, aff->duration,
-              aff->modifier, aff->location, aff->bitvector[0], aff->bitvector[1], aff->bitvector[2], aff->bitvector[3]);
+        fprintf(fl, 
+                "%d %d %d %d %d %d %d %d %d\n", 
+                aff->spell, 
+                aff->duration,
+                aff->modifier, 
+                aff->location, 
+                aff->bitvector[0], 
+                aff->bitvector[1], 
+                aff->bitvector[2], 
+                aff->bitvector[3],
+                aff->bonus_type);
     }
-    fprintf(fl, "0 0 0 0 0 0 0 0\n");
+    fprintf(fl, "0 0 0 0 0 0 0 0 0\n");
   }
   
   /* Save Damage Reduction */
@@ -1366,7 +1375,7 @@ static void load_dr(FILE* f1, struct char_data *ch) {
 /* load_affects function now handles both 32-bit and
    128-bit affect bitvectors for backward compatibility */
 static void load_affects(FILE *fl, struct char_data *ch) {
-  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0, i, n_vars;
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0, num9 = 0, i, n_vars;
   char line[MAX_INPUT_LENGTH + 1];
   struct affected_type af;
 
@@ -1374,12 +1383,19 @@ static void load_affects(FILE *fl, struct char_data *ch) {
   do {
     new_affect(&af);
     get_line(fl, line);
-    n_vars = sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7, &num8);
+    n_vars = sscanf(line, "%d %d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7, &num8, &num9);
     if (num > 0) {
       af.spell = num;
       af.duration = num2;
       af.modifier = num3;
       af.location = num4;
+      if (n_vars == 9) { /* Version with bonus type! */
+        af.bitvector[0] = num5;
+        af.bitvector[1] = num6;
+        af.bitvector[2] = num7;
+        af.bitvector[3] = num8;
+        af.bonus_type   = num9;
+      }
       if (n_vars == 8) { /* New 128-bit version */
         af.bitvector[0] = num5;
         af.bitvector[1] = num6;
