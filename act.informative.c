@@ -1282,6 +1282,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   text_line(ch, " \tWSpell-like Affects\tC ", 80, '-', '-');
   send_to_char(ch, "\tn");
+  buf[0] = '\0';
   /* Bonus Type has been implemented for affects.  This has the following 
    * ramifications - 
    * - Bonuses of the same type (other than Untyped, Dodge, Circumstance and Racial bonus
@@ -1309,7 +1310,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   /* Routine to show what spells a char is affected by */
   if (k->affected) {
     for (aff = k->affected; aff; aff = aff->next) {
-      if (aff->duration + 1 >= 900) // how many rounds in an hour?
+      if (aff->duration + 1 >= 900)  // how many rounds in an hour?        
         send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
       else if (aff->duration + 1 >= 15) // how many rounds in a minute?
         send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
@@ -1318,7 +1319,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
       send_to_char(ch, "%s%-19s%s ",
                    CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       if (aff->location == APPLY_DR) { /* Handle DR a bit differently */
-        send_to_char(ch, "(see DR) ");
+        send_to_char(ch, "%25s", "(see DR)");
       } else if (aff->modifier)
         send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
 
