@@ -1133,91 +1133,11 @@ static void look_at_target(struct char_data *ch, char *arg) {
     send_to_char(ch, "You do not see that here.\r\n");
 }
 void perform_cooldowns(struct char_data *ch, struct char_data *k) {
-  
-}
-
-void perform_resistances(struct char_data *ch, struct char_data *k) {
-  
-}
-
-void perform_affects(struct char_data *ch, struct char_data *k) {
-  int i = 0;
-  char buf[MAX_STRING_LENGTH] = {'\0'};
-  //char buf2[MAX_STRING_LENGTH] = {'\0'};
-  struct affected_type *aff = NULL;
   struct mud_event_data *pMudEvent = NULL;
 
-  //send_to_char(ch,
-  //             "\tC-------------- \tWAffected By\tC ------------------------------\tn\r\n");
   send_to_char(ch, "\tC");
-  text_line(ch, " \tWAffected By\tC ", 80, '-', '-');
+  text_line(ch, " \tWCooldowns\tC ", 80, '-', '-');
 
-  /* Showing the bitvector */
-  sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
-  send_to_char(ch, "%s%s%s\r\n", CCYEL(ch, C_NRM),
-               buf, CCNRM(ch, C_NRM));
-
-  send_to_char(ch,
-               "\tC-------------- \tWSpell-Like Affects\tC -----------------------\tn\r\n");
-  /* Bonus Type has been implemented for affects.  This has the following 
-   * ramifications - 
-   * - Bonuses of the same type (other than Untyped, Dodge, Circumstance and Racial bonus
-   *   types) OVERLAP.  They do not stack.  Effectively, the highest bonus is in 
-   *   effect at any one time.  If a bonus is NEGATIVE, that is, it is a penalty,
-   *   then that penalty DOES stack. 
-   * - Display of affects becomes a bit problematic, since the bonus type means so much.
-   *   It is important to display the bonus type, but we don't have a lot of room on the 
-   *   screen. 
-   *
-   * Solution: (?)
-   *   -----Spell-Like Affects---
-   *   [Deflection]
-   *   Affect name      +X to AC
-   *   Affect name      +Y to AC            Where X > Y.  This line is a muted color vs above.
-   *   [Enhancement Bonus]
-   *   Bull's Strength  +4 to Strength
-   *   Cat's Grace      +4 to Dexterity     These 2 lines are the same color since both apply.
-   * 
-   * In order to implement this, we have to change how we process the effects, potentially
-   * adding the affect descriptions to strings, one for each affect type, then concatenating 
-   * them together for the final display.
-   * 
-   */
-  /* Routine to show what spells a char is affected by */
-  if (k->affected) {
-    for (aff = k->affected; aff; aff = aff->next) {
-      if (aff->duration + 1 >= 900) // how many rounds in an hour?
-        send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
-      else if (aff->duration + 1 >= 15) // how many rounds in a minute?
-        send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
-      else // rounds
-        send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
-      send_to_char(ch, "%s%-19s%s ",
-                   CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
-      if (aff->location == APPLY_DR) { /* Handle DR a bit differently */
-        send_to_char(ch, "(see DR) ");
-      } else if (aff->modifier)
-        send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
-
-      if (aff->bitvector[0] || aff->bitvector[1] ||
-          aff->bitvector[2] || aff->bitvector[3]) {
-        if (aff->modifier)
-          send_to_char(ch, ", ");
-        int flagset = FALSE;
-        for (i = 0; i < NUM_AFF_FLAGS; i++) {
-          if (IS_SET_AR(aff->bitvector, i)) {
-            send_to_char(ch, "%ssets %s", (flagset == TRUE ? ", " : ""), affected_bits[i]);
-            flagset = TRUE;
-          }
-        }
-      }
-      /* Add the Bonus type. */
-      send_to_char(ch, "\tc[%s]\r\n", bonus_types[aff->bonus_type]);
-      //send_to_char(ch, "\r\n");
-    }
-  }
-  send_to_char(ch,
-               "\tC-------------- \tWCool Downs\tC -------------------------------\tn\r\n");
   if ((pMudEvent = char_has_mud_event(k, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRAGE)))
@@ -1271,10 +1191,31 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   if ((pMudEvent = char_has_mud_event(k, eWILD_SHAPE)))
     send_to_char(ch, "Wild Shape - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHIELD_RECOVERY)))
-    send_to_char(ch, "Shield Recovery - Duration %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Shield Recovery - Duration %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));  
+  
+  send_to_char(ch, "\tC");  
+  print_line(ch, 80, '-', '-');
+}
 
-  send_to_char(ch,
-               "\tC-------------- \tWDamage Reduction\tC -------------------------\tn\r\n");
+void perform_resistances(struct char_data *ch, struct char_data *k) {
+  int i = 0;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+ 
+
+  send_to_char(ch, "\tC");
+  text_line(ch, " \tWDamage Type Resistance / Vulnerability\tC ", 80, '-', '-');
+
+  nerability\tC ---------\tn\r\n");
+  for (i = 0; i < NUM_DAM_TYPES - 1; i++) {
+    send_to_char(ch, "%-15s: %-4d%% (%-2d)   ", damtype_display[i + 1],
+                 compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
+    if (i % 2)
+      send_to_char(ch, "\r\n");
+  }
+  
+  send_to_char(ch, "\tC");
+  text_line(ch, " \tWDamage Reduction\tC ", 80, '-', '-');
+
   struct damage_reduction_type *dr;
   dr = GET_DR(ch);
   while (dr != NULL) {
@@ -1316,8 +1257,89 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "\r\n");
     dr = dr->next;
   }
-  send_to_char(ch,
-               "\tC-------------- \tWOther\tC ------------------------------------\tn\r\n");
+  send_to_char(ch, "\tC");  
+  print_line(ch, 80, '-', '-');
+}
+
+void perform_affects(struct char_data *ch, struct char_data *k) {
+  int i = 0;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  //char buf2[MAX_STRING_LENGTH] = {'\0'};
+  struct affected_type *aff = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+
+  send_to_char(ch, "\tC");
+  text_line(ch, " \tWAffected By\tC ", 80, '-', '-');
+
+  /* Showing the bitvector */
+  sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
+  send_to_char(ch, "%s%s%s\r\n", CCYEL(ch, C_NRM),
+               buf, CCNRM(ch, C_NRM));
+
+  send_to_char(ch, "\tC");
+  text_line(ch, " \tWSpell-like Affects\tC ", 80, '-', '-');
+  /* Bonus Type has been implemented for affects.  This has the following 
+   * ramifications - 
+   * - Bonuses of the same type (other than Untyped, Dodge, Circumstance and Racial bonus
+   *   types) OVERLAP.  They do not stack.  Effectively, the highest bonus is in 
+   *   effect at any one time.  If a bonus is NEGATIVE, that is, it is a penalty,
+   *   then that penalty DOES stack. 
+   * - Display of affects becomes a bit problematic, since the bonus type means so much.
+   *   It is important to display the bonus type, but we don't have a lot of room on the 
+   *   screen. 
+   *
+   * Solution: (?)
+   *   -----Spell-Like Affects---
+   *   [Deflection]
+   *   Affect name      +X to AC
+   *   Affect name      +Y to AC            Where X > Y.  This line is a muted color vs above.
+   *   [Enhancement Bonus]
+   *   Bull's Strength  +4 to Strength
+   *   Cat's Grace      +4 to Dexterity     These 2 lines are the same color since both apply.
+   * 
+   * In order to implement this, we have to change how we process the effects, potentially
+   * adding the affect descriptions to strings, one for each affect type, then concatenating 
+   * them together for the final display.
+   * 
+   */
+  /* Routine to show what spells a char is affected by */
+  if (k->affected) {
+    for (aff = k->affected; aff; aff = aff->next) {
+      if (aff->duration + 1 >= 900) // how many rounds in an hour?
+        send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
+      else if (aff->duration + 1 >= 15) // how many rounds in a minute?
+        send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
+      else // rounds
+        send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
+      send_to_char(ch, "%s%-19s%s ",
+                   CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
+      if (aff->location == APPLY_DR) { /* Handle DR a bit differently */
+        send_to_char(ch, "(see DR) ");
+      } else if (aff->modifier)
+        send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
+
+      if (aff->bitvector[0] || aff->bitvector[1] ||
+          aff->bitvector[2] || aff->bitvector[3]) {
+        if (aff->modifier)
+          send_to_char(ch, ", ");
+        int flagset = FALSE;
+        for (i = 0; i < NUM_AFF_FLAGS; i++) {
+          if (IS_SET_AR(aff->bitvector, i)) {
+            send_to_char(ch, "%ssets %s", (flagset == TRUE ? ", " : ""), affected_bits[i]);
+            flagset = TRUE;
+          }
+        }
+      }
+      /* Add the Bonus type. */
+      send_to_char(ch, " \tc[%s]\r\n", bonus_types[aff->bonus_type]);
+      //send_to_char(ch, "\r\n");
+    }
+  }
+  
+
+  send_to_char(ch, "\tC");
+  text_line(ch, " \tWOther Affects\tC ", 80, '-', '-');
+
   if (CLASS_LEVEL(ch, CLASS_CLERIC) >= 14) {
     if (PLR_FLAGGED(ch, PLR_SALVATION)) {
       if (GET_SALVATION_NAME(ch) != NULL) {
@@ -1339,18 +1361,8 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   if ((pMudEvent = char_has_mud_event(k, eIMPLODE)))
     send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
 
-  //location of our DAM_x  damtypes
-  send_to_char(ch,
-               "\tC-------- \tWDamage Type Resistance / Vulnerability\tC ---------\tn\r\n");
-  for (i = 0; i < NUM_DAM_TYPES - 1; i++) {
-    send_to_char(ch, "%-15s: %-4d%% (%-2d)   ", damtype_display[i + 1],
-                 compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
-    if (i % 2)
-      send_to_char(ch, "\r\n");
-  }
-  send_to_char(ch, "\r\n");
-  send_to_char(ch,
-               "\tC---------------------------------------------------------\tn\r\n");
+  send_to_char(ch, "\tC");  
+  print_line(ch, 80, '-', '-');
 }
 
 void free_history(struct char_data *ch, int type) {
