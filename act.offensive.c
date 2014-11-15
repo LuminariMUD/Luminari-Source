@@ -2775,10 +2775,11 @@ ACMD(do_dirtkick) {
 
   one_argument(argument, arg);
 
-  if (!IS_NPC(ch)) {
+  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_DIRT_KICK)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;

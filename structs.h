@@ -40,8 +40,8 @@
 #if CIRCLE_UNSIGNED_INDEX
 //#define IDXTYPE	  ush_int          /**< Index types are unsigned short ints */
 //#define IDXTYPE_MAX   USHRT_MAX      /**< Used for compatibility checks. */
-#define IDXTYPE       unsigned int   /** Index types are unsigned ints */ 
-#define IDXTYPE_MAX   UINT_MAX       /** Used for compatibility checks. */ 
+#define IDXTYPE       unsigned int   /** Index types are unsigned ints */
+#define IDXTYPE_MAX   UINT_MAX       /** Used for compatibility checks. */
 #define IDXTYPE_MIN   0              /**< Used for compatibility checks. */
 #define NOWHERE	  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
 #define NOTHING	  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
@@ -51,9 +51,9 @@
 //#define IDXTYPE	  sh_int           /**< Index types are unsigned short ints */
 //#define IDXTYPE_MAX   SHRT_MAX       /**< Used for compatibility checks. */
 //#define IDXTYPE_MIN   SHRT_MIN       /**< Used for compatibility checks. */
-#define IDXTYPE       signed int     /** Index types are unsigned short ints */ 
-#define IDXTYPE_MAX   INT_MAX        /** Used for compatibility checks. */ 
-#define IDXTYPE_MIN   INT_MIN        /** Used for compatibility checks. */ 
+#define IDXTYPE       signed int     /** Index types are unsigned short ints */
+#define IDXTYPE_MAX   INT_MAX        /** Used for compatibility checks. */
+#define IDXTYPE_MIN   INT_MIN        /** Used for compatibility checks. */
 #define NOWHERE	  ((IDXTYPE)-1)  /**< nil reference for rooms */
 #define NOTHING	  ((IDXTYPE)-1)  /**< nil reference for objects */
 #define NOBODY		  ((IDXTYPE)-1)  /**< nil reference for mobiles  */
@@ -93,7 +93,7 @@
 /**/
 #define MAX_TRAP_TYPES               6
 /******************************************/
-/* trap effects 
+/* trap effects
    if the effect is < 1000, its just suppose to cast a spell */
 #define TRAP_EFFECT_FIRST_VALUE         1000
 /**/
@@ -151,8 +151,8 @@
 #define ROOM_FOG           27  /* fogged (hamper vision/stops daylight) */
 #define ROOM_AIRY          28  /* airy (breathe underwater) */
 
-#define ROOM_OCCUPIED      29  /* Used only in wilderness zones, if set the 
-                                  room will be kept and used for the set 
+#define ROOM_OCCUPIED      29  /* Used only in wilderness zones, if set the
+                                  room will be kept and used for the set
                                   coordinates. */
 
 #define ROOM_HASTRAP       30  /* has trap (not implemented yet) */
@@ -165,7 +165,7 @@
 /* homeland-port reference */
 /*
 ROOM FLAGS
------------ 
+-----------
 JAIL (18)        ROOM_INDOORS   (3)
 HASTRAP (20)     ROOM_DEATH     (1)
 DOCKABLE (21)    ROOM_NOSUMMON  (24)
@@ -221,7 +221,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define EX_LOCKED_MEDIUM (1 << 7) /**< The door is locked, medium difficulty to pick. */
 #define EX_LOCKED_HARD   (1 << 8) /**< The door is locked, hard difficulty to pick. */
 /** The total number of Exit Bits */
-#define NUM_EXIT_BITS 9 
+#define NUM_EXIT_BITS 9
 
 /* Sector types: used in room_data.sector_type */
 #define SECT_INSIDE          0  /**< Indoors, connected to SECT macro. */
@@ -256,7 +256,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define SECT_CAVE	         29  // cave
 
 /* The following were added with the wilderness system - Ornir */
-#define SECT_JUNGLE         30  // jungle, wet, mid elevations, hot. 
+#define SECT_JUNGLE         30  // jungle, wet, mid elevations, hot.
 #define SECT_TUNDRA         31  // tundra, dry, high elevations, extreme cold.
 #define SECT_TAIGA          32  // boreal forest, higher elevations, cold.
 #define SECT_BEACH          33  // beach, borders low areas and water.
@@ -823,7 +823,7 @@ FALSE VISION (24)     AFF_NON_DETECTION   (38)
 DEATH SHROUD (28)     AFF_ASHIELD         (43)
 MIRROR IMAGE (29)     AFF_DETECT_MAGIC    (5)
 MISLEAD (30)          AFF_NON_DETECTION   (38)
-        
+
 AFF3 FLAGS
 -----------
 DANGER SENSE (2)      (added this flag)   (71)
@@ -835,7 +835,7 @@ MAGE FLAME (12)	  AFF_MAGE_FLAME      (79)
 THORN SHIELD (13)     AFF_DETECT_MAGIC    (5)
 PROTECTION FROM ANIMALS (14)            AFF_DETECT_MAGIC    (5)
 LIGHTNING WEB (15)    AFF_ASHIELD         (43)
-NOTRACK (16)          AFF_NON_DETECTION   (38) 
+NOTRACK (16)          AFF_NON_DETECTION   (38)
 PROTECTION FROM POSITIVE ENERGY (17)    AFF_ELEMENT_PROT    (28)
 PROTECTION FROM NEGATIVE ENERGY (18)    AFF_ELEMENT_PROT    (28)
 MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
@@ -1323,9 +1323,10 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_SHIELD_SLAM         371
 #define FEAT_SPELLBATTLE         372
 #define FEAT_APPLY_POISON        373
+#define FEAT_DIRT_KICK        374
 
-#define FEAT_LAST_FEAT           374
-#define NUM_FEATS                375
+#define FEAT_LAST_FEAT           375
+#define NUM_FEATS                376
 
 #define MAX_FEATS                750
 
@@ -1412,7 +1413,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define NUM_ITEM_TYPES   46
 
 /* homeland-port */
-/*  note:  swapped free1 (7) with fireweapon 
+/*  note:  swapped free1 (7) with fireweapon
            swapped free2 (14) with missile */
 /*
 #define ITEM_SHIP        28  // travel on oceans -> ITEM_BOAT  (22)
@@ -1420,7 +1421,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 */
 
 
-/* Item profs: used by obj_data.obj_flags.prof_flag 
+/* Item profs: used by obj_data.obj_flags.prof_flag
  * constants.c = item_profs */
 /* categories */
 #define WEAPON_PROFICIENCY    0
@@ -1447,11 +1448,11 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define NUM_ITEM_PROFS        11
 
 
-/* Item materials: used by obj_data.obj_flags.material 
- * constants.c = material_name 
+/* Item materials: used by obj_data.obj_flags.material
+ * constants.c = material_name
  */
-#define MATERIAL_UNDEFINED       0 
-#define MATERIAL_COTTON          1 
+#define MATERIAL_UNDEFINED       0
+#define MATERIAL_COTTON          1
 #define MATERIAL_LEATHER         2
 #define MATERIAL_GLASS           3
 #define MATERIAL_GOLD            4
@@ -1490,22 +1491,22 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define MATERIAL_ENERGY          37
 #define MATERIAL_HEMP            38
 #define MATERIAL_DIAMOND         39
-#define MATERIAL_EARTH           40  
+#define MATERIAL_EARTH           40
 #define MATERIAL_SILVER          41
 #define MATERIAL_ALCHEMAL_SILVER 42
 #define MATERIAL_COLD_IRON       43
-#define MATERIAL_DARKWOOD        44  
+#define MATERIAL_DARKWOOD        44
 /** Total number of item mats.*/
 #define NUM_MATERIALS            45
 
 
 /* Portal types for the portal object */
-#define PORTAL_NORMAL     0 
-#define PORTAL_RANDOM     1 
-#define PORTAL_CHECKFLAGS 2 
-#define PORTAL_CLANHALL   3 
+#define PORTAL_NORMAL     0
+#define PORTAL_RANDOM     1
+#define PORTAL_CHECKFLAGS 2
+#define PORTAL_CLANHALL   3
 /****/
-#define NUM_PORTAL_TYPES  4 
+#define NUM_PORTAL_TYPES  4
 
 
 /* Take/Wear flags: used by obj_data.obj_flags.wear_flags */
@@ -1639,7 +1640,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define APPLY_SIZE             26	// char size
 #define APPLY_AC_NEW           27  // apply to armor class (post conversion)
 /* dam_types (resistances/vulnerabilties) */
-#define APPLY_RES_FIRE         28  //1        
+#define APPLY_RES_FIRE         28  //1
 #define APPLY_RES_COLD         29
 #define APPLY_RES_AIR          30
 #define APPLY_RES_EARTH        31
@@ -1762,7 +1763,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAPON_FAMILY_BOW              14
 #define WEAPON_FAMILY_WHIP             15
 
-#define NUM_WEAPON_FAMILIES            16 
+#define NUM_WEAPON_FAMILIES            16
 
 /* Armor types */
 
@@ -2117,7 +2118,7 @@ struct extra_descr_data {
 /**< Number of elements in the object value array. Raising this will provide
  * more configurability per object type, and shouldn't break anything.
  * DO NOT LOWER from the default value of 4. */
-#define NUM_OBJ_VAL_POSITIONS 16 
+#define NUM_OBJ_VAL_POSITIONS 16
 /* Same thing, but for Special Abilities for weapons, armor and shields. */
 #define NUM_SPECAB_VAL_POSITIONS 4
 
@@ -2141,7 +2142,7 @@ struct obj_flag_data {
 
   byte material;  // what material is the item made of?
   int size;  // how big is the object?
-  
+
   int spec_timer[SPEC_TIMER_MAX];   /* For timed procs - from homeland*/
 };
 
@@ -2165,9 +2166,9 @@ struct obj_special_ability {
   int ability;             /* Which ability does this object have? */
   int level;               /* The 'Caster Level' of the affect. */
   int activation_method;   /* Command word, wearing/wielding, Hitting, On Critical, etc. */
-  char* command_word;      /* Only if the activation_method is ACTTYPE_COMMAND_WORD, NULL otherwise. */ 
+  char* command_word;      /* Only if the activation_method is ACTTYPE_COMMAND_WORD, NULL otherwise. */
   int value[NUM_SPECAB_VAL_POSITIONS];	/* Values for the special ability, see specab.c/specab.h for a list. */
-  
+
   struct obj_special_ability *next; /* This is a list of abilities. */
 };
 
@@ -2222,11 +2223,11 @@ struct obj_data {
   struct weapon_spells wpn_spells[MAX_WEAPON_SPELLS];
 
   struct obj_spellbook_spell *sbinfo; /* For spellbook info */
-  
-  struct list_data *events;      /**< Used for object events */  
-  
+
+  struct list_data *events;      /**< Used for object events */
+
   struct obj_special_ability *special_abilities; /**< List used to store special abilities */
-  
+
   long missile_id;  //non saving variable to id missiles
 };
 
@@ -2377,7 +2378,7 @@ struct char_player_data {
   ubyte weight; /**< PC / NPC weight */
   ubyte height; /**< PC / NPC height */
   byte race; // Race
-  byte pc_subrace; // SubRace  
+  byte pc_subrace; // SubRace
   char *walkin; // NPC (for now) walkin message
   char *walkout; // NPC (for now) walkout message
 };
@@ -2488,12 +2489,12 @@ struct char_special_data {
   struct obj_data *crafting_object;  // refers to obj crafting (deprecated)
   ubyte crafting_repeat; // multiple objects created in one session
   int crafting_bonus; // bonus for crafting the item
-  
+
   /* miscellaneous */
   int prayin[NUM_CASTERS]; //memorization
   byte position; /**< Standing, fighting, sleeping, etc. */
   int timer; /**< Timer for update */
-  
+
   struct queue_type *action_queue; /**< Action command queue */
   struct queue_type *attack_queue; /**< Attack action queue */
 
@@ -2511,7 +2512,7 @@ struct player_special_data_saved {
   byte epic_feat_points;                    /* How many epic feats you can take */
   byte class_feat_points[NUM_CLASSES];      /* How many class feats you can take  */
   byte epic_class_feat_points[NUM_CLASSES]; /* How many epic class feats    */
-  
+
   int skill_focus[NUM_SKFEATS][MAX_ABILITIES + 1]; /* Data for FEAT_SKILL_FOCUS */
 
   ubyte morphed; //polymorphed and form
@@ -2527,7 +2528,7 @@ struct player_special_data_saved {
   int praytimes[MAX_MEM][NUM_CASTERS]; //memorization
 
   byte church;  // homeland-port
-  
+
   int wimp_level; /**< Below this # of hit points, flee! */
   byte freeze_level; /**< Level of god who froze char, if any */
   sh_int invis_level; /**< level of invisibility */
@@ -2629,7 +2630,7 @@ struct affected_type {
   int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
 
   int bonus_type; /**< What type of bonus (if this is a bonus) is this. */
-  
+
   struct affected_type *next; /**< The next affect in the list of affects. */
 };
 
@@ -2657,13 +2658,13 @@ struct damage_reduction_type {
   int max_damage; /* The amount of damage this DR can take before it dissipates.  -1 is perm. */
   int spell;      /* Spell granting this DR. */
   int feat;       /* Feat granting this DR. */
-  
+
   /* The following values can be a bit confusing - So a clarification
-   * is in order.  
-   * 
+   * is in order.
+   *
    * 'bypass_cat' is an array of integer values (one of the above defines)
    * 'bypass_val' is an array of integer values that expands upon the category.
-   * 
+   *
    * 'bypass_val' only has values for the following categories:
    *
    * DR_BYPASS_CAT_MATERIAL - The value is the corresponding material.
@@ -2676,11 +2677,11 @@ struct damage_reduction_type {
    */
   int bypass_cat[MAX_DR_BYPASS]; /* Category of bypass */
   int bypass_val[MAX_DR_BYPASS]; /* Value (required for certain categories) */
-   
+
   struct damage_reduction_type *next;
 };
 
-/* Structure for levelup data - Used as a temporary storage area during 'study' command 
+/* Structure for levelup data - Used as a temporary storage area during 'study' command
  * Ascess via the LEVELUP(ch) macro. */
 
 struct level_data {
@@ -2697,7 +2698,7 @@ struct level_data {
   int class_feat_points;
   int epic_feat_points;
   int epic_class_feat_points;
-  
+
   /* Ability, skill, boost information */
   int practices;
   int trains;
@@ -2763,7 +2764,7 @@ struct char_data {
   long pref; /**< unique session id */
 
   struct list_data * events;
-  
+
 };
 
 /** descriptor-related structures */

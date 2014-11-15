@@ -34,7 +34,7 @@ const char *weapon_type[NUM_WEAPON_TYPES];
 
 /* START */
 
-/* Helper function for t sort_feats function - not very robust and should not be reused. 
+/* Helper function for t sort_feats function - not very robust and should not be reused.
  * SCARY pointer stuff! */
 int compare_feats(const void *x, const void *y) {
   int a = *(const int *) x,
@@ -93,7 +93,7 @@ bool has_combat_feat(struct char_data *ch, int cfeat, int compare) {
 /* create/allocate memory for a pre-req struct, then assign the prereqs */
 struct feat_prerequisite* create_prerequisite(int prereq_type, int val1, int val2, int val3) {
   struct feat_prerequisite *prereq = NULL;
-  
+
   CREATE(prereq, struct feat_prerequisite, 1);
   prereq->prerequisite_type = prereq_type;
   prereq->values[0] = val1;
@@ -103,8 +103,8 @@ struct feat_prerequisite* create_prerequisite(int prereq_type, int val1, int val
   return prereq;
 }
 /*  The following procedures are used to define feat prerequisites.
- *  These prerequisites are automatically checked, if they exist. 
- *  Dynamically assigning prerequisites also allows us to create 
+ *  These prerequisites are automatically checked, if they exist.
+ *  Dynamically assigning prerequisites also allows us to create
  *  dynamic 'help' and easier to read presentations of feat lists. */
 void feat_prereq_attribute(int featnum, int attribute, int value) {
   struct feat_prerequisite *prereq = NULL;
@@ -255,7 +255,7 @@ void feat_prereq_weapon_proficiency(int featnum) {
   feat_list[featnum].prerequisite_list = prereq;
 }
 
-  /* ASSIGNING FEATS - Below are the various feat initializations : 
+  /* ASSIGNING FEATS - Below are the various feat initializations :
    *   1) feat number, defined in structs.h
    *   2) displayed name of the feat
    *   3) in the game or not, and thus can be learned and displayed
@@ -303,7 +303,7 @@ void assign_feats(void) {
     feat_list[i].combat_feat = FALSE;
     feat_list[i].prerequisite_list = NULL;
   }
-  
+
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* Combat feats */
   feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead", "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
@@ -323,13 +323,13 @@ void assign_feats(void) {
   feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
   "once per round rider may negate a hit against him with a successful ride vs attack roll check",
   "once per round rider may negate a hit against him with a successful ride vs attack roll check");
-  
+
   feato(FEAT_RIDE_BY_ATTACK, "ride by attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
   "normally use full round action on charge, now use move action",
   "normally use full round action on charge, now use move action");
   feat_prereq_feat(FEAT_RIDE_BY_ATTACK, FEAT_MOUNTED_COMBAT, 1);
   feat_prereq_ability(FEAT_RIDE_BY_ATTACK, ABILITY_RIDE, 1);
-  
+
   feato(FEAT_SPIRITED_CHARGE, "spirited charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
   "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).",
   "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).");
@@ -448,7 +448,7 @@ void assign_feats(void) {
   feato(FEAT_ARMOR_PROFICIENCY_HEAVY, "heavy armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows unpenalized use of heavy armor ", "allows unpenalized use of heavy armor ");
   feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
   feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
-  
+
   feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, "tower shield proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "can use tower shields without penalties", "can use tower shields without penalties");
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -486,7 +486,7 @@ void assign_feats(void) {
   /* Spellcasting feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+2 bonus on caster level checks to defeat spell resistance", "+2 bonus on caster level checks to defeat spell resistance");
-  
+
   feato(FEAT_GREATER_SPELL_PENETRATION, "greater spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+2 to caster level checks to defeat spell resistance", "+2 to caster level checks to defeat spell resistance");
   feat_prereq_feat(FEAT_GREATER_SPELL_PENETRATION, FEAT_SPELL_PENETRATION, 1);
 
@@ -531,13 +531,15 @@ void assign_feats(void) {
   /*talent*/feato(FEAT_APPLY_POISON, "apply poison", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "can apply poison to weapons",
     "can apply poison to weapons (applypoison)");
-            /*put dirt kick here*/
+  /*talent*/feato(FEAT_DIRT_KICK, "dirt kick", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "can kick dirt into opponents face",
+    "can kick dirt into opponents face, causing blindness (dirtkick)");
   feato(FEAT_SNEAK_ATTACK, "sneak attack", TRUE, FALSE, TRUE, FEAT_TYPE_COMBAT,
     "+1d6 to damage when flanking",
     "+1d6/rank to damage when flanking, opponent is flat-footed, or opponent is without dexterity bonus");
   feat_prereq_class_level(FEAT_SNEAK_ATTACK, CLASS_ROGUE, 2);
 
-  
+
   /* Rogue/Barbarian */
   feato(FEAT_TRAP_SENSE, "trap sense", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
      "auto-sense traps",
@@ -648,7 +650,7 @@ void assign_feats(void) {
   /* Berserker */
   feato(FEAT_RAGE, "rage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "+4 bonus to con and str for several rounds", "+4 bonus to con and str for several rounds");
   feato(FEAT_SHRUG_DAMAGE, "shrug damage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "Shrug off dmaage, grants damage reduction", "Your extensive training and violent lifestyle allow you to shrug off a portion of incoming dmaage.  This ability grants you DR 1/- for every 3 berserker levels, starting at level 7.");
-  
+
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "summon a magical pet", "summon a magical pet");
 
@@ -666,7 +668,7 @@ void assign_feats(void) {
   feato(FEAT_BONE_ARMOR, "bone armor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.", "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.");
   feato(FEAT_COSMIC_UNDERSTANDING, "cosmic understanding", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_CRIPPLING_CRITICAL, "crippling critical", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows your criticals to have random additional effects", "allows your criticals to have random additional effects");
-  feato(FEAT_CROWN_OF_KNIGHTHOOD, "crown of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");  
+  feato(FEAT_CROWN_OF_KNIGHTHOOD, "crown of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_DARK_BLESSING, "dark blessing", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_DEATH_ATTACK, "death attack", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.", "Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.");
   feato(FEAT_DEFENSIVE_STANCE, "defensive stance", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Allows you to fight defensively with bonuses to ac and stats.", "Allows you to fight defensively with bonuses to ac and stats.");
@@ -738,7 +740,7 @@ void assign_feats(void) {
   feato(FEAT_DARKVISION, "darkvision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_LOW_LIGHT_VISION, "low light vision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "can see in the dark outside only", "can see in the dark outside only");
   /* End Racial ability feats */
-  
+
   /* Disabled Feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* suppose to be acrobatic charge, but had naming conflict */ feato(FEAT_ACROBATIC_CHARGE, "dextrous charge", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "can charge in situations when others cannot", "can charge in situations when others cannot");
@@ -881,7 +883,7 @@ void assign_feats(void) {
   feato(FEAT_SPELL_FOCUS, "spell focus", FALSE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING, "+1 to all spell dcs for all spells in school/domain", "+1 to all spell dcs for all spells in school/domain");
   feato(FEAT_FAST_HEALER, "fast healer", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 hp healed per round", "+2 hp healed per round");
   feato(FEAT_NATURAL_SPELL, "natural spell", FALSE, TRUE, FALSE, FEAT_TYPE_WILD, "allows casting of spells while wild shaped.", "allows casting of spells while wild shaped.");
-  
+
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");
 
@@ -934,7 +936,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_QUIVERING_PALM, eQUIVERINGPALM);
 }
 
-/* Check to see if ch meets the provided feat prerequisite. 
+/* Check to see if ch meets the provided feat prerequisite.
    iarg is for external comparison */
 bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, int iarg) {
   switch (prereq->prerequisite_type) {
@@ -1095,7 +1097,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
 
   if (feat_list[featnum].in_game == FALSE) /* feat in the game at all? */
     return FALSE;
-  
+
   if (feat_list[featnum].prerequisite_list != NULL) {
     /*  This feat has prerequisites. Traverse the list and check. */
     for (prereq = feat_list[featnum].prerequisite_list; prereq != NULL; prereq = prereq->next) {
@@ -1598,7 +1600,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         if (BAB(ch) < 1)
           return FALSE;
         return TRUE;
-        /* 
+        /*
           case FEAT_WEAPON_FOCUS:
             if (BAB(ch) < 1)
               return FALSE;
@@ -1621,7 +1623,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
             if (is_proficient_with_weapon(ch, iarg) && has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
               return TRUE;
             return FALSE;
-    
+
           case FEAT_EPIC_SKILL_FOCUS:
             if (!iarg)
               return TRUE;
@@ -1935,12 +1937,12 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon) {
  *  The short description of the feats must not be longer than 47 characters.
  *
  *  --------------------------------Known Feats-------------------------------------
- *  Heavy Armor Proficiency             Simple Weapon Proficiency  
- *  Light Armor Proficiency             Martial Weapon Proficiency 
+ *  Heavy Armor Proficiency             Simple Weapon Proficiency
+ *  Light Armor Proficiency             Martial Weapon Proficiency
  *  Medium Armor Proficiency            Shield Proficiency
  *  Shield Proficiency                  Stackable Feat
- *  Stackable Feat                      Weapon Focus (Greatsword) 
- *  -------------------------------------------------------------------------------- 
+ *  Stackable Feat                      Weapon Focus (Greatsword)
+ *  --------------------------------------------------------------------------------
  */
 void list_feats(struct char_data *ch, char *arg, int list_type) {
   int i, sortpos, j;
@@ -2435,20 +2437,20 @@ int find_feat_num(char *name) {
  * Prerequisites : Power Attack, Str:13
  * Required for  : Greater Cleave
  * ---------------------------------------------------
- * Benefit : If you deal a creature enough damage to 
- * make it drop (typically by dropping it to below 0 
- * hit points or killing it), you get an immediate, 
- * extra melee attack against another engaged 
- * creature.  The extra attack is with the 
- * same weapon and at the same bonus as the attack 
- * that dropped the previous creature.  You can use 
+ * Benefit : If you deal a creature enough damage to
+ * make it drop (typically by dropping it to below 0
+ * hit points or killing it), you get an immediate,
+ * extra melee attack against another engaged
+ * creature.  The extra attack is with the
+ * same weapon and at the same bonus as the attack
+ * that dropped the previous creature.  You can use
  * this ability once per round.
  *
  * Normal : (none)
  *
  * Special : A fighter may select Cleave as one of his
  * fighter bonus feats.
- * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= 
+ * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  *
  * (NOTE: The headers of the sections above will be colored
  * differently, making them stand out.) */
@@ -2521,13 +2523,13 @@ bool display_feat_info(struct char_data *ch, char *featname) {
 /*  do_feats
  *  Overarching command for getting information out of the Luminari Feat system.
  *
- *  feats | feats known  - List all known (learnable) feats 
+ *  feats | feats known  - List all known (learnable) feats
  *  feat info <featname> - Show detailed information about a partcular feat.
  *  feat all             - List all feats.
  *  feat available       - List all feats for which you qualify
  *  feat category <category name> - List all feats in a specific category
  *
- *  Sample output : 
+ *  Sample output :
  *
  *  feats known
  *  --------------------------------Known Feats-------------------------------------
@@ -2545,11 +2547,11 @@ bool display_feat_info(struct char_data *ch, char *featname) {
  *  --------------------------------------------------------------------------------
  *
  *  --------------------------------Known Feats-------------------------------------
- *  Heavy Armor Proficiency             Simple Weapon Proficiency  
- *  Light Armor Proficiency             Martial Weapon Proficiency 
+ *  Heavy Armor Proficiency             Simple Weapon Proficiency
+ *  Light Armor Proficiency             Martial Weapon Proficiency
  *  Medium Armor Proficiency            Shield Proficiency
  *  Shield Proficiency                  Stackable Feat
- *  Stackable Feat     
+ *  Stackable Feat
  *  --------------------------------------------------------------------------------
  *
  *  Use the same format for the other listings, other than info.
@@ -2567,7 +2569,7 @@ ACMD(do_feats) {
   if (is_abbrev(arg, "known") || !*arg) {
     list_feats(ch, arg2, LIST_FEATS_KNOWN);
   } else if (is_abbrev(arg, "info")) {
- 
+
     if (!strcmp(featname, "")) {
       send_to_char(ch, "You must provide the name of a feat.\r\n");
     } else if(!display_feat_info(ch, featname)) {
