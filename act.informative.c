@@ -1797,7 +1797,7 @@ ACMD(do_affects) {
   else if (subcmd == SCMD_RESISTANCES)
     perform_resistances(ch, ch);
   else
-    mudlog("SYSERR: Invalid subcmd sent to do_affects: %d", subcmd);
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: Invalid subcmd sent to do_affects: %d", subcmd);
 }
 
 ACMD(do_attacks) {
