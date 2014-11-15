@@ -93,8 +93,12 @@ ACMD(do_gen_ps);
 ACMD(do_look);
 #define SCMD_LOOK 0
 #define SCMD_READ 1
-/* functions without subcommands */
 ACMD(do_affects);
+#define SCMD_AFFECTS     0
+#define SCMD_COOLDOWNS   1
+#define SCMD_RESISTANCES 2
+
+/* functions without subcommands */
 ACMD(do_innates);
 ACMD(do_masterlist);
 ACMD(do_areas);
