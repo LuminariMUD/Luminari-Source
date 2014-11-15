@@ -1132,6 +1132,13 @@ static void look_at_target(struct char_data *ch, char *arg) {
   } else if (!found)
     send_to_char(ch, "You do not see that here.\r\n");
 }
+void perform_cooldowns(struct char_data *ch, struct char_data *k) {
+  
+}
+
+void perform_resistances(struct char_data *ch, struct char_data *k) {
+  
+}
 
 void perform_affects(struct char_data *ch, struct char_data *k) {
   int i = 0;
@@ -1140,10 +1147,9 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   struct affected_type *aff = NULL;
   struct mud_event_data *pMudEvent = NULL;
 
-  send_to_char(ch,
-               "\tC---------------------------------------------------------\tn\r\n");
-  send_to_char(ch,
-               "\tC-------------- \tWAffected By\tC ------------------------------\tn\r\n");
+  //send_to_char(ch,
+  //             "\tC-------------- \tWAffected By\tC ------------------------------\tn\r\n");
+  text_line(ch, "\tWAffected By", 80, "\tC-", "\tC-");
 
   /* Showing the bitvector */
   sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
@@ -1783,9 +1789,14 @@ ACMD(do_innates) {
 /* compartmentalized affects, so wizard command (stat affect)
  *  and this can share */
 ACMD(do_affects) {
-
-  perform_affects(ch, ch);
-
+  if (subcmd == SCMD_AFFECTS)
+    perform_affects(ch, ch);
+  else if (subcmd == SCMD_COOLDOWNS)
+    perform_cooldowns(ch, ch);
+  else if (subcmd == SCMD_RESISTANCES)
+    perform_resistances(ch, ch);
+  else
+    mudlog("SYSERR: Invalid subcmd sent to do_affects: %d", subcmd);
 }
 
 ACMD(do_attacks) {
