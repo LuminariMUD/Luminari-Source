@@ -650,7 +650,7 @@ static void do_auto_exits(struct char_data *ch) {
   send_to_char(ch, "%s]%s\r\n", slen ? "" : "None!", CCNRM(ch, C_NRM));
 }
 
-/* Kel: Function used by farseeing characters (later clair, wizeye) to 
+/* Kel: Function used by farseeing characters (later clair, wizeye) to
   look in a room, takes on the real room number, NOT vnum (from homeland) */
 void look_at_room_number(struct char_data * ch, int ignore_brief, long room_number) {
   char buf[MAX_INPUT_LENGTH];
@@ -1138,7 +1138,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   text_line(ch, " \tWCooldowns\tC ", 80, '-', '-');
   send_to_char(ch, "\tn");
-  
+
   if ((pMudEvent = char_has_mud_event(k, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRAGE)))
@@ -1192,29 +1192,29 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
   if ((pMudEvent = char_has_mud_event(k, eWILD_SHAPE)))
     send_to_char(ch, "Wild Shape - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHIELD_RECOVERY)))
-    send_to_char(ch, "Shield Recovery - Duration %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));  
-  
-  send_to_char(ch, "\tC");  
+    send_to_char(ch, "Shield Recovery - Duration %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+
+  send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\tn");
 }
 
 void perform_resistances(struct char_data *ch, struct char_data *k) {
   int i = 0;
-  char buf[MAX_STRING_LENGTH] = {'\0'};
- 
+  //char buf[MAX_STRING_LENGTH] = {'\0'};
+
 
   send_to_char(ch, "\tC");
   text_line(ch, " \tWDamage Type Resistance / Vulnerability\tC ", 80, '-', '-');
   send_to_char(ch, "\tn");
-  
+
   for (i = 0; i < NUM_DAM_TYPES - 1; i++) {
     send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
                  compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
     if (i % 2)
       send_to_char(ch, "\r\n");
   }
-  
+
   send_to_char(ch, "\tC");
   text_line(ch, " \tWDamage Reduction\tC ", 80, '-', '-');
   send_to_char(ch, "\tn");
@@ -1230,7 +1230,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
       send_to_char(ch, "%s%-19s%s ",
                    CCCYN(ch, C_NRM), feat_list[dr->feat].name, CCNRM(ch, C_NRM));
     }
-    
+
     send_to_char(ch, "DR %d/", dr->amount);
 
     for (i = 0; i < MAX_DR_BYPASS; i++) {
@@ -1259,7 +1259,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "\r\n");
     dr = dr->next;
   }
-  send_to_char(ch, "\tC");  
+  send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\tn");
 }
@@ -1283,15 +1283,15 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   text_line(ch, " \tWSpell-like Affects\tC ", 80, '-', '-');
   send_to_char(ch, "\tn");
   buf[0] = '\0';
-  /* Bonus Type has been implemented for affects.  This has the following 
-   * ramifications - 
+  /* Bonus Type has been implemented for affects.  This has the following
+   * ramifications -
    * - Bonuses of the same type (other than Untyped, Dodge, Circumstance and Racial bonus
-   *   types) OVERLAP.  They do not stack.  Effectively, the highest bonus is in 
+   *   types) OVERLAP.  They do not stack.  Effectively, the highest bonus is in
    *   effect at any one time.  If a bonus is NEGATIVE, that is, it is a penalty,
-   *   then that penalty DOES stack. 
+   *   then that penalty DOES stack.
    * - Display of affects becomes a bit problematic, since the bonus type means so much.
-   *   It is important to display the bonus type, but we don't have a lot of room on the 
-   *   screen. 
+   *   It is important to display the bonus type, but we don't have a lot of room on the
+   *   screen.
    *
    * Solution: (?)
    *   -----Spell-Like Affects---
@@ -1301,16 +1301,16 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
    *   [Enhancement Bonus]
    *   Bull's Strength  +4 to Strength
    *   Cat's Grace      +4 to Dexterity     These 2 lines are the same color since both apply.
-   * 
+   *
    * In order to implement this, we have to change how we process the effects, potentially
-   * adding the affect descriptions to strings, one for each affect type, then concatenating 
+   * adding the affect descriptions to strings, one for each affect type, then concatenating
    * them together for the final display.
-   * 
+   *
    */
   /* Routine to show what spells a char is affected by */
   if (k->affected) {
     for (aff = k->affected; aff; aff = aff->next) {
-      if (aff->duration + 1 >= 900)  // how many rounds in an hour?        
+      if (aff->duration + 1 >= 900)  // how many rounds in an hour?
         send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
       else if (aff->duration + 1 >= 15) // how many rounds in a minute?
         send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
@@ -1340,12 +1340,12 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
       //send_to_char(ch, "\r\n");
     }
   }
-  
+
 
   send_to_char(ch, "\tC");
   text_line(ch, " \tWOther Affects\tC ", 80, '-', '-');
   send_to_char(ch, "\tn");
-  
+
   if (CLASS_LEVEL(ch, CLASS_CLERIC) >= 14) {
     if (PLR_FLAGGED(ch, PLR_SALVATION)) {
       if (GET_SALVATION_NAME(ch) != NULL) {
@@ -1367,7 +1367,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   if ((pMudEvent = char_has_mud_event(k, eIMPLODE)))
     send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
 
-  send_to_char(ch, "\tC");  
+  send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\tn");
 }
@@ -1828,15 +1828,15 @@ ACMD(do_attacks) {
 /*
 -------------------------------Score Information--------------------------------
 Name      : Leonidas             Title   : the distracted do-gooder
-Alignment : Lawful Good          Classes : 1 War / 1 Pal               
-Race      : Humn                 Sex     : Male      
-Age       : 18 yrs / 0 mths      Played  : 1 days / 0 hrs      
+Alignment : Lawful Good          Classes : 1 War / 1 Pal
+Race      : Humn                 Sex     : Male
+Age       : 18 yrs / 0 mths      Played  : 1 days / 0 hrs
 Size      : Medium               Load    : 41/920 lbs
---------------------------------------------------------------------------------    
-Hit points: 38(38)    Moves: 84(84)    Mana: 100(100)    
+--------------------------------------------------------------------------------
+Hit points: 38(38)    Moves: 84(84)    Mana: 100(100)
 ----------------------------------Experience------------------------------------
 Level: 2                          CstrLvl : 0   DivLvl: 0   MgcLvl: 0
-Exp  : 2000                       ExpTNL  : 9000 
+Exp  : 2000                       ExpTNL  : 9000
 -------------Ability Scores--------------------------Saving Throws--------------
 Str: 16[ 3]  Dex: 12[ 1]  Con: 12[ 1]  |  Fort    : 2    Will    : 2
 Int: 12[ 1]  Wis: 12[ 1]  Cha: 12[ 1]  |  Reflex  : 2
@@ -1847,8 +1847,8 @@ BAB          : 2    # of Attacks : 1   Concealment  : 0   Modes : [     ]
 Weapon Proficiency Used :  Martial     | Quests completed : 0
 Armor Proficiency Used  :  None        | Quest points     : 0
 Shield Proficiency Used :  None        | On quest         : None
---------------------------------------------------------------------------------    
-Gold: 999615                      Gold in Bank : 0          
+--------------------------------------------------------------------------------
+Gold: 999615                      Gold in Bank : 0
 --------------------------------------------------------------------------------
  */
 ACMD(do_score) {
@@ -3772,7 +3772,7 @@ ACMD(do_track) {
   send_to_char(ch, "You search the area for tracks...\r\n");
 
   /* Check if there are any tracks to see. */
-  /* Need to iterate over all of this room's events, picking out the tracking ones. 
+  /* Need to iterate over all of this room's events, picking out the tracking ones.
    * What a PAIN, this really should be easier. */
 
   //  for( pMudEvent = room_has_mud_event(world[IN_ROOM(ch)], eTRACKS);
