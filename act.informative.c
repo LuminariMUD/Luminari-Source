@@ -1205,7 +1205,6 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   text_line(ch, " \tWDamage Type Resistance / Vulnerability\tC ", 80, '-', '-');
 
-  nerability\tC ---------\tn\r\n");
   for (i = 0; i < NUM_DAM_TYPES - 1; i++) {
     send_to_char(ch, "%-15s: %-4d%% (%-2d)   ", damtype_display[i + 1],
                  compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
