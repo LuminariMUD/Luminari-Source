@@ -1885,12 +1885,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     dam = 0; // immort protection
 
   if (victim != ch) {
-    /* Trying to comment this out to see if it works - When casting
-     * we should not auto-engage. */
-    /*
-    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) // ch -> vict
-      set_fighting(ch, victim);
-    */
+    /* Only auto engage if both parties are unengaged. */    
+    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL) && (FIGHTING(victim) == NULL)) // ch -> vict
+      set_fighting(ch, victim);    
     
     // vict -> ch
     if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL)) {
