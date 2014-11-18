@@ -1077,7 +1077,7 @@ ASPELL(spell_identify) // divination
           found = TRUE;
         }
         sprinttype(obj->affected[i].location, apply_types, bitbuf, sizeof (bitbuf));
-        send_to_char(ch, "   Affects: %s By %d\r\n", bitbuf, obj->affected[i].modifier);
+        send_to_char(ch, "   Affects: %s By %d (%s)\r\n", bitbuf, obj->affected[i].modifier, bonus_types[obj->affected[i].bonus_type]);
       }
     }
 

@@ -1575,7 +1575,7 @@ ACMD(do_lore) {
           found = TRUE;
         }
         sprinttype(tobj->affected[i].location, apply_types, bitbuf, sizeof (bitbuf));
-        send_to_char(ch, "   Affects: %s By %d\r\n", bitbuf, tobj->affected[i].modifier);
+        send_to_char(ch, "   Affects: %s By %d (%s)\r\n", bitbuf, tobj->affected[i].modifier, bonus_types[tobj->affected[i].bonus_type]);
       }
     }
   } else if (tch) { /* victim */
