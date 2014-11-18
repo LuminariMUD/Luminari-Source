@@ -851,7 +851,7 @@ static void do_stat_object(struct char_data *ch, struct obj_data *j) {
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
     if (j->affected[i].modifier) {
       sprinttype(j->affected[i].location, apply_types, buf, sizeof (buf));
-      send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i]->bonus_type]);
+      send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
     }
   if (!found)
     send_to_char(ch, " None");
