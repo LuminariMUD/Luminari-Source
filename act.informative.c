@@ -1197,6 +1197,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\tn");
+  send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
+  send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
 }
 
 void perform_resistances(struct char_data *ch, struct char_data *k) {
@@ -1262,6 +1264,9 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\tn");
+  send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
+  send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
+  
 }
 
 void perform_affects(struct char_data *ch, struct char_data *k) {
@@ -1401,6 +1406,8 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\tn");
+  send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
+  send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
 }
 
 void free_history(struct char_data *ch, int type) {
