@@ -1267,7 +1267,9 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
 void perform_affects(struct char_data *ch, struct char_data *k) {
   int i = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  //char buf2[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
+  char buf3[MAX_STRING_LENGTH] = {'\0'};
+  
   struct affected_type *aff = NULL;
   struct mud_event_data *pMudEvent = NULL;
 
@@ -1282,7 +1284,9 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   text_line(ch, " \tWSpell-like Affects\tC ", 80, '-', '-');
   send_to_char(ch, "\tn");
-  buf[0] = '\0';
+  
+  buf[0] = '\0'; // Reset the string buffer for later use.
+  
   /* Bonus Type has been implemented for affects.  This has the following
    * ramifications -
    * - Bonuses of the same type (other than Untyped, Dodge, Circumstance and Racial bonus
@@ -1310,33 +1314,51 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   /* Routine to show what spells a char is affected by */
   if (k->affected) {
     for (aff = k->affected; aff; aff = aff->next) {
-      if (aff->duration + 1 >= 900)  // how many rounds in an hour?
-        send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
-      else if (aff->duration + 1 >= 15) // how many rounds in a minute?
-        send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
-      else // rounds
-        send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
-      send_to_char(ch, "%s%-19s%s ",
+      
+      if (aff->duration + 1 >= 900) {  // how many rounds in an hour?
+        sprintf(buf, "[%2d hour%s    ] ", (int) ((aff->duration + 1) / 900), ((int) ((aff->duration + 1) / 900) > 1 ? "s" : " "));
+        //send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
+      } else if (aff->duration + 1 >= 15) {  // how many rounds in a minute?
+        sprintf(buf, "[%2d round%s   ] ", (int) ((aff->duration + 1) / 15), ((int) ((aff->duration + 1) / 15) > 1 ? "s" : " "));
+        //send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
+      } else { // rounds
+        sprintf(buf, "[%2d round%s   ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
+        //send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
+      }
+      sprintf(buf2, "%s%-19s%s ",
                    CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
+      strcat(buf, buf2);
+      
+      buf2[0] = '\0';
+      
+      //send_to_char(ch, "%s%-19s%s ",
+      //             CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       if (aff->location == APPLY_DR) { /* Handle DR a bit differently */
-        send_to_char(ch, "%-25s", "(see DR)");
-      } else if (aff->modifier)
-        send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
-
+        sprintf(buf3, "%s", "(see DR)");
+        //send_to_char(ch, "%-25s", "(see DR)");
+      } else if (aff->modifier) {
+        sprintf(buf3, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
+        //send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
+      }
+      
       if (aff->bitvector[0] || aff->bitvector[1] ||
           aff->bitvector[2] || aff->bitvector[3]) {
-        if (aff->modifier)
-          send_to_char(ch, ", ");
+        //if (aff->modifier)
+        //  send_to_char(ch, ", ");
         int flagset = FALSE;
         for (i = 0; i < NUM_AFF_FLAGS; i++) {
           if (IS_SET_AR(aff->bitvector, i)) {
-            send_to_char(ch, "%ssets %s", (flagset == TRUE ? ", " : ""), affected_bits[i]);
+            sprintf(buf2, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);)
+            //send_to_char(ch, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
             flagset = TRUE;
           }
         }
+        strcat(buf3, buf2);
       }
+      buf2[0] = '\0';
+      sprintf(buf2, "%-25s", buf3);
       /* Add the Bonus type. */
-        send_to_char(ch, " \tc(%s)\tn\r\n", bonus_types[aff->bonus_type]);
+        send_to_char(ch, "%s \tc(%s)\tn\r\n", buf2, bonus_types[aff->bonus_type]);
       //send_to_char(ch, "\r\n");
     }
   }
