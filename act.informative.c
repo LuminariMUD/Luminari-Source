@@ -1357,6 +1357,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
       }
       buf2[0] = '\0';
       sprintf(buf2, "%-25s", buf3);
+      buf3[0] = '\0';
       /* Add the Bonus type. */
         send_to_char(ch, "%s %s \tc(%s)\tn\r\n", buf, buf2, bonus_types[aff->bonus_type]);
       //send_to_char(ch, "\r\n");
