@@ -354,7 +354,9 @@ static void oedit_disp_extradesc_menu(struct descriptor_data *d) {
 static void oedit_disp_apply_prompt_bonus_type_menu(struct descriptor_data *d) {
   int i = 0;  
   for (i = 0; i < NUM_BONUS_TYPES; i++) {
-    write_to_output(d, " %s%2d%s) %-20s")
+    write_to_output(d, 
+                    " %s%2d%s) %-20s",
+                    grn, i, nrm, bonus_types[i]);
     if ((i % 3) == 0)
       write_to_output(d, "\r\n");
   }
