@@ -2403,7 +2403,7 @@ char *parse_object(FILE *obj_f, int nr) {
         if ((retval = sscanf(line, " %d %d %d", t, t + 1, t + 2)) != 3) {
           if (retval == 2) {
             /* Old object verison, no bonus type.*/
-            t + 2 = BONUS_TYPE_UNDEFINED;
+            t[2] = BONUS_TYPE_UNDEFINED;
           } else {
             log("SYSERR: Format error in 'A' field, %s\n"
                     "...expecting 2 or 3 numeric arguments, got %d\n"
