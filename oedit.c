@@ -357,7 +357,7 @@ static void oedit_disp_apply_prompt_bonus_type_menu(struct descriptor_data *d) {
     write_to_output(d, 
                     " %s%2d%s) %-20s",
                     nrm, i, nrm, bonus_types[i]);
-    if ((i != 0) && (i % 3) == 0)
+    if (((i + 1) % 3) == 0)
       write_to_output(d, "\r\n");
   }
   write_to_output(d, "\r\nEnter the bonus type for this affect : ");
