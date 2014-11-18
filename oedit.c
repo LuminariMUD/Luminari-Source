@@ -361,7 +361,7 @@ static void oedit_disp_apply_prompt_bonus_type_menu(struct descriptor_data *d) {
       write_to_output(d, "\r\n");
   }
   write_to_output(d, "\r\nEnter the bonus type for this affect : ");
-  OLC_MODE(d) = OEDIT_PROMPT_APPLY_BONUS_TYPE;
+  OLC_MODE(d) = OEDIT_APPLY_BONUS_TYPE;
 }
 
 /* Ask for *which* apply to edit. */
