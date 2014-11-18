@@ -1262,7 +1262,7 @@ const char *apply_types[NUM_APPLIES + 1] = {
   "Trait",
   "\n"
 */
-const char *valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES] = {
+const int valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES] = {
   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, //<None>
   {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Strength
   {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Dexterity
