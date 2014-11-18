@@ -1277,10 +1277,16 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   text_line(ch, " \tWAffected By\tC ", 80, '-', '-');
   send_to_char(ch, "\tn");
   /* Showing the bitvector */
-  sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
-  send_to_char(ch, "%s%s%s\r\n", CCYEL(ch, C_NRM),
-               buf, CCNRM(ch, C_NRM));
-
+  //sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
+  //send_to_char(ch, "%s%s%s\r\n", CCNRM(ch, C_NRM),
+  //             buf, CCNRM(ch, C_NRM));
+  for(i = 0; i < NUM_AFF_FLAGS; i++) {
+    if (IS_SET_AR(AFF_FLAGS(k), i)) {
+      send_to_char(ch, "%s%s%s - %s%s%s\r\n",
+                   CCNRM(ch, C_NRM), affected_bits[i], CCNRM(ch, C_NRM),
+                   CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
+    }
+  }
   send_to_char(ch, "\tC");
   text_line(ch, " \tWSpell-like Affects\tC ", 80, '-', '-');
   send_to_char(ch, "\tn");

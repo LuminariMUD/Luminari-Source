@@ -43,6 +43,7 @@ extern const char *player_bits[];
 extern const char *action_bits[];
 extern const char *preference_bits[];
 extern const char *affected_bits[];
+extern const char *affected_bit_descs[];
 extern const char *connected_types[];
 extern const char *wear_where[];
 extern const char *equipment_types[];
