@@ -12,6 +12,7 @@
 #ifndef _CONSTANTS_H_
 #define _CONSTANTS_H_
 
+extern const char *valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES];
 extern const char *bonus_types[];
 extern const char *dr_damtypes[];
 extern const char *damtypes[]; 
