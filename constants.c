@@ -1312,7 +1312,7 @@ const char *valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES] = {
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Energy
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Water
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Damage-Reduction
-}
+};
 
 
         
