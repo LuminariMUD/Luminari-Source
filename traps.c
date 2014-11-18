@@ -382,9 +382,7 @@ EVENTFUNC(event_trap_triggered) {
 
           case TRAP_EFFECT_SPIDER_WEBS:
             af.spell = SPELL_WEB;
-            SET_BIT_AR(af.bitvector, AFF_GRAPPLED);
-            af.location = APPLY_NONE;
-            af.modifier = -1;    
+            SET_BIT_AR(af.bitvector, AFF_GRAPPLED);  
             af.duration = 20;
             to_char = "\tLYou are suddenly entangled in sticky strands of \twspider silk\tL, held fast as spiders descend from above.\tn";
             to_room = "\tn$n \tLis suddenly encased in a cocoon of silk, held fast as spiders descend on $m from all sides.\tn";
