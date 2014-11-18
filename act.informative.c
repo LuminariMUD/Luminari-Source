@@ -1319,7 +1319,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
         sprintf(buf, "[%2d hour%s    ] ", (int) ((aff->duration + 1) / 900), ((int) ((aff->duration + 1) / 900) > 1 ? "s" : " "));
         //send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
       } else if (aff->duration + 1 >= 15) {  // how many rounds in a minute?
-        sprintf(buf, "[%2d round%s   ] ", (int) ((aff->duration + 1) / 15), ((int) ((aff->duration + 1) / 15) > 1 ? "s" : " "));
+        sprintf(buf, "[%2d minute%s ] ", (int) ((aff->duration + 1) / 15), ((int) ((aff->duration + 1) / 15) > 1 ? "s" : " "));
         //send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
       } else { // rounds
         sprintf(buf, "[%2d round%s   ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
