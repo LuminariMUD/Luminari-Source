@@ -267,9 +267,12 @@ int save_objects(zone_rnum zone_num) {
       /* A:  Do we have affects? */
       for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
         if (obj->affected[counter2].modifier)
-          fprintf(fp, "A\n"
-                "%d %d\n", obj->affected[counter2].location,
-                obj->affected[counter2].modifier);
+          fprintf(fp,
+                  "A\n"
+                  "%d %d %d\n",
+                  obj->affected[counter2].location,
+                  obj->affected[counter2].modifier,
+                  obj->affected[counter2].bonus_type);
 
       /* B:  Do we have spells? */
       if (obj->sbinfo) {        /*. Yep, save them too . */
@@ -605,6 +608,7 @@ bool oset_apply(struct obj_data *obj, char * argument)
     return FALSE;
   
   obj->affected[location].modifier = mod + value;
+  obj->affected[location].obnus_type = BONUS_TYPE_UNDEFINED;
   
   /* Our modifier is set at 0, so lets just clear the apply location so that it may
    * be reused at a later point */

@@ -350,6 +350,17 @@ static void oedit_disp_extradesc_menu(struct descriptor_data *d) {
           grn, nrm, !extra_desc->next ? "Not set." : "Set.", grn, nrm);
   OLC_MODE(d) = OEDIT_EXTRADESC_MENU;
 }
+/* Ask for the bonus type for this apply. */
+static void oedit_disp_apply_prompt_bonus_type_menu(struct descriptor_data *d) {
+  int i = 0;  
+  for (i = 0; i < NUM_BONUS_TYPES; i++) {
+    write_to_output(d, " %s%2d%s) %-20s")
+    if ((i % 3) == 0)
+      write_to_output(d, "\r\n");
+  }
+  write_to_output(d, "\r\nEnter the bonus type for this affect : ");
+  OLC_MODE(d) = OEDIT_PROMPT_APPLY_BONUS_TYPE;
+}
 
 /* Ask for *which* apply to edit. */
 static void oedit_disp_prompt_apply_menu(struct descriptor_data *d) {
@@ -362,8 +373,8 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d) {
   for (counter = 0; counter < MAX_OBJ_AFFECT; counter++) {
     if (OLC_OBJ(d)->affected[counter].modifier) {
       sprinttype(OLC_OBJ(d)->affected[counter].location, apply_types, apply_buf, sizeof (apply_buf));
-      write_to_output(d, " %s%d%s) %+d to %s\r\n", grn, counter + 1, nrm,
-              OLC_OBJ(d)->affected[counter].modifier, apply_buf);
+      write_to_output(d, " %s%d%s) %+d to %s (%s)\r\n", grn, counter + 1, nrm,
+              OLC_OBJ(d)->affected[counter].modifier, apply_buf, OLC_OBJ(d)->affected[counter].bonus_type);
     } else {
       write_to_output(d, " %s%d%s) None.\r\n", grn, counter + 1, nrm);
     }
@@ -1787,9 +1798,18 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
 
     case OEDIT_APPLYMOD:
       OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = atoi(arg);
+      oedit_disp_apply_prompt_bonus_type_menu(d);
+      return;
+    case OEDIT_APPLY_BONUS_TYPE:
+      number = atoi(arg);
+      if (number < 0 || number > NUM_BONUS_TYPES) {
+        write_to_output(d, "Invalid bonus type, please enter a valid bonus type.");
+        oedit_disp_apply_prompt_bonus_type_menu(d);
+        return;
+      }        
+      OLC_OBJ(d)->affected[OLC_VAL(d)].bonus_type = atoi(arg);      
       oedit_disp_prompt_apply_menu(d);
       return;
-
     case OEDIT_EXTRADESC_KEY:
       if (genolc_checkstring(d, arg)) {
         if (OLC_DESC(d)->keyword)
