@@ -688,7 +688,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Regenerating",
   "Diseased",
   "T-Transform",  //50
-  "Globe-of-Invulnerability",
+  "Globe-of-Invuln",
   "Listen-Mode",
   "Displaced",
   "Spell-Mantled",
@@ -759,7 +759,7 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
   "You are afflicted with magical sleep.",  //15
   "You cannot be tracked.",
   "You are flying.",
-  "You can breath underwater.",
+  "You can breathe underwater.",
   "You are attempting to move quietly.",
   "You are attempting to hide.",  //20
   "You are afflicted with a vampiric curse.",

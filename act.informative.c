@@ -1282,7 +1282,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   //             buf, CCNRM(ch, C_NRM));
   for(i = 0; i < NUM_AFF_FLAGS; i++) {
     if (IS_SET_AR(AFF_FLAGS(k), i)) {
-      send_to_char(ch, "%s%s%s - %s%s%s\r\n",
+      send_to_char(ch, "%s%-20s%s - %s%s%s\r\n",
                    CCNRM(ch, C_NRM), affected_bits[i], CCNRM(ch, C_NRM),
                    CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
     }
