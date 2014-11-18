@@ -240,6 +240,8 @@ EVENTFUNC(event_trap_triggered) {
       af.duration = 0;
       af.modifier = 0;
       af.location = APPLY_NONE;
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      
       for (i = 0; i < AF_ARRAY_MAX; i++) af.bitvector[i] = AFF_DONTUSE;
 
       /* check for valid effect */
