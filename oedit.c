@@ -376,7 +376,7 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d) {
     if (OLC_OBJ(d)->affected[counter].modifier) {
       sprinttype(OLC_OBJ(d)->affected[counter].location, apply_types, apply_buf, sizeof (apply_buf));
       write_to_output(d, " %s%d%s) %+d to %s (%s)\r\n", grn, counter + 1, nrm,
-              OLC_OBJ(d)->affected[counter].modifier, apply_buf, OLC_OBJ(d)->affected[counter].bonus_type);
+              OLC_OBJ(d)->affected[counter].modifier, apply_buf, bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
     } else {
       write_to_output(d, " %s%d%s) None.\r\n", grn, counter + 1, nrm);
     }
