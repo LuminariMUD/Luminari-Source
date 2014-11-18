@@ -1351,16 +1351,18 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
           aff->bitvector[2] || aff->bitvector[3]) {
         //if (aff->modifier)
         //  send_to_char(ch, ", ");
-        int flagset = FALSE;
-        for (i = 0; i < NUM_AFF_FLAGS; i++) {
-          if (IS_SET_AR(aff->bitvector, i)) {
-            sprintf(buf2, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
+     //   int flagset = FALSE;
+     //   for (i = 0; i < NUM_AFF_FLAGS; i++) {
+     //     if (IS_SET_AR(aff->bitvector, i)) {
+     //       sprintf(buf2, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
             //send_to_char(ch, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
-            flagset = TRUE;
-          }
-        }
+     //       flagset = TRUE;
+     //     }
+     //   }
+        sprintf(buf2, "%s(see affected by)", ((aff->modifier) ? ", " : ""));
         strcat(buf3, buf2);
       }
+      
       buf2[0] = '\0';
       sprintf(buf2, "%-25s", buf3);
       buf3[0] = '\0';
