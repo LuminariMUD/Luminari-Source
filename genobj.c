@@ -608,7 +608,7 @@ bool oset_apply(struct obj_data *obj, char * argument)
     return FALSE;
   
   obj->affected[location].modifier = mod + value;
-  obj->affected[location].obnus_type = BONUS_TYPE_UNDEFINED;
+  obj->affected[location].bonus_type = BONUS_TYPE_UNDEFINED;
   
   /* Our modifier is set at 0, so lets just clear the apply location so that it may
    * be reused at a later point */

@@ -2151,6 +2151,7 @@ struct obj_flag_data {
 struct obj_affected_type {
   byte location; /**< Which ability to change (APPLY_XXX) */
   sbyte modifier; /**< How much it changes by              */
+  int bonus_type; /**< What type of bonus is this. */
 };
 
 /* For weapon spells. */
