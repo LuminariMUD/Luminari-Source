@@ -1348,7 +1348,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
         int flagset = FALSE;
         for (i = 0; i < NUM_AFF_FLAGS; i++) {
           if (IS_SET_AR(aff->bitvector, i)) {
-            sprintf(buf2, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);)
+            sprintf(buf2, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
             //send_to_char(ch, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
             flagset = TRUE;
           }
