@@ -733,6 +733,109 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "\n"
 };
 
+/** Affected bits descriptions.
+ * @pre Must be in the same order as the defines.
+ * Must end array with a single newline. 
+ * MUST BE 57 CHARACTERS OR LESS.
+ * */
+const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
+{
+  "\0", /* DO NOT REMOVE!! */
+//|---------------------------------------------------------|  
+  "You can't see a thing.",
+  "You are invisible.",
+  "You can sense the the auras of others.",
+  "You can see the invisible.",
+  "You can sense the auras of object imbued with magic.",  //5
+  "You can sense living creatures.",
+  "You can walk on water.",
+  "SHOULD NOT SEE - CONTACT STAFF",
+  "SHOULD NOT SEE - CONTACT STAFF",
+  "You have been cursed.",  //10
+  "You can see in the infra-red spectrum.",
+  "You have been poisoned.",
+  "You are warded against evil.",
+  "You are warded against good.",
+  "You are afflicted with magical sleep.",  //15
+  "You cannot be tracked.",
+  "You are flying.",
+  "You can breath underwater.",
+  "You are attempting to move quietly.",
+  "You are attempting to hide.",  //20
+  "You are afflicted with a vampiric curse.",
+  "You are controlled by another.",
+  "Your form is blurred.",
+  "You sacrifice accuracy to inflict more damage in battle.",
+  "You sacrifice accuracy to improve your defense.",  //25
+  "You are moving supernaturally fast.",
+  "You are focusing on parrying your opponents' blows.",
+  "You are protected from the elements.",
+  "You can't hear a thing.",
+  "You are terrified.",  //30
+  "You are stunned.",
+  "You can't move!",
+  "You can see in the ultra-violet spectrum.",
+  "You are grappled.",
+  "You are tamed.",  //35
+  "You can climb anything.",
+  "You are nauseated.",
+  "You are shielded from scrying magic.",
+  "You are moving more slowly than usual.",
+  "You are surrounded by a shield of flames.",  //40
+  "You are surrounded by a shield of swirling snow.",
+  "You are protected by a minor globe of invulnerability.",
+  "You are surrounded by a shield of corrosive acid.",
+  "You are not your usual size.",
+  "Your vision is supernaturally clear.",  //45
+  "You are actively observing your surroundings.",
+  "You are fatigued.",
+  "Your body is healing at an increased rate.",
+  "You are suffering from a disease.",
+  "You are under the effect of Tenser's Transformation",  //50
+  "You are protected by a globe of invulnerability.",
+  "You are actively listening to your surroundings.",
+  "Your are not where you seem to be.",
+  "You are protected by a spell mantle.",
+  "You are confused.",  //55
+  "You have taken refuge.",
+  "You turn magic that targets you.",
+  "Your mind is blank.",
+  "The shadows shield you from harm.",
+  "You have stopped time.",  //60
+  "You feel brave.",
+  "You can move freely in any environment.",
+  "Your outline is highlighted by purple and pink flames.",
+  "You are battle incarnate.",
+  "You are resistant to spells.", //65
+  "You are locked to this plane of existence.",
+  "You are warded from death magic.",
+  "You are under the effect of Spellbattle.",
+  "You have a vampiric touch.",
+  "Your body does not heal as it should.",  //70
+  "You can innately sense danger.",
+  "You can fall from any height unharmed.",
+  "You are resistant to psionic damage.",
+  "SHOULD NOT SEE - CONTACT STAFF",
+  "You can not be targeted by teleportation magic.",  //75
+  "Your next attack will deal additional damage.",  // AFF_MAX_DAMAGE
+  "You are incorporeal",
+  "You have been caged and can not interact with anyone.",
+  "You are glowing.",
+  "You can see in the dark.",  //80
+  "Your body is a weapon.",
+  "You can see farther than others.",
+  "Your items synergize with each other.",
+  "You are firing your ranged weapons more quickly.",
+  "You are dazed.",
+  "You have been caught unawares.",
+  "You are fighting with two weapons.",
+  "You are attacking with a flurry of blows.",
+  "You will counter any spell you can.",
+  "You are casting defensively.", 
+  "You will spread your attacks among all of your enemies.",
+  "You are charging into battle.",
+  "\n"
+};
 
 /** Connection type descriptions.
  * @pre Must be in the same order as the defines.
