@@ -219,10 +219,10 @@ void init_study(struct descriptor_data *d, int class) {
   LEVELUP(ch)->trains = GET_TRAINS(ch);
   LEVELUP(ch)->num_boosts = GET_BOOSTS(ch);
 
-  send_to_char(ch, "%d %d %d %d\r\n", LEVELUP(ch)->feat_points, 
-                                  LEVELUP(ch)->class_feat_points, 
-                                  LEVELUP(ch)->epic_feat_points, 
-                                  LEVELUP(ch)->epic_class_feat_points);
+  //send_to_char(ch, "%d %d %d %d\r\n", LEVELUP(ch)->feat_points, 
+  //                                LEVELUP(ch)->class_feat_points, 
+  //                                LEVELUP(ch)->epic_feat_points, 
+  //                                LEVELUP(ch)->epic_class_feat_points);
 
   /* The following data elements are used to store the player's choices during the
    * study process - Just initialize these values. */
@@ -386,7 +386,7 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
     return FALSE;
   }
   if ((feat_type == FEAT_TYPE_NORMAL_CLASS) && 
-      ((LEVELUP(ch)->class_feat_points < 1) &&
+      ((LEVELUP(ch)->class_feat_points < 1) &&       
        (LEVELUP(ch)->feat_points < 1))) {
     write_to_output(d, "You do not have enough class feat points to gain that feat.\r\n");
     return FALSE;
@@ -811,7 +811,10 @@ static void display_study_feats(struct descriptor_data *d) {
         feat_list[i].can_learn &&
         (!has_feat(ch, i) || feat_list[i].can_stack))) {
 
-      write_to_output(d, "%s%s%3d%s) %-30s%s", class_feat ? "\tC(C)" : "   ", grn, i, nrm, feat_list[i].name, nrm);
+      write_to_output(d, 
+                      "%s%s%3d%s) %-30s%s", 
+                      (class_feat ? (feat_list[i].is_epic ? "\tM(EC)" : "\tC(C)") : (feat_list[i].is_epic ? "\tM(E)" : "   ")), 
+                      grn, i, nrm, feat_list[i].name, nrm);
       count++;
 
       if (count % 2 == 0)
@@ -824,7 +827,9 @@ static void display_study_feats(struct descriptor_data *d) {
 
   write_to_output(d, "\r\n");
 
-  write_to_output(d, "To select a feat, type the number beside it.  Class feats are in \tCcyan\tn and marked with a (C).\r\n");
+  write_to_output(d, 
+                  "To select a feat, type the number beside it.  Class feats are in \tCcyan\tn and marked with a (C).\r\n"
+                  "Epic feats, both class and regular, are in \tMMagenta\tn and are marked with (EC) or (E).\r\n");
   write_to_output(d, "Feat Points: General (%s%d%s) Class (%s%d%s) Epic (%s%d%s) Epic Class (%s%d%s)\r\n",
                         (LEVELUP(ch)->feat_points > 0 ? grn : red), LEVELUP(ch)->feat_points, nrm,
                         (LEVELUP(ch)->class_feat_points > 0 ? grn : red), LEVELUP(ch)->class_feat_points, nrm,
