@@ -813,7 +813,7 @@ static void display_study_feats(struct descriptor_data *d) {
 
       write_to_output(d, 
                       "%s%s%3d%s) %-30s%s", 
-                      (class_feat ? (feat_list[i].is_epic ? "\tM(EC)" : "\tC(C)") : (feat_list[i].is_epic ? "\tM(E)" : "   ")), 
+                      (class_feat ? (feat_list[i].epic ? "\tM(EC)" : "\tC(C)") : (feat_list[i].epic ? "\tM(E)" : "   ")), 
                       grn, i, nrm, feat_list[i].name, nrm);
       count++;
 
