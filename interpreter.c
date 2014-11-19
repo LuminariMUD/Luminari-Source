@@ -96,7 +96,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
   /* now, the main list */
   { "abort", "abort", POS_FIGHTING, do_abort, 1, 0, FALSE, ACTION_NONE, {0, 0}},
-  { "acconvert", "acconvert", POS_DEAD, do_acconvert, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
+//  { "acconvert", "acconvert", POS_DEAD, do_acconvert, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
   { "account", "account", POS_DEAD, do_account, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "at", "at", POS_DEAD, do_at, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "advance", "adv", POS_DEAD, do_advance, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
