@@ -271,7 +271,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
 void affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[],
         bool add) {
   int i, j;
-
+  
   if (add) {
     for (i = 0; i < AF_ARRAY_MAX; i++)
       for (j = 0; j < 32; j++)
@@ -537,6 +537,10 @@ int affect_total_sub(struct char_data *ch) {
   struct affected_type *af;
   int i, j, at_armor = 100;
   int modifier = 0;
+  int empty_bits[AF_ARRAY_MAX];  
+  
+  for(i = 0; i > AF_ARRAY_MAX; i++)
+    empty_bits[i] = 0;
   
   /* subtract affects with gear */
   for (i = 0; i < NUM_WEARS; i++) {
@@ -562,7 +566,7 @@ int affect_total_sub(struct char_data *ch) {
     modifier = 0;
     for (j = 0; j < NUM_BONUS_TYPES; j++)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
-    affect_modify(ch, i, modifier, 0, AFF_NONE, FALSE);
+    affect_modify_ar(ch, i, modifier, 0, empty_bits, FALSE);
   }
 
   /* any stats that are not an APPLY_ need to be stored */
@@ -579,6 +583,10 @@ int affect_total_sub(struct char_data *ch) {
 void affect_total_plus(struct char_data *ch, int at_armor) {
   struct affected_type *af;
   int i, j;
+  int empty_bits[AF_ARRAY_MAX];  
+  
+  for(i = 0; i > AF_ARRAY_MAX; i++)
+    empty_bits[i] = 0;
   
   /* restore stored stats */
   GET_AC(ch) = at_armor;
@@ -603,7 +611,7 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
     modifer = 0;
     for (j = 0; j < NUM_BONUS_TYPES; j++)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
-    affect_modify(ch, i, modifier, 0, AFF_NONE, TRUE);
+    affect_modify_ar(ch, i, modifier, 0, empty_bits, TRUE);
   }
   
   /* cap character */
@@ -629,8 +637,13 @@ void affect_total(struct char_data *ch) {
 /* Insert an affect_type in a char_data structure. Automatically sets
  * apropriate bits and apply's */
 void affect_to_char(struct char_data *ch, struct affected_type *af) {
+  int i;
   struct affected_type *affected_alloc;
-
+  int empty_bits[AF_ARRAY_MAX];  
+  
+  for(i = 0; i > AF_ARRAY_MAX; i++)
+    empty_bits[i] = 0;
+  
   CREATE(affected_alloc, struct affected_type, 1);
 
   *affected_alloc = *af;
@@ -641,10 +654,10 @@ void affect_to_char(struct char_data *ch, struct affected_type *af) {
   affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
   
   if (BONUS_TYPE_STACKS(af->bonus_type)) {
-    affect_modify(ch, af->location, af->modifier, af->bitvector, TRUE);
+    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   } else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell)) {
-    affect_modify(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), AFF_NONE, FALSE);
-    affect_modify(ch, af->location, af->modifier, af->bitvector, TRUE);
+    affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, FALSE);
+    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   }
   
   affect_total(ch);
@@ -654,8 +667,13 @@ void affect_to_char(struct char_data *ch, struct affected_type *af) {
  * zero). Pointer *af must never be NIL!  Frees mem and calls
  * affect_location_apply */
 void affect_remove(struct char_data *ch, struct affected_type *af) {
+  int i;
   struct affected_type *temp;
-
+  int empty_bits[AF_ARRAY_MAX];  
+  
+  for(i = 0; i > AF_ARRAY_MAX; i++)
+    empty_bits[i] = 0;
+  
   if (ch->affected == NULL) {
     core_dump();
     return;
@@ -664,10 +682,10 @@ void affect_remove(struct char_data *ch, struct affected_type *af) {
   affect_modify_ar(ch, af->location, 0, af->bitvector, FALSE);
 
   if (BONUS_TYPE_STACKS(af->bonus_type)) {
-    affect_modify(ch, af->location, af->modifier, af->bitvector, FALSE);
+    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
   } else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell)) {
-    affect_modify(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), AFF_NONE, FALSE);
-    affect_modify(ch, af->location, af->modifier, af->bitvector, TRUE);
+    affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, FALSE);
+    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   }  
   
   /* Check if we have anything that is 'nonstandard' from this affect */
@@ -1043,8 +1061,12 @@ int invalid_prof(struct char_data *ch, struct obj_data *obj) {
 }
 
 void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
-  int j;
-
+  int i, j;
+  int empty_bits[AF_ARRAY_MAX];  
+  
+  for(i = 0; i > AF_ARRAY_MAX; i++)
+    empty_bits[i] = 0;
+  
   if (pos < 0 || pos >= NUM_WEARS) {
     core_dump();
     return;
@@ -1103,7 +1125,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), TRUE);
     } else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1)) {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), TRUE);
-      affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), obj_bit, FALSE);
+      affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, FALSE);
     }
     
   }
@@ -1112,9 +1134,13 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
 }
 
 struct obj_data *unequip_char(struct char_data *ch, int pos) {
-  int j;
+  int i, j;
   struct obj_data *obj;
-
+  int empty_bits[AF_ARRAY_MAX];  
+  
+  for(i = 0; i > AF_ARRAY_MAX; i++)
+    empty_bits[i] = 0;
+  
   if ((pos < 0 || pos >= NUM_WEARS) || GET_EQ(ch, pos) == NULL) {
     core_dump();
     return (NULL);
@@ -1147,7 +1173,7 @@ struct obj_data *unequip_char(struct char_data *ch, int pos) {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), FALSE);
     } else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1)) {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), FALSE);
-      affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), obj_bit, TRUE);
+      affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, TRUE);
     }    
   }
   affect_total(ch);
