@@ -690,8 +690,8 @@ void affect_remove(struct char_data *ch, struct affected_type *af) {
   if (BONUS_TYPE_STACKS(af->bonus_type)) {
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
   } else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell)) {
-    affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, FALSE);
-    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
+    affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, TRUE);    
+   // affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   }  
   
   /* Check if we have anything that is 'nonstandard' from this affect */
