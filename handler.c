@@ -566,7 +566,7 @@ int affect_total_sub(struct char_data *ch) {
     modifier = 0;
     for (j = 0; j < NUM_BONUS_TYPES; j++)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
-    affect_modify_ar(ch, i, modifier, 0, empty_bits, FALSE);
+    affect_modify_ar(ch, i, modifier, empty_bits, FALSE);
   }
 
   /* any stats that are not an APPLY_ need to be stored */
