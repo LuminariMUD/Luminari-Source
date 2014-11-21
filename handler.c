@@ -612,7 +612,7 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
     modifier = 0;
     for (j = 0; j < NUM_BONUS_TYPES; j++)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
-    affect_modify_ar(ch, i, modifier, 0, empty_bits, TRUE);
+    affect_modify_ar(ch, i, modifier, empty_bits, TRUE);
   }
   
   /* cap character */
