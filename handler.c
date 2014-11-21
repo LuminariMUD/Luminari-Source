@@ -290,8 +290,7 @@ void affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[],
 
 int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int except_eq, int except_spell) {
   struct affected_type *af = NULL;
-  int noeffect = FALSE;
-  int i = 0, k = 0, j = 0;
+  int i = 0, j = 0;
   int best = 0;
   int modifier = 0;
   
@@ -560,7 +559,7 @@ int affect_total_sub(struct char_data *ch) {
   
   /* Adjust the modifiers to APPLY_ fields. */  
   for (i = 0; i < NUM_APPLIES; i++) {
-    modifer = 0;
+    modifier = 0;
     for (j = 0; j < NUM_BONUS_TYPES; j++)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
     affect_modify(ch, i, modifier, 0, AFF_NONE, FALSE);
