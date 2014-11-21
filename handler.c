@@ -544,29 +544,31 @@ int affect_total_sub(struct char_data *ch) {
   
   /* subtract affects with gear */
   for (i = 0; i < NUM_WEARS; i++) {
-    if (GET_EQ(ch, i))
-      for (j = 0; j < MAX_OBJ_AFFECT; j++)
-        
-        //affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
-        //      GET_EQ(ch, i)->affected[j].modifier,
-        //      GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
+    if (GET_EQ(ch, i)) {
+      for (j = 0; j < MAX_OBJ_AFFECT; j++) {      
         affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
               0,//GET_EQ(ch, i)->affected[j].modifier,
               GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
+      }
+    }
   }
 
   /* remove affects based on 'nekked' char */
   for (af = ch->affected; af; af = af->next) {
     //affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
-    affect_modify_ar(ch, af->location, 0, af->bitvector, FALSE);
+    if (BONUS_TYPE_STACKS(af->bonus_type))
+      affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
+    else
+      affect_modify_ar(ch, af->location, 0, af->bitvector, FALSE);
   }
   
   /* Adjust the modifiers to APPLY_ fields. */  
   for (i = 0; i < NUM_APPLIES; i++) {
     modifier = 0;
-    for (j = 0; j < NUM_BONUS_TYPES; j++)
+    for (j = 0; j < NUM_BONUS_TYPES; j++) {       
       modifier += calculate_best_mod(ch, i, j, -1, -1);
-    affect_modify_ar(ch, i, modifier, 0, FALSE);
+    }
+    affect_modify_ar(ch, i, modifier, empty_bits, FALSE);
   }
 
   /* any stats that are not an APPLY_ need to be stored */
@@ -604,7 +606,10 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
   /* re-apply affects based on 'regeared' char */
   for (af = ch->affected; af; af = af->next) {
     //affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
-    affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
+    if (BONUS_TYPE_STACKS(af->bonus_type))
+      affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
+    else
+      affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
   }
   
     /* Adjust the modifiers to APPLY_ fields. */  
@@ -612,7 +617,7 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
     modifier = 0;
     for (j = 0; j < NUM_BONUS_TYPES; j++)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
-    affect_modify_ar(ch, i, modifier, 0, TRUE);
+    affect_modify_ar(ch, i, modifier, empty_bits, TRUE);
   }
   
   /* cap character */
