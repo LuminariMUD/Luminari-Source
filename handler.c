@@ -584,6 +584,7 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
   struct affected_type *af;
   int i, j;
   int empty_bits[AF_ARRAY_MAX];  
+  int modifier = 0;
   
   for(i = 0; i > AF_ARRAY_MAX; i++)
     empty_bits[i] = 0;
