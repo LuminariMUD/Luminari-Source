@@ -2356,6 +2356,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_INT;
       af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      
       accum_duration = TRUE;
       to_vict = "You feel more intelligent!";
       to_room = "$n's intelligence increases!";
@@ -2382,15 +2383,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_STR;
       af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
 
       af[1].location = APPLY_DEX;
       af[1].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[1].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-
+      af[1].bonus_type = BONUS_TYPE_ENHANCEMENT;
+      
       af[2].location = APPLY_CON;
       af[2].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[2].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-
+      af[2].bonus_type = BONUS_TYPE_ENHANCEMENT;
+      
       accum_duration = TRUE;
       to_vict = "You feel your physical atributes enhanced!";
       to_room = "$n's physical attributes are enhanced!";
@@ -2993,6 +2997,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_STR;
       af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
       accum_duration = TRUE;
       to_vict = "You feel stronger!";
       to_room = "$n's muscles begin to bulge!";
