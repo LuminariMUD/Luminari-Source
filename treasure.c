@@ -1042,7 +1042,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         bonus_value = rand_number(1, max_bonus);
         current_cp -= CP_COST(bonus_value);
         if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_HITROLL) {
-          GET_ENHANCEMENT_BONUS(obj) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); /* Set enhancement bonus.*/
+          GET_OBJ_VAL(obj, 4) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); /* Set enhancement bonus.*/
           current_slot++;
         } else {               
           obj->affected[current_slot - 1].location = bonus_location;
