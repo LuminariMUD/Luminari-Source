@@ -574,6 +574,7 @@ int affect_total_sub(struct char_data *ch) {
     for (j = 0; j < NUM_BONUS_TYPES; j++) {       
       modifier += calculate_best_mod(ch, i, j, -1, -1);
     }
+    aff_apply_modify(ch, i, -modifier, "affect_total_sub");
     //affect_modify_ar(ch, i, modifier, empty_bits, FALSE);
   }
 
@@ -629,6 +630,7 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
     modifier = 0;
     for (j = 0; j < NUM_BONUS_TYPES; j++)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
+      aff_apply_modify(ch, i, modifier, "affect_total_plus");
     //affect_modify_ar(ch, i, modifier, empty_bits, TRUE);
   }
   
@@ -674,6 +676,7 @@ void affect_to_char(struct char_data *ch, struct affected_type *af) {
   if (BONUS_TYPE_STACKS(af->bonus_type)) {
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   } else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell)) {
+    aff_apply_modify(ch, af->location, -calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), "affect_to_char");
     //affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, FALSE);
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   }
@@ -702,6 +705,7 @@ void affect_remove(struct char_data *ch, struct affected_type *af) {
   if (BONUS_TYPE_STACKS(af->bonus_type)) {
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
   } else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell)) {
+    aff_apply_modify(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), "affect_remove");
     //affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, TRUE);    
    // affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   }  
@@ -1143,6 +1147,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), TRUE);
     } else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1)) {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), TRUE);
+      aff_apply_modify(ch, obj->affected[j].location, -calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), "equip_char");
       //affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, FALSE);
     }
     
@@ -1191,6 +1196,7 @@ struct obj_data *unequip_char(struct char_data *ch, int pos) {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), FALSE);
     } else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1)) {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), FALSE);
+      aff_apply_modify(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), "equip_char");
       //affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, TRUE);
     }    
   }
