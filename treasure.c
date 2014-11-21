@@ -476,6 +476,37 @@ int adjust_bonus_value(int apply_location, int bonus) {
   return MIN(RANDOM_BONUS_CAP, adjusted_bonus);
 }
 
+int adjust_bonus_type(int apply_location) {
+  int roll = dice(1,100); // Roll percentile
+
+  switch (apply_location) {
+    case APPLY_AC_NEW:       
+      if (roll > 80) { // 20%
+        return BONUS_TYPE_DEFLECTION;
+      } else 
+        return BONUS_TYPE_ARMOR;
+    case APPLY_SAVING_FORT: 
+    case APPLY_SAVING_REFL:
+    case APPLY_SAVING_WILL:
+      return BONUS_TYPE_RESISTANCE;
+    case APPLY_HIT:      
+    case APPLY_MOVE:      
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_STR:
+    case APPLY_CON: 
+    case APPLY_DEX: 
+    case APPLY_INT:
+    case APPLY_WIS: 
+    case APPLY_CHA: 
+    default:
+      return BONUS_TYPE_ENHANCEMENT;
+      break;
+  }
+
+  return MIN(RANDOM_BONUS_CAP, adjusted_bonus);
+}
+
 /* function that returns bonus value based on apply-value and level */
 int random_bonus_value(int apply_value, int level, int mod) {
   int bonus = MAX(1, (level / BONUS_FACTOR) + mod);
@@ -1047,7 +1078,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         } else {               
           obj->affected[current_slot - 1].location = bonus_location;
           obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
-          obj->affected[current_slot - 1].bonus_type = BONUS_TYPE_ENHANCEMENT; /* Temporary */
+          obj->affected[current_slot - 1].bonus_type = adjust_bonus_type(bonus_location); 
         }
 //        /* tag damroll bonus too for weapons */
 //        if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_HITROLL) {
