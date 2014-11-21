@@ -298,9 +298,7 @@ int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int e
   /* Skip stackable bonus types and bonus types without a modifier. */
   if ((location == APPLY_NONE) ||
       (location == APPLY_DR) ||
-      (location == APPLY_AC && bonus_type = BONUS_TYPE_DODGE) ||
-      (bonus_type == BONUS_TYPE_CIRCUMSTANCE) ||
-      (bonus_type == BONUS_TYPE_UNDEFINED) )
+      (BONUS_TYPE_STACKS(bonus_type)) )
     return 0;
   
   /* Check affect structures */
