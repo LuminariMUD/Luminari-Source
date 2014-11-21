@@ -503,8 +503,6 @@ int adjust_bonus_type(int apply_location) {
       return BONUS_TYPE_ENHANCEMENT;
       break;
   }
-
-  return MIN(RANDOM_BONUS_CAP, adjusted_bonus);
 }
 
 /* function that returns bonus value based on apply-value and level */
