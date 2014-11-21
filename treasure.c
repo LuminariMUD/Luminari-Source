@@ -634,7 +634,7 @@ void award_random_crystal(struct char_data *ch, int level) {
   /* this is deprecated, level determines modifier now (in craft.c) */
   obj->affected[0].modifier =
           random_bonus_value(obj->affected[0].location, GET_OBJ_LEVEL(obj), 0);
-
+  
   /* random color(s) and description */
   color1 = rand_number(0, NUM_A_COLORS);
   color2 = rand_number(0, NUM_A_COLORS);
@@ -1041,16 +1041,21 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         /* Choose a bonus value from 1 to that bonus amount. */
         bonus_value = rand_number(1, max_bonus);
         current_cp -= CP_COST(bonus_value);
-      
-        obj->affected[current_slot - 1].location = bonus_location;
-        obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
-        
-        /* tag damroll bonus too for weapons */
         if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_HITROLL) {
-          /* In this case, we need to add APPLY_DAMROLL as well. */
-          current_slot++; /* Increment the slot, APPLY_DAMROLL goes in the second slot. */
-          obj->affected[current_slot - 1].location = APPLY_DAMROLL;
-          obj->affected[current_slot - 1].modifier = adjust_bonus_value(APPLY_DAMROLL, bonus_value);          
+          GET_ENHANCEMENT_BONUS(obj) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); /* Set enhancement bonus.*/
+          current_slot++;
+        } else {               
+          obj->affected[current_slot - 1].location = bonus_location;
+          obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
+          obj->affected[current_slot - 1].bonus_type = BONUS_TYPE_ENAHNCEMENT; /* Temporary */
+        }
+//        /* tag damroll bonus too for weapons */
+//        if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_HITROLL) {
+//          /* In this case, we need to add APPLY_DAMROLL as well. */
+//          current_slot++; /* Increment the slot, APPLY_DAMROLL goes in the second slot. */
+//          obj->affected[current_slot - 1].location = APPLY_DAMROLL;
+//          obj->affected[current_slot - 1].modifier = adjust_bonus_value(APPLY_DAMROLL, bonus_value);
+          
         }
       }
     }
