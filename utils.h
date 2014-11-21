@@ -1834,4 +1834,7 @@ do                                                              \
 #define GET_QUEUE(ch) ((ch)->char_specials.action_queue)
 #define GET_ATTACK_QUEUE(ch) ((ch)->char_specials.attack_queue)
 
+/* Bonus Types */
+#define BONUS_TYPE_STACKS(bonus_type) ((bonus_type == BONUS_TYPE_DODGE) || (bonus_type == BONUS_TYPE_CIRCUMSTANCE) || (bonus_type == BONUS_TYPE_UNDEFINED))
+
 #endif /* _UTILS_H_ */
