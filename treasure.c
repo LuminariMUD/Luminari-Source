@@ -1055,8 +1055,8 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 //          current_slot++; /* Increment the slot, APPLY_DAMROLL goes in the second slot. */
 //          obj->affected[current_slot - 1].location = APPLY_DAMROLL;
 //          obj->affected[current_slot - 1].modifier = adjust_bonus_value(APPLY_DAMROLL, bonus_value);
-          
-        }
+//        }  
+        
       }
     }
     current_slot++;
