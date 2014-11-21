@@ -1047,7 +1047,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         } else {               
           obj->affected[current_slot - 1].location = bonus_location;
           obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
-          obj->affected[current_slot - 1].bonus_type = BONUS_TYPE_ENAHNCEMENT; /* Temporary */
+          obj->affected[current_slot - 1].bonus_type = BONUS_TYPE_ENHANCEMENT; /* Temporary */
         }
 //        /* tag damroll bonus too for weapons */
 //        if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_HITROLL) {
