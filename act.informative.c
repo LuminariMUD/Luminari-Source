@@ -483,7 +483,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     }
 
     if (IS_NPC(i) && (GET_MOB_SPEC(i) == questmaster || i->mob_specials.quest))
-      send_to_char(ch, "(\tR!\tn) ");
+      send_to_char(ch, "\tn(\tR!\tn) ");
 
     send_to_char(ch, "%s", i->player.long_descr);
 
