@@ -124,7 +124,7 @@ ACMD(do_doorbash) {
 bool is_top_of_room_for_singlefile(struct char_data *ch, int dir) {
   bool exit = FALSE;
   int i;
-  
+
   for (i = 0; i < 6; i++) {
     if (EXIT(ch, i)) {
       if (exit == FALSE && dir == i)
@@ -139,7 +139,7 @@ bool is_top_of_room_for_singlefile(struct char_data *ch, int dir) {
    in a singlefile room */
 struct char_data *get_char_ahead_of_me(struct char_data *ch, int dir) {
   struct char_data *tmp;
-  
+
   if (is_top_of_room_for_singlefile(ch, dir)) {
     tmp = world[ch->in_room].people;
     while (tmp) {
@@ -161,19 +161,19 @@ struct char_data *get_char_ahead_of_me(struct char_data *ch, int dir) {
    circumstances and whether the obj is floating */
 bool obj_should_fall(struct obj_data *obj) {
   int falling = FALSE;
-  
+
   if (!obj)
     return FALSE;
-  
+
   if (ROOM_FLAGGED(obj->in_room, ROOM_FLY_NEEDED) && EXIT_OBJ(obj, DOWN))
     falling = TRUE;
-  
+
   if (OBJ_FLAGGED(obj, ITEM_FLOAT)) {
     act("You watch as $p floats gracefully in the air!",
             FALSE, 0, obj, 0, TO_ROOM);
     return FALSE;
   }
-  
+
   return falling;
 }
 
@@ -181,13 +181,13 @@ bool obj_should_fall(struct obj_data *obj) {
    circumstances and whether the ch is flying */
 bool char_should_fall(struct char_data *ch, bool silent) {
   int falling = FALSE;
-  
+
   if (!ch)
     return FALSE;
-  
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_FLY_NEEDED) && EXIT(ch, DOWN))
     falling = TRUE;
-  
+
   if (RIDING(ch) && AFF_FLAGGED(RIDING(ch), AFF_FLYING)) {
     if (!silent)
       send_to_char(ch, "Your mount flies gracefully through the air...\r\n");
@@ -199,7 +199,7 @@ bool char_should_fall(struct char_data *ch, bool silent) {
       send_to_char(ch, "You fly gracefully through the air...\r\n");
     return FALSE;
   }
-  
+
   return falling;
 }
 
@@ -209,36 +209,36 @@ EVENTFUNC(event_falling)
   struct char_data *ch = NULL;
   int height_fallen = 0;
   char buf[50] = { '\0' };
-  
+
   /* This is just a dummy check, but we'll do it anyway */
   if (event_obj == NULL)
     return 0;
-	  
+
   /* For the sake of simplicity, we will place the event data in easily
-   * referenced pointers */  
+   * referenced pointers */
   pMudEvent = (struct mud_event_data *) event_obj;
-  
+
   /* nab char data */
-  ch = (struct char_data *) pMudEvent->pStruct;    
+  ch = (struct char_data *) pMudEvent->pStruct;
 
   /* dummy checks */
   if (!ch)  return 0;
   if (!IS_NPC(ch) && !IS_PLAYING(ch->desc))  return 0;
-  
+
   /* retrieve svariables and convert it */
   height_fallen += atoi((char *) pMudEvent->sVariables);
   send_to_char(ch, "AIYEE!!!  You have fallen %d feet!\r\n", height_fallen);
-  
+
   /* already checked if there is a down exit, lets move the char down */
   do_simple_move(ch, DOWN, FALSE);
   send_to_char(ch, "You fall into a new area!\r\n");
-  act("$n appears from above, arms flailing helplessly as $e falls...", 
+  act("$n appears from above, arms flailing helplessly as $e falls...",
           FALSE, ch, 0, 0, TO_ROOM);
   height_fallen += 20;  // 20 feet per room right now
-  
+
   /* can we continue this fall? */
   if (!ROOM_FLAGGED(ch->in_room, ROOM_FLY_NEEDED) || !CAN_GO(ch, DOWN)) {
-    
+
     if (AFF_FLAGGED(ch, AFF_SAFEFALL)) {
       send_to_char(ch, "Moments before slamming into the ground, a 'safefall'"
               " enchantment stops you!\r\n");
@@ -247,26 +247,26 @@ EVENTFUNC(event_falling)
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SAFEFALL);
       return 0;
     }
-    
+
     /* potential damage */
     int dam = dice((height_fallen/5), 6) + 20;
-    
+
     /* check for slow-fall! */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_SLOW_FALL)) {
       dam -= 21;
       dam -= dice((HAS_FEAT(ch, FEAT_SLOW_FALL) * 4), 6);
-    } 
-    
+    }
+
     if (dam <= 0) { /* woo! avoided damage */
       send_to_char(ch, "You gracefully land on your feet from your perilous fall!\r\n");
-      act("$n comes falling in from above, but at the last minute, pulls of an acrobatic flip and lands gracefully on $s feet!", FALSE, ch, 0, 0, TO_ROOM);      
+      act("$n comes falling in from above, but at the last minute, pulls of an acrobatic flip and lands gracefully on $s feet!", FALSE, ch, 0, 0, TO_ROOM);
       return 0; //end event
     } else { /* ok we know damage is going to be suffered at this stage */
       send_to_char(ch, "You fall headfirst to the ground!  OUCH!\r\n");
       act("$n crashes into the ground headfirst, OUCH!", FALSE, ch, 0, 0, TO_ROOM);
       GET_POS(ch) = POS_RECLINING;
       start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
-      
+
       /* we have a special situation if you die, the event will get cleared */
       if (dam >= GET_HIT(ch) + 9) {
         GET_HIT(ch) = -999;
@@ -286,7 +286,7 @@ EVENTFUNC(event_falling)
       }
     }
   }
-  
+
   /* hitting ground or fixing your falling situation is the only way to stop
    *  this event :P
    * theoritically the player now could try to cast a spell, use an item, hop
@@ -296,7 +296,7 @@ EVENTFUNC(event_falling)
   if (char_should_fall(ch, FALSE)) {
     send_to_char(ch, "You fall tumbling down!\r\n");
     act("$n drops from sight.", FALSE, ch, 0, 0, TO_ROOM);
-    
+
     /* are we falling more?  then we gotta increase the heigh fallen */
     sprintf(buf, "%d", height_fallen);
     /* Need to free the memory, if we are going to change it. */
@@ -386,7 +386,7 @@ int has_scuba(struct char_data *ch, room_rnum destination) {
 
   if (IS_SET_AR(ROOM_FLAGS(destination), ROOM_AIRY))
     return (1);
-  
+
   return (0);
 }
 
@@ -442,7 +442,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /* The room the character is currently in and will move from... */
   room_rnum was_in = NOWHERE;
   /* ... and the room the character will move into. */
-  room_rnum going_to = NOWHERE; 
+  room_rnum going_to = NOWHERE;
   /* How many movement points are required to travel from was_in to going_to.
    * We redefine this later when we need it. */
   int need_movement = 0;
@@ -457,7 +457,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   struct char_data *other;
   struct char_data **prev;
   bool was_top = TRUE;
-  
+
   /* Wilderness variables */
   int new_x = 0, new_y = 0;
 
@@ -465,10 +465,10 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /* added some dummy checks to deal with a fairly mysterious crash */
   if (!ch)
     return 0;
-  
+
   if (IN_ROOM(ch) == NOWHERE)
     return 0;
-  
+
   if (dir < 0 || dir >= NUM_OF_DIRS)
     return 0;
   /* dummy check */
@@ -494,7 +494,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
           break;
 	default:
           /* Bad direction for wilderness travel.*/
-          return 0;         
+          return 0;
       }
       going_to = find_room_by_coordinates(new_x, new_y);
       if (going_to == NOWHERE) {
@@ -504,12 +504,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
           return 0;
         }
         /* Must set the coords, etc in the going_to room. */
-       
+
         assign_wilderness_room(going_to, new_x, new_y);
       }
-      
+
     } else if (world[IN_ROOM(ch)].dir_option[dir]) {
-    
+
     going_to = EXIT(ch, dir)->to_room;
 
     /* Since we are in non-wilderness moving to wilderness, set up the coords. */
@@ -521,10 +521,10 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
   if (going_to == NOWHERE)
     return 0;
-  
-  was_in = IN_ROOM(ch); 
+
+  was_in = IN_ROOM(ch);
   /* end dummy checks */
-  
+
   /*---------------------------------------------------------------------*/
   /* End Local variable definitions */
 
@@ -554,7 +554,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     act("$n struggles to move, but can't!", FALSE, ch, 0, 0, TO_ROOM);
     return 0;
   }
-  
+
   /* check if they're mounted */
   if (RIDING(ch)) riding = 1;
   if (RIDDEN_BY(ch)) ridden_by = 1;
@@ -642,8 +642,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     }
   }
   /* end singlefile mechanic */
-  
-  /* Charm effect: Does it override the movement? 
+
+  /* Charm effect: Does it override the movement?
      for now it is cut out of the code */
 
   // dummy check
@@ -661,7 +661,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
             "you from entering.\r\n");
     return 0;
   }
-  
+
   /* Water, No Swimming Rooms: Does the deep water prevent movement? */
   if ((SECT(was_in) == SECT_WATER_NOSWIM) || (SECT(was_in) == SECT_UD_NOSWIM) ||
           (SECT(going_to) == SECT_WATER_NOSWIM) || (SECT(going_to) == SECT_UD_NOSWIM)) {
@@ -711,8 +711,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   if (ROOM_FLAGGED(going_to, ROOM_NOFLY) && AFF_FLAGGED(ch, AFF_FLYING)) {
     send_to_char(ch, "It is not possible to fly in that direction\r\n");
     return 0;
-  } 
-  
+  }
+
   /* Houses: Can the player walk into the house? */
   if (ROOM_FLAGGED(was_in, ROOM_ATRIUM)) {
     if (!House_can_enter(ch, GET_ROOM_VNUM(going_to))) {
@@ -727,7 +727,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
             "off-limits.\r\n");
     return (0);
   }
-  
+
   if (ZONE_FLAGGED(GET_ROOM_ZONE(going_to), ZONE_NOIMMORT) &&
           (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRSTAFF)) {
     send_to_char(ch, "A mysterious barrier forces you back! That area is off-limits.\r\n");
@@ -739,7 +739,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     send_to_char(ch, "There isn't enough space to enter mounted!\r\n");
     return 0;
   }
-  
+
   if (ROOM_FLAGGED(going_to, ROOM_TUNNEL) &&
           num_pc_in_room(&(world[going_to])) >= CONFIG_TUNNEL_SIZE) {
     if (CONFIG_TUNNEL_SIZE > 1)
@@ -758,11 +758,11 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
   /* check for traps */
   check_trap(ch, TRAP_TYPE_ENTER_ROOM, ch->in_room, 0, 0);
-  
+
   /* check for magical walls, such as wall of force (also death from wall damage) */
   if (check_wall(ch, dir)) /* true = wall stopped ch somehow */
     return (0);
-  
+
   /* a silly zusuk dummy check */
   update_pos(ch);
   if (GET_POS(ch) <= POS_STUNNED) {
@@ -821,6 +821,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /* move points needed is avg. move loss for src and destination sect type */
   need_movement = (movement_loss[SECT(was_in)] +
           movement_loss[SECT(going_to)]) / 2;
+
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
+    need_movement--;
 
   /* if in "spot-mode" double cost of movement */
   if (AFF_FLAGGED(ch, AFF_SPOT))
@@ -882,7 +885,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /*****/
   /* Generate the leave message(s) and display to others in the was_in room. */
   /*****/
-  
+
   /* silly to keep people reclining when they leave a room */
   if (GET_POS(ch) == POS_RECLINING) {
     send_to_char(ch, "You move from a crawling position to standing as you leave the area.\r\n");
@@ -1124,8 +1127,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
   /* Leave tracks, if not riding. */
 /*  if (!riding) {
-    sprintf(buf3, "%d \"%s\" \"%s\" %s", 6, 
-                                 (IS_NPC(ch) ? npc_race_types[GET_NPC_RACE(ch)] : pc_race_types[GET_RACE(ch)]), 
+    sprintf(buf3, "%d \"%s\" \"%s\" %s", 6,
+                                 (IS_NPC(ch) ? npc_race_types[GET_NPC_RACE(ch)] : pc_race_types[GET_RACE(ch)]),
                                  GET_NAME(ch),
                                  dirs[dir]);
     NEW_EVENT(eTRACKS, &world[IN_ROOM(ch)],buf3, 60 RL_SEC);
@@ -1153,7 +1156,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
     X_LOC(RIDDEN_BY(ch)) = new_x;
     Y_LOC(RIDDEN_BY(ch)) = new_y;
- 
+
     char_to_room(RIDDEN_BY(ch), ch->in_room);
   }
   /*---------------------------------------------------------------------*/
@@ -1168,7 +1171,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
    * job to provide a message to the original was_in room. */
   if (!entry_mtrigger(ch) || !enter_wtrigger(&world[going_to], ch, dir)) {
     char_from_room(ch);
-    
+
     if(ZONE_FLAGGED(GET_ROOM_ZONE(was_in), ZONE_WILDERNESS)) {
         X_LOC(ch) = world[was_in].coords[0];
         Y_LOC(ch) = world[was_in].coords[1];
@@ -1200,7 +1203,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
 
   /* char moved from room, so shift everything around */
-  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE) && 
+  if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE) &&
           !is_top_of_room_for_singlefile(ch, rev_dir[dir])) {
     world[ch->in_room].people = ch->next_in_room;
     prev = &world[ch->in_room].people;
@@ -1329,7 +1332,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     char_to_room(ch, was_in);
     return 0;
   }
-  
+
   /* spike growth damages upon entering the room */
   if (ROOM_AFFECTED(going_to, RAFF_SPIKE_STONES)) {
     /* only damage the character if they're not mounted (mount takes damage) */
@@ -1342,7 +1345,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
       // mount is not there, or not mounted
       damage(ch, ch, dice(4, 4), SPELL_SPIKE_STONES, DAM_EARTH, FALSE);
       send_to_char(ch, "You are impaled by large stone spikes as you enter the room.\r\n");
-    }    
+    }
   }
   if (ROOM_AFFECTED(going_to, RAFF_SPIKE_GROWTH)) {
     /* only damage the character if they're not mounted (mount takes damage) */
@@ -1367,14 +1370,14 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
       death_cry(ch);
       extract_char(ch);
     }
-    
+
     if (riding && GET_LEVEL(RIDING(ch)) < LVL_IMMORT) {
       mudlog(BRF, LVL_IMMORT, TRUE, "%s hit death trap #%d (%s)",
      GET_NAME(RIDING(ch)), GET_ROOM_VNUM(going_to), world[going_to].name);
       death_cry(RIDING(ch));
       extract_char(RIDING(ch));
     }
-    
+
     if (ridden_by && GET_LEVEL(RIDDEN_BY(ch)) < LVL_IMMORT) {
       mudlog(BRF, LVL_IMMORT, TRUE, "%s hit death trap #%d (%s)",
      GET_NAME(RIDDEN_BY(ch)), GET_ROOM_VNUM(going_to), world[going_to].name);
@@ -1387,7 +1390,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
 
   /* At this point, the character is safe and in the room. */
-  
+
   /* Fire memory and greet triggers, check and see if the greet trigger
    * prevents movement, and if so, move the player back to the previous room. */
   entry_memory_mtrigger(ch);
@@ -1412,7 +1415,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
   /* Only here is the move successful *and* complete. Return success for
    * calling functions to handle post move operations. */
-  
+
   /* homeland-port */
   if (IS_NPC(ch))
     quest_room(ch);
@@ -1427,7 +1430,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
         perform_detecttrap(ch, TRUE); /* silent */
     }
   }
-  
+
   return (1);
 }
 
@@ -1452,7 +1455,7 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check) {
       send_to_char(ch, "It seems to be closed.\r\n");
   } else {
 
-    /* This was tricky - buildwalk for normal rooms is only activated above.  
+    /* This was tricky - buildwalk for normal rooms is only activated above.
      * for wilderness rooms we need to activate it here. */
     if(ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
       buildwalk(ch, dir);
@@ -1478,13 +1481,13 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check) {
 }
 
 ACMD(do_move) {
-  
+
   /* this test added for newer reclining position */
   if (GET_POS(ch) == POS_SITTING || GET_POS(ch) == POS_RESTING) {
     send_to_char(ch, "You have to be standing or reclining to move.\r\n");
     return;
   }
-  
+
   /* These subcmd defines are mapped precisely to the direction defines. */
   perform_move(ch, subcmd, 0);
 }
@@ -1681,7 +1684,7 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
       if (back)
         TOGGLE_LOCK(other_room, obj, rev_dir[door]);
       send_to_char(ch, "The lock quickly yields to your skills.\r\n");
-      len = strlcpy(buf, "$n skillfully picks the lock on ", sizeof (buf));      
+      len = strlcpy(buf, "$n skillfully picks the lock on ", sizeof (buf));
       break;
   }
 
@@ -1799,7 +1802,7 @@ ACMD(do_enter) {
   room_rnum was_in = NOWHERE, real_dest = NOWHERE;
   struct follow_type *k = NULL;
   struct obj_data *portal = NULL;
-  //room_vnum vClanhall = NOWHERE; 
+  //room_vnum vClanhall = NOWHERE;
   //int iPlayerClan = 0;
   //room_rnum rClanhall = 0;
 
@@ -1851,7 +1854,7 @@ ACMD(do_enter) {
 
                   ((IS_BARD(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_BARD))) ||
-                  
+
                   ((IS_WARRIOR(ch)) &&
                   (OBJ_FLAGGED(portal, ITEM_ANTI_WARRIOR)))
                   ) {
@@ -1899,31 +1902,31 @@ ACMD(do_enter) {
           break;
 
           /*
-                  case PORTAL_CLANHALL: 
-                    iPlayerClan = GET_CLAN(ch); 
+                  case PORTAL_CLANHALL:
+                    iPlayerClan = GET_CLAN(ch);
 
-                    if (iPlayerClan <= 0) { 
-                      send_to_char(ch, "You try to enter the portal, but it returns you back to the same room!\n\r"); 
-                      return; 
-                    } 
+                    if (iPlayerClan <= 0) {
+                      send_to_char(ch, "You try to enter the portal, but it returns you back to the same room!\n\r");
+                      return;
+                    }
 
-                    if (GET_CLANHALL_ZONE(ch) == NOWHERE) { 
-                      send_to_char(ch, "Your clan does not have a clanhall!\n\r"); 
-                      log("[PORTAL] Clan Portal - No clanhall (Player: %s, Clan ID: %d)", GET_NAME(ch), iPlayerClan); 
-                      return; 
-                    } 
+                    if (GET_CLANHALL_ZONE(ch) == NOWHERE) {
+                      send_to_char(ch, "Your clan does not have a clanhall!\n\r");
+                      log("[PORTAL] Clan Portal - No clanhall (Player: %s, Clan ID: %d)", GET_NAME(ch), iPlayerClan);
+                      return;
+                    }
 
-                    vClanhall = (GET_CLANHALL_ZONE(ch) * 100) + 1; 
-                    rClanhall = real_room(vClanhall); 
+                    vClanhall = (GET_CLANHALL_ZONE(ch) * 100) + 1;
+                    rClanhall = real_room(vClanhall);
 
-                    if (rClanhall == NOWHERE ) { 
-                      send_to_char(ch, "Your clanhall is currently broken - contact an Imm!\n\r"); 
-                      log("[PORTAL] Clan Portal failed (Player: %s, Clan ID: %d)", GET_NAME(ch), iPlayerClan); 
-                      return; 
-                    } 
-          
-                    portal_dest = vClanhall; 
-                    break; 
+                    if (rClanhall == NOWHERE ) {
+                      send_to_char(ch, "Your clanhall is currently broken - contact an Imm!\n\r");
+                      log("[PORTAL] Clan Portal failed (Player: %s, Clan ID: %d)", GET_NAME(ch), iPlayerClan);
+                      return;
+                    }
+
+                    portal_dest = vClanhall;
+                    break;
            */
 
         case PORTAL_RANDOM:
@@ -1960,7 +1963,7 @@ ACMD(do_enter) {
           return;
           break;
       }
-      
+
       if ((real_dest = real_room(portal_dest)) == NOWHERE) {
         send_to_char(ch, "The portal appears to be a vacuum!\r\n");
         return;
@@ -2136,7 +2139,7 @@ ACMD(do_stand) {
               TRUE, ch, 0, 0, TO_ROOM);
       GET_POS(ch) = POS_STANDING;
       break;
-  }  
+  }
 }
 
 ACMD(do_sit) {

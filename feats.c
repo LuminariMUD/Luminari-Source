@@ -663,15 +663,18 @@ void assign_feats(void) {
   /* uncanny dodge above (shared with rogue) */
   /* improved uncanny dodge above (shared with rogue) */
   /* trap sense above (shared with rogue) */
-  feato(FEAT_RAGE, "rage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "+4 bonus to con, str, and will for several rounds",
-    "+4 bonus to constitution, strength and will-saves, but 2 penalty to AC, for "
-      "(2 * constitution-bonus + 6) rounds");
+  feato(FEAT_INDOMITABLE_WILL, "indomitable will", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "bonus to will save while raging",
+    "While in rage, gain a +4 bonus on Will saves");
   feato(FEAT_SHRUG_DAMAGE, "shrug damage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
     "Shrug off damage, grants damage reduction",
     "Your extensive training and violent lifestyle allow you to shrug off a "
       "portion of incoming damage.  This ability grants you DR 1/- for every 3"
       "berserker levels, starting at level 4.");
+  feato(FEAT_RAGE, "rage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "+4 bonus to con, str, and will for several rounds",
+    "+4 bonus to constitution, strength and will-saves, but 2 penalty to AC, for "
+      "(2 * constitution-bonus + 6) rounds");
   feato(FEAT_GREATER_RAGE, "greater rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "+6 to str, con, and will when raging",
     "+6 to strength, constitution, and will-saves when raging");
@@ -681,10 +684,43 @@ void assign_feats(void) {
   feato(FEAT_INDOMITABLE_RAGE, "indomitable rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "+12 to str, con and will when raging",
     "+12 to strength, constitution, and will-saves when raging");
-
-  feato(FEAT_INDOMITABLE_WILL, "indomitable will", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_TIRELESS_RAGE, "tireless rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "no fatigue after raging", "no fatigue after raging");
-  feato(FEAT_FAST_MOVEMENT, "fast movement", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "10ft bonus to speed in light or medium armor", "10ft bonus to speed in light or medium armor");
+  feato(FEAT_TIRELESS_RAGE, "tireless rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "no fatigue after raging",
+    "no fatigue after raging");
+  /*temporary mechanic*/feato(FEAT_FAST_MOVEMENT, "fast movement", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "reduces movement usage, and increases movement regen",
+    "Reduces movement usage, and increases movement regeneration.  This is a temporary mechanic.");
+  /*rage powers*/
+  feato(FEAT_RP_SUPRISE_ACCURACY, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "bonus hitroll once/rage",
+    "Gain a +1 morale bonus on one attack roll.  This bonus increases by +1 for "
+      "every 4 berserker levels attained. This power is used as a swift action.  This power "
+      "can only be used once per rage.");
+  feato(FEAT_RP_POWERFUL_BLOW, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "bonus damage once/rage",
+    "Gain a +1 bonus on a single damage roll. This bonus increases by +1 for "
+      "every 4 berserker levels attained. This power is used as a swift action.  "
+      "This power can only be used once per rage.");
+  feato(FEAT_RP_RENEWED_VIGOR, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "able to heal while raging",
+    "As a standard action, the berserker heals 3d8 points of damage + her "
+      "Constitution modifier. For every four levels the berserker has attained "
+      "above 4th, this amount of damage healed increases by 1d8, to a maximum "
+      "of 8d8.  This power can be used only once per day and only while raging.");
+  feato(FEAT_RP_HEAVY_SHRUG, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "increased DR while raging",
+    "The berserker's damage reduction increases by 3/—. This increase is always "
+      "active while the berserker is raging.");
+  feato(FEAT_RP_FEARLESS_RAGE, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "fearless while raging",
+    "While raging, the berserker is immune to the shaken and frightened conditions. ");
+  feato(FEAT_RP_COME_AND_GET_ME, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "take it, but dish it out heavy",
+    "While raging, as a free action the berserker may leave herself open to "
+      "attack while preparing devastating counterattacks. Enemies gain a +4 bonus "
+      "on attack and damage rolls against the berserker until the beginning of "
+      "her next turn, but every attack against the berserker provokes an attack "
+      "of opportunity from her, which is resolved prior to resolving each enemy attack. ");
 
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "summon a magical pet", "summon a magical pet");

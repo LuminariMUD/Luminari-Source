@@ -1554,6 +1554,8 @@ ACMD(do_rage) {
   afthree.duration = duration;
   afthree.location = APPLY_SAVING_WILL;
   afthree.modifier = bonus;
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_INDOMITABLE_WILL))
+    afthree.modifier += 4;
 
   //this is a penalty
   affour.spell = SKILL_RAGE;
@@ -1569,7 +1571,9 @@ ACMD(do_rage) {
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_RAGE);
 
-  USE_STANDARD_ACTION(ch);
+  if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_BERSERKER) < 1) {
+    USE_STANDARD_ACTION(ch);
+  }
 }
 #undef RAGE_AFFECTS
 
