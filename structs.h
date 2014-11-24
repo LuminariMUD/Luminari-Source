@@ -1323,10 +1323,11 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_SHIELD_SLAM         371
 #define FEAT_SPELLBATTLE         372
 #define FEAT_APPLY_POISON        373
-#define FEAT_DIRT_KICK        374
+#define FEAT_DIRT_KICK           374
+#define FEAT_INDOMITABLE_RAGE    375
 
-#define FEAT_LAST_FEAT           375
-#define NUM_FEATS                376
+#define FEAT_LAST_FEAT           376
+#define NUM_FEATS                377
 
 #define MAX_FEATS                750
 

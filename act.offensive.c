@@ -290,6 +290,11 @@ void perform_rage(struct char_data *ch) {
     return;
   }
 
+  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
+    send_to_char(ch, "You are are too fatigued to rage!\r\n");
+    return;
+  }
+
   if (affected_by_spell(ch, SKILL_RAGE)) {
     send_to_char(ch, "You are already raging!\r\n");
     return;
@@ -298,8 +303,15 @@ void perform_rage(struct char_data *ch) {
   if (IS_NPC(ch) || IS_MORPHED(ch)) {
     bonus = (GET_LEVEL(ch) / 3) + 3;
   } else {
-    bonus = (CLASS_LEVEL(ch, CLASS_BERSERKER) / 3) + 3;
+    bonus = 4;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_RAGE))
+      bonus += 2;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MIGHTY_RAGE))
+      bonus += 3;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_INDOMITABLE_RAGE))
+      bonus += 3;
   }
+  
   duration = 6 + GET_CON_BONUS(ch) * 2;
 
   send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
@@ -324,7 +336,7 @@ void perform_rage(struct char_data *ch) {
 
   //this is a penalty
   af[3].location = APPLY_AC_NEW;
-  af[3].modifier = -(bonus / 2);
+  af[3].modifier = -2;
 
   for (i = 0; i < RAGE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);

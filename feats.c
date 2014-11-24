@@ -545,7 +545,7 @@ void assign_feats(void) {
   feat_prereq_class_level(FEAT_SNEAK_ATTACK, CLASS_ROGUE, 2);
 
 
-  /* Rogue / Barbarian */
+  /* Rogue / Berserker */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_TRAP_SENSE, "trap sense", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
      "auto-sense traps",
@@ -659,21 +659,31 @@ void assign_feats(void) {
   feato(FEAT_INSPIRE_COURAGE, "inspire courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Bolster group members against fear attacks and improve their combat ability.", "Bolster group members against fear attacks and improve their combat ability.");
 
   /* Berserker */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* uncanny dodge above (shared with rogue) */
   /* improved uncanny dodge above (shared with rogue) */
   /* trap sense above (shared with rogue) */
   feato(FEAT_RAGE, "rage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "+4 bonus to con and str for several rounds",
-    "+4 bonus to constitution and strength for several rounds");
+    "+4 bonus to con, str, and will for several rounds",
+    "+4 bonus to constitution, strength and will-saves, but 2 penalty to AC, for "
+      "(2 * constitution-bonus + 6) rounds");
   feato(FEAT_SHRUG_DAMAGE, "shrug damage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
     "Shrug off damage, grants damage reduction",
     "Your extensive training and violent lifestyle allow you to shrug off a "
       "portion of incoming damage.  This ability grants you DR 1/- for every 3"
       "berserker levels, starting at level 4.");
-  feato(FEAT_GREATER_RAGE, "greater rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+6 to str and con when raging", "+6 to str and con when raging");
+  feato(FEAT_GREATER_RAGE, "greater rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+6 to str, con, and will when raging",
+    "+6 to strength, constitution, and will-saves when raging");
+  feato(FEAT_MIGHTY_RAGE, "mighty rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+9 to str, con and will when raging",
+    "+9 to strength, constitution, and will-saves when raging");
+  feato(FEAT_INDOMITABLE_RAGE, "indomitable rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+12 to str, con and will when raging",
+    "+12 to strength, constitution, and will-saves when raging");
+
   feato(FEAT_INDOMITABLE_WILL, "indomitable will", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_TIRELESS_RAGE, "tireless rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "no fatigue after raging", "no fatigue after raging");
-  feato(FEAT_MIGHTY_RAGE, "mighty rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+8 str and con and +4 to will saves when raging", "+8 str and con and +4 to will saves when raging");
   feato(FEAT_FAST_MOVEMENT, "fast movement", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "10ft bonus to speed in light or medium armor", "10ft bonus to speed in light or medium armor");
 
   /* Sorcerer/Wizard */
