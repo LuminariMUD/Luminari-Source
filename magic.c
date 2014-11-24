@@ -232,14 +232,16 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
       break;
     case SKILL_RAGE:
       send_to_char(ch, "Your rage has calmed...\r\n");
-      if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_TIRELESS_RAGE)) {
+      if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_TIRELESS_RAGE) &&
+          !AFF_FLAGGED(ch, AFF_FATIGUED)) {
         struct affected_type af;
 
         send_to_char(ch, "You are left fatigued from the rage!\r\n");
+        new_affect(&af);
         af.spell = SKILL_RAGE;
         af.duration = 10;
         SET_BIT_AR(af.bitvector, AFF_FATIGUED);
-        affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+        affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
       }
       break;
     case SKILL_SPELLBATTLE:

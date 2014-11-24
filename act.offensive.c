@@ -311,7 +311,7 @@ void perform_rage(struct char_data *ch) {
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_INDOMITABLE_RAGE))
       bonus += 3;
   }
-  
+
   duration = 6 + GET_CON_BONUS(ch) * 2;
 
   send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
@@ -1478,15 +1478,31 @@ ACMD(do_turnundead) {
 
 /* rage skill (berserk) primarily for berserkers character class */
 ACMD(do_rage) {
-
   struct affected_type af, aftwo, afthree, affour;
-
   int bonus = 0, duration = 0, uses_remaining = 0;
 
-  if (affected_by_spell(ch, SKILL_RAGE)) {
-    send_to_char(ch, "You are already raging!\r\n");
+  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
+    send_to_char(ch, "You are are too fatigued to rage!\r\n");
     return;
   }
+
+  if (affected_by_spell(ch, SKILL_RAGE)) {
+    affect_from_char(ch, SKILL_RAGE);
+    send_to_char(ch, "You calm down from your rage...\r\n");
+    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_TIRELESS_RAGE) &&
+        !AFF_FLAGGED(ch, AFF_FATIGUED)) {
+      struct affected_type fatigued_af;
+
+      send_to_char(ch, "You are left fatigued from the rage!\r\n");
+      new_affect(&fatigued_af);
+      fatigued_af.spell = SKILL_RAGE;
+      fatigued_af.duration = 10;
+      SET_BIT_AR(fatigued_af.bitvector, AFF_FATIGUED);
+      affect_join(ch, &fatigued_af, 1, FALSE, FALSE, FALSE);
+    }
+    return;
+  }
+
   if (!IS_ANIMAL(ch)) {
     if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_RAGE)) {
       send_to_char(ch, "You don't know how to rage.\r\n");
@@ -1499,11 +1515,20 @@ ACMD(do_rage) {
     return;
   }
 
+  /* bonus */
   if (IS_NPC(ch) || IS_MORPHED(ch)) {
     bonus = (GET_LEVEL(ch) / 3) + 3;
   } else {
-    bonus = (CLASS_LEVEL(ch, CLASS_BERSERKER) / 3) + 3;
+    bonus = 4;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_RAGE))
+      bonus += 2;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MIGHTY_RAGE))
+      bonus += 3;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_INDOMITABLE_RAGE))
+      bonus += 3;
   }
+
+  /* duration */
   duration = 6 + GET_CON_BONUS(ch) * 2;
 
   send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
@@ -1534,7 +1559,7 @@ ACMD(do_rage) {
   affour.spell = SKILL_RAGE;
   affour.duration = duration;
   affour.location = APPLY_AC_NEW;
-  affour.modifier = -(bonus / 2);
+  affour.modifier = -2;
 
   affect_to_char(ch, &af);
   affect_to_char(ch, &aftwo);
@@ -1545,7 +1570,6 @@ ACMD(do_rage) {
     start_daily_use_cooldown(ch, FEAT_RAGE);
 
   USE_STANDARD_ACTION(ch);
-
 }
 #undef RAGE_AFFECTS
 
