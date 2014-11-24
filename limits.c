@@ -206,7 +206,7 @@ void mount_cleanup(struct char_data *ch) {
   }
 }
 
-/* a tick counter that checks for room-based hazards, like 
+/* a tick counter that checks for room-based hazards, like
  * falling/drowning/lava/etc */
 void hazard_tick(struct char_data *ch) {
   bool flying = FALSE;
@@ -247,7 +247,7 @@ void hazard_tick(struct char_data *ch) {
  *  other pulses.  The whole concept was created before I had
  *  a full grasp on the event system, otherwise it would have
  *  been implemented differently.  -Zusuk
- * 
+ *
  *  Also should be noted, its nice to keep this off-beat with
  *  PULSE_VIOLENCE, it has a little nicer feel to it
  */
@@ -330,7 +330,7 @@ void regen_update(struct char_data *ch) {
   // fighting in order that xp goes to the killer (who doesn't strike the last blow)
   // -zusuk
   if (AFF_FLAGGED(ch, AFF_POISON)) {
-    
+
     /* purity of body feat */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_PURITY_OF_BODY)) {
       send_to_char(ch, "Your purity of body purges the poison!\r\n");
@@ -341,7 +341,7 @@ void regen_update(struct char_data *ch) {
         REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POISON);
       return;
     }
-    
+
     if (FIGHTING(ch) || dice(1, 2) == 2) {
       for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
         if (!IS_NPC(tch) && FIGHTING(tch) == ch) {
@@ -350,13 +350,13 @@ void regen_update(struct char_data *ch) {
           break;
         }
       }
-      
+
       if (!found)
         damage(ch, ch, 1, SPELL_POISON, DAM_POISON, FALSE);
       update_pos(ch);
       return;
     }
-    
+
   } /* done dealing with poison */
 
   found = 0;
@@ -435,7 +435,10 @@ void regen_update(struct char_data *ch) {
   if (GET_MOVE(ch) > GET_MAX_MOVE(ch)) {
     GET_MOVE(ch)--;
   } else if (!AFF_FLAGGED(ch, AFF_FATIGUED)) {
-    GET_MOVE(ch) = MIN(GET_MOVE(ch) + (hp * 3), GET_MAX_MOVE(ch));
+    int move_regen = hp;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
+      move_regen++;
+    GET_MOVE(ch) = MIN(GET_MOVE(ch) + (move_regen * 3), GET_MAX_MOVE(ch));
   }
   if (GET_MANA(ch) > GET_MAX_MANA(ch)) {
     GET_MANA(ch)--;
