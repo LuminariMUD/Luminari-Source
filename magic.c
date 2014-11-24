@@ -232,6 +232,15 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
       break;
     case SKILL_RAGE:
       send_to_char(ch, "Your rage has calmed...\r\n");
+      if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_TIRELESS_RAGE)) {
+        struct affected_type af;
+
+        send_to_char(ch, "You are left fatigued from the rage!\r\n");
+        af.spell = SKILL_RAGE;
+        af.duration = 10;
+        SET_BIT_AR(af.bitvector, AFF_FATIGUED);
+        affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+      }
       break;
     case SKILL_SPELLBATTLE:
       send_to_char(ch, "Your spellbattle has faded...\r\n");
@@ -2356,7 +2365,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_INT;
       af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
-      
+
       accum_duration = TRUE;
       to_vict = "You feel more intelligent!";
       to_room = "$n's intelligence increases!";
@@ -2389,12 +2398,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[1].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[1].modifier = 2 + (CASTER_LEVEL(ch) / 5);
       af[1].bonus_type = BONUS_TYPE_ENHANCEMENT;
-      
+
       af[2].location = APPLY_CON;
       af[2].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[2].modifier = 2 + (CASTER_LEVEL(ch) / 5);
       af[2].bonus_type = BONUS_TYPE_ENHANCEMENT;
-      
+
       accum_duration = TRUE;
       to_vict = "You feel your physical atributes enhanced!";
       to_room = "$n's physical attributes are enhanced!";
