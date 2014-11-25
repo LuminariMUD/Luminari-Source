@@ -1726,7 +1726,7 @@ ACMD(do_abilities) {
                    feat_list[i].name, 
                    buf,               
                    (remaining > (total / 2) ? "\tn" :
-                     (remaining == 1 ? "\tR" : "\tY")), 
+                     (remaining <= 1 ? "\tR" : "\tY")), 
                    remaining, 
                    total);
     }
