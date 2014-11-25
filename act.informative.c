@@ -1696,15 +1696,37 @@ ACMD(do_gold) {
 ACMD(do_abilities) {
   char buf[MAX_STRING_LENGTH];
   int line_length = 80;
-  int i = 0;
+  int i = 0, remaining = 0, total = 0;  
   
   /* Set up the output. */
   send_to_char(ch, "\tC");
   text_line(ch, "\tYAbilities\tC", line_length, '-', '-');  
   send_to_char(ch, "\tn");
   for (i = 0; i < NUM_FEATS; i++) {
-    if (has_feat(ch, i) && is_daily_feat(i))
-      send_to_char(ch, "%-20s %-6s %2d/%-2d uses remaining\r\n", feat_list[i].name, "Racial", daily_uses_remaining(ch, i), get_daily_uses(ch, i));
+    if (has_feat(ch, i) && is_daily_feat(i)) {
+      switch (feat_list[i].feat_type) {
+        case FEAT_TYPE_CLASS_ABILITY:
+          sprintf(buf, "Class Ability");
+          break;
+        case FEAT_TYPE_INNATE_ABILITY:
+          sprintf(buf, "Innate Ability");
+          break;
+        default:
+          sprintf(buf, "Feat");
+          break;          
+      }
+      remaining = daily_uses_remaining(ch, i);
+      total = get_daily_uses(ch, i);
+      send_to_char(ch, 
+                   "%-20s %\tc-14s\tn %s%2d\tn/%-2d uses remaining\r\n", 
+                   feat_list[i].name, 
+                   buf,               
+                   (remaining > (total / 2) ? "\tn" :
+                     (remaining == 1 ? "\tR" : "\tY")), 
+                   remaining, 
+                   total);
+    }
+    buf[0] = '\0';
   }
   /* Close the output, reset the colors to prevent bleed. */
   send_to_char(ch, "\tC");
