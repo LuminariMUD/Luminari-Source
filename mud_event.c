@@ -41,8 +41,8 @@ struct mud_event_list mud_event_index[] = {
   { "Stunned", event_countdown, EVENT_CHAR}, //eSTUNNED
   { "Stunning fist", event_daily_use_cooldown, EVENT_CHAR}, //eSTUNNINGFIST
   { "Crafting", event_crafting, EVENT_CHAR}, //eCRAFTING
-  { "Crystal fist", event_countdown, EVENT_CHAR}, //eCRYSTALFIST
-  { "Crystal body", event_countdown, EVENT_CHAR}, //eCRYRSTALBODY
+  { "Crystal fist", event_daily_use_cooldown, EVENT_CHAR}, //eCRYSTALFIST
+  { "Crystal body", event_daily_use_cooldown, EVENT_CHAR}, //eCRYRSTALBODY
   { "Rage", event_countdown, EVENT_CHAR}, //eRAGE
   { "Acid arrow", event_acid_arrow, EVENT_CHAR}, //eACIDARROW
   { "Defensive Roll", event_countdown, EVENT_CHAR}, // eD_ROLL
@@ -280,6 +280,14 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eWILD_SHAPE:
       featnum = FEAT_WILD_SHAPE;
       send_to_char(ch, "You may assume your wild shape again.\r\n");
+      break;
+    case eCRYSTALBODY:
+      featnum = FEAT_CRYSTAL_BODY;
+      send_to_char(ch, "You may harden your crystalline body again.\r\n");
+      break;
+    case eCRYSTALFIST:
+      featnum = FEAT_CRYSTAL_FIST;
+      send_to_char(ch, "You may enhance your unarmed attacks again.\r\n");      
       break;
     default:
       break;

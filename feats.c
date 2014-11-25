@@ -1001,6 +1001,8 @@ void assign_feats(void) {
   dailyfeat(FEAT_TURN_UNDEAD, eTURN_UNDEAD);
   dailyfeat(FEAT_WILD_SHAPE, eWILD_SHAPE);
   dailyfeat(FEAT_QUIVERING_PALM, eQUIVERINGPALM);
+  dailyfeat(FEAT_CRYSTAL_BODY, eCRYSTALBODY);
+  dailyfeat(FEAT_CRYSTAL_FIST, eCRYSTALFIST);
 }
 
 /* Check to see if ch meets the provided feat prerequisite.
