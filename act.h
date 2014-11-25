@@ -308,6 +308,8 @@ ACMD(do_trip);
 ACMD(do_whirlwind);
 ACMD(do_crystalfist);
 ACMD(do_crystalbody);
+ACMD(do_supriseaccuracy);
+ACMD(do_powerfulblow);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c

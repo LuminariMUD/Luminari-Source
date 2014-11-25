@@ -19,8 +19,8 @@
 #include "actions.h"
 #include "act.h"
 
-/*  Attack action definitions - Define the relationships between 
- *  AA_XXXXX and do_XXXXX. */ 
+/*  Attack action definitions - Define the relationships between
+ *  AA_XXXXX and do_XXXXX. */
 
 void  (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
                                             char *argument,
@@ -34,6 +34,8 @@ void  (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
   do_kick,          /* AA_KICK */
   do_shieldpunch,   /* AA_SHIELDPUNCH */
   do_quiveringpalm, /* AA_QUIVERINGPALM */
+  do_supriseaccuracy, /* AA_SUPRISE_ACCURACY */
+  do_powerfulblow,  /* AA_POWERFUL_BLOW */
 };
 
 
@@ -116,7 +118,7 @@ bool is_action_available(struct char_data * ch, action_type act_type, bool msg_t
                         result = FALSE;
                 } else
                         result = TRUE;
- 
+
         }
 	return result;
 };

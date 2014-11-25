@@ -14,8 +14,10 @@
 #define AA_KICK            5
 #define AA_SHIELDPUNCH     6
 #define AA_QUIVERINGPALM   7
+#define AA_SUPRISE_ACCURACY 8
+#define AA_POWERFUL_BLOW   9
 /**/
-#define NUM_ATTACK_ACTIONS 8
+#define NUM_ATTACK_ACTIONS 10
 /**************************/
 
 #define USE_STANDARD_ACTION(ch)   start_action_cooldown(ch, atSTANDARD, 6 RL_SEC)
