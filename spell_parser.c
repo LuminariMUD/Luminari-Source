@@ -2775,6 +2775,7 @@ void mag_assign_spells(void) {
   skillo(SKILL_QUIVERING_PALM, "quivering palm", ACTIVE_SKILL); //528
   skillo(SKILL_SUPRISE_ACCURACY, "suprise accuracy", ACTIVE_SKILL); //529
   skillo(SKILL_POWERFUL_BLOW, "powerful blow", ACTIVE_SKILL); //530
+  skillo(SKILL_RAGE_FATIGUE, "rage fatigue", ACTIVE_SKILL); //531
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 
