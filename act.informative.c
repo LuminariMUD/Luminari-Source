@@ -1703,7 +1703,7 @@ ACMD(do_abilities) {
   text_line(ch, "\tYAbilities\tC", line_length, '-', '-');  
   send_to_char(ch, "\tn");
   for (i = 0; i < NUM_FEATS; i++) {
-    if (is_daily_feat(i))
+    if (has_feat(ch, i) && is_daily_feat(i))
       send_to_char(ch, "%-20s %-6s %2d/%-2d uses remaining", feat_list[i].name, "Racial", daily_uses_remaining(ch, i), get_daily_uses(ch, i));
   }
   /* Close the output, reset the colors to prevent bleed. */
