@@ -301,10 +301,10 @@ int load_char(const char *name, struct char_data *ch) {
     for (i = 0; i < NUM_SKFEATS; i++)
       for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++)
         ch->player_specials->saved.skill_focus[i][j - MAX_SPELLS + 1] = 0;
-    for (i = 0; i < NUM_CFEATS; i++) 
+    for (i = 0; i < NUM_CFEATS; i++)
       for (j = 0; j < FT_ARRAY_MAX; j++)
         ch->char_specials.saved.combat_feats[i][j] = 0;
-   
+
     for (i = 0; i < NUM_SFEATS; i++)
       ch->char_specials.saved.school_feats[i] = 0;
 
@@ -382,7 +382,7 @@ int load_char(const char *name, struct char_data *ch) {
     GET_SALVATION_NAME(ch) = NULL;
     GUARDING(ch) = NULL;
     GET_TOTAL_AOO(ch) = 0;
-    GET_ACCOUNT_NAME(ch) = NULL; 
+    GET_ACCOUNT_NAME(ch) = NULL;
     LEVELUP(ch) = NULL;
     GET_DR(ch) = NULL;
     GET_DIPTIMER(ch) = PFDEF_DIPTIMER;
@@ -459,7 +459,7 @@ int load_char(const char *name, struct char_data *ch) {
           else if (!strcmp(tag, "Cha ")) GET_REAL_CHA(ch) = atoi(line);
           else if (!strcmp(tag, "Clas")) GET_CLASS(ch) = atoi(line);
           else if (!strcmp(tag, "Con ")) GET_REAL_CON(ch) = atoi(line);
-          else if (!strcmp(tag, "CLoc")) load_coord_location(fl, ch); 
+          else if (!strcmp(tag, "CLoc")) load_coord_location(fl, ch);
           else if (!strcmp(tag, "CLvl")) load_class_level(fl, ch);
           else if (!strcmp(tag, "Cln ")) GET_CLAN(ch) = atoi(line);
           else if (!strcmp(tag, "Clrk")) GET_CLANRANK(ch) = atoi(line);
@@ -669,7 +669,7 @@ int load_char(const char *name, struct char_data *ch) {
   }
   fclose(fl);
   return (id);
-}                    
+}
 
 /* Write the vital data of a player to the player file. */
 
@@ -742,22 +742,22 @@ void save_char(struct char_data * ch, int mode) {
     }
   }
 
-  /* Save off the dr since that is attached to affects (i.e. stoneskin will 
-   * create a dr structure that is loosely coupled to the affect for the spell.  
-   * If the spell affect is removed, however, the stoneskin dr is dropped.) 
+  /* Save off the dr since that is attached to affects (i.e. stoneskin will
+   * create a dr structure that is loosely coupled to the affect for the spell.
+   * If the spell affect is removed, however, the stoneskin dr is dropped.)
    * This only counts for dr where spell is != 0. */
   for (cur_dr = GET_DR(ch); cur_dr != NULL; cur_dr = cur_dr->next) {
     if (cur_dr->spell != 0) {
-      
+
       struct damage_reduction_type *tmp;
-      
+
       CREATE(tmp, struct damage_reduction_type, 1);
-      *tmp = *cur_dr;          
-      tmp->next = tmp_dr;        
+      *tmp = *cur_dr;
+      tmp->next = tmp_dr;
       tmp_dr = tmp;
-    }      
+    }
   }
-  
+
   /* Remove the affections so that the raw values are stored; otherwise the
    * effects are doubled when the char logs back in. */
 
@@ -837,46 +837,46 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_SAVE(ch, 4) != PFDEF_SAVETHROW) fprintf(fl, "Thr5: %d\n", GET_SAVE(ch, 4));
 
   if (GET_RESISTANCES(ch, 1) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res1: %d\n", GET_RESISTANCES(ch, 1));    
+    fprintf(fl, "Res1: %d\n", GET_RESISTANCES(ch, 1));
   if (GET_RESISTANCES(ch, 2) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res2: %d\n", GET_RESISTANCES(ch, 2));    
+    fprintf(fl, "Res2: %d\n", GET_RESISTANCES(ch, 2));
   if (GET_RESISTANCES(ch, 3) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res3: %d\n", GET_RESISTANCES(ch, 3));    
+    fprintf(fl, "Res3: %d\n", GET_RESISTANCES(ch, 3));
   if (GET_RESISTANCES(ch, 4) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res4: %d\n", GET_RESISTANCES(ch, 4));    
+    fprintf(fl, "Res4: %d\n", GET_RESISTANCES(ch, 4));
   if (GET_RESISTANCES(ch, 5) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res5: %d\n", GET_RESISTANCES(ch, 5));    
+    fprintf(fl, "Res5: %d\n", GET_RESISTANCES(ch, 5));
   if (GET_RESISTANCES(ch, 6) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res6: %d\n", GET_RESISTANCES(ch, 6));    
+    fprintf(fl, "Res6: %d\n", GET_RESISTANCES(ch, 6));
   if (GET_RESISTANCES(ch, 7) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res7: %d\n", GET_RESISTANCES(ch, 7));    
+    fprintf(fl, "Res7: %d\n", GET_RESISTANCES(ch, 7));
   if (GET_RESISTANCES(ch, 8) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res8: %d\n", GET_RESISTANCES(ch, 8));    
+    fprintf(fl, "Res8: %d\n", GET_RESISTANCES(ch, 8));
   if (GET_RESISTANCES(ch, 9) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res9: %d\n", GET_RESISTANCES(ch, 9));    
+    fprintf(fl, "Res9: %d\n", GET_RESISTANCES(ch, 9));
   if (GET_RESISTANCES(ch, 10) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResA: %d\n", GET_RESISTANCES(ch, 10));    
+    fprintf(fl, "ResA: %d\n", GET_RESISTANCES(ch, 10));
   if (GET_RESISTANCES(ch, 11) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResB: %d\n", GET_RESISTANCES(ch, 11));    
+    fprintf(fl, "ResB: %d\n", GET_RESISTANCES(ch, 11));
   if (GET_RESISTANCES(ch, 12) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResC: %d\n", GET_RESISTANCES(ch, 12));    
+    fprintf(fl, "ResC: %d\n", GET_RESISTANCES(ch, 12));
   if (GET_RESISTANCES(ch, 13) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResD: %d\n", GET_RESISTANCES(ch, 13));    
+    fprintf(fl, "ResD: %d\n", GET_RESISTANCES(ch, 13));
   if (GET_RESISTANCES(ch, 14) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResE: %d\n", GET_RESISTANCES(ch, 14));    
+    fprintf(fl, "ResE: %d\n", GET_RESISTANCES(ch, 14));
   if (GET_RESISTANCES(ch, 15) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResF: %d\n", GET_RESISTANCES(ch, 15));    
+    fprintf(fl, "ResF: %d\n", GET_RESISTANCES(ch, 15));
   if (GET_RESISTANCES(ch, 16) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResG: %d\n", GET_RESISTANCES(ch, 16));    
+    fprintf(fl, "ResG: %d\n", GET_RESISTANCES(ch, 16));
   if (GET_RESISTANCES(ch, 17) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResH: %d\n", GET_RESISTANCES(ch, 17));    
+    fprintf(fl, "ResH: %d\n", GET_RESISTANCES(ch, 17));
   if (GET_RESISTANCES(ch, 18) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResI: %d\n", GET_RESISTANCES(ch, 18));    
+    fprintf(fl, "ResI: %d\n", GET_RESISTANCES(ch, 18));
   if (GET_RESISTANCES(ch, 19) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResJ: %d\n", GET_RESISTANCES(ch, 19));    
+    fprintf(fl, "ResJ: %d\n", GET_RESISTANCES(ch, 19));
   if (GET_RESISTANCES(ch, 20) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResK: %d\n", GET_RESISTANCES(ch, 20));    
-  
+    fprintf(fl, "ResK: %d\n", GET_RESISTANCES(ch, 20));
+
   if (GET_WIMP_LEV(ch) != PFDEF_WIMPLEV) fprintf(fl, "Wimp: %d\n", GET_WIMP_LEV(ch));
   if (GET_FREEZE_LEV(ch) != PFDEF_FREEZELEV) fprintf(fl, "Frez: %d\n", GET_FREEZE_LEV(ch));
   if (GET_INVIS_LEV(ch) != PFDEF_INVISLEV) fprintf(fl, "Invs: %d\n", GET_INVIS_LEV(ch));
@@ -889,7 +889,7 @@ void save_char(struct char_data * ch, int mode) {
 
   if (GET_FEAT_POINTS(ch) != 0) fprintf(fl, "Ftpt: %d\n", GET_FEAT_POINTS(ch));
 
-  fprintf(fl, "Cfpt:\n");  
+  fprintf(fl, "Cfpt:\n");
   for(i = 0; i < NUM_CLASSES; i++)
     if (GET_CLASS_FEATS(ch, i) != 0) fprintf(fl, "%d %d\n", i, GET_CLASS_FEATS(ch, i));
   fprintf(fl, "0\n");
@@ -897,10 +897,10 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_EPIC_FEAT_POINTS(ch) != 0) fprintf(fl, "Efpt: %d\n", GET_EPIC_FEAT_POINTS(ch));
 
   fprintf(fl, "Ecfp:\n");
-  for(i = 0; i < NUM_CLASSES; i++) 
+  for(i = 0; i < NUM_CLASSES; i++)
     if (GET_EPIC_CLASS_FEATS(ch, i) != 0) fprintf(fl, "%d %d\n", i, GET_EPIC_CLASS_FEATS(ch, i));
   fprintf(fl, "0\n");
-  
+
 
   if (GET_COND(ch, HUNGER) != PFDEF_HUNGER && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Hung: %d\n", GET_COND(ch, HUNGER));
   if (GET_COND(ch, THIRST) != PFDEF_THIRST && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Thir: %d\n", GET_COND(ch, THIRST));
@@ -1003,11 +1003,11 @@ void save_char(struct char_data * ch, int mode) {
   fprintf(fl, "SklF:\n");
   for (i = 0; i < NUM_SKFEATS; i++)
     for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++) {
-      for (k = 0; k < ch->player_specials->saved.skill_focus[i][j-MAX_SPELLS + 1]; k++) 
+      for (k = 0; k < ch->player_specials->saved.skill_focus[i][j-MAX_SPELLS + 1]; k++)
         fprintf(fl, "%d %d\n", i, j);
   }
   fprintf(fl, "0\n");
-                   
+
   /* Save feats */
   fprintf(fl, "Feat:\n");
   for (i = 1; i <= NUM_FEATS; i++) {
@@ -1118,6 +1118,10 @@ void save_char(struct char_data * ch, int mode) {
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eSTUNNINGFIST)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eSUPRISE_ACCURACY)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, ePOWERFUL_BLOW)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eD_ROLL)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, ePURIFY)))
@@ -1141,40 +1145,40 @@ void save_char(struct char_data * ch, int mode) {
     for (i = 0; i < MAX_AFFECT; i++) {
       aff = &tmp_aff[i];
       if (aff->spell)
-        fprintf(fl, 
-                "%d %d %d %d %d %d %d %d %d\n", 
-                aff->spell, 
+        fprintf(fl,
+                "%d %d %d %d %d %d %d %d %d\n",
+                aff->spell,
                 aff->duration,
-                aff->modifier, 
-                aff->location, 
-                aff->bitvector[0], 
-                aff->bitvector[1], 
-                aff->bitvector[2], 
+                aff->modifier,
+                aff->location,
+                aff->bitvector[0],
+                aff->bitvector[1],
+                aff->bitvector[2],
                 aff->bitvector[3],
                 aff->bonus_type);
     }
     fprintf(fl, "0 0 0 0 0 0 0 0 0\n");
   }
-  
+
   /* Save Damage Reduction */
-  if ((tmp_dr != NULL) || (GET_DR(ch) != NULL)) {    
+  if ((tmp_dr != NULL) || (GET_DR(ch) != NULL)) {
     struct damage_reduction_type *dr;
     int k = 0;
-    
+
     fprintf(fl, "DmgR:\n");
     /* DR from affects...*/
     for(dr = tmp_dr; dr != NULL; dr = dr->next) {
       fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++) {
         fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
-      }      
+      }
     }
     /* Permanent DR. */
     for(dr = GET_DR(ch); dr != NULL; dr = dr->next) {
         fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++) {
         fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
-      }      
+      }
     }
     fprintf(fl, "0 0 0 0 0\n");
   }
@@ -1195,7 +1199,7 @@ void save_char(struct char_data * ch, int mode) {
     tmp_dr->next = GET_DR(ch);
     GET_DR(ch) = tmp_dr;
   }
-  
+
   for (i = 0; i < NUM_WEARS; i++) {
     if (char_eq[i])
 #ifndef NO_EXTRANEOUS_TRIGGERS
@@ -1340,19 +1344,19 @@ static void load_dr(FILE* f1, struct char_data *ch) {
   int i, num, num2, num3, num4, num5, n_vars;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do {    
+  do {
     get_line(f1, line);
     n_vars = sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
     if (num > 0) {
       /* Set the DR data.*/
       CREATE(dr, struct damage_reduction_type, 1);
-    
+
       if (n_vars == 5) {
         dr->amount     = num2;
         dr->max_damage = num3;
         dr->spell      = num4;
         dr->feat       = num5;
-      
+
         for (i = 0; i < MAX_DR_BYPASS; i++) {
           get_line(f1, line);
           n_vars = sscanf(line, "%d %d", &num2, &num3);
@@ -1361,15 +1365,15 @@ static void load_dr(FILE* f1, struct char_data *ch) {
             dr->bypass_val[i] = num3;
           } else {
             log("SYSERR: Invalid dr bypass in pfile (%s), expecting 2 values", GET_NAME(ch));
-          }        
-        }      
+          }
+        }
         dr->next = GET_DR(ch);
         GET_DR(ch) = dr;
       } else {
         log("SYSERR: Invalid dr in pfile (%s), expecting 5 values", GET_NAME(ch));
-      }      
-    } 
-  } while (num != 0); 
+      }
+    }
+  } while (num != 0);
 }
 
 /* load_affects function now handles both 32-bit and
@@ -1607,26 +1611,26 @@ void load_class_feat_points(FILE *fl, struct char_data *ch)
 
     if((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
       return;
-    GET_CLASS_FEATS(ch, cls) = pts;    
+    GET_CLASS_FEATS(ch, cls) = pts;
   } while(1);
 
 }
 
 void load_epic_class_feat_points(FILE *fl, struct char_data *ch)
 {
-  
+
   int cls = 0, pts = 0, num_fields = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
     get_line(fl, line);
-    
+
     if((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
       return;
     GET_EPIC_CLASS_FEATS(ch, cls) = pts;
   } while(1);
 
-} 
+}
 
 void load_skill_focus(FILE *fl, struct char_data *ch)
 {
@@ -1640,7 +1644,7 @@ void load_skill_focus(FILE *fl, struct char_data *ch)
       if(skfeat == 0)
         /* exit condition */
         return;
-      
+
       /* Old version. */
       skill = skfeat;
       skfeat = 0;

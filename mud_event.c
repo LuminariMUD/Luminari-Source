@@ -37,9 +37,9 @@ struct mud_event_list mud_event_index[] = {
   { "Hellball", event_countdown, EVENT_CHAR}, // eHELLBALL
   { "Epic mage armor", event_countdown, EVENT_CHAR}, // eEPICMAGEARMOR
   { "Epic warding", event_countdown, EVENT_CHAR}, // eEPICWARDING
-  { "Memorizing", event_memorizing, EVENT_CHAR}, //eMEMORIZING 
+  { "Memorizing", event_memorizing, EVENT_CHAR}, //eMEMORIZING
   { "Stunned", event_countdown, EVENT_CHAR}, //eSTUNNED
-  { "Stunning fist", event_daily_use_cooldown, EVENT_CHAR}, //eSTUNNINGFIST 
+  { "Stunning fist", event_daily_use_cooldown, EVENT_CHAR}, //eSTUNNINGFIST
   { "Crafting", event_crafting, EVENT_CHAR}, //eCRAFTING
   { "Crystal fist", event_countdown, EVENT_CHAR}, //eCRYSTALFIST
   { "Crystal body", event_countdown, EVENT_CHAR}, //eCRYRSTALBODY
@@ -72,9 +72,11 @@ struct mud_event_list mud_event_index[] = {
   { "Move Action Cooldown", event_action_cooldown, EVENT_CHAR}, /* eMOVEACTION */
   { "Wholeness of Body", event_countdown, EVENT_CHAR}, // eWHOLENESSOFBODY
   { "Empty Body", event_countdown, EVENT_CHAR}, // eEMPTYBODY
-  { "Quivering Palm", event_daily_use_cooldown, EVENT_CHAR}, //eQUIVERINGPALM 
+  { "Quivering Palm", event_daily_use_cooldown, EVENT_CHAR}, //eQUIVERINGPALM
   { "Swift Action Cooldown", event_action_cooldown, EVENT_CHAR}, // eSWIFTACTION
   { "Trap Triggered", event_trap_triggered, EVENT_CHAR}, // eTRAPTRIGGERED */
+  { "Suprise Accuracy", event_countdown, EVENT_CHAR}, //eSUPRISE_ACCURACY
+  { "Powerful Blow", event_countdown, EVENT_CHAR}, //ePOWERFUL_BLOW
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -96,10 +98,10 @@ EVENTFUNC(event_countdown) {
   room_rnum rnum = NOWHERE;
 
   pMudEvent = (struct mud_event_data *) event_obj;
-  
+
   if (!pMudEvent)
     return 0;
-  
+
   if (!pMudEvent->iId)
     return 0;
 
@@ -187,6 +189,12 @@ EVENTFUNC(event_countdown) {
     case eSTUNNED:
       send_to_char(ch, "You are now free from the stunning affect.\r\n");
       break;
+    case eSUPRISE_ACCURACY:
+      send_to_char(ch, "You are now able to use suprise accuracy again.\r\n");
+      break;
+    case ePOWERFUL_BLOW:
+      send_to_char(ch, "You are now able to use powerful blow again.\r\n");
+      break;
     case eSTUNNINGFIST:
       send_to_char(ch, "You are now able to strike with your stunning fist again.\r\n");
       break;
@@ -257,9 +265,9 @@ EVENTFUNC(event_daily_use_cooldown) {
     if(sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
       log("SYSERR: In daily_uses_remaining, bad sVariables for dauly-use-cooldown-event: %d", pMudEvent->iId);
       uses = 0;
-    } 
+    }
   }
-  
+
   switch (pMudEvent->iId) {
     case eQUIVERINGPALM:
       featnum = FEAT_QUIVERING_PALM;
@@ -276,18 +284,18 @@ EVENTFUNC(event_daily_use_cooldown) {
     default:
       break;
   }
- 
+
   uses -= 1;
   if (uses > 0) {
-    if(pMudEvent->sVariables != NULL) 
+    if(pMudEvent->sVariables != NULL)
       free(pMudEvent->sVariables);
 
     sprintf(buf, "uses:%d", uses);
     pMudEvent->sVariables = strdup(buf);
     cooldown = (SECS_PER_MUD_DAY/get_daily_uses(ch, featnum)) RL_SEC;
   }
- 
-  
+
+
   return cooldown;
 
 }
@@ -380,20 +388,20 @@ void free_mud_event(struct mud_event_data *pMudEvent) {
       }
       break;
     case EVENT_ROOM:
-      /* Due to OLC changes, if rooms were deleted then the room we have in the event might be 
+      /* Due to OLC changes, if rooms were deleted then the room we have in the event might be
        * invalid.  This entire system needs to be re-evaluated!  We should really use RNUM
        * and just get the room data ourselves.  Storing the room_data struct is asking for bad
-       * news. */  
+       * news. */
       rvnum = (room_vnum *) pMudEvent->pStruct;
 
       room = &world[real_room(*rvnum)];
 
 //      log("[DEBUG] Removing Event %s from room %d, which has %d events.",mud_event_index[pMudEvent->iId].event_name, room->number, (room->events == NULL ? 0 : room->events->iSize));
-      
+
       free(pMudEvent->pStruct);
 
       remove_from_list(pMudEvent->pEvent, room->events);
-      
+
       if (room->events && room->events->iSize == 0) {  /* Added the null check here. - Ornir*/
         free_list(room->events);
         room->events = NULL;
@@ -432,7 +440,7 @@ struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId) 
   }
 
   simple_list(NULL);
-  
+
   if (found)
     return (pMudEvent);
 
@@ -482,8 +490,8 @@ void clear_char_event_list(struct char_data * ch) {
     return;
 
   /* This uses iterators because we might be in the middle of another
-   * function using simple_list, and that method requires that we do not use simple_list again 
-   * on another list -> It generates unpredictable results.  Iterators are safe. */  
+   * function using simple_list, and that method requires that we do not use simple_list again
+   * on another list -> It generates unpredictable results.  Iterators are safe. */
   for( pEvent = (struct event *) merge_iterator(&it, ch->events);
        pEvent != NULL;
        pEvent = next_in_list(&it)) {
@@ -491,9 +499,9 @@ void clear_char_event_list(struct char_data * ch) {
      * having their events cleared (death) then we must be sure that we don't clear the executing
      * event!  Doing so will crash the event system. */
 
-    if(event_is_queued(pEvent)) 
-      event_cancel(pEvent);   
-    else if (ch->events->iSize == 1)    
+    if(event_is_queued(pEvent))
+      event_cancel(pEvent);
+    else if (ch->events->iSize == 1)
       break;
   }
   remove_iterator(&it);
@@ -519,7 +527,7 @@ void clear_room_event_list(struct room_data *rm) {
 
 }
 
-/* ripley's version of change_event_duration 
+/* ripley's version of change_event_duration
  * a function to adjust the event time of a given event
  */
 void change_event_duration(struct char_data * ch, event_id iId, long time) {
@@ -565,7 +573,7 @@ void change_event_duration(struct char_data * ch, event_id iId, long time) {
 
   if (ch->events == NULL);
     return;
-    
+
   if (ch->events->iSize == 0)
     return;
 
@@ -584,12 +592,12 @@ void change_event_duration(struct char_data * ch, event_id iId, long time) {
     }
   }
 
-  if (found) {        
+  if (found) {
     // So we found the offending event, now build a new one, with the new time
     attach_mud_event(new_mud_event(iId, pMudEvent->pStruct, pMudEvent->sVariables), time);
     event_cancel(pEvent);
-  }    
-  
+  }
+
 }
  */
 

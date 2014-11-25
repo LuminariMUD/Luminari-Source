@@ -56,7 +56,7 @@
 #define SPELL_CREATE_FOOD            12  //done
 #define SPELL_CREATE_WATER           13  //done
 #define SPELL_CURE_BLIND             14  //done
-#define SPELL_CURE_CRITIC            15  //done 
+#define SPELL_CURE_CRITIC            15  //done
 #define SPELL_CURE_LIGHT             16  //done
 #define SPELL_CURSE                  17  //done
 #define SPELL_DETECT_ALIGN           18  //done
@@ -328,7 +328,7 @@
 #define SPELL_WALL_OF_FIRE              282
 #define SPELL_WALL_OF_THORNS            283
 #define SPELL_FIRE_SEEDS                284
-#define SPELL_UNUSED285                 285 
+#define SPELL_UNUSED285                 285
 #define SPELL_MASS_ENDURANCE            286 // *note mass enhance combines these 3
 #define SPELL_MASS_STRENGTH             287 // *note mass enhance combines these 3
 #define SPELL_MASS_GRACE                288 // *note mass enhance combines these 3
@@ -421,7 +421,7 @@
 
 /* Other files to be aware of for new spells:
  * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c
- * 2)  if you want this spell to be available as a npc nuke, mobact.c 
+ * 2)  if you want this spell to be available as a npc nuke, mobact.c
  */
 /** Total Number of defined spells  */
 #define NUM_SPELLS                      309
@@ -561,13 +561,15 @@
 #define SKILL_SHIELD_SLAM               526
 #define SKILL_SHIELD_CHARGE             527
 #define SKILL_QUIVERING_PALM            528  //implemented
+#define SKILL_SUPRISE_ACCURACY          529
+#define SKILL_POWERFUL_BLOW             530
 
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      529
+#define NUM_SKILLS                      531
 
 /* Special Abilities for weapons */
 
-#define TYPE_SPECAB_FLAMING 		600 
+#define TYPE_SPECAB_FLAMING 		600
 #define TYPE_SPECAB_FLAMING_BURST       601
 #define TYPE_SPECAB_FROST 		602
 #define TYPE_SPECAB_ICY_BURST		603
@@ -867,7 +869,7 @@ struct spell_info_type {
   int time; /* casting time */
   int memtime; /* mem time */
   int schoolOfMagic; // school of magic, category for skills
-  
+
   bool quest;  // is this a quest spell?
 };
 

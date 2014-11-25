@@ -1169,6 +1169,10 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Epic Spell:  Epic Warding - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSTUNNINGFIST)))
     send_to_char(ch, "Stunning Fist - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSUPRISE_ACCURACY)))
+    send_to_char(ch, "Suprise Accuracy - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, ePOWERFUL_BLOW)))
+    send_to_char(ch, "Powerful Blow - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eQUIVERINGPALM)))
     send_to_char(ch, "Quivering Palm - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eD_ROLL)))
@@ -1266,7 +1270,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tn");
   send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
   send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
-  
+
 }
 
 void perform_affects(struct char_data *ch, struct char_data *k) {
@@ -1274,7 +1278,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   char buf3[MAX_STRING_LENGTH] = {'\0'};
-  
+
   struct affected_type *aff = NULL;
   struct mud_event_data *pMudEvent = NULL;
 
@@ -1295,9 +1299,9 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   text_line(ch, " \tWSpell-like Affects\tC ", 80, '-', '-');
   send_to_char(ch, "\tn");
-  
+
   buf[0] = '\0'; // Reset the string buffer for later use.
-  
+
   /* Bonus Type has been implemented for affects.  This has the following
    * ramifications -
    * - Bonuses of the same type (other than Untyped, Dodge, Circumstance and Racial bonus
@@ -1325,7 +1329,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   /* Routine to show what spells a char is affected by */
   if (k->affected) {
     for (aff = k->affected; aff; aff = aff->next) {
-      
+
       if (aff->duration + 1 >= 900) {  // how many rounds in an hour?
         sprintf(buf, "[%2d hour%s   ] ", (int) ((aff->duration + 1) / 900), ((int) ((aff->duration + 1) / 900) > 1 ? "s" : " "));
         //send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
@@ -1339,9 +1343,9 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
       sprintf(buf2, "%s%-19s%s ",
                    CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       strcat(buf, buf2);
-      
+
       buf2[0] = '\0';
-      
+
       //send_to_char(ch, "%s%-19s%s ",
       //             CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       if (aff->location == APPLY_DR) { /* Handle DR a bit differently */
@@ -1351,7 +1355,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
         sprintf(buf3, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
         //send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
       }
-      
+
       if (aff->bitvector[0] || aff->bitvector[1] ||
           aff->bitvector[2] || aff->bitvector[3]) {
         //if (aff->modifier)
@@ -1367,7 +1371,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
         sprintf(buf2, "%s(see affected by)", ((aff->modifier) ? ", " : ""));
         strcat(buf3, buf2);
       }
-      
+
       buf2[0] = '\0';
       sprintf(buf2, "%-25s", buf3);
       buf3[0] = '\0';

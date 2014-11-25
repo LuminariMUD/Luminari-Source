@@ -269,12 +269,45 @@ void perform_stunningfist(struct char_data *ch) {
 
   affect_to_char(ch, &af);
 
-  //  attach_mud_event(new_mud_event(eSTUNNINGFIST, ch, NULL), cooldown);
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 
   send_to_char(ch, "You focus your Ki energies and prepare a disabling unarmed attack.\r\n");
   act("$n's focuses $s Ki, preparing a disabling unarmed attack!", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+/* rp_suprise_accuracy engine */
+/* The suprise-accuracy is reliant on rage */
+void perform_supriseaccuracy(struct char_data *ch) {
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = SKILL_SUPRISE_ACCURACY;
+  af.duration = 24;
+
+  affect_to_char(ch, &af);
+
+  attach_mud_event(new_mud_event(eSUPRISE_ACCURACY, ch, NULL), SECS_PER_MUD_DAY * 1);
+
+  send_to_char(ch, "You focus your rage and prepare a suprise accurate attack.\r\n");
+  act("$n's focuses $s rage, preparing a suprise accuracy attack!", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+/* rp_powerful_blow engine */
+/* The powerful blow is reliant on rage */
+void perform_powerfulblow(struct char_data *ch) {
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = SKILL_POWERFUL_BLOW;
+  af.duration = 24;
+
+  affect_to_char(ch, &af);
+
+  attach_mud_event(new_mud_event(ePOWERFUL_BLOW, ch, NULL), SECS_PER_MUD_DAY * 1);
+
+  send_to_char(ch, "You focus your rage and prepare a powerful blow.\r\n");
+  act("$n's focuses $s rage, preparing a powerful blow!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
 #define RAGE_AFFECTS 4
@@ -1476,6 +1509,33 @@ ACMD(do_turnundead) {
   USE_STANDARD_ACTION(ch);
 }
 
+/* a function to clear rage and do other dirty work associated with that */
+void clear_rage(struct char_data *ch) {
+  affect_from_char(ch, SKILL_RAGE);
+  send_to_char(ch, "You calm down from your rage...\r\n");
+
+  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_TIRELESS_RAGE) &&
+      !AFF_FLAGGED(ch, AFF_FATIGUED)) {
+    struct affected_type fatigued_af;
+
+    send_to_char(ch, "You are left fatigued from the rage!\r\n");
+    new_affect(&fatigued_af);
+    fatigued_af.spell = SKILL_RAGE;
+    fatigued_af.duration = 10;
+    SET_BIT_AR(fatigued_af.bitvector, AFF_FATIGUED);
+    affect_join(ch, &fatigued_af, 1, FALSE, FALSE, FALSE);
+  }
+  
+  /* clearing some rage powers */
+  if (char_has_mud_event(ch, eSUPRISE_ACCURACY)) {
+    change_event_duration(ch, eSUPRISE_ACCURACY, 0);
+  }
+  if (char_has_mud_event(ch, ePOWERFUL_BLOW)) {
+    change_event_duration(ch, ePOWERFUL_BLOW, 0);
+  }
+
+}
+
 /* rage skill (berserk) primarily for berserkers character class */
 ACMD(do_rage) {
   struct affected_type af, aftwo, afthree, affour;
@@ -1487,19 +1547,7 @@ ACMD(do_rage) {
   }
 
   if (affected_by_spell(ch, SKILL_RAGE)) {
-    affect_from_char(ch, SKILL_RAGE);
-    send_to_char(ch, "You calm down from your rage...\r\n");
-    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_TIRELESS_RAGE) &&
-        !AFF_FLAGGED(ch, AFF_FATIGUED)) {
-      struct affected_type fatigued_af;
-
-      send_to_char(ch, "You are left fatigued from the rage!\r\n");
-      new_affect(&fatigued_af);
-      fatigued_af.spell = SKILL_RAGE;
-      fatigued_af.duration = 10;
-      SET_BIT_AR(fatigued_af.bitvector, AFF_FATIGUED);
-      affect_join(ch, &fatigued_af, 1, FALSE, FALSE, FALSE);
-    }
+    clear_rage(ch);
     return;
   }
 
@@ -2468,6 +2516,65 @@ ACMD(do_stunningfist) {
   }
 
   perform_stunningfist(ch);
+}
+
+ACMD(do_supriseaccuracy) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_RP_SUPRISE_ACCURACY)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY)) {
+    send_to_char(ch, "You have already focused your rage into accuracy!\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eSUPRISE_ACCURACY)) {
+    send_to_char(ch, "You are too exhausted to use suprise accuracy again!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
+    send_to_char(ch, "You are are too fatigued to use suprise accuracy!\r\n");
+    return;
+  }
+
+  if (!affected_by_spell(ch, SKILL_RAGE)) {
+    send_to_char(ch, "You need to be raging to use suprise accuracy!\r\n");
+    return;
+  }
+
+  perform_supriseaccuracy(ch);
+}
+
+ACMD(do_powerfulblow) {
+
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_RP_POWERFUL_BLOW)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_POWERFUL_BLOW)) {
+    send_to_char(ch, "You have already focused your rage into a powerful blow!\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, ePOWERFUL_BLOW)) {
+    send_to_char(ch, "You are too exhausted to use powerful blow again!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
+    send_to_char(ch, "You are are too fatigued to use powerful blow!\r\n");
+    return;
+  }
+
+  if (!affected_by_spell(ch, SKILL_RAGE)) {
+    send_to_char(ch, "You need to be raging to use powerful blow!\r\n");
+    return;
+  }
+
+  perform_powerfulblow(ch);
 }
 
 ACMD(do_smite) {
