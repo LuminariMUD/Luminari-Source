@@ -2476,7 +2476,7 @@ int is_class_feat(int featnum, int class) {
 }
 
 bool is_daily_feat(int featnum) {
-  return (feat_list[index].event != eNULL);
+  return (feat_list[featnum].event != eNULL);
 };
 
 int find_feat_num(char *name) {
