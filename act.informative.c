@@ -1677,6 +1677,41 @@ ACMD(do_gold) {
     send_to_char(ch, "You have %d gold coins.\r\n", GET_GOLD(ch));
 }
 
+/* Name: do_abilities
+ * Author: Jamie Mclaughlin (Ornir)
+ * Desc: This procedure displays the abilities of the character, both racial and
+ *       class.  If an ability has a limited number of uses, both the current
+ *       remaining number of uses and the maximum number of uses are displayed.
+ *       the time remaining to regenerate another use of the ability is 
+ *       displayed using the 'cooldown' command, although there is a possibility
+ *       that this may be a better place to display that information. 
+ * 
+ *       (The figure below is adjusted and is not exactly to scale.)
+ * 
+ *       --------------------------- Abilities ---------------------------------         
+ *       Ability name  (Ability Type)(uses remaining)/(max uses) uses remaining.
+ *       Ability name  (Ability Type)(description of static bonus)
+ *       -----------------------------------------------------------------------
+ */
+ACMD(do_abilities) {
+  char buf[MAX_STRING_LENGTH];
+  int line_length = 80;
+  int i = 0;
+  
+  /* Set up the output. */
+  send_to_char("\tC");
+  text_line(ch, "\tYAbilities\tC", line_length, '-', '-');  
+  send_to_char("\tn");
+  for (i = 0; i < NUM_FEATS; i++) {
+    if (is_daily_feat(i))
+      send_to_char(ch, "%-20s %-6s %2d/%-2d uses remaining", feat_list[i].name, "Racial", daily_uses_remaining(ch, i), get_daily_uses(ch, i));
+  }
+  /* Close the output, reset the colors to prevent bleed. */
+  send_to_char("\tC");
+  draw_line(ch, line_length, '-', '-');  
+  send_to_char("\tn");
+}
+
 ACMD(do_innates) {
   int race = -1;
 

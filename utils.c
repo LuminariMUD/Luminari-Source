@@ -2779,7 +2779,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum) {
     } else {
 
       if(sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
-        log("SYSERR: In start_daily_use_cooldown, bad sVariables for dauly-use-cooldown-event: %d", iId); 
+        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %d", iId); 
         uses = 0;
       }
       free(pMudEvent->sVariables);
@@ -2787,7 +2787,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum) {
     uses++;
  
     if (uses > daily_uses)
-      log("SYSERR: Dauly uses exceeed maximum for %s, feat %s", GET_NAME(ch), feat_list[featnum].name);
+      log("SYSERR: Daily uses exceeed maximum for %s, feat %s", GET_NAME(ch), feat_list[featnum].name);
 
     sprintf(buf, "uses:%d", uses);
     pMudEvent->sVariables = strdup(buf);
@@ -2818,7 +2818,7 @@ int daily_uses_remaining(struct char_data *ch, int featnum) {
       log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", iId);
     } else {
       if(sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
-        log("SYSERR: In daily_uses_remaining, bad sVariables for dauly-use-cooldown-event: %d", iId);
+        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %d", iId);
         uses = 0;    
       }
     }

@@ -100,6 +100,7 @@ ACMD(do_affects);
 
 /* functions without subcommands */
 ACMD(do_innates);
+ACMD(do_abilities);
 ACMD(do_masterlist);
 ACMD(do_areas);
 ACMD(do_attacks);
