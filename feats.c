@@ -692,30 +692,30 @@ void assign_feats(void) {
   /*temporary mechanic*/feato(FEAT_FAST_MOVEMENT, "fast movement", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
     "reduces movement usage, and increases movement regen",
     "Reduces movement usage, and increases movement regeneration.  This is a temporary mechanic.");
-  /*rage power*/feato(FEAT_RP_SUPRISE_ACCURACY, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*rage power*/feato(FEAT_RP_SUPRISE_ACCURACY, "suprise accuracy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "bonus hitroll once/rage",
     "Gain a +1 morale bonus on one attack roll.  This bonus increases by +1 for "
       "every 4 berserker levels attained. This power is used as a swift action.  This power "
       "can only be used once per rage.");
-  /*rage power*/feato(FEAT_RP_POWERFUL_BLOW, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*rage power*/feato(FEAT_RP_POWERFUL_BLOW, "powerful blow", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "bonus damage once/rage",
     "Gain a +1 bonus on a single damage roll. This bonus increases by +1 for "
       "every 4 berserker levels attained. This power is used as a swift action.  "
       "This power can only be used once per rage.");
-  /*rage power*/feato(FEAT_RP_RENEWED_VIGOR, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*rage power*/feato(FEAT_RP_RENEWED_VIGOR, "renewed vigor", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "able to heal while raging",
     "As a standard action, the berserker heals 3d8 points of damage + her "
       "Constitution modifier. For every four levels the berserker has attained "
       "above 4th, this amount of damage healed increases by 1d8, to a maximum "
       "of 8d8.  This power can be used only once per day and only while raging.");
-  /*rage power*/feato(FEAT_RP_HEAVY_SHRUG, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*rage power*/feato(FEAT_RP_HEAVY_SHRUG, "heavy shrug", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "increased DR while raging",
     "The berserker's damage reduction increases by 3/—. This increase is always "
       "active while the berserker is raging.");
-  /*rage power*/feato(FEAT_RP_FEARLESS_RAGE, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*rage power*/feato(FEAT_RP_FEARLESS_RAGE, "fearless rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "fearless while raging",
     "While raging, the berserker is immune to the shaken and frightened conditions. ");
-  /*rage power*/feato(FEAT_RP_COME_AND_GET_ME, "", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*rage power*/feato(FEAT_RP_COME_AND_GET_ME, "come and get me", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "take it, but dish it out heavy",
     "While raging, as a free action the berserker may leave herself open to "
       "attack while preparing devastating counterattacks. Enemies gain a +4 bonus "
