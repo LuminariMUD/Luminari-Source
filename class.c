@@ -397,7 +397,7 @@ int free_start_feats_paladin[] = {
   0
 };
 
-int free_start_feats_barbarian[] = {
+int free_start_feats_berserker[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_ARMOR_PROFICIENCY_LIGHT,
   FEAT_ARMOR_PROFICIENCY_MEDIUM,
@@ -454,7 +454,7 @@ int *free_start_feats[] = {
   /* CLASS_WARRIOR       */ free_start_feats_warrior,
   /* CLASS_MONK          */ free_start_feats_monk,
   /* CLASS_DRUID         */ free_start_feats_druid,
-  /* CLASS_BERSERKER     */ free_start_feats_barbarian,
+  /* CLASS_BERSERKER     */ free_start_feats_berserker,
   /* CLASS_SORC          */ free_start_feats_sorcerer,
   /* CLASS_PALADIN       */ free_start_feats_paladin,
   /* CLASS_RANGER        */ free_start_feats_ranger,
@@ -632,12 +632,16 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 20, FEAT_RAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 20, FEAT_MIGHTY_RAGE},
   /* epic */
+  /* MISSING: rage power lvl 21*/
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 22, FEAT_SHRUG_DAMAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 24, FEAT_RAGE},
+  /* MISSING: rage power lvl 24*/
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 25, FEAT_SHRUG_DAMAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 27, FEAT_INDOMITABLE_RAGE},
+  /* MISSING: rage power lvl 27*/
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 28, FEAT_SHRUG_DAMAGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 29, FEAT_RAGE},
+  /* MISSING: rage power lvl 30*/
 
   /* ranger */
   {CLASS_RANGER, RACE_UNDEFINED, TRUE, 1, FEAT_FAVORED_ENEMY_AVAILABLE},
@@ -922,11 +926,17 @@ const int class_feats_druid[] = {
   FEAT_FAST_HEALING,
   FEAT_UNDEFINED
 };
-const int class_feats_barbarian[] = {
+const int class_feats_berserker[] = {
   FEAT_FAST_HEALING,
   FEAT_EPIC_PROWESS,
   FEAT_DAMAGE_REDUCTION,
   FEAT_EPIC_TOUGHNESS,
+  FEAT_RP_SUPRISE_ACCURACY,
+  FEAT_RP_POWERFUL_BLOW,
+  FEAT_RP_RENEWED_VIGOR,
+  FEAT_RP_HEAVY_SHRUG,
+  FEAT_RP_FEARLESS_RAGE,
+  FEAT_RP_COME_AND_GET_ME,
   FEAT_UNDEFINED
 };
 const int class_feats_ranger[] = {
@@ -950,7 +960,7 @@ const int *class_bonus_feats[NUM_CLASSES] = {
   /* Warrior   */ class_feats_fighter,
   /* Monk      */ class_feats_monk,
   /* Druid     */ class_feats_druid,
-  /* Berserker */ class_feats_barbarian,
+  /* Berserker */ class_feats_berserker,
   /* Sorcerer  */ no_class_feats,
   /* Paladin   */ class_feats_paladin,
   /* Ranger    */ class_feats_ranger,
