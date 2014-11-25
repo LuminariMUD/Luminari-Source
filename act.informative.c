@@ -1718,7 +1718,7 @@ ACMD(do_abilities) {
       remaining = daily_uses_remaining(ch, i);
       total = get_daily_uses(ch, i);
       send_to_char(ch, 
-                   "%-20s %\tc-14s\tn %s%2d\tn/%-2d uses remaining\r\n", 
+                   "%-20s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n", 
                    feat_list[i].name, 
                    buf,               
                    (remaining > (total / 2) ? "\tn" :
