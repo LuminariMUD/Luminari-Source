@@ -275,6 +275,7 @@ void combatfeat(int featnum) {
 void dailyfeat(int featnum, event_id event) {
   feat_list[featnum].event = event;
 }
+
 /* function to assign basic attributes to feat */
 void feato(int featnum, char *name, int in_game, int can_learn, int can_stack, int feat_type, char *short_description, char *description) {
   feat_list[featnum].name = name;
@@ -302,6 +303,7 @@ void assign_feats(void) {
     feat_list[i].epic = FALSE;
     feat_list[i].combat_feat = FALSE;
     feat_list[i].prerequisite_list = NULL;
+    feat_list[i].event = eNULL; /* Set all feats to eNULL event as default. */
   }
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -2472,6 +2474,10 @@ int is_class_feat(int featnum, int class) {
 
   return FALSE;
 }
+
+bool is_daily_feat(int featnum) {
+  return (feat_list[index].event != eNULL);
+};
 
 int find_feat_num(char *name) {
   int index, ok;
