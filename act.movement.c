@@ -1420,7 +1420,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   if (IS_NPC(ch))
     quest_room(ch);
 
-  /* trap sense will allow a rogue/barbarian to auto detect traps if they
+  /* trap sense will allow a rogue/berserker to auto detect traps if they
    make a successful check vs DC xx (defined right below ) */
   if (!IS_NPC(ch)) {
     int trap_check = 0;
