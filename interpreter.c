@@ -70,7 +70,7 @@ struct command_info *complete_cmd_info;
  * (For example, if you want "as" to mean "assist" instead of "ask", just put
  * "assist" above "ask" in the Master Command List. In general, utility
  * commands such as "at" should have high priority; infrequently used and
- * dangerously destructive commands should have low priority. 
+ * dangerously destructive commands should have low priority.
  *
  * Cooldowns for used actions are in the last column, {X, Y} where X is the
  * cooldown for a standard action used and Y is the cooldown for the Move action used. */
@@ -275,7 +275,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
   { "kill", "k", POS_FIGHTING, do_kill, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "kick", "ki", POS_FIGHTING, do_process_attack, 1, AA_KICK, FALSE, ACTION_NONE, {6, 0}},
-  
+
   { "look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE, ACTION_NONE, {0, 0}},
   { "layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "last", "last", POS_DEAD, do_last, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -327,7 +327,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "ocopy", "ocopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_OEDIT, TRUE, ACTION_NONE, {0, 0}},
   { "omit", "omit", POS_RECLINING, do_gen_forget, 0, SCMD_OMIT, FALSE, ACTION_NONE, {0, 0}},
   //{ "objlist", "objlist", POS_DEAD, do_objlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
-  
+
   { "put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "parry", "parry", POS_FIGHTING, do_mode, 1, MODE_PARRY, FALSE, ACTION_NONE, {0, 0}},
   { "peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -345,7 +345,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "purge", "purge", POS_DEAD, do_purge, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "prayer", "prayer", POS_RECLINING, do_gen_memorize, 0, SCMD_PRAY, FALSE, ACTION_NONE, {0, 0}},
   { "perform", "perform", POS_FIGHTING, do_perform, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
-  
+  { "powerfulblow", "powerfulblow", POS_FIGHTING, do_powerfulblow, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+
   { "queue", "q", POS_DEAD, do_queue, 0, SCMD_ACTION_QUEUE, FALSE, ACTION_NONE, {0, 0}},
   { "qedit", "qedit", POS_DEAD, do_oasis_qedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "qlist", "qlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_QLIST, TRUE, ACTION_NONE, {0, 0}},
@@ -358,7 +359,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "qref", "qref", POS_DEAD, do_qref, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "qview", "qview", POS_DEAD, do_qview, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "quiveringpalm", "quiveringpalm", POS_FIGHTING, do_quiveringpalm, 1, 0, FALSE, ACTION_NONE, {0, 0}},
-  
+
   { "rapidshot", "rapidshot", POS_FIGHTING, do_mode, 1, MODE_RAPID_SHOT, FALSE, ACTION_NONE, {0, 0}},
   { "rest", "re", POS_RECLINING, do_rest, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "reply", "r", POS_SLEEPING, do_reply, 0, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -434,7 +435,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "shieldcharge", "shieldc", POS_FIGHTING, do_shieldcharge, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "shieldslam", "shields", POS_FIGHTING, do_shieldslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "springleap", "springleap", POS_SITTING, do_springleap, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
-  
+  { "supriseaccuracy", "supriseaccuracy", POS_FIGHTING, do_supriseaccuracy, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+
   { "tell", "t", POS_DEAD, do_tell, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "take", "ta", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "taste", "tas", POS_RECLINING, do_eat, 0, SCMD_TASTE, FALSE, ACTION_NONE, {0, 0}},
@@ -683,7 +685,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
       }
     }
     send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
-  } else if ((AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) || 
+  } else if ((AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
           char_has_mud_event(ch, eSTUNNED)))
     send_to_char(ch, "You try, but you are unable to move!\r\n");
   else if (AFF_FLAGGED(ch, AFF_DAZED))
@@ -735,8 +737,8 @@ void command_interpreter(struct char_data *ch, char *argument) {
           ) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...\r\n");
-  } else if (char_has_mud_event(ch, eCRAFTING) && 
-          !is_abbrev(complete_cmd_info[cmd].command, "gossip") && 
+  } else if (char_has_mud_event(ch, eCRAFTING) &&
+          !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
           !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
           !is_abbrev(complete_cmd_info[cmd].command, "look") &&
           !is_abbrev(complete_cmd_info[cmd].command, "score") &&
@@ -780,7 +782,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
                ((IS_SET(complete_cmd_info[cmd].actions_required, ACTION_STANDARD) && !is_action_available(ch, atSTANDARD, FALSE)) ||
                ((IS_SET(complete_cmd_info[cmd].actions_required, ACTION_MOVE) && (!is_action_available(ch, atMOVE, FALSE) &&
                                                                                  !is_action_available(ch, atSTANDARD, FALSE))))))
-    {  
+    {
       if (pending_actions(ch) > MAX_QUEUE_SIZE) {
         send_to_char(ch, "The action queue is full.\r\n");
       } else {
@@ -1479,7 +1481,7 @@ int enter_player_game(struct descriptor_data *d) {
   login_wtrigger(&world[IN_ROOM(d->character)], d->character);
 
   // this is already called in perform_dupe_check() before we get here, shouldn't be needed here -Nashak
-  //MXPSendTag(d, "<VERSION>"); 
+  //MXPSendTag(d, "<VERSION>");
 
   return load_result;
 }
@@ -1571,7 +1573,7 @@ void nanny(struct descriptor_data *d, char *arg) {
       CREATE(d->account, struct account_data, 1);
       d->account->name = NULL;
       for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
-        d->account->character_names[i] = NULL;    
+        d->account->character_names[i] = NULL;
     }
     d->character = NULL;
     if (!*arg)
@@ -1653,7 +1655,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
     }
     switch (*arg) {
       case 'C':
-      case 'c': 
+      case 'c':
         /* Create a new character */
         write_to_output(d, "What will your new character be called? : ");
         STATE(d) = CON_GET_NAME;
@@ -1665,7 +1667,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         STATE(d) = CON_ACCOUNT_ADD;
         return;
       case 'q':
-      case 'Q': 
+      case 'Q':
         write_to_output(d, "Quitting.\r\n");
         STATE(d) = CON_CLOSE;
         return;
@@ -1727,7 +1729,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           }
         }
       }
-    
+
     break;
     case CON_ACCOUNT_ADD: /* wait for input of char name to add to account */
       if (d->character == NULL) {
@@ -1765,7 +1767,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
            free(acct_name);
            STATE(d) = CON_ACCOUNT_MENU;
            show_account_menu(d);
-           return; 
+           return;
          }
          if (PLR_FLAGGED(d->character, PLR_DELETED)) {
            write_to_output(d, "That character has been deleted.\r\n");
@@ -1777,13 +1779,13 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
          write_to_output(d, "Please enter the character password for %s : ", GET_NAME(d->character));
          STATE(d) = CON_ACCOUNT_ADD_PWD;
          ProtocolNoEcho(d, true);
-         return;  
+         return;
         } else {
           write_to_output(d, "That character does not exist, please create a new character.\r\n");
           STATE(d) = CON_ACCOUNT_MENU;
           show_account_menu(d);
           return;
-        }        
+        }
       }
       break;
     case CON_GET_NAME: /* wait for input of name */
@@ -1845,7 +1847,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
             GET_PFILEPOS(d->character) = player_i;
 
             /*
-            if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] || 
+            if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] ||
                  d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS])) {
               SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_1);
               SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_2);
@@ -1870,7 +1872,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           strcpy(d->character->player.name, CAP(tmp_name)); /* strcpy: OK (size checked above) */
 
           /*
-          if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] || 
+          if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] ||
                d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS])) {
             SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_1);
             SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_2);
@@ -1898,15 +1900,15 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           return;
         }
         perform_new_char_dupe_check(d);
-        
+
         /* dummy check added by zusuk 03/05/13 */
         if (!d->character) {
           mudlog(NRM, LVL_STAFF, TRUE, "d->character is NULL (nanny, interpreter.c)");
           write_to_output(d, "Due to conflict, your character did not initialize correctly, please reconnect and try again...\r\n");
           STATE(d) = CON_CLOSE;
-          return;          
+          return;
         }
-        
+
         write_to_output(d, "\r\nWhat is your sex (\t(M\t)/\t(F\t))? ");
         STATE(d) = CON_QSEX;
         break;
@@ -1933,7 +1935,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         if (i == MAX_CHARS_PER_ACCOUNT) {
           write_to_output(d, "You have reached the maximum number of characters on this account.\r\n"
                              "Remove a character before adding a new one.\r\n");
-        } 
+        }
         else {
           d->account->character_names[i] = strdup(GET_NAME(d->character));
           save_account(d->account);
@@ -1999,7 +2001,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         show_account_menu(d);
         STATE(d) = CON_ACCOUNT_MENU;
         break;
-/*  
+/*
         if (perform_dupe_check(d))
           return;
 
@@ -2071,7 +2073,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         STATE(d) = CON_MENU;
       }
       break;
-/*  
+/*
       if (STATE(d) == CON_CNFPASSWD) {
         write_to_output(d, "\r\nWhat is your sex (\t(M\t)/\t(F\t))? ");
         STATE(d) = CON_QSEX;
@@ -2153,7 +2155,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         write_to_output(d, "\r\nClass Confirmed!\r\n");
       else if (UPPER(*arg) != 'N') {
         write_to_output(d, "\r\nY)es to confirm N)o to reselect.\r\n");
-        write_to_output(d, "Do you want to select this race? (y/n) : ");   
+        write_to_output(d, "Do you want to select this race? (y/n) : ");
         STATE(d) = CON_QRACE_HELP;
         return;
       } else {
@@ -2250,27 +2252,27 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
                          GET_CHA(d->character), ""
                          );
       write_to_output(d, "[%d points left] Enter ability score, Q (done) or ? for help : ", stat_points);
-     
+
 
     case CON_QSTATS:
       /* This is displayed when the player has changed an ability score,
        * so we need to capture the changed score and apply changes, then
-       * display the remaining points.  
+       * display the remaining points.
        *
        * Formula is : Start at 8, 1:1 to 14, 1:2 to 16, 1:3 to 18
        * Standard point buy is 25.
        *
-       * If the value is '?' then we need to get help.  If the value is 'Q' 
+       * If the value is '?' then we need to get help.  If the value is 'Q'
        * then we get confirmation and then move on to the next step. */
       if (UPPER(*arg) == 'Q')
         write_to_output(d, "\r\nBase ability scores set!\r\n");
       else if (UPPER(*arg) == '?') {
         perform_help(d, "point-buy");
         break;
-      } else {        
+      } else {
         /* Here is where we check for ability names, etc. */
         if (is_abbrev(arg, "str")) {
-          /* Calculate the maximum we can set this stat to (based on points) and display 
+          /* Calculate the maximum we can set this stat to (based on points) and display
            * that to the player. Don't forget the racial bonuses! */
         }
         if (is_abbrev(arg, "dex")) {
@@ -2301,7 +2303,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       write_to_output(d, "\r\n");
 
       STATE(d) = CON_QALIGN;
-      break;    
+      break;
 
     case CON_QALIGN:
 
@@ -2385,7 +2387,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           add_llog_entry(d->character, LAST_QUIT);
 //          STATE(d) = CON_CLOSE;
           STATE(d) = CON_ACCOUNT_MENU;
-          show_account_menu(d); 
+          show_account_menu(d);
           save_char(d->character, 0);
           free_char(d->character);
           break;
