@@ -53,17 +53,17 @@ void set_mob_grouping(struct char_data *ch) {
 
 }
 
-/* identifies if room is outdoors or not (as opposed to room num) 
+/* identifies if room is outdoors or not (as opposed to room num)
  used by:  ROOM_OUTSIDE() macro */
 bool is_room_outdoors(room_rnum room_number) {
   if (room_number == NOWHERE) {
     log("is_room_outdoors() found NOWHERE");
     return FALSE;
   }
-  
+
   if (ROOM_FLAGGED(room_number, ROOM_INDOORS))
     return FALSE;
-  
+
   switch (SECT(room_number)) {
     case SECT_INSIDE:
     case SECT_OCEAN:
@@ -81,14 +81,14 @@ bool is_room_outdoors(room_rnum room_number) {
   return TRUE;
 }
 
-/* identifies if CH is outdoors or not (as opposed to room num) 
+/* identifies if CH is outdoors or not (as opposed to room num)
  used by:  OUTSIDE() macro */
 bool is_outdoors(struct char_data *ch) {
   if (!ch) {
     log("is_outdoors() receive NULL ch");
     return FALSE;
-  }  
-  
+  }
+
   return (is_room_outdoors(IN_ROOM(ch)));
 }
 
@@ -139,7 +139,7 @@ int num_obj_in_obj(struct obj_data *obj) {
 
   for (; obj; obj = obj->next_content)
     i++;
-  
+
   return i;
 }
 
@@ -350,13 +350,13 @@ int skill_check(struct char_data *ch, int skill, int dc) {
    !rand_number(0, this)
    suggested:  (500) */
 #define PASS 1000
-/* this define is for crafting skills, they increase much easier 
+/* this define is for crafting skills, they increase much easier
  suggested:  (20) */
 #define C_SKILL 5
 
 void increase_skill(struct char_data *ch, int skillnum) {
   int notched = FALSE;
-  
+
   //if the skill isn't learned or is mastered, don't adjust
   if (GET_SKILL(ch, skillnum) < 1 || GET_SKILL(ch, skillnum >= 99))
     return;
@@ -785,6 +785,18 @@ void increase_skill(struct char_data *ch, int skillnum) {
         GET_SKILL(ch, skillnum)++;
       }
       break;
+    case SKILL_POWERFUL_BLOW:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
+    case SKILL_SUPRISE_ACCURACY:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
     case SKILL_MINING:
       if (!pass) {
         notched = TRUE;
@@ -920,11 +932,11 @@ void increase_skill(struct char_data *ch, int skillnum) {
     default:
       if (!pass) {
         notched = TRUE;
-        GET_SKILL(ch, skillnum)++;        
+        GET_SKILL(ch, skillnum)++;
       }
       return;;
   }
-  
+
   if (notched)
     send_to_char(ch, "\tMYou feel your skill in \tC%s\tM improve!\tn\r\n",
             spell_info[skillnum].name);
@@ -2473,7 +2485,7 @@ void new_affect(struct affected_type *af) {
   af->modifier = 0;
   af->location = APPLY_NONE;
   af->bonus_type = BONUS_TYPE_UNDEFINED;
-  
+
   for (i = 0; i < AF_ARRAY_MAX; i++) af->bitvector[i] = 0;
 }
 
@@ -2683,7 +2695,7 @@ int find_armor_type(int specType)
   case SPEC_ARMOR_TYPE_SMALL_SHIELD:
   case SPEC_ARMOR_TYPE_LARGE_SHIELD:
   case SPEC_ARMOR_TYPE_TOWER_SHIELD:
-    return ARMOR_TYPE_SHIELD;	
+    return ARMOR_TYPE_SHIELD;
   }
   return ARMOR_TYPE_LIGHT;
 }
@@ -2692,7 +2704,7 @@ int find_armor_type(int specType)
 int savingthrow(struct char_data *ch, int save, int modifier, int dc)
 {
   int roll = dice(1, 20);
- 
+
   /* 1 is an automatic failure. */
   if (roll == 1)
     return FALSE;
@@ -2719,7 +2731,7 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_STUNNING_FIST:
       daily_uses += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK))/4;
       break;
-    case FEAT_LAYHANDS:  
+    case FEAT_LAYHANDS:
       daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) * GET_CHA_BONUS(ch);
       break;
     case FEAT_TURN_UNDEAD:
@@ -2728,7 +2740,7 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_BARDIC_MUSIC:
       daily_uses += CLASS_LEVEL(ch, CLASS_BARD);
       break;
-    case FEAT_REMOVE_DISEASE: 
+    case FEAT_REMOVE_DISEASE:
       daily_uses += HAS_FEAT(ch, FEAT_REMOVE_DISEASE);
       break;
     case FEAT_CRYSTAL_FIST:
@@ -2739,7 +2751,7 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_QUIVERING_PALM:
     case FEAT_WILD_SHAPE:
       daily_uses += HAS_FEAT(ch, featnum);
-      break; 
+      break;
   }
 
   return daily_uses;
@@ -2748,7 +2760,7 @@ int get_daily_uses(struct char_data *ch, int featnum){
 
 /* Function to create an event, based on the mud_event passed in, that will either:
  * 1.) Create a new event with the proper sVariables
- * 2.) Update an existing event with a new sVariable value 
+ * 2.) Update an existing event with a new sVariable value
  *
  * Returns the current number of uses on cooldown. */
 int start_daily_use_cooldown(struct char_data *ch, int featnum) {
@@ -2760,9 +2772,9 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum) {
   /* Transform the feat number to the event id for that ability. */
   if((iId = feat_list[featnum].event) == eNULL) {
     log("SYSERR: in start_daily_use_cooldown, no cooldown event defined for %s!", feat_list[featnum].name);
-    return (0); 
+    return (0);
   }
-   
+
   if ((daily_uses = get_daily_uses(ch, featnum)) < 1) {
     /* ch has no uses of this ability at all!  Error! */
     log("SYSERR: in start_daily_use_cooldown, cooldown initiated for invalid ability!");
@@ -2779,13 +2791,13 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum) {
     } else {
 
       if(sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
-        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %d", iId); 
+        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %d", iId);
         uses = 0;
       }
       free(pMudEvent->sVariables);
     }
     uses++;
- 
+
     if (uses > daily_uses)
       log("SYSERR: Daily uses exceeed maximum for %s, feat %s", GET_NAME(ch), feat_list[featnum].name);
 
@@ -2795,20 +2807,20 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum) {
     /* No event - so attach one. */
     uses = 1;
     attach_mud_event(new_mud_event(iId, ch, "uses:1"), (SECS_PER_MUD_DAY/daily_uses) RL_SEC);
-  }  
+  }
 
-  return uses;       
+  return uses;
 }
 
-/* Function to return the number of daily uses remaining for a particular ability. 
+/* Function to return the number of daily uses remaining for a particular ability.
  * Returns the number of daily uses available or -1 if the feat is not a daily-use feat. */
 int daily_uses_remaining(struct char_data *ch, int featnum) {
-  struct mud_event_data * pMudEvent = NULL; 
+  struct mud_event_data * pMudEvent = NULL;
   int uses = 0;
   int uses_per_day = 0;
   event_id iId = 0;
 
-  if ((iId = feat_list[featnum].event) == eNULL) 
+  if ((iId = feat_list[featnum].event) == eNULL)
     return -1;
 
   if ((pMudEvent = char_has_mud_event(ch, iId))) {
@@ -2819,15 +2831,15 @@ int daily_uses_remaining(struct char_data *ch, int featnum) {
     } else {
       if(sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
         log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %d", iId);
-        uses = 0;    
+        uses = 0;
       }
     }
-  } 
+  }
 
   uses_per_day = get_daily_uses(ch, featnum);
 
   return uses_per_day - uses;
-} 
+}
 
 /* line_string()
  * Generate and return a string, alternating between first and second for length characters.
@@ -2835,7 +2847,7 @@ int daily_uses_remaining(struct char_data *ch, int featnum) {
 char* line_string(int length, char first, char second) {
   static char buf[MAX_STRING_LENGTH]; /* Note - static! */
   int i = 0;
-  while (i < length) 
+  while (i < length)
     if((i % 2) == 0)
       buf[i++] = first;
     else
@@ -2856,10 +2868,10 @@ void draw_line(struct char_data *ch, int length, char first, char second) {
  *  Generate and return a string, as above, with text centered.
  */
 char* text_line_string(char *text, int length, char first, char second) {
-  int text_length, text_print_length, pre_length;  
+  int text_length, text_print_length, pre_length;
   int i = 0, j = 0;
   static char buf[MAX_STRING_LENGTH]; /* Note - static! */
-    
+
   text_length = strlen(text);
   text_print_length = count_non_protocol_chars(text);
 
@@ -2877,13 +2889,13 @@ char* text_line_string(char *text, int length, char first, char second) {
 //  buf[i++] = '[';
 //  buf[i++] = ' ';
 
-  while (j < text_length) 
+  while (j < text_length)
     buf[i++] = text[j++];
 
 //  buf[i++] = ' ';
 //  buf[i++] = ']';
 
-  while (i < length + (text_length - text_print_length)) /* Have to include the non printables */ 
+  while (i < length + (text_length - text_print_length)) /* Have to include the non printables */
     if((i % 2) == 0)
       buf[i++] = first;
     else
@@ -2900,7 +2912,7 @@ void text_line(struct char_data *ch, char *text, int length, char first, char se
 }
 
 /* Name:   calculate_cp
- * Author: Ornir 
+ * Author: Ornir
  * Param:  Object to calculate cp for
  * Return: cp value for the given object. */
 int calculate_cp(struct obj_data *obj) {
@@ -2913,7 +2925,7 @@ int calculate_cp(struct obj_data *obj) {
   switch (GET_OBJ_TYPE(obj)) {
     case ITEM_WEAPON: /* obj is a weapon, use the cp calc for weapons. */
       current_cp += GET_ENHANCEMENT_BONUS(obj) * GET_ENHANCEMENT_BONUS(obj) * 2000;
-  
+
       for(specab = obj->special_abilities; specab != NULL;specab = specab->next) {
         current_cp += (weapon_special_ability_info[specab->ability].cost * weapon_special_ability_info[specab->ability].cost * 2000);
       }
@@ -2922,6 +2934,6 @@ int calculate_cp(struct obj_data *obj) {
     default: /* No idea what this is. */
       break;
   }
- 
+
   return 0;
 }

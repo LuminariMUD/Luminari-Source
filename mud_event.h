@@ -1,13 +1,13 @@
 /**
  * @file mud_event.h
  * Mud_Event Header file.
- * 
+ *
  * Part of the core tbaMUD source code distribution, which is a derivative
  * of, and continuation of, CircleMUD.
- * 
+ *
  * This source code, which was not part of the CircleMUD legacy code,
  * is attributed to:
- * Copyright 2012 by Joseph Arnusch.                                                    
+ * Copyright 2012 by Joseph Arnusch.
  */
 
 #ifndef _MUD_EVENT_H_
@@ -26,7 +26,7 @@ typedef enum {
   eNULL,
   ePROTOCOLS, /* The Protocol Detection Event */
   eWHIRLWIND, /* The Whirlwind Attack */
-  eCASTING, //  casting time 
+  eCASTING, //  casting time
   eLAYONHANDS, //  lay on hands
   eTREATINJURY, //  treat injury
   eTAUNT, //  taunt
@@ -75,6 +75,8 @@ typedef enum {
   eQUIVERINGPALM, /* cooldown for quivering palm */
   eSWIFTACTION, /* Swift action cooldown */
   eTRAPTRIGGERED, /* Trap Triggered */
+  eSUPRISE_ACCURACY, /* rage power suprise accuracy */
+  ePOWERFUL_BLOW, /* rage power powerful blow */
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:

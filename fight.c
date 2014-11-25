@@ -1885,10 +1885,10 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     dam = 0; // immort protection
 
   if (victim != ch) {
-    /* Only auto engage if both parties are unengaged. */    
+    /* Only auto engage if both parties are unengaged. */
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL) && (FIGHTING(victim) == NULL)) // ch -> vict
-      set_fighting(ch, victim);    
-    
+      set_fighting(ch, victim);
+
     // vict -> ch
     if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL)) {
       set_fighting(victim, ch);
@@ -3364,6 +3364,14 @@ int hit(struct char_data *ch, struct char_data *victim,
     if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
       send_to_char(ch, "You fail to land your quivering palm attack!  ");
       affect_from_char(ch, SKILL_QUIVERING_PALM);
+    }
+    if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY)) {
+      send_to_char(ch, "You fail to land your suprise accuracy attack!  ");
+      affect_from_char(ch, SKILL_SUPRISE_ACCURACY);
+    }
+    if (affected_by_spell(ch, SKILL_POWERFUL_BLOW)) {
+      send_to_char(ch, "You fail to land your powerful blow!  ");
+      affect_from_char(ch, SKILL_POWERFUL_BLOW);
     }
 
     /* Display the flavorful backstab miss messages. This should be changed so we can

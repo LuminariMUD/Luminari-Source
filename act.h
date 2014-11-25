@@ -235,13 +235,14 @@ extern const char *cmd_door[];
  * Begin Functions and defines for act.offensive.c
  ****************************************************************************/
 /* functions */
+void clear_rage(struct char_data *ch);
 void perform_stunningfist(struct char_data *ch);
 void perform_quiveringpalm(struct char_data *ch);
 void perform_rescue(struct char_data *ch, struct char_data *vict);
 void perform_smite(struct char_data *ch);
 void perform_rage(struct char_data *ch);
 void perform_layonhands(struct char_data *ch, struct char_data *vict);
-bool perform_knockdown(struct char_data *ch, struct char_data *vict, 
+bool perform_knockdown(struct char_data *ch, struct char_data *vict,
         int skill);
 bool perform_shieldpunch(struct char_data *ch, struct char_data *vict);
 void perform_headbutt(struct char_data *ch, struct char_data *vict);
@@ -251,7 +252,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict);
 void perform_assist(struct char_data *ch, struct char_data *helpee);
 void perform_springleap(struct char_data *ch, struct char_data *vict);
 bool perform_backstab(struct char_data *ch, struct char_data *vict);
-bool has_missile_in_quiver(struct char_data *ch, struct obj_data *obj, 
+bool has_missile_in_quiver(struct char_data *ch, struct obj_data *obj,
         bool silent);
 bool can_fire_arrow(struct char_data *ch, bool silent);
 /* Functions with subcommands */
@@ -528,7 +529,7 @@ ACMD(do_zlock);
 ACMD(do_zpurge);
 ACMD(do_zreset);
 ACMD(do_zunlock);
-ACMD(do_afflist); 
+ACMD(do_afflist);
 ACMD(do_typelist);
 ACMD(do_eqrating);
 
