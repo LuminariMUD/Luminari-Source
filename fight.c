@@ -3434,9 +3434,11 @@ int hit(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "[\tWSUPRISE_ACCURACY\tn] ");
       affect_from_char(ch, SKILL_SUPRISE_ACCURACY);
     }
+    int powerful_blow_bonus = 0;
     if (affected_by_spell(ch, SKILL_POWERFUL_BLOW)) {
       send_to_char(ch, "[\tWPOWERFUL_BLOW\tn] ");
       affect_from_char(ch, SKILL_POWERFUL_BLOW);
+      powerful_blow_bonus += 5;
     }
 
     if (affected_by_spell(ch, SKILL_SMITE)) {
@@ -3516,6 +3518,7 @@ int hit(struct char_data *ch, struct char_data *victim,
 
     /* Calculate damage for this hit */
     dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
+    dam += powerful_blow_bonus;
 
     /* This comes after computing the other damage since sneak attack damage
      * is not affected by crit multipliers. */
