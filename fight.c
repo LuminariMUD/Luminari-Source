@@ -2150,6 +2150,11 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3));
   }
 
+  /* morale bonus */
+  if (affected_by_spell(ch, SKILL_POWERFUL_BLOW)) {
+    dambonus += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
+  }
+
   /* temporary filler for ki-strike until we get it working right */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
     dambonus += HAS_FEAT(ch, FEAT_KI_STRIKE);
@@ -2847,6 +2852,9 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   /* Luck bonus */
 
   /* Morale bonus */
+  if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY)) {
+    bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
+  }
 
   /* Profane bonus */
 
@@ -3419,6 +3427,16 @@ int hit(struct char_data *ch, struct char_data *victim,
     if (affected_by_spell(ch, SPELL_TRUE_STRIKE)) {
       send_to_char(ch, "[\tWTRUE-STRIKE\tn] ");
       affect_from_char(ch, SPELL_TRUE_STRIKE);
+    }
+
+    /* rage powers */
+    if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY)) {
+      send_to_char(ch, "[\tWSUPRISE_ACCURACY\tn] ");
+      affect_from_char(ch, SKILL_SUPRISE_ACCURACY);
+    }
+    if (affected_by_spell(ch, SKILL_POWERFUL_BLOW)) {
+      send_to_char(ch, "[\tWPOWERFUL_BLOW\tn] ");
+      affect_from_char(ch, SKILL_POWERFUL_BLOW);
     }
 
     if (affected_by_spell(ch, SKILL_SMITE)) {
