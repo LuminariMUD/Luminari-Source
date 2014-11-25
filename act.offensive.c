@@ -1511,6 +1511,9 @@ ACMD(do_turnundead) {
 
 /* a function to clear rage and do other dirty work associated with that */
 void clear_rage(struct char_data *ch) {
+  if (!affected_by_spell(ch, SKILL_RAGE))
+    return;
+
   affect_from_char(ch, SKILL_RAGE);
   send_to_char(ch, "You calm down from your rage...\r\n");
 
@@ -1525,7 +1528,7 @@ void clear_rage(struct char_data *ch) {
     SET_BIT_AR(fatigued_af.bitvector, AFF_FATIGUED);
     affect_join(ch, &fatigued_af, 1, FALSE, FALSE, FALSE);
   }
-  
+
   /* clearing some rage powers */
   if (char_has_mud_event(ch, eSUPRISE_ACCURACY)) {
     change_event_duration(ch, eSUPRISE_ACCURACY, 0);
