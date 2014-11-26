@@ -1597,7 +1597,11 @@ ACMD(do_rage) {
   aftwo.duration = duration;
   aftwo.location = APPLY_CON;
   aftwo.modifier = bonus;
-  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2; //little boost in current hps
+  if (GET_HIT(ch) < GET_MAX_HIT(ch)) {
+    //little boost in current hps
+    GET_HIT(ch) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch),
+          CLASS_LEVEL(ch, CLASS_BERSERKER) * bonus / 2);
+  }
 
   afthree.spell = SKILL_RAGE;
   afthree.duration = duration;
