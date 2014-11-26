@@ -710,7 +710,7 @@ void assign_feats(void) {
       "be used only once per day and only while raging.");
   /*rage power*/feato(FEAT_RP_HEAVY_SHRUG, "heavy shrug", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "increased DR while raging",
-    "The berserker's damage reduction increases by 3/—. This increase is always "
+    "The berserker's damage reduction increases by 3/-. This increase is always "
       "active while the berserker is raging.");
   /*rage power*/feato(FEAT_RP_FEARLESS_RAGE, "fearless rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "fearless while raging",
