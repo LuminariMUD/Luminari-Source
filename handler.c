@@ -105,7 +105,7 @@ int isname(const char *str, const char *namelist) {
 
 /* modify a character's given apply-type (loc) by value */
 void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
-  
+
   switch (loc) {
 
     case APPLY_STR:
@@ -271,7 +271,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
 void affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[],
         bool add) {
   int i, j;
-  
+
   if (add) {
     for (i = 0; i < AF_ARRAY_MAX; i++)
       for (j = 0; j < 32; j++)
@@ -293,27 +293,27 @@ int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int e
   int i = 0, j = 0;
   int best = 0;
   int modifier = 0;
-  
+
   /* Skip stackable bonus types and bonus types without a modifier. */
   if ((location == APPLY_NONE) ||
       (location == APPLY_DR) ||
       (BONUS_TYPE_STACKS(bonus_type)) )
     return 0;
-  
+
   /* Check affect structures */
-  for (af = ch->affected; af; af = af->next) {   
+  for (af = ch->affected; af; af = af->next) {
     /* Skip affects that are not on this location and have a different type. */
     if ((af->bonus_type != bonus_type) || (af->location != location))
       continue;
-    if (af->spell == except_spell) 
+    if (af->spell == except_spell)
       continue;
-    
+
     modifier = af->modifier;
-    
+
     if (af->location == location && modifier > best)
       best = modifier;
   }
-  
+
   /* Check gear. */
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i)) {
@@ -336,7 +336,7 @@ int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int e
       }
     }
   }
-  return best;  
+  return best;
 }
 
 /* this will take a character's modified 'points' and reset it
@@ -362,7 +362,7 @@ void reset_char_points(struct char_data *ch) {
   /* Reset damage reduction */
 //  for (damreduct = ch->points.damage_reduction;
 //       damreduct != NULL;
-//       damreduct = damreduct->next) 
+//       damreduct = damreduct->next)
 //  {
     /* We have a damage reduction record.  Clear it out. */
 //    for (dr_bypass = damreduct->bypass;
@@ -370,8 +370,8 @@ void reset_char_points(struct char_data *ch) {
 //         dr_bypass = dr_bypass->next)
 //    {
 
-//    }       
-//  }  
+//    }
+//  }
 }
 
 #define STAT_CAP 50
@@ -398,14 +398,14 @@ void compute_char_cap(struct char_data *ch) {
   GET_STR(ch) = MAX(1, MIN(GET_STR(ch), STAT_CAP));
 
   GET_SIZE(ch) = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
-  
+
   /* can add more restrictions to npc's above this if we like */
   if (IS_NPC(ch))
     return;
 
   /*****************/
   /* PC Cap System */
-  
+
   /* start with base */
   str_cap = BASE_STAT_CAP + GET_REAL_STR(ch);
   dex_cap = BASE_STAT_CAP + GET_REAL_DEX(ch);
@@ -435,7 +435,7 @@ void compute_char_cap(struct char_data *ch) {
   "Ranger"     dex,           hitroll, damroll, (str / wis)
   "Bard"       cha, dex,      (hitroll, damroll, str, int)
    */
-          
+
   /* here is the actual class modifiers */
   for (class = 0; class < MAX_CLASSES; class++) {
     if ((class_level = CLASS_LEVEL(ch, class)) > 0) {
@@ -511,15 +511,16 @@ void compute_char_cap(struct char_data *ch) {
   }
 
   /* cap stats according to adjustments */
-  GET_DEX(ch) = MIN(dex_cap, GET_DEX(ch));
-  GET_INT(ch) = MIN(int_cap, GET_INT(ch));
-  GET_WIS(ch) = MIN(wis_cap, GET_WIS(ch));
-  GET_CON(ch) = MIN(con_cap, GET_CON(ch));
-  GET_CHA(ch) = MIN(cha_cap, GET_CHA(ch));
-  GET_STR(ch) = MIN(str_cap, GET_STR(ch));
-  
+  /* note zusuk added another +3 to the cap just to accomodate berserkers */
+  GET_DEX(ch) = MIN(dex_cap + 4, GET_DEX(ch));
+  GET_INT(ch) = MIN(int_cap + 4, GET_INT(ch));
+  GET_WIS(ch) = MIN(wis_cap + 4, GET_WIS(ch));
+  GET_CON(ch) = MIN(con_cap + 4, GET_CON(ch));
+  GET_CHA(ch) = MIN(cha_cap + 4, GET_CHA(ch));
+  GET_STR(ch) = MIN(str_cap + 4, GET_STR(ch));
+
   GET_HITROLL(ch) = MIN(hit_cap, GET_HITROLL(ch));
-  GET_DAMROLL(ch) = MIN(dam_cap, GET_DAMROLL(ch));  
+  GET_DAMROLL(ch) = MIN(dam_cap, GET_DAMROLL(ch));
 }
 #undef STAT_CAP
 #undef BASE_STAT_CAP
@@ -537,15 +538,15 @@ int affect_total_sub(struct char_data *ch) {
   struct affected_type *af;
   int i, j, at_armor = 100;
   int modifier = 0;
-  int empty_bits[AF_ARRAY_MAX];  
-  
+  int empty_bits[AF_ARRAY_MAX];
+
   for(i = 0; i > AF_ARRAY_MAX; i++)
     empty_bits[i] = 0;
-  
+
   /* subtract affects with gear */
   for (i = 0; i < NUM_WEARS; i++) {
     if (GET_EQ(ch, i)) {
-      for (j = 0; j < MAX_OBJ_AFFECT; j++) {  
+      for (j = 0; j < MAX_OBJ_AFFECT; j++) {
         if (BONUS_TYPE_STACKS(GET_EQ(ch, i)->affected[j].bonus_type)) {
           affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
               GET_EQ(ch, i)->affected[j].modifier,
@@ -567,11 +568,11 @@ int affect_total_sub(struct char_data *ch) {
     else
       affect_modify_ar(ch, af->location, 0, af->bitvector, FALSE);
   }
-  
-  /* Adjust the modifiers to APPLY_ fields. */  
+
+  /* Adjust the modifiers to APPLY_ fields. */
   for (i = 0; i < NUM_APPLIES; i++) {
     modifier = 0;
-    for (j = 0; j < NUM_BONUS_TYPES; j++) {       
+    for (j = 0; j < NUM_BONUS_TYPES; j++) {
       modifier += calculate_best_mod(ch, i, j, -1, -1);
     }
     aff_apply_modify(ch, i, -modifier, "affect_total_sub");
@@ -584,7 +585,7 @@ int affect_total_sub(struct char_data *ch) {
   /* reset stats - everything should be at 0 now */
   ch->aff_abils = ch->real_abils;
   reset_char_points(ch);
-  
+
   return at_armor;
 }
 
@@ -592,12 +593,12 @@ int affect_total_sub(struct char_data *ch) {
 void affect_total_plus(struct char_data *ch, int at_armor) {
   struct affected_type *af;
   int i, j;
-  int empty_bits[AF_ARRAY_MAX];  
+  int empty_bits[AF_ARRAY_MAX];
   int modifier = 0;
-  
+
   for(i = 0; i > AF_ARRAY_MAX; i++)
     empty_bits[i] = 0;
-  
+
   /* restore stored stats */
   GET_AC(ch) = at_armor;
 
@@ -624,8 +625,8 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
     else
       affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
   }
-  
-    /* Adjust the modifiers to APPLY_ fields. */  
+
+    /* Adjust the modifiers to APPLY_ fields. */
   for (i = 0; i < NUM_APPLIES; i++) {
     modifier = 0;
     for (j = 0; j < NUM_BONUS_TYPES; j++)
@@ -633,12 +634,12 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
       aff_apply_modify(ch, i, modifier, "affect_total_plus");
     //affect_modify_ar(ch, i, modifier, empty_bits, TRUE);
   }
-  
+
   /* cap character */
   compute_char_cap(ch);
-  
+
   /* any dynamic stats need to be modified? (example, con -> hps) */
-  GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) / 2 * GET_LEVEL(ch));  
+  GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) / 2 * GET_LEVEL(ch));
 }
 
 /* This updates a character by subtracting everything he is affected by
@@ -646,7 +647,7 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
 void affect_total(struct char_data *ch) {
   int at_armor = 100;
 
-  /* this will subtract all affects and reset stats 
+  /* this will subtract all affects and reset stats
      at_armor stores character's AC after being unaffected (like armor-apply) */
   at_armor = affect_total_sub(ch);
 
@@ -659,20 +660,20 @@ void affect_total(struct char_data *ch) {
 void affect_to_char(struct char_data *ch, struct affected_type *af) {
   int i;
   struct affected_type *affected_alloc;
-  int empty_bits[AF_ARRAY_MAX];  
-  
+  int empty_bits[AF_ARRAY_MAX];
+
   for(i = 0; i > AF_ARRAY_MAX; i++)
     empty_bits[i] = 0;
-  
+
   CREATE(affected_alloc, struct affected_type, 1);
 
   *affected_alloc = *af;
   affected_alloc->next = ch->affected;
   ch->affected = affected_alloc;
-  
+
   //affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
-  
+
   if (BONUS_TYPE_STACKS(af->bonus_type)) {
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   } else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell)) {
@@ -680,7 +681,7 @@ void affect_to_char(struct char_data *ch, struct affected_type *af) {
     //affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, FALSE);
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   }
-  
+
   affect_total(ch);
 }
 
@@ -690,11 +691,11 @@ void affect_to_char(struct char_data *ch, struct affected_type *af) {
 void affect_remove(struct char_data *ch, struct affected_type *af) {
   int i;
   struct affected_type *temp;
-  int empty_bits[AF_ARRAY_MAX];  
-  
+  int empty_bits[AF_ARRAY_MAX];
+
   for(i = 0; i > AF_ARRAY_MAX; i++)
     empty_bits[i] = 0;
-  
+
   if (ch->affected == NULL) {
     core_dump();
     return;
@@ -706,22 +707,22 @@ void affect_remove(struct char_data *ch, struct affected_type *af) {
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
   } else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell)) {
     aff_apply_modify(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), "affect_remove");
-    //affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, TRUE);    
+    //affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, TRUE);
    // affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
-  }  
-  
+  }
+
   /* Check if we have anything that is 'nonstandard' from this affect */
   if (af->location == APPLY_DR) {
     /* Remove the dr. */
-    struct damage_reduction_type *temp, *dr; /* Used by REMOVE_FROM_LIST */    
+    struct damage_reduction_type *temp, *dr; /* Used by REMOVE_FROM_LIST */
     for(dr = GET_DR(ch); dr != NULL; dr = dr->next) {
       if (dr->spell == af->spell) {
         REMOVE_FROM_LIST(dr, GET_DR(ch), next);
-      }        
+      }
     }
   }
   REMOVE_FROM_LIST(af, ch->affected, next);
-  
+
   free_affect(af);
   affect_total(ch);
 }
@@ -733,7 +734,7 @@ void affect_type_from_char(struct char_data *ch, int type) {
   for (hjp = ch->affected; hjp; hjp = next) {
     next = hjp->next;
     if (hjp->bitvector[type])
-        affect_remove(ch, hjp);            
+        affect_remove(ch, hjp);
   }
 }
 
@@ -797,8 +798,8 @@ void check_room_lighting(room_rnum room, struct char_data *ch, bool enter) {
     if (GET_OBJ_TYPE(GET_EQ(ch, WEAR_LIGHT)) == ITEM_LIGHT)
       if (GET_OBJ_VAL(GET_EQ(ch, WEAR_LIGHT), 2)) /* Light ON */
         value++;
-    
-  /* check for 'magic lights' on worn gear */  
+
+  /* check for 'magic lights' on worn gear */
   for (i = 0; i < NUM_WEARS; i++) {
     obj = GET_EQ(ch, i);
     if (obj)
@@ -806,7 +807,7 @@ void check_room_lighting(room_rnum room, struct char_data *ch, bool enter) {
         value++;
   }
 
-  /* check for 'magic lights' in inventory */  
+  /* check for 'magic lights' in inventory */
   for (obj = ch->carrying; obj; obj = next_obj) {
     next_obj = obj->next_content;
     if (obj)
@@ -821,7 +822,7 @@ void check_room_lighting(room_rnum room, struct char_data *ch, bool enter) {
   /* magically lit individuals */
   if (AFF_FLAGGED(ch, AFF_MAGE_FLAME))
     value++;
-    
+
   /* done with lights, check globes */
   //  if (has_globe)
   //    val2++;
@@ -886,8 +887,8 @@ void char_to_coords(struct char_data *ch, int x, int y, int wilderness) {
   X_LOC(ch) = x;
   Y_LOC(ch) = y;
 
-  char_to_room(ch, room); 
-  
+  char_to_room(ch, room);
+
 }
 
 /* place a character in a room */
@@ -895,7 +896,7 @@ void char_to_room(struct char_data *ch, room_rnum room) {
 
   if (ch == NULL || room == NOWHERE || room > top_of_world)
     log("SYSERR: Illegal value(s) passed to char_to_room. (Room: %d/%d Ch: %p)",
-          room, top_of_world, ch); 
+          room, top_of_world, ch);
   else {
 
     /* If this is a wilderness room, set coords. */
@@ -911,12 +912,12 @@ void char_to_room(struct char_data *ch, room_rnum room) {
           assign_wilderness_room(room, X_LOC(ch), Y_LOC(ch));
         }
 
-      }      
+      }
       /* Set occupied flag */
       if ( IS_DYNAMIC(room) ) {
         SET_BIT_AR(ROOM_FLAGS(room), ROOM_OCCUPIED);
         /* Create the event to clear the flag, if it is not already set. */
-        if(!room_has_mud_event(&world[room], eCHECK_OCCUPIED))         
+        if(!room_has_mud_event(&world[room], eCHECK_OCCUPIED))
           NEW_EVENT(eCHECK_OCCUPIED, &world[room].number, NULL, 10 RL_SEC);
       } else {
       }
@@ -925,7 +926,7 @@ void char_to_room(struct char_data *ch, room_rnum room) {
     ch->next_in_room = world[room].people;
     world[room].people = ch;
     IN_ROOM(ch) = room;
-    
+
 
     autoquest_trigger_check(ch, 0, 0, AQ_ROOM_FIND);
     autoquest_trigger_check(ch, 0, 0, AQ_MOB_FIND);
@@ -1084,11 +1085,11 @@ int invalid_prof(struct char_data *ch, struct obj_data *obj) {
 
 void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
   int i, j;
-  int empty_bits[AF_ARRAY_MAX];  
-  
+  int empty_bits[AF_ARRAY_MAX];
+
   for(i = 0; i > AF_ARRAY_MAX; i++)
     empty_bits[i] = 0;
-  
+
   if (pos < 0 || pos >= NUM_WEARS) {
     core_dump();
     return;
@@ -1107,10 +1108,10 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
     log("SYSERR: EQUIP: Obj is in_room when equip.");
     return;
   }
-  /*  Changed this - proficiencies are handles in the places where they apply penalties.  
+  /*  Changed this - proficiencies are handles in the places where they apply penalties.
    *  You can wear whatever you want. - Ornir */
 /* if (invalid_align(ch, obj) || invalid_class(ch, obj) || invalid_prof(ch, obj)) { */
-  if (invalid_align(ch, obj) || invalid_class(ch, obj)) { 
+  if (invalid_align(ch, obj) || invalid_class(ch, obj)) {
     act("You try to use $p, but fumble it and let go.", FALSE, ch, obj, 0, TO_CHAR);
     act("$n tries to use $p, but can't seem to and lets go.", FALSE, ch, obj, 0, TO_ROOM);
     /* Changed to drop in inventory instead of the ground. */
@@ -1122,7 +1123,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
   obj->worn_by = ch;
   obj->worn_on = pos;
 
-  /*  Modified this to use the NEW ac system - AC starts at 10 and is modified by armor. 
+  /*  Modified this to use the NEW ac system - AC starts at 10 and is modified by armor.
    *  09/09/14 : Ornir */
   if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
     GET_AC(ch) += apply_ac(ch, pos);
@@ -1136,13 +1137,13 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
 
   /* apply_obj_affects(ch, obj);*/
   for (j = 0; j < MAX_OBJ_AFFECT; j++) {
-    /* Here is where we need to see if these affects ACTUALLY apply, 
+    /* Here is where we need to see if these affects ACTUALLY apply,
      * based on the bonus types. */
-    
+
     affect_modify_ar(ch, obj->affected[j].location,
           0, //obj->affected[j].modifier,
           GET_OBJ_AFFECT(obj), TRUE);
-    
+
     if ((obj->affected[j].modifier) < 0) {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), TRUE);
     } else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1)) {
@@ -1150,20 +1151,20 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
       aff_apply_modify(ch, obj->affected[j].location, -calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), "equip_char");
       //affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, FALSE);
     }
-    
+
   }
-  
+
   affect_total(ch);
 }
 
 struct obj_data *unequip_char(struct char_data *ch, int pos) {
   int i, j;
   struct obj_data *obj;
-  int empty_bits[AF_ARRAY_MAX];  
-  
+  int empty_bits[AF_ARRAY_MAX];
+
   for(i = 0; i > AF_ARRAY_MAX; i++)
     empty_bits[i] = 0;
-  
+
   if ((pos < 0 || pos >= NUM_WEARS) || GET_EQ(ch, pos) == NULL) {
     core_dump();
     return (NULL);
@@ -1186,19 +1187,19 @@ struct obj_data *unequip_char(struct char_data *ch, int pos) {
   GET_EQ(ch, pos) = NULL;
 
   for (j = 0; j < MAX_OBJ_AFFECT; j++) {
-    /* Here is where we need to see if these affects ACTUALLY apply, 
+    /* Here is where we need to see if these affects ACTUALLY apply,
      * based on the bonus types. */
     affect_modify_ar(ch, obj->affected[j].location,
           0, //obj->affected[j].modifier,
           GET_OBJ_AFFECT(obj), FALSE);
-    
+
     if ((obj->affected[j].modifier) < 0) {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), FALSE);
     } else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1)) {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), FALSE);
       aff_apply_modify(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), "equip_char");
       //affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, TRUE);
-    }    
+    }
   }
   affect_total(ch);
 
@@ -1217,19 +1218,19 @@ int get_number(char **name) {
   /* Make a working copy of name */
   namebuf = strdup(*name);
 
-  if ((ppos = strchr(namebuf, '.')) != NULL) {    
+  if ((ppos = strchr(namebuf, '.')) != NULL) {
 
     *ppos++ = '\0';
     strlcpy(number, namebuf, sizeof (number));
     strcpy(*name, ppos); /* strcpy: OK (always smaller) */
-    
+
     for (i = 0; *(number + i); i++)
-      if (!isdigit(*(number + i))) 
+      if (!isdigit(*(number + i)))
         retval = 0;
 
     retval = atoi(number);
   }
-  
+
   free(namebuf);
 
   return retval;
@@ -1589,7 +1590,7 @@ void extract_char_final(struct char_data *ch) {
     /* If "temp" is hunting our extracted char, stop the hunt. */
     if (HUNTING(temp) == ch)
       HUNTING(temp) = NULL;
-    /* If "temp" has allocated memory data and our ch is a PC, forget the 
+    /* If "temp" has allocated memory data and our ch is a PC, forget the
      * extracted character (if he/she is remembered) */
     if (!IS_NPC(ch) && GET_POS(ch) == POS_DEAD && MEMORY(temp))
       forget(temp, ch); /* forget() is safe to use without a check. */
@@ -1633,7 +1634,7 @@ void extract_char(struct char_data *ch) {
 
   /* We want to save events, this will be last legitimate save including
      events before extract_char_final(), we have to make sure in
-     extract_char_final() we DO NOT save events 
+     extract_char_final() we DO NOT save events
   save_char(ch, 0);
    */
 
