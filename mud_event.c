@@ -78,6 +78,7 @@ struct mud_event_list mud_event_index[] = {
   { "Suprise Accuracy", event_countdown, EVENT_CHAR}, //eSUPRISE_ACCURACY
   { "Powerful Blow", event_countdown, EVENT_CHAR}, //ePOWERFUL_BLOW
   { "Renewed Vigor", event_countdown, EVENT_CHAR}, // eRENEWEDVIGOR
+  { "Come and Get Me!", event_countdown, EVENT_CHAR}, //eCOME_AND_GET_ME
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -192,6 +193,9 @@ EVENTFUNC(event_countdown) {
       break;
     case eSUPRISE_ACCURACY:
       send_to_char(ch, "You are now able to use suprise accuracy again.\r\n");
+      break;
+    case eCOME_AND_GET_ME:
+      send_to_char(ch, "You are now able to use 'come and get me' again.\r\n");
       break;
     case ePOWERFUL_BLOW:
       send_to_char(ch, "You are now able to use powerful blow again.\r\n");

@@ -293,6 +293,23 @@ void perform_supriseaccuracy(struct char_data *ch) {
   act("$n's focuses $s rage, preparing a suprise accuracy attack!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
+/* rp_come_and_get_me engine */
+/* The come and get me is reliant on rage */
+void perform_comeandgetme(struct char_data *ch) {
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = SKILL_COME_AND_GET_ME;
+  af.duration = 2;
+
+  affect_to_char(ch, &af);
+
+  attach_mud_event(new_mud_event(eCOME_AND_GET_ME, ch, NULL), SECS_PER_MUD_DAY * 1);
+
+  send_to_char(ch, "You focus your rage and prepare to SMASH.\r\n");
+  act("$n's focuses $s rage, preparing to SMASH!", FALSE, ch, 0, 0, TO_ROOM);
+}
+
 /* rp_powerful_blow engine */
 /* The powerful blow is reliant on rage */
 void perform_powerfulblow(struct char_data *ch) {
@@ -2326,7 +2343,7 @@ ACMD(do_renewedvigor) {
   attach_mud_event(new_mud_event(eRENEWEDVIGOR, ch, NULL),
           (2 * SECS_PER_MUD_DAY));
   GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
-          (dice(CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 3, 8) + 10));
+          (dice(CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 3, 8) + 10 + GET_CON_BONUS(ch)));
   update_pos(ch);
 
   /* Actions */
@@ -2592,6 +2609,35 @@ ACMD(do_supriseaccuracy) {
   }
 
   perform_supriseaccuracy(ch);
+}
+
+ACMD(do_comeandgetme) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_RP_COME_AND_GET_ME)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_COME_AND_GET_ME)) {
+    send_to_char(ch, "You have already focused your rage into 'come and get me'!\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eCOME_AND_GET_ME)) {
+    send_to_char(ch, "You are too exhausted to use 'come and get me' again!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
+    send_to_char(ch, "You are are too fatigued to use 'come and get me'!\r\n");
+    return;
+  }
+
+  if (!affected_by_spell(ch, SKILL_RAGE)) {
+    send_to_char(ch, "You need to be raging to use 'come and get me'!\r\n");
+    return;
+  }
+
+  perform_comeandgetme(ch);
 }
 
 ACMD(do_powerfulblow) {
