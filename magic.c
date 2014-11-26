@@ -2762,11 +2762,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_SCARE: //illusion
-      if (HAS_FEAT(victim, FEAT_AURA_OF_COURAGE)) {
+      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_AURA_OF_COURAGE)) {
         send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
         send_to_char(victim, "Your divine courage protects you!\r\n");
         return;
       }
+      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_RP_FEARLESS_RAGE) &&
+          affected_by_spell(victim, SKILL_RAGE)) {
+        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+        send_to_char(victim, "Your fearless rage protects you!\r\n");
+        return;
+      }
+
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus)) {
@@ -3152,11 +3159,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_WAIL_OF_THE_BANSHEE: //necromancy (does damage too)
-      if (HAS_FEAT(victim, FEAT_AURA_OF_COURAGE)) {
+      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_AURA_OF_COURAGE)) {
         send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
         send_to_char(victim, "Your divine courage protects you!\r\n");
         return;
       }
+      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_RP_FEARLESS_RAGE) &&
+          affected_by_spell(victim, SKILL_RAGE)) {
+        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+        send_to_char(victim, "Your fearless rage protects you!\r\n");
+        return;
+      }
+
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_FORT, 0)) {
