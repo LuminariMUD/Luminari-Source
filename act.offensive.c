@@ -1549,6 +1549,9 @@ void clear_rage(struct char_data *ch) {
   if (char_has_mud_event(ch, ePOWERFUL_BLOW)) {
     change_event_duration(ch, ePOWERFUL_BLOW, 0);
   }
+  if (char_has_mud_event(ch, eCOME_AND_GET_ME)) {
+    change_event_duration(ch, eCOME_AND_GET_ME, 0);
+  }
 
 }
 
