@@ -233,6 +233,9 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
     case SKILL_RAGE_FATIGUE:
       send_to_char(ch, "You recover from your fatigue.\r\n");
       break;
+    case SKILL_COME_AND_GET_ME:
+      send_to_char(ch, "You no longer SMASH!\r\n");
+      break;
     case SKILL_RAGE:
       clear_rage(ch);
       break;
