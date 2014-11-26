@@ -173,6 +173,17 @@ void affliction_tick(struct char_data *ch) {
     return;
   }
 
+  /* fearless rage */
+  if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
+          HAS_FEAT(ch, FEAT_RP_FEARLESS_RAGE) &&
+          affected_by_spell(ch, SKILL_RAGE)) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+    send_to_char(ch, "Your fearless rage overcomes the fear!\r\n");
+    act("$n \tWis bolstered by $s fearless rage and overcomes $s \tDfear!\tn\tn",
+            TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
   /* fear -> spell-bravery */
   if (AFF_FLAGGED(ch, AFF_FEAR) && AFF_FLAGGED(ch, AFF_BRAVERY)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
