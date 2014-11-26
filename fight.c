@@ -3548,7 +3548,8 @@ int hit(struct char_data *ch, struct char_data *victim,
     /* ok we are about to do damage() so here we are adding a special counter-attack
        for berserkers that is suppose to fire BEFORE damage is done to vict */
     if (ch != victim &&
-          affected_by_spell(victim, SKILL_POWERFUL_BLOW)) {
+          affected_by_spell(victim, SKILL_COME_AND_GET_ME) &&
+          affected_by_spell(victim, SKILL_RAGE)) {
       GET_TOTAL_AOO(victim)--; /* free aoo and will be incremented in the function */
       attack_of_opportunity(victim, ch, 0);
     }
