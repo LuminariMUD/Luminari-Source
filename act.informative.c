@@ -1136,7 +1136,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
   struct mud_event_data *pMudEvent = NULL;
 
   send_to_char(ch, "\tC");
-  text_line(ch, " \tWCooldowns\tC ", 80, '-', '-');
+  text_line(ch, "\tYCooldowns\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
 
   if ((pMudEvent = char_has_mud_event(k, eTAUNT)))
@@ -1203,6 +1203,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tn");
   send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
   send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
+  send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
 }
 
 void perform_resistances(struct char_data *ch, struct char_data *k) {
@@ -1211,7 +1212,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
 
 
   send_to_char(ch, "\tC");
-  text_line(ch, " \tWDamage Type Resistance / Vulnerability\tC ", 80, '-', '-');
+  text_line(ch, "\tYDamage Type Resistance / Vulnerability\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
 
   for (i = 0; i < NUM_DAM_TYPES - 1; i++) {
@@ -1222,7 +1223,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
   }
 
   send_to_char(ch, "\tC");
-  text_line(ch, " \tWDamage Reduction\tC ", 80, '-', '-');
+  text_line(ch, "\tYDamage Reduction\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
   struct damage_reduction_type *dr;
   dr = GET_DR(ch);
@@ -1270,7 +1271,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tn");
   send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
   send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
-
+  send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
 }
 
 void perform_affects(struct char_data *ch, struct char_data *k) {
@@ -1283,7 +1284,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   struct mud_event_data *pMudEvent = NULL;
 
   send_to_char(ch, "\tC");
-  text_line(ch, " \tWAffected By\tC ", 80, '-', '-');
+  text_line(ch, "\tYAffected By\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
   /* Showing the bitvector */
   //sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
@@ -1297,7 +1298,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
     }
   }
   send_to_char(ch, "\tC");
-  text_line(ch, " \tWSpell-like Affects\tC ", 80, '-', '-');
+  text_line(ch, "\tYSpell-like Affects\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
 
   buf[0] = '\0'; // Reset the string buffer for later use.
@@ -1383,7 +1384,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
 
 
   send_to_char(ch, "\tC");
-  text_line(ch, " \tWOther Affects\tC ", 80, '-', '-');
+  text_line(ch, "\tYOther Affects\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
 
   if (CLASS_LEVEL(ch, CLASS_CLERIC) >= 14) {
@@ -1412,6 +1413,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tn");
   send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
   send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
+  send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
 }
 
 void free_history(struct char_data *ch, int type) {
@@ -1736,6 +1738,10 @@ ACMD(do_abilities) {
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');  
   send_to_char(ch, "\tn");
+  send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
+  send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
+  send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
+  
 }
 
 ACMD(do_innates) {
