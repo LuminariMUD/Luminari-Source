@@ -1597,11 +1597,6 @@ ACMD(do_rage) {
   aftwo.duration = duration;
   aftwo.location = APPLY_CON;
   aftwo.modifier = bonus;
-  if (GET_HIT(ch) < GET_MAX_HIT(ch)) {
-    //little boost in current hps
-    GET_HIT(ch) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch),
-          CLASS_LEVEL(ch, CLASS_BERSERKER) * bonus / 2);
-  }
 
   afthree.spell = SKILL_RAGE;
   afthree.duration = duration;
@@ -1626,6 +1621,12 @@ ACMD(do_rage) {
 
   if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_BERSERKER) < 1) {
     USE_STANDARD_ACTION(ch);
+  }
+
+  if (GET_HIT(ch) < GET_MAX_HIT(ch)) {
+    //little boost in current hps
+    GET_HIT(ch) += MIN(GET_MAX_HIT(ch) + 170 - GET_HIT(ch),
+          CLASS_LEVEL(ch, CLASS_BERSERKER) * bonus / 2);
   }
 }
 #undef RAGE_AFFECTS
@@ -2325,7 +2326,7 @@ ACMD(do_renewedvigor) {
   attach_mud_event(new_mud_event(eRENEWEDVIGOR, ch, NULL),
           (2 * SECS_PER_MUD_DAY));
   GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
-          ((dice(CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 3, 8))));
+          (dice(CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 3, 8) + 10));
   update_pos(ch);
 
   /* Actions */
