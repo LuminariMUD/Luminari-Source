@@ -3556,7 +3556,7 @@ int hit(struct char_data *ch, struct char_data *victim,
       /* dummy check */
       update_pos(ch);
       if (GET_POS(ch) <= POS_INCAP)
-        return (HIT_MISS)
+        return (HIT_MISS);
     }
     /***** end counter attacks ******/
 
