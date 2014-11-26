@@ -2319,7 +2319,7 @@ ACMD(do_renewedvigor) {
   send_to_char(ch, "Your body glows \tRred\tn as your wounds heal...\r\n");
   act("$n's body glows \tRred\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
   attach_mud_event(new_mud_event(eRENEWEDVIGOR, ch, NULL),
-          (1 * SECS_PER_MUD_DAY));
+          (2 * SECS_PER_MUD_DAY));
   GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
           ((dice(CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 3, 8))));
   update_pos(ch);
@@ -2355,7 +2355,7 @@ ACMD(do_wholenessofbody) {
   send_to_char(ch, "Your body glows \tWwhite\tn as your wounds heal...\r\n");
   act("$n's body glows \tWwhite\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
   attach_mud_event(new_mud_event(eWHOLENESSOFBODY, ch, NULL),
-          (1 * SECS_PER_MUD_DAY));
+          (4 * SECS_PER_MUD_DAY));
   GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
           (20 + (CLASS_LEVEL(ch, CLASS_MONK) * 2)));
   update_pos(ch);
