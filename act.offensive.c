@@ -1548,7 +1548,7 @@ ACMD(do_rage) {
   if (affected_by_spell(ch, SKILL_RAGE)) {
     clear_rage(ch);
     affect_from_char(ch, SKILL_RAGE);
-    
+
     return;
   }
 
@@ -2287,6 +2287,47 @@ ACMD(do_crystalbody) {
 
 }
 
+ACMD(do_renewedvigor) {
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+
+  if (!HAS_FEAT(ch, FEAT_RP_RENEWED_VIGOR)) {
+    send_to_char(ch, "You have no idea how to do that!\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eRENEWEDVIGOR)) {
+    send_to_char(ch, "You must wait longer before you can use this "
+            "ability again.\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch) && GET_POS(ch) < POS_FIGHTING) {
+    send_to_char(ch, "You need to be in a better position in combat in order"
+            " to use this ability!\r\n");
+    return;
+  }
+
+  if (!affected_by_spell(ch, SKILL_RAGE)) {
+    send_to_char(ch, "You need to be raging to do that!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Your body glows \tRred\tn as your wounds heal...\r\n");
+  act("$n's body glows \tRred\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
+  attach_mud_event(new_mud_event(eRENEWEDVIGOR, ch, NULL),
+          (1 * SECS_PER_MUD_DAY));
+  GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
+          ((dice(CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 3, 8))));
+  update_pos(ch);
+
+  /* Actions */
+  USE_SWIFT_ACTION(ch);
+}
+
 ACMD(do_wholenessofbody) {
 
   if (IS_NPC(ch)) {
@@ -2314,7 +2355,7 @@ ACMD(do_wholenessofbody) {
   send_to_char(ch, "Your body glows \tWwhite\tn as your wounds heal...\r\n");
   act("$n's body glows \tWwhite\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
   attach_mud_event(new_mud_event(eWHOLENESSOFBODY, ch, NULL),
-          (9 * SECS_PER_MUD_HOUR));
+          (1 * SECS_PER_MUD_DAY));
   GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
           (20 + (CLASS_LEVEL(ch, CLASS_MONK) * 2)));
   update_pos(ch);

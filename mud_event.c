@@ -77,6 +77,7 @@ struct mud_event_list mud_event_index[] = {
   { "Trap Triggered", event_trap_triggered, EVENT_CHAR}, // eTRAPTRIGGERED */
   { "Suprise Accuracy", event_countdown, EVENT_CHAR}, //eSUPRISE_ACCURACY
   { "Powerful Blow", event_countdown, EVENT_CHAR}, //ePOWERFUL_BLOW
+  { "Renewed Vigor", event_countdown, EVENT_CHAR}, // eRENEWEDVIGOR
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -213,6 +214,9 @@ EVENTFUNC(event_countdown) {
    case eWHOLENESSOFBODY:
       send_to_char(ch, "You are now able to use Wholeness of Body again.\r\n");
       break;
+   case eRENEWEDVIGOR:
+      send_to_char(ch, "You are now able to use Renewed Vigor again.\r\n");
+      break;
     case eTREATINJURY:
       send_to_char(ch, "You are now able to treat injuries again.\r\n");
       break;
@@ -287,7 +291,7 @@ EVENTFUNC(event_daily_use_cooldown) {
       break;
     case eCRYSTALFIST:
       featnum = FEAT_CRYSTAL_FIST;
-      send_to_char(ch, "You may enhance your unarmed attacks again.\r\n");      
+      send_to_char(ch, "You may enhance your unarmed attacks again.\r\n");
       break;
     default:
       break;

@@ -77,6 +77,7 @@ typedef enum {
   eTRAPTRIGGERED, /* Trap Triggered */
   eSUPRISE_ACCURACY, /* rage power suprise accuracy */
   ePOWERFUL_BLOW, /* rage power powerful blow */
+  eRENEWEDVIGOR, /* Renewed Vigor, Berserker Healing Feat */
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
