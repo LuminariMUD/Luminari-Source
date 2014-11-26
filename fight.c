@@ -2158,6 +2158,11 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   } /* THIS IS JUST FOR SHOW, it gets taken out before the damage is calculated
      * the actual damage bonus is inserted in the code below */
 
+  /* if the victim is using 'come and get me' then they will be vulnerable */
+  if (affected_by_spell(vict, SKILL_COME_AND_GET_ME)) {
+    dambonus += 4;
+  }
+
   /* temporary filler for ki-strike until we get it working right */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
     dambonus += HAS_FEAT(ch, FEAT_KI_STRIKE);
@@ -2920,6 +2925,11 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
     bonuses[BONUS_TYPE_UNDEFINED] -= SPELLBATTLE(ch);
 
+  /* if the victim is using 'come and get me' then they will be vulnerable */
+  if (victim && affected_by_spell(victim, SKILL_COME_AND_GET_ME)) {
+    bonuses[BONUS_TYPE_UNDEFINED] += 4;
+  }
+
   /*  Check armor/weapon proficiency
    *  If not proficient with worn armor, armor check penalty applies to attack roll.
    *  If not proficient with weapon, -4 penalty applies. */
@@ -3534,6 +3544,15 @@ int hit(struct char_data *ch, struct char_data *victim,
     /* Apply Damage Reduction */
     if ((dam = apply_damage_reduction(ch, victim, wielded, dam)) == -1)
       return (HIT_MISS); /* This should be changed to something more reasonable */
+
+    /* ok we are about to do damage() so here we are adding a special counter-attack
+       for berserkers that is suppose to fire BEFORE damage is done to vict */
+    if (ch != victim &&
+          affected_by_spell(victim, SKILL_POWERFUL_BLOW)) {
+      GET_TOTAL_AOO(victim)--; /* free aoo and will be incremented in the function */
+      attack_of_opportunity(victim, ch, 0);
+    }
+    /***** end counter attacks ******/
 
     /* if the 'type' of hit() requires special handling, do it here */
     switch (type) {

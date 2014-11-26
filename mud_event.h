@@ -78,6 +78,7 @@ typedef enum {
   eSUPRISE_ACCURACY, /* rage power suprise accuracy */
   ePOWERFUL_BLOW, /* rage power powerful blow */
   eRENEWEDVIGOR, /* Renewed Vigor, Berserker Healing Feat */
+  eCOME_AND_GET_ME, /* rage power 'come and get me' */
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:

@@ -36,6 +36,7 @@ void  (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
   do_quiveringpalm, /* AA_QUIVERINGPALM */
   do_supriseaccuracy, /* AA_SUPRISE_ACCURACY */
   do_powerfulblow,  /* AA_POWERFUL_BLOW */
+  do_comeandgetme,  /* AA_COME_AND_GET_ME */
 };
 
 
