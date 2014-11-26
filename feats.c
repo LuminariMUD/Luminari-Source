@@ -706,8 +706,8 @@ void assign_feats(void) {
     "able to heal while raging",
     "As a standard action, the berserker heals 3d8 points of damage + her "
       "Constitution modifier. For every four levels the berserker has attained "
-      "above 4th, this amount of damage healed increases by 1d8, to a maximum "
-      "of 8d8.  This power can be used only once per day and only while raging.");
+      "above 4th, this amount of damage healed increases by 1d8.  This power can "
+      "be used only once per day and only while raging.");
   /*rage power*/feato(FEAT_RP_HEAVY_SHRUG, "heavy shrug", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "increased DR while raging",
     "The berserker's damage reduction increases by 3/—. This increase is always "

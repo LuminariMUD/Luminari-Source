@@ -310,6 +310,7 @@ ACMD(do_crystalfist);
 ACMD(do_crystalbody);
 ACMD(do_supriseaccuracy);
 ACMD(do_powerfulblow);
+ACMD(do_renewedvigor);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c

@@ -1151,6 +1151,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Lay on Hands - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eWHOLENESSOFBODY)))
     send_to_char(ch, "Wholeness of Body - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eRENEWEDVIGOR)))
+    send_to_char(ch, "Renewed Vigor - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTREATINJURY)))
     send_to_char(ch, "Treat Injuries - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEMPTYBODY)))
@@ -1688,13 +1690,13 @@ ACMD(do_gold) {
  * Desc: This procedure displays the abilities of the character, both racial and
  *       class.  If an ability has a limited number of uses, both the current
  *       remaining number of uses and the maximum number of uses are displayed.
- *       the time remaining to regenerate another use of the ability is 
+ *       the time remaining to regenerate another use of the ability is
  *       displayed using the 'cooldown' command, although there is a possibility
- *       that this may be a better place to display that information. 
- * 
+ *       that this may be a better place to display that information.
+ *
  *       (The figure below is adjusted and is not exactly to scale.)
- * 
- *       --------------------------- Abilities ---------------------------------         
+ *
+ *       --------------------------- Abilities ---------------------------------
  *       Ability name  (Ability Type)(uses remaining)/(max uses) uses remaining.
  *       Ability name  (Ability Type)(description of static bonus)
  *       -----------------------------------------------------------------------
@@ -1702,11 +1704,11 @@ ACMD(do_gold) {
 ACMD(do_abilities) {
   char buf[MAX_STRING_LENGTH];
   int line_length = 80;
-  int i = 0, remaining = 0, total = 0;  
-  
+  int i = 0, remaining = 0, total = 0;
+
   /* Set up the output. */
   send_to_char(ch, "\tC");
-  text_line(ch, "\tYAbilities\tC", line_length, '-', '-');  
+  text_line(ch, "\tYAbilities\tC", line_length, '-', '-');
   send_to_char(ch, "\tn");
   for (i = 0; i < NUM_FEATS; i++) {
     if (has_feat(ch, i) && is_daily_feat(i)) {
@@ -1719,29 +1721,29 @@ ACMD(do_abilities) {
           break;
         default:
           sprintf(buf, "Feat");
-          break;          
+          break;
       }
       remaining = daily_uses_remaining(ch, i);
       total = get_daily_uses(ch, i);
-      send_to_char(ch, 
-                   "%-20s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n", 
-                   feat_list[i].name, 
-                   buf,               
+      send_to_char(ch,
+                   "%-20s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n",
+                   feat_list[i].name,
+                   buf,
                    (remaining > (total / 2) ? "\tn" :
-                     (remaining <= 1 ? "\tR" : "\tY")), 
-                   remaining, 
+                     (remaining <= 1 ? "\tR" : "\tY")),
+                   remaining,
                    total);
     }
     buf[0] = '\0';
   }
   /* Close the output, reset the colors to prevent bleed. */
   send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');  
+  draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn");
   send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
   send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
   send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
-  
+
 }
 
 ACMD(do_innates) {

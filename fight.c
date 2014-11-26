@@ -1576,6 +1576,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
 //    damage_reduction += 12;
   if (HAS_FEAT(ch, FEAT_PERFECT_SELF)) /* temporary mechanic until we upgrade this system */
     damage_reduction += 3;
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG) && affected_by_spell(ch, SKILL_RAGE))
+    damage_reduction += 3;
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
@@ -2153,7 +2155,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* morale bonus */
   if (affected_by_spell(ch, SKILL_POWERFUL_BLOW)) {
     dambonus += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
-  }
+  } /* THIS IS JUST FOR SHOW, it gets taken out before the damage is calculated
+     * the actual damage bonus is inserted in the code below */
 
   /* temporary filler for ki-strike until we get it working right */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
@@ -3438,7 +3441,7 @@ int hit(struct char_data *ch, struct char_data *victim,
     if (affected_by_spell(ch, SKILL_POWERFUL_BLOW)) {
       send_to_char(ch, "[\tWPOWERFUL_BLOW\tn] ");
       affect_from_char(ch, SKILL_POWERFUL_BLOW);
-      powerful_blow_bonus += 5;
+      powerful_blow_bonus += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
     }
 
     if (affected_by_spell(ch, SKILL_SMITE)) {
@@ -3518,7 +3521,7 @@ int hit(struct char_data *ch, struct char_data *victim,
 
     /* Calculate damage for this hit */
     dam = compute_hit_damage(ch, victim, wielded, w_type, diceroll, 0);
-    dam += powerful_blow_bonus;
+    dam += powerful_blow_bonus; /* ornir is going to yell at me for this :p  -zusuk */
 
     /* This comes after computing the other damage since sneak attack damage
      * is not affected by crit multipliers. */
