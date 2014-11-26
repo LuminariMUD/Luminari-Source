@@ -3552,6 +3552,11 @@ int hit(struct char_data *ch, struct char_data *victim,
           affected_by_spell(victim, SKILL_RAGE)) {
       GET_TOTAL_AOO(victim)--; /* free aoo and will be incremented in the function */
       attack_of_opportunity(victim, ch, 0);
+
+      /* dummy check */
+      update_pos(ch);
+      if (GET_POS(ch) <= POS_INCAP)
+        return (HIT_MISS)
     }
     /***** end counter attacks ******/
 
