@@ -253,6 +253,9 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
       IS_MORPHED(ch) = 0;
       SUBRACE(ch) = 0;
       break;
+    case SKILL_DIRT_KICK:
+      send_to_char(ch, "Your vision clears.\r\n");
+      break;
     default:
       break;
   }

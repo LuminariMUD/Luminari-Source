@@ -2769,7 +2769,6 @@ void mag_assign_spells(void) {
   skillo(SKILL_HEADBUTT, "headbutt", ACTIVE_SKILL); //522
   skillo(SKILL_SHIELD_PUNCH, "shield punch", ACTIVE_SKILL); //523
   skillo(SKILL_DIRT_KICK, "dirt kick", ACTIVE_SKILL); //524
-  spell_info[SKILL_DIRT_KICK].wear_off_msg = "Your vision clears."; // CHEESE!
   skillo(SKILL_SAP, "sap", ACTIVE_SKILL); //525
   skillo(SKILL_SHIELD_SLAM, "shield slam", ACTIVE_SKILL); //526
   skillo(SKILL_SHIELD_CHARGE, "shield charge", ACTIVE_SKILL); //527
