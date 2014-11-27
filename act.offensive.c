@@ -397,7 +397,7 @@ void perform_rage(struct char_data *ch) {
   /* Add another affect for heavy shrug. */
   if (HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG)) {
     struct affected_type heavy_shrug_af;
-    struct damage_reduction_type new_dr;
+    struct damage_reduction_type *new_dr;
     
     new_affect(&heavy_shrug_af);
     heavy_shrug_af.spell = SKILL_RAGE;
