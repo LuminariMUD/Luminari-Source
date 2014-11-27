@@ -308,14 +308,20 @@ void assign_feats(void) {
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* Combat feats */
-  feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead", "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
+  feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, 
+  "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead", 
+  "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
   feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
 
-  feato(FEAT_WEAPON_FOCUS, "weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+1 to hit rolls for selected weapon", "+1 to hit rolls for selected weapon");
+  feato(FEAT_WEAPON_FOCUS, "weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, 
+  "+1 to hit rolls for selected weapon", 
+  "+1 to hit rolls for selected weapon");
   feat_prereq_bab(FEAT_WEAPON_FOCUS, 1);
   feat_prereq_weapon_proficiency(FEAT_WEAPON_FOCUS);
 
-  feato(FEAT_GREATER_WEAPON_FOCUS, "greater weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+1 to hit rolls with weapon", "+1 to hit rolls with weapon");
+  feato(FEAT_GREATER_WEAPON_FOCUS, "greater weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, 
+  "+1 to hit rolls with weapon", 
+  "+1 to hit rolls with weapon");
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_FOCUS, FEAT_WEAPON_FOCUS);
   feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_FOCUS);
   feat_prereq_class_level(FEAT_GREATER_WEAPON_FOCUS, CLASS_WARRIOR, 8);
@@ -340,7 +346,9 @@ void assign_feats(void) {
   feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_RIDE_BY_ATTACK, 1);
   /* end mounted combat feats */
 
-  feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.", "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
+  feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, 
+  "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.", 
+  "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
 
   feato(FEAT_CLEAVE, "cleave", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "extra initial attack against opponent after killing another opponent in same room", "extra initial attack against opponent after killing another opponent in same room");
   feat_prereq_attribute(FEAT_CLEAVE, AB_STR, 13);

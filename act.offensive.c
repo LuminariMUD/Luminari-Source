@@ -376,13 +376,16 @@ void perform_rage(struct char_data *ch) {
 
   af[0].location = APPLY_STR;
   af[0].modifier = bonus;
-
+  af[0].bonus_type = BONUS_TYPE_MORALE;
+  
   af[1].location = APPLY_CON;
   af[1].modifier = bonus;
   GET_HIT(ch) += GET_LEVEL(ch) * bonus; //little boost in current hps
+  af[1].bonus_type = BONUS_TYPE_MORALE;
 
   af[2].location = APPLY_SAVING_WILL;
   af[2].modifier = bonus;
+  af[2].bonus_type = BONUS_TYPE_MORALE;
 
   //this is a penalty
   af[3].location = APPLY_AC_NEW;
