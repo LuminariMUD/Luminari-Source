@@ -400,10 +400,10 @@ void perform_rage(struct char_data *ch) {
     struct damage_reduction_type new_dr;
     
     new_affect(&heavy_shrug_af);
-    af.spell = SKILL_RAGE;
-    af-duration = duration;
-    af.location = APPLY_DR;
-    af.modifier = 0;
+    heavy_shrug_af.spell = SKILL_RAGE;
+    heavy_shrug_af-duration = duration;
+    heavy_shrug_af.location = APPLY_DR;
+    heavy_shrug_af.modifier = 0;
     
     CREATE(new_dr, struct damage_reduction_type, 1);
 
