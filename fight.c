@@ -1576,8 +1576,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
 //    damage_reduction += 12;
   if (HAS_FEAT(ch, FEAT_PERFECT_SELF)) /* temporary mechanic until we upgrade this system */
     damage_reduction += 3;
-  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG) && affected_by_spell(ch, SKILL_RAGE))
-    damage_reduction += 3;
+//  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG) && affected_by_spell(ch, SKILL_RAGE))
+//    damage_reduction += 3;
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
