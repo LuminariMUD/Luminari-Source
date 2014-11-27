@@ -401,7 +401,7 @@ void perform_rage(struct char_data *ch) {
     
     new_affect(&heavy_shrug_af);
     heavy_shrug_af.spell = SKILL_RAGE;
-    heavy_shrug_af-duration = duration;
+    heavy_shrug_af.duration = duration;
     heavy_shrug_af.location = APPLY_DR;
     heavy_shrug_af.modifier = 0;
     
