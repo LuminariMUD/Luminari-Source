@@ -390,7 +390,7 @@ void perform_rage(struct char_data *ch) {
   //this is a penalty
   af[3].location = APPLY_AC_NEW;
   af[3].modifier = -2;
-
+  
   for (i = 0; i < RAGE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
 

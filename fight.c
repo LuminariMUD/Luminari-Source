@@ -2159,7 +2159,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
      * the actual damage bonus is inserted in the code below */
 
   /* if the victim is using 'come and get me' then they will be vulnerable */
-  if (affected_by_spell(vict, SKILL_COME_AND_GET_ME)) {
+  if (vict && affected_by_spell(vict, SKILL_COME_AND_GET_ME)) {
     dambonus += 4;
   }
 
