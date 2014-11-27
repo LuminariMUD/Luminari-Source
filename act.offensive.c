@@ -395,37 +395,37 @@ void perform_rage(struct char_data *ch) {
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
   
   /* Add another affect for heavy shrug. */
-  if (HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG)) {
-    struct affected_type heavy_shrug_af;
-    struct damage_reduction_type *new_dr;
-    
-    new_affect(&heavy_shrug_af);
-    heavy_shrug_af.spell = SKILL_RAGE;
-    heavy_shrug_af.duration = duration;
-    heavy_shrug_af.location = APPLY_DR;
-    heavy_shrug_af.modifier = 0;
-    
-    CREATE(new_dr, struct damage_reduction_type, 1);
-
-    new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
-    new_dr->bypass_val[0] = 0;
-
-    new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
-    new_dr->bypass_val[1] = 0; /* Unused. */
-
-    new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
-    new_dr->bypass_val[2] = 0; /* Unused. */
-
-    new_dr->amount     = 3;
-    new_dr->max_damage = -1;
-    new_dr->spell      = SKILL_RAGE;
-    new_dr->feat       = FEAT_RP_HEAVY_SHRUG;
-    new_dr->next       = GET_DR(ch);
-    GET_DR(ch) = new_dr;
-    
-    affect_join(ch, &heavy_shrug_af, FALSE, FALSE, FALSE, FALSE);
-    
-  }
+//  if (HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG)) {
+//    struct affected_type heavy_shrug_af;
+//    struct damage_reduction_type *new_dr;
+//    
+//    new_affect(&heavy_shrug_af);
+//    heavy_shrug_af.spell = SKILL_RAGE;
+//    heavy_shrug_af.duration = duration;
+//    heavy_shrug_af.location = APPLY_DR;
+//    heavy_shrug_af.modifier = 0;
+//    
+//    CREATE(new_dr, struct damage_reduction_type, 1);
+//
+//    new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+//    new_dr->bypass_val[0] = 0;
+//
+//    new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+//    new_dr->bypass_val[1] = 0; /* Unused. */
+//
+//    new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+//    new_dr->bypass_val[2] = 0; /* Unused. */
+//
+//    new_dr->amount     = 3;
+//    new_dr->max_damage = -1;
+//    new_dr->spell      = SKILL_RAGE;
+//    new_dr->feat       = FEAT_RP_HEAVY_SHRUG;
+//    new_dr->next       = GET_DR(ch);
+//    GET_DR(ch) = new_dr;
+//    
+//    affect_join(ch, &heavy_shrug_af, FALSE, FALSE, FALSE, FALSE);
+//    
+//  }
 
   attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
 
