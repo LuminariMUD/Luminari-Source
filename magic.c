@@ -1492,7 +1492,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_CHA;
       af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = 4;
-      accum_duration = TRUE;
+      accum_duration = FALSE;
       to_vict = "You feel more charismatic!";
       to_room = "$n's charisma increases!";
       break;
@@ -3014,7 +3014,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
       af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
-      accum_duration = TRUE;
+      accum_duration = FALSE;
       to_vict = "You feel stronger!";
       to_room = "$n's muscles begin to bulge!";
       break;
