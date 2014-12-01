@@ -1061,6 +1061,14 @@ ACMD(do_respec) {
 
     int tempXP = GET_EXP(ch);
     GET_CLASS(ch) = class;
+    /* Make sure that players can't make wildshaped forms permanent.*/
+    SUBRACE(ch) = 0;
+    IS_MORPHED(ch) = 0;
+    if (affected_by_spell(ch, SKILL_WILDSHAPE)) {
+      affect_from_char(ch, SKILL_WILDSHAPE);
+      send_to_char(ch, "You return to your normal form..\r\n");
+    }
+    
     do_start(ch);
     GET_EXP(ch) = tempXP;
     send_to_char(ch, "\tMYou have respec'd!\tn\r\n");
