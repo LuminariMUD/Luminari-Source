@@ -20,7 +20,7 @@
 
 #define WATERLINE               138
 #define SHALLOW_WATER_THRESHOLD  20 
-#define COASTLINE_THRESHOLD      10
+#define COASTLINE_THRESHOLD      5 // 10
 #define PLAINS_THRESHOLD         35
 #define HIGH_MOUNTAIN_THRESHOLD  55
 #define MOUNTAIN_THRESHOLD       70
