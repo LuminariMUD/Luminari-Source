@@ -578,10 +578,15 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
 
   get_map(xsize, ysize, x, y, map);
 
-  for(i = 0; i < xsize; i++) 
-    for(j = 0; j < ysize; j++)
-      map[i][j].vis = 1;
-
+  for(i = 0; i < xsize; i++) {
+    line_vis(map, centerx, centery, i, 0);
+    line_vis(map, centerx, centery, i, ysize - 1);
+  }
+  for(i = 0; i < ysize; i ++) {
+    line_vis(map, centerx, centery, 0, i);
+    line_vis(map, centerx, centery, xsize - 1, i);
+  }
+  
 //  send_to_char(ch, "%s", wilderness_map_to_string(map, size));
 
 send_to_char(ch, "%s", strpaste(wilderness_map_to_string(map, size), strfrmt(world[IN_ROOM(ch)].description, GET_SCREEN_WIDTH(ch) - size,size, FALSE, TRUE, TRUE), " \tn"));
@@ -669,14 +674,10 @@ char * gen_ascii_wilderness_map(int size, int x, int y) {
 
   get_map(xsize, ysize, x, y, map);
 
-  for(i = 0; i < xsize; i++) {
-    line_vis(map, centerx, centery, i, 0);
-    line_vis(map, centerx, centery, i, ysize - 1);
-  }
-  for(i = 0; i < ysize; i ++) {
-    line_vis(map, centerx, centery, 0, i);
-    line_vis(map, centerx, centery, xsize - 1, i);
-  }
+  for(i = 0; i < xsize; i++) 
+    for(j = 0; j < ysize; j++)
+      map[i][j].vis = 1;
+ 
 
   mapstring = wilderness_map_to_string(map, size);
 
