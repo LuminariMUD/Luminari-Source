@@ -22,6 +22,7 @@
 #include "constants.h"
 #include "dg_scripts.h"
 #include "asciimap.h"
+#include "wilderness.h"
 
 /******************************************************************************
  * Begin Local (File Scope) Defines and Global Variables
