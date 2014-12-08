@@ -673,7 +673,7 @@ char * gen_ascii_wilderness_map(int size, int x, int y) {
   }
 
   get_map(xsize, ysize, x, y, map);
-
+/*
   for(i = 0; i < xsize; i++) {
     line_vis(map, centerx, centery, i, 0);
     line_vis(map, centerx, centery, i, ysize - 1);
@@ -682,7 +682,7 @@ char * gen_ascii_wilderness_map(int size, int x, int y) {
     line_vis(map, centerx, centery, 0, i);
     line_vis(map, centerx, centery, xsize - 1, i);
   }
-
+*/
   mapstring = wilderness_map_to_string(map, size);
 
   if (map[0]) free(map[0]);
