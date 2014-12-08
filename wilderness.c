@@ -653,6 +653,44 @@ EVENTFUNC(event_check_occupied) {
   return 0;
 }
 
+char * gen_ascii_wilderness_map(int size, int x, int y) {
+  struct wild_map_tile **map;
+  int i;
+
+  int xsize = size;
+  int ysize = size;
+  int centerx = ((xsize-1)/2);
+  int centery = ((ysize-1)/2);
+  
+  char *mapstring = NULL;
+
+  struct wild_map_tile *data = malloc(sizeof(struct wild_map_tile) * xsize * ysize);
+ 
+  map = malloc(sizeof(struct wild_map_tile*) * xsize);
+ 
+  for (i = 0; i < xsize; i++) {
+        map[i] = data + (i*ysize);
+  }
+
+  get_map(xsize, ysize, x, y, map);
+
+  for(i = 0; i < xsize; i++) {
+    line_vis(map, centerx, centery, i, 0);
+    line_vis(map, centerx, centery, i, ysize - 1);
+  }
+  for(i = 0; i < ysize; i ++) {
+    line_vis(map, centerx, centery, 0, i);
+    line_vis(map, centerx, centery, xsize - 1, i);
+  }
+
+  mapstring = wilderness_map_to_string(map, size);
+
+  if (map[0]) free(map[0]);
+  free(map);
+  
+  return mapstring;
+}
+
 void save_map_to_file(const char* fn, int xsize, int ysize) {
   gdImagePtr im; //declaration of the image
   FILE *out;     //output file
