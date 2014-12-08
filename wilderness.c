@@ -656,7 +656,8 @@ EVENTFUNC(event_check_occupied) {
 char * gen_ascii_wilderness_map(int size, int x, int y) {
   struct wild_map_tile **map;
   int i;
-
+  int j;
+  
   int xsize = size;
   int ysize = size;
   int centerx = ((xsize-1)/2);
