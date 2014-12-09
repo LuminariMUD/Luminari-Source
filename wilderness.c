@@ -526,17 +526,23 @@ void line_vis(struct wild_map_tile **map, int x,int y,int x2, int y2) {
 }
 
 
-static char* wilderness_map_to_string (struct wild_map_tile ** map, int size) {
+static char* wilderness_map_to_string (struct wild_map_tile ** map, int size, int shape) {
   static char strmap[32768];
   char* mp =strmap;
   int x, y;
 
   int centerx = ((size - 1)/2);
   int centery = ((size - 1)/2);
-
+  
+  if (shape == NULL)
+    shape == WILD_MAP_SHAPE_CIRCLE;
+  
   for ( y = size - 1; y >= 0; y--) {
     for ( x = 0; x < size; x++) {
-     if(sqrt((centerx - x)*(centerx - x) + (centery - y)*(centery - y)) <= (((size-1)/2)+1 )) {
+     if(((shape == WILD_MAP_SHAPE_CIRCLE) &&
+         (sqrt((centerx - x)*(centerx - x) + (centery - y)*(centery - y)) <= (((size-1)/2)+1 ))) ||
+        (shape == WILD_MAP_SHAPE_RECT))
+     {
         if((x == centerx) && (y == centery)) {
           strcpy(mp, "\tM*\tn");
           mp += strlen("\tM*\tn"); 
@@ -589,7 +595,17 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
   
 //  send_to_char(ch, "%s", wilderness_map_to_string(map, size));
 
-send_to_char(ch, "%s", strpaste(wilderness_map_to_string(map, size), strfrmt(world[IN_ROOM(ch)].description, GET_SCREEN_WIDTH(ch) - size,size, FALSE, TRUE, TRUE), " \tn"));
+  send_to_char(ch, 
+               "%s", 
+               strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE), 
+                        strfrmt(world[IN_ROOM(ch)].description, 
+                                GET_SCREEN_WIDTH(ch) - size, 
+                                size, 
+                                FALSE, 
+                                TRUE, 
+                                TRUE), 
+                         " \tn")
+              );
 
   send_to_char(ch, " Current Location  : (\tC%d\tn, \tC%d\tn)\r\n", 
 /*                   " Current Elevation : %.3d   "
@@ -680,7 +696,7 @@ char * gen_ascii_wilderness_map(int size, int x, int y) {
       map[i][j].vis = 10;
  
 
-  mapstring = wilderness_map_to_string(map, size);
+  mapstring = wilderness_map_to_string(map, size, WILD_MAP_SHAPE_RECT);
 
   if (map[0]) free(map[0]);
   free(map);

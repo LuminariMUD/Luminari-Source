@@ -50,6 +50,10 @@
 #define REGION_ENCOUNTER	2
 #define REGION_SECTOR_TRANSFORM 3
 
+/* Map shapes */
+#define WILD_MAP_SHAPE_CIRCLE 1
+#define WILD_MAP_SHAPE_RECT   2
+
 extern struct kdtree* kd_wilderness_rooms;
 
 struct region_vertex {
