@@ -677,7 +677,7 @@ char * gen_ascii_wilderness_map(int size, int x, int y) {
 
   for(i = 0; i < xsize; i++) 
     for(j = 0; j < ysize; j++)
-      map[i][j].vis = 1;
+      map[i][j].vis = 10;
  
 
   mapstring = wilderness_map_to_string(map, size);
