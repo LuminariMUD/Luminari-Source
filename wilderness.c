@@ -552,10 +552,7 @@ static char* wilderness_map_to_string (struct wild_map_tile ** map, int size, in
 
   int centerx = ((size - 1)/2);
   int centery = ((size - 1)/2);
-  
-  if (shape == NULL)
-    shape == WILD_MAP_SHAPE_CIRCLE;
-  
+    
   for ( y = size - 1; y >= 0; y--) {
     for ( x = 0; x < size; x++) {
      if(((shape == WILD_MAP_SHAPE_CIRCLE) &&
