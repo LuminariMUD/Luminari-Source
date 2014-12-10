@@ -280,7 +280,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       regions = get_enclosing_regions( WILD_ZONE_VNUM, 
                                        x + x_offset, 
                                        y + y_offset);
-
+      log("-> MAP: Processing location (%d, %d)", x + x_offset, y + y_offset);
       /* Override default values with region-based values. */
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {        
         switch (region_table[curr_region->rnum].region_type) {                      
