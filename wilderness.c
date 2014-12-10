@@ -438,7 +438,8 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
 
   static char *wilderness_name = "The Wilderness of Luminari";
   static char *wilderness_desc = "The wilderness extends in all directions.";
-  struct region_list *regions;
+  struct region_list *regions     = NULL;
+  struct region_list *curr_region = NULL;
 
   if (room == NOWHERE) {/* This is not a room! */
     log("SYSERR: Attempted to assign NOWHERE as a new wilderness location at (%d, %d)", x, y);
@@ -460,19 +461,20 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   /* Assign the default values. */
   world[room].description = wilderness_desc;
   world[room].name = wilderness_name;
-  world[room].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
-                            get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
-                            get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
+  world[room].sector_type = get_sector_type( get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
+                                             get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
+                                             get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
   
   /* Override default values with region-based values. */
-  struct region_list *curr_region = NULL;
-  for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {   
+  for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {  
+    log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type);
     switch (region_table[curr_region->rnum].region_type) {
       case REGION_GEOGRAPHIC:
         world[room].name = strdup(region_table[regions->rnum].name);
         break;
       case REGION_SECTOR:
         world[room].sector_type = region_table[regions->rnum].region_props;
+        log("  -> Changing (%d, %d) to sector : %d", x, y, region_table[curr_region->rnum].region_props);
         break;
       case REGION_SECTOR_TRANSFORM:
         break;
