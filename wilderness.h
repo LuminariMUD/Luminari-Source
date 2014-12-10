@@ -8,6 +8,8 @@
 #define WILD_X_SIZE 2048
 #define WILD_Y_SIZE 2048
 
+#define WILD_ZONE_VNUM 10000
+
 #define WILD_ROOM_VNUM_START         1000000 /* The start of the STATIC wilderness rooms. */
 #define WILD_ROOM_VNUM_END           1003999 /* The end of the STATIC wilderness rooms. */
 
