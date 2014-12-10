@@ -182,7 +182,8 @@ void load_regions() {
                       "name, "
                       "region_type, "
                       "NumPoints(ExteriorRing(`region_polygon`)), "
-                      "AsText(ExteriorRing(region_polygon)) "
+                      "AsText(ExteriorRing(region_polygon)), "
+                      "region_props "
                "  from region_data");
 
 
@@ -210,6 +211,7 @@ void load_regions() {
     region_table[i].name         = strdup(row[2]);
     region_table[i].region_type  = atoi(row[3]);
     region_table[i].num_vertices = atoi(row[4]);
+    region_table[i].region_props = atoi(row[5]);
 
     /* Parse the polygon text data to get the vertices, etc.
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
