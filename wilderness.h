@@ -49,6 +49,7 @@
 #define REGION_GEOGRAPHIC	1
 #define REGION_ENCOUNTER	2
 #define REGION_SECTOR_TRANSFORM 3
+#define REGION_SECTOR 4
 
 /* Map shapes */
 #define WILD_MAP_SHAPE_CIRCLE 1

@@ -457,17 +457,34 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   if (world[room].description && world[room].description != wilderness_desc)
     free(world[room].description);
 
+  /* Assign the default values. */
   world[room].description = wilderness_desc;
-
-  if(regions) {
-    world[room].name = strdup(region_table[regions->rnum].name);
-  } else {
-    world[room].name = wilderness_name;
-  }
-
+  world[room].name = wilderness_name;
   world[room].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
                             get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
                             get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
+  
+  /* Override default values with region-based values. */
+  struct region_list *curr_region = NULL;
+  for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {   
+    switch (region_table[curr_region->rnum].region_type) {
+      case REGION_GEOGRAPHIC:
+        world[room].name = strdup(region_table[regions->rnum].name);
+        break;
+      case REGION_SECTOR:
+        world[room].sector_type = region_table[regions->rnum].region_props;
+        break;
+      case REGION_SECTOR_TRANSFORM:
+        break;
+      case REGION_ENCOUNTER:
+        break;
+      default:        
+        break;
+    } 
+  }
+  
+
+  
 }
 
 void line_vis(struct wild_map_tile **map, int x,int y,int x2, int y2) {
