@@ -286,7 +286,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
         switch (region_table[curr_region->rnum].region_type) {                      
           case REGION_SECTOR:
             map[x][y].sector_type = region_table[curr_region->rnum].region_props;
-            log("  -> Changing (%d, %d) to sector : %d", x, y, region_table[curr_region->rnum].region_props);
+            log("  -> MAP: Changing (%d, %d) to sector : %d", x + x_offset, y + y_offset, region_table[curr_region->rnum].region_props);
             break;
           case REGION_SECTOR_TRANSFORM:
             break;
