@@ -285,7 +285,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {        
         switch (region_table[curr_region->rnum].region_type) {                      
           case REGION_SECTOR:
-            map[x][y].sector_type = region_table[regions->rnum].region_props;
+            map[x][y].sector_type = region_table[curr_region->rnum].region_props;
             log("  -> Changing (%d, %d) to sector : %d", x, y, region_table[curr_region->rnum].region_props);
             break;
           case REGION_SECTOR_TRANSFORM:
@@ -494,10 +494,10 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
     log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type);
     switch (region_table[curr_region->rnum].region_type) {
       case REGION_GEOGRAPHIC:
-        world[room].name = strdup(region_table[regions->rnum].name);
+        world[room].name = strdup(region_table[curr_region->rnum].name);
         break;
       case REGION_SECTOR:
-        world[room].sector_type = region_table[regions->rnum].region_props;
+        world[room].sector_type = region_table[curr_region->rnum].region_props;
         log("  -> Changing (%d, %d) to sector : %d", x, y, region_table[curr_region->rnum].region_props);
         break;
       case REGION_SECTOR_TRANSFORM:
