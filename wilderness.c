@@ -277,7 +277,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       struct region_list *curr_region = NULL;
       
       /* Get the enclosing regions. */
-      regions = get_enclosing_regions( WILD_ZONE_VNUM, 
+      regions = get_enclosing_regions( real_zone(WILD_ZONE_VNUM), 
                                        x + x_offset, 
                                        y + y_offset);
       log("-> MAP: Processing location (%d, %d)", x + x_offset, y + y_offset);
