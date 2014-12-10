@@ -255,8 +255,8 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
 
   int x, y;
   int x_offset, y_offset;
-  int trans_x, trans_y;
-
+  int trans_x, trans_y;  
+  
   /* Below is for looking up static rooms. */
   room_rnum* room; 
   double loc[2], pos[2];
@@ -272,6 +272,30 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       map[x][y].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV,    x + x_offset, y + y_offset),
                               get_temperature(NOISE_MATERIAL_PLANE_ELEV,  x + x_offset, y + y_offset),
                               get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
+      /* Map should reflect changes from regions */
+      struct region_list *regions     = NULL;
+      struct region_list *curr_region = NULL;
+      
+      /* Get the enclosing regions. */
+      regions = get_enclosing_regions( WILD_ZONE_VNUM, 
+                                       x + x_offset, 
+                                       y + y_offset);
+
+      /* Override default values with region-based values. */
+      for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {        
+        switch (region_table[curr_region->rnum].region_type) {                      
+          case REGION_SECTOR:
+            world[room].sector_type = region_table[regions->rnum].region_props;
+            log("  -> Changing (%d, %d) to sector : %d", x, y, region_table[curr_region->rnum].region_props);
+            break;
+          case REGION_SECTOR_TRANSFORM:
+            break;
+          case REGION_GEOGRAPHIC:            
+          case REGION_ENCOUNTER:          
+          default:
+            break;
+        }
+      }
     }
   }
 
