@@ -247,9 +247,10 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
   sprintf(buf, "SELECT vnum "
                "  from region_index "
                "  where zone_vnum = %d "
-               "  and GISWithin(GeomFromText('POINT(%d %d)'), region_polygon)",
+               "  and ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",               
                zone_table[zone].number, x, y);
- 
+               //"  and GISWithin(GeomFromText('POINT(%d %d)'), region_polygon)",
+  
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
 
