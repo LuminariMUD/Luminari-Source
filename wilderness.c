@@ -853,9 +853,9 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
       
       /* Use greytones for impassable mountains. */
       if (sector_type == SECT_HIGH_MOUNTAIN)         
-        gdImageSetPixel(im, x + xsize/2, ysize/2 - y, gray[get_elevation(NOISE_MATERIAL_PLANE_ELEV, x,-y)]);
+        gdImageSetPixel(im, x + xsize/2, ysize/2 + y, gray[get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, -y)]);
       else
-        gdImageSetPixel(im, x + xsize/2, ysize/2 - y, color_by_sector[sector_type]);
+        gdImageSetPixel(im, x + xsize/2, ysize/2 + y, color_by_sector[sector_type]);
 
     }
   }
