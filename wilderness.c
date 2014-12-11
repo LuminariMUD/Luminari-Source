@@ -805,9 +805,9 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
       /* We need to check for prebuilt rooms at these coordinates, as well
        * as regions that might change the sector type.  */
       /* Start with the default - The value returned for the generated wilderness. */
-      sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, -y),
-                                  get_temperature(NOISE_MATERIAL_PLANE_ELEV,  x, -y),
-                                  get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, -y));
+      sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, -x, y),
+                                  get_temperature(NOISE_MATERIAL_PLANE_ELEV,  -x, y),
+                                  get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, -x, y));
       
       
       /* Map should reflect changes from regions */
@@ -816,8 +816,8 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
       
       /* Get the enclosing regions. */
       regions = get_enclosing_regions( real_zone(WILD_ZONE_VNUM), 
-                                       x, 
-                                       -y);
+                                       -x, 
+                                       y);
       
       /* Override default values with region-based values. */
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {        
@@ -836,8 +836,8 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
       }
       
       /* use the kd_wilderness_rooms kd-tree index to look up the nearby rooms */
-      loc[0] = x;
-      loc[1] = -y;
+      loc[0] = -x;
+      loc[1] = y;
       set = kd_nearest_range(kd_wilderness_rooms, loc, 1); /* size is 1, we check each coord. */
 
       while( !kd_res_end( set ) ) {
@@ -853,9 +853,9 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
       
       /* Use greytones for impassable mountains. */
       if (sector_type == SECT_HIGH_MOUNTAIN)         
-        gdImageSetPixel(im, x + xsize/2, ysize/2 - y, gray[get_elevation(NOISE_MATERIAL_PLANE_ELEV, x,-y)]);
+        gdImageSetPixel(im, -x + xsize/2, ysize/2 + y, gray[get_elevation(NOISE_MATERIAL_PLANE_ELEV, -x,y)]);
       else
-        gdImageSetPixel(im, x + xsize/2, ysize/2 - y, color_by_sector[sector_type]);
+        gdImageSetPixel(im, -x + xsize/2, ysize/2 + y, color_by_sector[sector_type]);
 
     }
   }
