@@ -749,28 +749,52 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
   FILE *out;     //output file
   int white, black, blue, gray[255];
   int i, x, y;
-  int color_by_sector[100]; /* HUGE HACK! */
-  int sector_color;
-
+  int color_by_sector[NUM_ROOM_SECTORS]; 
+  int sector_type;
+  room_rnum* room; 
+  double loc[2], pos[2];
+  void* set;
+  
   im = gdImageCreate(xsize,ysize); //create an image   
 
   white = gdImageColorAllocate(im, 255, 255, 255);
   black = gdImageColorAllocate(im, 0, 0, 0);
-  blue  = gdImageColorAllocate(im, 0, 0, 255);
-  
-  color_by_sector[SECT_WATER_SWIM] = gdImageColorAllocate(im, 0, 0, 255);
-  color_by_sector[SECT_OCEAN]      = gdImageColorAllocate(im, 0, 0, 128);
-  color_by_sector[SECT_DESERT]     = gdImageColorAllocate(im, 255, 236, 159);
-  color_by_sector[SECT_FIELD]      = gdImageColorAllocate(im, 0, 128, 0);
-  color_by_sector[SECT_HILLS]      = gdImageColorAllocate(im, 139, 69, 19);
-  color_by_sector[SECT_FOREST]     = gdImageColorAllocate(im, 0, 100, 0);
-  color_by_sector[SECT_JUNGLE]     = gdImageColorAllocate(im, 85, 107, 47);
-  color_by_sector[SECT_BEACH]      = gdImageColorAllocate(im, 215, 208, 19);
-  color_by_sector[SECT_TAIGA]      = gdImageColorAllocate(im, 107, 142, 35);
-  color_by_sector[SECT_MOUNTAIN]   = gdImageColorAllocate(im, 176, 176, 176);
-  color_by_sector[SECT_TUNDRA]     = gdImageColorAllocate(im, 240, 248, 255);
-  color_by_sector[SECT_ZONE_START] = gdImageColorAllocate(im, 128, 0, 0);
-  color_by_sector[SECT_MARSHLAND]  = gdImageColorAllocate(im, 33, 146, 75);
+  blue  = gdImageColorAllocate(im, 0, 0, 255); 
+
+//#define SECT_PLANES          18  // non-prime (no effect yet)
+//#define SECT_UD_WILD         19  // the outdoors of the underdark
+//#define SECT_UD_CITY	    20  // city in the underdark
+//#define SECT_UD_INSIDE 	    21  // inside in the underdark
+//#define SECT_UD_WATER	    22  // water in the underdark
+//#define SECT_UD_NOSWIM	    23  // water, boat needed, in the underdark
+//#define SECT_UD_NOGROUND     24  // chasm in the underdark (Flying)
+
+  color_by_sector[SECT_LAVA]         = gdImageColorAllocate(im, 245, 57, 0);
+  color_by_sector[SECT_UNDERWATER]   = gdImageColorAllocate(im, 25, 250, 237);
+  color_by_sector[SECT_FLYING]       = gdImageColorAllocate(im, 168, 234, 247);
+  color_by_sector[SECT_INSIDE]       = gdImageColorAllocate(im, 161, 161, 161);
+  color_by_sector[SECT_CITY]         = gdImageColorAllocate(im, 0, 0, 0);
+  color_by_sector[SECT_CAVE]         = gdImageColorAllocate(im, 77, 77, 77); 
+  color_by_sector[SECT_ROAD_NS]      = gdImageColorAllocate(im, 97, 87, 82); 
+  color_by_sector[SECT_ROAD_EW]      = gdImageColorAllocate(im, 97, 87, 82); 
+  color_by_sector[SECT_ROAD_INT]     = gdImageColorAllocate(im, 97, 87, 82); 
+  color_by_sector[SECT_D_ROAD_NS]    = gdImageColorAllocate(im, 107, 83, 48); 
+  color_by_sector[SECT_D_ROAD_EW]    = gdImageColorAllocate(im, 107, 83, 48); 
+  color_by_sector[SECT_D_ROAD_INT]   = gdImageColorAllocate(im, 107, 83, 48); 
+  color_by_sector[SECT_WATER_SWIM]   = gdImageColorAllocate(im, 0, 0, 255);
+  color_by_sector[SECT_OCEAN]        = gdImageColorAllocate(im, 0, 0, 128);
+  color_by_sector[SECT_WATER_NOSWIM] = gdImageColorAllocate(im, 0, 0, 128);
+  color_by_sector[SECT_DESERT]       = gdImageColorAllocate(im, 255, 236, 159);
+  color_by_sector[SECT_FIELD]        = gdImageColorAllocate(im, 0, 128, 0);
+  color_by_sector[SECT_HILLS]        = gdImageColorAllocate(im, 139, 69, 19);
+  color_by_sector[SECT_FOREST]       = gdImageColorAllocate(im, 0, 100, 0);
+  color_by_sector[SECT_JUNGLE]       = gdImageColorAllocate(im, 85, 107, 47);
+  color_by_sector[SECT_BEACH]        = gdImageColorAllocate(im, 215, 208, 19);
+  color_by_sector[SECT_TAIGA]        = gdImageColorAllocate(im, 107, 142, 35);
+  color_by_sector[SECT_MOUNTAIN]     = gdImageColorAllocate(im, 176, 176, 176);
+  color_by_sector[SECT_TUNDRA]       = gdImageColorAllocate(im, 240, 248, 255);
+  color_by_sector[SECT_ZONE_START]   = gdImageColorAllocate(im, 128, 0, 0);
+  color_by_sector[SECT_MARSHLAND]    = gdImageColorAllocate(im, 33, 146, 75);
 
   for (i=0; i<=255; i++){
     gray[i] = gdImageColorAllocate(im, i,i,i);
@@ -778,14 +802,60 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
 
   for(y = (-ysize/2); y < ysize/2; y++) {
     for(x = (-xsize/2); x < xsize/2; x++) {
- 
-      sector_color = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, -y),
+      /* We need to check for prebuilt rooms at these coordinates, as well
+       * as regions that might change the sector type.  */
+      /* Start with the default - The value returned for the generated wilderness. */
+      sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, -y),
                                   get_temperature(NOISE_MATERIAL_PLANE_ELEV,  x, -y),
                                   get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, -y));
-      if (sector_color == SECT_HIGH_MOUNTAIN) 
+      
+      
+      /* Map should reflect changes from regions */
+      struct region_list *regions     = NULL;
+      struct region_list *curr_region = NULL;
+      
+      /* Get the enclosing regions. */
+      regions = get_enclosing_regions( real_zone(WILD_ZONE_VNUM), 
+                                       x, 
+                                       -y);
+      
+      /* Override default values with region-based values. */
+      for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {        
+        switch (region_table[curr_region->rnum].region_type) {                      
+          case REGION_SECTOR:
+            sector_type = region_table[curr_region->rnum].region_props;
+          
+            break;
+          case REGION_SECTOR_TRANSFORM:
+            break;
+          case REGION_GEOGRAPHIC:            
+          case REGION_ENCOUNTER:          
+          default:
+            break;
+        }
+      }
+      
+      /* use the kd_wilderness_rooms kd-tree index to look up the nearby rooms */
+      loc[0] = x
+      loc[1] = -y;
+      set = kd_nearest_range(kd_wilderness_rooms, loc, 1); /* size is 1, we check each coord. */
+
+      while( !kd_res_end( set ) ) {
+        room = (room_rnum *)kd_res_item( set, pos);
+        sector_type = world[*room].sector_type;
+
+        /* go to the next entry */
+        kd_res_next( set );
+      }
+
+      kd_res_free(set);
+      
+      
+      /* Use greytones for impassable mountains. */
+      if (sector_type == SECT_HIGH_MOUNTAIN)         
         gdImageSetPixel(im, x + xsize/2, ysize/2 - y, gray[get_elevation(NOISE_MATERIAL_PLANE_ELEV, x,-y)]);
       else
-        gdImageSetPixel(im, x + xsize/2, ysize/2 - y, color_by_sector[sector_color]);
+        gdImageSetPixel(im, x + xsize/2, ysize/2 - y, color_by_sector[sector_type]);
 
     }
   }
