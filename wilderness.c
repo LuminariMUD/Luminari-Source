@@ -836,7 +836,7 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
       }
       
       /* use the kd_wilderness_rooms kd-tree index to look up the nearby rooms */
-      loc[0] = x
+      loc[0] = x;
       loc[1] = -y;
       set = kd_nearest_range(kd_wilderness_rooms, loc, 1); /* size is 1, we check each coord. */
 
