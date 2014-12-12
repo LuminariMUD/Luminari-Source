@@ -526,7 +526,7 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
     }
   }
 }
-}
+
 
 void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2) {
   int i = 0;
