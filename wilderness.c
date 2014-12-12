@@ -275,6 +275,8 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       /* Map should reflect changes from regions */
       struct region_list *regions     = NULL;
       struct region_list *curr_region = NULL;
+      struct path_list *paths     = NULL;
+      struct path_list *curr_path = NULL;
       
       /* Get the enclosing regions. */
       regions = get_enclosing_regions( real_zone(WILD_ZONE_VNUM), 
