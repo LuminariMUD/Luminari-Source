@@ -218,7 +218,7 @@ void load_regions() {
     sscanf(row[5], "LINESTRING(%[^)])", buf2);
     tokens = tokenize(buf2, ",");
    
-    CREATE(region_table[i].vertices, struct region_vertex, region_table[i].num_vertices);
+    CREATE(region_table[i].vertices, struct vertex, region_table[i].num_vertices);
 
     vtx = 0;
 
@@ -279,6 +279,128 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
 }
 
 void save_regions() {
+
+}
+
+void load_paths() {
+  /* path_data* path_table */
+
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+
+  int i = 0, vtx = 0;
+  int numrows;
+
+  char buf[1024];
+  char buf2[1024];
+
+  char** tokens;  /* Storage for tokenized linestring points */
+  char** it;      /* Token iterator */
+
+  log("INFO: Loading path data from MySQL");
+
+  sprintf(buf, "SELECT vnum, "
+                      "zone_vnum, " 
+                      "name, "
+                      "path_type, "
+                      "NumPoints(path_linestring), "
+                      "AsText(path_linestring), "
+                      "path_props "
+               "  from path_data");
+
+
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to SELECT from path_data: %s", mysql_error(conn));
+    exit(1);
+  }
+
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to SELECT from path_data: %s", mysql_error(conn));
+    exit(1);
+  }
+
+ if ( (numrows = mysql_num_rows(result)) < 1) 
+   return;
+ else {
+    /* Allocate memory for all of the region data. */
+    CREATE(path_table, struct path_data, numrows);
+  }
+ 
+  while ((row = mysql_fetch_row(result))) { 
+    path_table[i].vnum         = atoi(row[0]);
+    path_table[i].rnum         = i;
+    path_table[i].zone         = real_zone(atoi(row[1]));
+    path_table[i].name         = strdup(row[2]);
+    path_table[i].path_type    = atoi(row[3]);
+    path_table[i].num_vertices = atoi(row[4]);
+    path_table[i].path_props   = atoi(row[6]);
+
+    /* Parse the polygon text data to get the vertices, etc.
+       eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
+    sscanf(row[5], "LINESTRING(%[^)])", buf2);
+    tokens = tokenize(buf2, ",");
+   
+    CREATE(path_table[i].vertices, struct vertex, path_table[i].num_vertices);
+
+    vtx = 0;
+
+    for(it=tokens; it && *it; ++it) {
+      sscanf(*it, "%d %d", &(path_table[i].vertices[vtx].x), &(path_table[i].vertices[vtx].y));
+      vtx++;
+      free(*it);
+    }      
+
+    top_of_path_table = i; 
+    i++;
+  } 
+  mysql_free_result(result);
+}
+
+struct region_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+
+  struct path_list *paths = NULL;
+  struct path_list *new_node = NULL; 
+
+ 
+  char buf[1024];
+ 
+  sprintf(buf, "SELECT vnum "
+               "  from path_index "
+               "  where zone_vnum = %d "
+               "  and ST_Within(GeomFromText('POINT(%d %d)'), path_linestring)",               
+               zone_table[zone].number, x, y);
+               //"  and GISWithin(GeomFromText('POINT(%d %d)'), region_polygon)",
+  
+  /* Check the connection, reconnect if necessary. */
+  mysql_ping(conn);
+
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to SELECT from path_index: %s", mysql_error(conn));
+    exit(1);
+  }
+ 
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to SELECT from path_index: %s", mysql_error(conn));
+    exit(1);
+  }
+  
+  while ((row = mysql_fetch_row(result))) {
+ 
+    /* Allocate memory for the region data. */
+    CREATE(new_node, struct path_list, 1);
+    new_node->rnum = real_path(atoi(row[0]));
+    new_node->next = paths;
+    paths = new_node;
+    new_node = NULL; 
+  }
+  mysql_free_result(result);
+
+  return paths;
+}
+
+void save_paths() {
 
 }
 

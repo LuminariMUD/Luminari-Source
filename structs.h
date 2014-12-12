@@ -2106,6 +2106,7 @@ typedef IDXTYPE trig_rnum; /**< references an instance of a trigger */
 typedef IDXTYPE qst_rnum; /**< references an instance of a quest */
 typedef IDXTYPE clan_rnum; /**< references an instance of a clan */
 typedef IDXTYPE region_rnum; /**< references an instance of a region */
+typedef IDXTYPE path_rnum; /**< references an instance of a path */
 
 /** Bitvector type for 32 bit unsigned long bitvectors. 'unsigned long long'
  * will give you at least 64 bits if you have GCC. You'll have to search

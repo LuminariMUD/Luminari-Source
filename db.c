@@ -77,6 +77,9 @@ zone_rnum top_of_zone_table = 0; /* top element of zone tab   */
 struct region_data *region_table = NULL; /* Region table */
 region_rnum top_of_region_table = 0; /* top element of region tab */
 
+struct path_data *path_table = NULL; /* Path table */
+path_rnum top_of_path_table = 0; /* top element of path tab */
+
 /* begin previously located in players.c */
 struct player_index_element *player_table = NULL; /* index to plr file   */
 int top_of_p_table = 0; /* ref to top of table     */
@@ -513,6 +516,8 @@ void boot_world(void) {
   log("Loading regions. (MySQL)");
   load_regions();
 
+  log("Loading regions. (MySQL)");
+  load_paths();
 
   log("Renumbering rooms.");
   renum_world();
@@ -4617,6 +4622,28 @@ region_rnum real_region(region_vnum vnum) {
     if ((region_table + mid)->vnum == vnum)
       return (mid);
     if ((region_table + mid)->vnum > vnum)
+      top = mid - 1;
+    else
+      bot = mid + 1;
+  }
+  return (NOWHERE);
+}
+
+real_path(path_vnum vnum) {
+  region_rnum bot, top, mid;
+
+  bot = 0;
+  top = top_of_path_table;
+
+  if (path_table[bot].vnum > vnum || path_table[top].vnum < vnum)
+    return (NOWHERE);
+
+  /* perform binary search on zone-table */
+  while (bot <= top) {
+    mid = (bot + top) / 2;
+    if ((path_table + mid)->vnum == vnum)
+      return (mid);
+    if ((path_table + mid)->vnum > vnum)
       top = mid - 1;
     else
       bot = mid + 1;
