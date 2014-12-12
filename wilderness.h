@@ -53,13 +53,18 @@
 #define REGION_SECTOR_TRANSFORM 3
 #define REGION_SECTOR 4
 
+/* Path types. */
+#define PATH_ROAD       1 /* Path Props = Sector type to convert to. */
+#define PATH_RIVER      2
+#define PATH_GEOGRAPHIC 3 
+
 /* Map shapes */
 #define WILD_MAP_SHAPE_CIRCLE 1
 #define WILD_MAP_SHAPE_RECT   2
 
 extern struct kdtree* kd_wilderness_rooms;
 
-struct region_vertex {
+struct vertex {
   int x;
   int y;
 
@@ -76,7 +81,23 @@ struct region_data {
   int region_type;  /* Type of region. */
   int region_props; /* Name: Value pairs, stores data based on region_type. */
 
-  struct region_vertex *vertices; /* Vertex list. */  
+  struct vertex *vertices; /* Vertex list. */  
+  int num_vertices;        /* The number of vertices. */
+
+};
+
+struct path_data {
+
+  region_vnum vnum; /* Vnum for this path. */
+  region_rnum rnum; /* Array index for this path. */
+  
+  zone_rnum zone;   /* Zone that contains this path. */
+  char *name;       /* Name of the path. */
+
+  int path_type;  /* Type of region. */
+  int path_props; /* Name: Value pairs, stores data based on region_type. */
+
+  struct vertex *vertices; /* Vertex list. */  
   int num_vertices;        /* The number of vertices. */
 
 };
@@ -160,4 +181,9 @@ struct region_list {
   struct region_list* next;
 };
 
+/* Struct for returning a list of containing paths. */
+struct path_list {
+  region_rnum rnum;
+  struct path_list* next;
+};
 #endif

@@ -275,6 +275,7 @@ room_rnum real_room(room_vnum vnum);
 mob_rnum real_mobile(mob_vnum vnum);
 obj_rnum real_object(obj_vnum vnum);
 region_rnum real_region(region_vnum vnum);
+path_rnum real_path(path_vnum vnum);
 
 /* Public Procedures from objsave.c */
 void  Crash_save_all(void);
@@ -387,6 +388,9 @@ extern zone_rnum top_of_zone_table;
 
 extern struct region_data *region_table;
 extern region_rnum top_of_region_table;
+
+extern struct path_data *path_table;
+extern path_rnum top_of_path_table;
 
 extern struct raff_node *raff_list;	// list of room affections
 
