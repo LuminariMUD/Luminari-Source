@@ -286,7 +286,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM),
                                   x + x_offset,
                                   y + y_offset);
-      log("-> MAP: Processing location (%d, %d)", x + x_offset, y + y_offset);
+      //log("-> MAP: Processing location (%d, %d)", x + x_offset, y + y_offset);
       /* Override default values with region-based values. */
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
         switch (region_table[curr_region->rnum].region_type) {
@@ -511,23 +511,21 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
       default:
         break;
     }
-    /* Override default values with path-based values. */
-    for (curr_path = paths; curr_path != NULL; curr_path = curr_path->next) {
-      log("PATH: %s found!", path_table[curr_path->rnum].name);
-      switch (path_table[curr_path->rnum].path_type) {
-        case PATH_ROAD:
-        case PATH_RIVER:
-          world[room].name = strdup(path_table[curr_path->rnum].name);
-          world[room].sector_type = path_table[curr_path->rnum].path_props;
-          break;
-        default:
-          break;
-      }
-    }
-
-
-
   }
+  /* Override default values with path-based values. */
+  for (curr_path = paths; curr_path != NULL; curr_path = curr_path->next) {
+    log("PATH: %s found!", path_table[curr_path->rnum].name);
+    switch (path_table[curr_path->rnum].path_type) {
+      case PATH_ROAD:
+      case PATH_RIVER:
+        world[room].name = strdup(path_table[curr_path->rnum].name);
+        world[room].sector_type = path_table[curr_path->rnum].path_props;
+        break;
+      default:
+        break;
+    }
+  }
+}
 }
 
 void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2) {
@@ -668,10 +666,10 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
 
   send_to_char(ch, " Current Location  : (\tC%d\tn, \tC%d\tn)\r\n",
                /*                   " Current Elevation : %.3d   "
-                        " Current Moisture  : %d\r\n"
-                        " Gradient          : %f   "
-                        " Current Temp.     : %d\r\n"
-                        " Current Sector    : %s\r\n",  */
+                   " Current Moisture  : %d\r\n"
+                   " Gradient          : %f   "
+                   " Current Temp.     : %d\r\n"
+                   " Current Sector    : %s\r\n",  */
                x, y);
   /*                   get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
                      get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y),
