@@ -4629,7 +4629,7 @@ region_rnum real_region(region_vnum vnum) {
   return (NOWHERE);
 }
 
-real_path(path_vnum vnum) {
+path_rnum real_path(path_vnum vnum) {
   region_rnum bot, top, mid;
 
   bot = 0;
