@@ -369,7 +369,7 @@ struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
   sprintf(buf, "SELECT vnum "
                "  from path_index "
                "  where zone_vnum = %d "
-               "  and ST_Within(GeomFromText('POINT(%d %d)'), Buffer(path_linestring, .5))",               
+               "  and ST_Within(GeomFromText('POINT(%d %d)'), Buffer(path_linestring, 1))",               
                zone_table[zone].number, x, y);
                //"  and GISWithin(GeomFromText('POINT(%d %d)'), region_polygon)",
   
