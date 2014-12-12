@@ -280,13 +280,16 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       regions = get_enclosing_regions( real_zone(WILD_ZONE_VNUM), 
                                        x + x_offset, 
                                        y + y_offset);
+      paths = get_enclosing_paths( real_zone(WILD_ZONE_VNUM),
+                                   x + x_offset,
+                                   y + y_offset);
       log("-> MAP: Processing location (%d, %d)", x + x_offset, y + y_offset);
       /* Override default values with region-based values. */
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {        
         switch (region_table[curr_region->rnum].region_type) {                      
           case REGION_SECTOR:
             map[x][y].sector_type = region_table[curr_region->rnum].region_props;
-            log("  -> MAP: Changing (%d, %d) to sector : %d", x + x_offset, y + y_offset, region_table[curr_region->rnum].region_props);
+            //log("  -> MAP: Changing (%d, %d) to sector : %d", x + x_offset, y + y_offset, region_table[curr_region->rnum].region_props);
             break;
           case REGION_SECTOR_TRANSFORM:
             break;
@@ -295,6 +298,17 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
           default:
             break;
         }
+      }
+      /* Override default values with path-based values. */
+      for (curr_path = paths; curr_path != NULL; curr_pth = curr_path->next) {  
+        switch (path_table[curr_path->rnum].path_type) {
+          case PATH_ROAD:
+          case PATH_RIVER:
+            map[x][y].sector_type = path_table[curr_path->rnum].path_props;
+            break;      
+          default:        
+            break;
+        } 
       }
     }
   }
@@ -464,6 +478,8 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   static char *wilderness_desc = "The wilderness extends in all directions.";
   struct region_list *regions     = NULL;
   struct region_list *curr_region = NULL;
+  struct path_list *paths     = NULL;
+  struct path_list *curr_path = NULL;
 
   if (room == NOWHERE) {/* This is not a room! */
     log("SYSERR: Attempted to assign NOWHERE as a new wilderness location at (%d, %d)", x, y);
@@ -476,7 +492,9 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
  
   /* Get the enclosing regions. */
   regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
-
+  /* Get the enclosing paths. */
+  paths = get_enclosing_paths(GET_ROOM_ZONE(room), x, y);
+  
   if (world[room].name && world[room].name != wilderness_name)
     free(world[room].name);
   if (world[room].description && world[room].description != wilderness_desc)
@@ -504,6 +522,17 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
         break;
       case REGION_ENCOUNTER:
         break;
+      default:        
+        break;
+    } 
+    /* Override default values with path-based values. */
+    for (curr_path = paths; curr_path != NULL; curr_pth = curr_path->next) {  
+    switch (path_table[curr_path->rnum].path_type) {
+      case PATH_ROAD:
+      case PATH_RIVER:
+        world[room].name = strdup(path_table[curr_path->rnum].name);
+        world[room].sector_type = path_table[curr_path->rnum].path_props;
+        break;      
       default:        
         break;
     } 
