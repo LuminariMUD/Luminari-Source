@@ -356,7 +356,7 @@ void load_paths() {
   mysql_free_result(result);
 }
 
-struct region_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
+struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
   MYSQL_RES *result;
   MYSQL_ROW row;
 
