@@ -2095,6 +2095,7 @@ typedef IDXTYPE trig_vnum; /**< vnum specifically for triggers */
 typedef IDXTYPE qst_vnum; /**< vnum specifically for quests */
 typedef IDXTYPE clan_vnum; /**< vnum specifically for clans */
 typedef IDXTYPE region_vnum; /**< vnum specifically for regions */
+typedef IDXTYPE path_vnum; /**< vnum specifically for paths */
 
 /* Various real (array-reference) number types. */
 typedef IDXTYPE room_rnum; /**< references an instance of a room */
