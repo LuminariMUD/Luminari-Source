@@ -513,6 +513,7 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
     }
     /* Override default values with path-based values. */
     for (curr_path = paths; curr_path != NULL; curr_path = curr_path->next) {
+      log("PATH: %s found!", path_table[curr_path->rnum].name);
       switch (path_table[curr_path->rnum].path_type) {
         case PATH_ROAD:
         case PATH_RIVER:
