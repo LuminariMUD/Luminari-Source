@@ -683,9 +683,9 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
    */
 
   if (map[0]) {
-    free(map[0])
+    free(map[0]);
     /* Missing some stuff here */
-  };
+  }
   free(map);
 
 }
