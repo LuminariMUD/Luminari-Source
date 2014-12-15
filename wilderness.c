@@ -31,49 +31,49 @@ struct wild_map_info_type {
 /* \t= changes a color to be BACKGROUND. */
 static struct wild_map_info_type wild_map_info[] = {
   /* 0 */
-  { SECT_INSIDE, "\tn.\tn", {}},
-  { SECT_CITY, "\twC\tn", {}},
-  { SECT_FIELD, "\tg,\tn", {}},
+  { SECT_INSIDE, "\tn.\tn", NULL},
+  { SECT_CITY, "\twC\tn", NULL},
+  { SECT_FIELD, "\tg,\tn", NULL},
   { SECT_FOREST, "\tGY\tn", 
     {"\t[f020]Y\tn", "\t[f030]Y\tn", "\t[f040]Y\tn", "\t[f050]Y\tn"},
-  { SECT_HILLS, "\tyn\tn", {}},
+  { SECT_HILLS, "\tyn\tn", NULL},
   /* 5 */
-  { SECT_MOUNTAIN, "\tw^\tn", {}},
-  { SECT_WATER_SWIM, "\tB~\tn", {}},
-  { SECT_WATER_NOSWIM, "\tb=\tn", {}},
-  { SECT_FLYING, "\tC^\tn", {}},
-  { SECT_UNDERWATER, "\tbU\tn", {}},
+  { SECT_MOUNTAIN, "\tw^\tn",NULL},
+  { SECT_WATER_SWIM, "\tB~\tn",NULL},
+  { SECT_WATER_NOSWIM, "\tb=\tn",NULL},
+  { SECT_FLYING, "\tC^\tn",NULL},
+  { SECT_UNDERWATER, "\tbU\tn",NULL},
   /* 10 */
-  { SECT_ZONE_START, "\tRX\tn", {}},
-  { SECT_ROAD_NS, "\tD|\tn", {}},
-  { SECT_ROAD_EW, "\tD-\tn", {}},
-  { SECT_ROAD_INT, "\tD+\tn", {}},
-  { SECT_DESERT, "\tY.\tn", {}},
+  { SECT_ZONE_START, "\tRX\tn",NULL},
+  { SECT_ROAD_NS, "\tD|\tn",NULL},
+  { SECT_ROAD_EW, "\tD-\tn",NULL},
+  { SECT_ROAD_INT, "\tD+\tn",NULL},
+  { SECT_DESERT, "\tY.\tn",NULL},
   /* 15 */
-  { SECT_OCEAN, "\tb~\tn", {}},
-  { SECT_MARSHLAND, "\tM,\tn", {}},
-  { SECT_HIGH_MOUNTAIN, "\tW^\tn", {}},
-  { SECT_PLANES, "\tM.\tn", {}},
-  { SECT_UD_WILD, "\tMY\tn", {}},
+  { SECT_OCEAN, "\tb~\tn",NULL},
+  { SECT_MARSHLAND, "\tM,\tn",NULL},
+  { SECT_HIGH_MOUNTAIN, "\tW^\tn",NULL},
+  { SECT_PLANES, "\tM.\tn",NULL},
+  { SECT_UD_WILD, "\tMY\tn",NULL},
   /* 20 */
-  { SECT_UD_CITY, "\tmC\tn", {}},
-  { SECT_UD_INSIDE, "\tm.\tn", {}},
-  { SECT_UD_WATER, "\tm~\tn", {}},
-  { SECT_UD_NOSWIM, "\tM=\tn", {}},
-  { SECT_UD_NOGROUND, "\tm^\tn", {}},
+  { SECT_UD_CITY, "\tmC\tn",NULL},
+  { SECT_UD_INSIDE, "\tm.\tn",NULL},
+  { SECT_UD_WATER, "\tm~\tn",NULL},
+  { SECT_UD_NOSWIM, "\tM=\tn",NULL},
+  { SECT_UD_NOGROUND, "\tm^\tn",NULL},
   /* 25 */
-  { SECT_LAVA, "\tR.\tn", {}},
-  { SECT_D_ROAD_NS, "\ty|\tn", {}},
-  { SECT_D_ROAD_EW, "\ty-\tn", {}},
-  { SECT_D_ROAD_INT, "\ty+\tn", {}},
-  { SECT_CAVE, "\tDC\tn", {}},
+  { SECT_LAVA, "\tR.\tn",NULL},
+  { SECT_D_ROAD_NS, "\ty|\tn",NULL},
+  { SECT_D_ROAD_EW, "\ty-\tn",NULL},
+  { SECT_D_ROAD_INT, "\ty+\tn",NULL},
+  { SECT_CAVE, "\tDC\tn",NULL},
   /* 30 */
-  { SECT_JUNGLE, "\tg&\tn", {}},
-  { SECT_TUNDRA, "\tW.\tn", {}},
-  { SECT_TAIGA, "\tgA\tn", {}},
-  { SECT_BEACH, "\ty:\tn", {}},
+  { SECT_JUNGLE, "\tg&\tn",NULL},
+  { SECT_TUNDRA, "\tW.\tn",NULL},
+  { SECT_TAIGA, "\tgA\tn",NULL},
+  { SECT_BEACH, "\ty:\tn",NULL},
 
-  { -1, "", {}}, /* RESERVED, NUM_ROOM_SECTORS */
+  { -1, "",NULL}, /* RESERVED, NUM_ROOM_SECTORS */
 };
 
 /* Initialize the kd-tree that indexes the static rooms of the wilderness.
