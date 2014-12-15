@@ -273,7 +273,8 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       map[x][y].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_temperature(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
-      map[x][y].glyph = NULL;
+      map[x][y].glyph_type = GLYPH_TYPE_NONE; 
+      
       /* Map should reflect changes from regions */
       struct region_list *regions = NULL;
       struct region_list *curr_region = NULL;
@@ -309,7 +310,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
           case PATH_ROAD:
           case PATH_RIVER:
             map[x][y].sector_type = path_table[curr_path->rnum].path_props;
-            map[x][y].glyph = curr_path->glyph;
+            map[x][y].glyph = path_table[curr_path->rnum].glyphs[curr_path->glyph_type];
             break;
           default:
             break;
@@ -684,7 +685,6 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
 
   if (map[0]) {
     free(map[0]);
-    /* Missing some stuff here */
   }
   free(map);
 
