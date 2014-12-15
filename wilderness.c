@@ -24,54 +24,56 @@ int wild_waterline = 128;
 struct wild_map_info_type {
   int sector_type;
   char disp[20];
+  char *variable_disp[4];
 
 };
 
 /* \t= changes a color to be BACKGROUND. */
 static struct wild_map_info_type wild_map_info[] = {
   /* 0 */
-  { SECT_INSIDE, "\tn.\tn"},
-  { SECT_CITY, "\twC\tn"},
-  { SECT_FIELD, "\tg,\tn"},
-  { SECT_FOREST, "\tGY\tn"},
-  { SECT_HILLS, "\tyn\tn"},
+  { SECT_INSIDE, "\tn.\tn", {}},
+  { SECT_CITY, "\twC\tn", {}},
+  { SECT_FIELD, "\tg,\tn", {}},
+  { SECT_FOREST, "\tGY\tn", 
+    {"\t[f020]Y\tn", "\t[f030]Y\tn", "\t[f040]Y\tn", "\t[f050]Y\tn"},
+  { SECT_HILLS, "\tyn\tn", {}},
   /* 5 */
-  { SECT_MOUNTAIN, "\tw^\tn"},
-  { SECT_WATER_SWIM, "\tB~\tn"},
-  { SECT_WATER_NOSWIM, "\tb=\tn"},
-  { SECT_FLYING, "\tC^\tn"},
-  { SECT_UNDERWATER, "\tbU\tn"},
+  { SECT_MOUNTAIN, "\tw^\tn", {}},
+  { SECT_WATER_SWIM, "\tB~\tn", {}},
+  { SECT_WATER_NOSWIM, "\tb=\tn", {}},
+  { SECT_FLYING, "\tC^\tn", {}},
+  { SECT_UNDERWATER, "\tbU\tn", {}},
   /* 10 */
-  { SECT_ZONE_START, "\tRX\tn"},
-  { SECT_ROAD_NS, "\tD|\tn"},
-  { SECT_ROAD_EW, "\tD-\tn"},
-  { SECT_ROAD_INT, "\tD+\tn"},
-  { SECT_DESERT, "\tY.\tn"},
+  { SECT_ZONE_START, "\tRX\tn", {}},
+  { SECT_ROAD_NS, "\tD|\tn", {}},
+  { SECT_ROAD_EW, "\tD-\tn", {}},
+  { SECT_ROAD_INT, "\tD+\tn", {}},
+  { SECT_DESERT, "\tY.\tn", {}},
   /* 15 */
-  { SECT_OCEAN, "\tb~\tn"},
-  { SECT_MARSHLAND, "\tM,\tn"},
-  { SECT_HIGH_MOUNTAIN, "\tW^\tn"},
-  { SECT_PLANES, "\tM.\tn"},
-  { SECT_UD_WILD, "\tMY\tn"},
+  { SECT_OCEAN, "\tb~\tn", {}},
+  { SECT_MARSHLAND, "\tM,\tn", {}},
+  { SECT_HIGH_MOUNTAIN, "\tW^\tn", {}},
+  { SECT_PLANES, "\tM.\tn", {}},
+  { SECT_UD_WILD, "\tMY\tn", {}},
   /* 20 */
-  { SECT_UD_CITY, "\tmC\tn"},
-  { SECT_UD_INSIDE, "\tm.\tn"},
-  { SECT_UD_WATER, "\tm~\tn"},
-  { SECT_UD_NOSWIM, "\tM=\tn"},
-  { SECT_UD_NOGROUND, "\tm^\tn"},
+  { SECT_UD_CITY, "\tmC\tn", {}},
+  { SECT_UD_INSIDE, "\tm.\tn", {}},
+  { SECT_UD_WATER, "\tm~\tn", {}},
+  { SECT_UD_NOSWIM, "\tM=\tn", {}},
+  { SECT_UD_NOGROUND, "\tm^\tn", {}},
   /* 25 */
-  { SECT_LAVA, "\tR.\tn"},
-  { SECT_D_ROAD_NS, "\ty|\tn"},
-  { SECT_D_ROAD_EW, "\ty-\tn"},
-  { SECT_D_ROAD_INT, "\ty+\tn"},
-  { SECT_CAVE, "\tDC\tn"},
+  { SECT_LAVA, "\tR.\tn", {}},
+  { SECT_D_ROAD_NS, "\ty|\tn", {}},
+  { SECT_D_ROAD_EW, "\ty-\tn", {}},
+  { SECT_D_ROAD_INT, "\ty+\tn", {}},
+  { SECT_CAVE, "\tDC\tn", {}},
   /* 30 */
-  { SECT_JUNGLE, "\tg&\tn"},
-  { SECT_TUNDRA, "\tW.\tn"},
-  { SECT_TAIGA, "\tgA\tn"},
-  { SECT_BEACH, "\ty:\tn"},
+  { SECT_JUNGLE, "\tg&\tn", {}},
+  { SECT_TUNDRA, "\tW.\tn", {}},
+  { SECT_TAIGA, "\tgA\tn", {}},
+  { SECT_BEACH, "\ty:\tn", {}},
 
-  { -1, ""}, /* RESERVED, NUM_ROOM_SECTORS */
+  { -1, "", {}}, /* RESERVED, NUM_ROOM_SECTORS */
 };
 
 /* Initialize the kd-tree that indexes the static rooms of the wilderness.
@@ -273,7 +275,10 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       map[x][y].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_temperature(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
-      map[x][y].glyph = NULL; 
+      if (wild_map_info[map[x][y].sector_type].variable_disp != NULL)
+        map[x][y].glyph = wild_map_info[map[x][y].sector_type].variable_disp[get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % 4];
+      else
+        map[x][y].glyph = NULL; 
       
       /* Map should reflect changes from regions */
       struct region_list *regions = NULL;
