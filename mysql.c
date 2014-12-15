@@ -366,12 +366,25 @@ struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
  
   char buf[1024];
  
-  sprintf(buf, "SELECT vnum "
+  sprintf(buf, "SELECT vnum, "
+               "  CASE WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
+               "             ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN '%s'"
+               "    ELSE WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
+               "               ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN '%s' "
+               "    ELSE '%s'"
+               "  END AS glyph "               
                "  from path_index "
                "  where zone_vnum = %d "
-               "  and ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)",               
-               zone_table[zone].number, x, y);
-               //"  and GISWithin(GeomFromText('POINT(%d %d)'), region_polygon)",
+               "  and ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)"              
+               , x, y-1
+               , x, y+1
+               , "|"
+               , x-1, y
+               , x+1, y
+               , "-"
+               , "+"
+               , zone_table[zone].number
+               , x, y);               
   
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
@@ -391,6 +404,7 @@ struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
     /* Allocate memory for the region data. */
     CREATE(new_node, struct path_list, 1);
     new_node->rnum = real_path(atoi(row[0]));
+    new_node->glyph = row[1];
     new_node->next = paths;
     paths = new_node;
     new_node = NULL; 

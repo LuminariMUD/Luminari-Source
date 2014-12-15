@@ -184,6 +184,7 @@ struct region_list {
 /* Struct for returning a list of containing paths. */
 struct path_list {
   region_rnum rnum;
+  char *glyph;
   struct path_list* next;
 };
 #endif
