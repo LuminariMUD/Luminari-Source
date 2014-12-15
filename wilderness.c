@@ -275,7 +275,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       map[x][y].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_temperature(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
-      if (map[x][y].sector_type = SECT_FOREST) //wild_map_info[map[x][y].sector_type].variable_disp != NULL)
+      if (map[x][y].sector_type ==SECT_FOREST) //wild_map_info[map[x][y].sector_type].variable_disp != NULL)
         map[x][y].glyph = wild_map_info[map[x][y].sector_type].variable_disp[get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % 4];
       else
         map[x][y].glyph = NULL; 
