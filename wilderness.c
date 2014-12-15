@@ -275,10 +275,6 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       map[x][y].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_temperature(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
-      if (map[x][y].sector_type ==SECT_FOREST) //wild_map_info[map[x][y].sector_type].variable_disp != NULL)
-        map[x][y].glyph = wild_map_info[map[x][y].sector_type].variable_disp[get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % 4];
-      else
-        map[x][y].glyph = NULL; 
       
       /* Map should reflect changes from regions */
       struct region_list *regions = NULL;
@@ -298,7 +294,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
         switch (region_table[curr_region->rnum].region_type) {
           case REGION_SECTOR:
-            map[x][y].sector_type = region_table[curr_region->rnum].region_props;                       
+            map[x][y].sector_type = region_table[curr_region->rnum].region_props;                                                 
             //log("  -> MAP: Changing (%d, %d) to sector : %d", x + x_offset, y + y_offset, region_table[curr_region->rnum].region_props);
             break;
           case REGION_SECTOR_TRANSFORM:
@@ -322,6 +318,12 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
             break;
         }
       }
+    
+      /* Set the map glyph, including variant glyphs. */
+      if (map[x][y].sector_type == SECT_FOREST) //wild_map_info[map[x][y].sector_type].variable_disp != NULL)
+        map[x][y].glyph = wild_map_info[map[x][y].sector_type].variable_disp[get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % 4];
+      else
+        map[x][y].glyph = NULL; 
     }
   }
 
