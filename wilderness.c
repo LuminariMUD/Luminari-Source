@@ -273,7 +273,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       map[x][y].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_temperature(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
-      map[x][y].glyph_type = GLYPH_TYPE_NONE; 
+      map[x][y].glyph = NULL; 
       
       /* Map should reflect changes from regions */
       struct region_list *regions = NULL;
