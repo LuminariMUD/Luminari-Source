@@ -404,7 +404,7 @@ struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
     /* Allocate memory for the region data. */
     CREATE(new_node, struct path_list, 1);
     new_node->rnum = real_path(atoi(row[0]));
-    new_node->glyph = row[1];
+    new_node->glyph = strdup(row[1]);
     new_node->next = paths;
     paths = new_node;
     new_node = NULL; 
