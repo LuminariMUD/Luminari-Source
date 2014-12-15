@@ -304,6 +304,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
             break;
         }
       }
+
       /* Override default values with path-based values. */
       for (curr_path = paths; curr_path != NULL; curr_path = curr_path->next) {
         switch (path_table[curr_path->rnum].path_type) {
@@ -837,9 +838,15 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
       /* Map should reflect changes from regions */
       struct region_list *regions = NULL;
       struct region_list *curr_region = NULL;
+      struct path_list *paths = NULL;
+      struct path_list *curr_path = NULL;
 
       /* Get the enclosing regions. */
       regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM),
+                                      x,
+                                      -y);
+      /* Get the enclosing paths. */
+      paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM),
                                       x,
                                       -y);
 
@@ -854,6 +861,18 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
             break;
           case REGION_GEOGRAPHIC:
           case REGION_ENCOUNTER:
+          default:
+            break;
+        }
+      }
+          
+      /* Override default values with path-based values. */
+      for (curr_path = paths; curr_path != NULL; curr_path = curr_path->next) {
+        switch (path_table[curr_path->rnum].path_type) {
+          case PATH_ROAD:
+          case PATH_RIVER:
+            sector_type = path_table[curr_path->rnum].path_props;            
+            break;
           default:
             break;
         }
