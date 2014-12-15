@@ -54,9 +54,20 @@
 #define REGION_SECTOR 4
 
 /* Path types. */
-#define PATH_ROAD       1 /* Path Props = Sector type to convert to. */
-#define PATH_RIVER      2
-#define PATH_GEOGRAPHIC 3 
+#define PATH_ROAD        1 /* path_props = Sector type to convert to. */
+#define PATH_DIRT_ROAD   2
+// RESERVED              3
+// RESERVED              4
+#define PATH_RIVER       5
+#define PATH_STREAM      6
+#define PATH_GEOGRAPHIC  3 
+
+/* Glyph types. 
+ * Used as array indexes for path_data.glyphs */
+#define GLYPH_TYPE_NONE     (-1)
+#define GLYPH_TYPE_PATH_NS    0 
+#define GLYPH_TYPE_PATH_EW    1
+#define GLYPH_TYPE_PATH_INT   2
 
 /* Map shapes */
 #define WILD_MAP_SHAPE_CIRCLE 1
@@ -67,7 +78,6 @@ extern struct kdtree* kd_wilderness_rooms;
 struct vertex {
   int x;
   int y;
-
 };
 
 struct region_data {
@@ -94,8 +104,9 @@ struct path_data {
   zone_rnum zone;   /* Zone that contains this path. */
   char *name;       /* Name of the path. */
 
-  int path_type;  /* Type of region. */
-  int path_props; /* Name: Value pairs, stores data based on region_type. */
+  int path_type;   /* Type of region. */
+  int path_props;  /* Sector type */
+  char *glyphs[3]; /* Glyphs to use when printing the wilderness map. */
 
   struct vertex *vertices; /* Vertex list. */  
   int num_vertices;        /* The number of vertices. */
@@ -185,7 +196,7 @@ struct region_list {
 /* Struct for returning a list of containing paths. */
 struct path_list {
   region_rnum rnum;
-  char *glyph;
+  int glyph_type;
   struct path_list* next;
 };
 #endif

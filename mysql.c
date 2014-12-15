@@ -299,14 +299,19 @@ void load_paths() {
 
   log("INFO: Loading path data from MySQL");
 
-  sprintf(buf, "SELECT vnum, "
-                      "zone_vnum, " 
-                      "name, "
-                      "path_type, "
-                      "NumPoints(path_linestring), "
-                      "AsText(path_linestring), "
-                      "path_props "
-               "  from path_data");
+  sprintf(buf, "SELECT p.vnum, "
+                      "p.zone_vnum, " 
+                      "p.name, "
+                      "p.path_type, "
+                      "NumPoints(p.path_linestring), "
+                      "AsText(p.path_linestring), "
+                      "p.path_props, "
+                      "pt.glyph_ns, "
+                      "pt.glyph_ew, "
+                      "pt.glyph_int "
+               "  from path_data p,"
+               "       path_types pt"
+               "  where p.path_type = pt.path_type");
 
 
   if (mysql_query(conn, buf)) {
@@ -378,11 +383,11 @@ struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
                "  and ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)"              
                , x, y-1
                , x, y+1
-               , "|"
+               , GLYPH_TYPE_PATH_NS
                , x-1, y
                , x+1, y
-               , "-"
-               , "+"
+               , GLYPH_TYPE_PATH_EW
+               , GLYPH_TYPE_PATH_INT
                , zone_table[zone].number
                , x, y);               
   
@@ -404,7 +409,7 @@ struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
     /* Allocate memory for the region data. */
     CREATE(new_node, struct path_list, 1);
     new_node->rnum = real_path(atoi(row[0]));
-    new_node->glyph = strdup(row[1]);
+    new_node->glyph_type = atoi(row[1]);
     new_node->next = paths;
     paths = new_node;
     new_node = NULL; 
