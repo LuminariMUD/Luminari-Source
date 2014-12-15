@@ -340,9 +340,9 @@ void load_paths() {
     path_table[i].num_vertices = atoi(row[4]);
     path_table[i].path_props   = atoi(row[6]);
     
-    path_table[i].glyphs[GLYPH_TYPE_NS]  = strdup(row[7]);
-    path_table[i].glyphs[GLYPH_TYPE_EW]  = strdup(row[8]);
-    paht_table[i].glyphs[GLYPH_TYPE_INT] = strdup(row[9]);
+    path_table[i].glyphs[GLYPH_TYPE_PATH_NS]  = strdup(row[7]);
+    path_table[i].glyphs[GLYPH_TYPE_PATH_EW]  = strdup(row[8]);
+    paht_table[i].glyphs[GLYPH_TYPE_PATH_INT] = strdup(row[9]);
 
     /* Parse the polygon text data to get the vertices, etc.
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
