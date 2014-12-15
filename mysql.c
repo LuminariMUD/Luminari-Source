@@ -373,10 +373,10 @@ struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
  
   sprintf(buf, "SELECT vnum, "
                "  CASE WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
-               "             ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN '%s'"
+               "             ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d"
                "    WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
-               "               ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN '%s' "
-               "    ELSE '%s'"
+               "               ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d "
+               "    ELSE %d"
                "  END AS glyph "               
                "  from path_index "
                "  where zone_vnum = %d "
