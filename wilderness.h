@@ -69,6 +69,8 @@
 #define GLYPH_TYPE_PATH_EW    1
 #define GLYPH_TYPE_PATH_INT   2
 
+#define NUM_VARIANT_GLYPHS 4
+
 /* Map shapes */
 #define WILD_MAP_SHAPE_CIRCLE 1
 #define WILD_MAP_SHAPE_RECT   2
