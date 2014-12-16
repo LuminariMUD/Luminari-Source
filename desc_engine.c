@@ -1,0 +1,680 @@
+/* *************************************************************************
+ *   File: desc_engine.c                               Part of LuminariMUD *
+ *  Usage: Code file for the description generation engine.                *
+ * Author: Ornir (Derived from CalareyMUD 3 in part.)                      *
+ ***************************************************************************
+ *                                                                         *
+ ***************************************************************************/
+#include "conf.h"
+#include "sysdep.h"
+#include "structs.h"
+#include "utils.h"
+#include "fight.h"
+#include "comm.h"
+#include "structs.h"
+#include "dg_event.h"
+
+#define DO_NOT_COMPILE 1
+#ifndef DO_NOT_COMPILE
+/* Generate a room description for ch based on various aspects
+ * of the room including trails, weather, character's race, time of day,
+ * etc. Finally, strip line breaks and add them again at their correct
+ * places. -- Scion 
+ * 
+ * A great dela of this function relies on SMAUG/CalareyMUD specific 
+ * functionality.  Most of this needs to be adapted to Luminari. 
+ * - Ornir */
+char *gen_room_description(struct char_data *ch, char *desc) {
+     char message[MAX_STRING_LENGTH];
+	char buf[MAX_STRING_LENGTH];
+	char temp[MAX_STRING_LENGTH];
+	char rdesc[MAX_STRING_LENGTH];
+	int i, letters, space, newspace, line;
+	
+     //int lights = get_light_room(ch->in_room);
+	//TRAIL_DATA *trail;
+	//EXIT_DATA *pexit;
+	
+     /* Get a separate buffer for each type of trail info and then tack them
+	together at the end. This will use more memory, but will put all the
+	different types of trail info together, plus it will only use one for
+	loop instead of several. -- Scion */
+	char graffiti[MAX_STRING_LENGTH];
+	char blood[MAX_STRING_LENGTH];
+	char snow[MAX_STRING_LENGTH];
+	char trails[MAX_STRING_LENGTH];
+
+	/* Count the number of each type of message, and abbreviate in case of
+	very long strings */
+	int num_graffiti, num_blood, num_snow, num_trails = 0;
+
+	strcpy(graffiti, "");
+	strcpy(blood, "");
+	strcpy(snow, "");
+	strcpy(trails, "");
+
+	/* Get room's desc first, tack other stuff in after that. */
+	strcpy(buf, ch->in_room->description);
+
+	/* Weather */
+	strcat(buf, get_weather_string(ch, temp));
+
+	/* Comment on the light level */
+	if (lights < -10)
+		strcpy(message, "It is extremely dark. ");
+	else if (lights < -5)
+		strcpy(message, "It is very dark here. ");
+	else if (lights <= 0)
+		if (room_is_dark(ch->in_room))
+			strcpy(message, "It is dark. ");
+		else
+			strcpy(message, "There aren't any lights here. ");
+	else if (lights == 1)
+		strcpy(message, "A single light illuminates the area. ");
+	else if (lights == 2)
+		strcpy(message, "A pair of lights shed light on the surroundings. ");
+	else if (lights < 7)
+		strcpy(message, "A few lights scattered around provide lighting. ");
+	else
+		strcpy(message, "Numerous lights shine from all around. ");
+
+	/* One sentence about the room we're in */
+	switch(ch->in_room->sector_type) {
+	case 0:
+		break;
+	case 1:
+		strcat(message, " The city street is");
+		if (ch->in_room->curr_vegetation > 66)
+			strcat(message, " lined by lush trees and hedges");
+		else if (ch->in_room->curr_vegetation > 33)
+			strcat(message, " interspersed with small shrubs along its edges");
+		else if (ch->in_room->curr_vegetation > 5)
+			strcat(message, " dotted with small weeds");
+		else
+			strcat(message, " clean and barren");
+
+		if (ch->in_room->curr_resources > 66)
+			strcat(message, ", and piles of trash and refuse");
+		else if (ch->in_room->curr_resources > 33)
+			strcat(message, ", and scattered with litter");
+
+		if (ch->in_room->curr_water > 75)
+			strcat(message, " just under the water");
+		else if (ch->in_room->curr_water > 25)
+			strcat(message, " in the mud");
+
+		strcat(message, ". ");
+
+		break;
+	case 2:
+		if (ch->in_room->curr_vegetation > 66)
+			strcat(message, " Tall grass and shrubs");
+		else if (ch->in_room->curr_vegetation > 33)
+			strcat(message, " Low patches of grass");
+		else
+			strcat(message, " Small clumps of weeds");
+
+		if (ch->in_room->curr_resources > 66)
+			strcat(message, " obscure broken bits of wood");
+		else
+			strcat(message, " grow from the soil");
+
+		if (ch->in_room->curr_water > 66)
+			strcat(message, " visible through the water");
+		else if (ch->in_room->curr_water > 33)
+			strcat(message, " just under the muddy water");
+
+		strcat(message, ". ");
+
+		break;
+	case 3:
+		if (ch->in_room->curr_vegetation > 66)
+			strcat(message, " Enormous, dark evergreen trees loom tall amidst");
+		else if (ch->in_room->curr_vegetation > 33)
+			strcat(message, " Thin evergreen trees are scattered all across");
+		else
+			strcat(message, " Gnarled, dead trees twist toward the sky from");
+
+		if (ch->in_room->curr_water > 66)
+			strcat(message, " swirling water");
+		else if (ch->in_room->curr_water > 33)
+			strcat(message, " deep puddles scattered here and there");
+		else
+			strcat(message, " the forest floor");
+
+		if (ch->in_room->curr_resources > 66)
+			strcat(message, ", scattered wood and underbrush obscuring the ground. ");
+		else
+			strcat(message, ". ");
+
+		break;
+	case 4:
+		if (ch->in_room->curr_vegetation > 66)
+			strcat(message, " Trees and shrubs");
+		else if (ch->in_room->curr_vegetation > 33)
+			strcat(message, " Grasses and small trees");
+		else
+			strcat(message, " Barren dirt and rocks");
+
+		if (ch->in_room->curr_water > 66)
+			strcat(message, " adorn the dry areas between the intertwining streams and ponds");
+		else if (ch->in_room->curr_water > 33)
+			strcat(message, " grow atop the rolling hills, small streams coursing between the hills");
+		else
+			strcat(message, " rise and fall with the rolling hills throughout this area");
+
+		if (ch->in_room->curr_resources > 66)
+			strcat(message, ", scraps of wood littering the ground. ");
+		else
+			strcat(message, ". ");
+
+		break;
+	case 5:
+		if (ch->in_room->curr_vegetation > 66)
+			strcat(message, " Lush evergreen trees grow along");
+		else if (ch->in_room->curr_vegetation > 33)
+			strcat(message, " Scraggly trees and bushes cling to");
+		else
+			strcat(message, " Rocky, steep terrain leads up into ");
+
+		if (ch->in_room->curr_water > 66)
+			strcat(message, " the cliffs, a cascading waterfall roaring over the edge.");
+		else if (ch->in_room->curr_water > 33)
+			strcat(message, " the mountainous terrain, a trickling stream running down from the snow melt.");
+		else
+			strcat(message, " the mountainside.");
+
+		break;
+	case 6:
+		/* Is the water frozen? */
+		if (IS_OUTSIDE(ch) && ((ch->in_room->area->weather->temp + 3*weath_unit -1)/weath_unit < 3))
+			strcat(message, " The shallow water here is frozen enough to walk on. ");
+		else
+			strcat(message, " Shallow water flows past, bubbling and gurgling over smooth rocks. ");
+		break;
+	case 7:
+		/* Is the water frozen? */
+		if (IS_OUTSIDE(ch) && ((ch->in_room->area->weather->temp + 3*weath_unit -1)/weath_unit < 3))
+			strcat(message, " A layer of thick ice has formed over the deep water here. ");
+		else
+			strcat(message, " The deep water is nearly black as it rushes past. ");
+		break;
+	case 8:
+		strcat(message, " Water swirls all around. ");
+		break;
+	case 9:
+		strcat(message, " The thin air swirls past, barely making even its presence known. ");
+		break;
+	case 10:
+		if (ch->in_room->curr_vegetation > 66)
+			strcat(message, " An abundance of cacti scatter the sandy landscape. ");
+		else if (ch->in_room->curr_vegetation > 33)
+			strcat(message, " Several patches of grass hold out against the ruthless sand. ");
+		else
+			strcat(message, " The sandy soil only supports the smallest traces of life. ");
+		break;
+	case 11:
+		strcat(message, " The details of this location are strangely difficult to determine. ");
+		break;
+	case 12:
+		strcat(message, " The water bed is covered with");
+		if (ch->in_room->curr_vegetation > 66)
+			strcat(message, " thick kelp. ");
+		else if (ch->in_room->curr_vegetation > 33)
+			strcat(message, " some scattered kelp and moss. ");
+		else if (ch->in_room->curr_resources > 66)
+			strcat(message, " scattered rocks, pearls and shells. ");
+		else
+			strcat(message, " bare sand. ");
+		break;
+	case 13:
+		strcat(message, " The rocky surroundings are");
+		if (ch->in_room->curr_vegetation > 66)
+			strcat(message, " obscured by a grove of giant mushrooms");
+		else if (ch->in_room->curr_vegetation > 33)
+			strcat(message, " covered with multicolored lichens");
+		else
+			strcat(message, " bare");
+
+		if (ch->in_room->curr_resources > 66)
+			strcat(message, " with a sparkling glint every so often along the wall. ");
+		else
+			strcat(message, " as far as the eye can see. ");
+		break;
+	case 14:
+		strcat(message, " Molten lava flows through the volcanic caverns. ");
+		break;
+	case 15:
+            if (ch->in_room->curr_vegetation > 66)
+                  strcat(message, " A canopy of tropical trees hangs over this lush jungle. ");
+            else if (ch->in_room->curr_vegetation > 33)
+                  strcat(message, " The muddy swamplands are scattered with bogs and pools. ");
+		else
+			strcat(message, " The misty moor is covered with tiny wildflowers and grasses. " );
+		break;
+	case 16:
+		strcat(message, " The solid ice shows no trace of life. ");
+		break;
+	case 17:
+            if (ch->in_room->curr_vegetation > 66)
+                   strcat(message, " Lush palm trees dot this pristine beach. " );
+            else if (ch->in_room->curr_vegetation > 33)
+                   strcat(message, " Growths of beach grass line the sand dunes of this beach. " );
+            else
+                   strcat(message, " This wide open beach is empty but for some broken seashells and bits of driftwood. ");
+                break;
+	default:
+		strcat(message, "");
+		break;
+	}
+	strcat(buf, message);
+
+	/* List appropriate room flags */
+	strcpy(message, "");
+	if (IS_AFFECTED(ch, AFF_DETECT_MAGIC)) {
+		if (IS_SET(ch->in_room->room_flags, ROOM_NO_MAGIC))
+			strcat(message, "There seems to be something blocking the flow of magical energy here. ");
+		if (IS_SET(ch->in_room->room_flags, ROOM_SAFE))
+			strcat(message, "A magical aura seems to promote a feeling of peace. ");
+		if (IS_SET(ch->in_room->room_flags, ROOM_NO_RECALL))
+			strcat(message, "A very weak pulling sensation emenates from this place. ");
+		if (IS_SET(ch->in_room->room_flags, ROOM_NO_SUMMON))
+			strcat(message, "The very air seems in some way resilient. ");
+		if (IS_SET(ch->in_room->room_flags, ROOM_NO_ASTRAL))
+			strcat(message, "The air seems a little thicker in here than it ought to be. ");
+		if (IS_SET(ch->in_room->room_flags, ROOM_NOSUPPLICATE))
+			strcat(message, "This place feels as if is has been shunned by the gods! ");
+	}
+
+	if (IS_SET(ch->in_room->room_flags, ROOM_DARK))
+		strcat(message, "It is quite dark in here. ");
+	if (IS_SET(ch->in_room->room_flags, ROOM_TUNNEL))
+		strcat(message, "There is only enough room for a few people in this cramped space. ");
+	if (IS_SET(ch->in_room->room_flags, ROOM_PRIVATE))
+		strcat(message, "A sign on the wall states, 'This room is private.' ");
+	if (IS_SET(ch->in_room->room_flags, ROOM_SOLITARY))
+		strcat(message, "There appears to be only enough space in here for one person. ");
+	if (IS_SET(ch->in_room->room_flags, ROOM_NOFLOOR))
+		strcat(message, "There is nothing but open air below here. ");
+	if (IS_SET(ch->in_room->room_flags, ROOM_AMPLIFY))
+		strcat(message, "Even the tiniest noise echoes loudly in here. ");
+	if (IS_SET(ch->in_room->room_flags, ROOM_NOMISSILE))
+		strcat(message, "There does not appear to be enough open space to use missile weapons here. ");
+	if (IS_SET(ch->in_room->room_flags, ROOM_STICKY))
+		strcat(message, "The floor seems very sticky. ");
+	if (IS_SET(ch->in_room->room_flags, ROOM_SLIPPERY))
+		strcat(message, "The floor seems very slippery. ");
+	if (IS_SET(ch->in_room->room_flags, ROOM_BURNING))
+		strcat(message, "The room is on fire! ");
+	if (ch->in_room->runes)
+		strcat(message, "Glowing runes line the walls and floor. ");
+	strcat(buf, message);
+
+	/* List exits */
+	for ( pexit = ch->in_room->first_exit; pexit; pexit = pexit->next ) {
+		if (pexit->to_room) {
+			if (IS_SET(pexit->exit_info, EX_HIDDEN) ||
+				IS_SET(pexit->exit_info, EX_SECRET))
+				continue;
+			strcpy(message, "");
+			if (IS_SET(pexit->exit_info, EX_ISDOOR)) {
+				if (IS_SET(pexit->exit_info, EX_BASHED))
+					strcat(message, "bashed in ");
+				else {
+					if (IS_SET(pexit->exit_info, EX_NOPASSDOOR) ||
+						IS_SET(pexit->exit_info, EX_BASHPROOF))
+						strcat(message, "thick ");
+					if (IS_SET(pexit->exit_info, EX_CLOSED))
+						strcat(message, "closed ");
+					else
+						strcat(message, "open ");
+				}
+
+				if (strcmp(pexit->keyword, ""))
+					strcat(message, pexit->keyword);
+				else
+					strcat(message, "door");
+				strcat(message, " leads ");
+				strcat(message, dir_name[pexit->vdir]);
+				strcat(message, ". ");
+				strcat(buf, capitalize(aoran(message)));
+			} else {
+				/* Don't say anything about normal exits, only interesting ones */
+				if (pexit->to_room->sector_type != ch->in_room->sector_type) {
+					strcpy(temp, "");
+					switch (pexit->to_room->sector_type) {
+					case 0:
+			strcat(temp, "A building lies %s from here. ");
+						break;
+					case 1:
+			strcat(temp, "A well worn road leads %s from here. ");
+						break;
+					case 2:
+			strcat(temp, "Fields lie to the %s. ");
+						break;
+					case 3:
+			strcat(temp, "Tall trees obscure the horizon to the %s. ");
+						break;
+					case 4:
+			strcat(temp, "Rough, hilly terrain lies %s from here. ");
+						break;
+					case 5:
+			strcat(temp, "Steep mountains loom to the %s. ");
+						break;
+					case 6:
+						/* Is the water frozen? */
+						if (IS_OUTSIDE(ch) && ((ch->in_room->area->weather->temp + 3*weath_unit -1)/weath_unit < 3))
+			strcat(temp, "Some fairly shallow water to the %s seems frozen enough to walk on. ");
+						else
+			strcat(temp, "Fairly shallow water is visible to the %s. ");
+						break;
+					case 7:
+						/* Is the water frozen? */
+						if (IS_OUTSIDE(ch) && ((ch->in_room->area->weather->temp + 3*weath_unit -1)/weath_unit < 3))
+			strcat(temp, "The water to the %s is frozen solid. ");
+						else
+			strcat(temp, "The water %s of here looks quite deep. ");
+						break;
+					case 8:
+			strcat(temp, "Murky water swirls endlessly %s of here. ");
+						break;
+					case 9:
+			strcat(temp, "There is nothing but open air %s from here. ");
+						break;
+					case 10:
+			strcat(temp, "Desert sands reach %s into the distance. ");
+						break;
+					case 12:
+			strcat(temp, "The sandy ocean floor stretches %s. ");
+						break;
+					case 13:
+			strcat(temp, "Dimly lit caverns continue %s from here. ");
+						break;
+					case 14:
+			strcat(temp, "Molten lava flows %s from here. ");
+						break;
+					case 15:
+			strcat(temp, "Muddy swamplands continue to the %s. ");
+						break;
+					case 16:
+			strcat(temp, "Solid ice is visible to the %s. ");
+						break;
+					case 17:
+			strcat(temp, "The beach can be seen to the %s. ");
+					}
+					sprintf(message, temp, dir_name[pexit->vdir]);
+					strcat(buf, message);
+				}
+			}
+		}
+	}
+
+	/* Generate a sentence about each object in the room, grouping like objects to
+	keep the list short. */
+	/* <article> <object> <verb> [adjective] <location>. */
+	/* commented out until it can be made less spammy -keo */
+/*	for (obj = ch->in_room->first_content; obj; obj = obj->next_content) {
+		extern char *munch_colors(char *word);
+
+		char sentence[MAX_STRING_LENGTH];
+		char temp[MAX_STRING_LENGTH];
+
+		if (!can_see_obj(ch, obj))
+			continue;
+
+		strcpy(sentence, munch_colors(obj->short_descr));
+
+		if (IS_OBJ_STAT(obj, ITEM_HOVER)) {
+			switch (obj->serial % 3) {
+			case 1: strcat(sentence, " floats"); break;
+			case 2:	strcat(sentence, " hovers"); break;
+			case 3: strcat(sentence, " flies"); break;
+			default: strcat(sentence, " drifts"); break;
+			}
+		} else {
+			switch (obj->serial % 3) {
+			case 1:	strcat(sentence, " sits"); break;
+			case 2:	strcat(sentence, " rests"); break;
+			case 3:	strcat(sentence, " lies"); break;
+			default: strcat(sentence, " has been set"); break;
+			}
+		}
+
+		if (number_percent() < 25) {
+			switch (obj->serial % 10) {
+			case 1: strcat(sentence, " quietly"); break;
+			case 2: strcat(sentence, " heavily"); break;
+			case 3: strcat(sentence, " lazily"); break;
+			case 4: strcat(sentence, " solemnly"); break;
+			case 5: strcat(sentence, " conspicuously"); break;
+			case 6: strcat(sentence, " hopefully"); break;
+			case 7: strcat(sentence, " upright"); break;
+			case 8: strcat(sentence, " overturned"); break;
+			case 9: strcat(sentence, " auspiciously"); break;
+			case 10:strcat(sentence, " comfortably"); break;
+			default:strcat(sentence, " innocently"); break;
+			}
+		}
+
+		i = obj->serial % 10;
+
+		if (IS_OUTSIDE(ch)) {
+			if (i <= 8)
+				strcat(sentence, " just %s of here. ");
+			else if (i == 9)
+				strcat(sentence, " near your head. ");
+			else
+				strcat(sentence, " nearby. ");
+		} else {
+			if (i <= 4)
+				strcat(sentence, " along the %s wall. ");
+			else if (i <= 8)
+				strcat(sentence, " in the %s corner. ");
+			else if (i == 9)
+				strcat(sentence, " %s the ceiling. ");
+			else
+				strcat(sentence, " %s the floor. ");
+		}
+
+		switch (obj->serial % 10) {
+		case 0: strcpy(temp, "north"); break;
+		case 1: strcpy(temp, "south"); break;
+		case 2: strcpy(temp, "east"); break;
+		case 3: strcpy(temp, "west"); break;
+		case 4: strcpy(temp, "northwest"); break;
+		case 5: strcpy(temp, "northeast"); break;
+		case 6: strcpy(temp, "southwest"); break;
+		case 7: strcpy(temp, "southeast"); break;
+		case 8:
+		case 9:
+			if (IS_OBJ_STAT(obj, ITEM_HOVER))
+				strcpy(temp, "near");
+			else
+				strcpy(temp, "on");
+			break;
+		}
+
+		sprintf(message, sentence, temp);
+		strcat(buf, capitalize(message));
+	}
+*/
+	/* Collect trail descriptions */
+	for (trail=ch->in_room->first_trail; trail; trail=trail->next) {
+	    int i=(((int)trail->age - current_time) + 1800);
+
+		/* Collect graffiti first */
+		if (trail->graffiti && strlen(trail->graffiti) > 3) {
+			if (ch->curr_talent[TAL_TIME]
+			+ ch->curr_talent[TAL_SEEKING] > 50) {
+				strcpy(message, capitalize(trail->name));
+				strcat(message, " has scrawled something here: ");
+			} else
+				strcpy(message, "Something has been scrawled here: ");
+			strcat(message, trail->graffiti);
+			strcat(message, " ");
+			strcat(graffiti, message);
+			num_graffiti++;
+		}
+
+		/* Get blood trails next */
+		if ((trail->blood==TRUE && i>500) &&
+		   (ch->in_room->sector_type<6
+		 || ch->in_room->sector_type==10
+		 || ch->in_room->sector_type==13)) {
+
+  			if (i>1700)
+				strcpy(message, "A fresh pool of blood covers the floor, leading from %s to %s. ");
+			else if (i>1600)
+				strcpy(message, "A bright red streak of blood leads from %s to %s. ");
+			else if (i>1500)
+				strcpy(message, "Wet, bloody footprints lead from %s to %s. ");
+			else if (i>1400)
+				strcpy(message, "Bloody footprints lead from %s to %s. ");
+			else if (i>1300)
+				strcpy(message, "A wet trail of dark red blood leads %s. ");
+			else if (i>1200)
+				strcpy(message, "A trail of wet, sticky blood leads %s. ");
+			else if (i>1100)
+				strcpy(message, "A drying trail of blood leads %s. ");
+			else if (i>1000)
+				strcpy(message, "Some nearly dried blood leads to the %s from here. ");
+			else if (i>900)
+				strcpy(message, "A distinct trail of dry blood leads %s. ");
+			else if (i>800)
+				strcpy(message, "A trail of dried blood leads %s. ");
+			else if (i>700)
+				strcpy(message, "A bit of dried blood seems to lead %s. ");
+			else if (i>500)
+				strcpy(message, "A few drops of dry blood are visible on the floor. ");
+			else
+				strcpy(message, "A flake of dried blood catches your eye. ");
+
+			sprintf(temp, message,
+			   (trail->from > -1 ? rev_dir_name[trail->from] : "the center of the room"),
+			   (trail->to > -1 ?  dir_name[trail->to] : "right here"));
+			strcat(temp, " ");
+			strcat(blood, temp);
+			num_blood++;
+			continue;
+		}
+
+		/* Show tracks if it's snowing *grin* -- Scion */
+		if (IS_OUTSIDE(ch) && ((ch->in_room->area->weather->temp + 3*weath_unit -1)/weath_unit < 3)
+			&& ((ch->in_room->area->weather->precip + 3*weath_unit -1)/weath_unit > 3)) {
+			strcpy(message, "Footprints in the snow seem to lead from %s to %s. ");
+			sprintf(temp, message,
+				(trail->from > -1 ? rev_dir_name[trail->from] : "the center of the room"),
+				(trail->to > -1 ?  dir_name[trail->to] : "right here"));
+			strcat(temp, " ");
+			strcat(snow, temp);
+			num_snow++;
+			continue;
+		}
+
+		/* Show trails to those with a track skill -- Scion */
+		if (!IS_NPC(ch) && LEARNED(ch, gsn_track) > 0) {
+		    if (trail->blood==FALSE
+		       && ch->in_room->sector_type!=0
+		       && ch->in_room->sector_type!=1
+		       && ch->in_room->sector_type<6
+		       && trail->fly==FALSE
+		       && strcmp(trail->name, ch->name)
+		       && (number_range(1,100) < number_range(1,
+		ch->pcdata->noncombat[SK_NATURE] + get_curr_per(ch)))) {
+
+				if (i>1350)
+		          strcpy(message, "Distinct footprints lead from %s to %s, apparently made by %s");
+		        else if (i>900)
+		          strcpy(message, "Footprints lead from %s to %s");
+		        else if (i>450)
+				  strcpy(message, "A faint set of footprints seems to lead %s");
+		        else
+		          strcpy(message, "You notice a footprint on the ground");
+			learn_from_success( ch, gsn_track );
+		        sprintf(temp, message,
+			 (trail->from > -1 ? rev_dir_name[trail->from] : "right here"),
+			 (trail->to > -1 ? dir_name[trail->to] : "right here"),
+		         trail->race ? (aoran(trail->race->name))
+			 : "some unknown creature");
+		        strcat(temp, ". ");
+			strcat(trails, temp);
+			num_trails++;
+			continue;
+			}
+
+		}
+	} /* For loop */
+
+	/* Check if we need to abridge any of this */
+	if (strlen(graffiti) > 200)
+		strcpy(graffiti, "The area is littered with too many scrawled messages to make any out clearly. ");
+
+	if (strlen(blood) > 200)
+		strcpy(blood, "This place is awash in bloody trails of all kinds, leading in all directions. ");
+
+	if (strlen(snow) > 200)
+		strcpy(snow, "The snow is trampled with countless footprints. ");
+
+	if (strlen(trails) > 200)
+		strcpy(trails, "Dozens of footprints lead in all directions, making it impossible to distinguish one from the others. ");
+
+	strcat(buf, " ");
+	strcat(buf, graffiti);
+	strcat(buf, " ");
+	strcat(buf, blood);
+	strcat(buf, " ");
+	strcat(buf, snow);
+	strcat(buf, " ");
+	strcat(buf, trails);
+	strcat(buf, " ");
+
+	i=0;
+	letters=0;
+
+	/* Strip \r and \n */
+	for (i=0; i<strlen(buf); i++) {
+		if (buf[i] != '\r' && buf[i] != '\n') {
+			rdesc[letters]=buf[i];
+			letters++;
+		} else if (buf[i] == '\r') {
+			rdesc[letters]=' ';
+			letters++;
+		}
+		rdesc[letters]='\0';
+	}
+
+	i=0;
+	letters=0;
+	space=0;
+	newspace=0;
+	line=0;
+	strcpy(buf, rdesc);
+
+	/* Add \r\n's back in at their appropriate places */
+	for (i=0; i<strlen(buf); i++) {
+		if (buf[i]==' ') {
+			space=i;
+			newspace=letters;
+		}
+
+		if (line > 70) {
+			i=space;
+			letters=newspace;
+			rdesc[letters++]='\r';
+			rdesc[letters++]='\n';
+			line=0;
+		} else if (!(buf[i]==' ' && buf[i+1]==' ')) {
+			rdesc[letters]=buf[i];
+			letters++; /* Index for rdesc; i is the index for buf */
+			line++; /* Counts number of characters on this line */
+		}
+		rdesc[letters+1]='\0';
+	}
+	if (strlen(rdesc) > 0)
+		strcat(rdesc, "\r\n");
+
+	descr=STRALLOC(rdesc);
+
+	return descr;
+}
+#endif
