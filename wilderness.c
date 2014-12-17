@@ -32,10 +32,11 @@ static struct wild_map_info_type wild_map_info[] = {
   /* 0 */
   { SECT_INSIDE, "\tn.\tn", { NULL }},
   { SECT_CITY, "\twC\tn", { NULL }},
-  { SECT_FIELD, "\tg,\tn", { NULL }},
+  { SECT_FIELD, "\tg,\tn", 
+    { "\t[F120],\tn", "\t[F121],\tn", "\t[F130],\tn", "\t[F131],\tn" }},
   { SECT_FOREST, "\tGY\tn", 
     {"\t[f020]Y\tn", "\t[f030]Y\tn", "\t[f040]Y\tn", "\t[f050]Y\tn"}},
-    { SECT_HILLS, "\tyn\tn", { NULL }},
+  { SECT_HILLS, "\tyn\tn", { NULL }},
   /* 5 */
   { SECT_MOUNTAIN, "\tw^\tn",{ NULL }},
   { SECT_WATER_SWIM, "\tB~\tn",{ NULL }},
@@ -320,8 +321,15 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       }
     
       /* Check if the sector type has variant glyphs */
-      if (wild_map_info[map[x][y].sector_type].variant_disp[0]) {        
-        map[x][y].glyph = wild_map_info[map[x][y].sector_type].variant_disp[get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % NUM_VARIANT_GLYPHS];
+      if (wild_map_info[map[x][y].sector_type].variant_disp[0]) {
+        if (map[x][y].sector_type == SECT_FIELD ||
+            map[x][y].sector_type == SECT_MOUNTAIN ||
+            map[x][y].sector_type == SECT_HIGH_MOUNTAIN ||
+            map[x][y].sector_type == SECT_WATER_NOSWIM ||
+            map[x][y].sector_type == SECT_OCEAN)
+          map[x][y].glyph = wild_map_info[map[x][y].sector_type].variant_disp[get_elevation(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % NUM_VARIANT_GLYPHS];
+        else  
+          map[x][y].glyph = wild_map_info[map[x][y].sector_type].variant_disp[get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % NUM_VARIANT_GLYPHS];
       }         
     }
   }

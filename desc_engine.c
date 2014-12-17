@@ -14,6 +14,25 @@
 #include "structs.h"
 #include "dg_event.h"
 
+/* 
+ * Luminari Description Engine
+ * ---------------------------
+ * 
+ * It is very useful to have a way to generate descriptions automatically for 
+ * rooms, especially in wilderness areas.  That is the goal of the code in this
+ * file.
+ * 
+ * The first iteration will focus entirely on generating room descriptions for 
+ * wilderness rooms. 
+ * 
+ * It is important to determine what the descriptions will look like, how
+ * they will be constructed, how to translate from the data in the room to 
+ * a text description, how to determine what details to include (eg. Detect 
+ * Magic), etc.  This also includes things like tracks, weather conditions,
+ * player-generated changes to room details, etc.
+ * 
+ */
+
 #define DO_NOT_COMPILE 1
 #ifndef DO_NOT_COMPILE
 /* Generate a room description for ch based on various aspects

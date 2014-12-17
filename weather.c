@@ -269,15 +269,15 @@ struct weather_msg {
   int sector_type;
   char msg[NUM_WEATHER_CHANGES][MEDIUM_STRING];
 } weather_messages[] = {
-  /*
-   {SECT_SNOW, 
+  
+   {SECT_TUNDRA, 
     {"A cool wind passes through the icy landscape, whipping up snow.", 
      "The wind settles down and the sun shines through the heavy cloud cover.", 
      "The icy wind grows stronger and snow begins to fall, whipping your body mercilessly.", 
      "The wind becomes less fierce and it stops snowing.", 
      "A blizzard rolls in, strong winds and biting cold beating at you.", 
      "The blizzard has passed, but icy winds continue to whip at you."}}, 
-   */
+  
   {SECT_DESERT,
     {"A searing wind starts to blow, sand billowing on the dunes.",
       "The sun starts to bake at you through a cloudless sky.",
@@ -313,7 +313,7 @@ struct weather_msg {
       "The heavy droplets of water stops falling and the cloud cover grows thinner.",
       "Loud booms announce the arrival of a fierce thunderstorm.",
       "The rolling thunder stops, but the heavy rain cover remains."}},
-  /*
+  
    {SECT_BEACH, 
     {"Soft fluffy clouds begin to drift in over the beach.", 
      "The soft fluffy clouds dissipate and the sun shines through.", 
@@ -321,7 +321,7 @@ struct weather_msg {
      "The heavy droplets of water stops falling and the cloud cover grows thinner.", 
      "Loud booms announces the arrival of a fierce thunderstorm.", 
      "The rolling thunder stops, but the heavy raincover remains."}},
-   */
+  
   {SECT_FOREST,
     {"Soft fluffy clouds begin to drift in over the forested landscape.",
       "The soft fluffy clouds dissipate and the sun shines through the canopy above.",
@@ -329,15 +329,15 @@ struct weather_msg {
       "The heavy droplets of water stops falling and the cloud cover grows thinner.",
       "Loud booms announce the arrival of a fierce thunderstorm.",
       "The rolling thunder stops, but the heavy raincover remains."}},
-  /*
-   {SECT_RAINFOREST, 
+  
+   {SECT_JUNGLE, 
     {"Great fluffy clouds roll over the rainforest.", 
      "The clouds dissipate and sun shines through the canopy overhead.", 
      "Huge heavy drops of water starts to fall, making your clothing soggy.", 
      "It stops raining but the heavy cloudcover overhead remains.", 
      "Thunder and lightening arches across the sky as a monsoon rolls over the rainforest.", 
      "The rolling thunder quiets down and the rain becomes a little less intense."}}, 
-   */
+   
   {SECT_HILLS,
     {"An icy wind starts to blow, whipping you and stirring up the clouds above.",
       "The cloudcover dissipates and the whipping wind calms itself.",
