@@ -4063,6 +4063,8 @@ int compute_gear_arcane_fail(struct char_data *ch) {
   int factor = determine_gear_weight(ch, ARMOR_PROFICIENCY);
   factor += determine_gear_weight(ch, SHIELD_PROFICIENCY);
 
+  factor -= HAS_FEAT(ch, FEAT_ARMORED_SPELLCASTING) * 5;
+
   if (factor > 51)
     return 50;
   if (factor >= 45)

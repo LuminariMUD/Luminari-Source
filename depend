@@ -7,7 +7,8 @@ act.comm.o: act.comm.c conf.h sysdep.h structs.h protocol.h lists.h \
 act.informative.o: act.informative.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h handler.h db.h spells.h \
  screen.h constants.h dg_scripts.h mud_event.h dg_event.h mail.h act.h \
- class.h fight.h modify.h asciimap.h clan.h craft.h wilderness.h quest.h
+ class.h fight.h modify.h asciimap.h clan.h craft.h wilderness.h quest.h \
+ feats.h
 act.item.o: act.item.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h constants.h \
  dg_scripts.h oasis.h help.h act.h quest.h spec_procs.h clan.h \
@@ -46,7 +47,7 @@ aedit.o: aedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  constants.h genolc.h act.h
 asciimap.o: asciimap.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h house.h \
- constants.h dg_scripts.h asciimap.h
+ constants.h dg_scripts.h asciimap.h wilderness.h
 ban.o: ban.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  comm.h interpreter.h handler.h db.h ban.h
 boards.o: boards.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
@@ -87,6 +88,8 @@ db.o: db.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  quest.h ibt.h mud_event.h class.h clan.h msgedit.h craft.h hlquest.h \
  mudlim.h spec_abilities.h perlin.h wilderness.h mysql.h feats.h \
  actionqueues.h
+desc_engine.o: desc_engine.c conf.h sysdep.h structs.h protocol.h lists.h \
+ utils.h race.h fight.h comm.h dg_event.h
 dg_comm.o: dg_comm.c conf.h sysdep.h structs.h protocol.h lists.h \
  dg_scripts.h utils.h race.h comm.h handler.h db.h constants.h
 dg_db_scripts.o: dg_db_scripts.c conf.h sysdep.h structs.h protocol.h \

@@ -308,19 +308,19 @@ void assign_feats(void) {
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* Combat feats */
-  feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, 
-  "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead", 
+  feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+  "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead",
   "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
   feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
 
-  feato(FEAT_WEAPON_FOCUS, "weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, 
-  "+1 to hit rolls for selected weapon", 
+  feato(FEAT_WEAPON_FOCUS, "weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+  "+1 to hit rolls for selected weapon",
   "+1 to hit rolls for selected weapon");
   feat_prereq_bab(FEAT_WEAPON_FOCUS, 1);
   feat_prereq_weapon_proficiency(FEAT_WEAPON_FOCUS);
 
-  feato(FEAT_GREATER_WEAPON_FOCUS, "greater weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, 
-  "+1 to hit rolls with weapon", 
+  feato(FEAT_GREATER_WEAPON_FOCUS, "greater weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+  "+1 to hit rolls with weapon",
   "+1 to hit rolls with weapon");
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_FOCUS, FEAT_WEAPON_FOCUS);
   feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_FOCUS);
@@ -344,10 +344,11 @@ void assign_feats(void) {
   feat_prereq_ability(FEAT_SPIRITED_CHARGE, ABILITY_RIDE, 1);
   feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_MOUNTED_COMBAT, 1);
   feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_RIDE_BY_ATTACK, 1);
+
   /* end mounted combat feats */
 
-  feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, 
-  "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.", 
+  feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+  "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.",
   "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
 
   feato(FEAT_CLEAVE, "cleave", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "extra initial attack against opponent after killing another opponent in same room", "extra initial attack against opponent after killing another opponent in same room");
@@ -496,6 +497,13 @@ void assign_feats(void) {
   /* Spellcasting feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+2 bonus on caster level checks to defeat spell resistance", "+2 bonus on caster level checks to defeat spell resistance");
+  feato(FEAT_ARMORED_SPELLCASTING, "armored spellcasting", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
+    "reduce penalty for casting arcane spells while armored",
+    "every feat point invested in 'armored spell casting' reduces the arcane "
+          "weight penalty by 5");
+  feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
+    "allows innate use of animate dead spell",
+    "Allows innate use of animate dead spell once per day.  You get one use per day for each time this feat is selected.");
 
   feato(FEAT_GREATER_SPELL_PENETRATION, "greater spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+2 to caster level checks to defeat spell resistance", "+2 to caster level checks to defeat spell resistance");
   feat_prereq_feat(FEAT_GREATER_SPELL_PENETRATION, FEAT_SPELL_PENETRATION, 1);
@@ -734,15 +742,16 @@ void assign_feats(void) {
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "summon a magical pet", "summon a magical pet");
 
+  /**************************/
   /* Disabled/Unimplemented */
+  /**************************/
+
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_ENHANCED_MOBILITY, "enhanced mobility", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_GRACE, "grace", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_VENOM_IMMUNITY, "venom immunity", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_HONORABLE_WILL, "honorable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_ANIMATE_DEAD, "animate dead", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows innate use of animate dead spell 3x per day.", "allows innate use of animate dead spell 3x per day.");
   feato(FEAT_ARMORED_MOBILITY, "armored mobility", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "heavy armor is treated as medium armor", "heavy armor is treated as medium armor");
-  feato(FEAT_ARMORED_SPELLCASTING, "armored spellcasting", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_AURA_OF_EVIL, "aura of evil", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_AURA_OF_TERROR, "aura of terror", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_BONE_ARMOR, "bone armor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.", "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.");

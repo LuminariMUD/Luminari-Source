@@ -47,6 +47,73 @@
 static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data * ch);
 
+/* innate animate dead ability */
+#define MOB_ZOMBIE            11   /* animate dead levels 1-7 */
+#define MOB_GHOUL             35   // " " level 11+
+#define MOB_GIANT_SKELETON    36   // " " level 21+
+#define MOB_MUMMY             37   // " " level 30
+ACMD(do_animatedead) {
+  int uses_remaining = 0;
+  struct char_data *mob = NULL;
+  mob_vnum mob_num = 0;
+
+  if (!HAS_FEAT(ch, FEAT_ANIMATE_DEAD)) {
+    send_to_char(ch, "You do not know how to animate dead!\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_ANIMATE_DEAD)) == 0) {
+    send_to_char(ch, "You must recover the energy required to animate the dead.\r\n");
+    return;
+  }
+
+  if (IS_HOLY(IN_ROOM(ch))) {
+    send_to_char(ch, "This place is too holy for such blasphemy!");
+    return;
+  }
+
+  if (HAS_PET_UNDEAD(ch)) {
+    send_to_char(ch, "You can't control more undead!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_CHARM)) {
+    send_to_char(ch, "You are too giddy to have any followers!\r\n");
+    return;
+  }
+
+  /* success! */
+
+  if (CASTER_LEVEL(ch) >= 30)
+    mob_num = MOB_MUMMY;
+  else if (CASTER_LEVEL(ch) >= 20)
+    mob_num = MOB_GIANT_SKELETON;
+  else if (CASTER_LEVEL(ch) >= 10)
+    mob_num = MOB_GHOUL;
+  else
+    mob_num = MOB_ZOMBIE;
+
+  if (!(mob = read_mobile(mob_num, VIRTUAL))) {
+    send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
+    return;
+  }
+  char_to_room(mob, IN_ROOM(ch));
+  IS_CARRYING_W(mob) = 0;
+  IS_CARRYING_N(mob) = 0;
+  SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+
+  act("$n animates a corpse!", FALSE, ch, 0, mob, TO_ROOM);
+  act("You animate a corpse!", FALSE, ch, 0, mob, TO_CHAR);
+  load_mtrigger(mob);
+  add_follower(mob, ch);
+  if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    join_group(mob, GROUP(ch));
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_ANIMATE_DEAD);
+
+  USE_STANDARD_ACTION(ch);
+}
 
 ACMD(do_abundantstep) {
   int steps = 0, i = 0, j, repeat = 0, max = 0;
@@ -63,7 +130,7 @@ ACMD(do_abundantstep) {
     send_to_char(ch, "You can't focus enough in combat to use this martial art skill!\r\n");
     return;
   }
-  
+
   if (GET_MOVE(ch) < 30) {
     send_to_char(ch, "You are too tired to use this martial art skill!\r\n");
     return;
@@ -86,60 +153,60 @@ ACMD(do_abundantstep) {
 
   /* step through our string */
   while (*p) {
-    
+
     while (*p && !isdigit(*p) && !isalpha(*p))
       p++; /* skipping spaces, and anything not a letter or number */
-    
+
     if (isdigit(*p)) { /* value a number?  if so it will be our repeat */
       repeat = atoi(p);
-      
+
       while (isdigit(*p)) /* get rid of extra numbers */
         p++;
-      
+
     } else /* value isn't a number, so we are moving just a single space */
       repeat = 1;
 
     /* indication we haven't found a direction to move yet */
     i = -1;
-    
+
     if (isalpha(*p)) { /* ok found a letter, and repeat is set */
-      
+
       for (i = 0; isalpha(*p); i++, p++)
         buf[i] = LOWER(*p); /* turn a string of letters into lower case  buf */
-      
+
       j = i; /* how many letters we found */
       tc = buf[i]; /* the non-alpha that terminated us */
       buf[i] = 0; /* placing a '0' in that last spot in this mini buf */
-      
+
       for (i = 1; complete_cmd_info[i].command_pointer == do_move && strcmp(complete_cmd_info[i].sort_as, buf); i++)
         ; /* looking for a move command that matches our buf */
-      
+
       if (complete_cmd_info[i].command_pointer == do_move) {
         i = complete_cmd_info[i].subcmd;
       } else
         i = -1;
       /* so now i is either our direction to move (define) or -1 */
-      
+
       buf[j] = tc; /* replace the terminating character in this mini buff */
       //send_to_char(ch, "i: %d\r\n", i);
     }
-    
-    if (i > -1) { /* we have a direction to move! */      
+
+    if (i > -1) { /* we have a direction to move! */
       while (repeat > 0) {
         repeat--;
-        
+
         if (++steps > max) /* reached our limit of steps! */
           break;
-        
+
         if (!W_EXIT(room_tracker, i)) { /* is i a valid direction? */
           send_to_char(ch, "Invalid step. Skipping.\r\n");
           break;
         }
-        
+
         nextroom = W_EXIT(room_tracker, i)->to_room;
         if (nextroom == NOWHERE)
           break;
-        
+
         room_tracker = nextroom;
       }
     }
@@ -162,7 +229,7 @@ ACMD(do_abundantstep) {
   } else {
     send_to_char(ch, "You failed!\r\n");
   }
-  
+
   return;
 }
 
@@ -200,7 +267,7 @@ ACMD(do_applypoison) {
     send_to_char(ch, "You do not carry that weapon!\r\n");
     return;
   }
-  
+
   if (GET_OBJ_TYPE(poison) != ITEM_POISON) {
     send_to_char(ch, "But that is not a poison!\r\n");
     return;
@@ -231,7 +298,7 @@ ACMD(do_applypoison) {
     act("$n fails to apply the \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
     act("You fail to \tGpoison\tn your $p.", FALSE, ch, weapon, 0, TO_CHAR);
   }
-  
+
   GET_OBJ_VAL(poison, 2) -= amount;
 }
 
@@ -495,7 +562,7 @@ ACMD(do_call) {
   /* call types
      MOB_C_ANIMAL -> animal companion
      MOB_C_FAMILIAR -> familiar
-     MOB_C_MOUNT -> paladin mount 
+     MOB_C_MOUNT -> paladin mount
    */
   if (!argument) {
     send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
@@ -1068,7 +1135,7 @@ ACMD(do_respec) {
       affect_from_char(ch, SKILL_WILDSHAPE);
       send_to_char(ch, "You return to your normal form..\r\n");
     }
-    
+
     do_start(ch);
     GET_EXP(ch) = tempXP;
     send_to_char(ch, "\tMYou have respec'd!\tn\r\n");
@@ -1137,7 +1204,7 @@ ACMD(do_gain) {
       /* The last level has not been completely gained yet - The player must
        * use all trains, pracs, boosts and choose spells and other benefits
        * vis 'study' before they can gain a level. */
-      //      if (GET_PRACTICES(ch) != 0) 
+      //      if (GET_PRACTICES(ch) != 0)
       //        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
       if (GET_TRAINS(ch) > 0)
         send_to_char(ch, "You must use all trains before gaining another level.  You have %d train%s remaining.\r\n", GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
@@ -1146,13 +1213,13 @@ ACMD(do_gain) {
       /*       if(CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch))
               send_to_char(ch, "You must 'study sorcerer' before gaining another level.\r\n");
             if(CLASS_LEVEL(ch, CLASS_WIZARD) && !IS_WIZ_LEARNED(ch))
-              send_to_char(ch, "You must 'study wizard' before gaining another level.\r\n"); 
+              send_to_char(ch, "You must 'study wizard' before gaining another level.\r\n");
             if(CLASS_LEVEL(ch, CLASS_BARD) && !IS_BARD_LEARNED(ch))
-              send_to_char(ch, "You must 'study bard' before gaining another level.\r\n"); 
+              send_to_char(ch, "You must 'study bard' before gaining another level.\r\n");
             if(CLASS_LEVEL(ch, CLASS_DRUID) && !IS_DRUID_LEARNED(ch))
-              send_to_char(ch, "You must 'study druid' before gaining another level.\r\n"); 
+              send_to_char(ch, "You must 'study druid' before gaining another level.\r\n");
             if(CLASS_LEVEL(ch, CLASS_RANGER) && !IS_RANG_LEARNED(ch))
-              send_to_char(ch, "You must 'study ranger' before gaining another level.\r\n"); 
+              send_to_char(ch, "You must 'study ranger' before gaining another level.\r\n");
        */
       return;
 
@@ -1236,7 +1303,7 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode) {
 
 }
 
-/* engine for shapechanging / wildshape 
+/* engine for shapechanging / wildshape
    turned this into a sub-function in case we want
    to use the engine for spells (like 'animal shapes')
  */
@@ -1643,7 +1710,7 @@ ACMD(do_fly) {
   //call_magic(ch, ch, NULL, SPELL_FLY, GET_LEVEL(ch), CAST_SPELL);
 }
 
-/* Helper function for 'search' command. 
+/* Helper function for 'search' command.
  * Returns the DC of the search attempt to find the specified door. */
 int get_hidden_door_dc(struct char_data *ch, int door) {
 
@@ -1653,15 +1720,15 @@ int get_hidden_door_dc(struct char_data *ch, int door) {
    * Ransack a chest full of junk to find a certain item	   10
    * Notice a typical secret door or a simple trap	   20
    * Find a difficult nonmagical trap (rogue only)1	21 or higher
-   * Find a magic trap (rogue only)(1)             	25 + lvl of spell 
+   * Find a magic trap (rogue only)(1)             	25 + lvl of spell
    *                                                     used to create trap
-   * Find a footprint	                                 Varies(2)                                                     
+   * Find a footprint	                                 Varies(2)
    * Notice a well-hidden secret door                        30
    * -----------------------------------------------------------------------
    * (1) Dwarves (even if they are not rogues) can use Search to find traps built
    *     into or out of stone.
-   * (2) A successful Search check can find a footprint or similar sign of a 
-   *     creature's passage, but it won't let you find or follow a trail. See the 
+   * (2) A successful Search check can find a footprint or similar sign of a
+   *     creature's passage, but it won't let you find or follow a trail. See the
    *     Track feat for the appropriate DC. */
 
   /* zusuk bumped up these values slightly from the commented, srd-values because
@@ -1856,7 +1923,7 @@ ACMD(do_listen) {
     return;
   }
   */
-  
+
   if (AFF_FLAGGED(ch, AFF_LISTEN)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_LISTEN);
     send_to_char(ch, "You stop trying to listen...\r\n");
@@ -2260,7 +2327,7 @@ static void display_group_list(struct char_data * ch) {
     send_to_char(ch, "\r\n");
     /*
                        "%sSeeking Members%s\r\n"
-                       "%sClosed%s\r\n", 
+                       "%sClosed%s\r\n",
                        CCGRN(ch, C_NRM), CCNRM(ch, C_NRM),
                        CCRED(ch, C_NRM), CCNRM(ch, C_NRM));*/
   else
@@ -2523,30 +2590,30 @@ ACMD(do_use) {
 
     case SCMD_RECITE:
 
-      /* 1. Decipher Writing 
+      /* 1. Decipher Writing
        *    Spellcraft check: DC 20 + spell level */
-      
-      dc = 20 + GET_OBJ_VAL(mag_item, 0); 
+
+      dc = 20 + GET_OBJ_VAL(mag_item, 0);
       if (((check_result = skill_check(ch, ABILITY_SPELLCRAFT, dc)) < 0) &&
           ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc + 5)) < 0))
-      {      
+      {
         send_to_char(ch, "You are unable to decipher the magical writings!\r\n");
         return;
-      }      
+      }
       /* 2. Activate the Spell */
-      /* 2.a. Check the spell type 
+      /* 2.a. Check the spell type
        *      ARCANE - Wizard, Sorcerer, Bard
        *      DIVINE - Cleric, Druid, Paladin, Ranger */
       spell = GET_OBJ_VAL(mag_item, 1);
-      if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0) 
-      { 
+      if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0)
+      {
         if(spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF ||
            spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
-           spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF) 
+           spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF)
         {
           if (!(CLASS_LEVEL(ch, CLASS_WIZARD)   > 0 ||
               CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
-              CLASS_LEVEL(ch, CLASS_BARD)     > 0)) 
+              CLASS_LEVEL(ch, CLASS_BARD)     > 0))
           {
             send_to_char(ch, "You must be able to use arcane magic to recite this scroll.\r\n");
             return;
@@ -2555,7 +2622,7 @@ ACMD(do_use) {
           if(!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
                CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
                CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
-               CLASS_LEVEL(ch, CLASS_RANGER) > 0)) 
+               CLASS_LEVEL(ch, CLASS_RANGER) > 0))
           {
             send_to_char(ch, "You must be able to cast divine magic to recite this scroll.\r\n");
             return;
@@ -2576,22 +2643,22 @@ ACMD(do_use) {
         }
       }
       /* 2.c. Check the relevant ability score */
-      umd_ability_score = (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, 15));      
+      umd_ability_score = (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, 15));
       bool passed = FALSE;
-      if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) 
-        passed = (((GET_INT(ch) > umd_ability_score) ? GET_INT(ch) : umd_ability_score) > (10 + spellCircle(CLASS_WIZARD, spell)) ? TRUE : passed); 
-      if (spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) 
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_SORCERER, spell)) ? TRUE : passed); 
-      if (spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) 
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_BARD, spell)) ? TRUE : passed); 
-      if (spell_info[spell].min_level[CLASS_CLERIC] < LVL_STAFF) 
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_CLERIC, spell)) ? TRUE : passed); 
-      if (spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) 
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_DRUID, spell)) ? TRUE : passed); 
-      if (spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) 
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_PALADIN, spell)) ? TRUE : passed); 
-      if (spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) 
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_RANGER, spell)) ? TRUE : passed); 
+      if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF)
+        passed = (((GET_INT(ch) > umd_ability_score) ? GET_INT(ch) : umd_ability_score) > (10 + spellCircle(CLASS_WIZARD, spell)) ? TRUE : passed);
+      if (spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF)
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_SORCERER, spell)) ? TRUE : passed);
+      if (spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF)
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_BARD, spell)) ? TRUE : passed);
+      if (spell_info[spell].min_level[CLASS_CLERIC] < LVL_STAFF)
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_CLERIC, spell)) ? TRUE : passed);
+      if (spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF)
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_DRUID, spell)) ? TRUE : passed);
+      if (spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF)
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_PALADIN, spell)) ? TRUE : passed);
+      if (spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF)
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_RANGER, spell)) ? TRUE : passed);
       if (passed == FALSE)
       {
         send_to_char(ch, "You are physically incapable of casting the spell inscribed on the scroll.\r\n");
@@ -2599,11 +2666,11 @@ ACMD(do_use) {
       }
       /* 3. Check caster level */
       if ((CASTER_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0)) &&
-          (check_result && GET_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0))) 
+          (check_result && GET_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0)))
       {
         /* Perform caster level check */
         dc = GET_OBJ_VAL(mag_item, 0) + 1;
-        if (dice(1, 20) + (((check_result >= 0) && (CASTER_LEVEL(ch) < GET_LEVEL(ch))) ? GET_LEVEL(ch) : CASTER_LEVEL(ch)) < dc) 
+        if (dice(1, 20) + (((check_result >= 0) && (CASTER_LEVEL(ch) < GET_LEVEL(ch))) ? GET_LEVEL(ch) : CASTER_LEVEL(ch)) < dc)
         {
           /* Fail */
           send_to_char(ch, "You try, but the spell on the scroll is far to powerful for you to cast.\r\n");
@@ -2665,11 +2732,11 @@ ACMD(do_use) {
               return;
             }
           }
- 
+
           break;
       }
-      break;  
-  }  
+      break;
+  }
 
   mag_objectmagic(ch, mag_item, buf);
 }
