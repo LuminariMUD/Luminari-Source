@@ -32,9 +32,9 @@ static struct wild_map_info_type wild_map_info[] = {
   /* 0 */
   { SECT_INSIDE, "\tn.\tn", { NULL }},
   { SECT_CITY, "\twC\tn", { NULL }},
-  { SECT_FIELD, "\tg,\tn", 
+  { SECT_FIELD, "\tg,\tn",
     { "\t[F120],\tn", "\t[F121],\tn", "\t[F130],\tn", "\t[F131],\tn" }},
-  { SECT_FOREST, "\tGY\tn", 
+  { SECT_FOREST, "\tGY\tn",
     {"\t[f020]Y\tn", "\t[f030]Y\tn", "\t[f040]Y\tn", "\t[f050]Y\tn"}},
   { SECT_HILLS, "\tyn\tn", { NULL }},
   /* 5 */
@@ -77,8 +77,8 @@ static struct wild_map_info_type wild_map_info[] = {
 };
 
 /* Initialize the kd-tree that indexes the static rooms of the wilderness.
- * This procedure can be used to do whatever initialization is needed, 
- * but be aweare that it is run whenever a room is added or deleted from 
+ * This procedure can be used to do whatever initialization is needed,
+ * but be aweare that it is run whenever a room is added or deleted from
  * the wilderness zone. */
 void initialize_wilderness_lists() {
   int i;
@@ -90,7 +90,7 @@ void initialize_wilderness_lists() {
 
   kd_wilderness_rooms = kd_create(2);
 
-  /* The +1 for the initializer is so that the 'magic' room is not 
+  /* The +1 for the initializer is so that the 'magic' room is not
    * included in the index. */
   for (i = WILD_ROOM_VNUM_START + 1; i < WILD_DYNAMIC_ROOM_VNUM_START; i++) {
     if (real_room(i) != NOWHERE) {
@@ -118,9 +118,9 @@ double get_radial_gradient(int x, int y) {
   int box;
 
   /* Find the gradiant at point (x,y) on the wilderness map.
-   * (x,y) can be from (-WILD_X_SIZE, -WILD_Y_SIZE) to 
+   * (x,y) can be from (-WILD_X_SIZE, -WILD_Y_SIZE) to
    * (WILD_X_SIZE, WILD_Y_SIZE).  This region is divided up into
-   * several bounding boxes that determine where the continents should 
+   * several bounding boxes that determine where the continents should
    * roughly appear. */
 
   /* Bounding boxes are stored as [ll_x, lly, ur_x, ur_y] arrays. */
@@ -276,7 +276,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
                                               get_temperature(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
       map[x][y].glyph = NULL;
-              
+
       /* Map should reflect changes from regions */
       struct region_list *regions = NULL;
       struct region_list *curr_region = NULL;
@@ -295,7 +295,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
         switch (region_table[curr_region->rnum].region_type) {
           case REGION_SECTOR:
-            map[x][y].sector_type = region_table[curr_region->rnum].region_props;                                                 
+            map[x][y].sector_type = region_table[curr_region->rnum].region_props;
             //log("  -> MAP: Changing (%d, %d) to sector : %d", x + x_offset, y + y_offset, region_table[curr_region->rnum].region_props);
             break;
           case REGION_SECTOR_TRANSFORM:
@@ -319,7 +319,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
             break;
         }
       }
-    
+
       /* Check if the sector type has variant glyphs */
       if (wild_map_info[map[x][y].sector_type].variant_disp[0]) {
         if (map[x][y].sector_type == SECT_FIELD ||
@@ -328,9 +328,9 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
             map[x][y].sector_type == SECT_WATER_NOSWIM ||
             map[x][y].sector_type == SECT_OCEAN)
           map[x][y].glyph = wild_map_info[map[x][y].sector_type].variant_disp[get_elevation(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % NUM_VARIANT_GLYPHS];
-        else  
+        else
           map[x][y].glyph = wild_map_info[map[x][y].sector_type].variant_disp[get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % NUM_VARIANT_GLYPHS];
-      }         
+      }
     }
   }
 
@@ -357,7 +357,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
   kd_res_free(set);
 }
 
-/* Get the sector type based on the three variables - 
+/* Get the sector type based on the three variables -
  *   elevation - given by the heightmap
  *   temperature - given by the temperature gradient
  *   moisture - given by the moisture map
@@ -430,8 +430,8 @@ room_rnum find_static_room_by_coordinates(int x, int y) {
   return NOWHERE;
 }
 
-/* Function to retreive a room based on coordinates.  The coordinates are 
- * stored in a wrapper, struct wild_room_data, that contains a coordinate 
+/* Function to retreive a room based on coordinates.  The coordinates are
+ * stored in a wrapper, struct wild_room_data, that contains a coordinate
  * vector and a pointer to struct room_data (the actual room!). */
 room_rnum find_room_by_coordinates(int x, int y) {
 
@@ -622,7 +622,7 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
         if ((x == centerx) && (y == centery)) {
           strcpy(mp, "\tM*\tn");
           mp += strlen("\tM*\tn");
-        }           
+        }
         else {
           strcpy(mp, (map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
           mp += strlen((map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
@@ -644,7 +644,7 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
 void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
   struct wild_map_tile **map;
   int i;
-  int j;
+  //int j;
 
   int xsize = size;
   int ysize = size;
@@ -727,10 +727,10 @@ EVENTFUNC(event_check_occupied) {
   else
     room = &world[rnum];
 
-  /* Check to see if the room is occupied.  Check the following: 
+  /* Check to see if the room is occupied.  Check the following:
    * - Characters (Players/Mobiles)
    * - Objects
-   * - Room Effects    
+   * - Room Effects
    */
   if ((room->room_affections == 0) &&
       (room->contents == NULL) &&
@@ -755,8 +755,8 @@ char * gen_ascii_wilderness_map(int size, int x, int y) {
 
   int xsize = size;
   int ysize = size;
-  int centerx = ((xsize - 1) / 2);
-  int centery = ((ysize - 1) / 2);
+  //int centerx = ((xsize - 1) / 2);
+  //int centery = ((ysize - 1) / 2);
 
   char *mapstring = NULL;
 
@@ -794,7 +794,7 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
   double loc[2], pos[2];
   void* set;
 
-  im = gdImageCreate(xsize, ysize); //create an image   
+  im = gdImageCreate(xsize, ysize); //create an image
 
   white = gdImageColorAllocate(im, 255, 255, 255);
   black = gdImageColorAllocate(im, 0, 0, 0);
@@ -879,13 +879,13 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
             break;
         }
       }
-          
+
       /* Override default values with path-based values. */
       for (curr_path = paths; curr_path != NULL; curr_path = curr_path->next) {
         switch (path_table[curr_path->rnum].path_type) {
           case PATH_ROAD:
           case PATH_RIVER:
-            sector_type = path_table[curr_path->rnum].path_props;            
+            sector_type = path_table[curr_path->rnum].path_props;
             break;
           default:
             break;
@@ -938,7 +938,7 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
   int canvas_x = xsize;
   int canvas_y = ysize;
 
-  im = gdImageCreate(canvas_x, canvas_y); //create an image   
+  im = gdImageCreate(canvas_x, canvas_y); //create an image
 
   white = gdImageColorAllocate(im, 255, 255, 255);
   black = gdImageColorAllocate(im, 0, 0, 0);
@@ -960,13 +960,13 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
 
       pixel = (pixel + 1) / 2.0;
       //      pixel =1.0 -  (pixel < 0 ? -pixel : pixel);
-      //      pixel *= pixel;   
+      //      pixel *= pixel;
 
       //      dist = PerlinNoise2D(idx+1, trans_x, trans_y, 2.0, 2.0, 16);
 
       //      pixel = pixel + 2.0*dist;
 
-      //      pixel = (pixel + 1.6)/4.0; 
+      //      pixel = (pixel + 1.6)/4.0;
 
       gdImageSetPixel(im, x, y, gray[(int) (255 * pixel)]);
 

@@ -68,6 +68,7 @@
       <in>craft.h</in>
       <in>db.c</in>
       <in>db.h</in>
+      <in>desc_engine.c</in>
       <in>dg_comm.c</in>
       <in>dg_db_scripts.c</in>
       <in>dg_event.c</in>

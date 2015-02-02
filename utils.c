@@ -2756,6 +2756,7 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_RAGE:
     case FEAT_QUIVERING_PALM:
     case FEAT_WILD_SHAPE:
+    case FEAT_ANIMATE_DEAD:
       daily_uses += HAS_FEAT(ch, featnum);
       break;
   }

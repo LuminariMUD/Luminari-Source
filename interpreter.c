@@ -130,6 +130,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "autofire", "autofire", POS_FIGHTING, do_autofire, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "applypoison", "applypoison", POS_STANDING, do_applypoison, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "abundantstep", "abundantstep", POS_STANDING, do_abundantstep, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
+  { "animatedead", "animatedead", POS_STANDING, do_animatedead, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
