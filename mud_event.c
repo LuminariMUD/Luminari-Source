@@ -79,6 +79,7 @@ struct mud_event_list mud_event_index[] = {
   { "Powerful Blow", event_countdown, EVENT_CHAR}, //ePOWERFUL_BLOW
   { "Renewed Vigor", event_countdown, EVENT_CHAR}, // eRENEWEDVIGOR
   { "Come and Get Me!", event_countdown, EVENT_CHAR}, //eCOME_AND_GET_ME
+  { "Animate Dead", event_countdown, EVENT_CHAR}, //eANIMATEDEAD
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -200,6 +201,9 @@ EVENTFUNC(event_countdown) {
     case ePOWERFUL_BLOW:
       send_to_char(ch, "You are now able to use powerful blow again.\r\n");
       break;
+    case eANIMATEDEAD:
+      send_to_char(ch, "You are now able to animate dead again.\r\n");
+      break;
     case eSTUNNINGFIST:
       send_to_char(ch, "You are now able to strike with your stunning fist again.\r\n");
       break;
@@ -284,6 +288,10 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eSTUNNINGFIST:
       featnum = FEAT_STUNNING_FIST;
       send_to_char(ch, "You are now able to strike with your stunning fist again.\r\n");
+      break;
+    case eANIMATEDEAD:
+      featnum = FEAT_ANIMATE_DEAD;
+      send_to_char(ch, "You are now able to animate dead again.\r\n");
       break;
     case eWILD_SHAPE:
       featnum = FEAT_WILD_SHAPE;

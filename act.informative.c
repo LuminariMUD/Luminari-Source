@@ -1169,6 +1169,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Epic Spell:  Epic Mage Armor - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEPICWARDING)))
     send_to_char(ch, "Epic Spell:  Epic Warding - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eANIMATEDEAD)))
+    send_to_char(ch, "Animate Dead - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSTUNNINGFIST)))
     send_to_char(ch, "Stunning Fist - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSUPRISE_ACCURACY)))
