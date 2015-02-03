@@ -2366,6 +2366,26 @@ void list_feats(struct char_data *ch, char *arg, int list_type) {
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+      } else if (i == FEAT_ANIMATE_DEAD) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_ANIMATE_DEAD));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_ANIMATE_DEAD));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
+      } else if (i == FEAT_ARMORED_SPELLCASTING) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_ARMORED_SPELLCASTING));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_ARMORED_SPELLCASTING));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
       } else if (i == FEAT_TRAP_SENSE) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_TRAP_SENSE));
