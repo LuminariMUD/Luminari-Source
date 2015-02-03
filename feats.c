@@ -1011,6 +1011,7 @@ void assign_feats(void) {
   epicfeat(FEAT_LAST_FEAT);
 
   dailyfeat(FEAT_STUNNING_FIST, eSTUNNINGFIST);
+  dailyfeat(FEAT_ANIMATE_DEAD, eANIMATEDEAD);
   dailyfeat(FEAT_LAYHANDS, eLAYONHANDS);
   dailyfeat(FEAT_RAGE, eRAGE);
   dailyfeat(FEAT_SMITE_EVIL, eSMITE);
