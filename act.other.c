@@ -66,6 +66,10 @@ ACMD(do_animatedead) {
     send_to_char(ch, "You must recover the energy required to animate the dead.\r\n");
     return;
   }
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
 
   if (IS_HOLY(IN_ROOM(ch))) {
     send_to_char(ch, "This place is too holy for such blasphemy!");
