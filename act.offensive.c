@@ -377,7 +377,7 @@ void perform_rage(struct char_data *ch) {
   af[0].location = APPLY_STR;
   af[0].modifier = bonus;
   af[0].bonus_type = BONUS_TYPE_MORALE;
-  
+
   af[1].location = APPLY_CON;
   af[1].modifier = bonus;
   GET_HIT(ch) += GET_LEVEL(ch) * bonus; //little boost in current hps
@@ -390,21 +390,21 @@ void perform_rage(struct char_data *ch) {
   //this is a penalty
   af[3].location = APPLY_AC_NEW;
   af[3].modifier = -2;
-  
+
   for (i = 0; i < RAGE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
-  
+
   /* Add another affect for heavy shrug. */
 //  if (HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG)) {
 //    struct affected_type heavy_shrug_af;
 //    struct damage_reduction_type *new_dr;
-//    
+//
 //    new_affect(&heavy_shrug_af);
 //    heavy_shrug_af.spell = SKILL_RAGE;
 //    heavy_shrug_af.duration = duration;
 //    heavy_shrug_af.location = APPLY_DR;
 //    heavy_shrug_af.modifier = 0;
-//    
+//
 //    CREATE(new_dr, struct damage_reduction_type, 1);
 //
 //    new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
@@ -422,9 +422,9 @@ void perform_rage(struct char_data *ch) {
 //    new_dr->feat       = FEAT_RP_HEAVY_SHRUG;
 //    new_dr->next       = GET_DR(ch);
 //    GET_DR(ch) = new_dr;
-//    
+//
 //    affect_join(ch, &heavy_shrug_af, FALSE, FALSE, FALSE, FALSE);
-//    
+//
 //  }
 
   attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
@@ -535,8 +535,9 @@ void perform_charge(struct char_data *ch) {
 
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_RIDE_BY_ATTACK)) {
     USE_MOVE_ACTION(ch);
-  } else
+  } else {
     USE_FULL_ROUND_ACTION(ch);
+  }
 }
 #undef CHARGE_AFFECTS
 
