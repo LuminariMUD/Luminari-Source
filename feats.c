@@ -1853,7 +1853,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return TRUE;
 
         /* we're going to assume at this stage that this feat truly has
-         no rerequisites */
+         no prerequisites */
       default:
         return TRUE;
     }

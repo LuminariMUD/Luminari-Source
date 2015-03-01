@@ -62,15 +62,6 @@ ACMD(do_animatedead) {
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_ANIMATE_DEAD)) == 0) {
-    send_to_char(ch, "You must recover the energy required to animate the dead.\r\n");
-    return;
-  }
-  if (uses_remaining < 0) {
-    send_to_char(ch, "You are not experienced enough.\r\n");
-    return;
-  }
-
   if (IS_HOLY(IN_ROOM(ch))) {
     send_to_char(ch, "This place is too holy for such blasphemy!");
     return;
@@ -83,6 +74,15 @@ ACMD(do_animatedead) {
 
   if (AFF_FLAGGED(ch, AFF_CHARM)) {
     send_to_char(ch, "You are too giddy to have any followers!\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_ANIMATE_DEAD)) == 0) {
+    send_to_char(ch, "You must recover the energy required to animate the dead.\r\n");
+    return;
+  }
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
