@@ -1250,6 +1250,9 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
       case FEAT_ARMOR_SKIN:
         return TRUE;
 
+      case FEAT_ANIMATE_DEAD:
+        return TRUE;
+
       case FEAT_COMBAT_CHALLENGE:
         if (GET_ABILITY(ch, ABILITY_DIPLOMACY) < 5 &&
                 GET_ABILITY(ch, ABILITY_INTIMIDATE) < 5 &&
