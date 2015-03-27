@@ -28,7 +28,7 @@
 #include "hlquest.h"
 #include "fight.h"
 #include "mudlim.h"
-#include "actions.h" 
+#include "actions.h"
 #include "traps.h" /* for check_traps() */
 
 /* local function prototypes */
@@ -60,7 +60,7 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
 
 static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_data *cont) {
   char buf[MEDIUM_STRING] = { '\0' };
-  
+
   if (!drop_otrigger(obj, ch))
     return;
 
@@ -72,13 +72,13 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
     return;
   }
 
-  if (GET_OBJ_TYPE(cont) == ITEM_QUIVER && 
+  if (GET_OBJ_TYPE(cont) == ITEM_QUIVER &&
           GET_OBJ_VAL(cont, 0) <= num_obj_in_obj(cont)) {
     sprintf(buf, "You can only fit %d $p into $P.", GET_OBJ_VAL(cont, 0));
     act(buf, FALSE, ch, obj, cont, TO_CHAR);
     return;
   }
-  
+
   if ((GET_OBJ_VAL(cont, 0) > 0) &&
           (GET_OBJ_WEIGHT(cont) + GET_OBJ_WEIGHT(obj) > GET_OBJ_VAL(cont, 0)))
     act("$p won't fit in $P.", FALSE, ch, obj, cont, TO_CHAR);
@@ -340,7 +340,7 @@ void get_from_container(struct char_data *ch, struct obj_data *cont,
 static int perform_get_from_room(struct char_data *ch, struct obj_data *obj) {
   if (check_trap(ch, TRAP_TYPE_GET_OBJECT, ch->in_room, obj, 0))
     return 0;
-  
+
   if (can_take_obj(ch, obj) && get_otrigger(obj, ch)) {
     obj_from_room(obj);
     obj_to_char(obj, ch);
@@ -417,6 +417,7 @@ ACMD(do_get) {
     }
     cont_dotmode = find_all_dots(arg2);
     if (cont_dotmode == FIND_INDIV) {
+      /* TODO: we want a case for finding light sources even in darkness */
       mode = generic_find(arg2, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &cont);
       if (!cont)
         send_to_char(ch, "You don't have %s %s.\r\n", AN(arg2), arg2);
@@ -758,12 +759,12 @@ ACMD(do_give) {
 
   if (!ch)
     return;
-  
+
   argument = one_argument(argument, arg);
 
   if (!*arg)
     send_to_char(ch, "Give what to who?\r\n");
-  
+
   else if (is_number(arg)) {
     /* ok we received a number value */
     amount = atoi(arg);
@@ -816,10 +817,10 @@ ACMD(do_give) {
         }
     }
   }
-  
+
   if (ch && vict) {
     quest_give(ch, vict);
-    save_char(ch, 0);   
+    save_char(ch, 0);
     save_char(vict, 0);
   }
 }
@@ -1347,22 +1348,22 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where) 
 
     {"$n places $p on $s face.",
       "You place $p on your face."},
-      
+
     {"$n straps $p on $s back.",
       "You strap $p on your back."},
-      
+
     {"$n attaches $p to $s ear.",
       "You attach $p to your ear."},
 
     {"$n attaches $p to $s ear.",
       "You attach $p to your ear."},
-      
+
     {"$n covers $s eye(s) with $p.",
       "You cover your eye(s) with $p."},
-      
+
     {"$n wears $p as a badge.",
       "You wear $p as a badge."},
-      
+
   };
 
   act(wear_messages[where][0], TRUE, ch, obj, 0, TO_ROOM);
@@ -1416,16 +1417,16 @@ static int hands_needed(struct char_data *ch, struct obj_data *obj) {
 }
 
 int is_wielding_type(struct char_data *ch) {
-  
+
   if (GET_EQ(ch, WEAR_WIELD_1))
     return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_1));
-  
+
   if (GET_EQ(ch, WEAR_WIELD_2))
     return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_2));
 
   if (GET_EQ(ch, WEAR_WIELD_2H))
     return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_2H));
-  
+
   return -1;
 }
 
@@ -1436,7 +1437,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
     send_to_char(ch, "You are animal, how you going to wear that?\r\n");
     return;
   }
-  
+
   if (handsNeeded == -1) {
     send_to_char(ch, "There is no way this item will fit you!\r\n");
     return;
@@ -1460,7 +1461,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
       return;
     }
   }
-  
+
   // TAKE is used for objects that don't require special bits, ex. HOLD
   int wear_bitvectors[] = {
     ITEM_WEAR_TAKE, ITEM_WEAR_FINGER, ITEM_WEAR_FINGER, ITEM_WEAR_NECK,
@@ -1533,7 +1534,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
   }
 
   // code for gear with 2 possible slots, and next to each other in array
-  if ((where == WEAR_FINGER_R) || (where == WEAR_NECK_1) || 
+  if ((where == WEAR_FINGER_R) || (where == WEAR_NECK_1) ||
           (where == WEAR_WRIST_R) || (where == WEAR_EAR_R))
     if (GET_EQ(ch, where))
       where++;
@@ -1716,7 +1717,7 @@ ACMD(do_wear) {
 }
 
 /* the actual engine for wielding an object
-   returns TRUE for success, FALSE for failure 
+   returns TRUE for success, FALSE for failure
    the not_silent variable indicates if this function is vocal or not */
 bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent) {
   if (!CAN_WEAR(obj, ITEM_WEAR_WIELD)) {
@@ -1739,7 +1740,7 @@ bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent) 
     perform_wear(ch, obj, WEAR_WIELD_1);
     return TRUE;
   }
-  
+
   return FALSE;
 }
 
