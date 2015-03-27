@@ -1966,7 +1966,7 @@ struct obj_data *create_money(int amount) {
   return (obj);
 }
 
-/* Generic Find, designed to find any object orcharacter.
+/* Generic Find, designed to find any object or character.
  *  *arg     is the pointer containing the string to be searched for.
  *           This string doesn't have to be a single word, the routine
  *           extracts the next word itself.
