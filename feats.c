@@ -309,19 +309,19 @@ void assign_feats(void) {
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* Combat feats */
   feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-  "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead",
-  "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
+    "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead",
+    "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
   feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
 
   feato(FEAT_WEAPON_FOCUS, "weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-  "+1 to hit rolls for selected weapon",
-  "+1 to hit rolls for selected weapon");
+    "+1 to hit rolls for selected weapon",
+    "+1 to hit rolls for selected weapon");
   feat_prereq_bab(FEAT_WEAPON_FOCUS, 1);
   feat_prereq_weapon_proficiency(FEAT_WEAPON_FOCUS);
 
   feato(FEAT_GREATER_WEAPON_FOCUS, "greater weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-  "+1 to hit rolls with weapon",
-  "+1 to hit rolls with weapon");
+    "+1 to hit rolls with weapon",
+    "+1 to hit rolls with weapon");
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_FOCUS, FEAT_WEAPON_FOCUS);
   feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_FOCUS);
   feat_prereq_class_level(FEAT_GREATER_WEAPON_FOCUS, CLASS_WARRIOR, 8);
@@ -329,18 +329,18 @@ void assign_feats(void) {
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* here is our mounted combat feats */
   feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-  "once per round rider may negate a hit against him with a successful ride vs attack roll check",
-  "once per round rider may negate a hit against him with a successful ride vs attack roll check");
+    "once per round rider may negate a hit against him with a successful ride vs attack roll check",
+    "once per round rider may negate a hit against him with a successful ride vs attack roll check");
 
   feato(FEAT_RIDE_BY_ATTACK, "ride by attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-  "normally use full round action on charge, now use move action",
-  "normally use full round action on charge, now use move action");
+    "normally use full round action on charge, now use move action",
+    "normally use full round action on charge, now use move action");
   feat_prereq_feat(FEAT_RIDE_BY_ATTACK, FEAT_MOUNTED_COMBAT, 1);
   feat_prereq_ability(FEAT_RIDE_BY_ATTACK, ABILITY_RIDE, 1);
 
   feato(FEAT_SPIRITED_CHARGE, "spirited charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-  "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).",
-  "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).");
+    "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).",
+    "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).");
   feat_prereq_ability(FEAT_SPIRITED_CHARGE, ABILITY_RIDE, 1);
   feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_MOUNTED_COMBAT, 1);
   feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_RIDE_BY_ATTACK, 1);
@@ -348,12 +348,8 @@ void assign_feats(void) {
   /* end mounted combat feats */
 
   feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-  "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.",
-  "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
-
-  feato(FEAT_CLEAVE, "cleave", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "extra initial attack against opponent after killing another opponent in same room", "extra initial attack against opponent after killing another opponent in same room");
-  feat_prereq_attribute(FEAT_CLEAVE, AB_STR, 13);
-  feat_prereq_feat(FEAT_CLEAVE, FEAT_POWER_ATTACK, 1);
+    "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.",
+    "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
 
   feato(FEAT_COMBAT_EXPERTISE, "combat expertise", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC", "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC");
   feat_prereq_attribute(FEAT_COMBAT_EXPERTISE, AB_INT, 13);
@@ -497,13 +493,9 @@ void assign_feats(void) {
   /* Spellcasting feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+2 bonus on caster level checks to defeat spell resistance", "+2 bonus on caster level checks to defeat spell resistance");
-  feato(FEAT_ARMORED_SPELLCASTING, "armored spellcasting", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_ARMORED_SPELLCASTING, "armored spellcasting", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
     "reduce penalty for casting arcane spells while armored",
-    "every feat point invested in 'armored spell casting' reduces the arcane "
-          "weight penalty by 5");
-  feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
-    "allows innate use of animate dead spell",
-    "Allows innate use of animate dead spell once per day.  You get one use per day for each time this feat is selected.");
+    "reduces the arcane armor weight penalty by 5");
 
   feato(FEAT_GREATER_SPELL_PENETRATION, "greater spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+2 to caster level checks to defeat spell resistance", "+2 to caster level checks to defeat spell resistance");
   feat_prereq_feat(FEAT_GREATER_SPELL_PENETRATION, FEAT_SPELL_PENETRATION, 1);
@@ -515,6 +507,11 @@ void assign_feats(void) {
   feato(FEAT_FAST_CRAFTER, "fast crafter", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT, "Reduces crafting time", "Reduces crafting time");
 
   /* Class ability feats */
+  /* Pale Master */
+  feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "allows innate use of animate dead spell",
+    "Allows innate use of animate dead spell once per day.  You get one use per ");
+
   /* Paladin */
   feato(FEAT_AURA_OF_COURAGE, "aura of courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Immunity to fear attacks, +4 bonus to fear saves for group members", "Immunity to fear attacks, +4 bonus to fear saves for group members");
   feato(FEAT_SMITE_EVIL, "smite evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "add level to hit roll and charisma bonus to damage", "add level to hit roll and charisma bonus to damage");
@@ -593,6 +590,7 @@ void assign_feats(void) {
   feato(FEAT_WOODLAND_STRIDE, "woodland stride", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Reduced movement penalty when moving through woodland areas.", "Reduced movement penalty when moving through woodland areas.");
 
   /* Druid */
+  feato(FEAT_VENOM_IMMUNITY, "venom immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "grants immunity to poison", "grants immunity to poison");
   feato(FEAT_NATURE_SENSE, "nature sense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+2 to lore and survival skills", "+2 to lore and survival skills");
   feato(FEAT_RESIST_NATURES_LURE, "resist nature's lure", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+4 to spells and spell like abilities from fey creatures", "+4 to spells and spell like abilities from fey creatures");
   feato(FEAT_THOUSAND_FACES, "a thousand faces", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can alter one's physical appearance, giving +10 to disguise checks.", "Can alter one's physical appearance, giving +10 to disguise checks.");
@@ -742,14 +740,24 @@ void assign_feats(void) {
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "summon a magical pet", "summon a magical pet");
 
+  /* Duelist */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_ENHANCED_MOBILITY, "enhanced mobility", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+4 dodge bonus vs AOO", "gain an additional +4 dodge bonus to AC against "
+          "attacks of opportunity provoked by movement. This bonus stacks with "
+          "that granted by the Mobility feat.");
+  feato(FEAT_GRACE, "grace", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+2 reflex saves", "gain a +2 bonus on Reflex saves");
+
   /**************************/
   /* Disabled/Unimplemented */
   /**************************/
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_ENHANCED_MOBILITY, "enhanced mobility", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_GRACE, "grace", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_VENOM_IMMUNITY, "venom immunity", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_CLEAVE, "cleave", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "extra initial attack against opponent after killing another opponent in same room", "extra initial attack against opponent after killing another opponent in same room");
+  feat_prereq_attribute(FEAT_CLEAVE, AB_STR, 13);
+  feat_prereq_feat(FEAT_CLEAVE, FEAT_POWER_ATTACK, 1);
+
   feato(FEAT_HONORABLE_WILL, "honorable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_ARMORED_MOBILITY, "armored mobility", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "heavy armor is treated as medium armor", "heavy armor is treated as medium armor");
   feato(FEAT_AURA_OF_EVIL, "aura of evil", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
@@ -969,6 +977,8 @@ void assign_feats(void) {
 
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");
+
+  /****************************************************************************/
 
   /* some more assigning */
   combatfeat(FEAT_IMPROVED_CRITICAL);

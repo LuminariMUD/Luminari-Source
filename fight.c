@@ -3273,6 +3273,8 @@ int hit(struct char_data *ch, struct char_data *victim,
   if(type == TYPE_ATTACK_OF_OPPORTUNITY) {
     if (HAS_FEAT(victim, FEAT_MOBILITY) && has_dex_bonus_to_ac(ch, victim))
       victim_ac += 4;
+    if (HAS_FEAT(victim, FEAT_ENHANCED_MOBILITY) && has_dex_bonus_to_ac(ch, victim))
+      victim_ac += 4;
     send_to_char(ch, "\tW[\tRAOO\tW]\tn");
     send_to_char(victim, "\tW[\tRAOO\tW]\tn");
   }

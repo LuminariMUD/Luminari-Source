@@ -790,7 +790,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
     //able to flee away with acrobatics check?
     if (!IS_NPC(ch)) { //player
-      if (((HAS_FEAT(ch, FEAT_MOBILITY)) ||
+      if (((HAS_FEAT(ch, FEAT_MOBILITY)) || (HAS_FEAT(ch, FEAT_ENHANCED_MOBILITY)) ||
               dice(1, 20) + compute_ability(ch, ABILITY_ACROBATICS) > 15) &&
               cantFlee <= 0) {
         send_to_char(ch, "\tW*Acrobatics Success\tn*");

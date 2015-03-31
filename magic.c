@@ -111,6 +111,8 @@ int compute_mag_saves(struct char_data *vict,
       saves += GET_DEX_BONUS(vict);
       if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_LIGHTNING_REFLEXES))
         saves += 2;
+      if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_GRACE))
+        saves += 2;
       if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_REFLEXES))
         saves += 3;
       break;
