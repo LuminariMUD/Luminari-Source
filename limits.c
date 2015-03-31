@@ -342,6 +342,17 @@ void regen_update(struct char_data *ch) {
   // -zusuk
   if (AFF_FLAGGED(ch, AFF_POISON)) {
 
+    /*  */
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_VENOM_IMMUNITY)) {
+      send_to_char(ch, "Your venom immunity purges the poison!\r\n");
+      act("$n appears better as their body purges away some poison.", TRUE, ch, 0, 0, TO_ROOM);
+      if (affected_by_spell(ch, SPELL_POISON))
+        affect_from_char(ch, SPELL_POISON);
+      if (IS_AFFECTED(ch, AFF_POISON))
+        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POISON);
+      return;
+    }
+
     /* purity of body feat */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_PURITY_OF_BODY)) {
       send_to_char(ch, "Your purity of body purges the poison!\r\n");
