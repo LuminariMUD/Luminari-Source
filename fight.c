@@ -503,7 +503,6 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
 }
 
 // the whole update_pos system probably needs to be rethought -zusuk
-
 void update_pos_dam(struct char_data *victim) {
   if (GET_HIT(victim) <= -11)
     GET_POS(victim) = POS_DEAD;
@@ -523,9 +522,7 @@ void update_pos_dam(struct char_data *victim) {
               "You instinctively shift from dangerous positioning to sitting...\r\n");
     }
   }
-
 }
-
 void update_pos(struct char_data *victim) {
 
   if ((GET_HIT(victim) > 0) && (GET_POS(victim) > POS_STUNNED))
@@ -633,10 +630,10 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
   else
     delay = 4 RL_SEC;
 
-//  send_to_char(ch, "DEBUG: SETTING FIGHT EVENT!\r\n");
+  //  send_to_char(ch, "DEBUG: SETTING FIGHT EVENT!\r\n");
 
-//  if (!char_has_mud_event(ch, eCOMBAT_ROUND))
-    attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, strdup("1")), delay);
+  //  if (!char_has_mud_event(ch, eCOMBAT_ROUND))
+  attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, strdup("1")), delay);
 }
 
 /* remove a char from the list of fighting chars */
@@ -1337,12 +1334,10 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
 
 
 // this is just like damage reduction, except applies to certain type
-
 int compute_energy_absorb(struct char_data *ch, int dam_type) {
   int dam_reduction = 0;
 
   /* universal bonuses */
-
   switch (dam_type) {
     case DAM_FIRE:
       if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -1405,7 +1400,6 @@ int compute_energy_absorb(struct char_data *ch, int dam_type) {
 
 // can return negative values, which indicates vulnerability
 // dam_ defines are in spells.h
-
 int compute_damtype_reduction(struct char_data *ch, int dam_type) {
   int damtype_reduction = 0;
 
@@ -1846,9 +1840,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
 
 
 // death < 0, no dam = 0, damage done > 0
-
 /* ALLLLLL damage goes through this function */
-
 int damage(struct char_data *ch, struct char_data *victim, int dam,
         int attacktype, int dam_type, int offhand) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
@@ -2286,7 +2278,6 @@ int isCriticalHit(struct char_data *ch, int diceroll) {
 // since dam is potentially adjusted percentile, we needed to bring it
 // (same reason we bring diceroll)
 // mode is for info purposes, 2 = mainhand, 3 = offhand
-
 int hit_dam_bonus(struct char_data *ch, struct char_data *victim, struct obj_data *wielded,
         int dam, int diceroll, int mode) {
 
@@ -2332,7 +2323,7 @@ int hit_dam_bonus(struct char_data *ch, struct char_data *victim, struct obj_dat
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_IMPROVED_CRITICAL))
       send_to_char(ch, "[IC] ");
     if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_OVERWHELMING_CRIT))
-send_to_char(ch, "[OC] ");
+      send_to_char(ch, "[OC] ");
     send_to_char(ch, "\r\n\r\n");
   }
   return dam;
@@ -2343,7 +2334,6 @@ send_to_char(ch, "[OC] ");
 //mode = 2	Display damage info primary
 //mode = 3	Display damage info offhand
 //mode = 4      Display damage info ranged
-
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         struct obj_data *wielded, int w_type, int diceroll, int mode) {
   int dam = 0;
@@ -2437,6 +2427,11 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     if (mode == 4) {
       dam -= GET_STR_BONUS(ch);
       dam += GET_DEX_BONUS(ch);
+      if (IN_ROOM(ch) == IN_ROOM(victim)) {
+        if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))
+          dam++;
+      }
+
     }
     /* throw in melee bonus such as dirty-fighting and critical */
     hit_dam_bonus(ch, ch, wielded, dam, 0, mode);
@@ -2444,7 +2439,6 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
   return MAX(1, dam); //min damage of 1
 }
-
 
 /* this function takes ch (attacker) against victim (defender) who has
    inflicted dam damage and will reduce damage by X depending on the type
@@ -2454,7 +2448,6 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 #define STONESKIN_ABSORB	16
 #define IRONSKIN_ABSORB	36
 #define EPIC_WARDING_ABSORB	76
-
 int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
   int warding = 0;
 
@@ -2553,6 +2546,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
 }
 #undef STONESKIN_ABSORB
 #undef EPIC_WARDING_ABSORB
+#undef IRONSKIN_ABSORB
 
 bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *dr) {
   bool passed = FALSE;
@@ -2892,8 +2886,14 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   }
 
   if (victim) {
-  if (!CAN_SEE(victim, ch) && !HAS_FEAT(victim, FEAT_BLIND_FIGHT))
-    bonuses[BONUS_TYPE_UNDEFINED] += 2;
+    /* blind fighting */
+    if (!CAN_SEE(victim, ch) && !HAS_FEAT(victim, FEAT_BLIND_FIGHT))
+      bonuses[BONUS_TYPE_UNDEFINED] += 2;
+
+  /* point blank shot will give +1 bonus to hitroll if you are using a ranged
+   * attack in the same room as victim */
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT) && IN_ROOM(ch) == IN_ROOM(victim))
+      bonuses[BONUS_TYPE_UNDEFINED]++;
   }
 
   if (affected_by_spell(ch, SKILL_SMITE)) {
