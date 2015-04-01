@@ -33,6 +33,7 @@ const char *weapon_type[NUM_WEAPON_TYPES];
 
 
 /* START */
+void free_feats(void) {} /* Nothing to do right now.  What, for shutdown maybe? */
 
 /* Helper function for t sort_feats function - not very robust and should not be reused.
  * SCARY pointer stuff! */
@@ -53,15 +54,14 @@ void sort_feats(void) {
   qsort(&feat_sort_info[1], NUM_FEATS, sizeof (int), compare_feats);
 }
 
-void free_feats(void) {} /* Nothing to do right now.  What, for shutdown maybe? */
-
 /* checks if the char has the feat either saved to file or in the process
  of acquiring it in study */
 int has_feat(struct char_data *ch, int featnum) {
   if (ch->desc && LEVELUP(ch)) { /* check if he's in study mode */
     return (HAS_FEAT(ch, featnum) + LEVELUP(ch)->feats[featnum]);
   }
-  /* // this is for the option of allowing feats on items
+  /*
+   * // this is for the option of allowing feats on items
     struct obj_data *obj;
     int i = 0, j = 0;
 
@@ -259,7 +259,7 @@ void feat_prereq_weapon_proficiency(int featnum) {
    *   1) feat number, defined in structs.h
    *   2) displayed name of the feat
    *   3) in the game or not, and thus can be learned and displayed
-   *   4) learned through a trainer or whether it is a feat given automatically
+   *   4) learned through a trainer (study menu) or whether it is a feat given automatically
    *      to certain classes or races.
    *   5) feat can stack with itself.
    *   6) feat type, for organization in the selection menu
@@ -351,68 +351,105 @@ void assign_feats(void) {
     "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.",
     "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
 
-  feato(FEAT_COMBAT_EXPERTISE, "combat expertise", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC", "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC");
+  feato(FEAT_COMBAT_EXPERTISE, "combat expertise", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC",
+    "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC");
   feat_prereq_attribute(FEAT_COMBAT_EXPERTISE, AB_INT, 13);
 
-  feato(FEAT_COMBAT_REFLEXES, "combat reflexes", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "can make a number of attacks of opportunity equal to dex bonus", "can make a number of attacks of opportunity equal to dex bonus");
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
-  feato(FEAT_DODGE, "dodge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "+1 dodge bonus to ac", "+1 dodge bonus to ac");
+  feato(FEAT_COMBAT_REFLEXES, "combat reflexes", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "can make a number of attacks of opportunity equal to dex bonus",
+    "can make a number of attacks of opportunity equal to dex bonus");
+
+  feato(FEAT_DODGE, "dodge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "+1 dodge bonus to ac",
+    "+1 dodge bonus to ac");
   feat_prereq_attribute(FEAT_DODGE, AB_DEX, 13);
 
-  feato(FEAT_MOBILITY, "mobility", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "+4 dodge ac bonus against attacks of opportunity", "+4 dodge ac bonus against attacks of opportunity");
+  feato(FEAT_MOBILITY, "mobility", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "+4 dodge ac bonus against attacks of opportunity",
+    "+4 dodge ac bonus against attacks of opportunity");
   feat_prereq_attribute(FEAT_MOBILITY, AB_DEX, 13);
   feat_prereq_feat(FEAT_MOBILITY, FEAT_DODGE, 1);
 
-  feato(FEAT_EPIC_PROWESS, "epic prowess", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+1 to all attacks per rank", "+1 to all attacks per rank");
-
-  feato(FEAT_IMPROVED_CRITICAL, "improved critical", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, "doubled critical threat rating for weapon chosen", "doubled critical threat rating for weapon chosen");
+  feato(FEAT_IMPROVED_CRITICAL, "improved critical", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "doubled critical threat rating for weapon chosen",
+    "doubled critical threat rating for weapon chosen");
   feat_prereq_weapon_proficiency(FEAT_IMPROVED_CRITICAL);
   feat_prereq_bab(FEAT_IMPROVED_CRITICAL, 8);
 
-  feato(FEAT_IMPROVED_INITIATIVE, "improved initiative", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "+4 to initiative checks to see who attacks first each round", "+4 to initiative checks to see who attacks first each round");
+  feato(FEAT_IMPROVED_INITIATIVE, "improved initiative", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "+4 to initiative checks to see who attacks first each round",
+    "+4 to initiative checks to see who attacks first each round");
 
-  feato(FEAT_IMPROVED_SHIELD_PUNCH, "improved shield punch", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "retain your shield's AC bonus when you shield punch", "retain your shield's AC bonus when you shield punch");
+  feato(FEAT_IMPROVED_SHIELD_PUNCH, "improved shield punch", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "retain your shield's AC bonus when you shield punch",
+    "retain your shield's AC bonus when you shield punch");
   feat_prereq_feat(FEAT_IMPROVED_SHIELD_PUNCH, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
 
-  feato(FEAT_IMPROVED_TRIP, "improved trip", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "no attack of opportunity when tripping, +4 to trip check, attack immediately on successful trip.", "no attack of opportunity when tripping, +4 to trip check, attack immediately on successful trip.");
+  feato(FEAT_IMPROVED_TRIP, "improved trip", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "no AoO when tripping, +4 to trip, attack immediately",
+    "no attack of opportunity when tripping, +4 to trip check, attack immediately "
+      "on successful trip.");
   feat_prereq_attribute(FEAT_IMPROVED_TRIP, AB_INT, 13);
   feat_prereq_feat(FEAT_IMPROVED_TRIP, FEAT_COMBAT_EXPERTISE, 1);
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_POINT_BLANK_SHOT, "point blank shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "+1 to hit and dam rolls with ranged weapons in the same room", "+1 to hit and dam rolls with ranged weapons in the same room");
 
-  feato(FEAT_RAPID_SHOT, "rapid shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "can make extra attack per round with ranged weapon at -2 to all attacks", "can make extra attack per round with ranged weapon at -2 to all attacks");
+  feato(FEAT_POINT_BLANK_SHOT, "point blank shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "+1 to hit and dam rolls with ranged weapons in the same room",
+    "+1 to hit and dam rolls with ranged weapons in the same room");
+
+  feato(FEAT_RAPID_SHOT, "rapid shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "extra attack ranged weapon at -2 to all attacks",
+    "can make extra attack per round with ranged weapon at -2 to all attacks");
   feat_prereq_attribute(FEAT_RAPID_SHOT, AB_DEX, 13);
   feat_prereq_feat(FEAT_RAPID_SHOT, FEAT_POINT_BLANK_SHOT, 1);
 
-  feato(FEAT_SHIELD_CHARGE, "shield charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "make a knockdown attack when you bash with your shield", "make a knockdown attack when you bash with your shield");
+  feato(FEAT_SHIELD_CHARGE, "shield charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "make a knockdown attack when you bash with your shield",
+    "make a knockdown attack when you bash with your shield");
   feat_prereq_bab(FEAT_SHIELD_CHARGE, 3);
   feat_prereq_feat(FEAT_SHIELD_CHARGE, FEAT_IMPROVED_SHIELD_PUNCH, 1);
 
-  feato(FEAT_SHIELD_SLAM, "shield slam", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "Daze an opponent of any size by slamming them with your shield.", "Daze an opponent of any size by slamming them with your shield.");
+  feato(FEAT_SHIELD_SLAM, "shield slam", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "Daze an opponent of any size by slamming them with your shield.",
+    "Daze an opponent of any size by slamming them with your shield.");
   feat_prereq_bab(FEAT_SHIELD_SLAM, 6);
   feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_SHIELD_CHARGE, 1);
   feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_IMPROVED_SHIELD_PUNCH, 1);
 
-  feato(FEAT_SPRING_ATTACK, "spring attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "free attack of opportunity against combat abilities (ie. kick,Trip)", "free attack of opportunity against combat abilities (ie. kick,Trip)");
+  feato(FEAT_SPRING_ATTACK, "spring attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "you can choose the direction you flee and gain springleap",
+    "you can choose the direction you flee and gain springleap");
   feat_prereq_bab(FEAT_SPRING_ATTACK, 4);
   feat_prereq_attribute(FEAT_SPRING_ATTACK, AB_DEX, 13);
   feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_DODGE, 1);
   feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_MOBILITY, 1);
 
-  feato(FEAT_STUNNING_FIST, "stunning fist", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "may make unarmed attack to stun opponent for one round", "may make unarmed attack to stun opponent for one round");
+  feato(FEAT_STUNNING_FIST, "stunning fist", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "may make unarmed attack to stun opponent for one round",
+    "may make unarmed attack to stun opponent for one round");
   feat_prereq_attribute(FEAT_STUNNING_FIST, AB_DEX, 13);
   feat_prereq_attribute(FEAT_STUNNING_FIST, AB_WIS, 13);
   feat_prereq_feat(FEAT_STUNNING_FIST, FEAT_IMPROVED_UNARMED_STRIKE, 1);
   feat_prereq_bab(FEAT_STUNNING_FIST, 8);
 
-  feato(FEAT_TWO_WEAPON_FIGHTING, "two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "attacks with offhand weapons done at reduced penalties", "attacks with offhand weapons done at reduced penalties");
+  feato(FEAT_TWO_WEAPON_FIGHTING, "two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "extra attack with offhand weapon",
+    "extra attack with offhand weapon");
   feat_prereq_attribute(FEAT_TWO_WEAPON_FIGHTING, AB_DEX, 15);
 
-  feato(FEAT_WEAPON_FINESSE, "weapon finesse", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "use dex for hit roll of weapons", "use dex for hit roll of weapons");
+  feato(FEAT_WEAPON_FINESSE, "weapon finesse", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "use dex for hit roll of weapons",
+    "use dexterity bonus for hit roll of weapons (if better than strength bonus), "
+      "there is no benefit to this feat for archery");
   feat_prereq_bab(FEAT_WEAPON_FINESSE, 1);
 
-  feato(FEAT_WHIRLWIND_ATTACK, "whirlwind attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to attack everyone in the room or everyone you are fighting (with contain) as a standard action", "allows you to attack everyone in the room or everyone you are fighting (with contain) as a standard action");
+  feato(FEAT_WHIRLWIND_ATTACK, "whirlwind attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "grants whirlwind and hitall attacks [under construction]",
+    "grants whirlwind and hitall attacks [under construction]");
   feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_DEX, 13);
   feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_INT, 13);
   feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_COMBAT_EXPERTISE, 1);
@@ -421,74 +458,143 @@ void assign_feats(void) {
   feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_SPRING_ATTACK, 1);
   feat_prereq_bab(FEAT_WHIRLWIND_ATTACK, 4);
 
-  feato(FEAT_GREAT_CLEAVE, "great cleave", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-  feat_prereq_feat(FEAT_GREAT_CLEAVE, FEAT_CLEAVE, 1);
-  feat_prereq_feat(FEAT_GREAT_CLEAVE, FEAT_POWER_ATTACK, 1);
-  feat_prereq_attribute(FEAT_GREAT_CLEAVE, AB_STR, 13);
-  feat_prereq_bab(FEAT_GREAT_CLEAVE, 4);
-
-  feato(FEAT_WEAPON_SPECIALIZATION, "weapon specialization", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+2 to dam rolls with chosen weapon", "Choose one type of weapon, such as greataxe, for which you have already selected the Weapon Focus feat. You can also choose unarmed strike as your weapon for purposes of this feat. You gain a +2 bonus on damage using the selected weapon.");
+  feato(FEAT_WEAPON_SPECIALIZATION, "weapon specialization", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "+2 to dam rolls with chosen weapon",
+    "Choose one type of weapon, such as greataxe, for which you have already "
+      "selected the Weapon Focus feat. You can also choose unarmed strike as "
+      "your weapon for purposes of this feat. You gain a +2 bonus on damage "
+      "using the selected weapon.");
   feat_prereq_weapon_proficiency(FEAT_WEAPON_SPECIALIZATION);
   feat_prereq_cfeat(FEAT_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
   feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 4);
 
-  feato(FEAT_GREATER_WEAPON_SPECIALIZATION, "greater weapon specialization", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "additional +2 dam with weapon (stacks)", "additional +2 dam with weapon (stacks)");
+  feato(FEAT_GREATER_WEAPON_SPECIALIZATION, "greater weapon specialization", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "+2 dama", "additional +2 dam with weapon (stacks)");
   feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_SPECIALIZATION);
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_FOCUS);
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_SPECIALIZATION);
   feat_prereq_class_level(FEAT_GREATER_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 12);
 
+  /* epic */
+  feato(FEAT_EPIC_PROWESS, "epic prowess", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "+1 to all attacks per rank",
+    "+1 to all attacks per rank");
+
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
-  feato(FEAT_ABLE_LEARNER, "able learner", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+1 to all skills", "+1 to all skills");
-  feato(FEAT_ACROBATIC, "acrobatic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+3 to acrobatics skill checks", "+3 to acrobatics skill checks");
-  feato(FEAT_AGILE, "agile", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to acrobatics and escape artist skill checks", "+2 to acrobatics and escape artist skill checks");
-  feato(FEAT_ALERTNESS, "alertness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to spot and listen skill checks ", "+2 to spot and listen skill checks ");
-  feato(FEAT_ANIMAL_AFFINITY, "animal affinity", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to handle animal and ride skill checks", "+2 to handle animal and ride skill checks");
+  feato(FEAT_ABLE_LEARNER, "able learner", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+1 to all skills",
+    "+1 to all skills");
+  feato(FEAT_ACROBATIC, "acrobatic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+3 to acrobatics skill checks",
+    "+3 to acrobatics skill checks");
+  feato(FEAT_AGILE, "agile", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to acrobatics and escape artist skill checks",
+    "+2 to acrobatics and escape artist skill checks");
+  feato(FEAT_ALERTNESS, "alertness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to spot and listen skill checks ",
+    "+2 to spot and listen skill checks ");
+  feato(FEAT_ANIMAL_AFFINITY, "animal affinity", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to handle animal and ride skill checks",
+    "+2 to handle animal and ride skill checks");
 
-  feato(FEAT_ARMOR_PROFICIENCY_LIGHT, "light armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows unpenalized use of light armor ", "allows unpenalized use of light armor ");
-  feato(FEAT_ARMOR_PROFICIENCY_MEDIUM, "medium armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows unpenalized use of medium armor ", "allows unpenalized use of medium armor ");
+  feato(FEAT_ARMOR_PROFICIENCY_LIGHT, "light armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "allows unpenalized use of light armor ",
+    "allows unpenalized use of light armor ");
+  feato(FEAT_ARMOR_PROFICIENCY_MEDIUM, "medium armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "allows unpenalized use of medium armor ",
+    "allows unpenalized use of medium armor ");
   feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_MEDIUM, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
 
-  feato(FEAT_ARMOR_PROFICIENCY_HEAVY, "heavy armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows unpenalized use of heavy armor ", "allows unpenalized use of heavy armor ");
+  feato(FEAT_ARMOR_PROFICIENCY_HEAVY, "heavy armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "allows unpenalized use of heavy armor ",
+    "allows unpenalized use of heavy armor ");
   feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
   feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
 
-  feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, "tower shield proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "can use tower shields without penalties", "can use tower shields without penalties");
+  feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, "tower shield proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "can use tower shields without penalties",
+    "can use tower shields without penalties");
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_ARMOR_SKIN, "armor skin", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Increases natural armor by 1", "Increases natural armor by 1"); /* Epic */
-  feato(FEAT_ATHLETIC, "athletic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to swim and climb skill checks", "+2 to swim and climb skill checks");
-  feato(FEAT_DECEITFUL, "deceitful", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to disguise and forgery skill checks", "+2 to disguise and forgery skill checks");
-  feato(FEAT_DEFT_HANDS, "deft hands", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+3 to sleight of hand checks", "+3 to sleight of hand skill checks");
-  feato(FEAT_DILIGENT, "diligent", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 bonus to appraise and use magical device skill checks", "+2 bonus to appraise and use magical device skill checks");
-  feato(FEAT_EPIC_TOUGHNESS, "epic toughness", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL, "You gain +1 hp per level", "You gain +1 hp per level"); /* Epic */
-  feato(FEAT_EXOTIC_WEAPON_PROFICIENCY, "exotic weapon proficiency", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL, "can use exotic weapon of type chosen without penalties", "can use exotic weapon of type chosen without penalties");
+  feato(FEAT_ATHLETIC, "athletic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to swim and climb skill checks",
+    "+2 to swim and climb skill checks");
+  feato(FEAT_DECEITFUL, "deceitful", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to disguise and forgery skill checks",
+    "+2 to disguise and forgery skill checks");
+  feato(FEAT_DEFT_HANDS, "deft hands", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+3 to sleight of hand checks",
+    "+3 to sleight of hand skill checks");
+  feato(FEAT_DILIGENT, "diligent", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 bonus to appraise and use magical device skill checks",
+    "+2 bonus to appraise and use magical device skill checks");
+  feato(FEAT_EXOTIC_WEAPON_PROFICIENCY, "exotic weapon proficiency", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+    "can use exotic weapon of type chosen without penalties",
+    "can use exotic weapon of type chosen without penalties");
   feat_prereq_bab(FEAT_EXOTIC_WEAPON_PROFICIENCY, 1);
 
-  feato(FEAT_EXTRA_TURNING, "extra turning", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "2 extra turn attempts per day", "2 extra turn attempts per day");
+  feato(FEAT_EXTRA_TURNING, "extra turning", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "2 extra turn attempts per day",
+    "2 extra turn attempts per day");
   feat_prereq_feat(FEAT_EXTRA_TURNING, FEAT_TURN_UNDEAD, 1);
 
-  feato(FEAT_GREAT_FORTITUDE, "great fortitude", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to all fortitude saving throw checks", "+2 to all fortitude saving throw checks");
+  feato(FEAT_GREAT_FORTITUDE, "great fortitude", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to all fortitude saving throw checks",
+    "+2 to all fortitude saving throw checks");
 
-  feato(FEAT_IMPROVED_SPELL_RESISTANCE, "improved spell resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL, "+2 to spell resistance", "+2 to spell resistance"); /* Epic */
+  feato(FEAT_INVESTIGATOR, "investigator", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to lore and perception checks",
+    "+2 to lore and perception checks");
+  feato(FEAT_IRON_WILL, "iron will", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to all willpower saving throw checks",
+    "+2 to all willpower saving throw checks");
+  feato(FEAT_LIGHTNING_REFLEXES, "lightning reflexes", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to all reflex saving throw checks",
+    "+2 to all reflex saving throw checks");
+  feato(FEAT_MAGICAL_APTITUDE, "magical aptitude", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to spellcraft and use magical device skill checks",
+    "+2 to spellcraft and use magical device skill checks");
+  feato(FEAT_NEGOTIATOR, "negotiator", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to diplomacy and sense motive skills",
+    "+2 to diplomacy and sense motive skills");
+  feato(FEAT_NIMBLE_FINGERS, "nimble fingers", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to disable device skill checks",
+    "+2 to disable device skill checks");
+  feato(FEAT_PERSUASIVE, "persuasive", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to bluff and intimidate skill checks",
+    "+2 to bluff and intimidate skill checks");
+  feato(FEAT_SELF_SUFFICIENT, "self sufficient", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to heal and survival skill checks",
+    "+2 to heal and survival skill checks");
+  feato(FEAT_SIMPLE_WEAPON_PROFICIENCY, "simple weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "may use all simple weapons",
+    "may use all simple weapons");
+  feato(FEAT_STEALTHY, "stealthy", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+2 to hide and move silently skill checks",
+    "+2 to hide and move silently skill checks");
+  feato(FEAT_TOUGHNESS, "toughness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+1 hp per level, +(level) hp upon taking",
+    "+1 hp per level, +(level) hp upon taking");
+  feato(FEAT_ARMOR_PROFICIENCY_SHIELD, "shield armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "able to use bucklers, light and heavy shields without penalty ",
+    "able to use bucklers, light and heavy shields without penalty ");
+  feato(FEAT_MARTIAL_WEAPON_PROFICIENCY, "martial weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "able to use all martial weapons",
+    "able to use all martial weapons");
+
+  /* Epic */
+  feato(FEAT_EPIC_TOUGHNESS, "epic toughness", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+    "You gain +1 hp per level",
+    "You gain +1 hp per level");
+  feato(FEAT_ARMOR_SKIN, "armor skin", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+    "Increases natural armor by 1",
+    "Increases natural armor by 1");
+  feato(FEAT_IMPROVED_SPELL_RESISTANCE, "improved spell resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+    "+2 to spell resistance",
+    "+2 to spell resistance");
   feat_prereq_feat(FEAT_IMPROVED_SPELL_RESISTANCE, FEAT_DIAMOND_SOUL, 1);
-
-  feato(FEAT_INVESTIGATOR, "investigator", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to lore and perception checks", "+2 to lore and perception checks");
-  feato(FEAT_IRON_WILL, "iron will", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to all willpower saving throw checks", "+2 to all willpower saving throw checks");
-  feato(FEAT_LIGHTNING_REFLEXES, "lightning reflexes", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to all reflex saving throw checks", "+2 to all reflex saving throw checks");
-  feato(FEAT_MAGICAL_APTITUDE, "magical aptitude", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to spellcraft and use magical device skill checks", "+2 to spellcraft and use magical device skill checks");
-  feato(FEAT_NEGOTIATOR, "negotiator", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to diplomacy and sense motive skills", "+2 to diplomacy and sense motive skills");
-  feato(FEAT_NIMBLE_FINGERS, "nimble fingers", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to disable device skill checks", "+2 to disable device skill checks");
-  feato(FEAT_PERSUASIVE, "persuasive", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to bluff and intimidate skill checks", "+2 to bluff and intimidate skill checks");
-  feato(FEAT_SELF_SUFFICIENT, "self sufficient", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to heal and survival skill checks", "+2 to heal and survival skill checks");
-  feato(FEAT_SIMPLE_WEAPON_PROFICIENCY, "simple weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "may use all simple weappons", "may use all simple weappons");
-  feato(FEAT_STEALTHY, "stealthy", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to hide and move silently skill checks", "+2 to hide and move silently skill checks");
-  feato(FEAT_TOUGHNESS, "toughness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+1 hp per level, +(level) hp upon taking", "+1 hp per level, +(level) hp upon taking");
-  feato(FEAT_ARMOR_PROFICIENCY_SHIELD, "shield armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "able to use bucklers, light and heavy shields without penalty ", "able to use bucklers, light and heavy shields without penalty ");
-  feato(FEAT_MARTIAL_WEAPON_PROFICIENCY, "martial weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "able to use all martial weapons", "able to use all martial weapons");
 
   /* Spellcasting feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -507,16 +613,16 @@ void assign_feats(void) {
   feato(FEAT_FAST_CRAFTER, "fast crafter", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT, "Reduces crafting time", "Reduces crafting time");
 
   /* Class ability feats */
-  /* Pale Master */
-  feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "allows innate use of animate dead spell",
-    "Allows innate use of animate dead spell once per day.  You get one use per ");
+
+  /* Cleric */
+
+  /* Cleric / Paladin */
+  feato(FEAT_TURN_UNDEAD, "turn undead", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can cause fear in or destroy undead based on class level and charisma bonus", "can cause fear in or destroy undead based on class level and charisma bonus");
 
   /* Paladin */
   feato(FEAT_AURA_OF_COURAGE, "aura of courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Immunity to fear attacks, +4 bonus to fear saves for group members", "Immunity to fear attacks, +4 bonus to fear saves for group members");
   feato(FEAT_SMITE_EVIL, "smite evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "add level to hit roll and charisma bonus to damage", "add level to hit roll and charisma bonus to damage");
   feato(FEAT_DETECT_EVIL, "detect evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "able to detect evil alignments", "able to detect evil alignments");
-  feato(FEAT_TURN_UNDEAD, "turn undead", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can cause fear in or destroy undead based on class level and charisma bonus", "can cause fear in or destroy undead based on class level and charisma bonus");
   feato(FEAT_AURA_OF_GOOD, "aura of good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+10 ac to all group members", "+10 ac to all group members");
   feato(FEAT_DIVINE_HEALTH, "divine health", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "immune to disease", "immune to disease");
   feato(FEAT_LAYHANDS, "lay on hands", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Powerful divine healing ability usable a limited number of times a day", "Powerful divine healing ability usable a limited number of times a day");
@@ -654,11 +760,11 @@ void assign_feats(void) {
     "immune to poison",
     "immune to poison");
   feato(FEAT_QUIVERING_PALM, "quivering palm", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-  "chance to kill on strike with unarmed attack",
-  "You will do your wisdom bonus as bonus damage to your next unarmed strike, "
-    "in addition, to opponents that are your level or lower, they have to make "
-    "a fortitude save vs DC: your monk level + your wisdom bonus + 10 in order "
-    "to survive your quivering palm attack");
+    "chance to kill on strike with unarmed attack",
+    "You will do your wisdom bonus as bonus damage to your next unarmed strike, "
+      "in addition, to opponents that are your level or lower, they have to make "
+      "a fortitude save vs DC: your monk level + your wisdom bonus + 10 in order "
+      "to survive your quivering palm attack");
   /* not imped */feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON, "tongue of the sun and moon [not impd]", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented] can speak any language", "[not implemented] can speak any language");
 
   /* Bard */
@@ -740,6 +846,8 @@ void assign_feats(void) {
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "summon a magical pet", "summon a magical pet");
 
+  /* class feats that are implemented on classes that are not yet in the game */
+
   /* Duelist */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_ENHANCED_MOBILITY, "enhanced mobility", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -749,99 +857,19 @@ void assign_feats(void) {
   feato(FEAT_GRACE, "grace", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "+2 reflex saves", "gain a +2 bonus on Reflex saves");
 
+  /* Pale/Death Master */
+  feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "allows innate use of animate dead spell",
+    "Allows innate use of animate dead spell once per day.  You get one use per ");
+
   /**************************/
   /* Disabled/Unimplemented */
   /**************************/
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_CLEAVE, "cleave", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "extra initial attack against opponent after killing another opponent in same room", "extra initial attack against opponent after killing another opponent in same room");
-  feat_prereq_attribute(FEAT_CLEAVE, AB_STR, 13);
-  feat_prereq_feat(FEAT_CLEAVE, FEAT_POWER_ATTACK, 1);
 
-  feato(FEAT_HONORABLE_WILL, "honorable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_ARMORED_MOBILITY, "armored mobility", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "heavy armor is treated as medium armor", "heavy armor is treated as medium armor");
-  feato(FEAT_AURA_OF_EVIL, "aura of evil", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_AURA_OF_TERROR, "aura of terror", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_BONE_ARMOR, "bone armor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.", "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.");
-  feato(FEAT_COSMIC_UNDERSTANDING, "cosmic understanding", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_CRIPPLING_CRITICAL, "crippling critical", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows your criticals to have random additional effects", "allows your criticals to have random additional effects");
-  feato(FEAT_CROWN_OF_KNIGHTHOOD, "crown of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DARK_BLESSING, "dark blessing", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DEATH_ATTACK, "death attack", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.", "Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.");
-  feato(FEAT_DEFENSIVE_STANCE, "defensive stance", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Allows you to fight defensively with bonuses to ac and stats.", "Allows you to fight defensively with bonuses to ac and stats.");
-  feato(FEAT_DEITY_WEAPON_PROFICIENCY, "deity's weapon proficiency", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use the weapon of your deity", "allows you to use the weapon of your deity");
-  feato(FEAT_DEMORALIZE, "demoralize", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DETECT_GOOD, "detect good", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DISCERN_LIES, "discern lies", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DIVINER, "diviner", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DRAGON_APOTHEOSIS, "dragon apotheosis", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DRAGON_MOUNT_BOOST, "dragon mount boost", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "gives +18 hp, +10 ac, +1 hit and +1 damage per rank in the feat", "gives +18 hp, +10 ac, +1 hit and +1 damage per rank in the feat");
-  feato(FEAT_DRAGON_MOUNT_BREATH, "dragon mount breath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use your dragon mount's breath weapon once per rank, per 10 minutes.", "allows you to use your dragon mount's breath weapon once per rank, per 10 minutes.");
-  feato(FEAT_ELEMENTAL_IMMUNITY, "elemental immunity", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_ENHANCE_ARROW_ALIGNED, "enhance arrow (aligned)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1d6 holy/unholy damage with bows against different aligned creatures.", "+1d6 holy/unholy damage with bows against different aligned creatures.");
-  feato(FEAT_ENHANCE_ARROW_DISTANCE, "enhance arrow (distance)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "doubles range increment on weapon.", "doubles range increment on weapon.");
-  feato(FEAT_ENHANCE_ARROW_ELEMENTAL, "enhance arrow (elemental)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1d6 elemental damage with bows", "+1d6 elemental damage with bows");
-  feato(FEAT_ENHANCE_ARROW_ELEMENTAL_BURST, "enhance arrow (elemental burst)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+2d10 on critical hits with bows", "+2d10 on critical hits with bows");
-  feato(FEAT_ENHANCE_ARROW_MAGIC, "enhance arrow (magic)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1 to hit and damage with bows per rank", "+1 to hit and damage with bows per rank");
-  feato(FEAT_ESSENCE_OF_UNDEATH, "essence of undeath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "gives immunity to poison, disease, sneak attack and critical hits", "gives immunity to poison, disease, sneak attack and critical hits");
-  feato(FEAT_FAVOR_OF_DARKNESS, "favor of darkness", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_FINAL_STAND, "final stand", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_HASTE, "haste", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can cast haste 3x per day", "can cast haste 3x per day");
-  feato(FEAT_INCREASED_MULTIPLIER, "increased multiplier", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of choice have +1 to their critical multiplier", "Weapons of choice have +1 to their critical multiplier");
-  feato(FEAT_KI_CRITICAL, "ki critical", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of choice have +1 to threat range per rank", "Weapons of choice have +1 to threat range per rank");
-  feato(FEAT_KI_DAMAGE, "ki damage", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of Choice have 5 percent chance to deal max damage", "Weapons of Choice have 5 percent chance to deal max damage");
-  feato(FEAT_KNIGHTHOODS_FLOWER, "knighthood's flower", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_KNIGHTLY_COURAGE, "knightly courage", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "bonus to fear checks", "bonus to fear checks");
+  /* not class feats */
   feato(FEAT_LEADERSHIP_BONUS, "improved leadership", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_LEARNED_CRAFTER, "learned crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Artisan gains exp for crafting items and harvesting", "Artisan gains exp for crafting items and harvesting");
-  feato(FEAT_MIGHT_OF_HONOR, "might of honor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_MOBILE_DEFENSE, "mobile defense", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Allows one to move while in defensive stance", "Allows one to move while in defensive stance");
-  feato(FEAT_NO_RETREAT, "no retreat", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to gain an attack of opportunity against retreating opponents", "allows you to gain an attack of opportunity against retreating opponents");
-  feato(FEAT_ONE_THOUGHT, "one thought", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_PARRY, "parry", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to parry incoming attacks", "allows you to parry incoming attacks");
-  feato(FEAT_POISON_SAVE_BONUS, "poison save bonus", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Assassin level 2", "Bonus to all saves against poison.");
-  feato(FEAT_POISON_USE, "poison use", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Trained use in poisons without risk of poisoning self.", "Trained use in poisons without risk of poisoning self.");
-  feato(FEAT_PROFICIENT_CRAFTER, "proficient crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Increases all crafting skills", "Increases all crafting skills");
-  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_PROFICIENT_HARVESTER, "proficient harvester", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Increases all harvesting skills", "Increases all harvesting skills");
-  feato(FEAT_RALLYING_CRY, "rallying cry", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_READ_OMENS, "read omens", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_READ_PORTENTS, "read portents", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_RIPOSTE, "riposte", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to gain an attack of opportunity after a successful parry", "allows you to gain an attack of opportunity after a successful parry");
-  feato(FEAT_SACRED_FLAMES, "sacred flames", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use innate 'flame weapon' 3 times per 10 minutes", "allows you to use innate 'flame weapon' 3 times per 10 minutes");
-  feato(FEAT_SCAVENGE, "scavenge", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can find materials on corpses", "Can find materials on corpses");
-  feato(FEAT_SMITE_GOOD, "smite good", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_SOUL_OF_KNIGHTHOOD, "soul of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_STRENGTH_OF_HONOR, "strength of honor", FALSE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "+4 to strength for several rounds", "+4 to strength for several rounds");
-  feato(FEAT_SUMMON_GREATER_UNDEAD, "summon greater undead", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows innate use of summon greater undead spell 3x per day", "allows innate use of summon greater undead spell 3x per day");
-  feato(FEAT_SUMMON_UNDEAD, "summon undead", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows innate use of summon undead spell 3x per day", "allows innate use of summon undead spell 3x per day");
-  feato(FEAT_SUPERIOR_WEAPON_FOCUS, "superior weapon focus", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of choice have +1 to hit", "Weapons of choice have +1 to hit");
-  feato(FEAT_TOUCH_OF_UNDEATH, "touch of undeath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for paralytic or instant death touch", "allows for paralytic or instant death touch");
-  feato(FEAT_UNBREAKABLE_WILL, "unbreakable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_UNDEAD_FAMILIAR, "undead familiar", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for undead familiars", "allows for undead familiars");
-  feato(FEAT_WEAPON_OF_CHOICE, "weapons of choice", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "All weapons with weapon focus gain special abilities", "All weapons with weapon focus gain special abilities");
-  feato(FEAT_WISDOM_OF_THE_MEASURE, "wisdom of the measure", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_BLEEDING_ATTACK, "bleeding attack", FALSE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "causes bleed damage on living targets who are hit by sneak attack.", "causes bleed damage on living targets who are hit by sneak attack.");
-  feato(FEAT_OPPORTUNIST, "opportunist", FALSE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "once per round the rogue may make an attack of opportunity against a foe an ally just struck", "once per round the rogue may make an attack of opportunity against a foe an ally just struck");
-  /* End Class ability Feats */
-
-  /* Racial ability feats */
-  /* Crystal Dwarf */
-  feato(FEAT_CRYSTAL_BODY, "crystal body", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "Allows you to harden your crystal-like body for a short time. (Damage reduction 3/-)", "Allows you to harden your crystal-like body for a short time. (Damage reduction 3/-)");
-  feato(FEAT_CRYSTAL_FIST, "crystal fist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "Allows you to innately grow jagged and sharp crystals on your arms and legs to enhance damage in melee. (+3 damage)", "Allows you to innately grow jagged and sharp crystals on your arms and legs to enhance damage in melee. (+3 damage)");
-
-  /* Arcana Golem */
-  feato(FEAT_SPELLBATTLE, "spellbattle", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "Strengthen your body with Arcane power.", "By channeling their inner magic, Arcana Golems can use it to provide a huge surge to their physical attributes in the rare cases in which they must resort to physical violence. While the eldritch energies cloud their mind and finesse, the bonus to durability and power can provide that edge when need.  \r\nSpell Battle is a mode. When this mode is activated, you receive a penalty to attack rolls equal to the argument and caster levels equal to half. In return, you gain a bonus to AC and saving throws equal to the penalty taken, a bonus to BAB equal to 2/3rds of this penalty (partially but not completely negating the attack penalty), and a bonus to maximum hit points equal to 10 * penalty taken. Arcana Golems take an additional -2 penalty to Intelligence, * Wisdom, and Charisma while in Spell Battle.\r\nSpell battle without any arguments will cancel the mode, but an Arcana Golem can only cancel Spell Battle after spending 6 minutes in it. The surge of energy is not easily turned off.\r\nYou cannot use Spell-Battle at the same time you use Power Attack, Combat Expertise, or similar effects");
-  /* Various */
-  feato(FEAT_DARKVISION, "darkvision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_LOW_LIGHT_VISION, "low light vision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "can see in the dark outside only", "can see in the dark outside only");
-  /* End Racial ability feats */
-
-  /* Disabled Feats */
-  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  /* suppose to be acrobatic charge, but had naming conflict */ feato(FEAT_ACROBATIC_CHARGE, "dextrous charge", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "can charge in situations when others cannot", "can charge in situations when others cannot");
-  feato(FEAT_CANNY_DEFENSE, "canny defense", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "add int bonus (max class level) to ac when useing one light weapon and no shield", "add int bonus (max class level) to ac when useing one light weapon and no shield");
-  feato(FEAT_ELABORATE_PARRY, "elaborate parry", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "when fighting defensively or total defense, gains +1 dodge ac per class level", "when fighting defensively or total defense, gains +1 dodge ac per class level");
   feato(FEAT_FAR_SHOT, "far shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_DISARM, "improved disarm", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff ", "ask staff ");
   feato(FEAT_IMPROVED_GRAPPLE, "improved grapple", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
@@ -849,96 +877,202 @@ void assign_feats(void) {
   feato(FEAT_IMPROVED_PRECISE_SHOT, "improved precise shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+1 to hit on all ranged attacks", "+1 to hit on all ranged attacks");
   feato(FEAT_MANYSHOT, "manyshot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "extra ranged attack when rapid shot turned on", "extra ranged attack when rapid shot turned on");
   feato(FEAT_MOUNTED_ARCHERY, "mounted archery", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-  feato(FEAT_PRECISE_STRIKE, "precise strike", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+1d6 damage when using only one weapon and no shield", "+1d6 damage when using only one weapon and no shield");
   feato(FEAT_QUICK_DRAW, "quick draw", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_RAPID_RELOAD, "rapid reload", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_SHOT_ON_THE_RUN, "shot on the run", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-  feato(FEAT_WEAPON_TOUCH, "weapon touch", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-  feato(FEAT_WEAPON_MASTERY, "weapon mastery", FALSE, FALSE, TRUE, FEAT_TYPE_COMBAT, "+2 to hit and damage with that weapon", "+2 to hit and damage with that weapon");
   feato(FEAT_COMBAT_CHALLENGE, "combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a mob focus their attention on you", "allows you to make a mob focus their attention on you");
-  feato(FEAT_DEFLECT_ARROWS, "deflect arrows", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "can deflect one ranged attack per round ", "can deflect one ranged attack per round ");
-  feato(FEAT_EPIC_COMBAT_CHALLENGE, "epic combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "as improved combat challenge, but both regular challenges and challenge all are minor actions", "as improved combat challenge, but both regular challenges and challenge all are minor actions");
-  feato(FEAT_EPIC_DODGE, "epic dodge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "automatically dodge first attack against you each round", "automatically dodge first attack against you each round");
-  feato(FEAT_EXTEND_RAGE, "extend rage", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "Each of the uses of your rage or frenzy ability lasts an additional 5 rounds beyond its normal duration.", "Each of the uses of your rage or frenzy ability lasts an additional 5 rounds beyond its normal duration.");
-  feato(FEAT_GREAT_SMITING, "great smiting", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "For each rank in this feat you add your level in damage to all smite attacks", "For each rank in this feat you add your level in damage to all smite attacks");
   feato(FEAT_GREATER_COMBAT_CHALLENGE, "greater combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "as improved combat challenge, but regular challenge is a minor action & challenge all is a move action", "as improved combat challenge, but regular challenge is a minor action & challenge all is a move action");
   feato(FEAT_GREATER_TWO_WEAPON_FIGHTING, "greater two weapon fighting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "gives an additional offhand weapon attack", "gives an additional offhand weapon attack");
   feato(FEAT_IMPROVED_COMBAT_CHALLENGE, "improved combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make all mobs focus their attention on you", "allows you to make all mobs focus their attention on you");
   feato(FEAT_IMPROVED_FEINT, "improved feint", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "can feint and make one attack per round (or sneak attack if they have it)", "can feint and make one attack per round (or sneak attack if they have it)");
   feato(FEAT_IMPROVED_NATURAL_WEAPON, "improved natural weapons", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "increase damage dice by one category for natural weapons", "increase damage dice by one category for natural weapons");
-  feato(FEAT_IMPROVED_SNEAK_ATTACK, "improved sneak attack", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "each rank gives +5% chance per attack, per rank to be a sneak attack.", "each rank gives +5% chance per attack, per rank to be a sneak attack.");
   feato(FEAT_IMPROVED_TAUNTING, "improved taunting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, "improved two weapon fighting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "extra attack with offhand weapon at -5 penalty", "extra attack with offhand weapon at -5 penalty");
   feato(FEAT_IMPROVED_WEAPON_FINESSE, "improved weapon finesse", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "add dex bonus to damage instead of str for light weapons", "add dex bonus to damage instead of str for light weapons");
   feato(FEAT_KNOCKDOWN, "knockdown", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target", "when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target");
-  feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING, "perfect two weapon fighting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "Extra attack with offhand weapon", "Extra attack with offhand weapon");
   feato(FEAT_POWER_CRITICAL, "power critical", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+4 to rolls to confirm critical hits.", "+4 to rolls to confirm critical hits.");
   feato(FEAT_PRECISE_SHOT, "precise shot", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "You may shoot in melee without the standard -4 to hit penalty", "You may shoot in melee without the standard -4 to hit penalty");
-  feato(FEAT_ROBILARS_GAMBIT, "robilars gambit", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.", "when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.");
-  feato(FEAT_SELF_CONCEALMENT, "self concealment", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "10% miss chance for attacks against you per rank", "10% miss chance for attacks against you per rank");
-  feato(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY, "sneak attack of opportunity", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "makes all opportunity attacks sneak attacks", "makes all opportunity attacks sneak attacks");
-  feato(FEAT_SWARM_OF_ARROWS, "swarm of arrows", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a single ranged attack against everyone in range.", "allows you to make a single ranged attack against everyone in range.");
   feato(FEAT_TWO_WEAPON_DEFENSE, "two weapon defense", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when wielding two weapons receive +1 shield ac bonus", "when wielding two weapons receive +1 shield ac bonus");
-  feato(FEAT_WEAPON_FLURRY, "weapon flurry", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action", "2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action");
-  feato(FEAT_WEAPON_SUPREMACY, "weapon supremacy", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon", "+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon");
+  feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "bonus to initiative checks", "bonus to initiative checks");
+  feato(FEAT_IMPROVED_BULL_RUSH, "improved bull rush", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+  feato(FEAT_IMPROVED_REACTION, "improved reaction", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "+2 bonus to initiative checks (+4 at 8th class level)", "+2 bonus to initiative checks (+4 at 8th class level)");
+  feato(FEAT_IMPROVED_SUNDER, "improved sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+  feato(FEAT_SUNDER, "sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+  feato(FEAT_TRACK, "track", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "use survival skill to track others", "use survival skill to track others");
+  feato(FEAT_MONKEY_GRIP, "monkey grip", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "can wield weapons one size larger than wielder in one hand with -2 to attacks.", "can wield weapons one size larger than wielder in one hand with -2 to attacks.");
+  feato(FEAT_IMPROVED_INSTIGATION, "improved instigation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+  feato(FEAT_IMPROVED_INTIMIDATION, "improved intimidation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+  feato(FEAT_DIEHARD, "diehard", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "will stay alive and conscious until -10 hp or lower", "will stay alive and conscious until -10 hp or lower");
+  feato(FEAT_RUN, "run", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+  feato(FEAT_SKILL_FOCUS, "skill focus", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "+3 in chosen skill", "+3 in chosen skill");
+  feato(FEAT_ENDURANCE, "endurance", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+4 to con and skill checks made to resist fatigue and 1 extra move point per level ", "+4 to con and skill checks made to resist fatigue and 1 extra move point per level ");
+  feato(FEAT_ENERGY_RESISTANCE, "energy resistance", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "reduces all energy related damage by 3 per rank", "reduces all energy related damage by 3 per rank");
+  feato(FEAT_FAST_HEALER, "fast healer", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 hp healed per round", "+2 hp healed per round");
+  feato(FEAT_LEADERSHIP, "leadership", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses", "can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses");
+  feato(FEAT_HONORBOUND, "honorbound", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to saving throws against fear or compulsion effects, +2 to sense motive checks", "+2 to saving throws against fear or compulsion effects, +2 to sense motive checks");
+  feato(FEAT_STEADFAST_DETERMINATION, "steadfast determination", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows you to use your con bonus instead of your wis bonus for will saves", "allows you to use your con bonus instead of your wis bonus for will saves");
+  feato(FEAT_WEAPON_PROFICIENCY_BASTARD_SWORD, "weapon proficiency - bastard sword", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+
+  /* difficult to implement, but a basic feat that has dependencies */
+  feato(FEAT_CLEAVE, "cleave", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "extra initial attack against opponent after killing another opponent in same room", "extra initial attack against opponent after killing another opponent in same room");
+  feat_prereq_attribute(FEAT_CLEAVE, AB_STR, 13);
+  feat_prereq_feat(FEAT_CLEAVE, FEAT_POWER_ATTACK, 1);
+  feato(FEAT_GREAT_CLEAVE, "great cleave", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
+  feat_prereq_feat(FEAT_GREAT_CLEAVE, FEAT_CLEAVE, 1);
+  feat_prereq_feat(FEAT_GREAT_CLEAVE, FEAT_POWER_ATTACK, 1);
+  feat_prereq_attribute(FEAT_GREAT_CLEAVE, AB_STR, 13);
+  feat_prereq_bab(FEAT_GREAT_CLEAVE, 4);
+
+  /* artisan */
+  feato(FEAT_LEARNED_CRAFTER, "learned crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Artisan gains exp for crafting items and harvesting", "Artisan gains exp for crafting items and harvesting");
+  feato(FEAT_PROFICIENT_CRAFTER, "proficient crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Increases all crafting skills", "Increases all crafting skills");
+  feato(FEAT_PROFICIENT_HARVESTER, "proficient harvester", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Increases all harvesting skills", "Increases all harvesting skills");
+  feato(FEAT_SCAVENGE, "scavenge", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can find materials on corpses", "Can find materials on corpses");
   feato(FEAT_BRANDING, "branding", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "All items made carry the artisan's brand", "All items made carry the artisan's brand");
-  feato(FEAT_BREW_POTION, "brew potion", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical potions ", "can create magical potions ");
   feato(FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR, "craft magical arms and armor", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical weapons and armor ", "can create magical weapons and armor ");
   feato(FEAT_CRAFT_ROD, "craft rod", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can crate magical rods", "can crate magical rods");
   feato(FEAT_CRAFT_STAFF, "craft staff", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical staves ", "can create magical staves ");
   feato(FEAT_CRAFT_WAND, "craft wand", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical wands ", "can create magical wands ");
   feato(FEAT_CRAFT_WONDEROUS_ITEM, "craft wonderous item", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can crate miscellaneous magical items ", "can crate miscellaneous magical items ");
-  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_FORGE_RING, "forge ring", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "ask staff ", "ask staff ");
   feato(FEAT_MASTERWORK_CRAFTING, "masterwork crafting", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "All equipment made is masterwork", "All equipment made is masterwork");
-  feato(FEAT_SCRIBE_SCROLL, "scribe scroll", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can scribe spells from memory onto scrolls", "can scribe spells from memory onto scrolls");
-  feato(FEAT_DIVINE_MIGHT, "divine might", FALSE, TRUE, FALSE, FEAT_TYPE_DIVINE, "Add cha bonus to damage for number of rounds equal to cha bonus", "Add cha bonus to damage for number of rounds equal to cha bonus");
-  feato(FEAT_DIVINE_SHIELD, "divine shield", FALSE, TRUE, FALSE, FEAT_TYPE_DIVINE, "Add cha bonus to armor class for number of rounds equal to cha bonus", "Add cha bonus to armor class for number of rounds equal to cha bonus");
-  feato(FEAT_DIVINE_VENGEANCE, "divine vengeance", FALSE, TRUE, FALSE, FEAT_TYPE_DIVINE, "Add 2d6 damage against undead for number of rounds equal to cha bonus", "Add 2d6 damage against undead for number of rounds equal to cha bonus");
-  feato(FEAT_EXCEPTIONAL_TURNING, "exceptional turning", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "+1d10 hit dice of undead turned", "+1d10 hit dice of undead turned");
-  feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "bonus to initiative checks", "bonus to initiative checks");
-  feato(FEAT_IMPROVED_BULL_RUSH, "improved bull rush", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_IMPROVED_REACTION, "improved reaction", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "+2 bonus to initiative checks (+4 at 8th class level)", "+2 bonus to initiative checks (+4 at 8th class level)");
-  feato(FEAT_IMPROVED_SUNDER, "improved sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_IMPROVED_TURNING, "improved turning", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_NATURAL_ARMOR_INCREASE, "natural armor increase", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_SUNDER, "sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_TRACK, "track", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "use survival skill to track others", "use survival skill to track others");
-  feato(FEAT_WEAPON_PROFICIENCY_DRUID, "weapon proficiency - druids", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_WEAPON_PROFICIENCY_ELF, "weapon proficiency - elves", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_WEAPON_PROFICIENCY_MONK, "weapon proficiency - monks", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_WEAPON_PROFICIENCY_ROGUE, "weapon proficiency - rogues", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_WEAPON_PROFICIENCY_WIZARD, "weapon proficiency - wizards", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_ARMOR_SPECIALIZATION_HEAVY, "armor specialization (heavy)", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "DR 2/- when wearing heavy armor", "DR 2/- when wearing heavy armor");
-  feato(FEAT_ARMOR_SPECIALIZATION_LIGHT, "armor specialization (light)", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "DR 2/- when wearing light armor", "DR 2/- when wearing light armor");
-  feato(FEAT_ARMOR_SPECIALIZATION_MEDIUM, "armor specialization (medium)", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "DR 2/- when wearing medium armor", "DR 2/- when wearing medium armor");
-  feato(FEAT_DAMAGE_REDUCTION, "damage reduction", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "1/- damage reduction per rank of feat, 3/- for epic", "1/- damage reduction per rank of feat, 3/- for epic");
-  feato(FEAT_DIEHARD, "diehard", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "will stay alive and conscious until -10 hp or lower", "will stay alive and conscious until -10 hp or lower");
-  feato(FEAT_DIVINE_GRACE, "divine grace", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "charisma bonus added to all saving throw checks", "charisma bonus added to all saving throw checks");
-  feato(FEAT_ENDURANCE, "endurance", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+4 to con and skill checks made to resist fatigue and 1 extra move point per level ", "+4 to con and skill checks made to resist fatigue and 1 extra move point per level ");
-  feato(FEAT_ENERGY_RESISTANCE, "energy resistance", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "reduces all energy related damage by 3 per rank", "reduces all energy related damage by 3 per rank");
-  feato(FEAT_EPIC_SKILL_FOCUS, "epic skill focus", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "+10 in chosen skill", "+10 in chosen skill");
-  feato(FEAT_EXTRA_MUSIC, "extra music", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "4 extra bard music uses per day", "4 extra bard music uses per day");
-  feato(FEAT_EXTRA_RAGE, "extra rage", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_FAST_HEALING, "fast healing", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds", "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds");
+
+  /* epic */
+  feato(FEAT_EPIC_COMBAT_CHALLENGE, "epic combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "as improved combat challenge, but both regular challenges and challenge all are minor actions", "as improved combat challenge, but both regular challenges and challenge all are minor actions");
+  feato(FEAT_EPIC_DODGE, "epic dodge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "automatically dodge first attack against you each round", "automatically dodge first attack against you each round");
   feato(FEAT_GREAT_CHARISMA, "great charisma", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Increases Wisdom by 1", "Increases Wisdom by 1");
   feato(FEAT_GREAT_CONSTITUTION, "great constitution", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Increases Constitution by 1", "Increases Constitution by 1");
   feato(FEAT_GREAT_DEXTERITY, "great dexterity", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Increases Dexterity by 1", "Increases Dexterity by 1");
   feato(FEAT_GREAT_INTELLIGENCE, "great intelligence", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Increases Intelligence by 1", "Increases Intelligence by 1");
   feato(FEAT_GREAT_STRENGTH, "great strength", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Increases Strength by 1", "Increases Strength by 1");
   feato(FEAT_GREAT_WISDOM, "great wisdom", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Increases Wisdom by 1", "Increases Wisdom by 1");
-  feato(FEAT_HONORBOUND, "honorbound", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to saving throws against fear or compulsion effects, +2 to sense motive checks", "+2 to saving throws against fear or compulsion effects, +2 to sense motive checks");
-  feato(FEAT_IMPROVED_INSTIGATION, "improved instigation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_IMPROVED_INTIMIDATION, "improved intimidation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_LEADERSHIP, "leadership", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses", "can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses");
+  feato(FEAT_EPIC_SKILL_FOCUS, "epic skill focus", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "+10 in chosen skill", "+10 in chosen skill");
+  feato(FEAT_DAMAGE_REDUCTION, "damage reduction", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "1/- damage reduction per rank of feat, 3/- for epic", "1/- damage reduction per rank of feat, 3/- for epic");
+  feato(FEAT_FAST_HEALING, "fast healing", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds", "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds");
+  feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING, "perfect two weapon fighting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "Extra attack with offhand weapon", "Extra attack with offhand weapon");
+
+  /****/
+  /* class feats */
+  /*****/
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
+  /* Bard */
   feato(FEAT_LINGERING_SONG, "lingering song", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "5 extra rounds for bard songs", "5 extra rounds for bard songs");
-  feato(FEAT_MONKEY_GRIP, "monkey grip", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "can wield weapons one size larger than wielder in one hand with -2 to attacks.", "can wield weapons one size larger than wielder in one hand with -2 to attacks.");
+  feato(FEAT_EXTRA_MUSIC, "extra music", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "4 extra bard music uses per day", "4 extra bard music uses per day");
+
+  /* paladin / cleric [shared] */
+  feato(FEAT_DIVINE_MIGHT, "divine might", FALSE, TRUE, FALSE, FEAT_TYPE_DIVINE, "Add cha bonus to damage for number of rounds equal to cha bonus", "Add cha bonus to damage for number of rounds equal to cha bonus");
+  feato(FEAT_DIVINE_SHIELD, "divine shield", FALSE, TRUE, FALSE, FEAT_TYPE_DIVINE, "Add cha bonus to armor class for number of rounds equal to cha bonus", "Add cha bonus to armor class for number of rounds equal to cha bonus");
+  feato(FEAT_DIVINE_VENGEANCE, "divine vengeance", FALSE, TRUE, FALSE, FEAT_TYPE_DIVINE, "Add 2d6 damage against undead for number of rounds equal to cha bonus", "Add 2d6 damage against undead for number of rounds equal to cha bonus");
+  feato(FEAT_EXCEPTIONAL_TURNING, "exceptional turning", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "+1d10 hit dice of undead turned", "+1d10 hit dice of undead turned");
+  feato(FEAT_IMPROVED_TURNING, "improved turning", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+
+  /* paladin / champion of torm [shared] */
+  feato(FEAT_DIVINE_GRACE, "divine grace", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "charisma bonus added to all saving throw checks", "charisma bonus added to all saving throw checks");
+  /* epic */
+  feato(FEAT_GREAT_SMITING, "great smiting", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "For each rank in this feat you add your level in damage to all smite attacks", "For each rank in this feat you add your level in damage to all smite attacks");
+
+  /* berserker */
+  feato(FEAT_EXTEND_RAGE, "extend rage", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "Each of the uses of your rage or frenzy ability lasts an additional 5 rounds beyond its normal duration.", "Each of the uses of your rage or frenzy ability lasts an additional 5 rounds beyond its normal duration.");
+  feato(FEAT_EXTRA_RAGE, "extra rage", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+
+  /* fighter */
+  feato(FEAT_WEAPON_MASTERY, "weapon mastery", FALSE, FALSE, TRUE, FEAT_TYPE_COMBAT, "+2 to hit and damage with that weapon", "+2 to hit and damage with that weapon");
+  feato(FEAT_WEAPON_FLURRY, "weapon flurry", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action", "2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action");
+  feato(FEAT_WEAPON_SUPREMACY, "weapon supremacy", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon", "+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon");
+  feato(FEAT_ARMOR_SPECIALIZATION_HEAVY, "armor specialization (heavy)", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "DR 2/- when wearing heavy armor", "DR 2/- when wearing heavy armor");
+  feato(FEAT_ARMOR_SPECIALIZATION_LIGHT, "armor specialization (light)", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "DR 2/- when wearing light armor", "DR 2/- when wearing light armor");
+  feato(FEAT_ARMOR_SPECIALIZATION_MEDIUM, "armor specialization (medium)", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "DR 2/- when wearing medium armor", "DR 2/- when wearing medium armor");
+
+  /* rogue (make talent or advanced talent?) */
+  feato(FEAT_BLEEDING_ATTACK, "bleeding attack", FALSE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "causes bleed damage on living targets who are hit by sneak attack.", "causes bleed damage on living targets who are hit by sneak attack.");
+  feato(FEAT_OPPORTUNIST, "opportunist", FALSE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "once per round the rogue may make an attack of opportunity against a foe an ally just struck", "once per round the rogue may make an attack of opportunity against a foe an ally just struck");
+  feato(FEAT_IMPROVED_SNEAK_ATTACK, "improved sneak attack", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "each rank gives +5% chance per attack, per rank to be a sneak attack.", "each rank gives +5% chance per attack, per rank to be a sneak attack.");
+  feato(FEAT_ROBILARS_GAMBIT, "robilars gambit", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.", "when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.");
+  feato(FEAT_WEAPON_PROFICIENCY_ROGUE, "weapon proficiency - rogues", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_POWERFUL_SNEAK, "powerful sneak", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2", "opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2");
-  feato(FEAT_RUN, "run", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_SKILL_FOCUS, "skill focus", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "+3 in chosen skill", "+3 in chosen skill");
-  feato(FEAT_STEADFAST_DETERMINATION, "steadfast determination", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows you to use your con bonus instead of your wis bonus for will saves", "allows you to use your con bonus instead of your wis bonus for will saves");
-  feato(FEAT_WEAPON_PROFICIENCY_BASTARD_SWORD, "weapon proficiency - bastard sword", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_BLINDSENSE, "blindsense", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
+  /* epic */
+  feato(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY, "sneak attack of opportunity", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "makes all opportunity attacks sneak attacks", "makes all opportunity attacks sneak attacks");
+  feato(FEAT_SELF_CONCEALMENT, "self concealment", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "10% miss chance for attacks against you per rank", "10% miss chance for attacks against you per rank");
+
+  /* knight of the rose (dragonlance) */
+  feato(FEAT_FINAL_STAND, "final stand", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_KNIGHTHOODS_FLOWER, "knighthood's flower", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_RALLYING_CRY, "rallying cry", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_WISDOM_OF_THE_MEASURE, "wisdom of the measure", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+
+  /* knight of the sword */
+  feato(FEAT_SOUL_OF_KNIGHTHOOD, "soul of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+
+  /* knight of the thorn (dragonlance) */
+  feato(FEAT_COSMIC_UNDERSTANDING, "cosmic understanding", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_AURA_OF_TERROR, "aura of terror", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_DIVINER, "diviner", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_READ_OMENS, "read omens", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_READ_PORTENTS, "read portents", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_WEAPON_TOUCH, "weapon touch", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
+
+  /* knight of the crown (dragonlance) */
+  feato(FEAT_HONORABLE_WILL, "honorable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_CROWN_OF_KNIGHTHOOD, "crown of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_KNIGHTLY_COURAGE, "knightly courage", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "bonus to fear checks", "bonus to fear checks");
+  feato(FEAT_MIGHT_OF_HONOR, "might of honor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_STRENGTH_OF_HONOR, "strength of honor", FALSE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "+4 to strength for several rounds", "+4 to strength for several rounds");
+
+  /* knight of the lily (dragonlance) */
+  feato(FEAT_DEMORALIZE, "demoralize", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_ONE_THOUGHT, "one thought", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_UNBREAKABLE_WILL, "unbreakable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+
+  /* knight of the crown / knight of the lily [SHARED] (dragonlance) */
+  feato(FEAT_ARMORED_MOBILITY, "armored mobility", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "heavy armor is treated as medium armor", "heavy armor is treated as medium armor");
+
+  /* knight of the skull (dragonlance) */
+  feato(FEAT_DARK_BLESSING, "dark blessing", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_AURA_OF_EVIL, "aura of evil", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_DETECT_GOOD, "detect good", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_DISCERN_LIES, "discern lies", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_FAVOR_OF_DARKNESS, "favor of darkness", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_SMITE_GOOD, "smite good", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
+  /* Pale/Death Master */
+  feato(FEAT_BONE_ARMOR, "bone armor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.", "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.");
+  feato(FEAT_ESSENCE_OF_UNDEATH, "essence of undeath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "gives immunity to poison, disease, sneak attack and critical hits", "gives immunity to poison, disease, sneak attack and critical hits");
+  feato(FEAT_SUMMON_GREATER_UNDEAD, "summon greater undead", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows innate use of summon greater undead spell 3x per day", "allows innate use of summon greater undead spell 3x per day");
+  feato(FEAT_SUMMON_UNDEAD, "summon undead", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows innate use of summon undead spell 3x per day", "allows innate use of summon undead spell 3x per day");
+  feato(FEAT_TOUCH_OF_UNDEATH, "touch of undeath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for paralytic or instant death touch", "allows for paralytic or instant death touch");
+  feato(FEAT_UNDEAD_FAMILIAR, "undead familiar", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for undead familiars", "allows for undead familiars");
+
+  /* Duelist */
+  feato(FEAT_CRIPPLING_CRITICAL, "crippling critical", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows your criticals to have random additional effects", "allows your criticals to have random additional effects");
+  feato(FEAT_NO_RETREAT, "no retreat", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to gain an attack of opportunity against retreating opponents", "allows you to gain an attack of opportunity against retreating opponents");
+  feato(FEAT_PARRY, "parry", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to parry incoming attacks", "allows you to parry incoming attacks");
+  feato(FEAT_RIPOSTE, "riposte", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to gain an attack of opportunity after a successful parry", "allows you to gain an attack of opportunity after a successful parry");
+  /* suppose to be acrobatic charge, but had naming conflict */
+  feato(FEAT_ACROBATIC_CHARGE, "dextrous charge", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "can charge in situations when others cannot", "can charge in situations when others cannot");
+  feato(FEAT_CANNY_DEFENSE, "canny defense", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "add int bonus (max class level) to ac when useing one light weapon and no shield", "add int bonus (max class level) to ac when useing one light weapon and no shield");
+  feato(FEAT_ELABORATE_PARRY, "elaborate parry", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "when fighting defensively or total defense, gains +1 dodge ac per class level", "when fighting defensively or total defense, gains +1 dodge ac per class level");
+  feato(FEAT_PRECISE_STRIKE, "precise strike", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+1d6 damage when using only one weapon and no shield", "+1d6 damage when using only one weapon and no shield");
+  feato(FEAT_DEFLECT_ARROWS, "deflect arrows", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "can deflect one ranged attack per round ", "can deflect one ranged attack per round ");
+
+  /* Assassin */
+  feato(FEAT_DEATH_ATTACK, "death attack", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.", "Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.");
+  feato(FEAT_POISON_SAVE_BONUS, "poison save bonus", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Assassin level 2", "Bonus to all saves against poison.");
+  feato(FEAT_POISON_USE, "poison use", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Trained use in poisons without risk of poisoning self.", "Trained use in poisons without risk of poisoning self.");
+
+  /* dwarven defender */
+  feato(FEAT_DEFENSIVE_STANCE, "defensive stance", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Allows you to fight defensively with bonuses to ac and stats.", "Allows you to fight defensively with bonuses to ac and stats.");
+  feato(FEAT_MOBILE_DEFENSE, "mobile defense", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Allows one to move while in defensive stance", "Allows one to move while in defensive stance");
+
+  /* favored soul */
+  feato(FEAT_DEITY_WEAPON_PROFICIENCY, "deity's weapon proficiency", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use the weapon of your deity", "allows you to use the weapon of your deity");
+  feato(FEAT_HASTE, "haste", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can cast haste 3x per day", "can cast haste 3x per day");
+
+  /* dragon disciple */
+  feato(FEAT_DRAGON_APOTHEOSIS, "dragon apotheosis", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_ELEMENTAL_IMMUNITY, "elemental immunity", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_BREATH_WEAPON, "breath weapon", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_CHARISMA_BOOST, "charisma boost", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_CLAWS_AND_BITE, "claws and bite", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
@@ -948,17 +1082,42 @@ void assign_feats(void) {
   feato(FEAT_STRENGTH_BOOST, "strength boost", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_TRAMPLE, "trample", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_WINGS, "wings", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_NATURAL_ARMOR_INCREASE, "natural armor increase", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+  feato(FEAT_BLINDSENSE, "blindsense", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
+
+  /* dragon rider */
+  feato(FEAT_DRAGON_MOUNT_BOOST, "dragon mount boost", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "gives +18 hp, +1 ac, +1 hit and +1 damage per rank in the feat", "gives +18 hp, +10 ac, +1 hit and +1 damage per rank in the feat");
+  feato(FEAT_DRAGON_MOUNT_BREATH, "dragon mount breath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use your dragon mount's breath weapon once per rank, per 10 minutes.", "allows you to use your dragon mount's breath weapon once per rank, per 10 minutes.");
+
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
+  /* arcane archer */
+  feato(FEAT_ENHANCE_ARROW_ALIGNED, "enhance arrow (aligned)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1d6 holy/unholy damage with bows against different aligned creatures.", "+1d6 holy/unholy damage with bows against different aligned creatures.");
+  feato(FEAT_ENHANCE_ARROW_DISTANCE, "enhance arrow (distance)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "doubles range increment on weapon.", "doubles range increment on weapon.");
+  feato(FEAT_ENHANCE_ARROW_ELEMENTAL, "enhance arrow (elemental)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1d6 elemental damage with bows", "+1d6 elemental damage with bows");
+  feato(FEAT_ENHANCE_ARROW_ELEMENTAL_BURST, "enhance arrow (elemental burst)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+2d10 on critical hits with bows", "+2d10 on critical hits with bows");
+  feato(FEAT_ENHANCE_ARROW_MAGIC, "enhance arrow (magic)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1 to hit and damage with bows per rank", "+1 to hit and damage with bows per rank");
+  /* epic */
+  feato(FEAT_SWARM_OF_ARROWS, "swarm of arrows", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a single ranged attack against everyone in range.", "allows you to make a single ranged attack against everyone in range.");
+
+  /* weapon master */
+  feato(FEAT_INCREASED_MULTIPLIER, "increased multiplier", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of choice have +1 to their critical multiplier", "Weapons of choice have +1 to their critical multiplier");
+  feato(FEAT_KI_CRITICAL, "ki critical", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of choice have +1 to threat range per rank", "Weapons of choice have +1 to threat range per rank");
+  feato(FEAT_KI_DAMAGE, "ki damage", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of Choice have 5 percent chance to deal max damage", "Weapons of Choice have 5 percent chance to deal max damage");
+  feato(FEAT_SUPERIOR_WEAPON_FOCUS, "superior weapon focus", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of choice have +1 to hit", "Weapons of choice have +1 to hit");
+  feato(FEAT_WEAPON_OF_CHOICE, "weapons of choice", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "All weapons with weapon focus gain special abilities", "All weapons with weapon focus gain special abilities");
+
+  /* wizard / sorc */
+  feato(FEAT_BREW_POTION, "brew potion", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical potions ", "can create magical potions ");
+  feato(FEAT_SCRIBE_SCROLL, "scribe scroll", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can scribe spells from memory onto scrolls", "can scribe spells from memory onto scrolls");
   feato(FEAT_ENLARGE_SPELL, "enlarge spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff ", "ask staff ");
   feato(FEAT_HEIGHTEN_SPELL, "heighten spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff ", "ask staff ");
   feato(FEAT_SILENT_SPELL, "silent spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
   feato(FEAT_STILL_SPELL, "still spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
   feato(FEAT_WIDEN_SPELL, "widen spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
-  feato(FEAT_AUTOMATIC_QUICKEN_SPELL, "automatic quicken spell", FALSE, TRUE, TRUE, FEAT_TYPE_METAMAGIC, "You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.", "You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.");
   feato(FEAT_EMPOWER_SPELL, "empower spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all variable numerical effects of a spell are increased by one half ", "all variable numerical effects of a spell are increased by one half ");
   feato(FEAT_EMPOWERED_MAGIC, "empowered magic", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "+1 to all spell dcs", "+1 to all spell dcs");
-  feato(FEAT_ENHANCE_SPELL, "increase spell damage", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "increase max number of damage dice for certain damage based spell by 5", "increase max number of damage dice for certain damage based spell by 5");
   feato(FEAT_EXTEND_SPELL, "extend spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "durations of spells are 50% longer when enabled ", "durations of spells are 50% longer when enabled ");
-  feato(FEAT_INTENSIFY_SPELL, "intensify spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "maximizes damage/healing and then doubles it.", "maximizes damage/healing and then doubles it.");
   feato(FEAT_MAXIMIZE_SPELL, "maximize spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all spells cast while maximised enabled do maximum effect.", "all spells cast while maximised enabled do maximum effect.");
   feato(FEAT_QUICKEN_SPELL, "quicken spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "allows you to cast spell as a move action instead of standard action", "allows you to cast spell as a move action instead of standard action");
   feato(FEAT_ESCHEW_MATERIALS, "eschew materials", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
@@ -969,18 +1128,55 @@ void assign_feats(void) {
   feato(FEAT_AUGMENT_SUMMONING, "augment summoning", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "gives all creatures you have from summoning spells +4 to strength and constitution", "gives all creatures you have from summoning spells +4 to strength and constitution");
   feato(FEAT_COMBAT_CASTING, "combat casting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+4 to concentration checks made in combat or when grappled ", "+4 to concentration checks made in combat or when grappled ");
   feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+1 spell damage per die rolled", "+1 spell damage per die rolled");
-  feato(FEAT_EPIC_SPELLCASTING, "epic spellcasting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "allows you to cast epic spells", "allows you to cast epic spells");
   feato(FEAT_FASTER_MEMORIZATION, "faster memorization", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "decreases spell memorization time", "decreases spell memorization time");
   feato(FEAT_SPELL_FOCUS, "spell focus", FALSE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING, "+1 to all spell dcs for all spells in school/domain", "+1 to all spell dcs for all spells in school/domain");
-  feato(FEAT_FAST_HEALER, "fast healer", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 hp healed per round", "+2 hp healed per round");
+  feato(FEAT_WEAPON_PROFICIENCY_WIZARD, "weapon proficiency - wizards", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+  /* epic */
+  feato(FEAT_EPIC_SPELLCASTING, "epic spellcasting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "allows you to cast epic spells", "allows you to cast epic spells");
+  feato(FEAT_INTENSIFY_SPELL, "intensify spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "maximizes damage/healing and then doubles it.", "maximizes damage/healing and then doubles it.");
+  feato(FEAT_ENHANCE_SPELL, "increase spell damage", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "increase max number of damage dice for certain damage based spell by 5", "increase max number of damage dice for certain damage based spell by 5");
+  feato(FEAT_AUTOMATIC_QUICKEN_SPELL, "automatic quicken spell", FALSE, TRUE, TRUE, FEAT_TYPE_METAMAGIC, "You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.", "You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.");
+
+  /* sacred fist */
+  feato(FEAT_SACRED_FLAMES, "sacred flames", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use innate 'flame weapon' 3 times per 10 minutes", "allows you to use innate 'flame weapon' 3 times per 10 minutes");
+
+  /* druid */
+  feato(FEAT_WEAPON_PROFICIENCY_DRUID, "weapon proficiency - druids", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_NATURAL_SPELL, "natural spell", FALSE, TRUE, FALSE, FEAT_TYPE_WILD, "allows casting of spells while wild shaped.", "allows casting of spells while wild shaped.");
+
+  /* monk */
+  feato(FEAT_WEAPON_PROFICIENCY_MONK, "weapon proficiency - monks", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+
+  /* End Class ability Feats */
+
+  /* Racial ability feats */
+
+  /* Elf */
+  feato(FEAT_WEAPON_PROFICIENCY_ELF, "weapon proficiency - elves", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
+
+  /* Crystal Dwarf */
+  feato(FEAT_CRYSTAL_BODY, "crystal body", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "Allows you to harden your crystal-like body for a short time. (Damage reduction 3/-)", "Allows you to harden your crystal-like body for a short time. (Damage reduction 3/-)");
+  feato(FEAT_CRYSTAL_FIST, "crystal fist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "Allows you to innately grow jagged and sharp crystals on your arms and legs to enhance damage in melee. (+3 damage)", "Allows you to innately grow jagged and sharp crystals on your arms and legs to enhance damage in melee. (+3 damage)");
+
+  /* Arcana Golem */
+  feato(FEAT_SPELLBATTLE, "spellbattle", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "Strengthen your body with Arcane power.", "By channeling their inner magic, Arcana Golems can use it to provide a huge surge to their physical attributes in the rare cases in which they must resort to physical violence. While the eldritch energies cloud their mind and finesse, the bonus to durability and power can provide that edge when need.  \r\nSpell Battle is a mode. When this mode is activated, you receive a penalty to attack rolls equal to the argument and caster levels equal to half. In return, you gain a bonus to AC and saving throws equal to the penalty taken, a bonus to BAB equal to 2/3rds of this penalty (partially but not completely negating the attack penalty), and a bonus to maximum hit points equal to 10 * penalty taken. Arcana Golems take an additional -2 penalty to Intelligence, * Wisdom, and Charisma while in Spell Battle.\r\nSpell battle without any arguments will cancel the mode, but an Arcana Golem can only cancel Spell Battle after spending 6 minutes in it. The surge of energy is not easily turned off.\r\nYou cannot use Spell-Battle at the same time you use Power Attack, Combat Expertise, or similar effects");
+
+  /* Various */
+  feato(FEAT_DARKVISION, "darkvision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_LOW_LIGHT_VISION, "low light vision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "can see in the dark outside only", "can see in the dark outside only");
+
+  /* End Racial ability feats */
+
+  /* UNSORTED */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");
 
   /****************************************************************************/
-
   /* some more assigning */
+
+  /* Combat Feats */
   combatfeat(FEAT_IMPROVED_CRITICAL);
   combatfeat(FEAT_WEAPON_FINESSE);
   combatfeat(FEAT_WEAPON_FOCUS);
@@ -994,12 +1190,16 @@ void assign_feats(void) {
   combatfeat(FEAT_WEAPON_FLURRY);
   combatfeat(FEAT_WEAPON_SUPREMACY);
 
+  /* Epic Feats */
   epicfeat(FEAT_EPIC_PROWESS);
   epicfeat(FEAT_SWARM_OF_ARROWS);
   epicfeat(FEAT_SELF_CONCEALMENT);
   epicfeat(FEAT_INTENSIFY_SPELL);
   epicfeat(FEAT_EPIC_SPELLCASTING);
   epicfeat(FEAT_EPIC_SKILL_FOCUS);
+  epicfeat(FEAT_EPIC_DODGE);
+  epicfeat(FEAT_EPIC_COMBAT_CHALLENGE);
+  epicfeat(FEAT_EPIC_TOUGHNESS);
   epicfeat(FEAT_GREAT_STRENGTH);
   epicfeat(FEAT_GREAT_CONSTITUTION);
   epicfeat(FEAT_GREAT_DEXTERITY);
@@ -1014,12 +1214,11 @@ void assign_feats(void) {
   epicfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING);
   epicfeat(FEAT_SNEAK_ATTACK);
   epicfeat(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY);
-  epicfeat(FEAT_EPIC_DODGE);
-  epicfeat(FEAT_EPIC_COMBAT_CHALLENGE);
-  epicfeat(FEAT_EPIC_TOUGHNESS);
   epicfeat(FEAT_AUTOMATIC_QUICKEN_SPELL);
+  epicfeat(FEAT_IMPROVED_SPELL_RESISTANCE);
   epicfeat(FEAT_LAST_FEAT);
 
+  /* Feats with "Daily Use" Mechanic */
   dailyfeat(FEAT_STUNNING_FIST, eSTUNNINGFIST);
   dailyfeat(FEAT_ANIMATE_DEAD, eANIMATEDEAD);
   dailyfeat(FEAT_LAYHANDS, eLAYONHANDS);
@@ -1030,6 +1229,8 @@ void assign_feats(void) {
   dailyfeat(FEAT_QUIVERING_PALM, eQUIVERINGPALM);
   dailyfeat(FEAT_CRYSTAL_BODY, eCRYSTALBODY);
   dailyfeat(FEAT_CRYSTAL_FIST, eCRYSTALFIST);
+
+  /** END **/
 }
 
 /* Check to see if ch meets the provided feat prerequisite.

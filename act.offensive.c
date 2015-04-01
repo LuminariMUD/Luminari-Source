@@ -1234,7 +1234,7 @@ void perform_assist(struct char_data *ch, struct char_data *helpee) {
 /* the primary engine for springleap */
 void perform_springleap(struct char_data *ch, struct char_data *vict) {
   //struct affected_type af;
-  int dam = 0, prob = 0;
+  int dam = 0;
 
   if (vict == ch) {
     send_to_char(ch, "Aren't we funny today...\r\n");
@@ -1259,13 +1259,14 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  prob = 60;
-
-  if (rand_number(0, 100) < prob) {
+  if (attack_roll(ch, vict, ATTACK_TYPE_UNARMED, FALSE, 1) > 0) {
     dam = dice(6, (GET_LEVEL(ch) / 5) + 2);
     damage(ch, vict, dam, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
 
-    /*    new_affect(&af);
+    /* ornir decided to disable this, so i changed the skill from full around action
+     * to a move action
+     *
+        new_affect(&af);
         af.spell = SKILL_SPRINGLEAP;
         if (!rand_number(0, 5))
           SET_BIT_AR(af.bitvector, AFF_PARALYZED);
@@ -1279,7 +1280,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
   }
 
   GET_POS(ch) = POS_STANDING;
-  USE_FULL_ROUND_ACTION(ch);
+  USE_MOVE_ACTION(ch);
 }
 
 /* smite evil (eventually good?) engine */
@@ -1955,6 +1956,7 @@ ACMD(do_flee) {
   if (!*arg) {
     perform_flee(ch);
   } else if (*arg && !IS_NPC(ch) && !HAS_FEAT(ch, FEAT_SPRING_ATTACK)) {
+    send_to_char(ch, "You don't have the option to choose which way to flee, and flee randomly!\r\n");
     perform_flee(ch);
   } else {// there is an argument, check if its valid
     if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK)) {
@@ -1968,6 +1970,7 @@ ACMD(do_flee) {
           send_to_char(ch, "You make a tactical retreat from battle!\r\n");
           act("$n makes a tactical retreat from the battle!",
                   TRUE, ch, 0, 0, TO_ROOM);
+          USE_MOVE_ACTION(ch);
         } else {
           send_to_char(ch, "You can't escape that direction!\r\n");
           return;
