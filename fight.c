@@ -3756,34 +3756,34 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
       if (IS_NPC(ch) && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
         return TRUE;
       else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) ||
-                 (proficiency_worn(ch, ARMOR_PROFICIENCY) > ITEM_PROF_LIGHT_A &&
+                 (proficiency_worn(ch, ARMOR_PROFICIENCY) <= ITEM_PROF_LIGHT_A &&
                   HAS_FEAT(ch, FEAT_IMPROVED_DUAL_WEAPON_FIGHTING)))
                ) {
         return TRUE;
       } else
         return FALSE;
     case 3:
-      if (IS_NPC(ch) && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
+      if (IS_NPC(ch) && GET_LEVEL(ch) >= 17 && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
         return TRUE;
       else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_GREATER_TWO_WEAPON_FIGHTING) ||
-                 (proficiency_worn(ch, ARMOR_PROFICIENCY) > ITEM_PROF_LIGHT_A &&
+                 (proficiency_worn(ch, ARMOR_PROFICIENCY) <= ITEM_PROF_LIGHT_A &&
                   HAS_FEAT(ch, FEAT_GREATER_DUAL_WEAPON_FIGHTING)))
                ) {
         return TRUE;
       } else
         return FALSE;
     case 4:
-      if (IS_NPC(ch) && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
+      if (IS_NPC(ch) && GET_LEVEL(ch) >= 24 && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
         return TRUE;
       else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_PERFECT_TWO_WEAPON_FIGHTING) ||
-                 (proficiency_worn(ch, ARMOR_PROFICIENCY) > ITEM_PROF_LIGHT_A &&
+                 (proficiency_worn(ch, ARMOR_PROFICIENCY) <= ITEM_PROF_LIGHT_A &&
                   HAS_FEAT(ch, FEAT_PERFECT_DUAL_WEAPON_FIGHTING)))
                ) {
         return TRUE;
       } else
         return FALSE;
   }
-  
+
   log("ERR: is_skilled_dualer() reached end!");
   return 0;
 }
