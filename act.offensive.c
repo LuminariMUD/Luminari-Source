@@ -1447,6 +1447,11 @@ ACMD(do_turnundead) {
   int turn_difference = 0, turn_result = 0, turn_roll = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
+  if (!HAS_FEAT(ch, FEAT_TURN_UNDEAD)) {
+    send_to_char(ch, "You do not possess divine favor!\r\n");
+    return;
+  }
+
   if (CLASS_LEVEL(ch, CLASS_PALADIN) > 2)
     turn_level += CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
   turn_level += CLASS_LEVEL(ch, CLASS_CLERIC);

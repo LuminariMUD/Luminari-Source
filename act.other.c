@@ -1887,8 +1887,19 @@ ACMD(do_sneak) {
 ACMD(do_hide) {
 
   if (FIGHTING(ch)) {
-    send_to_char(ch, "You can't do that in combat!\r\n");
-    return;
+    if (HAS_FEAT(ch, FEAT_HIDE_IN_PLAIN_SIGHT)) {
+      USE_STANDARD_ACTION(ch);
+      if (skill_roll(FIGHTING(ch), ABILITY_PERCEPTION) < skill_roll(ch, ABILITY_STEALTH)) {
+        stop_fighting(FIGHTING(ch));
+        stop_fighting(ch);
+      } else {
+        send_to_char(ch, "You failed to hide in plain sight!\r\n");
+        return;
+      }
+    } else {
+      send_to_char(ch, "You can't do that in combat!\r\n");
+      return;
+    }
   }
 
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
@@ -1910,7 +1921,7 @@ ACMD(do_hide) {
   send_to_char(ch, "You attempt to hide yourself.\r\n");
   SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
   USE_MOVE_ACTION(ch); /*protect from sniping abuse*/
-\
+
 }
 
 /* listen-mode, similar to search - try to find hidden/sneaking targets */
