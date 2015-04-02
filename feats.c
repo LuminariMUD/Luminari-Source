@@ -307,6 +307,7 @@ void assign_feats(void) {
   }
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
   /* Combat feats */
   feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead",
@@ -327,6 +328,7 @@ void assign_feats(void) {
   feat_prereq_class_level(FEAT_GREATER_WEAPON_FOCUS, CLASS_WARRIOR, 8);
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
   /* here is our mounted combat feats */
   feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "once per round rider may negate a hit against him with a successful ride vs attack roll check",
@@ -575,7 +577,8 @@ void assign_feats(void) {
   feato(FEAT_STEALTHY, "stealthy", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "+2 to hide and move silently skill checks",
     "+2 to hide and move silently skill checks");
-  feato(FEAT_TOUGHNESS, "toughness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+1 hp per level, +(level) hp upon taking",
+  feato(FEAT_TOUGHNESS, "toughness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "+1 hp per level, +(level) hp upon taking",
     "+1 hp per level, +(level) hp upon taking");
   feato(FEAT_ARMOR_PROFICIENCY_SHIELD, "shield armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "able to use bucklers, light and heavy shields without penalty ",
@@ -591,44 +594,79 @@ void assign_feats(void) {
   feato(FEAT_ARMOR_SKIN, "armor skin", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
     "Increases natural armor by 1",
     "Increases natural armor by 1");
-  feato(FEAT_IMPROVED_SPELL_RESISTANCE, "improved spell resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+  /* monk */ feato(FEAT_IMPROVED_SPELL_RESISTANCE, "improved spell resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
     "+2 to spell resistance",
     "+2 to spell resistance");
   feat_prereq_feat(FEAT_IMPROVED_SPELL_RESISTANCE, FEAT_DIAMOND_SOUL, 1);
 
   /* Spellcasting feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+2 bonus on caster level checks to defeat spell resistance", "+2 bonus on caster level checks to defeat spell resistance");
+  feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "+2 bonus on caster level checks to defeat spell resistance",
+    "+2 bonus on caster level checks to defeat spell resistance");
   feato(FEAT_ARMORED_SPELLCASTING, "armored spellcasting", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
     "reduce penalty for casting arcane spells while armored",
     "reduces the arcane armor weight penalty by 5");
 
-  feato(FEAT_GREATER_SPELL_PENETRATION, "greater spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+2 to caster level checks to defeat spell resistance", "+2 to caster level checks to defeat spell resistance");
+  feato(FEAT_GREATER_SPELL_PENETRATION, "greater spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "+2 to caster level checks to defeat spell resistance",
+    "+2 to caster level checks to defeat spell resistance");
   feat_prereq_feat(FEAT_GREATER_SPELL_PENETRATION, FEAT_SPELL_PENETRATION, 1);
 
   /* Crafting feats */
-  feato(FEAT_DRACONIC_CRAFTING, "draconic crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT, "All magical items created gain higher bonuses w/o increasing level", "All magical items created gain higher bonuses w/o increasing level");
-  feato(FEAT_DWARVEN_CRAFTING, "dwarven crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT, "All weapons and armor made have higher bonuses", "All weapons and armor made have higher bonuses");
-  feato(FEAT_ELVEN_CRAFTING, "elven crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT, "All equipment made is 50% weight and uses 50% materials", "All equipment made is 50% weight and uses 50% materials");
-  feato(FEAT_FAST_CRAFTER, "fast crafter", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT, "Reduces crafting time", "Reduces crafting time");
+  feato(FEAT_DRACONIC_CRAFTING, "draconic crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
+    "All magical items created gain higher bonuses w/o increasing level",
+    "All magical items created gain higher bonuses w/o increasing level");
+  feato(FEAT_DWARVEN_CRAFTING, "dwarven crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
+    "All weapons and armor made have higher bonuses",
+    "All weapons and armor made have higher bonuses");
+  feato(FEAT_ELVEN_CRAFTING, "elven crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
+    "All equipment made is 50% weight and uses 50% materials",
+    "All equipment made is 50% weight and uses 50% materials");
+  feato(FEAT_FAST_CRAFTER, "fast crafter", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
+    "Reduces crafting time",
+    "Reduces crafting time");
 
   /* Class ability feats */
 
   /* Cleric */
+  /* turn undead is below, shared with paladin */
 
   /* Cleric / Paladin */
-  feato(FEAT_TURN_UNDEAD, "turn undead", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can cause fear in or destroy undead based on class level and charisma bonus", "can cause fear in or destroy undead based on class level and charisma bonus");
+  feato(FEAT_TURN_UNDEAD, "turn undead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "can cause fear in or destroy undead based on class level and charisma bonus",
+    "can cause fear in or destroy undead based on class level and charisma bonus");
 
   /* Paladin */
-  feato(FEAT_AURA_OF_COURAGE, "aura of courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Immunity to fear attacks, +4 bonus to fear saves for group members", "Immunity to fear attacks, +4 bonus to fear saves for group members");
-  feato(FEAT_SMITE_EVIL, "smite evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "add level to hit roll and charisma bonus to damage", "add level to hit roll and charisma bonus to damage");
-  feato(FEAT_DETECT_EVIL, "detect evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "able to detect evil alignments", "able to detect evil alignments");
-  feato(FEAT_AURA_OF_GOOD, "aura of good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+10 ac to all group members", "+10 ac to all group members");
-  feato(FEAT_DIVINE_HEALTH, "divine health", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "immune to disease", "immune to disease");
-  feato(FEAT_LAYHANDS, "lay on hands", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Powerful divine healing ability usable a limited number of times a day", "Powerful divine healing ability usable a limited number of times a day");
-  feato(FEAT_REMOVE_DISEASE, "remove disease", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can cure diseases", "can cure diseases");
-  feato(FEAT_CALL_MOUNT, "call mount", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Allows you to call a paladin mount", "Allows you to call a paladin mount");
-  feato(FEAT_DIVINE_BOND, "divine bond", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "bonuses to attack and damage rolls when active", "bonuses to attack and damage rolls when active");
+  /* turn undead is above, shared with cleric */
+  feato(FEAT_AURA_OF_COURAGE, "aura of courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Immunity to fear attacks, +4 bonus to fear saves for group members",
+    "Immunity to fear attacks, +4 bonus to fear saves for group members");
+  feato(FEAT_SMITE_EVIL, "smite evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "add level to hit roll and charisma bonus to damage",
+    "add level to hit roll and charisma bonus to damage");
+  feato(FEAT_DETECT_EVIL, "detect evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "able to detect evil alignments",
+    "able to detect evil alignments");
+  feato(FEAT_AURA_OF_GOOD, "aura of good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "able to detect good alignments",
+    "able to detect good alignments");
+  feato(FEAT_DIVINE_HEALTH, "divine health", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "immune to disease",
+    "immune to disease");
+  feato(FEAT_LAYHANDS, "lay on hands", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Powerful divine healing ability usable a limited number of times a day",
+    "Powerful divine healing ability usable a limited number of times a day");
+  feato(FEAT_REMOVE_DISEASE, "remove disease", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "can cure diseases",
+    "can cure diseases (purify)");
+  feato(FEAT_CALL_MOUNT, "call mount", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Allows you to call a paladin mount",
+    "Allows you to call a paladin mount");
+  feato(FEAT_DIVINE_BOND, "divine bond", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "bonuses to attack and damage rolls",
+    "Hitroll and Damage bonus of 1 + paladin-level/3 for levels above 5, the "
+      "bonus caps at 6");
 
   /* Rogue */
   /* trap sense below (shared with berserker) */
@@ -2356,6 +2394,16 @@ void list_feats(struct char_data *ch, char *arg, int list_type) {
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
           sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_ARMOR_SKIN));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
+      } else if (i == FEAT_EPIC_TOUGHNESS) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (+%d hp)", feat_list[i].name, (has_feat(ch, FEAT_ARMOR_SKIN) * 30));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (+%d hp)", feat_list[i].name, (has_feat(ch, FEAT_ARMOR_SKIN) * 30));
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);

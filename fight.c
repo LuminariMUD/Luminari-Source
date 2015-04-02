@@ -2140,6 +2140,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   }
 
   /* paladin's divine bond */
+  /* maximum of 6 damage
+     1 + level / 3 (past level 5) */
   if (HAS_FEAT(ch, FEAT_DIVINE_BOND)) {
     dambonus += MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3));
   }
@@ -2903,6 +2905,13 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   /* EPIC PROWESS feat stacks, +1 for each time the feat is taken. */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_PROWESS))
     bonuses[BONUS_TYPE_UNDEFINED] += HAS_FEAT(ch, FEAT_EPIC_PROWESS);
+
+  /* paladin's divine bond */
+  /* maximum of 6 hitroll
+     1 + level / 3 (past level 5) */
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DIVINE_BOND)) {
+    bonuses[BONUS_TYPE_UNDEFINED] += MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3));
+  }
 
   /* temporary filler for ki-strike until we get it working right */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
