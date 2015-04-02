@@ -431,7 +431,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   }
 
   /* favored enemy */
-  if (attacker && CLASS_LEVEL(ch, CLASS_RANGER)) {
+  if (attacker && attacker != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
       armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
@@ -2131,7 +2131,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   }
 
   /* favored enemy */
-  if (vict && CLASS_LEVEL(ch, CLASS_RANGER)) {
+  if (vict && vict != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
       dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
@@ -2922,7 +2922,7 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
     bonuses[BONUS_TYPE_UNDEFINED] -= COMBAT_MODE_VALUE(ch);
 
   /* favored enemy - Needs work */
-  if (victim && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
+  if (victim && victim != ch && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
       bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
@@ -3728,42 +3728,62 @@ int is_dual_weapons(struct char_data *ch, int mode) {
   return 0;
 }
 
-/* there has gotta be a simpler way to do this, but for now
-   this is how i implemented this
- * Parameters:
- *   ch -> character who is attacking
- *   mode -> can this character perform this 'dual-wield' attack
- *     0 -> does he have two weapons equipped?
- *     1 -> has ambidexterity equivalent?
- *     2 -> has two-weapon fighting equivalent?
- *     3 -> has epic-two-weapon fighting equivalent?
- * Returns:
- *   0 = False/No    1 = True/Yes
- *   to above questions
- *  */
+int is_dual_wielding(struct char_data *ch) {
+
+  if (GET_EQ(ch, WEAR_WIELD_2) || GET_RACE(ch) == RACE_TRELUX)
+    return TRUE;
+
+  return FALSE;
+}
+
+/* mode 1 - two weapon fighting equivalent (reduce two weapon fighting penalty)
+ * mode 2 - improved two weapon fighting - extra attack at -5
+ * mode 3 - greater two weapon fighting - extra attack at -10
+ * mode 4 - perfect two weapon fighting - extra attack */
 int is_skilled_dualer(struct char_data *ch, int mode) {
   switch (mode) {
-    case 0: // have off-hander equipped?
-      if (GET_EQ(ch, WEAR_WIELD_2) || GET_RACE(ch) == RACE_TRELUX)
-        return TRUE;
-      else
-        return FALSE;
     case 1:
-      if (GET_SKILL(ch, SKILL_AMBIDEXTERITY) || is_dual_weapons(ch, mode))
+      if (IS_NPC(ch))
         return TRUE;
-      else
+      else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_TWO_WEAPON_FIGHTING) ||
+                 (proficiency_worn(ch, ARMOR_PROFICIENCY) <= ITEM_PROF_LIGHT_A &&
+                  HAS_FEAT(ch, FEAT_DUAL_WEAPON_FIGHTING)))
+               ) {
+        return TRUE;
+      } else
         return FALSE;
     case 2:
-      if (HAS_FEAT(ch, FEAT_TWO_WEAPON_FIGHTING) || is_dual_weapons(ch, mode))
+      if (IS_NPC(ch) && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
         return TRUE;
-      else
+      else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) ||
+                 (proficiency_worn(ch, ARMOR_PROFICIENCY) > ITEM_PROF_LIGHT_A &&
+                  HAS_FEAT(ch, FEAT_IMPROVED_DUAL_WEAPON_FIGHTING)))
+               ) {
+        return TRUE;
+      } else
         return FALSE;
     case 3:
-      if (GET_SKILL(ch, SKILL_EPIC_2_WEAPON) || is_dual_weapons(ch, mode))
+      if (IS_NPC(ch) && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
         return TRUE;
-      else
+      else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_GREATER_TWO_WEAPON_FIGHTING) ||
+                 (proficiency_worn(ch, ARMOR_PROFICIENCY) > ITEM_PROF_LIGHT_A &&
+                  HAS_FEAT(ch, FEAT_GREATER_DUAL_WEAPON_FIGHTING)))
+               ) {
+        return TRUE;
+      } else
+        return FALSE;
+    case 4:
+      if (IS_NPC(ch) && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
+        return TRUE;
+      else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_PERFECT_TWO_WEAPON_FIGHTING) ||
+                 (proficiency_worn(ch, ARMOR_PROFICIENCY) > ITEM_PROF_LIGHT_A &&
+                  HAS_FEAT(ch, FEAT_PERFECT_DUAL_WEAPON_FIGHTING)))
+               ) {
+        return TRUE;
+      } else
         return FALSE;
   }
+  
   log("ERR: is_skilled_dualer() reached end!");
   return 0;
 }
@@ -3772,8 +3792,9 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
 /* returns # of attacks and has mode functionality */
 #define ATTACK_CAP	3  /* MAX # of main-hand BONUS attacks */
 #define MONK_CAP	(ATTACK_CAP + 2) /* monks main-hand bonus attack cap */
-#define TWO_WPN_PNLTY	-5
-#define EPIC_TWO_PNLY	-7
+#define TWO_WPN_PNLTY	-5 /* improved two weapon fighting */
+#define GREAT_TWO_PNLY	-10 /* greater two weapon fighting */
+#define EPIC_TWO_PNLTY   0 /* perfect two weapon fighting */
 /* mode functionality */
 #define NORMAL_ATTACK_ROUTINE 0 /*mode = 0  normal attack routine*/
 #define RETURN_NUM_ATTACKS 1 /*mode = 1  return # of attacks, nothing else*/
@@ -3801,7 +3822,7 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
 int perform_attacks(struct char_data *ch, int mode, int phase) {
   int i = 0, penalty = 0, numAttacks = 0, bonusAttacks = 0;
   int attacks_at_max_bab = 0;
-  int ranged_attacks = 2;
+  int ranged_attacks = 2; /* ranged combat gets 2 bonus attacks currently */
   bool dual = FALSE;
   bool perform_attack = FALSE;
 
@@ -3814,7 +3835,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
    *  attack mode) skip all phases but the first. */
   if ((mode == NORMAL_ATTACK_ROUTINE) && !is_action_available(ch, atSTANDARD, FALSE))
     return (0);
-  else if ((mode == NORMAL_ATTACK_ROUTINE) && (phase != 1) && !is_action_available(ch, atMOVE, FALSE))
+  else if ((mode == NORMAL_ATTACK_ROUTINE) && (phase != PHASE_1) && !is_action_available(ch, atMOVE, FALSE))
     return (0);
 
   guard_check(ch, FIGHTING(ch)); /* this is the guard skill check */
@@ -3926,17 +3947,17 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   /*  End ranged attacks ---------------------------------------------------- */
 
   //now lets determine base attack(s) and resulting possible penalty
-  dual = is_skilled_dualer(ch, 0); // trelux or has off-hander equipped
+  dual = is_dual_wielding(ch); // trelux or has off-hander equipped
 
   if (dual) { /*default of one offhand attack for everyone*/
-    numAttacks += 2;
-    if (GET_EQ(ch, WEAR_WIELD_2)) {
+    numAttacks += 2; /* mainhand + offhand */
+    if (GET_EQ(ch, WEAR_WIELD_2)) { /* determine if offhand is smaller than ch */
       if (GET_SIZE(ch) <= GET_OBJ_SIZE(GET_EQ(ch, WEAR_WIELD_2)))
-        penalty -= 4;
+        penalty -= 4; /* offhand weapon is not light! */
     }
-    if (!IS_NPC(ch) && is_skilled_dualer(ch, 1))
-      penalty -= 1;
-    else
+    if (is_skilled_dualer(ch, 1)) /* two weapon fighting feat? */
+      penalty -= 2; /* yep! */
+    else /* nope! */
       penalty -= 4;
     if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
       if (FIGHTING(ch))
@@ -3944,13 +3965,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                 IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
           if (phase == PHASE_0 || phase == PHASE_1)
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
-                penalty, FALSE);
+                penalty, FALSE); /* whack with mainhand */
       if (FIGHTING(ch))
         if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
                 IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
           if (phase == PHASE_0 || phase == PHASE_2)
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
-                  penalty * 2, TRUE);
+                  penalty * 2, TRUE); /* whack with offhand */
     } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
@@ -4039,7 +4060,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 
   /*additional off-hand attacks*/
   if (dual) {
-    if (!IS_NPC(ch) && is_skilled_dualer(ch, 2)) {
+
+    if (!IS_NPC(ch) && is_skilled_dualer(ch, 2)) { /* improved 2-weapon fighting */
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
         if (FIGHTING(ch))
@@ -4059,12 +4081,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                                                 (numAttacks == 12))))
               hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY, TRUE);
       } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
-        send_to_char(ch, "Offhand (2 Weapon Fighting), Attack Bonus:  %d; ",
+        send_to_char(ch, "Offhand (Improved 2 Weapon Fighting), Attack Bonus:  %d; ",
                      compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + TWO_WPN_PNLTY);
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
       }
     }
-    if (!IS_NPC(ch) && is_skilled_dualer(ch, 3)) { /* epic two weapon fighting */
+
+    if (!IS_NPC(ch) && is_skilled_dualer(ch, 3)) { /* greater two weapon fighting */
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
         if (FIGHTING(ch))
@@ -4083,13 +4106,41 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                                                 (numAttacks == 9) ||
                                                 (numAttacks == 12))))
 
-              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLY, TRUE);
+              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, GREAT_TWO_PNLY, TRUE);
       } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
-        send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",
-                     compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + EPIC_TWO_PNLY);
+        send_to_char(ch, "Offhand (Great 2 Weapon Fighting), Attack Bonus:  %d; ",
+                     compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + GREAT_TWO_PNLY);
         compute_hit_damage(ch, ch, NULL, 0, 0, 3);
       }
     }
+
+    if (!IS_NPC(ch) && is_skilled_dualer(ch, 4)) { /* perfect two weapon fighting */
+      numAttacks++;
+      if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
+        if (FIGHTING(ch))
+          if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
+                  IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
+            if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) ||
+                                                (numAttacks == 4) ||
+                                                (numAttacks == 7) ||
+                                                (numAttacks == 10))) ||
+                              ((phase == PHASE_2) && ((numAttacks == 2) ||
+                                                (numAttacks == 5) ||
+                                                (numAttacks == 8) ||
+                                                (numAttacks == 11))) ||
+                              ((phase == PHASE_1) && ((numAttacks == 3) ||
+                                                (numAttacks == 6) ||
+                                                (numAttacks == 9) ||
+                                                (numAttacks == 12))))
+
+              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLTY, TRUE);
+      } else if (mode == DISPLAY_ROUTINE_POTENTIAL) { //display attack routine
+        send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",
+                     compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + EPIC_TWO_PNLTY);
+        compute_hit_damage(ch, ch, NULL, 0, 0, 3);
+      }
+    }
+
   }
   return numAttacks;
 }
@@ -4103,8 +4154,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 #undef PHASE_1
 #undef PHASE_2
 #undef PHASE_3
-/* display condition of FIGHTING() target to ch */
 
+/* display condition of FIGHTING() target to ch */
 /* this is deprecated with the prompt changes */
 void autoDiagnose(struct char_data * ch) {
   struct char_data *char_fighting = NULL, *tank = NULL;

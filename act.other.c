@@ -1889,7 +1889,7 @@ ACMD(do_hide) {
   if (FIGHTING(ch)) {
     if (HAS_FEAT(ch, FEAT_HIDE_IN_PLAIN_SIGHT)) {
       USE_STANDARD_ACTION(ch);
-      if (skill_roll(FIGHTING(ch), ABILITY_PERCEPTION) < skill_roll(ch, ABILITY_STEALTH)) {
+      if ((skill_roll(FIGHTING(ch), ABILITY_PERCEPTION)) < (skill_roll(ch, ABILITY_STEALTH) - 8)) {
         stop_fighting(FIGHTING(ch));
         stop_fighting(ch);
       } else {
@@ -1920,8 +1920,7 @@ ACMD(do_hide) {
 
   send_to_char(ch, "You attempt to hide yourself.\r\n");
   SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
-  USE_MOVE_ACTION(ch); /*protect from sniping abuse*/
-
+  USE_MOVE_ACTION(ch); /* protect from sniping abuse */
 }
 
 /* listen-mode, similar to search - try to find hidden/sneaking targets */
