@@ -263,7 +263,7 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch) {
   if (obj->weapon_poison.poison)
     send_to_char(ch, " \tG(poisoned)\tn");
 
-  if (OBJ_FLAGGED(obj, ITEM_BLESS) && AFF_FLAGGED(ch, AFF_DETECT_ALIGN))
+  if (OBJ_FLAGGED(obj, ITEM_BLESS) && (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD)))
     send_to_char(ch, " \tn..It glows \tBblue\tn!");
 
   if (OBJ_FLAGGED(obj, ITEM_MAGIC) && AFF_FLAGGED(ch, AFF_DETECT_MAGIC))
@@ -475,11 +475,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
 
-    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || CLASS_LEVEL(ch, CLASS_PALADIN)) {
-      if (IS_EVIL(i))
+    if (IS_EVIL(i)) {
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL)) {
         send_to_char(ch, "\tR(Red Aura)\tn ");
-      else if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) && IS_GOOD(i))
+      }
+    } else if (IS_GOOD(i)) {
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD)) {
         send_to_char(ch, "\tB(Blue Aura)\tn ");
+      }
     }
 
     if (IS_NPC(i) && (GET_MOB_SPEC(i) == questmaster || i->mob_specials.quest))
@@ -502,11 +505,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
 
-    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || CLASS_LEVEL(ch, CLASS_PALADIN)) {
-      if (IS_EVIL(i))
+    if (IS_EVIL(i)) {
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL)) {
         send_to_char(ch, "\tR(Red Aura)\tn ");
-      else if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) && IS_GOOD(i))
+      }
+    } else if (IS_GOOD(i)) {
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD)) {
         send_to_char(ch, "\tB(Blue Aura)\tn ");
+      }
     }
 
     send_to_char(ch, "%s", i->player.long_descr);
@@ -577,11 +583,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
       send_to_char(ch, " is here struggling with thin air.");
   }
 
-  if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || CLASS_LEVEL(ch, CLASS_PALADIN)) {
-    if (IS_EVIL(i))
+  if (IS_EVIL(i)) {
+    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL)) {
       send_to_char(ch, "\tR(Red Aura)\tn ");
-    else if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) && IS_GOOD(i))
+    }
+  } else if (IS_GOOD(i)) {
+    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD)) {
       send_to_char(ch, "\tB(Blue Aura)\tn ");
+    }
   }
   send_to_char(ch, "\r\n");
 
