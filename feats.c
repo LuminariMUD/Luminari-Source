@@ -757,17 +757,17 @@ void assign_feats(void) {
     "No penalty while autotracking.");
   /* combat mastery should be either an archer set of feats or dual wielding set of feats, for now we give them both */
   /* we have to make seperate feats for dual weapon fighting (two weapon fighting) */
-  feato(FEAT_DUAL_WEAPON_FIGHTING, "two weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_DUAL_WEAPON_FIGHTING, "dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "reduces penalty for two weapon fighting",
     "reduces penalty for two weapon fighting while wearing light or lighter armor");
-  feato(FEAT_IMPROVED_DUAL_WEAPON_FIGHTING, "improved two weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_IMPROVED_DUAL_WEAPON_FIGHTING, "improved dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "extra attack with offhand weapon at -5 penalty",
     "extra attack with offhand weapon at -5 penalty while wearing light or lighter armor");
-  feato(FEAT_GREATER_DUAL_WEAPON_FIGHTING, "greater two weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_GREATER_DUAL_WEAPON_FIGHTING, "greater dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gives an additional offhand weapon attack at -10 penalty",
     "gives an additional offhand weapon attack at -10 penalty while wearing light or lighter armor");
   /* epic */
-  feato(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, "perfect two weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, "perfect dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "Extra attack with offhand weapon",
     "Extra attack with offhand weapon while wearing light or lighter armor");
     /* rapid shot */
