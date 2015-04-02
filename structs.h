@@ -1334,9 +1334,13 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_RP_FEARLESS_RAGE            380
 #define FEAT_RP_COME_AND_GET_ME          381
 /* end rage powers */
+#define FEAT_DUAL_WEAPON_FIGHTING          382
+#define FEAT_IMPROVED_DUAL_WEAPON_FIGHTING 383
+#define FEAT_GREATER_DUAL_WEAPON_FIGHTING  384
+#define FEAT_PERFECT_DUAL_WEAPON_FIGHTING  385
 
-#define FEAT_LAST_FEAT                   382
-#define NUM_FEATS                        383
+#define FEAT_LAST_FEAT                   386
+#define NUM_FEATS                        387
 
 #define MAX_FEATS                        750
 

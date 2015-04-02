@@ -438,11 +438,6 @@ void assign_feats(void) {
   feat_prereq_feat(FEAT_STUNNING_FIST, FEAT_IMPROVED_UNARMED_STRIKE, 1);
   feat_prereq_bab(FEAT_STUNNING_FIST, 8);
 
-  feato(FEAT_TWO_WEAPON_FIGHTING, "two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "extra attack with offhand weapon",
-    "extra attack with offhand weapon");
-  feat_prereq_attribute(FEAT_TWO_WEAPON_FIGHTING, AB_DEX, 15);
-
   feato(FEAT_WEAPON_FINESSE, "weapon finesse", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "use dex for hit roll of weapons",
     "use dexterity bonus for hit roll of weapons (if better than strength bonus), "
@@ -479,10 +474,32 @@ void assign_feats(void) {
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_SPECIALIZATION);
   feat_prereq_class_level(FEAT_GREATER_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 12);
 
+  feato(FEAT_TWO_WEAPON_FIGHTING, "two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "reduces penalty for two weapon fighting",
+    "reduces penalty for two weapon fighting");
+  feat_prereq_attribute(FEAT_TWO_WEAPON_FIGHTING, AB_DEX, 15);
+
+  feato(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, "improved two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "extra attack with offhand weapon at -5 penalty",
+    "extra attack with offhand weapon at -5 penalty");
+  feat_prereq_cfeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, FEAT_TWO_WEAPON_FIGHTING);
+  feat_prereq_attribute(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, AB_DEX, 17);
+
+  feato(FEAT_GREATER_TWO_WEAPON_FIGHTING, "greater two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "gives an additional offhand weapon attack at -10 penalty",
+    "gives an additional offhand weapon attack at -10 penalty");
+  feat_prereq_cfeat(FEAT_GREATER_TWO_WEAPON_FIGHTING, FEAT_IMPROVED_TWO_WEAPON_FIGHTING);
+  feat_prereq_attribute(FEAT_GREATER_TWO_WEAPON_FIGHTING, AB_DEX, 19);
+
   /* epic */
   feato(FEAT_EPIC_PROWESS, "epic prowess", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
     "+1 to all attacks per rank",
     "+1 to all attacks per rank");
+  feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING, "perfect two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "Extra attack with offhand weapon",
+    "Extra attack with offhand weapon");
+  feat_prereq_cfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING);
+  feat_prereq_attribute(FEAT_PERFECT_TWO_WEAPON_FIGHTING, AB_DEX, 21);
 
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -628,6 +645,7 @@ void assign_feats(void) {
     "Reduces crafting time",
     "Reduces crafting time");
 
+  /*****/
   /* Class ability feats */
 
   /* Cleric */
@@ -720,6 +738,7 @@ void assign_feats(void) {
     "cannot be flanked, unless opponents berserker/rogue levels are 4 or more");
 
   /* Ranger */
+  /* the favored enemy mechanic is already built into the study system, not utilizing these two feats */
   /* unfinished */ feato(FEAT_FAVORED_ENEMY_AVAILABLE, "favored enemy available", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "can choose an enemy type as a favored enemy",
     "can choose an enemy type as a favored enemy");
@@ -730,19 +749,31 @@ void assign_feats(void) {
   feato(FEAT_CAMOUFLAGE, "camouflage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "gain stealth bonus in nature",
     "Gains +6 bonus to sneak/hide in nature");
-  /* unfinished */ feato(FEAT_HIDE_IN_PLAIN_SIGHT, "hide in plain sight", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "While in any sort of natural terrain, can use the Hide skill without displaying a message.",
-    "While in any sort of natural terrain, can use the Hide skill without displaying a message.");
+  feato(FEAT_HIDE_IN_PLAIN_SIGHT, "hide in plain sight", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "can hide in battle",
+    "This feat grants the ability to perform the stealth maneuver: hide even while in combat.  This check is made with a -8 penalty");
   /* unfinished */ feato(FEAT_SWIFT_TRACKER, "swift tracker", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "No penalty while autotracking.",
     "No penalty while autotracking.");
   /* combat mastery should be either an archer set of feats or dual wielding set of feats, for now we give them both */
-    /* two weapon fighting */
+  /* we have to make seperate feats for dual weapon fighting (two weapon fighting) */
+  feato(FEAT_DUAL_WEAPON_FIGHTING, "two weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "reduces penalty for two weapon fighting",
+    "reduces penalty for two weapon fighting while wearing light or lighter armor");
+  feato(FEAT_IMPROVED_DUAL_WEAPON_FIGHTING, "improved two weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "extra attack with offhand weapon at -5 penalty",
+    "extra attack with offhand weapon at -5 penalty while wearing light or lighter armor");
+  feato(FEAT_GREATER_DUAL_WEAPON_FIGHTING, "greater two weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gives an additional offhand weapon attack at -10 penalty",
+    "gives an additional offhand weapon attack at -10 penalty while wearing light or lighter armor");
+  /* epic */
+  feato(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, "perfect two weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "Extra attack with offhand weapon",
+    "Extra attack with offhand weapon while wearing light or lighter armor");
     /* rapid shot */
-    /* improved two weapon fighting */
     /* manyshot */
-    /* greater two weapon fighting */
     /* improved precise shot */
+    /* epic (improved) manyshot */
 
   /* Ranger / Druid */
   feato(FEAT_ANIMAL_COMPANION, "animal companion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -991,12 +1022,10 @@ void assign_feats(void) {
   feato(FEAT_SHOT_ON_THE_RUN, "shot on the run", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_COMBAT_CHALLENGE, "combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a mob focus their attention on you", "allows you to make a mob focus their attention on you");
   feato(FEAT_GREATER_COMBAT_CHALLENGE, "greater combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "as improved combat challenge, but regular challenge is a minor action & challenge all is a move action", "as improved combat challenge, but regular challenge is a minor action & challenge all is a move action");
-  feato(FEAT_GREATER_TWO_WEAPON_FIGHTING, "greater two weapon fighting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "gives an additional offhand weapon attack", "gives an additional offhand weapon attack");
   feato(FEAT_IMPROVED_COMBAT_CHALLENGE, "improved combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make all mobs focus their attention on you", "allows you to make all mobs focus their attention on you");
   feato(FEAT_IMPROVED_FEINT, "improved feint", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "can feint and make one attack per round (or sneak attack if they have it)", "can feint and make one attack per round (or sneak attack if they have it)");
   feato(FEAT_IMPROVED_NATURAL_WEAPON, "improved natural weapons", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "increase damage dice by one category for natural weapons", "increase damage dice by one category for natural weapons");
   feato(FEAT_IMPROVED_TAUNTING, "improved taunting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-  feato(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, "improved two weapon fighting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "extra attack with offhand weapon at -5 penalty", "extra attack with offhand weapon at -5 penalty");
   feato(FEAT_IMPROVED_WEAPON_FINESSE, "improved weapon finesse", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "add dex bonus to damage instead of str for light weapons", "add dex bonus to damage instead of str for light weapons");
   feato(FEAT_KNOCKDOWN, "knockdown", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target", "when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target");
   feato(FEAT_POWER_CRITICAL, "power critical", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+4 to rolls to confirm critical hits.", "+4 to rolls to confirm critical hits.");
@@ -1058,7 +1087,6 @@ void assign_feats(void) {
   feato(FEAT_EPIC_SKILL_FOCUS, "epic skill focus", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "+10 in chosen skill", "+10 in chosen skill");
   feato(FEAT_DAMAGE_REDUCTION, "damage reduction", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "1/- damage reduction per rank of feat, 3/- for epic", "1/- damage reduction per rank of feat, 3/- for epic");
   feato(FEAT_FAST_HEALING, "fast healing", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds", "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds");
-  feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING, "perfect two weapon fighting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "Extra attack with offhand weapon", "Extra attack with offhand weapon");
 
   /****/
   /* class feats */
