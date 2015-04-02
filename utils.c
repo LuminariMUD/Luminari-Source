@@ -276,8 +276,12 @@ bool can_hear_sneaking(struct char_data *ch, struct char_data *vict) {
   //hider bonus/penalties (vict)
   if (!IS_NPC(vict)) {
     dc += compute_ability((struct char_data *) vict, ABILITY_STEALTH);
+
     if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_TRACKLESS_STEP)) {
       dc += 4;
+    }
+    if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_CAMOUFLAGE)) {
+      dc += 6;
     }
   } else
     dc += GET_LEVEL(vict);
@@ -311,8 +315,12 @@ bool can_see_hidden(struct char_data *ch, struct char_data *vict) {
   //hider bonus/penalties (vict)
   if (!IS_NPC(vict)) {
     dc += compute_ability((struct char_data *) vict, ABILITY_STEALTH);
+
     if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_TRACKLESS_STEP)) {
       dc += 4;
+    }
+    if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_CAMOUFLAGE)) {
+      dc += 6;
     }
   } else
     dc += GET_LEVEL(vict);
@@ -322,6 +330,18 @@ bool can_see_hidden(struct char_data *ch, struct char_data *vict) {
     can_see = TRUE;
 
   return (can_see);
+}
+
+/* function to calculate a skill roll for given ch */
+int skill_roll(struct char_data *ch, int skillnum) {
+  int roll = dice(1, 20);
+
+  /*if (PRF_FLAGGED(ch, PRF_TAKE_TEN))
+    roll = 10;*/
+
+  roll += compute_ability(ch, skillnum);
+
+  return roll;
 }
 
 /* function to perform a skill check */

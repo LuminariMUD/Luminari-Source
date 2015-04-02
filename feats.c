@@ -471,7 +471,8 @@ void assign_feats(void) {
   feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 4);
 
   feato(FEAT_GREATER_WEAPON_SPECIALIZATION, "greater weapon specialization", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "+2 dama", "additional +2 dam with weapon (stacks)");
+    "+2 damage with weapon",
+    "additional +2 dam with weapon (stacks)");
   feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_SPECIALIZATION);
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
   feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_FOCUS);
@@ -707,10 +708,10 @@ void assign_feats(void) {
   /* Rogue / Berserker */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_TRAP_SENSE, "trap sense", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-     "auto-sense traps",
-     "Normally to find traps you have to actively try to detect them.  With "
-       "this feat you will make a perception check to detect traps automatically. "
-       "For every point you have in this feat your bonus to your check is increase by 1.");
+    "auto-sense traps",
+    "Normally to find traps you have to actively try to detect them.  With "
+      "this feat you will make a perception check to detect traps automatically. "
+      "For every point you have in this feat your bonus to your check is increase by 1.");
   feato(FEAT_UNCANNY_DODGE, "uncanny dodge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "retains dex bonus when flat footed",
     "retains dexterity bonus when flat footed");
@@ -719,33 +720,79 @@ void assign_feats(void) {
     "cannot be flanked, unless opponents berserker/rogue levels are 4 or more");
 
   /* Ranger */
-  feato(FEAT_FAVORED_ENEMY_AVAILABLE, "favored enemy available", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can choose an enemy type as a favored enemy", "can choose an enemy type as a favored enemy");
-  feato(FEAT_FAVORED_ENEMY, "favored enemy", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "Gain bonuses when fighting against a particular type of enemy", "Gain bonuses when fighting against a particular type of enemy");
-  feato(FEAT_CAMOUFLAGE, "camouflage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can use the Hide skill in any sort of natural terrain, even if the terrain doesn't grant cover or concealment.", "Can use the Hide skill in any sort of natural terrain, even if the terrain doesn't grant cover or concealment.");
-  feato(FEAT_COMBAT_STYLE, "combat style", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.", "Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.");
-  feato(FEAT_IMPROVED_COMBAT_STYLE, "improved combat style", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.", "Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.");
-  feato(FEAT_COMBAT_STYLE_MASTERY, "combat style master", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.", "Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.");
-  feato(FEAT_HIDE_IN_PLAIN_SIGHT, "hide in plain sight", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "While in any sort of natural terrain, can use the Hide skill without displaying a message.", "While in any sort of natural terrain, can use the Hide skill without displaying a message.");
-  feato(FEAT_SWIFT_TRACKER, "swift tracker", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "No penalty while autotracking.", "No penalty while autotracking.");
+  /* unfinished */ feato(FEAT_FAVORED_ENEMY_AVAILABLE, "favored enemy available", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "can choose an enemy type as a favored enemy",
+    "can choose an enemy type as a favored enemy");
+  /* unfinished */ feato(FEAT_FAVORED_ENEMY, "favored enemy", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "Gain bonuses when fighting against a particular type of enemy",
+    "Gain bonuses when fighting against a particular type of enemy");
+  /* modified from original */
+  feato(FEAT_CAMOUFLAGE, "camouflage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "gain stealth bonus in nature",
+    "Gains +6 bonus to sneak/hide in nature");
+  /* unfinished */ feato(FEAT_HIDE_IN_PLAIN_SIGHT, "hide in plain sight", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "While in any sort of natural terrain, can use the Hide skill without displaying a message.",
+    "While in any sort of natural terrain, can use the Hide skill without displaying a message.");
+  /* unfinished */ feato(FEAT_SWIFT_TRACKER, "swift tracker", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "No penalty while autotracking.",
+    "No penalty while autotracking.");
+  /* combat mastery should be either an archer set of feats or dual wielding set of feats, for now we give them both */
+    /* two weapon fighting */
+    /* rapid shot */
+    /* improved two weapon fighting */
+    /* manyshot */
+    /* greater two weapon fighting */
+    /* improved precise shot */
 
   /* Ranger / Druid */
-  feato(FEAT_ANIMAL_COMPANION, "animal companion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can call a loyal companion animal that accompanies the adventurer.", "Can call a loyal companion animal that accompanies the adventurer.");
-  feato(FEAT_WILD_EMPATHY, "wild empathy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "The adventurer can improve the attitude of an animal.", "The adventurer can improve the attitude of an animal.");
-  feato(FEAT_WOODLAND_STRIDE, "woodland stride", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Reduced movement penalty when moving through woodland areas.", "Reduced movement penalty when moving through woodland areas.");
+  feato(FEAT_ANIMAL_COMPANION, "animal companion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Can call a loyal companion animal that accompanies the adventurer.",
+    "Can call a loyal companion animal that accompanies the adventurer.");
+  /* unfinished */ feato(FEAT_WILD_EMPATHY, "wild empathy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "The adventurer can improve the attitude of an animal.",
+    "The adventurer can improve the attitude of an animal.");
+  /* unfinished */ feato(FEAT_WOODLAND_STRIDE, "woodland stride", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Reduced movement penalty when moving through woodland areas.",
+    "Reduced movement penalty when moving through woodland areas.");
 
   /* Druid */
-  feato(FEAT_VENOM_IMMUNITY, "venom immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "grants immunity to poison", "grants immunity to poison");
-  feato(FEAT_NATURE_SENSE, "nature sense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+2 to lore and survival skills", "+2 to lore and survival skills");
-  feato(FEAT_RESIST_NATURES_LURE, "resist nature's lure", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+4 to spells and spell like abilities from fey creatures", "+4 to spells and spell like abilities from fey creatures");
-  feato(FEAT_THOUSAND_FACES, "a thousand faces", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can alter one's physical appearance, giving +10 to disguise checks.", "Can alter one's physical appearance, giving +10 to disguise checks.");
-  feato(FEAT_TRACKLESS_STEP, "trackless step", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Do not leave tracks in natural areas (including the wilderness.)", "Do not leave tracks in natural areas (including the wilderness.)");
-  feato(FEAT_WILD_SHAPE, "wild shape", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Gain the ability to shapechange into a selection of animals with unique abilities.", "Gain the ability to shapechange into a selection of animals with unique abilities.");
-  feato(FEAT_WILD_SHAPE_ELEMENTAL, "wild shape (elemental)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can assume elemental form.", "Can assume elemental form.");
-  feato(FEAT_WILD_SHAPE_HUGE, "wild shape (huge)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can assume the shape of a huge animal.", "Can assume the shape of a huge animal.");
-  feato(FEAT_WILD_SHAPE_HUGE_ELEMENTAL, "wild shape (huge elemental)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can assume the shape of a huge elemental.", "Can assume the shape of a huge elemental.");
-  feato(FEAT_WILD_SHAPE_LARGE, "wild shape (large)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can assume the shape of a large animal.", "Can assume the shape of a large animal.");
-  feato(FEAT_WILD_SHAPE_PLANT, "wild shape (plant)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can assume plant-like forms.", "Can assume plant-like forms.");
-  feato(FEAT_WILD_SHAPE_TINY, "wild shape (tiny)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can assume the shape of tiny animals.", "Can assume the shape of tiny animals.");
+  feato(FEAT_VENOM_IMMUNITY, "venom immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "grants immunity to poison",
+    "grants immunity to poison");
+  /* unfinished */ feato(FEAT_NATURE_SENSE, "nature sense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+2 to lore and survival skills",
+    "+2 to lore and survival skills");
+  /* unfinished */ feato(FEAT_RESIST_NATURES_LURE, "resist nature's lure", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+4 to spells and spell like abilities from fey creatures",
+    "+4 to spells and spell like abilities from fey creatures");
+  /* unfinished */ feato(FEAT_THOUSAND_FACES, "a thousand faces", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Can alter one's physical appearance, giving +10 to disguise checks.",
+    "Can alter one's physical appearance, giving +10 to disguise checks.");
+  /* modified from original */
+  feato(FEAT_TRACKLESS_STEP, "trackless step", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "bonus to hide/sneak in nature",
+    "+4 bonus to hide/sneak in nature");
+  /* unfinished */ feato(FEAT_WILD_SHAPE, "wild shape", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Gain the ability to shapechange into a selection of animals with unique abilities.",
+    "Gain the ability to shapechange into a selection of animals with unique abilities.");
+  /* unfinished */ feato(FEAT_WILD_SHAPE_ELEMENTAL, "wild shape (elemental)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Can assume elemental form.",
+    "Can assume elemental form.");
+  /* unfinished */ feato(FEAT_WILD_SHAPE_HUGE, "wild shape (huge)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Can assume the shape of a huge animal.",
+    "Can assume the shape of a huge animal.");
+  /* unfinished */ feato(FEAT_WILD_SHAPE_HUGE_ELEMENTAL, "wild shape (huge elemental)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Can assume the shape of a huge elemental.",
+    "Can assume the shape of a huge elemental.");
+  /* unfinished */ feato(FEAT_WILD_SHAPE_LARGE, "wild shape (large)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Can assume the shape of a large animal.",
+    "Can assume the shape of a large animal.");
+  /* unfinished */ feato(FEAT_WILD_SHAPE_PLANT, "wild shape (plant)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Can assume plant-like forms.",
+    "Can assume plant-like forms.");
+  /* unfinished */ feato(FEAT_WILD_SHAPE_TINY, "wild shape (tiny)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Can assume the shape of tiny animals.",
+    "Can assume the shape of tiny animals.");
 
   /* Druid / Monk */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -790,7 +837,7 @@ void assign_feats(void) {
     "extra unarmed attack when using flurry of blows",
     "extra unarmed attack when using flurry of blows, at level 15 you get yet "
       "another bonus attack at full BAB");
-  /*unfinished*/feato(FEAT_PERFECT_SELF, "perfect self", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*unfinished*/ feato(FEAT_PERFECT_SELF, "perfect self", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "Gain 10/magic damage reduction (unfinished)",
     "Gain 10/magic damage reduction [note: until our damage reduction system is "
       "changed, this feat will give a flat 3 damage reduction against ALL incoming attacks");
@@ -806,17 +853,39 @@ void assign_feats(void) {
   /* not imped */feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON, "tongue of the sun and moon [not impd]", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented] can speak any language", "[not implemented] can speak any language");
 
   /* Bard */
-  feato(FEAT_BARDIC_KNOWLEDGE, "bardic knowledge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+Int modifier bonus on knowledge checks.", "+Int modifier bonus on knowledge checks.");
-  feato(FEAT_BARDIC_MUSIC, "bardic music", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Use Perform skill to create various magical effects.", "Use Perform skill to create various magical effects.");
-  feato(FEAT_COUNTERSONG, "countersong", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Boost group members' resistance to sonic attacks.", "Boost group members' resistance to sonic attacks.");
-  feato(FEAT_FASCINATE, "fascinate", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Fascinate one opponent plus one additional  for every three bard levels beyond first.", "Fascinate one opponent plus one additional  for every three bard levels beyond first.");
-  feato(FEAT_INSPIRE_COMPETENCE, "inspire competence", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Group members gain a +2 competence bonus on skills.", "Group members gain a +2 competence bonus on skills.");
-  feato(FEAT_INSPIRE_GREATNESS, "inspire greatness", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Grant allies better fighting capability.", "Grant allies better fighting capability.");
-  feato(FEAT_INSPIRE_HEROICS, "inspire heroics", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Grant allies a +4 morale bonus on saving throws and a +4 dodge bonus to AC.", "Grant allies a +4 morale bonus on saving throws and a +4 dodge bonus to AC.");
-  feato(FEAT_MASS_SUGGESTION, "mass suggestion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Compel a group of opponents to perform an action.", "Compel a group of opponents to perform an action.");
-  feato(FEAT_SONG_OF_FREEDOM, "song of freedom", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Break an enchantment on a single target other than yourself.", "Break an enchantment on a single target other than yourself.");
-  feato(FEAT_SUGGESTION, "suggestion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Compel a single opponent to perform an action.", "Compel a single opponent to perform an action.");
-  feato(FEAT_INSPIRE_COURAGE, "inspire courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Bolster group members against fear attacks and improve their combat ability.", "Bolster group members against fear attacks and improve their combat ability.");
+  /* unfinished */ feato(FEAT_BARDIC_KNOWLEDGE, "bardic knowledge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+Int modifier bonus on knowledge checks.",
+    "+Int modifier bonus on knowledge checks.");
+  /* unfinished */ feato(FEAT_BARDIC_MUSIC, "bardic music", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Use Perform skill to create various magical effects.",
+    "Use Perform skill to create various magical effects.");
+  /* unfinished */ feato(FEAT_COUNTERSONG, "countersong", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Boost group members' resistance to sonic attacks.",
+    "Boost group members' resistance to sonic attacks.");
+  /* unfinished */ feato(FEAT_FASCINATE, "fascinate", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Fascinate one opponent plus one additional  for every three bard levels beyond first.",
+    "Fascinate one opponent plus one additional  for every three bard levels beyond first.");
+  /* unfinished */ feato(FEAT_INSPIRE_COMPETENCE, "inspire competence", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Group members gain a +2 competence bonus on skills.",
+    "Group members gain a +2 competence bonus on skills.");
+  /* unfinished */ feato(FEAT_INSPIRE_GREATNESS, "inspire greatness", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Grant allies better fighting capability.",
+    "Grant allies better fighting capability.");
+  /* unfinished */ feato(FEAT_INSPIRE_HEROICS, "inspire heroics", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Grant allies a +4 morale bonus on saving throws and a +4 dodge bonus to AC.",
+    "Grant allies a +4 morale bonus on saving throws and a +4 dodge bonus to AC.");
+  /* unfinished */ feato(FEAT_MASS_SUGGESTION, "mass suggestion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Compel a group of opponents to perform an action.",
+    "Compel a group of opponents to perform an action.");
+  /* unfinished */ feato(FEAT_SONG_OF_FREEDOM, "song of freedom", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Break an enchantment on a single target other than yourself.",
+    "Break an enchantment on a single target other than yourself.");
+  /* unfinished */ feato(FEAT_SUGGESTION, "suggestion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Compel a single opponent to perform an action.",
+    "Compel a single opponent to perform an action.");
+  /* unfinished */ feato(FEAT_INSPIRE_COURAGE, "inspire courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Bolster group members against fear attacks and improve their combat ability.",
+    "Bolster group members against fear attacks and improve their combat ability.");
 
   /* Berserker */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -882,7 +951,9 @@ void assign_feats(void) {
       "of opportunity from her, which is resolved prior to resolving each enemy attack. ");
 
   /* Sorcerer/Wizard */
-  feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "summon a magical pet", "summon a magical pet");
+  feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "summon a magical pet",
+    "summon a magical pet");
 
   /* class feats that are implemented on classes that are not yet in the game */
 
@@ -993,6 +1064,18 @@ void assign_feats(void) {
   /* class feats */
   /*****/
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
+  /* ranger */
+  /* in this form, these ranger feats are not in the game, they are just given both sets of feats for free now */
+  /* unfinished */ feato(FEAT_COMBAT_STYLE, "combat style", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.",
+    "Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.");
+  /* unfinished */ feato(FEAT_IMPROVED_COMBAT_STYLE, "improved combat style", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.",
+    "Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.");
+  /* unfinished */ feato(FEAT_COMBAT_STYLE_MASTERY, "combat style master", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.",
+    "Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.");
 
   /* Bard */
   feato(FEAT_LINGERING_SONG, "lingering song", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "5 extra rounds for bard songs", "5 extra rounds for bard songs");

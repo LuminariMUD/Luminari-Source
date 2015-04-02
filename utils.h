@@ -47,6 +47,7 @@ char *get_align_by_num(int align);
 bool can_hear_sneaking(struct char_data *ch, struct char_data *vict);
 bool can_see_hidden(struct char_data *ch, struct char_data *vict);
 int skill_check(struct char_data *ch, int skill, int dc);
+int skill_roll(struct char_data *ch, int skillnum);
 void increase_skill(struct char_data *ch, int skillnum);
 int convert_material_vnum(int obj_vnum);
 void basic_mud_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
@@ -170,7 +171,7 @@ bool circle_follow(struct char_data *ch, struct char_data *victim);
 /* in act.informative.c */
 void look_at_room(struct char_data *ch, int mode);
 void add_history(struct char_data *ch, char *msg, int type);
-void look_at_room_number(struct char_data * ch, int ignore_brief, 
+void look_at_room_number(struct char_data * ch, int ignore_brief,
         long room_number);
 /* in spec_procs.c but connected to act.informative.c */
 void ship_lookout(struct char_data *ch);
@@ -662,7 +663,7 @@ do                                                              \
                                  (compute_arcana_golem_level(ch)), LVL_IMMORT-1))
 #define IS_SPELLCASTER(ch)      (CASTER_LEVEL(ch) > 0)
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
-                                
+
 
 /* Password of PC. */
 #define GET_PASSWD(ch)	((ch)->player.passwd)
@@ -1044,7 +1045,7 @@ do                                                              \
 #define GET_SKILL_FEAT(ch,feat,skill)  ((ch)->player_specials->saved.skill_focus[feat][skill])
 
 /* MACRO to get a weapon's type. */
-#define GET_WEAPON_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? GET_OBJ_VAL(obj, 0) : 0) 
+#define GET_WEAPON_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? GET_OBJ_VAL(obj, 0) : 0)
 #define IS_LIGHT_WEAPON_TYPE(type) (IS_SET(weapon_list[type].weaponFlags, WEAPON_FLAG_LIGHT))
 #define HAS_WEAPON_FLAG(obj, flag)  ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].weaponFlags, flag) : 0)
 #define HAS_DAMAGE_TYPE(obj, flag)  (GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, flag) : 0)
@@ -1058,7 +1059,7 @@ do                                                              \
 
 #define CAN_STUDY_CLASS_FEATS(ch) (CAN_STUDY_FEATS(ch) || (GET_LEVELUP_CLASS_FEATS(ch) + \
                                                            GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
- 
+
 #define CAN_STUDY_KNOWN_SPELLS(ch) ((LEVELUP(ch)->class == CLASS_SORCERER) || \
                            (LEVELUP(ch)->class == CLASS_BARD) ? 1 : 0)
 
@@ -1167,7 +1168,7 @@ do                                                              \
 /** Return how much weight ch can carry. */
 #define CAN_CARRY_W(ch) (str_app[STRENGTH_APPLY_INDEX(ch)].carry_w)
 
-/** Return how many items ch can carry. 
+/** Return how many items ch can carry.
  *  Increased this by 5 - Ornir */
 #define CAN_CARRY_N(ch) (10 + (GET_DEX(ch) >> 1) + (GET_LEVEL(ch) >> 1))
 
@@ -1386,7 +1387,7 @@ do                                                              \
 
 
 /** Defines if sub character can see the invisible obj character.
- *  returns FALSE if sub cannot see obj 
+ *  returns FALSE if sub cannot see obj
  *  returns TRUE if sub can see obj
  */
 #define INVIS_OK(sub, obj) \
