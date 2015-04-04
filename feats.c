@@ -497,7 +497,7 @@ void assign_feats(void) {
     "+1 to all attacks per rank");
   feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING, "perfect two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "Extra attack with offhand weapon",
-    "Extra attack with offhand weapon");
+    "Extra attack with offhand weapon with no penalty");
   feat_prereq_cfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING);
   feat_prereq_attribute(FEAT_PERFECT_TWO_WEAPON_FIGHTING, AB_DEX, 21);
 
@@ -607,8 +607,8 @@ void assign_feats(void) {
 
   /* Epic */
   feato(FEAT_EPIC_TOUGHNESS, "epic toughness", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "You gain +1 hp per level",
-    "You gain +1 hp per level");
+    "gain 30 hps",
+    "Gain 30 more maximum hit points");
   feato(FEAT_ARMOR_SKIN, "armor skin", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
     "Increases natural armor by 1",
     "Increases natural armor by 1");
@@ -751,12 +751,12 @@ void assign_feats(void) {
     "Gains +6 bonus to sneak/hide in nature");
   feato(FEAT_HIDE_IN_PLAIN_SIGHT, "hide in plain sight", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "can hide in battle",
-    "This feat grants the ability to perform the stealth maneuver: hide even while in combat.  This check is made with a -8 penalty");
+    "This feat grants the ability to perform the stealth maneuver: hide, even while in combat.  This check is made with a -8 penalty");
   /* unfinished */ feato(FEAT_SWIFT_TRACKER, "swift tracker", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "No penalty while autotracking.",
     "No penalty while autotracking.");
   /* combat mastery should be either an archer set of feats or dual wielding set of feats, for now we give them both */
-  /* we have to make seperate feats for dual weapon fighting (two weapon fighting) */
+  /* we have to make separate feats for dual weapon fighting (two weapon fighting) */
   feato(FEAT_DUAL_WEAPON_FIGHTING, "dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "reduces penalty for two weapon fighting",
     "reduces penalty for two weapon fighting while wearing light or lighter armor");
@@ -833,7 +833,9 @@ void assign_feats(void) {
     "reduction to all incoming negative damage");
 
   /* Monk */
-  feato(FEAT_UNARMED_STRIKE, "unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Unarmed attacks are considered to be weapons.", "Unarmed attacks are considered to be weapons.");
+  feato(FEAT_UNARMED_STRIKE, "unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Unarmed attacks are considered to be weapons.",
+    "Unarmed attacks are considered to be weapons.");
   /*unfinished*/feato(FEAT_KI_STRIKE, "ki strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "unarmed attack considered a magical weapon (unfinished)",
     "unarmed attack considered a magical weapon [note: until fixed this feat "
@@ -855,7 +857,9 @@ void assign_feats(void) {
   feato(FEAT_DIAMOND_BODY, "diamond body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "immune to disease",
     "immune to disease");
-  feato(FEAT_DIAMOND_SOUL, "diamond soul", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "spell resistance equal to class level + 10", "spell resistance equal to class level + 10");
+  feato(FEAT_DIAMOND_SOUL, "diamond soul", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "spell resistance equal to class level + 10",
+    "spell resistance equal to class level + 10");
   feato(FEAT_EMPTY_BODY, "empty body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "50 percent concealment for 1 round/monk level per day",
     "50 percent concealment for 1 round/monk level per day");
@@ -991,11 +995,13 @@ void assign_feats(void) {
   /* Duelist */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_ENHANCED_MOBILITY, "enhanced mobility", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+4 dodge bonus vs AOO", "gain an additional +4 dodge bonus to AC against "
+    "+4 dodge bonus vs AOO",
+    "gain an additional +4 dodge bonus to AC against "
           "attacks of opportunity provoked by movement. This bonus stacks with "
           "that granted by the Mobility feat.");
   feato(FEAT_GRACE, "grace", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+2 reflex saves", "gain a +2 bonus on Reflex saves");
+    "+2 reflex saves",
+    "gain a +2 bonus on Reflex saves");
 
   /* Pale/Death Master */
   feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -1153,14 +1159,6 @@ void assign_feats(void) {
   /* knight of the sword */
   feato(FEAT_SOUL_OF_KNIGHTHOOD, "soul of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
 
-  /* knight of the thorn (dragonlance) */
-  feato(FEAT_COSMIC_UNDERSTANDING, "cosmic understanding", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_AURA_OF_TERROR, "aura of terror", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DIVINER, "diviner", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_READ_OMENS, "read omens", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_READ_PORTENTS, "read portents", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_WEAPON_TOUCH, "weapon touch", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-
   /* knight of the crown (dragonlance) */
   feato(FEAT_HONORABLE_WILL, "honorable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_CROWN_OF_KNIGHTHOOD, "crown of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
@@ -1168,13 +1166,21 @@ void assign_feats(void) {
   feato(FEAT_MIGHT_OF_HONOR, "might of honor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_STRENGTH_OF_HONOR, "strength of honor", FALSE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "+4 to strength for several rounds", "+4 to strength for several rounds");
 
+  /* knight of the crown / knight of the lily [SHARED] (dragonlance) */
+  feato(FEAT_ARMORED_MOBILITY, "armored mobility", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "heavy armor is treated as medium armor", "heavy armor is treated as medium armor");
+
   /* knight of the lily (dragonlance) */
   feato(FEAT_DEMORALIZE, "demoralize", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_ONE_THOUGHT, "one thought", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_UNBREAKABLE_WILL, "unbreakable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
 
-  /* knight of the crown / knight of the lily [SHARED] (dragonlance) */
-  feato(FEAT_ARMORED_MOBILITY, "armored mobility", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "heavy armor is treated as medium armor", "heavy armor is treated as medium armor");
+  /* knight of the thorn (dragonlance) */
+  feato(FEAT_COSMIC_UNDERSTANDING, "cosmic understanding", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_AURA_OF_TERROR, "aura of terror", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_DIVINER, "diviner", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_READ_OMENS, "read omens", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_READ_PORTENTS, "read portents", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_WEAPON_TOUCH, "weapon touch", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
 
   /* knight of the skull (dragonlance) */
   feato(FEAT_DARK_BLESSING, "dark blessing", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
@@ -1298,6 +1304,7 @@ void assign_feats(void) {
 
   /* End Class ability Feats */
 
+  /******/
   /* Racial ability feats */
 
   /* Elf */
