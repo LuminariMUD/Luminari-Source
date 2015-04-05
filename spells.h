@@ -632,7 +632,7 @@
 /* not hard coded, but up to 750 */
 
 /* RANGED WEAPON ATTACK TYPES */
-#define TYPE_ARROW           751
+#define TYPE_MISSILE         751
 /** total number of ranged attack types */
 #define NUM_RANGED_TYPES     1
 
@@ -1044,9 +1044,6 @@ int count_sorc_known(struct char_data *ch, int circle, int class);
 void sorc_extract_known(struct char_data *ch, int spellnum, int class);
 int sorc_add_known(struct char_data *ch, int spellnum, int class);
 
-
-
-
 /* from spell_parser.c */
 ACMD(do_abort);
 ACMD(do_cast);
@@ -1054,8 +1051,6 @@ void unused_spell(int spl);
 void mag_assign_spells(void);
 void resetCastingData(struct char_data *ch);
 int lowest_spell_level(int spellnum);
-
-
 
 /* Global variables exported */
 #ifndef __SPELL_PARSER_C__

@@ -1015,7 +1015,7 @@ void assign_feats(void) {
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   /* not class feats */
-  feato(FEAT_LEADERSHIP_BONUS, "improved leadership", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  /* probably don't want in game at this stage */feato(FEAT_LEADERSHIP_BONUS, "improved leadership", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_FAR_SHOT, "far shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_DISARM, "improved disarm", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff ", "ask staff ");
   feato(FEAT_IMPROVED_GRAPPLE, "improved grapple", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
