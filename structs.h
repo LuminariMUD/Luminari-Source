@@ -1905,6 +1905,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ATTACK_TYPE_OFFHAND   1
 #define ATTACK_TYPE_RANGED    2
 #define ATTACK_TYPE_UNARMED   3
+#define ATTACK_TYPE_TWOHAND   4
 
 /* Critical hit types */
 #define CRIT_X2   0
