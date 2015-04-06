@@ -1338,11 +1338,15 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_IMPROVED_DUAL_WEAPON_FIGHTING 383
 #define FEAT_GREATER_DUAL_WEAPON_FIGHTING  384
 #define FEAT_PERFECT_DUAL_WEAPON_FIGHTING  385
+#define FEAT_EPIC_MANYSHOT                 386
 
-#define FEAT_LAST_FEAT                   386
-#define NUM_FEATS                        387
-
+/** reserved **/
+#define FEAT_LAST_FEAT                   387
+/*****/
+#define NUM_FEATS                        388
+/*****/
 #define MAX_FEATS                        750
+/*****/
 
 /* Combat feats that apply to a specific weapon type */
 #define CFEAT_IMPROVED_CRITICAL     		0
