@@ -2184,7 +2184,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /**** display, keep mods above this *****/
   /****************************************/
   if  (mode != MODE_NORMAL_HIT) {
-    send_to_char(ch, "Dam Bonus:  %d, ", dambonus);
+    send_to_char(ch, "Dam Bonus:  %d\r\n", dambonus);
   }
 
   return (MIN(MAX_DAM_BONUS, dambonus));
@@ -2785,7 +2785,7 @@ int weapon_special(struct obj_data *wpn, struct char_data *ch, char *hit_msg) {
  *   ATTACK_TYPE_OFFHAND : Offhand attack.
  *   ATTACK_TYPE_RANGED  : Ranged attack
  *   ATTACK_TYPE_TWOHAND : Two-handed weapon attack. */
-struct obj_data* get_wielded(struct char_data *ch, /* Wielder */
+struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
                              int attack_type)      /* Type of attack. */
 {
   struct obj_data *wielded = NULL;
