@@ -75,8 +75,8 @@ void act_to_room(char *str, room_data *room)
     if (!room->people)
         return;
 
-    /* Since you can't use act(..., TO_ROOM) for an room, send it TO_ROOM and 
-     * TO_CHAR for some char in the room. (just dont use $n or you might get 
+    /* Since you can't use act(..., TO_ROOM) for an room, send it TO_ROOM and
+     * TO_CHAR for some char in the room. (just dont use $n or you might get
      * strange results). */
     act(str, FALSE, room->people, 0, 0, TO_ROOM);
     act(str, FALSE, room->people, 0, 0, TO_CHAR);
@@ -119,7 +119,7 @@ WCMD(do_wgecho)
 {
 
   skip_spaces(&argument);
-   
+
   if (!*argument)
     wld_log(room, "wgecho called with no args");
   else
@@ -336,7 +336,7 @@ WCMD(do_wteleport)
         if ((ch = get_char_by_room(room, arg1))) {
           if (valid_dg_target(ch, DG_ALLOW_STAFFS)) {
             char_from_room(ch);
-  
+
             if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
               X_LOC(ch) = world[target].coords[0];
               Y_LOC(ch) = world[target].coords[1];
@@ -526,7 +526,7 @@ WCMD(do_wload)
       }
       cnt = get_obj_in_room(room, arg1);
       if (cnt && (GET_OBJ_TYPE(cnt) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(cnt) == ITEM_QUIVER)) {
+              GET_OBJ_TYPE(cnt) == ITEM_AMMO_POUCH)) {
       	obj_to_obj(object, cnt);
         load_otrigger(object);
       	return;
@@ -565,20 +565,20 @@ WCMD(do_wdamage) {
   script_damage(ch, dam);
 }
 
-WCMD(do_wat)     
+WCMD(do_wat)
 {
   room_rnum loc = NOWHERE;
   struct char_data *ch;
-  char arg[MAX_INPUT_LENGTH], *command; 
+  char arg[MAX_INPUT_LENGTH], *command;
 
-  command = any_one_arg(argument, arg); 
+  command = any_one_arg(argument, arg);
 
   if (!*arg) {
     wld_log(room, "wat called with no args");
     return;
   }
 
-  skip_spaces(&command); 
+  skip_spaces(&command);
 
   if (!*command) {
     wld_log(room, "wat called without a command");
@@ -587,7 +587,7 @@ WCMD(do_wat)
 
   if (isdigit(*arg)) loc = real_room(atoi(arg));
   else if ((ch = get_char_by_room(room, arg))) loc = IN_ROOM(ch);
-  
+
   if (loc == NOWHERE) {
     wld_log(room, "wat: location not found (%s)", arg);
     return;
@@ -674,7 +674,7 @@ void wld_command_interpreter(room_data *room, char *argument)
 
     line = any_one_arg(argument, arg);
 
-    
+
     /* find the command */
     for (length = strlen(arg), cmd = 0;
          *wld_cmd_info[cmd].command != '\n'; cmd++)

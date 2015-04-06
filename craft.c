@@ -1,9 +1,9 @@
 /*
  * Crafting System
- * 
+ *
  * From d20MUD
  * Ported and re-written by Zusuk
- * 
+ *
  * craft.h has most of the header info
  */
 
@@ -105,7 +105,7 @@ int weapon_damage[MAX_WEAPON_DAMAGE + 1][2] = {
  *   weapon:  object, needs to be a weapon
  *   scaling:  integer, negative or positive indicating how many
  *             size classes the weapon is shifting
- * 
+ *
  * returns TRUE if successful, FALSE if failed
  */
 bool scale_damage(struct obj_data *weapon, int scaling) {
@@ -237,11 +237,11 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
     case APPLY_MOVE:
       bonus *= 24;
       break;
-      
+
     case APPLY_AC:
       bonus *= -5;
       break;
-      
+
     case APPLY_HITROLL:
     case APPLY_DAMROLL:
       bonus += 2;
@@ -711,7 +711,7 @@ int augment(struct obj_data *kit, struct char_data *ch) {
 
   if (!IS_NPC(ch))
     increase_skill(ch, skill_type);
-  
+
   return 1;
 }
 
@@ -842,7 +842,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
   }
 
   if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER ||
-          GET_OBJ_TYPE(obj) == ITEM_QUIVER) {
+          GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) {
     if (obj->contains) {
       send_to_char(ch, "You cannot restring bags that have items in them.\r\n");
       return 1;
@@ -1080,7 +1080,7 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
 int disenchant(struct obj_data *kit, struct char_data *ch) {
   struct obj_data *obj = NULL;
   int num_objs = 0;
-  
+
   /* Cycle through contents */
   /* disenchant requires just one item be inside the kit */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
@@ -1091,7 +1091,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   if (num_objs > 1) {
     send_to_char(ch, "Only one item should be inside the kit.\r\n");
     return 1;
-  }  
+  }
 
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
     send_to_char(ch, "You must drop something before you can disenchant anything.\r\n");
@@ -1107,10 +1107,10 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
     send_to_char(ch, "Your chemistry skill isn't high enough to disenchant that item.\r\n");
     return 1;
   }
-  
+
   /* award crystal for item */
   award_random_crystal(ch, GET_OBJ_LEVEL(obj));
-  
+
   if (!IS_NPC(ch))
     increase_skill(ch, SKILL_CHEMISTRY);
 
@@ -1123,8 +1123,8 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
 
   /* clear item that got disenchanted */
   obj_from_obj(obj);
-  extract_obj(obj);  
-  
+  extract_obj(obj);
+
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
   return 1;
 }
@@ -1147,7 +1147,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
  */
 int create(char *argument, struct obj_data *kit,
         struct char_data *ch, int mode) {
-  char buf[MAX_INPUT_LENGTH] = { '\0' };  
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
           *material = NULL, *essence = NULL;
   int num_mats = 0, obj_level = 1, skill = ABILITY_CRAFT_WEAPONSMITHING,
@@ -1225,10 +1225,10 @@ int create(char *argument, struct obj_data *kit,
     send_to_char(ch, "The creation process requires a mold to continue.\r\n");
     return 1;
   }
-  
+
   /* set base level, crystal should be ultimate determinant */
   obj_level = GET_OBJ_LEVEL(mold);
-  
+
   if (!material) {
     send_to_char(ch, "You need to put materials into the kit.\r\n");
     return 1;
@@ -1265,7 +1265,7 @@ int create(char *argument, struct obj_data *kit,
   /* valid_misc_item_material_type(mold, material)) */
   /* expansion here or above to other miscellaneous materials, etc */
 
-  /* determine how much material is needed 
+  /* determine how much material is needed
    * [mold weight divided by weight_factor]
    */
   mats_needed = MAX(MIN_MATS, (GET_OBJ_WEIGHT(mold) / WEIGHT_FACTOR));
@@ -1273,7 +1273,7 @@ int create(char *argument, struct obj_data *kit,
   /* elvent crafting reduces material needed */
   if (HAS_FEAT(ch, FEAT_ELVEN_CRAFTING))
     mats_needed = MAX(MIN_ELF_MATS, mats_needed / 2);
-  
+
   if (num_mats < mats_needed) {
     send_to_char(ch, "You do not have enough materials to make that item.  "
             "You need %d more units of the same type.\r\n",
@@ -1326,19 +1326,19 @@ int create(char *argument, struct obj_data *kit,
         send_to_char(ch, "@l@WYou have received a critical success on your "
               "craft! (+%d)@n\r\n", mod);
     }
-    
+
     if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING)) {
       send_to_char(ch, "Your masterwork-crafting skill increases the quality of "
               "the item.\r\n");
       mod++;
     }
-    
+
     if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING)) {
       send_to_char(ch, "Your dwarven-crafting skill increases the quality of "
               "the item.\r\n");
       mod++;
     }
-    
+
     if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING)) {
       send_to_char(ch, "Your draconic-crafting skill increases the quality of "
               "the item.\r\n");
@@ -1460,7 +1460,7 @@ int create(char *argument, struct obj_data *kit,
     obj_to_char(kit, ch);
 
     obj_to_char(mold, ch);
-    
+
     if (!IS_NPC(ch))
       increase_skill(ch, skill);
     NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
@@ -1538,8 +1538,8 @@ SPECIAL(crafting_kit) {
     else
       send_to_char(ch, "Unrecognized crafting-kit command!\r\n");
     return 1;
-  }  
-  
+  }
+
   if (CMD_IS("resize"))
     return resize(argument, kit, ch);
   else if (CMD_IS("restring"))
@@ -1689,7 +1689,7 @@ EVENTFUNC(event_crafting) {
   if (event_obj == NULL) return 0;
   pMudEvent = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) pMudEvent->pStruct;
-  
+
   if (!ch || !ch->desc)  return 0;
   if (!IS_NPC(ch) && !IS_PLAYING(ch->desc))  return 0;
 
@@ -1722,10 +1722,10 @@ EVENTFUNC(event_crafting) {
             "left to go.\r\n", GET_CRAFTING_TICKS(ch) * 6);
 
     GET_CRAFTING_TICKS(ch)--;
-    
+
     /* skill notch */
     increase_skill(ch, SKILL_FAST_CRAFTER);
-    
+
     if (GET_LEVEL(ch) >= LVL_IMMORT)
       return 1;
     else
@@ -1909,7 +1909,7 @@ ACMD(do_harvest) {
   char arg[MAX_INPUT_LENGTH] = { '\0' };
   char buf[MEDIUM_STRING] = { '\0' };
   int sub_command = SCMD_CRAFT_UNDF;
-  
+
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
     send_to_char(ch, "You must drop something before you can harvest anything else.\r\n");
     return;
@@ -2187,11 +2187,11 @@ ACMD(do_harvest) {
   GET_CRAFTING_TICKS(ch) = 5;
   GET_CRAFTING_OBJ(ch) = obj;
 
-  // Tell the character they made something. 
+  // Tell the character they made something.
   sprintf(buf, "You begin to %s.", CMD_NAME);
   act(buf, FALSE, ch, 0, NULL, TO_CHAR);
 
-  // Tell the room the character made something. 
+  // Tell the room the character made something.
   sprintf(buf, "$n begins to %s.", CMD_NAME);
   act(buf, FALSE, ch, 0, NULL, TO_ROOM);
 
@@ -2213,19 +2213,19 @@ ACMD(do_harvest) {
         foresting_nodes--;
         break;
     }
-    
-    // Tell the room the character used up the node 
+
+    // Tell the room the character used up the node
     act("$p has been depleted.", FALSE, 0, node, 0, TO_ROOM);
     obj_from_room(node);
     extract_obj(node);
   }
-  
+
   obj_to_char(obj, ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-  
+
   if (!IS_NPC(ch))
     increase_skill(ch, skillnum);
-  
+
   return;
 }
 

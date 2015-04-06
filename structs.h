@@ -924,7 +924,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAR_WIELD_2H  20  // two-hand weapons
 #define WEAR_HOLD_2H   21  // two-hand held
 #define WEAR_FACE      22  // equipment location face
-#define WEAR_QUIVER     23      // quiver (for ranged weapons)
+#define WEAR_AMMO_POUCH 23      // ammo pouch (for ranged weapons)
 /* unfinished */
 #define WEAR_EAR_R      24
 #define WEAR_EAR_L      25
@@ -940,7 +940,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAR_EYES       3
 #define WEAR_EAR_R      4
 #define WEAR_EAR_L      5
-#define WEAR_QUIVER    26
+#define WEAR_AMMO_POUCH    26
 #define WEAR_TAIL      27
 */
 
@@ -1412,7 +1412,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_POISON      33  // apply poison
 #define ITEM_SUMMON      34  // summons mob on command
 #define ITEM_SWITCH	     35  // activation mechanism
-#define ITEM_QUIVER	     36  // quiver mechanic for missile weapons
+#define ITEM_AMMO_POUCH  36  // ammo pouch mechanic for missile weapons
 #define ITEM_PICK        37  // pick used for opening locks bonus
 #define ITEM_INSTRUMENT	38  // instrument used for bard song
 #define ITEM_DISGUISE    39  // disguise kit used for disguise command
@@ -1541,7 +1541,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_WEAR_HOLD      14  /**< Item can be held */
 #define ITEM_WEAR_FACE      15  // item can be worn on face
 /* unfinished */
-#define ITEM_WEAR_QUIVER        16 // item can be used as quiver
+#define ITEM_WEAR_AMMO_POUCH    16 // item can be used as an ammo pouch
 #define ITEM_WEAR_EAR           17 // item can be worn on ears (UNUSED HOMELAND)
 #define ITEM_WEAR_EYES          18 // item can be worn on eyes (UNUSED HOMELAND)
 #define ITEM_WEAR_BADGE         19 // item can be worn as badge (UNUSED HOMELAND))
@@ -1555,7 +1555,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_WEAR_EYES		(1 << 17)  // Can be worn on eyes
 #define ITEM_WEAR_BADGE		(1 << 18)  // Can be worn as badge
 #define ITEM_WEAR_WIELD_2H    (1 << 19)  // Item can be wielded 2h -> ITEM_WEAR_WIELD (13)
-#define ITEM_WEAR_QUIVER      (1 << 20)  // Item can be worn as quiver
+#define ITEM_WEAR_AMMO_POUCH      (1 << 20)  // Item can be worn as ammo pouch
 #define ITEM_WEAR_TAIL        (1 << 21)  // Can be worn on tail
 */
 

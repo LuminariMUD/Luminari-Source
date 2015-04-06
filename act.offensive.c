@@ -129,33 +129,33 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict, int bonu
 /* ranged combat (archery, etc)
  * this function will check to make sure ammo is ready for firing
  */
-bool has_missile_in_quiver(struct char_data *ch, struct obj_data *wielded, bool silent) {
-  struct obj_data *quiver = GET_EQ(ch, WEAR_QUIVER);
+bool has_missile_in_ammo_pouch(struct char_data *ch, struct obj_data *wielded, bool silent) {
+  struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
 
-  if (!quiver) {
+  if (!ammo_pouch) {
     if (!silent)
       send_to_char(ch, "You have no ammo pouch!\r\n");
     FIRING(ch) = FALSE;
     return FALSE;
   }
 
-  if (!quiver->contains) {
+  if (!ammo_pouch->contains) {
     if (!silent)
       send_to_char(ch, "Your ammo pouch is empty!\r\n");
     FIRING(ch) = FALSE;
     return FALSE;
   }
 
-  if (GET_OBJ_TYPE(quiver->contains) != ITEM_MISSILE) {
+  if (GET_OBJ_TYPE(ammo_pouch->contains) != ITEM_MISSILE) {
     if (!silent)
       send_to_char(ch, "Your ammo pouch needs to be filled with only ammo!\r\n");
     FIRING(ch) = FALSE;
     return FALSE;
   }
 
-  if (GET_OBJ_VAL(wielded, 0) != GET_OBJ_VAL(quiver->contains, 0)) {
+  if (GET_OBJ_VAL(wielded, 0) != GET_OBJ_VAL(ammo_pouch->contains, 0)) {
     if (!silent)
-      act("Your $p does not fit your weapon.", FALSE, ch, quiver->contains, NULL, TO_CHAR);
+      act("Your $p does not fit your weapon.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
     FIRING(ch) = FALSE;
     return FALSE;
   }
@@ -165,10 +165,10 @@ bool has_missile_in_quiver(struct char_data *ch, struct obj_data *wielded, bool 
 
 /* ranged combat (archery, etc)
  * this function will check for a ranged weapon, ammo and does
- * a check of "has_missile_in_quiver"
+ * a check of "has_missile_in_ammo_pouch"
  */
 bool can_fire_arrow(struct char_data *ch, bool silent) {
-  if (!GET_EQ(ch, WEAR_QUIVER)) {
+  if (!GET_EQ(ch, WEAR_AMMO_POUCH)) {
     if (!silent)
       send_to_char(ch, "But you do not wear an ammo pouch.\r\n");
     FIRING(ch) = FALSE;
@@ -194,7 +194,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
     return FALSE;
   }
 
-  if (!has_missile_in_quiver(ch, obj, TRUE)) {
+  if (!has_missile_in_ammo_pouch(ch, obj, TRUE)) {
     if (!silent)
       send_to_char(ch, "You have no ammo!\r\n");
     FIRING(ch) = FALSE;
@@ -3437,7 +3437,7 @@ ACMD(do_autofire) {
 
 /* function used to gather up all the ammo in the room/corpses-in-room */
 ACMD(do_collect) {
-  struct obj_data *quiver = GET_EQ(ch, WEAR_QUIVER);
+  struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
   struct obj_data *obj = NULL;
   struct obj_data *nobj = NULL;
   struct obj_data *cobj = NULL;
@@ -3446,7 +3446,7 @@ ACMD(do_collect) {
   bool fit = TRUE;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (!quiver) {
+  if (!ammo_pouch) {
     send_to_char(ch, "But you don't have an ammo pouch to collect to.\r\n");
     return;
   }
@@ -3460,9 +3460,9 @@ ACMD(do_collect) {
         next_obj = cobj->next_content;
         if (GET_OBJ_TYPE(cobj) == ITEM_MISSILE &&
                 MISSILE_ID(cobj) == GET_IDNUM(ch)) {
-          if (num_obj_in_obj(quiver) < GET_OBJ_VAL(quiver, 0)) {
+          if (num_obj_in_obj(ammo_pouch) < GET_OBJ_VAL(ammo_pouch, 0)) {
             obj_from_obj(cobj);
-            obj_to_obj(cobj, quiver);
+            obj_to_obj(cobj, ammo_pouch);
             ammo++;
             act("You get $p.", FALSE, ch, cobj, 0, TO_CHAR);
           } else {
@@ -3475,9 +3475,9 @@ ACMD(do_collect) {
       /* checking room for ammo */
     } else if (GET_OBJ_TYPE(obj) == ITEM_MISSILE &&
             MISSILE_ID(obj) == GET_IDNUM(ch)) {
-      if (num_obj_in_obj(quiver) < GET_OBJ_VAL(quiver, 0)) {
+      if (num_obj_in_obj(ammo_pouch) < GET_OBJ_VAL(ammo_pouch, 0)) {
         obj_from_room(obj);
-        obj_to_obj(obj, quiver);
+        obj_to_obj(obj, ammo_pouch);
         ammo++;
         act("You get $p.", FALSE, ch, obj, 0, TO_CHAR);
       } else {

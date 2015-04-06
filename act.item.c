@@ -67,12 +67,12 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
   if (!obj) /* object might be extracted by drop_otrigger */
     return;
 
-  if (GET_OBJ_TYPE(cont) == ITEM_QUIVER && GET_OBJ_TYPE(obj) != ITEM_MISSILE) {
+  if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH && GET_OBJ_TYPE(obj) != ITEM_MISSILE) {
     act("You can only put ammo into $P.", FALSE, ch, obj, cont, TO_CHAR);
     return;
   }
 
-  if (GET_OBJ_TYPE(cont) == ITEM_QUIVER &&
+  if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH &&
           GET_OBJ_VAL(cont, 0) <= num_obj_in_obj(cont)) {
     sprintf(buf, "You can only fit %d $p into $P.", GET_OBJ_VAL(cont, 0));
     act(buf, FALSE, ch, obj, cont, TO_CHAR);
@@ -153,7 +153,7 @@ ACMD(do_put) {
     if (!cont)
       send_to_char(ch, "You don't see %s %s here.\r\n", AN(thecont), thecont);
     else if (GET_OBJ_TYPE(cont) != ITEM_CONTAINER &&
-            GET_OBJ_TYPE(cont) != ITEM_QUIVER)
+            GET_OBJ_TYPE(cont) != ITEM_AMMO_POUCH)
       act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
     else if (OBJVAL_FLAGGED(cont, CONT_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
       send_to_char(ch, "You'd better open it first!\r\n");
@@ -422,7 +422,7 @@ ACMD(do_get) {
       if (!cont)
         send_to_char(ch, "You don't have %s %s.\r\n", AN(arg2), arg2);
       else if (GET_OBJ_TYPE(cont) != ITEM_CONTAINER &&
-              GET_OBJ_TYPE(cont) != ITEM_QUIVER)
+              GET_OBJ_TYPE(cont) != ITEM_AMMO_POUCH)
         act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
       else
         get_from_container(ch, cont, arg1, mode, amount);
@@ -435,7 +435,7 @@ ACMD(do_get) {
         if (CAN_SEE_OBJ(ch, cont) &&
                 (cont_dotmode == FIND_ALL || isname(arg2, cont->name))) {
           if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER ||
-                  GET_OBJ_TYPE(cont) == ITEM_QUIVER) {
+                  GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH) {
             found = 1;
             get_from_container(ch, cont, arg1, FIND_OBJ_INV, amount);
           } else if (cont_dotmode == FIND_ALLDOT) {
@@ -448,7 +448,7 @@ ACMD(do_get) {
         if (CAN_SEE_OBJ(ch, cont) &&
                 (cont_dotmode == FIND_ALL || isname(arg2, cont->name))) {
           if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER ||
-                  GET_OBJ_TYPE(cont) == ITEM_QUIVER) {
+                  GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH) {
             get_from_container(ch, cont, arg1, FIND_OBJ_ROOM, amount);
             found = 1;
           } else if (cont_dotmode == FIND_ALLDOT) {
@@ -1469,7 +1469,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
     ITEM_WEAR_FEET, ITEM_WEAR_HANDS, ITEM_WEAR_ARMS, ITEM_WEAR_SHIELD,
     ITEM_WEAR_ABOUT, ITEM_WEAR_WAIST, ITEM_WEAR_WRIST, ITEM_WEAR_WRIST,
     ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_WIELD, ITEM_WEAR_TAKE,
-    ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_FACE, ITEM_WEAR_QUIVER,
+    ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_FACE, ITEM_WEAR_AMMO_POUCH,
     ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE
   };
 
@@ -1612,7 +1612,7 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg) {
     "!RESERVED!",  //20 (wielded twohanded)
     "!RESERVED!",  // (held twohanded)
     "face",
-    "quiver",
+    "ammo-pouch",
     "ear",
     "!RESERVED!",  //25 (2nd ear)
     "eyes",
@@ -1634,7 +1634,7 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg) {
     if (CAN_WEAR(obj, ITEM_WEAR_WAIST)) where = WEAR_WAIST;
     if (CAN_WEAR(obj, ITEM_WEAR_WRIST)) where = WEAR_WRIST_R;
     if (CAN_WEAR(obj, ITEM_WEAR_FACE)) where = WEAR_FACE;
-    if (CAN_WEAR(obj, ITEM_WEAR_QUIVER)) where = WEAR_QUIVER;
+    if (CAN_WEAR(obj, ITEM_WEAR_AMMO_POUCH)) where = WEAR_AMMO_POUCH;
     if (CAN_WEAR(obj, ITEM_WEAR_EAR)) where = WEAR_EAR_R;
     if (CAN_WEAR(obj, ITEM_WEAR_EYES)) where = WEAR_EYES;
     if (CAN_WEAR(obj, ITEM_WEAR_BADGE)) where = WEAR_BADGE;

@@ -174,8 +174,8 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
     do_tell(keeper, buf, cmd_tell, 0);
     return (FALSE);
   }
-  
-  
+
+
   return (TRUE);
 
 }
@@ -639,7 +639,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
     }
   }
   }
-  
+
   if (IS_NPC(ch) || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))) {
 	if (IS_CARRYING_N(ch) + 1 > CAN_CARRY_N(ch)) {
       send_to_char(ch, "%s: You can't carry any more items.\r\n", fname(obj->name));
@@ -650,7 +650,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
       return;
 	}
   }
-  
+
   if (OBJ_FLAGGED(obj, ITEM_QUEST)) {
     while (obj &&
            (GET_QUESTPOINTS(ch) >= GET_OBJ_COST(obj) || IS_STAFF(ch))
@@ -1038,7 +1038,7 @@ static void shopping_list(char *arg, struct char_data *ch, struct char_data *kee
       send_to_char(ch, "Items flagged \"qp\" require quest points to purchase.\r\n");
   }
   send_to_char(ch, "\r\n\tDYou can type 'identify <item name>' to view the stats"
-          " of an item in inventory.\tn\r\n"); 
+          " of an item in inventory.\tn\r\n");
 }
 
 static int ok_shop_room(int shop_nr, room_vnum room)
@@ -1688,7 +1688,7 @@ bool shopping_identify(char *arg, struct char_data *ch, struct char_data *keeper
 		GET_OBJ_WEIGHT(obj),
 		QYEL, sell_price(obj, shop_nr, keeper, ch), QNRM,
 		QYEL, buy_price(obj, shop_nr, keeper, ch), QNRM);
-		
+
   sprintbitarray(GET_OBJ_WEAR(obj), wear_bits, TW_ARRAY_MAX, buf);
   send_to_char(ch, "Can be worn on: %s\r\n", buf);
 
@@ -1734,7 +1734,7 @@ bool shopping_identify(char *arg, struct char_data *ch, struct char_data *keeper
         case ITEM_CONTAINER:
           send_to_char(ch, "Capacity: %d/%d\r\n", GET_OBJ_WEIGHT(obj), GET_OBJ_VAL(obj, 0));
           break;
-        case ITEM_QUIVER:
+        case ITEM_AMMO_POUCH:
           send_to_char(ch, "Capacity (only ammo): %d/%d\r\n", GET_OBJ_WEIGHT(obj), GET_OBJ_VAL(obj, 0));
           break;
         case ITEM_DRINKCON:
