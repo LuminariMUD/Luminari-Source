@@ -527,7 +527,7 @@ void assign_feats(void) {
     feat_prereq_cfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING);
     feat_prereq_attribute(FEAT_PERFECT_TWO_WEAPON_FIGHTING, AB_DEX, 21);
   /* archery epic feats */
-  feato(FEAT_EPIC_MANYSHOT, "epic manyshot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_EPIC_MANYSHOT, "epic manyshot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "extra ranged attack when rapid shot turned on",
     "extra ranged attack when rapid shot turned on");
     feat_prereq_attribute(FEAT_EPIC_MANYSHOT, AB_DEX, 19);

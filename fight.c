@@ -3851,6 +3851,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
       drop_an_attack_at_max_bab++;
     }
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_MANYSHOT)) {
+      ranged_attacks++;
+      attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
+      drop_an_attack_at_max_bab++;
+    }
   }
 
   if (FIRING(ch) && mode == NORMAL_ATTACK_ROUTINE) {
