@@ -485,6 +485,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     armorclass += SPELLBATTLE(ch);
   }
 
+  /* two weapon defense */
+  if (!IS_NPC(ch) && GET_EQ(ch, WEAR_WIELD_2) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE))
+    armorclass++;
+
   switch (GET_POS(ch)) { //position penalty
     case POS_RECLINING:
       armorclass -= 3;
@@ -2462,9 +2466,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
              mode == MODE_DISPLAY_OFFHAND ||
              mode == MODE_DISPLAY_RANGED) {
     /* calculate dice */
-    dam = compute_dam_dice(ch, ch, NULL, mode);
+    dam = compute_dam_dice(ch, ch, wielded, mode);
     /* modifiers to melee damage */
-    dam += compute_damage_bonus(ch, ch, wielded, 0, 0, mode, attack_type);
+    dam += compute_damage_bonus(ch, ch, wielded, TYPE_UNDEFINED_WTYPE, NO_MOD, mode, attack_type);
   }
 
   return MAX(1, dam); //min damage of 1
@@ -3105,8 +3109,8 @@ int determine_weapon_type(struct char_data *ch, struct char_data *victim,
 #define HIT_MISS 0
 /* We need to figure out what this REALLY does, and how we can split it up logically to
  * make it easier to handle.  Notes below: */
-int hit(struct char_data *ch, struct char_data *victim,
-             int type, int dam_type, int penalty, int attack_type) {
+int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
+        int penalty, int attack_type) {
   int w_type = 0,    /* Weapon type? */
       victim_ac = 0, /* Target's AC, from compute_ac(). */
       calc_bab = penalty,  /* ch's base attack bonus for the attack. */
@@ -3680,35 +3684,7 @@ int hit(struct char_data *ch, struct char_data *victim,
 }
 #undef HIT_MISS
 
-/* is given ch a ranger that is qualified for his/her dual-wield bonus? */
-/* mode comes from perform_attacks and is_skilled_dualer
-     1 - ambidexterity
-     2 - two weapon fighting
-     3 - epic two weapon fighting
- */
-/* NEEDS REWRITE!!!! */
-int is_dual_weapons(struct char_data *ch, int mode) {
-
-  // we already checked if this is a NPC coming in
-  if (CLASS_LEVEL(ch, CLASS_RANGER) < 2)
-    return 0;
-
-  // wearing light enough armor?
-  if (proficiency_worn(ch, ARMOR_PROFICIENCY) > ITEM_PROF_LIGHT_A)
-    return 0;
-
-  if (mode == 1) { // already qualifies for ambidexterity
-    return 1;
-  } else if (mode == 2 && HAS_FEAT(ch, FEAT_TWO_WEAPON_FIGHTING)) {
-    return 1;
-  } else if (mode == 3 && CLASS_LEVEL(ch, CLASS_RANGER) >= 15) {
-    return 1;
-  }
-
-  // doesn't qualify
-  return 0;
-}
-
+/* ch dual wielding or is trelux */
 int is_dual_wielding(struct char_data *ch) {
 
   if (GET_EQ(ch, WEAR_WIELD_2) || GET_RACE(ch) == RACE_TRELUX)
@@ -3769,6 +3745,7 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
   return 0;
 }
 
+/* common dummy check in perform_attacks() */
 int valid_fight_cond(struct char_data *ch) {
 
   if (FIGHTING(ch))
@@ -3859,7 +3836,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   }
 
   /* Process ranged attacks ------------------------------------------------- */
-  bool drop_an_attack_at_max_bab = FALSE;
+  int drop_an_attack_at_max_bab = 0;
   /* ranged get extra attacks */
   ranged_attacks += bonusAttacks;
   /* Rapidshot mode gives an extra attack, but with a penalty to all attacks. */
@@ -3867,55 +3844,77 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     penalty -= 2;
     ranged_attacks++;
     attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
-    drop_an_attack_at_max_bab = TRUE;
+    drop_an_attack_at_max_bab++;
+
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MANYSHOT)) {
+      ranged_attacks++;
+      attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
+      drop_an_attack_at_max_bab++;
+    }
   }
 
   if (FIRING(ch) && mode == NORMAL_ATTACK_ROUTINE) {
-    if (is_tanking(ch) && !(HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))) {
-      send_to_char(ch, "You are too close to use your ranged weapon.\r\n");
-      FIRING(ch) = FALSE;
-    } else { /* FIRE! */
-      for (i = 0; i < ranged_attacks; i++) {
-        /* phase 1: 1 4 7 10 13
-         * phase 2: 2 5 8 11 14
-         * phase 3: 3 6 9 12 15 */
-        perform_attack = FALSE;
-        switch (i) {
-          case 1: case 4: case 7: case 10: case 13:
-            if (phase == PHASE_0 || phase == PHASE_1 ) {
-              perform_attack = TRUE;
-            }
-            break;
-          case 2: case 5: case 8: case 11: case 14:
-            if (phase == PHASE_0 || phase == PHASE_2 ) {
-              perform_attack = TRUE;
-            }
-            break;
-          case 3: case 6: case 9: case 12: case 15:
-            if (phase == PHASE_0 || phase == PHASE_3 ) {
-              perform_attack = TRUE;
-            }
-            break;
-        }
+    if (is_tanking(ch)) {
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_PRECISE_SHOT))
+        penalty += 4;
+      else if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_PRECISE_SHOT))
+        ;
+      else /* not skilled with close combat archery */
+        penalty -= 4;
 
-        if(perform_attack) {
-          if (can_fire_arrow(ch, FALSE) && FIGHTING(ch)) {
-            hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, /* FIRE! */
-                penalty, 2); // 2 in last arg indicates ranged
-            if (attacks_at_max_bab > 0)
-              attacks_at_max_bab--;
-            else
-              penalty -= 3;
-          } else if (FIGHTING(ch)) {
-            send_to_char(ch, "\tWYou are out of ammunition!\tn\r\n");
-            stop_fighting(ch);
-            return 0;
-          } else
-            stop_fighting(ch);
-        }
+      if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT)) {
+        send_to_char(ch, "You are too close to use your ranged weapon.\r\n");
+        stop_fighting(ch);
+        FIRING(ch) = FALSE;
+        return 0;
       }
-      return 0;
     }
+
+    if (RIDING(ch) && !IS_NPC(ch) && !HAS_FEAT(ch, FEAT_MOUNTED_ARCHERY))
+      penalty -= 4;
+
+    /* FIRE! */
+    for (i = 0; i < ranged_attacks; i++) {
+      /* phase 1: 1 4 7 10 13
+       * phase 2: 2 5 8 11 14
+       * phase 3: 3 6 9 12 15 */
+      perform_attack = FALSE;
+      switch (i) {
+        case 1: case 4: case 7: case 10: case 13:
+          if (phase == PHASE_0 || phase == PHASE_1 ) {
+            perform_attack = TRUE;
+          }
+          break;
+        case 2: case 5: case 8: case 11: case 14:
+          if (phase == PHASE_0 || phase == PHASE_2 ) {
+            perform_attack = TRUE;
+          }
+          break;
+        case 3: case 6: case 9: case 12: case 15:
+          if (phase == PHASE_0 || phase == PHASE_3 ) {
+            perform_attack = TRUE;
+          }
+          break;
+      }
+
+      if (perform_attack) {
+        if (can_fire_arrow(ch, FALSE) && FIGHTING(ch)) {
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, /* FIRE! */
+                penalty, ATTACK_TYPE_RANGED);
+          if (attacks_at_max_bab > 0)
+            attacks_at_max_bab--;
+          else
+            penalty -= 3;
+        } else if (FIGHTING(ch)) {
+          send_to_char(ch, "\tWYou are out of ammunition!\tn\r\n");
+          stop_fighting(ch);
+          return 0;
+        } else
+          stop_fighting(ch);
+      }
+    }
+    return 0;
+
     /* Display Modes */
   } else if (mode == RETURN_NUM_ATTACKS && can_fire_arrow(ch, TRUE)) {
     return ranged_attacks;
@@ -3935,11 +3934,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     return 0;
   }
   if (drop_an_attack_at_max_bab)
-    attacks_at_max_bab--;
+    attacks_at_max_bab -= drop_an_attack_at_max_bab;
   /*  End ranged attacks ---------------------------------------------------- */
 
 
-  //now lets determine base attack(s) and resulting possible penalty
+  //melee: now lets determine base attack(s) and resulting possible penalty
   dual = is_dual_wielding(ch); // trelux or has off-hander equipped
 
   if (dual) { /*default of one offhand attack for everyone*/

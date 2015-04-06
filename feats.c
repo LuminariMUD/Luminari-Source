@@ -308,198 +308,230 @@ void assign_feats(void) {
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
+  /***/
   /* Combat feats */
+  /***/
+
+  /* combat modes */
   feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead",
     "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
-  feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
-
-  feato(FEAT_WEAPON_FOCUS, "weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "+1 to hit rolls for selected weapon",
-    "+1 to hit rolls for selected weapon");
-  feat_prereq_bab(FEAT_WEAPON_FOCUS, 1);
-  feat_prereq_weapon_proficiency(FEAT_WEAPON_FOCUS);
-
-  feato(FEAT_GREATER_WEAPON_FOCUS, "greater weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "+1 to hit rolls with weapon",
-    "+1 to hit rolls with weapon");
-  feat_prereq_cfeat(FEAT_GREATER_WEAPON_FOCUS, FEAT_WEAPON_FOCUS);
-  feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_FOCUS);
-  feat_prereq_class_level(FEAT_GREATER_WEAPON_FOCUS, CLASS_WARRIOR, 8);
-
-  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-
-  /* here is our mounted combat feats */
-  feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "once per round rider may negate a hit against him with a successful ride vs attack roll check",
-    "once per round rider may negate a hit against him with a successful ride vs attack roll check");
-
-  feato(FEAT_RIDE_BY_ATTACK, "ride by attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "normally use full round action on charge, now use move action",
-    "normally use full round action on charge, now use move action");
-  feat_prereq_feat(FEAT_RIDE_BY_ATTACK, FEAT_MOUNTED_COMBAT, 1);
-  feat_prereq_ability(FEAT_RIDE_BY_ATTACK, ABILITY_RIDE, 1);
-
-  feato(FEAT_SPIRITED_CHARGE, "spirited charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).",
-    "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).");
-  feat_prereq_ability(FEAT_SPIRITED_CHARGE, ABILITY_RIDE, 1);
-  feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_MOUNTED_COMBAT, 1);
-  feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_RIDE_BY_ATTACK, 1);
-
-  /* end mounted combat feats */
-
-  feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.",
-    "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
-
+    feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
   feato(FEAT_COMBAT_EXPERTISE, "combat expertise", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC",
     "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC");
-  feat_prereq_attribute(FEAT_COMBAT_EXPERTISE, AB_INT, 13);
+    feat_prereq_attribute(FEAT_COMBAT_EXPERTISE, AB_INT, 13);
 
-  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-
-  feato(FEAT_COMBAT_REFLEXES, "combat reflexes", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "can make a number of attacks of opportunity equal to dex bonus",
-    "can make a number of attacks of opportunity equal to dex bonus");
-
-  feato(FEAT_DODGE, "dodge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "+1 dodge bonus to ac",
-    "+1 dodge bonus to ac");
-  feat_prereq_attribute(FEAT_DODGE, AB_DEX, 13);
-
-  feato(FEAT_MOBILITY, "mobility", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "+4 dodge ac bonus against attacks of opportunity",
-    "+4 dodge ac bonus against attacks of opportunity");
-  feat_prereq_attribute(FEAT_MOBILITY, AB_DEX, 13);
-  feat_prereq_feat(FEAT_MOBILITY, FEAT_DODGE, 1);
-
-  feato(FEAT_IMPROVED_CRITICAL, "improved critical", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "doubled critical threat rating for weapon chosen",
-    "doubled critical threat rating for weapon chosen");
-  feat_prereq_weapon_proficiency(FEAT_IMPROVED_CRITICAL);
-  feat_prereq_bab(FEAT_IMPROVED_CRITICAL, 8);
-
-  feato(FEAT_IMPROVED_INITIATIVE, "improved initiative", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "+4 to initiative checks to see who attacks first each round",
-    "+4 to initiative checks to see who attacks first each round");
-
-  feato(FEAT_IMPROVED_SHIELD_PUNCH, "improved shield punch", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "retain your shield's AC bonus when you shield punch",
-    "retain your shield's AC bonus when you shield punch");
-  feat_prereq_feat(FEAT_IMPROVED_SHIELD_PUNCH, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
-
-  feato(FEAT_IMPROVED_TRIP, "improved trip", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "no AoO when tripping, +4 to trip, attack immediately",
-    "no attack of opportunity when tripping, +4 to trip check, attack immediately "
-      "on successful trip.");
-  feat_prereq_attribute(FEAT_IMPROVED_TRIP, AB_INT, 13);
-  feat_prereq_feat(FEAT_IMPROVED_TRIP, FEAT_COMBAT_EXPERTISE, 1);
-
-  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-
-  feato(FEAT_POINT_BLANK_SHOT, "point blank shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "+1 to hit and dam rolls with ranged weapons in the same room",
-    "+1 to hit and dam rolls with ranged weapons in the same room");
-
-  feato(FEAT_RAPID_SHOT, "rapid shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "extra attack ranged weapon at -2 to all attacks",
-    "can make extra attack per round with ranged weapon at -2 to all attacks");
-  feat_prereq_attribute(FEAT_RAPID_SHOT, AB_DEX, 13);
-  feat_prereq_feat(FEAT_RAPID_SHOT, FEAT_POINT_BLANK_SHOT, 1);
-
-  feato(FEAT_SHIELD_CHARGE, "shield charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "make a knockdown attack when you bash with your shield",
-    "make a knockdown attack when you bash with your shield");
-  feat_prereq_bab(FEAT_SHIELD_CHARGE, 3);
-  feat_prereq_feat(FEAT_SHIELD_CHARGE, FEAT_IMPROVED_SHIELD_PUNCH, 1);
-
-  feato(FEAT_SHIELD_SLAM, "shield slam", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "Daze an opponent of any size by slamming them with your shield.",
-    "Daze an opponent of any size by slamming them with your shield.");
-  feat_prereq_bab(FEAT_SHIELD_SLAM, 6);
-  feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_SHIELD_CHARGE, 1);
-  feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_IMPROVED_SHIELD_PUNCH, 1);
-
-  feato(FEAT_SPRING_ATTACK, "spring attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "you can choose the direction you flee and gain springleap",
-    "you can choose the direction you flee and gain springleap");
-  feat_prereq_bab(FEAT_SPRING_ATTACK, 4);
-  feat_prereq_attribute(FEAT_SPRING_ATTACK, AB_DEX, 13);
-  feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_DODGE, 1);
-  feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_MOBILITY, 1);
-
-  feato(FEAT_STUNNING_FIST, "stunning fist", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "may make unarmed attack to stun opponent for one round",
-    "may make unarmed attack to stun opponent for one round");
-  feat_prereq_attribute(FEAT_STUNNING_FIST, AB_DEX, 13);
-  feat_prereq_attribute(FEAT_STUNNING_FIST, AB_WIS, 13);
-  feat_prereq_feat(FEAT_STUNNING_FIST, FEAT_IMPROVED_UNARMED_STRIKE, 1);
-  feat_prereq_bab(FEAT_STUNNING_FIST, 8);
-
-  feato(FEAT_WEAPON_FINESSE, "weapon finesse", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "use dex for hit roll of weapons",
-    "use dexterity bonus for hit roll of weapons (if better than strength bonus), "
-      "there is no benefit to this feat for archery");
-  feat_prereq_bab(FEAT_WEAPON_FINESSE, 1);
-
-  feato(FEAT_WHIRLWIND_ATTACK, "whirlwind attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "grants whirlwind and hitall attacks [under construction]",
-    "grants whirlwind and hitall attacks [under construction]");
-  feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_DEX, 13);
-  feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_INT, 13);
-  feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_COMBAT_EXPERTISE, 1);
-  feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_DODGE, 1);
-  feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_MOBILITY, 1);
-  feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_SPRING_ATTACK, 1);
-  feat_prereq_bab(FEAT_WHIRLWIND_ATTACK, 4);
-
+  /* weapon focus feats */
+  feato(FEAT_WEAPON_FOCUS, "weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "+1 to hit rolls for selected weapon",
+    "+1 to hit rolls for selected weapon");
+    feat_prereq_bab(FEAT_WEAPON_FOCUS, 1);
+    feat_prereq_weapon_proficiency(FEAT_WEAPON_FOCUS);
+  feato(FEAT_GREATER_WEAPON_FOCUS, "greater weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "+1 to hit rolls with weapon",
+    "+1 to hit rolls with weapon");
+    feat_prereq_cfeat(FEAT_GREATER_WEAPON_FOCUS, FEAT_WEAPON_FOCUS);
+    feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_FOCUS);
+    feat_prereq_class_level(FEAT_GREATER_WEAPON_FOCUS, CLASS_WARRIOR, 8);
   feato(FEAT_WEAPON_SPECIALIZATION, "weapon specialization", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
     "+2 to dam rolls with chosen weapon",
     "Choose one type of weapon, such as greataxe, for which you have already "
       "selected the Weapon Focus feat. You can also choose unarmed strike as "
       "your weapon for purposes of this feat. You gain a +2 bonus on damage "
       "using the selected weapon.");
-  feat_prereq_weapon_proficiency(FEAT_WEAPON_SPECIALIZATION);
-  feat_prereq_cfeat(FEAT_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
-  feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 4);
-
+    feat_prereq_weapon_proficiency(FEAT_WEAPON_SPECIALIZATION);
+    feat_prereq_cfeat(FEAT_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
+    feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 4);
   feato(FEAT_GREATER_WEAPON_SPECIALIZATION, "greater weapon specialization", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT,
     "+2 damage with weapon",
     "additional +2 dam with weapon (stacks)");
-  feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_SPECIALIZATION);
-  feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
-  feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_FOCUS);
-  feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_SPECIALIZATION);
-  feat_prereq_class_level(FEAT_GREATER_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 12);
+    feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_SPECIALIZATION);
+    feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
+    feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_FOCUS);
+    feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_SPECIALIZATION);
+    feat_prereq_class_level(FEAT_GREATER_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 12);
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
+  /* mobility feats */
+  feato(FEAT_DODGE, "dodge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "+1 dodge bonus to ac",
+    "+1 dodge bonus to ac");
+    feat_prereq_attribute(FEAT_DODGE, AB_DEX, 13);
+  feato(FEAT_MOBILITY, "mobility", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "+4 dodge ac bonus against attacks of opportunity",
+    "+4 dodge ac bonus against attacks of opportunity");
+    feat_prereq_attribute(FEAT_MOBILITY, AB_DEX, 13);
+    feat_prereq_feat(FEAT_MOBILITY, FEAT_DODGE, 1);
+  feato(FEAT_SPRING_ATTACK, "spring attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "you can choose the direction you flee and gain springleap",
+    "you can choose the direction you flee and gain springleap");
+    feat_prereq_bab(FEAT_SPRING_ATTACK, 4);
+    feat_prereq_attribute(FEAT_SPRING_ATTACK, AB_DEX, 13);
+    feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_DODGE, 1);
+    feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_MOBILITY, 1);
+  feato(FEAT_WHIRLWIND_ATTACK, "whirlwind attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "grants whirlwind and hitall attacks [under construction]",
+    "grants whirlwind and hitall attacks [under construction]");
+    feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_DEX, 13);
+    feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_INT, 13);
+    feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_COMBAT_EXPERTISE, 1);
+    feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_DODGE, 1);
+    feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_MOBILITY, 1);
+    feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_SPRING_ATTACK, 1);
+    feat_prereq_bab(FEAT_WHIRLWIND_ATTACK, 4);
+
+  /* critical feats */
+  feato(FEAT_POWER_CRITICAL, "power critical", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "+4 to rolls to confirm critical hits.",
+    "+4 to rolls to confirm critical hits.");
+    feat_prereq_weapon_proficiency(FEAT_POWER_CRITICAL);
+    feat_prereq_bab(FEAT_POWER_CRITICAL, 4);
+  feato(FEAT_IMPROVED_CRITICAL, "improved critical", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "doubled critical threat rating for weapon chosen",
+    "doubled critical threat rating for weapon chosen");
+    feat_prereq_weapon_proficiency(FEAT_IMPROVED_CRITICAL);
+    feat_prereq_bab(FEAT_IMPROVED_CRITICAL, 8);
+
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  /* ranged attack feats */
+  feato(FEAT_POINT_BLANK_SHOT, "point blank shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "+1 to hit and dam rolls with ranged weapons in the same room",
+    "+1 to hit and dam rolls with ranged weapons in the same room, can fight "
+      "in close quarters with ranged weapon");
+  feato(FEAT_RAPID_SHOT, "rapid shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "extra attack ranged weapon at -2 to all attacks",
+    "can make extra attack per round with ranged weapon at -2 to all attacks");
+    feat_prereq_attribute(FEAT_RAPID_SHOT, AB_DEX, 13);
+    feat_prereq_feat(FEAT_RAPID_SHOT, FEAT_POINT_BLANK_SHOT, 1);
+  feato(FEAT_MANYSHOT, "manyshot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "extra ranged attack when rapid shot turned on",
+    "extra ranged attack when rapid shot turned on");
+    feat_prereq_attribute(FEAT_MANYSHOT, AB_DEX, 15);
+    feat_prereq_feat(FEAT_MANYSHOT, FEAT_RAPID_SHOT, 1);
+  feato(FEAT_PRECISE_SHOT, "precise shot", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "You may shoot in melee without the standard -4 to hit penalty",
+    "You may shoot in melee without the standard -4 to hit penalty");
+    feat_prereq_attribute(FEAT_PRECISE_SHOT, AB_DEX, 13);
+  feato(FEAT_IMPROVED_PRECISE_SHOT, "improved precise shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "+4 to hit on all close ranged attacks",
+    "+4 to hit on all close ranged attacks");
+    feat_prereq_feat(FEAT_IMPROVED_PRECISE_SHOT, FEAT_PRECISE_SHOT, 1);
+    feat_prereq_bab(FEAT_IMPROVED_PRECISE_SHOT, 12);
+
+  /* here is our mounted combat feats */
+  feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "once per round rider may negate a hit against him with a successful ride vs attack roll check",
+    "once per round rider may negate a hit against him with a successful ride vs attack roll check");
+    feat_prereq_ability(FEAT_MOUNTED_COMBAT, ABILITY_RIDE, 4);
+  feato(FEAT_RIDE_BY_ATTACK, "ride by attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "normally use full round action on charge, now use move action",
+    "normally use full round action on charge, now use move action");
+    feat_prereq_feat(FEAT_RIDE_BY_ATTACK, FEAT_MOUNTED_COMBAT, 1);
+    feat_prereq_ability(FEAT_RIDE_BY_ATTACK, ABILITY_RIDE, 6);
+  feato(FEAT_SPIRITED_CHARGE, "spirited charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).",
+    "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).");
+    feat_prereq_ability(FEAT_SPIRITED_CHARGE, ABILITY_RIDE, 8);
+    feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_MOUNTED_COMBAT, 1);
+    feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_RIDE_BY_ATTACK, 1);
+  /* end mounted combat feats */
+
+  /* ranged attack + mounted combat feats */
+  feato(FEAT_MOUNTED_ARCHERY, "mounted archery", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "no penalty for mounted archery attacks",
+    "normally mounted archery combat imposes a -4 penalty to attacks, with this "
+      "feat you have no penalty to your attacks");
+    feat_prereq_feat(FEAT_MOUNTED_ARCHERY, FEAT_MOUNTED_COMBAT, 1);
+    feat_prereq_ability(FEAT_MOUNTED_ARCHERY, ABILITY_RIDE, 6);
+
+  /* shield feats */
+  feato(FEAT_IMPROVED_SHIELD_PUNCH, "improved shield punch", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "retain your shield's AC bonus when you shield punch",
+    "retain your shield's AC bonus when you shield punch");
+    feat_prereq_feat(FEAT_IMPROVED_SHIELD_PUNCH, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
+  feato(FEAT_SHIELD_CHARGE, "shield charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "make a knockdown attack when you bash with your shield",
+    "make a knockdown attack when you bash with your shield");
+    feat_prereq_bab(FEAT_SHIELD_CHARGE, 3);
+    feat_prereq_feat(FEAT_SHIELD_CHARGE, FEAT_IMPROVED_SHIELD_PUNCH, 1);
+  feato(FEAT_SHIELD_SLAM, "shield slam", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "Daze an opponent of any size by slamming them with your shield.",
+    "Daze an opponent of any size by slamming them with your shield.");
+    feat_prereq_bab(FEAT_SHIELD_SLAM, 6);
+    feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_SHIELD_CHARGE, 1);
+    feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_IMPROVED_SHIELD_PUNCH, 1);
+
+  /* two weapon fighting feats */
   feato(FEAT_TWO_WEAPON_FIGHTING, "two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "reduces penalty for two weapon fighting",
     "reduces penalty for two weapon fighting");
-  feat_prereq_attribute(FEAT_TWO_WEAPON_FIGHTING, AB_DEX, 15);
-
+    feat_prereq_attribute(FEAT_TWO_WEAPON_FIGHTING, AB_DEX, 15);
   feato(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, "improved two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "extra attack with offhand weapon at -5 penalty",
     "extra attack with offhand weapon at -5 penalty");
-  feat_prereq_cfeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, FEAT_TWO_WEAPON_FIGHTING);
-  feat_prereq_attribute(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, AB_DEX, 17);
-
+    feat_prereq_cfeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, FEAT_TWO_WEAPON_FIGHTING);
+    feat_prereq_attribute(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, AB_DEX, 17);
   feato(FEAT_GREATER_TWO_WEAPON_FIGHTING, "greater two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "gives an additional offhand weapon attack at -10 penalty",
     "gives an additional offhand weapon attack at -10 penalty");
-  feat_prereq_cfeat(FEAT_GREATER_TWO_WEAPON_FIGHTING, FEAT_IMPROVED_TWO_WEAPON_FIGHTING);
-  feat_prereq_attribute(FEAT_GREATER_TWO_WEAPON_FIGHTING, AB_DEX, 19);
+    feat_prereq_cfeat(FEAT_GREATER_TWO_WEAPON_FIGHTING, FEAT_IMPROVED_TWO_WEAPON_FIGHTING);
+    feat_prereq_attribute(FEAT_GREATER_TWO_WEAPON_FIGHTING, AB_DEX, 19);
+  feato(FEAT_TWO_WEAPON_DEFENSE, "two weapon defense", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "when wielding two weapons receive +1 shield ac bonus",
+    "when wielding two weapons receive +1 shield ac bonus");
+
+  /* uncategorized combat feats */
+  feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.",
+    "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
+
+  feato(FEAT_COMBAT_REFLEXES, "combat reflexes", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "can make a number of attacks of opportunity equal to dex bonus",
+    "can make a number of attacks of opportunity equal to dex bonus");
+
+  feato(FEAT_IMPROVED_INITIATIVE, "improved initiative", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "+4 to initiative checks to see who attacks first each round",
+    "+4 to initiative checks to see who attacks first each round");
+
+  feato(FEAT_IMPROVED_TRIP, "improved trip", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "no AoO when tripping, +4 to trip, attack immediately",
+    "no attack of opportunity when tripping, +4 to trip check, attack immediately "
+      "on successful trip.");
+    feat_prereq_attribute(FEAT_IMPROVED_TRIP, AB_INT, 13);
+    feat_prereq_feat(FEAT_IMPROVED_TRIP, FEAT_COMBAT_EXPERTISE, 1);
+
+  feato(FEAT_STUNNING_FIST, "stunning fist", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "may make unarmed attack to stun opponent for one round",
+    "may make unarmed attack to stun opponent for one round");
+    feat_prereq_attribute(FEAT_STUNNING_FIST, AB_DEX, 13);
+    feat_prereq_attribute(FEAT_STUNNING_FIST, AB_WIS, 13);
+    feat_prereq_feat(FEAT_STUNNING_FIST, FEAT_IMPROVED_UNARMED_STRIKE, 1);
+    feat_prereq_bab(FEAT_STUNNING_FIST, 8);
+
+  feato(FEAT_WEAPON_FINESSE, "weapon finesse", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "use dex for hit roll of weapons",
+    "use dexterity bonus for hit roll of weapons (if better than strength bonus), "
+      "there is no benefit to this feat for archery");
+    feat_prereq_bab(FEAT_WEAPON_FINESSE, 1);
 
   /* epic */
   feato(FEAT_EPIC_PROWESS, "epic prowess", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
     "+1 to all attacks per rank",
     "+1 to all attacks per rank");
+  /* two weapon fighting feats, epic */
   feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING, "perfect two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "Extra attack with offhand weapon",
     "Extra attack with offhand weapon with no penalty");
-  feat_prereq_cfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING);
-  feat_prereq_attribute(FEAT_PERFECT_TWO_WEAPON_FIGHTING, AB_DEX, 21);
+    feat_prereq_cfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING);
+    feat_prereq_attribute(FEAT_PERFECT_TWO_WEAPON_FIGHTING, AB_DEX, 21);
+  /* archery epic feats */
+  feato(FEAT_EPIC_MANYSHOT, "epic manyshot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "extra ranged attack when rapid shot turned on",
+    "extra ranged attack when rapid shot turned on");
+    feat_prereq_attribute(FEAT_EPIC_MANYSHOT, AB_DEX, 19);
+    feat_prereq_feat(FEAT_EPIC_MANYSHOT, FEAT_MANYSHOT, 1);
 
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -770,10 +802,11 @@ void assign_feats(void) {
   feato(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, "perfect dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "Extra attack with offhand weapon",
     "Extra attack with offhand weapon while wearing light or lighter armor");
-    /* rapid shot */
-    /* manyshot */
-    /* improved precise shot */
-    /* epic (improved) manyshot */
+  /* point blank shot */
+  /* rapid shot */
+  /* manyshot */
+    /* epic: */
+  /* epic manyshot */
 
   /* Ranger / Druid */
   feato(FEAT_ANIMAL_COMPANION, "animal companion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -1020,9 +1053,6 @@ void assign_feats(void) {
   feato(FEAT_IMPROVED_DISARM, "improved disarm", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff ", "ask staff ");
   feato(FEAT_IMPROVED_GRAPPLE, "improved grapple", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_OVERRUN, "improved overrun", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-  feato(FEAT_IMPROVED_PRECISE_SHOT, "improved precise shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "+1 to hit on all ranged attacks", "+1 to hit on all ranged attacks");
-  feato(FEAT_MANYSHOT, "manyshot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "extra ranged attack when rapid shot turned on", "extra ranged attack when rapid shot turned on");
-  feato(FEAT_MOUNTED_ARCHERY, "mounted archery", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_QUICK_DRAW, "quick draw", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_RAPID_RELOAD, "rapid reload", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_SHOT_ON_THE_RUN, "shot on the run", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
@@ -1034,9 +1064,6 @@ void assign_feats(void) {
   feato(FEAT_IMPROVED_TAUNTING, "improved taunting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_WEAPON_FINESSE, "improved weapon finesse", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "add dex bonus to damage instead of str for light weapons", "add dex bonus to damage instead of str for light weapons");
   feato(FEAT_KNOCKDOWN, "knockdown", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target", "when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target");
-  feato(FEAT_POWER_CRITICAL, "power critical", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+4 to rolls to confirm critical hits.", "+4 to rolls to confirm critical hits.");
-  feato(FEAT_PRECISE_SHOT, "precise shot", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "You may shoot in melee without the standard -4 to hit penalty", "You may shoot in melee without the standard -4 to hit penalty");
-  feato(FEAT_TWO_WEAPON_DEFENSE, "two weapon defense", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when wielding two weapons receive +1 shield ac bonus", "when wielding two weapons receive +1 shield ac bonus");
   feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "bonus to initiative checks", "bonus to initiative checks");
   feato(FEAT_IMPROVED_BULL_RUSH, "improved bull rush", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_REACTION, "improved reaction", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "+2 bonus to initiative checks (+4 at 8th class level)", "+2 bonus to initiative checks (+4 at 8th class level)");
