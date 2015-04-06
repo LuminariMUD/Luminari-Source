@@ -372,141 +372,213 @@ int roll_initiative(struct char_data *ch) {
    a given ch's AC under the circumstances of being attacked
  * by 'attacker' */
 int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is_touch) {
-
   /* hack to translate old D&D to 3.5 Edition
    * Modified 09/09/2014 : Ornir
    * Changed this to use the AC as-is.  AC has been modified on gear. */
-  int armorclass = GET_AC(ch) / 10;
+  int armorclass = 0, eq_armoring = 0;
+  int i, bonuses[NUM_BONUS_TYPES];
+
+  /* base armor class of stock code = 100 */
+  /* equipment is still using a 10 factor, example plate armor in d20 = 8,
+   therefore in the code it would be 80 - this has to be consistent otherwise
+   the calculation below will get skewed */
+  eq_armoring = ((GET_AC(ch) - 100) / 10);
+  armorclass = 10; /* base AC */
+
+  /* Initialize bonuses to 0 */
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+    bonuses[i] = 0;
 
   if (char_has_mud_event(ch, eSHIELD_RECOVERY)) {
     if (GET_EQ(ch, WEAR_SHIELD))
-      armorclass -= apply_ac(ch, WEAR_SHIELD);
+      eq_armoring -= (apply_ac(ch, WEAR_SHIELD) / 10);
   }
 
-  /* Hack to make touch attacks REALLY work. */
-  if (is_touch)
-    armorclass = 10;
+  /**********/
+  /* bonus types */
 
+  /* bonus type natural-armor */
+  /* arcana golem */
+  if (GET_RACE(ch) == RACE_ARCANA_GOLEM) {
+    bonuses[BONUS_TYPE_NATURALARMOR] -= 2;
+  }
+  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
+    bonuses[BONUS_TYPE_NATURALARMOR] += SPELLBATTLE(ch);
+  }
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ARMOR_SKIN)) {
+    bonuses[BONUS_TYPE_NATURALARMOR] += HAS_FEAT(ch, FEAT_ARMOR_SKIN);
+  }
+  /**/
+
+  /* bonus type armor (equipment) */
+  /* we assume any ac above 10 will be equipment */
+  bonuses[BONUS_TYPE_ARMOR] += eq_armoring;
+  /* ...Trelux carapace is not effective vs touch attacks! */
+  if (GET_RACE(ch) == RACE_TRELUX) {
+    if (GET_LEVEL(ch) >= 5) {
+      bonuses[BONUS_TYPE_ARMOR]++;
+    }
+    if (GET_LEVEL(ch) >= 10) {
+      bonuses[BONUS_TYPE_ARMOR]++;
+    }
+    if (GET_LEVEL(ch) >= 15) {
+      bonuses[BONUS_TYPE_ARMOR]++;
+    }
+    if (GET_LEVEL(ch) >= 20) {
+      bonuses[BONUS_TYPE_ARMOR]++;
+    }
+    if (GET_LEVEL(ch) >= 25) {
+      bonuses[BONUS_TYPE_ARMOR]++;
+    }
+    if (GET_LEVEL(ch) >= 30) {
+      bonuses[BONUS_TYPE_ARMOR]++;
+    }
+  }
+  /**/
+
+  /* bonus type shield (usually equipment) */
+  if (!is_touch && !IS_NPC(ch) && GET_EQ(ch, WEAR_SHIELD) &&
+          GET_SKILL(ch, SKILL_SHIELD_SPECIALIST)) {
+    bonuses[BONUS_TYPE_SHIELD] += 2;
+  }
+  /**/
+
+  /* bonus type deflection */
+  /* two weapon defense */
+  if (!IS_NPC(ch) && GET_EQ(ch, WEAR_WIELD_2) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE)) {
+    bonuses[BONUS_TYPE_DEFLECTION]++;
+  }
+  if (attacker) {
+    if (AFF_FLAGGED(ch, AFF_PROTECT_GOOD) && IS_GOOD(attacker)) {
+      bonuses[BONUS_TYPE_DEFLECTION] += 2;
+    }
+    if (AFF_FLAGGED(ch, AFF_PROTECT_EVIL) && IS_EVIL(attacker)) {
+      bonuses[BONUS_TYPE_DEFLECTION] += 2;
+    }
+  }
+  /**/
+
+  /* bonus type enhancement (equipment) */
+  /**/
+
+  /* bonus type dodge */
   /* Determine if the ch loses their dex bonus to armor class. */
   if (has_dex_bonus_to_ac(attacker, ch)) {
 
-   armorclass += GET_DEX_BONUS(ch);
+    bonuses[BONUS_TYPE_DODGE] += GET_DEX_BONUS(ch);
 
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DODGE))
-      armorclass += 1;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DODGE)) {
+      bonuses[BONUS_TYPE_DODGE] += 1;
+    }
+
+    if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_ACROBATICS)) { //caps at 5
+      bonuses[BONUS_TYPE_DODGE] += MIN(5, (int) (compute_ability(ch, ABILITY_ACROBATICS) / 7));
+    }
+
+    if (AFF_FLAGGED(ch, AFF_EXPERTISE)) {
+      bonuses[BONUS_TYPE_DODGE] += COMBAT_MODE_VALUE(ch);
+    }
   }
+  /**/
 
-  if (attacker) {
-    if (AFF_FLAGGED(ch, AFF_PROTECT_GOOD) && IS_GOOD(attacker))
-      armorclass += 2;
-    if (AFF_FLAGGED(ch, AFF_PROTECT_EVIL) && IS_EVIL(attacker))
-      armorclass += 2;
-  }
-
-  if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_ACROBATICS)) //caps at 5
-    armorclass += MIN(5, (int) (compute_ability(ch, ABILITY_ACROBATICS) / 7));
-
-  if (AFF_FLAGGED(ch, AFF_EXPERTISE))
-    armorclass += COMBAT_MODE_VALUE(ch);
-
-  if (!is_touch && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_ARMOR_SKIN))
-    armorclass += HAS_FEAT(ch, FEAT_ARMOR_SKIN);
-
-  if (!is_touch && !IS_NPC(ch) && GET_EQ(ch, WEAR_SHIELD) &&
-          GET_SKILL(ch, SKILL_SHIELD_SPECIALIST))
-    armorclass += 2;
-
-  if (char_has_mud_event(ch, eTAUNTED))
-    armorclass -= 6;
-
-  if (char_has_mud_event(ch, eSTUNNED)) /* POS_STUNNED below in case statement */
-    armorclass -= 2;
-
-  if (AFF_FLAGGED(ch, AFF_FATIGUED))
-    armorclass -= 2;
-
-  if (attacker) { /* racial bonus vs. larger opponents */
-    if ((GET_RACE(ch) == RACE_DWARF ||
-            GET_RACE(ch) == RACE_CRYSTAL_DWARF ||
-            GET_RACE(ch) == RACE_GNOME ||
-            GET_RACE(ch) == RACE_HALFLING
-            ) && GET_SIZE(attacker) > GET_SIZE(ch))
-      armorclass += compute_size_bonus(GET_SIZE(attacker), (GET_SIZE(ch) - 1));
-    else
-      armorclass += compute_size_bonus(GET_SIZE(attacker), GET_SIZE(ch));
-  }
-
-  /* favored enemy */
-  if (attacker && attacker != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER)) {
-    // checking if we have humanoid favored enemies for PC victims
-    if (!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
-      armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
-    else if (IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, GET_RACE(attacker)))
-      armorclass += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
-  }
-
-  /* Monk armor bonus is effective vs touch attacks... */
-  if (CLASS_LEVEL(ch, CLASS_MONK) && monk_gear_ok(ch)) {
-    armorclass += GET_WIS_BONUS(ch);
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 5)
-      armorclass++;
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 10)
-      armorclass++;
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 15)
-      armorclass++;
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 20)
-      armorclass++;
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 25)
-      armorclass++;
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 30)
-      armorclass++;
-  }
-
-  /* ...but Trelux carapace is not effective vs touch attacks! */
-  if (!is_touch && GET_RACE(ch) == RACE_TRELUX) {
-    if (GET_LEVEL(ch) >= 5)
-      armorclass++;
-    if (GET_LEVEL(ch) >= 10)
-      armorclass++;
-    if (GET_LEVEL(ch) >= 15)
-      armorclass++;
-    if (GET_LEVEL(ch) >= 20)
-      armorclass++;
-    if (GET_LEVEL(ch) >= 25)
-      armorclass++;
-    if (GET_LEVEL(ch) >= 30)
-      armorclass++;
-  }
-
-  /* arcana golem */
-  if (GET_RACE(ch) == RACE_ARCANA_GOLEM)
-    armorclass -= 2;
-  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
-    armorclass += SPELLBATTLE(ch);
-  }
-
-  /* two weapon defense */
-  if (!IS_NPC(ch) && GET_EQ(ch, WEAR_WIELD_2) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE))
-    armorclass++;
-
+  /* bonus type circumstance */
   switch (GET_POS(ch)) { //position penalty
     case POS_RECLINING:
-      armorclass -= 3;
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 3;
       break;
     case POS_SITTING:
     case POS_RESTING:
     case POS_STUNNED:
-      armorclass -= 2;
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
       break;
     case POS_SLEEPING:
     case POS_INCAP:
     case POS_MORTALLYW:
     case POS_DEAD:
-      armorclass -= 20;
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 20;
       break;
     case POS_FIGHTING:
     case POS_STANDING:
     default: break;
+  }
+  if (char_has_mud_event(ch, eSTUNNED)) {/* POS_STUNNED below in case statement */
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+  }
+  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+  }
+  if (char_has_mud_event(ch, eTAUNTED)) {
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 6;
+  }
+  /**/
+
+  /* bonus type size */
+  if (attacker) { /* racial bonus vs. larger opponents */
+    if ((GET_RACE(ch) == RACE_DWARF ||
+            GET_RACE(ch) == RACE_CRYSTAL_DWARF ||
+            GET_RACE(ch) == RACE_GNOME ||
+            GET_RACE(ch) == RACE_HALFLING
+            ) && GET_SIZE(attacker) > GET_SIZE(ch)) {
+      bonuses[BONUS_TYPE_SIZE] += compute_size_bonus(GET_SIZE(attacker), (GET_SIZE(ch) - 1));
+    } else {
+      bonuses[BONUS_TYPE_SIZE] += compute_size_bonus(GET_SIZE(attacker), GET_SIZE(ch));
+    }
+  }
+  /**/
+
+  /* bonus type undefined */
+  /* favored enemy */
+  if (attacker && attacker != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER)) {
+    // checking if we have humanoid favored enemies for PC victims
+    if (!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN)) {
+      bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+    } else if (IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, GET_RACE(attacker))) {
+      bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+    }
+  }
+  /* These bonuses to AC apply even against touch attacks or when the monk is
+   * flat-footed. She loses these bonuses when she is immobilized or helpless,
+   * when she wears any armor, when she carries a shield, or when she carries
+   * a medium or heavy load. */
+  if (CLASS_LEVEL(ch, CLASS_MONK) && monk_gear_ok(ch)) {
+    bonuses[BONUS_TYPE_UNDEFINED] += GET_WIS_BONUS(ch);
+
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 5) {
+      bonuses[BONUS_TYPE_UNDEFINED]++;
+    }
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 10) {
+      bonuses[BONUS_TYPE_UNDEFINED]++;
+    }
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 15) {
+      bonuses[BONUS_TYPE_UNDEFINED]++;
+    }
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 20) {
+      bonuses[BONUS_TYPE_UNDEFINED]++;
+    }
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 25) {
+      bonuses[BONUS_TYPE_UNDEFINED]++;
+    }
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 30) {
+      bonuses[BONUS_TYPE_UNDEFINED]++;
+    }
+  }
+  /**/
+
+  /* Add up all the bonuses */
+  if (is_touch) { /* don't include armor, natural armor, shield */
+    for (i = 0; i < NUM_BONUS_TYPES; i++) {
+      if (i == BONUS_TYPE_NATURALARMOR)
+        continue;
+      else if (i == BONUS_TYPE_ARMOR)
+        continue;
+      else if (i == BONUS_TYPE_SHIELD)
+        continue;
+      else
+        armorclass += bonuses[i];
+    }
+  } else {
+    for (i = 0; i < NUM_BONUS_TYPES; i++)
+      armorclass += bonuses[i];
   }
 
   return (MIN(MAX_AC, armorclass));
