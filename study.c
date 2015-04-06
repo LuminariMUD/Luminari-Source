@@ -275,7 +275,9 @@ void finalize_study(struct descriptor_data *d) {
 
   for (i = 0; i < NUM_FEATS; i++) {
     if (LEVELUP(ch)->feats[i]) {
-      SET_FEAT(ch, i, LEVELUP(ch)->feats[i]);
+      /* zusuk was here */
+      SET_FEAT(ch, i,
+          HAS_REAL_FEAT(ch, i) + LEVELUP(ch)->feats[i]);
       if ((subfeat = feat_to_skfeat(i)) != -1) {
         for (j = 0; j < MAX_ABILITIES + 1; j++)
           if (LEVELUP(ch)->skill_focus[subfeat][j])
@@ -345,7 +347,7 @@ void finalize_study(struct descriptor_data *d) {
           break;
       }
     }
-  }
+  } /* for loop running through feats */
 
   /* Set to learned. */
 
@@ -434,7 +436,7 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
   }
 
   /* zusuk debug */
-  LEVELUP(ch)->feats[feat] += HAS_FEAT(ch, feat);
+  //LEVELUP(ch)->feats[feat] += HAS_FEAT(ch, feat);
   /* zusuk debug */
 
   LEVELUP(ch)->feats[feat]++;
