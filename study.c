@@ -41,9 +41,9 @@ void init_study(struct descriptor_data *d, int class);
 void finalize_study(struct descriptor_data *d);
 /*-------------------------------------------------------------------*/
 
-#define MENU_OPT(i) ((i) ? grn : "\tD"), ((i) ? nrm : "\tD") 
+#define MENU_OPT(i) ((i) ? grn : "\tD"), ((i) ? nrm : "\tD")
 
-/* list of possible animal companions, use in-game vnums for this 
+/* list of possible animal companions, use in-game vnums for this
  * These lists should actually be redesigned to be dynamic, settable
  * via an in-game OLC.  The results should be stored in the database
  * and retrieved when needed. */
@@ -194,9 +194,9 @@ void init_study(struct descriptor_data *d, int class) {
             "SYSERR: do_study: Player already had olc structure.");
     free(d->olc);
   }
- 
+
   CREATE(d->olc, struct oasis_olc_data, 1);
- 
+
   if (LEVELUP(ch)) {
     mudlog(BRF, LVL_IMMORT, TRUE,
             "SYSERR: do_study: Player already had levelup structure.");
@@ -204,7 +204,7 @@ void init_study(struct descriptor_data *d, int class) {
   }
 
   CREATE(LEVELUP(ch), struct level_data, 1);
- 
+
   STATE(d) = CON_STUDY;
 
   /* Now copy the player's data to the levelup structure - a scratch area
@@ -219,9 +219,9 @@ void init_study(struct descriptor_data *d, int class) {
   LEVELUP(ch)->trains = GET_TRAINS(ch);
   LEVELUP(ch)->num_boosts = GET_BOOSTS(ch);
 
-  //send_to_char(ch, "%d %d %d %d\r\n", LEVELUP(ch)->feat_points, 
-  //                                LEVELUP(ch)->class_feat_points, 
-  //                                LEVELUP(ch)->epic_feat_points, 
+  //send_to_char(ch, "%d %d %d %d\r\n", LEVELUP(ch)->feat_points,
+  //                                LEVELUP(ch)->class_feat_points,
+  //                                LEVELUP(ch)->epic_feat_points,
   //                                LEVELUP(ch)->epic_class_feat_points);
 
   /* The following data elements are used to store the player's choices during the
@@ -232,7 +232,7 @@ void init_study(struct descriptor_data *d, int class) {
 
   LEVELUP(ch)->tempFeat = 0;
 
-  for (i = 0; i < 6; i++) 
+  for (i = 0; i < 6; i++)
     LEVELUP(ch)->boosts[i] = 0;
   for (i = 0; i < NUM_FEATS; i++) {
     LEVELUP(ch)->feats[i] = 0;
@@ -257,8 +257,8 @@ void finalize_study(struct descriptor_data *d) {
   struct char_data *ch = d->character;
   int i = 0, j = 0, subfeat = 0;
   struct damage_reduction_type *dr;
-  
-  /* Finalize the chosen data, applying the levelup structure to 
+
+  /* Finalize the chosen data, applying the levelup structure to
    * the character structure. */
   GET_FEAT_POINTS(ch) = LEVELUP(ch)->feat_points;
   GET_CLASS_FEATS(ch, LEVELUP(ch)->class) = LEVELUP(ch)->class_feat_points;
@@ -269,21 +269,21 @@ void finalize_study(struct descriptor_data *d) {
   GET_BOOSTS(ch) = LEVELUP(ch)->num_boosts;
 
 /*
-  for (i = 0; i < 6; i++) 
+  for (i = 0; i < 6; i++)
     LEVELUP(ch)->boosts[i] = 0;
 */
-  
+
   for (i = 0; i < NUM_FEATS; i++) {
     if (LEVELUP(ch)->feats[i]) {
       SET_FEAT(ch, i, LEVELUP(ch)->feats[i]);
       if ((subfeat = feat_to_skfeat(i)) != -1) {
-        for (j = 0; j < MAX_ABILITIES + 1; j++) 
-          if (LEVELUP(ch)->skill_focus[subfeat][j]) 
-            GET_SKILL_FEAT(ch, i, j) += LEVELUP(ch)->skill_focus[subfeat][j];        
+        for (j = 0; j < MAX_ABILITIES + 1; j++)
+          if (LEVELUP(ch)->skill_focus[subfeat][j])
+            GET_SKILL_FEAT(ch, i, j) += LEVELUP(ch)->skill_focus[subfeat][j];
       }
       if ((subfeat = feat_to_cfeat(i)) != -1) {
-        for (j = 0; j < NUM_WEAPON_TYPES; j++) 
-          if (HAS_LEVELUP_COMBAT_FEAT(ch, subfeat, j)) 
+        for (j = 0; j < NUM_WEAPON_TYPES; j++)
+          if (HAS_LEVELUP_COMBAT_FEAT(ch, subfeat, j))
             SET_COMBAT_FEAT(ch, subfeat, j);
       }
       if ((subfeat = feat_to_sfeat(i)) != -1) {
@@ -293,6 +293,21 @@ void finalize_study(struct descriptor_data *d) {
       }
       /* Handle specific feats here: */
       switch (i) {
+        case FEAT_GREAT_CONSTITUTION:
+          GET_REAL_CON(ch) += LEVELUP(ch)->feats[i];
+          break;
+        case FEAT_GREAT_DEXTERITY:
+          GET_REAL_DEX(ch) += LEVELUP(ch)->feats[i];
+          break;
+        case FEAT_GREAT_INTELLIGENCE:
+          GET_REAL_INT(ch) += LEVELUP(ch)->feats[i];
+          break;
+        case FEAT_GREAT_STRENGTH:
+          GET_REAL_STR(ch) += LEVELUP(ch)->feats[i];
+          break;
+        case FEAT_GREAT_WISDOM:
+          GET_REAL_WIS(ch) += LEVELUP(ch)->feats[i];
+          break;
         case FEAT_TOUGHNESS:
           for (j = 0; j < GET_LEVEL(ch); j++)
             GET_REAL_MAX_HIT(ch) += LEVELUP(ch)->feats[i];
@@ -302,8 +317,8 @@ void finalize_study(struct descriptor_data *d) {
             GET_REAL_MAX_HIT(ch) += LEVELUP(ch)->feats[i];
           break;
         case FEAT_DAMAGE_REDUCTION:
-          
-          /* Create the DR structure and attach it to the player. */          
+
+          /* Create the DR structure and attach it to the player. */
           for (dr = GET_DR(ch); dr != NULL; dr = dr->next) {
             if (dr->feat == FEAT_DAMAGE_REDUCTION) {
               struct damage_reduction_type *temp;
@@ -333,7 +348,7 @@ void finalize_study(struct descriptor_data *d) {
   }
 
   /* Set to learned. */
-  
+
 }
 
 ACMD(do_study) {
@@ -344,7 +359,7 @@ ACMD(do_study) {
   act("$n starts adjusting $s skill-set.",
           TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
-  
+
   display_main_menu(d);
 }
 
@@ -379,14 +394,14 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
     write_to_output(d, "You do not have enough epic feat points to gain that feat.\r\n");
     return FALSE;
   }
-  if ((feat_type == FEAT_TYPE_EPIC_CLASS) && 
+  if ((feat_type == FEAT_TYPE_EPIC_CLASS) &&
       ((LEVELUP(ch)->epic_feat_points < 1) &&
        (LEVELUP(ch)->epic_class_feat_points < 1))) {
     write_to_output(d, "You do not have enough epic class feat points to gain that feat.\r\n");
     return FALSE;
   }
-  if ((feat_type == FEAT_TYPE_NORMAL_CLASS) && 
-      ((LEVELUP(ch)->class_feat_points < 1) &&       
+  if ((feat_type == FEAT_TYPE_NORMAL_CLASS) &&
+      ((LEVELUP(ch)->class_feat_points < 1) &&
        (LEVELUP(ch)->feat_points < 1))) {
     write_to_output(d, "You do not have enough class feat points to gain that feat.\r\n");
     return FALSE;
@@ -739,12 +754,12 @@ bool can_study_feat_type(struct char_data *ch, int feat_type) {
 
   /*  Feat types divide the huge mess of feats into categories for the purpose
    *  of making the learning process easier. */
-  
+
   for (i = 0; i < NUM_FEATS; i++) {
     if(feat_list[i].in_game &&
        (feat_list[i].feat_type == feat_type)) {
-      if(feat_is_available(ch, i, 0, NULL)) 
-        result = TRUE;     
+      if(feat_is_available(ch, i, 0, NULL))
+        result = TRUE;
     }
   }
   return result;
@@ -768,7 +783,7 @@ static void main_feat_disp_menu(struct descriptor_data *d) {
     write_to_output(d,
           "%s %d%s) %s Feats\r\n",
           (can_study ? grn : "\tD"), i, (can_study ? nrm : "\tD"), feat_types[i]);
-  }          
+  }
   write_to_output(d,
           "\r\n"
           "%s Q%s) Quit\r\n"
@@ -802,18 +817,18 @@ static void display_study_feats(struct descriptor_data *d) {
       }
       feat_counter++;
     }
-    
+
     j = 0;
 
     if (((feat_list[i].feat_type == LEVELUP(ch)->feat_type) &&
-        feat_is_available(ch, i, 0, NULL) && 
+        feat_is_available(ch, i, 0, NULL) &&
         feat_list[i].in_game &&
         feat_list[i].can_learn &&
         (!has_feat(ch, i) || feat_list[i].can_stack))) {
 
-      write_to_output(d, 
-                      "%s%s%3d%s) %-30s%s", 
-                      (class_feat ? (feat_list[i].epic ? "\tM(EC)" : "\tC (C)") : (feat_list[i].epic ? "\tM(E)" : "    ")), 
+      write_to_output(d,
+                      "%s%s%3d%s) %-30s%s",
+                      (class_feat ? (feat_list[i].epic ? "\tM(EC)" : "\tC (C)") : (feat_list[i].epic ? "\tM(E)" : "    ")),
                       grn, i, nrm, feat_list[i].name, nrm);
       count++;
 
@@ -821,19 +836,19 @@ static void display_study_feats(struct descriptor_data *d) {
         write_to_output(d, "\r\n");
     }
   }
-  
+
   if (count %2 != 0)
     write_to_output(d, "\r\n");
 
   write_to_output(d, "\r\n");
 
-  write_to_output(d, 
+  write_to_output(d,
                   "To select a feat, type the number beside it.  Class feats are in \tCcyan\tn and marked with a (C).\r\n"
                   "Epic feats, both class and regular, are in \tMMagenta\tn and are marked with (EC) or (E).\r\n");
   write_to_output(d, "Feat Points: General (%s%d%s) Class (%s%d%s) Epic (%s%d%s) Epic Class (%s%d%s)\r\n",
                         (LEVELUP(ch)->feat_points > 0 ? grn : red), LEVELUP(ch)->feat_points, nrm,
                         (LEVELUP(ch)->class_feat_points > 0 ? grn : red), LEVELUP(ch)->class_feat_points, nrm,
-                        (LEVELUP(ch)->epic_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_feat_points, nrm, 
+                        (LEVELUP(ch)->epic_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_feat_points, nrm,
                         (LEVELUP(ch)->epic_class_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_class_feat_points, nrm);
 
   write_to_output(d, "Your choice? (type -1 to exit) : ");
@@ -865,7 +880,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           "\r\n"
           "%s 1%s) Feats\r\n"
           "%s 2%s) Known Spells\r\n"
-          "%s 3%s) Choose Familiar\r\n"       
+          "%s 3%s) Choose Familiar\r\n"
           "%s 4%s) Animal Companion\r\n"
           "%s 5%s) Favored Enemy\r\n"
           "\r\n"
@@ -887,10 +902,10 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
 
 /*  This does not work for all cfeats -exotc weapon proficiency is a special
  *  case and needs special handling. */
-static void cfeat_disp_menu(struct descriptor_data *d) { 
+static void cfeat_disp_menu(struct descriptor_data *d) {
   const char *feat_weapons[NUM_WEAPON_TYPES - 1];
   int i = 0;
-  
+
   get_char_colors(d->character);
   clear_screen(d);
 
@@ -910,7 +925,7 @@ static void cfeat_disp_menu(struct descriptor_data *d) {
 static void sfeat_disp_menu(struct descriptor_data *d) {
   int i=0;
 
-  get_char_colors(d->character); 
+  get_char_colors(d->character);
   clear_screen(d);
 
   for(i = 1; i < NUM_SCHOOLS; i++)
@@ -922,7 +937,7 @@ static void sfeat_disp_menu(struct descriptor_data *d) {
 }
 
 static void skfeat_disp_menu(struct descriptor_data *d) {
-  get_char_colors(d->character); 
+  get_char_colors(d->character);
   clear_screen(d);
 
   OLC_MODE(d) = STUDY_SKFEAT_MENU;
@@ -943,7 +958,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       switch (*arg) {
         case 'y':
         case 'Y':
-          /* Save the temporary values in LEVELUP(d->character) to the 
+          /* Save the temporary values in LEVELUP(d->character) to the
            * character, print a message, free the structures and exit. */
           write_to_output(d, "Your choices have been finalized!\r\n\r\n");
           finalize_study(d);
@@ -960,7 +975,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           free(LEVELUP(d->character));
           LEVELUP(d->character) = NULL;
           break;
-        default: 
+        default:
           write_to_output(d, "Invalid choice!\r\nDo you wish to save your changes ? : ");
           break;
       }
@@ -975,7 +990,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           OLC_MODE(d) = STUDY_CONFIRM_SAVE;
           break;
         case '1':
-          main_feat_disp_menu(d);    
+          main_feat_disp_menu(d);
           break;
         case '2':
           if (CAN_STUDY_KNOWN_SPELLS(ch)) {
@@ -1010,7 +1025,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           else {
             write_to_output(d, "That is an invalid choice!\r\n");
             generic_main_disp_menu(d);
-          }        
+          }
           break;
         default:
           write_to_output(d, "That is an invalid choice!\r\n");
@@ -1034,15 +1049,15 @@ void study_parse(struct descriptor_data *d, char *arg) {
             main_feat_disp_menu(d);
             break;
           }
-          LEVELUP(d->character)->feat_type = number;         
+          LEVELUP(d->character)->feat_type = number;
           gen_feat_disp_menu(d);
           break;
       }
       break;
-  
+
     case STUDY_GEN_FEAT_MENU:
       number = atoi(arg);
-      if (number == -1) {       
+      if (number == -1) {
         main_feat_disp_menu(d);
         break;
       }
@@ -1053,7 +1068,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           (!feat_is_available(d->character, number, 0, NULL))) {
         write_to_output(d, "Invalid feat, try again.\r\n");
         gen_feat_disp_menu(d);
-        break;           
+        break;
       }
 
       /* Store the feat number in the work area in the data structure. */
@@ -1074,13 +1089,13 @@ void study_parse(struct descriptor_data *d, char *arg) {
           gen_feat_disp_menu(d);
           break;
         case 'y':
-        case 'Y':     
-          /* Check to see if this feat has a subfeat - If so, then display the 
+        case 'Y':
+          /* Check to see if this feat has a subfeat - If so, then display the
            * approptiate menus. */
           if(feat_to_cfeat(LEVELUP(ch)->tempFeat) != -1) {
             /* Combat feat - Need to choose weapon type. */
             cfeat_disp_menu(d);
-            break;        
+            break;
           }
           if(feat_to_sfeat(LEVELUP(ch)->tempFeat) != -1) {
             /* Spell school feat - Need to choose spell school. */
@@ -1098,7 +1113,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           gen_feat_disp_menu(d);
           break;
       }
-      break;      
+      break;
     /* Combat feats require the selection of a weapon type. */
     case STUDY_CFEAT_MENU:
       number = atoi(arg);
@@ -1123,7 +1138,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
         SET_LEVELUP_COMBAT_FEAT(d->character, feat_to_cfeat(LEVELUP(d->character)->tempFeat), number);
 
         write_to_output(d, "Feat %s (%s) chosen!\r\n", feat_list[LEVELUP(d->character)->tempFeat].name, weapon_list[number].name);
-        
+
       } else {
         LEVELUP(d->character)->tempFeat = -1;
       }
@@ -1137,11 +1152,11 @@ void study_parse(struct descriptor_data *d, char *arg) {
       if (number == -1) {
         LEVELUP(d->character)->tempFeat = -1;
         gen_feat_disp_menu(d);
-        break; 
+        break;
       }
       if ((number < 1) || (number >= NUM_SCHOOLS)) {
         write_to_output(d, "That is an invalid choice!\r\n");
-        cfeat_disp_menu(d); 
+        cfeat_disp_menu(d);
         break;
       }
       if(HAS_SCHOOL_FEAT(ch, feat_to_sfeat(LEVELUP(d->character)->tempFeat), number) ||
@@ -1154,12 +1169,12 @@ void study_parse(struct descriptor_data *d, char *arg) {
       /* Now we have the spell school. */
       if (add_levelup_feat(d, LEVELUP(d->character)->tempFeat)) {
         SET_LEVELUP_SCHOOL_FEAT(d->character, feat_to_sfeat(LEVELUP(d->character)->tempFeat), number);
- 
+
         write_to_output(d, "Feat %s (%s) chosen!\r\n", feat_list[LEVELUP(d->character)->tempFeat].name, spell_schools[number]);
       } else {
         LEVELUP(d->character)->tempFeat = -1;
-      } 
-      gen_feat_disp_menu(d); 
+      }
+      gen_feat_disp_menu(d);
       break;
 
     /* Skill feats require the selection of a skill. */
@@ -1171,7 +1186,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       switch (*arg) {
         case 'q':
         case 'Q':
-          display_main_menu(d);          
+          display_main_menu(d);
           break;
           /* here are our spell levels for 'spells known' */
         case '1':
@@ -1226,7 +1241,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       switch (*arg) {
         case 'q':
         case 'Q':
-          display_main_menu(d);          
+          display_main_menu(d);
           break;
 
           /* here are our spell levels for 'spells known' */
@@ -1270,11 +1285,11 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       break;
       /******* end bard **********/
-      
+
     case FAVORED_ENEMY:
       switch (*arg) {
         case 'q':
-        case 'Q':                 
+        case 'Q':
           display_main_menu(d);
           break;
 
@@ -1400,7 +1415,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       switch (*arg) {
         case 'q':
         case 'Q':
-          display_main_menu(d);     
+          display_main_menu(d);
           break;
         default:
           number = atoi(arg);
@@ -1425,7 +1440,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       switch (*arg) {
         case 'q':
         case 'Q':
-          display_main_menu(d);          
+          display_main_menu(d);
           break;
         default:
           number = atoi(arg);
@@ -1460,38 +1475,38 @@ void study_parse(struct descriptor_data *d, char *arg) {
 }
 
 /* some undefines from top of file */
-#undef C_BEAR    
-#undef C_BOAR      
-#undef C_LION      
-#undef C_CROCODILE    
-#undef C_HYENA      
-#undef C_SNOW_LEOPARD     
-#undef C_SKULL_SPIDER     
-#undef C_FIRE_BEETLE     
-#undef C_CAYHOUND        
-#undef C_DRACAVES        
+#undef C_BEAR
+#undef C_BOAR
+#undef C_LION
+#undef C_CROCODILE
+#undef C_HYENA
+#undef C_SNOW_LEOPARD
+#undef C_SKULL_SPIDER
+#undef C_FIRE_BEETLE
+#undef C_CAYHOUND
+#undef C_DRACAVES
 /*--- paladin mount(s) -----*/
-#undef C_W_WARHORSE   
-#undef C_B_DESTRIER   
-#undef C_STALLION   
-#undef C_A_DESTRIER   
-#undef C_G_WARHORSE   
-#undef C_P_WARHORSE   
-#undef C_C_DESTRIER   
-#undef C_WARDOG   
-#undef C_WARPONY   
-#undef C_GRIFFON   
+#undef C_W_WARHORSE
+#undef C_B_DESTRIER
+#undef C_STALLION
+#undef C_A_DESTRIER
+#undef C_G_WARHORSE
+#undef C_P_WARHORSE
+#undef C_C_DESTRIER
+#undef C_WARDOG
+#undef C_WARPONY
+#undef C_GRIFFON
 /*--- familiars -----*/
-#undef F_HUNTER    
-#undef F_PANTHER      
-#undef F_MOUSE      
-#undef F_EAGLE    
-#undef F_RAVEN      
-#undef F_IMP     
-#undef F_PIXIE     
-#undef F_FAERIE_DRAGON     
-#undef F_PSEUDO_DRAGON     
-#undef F_HELLHOUND     
+#undef F_HUNTER
+#undef F_PANTHER
+#undef F_MOUSE
+#undef F_EAGLE
+#undef F_RAVEN
+#undef F_IMP
+#undef F_PIXIE
+#undef F_FAERIE_DRAGON
+#undef F_PSEUDO_DRAGON
+#undef F_HELLHOUND
 
 #undef MENU_OPT
 
