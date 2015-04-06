@@ -433,6 +433,10 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
       break;
   }
 
+  /* zusuk debug */
+  LEVELUP(ch)->feats[feat] += HAS_FEAT(ch, feat);
+  /* zusuk debug */
+
   LEVELUP(ch)->feats[feat]++;
   return TRUE;
 }
