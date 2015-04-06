@@ -1,4 +1,4 @@
-/*****************************************************************************
+ /*****************************************************************************
  ** FEATS.C                                                                  **
  ** Source code for the Gates of Krynn Feats System.                         **
  ** Initial code by Paladine (Stephen Squires), Ported by Ornir to Luminari  **
