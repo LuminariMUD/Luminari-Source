@@ -95,7 +95,7 @@ int item_in_list(char *item, obj_data *list) {
       if (id == GET_ID(i))
         count++;
       if (GET_OBJ_TYPE(i) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(i) == ITEM_QUIVER)
+              GET_OBJ_TYPE(i) == ITEM_AMMO_POUCH)
         count += item_in_list(item, i->contains);
     }
   } else if (is_number(item)) { /* check for vnum */
@@ -105,7 +105,7 @@ int item_in_list(char *item, obj_data *list) {
       if (GET_OBJ_VNUM(i) == ovnum)
         count++;
       if (GET_OBJ_TYPE(i) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(i) == ITEM_QUIVER)
+              GET_OBJ_TYPE(i) == ITEM_AMMO_POUCH)
         count += item_in_list(item, i->contains);
     }
   } else {
@@ -113,7 +113,7 @@ int item_in_list(char *item, obj_data *list) {
       if (isname(item, i->name))
         count++;
       if (GET_OBJ_TYPE(i) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(i) == ITEM_QUIVER)
+              GET_OBJ_TYPE(i) == ITEM_AMMO_POUCH)
         count += item_in_list(item, i->contains);
     }
   }
@@ -742,7 +742,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
               int cl = get_class_by_name(subfield);
               if (cl >= 0 && cl < NUM_CLASSES) {
                 if (CLASS_LEVEL(c, cl)) {
-                  strcpy(str, "1");                    
+                  strcpy(str, "1");
                 }
               }
             }
@@ -1328,7 +1328,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           }            /* thanks to Jamie Nelson (Mordecai of 4 Dimensions MUD) */
           else if (!str_cmp(field, "count")) {
             if (GET_OBJ_TYPE(o) == ITEM_CONTAINER ||
-                    GET_OBJ_TYPE(o) == ITEM_QUIVER)
+                    GET_OBJ_TYPE(o) == ITEM_AMMO_POUCH)
               snprintf(str, slen, "%d", item_in_list(subfield,
                     o->contains));
             else
@@ -1351,7 +1351,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           /* thanks to Jamie Nelson (Mordecai of 4 Dimensions MUD) */
           if (!str_cmp(field, "has_in")) {
             if (GET_OBJ_TYPE(o) == ITEM_CONTAINER ||
-                    GET_OBJ_TYPE(o) == ITEM_QUIVER)
+                    GET_OBJ_TYPE(o) == ITEM_AMMO_POUCH)
               snprintf(str, slen, "%s", (item_in_list(subfield,
                     o->contains) ? "1" : "0"));
             else
@@ -1550,7 +1550,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         };
 
         room_rnum rnum = real_room(r->number);
-        
+
         if (rnum != NOWHERE && ROOM_OUTSIDE(rnum))
           snprintf(str, slen, "%s", sky_look[weather_info.sky]);
         else

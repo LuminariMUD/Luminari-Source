@@ -40,8 +40,8 @@ const char *trap_type[MAX_TRAP_TYPES + 1] = {
   "Open Container",
   "Unlock Container",
   "Get Object",
-  "\n"  
-}; 
+  "\n"
+};
 
 /* Trap-effects, add 1000 to this value to reference the proper values in
  act.item.c */
@@ -62,24 +62,24 @@ const char *trap_effects[MAX_TRAP_EFFECTS + 1] = {
   "Freezing Conditions",
   "Skeletal Hands",
   "Spider Webs",
-  "\n"  
-}; 
+  "\n"
+};
 
 /* ranged weapon types (bows, etc) */
 const char *ranged_weapons[NUM_RANGED_WEAPONS + 1] = {
   "bow",
   "crossbow",
-  "\n"  
+  "\n"
 };
 
 /* ranged weapon missiles (arrows, etc) */
 const char *ranged_missiles[NUM_RANGED_MISSILES + 1] = {
   "arrow",
   "bolt",
-  "\n"    
+  "\n"
 };
 
-/* note - in utils.c there are two functions for alignment as well 
+/* note - in utils.c there are two functions for alignment as well
  * char *get_align_by_num(int align)
  * char *get_align_by_num_cnd(int align)
 */
@@ -126,7 +126,7 @@ const char *craft_type[NUM_CRAFT + 1] = {
   "staff-craft",
   "\n"
 };
-  
+
 const char *size_names[NUM_SIZES + 1] = {
   "RESERVED",
   "Fine",
@@ -136,7 +136,7 @@ const char *size_names[NUM_SIZES + 1] = {
   "Medium",
   "Large",
   "Huge",
-  "Gargantuan",  
+  "Gargantuan",
   "Colossal",
   "\n"
 };
@@ -171,7 +171,7 @@ const char *dr_damtypes[NUM_DR_DAMTYPES + 1] = {
   "bludgeoning",
   "slashing",
   "piercing",
-  "\n"  
+  "\n"
 };
 
 const char *damtypes[NUM_DAM_TYPES + 1] = {
@@ -299,7 +299,7 @@ const char *room_bits[NUM_ROOM_FLAGS + 1] = {
 
 // room affect effect
 const char *room_affections[NUM_RAFF + 1] = {
-  "Fogged",  
+  "Fogged",
   "Darkened",
   "Lighted",
   "Stench",
@@ -426,7 +426,7 @@ int movement_loss[NUM_ROOM_SECTORS] =
   1,	// dirt road
   1,	// dirt road
   3,	// caves 29
-  4, // jungle, wet, mid elevations, hot. 
+  4, // jungle, wet, mid elevations, hot.
   4, // tundra, dry, high elevations, extreme cold.
   4, // boreal forest, higher elevations, cold.
   2, // beach, borders low areas and water. 33
@@ -727,7 +727,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Dual-wield",
   "Flurry-of-Blows",
   "Counterspell",
-  "Defensive-Casting", 
+  "Defensive-Casting",
   "Whirlwind-Attack",
   "Charging!",
   "\n"
@@ -735,13 +735,13 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
 
 /** Affected bits descriptions.
  * @pre Must be in the same order as the defines.
- * Must end array with a single newline. 
+ * Must end array with a single newline.
  * MUST BE 57 CHARACTERS OR LESS.
  * */
 const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
 {
   "\0", /* DO NOT REMOVE!! */
-//|---------------------------------------------------------|  
+//|---------------------------------------------------------|
   "You can't see a thing.",
   "You are invisible.",
   "You can sense the the auras of others.",
@@ -831,7 +831,7 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
   "You are fighting with two weapons.",
   "You are attacking with a flurry of blows.",
   "You will counter any spell you can.",
-  "You are casting defensively.", 
+  "You are casting defensively.",
   "You will spread your attacks among all of your enemies.",
   "You are charging into battle.",
   "\n"
@@ -935,7 +935,7 @@ const char *wear_where[NUM_WEARS] = {
   "\tY{Held Twohanded}\tn     ",
   "\tY{Worn On Face}\tn       ",
   /* todo */
-  "\tY{Worn As Quiver}\tn     ",
+  "\tY{Worn As Ammo Pouch}\tn ",
   "\tY{Worn In Ear}\tn        ",
   "\tY{Worn In Ear}\tn        ",  //25
   "\tY{Worn On Eyes}\tn       ",
@@ -970,7 +970,7 @@ const char *equipment_types[NUM_WEARS + 1] = {
   "Held twohands",
   "Worn on face",
   /* todo */
-  "Worn as quiver",
+  "Worn as ammo pouch",
   "Worn in right ear",
   "Worn in left ear",  //25
   "Worn on eyes",
@@ -1086,7 +1086,7 @@ const char *item_types[NUM_ITEM_TYPES + 1] = {
   "Poison",
   "Summon",
   "Switch",  //35
-  "Quiver",
+  "Ammo-Pouch",
   "Pick",
   "Instrument",
   "Disguise",
@@ -1095,7 +1095,7 @@ const char *item_types[NUM_ITEM_TYPES + 1] = {
   "Ingredient",
   "Blocker",
   "Wagon",
-  "Resources",  //45  
+  "Resources",  //45
   "\n"
 };
 
@@ -1120,7 +1120,7 @@ const char *wear_bits[NUM_ITEM_WEARS + 1] = {
   "Hold",
   "Face",  //15
   /* todo */
-  "Quiver",
+  "Ammo-Pouch",
   "Ears",
   "Eyes",
   "Badge",
@@ -1283,7 +1283,7 @@ const int valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES] = {
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //AC (obsolete)
   {1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Hitroll
   {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1}, //Damroll
-  {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Fortitude  
+  {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Fortitude
   {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Reflex
   {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Will
   {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Poison
@@ -1315,7 +1315,7 @@ const int valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES] = {
 };
 
 
-        
+
 /** Describes the closure mechanism for a container.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
@@ -1433,14 +1433,14 @@ const char *fullness[] =
 };
 
 
-const char *portal_types[] = 
-{ 
-   "Normal", 
-   "Random", 
-   "CheckFlags", 
-   "Clanhall", 
-   "\n" 
-}; 
+const char *portal_types[] =
+{
+   "Normal",
+   "Random",
+   "CheckFlags",
+   "Clanhall",
+   "\n"
+};
 
 const char *spell_schools[NUM_SCHOOLS + 1] =
 {
@@ -2202,7 +2202,7 @@ const char *ability_names[] = {
   "Use Magic Device",
   "Unused8",
   "Perform",
-/*crafting*/  
+/*crafting*/
   "woodworking",
   "tailoring",
   "alchemy",

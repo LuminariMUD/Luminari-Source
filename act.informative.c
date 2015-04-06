@@ -200,7 +200,7 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
               strcpy(sendcmd, "look in");
             else if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER)
               strcpy(sendcmd, "look in");
-            else if (GET_OBJ_TYPE(obj) == ITEM_QUIVER)
+            else if (GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
               strcpy(sendcmd, "look in");
             else
               strcpy(sendcmd, "hold");
@@ -896,12 +896,12 @@ static void look_in_obj(struct char_data *ch, char *arg) {
     display_scroll(ch, obj);
   } else if ((GET_OBJ_TYPE(obj) != ITEM_DRINKCON) &&
              (GET_OBJ_TYPE(obj) != ITEM_FOUNTAIN) &&
-             (GET_OBJ_TYPE(obj) != ITEM_QUIVER) &&
+             (GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH) &&
              (GET_OBJ_TYPE(obj) != ITEM_CONTAINER))
     send_to_char(ch, "There's nothing inside that!\r\n");
   else {
     if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER ||
-        GET_OBJ_TYPE(obj) == ITEM_QUIVER) {
+        GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) {
       if (OBJVAL_FLAGGED(obj, CONT_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
         send_to_char(ch, "It is closed.\r\n");
       else {
@@ -1681,7 +1681,7 @@ ACMD(do_examine) {
   if (tmp_object) {
     if ((GET_OBJ_TYPE(tmp_object) == ITEM_DRINKCON) ||
         (GET_OBJ_TYPE(tmp_object) == ITEM_FOUNTAIN) ||
-        (GET_OBJ_TYPE(tmp_object) == ITEM_QUIVER) ||
+        (GET_OBJ_TYPE(tmp_object) == ITEM_AMMO_POUCH) ||
         (GET_OBJ_TYPE(tmp_object) == ITEM_CONTAINER)) {
       send_to_char(ch, "When you look inside, you see:\r\n");
       look_in_obj(ch, arg);

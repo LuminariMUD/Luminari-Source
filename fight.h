@@ -1,12 +1,12 @@
 /**
 * @file fight.h
 * Fighting and violence functions and variables.
-* 
+*
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
-*                                                                        
-* All rights reserved.  See license for complete information.                                                                
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University 
+*
+* All rights reserved.  See license for complete information.
+* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
 * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
 *
 */
@@ -33,7 +33,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
 int compute_damage_reduction(struct char_data *ch, int dam_type);
 int compute_concealment(struct char_data *ch);
 int compute_damage_bonus(struct char_data *ch, struct char_data *victim,
-	int attktype, int mod, int mode);
+	struct obj_data *wielded, int attktype, int mod, int mode, int attack_type);
 int compute_cmb(struct char_data *ch, struct char_data *victim, int attack_type);
 int compute_cmd(struct char_data *attacker, struct char_data *ch);
 int damage(struct char_data *ch, struct char_data *victim,

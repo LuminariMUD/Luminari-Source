@@ -1727,7 +1727,7 @@ static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scm
 }
 
 #define DOOR_IS_OPENABLE(ch, obj, door)	((obj) ? (((GET_OBJ_TYPE(obj) == \
-    ITEM_CONTAINER) || GET_OBJ_TYPE(obj) == ITEM_QUIVER) && OBJVAL_FLAGGED(obj, CONT_CLOSEABLE)) :\
+    ITEM_CONTAINER) || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) && OBJVAL_FLAGGED(obj, CONT_CLOSEABLE)) :\
     (EXIT_FLAGGED(EXIT(ch, door), EX_ISDOOR)))
 #define DOOR_IS_OPEN(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj, \
     CONT_CLOSED)) : (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)))
@@ -1757,7 +1757,7 @@ ACMD(do_gen_door) {
     door = find_door(ch, type, dir, cmd_door[subcmd]);
 
   if ((obj) && (GET_OBJ_TYPE(obj) != ITEM_CONTAINER &&
-          GET_OBJ_TYPE(obj) != ITEM_QUIVER)
+          GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
           ) {
     obj = NULL;
     door = find_door(ch, type, dir, cmd_door[subcmd]);

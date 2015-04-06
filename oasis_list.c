@@ -165,7 +165,7 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
             /* v3 - object value (2) is the effect */
             /* v4 - object value (3) is the trap difficulty */
             /* v5 - object value (4) is whether this trap has been "detected" yet */
-            
+
             /* check disqualifications */
             if (v1 < 0 || v1 >= MAX_TRAP_TYPES) { /* invalid trap types */
               tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (trap-type)\r\n",
@@ -182,7 +182,7 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                     QGRN, ++found, QNRM, ov);
               break;
             }
-            if ((v1 == TRAP_TYPE_OPEN_CONTAINER || 
+            if ((v1 == TRAP_TYPE_OPEN_CONTAINER ||
                  v1 == TRAP_TYPE_UNLOCK_CONTAINER ||
                  v1 == TRAP_TYPE_GET_OBJECT) && target_obj == NOTHING) {
               tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (object vnum)\r\n",
@@ -190,7 +190,7 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
               break;
             }
             /* end disqualifications */
-            
+
             switch (v1) {
               case TRAP_TYPE_ENTER_ROOM: /* display effect and difficulty */
                 if (v3 >= TRAP_EFFECT_FIRST_VALUE) { /* not a normal spell effect */
@@ -198,7 +198,7 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                       QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], trap_effects[v3-1000], v4, v5);
                 } else { /* spell effect */
                   tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  Spell: %s | DC: %d | Detected? %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], spell_info[v3].name, v4, v5);                  
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], spell_info[v3].name, v4, v5);
                 }
                 break;
               case TRAP_TYPE_OPEN_DOOR:
@@ -209,7 +209,7 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                       QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], dirs[v2], trap_effects[v3-1000], v4, v5);
                 } else { /* spell effect */
                   tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  Direction: %s | Spell: %s | DC: %d | Detected? %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], dirs[v2], spell_info[v3].name, v4, v5);                  
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], dirs[v2], spell_info[v3].name, v4, v5);
                 }
                 break;
               case TRAP_TYPE_OPEN_CONTAINER:
@@ -222,16 +222,16 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                       QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], obj_proto[target_obj].short_description, trap_effects[v3-1000], v4, v5);
                 } else { /* spell effect */
                   tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  On Obj: %s | Spell: %s | DC: %d | Detected? %d\r\n",
-                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], obj_proto[target_obj].short_description, spell_info[v3].name, v4, v5);                  
+                      QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], obj_proto[target_obj].short_description, spell_info[v3].name, v4, v5);
                 }
                 break;
               default: /* invalid type! we checked this already above */
                 break;
             }
             break;
-            
+
             /** END TRAPS **/
-            
+
           case ITEM_LIGHT:
             v1 = (obj_proto[num].obj_flags.value[2]);
             if (v1 == -1)
@@ -245,8 +245,8 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
           case ITEM_SCROLL:
           case ITEM_POTION:
             tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s] [%15s] %s%s\r\n",
-                    QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, 
-                    spell_info[obj_proto[num].obj_flags.value[1]].name, 
+                    QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN,
+                    spell_info[obj_proto[num].obj_flags.value[1]].name,
                     obj_proto[r_num].short_description, QNRM);
             break;
 
@@ -279,7 +279,7 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
                     QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
             break;
 
-          case ITEM_QUIVER:
+          case ITEM_AMMO_POUCH:
             tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s\r\n",
                     QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
             break;
@@ -370,9 +370,9 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
   obj_vnum ov;
   char buf[MAX_STRING_LENGTH], bitbuf[MEDIUM_STRING];
   struct obj_data *obj = NULL;
-  
+
   wearloc = atoi(arg);
-  
+
   /* 0 = takeable */
   if (wearloc >= NUM_ITEM_WEARS || wearloc <= 0) {
     send_to_char(ch, "Out of bounds\r\n");
@@ -381,18 +381,18 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
 
   len = snprintf(buf, sizeof (buf), "Listing all objects with wear location %s[%s]%s\r\n",
           QYEL, wear_bits[wearloc], QNRM);
-  
+
   for (num = 0; num <= top_of_objt; num++) {
     /* set obj to the address of the proto */
     obj = &obj_proto[num];
-    
+
     if (!obj) /* dummy check */
       break;
 
     if (IS_SET_AR(obj_proto[num].obj_flags.wear_flags, wearloc)) {
       /* Display this object. */
       ov = obj_index[num].vnum;
-      
+
       /* display index, vnum */
       tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d %7d ",
                          QNRM, ++found, ov);
@@ -407,10 +407,10 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
 
       /* display short descrip */
       tmp_len = snprintf(buf + len, sizeof (buf) - len, "%-*s%s | ",
-              32 + count_color_chars(obj_proto[num].short_description), 
+              32 + count_color_chars(obj_proto[num].short_description),
               obj_proto[num].short_description, QNRM);
-      len += tmp_len;    
-      
+      len += tmp_len;
+
       /* has affect locations? */
       for (i = 0; i < MAX_OBJ_AFFECT; i++) {
         if ((obj->affected[i].location != APPLY_NONE) &&
@@ -424,18 +424,18 @@ void perform_obj_worn_list(struct char_data *ch, char *arg) {
       /* sending a carrier return */
       tmp_len = snprintf(buf + len, sizeof (buf) - len, "\r\n");
       len += tmp_len;
-      
+
     }
-    
+
     /* another dummy check */
     if (found >= 700) {
       tmp_len = snprintf(buf + len, sizeof (buf) - len, "**OVERLOADED BUFF***\r\n");
       len += tmp_len;
-      
+
       break;
     }
   }
-  
+
   page_string(ch->desc, buf, TRUE);
   return;
 }
@@ -866,7 +866,7 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
       counter++;
 
       /* original
-      len += snprintf(buf + len, sizeof(buf) - len, 
+      len += snprintf(buf + len, sizeof(buf) - len,
               "%s%4d%s) [%s%-5d%s] %s%-*s %s[%4d]%s%s\r\n",
                    QGRN, counter, QNRM,
                    QGRN, mob_index[i].vnum, QNRM,
@@ -930,7 +930,7 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
     /* establish our range */
     if (obj_index[i].vnum >= bottom && obj_index[i].vnum <= top) {
       counter++;
-      
+
       /* find how many of the same objects are in the game currently */
       for (num_found = 0, l = object_list; l; l = l->next) {
         if (CAN_SEE_OBJ(ch, l) && GET_OBJ_RNUM(l) == i) {

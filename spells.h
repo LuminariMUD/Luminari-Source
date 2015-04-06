@@ -12,6 +12,9 @@
 #ifndef _SPELLS_H_
 #define _SPELLS_H_
 
+/* renamed 0-values to help clarify context in code */
+#define NO_DICEROLL  0
+#define NO_MOD       0
 
 #define DEFAULT_STAFF_LVL    12
 #define DEFAULT_WAND_LVL     12
@@ -594,6 +597,8 @@
 /* NEW NPC/OBJECT SPELLS can be inserted here up to 699 */
 
 /* WEAPON ATTACK TYPES */
+#define TYPE_UNDEFINED_WTYPE 0
+
 #define TYPE_HIT          700
 #define TYPE_STING        701
 #define TYPE_WHIP         702

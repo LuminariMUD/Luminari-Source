@@ -197,7 +197,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
 //      continue;
     }
   }
-  
+
   fprintf(fp, "\n");
 
   extract_obj(temp);
@@ -305,8 +305,8 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
         if (!CAN_WEAR(obj, ITEM_WEAR_FACE))
           location = LOC_INVENTORY;
         break;
-      case WEAR_QUIVER:
-        if (!CAN_WEAR(obj, ITEM_WEAR_QUIVER))
+      case WEAR_AMMO_POUCH:
+        if (!CAN_WEAR(obj, ITEM_WEAR_AMMO_POUCH))
           location = LOC_INVENTORY;
         break;
       case WEAR_EAR_R:
@@ -333,7 +333,7 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
         /* Check the characters's alignment to prevent them from being zapped
          * through the auto-equipping. */
 //        if (invalid_align(ch, obj) || invalid_class(ch, obj) || invalid_prof(ch, obj))
-       
+
 //          location = LOC_INVENTORY;
 //        else
           equip_char(ch, obj, j);
@@ -1104,7 +1104,7 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
           temp = NULL;
         }
       } else
-        continue;   
+        continue;
 
       /* we have the number, check it, load obj. */
       if (nr == NOTHING) { /* then it is unique */
@@ -1129,13 +1129,13 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
     }
 
     /* If "temp" is NULL, we are most likely progressing through
-     * a non-existant object, so just keep continuing till we find 
+     * a non-existant object, so just keep continuing till we find
      * the next object */
     if (temp == NULL)
       continue;
 
-    /* Should never get here, but since we did in the past, I'll put 
-     * a safety check in. 
+    /* Should never get here, but since we did in the past, I'll put
+     * a safety check in.
     if (temp == NULL) {
       log("SYSERR: Attempting to parse obj_save_data on NULL object.");
       abort();
@@ -1162,7 +1162,7 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
         break;
       case 'C':
         if (!strcmp(tag, "Cost"))
-          GET_OBJ_COST(temp) = num;       
+          GET_OBJ_COST(temp) = num;
         break;
       case 'D':
         if (!strcmp(tag, "Desc"))
@@ -1236,8 +1236,8 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
             if (!temp->sbinfo) {
               CREATE(temp->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
               memset((char *) temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
-            }            
-            
+            }
+
             temp->sbinfo[j].spellname = t[0];
             temp->sbinfo[j].pages = t[1];
             j++;
@@ -1262,7 +1262,7 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
           /* Initialize the values. */
           for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
             t[i] = 0;
-          sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", 
+          sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
             &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7],
             &t[8], &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15]);
           for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
@@ -1306,7 +1306,7 @@ static int Crash_load_objs(struct char_data *ch) {
     mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s entering game with no equipment.", GET_NAME(ch));
     return 1;
   }
-  
+
   if (get_line(fl, line))
     sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed,
           &netcost, &gold, &account, &nitems);
@@ -1327,7 +1327,7 @@ static int Crash_load_objs(struct char_data *ch) {
       save_char(ch, 0);
     }
   }
-  
+
   switch (orig_rent_code = rentcode) {
     case RENT_RENTED:
       mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE,
@@ -1409,7 +1409,7 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate, s
       }
     if (cont_row[0]) { /* content list existing */
       if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(temp) == ITEM_QUIVER) {
+              GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
         /* rem item ; fill ; equip again */
         temp = unequip_char(ch, locate - 1);
         temp->contains = NULL; /* should be empty - but who knows */
@@ -1438,7 +1438,7 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate, s
 
     if (j == -locate && cont_row[j]) { /* content list existing */
       if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(temp) == ITEM_QUIVER) {
+              GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
         /* take item ; fill ; give to char again */
         obj_from_char(temp);
         temp->contains = NULL;
