@@ -2545,10 +2545,10 @@ void list_feats(struct char_data *ch, char *arg, int list_type) {
         none_shown = FALSE;
       } else if (i == FEAT_EPIC_TOUGHNESS) {
         if (mode == 1) {
-          sprintf(buf3, "%s (+%d hp)", feat_list[i].name, (has_feat(ch, FEAT_ARMOR_SKIN) * 30));
+          sprintf(buf3, "%s (+%d hp)", feat_list[i].name, (has_feat(ch, FEAT_EPIC_TOUGHNESS) * 30));
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
-          sprintf(buf3, "%s (+%d hp)", feat_list[i].name, (has_feat(ch, FEAT_ARMOR_SKIN) * 30));
+          sprintf(buf3, "%s (+%d hp)", feat_list[i].name, (has_feat(ch, FEAT_EPIC_TOUGHNESS) * 30));
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);
