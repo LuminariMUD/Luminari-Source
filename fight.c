@@ -1144,6 +1144,10 @@ static void solo_gain(struct char_data *ch, struct char_data *victim) {
   if ((GET_LEVEL(victim) + 3) < GET_LEVEL(ch))
     exp = 1;
 
+  /* avoid xp abuse in PvP */
+  if (!IS_NPC(victim))
+    exp = MIN(CONFIG_MAX_EXP_LOSS * 2 / 3, exp);
+
   if (IS_HAPPYHOUR && IS_HAPPYEXP) {
     happy_exp = exp + (int) ((float) exp * ((float) HAPPY_EXP / (float) (100)));
     exp = MAX(happy_exp, 1);
