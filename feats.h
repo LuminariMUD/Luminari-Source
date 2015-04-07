@@ -21,7 +21,7 @@ struct feat_info {
   char *description;       /* Long description of the feat, displayed in 'feat info' */
   sbyte epic;              /* Is this an epic feat? */
   sbyte combat_feat;       /* Is this a combat feat? */
-  int event;               /* The event_id of the cooldown event, used for daily use active feats. */  
+  int event;               /* The event_id of the cooldown event, used for daily use active feats. */
 
   struct feat_prerequisite *prerequisite_list; /* A list of prerequisite sctructures */
 };
@@ -31,10 +31,10 @@ struct feat_prerequisite {
   int  prerequisite_type;
   char *description; /* Generated string value describing prerequisite. */
 
-  /* 0: ability score, class, feat, race, casting type, BAB 
+  /* 0: ability score, class, feat, race, casting type, BAB
    * 1: ability score value, class, feat, race, prep type, min BAB
    * 2: N/A, class level, feat ranks, N/A, minimum circle, N/A */
-  int values[3];  
+  int values[3];
 
   /* Linked list */
   struct feat_prerequisite *next;
@@ -107,6 +107,10 @@ extern int feat_sort_info[MAX_FEATS];
 
 extern struct weapon_table weapon_list[NUM_WEAPON_TYPES];
 extern const char *weapon_type[NUM_WEAPON_TYPES];
+
+extern struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
+extern const char *armor_type[NUM_SPEC_ARMOR_TYPES];
+
 /* FEAT defines moved to structs.h */
 
 /* Feat types */
@@ -116,7 +120,7 @@ extern const char *weapon_type[NUM_WEAPON_TYPES];
 #define FEAT_TYPE_SPELLCASTING   3
 #define FEAT_TYPE_METAMAGIC      4
 #define FEAT_TYPE_CRAFT          5
-#define FEAT_TYPE_WILD           6 
+#define FEAT_TYPE_WILD           6
 #define FEAT_TYPE_DIVINE         7
 
 #define NUM_LEARNABLE_FEAT_TYPES 8
@@ -138,7 +142,7 @@ extern const char *weapon_type[NUM_WEAPON_TYPES];
 #define FEAT_PREREQ_FEAT         3
 #define FEAT_PREREQ_ABILITY      4
 #define FEAT_PREREQ_SPELLCASTING 5
-#define FEAT_PREREQ_RACE         6 
+#define FEAT_PREREQ_RACE         6
 #define FEAT_PREREQ_BAB          7
 #define FEAT_PREREQ_CFEAT        8
 #define FEAT_PREREQ_WEAPON_PROFICIENCY 9

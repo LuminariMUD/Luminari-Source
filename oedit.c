@@ -705,6 +705,18 @@ static void oedit_disp_trap_direction(struct descriptor_data *d) {
   write_to_output(d, "\r\n%sEnter direction # : ", nrm);
 }
 
+static void oedit_disp_armor_type_menu(struct descriptor_data *d) {
+  const char *armor_types[NUM_SPEC_ARMOR_TYPES - 1];
+  int i = 0;
+
+  /* we want to use column_list here, but we don't have a pre made list
+   * of string values (without undefined).  Make one, and make sure it is in order. */
+  for (i = 0; i < NUM_SPEC_ARMOR_TYPES - 1 ; i++) {
+    armor_types[i] = armor_list[i + 1].name;
+  }
+
+  column_list(d->character, 3, armor_types, NUM_SPEC_ARMOR_TYPES - 1, TRUE);
+}
 
 static void oedit_disp_weapon_type_menu(struct descriptor_data *d) {
   const char *weapon_types[NUM_WEAPON_TYPES - 1];
@@ -717,7 +729,6 @@ static void oedit_disp_weapon_type_menu(struct descriptor_data *d) {
   }
 
   column_list(d->character, 3, weapon_types, NUM_WEAPON_TYPES - 1, TRUE);
-
 }
 
 /* Object value #1 */
@@ -747,7 +758,9 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
       break;
     case ITEM_ARMOR:
     case ITEM_CLANARMOR:
-      write_to_output(d, "Apply to AC : ");
+      /* values 0 is reserved for Apply to AC */
+      oedit_disp_val2_menu(d);
+      //write_to_output(d, "Apply to AC : ");
       break;
     case ITEM_CONTAINER:
     case ITEM_AMMO_POUCH:
@@ -830,6 +843,12 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
       write_to_output(d, "Number of damage dice (%d) : ", GET_OBJ_VAL(OLC_OBJ(d), 1));
       break;
     */
+    case ITEM_ARMOR:
+    //case ITEM_CLANARMOR:
+      /* Armor Type - zusuk */
+      oedit_disp_armor_type_menu(d);
+      write_to_output(d, "\r\nChoose an armor type : ");
+      break;
     case ITEM_FIREWEAPON:
       write_to_output(d, "Number of damage dice : ");
       break;
@@ -984,6 +1003,9 @@ static void oedit_disp_val5_menu(struct descriptor_data *d) {
     case ITEM_WEAPON:
       write_to_output(d, "Enhancement bonus : ");
       break;
+    case ITEM_ARMOR:
+      write_to_output(d, "Enhancement bonus : ");
+      break;
     default:
       oedit_disp_menu(d);
   }
@@ -1014,7 +1036,6 @@ static void oedit_disp_specab_val2_menu(struct descriptor_data *d) {
   }
 }
 
-
 /* Object type. */
 static void oedit_disp_type_menu(struct descriptor_data *d) {
   int counter, columns = 0;
@@ -1030,7 +1051,6 @@ static void oedit_disp_type_menu(struct descriptor_data *d) {
 }
 
 // item proficiency
-
 static void oedit_disp_prof_menu(struct descriptor_data *d) {
   int counter, columns = 0;
 
@@ -1045,7 +1065,6 @@ static void oedit_disp_prof_menu(struct descriptor_data *d) {
 }
 
 // item material
-
 static void oedit_disp_mats_menu(struct descriptor_data *d) {
   int counter, columns = 0;
 
@@ -1632,6 +1651,22 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, MAX_WEAPON_NDICE);
           oedit_disp_val3_menu(d);
           break;
+        case ITEM_ARMOR:
+          /* Armor Type, 2nd Value */
+          GET_OBJ_VAL(OLC_OBJ(d), 1) = MIN(MAX(atoi(arg), 0), NUM_SPEC_ARMOR_TYPES - 1);
+          /* auto set ac apply, 1st value */
+          GET_OBJ_VAL(OLC_OBJ(d), 0) =
+                  armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].armorBonus;
+          /* auto set xxx 3rd value*/
+          //GET_OBJ_VAL(OLC_OBJ(d), 2) =
+          /* auto set xxx 4th value*/
+          //GET_OBJ_VAL(OLC_OBJ(d), 3) =
+          /* NOT autoset, 5th value, not set here */
+          //GET_OBJ_VAL(OLC_OBJ(d), 4) =
+
+          /*  Skip to enhancement menu. */
+          oedit_disp_val5_menu(d);
+          return;
         case ITEM_FIREWEAPON:
           GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, MAX_WEAPON_NDICE);
           oedit_disp_val3_menu(d);
@@ -1746,6 +1781,11 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       number = atoi(arg);
       switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
         case ITEM_WEAPON:
+          min_val = 0;
+          max_val = 10;
+          break;
+        case ITEM_ARMOR:
+        case ITEM_CLANARMOR:
           min_val = 0;
           max_val = 10;
           break;
