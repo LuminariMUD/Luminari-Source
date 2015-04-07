@@ -160,6 +160,11 @@ void perform_flee(struct char_data *ch) {
     act("$n attemps to flee, but is unable to move!", TRUE, ch, 0, 0, TO_ROOM);
     return;
   }
+  /* got to be in a position to flee */
+  if (GET_POS(ch) <= POS_SITTING) {
+    send_to_char(ch, "You need to be standing to flee!\r\n");
+    return;
+  }
 
   USE_MOVE_ACTION(ch);
 
