@@ -3040,15 +3040,17 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   }
 
   /*  Check armor/weapon proficiency
-   *  If not proficient with worn armor, armor check penalty applies to attack roll.
    *  If not proficient with weapon, -4 penalty applies. */
-  if (wielded)
+  if (wielded) {
     if (!is_proficient_with_weapon(ch, GET_WEAPON_TYPE(wielded))) {
-      /*debug*/ //
-      send_to_char(ch, "NOT PROFICIENT\r\n");
+      /*debug*/ //send_to_char(ch, "NOT PROFICIENT\r\n");
       calc_bab -= 4;
     }
-  /*  Add armor prof here */
+  }
+
+  /* Add armor prof here: If not proficient with worn armor, armor check
+   * penalty applies to attack roll. */
+
 
   /* Add up all the bonuses */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
