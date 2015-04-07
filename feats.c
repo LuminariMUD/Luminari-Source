@@ -3260,8 +3260,7 @@ void load_weapons(void) {
   for (i = 0; i < NUM_WEAPON_TYPES; i++)
     initialize_weapons(i);
 
-  /*	setweapon(weapon number, num dam dice, size dam dice, crit range, crit mult, weapon flags, cost, damage type, weight, reach/range, weapon family, weapon size)
-   */
+  /*	setweapon(weapon number, num dam dice, size dam dice, crit range, crit mult, weapon flags, cost, damage type, weight, reach/range, weapon family, weapon size) */
   setweapon(WEAPON_TYPE_UNARMED, "unarmed", 1, 3, 0, 2, WEAPON_FLAG_SIMPLE, 200,
           DAMAGE_TYPE_BLUDGEONING, 1, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_ORGANIC,
           HANDLE_TYPE_GLOVE, HEAD_TYPE_FIST);
@@ -3301,6 +3300,7 @@ void load_weapons(void) {
   setweapon(WEAPON_TYPE_LIGHT_CROSSBOW, "light crossbow", 1, 8, 1, 2, WEAPON_FLAG_SIMPLE
           | WEAPON_FLAG_SLOW_RELOAD | WEAPON_FLAG_RANGED, 3500, DAMAGE_TYPE_PIERCING, 40, 80,
           WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
+  /*	(weapon num, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, reach/range, weaponFamily, weaponSize) */
   setweapon(WEAPON_TYPE_DART, "dart", 1, 4, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN
           | WEAPON_FLAG_RANGED, 50, DAMAGE_TYPE_PIERCING, 5, 20, WEAPON_FAMILY_THROWN, SIZE_TINY,
           MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
@@ -3334,6 +3334,7 @@ void load_weapons(void) {
   setweapon(WEAPON_TYPE_BATTLE_AXE, "battle axe", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL, 1000,
           DAMAGE_TYPE_SLASHING, 60, 0, WEAPON_FAMILY_AXE, SIZE_MEDIUM, MATERIAL_STEEL,
           HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+  /*	(weapon num, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, reach/range, weaponFamily, weaponSize) */
   setweapon(WEAPON_TYPE_FLAIL, "flail", 1, 8, 0, 2, WEAPON_FLAG_MARTIAL, 800,
           DAMAGE_TYPE_BLUDGEONING, 50, 0, WEAPON_FAMILY_FLAIL, SIZE_MEDIUM, MATERIAL_STEEL,
           HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
@@ -3367,6 +3368,7 @@ void load_weapons(void) {
   setweapon(WEAPON_TYPE_GREAT_CLUB, "great club", 1, 10, 0, 2, WEAPON_FLAG_MARTIAL, 500,
           DAMAGE_TYPE_BLUDGEONING, 80, 0, WEAPON_FAMILY_CLUB, SIZE_LARGE, MATERIAL_WOOD,
           HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
+  /*	(weapon num, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, reach/range, weaponFamily, weaponSize) */
   setweapon(WEAPON_TYPE_HEAVY_FLAIL, "heavy flail", 1, 10, 1, 2, WEAPON_FLAG_MARTIAL,
           1500, DAMAGE_TYPE_BLUDGEONING, 100, 0, WEAPON_FAMILY_FLAIL, SIZE_LARGE, MATERIAL_STEEL,
           HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
@@ -3400,6 +3402,7 @@ void load_weapons(void) {
   setweapon(WEAPON_TYPE_COMPOSITE_SHORTBOW, "composite short bow", 1, 6, 0, 3,
           WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 7500, DAMAGE_TYPE_PIERCING, 20, 70,
           WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+  /*	(weapon num, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, reach/range, weaponFamily, weaponSize) */
   setweapon(WEAPON_TYPE_KAMA, "kama", 1, 6, 0, 2, WEAPON_FLAG_EXOTIC, 200,
           DAMAGE_TYPE_SLASHING, 20, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_STEEL,
           HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
@@ -3433,6 +3436,7 @@ void load_weapons(void) {
   setweapon(WEAPON_TYPE_HOOKED_HAMMER, "hooked hammer", 1, 6, 0, 4, WEAPON_FLAG_EXOTIC |
           WEAPON_FLAG_DOUBLE, 2000, DAMAGE_TYPE_PIERCING | DAMAGE_TYPE_BLUDGEONING, 60, 0,
           WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
+  /*	(weapon num, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, reach/range, weaponFamily, weaponSize) */
   setweapon(WEAPON_TYPE_2_BLADED_SWORD, "two-bladed sword", 1, 8, 1, 2,
           WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 10000, DAMAGE_TYPE_SLASHING, 100, 0,
           WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
