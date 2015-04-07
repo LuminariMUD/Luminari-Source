@@ -690,6 +690,7 @@ int gain_exp(struct char_data *ch, int gain) {
     if (GET_EXP(ch) < 0)
       GET_EXP(ch) = 0;
 
+    send_to_char(ch, "You lose %d experience points!", gain);
   }
   if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
     run_autowiz();
