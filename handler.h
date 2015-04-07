@@ -1,16 +1,19 @@
 /**
 * @file handler.h
 * Prototypes of handling and utility functions.
-* 
+*
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
-*                                                                        
-* All rights reserved.  See license for complete information.                                                                
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University 
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               
+*
+* All rights reserved.  See license for complete information.
+* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
 */
 #ifndef _HANDLER_H_
 #define _HANDLER_H_
+
+void check_room_lighting(room_rnum room, struct char_data *ch, bool enter);
+
 
 /* handling the affected-structures */
 int affect_total_sub(struct char_data *ch);
