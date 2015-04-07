@@ -131,7 +131,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
   struct obj_data *obj = NULL;
   bool found = FALSE;
   int i = 0;
-  
+
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return TRUE;
 
@@ -146,7 +146,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
         }
         continue;
       }
-      
+
       if (GET_OBJ_TYPE(obj) == ITEM_SCROLL && check_scroll) {
         if (spell_in_scroll(obj, spellnum) && CLASS_LEVEL(ch, class) >=
                 spell_info[spellnum].min_level[class]) {
@@ -168,7 +168,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
         obj = GET_EQ(ch, i);
       else
         continue;
-      
+
       if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
         if (spell_in_book(obj, spellnum)) {
           found = TRUE;
@@ -176,7 +176,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
         }
         continue;
       }
-      
+
       if (GET_OBJ_TYPE(obj) == ITEM_SCROLL && check_scroll) {
         if (spell_in_scroll(obj, spellnum) && CLASS_LEVEL(ch, class) >=
                 spell_info[spellnum].min_level[class]) {
@@ -207,7 +207,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
 
 /* used for scribing spells from scrolls to spellbook
    used for scribing spells from memory to scrolls
- TODO:  scribing spells from memory to spellbook 
+ TODO:  scribing spells from memory to spellbook
  */
 ACMD(do_scribe) {
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
@@ -369,7 +369,7 @@ ACMD(do_scribe) {
  *   have a double role, for wizard-types and sorc-types
  */
 
-/* since the spell array position for classes doesn't correspond 
+/* since the spell array position for classes doesn't correspond
  * with the class values, we need a little conversion
  */
 int classArray(int class) {
@@ -888,7 +888,7 @@ int comp_slots(struct char_data *ch, int circle, int class) {
   /* they don't even have access to this circle */
   if (getCircle(ch, class) < circle)
     return 0;
-  
+
   circle--;
 
   switch (class) {
@@ -980,7 +980,7 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
       time = MAX(2, (circle * 2 + circle + 4) - GET_INT_BONUS(ch));
       break;
 
-  // wizard type system 
+  // wizard type system
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PREPARATION_QUEUE(ch, slot, classArray(class)) == TERMINATE) {
       PREPARATION_QUEUE(ch, slot, classArray(class)) = spellnum;
@@ -1143,7 +1143,7 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
       }
     }
   } else { /* class == -1 */
-    
+
     /* we don't know the class, so search all the arrays */
     for (x = 0; x < NUM_CLASSES; x++) {
       if (classArray(x) == -1) /* not caster */
@@ -1169,7 +1169,7 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
         }
       }
     } /* we found nothing so far*/
-    
+
     /* check sorc-type arrays */
     if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
       /* got a free slot? */
@@ -1296,9 +1296,19 @@ int sorc_add_known(struct char_data *ch, int spellnum, int class) {
 
   circle = spellCircle(class, spellnum);
 
-  if ((sorcererKnown[CLASS_LEVEL(ch, class)][circle - 1] -
-          count_sorc_known(ch, circle, class)) <= 0)
-    return FALSE;
+  if (class == CLASS_SORCERER) {
+    if ((sorcererKnown[CLASS_LEVEL(ch, class)][circle - 1] -
+            count_sorc_known(ch, circle, class)) <= 0) {
+      return FALSE;
+    }
+  }
+
+  if (class == CLASS_BARD) {
+    if ((bardKnown[CLASS_LEVEL(ch, class)][circle - 1] -
+            count_sorc_known(ch, circle, class)) <= 0) {
+      return FALSE;
+    }
+  }
 
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PREPARED_SPELLS(ch, slot, classArray(class)) == TERMINATE) {
@@ -1345,7 +1355,7 @@ int hasSpell(struct char_data *ch, int spellnum) {
         return CLASS_SORCERER;
     }
   }
-  
+
   if (CLASS_LEVEL(ch, CLASS_BARD)) {
     // is this one of the "known" spells?
     if (sorcKnown(ch, spellnum, CLASS_BARD)) {
@@ -1580,7 +1590,7 @@ EVENTFUNC(event_memorizing) {
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
 
-  //initialize everything and dummy checks 
+  //initialize everything and dummy checks
   if (event_obj == NULL) return 0;
   pMudEvent = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) pMudEvent->pStruct;
