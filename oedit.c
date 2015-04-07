@@ -1656,15 +1656,14 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           /* auto set ac apply, 1st value */
           GET_OBJ_VAL(OLC_OBJ(d), 0) =
                   armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].armorBonus;
+
           /* for convenience we are going to go ahead and set some other values */
           GET_OBJ_COST(OLC_OBJ(d)) =
                   armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].cost;
-          /* auto set xxx 3rd value*/
-          //GET_OBJ_VAL(OLC_OBJ(d), 2) =
-          /* auto set xxx 4th value*/
-          //GET_OBJ_VAL(OLC_OBJ(d), 3) =
-          /* NOT autoset, 5th value, not set here */
-          /* auto set xxx 6th value*/
+          GET_OBJ_WEIGHT(OLC_OBJ(d)) =
+                  armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].weight;
+          GET_OBJ_MATERIAL(OLC_OBJ(d)) =
+                  armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].material;
 
           /*  Skip to enhancement menu. */
           oedit_disp_val5_menu(d);
