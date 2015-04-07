@@ -1058,7 +1058,7 @@ const char *item_types[NUM_ITEM_TYPES + 1] = {
   "Furniture",
   "Ranged-Weapon",
   "Treasure",
-  "Armor",
+  "Armor/Shield",
   "Potion",  //10
   "Wearable",
   "OTHER",
