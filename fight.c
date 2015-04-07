@@ -1046,15 +1046,13 @@ void raw_kill_old(struct char_data *ch, struct char_data *killer) {
 
 /* called after striking the mortal blow to ch */
 void die(struct char_data *ch, struct char_data *killer) {
-  /*
   if (GET_LEVEL(ch) <= 6) {
     // no xp loss for newbs - Bakarus
   } else {
     // if not a newbie then bang that xp! - Bakarus
     gain_exp(ch, -(GET_EXP(ch) / 2));
   }
-  */
-  
+
   if (!IS_NPC(ch)) {
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_KILLER);
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_THIEF);
