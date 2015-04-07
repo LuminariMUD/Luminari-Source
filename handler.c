@@ -806,12 +806,26 @@ void check_room_lighting(room_rnum room, struct char_data *ch, bool enter) {
       if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
         value++;
   }
-
   /* check for 'magic lights' in inventory */
   for (obj = ch->carrying; obj; obj = next_obj) {
     next_obj = obj->next_content;
     if (obj)
       if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
+        value++;
+  }
+
+  /* check for 'glowing' on worn gear */
+  for (i = 0; i < NUM_WEARS; i++) {
+    obj = GET_EQ(ch, i);
+    if (obj)
+      if (OBJ_FLAGGED(obj, ITEM_GLOW))
+        value++;
+  }
+  /* check for 'glowing' in inventory */
+  for (obj = ch->carrying; obj; obj = next_obj) {
+    next_obj = obj->next_content;
+    if (obj)
+      if (OBJ_FLAGGED(obj, ITEM_GLOW))
         value++;
   }
 
