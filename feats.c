@@ -3502,43 +3502,204 @@ void load_armor(void) {
     initialize_armor(i);
 
   /* (armor, name, type,
-   *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft, weight, material, wear) */
-  setarmor(SPEC_ARMOR_TYPE_CLOTHING, "clothing", ARMOR_TYPE_NONE,
-    10, 0, 999, 0, 0, 30, 20, 10, MATERIAL_COTTON, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_PADDED, "padded armor", ARMOR_TYPE_LIGHT,
-    50, 10, 8, 0, 5, 30, 20, 10, MATERIAL_COTTON, ITEM_WEAR_BODY);
+   *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
+   *    weight, material, wear) */
+  setarmor(SPEC_ARMOR_TYPE_CLOTHING, "body clothing", ARMOR_TYPE_NONE,
+    10, 0, 999, 0, 0, 30, 20,
+    1, MATERIAL_COTTON, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_CLOTHING_HEAD, "clothing hood", ARMOR_TYPE_NONE,
+    10, 0, 999, 0, 0, 30, 20,
+    1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_CLOTHING_ARMS, "cloth sleeves", ARMOR_TYPE_NONE,
+    10, 0, 999, 0, 0, 30, 20,
+    1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_CLOTHING_LEGS, "cloth leggings", ARMOR_TYPE_NONE,
+    10, 0, 999, 0, 0, 30, 20,
+    1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
+
+  setarmor(SPEC_ARMOR_TYPE_PADDED, "padded body armor", ARMOR_TYPE_LIGHT,
+    50, 10, 8, 0, 5, 30, 20,
+    7, MATERIAL_COTTON, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_PADDED_HEAD, "padded armor helm", ARMOR_TYPE_LIGHT,
+    50, 10, 8, 0, 5, 30, 20,
+    1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_PADDED_ARMS, "padded armor sleeves", ARMOR_TYPE_LIGHT,
+    50, 10, 8, 0, 5, 30, 20,
+    1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_PADDED_LEGS, "padded armor leggings", ARMOR_TYPE_LIGHT,
+    50, 10, 8, 0, 5, 30, 20,
+    1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
+
   setarmor(SPEC_ARMOR_TYPE_LEATHER, "leather armor", ARMOR_TYPE_LIGHT,
-    100, 20, 6, 0, 10, 30, 20, 15, MATERIAL_LEATHER, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER, "studded leather armor", ARMOR_TYPE_LIGHT,
-    250, 30, 5, -1, 15, 30, 20, 20, MATERIAL_LEATHER, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN, "light chainmail armor", ARMOR_TYPE_LIGHT,
-    1000, 40, 4, -2, 20, 30, 20, 25, MATERIAL_STEEL, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_HIDE, "hide armor", ARMOR_TYPE_MEDIUM,
-    150, 30, 4, -3, 20, 20, 15, 25, MATERIAL_LEATHER, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_SCALE, "scale armor", ARMOR_TYPE_MEDIUM,
-    500, 40, 3, -4, 25, 20, 15, 30, MATERIAL_STEEL, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_CHAINMAIL, "chainmail armor", ARMOR_TYPE_MEDIUM,
-    1500, 50, 2, -5, 30, 20, 15, 40, MATERIAL_STEEL, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_PIECEMEAL, "piecemeal armor", ARMOR_TYPE_MEDIUM,
-    2000, 50, 3, -4, 25, 20, 15, 30, MATERIAL_STEEL, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_SPLINT, "splint mail armor", ARMOR_TYPE_HEAVY,
-    2000, 60, 0, -7, 40, 20, 15, 45, MATERIAL_STEEL, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_BANDED, "banded mail armor", ARMOR_TYPE_HEAVY,
-    2500, 60, 1, -6, 35, 20, 15, 35, MATERIAL_STEEL, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_HALF_PLATE, "half plate armor", ARMOR_TYPE_HEAVY,
-    6000, 70, 1, -6, 40, 20, 15, 50, MATERIAL_STEEL, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_FULL_PLATE, "full plate armor", ARMOR_TYPE_HEAVY,
-    15000, 80, 1, -6, 35, 20, 15, 50, MATERIAL_STEEL, ITEM_WEAR_BODY);
+    100, 20, 6, 0, 10, 30, 20,
+    11, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_LEATHER_HEAD, "leather helm", ARMOR_TYPE_LIGHT,
+    100, 20, 6, 0, 10, 30, 20,
+    3, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_LEATHER_ARMS, "leather sleeves", ARMOR_TYPE_LIGHT,
+    100, 20, 6, 0, 10, 30, 20,
+    3, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_LEATHER_LEGS, "leather leggings", ARMOR_TYPE_LIGHT,
+    100, 20, 6, 0, 10, 30, 20,
+    3, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+
   /* (armor, name, type,
-   *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft, weight, material, wear) */
+   *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
+   *    weight, material, wear) */
+  setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER, "studded leather armor", ARMOR_TYPE_LIGHT,
+    250, 30, 5, -1, 15, 30, 20,
+    15, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_HEAD, "studded leather helm", ARMOR_TYPE_LIGHT,
+    250, 30, 5, -1, 15, 30, 20,
+    5, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_ARMS, "studded leather sleeves", ARMOR_TYPE_LIGHT,
+    250, 30, 5, -1, 15, 30, 20,
+    5, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_LEGS, "studded leather leggings", ARMOR_TYPE_LIGHT,
+    250, 30, 5, -1, 15, 30, 20,
+    5, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+
+  setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN, "light chainmail armor", ARMOR_TYPE_LIGHT,
+    1000, 40, 4, -2, 20, 30, 20,
+    19, MATERIAL_STEEL, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_HEAD, "light chainmail helm", ARMOR_TYPE_LIGHT,
+    1000, 40, 4, -2, 20, 30, 20,
+    7, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_ARMS, "light chainmail sleeves", ARMOR_TYPE_LIGHT,
+    1000, 40, 4, -2, 20, 30, 20,
+    7, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_LEGS, "light chainmail leggings", ARMOR_TYPE_LIGHT,
+    1000, 40, 4, -2, 20, 30, 20,
+    7, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+
+  setarmor(SPEC_ARMOR_TYPE_HIDE, "hide armor", ARMOR_TYPE_MEDIUM,
+    150, 30, 4, -3, 20, 20, 15,
+    19, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_HIDE_HEAD, "hide helm", ARMOR_TYPE_MEDIUM,
+    150, 30, 4, -3, 20, 20, 15,
+    7, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_HIDE_ARMS, "hide sleeves", ARMOR_TYPE_MEDIUM,
+    150, 30, 4, -3, 20, 20, 15,
+    7, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_HIDE_LEGS, "hide leggings", ARMOR_TYPE_MEDIUM,
+    150, 30, 4, -3, 20, 20, 15,
+    7, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+
+  /* (armor, name, type,
+   *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
+   *    weight, material, wear) */
+  setarmor(SPEC_ARMOR_TYPE_SCALE, "scale armor", ARMOR_TYPE_MEDIUM,
+    500, 40, 3, -4, 25, 20, 15,
+    23, MATERIAL_STEEL, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_SCALE_HEAD, "scale helm", ARMOR_TYPE_MEDIUM,
+    500, 40, 3, -4, 25, 20, 15,
+    9, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_SCALE_ARMS, "scale sleeves", ARMOR_TYPE_MEDIUM,
+    500, 40, 3, -4, 25, 20, 15,
+    9, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_SCALE_LEGS, "scale leggings", ARMOR_TYPE_MEDIUM,
+    500, 40, 3, -4, 25, 20, 15,
+    9, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+
+  setarmor(SPEC_ARMOR_TYPE_CHAINMAIL, "chainmail armor", ARMOR_TYPE_MEDIUM,
+    1500, 50, 2, -5, 30, 20, 15,
+    27, MATERIAL_STEEL, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_HEAD, "chainmail helm", ARMOR_TYPE_MEDIUM,
+    1500, 50, 2, -5, 30, 20, 15,
+    11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_ARMS, "chainmail sleeves", ARMOR_TYPE_MEDIUM,
+    1500, 50, 2, -5, 30, 20, 15,
+    11, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_LEGS, "chainmail leggings", ARMOR_TYPE_MEDIUM,
+    1500, 50, 2, -5, 30, 20, 15,
+    11, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+
+  setarmor(SPEC_ARMOR_TYPE_PIECEMEAL, "piecemeal armor", ARMOR_TYPE_MEDIUM,
+    2000, 50, 3, -4, 25, 20, 15,
+    25, MATERIAL_STEEL, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_HEAD, "piecemeal helm", ARMOR_TYPE_MEDIUM,
+    2000, 50, 3, -4, 25, 20, 15,
+    10, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_ARMS, "piecemeal sleeves", ARMOR_TYPE_MEDIUM,
+    2000, 50, 3, -4, 25, 20, 15,
+    10, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_LEGS, "piecemeal leggings", ARMOR_TYPE_MEDIUM,
+    2000, 50, 3, -4, 25, 20, 15,
+    10, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+
+  /* (armor, name, type,
+   *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
+   *    weight, material, wear) */
+  setarmor(SPEC_ARMOR_TYPE_SPLINT, "splint mail armor", ARMOR_TYPE_HEAVY,
+    2000, 60, 0, -7, 40, 20, 15,
+    31, MATERIAL_STEEL, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_SPLINT_HEAD, "splint mail helm", ARMOR_TYPE_HEAVY,
+    2000, 60, 0, -7, 40, 20, 15,
+    13, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_SPLINT_ARMS, "splint mail sleeves", ARMOR_TYPE_HEAVY,
+    2000, 60, 0, -7, 40, 20, 15,
+    13, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_SPLINT_LEGS, "splint mail leggings", ARMOR_TYPE_HEAVY,
+    2000, 60, 0, -7, 40, 20, 15,
+    13, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+
+  setarmor(SPEC_ARMOR_TYPE_BANDED, "banded mail armor", ARMOR_TYPE_HEAVY,
+    2500, 60, 1, -6, 35, 20, 15,
+    31, MATERIAL_STEEL, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_BANDED_HEAD, "banded mail helm", ARMOR_TYPE_HEAVY,
+    2500, 60, 1, -6, 35, 20, 15,
+    13, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_BANDED_ARMS, "banded mail sleeves", ARMOR_TYPE_HEAVY,
+    2500, 60, 1, -6, 35, 20, 15,
+    13, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_BANDED_LEGS, "banded mail leggings", ARMOR_TYPE_HEAVY,
+    2500, 60, 1, -6, 35, 20, 15,
+    13, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+
+  setarmor(SPEC_ARMOR_TYPE_HALF_PLATE, "half plate armor", ARMOR_TYPE_HEAVY,
+    6000, 70, 1, -6, 40, 20, 15,
+    35, MATERIAL_STEEL, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_HEAD, "half plate helm", ARMOR_TYPE_HEAVY,
+    6000, 70, 1, -6, 40, 20, 15,
+    15, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_ARMS, "half plate sleeves", ARMOR_TYPE_HEAVY,
+    6000, 70, 1, -6, 40, 20, 15,
+    15, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_LEGS, "half plate leggings", ARMOR_TYPE_HEAVY,
+    6000, 70, 1, -6, 40, 20, 15,
+    15, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+
+  /* (armor, name, type,
+   *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
+   *    weight, material, wear) */
+  setarmor(SPEC_ARMOR_TYPE_FULL_PLATE, "full plate armor", ARMOR_TYPE_HEAVY,
+    15000, 80, 1, -6, 35, 20, 15,
+    39, MATERIAL_STEEL, ITEM_WEAR_BODY);
+  setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_HEAD, "full plate helm", ARMOR_TYPE_HEAVY,
+    15000, 80, 1, -6, 35, 20, 15,
+    17, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+  setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_ARMS, "full plate sleeves", ARMOR_TYPE_HEAVY,
+    15000, 80, 1, -6, 35, 20, 15,
+    17, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+  setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_LEGS, "full plate leggings", ARMOR_TYPE_HEAVY,
+    15000, 80, 1, -6, 35, 20, 15,
+    17, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+
+  /* (armor, name, type,
+   *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
+   *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_BUCKLER, "buckler shield", ARMOR_TYPE_SHIELD,
-    150, 10, 99, -1, 5, 999, 999, 5, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+    150, 10, 99, -1, 5, 999, 999,
+    5, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_SMALL_SHIELD, "small shield", ARMOR_TYPE_SHIELD,
-    90, 10, 99, -1, 5, 999, 999, 6, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+    90, 10, 99, -1, 5, 999, 999,
+    10, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_LARGE_SHIELD, "heavy shield", ARMOR_TYPE_SHIELD,
-    200, 20, 99, -2, 15, 999, 999, 15, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+    200, 20, 99, -2, 15, 999, 999,
+    20, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_TOWER_SHIELD, "tower shield", ARMOR_TYPE_SHIELD,
-    300, 40, 2, -10, 50, 999, 999, 45, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+    300, 40, 2, -10, 50, 999, 999,
+    40, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
 }
 
 /* EOF */
