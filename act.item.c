@@ -57,7 +57,27 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
 
 /**** start file code *****/
 
+/* function to update number of lights in a room */
+void check_room_lighting_special(room_rnum room, struct char_data *ch,
+        struct obj_data *light_source, bool take_out_of_container) {
 
+  /* this object isn't a potential light source, so ignore */
+  if (!OBJ_FLAGGED(light_source, ITEM_MAGLIGHT) &&
+      !OBJ_FLAGGED(light_source, ITEM_GLOW))
+    return;
+
+  if (take_out_of_container) {
+    world[room].light++;
+    //world[room].globe += val2;
+  } else {
+    world[room].light--;
+    //world[room].globe -= val2;
+    if (world[room].light < 0)
+      world[room].light = 0;
+    //if (world[room].globe < 0)
+      //world[room].globe = 0;
+  }
+}
 
 static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_data *cont) {
   char buf[MEDIUM_STRING] = { '\0' };
@@ -112,6 +132,9 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
 
       act("You put $p in $P.", FALSE, ch, obj, cont, TO_CHAR);
     }
+
+    /* in case you put a light in your container */
+    check_room_lighting_special(IN_ROOM(ch), ch, obj, FALSE);
   }
 }
 
@@ -289,7 +312,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
   }
 
   /* in case you get a light from your container */
-  check_room_lighting(IN_ROOM(ch), ch, FALSE);
+  check_room_lighting_special(IN_ROOM(ch), ch, obj, TRUE);
 }
 
 void get_from_container(struct char_data *ch, struct obj_data *cont,

@@ -14,7 +14,6 @@
 
 void check_room_lighting(room_rnum room, struct char_data *ch, bool enter);
 
-
 /* handling the affected-structures */
 int affect_total_sub(struct char_data *ch);
 void affect_total_plus(struct char_data *ch, int at_armor);
