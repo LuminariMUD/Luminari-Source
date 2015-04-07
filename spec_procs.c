@@ -47,7 +47,7 @@ int sorted_skills[MAX_SKILLS + 1];
 static int compare_spells(const void *x, const void *y) {
   int a = *(const int *) x,
           b = *(const int *) y;
-  
+
   if (a <= 1 || b <= 1)
     return 0;
 
@@ -63,7 +63,7 @@ void sort_spells(void) {
   int a;
 
   /* full list */
-  
+
   /* initialize array, avoiding reserved. */
   for (a = 1; a <= MAX_SKILLS; a++) {
     spell_sort_info[a] = a;
@@ -71,20 +71,20 @@ void sort_spells(void) {
     sorted_skills[a] = -1;
   }
 
-  qsort(&spell_sort_info[1], MAX_SKILLS, sizeof (int), 
+  qsort(&spell_sort_info[1], MAX_SKILLS, sizeof (int),
           compare_spells);
 
   /* spell list */
-  
+
   /* initialize array, avoiding reserved. */
   for (a = 1; a <= MAX_SPELLS; a++)
     sorted_spells[a] = a;
 
-  qsort(&sorted_spells[1], MAX_SKILLS, sizeof (int), 
+  qsort(&sorted_spells[1], MAX_SKILLS, sizeof (int),
           compare_spells);
-  
+
   /* spell list */
-  
+
   /* initialize array, avoiding reserved. */
   for (a = 0; a <= (MAX_SKILLS - MAX_SPELLS); a++)
     sorted_skills[a] = a + MAX_SPELLS;
@@ -234,7 +234,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
         return TRUE;
       else return FALSE;
     case SKILL_HEADBUTT:
-      if (GET_LEVEL(ch) >= 20 && 
+      if (GET_LEVEL(ch) >= 20 &&
               (GET_REAL_CON(ch) + GET_REAL_STR(ch) >= 32))
         return TRUE;
       else return FALSE;
@@ -273,7 +273,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       if (GET_LEVEL(ch) >= 10 && GET_SKILL(ch, SKILL_IMPROVED_CRITICAL))
         return TRUE;
       else return FALSE;
-      
+
       /* more caster related */
     case SKILL_SPELL_RESIST_1:
       if (GET_LEVEL(ch) >= 5)
@@ -443,7 +443,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
    this is the engine for the 'spells' and 'spelllist' commands
    class - you can send -1 for a 'default' class
    mode = 0:  known spells
-   mode = anything else: full spelllist for given class 
+   mode = anything else: full spelllist for given class
  */
 void list_spells(struct char_data *ch, int mode, int class) {
   int i = 0, slot = 0, sinfo = 0;
@@ -544,7 +544,7 @@ void list_crafting_skills(struct char_data *ch) {
 
   if (IS_NPC(ch))
     return;
-  
+
   /* Crafting Skills */
   send_to_char(ch, "\tCCrafting Skills\tn\r\n\r\n");
   for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++) {
@@ -677,10 +677,10 @@ int compute_ability(struct char_data *ch, int abilityNum) {
 
   if (!ch)
     return -1;
-  
+
   if (abilityNum < 1 || abilityNum > NUM_ABILITIES)
     return -1;
-  
+
   /* this dummy check was added to to possible problems with checking
    affected_by_spell on a target that just died */
   if (GET_HIT(ch) <= 0 || GET_POS(ch) <= POS_STUNNED)
@@ -699,8 +699,8 @@ int compute_ability(struct char_data *ch, int abilityNum) {
   // try to avoid sending NPC's here, but just in case:
   /* Note on this:  More and more it seems necessary to have some
    * sort of NPC skill system in place, either an actual set
-   * of SKILLS or some way to translate level, race and class into 
-   * an appropriate set of skills, mostly for intellignet, humanoid 
+   * of SKILLS or some way to translate level, race and class into
+   * an appropriate set of skills, mostly for intellignet, humanoid
    * NPCs. For now, just use the level, although that will be difficult. */
   if (IS_NPC(ch))
     value += GET_LEVEL(ch);
@@ -708,7 +708,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     value += GET_ABILITY(ch, abilityNum);
 
   /* Check for armor proficiency */
-  
+
   switch (abilityNum) {
     case ABILITY_ACROBATICS:
       value += GET_DEX_BONUS(ch);
@@ -823,7 +823,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       if (HAS_FEAT(ch, FEAT_DEFT_HANDS)) {
         /* Unnamed bonus */
         value += 3;
-      } 
+      }
       return value;
     case ABILITY_BLUFF:
       value += GET_CHA_BONUS(ch);
@@ -881,7 +881,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         /* Unnamed bonus */
         value += 2;
       }
-      return value;    
+      return value;
     case ABILITY_SWIM:
       value += GET_STR_BONUS(ch);
       value += (2 * compute_gear_penalty_check(ch));
@@ -905,10 +905,10 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       value += GET_CHA_BONUS(ch);
       return value;
 
-    /* Knowledge Skills */       
+    /* Knowledge Skills */
     case ABILITY_CRAFT_WOODWORKING:
     case ABILITY_CRAFT_TAILORING:
-    case ABILITY_CRAFT_ALCHEMY:      
+    case ABILITY_CRAFT_ALCHEMY:
     case ABILITY_CRAFT_ARMORSMITHING:
     case ABILITY_CRAFT_WEAPONSMITHING:
     case ABILITY_CRAFT_BOWMAKING:
@@ -928,7 +928,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     case ABILITY_KNOWLEDGE_NATURE:
     case ABILITY_KNOWLEDGE_NOBILITY:
     case ABILITY_KNOWLEDGE_RELIGION:
-    case ABILITY_KNOWLEDGE_PLANES:    
+    case ABILITY_KNOWLEDGE_PLANES:
       value += GET_INT_BONUS(ch);
       return value;
     default: return -1;
@@ -1086,7 +1086,7 @@ void zone_yell(struct char_data *ch, char buf[256]) {
       if (i == ch || !IS_NPC(i))
         continue;
 
-      if (((IS_EVIL(ch) && IS_EVIL(i)) || (IS_GOOD(ch) && IS_GOOD(i))) && 
+      if (((IS_EVIL(ch) && IS_EVIL(i)) || (IS_GOOD(ch) && IS_GOOD(i))) &&
               MOB_FLAGGED(i, MOB_HELPER)) {
         if (i->in_room == ch->in_room && !FIGHTING(i)) {
           for (vict = world[i->in_room].people; vict; vict = vict->next_in_room)
@@ -1127,14 +1127,14 @@ bool yan_yell(struct char_data *ch) {
   room_rnum start = 0;
   room_rnum end = 0;
   vict = FIGHTING(ch);
-  
+
   if (!vict)
     return FALSE;
 
   // show yan-s yell message.
   if (PROC_FIRED(ch) == false) {
     for (d = descriptor_list; d; d = d->next) {
-      if (STATE(d) == CON_PLAYING && d->character != NULL && 
+      if (STATE(d) == CON_PLAYING && d->character != NULL &&
               zone == world[d->character->in_room].zone) {
         send_to_char(d->character, "\tcYan-C-Bin the Master of Evil Air\tw shouts, '\tcI "
                 "have been attacked! Come to me minions!\tw'\tn\r\n");
@@ -1215,7 +1215,7 @@ void yan_windgust(struct char_data *ch) {
   struct char_data *next_vict;
   int dam = 0;
   struct affected_type af;
-  
+
   act("\tc$n\tc opens $s cavernous maw and sends forth a \tCpowerful \twgust\tc of air.\tn",
           FALSE, ch, 0, 0, TO_ROOM);
 
@@ -1326,7 +1326,7 @@ SPECIAL(shadowdragon) {
 
   if (!FIGHTING(ch))
     return 0;
-  
+
   if (rand_number(0, 4))
     return 0;
 
@@ -1344,7 +1344,7 @@ SPECIAL(shadowdragon) {
             FALSE, ch, 0, vict, TO_NOTVICT);
     GET_MOVE(vict) -= (10 + dice(5, 4));
   }
-  
+
   call_magic(ch, FIGHTING(ch), 0, SPELL_DARKNESS, GET_LEVEL(ch), CAST_SPELL);
 
   return 1;
@@ -1477,7 +1477,7 @@ SPECIAL(quicksand) {
   SET_BIT_AR(af.bitvector, AFF_PARALYZED);
   af.duration = 5;
   affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
-    
+
   return 1;
 }
 
@@ -1487,7 +1487,7 @@ SPECIAL(kt_kenjin) {
   struct char_data *vict = 0;
   struct char_data *tch = 0;
   int val = 0;
-  
+
   if (cmd)
     return 0;
   if (!FIGHTING(ch))
@@ -1576,7 +1576,7 @@ SPECIAL(kt_twister) {
 
   if (!mob)
     return 0;
-  
+
   char_to_room(mob, real_room(132906));
 
   sprintf(l_name, "\tLThe shadow of \tw%s\tL stands here.\tn  ", GET_NAME(ch));
@@ -1602,7 +1602,7 @@ SPECIAL(hive_death) {
   if (!ch)
     return 0;
 
-  send_to_char(ch, 
+  send_to_char(ch,
           "\trAs you enter through the curtain, your body is ripped into two pieces, as your link\tn\r\n"
           "\trthrough the ethereal plane is severed.  You suddenly realise that your physical body\tn\r\n"
           "\tris at one place, and your mind in another part.\tn\r\n\r\n");
@@ -1623,7 +1623,7 @@ SPECIAL(hive_death) {
 SPECIAL(feybranche) {
   struct char_data *i = NULL;
   char buf[MAX_INPUT_LENGTH];
-  
+
   if (cmd || GET_POS(ch) == POS_DEAD)
     return 0;
 
@@ -1631,7 +1631,7 @@ SPECIAL(feybranche) {
 
   if (!enemy)
     PROC_FIRED(ch) = FALSE;
-  
+
   if (FIGHTING(ch) && !ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
     if (enemy->master && enemy->master->in_room == enemy->in_room)
       enemy = enemy->master;
@@ -1718,7 +1718,7 @@ SPECIAL(agrachdyrr) {
 
     if (enemy->master && enemy->master->in_room == enemy->in_room)
       enemy = enemy->master;
-    
+
     sprintf(buf, "%s\tL shouts, '\twTo me, \tcAgrach-Dyrr\tw is under attack!'\tn\r\n",
             ch->player.short_descr);
     for (i = character_list; i; i = i->next) {
@@ -1837,11 +1837,11 @@ SPECIAL(ogremoch) {
             } else {
               //either melt in directly or track
               if (dice(1, 10) < 2) {
-                act("$n jumps into the pure rock, as $s lord calls for $m.", 
+                act("$n jumps into the pure rock, as $s lord calls for $m.",
                         FALSE, i, 0, 0, TO_ROOM);
                 char_from_room(i);
                 char_to_room(i, ch->in_room);
-                act("$n comes out from the rock, to help $s lord.", FALSE, i, 
+                act("$n comes out from the rock, to help $s lord.", FALSE, i,
                         0, 0, TO_ROOM);
               } else {
                 HUNTING(i) = ch;
@@ -1912,6 +1912,11 @@ SPECIAL(guild) {
 
   // Practice code
   if (CMD_IS("practice")) {
+
+    list_crafting_skills(ch);
+    return (TRUE);
+    /* everything below this is deprecated */
+
     if (!*argument) {
       list_skills(ch);
       return (TRUE);
@@ -1988,9 +1993,9 @@ SPECIAL(guild) {
     /* Parse argument and check for 'knowledge' or 'craft' as a first arg- */
     ability_name = one_argument(argument, arg);
     skip_spaces(&ability_name);
-    
+
     if (is_abbrev(arg, "craft")) {
- 
+
       if (!strcmp(ability_name, "")) {
         list_abilities(ch, ABILITY_TYPE_CRAFT);
         return (TRUE);
@@ -2708,7 +2713,7 @@ SPECIAL(shar_heart) {
 /* from homeland */
 SPECIAL(shar_statue) {
   struct char_data *mob;
-  
+
   if (!FIGHTING(ch))
     return FALSE;
   if (cmd)
@@ -2730,7 +2735,7 @@ SPECIAL(shar_statue) {
 
     if (!mob)
       return FALSE;
-      
+
     char_to_room(mob, ch->in_room);
     add_follower(mob, ch);
 
@@ -2772,7 +2777,7 @@ SPECIAL(dog) {
         act("$n wags $s tail happily, as $N pets $m.", FALSE, pet, 0, ch, TO_NOTVICT);
         break;
     }
-    
+
     if (GET_LEVEL(pet) < 2 && ch->followers == 0 && ch->master == 0 && pet->master == 0 && !circle_follow(pet, ch)) {
       add_follower(pet, ch);
       af.spell = SPELL_CHARM;
@@ -2870,7 +2875,7 @@ SPECIAL(guild_golem) {
     return FALSE;
 
   int i = cmd - 1;
-  
+
   if (i < 0) {
     send_to_char("Index error in guild golem\r\n", ch);
     return FALSE;
@@ -2953,7 +2958,7 @@ SPECIAL(practice_dummy) {
     max_hit += rounddam;
     round_count++;
 
-    sprintf(buf, "\tP%d damage last round!\tn  \tc(total: %d rounds: %d)\tn\r\n", 
+    sprintf(buf, "\tP%d damage last round!\tn  \tc(total: %d rounds: %d)\tn\r\n",
             rounddam, max_hit, round_count);
     send_to_room(ch->in_room, buf);
     GET_HIT(ch) = GET_MAX_HIT(ch);
@@ -2972,7 +2977,7 @@ SPECIAL(wraith) {
     extract_char(ch);
     return 1;
   }
-  
+
   if (ch->master && ch->in_room == ch->master->in_room)
     if (FIGHTING(ch->master) && rand_number(0, 1)) {
       perform_assist(ch, ch->master);
@@ -3137,7 +3142,7 @@ SPECIAL(wraith_elemental) {
       return 1;
     }
   }
-  
+
   // auto stand if down
   if (GET_POS(ch) < POS_FIGHTING && GET_POS(ch) >= POS_STUNNED) {
     GET_POS(ch) = POS_STANDING;
@@ -3217,14 +3222,14 @@ SPECIAL(lichdrain) {
   struct char_data *tch = 0;
   struct char_data *vict = 0;
   int dam = 0;
-  
+
   if (cmd || GET_POS(ch) == POS_DEAD)
     return 0;
   if (rand_number(0, 3))
     return 0;
   if (!FIGHTING(ch))
     return 0;
-  
+
   if (AFF_FLAGGED(ch, AFF_PARALYZED))
     return 0;
 
@@ -3235,7 +3240,7 @@ SPECIAL(lichdrain) {
       }
     }
   }
-  
+
   if (!vict)
     return 0;
 
@@ -3247,13 +3252,13 @@ SPECIAL(lichdrain) {
           "\tLand $e simply leeches $S \tWlifeforce\tL out of $M.\r\n",
           TRUE, ch, 0, vict, TO_NOTVICT);
 
-  act("\tWYou reach out and suck the life force away from $N!", TRUE, ch, 0, 
+  act("\tWYou reach out and suck the life force away from $N!", TRUE, ch, 0,
           vict, TO_CHAR);
   dam = GET_HIT(vict) + 5;
   if (GET_HIT(ch) + dam < GET_MAX_HIT(ch))
     GET_HIT(ch) += dam;
   GET_HIT(vict) -= dam;
-  USE_FULL_ROUND_ACTION(vict); 
+  USE_FULL_ROUND_ACTION(vict);
   return 1;
 }
 
@@ -3271,7 +3276,7 @@ SPECIAL(harpell) {
   if (FIGHTING(ch) && !ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
     if (AFF_FLAGGED(FIGHTING(ch), AFF_CHARM) && FIGHTING(ch)->master)
       sprintf(buf, "%s shouts, 'HELP! %s has ordered his pets to kill "
-              "me!!'\r\n", ch->player.short_descr, 
+              "me!!'\r\n", ch->player.short_descr,
               GET_NAME(FIGHTING(ch)->master));
     else
       sprintf(buf, "%s shouts, 'HELP! %s is trying to kill me!\r\n",
@@ -3286,7 +3291,7 @@ SPECIAL(harpell) {
           if (FIGHTING(ch)->master->in_room != i->in_room)
             cast_spell(i, FIGHTING(ch)->master, NULL, SPELL_TELEPORT);
           else
-            hit(i, FIGHTING(ch)->master, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 
+            hit(i, FIGHTING(ch)->master, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0,
                     FALSE);
         } else {
           if (FIGHTING(ch)->in_room != i->in_room)
@@ -3314,12 +3319,12 @@ SPECIAL(bonedancer) {
   if (cmd)
     return 0;
   if (GET_POS(ch) == POS_DEAD || !ch->master) {
-    act("With a loud shriek, $n crumbles into dust.", FALSE, ch, NULL, 0, 
+    act("With a loud shriek, $n crumbles into dust.", FALSE, ch, NULL, 0,
             TO_ROOM);
     extract_char(ch);
     return 1;
   }
-  
+
   if (!FIGHTING(ch) && GET_HIT(ch) > 0) {
     for (vict = world[ch->in_room].people; vict; vict = next_vict) {
       next_vict = vict->next_in_room;
@@ -3368,7 +3373,7 @@ SPECIAL(beltush) {
 SPECIAL(mereshaman) {
   if (cmd)
     return 0;
-  
+
   if (FIGHTING(ch) && !PROC_FIRED(ch)) {
     PROC_FIRED(ch) = TRUE;
     send_to_room(ch->in_room,
@@ -3391,7 +3396,7 @@ SPECIAL(mereshaman) {
 SPECIAL(mercenary) {
   int hit;
   int base = 1;
-  
+
   if (!ch)
     return 0;
   if (cmd)
@@ -3448,10 +3453,10 @@ SPECIAL(battlemaze_guard) {
 /* from homeland */
 SPECIAL(willowisp) {
   room_rnum room = real_room(126899);
-  
-  if (cmd)    
+
+  if (cmd)
     return 0;
-  
+
   if (FIGHTING(ch))
     return 0;
 
@@ -3498,14 +3503,14 @@ SPECIAL(naga) {
   struct char_data *tch = 0;
   struct char_data *vict = 0;
   int dam = 0;
-  
+
   if (cmd || GET_POS(ch) == POS_DEAD)
     return 0;
   if (rand_number(0, 3))
     return 0;
   if (!FIGHTING(ch))
     return 0;
-  
+
   for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room) {
     if ((!IS_NPC(tch) || IS_PET(tch)) && !MOB_FLAGGED(tch, MOB_NOSLEEP)) {
       if (!vict || !rand_number(0, 3)) {
@@ -3515,10 +3520,10 @@ SPECIAL(naga) {
   }
   if (!vict)
     return 0;
-  
+
   if (MOB_FLAGGED(vict, MOB_NOSLEEP))
     return 0;
-  
+
   act(    "$n\tL thrusts its powerful barbed tail-stinger into your flesh causing\tn\r\n"
           "\tLyou to scream in agony.  As it snaps back its tail, poison oozes into the large\tn\r\n"
           "\tLwound that is opened.  You begin to fall into a drug induced "
@@ -3588,7 +3593,7 @@ SPECIAL(gromph) {
     return 0;
   if (FIGHTING(ch))
     return 0;
-  
+
   if (!IS_NPC(ch) && cmd && CMD_IS("cast")) {
     victim = ch;
     ch = (struct char_data*) me;
@@ -3764,7 +3769,7 @@ void weapons_spells(char *to_ch, char *to_vict, char *to_room,
   int level;
 
   level = GET_LEVEL(ch);
-  
+
   if (level > 30)
     level = 30;
 
@@ -3848,7 +3853,7 @@ void move_ship(struct obj_data *ship, int dir) {
 // weight is wether towards start or end.
 void update_ship(struct obj_data *ship, int start, int end, int movedelay, int waitdelay) {
   int dest = real_room(end);
-  
+
   if (!ship->obj_flags.weight)
     dest = real_room(start);
 
@@ -3909,13 +3914,13 @@ SPECIAL(spikeshield) {
     return 0;
 
   struct char_data *vict = FIGHTING(ch);
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "On shieldpunch, procs 'spikes', on shieldblock procs "
             "'life steal.'\r\n");
     return 1;
   }
-  
+
   if (!argument || cmd || !vict)
     return 0;
 
@@ -3934,7 +3939,7 @@ SPECIAL(spikeshield) {
     call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 10, CAST_SPELL);
     return 1;
   }
-  
+
   if (!strcmp(argument, "shieldpunch")) {
     act("\tLYou slam your \tcshield \tLinto $N\tL\tn\r\n"
             "\tLcausing the rows of\tr spikes \tLto drive into $S body.\tn",
@@ -3945,11 +3950,11 @@ SPECIAL(spikeshield) {
     act("$n \tLslams $s \tcshield\tL into you\tn\r\n"
             "\tLcausing the rows of \trspikes\tL to drive into your body.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
-    damage(ch, vict, (dice(3, 8) + 4), -1, DAM_PUNCTURE, 
+    damage(ch, vict, (dice(3, 8) + 4), -1, DAM_PUNCTURE,
             FALSE);  // type -1 = no dam message
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -3960,16 +3965,16 @@ SPECIAL(viperdagger) {
 
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Slowness or Harm.\r\n");
     return 1;
   }
-  
+
   victim = FIGHTING(ch);
   if (!victim || cmd)
     return 0;
-  
+
   if (AFF_FLAGGED(victim, AFF_SLOW))
     spellnum = SPELL_HARM;
 
@@ -4010,7 +4015,7 @@ SPECIAL(ches) {
 
   vict = FIGHTING(ch);
 
-  // proc on critical  
+  // proc on critical
   if (!cmd && FIGHTING(ch) && argument) {
     skip_spaces(&argument);
     if (!strcmp(argument, "critical")) {
@@ -4091,7 +4096,7 @@ SPECIAL(courage) {
 
       act("$n \tLinvokes $s \tygolden mace\tn.", FALSE, ch, 0, 0, TO_ROOM);
       act("\tLYou invoke your \tygolden mace\tn.", FALSE, ch, 0, 0, TO_CHAR);
-      
+
       call_magic(ch, ch, 0, SPELL_PRAYER, GET_LEVEL(ch), CAST_POTION);
       call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, GET_LEVEL(ch), CAST_POTION);
 
@@ -4125,7 +4130,7 @@ SPECIAL(flamingwhip) {
     send_to_char(ch, "Proc: Fire Damage.\r\n");
     return 1;
   }
-  
+
   if (!ch || cmd || !vict || rand_number(0, 16))
     return 0;
 
@@ -4137,10 +4142,10 @@ SPECIAL(flamingwhip) {
   damage(ch, vict, dice(6, 4), -1, DAM_FIRE, FALSE);  // type -1 = no dam message
 
   return 1;
-} 
+}
 
-/* Helmblade vnum 121207 
-  only procs against evil,  a minor heal on wielder and a dispel_evil. 
+/* Helmblade vnum 121207
+  only procs against evil,  a minor heal on wielder and a dispel_evil.
 */
 SPECIAL(helmblade) {
   struct char_data *vict = FIGHTING(ch);
@@ -4149,7 +4154,7 @@ SPECIAL(helmblade) {
     send_to_char(ch, "Proc vs Evil: Cure Serious or Dispel Evil.\r\n");
     return 1;
   }
-  
+
   if (!ch || cmd || !vict)
     return 0;
   if (!IS_EVIL(vict))
@@ -4240,7 +4245,7 @@ SPECIAL(flaming_scimitar) {
 SPECIAL(frosty_scimitar) {
   struct char_data *vict = FIGHTING(ch);
   struct obj_data *weepan = (struct obj_data *) me;
-  
+
   if (!ch) return 0;
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "???");
@@ -4297,7 +4302,7 @@ SPECIAL(disruption_mace) {
     send_to_char(ch, "Proc: Flame Strike.\r\n");
     return 1;
   }
-  
+
   if (!ch || cmd || !vict || rand_number(0, 20))
     return 0;
 
@@ -4336,16 +4341,16 @@ SPECIAL(forest_idol)
 SPECIAL(haste_bracers) {
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Haste once per week on keyword 'quicksilver.'\r\n");
     return 1;
   }
-  
+
   if ((cmd && argument && CMD_IS("say")) || (cmd && argument && CMD_IS("'"))) {
     if (!is_wearing(ch, 138415))
       return 0;
-    
+
     skip_spaces(&argument);
     if (!strcmp(argument, "quicksilver")) {
       if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
@@ -4472,7 +4477,7 @@ SPECIAL(xvim_artifact) {
     send_to_char(ch, "???");
     return 1;
   }
-  
+
   if (!cmd && vict) {
     switch (rand_number(0, 35)) {
       case 0:
@@ -4549,12 +4554,12 @@ SPECIAL(xvim_artifact) {
         return 0;
     }
   }
-  
+
   skip_spaces(&argument);
-  
-  if (!is_wearing(ch, 100501)) 
+
+  if (!is_wearing(ch, 100501))
     return 0;
-  
+
   if (!strcmp(argument, "nightmare") && CMD_IS("whisper")) {
     if (mob_index[real_mobile(100505)].number < 1) {
       act("\tLAs you whisper '\tmnightmare\tL' to your \trsword\tL, a \twthick\tW fog"
@@ -4587,7 +4592,7 @@ SPECIAL(dragonbone_hammer) {
     send_to_char(ch, "Proc: Ice Dagger.\r\n");
     return 1;
   }
-  
+
   if (!ch || cmd || !vict || rand_number(0, 10))
     return 0;
 
@@ -4607,7 +4612,7 @@ SPECIAL(prismorb) {
     send_to_char(ch, "Proc: Prismatic Spray.\r\n");
     return 1;
   }
-  
+
   if (!ch || cmd || !vict || rand_number(0, 25))
     return 0;
 
@@ -4630,7 +4635,7 @@ SPECIAL(dorfaxe) {
     send_to_char(ch, "Proc vs Evil: Clangeddins Wrath.\r\n");
     return 1;
   }
-  
+
   if (!ch || cmd || !vict)
     return 0;
 
@@ -4670,23 +4675,23 @@ SPECIAL(dorfaxe) {
 /* from homeland */
 SPECIAL(acidstaff) {
   struct char_data *victim;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Acid Arrow.\r\n");
     return 1;
   }
-  
+
   if (!ch)
     return 0;
-  
+
   victim = FIGHTING(ch);
-  
+
   if (!victim || cmd)
     return 0;
 
   if (rand_number(0, 15))
     return 0;
-  
+
   weapons_spells(
           "\tLYour staff vibrates and hums then glows \tGbright green\tL.\tn\r\n"
           "\tLThe tiny black dragons on your staff come alive and roar loudly\tn\r\n"
@@ -4714,7 +4719,7 @@ SPECIAL(sarn) {
     send_to_char(ch, "Proc: Harm, more effective for Duergar.\r\n");
     return 1;
   }
-  
+
   if (!ch || cmd || !vict)
     return 0;
 
@@ -4744,7 +4749,7 @@ SPECIAL(sarn) {
 SPECIAL(purity) {
   int dam = 0;
   struct char_data *vict = FIGHTING(ch);
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Holy Light.\r\n");
     return 1;
@@ -4798,13 +4803,13 @@ SPECIAL(etherealness) {
 
   if (!ch || cmd || !vict || rand_number(0, 15))
     return 0;
-  
+
   weapons_spells(
           "\twWaves of \tWghostly \twenergy starts to flow from your $p.",
           "\twWaves of \tWghostly \twenergy starts to flow from $n's $p.",
           "\twWaves of \tWghostly \twenergy starts to flow from $n's $p.",
           ch, vict, (struct obj_data *) me, SPELL_SLOW);
-  
+
   return 1;
 }
 
@@ -4821,13 +4826,13 @@ SPECIAL(greatsword) {
     return 0;
 
   int dam = 30 + dice(5, 5);
-  
+
   if (dam > GET_HIT(vict))
     dam = GET_HIT(vict);
-  
+
   if (dam < 21)
     return 0;
-  
+
   weapons_spells(
           "\tCSilvery flames shoots from your $p\tC towards $N\tC.\r\nThe flames sear and burn $N\tC who screams in pain.\tn",
           "\tCSilvery flames shoot from $n's $p\tC towards you\tC.\r\nThe flames sear and burn you and you scream in pain.\tn",
@@ -4848,7 +4853,7 @@ SPECIAL(fog_dagger) {
             " cloud.\r\n");
     return 1;
   }
-  
+
   if (!is_wearing(ch, 115003))
     return 0;
 
@@ -4893,7 +4898,7 @@ SPECIAL(fog_dagger) {
       return 1;
     }
     // Now check if they are trying to backstab
-  } else if (CMD_IS("backstab") && 
+  } else if (CMD_IS("backstab") &&
           (vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM))) {
     if (perform_backstab(ch, vict)) {
       if (FIGHTING(ch) == vict &&
@@ -4908,7 +4913,7 @@ SPECIAL(fog_dagger) {
     }
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -4920,9 +4925,9 @@ SPECIAL(tyrantseye) {
     return 0;
 
   if (!IS_NPC(ch)) {
-    act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into $n from above!\tn", 
+    act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into $n from above!\tn",
             FALSE, ch, 0, 0, TO_ROOM);
-    act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into you from above!\tn", 
+    act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into you from above!\tn",
             FALSE, ch, 0, 0, TO_CHAR);
     die(ch, ch);
   }
@@ -4972,7 +4977,7 @@ SPECIAL(tyrantseye) {
 SPECIAL(spiderdagger) {
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Procs darkfire in combat and by Invoking Lloth she protects any drow.\r\n");
     return 1;
@@ -5026,12 +5031,12 @@ SPECIAL(sparksword) {
 
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Shock damage.\r\n");
     return 1;
   }
-  
+
   if (cmd || !vict || rand_number(0, 20))
     return 0;
 
@@ -5054,12 +5059,12 @@ SPECIAL(nutty_bracer) {
 
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Randomly lash out...\r\n");
     return 1;
   }
-  
+
   if (cmd)
     return 0;
 
@@ -5096,7 +5101,7 @@ SPECIAL(whisperwind) {
             "dispel evil.\r\n");
     return 1;
   }
-  
+
   /* random cyclone proc */
   if (!cmd && !rand_number(0, 10) && vict) {
     weapons_spells("\tcYour \tWmoon\tCblade \tcbegins to gyrate violently in your hands, almost "
@@ -5265,12 +5270,12 @@ SPECIAL(vengeance) {
 
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Procs mass cure light and word of faith.\r\n");
     return 1;
   }
-  
+
   if (cmd || !vict)
     return 0;
 
@@ -5437,7 +5442,7 @@ SPECIAL(bloodaxe) {
 
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Bite.\r\n");
     return 1;
@@ -5496,9 +5501,9 @@ SPECIAL(skullsmasher) {
     send_to_char(ch, "Proc:  Knockdown.\r\n");
     return 1;
   }
-  
+
   int power = 25;
-    
+
   if (GET_OBJ_VNUM(((struct obj_data *) me)) == 101850)
     power = 15;
   if (rand_number(0, power))
@@ -5533,7 +5538,7 @@ SPECIAL(acidsword) {
 
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Acid corrosion.\r\n");
     return 1;
@@ -5587,12 +5592,12 @@ SPECIAL(snakewhip) {
 
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Drow-only, Snake-Bite.\r\n");
-    return 1;    
-  }  
-  
+    return 1;
+  }
+
   if (cmd || !vict || GET_POS(ch) == POS_DEAD)
     return 0;
 
@@ -5601,13 +5606,13 @@ SPECIAL(snakewhip) {
       act(    "\tLYour $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against you.\r\n"
               "All three snakeheads suddenly lunges forwardand sink their fangs in you throat. \r\n"
               "You barely have time to feel the terrible pain before you fall over with \tRbl\tro\tRod\r\n"
-              "\tLflowing freely from the wounds in your neck.\tn", FALSE, ch, 
+              "\tLflowing freely from the wounds in your neck.\tn", FALSE, ch,
               weepan, 0, TO_CHAR);
 
       act(    "$n's $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against $n\tL. \r\n"
               "All three snakeheads suddenly lunges forward and sink their fangs in $n's \tLthroat.\r\n"
               "$n \tLbarely have time to feel the terrible pain before falling over with \tRbl\tro\tRod\r\n"
-              "\tLflowing freely from the wounds in the neck.\tn", FALSE, ch, 
+              "\tLflowing freely from the wounds in the neck.\tn", FALSE, ch,
               weepan, 0, TO_ROOM);
       GET_HIT(ch) = -5;
       GET_POS(ch) = POS_INCAP;
@@ -5628,7 +5633,7 @@ SPECIAL(snakewhip) {
             "$n's $p \tLh\tYi\tLss\tYe\tLs\r\nwith fury as all three snakeheads suddenly lunges for you.\r\n"
             "Their fangs sink deep into the \tRfl\tre\tRsh \tLand you cry out in pain.\tn",
             "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
-            "Their fangs sink deep into the \tRfl\tre\tRsh \tLand $N \tLcries out in pain.\tn", 
+            "Their fangs sink deep into the \tRfl\tre\tRsh \tLand $N \tLcries out in pain.\tn",
             ch, vict, (struct obj_data *) me, 0);
   } else {
     weapons_spells(
@@ -5650,16 +5655,16 @@ SPECIAL(snakewhip) {
 SPECIAL(tormblade) {
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc only vs Evil:  Dispel Magic randomly on hit.\r\n"
             "                    Torms Protection of Evil on critical hits.\r\n");
     return 1;
   }
-  
+
   struct char_data *vict;
   struct affected_type af;
-  
+
   if (cmd)
     return 0;
 
@@ -5698,17 +5703,17 @@ SPECIAL(tormblade) {
 SPECIAL(witherdirk) {
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Contagion\r\n");
     return 1;
   }
-  
+
   struct char_data *vict;
-  
+
   if (cmd)
     return 0;
-  
+
   vict = FIGHTING(ch);
   if (!vict)
     return 0;
@@ -5724,7 +5729,7 @@ SPECIAL(witherdirk) {
           "\tLThe dirk \trwrithes\tL and \twtwists\tL as it bites deep into $N\tL's skin,\tn\r\n"
           "\tgputrid\tr blo\tro\trd\tL wells up in $S eyes, causing great pain and discomfort.\tn",
           ch, vict, (struct obj_data *) me, SPELL_CONTAGION);
-  
+
   return 1;
 }
 
@@ -5733,7 +5738,7 @@ SPECIAL(air_sphere) {
   int dam = 0;
   struct char_data *vict;
   struct affected_type af;
-  
+
   if (!ch)
     return 0;
 
@@ -5742,19 +5747,19 @@ SPECIAL(air_sphere) {
             "chain lightning.\r\n");
     return 1;
   }
-  
+
   if (!cmd && FIGHTING(ch) && !rand_number(0, 25)) {
     vict = FIGHTING(ch);
     dam = 20 + dice(2, 8);
     act("\tbYour \tBsphere of lighting \tYglows bright\tb as electricity\r\n"
             "\tbc\tBr\tbackl\tBe\tbs \tball about its surface.\tn\r\n"
             "\tbSuddenly the \tYglow \tWintensifies\tb and a \tB\tfbolt of lightning\tn\r\n"
-            "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn", 
+            "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn",
             FALSE, ch, 0, vict, TO_CHAR);
     act("$n's \tBsphere of lighting \tYglows bright\tb as electricity\tn\r\n"
             "\tbc\tBr\tbackl\tBe\tbs \tball about its surface.\tn\r\n"
             "\tbSuddenly the \tYglow \tWintensifies\tb and a \tB\tfbolt of lightning\r\n"
-            "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn", 
+            "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn",
             FALSE, ch, 0, vict, TO_ROOM);
     damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); //type -1 = no message
     return 1;
@@ -5781,7 +5786,7 @@ SPECIAL(air_sphere) {
               "\tcit \tWglows brightly\tc and violent energy begins to fill it. The sphere\tn\r\n"
               "\tba\twrc\tbs\tc and \tBc\tbrackle\tBs\tc before it lets loose a violent \tblightning\tn\r\n"
               "\tbstorm\tc.  The energy begins to fade, but before this can happen a jolt of \tYelectricity\tn\r\n"
-              "\tcflows up $n's\tc arms and causes $s heart to race really fast!", 
+              "\tcflows up $n's\tc arms and causes $s heart to race really fast!",
               FALSE, ch, 0, 0, TO_ROOM);
 
       new_affect(&af);
@@ -5789,9 +5794,9 @@ SPECIAL(air_sphere) {
       af.duration = 100;
       SET_BIT_AR(af.bitvector, AFF_HASTE);
       affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
-      
+
       call_magic(ch, 0, 0, SPELL_CHAIN_LIGHTNING, 20, CAST_POTION);
-      
+
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
       return 1;
     }
@@ -5803,10 +5808,10 @@ SPECIAL(air_sphere) {
 SPECIAL(bolthammer) {
   int dam;
   struct char_data *vict = FIGHTING(ch);
-  
+
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Lightning bolt.\r\n");
     return 1;
@@ -5858,7 +5863,7 @@ SPECIAL(bolthammer) {
 SPECIAL(rughnark) {
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: magical damage 25+10d4 for monk.\r\n");
     return 1;
@@ -5910,7 +5915,7 @@ SPECIAL(rughnark) {
 SPECIAL(magma) {
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: magmaburst (fire damage for monk.)\r\n");
     return 1;
@@ -5956,12 +5961,12 @@ SPECIAL(halberd) {
 
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  blur, stun, slow.\r\n");
     return 1;
   }
-  
+
   if (cmd || !vict)
     return 0;
 
@@ -6150,7 +6155,7 @@ SPECIAL(clanportal) {
 SPECIAL(hellfire) {
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Invoke haste and fireshield on armor by saying 'Hellfire'.\r\n");
     return 1;
@@ -6192,7 +6197,7 @@ SPECIAL(hellfire) {
 SPECIAL(angel_leggings) {
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Invoke fly by keyword 'Elysium'.\r\n");
     return 1;
@@ -6202,12 +6207,12 @@ SPECIAL(angel_leggings) {
     return 0;
   if (!argument)
     return 0;
-  
+
   skip_spaces(&argument);
-  
+
   if (!is_wearing(ch, 106021))
     return 0;
-  
+
   if (!strcmp(argument, "elysium") && cmd_info[cmd].command_pointer ==
           do_say) {
     if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
@@ -6311,14 +6316,14 @@ SPECIAL(clang_bracer) {
     send_to_char(ch, "Dwarf-Only.  Invoke battle prowess by saying 'clangeddin'.\r\n");
     return 1;
   }
-  
+
   if (ch && is_wearing(ch, 121456)) {
     if (!cmd && GET_RACE(ch) != RACE_DWARF) {
       act("\tLThe bracer begins to glow on your arm, clenching tighter and "
-              "tighter until you rip it off in agony.\tn", FALSE, ch, 0, 0, 
+              "tighter until you rip it off in agony.\tn", FALSE, ch, 0, 0,
               TO_CHAR);
       act("\tLA bracer on $n\tL's arm begins to glow brightly and a look of "
-              "intense pain crosses $s face as $e rips the bracer free.\tn", 
+              "intense pain crosses $s face as $e rips the bracer free.\tn",
               FALSE, ch, 0, 0, TO_ROOM);
 
       if (GET_EQ(ch, WEAR_WRIST_R) == (obj_data*) me)
@@ -6364,7 +6369,7 @@ SPECIAL(menzo_chokers) {
     send_to_char(ch, "For Drow, finding pair will give +1 to hitroll.\r\n");
     return 1;
   }
-  
+
   for (af2 = ch->affected; af2; af2 = af2->next) {
     if (af2->spell == AFF_MENZOCHOKER) {
       if (!is_wearing(ch, 135626) || !is_wearing(ch, 135627)) {
