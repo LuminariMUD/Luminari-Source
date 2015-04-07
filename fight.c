@@ -1046,6 +1046,8 @@ void raw_kill_old(struct char_data *ch, struct char_data *killer) {
 
 /* called after striking the mortal blow to ch */
 void die(struct char_data *ch, struct char_data *killer) {
+  struct char_data *temp;
+
   if (GET_LEVEL(ch) <= 6) {
     // no xp loss for newbs - Bakarus
   } else {
@@ -1060,6 +1062,18 @@ void die(struct char_data *ch, struct char_data *killer) {
     if (AFF_FLAGGED(ch, AFF_SPELLBATTLE))
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
     SPELLBATTLE(ch) = 0;
+  }
+
+  /* clear guard */
+  if (GUARDING(ch)) {
+    act("You stop guarding $N", FALSE, ch, 0, GUARDING(ch), TO_CHAR);
+    GUARDING(ch) = NULL;
+  }
+  for (temp = character_list; temp; temp = temp->next) {
+    if (GUARDING(temp) == ch) {
+      act("You stop guarding $N", FALSE, ch, 0, ch, TO_CHAR);
+      GUARDING(temp) = NULL;
+    }
   }
 
   if (!IS_NPC(ch))
