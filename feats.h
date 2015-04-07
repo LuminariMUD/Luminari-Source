@@ -78,6 +78,7 @@ struct armor_table
   ubyte material;
   ubyte availability;
   ubyte fort_bonus;
+  int wear;
 };
 
 void load_weapons(void);
