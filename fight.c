@@ -1071,7 +1071,7 @@ void die(struct char_data *ch, struct char_data *killer) {
   }
   for (temp = character_list; temp; temp = temp->next) {
     if (GUARDING(temp) == ch) {
-      act("You stop guarding $N", FALSE, ch, 0, ch, TO_CHAR);
+      act("You stop guarding $N", FALSE, temp, 0, ch, TO_CHAR);
       GUARDING(temp) = NULL;
     }
   }
