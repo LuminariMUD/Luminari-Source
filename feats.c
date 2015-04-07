@@ -2,7 +2,6 @@
  ** FEATS.C                                                                  **
  ** Source code for the Gates of Krynn Feats System.                         **
  ** Initial code by Paladine (Stephen Squires), Ported by Ornir to Luminari  **
- ** Created Thursday, September 5, 2002                                      **
  *****************************************************************************/
 
 #include "conf.h"
@@ -30,7 +29,6 @@ struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
 struct weapon_table weapon_list[NUM_WEAPON_TYPES];
 const char *weapon_type[NUM_WEAPON_TYPES];
 /* END */
-
 
 /* START */
 void free_feats(void) {} /* Nothing to do right now.  What, for shutdown maybe? */
@@ -321,6 +319,7 @@ void assign_feats(void) {
     "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC",
     "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC");
     feat_prereq_attribute(FEAT_COMBAT_EXPERTISE, AB_INT, 13);
+    /* required for whirlwind */
 
   /* weapon focus feats */
   feato(FEAT_WEAPON_FOCUS, "weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
@@ -533,8 +532,43 @@ void assign_feats(void) {
     feat_prereq_attribute(FEAT_EPIC_MANYSHOT, AB_DEX, 19);
     feat_prereq_feat(FEAT_EPIC_MANYSHOT, FEAT_MANYSHOT, 1);
 
+  /*****************/
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
+  /* weapon / armor proficiency */
+  feato(FEAT_ARMOR_PROFICIENCY_LIGHT, "light armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "allows unpenalized use of light armor ",
+    "allows unpenalized use of light armor ");
+  feato(FEAT_ARMOR_PROFICIENCY_MEDIUM, "medium armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "allows unpenalized use of medium armor ",
+    "allows unpenalized use of medium armor ");
+    feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_MEDIUM, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+  feato(FEAT_ARMOR_PROFICIENCY_HEAVY, "heavy armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "allows unpenalized use of heavy armor ",
+    "allows unpenalized use of heavy armor ");
+    feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+    feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
+  feato(FEAT_ARMOR_PROFICIENCY_SHIELD, "shield armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "able to use bucklers, shields without penalty ",
+    "able to use bucklers, light, medium and heavy shields without penalty, does not include tower shields");
+  feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, "tower shield proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "can use tower shields without penalties",
+    "can use tower shields without penalties");
+    feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
+  feato(FEAT_SIMPLE_WEAPON_PROFICIENCY, "simple weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "may use all simple weapons",
+    "may use all simple weapons");
+  feato(FEAT_MARTIAL_WEAPON_PROFICIENCY, "martial weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "able to use all martial weapons",
+    "able to use all martial weapons");
+    feat_prereq_feat(FEAT_MARTIAL_WEAPON_PROFICIENCY, FEAT_SIMPLE_WEAPON_PROFICIENCY, 1);
+  feato(FEAT_EXOTIC_WEAPON_PROFICIENCY, "exotic weapon proficiency", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+    "can use exotic weapons without penalties",
+    "can use exotic weapons without penalties");
+    feat_prereq_bab(FEAT_EXOTIC_WEAPON_PROFICIENCY, 2);
+    feat_prereq_feat(FEAT_EXOTIC_WEAPON_PROFICIENCY, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
+  /********/
 
   feato(FEAT_ABLE_LEARNER, "able learner", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "+1 to all skills",
@@ -552,24 +586,6 @@ void assign_feats(void) {
     "+2 to handle animal and ride skill checks",
     "+2 to handle animal and ride skill checks");
 
-  feato(FEAT_ARMOR_PROFICIENCY_LIGHT, "light armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "allows unpenalized use of light armor ",
-    "allows unpenalized use of light armor ");
-  feato(FEAT_ARMOR_PROFICIENCY_MEDIUM, "medium armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "allows unpenalized use of medium armor ",
-    "allows unpenalized use of medium armor ");
-  feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_MEDIUM, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
-
-  feato(FEAT_ARMOR_PROFICIENCY_HEAVY, "heavy armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "allows unpenalized use of heavy armor ",
-    "allows unpenalized use of heavy armor ");
-  feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
-  feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
-
-  feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, "tower shield proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "can use tower shields without penalties",
-    "can use tower shields without penalties");
-
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_ATHLETIC, "athletic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "+2 to swim and climb skill checks",
@@ -583,11 +599,8 @@ void assign_feats(void) {
   feato(FEAT_DILIGENT, "diligent", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "+2 bonus to appraise and use magical device skill checks",
     "+2 bonus to appraise and use magical device skill checks");
-  feato(FEAT_EXOTIC_WEAPON_PROFICIENCY, "exotic weapon proficiency", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "can use exotic weapon of type chosen without penalties",
-    "can use exotic weapon of type chosen without penalties");
-  feat_prereq_bab(FEAT_EXOTIC_WEAPON_PROFICIENCY, 1);
 
+  /* extra cleric feat */
   feato(FEAT_EXTRA_TURNING, "extra turning", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "2 extra turn attempts per day",
     "2 extra turn attempts per day");
@@ -621,21 +634,12 @@ void assign_feats(void) {
   feato(FEAT_SELF_SUFFICIENT, "self sufficient", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "+2 to heal and survival skill checks",
     "+2 to heal and survival skill checks");
-  feato(FEAT_SIMPLE_WEAPON_PROFICIENCY, "simple weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "may use all simple weapons",
-    "may use all simple weapons");
   feato(FEAT_STEALTHY, "stealthy", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "+2 to hide and move silently skill checks",
     "+2 to hide and move silently skill checks");
   feato(FEAT_TOUGHNESS, "toughness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "+1 hp per level, +(level) hp upon taking",
     "+1 hp per level, +(level) hp upon taking");
-  feato(FEAT_ARMOR_PROFICIENCY_SHIELD, "shield armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "able to use bucklers, light and heavy shields without penalty ",
-    "able to use bucklers, light and heavy shields without penalty ");
-  feato(FEAT_MARTIAL_WEAPON_PROFICIENCY, "martial weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "able to use all martial weapons",
-    "able to use all martial weapons");
 
   /* Epic */
   feato(FEAT_EPIC_TOUGHNESS, "epic toughness", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
@@ -2304,10 +2308,7 @@ int is_proficient_with_armor(const struct char_data *ch, int armor_type) {
 
 /* simply checks if ch has proficiency with given weapon_type */
 int is_proficient_with_weapon(const struct char_data *ch, int weapon) {
-  /* Adapt this - Focus on an aspect of the divine, not a deity. */
-  /*  if (has_feat((char_data *) ch, FEAT_DEITY_WEAPON_PROFICIENCY) && weapon == deity_list[GET_DEITY(ch)].favored_weapon)
-      return TRUE;
-   */
+
   if (has_feat((char_data *) ch, FEAT_SIMPLE_WEAPON_PROFICIENCY) &&
           IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_SIMPLE))
     return TRUE;
@@ -2316,29 +2317,16 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon) {
           IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_MARTIAL))
     return TRUE;
 
-  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_SLASHING) &&
-          IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC) &&
-          IS_SET(weapon_list[weapon].damageTypes, DAMAGE_TYPE_SLASHING)) {
+  if (has_feat((char_data *) ch, FEAT_EXOTIC_WEAPON_PROFICIENCY) &&
+          IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC))
     return TRUE;
-  }
-
-  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_PIERCING) &&
-          IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC) &&
-          IS_SET(weapon_list[weapon].damageTypes, DAMAGE_TYPE_PIERCING)) {
-    return TRUE;
-  }
-
-  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_BLUDGEONING) &&
-          IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC) &&
-          IS_SET(weapon_list[weapon].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
-    return TRUE;
-  }
 
   if (CLASS_LEVEL(ch, CLASS_MONK) &&
           weapon_list[weapon].weaponFamily == WEAPON_FAMILY_MONK)
     return TRUE;
 
-  if (has_feat((char_data *) ch, FEAT_WEAPON_PROFICIENCY_DRUID) || CLASS_LEVEL(ch, CLASS_DRUID) > 0) {
+  if (has_feat((char_data *) ch, FEAT_WEAPON_PROFICIENCY_DRUID) ||
+      CLASS_LEVEL(ch, CLASS_DRUID) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_CLUB:
       case WEAPON_TYPE_DAGGER:
@@ -2365,7 +2353,8 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon) {
     }
   }
 
-  if (has_feat((struct char_data *) ch, FEAT_WEAPON_PROFICIENCY_ROGUE) || CLASS_LEVEL(ch, CLASS_ROGUE) > 0) {
+  if (has_feat((struct char_data *) ch, FEAT_WEAPON_PROFICIENCY_ROGUE) ||
+      CLASS_LEVEL(ch, CLASS_ROGUE) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_HAND_CROSSBOW:
       case WEAPON_TYPE_RAPIER:
@@ -2376,7 +2365,8 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon) {
     }
   }
 
-  if (has_feat((struct char_data *) ch, FEAT_WEAPON_PROFICIENCY_WIZARD) || CLASS_LEVEL(ch, CLASS_WIZARD) > 0) {
+  if (has_feat((struct char_data *) ch, FEAT_WEAPON_PROFICIENCY_WIZARD) ||
+      CLASS_LEVEL(ch, CLASS_WIZARD) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_DAGGER:
       case WEAPON_TYPE_QUARTERSTAFF:
@@ -2387,7 +2377,8 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon) {
     }
   }
 
-  if (has_feat((struct char_data *) ch, FEAT_WEAPON_PROFICIENCY_ELF) || IS_ELF(ch)) {
+  if (has_feat((struct char_data *) ch, FEAT_WEAPON_PROFICIENCY_ELF) ||
+      IS_ELF(ch)) {
     switch (weapon) {
       case WEAPON_TYPE_LONG_SWORD:
       case WEAPON_TYPE_RAPIER:
@@ -2399,7 +2390,8 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon) {
     }
   }
 
-  if (IS_DWARF(ch) && has_feat((struct char_data *) ch, FEAT_MARTIAL_WEAPON_PROFICIENCY)) {
+  if (IS_DWARF(ch) &&
+      has_feat((struct char_data *) ch, FEAT_MARTIAL_WEAPON_PROFICIENCY)) {
     switch (weapon) {
       case WEAPON_TYPE_DWARVEN_WAR_AXE:
       case WEAPON_TYPE_DWARVEN_URGOSH:
@@ -2407,6 +2399,30 @@ int is_proficient_with_weapon(const struct char_data *ch, int weapon) {
     }
   }
 
+  /* TODO: Adapt this - Focus on an aspect of the divine, not a deity. */
+  /*  if (has_feat((char_data *) ch, FEAT_DEITY_WEAPON_PROFICIENCY) && weapon == deity_list[GET_DEITY(ch)].favored_weapon)
+      return TRUE;
+   */
+
+  /*  //deprecated
+  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_SLASHING) &&
+          IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC) &&
+          IS_SET(weapon_list[weapon].damageTypes, DAMAGE_TYPE_SLASHING)) {
+    return TRUE;
+  }
+  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_PIERCING) &&
+          IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC) &&
+          IS_SET(weapon_list[weapon].damageTypes, DAMAGE_TYPE_PIERCING)) {
+    return TRUE;
+  }
+  if (HAS_COMBAT_FEAT(ch, CFEAT_EXOTIC_WEAPON_PROFICIENCY, DAMAGE_TYPE_BLUDGEONING) &&
+          IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC) &&
+          IS_SET(weapon_list[weapon].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
+    return TRUE;
+  }
+  */
+
+  /* nope not proficient with given weapon! */
   return FALSE;
 }
 
@@ -3157,8 +3173,8 @@ int feat_to_cfeat(int feat) {
       return CFEAT_GREATER_WEAPON_SPECIALIZATION;
     case FEAT_IMPROVED_WEAPON_FINESSE:
       return CFEAT_IMPROVED_WEAPON_FINESSE;
-    case FEAT_EXOTIC_WEAPON_PROFICIENCY:
-      return CFEAT_EXOTIC_WEAPON_PROFICIENCY;
+   // case FEAT_EXOTIC_WEAPON_PROFICIENCY:
+   //   return CFEAT_EXOTIC_WEAPON_PROFICIENCY;
     case FEAT_MONKEY_GRIP:
       return CFEAT_MONKEY_GRIP;
     case FEAT_WEAPON_MASTERY:
