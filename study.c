@@ -589,7 +589,7 @@ spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots availble:%s %d.\r\n", grn, nrm,
-          sorcererKnown[CLASS_LEVEL(d->character, CLASS_BARD)][circle - 1] -
+          bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][circle - 1] -
           count_sorc_known(d->character, circle, CLASS_BARD));
   write_to_output(d, "%sEnter spell choice, to add or remove "
           "(Q to exit to main menu) : ", nrm);
