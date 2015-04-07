@@ -1544,8 +1544,8 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_WEAR_WIELD	   13  /**< Item can be wielded */
 #define ITEM_WEAR_HOLD      14  /**< Item can be held */
 #define ITEM_WEAR_FACE      15  // item can be worn on face
-/* unfinished */
 #define ITEM_WEAR_AMMO_POUCH    16 // item can be used as an ammo pouch
+/* unfinished */
 #define ITEM_WEAR_EAR           17 // item can be worn on ears (UNUSED HOMELAND)
 #define ITEM_WEAR_EYES          18 // item can be worn on eyes (UNUSED HOMELAND)
 #define ITEM_WEAR_BADGE         19 // item can be worn as badge (UNUSED HOMELAND))

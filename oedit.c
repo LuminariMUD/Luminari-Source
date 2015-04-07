@@ -1666,13 +1666,16 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
                   armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].material;
 
           /* set the proper wear bits */
-          if (!OBJWEAR_FLAGGED(OLC_OBJ(d), ITEM_WEAR_TAKE)) {
-            TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE);
+          int wear_inc;
+          /* going to go ahead and reset all the bits off */
+          for (wear_inc = 0; wear_inc < NUM_ITEM_WEARS; wear_inc++) {
+            REMOVE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), wear_inc);
           }
-          if (!OBJWEAR_FLAGGED(OLC_OBJ(d), armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].wear)) {
-            TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)),
+          /* now set take bit */
+          TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE);
+          /* now set the appropriate wear flag bit */
+          TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)),
                           armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].wear);
-          }
 
           /*  Skip to enhancement menu. */
           oedit_disp_val5_menu(d);
