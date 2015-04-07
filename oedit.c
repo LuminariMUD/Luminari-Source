@@ -760,7 +760,6 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
     case ITEM_CLANARMOR:
       /* values 0 is reserved for Apply to AC */
       oedit_disp_val2_menu(d);
-      //write_to_output(d, "Apply to AC : ");
       break;
     case ITEM_CONTAINER:
     case ITEM_AMMO_POUCH:
@@ -1657,12 +1656,15 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           /* auto set ac apply, 1st value */
           GET_OBJ_VAL(OLC_OBJ(d), 0) =
                   armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].armorBonus;
+          /* for convenience we are going to go ahead and set some other values */
+          GET_OBJ_COST(OLC_OBJ(d)) =
+                  armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].cost;
           /* auto set xxx 3rd value*/
           //GET_OBJ_VAL(OLC_OBJ(d), 2) =
           /* auto set xxx 4th value*/
           //GET_OBJ_VAL(OLC_OBJ(d), 3) =
           /* NOT autoset, 5th value, not set here */
-          //GET_OBJ_VAL(OLC_OBJ(d), 4) =
+          /* auto set xxx 6th value*/
 
           /*  Skip to enhancement menu. */
           oedit_disp_val5_menu(d);
