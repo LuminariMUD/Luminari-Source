@@ -62,20 +62,22 @@ void check_room_lighting_special(room_rnum room, struct char_data *ch,
         struct obj_data *light_source, bool take_out_of_container) {
 
   /* this object isn't a potential light source, so ignore */
-  if (!OBJ_FLAGGED(light_source, ITEM_MAGLIGHT) &&
-      !OBJ_FLAGGED(light_source, ITEM_GLOW))
+  if (!ch || !light_source || room == NOWHERE)
     return;
 
-  if (take_out_of_container) {
-    world[room].light++;
-    //world[room].globe += val2;
-  } else {
-    world[room].light--;
-    //world[room].globe -= val2;
-    if (world[room].light < 0)
-      world[room].light = 0;
-    //if (world[room].globe < 0)
-      //world[room].globe = 0;
+  if (OBJ_FLAGGED(light_source, ITEM_MAGLIGHT) ||
+      OBJ_FLAGGED(light_source, ITEM_GLOW)) {
+    if (take_out_of_container) {
+      world[room].light++;
+      //world[room].globe += val2;
+    } else {
+      world[room].light--;
+      //world[room].globe -= val2;
+      if (world[room].light < 0)
+        world[room].light = 0;
+      //if (world[room].globe < 0)
+        //world[room].globe = 0;
+    }
   }
 }
 
