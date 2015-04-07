@@ -28,6 +28,7 @@
 #include "hlquest.h"
 #include "fight.h"
 #include "mudlim.h"
+#include "handler.h"
 #include "actions.h"
 #include "traps.h" /* for check_traps() */
 
@@ -286,6 +287,9 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
       //delay for taking items out in combat (and fail tumble check)
     }
   }
+
+  /* in case you get a light from your container */
+  check_room_lighting(IN_ROOM(ch), ch, FALSE);
 }
 
 void get_from_container(struct char_data *ch, struct obj_data *cont,
