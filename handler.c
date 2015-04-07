@@ -1760,7 +1760,7 @@ struct char_data *get_char_world_vis(struct char_data *ch, char *name, int *numb
     return (i);
 
   if (*number == 0)
-    return get_player_vis(ch, name, NULL, 0);
+    return (get_player_vis(ch, name, NULL, 0));
 
   for (i = character_list; i && *number; i = i->next) {
     if (IN_ROOM(ch) == IN_ROOM(i))
