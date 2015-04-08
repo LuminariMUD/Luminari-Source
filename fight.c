@@ -754,6 +754,9 @@ static void make_corpse(struct char_data *ch) {
     if (IS_UNDEAD(ch) ||
         IS_ELEMENTAL(ch) ||
         IS_INCORPOREAL(ch)) {
+      send_to_char(ch, "You feel your body crumble to dust!\r\n");
+      act("With a final moan $n crumbles to dust!",
+              FALSE, ch, NULL, NULL, TO_ROOM);
       extract_char(ch);
       return;
     }
