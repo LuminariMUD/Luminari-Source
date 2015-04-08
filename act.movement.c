@@ -38,7 +38,7 @@ static int has_key(struct char_data *ch, obj_vnum key);
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door,
         int scmd);
 static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof,
-        int scmd);
+        int scmd, int door);
 
 
 
@@ -1112,7 +1112,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   else if (!IS_AFFECTED(ch, AFF_SNEAK)) {
     if (IS_NPC(ch) && (ch->player.walkout != NULL)) {
       // if they have a walk-out message, display that instead of the boring default one
-      snprintf(buf2, sizeof(buf2), "%s %s.", ch->player.walkout, dirs[dir]);
+      snprintf(buf2, sizeof (buf2), "%s %s.", ch->player.walkout, dirs[dir]);
       act(buf2, TRUE, ch, 0, tch, TO_ROOM);
     } else {
       snprintf(buf2, sizeof (buf2), "$n leaves %s.", dirs[dir]);
@@ -1126,14 +1126,14 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /*****/
 
   /* Leave tracks, if not riding. */
-/*  if (!riding) {
-    sprintf(buf3, "%d \"%s\" \"%s\" %s", 6,
-                                 (IS_NPC(ch) ? npc_race_types[GET_NPC_RACE(ch)] : pc_race_types[GET_RACE(ch)]),
-                                 GET_NAME(ch),
-                                 dirs[dir]);
-    NEW_EVENT(eTRACKS, &world[IN_ROOM(ch)],buf3, 60 RL_SEC);
-  }
-*/
+  /*  if (!riding) {
+      sprintf(buf3, "%d \"%s\" \"%s\" %s", 6,
+                                   (IS_NPC(ch) ? npc_race_types[GET_NPC_RACE(ch)] : pc_race_types[GET_RACE(ch)]),
+                                   GET_NAME(ch),
+                                   dirs[dir]);
+      NEW_EVENT(eTRACKS, &world[IN_ROOM(ch)],buf3, 60 RL_SEC);
+    }
+   */
   /* the actual technical moving of the char */
   char_from_room(ch);
 
@@ -1172,16 +1172,16 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   if (!entry_mtrigger(ch) || !enter_wtrigger(&world[going_to], ch, dir)) {
     char_from_room(ch);
 
-    if(ZONE_FLAGGED(GET_ROOM_ZONE(was_in), ZONE_WILDERNESS)) {
-        X_LOC(ch) = world[was_in].coords[0];
-        Y_LOC(ch) = world[was_in].coords[1];
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(was_in), ZONE_WILDERNESS)) {
+      X_LOC(ch) = world[was_in].coords[0];
+      Y_LOC(ch) = world[was_in].coords[1];
     }
 
     char_to_room(ch, was_in);
     if (riding && same_room && RIDING(ch)->in_room != ch->in_room) {
       char_from_room(RIDING(ch));
 
-      if(ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS)) {
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS)) {
         X_LOC(RIDING(ch)) = world[ch->in_room].coords[0];
         Y_LOC(RIDING(ch)) = world[ch->in_room].coords[1];
       }
@@ -1189,10 +1189,10 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
       char_to_room(RIDING(ch), ch->in_room);
 
     } else if (ridden_by && same_room &&
-            RIDDEN_BY(ch)->in_room != ch->in_room) {
+               RIDDEN_BY(ch)->in_room != ch->in_room) {
       char_from_room(RIDDEN_BY(ch));
 
-      if(ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS)) {
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS)) {
         X_LOC(RIDDEN_BY(ch)) = world[ch->in_room].coords[0];
         Y_LOC(RIDDEN_BY(ch)) = world[ch->in_room].coords[1];
       }
@@ -1204,7 +1204,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
   /* char moved from room, so shift everything around */
   if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE) &&
-          !is_top_of_room_for_singlefile(ch, rev_dir[dir])) {
+      !is_top_of_room_for_singlefile(ch, rev_dir[dir])) {
     world[ch->in_room].people = ch->next_in_room;
     prev = &world[ch->in_room].people;
     while (*prev)
@@ -1253,13 +1253,13 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
       if (can_hear_sneaking(tch, ch)) {
         /* failed sneak attempt (if valid) */
         if (IS_NPC(ch) && ch->player.walkin) {
-          snprintf(buf2, sizeof(buf2), "%s %s%s.", ch->player.walkin,
-                  ((dir == UP || dir == DOWN) ? "" : "the "),
-                  (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+          snprintf(buf2, sizeof (buf2), "%s %s%s.", ch->player.walkin,
+                   ((dir == UP || dir == DOWN) ? "" : "the "),
+                   (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
         } else {
           snprintf(buf2, sizeof (buf2), "$n arrives from %s%s.",
-                  ((dir == UP || dir == DOWN) ? "" : "the "),
-                  (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+                   ((dir == UP || dir == DOWN) ? "" : "the "),
+                   (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
         }
         act(buf2, TRUE, ch, 0, tch, TO_VICT);
       }
@@ -1280,15 +1280,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
         /* mount failed, rider succeeded */
         /* message:  mount not sneaking, rider is sneaking */
         snprintf(buf2, sizeof (buf2), "$n arrives from %s%s.",
-                ((dir == UP || dir == DOWN) ? "" : "the "),
-                (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+                 ((dir == UP || dir == DOWN) ? "" : "the "),
+                 (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
         act(buf2, TRUE, RIDING(ch), 0, tch, TO_VICT);
       } else {
         /* mount failed, rider failed */
         snprintf(buf2, sizeof (buf2), "$n arrives from %s%s, riding %s.",
-                ((dir == UP || dir == DOWN) ? "" : "the "),
-                (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]),
-                GET_NAME(RIDING(ch)));
+                 ((dir == UP || dir == DOWN) ? "" : "the "),
+                 (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]),
+                 GET_NAME(RIDING(ch)));
         act(buf2, TRUE, ch, 0, tch, TO_VICT);
       }
     }
@@ -1307,15 +1307,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
         /* mount failed, rider succeeded */
         /* message:  mount not sneaking, rider is sneaking */
         snprintf(buf2, sizeof (buf2), "$n arrives from %s%s.",
-                ((dir == UP || dir == DOWN) ? "" : "the "),
-                (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+                 ((dir == UP || dir == DOWN) ? "" : "the "),
+                 (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
         act(buf2, TRUE, ch, 0, tch, TO_VICT);
       } else {
         /* mount failed, rider failed */
         snprintf(buf2, sizeof (buf2), "$n arrives from %s%s, ridden by %s.",
-                ((dir == UP || dir == DOWN) ? "" : "the "),
-                (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]),
-                GET_NAME(RIDDEN_BY(ch)));
+                 ((dir == UP || dir == DOWN) ? "" : "the "),
+                 (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]),
+                 GET_NAME(RIDDEN_BY(ch)));
         act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
       }
     }
@@ -1338,7 +1338,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     /* only damage the character if they're not mounted (mount takes damage) */
     if (riding && same_room) {
       // mount will take the damage, don't hurt rider
-          /* damage characters upon entering spike growth room */
+      /* damage characters upon entering spike growth room */
       damage(RIDING(ch), RIDING(ch), dice(4, 4), SPELL_SPIKE_STONES, DAM_EARTH, FALSE);
       send_to_char(RIDING(ch), "You are impaled by large stone spikes as you enter the room.\r\n");
     } else {
@@ -1351,7 +1351,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     /* only damage the character if they're not mounted (mount takes damage) */
     if (riding && same_room) {
       // mount will take the damage, don't hurt rider
-          /* damage characters upon entering spike growth room */
+      /* damage characters upon entering spike growth room */
       damage(RIDING(ch), RIDING(ch), dice(2, 4), SPELL_SPIKE_GROWTH, DAM_EARTH, FALSE);
       send_to_char(RIDING(ch), "You are impaled by large spikes as you enter the room.\r\n");
     } else {
@@ -1398,7 +1398,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   if (!greet_mtrigger(ch, dir)) {
     char_from_room(ch);
 
-    if(ZONE_FLAGGED(GET_ROOM_ZONE(was_in), ZONE_WILDERNESS)) {
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(was_in), ZONE_WILDERNESS)) {
       X_LOC(ch) = world[was_in].coords[0];
       Y_LOC(ch) = world[was_in].coords[1];
     }
@@ -1457,7 +1457,7 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check) {
 
     /* This was tricky - buildwalk for normal rooms is only activated above.
      * for wilderness rooms we need to activate it here. */
-    if(ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
       buildwalk(ch, dir);
 
     if (!ch->followers)
@@ -1470,7 +1470,7 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check) {
     for (k = ch->followers; k; k = next) {
       next = k->next;
       if ((IN_ROOM(k->follower) == was_in) &&
-              (GET_POS(k->follower) >= POS_STANDING)) {
+          (GET_POS(k->follower) >= POS_STANDING)) {
         act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR);
         perform_move(k->follower, dir, 1);
       }
@@ -1587,22 +1587,20 @@ int has_key(struct char_data *ch, obj_vnum key) {
 
 /* cmd_door is required external from act.movement.c */
 const char *cmd_door[] = {
-  "open",
-  "close",
-  "unlock",
-  "lock",
-  "pick"
+                          "open",
+                          "close",
+                          "unlock",
+                          "lock",
+                          "pick"
 };
 
 static const int flags_door[] = {
-  NEED_CLOSED | NEED_UNLOCKED,
-  NEED_OPEN,
-  NEED_CLOSED | NEED_LOCKED,
-  NEED_CLOSED | NEED_UNLOCKED,
-  NEED_CLOSED | NEED_LOCKED
+                                 NEED_CLOSED | NEED_UNLOCKED,
+                                 NEED_OPEN,
+                                 NEED_CLOSED | NEED_LOCKED,
+                                 NEED_CLOSED | NEED_UNLOCKED,
+                                 NEED_CLOSED | NEED_LOCKED
 };
-
-
 
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd) {
   char buf[MAX_STRING_LENGTH];
@@ -1691,38 +1689,66 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
   /* Notify the room. */
   if (len < sizeof (buf))
     snprintf(buf + len, sizeof (buf) - len, "%s%s.",
-          obj ? "" : "the ", obj ? "$p" : EXIT(ch, door)->keyword ? "$F" : "door");
+             obj ? "" : "the ", obj ? "$p" : EXIT(ch, door)->keyword ? "$F" : "door");
   if (!obj || IN_ROOM(obj) != NOWHERE)
     act(buf, FALSE, ch, obj, obj ? 0 : EXIT(ch, door)->keyword, TO_ROOM);
 
   /* Notify the other room */
   if (back && (scmd == SCMD_OPEN || scmd == SCMD_CLOSE))
     send_to_room(EXIT(ch, door)->to_room, "The %s is %s%s from the other side.\r\n",
-          back->keyword ? fname(back->keyword) : "door", cmd_door[scmd],
-          scmd == SCMD_CLOSE ? "d" : "ed");
+                 back->keyword ? fname(back->keyword) : "door", cmd_door[scmd],
+                 scmd == SCMD_CLOSE ? "d" : "ed");
 
   /* Door actions are a move action. */
   USE_MOVE_ACTION(ch);
 }
 
-static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd) {
-  int percent, skill_lvl;
+int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int door) {
+  int skill_lvl;
+  int lock_dc = 10;
+  //struct obj_data *tools = NULL;
 
   if (scmd != SCMD_PICK)
     return (1);
 
-  percent = rand_number(1, 35);
   skill_lvl = compute_ability(ch, ABILITY_SLEIGHT_OF_HAND);
 
-  if (keynum == NOTHING)
-    send_to_char(ch, "Odd - you can't seem to find a keyhole.\r\n");
-  else if (pickproof)
-    send_to_char(ch, "It resists your attempts to pick it. (pickproof)\r\n");
-  else if (percent > skill_lvl)
-    send_to_char(ch, "You failed to pick the lock.\r\n");
-  else
-    return (1);
+  if (skill_lvl <= 0) { /* not an untrained skill */
+    send_to_char(ch, "You have no idea how (train sleight of hand)!\r\n");
+    return (0);
+  }
 
+  if (FIGHTING(ch))
+    skill_lvl += dice(1, 20);
+  else
+    skill_lvl += 20; // take 20
+  /* thief tools */
+  /*
+  if ((tools = get_obj_in_list_vis(ch, "thieves,tools", NULL, ch->carrying))) {
+    if (GET_OBJ_VNUM(tools) == 105)
+      skill_lvl += 2;
+  }
+   */
+
+  if (EXIT(ch, door)) {
+    if (EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_EASY))
+      lock_dc += 14;
+    else if (EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_MEDIUM))
+      lock_dc += 25;
+    else if (EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_HARD))
+      lock_dc += 38;
+  }
+
+  if (keynum == NOTHING) {
+    send_to_char(ch, "Odd - you can't seem to find a keyhole.\r\n");
+  } else if (pickproof) {
+    send_to_char(ch, "It resists your attempts to pick it.\r\n");
+  } else if (lock_dc <= skill_lvl) {
+    send_to_char(ch, "Success! [%d dc vs. %d skill]\r\n", lock_dc, skill_lvl);
+    return (1);
+  }
+
+  /* failed */
   return (0);
 }
 
@@ -1757,8 +1783,8 @@ ACMD(do_gen_door) {
     door = find_door(ch, type, dir, cmd_door[subcmd]);
 
   if ((obj) && (GET_OBJ_TYPE(obj) != ITEM_CONTAINER &&
-          GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
-          ) {
+                GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
+      ) {
     obj = NULL;
     door = find_door(ch, type, dir, cmd_door[subcmd]);
   }
@@ -1768,13 +1794,13 @@ ACMD(do_gen_door) {
     if (!(DOOR_IS_OPENABLE(ch, obj, door)))
       send_to_char(ch, "You can't %s that!\r\n", cmd_door[subcmd]);
     else if (!DOOR_IS_OPEN(ch, obj, door) &&
-            IS_SET(flags_door[subcmd], NEED_OPEN))
+             IS_SET(flags_door[subcmd], NEED_OPEN))
       send_to_char(ch, "But it's already closed!\r\n");
     else if (!DOOR_IS_CLOSED(ch, obj, door) &&
-            IS_SET(flags_door[subcmd], NEED_CLOSED))
+             IS_SET(flags_door[subcmd], NEED_CLOSED))
       send_to_char(ch, "But it's currently open!\r\n");
     else if (!(DOOR_IS_LOCKED(ch, obj, door)) &&
-            IS_SET(flags_door[subcmd], NEED_LOCKED))
+             IS_SET(flags_door[subcmd], NEED_LOCKED))
       send_to_char(ch, "Oh.. it wasn't locked, after all..\r\n");
     else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) && ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (has_key(ch, keynum))) {
       send_to_char(ch, "It is locked, but you have the key.\r\n");
@@ -1783,13 +1809,13 @@ ACMD(do_gen_door) {
     } else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) && ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (!has_key(ch, keynum))) {
       send_to_char(ch, "It is locked, and you do not have the key!\r\n");
     } else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) &&
-            IS_SET(flags_door[subcmd], NEED_UNLOCKED) &&
-            (GET_LEVEL(ch) < LVL_IMMORT || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))))
+               IS_SET(flags_door[subcmd], NEED_UNLOCKED) &&
+               (GET_LEVEL(ch) < LVL_IMMORT || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))))
       send_to_char(ch, "It seems to be locked.\r\n");
     else if (!has_key(ch, keynum) && (GET_LEVEL(ch) < LVL_STAFF) &&
-            ((subcmd == SCMD_LOCK) || (subcmd == SCMD_UNLOCK)))
+             ((subcmd == SCMD_LOCK) || (subcmd == SCMD_UNLOCK)))
       send_to_char(ch, "You don't seem to have the proper key.\r\n");
-    else if (ok_pick(ch, keynum, DOOR_IS_PICKPROOF(ch, obj, door), subcmd))
+    else if (ok_pick(ch, keynum, DOOR_IS_PICKPROOF(ch, obj, door), subcmd, door))
       do_doorcmd(ch, obj, door, subcmd);
   }
   return;
@@ -1826,75 +1852,75 @@ ACMD(do_enter) {
 
         case PORTAL_CHECKFLAGS:
           if (((IS_WIZARD(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_WIZARD))) ||
+               (OBJ_FLAGGED(portal, ITEM_ANTI_WIZARD))) ||
 
-                  ((IS_CLERIC(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_CLERIC))) ||
+              ((IS_CLERIC(ch)) &&
+               (OBJ_FLAGGED(portal, ITEM_ANTI_CLERIC))) ||
 
-                  ((IS_RANGER(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_RANGER))) ||
+              ((IS_RANGER(ch)) &&
+               (OBJ_FLAGGED(portal, ITEM_ANTI_RANGER))) ||
 
-                  ((IS_PALADIN(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_PALADIN))) ||
+              ((IS_PALADIN(ch)) &&
+               (OBJ_FLAGGED(portal, ITEM_ANTI_PALADIN))) ||
 
-                  ((IS_ROGUE(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_ROGUE))) ||
+              ((IS_ROGUE(ch)) &&
+               (OBJ_FLAGGED(portal, ITEM_ANTI_ROGUE))) ||
 
-                  ((IS_MONK(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_MONK))) ||
+              ((IS_MONK(ch)) &&
+               (OBJ_FLAGGED(portal, ITEM_ANTI_MONK))) ||
 
-                  ((IS_DRUID(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_DRUID))) ||
+              ((IS_DRUID(ch)) &&
+               (OBJ_FLAGGED(portal, ITEM_ANTI_DRUID))) ||
 
-                  ((IS_BERSERKER(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_BERSERKER))) ||
+              ((IS_BERSERKER(ch)) &&
+               (OBJ_FLAGGED(portal, ITEM_ANTI_BERSERKER))) ||
 
-                  ((IS_SORCERER(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_SORCERER))) ||
+              ((IS_SORCERER(ch)) &&
+               (OBJ_FLAGGED(portal, ITEM_ANTI_SORCERER))) ||
 
-                  ((IS_BARD(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_BARD))) ||
+              ((IS_BARD(ch)) &&
+               (OBJ_FLAGGED(portal, ITEM_ANTI_BARD))) ||
 
-                  ((IS_WARRIOR(ch)) &&
-                  (OBJ_FLAGGED(portal, ITEM_ANTI_WARRIOR)))
-                  ) {
+              ((IS_WARRIOR(ch)) &&
+               (OBJ_FLAGGED(portal, ITEM_ANTI_WARRIOR)))
+              ) {
             act("You try to enter $p, but a mysterious power "
-                    "forces you back!", FALSE, ch, portal, 0, TO_CHAR);
+                "forces you back!", FALSE, ch, portal, 0, TO_CHAR);
             act("\tRA booming voice in your head shouts '\tWNot "
-                    "for your class!\tR'\tn", FALSE, ch, portal, 0, TO_CHAR);
+                "for your class!\tR'\tn", FALSE, ch, portal, 0, TO_CHAR);
             act("$n tries to enter $p, but a mysterious power "
-                    "forces $m back!", FALSE, ch, portal, 0, TO_ROOM);
+                "forces $m back!", FALSE, ch, portal, 0, TO_ROOM);
             return;
           }
 
           if (IS_EVIL(ch) && OBJ_FLAGGED(portal, ITEM_ANTI_EVIL)) {
             act("You try to enter $p, but a mysterious power "
-                    "forces you back!", FALSE, ch, portal, 0, TO_CHAR);
+                "forces you back!", FALSE, ch, portal, 0, TO_CHAR);
             act("\tRA booming voice in your head shouts '\tWBEGONE "
-                    "EVIL-DOER!\tR'\tn", FALSE, ch, portal, 0, TO_CHAR);
+                "EVIL-DOER!\tR'\tn", FALSE, ch, portal, 0, TO_CHAR);
             act("$n tries to enter $p, but a mysterious power "
-                    "forces $m back!", FALSE, ch, portal, 0, TO_ROOM);
+                "forces $m back!", FALSE, ch, portal, 0, TO_ROOM);
             return;
           }
 
           if (IS_GOOD(ch) && OBJ_FLAGGED(portal, ITEM_ANTI_GOOD)) {
             act("You try to enter $p, but a mysterious power "
-                    "forces you back!", FALSE, ch, portal, 0, TO_CHAR);
+                "forces you back!", FALSE, ch, portal, 0, TO_CHAR);
             act("\tRA booming voice in your head shouts '\tWBEGONE "
-                    "DO-GOODER!\tR'\tn", FALSE, ch, portal, 0, TO_CHAR);
+                "DO-GOODER!\tR'\tn", FALSE, ch, portal, 0, TO_CHAR);
             act("$n tries to enter $p, but a mysterious power "
-                    "forces $m back!", FALSE, ch, portal, 0, TO_ROOM);
+                "forces $m back!", FALSE, ch, portal, 0, TO_ROOM);
             return;
           }
 
           if (((!IS_EVIL(ch)) && !(IS_GOOD(ch))) &&
-                  OBJ_FLAGGED(portal, ITEM_ANTI_NEUTRAL)) {
+              OBJ_FLAGGED(portal, ITEM_ANTI_NEUTRAL)) {
             act("You try to enter $p, but a mysterious power "
-                    "forces you back!", FALSE, ch, portal, 0, TO_CHAR);
+                "forces you back!", FALSE, ch, portal, 0, TO_CHAR);
             act("\tRA booming voice in your head shouts '\tWBEGONE!"
-                    "\tR'\tn", FALSE, ch, portal, 0, TO_CHAR);
+                "\tR'\tn", FALSE, ch, portal, 0, TO_CHAR);
             act("$n tries to enter $p, but a mysterious power "
-                    "forces $m back!", FALSE, ch, portal, 0, TO_ROOM);
+                "forces $m back!", FALSE, ch, portal, 0, TO_ROOM);
             return;
           }
 
@@ -1973,31 +1999,31 @@ ACMD(do_enter) {
       /* this function needs a vnum, not rnum */
       if (ch && !House_can_enter(ch, portal_dest)) {
         send_to_char(ch, "As you try to enter the portal, it flares "
-                "brightly, pushing you back!\r\n");
+                     "brightly, pushing you back!\r\n");
         return;
       }
 
       if (ROOM_FLAGGED(real_dest, ROOM_PRIVATE)) {
         send_to_char(ch, "As you try to enter the portal, it flares "
-                "brightly, pushing you back!!\r\n");
+                     "brightly, pushing you back!!\r\n");
         return;
       }
 
       if (ROOM_FLAGGED(real_dest, ROOM_DEATH)) {
         send_to_char(ch, "As you try to enter the portal, it flares "
-                "brightly, pushing you back!!!\r\n");
+                     "brightly, pushing you back!!!\r\n");
         return;
       }
 
       if (ROOM_FLAGGED(real_dest, ROOM_STAFFROOM)) {
         send_to_char(ch, "As you try to enter the portal, it flares "
-                "brightly, pushing you back!!!!\r\n");
+                     "brightly, pushing you back!!!!\r\n");
         return;
       }
 
       if (ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_CLOSED)) {
         send_to_char(ch, "As you try to enter the portal, it flares "
-                "brightly, pushing you back!!!!!\r\n");
+                     "brightly, pushing you back!!!!!\r\n");
         return;
       }
 
@@ -2007,7 +2033,7 @@ ACMD(do_enter) {
       act("You enter $p, and you are transported elsewhere.", FALSE, ch, portal, 0, TO_CHAR);
       char_from_room(ch);
 
-      if(ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_WILDERNESS)) {
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_WILDERNESS)) {
         X_LOC(ch) = world[real_dest].coords[0];
         Y_LOC(ch) = world[real_dest].coords[1];
       }
@@ -2019,12 +2045,12 @@ ACMD(do_enter) {
       /* Then, any followers should auto-follow (Jamdog 19th June 2006) */
       for (k = ch->followers; k; k = k->next) {
         if ((IN_ROOM(k->follower) == was_in) &&
-                (GET_POS(k->follower) >= POS_STANDING)) {
+            (GET_POS(k->follower) >= POS_STANDING)) {
           act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR);
           act("$n enters $p, and vanishes!", FALSE, k->follower, portal, 0, TO_ROOM);
           char_from_room(k->follower);
 
-          if(ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_WILDERNESS)) {
+          if (ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_WILDERNESS)) {
             X_LOC(ch) = world[real_dest].coords[0];
             Y_LOC(ch) = world[real_dest].coords[1];
           }
@@ -2055,7 +2081,7 @@ ACMD(do_enter) {
       if (EXIT(ch, door)) {
         if (EXIT(ch, door)->to_room != NOWHERE) {
           if (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) &&
-                  ROOM_OUTSIDE(EXIT(ch, door)->to_room)) {
+              ROOM_OUTSIDE(EXIT(ch, door)->to_room)) {
             perform_move(ch, door, 1);
             return;
           }
@@ -2076,7 +2102,7 @@ ACMD(do_leave) {
       if (EXIT(ch, door))
         if (EXIT(ch, door)->to_room != NOWHERE)
           if (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) &&
-                  !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_INDOORS)) {
+              !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_INDOORS)) {
             perform_move(ch, door, 1);
             return;
           }
@@ -2136,7 +2162,7 @@ ACMD(do_stand) {
     default:
       send_to_char(ch, "You stop floating around, and put your feet on the ground.\r\n");
       act("$n stops floating around, and puts $s feet on the ground.",
-              TRUE, ch, 0, 0, TO_ROOM);
+          TRUE, ch, 0, 0, TO_ROOM);
       GET_POS(ch) = POS_STANDING;
       break;
   }
@@ -2308,7 +2334,7 @@ ACMD(do_sleep) {
     default:
       send_to_char(ch, "You stop floating around, and lie down to sleep.\r\n");
       act("$n stops floating around, and lie down to sleep.",
-              TRUE, ch, 0, 0, TO_ROOM);
+          TRUE, ch, 0, 0, TO_ROOM);
       GET_POS(ch) = POS_SLEEPING;
       break;
   }
