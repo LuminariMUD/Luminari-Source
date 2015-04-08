@@ -220,8 +220,8 @@ sbyte test_result(sbyte offset) {
 
   if (offset == 0)
     return TRUE;
-  
-  else if (offset > 0) 
+
+  else if (offset > 0)
     return (result_q.q[((RQ_MAXSIZE - (abs(offset) - result_q.tail))
             % RQ_MAXSIZE)]);
   else
@@ -1621,7 +1621,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   GET_LEVEL(mob_proto + i) = t[0];
   GET_REAL_HITROLL(mob_proto + i) = 20 - t[1];
 
-  /* hack to convert old school dnd AC to d20 
+  /* hack to convert old school dnd AC to d20
      the AC is saved to file as a factor of 10 of the old school system
      we have to convert to d20, then multiply the factor back in
    * this is the opposite of what is done in genmob.c's write_mobile_record */
@@ -2005,7 +2005,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     PATH_SIZE(&mob_proto[i]) = 0;
     PATH_RESET(&mob_proto[i]) = num_arg;
     PATH_DELAY(&mob_proto[i]) = PATH_RESET(&mob_proto[i]);
-    // parse rest to add paths...    
+    // parse rest to add paths...
     while (*temp != ':' && *temp != 0)
       temp++;
 
@@ -2633,7 +2633,7 @@ static void load_zones(FILE *fl, char *zonename) {
   // had to change this block -zusuk
   line_num += get_line(fl, buf);
 
-  /* vnum expansion 
+  /* vnum expansion
   if (sscanf(buf, " %hd %hd %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top, &Z.lifespan,
           &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
           &Z.show_weather) != 11) {
@@ -2955,7 +2955,7 @@ struct char_data *create_char(void) {
 
   new_mobile_data(ch);
   /* Allocate mobile event list */
-  //ch->events = create_list();  
+  //ch->events = create_list();
 
   ch->next = character_list;
   character_list = ch;
@@ -2998,7 +2998,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
 
   new_mobile_data(mob);
   /* Allocate mobile event list */
-  //mob->events = create_list();   
+  //mob->events = create_list();
 
   if (!GET_MAX_HIT(mob)) {
     GET_MAX_HIT(mob) = dice(GET_HIT(mob), GET_MANA(mob)) + GET_MOVE(mob);
@@ -3212,7 +3212,7 @@ void zone_update(void) {
 /* this function will be implemented when command can
  * be dependent on success or failure of specific command #
 sbyte test_result(sbyte offset) {
-  
+
 }
  */
 
@@ -3299,7 +3299,7 @@ void reset_zone(zone_rnum zone) {
         break;
 
       case 'M': /* read a mobile (with percentage loads) */
-        //if ((mob_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) && 
+        //if ((mob_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
         if ((check_max_existing(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3) || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                 rand_number(1, 100) <= ZCMD.arg4) {
           mob = read_mobile(ZCMD.arg1, REAL);
@@ -4136,13 +4136,13 @@ void free_char(struct char_data *ch) {
   if (GET_DR(ch) != NULL) {
     struct damage_reduction_type *dr, *tmp;
     dr = GET_DR(ch);
-    while(dr != NULL) {      
+    while(dr != NULL) {
       tmp = dr;
       dr = dr->next;
       free(tmp);
     }
   }
-  
+
   /* new version of free_followers take the followers pointer as arg */
   free_followers(ch->followers);
 
@@ -4301,7 +4301,7 @@ void reset_char(struct char_data *ch) {
   CLOUDKILL(ch) = 0;
   DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
-   
+
   if (GET_HIT(ch) <= 0)
     GET_HIT(ch) = 1;
   if (GET_MOVE(ch) <= 0)
@@ -4506,6 +4506,30 @@ void init_char(struct char_data *ch) {
     GET_FAVORED_ENEMY(ch, i) = 0;
   GUARDING(ch) = NULL;
   GET_TOTAL_AOO(ch) = 0;
+
+  /*
+  #define SKILL_MINING                    471  //implemented
+  #define SKILL_HUNTING                   472  //implemented
+  #define SKILL_FORESTING                 473  //implemented
+  #define SKILL_KNITTING                  474  //implemented
+  #define SKILL_CHEMISTRY                 475  //implemented
+  #define SKILL_ARMOR_SMITHING            476  //implemented
+  #define SKILL_WEAPON_SMITHING           477  //implemented
+  #define SKILL_JEWELRY_MAKING            478  //implemented
+  #define SKILL_LEATHER_WORKING           479  //implemented
+  #define SKILL_FAST_CRAFTER              480  //implemented
+  #define SKILL_BONE_ARMOR                481
+  #define SKILL_ELVEN_CRAFTING            482
+  #define SKILL_MASTERWORK_CRAFTING       483
+  #define SKILL_DRACONIC_CRAFTING         484
+  #define SKILL_DWARVEN_CRAFTING          485
+   */
+  /* start crafting skills at 1 */
+  if (GET_LEVEL(ch) < LVL_STAFF) {
+    for (i = 471; i <= 485; i++) {
+        SET_SKILL(ch, i, 4);
+    }
+  }
 }
 
 /* returns the real number of the room with given virtual number */
@@ -4677,7 +4701,7 @@ static int check_object(struct obj_data *obj) {
       char onealias[MAX_INPUT_LENGTH], *space = strrchr(obj->name, ' ');
 
       strlcpy(onealias, space ? space + 1 : obj->name, sizeof (onealias));
-      
+
       /* i don't see why this is an issue, I turned off the reporting since
        it fills our logs with errors -zusuk */
       if (search_block(onealias, drinknames, TRUE) < 0 && (error = TRUE)) {
@@ -4721,7 +4745,7 @@ static int check_object(struct obj_data *obj) {
         next_name = any_one_arg(obj->name, onealias);
         do {
           if (find_exdesc(onealias, obj->ex_description) && (error = TRUE)) {
-            
+
             /* I am not sure why this is a problem, removed to reduce log spam -Zusuk */
             /*
             log("SYSERR: Object #%d (%s) is type NOTE and has extra description with same name. (%s)",
