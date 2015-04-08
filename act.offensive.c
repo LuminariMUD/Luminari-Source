@@ -2825,6 +2825,11 @@ ACMD(do_hitall) {
   if (!MOB_CAN_FIGHT(ch))
     return;
 
+  /* added this check because of abuse */
+  if (IS_NPC(ch)) {
+    return;
+  }
+
   if ((IS_NPC(ch) || !HAS_FEAT(ch, FEAT_WHIRLWIND_ATTACK)) && (!IS_PET(ch) || IS_FAMILIAR(ch))) {
     send_to_char(ch, "But you do not know how to do that.\r\n");
     return;
