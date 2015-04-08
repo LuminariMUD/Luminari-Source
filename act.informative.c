@@ -1141,6 +1141,7 @@ static void look_at_target(struct char_data *ch, char *arg) {
   } else if (!found)
     send_to_char(ch, "You do not see that here.\r\n");
 }
+
 void perform_cooldowns(struct char_data *ch, struct char_data *k) {
   struct mud_event_data *pMudEvent = NULL;
 
@@ -1305,7 +1306,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   //sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
   //send_to_char(ch, "%s%s%s\r\n", CCNRM(ch, C_NRM),
   //             buf, CCNRM(ch, C_NRM));
-  for(i = 0; i < NUM_AFF_FLAGS; i++) {
+  for (i = 0; i < NUM_AFF_FLAGS; i++) {
     if (IS_SET_AR(AFF_FLAGS(k), i)) {
       send_to_char(ch, "%s%-20s%s - %s%s%s\r\n",
                    CCNRM(ch, C_NRM), affected_bits[i], CCNRM(ch, C_NRM),
@@ -1346,10 +1347,10 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   if (k->affected) {
     for (aff = k->affected; aff; aff = aff->next) {
 
-      if (aff->duration + 1 >= 900) {  // how many rounds in an hour?
+      if (aff->duration + 1 >= 900) { // how many rounds in an hour?
         sprintf(buf, "[%2d hour%s   ] ", (int) ((aff->duration + 1) / 900), ((int) ((aff->duration + 1) / 900) > 1 ? "s" : " "));
         //send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
-      } else if (aff->duration + 1 >= 15) {  // how many rounds in a minute?
+      } else if (aff->duration + 1 >= 15) { // how many rounds in a minute?
         sprintf(buf, "[%2d minute%s ] ", (int) ((aff->duration + 1) / 15), ((int) ((aff->duration + 1) / 15) > 1 ? "s" : " "));
         //send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
       } else { // rounds
@@ -1357,7 +1358,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
         //send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
       }
       sprintf(buf2, "%s%-19s%s ",
-                   CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
+              CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       strcat(buf, buf2);
 
       buf2[0] = '\0';
@@ -1376,14 +1377,14 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
           aff->bitvector[2] || aff->bitvector[3]) {
         //if (aff->modifier)
         //  send_to_char(ch, ", ");
-     //   int flagset = FALSE;
-     //   for (i = 0; i < NUM_AFF_FLAGS; i++) {
-     //     if (IS_SET_AR(aff->bitvector, i)) {
-     //       sprintf(buf2, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
-            //send_to_char(ch, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
-     //       flagset = TRUE;
-     //     }
-     //   }
+        //   int flagset = FALSE;
+        //   for (i = 0; i < NUM_AFF_FLAGS; i++) {
+        //     if (IS_SET_AR(aff->bitvector, i)) {
+        //       sprintf(buf2, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
+        //send_to_char(ch, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
+        //       flagset = TRUE;
+        //     }
+        //   }
         sprintf(buf2, "%s(see affected by)", ((aff->modifier) ? ", " : ""));
         strcat(buf3, buf2);
       }
@@ -1392,7 +1393,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
       sprintf(buf2, "%-25s", buf3);
       buf3[0] = '\0';
       /* Add the Bonus type. */
-        send_to_char(ch, "%s %s \tc(%s)\tn\r\n", buf, buf2, bonus_types[aff->bonus_type]);
+      send_to_char(ch, "%s %s \tc(%s)\tn\r\n", buf, buf2, bonus_types[aff->bonus_type]);
       //send_to_char(ch, "\r\n");
     }
   }
@@ -1743,7 +1744,7 @@ ACMD(do_abilities) {
                    feat_list[i].name,
                    buf,
                    (remaining > (total / 2) ? "\tn" :
-                     (remaining <= 1 ? "\tR" : "\tY")),
+                    (remaining <= 1 ? "\tR" : "\tY")),
                    remaining,
                    total);
     }
@@ -3863,15 +3864,20 @@ ACMD(do_exits) {
     send_to_char(ch, " None.\r\n");
 }
 
+/* work in progress by Ornir */
 ACMD(do_track) {
+
+  send_to_char(ch, "This skill is under construction currently..\r\n");
+  return;
+
   struct event * pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   char arg[MAX_INPUT_LENGTH];
 
-  char creator_race[20]; /* The RACE of what created the tracks. */
-  char creator_name[20]; /* The NAME of what created the tracks. */
-  int track_age = 0; /* The AGE of this set of tracks. */
-  char track_dir[6]; /* The direction the track leads. */
+  char creator_race[20]; // The RACE of what created the tracks.
+  char creator_name[20]; // The NAME of what created the tracks.
+  int track_age = 0;     // The AGE of this set of tracks.
+  char track_dir[6];     // The direction the track leads.
 
   const char* track_age_names[7] = {"extremely old",
                                     "very old",
@@ -3881,64 +3887,62 @@ ACMD(do_track) {
                                     "fairly fresh",
                                     "fresh"};
 
-  /* The character must have the track skill. */
+  // The character must have the track skill.
   if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_TRACK)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
 
   one_argument(argument, arg);
-
   send_to_char(ch, "You search the area for tracks...\r\n");
 
-  /* Check if there are any tracks to see. */
-  /* Need to iterate over all of this room's events, picking out the tracking ones.
-   * What a PAIN, this really should be easier. */
+  // Check if there are any tracks to see.
+  // Need to iterate over all of this room's events, picking out the tracking ones.
+  // What a PAIN, this really should be easier.
+  //for (pMudEvent = room_has_mud_event(world[IN_ROOM(ch)], eTRACKS);
+  //     pMudEvent != NULL;
+  //     pMudEvent = room_has_mud_event(world[IN_ROOM(ch)], eTRACKS)) {
 
-  //  for( pMudEvent = room_has_mud_event(world[IN_ROOM(ch)], eTRACKS);
-  //       pMudEvent != NULL;
-  //       pMudEvent = room_has_mud_event(world[IN_ROOM(ch)], eTRACKS)) {
+    if ((!room_has_mud_event(&world[IN_ROOM(ch)], eTRACKS)) ||
+        ((world[IN_ROOM(ch)].events == NULL) || (world[IN_ROOM(ch)].events->iSize == 0))) {
+      send_to_char(ch, "You can't find any tracks.\r\n");
+      return;
+    }
 
-  if ((!room_has_mud_event(&world[IN_ROOM(ch)], eTRACKS)) ||
-      ((world[IN_ROOM(ch)].events == NULL) || (world[IN_ROOM(ch)].events->iSize == 0))) {
-    send_to_char(ch, "You can't find any tracks.\r\n");
-    return;
-  }
+    simple_list(NULL);
 
-  simple_list(NULL);
+    while ((pEvent = (struct event *) simple_list(world[IN_ROOM(ch)].events)) != NULL) {
+      if (!pEvent->isMudEvent)
+        continue;
 
-  while ((pEvent = (struct event *) simple_list(world[IN_ROOM(ch)].events)) != NULL) {
-    if (!pEvent->isMudEvent)
-      continue;
+      pMudEvent = (struct mud_event_data *) pEvent->event_obj;
 
-    pMudEvent = (struct mud_event_data *) pEvent->event_obj;
+      if (pMudEvent->iId == eTRACKS) {
 
-    if (pMudEvent->iId == eTRACKS) {
+        // Get the track information from the sVariables.
+        if (pMudEvent->sVariables)
+          sscanf(pMudEvent->sVariables, "%d \"%19[^\"]\" \"%19[^\"]\" %s", &track_age, creator_race, creator_name, track_dir);
 
-      /* Get the track information from the sVariables. */
-      if (pMudEvent->sVariables)
-        sscanf(pMudEvent->sVariables, "%d \"%19[^\"]\" \"%19[^\"]\" %s", &track_age, creator_race, creator_name, track_dir);
+        // Skill check.
+        send_to_char(ch, "%s\r\n", pMudEvent->sVariables);
+        send_to_char(ch, "%d %s %s %s\r\n", track_age, creator_race, creator_name, track_dir);
 
-      /* Skill check. */
+        if (*arg && isname(arg, creator_name)) {
+          //Found our victim's tracks.
+          send_to_char(ch, "  You find %s tracks of %s leading %s.\r\n", track_age_names[track_age],
+                       creator_name,
+                       track_dir);
 
-      //      send_to_char(ch, "%s\r\n", pMudEvent->sVariables);
-      //      send_to_char(ch, "%d %s %s %s\r\n", track_age, creator_race, creator_name, track_dir);
-
-      if (*arg && isname(arg, creator_name)) {
-        /* Found our victim's tracks. */
-        send_to_char(ch, "  You find %s tracks of %s leading %s.\r\n", track_age_names[track_age],
-                     creator_name,
-                     track_dir);
-
-      } else if ((!*arg) || (*arg && isname(arg, creator_race))) {
-        send_to_char(ch, "  You find %s tracks of %s %s leading %s.\r\n", track_age_names[track_age],
-                     a_or_an(creator_race),
-                     creator_race,
-                     track_dir);
+        } else if ((!*arg) || (*arg && isname(arg, creator_race))) {
+          send_to_char(ch, "  You find %s tracks of %s %s leading %s.\r\n", track_age_names[track_age],
+                       a_or_an(creator_race),
+                       creator_race,
+                       track_dir);
+        }
       }
     }
   }
-}
+//}
 
 /* Event function for tracks, causing decay and eventual removal. */
 EVENTFUNC(event_tracks) {
