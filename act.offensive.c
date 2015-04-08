@@ -2826,7 +2826,7 @@ ACMD(do_hitall) {
     return;
 
   /* added this check because of abuse */
-  if (IS_NPC(ch)) {
+  if (IS_NPC(ch) || IS_FAMILIAR(ch) || IS_PET(ch)) {
     return;
   }
 
