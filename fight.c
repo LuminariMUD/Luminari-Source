@@ -742,15 +742,27 @@ void stop_fighting(struct char_data *ch) {
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
 }
 
-/* function for creating corpses */
+/* function for creating corpses, ch just died */
 static void make_corpse(struct char_data *ch) {
   char buf2[MAX_NAME_LENGTH + 64] = {'\0'};
   struct obj_data *corpse = NULL, *o = NULL;
   struct obj_data *money = NULL;
   int i = 0, x = 0, y = 0;
 
+  /* handle mobile death that should not leave a corpse */
+  if (IS_NPC(ch)) { /* necessary check because of morphed druids */
+    if (IS_UNDEAD(ch) ||
+        IS_ELEMENTAL(ch) ||
+        IS_INCORPOREAL(ch)) {
+      extract_char(ch);
+      return;
+    }
+  } /* if we continue on, we need to actually make a corpse.... */
+
+  /* create the corpse object, blank prototype */
   corpse = create_obj();
 
+  /* start setting up all the variables for a corpse */
   corpse->item_number = NOTHING;
   IN_ROOM(corpse) = NOWHERE;
   corpse->name = strdup("corpse");
@@ -780,6 +792,7 @@ static void make_corpse(struct char_data *ch) {
     GET_OBJ_TIMER(corpse) = CONFIG_MAX_NPC_CORPSE_TIME;
   else
     GET_OBJ_TIMER(corpse) = CONFIG_MAX_PC_CORPSE_TIME;
+  /* ok done setting up the corpse */
 
   /* transfer character's inventory to the corpse */
   corpse->contains = ch->carrying;
@@ -807,10 +820,12 @@ static void make_corpse(struct char_data *ch) {
     }
     GET_GOLD(ch) = 0;
   }
+  /* empty out inventory and carrying-number and carrying-weight */
   ch->carrying = NULL;
   IS_CARRYING_N(ch) = 0;
   IS_CARRYING_W(ch) = 0;
 
+  /* place filled corpse in room */
   obj_to_room(corpse, IN_ROOM(ch));
 }
 
@@ -1066,12 +1081,10 @@ void die(struct char_data *ch, struct char_data *killer) {
 
   /* clear guard */
   if (GUARDING(ch)) {
-    act("You stop guarding $N", FALSE, ch, 0, GUARDING(ch), TO_CHAR);
     GUARDING(ch) = NULL;
   }
   for (temp = character_list; temp; temp = temp->next) {
     if (GUARDING(temp) == ch) {
-      act("You stop guarding $N", FALSE, temp, 0, ch, TO_CHAR);
       GUARDING(temp) = NULL;
     }
   }

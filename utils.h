@@ -1592,6 +1592,8 @@ do                                                              \
 				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ANIMAL) )
 #define IS_UNDEAD(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_UNDEAD) || \
 				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_UNDEAD) )
+#define IS_ELEMENTAL(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ELEMENTAL) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ELEMENTAL) )
 #define IS_PLANT(ch)    ( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_PLANT) || \
                                 (!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_UNDEAD) )
 
