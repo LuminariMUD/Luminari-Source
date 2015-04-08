@@ -2055,7 +2055,6 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
             "from $N!\tn", FALSE, victim, NULL, ch, TO_NOTVICT);
     attach_mud_event(new_mud_event(eD_ROLL, victim, NULL),
             (2 * SECS_PER_MUD_DAY));
-    //increase_skill(victim, SKILL_DEFENSE_ROLL);
     return 0;
   }
 

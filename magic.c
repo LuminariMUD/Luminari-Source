@@ -37,11 +37,7 @@ static void perform_mag_groups(int level, struct char_data *ch,
         struct char_data *tch, struct obj_data *obj, int spellnum,
         int savetype);
 
-
-
-
 // Magic Resistance, ch is challenger, vict is resistor, modifier applys to vict
-
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier) {
   int resist = GET_SPELL_RES(vict);
 
@@ -64,7 +60,6 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 
 // TRUE = reisted
 // FALSE = Failed to resist
-
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier) {
   int challenge = dice(1, 20),
       resist = compute_spell_res(ch, vict, modifier);
@@ -92,7 +87,6 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier) {
 }
 
 // Saving Throws, ch is challenger, vict is resistor, modifier applys to vict
-
 int compute_mag_saves(struct char_data *vict,
         int type, int modifier) {
 
@@ -154,7 +148,6 @@ const char *save_names[] = {"Fort", "Refl", "Will", "", ""};
 // TRUE = resisted
 // FALSE = Failed to resist
 // modifier applies to victim, higher the better (for the victim)
-
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
         int type, int modifier) {
   int challenge = 10, // 10 is base DC
@@ -264,7 +257,6 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
     default:
       break;
   }
-
 }
 
 void rem_room_aff(struct raff_node *raff) {
@@ -419,11 +411,9 @@ static int mag_materials(struct char_data *ch, IDXTYPE item0,
   return (TRUE);
 }
 
-
 // save = -1  ->  you get no save
 // default    ->  magic resistance
 // returns damage, -1 if dead
-
 int mag_damage(int level, struct char_data *ch, struct char_data *victim,
         struct obj_data *wpn, int spellnum, int savetype) {
   int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0,
@@ -727,8 +717,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       save = -1;
       mag_resist = TRUE;
       element = DAM_FIRE;
-      num_dice = MIN(22, magic_level * 2);
-      size_dice = 6;
+      num_dice = MIN(12, magic_level * 2);
+      size_dice = 4;
       bonus = 0;
       break;
 
