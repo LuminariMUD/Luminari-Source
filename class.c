@@ -1973,6 +1973,10 @@ void init_class(struct char_data *ch, int class, int level) {
 void init_start_char(struct char_data *ch) {
   int trains = 0, i = 0, j = 0;
 
+  /* clear polymorph, affections cleared below */
+  SUBRACE(ch) = 0;
+  IS_MORPHED(ch) = 0;
+
   /* clear immortal flags */
   if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
     i = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
