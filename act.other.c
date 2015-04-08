@@ -1664,7 +1664,8 @@ ACMD(do_lore) {
             GET_NAME(tch), age(tch)->year, age(tch)->month,
             age(tch)->day, age(tch)->hours);
     send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
-    send_to_char(ch, "Height %d cm, Weight %d pounds\r\n", GET_HEIGHT(tch), GET_WEIGHT(tch));
+    /* there is no height/weight, just size classes */
+    //send_to_char(ch, "Height %d cm, Weight %d pounds\r\n", GET_HEIGHT(tch), GET_WEIGHT(tch));
     send_to_char(ch, "Level: %d, Hits: %d, Mana: %d\r\n", GET_LEVEL(tch), GET_HIT(tch), GET_MANA(tch));
     send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n", compute_armor_class(NULL, tch, FALSE), GET_HITROLL(tch), GET_DAMROLL(tch));
     send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n",
