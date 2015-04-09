@@ -401,7 +401,7 @@ void assign_feats(void) {
     "+1 to hit and dam rolls with ranged weapons in the same room",
     "+1 to hit and dam rolls with ranged weapons in the same room, can fight "
       "in close quarters with ranged weapon");
-  feato(FEAT_FAR_SHOT, "far shot", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_FAR_SHOT, "far shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "allows firing outside room",
     "When the 'far shot' feat is taken you are able to fire in any direction at "
       "a target in the next room.");
@@ -571,7 +571,7 @@ void assign_feats(void) {
     "able to use all martial weapons",
     "able to use all martial weapons");
     feat_prereq_feat(FEAT_MARTIAL_WEAPON_PROFICIENCY, FEAT_SIMPLE_WEAPON_PROFICIENCY, 1);
-  feato(FEAT_EXOTIC_WEAPON_PROFICIENCY, "exotic weapon proficiency", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+  feato(FEAT_EXOTIC_WEAPON_PROFICIENCY, "exotic weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "can use exotic weapons without penalties",
     "can use exotic weapons without penalties");
     feat_prereq_bab(FEAT_EXOTIC_WEAPON_PROFICIENCY, 2);
