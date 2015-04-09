@@ -11,6 +11,11 @@
 #include "utils.h"
 #include "assign_wpn_armor.h"
 
+/* global */
+struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
+struct weapon_table weapon_list[NUM_WEAPON_TYPES];
+const char *weapon_type[NUM_WEAPON_TYPES];
+
 
 void setweapon(int type, char *name, int numDice, int diceSize, int critRange, int critMult,
         int weaponFlags, int cost, int damageTypes, int weight, int range, int weaponFamily, int size,
