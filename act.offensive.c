@@ -3299,6 +3299,13 @@ ACMD(do_fire) {
   if (!*arg2) {
     room = IN_ROOM(ch);
   } else {
+
+    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_FAR_SHOT)) {
+      send_to_char(ch, "You need the 'far shot' feat to shoot outside of your"
+              " immediate area!\r\n");
+      return;
+    }
+
     /* try to find target room */
     direction = search_block(arg2, dirs, FALSE);
     if (direction < 0) {
