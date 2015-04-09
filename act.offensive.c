@@ -517,8 +517,8 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     /* Successful unarmed touch attacks. */
 
     /* Perform strength check. */
-    attack_check += dice(1, 20) + special_size_modifier(ch); /* we added stat bonus above */
-    defense_check = dice(1, 20) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)) + special_size_modifier(vict);
+    attack_check += dice(1, 20) + size_modifiers[GET_SIZE(ch)]; /* we added stat bonus above */
+    defense_check = dice(1, 20) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)) + size_modifiers[GET_SIZE(vict)];
 
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP)) {
       /* You do not provoke an attack of opportunity when you attempt to trip an opponent while you are unarmed.
