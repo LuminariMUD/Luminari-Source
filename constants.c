@@ -141,6 +141,21 @@ const char *size_names[NUM_SIZES + 1] = {
   "\n"
 };
 
+/* used for armor class calculations */
+const int size_modifiers_inverse[NUM_SIZES] = {
+  0,
+  8,
+  4,
+  2,
+  1,
+  0,
+  -1,
+  -2,
+  -4,
+  -8
+};
+
+/* used for attack roll calculations */
 const int size_modifiers[NUM_SIZES] = {
   0,
   -8,

@@ -601,7 +601,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             }
             snprintf(str, slen, "%d", GET_ALIGNMENT(c));
           } else if (!str_cmp(field, "armor"))
-            snprintf(str, slen, "%d", compute_armor_class(NULL, c, FALSE));
+            snprintf(str, slen, "%d", compute_armor_class(NULL, c, FALSE, MODE_ARMOR_CLASS_NORMAL));
           break;
         case 'c':
           if (!str_cmp(field, "canbeseen")) {

@@ -781,7 +781,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define BONUS_TYPE_PROFANE      13 /* Profane bonus : evil */
 #define BONUS_TYPE_RACIAL       14 /* Racial bonus */
 #define BONUS_TYPE_RESISTANCE   15 /* Resistance bonus : saves */
-#define BONUS_TYPE_SACRED       16 /* Sacred Bonus */
+#define BONUS_TYPE_SACRED       16 /* Sacred Bonus : good */
 #define BONUS_TYPE_SHIELD       17 /* Shield bonus */
 #define BONUS_TYPE_SIZE         18 /* Size bonus */
 #define BONUS_TYPE_TRAIT        19 /* Character Trait bonus */
@@ -1951,11 +1951,17 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 
 #define NUM_DAMAGE_TYPES               4
 
+/* attack types */
 #define ATTACK_TYPE_PRIMARY   0
 #define ATTACK_TYPE_OFFHAND   1
 #define ATTACK_TYPE_RANGED    2
 #define ATTACK_TYPE_UNARMED   3
 #define ATTACK_TYPE_TWOHAND   4
+
+/* combat maneuver types*/
+#define COMBAT_MANEUVER_TYPE_UNDEFINED  0
+#define COMBAT_MANEUVER_TYPE_KNOCKDOWN  1
+#define COMBAT_MANEUVER_TYPE_KICK       2
 
 /* Critical hit types */
 #define CRIT_X2   0

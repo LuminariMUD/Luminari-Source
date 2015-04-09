@@ -15,7 +15,7 @@
 extern const int *valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES];
 extern const char *bonus_types[];
 extern const char *dr_damtypes[];
-extern const char *damtypes[]; 
+extern const char *damtypes[];
 extern const char *trap_type[MAX_TRAP_TYPES + 1];
 extern const char *trap_effects[MAX_TRAP_EFFECTS + 1];
 extern const char *ranged_weapons[NUM_RANGED_WEAPONS + 1];
@@ -28,6 +28,7 @@ extern const char *item_profs[];
 extern const char *material_name[];
 extern const char *size_names[];
 extern const int  size_modifiers[];
+extern const int  size_modifiers_inverse[];
 extern const int  grapple_size_modifiers[];
 extern const char *room_affections[];
 extern const char *tbamud_version;

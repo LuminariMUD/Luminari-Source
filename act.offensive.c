@@ -31,100 +31,6 @@
 
 /**** Utility functions *******/
 
-/* just used for combat_maneuver_success to check size bonuses/penalty */
-int special_size_modifier(struct char_data *ch) {
-  if (!ch) {
-    log("ERR: special_size_modifier has no ch! (act.offensive.c)");
-    return 0;
-  }
-
-/* Fine –8, Diminutive –4, Tiny –2, Small –1, Medium +0, Large +1, Huge +2,
- * Gargantuan +4, Colossal +8.*/
-  switch (GET_SIZE(ch)) {
-    case SIZE_FINE:
-      return -8;
-    case SIZE_DIMINUTIVE:
-      return -4;
-    case SIZE_TINY:
-      return -2;
-    case SIZE_SMALL:
-      return -1;
-    case SIZE_MEDIUM:
-      return 0;
-    case SIZE_LARGE:
-      return 1;
-    case SIZE_HUGE:
-      return 2;
-    case SIZE_GARGANTUAN:
-      return 4;
-    case SIZE_COLOSSAL:
-      return 8;
-    default:
-      log("ERR: %s has an invalid size (special_size_modifier, act.offensive.c",
-              GET_NAME(ch));
-      return 0;
-  }
-}
-
-/* basic check for combat maneuver success, + incoming bonus (or negative value for penalty
- * this returns the level of success or failure, which applies in cases such as bull rush
- * 1 or higher = success, 0 or lower = failure
- * ##NOTE## an equivalent function(s) lie in fight.c made by Ornir, once we discuss/test
- * more in depth we'll merge the functions (compute_cmd/compute_cmb)*/
-int combat_maneuver_check(struct char_data *ch, struct char_data *vict, int bonus) {
-  int cm_bonus = bonus; /* combat maneuver bonus */
-  int cm_defense = 9; /* combat maneuver defense, should be 10 but if the difference is 0, then you failed your defense */
-  int result = 0;
-  int attack_roll = dice(1, 20);
-
-  if (!ch) {
-    log("ERR: combat_maneuver_check has no ch! (act.offensive.c)");
-    return 0;
-  }
-  if (!vict) {
-    log("ERR: combat_maneuver_check has no vict! (act.offensive.c)");
-    return 0;
-  }
-
-  /* CMB = Base attack bonus + Strength modifier + special size modifier */
-  cm_bonus += attack_roll;
-  cm_bonus += BAB(ch);
-  cm_bonus += GET_STR_BONUS(ch);
-  cm_bonus += special_size_modifier(ch);
-  /* misc here*/
-
-  /***/
-
-  /* CMD = 10 + Base attack bonus + Strength modifier + Dexterity modifier + special size modifier + miscellaneous modifiers */
-  cm_defense += BAB(vict);
-  cm_defense += GET_STR_BONUS(vict);
-  cm_defense += GET_DEX_BONUS(vict);
-  cm_defense += special_size_modifier(vict);
-  /* misc here */
-  /* should include: A creature can also add any circumstance,
-   * deflection, dodge, insight, luck, morale, profane, and sacred bonuses to
-   * AC to its CMD. Any penalties to a creature's AC also apply to its CMD.
-   * A flat-footed creature does not add its Dexterity bonus to its CMD.*/
-
-  /***/
-
-  result = cm_bonus - cm_defense;
-
-  /* FINALLY! */
-  /* easy outs:  natural 20 roll is success, natural 1 is failure */
-  if (attack_roll == 20) {
-    if (result > 1)
-      return result; /* big success? */
-    else
-      return 1;
-  } else if (attack_roll == 1) {
-    if (result < 0)
-      return result; /* big failure? */
-    else
-      return 0;
-  } else /* roll 2-19 */
-    return result;
-}
 
 /* ranged combat (archery, etc)
  * this function will check to make sure ammo is ready for firing
@@ -2783,7 +2689,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
   if (diceTwo < 2)
     diceTwo = 2;
 
-  if (combat_maneuver_check(ch, vict, discipline_bonus) > 0) {
+  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_KICK) > 0) {
     damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_KICK, DAM_FORCE, FALSE);
     if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc)) {
       USE_MOVE_ACTION(vict);
@@ -3328,7 +3234,7 @@ ACMD(do_fire) {
 
   /* no arguments?  no go! */
   if (!*arg1) {
-    send_to_char(ch, "Fire at who?\r\n");
+    send_to_char(ch, "You need to select a target!\r\n");
     return;
   }
 
@@ -3510,7 +3416,6 @@ ACMD(do_collect) {
 
 
 /* unfinished */
-/*
 int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
   int pos, aoo_dam;
   struct obj_data *wielded = NULL;
@@ -3577,6 +3482,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
 
 //  }
 
+  /*
   if (skill_test(ch, SKILL_DISARM, 500, mod + GET_R_DEX(ch) / 10 - GET_R_STR(vict) / 15) && !IS_OBJ_STAT(wielded, ITEM_NODROP)) {
     act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict, TO_ROOM);
     act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict, TO_CHAR);
@@ -3585,8 +3491,9 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
     act("$n failed to disarm $N.", FALSE, ch, 0, vict, TO_ROOM);
     act("You failed to disarm $N.", FALSE, ch, 0, vict, TO_CHAR);
   }
+   * */
+  return 0;
 }
- */
 
 /* do_process_attack()
  *
