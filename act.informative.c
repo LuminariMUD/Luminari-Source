@@ -2051,7 +2051,7 @@ ACMD(do_score) {
 
   /* Begin combat section */
   send_to_char(ch, "\tcArmorClass : \tn%-4d \tcSpell Resist : \tn%-3d \tcWimpy        : \tn%-3d \tcPos   : \tn",
-               compute_armor_class(NULL, ch, FALSE), compute_spell_res(NULL, ch, 0), GET_WIMP_LEV(ch));
+               compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL), compute_spell_res(NULL, ch, 0), GET_WIMP_LEV(ch));
 
   if (FIGHTING(ch))
     send_to_char(ch, "(Fighting) - ");

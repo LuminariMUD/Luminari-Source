@@ -540,7 +540,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
       sprintf(buf, "%d ", GET_PATH(mob, i));
       strcat(path, buf);
     }
-  }  
+  }
 
   write_to_output(d,
           "-- Mob Number:  [%s%d%s]\r\n"
@@ -734,7 +734,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d) {
           yel, GET_NDD(mob) + GET_DAMROLL(mob), nrm,
           yel, (GET_NDD(mob) * GET_SDD(mob)) + GET_DAMROLL(mob), nrm,
 
-          cyn, nrm, cyn, yel, GET_AC(mob), compute_armor_class(NULL, mob, FALSE), cyn, nrm, cyn, nrm, cyn, yel, GET_HITROLL(mob), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_AC(mob), compute_armor_class(NULL, mob, FALSE, MODE_ARMOR_CLASS_NORMAL), cyn, nrm, cyn, nrm, cyn, yel, GET_HITROLL(mob), cyn, nrm,
           cyn, nrm, cyn, yel, GET_EXP(mob), cyn, nrm, cyn, nrm, cyn, yel, get_align_by_num(GET_ALIGNMENT(mob)), cyn, nrm,
           cyn, nrm, cyn, yel, GET_GOLD(mob), cyn, nrm
           );
@@ -1751,14 +1751,14 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       return;
 
       /*
-            "0) Lawful Good\r\n" 
-            "1) Neutral Good\r\n" 
-            "2) Chaotic Good\r\n" 
-            "3) Lawful Neutral\r\n" 
-            "4) True Neutral\r\n" 
-            "5) Chaotic Neutral\r\n" 
-            "6) Lawful Evil\r\n" 
-            "7) Neutral Evil\r\n" 
+            "0) Lawful Good\r\n"
+            "1) Neutral Good\r\n"
+            "2) Chaotic Good\r\n"
+            "3) Lawful Neutral\r\n"
+            "4) True Neutral\r\n"
+            "5) Chaotic Neutral\r\n"
+            "6) Lawful Evil\r\n"
+            "7) Neutral Evil\r\n"
             "8) Chaotic Evil\r\n\r\n"*/
     case MEDIT_ALIGNMENT:
       if (i < 0 || i > (NUM_ALIGNMENTS - 1)) {
@@ -1818,7 +1818,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       OLC_MODE(d) = MEDIT_PATH_EDIT;
       return;  /* this will jump immediately to path edit below */
       break;
-      
+
     case MEDIT_PATH_EDIT:
       write_to_output(d, "Enter next value for path (terminate with 0)\r\n");
       if (atoi(arg) && PATH_SIZE(OLC_MOB(d)) < MAX_PATH - 1) {
@@ -1827,7 +1827,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
         return;
       }
       break;
-   
+
     case MEDIT_COPY:
       if ((i = real_mobile(atoi(arg))) != NOWHERE) {
         medit_setup_existing(d, i);
@@ -1880,11 +1880,11 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator) {
 /* function to set a ch (mob) to correct stats */
 /* this define is to avoid confusion:  GET_MOVE() is actually hps for
    all intents and purposes in this context */
-#define MOBS_HPS       GET_MOVE(mob) 
+#define MOBS_HPS       GET_MOVE(mob)
 /* an important note about mobiles besides these values:
-   1)  their attack rotation will match their class/level 
+   1)  their attack rotation will match their class/level
    2)  their BAB will match their class/level
-   3)  their saving-throws will match their class/level 
+   3)  their saving-throws will match their class/level
  */
 void autoroll_mob(struct char_data *mob, bool realmode) {
   int level = 0, bonus = 0;
@@ -1933,11 +1933,11 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
   /* exp and gold */
   GET_EXP(mob) = (level * level * 75);
   GET_GOLD(mob) = (level * 10);
-  
+
   /* class modifications to base */
   switch (GET_CLASS(mob)) {
     case CLASS_WIZARD:
-      MOBS_HPS = MOBS_HPS * 2 / 5; 
+      MOBS_HPS = MOBS_HPS * 2 / 5;
       GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
       armor_class -= 60;
       GET_INT(mob) += bonus;
@@ -2005,7 +2005,7 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
     default:
       break;
   }
-  
+
   /* racial mods */
   switch (GET_RACE(mob)) {
     case NPCRACE_HUMAN:
@@ -2017,7 +2017,7 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
       GET_WIS(mob) -= 7;
       GET_CHA(mob) -= 7;
       GET_SAVE(mob, SAVING_FORT) += 4;
-      GET_SAVE(mob, SAVING_REFL) += 4;      
+      GET_SAVE(mob, SAVING_REFL) += 4;
       GET_GOLD(mob) = 0;
       break;
     case NPCRACE_DRAGON:
@@ -2028,9 +2028,9 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
       GET_INT(mob) += 6;
       GET_WIS(mob) += 6;
       GET_SAVE(mob, SAVING_FORT) += 4;
-      GET_SAVE(mob, SAVING_REFL) += 4;      
-      GET_SAVE(mob, SAVING_WILL) += 4;      
-      GET_SPELL_RES(mob) = 10 + level;      
+      GET_SAVE(mob, SAVING_REFL) += 4;
+      GET_SAVE(mob, SAVING_WILL) += 4;
+      GET_SPELL_RES(mob) = 10 + level;
       break;
     case NPCRACE_GIANT:
       GET_STR(mob) += 4;
@@ -2052,12 +2052,12 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
     case NPCRACE_ELEMENTAL:
       break;
     case NPCRACE_FEY:
-      GET_SAVE(mob, SAVING_REFL) += 4;      
-      GET_SAVE(mob, SAVING_WILL) += 4;      
+      GET_SAVE(mob, SAVING_REFL) += 4;
+      GET_SAVE(mob, SAVING_WILL) += 4;
       break;
     case NPCRACE_MAG_BEAST:
       GET_SAVE(mob, SAVING_FORT) += 4;
-      GET_SAVE(mob, SAVING_REFL) += 4;      
+      GET_SAVE(mob, SAVING_REFL) += 4;
       break;
     case NPCRACE_MONSTER_HMN:
       break;
@@ -2077,17 +2077,17 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
     default:
       break;
   }
-  
+
   /* group-required mobiles will be levels 31-34 */
   if (GET_LEVEL(mob) > 30) {
     int bonus_level = GET_LEVEL(mob) - 30;
-    
+
     MOBS_HPS *= (bonus_level * 2);
     GET_DAMROLL(mob) += bonus_level;
     GET_EXP(mob) += (bonus_level * 5000);
     GET_GOLD(mob) += (bonus_level * 50);
   }
-  
+
   GET_AC(mob) = armor_class;
 
   /* make sure mobs do at least 1d4 damage */
@@ -2110,7 +2110,7 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
     GET_REAL_WIS(mob) = GET_WIS(mob);
     GET_REAL_DEX(mob) = GET_DEX(mob);
     GET_REAL_CON(mob) = GET_CON(mob);
-    GET_REAL_CHA(mob) = GET_CHA(mob);    
+    GET_REAL_CHA(mob) = GET_CHA(mob);
     GET_REAL_SIZE(mob) = GET_SIZE(mob);
     GET_REAL_SPELL_RES(mob) = GET_SPELL_RES(mob);
 
@@ -2118,7 +2118,7 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
     GET_EXP(mob) = 0;
     GET_GOLD(mob) = 0;
     affect_total(mob);
-  }  
+  }
 }
 #undef MOBS_HPS
 

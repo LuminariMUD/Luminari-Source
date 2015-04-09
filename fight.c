@@ -90,6 +90,7 @@ static char *replace_string(const char *str, const char *weapon_singular,
 #define MODE_DISPLAY_OFFHAND  3 //Display damage info offhand
 #define MODE_DISPLAY_RANGED   4 //Display damage info ranged
 
+
 /************ utility functions *********************/
 
 /* simple utility function to check if ch is tanking */
@@ -254,25 +255,6 @@ void appear(struct char_data *ch, bool forced) {
 
 }
 
-// computing size bonuses in AC/damage
-//  A attacking B
-// defense, the defender should get this 'bonus'
-// offense, the attack should get this 'bonus'
-
-int compute_size_bonus(int sizeA, int sizeB) {
-
-  // necessary and dummy checks
-  if (sizeB < SIZE_FINE)
-    sizeB = SIZE_FINE;
-  if (sizeB > SIZE_COLOSSAL)
-    sizeB = SIZE_COLOSSAL;
-  if (sizeA < SIZE_FINE)
-    sizeA = SIZE_FINE;
-  if (sizeA > SIZE_COLOSSAL)
-    sizeA = SIZE_COLOSSAL;
-
-  return ((sizeB - sizeA) * 2);
-}
 /*  has_dex_bonus_to_ac(attacker, ch)
  *  Helper function to determine if a char can apply his dexterity bonus to his AC. */
 bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
@@ -326,7 +308,7 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
 
   /* debug */
   /*if (FIGHTING(ch))
-    send_to_char(ch, "has_dex_bonus_to_ac() - %s retained dex bonus  ", GET_NAME(ch));*/
+    send_to_char(ch, "has_dex_bonus_to_ac() - %s -retained- dex bonus  ", GET_NAME(ch));*/
   return TRUE; /* ok, made it through, we DO have our dex bonus still */
 }
 
@@ -376,13 +358,15 @@ int roll_initiative(struct char_data *ch) {
 }
 
 /* this function will go through all the tests for modifying
-   a given ch's AC under the circumstances of being attacked
- * by 'attacker' */
-int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is_touch) {
+ * a given ch's AC under the circumstances of being attacked
+ * by 'attacker' (protection from alignment (evil/good), has dexterity bonus,
+ * favored enemy) */
+int compute_armor_class(struct char_data *attacker, struct char_data *ch,
+                        int is_touch, int mode) {
   /* hack to translate old D&D to 3.5 Edition
    * Modified 09/09/2014 : Ornir
    * Changed this to use the AC as-is.  AC has been modified on gear. */
-  int armorclass = 0, eq_armoring = 0;
+  int armorclass = 0, eq_armoring = 0, ac_penalty = 0; /* we keep track of all AC penalties */
   int i, bonuses[NUM_BONUS_TYPES];
 
   /* base armor class of stock code = 100 */
@@ -404,11 +388,14 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   /**********/
   /* bonus types */
 
+  /* bonus type racial */
+  if (GET_RACE(ch) == RACE_ARCANA_GOLEM) {
+    bonuses[BONUS_TYPE_RACIAL] -= 2;
+    ac_penalty -= 2;
+  }
+
   /* bonus type natural-armor */
   /* arcana golem */
-  if (GET_RACE(ch) == RACE_ARCANA_GOLEM) {
-    bonuses[BONUS_TYPE_NATURALARMOR] -= 2;
-  }
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
     bonuses[BONUS_TYPE_NATURALARMOR] += SPELLBATTLE(ch);
   }
@@ -492,17 +479,20 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   switch (GET_POS(ch)) { //position penalty
     case POS_RECLINING:
       bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 3;
+      ac_penalty -= 3;
       break;
     case POS_SITTING:
     case POS_RESTING:
     case POS_STUNNED:
       bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+      ac_penalty -= 2;
       break;
     case POS_SLEEPING:
     case POS_INCAP:
     case POS_MORTALLYW:
     case POS_DEAD:
       bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 20;
+      ac_penalty -= 20;
       break;
     case POS_FIGHTING:
     case POS_STANDING:
@@ -510,27 +500,31 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   }
   if (char_has_mud_event(ch, eSTUNNED)) {/* POS_STUNNED below in case statement */
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+    ac_penalty -= 2;
   }
   if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+    ac_penalty -= 2;
   }
   if (char_has_mud_event(ch, eTAUNTED)) {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 6;
+    ac_penalty -= 6;
   }
   /**/
 
-  /* bonus type size */
+  /* bonus type size (should not stack) */
+  bonuses[BONUS_TYPE_SIZE] += size_modifiers_inverse[GET_SIZE(ch)];
   if (attacker) { /* racial bonus vs. larger opponents */
     if ((GET_RACE(ch) == RACE_DWARF ||
             GET_RACE(ch) == RACE_CRYSTAL_DWARF ||
             GET_RACE(ch) == RACE_GNOME ||
             GET_RACE(ch) == RACE_HALFLING
             ) && GET_SIZE(attacker) > GET_SIZE(ch)) {
-      bonuses[BONUS_TYPE_SIZE] += compute_size_bonus(GET_SIZE(attacker), (GET_SIZE(ch) - 1));
-    } else {
-      bonuses[BONUS_TYPE_SIZE] += compute_size_bonus(GET_SIZE(attacker), GET_SIZE(ch));
+      bonuses[BONUS_TYPE_SIZE] += 4;
     }
   }
+  if (bonuses[BONUS_TYPE_SIZE] < 0)
+    ac_penalty -= bonuses[BONUS_TYPE_SIZE];
   /**/
 
   /* bonus type undefined */
@@ -583,11 +577,22 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
       else
         armorclass += bonuses[i];
     }
-  } else {
-    for (i = 0; i < NUM_BONUS_TYPES; i++)
-      armorclass += bonuses[i];
   }
 
+  switch (mode) {
+    case MODE_ARMOR_CLASS_PENALTIES:
+      return ac_penalty;
+      break;
+    case MODE_ARMOR_CLASS_COMBAT_MANEUVER_DEFENSE:
+      break;
+    default:
+    case MODE_ARMOR_CLASS_NORMAL:
+      for (i = 0; i < NUM_BONUS_TYPES; i++)
+        armorclass += bonuses[i];
+      break;
+  }
+
+  /* value for normal mode */
   return (MIN(MAX_AC, armorclass));
 }
 
@@ -2226,8 +2231,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus -= 2;
 
   /* size */
-  if (vict)
-    dambonus += compute_size_bonus(GET_SIZE(ch), GET_SIZE(vict));
+  dambonus += size_modifiers[GET_SIZE(ch)];
 
   /* weapon specialist */
   if (HAS_FEAT(ch, FEAT_WEAPON_SPECIALIZATION)) {
@@ -3099,16 +3103,88 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   return (MIN(MAX_BAB, calc_bab));
 }
 
-int compute_cmb (struct char_data *ch,              /*  Attacker */
-                          struct char_data *victim, /*  Defender */
-                          int attack_type)          /*  Type of attack  */
+/* compute a combat maneuver bonus (attack) value */
+int compute_cmb (struct char_data *ch,              /* Attacker */
+                 int combat_maneuver_type)          /* Type of combat maneuver */
 {
-  return compute_attack_bonus(ch, victim, attack_type);
+  int cm_bonus = 0; /* combat maneuver bonus */
+
+  /* CMB = Base attack bonus + Strength modifier + special size modifier */
+  cm_bonus += BAB(ch);
+  /* Creatures that are size Tiny or smaller use their Dexterity modifier in place of their Strength modifier to determine their CMB. */
+  if (GET_SIZE(ch) > SIZE_TINY)
+    cm_bonus += GET_STR_BONUS(ch);
+  else
+    cm_bonus += GET_DEX_BONUS(ch);
+  cm_bonus += size_modifiers[GET_SIZE(ch)];
+  /* misc here*/
+
+  return cm_bonus;
 }
 
-int compute_cmd(struct char_data *attacker, struct char_data *ch)
+/* compute a combat maneuver defense value */
+int compute_cmd(struct char_data *vict,            /* Defender */
+                int combat_maneuver_type)          /* Type of combat maneuver */
 {
-  return compute_armor_class(attacker, ch, TRUE) + GET_STR_BONUS(ch);
+  int cm_defense = 9; /* combat maneuver defense, should be 10 but if the difference is 0, then you failed your defense */
+
+  /* CMD = 10 + Base attack bonus + Strength modifier + Dexterity modifier + special size modifier + miscellaneous modifiers */
+  cm_defense += BAB(vict);
+  cm_defense += GET_STR_BONUS(vict);
+  /* A flat-footed creature does not add its Dexterity bonus to its CMD.*/
+  if (!AFF_FLAGGED(vict, AFF_FLAT_FOOTED))
+    cm_defense += GET_DEX_BONUS(vict);
+  cm_defense += size_modifiers[GET_SIZE(vict)];
+  /* misc here */
+  /* should include: A creature can also add any circumstance,
+   * deflection, dodge, insight, luck, morale, profane, and sacred bonuses to
+   * AC to its CMD. Any penalties to a creature's AC also apply to its CMD. */
+
+  return cm_defense;
+}
+
+/* basic check for combat maneuver success, + incoming bonus (or negative value for penalty
+ * this returns the level of success or failure, which applies in cases such as bull rush
+ * 1 or higher = success, 0 or lower = failure */
+int combat_maneuver_check(struct char_data *ch, struct char_data *vict,
+                          int combat_maneuver_type) {
+  int attack_roll = dice(1, 20);
+  int cm_bonus = 0; /* combat maneuver bonus */
+  int cm_defense = 0; /* combat maneuver defense */
+  int result = 0;
+
+  if (!ch) {
+    log("ERR: combat_maneuver_check has no ch! (act.offensive.c)");
+    return 0;
+  }
+  if (!vict) {
+    log("ERR: combat_maneuver_check has no vict! (act.offensive.c)");
+    return 0;
+  }
+
+  /* CMB = Base attack bonus + Strength modifier + special size modifier, etc */
+  cm_bonus = compute_cmb(ch, combat_maneuver_type) + attack_roll;
+
+  /* CMD = 10 + Base attack bonus + Strength modifier + Dexterity modifier + special size modifier + miscellaneous modifiers */
+  cm_defense = compute_cmd(vict, combat_maneuver_type);
+
+  /* result! */
+  result = cm_bonus - cm_defense;
+
+  /* handle results! */
+  /* easy outs:  natural 20 roll is success, natural 1 is failure */
+  if (attack_roll == 20) {
+    if (result > 1)
+      return result; /* big success? */
+    else
+      return 1;
+  } else if (attack_roll == 1) {
+    if (result < 0)
+      return result; /* big failure? */
+    else
+      return 0;
+  } else /* roll 2-19 */
+    return result;
 }
 
 /*
@@ -3132,7 +3208,7 @@ int attack_roll(struct char_data *ch,           /* Attacker */
 //  struct obj_data *wielded = get_wielded(ch, attack_type);
 
   int attack_bonus = compute_attack_bonus(ch, victim, attack_type);
-  int victim_ac = compute_armor_class(ch, victim, is_touch);
+  int victim_ac = compute_armor_class(ch, victim, is_touch, MODE_ARMOR_CLASS_NORMAL);
 
   int diceroll = rand_number(1, 20);
   int result = ((attack_bonus + diceroll) - victim_ac);
@@ -3656,7 +3732,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 
   /* Get the important numbers : ch's Attack bonus and victim's AC
    * attack rolls: 1 = stumble, 20 = hit, possible crit */
-  victim_ac = compute_armor_class(ch, victim, FALSE);
+  victim_ac = compute_armor_class(ch, victim, FALSE, MODE_ARMOR_CLASS_NORMAL);
   switch (attack_type) {
     case ATTACK_TYPE_OFFHAND: /* secondary or 'off' hand */
       if (w_type == TYPE_HIT)

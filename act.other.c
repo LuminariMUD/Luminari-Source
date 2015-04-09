@@ -1668,7 +1668,7 @@ ACMD(do_lore) {
     /* there is no height/weight, just size classes */
     //send_to_char(ch, "Height %d cm, Weight %d pounds\r\n", GET_HEIGHT(tch), GET_WEIGHT(tch));
     send_to_char(ch, "Level: %d, Hits: %d, Mana: %d\r\n", GET_LEVEL(tch), GET_HIT(tch), GET_MANA(tch));
-    send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n", compute_armor_class(NULL, tch, FALSE), GET_HITROLL(tch), GET_DAMROLL(tch));
+    send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n", compute_armor_class(NULL, tch, FALSE, MODE_ARMOR_CLASS_NORMAL), GET_HITROLL(tch), GET_DAMROLL(tch));
     send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n",
             GET_STR(tch), GET_ADD(tch), GET_INT(tch),
             GET_WIS(tch), GET_DEX(tch), GET_CON(tch), GET_CHA(tch));

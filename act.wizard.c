@@ -1021,7 +1021,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch, "\tCAC: [\tn%d\tC/\tn%d\tC], Hitroll: [\tn%d\tC/\tn%d\tC], Damroll: [\tn%d\tC/\tn%d\tC],\tn "
           "\tCSaving throws: [\tn%d\tC/\tn%d\tC/\tn%d\tC/\tn%d\tC/\tn%d\tC]\tn\r\n",
-          GET_AC(k), compute_armor_class(NULL, k, FALSE), GET_HITROLL(k), compute_attack_bonus(k, NULL, ATTACK_TYPE_PRIMARY),
+          GET_AC(k), compute_armor_class(NULL, k, FALSE, MODE_ARMOR_CLASS_NORMAL), GET_HITROLL(k), compute_attack_bonus(k, NULL, ATTACK_TYPE_PRIMARY),
           GET_DAMROLL(k), compute_damage_bonus(k, NULL, NULL, w_type, 0, 0, ATTACK_TYPE_PRIMARY), GET_SAVE(k, 0),
           GET_SAVE(k, 1), GET_SAVE(k, 2), GET_SAVE(k, 3), GET_SAVE(k, 4));
 
