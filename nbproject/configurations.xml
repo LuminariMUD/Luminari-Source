@@ -43,6 +43,7 @@
       <in>aedit.c</in>
       <in>asciimap.c</in>
       <in>asciimap.h</in>
+      <in>assign_wpn_armor.c</in>
       <in>ban.c</in>
       <in>ban.h</in>
       <in>boards.c</in>

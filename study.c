@@ -22,6 +22,7 @@
 #include "feats.h"
 #include "class.h"
 #include "constants.h"
+#include "assign_wpn_armor.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */

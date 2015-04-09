@@ -37,6 +37,7 @@
 #include "actions.h"
 #include "actionqueues.h"
 #include "craft.h"
+#include "assign_wpn_armor.h"
 
 /* local global */
 struct obj_data *last_missile = NULL;
@@ -4180,7 +4181,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       /* display damage bonus */
       compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY);
     }
-  }
+  } /* end for loop */
 
 
   /*additional off-hand attacks*/
