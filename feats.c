@@ -283,8 +283,7 @@ void feato(int featnum, char *name, int in_game, int can_learn, int can_stack, i
   feat_list[featnum].description = description;
   feat_list[featnum].prerequisite_list = NULL;
 }
-/* primary function for assigning feats */
-void assign_feats(void) {
+void initialize_feat_list(void) {
   int i;
 
 /* initialize the list of feats */
@@ -301,6 +300,11 @@ void assign_feats(void) {
     feat_list[i].prerequisite_list = NULL;
     feat_list[i].event = eNULL; /* Set all feats to eNULL event as default. */
   }
+}
+/* primary function for assigning feats */
+void assign_feats(void) {
+
+  initialize_feat_list();
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 

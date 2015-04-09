@@ -309,6 +309,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
 
       /* Override default values with path-based values. */
       for (curr_path = paths; curr_path != NULL; curr_path = curr_path->next) {
+        if (curr_path->rnum != NOWHERE) /*added by zusuk*/
         switch (path_table[curr_path->rnum].path_type) {
           case PATH_ROAD:
           case PATH_RIVER:
