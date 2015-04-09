@@ -474,8 +474,8 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     return FALSE;
   }
   if (IS_INCORPOREAL(vict)) {
-    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
-    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
+    act("You sprawl completely through $N as you try to attack $M, slamming into the ground!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n sprawls completely through $N as $e tries to attack $M, slamming into the ground!", FALSE, ch, 0, vict, TO_ROOM);
     GET_POS(ch) = POS_SITTING;
     return FALSE;
   }
