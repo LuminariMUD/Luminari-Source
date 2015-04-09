@@ -401,6 +401,12 @@ void assign_feats(void) {
     "+1 to hit and dam rolls with ranged weapons in the same room",
     "+1 to hit and dam rolls with ranged weapons in the same room, can fight "
       "in close quarters with ranged weapon");
+  feato(FEAT_FAR_SHOT, "far shot", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "allows firing outside room",
+    "When the 'far shot' feat is taken you are able to fire in any direction at "
+      "a target in the next room.");
+    feat_prereq_attribute(FEAT_FAR_SHOT, AB_DEX, 15);
+    feat_prereq_feat(FEAT_FAR_SHOT, FEAT_POINT_BLANK_SHOT, 1);
   feato(FEAT_RAPID_SHOT, "rapid shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "extra attack ranged weapon at -2 to all attacks",
     "can make extra attack per round with ranged weapon at -2 to all attacks");
@@ -1070,7 +1076,6 @@ void assign_feats(void) {
 
   /* not class feats */
   /* probably don't want in game at this stage */feato(FEAT_LEADERSHIP_BONUS, "improved leadership", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_FAR_SHOT, "far shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_DISARM, "improved disarm", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff ", "ask staff ");
   feato(FEAT_IMPROVED_GRAPPLE, "improved grapple", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_OVERRUN, "improved overrun", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
