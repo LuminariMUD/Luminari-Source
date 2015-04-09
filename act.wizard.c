@@ -43,6 +43,7 @@
 #include "spec_abilities.h"
 #include "wilderness.h"
 #include "feats.h"
+#include "assign_wpn_armor.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);

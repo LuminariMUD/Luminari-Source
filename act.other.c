@@ -41,6 +41,7 @@
 #include "spec_abilities.h"
 #include "actions.h"
 #include "feats.h"
+#include "assign_wpn_armor.h"
 
 /* Local defined utility functions */
 /* do_group utility functions */
