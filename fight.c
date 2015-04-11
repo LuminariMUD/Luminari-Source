@@ -2408,6 +2408,25 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded) {
   return threat_range;
 }
 
+#define CRIT_MULTI_MIN  2
+#define CRIT_MULTI_MAX  6
+int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded) {
+  int crit_multi = 2;
+
+  if (wielded)
+    crit_multi = weapon_list[GET_OBJ_VAL(wielded, 0)].critMult;
+
+  /* establish some caps */
+  if (crit_multi < CRIT_MULTI_MIN)
+    crit_multi = CRIT_MULTI_MIN;
+  if (crit_multi > CRIT_MULTI_MAX)
+    crit_multi = CRIT_MULTI_MAX;
+
+  return crit_multi;
+}
+#undef CRIT_MULTI_MIN
+#undef CRIT_MULTI_MAX
+
 /* computes damage dice based on bare-hands, weapon, class (monk), or
  npc's (which use special bare hand damage dice) */
 /* #define MODE_NORMAL_HIT       0
@@ -2458,7 +2477,8 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       mode == MODE_DISPLAY_OFFHAND ||
       mode == MODE_DISPLAY_RANGED) {
     send_to_char(ch, "Threat Range:  %d, ", determine_threat_range(ch, wielded));
-    send_to_char(ch, "Damage Dice:  %dD%d, ", diceOne, diceTwo);
+    send_to_char(ch, "Critical Multiplier:  %d, ", determine_critical_multiplier(ch, wielded));
+  send_to_char(ch, "Damage Dice:  %dD%d, ", diceOne, diceTwo);
   }
 
   return dice(diceOne, diceTwo);
@@ -2484,11 +2504,6 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
   return 0; /* nope, no critical */
 }
 
-int determine_attack_type(struct char_data *ch, struct obj_data *wielded,
-                          int attack_type) {
-  return FALSE;
-}
-
 /* you are going to arrive here from an attack, or viewing mode
  * We have two functions: compute_hit_damage() and compute_damage_bonus() that
  * both basically will compute how much damage a given hit will do or display
@@ -2508,7 +2523,7 @@ int determine_attack_type(struct char_data *ch, struct obj_data *wielded,
  *   ATTACK_TYPE_TWOHAND : Two-handed weapon attack. */
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         int w_type, int diceroll, int mode, bool is_critical, int attack_type) {
-  int dam = 0, crit_multi = 2 /*default 2x*/;
+  int dam = 0;
   /*redundancy necessary due to sometimes arriving here without going through hit()*/
   struct obj_data *wielded = get_wielded(ch, attack_type);
 
@@ -2565,10 +2580,22 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
     /* handle critical hit damage here */
     if (is_critical && !(IS_NPC(victim) && GET_RACE(victim) == NPCRACE_UNDEAD)) { /* critical bonus */
-      if (wielded) {
-        crit_multi = weapon_list[GET_OBJ_VAL(wielded, 0)].critMult;
+      dam *= determine_critical_multiplier(ch, wielded);
+    }
+
+    /* mounted charging character using charging weapons, whether this goes up
+     * top or bottom of dam calculation can have a dramtic effect on this number */
+    if (AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch)) {
+      if (HAS_FEAT(ch, FEAT_SPIRITED_CHARGE)) { /* mounted, charging with spirited charge feat */
+        if (HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* with lance too */
+          /*debug*//*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
+          dam *= 3;
+        } else
+          dam *= 2;
+      } else if (HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* mounted charging, no feat, but with lance */
+        /*debug*//*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
+        dam *= 2;
       }
-      dam *= crit_multi;
     }
 
     /* Add additional damage dice from weapon special abilities. - Ornir */
@@ -2600,21 +2627,6 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         if((GET_RACE(victim) == value[0]) && (HAS_SUBRACE(victim, value[1]))) {
           /*send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");*/
           dam += dice(2, 6);
-        }
-      }
-
-      /* mounted charging character using charging weapons, whether this goes up
-       * top or bottom of dam calculation can have a dramtic effect on this number */
-      if (AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch)) {
-        if (HAS_FEAT(ch, FEAT_SPIRITED_CHARGE)) { /* mounted, charging with spirited charge feat */
-          if (HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* with lance too */
-            /*debug*//*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
-            dam *= 3;
-          } else
-            dam *= 2;
-        } else if (HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* mounted charging, no feat, but with lance */
-          /*debug*//*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
-          dam *= 2;
         }
       }
 
@@ -3387,242 +3399,242 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
      * This section also implement the effects of stunning fist, smite and true strike,
      * reccomended: to be moved outta here and put into their own attack
      * routines, then called as an attack action. */
-    if (affected_by_spell(ch, SPELL_TRUE_STRIKE)) {
-      send_to_char(ch, "[\tWTRUE-STRIKE\tn] ");
-      affect_from_char(ch, SPELL_TRUE_STRIKE);
-    }
-    /* rage powers */
-    if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY)) {
-      send_to_char(ch, "[\tWSUPRISE_ACCURACY\tn] ");
-      affect_from_char(ch, SKILL_SUPRISE_ACCURACY);
-    }
-    int powerful_blow_bonus = 0;
-    if (affected_by_spell(ch, SKILL_POWERFUL_BLOW)) {
-      send_to_char(ch, "[\tWPOWERFUL_BLOW\tn] ");
-      affect_from_char(ch, SKILL_POWERFUL_BLOW);
-      powerful_blow_bonus += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
+  if (affected_by_spell(ch, SPELL_TRUE_STRIKE)) {
+    send_to_char(ch, "[\tWTRUE-STRIKE\tn] ");
+    affect_from_char(ch, SPELL_TRUE_STRIKE);
+  }
+  /* rage powers */
+  if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY)) {
+    send_to_char(ch, "[\tWSUPRISE_ACCURACY\tn] ");
+    affect_from_char(ch, SKILL_SUPRISE_ACCURACY);
+  }
+  int powerful_blow_bonus = 0;
+  if (affected_by_spell(ch, SKILL_POWERFUL_BLOW)) {
+    send_to_char(ch, "[\tWPOWERFUL_BLOW\tn] ");
+    affect_from_char(ch, SKILL_POWERFUL_BLOW);
+    powerful_blow_bonus += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
       /* what is this?  because we are removing the affect, it won't
        be calculated properly in damage_bonus, so we just tag it on afterwards */
-    }
-    if (affected_by_spell(ch, SKILL_SMITE)) {
-      if (IS_EVIL(victim)) {
-        send_to_char(ch, "[SMITE] ");
-        send_to_char(victim, "[\tRSMITE\tn] ");
-        act("$n performs a \tYsmiting\tn attack on $N!",
+  }
+  if (affected_by_spell(ch, SKILL_SMITE)) {
+    if (IS_EVIL(victim)) {
+      send_to_char(ch, "[SMITE] ");
+      send_to_char(victim, "[\tRSMITE\tn] ");
+      act("$n performs a \tYsmiting\tn attack on $N!",
                   FALSE, ch, wielded, victim, TO_NOTVICT);
+    }
+  }
+  if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
+    if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
+      send_to_char(ch, "[STUNNING-FIST] ");
+      send_to_char(victim, "[\tRSTUNNING-FIST\tn] ");
+      act("$n performs a \tYstunning fist\tn attack on $N!",
+                FALSE, ch, wielded, victim, TO_NOTVICT);
+      if (!char_has_mud_event(victim, eSTUNNED)) {
+        attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC);
       }
+      affect_from_char(ch, SKILL_STUNNING_FIST);
     }
-    if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
-      if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
-        send_to_char(ch, "[STUNNING-FIST] ");
-        send_to_char(victim, "[\tRSTUNNING-FIST\tn] ");
-        act("$n performs a \tYstunning fist\tn attack on $N!",
-                  FALSE, ch, wielded, victim, TO_NOTVICT);
-        if (!char_has_mud_event(victim, eSTUNNED)) {
-          attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC);
-        }
-        affect_from_char(ch, SKILL_STUNNING_FIST);
-      }
-    }
-    if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
-      int quivering_palm_dc = 10 + (CLASS_LEVEL(ch, CLASS_MONK) / 2) + GET_WIS_BONUS(ch);
-      if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
-        send_to_char(ch, "[QUIVERING-PALM] ");
-        send_to_char(victim, "[\tRQUIVERING-PALM\tn] ");
-        act("$n performs a \tYquivering palm\tn attack on $N!",
-                  FALSE, ch, wielded, victim, TO_NOTVICT);
-        /* apply quivering palm affect, muahahahah */
-        if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
-                !savingthrow(victim, SAVING_FORT, 0, quivering_palm_dc)) {
-          /*GRAND SLAM!*/
-          act("$N \tRblows up into little pieces\tn as soon as you make contact with your palm!",
-                  FALSE, ch, wielded, victim, TO_CHAR);
-          act("You feel your body \tRblow up in to little pieces\tn as $n touches you!",
-                  FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
-          act("You watch as $N's body gets \tRblown into little pieces\tn from a single touch from $n!",
-                  FALSE, ch, wielded, victim, TO_NOTVICT);
-          dam_killed_vict(ch, victim);
-          /* ok, now remove quivering palm */
-          affect_from_char(ch, SKILL_QUIVERING_PALM);
-          return dam;
-        } else { /* quivering palm will still do damage */
-          dam += 1 + GET_WIS_BONUS(ch);
-        }
+  }
+  if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
+    int quivering_palm_dc = 10 + (CLASS_LEVEL(ch, CLASS_MONK) / 2) + GET_WIS_BONUS(ch);
+    if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
+      send_to_char(ch, "[QUIVERING-PALM] ");
+      send_to_char(victim, "[\tRQUIVERING-PALM\tn] ");
+      act("$n performs a \tYquivering palm\tn attack on $N!",
+                FALSE, ch, wielded, victim, TO_NOTVICT);
+      /* apply quivering palm affect, muahahahah */
+      if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
+              !savingthrow(victim, SAVING_FORT, 0, quivering_palm_dc)) {
+        /*GRAND SLAM!*/
+        act("$N \tRblows up into little pieces\tn as soon as you make contact with your palm!",
+                FALSE, ch, wielded, victim, TO_CHAR);
+        act("You feel your body \tRblow up in to little pieces\tn as $n touches you!",
+                FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
+        act("You watch as $N's body gets \tRblown into little pieces\tn from a single touch from $n!",
+                FALSE, ch, wielded, victim, TO_NOTVICT);
+        dam_killed_vict(ch, victim);
         /* ok, now remove quivering palm */
         affect_from_char(ch, SKILL_QUIVERING_PALM);
+        return dam;
+      } else { /* quivering palm will still do damage */
+        dam += 1 + GET_WIS_BONUS(ch);
       }
+      /* ok, now remove quivering palm */
+      affect_from_char(ch, SKILL_QUIVERING_PALM);
     }
+  }
 
-    /* Calculate sneak attack damage. */
-    if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
-        (compute_concealment(victim) == 0) &&
-       ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED))  /* Flat-footed */
-          || !(has_dex_bonus_to_ac(ch, victim)) /* No dex bonus to ac */
-          || is_flanked(ch, victim)             /* Flanked */
-       )) {
+  /* Calculate sneak attack damage. */
+  if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
+      (compute_concealment(victim) == 0) &&
+     ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED))  /* Flat-footed */
+        || !(has_dex_bonus_to_ac(ch, victim)) /* No dex bonus to ac */
+        || is_flanked(ch, victim)             /* Flanked */
+     )) {
 
-      /* Display why we are sneak attacking */
-      send_to_char(ch, "[");
-      if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
-        send_to_char(ch, "FF");
-      if (!has_dex_bonus_to_ac(ch, victim))
-        send_to_char(ch,"Dx");
-      if (is_flanked(ch, victim))
-        send_to_char(ch, "Fk");
-      send_to_char(ch, "]");
+    /* Display why we are sneak attacking */
+    send_to_char(ch, "[");
+    if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
+      send_to_char(ch, "FF");
+    if (!has_dex_bonus_to_ac(ch, victim))
+      send_to_char(ch,"Dx");
+    if (is_flanked(ch, victim))
+      send_to_char(ch, "Fk");
+    send_to_char(ch, "]");
 
-      sneakdam = dice(HAS_FEAT(ch, FEAT_SNEAK_ATTACK), 6);
+    sneakdam = dice(HAS_FEAT(ch, FEAT_SNEAK_ATTACK), 6);
 
-      if (sneakdam) {
-        send_to_char(ch, "[\tDSNEAK\tn] ");
-      }
+    if (sneakdam) {
+      send_to_char(ch, "[\tDSNEAK\tn] ");
     }
+  }
 
-    /* Calculate damage for this hit */
-    dam = compute_hit_damage(ch, victim, w_type, diceroll, 0,
+  /* Calculate damage for this hit */
+  dam = compute_hit_damage(ch, victim, w_type, diceroll, 0,
                              is_critical, attack_type);
-    dam += powerful_blow_bonus; /* ornir is going to yell at me for this :p  -zusuk */
+  dam += powerful_blow_bonus; /* ornir is going to yell at me for this :p  -zusuk */
 
-    /* This comes after computing the other damage since sneak attack damage
-     * is not affected by crit multipliers. */
-    dam += sneakdam;
+  /* This comes after computing the other damage since sneak attack damage
+   * is not affected by crit multipliers. */
+  dam += sneakdam;
 
-    /* Melee warding modifies damage. */
-    //if ((dam = handle_warding(ch, victim, dam)) == -1)
-    //  return (HIT_MISS);
+  /* Melee warding modifies damage. */
+  //if ((dam = handle_warding(ch, victim, dam)) == -1)
+  //  return (HIT_MISS);
 
-    /* Apply Damage Reduction */
-    if ((dam = apply_damage_reduction(ch, victim, wielded, dam)) == -1)
-      return (HIT_MISS); /* This should be changed to something more reasonable */
+  /* Apply Damage Reduction */
+  if ((dam = apply_damage_reduction(ch, victim, wielded, dam)) == -1)
+    return (HIT_MISS); /* This should be changed to something more reasonable */
 
-    /* ok we are about to do damage() so here we are adding a special counter-attack
-       for berserkers that is suppose to fire BEFORE damage is done to vict */
-    if (ch != victim &&
-          affected_by_spell(victim, SKILL_COME_AND_GET_ME) &&
-          affected_by_spell(victim, SKILL_RAGE)) {
-      GET_TOTAL_AOO(victim)--; /* free aoo and will be incremented in the function */
-      attack_of_opportunity(victim, ch, 0);
+  /* ok we are about to do damage() so here we are adding a special counter-attack
+     for berserkers that is suppose to fire BEFORE damage is done to vict */
+  if (ch != victim &&
+        affected_by_spell(victim, SKILL_COME_AND_GET_ME) &&
+        affected_by_spell(victim, SKILL_RAGE)) {
+    GET_TOTAL_AOO(victim)--; /* free aoo and will be incremented in the function */
+    attack_of_opportunity(victim, ch, 0);
 
-      /* dummy check */
-      update_pos(ch);
-      if (GET_POS(ch) <= POS_INCAP)
-        return (HIT_MISS);
-    }
-    /***** end counter attacks ******/
+    /* dummy check */
+    update_pos(ch);
+    if (GET_POS(ch) <= POS_INCAP)
+      return (HIT_MISS);
+  }
+  /***** end counter attacks ******/
 
-    /* if the 'type' of hit() requires special handling, do it here */
-    switch (type) {
-      /* More SKILL_ garbage - This needs a better mechanic.  */
-      case SKILL_BACKSTAB:
-        /* What a horrible hack.  Backstab should pretty much go away anyway, and crippling strike
-         * needs a new place to live. */
-        damage(ch, victim, sneakdam + (dam - sneakdam) * backstab_mult(ch),
+  /* if the 'type' of hit() requires special handling, do it here */
+  switch (type) {
+    /* More SKILL_ garbage - This needs a better mechanic.  */
+    case SKILL_BACKSTAB:
+      /* What a horrible hack.  Backstab should pretty much go away anyway, and crippling strike
+       * needs a new place to live. */
+      damage(ch, victim, sneakdam + (dam - sneakdam) * backstab_mult(ch),
                 SKILL_BACKSTAB, dam_type, attack_type);
 
-        break;
-      default:
-        /* Here we manage the racial specials, Trelux have claws and can not use weapons. */
-        if (GET_RACE(ch) == RACE_TRELUX)
-          damage(ch, victim, dam, TYPE_CLAW, dam_type, attack_type);
-        else {
-          /* We hit with a ranged weapon, victim gets a new arrow, stuck neatly in his butt. */
-          if (attack_type == ATTACK_TYPE_RANGED) {
-            obj_to_char(missile, victim);
-          }
-          /* charging combat maneuver */
-          if (AFF_FLAGGED(ch, AFF_CHARGING)) {
-            send_to_char(ch, "You \tYcharge\tn: ");
-            send_to_char(victim, "%s \tYcharges\tn toward you: ", GET_NAME(ch));
-            act("$n \tYcharges\tn toward $N!", FALSE, ch, NULL, victim, TO_NOTVICT);
-          }
-          /* So do damage! (We aren't trelux, so do it normally) */
-          damage(ch, victim, dam, w_type, dam_type, attack_type);
-
-          if (AFF_FLAGGED(ch, AFF_CHARGING)) { /* only a single strike */
-            affect_from_char(ch, SKILL_CHARGE);
-          }
+      break;
+    default:
+      /* Here we manage the racial specials, Trelux have claws and can not use weapons. */
+      if (GET_RACE(ch) == RACE_TRELUX)
+        damage(ch, victim, dam, TYPE_CLAW, dam_type, attack_type);
+      else {
+        /* We hit with a ranged weapon, victim gets a new arrow, stuck neatly in his butt. */
+        if (attack_type == ATTACK_TYPE_RANGED) {
+          obj_to_char(missile, victim);
         }
-        break;
-    }
+        /* charging combat maneuver */
+        if (AFF_FLAGGED(ch, AFF_CHARGING)) {
+          send_to_char(ch, "You \tYcharge\tn: ");
+          send_to_char(victim, "%s \tYcharges\tn toward you: ", GET_NAME(ch));
+          act("$n \tYcharges\tn toward $N!", FALSE, ch, NULL, victim, TO_NOTVICT);
+        }
+        /* So do damage! (We aren't trelux, so do it normally) */
+        damage(ch, victim, dam, w_type, dam_type, attack_type);
 
-    /* 20% chance to poison as a trelux. This could be made part of the general poison code, once that is
-     * implemented, also, shouldn't they be able to control if they poison or not?  Why not make them envenom
-     * their claws before an attack? */
-    if ( (GET_POS(victim) != POS_DEAD) && GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
-            && !rand_number(0, 5)) {
-      /* We are just using the poison spell for this...Maybe there would be a better way, some unique poison?
-       * Note the CAST_INNATE, this removes armor spell failure from the call. */
-      call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_INNATE);
-    }
+        if (AFF_FLAGGED(ch, AFF_CHARGING)) { /* only a single strike */
+          affect_from_char(ch, SKILL_CHARGE);
+        }
+      }
+      break;
+  }
 
-    /* crippling strike */
-    if (sneakdam) {
-      if (dam && (GET_POS(victim) != POS_DEAD) && HAS_FEAT(ch, FEAT_CRIPPLING_STRIKE) &&
-              !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
+  /* 20% chance to poison as a trelux. This could be made part of the general poison code, once that is
+   * implemented, also, shouldn't they be able to control if they poison or not?  Why not make them envenom
+   * their claws before an attack? */
+  if ( (GET_POS(victim) != POS_DEAD) && GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
+          && !rand_number(0, 5)) {
+    /* We are just using the poison spell for this...Maybe there would be a better way, some unique poison?
+     * Note the CAST_INNATE, this removes armor spell failure from the call. */
+    call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_INNATE);
+  }
 
-        new_affect(&af);
-        af.spell = SKILL_CRIP_STRIKE;
-        af.duration = 10;
-        af.location = APPLY_STR;
-        af.modifier = -(dice(2, 4));
-        affect_to_char(victim, &af);
+  /* crippling strike */
+  if (sneakdam) {
+    if (dam && (GET_POS(victim) != POS_DEAD) && HAS_FEAT(ch, FEAT_CRIPPLING_STRIKE) &&
+            !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
 
-        act("Your well placed attack \tTcripples\tn $N!",
+      new_affect(&af);
+      af.spell = SKILL_CRIP_STRIKE;
+      af.duration = 10;
+      af.location = APPLY_STR;
+      af.modifier = -(dice(2, 4));
+      affect_to_char(victim, &af);
+
+      act("Your well placed attack \tTcripples\tn $N!",
                 FALSE, ch, wielded, victim, TO_CHAR);
-        act("A well placed attack from $n \tTcripples\tn you!",
+      act("A well placed attack from $n \tTcripples\tn you!",
                 FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
-        act("A well placed attack from $n \tTcripples\tn $N!",
+      act("A well placed attack from $n \tTcripples\tn $N!",
                 FALSE, ch, wielded, victim, TO_NOTVICT);
-      }
     }
+  }
 
-    /* weapon spells - deprecated, although many weapons still have these.  Weapon Special Abilities supercede
-     * this implementation. */
-    if (ch && victim && wielded)
-      weapon_spells(ch, victim, wielded);
+  /* weapon spells - deprecated, although many weapons still have these.  Weapon Special Abilities supercede
+   * this implementation. */
+  if (ch && victim && wielded)
+    weapon_spells(ch, victim, wielded);
 
-    /* Weapon special abilities that trigger on hit. */
-    if (ch && victim && wielded)
-      process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
+  /* Weapon special abilities that trigger on hit. */
+  if (ch && victim && wielded)
+    process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
 
-    /* our primitive weapon-poison system, needs some love */
-    weapon_poison(ch, victim, wielded);
+  /* our primitive weapon-poison system, needs some love */
+  weapon_poison(ch, victim, wielded);
 
-    /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */
-    if (ch && victim && wielded)
-      weapon_special(wielded, ch, hit_msg);
-    else if (ch && victim && GET_EQ(ch, WEAR_HANDS))
-      weapon_special(GET_EQ(ch, WEAR_HANDS), ch, hit_msg);
+  /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */
+  if (ch && victim && wielded)
+    weapon_special(wielded, ch, hit_msg);
+  else if (ch && victim && GET_EQ(ch, WEAR_HANDS))
+    weapon_special(GET_EQ(ch, WEAR_HANDS), ch, hit_msg);
 
-    /* vampiric curse will do some minor healing to attacker */
-    if (!IS_UNDEAD(victim) && IS_AFFECTED(victim, AFF_VAMPIRIC_CURSE)) {
-      send_to_char(ch, "\tWYou feel slightly better as you land an attack!\r\n");
-      GET_HIT(ch) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch), dice(1, 10));
-    }
+  /* vampiric curse will do some minor healing to attacker */
+  if (!IS_UNDEAD(victim) && IS_AFFECTED(victim, AFF_VAMPIRIC_CURSE)) {
+    send_to_char(ch, "\tWYou feel slightly better as you land an attack!\r\n");
+    GET_HIT(ch) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch), dice(1, 10));
+  }
 
-    /* vampiric touch will do some healing to attacker */
-    if (dam > 0 && !IS_UNDEAD(victim) && IS_AFFECTED(ch, AFF_VAMPIRIC_TOUCH)) {
-      send_to_char(ch, "\tWYou feel \tRvampiric\tn \tWenergy heal you as you "
+  /* vampiric touch will do some healing to attacker */
+  if (dam > 0 && !IS_UNDEAD(victim) && IS_AFFECTED(ch, AFF_VAMPIRIC_TOUCH)) {
+    send_to_char(ch, "\tWYou feel \tRvampiric\tn \tWenergy heal you as you "
               "land an attack!\r\n");
-      GET_HIT(ch) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch), dam);
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_VAMPIRIC_TOUCH);
-    }
+    GET_HIT(ch) += MIN(GET_MAX_HIT(ch) - GET_HIT(ch), dam);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_VAMPIRIC_TOUCH);
+  }
 
-    // damage inflicting shields, like fire shield
-    if (attack_type != ATTACK_TYPE_RANGED) {
-      if (dam && victim && GET_HIT(victim) >= -1 &&
-              IS_AFFECTED(victim, AFF_CSHIELD)) { // cold shield
-        damage(victim, ch, dice(1, 6), SPELL_CSHIELD_DAM, DAM_COLD, attack_type);
-      } else if (dam && victim && GET_HIT(victim) >= -1 &&
-              IS_AFFECTED(victim, AFF_FSHIELD)) { // fire shield
-        damage(victim, ch, dice(1, 6), SPELL_FSHIELD_DAM, DAM_FIRE, attack_type);
-      } else if (dam && victim && GET_HIT(victim) >= -1 &&
-              IS_AFFECTED(victim, AFF_ASHIELD)) { // acid shield
-        damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
-      }
+  // damage inflicting shields, like fire shield
+  if (attack_type != ATTACK_TYPE_RANGED) {
+    if (dam && victim && GET_HIT(victim) >= -1 &&
+            IS_AFFECTED(victim, AFF_CSHIELD)) { // cold shield
+      damage(victim, ch, dice(1, 6), SPELL_CSHIELD_DAM, DAM_COLD, attack_type);
+    } else if (dam && victim && GET_HIT(victim) >= -1 &&
+            IS_AFFECTED(victim, AFF_FSHIELD)) { // fire shield
+      damage(victim, ch, dice(1, 6), SPELL_FSHIELD_DAM, DAM_FIRE, attack_type);
+    } else if (dam && victim && GET_HIT(victim) >= -1 &&
+            IS_AFFECTED(victim, AFF_ASHIELD)) { // acid shield
+      damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
+  }
 
-    return dam;
+  return dam;
 }
 
 /* primary function for a single melee attack
@@ -3822,19 +3834,18 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     send_to_char(victim, "[stum!]");
     dam = FALSE;
   } else {
-    sprintf(buf1, "\tW[R: %2d]\tn", diceroll);
-    sprintf(buf, "%7s", buf1);
-    send_to_char(ch, buf);
-    sprintf(buf1, "\tR[R: %2d]\tn", diceroll);
-    sprintf(buf, "%7s", buf1);
-    send_to_char(victim, buf);
     dam = (calc_bab + diceroll >= victim_ac);
-    /*  leaving this around for debugging
-    send_to_char(ch, "\tc{T:%d+", calc_bab);
-    send_to_char(ch, "D:%d>=", diceroll);
-    send_to_char(ch, "AC:%d}\tn", victim_ac);
-    */
   }
+  sprintf(buf1, "\tW[R:%2d]\tn", diceroll);
+  sprintf(buf, "%7s", buf1);
+  send_to_char(ch, buf);
+  sprintf(buf1, "\tR[R:%2d]\tn", diceroll);
+  sprintf(buf, "%7s", buf1);
+  /*  leaving this around for debugging
+  send_to_char(ch, "\tc{T:%d+", calc_bab);
+  send_to_char(ch, "D:%d>=", diceroll);
+  send_to_char(ch, "AC:%d}\tn", victim_ac);
+  */
 
   /* Parry calculation -
    * This only applies if the victim is in parry mode and is based on
