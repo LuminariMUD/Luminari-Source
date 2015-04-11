@@ -385,6 +385,34 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       eq_armoring -= (apply_ac(ch, WEAR_SHIELD) / 10);
   }
 
+  /* here is our TODO list here:
+     1)  handling shapechanged characters
+     2)  handling armor-affecting spells?
+     3)  calculate equipped armor separately?
+   * 4)  material bonus on equipment (dragonhide, etc) ?
+   * 5)  leadership feat?  */
+
+/*
+ * if (!(k = ch->master))
+      k = ch;
+
+    if (k == ch && !(k->followers)) {
+      // In this case nothing changes
+      armorclass = armorclass;
+    } else if (HAS_FEAT(k, FEAT_LEADERSHIP)) {
+      armorclass += 10;
+    } else {
+      for (f = k->followers; f; f = f->next) {
+        if (AFF_FLAGGED(f->follower, AFF_GROUP) && IN_ROOM(f->follower) == IN_ROOM(ch)) {
+          if (HAS_FEAT(f->follower, FEAT_LEADERSHIP)) {
+            armorclass += 10;
+            break;
+          }
+        }
+      }
+    }
+*/
+
   /**********/
   /* bonus types */
 
@@ -465,8 +493,14 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_DODGE] += 1;
     }
 
+    /* TODO: also need to make sure they are using light armor or less */
     if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_ACROBATICS)) { //caps at 5
       bonuses[BONUS_TYPE_DODGE] += MIN(5, (int) (compute_ability(ch, ABILITY_ACROBATICS) / 7));
+    }
+
+    /* TODO: need to make sure they do not have a shield and light-armor (or lighter) */
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_CANNY_DEFENSE)) {
+       bonuses[BONUS_TYPE_DODGE] += MAX(0, GET_INT_BONUS(ch));
     }
 
     if (AFF_FLAGGED(ch, AFF_EXPERTISE)) {
@@ -2357,6 +2391,23 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
   }
 }
 
+int determine_threat_range(struct char_data *ch, struct obj_data *wielded) {
+  int threat_range = 19;
+
+  if (wielded)
+    threat_range = 20 - weapon_list[GET_OBJ_VAL(wielded, 0)].critRange;
+  else
+    threat_range = 20;
+
+  if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL)) { /* Check the weapon type, make sure it matches. */
+    if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), GET_WEAPON_TYPE(wielded))) ||
+       ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), WEAPON_TYPE_UNARMED)))
+      threat_range--;
+  }
+
+  return threat_range;
+}
+
 /* computes damage dice based on bare-hands, weapon, class (monk), or
  npc's (which use special bare hand damage dice) */
 /* #define MODE_NORMAL_HIT       0
@@ -2406,6 +2457,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   if (mode == MODE_DISPLAY_PRIMARY ||
       mode == MODE_DISPLAY_OFFHAND ||
       mode == MODE_DISPLAY_RANGED) {
+    send_to_char(ch, "Threat Range:  %d, ", determine_threat_range(ch, wielded));
     send_to_char(ch, "Damage Dice:  %dD%d, ", diceOne, diceTwo);
   }
 
@@ -2415,18 +2467,9 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 /* simple test for testing critical hit */
 int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll,
                   int calc_bab, int victim_ac) {
-  int threat_range = 19, confirm_roll = dice(1,20) + calc_bab;
+  int threat_range, confirm_roll = dice(1,20) + calc_bab;
 
-  if (wielded)
-    threat_range = 20 - weapon_list[GET_OBJ_VAL(wielded, 0)].critRange;
-  else
-    threat_range = 20;
-
-  if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL)) { /* Check the weapon type, make sure it matches. */
-    if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), GET_WEAPON_TYPE(wielded))) ||
-       ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), WEAPON_TYPE_UNARMED)))
-      threat_range--;
-  }
+  threat_range = determine_threat_range(ch, wielded);
 
   if (diceroll >= threat_range) { /* critical potential? */
     if (HAS_FEAT(ch, FEAT_POWER_CRITICAL)) { /* Check the weapon type, make sure it matches. */
