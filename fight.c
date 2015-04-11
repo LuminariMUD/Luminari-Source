@@ -3840,6 +3840,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac)) {
     dam = TRUE;
     is_critical = TRUE;
+    send_to_char(ch, "\tW[CRIT!]\tn");
+    send_to_char(victim, "\tR[CRIT!]\tn");
   } else if (diceroll == 20) { /*auto hit, not critical though*/
     dam = TRUE;
   } else if (!AWAKE(victim)) {
