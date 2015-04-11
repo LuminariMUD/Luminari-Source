@@ -2413,8 +2413,25 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded) {
 int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded) {
   int crit_multi = 2;
 
-  if (wielded)
-    crit_multi = weapon_list[GET_OBJ_VAL(wielded, 0)].critMult;
+  if (wielded) {
+    switch (weapon_list[GET_OBJ_VAL(wielded, 0)].critMult) {
+      case CRIT_X2:
+        crit_multi = 2;
+        break;
+      case CRIT_X3:
+        crit_multi = 3;
+        break;
+      case CRIT_X4:
+        crit_multi = 4;
+        break;
+      case CRIT_X5:
+        crit_multi = 5;
+        break;
+      case CRIT_X6:
+        crit_multi = 6;
+        break;
+    }
+  }
 
   /* establish some caps */
   if (crit_multi < CRIT_MULTI_MIN)

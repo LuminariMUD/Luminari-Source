@@ -31,6 +31,10 @@ void setweapon(int type, char *name, int numDice, int diceSize, int critRange, i
     weapon_list[type].critMult = CRIT_X3;
   else if (critMult == 4)
     weapon_list[type].critMult = CRIT_X4;
+  else if (critMult == 5)
+    weapon_list[type].critMult = CRIT_X5;
+  else if (critMult == 6)
+    weapon_list[type].critMult = CRIT_X6;
   weapon_list[type].weaponFlags = weaponFlags;
   weapon_list[type].cost = cost / 100;
   weapon_list[type].damageTypes = damageTypes;
