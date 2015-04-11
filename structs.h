@@ -1968,6 +1968,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define CRIT_X3   1
 #define CRIT_X4   2
 #define CRIT_X5   3
+#define CRIT_X6   4
 #define MAX_CRIT_TYPE CRIT_X5
 
 /* Player conditions */
