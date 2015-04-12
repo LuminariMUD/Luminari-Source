@@ -16,12 +16,14 @@
 #define WILD_DYNAMIC_ROOM_VNUM_START 1004000 /* The start of the vnums for the dynamic room pool. */
 #define WILD_DYNAMIC_ROOM_VNUM_END   1005999 /* The end of the vnums for the dynamic room pool. */
 
+#define IS_WILDERNESS_VNUM(room_vnum)  ((room_vnum >= WILD_ROOM_VNUM_START && room_vnum <= WILD_ROOM_VNUM_END) || (room_vnum >= WILD_DYNAMIC_ROOM_VNUM_START && room_vnum <= WILD_DYNAMIC_ROOM_VNUM_END))
+
 /* Utility macros */
 #define IS_DYNAMIC(rnum) ((world[rnum].number >= WILD_DYNAMIC_ROOM_VNUM_START) && \
                           (world[rnum].number <= WILD_DYNAMIC_ROOM_VNUM_END))
 
 #define WATERLINE               138
-#define SHALLOW_WATER_THRESHOLD  20 
+#define SHALLOW_WATER_THRESHOLD  20
 #define COASTLINE_THRESHOLD      5 // 10
 #define PLAINS_THRESHOLD         35
 #define HIGH_MOUNTAIN_THRESHOLD  55
@@ -45,7 +47,7 @@
 
 #define NOISE_MATERIAL_PLANE_ELEV_SEED         822344//113//3193//300 //242423 //Yang //3743
 #define NOISE_MATERIAL_PLANE_MOISTURE_SEED     834//133//3//6737
-#define NOISE_MATERIAL_PLANE_ELEV_DIST_SEED    74233//8301 
+#define NOISE_MATERIAL_PLANE_ELEV_DIST_SEED    74233//8301
 
 /* Region types. */
 #define REGION_GEOGRAPHIC	1
@@ -60,12 +62,12 @@
 // RESERVED              4
 #define PATH_RIVER       5
 #define PATH_STREAM      6
-#define PATH_GEOGRAPHIC  3 
+#define PATH_GEOGRAPHIC  3
 
-/* Glyph types. 
+/* Glyph types.
  * Used as array indexes for path_data.glyphs */
 #define GLYPH_TYPE_NONE     (-1)
-#define GLYPH_TYPE_PATH_NS    0 
+#define GLYPH_TYPE_PATH_NS    0
 #define GLYPH_TYPE_PATH_EW    1
 #define GLYPH_TYPE_PATH_INT   2
 
@@ -86,14 +88,14 @@ struct region_data {
 
   region_vnum vnum; /* Vnum for this region. */
   region_rnum rnum; /* Array index for this region. */
-  
+
   zone_rnum zone;   /* Zone that contains this region. */
   char *name;       /* Name of the region. */
 
   int region_type;  /* Type of region. */
   int region_props; /* Name: Value pairs, stores data based on region_type. */
 
-  struct vertex *vertices; /* Vertex list. */  
+  struct vertex *vertices; /* Vertex list. */
   int num_vertices;        /* The number of vertices. */
 
 };
@@ -102,7 +104,7 @@ struct path_data {
 
   region_vnum vnum; /* Vnum for this path. */
   region_rnum rnum; /* Array index for this path. */
-  
+
   zone_rnum zone;   /* Zone that contains this path. */
   char *name;       /* Name of the path. */
 
@@ -110,7 +112,7 @@ struct path_data {
   int path_props;  /* Sector type */
   char *glyphs[3]; /* Glyphs to use when printing the wilderness map. */
 
-  struct vertex *vertices; /* Vertex list. */  
+  struct vertex *vertices; /* Vertex list. */
   int num_vertices;        /* The number of vertices. */
 
 };
@@ -146,8 +148,8 @@ struct wilderness_data {
   struct sector_limits sector_map[NUM_ROOM_SECTORS][3]; /* Elevation, moisture, temp mappings to sectors. */
 
   struct kdtree* kd_wilderness_rooms; /* KDTree of the static rooms, for speed. */
-  
-  /* Regarding Regions - First I am going to try to leverage the use of an index-table in the 
+
+  /* Regarding Regions - First I am going to try to leverage the use of an index-table in the
    * database, using MyIsam and the spatial extensions that allows for very very quick spatial
    * queries.  Therefore there is no link between wilderness and region, since regions are contained
    * in their own global array. */
@@ -184,7 +186,7 @@ void region_add(struct wilderness_data *wild, struct region_data *region);
 void region_delete(struct wilderness_data *wild, region_rnum region);
 
 int  region_contains_point(region_rnum region, int x, int y);
- 
+
 void region_add_vertex    (region_rnum region, int x, int y);
 int  region_delete_vertex (region_rnum region, int x, int y);
 */
