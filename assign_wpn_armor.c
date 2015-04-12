@@ -76,7 +76,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
     }
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS) ) {
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
+         i == WEAR_SHIELD) ) {
       count++;
       /* ok we have an armor piece... */
       enhancement_bonus += GET_OBJ_VAL(obj, 4);
@@ -110,7 +111,8 @@ int compute_gear_spell_failure(struct char_data *ch) {
   for (i = 0; i < NUM_WEARS; i++) {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS)) {
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
+         i == WEAR_SHIELD)) {
       count++;
       /* ok we have an armor piece... */
       spell_failure += armor_list[GET_OBJ_VAL(obj, 1)].spellFail;
@@ -138,7 +140,8 @@ int compute_gear_armor_penalty(struct char_data *ch) {
   for (i = 0; i < NUM_WEARS; i++) {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS)) {
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
+         i == WEAR_SHIELD)) {
       count++;
       /* ok we have an armor piece... */
       armor_penalty += armor_list[GET_OBJ_VAL(obj, 1)].armorCheck;
@@ -465,16 +468,16 @@ void load_armor(void) {
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_CLOTHING, "body clothing", ARMOR_TYPE_NONE,
-    10, 0, 999, 0, 0, 30, 20,
+    10, 0, 99, 0, 0, 30, 20,
     1, MATERIAL_COTTON, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_HEAD, "clothing hood", ARMOR_TYPE_NONE,
-    10, 0, 999, 0, 0, 30, 20,
+    10, 0, 99, 0, 0, 30, 20,
     1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_ARMS, "cloth sleeves", ARMOR_TYPE_NONE,
-    10, 0, 999, 0, 0, 30, 20,
+    10, 0, 99, 0, 0, 30, 20,
     1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_LEGS, "cloth leggings", ARMOR_TYPE_NONE,
-    10, 0, 999, 0, 0, 30, 20,
+    10, 0, 99, 0, 0, 30, 20,
     1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_PADDED, "padded body armor", ARMOR_TYPE_LIGHT,
