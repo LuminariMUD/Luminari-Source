@@ -10,6 +10,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "assign_wpn_armor.h"
+#include "craft.h"
 
 /* global */
 struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
@@ -63,8 +64,35 @@ int compute_gear_shield_type(struct char_data *ch) {
 }
 
 /* enhancement bonus + material bonus */
+/* #define GET_ENHANCEMENT_BONUS(obj) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) || (GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 4) : 0) */
 int compute_gear_enhancement_bonus(struct char_data *ch) {
-  int enhancement_bonus = 0;
+  struct obj_data *obj = NULL;
+  int enhancement_bonus = 0, material_bonus = 0, i, count = 0;
+
+  for (i = 0; i < NUM_WEARS; i++) {
+    obj = GET_EQ(ch, i);
+    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+      /* ok we have an armor piece... */
+      count++;
+      enhancement_bonus += GET_OBJ_VAL(obj, 4);
+      switch (GET_OBJ_MATERIAL(obj)) {
+        case MATERIAL_ADAMANTINE:
+        case MATERIAL_MITHRIL:
+        case MATERIAL_DRAGONHIDE:
+        case MATERIAL_DIAMOND:
+        case MATERIAL_DARKWOOD:
+          material_bonus++;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  if (count) {/* divide by zero! :p */
+    enhancement_bonus = enhancement_bonus / count;
+    enhancement_bonus += MIN(0, material_bonus / count);
+  }
 
   return enhancement_bonus;
 }

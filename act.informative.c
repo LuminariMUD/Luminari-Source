@@ -2204,12 +2204,11 @@ ACMD(do_equipment) {
   if (!found)
     send_to_char(ch, " Nothing.\r\n");
 
-  send_to_char(ch, "\tCArmor: %s, Shield: %s, /Shield Wt: %d/%d, Penalty: %d, Max Dex: %s, Spell Fail:"
+  send_to_char(ch, "\tC%s, %s, Enhancement/Material Bonus: %d, Penalty: %d, Max Dex: %s, Spell Fail:"
                " %d.\tn\r\n",
                armor_type[compute_gear_armor_type(ch)],
                armor_type[compute_gear_shield_type(ch)],
-               determine_gear_weight(ch, ARMOR_PROFICIENCY),
-               determine_gear_weight(ch, SHIELD_PROFICIENCY),
+               compute_gear_enhancement_bonus(ch),
                compute_gear_penalty_check(ch),
                dex_max,
                compute_gear_arcane_fail(ch) );

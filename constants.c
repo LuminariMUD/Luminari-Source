@@ -999,7 +999,7 @@ const char *armor_type[NUM_ARMOR_TYPES +1] = {
   "Light Armor",
   "Medium Armor",
   "Heavy Armor",
-  "Shield",
+  "Normal Shield",
   "Tower Shield",
   "\n"
 };
