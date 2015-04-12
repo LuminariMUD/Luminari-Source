@@ -64,7 +64,6 @@ int compute_gear_shield_type(struct char_data *ch) {
 }
 
 /* enhancement bonus + material bonus */
-/* #define GET_ENHANCEMENT_BONUS(obj) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) || (GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 4) : 0) */
 int compute_gear_enhancement_bonus(struct char_data *ch) {
   struct obj_data *obj = NULL;
   int enhancement_bonus = 0, material_bonus = 0, i, count = 0;
@@ -72,8 +71,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
   for (i = 0; i < NUM_WEARS; i++) {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
-      /* ok we have an armor piece... */
       count++;
+      /* ok we have an armor piece... */
       enhancement_bonus += GET_OBJ_VAL(obj, 4);
       switch (GET_OBJ_MATERIAL(obj)) {
         case MATERIAL_ADAMANTINE:
@@ -99,7 +98,26 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
 
 /* should return a percentage */
 int compute_gear_spell_failure(struct char_data *ch) {
-  int spell_failure = 0;
+  int spell_failure = 0, i, count = 0;
+  struct obj_data *obj = NULL;
+
+  for (i = 0; i < NUM_WEARS; i++) {
+    obj = GET_EQ(ch, i);
+    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+      count++;
+      /* ok we have an armor piece... */
+      spell_failure += armor_list[GET_OBJ_VAL(obj, 1)].spellFail;
+    }
+  }
+
+  if (count) {
+    spell_failure = spell_failure / count;
+  }
+
+  if (spell_failure < 0)
+    spell_failure = 0;
+  if (spell_failure > 100)
+    spell_failure = 100;
 
   return spell_failure;
 }
