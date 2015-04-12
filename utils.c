@@ -27,6 +27,7 @@
 #include "mud_event.h"  // for purgemob event
 #include "feats.h"
 #include "spec_abilities.h"
+#include "assign_wpn_armor.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -821,7 +822,7 @@ void increase_skill(struct char_data *ch, int skillnum) {
         GET_SKILL(ch, skillnum)++;
       }
       break;
-      
+
     /* crafting skills */
     case SKILL_MINING:
       if (!craft) {

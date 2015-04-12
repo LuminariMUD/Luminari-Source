@@ -28,6 +28,7 @@
 #include "mudlim.h"
 #include "actions.h"
 #include "actionqueues.h"
+#include "assign_wpn_armor.h"
 
 /**** Utility functions *******/
 

@@ -316,7 +316,8 @@ treasure_const.o: treasure_const.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h interpreter.h treasure.h
 utils.o: utils.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h modify.h screen.h spells.h handler.h interpreter.h \
- class.h spec_procs.h mud_event.h dg_event.h feats.h spec_abilities.h
+ class.h spec_procs.h mud_event.h dg_event.h feats.h spec_abilities.h \
+ assign_wpn_armor.h
 weather.o: weather.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h
 wilderness.o: wilderness.c perlin.h conf.h sysdep.h structs.h protocol.h \

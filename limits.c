@@ -651,14 +651,15 @@ void run_autowiz(void) {
 #endif /* CIRCLE_UNIX || CIRCLE_WINDOWS */
 }
 
-
 /* changed to return gain */
-#define NEWBIE_EXP       150 /* bonus in percent */
-#define NUM_MOBS_10      50
-#define NUM_MOBS_20      100
-#define NUM_MOBS_25      200
-
+#define NEWBIE_EXP               150
+#define MIN_NUM_MOBS_TO_KILL     10
+#define MIN_NUM_MOBS_TO_KILL_10  25
+#define MIN_NUM_MOBS_TO_KILL_20  100
 int gain_exp(struct char_data *ch, int gain) {
+  int xp_to_lvl = 0;
+  int gain_cap = 0;
+
   if (!IS_NPC(ch) && ((GET_LEVEL(ch) < 1 || GET_LEVEL(ch) >= LVL_IMMORT)))
     return 0;
 
@@ -677,6 +678,17 @@ int gain_exp(struct char_data *ch, int gain) {
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
       gain += (int) ((float) gain * ((float) NEWBIE_EXP / (float) (100)));
 
+    /* some limited xp cap conditions */
+    xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
+    if (GET_LEVEL(ch) < 11) {
+      gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL;
+    } else if (GET_LEVEL(ch) < 21) {
+      gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL_10;
+    } else {
+      gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL_20;
+    }
+    gain = MIN(gain_cap, gain);
+
     /* put an absolute cap on the max gain per kill */
     gain = MIN(CONFIG_MAX_EXP_GAIN, gain);
 
@@ -692,6 +704,7 @@ int gain_exp(struct char_data *ch, int gain) {
 
     send_to_char(ch, "You lose %d experience points!", gain);
   }
+
   if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
     run_autowiz();
 

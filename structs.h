@@ -1785,14 +1785,14 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define NUM_WEAPON_FAMILIES            16
 
 /* Armor types */
-
 #define ARMOR_TYPE_NONE     0
 #define ARMOR_TYPE_LIGHT    1
 #define ARMOR_TYPE_MEDIUM   2
 #define ARMOR_TYPE_HEAVY    3
 #define ARMOR_TYPE_SHIELD   4
-
-#define MAX_ARMOR_TYPES     4
+#define ARMOR_TYPE_TOWER_SHIELD   5
+#define NUM_ARMOR_TYPES     6
+#define MAX_ARMOR_TYPES     4 /* unused, created for oedit though */
 
 /* Armor Types */
 #define SPEC_ARMOR_TYPE_UNDEFINED            0
@@ -1815,6 +1815,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define SPEC_ARMOR_TYPE_LARGE_SHIELD         16
 #define SPEC_ARMOR_TYPE_TOWER_SHIELD         17
 /**/
+/* this is the extension added by zusuk for piecemeal system */
 #define SPEC_ARMOR_TYPE_CLOTHING_HEAD        18
 #define SPEC_ARMOR_TYPE_PADDED_HEAD          19
 #define SPEC_ARMOR_TYPE_LEATHER_HEAD         20

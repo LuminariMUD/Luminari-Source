@@ -993,6 +993,16 @@ const char *equipment_types[NUM_WEARS + 1] = {
   "\n"
 };
 
+/* armor type (none, light, medium, heavy, etc) */
+const char *armor_type[NUM_ARMOR_TYPES +1] = {
+  "None",
+  "Light Armor",
+  "Medium Armor",
+  "Heavy Armor",
+  "Shield",
+  "Tower Shield",
+  "\n"
+};
 
 // labels for item proficiency category
 const char *item_profs[NUM_ITEM_PROFS + 1] = {
