@@ -28,12 +28,62 @@
 #include "feats.h"
 #include "spec_abilities.h"
 #include "assign_wpn_armor.h"
+#include "wilderness.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
 /* Functions of a general utility nature
    Functions directly related to utils.h needs
  */
+
+/* Take a room and direction and give the resulting room vnum, made by zusuk
+ * for ornir's wilderness, sends "NOWHERE" on failure */
+room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction) {
+  room_rnum exit_rnum = NOWHERE;
+  room_vnum exit_vnum = NOWHERE;
+  //int x_coordinate = -1, y_coordinate = -1;
+
+  /* exit values */
+  if (!VALID_ROOM_RNUM(room_origin))
+    return NOWHERE;
+  if (direction >= NUM_OF_INGAME_DIRS || direction < 0)
+    return NOWHERE;
+
+  exit_rnum = W_EXIT(room_origin, direction)->to_room;
+  exit_vnum = GET_ROOM_VNUM(exit_rnum);
+
+  /* handle wilderness */
+
+  if (IS_WILDERNESS_VNUM(exit_vnum)) {
+    /*
+    x_coordinate = world[room_origin].coords[0];
+    y_coordinate = world[room_origin].coords[1];
+    switch(direction) {
+      case NORTH:
+        y_coordinate++;
+        break;
+      case SOUTH:
+        y_coordinate--;
+        break;
+      case EAST:
+        x_coordinate++;
+        break;
+      case WEST:
+        x_coordinate--;
+        break;
+	  default:
+         //Bad direction for wilderness travel (up/down)
+         return NOWHERE;
+    }
+    exit_rnum = find_room_by_coordinates(x_coordinate, y_coordinate);
+    */
+    /* what should we do if it's a wilderness room? */
+  } else { /* should be a normal room */
+    /* exit_vnum already has our value */
+  }
+
+  return exit_vnum;
+}
 
 /* this function in conjuction with the AFF_GROUP flag will cause mobs who
    load in the same room to group up */

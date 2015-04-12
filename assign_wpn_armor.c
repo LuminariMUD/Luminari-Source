@@ -160,9 +160,35 @@ int compute_gear_armor_penalty(struct char_data *ch) {
   return armor_penalty;
 }
 
-/* maximum dexterity bonus */
+/* maximum dexterity bonus, returns 99 for no limit */
 int compute_gear_max_dex(struct char_data *ch) {
   int dexterity_cap = 0;
+  int armor_max_dexterity = 0, i, count = 0;
+
+  struct obj_data *obj = NULL;
+
+  for (i = 0; i < NUM_WEARS; i++) {
+    obj = GET_EQ(ch, i);
+    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
+         i == WEAR_SHIELD)) {
+      count++;
+      /* ok we have an armor piece... */
+      armor_max_dexterity = armor_list[GET_OBJ_VAL(obj, 1)].dexBonus;
+      if (armor_max_dexterity > 8) /* no limit */
+        armor_max_dexterity = 9;
+      dexterity_cap += armor_max_dexterity;
+    }
+  }
+
+  if (count) {
+    dexterity_cap = dexterity_cap / count;
+  }
+
+  if (dexterity_cap > 8)
+    dexterity_cap = 99; /* no limit */
+  if (dexterity_cap < 0)
+    dexterity_cap = 0;
 
   return dexterity_cap;
 }
