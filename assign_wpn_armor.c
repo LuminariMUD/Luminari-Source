@@ -172,18 +172,19 @@ int compute_gear_max_dex(struct char_data *ch) {
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
         (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
          i == WEAR_SHIELD)) {
-      count++;
       /* ok we have an armor piece... */
       armor_max_dexterity = armor_list[GET_OBJ_VAL(obj, 1)].dexBonus;
       if (armor_max_dexterity > 8) /* no limit */
         armor_max_dexterity = 9;
       dexterity_cap += armor_max_dexterity;
+      count++;
     }
   }
 
   if (count) {
     dexterity_cap = dexterity_cap / count;
-  }
+  } else
+    dexterity_cap = 99;
 
   if (dexterity_cap > 8)
     dexterity_cap = 99; /* no limit */
