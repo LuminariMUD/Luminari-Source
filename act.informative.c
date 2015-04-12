@@ -2211,7 +2211,7 @@ ACMD(do_equipment) {
                compute_gear_enhancement_bonus(ch),
                compute_gear_penalty_check(ch),
                dex_max,
-               compute_gear_arcane_fail(ch) );
+               compute_gear_spell_failure(ch) );
 
   if (ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
     send_to_char(ch, "\r\n\t<send href='inventory'>View inventory\t</send>\r\n");
