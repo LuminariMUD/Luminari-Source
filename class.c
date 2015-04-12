@@ -32,6 +32,7 @@
 #include "mudlim.h"
 #include "feats.h"
 #include "class.h"
+#include "assign_wpn_armor.h"
 
 int *free_start_feats[];
 
@@ -4181,38 +4182,36 @@ int compute_gear_max_dex(struct char_data *ch) {
 /* our simple little function to make sure our monk
    is following his martial-arts requirements for gear */
 bool monk_gear_ok(struct char_data *ch) {
-  int i = 0;
+  struct obj_data *obj = NULL;
 
-  /* hands have to be free */
+  /* hands have to be free, or wielding monk family weapon */
   if (GET_EQ(ch, WEAR_HOLD_1))
     return FALSE;
 
   if (GET_EQ(ch, WEAR_HOLD_2))
     return FALSE;
 
-  if (GET_EQ(ch, WEAR_WIELD_1))
-    return FALSE;
-
-  if (GET_EQ(ch, WEAR_WIELD_2))
-    return FALSE;
-
-  if (GET_EQ(ch, WEAR_WIELD_2H))
-    return FALSE;
-
   if (GET_EQ(ch, WEAR_SHIELD))
     return FALSE;
 
+  obj = GET_EQ(ch, WEAR_WIELD_1);
+  if (obj &&
+      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+    return FALSE;
+
+  obj = GET_EQ(ch, WEAR_WIELD_2);
+  if (obj &&
+      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+    return FALSE;
+
+  obj = GET_EQ(ch, WEAR_WIELD_2H);
+  if (obj &&
+      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+    return FALSE;
+
   /* now check to make sure he isn't wearing invalid armor */
-  for (i = 0; i < NUM_WEARS; i++) {
-    if (GET_EQ(ch, i)) {
-      if (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS ||
-              i == WEAR_ARMS || i == WEAR_HANDS) {
-        if (GET_OBJ_PROF(GET_EQ(ch, i)) > ITEM_PROF_NONE) {
-          return FALSE;
-        }
-      }
-    }
-  }
+  if (compute_gear_armor_type(ch) != ARMOR_TYPE_NONE)
+    return FALSE;
 
   /* monk gear is ok */
   return TRUE;
