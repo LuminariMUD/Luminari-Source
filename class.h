@@ -1,13 +1,13 @@
 /**
 * @file class.h
 * Header file for class specific functions and variables.
-* 
+*
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
-*                                                                        
-* All rights reserved.  See license for complete information.                                                                
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University 
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               
+*
+* All rights reserved.  See license for complete information.
+* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
 *
 */
 #ifndef _CLASS_H_
@@ -42,11 +42,12 @@ int proficiency_worn(struct char_data *ch, int type);
 int compute_gear_penalty_check(struct char_data *ch);
 int determine_gear_weight(struct char_data *ch, int type);
 int compute_gear_arcane_fail(struct char_data *ch);
-int compute_gear_max_dex(struct char_data *ch);
+/* deprecated */
+//int compute_gear_max_dex(struct char_data *ch);
 
 /* Global variables */
 
-#ifndef __CLASS_C__  
+#ifndef __CLASS_C__
 
 extern const char *class_abbrevs[];
 extern const char *pc_class_types[];

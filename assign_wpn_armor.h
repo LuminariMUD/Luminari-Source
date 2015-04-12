@@ -54,6 +54,14 @@ extern const char *weapon_type[NUM_WEAPON_TYPES];
 extern struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
 extern const char *armor_type[NUM_SPEC_ARMOR_TYPES];
 
+/* functions available through assign_wpn_armor.c */
+int compute_gear_max_dex(struct char_data *ch);
+int compute_gear_enhancement_bonus(struct char_data *ch);
+int compute_gear_spell_failure(struct char_data *ch);
+int compute_gear_armor_penalty(struct char_data *ch);
+int compute_gear_armor_type(struct char_data *ch);
+int compute_gear_shield_type(struct char_data *ch);
+
 
 #ifdef	__cplusplus
 extern "C" {

@@ -30,6 +30,7 @@
 #include "dg_scripts.h" /* for send_to_zone() */
 #include "mud_event.h"
 #include "actions.h"
+#include "assign_wpn_armor.h"
 
 /* locally defined functions of local (file) scope */
 static int compare_spells(const void *x, const void *y);

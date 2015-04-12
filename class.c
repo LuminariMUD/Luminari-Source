@@ -4143,6 +4143,8 @@ int compute_gear_dam_reduc(struct char_data *ch) {
 
 /* this function will determine the max-dex created by the
    gear the char is wearing  */
+/* deprecated */
+/*
 int compute_gear_max_dex(struct char_data *ch) {
   int factor = determine_gear_weight(ch, ARMOR_PROFICIENCY);
   int shields = determine_gear_weight(ch, SHIELD_PROFICIENCY);
@@ -4174,6 +4176,7 @@ int compute_gear_max_dex(struct char_data *ch) {
   else
     return 99; // wearing no weight!
 }
+*/
 
 /* our simple little function to make sure our monk
    is following his martial-arts requirements for gear */

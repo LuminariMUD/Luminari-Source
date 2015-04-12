@@ -487,6 +487,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /* Determine if the ch loses their dex bonus to armor class. */
   if (has_dex_bonus_to_ac(attacker, ch)) {
 
+    /* this will include a dex-cap bonus on equipment as well */
     bonuses[BONUS_TYPE_DODGE] += GET_DEX_BONUS(ch);
 
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DODGE)) {
@@ -798,6 +799,16 @@ static void make_corpse(struct char_data *ch) {
       send_to_char(ch, "You feel your body crumble to dust!\r\n");
       act("With a final moan $n crumbles to dust!",
               FALSE, ch, NULL, NULL, TO_ROOM);
+      /* transfer gold */
+      if (GET_GOLD(ch) > 0) {
+        /* duplication loophole */
+        if (IS_NPC(ch) || ch->desc) {
+          money = create_money(GET_GOLD(ch));
+          obj_to_room(money, IN_ROOM(ch));
+          obj_to_obj(money, corpse);
+        }
+        GET_GOLD(ch) = 0;
+      }
       extract_char(ch);
       return;
     }
@@ -830,6 +841,7 @@ static void make_corpse(struct char_data *ch) {
   SET_BIT_AR(GET_OBJ_EXTRA(corpse), ITEM_NODONATE);
   GET_OBJ_VAL(corpse, 0) = 0; /* You can't store stuff in a corpse */
   GET_OBJ_VAL(corpse, 3) = 1; /* corpse identifier */
+  /* todo for players: save id onto corpse, and save race, etc */
   GET_OBJ_WEIGHT(corpse) = GET_WEIGHT(ch) + IS_CARRYING_W(ch);
   GET_OBJ_RENT(corpse) = 100000;
   if (IS_NPC(ch))
@@ -1980,8 +1992,10 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
     sprintf(local_buf, "%ld", (long) local_gold);
   }
 
-  /* corpse should be made here    */
+  /* corpse should be made here */
   die(victim, ch);
+
+  /* todo: maybe make die() return a value to let us know if there really is a corpse */
 
   //handle dead mob and PRF_
   if (!IS_NPC(ch) && GROUP(ch) && (local_gold > 0) && PRF_FLAGGED(ch, PRF_AUTOSPLIT)) {
@@ -1990,19 +2004,30 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
       do_get(ch, "all.coin corpse", 0, 0);
       do_split(ch, local_buf, 0, 0);
     }
-  } else if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOGOLD))
+  } else if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOGOLD)) {
     do_get(ch, "all.coin corpse", 0, 0);
-  if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOLOOT))
+    //do_get(ch, "all.coin", 0, 0);  //added for incorporeal - no corpse
+  }
+
+  if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOLOOT)) {
     do_get(ch, "all corpse", 0, 0);
+    //do_get(ch, "all.coin", 0, 0);  //added for incorporeal - no corpse
+  }
   if (IS_NPC(victim) && !IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSAC))
     do_sac(ch, "corpse", 0, 0);
 
+  /* all done! */
   return (-1);
 }
 
 
 // death < 0, no dam = 0, damage done > 0
 /* ALLLLLL damage goes through this function */
+/* probably need to bring in another variable letting us know our source, like:
+   -melee attack
+   -spell
+   -item
+   -etc */
 int damage(struct char_data *ch, struct char_data *victim, int dam,
         int attacktype, int dam_type, int offhand) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
@@ -2227,6 +2252,9 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         struct obj_data *wielded, int w_type, int mod, int mode, int attack_type) {
   int dambonus = mod;
 
+  /* damroll (should be mostly just gear, spell affections) */
+  dambonus += GET_DAMROLL(ch);
+
   /* strength or dexterity damage bonus */
   /* hack-a-licious - dex adds damage bonus to archery */
   if (mode == MODE_DISPLAY_RANGED || attack_type == ATTACK_TYPE_RANGED) {
@@ -2282,12 +2310,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       dambonus += 2;
   }
 
-  /* damroll (should be mostly just gear) */
-  dambonus += GET_DAMROLL(ch);
-
   /* weapon enhancement bonus, might need some work */
   if (wielded)
     dambonus += GET_ENHANCEMENT_BONUS(wielded);
+
+  /*
+  if (wielded && GET_OBJ_MATERIAL(wielded) == MATERIAL_ADAMANTINE)
+      dambonus++;
+  */
 
   /* power attack */
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
@@ -2390,6 +2420,76 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
     }
   }
 }
+
+/* TODO! */
+/*
+int crit_range_extension(struct char_data *ch, struct obj_data *weap) {
+  int ext = weap ? GET_OBJ_VAL(weap, VAL_WEAPON_CRITRANGE) + 1 : 1; // include 20
+  int tp = weap ? GET_OBJ_VAL(weap, VAL_WEAPON_SKILL) : WEAPON_TYPE_UNARMED;
+  int mult = 1;
+  int imp_crit = FALSE;
+
+  if (HAS_COMBAT_FEAT(ch, CFEAT_IMPROVED_CRITICAL, tp) ||
+      has_weapon_feat(ch, FEAT_IMPROVED_CRITICAL, tp))
+    imp_crit = TRUE;
+
+  if (AFF_FLAGGED(ch, AFF_KEEN_WEAPON)) {
+    if (weap) {
+      if (IS_SET(weapon_list[GET_OBJ_VAL(weap, 0)].damageTypes, DAMAGE_TYPE_SLASHING))
+        imp_crit = TRUE;
+      else if (IS_SET(weapon_list[GET_OBJ_VAL(weap, 0)].damageTypes, DAMAGE_TYPE_PIERCING))
+        imp_crit = TRUE;
+    } else if (IS_NPC(ch)) {
+      switch (GET_ATTACK(ch) + TYPE_HIT) {
+        case TYPE_SLASH:
+        case TYPE_BITE:
+        case TYPE_SHOOT:
+        case TYPE_CLEAVE:
+        case TYPE_CLAW:
+        case TYPE_LASH:
+        case TYPE_THRASH:
+        case TYPE_PIERCE:
+        case TYPE_GORE:
+          imp_crit = TRUE;
+          break;
+      }
+    } else {
+      if (HAS_FEAT(ch, FEAT_CLAWS_AND_BITE))
+        imp_crit = TRUE;
+    }
+  }
+
+  if (AFF_FLAGGED(ch, AFF_IMPACT_WEAPON)) {
+    if (weap) {
+      if (IS_SET(weapon_list[GET_OBJ_VAL(weap, 0)].damageTypes, DAMAGE_TYPE_BLUDGEONING))
+        imp_crit = TRUE;
+    } else if (IS_NPC(ch)) {
+      switch (GET_ATTACK(ch) + TYPE_HIT) {
+        case TYPE_HIT:
+        case TYPE_STUN:
+        case TYPE_BLUDGEON:
+        case TYPE_BLAST:
+        case TYPE_PUNCH:
+        case TYPE_BATTER:
+          imp_crit = TRUE;
+          break;
+      }
+    } else {
+      if (!HAS_FEAT(ch, FEAT_CLAWS_AND_BITE))
+        imp_crit = TRUE;
+    }
+  }
+
+  if (imp_crit)
+    mult++;
+
+  if (HAS_WEAPON_MASTERY(ch, weap) && HAS_FEAT(ch, FEAT_KI_CRITICAL))
+    mult++;
+
+  return (ext * mult) - 1; // difference from 20
+
+}
+*/
 
 int determine_threat_range(struct char_data *ch, struct obj_data *wielded) {
   int threat_range = 19;

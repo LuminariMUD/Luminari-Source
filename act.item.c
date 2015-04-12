@@ -57,6 +57,240 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
 
 /**** start file code *****/
 
+/*
+byte object_saving_throws(int material_type, int type)
+{
+  switch (type) {
+  case SAVING_OBJ_IMPACT:
+    switch (material_type) {
+    case MATERIAL_GLASS:
+      return 20;
+    case MATERIAL_CERAMIC:
+      return 35;
+    case MATERIAL_ORGANIC:
+      return 40;
+    case MATERIAL_WOOD:
+      return 50;
+    case MATERIAL_IRON:
+    case MATERIAL_LEATHER:
+      return 70;
+    case MATERIAL_STEEL:
+    case MATERIAL_DARKWOOD:
+    case MATERIAL_COLD_IRON:
+      return 85;
+    case MATERIAL_MITHRIL:
+    case MATERIAL_STONE:
+    case MATERIAL_ALCHEMAL_SILVER:
+    case MATERIAL_DRAGONHIDE:
+      return 90;
+    case MATERIAL_DIAMOND:
+    case MATERIAL_ADAMANTINE:
+      return 95;
+    default:
+      return 50;
+      break;
+    }
+  case SAVING_OBJ_HEAT:
+    switch (material_type) {
+    case MATERIAL_WOOL:
+      return 15;
+    case MATERIAL_PAPER:
+      return 20;
+    case MATERIAL_COTTON:
+    case MATERIAL_SATIN:
+    case MATERIAL_SILK:
+    case MATERIAL_BURLAP:
+    case MATERIAL_VELVET:
+    case MATERIAL_WOOD:
+      return 25;
+    case MATERIAL_ONYX:
+    case MATERIAL_CURRENCY:
+      return 45;
+    case MATERIAL_GLASS:
+      return 55;
+    case MATERIAL_PLATINUM:
+      return 75;
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DRAGONHIDE:
+      return 85;
+    default:
+      return 50;
+      break;
+    }
+  case SAVING_OBJ_COLD:
+    switch (material_type) {
+    case MATERIAL_GLASS:
+      return 35;
+    case MATERIAL_ORGANIC:
+    case MATERIAL_CURRENCY:
+      return 45;
+    case MATERIAL_DRAGONHIDE:
+      return 80;
+    default:
+      return 50;
+      break;
+    }
+  case SAVING_OBJ_BREATH:
+    switch (material_type) {
+    case MATERIAL_DRAGONHIDE:
+      return 85;
+    default:
+      return 50;
+      break;
+    }
+  case SAVING_OBJ_SPELL:
+    switch (material_type) {
+    default:
+      return 50;
+      break;
+    }
+  default:
+    log("SYSERR: Invalid object saving throw type.");
+    break;
+  }
+  // Should not get here unless something is wrong.
+  return 100;
+}
+*/
+
+/*
+int obj_savingthrow(int material, int type)
+{
+  int save, rnum;
+
+  save = object_saving_throws(material, type);
+
+  rnum = rand_number(1,100);
+
+  if (rnum < save) {
+    return (true);
+  }
+
+  return (false);
+}
+*/
+
+/* function needs to do two things, attacker's weapon could take damage
+     and the attackee could take damage to their armor. */
+/*
+void damage_object(struct char_data *ch, struct char_data *victim) {
+
+  struct obj_data *object = NULL;
+
+  int dnum, rnum, snum, wnum;
+
+  object = GET_EQ(ch, WEAR_WIELD1);
+
+  snum = 90;
+
+  rnum = rand_number(1, 101);
+
+  if (object && GET_OBJ_TYPE(object) == ITEM_WEAPON) {
+    if (rnum > snum) {
+      if (!obj_savingthrow(GET_OBJ_MATERIAL(object), SAVING_OBJ_IMPACT) &&
+          !OBJ_FLAGGED(object, ITEM_UNBREAKABLE)) {
+        dnum = dice(1, 3);
+        GET_OBJ_VAL(object, VAL_WEAPON_HEALTH) = GET_OBJ_VAL(object, VAL_WEAPON_HEALTH) - dnum;
+        if (GET_OBJ_VAL(object, VAL_WEAPON_HEALTH) < 0) {
+          TOGGLE_BIT_AR(GET_OBJ_EXTRA(object), ITEM_BROKEN);
+          send_to_char(ch, "@CYour %s has broken beyond use!@n\r\n", object->short_description);
+          perform_remove(ch, WEAR_WIELD1);
+        }
+      }
+    }
+  }
+
+  object = GET_EQ(ch, WEAR_WIELD2);
+
+  snum = 90;
+
+  rnum = rand_number(1, 101);
+
+  if (object && GET_OBJ_TYPE(object) == ITEM_WEAPON) {
+    if (rnum > snum) {
+      if (!obj_savingthrow(GET_OBJ_MATERIAL(object), SAVING_OBJ_IMPACT) &&
+          !OBJ_FLAGGED(object, ITEM_UNBREAKABLE)) {
+        dnum = dice(1, 3);
+        GET_OBJ_VAL(object, VAL_WEAPON_HEALTH) = GET_OBJ_VAL(object, VAL_WEAPON_HEALTH) - dnum;
+        if (GET_OBJ_VAL(object, VAL_WEAPON_HEALTH) < 0) {
+          TOGGLE_BIT_AR(GET_OBJ_EXTRA(object), ITEM_BROKEN);
+          send_to_char(ch, "@CYour %s has broken beyond use!@n\r\n", object->short_description);
+          perform_remove(ch, WEAR_WIELD1);
+        }
+      }
+    }
+  }
+
+  snum = GET_DEX(victim);
+
+  object = GET_EQ(victim, WEAR_BODY);
+
+  rnum = rand_number(1, 20);
+
+  if (rand_number(1, 100) < 10) {
+    if (object && dice(1, 3) != 3) {
+      if (rnum > snum || TRUE) {
+        if (!obj_savingthrow(GET_OBJ_MATERIAL(object), SAVING_OBJ_IMPACT) && \
+            !OBJ_FLAGGED(object, ITEM_UNBREAKABLE)) {
+          dnum = dice(1, 3);
+          GET_OBJ_VAL(object, VAL_ARMOR_HEALTH) = GET_OBJ_VAL(object, VAL_ARMOR_HEALTH) - dnum;
+          if (GET_OBJ_VAL(object, VAL_ARMOR_HEALTH) < 0) {
+            TOGGLE_BIT_AR(GET_OBJ_EXTRA(object), ITEM_BROKEN);
+            send_to_char(victim, "Your %s has broken beyond use!\r\n", object->short_description);
+            perform_remove(victim, WEAR_BODY);
+          }
+        }
+      }
+    }
+  }
+
+  rnum = dice(1, 101);
+  snum = 90;
+
+  wnum = rand_number(0, NUM_WEARS - 1);
+  object = GET_EQ(victim, wnum);
+  if (object) {
+    if (rnum > snum) {
+      if (!obj_savingthrow(GET_OBJ_MATERIAL(object), SAVING_OBJ_IMPACT) && \
+        !OBJ_FLAGGED(object, ITEM_UNBREAKABLE)) {
+        dnum = dice(1, 3);
+        GET_OBJ_VAL(object, VAL_ALL_HEALTH) = GET_OBJ_VAL(object, VAL_ALL_HEALTH) - dnum;
+        if (GET_OBJ_VAL(object, VAL_ALL_HEALTH) < 0) {
+          TOGGLE_BIT_AR(GET_OBJ_EXTRA(object), ITEM_BROKEN);
+          send_to_char(victim, "Your %s has broken beyond use!\r\n", object->short_description);
+          perform_remove(victim, wnum);
+        }
+      }
+    }
+  }
+
+
+  object = GET_EQ(victim, WEAR_SHIELD);
+
+  rnum = rand_number(1, 20);
+
+  if (rand_number(1, 100) < 10) {
+    if (object) {
+      if (rnum > snum || TRUE) {
+        if (!obj_savingthrow(GET_OBJ_MATERIAL(object), SAVING_OBJ_IMPACT) && \
+            !OBJ_FLAGGED(object, ITEM_UNBREAKABLE)) {
+          dnum = dice(1, 3);
+          GET_OBJ_VAL(object, VAL_ARMOR_HEALTH) = GET_OBJ_VAL(object, VAL_ARMOR_HEALTH) - dnum;
+          if (GET_OBJ_VAL(object, VAL_ARMOR_HEALTH) < 0) {
+            TOGGLE_BIT_AR(GET_OBJ_EXTRA(object), ITEM_BROKEN);
+            send_to_char(victim, "Your %s has broken beyond use!\r\n", object->short_description);
+            perform_remove(victim, WEAR_SHIELD);
+          }
+        }
+      }
+    }
+  }
+
+  return;
+}
+*/
+
 /* function to update number of lights in a room */
 void check_room_lighting_special(room_rnum room, struct char_data *ch,
         struct obj_data *light_source, bool take_out_of_container) {

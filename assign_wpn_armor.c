@@ -16,6 +16,81 @@ struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
 struct weapon_table weapon_list[NUM_WEAPON_TYPES];
 const char *weapon_type[NUM_WEAPON_TYPES];
 
+/* some utility functions necessary for our piecemail armor system, everything
+ * is up for changes since this is highly experimental system */
+
+/* Armor types */ /*
+#define ARMOR_TYPE_NONE     0
+#define ARMOR_TYPE_LIGHT    1
+#define ARMOR_TYPE_MEDIUM   2
+#define ARMOR_TYPE_HEAVY    3
+#define ARMOR_TYPE_SHIELD   4
+#define ARMOR_TYPE_TOWER_SHIELD   5
+#define NUM_ARMOR_TYPES     6 */
+/* we have to be strict here, some classes such as monk require armor_type
+   check, we are going to return the lowest armortype-value that the given
+   ch is wearing */
+int compute_gear_armor_type(struct char_data *ch) {
+  int armor_type = ARMOR_TYPE_NONE, armor_compare = ARMOR_TYPE_NONE, i;
+  struct obj_data *obj = NULL;
+
+  for (i = 0; i < NUM_WEARS; i++) {
+    obj = GET_EQ(ch, i);
+    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+      /* ok we have an armor piece... */
+      armor_compare = armor_list[GET_OBJ_VAL(obj, 1)].armorType;
+      if (armor_compare < ARMOR_TYPE_SHIELD && armor_compare > armor_type) {
+        armor_type = armor_compare;
+      }
+    }
+  }
+
+  return armor_type;
+}
+
+int compute_gear_shield_type(struct char_data *ch) {
+  int shield_type = ARMOR_TYPE_NONE;
+  struct obj_data *obj = GET_EQ(ch, WEAR_SHIELD);
+
+  if (obj) {
+    shield_type = armor_list[GET_OBJ_VAL(obj, 1)].armorType;
+    if (shield_type != ARMOR_TYPE_SHIELD && shield_type != ARMOR_TYPE_TOWER_SHIELD) {
+      shield_type = ARMOR_TYPE_NONE;
+    }
+  }
+
+  return shield_type;
+}
+
+/* enhancement bonus + material bonus */
+int compute_gear_enhancement_bonus(struct char_data *ch) {
+  int enhancement_bonus = 0;
+
+  return enhancement_bonus;
+}
+
+/* should return a percentage */
+int compute_gear_spell_failure(struct char_data *ch) {
+  int spell_failure = 0;
+
+  return spell_failure;
+}
+
+/* for doing (usually) dexterity based tasks */
+int compute_gear_armor_penalty(struct char_data *ch) {
+  int armor_penalty = 0;
+
+  return armor_penalty;
+}
+
+/* maximum dexterity bonus */
+int compute_gear_max_dex(struct char_data *ch) {
+  int dexterity_cap = 0;
+
+  return dexterity_cap;
+}
+
+/* end utility, start base set/load/init functions for weapons/armor */
 
 void setweapon(int type, char *name, int numDice, int diceSize, int critRange, int critMult,
         int weaponFlags, int cost, int damageTypes, int weight, int range, int weaponFamily, int size,

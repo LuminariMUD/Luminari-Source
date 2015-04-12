@@ -26,6 +26,7 @@
 #include "act.h"  //perform_wildshapes
 #include "mudlim.h"
 #include "oasis.h"  // mob autoroller
+#include "assign_wpn_armor.h"
 
 //external
 extern struct raff_node *raff_list;

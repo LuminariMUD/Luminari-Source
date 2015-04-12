@@ -33,6 +33,7 @@
 #include "wilderness.h"
 #include "quest.h" /* so you can identify questmaster mobiles */
 #include "feats.h"
+#include "assign_wpn_armor.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -2203,10 +2204,15 @@ ACMD(do_equipment) {
   if (!found)
     send_to_char(ch, " Nothing.\r\n");
 
-  send_to_char(ch, "\tCArmor/Shield Wt: %d/%d, Penalty: %d, Max Dex: %s, Spell Fail:"
-               " %d.\tn\r\n", determine_gear_weight(ch, ARMOR_PROFICIENCY),
+  send_to_char(ch, "\tCArmor: %s, Shield: %s, /Shield Wt: %d/%d, Penalty: %d, Max Dex: %s, Spell Fail:"
+               " %d.\tn\r\n",
+               armor_type[compute_gear_armor_type(ch)],
+               armor_type[compute_gear_shield_type(ch)],
+               determine_gear_weight(ch, ARMOR_PROFICIENCY),
                determine_gear_weight(ch, SHIELD_PROFICIENCY),
-               compute_gear_penalty_check(ch), dex_max, compute_gear_arcane_fail(ch));
+               compute_gear_penalty_check(ch),
+               dex_max,
+               compute_gear_arcane_fail(ch) );
 
   if (ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
     send_to_char(ch, "\r\n\t<send href='inventory'>View inventory\t</send>\r\n");
