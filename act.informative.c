@@ -2209,7 +2209,7 @@ ACMD(do_equipment) {
                armor_type[compute_gear_armor_type(ch)],
                armor_type[compute_gear_shield_type(ch)],
                compute_gear_enhancement_bonus(ch),
-               compute_gear_penalty_check(ch),
+               compute_gear_armor_penalty(ch),
                dex_max,
                compute_gear_spell_failure(ch) );
 
