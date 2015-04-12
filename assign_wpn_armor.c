@@ -91,7 +91,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
 
   if (count) {/* divide by zero! :p */
     enhancement_bonus = enhancement_bonus / count;
-    enhancement_bonus += MIN(0, material_bonus / count);
+    enhancement_bonus += MAX(0, material_bonus / count);
   }
 
   return enhancement_bonus;
@@ -611,7 +611,7 @@ void load_armor(void) {
   setarmor(SPEC_ARMOR_TYPE_LARGE_SHIELD, "heavy shield", ARMOR_TYPE_SHIELD,
     200, 20, 99, -2, 15, 999, 999,
     13, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
-  setarmor(SPEC_ARMOR_TYPE_TOWER_SHIELD, "tower shield", ARMOR_TYPE_SHIELD,
+  setarmor(SPEC_ARMOR_TYPE_TOWER_SHIELD, "tower shield", ARMOR_TYPE_TOWER_SHIELD,
     300, 40, 2, -10, 50, 999, 999,
     45, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
 }
