@@ -69,8 +69,14 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
   int enhancement_bonus = 0, material_bonus = 0, i, count = 0;
 
   for (i = 0; i < NUM_WEARS; i++) {
+    /* exit slots */
+    switch (i) {
+      default:
+        break;
+    }
     obj = GET_EQ(ch, i);
-    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS) ) {
       count++;
       /* ok we have an armor piece... */
       enhancement_bonus += GET_OBJ_VAL(obj, 4);
@@ -103,7 +109,8 @@ int compute_gear_spell_failure(struct char_data *ch) {
 
   for (i = 0; i < NUM_WEARS; i++) {
     obj = GET_EQ(ch, i);
-    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS)) {
       count++;
       /* ok we have an armor piece... */
       spell_failure += armor_list[GET_OBJ_VAL(obj, 1)].spellFail;
