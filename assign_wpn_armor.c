@@ -131,7 +131,28 @@ int compute_gear_spell_failure(struct char_data *ch) {
 
 /* for doing (usually) dexterity based tasks */
 int compute_gear_armor_penalty(struct char_data *ch) {
-  int armor_penalty = 0;
+  int armor_penalty = 0, i, count = 0;
+
+  struct obj_data *obj = NULL;
+
+  for (i = 0; i < NUM_WEARS; i++) {
+    obj = GET_EQ(ch, i);
+    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS)) {
+      count++;
+      /* ok we have an armor piece... */
+      armor_penalty += armor_list[GET_OBJ_VAL(obj, 1)].armorCheck;
+    }
+  }
+
+  if (count) {
+    armor_penalty = armor_penalty / count;
+  }
+
+  if (armor_penalty > 0)
+    armor_penalty = 0;
+  if (armor_penalty < -10)
+    armor_penalty = -10;
 
   return armor_penalty;
 }
