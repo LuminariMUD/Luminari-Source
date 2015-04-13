@@ -196,8 +196,8 @@ void perform_supriseaccuracy(struct char_data *ch) {
 
   attach_mud_event(new_mud_event(eSUPRISE_ACCURACY, ch, NULL), SECS_PER_MUD_DAY * 1);
 
-  send_to_char(ch, "You focus your rage and prepare a suprise accurate attack.\r\n");
-  act("$n's focuses $s rage, preparing a suprise accuracy attack!", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "You focus your rage and prepare a surprise accurate attack.\r\n");
+  act("$n's focuses $s rage, preparing a surprise accuracy attack!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
 /* rp_come_and_get_me engine */
