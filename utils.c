@@ -37,8 +37,8 @@
  */
 
 /* Take a room and direction and give the resulting room vnum, made by zusuk
- * for ornir's wilderness, sends "NOWHERE" on failure */
-room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction) {
+ * for ornir's wilderness, returns "NOWHERE" on failure */
+room_vnum get_direction_vnum(room_rnum room_origin, int direction) {
   room_rnum exit_rnum = NOWHERE;
   room_vnum exit_vnum = NOWHERE;
   int x_coordinate = -1, y_coordinate = -1;
@@ -49,6 +49,7 @@ room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction) {
   if (direction >= NUM_OF_INGAME_DIRS || direction < 0)
     return NOWHERE;
 
+  /* is there even an exit this way? */
   if (W_EXIT(room_origin, direction)) {
     exit_rnum = W_EXIT(room_origin, direction)->to_room;
   } else {
@@ -85,13 +86,13 @@ room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction) {
         log("SYSERR: Wilderness utility failure.");
         return NOWHERE;
       }
-      /* Must set the coords, etc in the going_to room. */
+      /* Must set the coords, etc in the exit room. */
       assign_wilderness_room(exit_rnum, x_coordinate, y_coordinate);
     }
     exit_vnum = GET_ROOM_VNUM(exit_rnum);
     /* what should we do if it's a wilderness room? */
   } else { /* should be a normal room */
-    /* exit_vnum already has our value */
+    /* exit_vnum already has the correct value */
   }
 
   return exit_vnum;
