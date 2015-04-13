@@ -40,6 +40,7 @@
  * are made available with the function definition. */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
+room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction);
 int convert_alignment(int align);
 void set_alignment(struct char_data *ch, int alignment);
 char *get_align_by_num_cnd(int align);

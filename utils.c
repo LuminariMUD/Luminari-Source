@@ -41,7 +41,7 @@
 room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction) {
   room_rnum exit_rnum = NOWHERE;
   room_vnum exit_vnum = NOWHERE;
-  //int x_coordinate = -1, y_coordinate = -1;
+  int x_coordinate = -1, y_coordinate = -1;
 
   /* exit values */
   if (!VALID_ROOM_RNUM(room_origin))
@@ -52,10 +52,8 @@ room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction) {
   exit_rnum = W_EXIT(room_origin, direction)->to_room;
   exit_vnum = GET_ROOM_VNUM(exit_rnum);
 
-  /* handle wilderness */
-
-  if (IS_WILDERNESS_VNUM(exit_vnum)) {
-    /*
+  /* handle wilderness, if the room exists we have to fix the vnum */
+  if (exit_vnum == 1000000) {
     x_coordinate = world[room_origin].coords[0];
     y_coordinate = world[room_origin].coords[1];
     switch(direction) {
@@ -72,11 +70,21 @@ room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction) {
         x_coordinate--;
         break;
 	  default:
+         log("SYSERR: Wilderness utility failure.");
          //Bad direction for wilderness travel (up/down)
          return NOWHERE;
     }
     exit_rnum = find_room_by_coordinates(x_coordinate, y_coordinate);
-    */
+    if (exit_rnum == NOWHERE) {
+      exit_rnum = find_available_wilderness_room();
+      if(exit_rnum == NOWHERE) {
+        log("SYSERR: Wilderness utility failure.");
+        return NOWHERE;
+      }
+      /* Must set the coords, etc in the going_to room. */
+      assign_wilderness_room(exit_rnum, x_coordinate, y_coordinate);
+    }
+    exit_vnum = GET_ROOM_VNUM(exit_rnum);
     /* what should we do if it's a wilderness room? */
   } else { /* should be a normal room */
     /* exit_vnum already has our value */
