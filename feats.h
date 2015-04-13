@@ -43,8 +43,6 @@ struct feat_prerequisite {
 
 void load_weapons(void);
 void load_armor(void);
-int is_proficient_with_armor(const struct char_data *ch, int armor_type);
-int is_proficient_with_weapon(const struct char_data *ch, int weapon_type);
 void assign_feats(void);
 void sort_feats(void);
 int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg);

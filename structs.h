@@ -919,7 +919,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAR_WRIST_L   15  /**< Equipment Location Left Wrist */
 #define WEAR_WIELD_1   16  /**< Equipment Location Weapon */
 #define WEAR_HOLD_1	   17  /**< Equipment Location held in offhand */
-#define WEAR_WIELD_2   18  // off-hand weapon
+#define WEAR_WIELD_OFFHAND   18  // off-hand weapon
 #define WEAR_HOLD_2    19  // off-hand held
 #define WEAR_WIELD_2H  20  // two-hand weapons
 #define WEAR_HOLD_2H   21  // two-hand held
@@ -1742,18 +1742,33 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define HANDLE_TYPE_HANDLE    6
 #define HANDLE_TYPE_GLOVE     7
 
-// weapon flags
-
+/****************************
+ WEAPON FLAGS ******
+ ****************************/
 #define WEAPON_FLAG_SIMPLE      (1 << 0)
 #define WEAPON_FLAG_MARTIAL     (1 << 1)
 #define WEAPON_FLAG_EXOTIC      (1 << 2)
 #define WEAPON_FLAG_RANGED      (1 << 3)
 #define WEAPON_FLAG_THROWN      (1 << 4)
+/* Reach: You use a reach weapon to strike opponents 10 feet away, but you can't
+ * use it against an adjacent foe. */
 #define WEAPON_FLAG_REACH       (1 << 5)
 #define WEAPON_FLAG_ENTANGLE    (1 << 6)
+/* Trip*: You can use a trip weapon to make trip attacks. If you are tripped
+ * during your own trip attempt, you can drop the weapon to avoid being tripped
+ * (*see FAQ/Errata.) */
 #define WEAPON_FLAG_TRIP        (1 << 7)
+/* Double: You can use a double weapon to fight as if fighting with two weapons,
+ * but if you do, you incur all the normal attack penalties associated with
+ * fighting with two weapons, just as if you were using a one-handed weapon and
+ * a light weapon. You can choose to wield one end of a double weapon two-handed,
+ * but it cannot be used as a double weapon when wielded in this way—only one
+ * end of the weapon can be used in any given round. */
 #define WEAPON_FLAG_DOUBLE      (1 << 8)
+/* Disarm: When you use a disarm weapon, you get a +2 bonus on Combat Maneuver
+ * Checks to disarm an enemy. */
 #define WEAPON_FLAG_DISARM      (1 << 9)
+/* Nonlethal: These weapons deal nonlethal damage (see Combat). */
 #define WEAPON_FLAG_NONLETHAL   (1 << 10)
 #define WEAPON_FLAG_SLOW_RELOAD (1 << 11)
 #define WEAPON_FLAG_BALANCED    (1 << 12)
@@ -1761,10 +1776,82 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAPON_FLAG_REPEATING   (1 << 14)
 #define WEAPON_FLAG_TWO_HANDED  (1 << 15)
 #define WEAPON_FLAG_LIGHT       (1 << 16)
-#define NUM_WEAPON_FLAGS        17
+/* Blocking: When you use this weapon to fight defensively, you gain a +1 shield
+ * bonus to AC. Source: Ultimate Combat. */
+#define WEAPON_FLAG_BLOCKING    (1 << 17)
+/* Brace: If you use a readied action to set a brace weapon against a charge,
+ * you deal double damage on a successful hit against a charging creature
+ * (see Combat). */
+#define WEAPON_FLAG_BRACING     (1 << 18)
+/* Deadly: When you use this weapon to deliver a coup de grace, it gains a +4
+ * bonus to damage when calculating the DC of the Fortitude saving throw to see
+ * whether the target of the coup de grace dies from the attack. The bonus is
+ * not added to the actual damage of the coup de grace attack.
+ * Source: Ultimate Combat. */
+#define WEAPON_FLAG_DEADLY      (1 << 19)
+/* Distracting: You gain a +2 bonus on Bluff skill checks to feint in combat
+ * while wielding this weapon. Source: Ultimate Combat. */
+#define WEAPON_FLAG_DISTRACTING (1 << 20)
+/* Fragile: Weapons and armor with the fragile quality cannot take the beating
+ * that sturdier weapons can. A fragile weapon gains the broken condition if the
+ * wielder rolls a natural 1 on an attack roll with the weapon. If a fragile
+ * weapon is already broken, the roll of a natural 1 destroys it instead.
+ * Masterwork and magical fragile weapons and armor lack these flaws unless
+ * otherwise noted in the item description or the special material description.
+ * If a weapon gains the broken condition in this way, that weapon is considered
+ * to have taken damage equal to half its hit points +1. This damage is repaired
+ * either by something that addresses the effect that granted the weapon the
+ * broken condition (like quick clear in the case of firearm misfires or the
+ * Field Repair feat) or by the repair methods described in the broken condition.
+ * When an effect that grants the broken condition is removed, the weapon
+ * regains the hit points it lost when the broken condition was applied. Damage
+ * done by an attack against a weapon (such as from a sunder combat maneuver)
+ * cannot be repaired by an effect that removes the broken condition.
+ * Source: Ultimate Combat.*/
+#define WEAPON_FLAG_FRAGILE     (1 << 21)
+/* Grapple: On a successful critical hit with a weapon of this type, you can
+ * grapple the target of the attack. The wielder can then attempt a combat
+ * maneuver check to grapple his opponent as a free action. This grapple attempt
+ * does not provoke an attack of opportunity from the creature you are
+ * attempting to grapple if that creature is not threatening you. While you
+ * grapple the target with a grappling weapon, you can only move or damage the
+ * creature on your turn. You are still considered grappled, though you do not
+ * have to be adjacent to the creature to continue the grapple. If you move far
+ * enough away to be out of the weapon’s reach, you end the grapple with that
+ * action. Source: Ultimate Combat. */
+#define WEAPON_FLAG_GRAPPLING   (1 << 22)
+/* Performance: When wielding this weapon, if an attack or combat maneuver made
+ * with this weapon prompts a combat performance check, you gain a +2 bonus on
+ * that check. See Gladiator Weapons below for more information. */
+#define WEAPON_FLAG_PERFORMANCE (1 << 23)
+/* ***Strength (#): This feature is usually only applied to ranged weapons (such
+ * as composite bows). Some weapons function better in the hands of stronger
+ * users. All such weapons are made with a particular Strength rating (that is,
+ * each requires a minimum Strength modifier to use with proficiency and this
+ * number is included in parenthesis). If your Strength bonus is less than the
+ * strength rating of the weapon, you can't effectively use it, so you take a –2
+ * penalty on attacks with it. For example, the default (lowest form of)
+ * composite longbow requires a Strength modifier of +0 or higher to use with
+ * proficiency. A weapon with the Strength feature allows you to add your
+ * Strength bonus to damage, up to the maximum bonus indicated for the bow. Each
+ * point of Strength bonus granted by the bow adds 100 gp to its cost. If you
+ * have a penalty for low Strength, apply it to damage rolls when you use a
+ * composite longbow. Editor's Note: The "Strength" weapon feature was 'created'
+ * by d20pfsrd.com as a shorthand note to the composite bow mechanics. This is
+ * not "Paizo" or "official" content. */
+#define WEAPON_FLAG_STRENGTH    (1 << 24)
+/* Sunder: When you use a sunder weapon, you get a +2 bonus on Combat Maneuver
+ * Checks to sunder attempts. */
+#define WEAPON_FLAG_SUNDER      (1 << 25)
+
+/* ----------------- */
+#define NUM_WEAPON_FLAGS        26
+
+/*****/
 
 // weapon families
-
+/* *Monk: A monk weapon can be used by a monk to perform a flurry of blows
+ * (*see FAQ/Errata.) */
 #define WEAPON_FAMILY_MONK             0
 #define WEAPON_FAMILY_SMALL_BLADE      1
 #define WEAPON_FAMILY_CLUB             2

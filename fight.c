@@ -70,7 +70,7 @@ struct attack_hit_type attack_hit_text[] = {
 static struct char_data *next_combat_list = NULL;
 
 /* local file scope utility functions */
-struct obj_data* get_wielded(struct char_data *ch, int attack_type);
+struct obj_data *get_wielded(struct char_data *ch, int attack_type);
 static void perform_group_gain(struct char_data *ch, int base,
         struct char_data *victim);
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
@@ -467,7 +467,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
 
   /* bonus type deflection */
   /* two weapon defense */
-  if (!IS_NPC(ch) && GET_EQ(ch, WEAR_WIELD_2) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE)) {
+  if (!IS_NPC(ch) && GET_EQ(ch, WEAR_WIELD_OFFHAND) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE)) {
     bonuses[BONUS_TYPE_DEFLECTION]++;
   }
   if (attacker) {
@@ -1449,7 +1449,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
   else if (GET_RACE(ch) == RACE_TRELUX)
     weap = read_object(TRELUX_CLAWS, VIRTUAL);
   else if (dualing)
-    weap = GET_EQ(ch, WEAR_WIELD_2);
+    weap = GET_EQ(ch, WEAR_WIELD_OFFHAND);
 
   /* These attacks use a shield as a weapon. */
   if ((attacktype == SKILL_SHIELD_PUNCH)  ||
@@ -2252,25 +2252,43 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         struct obj_data *wielded, int w_type, int mod, int mode, int attack_type) {
   int dambonus = mod;
 
+  /* redundancy necessary due to sometimes arriving here without going through
+   * compute_hit_damage()*/
+  if (attack_type == ATTACK_TYPE_UNARMED)
+    wielded = NULL;
+  else
+    wielded = get_wielded(ch, attack_type);
+
   /* damroll (should be mostly just gear, spell affections) */
   dambonus += GET_DAMROLL(ch);
 
-  /* strength or dexterity damage bonus */
-  /* hack-a-licious - dex adds damage bonus to archery */
-  if (mode == MODE_DISPLAY_RANGED || attack_type == ATTACK_TYPE_RANGED) {
-    dambonus += GET_DEX_BONUS(ch);
-    if (vict && IN_ROOM(ch) == IN_ROOM(vict)) {
-      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))
-        dambonus++;
-    }
-  /* strength */
-  } else if (attack_type == ATTACK_TYPE_TWOHAND) /* 2-hand weapons get 3/2 str bonus */
-    dambonus += GET_STR_BONUS(ch) * 3 / 2;
-  /* offhand gets half strength bonus */
-  else if (mode == MODE_DISPLAY_OFFHAND || attack_type == ATTACK_TYPE_OFFHAND)
-    dambonus += GET_STR_BONUS(ch) / 2;
-  else /* normal */
-    dambonus += GET_STR_BONUS(ch);
+  /* strength bonus */
+  switch (attack_type) {
+    case ATTACK_TYPE_PRIMARY:
+      if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
+        dambonus += GET_STR_BONUS(ch) * 3 / 2; /* 2handed weapon */
+      else
+        dambonus += GET_STR_BONUS(ch);
+      break;
+    case ATTACK_TYPE_OFFHAND:
+      dambonus += GET_STR_BONUS(ch) / 2;
+      break;
+    case ATTACK_TYPE_RANGED:
+      dambonus += GET_DEX_BONUS(ch); /* we will get rid of this soon */
+      if (vict && IN_ROOM(ch) == IN_ROOM(vict)) {
+        if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))
+          dambonus++;
+      }
+      break;
+    case ATTACK_TYPE_UNARMED:
+      dambonus += GET_STR_BONUS(ch);
+      break;
+    case ATTACK_TYPE_TWOHAND:
+      dambonus += GET_STR_BONUS(ch) * 3 / 2; /* 2handed weapon */
+      break;
+
+    default:break;
+  }
 
   /* Circumstance penalty */
   switch (GET_POS(ch)) {
@@ -2566,11 +2584,11 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       show_obj_to_char(wielded, ch, SHOW_OBJ_SHORT, 0);
     }
   } else if (mode == MODE_DISPLAY_OFFHAND) {
-    if (!GET_EQ(ch, WEAR_WIELD_2)) {
+    if (!GET_EQ(ch, WEAR_WIELD_OFFHAND)) {
       send_to_char(ch, "Bare-hands\r\n");
     } else {
-      wielded = GET_EQ(ch, WEAR_WIELD_2);
-      show_obj_to_char(GET_EQ(ch, WEAR_WIELD_2), ch, SHOW_OBJ_SHORT, 0);
+      wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+      show_obj_to_char(GET_EQ(ch, WEAR_WIELD_OFFHAND), ch, SHOW_OBJ_SHORT, 0);
     }
   }
 
@@ -2641,26 +2659,18 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         int w_type, int diceroll, int mode, bool is_critical, int attack_type) {
   int dam = 0;
-  /*redundancy necessary due to sometimes arriving here without going through hit()*/
-  struct obj_data *wielded = get_wielded(ch, attack_type);
+  struct obj_data *wielded = NULL;
 
-  /* this may be completely unnecessary */
-  switch (mode) {
-    case MODE_DISPLAY_PRIMARY:
-    case MODE_DISPLAY_RANGED:
-      if (!wielded)
-        wielded = GET_EQ(ch, WEAR_WIELD_2H);
-      break;
-    case MODE_DISPLAY_OFFHAND:
-      wielded = GET_EQ(ch, WEAR_WIELD_2);
-      break;
-    case MODE_NORMAL_HIT:
-    default:
-      break;
-  }
-  if (GET_EQ(ch, WEAR_WIELD_2H) && mode != MODE_DISPLAY_RANGED &&
+  /* redundancy necessary due to sometimes arriving here without going through
+   * hit()*/
+  if (attack_type == ATTACK_TYPE_UNARMED)
+    wielded = NULL;
+  else
+    wielded = get_wielded(ch, attack_type);
+
+  /*if (GET_EQ(ch, WEAR_WIELD_2H) && mode != MODE_DISPLAY_RANGED &&
       attack_type != ATTACK_TYPE_RANGED)
-    attack_type = ATTACK_TYPE_TWOHAND;
+    attack_type = ATTACK_TYPE_TWOHAND;*/
 
   /* calculate how much damage to do with a given hit() */
   if (mode == MODE_NORMAL_HIT) {
@@ -2749,7 +2759,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
     } /* end wielded */
 
-    /* calculate weapon damage for _display_ purposes */
+  /* calculate weapon damage for _display_ purposes */
   } else if (mode == MODE_DISPLAY_PRIMARY ||
              mode == MODE_DISPLAY_OFFHAND ||
              mode == MODE_DISPLAY_RANGED) {
@@ -3013,7 +3023,7 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
 void idle_weapon_spells(struct char_data *ch) {
   int random = 0, j = 0;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
-  struct obj_data *offWield = GET_EQ(ch, WEAR_WIELD_2);
+  struct obj_data *offWield = GET_EQ(ch, WEAR_WIELD_OFFHAND);
 
   if (GET_EQ(ch, WEAR_WIELD_2H))
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
@@ -3081,20 +3091,32 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
                              int attack_type)      /* Type of attack. */
 {
   struct obj_data *wielded = NULL;
-
   /* Check the primary hand location. */
   wielded = GET_EQ(ch, WEAR_WIELD_1);
 
-  if (!wielded && (attack_type == ATTACK_TYPE_RANGED)) {
-    wielded = GET_EQ(ch, WEAR_WIELD_2H);
-  } else if (attack_type == ATTACK_TYPE_OFFHAND) {
-    wielded = GET_EQ(ch, WEAR_WIELD_2);
-  } else if ((attack_type == ATTACK_TYPE_PRIMARY) &&
-              !wielded) {  // 2-hand weapon, primary hand
-    wielded = GET_EQ(ch, WEAR_WIELD_2H);
-  } else if (attack_type == ATTACK_TYPE_TWOHAND) {
-    wielded = GET_EQ(ch, WEAR_WIELD_2H);
-  }  // we either have wielded or NULL
+  switch (attack_type) {
+    case ATTACK_TYPE_RANGED:
+    case ATTACK_TYPE_PRIMARY:
+      if (!wielded) {  // 2-hand weapon, primary hand
+        wielded = GET_EQ(ch, WEAR_WIELD_2H);
+      }
+      break;
+    case ATTACK_TYPE_OFFHAND:
+      if (is_using_double_weapon(ch)) {
+        wielded = GET_EQ(ch, WEAR_WIELD_2H);
+      } else {
+        wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+      }
+      break;
+    case ATTACK_TYPE_UNARMED:
+      wielded = NULL;
+      break;
+    case ATTACK_TYPE_TWOHAND:
+      wielded = GET_EQ(ch, WEAR_WIELD_2H);
+      break;
+    default:
+      break;
+  }
 
   return wielded;
 }
@@ -3113,9 +3135,10 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   int i = 0;
   int bonuses[NUM_BONUS_TYPES];
   int calc_bab = BAB(ch); /* Start with base attack bonus */
+  struct obj_data *wielded = NULL;
 
-  struct obj_data *wielded;
-
+  /* redundancy necessary due to sometimes arriving here without going through
+   * hit()*/
   if (attack_type == ATTACK_TYPE_UNARMED)
     wielded = NULL;
   else
@@ -3125,15 +3148,27 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
     bonuses[i] = 0;
 
-  /* start with our base bonus of strength (or dex with feat) */
-  if ((attack_type == ATTACK_TYPE_RANGED) ||
-      (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_FINESSE))) {
-    if (GET_DEX_BONUS(ch) >= GET_STR_BONUS(ch))
+  /* start with our base bonus of strength (or dex with feat/ranged) */
+  switch (attack_type) {
+    case ATTACK_TYPE_OFFHAND:
+    case ATTACK_TYPE_PRIMARY:
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_FINESSE) &&
+            (GET_OBJ_SIZE(wielded) < GET_SIZE(ch) ||
+             is_using_light_weapon(ch, wielded)) ) {
+        calc_bab += GET_DEX_BONUS(ch);
+      } else {
+        calc_bab += GET_STR_BONUS(ch);
+      }
+      break;
+    case ATTACK_TYPE_RANGED:
       calc_bab += GET_DEX_BONUS(ch);
-    else
+      break;
+    case ATTACK_TYPE_UNARMED:
+    case ATTACK_TYPE_TWOHAND:
       calc_bab += GET_STR_BONUS(ch);
-  } else {
-    calc_bab += GET_STR_BONUS(ch);
+      break;
+    default:
+      break;
   }
 
   /* NOTICE:  This may be something we phase out, but for basic
@@ -3266,7 +3301,6 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
 
   /* Add armor prof here: If not proficient with worn armor, armor check
    * penalty applies to attack roll. */
-
 
   /* Add up all the bonuses */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
@@ -3788,8 +3822,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   if (!ch || !victim) return (HIT_MISS); /* ch and victim exist? */
 
   struct obj_data *wielded = get_wielded(ch, attack_type); /* Wielded weapon for this hand (uses offhand) */
-  if (GET_EQ(ch, WEAR_WIELD_2H) && attack_type != ATTACK_TYPE_RANGED)
-    attack_type = ATTACK_TYPE_TWOHAND;
+  /*if (GET_EQ(ch, WEAR_WIELD_2H) && attack_type != ATTACK_TYPE_RANGED)
+    attack_type = ATTACK_TYPE_TWOHAND;*/
 
   /* First - check the attack queue.  If we have a queued attack, dispatch!
     The attack queue should be more tightly integrated into the combat system.  Basically,
@@ -4050,7 +4084,10 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 /* ch dual wielding or is trelux */
 int is_dual_wielding(struct char_data *ch) {
 
-  if (GET_EQ(ch, WEAR_WIELD_2) || GET_RACE(ch) == RACE_TRELUX)
+  if (GET_EQ(ch, WEAR_WIELD_OFFHAND) || GET_RACE(ch) == RACE_TRELUX)
+    return TRUE;
+
+  if (is_using_double_weapon(ch))
     return TRUE;
 
   return FALSE;
@@ -4066,7 +4103,7 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
       if (IS_NPC(ch))
         return TRUE;
       else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_TWO_WEAPON_FIGHTING) ||
-                 (proficiency_worn(ch, ARMOR_PROFICIENCY) <= ITEM_PROF_LIGHT_A &&
+                 (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
                   HAS_FEAT(ch, FEAT_DUAL_WEAPON_FIGHTING)))
                ) {
         return TRUE;
@@ -4076,7 +4113,7 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
       if (IS_NPC(ch) && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
         return TRUE;
       else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) ||
-                 (proficiency_worn(ch, ARMOR_PROFICIENCY) <= ITEM_PROF_LIGHT_A &&
+                 (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
                   HAS_FEAT(ch, FEAT_IMPROVED_DUAL_WEAPON_FIGHTING)))
                ) {
         return TRUE;
@@ -4086,7 +4123,7 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
       if (IS_NPC(ch) && GET_LEVEL(ch) >= 17 && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
         return TRUE;
       else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_GREATER_TWO_WEAPON_FIGHTING) ||
-                 (proficiency_worn(ch, ARMOR_PROFICIENCY) <= ITEM_PROF_LIGHT_A &&
+                 (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
                   HAS_FEAT(ch, FEAT_GREATER_DUAL_WEAPON_FIGHTING)))
                ) {
         return TRUE;
@@ -4096,7 +4133,7 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
       if (IS_NPC(ch) && GET_LEVEL(ch) >= 24 && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
         return TRUE;
       else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_PERFECT_TWO_WEAPON_FIGHTING) ||
-                 (proficiency_worn(ch, ARMOR_PROFICIENCY) <= ITEM_PROF_LIGHT_A &&
+                 (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
                   HAS_FEAT(ch, FEAT_PERFECT_DUAL_WEAPON_FIGHTING)))
                ) {
         return TRUE;
@@ -4170,7 +4207,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 
   guard_check(ch, FIGHTING(ch)); /* this is the guard skill check */
 
-  /* level based bonus attacks, which is BAB / 5 up to the ATTACK_CAP [note might need to add armor restrictions here?] */
+  /* level based bonus attacks, which is BAB / 5 up to the ATTACK_CAP
+   * [note might need to add armor restrictions here?] */
   bonus_mainhand_attacks = MIN((BAB(ch) - 1) / 5, ATTACK_CAP);
 
   /* monk flurry of blows */
@@ -4316,8 +4354,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 
   if (dual) { /*default of one offhand attack for everyone*/
     numAttacks += 2; /* mainhand + offhand */
-    if (GET_EQ(ch, WEAR_WIELD_2)) { /* determine if offhand is smaller than ch */
-      if (GET_SIZE(ch) <= GET_OBJ_SIZE(GET_EQ(ch, WEAR_WIELD_2)))
+    if (GET_EQ(ch, WEAR_WIELD_OFFHAND)) { /* determine if offhand is smaller than ch */
+      if (GET_SIZE(ch) <= GET_OBJ_SIZE(GET_EQ(ch, WEAR_WIELD_OFFHAND)))
         penalty -= 4; /* offhand weapon is not light! */
     }
     if (is_skilled_dualer(ch, MODE_2_WPN)) /* two weapon fighting feat? */
@@ -4328,11 +4366,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       if (valid_fight_cond(ch))
         if (phase == PHASE_0 || phase == PHASE_1)
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
-                penalty, FALSE); /* whack with mainhand */
+                penalty, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
         if (valid_fight_cond(ch))
           if (phase == PHASE_0 || phase == PHASE_2)
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
-                  penalty * 2, TRUE); /* whack with offhand */
+                  penalty * 2, ATTACK_TYPE_OFFHAND); /* whack with offhand */
         //display attack routine
     } else if (mode == DISPLAY_ROUTINE_POTENTIAL) {
       /* display hitroll bonus */
@@ -4353,7 +4391,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
       if (valid_fight_cond(ch))
         if (phase == PHASE_0 || phase == PHASE_1)
-          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_PRIMARY);
     } else if (mode == DISPLAY_ROUTINE_POTENTIAL) {
       /* display hitroll bonus */
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
@@ -4372,7 +4410,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       attacks_at_max_bab--;
       if (valid_fight_cond(ch))
         if (phase == PHASE_0 || ((phase == PHASE_2) && numAttacks == 2) || ((phase == PHASE_3) && numAttacks == 3))
-          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_PRIMARY);
     }
 
     else if (mode == DISPLAY_ROUTINE_POTENTIAL) {
@@ -4417,7 +4455,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       if (FIGHTING(ch) && mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
         update_pos(FIGHTING(ch));
         if (valid_fight_cond(ch)) {
-          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, FALSE);
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_PRIMARY);
         }
       }
     }
@@ -4455,7 +4493,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                                                 (numAttacks == 9) ||
                                                 (numAttacks == 12) ||
                                                 (numAttacks == 15))))
-              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY, TRUE);
+              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY, ATTACK_TYPE_OFFHAND);
       } else if (mode == DISPLAY_ROUTINE_POTENTIAL) {
         /* display hitroll bonus */
         send_to_char(ch, "Offhand (Improved 2 Weapon Fighting), Attack Bonus:  %d; ",
@@ -4485,7 +4523,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                                                           (numAttacks == 12) ||
                                                           (numAttacks == 15))))
 
-            hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, GREAT_TWO_PNLY, TRUE);
+            hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, GREAT_TWO_PNLY, ATTACK_TYPE_OFFHAND);
       } else if (mode == DISPLAY_ROUTINE_POTENTIAL) {
         /* display hitroll bonus */
         send_to_char(ch, "Offhand (Great 2 Weapon Fighting), Attack Bonus:  %d; ",
@@ -4514,7 +4552,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
                                                           (numAttacks == 9) ||
                                                           (numAttacks == 12) ||
                                                           (numAttacks == 15))))
-              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLTY, TRUE);
+              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLTY, ATTACK_TYPE_OFFHAND);
       } else if (mode == DISPLAY_ROUTINE_POTENTIAL) {
         /* display hitroll bonus */
         send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",

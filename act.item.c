@@ -1636,7 +1636,7 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where) 
 static int hands_used(struct char_data *ch) {
   int num = 0;
   if (GET_EQ(ch, WEAR_WIELD_1)) num++;
-  if (GET_EQ(ch, WEAR_WIELD_2)) num++;
+  if (GET_EQ(ch, WEAR_WIELD_OFFHAND)) num++;
   if (GET_EQ(ch, WEAR_HOLD_1)) num++;
   if (GET_EQ(ch, WEAR_HOLD_2)) num++;
   if (GET_EQ(ch, WEAR_SHIELD)) num++;
@@ -1684,8 +1684,8 @@ int is_wielding_type(struct char_data *ch) {
   if (GET_EQ(ch, WEAR_WIELD_1))
     return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_1));
 
-  if (GET_EQ(ch, WEAR_WIELD_2))
-    return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_2));
+  if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
+    return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND));
 
   if (GET_EQ(ch, WEAR_WIELD_2H))
     return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_2H));
@@ -1781,7 +1781,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
   }
 
   // size for gear, not in-hands
-  if (where != WEAR_WIELD_1 && where != WEAR_WIELD_2 &&
+  if (where != WEAR_WIELD_1 && where != WEAR_WIELD_OFFHAND &&
           where != WEAR_HOLD_1 && where != WEAR_HOLD_2 &&
           where != WEAR_SHIELD && where != WEAR_WIELD_2H &&
           where != WEAR_HOLD_2H && where != WEAR_LIGHT
@@ -1803,7 +1803,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
       where++;
 
   //juggling with hands code -zusuk
-  if (where == WEAR_WIELD_1 || where == WEAR_WIELD_2 ||
+  if (where == WEAR_WIELD_1 || where == WEAR_WIELD_OFFHAND ||
           where == WEAR_HOLD_1 || where == WEAR_HOLD_2 ||
           where == WEAR_SHIELD || where == WEAR_WIELD_2H ||
           where == WEAR_HOLD_2H

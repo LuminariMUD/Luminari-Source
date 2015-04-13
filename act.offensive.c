@@ -131,8 +131,8 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
     return TRUE;
   }
 
-  if (wield == 2 && GET_EQ(ch, WEAR_WIELD_2) &&
-          GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_2), 3) == TYPE_PIERCE - TYPE_HIT) {
+  if (wield == 2 && GET_EQ(ch, WEAR_WIELD_OFFHAND) &&
+          GET_OBJ_VAL(GET_EQ(ch, WEAR_WIELD_OFFHAND), 3) == TYPE_PIERCE - TYPE_HIT) {
     return TRUE;
   }
 
@@ -989,9 +989,9 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
   }
 
   /* 1h bludgeon off-hand */
-  if (GET_EQ(ch, WEAR_WIELD_2) && IS_BLUNT(GET_EQ(ch, WEAR_WIELD_2))) {
+  if (GET_EQ(ch, WEAR_WIELD_OFFHAND) && IS_BLUNT(GET_EQ(ch, WEAR_WIELD_OFFHAND))) {
     prob += 10;
-    wep = GET_EQ(ch, WEAR_WIELD_2);
+    wep = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   }
 
   /* 1h bludgeon primary */
@@ -1237,8 +1237,8 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict) {
   update_pos(vict);
 
   if (vict && GET_POS(vict) >= POS_DEAD) {
-    if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_2) &&
-            IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2)))) {
+    if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_OFFHAND) &&
+            IS_PIERCE(GET_EQ(ch, WEAR_WIELD_OFFHAND)))) {
       if (AWAKE(vict) && (percent2 > prob)) {
         damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
       } else {
@@ -1762,7 +1762,7 @@ ACMD(do_backstab) {
 
   if (GET_RACE(ch) == RACE_TRELUX)
     ;
-  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2) && !GET_EQ(ch, WEAR_WIELD_2H)) {
+  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_OFFHAND) && !GET_EQ(ch, WEAR_WIELD_2H)) {
     send_to_char(ch, "You need to wield a weapon to make it a success.\r\n");
     return;
   }
@@ -2799,7 +2799,7 @@ ACMD(do_circle) {
 
   if (GET_RACE(ch) == RACE_TRELUX)
     ;
-  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2) && !GET_EQ(ch, WEAR_WIELD_2H)) {
+  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_OFFHAND) && !GET_EQ(ch, WEAR_WIELD_2H)) {
     send_to_char(ch, "You need to wield a weapon to make it a success.\r\n");
     return;
   }
@@ -3447,8 +3447,8 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
   }
   //  If neither of those was successful, check for a 1H weapon in the secondary hand.
   if (!wielded) {
-    wielded = GET_EQ(vict, WEAR_WIELD_2);
-    pos = WEAR_WIELD_2;
+    wielded = GET_EQ(vict, WEAR_WIELD_OFFHAND);
+    pos = WEAR_WIELD_OFFHAND;
   }
 
   // If wielded is NULL, then the victim is weilding no weapon!
@@ -3464,7 +3464,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
   // Check to see what we are wielding.
   if ((GET_EQ(ch, WEAR_WIELD_2H) == NULL) &&
       (GET_EQ(ch, WEAR_WIELD_1) == NULL) &&
-      (GET_EQ(ch, WEAR_WIELD_2) == NULL) &&
+      (GET_EQ(ch, WEAR_WIELD_OFFHAND) == NULL) &&
       (!HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE))) {
     // Trying an unarmed disarm, -4.
     mod -= 4;

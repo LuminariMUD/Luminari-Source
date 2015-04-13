@@ -2779,7 +2779,7 @@ ACMD(do_utter) {
     if (mag_item != NULL) {
       switch (i) { /* Different procedures for weapons and armors. */
         case WEAR_WIELD_1:
-        case WEAR_WIELD_2:
+        case WEAR_WIELD_OFFHAND:
         case WEAR_WIELD_2H:
           found += process_weapon_abilities(mag_item, ch, NULL, ACTMTD_COMMAND_WORD, argument);
           break;

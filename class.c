@@ -3982,7 +3982,7 @@ int proficiency_worn(struct char_data *ch, int type) {
     if (GET_EQ(ch, i)) {
       if (type == WEAPON_PROFICIENCY && (
               i == WEAR_WIELD_1 ||
-              i == WEAR_WIELD_2 ||
+              i == WEAR_WIELD_OFFHAND ||
               i == WEAR_WIELD_2H
               )) {
         if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
@@ -3996,7 +3996,7 @@ int proficiency_worn(struct char_data *ch, int type) {
         }
       } else if (type == ARMOR_PROFICIENCY && (
               i != WEAR_WIELD_1 &&
-              i != WEAR_WIELD_2 &&
+              i != WEAR_WIELD_OFFHAND &&
               i != WEAR_WIELD_2H &&
               i != WEAR_SHIELD
               )) {
@@ -4032,7 +4032,7 @@ int determine_gear_weight(struct char_data *ch, int type) {
     if (GET_EQ(ch, i)) {
       if (type == WEAPON_PROFICIENCY && (
               i == WEAR_WIELD_1 ||
-              i == WEAR_WIELD_2 ||
+              i == WEAR_WIELD_OFFHAND ||
               i == WEAR_WIELD_2H
               )) {
         weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
@@ -4199,7 +4199,7 @@ bool monk_gear_ok(struct char_data *ch) {
       (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
     return FALSE;
 
-  obj = GET_EQ(ch, WEAR_WIELD_2);
+  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   if (obj &&
       (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
     return FALSE;
