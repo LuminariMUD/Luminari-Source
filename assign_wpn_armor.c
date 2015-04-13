@@ -732,19 +732,15 @@ int is_proficient_with_shield(struct char_data *ch) {
   if (!shield)
     return TRUE;
 
-  switch (GET_ARMOR_TYPE(shield)) {
-    case SPEC_ARMOR_TYPE_BUCKLER:
-    case SPEC_ARMOR_TYPE_SMALL_SHIELD:
-    case SPEC_ARMOR_TYPE_LARGE_SHIELD:
+  switch (GET_ARMOR_TYPE_PROF(shield)) {
+    case ARMOR_TYPE_SHIELD:
       if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_SHIELD))
         return TRUE;
       break;
-    case SPEC_ARMOR_TYPE_TOWER_SHIELD:
+    case ARMOR_TYPE_TOWER_SHIELD:
       if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD))
         return TRUE;
       break;
-    default: /* should be undefined */
-      return TRUE;
   }
 
   return FALSE;
@@ -888,7 +884,7 @@ int is_proficient_with_armor(struct char_data *ch) {
       is_proficient_with_shield(ch)
       )
     return TRUE;
-  
+
   return FALSE;
 }
 

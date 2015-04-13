@@ -1053,7 +1053,9 @@ do                                                              \
 #define GET_ENHANCEMENT_BONUS(obj) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) || (GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 4) : 0)
 
 /* armor related macro's */
+/*
 #define GET_ARMOR_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? armor_list[GET_OBJ_VAL(obj, 1)].armorBonus : SPEC_ARMOR_TYPE_UNDEFINED)
+*/
 #define GET_ARMOR_TYPE_PROF(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? armor_list[GET_OBJ_VAL(obj, 1)].armorType : ARMOR_TYPE_NONE)
 
 /* MACROS for the study system */
