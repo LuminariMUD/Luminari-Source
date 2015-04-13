@@ -3842,9 +3842,11 @@ ACMD(do_exits) {
   send_to_char(ch, "Obvious exits:\r\n");
 
   for (door = 0; door < DIR_COUNT; door++) {
-    /* zusuk debug */
+    /* zusuk debug, testing get_direction_vnum() */
+    /*
     send_to_char(ch, "What vnum is in direction: %s?  %d.\r\n", dirs[door],
-                  what_vnum_is_in_this_direction(IN_ROOM(ch), door));
+                  get_direction_vnum(IN_ROOM(ch), door));
+    */
     /***************/
     if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
       continue;
