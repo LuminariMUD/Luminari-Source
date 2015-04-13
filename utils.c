@@ -49,7 +49,11 @@ room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction) {
   if (direction >= NUM_OF_INGAME_DIRS || direction < 0)
     return NOWHERE;
 
-  exit_rnum = W_EXIT(room_origin, direction)->to_room;
+  if (W_EXIT(room_origin, direction)) {
+    exit_rnum = W_EXIT(room_origin, direction)->to_room;
+  } else {
+    return NOWHERE;
+  }
   exit_vnum = GET_ROOM_VNUM(exit_rnum);
 
   /* handle wilderness, if the room exists we have to fix the vnum */
