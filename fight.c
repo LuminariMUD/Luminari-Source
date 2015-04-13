@@ -3303,6 +3303,8 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
 
   /* Add armor prof here: If not proficient with worn armor, armor check
    * penalty applies to attack roll. */
+  if (!is_proficient_with_armor(ch))
+    calc_bab -=2;
 
   /* Add up all the bonuses */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
