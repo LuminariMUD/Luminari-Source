@@ -1052,6 +1052,10 @@ do                                                              \
 #define HAS_DAMAGE_TYPE(obj, flag)  (GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, flag) : 0)
 #define GET_ENHANCEMENT_BONUS(obj) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) || (GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 4) : 0)
 
+/* armor related macro's */
+#define GET_ARMOR_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? armor_list[GET_OBJ_VAL(obj, 1)].armorBonus : SPEC_ARMOR_TYPE_UNDEFINED)
+#define GET_ARMOR_TYPE_PROF(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? armor_list[GET_OBJ_VAL(obj, 1)].armorType : ARMOR_TYPE_NONE)
+
 /* MACROS for the study system */
 #define CAN_STUDY_FEATS(ch)  ((GET_LEVELUP_FEAT_POINTS(ch) + \
                                GET_LEVELUP_CLASS_FEATS(ch) + \

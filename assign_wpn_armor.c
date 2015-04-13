@@ -723,18 +723,46 @@ int compute_gear_max_dex(struct char_data *ch) {
   return dexterity_cap;
 }
 
-/* simply checks if ch has proficiency with given armor_type */
-int is_proficient_with_armor(struct char_data *ch, int armor_type) {
-  int general_type = find_armor_type(armor_type);
+int is_proficient_with_shield(struct char_data *ch) {
+  struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
 
-  if (armor_type == SPEC_ARMOR_TYPE_CLOTHING)
-    return TRUE;
-
-  if (armor_type == SPEC_ARMOR_TYPE_TOWER_SHIELD &&
-          !has_feat(ch, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD))
+  if (IS_NPC(ch))
     return FALSE;
 
-  switch (general_type) {
+  if (!shield)
+    return TRUE;
+
+  switch (GET_ARMOR_TYPE(shield)) {
+    case SPEC_ARMOR_TYPE_BUCKLER:
+    case SPEC_ARMOR_TYPE_SMALL_SHIELD:
+    case SPEC_ARMOR_TYPE_LARGE_SHIELD:
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_SHIELD))
+        return TRUE;
+      break;
+    case SPEC_ARMOR_TYPE_TOWER_SHIELD:
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD))
+        return TRUE;
+      break;
+    default: /* should be undefined */
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+int is_proficient_with_body_armor(struct char_data *ch) {
+  struct obj_data *body_armor = GET_EQ(ch, WEAR_BODY);
+
+  if (IS_NPC(ch))
+    return FALSE;
+
+  if (!body_armor)
+    return TRUE;
+
+  switch (GET_ARMOR_TYPE_PROF(body_armor)) {
+    case ARMOR_TYPE_NONE:
+      return TRUE;
+      break;
     case ARMOR_TYPE_LIGHT:
       if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
         return TRUE;
@@ -747,13 +775,120 @@ int is_proficient_with_armor(struct char_data *ch, int armor_type) {
       if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
         return TRUE;
       break;
-    case ARMOR_TYPE_SHIELD:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_SHIELD))
+    default:
+      break;
+  }
+
+  return FALSE;
+}
+
+int is_proficient_with_helm(struct char_data *ch) {
+  struct obj_data *head_armor = GET_EQ(ch, WEAR_HEAD);
+
+  if (IS_NPC(ch))
+    return FALSE;
+
+  if (!head_armor)
+    return TRUE;
+
+  switch (GET_ARMOR_TYPE_PROF(head_armor)) {
+    case ARMOR_TYPE_NONE:
+      return TRUE;
+      break;
+    case ARMOR_TYPE_LIGHT:
+      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
+        return TRUE;
+      break;
+    case ARMOR_TYPE_MEDIUM:
+      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+        return TRUE;
+      break;
+    case ARMOR_TYPE_HEAVY:
+      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
         return TRUE;
       break;
     default:
-      return TRUE;
+      break;
   }
+
+  return FALSE;
+}
+
+int is_proficient_with_sleeves(struct char_data *ch) {
+  struct obj_data *arm_armor = GET_EQ(ch, WEAR_ARMS);
+
+  if (IS_NPC(ch))
+    return FALSE;
+
+  if (!arm_armor)
+    return TRUE;
+
+  switch (GET_ARMOR_TYPE_PROF(arm_armor)) {
+    case ARMOR_TYPE_NONE:
+      return TRUE;
+      break;
+    case ARMOR_TYPE_LIGHT:
+      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
+        return TRUE;
+      break;
+    case ARMOR_TYPE_MEDIUM:
+      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+        return TRUE;
+      break;
+    case ARMOR_TYPE_HEAVY:
+      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
+        return TRUE;
+      break;
+    default:
+      break;
+  }
+
+  return FALSE;
+}
+
+int is_proficient_with_leggings(struct char_data *ch) {
+  struct obj_data *leg_armor = GET_EQ(ch, WEAR_LEGS);
+
+  if (IS_NPC(ch))
+    return FALSE;
+
+  if (!leg_armor)
+    return TRUE;
+
+  switch (GET_ARMOR_TYPE_PROF(leg_armor)) {
+    case ARMOR_TYPE_NONE:
+      return TRUE;
+      break;
+    case ARMOR_TYPE_LIGHT:
+      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
+        return TRUE;
+      break;
+    case ARMOR_TYPE_MEDIUM:
+      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+        return TRUE;
+      break;
+    case ARMOR_TYPE_HEAVY:
+      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
+        return TRUE;
+      break;
+    default:
+      break;
+  }
+
+  return FALSE;
+}
+
+/* simply checks if ch has proficiency with given armor_type */
+int is_proficient_with_armor(struct char_data *ch) {
+  if (
+      is_proficient_with_leggings(ch) &&
+      is_proficient_with_sleeves(ch) &&
+      is_proficient_with_helm(ch) &&
+      is_proficient_with_body_armor(ch) &&
+      is_proficient_with_shield(ch)
+      )
+    return TRUE;
+  
   return FALSE;
 }
 

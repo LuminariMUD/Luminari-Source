@@ -1622,6 +1622,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE);
           /* now set the appropriate wear flag bit */
           TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_WIELD);
+          
           /*  Skip the next two. */
           oedit_disp_val4_menu(d);
           return;
