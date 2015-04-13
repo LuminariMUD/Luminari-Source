@@ -61,6 +61,10 @@ int compute_gear_spell_failure(struct char_data *ch);
 int compute_gear_armor_penalty(struct char_data *ch);
 int compute_gear_armor_type(struct char_data *ch);
 int compute_gear_shield_type(struct char_data *ch);
+bool is_using_double_weapon(struct char_data *ch);
+bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded);
+int is_proficient_with_weapon(struct char_data *ch, int weapon_type);
+int is_proficient_with_armor(struct char_data *ch, int armor_type);
 
 
 #ifdef	__cplusplus

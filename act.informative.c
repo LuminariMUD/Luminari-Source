@@ -2152,7 +2152,6 @@ ACMD(do_score) {
     draw_line(ch, line_length, '-', '-');
   }
 
-
   send_to_char(ch, "\tDType 'attacks' to see your attack rotation\tn\r\n");
   send_to_char(ch, "\tDType 'affects' to see what you are affected by\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_WIZARD))
