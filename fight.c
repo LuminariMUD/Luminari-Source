@@ -3154,7 +3154,7 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   switch (attack_type) {
     case ATTACK_TYPE_OFFHAND:
     case ATTACK_TYPE_PRIMARY:
-      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_FINESSE) &&
+      if (wielded && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_FINESSE) &&
             (GET_OBJ_SIZE(wielded) < GET_SIZE(ch) ||
              is_using_light_weapon(ch, wielded)) ) {
         calc_bab += GET_DEX_BONUS(ch);
