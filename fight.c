@@ -2584,7 +2584,9 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       show_obj_to_char(wielded, ch, SHOW_OBJ_SHORT, 0);
     }
   } else if (mode == MODE_DISPLAY_OFFHAND) {
-    if (!GET_EQ(ch, WEAR_WIELD_OFFHAND)) {
+    if (is_using_double_weapon(ch)) {
+      show_obj_to_char(GET_EQ(ch, WEAR_WIELD_2H), ch, SHOW_OBJ_SHORT, 0);
+    } else if (!GET_EQ(ch, WEAR_WIELD_OFFHAND)) {
       send_to_char(ch, "Bare-hands\r\n");
     } else {
       wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
@@ -4367,10 +4369,10 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
         if (phase == PHASE_0 || phase == PHASE_1)
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 penalty, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
-        if (valid_fight_cond(ch))
-          if (phase == PHASE_0 || phase == PHASE_2)
-            hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
-                  penalty * 2, ATTACK_TYPE_OFFHAND); /* whack with offhand */
+      if (valid_fight_cond(ch))
+        if (phase == PHASE_0 || phase == PHASE_2)
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
+                penalty * 2, ATTACK_TYPE_OFFHAND); /* whack with offhand */
         //display attack routine
     } else if (mode == DISPLAY_ROUTINE_POTENTIAL) {
       /* display hitroll bonus */
