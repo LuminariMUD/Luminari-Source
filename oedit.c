@@ -1600,9 +1600,19 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case ITEM_WEAPON:
           /* Weapon Type */
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_WEAPON_TYPES - 1);
+
           /* Set damdice  and size based on weapon type. */
           GET_OBJ_VAL(OLC_OBJ(d), 1) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].numDice;
           GET_OBJ_VAL(OLC_OBJ(d), 2) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].diceSize;
+          /* cost */
+          GET_OBJ_COST(OLC_OBJ(d)) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].cost;
+          /* weight */
+          GET_OBJ_WEIGHT(OLC_OBJ(d)) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].weight;
+          /* material */
+          GET_OBJ_MATERIAL(OLC_OBJ(d)) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].material;
+          /* size */
+          GET_OBJ_SIZE(OLC_OBJ(d)) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].size;
+
           /*  Skip the next two. */
           oedit_disp_val4_menu(d);
           return;

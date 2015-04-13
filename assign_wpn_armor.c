@@ -304,7 +304,7 @@ void setweapon(int type, char *name, int numDice, int diceSize, int critRange, i
   else if (critMult == 6)
     weapon_list[type].critMult = CRIT_X6;
   weapon_list[type].weaponFlags = weaponFlags;
-  weapon_list[type].cost = cost / 100;
+  weapon_list[type].cost = cost;
   weapon_list[type].damageTypes = damageTypes;
   weapon_list[type].weight = weight;
   weapon_list[type].range = range;
@@ -339,7 +339,9 @@ void load_weapons(void) {
   for (i = 0; i < NUM_WEAPON_TYPES; i++)
     initialize_weapons(i);
 
-  /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
+  /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost,
+   * damageType, weight, range, weaponFamily, Size, material,
+   * handle, head) */
   setweapon(WEAPON_TYPE_UNARMED, "unarmed", 1, 3, 0, 2, WEAPON_FLAG_SIMPLE, 200,
           DAMAGE_TYPE_BLUDGEONING, 1, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_ORGANIC,
           HANDLE_TYPE_GLOVE, HEAD_TYPE_FIST);
