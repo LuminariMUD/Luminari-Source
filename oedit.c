@@ -1612,7 +1612,16 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           GET_OBJ_MATERIAL(OLC_OBJ(d)) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].material;
           /* size */
           GET_OBJ_SIZE(OLC_OBJ(d)) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].size;
-
+          /* set the proper wear bits */
+          int wear_inc;
+          /* going to go ahead and reset all the bits off */
+          for (wear_inc = 0; wear_inc < NUM_ITEM_WEARS; wear_inc++) {
+            REMOVE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), wear_inc);
+          }
+          /* now set take bit */
+          TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE);
+          /* now set the appropriate wear flag bit */
+          TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_WIELD);
           /*  Skip the next two. */
           oedit_disp_val4_menu(d);
           return;
