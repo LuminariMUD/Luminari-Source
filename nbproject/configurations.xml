@@ -123,6 +123,7 @@
       <in>improved-edit.h</in>
       <in>interpreter.c</in>
       <in>interpreter.h</in>
+      <in>item.h</in>
       <in>kdtree.c</in>
       <in>kdtree.h</in>
       <in>limits.c</in>

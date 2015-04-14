@@ -182,13 +182,31 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
 
       /* values defined by weapon type */
       int weapon_val = GET_OBJ_VAL(item, 0);
+      int crit_multi = 0;
+      switch (weapon_list[weapon_val].critMult) {
+        case CRIT_X2:
+          crit_multi = 2;
+          break;
+        case CRIT_X3:
+          crit_multi = 3;
+          break;
+        case CRIT_X4:
+          crit_multi = 4;
+          break;
+        case CRIT_X5:
+          crit_multi = 5;
+          break;
+        case CRIT_X6:
+          crit_multi = 6;
+          break;
+      }
       send_to_char(ch, "Values defined by weapon type:\r\n");
       sprintbit(weapon_list[weapon_val].weaponFlags, weapon_flags, buf, sizeof (buf));
       send_to_char(ch, "%s, Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
                    weapon_list[weapon_val].name,
                    weapon_list[weapon_val].numDice,weapon_list[weapon_val].diceSize,
                    (20 - weapon_list[weapon_val].critRange),
-                   weapon_list[weapon_val].critMult, buf);
+                   crit_multi, buf);
       sprintbit(weapon_list[weapon_val].damageTypes, weapon_damage_types, buf2, sizeof (buf2));
       send_to_char(ch, "Sugg. Cost: %d, Damage-Types: %s, Sugg. Weight: %d\r\n",
                    weapon_list[weapon_val].cost, buf2, weapon_list[weapon_val].weight);
