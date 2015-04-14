@@ -278,13 +278,11 @@ void do_stat_object(struct char_data *ch, struct obj_data *j) {
   /* display contents */
   text_line(ch, "\tcItem Contains:\tn", line_length, '-', '-');
   if (j->contains) {
-    int column;
-    send_to_char(ch, "\r\nContents:");
-    column = 9; /* ^^^ strlen ^^^ */
+    int column = 0;
 
     for (found = 0, j2 = j->contains; j2; j2 = j2->next_content) {
       column += send_to_char(ch, "%s %s", found++ ? "," : "", j2->short_description);
-      if (column >= 62) {
+      if (column >= 79) {
         send_to_char(ch, "%s\r\n", j2->next_content ? "," : "");
         found = FALSE;
         column = 0;
