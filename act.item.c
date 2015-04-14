@@ -66,6 +66,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
   obj_rnum target_obj = NOTHING;
   char buf[MAX_STRING_LENGTH];
   int line_length = 80;
+  char actmtds[MAX_STRING_LENGTH];
 
   text_line(ch, "\tcObject Values:\tn", line_length, '-', '-');
 
@@ -130,23 +131,43 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
       break;
     case ITEM_FIREWEAPON:
     case ITEM_WEAPON:
+      /* weapon poison */
       if (item->weapon_poison.poison) {
         send_to_char(ch, "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d",
                      spell_info[item->weapon_poison.poison].name,
                      item->weapon_poison.poison_level,
                      item->weapon_poison.poison_hits );
       }
+
       send_to_char(ch, "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n",
                  weapon_list[GET_WEAPON_TYPE(item)].name,
                  GET_WEAPON_TYPE(item),
                  GET_ENHANCEMENT_BONUS(item));
       send_to_char(ch, "Todam: %dd%d, Avg Damage: %.1f. Message type: %s\r\n",
-              GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2), ((GET_OBJ_VAL(item, 2) + 1) / 2.0) * GET_OBJ_VAL(item, 1), attack_hit_text[GET_OBJ_VAL(item, 3)].singular);
-      for(specab = item->special_abilities; specab != NULL;specab = specab->next) {
-        send_to_char(ch, "Special Abilities:\r\n");
-        send_to_char(ch, "  %s, %s\r\n", weapon_special_ability_info[specab->ability].name,
-                                         specab->command_word);
+                   GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2),
+                   ((GET_OBJ_VAL(item, 2) + 1) / 2.0) * GET_OBJ_VAL(item, 1),
+                   attack_hit_text[GET_OBJ_VAL(item, 3)].singular);
+
+      /* weapon special abilities*/
+      bool found = FALSE;
+      int counter = 0;
+      send_to_char(ch, "Special Abilities:\r\n");
+      for(specab = item->special_abilities; specab != NULL; specab = specab->next) {
+        found = TRUE;
+        sprintbit(specab->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
+        send_to_char(ch, "%d) Ability: %s Level: %d\r\n"
+                         "    Activation Methods: %s\r\n"
+                         "    CommandWord: %s\r\n"
+                         "    Values: [%d] [%d] [%d] [%d]\r\n",
+                     counter,
+                     weapon_special_ability_info[specab->ability].name,
+                     specab->level, actmtds,
+                     (specab->command_word == NULL ? "Not set." : specab->command_word),
+                     specab->value[0],specab->value[1],specab->value[2],specab->value[3]);
       }
+      if(!found)
+        send_to_char(ch, "No weapon special abilities assigned.\r\n");
+
       break;
 
     case ITEM_ARMOR:
@@ -203,6 +224,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
       break;
     case ITEM_SPELLBOOK:
       display_spells(ch, item);
+      break;
     default:
       send_to_char(ch, "Values 0-3: [%d] [%d] [%d] [%d]\r\n",
               GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1),
