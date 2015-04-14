@@ -285,7 +285,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j) {
                size_names[GET_OBJ_SIZE(j)],
                material_name[GET_OBJ_MATERIAL(j)]);
   for (i = 0; i < SPEC_TIMER_MAX; i++) {
-    send_to_char(ch, "| Obj SpecTimer %d: %d | ", i, GET_OBJ_SPECTIMER(j, i));
+    send_to_char(ch, "SpecTimer %d: %d | ", i, GET_OBJ_SPECTIMER(j, i));
   }
   send_to_char(ch, "\r\n");
 
