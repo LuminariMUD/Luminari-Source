@@ -130,6 +130,12 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
       break;
     case ITEM_FIREWEAPON:
     case ITEM_WEAPON:
+      if (item->weapon_poison.poison) {
+        send_to_char(ch, "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d",
+                     spell_info[item->weapon_poison.poison].name,
+                     item->weapon_poison.poison_level,
+                     item->weapon_poison.poison_hits );
+      }
       send_to_char(ch, "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n",
                  weapon_list[GET_WEAPON_TYPE(item)].name,
                  GET_WEAPON_TYPE(item),
@@ -192,6 +198,11 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
         send_to_char(ch, "%s ", GET_NAME(tempch));
       send_to_char(ch, "\r\n");
       break;
+    case ITEM_MISSILE:
+      send_to_char(ch, "Missile belongs to: %ld\r\n", MISSILE_ID(item));
+      break;
+    case ITEM_SPELLBOOK:
+      display_spells(ch, item);
     default:
       send_to_char(ch, "Values 0-3: [%d] [%d] [%d] [%d]\r\n",
               GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1),
@@ -291,7 +302,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j) {
   }
 
   text_line(ch, "\tcObject Scripts:\tn", line_length, '-', '-');
-  /* check the object for a script */
+        /* check the object for a script */
   do_sstat_object(ch, j);
   draw_line(ch, line_length, '-', '-');
 }
