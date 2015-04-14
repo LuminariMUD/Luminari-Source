@@ -1719,7 +1719,6 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 /* WEAPON and ARMOR defines */
 
 /* Weapon head types */
-
 #define HEAD_TYPE_UNDEFINED 0
 #define HEAD_TYPE_BLADE     1
 #define HEAD_TYPE_HEAD      2
@@ -1731,8 +1730,9 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define HEAD_TYPE_CHAIN     8
 #define HEAD_TYPE_FIST      9
 
-/* weapon handle types */
+#define NUM_WEAPON_HEAD_TYPES      10
 
+/* weapon handle types */
 #define HANDLE_TYPE_UNDEFINED 0
 #define HANDLE_TYPE_SHAFT     1
 #define HANDLE_TYPE_HILT      2
@@ -1741,6 +1741,8 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define HANDLE_TYPE_GRIP      5
 #define HANDLE_TYPE_HANDLE    6
 #define HANDLE_TYPE_GLOVE     7
+
+#define NUM_WEAPON_HANDLE_TYPES      8
 
 /****************************
  WEAPON FLAGS ******

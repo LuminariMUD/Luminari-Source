@@ -27,10 +27,61 @@
  * @todo cpp_extern isn't needed here (or anywhere) as the extern reserved word
  * works correctly with C compilers (at least in my Experience)
  * Jeremy Osborne 1/28/2008 */
-cpp_extern const char *tbamud_version = "LuminariMUD 1.37 (tbaMUD 3.64)";
+cpp_extern const char *tbamud_version = "LuminariMUD 2.188 (tbaMUD 3.64)";
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 /* (Note: strings for class definitions in class.c instead of here) */
+
+/* weapon head types */
+const char *weapon_head_types[NUM_WEAPON_HEAD_TYPES + 1] = {
+  "Undefined",
+  "Blade",
+  "Head",
+  "Point",
+  "Bow",
+  "Pouch",
+  "Cord",
+  "Mesh",
+  "Chain",
+  "Fist",
+  "\n"
+};
+
+/* weapon handle types */
+const char *weapon_handle_types[NUM_WEAPON_HANDLE_TYPES + 1] = {
+  "Undefined",
+  "Shaft",
+  "Hilt",
+  "Strap",
+  "String",
+  "Grip",
+  "Handle",
+  "Glove",
+  "\n"
+};
+
+/* sizes */
+const char *sizes[NUM_SIZES + 1] = {
+  "Undefined",
+  "Fine",
+  "Diminutive",
+  "Tiny",
+  "Small",
+  "Medium",
+  "Large",
+  "Huge",
+  "Gargantuan",
+  "Colossal",
+  "\n"
+};
+/* weapon damage types */
+const char *weapon_damage_types[NUM_DAMAGE_TYPES + 1] = {
+  "Bludgeoning"
+  "Slashing"
+  "Piercing"
+  "Non-Lethal"
+  "\n"
+};
 
 /* What type of trap */
 const char *trap_type[MAX_TRAP_TYPES + 1] = {
@@ -990,6 +1041,42 @@ const char *equipment_types[NUM_WEARS + 1] = {
   "Worn in left ear",  //25
   "Worn on eyes",
   "Worn as badge",
+  "\n"
+};
+
+/* weapon family */
+const char *weapon_family[NUM_WEAPON_FAMILIES +1] = {
+  "\n"
+};
+
+/* weapon flags */
+const char *weapon_flags[NUM_WEAPON_FLAGS +1] = {
+  "Simple",
+  "Martial",
+  "Exotic",
+  "Ranged",
+  "Thrown",
+  "Reach",
+  "Entangle",
+  "Trip",
+  "Double",
+  "Disarm",
+  "Non-Lethal",
+  "Slow-Reload",
+  "Balanced",
+  "Charge",
+  "Repeating",
+  "Two-Handed",
+  "Light",
+  "Blocking",
+  "Bracing",
+  "Deadly",
+  "Distracting",
+  "Fragile",
+  "Grappling",
+  "Performance",
+  "Strength",
+  "Sunder",
   "\n"
 };
 

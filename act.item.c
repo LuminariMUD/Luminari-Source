@@ -179,6 +179,27 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
         }
       }
 
+      /* values defined by weapon type */
+      int weapon_val = GET_OBJ_VAL(item, 0);
+      send_to_char(ch, "Values defined by weapon type:\r\n");
+      sprintbit(weapon_list[weapon_val].weaponFlags, weapon_flags, buf, sizeof (buf));
+      send_to_char(ch, "%s, Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
+                   weapon_list[weapon_val].name,
+                   weapon_list[weapon_val].numDice,weapon_list[weapon_val].diceSize,
+                   (20 - weapon_list[weapon_val].critRange),
+                   weapon_list[weapon_val].critMult, buf);
+      sprintbit(weapon_list[weapon_val].damageTypes, weapon_damage_types, buf, sizeof (buf));
+      send_to_char(ch, "Sugg. Cost: %d, Damage-Types: %s, Sugg. Weight: %d\r\n",
+                   weapon_list[weapon_val].cost, buf, weapon_list[weapon_val].weight);
+      send_to_char(ch, "Range: %d, Family: %s\r\n",
+                   weapon_list[weapon_val].range, weapon_family[weapon_list[weapon_val].weaponFamily]
+              );
+      send_to_char(ch, "Sugg. Size: %s, Sugg. Material: %s, Handle Type: %s, Head Type: %s\r\n",
+                   sizes[weapon_list[weapon_val].size], material_name[weapon_list[weapon_val].material],
+                   weapon_handle_types[weapon_list[weapon_val].handle_type],
+                   weapon_head_types[weapon_list[weapon_val].head_type]
+              );
+      
       break;
     case ITEM_ARMOR:
       send_to_char(ch, "AC-apply: [%d]\r\n", GET_OBJ_VAL(item, 0));
