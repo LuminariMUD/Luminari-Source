@@ -1046,6 +1046,22 @@ const char *equipment_types[NUM_WEARS + 1] = {
 
 /* weapon family */
 const char *weapon_family[NUM_WEAPON_FAMILIES +1] = {
+  "Monk",
+  "Small-Blade",
+  "Club",
+  "Flail",
+  "Spear",
+  "Double",
+  "Crossbow",
+  "Thrown",
+  "Axe",
+  "Hammer",
+  "Pick",
+  "Medium-Blade",
+  "Large-Blade",
+  "Polearm",
+  "Bow",
+  "Whip",
   "\n"
 };
 
