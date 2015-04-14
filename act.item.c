@@ -198,9 +198,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
               GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
       break;
   }
-
-  draw_line(ch, line_length, '-', '-');
 }
+
 /* a central location for identification/statting of items */
 void do_stat_object(struct char_data *ch, struct obj_data *j) {
   int i, found;
@@ -210,15 +209,17 @@ void do_stat_object(struct char_data *ch, struct obj_data *j) {
   char buf[MAX_STRING_LENGTH];
   int line_length = 80;
 
+  text_line(ch, "\tcObject Information\tn", line_length, '-', '-');
+
   /* display id# related values */
   /* put object type in buf */
   sprinttype(GET_OBJ_TYPE(j), item_types, buf, sizeof (buf));
   send_to_char(ch, "VNum: [%5d], RNum: [%5d], Idnum: [%5ld], Type: %s, SpecProc: %s\r\n",
                vnum, GET_OBJ_RNUM(j), GET_ID(j), buf,
                GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
-  draw_line(ch, line_length, '-', '-');
 
   /* display description information */
+  text_line(ch, "\tcDescription Information\tn", line_length, '-', '-');
   send_to_char(ch, "Name: '%s'\r\n",
                j->short_description ? j->short_description : "<None>");
   send_to_char(ch, "Keywords: %s\r\n", j->name);
@@ -232,17 +233,17 @@ void do_stat_object(struct char_data *ch, struct obj_data *j) {
       send_to_char(ch, " [%s]", desc->keyword);
     send_to_char(ch, "\r\n");
   }
-  draw_line(ch, line_length, '-', '-');
 
   /* various variables */
+  text_line(ch, "\tcVarious Variables\tn", line_length, '-', '-');
   send_to_char(ch, "Weight: %d, Value: %d, Cost/day: %d, Timer: %d, Min level: %d\r\n",
                GET_OBJ_WEIGHT(j), GET_OBJ_COST(j), GET_OBJ_RENT(j), GET_OBJ_TIMER(j), GET_OBJ_LEVEL(j));
-  send_to_char(ch, "\r\nSize: %s, Material: %s\r\n",
+  send_to_char(ch, "Size: %s, Material: %s\r\n",
                size_names[GET_OBJ_SIZE(j)],
                material_name[GET_OBJ_MATERIAL(j)]);
-  draw_line(ch, line_length, '-', '-');
 
   /* flags */
+  text_line(ch, "\tcObject Bits / Affections\tn", line_length, '-', '-');
   sprintbitarray(GET_OBJ_WEAR(j), wear_bits, TW_ARRAY_MAX, buf);
   send_to_char(ch, "Can be worn on: %s\r\n", buf);
   sprintbitarray(GET_OBJ_AFFECT(j), affected_bits, AF_ARRAY_MAX, buf);
@@ -259,9 +260,10 @@ void do_stat_object(struct char_data *ch, struct obj_data *j) {
     }
   if (!found)
     send_to_char(ch, " None");
-  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\r\n");
 
   /* location info */
+  text_line(ch, "\tcLocation Information\tn", line_length, '-', '-');
   send_to_char(ch, "In room: %d (%s), ", GET_ROOM_VNUM(IN_ROOM(j)),
                IN_ROOM(j) == NOWHERE ? "Nowhere" : world[IN_ROOM(j)].name);
   /* In order to make it this far, we must already be able to see the character
@@ -269,12 +271,12 @@ void do_stat_object(struct char_data *ch, struct obj_data *j) {
   send_to_char(ch, "In object: %s, ", j->in_obj ? j->in_obj->short_description : "None");
   send_to_char(ch, "Carried by: %s, ", j->carried_by ? GET_NAME(j->carried_by) : "Nobody");
   send_to_char(ch, "Worn by: %s\r\n", j->worn_by ? GET_NAME(j->worn_by) : "Nobody");
-  draw_line(ch, line_length, '-', '-');
 
   /* object values, lines drawn over there */
   display_item_object_values(ch, j);
 
   /* display contents */
+  text_line(ch, "\tcItem Contains:\tn", line_length, '-', '-');
   if (j->contains) {
     int column;
     send_to_char(ch, "\r\nContents:");
@@ -289,8 +291,6 @@ void do_stat_object(struct char_data *ch, struct obj_data *j) {
       }
     }
   }
-  draw_line(ch, line_length, '-', '-');
-
 
   text_line(ch, "\tcObject Scripts:\tn", line_length, '-', '-');
   /* check the object for a script */
