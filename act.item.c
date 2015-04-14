@@ -185,7 +185,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
       /* values defined by armor type */
       int armor_val = GET_OBJ_VAL(item, 1);
       send_to_char(ch, "Values defined by armor type:\r\n");
-      send_to_char(ch, "Name: %s, Amor-Type: %s, Suggested Cost: %d, Suggested AC: %d,\r\n",
+      send_to_char(ch, "Name: %s, Amor-Type: %s, Sugg. Cost: %d, Sugg. AC: %d,\r\n",
                    armor_list[armor_val].name,
                    armor_type[armor_list[armor_val].armorType],
                    armor_list[armor_val].cost,
@@ -196,7 +196,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
                    armor_list[armor_val].spellFail,
                    armor_list[armor_val].thirtyFoot, armor_list[armor_val].twentyFoot
                    );
-      send_to_char(ch, "Suggested Weight: %d, Suggested Material: %s, Suggested Wear-Slot: %s\r\n",
+      send_to_char(ch, "Sugg. Weight: %d, Sugg. Material: %s, Sugg. Wear-Slot: %s\r\n",
                    armor_list[armor_val].weight,
                    material_name[armor_list[armor_val].material],
                    wear_bits[armor_list[armor_val].wear] );
