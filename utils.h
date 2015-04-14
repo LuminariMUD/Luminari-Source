@@ -1275,6 +1275,9 @@ do                                                              \
 /** Permanent affects on obj. */
 #define GET_OBJ_PERM(obj)       ((obj)->obj_flags.bitvector)
 
+/** Object material of object **/
+#define GET_OBJ_MATERIAL(obj)  ((obj)->obj_flags.material)
+
 /** Type of obj. */
 #define GET_OBJ_TYPE(obj)	((obj)->obj_flags.type_flag)
 
