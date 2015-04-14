@@ -75,7 +75,7 @@ const char *sizes[NUM_SIZES + 1] = {
   "\n"
 };
 /* weapon damage types */
-const char *weapon_damage_types[NUM_DAMAGE_TYPES + 1] = {
+const char *weapon_damage_types[NUM_WEAPON_DAMAGE_TYPES + 1] = {
   "Bludgeoning"
   "Slashing"
   "Piercing"

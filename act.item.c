@@ -65,6 +65,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
   struct obj_special_ability *specab;
   obj_rnum target_obj = NOTHING;
   char buf[MAX_STRING_LENGTH];
+  char buf2[MAX_STRING_LENGTH];
   int line_length = 80;
   char actmtds[MAX_STRING_LENGTH];
 
@@ -188,9 +189,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
                    weapon_list[weapon_val].numDice,weapon_list[weapon_val].diceSize,
                    (20 - weapon_list[weapon_val].critRange),
                    weapon_list[weapon_val].critMult, buf);
-      sprintbit(weapon_list[weapon_val].damageTypes, weapon_damage_types, buf, sizeof (buf));
+      sprintbit(weapon_list[weapon_val].damageTypes, weapon_damage_types, buf2, sizeof (buf2));
       send_to_char(ch, "Sugg. Cost: %d, Damage-Types: %s, Sugg. Weight: %d\r\n",
-                   weapon_list[weapon_val].cost, buf, weapon_list[weapon_val].weight);
+                   weapon_list[weapon_val].cost, buf2, weapon_list[weapon_val].weight);
       send_to_char(ch, "Range: %d, Family: %s\r\n",
                    weapon_list[weapon_val].range, weapon_family[weapon_list[weapon_val].weaponFamily]
               );
@@ -199,7 +200,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
                    weapon_handle_types[weapon_list[weapon_val].handle_type],
                    weapon_head_types[weapon_list[weapon_val].head_type]
               );
-      
+
       break;
     case ITEM_ARMOR:
       send_to_char(ch, "AC-apply: [%d]\r\n", GET_OBJ_VAL(item, 0));
