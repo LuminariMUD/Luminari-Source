@@ -2039,7 +2039,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define DAMAGE_TYPE_PIERCING           (1 << 2)
 #define DAMAGE_TYPE_NONLETHAL          (1 << 3)
 
-#define NUM_DAMAGE_TYPES               4
+#define NUM_WEAPON_DAMAGE_TYPES               4
 
 /* attack types */
 #define ATTACK_TYPE_PRIMARY   0
