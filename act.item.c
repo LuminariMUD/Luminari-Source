@@ -133,7 +133,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
     case ITEM_WEAPON:
       /* weapon poison */
       if (item->weapon_poison.poison) {
-        send_to_char(ch, "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d",
+        send_to_char(ch, "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d\r\n",
                      spell_info[item->weapon_poison.poison].name,
                      item->weapon_poison.poison_level,
                      item->weapon_poison.poison_hits );
@@ -284,6 +284,10 @@ void do_stat_object(struct char_data *ch, struct obj_data *j) {
   send_to_char(ch, "Size: %s, Material: %s\r\n",
                size_names[GET_OBJ_SIZE(j)],
                material_name[GET_OBJ_MATERIAL(j)]);
+  for (i = 0; i < SPEC_TIMER_MAX; i++) {
+    send_to_char(ch, "| Obj SpecTimer %d: %d | ", i, GET_OBJ_SPECTIMER(j, i));
+  }
+  send_to_char(ch, "\r\n");
 
   /* flags */
   text_line(ch, "\tcObject Bits / Affections\tn", line_length, '-', '-');
