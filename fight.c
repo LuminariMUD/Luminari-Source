@@ -2997,7 +2997,7 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
 
   if (wpn && HAS_SPELLS(wpn)) {
 
-    for (i = 0; i < MAX_WEAPON_SPELLS; i++) {
+    for (i = 0; i < MAX_WEAPON_SPELLS; i++) { /* increment this weapons spells */
       if (GET_WEAPON_SPELL(wpn, i) && GET_WEAPON_SPELL_AGG(wpn, i)) {
         if (ch->in_room != vict->in_room) {
           if (FIGHTING(ch) && FIGHTING(ch) == vict)
