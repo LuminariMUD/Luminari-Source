@@ -172,7 +172,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
       for (i = 0; i < MAX_WEAPON_SPELLS; i++) { /* increment this weapons spells */
         if (GET_WEAPON_SPELL(item, i)) {
           send_to_char(ch, "%s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
-                       spell_info[i].name, GET_WEAPON_SPELL_LVL(item, i),
+                       spell_info[GET_WEAPON_SPELL(item, i)].name, GET_WEAPON_SPELL_LVL(item, i),
                        GET_WEAPON_SPELL_PCT(item, i),
                        GET_WEAPON_SPELL_AGG(item, i) ? "Yes" : "No"
                   );
