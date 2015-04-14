@@ -13,6 +13,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
+#include "screen.h"
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
@@ -31,6 +32,8 @@
 #include "handler.h"
 #include "actions.h"
 #include "traps.h" /* for check_traps() */
+#include "assign_wpn_armor.h"
+#include "spec_abilities.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -56,6 +59,236 @@ static int hands_available(struct char_data *ch);
 static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
 
 /**** start file code *****/
+
+void display_item_object_values(struct char_data *ch, struct obj_data *item) {
+  struct char_data *tempch;
+  struct obj_special_ability *specab;
+  obj_rnum target_obj = NOTHING;
+  char buf[MAX_STRING_LENGTH];
+  int line_length = 80;
+
+  text_line(ch, "\tcObject Values:\tn", line_length, '-', '-');
+
+  switch (GET_OBJ_TYPE(item)) {
+    case ITEM_TRAP:
+            /* object value (0) is the trap-type */
+            /* object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
+                 or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
+            /* object value (2) is the effect */
+            /* object value (3) is the trap difficulty */
+            /* object value (4) is whether this trap has been "detected" yet */
+      send_to_char(ch, "Trap type: %s\r\n", trap_type[GET_OBJ_VAL(item, 0)]);
+      switch (GET_OBJ_VAL(item, 0)) {
+        case TRAP_TYPE_ENTER_ROOM:
+          break;
+        case TRAP_TYPE_OPEN_DOOR:
+          /*fall-through*/
+        case TRAP_TYPE_UNLOCK_DOOR:
+          send_to_char(ch, "Direction: %s\r\n", dirs[GET_OBJ_VAL(item, 1)]);
+          break;
+        case TRAP_TYPE_OPEN_CONTAINER:
+          /*fall-through*/
+        case TRAP_TYPE_UNLOCK_CONTAINER:
+          /*fall-through*/
+        case TRAP_TYPE_GET_OBJECT:
+          target_obj = real_object(GET_OBJ_VAL(item, 1));
+
+          send_to_char(ch, "Target Object: %s\r\n",
+                  (target_obj == NOTHING) ? "Nothing" :
+                  obj_proto[target_obj].short_description);
+          break;
+
+      }
+      if (GET_OBJ_VAL(item, 2) <= 0 || GET_OBJ_VAL(item, 2) >= TOP_TRAP_EFFECTS) {
+        send_to_char(ch, "Invalid trap effect on this object [1]\r\n");
+      } else if (GET_OBJ_VAL(item, 2) < TRAP_EFFECT_FIRST_VALUE && GET_OBJ_VAL(item, 2) >= LAST_SPELL_DEFINE) {
+        send_to_char(ch, "Invalid trap effect on this object [2]\r\n");
+      } else if (GET_OBJ_VAL(item, 2) >= TRAP_EFFECT_FIRST_VALUE) {
+        send_to_char(ch, "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2)-1000]);
+      } else {
+        send_to_char(ch, "Spell effect: %s\r\n", spell_info[GET_OBJ_VAL(item, 2)].name);
+      }
+      send_to_char(ch, "Trap DC: %d\r\n", GET_OBJ_VAL(item, 3));
+      break;
+    case ITEM_LIGHT:
+      if (GET_OBJ_VAL(item, 2) == -1)
+        send_to_char(ch, "Hours left: Infinite\r\n");
+      else
+        send_to_char(ch, "Hours left: [%d]\r\n", GET_OBJ_VAL(item, 2));
+      break;
+    case ITEM_SCROLL:
+    case ITEM_POTION:
+      send_to_char(ch, "Spells: (Level %d) %s, %s, %s\r\n", GET_OBJ_VAL(item, 0),
+              skill_name(GET_OBJ_VAL(item, 1)), skill_name(GET_OBJ_VAL(item, 2)),
+              skill_name(GET_OBJ_VAL(item, 3)));
+      break;
+    case ITEM_WAND:
+    case ITEM_STAFF:
+      send_to_char(ch, "Spell: %s at level %d, %d (of %d) charges remaining\r\n",
+              skill_name(GET_OBJ_VAL(item, 3)), GET_OBJ_VAL(item, 0),
+              GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 1));
+      break;
+    case ITEM_WEAPON:
+      send_to_char(ch, "Todam: %dd%d, Avg Damage: %.1f. Message type: %s\r\n",
+              GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2), ((GET_OBJ_VAL(item, 2) + 1) / 2.0) * GET_OBJ_VAL(item, 1), attack_hit_text[GET_OBJ_VAL(item, 3)].singular);
+      for(specab = item->special_abilities; specab != NULL;specab = specab->next) {
+        send_to_char(ch, "Special Abilities:\r\n");
+        send_to_char(ch, "  %s, %s\r\n", weapon_special_ability_info[specab->ability].name,
+                                         specab->command_word);
+      }
+      break;
+
+    case ITEM_ARMOR:
+      send_to_char(ch, "AC-apply: [%d]\r\n", GET_OBJ_VAL(item, 0));
+      break;
+    case ITEM_CONTAINER:
+      sprintbit(GET_OBJ_VAL(item, 1), container_bits, buf, sizeof (buf));
+      send_to_char(ch, "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse: %s\r\n",
+              GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2),
+              YESNO(GET_OBJ_VAL(item, 3)));
+      break;
+    case ITEM_AMMO_POUCH:
+      sprintbit(GET_OBJ_VAL(item, 1), container_bits, buf, sizeof (buf));
+      send_to_char(ch, "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse: %s\r\n",
+              GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2),
+              YESNO(GET_OBJ_VAL(item, 3)));
+      break;
+    case ITEM_DRINKCON:
+    case ITEM_FOUNTAIN:
+      sprinttype(GET_OBJ_VAL(item, 2), drinks, buf, sizeof (buf));
+      send_to_char(ch, "Capacity: %d, Contains: %d, Poisoned: %s, Liquid: %s\r\n",
+              GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), YESNO(GET_OBJ_VAL(item, 3)), buf);
+      break;
+    case ITEM_NOTE:
+      send_to_char(ch, "Tongue: %d\r\n", GET_OBJ_VAL(item, 0));
+      break;
+    case ITEM_KEY: /* Nothing */
+      break;
+    case ITEM_FOOD:
+      send_to_char(ch, "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
+      break;
+    case ITEM_MONEY:
+      send_to_char(ch, "Coins: %d\r\n", GET_OBJ_VAL(item, 0));
+      break;
+    case ITEM_PORTAL:
+      if (GET_OBJ_VAL(item, 0) == PORTAL_NORMAL)
+        send_to_char(ch, "Type: Normal Portal to %d\r\n", GET_OBJ_VAL(item, 1));
+      else if (GET_OBJ_VAL(item, 0) == PORTAL_RANDOM)
+        send_to_char(ch, "Type: Random Portal to range %d-%d\r\n", GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2));
+      else if (GET_OBJ_VAL(item, 0) == PORTAL_CLANHALL)
+        send_to_char(ch, "Type: Clanportal (destination depends on player)\r\n");
+      else if (GET_OBJ_VAL(item, 0) == PORTAL_CHECKFLAGS)
+        send_to_char(ch, "Type: Checkflags Portal to %d\r\n", GET_OBJ_VAL(item, 1));
+      break;
+    case ITEM_FURNITURE:
+      send_to_char(ch, "Can hold: [%d] Num. of People in: [%d]\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1));
+      send_to_char(ch, "Holding : ");
+      for (tempch = OBJ_SAT_IN_BY(item); tempch; tempch = NEXT_SITTING(tempch))
+        send_to_char(ch, "%s ", GET_NAME(tempch));
+      send_to_char(ch, "\r\n");
+      break;
+    default:
+      send_to_char(ch, "Values 0-3: [%d] [%d] [%d] [%d]\r\n",
+              GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1),
+              GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
+      break;
+  }
+}
+
+/* a central location for identification/statting of items */
+void do_stat_object(struct char_data *ch, struct obj_data *j) {
+  int i, found;
+  obj_vnum vnum;
+  struct obj_data *j2;
+  struct extra_descr_data *desc;
+  char buf[MAX_STRING_LENGTH];
+
+  send_to_char(ch, "Name: '%s%s%s', Keywords: %s\r\n", CCYEL(ch, C_NRM),
+          j->short_description ? j->short_description : "<None>",
+          CCNRM(ch, C_NRM), j->name);
+  vnum = GET_OBJ_VNUM(j);
+  sprinttype(GET_OBJ_TYPE(j), item_types, buf, sizeof (buf));
+  send_to_char(ch, "VNum: [%s%5d%s], RNum: [%5d], Idnum: [%5ld], Type: %s, SpecProc: %s\r\n",
+          CCGRN(ch, C_NRM), vnum, CCNRM(ch, C_NRM), GET_OBJ_RNUM(j), GET_ID(j), buf,
+          GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
+
+  if (GET_OBJ_TYPE(j) == ITEM_WEAPON || GET_OBJ_TYPE(j) == ITEM_FIREWEAPON )
+    send_to_char(ch, "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n",
+          weapon_list[GET_WEAPON_TYPE(j)].name, GET_WEAPON_TYPE(j), GET_ENHANCEMENT_BONUS(j));
+  send_to_char(ch, "L-Desc: '%s%s%s'\r\n", CCYEL(ch, C_NRM),
+          j->description ? j->description : "<None>",
+          CCNRM(ch, C_NRM));
+
+  send_to_char(ch, "A-Desc: '%s%s%s'\r\n", CCYEL(ch, C_NRM),
+          j->action_description ? j->action_description : "<None>",
+          CCNRM(ch, C_NRM));
+
+  if (j->ex_description) {
+    send_to_char(ch, "Extra descs:%s", CCCYN(ch, C_NRM));
+    for (desc = j->ex_description; desc; desc = desc->next)
+      send_to_char(ch, " [%s]", desc->keyword);
+    send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM));
+  }
+
+  sprintbitarray(GET_OBJ_WEAR(j), wear_bits, TW_ARRAY_MAX, buf);
+  send_to_char(ch, "Can be worn on: %s\r\n", buf);
+
+  sprintbitarray(GET_OBJ_AFFECT(j), affected_bits, AF_ARRAY_MAX, buf);
+  send_to_char(ch, "Set char bits : %s\r\n", buf);
+
+  sprintbitarray(GET_OBJ_EXTRA(j), extra_bits, EF_ARRAY_MAX, buf);
+  send_to_char(ch, "Extra flags   : %s\r\n", buf);
+
+  send_to_char(ch, "Weight: %d, Value: %d, Cost/day: %d, Timer: %d, Min level: %d\r\n",
+          GET_OBJ_WEIGHT(j), GET_OBJ_COST(j), GET_OBJ_RENT(j), GET_OBJ_TIMER(j), GET_OBJ_LEVEL(j));
+
+  send_to_char(ch, "In room: %d (%s), ", GET_ROOM_VNUM(IN_ROOM(j)),
+          IN_ROOM(j) == NOWHERE ? "Nowhere" : world[IN_ROOM(j)].name);
+
+  /* In order to make it this far, we must already be able to see the character
+   * holding the object. Therefore, we do not need CAN_SEE(). */
+  send_to_char(ch, "In object: %s, ", j->in_obj ? j->in_obj->short_description : "None");
+  send_to_char(ch, "Carried by: %s, ", j->carried_by ? GET_NAME(j->carried_by) : "Nobody");
+  send_to_char(ch, "Worn by: %s\r\n", j->worn_by ? GET_NAME(j->worn_by) : "Nobody");
+
+  display_item_object_values(ch, j);
+
+  if (j->contains) {
+    int column;
+
+    send_to_char(ch, "\r\nContents:%s", CCGRN(ch, C_NRM));
+    column = 9; /* ^^^ strlen ^^^ */
+
+    for (found = 0, j2 = j->contains; j2; j2 = j2->next_content) {
+      column += send_to_char(ch, "%s %s", found++ ? "," : "", j2->short_description);
+      if (column >= 62) {
+        send_to_char(ch, "%s\r\n", j2->next_content ? "," : "");
+        found = FALSE;
+        column = 0;
+      }
+    }
+    send_to_char(ch, "%s", CCNRM(ch, C_NRM));
+  }
+
+  found = FALSE;
+  send_to_char(ch, "Affections:");
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+    if (j->affected[i].modifier) {
+      sprinttype(j->affected[i].location, apply_types, buf, sizeof (buf));
+      send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
+    }
+  if (!found)
+    send_to_char(ch, " None");
+
+  send_to_char(ch, "\r\nSize: %s, Material: %s\r\n",
+          size_names[GET_OBJ_SIZE(j)],
+          material_name[GET_OBJ_MATERIAL(j)]);
+
+  send_to_char(ch, "\r\n");
+
+  /* check the object for a script */
+  do_sstat_object(ch, j);
+}
 
 /*
 byte object_saving_throws(int material_type, int type)

@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   craft.h
  * Author: Zusuk
  *
@@ -120,7 +120,6 @@
 #define NUM_CRAFT         18
  /***/
 
-#define GET_OBJ_MATERIAL(obj)  ((obj)->obj_flags.material)
 /* autocraft */
 #define GET_AUTOCQUEST_VNUM(ch)     CHECK_PLAYER_SPECIAL((ch), \
                          ((ch)->player_specials->saved.autocquest_vnum))
