@@ -193,6 +193,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
               GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
       break;
   }
+
+  draw_line(ch, line_length, '-', '-');
 }
 
 /* a central location for identification/statting of items */
@@ -202,6 +204,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j) {
   struct obj_data *j2;
   struct extra_descr_data *desc;
   char buf[MAX_STRING_LENGTH];
+  int line_length = 80;
 
   send_to_char(ch, "Name: '%s%s%s', Keywords: %s\r\n", CCYEL(ch, C_NRM),
           j->short_description ? j->short_description : "<None>",
@@ -284,8 +287,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j) {
           size_names[GET_OBJ_SIZE(j)],
           material_name[GET_OBJ_MATERIAL(j)]);
 
-  send_to_char(ch, "\r\n");
-
+  text_line(ch, "\tcObject Scripts:\tn", line_length, '-', '-');
   /* check the object for a script */
   do_sstat_object(ch, j);
 }
