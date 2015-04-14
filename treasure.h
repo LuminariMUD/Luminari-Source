@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   treasure.h
  * Author: Zusuk (ported from d20mud)
  *
@@ -82,7 +82,7 @@ extern const char *head_types[];
 #define PLATE_BODY            3119  //0
 #define HALFPLATE_BODY        3143
 #define SPLINT_BODY           3144
-#define BREASTPLATE_BODY      3145
+#define BREASTPLATE_BODY      3145 /*piecemail armor*/
 #define CHAIN_BODY            3146
 #define STUD_LEATHER_BODY     3147  //5
 #define LEATHER_BODY          3148
@@ -129,7 +129,7 @@ extern const char *head_types[];
 #define DAGGER                3212  //0
 #define MACE                  3213
 #define SICKLE                3214
-/* one handed */            
+/* one handed */
 #define CLUB                  3215
 #define MORNINGSTAR           3216
 /* two handed */
@@ -215,7 +215,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel);
 int random_bonus_value(int apply_value, int level, int mod);
 
 /* Procedures for loading mobs with items, rather than simply handing them out
- * automaticalyl after death.  Used with random treasure load resets. 
+ * automaticalyl after death.  Used with random treasure load resets.
  *
  * The gear loaded will be based on the mob data passed in, and the level of the
  * items should not surpass the level of the mob.
