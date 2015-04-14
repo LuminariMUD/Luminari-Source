@@ -68,7 +68,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
   int line_length = 80;
   char actmtds[MAX_STRING_LENGTH];
 
-  text_line(ch, "\tcObject Values:\tn", line_length, '-', '-');
+  text_line(ch, "\tcItem-Type Specific Values:\tn", line_length, '-', '-');
 
   switch (GET_OBJ_TYPE(item)) {
     case ITEM_TRAP:
@@ -150,16 +150,14 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
 
       /* weapon special abilities*/
       bool found = FALSE;
-      int counter = 0;
       send_to_char(ch, "Special Abilities:\r\n");
       for(specab = item->special_abilities; specab != NULL; specab = specab->next) {
         found = TRUE;
         sprintbit(specab->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
-        send_to_char(ch, "%d) Ability: %s Level: %d\r\n"
+        send_to_char(ch, "Ability: %s Level: %d\r\n"
                          "    Activation Methods: %s\r\n"
                          "    CommandWord: %s\r\n"
                          "    Values: [%d] [%d] [%d] [%d]\r\n",
-                     counter,
                      weapon_special_ability_info[specab->ability].name,
                      specab->level, actmtds,
                      (specab->command_word == NULL ? "Not set." : specab->command_word),
@@ -168,8 +166,20 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item) {
       if(!found)
         send_to_char(ch, "No weapon special abilities assigned.\r\n");
 
-      break;
+      /* weapon spells */
+      int i = 0;
+      send_to_char(ch, "Weapon Spells:\r\n");
+      for (i = 0; i < MAX_WEAPON_SPELLS; i++) { /* increment this weapons spells */
+        if (GET_WEAPON_SPELL(item, i)) {
+          send_to_char(ch, "%s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
+                       spell_info[i].name, GET_WEAPON_SPELL_LVL(item, i),
+                       GET_WEAPON_SPELL_PCT(item, i),
+                       GET_WEAPON_SPELL_AGG(item, i) ? "Yes" : "No"
+                  );
+        }
+      }
 
+      break;
     case ITEM_ARMOR:
       send_to_char(ch, "AC-apply: [%d]\r\n", GET_OBJ_VAL(item, 0));
       break;
