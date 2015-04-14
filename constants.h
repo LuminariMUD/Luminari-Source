@@ -12,6 +12,12 @@
 #ifndef _CONSTANTS_H_
 #define _CONSTANTS_H_
 
+extern const char *weapon_head_types[NUM_WEAPON_HEAD_TYPES + 1];
+extern const char *weapon_handle_types[NUM_WEAPON_HANDLE_TYPES + 1];
+extern const char *sizes[NUM_SIZES + 1];
+extern const char *weapon_family[NUM_WEAPON_FAMILIES +1];
+extern const char *weapon_damage_types[NUM_DAMAGE_TYPES + 1];
+extern const char *weapon_flags[NUM_WEAPON_FLAGS +1];
 extern const int *valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES];
 extern const char *bonus_types[];
 extern const char *dr_damtypes[];
