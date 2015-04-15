@@ -26,6 +26,7 @@
 #include "spec_procs.h"
 #include "class.h"
 #include "actions.h"
+#include "assign_wpn_armor.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -379,9 +380,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     switch (CASTING_CLASS(caster)) {
       case CLASS_BARD:
         /* bards can wear light armor and cast unpenalized (bard spells) */
-        if (proficiency_worn(caster, ARMOR_PROFICIENCY) > ITEM_PROF_LIGHT_A ||
-                proficiency_worn(caster, SHIELD_PROFICIENCY) > ITEM_PROF_SHIELDS)
-          if (rand_number(1, 100) <= compute_gear_arcane_fail(caster)) {
+        if (compute_gear_armor_type(caster) > ARMOR_TYPE_LIGHT ||
+            compute_gear_shield_type(caster) > ARMOR_TYPE_SHIELD)
+          if (rand_number(1, 100) <= compute_gear_spell_failure(caster)) {
             send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
             act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
             return 0;
@@ -389,7 +390,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
         break;
       case CLASS_SORCERER:
       case CLASS_WIZARD:
-        if (rand_number(1, 100) <= compute_gear_arcane_fail(caster)) {
+        if (rand_number(1, 100) <= compute_gear_spell_failure(caster)) {
           send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
           act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
           return 0;

@@ -713,7 +713,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
   switch (abilityNum) {
     case ABILITY_ACROBATICS:
       value += GET_DEX_BONUS(ch);
-      value += compute_gear_penalty_check(ch);
+      value += compute_gear_armor_penalty(ch);
       if (HAS_FEAT(ch, FEAT_AGILE)) {
         /* Unnamed bonus */
         value += 2;
@@ -733,7 +733,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 15;
       if (IS_MORPHED(ch) && SUBRACE(ch) == PC_SUBRACE_PANTHER)
         value += 4;
-      value += compute_gear_penalty_check(ch);
+      value += compute_gear_armor_penalty(ch);
       return value;
     case ABILITY_PERCEPTION:
       value += GET_WIS_BONUS(ch);
@@ -794,7 +794,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       return value;
     case ABILITY_PARRY: /* not srd */
       value += GET_DEX_BONUS(ch);
-      value += compute_gear_penalty_check(ch);
+      value += compute_gear_armor_penalty(ch);
       return value;
     case ABILITY_LORE: /* NOT SRD! */
       if (HAS_FEAT(ch, FEAT_INVESTIGATOR))
@@ -816,11 +816,11 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         /* Unnamed bonus */
         value += 2;
       }
-      value += compute_gear_penalty_check(ch);
+      value += compute_gear_armor_penalty(ch);
       return value;
     case ABILITY_SLEIGHT_OF_HAND:
       value += GET_DEX_BONUS(ch);
-      value += compute_gear_penalty_check(ch);
+      value += compute_gear_armor_penalty(ch);
       if (HAS_FEAT(ch, FEAT_DEFT_HANDS)) {
         /* Unnamed bonus */
         value += 3;
@@ -856,7 +856,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       return value;
     case ABILITY_ESCAPE_ARTIST:
       value += GET_DEX_BONUS(ch);
-      value += compute_gear_penalty_check(ch);
+      value += compute_gear_armor_penalty(ch);
       if (HAS_FEAT(ch, FEAT_AGILE)) {
         /* Unnamed bonus */
         value += 2;
@@ -885,7 +885,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       return value;
     case ABILITY_SWIM:
       value += GET_STR_BONUS(ch);
-      value += (2 * compute_gear_penalty_check(ch));
+      value += (2 * compute_gear_armor_penalty(ch));
       if (HAS_FEAT(ch, FEAT_ATHLETIC)) {
         /* Unnamed bonus */
         value += 2;
