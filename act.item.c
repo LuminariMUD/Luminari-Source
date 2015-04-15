@@ -34,6 +34,7 @@
 #include "traps.h" /* for check_traps() */
 #include "assign_wpn_armor.h"
 #include "spec_abilities.h"
+#include "item.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -439,24 +440,31 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
   /* display id# related values */
   /* put object type in buf */
   sprinttype(GET_OBJ_TYPE(j), item_types, buf, sizeof (buf));
-  send_to_char(ch, "VNum: [%5d], RNum: [%5d], Idnum: [%5ld], Type: %s, SpecProc: %s\r\n",
-               vnum, GET_OBJ_RNUM(j), GET_ID(j), buf,
-               GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
+  if (mode == ITEM_STAT_MODE_IMMORTAL) {
+    send_to_char(ch, "VNum: [%5d], RNum: [%5d], Idnum: [%5ld], Type: %s, SpecProc: %s\r\n",
+                 vnum, GET_OBJ_RNUM(j), GET_ID(j), buf,
+                 GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
+  } else {
+    send_to_char(ch, "Item Type: %s, Special Feature: %s\r\n", buf,
+                 GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None"  );
+  }
 
   /* display description information */
   text_line(ch, "\tcDescription Information\tn", line_length, '-', '-');
   send_to_char(ch, "Name: '%s'\r\n",
                j->short_description ? j->short_description : "<None>");
   send_to_char(ch, "Keywords: %s\r\n", j->name);
-  send_to_char(ch, "L-Desc: '%s'\r\n",
-               j->description ? j->description : "<None>");
-  send_to_char(ch, "A-Desc: '%s'\r\n",
-               j->action_description ? j->action_description : "<None>");
-  if (j->ex_description) {
-    send_to_char(ch, "Extra descs:");
-    for (desc = j->ex_description; desc; desc = desc->next)
-      send_to_char(ch, " [%s]", desc->keyword);
-    send_to_char(ch, "\r\n");
+  if (mode == ITEM_STAT_MODE_IMMORTAL) {
+    send_to_char(ch, "L-Desc: '%s'\r\n",
+                 j->description ? j->description : "<None>");
+    send_to_char(ch, "A-Desc: '%s'\r\n",
+                 j->action_description ? j->action_description : "<None>");
+    if (j->ex_description) {
+      send_to_char(ch, "Extra descriptions:");
+      for (desc = j->ex_description; desc; desc = desc->next)
+        send_to_char(ch, " [%s]", desc->keyword);
+      send_to_char(ch, "\r\n");
+    }
   }
 
   /* various variables */
@@ -466,10 +474,12 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
   send_to_char(ch, "Size: %s, Material: %s\r\n",
                size_names[GET_OBJ_SIZE(j)],
                material_name[GET_OBJ_MATERIAL(j)]);
-  for (i = 0; i < SPEC_TIMER_MAX; i++) {
-    send_to_char(ch, "SpecTimer %d: %d | ", i, GET_OBJ_SPECTIMER(j, i));
+  if (mode == ITEM_STAT_MODE_IMMORTAL) {
+    for (i = 0; i < SPEC_TIMER_MAX; i++) {
+      send_to_char(ch, "SpecTimer %d: %d | ", i, GET_OBJ_SPECTIMER(j, i));
+    }
+    send_to_char(ch, "\r\n");
   }
-  send_to_char(ch, "\r\n");
 
   /* flags */
   text_line(ch, "\tcObject Bits / Affections\tn", line_length, '-', '-');
@@ -492,36 +502,42 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
   send_to_char(ch, "\r\n");
 
   /* location info */
-  text_line(ch, "\tcLocation Information\tn", line_length, '-', '-');
-  send_to_char(ch, "In room: %d (%s), ", GET_ROOM_VNUM(IN_ROOM(j)),
-               IN_ROOM(j) == NOWHERE ? "Nowhere" : world[IN_ROOM(j)].name);
-  /* In order to make it this far, we must already be able to see the character
-   * holding the object. Therefore, we do not need CAN_SEE(). */
-  send_to_char(ch, "In object: %s, ", j->in_obj ? j->in_obj->short_description : "None");
-  send_to_char(ch, "Carried by: %s, ", j->carried_by ? GET_NAME(j->carried_by) : "Nobody");
-  send_to_char(ch, "Worn by: %s\r\n", j->worn_by ? GET_NAME(j->worn_by) : "Nobody");
+  if (mode == ITEM_STAT_MODE_IMMORTAL) {
+    text_line(ch, "\tcLocation Information\tn", line_length, '-', '-');
+    send_to_char(ch, "In room: %d (%s), ", GET_ROOM_VNUM(IN_ROOM(j)),
+                 IN_ROOM(j) == NOWHERE ? "Nowhere" : world[IN_ROOM(j)].name);
+    /* In order to make it this far, we must already be able to see the character
+     * holding the object. Therefore, we do not need CAN_SEE(). */
+    send_to_char(ch, "In object: %s, ", j->in_obj ? j->in_obj->short_description : "None");
+    send_to_char(ch, "Carried by: %s, ", j->carried_by ? GET_NAME(j->carried_by) : "Nobody");
+    send_to_char(ch, "Worn by: %s\r\n", j->worn_by ? GET_NAME(j->worn_by) : "Nobody");
+  }
 
   /* object values, lines drawn over there */
   display_item_object_values(ch, j, mode);
 
-  /* display contents */
-  text_line(ch, "\tcItem Contains:\tn", line_length, '-', '-');
-  if (j->contains) {
-    int column = 0;
+  if (mode == ITEM_STAT_MODE_IMMORTAL) {
+    /* display contents */
+    text_line(ch, "\tcItem Contains:\tn", line_length, '-', '-');
+    if (j->contains) {
+      int column = 0;
 
-    for (found = 0, j2 = j->contains; j2; j2 = j2->next_content) {
-      column += send_to_char(ch, "%s %s", found++ ? "," : "", j2->short_description);
-      if (column >= 79) {
-        send_to_char(ch, "%s\r\n", j2->next_content ? "," : "");
-        found = FALSE;
-        column = 0;
+      for (found = 0, j2 = j->contains; j2; j2 = j2->next_content) {
+        column += send_to_char(ch, "%s %s", found++ ? "," : "", j2->short_description);
+        if (column >= 79) {
+          send_to_char(ch, "%s\r\n", j2->next_content ? "," : "");
+          found = FALSE;
+          column = 0;
+        }
       }
     }
   }
 
-  text_line(ch, "\tcObject Scripts:\tn", line_length, '-', '-');
+  if (mode == ITEM_STAT_MODE_IMMORTAL) {
+    text_line(ch, "\tcObject Scripts:\tn", line_length, '-', '-');
         /* check the object for a script */
-  do_sstat_object(ch, j);
+    do_sstat_object(ch, j);
+  }
   draw_line(ch, line_length, '-', '-');
 }
 
