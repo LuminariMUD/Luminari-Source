@@ -297,7 +297,7 @@ spec_procs.o: spec_procs.c conf.h sysdep.h structs.h protocol.h lists.h \
 spell_parser.o: spell_parser.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h interpreter.h spells.h handler.h comm.h db.h \
  dg_scripts.h fight.h constants.h mud_event.h dg_event.h spec_procs.h \
- class.h actions.h
+ class.h actions.h assign_wpn_armor.h
 spells.o: spells.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h handler.h db.h constants.h interpreter.h \
  dg_scripts.h act.h fight.h mud_event.h dg_event.h house.h screen.h \

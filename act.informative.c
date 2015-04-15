@@ -2094,12 +2094,11 @@ ACMD(do_score) {
 #undef RETURN_NUM_ATTACKS
 
   send_to_char(ch, "\tC----------------\tyProficiencies\tC-----------------------------------\tyQuests\tC----------\tn\r\n"
-               "\tcWeapon Proficiency Used : \tn%-25s \tC| \tcQuests completed : \tn%d\r\n"
-               "\tcArmor Proficiency Used  : \tn%-25s \tC| \tcQuest points     : \tn%d\r\n"
-               "\tcShield Proficiency Used : \tn%-25s \tC| \tcOn quest         : \tn",
-               item_profs[proficiency_worn(ch, WEAPON_PROFICIENCY)], (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
-               item_profs[proficiency_worn(ch, ARMOR_PROFICIENCY)], (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0),
-               item_profs[proficiency_worn(ch, SHIELD_PROFICIENCY)]);
+               "\tc                        : \tn%-25s \tC| \tcQuests completed : \tn%d\r\n"
+               "\tc                        : \tn%-25s \tC| \tcQuest points     : \tn%d\r\n"
+               "\tc                        : \tn%-25s \tC| \tcOn quest         : \tn",
+               "", (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0), "",
+               (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0), "" );
 
   if (!IS_NPC(ch) && GET_QUEST(ch) != NOTHING)
     send_to_char(ch, "%d\r\n", GET_QUEST(ch) == NOTHING ? -1 : GET_QUEST(ch));
