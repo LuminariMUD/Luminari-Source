@@ -42,6 +42,7 @@
 #include "actions.h"
 #include "feats.h"
 #include "assign_wpn_armor.h"
+#include "item.h"
 
 /* Local defined utility functions */
 /* do_group utility functions */
@@ -1561,103 +1562,9 @@ ACMD(do_lore) {
     return;
   }
 
-  //level ch tch tobj
-  // this is weak, we need to make this a real skill instead of calling spell_identify
-  // call_magic(ch, tch, tobj, SPELL_IDENTIFY, GET_LEVEL(ch), CAST_SPELL);
-
-  int i, found;
-  size_t len;
-
   if (tobj) {
-    char bitbuf[MAX_STRING_LENGTH];
-
-    sprinttype(GET_OBJ_TYPE(tobj), item_types, bitbuf, sizeof (bitbuf));
-    send_to_char(ch, "You feel informed:\r\nObject '%s', Item type: %s\r\n", tobj->short_description, bitbuf);
-
-    sprintbitarray(GET_OBJ_WEAR(tobj), wear_bits, TW_ARRAY_MAX, bitbuf);
-    send_to_char(ch, "Can be worn on: %s\r\n", bitbuf);
-
-    if (GET_OBJ_AFFECT(tobj)) {
-      sprintbitarray(GET_OBJ_AFFECT(tobj), affected_bits, AF_ARRAY_MAX, bitbuf);
-      send_to_char(ch, "Item will give you following abilities:  %s\r\n", bitbuf);
-    }
-
-    sprintbitarray(GET_OBJ_EXTRA(tobj), extra_bits, EF_ARRAY_MAX, bitbuf);
-    send_to_char(ch, "Item is: %s\r\n", bitbuf);
-
-    send_to_char(ch, "Size: %s, Material: %s.\r\n",
-            size_names[GET_OBJ_SIZE(tobj)],
-            material_name[GET_OBJ_MATERIAL(tobj)]);
-
-    send_to_char(ch, "Weight: %d, Value: %d, Rent: %d, Min. level: %d\r\n",
-            GET_OBJ_WEIGHT(tobj), GET_OBJ_COST(tobj), GET_OBJ_RENT(tobj), GET_OBJ_LEVEL(tobj));
-
-    switch (GET_OBJ_TYPE(tobj)) {
-      case ITEM_SCROLL:
-      case ITEM_POTION:
-        len = i = 0;
-        int hasVal = 0;
-
-        if (GET_OBJ_VAL(tobj, 1) >= 1) {
-          i = snprintf(bitbuf + len, sizeof (bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(tobj, 1)));
-          if (i >= 0)
-            len += i;
-          hasVal++;
-        }
-
-        if (GET_OBJ_VAL(tobj, 2) >= 1 && len < sizeof (bitbuf)) {
-          i = snprintf(bitbuf + len, sizeof (bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(tobj, 2)));
-          if (i >= 0)
-            len += i;
-          hasVal++;
-        }
-
-        if (GET_OBJ_VAL(tobj, 3) >= 1 && len < sizeof (bitbuf)) {
-          i = snprintf(bitbuf + len, sizeof (bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(tobj, 3)));
-          if (i >= 0)
-            len += i;
-          hasVal++;
-        }
-
-        if (hasVal)
-          send_to_char(ch, "This %s casts: %s\r\n", item_types[(int) GET_OBJ_TYPE(tobj)],
-                bitbuf);
-        else
-          send_to_char(ch, "This item has no spells imbued in it.\t\n");
-        break;
-      case ITEM_WAND:
-      case ITEM_STAFF:
-        send_to_char(ch, "This %s casts: %s\r\nIt has %d maximum charge%s and %d remaining.\r\n",
-                item_types[(int) GET_OBJ_TYPE(tobj)], skill_name(GET_OBJ_VAL(tobj, 3)),
-                GET_OBJ_VAL(tobj, 1), GET_OBJ_VAL(tobj, 1) == 1 ? "" : "s", GET_OBJ_VAL(tobj, 2));
-        break;
-      case ITEM_WEAPON:
-        send_to_char(ch, "Damage Dice is '%dD%d' for an average per-round damage of %.1f.\r\n",
-                GET_OBJ_VAL(tobj, 1), GET_OBJ_VAL(tobj, 2), ((GET_OBJ_VAL(tobj, 2) + 1) / 2.0) * GET_OBJ_VAL(tobj, 1));
-        send_to_char(ch, "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n",
-          weapon_list[GET_WEAPON_TYPE(tobj)].name, GET_WEAPON_TYPE(tobj), GET_ENHANCEMENT_BONUS(tobj));
-        send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(tobj)]);
-        break;
-      case ITEM_SPELLBOOK:
-        send_to_char(ch, "Number of pages:  %d", GET_OBJ_VAL(tobj, 1));
-        break;
-      case ITEM_ARMOR:
-        send_to_char(ch, "AC-apply is %d\r\n", GET_OBJ_VAL(tobj, 0));
-        send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(tobj)]);
-        break;
-    }
-    found = FALSE;
-    for (i = 0; i < MAX_OBJ_AFFECT; i++) {
-      if ((tobj->affected[i].location != APPLY_NONE) &&
-              (tobj->affected[i].modifier != 0)) {
-        if (!found) {
-          send_to_char(ch, "Can affect you as :\r\n");
-          found = TRUE;
-        }
-        sprinttype(tobj->affected[i].location, apply_types, bitbuf, sizeof (bitbuf));
-        send_to_char(ch, "   Affects: %s By %d (%s)\r\n", bitbuf, tobj->affected[i].modifier, bonus_types[tobj->affected[i].bonus_type]);
-      }
-    }
+    /* success! */
+    do_stat_object(ch, tobj, ITEM_STAT_MODE_LORE_SKILL);
   } else if (tch) { /* victim */
     send_to_char(ch, "Name: %s\r\n", GET_NAME(tch));
     if (!IS_NPC(tch))

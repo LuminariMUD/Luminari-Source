@@ -1126,3 +1126,287 @@ void load_armor(void) {
     300, 40, 2, -10, 50, 999, 999,
     45, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
 }
+
+/******* special mixed checks (such as monk) */
+
+/* our simple little function to make sure our monk
+   is following his martial-arts requirements for gear */
+bool monk_gear_ok(struct char_data *ch) {
+  struct obj_data *obj = NULL;
+
+  /* hands have to be free, or wielding monk family weapon */
+  if (GET_EQ(ch, WEAR_HOLD_1))
+    return FALSE;
+
+  if (GET_EQ(ch, WEAR_HOLD_2))
+    return FALSE;
+
+  if (GET_EQ(ch, WEAR_SHIELD))
+    return FALSE;
+
+  obj = GET_EQ(ch, WEAR_WIELD_1);
+  if (obj &&
+      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+    return FALSE;
+
+  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (obj &&
+      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+    return FALSE;
+
+  obj = GET_EQ(ch, WEAR_WIELD_2H);
+  if (obj &&
+      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+    return FALSE;
+
+  /* now check to make sure he isn't wearing invalid armor */
+  if (compute_gear_armor_type(ch) != ARMOR_TYPE_NONE)
+    return FALSE;
+
+  /* monk gear is ok */
+  return TRUE;
+}
+
+
+/*********** deprecated functions *****************/
+
+/* Proficiency Related Functions */
+
+/*
+#define ITEM_PROF_NONE		0	// no proficiency required
+#define ITEM_PROF_MINIMAL	1	//  "Minimal Weapon Proficiency"
+#define ITEM_PROF_BASIC		2	//  "Basic Weapon Proficiency"
+#define ITEM_PROF_ADVANCED	3	//  "Advanced Weapon Proficiency"
+#define ITEM_PROF_MASTER 	4	//  "Master Weapon Proficiency"
+#define ITEM_PROF_EXOTIC 	5	//  "Exotic Weapon Proficiency"
+#define ITEM_PROF_LIGHT_A	6	// light armor prof
+#define ITEM_PROF_MEDIUM_A	7	// medium armor prof
+#define ITEM_PROF_HEAVY_A	8	// heavy armor prof
+#define ITEM_PROF_SHIELDS	9	// shield prof
+#define ITEM_PROF_T_SHIELDS	10	// tower shield prof
+ */
+
+/* a function to check the -highest- level of proficiency of gear
+   worn on a character
+ * in:  requires character (pc only), type is either weapon/armor/shield
+ * out:  value of highest proficiency worn
+ *  */
+
+/* deprecated */
+/*
+int proficiency_worn(struct char_data *ch, int type) {
+  int prof = ITEM_PROF_NONE, i = 0;
+
+  for (i = 0; i < NUM_WEARS; i++) {
+    if (GET_EQ(ch, i)) {
+      if (type == WEAPON_PROFICIENCY && (
+              i == WEAR_WIELD_1 ||
+              i == WEAR_WIELD_OFFHAND ||
+              i == WEAR_WIELD_2H
+              )) {
+        if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
+          prof = GET_OBJ_PROF(GET_EQ(ch, i));
+        }
+      } else if (type == SHIELD_PROFICIENCY && (
+              i == WEAR_SHIELD
+              )) {
+        if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
+          prof = GET_OBJ_PROF(GET_EQ(ch, i));
+        }
+      } else if (type == ARMOR_PROFICIENCY && (
+              i != WEAR_WIELD_1 &&
+              i != WEAR_WIELD_OFFHAND &&
+              i != WEAR_WIELD_2H &&
+              i != WEAR_SHIELD
+              )) {
+        if (GET_OBJ_PROF(GET_EQ(ch, i)) > prof) {
+          prof = GET_OBJ_PROF(GET_EQ(ch, i));
+        }
+      }
+    }
+  }
+
+  switch (type) {
+    case WEAPON_PROFICIENCY:
+      if (prof < 0 || prof >= NUM_WEAPON_PROFS)
+        return ITEM_PROF_NONE;
+      break;
+    case ARMOR_PROFICIENCY:
+      if (prof < NUM_WEAPON_PROFS || prof >= NUM_ARMOR_PROFS)
+        return ITEM_PROF_NONE;
+      break;
+    case SHIELD_PROFICIENCY:
+      if (prof < NUM_ARMOR_PROFS || prof >= NUM_SHIELD_PROFS)
+        return ITEM_PROF_NONE;
+      break;
+  }
+
+  return prof;
+}
+*/
+
+/* deprecated */
+/*
+int determine_gear_weight(struct char_data *ch, int type) {
+  int i = 0, weight = 0;
+
+  for (i = 0; i < NUM_WEARS; i++) {
+    if (GET_EQ(ch, i)) {
+      if (type == WEAPON_PROFICIENCY && (
+              i == WEAR_WIELD_1 ||
+              i == WEAR_WIELD_OFFHAND ||
+              i == WEAR_WIELD_2H
+              )) {
+        weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
+      } else if (type == SHIELD_PROFICIENCY && (
+              i == WEAR_SHIELD
+              )) {
+        weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
+      } else if (type == ARMOR_PROFICIENCY && (
+              i == WEAR_HEAD ||
+              i == WEAR_BODY ||
+              i == WEAR_ARMS ||
+              i == WEAR_LEGS
+              )) {
+        weight += GET_OBJ_WEIGHT(GET_EQ(ch, i));
+      }
+    }
+  }
+
+  return weight;
+}
+*/
+
+/* this function will determine the penalty (or lack of) created
+ by the gear the character is wearing - this penalty is mostly in
+ regards to rogue-like skills such as sneak/hide */
+/* deprecated */
+/*
+int compute_gear_penalty_check(struct char_data *ch) {
+  int factor = determine_gear_weight(ch, ARMOR_PROFICIENCY);
+  factor += determine_gear_weight(ch, SHIELD_PROFICIENCY);
+
+  if (factor > 51)
+    return -8;
+  if (factor >= 45)
+    return -6;
+  if (factor >= 40)
+    return -5;
+  if (factor >= 35)
+    return -4;
+  if (factor >= 30)
+    return -3;
+  if (factor >= 25)
+    return -2;
+  if (factor >= 20)
+    return -1;
+
+  return 0; //should be less than 10
+}
+*/
+
+/* this function will determine the % penalty created by the
+   gear the char is wearing - this penalty is unique to
+   arcane casting only (sorc, wizard, bard, etc) */
+/* deprecated */
+/*
+int compute_gear_arcane_fail(struct char_data *ch) {
+  int factor = determine_gear_weight(ch, ARMOR_PROFICIENCY);
+  factor += determine_gear_weight(ch, SHIELD_PROFICIENCY);
+
+  factor -= HAS_FEAT(ch, FEAT_ARMORED_SPELLCASTING) * 5;
+
+  if (factor > 51)
+    return 50;
+  if (factor >= 45)
+    return 40;
+  if (factor >= 40)
+    return 35;
+  if (factor >= 35)
+    return 30;
+  if (factor >= 30)
+    return 25;
+  if (factor >= 25)
+    return 20;
+  if (factor >= 20)
+    return 15;
+  if (factor >= 15)
+    return 10;
+  if (factor >= 10)
+    return 5;
+
+  return 0; //should be less than 10
+
+}
+*/
+
+/* this function will determine the dam-reduc created by the
+   gear the char is wearing  */
+/* deprecated */
+/*
+int compute_gear_dam_reduc(struct char_data *ch) {
+  int factor = determine_gear_weight(ch, ARMOR_PROFICIENCY);
+  int shields = determine_gear_weight(ch, SHIELD_PROFICIENCY);
+
+  if (shields > factor)
+    factor = shields;
+
+  if (factor > 51)
+    return 6;
+  if (factor >= 45)
+    return 4;
+  if (factor >= 40)
+    return 4;
+  if (factor >= 35)
+    return 3;
+  if (factor >= 30)
+    return 3;
+  if (factor >= 25)
+    return 2;
+  if (factor >= 20)
+    return 2;
+  if (factor >= 15)
+    return 1;
+  if (factor >= 10)
+    return 1;
+
+  return 0; //should be less than 10
+}
+*/
+
+/* this function will determine the max-dex created by the
+   gear the char is wearing  */
+/* deprecated */
+/*
+int compute_gear_max_dex(struct char_data *ch) {
+  int factor = determine_gear_weight(ch, ARMOR_PROFICIENCY);
+  int shields = determine_gear_weight(ch, SHIELD_PROFICIENCY);
+
+  if (shields > factor)
+    factor = shields;
+
+  if (factor > 51)
+    return 0;
+  if (factor >= 45)
+    return 1;
+  if (factor >= 40)
+    return 2;
+  if (factor >= 35)
+    return 3;
+  if (factor >= 30)
+    return 4;
+  if (factor >= 25)
+    return 5;
+  if (factor >= 20)
+    return 7;
+  if (factor >= 15)
+    return 9;
+  if (factor >= 10)
+    return 11;
+
+  if (factor >= 1)
+    return 13;
+  else
+    return 99; // wearing no weight!
+}
+*/

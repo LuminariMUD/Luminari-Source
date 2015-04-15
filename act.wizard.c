@@ -1085,7 +1085,7 @@ ACMD(do_stat) {
       send_to_char(ch, "Stats on which object?\r\n");
     else {
       if ((object = get_obj_vis(ch, buf2, NULL)) != NULL)
-        do_stat_object(ch, object);
+        do_stat_object(ch, object, ITEM_STAT_MODE_IMMORTAL);
       else
         send_to_char(ch, "No such object around.\r\n");
     }
@@ -1102,17 +1102,17 @@ ACMD(do_stat) {
     int number = get_number(&name);
 
     if ((object = get_obj_in_equip_vis(ch, name, &number, ch->equipment)) != NULL)
-      do_stat_object(ch, object);
+      do_stat_object(ch, object, ITEM_STAT_MODE_IMMORTAL);
     else if ((object = get_obj_in_list_vis(ch, name, &number, ch->carrying)) != NULL)
-      do_stat_object(ch, object);
+      do_stat_object(ch, object, ITEM_STAT_MODE_IMMORTAL);
     else if ((victim = get_char_vis(ch, name, &number, FIND_CHAR_ROOM)) != NULL)
       do_stat_character(ch, victim);
     else if ((object = get_obj_in_list_vis(ch, name, &number, world[IN_ROOM(ch)].contents)) != NULL)
-      do_stat_object(ch, object);
+      do_stat_object(ch, object, ITEM_STAT_MODE_IMMORTAL);
     else if ((victim = get_char_vis(ch, name, &number, FIND_CHAR_WORLD)) != NULL)
       do_stat_character(ch, victim);
     else if ((object = get_obj_vis(ch, name, &number)) != NULL)
-      do_stat_object(ch, object);
+      do_stat_object(ch, object, ITEM_STAT_MODE_IMMORTAL);
     else
       send_to_char(ch, "Nothing around by that name.\r\n");
   }
@@ -1433,7 +1433,7 @@ ACMD(do_vstat) {
         return;
       }
       obj = read_object(r_num, REAL);
-      do_stat_object(ch, obj);
+      do_stat_object(ch, obj, ITEM_STAT_MODE_IMMORTAL);
       extract_obj(obj);
       break;
     case 'r':

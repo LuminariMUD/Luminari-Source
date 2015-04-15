@@ -28,7 +28,7 @@ act.other.o: act.other.c conf.h sysdep.h structs.h protocol.h lists.h \
  house.h constants.h dg_scripts.h act.h spec_procs.h class.h fight.h \
  mail.h shop.h quest.h modify.h clan.h mud_event.h dg_event.h craft.h \
  treasure.h mudlim.h spec_abilities.h actions.h feats.h \
- assign_wpn_armor.h
+ assign_wpn_armor.h item.h
 act.social.o: act.social.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h screen.h spells.h \
  act.h
@@ -301,7 +301,7 @@ spell_parser.o: spell_parser.c conf.h sysdep.h structs.h protocol.h \
 spells.o: spells.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h handler.h db.h constants.h interpreter.h \
  dg_scripts.h act.h fight.h mud_event.h dg_event.h house.h screen.h \
- craft.h mudlim.h
+ craft.h mudlim.h item.h
 study.o: study.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h oasis.h help.h screen.h interpreter.h modify.h \
  spells.h feats.h class.h constants.h assign_wpn_armor.h
