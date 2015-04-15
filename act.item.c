@@ -320,22 +320,39 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       }
       send_to_char(ch, "Values defined by weapon type:\r\n");
       sprintbit(weapon_list[weapon_val].weaponFlags, weapon_flags, buf, sizeof (buf));
-      send_to_char(ch, "%s, Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
-                   weapon_list[weapon_val].name,
-                   weapon_list[weapon_val].numDice,weapon_list[weapon_val].diceSize,
-                   (20 - weapon_list[weapon_val].critRange),
-                   crit_multi, buf);
+      if (mode == ITEM_STAT_MODE_IMMORTAL) {
+        send_to_char(ch, "%s, Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
+                     weapon_list[weapon_val].name,
+                     weapon_list[weapon_val].numDice,weapon_list[weapon_val].diceSize,
+                     (20 - weapon_list[weapon_val].critRange),
+                     crit_multi, buf);
+      } else {
+        send_to_char(ch, "Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
+                     weapon_list[weapon_val].numDice,weapon_list[weapon_val].diceSize,
+                     (20 - weapon_list[weapon_val].critRange),
+                     crit_multi, buf);
+      }
       sprintbit(weapon_list[weapon_val].damageTypes, weapon_damage_types, buf2, sizeof (buf2));
-      send_to_char(ch, "Sugg. Cost: %d, Damage-Types: %s, Sugg. Weight: %d\r\n",
-                   weapon_list[weapon_val].cost, buf2, weapon_list[weapon_val].weight);
+      if (mode == ITEM_STAT_MODE_IMMORTAL) {
+        send_to_char(ch, "Sugg. Cost: %d, Damage-Types: %s, Sugg. Weight: %d\r\n",
+                     weapon_list[weapon_val].cost, buf2, weapon_list[weapon_val].weight);
+      } else {
+        send_to_char(ch, "Damage-Types: %s\r\n", buf2);
+      }
       send_to_char(ch, "Range: %d, Family: %s\r\n",
-                   weapon_list[weapon_val].range, weapon_family[weapon_list[weapon_val].weaponFamily]
+                     weapon_list[weapon_val].range, weapon_family[weapon_list[weapon_val].weaponFamily]
               );
-      send_to_char(ch, "Sugg. Size: %s, Sugg. Material: %s, Handle Type: %s, Head Type: %s\r\n",
-                   sizes[weapon_list[weapon_val].size], material_name[weapon_list[weapon_val].material],
-                   weapon_handle_types[weapon_list[weapon_val].handle_type],
-                   weapon_head_types[weapon_list[weapon_val].head_type]
-              );
+      if (mode == ITEM_STAT_MODE_IMMORTAL) {
+        send_to_char(ch, "Sugg. Size: %s, Sugg. Material: %s, Handle Type: %s, Head Type: %s\r\n",
+                     sizes[weapon_list[weapon_val].size], material_name[weapon_list[weapon_val].material],
+                     weapon_handle_types[weapon_list[weapon_val].handle_type],
+                     weapon_head_types[weapon_list[weapon_val].head_type]
+                );
+      } else {
+        send_to_char(ch, "Handle Type: %s, Head Type: %s\r\n",
+                     weapon_handle_types[weapon_list[weapon_val].handle_type],
+                     weapon_head_types[weapon_list[weapon_val].head_type] );
+      }
 
       break;
 
@@ -344,21 +361,29 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       /* values defined by armor type */
       int armor_val = GET_OBJ_VAL(item, 1);
       send_to_char(ch, "Values defined by armor type:\r\n");
-      send_to_char(ch, "%s, Amor-Type: %s, Sugg. Cost: %d, Sugg. AC: %d,\r\n",
-                   armor_list[armor_val].name,
-                   armor_type[armor_list[armor_val].armorType],
-                   armor_list[armor_val].cost,
-                   armor_list[armor_val].armorBonus );
-      send_to_char(ch, "Max Dex Bonus: %d, Amor-Check: %d, Spell-Fail: %d, 30ft: %d, 20ft: %d,\r\n",
-                   armor_list[armor_val].dexBonus,
-                   armor_list[armor_val].armorCheck,
-                   armor_list[armor_val].spellFail,
-                   armor_list[armor_val].thirtyFoot, armor_list[armor_val].twentyFoot
+      if (mode == ITEM_STAT_MODE_IMMORTAL) {
+        send_to_char(ch, "%s, Amor-Type: %s, Sugg. Cost: %d, Sugg. AC: %d,\r\n",
+                     armor_list[armor_val].name,
+                     armor_type[armor_list[armor_val].armorType],
+                     armor_list[armor_val].cost,
+                     armor_list[armor_val].armorBonus );
+      } else {
+        send_to_char(ch, "Armor-Proficiency: %s, Armor-Type: %s\r\n", armor_list[armor_val].name,
+                     armor_type[armor_list[armor_val].armorType]);
+      }
+      send_to_char(ch, "Max Dex Bonus: %d, Armor-Check: %d, Spell-Fail: %d, 30ft: %d, 20ft: %d,\r\n",
+                     armor_list[armor_val].dexBonus,
+                     armor_list[armor_val].armorCheck,
+                     armor_list[armor_val].spellFail,
+                     armor_list[armor_val].thirtyFoot, armor_list[armor_val].twentyFoot
                    );
-      send_to_char(ch, "Sugg. Weight: %d, Sugg. Material: %s, Sugg. Wear-Slot: %s\r\n",
-                   armor_list[armor_val].weight,
-                   material_name[armor_list[armor_val].material],
-                   wear_bits[armor_list[armor_val].wear] );
+      if (mode == ITEM_STAT_MODE_IMMORTAL) {
+        send_to_char(ch, "Sugg. Weight: %d, Sugg. Material: %s, Sugg. Wear-Slot: %s\r\n",
+                     armor_list[armor_val].weight,
+                     material_name[armor_list[armor_val].material],
+                     wear_bits[armor_list[armor_val].wear] );
+      }
+
       break;
     case ITEM_CONTAINER:
       sprintbit(GET_OBJ_VAL(item, 1), container_bits, buf, sizeof (buf));
@@ -390,14 +415,16 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       send_to_char(ch, "Coins: %d\r\n", GET_OBJ_VAL(item, 0));
       break;
     case ITEM_PORTAL:
-      if (GET_OBJ_VAL(item, 0) == PORTAL_NORMAL)
-        send_to_char(ch, "Type: Normal Portal to %d\r\n", GET_OBJ_VAL(item, 1));
-      else if (GET_OBJ_VAL(item, 0) == PORTAL_RANDOM)
-        send_to_char(ch, "Type: Random Portal to range %d-%d\r\n", GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2));
-      else if (GET_OBJ_VAL(item, 0) == PORTAL_CLANHALL)
-        send_to_char(ch, "Type: Clanportal (destination depends on player)\r\n");
-      else if (GET_OBJ_VAL(item, 0) == PORTAL_CHECKFLAGS)
-        send_to_char(ch, "Type: Checkflags Portal to %d\r\n", GET_OBJ_VAL(item, 1));
+      if (mode == ITEM_STAT_MODE_IMMORTAL) {
+        if (GET_OBJ_VAL(item, 0) == PORTAL_NORMAL)
+          send_to_char(ch, "Type: Normal Portal to %d\r\n", GET_OBJ_VAL(item, 1));
+        else if (GET_OBJ_VAL(item, 0) == PORTAL_RANDOM)
+          send_to_char(ch, "Type: Random Portal to range %d-%d\r\n", GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2));
+        else if (GET_OBJ_VAL(item, 0) == PORTAL_CLANHALL)
+          send_to_char(ch, "Type: Clanportal (destination depends on player)\r\n");
+        else if (GET_OBJ_VAL(item, 0) == PORTAL_CHECKFLAGS)
+          send_to_char(ch, "Type: Checkflags Portal to %d\r\n", GET_OBJ_VAL(item, 1));
+      }
       break;
     case ITEM_FURNITURE:
       send_to_char(ch, "Can hold: [%d] Num. of People in: [%d]\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1));
@@ -413,7 +440,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
               "Breaking Probability:   %d percent\r\n",
               ranged_missiles[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 1),
               GET_OBJ_VAL(item, 2));
-      send_to_char(ch, "Missile belongs to: %ld\r\n", MISSILE_ID(item));
+      if (mode == ITEM_STAT_MODE_IMMORTAL)
+        send_to_char(ch, "Missile belongs to: %ld\r\n", MISSILE_ID(item));
       break;
     case ITEM_SPELLBOOK:
       display_spells(ch, item);

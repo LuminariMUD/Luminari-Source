@@ -3,8 +3,8 @@
  *  Usage:  functions for random treasure objects                          *
  *  Author: d20mud, ported to tba/luminari by Zusuk                        *
  ************************************************************************* *
- * This code is going through a rewrite, to make a more consistent system 
- * across the mud for magic item generation (crafting, random treasure, 
+ * This code is going through a rewrite, to make a more consistent system
+ * across the mud for magic item generation (crafting, random treasure,
  * etc.)  Changes by Ornir.
  *************************************************************************/
 
@@ -128,12 +128,12 @@ int choose_cloth_material(void) {
 int random_apply_value(void) {
   int val = APPLY_NONE;
 
-  /* There will be different groupings based on item type and wear location, 
-   * for example weapons will get hit/dam bonus (the +) and armor will get 
+  /* There will be different groupings based on item type and wear location,
+   * for example weapons will get hit/dam bonus (the +) and armor will get
    * ac_apply_new bonus (the +). */
-  switch (dice(1, 13)) {
+  switch (dice(1, 12)) {
     case 1:
-      val = APPLY_AC_NEW;
+      val = APPLY_HIT;
       break;
     case 2:
       val = APPLY_STR;
@@ -164,9 +164,6 @@ int random_apply_value(void) {
       break;
     case 11:
       val = APPLY_SAVING_WILL;
-      break;
-    case 12:
-      val = APPLY_HIT;
       break;
     default:
       switch (rand_number(1, 20)) {
@@ -461,12 +458,12 @@ int adjust_bonus_value(int apply_location, int bonus) {
     case APPLY_HITROLL:
     case APPLY_DAMROLL:
     case APPLY_STR:
-    case APPLY_CON: 
-    case APPLY_DEX: 
+    case APPLY_CON:
+    case APPLY_DEX:
     case APPLY_INT:
-    case APPLY_WIS: 
-    case APPLY_CHA: 
-    case APPLY_SAVING_FORT: 
+    case APPLY_WIS:
+    case APPLY_CHA:
+    case APPLY_SAVING_FORT:
     case APPLY_SAVING_REFL:
     case APPLY_SAVING_WILL:
     default:
@@ -480,25 +477,25 @@ int adjust_bonus_type(int apply_location) {
   int roll = dice(1,100); // Roll percentile
 
   switch (apply_location) {
-    case APPLY_AC_NEW:       
+    case APPLY_AC_NEW:
       if (roll > 80) { // 20%
         return BONUS_TYPE_DEFLECTION;
-      } else 
+      } else
         return BONUS_TYPE_ARMOR;
-    case APPLY_SAVING_FORT: 
+    case APPLY_SAVING_FORT:
     case APPLY_SAVING_REFL:
     case APPLY_SAVING_WILL:
       return BONUS_TYPE_RESISTANCE;
-    case APPLY_HIT:      
-    case APPLY_MOVE:      
+    case APPLY_HIT:
+    case APPLY_MOVE:
     case APPLY_HITROLL:
     case APPLY_DAMROLL:
     case APPLY_STR:
-    case APPLY_CON: 
-    case APPLY_DEX: 
+    case APPLY_CON:
+    case APPLY_DEX:
     case APPLY_INT:
-    case APPLY_WIS: 
-    case APPLY_CHA: 
+    case APPLY_WIS:
+    case APPLY_CHA:
     default:
       return BONUS_TYPE_ENHANCEMENT;
       break;
@@ -519,10 +516,10 @@ struct char_data *find_treasure_recipient(struct char_data *ch) {
   /* assign group data */
   if ((group = ch->group) == NULL)
     return ch;
-  
+
   /* pick random group member */
   target = random_from_list(group->members);
-  
+
   /* same room? */
   if (IN_ROOM(ch) != IN_ROOM(target))
     target = ch;
@@ -615,10 +612,10 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
   for (i = 0; i < number; i++) {
     roll = dice(1, 100);
     if (roll <= 5)
-      award_random_crystal(ch, level);      
+      award_random_crystal(ch, level);
     else if (roll <= 15)
       award_magic_weapon(ch, grade, level);
-    else if (roll <= 55) { 
+    else if (roll <= 55) {
       switch (dice(1,4)) {
         case 1:
           award_expendable_item(ch, grade, TYPE_SCROLL);
@@ -635,7 +632,7 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
       }
     } else if (roll <= 75)
         award_misc_magic_item(ch, grade, level);
-      else 
+      else
         award_magic_armor(ch, grade, level);
   }
 }
@@ -663,7 +660,7 @@ void award_random_crystal(struct char_data *ch, int level) {
   /* this is deprecated, level determines modifier now (in craft.c) */
   obj->affected[0].modifier =
           random_bonus_value(obj->affected[0].location, GET_OBJ_LEVEL(obj), 0);
-  
+
   /* random color(s) and description */
   color1 = rand_number(0, NUM_A_COLORS);
   color2 = rand_number(0, NUM_A_COLORS);
@@ -711,7 +708,7 @@ void award_random_crystal(struct char_data *ch, int level) {
     sprintf(buf, "A %s crystal lies here.", colors[color1]);
     obj->description = strdup(buf);
 
-    // descriptor only  
+    // descriptor only
   } else {
     sprintf(buf, "crystal %s", crystal_descs[desc]);
     obj->name = strdup(buf);
@@ -829,7 +826,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
                 potion_descs[desc], colors[color1], colors[color2]);
         obj->description = strdup(buf);
 
-        // one color and descriptor        
+        // one color and descriptor
       } else if (roll >= 66) {
         sprintf(keywords, "potion-%s", spell_info[spell_num].name);
         for (i = 0; i < strlen(keywords); i++)
@@ -987,7 +984,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   int i = 0;
   bool duplicate_affect = FALSE;
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  
+
   switch (cp_type) {
     case CP_TYPE_MISC:
       max_slots = 1; /* Trinkets */
@@ -1001,19 +998,19 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     default:
       break;
   }
- 
+
   /* Get the base CP for the item based on the level. */
   current_cp = CP_BASE_VALUE(level);
-  
+
   /* Add bonus CP and slots for rarity */
   current_cp += rare_grade * 100;
-  if (rare_grade >= 2) 
+  if (rare_grade >= 2)
     max_slots += 1;
 
   /* DEBUG */
   if (GET_LEVEL(ch) >= LVL_IMMORTAL)
-    send_to_char(ch, "\tyItem created, level: %d CP: %d\tn\r\n", level, current_cp);  
-  
+    send_to_char(ch, "\tyItem created, level: %d CP: %d\tn\r\n", level, current_cp);
+
   /* Add bonuses, one bonus to each slot. */
   while (current_slot <= max_slots) {
 
@@ -1034,17 +1031,17 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
           bonus_location = random_weapon_apply_value();
         break;
       default: /* misc types */
-        bonus_location = random_apply_value();        
+        bonus_location = random_apply_value();
         break;
     }
-    
+
     /* Check for duplicate affects */
     duplicate_affect = FALSE;
     for(i = 0; i > MAX_OBJ_AFFECT; i++){
       if(obj->affected[i].location == bonus_location){
         duplicate_affect = TRUE;
         break;
-      }        
+      }
     }
     /* Only add the affect if it is not a duplicate affect location! */
     if(duplicate_affect != TRUE) {
@@ -1063,20 +1060,20 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
       while ((max_bonus > 0) && (max_bonus_cp_cost > current_cp)) {
         max_bonus--;
         max_bonus_cp_cost = CP_COST(max_bonus);
-      } 
+      }
 
       /* If we CAN apply a bonus, based on CP, then determine value. */
-      if (max_bonus > 0) {    
+      if (max_bonus > 0) {
         /* Choose a bonus value from 1 to that bonus amount. */
         bonus_value = rand_number(1, max_bonus);
         current_cp -= CP_COST(bonus_value);
         if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_HITROLL) {
           GET_OBJ_VAL(obj, 4) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); /* Set enhancement bonus.*/
           current_slot++;
-        } else {               
+        } else {
           obj->affected[current_slot - 1].location = bonus_location;
           obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
-          obj->affected[current_slot - 1].bonus_type = adjust_bonus_type(bonus_location); 
+          obj->affected[current_slot - 1].bonus_type = adjust_bonus_type(bonus_location);
         }
 //        /* tag damroll bonus too for weapons */
 //        if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_HITROLL) {
@@ -1084,8 +1081,8 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 //          current_slot++; /* Increment the slot, APPLY_DAMROLL goes in the second slot. */
 //          obj->affected[current_slot - 1].location = APPLY_DAMROLL;
 //          obj->affected[current_slot - 1].modifier = adjust_bonus_value(APPLY_DAMROLL, bonus_value);
-//        }  
-        
+//        }
+
       }
     }
     current_slot++;
@@ -1098,7 +1095,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  /* add magic tag */
 
   obj_to_char(obj, ch); /* deliver object */
-  
+
   send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
   sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
   act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
@@ -1561,7 +1558,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
 
   // keywords
   obj->name = strdup(keywords);
-  // Set descriptions  
+  // Set descriptions
   obj->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
   sprintf(desc, "%s is lying here.", desc);
@@ -2041,7 +2038,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     obj->description = strdup(buf);
   }
 
-  /* object is fully described 
+  /* object is fully described
    base object is taken care of including material, now set random stats, etc */
   cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_WEAPON);
 }
