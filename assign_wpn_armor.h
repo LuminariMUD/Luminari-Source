@@ -65,6 +65,7 @@ bool is_using_double_weapon(struct char_data *ch);
 bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded);
 int is_proficient_with_weapon(struct char_data *ch, int weapon_type);
 int is_proficient_with_armor(struct char_data *ch);
+bool monk_gear_ok(struct char_data *ch);
 
 
 #ifdef	__cplusplus
