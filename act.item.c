@@ -456,11 +456,13 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       send_to_char(ch, "Report this item to a coder to add the ITEM_type\r\n");
       break;
   }
-  send_to_char(ch, "Values: ");
-  for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++) {
-    send_to_char(ch, "[%d] ", GET_OBJ_VAL(item, i));
+  if (mode == ITEM_STAT_MODE_IMMORTAL) {
+    send_to_char(ch, "Values: ");
+    for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++) {
+      send_to_char(ch, "[%d] ", GET_OBJ_VAL(item, i));
+    }
+    send_to_char(ch, "\r\n");
   }
-
 }
 
 /* a central location for identification/statting of items */
