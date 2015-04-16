@@ -2192,6 +2192,30 @@ ACMD(do_equipment) {
       found = TRUE;
       if (CAN_SEE_OBJ(ch, GET_EQ(ch, i))) {
         send_to_char(ch, "%s", wear_where[i]);
+        /* added this as a clue to players */
+        switch (i) {
+          case WEAR_SHIELD:
+            if (!is_proficient_with_shield(ch))
+              send_to_char(ch, "(not proficient) ");
+            break;
+          case WEAR_BODY:
+            if (!is_proficient_with_body_armor(ch))
+              send_to_char(ch, "(not proficient) ");
+            break;
+          case WEAR_HEAD:
+            if (!is_proficient_with_helm(ch))
+              send_to_char(ch, "(not proficient) ");
+            break;
+          case WEAR_ARMS:
+            if (!is_proficient_with_sleeves(ch))
+              send_to_char(ch, "(not proficient) ");
+            break;
+          case WEAR_LEGS:
+            if (!is_proficient_with_leggings(ch))
+              send_to_char(ch, "(not proficient) ");
+            break;
+          default:break;
+        }
         show_obj_to_char(GET_EQ(ch, i), ch, SHOW_OBJ_SHORT, mxp_type);
       } else {
         send_to_char(ch, "%s", wear_where[i]);

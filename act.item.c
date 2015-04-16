@@ -368,7 +368,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       int armor_val = GET_OBJ_VAL(item, 1);
       send_to_char(ch, "Values defined by armor type:\r\n");
       if (mode == ITEM_STAT_MODE_IMMORTAL) {
-        send_to_char(ch, "%s, Amor-Type: %s, Sugg. Cost: %d, Sugg. AC: %d,\r\n",
+        send_to_char(ch, "Armor: %s, Type: %s, Sugg. Cost: %d, Sugg. AC: %d,\r\n",
                      armor_list[armor_val].name,
                      armor_type[armor_list[armor_val].armorType],
                      armor_list[armor_val].cost,

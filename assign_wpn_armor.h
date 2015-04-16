@@ -67,6 +67,13 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon_type);
 int is_proficient_with_armor(struct char_data *ch);
 bool monk_gear_ok(struct char_data *ch);
 
+int is_proficient_with_shield(struct char_data *ch);
+int is_proficient_with_body_armor(struct char_data *ch);
+int is_proficient_with_helm(struct char_data *ch);
+int is_proficient_with_sleeves(struct char_data *ch);
+int is_proficient_with_leggings(struct char_data *ch);
+
+
 
 #ifdef	__cplusplus
 extern "C" {
