@@ -759,7 +759,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
     case CLASS_BARD:
       class = CLASS_BARD;
       break;
-    default:
+    default: /* we favor wizards heavily since they NEED scrolls */
       class = CLASS_WIZARD;
       break;
   }
@@ -1022,16 +1022,19 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     /* Determine bonus location, check if first bonus too */
     switch (cp_type) {
       case CP_TYPE_ARMOR:
-        /* Since this is armor, the first bonus is ALWAYS AC */
+        /* Since this is armor, the first bonus is ALWAYS AC
+         Note: this is just a marker now, we have enhancement bonus instead */
         if(current_slot == 1)
           bonus_location = APPLY_AC_NEW;
         else
           bonus_location = random_armor_apply_value();
         break;
+
       case CP_TYPE_WEAPON:
-        /* Since this is a weapon, the first 2 bonuses are TOHIT and TODAM */
+        /* Since this is a weapon, the first 2 bonuses are TOHIT and TODAM
+         Note: this is just a marker now, we have enhancement bonus instead */
         if(current_slot == 1)
-          bonus_location = APPLY_HITROLL; /* We Apply TODAM later... */
+          bonus_location = APPLY_HITROLL; // We Apply TODAM later...
         else
           bonus_location = random_weapon_apply_value();
         break;
@@ -1075,18 +1078,16 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_HITROLL) {
           GET_OBJ_VAL(obj, 4) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); /* Set enhancement bonus.*/
           current_slot++;
+          /* added this code to handle armor enhancement -zusuk */
+        } else if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_AC_NEW) {
+          /* it doesn't matter we're sending APPLY_DAMROLL here */
+          GET_OBJ_VAL(obj, 4) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); /* Set enhancement bonus.*/
+          current_slot++;
         } else {
           obj->affected[current_slot - 1].location = bonus_location;
           obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);
           obj->affected[current_slot - 1].bonus_type = adjust_bonus_type(bonus_location);
         }
-//        /* tag damroll bonus too for weapons */
-//        if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_HITROLL) {
-//          /* In this case, we need to add APPLY_DAMROLL as well. */
-//          current_slot++; /* Increment the slot, APPLY_DAMROLL goes in the second slot. */
-//          obj->affected[current_slot - 1].location = APPLY_DAMROLL;
-//          obj->affected[current_slot - 1].modifier = adjust_bonus_value(APPLY_DAMROLL, bonus_value);
-//        }
 
       }
     }
