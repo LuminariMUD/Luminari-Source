@@ -2194,6 +2194,12 @@ ACMD(do_equipment) {
         send_to_char(ch, "%s", wear_where[i]);
         /* added this as a clue to players */
         switch (i) {
+          case WEAR_WIELD_1:
+          case WEAR_WIELD_OFFHAND:
+          case WEAR_WIELD_2H:
+            if (!is_proficient_with_weapon(ch, GET_WEAPON_TYPE(GET_EQ(ch, i))))
+              send_to_char(ch, "(not proficient) ");
+            break;
           case WEAR_SHIELD:
             if (!is_proficient_with_shield(ch))
               send_to_char(ch, "(not proficient) ");
