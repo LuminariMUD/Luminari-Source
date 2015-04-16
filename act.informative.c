@@ -2095,7 +2095,7 @@ ACMD(do_score) {
 
   text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');
 
-  send_to_char(ch, "\tcQuests completed : \tn%d, \tcQuest points     : \tn%d\r\n"
+  send_to_char(ch, "\tcQuests completed : \tn%d\tc, Quest points     : \tn%d\r\n"
                    "\tcOn quest         : \tn",
                (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
                (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0) );
@@ -2180,7 +2180,7 @@ ACMD(do_inventory) {
 ACMD(do_equipment) {
   int i, found = 0;
   int mxp_type = 2;
-  char dex_max[10] = "None";
+  char dex_max[10] = "No-Max";
   int j = compute_gear_max_dex(ch);
 
   if (j <= 8) // 99 is our signal for no max dex
@@ -2202,7 +2202,7 @@ ACMD(do_equipment) {
   if (!found)
     send_to_char(ch, " Nothing.\r\n");
 
-  send_to_char(ch, "\tC%s, %s, Bonus: +%d, Penalty: %d, Max Dex: %s, Spell Fail:"
+  send_to_char(ch, "\tCArmor: %s, Shield: %s, Enhancement: +%d, Penalty: %d, Max Dex: %s, Spell Fail:"
                " %d.\tn\r\n",
                armor_type[compute_gear_armor_type(ch)],
                armor_type[compute_gear_shield_type(ch)],
