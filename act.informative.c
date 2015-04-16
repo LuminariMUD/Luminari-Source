@@ -2095,7 +2095,7 @@ ACMD(do_score) {
 
   text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');
 
-  send_to_char(ch, "\tcQuests completed : \tn%d                                       \tcQuest points     : \tn%d\r\n"
+  send_to_char(ch, "\tcQuests completed : \tn%d, \tcQuest points     : \tn%d\r\n"
                    "\tcOn quest         : \tn",
                (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
                (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0) );
@@ -2106,7 +2106,7 @@ ACMD(do_score) {
     send_to_char(ch, "None\r\n");
 
   if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch))
-    send_to_char(ch, "On Crafting Job: (\tn%d\tc) \tn%s\tc, using: \tn%s\r\n",
+    send_to_char(ch, "\tcOn Crafting Job: (\tn%d\tc) \tn%s\tc, using: \tn%s\r\n",
                  GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
                  material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
 
