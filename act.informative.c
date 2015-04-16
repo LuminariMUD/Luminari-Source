@@ -2202,7 +2202,7 @@ ACMD(do_equipment) {
   if (!found)
     send_to_char(ch, " Nothing.\r\n");
 
-  send_to_char(ch, "\tCArmr: %s, Shld: %s, Enhance: +%d, Penalty: %d, Max Dex: %s, Spell Fail:"
+  send_to_char(ch, "\tCArmr: %s, Shld: %s, Ench: +%d, Pnlty: %d, MaxDex: %s, SpellFail:"
                " %d.\tn\r\n",
                armor_type[compute_gear_armor_type(ch)],
                armor_type[compute_gear_shield_type(ch)],
