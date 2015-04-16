@@ -1082,7 +1082,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         } else if (cp_type == CP_TYPE_ARMOR && bonus_location == APPLY_AC_NEW) {
           /* it doesn't matter we're sending APPLY_DAMROLL here */
           GET_OBJ_VAL(obj, 4) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); /* Set enhancement bonus.*/
-          current_slot++;
+          //current_slot++;
         } else {
           obj->affected[current_slot - 1].location = bonus_location;
           obj->affected[current_slot - 1].modifier = adjust_bonus_value(bonus_location, bonus_value);

@@ -3150,7 +3150,8 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
     bonuses[i] = 0;
 
-  /* start with our base bonus of strength (or dex with feat/ranged) */
+  /* start with our base bonus of strength (or dex with feat/ranged)
+     should this have a type?  for now it doesn't... */
   switch (attack_type) {
     case ATTACK_TYPE_OFFHAND:
     case ATTACK_TYPE_PRIMARY:
@@ -3303,8 +3304,10 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
 
   /* Add armor prof here: If not proficient with worn armor, armor check
    * penalty applies to attack roll. */
-  if (!is_proficient_with_armor(ch))
+  if (!is_proficient_with_armor(ch)) {
+    /*debug*/ //send_to_char(ch, "NOT PROFICIENT\r\n");
     calc_bab -=2;
+  }
 
   /* Add up all the bonuses */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
