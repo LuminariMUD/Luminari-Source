@@ -125,6 +125,7 @@ int choose_cloth_material(void) {
 }
 
 /* returns random apply value from a list of values staff approved */
+/* used for crystals and misc. wear-slots (not weapon or primary armor slots) */
 int random_apply_value(void) {
   int val = APPLY_NONE;
 
@@ -443,6 +444,7 @@ int random_weapon_apply_value(void) {
    it causes problems */
 #define RANDOM_BONUS_CAP  127
 /* function to adjust the bonus value based on the apply location */
+/* called by random_bonus_value(), cp_modify_object_applies(), */
 int adjust_bonus_value(int apply_location, int bonus) {
   int adjusted_bonus = bonus;
 
@@ -473,6 +475,8 @@ int adjust_bonus_value(int apply_location, int bonus) {
   return MIN(RANDOM_BONUS_CAP, adjusted_bonus);
 }
 
+/* assign bonus-types to the bonus */
+/* called by: cp_modify_object_applies() */
 int adjust_bonus_type(int apply_location) {
   int roll = dice(1,100); // Roll percentile
 
@@ -503,6 +507,7 @@ int adjust_bonus_type(int apply_location) {
 }
 
 /* function that returns bonus value based on apply-value and level */
+/* called by award_random_crystal() */
 int random_bonus_value(int apply_value, int level, int mod) {
   int bonus = MAX(1, (level / BONUS_FACTOR) + mod);
   return adjust_bonus_value(apply_value, bonus);
