@@ -13,7 +13,7 @@ act.item.o: act.item.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h screen.h interpreter.h handler.h db.h spells.h \
  constants.h dg_scripts.h oasis.h help.h act.h quest.h spec_procs.h \
  clan.h mud_event.h dg_event.h hlquest.h fight.h mudlim.h actions.h \
- traps.h assign_wpn_armor.h spec_abilities.h
+ traps.h assign_wpn_armor.h spec_abilities.h item.h
 act.movement.o: act.movement.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h handler.h db.h spells.h \
  house.h constants.h dg_scripts.h act.h fight.h oasis.h help.h \

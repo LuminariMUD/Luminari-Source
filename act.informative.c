@@ -2093,12 +2093,12 @@ ACMD(do_score) {
                calc_bab, perform_attacks(ch, RETURN_NUM_ATTACKS, 0), compute_concealment(ch));
 #undef RETURN_NUM_ATTACKS
 
-  send_to_char(ch, "\tC----------------\tyProficiencies\tC-----------------------------------\tyQuests\tC----------\tn\r\n"
-               "\tc                        : \tn%-25s \tC| \tcQuests completed : \tn%d\r\n"
-               "\tc                        : \tn%-25s \tC| \tcQuest points     : \tn%d\r\n"
-               "\tc                        : \tn%-25s \tC| \tcOn quest         : \tn",
-               "", (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0), "",
-               (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0), "" );
+  text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');
+
+  send_to_char(ch, "\tcQuests completed : \tn%d                                       \tcQuest points     : \tn%d\r\n"
+                   "\tcOn quest         : \tn",
+               (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
+               (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0) );
 
   if (!IS_NPC(ch) && GET_QUEST(ch) != NOTHING)
     send_to_char(ch, "%d\r\n", GET_QUEST(ch) == NOTHING ? -1 : GET_QUEST(ch));
@@ -2106,7 +2106,7 @@ ACMD(do_score) {
     send_to_char(ch, "None\r\n");
 
   if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch))
-    send_to_char(ch, "                                                    \tC| \tcOn Crafting Job: (\tn%d\tc) \tn%s\tc, using: \tn%s\r\n",
+    send_to_char(ch, "On Crafting Job: (\tn%d\tc) \tn%s\tc, using: \tn%s\r\n",
                  GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
                  material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
 
