@@ -1079,7 +1079,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
           GET_OBJ_VAL(obj, 4) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); /* Set enhancement bonus.*/
           current_slot++;
           /* added this code to handle armor enhancement -zusuk */
-        } else if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_AC_NEW) {
+        } else if (cp_type == CP_TYPE_ARMOR && bonus_location == APPLY_AC_NEW) {
           /* it doesn't matter we're sending APPLY_DAMROLL here */
           GET_OBJ_VAL(obj, 4) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); /* Set enhancement bonus.*/
           current_slot++;
