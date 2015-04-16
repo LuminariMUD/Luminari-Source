@@ -357,7 +357,12 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       break;
 
     case ITEM_ARMOR:
-      send_to_char(ch, "AC-apply: [%d]\r\n", GET_OBJ_VAL(item, 0));
+      if (mode == ITEM_STAT_MODE_IMMORTAL) {
+        send_to_char(ch, "AC-apply: [%d]\r\n", GET_OBJ_VAL(item, 0));
+      } else {
+        /* players should see the float value */
+        send_to_char(ch, "AC-apply: [%f]\r\n", (float) GET_OBJ_VAL(item, 0) / 10.0);
+      }
       /* values defined by armor type */
       int armor_val = GET_OBJ_VAL(item, 1);
       send_to_char(ch, "Values defined by armor type:\r\n");
