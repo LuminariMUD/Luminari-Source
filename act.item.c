@@ -172,7 +172,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   obj_rnum target_obj = NOTHING;
   char buf[MAX_STRING_LENGTH];
   char buf2[MAX_STRING_LENGTH];
-  int line_length = 80;
+  int line_length = 80, i = 0;
   char actmtds[MAX_STRING_LENGTH];
 
   text_line(ch, "\tcItem-Type Specific Values:\tn", line_length, '-', '-');
@@ -282,7 +282,6 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
         send_to_char(ch, "No weapon special abilities assigned.\r\n");
 
       /* weapon spells */
-      int i = 0;
       send_to_char(ch, "Weapon Spells:\r\n");
       if (!item->has_spells)
         send_to_char(ch, "No weapon spells on this weapon!\r\n");
@@ -454,11 +453,14 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       display_spells(ch, item);
       break;
     default:
-      send_to_char(ch, "Values 0-3: [%d] [%d] [%d] [%d]\r\n",
-              GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1),
-              GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
+      send_to_char(ch, "Report this item to a coder to add the ITEM_type\r\n");
       break;
   }
+  send_to_char(ch, "Values: ");
+  for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++) {
+    send_to_char(ch, "[%d] ", GET_OBJ_VAL(item, i));
+  }
+
 }
 
 /* a central location for identification/statting of items */
