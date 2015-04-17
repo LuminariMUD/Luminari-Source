@@ -1332,7 +1332,7 @@ const char *apply_types[NUM_APPLIES + 1] = {
   "Max-Move",
   "Gold",
   "Experience",
-  "AC (obsolete)",
+  "!Unused!",
   "Hitroll",
   "Damroll",
   "Save-Fortitude",
@@ -1342,7 +1342,7 @@ const char *apply_types[NUM_APPLIES + 1] = {
   "Save-Death",
   "Spell-Resist",
   "Size",
-  "AC (converted)",
+  "Armor-Class",
   "Resist-Fire",
   "Resist-Cold",
   "Resist-Air",
@@ -1408,7 +1408,7 @@ const int valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES] = {
   {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0}, //Max-Move
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Gold
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Experience
-  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //AC (obsolete)
+  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //!Unused!
   {1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Hitroll
   {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1}, //Damroll
   {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Fortitude
@@ -1418,7 +1418,7 @@ const int valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES] = {
   {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Death
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}, //Spell-Resist
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}, //Size
-  {1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1}, //AC (converted)
+  {1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1}, //Armor-Class
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Fire
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Cold
   {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Air
