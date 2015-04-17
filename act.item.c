@@ -272,7 +272,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       if (mode == ITEM_STAT_MODE_IMMORTAL) {
         send_to_char(ch, "AC-apply: [%d], Enhancement Bonus: +%d\r\n",
                      GET_OBJ_VAL(item, 0), GET_ENHANCEMENT_BONUS(item));
-      } else { 
+      } else {
         /* players should see the float value */
         send_to_char(ch, "AC-apply: [%.1f], Enhancement Bonus: +%d\r\n",
                 (float) GET_OBJ_VAL(item, 0) / 10.0, GET_ENHANCEMENT_BONUS(item));
@@ -447,6 +447,16 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
       send_to_char(ch, "SpecTimer %d: %d | ", i, GET_OBJ_SPECTIMER(j, i));
     }
     send_to_char(ch, "\r\n");
+  } else {
+    bool display = FALSE;
+    for (i = 0; i < SPEC_TIMER_MAX; i++) {
+      if (GET_OBJ_SPECTIMER(j, i)) {
+        send_to_char(ch, "Special Timer %d: %d | ", i, GET_OBJ_SPECTIMER(j, i));
+        display = TRUE;
+      }
+    }
+    if (display)
+      send_to_char(ch, "\r\n");
   }
 
   /* flags */
