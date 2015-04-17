@@ -37,7 +37,7 @@ extern const int  size_modifiers[];
 extern const int  size_modifiers_inverse[];
 extern const int  grapple_size_modifiers[];
 extern const char *room_affections[];
-extern const char *tbamud_version;
+extern const char *luminari_version;
 extern const char *damtype_display[];
 extern const char *dirs[];
 extern const char *autoexits[];

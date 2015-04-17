@@ -35,17 +35,17 @@ static void free_messages_type(struct msg_type *msg)
 void free_message_list(struct message_list * mlist)
 {
   struct message_type * msg, * orig;
-  
+
   msg = mlist->msg;
-  
+
   while (msg) {
     orig = msg;
-    
+
     free_messages_type(&msg->die_msg);
     free_messages_type(&msg->miss_msg);
     free_messages_type(&msg->hit_msg);
     free_messages_type(&msg->god_msg);
-  
+
     msg = msg->next;
     free(orig);
   }
@@ -134,9 +134,9 @@ static void show_messages(struct char_data *ch)
   int i, half = MAX_MESSAGES / 2, count = 0;
   char buf[MAX_STRING_LENGTH];
   int len;
-  
+
   len = snprintf(buf, sizeof(buf), "\t1Message List:\tn \r\n");
-  
+
   for (i = 0; i < MAX_MESSAGES / 2; i++, half++)
     if (fight_messages[i].msg != NULL && len < sizeof(buf)) {
       count += fight_messages[i].number_of_attacks;
@@ -148,8 +148,8 @@ static void show_messages(struct char_data *ch)
       if (half < MAX_MESSAGES && fight_messages[half].msg)
         len += snprintf(buf + len, sizeof(buf) - len, "%-2d) [%-3d] %d, %-18s\r\n", half, fight_messages[half].a_type, fight_messages[half].number_of_attacks, fight_messages[half].a_type < TOP_SPELL_DEFINE ? spell_info[fight_messages[half].a_type].name : "Unknown");
     }
-    
-  len += snprintf(buf + len, sizeof(buf) - len, "Total Messages: %d\r\n", count);  
+
+  len += snprintf(buf + len, sizeof(buf) - len, "Total Messages: %d\r\n", count);
   page_string(ch->desc, buf, TRUE);
 }
 
@@ -165,9 +165,9 @@ void save_messages_to_disk(void)
     log("SYSERR: Error writing combat message file %s: %s", MESS_FILE, strerror(errno));
     exit(1);
   }
- 
-  fprintf(fp, "* TBAMUD 3.64 Combat Message File\n");
- 
+
+  fprintf(fp, "* LUMINARIMUD 3.64 Combat Message File\n");
+
   for (i = 0; i < MAX_MESSAGES; i++) {
     if (fight_messages[i].msg == NULL)
       continue;
@@ -175,21 +175,21 @@ void save_messages_to_disk(void)
       fprintf(fp, "* %s %d\n", PRINT_MSG(spell_info[fight_messages[i].a_type].name), fight_messages[i].a_type);
     else
       fprintf(fp, "* %d\n", fight_messages[i].a_type);
-             
+
     for (msg = fight_messages[i].msg; msg; msg = msg->next){
       fprintf(fp, "M\n"
                   "%d\n"
                   "%s\n"
-                  "%s\n" 
-                  "%s\n" 
-                  "%s\n" 
-                  "%s\n" 
-                  "%s\n" 
-                  "%s\n" 
-                  "%s\n" 
-                  "%s\n" 
-                  "%s\n" 
-                  "%s\n" 
+                  "%s\n"
+                  "%s\n"
+                  "%s\n"
+                  "%s\n"
+                  "%s\n"
+                  "%s\n"
+                  "%s\n"
+                  "%s\n"
+                  "%s\n"
+                  "%s\n"
                   "%s\n"
                   "\n",
                   fight_messages[i].a_type,
@@ -206,59 +206,59 @@ void save_messages_to_disk(void)
                   PRINT_MSG(msg->god_msg.victim_msg),
                   PRINT_MSG(msg->god_msg.room_msg));
     }
-  }  
-  
+  }
+
   fclose(fp);
 }
 
 static void msgedit_setup(struct descriptor_data *d)
 {
   CREATE(OLC_MSG_LIST(d), struct message_list, 1);
-  OLC_MSG_LIST(d)->msg = NULL;  
-    
+  OLC_MSG_LIST(d)->msg = NULL;
+
   copy_message_list(OLC_MSG_LIST(d), &fight_messages[OLC_NUM(d)]);
   OLC_MSG(d) = OLC_MSG_LIST(d)->msg;
 }
 
-static void copy_message_list(struct message_list *to, struct message_list *from) 
+static void copy_message_list(struct message_list *to, struct message_list *from)
 {
   struct message_type * msg, * tmp_msg, * orig;
-  
+
   to->a_type = from->a_type;
   to->number_of_attacks = from->number_of_attacks;
-  
+
   /* Lets free any messages in *to just in case */
   tmp_msg = to->msg;
-  
+
   while (tmp_msg) {
     msg = tmp_msg;
-    
+
     free_messages_type(&msg->die_msg);
     free_messages_type(&msg->miss_msg);
     free_messages_type(&msg->hit_msg);
     free_messages_type(&msg->god_msg);
-    
+
     tmp_msg = msg->next;
     free(msg);
   }
   to->msg = NULL;
-  
+
   /* Now lets copy */
   if (from->msg == NULL) {
     CREATE(msg, struct message_type, 1);
     copy_message_strings(msg, NULL);
     msg->next = NULL;
     to->msg = msg;
-    return;    
+    return;
   }
-  
+
   for (tmp_msg = from->msg, orig = NULL; tmp_msg; tmp_msg = tmp_msg->next)
   {
     CREATE(msg, struct message_type, 1);
     copy_message_strings(msg, tmp_msg);
 
     msg->next = orig;
-    orig = msg;    
+    orig = msg;
   }
   to->msg = orig;
 }
@@ -268,40 +268,40 @@ static void copy_message_strings(struct message_type *tmsg, struct message_type 
   tmsg->die_msg.attacker_msg = fmsg && fmsg->die_msg.attacker_msg ? strdup(fmsg->die_msg.attacker_msg) : NULL;
   tmsg->die_msg.victim_msg = fmsg && fmsg->die_msg.victim_msg ? strdup(fmsg->die_msg.victim_msg) : NULL;
   tmsg->die_msg.room_msg = fmsg && fmsg->die_msg.room_msg ? strdup(fmsg->die_msg.room_msg) : NULL;
-  
+
   tmsg->miss_msg.attacker_msg = fmsg && fmsg->miss_msg.attacker_msg ? strdup(fmsg->miss_msg.attacker_msg) : NULL;
   tmsg->miss_msg.victim_msg = fmsg && fmsg->miss_msg.victim_msg ? strdup(fmsg->miss_msg.victim_msg) : NULL;
   tmsg->miss_msg.room_msg = fmsg && fmsg->miss_msg.room_msg ? strdup(fmsg->miss_msg.room_msg) : NULL;
-  
+
   tmsg->hit_msg.attacker_msg = fmsg && fmsg->hit_msg.attacker_msg ? strdup(fmsg->hit_msg.attacker_msg) : NULL;
   tmsg->hit_msg.victim_msg = fmsg && fmsg->hit_msg.victim_msg ? strdup(fmsg->hit_msg.victim_msg) : NULL;
-  tmsg->hit_msg.room_msg = fmsg && fmsg->hit_msg.room_msg ? strdup(fmsg->hit_msg.room_msg) : NULL; 
-  
+  tmsg->hit_msg.room_msg = fmsg && fmsg->hit_msg.room_msg ? strdup(fmsg->hit_msg.room_msg) : NULL;
+
   tmsg->god_msg.attacker_msg = fmsg && fmsg->god_msg.attacker_msg ? strdup(fmsg->god_msg.attacker_msg) : NULL;
   tmsg->god_msg.victim_msg = fmsg && fmsg->god_msg.victim_msg ? strdup(fmsg->god_msg.victim_msg) : NULL;
-  tmsg->god_msg.room_msg = fmsg && fmsg->god_msg.room_msg ? strdup(fmsg->god_msg.room_msg) : NULL;     
+  tmsg->god_msg.room_msg = fmsg && fmsg->god_msg.room_msg ? strdup(fmsg->god_msg.room_msg) : NULL;
 }
 
 ACMD(do_msgedit)
 {
   int num;
   struct descriptor_data *d;
-  
+
   if (!*argument) {
     show_messages(ch);
-    return;  
+    return;
   }
-  
+
   if ((num = atoi(argument)) < 0) {
     send_to_char(ch, "You must select a message # between 0 and %d.\r\n", MAX_MESSAGES);
     return;
   }
-  
+
   if (num >= MAX_MESSAGES) {
     send_to_char(ch, "You must select a message # between 0 and %d.\r\n", MAX_MESSAGES - 1);
     return;
   }
-  
+
   for (d = descriptor_list; d; d = d->next)
     if (STATE(d) == CON_MSGEDIT) {
       if (OLC_MSG_LIST(d) && OLC_NUM(d) == num) {
@@ -309,7 +309,7 @@ ACMD(do_msgedit)
         return;
       }
     }
- 
+
   /* Retrieve the player's descriptor. */
   d = ch->desc;
 
@@ -321,14 +321,14 @@ ACMD(do_msgedit)
 
   /* Create the OLC structure. */
   CREATE(d->olc, struct oasis_olc_data, 1);
- 
+
   OLC_NUM(d) = num;
   OLC_VAL(d) = 0;
   msgedit_setup(d);
-  
+
   msgedit_main_menu(ch->desc);
   STATE(d) = CON_MSGEDIT;
-  
+
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
@@ -339,46 +339,46 @@ ACMD(do_msgedit)
 static void msgedit_main_menu(struct descriptor_data * d)
 {
   get_char_colors(d->character);
-  
+
   write_to_output(d, "%sMsg Edit: %s[%s%dx%d%s] [%s$n: Attacker | $N: Victim%s]%s\r\n", cyn, grn, yel, OLC_NUM(d), OLC_MSG_LIST(d)->number_of_attacks, grn, yel, grn, nrm);
   write_to_output(d, "%s1%s) %sAction Type: %s%d %s[%s%s%s]%s\r\n", grn, yel, cyn, yel, OLC_MSG_LIST(d)->a_type,  grn, yel, OLC_MSG_LIST(d)->a_type < TOP_SPELL_DEFINE ? spell_info[OLC_MSG_LIST(d)->a_type].name : "Unknown", grn, nrm);
-   
+
   write_to_output(d, "   %sDeath Messages:\r\n"
                      "%sA%s) CHAR : %s %s\r\n"
                      "%sB%s) VICT : %s %s\r\n"
-                     "%sC%s) ROOM : %s %s\r\n", 
+                     "%sC%s) ROOM : %s %s\r\n",
                      cyn,
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->die_msg.attacker_msg),
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->die_msg.victim_msg),
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->die_msg.room_msg));
-  
+
   write_to_output(d, "   %sMiss Messages:\r\n"
                      "%sD%s) CHAR : %s %s\r\n"
                      "%sE%s) VICT : %s %s\r\n"
-                     "%sF%s) ROOM : %s %s\r\n", 
+                     "%sF%s) ROOM : %s %s\r\n",
                      cyn,
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->miss_msg.attacker_msg),
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->miss_msg.victim_msg),
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->miss_msg.room_msg));
-    
+
   write_to_output(d, "   %sHit Messages:\r\n"
                      "%sG%s) CHAR : %s %s\r\n"
                      "%sH%s) VICT : %s %s\r\n"
-                     "%sI%s) ROOM : %s %s\r\n", 
+                     "%sI%s) ROOM : %s %s\r\n",
                      cyn,
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->hit_msg.attacker_msg),
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->hit_msg.victim_msg),
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->hit_msg.room_msg));
-      
+
   write_to_output(d, "   %sGod Messages:\r\n"
                      "%sJ%s) CHAR : %s %s\r\n"
                      "%sK%s) VICT : %s %s\r\n"
-                     "%sL%s) ROOM : %s %s\r\n", 
+                     "%sL%s) ROOM : %s %s\r\n",
                      cyn,
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->god_msg.attacker_msg),
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->god_msg.victim_msg),
                      grn, yel, nrm, PRINT_MSG(OLC_MSG(d)->god_msg.room_msg));
-  
+
   write_to_output(d, "\r\n%sN%s)%s %s", grn, yel, nrm, OLC_MSG(d)->next ? "Next" : "New");
   if (OLC_MSG(d) != OLC_MSG_LIST(d)->msg)
     write_to_output(d, " %sP%s)%s Previous", grn, yel, nrm);
@@ -386,14 +386,14 @@ static void msgedit_main_menu(struct descriptor_data * d)
     write_to_output(d, " %sS%s)%s Save", grn, yel, nrm);
   write_to_output(d, " %sQ%s)%s Quit\r\n"
                      "Enter Selection : ", grn, yel, nrm);
-  OLC_MODE(d) = MSGEDIT_MAIN_MENU;  
+  OLC_MODE(d) = MSGEDIT_MAIN_MENU;
 }
 
 void msgedit_parse(struct descriptor_data *d, char *arg)
 {
   struct message_type * temp;
   static bool quit = FALSE;
-  
+
   switch (OLC_MODE(d)) {
     case MSGEDIT_MAIN_MENU:
       if (!*arg) {
@@ -487,7 +487,7 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
             temp->next = OLC_MSG(d);
           } else
             OLC_MSG(d) = OLC_MSG(d)->next;
-          
+
           msgedit_main_menu(d);
         return;
         case 'P':
@@ -500,7 +500,7 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
           for (OLC_MSG(d) = OLC_MSG_LIST(d)->msg; OLC_MSG(d); OLC_MSG(d) = OLC_MSG(d)->next)
             if (OLC_MSG(d)->next == temp)
               break;
-          
+
           msgedit_main_menu(d);
         return;
         case 'S':
@@ -529,14 +529,14 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Messages saved.\r\n");
       } else
         write_to_output(d, "Save aborted.\r\n");
-  
+
       if (quit) {
         quit = FALSE;
         write_to_output(d, "Exiting message editor.\r\n");
-        cleanup_olc(d, CLEANUP_ALL);     
-        return;     
-      } 
-        
+        cleanup_olc(d, CLEANUP_ALL);
+        return;
+      }
+
       msgedit_main_menu(d);
     return;
     case MSGEDIT_TYPE:
@@ -546,125 +546,125 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->die_msg.attacker_msg)
         free(OLC_MSG(d)->die_msg.attacker_msg);
-            
-      OLC_MSG(d)->die_msg.attacker_msg = strdup(arg);    
+
+      OLC_MSG(d)->die_msg.attacker_msg = strdup(arg);
     break;
     case MSGEDIT_DEATH_VICT:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->die_msg.victim_msg)
         free(OLC_MSG(d)->die_msg.victim_msg);
-            
-      OLC_MSG(d)->die_msg.victim_msg = strdup(arg);    
+
+      OLC_MSG(d)->die_msg.victim_msg = strdup(arg);
     break;
     case MSGEDIT_DEATH_ROOM:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->die_msg.room_msg)
         free(OLC_MSG(d)->die_msg.room_msg);
-            
-      OLC_MSG(d)->die_msg.room_msg = strdup(arg);    
+
+      OLC_MSG(d)->die_msg.room_msg = strdup(arg);
     break;
     case MSGEDIT_MISS_CHAR:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->miss_msg.attacker_msg)
         free(OLC_MSG(d)->miss_msg.attacker_msg);
-            
-      OLC_MSG(d)->miss_msg.attacker_msg = strdup(arg);    
+
+      OLC_MSG(d)->miss_msg.attacker_msg = strdup(arg);
     break;
     case MSGEDIT_MISS_VICT:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->miss_msg.victim_msg)
         free(OLC_MSG(d)->miss_msg.victim_msg);
-            
-      OLC_MSG(d)->miss_msg.victim_msg = strdup(arg);    
+
+      OLC_MSG(d)->miss_msg.victim_msg = strdup(arg);
     break;
     case MSGEDIT_MISS_ROOM:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->miss_msg.room_msg)
         free(OLC_MSG(d)->miss_msg.room_msg);
-            
-      OLC_MSG(d)->miss_msg.room_msg = strdup(arg);    
+
+      OLC_MSG(d)->miss_msg.room_msg = strdup(arg);
     break;
     case MSGEDIT_HIT_CHAR:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->hit_msg.attacker_msg)
         free(OLC_MSG(d)->hit_msg.attacker_msg);
-            
-      OLC_MSG(d)->hit_msg.attacker_msg = strdup(arg);    
+
+      OLC_MSG(d)->hit_msg.attacker_msg = strdup(arg);
     break;
     case MSGEDIT_HIT_VICT:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->hit_msg.victim_msg)
         free(OLC_MSG(d)->hit_msg.victim_msg);
-            
-      OLC_MSG(d)->hit_msg.victim_msg = strdup(arg);    
+
+      OLC_MSG(d)->hit_msg.victim_msg = strdup(arg);
     break;
     case MSGEDIT_HIT_ROOM:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->hit_msg.room_msg)
         free(OLC_MSG(d)->hit_msg.room_msg);
-            
-      OLC_MSG(d)->hit_msg.room_msg = strdup(arg);    
+
+      OLC_MSG(d)->hit_msg.room_msg = strdup(arg);
     break;
     case MSGEDIT_STAFF_CHAR:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->god_msg.attacker_msg)
         free(OLC_MSG(d)->god_msg.attacker_msg);
-            
-      OLC_MSG(d)->god_msg.attacker_msg = strdup(arg);    
+
+      OLC_MSG(d)->god_msg.attacker_msg = strdup(arg);
     break;
     case MSGEDIT_STAFF_VICT:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->god_msg.victim_msg)
         free(OLC_MSG(d)->god_msg.victim_msg);
-            
-      OLC_MSG(d)->god_msg.victim_msg = strdup(arg);    
+
+      OLC_MSG(d)->god_msg.victim_msg = strdup(arg);
     break;
     case MSGEDIT_STAFF_ROOM:
       if (!genolc_checkstring(d, arg))
         break;
       delete_doubledollar(arg);
-          
+
       if (OLC_MSG(d)->god_msg.room_msg)
         free(OLC_MSG(d)->god_msg.room_msg);
-            
-      OLC_MSG(d)->god_msg.room_msg = strdup(arg);    
+
+      OLC_MSG(d)->god_msg.room_msg = strdup(arg);
     break;
-  } 
-  
-  OLC_VAL(d) = 1;  
+  }
+
+  OLC_VAL(d) = 1;
   msgedit_main_menu(d);
 }
 

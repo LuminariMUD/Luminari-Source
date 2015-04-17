@@ -1,6 +1,6 @@
 /**
 * @file config.h
-* Configuration of various aspects of tbaMUD operation.
+* Configuration of various aspects of LuminariMUD operation.
 *
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
