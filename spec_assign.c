@@ -19,7 +19,7 @@
 #include "boards.h"
 #include "mail.h"
 
-SPECIAL(questmaster); 
+SPECIAL(questmaster);
 SPECIAL(shop_keeper);
 
 /* local (file scope only) functions */
@@ -136,7 +136,7 @@ void assign_mobiles(void)
   ASSIGNMOB(5404, receptionist);
   ASSIGNMOB(27713, receptionist);
   ASSIGNMOB(27730, receptionist);
-  
+
   /* walls */
   ASSIGNMOB(47, wall);
   ASSIGNMOB(90, wall);
@@ -146,7 +146,7 @@ void assign_mobiles(void)
 
   /* abyss randomizer */
   ASSIGNMOB(142300, abyss_randomizer);
-  
+
   /* crimson flame zone mob specs */
   ASSIGNMOB(106040, cf_trainingmaster);  // training master
   ASSIGNMOB(106000, cf_alathar);  // lord alathar
@@ -194,32 +194,32 @@ void assign_objects(void)
   ASSIGNOBJ(102536, bank);
   ASSIGNOBJ(103007, bank);
   ASSIGNOBJ(105039, bank);
-  ASSIGNOBJ(105807, bank); 
+  ASSIGNOBJ(105807, bank);
   ASSIGNOBJ(108181, bank);
   ASSIGNOBJ(108198, bank);
   ASSIGNOBJ(110421, bank);
   ASSIGNOBJ(111374, bank);
-  ASSIGNOBJ(113010, bank); 
+  ASSIGNOBJ(113010, bank);
   ASSIGNOBJ(119102, bank);
-  ASSIGNOBJ(121475, bank); 
+  ASSIGNOBJ(121475, bank);
   ASSIGNOBJ(121825, bank);
-  ASSIGNOBJ(122685, bank); 
+  ASSIGNOBJ(122685, bank);
   ASSIGNOBJ(125088, bank);
   ASSIGNOBJ(125984, bank);
   ASSIGNOBJ(126906, bank);
-  ASSIGNOBJ(127618, bank);   
+  ASSIGNOBJ(127618, bank);
   ASSIGNOBJ(135051, bank);
   ASSIGNOBJ(138809, bank);
   */
-  
+
   ASSIGNOBJ(3118, crafting_kit);
-  
+
   ASSIGNOBJ(104072, chionthar_ferry);  //transport
 
   ASSIGNOBJ(128106, ches);  //weapon
-  
+
   ASSIGNOBJ(128150, spikeshield);  //shield
-  
+
   ASSIGNOBJ(136100, air_sphere);  //weapon (lightning)
 
   /* JOTUNHEIM EQ */
@@ -250,49 +250,73 @@ void assign_rooms(void)
   ASSIGNROOM(31523, pet_shops);
 
   ASSIGNROOM(145287, pet_shops); /* mosswood petshop */
-  
+
   if (CONFIG_DTS_ARE_DUMPS)
     for (i = 0; i <= top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_DEATH))
 	world[i].func = dump;
 }
 
-struct spec_func_data { 
-   char *name; 
-   SPECIAL(*func); 
-}; 
+struct spec_func_data {
+   char *name;
+   SPECIAL(*func);
+};
 
-struct spec_func_data spec_func_list[] = { 
-  {"Mayor",          mayor }, 
-  {"Snake",          snake }, 
-  {"Thief",          thief }, 
-  {"wizard",         wizard }, 
-  {"Puff",           puff }, 
-  {"Fido",           fido }, 
-  {"Janitor",        janitor }, 
-  {"Cityguard",      cityguard }, 
-  {"Postmaster",     postmaster }, 
-  {"Receptionist",   receptionist }, 
-  {"Cryogenicist",   cryogenicist}, 
-  {"Bulletin Board", gen_board }, 
-  {"Bank",           bank }, 
-  {"Pet Shop",       pet_shops }, 
-  {"Dump",           dump }, 
-  {"Guildmaster",    guild }, 
-  {"Guild Guard",    guild_guard }, 
-  {"Questmaster",    questmaster }, 
-  {"Shopkeeper",     shop_keeper }, 
-  {"Magical Wall",   wall }, 
-  {"Faithful Hound", hound }, 
-  {"\n", NULL} 
-}; 
+struct spec_func_data spec_func_list[] = {
+  {"Mayor",          mayor },
+  {"Snake",          snake },
+  {"Thief",          thief },
+  {"wizard",         wizard },
+  {"Puff",           puff },
+  {"Fido",           fido },
+  {"Janitor",        janitor },
+  {"Cityguard",      cityguard },
+  {"Postmaster",     postmaster },
+  {"Receptionist",   receptionist },
+  {"Cryogenicist",   cryogenicist},
+  {"Bulletin Board", gen_board },
+  {"Bank",           bank },
+  {"Pet Shop",       pet_shops },
+  {"Dump",           dump },
+  {"Guildmaster",    guild },
+  {"Guild Guard",    guild_guard },
+  {"Questmaster",    questmaster },
+  {"Shopkeeper",     shop_keeper },
+  /* end stock specs */
+  {"Magical Wall",   wall },
+  {"Faithful Hound", hound },
+  {"Mistweave",      mistweave },
+  {"Frostbite",      frostbite },
+  {"Vaprak Claws",   vaprak_claws },
+  {"Valkyrie Sword", valkyrie_sword },
+  {"Twilight",       twilight },
+  {"Fake Twilight",  fake_twilight },
+  {"Giantslayer",    giantslayer },
+  {"Planetar_Sword", planetar_sword },
+  {"Crafting Kit",   crafting_kit },
+  {"Chionthar_Ferry",chionthar_ferry },
+  {"Ches",           ches },
+  {"SpikeShield",    spikeshield },
+  {"Air Sphere",     air_sphere },
+  {"Crafting Quest",    crafting_quest },
+  {"Abyss Randomizer",  abyss_randomizer },
+  {"Trainingmaster",    cf_trainingmaster },
+  {"Alathar",           cf_alathar },
+  {"Thrym",             thrym },
+  {"Planetar",          planetar },
+  {"Ymir",              ymir },
+  {"Gatehouse Guard",   gatehouse_guard },
+  {"Invasion",          jot_invasion_loader },
 
-const char *get_spec_func_name(SPECIAL(*func)) 
-{ 
-  int i; 
-  for (i=0; *(spec_func_list[i].name) != '\n'; i++) { 
-    if (func == spec_func_list[i].func) return (spec_func_list[i].name); 
-  } 
-  return NULL; 
-} 
+  {"\n", NULL}
+};
+
+const char *get_spec_func_name(SPECIAL(*func))
+{
+  int i;
+  for (i=0; *(spec_func_list[i].name) != '\n'; i++) {
+    if (func == spec_func_list[i].func) return (spec_func_list[i].name);
+  }
+  return NULL;
+}
 

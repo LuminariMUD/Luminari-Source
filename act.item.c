@@ -61,111 +61,7 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
 
 /**** start file code *****/
 
-/*
-    char bitbuf[MAX_STRING_LENGTH];
-
-    sprinttype(GET_OBJ_TYPE(obj), item_types, bitbuf, sizeof (bitbuf));
-    send_to_char(ch, "You feel informed:\r\nObject '%s', Item type: %s\r\n", obj->short_description, bitbuf);
-
-    sprintbitarray(GET_OBJ_WEAR(obj), wear_bits, TW_ARRAY_MAX, bitbuf);
-    send_to_char(ch, "Can be worn on: %s\r\n", bitbuf);
-
-    if (GET_OBJ_AFFECT(obj)) {
-      sprintbitarray(GET_OBJ_AFFECT(obj), affected_bits, AF_ARRAY_MAX, bitbuf);
-      send_to_char(ch, "Item will give you following abilities:  %s\r\n", bitbuf);
-    }
-
-    sprintbitarray(GET_OBJ_EXTRA(obj), extra_bits, EF_ARRAY_MAX, bitbuf);
-    send_to_char(ch, "Item is: %s\r\n", bitbuf);
-
-    send_to_char(ch, "Size: %s, Material: %s.\r\n",
-            size_names[GET_OBJ_SIZE(obj)],
-            material_name[GET_OBJ_MATERIAL(obj)]);
-
-    send_to_char(ch, "Weight: %d, Value: %d, Rent: %d, Min. level: %d\r\n",
-            GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj), GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj));
-
-    switch (GET_OBJ_TYPE(obj)) {
-      case ITEM_SCROLL:
-      case ITEM_POTION:
-        len = i = 0;
-        int hasVal = 0;
-
-        if (GET_OBJ_VAL(obj, 1) >= 1) {
-          i = snprintf(bitbuf + len, sizeof (bitbuf) - len, " %s",
-                  skill_name(GET_OBJ_VAL(obj, 1)));
-          if (i >= 0)
-            len += i;
-          hasVal++;
-        }
-
-        if (GET_OBJ_VAL(obj, 2) >= 1 && len < sizeof (bitbuf)) {
-          i = snprintf(bitbuf + len, sizeof (bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(obj, 2)));
-          if (i >= 0)
-            len += i;
-          hasVal++;
-        }
-
-        if (GET_OBJ_VAL(obj, 3) >= 1 && len < sizeof (bitbuf)) {
-          i = snprintf(bitbuf + len, sizeof (bitbuf) - len, " %s", skill_name(GET_OBJ_VAL(obj, 3)));
-          if (i >= 0)
-            len += i;
-          hasVal++;
-        }
-
-        if (hasVal)
-          send_to_char(ch, "This %s casts: %s\r\n", item_types[(int) GET_OBJ_TYPE(obj)],
-                bitbuf);
-        else
-          send_to_char(ch, "This item has no spells imbued in it.\t\n");
-        break;
-      case ITEM_WAND:
-      case ITEM_STAFF:
-        send_to_char(ch, "This %s casts: %s\r\nIt has %d maximum charge%s and %d remaining.\r\n",
-                item_types[(int) GET_OBJ_TYPE(obj)], skill_name(GET_OBJ_VAL(obj, 3)),
-                GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 1) == 1 ? "" : "s", GET_OBJ_VAL(obj, 2));
-        break;
-      case ITEM_WEAPON:
-        send_to_char(ch, "Damage Dice is '%dD%d' for an average per-round damage of %.1f.\r\n",
-                GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), ((GET_OBJ_VAL(obj, 2) + 1) / 2.0) * GET_OBJ_VAL(obj, 1));
-        send_to_char(ch, "Weapon Type: %s\r\n", attack_hit_text[GET_OBJ_VAL(obj, 3)].singular);
-        send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
-        break;
-      case ITEM_MISSILE:
-        send_to_char(ch,
-                "Type:                   %s\r\n"
-                "Damage:                 %d\r\n"
-                "Breaking Probability:   %d percent\r\n",
-                ranged_missiles[GET_OBJ_VAL(obj, 0)], GET_OBJ_VAL(obj, 1),
-                GET_OBJ_VAL(obj, 2));
-        break;
-      case ITEM_FIREWEAPON:
-        send_to_char(ch,
-                "Type:                   %s\r\n"
-                "Damage:                 %d\r\n"
-                "Breaking Probability:   %d percent\r\n",
-                ranged_weapons[GET_OBJ_VAL(obj, 0)], GET_OBJ_VAL(obj, 1),
-                GET_OBJ_VAL(obj, 2));
-        break;
-      case ITEM_ARMOR:
-        send_to_char(ch, "AC-apply is %d\r\n", GET_OBJ_VAL(obj, 0));
-        send_to_char(ch, "Proficiency: %s\r\n", item_profs[GET_OBJ_PROF(obj)]);
-        break;
-    }
-    found = FALSE;
-    for (i = 0; i < MAX_OBJ_AFFECT; i++) {
-      if ((obj->affected[i].location != APPLY_NONE) &&
-              (obj->affected[i].modifier != 0)) {
-        if (!found) {
-          send_to_char(ch, "Can affect you as :\r\n");
-          found = TRUE;
-        }
-        sprinttype(obj->affected[i].location, apply_types, bitbuf, sizeof (bitbuf));
-        send_to_char(ch, "   Affects: %s By %d (%s)\r\n", bitbuf, obj->affected[i].modifier, bonus_types[obj->affected[i].bonus_type]);
-      }
-    }
- */
-
+/* assistant function for statting/identify/lore of objects */
 void display_item_object_values(struct char_data *ch, struct obj_data *item, int mode) {
   struct char_data *tempch;
   struct obj_special_ability *specab;
@@ -179,12 +75,12 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
   switch (GET_OBJ_TYPE(item)) {
     case ITEM_TRAP:
-            /* object value (0) is the trap-type */
-            /* object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
-                 or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
-            /* object value (2) is the effect */
-            /* object value (3) is the trap difficulty */
-            /* object value (4) is whether this trap has been "detected" yet */
+      /* object value (0) is the trap-type */
+      /* object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
+           or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
+      /* object value (2) is the effect */
+      /* object value (3) is the trap difficulty */
+      /* object value (4) is whether this trap has been "detected" yet */
       send_to_char(ch, "Trap type: %s\r\n", trap_type[GET_OBJ_VAL(item, 0)]);
       switch (GET_OBJ_VAL(item, 0)) {
         case TRAP_TYPE_ENTER_ROOM:
@@ -212,7 +108,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       } else if (GET_OBJ_VAL(item, 2) < TRAP_EFFECT_FIRST_VALUE && GET_OBJ_VAL(item, 2) >= LAST_SPELL_DEFINE) {
         send_to_char(ch, "Invalid trap effect on this object [2]\r\n");
       } else if (GET_OBJ_VAL(item, 2) >= TRAP_EFFECT_FIRST_VALUE) {
-        /* homeland port mess */
+        /* homeland port */
         send_to_char(ch, "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2)-1000]);
       } else {
         send_to_char(ch, "Spell effect: %s\r\n", spell_info[GET_OBJ_VAL(item, 2)].name);
@@ -480,11 +376,11 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
   /* put object type in buf */
   sprinttype(GET_OBJ_TYPE(j), item_types, buf, sizeof (buf));
   if (mode == ITEM_STAT_MODE_IMMORTAL) {
-    send_to_char(ch, "VNum: [%5d], RNum: [%5d], Idnum: [%5ld], Type: %s, SpecProc: %s\r\n",
-                 vnum, GET_OBJ_RNUM(j), GET_ID(j), buf,
+    send_to_char(ch, "\tCType:\tn %s, VNum: [%5d], RNum: [%5d], Idnum: [%5ld], SpecProc: %s\r\n",
+                 buf, vnum, GET_OBJ_RNUM(j), GET_ID(j),
                  GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
   } else {
-    send_to_char(ch, "Item Type: %s, Special Feature: %s\r\n", buf,
+    send_to_char(ch, "\tCItem Type:\tn %s, Special Feature: %s\r\n", buf,
                  GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None"  );
   }
 
