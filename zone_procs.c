@@ -65,7 +65,7 @@ SPECIAL(jerry);
  * */
 #define Z_KINGS_C 150
 
-/* Assign castle special procedures. NOTE: The mobile number isn't fully 
+/* Assign castle special procedures. NOTE: The mobile number isn't fully
  * specified. It's only an offset from the zone's base. */
 static void castle_mob_spec(mob_vnum mobnum, SPECIAL(*specproc))
 {
@@ -134,7 +134,7 @@ void assign_kings_castle(void)
   castle_mob_spec(29, CastleGuard);	/* Boris */
 }
 
-/* Routine: member_of_staff. Used to see if a character is a member of the 
+/* Routine: member_of_staff. Used to see if a character is a member of the
  * castle staff. Used mainly by BANZAI:ng NPC:s. */
 static int member_of_staff(struct char_data *chChar)
 {
@@ -197,7 +197,7 @@ static struct char_data *find_npc_by_name(struct char_data *chAtChar,
   return (NULL);
 }
 
-/* Function: find_guard. Returns the pointer to a guard on duty. Used by Peter 
+/* Function: find_guard. Returns the pointer to a guard on duty. Used by Peter
  * the Captain of the Royal Guard */
 static struct char_data *find_guard(struct char_data *chAtChar)
 {
@@ -210,8 +210,8 @@ static struct char_data *find_guard(struct char_data *chAtChar)
   return (NULL);
 }
 
-/* Function: get_victim. Returns a pointer to a randomly chosen character in 
- * the same room, fighting someone in the castle staff. Used by BANZAII-ing 
+/* Function: get_victim. Returns a pointer to a randomly chosen character in
+ * the same room, fighting someone in the castle staff. Used by BANZAII-ing
  * characters and King Welmar... */
 static struct char_data *get_victim(struct char_data *chAtChar)
 {
@@ -247,7 +247,7 @@ static struct char_data *get_victim(struct char_data *chAtChar)
   return (NULL);
 }
 
-/* Banzaii. Makes a character banzaii on attackers of the castle staff. Used 
+/* Banzaii. Makes a character banzaii on attackers of the castle staff. Used
  * by Guards, Tim, Tom, Dick, David, Peter, Master, and the King. */
 static int banzaii(struct char_data *ch)
 {
@@ -290,7 +290,7 @@ int do_npc_rescue(struct char_data *ch_hero, struct char_data *ch_victim)
   return (TRUE);
 }
 
-/* Procedure to block a person trying to enter a room. Used by Tim/Tom at Kings 
+/* Procedure to block a person trying to enter a room. Used by Tim/Tom at Kings
  * bedroom and Dick/David at treasury. */
 static int block_way(struct char_data *ch, int cmd, char *arg, room_vnum iIn_room,
 	          int iProhibited_direction)
@@ -311,7 +311,7 @@ static int block_way(struct char_data *ch, int cmd, char *arg, room_vnum iIn_roo
   return (TRUE);
 }
 
-/* Routine to check if an object is trash. Used by James the Butler and the 
+/* Routine to check if an object is trash. Used by James the Butler and the
  * Cleaning Lady. */
 static int is_trash(struct obj_data *i)
 {
@@ -324,7 +324,7 @@ static int is_trash(struct obj_data *i)
   return (FALSE);
 }
 
-/* Fry_victim. Finds a suitabe victim, and cast some _NASTY_ spell on him. Used 
+/* Fry_victim. Finds a suitabe victim, and cast some _NASTY_ spell on him. Used
  * by King Welmar. */
 static void fry_victim(struct char_data *ch)
 {
@@ -484,8 +484,8 @@ SPECIAL(king_welmar)
   return (FALSE);
 }
 
-/* Training_master. Acts actions to the training room, if his students are 
- * present. Also allowes warrior-class to practice. Used by the Training 
+/* Training_master. Acts actions to the training room, if his students are
+ * present. Also allowes warrior-class to practice. Used by the Training
  * Master. */
 SPECIAL(training_master)
 {
@@ -613,7 +613,7 @@ static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum
 }
 
 
-/* Routine for James the Butler. Complains if he finds any trash. This doesn't 
+/* Routine for James the Butler. Complains if he finds any trash. This doesn't
  * make sure he _can_ carry it. */
 SPECIAL(James)
 {
@@ -735,7 +735,7 @@ SPECIAL(peter)
   return (FALSE);
 }
 
-/* Procedure for Jerry and Michael in x08 of King's Castle. Code by Sapowox 
+/* Procedure for Jerry and Michael in x08 of King's Castle. Code by Sapowox
  * modified by Pjotr.(Original code from Master) */
 SPECIAL(jerry)
 {
@@ -984,11 +984,11 @@ SPECIAL(cf_trainingmaster) {
           hit(ch, enemy, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
     }  // for loop
-    
+
     PROC_FIRED(ch) = TRUE;
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -1016,7 +1016,7 @@ SPECIAL(cf_alathar) {
 
   if (!GROUP(ch))
     create_group(ch);
-      
+
   for (i = 50; i < 57; i++) {
     mob = read_mobile(cf_converter(i), VIRTUAL);
     if (mob) {
@@ -1029,7 +1029,7 @@ SPECIAL(cf_alathar) {
   PROC_FIRED(ch) = TRUE;
 
   return TRUE;
-}   
+}
 
 #undef CF_VNUM
 
@@ -1062,9 +1062,9 @@ int jot_converter(int value) {
 void jot_invasion() {
   if (jot_inv_check)
     return;
-  
+
   jot_inv_check = true;
-  
+
   if (rand_number(0, 99) <= 2)
     return;
 }
@@ -1087,9 +1087,9 @@ int fg_pos[MAX_FG] = {
 
 /* load rooms for smoking beard batallion */
 int sb_pos[MAX_SB] = {
-  295, 295, 295, 295, 295, 
-  295, 295, 295, 295, 295, 
-  295, 295, 295, 215, 215, 
+  295, 295, 295, 295, 295,
+  295, 295, 295, 295, 295,
+  295, 295, 295, 215, 215,
   188, 188, 217, 206, 206
 };
 
@@ -1113,7 +1113,7 @@ int frost_pos[MAX_FROST] = {
 
 /* spec proc for loading the jot invasion */
 SPECIAL(jot_invasion_loader) {
-  struct char_data *tch = NULL, *chmove = NULL, 
+  struct char_data *tch = NULL, *chmove = NULL,
           *glammad = NULL, *leader = NULL, *mob = NULL;
   int i = 0;
   int where = -1;
@@ -1153,7 +1153,7 @@ SPECIAL(jot_invasion_loader) {
       }
     }
   }
-  
+
   /* soldiers to glammad */
   for (i = 0; i < 2; i++) {
     mob = read_mobile(jot_converter(78), VIRTUAL);
@@ -1172,7 +1172,7 @@ SPECIAL(jot_invasion_loader) {
       }
     }
   }
-  
+
   /* twilight to treasure room */
   if ((objrnum = real_object(jot_converter(90))) != NOWHERE) {
     if ((obj = read_object(objrnum, REAL)) != NULL) {
@@ -1209,7 +1209,7 @@ SPECIAL(jot_invasion_loader) {
       }
     }
   }
-  
+
   /* heavily guarded gatehouse, frost giant mage is leading this group */
   if ((mobrnum = real_mobile(jot_converter(90))) != NOBODY) {
     if ((leader = read_mobile(mobrnum, REAL)) != NULL) {
@@ -1217,7 +1217,7 @@ SPECIAL(jot_invasion_loader) {
         char_to_room(leader, roomrnum);
         if (!GROUP(leader))
           create_group(leader);
-      }      
+      }
     }
   }
   /* 2nd mage in group */
@@ -1229,7 +1229,7 @@ SPECIAL(jot_invasion_loader) {
           add_follower(mob, leader);
           join_group(mob, GROUP(leader));
         }
-      }      
+      }
     }
   }
   /* citadel guards join the group */
@@ -1253,14 +1253,14 @@ SPECIAL(jot_invasion_loader) {
       }
     }
   }
-  
+
   /* large gatehouse group, led by a mage again */
   if ((mobrnum = real_mobile(jot_converter(90))) != NOBODY) {
     if ((leader = read_mobile(mobrnum, REAL)) != NULL) {
       if ((roomrnum = real_room(jot_converter(252))) != NOWHERE) {
         char_to_room(leader, roomrnum);
         if (!GROUP(leader))
-          create_group(leader);        
+          create_group(leader);
       }
     }
   }
@@ -1273,7 +1273,7 @@ SPECIAL(jot_invasion_loader) {
           add_follower(mob, leader);
           join_group(mob, GROUP(leader));
         }
-      }      
+      }
     }
   }
   /* citadel guards join the group */
@@ -1305,7 +1305,7 @@ SPECIAL(jot_invasion_loader) {
         char_to_room(mob, roomrnum);
         if ((obj = read_object(jot_converter(17), VIRTUAL)) != NULL) {
           obj_to_char(obj, mob);
-          perform_wield(mob, obj, TRUE);          
+          perform_wield(mob, obj, TRUE);
         }
       }
     }
@@ -1336,7 +1336,7 @@ SPECIAL(jot_invasion_loader) {
         char_to_room(mob, roomrnum);
         if ((obj = read_object(jot_converter(28), VIRTUAL)) != NULL) {
           obj_to_char(obj, mob);
-          perform_wield(mob, obj, TRUE);          
+          perform_wield(mob, obj, TRUE);
         }
       }
     }
@@ -1373,7 +1373,7 @@ SPECIAL(thrym) {
   SET_BIT_AR(af.bitvector, AFF_PARALYZED);
   af.duration = 8;
   affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
-  
+
   return 1;
 }
 
@@ -1434,21 +1434,26 @@ SPECIAL(ymir_cloak) {
 
   struct obj_data *obj = (struct obj_data *) me;
 
-  skip_spaces(&argument);
-  if (!is_wearing(ch, 196059)) return 0;
-  if (!strcmp(argument, "icicle storm") && cmd_info[cmd].command_pointer == do_say) {
-    if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
-      send_to_char(ch, "\tcAs you say '\tCicicle storm\tc' to your \tWa cloak of glittering icicles\tc, nothing happens.\tn\r\n");
+  if (cmd && argument && CMD_IS("say")) {
+    if (!is_wearing(ch, 196059))
+      return 0;
+
+    skip_spaces(&argument);
+
+    if (!strcmp(argument, "icicle storm")) {
+
+      if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
+        send_to_char(ch, "\tcAs you say '\tCicicle storm\tc' to your \tWa cloak of glittering icicles\tc, nothing happens.\tn\r\n");
+        return 1;
+      }
+
+      weapons_spells("\tBAs you say '\twicicle storm\tB' to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
+              "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
+              "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
+              ch, 0, (struct obj_data *) me, SPELL_ICE_STORM);
+      GET_OBJ_SPECTIMER(obj, 0) = 24;
       return 1;
     }
-
-    weapons_spells("\tBAs you say '\twicicle storm\tB' to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
-            "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
-            "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
-            ch, 0, (struct obj_data *) me, SPELL_ICE_STORM);
-
-    GET_OBJ_SPECTIMER(obj, 0) = 24;
-    return 1;
   }
   return 0;
 }
@@ -1456,7 +1461,7 @@ SPECIAL(ymir_cloak) {
 SPECIAL(mistweave) {
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Invoke blindness by saying 'mistweave'. Once per day.\r\n");
     return 1;
@@ -1466,14 +1471,14 @@ SPECIAL(mistweave) {
   struct char_data *vict = FIGHTING(ch);
 
   if (cmd && argument && CMD_IS("say")) {
-    if (!is_wearing(ch, 196012)) 
+    if (!is_wearing(ch, 196012))
       return 0;
-  
+
     skip_spaces(&argument);
-    
-    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room) && 
+
+    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room) &&
             !strcmp(argument, "mistweave")) {
-      
+
       if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
         send_to_char(ch, "\tpAs you say '\twmistweave\tp' to your a huge adamantium mace enshrouded with \tWmist\tp, nothing happens.\tn\r\n");
         return 1;
@@ -1511,14 +1516,14 @@ SPECIAL(frostbite) {
   struct affected_type af;
 
   if (cmd && argument && CMD_IS("say")) {
-    if (!is_wearing(ch, 196000)) 
+    if (!is_wearing(ch, 196000))
       return 0;
-  
+
     skip_spaces(&argument);
-    
-    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room) && 
+
+    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room) &&
             !strcmp(argument, "frostbite")) {
-      
+
       if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
         send_to_char(ch, "\tcAs you say '\twfrostbite\tc' to your a \tLa great iron axe \tCrimmed \tLwith \tWfrost\tc, nothing happens.\tn\r\n");
         return 1;
@@ -1559,7 +1564,7 @@ SPECIAL(vaprak_claws) {
   struct affected_type af[VAP_AFFECTS];
   int duration = 0, i = 0;
   struct obj_data *obj = (struct obj_data *) me;
-  
+
   if (!ch)
     return 0;
 
@@ -1570,23 +1575,23 @@ SPECIAL(vaprak_claws) {
 
   if (!argument)
     return 0;
-  
+
   if (GET_RACE(ch) != RACE_OGRE && GET_RACE(ch) != RACE_TROLL)
     return 0;
 
   if (!is_wearing(ch, 196062))
     return 0;
-  
+
   skip_spaces(&argument);
-    
+
   if (!strcmp(argument, "vaprak") && CMD_IS("say")) {
-    
+
     //if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
     if (GET_OBJ_SPECTIMER(obj, 0) > 0) {
       send_to_char(ch, "\trAs you say '\twvaprak\tr' to your claws \tLof the destroyer\tr, nothing happens.\tn\r\n");
       return 1;
     }
-    
+
     if (affected_by_spell(ch, SKILL_RAGE)) {
       send_to_char(ch, "You are already raging!\r\n");
       return 1;
@@ -1605,7 +1610,7 @@ SPECIAL(vaprak_claws) {
       af[i].duration = duration;
     }
 
-    
+
     af[0].location = APPLY_HITROLL;
     af[0].modifier = 3;
 
@@ -1621,7 +1626,7 @@ SPECIAL(vaprak_claws) {
     GET_OBJ_SPECTIMER(obj, 0) = 24;
     return 1; /* success! */
   }
-  
+
   return 0;
 }
 #undef VAP_AFFECTS
@@ -1636,18 +1641,18 @@ SPECIAL(fake_twilight) {
 
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Twilight Rage\r\n");
     return 1;
   }
-  
+
   vict = FIGHTING(ch);
-        
+
   if (affected_by_spell(ch, SPELL_BATTLETIDE)) {
     return 0;
   }
-  
+
   if (cmd || !vict || rand_number(0, 18))
     return 0;
 
@@ -1687,18 +1692,18 @@ SPECIAL(twilight) {
 
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Twilight Rage\r\n");
     return 1;
   }
-  
+
   vict = FIGHTING(ch);
-        
+
   if (affected_by_spell(ch, SPELL_BATTLETIDE)) {
     return 0;
   }
-  
+
   if (cmd || !vict || rand_number(0, 16))
     return 0;
 
@@ -1740,7 +1745,7 @@ SPECIAL(valkyrie_sword) {
     send_to_char(ch, "Female Only - Proc Burning Hands\r\n");
     return 1;
   }
-  
+
   if (GET_SEX(ch) != SEX_FEMALE && !IS_NPC(ch)) {
     damage(ch, ch, dice(5, 4), -1, DAM_HOLY, FALSE);
     send_to_char(ch, "\twYou are \tYburned \twby holy light.\tn\r\n");
@@ -1768,29 +1773,29 @@ SPECIAL(valkyrie_sword) {
 SPECIAL(planetar_sword) {
   if (!ch)
     return 0;
-  
+
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc Cure Critic and Dispel Evil\r\n");
     return 1;
   }
-  
+
   struct char_data *vict = FIGHTING(ch);
 
   if (cmd || !vict || rand_number(0, 27))
     return 0;
-    
+
   switch (rand_number(0, 1)) {
     case 1:
       weapons_spells("\tWA nimbus of holy light surrounds your sword, bathing you in its radiance\tn",
               0,
-              "\tWA nimbus of holy light surrounds $n's\tW sword, bathing $m in its radiance.", 
+              "\tWA nimbus of holy light surrounds $n's\tW sword, bathing $m in its radiance.",
               ch, ch, (struct obj_data *) me, SPELL_CURE_CRITIC);
       call_magic(ch, ch, 0, SPELL_CURE_CRITIC, GET_LEVEL(ch), CAST_SPELL);
       return 1;
     case 2:
       weapons_spells("\tWA glowing nimbus of light emanates forth blasting the foul evil in its presence.\tn",
               "\tWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its presence.\tn",
-              "\tWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its presence.\tn", 
+              "\tWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its presence.\tn",
               ch, vict, (struct obj_data *) me, SPELL_DISPEL_EVIL);
       return 1;
     default:
@@ -1858,7 +1863,7 @@ SPECIAL(giantslayer) {
   return 0;
 }
 
-#undef JOT_VNUM 
+#undef JOT_VNUM
 #undef MAX_FG   // fire giants
 #undef MAX_SB   // smoking beard batallion
 #undef MAX_EM  // efreeti mercenaries
