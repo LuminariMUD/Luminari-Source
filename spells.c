@@ -974,16 +974,8 @@ ASPELL(spell_group_summon) {
 
 ASPELL(spell_identify) // divination
 {
-
-  int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
-
   if (obj) {
     do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
-
-    //code to support proc information..
-    name = obj_index[GET_OBJ_RNUM(obj)].func;
-    if (name)
-      (name)(ch, obj, 0, "identify");
 
   } else if (victim) { /* victim */
     send_to_char(ch, "Name: %s\r\n", GET_NAME(victim));

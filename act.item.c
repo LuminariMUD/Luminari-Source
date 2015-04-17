@@ -87,6 +87,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   char buf2[MAX_STRING_LENGTH];
   int line_length = 80, i = 0;
   char actmtds[MAX_STRING_LENGTH];
+  int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
 
   text_line(ch, "\tcItem-Type Specific Values:\tn", line_length, '-', '-');
 
@@ -370,6 +371,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       send_to_char(ch, "Report this item to a coder to add the ITEM_type\r\n");
       break;
   }
+
+  /* universal */
   if (mode == ITEM_STAT_MODE_IMMORTAL) {
     send_to_char(ch, "Values: ");
     for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++) {
@@ -377,6 +380,18 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     send_to_char(ch, "\r\n");
   }
+  //code to support proc information..
+  name = obj_index[GET_OBJ_RNUM(item)].func;
+  if (mode == ITEM_STAT_MODE_IMMORTAL) {
+    send_to_char(ch, "Special Procedure 'identify' tag:\r\n");
+    if (name)
+      (name)(ch, item, 0, "identify"); /* show identify info tagged in the actual proc */
+  } else {
+    send_to_char(ch, "Special 'identify' tag:\r\n");
+    if (name)
+      (name)(ch, item, 0, "identify"); /* show identify info tagged in the actual proc */
+  }
+
 }
 
 /* a central location for identification/statting of items */
