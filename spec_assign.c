@@ -287,6 +287,7 @@ struct spec_func_data spec_func_list[] = {
   {"Faithful Hound", hound },
   {"Mistweave",      mistweave },
   {"Frostbite",      frostbite },
+  {"Ymir Cloak",     ymir_cloak },
   {"Vaprak Claws",   vaprak_claws },
   {"Valkyrie Sword", valkyrie_sword },
   {"Twilight",       twilight },
