@@ -61,6 +61,23 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
 
 /**** start file code *****/
 
+/*
+        case ITEM_CLANARMOR:
+          if (GET_OBJ_VAL(obj, 2) == NO_CLAN) {
+            len += snprintf(buf + len, sizeof (buf) - len,
+                    "- Clan ID not set on CLANARMOR\r\n");
+          } else if (real_clan(GET_OBJ_VAL(obj, 2)) == NO_CLAN) {
+            len += snprintf(buf + len, sizeof (buf) - len,
+                    "- Invalid Clan ID on CLANARMOR\r\n");
+          }
+ */
+      /* values 0 is reserved for Apply to AC */
+/*
+    case ITEM_CLANARMOR:
+      write_to_output(d, "Clan ID Number: ");
+      break;
+*/
+
 /* assistant function for statting/identify/lore of objects */
 void display_item_object_values(struct char_data *ch, struct obj_data *item, int mode) {
   struct char_data *tempch;
@@ -306,6 +323,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       break;
     case ITEM_NOTE:
       send_to_char(ch, "Tongue: %d\r\n", GET_OBJ_VAL(item, 0));
+      break;
+    case ITEM_BOAT:
       break;
     case ITEM_KEY: /* Nothing */
       break;
