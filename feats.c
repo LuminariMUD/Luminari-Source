@@ -675,6 +675,9 @@ void assign_feats(void) {
   feato(FEAT_GREAT_WISDOM, "great wisdom", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
     "Increases Wisdom by 1",
     "Increases Wisdom by 1");
+  feato(FEAT_GREAT_CHARISMA, "great charisma", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+    "Increases Wisdom by 1",
+    "Increases Wisdom by 1");
 
   /* Spellcasting feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -1137,7 +1140,6 @@ void assign_feats(void) {
   /* epic */
   feato(FEAT_EPIC_COMBAT_CHALLENGE, "epic combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "as improved combat challenge, but both regular challenges and challenge all are minor actions", "as improved combat challenge, but both regular challenges and challenge all are minor actions");
   feato(FEAT_EPIC_DODGE, "epic dodge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "automatically dodge first attack against you each round", "automatically dodge first attack against you each round");
-  feato(FEAT_GREAT_CHARISMA, "great charisma", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Increases Wisdom by 1", "Increases Wisdom by 1");
   feato(FEAT_EPIC_SKILL_FOCUS, "epic skill focus", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "+10 in chosen skill", "+10 in chosen skill");
   feato(FEAT_DAMAGE_REDUCTION, "damage reduction", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "1/- damage reduction per rank of feat, 3/- for epic", "1/- damage reduction per rank of feat, 3/- for epic");
   feato(FEAT_FAST_HEALING, "fast healing", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds", "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds");

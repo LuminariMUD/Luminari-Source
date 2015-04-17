@@ -642,7 +642,8 @@ int compute_gear_spell_failure(struct char_data *ch) {
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
         (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
          i == WEAR_SHIELD)) {
-      count++;
+      if (i != WEAR_SHIELD) /* shield and armor combined increase spell failure chance */
+        count++;
       /* ok we have an armor piece... */
       spell_failure += armor_list[GET_OBJ_VAL(obj, 1)].spellFail;
     }
@@ -651,6 +652,9 @@ int compute_gear_spell_failure(struct char_data *ch) {
   if (count) {
     spell_failure = spell_failure / count;
   }
+
+  /* 5% improvement in spell success with this feat */
+  spell_failure -= HAS_FEAT(ch, FEAT_ARMORED_SPELLCASTING) * 5;
 
   if (spell_failure < 0)
     spell_failure = 0;
