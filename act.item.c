@@ -274,7 +274,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
                      GET_OBJ_VAL(item, 0), GET_ENHANCEMENT_BONUS(item));
       } else {
         /* players should see the float value */
-        send_to_char(ch, "AC-apply: [%f], Enhancement Bonus: +%d\r\n",
+        send_to_char(ch, "AC-apply: [%.1f], Enhancement Bonus: +%d\r\n",
                 (float) GET_OBJ_VAL(item, 0) / 10.0, GET_ENHANCEMENT_BONUS(item));
       }
       /* values defined by armor type */
