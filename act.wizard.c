@@ -3842,7 +3842,7 @@ struct zcheck_affs {
   {APPLY_MOVE, -90, 120, "movement"},
   {APPLY_GOLD, 0, 0, "gold"},  //15
   {APPLY_EXP, 0, 0, "experience"},
-  {APPLY_AC, -10, 10, "magical AC (obsolete)"},
+  {APPLY_AC, -10, 10, "!Unused!"},
   {APPLY_HITROLL, 0, -99, "hitroll"}, /* Handled seperately below */
   {APPLY_DAMROLL, 0, -99, "damroll"}, /* Handled seperately below */
   {APPLY_SAVING_FORT, -5, 9, "saving throw (fortitude)"},  //20
@@ -3852,7 +3852,7 @@ struct zcheck_affs {
   {APPLY_SAVING_DEATH, -5, 9, "saving throw (death)"},
   {APPLY_SPELL_RES, -90, 99, "spell resistance"},  //25
   {APPLY_SIZE, -1, 1, "size mod"},
-  {APPLY_AC_NEW, -2, 2, "magical AC (new)"},
+  {APPLY_AC_NEW, -2, 2, "magical AC"},
 
   {APPLY_RES_FIRE, -20, 20, "fire resistance"},
   {APPLY_RES_COLD, -20, 20, "cold resistance"},
