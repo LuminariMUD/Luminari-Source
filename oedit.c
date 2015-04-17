@@ -46,7 +46,7 @@ static void oedit_disp_val2_menu(struct descriptor_data *d);
 static void oedit_disp_val3_menu(struct descriptor_data *d);
 static void oedit_disp_val4_menu(struct descriptor_data *d);
 static void oedit_disp_val5_menu(struct descriptor_data *d);
-static void oedit_disp_prof_menu(struct descriptor_data *d);
+//static void oedit_disp_prof_menu(struct descriptor_data *d);
 static void oedit_disp_mats_menu(struct descriptor_data *d);
 static void oedit_disp_type_menu(struct descriptor_data *d);
 static void oedit_disp_extra_menu(struct descriptor_data *d);
@@ -1051,6 +1051,7 @@ static void oedit_disp_type_menu(struct descriptor_data *d) {
 }
 
 // item proficiency
+/*
 static void oedit_disp_prof_menu(struct descriptor_data *d) {
   int counter, columns = 0;
 
@@ -1063,6 +1064,7 @@ static void oedit_disp_prof_menu(struct descriptor_data *d) {
   }
   write_to_output(d, "\r\nEnter object proficiency : ");
 }
+*/
 
 // item material
 static void oedit_disp_mats_menu(struct descriptor_data *d) {
@@ -1212,7 +1214,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           "%s3%s) L-Desc   :-\r\n%s%s\r\n"
           "%s4%s) A-Desc   :-\r\n%s%s"
           "%s5%s) Type        : %s%s\r\n"
-          "%sG%s) Proficiency : %s%s\r\n"
+          //"%sG%s) Proficiency : %s%s\r\n"
           "%s6%s) Extra flags : %s%s\r\n",
 
           cyn, OLC_NUM(d), nrm,
@@ -1221,7 +1223,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           grn, nrm, yel, (obj->description && *obj->description) ? obj->description : "undefined",
           grn, nrm, yel, (obj->action_description && *obj->action_description) ? obj->action_description : "Not Set.\r\n",
           grn, nrm, cyn, buf1,
-          grn, nrm, cyn, item_profs[GET_OBJ_PROF(obj)],
+          //grn, nrm, cyn, item_profs[GET_OBJ_PROF(obj)],
           grn, nrm, cyn, buf2
           );
   /* Send first half then build second half of menu. */
@@ -1354,11 +1356,11 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           oedit_disp_type_menu(d);
           OLC_MODE(d) = OEDIT_TYPE;
           break;
-        case 'g':
-        case 'G':
-          oedit_disp_prof_menu(d);
-          OLC_MODE(d) = OEDIT_PROF;
-          break;
+        //case 'g':
+        //case 'G':
+          //oedit_disp_prof_menu(d);
+          //OLC_MODE(d) = OEDIT_PROF;
+          //break;
         case 'h':
         case 'H':
           oedit_disp_mats_menu(d);
@@ -1622,7 +1624,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE);
           /* now set the appropriate wear flag bit */
           TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_WIELD);
-          
+
           /*  Skip the next two. */
           oedit_disp_val4_menu(d);
           return;

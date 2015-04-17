@@ -292,7 +292,7 @@ struct spec_func_data spec_func_list[] = {
   {"Twilight",       twilight },
   {"Fake Twilight",  fake_twilight },
   {"Giantslayer",    giantslayer },
-  {"Planetar_Sword", planetar_sword },
+  {"Planetar Sword", planetar_sword },
   {"Crafting Kit",   crafting_kit },
   {"Chionthar_Ferry",chionthar_ferry },
   {"Ches",           ches },
