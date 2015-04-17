@@ -676,8 +676,8 @@ void assign_feats(void) {
     "Increases Wisdom by 1",
     "Increases Wisdom by 1");
   feato(FEAT_GREAT_CHARISMA, "great charisma", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "Increases Wisdom by 1",
-    "Increases Wisdom by 1");
+    "Increases Charisma by 1",
+    "Increases Charisma by 1");
 
   /* Spellcasting feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */

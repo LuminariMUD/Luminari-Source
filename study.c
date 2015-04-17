@@ -296,6 +296,9 @@ void finalize_study(struct descriptor_data *d) {
       }
       /* Handle specific feats here: */
       switch (i) {
+        case FEAT_GREAT_CHARISMA:
+          GET_REAL_CHA(ch) += LEVELUP(ch)->feats[i];
+          break;
         case FEAT_GREAT_CONSTITUTION:
           GET_REAL_CON(ch) += LEVELUP(ch)->feats[i];
           break;
