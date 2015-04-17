@@ -216,8 +216,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       send_to_char(ch, "Values defined by weapon type:\r\n");
       sprintbit(weapon_list[weapon_val].weaponFlags, weapon_flags, buf, sizeof (buf));
       if (mode == ITEM_STAT_MODE_IMMORTAL) {
-        send_to_char(ch, "%s, Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
-                     weapon_list[weapon_val].name,
+        send_to_char(ch, "Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
                      weapon_list[weapon_val].numDice,weapon_list[weapon_val].diceSize,
                      (20 - weapon_list[weapon_val].critRange),
                      crit_multi, buf);
