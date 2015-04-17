@@ -451,7 +451,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
     bool display = FALSE;
     for (i = 0; i < SPEC_TIMER_MAX; i++) {
       if (GET_OBJ_SPECTIMER(j, i)) {
-        send_to_char(ch, "Special Timer %d: %d | ", i, GET_OBJ_SPECTIMER(j, i));
+        send_to_char(ch, "Special Timer %d: %d Game-Hours | ", (i + 1), GET_OBJ_SPECTIMER(j, i));
         display = TRUE;
       }
     }
