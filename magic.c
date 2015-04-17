@@ -78,9 +78,9 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier) {
 */
   //success?
   if (resist > challenge) {
-    send_to_char(vict, "\tW*(%d>%d)you resist*\tn", resist, challenge);
+    send_to_char(vict, "\tW*(Resist:%d>Challenge:%d) You Resist!*\tn", resist, challenge);
     if (ch)
-      send_to_char(ch, "\tR*(%d<%d)resisted*\tn", challenge, resist);
+      send_to_char(ch, "\tR*(Challenge:%d<Resist:%d) Resisted!*\tn", challenge, resist);
     return TRUE;
   }
   //failed to resist the spell
@@ -179,19 +179,19 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     savethrow += 2;
 
   if (diceroll != 1 && (savethrow > challenge || diceroll == 20)) {
-    send_to_char(vict, "\tW*(%s:%d>%d)saved*\tn ", save_names[type],
+    send_to_char(vict, "\tW*(%s:%d>Challenge:%d) Saved!*\tn ", save_names[type],
             savethrow, challenge);
     if (ch && vict && vict != ch)
-      send_to_char(ch, "\tR*(%s:%d<%d)opp saved*\tn ", save_names[type],
-            challenge, savethrow);
+      send_to_char(ch, "\tR*(Challenge:%d<%s:%d) Opponent Saved!*\tn ",
+            challenge, save_names[type], savethrow);
     return (TRUE);
   }
 
-  send_to_char(vict, "\tR*(%s:%d<%d)failed save*\tn ", save_names[type],
+  send_to_char(vict, "\tR*(%s:%d<Challenge:%d) Failed Save!*\tn ", save_names[type],
           savethrow, challenge);
   if (ch && vict && vict != ch)
-    send_to_char(ch, "\tW*(%s:%d>%d)opp failed saved*\tn ", save_names[type],
-          challenge, savethrow);
+    send_to_char(ch, "\tW*(Challenge:%d>%s:%d)opp failed saved*\tn ",
+          challenge, save_names[type], savethrow);
   return (FALSE);
 }
 
