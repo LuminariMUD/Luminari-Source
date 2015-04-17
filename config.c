@@ -1,6 +1,6 @@
 /**************************************************************************
 *  File: config.c                                          Part of tbaMUD *
-*  Usage: Configuration of various aspects of tbaMUD operation.           *
+*  Usage: Configuration of various aspects of LuminariMUD operation.      *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *
 *                                                                         *
@@ -24,7 +24,7 @@
  * this file instead.  - Mythran */
 
 /* Below are several constants which you can change to alter certain aspects
- * of the way tbaMUD acts.  Since this is a .c file, all you have to do
+ * of the way LuminariMUD acts.  Since this is a .c file, all you have to do
  * to change one of the constants (assuming you keep your object files around)
  * is change the constant in this file and type 'make'.  Make will recompile
  * this file and relink; you don't have to wait for the whole thing to recompile
