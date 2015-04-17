@@ -1825,7 +1825,7 @@ SPECIAL(giantslayer) {
 
   skip_spaces(&argument);
   if (!is_wearing(ch, 196066)) return 0;
-  if (!strcmp(argument, "hamstring") && cmd_info[cmd].command_pointer == do_say) {
+  if (!strcmp(argument, "hamstring")) {
     if (IS_NPC(vict) && GET_RACE(vict) == NPCRACE_GIANT &&
             (vict->in_room == ch->in_room)) {
       if (GET_OBJ_SPECTIMER(obj, 0) > 0) {

@@ -2386,7 +2386,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /**** display, keep mods above this *****/
   /****************************************/
   if  (mode != MODE_NORMAL_HIT) {
-    send_to_char(ch, "Dam Bonus:  %d\r\n", dambonus);
+    send_to_char(ch, "Dam Bonus:  %d\r\n\r\n", dambonus);
   }
 
   return (MIN(MAX_DAM_BONUS, dambonus));
