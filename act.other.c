@@ -1483,8 +1483,8 @@ ACMD(do_wildshape) {
   int uses_remaining = 0;
 
   /* under construction */
-  //  send_to_char(ch, "Use 'shapechange' for now...\r\n");
-  //  return;
+    send_to_char(ch, "Use 'shapechange' for now...\r\n");
+    return;
   /* under construction */
 
   skip_spaces(&argument);
