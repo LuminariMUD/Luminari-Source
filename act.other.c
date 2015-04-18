@@ -1494,7 +1494,7 @@ ACMD(do_wildshape) {
   if (!*argument) {
     send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
 
-    for (i = 0; i < NUM_RACES; i++) {
+    for (i = 0; i < NUM_EXTENDED_RACES; i++) {
       if (race_list[i].family != RACE_TYPE_ANIMAL && race_list[i].family != RACE_TYPE_ELEMENTAL &&
           race_list[i].family != RACE_TYPE_PLANT && race_list[i].family != RACE_TYPE_MAGICAL_BEAST)
         continue;
@@ -1609,7 +1609,7 @@ ACMD(do_wildshape) {
     return;
   }
 
-  for (i = 0; i < NUM_RACES; i++) {
+  for (i = 0; i < NUM_EXTENDED_RACES; i++) {
     if (race_list[i].family != RACE_TYPE_ANIMAL && race_list[i].family != RACE_TYPE_ELEMENTAL &&
         race_list[i].family != RACE_TYPE_PLANT && race_list[i].family != RACE_TYPE_MAGICAL_BEAST)
       continue;
@@ -1662,9 +1662,9 @@ ACMD(do_wildshape) {
       break;
   }
 
-  if (i >= NUM_RACES) {
+  if (i >= NUM_EXTENDED_RACES) {
     send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
-    for (i = 0; i < NUM_RACES; i++) {
+    for (i = 0; i < NUM_EXTENDED_RACES; i++) {
       if (race_list[i].family != RACE_TYPE_ANIMAL && race_list[i].family != RACE_TYPE_ELEMENTAL &&
           race_list[i].family != RACE_TYPE_PLANT && race_list[i].family != RACE_TYPE_MAGICAL_BEAST)
         continue;
