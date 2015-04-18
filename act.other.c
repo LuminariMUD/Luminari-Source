@@ -1482,6 +1482,11 @@ ACMD(do_wildshape) {
   struct wild_shape_mods *abil_mods;
   int uses_remaining = 0;
 
+  /* under construction */
+  //  send_to_char(ch, "Use 'shapechange' for now...\r\n");
+  //  return;
+  /* under construction */
+
   skip_spaces(&argument);
 
   if (!HAS_FEAT(ch, FEAT_WILD_SHAPE)) {
