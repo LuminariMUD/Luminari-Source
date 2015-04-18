@@ -559,6 +559,9 @@ void boot_world(void) {
   log("Loading Armor.");
   load_armor();
 
+  log("Loading Extended Races");
+  assign_races();
+
   log("Loading feats.");
   assign_feats();
   sort_feats();
