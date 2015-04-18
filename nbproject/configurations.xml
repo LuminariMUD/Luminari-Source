@@ -165,6 +165,7 @@
       <in>quest.h</in>
       <in>race.c</in>
       <in>race.h</in>
+      <in>races_ext.c</in>
       <in>random.c</in>
       <in>redit.c</in>
       <in>screen.h</in>

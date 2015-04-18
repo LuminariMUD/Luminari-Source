@@ -857,8 +857,8 @@ void assign_feats(void) {
     "+2 to lore and survival skills",
     "+2 to lore and survival skills");
   /* unfinished */ feato(FEAT_RESIST_NATURES_LURE, "resist nature's lure", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+4 to spells and spell like abilities from fey creatures",
-    "+4 to spells and spell like abilities from fey creatures");
+    "+4 to resist spells and spell like abilities from fey creatures",
+    "+4 to resist spells and spell like abilities from fey creatures");
   /* unfinished */ feato(FEAT_THOUSAND_FACES, "a thousand faces", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "Can alter one's physical appearance, giving +10 to disguise checks.",
     "Can alter one's physical appearance, giving +10 to disguise checks.");

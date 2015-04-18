@@ -370,7 +370,7 @@ int load_char(const char *name, struct char_data *ch) {
     GET_NUM_QUESTS(ch) = PFDEF_COMPQUESTS;
     GET_LAST_MOTD(ch) = PFDEF_LASTMOTD;
     GET_LAST_NEWS(ch) = PFDEF_LASTNEWS;
-    GET_RACE(ch) = PFDEF_RACE;
+    GET_REAL_RACE(ch) = PFDEF_RACE;
     GET_AUTOCQUEST_VNUM(ch) = PFDEF_AUTOCQUEST_VNUM;
     GET_AUTOCQUEST_MAKENUM(ch) = PFDEF_AUTOCQUEST_MAKENUM;
     GET_AUTOCQUEST_QP(ch) = PFDEF_AUTOCQUEST_QP;
@@ -389,6 +389,7 @@ int load_char(const char *name, struct char_data *ch) {
     GET_CLAN(ch) = PFDEF_CLAN;
     GET_CLANRANK(ch) = PFDEF_CLANRANK;
     GET_CLANPOINTS(ch) = PFDEF_CLANPOINTS;
+    GET_DISGUISE_RACE(ch) = PFDEF_RACE;
 
     for (i = 0; i < AF_ARRAY_MAX; i++)
       AFF_FLAGS(ch)[i] = PFDEF_AFFFLAGS;
@@ -483,6 +484,7 @@ int load_char(const char *name, struct char_data *ch) {
           else if (!strcmp(tag, "Drnk")) GET_COND(ch, DRUNK) = atoi(line);
           else if (!strcmp(tag, "Drol")) GET_REAL_DAMROLL(ch) = atoi(line);
           else if (!strcmp(tag, "DipT")) GET_DIPTIMER(ch) = atoi(line);
+          else if (!strcmp(tag, "DRac"))  GET_DISGUISE_RACE(ch) = atoi(line);
           break;
 
         case 'E':
@@ -572,7 +574,7 @@ int load_char(const char *name, struct char_data *ch) {
           break;
 
         case 'R':
-          if (!strcmp(tag, "Race")) GET_RACE(ch) = atoi(line);
+          if (!strcmp(tag, "Race")) GET_REAL_RACE(ch) = atoi(line);
           else if (!strcmp(tag, "Room")) GET_LOADROOM(ch) = atoi(line);
           else if (!strcmp(tag, "Res1")) GET_REAL_RESISTANCES(ch, 1) = atoi(line);
           else if (!strcmp(tag, "Res2")) GET_REAL_RESISTANCES(ch, 2) = atoi(line);
@@ -795,6 +797,7 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_RACE(ch) != PFDEF_RACE) fprintf(fl, "Race: %d\n", GET_RACE(ch));
   if (GET_SIZE(ch) != PFDEF_SIZE) fprintf(fl, "Size: %d\n", GET_SIZE(ch));
   if (GET_LEVEL(ch) != PFDEF_LEVEL) fprintf(fl, "Levl: %d\n", GET_LEVEL(ch));
+  if (GET_DISGUISE_RACE(ch)) fprintf(fl, "DRac: %d\n", GET_DISGUISE_RACE(ch));
 
   fprintf(fl, "Id  : %ld\n", GET_IDNUM(ch));
   fprintf(fl, "Brth: %ld\n", (long) ch->player.time.birth);

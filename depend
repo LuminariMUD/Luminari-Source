@@ -71,7 +71,8 @@ clan_edit.o: clan_edit.c conf.h sysdep.h structs.h protocol.h lists.h \
  comm.h interpreter.h modify.h ibt.h clan.h
 class.o: class.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h spells.h interpreter.h constants.h act.h handler.h comm.h \
- mud_event.h dg_event.h mudlim.h feats.h class.h assign_wpn_armor.h
+ mud_event.h dg_event.h mudlim.h feats.h class.h assign_wpn_armor.h \
+ pfdefaults.h
 combat_modes.o: combat_modes.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h feats.h comm.h interpreter.h handler.h db.h \
  spells.h class.h mud_event.h dg_event.h combat_modes.h
@@ -272,6 +273,8 @@ quest.o: quest.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  mudlim.h
 race.o: race.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h spells.h interpreter.h constants.h act.h comm.h
+races_ext.o: races_ext.c conf.h sysdep.h structs.h protocol.h lists.h \
+ utils.h race.h spells.h interpreter.h db.h handler.h
 random.o: random.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h
 redit.o: redit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \

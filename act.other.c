@@ -49,6 +49,9 @@
 static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data * ch);
 
+void set_attributes(struct char_data *ch, int str, int con, int dex, int intel, int wis, int cha);
+
+
 /* innate animate dead ability */
 #define MOB_ZOMBIE            11   /* animate dead levels 1-7 */
 #define MOB_GHOUL             35   // " " level 11+
@@ -1265,6 +1268,525 @@ ACMD(do_gain) {
 /* shapechange functions */
 /*************************/
 
+
+struct wild_shape_mods {
+  byte strength;
+  byte constitution;
+  byte dexterity;
+  byte natural_armor;
+};
+
+struct wild_shape_mods *set_wild_shape_mods(int race) {
+  struct wild_shape_mods *abil_mods;
+
+  CREATE(abil_mods, struct wild_shape_mods, 1);
+
+  abil_mods->strength = 0;
+  abil_mods->constitution = 0;
+  abil_mods->dexterity = 0;
+  abil_mods->natural_armor = 0;
+
+  switch (race_list[race].family) {
+    case RACE_TYPE_ANIMAL:
+      switch (race_list[race].size) {
+        case SIZE_DIMINUTIVE:
+          abil_mods->dexterity = 6;
+          abil_mods->strength = -4;
+          abil_mods->natural_armor = 10;
+          break;
+        case SIZE_TINY:
+          abil_mods->dexterity = 4;
+          abil_mods->strength = -2;
+          abil_mods->natural_armor = 10;
+          break;
+        case SIZE_SMALL:
+          abil_mods->dexterity = 2;
+          abil_mods->natural_armor = 10;
+          break;
+        case SIZE_MEDIUM:
+          abil_mods->strength = 2;
+          abil_mods->natural_armor = 20;
+          break;
+        case SIZE_LARGE:
+          abil_mods->dexterity = -2;
+          abil_mods->strength = 4;
+          abil_mods->natural_armor = 40;
+          break;
+        case SIZE_HUGE:
+          abil_mods->dexterity = -4;
+          abil_mods->strength = 6;
+          abil_mods->natural_armor = 60;
+          break;
+      }
+      break;
+    case RACE_TYPE_MAGICAL_BEAST:
+      switch (race_list[race].size) {
+        case SIZE_TINY:
+          abil_mods->dexterity = 8;
+          abil_mods->strength = -2;
+          abil_mods->natural_armor = 30;
+          break;
+        case SIZE_SMALL:
+          abil_mods->dexterity = 4;
+          abil_mods->natural_armor = 20;
+          break;
+        case SIZE_MEDIUM:
+          abil_mods->strength = 4;
+          abil_mods->natural_armor = 40;
+          break;
+        case SIZE_LARGE:
+          abil_mods->dexterity = -2;
+          abil_mods->strength = 6;
+          abil_mods->constitution = 2;
+          abil_mods->natural_armor = 60;
+          break;
+      }
+      break;
+    case RACE_TYPE_PLANT:
+      switch (race_list[race].size) {
+        case SIZE_SMALL:
+          abil_mods->constitution = 2;
+          abil_mods->natural_armor = 20;
+          break;
+        case SIZE_MEDIUM:
+          abil_mods->strength = 2;
+          abil_mods->constitution = 2;
+          abil_mods->natural_armor = 20;
+          break;
+        case SIZE_LARGE:
+          abil_mods->strength = 4;
+          abil_mods->constitution = 2;
+          abil_mods->natural_armor = 40;
+          break;
+        case SIZE_HUGE:
+          abil_mods->strength = 8;
+          abil_mods->dexterity = -2;
+          abil_mods->constitution = 4;
+          abil_mods->natural_armor = 60;
+          break;
+      }
+      break;
+    case RACE_TYPE_ELEMENTAL:
+      switch (race) {
+        case RACE_SMALL_FIRE_ELEMENTAL:
+          abil_mods->strength = 0;
+          abil_mods->dexterity = 2;
+          abil_mods->constitution = 0;
+          abil_mods->natural_armor = 20;
+          break;
+        case RACE_MEDIUM_FIRE_ELEMENTAL:
+          abil_mods->strength = 0;
+          abil_mods->dexterity = 4;
+          abil_mods->constitution = 0;
+          abil_mods->natural_armor = 30;
+          break;
+        case RACE_LARGE_FIRE_ELEMENTAL:
+          abil_mods->strength = 0;
+          abil_mods->dexterity = 4;
+          abil_mods->constitution = 2;
+          abil_mods->natural_armor = 40;
+          break;
+        case RACE_HUGE_FIRE_ELEMENTAL:
+          abil_mods->strength = 0;
+          abil_mods->dexterity = 6;
+          abil_mods->constitution = 4;
+          abil_mods->natural_armor = 40;
+          break;
+        case RACE_SMALL_AIR_ELEMENTAL:
+          abil_mods->strength = 0;
+          abil_mods->dexterity = 2;
+          abil_mods->constitution = 0;
+          abil_mods->natural_armor = 20;
+          break;
+        case RACE_MEDIUM_AIR_ELEMENTAL:
+          abil_mods->strength = 0;
+          abil_mods->dexterity = 4;
+          abil_mods->constitution = 0;
+          abil_mods->natural_armor = 30;
+          break;
+        case RACE_LARGE_AIR_ELEMENTAL:
+          abil_mods->strength = 2;
+          abil_mods->dexterity = 4;
+          abil_mods->constitution = 0;
+          abil_mods->natural_armor = 40;
+          break;
+        case RACE_HUGE_AIR_ELEMENTAL:
+          abil_mods->strength = 4;
+          abil_mods->dexterity = 6;
+          abil_mods->constitution = 0;
+          abil_mods->natural_armor = 40;
+          break;
+        case RACE_SMALL_EARTH_ELEMENTAL:
+          abil_mods->strength = 0;
+          abil_mods->dexterity = 2;
+          abil_mods->constitution = 0;
+          abil_mods->natural_armor = 40;
+          break;
+        case RACE_MEDIUM_EARTH_ELEMENTAL:
+          abil_mods->strength = 0;
+          abil_mods->dexterity = 4;
+          abil_mods->constitution = 0;
+          abil_mods->natural_armor = 50;
+          break;
+        case RACE_LARGE_EARTH_ELEMENTAL:
+          abil_mods->strength = 6;
+          abil_mods->dexterity = -2;
+          abil_mods->constitution = 2;
+          abil_mods->natural_armor = 60;
+          break;
+        case RACE_HUGE_EARTH_ELEMENTAL:
+          abil_mods->strength = 8;
+          abil_mods->dexterity = -2;
+          abil_mods->constitution = 4;
+          abil_mods->natural_armor = 60;
+          break;
+        case RACE_SMALL_WATER_ELEMENTAL:
+          abil_mods->strength = 0;
+          abil_mods->dexterity = 0;
+          abil_mods->constitution = 2;
+          abil_mods->natural_armor = 40;
+          break;
+        case RACE_MEDIUM_WATER_ELEMENTAL:
+          abil_mods->strength = 0;
+          abil_mods->dexterity = 0;
+          abil_mods->constitution = 4;
+          abil_mods->natural_armor = 50;
+          break;
+        case RACE_LARGE_WATER_ELEMENTAL:
+          abil_mods->strength = 2;
+          abil_mods->dexterity = -2;
+          abil_mods->constitution = 6;
+          abil_mods->natural_armor = 60;
+          break;
+        case RACE_HUGE_WATER_ELEMENTAL:
+          abil_mods->strength = 4;
+          abil_mods->dexterity = -2;
+          abil_mods->constitution = 8;
+          abil_mods->natural_armor = 60;
+          break;
+      }
+      break;
+    default:
+      abil_mods->strength = race_list[race].ability_mods[0];
+      abil_mods->constitution = race_list[race].ability_mods[1];
+      abil_mods->dexterity = race_list[race].ability_mods[4];
+      break;
+  }
+  return abil_mods;
+}
+
+/* wildshape port from d20, in progress -Zusuk */
+ACMD(do_wildshape) {
+  int i = 0;
+  char buf[200];
+  struct wild_shape_mods *abil_mods;
+  int uses_remaining = 0;
+
+  skip_spaces(&argument);
+
+  if (!HAS_FEAT(ch, FEAT_WILD_SHAPE)) {
+    send_to_char(ch, "You do not have the ability to shapechange using wild shape.\r\n");
+    return;
+  }
+
+  int druid = CLASS_LEVEL(ch, CLASS_DRUID);
+
+  if (!*argument) {
+    send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
+
+    for (i = 0; i < NUM_RACES; i++) {
+      if (race_list[i].family != RACE_TYPE_ANIMAL && race_list[i].family != RACE_TYPE_ELEMENTAL &&
+          race_list[i].family != RACE_TYPE_PLANT && race_list[i].family != RACE_TYPE_MAGICAL_BEAST)
+        continue;
+      if (race_list[i].family == RACE_TYPE_ELEMENTAL && ((druid < 6) ||
+                                                         (druid >= 6 && druid < 8 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_SMALL)) ||
+                                                         (druid >= 8 && druid < 10 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_MEDIUM)) ||
+                                                         (druid >= 10 && druid < 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_LARGE)) ||
+                                                         (druid >= 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_HUGE))))
+        continue;
+      if (race_list[i].family == RACE_TYPE_PLANT && ((druid < 8) ||
+                                                     (druid >= 8 && druid < 10 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_MEDIUM)) ||
+                                                     (druid >= 10 && druid < 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_LARGE)) ||
+                                                     (druid >= 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_HUGE))))
+        continue;
+      if (race_list[i].size > SIZE_HUGE || race_list[i].size < SIZE_DIMINUTIVE)
+        continue;
+      if (race_list[i].family == RACE_TYPE_ANIMAL) {
+        switch (race_list[i].size) {
+          case SIZE_LARGE:
+          case SIZE_TINY:
+            if (druid < 6)
+              continue;
+            break;
+          case SIZE_HUGE:
+          case SIZE_DIMINUTIVE:
+            if (druid < 8)
+              continue;
+            break;
+          default:
+            continue;
+        }
+      }
+      if (race_list[i].family == RACE_TYPE_MAGICAL_BEAST) {
+        switch (race_list[i].size) {
+          case SIZE_LARGE:
+          case SIZE_TINY:
+            if (druid < 8)
+              continue;
+            break;
+          case SIZE_SMALL:
+          case SIZE_MEDIUM:
+            if (druid < 6)
+              continue;
+            break;
+          default:
+            continue;
+        }
+      }
+
+      abil_mods = set_wild_shape_mods(i);
+
+      send_to_char(ch, "%-40s Str [%s%-2d] Con [%s%-2d] Dex [%s%-2d] NatAC [%s%-2d]\r\n", race_list[i].name,
+                   abil_mods->strength >= 0 ? "+" : "", abil_mods->strength,
+                   abil_mods->constitution >= 0 ? "+" : "", abil_mods->constitution,
+                   abil_mods->dexterity >= 0 ? "+" : "", abil_mods->dexterity,
+                   abil_mods->natural_armor >= 0 ? "+" : "", abil_mods->natural_armor
+                   );
+    }
+    return;
+  }
+
+  if (strlen(argument) > 100) {
+    send_to_char(ch, "The race name argument cannot be any longer than 100 characters.\r\n");
+    return;
+  }
+
+  if (!strcmp(argument, "return")) {
+    if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
+      send_to_char(ch, "You are not wild shaped.\r\n");
+      return;
+    }
+
+    abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
+
+    set_attributes(ch, ch->real_abils.str - abil_mods->strength,
+                   ch->real_abils.con - abil_mods->constitution,
+                   ch->real_abils.dex - abil_mods->dexterity,
+                   ch->real_abils.intel,
+                   ch->real_abils.wis,
+                   ch->real_abils.cha);
+
+    GET_AC(ch) -= abil_mods->natural_armor;
+
+    abil_mods = set_wild_shape_mods(GET_REAL_RACE(ch));
+
+
+    set_attributes(ch, ch->real_abils.str + abil_mods->strength,
+                   ch->real_abils.con + abil_mods->constitution,
+                   ch->real_abils.dex + abil_mods->dexterity,
+                   ch->real_abils.intel,
+                   ch->real_abils.wis,
+                   ch->real_abils.cha);
+
+    sprintf(buf, "You change shape into a %s.", race_list[GET_REAL_RACE(ch)].name);
+    act(buf, true, ch, 0, 0, TO_CHAR);
+    sprintf(buf, "$n changes shape into a %s.", race_list[GET_REAL_RACE(ch)].name);
+    act(buf, true, ch, 0, 0, TO_ROOM);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
+    /*
+    if (!GET_DISGUISE_DESC_1(ch))
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_DISGUISED);
+    */
+    GET_HIT(ch) += GET_LEVEL(ch);
+    GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
+    GET_DISGUISE_RACE(ch) = 0;
+    affect_total(ch);
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
+    send_to_char(ch, "You must return to your normal shape before assuming a new form.\r\n");
+    return;
+  }
+
+  for (i = 0; i < NUM_RACES; i++) {
+    if (race_list[i].family != RACE_TYPE_ANIMAL && race_list[i].family != RACE_TYPE_ELEMENTAL &&
+        race_list[i].family != RACE_TYPE_PLANT && race_list[i].family != RACE_TYPE_MAGICAL_BEAST)
+      continue;
+    if (race_list[i].family == RACE_TYPE_ELEMENTAL && ((druid < 6) ||
+                                                       (druid >= 6 && druid < 8 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_SMALL)) ||
+                                                       (druid >= 8 && druid < 10 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_MEDIUM)) ||
+                                                       (druid >= 10 && druid < 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_LARGE)) ||
+                                                       (druid >= 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_HUGE))))
+      continue;
+    if (race_list[i].family == RACE_TYPE_PLANT && ((druid < 8) ||
+                                                   (druid >= 8 && druid < 10 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_MEDIUM)) ||
+                                                   (druid >= 10 && druid < 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_LARGE)) ||
+                                                   (druid >= 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_HUGE))))
+      continue;
+    if (race_list[i].size > SIZE_HUGE || race_list[i].size < SIZE_DIMINUTIVE)
+      continue;
+    if (race_list[i].family == RACE_TYPE_ANIMAL) {
+      switch (race_list[i].size) {
+        case SIZE_LARGE:
+        case SIZE_TINY:
+          if (druid < 6)
+            continue;
+          break;
+        case SIZE_HUGE:
+        case SIZE_DIMINUTIVE:
+          if (druid < 8)
+            continue;
+          break;
+        default:
+          continue;
+      }
+    }
+    if (race_list[i].family == RACE_TYPE_MAGICAL_BEAST) {
+      switch (race_list[i].size) {
+        case SIZE_LARGE:
+        case SIZE_TINY:
+          if (druid < 8)
+            continue;
+          break;
+        case SIZE_SMALL:
+        case SIZE_MEDIUM:
+          if (druid < 6)
+            continue;
+          break;
+        default:
+          continue;
+      }
+    }
+    if (!strcmp(argument, race_list[i].name))
+      break;
+  }
+
+  if (i >= NUM_RACES) {
+    send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
+    for (i = 0; i < NUM_RACES; i++) {
+      if (race_list[i].family != RACE_TYPE_ANIMAL && race_list[i].family != RACE_TYPE_ELEMENTAL &&
+          race_list[i].family != RACE_TYPE_PLANT && race_list[i].family != RACE_TYPE_MAGICAL_BEAST)
+        continue;
+      if (race_list[i].family == RACE_TYPE_ELEMENTAL && ((druid < 6) ||
+                                                         (druid >= 6 && druid < 8 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_SMALL)) ||
+                                                         (druid >= 8 && druid < 10 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_MEDIUM)) ||
+                                                         (druid >= 10 && druid < 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_LARGE)) ||
+                                                         (druid >= 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_HUGE))))
+        continue;
+      if (race_list[i].family == RACE_TYPE_PLANT && ((druid < 8) ||
+                                                     (druid >= 8 && druid < 10 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_MEDIUM)) ||
+                                                     (druid >= 10 && druid < 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_LARGE)) ||
+                                                     (druid >= 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_HUGE))))
+        continue;
+      if (race_list[i].size > SIZE_HUGE || race_list[i].size < SIZE_DIMINUTIVE)
+        continue;
+      if (race_list[i].family == RACE_TYPE_ANIMAL) {
+        switch (race_list[i].size) {
+          case SIZE_LARGE:
+          case SIZE_TINY:
+            if (druid < 6)
+              continue;
+            break;
+          case SIZE_HUGE:
+          case SIZE_DIMINUTIVE:
+            if (druid < 8)
+              continue;
+            break;
+          default:
+            continue;
+        }
+      }
+      if (race_list[i].family == RACE_TYPE_MAGICAL_BEAST) {
+        switch (race_list[i].size) {
+          case SIZE_LARGE:
+          case SIZE_TINY:
+            if (druid < 8)
+              continue;
+            break;
+          case SIZE_SMALL:
+          case SIZE_MEDIUM:
+            if (druid < 6)
+              continue;
+            break;
+          default:
+            continue;
+        }
+      }
+
+      abil_mods = set_wild_shape_mods(i);
+
+      send_to_char(ch, "%-40s Str [%s%-2d] Con [%s%-2d] Dex [%s%-2d] NatAC [%s%-2d]\r\n", race_list[i].name,
+                   abil_mods->strength >= 0 ? "+" : "", abil_mods->strength,
+                   abil_mods->constitution >= 0 ? "+" : "", abil_mods->constitution,
+                   abil_mods->dexterity >= 0 ? "+" : "", abil_mods->dexterity,
+                   abil_mods->natural_armor >= 0 ? "+" : "", abil_mods->natural_armor
+                   );
+    }
+    return;
+  }
+
+  if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) && *argument) {
+    send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
+    return;
+  }
+  /*
+  if (druid < 20 && GET_INNATE(ch, SPELL_WILD_SHAPE) < 1) {
+    if (is_innate_ready(ch, SPELL_WILD_SHAPE))
+      GET_INNATE(ch, SPELL_WILD_SHAPE) = HAS_FEAT(ch, FEAT_WILD_SHAPE);
+    else if (GET_ADMLEVEL(ch) == 0) {
+      send_to_char(ch, "You have already used up all of your wild shape opportunities today.\r\n");
+      return;
+    }
+  }
+  */
+
+  GET_DISGUISE_RACE(ch) = i;
+
+  abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
+
+  set_attributes(ch, ch->real_abils.str + abil_mods->strength,
+                 ch->real_abils.con + abil_mods->constitution,
+                 ch->real_abils.dex + abil_mods->dexterity,
+                 ch->real_abils.intel,
+                 ch->real_abils.wis,
+                 ch->real_abils.cha);
+
+  GET_AC(ch) += abil_mods->natural_armor;
+
+  abil_mods = set_wild_shape_mods(GET_REAL_RACE(ch));
+
+
+  set_attributes(ch, ch->real_abils.str - abil_mods->strength,
+                 ch->real_abils.con - abil_mods->constitution,
+                 ch->real_abils.dex - abil_mods->dexterity,
+                 ch->real_abils.intel,
+                 ch->real_abils.wis,
+                 ch->real_abils.cha);
+
+  sprintf(buf, "You change shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
+  act(buf, true, ch, 0, 0, TO_CHAR);
+  sprintf(buf, "$n changes shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
+  act(buf, true, ch, 0, 0, TO_ROOM);
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
+  //SET_BIT_AR(AFF_FLAGS(ch), AFF_DISGUISED);
+  GET_HIT(ch) += GET_LEVEL(ch);
+  GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
+
+  /*
+  if (druid < 20) {
+    GET_INNATE(ch, SPELL_WILD_SHAPE)--;
+
+    if (is_innate_ready(ch, SPELL_WILD_SHAPE) && GET_INNATE(ch, SPELL_WILD_SHAPE) <= 0) {
+      add_innate_timer(ch, SPELL_WILD_SHAPE);
+    }
+  }
+  */
+  
+  affect_total(ch);
+}
+
+
 /* header file:  act.h */
 void list_forms(struct char_data *ch) {
   send_to_char(ch, "%s\r\n", npc_race_menu);
@@ -1360,9 +1882,9 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
       break;
     case PC_SUBRACE_G_CROCODILE:
       SET_BIT_AR(af[0].bitvector, AFF_SCUBA);
-      SET_BIT_AR(af[1].bitvector, AFF_WATERWALK);
-      af[2].location = APPLY_STR;
-      af[2].modifier = 6;
+      SET_BIT_AR(af[0].bitvector, AFF_WATERWALK);
+      af[1].location = APPLY_STR;
+      af[1].modifier = 6;
       break;
   }
 

@@ -424,8 +424,179 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RACE_DROW            11  // not yet implemented
 #define RACE_DUERGAR         12  // not yet implemented
 #define RACE_OGRE            13  // not yet implemented
-/* Total Number of available PC Races*/
+#define RACE_UNDEFINED_1     14  /* for expansion of races */
+#define RACE_UNDEFINED_2     15  /* for expansion of races */
+#define RACE_UNDEFINED_3     16  /* for expansion of races */
+#define RACE_UNDEFINED_4     17  /* for expansion of races */
+#define RACE_UNDEFINED_5     18  /* for expansion of races */
+#define RACE_UNDEFINED_6     19  /* for expansion of races */
+#define RACE_UNDEFINED_7     20  /* for expansion of races */
+#define RACE_UNDEFINED_8     21  /* for expansion of races */
+#define RACE_UNDEFINED_9     22  /* for expansion of races */
+#define RACE_UNDEFINED_10    23  /* for expansion of races */
+#define RACE_UNDEFINED_11    24  /* for expansion of races */
+#define RACE_UNDEFINED_12    25  /* for expansion of races */
+#define RACE_UNDEFINED_13    26  /* for expansion of races */
+#define RACE_UNDEFINED_14    27  /* for expansion of races */
+#define RACE_UNDEFINED_15    28  /* for expansion of races */
+#define RACE_UNDEFINED_16    29  /* for expansion of races */
+
+/* Total Number of available (in-game) PC Races*/
 #define NUM_RACES            11
+
+/* let's keep shared races (pc/npc) up to (29)*/
+
+/* extended races */
+#define RACE_MINOTAUR               30
+#define RACE_HUMAN_ERGOTH           31
+#define RACE_HUMAN_ISTAR            32
+#define RACE_HUMAN_BALIFOR          33
+#define RACE_HUMAN_KHAROLIS         34
+#define RACE_HUMAN_NORDMAAR         35
+#define RACE_HUMAN_ICE_FOLK         36
+#define RACE_HUMAN_MOUNTAIN_NOMAD   37
+#define RACE_HUMAN_DESERT_NOMAD     38
+#define RACE_RAT                    39
+#define RACE_HORSE                  40
+#define RACE_HUMAN_SOLAMNIA         41 // pc dragonlance
+#define RACE_HUMAN_NORTHERNER       42 // pc forgotten realms
+#define RACE_HUMAN_ICE_BARBARIAN    43 // pc forgotten realms
+#define RACE_HUMAN_CORMYR           44 // pc forgotten realms
+#define RACE_HUMAN_AMN              45
+#define RACE_HUMAN_ANAUROCH         46
+#define RACE_HUMAN_CHULT            47
+#define RACE_HUMAN_DALELANDS        48
+#define RACE_HUMAN_HORDELANDS       49
+#define RACE_HUMAN_LANTAN           50
+#define RACE_HUMAN_MULHORAND        51
+#define RACE_HUMAN_RASHEMAN         52
+#define RACE_HUMAN_SEMBIA           53
+#define RACE_HUMAN_TETHYR           54
+#define RACE_HUMAN_THAY             55
+#define RACE_HUMAN_WATERDEEP        56
+#define RACE_MOON_ELF               57 // pc forgotten realms
+#define RACE_DROW_ELF               58
+#define RACE_SUN_ELF                59
+#define RACE_WILD_ELF               60
+#define RACE_WOOD_ELF               61
+#define RACE_HALF_DROW              62
+#define RACE_SHIELD_DWARF           67 // pc forgotten realms
+#define RACE_GOLD_DWARF             68
+#define RACE_GRAY_DWARF             RACE_DUERGAR
+#define RACE_GOBLIN                 70
+#define RACE_LIGHTFOOT_HALFLING     77 // pc forgotten realms
+#define RACE_GHOSTWISE_HALFLING     78 // pc forgotten realms
+#define RACE_STRONGHEART_HALFLING   79 // pc forgotten realms
+#define RACE_ROCK_GNOME             82 // pc forgotten realms
+#define RACE_DEEP_GNOME             83
+#define RACE_SVIRFNEBLIN            RACE_DEEP_GNOME
+#define RACE_HALF_ORC               84
+#define RACE_AASIMAR                85
+#define RACE_TIEFLING               86
+#define RACE_AIR_GENESI             87
+#define RACE_EARTH_GENESI           88
+#define RACE_FIRE_GENESI            89
+#define RACE_WATER_GENESI           90
+//#define RACE_OGRE                   91
+#define RACE_HALF_OGRE              92
+#define RACE_ORC                    93
+#define RACE_CENTAUR                99
+#define RACE_CONSTRUCT              100
+#define RACE_DRAGON                 101
+#define RACE_IRDA                   102
+#define RACE_BAAZ_DRACONIAN         103
+#define RACE_KAPAK_DRACONIAN        104
+#define RACE_HALF_DRAGON            105
+//#define RACE_TROLL                  106
+#define RACE_DINOSAUR               107
+#define RACE_FEY                    108
+#define RACE_MEDIUM_FIRE_ELEMENTAL  109
+#define RACE_MEDIUM_EARTH_ELEMENTAL 110
+#define RACE_MEDIUM_AIR_ELEMENTAL   111
+#define RACE_MEDIUM_WATER_ELEMENTAL 112
+#define RACE_FIRE_ELEMENTAL         109
+#define RACE_EARTH_ELEMENTAL        110
+#define RACE_AIR_ELEMENTAL          111
+#define RACE_WATER_ELEMENTAL        112
+#define RACE_HUGE_FIRE_ELEMENTAL    113
+#define RACE_HUGE_EARTH_ELEMENTAL   114
+#define RACE_HUGE_AIR_ELEMENTAL     115
+#define RACE_HUGE_WATER_ELEMENTAL   116
+#define RACE_APE                    117
+#define RACE_BOAR                   118
+#define RACE_CHEETAH                119
+#define RACE_CROCODILE              120
+#define RACE_GIANT_CROCODILE        121
+#define RACE_HYENA                  122
+#define RACE_LEOPARD                123
+#define RACE_RHINOCEROS             124
+#define RACE_WOLVERINE              125
+#define RACE_MEDIUM_VIPER           126
+#define RACE_LARGE_VIPER            127
+#define RACE_HUGE_VIPER             128
+#define RACE_CONSTRICTOR_SNAKE      129
+#define RACE_GIANT_CONSTRICTOR_SNAKE 130
+#define RACE_TIGER                  131
+#define RACE_BLACK_BEAR             132
+#define RACE_BROWN_BEAR             133
+#define RACE_POLAR_BEAR             134
+#define RACE_LION                   135
+#define RACE_ELEPHANT               136
+#define RACE_EAGLE                  137
+#define RACE_GHOUL                  138
+#define RACE_GHAST                  139
+#define RACE_MUMMY                  140
+#define RACE_MOHRG                  141
+#define RACE_SMALL_FIRE_ELEMENTAL    142
+#define RACE_SMALL_EARTH_ELEMENTAL   143
+#define RACE_SMALL_AIR_ELEMENTAL     144
+#define RACE_SMALL_WATER_ELEMENTAL   145
+#define RACE_LARGE_FIRE_ELEMENTAL    146
+#define RACE_LARGE_EARTH_ELEMENTAL   147
+#define RACE_LARGE_AIR_ELEMENTAL     148
+#define RACE_LARGE_WATER_ELEMENTAL   149
+#define RACE_BLINK_DOG               150
+#define RACE_SHOCKER_LIZARD          151
+#define RACE_OWLBEAR                 152
+#define RACE_SHAMBLING_MOUND         153
+#define RACE_TREANT                  154
+#define RACE_MYCANOID                155
+#define RACE_MIRALUKA                156
+#define RACE_RATTATAKI               157
+#define RACE_QUALINESTI_ELF          158 // pc dragonlance
+#define RACE_HYLAR_DWARF             159 // pc dragonlance
+#define RACE_NEIDAR_DWARF            160 // pc dragonlance
+#define RACE_KENDER                  161 // pc dragonlance
+//#define RACE_GNOME                  5 // pc
+#define RACE_UNDEAD                  162
+#define RACE_SKELETON                163
+#define RACE_ZOMBIE                  164
+#define RACE_ANIMAL                  165
+#define RACE_WOLF                    166
+#define RACE_GREAT_CAT               167
+#define RACE_MONSTROUS_HUMANOID      168
+#define RACE_GIANT                   169
+#define RACE_MANDRAGORA              170
+#define RACE_PLANT                   171
+#define RACE_OOZE                    172
+#define RACE_ELEMENTAL               173
+#define RACE_OUTSIDER                174
+#define RACE_MAGICAL_BEAST           175
+#define RACE_STIRGE                  176
+#define RACE_SILVANESTI_ELF          177// 1 higher than the last race define
+#define RACE_KAGONESTI_ELF           178
+#define RACE_HALF_ELF                179
+#define RACE_HUMAN_PLAINS_NOMAD      180
+#define RACE_DAEWAR_DWARF            181
+#define RACE_KLAR_DWARF              182
+#define RACE_DAERGAR_DWARF           183
+#define RACE_THEIWAR_DWARF           184
+#define RACE_DEWAR_DWARF             185
+#define RACE_AGHAR_DWARF             186
+#define RACE_ZHAKAR_DWARF            187
+/**/
+#define NUM_EXTENDED_RACES           188
+/*****/
 
 // NPC races
 #define NPCRACE_UNDEFINED	(-1)	/*Race Undefined*/
@@ -488,12 +659,48 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 //total
 #define MAX_PC_SUBRACES	           5
 
+/**/
+#define RACE_TYPE_UNDEFINED          0
+#define RACE_TYPE_HUMANOID           1
+#define RACE_TYPE_DROID              2
+#define RACE_TYPE_BEAST              3
+/**/
+#define RACE_TYPE_HUMAN              1
+#define RACE_TYPE_ELF                2
+#define RACE_TYPE_DWARF              3
+#define RACE_TYPE_HALFLING           4
+#define RACE_TYPE_KENDER             5
+#define RACE_TYPE_GNOME              6
+#define RACE_TYPE_ANIMAL             7
+#define RACE_TYPE_UNDEAD             8
+#define RACE_TYPE_MONSTROUS_HUMANOID 9
+#define RACE_TYPE_GIANT              10
+#define RACE_TYPE_PLANT              11
+#define RACE_TYPE_OOZE               12
+#define RACE_TYPE_ELEMENTAL          13
+#define RACE_TYPE_OUTSIDER           14
+#define RACE_TYPE_MAGICAL_BEAST      15
+#define RACE_TYPE_MINOTAUR           16
+#define RACE_TYPE_DRAGON             17
+#define RACE_TYPE_CONSTRUCT          18
+#define RACE_TYPE_HALF_ELF           19
+#define RACE_TYPE_ORC                20
+#define RACE_TYPE_DRACONIAN          21
+#define RACE_TYPE_GOBLINOID          22
+#define RACE_TYPE_VERMIN             23
+#define RACE_TYPE_CENTAUR            24
+#define RACE_TYPE_FEY                25
+/**/
+#define NUM_RACE_TYPES               26
+/**/
+
 /* Sex */
 #define SEX_NEUTRAL   0   /**< Neutral Sex (Hermaphrodite) */
 #define SEX_MALE      1   /**< Male Sex (XY Chromosome) */
 #define SEX_FEMALE    2   /**< Female Sex (XX Chromosome) */
 /** Total number of Genders */
 #define NUM_GENDERS   3
+#define NUM_SEX NUM_GENDERS
 
 /* Positions */
 #define POS_DEAD       0	/**< Position = dead */
@@ -760,8 +967,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_WHIRLWIND_ATTACK 91 /*  Whirlwind attack mode */
 
 #define AFF_CHARGING         92 /* charging in combat */
+#define AFF_WILD_SHAPE       93
 /*---*/
-#define NUM_AFF_FLAGS        93
+#define NUM_AFF_FLAGS        94
 /********************************/
 
 /* Bonus types */
@@ -2289,6 +2497,26 @@ struct extra_descr_data {
 /* maximum amount of timrs on a single object, imported from homeland */
 #define SPEC_TIMER_MAX 4
 
+/* race data for extension of races */
+struct race_data {
+  char *name;
+  char *abbrev;
+  char *type;
+  ubyte family;
+  sbyte genders[NUM_SEX];
+  char *menu_display;
+  byte ability_mods[6];
+  ush_int height[NUM_SEX];
+  ush_int weight[NUM_SEX];
+  byte size;
+  int body_parts[NUM_WEARS];
+  sbyte alignments[9];
+  sbyte is_pc;
+  byte favored_class[NUM_SEX];
+  ush_int language;
+  ubyte level_adjustment;
+};
+
 /** object flags used in obj_data. These represent the instance values for
  * a real object, values that can change during gameplay. */
 struct obj_flag_data {
@@ -2585,6 +2813,7 @@ struct char_point_data {
   sh_int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
   sh_int resistances[NUM_DAM_TYPES];  // resistances (dam-types)
 
+
   /* note - if you add something new here, make sure to check
    handler.c reset_char_points() to see if it needs to be added */
 };
@@ -2601,6 +2830,16 @@ struct char_special_data_saved {
 
   struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
 
+  /* disguise system port d20mud */
+  ubyte disguise_race;
+  ubyte disguise_sex;
+  ubyte disguise_dsc1;
+  ubyte disguise_dsc2;
+  ubyte disguise_adj1;
+  ubyte disguise_adj2;
+  ubyte disguise_roll;
+  ubyte disguise_seen;
+  
   /* Feat data */
   int feats[NUM_FEATS];  /* Feats (value is the number of times each feat is taken) */
   int combat_feats[NUM_CFEATS][FT_ARRAY_MAX];  /* One bitvector array per CFEAT_ type  */

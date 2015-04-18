@@ -1683,7 +1683,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   GET_SUBRACE(mob_proto + i, 0) = 0;
   GET_SUBRACE(mob_proto + i, 1) = 0;
   GET_SUBRACE(mob_proto + i, 2) = 0;
-  GET_RACE(mob_proto + i) = 0;
+  GET_REAL_RACE(mob_proto + i) = 0;
   GET_CLASS(mob_proto + i) = 0;
   GET_REAL_SIZE(mob_proto + i) = SIZE_MEDIUM;
   GET_WEIGHT(mob_proto + i) = 200;
@@ -1929,7 +1929,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("Race") {
     RANGE(0, NUM_NPC_RACES);
-    GET_RACE(mob_proto + i) = num_arg;
+    GET_REAL_RACE(mob_proto + i) = num_arg;
   }
 
   CASE("SubRace 1") {
@@ -3035,7 +3035,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
   assign_triggers(mob, MOB_TRIGGER);
 
   if (GET_RACE(mob) < 0 || GET_RACE(mob) >= NUM_NPC_RACES)
-    GET_RACE(mob) = 0;
+    GET_REAL_RACE(mob) = 0;
 
   if (GET_CLASS(mob) < 0 || GET_CLASS(mob) >= NUM_CLASSES)
     GET_CLASS(mob) = CLASS_WARRIOR;
@@ -4410,7 +4410,7 @@ void init_char(struct char_data *ch) {
   GET_REAL_SIZE(ch) = SIZE_MEDIUM;
 
   if (GET_RACE(ch) < -1 || GET_RACE(ch) >= NUM_RACES)
-    GET_RACE(ch) = RACE_UNDEFINED;
+    GET_REAL_RACE(ch) = RACE_UNDEFINED;
 
   if ((i = get_ptable_by_name(GET_NAME(ch))) != -1)
     player_table[i].id = GET_IDNUM(ch) = ++top_idnum;

@@ -26,7 +26,7 @@
 /* utility functions */
 /*-----------------------------------*/
 
-/* homeland-port this eventually can be used to have special class 
+/* homeland-port this eventually can be used to have special class
    quests */
 int has_race_kit(int race, int c) {
   //return has_kit[race][c];
@@ -238,7 +238,7 @@ bool is_object_in_a_quest(struct obj_data *obj) {
     if (mob_proto[i].mob_specials.quest) {
       for (quest = mob_proto[i].mob_specials.quest; quest;
               quest = quest->next) {
-        // check in.           
+        // check in.
         for (qcom = quest->in; qcom; qcom = qcom->next) {
           if (qcom->value == vnum && qcom->type == QUEST_COMMAND_ITEM)
             return TRUE;
@@ -390,7 +390,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
           if (qcom->value == CLASS_LICH) {
             //hack for lich remort..
 
-            GET_RACE(ch) = RACE_LICH;
+            GET_REAL_RACE(ch) = RACE_LICH;
             GET_LEVEL(ch) -= 9;
             //GET_HOMETOWN(ch) = 3; /*Zhentil Keep*/s
 
@@ -883,7 +883,7 @@ ACMD(do_qinfo) {
                 } else {
                   strcat(buf, " needs fixing (hlquest.c)");
                 }
-              } // end quest-> out loop 
+              } // end quest-> out loop
 
               strcat(buf, ".\r\n\r\n");
               send_to_char(ch, buf);
