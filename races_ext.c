@@ -522,13 +522,11 @@ void set_height_and_weight_by_race(struct char_data *ch)
 
 }
 
-
+/*
 int invalid_race(struct char_data *ch, struct obj_data *obj)
 {
-  /*
   if (GET_ADMLEVEL(ch) >= ADMLVL_IMMORT)
     return false;
-  */
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_HUMAN) && IS_HUMAN(ch))
     return (true);
@@ -544,6 +542,7 @@ int invalid_race(struct char_data *ch, struct obj_data *obj)
 
   return (false);
 }
+*/
 
 int get_size(struct char_data *ch)
 {

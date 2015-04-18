@@ -1569,25 +1569,25 @@ ACMD(do_wildshape) {
 
     abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
 
-    set_attributes(ch, ch->real_abils.str - abil_mods->strength,
+    /*set_attributes(ch, ch->real_abils.str - abil_mods->strength,
                    ch->real_abils.con - abil_mods->constitution,
                    ch->real_abils.dex - abil_mods->dexterity,
                    ch->real_abils.intel,
                    ch->real_abils.wis,
                    ch->real_abils.cha);
-
+*/
     GET_AC(ch) -= abil_mods->natural_armor;
 
     abil_mods = set_wild_shape_mods(GET_REAL_RACE(ch));
 
-
+/*
     set_attributes(ch, ch->real_abils.str + abil_mods->strength,
                    ch->real_abils.con + abil_mods->constitution,
                    ch->real_abils.dex + abil_mods->dexterity,
                    ch->real_abils.intel,
                    ch->real_abils.wis,
                    ch->real_abils.cha);
-
+*/
     sprintf(buf, "You change shape into a %s.", race_list[GET_REAL_RACE(ch)].name);
     act(buf, true, ch, 0, 0, TO_CHAR);
     sprintf(buf, "$n changes shape into a %s.", race_list[GET_REAL_RACE(ch)].name);
@@ -1745,25 +1745,26 @@ ACMD(do_wildshape) {
 
   abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
 
+  /*
   set_attributes(ch, ch->real_abils.str + abil_mods->strength,
                  ch->real_abils.con + abil_mods->constitution,
                  ch->real_abils.dex + abil_mods->dexterity,
                  ch->real_abils.intel,
                  ch->real_abils.wis,
                  ch->real_abils.cha);
-
+*/
   GET_AC(ch) += abil_mods->natural_armor;
 
   abil_mods = set_wild_shape_mods(GET_REAL_RACE(ch));
 
-
+/*
   set_attributes(ch, ch->real_abils.str - abil_mods->strength,
                  ch->real_abils.con - abil_mods->constitution,
                  ch->real_abils.dex - abil_mods->dexterity,
                  ch->real_abils.intel,
                  ch->real_abils.wis,
                  ch->real_abils.cha);
-
+*/
   sprintf(buf, "You change shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
   act(buf, true, ch, 0, 0, TO_CHAR);
   sprintf(buf, "$n changes shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
@@ -1782,7 +1783,7 @@ ACMD(do_wildshape) {
     }
   }
   */
-  
+
   affect_total(ch);
 }
 
