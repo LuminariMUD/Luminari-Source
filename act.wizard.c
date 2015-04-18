@@ -3485,7 +3485,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
         send_to_char(ch, "That is not a race.\r\n");
         return (0);
       }
-      GET_RACE(vict) = i;
+      GET_REAL_RACE(vict) = i;
       break;
     case 62: /* spellres spell resistance */
       GET_REAL_SPELL_RES(vict) = RANGE(0, 99);

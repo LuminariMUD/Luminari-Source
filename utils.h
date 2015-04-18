@@ -129,6 +129,9 @@ int get_feat_value(struct char_data *ch, int featnum);
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
 
+/* extended races (races_ext.c) */
+extern struct race_data race_list[NUM_EXTENDED_RACES];
+
 /** Creates a core dump for diagnostic purposes, but will keep (if it can)
  * the mud running after the core has been dumped. Call this in the place
  * of calling core_dump_real. */
@@ -688,10 +691,15 @@ do                                                              \
 #define GET_CHURCH(ch)  ((ch)->player_specials->saved.church)
 
 
+/* disguise related macros */
+#define GET_DISGUISE_RACE(ch)    ((ch)->char_specials.saved.disguise_race)
 /** Race of ch. */
-#define GET_RACE(ch)   ((ch)->player.race)
+#define GET_REAL_RACE(ch)   ((ch)->player.race)
 #define SUBRACE(ch)    ((ch)->player.pc_subrace)
 #define GET_NPC_RACE(ch)   (IS_NPC(ch) ? (ch)->player.race : RACE_UNDEFINED)
+
+#define GET_RACE(ch)    (AFF_FLAGGED(ch, AFF_WILD_SHAPE) ? GET_DISGUISE_RACE(ch) : GET_REAL_RACE(ch))
+
 
 /** Height of ch. */
 #define GET_HEIGHT(ch)	((ch)->player.height)

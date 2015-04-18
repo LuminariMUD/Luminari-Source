@@ -502,6 +502,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "wizlock", "wizlock", POS_DEAD, do_wizlock, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
   { "write", "write", POS_STANDING, do_write, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "wholenessofbody", "wholenessofbody", POS_RECLINING, do_wholenessofbody, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "wildshape", "wildshape"    , POS_RESTING , do_wildshape, 1, 0, FALSE, ACTION_STANDARD , {6, 0} },
 
   { "zreset", "zreset", POS_DEAD, do_zreset, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "zedit", "zedit", POS_DEAD, do_oasis_zedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -2113,7 +2114,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         write_to_output(d, "\r\nThat's not a race.\r\nRace: ");
         return;
       } else
-        GET_RACE(d->character) = load_result;
+        GET_REAL_RACE(d->character) = load_result;
 
       switch (load_result) {
         case RACE_HUMAN:

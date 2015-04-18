@@ -1772,9 +1772,9 @@ void medit_parse(struct descriptor_data *d, char *arg) {
 
     case MEDIT_RACE:
       if (i == 99)
-        GET_RACE(OLC_MOB(d)) = rand_number(1, NUM_NPC_RACES - 1);
+        GET_REAL_RACE(OLC_MOB(d)) = rand_number(1, NUM_NPC_RACES - 1);
       else
-        GET_RACE(OLC_MOB(d)) = LIMIT(i, 0, NUM_NPC_RACES - 1);
+        GET_REAL_RACE(OLC_MOB(d)) = LIMIT(i, 0, NUM_NPC_RACES - 1);
       break;
 
     case MEDIT_SUB_RACE_1:

@@ -966,7 +966,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             if (subfield && *subfield) {
               int ra = get_race_by_name(subfield);
               if (ra != -1) {
-                GET_RACE(c) = ra;
+                GET_REAL_RACE(c) = ra;
                 snprintf(str, slen, "1");
               } else {
                 snprintf(str, slen, "0");

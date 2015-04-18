@@ -33,6 +33,7 @@
 #include "feats.h"
 #include "class.h"
 #include "assign_wpn_armor.h"
+#include "pfdefaults.h"
 
 int *free_start_feats[];
 
@@ -1977,6 +1978,7 @@ void init_start_char(struct char_data *ch) {
   /* clear polymorph, affections cleared below */
   SUBRACE(ch) = 0;
   IS_MORPHED(ch) = 0;
+  GET_DISGUISE_RACE(ch) = PFDEF_RACE;
 
   /* clear immortal flags */
   if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
