@@ -2260,6 +2260,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define COMBAT_MANEUVER_TYPE_UNDEFINED  0
 #define COMBAT_MANEUVER_TYPE_KNOCKDOWN  1
 #define COMBAT_MANEUVER_TYPE_KICK       2
+#define COMBAT_MANEUVER_TYPE_DISARM     3
 
 /* Critical hit types */
 #define CRIT_X2   0
@@ -2839,7 +2840,7 @@ struct char_special_data_saved {
   ubyte disguise_adj2;
   ubyte disguise_roll;
   ubyte disguise_seen;
-  
+
   /* Feat data */
   int feats[NUM_FEATS];  /* Feats (value is the number of times each feat is taken) */
   int combat_feats[NUM_CFEATS][FT_ARRAY_MAX];  /* One bitvector array per CFEAT_ type  */

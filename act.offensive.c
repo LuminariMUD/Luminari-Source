@@ -235,7 +235,6 @@ void perform_powerfulblow(struct char_data *ch) {
 }
 
 #define RAGE_AFFECTS 4
-
 /* rage (berserk) engine */
 void perform_rage(struct char_data *ch) {
   struct affected_type af[RAGE_AFFECTS];
@@ -3470,18 +3469,38 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
     mod -= 4;
   }
 
-  //  Set up the calculations to perform the disarm, using CMB and CMD.
-//  int result = (dice(1, 20) + compute_cmb(ch) + mod) - compute_cmd(vict);
-//  if (result >= 0) {
-    // Success!
-//  } else {
-    // Failure!
-//    if (result <= -10) {
-      // Failed by more than 10, critical fail. Disarm ch.
+  int result = combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_DISARM);
+  if (result > 0) { /* success! */
+    act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict,TO_ROOM );
+    act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict,TO_CHAR );
+    obj_to_room(unequip_char(vict, pos), vict->in_room);
+  } else if (result <= -10) { /* critical failure */
+    /* have to check if we have a weapon to lose */
+    if (GET_EQ(ch, WEAR_WIELD_2H)) {
+      wielded = GET_EQ(ch, WEAR_WIELD_2H);
+      pos = WEAR_WIELD_2H;
+    } else { /* check 1h weapon, primary hand */
+      wielded = GET_EQ(ch, WEAR_WIELD_1);
+      pos = WEAR_WIELD_1;
+    }
+    /* If neither successful, check for a 1H weapon in the secondary hand. */
+    if (!wielded) {
+      wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+      pos = WEAR_WIELD_OFFHAND;
+    }
+    if (!wielded) { /* not wielding */
+      act("$n attempt to disarm $N fails terribly.", FALSE, ch, wielded, vict, TO_ROOM);
+      act("You fail terribly in your attempt to disarm $N.", FALSE, ch, wielded, vict, TO_CHAR);
+    } else {
+      act("$n fails the disarm maneuver on $N, stumbles and drops $s $p.", FALSE, ch, wielded, vict, TO_ROOM);
+      act("You drop $p in your attempt to disarm $N!", FALSE, ch, wielded, vict, TO_CHAR);
+      obj_to_room(unequip_char(ch, pos), ch->in_room);
+    }
+  } else { /* failure */
+    act("$n fails to disarm $N of $S $p.", FALSE, ch, wielded, vict,TO_ROOM );
+    act("You fail to disarm $p out of $N's hands.", FALSE, ch, wielded, vict,TO_CHAR );
+  }
 
-//    }
-
-//  }
 
   /*
   if (skill_test(ch, SKILL_DISARM, 500, mod + GET_R_DEX(ch) / 10 - GET_R_STR(vict) / 15) && !IS_OBJ_STAT(wielded, ITEM_NODROP)) {
@@ -3494,6 +3513,47 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
   }
    * */
   return 0;
+}
+
+/* charging system for combat */
+ACMD(do_disarm) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int mod = 0;
+  struct char_data *vict = NULL;
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if (GET_POS(ch) <= POS_SITTING) {
+    send_to_char(ch, "You need to stand to disarm!\r\n");
+    return;
+  }
+  if (!*arg) {
+    send_to_char(ch, "Disarm who?\r\n");
+    return;
+  }
+
+  one_argument(argument, arg);
+
+  vict = get_char_room_vis(ch, arg, NULL);
+
+  if (!vict) {
+    send_to_char(ch, "Disarm who?\r\n");
+    return;
+  }
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  perform_disarm(ch, vict, mod);
 }
 
 /* do_process_attack()
