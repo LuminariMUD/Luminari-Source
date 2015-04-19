@@ -1072,6 +1072,12 @@ static int perform_get_from_room(struct char_data *ch, struct obj_data *obj) {
     act("You get $p.", FALSE, ch, obj, 0, TO_CHAR);
     act("$n gets $p.", TRUE, ch, obj, 0, TO_ROOM);
     get_check_money(ch, obj);
+
+    /* this is necessary because of disarm */
+    if (FIGHTING(ch)) {
+      USE_MOVE_ACTION(ch);
+    }
+
     return (1);
   }
   return (0);
