@@ -3466,7 +3466,7 @@ int perform_feint(struct char_data *ch, struct char_data *vict) {
     af.spell = SKILL_FEINT;
     af.duration = 10;
     SET_BIT_AR(af.bitvector, AFF_FEINTED);
-    affect_to_char(ch, &af);
+    affect_to_char(vict, &af);
   } else { /* failure */
     act("\tyYour attempt to feint $N fails!\tn", FALSE, ch, NULL, vict, TO_CHAR);
     act("\ty$n attempt to feint you fails!\tn", FALSE, ch, NULL, vict, TO_VICT);
