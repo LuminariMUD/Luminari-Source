@@ -271,6 +271,7 @@ ACMD(do_charge);
 ACMD(do_circle);
 ACMD(do_bodyslam);
 ACMD(do_springleap);
+ACMD(do_feint);
 ACMD(do_headbutt);
 ACMD(do_shieldpunch);
 ACMD(do_disarm);

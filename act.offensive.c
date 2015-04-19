@@ -3008,8 +3008,7 @@ ACMD(do_dirtkick) {
 }
 
 /*
-Vhaerun:
-  Monks gamble to take down a caster, if fail, they are down for quite a while.
+ * Monk sit -> stand skill
  */
 ACMD(do_springleap) {
   struct char_data *vict = NULL;
@@ -3087,9 +3086,6 @@ ACMD(do_shieldpunch) {
  * possible.
  *
  * Requires FEAT_SHIELD_CHARGE
- *
- * (old comment)
- * Vhaerun:  A warrior skill to Stun !BASH mobs.
  */
 ACMD(do_shieldcharge) {
   struct char_data *vict = NULL;
