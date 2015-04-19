@@ -511,8 +511,10 @@ void assign_feats(void) {
 
   feato(FEAT_IMPROVED_DISARM, "improved disarm", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "opponent doesn't receive AoO",
-    "When attempting to disarm an opponent, normally the opponent will get an "
-      "Attack of Opportunity, with this feat you negate this free attack");
+    "You do not provoke an attack of opportunity when performing a disarm combat "
+      "maneuver. In addition, you receive a +2 bonus on checks made to disarm "
+      "a foe. You also receive a +2 bonus to your Combat Maneuver Defense "
+      "whenever an opponent tries to disarm you.");
     feat_prereq_attribute(FEAT_IMPROVED_DISARM, AB_INT, 13);
     feat_prereq_feat(FEAT_IMPROVED_DISARM, FEAT_COMBAT_EXPERTISE, 1);
 
