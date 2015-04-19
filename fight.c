@@ -307,7 +307,7 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
   }
 
   /* ch is feinted */
-  if (AFF_FLAGGED(ch, AFF_FEINTED)) {
+  if (AFF_FLAGGED(ch, AFF_FEINTED) || affected_by_spell(ch, SKILL_FEINT)) {
     /* debug */
     /*if (FIGHTING(ch))
       send_to_char(ch, "has_dex_bonus_to_ac() - %s feinted  ", GET_NAME(ch));*/
