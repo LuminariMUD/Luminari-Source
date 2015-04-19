@@ -518,6 +518,13 @@ void assign_feats(void) {
     feat_prereq_attribute(FEAT_IMPROVED_DISARM, AB_INT, 13);
     feat_prereq_feat(FEAT_IMPROVED_DISARM, FEAT_COMBAT_EXPERTISE, 1);
 
+  feato(FEAT_IMPROVED_FEINT, "improved feint", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "can feint as a move action",
+    "You can make a Bluff check to feint in combat as a move action as opposed "
+      "to standard action.");
+    feat_prereq_attribute(FEAT_IMPROVED_FEINT, AB_INT, 13);
+    feat_prereq_feat(FEAT_IMPROVED_FEINT, FEAT_COMBAT_EXPERTISE, 1);
+
   feato(FEAT_STUNNING_FIST, "stunning fist", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "may make unarmed attack to stun opponent for one round",
     "may make unarmed attack to stun opponent for one round");
@@ -1096,7 +1103,6 @@ void assign_feats(void) {
   feato(FEAT_COMBAT_CHALLENGE, "combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a mob focus their attention on you", "allows you to make a mob focus their attention on you");
   feato(FEAT_GREATER_COMBAT_CHALLENGE, "greater combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "as improved combat challenge, but regular challenge is a minor action & challenge all is a move action", "as improved combat challenge, but regular challenge is a minor action & challenge all is a move action");
   feato(FEAT_IMPROVED_COMBAT_CHALLENGE, "improved combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make all mobs focus their attention on you", "allows you to make all mobs focus their attention on you");
-  feato(FEAT_IMPROVED_FEINT, "improved feint", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "can feint and make one attack per round (or sneak attack if they have it)", "can feint and make one attack per round (or sneak attack if they have it)");
   feato(FEAT_IMPROVED_NATURAL_WEAPON, "improved natural weapons", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "increase damage dice by one category for natural weapons", "increase damage dice by one category for natural weapons");
   feato(FEAT_IMPROVED_TAUNTING, "improved taunting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_WEAPON_FINESSE, "improved weapon finesse", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "add dex bonus to damage instead of str for light weapons", "add dex bonus to damage instead of str for light weapons");
