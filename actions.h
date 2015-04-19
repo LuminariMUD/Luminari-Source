@@ -17,8 +17,9 @@
 #define AA_SUPRISE_ACCURACY  8
 #define AA_POWERFUL_BLOW     9
 #define AA_COME_AND_GET_ME   10
+#define AA_DISARM            11
 /**/
-#define NUM_ATTACK_ACTIONS   11
+#define NUM_ATTACK_ACTIONS   12
 /**************************/
 
 #define USE_STANDARD_ACTION(ch)   start_action_cooldown(ch, atSTANDARD, 6 RL_SEC)
