@@ -273,6 +273,7 @@ ACMD(do_bodyslam);
 ACMD(do_springleap);
 ACMD(do_headbutt);
 ACMD(do_shieldpunch);
+ACMD(do_disarm);
 ACMD(do_shieldcharge);
 ACMD(do_shieldslam);
 ACMD(do_dirtkick);
