@@ -3535,12 +3535,13 @@ ACMD(do_disarm) {
     send_to_char(ch, "You need to stand to disarm!\r\n");
     return;
   }
+
+  one_argument(argument, arg);
+
   if (!*arg) {
     send_to_char(ch, "Disarm who?\r\n");
     return;
   }
-
-  one_argument(argument, arg);
 
   vict = get_char_room_vis(ch, arg, NULL);
 
