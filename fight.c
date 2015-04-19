@@ -3322,6 +3322,19 @@ int compute_cmb (struct char_data *ch,              /* Attacker */
 {
   int cm_bonus = 0; /* combat maneuver bonus */
 
+  switch (combat_maneuver_type) {
+    case COMBAT_MANEUVER_TYPE_KNOCKDOWN:
+      break;
+    case COMBAT_MANEUVER_TYPE_KICK:
+      break;
+    case COMBAT_MANEUVER_TYPE_DISARM:
+      if (HAS_FEAT(ch, FEAT_IMPROVED_DISARM))
+        cm_bonus += 2;
+      break;
+    case COMBAT_MANEUVER_TYPE_UNDEFINED:
+    default: break;
+  }
+
   /* CMB = Base attack bonus + Strength modifier + special size modifier */
   cm_bonus += BAB(ch);
   /* Creatures that are size Tiny or smaller use their Dexterity modifier in place of their Strength modifier to determine their CMB. */
@@ -3340,6 +3353,19 @@ int compute_cmd(struct char_data *vict,            /* Defender */
                 int combat_maneuver_type)          /* Type of combat maneuver */
 {
   int cm_defense = 9; /* combat maneuver defense, should be 10 but if the difference is 0, then you failed your defense */
+
+  switch (combat_maneuver_type) {
+    case COMBAT_MANEUVER_TYPE_KNOCKDOWN:
+      break;
+    case COMBAT_MANEUVER_TYPE_KICK:
+      break;
+    case COMBAT_MANEUVER_TYPE_DISARM:
+      if (HAS_FEAT(vict, FEAT_IMPROVED_DISARM))
+        cm_defense += 2;
+      break;
+    case COMBAT_MANEUVER_TYPE_UNDEFINED:
+    default: break;
+  }
 
   /* CMD = 10 + Base attack bonus + Strength modifier + Dexterity modifier + special size modifier + miscellaneous modifiers */
   cm_defense += BAB(vict);
