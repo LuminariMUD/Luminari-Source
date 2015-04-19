@@ -509,6 +509,13 @@ void assign_feats(void) {
     feat_prereq_attribute(FEAT_IMPROVED_TRIP, AB_INT, 13);
     feat_prereq_feat(FEAT_IMPROVED_TRIP, FEAT_COMBAT_EXPERTISE, 1);
 
+  feato(FEAT_IMPROVED_DISARM, "improved disarm", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "opponent doesn't receive AoO",
+    "When attempting to disarm an opponent, normally the opponent will get an "
+      "Attack of Opportunity, with this feat you negate this free attack");
+    feat_prereq_attribute(FEAT_IMPROVED_DISARM, AB_INT, 13);
+    feat_prereq_feat(FEAT_IMPROVED_DISARM, FEAT_COMBAT_EXPERTISE, 1);
+
   feato(FEAT_STUNNING_FIST, "stunning fist", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "may make unarmed attack to stun opponent for one round",
     "may make unarmed attack to stun opponent for one round");
@@ -1079,7 +1086,6 @@ void assign_feats(void) {
 
   /* not class feats */
   /* probably don't want in game at this stage */feato(FEAT_LEADERSHIP_BONUS, "improved leadership", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_IMPROVED_DISARM, "improved disarm", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff ", "ask staff ");
   feato(FEAT_IMPROVED_GRAPPLE, "improved grapple", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_OVERRUN, "improved overrun", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_QUICK_DRAW, "quick draw", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
