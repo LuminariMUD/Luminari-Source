@@ -3504,11 +3504,10 @@ ACMD(do_feint) {
   one_argument(argument, arg);
 
   if (!*arg) {
-    send_to_char(ch, "Feint who?\r\n");
-    return;
-  }
-
-  vict = get_char_room_vis(ch, arg, NULL);
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  } else
+    vict = get_char_room_vis(ch, arg, NULL);
 
   if (!vict) {
     send_to_char(ch, "Feint who?\r\n");
@@ -3640,11 +3639,10 @@ ACMD(do_disarm) {
   one_argument(argument, arg);
 
   if (!*arg) {
-    send_to_char(ch, "Disarm who?\r\n");
-    return;
-  }
-
-  vict = get_char_room_vis(ch, arg, NULL);
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  } else
+    vict = get_char_room_vis(ch, arg, NULL);
 
   if (!vict) {
     send_to_char(ch, "Disarm who?\r\n");
