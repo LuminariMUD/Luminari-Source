@@ -797,6 +797,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Whirlwind-Attack",
   "Charging!",
   "WildShape",
+  "Feinted",
   "\n"
 };
 
