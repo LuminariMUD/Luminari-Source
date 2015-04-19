@@ -968,8 +968,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 
 #define AFF_CHARGING         92 /* charging in combat */
 #define AFF_WILD_SHAPE       93
+#define AFF_FEINTED          94
 /*---*/
-#define NUM_AFF_FLAGS        94
+#define NUM_AFF_FLAGS        95
 /********************************/
 
 /* Bonus types */
@@ -2235,7 +2236,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAPON_TYPE_BOLA            63
 #define WEAPON_TYPE_NET             64
 #define WEAPON_TYPE_SHURIKEN        65
-
+/**/
 #define NUM_WEAPON_TYPES            66
 
 /* Weapon damage types, used in the weapon definitions
@@ -2254,7 +2255,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ATTACK_TYPE_OFFHAND   1
 #define ATTACK_TYPE_RANGED    2
 #define ATTACK_TYPE_UNARMED   3
-#define ATTACK_TYPE_TWOHAND   4
+#define ATTACK_TYPE_TWOHAND   4 /* doesn't really serve any purpose */
 
 /* combat maneuver types*/
 #define COMBAT_MANEUVER_TYPE_UNDEFINED  0

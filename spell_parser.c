@@ -2778,6 +2778,7 @@ void mag_assign_spells(void) {
   skillo(SKILL_POWERFUL_BLOW, "powerful blow", ACTIVE_SKILL); //530
   skillo(SKILL_RAGE_FATIGUE, "rage fatigue", ACTIVE_SKILL); //531
   skillo(SKILL_COME_AND_GET_ME, "come and get me", ACTIVE_SKILL); //532
+  skillo(SKILL_FEINT, "feint", ACTIVE_SKILL); //532
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 

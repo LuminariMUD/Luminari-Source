@@ -568,9 +568,10 @@
 #define SKILL_POWERFUL_BLOW             530
 #define SKILL_RAGE_FATIGUE              531  //implemented
 #define SKILL_COME_AND_GET_ME           532
+#define SKILL_FEINT                     533
 
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      533
+#define NUM_SKILLS                      534
 
 /* Special Abilities for weapons */
 

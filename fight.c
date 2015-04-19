@@ -306,6 +306,14 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
     return FALSE;
   }
 
+  /* ch is feinted */
+  if (AFF_FLAGGED(ch, AFF_FEINTED)) {
+    /* debug */
+    /*if (FIGHTING(ch))
+      send_to_char(ch, "has_dex_bonus_to_ac() - %s feinted  ", GET_NAME(ch));*/
+    return FALSE;
+  }
+
   /* debug */
   /*if (FIGHTING(ch))
     send_to_char(ch, "has_dex_bonus_to_ac() - %s -retained- dex bonus  ", GET_NAME(ch));*/
@@ -3672,6 +3680,11 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (sneakdam) {
       send_to_char(ch, "[\tDSNEAK\tn] ");
     }
+  }
+  /* ok we checked has_dex_bonus_to_ac(), if the victim was feinted, then
+   remove the feint affect on them now*/
+  if (affected_by_spell(victim, SKILL_FEINT)) {
+    affect_from_char(victim, SKILL_FEINT);
   }
 
   /* Calculate damage for this hit */

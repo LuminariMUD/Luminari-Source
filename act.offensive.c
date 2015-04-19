@@ -3414,8 +3414,124 @@ ACMD(do_collect) {
   act("$n gathers $s ammunition.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
+/*
+Feinting is a standard action. To feint, make a Bluff skill check. The DC of
+this check is equal to 10 + your opponent's base attack bonus + your opponent's
+Wisdom modifier. If your opponent is trained in Sense Motive, the DC is instead
+equal to 10 + your opponent's Sense Motive bonus, if higher. If successful, the
+next melee attack you make against the target does not allow him to use his
+Dexterity bonus to AC (if any). This attack must be made on or before your next
+turn.
 
-/* unfinished */
+When feinting against a non-humanoid you take a –4 penalty. Against a creature
+of animal Intelligence (1 or 2), you take a –8 penalty. Against a creature
+lacking an Intelligence score, it's impossible. Feinting in combat does not
+provoke attacks of opportunity.
+
+Feinting as a Move Action:
+With the Improved Feint feat, you can attempt a feint as a move action.
+*/
+int perform_feint(struct char_data *ch, struct char_data *vict) {
+  int bluff_skill_check = 0;
+  int dc_bab_wisdom = 0;
+  int dc_sense_motive = 0;
+  int final_dc = 0;
+  struct affected_type af;
+
+  if (!ch || !vict)
+    return -1;
+  if (ch == vict) {
+    send_to_char(ch, "You feint yourself mightily.\r\n");
+    return -1;
+  }
+  if (!CAN_SEE(ch, vict)) {
+    send_to_char(ch, "You can't see well enough to attempt that.\r\n");
+    return -1;
+  }
+
+  /* calculate our final bluff skill check (feint attempt) */
+  bluff_skill_check = dice(1, 20) + compute_ability(ch, ABILITY_BLUFF);
+  if (IS_NPC(vict) && GET_NPC_RACE(vict) != NPCRACE_HUMAN)
+    bluff_skill_check -= 4;
+  if (GET_INT(vict) <= 2)
+    bluff_skill_check -= 8;
+
+  /* calculate the defense (DC) */
+  dc_bab_wisdom = 10 + BAB(vict) + GET_WIS_BONUS(vict);
+  if (!IS_NPC(vict))
+    dc_sense_motive = 10 + compute_ability(vict, ABILITY_SENSE_MOTIVE);
+  final_dc = MAX(dc_bab_wisdom, dc_sense_motive);
+
+  if (bluff_skill_check >= final_dc) { /* success */
+    act("\tyYou feint, throwing $N off-balance!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+    act("\ty$n feints at you successfully, throwing you off balance!\tn", FALSE, ch, NULL, vict, TO_VICT);
+    act("\ty$n successfully feints $N!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+    new_affect(&af);
+    af.spell = SKILL_FEINT;
+    af.duration = 10;
+    SET_BIT_AR(af.bitvector, AFF_FEINTED);
+    affect_to_char(ch, &af);
+  } else { /* failure */
+    act("\tyYour attempt to feint $N fails!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+    act("\ty$n attempt to feint you fails!\tn", FALSE, ch, NULL, vict, TO_VICT);
+    act("\ty$n fails to feint $N!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+  }
+
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_FEINT)) {
+    USE_MOVE_ACTION(ch);
+  } else {
+    USE_STANDARD_ACTION(ch);
+  }
+
+  return 0;
+}
+
+ACMD(do_feint) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if (GET_POS(ch) <= POS_SITTING) {
+    send_to_char(ch, "You need to stand to feint!\r\n");
+    return;
+  }
+
+  one_argument(argument, arg);
+
+  if (!*arg) {
+    send_to_char(ch, "Feint who?\r\n");
+    return;
+  }
+
+  vict = get_char_room_vis(ch, arg, NULL);
+
+  if (!vict) {
+    send_to_char(ch, "Feint who?\r\n");
+    return;
+  }
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  if (affected_by_spell(vict, SKILL_FEINT)) {
+    send_to_char(ch, "Your opponent is already off balance!\r\n");
+    return;
+  }
+
+  perform_feint(ch, vict);
+}
+
+/* disarm mechanic */
 int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
   int pos, aoo_dam;
   struct obj_data *wielded = NULL;
@@ -3501,21 +3617,10 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
     act("You fail to disarm $p out of $N's hands.", FALSE, ch, wielded, vict,TO_CHAR );
   }
 
-
-  /*
-  if (skill_test(ch, SKILL_DISARM, 500, mod + GET_R_DEX(ch) / 10 - GET_R_STR(vict) / 15) && !IS_OBJ_STAT(wielded, ITEM_NODROP)) {
-    act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict, TO_ROOM);
-    act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict, TO_CHAR);
-    obj_to_room(unequip_char(vict, pos), vict->in_room);
-  } else {
-    act("$n failed to disarm $N.", FALSE, ch, 0, vict, TO_ROOM);
-    act("You failed to disarm $N.", FALSE, ch, 0, vict, TO_CHAR);
-  }
-   * */
   return 0;
 }
 
-/* charging system for combat */
+/* entry point for disarm combat maneuver */
 ACMD(do_disarm) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int mod = 0;
