@@ -1457,10 +1457,12 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
 
 int skill_message(int dam, struct char_data *ch, struct char_data *vict,
         int attacktype, int dualing) {
-  int i, j, nr;
+  int i, j, nr, return_value = SKILL_MESSAGE_MISS_FAIL;
   struct message_type *msg;
   struct obj_data *opponent_weapon = GET_EQ(vict, WEAR_WIELD_1);
   struct obj_data *weap = GET_EQ(ch, WEAR_WIELD_1);
+  struct obj_data *shield = NULL;
+  int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
 
   /* attacker weapon */
   if (GET_EQ(ch, WEAR_WIELD_2H))
@@ -1535,17 +1537,26 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
         /* insert more colorful defensive messages here */
 
         /* shield block */
-        if (GET_EQ(vict, WEAR_SHIELD) && !rand_number(0, 2)) {
+        if ((shield = GET_EQ(vict, WEAR_SHIELD)) && !rand_number(0, 2)) {
+          return_value = SKILL_MESSAGE_MISS_SHIELDBLOCK;
+
           send_to_char(ch, CCYEL(ch, C_CMP));
-          act("$N easily blocks your attack with $p!", FALSE, ch, GET_EQ(vict, WEAR_SHIELD), vict, TO_CHAR);
+          act("$N blocks your attack with $p!", FALSE, ch, shield, vict, TO_CHAR);
           send_to_char(ch, CCNRM(ch, C_CMP));
           send_to_char(vict, CCRED(vict, C_CMP));
-          act("You easily block $n's attack with $p!", FALSE, ch, GET_EQ(vict, WEAR_SHIELD), vict, TO_VICT | TO_SLEEP);
+          act("You block $n's attack with $p!", FALSE, ch, shield, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
-          act("$N easily blocks $n's attack with $p!", FALSE, ch, GET_EQ(vict, WEAR_SHIELD), vict, TO_NOTVICT);
+          act("$N blocks $n's attack with $p!", FALSE, ch, shield, vict, TO_NOTVICT);
+
+          /* fire any shieldblock specs we might have */
+          name = obj_index[GET_OBJ_RNUM(shield)].func;
+          if (name)
+            (name)(ch, shield, 0, "shieldblock");
 
         /* parry */
         } else if (opponent_weapon && !rand_number(0, 2)) {
+          return_value = SKILL_MESSAGE_MISS_PARRY;
+
           send_to_char(ch, CCYEL(ch, C_CMP));
           act(" ", FALSE, ch, opponent_weapon, vict, TO_CHAR);
           send_to_char(ch, CCNRM(ch, C_CMP));
@@ -1555,6 +1566,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           act(" ", FALSE, ch, opponent_weapon, vict, TO_NOTVICT);
 
         } else {
+          return_value = SKILL_MESSAGE_MISS_GENERIC;
           /* default to miss messages in-file */
           if (msg->miss_msg.attacker_msg) {
             send_to_char(ch, CCYEL(ch, C_CMP));
@@ -1567,11 +1579,11 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           act(msg->miss_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
         }
       }
-      return (1);
+      return (return_value);
     } /* attacktype check */
   } /* for loop for damage messages */
 
-  return (0); /* did not find a message to use */
+  return (return_value); /* did not find a message to use */
 }
 #undef TRELUX_CLAWS
 

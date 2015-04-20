@@ -18,6 +18,11 @@
 #define MODE_ARMOR_CLASS_COMBAT_MANEUVER_DEFENSE  1
 #define MODE_ARMOR_CLASS_PENALTIES                2
 
+#define SKILL_MESSAGE_MISS_FAIL        0
+#define SKILL_MESSAGE_MISS_GENERIC     1
+#define SKILL_MESSAGE_MISS_SHIELDBLOCK 2
+#define SKILL_MESSAGE_MISS_PARRY       3
+
 /* Attacktypes with grammar */
 struct attack_hit_type {
    const char *singular;
