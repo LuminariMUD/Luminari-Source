@@ -4209,7 +4209,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
        AFF_FLAGGED(victim, AFF_TOTAL_DEFENSE) &&
        !IS_CASTING(victim) &&
        GET_POS(victim) >= POS_SITTING &&
-       attack_type != ATTACK_TYPE_RANGED) {
+       attack_type != ATTACK_TYPE_RANGED &&
+       !is_critical) {
 
     /* -2 penalty to totaldefense attempts if you are sitting, basically.  You will never ever
      * get here if you are in a lower position than sitting, so the 'less than' is
