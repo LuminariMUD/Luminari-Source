@@ -1459,15 +1459,30 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
         int attacktype, int dualing) {
   int i, j, nr;
   struct message_type *msg;
-
+  struct obj_data *opponent_weapon = GET_EQ(vict, WEAR_WIELD_1);
   struct obj_data *weap = GET_EQ(ch, WEAR_WIELD_1);
 
+  /* attacker weapon */
   if (GET_EQ(ch, WEAR_WIELD_2H))
     weap = GET_EQ(ch, WEAR_WIELD_2H);
   else if (GET_RACE(ch) == RACE_TRELUX)
     weap = read_object(TRELUX_CLAWS, VIRTUAL);
   else if (dualing)
     weap = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+
+  /* defender weapon for parry message */
+  if (!opponent_weapon) {
+    opponent_weapon = GET_EQ(vict, WEAR_WIELD_2H);
+  }
+  if (!opponent_weapon) { /* maybe no weapon in main hand, but offhand has one */
+    opponent_weapon = GET_EQ(vict, WEAR_WIELD_OFFHAND);
+  }
+  if (GET_EQ(vict, WEAR_WIELD_1) && GET_EQ(vict, WEAR_WIELD_OFFHAND)) {
+    if (rand_number(0, 1))
+      opponent_weapon = GET_EQ(vict, WEAR_WIELD_1);
+    else
+      opponent_weapon = GET_EQ(vict, WEAR_WIELD_OFFHAND);
+  }
 
   /* These attacks use a shield as a weapon. */
   if ((attacktype == SKILL_SHIELD_PUNCH)  ||
@@ -1476,12 +1491,18 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
     weap = GET_EQ(ch, WEAR_SHIELD);
 
   for (i = 0; i < MAX_MESSAGES; i++) {
+    /* first search through our messages trying to match the attacktype */
     if (fight_messages[i].a_type == attacktype) {
+      /* might have several messages for that attacktype, pick a random one */
       nr = dice(1, fight_messages[i].number_of_attacks);
+      /* increment the messages until we get to that selected message */
       for (j = 1, msg = fight_messages[i].msg; (j < nr) && msg; j++)
         msg = msg->next;
+      /* we now have a message! */
 
       /* old location of staff-messages */
+
+      /* we did some damage */
       if (dam != 0) {
         if (GET_POS(vict) == POS_DEAD) { // death messages
           /* Don't send redundant color codes for TYPE_SUFFERING & other types
@@ -1506,21 +1527,51 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           send_to_char(vict, CCNRM(vict, C_CMP));
           act(msg->hit_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
         }
-      } else if (ch != vict) { /* Dam == 0 */
-        if (msg->miss_msg.attacker_msg) {
+      }
+
+      /* dam == 0, we did not do any damage! */
+      else if (ch != vict) {
+
+        /* insert more colorful defensive messages here */
+
+        /* shield block */
+        if (GET_EQ(vict, WEAR_SHIELD) && !rand_number(0, 2)) {
           send_to_char(ch, CCYEL(ch, C_CMP));
-          act(msg->miss_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
+          act("$N easily blocks your attack with $p!", FALSE, ch, GET_EQ(vict, WEAR_SHIELD), vict, TO_CHAR);
           send_to_char(ch, CCNRM(ch, C_CMP));
+          send_to_char(vict, CCRED(vict, C_CMP));
+          act("You easily block $n's attack with $p!", FALSE, ch, GET_EQ(vict, WEAR_SHIELD), vict, TO_VICT | TO_SLEEP);
+          send_to_char(vict, CCNRM(vict, C_CMP));
+          act("$N easily blocks $n's attack with $p!", FALSE, ch, GET_EQ(vict, WEAR_SHIELD), vict, TO_NOTVICT);
+
+        /* parry */
+        } else if (opponent_weapon && !rand_number(0, 2)) {
+          send_to_char(ch, CCYEL(ch, C_CMP));
+          act(" ", FALSE, ch, opponent_weapon, vict, TO_CHAR);
+          send_to_char(ch, CCNRM(ch, C_CMP));
+          send_to_char(vict, CCRED(vict, C_CMP));
+          act(" ", FALSE, ch, opponent_weapon, vict, TO_VICT | TO_SLEEP);
+          send_to_char(vict, CCNRM(vict, C_CMP));
+          act(" ", FALSE, ch, opponent_weapon, vict, TO_NOTVICT);
+
+        } else {
+          /* default to miss messages in-file */
+          if (msg->miss_msg.attacker_msg) {
+            send_to_char(ch, CCYEL(ch, C_CMP));
+            act(msg->miss_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
+            send_to_char(ch, CCNRM(ch, C_CMP));
+          }
+          send_to_char(vict, CCRED(vict, C_CMP));
+          act(msg->miss_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
+          send_to_char(vict, CCNRM(vict, C_CMP));
+          act(msg->miss_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
         }
-        send_to_char(vict, CCRED(vict, C_CMP));
-        act(msg->miss_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-        send_to_char(vict, CCNRM(vict, C_CMP));
-        act(msg->miss_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
       }
       return (1);
-    }
-  }
-  return (0);
+    } /* attacktype check */
+  } /* for loop for damage messages */
+
+  return (0); /* did not find a message to use */
 }
 #undef TRELUX_CLAWS
 
@@ -2175,6 +2226,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
         dam_message(dam, ch, victim, attacktype, offhand); //default landed-hit
       }
     }
+  } else {
+    /*attacktype is -1, should we handle a message here?*/
   }
 
   switch (GET_POS(victim)) { //act() used in case someone is dead
@@ -2541,6 +2594,8 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded) {
       threat_range--;
   }
 
+  if (threat_range <= 2) /* just in case */
+    threat_range = 3;
   return threat_range;
 }
 
@@ -2631,9 +2686,9 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   if (mode == MODE_DISPLAY_PRIMARY ||
       mode == MODE_DISPLAY_OFFHAND ||
       mode == MODE_DISPLAY_RANGED) {
-    send_to_char(ch, "Threat Range:  %d, ", determine_threat_range(ch, wielded));
-    send_to_char(ch, "Critical Multiplier:  %d, ", determine_critical_multiplier(ch, wielded));
-  send_to_char(ch, "Damage Dice:  %dD%d, ", diceOne, diceTwo);
+    send_to_char(ch, "Threat Range: %d, ", determine_threat_range(ch, wielded));
+    send_to_char(ch, "Critical Multiplier: %d, ", determine_critical_multiplier(ch, wielded));
+  send_to_char(ch, "Damage Dice: %dD%d, ", diceOne, diceTwo);
   }
 
   return dice(diceOne, diceTwo);
@@ -2695,7 +2750,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
   /* calculate how much damage to do with a given hit() */
   if (mode == MODE_NORMAL_HIT) {
     /* determine weapon dice damage (or lack of weaopn) */
-    dam = compute_dam_dice(ch, victim, wielded, mode);
+    dam = compute_dam_dice(ch, victim, wielded, mode); /*debug*/send_to_char(ch, "dam-dice-dam:%d", dam);
     /* add any modifers to melee damage: strength, circumstance penalty, fatigue, size, etc etc */
     dam += compute_damage_bonus(ch, victim, wielded, w_type, NO_MOD, mode, attack_type);
 
