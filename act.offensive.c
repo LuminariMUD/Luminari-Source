@@ -1924,7 +1924,7 @@ ACMD(do_disengage) {
 ACMD(do_taunt) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
-  int attempt = dice(1, 20), resist = dice(1, 20);
+  int attempt = dice(1, 20), resist = 10;
 
   one_argument(argument, arg);
 
@@ -1952,15 +1952,19 @@ ACMD(do_taunt) {
     send_to_char(ch, "This mob is protected.\r\n");
     return;
   }
-  if (char_has_mud_event(ch, eTAUNTED)) {
+  if (char_has_mud_event(vict, eTAUNTED)) {
     send_to_char(ch, "Your target is already taunted...\r\n");
     return;
   }
-  //  if (char_has_mud_event(ch, eTAUNT)) {
-  //    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-  //    return;
-  //  }
 
+  /* replaced with a standard action */
+  /*
+  if (char_has_mud_event(ch, eTAUNT)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    return;
+  }
+  */
+  
   attempt += compute_ability(ch, ABILITY_INTIMIDATE);
   if (!IS_NPC(vict))
     resist += compute_ability(vict, ABILITY_CONCENTRATION);
@@ -1972,7 +1976,7 @@ ACMD(do_taunt) {
     send_to_char(ch, "You taunt your opponent!\r\n");
     act("You are \tRtaunted\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
     act("$n \tWtaunts\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-    attach_mud_event(new_mud_event(eTAUNTED, vict, NULL), 6 * PASSES_PER_SEC + (attempt - resist));
+    attach_mud_event(new_mud_event(eTAUNTED, vict, NULL), (attempt - resist + 6) * PASSES_PER_SEC);
   } else {
     send_to_char(ch, "You fail to taunt your opponent!\r\n");
     act("$N fails to \tRtaunt\tn you...", FALSE, vict, 0, ch, TO_CHAR);
@@ -1980,7 +1984,9 @@ ACMD(do_taunt) {
   }
   if (!FIGHTING(vict))
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  //  attach_mud_event(new_mud_event(eTAUNT, ch, NULL), 8 * PASSES_PER_SEC);
+
+  /* swapped with standard action */
+  //attach_mud_event(new_mud_event(eTAUNT, ch, NULL), 8 * PASSES_PER_SEC);
 
   USE_STANDARD_ACTION(ch);
 }
