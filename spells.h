@@ -682,8 +682,11 @@
 #define TYPE_BLAST        712
 #define TYPE_PUNCH        713
 #define TYPE_STAB         714
+#define TYPE_SLICE        715
+#define TYPE_THRUST       716
+#define TYPE_HACK         717
 /** The total number of attack types */
-#define NUM_ATTACK_TYPES  15
+#define NUM_ATTACK_TYPES  18
 /* (stock)
  * hit - 0      blunt
  * sting - 1      piercing

@@ -63,9 +63,15 @@ struct attack_hit_type attack_hit_text[] = {
   {"pierce", "pierces"},
   {"blast", "blasts"},
   {"punch", "punches"},
-  {"stab", "stabs"}
+  {"stab", "stabs"},
+  {"slice", "slices"},
+  {"thrust", "thrusts"},
+  {"hack", "hacks"}
 };
-struct attack_hit_type attack_damage_type_text[] = {
+
+/* currently unused */
+#define NUM_ATTACK_DAMAGE_TYPE_TEXT 10
+struct attack_hit_type attack_damage_type_text[NUM_ATTACK_DAMAGE_TYPE_TEXT] = {
   /* DAMAGE_TYPE_BLUDGEONING */
   {"bludgeon", "bludgeons"},
   {"pound", "pounds"},
@@ -84,14 +90,6 @@ struct attack_hit_type attack_damage_type_text[] = {
   {"knee", "knees"},
   {"elbow", "elbows"},
 
-  /* misc */
-  {"hit", "hits"},
-  {"sting", "stings"},
-  {"whip", "whips"},
-  {"bite", "bites"},
-  {"claw", "claws"},
-  {"maul", "mauls"},
-  {"thrash", "thrashes"},
 };
 
 /* local (file scope only) variables */
@@ -421,7 +419,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       eq_armoring -= (apply_ac(ch, WEAR_SHIELD) / 10);
   }
 
-  /* here is our TODO list here:
+  /* here is our TODO list:
      1)  handling shapechanged characters
      2)  handling armor-affecting spells?
      3)  calculate equipped armor separately?
@@ -584,12 +582,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
     ac_penalty -= 2;
   }
-  /* deprecated version of taunt
+  /* current implementation of taunt */
   if (char_has_mud_event(ch, eTAUNTED)) {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 6;
     ac_penalty -= 6;
   }
-  */
   /**/
 
   /* bonus type size (should not stack) */
@@ -3617,7 +3614,8 @@ void attacks_of_opportunity(struct char_data *victim, int penalty) {
  * that will return the weapon-type being used based on attack_type and wielded data */
 int determine_weapon_type(struct char_data *ch, struct char_data *victim,
                           struct obj_data *wielded, int attack_type) {
-  int w_type = TYPE_HIT;
+  int w_type = TYPE_HIT, count = 0;
+  int w_type_array[NUM_ATTACK_TYPES];
 
   if (attack_type == ATTACK_TYPE_RANGED) { // ranged-attack
     if (!wielded)
@@ -3626,8 +3624,35 @@ int determine_weapon_type(struct char_data *ch, struct char_data *victim,
       w_type = TYPE_MISSILE;
     }
   } else if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { // !ranged
-    // This may be made obsolete by weapon types...
-    w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT; // Get the weapon attack type from the wielded weapon.
+
+    /* check for alternative messages, damageTypes on weapon */
+    if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
+      w_type_array[count] = TYPE_BLUDGEON;
+      w_type_array[++count] = TYPE_CRUSH;
+      w_type_array[++count] = TYPE_POUND;
+    }
+    if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_PIERCING)) {
+      if (!count)
+        w_type_array[count] = TYPE_PIERCE;
+      else
+        w_type_array[++count] = TYPE_PIERCE;
+      w_type_array[++count] = TYPE_STAB;
+      w_type_array[++count] = TYPE_THRUST;
+    }
+    if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_SLASHING)) {
+      if (!count)
+        w_type_array[count] = TYPE_SLASH;
+      else
+        w_type_array[++count] = TYPE_SLASH;
+      w_type_array[++count] = TYPE_SLICE;
+      w_type_array[++count] = TYPE_HACK;
+    }
+
+    if (count)
+      w_type = w_type_array[rand_number(0, count)];
+    else
+      w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
+
   } else {
     if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
       w_type = ch->mob_specials.attack_type + TYPE_HIT; // We are a mob, and we have an attack type, so use that.
