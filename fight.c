@@ -1554,16 +1554,16 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             (name)(vict, shield, 0, "shieldblock");
 
         /* parry */
-        } else if (opponent_weapon && !rand_number(0, 3)) {
+        } else if (opponent_weapon && !rand_number(0, 2)) {
           return_value = SKILL_MESSAGE_MISS_PARRY;
 
           send_to_char(ch, CCYEL(ch, C_CMP));
-          act(" ", FALSE, ch, opponent_weapon, vict, TO_CHAR);
+          act("$N parries your attack with $p!", FALSE, ch, opponent_weapon, vict, TO_CHAR);
           send_to_char(ch, CCNRM(ch, C_CMP));
           send_to_char(vict, CCRED(vict, C_CMP));
-          act(" ", FALSE, ch, opponent_weapon, vict, TO_VICT | TO_SLEEP);
+          act("You parry $n's attack with $p!", FALSE, ch, opponent_weapon, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
-          act(" ", FALSE, ch, opponent_weapon, vict, TO_NOTVICT);
+          act("$N parries $n's attack with $p!", FALSE, ch, opponent_weapon, vict, TO_NOTVICT);
 
           /* fire any parry specs we might have */
           name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
