@@ -400,7 +400,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
    * 4)  material bonus on equipment (dragonhide, etc) ?
    * 5)  leadership feat?  */
 
-/*
+/* leadership: do we want/need this feat?
  * if (!(k = ch->master))
       k = ch;
 
@@ -429,6 +429,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     bonuses[BONUS_TYPE_RACIAL] -= 2;
     ac_penalty -= 2;
   }
+  /**/
 
   /* bonus type natural-armor */
   /* arcana golem */
@@ -475,9 +476,12 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
 
   /* bonus type deflection */
   /* two weapon defense */
-  if (!IS_NPC(ch) && GET_EQ(ch, WEAR_WIELD_OFFHAND) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE)) {
+  if (!IS_NPC(ch) && is_using_double_weapon(ch) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE)) {
+    bonuses[BONUS_TYPE_DEFLECTION]++;
+  } else if (!IS_NPC(ch) && GET_EQ(ch, WEAR_WIELD_OFFHAND) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE)) {
     bonuses[BONUS_TYPE_DEFLECTION]++;
   }
+
   if (attacker) {
     if (AFF_FLAGGED(ch, AFF_PROTECT_GOOD) && IS_GOOD(attacker)) {
       bonuses[BONUS_TYPE_DEFLECTION] += 2;
@@ -489,6 +493,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /**/
 
   /* bonus type enhancement (equipment) */
+  bonuses[BONUS_TYPE_ENHANCEMENT] += compute_gear_enhancement_bonus(ch);
   /**/
 
   /* bonus type dodge */
@@ -502,13 +507,15 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_DODGE] += 1;
     }
 
-    /* TODO: also need to make sure they are using light armor or less */
-    if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_ACROBATICS)) { //caps at 5
+    /* acrobatics offers no benefit if you are wearing heavier than light-armor */
+    if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_ACROBATICS) &&
+          compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT) { //caps at 5
       bonuses[BONUS_TYPE_DODGE] += MIN(5, (int) (compute_ability(ch, ABILITY_ACROBATICS) / 7));
     }
 
-    /* TODO: need to make sure they do not have a shield and light-armor (or lighter) */
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_CANNY_DEFENSE)) {
+    /* this feat requires light armor and no shield */
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_CANNY_DEFENSE) && !GET_EQ(ch, WEAR_SHIELD) &&
+          compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT) {
        bonuses[BONUS_TYPE_DODGE] += MAX(0, GET_INT_BONUS(ch));
     }
 
@@ -549,10 +556,12 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
     ac_penalty -= 2;
   }
+  /* deprecated version of taunt
   if (char_has_mud_event(ch, eTAUNTED)) {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 6;
     ac_penalty -= 6;
   }
+  */
   /**/
 
   /* bonus type size (should not stack) */
@@ -630,8 +639,9 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       break;
     default:
     case MODE_ARMOR_CLASS_NORMAL:
-      for (i = 0; i < NUM_BONUS_TYPES; i++)
-        armorclass += bonuses[i];
+      if (!is_touch)
+        for (i = 0; i < NUM_BONUS_TYPES; i++)
+          armorclass += bonuses[i];
       break;
   }
 
