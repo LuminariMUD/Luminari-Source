@@ -1551,7 +1551,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           /* fire any shieldblock specs we might have */
           name = obj_index[GET_OBJ_RNUM(shield)].func;
           if (name)
-            (name)(ch, shield, 0, "shieldblock");
+            (name)(vict, shield, 0, "shieldblock");
 
         /* parry */
         } else if (opponent_weapon && !rand_number(0, 2)) {
@@ -1564,6 +1564,11 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           act(" ", FALSE, ch, opponent_weapon, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
           act(" ", FALSE, ch, opponent_weapon, vict, TO_NOTVICT);
+
+          /* fire any parry specs we might have */
+          name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
+          if (name)
+            (name)(vict, opponent_weapon, 0, "parry");
 
         } else {
           return_value = SKILL_MESSAGE_MISS_GENERIC;
