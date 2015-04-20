@@ -1073,6 +1073,9 @@ int BAB(struct char_data *ch) {
     bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));
   }
 
+  if (!IS_NPC(ch)) /* cap pc bab at 30 */
+    return (MIN(bab, 31));
+
   return bab;
 }
 
