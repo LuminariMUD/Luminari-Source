@@ -979,7 +979,7 @@ static void oedit_disp_val4_menu(struct descriptor_data *d) {
       write_to_output(d, "Hits per Application : ");
       break;
     case ITEM_WEAPON:
-      oedit_disp_weapon_menu(d);
+      //oedit_disp_weapon_menu(d);
       break;
     case ITEM_MISSILE:
       oedit_disp_weapon_menu(d);
