@@ -220,6 +220,9 @@ void assign_objects(void)
 
   ASSIGNOBJ(128150, spikeshield);  //shield
 
+  /* tiamat */
+  ASSIGNOBJ(132125, tia_rapier);
+
   ASSIGNOBJ(136100, air_sphere);  //weapon (lightning)
 
   /* JOTUNHEIM EQ */
