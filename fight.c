@@ -65,6 +65,34 @@ struct attack_hit_type attack_hit_text[] = {
   {"punch", "punches"},
   {"stab", "stabs"}
 };
+struct attack_hit_type attack_damage_type_text[] = {
+  /* DAMAGE_TYPE_BLUDGEONING */
+  {"bludgeon", "bludgeons"},
+  {"pound", "pounds"},
+  {"crush", "crushes"},
+
+  /* DAMAGE_TYPE_SLASHING */
+  {"slash", "slashes"},
+  {"slice", "slices"},
+
+  /* DAMAGE_TYPE_PIERCING */
+  {"pierce", "pierces"},
+  {"stab", "stabs"},
+
+  /* unarmed, non-lethal */
+  {"punch", "punches"},
+  {"knee", "knees"},
+  {"elbow", "elbows"},
+
+  /* misc */
+  {"hit", "hits"},
+  {"sting", "stings"},
+  {"whip", "whips"},
+  {"bite", "bites"},
+  {"claw", "claws"},
+  {"maul", "mauls"},
+  {"thrash", "thrashes"},
+};
 
 /* local (file scope only) variables */
 static struct char_data *next_combat_list = NULL;
@@ -2115,7 +2143,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
    -item
    -etc */
 int damage(struct char_data *ch, struct char_data *victim, int dam,
-        int attacktype, int dam_type, int offhand) {
+        int w_type, int dam_type, int offhand) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
   bool is_ranged = FALSE;
@@ -2189,7 +2217,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       HUNTING(victim) = ch->master;  // help curb pet-fodder methods
   }
 
-  dam = damage_handling(ch, victim, dam, attacktype, dam_type); //modify damage
+  dam = damage_handling(ch, victim, dam, w_type, dam_type); //modify damage
   if (dam == -1) // make sure message handling has been done!
     return 0;
 
@@ -2228,23 +2256,23 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     send_to_char(victim, "\tR%s\tn ", buf);
   }
 
-  if (attacktype != -1) { //added for mount, etc
-    if (!IS_WEAPON(attacktype)) //non weapons use skill_message
-      skill_message(dam, ch, victim, attacktype, offhand);
+  if (w_type != -1) { //added for mount, etc
+    if (!IS_WEAPON(w_type)) //non weapons use skill_message
+      skill_message(dam, ch, victim, w_type, offhand);
     else {
       //miss and death = skill_message
       if (GET_POS(victim) == POS_DEAD || dam == 0) {
         if (!dam && is_ranged)  // miss with ranged = dam_message()
-          dam_message(dam, ch, victim, attacktype, offhand);
-        else if (!skill_message(dam, ch, victim, attacktype, offhand))
+          dam_message(dam, ch, victim, w_type, offhand);
+        else if (!skill_message(dam, ch, victim, w_type, offhand))
           //default if no skill_message
-          dam_message(dam, ch, victim, attacktype, offhand);
+          dam_message(dam, ch, victim, w_type, offhand);
       } else {
-        dam_message(dam, ch, victim, attacktype, offhand); //default landed-hit
+        dam_message(dam, ch, victim, w_type, offhand); //default landed-hit
       }
     }
   } else {
-    /*attacktype is -1, should we handle a message here?*/
+    /* w_type is -1, should we handle a message here?*/
   }
 
   switch (GET_POS(victim)) { //act() used in case someone is dead
@@ -2588,12 +2616,10 @@ int crit_range_extension(struct char_data *ch, struct obj_data *weap) {
 
   if (imp_crit)
     mult++;
-
   if (HAS_WEAPON_MASTERY(ch, weap) && HAS_FEAT(ch, FEAT_KI_CRITICAL))
     mult++;
 
   return (ext * mult) - 1; // difference from 20
-
 }
 */
 
@@ -3599,18 +3625,65 @@ int determine_weapon_type(struct char_data *ch, struct char_data *victim,
     else {
       w_type = TYPE_MISSILE;
     }
-  } else if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { /* !ranged */
-    /* This may be made obsolete by weapon types... */
-    w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT; /* Get the weapon attack type from the wielded weapon. */
+  } else if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { // !ranged
+    // This may be made obsolete by weapon types...
+    w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT; // Get the weapon attack type from the wielded weapon.
   } else {
     if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
-      w_type = ch->mob_specials.attack_type + TYPE_HIT; /* We are a mob, and we have an attack type, so use that. */
+      w_type = ch->mob_specials.attack_type + TYPE_HIT; // We are a mob, and we have an attack type, so use that.
     else
-      w_type = TYPE_HIT; /* Generic default. */
+      w_type = TYPE_HIT; // Generic default.
   }
 
   return w_type;
 }
+
+/* new version of determining weapon type */
+/*#define DAMAGE_TYPE_BLUDGEONING        (1 << 0)
+  #define DAMAGE_TYPE_SLASHING           (1 << 1)
+  #define DAMAGE_TYPE_PIERCING           (1 << 2)
+  #define DAMAGE_TYPE_NONLETHAL          (1 << 3) */
+/*
+int determine_weapon_type(struct obj_data *wielded) {
+  int weapon_type_array[NUM_WEAPON_DAMAGE_TYPES];
+  int i = 0, count = 0;
+  int damage_type = -1;
+
+  if (!wielded && CLASS_LEVEL(ch, CLASS_MONK))
+    return DAMAGE_TYPE_BLUDGEONING;
+  else if (!wielded)
+    return DAMAGE_TYPE_NONLETHAL;
+
+  // init are array with -1 values
+  for (i = 0; i < NUM_WEAPON_DAMAGE_TYPES; i++) {
+    weapon_type_array[i] = -1;
+  }
+
+  // assign damage types
+  if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
+    weapon_type_array[0] = DAMAGE_TYPE_BLUDGEONING;
+  }
+  if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_SLASHING)) {
+    weapon_type_array[1] = DAMAGE_TYPE_SLASHING;
+  }
+  if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_PIERCING)) {
+    weapon_type_array[2] = DAMAGE_TYPE_PIERCING;
+  }
+  if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_NONLETHAL)) {
+    weapon_type_array[3] = DAMAGE_TYPE_NONLETHAL;
+  }
+
+  while (damage_type == -1 && count < 99) {
+    damage_type = weapon_type_array[rand_number(0, NUM_WEAPON_DAMAGE_TYPES-1)];
+    count++;
+  }
+
+  if (damage_type == -1)
+    return DAMAGE_TYPE_NONLETHAL;
+
+  return damage_type;
+}
+*/
 
 /* called from hit() */
 void handle_missed_attack(struct char_data *ch, struct char_data *victim,
@@ -3918,7 +3991,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
 /* primary function for a single melee attack
    ch -> attacker, victim -> defender
-   type -> SKILL_  /  SPELL_  / TYPE_ / etc. (determined here)
+   type -> SKILL_  /  SPELL_  / TYPE_ / etc. (attack of opportunity)
    dam_type -> DAM_FIRE / etc (not used here, passed to dam() function)
    penalty ->  (or bonus)  applied to hitroll, BAB multi-attack for example
    attack_type ->
@@ -4012,7 +4085,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   /* If ch is dead (or worse) or victim is dead (or worse), return an automatic miss. */
   if (GET_POS(ch) <= POS_DEAD || GET_POS(victim) <= POS_DEAD) return (HIT_MISS);
 
-  // added these two checks in case parry is successful on opening attack -zusuk
+  // added these two checks in case totaldefense is successful on opening attack -zusuk
   if (ch->nr != real_mobile(DG_CASTER_PROXY) &&
           ch != victim && ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
@@ -4052,12 +4125,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 
   // determine weapon type, potentially a deprecated function
   w_type = determine_weapon_type(ch, victim, wielded, attack_type);
-
   /* some ranged attack handling */
-  if (w_type == TYPE_MISSILE && attack_type == ATTACK_TYPE_RANGED) {
-    /* This here, I don't think this makes a lot of sense. WE can have slashing arrows,
-       blasting arrows, whatever.  As long as builders are sane, it should be ok. */
-    w_type = GET_OBJ_VAL(missile, 3) + TYPE_HIT;
+  if (attack_type == ATTACK_TYPE_RANGED) {
     // tag missile so that only this char collects it.
     MISSILE_ID(missile) = GET_IDNUM(ch);
     /* Remove the missile from the ammo_pouch. */
@@ -4069,7 +4138,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   victim_ac = compute_armor_class(ch, victim, FALSE, MODE_ARMOR_CLASS_NORMAL);
   switch (attack_type) {
     case ATTACK_TYPE_OFFHAND: /* secondary or 'off' hand */
-      if (w_type == TYPE_HIT)
+      if (!wielded)
         calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_UNARMED);
       else
         calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_OFFHAND);
@@ -4082,7 +4151,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       break;
     case ATTACK_TYPE_PRIMARY: /* primary hand and default */
     default:
-      if (w_type == TYPE_HIT)
+      if (!wielded)
         calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_UNARMED);
       else
         calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_PRIMARY);
@@ -4128,52 +4197,52 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   send_to_char(ch, "AC:%d}\tn", victim_ac);
   */
 
-  /* Parry calculation -
-   * This only applies if the victim is in parry mode and is based on
-   * the parry 'skill'.  You can not parry if you are casting and you have
-   * a number of parry attempts equal to the attacks granted by your BAB. */
-  int parryDC = calc_bab + diceroll;
-  int parry_attempt = 0;
+  /* Total Defense calculation -
+   * This only applies if the victim is in totaldefense mode and is based on
+   * the totaldefense 'skill'.  You can not totaldefense if you are casting and you have
+   * a number of totaldefense attempts equal to the attacks granted by your BAB. */
+  int total_defense_DC = calc_bab + diceroll;
+  int total_defense_attempt = 0;
   if (!IS_NPC(victim) &&
-       compute_ability(victim, ABILITY_PARRY) &&
-       PARRY_LEFT(victim) &&
-       AFF_FLAGGED(victim, AFF_PARRY) &&
+       compute_ability(victim, ABILITY_TOTAL_DEFENSE) &&
+       TOTAL_DEFENSE(victim) &&
+       AFF_FLAGGED(victim, AFF_TOTAL_DEFENSE) &&
        !IS_CASTING(victim) &&
        GET_POS(victim) >= POS_SITTING &&
        attack_type != ATTACK_TYPE_RANGED) {
 
-    /* -2 penalty to parry attempts if you are sitting, basically.  You will never ever
+    /* -2 penalty to totaldefense attempts if you are sitting, basically.  You will never ever
      * get here if you are in a lower position than sitting, so the 'less than' is
      * redundant. */
     if (GET_POS(victim) <= POS_SITTING)
-      parry_attempt -= 2;
+      total_defense_attempt -= 2;
 
-    if (!(parry_attempt = skill_check(victim, ABILITY_PARRY, parryDC))) {
-      send_to_char(victim, "You failed to \tcparry\tn the attack from %s!  ",
+    if (!(total_defense_attempt = skill_check(victim, ABILITY_TOTAL_DEFENSE, total_defense_DC))) {
+      send_to_char(victim, "You failed to \tcdefend\tn yourself from the attack from %s!  ",
               GET_NAME(ch));
-    } else if (parry_attempt >= 10) {
+    } else if (total_defense_attempt >= 10) {
       /* We can riposte, as the 'skill check' was 10 or more higher than the DC. */
       send_to_char(victim, "You deftly \tcriposte the attack\tn from %s!\r\n",
               GET_NAME(ch));
-      send_to_char(ch, "%s \tCparries\tn your attack and counterattacks!\r\n",
+      send_to_char(ch, "%s \tCdefends\tn from your attack and counterattacks!\r\n",
               GET_NAME(victim));
-      act("$N \tDripostes\tn an attack from $n!", FALSE, ch, 0, victim,
+      act("$N \tDdefends\tn from an attack from $n!", FALSE, ch, 0, victim,
               TO_NOTVICT);
 
       /* Encapsulate this?  We need better control of 'hit()s' */
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
-      PARRY_LEFT(victim)--;
+      TOTAL_DEFENSE(victim)--;
       return (HIT_MISS);
     } else {
-      send_to_char(victim, "You \tcparry\tn the attack from %s!\r\n",
+      send_to_char(victim, "You \tcdefend\tn yourself from the attack from %s!\r\n",
               GET_NAME(ch));
-      send_to_char(ch, "%s \tCparries\tn your attack!\r\n", GET_NAME(victim));
-      act("$N \tDparries\tn an attack from $n!", FALSE, ch, 0, victim,
+      send_to_char(ch, "%s \tCdefends\tn from your attack!\r\n", GET_NAME(victim));
+      act("$N \tDdefends\tn from an attack from $n!", FALSE, ch, 0, victim,
               TO_NOTVICT);
-      PARRY_LEFT(victim)--;
+      TOTAL_DEFENSE(victim)--;
       return (HIT_MISS);
     }
-  } /* End of parry */
+  } /* End of totaldefense */
 
   /* Once per round when your mount is hit in combat, you may attempt a Ride
    * check (as an immediate action) to negate the hit. The hit is negated if
@@ -4869,7 +4938,7 @@ void perform_violence(struct char_data *ch, int phase) {
 
   if (phase == 1 || phase == 0) { /* make sure this doesn't happen more than once a round */
 #define RETURN_NUM_ATTACKS 1
-    PARRY_LEFT(ch) = perform_attacks(ch, RETURN_NUM_ATTACKS, phase);
+    TOTAL_DEFENSE(ch) = perform_attacks(ch, RETURN_NUM_ATTACKS, phase);
 #undef RETURN_NUM_ATTACKS
 
     /* Once per round when your mount is hit in combat, you may attempt a Ride
@@ -5056,11 +5125,11 @@ void perform_violence(struct char_data *ch, int phase) {
             GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch))
       perform_assist(charmee, ch);
 
-  if (AFF_FLAGGED(ch, AFF_PARRY))
+  if (AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE))
     send_to_char(ch, "You continue the battle in defensive positioning!\r\n");
 
   /* here is our entry point for melee attack rotation */
-  if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_PARRY))
+  if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE))
 #define NORMAL_ATTACK_ROUTINE 0
     perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
 #undef NORMAL_ATTACK_ROUTINE

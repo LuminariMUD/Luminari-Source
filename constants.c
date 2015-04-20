@@ -730,7 +730,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Mode-PowerAttack",
   "Mode-Expertise",  //25
   "Hasted",
-  "Mode-Parry",
+  "Mode-Total-Defense",
   "Protect-Elements",
   "Deaf",
   "Fear",  //30
@@ -836,7 +836,7 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
   "You sacrifice accuracy to inflict more damage in battle.",
   "You sacrifice accuracy to improve your defense.",  //25
   "You are moving supernaturally fast.",
-  "You are focusing on parrying your opponents' blows.",
+  "You are focusing on total defense.",
   "You are protected from the elements.",
   "You can't hear a thing.",
   "You are terrified.",  //30
@@ -2330,7 +2330,7 @@ const char *ability_names[] = {
   "Spellcraft",
   "Appraise",
   "Discipline",
-  "Parry",
+  "Total Defense",
   "Lore",
   "Ride",
   "Unused3",

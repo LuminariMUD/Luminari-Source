@@ -19,7 +19,7 @@
 #define MODE_POWER_ATTACK        1
 #define MODE_COMBAT_EXPERTISE    2
 #define MODE_SPELLBATTLE         3
-#define MODE_PARRY               4
+#define MODE_TOTAL_DEFENSE       4
 #define MODE_DUAL_WIELD          5
 #define MODE_FLURRY_OF_BLOWS     6
 #define MODE_RAPID_SHOT          7
@@ -38,7 +38,7 @@ struct combat_mode_data {
   const char* name;
   int affect_flag;
   int required_feat;
-  bool has_value; 
+  bool has_value;
   int group;
 };
 
@@ -49,7 +49,7 @@ ACMD(do_powerattack);
 ACMD(do_flurryofblows);
 ACMD(do_expertise);
 ACMD(do_rapidshot);
-ACMD(do_parry);
+ACMD(do_totaldefense);
 ACMD(do_spellbattle);
 ACMD(do_flurry);
 ACMD(do_whirlwind);

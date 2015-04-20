@@ -792,7 +792,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 2;
       value += GET_STR_BONUS(ch);
       return value;
-    case ABILITY_PARRY: /* not srd */
+    case ABILITY_TOTAL_DEFENSE: /* not srd */
       value += GET_DEX_BONUS(ch);
       value += compute_gear_armor_penalty(ch);
       return value;
