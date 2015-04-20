@@ -73,7 +73,8 @@ void assign_mobiles(void)
   ASSIGNMOB(121, guild);
   ASSIGNMOB(122, guild);
   ASSIGNMOB(123, guild);
-  ASSIGNMOB(196, guild);  /* female newbie trainer sanctus */
+  /* female newbie trainer sanctus */
+  ASSIGNMOB(196, guild);
   ASSIGNMOB(2556, guild);
   ASSIGNMOB(2559, guild);
   ASSIGNMOB(2562, guild);
@@ -90,7 +91,8 @@ void assign_mobiles(void)
   ASSIGNMOB(5403, guild);
   ASSIGNMOB(11518, guild);
   ASSIGNMOB(14105, guild);
-  ASSIGNMOB(23411, guild);  /* female newbie trainer newbie school */
+  /* female newbie trainer newbie school */
+  ASSIGNMOB(23411, guild);
   ASSIGNMOB(25720, guild);
   ASSIGNMOB(25721, guild);
   ASSIGNMOB(25722, guild);
@@ -112,7 +114,8 @@ void assign_mobiles(void)
   ASSIGNMOB(31611, guild);
   ASSIGNMOB(31639, guild);
   ASSIGNMOB(31641, guild);
-  ASSIGNMOB(145333, guild);  /* female newbie trainer mosswood village */
+  /* female newbie trainer mosswood village */
+  ASSIGNMOB(145333, guild);
 
   /* mayors */
   ASSIGNMOB(3105, mayor);
@@ -257,7 +260,7 @@ void assign_rooms(void)
   if (CONFIG_DTS_ARE_DUMPS)
     for (i = 0; i <= top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_DEATH))
-	world[i].func = dump;
+        world[i].func = dump;
 }
 
 struct spec_func_data {
@@ -316,12 +319,14 @@ struct spec_func_data spec_func_list[] = {
   {"\n", NULL}
 };
 
-const char *get_spec_func_name(SPECIAL(*func))
-{
+const char *get_spec_func_name(SPECIAL(*func)) {
   int i;
-  for (i=0; *(spec_func_list[i].name) != '\n'; i++) {
-    if (func == spec_func_list[i].func) return (spec_func_list[i].name);
+
+  for (i = 0; *(spec_func_list[i].name) != '\n'; i++) {
+    if (func == spec_func_list[i].func)
+      return (spec_func_list[i].name);
   }
+
   return NULL;
 }
 

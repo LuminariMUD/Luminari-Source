@@ -278,7 +278,7 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
   { CA, CA, CC, CC, CC, CA, CC, CA, CC, CC, CA}, //9 spellcraft
   { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //10 appraise
   { CC, CC, CC, CA, CC, CC, CA, CC, CA, CA, CA}, //11 discipline
-  { CC, CA, CA, CA, CA, CA, CA, CC, CA, CA, CA}, //12 parry
+  { CC, CA, CA, CA, CA, CA, CA, CC, CA, CA, CA}, //12 total defense
   { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //13 lore
   { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //14 ride
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CC}, //15 balance

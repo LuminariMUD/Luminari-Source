@@ -896,7 +896,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_POWER_ATTACK     24  // power attack mode
 #define AFF_EXPERTISE        25  // combat expertise mode
 #define AFF_HASTE            26  // hasted
-#define AFF_PARRY            27  // parry mode
+#define AFF_TOTAL_DEFENSE    27  // total defense mode
 #define AFF_ELEMENT_PROT     28  // endure elements, etc
 #define AFF_DEAF             29  // deafened
 #define AFF_FEAR             30  // under affect of fear
@@ -2855,7 +2855,7 @@ struct char_special_data {
   int initiative; /* What is this char's initiative score? */
   struct char_data *fighting; /**< Target of fight; else NULL */
   struct char_data *hunting; /**< Target of NPC hunt; else NULL */
-  int parryAttempts; // how many parry attempts left in the round
+  int totalDefense; // how many totaldefense attempts left in the round
   ubyte cloudkill; //how many more bursts of cloudkill left
   struct char_data *guarding;  //target for 'guard' ability
   bool firing;  //is char firing missile weapon?

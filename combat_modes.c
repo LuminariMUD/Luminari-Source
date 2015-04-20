@@ -28,19 +28,19 @@
 /* Modes that cannot be overlapped:
  *
  *           - Power attack
- *  Group 1 |  Combat expertise    
- *           - Spellbattle            
+ *  Group 1 |  Combat expertise
+ *           - Spellbattle
  *
- *           - Two-Weapon Fighting   
- *  Group 2 |  Flurry of Blows        
- *           - Rapidshot           
+ *           - Two-Weapon Fighting
+ *  Group 2 |  Flurry of Blows
+ *           - Rapidshot
  *
  *           - Counterspell
  *  Group 3 |  Defensive casting
  *           - Auto * spell (?)
  *
  *
- *  Modes in the same group can not overlap, modes from different groups 
+ *  Modes in the same group can not overlap, modes from different groups
  *  CAN overlap.
  *
  *  Group 1 MODIFIES attacks
@@ -51,15 +51,15 @@
  *  changing modes is instantaneous, and there may be changes to only allow
  *  changing modes in group 2 at the beginning of combat rounds.  This is not
  *  implemented yet.
- */ 
+ */
 
 struct combat_mode_data combat_mode_info[] = {
-  {"!UNDEFINED!", 0, 0, FALSE, MODE_GROUP_NONE}, 
+  {"!UNDEFINED!", 0, 0, FALSE, MODE_GROUP_NONE},
   /* Group 1 */
   {"power attack"    , AFF_POWER_ATTACK, FEAT_POWER_ATTACK    , TRUE , MODE_GROUP_1},
   {"combat expertise", AFF_EXPERTISE   , FEAT_COMBAT_EXPERTISE, TRUE , MODE_GROUP_1},
   {"spellbattle"     , AFF_SPELLBATTLE , FEAT_SPELLBATTLE     , TRUE , MODE_GROUP_1},
-  {"parry"           , AFF_PARRY       , FEAT_UNDEFINED       , FALSE, MODE_GROUP_1},
+  {"total defense"           , AFF_TOTAL_DEFENSE       , FEAT_UNDEFINED       , FALSE, MODE_GROUP_1},
   /* Group 2 */
   {"dual wield"         , AFF_DUAL_WIELD         , FEAT_UNDEFINED      , FALSE, MODE_GROUP_2},
   {"flurry of blows"    , AFF_FLURRY_OF_BLOWS    , FEAT_FLURRY_OF_BLOWS, FALSE, MODE_GROUP_2},
@@ -69,7 +69,7 @@ struct combat_mode_data combat_mode_info[] = {
   {"defensive casting", AFF_DEFENSIVE_CASTING, FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
   {"whirlwind attack" , AFF_WHIRLWIND_ATTACK, FEAT_WHIRLWIND_ATTACK, MODE_GROUP_NONE}
 };
-    
+
 /* Unified combat mode management */
 bool is_mode_enabled(const struct char_data *ch, const int mode) {
   if ( AFF_FLAGGED(ch, combat_mode_info[mode].affect_flag) ) {
@@ -93,7 +93,7 @@ int is_mode_blocked(const struct char_data *ch, const int mode) {
          (combat_mode_info[mode].group == combat_mode_info[i].group) &&
          is_mode_enabled(ch, i) ) {
       return i;
-    }  
+    }
   }
   return MODE_NONE;
 }
@@ -113,7 +113,7 @@ void enable_combat_mode(struct char_data *ch, const int mode, const int value) {
     if ( combat_mode_info[mode].has_value ) {
       COMBAT_MODE_VALUE(ch) = value;
     }
-//  } 
+//  }
 }
 
 void disable_combat_mode(struct char_data *ch, int mode) {
@@ -132,18 +132,18 @@ ACMD(do_mode) {
   if (argument) {
     one_argument(argument, arg);
   }
-  if ( is_mode_enabled(ch, mode) && 
+  if ( is_mode_enabled(ch, mode) &&
        ((combat_mode_info[mode].has_value == FALSE) ||
         ((combat_mode_info[mode].has_value == TRUE) &&
          (!*arg))) ) {
     send_to_char(ch, "You leave %s mode.\r\n", combat_mode_info[mode].name);
     disable_combat_mode(ch, mode);
     if ( combat_mode_info[mode].has_value ) {
-      COMBAT_MODE_VALUE(ch) = -1;      
+      COMBAT_MODE_VALUE(ch) = -1;
     }
     return;
   }
-  if ( (combat_mode_info[mode].required_feat != FEAT_UNDEFINED) && 
+  if ( (combat_mode_info[mode].required_feat != FEAT_UNDEFINED) &&
        (!HAS_FEAT(ch, combat_mode_info[mode].required_feat)) ) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
@@ -202,7 +202,7 @@ ACMD(do_spellbattle) {
   }
 
   if (AFF_FLAGGED(ch, AFF_EXPERTISE) ||
-          AFF_FLAGGED(ch, AFF_PARRY) ||
+          AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE) ||
           AFF_FLAGGED(ch, AFF_POWER_ATTACK)) {
     send_to_char(ch, "You can't be in a combat-mode and enter "
             "spell-battle.\r\n");

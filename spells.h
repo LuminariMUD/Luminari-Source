@@ -757,7 +757,7 @@
 #define ABILITY_SPELLCRAFT              9  /* spellcraft, matches pfsrd */
 #define ABILITY_APPRAISE                10 /* appraise, matches pfsrd */
 #define ABILITY_DISCIPLINE              11 /* UNIQUE discipline */
-#define ABILITY_PARRY                   12 /* UNIQUE parry */
+#define ABILITY_TOTAL_DEFENSE           12 /* UNIQUE total defense */
 #define ABILITY_LORE                    13 /* UNIQUE lore */
 #define ABILITY_RIDE                    14 /* ride, matches pfsrd */
 #define ABILITY_UNUSED_3                15 /* UNUSED - use to be balance */

@@ -333,7 +333,6 @@ cpp_extern const struct command_info cmd_info[] = {
   //{ "objlist", "objlist", POS_DEAD, do_objlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}},
-  { "parry", "parry", POS_FIGHTING, do_mode, 1, MODE_PARRY, FALSE, ACTION_NONE, {0, 0}},
   { "peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "pick", "pi", POS_STANDING, do_gen_door, 1, SCMD_PICK, FALSE, ACTION_NONE, {0, 0}},
   { "practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}},
@@ -466,6 +465,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "tstat", "tstat", POS_DEAD, do_tstat, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "tailsweep", "tailsweep", POS_FIGHTING, do_tailsweep, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "tame", "tame", POS_FIGHTING, do_tame, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
+  { "totaldefense", "totaldefense", POS_FIGHTING, do_mode, 1, MODE_TOTAL_DEFENSE, FALSE, ACTION_NONE, {0, 0}},
 
   { "unlock", "unlock", POS_SITTING, do_gen_door, 0, SCMD_UNLOCK, FALSE, ACTION_NONE, {0, 0}},
   { "unban", "unban", POS_DEAD, do_unban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
