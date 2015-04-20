@@ -3927,13 +3927,13 @@ SPECIAL(spikeshield) {
 
   //blocking
   if (!strcmp(argument, "shieldblock") && !rand_number(0, 6)) {
-    act("\tLYour \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn\r\n"
+    act("\tLYour \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
             "\tLfrom $N \tLand transfers it back to you.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_CHAR);
-    act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn\r\n"
+    act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
             "\tLfrom $N\tL.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
-    act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn\r\n"
+    act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
             "\tLfrom you and transfers it back to $m.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
     damage(ch, vict, 5, -1, DAM_ENERGY, FALSE);  // type -1 = no dam message

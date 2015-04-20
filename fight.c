@@ -1537,7 +1537,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
         /* insert more colorful defensive messages here */
 
         /* shield block */
-        if ((shield = GET_EQ(vict, WEAR_SHIELD)) && !rand_number(0, 2)) {
+        if ((shield = GET_EQ(vict, WEAR_SHIELD)) && !rand_number(0, 3)) {
           return_value = SKILL_MESSAGE_MISS_SHIELDBLOCK;
 
           send_to_char(ch, CCYEL(ch, C_CMP));
@@ -1554,7 +1554,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             (name)(vict, shield, 0, "shieldblock");
 
         /* parry */
-        } else if (opponent_weapon && !rand_number(0, 2)) {
+        } else if (opponent_weapon && !rand_number(0, 3)) {
           return_value = SKILL_MESSAGE_MISS_PARRY;
 
           send_to_char(ch, CCYEL(ch, C_CMP));
@@ -2767,7 +2767,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
   /* calculate how much damage to do with a given hit() */
   if (mode == MODE_NORMAL_HIT) {
     /* determine weapon dice damage (or lack of weaopn) */
-    dam = compute_dam_dice(ch, victim, wielded, mode); /*debug*/send_to_char(ch, "dam-dice-dam:%d", dam);
+    dam = compute_dam_dice(ch, victim, wielded, mode);
     /* add any modifers to melee damage: strength, circumstance penalty, fatigue, size, etc etc */
     dam += compute_damage_bonus(ch, victim, wielded, w_type, NO_MOD, mode, attack_type);
 
