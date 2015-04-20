@@ -3479,6 +3479,14 @@ int perform_feint(struct char_data *ch, struct char_data *vict) {
     USE_STANDARD_ACTION(ch);
   }
 
+  if (vict != ch) {
+    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))
+      set_fighting(ch, vict);
+    if (GET_POS(vict) > POS_STUNNED && (FIGHTING(vict) == NULL)) {
+      set_fighting(vict, ch);
+    }
+  }
+
   return 0;
 }
 
