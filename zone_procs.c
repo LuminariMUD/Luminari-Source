@@ -1038,6 +1038,81 @@ SPECIAL(cf_alathar) {
 /*********************/
 
 /*****************/
+/* Tiamat        */
+
+/*****************/
+
+/* unfinished */
+SPECIAL(tia_rapier) {
+  //struct affected_type af;
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!ch || cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  /*
+  if (GET_CLASS(ch) != CLASS_SWASHBUCKLER) {
+    send_to_char("&cLToxins flow into your &cRblood &crstream &cLpumping&c0\r\n"
+                 "&cLslowly through your body.  Your skin &cgw&cyr&cgi&cyt&cgh&cye&cgs&c0\r\n"
+                 "&cLas your &cRblood b&cru&cRr&crn&cRs &cLat its roots.&c0\r\n", ch);
+    act("&cw$n &cLshudders &cw as &cytoxins &cwseep into $s body.&c0\r\n", FALSE, ch, 0, ch, TO_ROOM);
+    return damage(ch, ch, number(20, 50), TYPE_UNDEFINED, DAMBIT_PHYSICAL);
+  }
+  */
+
+  if (!strcmp(argument, "parry") && !rand_number(0, 6)) {
+    act("\tLYour \tcrapier \tCglows brightly\tL as it steals some \trlifeforce\tn "
+            "\tLfrom $N \tLand transfers it back to you.\tn",
+            FALSE, ch, (struct obj_data *) me, vict, TO_CHAR);
+    act("$n's \tcrapier \tCglows brightly\tL as it steals some \trlifeforce\tn "
+            "\tLfrom $N\tL.\tn",
+            FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
+    act("$n's \tcrapier \tCglows brightly\tL as it steals some \trlifeforce\tn "
+            "\tLfrom you and transfers it back to $m.\tn",
+            FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
+    damage(ch, vict, 5, -1, DAM_ENERGY, FALSE);  // type -1 = no dam message
+    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 1, CAST_SPELL);
+    return 1;
+  }
+
+  if (vict) {
+    if (!rand_number(0, 45)) {
+      act("&cWA &cBwave &cWof &cLdarkness &cBoozes &cWslowly from your sword, &cbengulfing &cWthe &c0\r\n"
+          "&cWarea in a &cLvoid &cWof &cLblack.&cW  You begin to perceive the &cBfaint outline &c0\r\n"
+          "&cWof a &cBdragon&cW surrouding your &cbrapier. &cWThe &cBimage &cWbegins to fiercely &cbclaw &c0\r\n"
+          "&cWand &cBsavagely &cbbite &cWat &c0$N's &cWbody.&c0",
+          FALSE, ch, 0, vict, TO_CHAR);
+      act("&cwA &cBwave&cW of &cLdarkness &cBoozes &cWslowly from &cb$n's &cWsword, &cbengulfing &cWthe &c0\r\n"
+          "&cWarea in a &cLvoid &cWof &cLblack.&cW  You begin to perceive the &cBfaint outline &c0\r\n"
+          "&cWof a &cBdragon&cW surrouding &cB&s &cbrapier.&cW  The &cBimage &cWbegins to fiercely &cbclaw &c0\r\n"
+          "&cWand &cBsavagely &cbbite &cWat &c0$N's &cWbody.&c0",
+          FALSE, ch, 0, vict, TO_ROOM);
+      damage(ch, vict, rand_number(120, 200), -1, DAM_ENERGY, FALSE);  // type -1 = no dam message
+      return 1;
+    }
+
+    if (!rand_number(0, 120)) {
+      weapons_spells("&cWSuddenly your &c0$p&cW is enveloped by &cbsheer &cLdarkness, &cWleaving only a pair of &c0\r\n"
+                   "&cBblazing eyes &cWgazing directly into the &cBsoul&cW of &c0$N&cW.  A sudden wave of &cBterror &cbovercomes &c0\r\n"
+                   "&c0$N&cW, who begins to &cbtremble violently&cW and lose &cBcontrol &cWof $s senses.&c0",
+
+                   "&cW$n's &cWsword is enveloped by &cbsheer &cLdarkness,&cW leaving only a pair of &cBblazing eyes&cW gazing &c0\r\n"
+                   "&cWdirectly into the &cBsoul&cW of &c0$N&cW.  A sudden wave of &cBterror &cbovercomes &c0$n&cW, who begins to &c0\r\n"
+                   "&cbtremble violenty &cWand lose &cBcontrol&cW of $s senses.&c0",
+
+                   "&cW$n's sword is enveloped by &cbsheer &cLdarkness,&cW leaving only a pair of &cBblazing eyes&cW gazing &c0\r\n"
+                   "&cWdirectly into the &cBsoul&cb of &c0$N&cW.  A sudden wave of &cBterror &cbovercomes &c0$N&cW, who begins&c0\r\n"
+                   "&cWto &cbtremble violenty &cWand lose &cBcontrol &cWof $S senses.&c0",
+                   ch, vict, (struct obj_data *) me, SPELL_IRRESISTIBLE_DANCE);
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+
+/*****************/
 /* Jot           */
 /*****************/
 
