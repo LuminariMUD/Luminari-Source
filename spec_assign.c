@@ -311,6 +311,7 @@ struct spec_func_data spec_func_list[] = {
   {"Ymir",              ymir },
   {"Gatehouse Guard",   gatehouse_guard },
   {"Invasion",          jot_invasion_loader },
+  {"Crystal Rapier",    tia_rapier },
 
   {"\n", NULL}
 };
