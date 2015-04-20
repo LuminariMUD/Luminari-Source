@@ -3926,7 +3926,7 @@ SPECIAL(spikeshield) {
     return 0;
 
   //blocking
-  if (argument[0] == 0 && !rand_number(0, 6)) {
+  if (!strcmp(argument, "shieldblock") && !rand_number(0, 6)) {
     act("\tLYour \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn\r\n"
             "\tLfrom $N \tLand transfers it back to you.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_CHAR);
@@ -3937,7 +3937,7 @@ SPECIAL(spikeshield) {
             "\tLfrom you and transfers it back to $m.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
     damage(ch, vict, 5, -1, DAM_ENERGY, FALSE);  // type -1 = no dam message
-    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 10, CAST_SPELL);
+    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 1, CAST_SPELL);
     return 1;
   }
 
