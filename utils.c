@@ -414,6 +414,8 @@ int skill_check(struct char_data *ch, int skill, int dc) {
 
   if (result == dc) /* woo barely passed! */
     return 1;
+  else if (result < dc) /*failed*/
+    return 0;
   else
     return (result - dc);
 }

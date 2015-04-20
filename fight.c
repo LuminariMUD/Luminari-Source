@@ -4215,7 +4215,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
      * get here if you are in a lower position than sitting, so the 'less than' is
      * redundant. */
     if (GET_POS(victim) <= POS_SITTING)
-      total_defense_attempt -= 2;
+      total_defense_DC += 2;
 
     if (!(total_defense_attempt = skill_check(victim, ABILITY_TOTAL_DEFENSE, total_defense_DC))) {
       send_to_char(victim, "You failed to \tcdefend\tn yourself from the attack from %s!  ",
