@@ -88,7 +88,7 @@ bool has_missile_in_ammo_pouch(struct char_data *ch, bool silent) {
           FIRING(ch) = FALSE;
           return FALSE;
       }
-      return FALSE;
+      break;
 
     case AMMO_TYPE_BOLT:
       switch (GET_OBJ_VAL(wielded, 0)) {
