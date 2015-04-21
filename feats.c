@@ -412,16 +412,16 @@ void assign_feats(void) {
     "can make extra attack per round with ranged weapon at -2 to all attacks");
     feat_prereq_attribute(FEAT_RAPID_SHOT, AB_DEX, 13);
     feat_prereq_feat(FEAT_RAPID_SHOT, FEAT_POINT_BLANK_SHOT, 1);
-  feato(FEAT_MANYSHOT, "manyshot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_MANYSHOT, "manyshot", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "extra ranged attack when rapid shot turned on",
     "extra ranged attack when rapid shot turned on");
     feat_prereq_attribute(FEAT_MANYSHOT, AB_DEX, 15);
     feat_prereq_feat(FEAT_MANYSHOT, FEAT_RAPID_SHOT, 1);
-  feato(FEAT_PRECISE_SHOT, "precise shot", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_PRECISE_SHOT, "precise shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "You may shoot in melee without the standard -4 to hit penalty",
     "You may shoot in melee without the standard -4 to hit penalty");
     feat_prereq_attribute(FEAT_PRECISE_SHOT, AB_DEX, 13);
-  feato(FEAT_IMPROVED_PRECISE_SHOT, "improved precise shot", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_IMPROVED_PRECISE_SHOT, "improved precise shot", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "+4 to hit on all close ranged attacks",
     "+4 to hit on all close ranged attacks");
     feat_prereq_feat(FEAT_IMPROVED_PRECISE_SHOT, FEAT_PRECISE_SHOT, 1);
