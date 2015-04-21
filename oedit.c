@@ -1677,7 +1677,9 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           break;
 
         case ITEM_MISSILE:
-          this_missile = compute_ranged_weapon_actual_value(atoi(arg));
+          number = atoi(arg);
+          number++; /* have to increment because list starts with val 1, not 0 */
+          this_missile = compute_ranged_weapon_actual_value(number);
           if (this_missile != -1) /* success */
             GET_OBJ_VAL(OLC_OBJ(d), 0) = this_missile;
           else /* failed, just force short bow */
@@ -1801,7 +1803,9 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           /* break probability */
           min_val = 2;
           max_val = 98;
-          break;
+          GET_OBJ_VAL(OLC_OBJ(d), 2) = LIMIT(number, min_val, max_val);
+          oedit_disp_val5_menu(d);
+          return;
         case ITEM_WAND:
         case ITEM_STAFF:
           min_val = 0;
@@ -1855,10 +1859,11 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           min_val = 0;
           max_val = NUM_ATTACK_TYPES - 1;
           break;
+          /*
         case ITEM_MISSILE:
           min_val = 0;
           max_val = NUM_ATTACK_TYPES - 1;
-          break;
+          break;*/
         default:
           min_val = -65000;
           max_val = 65000;
@@ -1871,6 +1876,10 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
     case OEDIT_VALUE_5:
       number = atoi(arg);
       switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+        case ITEM_MISSILE:
+          min_val = 0;
+          max_val = 10;
+          break;
         case ITEM_WEAPON:
           min_val = 0;
           max_val = 10;
