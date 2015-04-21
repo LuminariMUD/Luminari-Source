@@ -4533,7 +4533,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     }
 
     /* FIRE! */
-    for (i = 0; i < ranged_attacks; i++) {
+    for (i = 0; i <= ranged_attacks; i++) {
       /* phase 1: 1 4 7 10 13
        * phase 2: 2 5 8 11 14
        * phase 3: 3 6 9 12 15 */
