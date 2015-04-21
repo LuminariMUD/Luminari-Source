@@ -1678,7 +1678,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
 
         case ITEM_MISSILE:
           number = atoi(arg);
-          number++; /* have to increment because list starts with val 1, not 0 */
+          number--; /* have to decrement because list starts with val 1, not 0 */
           this_missile = compute_ranged_weapon_actual_value(number);
           if (this_missile != -1) /* success */
             GET_OBJ_VAL(OLC_OBJ(d), 0) = this_missile;
