@@ -727,20 +727,40 @@ static void oedit_disp_weapon_type_menu(struct descriptor_data *d) {
 
   /* we want to use column_list here, but we don't have a pre made list
    * of string values (without undefined).  Make one, and make sure it is in order. */
-  for (i = 0; i < NUM_WEAPON_TYPES - 1 ; i++) {
+  for (i = 0; i < NUM_WEAPON_TYPES - 1; i++) {
     weapon_types[i] = weapon_list[i + 1].name;
   }
 
   column_list(d->character, 3, weapon_types, NUM_WEAPON_TYPES - 1, TRUE);
 }
 
+int compute_ranged_weapon_actual_value(int list_value) {
+  int weapon_types[NUM_WEAPON_TYPES];
+  int i = 1, counter = 0;
+
+  for (i = 1; i < NUM_WEAPON_TYPES; i++) {
+    if (IS_SET(weapon_list[i].weaponFlags, WEAPON_FLAG_RANGED)) {
+      weapon_types[counter] = i; /* place weapon type into the array */
+      counter++;
+    }
+  }
+
+  for (i = 1; i < counter-1; i++) {
+    if (i == list_value) {
+      return weapon_types[i];
+    }
+  }
+
+  return -1; /* failed */
+}
+
 static void oedit_disp_ranged_weapons_menu(struct descriptor_data *d) {
-  const char *weapon_types[NUM_WEAPON_TYPES - 1];
+  const char *weapon_types[NUM_WEAPON_TYPES];
   int i = 1, counter = 0;
 
   /* we want to use column_list here, but we don't have a pre made list
    * of string values (without undefined).  Make one, and make sure it is in order. */
-  for (i = 1; i < NUM_WEAPON_TYPES - 1 ; i++) {
+  for (i = 1; i < NUM_WEAPON_TYPES; i++) {
     if (IS_SET(weapon_list[i].weaponFlags, WEAPON_FLAG_RANGED)) {
       weapon_types[counter] = weapon_list[i].name;
       counter++;
@@ -1302,6 +1322,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
   int number, min_val;
   long max_val;
   char *oldtext = NULL;
+  int this_missile = -1;
 
   switch (OLC_MODE(d)) {
 
@@ -1649,9 +1670,17 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case ITEM_FIREWEAPON:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_WEAPONS - 1);
           break;
+
         case ITEM_MISSILE:
-          GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_MISSILES - 1);
+          this_missile = compute_ranged_weapon_actual_value(atoi(arg));
+          if (this_missile != -1) /* success */
+            GET_OBJ_VAL(OLC_OBJ(d), 0) = this_missile;
+          else /* failed, just force short bow */
+            GET_OBJ_VAL(OLC_OBJ(d), 0) = WEAPON_TYPE_SHORT_BOW;
+
+          oedit_disp_val3_menu(d);
           break;
+
         case ITEM_CONTAINER:
         case ITEM_AMMO_POUCH:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), -1, MAX_CONTAINER_SIZE);
@@ -1726,8 +1755,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           oedit_disp_val3_menu(d);
           break;
         case ITEM_MISSILE:
-          GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, MAX_WEAPON_SDICE);
-          oedit_disp_val3_menu(d);
+          //GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, MAX_WEAPON_SDICE);
           break;
         case ITEM_CLANARMOR:
           GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, num_of_clans);
