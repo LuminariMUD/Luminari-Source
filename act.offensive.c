@@ -3361,11 +3361,13 @@ ACMD(do_fire) {
 
   if (can_fire_arrow(ch, FALSE)) {
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
-    if (IN_ROOM(ch) != IN_ROOM(vict))
+    if (IN_ROOM(ch) != IN_ROOM(vict)) {
       stop_fighting(ch);
-    else
+      USE_STANDARD_ACTION(ch);
+    } else {
       FIRING(ch) = TRUE;
-    USE_STANDARD_ACTION(ch);
+      USE_MOVE_ACTION(ch);
+    }
   }
 }
 
@@ -3419,7 +3421,7 @@ ACMD(do_autofire) {
   if (can_fire_arrow(ch, FALSE)) {
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
     FIRING(ch) = TRUE;
-    USE_STANDARD_ACTION(ch);
+    USE_MOVE_ACTION(ch);
   }
 }
 
