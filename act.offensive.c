@@ -73,13 +73,72 @@ bool has_missile_in_ammo_pouch(struct char_data *ch, bool silent) {
     return FALSE;
   }
 
-  if (GET_OBJ_VAL(wielded, 0) != GET_OBJ_VAL(ammo_pouch->contains, 0)) {
-    if (!silent)
-      act("Your $p does not fit your weapon.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
-    FIRING(ch) = FALSE;
-    return FALSE;
+  switch (GET_OBJ_VAL(ammo_pouch->contains, 0)) {
+
+    case AMMO_TYPE_ARROW:
+      switch (GET_OBJ_VAL(wielded, 0)) {
+        case WEAPON_TYPE_LONG_BOW:
+        case WEAPON_TYPE_SHORT_BOW:
+        case WEAPON_TYPE_COMPOSITE_LONGBOW:
+        case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+          break;
+        default:
+          if (!silent)
+            act("Your $p does not fit your weapon.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+          FIRING(ch) = FALSE;
+          return FALSE;
+      }
+      return FALSE;
+
+    case AMMO_TYPE_BOLT:
+      switch (GET_OBJ_VAL(wielded, 0)) {
+        case WEAPON_TYPE_HAND_CROSSBOW:
+        case WEAPON_TYPE_HEAVY_REP_XBOW:
+        case WEAPON_TYPE_LIGHT_REP_XBOW:
+        case WEAPON_TYPE_HEAVY_CROSSBOW:
+        case WEAPON_TYPE_LIGHT_CROSSBOW:
+          break;
+        default:
+          if (!silent)
+            act("Your $p does not fit your weapon.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+          FIRING(ch) = FALSE;
+          return FALSE;
+      }
+      break;
+
+    case AMMO_TYPE_STONE:
+      switch (GET_OBJ_VAL(wielded, 0)) {
+        case WEAPON_TYPE_SLING:
+          break;
+        default:
+          if (!silent)
+            act("Your $p does not fit your weapon.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+          FIRING(ch) = FALSE;
+          return FALSE;
+      }
+      break;
+
+    case AMMO_TYPE_DART:
+      switch (GET_OBJ_VAL(wielded, 0)) {
+        case WEAPON_TYPE_DART:
+          break;
+        default:
+          if (!silent)
+            act("Your $p does not fit your weapon.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+          FIRING(ch) = FALSE;
+          return FALSE;
+      }
+      break;
+
+    case AMMO_TYPE_UNDEFINED:
+    default:
+      if (!silent)
+        act("Your $p does not fit your weapon...", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+      FIRING(ch) = FALSE;
+      return FALSE;
   }
 
+  /* cleared all checks */
   return TRUE;
 }
 
