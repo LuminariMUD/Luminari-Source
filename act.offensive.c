@@ -36,8 +36,21 @@
 /* ranged combat (archery, etc)
  * this function will check to make sure ammo is ready for firing
  */
-bool has_missile_in_ammo_pouch(struct char_data *ch, struct obj_data *wielded, bool silent) {
+bool has_missile_in_ammo_pouch(struct char_data *ch, bool silent) {
   struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
+  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
+
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+
+  if (!wielded) {
+    if (!silent)
+      send_to_char(ch, "You have no weapon!\r\n");
+    FIRING(ch) = FALSE;
+    return FALSE;
+  }
 
   if (!ammo_pouch) {
     if (!silent)
@@ -75,6 +88,7 @@ bool has_missile_in_ammo_pouch(struct char_data *ch, struct obj_data *wielded, b
  * a check of "has_missile_in_ammo_pouch"
  */
 bool can_fire_arrow(struct char_data *ch, bool silent) {
+
   if (!GET_EQ(ch, WEAR_AMMO_POUCH)) {
     if (!silent)
       send_to_char(ch, "But you do not wear an ammo pouch.\r\n");
@@ -82,26 +96,14 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
     return FALSE;
   }
 
-  struct obj_data *obj = GET_EQ(ch, WEAR_WIELD_2H);
-
-  if (!obj)
-    obj = GET_EQ(ch, WEAR_WIELD_1);
-
-  if (!obj) {
+  if (!is_using_ranged_weapon(ch)) {
     if (!silent)
-      send_to_char(ch, "You are not wielding anything!");
+      send_to_char(ch, "But you are not using a ranged weapon!\r\n");
     FIRING(ch) = FALSE;
     return FALSE;
   }
 
-  if (GET_OBJ_TYPE(obj) != ITEM_FIREWEAPON) {
-    if (!silent)
-      send_to_char(ch, "But you are not wielding a ranged weapon.\r\n");
-    FIRING(ch) = FALSE;
-    return FALSE;
-  }
-
-  if (!has_missile_in_ammo_pouch(ch, obj, TRUE)) {
+  if (!has_missile_in_ammo_pouch(ch, TRUE)) {
     if (!silent)
       send_to_char(ch, "You have no ammo!\r\n");
     FIRING(ch) = FALSE;
@@ -1964,7 +1966,7 @@ ACMD(do_taunt) {
     return;
   }
   */
-  
+
   attempt += compute_ability(ch, ABILITY_INTIMIDATE);
   if (!IS_NPC(vict))
     resist += compute_ability(vict, ABILITY_CONCENTRATION);

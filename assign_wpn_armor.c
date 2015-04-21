@@ -143,7 +143,28 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
 //#define WEAPON_FLAG_SIMPLE      (1 << 0)
 //#define WEAPON_FLAG_MARTIAL     (1 << 1)
 //#define WEAPON_FLAG_EXOTIC      (1 << 2)
+
+/* can fire missiles, such as bow, crossbow, sling, etc */
 //#define WEAPON_FLAG_RANGED      (1 << 3)
+bool is_using_ranged_weapon(struct char_data *ch) {
+  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
+
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+
+  if (!wielded) {
+    return FALSE;
+  }
+
+  if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].weaponFlags, WEAPON_FLAG_RANGED))
+    return TRUE;
+
+  return FALSE;
+}
+
+/* can throw weapon, such as shuriken, throwing axes, etc */
 //#define WEAPON_FLAG_THROWN      (1 << 4)
 
 /* Reach: You use a reach weapon to strike opponents 10 feet away, but you can't
@@ -170,7 +191,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
 //#define WEAPON_FLAG_REPEATING   (1 << 14)
 //#define WEAPON_FLAG_TWO_HANDED  (1 << 15)
 
-//#define WEAPON_FLAG_LIGHT       (1 << 16)
+/* light weapons - necessary for some feats such as weapon finesse */
 bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded) {
 
   if (!wielded)
@@ -266,12 +287,11 @@ bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded) {
  * a light weapon. You can choose to wield one end of a double weapon two-handed,
  * but it cannot be used as a double weapon when wielded in this way—only one
  * end of the weapon can be used in any given round. */
-//#define WEAPON_FLAG_DOUBLE      (1 << 8)
-/* we are going to say it is not enough that the weapon just be flagged
-   double, we also need the weapon to be a size-class larger than the player */
 bool is_using_double_weapon(struct char_data *ch) {
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
+  /* we are going to say it is not enough that the weapon just be flagged
+     double, we also need the weapon to be a size-class larger than the player */
   if (!wielded)
     return FALSE;
   if (GET_OBJ_SIZE(wielded) <= GET_SIZE(ch))

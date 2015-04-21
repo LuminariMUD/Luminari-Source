@@ -645,6 +645,7 @@ static void oedit_disp_ranged_menu(struct descriptor_data *d) {
 }
 
 /* ranged combat, missile-type (like arrow vs bolt) */
+/*
 static void oedit_disp_missile_menu(struct descriptor_data *d) {
   int counter, columns = 0;
 
@@ -657,7 +658,8 @@ static void oedit_disp_missile_menu(struct descriptor_data *d) {
   }
   write_to_output(d, "\r\nEnter missile-weapon type : ");
 }
-
+*/
+ 
 /* Spell type. */
 static void oedit_disp_spells_menu(struct descriptor_data *d) {
   int counter, columns = 0;
@@ -732,6 +734,22 @@ static void oedit_disp_weapon_type_menu(struct descriptor_data *d) {
   column_list(d->character, 3, weapon_types, NUM_WEAPON_TYPES - 1, TRUE);
 }
 
+static void oedit_disp_ranged_weapons_menu(struct descriptor_data *d) {
+  const char *weapon_types[NUM_WEAPON_TYPES - 1];
+  int i = 1, counter = 0;
+
+  /* we want to use column_list here, but we don't have a pre made list
+   * of string values (without undefined).  Make one, and make sure it is in order. */
+  for (i = 1; i < NUM_WEAPON_TYPES - 1 ; i++) {
+    if (IS_SET(weapon_list[i].weaponFlags, WEAPON_FLAG_RANGED)) {
+      weapon_types[counter] = weapon_list[i].name;
+      counter++;
+    }
+  }
+
+  column_list(d->character, 3, weapon_types, counter, TRUE);
+}
+
 /* Object value #1 */
 static void oedit_disp_val1_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_1;
@@ -786,7 +804,7 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
       oedit_disp_ranged_menu(d);
       break;
     case ITEM_MISSILE:
-      oedit_disp_missile_menu(d);
+      oedit_disp_ranged_weapons_menu(d);
       break;
     case ITEM_BOAT: // these object types have no 'values' so go back to menu
     case ITEM_KEY:
@@ -853,7 +871,7 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
       write_to_output(d, "Number of damage dice : ");
       break;
     case ITEM_MISSILE:
-      write_to_output(d, "Size of damage dice : ");
+      //write_to_output(d, "Size of damage dice : ");
       break;
     case ITEM_FOOD:
       oedit_disp_spells_menu(d);

@@ -3610,8 +3610,8 @@ void attacks_of_opportunity(struct char_data *victim, int penalty) {
   }
 }
 
-/* a potentially deprecated function (because of new weapon-types data in feats.c)
- * that will return the weapon-type being used based on attack_type and wielded data */
+/* a function that will return the weapon-type being used based on attack_type
+ * and wielded data */
 int determine_weapon_type(struct char_data *ch, struct char_data *victim,
                           struct obj_data *wielded, int attack_type) {
   int w_type = TYPE_HIT, count = 0;
@@ -3663,7 +3663,6 @@ int determine_weapon_type(struct char_data *ch, struct char_data *victim,
   return w_type;
 }
 
-/* new version of determining weapon type */
 /*#define DAMAGE_TYPE_BLUDGEONING        (1 << 0)
   #define DAMAGE_TYPE_SLASHING           (1 << 1)
   #define DAMAGE_TYPE_PIERCING           (1 << 2)

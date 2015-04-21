@@ -6,7 +6,6 @@
 #ifndef ASSIGN_WPN_ARMOR_H
 #define	ASSIGN_WPN_ARMOR_H
 
-
 struct weapon_table
 {
   char *name;
@@ -24,6 +23,7 @@ struct weapon_table
   ubyte material;
   ubyte handle_type;
   ubyte head_type;
+  /* not implemented yet */
   ubyte stunNumDice;
   ubyte stunSizeDice;
   ubyte availability;
@@ -61,19 +61,21 @@ int compute_gear_spell_failure(struct char_data *ch);
 int compute_gear_armor_penalty(struct char_data *ch);
 int compute_gear_armor_type(struct char_data *ch);
 int compute_gear_shield_type(struct char_data *ch);
+
+bool is_using_ranged_weapon(struct char_data *ch);
 bool is_using_double_weapon(struct char_data *ch);
 bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded);
+
 int is_proficient_with_weapon(struct char_data *ch, int weapon_type);
 int is_proficient_with_armor(struct char_data *ch);
-bool monk_gear_ok(struct char_data *ch);
-
 int is_proficient_with_shield(struct char_data *ch);
 int is_proficient_with_body_armor(struct char_data *ch);
 int is_proficient_with_helm(struct char_data *ch);
 int is_proficient_with_sleeves(struct char_data *ch);
 int is_proficient_with_leggings(struct char_data *ch);
 
-
+bool monk_gear_ok(struct char_data *ch);
+/**/
 
 #ifdef	__cplusplus
 extern "C" {
