@@ -2236,8 +2236,17 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAPON_TYPE_BOLA            63
 #define WEAPON_TYPE_NET             64
 #define WEAPON_TYPE_SHURIKEN        65
+/* dextension of composite bows */
+#define WEAPON_TYPE_COMPOSITE_LONGBOW_2   66
+#define WEAPON_TYPE_COMPOSITE_LONGBOW_3   67
+#define WEAPON_TYPE_COMPOSITE_LONGBOW_4   68
+#define WEAPON_TYPE_COMPOSITE_LONGBOW_5   69
+#define WEAPON_TYPE_COMPOSITE_SHORTBOW_2  70
+#define WEAPON_TYPE_COMPOSITE_SHORTBOW_3  71
+#define WEAPON_TYPE_COMPOSITE_SHORTBOW_4  72
+#define WEAPON_TYPE_COMPOSITE_SHORTBOW_5  73
 /**/
-#define NUM_WEAPON_TYPES            66
+#define NUM_WEAPON_TYPES            74
 
 /* different ammo types */
 #define AMMO_TYPE_UNDEFINED             0
