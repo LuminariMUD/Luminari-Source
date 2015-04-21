@@ -4638,8 +4638,12 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   /*  End ranged attacks ---------------------------------------------------- */
 
   /* temporary solution */
-  if (is_using_ranged_weapon(ch)) {
+  if (!can_fire_arrow(ch, FALSE) && is_using_ranged_weapon(ch)) {
     send_to_char(ch, "You can't use a ranged weapon in melee combat!\r\n");
+    return 0;
+  } else if (can_fire_arrow(ch, FALSE) && is_using_ranged_weapon(ch)) {
+    send_to_char(ch, "You prepare your ranged weapon!\r\n");
+    FIRING(ch) = TRUE;
     return 0;
   }
 
