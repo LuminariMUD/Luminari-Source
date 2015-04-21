@@ -3243,7 +3243,7 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
  *   ATTACK_TYPE_RANGED  : Ranged attack.
  *   ATTACK_TYPE_UNARMED : Unarmed attack.
  *   ATTACK_TYPE_TWOHAND : Two-handed weapon attack. */
-int compute_attack_bonus (struct char_data *ch,     /* Attacker */
+int compute_attack_bonus(struct char_data *ch,     /* Attacker */
                           struct char_data *victim, /* Defender */
                           int attack_type)          /* Type of attack  */
 {
@@ -3317,6 +3317,8 @@ int compute_attack_bonus (struct char_data *ch,     /* Attacker */
   /* Enhancement bonus */
   if (wielded)
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], GET_ENHANCEMENT_BONUS(wielded));
+  /* need to add missile enhancement bonus as well */
+  /**/
 
   /* Insight bonus  */
 
