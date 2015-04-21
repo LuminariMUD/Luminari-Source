@@ -170,7 +170,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
     return FALSE;
   }
 
-  if (!has_missile_in_ammo_pouch(ch, FALSE)) {
+  if (!has_missile_in_ammo_pouch(ch, TRUE)) {
     if (!silent)
       send_to_char(ch, "You have no ammo!\r\n");
     FIRING(ch) = FALSE;
