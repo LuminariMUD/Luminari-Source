@@ -4600,6 +4600,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     attacks_at_max_bab -= drop_an_attack_at_max_bab;
   /*  End ranged attacks ---------------------------------------------------- */
 
+  /* temporary solution */
+  if (is_using_ranged_weapon(ch)) {
+    send_to_char(ch, "You can't use a ranged weapon in melee combat!\r\n");
+    return 0;
+  }
 
   //melee: now lets determine base attack(s) and resulting possible penalty
   dual = is_dual_wielding(ch); // trelux or has off-hander equipped
