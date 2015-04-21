@@ -2239,6 +2239,16 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 /**/
 #define NUM_WEAPON_TYPES            66
 
+/* different ammo types */
+#define AMMO_TYPE_UNDEFINED             0
+#define AMMO_TYPE_ARROW                 1
+#define AMMO_TYPE_BOLT                  2
+#define AMMO_TYPE_STONE                 3
+#define AMMO_TYPE_DART                  4
+/**/
+#define NUM_AMMO_TYPES                  5
+/*************************/
+
 /* Weapon damage types, used in the weapon definitions
  * and to give the TYPE of damage done by the weapon.
  * Some weapons give multiple damage types, while only

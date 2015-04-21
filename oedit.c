@@ -647,20 +647,18 @@ static void oedit_disp_ranged_menu(struct descriptor_data *d) {
 }
 
 /* ranged combat, missile-type (like arrow vs bolt) */
-/*
 static void oedit_disp_missile_menu(struct descriptor_data *d) {
   int counter, columns = 0;
 
   get_char_colors(d->character);
   clear_screen(d);
 
-  for (counter = 0; counter < NUM_RANGED_MISSILES; counter++) {
+  for (counter = 0; counter < NUM_AMMO_TYPES; counter++) {
     write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm,
-            ranged_missiles[counter], !(++columns % 2) ? "\r\n" : "");
+            ammo_types[counter], !(++columns % 2) ? "\r\n" : "");
   }
   write_to_output(d, "\r\nEnter missile-weapon type : ");
 }
-*/
 
 /* Spell type. */
 static void oedit_disp_spells_menu(struct descriptor_data *d) {
@@ -756,12 +754,13 @@ int compute_ranged_weapon_actual_value(int list_value) {
   return -1; /* failed */
 }
 
+/*
 static void oedit_disp_ranged_weapons_menu(struct descriptor_data *d) {
   const char *weapon_types[NUM_WEAPON_TYPES];
   int i = 1, counter = 0;
 
-  /* we want to use column_list here, but we don't have a pre made list
-   * of string values (without undefined).  Make one, and make sure it is in order. */
+  // we want to use column_list here, but we don't have a pre made list
+  // of string values (without undefined).  Make one, and make sure it is in order.
   for (i = 1; i < NUM_WEAPON_TYPES; i++) {
     if (IS_SET(weapon_list[i].weaponFlags, WEAPON_FLAG_RANGED)) {
       weapon_types[counter] = weapon_list[i].name;
@@ -771,6 +770,7 @@ static void oedit_disp_ranged_weapons_menu(struct descriptor_data *d) {
 
   column_list(d->character, 3, weapon_types, counter, TRUE);
 }
+*/
 
 /* Object value #1 */
 static void oedit_disp_val1_menu(struct descriptor_data *d) {
@@ -826,7 +826,7 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
       oedit_disp_ranged_menu(d);
       break;
     case ITEM_MISSILE:
-      oedit_disp_ranged_weapons_menu(d);
+      oedit_disp_missile_menu(d);
       break;
     case ITEM_BOAT: // these object types have no 'values' so go back to menu
     case ITEM_KEY:
@@ -1327,7 +1327,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
   int number, min_val;
   long max_val;
   char *oldtext = NULL;
-  int this_missile = -1;
+  //int this_missile = -1;
 
   switch (OLC_MODE(d)) {
 
@@ -1677,14 +1677,9 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           break;
 
         case ITEM_MISSILE:
-          number = atoi(arg);
-          number--; /* have to decrement because list starts with val 1, not 0 */
-          this_missile = compute_ranged_weapon_actual_value(number);
-          if (this_missile != -1) /* success */
-            GET_OBJ_VAL(OLC_OBJ(d), 0) = this_missile;
-          else /* failed, just force short bow */
-            GET_OBJ_VAL(OLC_OBJ(d), 0) = WEAPON_TYPE_SHORT_BOW;
+          GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), 1, NUM_AMMO_TYPES - 1);
 
+          /* jump to break probability */
           oedit_disp_val3_menu(d);
           return;
 
@@ -1804,6 +1799,8 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           min_val = 2;
           max_val = 98;
           GET_OBJ_VAL(OLC_OBJ(d), 2) = LIMIT(number, min_val, max_val);
+
+          /* jump to enhancement bonus */
           oedit_disp_val5_menu(d);
           return;
         case ITEM_WAND:
