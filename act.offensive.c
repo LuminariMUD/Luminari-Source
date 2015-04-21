@@ -1691,6 +1691,13 @@ ACMD(do_hit) {
     return;
   }
 
+  /* temporary solution */
+  if (is_using_ranged_weapon(ch)) {
+    send_to_char(ch, "You can't use a ranged weapon in melee combat, use 'fire' "
+            "instead..\r\n");
+    return;
+  }
+
   one_argument(argument, arg);
 
   if (!*arg)
