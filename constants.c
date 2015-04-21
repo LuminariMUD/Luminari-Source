@@ -27,10 +27,20 @@
  * @todo cpp_extern isn't needed here (or anywhere) as the extern reserved word
  * works correctly with C compilers (at least in my Experience)
  * Jeremy Osborne 1/28/2008 */
-cpp_extern const char *luminari_version = "LuminariMUD 2.188 (tbaMUD 3.64)";
+cpp_extern const char *luminari_version = "LuminariMUD 2.267 (tbaMUD 3.64)";
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 /* (Note: strings for class definitions in class.c instead of here) */
+
+/* ammo types */
+const char *ammo_types[NUM_AMMO_TYPES + 1] = {
+  "Undefined",
+  "Arrow",
+  "Bolt",
+  "Stone",
+  "Dart",
+  "\n"
+};
 
 /* weapon head types */
 const char *weapon_head_types[NUM_WEAPON_HEAD_TYPES + 1] = {
