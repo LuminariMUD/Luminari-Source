@@ -1790,6 +1790,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           max_val = 98;
           break;
         case ITEM_MISSILE:
+          /* break probability */
           min_val = 2;
           max_val = 98;
           break;
