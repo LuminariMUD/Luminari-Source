@@ -2387,7 +2387,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       dambonus += GET_STR_BONUS(ch) / 2;
       break;
     case ATTACK_TYPE_RANGED:
-      dambonus += GET_DEX_BONUS(ch); /* we will get rid of this soon */
+      //dambonus += GET_DEX_BONUS(ch);
       if (vict && IN_ROOM(ch) == IN_ROOM(vict)) {
         if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))
           dambonus++;
