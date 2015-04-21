@@ -4439,7 +4439,7 @@ int valid_fight_cond(struct char_data *ch) {
 int perform_attacks(struct char_data *ch, int mode, int phase) {
   int i = 0, penalty = 0, numAttacks = 0, bonus_mainhand_attacks = 0;
   int attacks_at_max_bab = 0;
-  int ranged_attacks = 2; /* ranged combat gets 2 bonus attacks currently */
+  int ranged_attacks = 1; /* ranged combat gets 2 bonus attacks currently */
   bool dual = FALSE;
   bool perform_attack = FALSE;
 
@@ -4563,15 +4563,17 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           if (attacks_at_max_bab > 0)
             attacks_at_max_bab--;
           else
-            penalty -= 3;
+            penalty -= 5;
         } else if (FIGHTING(ch)) {
           send_to_char(ch, "\tWYou are out of ammunition!\tn\r\n");
           stop_fighting(ch);
           return 0;
-        } else
+        } else {
+          send_to_char(ch, "\tWError with ranged!\tn\r\n");
           stop_fighting(ch);
+        }
       }
-    }
+    } /*end FIRE!*/
     return 0;
 
     /* Display Modes */
@@ -4588,7 +4590,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       if(attacks_at_max_bab > 0)
         attacks_at_max_bab--;
       else
-        penalty -= 3;
+        penalty -= 5;
 
       ranged_attacks--;
     }
