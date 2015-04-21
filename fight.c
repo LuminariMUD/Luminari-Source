@@ -3621,9 +3621,37 @@ int determine_weapon_type(struct char_data *ch, struct char_data *victim,
     if (!wielded)
       w_type = TYPE_HIT;
     else {
-      w_type = TYPE_MISSILE;
+
+      /* check for alternative messages, damageTypes on ranged weapon */
+      if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
+        w_type_array[count] = TYPE_BLUDGEON;
+        w_type_array[++count] = TYPE_CRUSH;
+        w_type_array[++count] = TYPE_POUND;
+      }
+      if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_PIERCING)) {
+        if (!count)
+          w_type_array[count] = TYPE_PIERCE;
+        else
+          w_type_array[++count] = TYPE_PIERCE;
+        w_type_array[++count] = TYPE_STAB;
+        w_type_array[++count] = TYPE_THRUST;
+      }
+      if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_SLASHING)) {
+        if (!count)
+          w_type_array[count] = TYPE_SLASH;
+        else
+          w_type_array[++count] = TYPE_SLASH;
+        w_type_array[++count] = TYPE_SLICE;
+        w_type_array[++count] = TYPE_HACK;
+      }
+
+      if (count)
+        w_type = w_type_array[rand_number(0, count)];
+      else
+        w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
     }
   } else if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { // !ranged
+    count = 0;
 
     /* check for alternative messages, damageTypes on weapon */
     if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
@@ -3653,11 +3681,11 @@ int determine_weapon_type(struct char_data *ch, struct char_data *victim,
     else
       w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
 
-  } else {
+  } else { /* mobile messages or unarmed */
     if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
       w_type = ch->mob_specials.attack_type + TYPE_HIT; // We are a mob, and we have an attack type, so use that.
     else
-      w_type = TYPE_HIT; // Generic default.
+      w_type = TYPE_HIT; // Generic default, barehand
   }
 
   return w_type;
