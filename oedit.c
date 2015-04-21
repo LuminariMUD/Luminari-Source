@@ -39,7 +39,7 @@ static void oedit_disp_weapon_spells(struct descriptor_data *d);
 static void oedit_disp_prompt_apply_menu(struct descriptor_data *d);
 static void oedit_liquid_type(struct descriptor_data *d);
 static void oedit_disp_apply_menu(struct descriptor_data *d);
-static void oedit_disp_weapon_menu(struct descriptor_data *d);
+//static void oedit_disp_weapon_menu(struct descriptor_data *d);
 static void oedit_disp_spells_menu(struct descriptor_data *d);
 static void oedit_disp_val1_menu(struct descriptor_data *d);
 static void oedit_disp_val2_menu(struct descriptor_data *d);
@@ -603,6 +603,7 @@ static void oedit_disp_apply_menu(struct descriptor_data *d) {
 }
 
 /* Weapon type. */
+/*
 static void oedit_disp_weapon_menu(struct descriptor_data *d) {
   int counter, columns = 0;
 
@@ -616,6 +617,7 @@ static void oedit_disp_weapon_menu(struct descriptor_data *d) {
   }
   write_to_output(d, "\r\nEnter weapon type : ");
 }
+*/
 
 static void oedit_disp_portaltypes_menu(struct descriptor_data *d) {
   int counter, columns = 0;
@@ -1020,7 +1022,7 @@ static void oedit_disp_val4_menu(struct descriptor_data *d) {
       //oedit_disp_weapon_menu(d);
       break;
     case ITEM_MISSILE:
-      oedit_disp_weapon_menu(d);
+      //oedit_disp_weapon_menu(d);
       break;
     case ITEM_DRINKCON:
     case ITEM_FOUNTAIN:
