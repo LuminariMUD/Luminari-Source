@@ -80,7 +80,15 @@ bool has_missile_in_ammo_pouch(struct char_data *ch, bool silent) {
         case WEAPON_TYPE_LONG_BOW:
         case WEAPON_TYPE_SHORT_BOW:
         case WEAPON_TYPE_COMPOSITE_LONGBOW:
+        case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
+        case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
+        case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
+        case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
         case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+        case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+        case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+        case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+        case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
           break;
         default:
           if (!silent)
