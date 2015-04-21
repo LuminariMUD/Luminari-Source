@@ -659,7 +659,7 @@ static void oedit_disp_missile_menu(struct descriptor_data *d) {
   write_to_output(d, "\r\nEnter missile-weapon type : ");
 }
 */
- 
+
 /* Spell type. */
 static void oedit_disp_spells_menu(struct descriptor_data *d) {
   int counter, columns = 0;
@@ -1644,7 +1644,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_WIELD);
 
           /*  Skip the next two. */
-          oedit_disp_val4_menu(d);
+          //oedit_disp_val4_menu(d);
           return;
         case ITEM_FIREWEAPON:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_WEAPONS - 1);
