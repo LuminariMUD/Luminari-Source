@@ -1643,8 +1643,8 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           /* now set the appropriate wear flag bit */
           TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_WIELD);
 
-          /*  Skip the next two. */
-          //oedit_disp_val4_menu(d);
+          /*  Skip a few. */
+          oedit_disp_val5_menu(d);
           return;
         case ITEM_FIREWEAPON:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_WEAPONS - 1);
