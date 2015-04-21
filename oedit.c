@@ -1046,6 +1046,9 @@ static void oedit_disp_val5_menu(struct descriptor_data *d) {
     case ITEM_ARMOR:
       write_to_output(d, "Enhancement bonus : ");
       break;
+    case ITEM_MISSILE:
+      write_to_output(d, "Enhancement bonus : ");
+      break;
     default:
       oedit_disp_menu(d);
   }
@@ -1681,7 +1684,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
             GET_OBJ_VAL(OLC_OBJ(d), 0) = WEAPON_TYPE_SHORT_BOW;
 
           oedit_disp_val3_menu(d);
-          break;
+          return;
 
         case ITEM_CONTAINER:
         case ITEM_AMMO_POUCH:
@@ -1758,6 +1761,9 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           break;
         case ITEM_MISSILE:
           //GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, MAX_WEAPON_SDICE);
+          /*  Skip to enhancement menu. */
+          //oedit_disp_val5_menu(d);
+          //return;
           break;
         case ITEM_CLANARMOR:
           GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, num_of_clans);
