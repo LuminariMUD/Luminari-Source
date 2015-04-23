@@ -3179,6 +3179,8 @@ ACMD(do_reload) {
   }
 
   send_to_char(ch, "You reload %s.\r\n", wielded->short_description);
+  if (FIGHTING(ch))
+    FIRING(ch) = TRUE;
   return;
 }
 /* ranged-weapons combat, archery
