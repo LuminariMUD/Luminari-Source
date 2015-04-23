@@ -4220,6 +4220,9 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     MISSILE_ID(missile) = GET_IDNUM(ch);
     /* Remove the missile from the ammo_pouch. */
     obj_from_obj(missile);
+    /* if this was a weapon that was loaded, unload */
+    if (GET_OBJ_VAL(wielded, 5) > 0)
+      GET_OBJ_VAL(wielded, 5)--;
   }
 
   /* Get the important numbers : ch's Attack bonus and victim's AC
