@@ -4523,10 +4523,16 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     attacks_at_max_bab++;
   }
 
+  /* how do we know if we are in "ranged" or "melee" combat?  the current solution
+   is simply to see if you are qualified to perform a ranged attack, if so, execute
+   and then exit.  Otherwise you will fall through and perform a melee attack
+   (unless you have a ranged weapon equipped, in which case exit) */
+
   /* Process ranged attacks ------------------------------------------------- */
+  /* so if ranged is not performed and we fall through to melee, we need to make
+   * sure our attacks with max. BAB are maintained */
   int drop_an_attack_at_max_bab = 0;
-  /* ranged get extra attacks */
-  ranged_attacks += bonus_mainhand_attacks;
+  ranged_attacks += bonus_mainhand_attacks; /* bonus above here apply to both ranged/melee */
   /* Rapidshot mode gives an extra attack, but with a penalty to all attacks. */
   if (AFF_FLAGGED(ch, AFF_RAPID_SHOT)) {
     penalty -= 2;
@@ -4546,12 +4552,12 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     }
   }
 
-  if (FIRING(ch) && mode == NORMAL_ATTACK_ROUTINE) {
+  if (FIRING(ch) && mode == NORMAL_ATTACK_ROUTINE) { /* firing mode and not display */
     if (is_tanking(ch)) {
       if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_PRECISE_SHOT))
         penalty += 4;
       else if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_PRECISE_SHOT))
-        ;
+        ; /* no penalty/bonus */
       else /* not skilled with close combat archery */
         penalty -= 4;
 
@@ -4569,8 +4575,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
         penalty -= 4;
     }
 
-    /* FIRE! */
-    for (i = 0; i <= ranged_attacks; i++) {
+    for (i = 0; i <= ranged_attacks; i++) {/* check phase for corresponding attack */
       /* phase 1: 1 4 7 10 13
        * phase 2: 2 5 8 11 14
        * phase 3: 3 6 9 12 15 */
@@ -4592,28 +4597,28 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           }
           break;
       }
-
-      if (perform_attack) {
+      if (perform_attack) { /* correct phase for this attack? */
         if (can_fire_arrow(ch, FALSE) && FIGHTING(ch)) {
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, /* FIRE! */
                 penalty, ATTACK_TYPE_RANGED);
           if (attacks_at_max_bab > 0)
             attacks_at_max_bab--;
           else
-            penalty -= 5;
+            penalty -= 5; /* cummulative penalty */
         } else if (FIGHTING(ch)) {
-          send_to_char(ch, "\tWYou are out of ammunition!\tn\r\n");
+          send_to_char(ch, "\tWYou are out of ammunition and forced to disengage!\tn\r\n");
           stop_fighting(ch);
           return 0;
         } else {
-          send_to_char(ch, "\tWError with ranged!\tn\r\n");
+          send_to_char(ch, "\tWType 'fire <target>' to engage!\tn\r\n");
           stop_fighting(ch);
+          return 0;
         }
       }
     } /*end FIRE!*/
     return 0;
 
-    /* Display Modes */
+    /* Display Modes, not actually firing */
   } else if (mode == RETURN_NUM_ATTACKS && can_fire_arrow(ch, TRUE)) {
     return ranged_attacks;
   } else if (mode == DISPLAY_ROUTINE_POTENTIAL && can_fire_arrow(ch, TRUE)) {
@@ -4633,11 +4638,10 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     }
     return 0;
   }
-  if (drop_an_attack_at_max_bab)
+  if (drop_an_attack_at_max_bab) /*cleanup for ranged*/
     attacks_at_max_bab -= drop_an_attack_at_max_bab;
-  /*  End ranged attacks ---------------------------------------------------- */
 
-  /* temporary solution */
+  /* this probably needs to be redone */
   if (!can_fire_arrow(ch, FALSE) && is_using_ranged_weapon(ch)) {
     send_to_char(ch, "You can't use a ranged weapon in melee combat!\r\n");
     return 0;
@@ -4646,7 +4650,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     FIRING(ch) = TRUE;
     return 0;
   }
+  /*  End ranged attacks ---------------------------------------------------- */
 
+  /* Process Melee Attacks -------------------------------------------------- */
   //melee: now lets determine base attack(s) and resulting possible penalty
   dual = is_dual_wielding(ch); // trelux or has off-hander equipped
 
