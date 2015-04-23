@@ -29,6 +29,7 @@
 #include "actions.h"
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
+#include "feats.h"
 
 /**** Utility functions *******/
 
@@ -3142,7 +3143,19 @@ ACMD(do_reload) {
     case WEAPON_TYPE_HEAVY_REP_XBOW:
     case WEAPON_TYPE_LIGHT_REP_XBOW:
     case WEAPON_TYPE_HEAVY_CROSSBOW:
-      if (is_action_available(ch, atSTANDARD, TRUE) &&
+      if (has_feat(ch, FEAT_RAPID_RELOAD)) {
+        if (is_action_available(ch, atMOVE, TRUE)) {
+          if (reload_weapon(ch, wielded)) {
+            USE_MOVE_ACTION(ch); /* success! */
+          } else {
+            return;
+          }
+        } else {
+          send_to_char(ch, "Reloading %s requires a move-action\r\n",
+                       wielded->short_description);
+          return;
+        }
+      } else if (is_action_available(ch, atSTANDARD, TRUE) &&
           is_action_available(ch, atMOVE, TRUE)) {
         if (reload_weapon(ch, wielded)) {
           USE_FULL_ROUND_ACTION(ch); /* success! */
@@ -3159,7 +3172,9 @@ ACMD(do_reload) {
     case WEAPON_TYPE_HAND_CROSSBOW:
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_SLING:
-      if (is_action_available(ch, atMOVE, TRUE)) {
+      if (has_feat(ch, FEAT_RAPID_RELOAD))
+        reload_weapon(ch, wielded);
+      else if (is_action_available(ch, atMOVE, TRUE)) {
         if (reload_weapon(ch, wielded)) {
           USE_MOVE_ACTION(ch); /* success! */
         } else {

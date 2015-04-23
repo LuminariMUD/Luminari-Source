@@ -372,11 +372,14 @@ bool this_weapon_needs_reloading(struct char_data *ch, struct obj_data *wielded)
   /* value 0 = weapon define value */
   switch (GET_OBJ_VAL(wielded, 0)) {
     case WEAPON_TYPE_HEAVY_CROSSBOW:
+    case WEAPON_TYPE_HEAVY_REP_XBOW:
+    case WEAPON_TYPE_LIGHT_REP_XBOW:
+      return TRUE;
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_SLING:
     case WEAPON_TYPE_HAND_CROSSBOW:
-    case WEAPON_TYPE_HEAVY_REP_XBOW:
-    case WEAPON_TYPE_LIGHT_REP_XBOW:
+      if (has_feat(ch, FEAT_RAPID_RELOAD)) /* free action! */
+        return FALSE;
       return TRUE;
   }
   return FALSE;
