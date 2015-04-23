@@ -2233,6 +2233,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAPON_TYPE_HAND_CROSSBOW   60
 #define WEAPON_TYPE_HEAVY_REP_XBOW  61
 #define WEAPON_TYPE_LIGHT_REP_XBOW  62
+/* Ranged */
 #define WEAPON_TYPE_BOLA            63
 #define WEAPON_TYPE_NET             64
 #define WEAPON_TYPE_SHURIKEN        65

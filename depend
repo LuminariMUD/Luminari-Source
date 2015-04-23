@@ -52,7 +52,7 @@ asciimap.o: asciimap.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h house.h \
  constants.h dg_scripts.h asciimap.h wilderness.h
 assign_wpn_armor.o: assign_wpn_armor.c conf.h sysdep.h structs.h \
- protocol.h lists.h utils.h race.h db.h assign_wpn_armor.h craft.h \
+ protocol.h lists.h comm.h utils.h race.h db.h assign_wpn_armor.h craft.h \
  feats.h
 ban.o: ban.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  comm.h interpreter.h handler.h db.h ban.h
