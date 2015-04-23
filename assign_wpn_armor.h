@@ -74,6 +74,9 @@ int is_proficient_with_helm(struct char_data *ch);
 int is_proficient_with_sleeves(struct char_data *ch);
 int is_proficient_with_leggings(struct char_data *ch);
 
+bool this_weapon_needs_reloading(struct char_data *ch, struct obj_data *wielded);
+
+
 bool monk_gear_ok(struct char_data *ch);
 /**/
 

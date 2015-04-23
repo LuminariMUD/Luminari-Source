@@ -7,6 +7,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "comm.h"
 #include "utils.h"
 #include "db.h"
 #include "assign_wpn_armor.h"
@@ -146,6 +147,183 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
 
 /* can fire missiles, such as bow, crossbow, sling, etc */
 //#define WEAPON_FLAG_RANGED      (1 << 3)
+/* this function checks if weapon is loaded (like crossbows) */
+bool weapon_is_loaded(struct char_data *ch, bool silent) {
+  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
+
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+
+  if (!wielded) {
+    return FALSE;
+  }
+
+  if (!this_weapon_needs_reloading(ch, wielded)) { /* doesn't require */
+    return FALSE;
+  }
+
+  if (GET_OBJ_VAL(wielded, 5) <= 0) { /* object value 5 is for loaded status */
+    if (!silent)
+      send_to_char(ch, "You have to reload your weapon!\r\n");
+    FIRING(ch) = FALSE;
+    return FALSE;
+  }
+
+  return TRUE;
+}
+/* this function will check to make sure ammo is ready for firing */
+bool has_missile_in_ammo_pouch(struct char_data *ch, bool silent) {
+  struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
+  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
+
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+
+  if (!wielded) {
+    if (!silent)
+      send_to_char(ch, "You have no weapon!\r\n");
+    FIRING(ch) = FALSE;
+    return FALSE;
+  }
+
+  if (!ammo_pouch) {
+    if (!silent)
+      send_to_char(ch, "You have no ammo pouch!\r\n");
+    FIRING(ch) = FALSE;
+    return FALSE;
+  }
+
+  if (!ammo_pouch->contains) {
+    if (!silent)
+      send_to_char(ch, "Your ammo pouch is empty!\r\n");
+    FIRING(ch) = FALSE;
+    return FALSE;
+  }
+
+  if (GET_OBJ_TYPE(ammo_pouch->contains) != ITEM_MISSILE) {
+    if (!silent)
+      send_to_char(ch, "Your ammo pouch needs to be filled with only ammo!\r\n");
+    FIRING(ch) = FALSE;
+    return FALSE;
+  }
+
+  switch (GET_OBJ_VAL(ammo_pouch->contains, 0)) {
+
+    case AMMO_TYPE_ARROW:
+      switch (GET_OBJ_VAL(wielded, 0)) {
+        case WEAPON_TYPE_LONG_BOW:
+        case WEAPON_TYPE_SHORT_BOW:
+        case WEAPON_TYPE_COMPOSITE_LONGBOW:
+        case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
+        case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
+        case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
+        case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
+        case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+        case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+        case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+        case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+        case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+          break;
+        default:
+          if (!silent)
+            act("Your $p requires a bow.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+          FIRING(ch) = FALSE;
+          return FALSE;
+      }
+      break;
+
+    case AMMO_TYPE_BOLT:
+      switch (GET_OBJ_VAL(wielded, 0)) {
+        case WEAPON_TYPE_HAND_CROSSBOW:
+        case WEAPON_TYPE_HEAVY_REP_XBOW:
+        case WEAPON_TYPE_LIGHT_REP_XBOW:
+        case WEAPON_TYPE_HEAVY_CROSSBOW:
+        case WEAPON_TYPE_LIGHT_CROSSBOW:
+          break;
+        default:
+          if (!silent)
+            act("Your $p requires a crossbow.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+          FIRING(ch) = FALSE;
+          return FALSE;
+      }
+      break;
+
+    case AMMO_TYPE_STONE:
+      switch (GET_OBJ_VAL(wielded, 0)) {
+        case WEAPON_TYPE_SLING:
+          break;
+        default:
+          if (!silent)
+            act("Your $p requires a sling.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+          FIRING(ch) = FALSE;
+          return FALSE;
+      }
+      break;
+
+    case AMMO_TYPE_DART:
+      switch (GET_OBJ_VAL(wielded, 0)) {
+        case WEAPON_TYPE_DART:
+          break;
+        default:
+          if (!silent)
+            act("Your $p requires a dart-gun.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+          FIRING(ch) = FALSE;
+          return FALSE;
+      }
+      break;
+
+    case AMMO_TYPE_UNDEFINED:
+    default:
+      if (!silent)
+        act("Your $p does not fit your weapon...", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+      FIRING(ch) = FALSE;
+      return FALSE;
+  }
+
+  /* cleared all checks */
+  return TRUE;
+}
+/* ranged combat (archery, etc)
+ * this function will check for a ranged weapon, ammo and does
+ * a check of loaded-status (like x-bow) and "has_missile_in_ammo_pouch"
+ */
+bool can_fire_arrow(struct char_data *ch, bool silent) {
+
+  if (!GET_EQ(ch, WEAR_AMMO_POUCH)) {
+    if (!silent)
+      send_to_char(ch, "But you do not wear an ammo pouch.\r\n");
+    FIRING(ch) = FALSE;
+    return FALSE;
+  }
+
+  if (!is_using_ranged_weapon(ch)) {
+    if (!silent)
+      send_to_char(ch, "But you are not using a ranged weapon!\r\n");
+    FIRING(ch) = FALSE;
+    return FALSE;
+  }
+
+  if (!has_missile_in_ammo_pouch(ch, silent)) {
+    if (!silent)
+      send_to_char(ch, "You have no ammo!\r\n");
+    FIRING(ch) = FALSE;
+    return FALSE;
+  }
+
+  if (!weapon_is_loaded(ch, silent)) {
+    if (!silent)
+      send_to_char(ch, "You need to reload your weapon!\r\n");
+    FIRING(ch) = FALSE;
+    return FALSE;
+  }
+
+  /* ok! */
+  return TRUE;
+}
 bool is_using_ranged_weapon(struct char_data *ch) {
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
@@ -161,6 +339,19 @@ bool is_using_ranged_weapon(struct char_data *ch) {
   if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].weaponFlags, WEAPON_FLAG_RANGED))
     return TRUE;
 
+  return FALSE;
+}
+bool this_weapon_needs_reloading(struct char_data *ch, struct obj_data *wielded) {
+  /* value 0 = weapon define value */
+  switch (GET_OBJ_VAL(wielded, 0)) {
+    case WEAPON_TYPE_HEAVY_CROSSBOW:
+    case WEAPON_TYPE_LIGHT_CROSSBOW:
+    case WEAPON_TYPE_SLING:
+    case WEAPON_TYPE_HAND_CROSSBOW:
+    case WEAPON_TYPE_HEAVY_REP_XBOW:
+    case WEAPON_TYPE_LIGHT_REP_XBOW:
+      return TRUE;
+  }
   return FALSE;
 }
 
