@@ -3146,6 +3146,8 @@ ACMD(do_reload) {
           is_action_available(ch, atMOVE, TRUE)) {
         if (reload_weapon(ch, wielded)) {
           USE_FULL_ROUND_ACTION(ch); /* success! */
+        } else {
+          return;
         }
       } else {
         send_to_char(ch, "Reloading %s requires a full-round-action\r\n",
@@ -3160,9 +3162,11 @@ ACMD(do_reload) {
       if (is_action_available(ch, atMOVE, TRUE)) {
         if (reload_weapon(ch, wielded)) {
           USE_MOVE_ACTION(ch); /* success! */
+        } else {
+          return;
         }
       } else {
-        send_to_char(ch, "Reloading %s requires a full-round-action\r\n",
+        send_to_char(ch, "Reloading %s requires a move-action\r\n",
                      wielded->short_description);
         return;
       }
