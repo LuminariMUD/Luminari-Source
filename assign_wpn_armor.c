@@ -292,6 +292,7 @@ bool has_missile_in_ammo_pouch(struct char_data *ch, bool silent) {
  * a check of loaded-status (like x-bow) and "has_missile_in_ammo_pouch"
  */
 bool can_fire_arrow(struct char_data *ch, bool silent) {
+  struct obj_data *wielded = NULL;
 
   if (!GET_EQ(ch, WEAR_AMMO_POUCH)) {
     if (!silent)
@@ -300,7 +301,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
     return FALSE;
   }
 
-  if (!is_using_ranged_weapon(ch)) {
+  if (!(wielded = is_using_ranged_weapon(ch))) {
     if (!silent)
       send_to_char(ch, "But you are not using a ranged weapon!\r\n");
     FIRING(ch) = FALSE;
@@ -314,7 +315,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
     return FALSE;
   }
 
-  if (!weapon_is_loaded(ch, silent)) {
+  if (this_weapon_needs_reloading(ch, wielded) && !weapon_is_loaded(ch, silent)) {
     if (!silent)
       send_to_char(ch, "You need to reload your weapon!\r\n");
     FIRING(ch) = FALSE;
@@ -324,7 +325,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
   /* ok! */
   return TRUE;
 }
-bool is_using_ranged_weapon(struct char_data *ch) {
+struct obj_data *is_using_ranged_weapon(struct char_data *ch) {
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
   if (!wielded)
@@ -333,13 +334,13 @@ bool is_using_ranged_weapon(struct char_data *ch) {
     wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
 
   if (!wielded) {
-    return FALSE;
+    return NULL;
   }
 
   if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].weaponFlags, WEAPON_FLAG_RANGED))
-    return TRUE;
+    return wielded;
 
-  return FALSE;
+  return NULL;
 }
 bool this_weapon_needs_reloading(struct char_data *ch, struct obj_data *wielded) {
   /* value 0 = weapon define value */
