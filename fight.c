@@ -4598,7 +4598,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           break;
       }
       if (perform_attack) { /* correct phase for this attack? */
-        if (can_fire_arrow(ch, TRUE) && FIGHTING(ch)) {
+        if (can_fire_arrow(ch, FALSE) && FIGHTING(ch)) {
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, /* FIRE! */
                 penalty, ATTACK_TYPE_RANGED);
           if (attacks_at_max_bab > 0)
@@ -4642,9 +4642,10 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     attacks_at_max_bab -= drop_an_attack_at_max_bab;
 
   /* this probably needs to be redone */
-  if (!can_fire_arrow(ch, FALSE)) {
+  if (!can_fire_arrow(ch, TRUE)) {
     if (is_using_ranged_weapon(ch)) {
       //send_to_char(ch, "You can't use a ranged weapon in melee combat!\r\n");
+      FIRING(ch) = FALSE;
       return 0;
     }
   } else if (can_fire_arrow(ch, FALSE)) {
