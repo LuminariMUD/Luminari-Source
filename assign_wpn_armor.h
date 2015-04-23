@@ -75,6 +75,7 @@ int is_proficient_with_sleeves(struct char_data *ch);
 int is_proficient_with_leggings(struct char_data *ch);
 
 bool this_weapon_needs_reloading(struct char_data *ch, struct obj_data *wielded);
+bool can_fire_arrow(struct char_data *ch, bool silent);
 
 
 bool monk_gear_ok(struct char_data *ch);

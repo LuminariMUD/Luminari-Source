@@ -252,8 +252,6 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict);
 void perform_assist(struct char_data *ch, struct char_data *helpee);
 void perform_springleap(struct char_data *ch, struct char_data *vict);
 bool perform_backstab(struct char_data *ch, struct char_data *vict);
-bool has_missile_in_ammo_pouch(struct char_data *ch, bool silent);
-bool can_fire_arrow(struct char_data *ch, bool silent);
 /* Functions with subcommands */
 /* do_hit */
 ACMD(do_hit);
