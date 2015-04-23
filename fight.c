@@ -4619,9 +4619,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     return 0;
 
     /* Display Modes, not actually firing */
-  } else if (mode == RETURN_NUM_ATTACKS && can_fire_arrow(ch, TRUE)) {
+  } else if (mode == RETURN_NUM_ATTACKS) {// && can_fire_arrow(ch, TRUE)) {
     return ranged_attacks;
-  } else if (mode == DISPLAY_ROUTINE_POTENTIAL && can_fire_arrow(ch, TRUE)) {
+  } else if (mode == DISPLAY_ROUTINE_POTENTIAL) {// && can_fire_arrow(ch, TRUE)) {
     while (ranged_attacks > 0) {
       /* display hitroll bonus */
       send_to_char(ch, "Ranged Attack Bonus:  %d; ",
