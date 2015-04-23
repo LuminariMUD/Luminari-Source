@@ -4598,7 +4598,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           break;
       }
       if (perform_attack) { /* correct phase for this attack? */
-        if (can_fire_arrow(ch, FALSE) && FIGHTING(ch)) {
+        if (can_fire_arrow(ch, TRUE) && FIGHTING(ch)) {
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, /* FIRE! */
                 penalty, ATTACK_TYPE_RANGED);
           if (attacks_at_max_bab > 0)
