@@ -3110,6 +3110,71 @@ ACMD(do_charge) {
   perform_charge(ch);
 }
 
+/* ranged-weapons, reload mechanic for slings, crossbows */
+ACMD(do_reload) {
+  struct obj_data *wielded = is_using_ranged_weapon(ch);
+  //action_type act_type;
+  /* atSTANDARD,
+     atMOVE,
+     atSWIFT */
+
+  if (!wielded) {
+    send_to_char(ch, "You are not wielding a ranged weapon.\r\n");
+    return;
+  }
+
+  if (!this_weapon_needs_reloading(ch, wielded)) {
+    send_to_char(ch, "This weapon does not need reloading (free action).\r\n");
+    return;
+  }
+
+  if (!has_missile_in_ammo_pouch(ch, wielded, TRUE)) {
+    send_to_char(ch, "To reload your weapon, you need to make sure you have an "
+            "ammo pouch with the correct ammo in it.\r\n");
+    return;
+  }
+
+  /* passed all dummy checks, let's see if we have the action available we
+   need to reload this weapon */
+  //  bool is_action_available(struct char_data * ch, action_type act_type, bool msg_to_char)
+
+  switch (GET_OBJ_VAL(wielded, 0)) {
+    case WEAPON_TYPE_HEAVY_REP_XBOW:
+    case WEAPON_TYPE_LIGHT_REP_XBOW:
+    case WEAPON_TYPE_HEAVY_CROSSBOW:
+      if (is_action_available(ch, atSTANDARD, TRUE) &&
+          is_action_available(ch, atMOVE, TRUE)) {
+        if (reload_weapon(ch, wielded)) {
+          USE_FULL_ROUND_ACTION(ch); /* success! */
+        }
+      } else {
+        send_to_char(ch, "Reloading %s requires a full-round-action\r\n",
+                     wielded->short_description);
+        return;
+      }
+
+      break;
+    case WEAPON_TYPE_HAND_CROSSBOW:
+    case WEAPON_TYPE_LIGHT_CROSSBOW:
+    case WEAPON_TYPE_SLING:
+      if (is_action_available(ch, atMOVE, TRUE)) {
+        if (reload_weapon(ch, wielded)) {
+          USE_MOVE_ACTION(ch); /* success! */
+        }
+      } else {
+        send_to_char(ch, "Reloading %s requires a full-round-action\r\n",
+                     wielded->short_description);
+        return;
+      }
+
+      break;
+    default:
+      send_to_char(ch, "%s does not require reloading!\r\n",
+                     wielded->short_description);
+      return;
+  }
+
+}
 /* ranged-weapons combat, archery
  * fire command, fires single arrow - checks can_fire_arrow()
  */

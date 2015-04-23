@@ -147,6 +147,38 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
 
 /* can fire missiles, such as bow, crossbow, sling, etc */
 //#define WEAPON_FLAG_RANGED      (1 << 3)
+
+#define MAX_AMMO_INSIDE_WEAPON 3
+bool reload_weapon(struct char_data *ch, struct obj_data *wielded) {
+  int load_amount = 0;
+
+  switch (GET_OBJ_VAL(wielded, 0)) {
+    case WEAPON_TYPE_HEAVY_REP_XBOW:
+    case WEAPON_TYPE_LIGHT_REP_XBOW:
+      load_amount = 3;
+      break;
+    case WEAPON_TYPE_HAND_CROSSBOW:
+    case WEAPON_TYPE_HEAVY_CROSSBOW:
+    case WEAPON_TYPE_LIGHT_CROSSBOW:
+    case WEAPON_TYPE_SLING:
+      load_amount = 1;
+      break;
+    default:
+      return FALSE;
+  }
+
+  /* object value 5 is for loaded status */
+  if (GET_OBJ_VAL(wielded, 5) >= load_amount) {
+    send_to_char(ch, "Your weapon does not need reloading.\r\n");
+    return FALSE;
+  }
+
+  /* load her up! Object Value 5 is "loaded status" */
+  GET_OBJ_VAL(wielded, 5) = load_amount;
+
+  return TRUE;
+}
+
 /* this function checks if weapon is loaded (like crossbows) */
 bool weapon_is_loaded(struct char_data *ch, bool silent) {
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
@@ -174,14 +206,9 @@ bool weapon_is_loaded(struct char_data *ch, bool silent) {
   return TRUE;
 }
 /* this function will check to make sure ammo is ready for firing */
-bool has_missile_in_ammo_pouch(struct char_data *ch, bool silent) {
+bool has_missile_in_ammo_pouch(struct char_data *ch, struct obj_data *wielded,
+                               bool silent) {
   struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
-  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
-
-  if (!wielded)
-    wielded = GET_EQ(ch, WEAR_WIELD_1);
-  if (!wielded)
-    wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
 
   if (!wielded) {
     if (!silent)
@@ -308,7 +335,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
     return FALSE;
   }
 
-  if (!has_missile_in_ammo_pouch(ch, silent)) {
+  if (!has_missile_in_ammo_pouch(ch, wielded, silent)) {
     if (!silent)
       send_to_char(ch, "You have no ammo!\r\n");
     FIRING(ch) = FALSE;

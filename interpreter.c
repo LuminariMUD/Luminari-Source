@@ -390,6 +390,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "rage", "rage", POS_FIGHTING, do_rage, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "recline", "recline", POS_SLEEPING, do_recline, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "renewedvigor", "renewedvigor", POS_RECLINING, do_renewedvigor, 1, 0, FALSE, ACTION_SWIFT, {0, 0}},
+  { "reload", "reload", POS_FIGHTING, do_reload, 1, 0, FALSE, ACTION_NONE, {0, 0}},
 
   { "sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "say", "s", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}},
