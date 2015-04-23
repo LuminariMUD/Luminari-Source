@@ -3174,6 +3174,8 @@ ACMD(do_reload) {
       return;
   }
 
+  send_to_char(ch, "You reload %s.\r\n", wielded->short_description);
+  return;
 }
 /* ranged-weapons combat, archery
  * fire command, fires single arrow - checks can_fire_arrow()
