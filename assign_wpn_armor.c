@@ -343,8 +343,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
   }
 
   if (this_weapon_needs_reloading(ch, wielded) && !weapon_is_loaded(ch, silent)) {
-    if (!silent)
-      send_to_char(ch, "You need to reload your weapon!\r\n");
+    /* a message is ent in weapon_is_loaded() */
     FIRING(ch) = FALSE;
     return FALSE;
   }
