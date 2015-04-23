@@ -4642,13 +4642,17 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     attacks_at_max_bab -= drop_an_attack_at_max_bab;
 
   /* this probably needs to be redone */
-  if (!can_fire_arrow(ch, FALSE) && is_using_ranged_weapon(ch)) {
-    //send_to_char(ch, "You can't use a ranged weapon in melee combat!\r\n");
-    return 0;
-  } else if (can_fire_arrow(ch, FALSE) && is_using_ranged_weapon(ch)) {
-    send_to_char(ch, "You prepare your ranged weapon!\r\n");
-    FIRING(ch) = TRUE;
-    return 0;
+  if (!can_fire_arrow(ch, FALSE)) {
+    if (is_using_ranged_weapon(ch)) {
+      //send_to_char(ch, "You can't use a ranged weapon in melee combat!\r\n");
+      return 0;
+    }
+  } else if (can_fire_arrow(ch, FALSE)) {
+    if (is_using_ranged_weapon(ch)) {
+      send_to_char(ch, "You prepare your ranged weapon!\r\n");
+      FIRING(ch) = TRUE;
+      return 0;
+    }
   }
   /*  End ranged attacks ---------------------------------------------------- */
 
