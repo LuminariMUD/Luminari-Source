@@ -59,15 +59,15 @@ struct item_data *create_item(void) {
 }
 
 /*
-struct iterator_data *create_iterator(void) 
+struct iterator_data *create_iterator(void)
 {
   struct iterator_data *pNewIterator = NULL;
-	
+
   CREATE(pNewIterator, struct iterator_data, 1);
-	
+
   pNewIterator->list_data = NULL;
   pNewIterator->item_data = NULL;
-	
+
   return (pNewIterator);
 }
  */
@@ -77,7 +77,7 @@ struct iterator_data *create_iterator(void)
 void free_list(struct list_data *pList) {
   void *pContent = NULL;
 
-  simple_list(NULL);  
+  simple_list(NULL);
 
   if (pList && pList->iSize)
     while ((pContent = simple_list(pList)))
@@ -191,7 +191,7 @@ void remove_iterator(struct iterator_data * pIterator) {
   pIterator->pItem = NULL;
 }
 
-/** Spits out an item and cycles down the list  
+/** Spits out an item and cycles down the list
  * @return Returns the content of the list
  * */
 
@@ -247,18 +247,18 @@ struct item_data *find_in_list(void * pContent, struct list_data * pList) {
     return NULL;
 }
 
-/* -working on this, zusuk (04/22/13)
+/* -working on this, zusuk (04/22/13) */
 void clear_simple_list(void) {
   loop = FALSE;
   pLastList = NULL;
 }
-*/
+
 
 /** This is the "For Dummies" function, as although it's not as flexible,
  * it is even easier applied for list searches then using your own iterators
  * and next_in_list()
  * @usage Common usage would be as follows:
- * 
+ *
  * while ((var = (struct XXX_data *) simple_list(XXX_list))) {
  *   blah blah....
  * }
@@ -284,11 +284,11 @@ void *simple_list(struct list_data *pList) {
     pLastList = NULL;
     return NULL;
   }
-  
+
   /* Ripley suggested this
   if (pList->pFirstItem == NULL)
     return NULL;
-  */ 
+  */
 
   if (!loop || pLastList != pList) {
     if (loop && pLastList != pList)
