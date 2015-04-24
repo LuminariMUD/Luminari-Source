@@ -251,7 +251,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
              ONOFF(!PREFEDIT_FLAGGED(PRF_AUTOSCAN)), CCCYN(d->character, C_NRM)
              );
 
-  send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]      %sS%s) AutoReload %s[%s%3s%s]\r\n"
+  send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]      %sT%s) AutoReload %s[%s%3s%s]\r\n"
                              "%s8%s) Autokey      %s[%s%3s%s]\r\n"
                              "%s9%s) Autodoor     %s[%s%3s%s]\r\n",
 /* Line 7 - automap & autoreload */
