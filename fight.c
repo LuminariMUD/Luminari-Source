@@ -2398,31 +2398,33 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         dambonus += GET_STR_BONUS(ch);
       else {
         /* some ranged weapons get various strength bonus */
-        switch (GET_OBJ_VAL(wielded, 0)) {
-          case WEAPON_TYPE_COMPOSITE_SHORTBOW:
-          case WEAPON_TYPE_COMPOSITE_LONGBOW:
-            dambonus += MIN(1, GET_STR_BONUS(ch));
-            break;
-          case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
-          case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
-            dambonus += MIN(2, GET_STR_BONUS(ch));
-            break;
-          case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
-          case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
-            dambonus += MIN(3, GET_STR_BONUS(ch));
-            break;
-          case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
-          case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
-            dambonus += MIN(4, GET_STR_BONUS(ch));
-            break;
-          case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
-          case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
-            dambonus += MIN(5, GET_STR_BONUS(ch));
-            break;
-          case WEAPON_TYPE_SLING:
-            dambonus += GET_STR_BONUS(ch);
-            break;
-          default:break; /* nope, no bonus */
+        if (wielded) {
+          switch (GET_OBJ_VAL(wielded, 0)) {
+            case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+            case WEAPON_TYPE_COMPOSITE_LONGBOW:
+              dambonus += MIN(1, GET_STR_BONUS(ch));
+              break;
+            case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
+            case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+              dambonus += MIN(2, GET_STR_BONUS(ch));
+              break;
+            case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
+            case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+              dambonus += MIN(3, GET_STR_BONUS(ch));
+              break;
+            case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
+            case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+              dambonus += MIN(4, GET_STR_BONUS(ch));
+              break;
+            case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
+            case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+              dambonus += MIN(5, GET_STR_BONUS(ch));
+              break;
+            case WEAPON_TYPE_SLING:
+              dambonus += GET_STR_BONUS(ch);
+              break;
+            default:break; /* nope, no bonus */
+          }
         }
       }
 
