@@ -10,9 +10,13 @@
 #include "comm.h"
 #include "utils.h"
 #include "db.h"
+#include "mud_event.h"
+#include "actions.h"
+#include "actionqueues.h"
 #include "assign_wpn_armor.h"
 #include "craft.h"
 #include "feats.h"
+
 
 /* global */
 struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
@@ -148,12 +152,99 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
 /* can fire missiles, such as bow, crossbow, sling, etc */
 //#define WEAPON_FLAG_RANGED      (1 << 3)
 
-#define MAX_AMMO_INSIDE_WEAPON 3
+/* ranged-weapons, reload mechanic for slings, crossbows */
+/* TODO:  improve this cheese :P  also combine do_reload mechanic with this */
+bool auto_reload_weapon(struct char_data *ch) {
+  struct obj_data *wielded = is_using_ranged_weapon(ch);
+  //action_type act_type;
+  /* atSTANDARD,
+     atMOVE,
+     atSWIFT */
+
+  if (!wielded) {
+    return FALSE;
+  }
+
+  if (!this_weapon_needs_reloading(ch, wielded)) {
+    return FALSE;
+  }
+
+  if (!has_missile_in_ammo_pouch(ch, wielded, TRUE)) {
+    return FALSE;
+  }
+
+  /* passed all dummy checks, let's see if we have the action available we
+   need to reload this weapon */
+  //  bool is_action_available(struct char_data * ch, action_type act_type, bool msg_to_char)
+
+  switch (GET_OBJ_VAL(wielded, 0)) {
+    case WEAPON_TYPE_HEAVY_REP_XBOW:
+    case WEAPON_TYPE_LIGHT_REP_XBOW:
+    case WEAPON_TYPE_HEAVY_CROSSBOW:
+      if (has_feat(ch, FEAT_RAPID_RELOAD)) {
+        if (is_action_available(ch, atMOVE, TRUE)) {
+          if (reload_weapon(ch, wielded)) {
+            USE_MOVE_ACTION(ch); /* success! */
+          } else {
+            /* failed reload */
+            return FALSE;
+          }
+        } else {
+          /* reloading requires a move action */
+          return FALSE;
+        }
+      } else if (is_action_available(ch, atSTANDARD, TRUE) &&
+          is_action_available(ch, atMOVE, TRUE)) {
+        if (reload_weapon(ch, wielded)) {
+          USE_FULL_ROUND_ACTION(ch); /* success! */
+        } else {
+          /* failed reload */
+          return FALSE;
+        }
+      } else {
+        /* reloading requires a full round action */
+        return FALSE;
+      }
+
+      break;
+    case WEAPON_TYPE_HAND_CROSSBOW:
+    case WEAPON_TYPE_LIGHT_CROSSBOW:
+    case WEAPON_TYPE_SLING:
+      if (has_feat(ch, FEAT_RAPID_RELOAD))
+        reload_weapon(ch, wielded);
+      else if (is_action_available(ch, atMOVE, TRUE)) {
+        if (reload_weapon(ch, wielded)) {
+          USE_MOVE_ACTION(ch); /* success! */
+        } else {
+          /* failed reload */
+          return FALSE;
+        }
+      } else {
+        /* reloading requires a move action */
+        return FALSE;
+      }
+
+      break;
+    default:
+      /* the cucumber you are wielding is fully loaded */
+      return FALSE;
+  }
+
+  send_to_char(ch, "You reload %s.\r\n", wielded->short_description);
+  if (FIGHTING(ch))
+    FIRING(ch) = TRUE;
+  return TRUE;
+}
+
+
+#define MAX_AMMO_INSIDE_WEAPON 5 //unused
 bool reload_weapon(struct char_data *ch, struct obj_data *wielded) {
   int load_amount = 0;
 
   switch (GET_OBJ_VAL(wielded, 0)) {
     case WEAPON_TYPE_HEAVY_REP_XBOW:
+      load_amount = 5;
+      break;
     case WEAPON_TYPE_LIGHT_REP_XBOW:
       load_amount = 3;
       break;

@@ -3112,6 +3112,7 @@ ACMD(do_charge) {
 }
 
 /* ranged-weapons, reload mechanic for slings, crossbows */
+/* TODO:  improve this cheese :P  also combine autoreload mechanic with this */
 ACMD(do_reload) {
   struct obj_data *wielded = is_using_ranged_weapon(ch);
   //action_type act_type;
@@ -3198,6 +3199,7 @@ ACMD(do_reload) {
     FIRING(ch) = TRUE;
   return;
 }
+
 /* ranged-weapons combat, archery
  * fire command, fires single arrow - checks can_fire_arrow()
  */
