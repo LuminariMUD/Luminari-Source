@@ -16,6 +16,8 @@
 #include "mud_event.h"
 #include "handler.h"
 #include "wilderness.h"
+#include "lists.h"
+
 
 /* Global List */
 struct list_data * world_events = NULL;
