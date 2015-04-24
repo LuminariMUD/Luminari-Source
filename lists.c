@@ -12,11 +12,11 @@
 #include "db.h"
 #include "dg_event.h"
 
-/*
-static struct iterator_data Iterator;
+
+//static struct iterator_data Iterator;
 static bool loop = FALSE;
 static struct list_data *pLastList = NULL;
-*/
+
 
 /* Global lists */
 struct list_data *global_lists = NULL;
