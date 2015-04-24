@@ -4619,6 +4619,10 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
         }
       }
     } /*end FIRE!*/
+
+    /* is this the best place to put this? for x-bow/sling */
+    auto_reload_weapon(ch);
+
     return 0;
 
     /* Display Modes, not actually firing */

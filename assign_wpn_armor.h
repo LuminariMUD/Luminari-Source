@@ -79,6 +79,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent);
 bool has_missile_in_ammo_pouch(struct char_data *ch, struct obj_data *wielded,
                                bool silent);
 bool reload_weapon(struct char_data *ch, struct obj_data *wielded);
+bool auto_reload_weapon(struct char_data *ch);
 
 bool monk_gear_ok(struct char_data *ch);
 /**/
