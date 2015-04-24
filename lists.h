@@ -1,13 +1,13 @@
 /**
 * @file lists.h
 * Lists Header file.
-* 
+*
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
-* 
+*
 * This source code, which was not part of the CircleMUD legacy code,
 * is attributed to:
-* Copyright 2012 by Joseph Arnusch.                                                    
+* Copyright 2012 by Joseph Arnusch.
 */
 
 #ifndef _LISTS_HEADER
@@ -49,3 +49,5 @@ void * simple_list(struct list_data * pList);
 void free_list(struct list_data * pList);
 void clear_simple_list(void);
 #endif
+
+

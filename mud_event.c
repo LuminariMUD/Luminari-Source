@@ -13,10 +13,10 @@
 #include "dg_event.h"
 #include "constants.h"
 #include "comm.h"  /* For access to the game pulse */
+#include "lists.h"
 #include "mud_event.h"
 #include "handler.h"
 #include "wilderness.h"
-#include "lists.h"
 
 
 /* Global List */
