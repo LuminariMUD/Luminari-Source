@@ -502,6 +502,35 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId) {
   return NULL;
 }
 
+void event_cancel_specific(struct char_data *ch, event_id iId) {
+  struct event * pEvent;
+  struct mud_event_data * pMudEvent = NULL;
+  bool found = FALSE;
+
+  if (ch->events == NULL)
+    return;
+
+  if (ch->events->iSize == 0)
+    return;
+
+  clear_simple_list();
+
+  while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
+    if (!pEvent->isMudEvent)
+      continue;
+    pMudEvent = (struct mud_event_data *) pEvent->event_obj;
+    if (pMudEvent->iId == iId) {
+      found = TRUE;
+      break;
+    }
+  }
+
+  if (found)
+    event_cancel(pEvent);
+
+  return;
+}
+
 void clear_char_event_list(struct char_data * ch) {
   struct event * pEvent = NULL;
   struct iterator_data it;

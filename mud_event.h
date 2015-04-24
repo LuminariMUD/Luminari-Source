@@ -114,6 +114,7 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId); /
 void clear_char_event_list(struct char_data *ch);
 void clear_room_event_list(struct room_data *rm);
 void change_event_duration(struct char_data *ch, event_id iId, long time);
+void event_cancel_specific(struct char_data *ch, event_id iId);
 
 #define HAS_WAIT(ch)            char_has_mud_event(ch, eWAIT)
 /* note: ornir has (temporarily?) disabled this event */

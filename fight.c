@@ -822,6 +822,10 @@ void stop_fighting(struct char_data *ch) {
     GET_POS(ch) = POS_STANDING;
   update_pos(ch);
 
+  /* don't forget to remove the fight event! */
+  if (char_has_mud_event(ch, eCOMBAT_ROUND))
+    event_cancel_specific(ch, eCOMBAT_ROUND);
+
   /* Reset the combat data */
   GET_TOTAL_AOO(ch) = 0;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
