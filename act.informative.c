@@ -3108,6 +3108,10 @@ ACMD(do_toggle) {
     {"autoscan", PRF_AUTOSCAN, 0,
      "Autoscan disabled.\r\n",
      "Autoscan enabled.\r\n"},
+                      /*35*/
+    {"autoreload", PRF_AUTORELOAD, 0,
+     "Autoreload disabled.\r\n",
+     "Autoreload enabled.\r\n"},
                       /*LAST*/
     {"\n", 0, -1, "\n", "\n"} /* must be last */
   };
@@ -3198,8 +3202,9 @@ ACMD(do_toggle) {
 
                  "   Room Display: %-3s    "
                  "Memtime Display: %-3s    "
-                 "Actions Display: %-3s\r\n",
+                 "Actions Display: %-3s\r\n"
 
+                 "     AutoReload: %-3s\r\n",
 
                  ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
                  ONOFF(PRF_FLAGGED(ch, PRF_BRIEF)),
@@ -3243,7 +3248,8 @@ ACMD(do_toggle) {
 
                  ONOFF(PRF_FLAGGED(ch, PRF_DISPROOM)),
                  ONOFF(PRF_FLAGGED(ch, PRF_DISPMEMTIME)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_DISPACTIONS))
+                 ONOFF(PRF_FLAGGED(ch, PRF_DISPACTIONS)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTORELOAD))
                  /*end*/);
     return;
   }

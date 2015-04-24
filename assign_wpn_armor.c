@@ -156,10 +156,6 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
 /* TODO:  improve this cheese :P  also combine do_reload mechanic with this */
 bool auto_reload_weapon(struct char_data *ch) {
   struct obj_data *wielded = is_using_ranged_weapon(ch);
-  //action_type act_type;
-  /* atSTANDARD,
-     atMOVE,
-     atSWIFT */
 
   if (!wielded) {
     return FALSE;
@@ -173,16 +169,12 @@ bool auto_reload_weapon(struct char_data *ch) {
     return FALSE;
   }
 
-  /* passed all dummy checks, let's see if we have the action available we
-   need to reload this weapon */
-  //  bool is_action_available(struct char_data * ch, action_type act_type, bool msg_to_char)
-
   switch (GET_OBJ_VAL(wielded, 0)) {
     case WEAPON_TYPE_HEAVY_REP_XBOW:
     case WEAPON_TYPE_LIGHT_REP_XBOW:
     case WEAPON_TYPE_HEAVY_CROSSBOW:
       if (has_feat(ch, FEAT_RAPID_RELOAD)) {
-        if (is_action_available(ch, atMOVE, TRUE)) {
+        if (is_action_available(ch, atMOVE, FALSE)) {
           if (reload_weapon(ch, wielded)) {
             USE_MOVE_ACTION(ch); /* success! */
           } else {
@@ -193,8 +185,8 @@ bool auto_reload_weapon(struct char_data *ch) {
           /* reloading requires a move action */
           return FALSE;
         }
-      } else if (is_action_available(ch, atSTANDARD, TRUE) &&
-          is_action_available(ch, atMOVE, TRUE)) {
+      } else if (is_action_available(ch, atSTANDARD, FALSE) &&
+          is_action_available(ch, atMOVE, FALSE)) {
         if (reload_weapon(ch, wielded)) {
           USE_FULL_ROUND_ACTION(ch); /* success! */
         } else {
@@ -212,7 +204,7 @@ bool auto_reload_weapon(struct char_data *ch) {
     case WEAPON_TYPE_SLING:
       if (has_feat(ch, FEAT_RAPID_RELOAD))
         reload_weapon(ch, wielded);
-      else if (is_action_available(ch, atMOVE, TRUE)) {
+      else if (is_action_available(ch, atMOVE, FALSE)) {
         if (reload_weapon(ch, wielded)) {
           USE_MOVE_ACTION(ch); /* success! */
         } else {
