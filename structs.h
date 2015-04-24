@@ -863,8 +863,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define PRF_DISPROOM     38  // display room name and/or #
 #define PRF_DISPMEMTIME  39  // display memtimes
 #define PRF_DISPACTIONS  40
+#define PRF_AUTORELOAD   41   /**< Attempt to automatically reload weapon (xbow/slings) */
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS    41
+#define NUM_PRF_FLAGS    42
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */

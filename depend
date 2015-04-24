@@ -22,7 +22,7 @@ act.movement.o: act.movement.c conf.h sysdep.h structs.h protocol.h \
 act.offensive.o: act.offensive.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h handler.h db.h spells.h \
  act.h fight.h mud_event.h dg_event.h constants.h spec_procs.h class.h \
- mudlim.h actions.h actionqueues.h assign_wpn_armor.h
+ mudlim.h actions.h actionqueues.h assign_wpn_armor.h feats.h
 act.other.o: act.other.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h screen.h \
  house.h constants.h dg_scripts.h act.h spec_procs.h class.h fight.h \
@@ -52,8 +52,8 @@ asciimap.o: asciimap.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h house.h \
  constants.h dg_scripts.h asciimap.h wilderness.h
 assign_wpn_armor.o: assign_wpn_armor.c conf.h sysdep.h structs.h \
- protocol.h lists.h comm.h utils.h race.h db.h assign_wpn_armor.h craft.h \
- feats.h
+ protocol.h lists.h comm.h utils.h race.h db.h mud_event.h dg_event.h \
+ actions.h actionqueues.h assign_wpn_armor.h craft.h feats.h
 ban.o: ban.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  comm.h interpreter.h handler.h db.h ban.h
 boards.o: boards.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \

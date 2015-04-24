@@ -3431,7 +3431,10 @@ ACMD(do_gen_tog) {
       "SCREENWIDTH DISABLE\r\n"},
     /*34*/
     {"Autoscan disabled.\r\n",
-      "Autoscan enabled.\r\n"}
+      "Autoscan enabled.\r\n"},
+    /*35*/
+    {"Autoreload disabled.\r\n",
+      "Autoreload enabled.\r\n"}
   };
 
   if (IS_NPC(ch))
@@ -3520,6 +3523,9 @@ ACMD(do_gen_tog) {
       break;
     case SCMD_AUTOLOOT:
       result = PRF_TOG_CHK(ch, PRF_AUTOLOOT);
+      break;
+    case SCMD_AUTORELOAD:
+      result = PRF_TOG_CHK(ch, PRF_AUTORELOAD);
       break;
     case SCMD_AUTOGOLD:
       result = PRF_TOG_CHK(ch, PRF_AUTOGOLD);

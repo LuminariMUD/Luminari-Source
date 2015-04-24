@@ -225,38 +225,40 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOGOLD)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
              PREFEDIT_FLAGGED(PRF_NOTELL) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), ONOFF(!PREFEDIT_FLAGGED(PRF_NOTELL)), CCCYN(d->character, C_NRM),
 /* Line 4 - autosac and auction */
-             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), 
+             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
              CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOSAC) ?
                CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSAC)), CCCYN(d->character, C_NRM),
-             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), 
+             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
              CCCYN(d->character, C_NRM),
-             PREFEDIT_FLAGGED(PRF_NOAUCT) ? 
-               CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), 
+             PREFEDIT_FLAGGED(PRF_NOAUCT) ?
+               CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
              ONOFF(!PREFEDIT_FLAGGED(PRF_NOAUCT)), CCCYN(d->character, C_NRM),
 /* Line 5 - autoassist and grats */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOASSIST) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOASSIST)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
              PREFEDIT_FLAGGED(PRF_NOGRATZ) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), ONOFF(!PREFEDIT_FLAGGED(PRF_NOGRATZ)), CCCYN(d->character, C_NRM),
 /* Line 6 - autosplit and autoscan */
-             CBYEL(d->character, C_NRM), 
-             CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), 
-             PREFEDIT_FLAGGED(PRF_AUTOSPLIT) ? 
-               CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-             ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSPLIT)), 
-             CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), 
+             CBYEL(d->character, C_NRM),
              CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-             PREFEDIT_FLAGGED(PRF_AUTOSCAN) ? 
-               CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), 
+             PREFEDIT_FLAGGED(PRF_AUTOSPLIT) ?
+               CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+             ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSPLIT)),
+             CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM),
+             CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+             PREFEDIT_FLAGGED(PRF_AUTOSCAN) ?
+               CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
              ONOFF(!PREFEDIT_FLAGGED(PRF_AUTOSCAN)), CCCYN(d->character, C_NRM)
              );
 
-  send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]\r\n"
+  send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]      %sS%s) AutoReload %s[%s%3s%s]\r\n"
                              "%s8%s) Autokey      %s[%s%3s%s]\r\n"
                              "%s9%s) Autodoor     %s[%s%3s%s]\r\n",
-/* Line 7 - automap */
+/* Line 7 - automap & autoreload */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOMAP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOMAP)), CCCYN(d->character, C_NRM),
+             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTORELOAD) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+             ONOFF(PREFEDIT_FLAGGED(PRF_AUTORELOAD)), CCCYN(d->character, C_NRM),
 /* Line 8 - autokey */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOKEY) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOKEY)), CCCYN(d->character, C_NRM),
@@ -306,8 +308,8 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
              ONOFF(d->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
              CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bMSP), CCCYN(d->character, C_NRM)
-             );  
-  
+             );
+
 /* Finishing Off */
   send_to_char(d->character, "%sQ%s) Quit toggle preferences...\r\n",
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM) );
@@ -333,7 +335,7 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
           PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
           PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : ""
           );
-  
+
   send_to_char(d->character, "%sPrompt Settings\r\n"
                              "%s1%s) Toggle HP\r\n"
                              "%s2%s) Toggle Mana\r\n"
@@ -689,22 +691,22 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
       case 'S':
         TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOSCAN);
         break;
-        
+
       case 'j':
       case 'J':
         TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt);
         break;
-        
+
       case 'k':
       case 'K':
         TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt);
-        break;        
+        break;
 
       case 'l':
       case 'L':
         TOGGLE_VAR(d->pProtocol->bCHARSET);
-        break;        
-        
+        break;
+
       case 'm':
       case 'M':
         TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_MXP]->ValueInt);
@@ -714,11 +716,11 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
       case 'N':
         TOGGLE_VAR(d->pProtocol->bMSDP);
         break;
-        
+
       case 'o':
       case 'O':
         TOGGLE_VAR(d->pProtocol->bATCP);
-        break;      
+        break;
 
       case 'p':
       case 'P':
@@ -728,7 +730,13 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
       case 'r':
       case 'R':
         TOGGLE_VAR(d->pProtocol->bMSP);
-        break;   
+        break;
+
+      case 't':
+      case 'T':
+        TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTORELOAD);
+        break;
+
 
       default  : send_to_char(d->character, "Invalid Choice, try again (Q to Quit to main menu): ");
                  return;
@@ -811,7 +819,7 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
             REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPACTIONS);
           else
             SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPACTIONS);
-        } 
+        }
         prefedit_disp_prompt_menu(d);
       }
     }
@@ -877,7 +885,7 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
   /* PRF_DISPMEMTIME   - On */
   if (!PREFEDIT_FLAGGED(PRF_DISPMEMTIME))
      SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMEMTIME);
-  
+
   /* PRF_SIAPACTIONS - On */
   if (!PREFEDIT_FLAGGED(PRF_DISPACTIONS))
      SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPACTIONS);
@@ -961,6 +969,10 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
   /* PRF_AUTOLOOT   - On */
   if (!PREFEDIT_FLAGGED(PRF_AUTOLOOT))
      SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOLOOT);
+
+  /* PRF_AUTORELOAD   - On */
+  if (!PREFEDIT_FLAGGED(PRF_AUTORELOAD))
+     SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTORELOAD);
 
   /* PRF_AUTOGOLD   - On */
   if (!PREFEDIT_FLAGGED(PRF_AUTOGOLD))
