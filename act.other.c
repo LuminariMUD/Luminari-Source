@@ -1267,7 +1267,26 @@ ACMD(do_gain) {
 /*************************/
 /* shapechange functions */
 /*************************/
+void set_attributes(struct char_data *ch, int str, int con, int dex, int intel, int wis, int cha)
+{
 
+  if (IS_NPC(ch)) {
+    GET_STR(ch) = str;
+    GET_CON(ch) = con;
+    GET_DEX(ch) = dex;
+    GET_INT(ch) = intel;
+    GET_WIS(ch) = wis;
+    GET_CHA(ch) = cha;
+  }
+  else {
+    ch->real_abils.str = str;
+    ch->real_abils.con = con;
+    ch->real_abils.dex = dex;
+    ch->real_abils.intel = intel;
+    ch->real_abils.wis = wis;
+    ch->real_abils.cha = cha;
+  }
+}
 
 struct wild_shape_mods {
   byte strength;
@@ -1483,8 +1502,8 @@ ACMD(do_wildshape) {
   int uses_remaining = 0;
 
   /* under construction */
-    send_to_char(ch, "Use 'shapechange' for now...\r\n");
-    return;
+    //send_to_char(ch, "Use 'shapechange' for now...\r\n");
+    //return;
   /* under construction */
 
   skip_spaces(&argument);
@@ -1574,25 +1593,25 @@ ACMD(do_wildshape) {
 
     abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
 
-    /*set_attributes(ch, ch->real_abils.str - abil_mods->strength,
+    set_attributes(ch, ch->real_abils.str - abil_mods->strength,
                    ch->real_abils.con - abil_mods->constitution,
                    ch->real_abils.dex - abil_mods->dexterity,
                    ch->real_abils.intel,
                    ch->real_abils.wis,
                    ch->real_abils.cha);
-*/
+
     GET_AC(ch) -= abil_mods->natural_armor;
 
     abil_mods = set_wild_shape_mods(GET_REAL_RACE(ch));
 
-/*
+
     set_attributes(ch, ch->real_abils.str + abil_mods->strength,
                    ch->real_abils.con + abil_mods->constitution,
                    ch->real_abils.dex + abil_mods->dexterity,
                    ch->real_abils.intel,
                    ch->real_abils.wis,
                    ch->real_abils.cha);
-*/
+
     sprintf(buf, "You change shape into a %s.", race_list[GET_REAL_RACE(ch)].name);
     act(buf, true, ch, 0, 0, TO_CHAR);
     sprintf(buf, "$n changes shape into a %s.", race_list[GET_REAL_RACE(ch)].name);
@@ -1750,26 +1769,24 @@ ACMD(do_wildshape) {
 
   abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
 
-  /*
   set_attributes(ch, ch->real_abils.str + abil_mods->strength,
                  ch->real_abils.con + abil_mods->constitution,
                  ch->real_abils.dex + abil_mods->dexterity,
                  ch->real_abils.intel,
                  ch->real_abils.wis,
                  ch->real_abils.cha);
-*/
+
   GET_AC(ch) += abil_mods->natural_armor;
 
   abil_mods = set_wild_shape_mods(GET_REAL_RACE(ch));
 
-/*
   set_attributes(ch, ch->real_abils.str - abil_mods->strength,
                  ch->real_abils.con - abil_mods->constitution,
                  ch->real_abils.dex - abil_mods->dexterity,
                  ch->real_abils.intel,
                  ch->real_abils.wis,
                  ch->real_abils.cha);
-*/
+
   sprintf(buf, "You change shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
   act(buf, true, ch, 0, 0, TO_CHAR);
   sprintf(buf, "$n changes shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
@@ -1779,7 +1796,7 @@ ACMD(do_wildshape) {
   GET_HIT(ch) += GET_LEVEL(ch);
   GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
 
-  /*
+   /*
   if (druid < 20) {
     GET_INNATE(ch, SPELL_WILD_SHAPE)--;
 
