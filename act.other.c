@@ -1496,7 +1496,7 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
   return abil_mods;
 }
 
-int display_eligible_wildshape_races(struct char_data *ch, char *argument) {
+int display_eligible_wildshape_races(struct char_data *ch, char *argument, int silent) {
   int i = 0;
   int druid = CLASS_LEVEL(ch, CLASS_DRUID);
   struct wild_shape_mods *abil_mods;
@@ -1556,20 +1556,22 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument) {
 
     abil_mods = set_wild_shape_mods(i);
 
-    send_to_char(ch, "%-40s Str [%s%-2d] Con [%s%-2d] Dex [%s%-2d] NatAC [%s%-2d]\r\n", race_list[i].name,
-                 abil_mods->strength >= 0 ? "+" : "", abil_mods->strength,
-                 abil_mods->constitution >= 0 ? "+" : "", abil_mods->constitution,
-                 abil_mods->dexterity >= 0 ? "+" : "", abil_mods->dexterity,
-                 abil_mods->natural_armor >= 0 ? "+" : "", abil_mods->natural_armor
-                 );
+    if (!silent) {
+      send_to_char(ch, "%-40s Str [%s%-2d] Con [%s%-2d] Dex [%s%-2d] NatAC [%s%-2d]\r\n", race_list[i].name,
+                   abil_mods->strength >= 0 ? "+" : "", abil_mods->strength,
+                   abil_mods->constitution >= 0 ? "+" : "", abil_mods->constitution,
+                   abil_mods->dexterity >= 0 ? "+" : "", abil_mods->dexterity,
+                   abil_mods->natural_armor >= 0 ? "+" : "", abil_mods->natural_armor );
+    }
+
     if (!strcmp(argument, race_list[i].name))
       break;
   }
 
   if (i >= NUM_EXTENDED_RACES)
-    return i;
+    return 0;
   else
-    return 0; /* failed to find anything */
+    return i; /* failed to find anything */
 }
 
 /* wildshape port from d20, in progress -Zusuk */
@@ -1588,7 +1590,7 @@ ACMD(do_wildshape) {
 
   if (!*argument) {
     send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
-    display_eligible_wildshape_races(ch, argument);
+    display_eligible_wildshape_races(ch, argument, FALSE);
     return;
   }
 
@@ -1642,11 +1644,11 @@ ACMD(do_wildshape) {
     return;
   }
 
-  i = display_eligible_wildshape_races(ch, argument);
+  i = display_eligible_wildshape_races(ch, argument, TRUE);
 
   if (i == 0) { /* failed to find the race */
     send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
-    display_eligible_wildshape_races(ch, argument);
+    display_eligible_wildshape_races(ch, argument, FALSE);
     return;
   }
 
