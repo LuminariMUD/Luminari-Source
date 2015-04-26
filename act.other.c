@@ -1266,25 +1266,18 @@ ACMD(do_gain) {
 
 /*************************/
 /* shapechange functions */
+
 /*************************/
-void set_attributes(struct char_data *ch, int str, int con, int dex, int intel,
-                    int wis, int cha) {
-  if (IS_NPC(ch)) {
-    GET_STR(ch) = str;
-    GET_CON(ch) = con;
-    GET_DEX(ch) = dex;
-    GET_INT(ch) = intel;
-    GET_WIS(ch) = wis;
-    GET_CHA(ch) = cha;
-  } else {
-    ch->real_abils.str = str;
-    ch->real_abils.con = con;
-    ch->real_abils.dex = dex;
-    ch->real_abils.intel = intel;
-    ch->real_abils.wis = wis;
-    ch->real_abils.cha = cha;
-  }
+void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int intel,
+                          int wis, int cha) {
+  ch->real_abils.str = str;
+  ch->real_abils.con = con;
+  ch->real_abils.dex = dex;
+  ch->real_abils.intel = intel;
+  ch->real_abils.wis = wis;
+  ch->real_abils.cha = cha;
 }
+
 
 struct wild_shape_mods {
   byte strength;

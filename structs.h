@@ -3162,6 +3162,7 @@ struct char_data {
   struct char_player_data player; /**< General PC/NPC data */
   struct char_ability_data real_abils; /**< Abilities without modifiers */
   struct char_ability_data aff_abils; /**< Abilities with modifiers */
+  struct char_ability_data disguise_abils; /* wildshape/shapechange/etc bonuses */
   struct char_point_data points; /**< Point/statistics */
   struct char_point_data real_points; /**< Point/statistics */
   struct char_special_data char_specials; /**< PC/NPC specials	  */

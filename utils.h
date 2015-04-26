@@ -701,8 +701,8 @@ do                                                              \
 
 #define GET_RACE(ch)    (AFF_FLAGGED(ch, AFF_WILD_SHAPE) ? GET_DISGUISE_RACE(ch) : GET_REAL_RACE(ch))
 #define RACE_ABBR(ch)  (IS_NPC(ch) ? npc_race_abbrevs[GET_RACE(ch)] : IS_MORPHED(ch) ? \
-		npc_race_abbrevs[IS_MORPHED(ch)] : AFF_FLAGGED(ch, AFF_WILD_SHAPE) ? race_list[GET_DISGUISE_RACE(ch)].abbrev : \
-		race_abbrevs[GET_RACE(ch)])
+  npc_race_abbrevs[IS_MORPHED(ch)] : (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? \
+  race_list[GET_DISGUISE_RACE(ch)].abbrev : race_abbrevs[GET_RACE(ch)])
 
 /** Height of ch. */
 #define GET_HEIGHT(ch)	((ch)->player.height)
@@ -718,16 +718,26 @@ do                                                              \
 
 /** Current strength of ch. */
 #define GET_REAL_STR(ch)     	((ch)->real_abils.str)
-#define GET_STR(ch)     	((ch)->aff_abils.str)
-#define GET_STR_BONUS(ch)	(((ch)->aff_abils.str - 10) / 2)
-
-/** Current strength modifer of ch. */
+#define GET_DISGUISE_STR(ch) ((ch)->disguise_abils.str)
+#define GET_STR(ch) ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? \
+  GET_DISGUISE_STR(ch)+(ch)->aff_abils.str : (ch)->aff_abils.str)
+#define GET_STR_BONUS(ch)	((GET_STR(ch) - 10) / 2)
+/** Current strength modifer of ch, not in use (from stock circle) */
 #define GET_ADD(ch)     ((ch)->aff_abils.str_add)
 
 /** Current dexterity of ch. */
 #define GET_REAL_DEX(ch)     	((ch)->real_abils.dex)
-#define GET_DEX(ch)		((ch)->aff_abils.dex)
-#define GET_DEX_BONUS(ch)	(MIN(compute_gear_max_dex(ch), ((ch)->aff_abils.dex - 10) / 2))
+#define GET_DISGUISE_DEX(ch) ((ch)->disguise_abils.dex)
+#define GET_DEX(ch) ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? \
+  GET_DISGUISE_DEX(ch)+(ch)->aff_abils.dex : (ch)->aff_abils.dex)
+#define GET_DEX_BONUS(ch)	(MIN(compute_gear_max_dex(ch), (GET_DEX(ch) - 10) / 2))
+
+/** Current constitution of ch. */
+#define GET_REAL_CON(ch)     	((ch)->real_abils.con)
+#define GET_DISGUISE_CON(ch) ((ch)->disguise_abils.con)
+#define GET_CON(ch) ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? \
+  GET_DISGUISE_CON(ch)+(ch)->aff_abils.con : (ch)->aff_abils.con)
+#define GET_CON_BONUS(ch)	((GET_CON(ch) - 10) / 2)
 
 /** Current intelligence of ch. */
 #define GET_REAL_INT(ch)     	((ch)->real_abils.intel)
@@ -739,11 +749,6 @@ do                                                              \
 #define GET_REAL_WIS(ch)     	((ch)->real_abils.wis)
 #define GET_WIS(ch)		((ch)->aff_abils.wis)
 #define GET_WIS_BONUS(ch)	(((ch)->aff_abils.wis - 10) / 2)
-
-/** Current constitution of ch. */
-#define GET_REAL_CON(ch)     	((ch)->real_abils.con)
-#define GET_CON(ch)		((ch)->aff_abils.con)
-#define GET_CON_BONUS(ch)	(((ch)->aff_abils.con - 10) / 2)
 
 /** Current charisma of ch. */
 #define GET_REAL_CHA(ch)     	((ch)->real_abils.cha)

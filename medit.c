@@ -1558,7 +1558,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       return;
 
     case MEDIT_STR:
-      GET_STR(OLC_MOB(d)) = LIMIT(i, 3, 50);
+      (OLC_MOB(d))->aff_abils.str = LIMIT(i, 3, 50);
       OLC_VAL(d) = TRUE;
       medit_disp_stats_menu(d);
       return;
@@ -1576,13 +1576,13 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       return;
 
     case MEDIT_DEX:
-      GET_DEX(OLC_MOB(d)) = LIMIT(i, 3, 50);
+      (OLC_MOB(d))->aff_abils.dex = LIMIT(i, 3, 50);
       OLC_VAL(d) = TRUE;
       medit_disp_stats_menu(d);
       return;
 
     case MEDIT_CON:
-      GET_CON(OLC_MOB(d)) = LIMIT(i, 3, 50);
+      (OLC_MOB(d))->aff_abils.con = LIMIT(i, 3, 50);
       OLC_VAL(d) = TRUE;
       medit_disp_stats_menu(d);
       return;
@@ -1912,11 +1912,11 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
   GET_SAVE(mob, SAVING_DEATH) = level / 4;
 
   /* stats, default */
-  GET_STR(mob) = 10;
+  (mob)->aff_abils.str = 10;
+  (mob)->aff_abils.dex = 10;
+  (mob)->aff_abils.con = 10;
   GET_INT(mob) = 10;
   GET_WIS(mob) = 10;
-  GET_DEX(mob) = 10;
-  GET_CON(mob) = 10;
   GET_CHA(mob) = 10;
   bonus = level / 2;  // bonus applied to stats
 
@@ -1941,36 +1941,36 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
       GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
       armor_class -= 60;
       GET_INT(mob) += bonus;
-      GET_DEX(mob) += bonus;
+      (mob)->aff_abils.dex += bonus;
       break;
     case CLASS_SORCERER:
       GET_CHA(mob) += bonus;
-      GET_DEX(mob) += bonus;
+      (mob)->aff_abils.dex += bonus;
       MOBS_HPS = MOBS_HPS * 2 / 5;
       GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
       armor_class -= 60;
       break;
     case CLASS_ROGUE:
-      GET_STR(mob) += bonus;
-      GET_DEX(mob) += bonus;
+      (mob)->aff_abils.dex += bonus;
+      (mob)->aff_abils.str += bonus;
       MOBS_HPS = MOBS_HPS * 3 / 5;
       armor_class -= 50;
       break;
     case CLASS_BARD:
       GET_CHA(mob) += bonus;
-      GET_DEX(mob) += bonus;
+      (mob)->aff_abils.dex += bonus;
       GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
       MOBS_HPS = MOBS_HPS * 3 / 5;
       armor_class -= 50;
       break;
     case CLASS_MONK:
       GET_WIS(mob) += bonus;
-      GET_DEX(mob) += bonus;
+      (mob)->aff_abils.dex += bonus;
       MOBS_HPS = MOBS_HPS * 4 / 5;
       armor_class -= 60; // they will still get wis bonus
       break;
     case CLASS_CLERIC:
-      GET_STR(mob) += bonus;
+      (mob)->aff_abils.str += bonus;
       GET_WIS(mob) += bonus;
       GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
       MOBS_HPS = MOBS_HPS * 4 / 5;
@@ -1978,28 +1978,28 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
       break;
     case CLASS_DRUID:
       GET_WIS(mob) += bonus;
-      GET_DEX(mob) += bonus;
+      (mob)->aff_abils.dex += bonus;
       GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
       MOBS_HPS = MOBS_HPS * 4 / 5;
       armor_class -= 50;
       break;
     case CLASS_BERSERKER:
-      GET_STR(mob) += bonus;
-      GET_CON(mob) += bonus;
+      (mob)->aff_abils.str += bonus;
+      (mob)->aff_abils.con += bonus;
       MOBS_HPS = MOBS_HPS * 6 / 5;
       armor_class -= 40;
       break;
     case CLASS_RANGER:
-      GET_STR(mob) += bonus;
-      GET_DEX(mob) += bonus;
+      (mob)->aff_abils.str += bonus;
+      (mob)->aff_abils.dex += bonus;
       armor_class -= 50;
       break;
     case CLASS_WARRIOR:
-      GET_STR(mob) += bonus;
-      GET_CON(mob) += bonus;
+      (mob)->aff_abils.str += bonus;
+      (mob)->aff_abils.con += bonus;
       break;
     case CLASS_PALADIN:
-      GET_STR(mob) += bonus;
+      (mob)->aff_abils.str += bonus;
       GET_CHA(mob) += bonus;
       break;
     default:
@@ -2021,9 +2021,9 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
       GET_GOLD(mob) = 0;
       break;
     case NPCRACE_DRAGON:
-      GET_STR(mob) += 6;
-      GET_CON(mob) += 6;
-      GET_DEX(mob) += 6;
+      (mob)->aff_abils.dex += 6;
+      (mob)->aff_abils.str += 6;
+      (mob)->aff_abils.con += 6;
       GET_CHA(mob) += 6;
       GET_INT(mob) += 6;
       GET_WIS(mob) += 6;
@@ -2033,9 +2033,9 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
       GET_SPELL_RES(mob) = 10 + level;
       break;
     case NPCRACE_GIANT:
-      GET_STR(mob) += 4;
-      GET_CON(mob) += 4;
-      GET_DEX(mob) -= 7;
+      (mob)->aff_abils.str += 4;
+      (mob)->aff_abils.con += 4;
+      (mob)->aff_abils.dex -= 7;
       if (GET_SIZE(mob) < SIZE_LARGE)
         GET_SIZE(mob) = SIZE_LARGE;
       break;
@@ -2043,8 +2043,8 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
       GET_SAVE(mob, SAVING_WILL) += 4;
       break;
     case NPCRACE_CONSTRUCT:
-      GET_STR(mob) += 4;
-      GET_CON(mob) += 4;
+      (mob)->aff_abils.str += 4;
+      (mob)->aff_abils.con += 4;
       GET_SAVE(mob, SAVING_WILL) -= 4;
       GET_SAVE(mob, SAVING_FORT) -= 4;
       GET_SAVE(mob, SAVING_REFL) -= 4;
