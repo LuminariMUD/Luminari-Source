@@ -1681,6 +1681,13 @@ ACMD(do_restore) {
         GET_SPELL_RES(ch) = 0;
       }
     }
+
+    if (GET_LEVEL(vict) >= LVL_IMPL) {
+      for (i = 1; i < NUM_FEATS; i++)
+        if (!has_feat(ch, i))
+          SET_FEAT(ch, i, 1);
+    }
+
     update_pos(vict);
     affect_total(vict);
     send_to_char(ch, "%s", CONFIG_OK);

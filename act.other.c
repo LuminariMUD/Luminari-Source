@@ -1652,6 +1652,7 @@ ACMD(do_wildshape) {
     return;
   }
 
+  /* try to match argument to the list */
   i = display_eligible_wildshape_races(ch, argument, TRUE);
 
   if (i == 0) { /* failed to find the race */
