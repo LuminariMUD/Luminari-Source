@@ -1669,10 +1669,10 @@ ACMD(do_wildshape) {
   /* determine modifiers */
   abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
   /* set the bonuses */
-  set_bonus_attributes(ch, abil_mods->strength, abil_mods->constitution,
-                       abil_mods->dexterity, abil_mods->natural_armor);
-  //set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
+  //set_bonus_attributes(ch, abil_mods->strength, abil_mods->constitution,
   //                     abil_mods->dexterity, abil_mods->natural_armor);
+  set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
+                       abil_mods->dexterity, abil_mods->natural_armor);
   /* all stat modifications are done */
 
   GET_HIT(ch) += GET_LEVEL(ch);
