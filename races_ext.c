@@ -521,7 +521,6 @@ void set_height_and_weight_by_race(struct char_data *ch)
   GET_WEIGHT(ch) = race_list[race].weight[sex] * mod / 100;
 
 }
-
 /*
 int invalid_race(struct char_data *ch, struct obj_data *obj)
 {
@@ -542,19 +541,20 @@ int invalid_race(struct char_data *ch, struct obj_data *obj)
 
   return (false);
 }
-*/
+ */
 
-int get_size(struct char_data *ch)
-{
+int get_size(struct char_data *ch) {
   int racenum;
 
   if (ch == NULL)
     return SIZE_MEDIUM;
 
-    racenum = GET_RACE(ch);
-    if (racenum < 0 || racenum >= NUM_EXTENDED_RACES)
-      return SIZE_MEDIUM;
-    return (GET_SIZE(ch) = ((affected_by_spell(ch, SPELL_ENLARGE_PERSON) ? 1 : 0) + race_list[racenum].size));
+  racenum = GET_RACE(ch);
+
+  if (racenum < 0 || racenum >= NUM_EXTENDED_RACES)
+    return SIZE_MEDIUM;
+  
+  return (GET_SIZE(ch) = ((affected_by_spell(ch, SPELL_ENLARGE_PERSON) ? 1 : 0) + race_list[racenum].size));
 }
 
 

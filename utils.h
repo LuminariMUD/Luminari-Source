@@ -693,13 +693,16 @@ do                                                              \
 
 /* disguise related macros */
 #define GET_DISGUISE_RACE(ch)    ((ch)->char_specials.saved.disguise_race)
+#define IS_MORPHED(ch)		(ch->player_specials->saved.morphed)
 /** Race of ch. */
 #define GET_REAL_RACE(ch)   ((ch)->player.race)
 #define SUBRACE(ch)    ((ch)->player.pc_subrace)
 #define GET_NPC_RACE(ch)   (IS_NPC(ch) ? (ch)->player.race : RACE_UNDEFINED)
 
 #define GET_RACE(ch)    (AFF_FLAGGED(ch, AFF_WILD_SHAPE) ? GET_DISGUISE_RACE(ch) : GET_REAL_RACE(ch))
-
+#define RACE_ABBR(ch)  (IS_NPC(ch) ? npc_race_abbrevs[GET_RACE(ch)] : IS_MORPHED(ch) ? \
+		npc_race_abbrevs[IS_MORPHED(ch)] : AFF_FLAGGED(ch, AFF_WILD_SHAPE) ? race_list[GET_DISGUISE_RACE(ch)].abbrev : \
+		race_abbrevs[GET_RACE(ch)])
 
 /** Height of ch. */
 #define GET_HEIGHT(ch)	((ch)->player.height)
@@ -877,7 +880,6 @@ do                                                              \
 #define GET_STONESKIN(ch)	((ch)->char_specials.saved.warding[STONESKIN])
 #define TOTAL_DEFENSE(ch)		((ch)->char_specials.totalDefense)
 #define MOUNTED_BLOCKS_LEFT(ch)		((ch)->char_specials.mounted_blocks_left)
-#define IS_MORPHED(ch)		(ch->player_specials->saved.morphed)
 #define GET_SALVATION_NAME(ch)  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->salvation_name))
 #define GET_SALVATION_ROOM(ch)  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->salvation_room))
 
@@ -1571,11 +1573,6 @@ do                                                              \
                             GET_CLASS(ch) == CLASS_PALADIN || \
                             GET_CLASS(ch) == CLASS_RANGER || \
                             GET_CLASS(ch) == CLASS_BARD)
-
-#define RACE_ABBR(ch)	( IS_NPC(ch) ?  \
-		npc_race_abbrevs[GET_RACE(ch)] : (IS_MORPHED(ch) ? \
-		npc_race_abbrevs[IS_MORPHED(ch)] : \
-		race_abbrevs[GET_RACE(ch)]) )
 
 
 /* 1 if ch is race, 0 if not */
