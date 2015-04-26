@@ -109,10 +109,10 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
   switch (loc) {
 
     case APPLY_STR:
-      GET_STR(ch) += mod;
+      (ch)->aff_abils.str += mod;
       break;
     case APPLY_DEX:
-      GET_DEX(ch) += mod;
+      (ch)->aff_abils.dex += mod;
       break;
     case APPLY_INT:
       GET_INT(ch) += mod;
@@ -121,7 +121,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       GET_WIS(ch) += mod;
       break;
     case APPLY_CON:
-      GET_CON(ch) += mod;
+      (ch)->aff_abils.con += mod;
       break;
     case APPLY_CHA:
       GET_CHA(ch) += mod;
@@ -390,12 +390,12 @@ void compute_char_cap(struct char_data *ch) {
   int str_cap, dex_cap, con_cap, wis_cap, int_cap, cha_cap;
 
   /* values are between 1..stat-cap, not < 1 and not > stat-cap */
-  GET_DEX(ch) = MAX(1, MIN(GET_DEX(ch), STAT_CAP));
+  (ch)->aff_abils.dex = MAX(1, MIN(GET_DEX(ch), STAT_CAP));
   GET_INT(ch) = MAX(1, MIN(GET_INT(ch), STAT_CAP));
   GET_WIS(ch) = MAX(1, MIN(GET_WIS(ch), STAT_CAP));
-  GET_CON(ch) = MAX(1, MIN(GET_CON(ch), STAT_CAP));
+  (ch)->aff_abils.con = MAX(1, MIN(GET_CON(ch), STAT_CAP));
   GET_CHA(ch) = MAX(1, MIN(GET_CHA(ch), STAT_CAP));
-  GET_STR(ch) = MAX(1, MIN(GET_STR(ch), STAT_CAP));
+  (ch)->aff_abils.str = MAX(1, MIN(GET_STR(ch), STAT_CAP));
 
   GET_SIZE(ch) = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
 
@@ -512,12 +512,12 @@ void compute_char_cap(struct char_data *ch) {
 
   /* cap stats according to adjustments */
   /* note zusuk added another +3 to the cap just to accomodate berserkers */
-  GET_DEX(ch) = MIN(dex_cap + 4, GET_DEX(ch));
+  (ch)->aff_abils.dex = MIN(dex_cap + 4, GET_DEX(ch));
   GET_INT(ch) = MIN(int_cap + 4, GET_INT(ch));
   GET_WIS(ch) = MIN(wis_cap + 4, GET_WIS(ch));
-  GET_CON(ch) = MIN(con_cap + 4, GET_CON(ch));
+  (ch)->aff_abils.con = MIN(con_cap + 4, GET_CON(ch));
   GET_CHA(ch) = MIN(cha_cap + 4, GET_CHA(ch));
-  GET_STR(ch) = MIN(str_cap + 4, GET_STR(ch));
+  (ch)->aff_abils.str = MIN(str_cap + 4, GET_STR(ch));
 
   GET_HITROLL(ch) = MIN(hit_cap, GET_HITROLL(ch));
   GET_DAMROLL(ch) = MIN(dam_cap, GET_DAMROLL(ch));

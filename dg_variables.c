@@ -649,9 +649,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             if (subfield && *subfield) {
               int addition = atoi(subfield);
               int max = 50;
-              GET_CON(c) += addition;
-              if (GET_CON(c) > max) GET_CON(c) = max;
-              if (GET_CON(c) < 3) GET_CON(c) = 3;
+              (c)->aff_abils.con += addition;
+              if ((c)->aff_abils.con > max) (c)->aff_abils.con = max;
+              if ((c)->aff_abils.con < 3) (c)->aff_abils.con = 3;
             }
             snprintf(str, slen, "%d", GET_CON(c));
           }
@@ -667,9 +667,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             if (subfield && *subfield) {
               int addition = atoi(subfield);
               int max = 50;
-              GET_DEX(c) += addition;
-              if (GET_DEX(c) > max) GET_DEX(c) = max;
-              if (GET_DEX(c) < 3) GET_DEX(c) = 3;
+              (c)->aff_abils.dex += addition;
+              if ((c)->aff_abils.dex > max) (c)->aff_abils.dex = max;
+              if ((c)->aff_abils.dex < 3) (c)->aff_abils.dex = 3;
             }
             snprintf(str, slen, "%d", GET_DEX(c));
           } else if (!str_cmp(field, "drunk")) {
@@ -1156,9 +1156,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             if (subfield && *subfield) {
               int addition = atoi(subfield);
               int max = 50;
-              GET_STR(c) += addition;
-              if (GET_STR(c) > max) GET_STR(c) = max;
-              if (GET_STR(c) < 3) GET_STR(c) = 3;
+              (c)->aff_abils.str += addition;
+              if ((c)->aff_abils.str > max) (c)->aff_abils.str = max;
+              if ((c)->aff_abils.str < 3) (c)->aff_abils.str = 3;
             }
             snprintf(str, slen, "%d", GET_STR(c));
           } else if (!str_cmp(field, "stradd")) {
