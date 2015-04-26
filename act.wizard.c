@@ -1686,6 +1686,7 @@ ACMD(do_restore) {
     bool found = FALSE;
     if (GET_LEVEL(vict) >= LVL_IMPL) {
       IS_MORPHED(ch) = 0;
+      SUBRACE(ch) = 0;
       GET_DISGUISE_RACE(ch) = 0;
       for (i = 1; i < NUM_FEATS; i++) {
         if (!has_feat(ch, i)) {
