@@ -642,20 +642,25 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
   GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) / 2 * GET_LEVEL(ch));
 }
 
-/* This updates a character by subtracting everything he is affected by
- * restoring original abilities, and then affecting all again. */
-void affect_total(struct char_data *ch) {
-  int at_armor = 100;
-
-  /* cleanup for disguise system */
+void cleanup_disguise(struct char_data *ch) {
   if (GET_DISGUISE_RACE(ch) == 0) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
+    if (AFF_FLAGGED(ch, AFF_WILD_SHAPE))
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
     set_bonus_attributes(ch, 0, 0, 0, 0);
   }
   if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
     GET_DISGUISE_RACE(ch) = 0;
     set_bonus_attributes(ch, 0, 0, 0, 0);
   }
+}
+
+/* This updates a character by subtracting everything he is affected by
+ * restoring original abilities, and then affecting all again. */
+void affect_total(struct char_data *ch) {
+  int at_armor = 100;
+
+  /* cleanup for disguise system */
+  cleanup_disguise(ch);
 
   /* this will subtract all affects and reset stats
      at_armor stores character's AC after being unaffected (like armor-apply) */
