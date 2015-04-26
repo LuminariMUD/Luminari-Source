@@ -1302,30 +1302,30 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
         case SIZE_DIMINUTIVE:
           abil_mods->dexterity = 6;
           abil_mods->strength = -4;
-          abil_mods->natural_armor = 10;
+          abil_mods->natural_armor = 1;
           break;
         case SIZE_TINY:
           abil_mods->dexterity = 4;
           abil_mods->strength = -2;
-          abil_mods->natural_armor = 10;
+          abil_mods->natural_armor = 1;
           break;
         case SIZE_SMALL:
           abil_mods->dexterity = 2;
-          abil_mods->natural_armor = 10;
+          abil_mods->natural_armor = 1;
           break;
         case SIZE_MEDIUM:
           abil_mods->strength = 2;
-          abil_mods->natural_armor = 20;
+          abil_mods->natural_armor = 2;
           break;
         case SIZE_LARGE:
           abil_mods->dexterity = -2;
           abil_mods->strength = 4;
-          abil_mods->natural_armor = 40;
+          abil_mods->natural_armor = 4;
           break;
         case SIZE_HUGE:
           abil_mods->dexterity = -4;
           abil_mods->strength = 6;
-          abil_mods->natural_armor = 60;
+          abil_mods->natural_armor = 6;
           break;
       }
       break;
@@ -1334,21 +1334,21 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
         case SIZE_TINY:
           abil_mods->dexterity = 8;
           abil_mods->strength = -2;
-          abil_mods->natural_armor = 30;
+          abil_mods->natural_armor = 3;
           break;
         case SIZE_SMALL:
           abil_mods->dexterity = 4;
-          abil_mods->natural_armor = 20;
+          abil_mods->natural_armor = 2;
           break;
         case SIZE_MEDIUM:
           abil_mods->strength = 4;
-          abil_mods->natural_armor = 40;
+          abil_mods->natural_armor = 4;
           break;
         case SIZE_LARGE:
           abil_mods->dexterity = -2;
           abil_mods->strength = 6;
           abil_mods->constitution = 2;
-          abil_mods->natural_armor = 60;
+          abil_mods->natural_armor = 6;
           break;
       }
       break;
@@ -1356,23 +1356,23 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
       switch (race_list[race].size) {
         case SIZE_SMALL:
           abil_mods->constitution = 2;
-          abil_mods->natural_armor = 20;
+          abil_mods->natural_armor = 2;
           break;
         case SIZE_MEDIUM:
           abil_mods->strength = 2;
           abil_mods->constitution = 2;
-          abil_mods->natural_armor = 20;
+          abil_mods->natural_armor = 2;
           break;
         case SIZE_LARGE:
           abil_mods->strength = 4;
           abil_mods->constitution = 2;
-          abil_mods->natural_armor = 40;
+          abil_mods->natural_armor = 4;
           break;
         case SIZE_HUGE:
           abil_mods->strength = 8;
           abil_mods->dexterity = -2;
           abil_mods->constitution = 4;
-          abil_mods->natural_armor = 60;
+          abil_mods->natural_armor = 6;
           break;
       }
       break;
@@ -1382,97 +1382,97 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
           abil_mods->strength = 0;
           abil_mods->dexterity = 2;
           abil_mods->constitution = 0;
-          abil_mods->natural_armor = 20;
+          abil_mods->natural_armor = 2;
           break;
         case RACE_MEDIUM_FIRE_ELEMENTAL:
           abil_mods->strength = 0;
           abil_mods->dexterity = 4;
           abil_mods->constitution = 0;
-          abil_mods->natural_armor = 30;
+          abil_mods->natural_armor = 3;
           break;
         case RACE_LARGE_FIRE_ELEMENTAL:
           abil_mods->strength = 0;
           abil_mods->dexterity = 4;
           abil_mods->constitution = 2;
-          abil_mods->natural_armor = 40;
+          abil_mods->natural_armor = 4;
           break;
         case RACE_HUGE_FIRE_ELEMENTAL:
           abil_mods->strength = 0;
           abil_mods->dexterity = 6;
           abil_mods->constitution = 4;
-          abil_mods->natural_armor = 40;
+          abil_mods->natural_armor = 4;
           break;
         case RACE_SMALL_AIR_ELEMENTAL:
           abil_mods->strength = 0;
           abil_mods->dexterity = 2;
           abil_mods->constitution = 0;
-          abil_mods->natural_armor = 20;
+          abil_mods->natural_armor = 2;
           break;
         case RACE_MEDIUM_AIR_ELEMENTAL:
           abil_mods->strength = 0;
           abil_mods->dexterity = 4;
           abil_mods->constitution = 0;
-          abil_mods->natural_armor = 30;
+          abil_mods->natural_armor = 3;
           break;
         case RACE_LARGE_AIR_ELEMENTAL:
           abil_mods->strength = 2;
           abil_mods->dexterity = 4;
           abil_mods->constitution = 0;
-          abil_mods->natural_armor = 40;
+          abil_mods->natural_armor = 4;
           break;
         case RACE_HUGE_AIR_ELEMENTAL:
           abil_mods->strength = 4;
           abil_mods->dexterity = 6;
           abil_mods->constitution = 0;
-          abil_mods->natural_armor = 40;
+          abil_mods->natural_armor = 4;
           break;
         case RACE_SMALL_EARTH_ELEMENTAL:
           abil_mods->strength = 0;
           abil_mods->dexterity = 2;
           abil_mods->constitution = 0;
-          abil_mods->natural_armor = 40;
+          abil_mods->natural_armor = 4;
           break;
         case RACE_MEDIUM_EARTH_ELEMENTAL:
           abil_mods->strength = 0;
           abil_mods->dexterity = 4;
           abil_mods->constitution = 0;
-          abil_mods->natural_armor = 50;
+          abil_mods->natural_armor = 5;
           break;
         case RACE_LARGE_EARTH_ELEMENTAL:
           abil_mods->strength = 6;
           abil_mods->dexterity = -2;
           abil_mods->constitution = 2;
-          abil_mods->natural_armor = 60;
+          abil_mods->natural_armor = 6;
           break;
         case RACE_HUGE_EARTH_ELEMENTAL:
           abil_mods->strength = 8;
           abil_mods->dexterity = -2;
           abil_mods->constitution = 4;
-          abil_mods->natural_armor = 60;
+          abil_mods->natural_armor = 6;
           break;
         case RACE_SMALL_WATER_ELEMENTAL:
           abil_mods->strength = 0;
           abil_mods->dexterity = 0;
           abil_mods->constitution = 2;
-          abil_mods->natural_armor = 40;
+          abil_mods->natural_armor = 4;
           break;
         case RACE_MEDIUM_WATER_ELEMENTAL:
           abil_mods->strength = 0;
           abil_mods->dexterity = 0;
           abil_mods->constitution = 4;
-          abil_mods->natural_armor = 50;
+          abil_mods->natural_armor = 5;
           break;
         case RACE_LARGE_WATER_ELEMENTAL:
           abil_mods->strength = 2;
           abil_mods->dexterity = -2;
           abil_mods->constitution = 6;
-          abil_mods->natural_armor = 60;
+          abil_mods->natural_armor = 6;
           break;
         case RACE_HUGE_WATER_ELEMENTAL:
           abil_mods->strength = 4;
           abil_mods->dexterity = -2;
           abil_mods->constitution = 8;
-          abil_mods->natural_armor = 60;
+          abil_mods->natural_armor = 6;
           break;
       }
       break;
@@ -1563,6 +1563,37 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
     return i;
 }
 
+#define WILDSHAPE_AFFECTS 4
+void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
+  struct affected_type af[WILDSHAPE_AFFECTS];
+  int i = 0;
+
+  /* init affect array */
+  for (i = 0; i < WILDSHAPE_AFFECTS; i++) {
+    new_affect(&(af[i]));
+    af[i].spell = SKILL_WILDSHAPE;
+    af[i].duration = 32766; /*what cheese*/
+  }
+
+  af[0].location = APPLY_STR;
+  af[0].modifier = str;
+
+  af[1].location = APPLY_DEX;
+  af[1].modifier = dex;
+
+  af[2].location = APPLY_CON;
+  af[2].modifier = con;
+
+  af[3].location = APPLY_AC_NEW;
+  af[3].modifier = ac;
+
+  for (i = 0; i < WILDSHAPE_AFFECTS; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+
+  return;
+}
+#undef WILDSHAPE_AFFECTS
+
 /* wildshape port from d20, in progress -Zusuk */
 ACMD(do_wildshape) {
   int i = 0;
@@ -1593,6 +1624,9 @@ ACMD(do_wildshape) {
       send_to_char(ch, "You are not wild shaped.\r\n");
       return;
     }
+
+    /* cleanup bonuses */
+    affect_from_char(ch, SKILL_WILDSHAPE);
 
     /* stat modifications are cleaned up in affect_total() */
     GET_DISGUISE_RACE(ch) = 0;
@@ -1635,7 +1669,11 @@ ACMD(do_wildshape) {
   /* determine modifiers */
   abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
   /* set the bonuses */
+  /*
   set_bonus_attributes(ch, abil_mods->strength, abil_mods->constitution,
+                       abil_mods->dexterity, abil_mods->natural_armor);
+  */
+  set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
                        abil_mods->dexterity, abil_mods->natural_armor);
   /* all stat modifications are done */
 
