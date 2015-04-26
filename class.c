@@ -1982,6 +1982,7 @@ void init_start_char(struct char_data *ch) {
   SUBRACE(ch) = 0;
   IS_MORPHED(ch) = 0;
   GET_DISGUISE_RACE(ch) = 0;
+  cleanup_disguise(ch);
 
   /* clear immortal flags */
   if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))

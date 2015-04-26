@@ -35,6 +35,7 @@ void dismount_char(struct char_data *ch);
 void mount_char(struct char_data *ch, struct char_data *mount);
 
 /* utility */
+void cleanup_disguise(struct char_data *ch);
 const char *money_desc(int amount);
 struct obj_data *create_money(int amount);
 int	isname(const char *str, const char *namelist);

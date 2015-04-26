@@ -390,6 +390,10 @@ int load_char(const char *name, struct char_data *ch) {
     GET_CLANRANK(ch) = PFDEF_CLANRANK;
     GET_CLANPOINTS(ch) = PFDEF_CLANPOINTS;
     GET_DISGUISE_RACE(ch) = PFDEF_RACE;
+    GET_DISGUISE_STR(ch) = 0;
+    GET_DISGUISE_CON(ch) = 0;
+    GET_DISGUISE_DEX(ch) = 0;
+    GET_DISGUISE_AC(ch) = 0;
 
     for (i = 0; i < AF_ARRAY_MAX; i++)
       AFF_FLAGS(ch)[i] = PFDEF_AFFFLAGS;
@@ -485,6 +489,10 @@ int load_char(const char *name, struct char_data *ch) {
           else if (!strcmp(tag, "Drol")) GET_REAL_DAMROLL(ch) = atoi(line);
           else if (!strcmp(tag, "DipT")) GET_DIPTIMER(ch) = atoi(line);
           else if (!strcmp(tag, "DRac"))  GET_DISGUISE_RACE(ch) = atoi(line);
+          else if (!strcmp(tag, "DDex"))  GET_DISGUISE_DEX(ch) = atoi(line);
+          else if (!strcmp(tag, "DStr"))  GET_DISGUISE_STR(ch) = atoi(line);
+          else if (!strcmp(tag, "DCon"))  GET_DISGUISE_CON(ch) = atoi(line);
+          else if (!strcmp(tag, "DAC"))  GET_DISGUISE_AC(ch) = atoi(line);
           break;
 
         case 'E':
@@ -798,6 +806,10 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_SIZE(ch) != PFDEF_SIZE) fprintf(fl, "Size: %d\n", GET_SIZE(ch));
   if (GET_LEVEL(ch) != PFDEF_LEVEL) fprintf(fl, "Levl: %d\n", GET_LEVEL(ch));
   if (GET_DISGUISE_RACE(ch)) fprintf(fl, "DRac: %d\n", GET_DISGUISE_RACE(ch));
+  if (GET_DISGUISE_STR(ch)) fprintf(fl, "DStr: %d\n", GET_DISGUISE_STR(ch));
+  if (GET_DISGUISE_DEX(ch)) fprintf(fl, "DDex: %d\n", GET_DISGUISE_DEX(ch));
+  if (GET_DISGUISE_CON(ch)) fprintf(fl, "DCon: %d\n", GET_DISGUISE_CON(ch));
+  if (GET_DISGUISE_AC(ch)) fprintf(fl, "DAC: %d\n", GET_DISGUISE_AC(ch));
 
   fprintf(fl, "Id  : %ld\n", GET_IDNUM(ch));
   fprintf(fl, "Brth: %ld\n", (long) ch->player.time.birth);
