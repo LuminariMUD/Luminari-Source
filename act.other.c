@@ -1642,6 +1642,8 @@ ACMD(do_wildshape) {
     sprintf(buf, "$n changes shape into a %s.", pc_race_types[GET_RACE(ch)]);
     act(buf, true, ch, 0, 0, TO_ROOM);
 
+    USE_STANDARD_ACTION(ch);
+
     return;
   }
 
@@ -1656,7 +1658,7 @@ ACMD(do_wildshape) {
     send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
     display_eligible_wildshape_races(ch, argument, FALSE);
     return;
-  } 
+  }
 
   if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) && *argument) {
     send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
@@ -1685,6 +1687,8 @@ ACMD(do_wildshape) {
   act(buf, true, ch, 0, 0, TO_CHAR);
   sprintf(buf, "$n changes shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
   act(buf, true, ch, 0, 0, TO_ROOM);
+
+  USE_STANDARD_ACTION(ch);
 
   return;
 }
@@ -1805,12 +1809,15 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
   USE_STANDARD_ACTION(ch);
 }
 
-/* a trivial shapechange code for druids */
+/* a trivial shapechange code for druids, replaced by wildshape */
 ACMD(do_shapechange) {
   int form_num = -1, i = 0, uses_remaining = 0;
 
   if (!ch->desc || IS_NPC(ch))
     return;
+
+  send_to_char(ch, "This command has been replaced with 'wildhsape'\r\n");
+  return;
 
   skip_spaces(&argument);
 
