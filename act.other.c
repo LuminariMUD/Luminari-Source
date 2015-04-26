@@ -49,8 +49,7 @@
 static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data * ch);
 
-void set_attributes(struct char_data *ch, int str, int con, int dex, int intel, int wis, int cha);
-
+/*****************/
 
 /* innate animate dead ability */
 #define MOB_ZOMBIE            11   /* animate dead levels 1-7 */
@@ -1268,14 +1267,11 @@ ACMD(do_gain) {
 /* shapechange functions */
 
 /*************************/
-void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int intel,
-                          int wis, int cha) {
-  ch->real_abils.str = str;
-  ch->real_abils.con = con;
-  ch->real_abils.dex = dex;
-  ch->real_abils.intel = intel;
-  ch->real_abils.wis = wis;
-  ch->real_abils.cha = cha;
+void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int ac) {
+  GET_DISGUISE_STR(ch) = str;
+  GET_DISGUISE_CON(ch) = con;
+  GET_DISGUISE_DEX(ch) = dex;
+  GET_DISGUISE_AC(ch) = ac;
 }
 
 
@@ -1598,39 +1594,18 @@ ACMD(do_wildshape) {
       return;
     }
 
-    /* undo stat modifications */
-    abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
-    set_attributes(ch, ch->real_abils.str - abil_mods->strength,
-                   ch->real_abils.con - abil_mods->constitution,
-                   ch->real_abils.dex - abil_mods->dexterity,
-                   ch->real_abils.intel,
-                   ch->real_abils.wis,
-                   ch->real_abils.cha);
-    GET_AC(ch) -= abil_mods->natural_armor;
-    /*
-    abil_mods = set_wild_shape_mods(GET_REAL_RACE(ch));
-    set_attributes(ch, ch->real_abils.str + abil_mods->strength,
-                   ch->real_abils.con + abil_mods->constitution,
-                   ch->real_abils.dex + abil_mods->dexterity,
-                   ch->real_abils.intel,
-                   ch->real_abils.wis,
-                   ch->real_abils.cha);
-     */
-    /* should be all clean now */
-
+    /* stat modifications are cleaned up in affect_total() */
     GET_DISGUISE_RACE(ch) = 0;
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
+    GET_HIT(ch) += GET_LEVEL(ch);
+    GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
+    affect_total(ch);
+
     sprintf(buf, "You change shape into a %s.", pc_race_types[GET_RACE(ch)]);
     act(buf, true, ch, 0, 0, TO_CHAR);
     sprintf(buf, "$n changes shape into a %s.", pc_race_types[GET_RACE(ch)]);
     act(buf, true, ch, 0, 0, TO_ROOM);
-    /*
-    if (!GET_DISGUISE_DESC_1(ch))
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_DISGUISED);
-    */
-    GET_HIT(ch) += GET_LEVEL(ch);
-    GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
-    affect_total(ch);
+
     return;
   }
 
@@ -1656,33 +1631,22 @@ ACMD(do_wildshape) {
   GET_DISGUISE_RACE(ch) = i;
   /* determine modifiers */
   abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
-  set_attributes(ch, ch->real_abils.str + abil_mods->strength,
-                 ch->real_abils.con + abil_mods->constitution,
-                 ch->real_abils.dex + abil_mods->dexterity,
-                 ch->real_abils.intel,
-                 ch->real_abils.wis,
-                 ch->real_abils.cha);
-  GET_AC(ch) += abil_mods->natural_armor;
-  /*
-  abil_mods = set_wild_shape_mods(GET_REAL_RACE(ch));
-  set_attributes(ch, ch->real_abils.str - abil_mods->strength,
-                 ch->real_abils.con - abil_mods->constitution,
-                 ch->real_abils.dex - abil_mods->dexterity,
-                 ch->real_abils.intel,
-                 ch->real_abils.wis,
-                 ch->real_abils.cha);
-  */
+  /* set the bonuses */
+  set_bonus_attributes(ch, abil_mods->strength, abil_mods->constitution,
+                       abil_mods->dexterity, abil_mods->natural_armor);
   /* all stat modifications are done */
+
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
+  GET_HIT(ch) += GET_LEVEL(ch);
+  GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
+  affect_total(ch);
 
   sprintf(buf, "You change shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
   act(buf, true, ch, 0, 0, TO_CHAR);
   sprintf(buf, "$n changes shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
   act(buf, true, ch, 0, 0, TO_ROOM);
-  SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
-  //SET_BIT_AR(AFF_FLAGS(ch), AFF_DISGUISED);
-  GET_HIT(ch) += GET_LEVEL(ch);
-  GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
-  affect_total(ch);
+
+  return;
 }
 
 
