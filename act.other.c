@@ -1558,9 +1558,9 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
   }
 
   if (i >= NUM_EXTENDED_RACES)
-    return 0;
+    return 0; /* failed to find anything */
   else
-    return i; /* failed to find anything */
+    return i;
 }
 
 /* wildshape port from d20, in progress -Zusuk */
@@ -1600,6 +1600,8 @@ ACMD(do_wildshape) {
     GET_HIT(ch) += GET_LEVEL(ch);
     GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
     affect_total(ch);
+    save_char(ch, 0);
+    Crash_crashsave(ch);
 
     sprintf(buf, "You change shape into a %s.", pc_race_types[GET_RACE(ch)]);
     act(buf, true, ch, 0, 0, TO_CHAR);
@@ -1628,6 +1630,7 @@ ACMD(do_wildshape) {
   }
 
   /* we're in the clear, set the wildshape race! */
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
   GET_DISGUISE_RACE(ch) = i;
   /* determine modifiers */
   abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
@@ -1636,10 +1639,11 @@ ACMD(do_wildshape) {
                        abil_mods->dexterity, abil_mods->natural_armor);
   /* all stat modifications are done */
 
-  SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
   GET_HIT(ch) += GET_LEVEL(ch);
   GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
   affect_total(ch);
+  save_char(ch, 0);
+  Crash_crashsave(ch);
 
   sprintf(buf, "You change shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
   act(buf, true, ch, 0, 0, TO_CHAR);
