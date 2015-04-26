@@ -2001,7 +2001,7 @@ ACMD(do_score) {
   send_to_char(ch, "\tcName : \tn%-20s \tcTitle   : \tn%s\r\n",
                GET_NAME(ch), GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
 
-  send_to_char(ch, "\tcRace : \tn%-20s ", pc_race_types[GET_RACE(ch)]);
+  send_to_char(ch, "\tcRace : \tn%-20s ", RACE_ABBR(ch));
 
   /* Build the string of class names and levels */
   *buf = '\0';
