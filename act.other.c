@@ -1656,7 +1656,7 @@ ACMD(do_wildshape) {
     send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
     display_eligible_wildshape_races(ch, argument, FALSE);
     return;
-  }
+  } 
 
   if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) && *argument) {
     send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
