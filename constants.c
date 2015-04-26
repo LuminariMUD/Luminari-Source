@@ -913,6 +913,8 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
   "You are casting defensively.",
   "You will spread your attacks among all of your enemies.",
   "You are charging into battle.",
+  "You are shape-changed into a different race.",
+  "You have been feinted in combat (flat-footed).",
   "\n"
 };
 

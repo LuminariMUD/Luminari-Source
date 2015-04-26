@@ -694,7 +694,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
     }
     send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
   } else if ((AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
-          char_has_mud_event(ch, eSTUNNED)))
+          char_has_mud_event(ch, eSTUNNED)) && GET_LEVEL(ch) < LVL_IMPL)
     send_to_char(ch, "You try, but you are unable to move!\r\n");
   else if (AFF_FLAGGED(ch, AFF_DAZED))
     send_to_char(ch, "You are too dazed to do anything!\r\n");
