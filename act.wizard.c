@@ -1682,11 +1682,19 @@ ACMD(do_restore) {
       }
     }
 
+    /* this helps for testing */
+    bool found = FALSE;
     if (GET_LEVEL(vict) >= LVL_IMPL) {
-      for (i = 1; i < NUM_FEATS; i++)
-        if (!has_feat(ch, i))
+      IS_MORPHED(ch) = 0;
+      GET_DISGUISE_RACE(ch) = 0;
+      for (i = 1; i < NUM_FEATS; i++) {
+        if (!has_feat(ch, i)) {
           SET_FEAT(ch, i, 1);
+          found = TRUE;
+        }
+      }
     }
+    if (found) send_to_char(ch, "Your feats have been updated.\r\n");
 
     update_pos(vict);
     affect_total(vict);
