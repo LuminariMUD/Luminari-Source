@@ -318,6 +318,7 @@ ACMD(do_comeandgetme);
  * Begin Functions and defines for act.other.c
  ****************************************************************************/
 /* Functions with subcommands */
+void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int ac);
 void list_forms(struct char_data *ch);
 void perform_shapechange(struct char_data *ch, char *arg, int mode);
 int valid_align_by_class(int alignment, int class);

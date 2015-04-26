@@ -715,7 +715,6 @@ do                                                              \
 #define GET_SEX(ch)	((ch)->player.sex)
 
 
-
 /** Current strength of ch. */
 #define GET_REAL_STR(ch)     	((ch)->real_abils.str)
 #define GET_DISGUISE_STR(ch) ((ch)->disguise_abils.str)
@@ -760,8 +759,10 @@ do                                                              \
 /** Armor class of ch. */
 /* Note that this system is basically inspired by d20, but by a factor of
    10.  So naked AC = 10 in d20, or in our system 100 */
+#define GET_DISGUISE_AC(ch)        ((ch)->points.disguise_armor)
 #define GET_REAL_AC(ch)        ((ch)->real_points.armor)
-#define GET_AC(ch)        ((ch)->points.armor)
+#define GET_AC(ch) ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? \
+  GET_DISGUISE_AC(ch)+(ch)->points.armor : (ch)->points.armor)
 /** Current hit points (health) of ch. */
 #define GET_HIT(ch)	  ((ch)->points.hit)
 /** Maximum hit points of ch. */

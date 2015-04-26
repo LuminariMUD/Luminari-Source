@@ -1540,7 +1540,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       return;
 
     case MEDIT_AC:
-      GET_AC(OLC_MOB(d)) = LIMIT(i, 0, 600);
+      (OLC_MOB(d))->points.armor = LIMIT(i, 0, 600);
       OLC_VAL(d) = TRUE;
       medit_disp_stats_menu(d);
       return;
@@ -2088,7 +2088,7 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
     GET_GOLD(mob) += (bonus_level * 50);
   }
 
-  GET_AC(mob) = armor_class;
+  (mob)->points.armor = armor_class;
 
   /* make sure mobs do at least 1d4 damage */
   if (GET_SDD(mob) < 4)

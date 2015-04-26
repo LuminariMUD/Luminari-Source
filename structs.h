@@ -2823,6 +2823,7 @@ struct char_point_data {
   sh_int move; /**< Current move point, or stamina, level */
   sh_int max_move; /**< Max move point, or stamina, level */
   sh_int armor; // armor class
+  sh_int disguise_armor; /* disguise armor class bonus */
   sh_int spell_res; // spell resistance
 
   int gold; /**< Current gold carried on character */

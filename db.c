@@ -1691,7 +1691,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   GET_REAL_SIZE(mob_proto + i) = SIZE_MEDIUM;
   GET_WEIGHT(mob_proto + i) = 200;
   GET_HEIGHT(mob_proto + i) = 198;
-  GET_AC(mob_proto + i) = GET_REAL_AC(mob_proto + i);
+  (mob_proto + i)->points.armor = GET_REAL_AC(mob_proto + i);
 
   /* These are now save applies; base save numbers for MOBs are now from the
    * warrior save table. */

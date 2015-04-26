@@ -145,10 +145,10 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       break;
 
     case APPLY_AC:
-      GET_AC(ch) += mod;
+      (ch)->points.armor += mod;
       break;
     case APPLY_AC_NEW: // new APPLY_AC for 3.5E armor class -Nashak
-      GET_AC(ch) += mod * 10;
+      (ch)->points.armor += mod * 10;
       break;
 
     case APPLY_HITROLL:
@@ -600,7 +600,7 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
     empty_bits[i] = 0;
 
   /* restore stored stats */
-  GET_AC(ch) = at_armor;
+  (ch)->points.armor = at_armor;
 
   /* add gear back on */
   for (i = 0; i < NUM_WEARS; i++) {
@@ -646,6 +646,16 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
  * restoring original abilities, and then affecting all again. */
 void affect_total(struct char_data *ch) {
   int at_armor = 100;
+
+  /* cleanup for disguise system */
+  if (GET_DISGUISE_RACE(ch) == 0) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
+    set_bonus_attributes(ch, 0, 0, 0, 0);
+  }
+  if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
+    GET_DISGUISE_RACE(ch) = 0;
+    set_bonus_attributes(ch, 0, 0, 0, 0);
+  }
 
   /* this will subtract all affects and reset stats
      at_armor stores character's AC after being unaffected (like armor-apply) */
@@ -1140,7 +1150,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
   /*  Modified this to use the NEW ac system - AC starts at 10 and is modified by armor.
    *  09/09/14 : Ornir */
   if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
-    GET_AC(ch) += apply_ac(ch, pos);
+    (ch)->points.armor += apply_ac(ch, pos);
 
   if (IN_ROOM(ch) != NOWHERE) {
     if (pos == WEAR_LIGHT && GET_OBJ_TYPE(obj) == ITEM_LIGHT)
@@ -1189,7 +1199,7 @@ struct obj_data *unequip_char(struct char_data *ch, int pos) {
   obj->worn_on = -1;
 
   if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
-    GET_AC(ch) -= apply_ac(ch, pos);
+    (ch)->points.armor -= apply_ac(ch, pos);
 
   if (IN_ROOM(ch) != NOWHERE) {
     if (pos == WEAR_LIGHT && GET_OBJ_TYPE(obj) == ITEM_LIGHT)
