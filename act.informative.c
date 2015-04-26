@@ -2497,7 +2497,7 @@ ACMD(do_who) {
           send_to_char(ch, "%13s", admin_level_names[(GET_LEVEL(tch) - LVL_IMMORT)]);
         } else {
           mortals++;
-          send_to_char(ch, "[%2d %8s ",
+          send_to_char(ch, "[%2d %4s ",
                        GET_LEVEL(tch), RACE_ABBR(tch));
         }
 
