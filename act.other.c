@@ -1614,6 +1614,7 @@ ACMD(do_wildshape) {
                    ch->real_abils.wis,
                    ch->real_abils.cha);
     GET_AC(ch) -= abil_mods->natural_armor;
+    /*
     abil_mods = set_wild_shape_mods(GET_REAL_RACE(ch));
     set_attributes(ch, ch->real_abils.str + abil_mods->strength,
                    ch->real_abils.con + abil_mods->constitution,
@@ -1621,6 +1622,7 @@ ACMD(do_wildshape) {
                    ch->real_abils.intel,
                    ch->real_abils.wis,
                    ch->real_abils.cha);
+     */
     /* should be all clean now */
 
     GET_DISGUISE_RACE(ch) = 0;
@@ -1668,6 +1670,7 @@ ACMD(do_wildshape) {
                  ch->real_abils.wis,
                  ch->real_abils.cha);
   GET_AC(ch) += abil_mods->natural_armor;
+  /*
   abil_mods = set_wild_shape_mods(GET_REAL_RACE(ch));
   set_attributes(ch, ch->real_abils.str - abil_mods->strength,
                  ch->real_abils.con - abil_mods->constitution,
@@ -1675,6 +1678,7 @@ ACMD(do_wildshape) {
                  ch->real_abils.intel,
                  ch->real_abils.wis,
                  ch->real_abils.cha);
+  */
   /* all stat modifications are done */
 
   sprintf(buf, "You change shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
