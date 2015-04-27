@@ -1109,6 +1109,10 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
     autoquest_trigger_check(killer, NULL, NULL, AQ_ROOM_CLEAR);
   }
 
+  /* this was commented out for some reason, undid that to make sure
+   events clear on death */
+  clear_char_event_list(ch);
+
   /* "punishment" for death */
   start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
 }
@@ -2062,10 +2066,6 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
   long local_gold = 0, happy_gold = 0;
   struct char_data *tmp_char;
   struct obj_data *corpse_obj;
-
-  /* this was commented out for some reason, undid that to make sure
-   events clear on death */
-  clear_char_event_list(victim);
 
   GET_POS(victim) = POS_DEAD;
 
