@@ -536,6 +536,11 @@ void event_cancel_specific(struct char_data *ch, event_id iId) {
     }
   }
 
+  /* need to clear simple lists */
+  simple_list(NULL);
+  act("Clearing simple list for $n, 2nd time.", FALSE, ch, NULL, NULL, TO_ROOM);
+  send_to_char(ch, "Clearing simple list, 2nd time.\r\n");
+
   if (found) {
     act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM);
     send_to_char(ch, "Event found: %d.\r\n", iId);
