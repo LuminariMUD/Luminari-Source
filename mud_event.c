@@ -508,6 +508,8 @@ void event_cancel_specific(struct char_data *ch, event_id iId) {
   struct event * pEvent;
   struct mud_event_data * pMudEvent = NULL;
   bool found = FALSE;
+  //static bool loop = FALSE;
+  //static struct list_data *pLastList = NULL;
 
   if (ch->events == NULL)
     return;
@@ -515,7 +517,15 @@ void event_cancel_specific(struct char_data *ch, event_id iId) {
   if (ch->events->iSize == 0)
     return;
 
-  clear_simple_list();
+  /* need to clear simple lists */
+  simple_list(NULL);
+  /*
+  if (pList == NULL) {
+    loop = FALSE;
+    pLastList = NULL;
+    return;
+  }
+  */
 
   while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
     if (!pEvent->isMudEvent)

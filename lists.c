@@ -14,8 +14,8 @@
 
 
 //static struct iterator_data Iterator;
-static bool loop = FALSE;
-static struct list_data *pLastList = NULL;
+//static bool loop = FALSE;
+//static struct list_data *pLastList = NULL;
 
 
 /* Global lists */
@@ -248,11 +248,12 @@ struct item_data *find_in_list(void * pContent, struct list_data * pList) {
 }
 
 /* -working on this, zusuk (04/22/13) */
+/*
 void clear_simple_list(void) {
   loop = FALSE;
   pLastList = NULL;
 }
-
+*/
 
 /** This is the "For Dummies" function, as although it's not as flexible,
  * it is even easier applied for list searches then using your own iterators
