@@ -446,6 +446,7 @@ struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId) 
   struct event * pEvent = NULL;
   struct mud_event_data * pMudEvent = NULL;
   bool found = FALSE;
+  struct iterator_data it;
 
   if (ch->events == NULL)
     return NULL;
@@ -453,8 +454,8 @@ struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId) 
   if (ch->events->iSize == 0)
     return NULL;
 
+  /*
   simple_list(NULL);
-
   while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
     if (!pEvent->isMudEvent)
       continue;
@@ -464,8 +465,21 @@ struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId) 
       break;
     }
   }
-
   simple_list(NULL);
+  */
+  
+  for( pEvent = (struct event *) merge_iterator(&it, ch->events);
+       pEvent != NULL;
+       pEvent = next_in_list(&it)) {
+    if (!pEvent->isMudEvent)
+      continue;
+    pMudEvent = (struct mud_event_data *) pEvent->event_obj;
+    if (pMudEvent->iId == iId) {
+      found = TRUE;
+      break;
+    }
+  }
+  remove_iterator(&it);
 
   if (found)
     return (pMudEvent);
