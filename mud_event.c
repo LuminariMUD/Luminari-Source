@@ -522,25 +522,18 @@ void event_cancel_specific(struct char_data *ch, event_id iId) {
   bool found = FALSE;
   struct iterator_data it;
 
-
   if (ch->events == NULL) {
-    act("ch->events == NULL, for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
-    send_to_char(ch, "ch->events == NULL.\r\n");
+    //act("ch->events == NULL, for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
+    //send_to_char(ch, "ch->events == NULL.\r\n");
     return;
   }
 
   if (ch->events->iSize == 0) {
-    act("ch->events->iSize == 0, for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
-    send_to_char(ch, "ch->events->iSize == 0.\r\n");
+    //act("ch->events->iSize == 0, for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
+    //send_to_char(ch, "ch->events->iSize == 0.\r\n");
     return;
   }
 
-  /* need to clear simple lists */
-  /*
-  simple_list(NULL);
-  act("Clearing simple list for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
-  send_to_char(ch, "Clearing simple list.\r\n");
-  */
   for( pEvent = (struct event *) merge_iterator(&it, ch->events);
        pEvent != NULL;
        pEvent = next_in_list(&it)) {
@@ -554,6 +547,12 @@ void event_cancel_specific(struct char_data *ch, event_id iId) {
   }
   remove_iterator(&it);
 
+  /* need to clear simple lists */
+  /*
+  simple_list(NULL);
+  act("Clearing simple list for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
+  send_to_char(ch, "Clearing simple list.\r\n");
+  */
   /* fill simple_list with ch's events, use it to try and find event ID */
   /*
   while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
@@ -566,7 +565,6 @@ void event_cancel_specific(struct char_data *ch, event_id iId) {
     }
   }
   */
-
   /* need to clear simple lists */
   /*
   simple_list(NULL);
@@ -575,13 +573,13 @@ void event_cancel_specific(struct char_data *ch, event_id iId) {
   */
 
   if (found) {
-    act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM);
-    send_to_char(ch, "Event found: %d.\r\n", iId);
+    //act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM);
+    //send_to_char(ch, "Event found: %d.\r\n", iId);
     if (event_is_queued(pEvent))
       event_cancel(pEvent);
   } else {
-    act("event_cancel_specific did not find an event for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
-    send_to_char(ch, "event_cancel_specific did not find an event.\r\n");
+    //act("event_cancel_specific did not find an event for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
+    //send_to_char(ch, "event_cancel_specific did not find an event.\r\n");
   }
 
   return;
