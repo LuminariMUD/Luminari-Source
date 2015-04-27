@@ -1675,7 +1675,7 @@ ACMD(do_kill) {
       if (!IS_NPC(vict))
         raw_kill(vict, ch);
       else
-        raw_kill_old(vict, ch);
+        raw_kill_npc(vict, ch);
     }
   }
 }
