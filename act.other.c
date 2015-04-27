@@ -2232,7 +2232,14 @@ ACMD(do_hide) {
     if (HAS_FEAT(ch, FEAT_HIDE_IN_PLAIN_SIGHT)) {
       USE_STANDARD_ACTION(ch);
       if ((skill_roll(FIGHTING(ch), ABILITY_PERCEPTION)) < (skill_roll(ch, ABILITY_STEALTH) - 8)) {
+        /* don't forget to remove the fight event! */
+        if (char_has_mud_event(FIGHTING(ch), eCOMBAT_ROUND)) {
+          event_cancel_specific(FIGHTING(ch), eCOMBAT_ROUND);
+        }
         stop_fighting(FIGHTING(ch));
+        if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
+          event_cancel_specific(ch, eCOMBAT_ROUND);
+        }
         stop_fighting(ch);
       } else {
         send_to_char(ch, "You failed to hide in plain sight!\r\n");

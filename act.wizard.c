@@ -4569,6 +4569,9 @@ ACMD(do_peace) {
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_v) {
     next_v = vict->next_in_room;
     if (FIGHTING(vict)) {
+      if (char_has_mud_event(FIGHTING(ch), eCOMBAT_ROUND)) {
+        event_cancel_specific(FIGHTING(ch), eCOMBAT_ROUND);
+      }
       stop_fighting(vict);
       resetCastingData(vict);
     }

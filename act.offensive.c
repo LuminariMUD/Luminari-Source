@@ -306,12 +306,27 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
   act("You are rescued by $N, you are confused!", FALSE, vict, 0, ch, TO_CHAR);
   act("$n heroically rescues $N!", FALSE, ch, 0, vict, TO_NOTVICT);
 
-  if (FIGHTING(vict) == tmp_ch)
+  if (FIGHTING(vict) == tmp_ch) {
+    /* don't forget to remove the fight event! */
+    if (char_has_mud_event(vict, eCOMBAT_ROUND)) {
+      event_cancel_specific(vict, eCOMBAT_ROUND);
+    }
     stop_fighting(vict);
-  if (FIGHTING(tmp_ch))
+  }
+  if (FIGHTING(tmp_ch)) {
+    /* don't forget to remove the fight event! */
+    if (char_has_mud_event(tmp_ch, eCOMBAT_ROUND)) {
+      event_cancel_specific(tmp_ch, eCOMBAT_ROUND);
+    }
     stop_fighting(tmp_ch);
-  if (FIGHTING(ch))
+  }
+  if (FIGHTING(ch)) {
+    /* don't forget to remove the fight event! */
+    if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
+      event_cancel_specific(ch, eCOMBAT_ROUND);
+    }
     stop_fighting(ch);
+  }
 
   set_fighting(ch, tmp_ch);
   set_fighting(tmp_ch, ch);
@@ -1619,6 +1634,11 @@ ACMD(do_hit) {
       }
       /* not fighting, so switch opponents */
     } else {
+      /* don't forget to remove the fight event! */
+      if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
+        event_cancel_specific(ch, eCOMBAT_ROUND);
+      }
+
       USE_STANDARD_ACTION(ch);
       stop_fighting(ch);
       send_to_char(ch, "You switch opponents!\r\n");
@@ -1841,6 +1861,11 @@ ACMD(do_disengage) {
     if (FIGHTING(vict) == ch) {
       send_to_char(ch, "You are too busy fighting for your life!\r\n");
       return;
+    }
+
+    /* don't forget to remove the fight event! */
+    if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
+      event_cancel_specific(ch, eCOMBAT_ROUND);
     }
 
     USE_MOVE_ACTION(ch);
@@ -3313,6 +3338,11 @@ ACMD(do_fire) {
   if (can_fire_arrow(ch, FALSE)) {
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
     if (IN_ROOM(ch) != IN_ROOM(vict)) {
+      /* don't forget to remove the fight event! */
+      if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
+        event_cancel_specific(ch, eCOMBAT_ROUND);
+      }
+
       stop_fighting(ch);
       USE_STANDARD_ACTION(ch);
     } else {
