@@ -1035,10 +1035,6 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
 void raw_kill(struct char_data *ch, struct char_data *killer) {
   struct char_data *k, *temp;
 
-  /* this was commented out for some reason, undid that to make sure
-   events clear on death */
-  clear_char_event_list(ch);
-
   //stop relevant fighting
   if (FIGHTING(ch))
     stop_fighting(ch);
@@ -2066,6 +2062,10 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
   long local_gold = 0, happy_gold = 0;
   struct char_data *tmp_char;
   struct obj_data *corpse_obj;
+
+  /* this was commented out for some reason, undid that to make sure
+   events clear on death */
+  clear_char_event_list(victim);
 
   GET_POS(victim) = POS_DEAD;
 
