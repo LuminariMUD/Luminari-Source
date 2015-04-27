@@ -467,7 +467,7 @@ struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId) 
   }
   simple_list(NULL);
   */
-  
+
   for( pEvent = (struct event *) merge_iterator(&it, ch->events);
        pEvent != NULL;
        pEvent = next_in_list(&it)) {
@@ -499,7 +499,6 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId) {
     return NULL;
 
   simple_list(NULL);
-
   while ((pEvent = (struct event *) simple_list(rm->events)) != NULL) {
     if (!pEvent->isMudEvent)
       continue;
@@ -509,7 +508,6 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId) {
       break;
     }
   }
-
   simple_list(NULL);
 
   if (found)
@@ -579,7 +577,8 @@ void event_cancel_specific(struct char_data *ch, event_id iId) {
   if (found) {
     act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM);
     send_to_char(ch, "Event found: %d.\r\n", iId);
-    event_cancel(pEvent);
+    if (event_is_queued(pEvent))
+      event_cancel(pEvent);
   } else {
     act("event_cancel_specific did not find an event for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
     send_to_char(ch, "event_cancel_specific did not find an event.\r\n");
@@ -627,12 +626,10 @@ void clear_room_event_list(struct room_data *rm) {
     return;
 
   simple_list(NULL);
-
   while ((pEvent = (struct event *) simple_list(rm->events)) != NULL) {
     if (event_is_queued(pEvent))
       event_cancel(pEvent);
   }
-
   simple_list(NULL);
 
 }
@@ -649,7 +646,6 @@ void change_event_duration(struct char_data * ch, event_id iId, long time) {
     return;
 
   simple_list(NULL);
-
   while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
 
     if (!pEvent->isMudEvent)
@@ -662,7 +658,6 @@ void change_event_duration(struct char_data * ch, event_id iId, long time) {
       break;
     }
   }
-
   simple_list(NULL);
 
   if (found) {
