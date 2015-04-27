@@ -5018,7 +5018,7 @@ EVENTFUNC(event_combat_round) {
     return 0;
   }
 
-  if (GET_POS(FIGHTING(ch)) <= POS_DEAD) {
+  if (GET_POS(FIGHTING(ch)) <= POS_DEAD || GET_POS(ch) <= POS_DEAD) {
     stop_fighting(ch);
     return 0;
   }
