@@ -824,8 +824,9 @@ void stop_fighting(struct char_data *ch) {
 
   /* don't forget to remove the fight event!
    * had to add the hit-point check because of freeing events on death  */
-  if (char_has_mud_event(ch, eCOMBAT_ROUND) && GET_HIT(ch) > 0)
+  while (char_has_mud_event(ch, eCOMBAT_ROUND) && GET_HIT(ch) > 0) {
     event_cancel_specific(ch, eCOMBAT_ROUND);
+  }
 
   /* Reset the combat data */
   GET_TOTAL_AOO(ch) = 0;
@@ -1044,6 +1045,10 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
       stop_fighting(k);
   }
 
+  /* this was commented out for some reason, undid that to make sure
+   events clear on death */
+  clear_char_event_list(ch);
+
   /* Wipe character from the memory of hunters and other intelligent NPCs... */
   for (temp = character_list; temp; temp = temp->next) {
     /* PCs can't use MEMORY, and don't use HUNTING() */
@@ -1081,10 +1086,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   kill_quest_completion_check(killer, ch);
 
   /* at this stage you are completely dead */
-  /* this was commented out for some reason, undid that to make sure
-   events clear on death */
-  clear_char_event_list(ch);
-  //update_pos(ch);
+  update_pos(ch);
 
   //this replaces extraction
   char_from_room(ch);
