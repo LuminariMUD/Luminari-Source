@@ -1080,7 +1080,11 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   /* make sure group gets credit for kill if ch involved in quest */
   kill_quest_completion_check(killer, ch);
 
-  update_pos(ch);
+  /* at this stage you are completely dead */
+  /* this was commented out for some reason, undid that to make sure
+   events clear on death */
+  clear_char_event_list(ch);
+  //update_pos(ch);
 
   //this replaces extraction
   char_from_room(ch);
@@ -1108,10 +1112,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
     autoquest_trigger_check(killer, NULL, NULL, AQ_MOB_SAVE);
     autoquest_trigger_check(killer, NULL, NULL, AQ_ROOM_CLEAR);
   }
-
-  /* this was commented out for some reason, undid that to make sure
-   events clear on death */
-  clear_char_event_list(ch);
 
   /* "punishment" for death */
   start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
