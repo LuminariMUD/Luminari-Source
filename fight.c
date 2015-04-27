@@ -1035,6 +1035,10 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
 void raw_kill(struct char_data *ch, struct char_data *killer) {
   struct char_data *k, *temp;
 
+  /* this was commented out for some reason, undid that to make sure
+   events clear on death */
+  clear_char_event_list(ch);
+
   //stop relevant fighting
   if (FIGHTING(ch))
     stop_fighting(ch);
@@ -1100,10 +1104,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   greet_mtrigger(ch, -1);
   greet_memory_mtrigger(ch);
 
-  /* this was commented out for some reason, undid that to make sure
-     events clear on death */
-  clear_char_event_list(ch);
-
   save_char(ch, 0);
   Crash_delete_crashfile(ch);
   //end extraction replacement
@@ -1117,10 +1117,10 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
 }
 
-/* this is circle/tba stock raw_kill code
-   called after striking the mortal blow to ch via instant kill
- * like staff 'kill' command or the die() function */
-void raw_kill_old(struct char_data *ch, struct char_data *killer) {
+/* this is the raw_kill code called for npc's death, we handle it
+ differently priarmily because we don't currently make corpses for
+ PC's */
+void raw_kill_npc(struct char_data *ch, struct char_data *killer) {
   if (FIGHTING(ch))
     stop_fighting(ch);
 
@@ -1196,7 +1196,7 @@ void die(struct char_data *ch, struct char_data *killer) {
   if (!IS_NPC(ch))
     raw_kill(ch, killer);
   else
-    raw_kill_old(ch, killer);
+    raw_kill_npc(ch, killer);
 }
 
 /* called for splitting xp in a group (engine) */
