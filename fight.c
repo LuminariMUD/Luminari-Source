@@ -824,8 +824,8 @@ void stop_fighting(struct char_data *ch) {
 
   /* don't forget to remove the fight event!
    * had to add the hit-point check because of freeing events on death  */
-  //if (char_has_mud_event(ch, eCOMBAT_ROUND) && GET_HIT(ch) > 0)
-  //  event_cancel_specific(ch, eCOMBAT_ROUND);
+  if (char_has_mud_event(ch, eCOMBAT_ROUND) && GET_HIT(ch) > 0)
+    event_cancel_specific(ch, eCOMBAT_ROUND);
 
   /* Reset the combat data */
   GET_TOTAL_AOO(ch) = 0;
@@ -5014,6 +5014,11 @@ EVENTFUNC(event_combat_round) {
 
   if ((!IS_NPC(ch) && (ch->desc != NULL && !IS_PLAYING(ch->desc))) || (FIGHTING(ch) == NULL)){
     /*send_to_char(ch, "DEBUG: RETURNING 0 FROM COMBAT EVENT.\r\n");*/
+    stop_fighting(ch);
+    return 0;
+  }
+
+  if (GET_POS(FIGHTING(ch)) <= POS_DEAD) {
     stop_fighting(ch);
     return 0;
   }
