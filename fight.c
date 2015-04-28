@@ -2262,6 +2262,11 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     send_to_char(victim, "\tR%s\tn ", buf);
   }
 
+  /* more deubgging */
+  send_to_char(victim, "Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
+      GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
+  /**/
+
   if (w_type != -1) { //added for mount, etc
     if (!IS_WEAPON(w_type)) //non weapons use skill_message
       skill_message(dam, ch, victim, w_type, offhand);
