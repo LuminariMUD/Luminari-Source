@@ -3245,7 +3245,7 @@ ACMD(do_fire) {
     return;
   }
 
-  if (FIGHTING(ch)) {
+  if (FIGHTING(ch) || FIRING(ch)) {
     send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
     return;
   }
@@ -3376,7 +3376,7 @@ ACMD(do_autofire) {
     return;
   }
 
-  if (FIGHTING(ch)) {
+  if (FIGHTING(ch) || FIRING(ch)) {
     send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
     return;
   }
