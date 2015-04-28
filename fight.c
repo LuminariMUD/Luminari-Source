@@ -3837,6 +3837,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     weapon special abilities. */
   char *hit_msg = "";
   int sneakdam = 0;  /* Additional sneak attack damage. */
+  bool victim_is_dead = FALSE;
 
   if (is_critical)
     hit_msg = "critical";
@@ -3980,15 +3981,18 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     case SKILL_BACKSTAB:
       /* What a horrible hack.  Backstab should pretty much go away anyway, and crippling strike
        * needs a new place to live. */
-      damage(ch, victim, sneakdam + (dam - sneakdam) * backstab_mult(ch),
-                SKILL_BACKSTAB, dam_type, attack_type);
+      if (damage(ch, victim, sneakdam + (dam - sneakdam) * backstab_mult(ch),
+                SKILL_BACKSTAB, dam_type, attack_type) < 0)
+        victim_is_dead = TRUE;
 
       break;
     default:
       /* Here we manage the racial specials, Trelux have claws and can not use weapons. */
-      if (GET_RACE(ch) == RACE_TRELUX)
-        damage(ch, victim, dam, TYPE_CLAW, dam_type, attack_type);
-      else {
+      if (GET_RACE(ch) == RACE_TRELUX) {
+        if (damage(ch, victim, dam, TYPE_CLAW, dam_type, attack_type) < 0) {
+          victim_is_dead = TRUE;
+        }
+      } else {
         /* We hit with a ranged weapon, victim gets a new arrow, stuck neatly in his butt. */
         if (attack_type == ATTACK_TYPE_RANGED) {
           obj_to_char(missile, victim);
@@ -3999,8 +4003,10 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
           send_to_char(victim, "%s \tYcharges\tn toward you: ", GET_NAME(ch));
           act("$n \tYcharges\tn toward $N!", FALSE, ch, NULL, victim, TO_NOTVICT);
         }
+
         /* So do damage! (We aren't trelux, so do it normally) */
-        damage(ch, victim, dam, w_type, dam_type, attack_type);
+        if (damage(ch, victim, dam, w_type, dam_type, attack_type) < 0)
+          victim_is_dead = TRUE;
 
         if (AFF_FLAGGED(ch, AFF_CHARGING)) { /* only a single strike */
           affect_from_char(ch, SKILL_CHARGE);
@@ -4012,7 +4018,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* 20% chance to poison as a trelux. This could be made part of the general poison code, once that is
    * implemented, also, shouldn't they be able to control if they poison or not?  Why not make them envenom
    * their claws before an attack? */
-  if ( (GET_POS(victim) != POS_DEAD) && GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
+  if (!victim_is_dead && GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
           && !rand_number(0, 5)) {
     /* We are just using the poison spell for this...Maybe there would be a better way, some unique poison?
      * Note the CAST_INNATE, this removes armor spell failure from the call. */
@@ -4021,7 +4027,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   /* crippling strike */
   if (sneakdam) {
-    if (dam && (GET_POS(victim) != POS_DEAD) && HAS_FEAT(ch, FEAT_CRIPPLING_STRIKE) &&
+    if (dam && !victim_is_dead && HAS_FEAT(ch, FEAT_CRIPPLING_STRIKE) &&
             !affected_by_spell(victim, SKILL_CRIP_STRIKE)) {
 
       new_affect(&af);
@@ -4042,20 +4048,21 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   /* weapon spells - deprecated, although many weapons still have these.  Weapon Special Abilities supercede
    * this implementation. */
-  if (ch && victim && wielded)
+  if (ch && victim && wielded && !victim_is_dead)
     weapon_spells(ch, victim, wielded);
 
   /* Weapon special abilities that trigger on hit. */
-  if (ch && victim && wielded)
+  if (ch && victim && wielded && !victim_is_dead)
     process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
 
   /* our primitive weapon-poison system, needs some love */
-  weapon_poison(ch, victim, wielded);
+  if (ch && victim && wielded && !victim_is_dead)
+    weapon_poison(ch, victim, wielded);
 
   /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */
-  if (ch && victim && wielded)
+  if (ch && victim && wielded && !victim_is_dead)
     weapon_special(wielded, ch, hit_msg);
-  else if (ch && victim && GET_EQ(ch, WEAR_HANDS))
+  else if (ch && victim && GET_EQ(ch, WEAR_HANDS) && !victim_is_dead)
     weapon_special(GET_EQ(ch, WEAR_HANDS), ch, hit_msg);
 
   /* vampiric curse will do some minor healing to attacker */
@@ -4449,10 +4456,12 @@ int is_skilled_dualer(struct char_data *ch, int mode) {
 /* common dummy check in perform_attacks() */
 int valid_fight_cond(struct char_data *ch) {
 
-  if (FIGHTING(ch))
+  if (FIGHTING(ch)) {
+    update_pos(FIGHTING(ch));
     if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
         IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
       return TRUE;
+  }
 
   return FALSE;
 }
