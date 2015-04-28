@@ -535,7 +535,7 @@ void perform_call(struct char_data *ch, int call_type, int level) {
 
   /* make sure paladin mount is appropriate size to ride */
   if (call_type == MOB_C_MOUNT) {
-    GET_SIZE(mob) = GET_SIZE(ch) + 1;
+    GET_REAL_SIZE(mob) = GET_SIZE(ch) + 1;
     GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
   }
 

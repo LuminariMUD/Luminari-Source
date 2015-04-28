@@ -36,6 +36,25 @@
    Functions directly related to utils.h needs
  */
 
+/* check if the player's size should be different than that stored in-file */
+int compute_current_size(struct char_data *ch) {
+  int size = SIZE_UNDEFINED;
+  if (!ch) return size;
+  int racenum = GET_DISGUISE_RACE(ch);
+
+  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && racenum) /* wildhsaped */
+    size = race_list[racenum].size;
+  else
+    size = (ch)->points.size;
+
+  if (size < SIZE_FINE)
+    size = SIZE_FINE;
+  if (size > SIZE_COLOSSAL)
+    size = SIZE_COLOSSAL;
+
+  return size;
+}
+
 /* Take a room and direction and give the resulting room vnum, made by zusuk
  * for ornir's wilderness, returns "NOWHERE" on failure */
 room_vnum get_direction_vnum(room_rnum room_origin, int direction) {

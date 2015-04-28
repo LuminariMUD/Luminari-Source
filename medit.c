@@ -1806,7 +1806,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       break;
 
     case MEDIT_SIZE:
-      GET_SIZE(OLC_MOB(d)) = LIMIT(i, 0, NUM_SIZES - 1);
+      GET_REAL_SIZE(OLC_MOB(d)) = LIMIT(i, 0, NUM_SIZES - 1);
       break;
 
     case MEDIT_PATH_DELAY:
@@ -2037,7 +2037,7 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
       (mob)->aff_abils.con += 4;
       (mob)->aff_abils.dex -= 7;
       if (GET_SIZE(mob) < SIZE_LARGE)
-        GET_SIZE(mob) = SIZE_LARGE;
+        GET_REAL_SIZE(mob) = SIZE_LARGE;
       break;
     case NPCRACE_ABERRATION:
       GET_SAVE(mob, SAVING_WILL) += 4;
