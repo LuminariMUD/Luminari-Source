@@ -40,6 +40,7 @@
  * are made available with the function definition. */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
+int compute_current_size(struct char_data *ch);
 room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction);
 int convert_alignment(int align);
 void set_alignment(struct char_data *ch, int alignment);
@@ -794,7 +795,7 @@ do                                                              \
 #define GET_SPELL_RES(ch)   ((ch)->points.spell_res)
 // size
 #define GET_REAL_SIZE(ch)	((ch)->real_points.size)
-#define GET_SIZE(ch)	((ch)->points.size)
+#define GET_SIZE(ch)	(compute_current_size(ch))
 /* resistances to dam_types */
 #define GET_REAL_RESISTANCES(ch, type)  ((ch)->real_points.resistances[type])
 #define GET_RESISTANCES(ch, type)  ((ch)->points.resistances[type])

@@ -163,7 +163,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       break;
 
     case APPLY_SIZE:
-      GET_SIZE(ch) += mod;
+      (ch)->points.size += mod;
       break;
 
     case APPLY_SAVING_FORT:
@@ -397,7 +397,7 @@ void compute_char_cap(struct char_data *ch) {
   GET_CHA(ch) = MAX(1, MIN(GET_CHA(ch), STAT_CAP));
   (ch)->aff_abils.str = MAX(1, MIN(GET_STR(ch), STAT_CAP));
 
-  GET_SIZE(ch) = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
+  (ch)->points.size = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
 
   /* can add more restrictions to npc's above this if we like */
   if (IS_NPC(ch))

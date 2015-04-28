@@ -543,6 +543,7 @@ int invalid_race(struct char_data *ch, struct obj_data *obj)
 }
  */
 
+/*
 int get_size(struct char_data *ch) {
   int racenum;
 
@@ -553,10 +554,10 @@ int get_size(struct char_data *ch) {
 
   if (racenum < 0 || racenum >= NUM_EXTENDED_RACES)
     return SIZE_MEDIUM;
-  
+
   return (GET_SIZE(ch) = ((affected_by_spell(ch, SPELL_ENLARGE_PERSON) ? 1 : 0) + race_list[racenum].size));
 }
-
+*/
 
 const int size_bonus_table[NUM_SIZES] = {
 /* XTINY */	8,

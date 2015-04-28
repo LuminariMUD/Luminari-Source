@@ -3044,7 +3044,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
     GET_CLASS(mob) = CLASS_WARRIOR;
 
   if (GET_SIZE(mob) < 0 || GET_SIZE(mob) >= NUM_SIZES)
-    GET_SIZE(mob) = SIZE_MEDIUM;
+    GET_REAL_SIZE(mob) = SIZE_MEDIUM;
 
   //  this line of code can be used to randomize the classes of the world
   //  for testing purposes - zusuk
