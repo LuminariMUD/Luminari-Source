@@ -1481,12 +1481,13 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
     send_to_char(victim, CCNRM(victim, C_CMP));
   } else {
-    act("you shouldn't see this (onlooker)",
-        FALSE, ch, NULL, victim, TO_NOTVICT); /*onlooker*/
-    act("you shouldn't see this (damager)",
-        FALSE, ch, NULL, victim, TO_CHAR); /*damager*/
-    act("you shouldn't see this (damagee)",
-        FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP); /*damagee*/
+    /* debugs */
+    //act("you shouldn't see this (onlooker)",
+        //FALSE, ch, NULL, victim, TO_NOTVICT); /*onlooker*/
+    //act("you shouldn't see this (damager)",
+        //FALSE, ch, NULL, victim, TO_CHAR); /*damager*/
+    //act("you shouldn't see this (damagee)",
+        //FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP); /*damagee*/
   }
 }
 
