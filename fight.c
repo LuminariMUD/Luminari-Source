@@ -1080,12 +1080,15 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
       death_cry(ch);
   } else
     death_cry(ch);
+  GET_POS(ch) = POS_DEAD;
 
   /* make sure group gets credit for kill if ch involved in quest */
   kill_quest_completion_check(killer, ch);
 
+  /* Clear the action queue */
+  clear_action_queue(GET_QUEUE(ch));
+
   /* at this stage you are completely dead */
-  update_pos(ch);
 
   //this replaces extraction
   char_from_room(ch);
