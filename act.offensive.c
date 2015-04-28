@@ -3245,6 +3245,11 @@ ACMD(do_fire) {
     return;
   }
 
+  if (FIGHTING(ch)) {
+    send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
+    return;
+  }
+
   two_arguments(argument, arg1, arg2);
 
   /* no 2nd argument?  target room has to be same room */
@@ -3352,10 +3357,9 @@ ACMD(do_fire) {
   }
 }
 
-/* ranged-weapons combat, archery
+/* ranged-weapons combat, archery, a sort of ranged combat assist command
  * autofire command, fires single arrow - checks can_fire_arrow()
- * sets FIRING()
- */
+ * sets FIRING() */
 ACMD(do_autofire) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL, *tch = NULL;
@@ -3369,6 +3373,11 @@ ACMD(do_autofire) {
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch)) {
+    send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
     return;
   }
 
