@@ -4570,9 +4570,9 @@ ACMD(do_peace) {
     next_v = vict->next_in_room;
 
     if (FIGHTING(vict)) {
-      if (char_has_mud_event(vict, eCOMBAT_ROUND)) {
-        event_cancel_specific(vict, eCOMBAT_ROUND);
-      }
+      //if (char_has_mud_event(vict, eCOMBAT_ROUND)) {
+      //  event_cancel_specific(vict, eCOMBAT_ROUND);
+      //}
 
       stop_fighting(vict);
       resetCastingData(vict);
