@@ -1464,21 +1464,30 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   /* damage message to onlookers */
   // note, we may have to add more info if we have some way to attack
   // someone that isn't in your room - zusuk
-  buf = replace_string(dam_weapons[msgnum].to_room,
-            attack_hit_text[w_type].singular, attack_hit_text[w_type].plural), dam;
-  act(buf, FALSE, ch, NULL, victim, TO_NOTVICT);
+  if (GET_POS(victim) > POS_DEAD) {
+    buf = replace_string(dam_weapons[msgnum].to_room,
+                         attack_hit_text[w_type].singular, attack_hit_text[w_type].plural), dam;
+    act(buf, FALSE, ch, NULL, victim, TO_NOTVICT);
 
-  /* damage message to damager */
-  buf = replace_string(dam_weapons[msgnum].to_char,
-            attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
-  act(buf, FALSE, ch, NULL, victim, TO_CHAR);
-  send_to_char(ch, CCNRM(ch, C_CMP));
+    /* damage message to damager */
+    buf = replace_string(dam_weapons[msgnum].to_char,
+                         attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
+    act(buf, FALSE, ch, NULL, victim, TO_CHAR);
+    send_to_char(ch, CCNRM(ch, C_CMP));
 
-  /* damage message to damagee */
-  buf = replace_string(dam_weapons[msgnum].to_victim,
-          attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
-  act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
-  send_to_char(victim, CCNRM(victim, C_CMP));
+    /* damage message to damagee */
+    buf = replace_string(dam_weapons[msgnum].to_victim,
+                         attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
+    act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
+    send_to_char(victim, CCNRM(victim, C_CMP));
+  } else {
+    act("you shouldn't see this (onlooker)",
+        FALSE, ch, NULL, victim, TO_NOTVICT); /*onlooker*/
+    act("you shouldn't see this (damager)",
+        FALSE, ch, NULL, victim, TO_CHAR); /*damager*/
+    act("you shouldn't see this (damagee)",
+        FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP); /*damagee*/
+  }
 }
 
 
