@@ -1485,75 +1485,133 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
   return abil_mods;
 }
 
+/* At 6th level, a druid can use wild shape to change into a Large or Tiny animal
+ * or a Small elemental. When taking the form of an animal, a druid's wild shape
+ * now functions as beast shape II. When taking the form of an elemental, the
+ * druid's wild shape functions as elemental body I.
+
+At 8th level, a druid can use wild shape to change into a Huge or Diminutive
+ * animal, a Medium elemental, or a Small or Medium plant creature. When taking
+ * the form of animals, a druid's wild shape now functions as beast shape III.
+ * When taking the form of an elemental, the druid's wild shape now functions
+ * as elemental body II. When taking the form of a plant creature, the druid's
+ * wild shape functions as plant shape I.
+
+At 10th level, a druid can use wild shape to change into a Large elemental or a
+ * Large plant creature. When taking the form of an elemental, the druid's wild
+ * shape now functions as elemental body III. When taking the form of a plant,
+ * the druid's wild shape now functions as plant shape II.
+
+At 12th level, a druid can use wild shape to change into a Huge elemental or a
+ * Huge plant creature. When taking the form of an elemental, the druid's wild
+ * shape now functions as elemental body IV. When taking the form of a plant, the
+ * druid's wild shape now functions as plant shape III.
+ */
 int display_eligible_wildshape_races(struct char_data *ch, char *argument, int silent) {
   int i = 0;
-  int druid = CLASS_LEVEL(ch, CLASS_DRUID);
   struct wild_shape_mods *abil_mods;
 
   CREATE(abil_mods, struct wild_shape_mods, 1);
   init_wild_shape_mods(abil_mods);
 
   for (i = 0; i < NUM_EXTENDED_RACES; i++) {
-    if (race_list[i].family != RACE_TYPE_ANIMAL && race_list[i].family != RACE_TYPE_ELEMENTAL &&
-        race_list[i].family != RACE_TYPE_PLANT && race_list[i].family != RACE_TYPE_MAGICAL_BEAST)
-      continue;
-    if (race_list[i].family == RACE_TYPE_ELEMENTAL && ((druid < 6) ||
-                                                       (druid >= 6 && druid < 8 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_SMALL)) ||
-                                                       (druid >= 8 && druid < 10 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_MEDIUM)) ||
-                                                       (druid >= 10 && druid < 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_LARGE)) ||
-                                                       (druid >= 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_HUGE))))
-      continue;
-    if (race_list[i].family == RACE_TYPE_PLANT && ((druid < 8) ||
-                                                   (druid >= 8 && druid < 10 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_MEDIUM)) ||
-                                                   (druid >= 10 && druid < 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_LARGE)) ||
-                                                   (druid >= 12 && (race_list[i].size < SIZE_SMALL || race_list[i].size > SIZE_HUGE))))
-      continue;
-    if (race_list[i].size > SIZE_HUGE || race_list[i].size < SIZE_DIMINUTIVE)
-      continue;
-    if (race_list[i].family == RACE_TYPE_ANIMAL) {
-      switch (race_list[i].size) {
-        case SIZE_LARGE:
-        case SIZE_TINY:
-          if (druid < 6)
+
+    switch (race_list[i].family) {
+      case RACE_TYPE_ANIMAL:
+        switch (race_list[i].size) {
+          /* fall through all the way down */
+          case SIZE_DIMINUTIVE:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+              break;
+          case SIZE_TINY:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
+              break;
+          case SIZE_SMALL:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
+              break;
+          case SIZE_MEDIUM:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
+              break;
+          case SIZE_LARGE:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
+              break;
+          case SIZE_HUGE:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+              break;
+
+          case SIZE_FINE:
+          case SIZE_GARGANTUAN:
+          case SIZE_COLOSSAL:
+          default:
             continue;
-          break;
-        case SIZE_HUGE:
-        case SIZE_DIMINUTIVE:
-          if (druid < 8)
+        }
+        break;
+      case RACE_TYPE_PLANT:
+        switch (race_list[i].size) {
+          /* fall through all the way down */
+          case SIZE_SMALL:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+              break;
+          case SIZE_MEDIUM:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+              break;
+          case SIZE_LARGE:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
+              break;
+          case SIZE_HUGE:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
+              break;
+
+          case SIZE_DIMINUTIVE:
+          case SIZE_TINY:
+          case SIZE_FINE:
+          case SIZE_GARGANTUAN:
+          case SIZE_COLOSSAL:
+          default:
             continue;
-          break;
-        default:
-          continue;
-      }
-    }
-    if (race_list[i].family == RACE_TYPE_MAGICAL_BEAST) {
-      switch (race_list[i].size) {
-        case SIZE_LARGE:
-        case SIZE_TINY:
-          if (druid < 8)
+        }
+        break;
+      case RACE_TYPE_ELEMENTAL:
+        switch (race_list[i].size) {
+          /* fall through all the way down */
+          case SIZE_SMALL:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
+              break;
+          case SIZE_MEDIUM:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+              break;
+          case SIZE_LARGE:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
+              break;
+          case SIZE_HUGE:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
+              break;
+
+          case SIZE_DIMINUTIVE:
+          case SIZE_TINY:
+          case SIZE_FINE:
+          case SIZE_GARGANTUAN:
+          case SIZE_COLOSSAL:
+          default:
             continue;
-          break;
-        case SIZE_SMALL:
-        case SIZE_MEDIUM:
-          if (druid < 6)
-            continue;
-          break;
-        default:
-          continue;
-      }
+        }
+        break;
+      /* i don't see anything in the srd about magical beasts */
+      case RACE_TYPE_MAGICAL_BEAST:
+      default:
+        continue;
     }
 
     abil_mods = set_wild_shape_mods(i);
-
     if (!silent) {
       send_to_char(ch, "%-40s Str [%s%-2d] Con [%s%-2d] Dex [%s%-2d] NatAC [%s%-2d]\r\n", race_list[i].name,
-                   abil_mods->strength >= 0 ? "+" : "", abil_mods->strength,
-                   abil_mods->constitution >= 0 ? "+" : "", abil_mods->constitution,
-                   abil_mods->dexterity >= 0 ? "+" : "", abil_mods->dexterity,
-                   abil_mods->natural_armor >= 0 ? "+" : "", abil_mods->natural_armor );
+                   abil_mods->strength >= 0 ? "+" : " ", abil_mods->strength,
+                   abil_mods->constitution >= 0 ? "+" : " ", abil_mods->constitution,
+                   abil_mods->dexterity >= 0 ? "+" : " ", abil_mods->dexterity,
+                   abil_mods->natural_armor >= 0 ? "+" : " ", abil_mods->natural_armor );
     }
 
-    if (!strcmp(argument, race_list[i].name))
+    if (!strcmp(argument, race_list[i].name)) /* match argument? */
       break;
   }
 
