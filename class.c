@@ -541,10 +541,12 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 19, FEAT_SNEAK_ATTACK},
   /* epic */
   {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 21, FEAT_SNEAK_ATTACK},
-  /* MISSING: advanced talent lvl 21*/
+  /* talent lvl 21, backstab */
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 21, FEAT_BACKSTAB},
   {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 22, FEAT_TRAP_SENSE},
   {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 23, FEAT_SNEAK_ATTACK},
-  /* MISSING: talent lvl 24*/
+  /* talent lvl 24, sap */
+  {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 24, FEAT_SAP},
   {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 25, FEAT_SNEAK_ATTACK},
   {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 26, FEAT_TRAP_SENSE},
   {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 27, FEAT_SNEAK_ATTACK},
@@ -2594,21 +2596,11 @@ void advance_level(struct char_data *ch, int class) {
 }
 
 int backstab_mult(struct char_data *ch) {
-  int level = CLASS_LEVEL(ch, CLASS_ROGUE);
 
-  if (!level)
-    return 1;
-
-  if (level <= 7)
+  if (HAS_FEAT(ch, FEAT_BACKSTAB))
     return 2;
-  else if (level <= 13)
-    return 3;
-  else if (level <= 20)
-    return 4;
-  else if (level <= 28)
-    return 5;
-  else
-    return 6;
+
+  return 1;
 }
 
 

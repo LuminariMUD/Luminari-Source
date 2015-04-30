@@ -2273,8 +2273,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   }
 
   /* more deubgging */
-  send_to_char(victim, "Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
-      GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
+  //send_to_char(victim, "Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
+      //GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
   /**/
 
   if (w_type != -1) { //added for mount, etc
@@ -3994,10 +3994,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   switch (type) {
     /* More SKILL_ garbage - This needs a better mechanic.  */
     case SKILL_BACKSTAB:
-      /* What a horrible hack.  Backstab should pretty much go away anyway, and crippling strike
-       * needs a new place to live. */
-      if (damage(ch, victim, sneakdam + (dam - sneakdam) * backstab_mult(ch),
-                SKILL_BACKSTAB, dam_type, attack_type) < 0)
+      if (damage(ch, victim, (dam * backstab_mult(ch)), SKILL_BACKSTAB, dam_type, attack_type) < 0)
         victim_is_dead = TRUE;
 
       break;
