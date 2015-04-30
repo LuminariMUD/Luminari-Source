@@ -3617,6 +3617,19 @@ ACMD(do_feint) {
     return;
   }
 
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_FEINT)) {
+    if (!is_action_available(ch, atMOVE, FALSE)
+            && !is_action_available(ch, atSTANDARD, FALSE)) {
+      send_to_char(ch, "You are not ready to feint again!\r\n");
+      return;
+    }
+  } else {
+    if (!is_action_available(ch, atSTANDARD, FALSE)) {
+      send_to_char(ch, "You are not ready to feint again!\r\n");
+      return;
+    }
+  }
+
   perform_feint(ch, vict);
 }
 
