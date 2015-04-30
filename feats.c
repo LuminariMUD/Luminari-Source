@@ -891,27 +891,25 @@ void assign_feats(void) {
   feato(FEAT_TRACKLESS_STEP, "trackless step", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "bonus to hide/sneak in nature",
     "+4 bonus to hide/sneak in nature");
-  /* unfinished */ feato(FEAT_WILD_SHAPE, "wild shape", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Gain the ability to shapechange into a selection of animals with unique abilities.",
-    "Gain the ability to shapechange into a selection of animals with unique abilities.");
-  /* unfinished */ feato(FEAT_WILD_SHAPE_ELEMENTAL, "wild shape (elemental)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Can assume elemental form.",
-    "Can assume elemental form.");
-  /* unfinished */ feato(FEAT_WILD_SHAPE_HUGE, "wild shape (huge)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Can assume the shape of a huge animal.",
-    "Can assume the shape of a huge animal.");
-  /* unfinished */ feato(FEAT_WILD_SHAPE_HUGE_ELEMENTAL, "wild shape (huge elemental)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Can assume the shape of a huge elemental.",
-    "Can assume the shape of a huge elemental.");
-  /* unfinished */ feato(FEAT_WILD_SHAPE_LARGE, "wild shape (large)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Can assume the shape of a large animal.",
-    "Can assume the shape of a large animal.");
-  /* unfinished */ feato(FEAT_WILD_SHAPE_PLANT, "wild shape (plant)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Can assume plant-like forms.",
-    "Can assume plant-like forms.");
-  /* unfinished */ feato(FEAT_WILD_SHAPE_TINY, "wild shape (tiny)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Can assume the shape of tiny animals.",
-    "Can assume the shape of tiny animals.");
+  feato(FEAT_WILD_SHAPE, "wild shape", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "Gain the ability to shapechange",
+    "Gains the ability to turn into any small or medium animal and back again "
+          "once per day. Options for new forms include all creatures with the "
+          "animal type.  Changing form (to animal or back) is a standard action "
+          "and doesn't provoke an attack of opportunity.");
+  feato(FEAT_WILD_SHAPE_2, "wild shape ii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Advance the ability to shapechange",
+    "Can use wildshape to change into a Large or Tiny animal or a Small elemental.");
+  feato(FEAT_WILD_SHAPE_3, "wild shape iii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Advance the ability to shapechange",
+    "Can use wildshape to change into a Huge or Diminutive animal, a Medium "
+          "elemental, or a Small or Medium plant creature.");
+  feato(FEAT_WILD_SHAPE_4, "wild shape iv", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Advance the ability to shapechange",
+    "Can use wildshape to change into a Large elemental or a Large plant creature.");
+  feato(FEAT_WILD_SHAPE_5, "wild shape v", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Advance the ability to shapechange",
+    "Can use wildshape to change into a Huge elemental or a Huge plant creature.");
 
   /* Druid / Monk */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
