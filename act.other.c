@@ -1520,20 +1520,20 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
       case RACE_TYPE_ANIMAL:
         switch (race_list[i].size) {
           /* fall through all the way down */
-          case SIZE_DIMINUTIVE:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
-              break;
-          case SIZE_TINY:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
-              break;
           case SIZE_SMALL:
             if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
               break;
           case SIZE_MEDIUM:
             if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
               break;
+          case SIZE_TINY:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
+              break;
           case SIZE_LARGE:
             if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
+              break;
+          case SIZE_DIMINUTIVE:
+            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
               break;
           case SIZE_HUGE:
             if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))

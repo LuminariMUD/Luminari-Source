@@ -425,7 +425,7 @@ void assign_races(void) {
            N, N, N, N, Y, N, N, N, N, SIZE_SMALL, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
   add_race(RACE_SMALL_AIR_ELEMENTAL, "small air elemental", "SAirElm", "Small Air Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 4, 6, 0, 0, 14, 0, 85, 85,
            80, 60, 60, 55,
-           N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
+           N, N, N, N, Y, N, N, N, N, SIZE_SMALL, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
   add_race(RACE_SMALL_WATER_ELEMENTAL, "small water elemental", "SWatElm", "Small Water Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 10, 8, 0, 0, 4, 0,
            85, 85, 80, 60, 60, 55,
            N, N, N, N, Y, N, N, N, N, SIZE_SMALL, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
