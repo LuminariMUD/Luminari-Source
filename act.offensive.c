@@ -1149,59 +1149,79 @@ void perform_smite(struct char_data *ch) {
 
 /* the primary engine for backstab */
 bool perform_backstab(struct char_data *ch, struct char_data *vict) {
-  int percent = -1, percent2 = -1, prob = -1, successful = 0;
-
-  percent = rand_number(1, 101); /* 101% is a complete failure */
-  percent2 = rand_number(1, 101); /* 101% is a complete failure */
-
-  prob = 60; // flat 60% success rate for now
+  int blow_landed = 0, prob = 0, successful = 0, has_piercing = 0;
+  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
 
   if (AFF_FLAGGED(ch, AFF_HIDE))
-    prob += 4; //minor bonus for being hidden
+    prob += 1; //minor bonus for being hidden
   if (AFF_FLAGGED(ch, AFF_SNEAK))
-    prob += 4; //minor bonus for being sneaky
+    prob += 1; //minor bonus for being sneaky
 
-  if ((!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX) || (GET_EQ(ch, WEAR_WIELD_1)
-          && IS_PIERCE(GET_EQ(ch, WEAR_WIELD_1)))) {
-    if (AWAKE(vict) && (percent > prob)) {
+  if (HAS_FEAT(ch, FEAT_BACKSTAB))
+    prob += 4;
+
+  if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, FALSE, prob) > 0) {
+    blow_landed = 1;
+  } else {
+    blow_landed = 0;
+  }
+
+  if (wielded && IS_SET(weapon_list[GET_WEAPON_TYPE(wielded)].damageTypes, DAMAGE_TYPE_PIERCING))
+    has_piercing = 1;
+  if (GET_RACE(ch) == RACE_TRELUX && !IS_NPC(ch)) {
+    has_piercing = 1;
+  }
+   /* try for primary 1handed weapon */
+  if (has_piercing) {
+    if (AWAKE(vict) && !blow_landed) {
       damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, FALSE);
     } else {
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, FALSE);
     }
     successful++;
   }
-
   update_pos(vict);
+  has_piercing = 0;
 
-  if (vict && GET_POS(vict) >= POS_DEAD) {
-    if (GET_RACE(ch) == RACE_TRELUX || (GET_EQ(ch, WEAR_WIELD_OFFHAND) &&
-            IS_PIERCE(GET_EQ(ch, WEAR_WIELD_OFFHAND)))) {
-      if (AWAKE(vict) && (percent2 > prob)) {
-        damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
-      } else {
-        hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
-      }
-      successful++;
-    }
+  wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (wielded && IS_SET(weapon_list[GET_WEAPON_TYPE(wielded)].damageTypes, DAMAGE_TYPE_PIERCING))
+    has_piercing = 1;
+  if (GET_RACE(ch) == RACE_TRELUX && !IS_NPC(ch)) {
+    has_piercing = 1;
   }
-
-  update_pos(vict);
-
-  if (vict) {
-    if (GET_EQ(ch, WEAR_WIELD_2H) &&
-            IS_PIERCE(GET_EQ(ch, WEAR_WIELD_2H)) &&
-            GET_POS(vict) >= POS_DEAD) {
-      if (AWAKE(vict) && (percent2 > prob)) {
-        damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
-      } else {
-        hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
-      }
-      successful++;
+  /* try for offhand */
+  if (vict && GET_POS(vict) > POS_DEAD && has_piercing) {
+    if (AWAKE(vict) && !blow_landed) {
+      damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
+    } else {
+      hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
     }
+    successful++;
+  }
+  update_pos(vict);
+  has_piercing = 0;
+
+  wielded = GET_EQ(ch, WEAR_WIELD_2H);
+  if (wielded && IS_SET(weapon_list[GET_WEAPON_TYPE(wielded)].damageTypes, DAMAGE_TYPE_PIERCING))
+    has_piercing = 1;
+  if (GET_RACE(ch) == RACE_TRELUX && !IS_NPC(ch)) {
+    has_piercing = 1;
+  }
+  /* try for 2 handed */
+  if (vict && GET_POS(vict) > POS_DEAD && has_piercing) {
+    if (AWAKE(vict) && !blow_landed) {
+      damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
+    } else {
+      hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
+    }
+    successful++;
   }
 
   if (successful) {
-    USE_FULL_ROUND_ACTION(ch);
+    if (HAS_FEAT(ch, FEAT_BACKSTAB))
+      USE_MOVE_ACTION(ch);
+    else
+      USE_FULL_ROUND_ACTION(ch);
     return TRUE;
   } else
     send_to_char(ch, "You have no piercing weapon equipped.\r\n");

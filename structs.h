@@ -1213,7 +1213,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_HEROIC_INITIATIVE 43
 #define FEAT_IMPROVED_REACTION 44
 #define FEAT_ENHANCED_MOBILITY 45
-#define FEAT_GRACE                                                      46
+#define FEAT_GRACE               46
 #define FEAT_PRECISE_STRIKE                     47
 #define FEAT_ACROBATIC_CHARGE   48
 #define FEAT_ELABORATE_PARRY    49
@@ -1340,7 +1340,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_WILD_SHAPE_4 179 // level 10
 #define FEAT_THOUSAND_FACES 180
 #define FEAT_WILD_SHAPE_5 181 // level 12
-#define FEAT_WILD_SHAPE_6 182 // unused
+#define FEAT_SAP 182
 #define FEAT_WILD_SHAPE_7 183 // unused
 #define FEAT_FAVORED_ENEMY_AVAILABLE 184
 #define FEAT_CALL_MOUNT 185
@@ -1513,7 +1513,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_INTENSIFY_SPELL             350
 #define FEAT_SNEAK_ATTACK_OF_OPPORTUNITY 351
 #define FEAT_STEADFAST_DETERMINATION     352
-#define FEAT_EMPTY_FEAT_001              353
+#define FEAT_BACKSTAB              353
 #define FEAT_SELF_CONCEALMENT            354
 #define FEAT_SWARM_OF_ARROWS             355
 #define FEAT_EPIC_PROWESS                356

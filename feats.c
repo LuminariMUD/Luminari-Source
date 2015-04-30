@@ -795,6 +795,11 @@ void assign_feats(void) {
     "can survive a potentially fatal blow",
     "can survive a potentially fatal blow, has long cooldown before usable "
       "again (automatic usage)");
+  /*epic talent*/feato(FEAT_BACKSTAB, "backstab", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "bonus to attack and double damage",
+    "You get +4 to attack (and another +1 if sneaking, +1 if hiding).  Do double "
+      "damage as well.  In addition, backstab is a move-action instead of full "
+      "round action.  Backstab requires a piercing weapon to be a success.");
   /*talent*/feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "extra chance for will saves vs mind affecting spells",
     "extra chance for will saves vs mind affecting spells");
