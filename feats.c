@@ -800,6 +800,13 @@ void assign_feats(void) {
     "You get +4 to attack (and another +1 if sneaking, +1 if hiding).  Do double "
       "damage as well.  In addition, backstab is a move-action instead of full "
       "round action.  Backstab requires a piercing weapon to be a success.");
+  /*epic talent*/feato(FEAT_SAP, "sap", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "chance to knock opponent out",
+    "When both sneaking and hiding (in that order) and wielding a bludgeon weapon, you can perform a special sap attack "
+      "which on success, will knock an opponent down and if they fail a fortitude save "
+      "versus rogue-level / 2 + dex bonus they will be paralyzed for 2 rounds.  This type of "
+      "attack will get a -6 penalty to success, but can be negated by wielding a "
+      "2-handed bludgeoning weapon (+4 bonus) and if your opponent can't see you (+4 bonus).");
   /*talent*/feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "extra chance for will saves vs mind affecting spells",
     "extra chance for will saves vs mind affecting spells");
