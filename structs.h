@@ -1341,7 +1341,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_THOUSAND_FACES 180
 #define FEAT_WILD_SHAPE_5 181 // level 12
 #define FEAT_SAP 182
-#define FEAT_WILD_SHAPE_7 183 // unused
+#define FEAT_UNUSED_FEAT_01 183 /* ===--- UNUSED ---=== */
 #define FEAT_FAVORED_ENEMY_AVAILABLE 184
 #define FEAT_CALL_MOUNT 185
 #define FEAT_ABLE_LEARNER 186
@@ -1550,11 +1550,13 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_PERFECT_DUAL_WEAPON_FIGHTING  385
 #define FEAT_EPIC_MANYSHOT                 386
 #define FEAT_BLINDING_SPEED                 387
+#define FEAT_VANISH                         388
+#define FEAT_IMPROVED_VANISH                389
 
 /** reserved **/
-#define FEAT_LAST_FEAT                   388
+#define FEAT_LAST_FEAT                   390
 /*****/
-#define NUM_FEATS                        389
+#define NUM_FEATS                        391
 /*****/
 #define MAX_FEATS                        750
 /*****/

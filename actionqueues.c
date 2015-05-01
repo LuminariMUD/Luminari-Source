@@ -287,7 +287,7 @@ ACMD(do_queue)
     send_to_char(ch, "%s queue cleared.\r\n", (subcmd == SCMD_ACTION_QUEUE ? "Action" : "Attack"));
   }
   else {
-    send_to_char(ch, "What do you want to do to your queue?\r\n");
+    send_to_char(ch, "What do you want to do to your queue? ('queue clear' to clear your queue)\r\n");
   }
 }
 

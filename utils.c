@@ -2865,11 +2865,13 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_CRYSTAL_FIST:
     case FEAT_CRYSTAL_BODY:
       daily_uses = 3;
+      break;
     case FEAT_SMITE_EVIL:
     case FEAT_RAGE:
     case FEAT_QUIVERING_PALM:
     case FEAT_WILD_SHAPE:
     case FEAT_ANIMATE_DEAD:
+    case FEAT_VANISH:
       daily_uses += HAS_FEAT(ch, featnum);
       break;
   }

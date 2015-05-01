@@ -807,6 +807,14 @@ void assign_feats(void) {
       "versus rogue-level / 2 + dex bonus they will be paralyzed for 2 rounds.  This type of "
       "attack will get a -6 penalty to success, but can be negated by wielding a "
       "2-handed bludgeoning weapon (+4 bonus) and if your opponent can't see you (+4 bonus).");
+  /*epic talent*/feato(FEAT_VANISH, "vanish", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "escape combat!",
+    "Once per day, you can use vanish as a free action to completely escape combat "
+      "effectively disengaging and entering a sneak/hidden mode.  This also heals "
+      "10 hitpoints and gives 25% concealment for 2 rounds.");
+  /*epic talent*/feato(FEAT_IMPROVED_VANISH, "improved vanish", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "improves vanish feat",
+    "Vanish now heals 20 hitpoints and gives 100% concealment for 2 rounds.");
   /*talent*/feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "extra chance for will saves vs mind affecting spells",
     "extra chance for will saves vs mind affecting spells");

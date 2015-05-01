@@ -416,6 +416,7 @@ ACMD(do_title);
 ACMD(do_train);
 ACMD(do_visible);
 ACMD(do_wildshape);
+ACMD(do_vanish);
 
 
 /*****************************************************************************

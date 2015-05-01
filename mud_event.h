@@ -80,6 +80,7 @@ typedef enum {
   eRENEWEDVIGOR, /* Renewed Vigor, Berserker Healing Feat */
   eCOME_AND_GET_ME, /* rage power 'come and get me' */
   eANIMATEDEAD, /* cool down for animate dead feat */
+  eVANISH, /* vanish concealment */
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:

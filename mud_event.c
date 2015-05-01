@@ -212,6 +212,9 @@ EVENTFUNC(event_countdown) {
     case eQUIVERINGPALM:
       send_to_char(ch, "You are now able to strike with your quivering palm again.\r\n");
       break;
+    case eVANISH:
+      send_to_char(ch, "Your 'vanished' state returns to normal...\r\n");
+      break;
     case eTAUNT:
       send_to_char(ch, "You are now able to taunt again.\r\n");
       break;
