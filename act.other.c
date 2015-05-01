@@ -2269,6 +2269,11 @@ ACMD(do_vanish) {
     return;
   }
 
+  if (char_has_mud_event(ch, eVANISHED)) {
+    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+    return;
+  }
+
   /* success! */
   send_to_char(ch, "You vanish!.\r\n");
   act("With an audible pop, you watch as $n vanishes!", FALSE, ch, 0, 0, TO_ROOM);
