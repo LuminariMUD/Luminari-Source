@@ -206,7 +206,7 @@ void award_random_crystal(struct char_data *ch, int level);
 // gives away staff/potion/scroll/wand
 void award_expendable_item(struct char_data *ch, int grade, int type);
 // gives away random magic armor
-void award_magic_armor(struct char_data *ch, int grade, int moblevel);
+void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_slot);
 // gives away random magic weapon
 void award_magic_weapon(struct char_data *ch, int grade, int moblevel);
 // gives away random armor pieces (outside of body-armor/shield)
