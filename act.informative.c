@@ -551,6 +551,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     send_to_char(ch, " (AFK)");
   if (char_has_mud_event(i, eTAUNTED))
     send_to_char(ch, " (taunted)");
+  if (char_has_mud_event(i, eVANISH))
+    send_to_char(ch, " (vanished)");
 
   if (RIDING(i) && RIDING(i)->in_room == i->in_room) {
     send_to_char(ch, " is here, mounted upon ");
@@ -1152,6 +1154,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
 
   if ((pMudEvent = char_has_mud_event(k, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eVANISH)))
+    send_to_char(ch, "Vanish - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRAGE)))
     send_to_char(ch, "Rage - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRYSTALFIST)))

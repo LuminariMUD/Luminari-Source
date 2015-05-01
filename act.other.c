@@ -2254,6 +2254,63 @@ ACMD(do_search) {
   USE_FULL_ROUND_ACTION(ch);
 }
 
+/* vanish - epic rogue talent */
+ACMD(do_vanish) {
+  struct char_data *vict, *next_v;
+  int uses_remaining = 0;
+
+  if (!HAS_FEAT(ch, FEAT_VANISH)) {
+    send_to_char(ch, "You do not know how to vanish!\r\n");
+    return;
+  }
+
+  if (((uses_remaining = daily_uses_remaining(ch, FEAT_VANISH)) == 0)) {
+    send_to_char(ch, "You must recover before you can go into a rage.\r\n");
+    return;
+  }
+
+  /* success! */
+  send_to_char(ch, "You vanish!.\r\n");
+  act("With an audible pop, you watch as $n vanishes!", FALSE, ch, 0, 0, TO_ROOM);
+  start_daily_use_cooldown(ch, FEAT_VANISH);
+
+  /* 12 seconds = 2 rounds */
+  attach_mud_event(new_mud_event(eVANISH, ch, NULL), 12 * PASSES_PER_SEC);
+
+  /* stop vanishers combat */
+  if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
+    event_cancel_specific(ch, eCOMBAT_ROUND);
+  }
+  stop_fighting(ch);
+
+  /* stop all those who are fighting vanisher */
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_v) {
+    next_v = vict->next_in_room;
+
+    if (FIGHTING(vict) == ch) {
+      if (char_has_mud_event(vict, eCOMBAT_ROUND)) {
+        event_cancel_specific(vict, eCOMBAT_ROUND);
+      }
+      stop_fighting(vict);
+    }
+
+    if (IS_NPC(vict))
+      clearMemory(vict);
+  }
+
+  GET_HIT(ch) += 10;
+  if (HAS_FEAT(ch, FEAT_IMPROVED_VANISH))
+    GET_HIT(ch) += 20;
+
+  /* enter stealth mode */
+  if (!AFF_FLAGGED(ch, AFF_SNEAK)) {
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_SNEAK);
+  }
+  if (!AFF_FLAGGED(ch, AFF_HIDE)) {
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
+  }
+}
+
 /* entry point for sneak, the command just flips the flag */
 ACMD(do_sneak) {
 

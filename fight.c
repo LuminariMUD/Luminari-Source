@@ -1907,6 +1907,7 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
  (not exclusive to just melee attacks) */
 int compute_concealment(struct char_data *ch) {
   int concealment = 0;
+  int concealment_cap = 0; /* vanish can push you over */
 
   if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SELF_CONCEAL_1))
     concealment += 10;
@@ -1921,9 +1922,17 @@ int compute_concealment(struct char_data *ch) {
   if (AFF_FLAGGED(ch, AFF_DISPLACE))
     concealment += 50;
 
-  // concealment cap is 50%
-  return (MIN(MAX_CONCEAL, concealment));
+  // concealment cap is 50% normally
+  concealment_cap = MIN(MAX_CONCEAL, concealment);
 
+  /* vanish can push us over */
+  if (char_has_mud_event(ch, eVANISH)) {
+    concealment_cap += 25;
+    if (HAS_FEAT(ch, FEAT_IMPROVED_VANISH))
+      concealment_cap += 75;
+  }
+
+  return (concealment_cap);
 }
 
 /* this function lets damage_handling know that the given attacktype
