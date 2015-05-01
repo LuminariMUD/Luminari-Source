@@ -81,6 +81,7 @@ typedef enum {
   eCOME_AND_GET_ME, /* rage power 'come and get me' */
   eANIMATEDEAD, /* cool down for animate dead feat */
   eVANISH, /* vanish concealment */
+  eVANISHED, /* vanish daily cooldown */
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
