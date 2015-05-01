@@ -1579,7 +1579,9 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
       else if (ch != vict) {
         /* do we have armor that can stop a blow? */
         struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
-        int armor_val = GET_OBJ_VAL(armor, 1); /* armor type */
+        int armor_val = -1;
+        if (armor)
+          armor_val = GET_OBJ_VAL(armor, 1); /* armor type */
 
         /* insert more colorful defensive messages here */
 
