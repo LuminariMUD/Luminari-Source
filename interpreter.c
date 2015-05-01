@@ -251,7 +251,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "happyhour", "ha", POS_DEAD, do_happyhour, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "hedit", "hedit", POS_DEAD, do_oasis_hedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "helpcheck", "helpch", POS_DEAD, do_helpcheck, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
-  { "hide", "hi", POS_RECLINING, do_hide, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "hide", "hi", POS_RECLINING, do_hide, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "hindex", "hind", POS_DEAD, do_hindex, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "handbook", "handb", POS_DEAD, do_gen_ps, LVL_IMMORT, SCMD_HANDBOOK, TRUE, ACTION_NONE, {0, 0}},
   { "hcontrol", "hcontrol", POS_DEAD, do_hcontrol, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -485,6 +485,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "vnum", "vnum", POS_DEAD, do_vnum, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "vstat", "vstat", POS_DEAD, do_vstat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "vdelete", "vdelete", POS_DEAD, do_vdelete, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "vanish", "vanish", POS_DEAD, do_vanish, 1, 0, FALSE, ACTION_NONE, {0, 0}},
 
   { "wake", "wake", POS_SLEEPING, do_wake, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "wear", "wea", POS_RESTING, do_wear, 0, 0, FALSE, ACTION_NONE, {0, 0}},
