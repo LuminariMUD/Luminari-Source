@@ -482,7 +482,8 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_CLERIC, RACE_UNDEFINED, FALSE, 1, FEAT_TURN_UNDEAD},
 
   /* warrior */
-  {CLASS_WARRIOR, RACE_UNDEFINED, FALSE, 1, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD},
+  /* no automatic class feats for warriors, they select from a master list
+   of combat feats every 2 levels */
 
   /* paladin */
   {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 1, FEAT_SMITE_EVIL},
@@ -506,9 +507,9 @@ int level_feats[][LEVEL_FEATS] = {
   /* rogue */
   /* if we use pathfinder type rules, rogues should get special
    selections of feats from a talent list every two levels...
-   as a temporary solution, every 3 levels we are giving rogues
+   as a temporary (?) solution, every 3 levels we are giving rogues
    hand selected talents */
-  /* class, race, stacks?, level, feat_ name */
+  /* class, race, stacks?, level, feat-name */
   {CLASS_ROGUE, RACE_UNDEFINED, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ROGUE},
   {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 1, FEAT_SNEAK_ATTACK},
   {CLASS_ROGUE, RACE_UNDEFINED, FALSE, 1, FEAT_TRAPFINDING},
@@ -562,7 +563,6 @@ int level_feats[][LEVEL_FEATS] = {
 
   /* monk */
   /* class, race, stacks?, level, feat_ name */
-  {CLASS_MONK, RACE_UNDEFINED, FALSE, 1, FEAT_WEAPON_PROFICIENCY_MONK},
   {CLASS_MONK, RACE_UNDEFINED, FALSE, 1, FEAT_FLURRY_OF_BLOWS},
   {CLASS_MONK, RACE_UNDEFINED, FALSE, 1, FEAT_UNARMED_STRIKE},
   {CLASS_MONK, RACE_UNDEFINED, FALSE, 1, FEAT_IMPROVED_UNARMED_STRIKE},
@@ -690,16 +690,18 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_DRUID, RACE_UNDEFINED, FALSE, 2, FEAT_WOODLAND_STRIDE},
   {CLASS_DRUID, RACE_UNDEFINED, FALSE, 3, FEAT_TRACKLESS_STEP},
   {CLASS_DRUID, RACE_UNDEFINED, FALSE, 4, FEAT_RESIST_NATURES_LURE},
+  /* FEAT_WILD_SHAPE is the first level of wildshape forms AND cooldown */
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 4, FEAT_WILD_SHAPE},
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 6, FEAT_WILD_SHAPE},
-  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 6, FEAT_WILD_SHAPE_2},
+  /* FEAT_WILD_SHAPE_x is the xth level of wildshape forms, does not affect cooldown */
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 6, FEAT_WILD_SHAPE_2},
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 8, FEAT_WILD_SHAPE},
-  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 8, FEAT_WILD_SHAPE_3},
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 8, FEAT_WILD_SHAPE_3},
   {CLASS_DRUID, RACE_UNDEFINED, FALSE, 9, FEAT_VENOM_IMMUNITY},
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 10, FEAT_WILD_SHAPE},
-  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 10, FEAT_WILD_SHAPE_4},
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 10, FEAT_WILD_SHAPE_4},
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 12, FEAT_WILD_SHAPE},
-  {CLASS_DRUID, RACE_UNDEFINED, TRUE, 12, FEAT_WILD_SHAPE_5},
+  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 12, FEAT_WILD_SHAPE_5},
   {CLASS_DRUID, RACE_UNDEFINED, FALSE, 13, FEAT_THOUSAND_FACES},
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 14, FEAT_WILD_SHAPE},
   {CLASS_DRUID, RACE_UNDEFINED, FALSE, 15, FEAT_TIMELESS_BODY},
@@ -746,6 +748,7 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_UNDEFINED, FALSE, 1, FEAT_UNDEFINED}
 };
 
+/* this is not currently used */
 int epic_level_feats[][7] = {
 
   { CLASS_ROGUE, 0, 2, 1, TRUE, FEAT_SNEAK_ATTACK, 1},
