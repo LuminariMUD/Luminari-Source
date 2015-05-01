@@ -870,6 +870,7 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict) {
 }
 
 /* engine for sap skill */
+#define TRELUX_CLAWS 800
 void perform_sap(struct char_data *ch, struct char_data *vict) {
   int dam = 0, found = FALSE;
   int prob = -6, dc = 0;
@@ -945,7 +946,15 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
     }
   }
 
-  if (!found) {
+  /* almost forgot about trelux!  yes their claws can be used for sapping */
+  if (!found && GET_RACE(ch) == RACE_TRELUX) {
+    prob += 8; /* negate the penalty, plus 2 bonus */
+    wielded = read_object(TRELUX_CLAWS, VIRTUAL);
+    found = TRUE;
+  }
+
+
+  if (!found || !wielded) {
     send_to_char(ch, "You need a bludgeon weapon to make this a success...\r\n");
     return;
   }
@@ -965,7 +974,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
       new_affect(&af);
       af.spell = SKILL_SAP;
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
-      af.duration = 2;
+      af.duration = 1;
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
       act("You \tYsavagely\tn beat $N with $p!", FALSE, ch, wielded, vict, TO_CHAR);
       act("$n \tYsavagely\tn beats $N with $p!!", FALSE, ch, wielded, vict, TO_ROOM);
@@ -977,6 +986,8 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
   USE_STANDARD_ACTION(ch);
   USE_MOVE_ACTION(ch);
 }
+#undef TRELUX_CLAWS
+
 
 /* main engine for dirt-kick mechanic */
 bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
