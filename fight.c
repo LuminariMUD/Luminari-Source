@@ -1603,7 +1603,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             (name)(vict, shield, 0, "shieldblock");
 
         /* parry */
-        } else if (opponent_weapon && !rand_number(0, 3)) {
+        } else if (opponent_weapon && !rand_number(0, 2)) {
           return_value = SKILL_MESSAGE_MISS_PARRY;
 
           send_to_char(ch, CCYEL(ch, C_CMP));
