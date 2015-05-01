@@ -871,10 +871,10 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict) {
 
 /* engine for sap skill */
 void perform_sap(struct char_data *ch, struct char_data *vict) {
-  int dam = 0;
-  int percent = rand_number(1, 101), prob = 0;
+  int dam = 0, found = FALSE;
+  int prob = -6, dc = 0;
   struct affected_type af;
-  struct obj_data *wep = NULL;
+  struct obj_data *wielded = NULL;
 
   if (vict == ch) {
     send_to_char(ch, "How can you sneak up on yourself?\r\n");
@@ -899,7 +899,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
   }
 
   if (!AFF_FLAGGED(ch, AFF_HIDE) || !AFF_FLAGGED(ch, AFF_SNEAK)) {
-    send_to_char(ch, "You have to be hidden and sneaking before you can sap "
+    send_to_char(ch, "You have to be sneaking and hiding (in that order) before you can sap "
             "anyone.\r\n");
     return;
   }
@@ -920,52 +920,55 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
   }
 
   /* 2h bludgeon */
-  if (GET_EQ(ch, WEAR_WIELD_2H) && IS_BLUNT(GET_EQ(ch, WEAR_WIELD_2H))) {
-    prob += 30;
-    wep = GET_EQ(ch, WEAR_WIELD_2H);
-  }
-
-  /* 1h bludgeon off-hand */
-  if (GET_EQ(ch, WEAR_WIELD_OFFHAND) && IS_BLUNT(GET_EQ(ch, WEAR_WIELD_OFFHAND))) {
-    prob += 10;
-    wep = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  wielded = GET_EQ(ch, WEAR_WIELD_2H);
+  if (wielded &&
+      IS_SET(weapon_list[GET_WEAPON_TYPE(wielded)].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
+    prob += 4;
+    found = TRUE;
   }
 
   /* 1h bludgeon primary */
-  if (GET_EQ(ch, WEAR_WIELD_1) && IS_BLUNT(GET_EQ(ch, WEAR_WIELD_1))) {
-    prob += 10;
-    wep = GET_EQ(ch, WEAR_WIELD_1);
+  if (!found) {
+    wielded = GET_EQ(ch, WEAR_WIELD_1);
+    if (wielded &&
+        IS_SET(weapon_list[GET_WEAPON_TYPE(wielded)].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
+      found = TRUE;
+    }
   }
 
-  if (!prob) {
+  /* 1h bludgeon off-hand */
+  if (!found) {
+    wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+    if (wielded &&
+        IS_SET(weapon_list[GET_WEAPON_TYPE(wielded)].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
+      found = TRUE;
+    }
+  }
+
+  if (!found) {
     send_to_char(ch, "You need a bludgeon weapon to make this a success...\r\n");
     return;
   }
 
-  /* Redo this.  Figure out what to do with it.  */
-  prob += 30;
-  prob += GET_DEX(ch);
-  prob -= GET_CON(vict);
-
   if (!CAN_SEE(vict, ch))
-    prob += 50;
+    prob += 4;
 
-  if (percent < prob) {
-    dam = 5 + dice(GET_LEVEL(ch), 3);
+  dc = 10 + (CLASS_LEVEL(ch, CLASS_ROGUE) / 2) + GET_DEX_BONUS(ch);
+
+  if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, FALSE, prob) > 0) {
+    dam = 5 + dice(GET_LEVEL(ch), 2);
     damage(ch, vict, dam, SKILL_SAP, DAM_FORCE, FALSE);
     GET_POS(vict) = POS_RECLINING;
 
-    /* success!  critical? */
-    if (prob - percent >= 20) {
-      /* critical! */
-      dam *= 2;
+    /* success!  fortitude save? */
+    if (!savingthrow(vict, SAVING_FORT, prob, dc)) {
       new_affect(&af);
       af.spell = SKILL_SAP;
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
       af.duration = 2;
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
-      act("You \tYsavagely\tn beat $N with $p!", FALSE, ch, wep, vict, TO_CHAR);
-      act("$n \tYsavagely\tn beats $N with $p!!", FALSE, ch, wep, vict, TO_ROOM);
+      act("You \tYsavagely\tn beat $N with $p!", FALSE, ch, wielded, vict, TO_CHAR);
+      act("$n \tYsavagely\tn beats $N with $p!!", FALSE, ch, wielded, vict, TO_ROOM);
     }
   } else {
     damage(ch, vict, 0, SKILL_SAP, DAM_FORCE, FALSE);
@@ -1733,6 +1736,11 @@ ACMD(do_backstab) {
     ;
   else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_OFFHAND) && !GET_EQ(ch, WEAR_WIELD_2H)) {
     send_to_char(ch, "You need to wield a weapon to make it a success.\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch)) {
+    send_to_char(ch, "You are too busy to attempt a backstab!\r\n");
     return;
   }
 
@@ -2889,8 +2897,13 @@ ACMD(do_sap) {
 
   one_argument(argument, buf);
 
-  if (CLASS_LEVEL(ch, CLASS_ROGUE) < 10) {
+  if (!HAS_FEAT(ch, FEAT_SAP)) {
     send_to_char(ch, "But you do not know how?\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch)) {
+    send_to_char(ch, "You are too busy fighting to do this!\r\n");
     return;
   }
 
