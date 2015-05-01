@@ -226,6 +226,7 @@ void load_treasure(struct char_data *mob);
 
 // staff tool to load random items
 ACMD(do_loadmagic);
+ACMD(do_loadmagicspecific);
 
 
 #endif	/* TREASURE_H */
