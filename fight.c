@@ -1577,6 +1577,9 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
 
       /* dam == 0, we did not do any damage! */
       else if (ch != vict) {
+        /* do we have armor that can stop a blow? */
+        struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
+        int armor_val = GET_OBJ_VAL(armor, 1); /* armor type */
 
         /* insert more colorful defensive messages here */
 
@@ -1598,7 +1601,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             (name)(vict, shield, 0, "shieldblock");
 
         /* parry */
-        } else if (opponent_weapon && !rand_number(0, 2)) {
+        } else if (opponent_weapon && !rand_number(0, 3)) {
           return_value = SKILL_MESSAGE_MISS_PARRY;
 
           send_to_char(ch, CCYEL(ch, C_CMP));
@@ -1614,7 +1617,24 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           if (name)
             (name)(vict, opponent_weapon, 0, "parry");
 
-        } else {
+          /* glance off armor */
+        } else if (armor && armor_list[armor_val].armorType > ARMOR_TYPE_NONE &&
+                   !rand_number(0, 2)) {
+          return_value = SKILL_MESSAGE_MISS_GLANCE;
+          send_to_char(ch, CCYEL(ch, C_CMP));
+          act("Your attack glances off $N's $p!", FALSE, ch, armor, vict, TO_CHAR);
+          send_to_char(ch, CCNRM(ch, C_CMP));
+          send_to_char(vict, CCRED(vict, C_CMP));
+          act("$n's attack glances off your $p!", FALSE, ch, armor, vict, TO_VICT | TO_SLEEP);
+          send_to_char(vict, CCNRM(vict, C_CMP));
+          act("$n's attack glances off $N's $p!", FALSE, ch, armor, vict, TO_NOTVICT);
+
+          /* fire any glance specs we might have */
+          name = obj_index[GET_OBJ_RNUM(armor)].func;
+          if (name)
+            (name)(vict, armor, 0, "glance");
+
+        } else { /* we fell through to generic miss message from file */
           return_value = SKILL_MESSAGE_MISS_GENERIC;
           /* default to miss messages in-file */
           if (msg->miss_msg.attacker_msg) {
