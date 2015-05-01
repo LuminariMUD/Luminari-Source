@@ -1469,6 +1469,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_ANIMATE_DEAD, eANIMATEDEAD);
   dailyfeat(FEAT_LAYHANDS, eLAYONHANDS);
   dailyfeat(FEAT_RAGE, eRAGE);
+  dailyfeat(FEAT_VANISH, eVANISHED);
   dailyfeat(FEAT_SMITE_EVIL, eSMITE);
   dailyfeat(FEAT_TURN_UNDEAD, eTURN_UNDEAD);
   dailyfeat(FEAT_WILD_SHAPE, eWILD_SHAPE);

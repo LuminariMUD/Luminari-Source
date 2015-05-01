@@ -1154,7 +1154,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
 
   if ((pMudEvent = char_has_mud_event(k, eTAUNT)))
     send_to_char(ch, "Taunt - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eVANISH)))
+  if ((pMudEvent = char_has_mud_event(k, eVANISHED)))
     send_to_char(ch, "Vanish - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRAGE)))
     send_to_char(ch, "Rage - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
@@ -1420,6 +1420,8 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
     }
   }
 
+  if ((pMudEvent = char_has_mud_event(k, eVANISH)))
+    send_to_char(ch, "\tRVanished!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTAUNTED)))
     send_to_char(ch, "\tRTaunted!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSTUNNED)))
