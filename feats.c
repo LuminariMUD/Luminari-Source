@@ -828,6 +828,10 @@ void assign_feats(void) {
     "+1d6 to damage when flanking",
     "+1d6/rank to damage when flanking, opponent is flat-footed, or opponent is without dexterity bonus");
   feat_prereq_class_level(FEAT_SNEAK_ATTACK, CLASS_ROGUE, 2);
+  feato(FEAT_WEAPON_PROFICIENCY_ROGUE, "weapon proficiency - rogues", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
+  "proficiency in rogue weapons",
+  "You are proficient in the usage of hand-crossbows, rapiers, sap, short-sword "
+          "and short-bow.");
 
 
   /* Rogue / Berserker */
@@ -930,6 +934,9 @@ void assign_feats(void) {
   feato(FEAT_WILD_SHAPE_5, "wild shape v", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "Advance the ability to shapechange",
     "Can use wildshape to change into a Huge elemental or a Huge plant creature.");
+  feato(FEAT_WEAPON_PROFICIENCY_DRUID, "weapon proficiency - druids", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
+    "proficiency in druid weapons",
+    "You are proficient in the usage of clubs, daggers, quarterstaff, darts, sickle, scimitar, shortspear, spear and slings.");
 
   /* Druid / Monk */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -991,6 +998,9 @@ void assign_feats(void) {
       "in addition, to opponents that are your level or lower, they have to make "
       "a fortitude save vs DC: your monk level + your wisdom bonus + 10 in order "
       "to survive your quivering palm attack");
+  feato(FEAT_WEAPON_PROFICIENCY_MONK, "weapon proficiency - monks", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
+    "proficiency in monk weapons",
+    "You are proficient in the usage of quarterstaff, kama, siangham, and shuriken.");
   /* not imped */feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON, "tongue of the sun and moon [not impd]", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented] can speak any language", "[not implemented] can speak any language");
 
   /* Bard */
@@ -1027,6 +1037,9 @@ void assign_feats(void) {
   /* unfinished */ feato(FEAT_INSPIRE_COURAGE, "inspire courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "Bolster group members against fear attacks and improve their combat ability.",
     "Bolster group members against fear attacks and improve their combat ability.");
+  feato(FEAT_WEAPON_PROFICIENCY_BARD, "weapon proficiency - bards", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
+    "proficiency in bard weapons",
+    "You are proficient in the usage of long swords, rapiers, sap, short swords, short bows and whips.");
 
   /* Berserker */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -1095,6 +1108,9 @@ void assign_feats(void) {
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "summon a magical pet",
     "summon a magical pet");
+  feato(FEAT_WEAPON_PROFICIENCY_WIZARD, "weapon proficiency - wizards", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
+    "proficiency in wizard weapons",
+    "You are proficient in the usage of daggers, quarterstaff, club, heavy and light crossbows.");
 
   /* class feats that are implemented on classes that are not yet in the game */
 
@@ -1234,7 +1250,6 @@ void assign_feats(void) {
   feato(FEAT_OPPORTUNIST, "opportunist", FALSE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "once per round the rogue may make an attack of opportunity against a foe an ally just struck", "once per round the rogue may make an attack of opportunity against a foe an ally just struck");
   feato(FEAT_IMPROVED_SNEAK_ATTACK, "improved sneak attack", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "each rank gives +5% chance per attack, per rank to be a sneak attack.", "each rank gives +5% chance per attack, per rank to be a sneak attack.");
   feato(FEAT_ROBILARS_GAMBIT, "robilars gambit", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.", "when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.");
-  feato(FEAT_WEAPON_PROFICIENCY_ROGUE, "weapon proficiency - rogues", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_POWERFUL_SNEAK, "powerful sneak", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2", "opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2");
   /* epic */
   feato(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY, "sneak attack of opportunity", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "makes all opportunity attacks sneak attacks", "makes all opportunity attacks sneak attacks");
@@ -1375,7 +1390,6 @@ void assign_feats(void) {
   feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+1 spell damage per die rolled", "+1 spell damage per die rolled");
   feato(FEAT_FASTER_MEMORIZATION, "faster memorization", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "decreases spell memorization time", "decreases spell memorization time");
   feato(FEAT_SPELL_FOCUS, "spell focus", FALSE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING, "+1 to all spell dcs for all spells in school/domain", "+1 to all spell dcs for all spells in school/domain");
-  feato(FEAT_WEAPON_PROFICIENCY_WIZARD, "weapon proficiency - wizards", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   /* epic */
   feato(FEAT_EPIC_SPELLCASTING, "epic spellcasting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "allows you to cast epic spells", "allows you to cast epic spells");
   feato(FEAT_INTENSIFY_SPELL, "intensify spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "maximizes damage/healing and then doubles it.", "maximizes damage/healing and then doubles it.");
@@ -1386,11 +1400,9 @@ void assign_feats(void) {
   feato(FEAT_SACRED_FLAMES, "sacred flames", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use innate 'flame weapon' 3 times per 10 minutes", "allows you to use innate 'flame weapon' 3 times per 10 minutes");
 
   /* druid */
-  feato(FEAT_WEAPON_PROFICIENCY_DRUID, "weapon proficiency - druids", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_NATURAL_SPELL, "natural spell", FALSE, TRUE, FALSE, FEAT_TYPE_WILD, "allows casting of spells while wild shaped.", "allows casting of spells while wild shaped.");
 
   /* monk */
-  feato(FEAT_WEAPON_PROFICIENCY_MONK, "weapon proficiency - monks", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
 
   /* End Class ability Feats */
 

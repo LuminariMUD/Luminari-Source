@@ -2265,7 +2265,7 @@ ACMD(do_vanish) {
   }
 
   if (((uses_remaining = daily_uses_remaining(ch, FEAT_VANISH)) == 0)) {
-    send_to_char(ch, "You must recover before you can go into a rage.\r\n");
+    send_to_char(ch, "You must recover before you can vanish again.\r\n");
     return;
   }
 

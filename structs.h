@@ -1552,11 +1552,12 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_BLINDING_SPEED                 387
 #define FEAT_VANISH                         388
 #define FEAT_IMPROVED_VANISH                389
+#define FEAT_WEAPON_PROFICIENCY_BARD        390
 
 /** reserved **/
-#define FEAT_LAST_FEAT                   390
+#define FEAT_LAST_FEAT                   391
 /*****/
-#define NUM_FEATS                        391
+#define NUM_FEATS                        392
 /*****/
 #define MAX_FEATS                        750
 /*****/
