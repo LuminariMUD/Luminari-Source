@@ -638,7 +638,7 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
     } else if (roll <= 75)
         award_misc_magic_item(ch, grade, level);
       else
-        award_magic_armor(ch, grade, level);
+        award_magic_armor(ch, grade, level, -1);
   }
 }
 
@@ -1115,10 +1115,10 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
  * 3)  determine Creation Points
  * 4)  determine AC bonus (Always first stat...)
  * 5)  craft description based on object and bonuses */
-void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
+void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_slot) {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE, roll = 0, crest_num = 0;
-  int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
+  int rare_grade = 0, color1 = 0, color2 = 0, level = 0, found_slot = FALSE;
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
 
@@ -1135,242 +1135,549 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel) {
     sprintf(desc, "\tG[Rare]\tn ");
   }
 
+  /* attempt to find wear_slot */
+  switch (wear_slot) {
+    case WEAR_BODY:
+      switch (rand_number(1, 9)) {
+          /* body pieces */
+        case 1:
+          vnum = PLATE_BODY;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa suit of", desc);
+          sprintf(armor_name, "plate mail armor");
+          found_slot = TRUE;
+          break;
+        case 2:
+          vnum = HALFPLATE_BODY;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa suit of", desc);
+          sprintf(armor_name, "half plate armor");
+          found_slot = TRUE;
+          break;
+        case 3:
+          vnum = SPLINT_BODY;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa suit of", desc);
+          sprintf(armor_name, "splint mail armor");
+          found_slot = TRUE;
+          break;
+        case 4:
+          vnum = BREASTPLATE_BODY;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa suit of", desc);
+          sprintf(armor_name, "breastplate armor");
+          found_slot = TRUE;
+          break;
+        case 5:
+          vnum = CHAIN_BODY;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa suit of", desc);
+          sprintf(armor_name, "chain mail armor");
+          found_slot = TRUE;
+          break;
+        case 6:
+          vnum = STUD_LEATHER_BODY;
+          material = MATERIAL_LEATHER;
+          sprintf(desc, "%sa suit of", desc);
+          sprintf(armor_name, "studded armor");
+          found_slot = TRUE;
+          break;
+        case 7:
+          vnum = LEATHER_BODY;
+          material = MATERIAL_LEATHER;
+          sprintf(desc, "%sa suit of", desc);
+          sprintf(armor_name, "armor");
+          found_slot = TRUE;
+          break;
+        case 8:
+          vnum = PADDED_BODY;
+          material = MATERIAL_COTTON;
+          sprintf(desc, "%sa suit of", desc);
+          sprintf(armor_name, "padded armor");
+          found_slot = TRUE;
+          break;
+        case 9:
+          vnum = CLOTH_BODY;
+          material = MATERIAL_COTTON;
+          sprintf(desc, "%ssome", desc);
+          sprintf(armor_name, "robes");
+          found_slot = TRUE;
+          break;
+        default:
+          found_slot = FALSE;
+          break;
+      }
+      break;
+    case WEAR_LEGS:
+      switch (rand_number(27, 34)) {
+          /* leg pieces */
+        case 27:
+          vnum = PLATE_LEGS;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "plate mail greaves");
+          found_slot = TRUE;
+          break;
+        case 28:
+          vnum = HALFPLATE_LEGS;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "half plate greaves");
+          found_slot = TRUE;
+          break;
+        case 29:
+          vnum = SPLINT_LEGS;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "splint mail greaves");
+          found_slot = TRUE;
+          break;
+        case 30:
+          vnum = CHAIN_LEGS;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "chain mail leggings");
+          found_slot = TRUE;
+          break;
+        case 31:
+          vnum = STUD_LEATHER_LEGS;
+          material = MATERIAL_LEATHER;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "studded leggings");
+          found_slot = TRUE;
+          break;
+        case 32:
+          vnum = LEATHER_LEGS;
+          material = MATERIAL_LEATHER;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "cuisses");
+          found_slot = TRUE;
+          break;
+        case 33:
+          vnum = PADDED_LEGS;
+          material = MATERIAL_COTTON;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "padded armor leggings");
+          found_slot = TRUE;
+          break;
+        case 34:
+          vnum = CLOTH_LEGS;
+          material = MATERIAL_COTTON;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "cloth pants");
+          found_slot = TRUE;
+          break;
+        default:
+          found_slot = FALSE;
+          break;
+      }
+      break;
+    case WEAR_ARMS:
+      switch (rand_number(19, 26)) {
+        case 19:
+          vnum = PLATE_ARMS;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "plate mail vambraces");
+          found_slot = TRUE;
+          break;
+        case 20:
+          vnum = HALFPLATE_ARMS;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "half plate vambraces");
+          found_slot = TRUE;
+          break;
+        case 21:
+          vnum = SPLINT_ARMS;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "splint mail vambraces");
+          found_slot = TRUE;
+          break;
+        case 22:
+          vnum = CHAIN_ARMS;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "chain mail sleeves");
+          found_slot = TRUE;
+          break;
+        case 23:
+          vnum = STUD_LEATHER_ARMS;
+          material = MATERIAL_LEATHER;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "studded sleeves");
+          found_slot = TRUE;
+          break;
+        case 24:
+          vnum = LEATHER_ARMS;
+          material = MATERIAL_LEATHER;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "sleeves");
+          found_slot = TRUE;
+          break;
+        case 25:
+          vnum = PADDED_ARMS;
+          material = MATERIAL_COTTON;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "padded armor sleeves");
+          found_slot = TRUE;
+          break;
+        case 26:
+          vnum = CLOTH_ARMS;
+          material = MATERIAL_COTTON;
+          sprintf(desc, "%sa set of", desc);
+          sprintf(armor_name, "cloth sleeves");
+          found_slot = TRUE;
+          break;
+        default:
+          found_slot = FALSE;
+          break;
+      }
+      break;
+    case WEAR_HEAD:
+      switch (rand_number(10, 18)) {
+        case 10:
+          vnum = PLATE_HELM;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "plate mail helm");
+          found_slot = TRUE;
+          break;
+        case 11:
+          vnum = HALFPLATE_HELM;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "half plate helm");
+          found_slot = TRUE;
+          break;
+        case 12:
+          vnum = SPLINT_HELM;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "splint mail helm");
+          found_slot = TRUE;
+          break;
+        case 13:
+          vnum = PIECEPLATE_HELM;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "piece plate helm");
+          found_slot = TRUE;
+          break;
+        case 14:
+          vnum = CHAIN_HELM;
+          material = MATERIAL_BRONZE;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "coif");
+          found_slot = TRUE;
+          break;
+        case 15:
+          vnum = STUD_LEATHER_HELM;
+          material = MATERIAL_LEATHER;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "studded helm");
+          found_slot = TRUE;
+          break;
+        case 16:
+          vnum = LEATHER_HELM;
+          material = MATERIAL_LEATHER;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "helm");
+          found_slot = TRUE;
+          break;
+        case 17:
+          vnum = PADDED_HELM;
+          material = MATERIAL_COTTON;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "padded armor helm");
+          found_slot = TRUE;
+          break;
+        case 18:
+          vnum = CLOTH_HELM;
+          material = MATERIAL_COTTON;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "cloth hood");
+          found_slot = TRUE;
+          break;
+        default:
+          found_slot = FALSE;
+          break;
+      }
+      break;
+    case WEAR_SHIELD:
+      switch (rand_number(35, 37)) {
+          /* shields */
+        case 35:
+          vnum = SHIELD_MEDIUM;
+          material = MATERIAL_WOOD;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "medium shield");
+          found_slot = TRUE;
+          break;
+        case 36:
+          vnum = SHIELD_LARGE;
+          material = MATERIAL_WOOD;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "large shield");
+          found_slot = TRUE;
+          break;
+        case 37:
+          vnum = SHIELD_TOWER;
+          material = MATERIAL_WOOD;
+          sprintf(desc, "%sa", desc);
+          sprintf(armor_name, "tower shield");
+          found_slot = TRUE;
+          break;
+        default:
+          found_slot = FALSE;
+          break;
+
+      }
+      break;
+    default:
+      found_slot = FALSE;
+      break;
+  }
+
   /* find a random piece of armor
    * assign base material
    * and last but not least, give appropriate start of description
    *  */
-  switch (dice(1, NUM_ARMOR_MOLDS)) {
-      /* body pieces */
-    case 1:
-      vnum = PLATE_BODY;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa suit of", desc);
-      sprintf(armor_name, "plate mail armor");
-      break;
-    case 2:
-      vnum = HALFPLATE_BODY;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa suit of", desc);
-      sprintf(armor_name, "half plate armor");
-      break;
-    case 3:
-      vnum = SPLINT_BODY;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa suit of", desc);
-      sprintf(armor_name, "splint mail armor");
-      break;
-    case 4:
-      vnum = BREASTPLATE_BODY;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa suit of", desc);
-      sprintf(armor_name, "breastplate armor");
-      break;
-    case 5:
-      vnum = CHAIN_BODY;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa suit of", desc);
-      sprintf(armor_name, "chain mail armor");
-      break;
-    case 6:
-      vnum = STUD_LEATHER_BODY;
-      material = MATERIAL_LEATHER;
-      sprintf(desc, "%sa suit of", desc);
-      sprintf(armor_name, "studded armor");
-      break;
-    case 7:
-      vnum = LEATHER_BODY;
-      material = MATERIAL_LEATHER;
-      sprintf(desc, "%sa suit of", desc);
-      sprintf(armor_name, "armor");
-      break;
-    case 8:
-      vnum = PADDED_BODY;
-      material = MATERIAL_COTTON;
-      sprintf(desc, "%sa suit of", desc);
-      sprintf(armor_name, "padded armor");
-      break;
-    case 9:
-      vnum = CLOTH_BODY;
-      material = MATERIAL_COTTON;
-      sprintf(desc, "%ssome", desc);
-      sprintf(armor_name, "robes");
-      break;
+  if (!found_slot) {
+    switch (dice(1, NUM_ARMOR_MOLDS)) {
+        /* body pieces */
+      case 1:
+        vnum = PLATE_BODY;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa suit of", desc);
+        sprintf(armor_name, "plate mail armor");
+        break;
+      case 2:
+        vnum = HALFPLATE_BODY;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa suit of", desc);
+        sprintf(armor_name, "half plate armor");
+        break;
+      case 3:
+        vnum = SPLINT_BODY;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa suit of", desc);
+        sprintf(armor_name, "splint mail armor");
+        break;
+      case 4:
+        vnum = BREASTPLATE_BODY;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa suit of", desc);
+        sprintf(armor_name, "breastplate armor");
+        break;
+      case 5:
+        vnum = CHAIN_BODY;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa suit of", desc);
+        sprintf(armor_name, "chain mail armor");
+        break;
+      case 6:
+        vnum = STUD_LEATHER_BODY;
+        material = MATERIAL_LEATHER;
+        sprintf(desc, "%sa suit of", desc);
+        sprintf(armor_name, "studded armor");
+        break;
+      case 7:
+        vnum = LEATHER_BODY;
+        material = MATERIAL_LEATHER;
+        sprintf(desc, "%sa suit of", desc);
+        sprintf(armor_name, "armor");
+        break;
+      case 8:
+        vnum = PADDED_BODY;
+        material = MATERIAL_COTTON;
+        sprintf(desc, "%sa suit of", desc);
+        sprintf(armor_name, "padded armor");
+        break;
+      case 9:
+        vnum = CLOTH_BODY;
+        material = MATERIAL_COTTON;
+        sprintf(desc, "%ssome", desc);
+        sprintf(armor_name, "robes");
+        break;
 
-      /* head pieces */
-    case 10:
-      vnum = PLATE_HELM;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "plate mail helm");
-      break;
-    case 11:
-      vnum = HALFPLATE_HELM;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "half plate helm");
-      break;
-    case 12:
-      vnum = SPLINT_HELM;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "splint mail helm");
-      break;
-    case 13:
-      vnum = PIECEPLATE_HELM;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "piece plate helm");
-      break;
-    case 14:
-      vnum = CHAIN_HELM;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "coif");
-      break;
-    case 15:
-      vnum = STUD_LEATHER_HELM;
-      material = MATERIAL_LEATHER;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "studded helm");
-      break;
-    case 16:
-      vnum = LEATHER_HELM;
-      material = MATERIAL_LEATHER;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "helm");
-      break;
-    case 17:
-      vnum = PADDED_HELM;
-      material = MATERIAL_COTTON;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "padded armor helm");
-      break;
-    case 18:
-      vnum = CLOTH_HELM;
-      material = MATERIAL_COTTON;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "cloth hood");
-      break;
+        /* head pieces */
+      case 10:
+        vnum = PLATE_HELM;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "plate mail helm");
+        break;
+      case 11:
+        vnum = HALFPLATE_HELM;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "half plate helm");
+        break;
+      case 12:
+        vnum = SPLINT_HELM;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "splint mail helm");
+        break;
+      case 13:
+        vnum = PIECEPLATE_HELM;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "piece plate helm");
+        break;
+      case 14:
+        vnum = CHAIN_HELM;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "coif");
+        break;
+      case 15:
+        vnum = STUD_LEATHER_HELM;
+        material = MATERIAL_LEATHER;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "studded helm");
+        break;
+      case 16:
+        vnum = LEATHER_HELM;
+        material = MATERIAL_LEATHER;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "helm");
+        break;
+      case 17:
+        vnum = PADDED_HELM;
+        material = MATERIAL_COTTON;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "padded armor helm");
+        break;
+      case 18:
+        vnum = CLOTH_HELM;
+        material = MATERIAL_COTTON;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "cloth hood");
+        break;
 
-      /* arm pieces */
-    case 19:
-      vnum = PLATE_ARMS;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "plate mail vambraces");
-      break;
-    case 20:
-      vnum = HALFPLATE_ARMS;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "half plate vambraces");
-      break;
-    case 21:
-      vnum = SPLINT_ARMS;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "splint mail vambraces");
-      break;
-    case 22:
-      vnum = CHAIN_ARMS;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "chain mail sleeves");
-      break;
-    case 23:
-      vnum = STUD_LEATHER_ARMS;
-      material = MATERIAL_LEATHER;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "studded sleeves");
-      break;
-    case 24:
-      vnum = LEATHER_ARMS;
-      material = MATERIAL_LEATHER;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "sleeves");
-      break;
-    case 25:
-      vnum = PADDED_ARMS;
-      material = MATERIAL_COTTON;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "padded armor sleeves");
-      break;
-    case 26:
-      vnum = CLOTH_ARMS;
-      material = MATERIAL_COTTON;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "cloth sleeves");
-      break;
+        /* arm pieces */
+      case 19:
+        vnum = PLATE_ARMS;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "plate mail vambraces");
+        break;
+      case 20:
+        vnum = HALFPLATE_ARMS;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "half plate vambraces");
+        break;
+      case 21:
+        vnum = SPLINT_ARMS;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "splint mail vambraces");
+        break;
+      case 22:
+        vnum = CHAIN_ARMS;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "chain mail sleeves");
+        break;
+      case 23:
+        vnum = STUD_LEATHER_ARMS;
+        material = MATERIAL_LEATHER;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "studded sleeves");
+        break;
+      case 24:
+        vnum = LEATHER_ARMS;
+        material = MATERIAL_LEATHER;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "sleeves");
+        break;
+      case 25:
+        vnum = PADDED_ARMS;
+        material = MATERIAL_COTTON;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "padded armor sleeves");
+        break;
+      case 26:
+        vnum = CLOTH_ARMS;
+        material = MATERIAL_COTTON;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "cloth sleeves");
+        break;
 
-      /* leg pieces */
-    case 27:
-      vnum = PLATE_LEGS;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "plate mail greaves");
-      break;
-    case 28:
-      vnum = HALFPLATE_LEGS;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "half plate greaves");
-      break;
-    case 29:
-      vnum = SPLINT_LEGS;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "splint mail greaves");
-      break;
-    case 30:
-      vnum = CHAIN_LEGS;
-      material = MATERIAL_BRONZE;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "chain mail leggings");
-      break;
-    case 31:
-      vnum = STUD_LEATHER_LEGS;
-      material = MATERIAL_LEATHER;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "studded leggings");
-      break;
-    case 32:
-      vnum = LEATHER_LEGS;
-      material = MATERIAL_LEATHER;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "cuisses");
-      break;
-    case 33:
-      vnum = PADDED_LEGS;
-      material = MATERIAL_COTTON;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "padded armor leggings");
-      break;
-    case 34:
-      vnum = CLOTH_LEGS;
-      material = MATERIAL_COTTON;
-      sprintf(desc, "%sa set of", desc);
-      sprintf(armor_name, "cloth pants");
-      break;
+        /* leg pieces */
+      case 27:
+        vnum = PLATE_LEGS;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "plate mail greaves");
+        break;
+      case 28:
+        vnum = HALFPLATE_LEGS;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "half plate greaves");
+        break;
+      case 29:
+        vnum = SPLINT_LEGS;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "splint mail greaves");
+        break;
+      case 30:
+        vnum = CHAIN_LEGS;
+        material = MATERIAL_BRONZE;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "chain mail leggings");
+        break;
+      case 31:
+        vnum = STUD_LEATHER_LEGS;
+        material = MATERIAL_LEATHER;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "studded leggings");
+        break;
+      case 32:
+        vnum = LEATHER_LEGS;
+        material = MATERIAL_LEATHER;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "cuisses");
+        break;
+      case 33:
+        vnum = PADDED_LEGS;
+        material = MATERIAL_COTTON;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "padded armor leggings");
+        break;
+      case 34:
+        vnum = CLOTH_LEGS;
+        material = MATERIAL_COTTON;
+        sprintf(desc, "%sa set of", desc);
+        sprintf(armor_name, "cloth pants");
+        break;
 
-      /* shields */
-    case 35:
-      vnum = SHIELD_MEDIUM;
-      material = MATERIAL_WOOD;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "medium shield");
-      break;
-    case 36:
-      vnum = SHIELD_LARGE;
-      material = MATERIAL_WOOD;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "large shield");
-      break;
-    case 37:
-      vnum = SHIELD_TOWER;
-      material = MATERIAL_WOOD;
-      sprintf(desc, "%sa", desc);
-      sprintf(armor_name, "tower shield");
-      break;
+        /* shields */
+      case 35:
+        vnum = SHIELD_MEDIUM;
+        material = MATERIAL_WOOD;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "medium shield");
+        break;
+      case 36:
+        vnum = SHIELD_LARGE;
+        material = MATERIAL_WOOD;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "large shield");
+        break;
+      case 37:
+        vnum = SHIELD_TOWER;
+        material = MATERIAL_WOOD;
+        sprintf(desc, "%sa", desc);
+        sprintf(armor_name, "tower shield");
+        break;
+    }
   }
 
   /* we already determined 'base' material, now
@@ -2394,6 +2701,88 @@ void load_treasure(char_data *mob) {
 
   /* Give the mob one magic item. */
   award_magic_item(1, mob, level, grade);
+}
+
+/* staff tool to load random items */
+ACMD(do_loadmagicspecific) {
+  char arg1[MAX_STRING_LENGTH];
+  char arg2[MAX_STRING_LENGTH];
+  int type = 0;
+  int grade = 0;
+
+  two_arguments(argument, arg1, arg2);
+
+  if (!*arg1) {
+    send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | medium | major] "
+            "[weapon | shield | body | legs | arms | head | misc]\r\n");
+    return;
+  }
+
+  if (!*arg2) {
+    send_to_char(ch, "The second argument must be either weapon/body/legs/arms/head/misc.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg1, "mundane"))
+    grade = GRADE_MUNDANE;
+  else if (is_abbrev(arg1, "minor"))
+    grade = GRADE_MINOR;
+  else if (is_abbrev(arg1, "medium"))
+    grade = GRADE_MEDIUM;
+  else if (is_abbrev(arg1, "major"))
+    grade = GRADE_MAJOR;
+  else {
+    send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | medium | major] "
+            "[weapon | shield | body | legs | arms | head | misc]\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg2, "weapon"))
+    type = 1;
+  else if (is_abbrev(arg2, "body"))
+    type = 2;
+  else if (is_abbrev(arg2, "legs"))
+    type = 3;
+  else if (is_abbrev(arg2, "arms"))
+    type = 4;
+  else if (is_abbrev(arg2, "head"))
+    type = 5;
+  else if (is_abbrev(arg2, "misc"))
+    type = 6;
+  else if (is_abbrev(arg2, "shield"))
+    type = 7;
+  else {
+    send_to_char(ch, "The second argument must be either weapon/shield/body/legs/arms/head/misc.\r\n");
+    return;
+  }
+
+  switch (type) {
+    case 1: /* weapon */
+      award_magic_weapon(ch, grade, GET_LEVEL(ch));
+      break;
+    case 2: /* body */
+      award_magic_armor(ch, grade, GET_LEVEL(ch), WEAR_BODY);
+      break;
+    case 3: /* legs */
+      award_magic_armor(ch, grade, GET_LEVEL(ch), WEAR_LEGS);
+      break;
+    case 4: /* arms */
+      award_magic_armor(ch, grade, GET_LEVEL(ch), WEAR_ARMS);
+      break;
+    case 5: /* head */
+      award_magic_armor(ch, grade, GET_LEVEL(ch), WEAR_HEAD);
+      break;
+    case 6: /* misc */
+      award_misc_magic_item(ch, grade, GET_LEVEL(ch));
+      break;
+    case 7: /* shield */
+      award_magic_armor(ch, grade, GET_LEVEL(ch), WEAR_SHIELD);
+      break;
+    default:
+      send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | medium | major] "
+              "[weapon | body | legs | arms | head | misc]\r\n");
+      break;
+  }
 }
 
 /* staff tool to load random items */
