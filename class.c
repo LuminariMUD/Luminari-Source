@@ -347,7 +347,7 @@ int preferred_save[5][NUM_CLASSES] = {
 
 /* Derived from the SRD under OGL, see ../doc/srd.txt for information */
 int free_start_feats_wizard[] = {
-  FEAT_SIMPLE_WEAPON_PROFICIENCY,
+  FEAT_WEAPON_PROFICIENCY_WIZARD,
   FEAT_SCRIBE_SCROLL,
   0
 };
@@ -411,6 +411,7 @@ int free_start_feats_berserker[] = {
 };
 int free_start_feats_druid[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
+  FEAT_WEAPON_PROFICIENCY_DRUID,
   FEAT_ARMOR_PROFICIENCY_LIGHT,
   FEAT_ARMOR_PROFICIENCY_MEDIUM,
   FEAT_ARMOR_PROFICIENCY_SHIELD,
@@ -422,12 +423,14 @@ int free_start_feats_druid[] = {
 
 int free_start_feats_bard[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
+  FEAT_WEAPON_PROFICIENCY_BARD,
   FEAT_ARMOR_PROFICIENCY_LIGHT,
   FEAT_ARMOR_PROFICIENCY_SHIELD,
   0
 };
 
 int free_start_feats_sorcerer[] = {
+  FEAT_WEAPON_PROFICIENCY_WIZARD,
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_SUMMON_FAMILIAR,
   0

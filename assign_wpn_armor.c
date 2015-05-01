@@ -38,7 +38,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
           IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC))
     return TRUE;
 
-  if (CLASS_LEVEL(ch, CLASS_MONK) &&
+  if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_MONK) &&
           weapon_list[weapon].weaponFamily == WEAPON_FAMILY_MONK)
     return TRUE;
 
@@ -58,7 +58,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
     }
   }
 
-  if (CLASS_LEVEL(ch, CLASS_BARD) > 0) {
+  if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_BARD) ||
+      CLASS_LEVEL(ch, CLASS_BARD) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_LONG_SWORD:
       case WEAPON_TYPE_RAPIER:
