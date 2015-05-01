@@ -82,6 +82,8 @@ struct mud_event_list mud_event_index[] = {
   { "Renewed Vigor", event_countdown, EVENT_CHAR}, // eRENEWEDVIGOR
   { "Come and Get Me!", event_countdown, EVENT_CHAR}, //eCOME_AND_GET_ME
   { "Animate Dead", event_daily_use_cooldown, EVENT_CHAR}, //eANIMATEDEAD
+  { "Vanish", event_countdown, EVENT_CHAR}, //eVANISH
+  { "Vanish Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eVANISHED
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -163,6 +165,9 @@ EVENTFUNC(event_countdown) {
       break;
     case eHELLBALL:
       send_to_char(ch, "You are now able to cast Hellball again.\r\n");
+      break;
+    case eVANISHED:
+      send_to_char(ch, "You are now able to vanish again.\r\n");
       break;
     case eLAYONHANDS:
       send_to_char(ch, "You are now able to lay on hands again.\r\n");
